@@ -29,7 +29,7 @@ var validContributionStatuses = map[string]struct{}{
 }
 
 type animeContributionCreateRequest struct {
-	FansubGroupMemberID     int64    `json:"fansub_group_member_id"`
+	MemberID                int64    `json:"member_id"`
 	RoleCodes               []string `json:"role_codes"`
 	Status                  string   `json:"status"`
 	StartedYear             *int     `json:"started_year"`

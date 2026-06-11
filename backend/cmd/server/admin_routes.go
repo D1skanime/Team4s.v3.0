@@ -177,6 +177,8 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.DELETE("/admin/fansubs/:id/anime/:animeId/contributions/:contributionId", auth, deps.animeContributionsHandler.DeleteAnimeContribution)
 	// Phase 67-04: gruppen-gefiltertes Release-Version-Dropdown (Leader-Formular)
 	v1.GET("/admin/fansubs/:id/anime/:animeId/release-versions", auth, deps.animeContributionsHandler.ListGroupReleaseVersions)
+	// Phase 82-02: Vereinheitlichte Personenliste (App + historisch über members.id, D-02)
+	v1.GET("/admin/fansubs/:id/unified-members", auth, deps.animeContributionsHandler.ListUnifiedGroupMembers)
 	// Phase 66: Claiming und Verifizierung
 	v1.GET("/admin/fansubs/:id/member-claims", auth, deps.memberClaimsHandler.ListPendingClaimsForGroup)
 	v1.POST("/admin/fansubs/:id/member-claims/:claimId/verify", auth, deps.memberClaimsHandler.VerifyClaim)

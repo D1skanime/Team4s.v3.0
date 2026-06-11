@@ -392,7 +392,7 @@ func main() {
 	)
 	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(
 		animeContributionsRepo, histGroupMemberRolesRepo, permissionSvc, auditLogRepo,
-	).WithBadgeService(badgeService)
+	).WithBadgeService(badgeService).WithHistMembersRepo(histGroupMembersRepo)
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo).
 		WithPermissionSvc(permissionSvc)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo)

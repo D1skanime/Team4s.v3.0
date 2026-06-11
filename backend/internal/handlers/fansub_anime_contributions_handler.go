@@ -18,6 +18,7 @@ import (
 type FansubAnimeContributionsHandler struct {
 	contributionsRepo *repository.AnimeContributionsRepository
 	rolesRepo         *repository.HistGroupMemberRolesRepository
+	histMembersRepo   *repository.HistGroupMembersRepository // für ListUnifiedGroupMembers (D-02)
 	permissionSvc     *permissions.Service
 	auditLogRepo      *repository.AuditLogRepository
 	badgeService      *services.BadgeService // Phase 68: Badge-Recompute
@@ -36,6 +37,12 @@ func NewFansubAnimeContributionsHandler(
 		permissionSvc:     permissionSvc,
 		auditLogRepo:      auditLogRepo,
 	}
+}
+
+// WithHistMembersRepo ergänzt das HistGroupMembersRepository (für /unified-members, D-02).
+func (h *FansubAnimeContributionsHandler) WithHistMembersRepo(repo *repository.HistGroupMembersRepository) *FansubAnimeContributionsHandler {
+	h.histMembersRepo = repo
+	return h
 }
 
 // WithBadgeService ergänzt den Badge-Recompute-Trigger (Phase 68).
@@ -122,15 +129,15 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		return
 	}
 
-	if req.FansubGroupMemberID <= 0 {
-		badRequest(c, "fansub_group_member_id ist erforderlich")
+	if req.MemberID <= 0 {
+		badRequest(c, "member_id ist erforderlich")
 		return
 	}
 
-	// Cross-Group-Guard: Mitglied muss zur Fansub-Gruppe gehören.
-	belongs, err := h.contributionsRepo.MemberBelongsToFansub(c.Request.Context(), req.FansubGroupMemberID, fansubID)
+	// Cross-Group-Guard: Mitglied (App ODER historisch) muss zur Fansub-Gruppe gehören (T-82-02-02/03).
+	belongs, err := h.contributionsRepo.MemberBelongsToFansub(c.Request.Context(), req.MemberID, fansubID)
 	if err != nil {
-		log.Printf("anime contributions create: member group check error (member_id=%d, fansub_id=%d): %v", req.FansubGroupMemberID, fansubID, err)
+		log.Printf("anime contributions create: member group check error (member_id=%d, fansub_id=%d): %v", req.MemberID, fansubID, err)
 		internalError(c, "interner serverfehler")
 		return
 	}
@@ -181,7 +188,7 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 	}
 
 	input := repository.AnimeContributionInput{
-		FansubGroupMemberID:     req.FansubGroupMemberID,
+		MemberID:                req.MemberID,
 		RoleCodes:               req.RoleCodes,
 		Status:                  status,
 		StartedYear:             req.StartedYear,
@@ -227,9 +234,9 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		Payload:        map[string]any{"status": status, "release_version_id": req.ReleaseVersionID},
 	})
 
-	// Badge-Recompute (nicht kritischer Pfad).
+	// Badge-Recompute (nicht kritischer Pfad) — item.MemberID ist members.id (Phase 82-02).
 	if h.badgeService != nil {
-		_ = h.badgeService.ComputeAndStoreBadgesByMembership(c.Request.Context(), item.FansubGroupMemberID)
+		_ = h.badgeService.ComputeAndStoreBadges(c.Request.Context(), item.MemberID)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"data": item})
@@ -361,90 +368,12 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		Payload:        updatePayload,
 	})
 
-	// Badge-Recompute (nicht kritischer Pfad).
+	// Badge-Recompute (nicht kritischer Pfad) — item.MemberID ist members.id (Phase 82-02).
 	if h.badgeService != nil {
-		_ = h.badgeService.ComputeAndStoreBadgesByMembership(c.Request.Context(), item.FansubGroupMemberID)
+		_ = h.badgeService.ComputeAndStoreBadges(c.Request.Context(), item.MemberID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
 }
 
-// DeleteAnimeContribution entfernt einen Beitragseintrag.
-// DELETE /admin/fansubs/:id/anime/:animeId/contributions/:contributionId
-func (h *FansubAnimeContributionsHandler) DeleteAnimeContribution(c *gin.Context) {
-	identity, actor, ok := permissionActorFromContext(c)
-	if !ok {
-		return
-	}
-
-	fansubID, err := parseFansubID(c.Param("id"))
-	if err != nil {
-		badRequest(c, "ungültige fansub id")
-		return
-	}
-
-	animeID, err := parseAnimeIDParam(c)
-	if err != nil {
-		badRequest(c, "ungültige anime id")
-		return
-	}
-
-	contributionID, err := strconv.ParseInt(c.Param("contributionId"), 10, 64)
-	if err != nil || contributionID <= 0 {
-		badRequest(c, "ungültige contribution id")
-		return
-	}
-
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
-	if err != nil {
-		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
-		return
-	}
-	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "anime_contribution.delete.denied", &fansubID, "anime_contribution", &contributionID, permissions.ActionFansubGroupMembersManage, result)
-		writePermissionDenied(c, result)
-		return
-	}
-
-	// member_id VOR dem Delete sichern (Pitfall 2 aus RESEARCH.md).
-	var memberIDForBadge int64
-	if h.badgeService != nil {
-		if mid, err := h.contributionsRepo.GetMemberIDForContribution(c.Request.Context(), contributionID); err == nil {
-			memberIDForBadge = mid
-		} else if !errors.Is(err, repository.ErrNotFound) {
-			log.Printf("anime contributions delete: badge resolve pre-delete (contribution_id=%d): %v", contributionID, err)
-		}
-	}
-
-	if err := h.contributionsRepo.Delete(c.Request.Context(), fansubID, animeID, contributionID); errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": gin.H{
-				"message": "beitragseintrag nicht gefunden",
-			},
-		})
-		return
-	} else if err != nil {
-		log.Printf("anime contributions delete: repo error (fansub_id=%d, anime_id=%d, contribution_id=%d): %v", fansubID, animeID, contributionID, err)
-		internalError(c, "interner serverfehler")
-		return
-	}
-
-	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID: &identity.AppUserID,
-		EventType:      "anime_contribution.deleted",
-		ScopeType:      permissions.ScopeTypeGroup,
-		ScopeID:        &fansubID,
-		TargetType:     "anime_contribution",
-		TargetID:       &contributionID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
-		Outcome:        "allowed",
-		Payload:        map[string]any{},
-	})
-
-	// Badge-Recompute nach Delete (nicht kritischer Pfad).
-	if memberIDForBadge > 0 && h.badgeService != nil {
-		_ = h.badgeService.ComputeAndStoreBadges(c.Request.Context(), memberIDForBadge)
-	}
-
-	c.Status(http.StatusNoContent)
-}
+// DeleteAnimeContribution ist in fansub_anime_contributions_delete_handler.go ausgelagert (450-Zeilen-Limit, Phase 82-02).
