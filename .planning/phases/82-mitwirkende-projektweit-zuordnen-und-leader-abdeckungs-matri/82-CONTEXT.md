@@ -48,6 +48,7 @@ Der Tab „Anime & Veröffentlichungen" (`tab=releases`) in `/admin/fansubs/[id]
 - **D-12:** Filterchips (`Alle` / `Mitwirkende fehlen` / `Einblick fehlt` / `Offene Punkte`) NUR, wenn die Datenlage einen Status zuverlässig liefert; sonst nur UI-Struktur vorbereiten, **kein Fake-Status**. Nicht berechenbare Status ehrlich als `unbekannt`/`nicht gepflegt`.
 - **D-13:** Routing: separater Main-Tab „Anime-Einblicke" entfernen (wenn Integration vollständig); Legacy `?tab=anime-projekte` → `tab=releases`; Readiness-/Sprungmarken auf `releases` umstellen.
 - **D-14:** Bestehende API-Helper/DTOs wiederverwenden — keine zweite API-Logik, keine manuelle Auth/Bearer-Fetches, keine erfundenen API-Felder. Contract-Prüfung vor Bau (siehe Auftrag).
+- **D-17:** Der TipTap-/Rich-Text-Editor für Projekt-Einblicke nutzt weiterhin den **geteilten `RichTextEditor` aus `@/components/editor`** (read-only via `RichTextRenderer`). KEINE Sonder-/Einzellösung oder neuer Editor für diesen Bereich — beim Einbetten in die Projektkarte/Cockpit den bestehenden Editor wiederverwenden. Gilt analog für ALLE Controls: ausschließlich `@/components/ui`-Primitives + bestehende geteilte Komponenten, kein Eigen-Markup. (Hartes Constraint, vom Nutzer ausdrücklich betont.)
 
 ### Claude's Discretion
 - Migrationsreihenfolge & Backfill-Sicherheit der bestehenden `anime_contributions` (hist→member_id), Reihenfolge ggü. members-Backfill — technisches Detail für Researcher/Planner.
