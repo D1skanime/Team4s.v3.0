@@ -1499,13 +1499,13 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] `83-01-PLAN.md` — Wave-0-Testgeruest: permissions_test.go neue Faelle (RED) + authz_permissions_test.go TestListActorContributionRolesForVersion (RED)
-- [ ] `83-02-PLAN.md` — Permission-Umbau CanForReleaseVersion + Resolver-Interface + ListActorContributionRolesForVersion
-- [ ] `83-03-PLAN.md` — GetMemberRolesForVersion Migration auf anime_contributions (D-13-Konsistenz)
-- [ ] `83-04-PLAN.md` — Effective-Contributions-Endpoint: neues Repository + Handler + Route + Contract
-- [ ] `83-05-PLAN.md` — ReleaseContributionDrawer.tsx (NEU) + ContributorAvatar.tsx + api.ts-Helper + Vitest-Tests
-- [ ] `83-06-PLAN.md` — page.tsx Cockpit-Verdrahtung: Mitwirkende-Button + Drawer-Mount + Badge
-- [ ] `83-07-PLAN.md` — UI-Konsolidierung: AnimeContributionModal natives select -> Select+FormField; ReleaseVersionBreakdown Primitives/Tokens; D-16-Dokumentation
+- [x] `83-01-PLAN.md` — Wave-0-Testgeruest: permissions_test.go neue Faelle (RED) + authz_permissions_test.go TestListActorContributionRolesForVersion (RED)
+- [x] `83-02-PLAN.md` — Permission-Umbau CanForReleaseVersion + Resolver-Interface + ListActorContributionRolesForVersion
+- [x] `83-03-PLAN.md` — GetMemberRolesForVersion Migration auf anime_contributions (D-13-Konsistenz)
+- [x] `83-04-PLAN.md` — Effective-Contributions-Endpoint: neues Repository + Handler + Route + Contract
+- [x] `83-05-PLAN.md` — ReleaseContributionDrawer.tsx (NEU) + ContributorAvatar.tsx + api.ts-Helper + Vitest-Tests
+- [x] `83-06-PLAN.md` — page.tsx Cockpit-Verdrahtung: Mitwirkende-Button + Drawer-Mount + Badge
+- [x] `83-07-PLAN.md` — UI-Konsolidierung: AnimeContributionModal natives select -> Select+FormField; ReleaseVersionBreakdown Primitives/Tokens; D-16-Dokumentation
 
 ---
 
