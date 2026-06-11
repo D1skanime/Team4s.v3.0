@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react'
 
+import { Button } from '@/components/ui'
 import type { ReleaseVersionBreakdown as ReleaseVersionBreakdownData } from '@/types/contributions'
 
 import blockStyles from './GroupContributionBlock.module.css'
@@ -24,7 +25,8 @@ export function ReleaseVersionBreakdown({ breakdown }: ReleaseVersionBreakdownPr
 
   return (
     <div className={styles.wrapper}>
-      <button
+      <Button
+        variant="ghost"
         type="button"
         className={blockStyles.toggleButton}
         onClick={() => setOpen((prev) => !prev)}
@@ -32,7 +34,7 @@ export function ReleaseVersionBreakdown({ breakdown }: ReleaseVersionBreakdownPr
         aria-controls={listId}
       >
         {open ? '▾' : '▸'} Nach Release-Version
-      </button>
+      </Button>
 
       {open && (
         <div id={listId} className={styles.versionList}>

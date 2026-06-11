@@ -38,7 +38,11 @@ func (r *AnimeContributionsRepository) ListByMemberID(ctx context.Context, membe
 	return result, nil
 }
 
-// Delete removes an anime contribution inside the route's fansub/anime context. Roles are removed via CASCADE.
+// Delete entfernt eine Contribution physisch (Hard-DELETE, kein Soft-Delete).
+// CONSTRAINT D-16: Leader-Löschen soll langfristig Soft-Delete nutzen (deleted_at-Feld).
+// Da anime_contributions kein deleted_at-Schema-Slot hat, bleibt dies Folgearbeit.
+// Audit-Logs für gelöschte Contributions enthalten keine Tombstone-Records.
+// Roles are removed via CASCADE.
 func (r *AnimeContributionsRepository) Delete(ctx context.Context, fansubGroupID int64, animeID int64, id int64) error {
 	tag, err := r.db.Exec(ctx, `DELETE FROM anime_contributions WHERE id = $1 AND fansub_group_id = $2 AND anime_id = $3`, id, fansubGroupID, animeID)
 	if err != nil {
