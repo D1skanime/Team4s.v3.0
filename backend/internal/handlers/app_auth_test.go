@@ -192,6 +192,10 @@ func (s permissionResolverStub) ListActorGroupRoles(_ context.Context, _ int64, 
 	return s.roles[fansubGroupID], nil
 }
 
+func (s permissionResolverStub) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
+	return nil, nil
+}
+
 func makeAppAuthTestContext(method string, target string, body []byte, identity middleware.AuthIdentity, params ...gin.Param) (*gin.Context, *httptest.ResponseRecorder) {
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)

@@ -94,7 +94,13 @@ func (r *AdminContentRepository) ListFansubAnimeReleasesPage(
 				ORDER BY rv.duration_seconds IS NOT NULL DESC, rev.id ASC, rv.id ASC
 				LIMIT 1
 			)                                           AS duration_seconds,
-			fr.created_at
+			fr.created_at,
+			EXISTS (
+				SELECT 1 FROM anime_contributions ac_sub
+				JOIN release_versions rv_sub ON rv_sub.id = ac_sub.release_version_id
+				WHERE rv_sub.release_id = fr.id
+				  AND ac_sub.fansub_group_id = $1
+			)                                           AS has_override
 		FROM fansub_releases fr
 		JOIN episodes ep ON ep.id = fr.episode_id
 		JOIN anime a ON a.id = ep.anime_id
@@ -133,6 +139,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleasesPage(
 			&item.HasThemeAssets,
 			&item.DurationSeconds,
 			&item.CreatedAt,
+			&item.HasOverride,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scan fansub anime release fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
 		}

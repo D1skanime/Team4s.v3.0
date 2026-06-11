@@ -220,6 +220,7 @@ func main() {
 	adminContentHandler.WithMediaDeps(mediaRepo, mediaService).
 		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService()).
 		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool)).
+		WithFansubReleasesContributionsDeps(repository.NewFansubReleasesContributionsRepository(dbPool)).
 		WithTipTapDeps(tiptapSvc).
 		WithPermissionDeps(permissionSvc, auditLogRepo)
 	fansubHandler := handlers.NewFansubHandler(

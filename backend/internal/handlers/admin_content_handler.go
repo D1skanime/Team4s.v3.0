@@ -121,6 +121,11 @@ type adminRoleChecker interface {
 	UserHasRole(ctx context.Context, userID int64, roleName string) (bool, error)
 }
 
+// adminFansubReleasesContributionsRepo definiert den Datenbankzugriff für den aufgelösten Mitwirkenden-Satz.
+type adminFansubReleasesContributionsRepo interface {
+	ListEffectiveContributionsForVersion(ctx context.Context, releaseVersionID int64, fansubGroupID int64) (*repository.EffectiveContributionsResult, error)
+}
+
 // AdminContentHandler ist der zentrale Handler für alle Admin-Content-Operationen:
 // Anime anlegen/bearbeiten/löschen, Episoden, Assets, Relationen und Jellyfin-Integration.
 type AdminContentHandler struct {
@@ -145,12 +150,13 @@ type AdminContentHandler struct {
 	aniSearchEpisodes         adminAniSearchEpisodeFetcher
 	assetSearchService        adminAnimeAssetSearchService
 	mediaService              *services.MediaService
-	fansubNotesRepo           *repository.FansubNotesRepository
-	releaseVersionNotesRepo   *repository.ReleaseVersionNotesRepository
-	markdownSvc               *services.MarkdownService
-	tiptapSvc                 *services.TipTapService
-	permissionSvc             *permissions.Service
-	auditLogRepo              *repository.AuditLogRepository
+	fansubNotesRepo                 *repository.FansubNotesRepository
+	releaseVersionNotesRepo         *repository.ReleaseVersionNotesRepository
+	fansubReleasesContributionsRepo adminFansubReleasesContributionsRepo
+	markdownSvc                     *services.MarkdownService
+	tiptapSvc                       *services.TipTapService
+	permissionSvc                   *permissions.Service
+	auditLogRepo                    *repository.AuditLogRepository
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -241,6 +247,13 @@ func (h *AdminContentHandler) WithNoteDeps(repo *repository.FansubNotesRepositor
 // markdownSvc wird von WithNoteDeps gesetzt und hier wiederverwendet.
 func (h *AdminContentHandler) WithReleaseVersionNoteDeps(repo *repository.ReleaseVersionNotesRepository) *AdminContentHandler {
 	h.releaseVersionNotesRepo = repo
+	return h
+}
+
+// WithFansubReleasesContributionsDeps verdrahtet das FansubReleasesContributionsRepository nachträglich,
+// damit GetEffectiveContributionsForVersion auf den aufgelösten Mitwirkenden-Satz zugreifen kann.
+func (h *AdminContentHandler) WithFansubReleasesContributionsDeps(repo *repository.FansubReleasesContributionsRepository) *AdminContentHandler {
+	h.fansubReleasesContributionsRepo = repo
 	return h
 }
 

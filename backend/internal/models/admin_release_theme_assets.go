@@ -48,6 +48,7 @@ type AdminFansubReleaseSummary struct {
 	Source           *string   `json:"source,omitempty"`
 	VersionCount     int       `json:"version_count"`
 	HasThemeAssets   bool      `json:"has_theme_assets"`
+	HasOverride      bool      `json:"has_override"`
 	DurationSeconds  *int32    `json:"duration_seconds,omitempty"`
 	CreatedAt        time.Time `json:"created_at"`
 }

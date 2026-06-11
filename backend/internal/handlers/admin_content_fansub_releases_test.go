@@ -50,6 +50,10 @@ func (s releasePermissionResolverStub) ListActorGroupRoles(_ context.Context, _ 
 	return []string{permissions.RoleFansubLead}, nil
 }
 
+func (s releasePermissionResolverStub) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
+	return nil, nil
+}
+
 func (s *fansubReleaseThemeRepoStub) ListThemeTypes(ctx context.Context) ([]models.AdminThemeType, error) {
 	return nil, nil
 }

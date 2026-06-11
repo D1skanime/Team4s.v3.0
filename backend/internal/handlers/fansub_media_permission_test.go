@@ -36,6 +36,10 @@ func (s fansubMediaPermissionResolver) ListActorGroupRoles(_ context.Context, _ 
 	return s.roles, nil
 }
 
+func (s fansubMediaPermissionResolver) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
+	return nil, nil
+}
+
 func TestFansubMediaUploadAllowsFansubLeadPastPermissionGate(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

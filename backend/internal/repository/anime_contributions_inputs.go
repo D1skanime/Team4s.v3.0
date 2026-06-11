@@ -10,6 +10,7 @@ import "time"
 // AnimeContributionRow represents a full anime contribution record with associated role codes.
 type AnimeContributionRow struct {
 	ID                      int64      `json:"id"`
+	FansubGroupMemberID     int64      `json:"fansub_group_member_id"`
 	FansubGroupID           int64      `json:"fansub_group_id"`
 	AnimeID                 int64      `json:"anime_id"`
 	MemberID                int64      `json:"member_id"`

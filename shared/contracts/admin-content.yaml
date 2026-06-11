@@ -739,6 +739,36 @@ endpoints:
       - status: 500
         description: Interner Serverfehler.
 
+  - name: admin-release-version-contributions-effective
+    method: GET
+    path: /api/v1/admin/release-versions/:versionId/contributions/effective
+    auth:
+      required: true
+      permission: release_version.view für die adressierte Release-Version
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    query_params:
+      - name: fansub_group_id
+        type: int64
+        required: true
+        minimum: 1
+    response:
+      status: 200
+      type: EffectiveContributionsResponse
+    notes:
+      - Liefert den aufgelösten Mitwirkenden-Satz (Override oder Projekt-Default, D-02).
+      - meta.is_override=true wenn versions-spezifische Contributions existieren.
+      - meta.source entweder "release_version" oder "anime_default".
+      - contribution_id ist in jedem Row enthalten, damit das Frontend beim Speichern exakt die richtigen IDs löscht (Pitfall 4).
+      - IDOR-Mitigation (T-83-IDOR) CanForReleaseVersion(ActionReleaseVersionView) wird vor Datenrückgabe geprüft.
+
 types:
   PaginationMeta:
     total: int64
@@ -758,6 +788,7 @@ types:
     source: string | null
     version_count: int32
     has_theme_assets: boolean
+    has_override: "boolean (description: EXISTS-Subquery über release_versions JOIN anime_contributions auf Release-Ebene (fr.id), D-08. True wenn mindestens eine versions-spezifische Contribution für diesen Release existiert.)"
     duration_seconds: int32 | null
     created_at: timestamp
   AdminFansubAnimeReleasesResponse:
@@ -769,6 +800,18 @@ types:
     release: AdminFansubReleaseSummary | null
   AdminReleaseResponse:
     data: AdminFansubReleaseSummary
+  EffectiveContributionRow:
+    contribution_id: "int64 (description: Pflicht für sicheres Frontend-Delete, Pitfall 4)"
+    member_id: int64
+    member_display_name: string
+    member_avatar_url: string | null
+    role_codes: string[]
+  EffectiveContributionsMeta:
+    is_override: "boolean (description: true wenn versions-spezifische Contributions existieren, D-02)"
+    source: "string (description: 'release_version' oder 'anime_default', D-02)"
+  EffectiveContributionsResponse:
+    data: EffectiveContributionRow[]
+    meta: EffectiveContributionsMeta
   ReleaseVersionMediaCategory:
     enum: screenshot | typesetting_karaoke | fun_outtake | other
   ReleaseVersionMediaItem:
