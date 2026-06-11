@@ -114,6 +114,7 @@ import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSec
 import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
 import { UserSuggestionsInbox } from "./UserSuggestionsInbox";
+import { ReleaseContributionDrawer } from "./ReleaseContributionDrawer";
 import sharedStyles from "../../../admin.module.css";
 import fansubEditStyles from "./FansubEdit.module.css";
 
@@ -1127,6 +1128,10 @@ function AdminFansubEditContent({
     null,
   );
   const [themeDrawerOpen, setThemeDrawerOpen] = useState(false);
+  const [contributionDrawerOpen, setContributionDrawerOpen] = useState(false);
+  const [contributionDrawerVersionId, setContributionDrawerVersionId] = useState<number | null>(null);
+  const [contributionDrawerAnimeId, setContributionDrawerAnimeId] = useState<number | null>(null);
+  const [contributionDrawerTitle, setContributionDrawerTitle] = useState<string>('');
   const [drawerBusy, setDrawerBusy] = useState(false);
   const [drawerUploadProgress, setDrawerUploadProgress] = useState<
     number | null
@@ -1883,6 +1888,13 @@ function AdminFansubEditContent({
     } finally {
       setContributionModalLoadingAnimeId(null);
     }
+  };
+
+  const openContributionDrawer = (versionId: number, animeId: number, title: string) => {
+    setContributionDrawerVersionId(versionId);
+    setContributionDrawerAnimeId(animeId);
+    setContributionDrawerTitle(title);
+    setContributionDrawerOpen(true);
   };
 
   const refreshAnimeContributions = async (animeID: number) => {
@@ -3248,6 +3260,39 @@ function AdminFansubEditContent({
                                             : "Medien"}
                                         </button>
                                       ) : null}
+                                      <Badge
+                                        variant={
+                                          release.has_override === true
+                                            ? 'info'
+                                            : release.has_override === false
+                                              ? 'muted'
+                                              : 'warning'
+                                        }
+                                      >
+                                        {release.has_override === true
+                                          ? 'Eigene Besetzung'
+                                          : release.has_override === false
+                                            ? 'Projektteam'
+                                            : 'Mitwirkende fehlen'}
+                                      </Badge>
+                                      {canOpenReleaseContributors ? (
+                                        <Button
+                                          type="button"
+                                          variant="subtle"
+                                          size="sm"
+                                          aria-label={`Mitwirkende für ${release.episode_title ?? `Release-Version ${release.release_version_id}`} bearbeiten`}
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            openContributionDrawer(
+                                              release.release_version_id,
+                                              releaseGroup.anime.id,
+                                              release.episode_title ?? `Release-Version ${release.release_version_id}`,
+                                            );
+                                          }}
+                                        >
+                                          Mitwirkende
+                                        </Button>
+                                      ) : null}
                                     </div>
                                     <span
                                       className={
@@ -3936,6 +3981,20 @@ function AdminFansubEditContent({
             />
           </div>
         </Modal>
+      ) : null}
+      {contributionDrawerOpen && contributionDrawerVersionId !== null && contributionDrawerAnimeId !== null ? (
+        <ReleaseContributionDrawer
+          open={contributionDrawerOpen}
+          fansubId={fansubID}
+          animeId={contributionDrawerAnimeId}
+          releaseVersionId={contributionDrawerVersionId}
+          releaseTitle={contributionDrawerTitle}
+          onClose={() => setContributionDrawerOpen(false)}
+          onSaved={() => {
+            const group = releaseGroups.find((rg) => rg.anime.id === contributionDrawerAnimeId);
+            if (group) void loadAnimeReleases(group, true);
+          }}
+        />
       ) : null}
     </main>
   );

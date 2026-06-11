@@ -498,6 +498,7 @@ export interface AdminFansubRelease {
   source?: string | null;
   version_count: number;
   has_theme_assets: boolean;
+  has_override?: boolean;
   duration_seconds?: number | null;
   created_at: string;
 }
