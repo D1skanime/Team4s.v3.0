@@ -345,6 +345,16 @@ endpoints:
       - name: animeId
         type: int64
         minimum: 1
+    query_params:
+      - name: page
+        type: int32
+        default: 1
+        minimum: 1
+      - name: per_page
+        type: int32
+        default: 30
+        minimum: 1
+        maximum: 100
     response:
       status: 200
       type: AdminFansubAnimeReleasesResponse
@@ -730,6 +740,11 @@ endpoints:
         description: Interner Serverfehler.
 
 types:
+  PaginationMeta:
+    total: int64
+    page: int32
+    per_page: int32
+    total_pages: int32
   AdminFansubReleaseSummary:
     release_id: int64
     release_version_id: "int64 (description: Kanonische Release-Version-ID fuer release_version_media; release_id ist hierfuer nicht gueltig)"
@@ -747,6 +762,7 @@ types:
     created_at: timestamp
   AdminFansubAnimeReleasesResponse:
     data: AdminFansubReleaseSummary[]
+    meta: PaginationMeta
   AdminCanonicalFansubAnimeReleaseResponse:
     fansub_group_id: int64
     anime_id: int64

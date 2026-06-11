@@ -253,12 +253,12 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			COALESCE(fg.name, '') AS fansub_group_name,
 			COALESCE(ac.created_by = $2, false) AS is_own_proposal
 		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		JOIN anime a ON a.id = ac.anime_id
 		LEFT JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
-		WHERE hfgm.member_id = $1
+		WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
 		GROUP BY ac.id, a.title_de, a.title_en, a.title, fg.name
 		ORDER BY ac.created_at DESC
 		LIMIT 50

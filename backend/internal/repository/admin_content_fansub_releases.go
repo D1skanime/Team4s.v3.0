@@ -10,15 +10,53 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// ListFansubAnimeReleases gibt alle Fansub-Releases fuer eine Fansub-Anime-Kombination zurueck.
+// ListFansubAnimeReleases gibt Fansub-Releases fuer eine Fansub-Anime-Kombination paginiert zurueck.
 // Die Ergebnisse sind nach Episode-Sortierindex und Release-ID geordnet.
 func (r *AdminContentRepository) ListFansubAnimeReleases(
 	ctx context.Context,
 	fansubGroupID int64,
 	animeID int64,
-) ([]models.AdminFansubReleaseSummary, error) {
+) ([]models.AdminFansubReleaseSummary, int64, error) {
 	if fansubGroupID <= 0 || animeID <= 0 {
-		return nil, ErrNotFound
+		return nil, 0, ErrNotFound
+	}
+	return r.ListFansubAnimeReleasesPage(ctx, fansubGroupID, animeID, 1, 100)
+}
+
+// ListFansubAnimeReleasesPage gibt eine einzelne Seite der Fansub-Releases
+// fuer eine Fansub-Anime-Kombination zurueck.
+func (r *AdminContentRepository) ListFansubAnimeReleasesPage(
+	ctx context.Context,
+	fansubGroupID int64,
+	animeID int64,
+	page int,
+	perPage int,
+) ([]models.AdminFansubReleaseSummary, int64, error) {
+	if fansubGroupID <= 0 || animeID <= 0 {
+		return nil, 0, ErrNotFound
+	}
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 30
+	}
+	offset := (page - 1) * perPage
+
+	var total int64
+	if err := r.db.QueryRow(ctx, `
+		SELECT COUNT(DISTINCT fr.id)
+		FROM fansub_releases fr
+		JOIN episodes ep ON ep.id = fr.episode_id
+		JOIN release_versions rv2 ON rv2.release_id = fr.id
+		JOIN release_version_groups rvg ON rvg.release_version_id = rv2.id
+		WHERE ep.anime_id = $2
+		  AND rvg.fansub_group_id = $1
+	`, fansubGroupID, animeID).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("count fansub anime releases fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+	}
+	if total == 0 {
+		return []models.AdminFansubReleaseSummary{}, 0, nil
 	}
 
 	rows, err := r.db.Query(ctx, `
@@ -70,9 +108,10 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 			ep.id, ep.episode_number, ep.title, fr.source, fr.created_at,
 			ep.sort_index
 		ORDER BY COALESCE(ep.sort_index, 2147483647), ep.id, fr.id
-	`, fansubGroupID, animeID)
+		LIMIT $3 OFFSET $4
+	`, fansubGroupID, animeID, perPage, offset)
 	if err != nil {
-		return nil, fmt.Errorf("list fansub anime releases fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+		return nil, 0, fmt.Errorf("list fansub anime releases fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
 	}
 	defer rows.Close()
 
@@ -95,15 +134,15 @@ func (r *AdminContentRepository) ListFansubAnimeReleases(
 			&item.DurationSeconds,
 			&item.CreatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("scan fansub anime release fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+			return nil, 0, fmt.Errorf("scan fansub anime release fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
 		}
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate fansub anime releases fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
+		return nil, 0, fmt.Errorf("iterate fansub anime releases fansub=%d anime=%d: %w", fansubGroupID, animeID, err)
 	}
 
-	return items, nil
+	return items, total, nil
 }
 
 // GetCanonicalFansubAnimeReleaseSummary gibt den kanonischen Release-Anker fuer eine

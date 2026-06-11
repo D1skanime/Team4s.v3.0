@@ -4576,11 +4576,20 @@ export async function deleteAdminReleaseThemeAsset(
 export async function getAdminFansubAnimeReleases(
   fansubID: number,
   animeID: number,
+  params: { page?: number; per_page?: number } = {},
   authToken?: string,
 ): Promise<AdminFansubAnimeReleasesResponse> {
   const API_BASE_URL = getApiBaseUrl();
+  const query = new URLSearchParams();
+  if (params.page && Number.isFinite(params.page) && params.page > 0) {
+    query.set("page", String(params.page));
+  }
+  if (params.per_page && Number.isFinite(params.per_page) && params.per_page > 0) {
+    query.set("per_page", String(params.per_page));
+  }
+  const queryString = query.toString();
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases`,
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/anime/${animeID}/releases${queryString ? `?${queryString}` : ""}`,
     {
       authToken,
       cache: "no-store",

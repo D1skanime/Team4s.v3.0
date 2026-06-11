@@ -68,6 +68,7 @@ export function ContributionCard({
     is_public_on_member_profile,
     status,
     review_note,
+    release_version_id,
   } = contribution
   const title = anime_title?.trim() || `Anime #${anime_id}`
   const years = yearRange(started_year, ended_year)
@@ -105,6 +106,18 @@ export function ContributionCard({
         <p className={styles.reviewNote}>
           <strong>Ablehngrund:</strong> {review_note}
         </p>
+      ) : null}
+
+      {mode === 'confirmed' && release_version_id ? (
+        <div className={styles.actionsRow}>
+          <Button
+            size="sm"
+            variant="secondary"
+            href={`/me/releases/${release_version_id}/workspace`}
+          >
+            Arbeitsfläche öffnen
+          </Button>
+        </div>
       ) : null}
 
       {mode === 'pending' ? (

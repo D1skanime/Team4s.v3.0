@@ -127,10 +127,17 @@ const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
   "github",
   "irc",
 ];
-const INITIAL_RELEASE_BATCH_SIZE = 5;
+const RELEASE_PAGE_SIZE = 30;
 const YEAR_MIN = 1900;
 const YEAR_MAX = new Date().getFullYear();
 const URL_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
+
+type ReleasePaginationState = {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+};
 
 type SectionKey =
   | "basic"
@@ -1038,8 +1045,8 @@ function AdminFansubEditContent({
     releasesErrorsByAnimeFansubGroupId,
     setReleasesErrorsByAnimeFansubGroupId,
   ] = useState<Record<string, string | null>>({});
-  const [visibleReleaseCountByAnimeKey, setVisibleReleaseCountByAnimeKey] =
-    useState<Record<string, number>>({});
+  const [releasePaginationByAnimeFansubGroupId, setReleasePaginationByAnimeFansubGroupId] =
+    useState<Record<string, ReleasePaginationState>>({});
   const [activeMainTab, setActiveMainTab] = useState<MainTab>(initialMainTab);
   const [expandedAnimeKeys, setExpandedAnimeKeys] = useState<Set<string>>(
     () => new Set(),
@@ -1254,7 +1261,7 @@ function AdminFansubEditContent({
     setReleasesByAnimeFansubGroupId({});
     setReleasesLoadingByAnimeFansubGroupId({});
     setReleasesErrorsByAnimeFansubGroupId({});
-    setVisibleReleaseCountByAnimeKey({});
+    setReleasePaginationByAnimeFansubGroupId({});
     setExpandedAnimeKeys(new Set());
     setExpandedReleaseIds(new Set());
     setReleaseSegmentCards({});
@@ -1697,15 +1704,19 @@ function AdminFansubEditContent({
   const loadAnimeReleases = async (
     releaseGroup: FansubReleaseGroup,
     force = false,
+    page = 1,
+    append = false,
   ) => {
     if (!Number.isFinite(fansubID) || fansubID <= 0 || !hasAuthSession) return;
     const contextKey = releaseGroup.key;
     if (
       !force &&
+      !append &&
       (releasesByAnimeFansubGroupId[contextKey] ||
         releasesLoadingByAnimeFansubGroupId[contextKey])
     )
       return;
+    if (append && releasesLoadingByAnimeFansubGroupId[contextKey]) return;
 
     const requestID = releaseRequestSeqRef.current + 1;
     releaseRequestSeqRef.current = requestID;
@@ -1724,15 +1735,31 @@ function AdminFansubEditContent({
       const response = await getAdminFansubAnimeReleases(
         fansubID,
         releaseGroup.anime.id,
+        { page, per_page: RELEASE_PAGE_SIZE },
       );
       if (releaseRequestByContextRef.current[contextKey] !== requestID) return;
       setReleasesByAnimeFansubGroupId((current) => ({
         ...current,
-        [contextKey]: response.data,
+        [contextKey]: append
+          ? [
+              ...(current[contextKey] ?? []),
+              ...response.data.filter(
+                (release) =>
+                  !(current[contextKey] ?? []).some(
+                    (existing) => existing.release_id === release.release_id,
+                  ),
+              ),
+            ]
+          : response.data,
       }));
-      setVisibleReleaseCountByAnimeKey((current) => ({
+      setReleasePaginationByAnimeFansubGroupId((current) => ({
         ...current,
-        [contextKey]: INITIAL_RELEASE_BATCH_SIZE,
+        [contextKey]: {
+          page: response.meta.page,
+          perPage: response.meta.per_page,
+          total: response.meta.total,
+          totalPages: response.meta.total_pages,
+        },
       }));
     } catch (nextError) {
       if (releaseRequestByContextRef.current[contextKey] !== requestID) return;
@@ -1764,25 +1791,20 @@ function AdminFansubEditContent({
   };
 
   const handleReleaseRowsScroll = (
-    contextKey: string,
-    totalCount: number,
+    releaseGroup: FansubReleaseGroup,
     event: UIEvent<HTMLDivElement>,
   ) => {
+    const contextKey = releaseGroup.key;
     const target = event.currentTarget;
     if (target.scrollTop + target.clientHeight < target.scrollHeight - 40)
       return;
 
-    setVisibleReleaseCountByAnimeKey((current) => {
-      const currentCount = current[contextKey] ?? INITIAL_RELEASE_BATCH_SIZE;
-      if (currentCount >= totalCount) return current;
-      return {
-        ...current,
-        [contextKey]: Math.min(
-          currentCount + INITIAL_RELEASE_BATCH_SIZE,
-          totalCount,
-        ),
-      };
-    });
+    const pagination = releasePaginationByAnimeFansubGroupId[contextKey];
+    const isLoading = Boolean(releasesLoadingByAnimeFansubGroupId[contextKey]);
+    if (!pagination || isLoading || pagination.page >= pagination.totalPages)
+      return;
+
+    void loadAnimeReleases(releaseGroup, true, pagination.page + 1, true);
   };
 
   const rememberAnimeContributionRows = (
@@ -1820,16 +1842,8 @@ function AdminFansubEditContent({
       const next = new Set(current);
       if (next.has(releaseGroup.key)) {
         next.delete(releaseGroup.key);
-        setVisibleReleaseCountByAnimeKey((visibleCurrent) => ({
-          ...visibleCurrent,
-          [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE,
-        }));
       } else {
         next.add(releaseGroup.key);
-        setVisibleReleaseCountByAnimeKey((visibleCurrent) => ({
-          ...visibleCurrent,
-          [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE,
-        }));
         void loadAnimeReleases(releaseGroup);
         void loadAnimeContributionRows(releaseGroup.anime.id);
       }
@@ -1844,10 +1858,6 @@ function AdminFansubEditContent({
       next.add(releaseGroup.key);
       return next;
     });
-    setVisibleReleaseCountByAnimeKey((visibleCurrent) => ({
-      ...visibleCurrent,
-      [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE,
-    }));
     void loadAnimeReleases(releaseGroup);
     void loadAnimeContributionRows(releaseGroup.anime.id);
   };
@@ -2887,15 +2897,16 @@ function AdminFansubEditContent({
                   );
                   const releasesError =
                     releasesErrorsByAnimeFansubGroupId[releaseGroup.key];
-                  const visibleReleaseCount =
-                    visibleReleaseCountByAnimeKey[releaseGroup.key] ??
-                    INITIAL_RELEASE_BATCH_SIZE;
-                  const visibleReleases = releases.slice(
-                    0,
-                    visibleReleaseCount,
+                  const releasePagination =
+                    releasePaginationByAnimeFansubGroupId[releaseGroup.key];
+                  const hasMoreReleases = Boolean(
+                    releasePagination &&
+                      releasePagination.page < releasePagination.totalPages,
                   );
                   const releaseCountLabel = releasesLoaded
-                    ? `Releases: ${releases.length}`
+                    ? releasePagination
+                      ? `Releases: ${releases.length}/${releasePagination.total}`
+                      : `Releases: ${releases.length}`
                     : "Releases";
                   const animeHeaderVisual = (
                     releaseGroup.anime.header_image || ""
@@ -3072,8 +3083,7 @@ function AdminFansubEditContent({
                             className={styles.fansubEditReleaseRowsScroller}
                             onScroll={(event) =>
                               handleReleaseRowsScroll(
-                                releaseGroup.key,
-                                releases.length,
+                                releaseGroup,
                                 event,
                               )
                             }
@@ -3088,7 +3098,7 @@ function AdminFansubEditContent({
                               <span>Aktionen</span>
                               <span />
                             </div>
-                            {visibleReleases.map((release, releaseIndex) => {
+                            {releases.map((release, releaseIndex) => {
                               const expanded = expandedReleaseIds.has(
                                 release.release_id,
                               );
@@ -3475,6 +3485,27 @@ function AdminFansubEditContent({
                                 </div>
                               );
                             })}
+                            {hasMoreReleases ? (
+                              <div className={styles.fansubEditReleaseLoadMore}>
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  loading={releasesLoading}
+                                  onClick={() => {
+                                    if (!releasePagination) return;
+                                    void loadAnimeReleases(
+                                      releaseGroup,
+                                      true,
+                                      releasePagination.page + 1,
+                                      true,
+                                    );
+                                  }}
+                                >
+                                  Weitere Releases laden
+                                </Button>
+                              </div>
+                            ) : null}
                           </div>
                         </div>
                       ) : null}

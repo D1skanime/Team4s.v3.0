@@ -137,9 +137,9 @@ func (h *ContributionsMeHandler) ListMyGroupContributions(c *gin.Context) {
 func (h *ContributionsMeHandler) authorizeAnimeContributionOwner(c *gin.Context, contributionID, memberID int64) bool {
 	var ownerMemberID int64
 	err := h.db.QueryRow(c.Request.Context(), `
-		SELECT hfgm.member_id
+		SELECT COALESCE(ac.member_id, hfgm.member_id)
 		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		WHERE ac.id = $1
 	`, contributionID).Scan(&ownerMemberID)
 	if errors.Is(err, pgx.ErrNoRows) {

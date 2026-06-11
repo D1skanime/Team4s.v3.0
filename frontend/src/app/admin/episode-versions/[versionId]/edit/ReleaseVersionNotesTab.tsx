@@ -22,6 +22,7 @@ const styles = { ...localStyles, ...editorScaffoldStyles }
 
 interface ReleaseVersionNotesTabProps {
   versionId: number
+  memberIdFilter?: number | null
 }
 
 const ROLE_HELP_TEXTS: Record<string, { label: string; helpText: string; placeholder: string }> = {
@@ -139,7 +140,7 @@ function buildInitialState(
   return state
 }
 
-export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProps) {
+export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null }: ReleaseVersionNotesTabProps) {
   const [memberRoles, setMemberRoles] = useState<MemberRoleForVersion[]>([])
   const [noteStates, setNoteStates] = useState<Record<string, NoteFormState>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -159,10 +160,16 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
           getMemberRolesForVersion(versionId),
           listReleaseVersionNotes(versionId),
         ])
+        const visibleRoles = memberIdFilter != null
+          ? roles.filter((role) => role.memberId === memberIdFilter)
+          : roles
+        const visibleNotes = memberIdFilter != null
+          ? notes.filter((note) => note.memberId === memberIdFilter)
+          : notes
 
         if (!cancelled) {
-          setMemberRoles(roles)
-          setNoteStates(buildInitialState(roles, notes))
+          setMemberRoles(visibleRoles)
+          setNoteStates(buildInitialState(visibleRoles, visibleNotes))
         }
       } catch {
         if (!cancelled) {
@@ -177,7 +184,7 @@ export function ReleaseVersionNotesTab({ versionId }: ReleaseVersionNotesTabProp
     return () => {
       cancelled = true
     }
-  }, [versionId])
+  }, [memberIdFilter, versionId])
 
   function updateField<K extends keyof NoteFormState>(
     key: string,

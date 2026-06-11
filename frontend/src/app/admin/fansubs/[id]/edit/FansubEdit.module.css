@@ -1559,6 +1559,14 @@
   border-top: 1px solid rgba(117, 98, 83, 0.12);
 }
 
+.fansubEditReleaseLoadMore {
+  display: flex;
+  justify-content: center;
+  padding: 0.85rem;
+  border-top: 1px solid rgba(117, 98, 83, 0.12);
+  background: rgba(255, 252, 248, 0.9);
+}
+
 .fansubEditReleaseRow {
   padding: 0.7rem 0.82rem;
   cursor: pointer;

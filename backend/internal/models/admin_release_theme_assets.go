@@ -52,6 +52,13 @@ type AdminFansubReleaseSummary struct {
 	CreatedAt        time.Time `json:"created_at"`
 }
 
+// AdminFansubAnimeReleasesResponse beschreibt eine paginierte Release-Liste
+// fuer eine Fansub-Anime-Kombination.
+type AdminFansubAnimeReleasesResponse struct {
+	Data []AdminFansubReleaseSummary `json:"data"`
+	Meta PaginationMeta              `json:"meta"`
+}
+
 // CanonicalFansubAnimeReleaseResponse beschreibt die Antwort fuer den kanonischen
 // Release-Anker einer Fansub-Anime-Kombination. Release ist nil, wenn kein
 // Release-Anker fuer die gegebene Kombination existiert.

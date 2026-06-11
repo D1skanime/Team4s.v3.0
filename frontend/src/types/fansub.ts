@@ -505,6 +505,7 @@ export interface AdminFansubRelease {
 /** Response envelope for listing releases scoped to a fansub + anime combination. */
 export interface AdminFansubAnimeReleasesResponse {
   data: AdminFansubRelease[];
+  meta: PaginationMeta;
 }
 
 /** canonical release response — release is null when no canonical release anchor exists

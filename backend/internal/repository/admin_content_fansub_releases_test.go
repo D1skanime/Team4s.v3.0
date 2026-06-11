@@ -118,6 +118,22 @@ func TestAdminContentFansubReleases_UsesCanonicalFansubGroupColumn(t *testing.T)
 	}
 }
 
+func TestAdminContentFansubReleases_ListUsesServerPagination(t *testing.T) {
+	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
+	normalized := strings.ToLower(content)
+
+	requiredPatterns := []string{
+		"count(distinct fr.id)",
+		"limit $3 offset $4",
+		"listfansubanimereleasespage",
+	}
+	for _, pattern := range requiredPatterns {
+		if !strings.Contains(normalized, pattern) {
+			t.Fatalf("expected paginated release query to include %q", pattern)
+		}
+	}
+}
+
 func TestAdminContentFansubReleases_ReleaseSummarySelectsVariantDuration(t *testing.T) {
 	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
 	normalized := strings.ToLower(content)

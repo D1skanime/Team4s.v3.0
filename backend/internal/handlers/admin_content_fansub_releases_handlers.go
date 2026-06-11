@@ -1,10 +1,12 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
+	"math"
 	"net/http"
 	"strconv"
 
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
@@ -12,7 +14,7 @@ import (
 )
 
 // ListFansubAnimeReleases verarbeitet GET /api/v1/admin/fansubs/:id/anime/:animeId/releases.
-// Liefert alle Fansub-Releases für eine Fansub-Anime-Kombination als explizite Admin-Ressourcen.
+// Liefert Fansub-Releases paginiert für eine Fansub-Anime-Kombination.
 func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
 	_, actor, ok := permissionActorFromContext(c)
 	if !ok {
@@ -44,7 +46,21 @@ func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
 		return
 	}
 
-	items, err := h.themeRepo.ListFansubAnimeReleases(c.Request.Context(), fansubID, animeID)
+	page, err := parsePositiveInt(c.DefaultQuery("page", "1"))
+	if err != nil {
+		badRequest(c, "ungültiger page parameter")
+		return
+	}
+	perPage, err := parsePositiveInt(c.DefaultQuery("per_page", "30"))
+	if err != nil {
+		badRequest(c, "ungültiger per_page parameter")
+		return
+	}
+	if perPage > 100 {
+		perPage = 100
+	}
+
+	items, total, err := h.themeRepo.ListFansubAnimeReleasesPage(c.Request.Context(), fansubID, animeID, page, perPage)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "fansub oder anime nicht gefunden"}})
 		return
@@ -54,7 +70,20 @@ func (h *AdminContentHandler) ListFansubAnimeReleases(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": items})
+	totalPages := 0
+	if total > 0 {
+		totalPages = int(math.Ceil(float64(total) / float64(perPage)))
+	}
+
+	c.JSON(http.StatusOK, models.AdminFansubAnimeReleasesResponse{
+		Data: items,
+		Meta: models.PaginationMeta{
+			Total:      total,
+			Page:       page,
+			PerPage:    perPage,
+			TotalPages: totalPages,
+		},
+	})
 }
 
 // GetCanonicalFansubAnimeReleaseSummary verarbeitet

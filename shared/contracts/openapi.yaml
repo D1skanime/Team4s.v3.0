@@ -4174,6 +4174,23 @@ paths:
             type: integer
             format: int64
             minimum: 1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 30
       responses:
         "200":
           description: Admin release summaries for the fansub/anime pair
@@ -10020,12 +10037,14 @@ components:
           format: date-time
     AdminFansubAnimeReleasesResponse:
       type: object
-      required: [data]
+      required: [data, meta]
       properties:
         data:
           type: array
           items:
             $ref: "#/components/schemas/AdminFansubReleaseSummary"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
     AdminFansubAnimeCoverage:
       type: object
       required: [anime_id, member_count, covered_role_codes, has_project_note]

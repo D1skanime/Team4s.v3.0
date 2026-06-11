@@ -129,6 +129,18 @@ import { ReleaseVersionMediaDrawerSummary } from './ReleaseVersionMediaDrawerSum
 import AdminFansubEditPage from './page'
 import { MAIN_TABS, parseMainTab } from './mainTabRouting'
 
+function releaseListResponse<T>(data: T[], page = 1, total = data.length) {
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      per_page: 30,
+      total_pages: total > 0 ? Math.ceil(total / 30) : 0,
+    },
+  }
+}
+
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
@@ -152,6 +164,7 @@ beforeEach(() => {
   mediaUploadProps.length = 0
   appMembersSectionProps.length = 0
   mockedUseAuthSession.mockReturnValue({ hasAccessToken: true, isClientInitialized: true })
+  apiMocks.getAdminFansubAnimeReleases.mockReset()
   apiMocks.getAnimeCoverage.mockResolvedValue({ data: [] })
   apiMocks.listAnimeContributions.mockResolvedValue({ data: [] })
   apiMocks.listUnifiedGroupMembers.mockResolvedValue([])
@@ -323,8 +336,8 @@ describe('AdminFansubEditPage token-free wiring', () => {
         },
       ],
     })
-    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({
-      data: [
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(
+      releaseListResponse([
         {
           release_id: 62,
           release_version_id: 41,
@@ -341,8 +354,8 @@ describe('AdminFansubEditPage token-free wiring', () => {
           duration_seconds: null,
           created_at: '2026-05-25T00:00:00Z',
         },
-      ],
-    })
+      ]),
+    )
 
     render(<AdminFansubEditPage />)
 
@@ -411,7 +424,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
         },
       ],
     })
-    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [release] })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([release]))
 
     render(<AdminFansubEditPage />)
 
@@ -608,7 +621,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     apiMocks.getAdminFansubAnime.mockResolvedValue({
       data: [{ id: 13, title: '11eyes', type: 'tv', header_image: null, cover_image: null }],
     })
-    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [release] })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([release]))
     apiMocks.getAdminRelease.mockResolvedValue({ data: release })
 
     render(<AdminFansubEditPage />)
@@ -633,7 +646,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     apiMocks.getAnimeCoverage.mockResolvedValue({
       data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false }],
     })
-    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [] })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([]))
 
     render(<AdminFansubEditPage />)
 
@@ -650,7 +663,61 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.getByRole('heading', { name: 'Team & Rollen' })).not.toBeNull()
     expect(screen.getByRole('heading', { name: 'Releases' })).not.toBeNull()
     expect(screen.queryByRole('heading', { name: 'Projektstatus' })).toBeNull()
-    expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13)
+    expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13, {
+      page: 1,
+      per_page: 30,
+    })
+  })
+
+  it('loads additional project releases from the next server page', async () => {
+    const firstRelease = {
+      release_id: 62,
+      release_version_id: 6201,
+      anime_id: 13,
+      anime_title: 'Naruto',
+      fansub_group_id: 88,
+      fansub_name: 'SubGroup',
+      episode_id: 249,
+      episode_number: '1',
+      episode_title: 'Erste Folge',
+      source: null,
+      version_count: 1,
+      has_theme_assets: false,
+      duration_seconds: null,
+      created_at: '2026-05-25T00:00:00Z',
+    }
+    const secondRelease = {
+      ...firstRelease,
+      release_id: 63,
+      release_version_id: 6301,
+      episode_id: 250,
+      episode_number: '2',
+      episode_title: 'Zweite Folge',
+    }
+
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAdminFansubAnimeReleases
+      .mockResolvedValueOnce(releaseListResponse([firstRelease], 1, 31))
+      .mockResolvedValueOnce(releaseListResponse([secondRelease], 2, 31))
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
+
+    expect((await screen.findAllByRole('button', { name: 'Release 62 ausklappen' })).length).toBeGreaterThan(0)
+    fireEvent.click(await screen.findByRole('button', { name: 'Weitere Releases laden' }))
+
+    await waitFor(() =>
+      expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13, {
+        page: 2,
+        per_page: 30,
+      }),
+    )
+    expect((await screen.findAllByRole('button', { name: 'Release 63 ausklappen' })).length).toBeGreaterThan(0)
   })
 
   it('refreshes anime coverage after saving contribution roles', async () => {
@@ -738,7 +805,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     apiMocks.getAdminFansubAnime.mockResolvedValue({
       data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
     })
-    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [release] })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([release]))
     apiMocks.getAdminRelease.mockResolvedValue({ data: release })
     apiMocks.getAdminAnimeThemes.mockResolvedValue({
       data: [
@@ -842,7 +909,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     apiMocks.getAdminFansubAnime.mockResolvedValue({
       data: [{ id: 13, title: '11eyes', type: 'tv', header_image: null, cover_image: null }],
     })
-    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [firstRelease, secondRelease] })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([firstRelease, secondRelease]))
     apiMocks.getAdminRelease.mockImplementation((releaseID: number) => {
       if (releaseID === firstRelease.release_id) return staleFirstResponse.promise
       return Promise.resolve({

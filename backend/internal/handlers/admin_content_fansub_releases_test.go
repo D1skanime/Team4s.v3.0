@@ -23,7 +23,7 @@ import (
 // It extends the existing stub pattern used in relation tests.
 type fansubReleaseThemeRepoStub struct {
 	listFansubAnime                       func(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error)
-	listFansubAnimeReleases               func(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error)
+	listFansubAnimeReleasesPage           func(ctx context.Context, fansubGroupID int64, animeID int64, page int, perPage int) ([]models.AdminFansubReleaseSummary, int64, error)
 	getCanonicalFansubAnimeReleaseSummary func(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
 	getAdminReleaseByID                   func(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
 }
@@ -131,11 +131,11 @@ func (s *fansubReleaseThemeRepoStub) CreateReleaseThemeAsset(ctx context.Context
 func (s *fansubReleaseThemeRepoStub) DeleteReleaseThemeAsset(ctx context.Context, releaseID int64, themeID int64, mediaID int64) error {
 	return nil
 }
-func (s *fansubReleaseThemeRepoStub) ListFansubAnimeReleases(ctx context.Context, fansubGroupID int64, animeID int64) ([]models.AdminFansubReleaseSummary, error) {
-	if s.listFansubAnimeReleases != nil {
-		return s.listFansubAnimeReleases(ctx, fansubGroupID, animeID)
+func (s *fansubReleaseThemeRepoStub) ListFansubAnimeReleasesPage(ctx context.Context, fansubGroupID int64, animeID int64, page int, perPage int) ([]models.AdminFansubReleaseSummary, int64, error) {
+	if s.listFansubAnimeReleasesPage != nil {
+		return s.listFansubAnimeReleasesPage(ctx, fansubGroupID, animeID, page, perPage)
 	}
-	return []models.AdminFansubReleaseSummary{}, nil
+	return []models.AdminFansubReleaseSummary{}, 0, nil
 }
 func (s *fansubReleaseThemeRepoStub) GetCanonicalFansubAnimeReleaseSummary(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error) {
 	if s.getCanonicalFansubAnimeReleaseSummary != nil {
@@ -274,7 +274,13 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	releaseID := int64(42)
 	durationSeconds := int32(1383)
 	stub := &fansubReleaseThemeRepoStub{
-		listFansubAnimeReleases: func(_ context.Context, fansubGroupID, animeID int64) ([]models.AdminFansubReleaseSummary, error) {
+		listFansubAnimeReleasesPage: func(_ context.Context, fansubGroupID, animeID int64, page int, perPage int) ([]models.AdminFansubReleaseSummary, int64, error) {
+			if page != 1 {
+				t.Fatalf("expected page 1, got %d", page)
+			}
+			if perPage != 30 {
+				t.Fatalf("expected per_page 30, got %d", perPage)
+			}
 			return []models.AdminFansubReleaseSummary{
 				{
 					ReleaseID:        releaseID,
@@ -289,7 +295,7 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 					HasThemeAssets:   true,
 					DurationSeconds:  &durationSeconds,
 				},
-			}, nil
+			}, 1, nil
 		},
 	}
 	handler := &AdminContentHandler{
@@ -314,6 +320,7 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	}
 	var resp struct {
 		Data []models.AdminFansubReleaseSummary `json:"data"`
+		Meta models.PaginationMeta              `json:"meta"`
 	}
 	if err := json.Unmarshal(recorder.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("decode response: %v", err)
@@ -329,6 +336,9 @@ func TestAdminFansubReleases_ListFansubAnimeReleasesReturnsData(t *testing.T) {
 	}
 	if resp.Data[0].DurationSeconds == nil || *resp.Data[0].DurationSeconds != durationSeconds {
 		t.Fatalf("expected duration_seconds %d, got %v", durationSeconds, resp.Data[0].DurationSeconds)
+	}
+	if resp.Meta.Total != 1 || resp.Meta.Page != 1 || resp.Meta.PerPage != 30 || resp.Meta.TotalPages != 1 {
+		t.Fatalf("unexpected pagination meta: %+v", resp.Meta)
 	}
 }
 
