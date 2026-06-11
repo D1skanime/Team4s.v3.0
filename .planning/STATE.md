@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Phase 83 context gathered
-last_updated: "2026-06-11T16:49:20.161Z"
+stopped_at: Phase 83 UI-SPEC approved
+last_updated: "2026-06-11T20:21:46.334Z"
 last_activity: 2026-06-11
 progress:
   total_phases: 79
   completed_phases: 61
-  total_plans: 320
+  total_plans: 327
   completed_plans: 286
   percent: 77
 ---
@@ -468,7 +468,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-11T16:49:20.126Z
-Stopped at: Phase 83 context gathered
+Last session: 2026-06-11T19:18:48.466Z
+Stopped at: Phase 83 UI-SPEC approved
 Last activity: 2026-06-11
-Resume file: .planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-CONTEXT.md
+Resume file: .planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-UI-SPEC.md
