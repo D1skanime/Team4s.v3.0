@@ -225,7 +225,7 @@ export default function AnimeContributionModal({
         />
       ) : focusedRole ? (
         <div className={styles.focusedRolePanel}>
-          <FormField label="Person" disabled={focusedAvailableMembers.length === 0}>
+          <FormField label="Member hinzufügen" disabled={focusedAvailableMembers.length === 0}>
             <Select
               value={focusedMemberSelectValue}
               onChange={(event) => {
@@ -235,13 +235,13 @@ export default function AnimeContributionModal({
                   addFocusedRole(memberId)
                 }
               }}
-              aria-label="Person aus der Gruppe wählen …"
+              aria-label="Member hinzufügen"
               disabled={focusedAvailableMembers.length === 0}
             >
               <option value="">
                 {focusedAvailableMembers.length === 0
                   ? 'Alle Member zugewiesen'
-                  : 'Person aus der Gruppe wählen …'}
+                  : 'Member auswählen'}
               </option>
               {focusedAvailableMembers.map((member) => (
                 <option key={member.member_id} value={member.member_id}>
