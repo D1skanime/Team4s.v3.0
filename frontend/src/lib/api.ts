@@ -152,6 +152,8 @@ import {
   AnimeContributionListResponse,
   AnimeContributionResponse,
   UpsertAnimeContributionRequest,
+  UnifiedGroupMember,
+  DefaultCrewEntry,
 } from "@/types/fansub";
 import {
   PaginatedWatchlistResponse,
@@ -7263,6 +7265,170 @@ export async function listGroupMembers(
   }
 
   return response.json() as Promise<HistFansubGroupMemberListResponse>;
+}
+
+/** Vereinheitlichte Personenliste (hist + App) für Mitwirkenden-Zuordnung (D-02, D-14).
+ * Endpoint: GET /api/v1/admin/fansubs/:id/unified-members */
+export async function listUnifiedGroupMembers(
+  fansubId: number,
+  authToken?: string,
+): Promise<UnifiedGroupMember[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/unified-members`,
+    { authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const body = await response.json() as { data: UnifiedGroupMember[] };
+  return body.data;
+}
+
+// ─── Standard-Team (default-crew) ─────────────────────────────────────────────
+
+/** Lädt die Standard-Team-Einträge einer Fansub-Gruppe (D-04, D-14).
+ * Endpoint: GET /api/v1/admin/fansubs/:id/default-crew */
+export async function listDefaultCrew(
+  fansubId: number,
+  authToken?: string,
+): Promise<DefaultCrewEntry[]> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew`,
+    { authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  const body = await response.json() as { data: DefaultCrewEntry[] };
+  return body.data;
+}
+
+/** Legt einen Standard-Team-Eintrag an oder aktualisiert ihn idempotent (D-04, D-14).
+ * Endpoint: PUT /api/v1/admin/fansubs/:id/default-crew */
+export async function upsertDefaultCrewEntry(
+  fansubId: number,
+  memberID: number,
+  roleCode: string,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew`,
+    {
+      method: "PUT",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ member_id: memberID, role_code: roleCode }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+/** Löscht einen Standard-Team-Eintrag (D-04, D-14).
+ * Endpoint: DELETE /api/v1/admin/fansubs/:id/default-crew/:memberId/:roleCode */
+export async function deleteDefaultCrewEntry(
+  fansubId: number,
+  memberID: number,
+  roleCode: string,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew/${memberID}/${roleCode}`,
+    {
+      method: "DELETE",
+      authToken,
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+}
+
+/** Wendet das Standard-Team auf leere Projekte an (D-04, D-14).
+ * Endpoint: POST /api/v1/admin/fansubs/:id/default-crew/apply
+ * @param animeIds Optionale Liste von Anime-IDs; leer = alle leeren Projekte der Gruppe */
+export async function applyDefaultCrew(
+  fansubId: number,
+  animeIds?: number[],
+  authToken?: string,
+): Promise<{ applied_count: number }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/default-crew/apply`,
+    {
+      method: "POST",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ anime_ids: animeIds ?? [] }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ applied_count: number }>;
 }
 
 export async function createGroupMember(
