@@ -1477,12 +1477,17 @@ Plans:
 ### Phase 82: Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix
 
 **Goal:** Der Tab „Anime & Veröffentlichungen" wird zum Projekt-Cockpit: (1) Anime-Mitwirkende sind für jede Person der Gruppe gleichwertig zuordenbar (App- UND historische Member, Anker auf `members.id`) mit Leader-Abdeckungssicht (Projekt × Rolle), Inline-Zuweisung und Standard-Team; (2) die bisherigen „Anime-Einblicke" werden in dieselbe Projektkarte integriert (Status-Badges, Inline-Einblick, Routing/Tab-Merge). Kontext + Entscheidungen: `82-CONTEXT.md`; verbindlicher Einblicke-Auftrag: `82-EINBLICKE-AUFTRAG.md`; Design-Seed: `82-SEED.md`.
-**Requirements**: TBD
+**Requirements**: D-01..D-17, EINBLICKE-AUFTRAG
 **Depends on:** Phase 81
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 82 to break down)
+- [ ] `82-01-PLAN.md` — DB-Migrationen 0104–0107 (members-Backfill, anime_contributions.member_id, Rollen-FK, Standard-Team-Tabelle)
+- [ ] `82-02-PLAN.md` — Backend-Repositories + Handler (member_id-Semantik, ListUnifiedGroupMembers-Endpoint)
+- [ ] `82-03-PLAN.md` — Frontend-Typen + API-Helper (AnimeContribution.member_id, UnifiedGroupMember, listUnifiedGroupMembers)
+- [ ] `82-04-PLAN.md` — Neue Komponenten (ProjectCockpitBadges, AnimeProjectNoteWorkspace) + AnimeProjectNotesSection Altfall-Migration
+- [ ] `82-05-PLAN.md` — page.tsx Tab-Merge + Cockpit-Verdrahtung + AnimeContributionModal member_id-Migration
+- [ ] `82-06-PLAN.md` — Tests (parseMainTab, Badge-Render) + Human-UAT
 
 ---
 
