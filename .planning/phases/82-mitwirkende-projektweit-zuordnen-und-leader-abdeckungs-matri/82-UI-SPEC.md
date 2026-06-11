@@ -65,7 +65,7 @@ Projekt-Token aus `frontend/src/styles/globals.css` (verbindlich):
 | Token | Wert | Verwendung in Phase 82 |
 |-------|------|------------------------|
 | --space-1 | 4px | Icon-Gaps, Badge-Innen-Padding |
-| --space-2 | 8px | Abstand zwischen Badges; kompakte Button-Gaps |
+| --space-2 | 8px | Abstand zwischen Badges; kompakte Button-Gaps; **Filterchip-Reihe gap** |
 | --space-3 | 12px | Zeilenhöhe in Badges, vertikaler Chip-Abstand |
 | --space-4 | 16px | Innen-Padding Projektkarte, Formular-Elemente |
 | --space-5 | 24px | Abstand zwischen Projektkarte und Inhalt; Section-Padding |
@@ -73,9 +73,9 @@ Projekt-Token aus `frontend/src/styles/globals.css` (verbindlich):
 | --space-7 | 48px | Nur Layout-Trenner auf Seitenebene (nicht in dieser Phase) |
 | --space-8 | 64px | Nicht in dieser Phase verwendet |
 
-**Ausnahmen:**
-- Filterchip-Reihe: `gap: 0.45rem` (≈ 7px) — entspricht `.chipRow`-Pattern aus `FansubEdit.module.css` (projektbestehendes Pattern, kein Abweichen)
-- Touch-Targets: Alle aktiven Button/Badge-Controls min-height `var(--control-height-sm)` = 36px; primäre Actions min-height `var(--control-height-md)` = 44px
+**Filterchip-Reihe:** `gap: var(--space-2)` (8px). Der nicht-konforme Legacy-Wert `0.45rem` (≈ 7px) aus `.chipRow` in `FansubEdit.module.css` darf NICHT übernommen werden — der 4er-konforme Token ist verbindlich.
+
+**Touch-Targets:** Alle aktiven Button/Badge-Controls min-height `var(--control-height-sm)` = 36px; primäre Actions min-height `var(--control-height-md)` = 44px.
 
 ---
 
@@ -83,14 +83,18 @@ Projekt-Token aus `frontend/src/styles/globals.css` (verbindlich):
 
 Projekt-Tokens aus `globals.css` (verbindlich; keine neuen Fonts einführen):
 
-| Rolle | Größe | Weight | Line-Height | CSS-Token |
-|-------|-------|--------|-------------|-----------|
-| Body / Fließtext (Einblick-Preview) | 16px | 400 | 1.5 | body-Standard |
-| Label / Metainfo (Badge-Text, Rollen, Counts) | 13–14px | 400 | 1.4 | `font-size: 0.76–0.875rem` |
-| Projekttitel (h3 Anime-Karte) | ~17px (1.08rem) | 600 | 1.2 | `.fansubEditAnimeReleaseHeader h3` — bestehend |
-| Sektionskopf / Projektbereich-Label | 15px (0.94rem) | 700 | 1.2 | analog `.fansubEditMembershipTitle` |
+Genau **4 fixe Schriftgrößen**, Mindestabstand 2px zwischen benachbarten Stufen:
 
-**Annahme (kein neuer Font):** Inter aus `--font-sans` ist für alle Roles verbindlich; keine Sonderfonts für Badges oder Statuszeilen.
+| Rolle | Größe | Weight | Line-Height | Hinweis |
+|-------|-------|--------|-------------|---------|
+| Label / Metainfo (Badge-Text, Rollen, Counts) | 13px (0.8125rem) | 400 | 1.4 | Kleinste Stufe; nur für kompakte Meta-Elemente |
+| Body / Fließtext (Einblick-Preview) | 16px (1rem) | 400 | 1.5 | Standard-Lesegröße |
+| Projekttitel / Sektionskopf (h3 Anime-Karte, Bereichs-Label) | 18px (1.125rem) | 600 | 1.2 | Einheitliche Stufe für alle Überschriften in dieser Phase |
+| Großer Heading (nur falls Seitenebene benötigt) | 20px (1.25rem) | 700 | 1.2 | Reserve-Stufe; in Phase 82 voraussichtlich nicht verwendet |
+
+**Weights:** ausschließlich 400 (regular) und 600/700 (semibold/bold). Kein drittes Weight.
+
+**Font:** Inter aus `--font-sans` für alle Rollen verbindlich; keine Sonderfonts für Badges oder Statuszeilen.
 
 ---
 
@@ -102,7 +106,7 @@ Tokens aus `frontend/src/styles/globals.css` (verbindlich):
 |-------|-------------|------------|
 | Dominant 60% | `--surface-canvas: #f6f4ef` | Seiten-Hintergrund, Tab-Fläche |
 | Secondary 30% | `--surface-card: #ffffff` + `--bg-card: #ffffff` | Projektkarten, Einblick-Block, Modal-Inhalt |
-| Accent 10% | `--color-primary: #5f84dd` | Nur: primäre CTAs (Speichern, Einblick hinzufügen), aktiver Filterchip, Fokus-Outline |
+| Accent 10% | `--color-primary: #5f84dd` | Nur: primäre CTAs (Einblick speichern, Einblick hinzufügen), aktiver Filterchip, Fokus-Outline |
 | Destructive | `--color-error: #dc3545` + `--button-danger-*` | Nur: Einblick löschen (falls vorhanden) |
 
 **Accent reserviert für:**
@@ -136,9 +140,11 @@ Tokens aus `frontend/src/styles/globals.css` (verbindlich):
 
 - Chips sind `<Button variant="ghost" size="sm">` mit aktivem Zustand via CSS-Klasse
 - Chip „Offene Punkte" wird NICHT gerendert, bis Datengrundlage vorhanden (D-12)
-- Layout: `.chipRow` aus `FansubEdit.module.css`
+- Layout: `gap: var(--space-2)` (8px) — NICHT den Legacy-Wert `0.45rem` aus `.chipRow` verwenden
 
 ### Projektkarte (`.fansubEditAnimeReleaseCard`)
+
+**Primärer Focal Point:** Cover-Bild + Anime-Titel in der Header-Reihe jeder Projektkarte.
 
 **Zusammengeklappt — `.fansubEditAnimeReleaseHeaderRow`:**
 
@@ -185,7 +191,7 @@ Tokens aus `frontend/src/styles/globals.css` (verbindlich):
 | Element | Text |
 |---------|------|
 | Primäre CTA (Einblick anlegen) | „Einblick hinzufügen" |
-| Primäre CTA (Einblick speichern) | „Speichern" |
+| Primäre CTA (Einblick speichern) | „Einblick speichern" |
 | Sekundäre CTA (Einblick öffnen zum Bearbeiten) | „Einblick bearbeiten" |
 | CTA Mitwirkende öffnen | „Mitwirkende" (bestehend, unveränderter Text) |
 | CTA Standard-Team | „Standard-Team übernehmen" |
