@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
-import { Button, EmptyState, Modal, Select } from '@/components/ui'
+import { Button, EmptyState, FormField, Modal, Select } from '@/components/ui'
 import {
   deleteAnimeContribution,
   upsertAnimeContribution,
@@ -225,8 +225,7 @@ export default function AnimeContributionModal({
         />
       ) : focusedRole ? (
         <div className={styles.focusedRolePanel}>
-          <label className={styles.focusedRoleAdd}>
-            <span>Member hinzufügen</span>
+          <FormField label="Person" disabled={focusedAvailableMembers.length === 0}>
             <Select
               value={focusedMemberSelectValue}
               onChange={(event) => {
@@ -236,13 +235,13 @@ export default function AnimeContributionModal({
                   addFocusedRole(memberId)
                 }
               }}
-              aria-label="Member hinzufügen"
+              aria-label="Person aus der Gruppe wählen …"
               disabled={focusedAvailableMembers.length === 0}
             >
               <option value="">
                 {focusedAvailableMembers.length === 0
                   ? 'Alle Member zugewiesen'
-                  : 'Member auswählen'}
+                  : 'Person aus der Gruppe wählen …'}
               </option>
               {focusedAvailableMembers.map((member) => (
                 <option key={member.member_id} value={member.member_id}>
@@ -250,7 +249,7 @@ export default function AnimeContributionModal({
                 </option>
               ))}
             </Select>
-          </label>
+          </FormField>
           <div className={styles.focusedRoleList}>
             {focusedAssignedMembers.length === 0 ? (
               <p className={styles.focusedRoleEmpty}>Noch niemand zugewiesen.</p>
