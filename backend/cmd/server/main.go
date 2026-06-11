@@ -380,7 +380,7 @@ func main() {
 	v1.GET("/releases/:id/images", episodeVersionImagesHandler.ListReleaseImages)
 	histGroupMembersRepo := repository.NewHistGroupMembersRepository(dbPool)
 	histGroupMemberRolesRepo := repository.NewHistGroupMemberRolesRepository(dbPool)
-	animeContributionsRepo := repository.NewAnimeContributionsRepository(dbPool)
+	animeContributionsRepo := repository.NewAnimeContributionsRepository(dbPool).WithMediaPublicBaseURL(cfg.MediaPublicBaseURL)
 	fansubGroupHistoryRepo := repository.NewFansubGroupHistoryRepository(dbPool)
 	badgeRepo := repository.NewBadgeRepository(dbPool)
 	badgeService := services.NewBadgeService(dbPool, badgeRepo)

@@ -619,6 +619,7 @@ export interface AnimeContribution {
   id: number;
   member_id: number;
   member_display_name: string;
+  member_avatar_url?: string | null;
   anime_id: number;
   role_codes: string[];
   started_year: number | null;

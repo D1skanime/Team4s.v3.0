@@ -791,6 +791,7 @@ types:
     id: int64
     fansub_group_member_id: int64
     member_display_name: string
+    member_avatar_url: string | null (optional)
     anime_id: int64
     role_codes: string[]
     started_year: int32 | null

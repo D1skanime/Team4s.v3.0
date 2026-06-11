@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -18,6 +19,7 @@ type AnimeContributionDisplayRow struct {
 	ID                      int64     `json:"id"`
 	MemberID                int64     `json:"member_id"`
 	MemberDisplayName       string    `json:"member_display_name"`
+	MemberAvatarURL         *string   `json:"member_avatar_url,omitempty"`
 	AnimeID                 int64     `json:"anime_id"`
 	RoleCodes               []string  `json:"role_codes"`
 	StartedYear             *int      `json:"started_year"`
@@ -27,16 +29,23 @@ type AnimeContributionDisplayRow struct {
 	IsPublicOnMemberProfile bool      `json:"is_public_on_member_profile"`
 	Status                  string    `json:"status"`
 	CreatedAt               time.Time `json:"created_at"`
+	memberAvatarPath        string
 }
 
 // AnimeContributionsRepository handles persistence for anime_contributions and anime_contribution_roles.
 type AnimeContributionsRepository struct {
-	db *pgxpool.Pool
+	db                 *pgxpool.Pool
+	mediaPublicBaseURL string
 }
 
 // NewAnimeContributionsRepository returns a new AnimeContributionsRepository.
 func NewAnimeContributionsRepository(db *pgxpool.Pool) *AnimeContributionsRepository {
 	return &AnimeContributionsRepository{db: db}
+}
+
+func (r *AnimeContributionsRepository) WithMediaPublicBaseURL(baseURL string) *AnimeContributionsRepository {
+	r.mediaPublicBaseURL = strings.TrimRight(strings.TrimSpace(baseURL), "/")
+	return r
 }
 
 // MemberBelongsToFansub returns true when the member (identified by members.id) belongs
@@ -63,6 +72,7 @@ const animeContributionDisplayCols = `
 	ac.id,
 	ac.member_id,
 	m.nickname AS member_display_name,
+	COALESCE(member_avatar.file_path, '') AS member_avatar_path,
 	ac.anime_id,
 	ac.started_year,
 	ac.ended_year,
@@ -78,6 +88,7 @@ func scanAnimeContributionDisplayRow(row pgx.Row) (*AnimeContributionDisplayRow,
 	var r AnimeContributionDisplayRow
 	if err := row.Scan(
 		&r.ID, &r.MemberID, &r.MemberDisplayName,
+		&r.memberAvatarPath,
 		&r.AnimeID, &r.StartedYear, &r.EndedYear, &r.Note,
 		&r.IsPublicOnAnimePage, &r.IsPublicOnMemberProfile,
 		&r.Status, &r.CreatedAt, &r.RoleCodes,
@@ -87,6 +98,37 @@ func scanAnimeContributionDisplayRow(row pgx.Row) (*AnimeContributionDisplayRow,
 	return &r, nil
 }
 
+func (r *AnimeContributionsRepository) enrichAnimeContributionDisplayRow(row *AnimeContributionDisplayRow) {
+	if row == nil {
+		return
+	}
+	if avatarURL := r.publicURLForPath(row.memberAvatarPath); avatarURL != "" {
+		row.MemberAvatarURL = &avatarURL
+	}
+}
+
+func (r *AnimeContributionsRepository) publicURLForPath(filePath string) string {
+	trimmed := strings.TrimSpace(filePath)
+	if trimmed == "" {
+		return ""
+	}
+	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
+		return trimmed
+	}
+	normalized := strings.ReplaceAll(trimmed, "\\", "/")
+	if strings.HasPrefix(normalized, "/app/media/") {
+		trimmed = "/media/" + strings.TrimPrefix(normalized, "/app/media/")
+	} else if strings.HasPrefix(normalized, "app/media/") {
+		trimmed = "/media/" + strings.TrimPrefix(normalized, "app/media/")
+	} else if strings.HasPrefix(normalized, "media/") {
+		trimmed = "/" + normalized
+	}
+	if !strings.HasPrefix(trimmed, "/") {
+		trimmed = "/" + trimmed
+	}
+	return r.mediaPublicBaseURL + trimmed
+}
+
 // ListByFansubAndAnimeWithDisplay returns contributions for a fansub group and anime,
 // enriched with the member display name.
 func (r *AnimeContributionsRepository) ListByFansubAndAnimeWithDisplay(ctx context.Context, fansubGroupID int64, animeID int64) ([]AnimeContributionDisplayRow, error) {
@@ -94,9 +136,10 @@ func (r *AnimeContributionsRepository) ListByFansubAndAnimeWithDisplay(ctx conte
 		SELECT `+animeContributionDisplayCols+`
 		FROM anime_contributions ac
 		JOIN members m ON m.id = ac.member_id
+		LEFT JOIN media_assets member_avatar ON member_avatar.id = m.avatar_media_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		WHERE ac.fansub_group_id = $1 AND ac.anime_id = $2
-		GROUP BY ac.id, m.nickname
+		GROUP BY ac.id, m.nickname, member_avatar.file_path
 		ORDER BY ac.created_at
 	`, fansubGroupID, animeID)
 	if err != nil {
@@ -110,6 +153,7 @@ func (r *AnimeContributionsRepository) ListByFansubAndAnimeWithDisplay(ctx conte
 		if err != nil {
 			return nil, fmt.Errorf("list anime contributions with display: scan: %w", err)
 		}
+		r.enrichAnimeContributionDisplayRow(row)
 		result = append(result, *row)
 	}
 	if err := rows.Err(); err != nil {
@@ -124,9 +168,10 @@ func (r *AnimeContributionsRepository) GetByIDWithDisplay(ctx context.Context, i
 		SELECT `+animeContributionDisplayCols+`
 		FROM anime_contributions ac
 		JOIN members m ON m.id = ac.member_id
+		LEFT JOIN media_assets member_avatar ON member_avatar.id = m.avatar_media_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		WHERE ac.id = $1
-		GROUP BY ac.id, m.nickname
+		GROUP BY ac.id, m.nickname, member_avatar.file_path
 	`, id)
 	result, err := scanAnimeContributionDisplayRow(row)
 	if err != nil {
@@ -135,6 +180,7 @@ func (r *AnimeContributionsRepository) GetByIDWithDisplay(ctx context.Context, i
 		}
 		return nil, fmt.Errorf("get anime contribution with display: %w", err)
 	}
+	r.enrichAnimeContributionDisplayRow(result)
 	return result, nil
 }
 

@@ -436,6 +436,7 @@ function groupContributionMembersByRole(
         displayName:
           contribution.member_display_name?.trim() ||
           `Mitglied #${contribution.member_id}`,
+        avatarUrl: contribution.member_avatar_url ?? null,
       });
     }
   }
