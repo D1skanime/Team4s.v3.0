@@ -545,24 +545,21 @@ database/migrations/
 
 ---
 
-## Offene Fragen
+## Offene Fragen (RESOLVED)
 
-1. **`episode_count`-Feld in `AdminFansubAnimeEntry`**
-   - Was wir wissen: `getAdminFansubAnime` liefert `AdminFansubAnimeEntry[]`
-   - Unklar: Hat `AdminFansubAnimeEntry` ein `episode_count`-Feld? Grep-Prüfung in `frontend/src/types/admin.ts` vor Implementierung nötig.
-   - Empfehlung: Wenn vorhanden → Badge „N Folgen" direkt aus `anime.episode_count`. Wenn nicht → aus `releases.length` ableiten oder weglassen.
+1. **`episode_count`-Feld in `AdminFansubAnimeEntry`** — RESOLVED
+   - Befund (Grep `frontend/src/types/admin.ts`): `AdminFansubAnimeEntry` hat **kein** `episode_count`-Feld (Annahme A1 bestätigt).
+   - Entscheidung: Badge „N Folgen" wird in dieser Phase **NICHT** angezeigt (D-12 — kein Fake/abgeleiteter Status). Kein zusätzlicher Backend-Aufwand. Falls später ein verlässliches Folgen-Feld existiert, kann das Badge nachgezogen werden.
 
-2. **Standard-Team-Tabelle (D-04)**
-   - Was wir wissen: Konzept „feste Stamm-Crew pro Gruppe" ist gelockt, aber kein Schema existiert.
-   - Unklar: Eigene Tabelle `fansub_group_default_crew` oder Erweiterung via `fansub_group_member_roles`-Flag?
-   - Empfehlung: Neue Tabelle `fansub_group_default_crew (id, fansub_group_id, member_id, role_code)` — einfach, klar, erweiterbar.
+2. **Standard-Team-Tabelle (D-04)** — RESOLVED
+   - Entscheidung: Neue Tabelle `fansub_group_default_crew (id, fansub_group_id, member_id, role_code, created_at)` (Migration 0107). Mehrfachrollen pro Person via mehrere Zeilen (passt zu D-05).
+   - **Voller Slice in Phase 82:** Backend-CRUD (`GET/PUT/DELETE /admin/fansubs/:id/default-crew`) + „Übernehmen"-Aktion, die für leere Projekte Contributions aus der Stamm-Crew anlegt. KEIN toter Button.
 
-3. **Neue Migrationsnummern**
-   - Letzte bekannte Migration: `0103`. Nächste freie Nummer prüfen vor Anlegen.
+3. **Neue Migrationsnummern** — RESOLVED
+   - Höchste vorhandene Migration: `0103` (verifiziert via `ls database/migrations/`). Freie Nummern **0104–0107** für diese Phase.
 
-4. **`has_note`-Flag in `getAdminFansubAnime`-Response**
-   - Für zuverlässige „Einblick vorhanden"-Badges im zusammengeklappten Zustand: Backend-Extension oder lazy load?
-   - D-12-konform: Lazy load ist akzeptabel. Backend-Extension vermeidet N+1-Fetches.
+4. **`has_note`-Flag / „Einblick vorhanden"-Badge** — RESOLVED
+   - Entscheidung: **Lazy-Load** (D-12-konform). „Einblick vorhanden/fehlt" wird beim Aufklappen der Projektkarte ermittelt; im zugeklappten Zustand kein Badge bis geladen (`undefined` = „noch nicht geladen", `null` = „fehlt", Objekt = „vorhanden"). Keine Backend-Extension/N+1.
 
 ---
 
