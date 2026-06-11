@@ -93,8 +93,8 @@ export function CoverageMatrix({
                             <Image
                               src={member.avatarUrl}
                               alt=""
-                              width={28}
-                              height={28}
+                              width={34}
+                              height={34}
                               unoptimized
                             />
                           ) : (

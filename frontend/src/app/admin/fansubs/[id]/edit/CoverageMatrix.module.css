@@ -30,11 +30,12 @@
 }
 
 .roleCard {
-  display: grid;
-  min-height: 64px;
-  gap: 0.45rem;
-  align-content: space-between;
-  padding: 0.6rem 0.7rem;
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.45rem 0.65rem;
   border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--bg-card) 86%, transparent);
@@ -68,23 +69,28 @@
 }
 
 .roleTitle {
+  flex: 1;
+  min-width: 0;
   color: var(--text-primary);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .memberStack {
   display: flex;
   min-width: 0;
   align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .memberAvatar,
 .memberOverflow {
   display: inline-flex;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -92,7 +98,7 @@
   border-radius: 999px;
   background: linear-gradient(135deg, #243b6b, #7a3346);
   color: #ffffff;
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   font-weight: 800;
   line-height: 1;
   box-shadow: 0 6px 14px color-mix(in srgb, #111827 18%, transparent);
@@ -118,12 +124,13 @@
 .coveredFallback,
 .roleMissing {
   display: inline-flex;
+  flex-shrink: 0;
   width: fit-content;
-  min-height: 24px;
+  min-height: 22px;
   align-items: center;
-  padding: 0 0.5rem;
+  padding: 0 0.48rem;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
