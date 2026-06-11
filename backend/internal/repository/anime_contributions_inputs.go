@@ -12,7 +12,7 @@ type AnimeContributionRow struct {
 	ID                      int64      `json:"id"`
 	FansubGroupID           int64      `json:"fansub_group_id"`
 	AnimeID                 int64      `json:"anime_id"`
-	FansubGroupMemberID     int64      `json:"fansub_group_member_id"`
+	MemberID                int64      `json:"member_id"`
 	Status                  string     `json:"status"`
 	Note                    *string    `json:"note"`
 	StartedYear             *int       `json:"started_year"`
@@ -32,7 +32,7 @@ type AnimeContributionRow struct {
 
 // AnimeContributionInput holds the data required to create a new anime contribution.
 type AnimeContributionInput struct {
-	FansubGroupMemberID     int64
+	MemberID                int64
 	RoleCodes               []string
 	Status                  string // "draft" | "proposed" | "confirmed" | "disputed" | "hidden"; leer => "draft"
 	StartedYear             *int

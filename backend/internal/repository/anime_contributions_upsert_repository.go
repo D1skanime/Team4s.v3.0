@@ -13,10 +13,9 @@ import (
 func (r *AnimeContributionsRepository) GetMemberIDForContribution(ctx context.Context, contributionID int64) (int64, error) {
 	var memberID int64
 	err := r.db.QueryRow(ctx, `
-		SELECT hfgm.member_id
-		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		WHERE ac.id = $1
+		SELECT member_id
+		FROM anime_contributions
+		WHERE id = $1
 	`, contributionID).Scan(&memberID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -28,7 +27,7 @@ func (r *AnimeContributionsRepository) GetMemberIDForContribution(ctx context.Co
 }
 
 // CreateOrUpdate fuehrt einen Upsert fuer eine Anime-Contribution durch.
-// Bei einem UNIQUE-Konflikt auf (fansub_group_id, anime_id, fansub_group_member_id, release_version_id)
+// Bei einem UNIQUE-Konflikt auf (fansub_group_id, anime_id, member_id, release_version_id)
 // werden die bestehenden Felder aktualisiert statt einen Fehler zurueckzugeben. Das vierspaltige
 // Target (Phase 67-02, Pitfall 1) stellt sicher, dass ein versions-spezifischer Eintrag NICHT den
 // anime-weiten Eintrag (release_version_id IS NULL) desselben Members ueberschreibt.
@@ -55,7 +54,7 @@ func (r *AnimeContributionsRepository) CreateOrUpdate(
 		INSERT INTO anime_contributions (
 			fansub_group_id,
 			anime_id,
-			fansub_group_member_id,
+			member_id,
 			status,
 			note,
 			started_year,
@@ -68,7 +67,7 @@ func (r *AnimeContributionsRepository) CreateOrUpdate(
 			created_at,
 			updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $11, $10, $10, NOW(), NOW())
-		ON CONFLICT (fansub_group_id, anime_id, fansub_group_member_id, release_version_id)
+		ON CONFLICT (fansub_group_id, anime_id, member_id, release_version_id)
 		DO UPDATE SET
 			status                      = EXCLUDED.status,
 			note                        = EXCLUDED.note,
@@ -82,7 +81,7 @@ func (r *AnimeContributionsRepository) CreateOrUpdate(
 	`,
 		fansubGroupID,
 		animeID,
-		input.FansubGroupMemberID,
+		input.MemberID,
 		input.Status,
 		input.Note,
 		input.StartedYear,

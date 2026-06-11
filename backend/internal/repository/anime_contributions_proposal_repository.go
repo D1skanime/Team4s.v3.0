@@ -275,7 +275,7 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.ID,
 			&row.FansubGroupID,
 			&row.AnimeID,
-			&row.FansubGroupMemberID,
+			&row.MemberID,
 			&row.Status,
 			&row.Note,
 			&row.StartedYear,
