@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 82 UI-SPEC approved
-last_updated: "2026-06-11T07:11:13.728Z"
-last_activity: "2026-06-10 - Completed quick task 260610-iqh: Alias-Verwaltung in Grunddaten-Grid verschoben"
+last_updated: "2026-06-11T07:48:54.356Z"
+last_activity: 2026-06-11
 progress:
   total_phases: 78
   completed_phases: 60
-  total_plans: 314
+  total_plans: 320
   completed_plans: 279
   percent: 77
 ---
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 81 — Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe
+**Current focus:** Phase 82 — Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix
 
 ## Current Position
 
-Phase: 81 (Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe) — EXECUTING
-Plan: 6 of 6
+Phase: 82 (Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix) — EXECUTING
+Plan: 1 of 6
 
 ## Accumulated Context
 
@@ -467,5 +467,5 @@ Recent durable decisions:
 
 Last session: 2026-06-11T07:11:13.585Z
 Stopped at: Phase 82 UI-SPEC approved
-Last activity: 2026-06-10 - Completed quick task 260610-iqh: Alias-Verwaltung in Grunddaten-Grid verschoben
+Last activity: 2026-06-11
 Resume file: .planning/phases/82-mitwirkende-projektweit-zuordnen-und-leader-abdeckungs-matri/82-UI-SPEC.md
