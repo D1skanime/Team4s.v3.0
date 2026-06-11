@@ -1491,6 +1491,16 @@ Plans:
 - [x] `82-06-PLAN.md` — Tests (parseMainTab, Badge, Standard-Team-Button) + Human-UAT (12 Prüfpunkte)
 - [x] Coverage-Gap-Fix (`82-07`) — Aggregat-Endpoint für echte Badge-/Matrix-Daten (D-12-ehrlich)
 
+### Phase 83: Pro-Release-Mitwirkenden-Zuordnung (release_version_id) im Cockpit
+
+**Goal:** Leader können Mitwirkende/Rollen **pro Release** festlegen, nicht nur anime-weit: Default = alle Team-Mitglieder sind auf jedes Release gemappt; pro Release sind Ausnahmen möglich („dieser User war hier nicht dabei") und Rollen-Overrides („der hat hier diese Rolle gemacht") — datenseitig über `anime_contributions.release_version_id` (+ `release_version_groups`). UI als Pro-Release-Sicht im bestehenden Projekt-Cockpit. (Folge-Phase Schicht B: member-zentrischer `/me`-Einstieg zum Mitwirken an Releases.) Design-Seed: `83-SEED.md`.
+**Requirements**: TBD (Discuss-Phase)
+**Depends on:** Phase 82
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 83 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
