@@ -1,36 +1,36 @@
 'use client'
 
-import { CheckCircle2 } from 'lucide-react'
+import Image from 'next/image'
 
-import {
-  Button,
-  EmptyState,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from '@/components/ui'
+import { EmptyState } from '@/components/ui'
+import { classNames } from '@/components/ui/classNames'
 
-// Katalog-getriebene Rollen (D-07): aus role_definitions mit contexts @> 'anime_contribution'
-// Kein Hardcode von Rollen-Codes hier — Spalten kommen als Prop von der aufrufenden Seite
+import styles from './CoverageMatrix.module.css'
+
+// Katalog-getriebene Rollen: die aufrufende Seite liefert die Reihenfolge.
 export type RoleDefinition = {
   code: string
   label: string
   sort_order: number
 }
 
+export type CoverageRoleMember = {
+  memberId: number
+  displayName: string
+  avatarUrl?: string | null
+}
+
 export type ProjectCoverageRow = {
   animeId: number
   animeTitle: string
-  coveredRoleCodes: string[] // welche role_codes mindestens 1 Contribution haben
+  coveredRoleCodes?: string[]
+  roleMembersByCode?: Record<string, CoverageRoleMember[]>
 }
 
 type Props = {
   roles: RoleDefinition[]
   rows: ProjectCoverageRow[]
-  onCellClick?: (animeId: number, roleCode: string) => void // optionale Inline-Zuweisung (D-07)
+  onCellClick?: (animeId: number, roleCode: string) => void
 }
 
 export function CoverageMatrix({ roles, rows, onCellClick }: Props) {
@@ -44,44 +44,85 @@ export function CoverageMatrix({ roles, rows, onCellClick }: Props) {
   }
 
   return (
-    <Table variant="compact">
-      <TableHead>
-        <TableRow>
-          <TableHeaderCell>Projekt</TableHeaderCell>
-          {roles.map((role) => (
-            <TableHeaderCell key={role.code}>{role.label}</TableHeaderCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {rows.map((row) => (
-          <TableRow key={row.animeId}>
-            <TableCell>{row.animeTitle}</TableCell>
+    <div className={styles.coverageList}>
+      {rows.map((row) => (
+        <section key={row.animeId} className={styles.projectCoverage}>
+          <div className={styles.projectHeader}>
+            <h4>{row.animeTitle}</h4>
+          </div>
+          <div className={styles.roleGrid}>
             {roles.map((role) => {
-              const covered = row.coveredRoleCodes.includes(role.code)
+              const members = row.roleMembersByCode?.[role.code] ?? []
+              const covered = members.length > 0 || Boolean(row.coveredRoleCodes?.includes(role.code))
+              const visibleMembers = members.slice(0, 4)
+              const hiddenMemberCount = Math.max(0, members.length - visibleMembers.length)
+
               return (
-                <TableCell key={role.code}>
-                  {onCellClick ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      iconOnly
-                      onClick={() => onCellClick(row.animeId, role.code)}
-                      aria-label={`${role.label} für ${row.animeTitle} ${covered ? 'besetzt' : 'zuweisen'}`}
-                    >
-                      {covered ? <CheckCircle2 size={16} /> : null}
-                    </Button>
-                  ) : (
-                    covered ? <CheckCircle2 size={16} aria-label="besetzt" /> : null
+                <button
+                  key={role.code}
+                  type="button"
+                  className={classNames(
+                    styles.roleCard,
+                    covered && styles.roleCardCovered,
                   )}
-                </TableCell>
+                  onClick={() => onCellClick?.(row.animeId, role.code)}
+                  disabled={!onCellClick}
+                  aria-label={`${role.label} für ${row.animeTitle} ${covered ? 'bearbeiten' : 'zuweisen'}`}
+                >
+                  <span className={styles.roleTitle}>{role.label}</span>
+                  {members.length > 0 ? (
+                    <span
+                      className={styles.memberStack}
+                      aria-label={members.map((member) => member.displayName).join(', ')}
+                    >
+                      {visibleMembers.map((member) => (
+                        <span
+                          key={member.memberId}
+                          className={styles.memberAvatar}
+                          title={member.displayName}
+                        >
+                          {member.avatarUrl ? (
+                            <Image
+                              src={member.avatarUrl}
+                              alt=""
+                              width={28}
+                              height={28}
+                              unoptimized
+                            />
+                          ) : (
+                            memberInitials(member.displayName)
+                          )}
+                        </span>
+                      ))}
+                      {hiddenMemberCount > 0 ? (
+                        <span className={styles.memberOverflow}>+{hiddenMemberCount}</span>
+                      ) : null}
+                    </span>
+                  ) : (
+                    <span className={covered ? styles.coveredFallback : styles.roleMissing}>
+                      {covered ? 'Besetzt' : 'Fehlt'}
+                    </span>
+                  )}
+                </button>
               )
             })}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+          </div>
+        </section>
+      ))}
+    </div>
   )
+}
+
+function memberInitials(displayName: string): string {
+  const words = displayName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+  if (words.length === 0) return '?'
+  if (words.length === 1) return words[0].slice(0, 2).toLocaleUpperCase('de-CH')
+
+  return `${words[0][0] ?? ''}${words[words.length - 1][0] ?? ''}`.toLocaleUpperCase('de-CH')
 }
 
 export default CoverageMatrix

@@ -69,6 +69,7 @@ import {
   FansubStatus,
   AnimeContribution,
   UnifiedGroupMember,
+  FANSUB_GROUP_ROLE_OPTIONS,
 } from "@/types/fansub";
 import {
   AdminAnimeTheme,
@@ -97,7 +98,12 @@ import AnimeContributionModal from "./AnimeContributionModal";
 import { AnimeReleasesFilterBar, type CockpitFilter } from "./AnimeReleasesFilterBar";
 import { ProjectCockpitBadges } from "./ProjectCockpitBadges";
 import { AnimeProjectNoteWorkspace } from "./AnimeProjectNoteWorkspace";
-import { CoverageMatrix, type RoleDefinition, type ProjectCoverageRow } from "./CoverageMatrix";
+import {
+  CoverageMatrix,
+  type CoverageRoleMember,
+  type RoleDefinition,
+  type ProjectCoverageRow,
+} from "./CoverageMatrix";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
@@ -401,6 +407,39 @@ function animeFansubReleaseContextKey(
   animeID: number,
 ): string {
   return `${fansubID}:${animeID}`;
+}
+
+function buildAnimeCoverageMap(items: AnimeCoverage[]): Map<number, AnimeCoverage> {
+  const map = new Map<number, AnimeCoverage>();
+  for (const item of items) {
+    map.set(item.anime_id, item);
+  }
+  return map;
+}
+
+function groupContributionMembersByRole(
+  contributions: AnimeContribution[],
+): Record<string, CoverageRoleMember[]> {
+  const membersByRole: Record<string, CoverageRoleMember[]> = {};
+  const seenByRole: Record<string, Set<number>> = {};
+
+  for (const contribution of contributions) {
+    for (const roleCode of contribution.role_codes ?? []) {
+      seenByRole[roleCode] ??= new Set<number>();
+      if (seenByRole[roleCode].has(contribution.member_id)) continue;
+
+      seenByRole[roleCode].add(contribution.member_id);
+      membersByRole[roleCode] ??= [];
+      membersByRole[roleCode].push({
+        memberId: contribution.member_id,
+        displayName:
+          contribution.member_display_name?.trim() ||
+          `Mitglied #${contribution.member_id}`,
+      });
+    }
+  }
+
+  return membersByRole;
 }
 
 function releaseDrawerTitle(release: AdminFansubRelease): string {
@@ -1034,21 +1073,25 @@ function AdminFansubEditContent({
   const [contributionModalRows, setContributionModalRows] = useState<
     AnimeContribution[]
   >([]);
+  const [animeContributionRowsByAnimeId, setAnimeContributionRowsByAnimeId] =
+    useState<Record<number, AnimeContribution[]>>({});
   const [contributionModalLoadingAnimeId, setContributionModalLoadingAnimeId] =
     useState<number | null>(null);
   const [contributionModalError, setContributionModalError] = useState<
     string | null
   >(null);
   const [cockpitFilter, setCockpitFilter] = useState<CockpitFilter>('all');
-  // Katalog-Rollen für CoverageMatrix (D-07): Fallback auf statische Liste bis API-Endpoint verfügbar
-  const catalogRoles = useMemo<RoleDefinition[]>(() => [
-    { code: 'translator', label: 'Übersetzung', sort_order: 1 },
-    { code: 'timer', label: 'Timing', sort_order: 2 },
-    { code: 'typesetter', label: 'Typesetting', sort_order: 3 },
-    { code: 'editor', label: 'Editing', sort_order: 4 },
-    { code: 'encoder', label: 'Encoding', sort_order: 5 },
-    { code: 'quality_checker', label: 'Qualitätscheck', sort_order: 6 },
-  ], []);
+  const catalogRoles = useMemo<RoleDefinition[]>(
+    () =>
+      FANSUB_GROUP_ROLE_OPTIONS
+        .filter((role) => role.code !== "fansub_lead")
+        .map((role, index) => ({
+          code: role.code,
+          label: role.label,
+          sort_order: index + 1,
+        })),
+    [],
+  );
   const visibleReleaseGroups = useMemo(() => {
     if (cockpitFilter === "all" || animeCoverageMap === null) {
       return releaseGroups;
@@ -1225,6 +1268,7 @@ function AdminFansubEditContent({
     setContributionModalAnime(null);
     setContributionMembers([]);
     setContributionModalRows([]);
+    setAnimeContributionRowsByAnimeId({});
     setContributionModalLoadingAnimeId(null);
     setContributionModalError(null);
     setDrawerRelease(null);
@@ -1328,11 +1372,7 @@ function AdminFansubEditContent({
           })),
         );
         if (coverageResponse) {
-          const map = new Map<number, AnimeCoverage>();
-          for (const item of coverageResponse.data) {
-            map.set(item.anime_id, item);
-          }
-          setAnimeCoverageMap(map);
+          setAnimeCoverageMap(buildAnimeCoverageMap(coverageResponse.data));
         }
       })
       .catch((nextError) => {
@@ -1743,6 +1783,36 @@ function AdminFansubEditContent({
     });
   };
 
+  const rememberAnimeContributionRows = (
+    animeID: number,
+    rows: AnimeContribution[],
+  ) => {
+    setAnimeContributionRowsByAnimeId((current) => ({
+      ...current,
+      [animeID]: rows,
+    }));
+  };
+
+  const loadAnimeContributionRows = async (animeID: number) => {
+    try {
+      const response = await listAnimeContributions(fansubID, animeID);
+      const rows = response.data ?? [];
+      rememberAnimeContributionRows(animeID, rows);
+      return rows;
+    } catch {
+      return animeContributionRowsByAnimeId[animeID] ?? [];
+    }
+  };
+
+  const refreshAnimeCoverage = async () => {
+    try {
+      const response = await getAnimeCoverage(fansubID);
+      setAnimeCoverageMap(buildAnimeCoverageMap(response.data));
+    } catch {
+      // Ein Coverage-Refresh ist nur eine Anzeigeaktualisierung; Speichern bleibt erfolgreich.
+    }
+  };
+
   const toggleAnime = (releaseGroup: FansubReleaseGroup) => {
     setExpandedAnimeKeys((current) => {
       const next = new Set(current);
@@ -1759,6 +1829,7 @@ function AdminFansubEditContent({
           [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE,
         }));
         void loadAnimeReleases(releaseGroup);
+        void loadAnimeContributionRows(releaseGroup.anime.id);
       }
       return next;
     });
@@ -1776,6 +1847,7 @@ function AdminFansubEditContent({
       [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE,
     }));
     void loadAnimeReleases(releaseGroup);
+    void loadAnimeContributionRows(releaseGroup.anime.id);
   };
 
   const openAnimeContributions = async (anime: AdminFansubAnimeEntry) => {
@@ -1786,8 +1858,10 @@ function AdminFansubEditContent({
         listUnifiedGroupMembers(fansubID),
         listAnimeContributions(fansubID, anime.id),
       ]);
+      const contributionRows = contributionsResponse.data ?? [];
       setContributionMembers(membersResult ?? []);
-      setContributionModalRows(contributionsResponse.data ?? []);
+      setContributionModalRows(contributionRows);
+      rememberAnimeContributionRows(anime.id, contributionRows);
       setContributionModalAnime({ id: anime.id, title: anime.title });
     } catch (nextError) {
       setContributionModalError(errMessage(nextError));
@@ -1799,10 +1873,13 @@ function AdminFansubEditContent({
   const refreshAnimeContributions = async (animeID: number) => {
     try {
       const response = await listAnimeContributions(fansubID, animeID);
-      setContributionModalRows(response.data ?? []);
+      const rows = response.data ?? [];
+      setContributionModalRows(rows);
+      rememberAnimeContributionRows(animeID, rows);
     } catch {
       // Der Speichervorgang selbst war erfolgreich; ein Refresh-Fehler ist nicht kritisch.
     }
+    void refreshAnimeCoverage();
   };
 
   useEffect(() => {
@@ -2830,6 +2907,11 @@ function AdminFansubEditContent({
                   const animeCoverage = animeCoverageMap?.get(
                     releaseGroup.anime.id,
                   );
+                  const animeContributionRows =
+                    animeContributionRowsByAnimeId[releaseGroup.anime.id] ??
+                    [];
+                  const roleMembersByCode =
+                    groupContributionMembersByRole(animeContributionRows);
                   return (
                     <article
                       key={releaseGroup.key}
@@ -2960,6 +3042,7 @@ function AdminFansubEditContent({
                                 animeTitle: releaseGroup.anime.title,
                                 coveredRoleCodes:
                                   animeCoverage?.covered_role_codes ?? [],
+                                roleMembersByCode,
                               } satisfies ProjectCoverageRow,
                             ]}
                             onCellClick={() =>

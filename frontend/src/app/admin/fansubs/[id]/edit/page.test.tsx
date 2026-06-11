@@ -54,11 +54,13 @@ const apiMocks = vi.hoisted(() => ({
   getFansubList: vi.fn(),
   listAnimeContributions: vi.fn().mockResolvedValue({ data: [] }),
   listDefaultCrew: vi.fn().mockResolvedValue([]),
-  listUnifiedGroupMembers: vi.fn().mockResolvedValue({ data: [] }),
+  listUnifiedGroupMembers: vi.fn().mockResolvedValue([]),
   resolveApiUrl: vi.fn((value: string) => value),
+  deleteAnimeContribution: vi.fn().mockResolvedValue(undefined),
   updateFansubGroup: vi.fn(),
   updateFansubLink: vi.fn(),
   uploadAdminReleaseThemeAssetForRelease: vi.fn(),
+  upsertAnimeContribution: vi.fn().mockResolvedValue({ data: {} }),
   upsertAnimeFansubProjectNote: vi.fn().mockResolvedValue(null),
   upsertDefaultCrewEntry: vi.fn().mockResolvedValue(undefined),
 }))
@@ -150,6 +152,11 @@ beforeEach(() => {
   mediaUploadProps.length = 0
   appMembersSectionProps.length = 0
   mockedUseAuthSession.mockReturnValue({ hasAccessToken: true, isClientInitialized: true })
+  apiMocks.getAnimeCoverage.mockResolvedValue({ data: [] })
+  apiMocks.listAnimeContributions.mockResolvedValue({ data: [] })
+  apiMocks.listUnifiedGroupMembers.mockResolvedValue([])
+  apiMocks.deleteAnimeContribution.mockResolvedValue(undefined)
+  apiMocks.upsertAnimeContribution.mockResolvedValue({ data: {} })
   apiMocks.getFansubByID.mockResolvedValue({
     data: {
       id: 88,
@@ -641,6 +648,70 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(await screen.findByTestId('anime-project-note-workspace')).not.toBeNull()
     expect(screen.getByTestId('coverage-matrix')).not.toBeNull()
     expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13)
+  })
+
+  it('refreshes anime coverage after saving contribution roles', async () => {
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAnimeCoverage
+      .mockResolvedValueOnce({
+        data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false }],
+      })
+      .mockResolvedValueOnce({
+        data: [{ anime_id: 13, member_count: 1, covered_role_codes: ['timer'], has_project_note: false }],
+      })
+    apiMocks.listUnifiedGroupMembers.mockResolvedValue([
+      {
+        member_id: 55,
+        display_name: 'Timer User',
+        source: 'app',
+        has_app_account: true,
+        group_roles: [],
+      },
+    ])
+    apiMocks.listAnimeContributions
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 91,
+            member_id: 55,
+            member_display_name: 'Timer User',
+            anime_id: 13,
+            role_codes: ['timer'],
+            started_year: null,
+            ended_year: null,
+            note: null,
+            is_public_on_anime_page: false,
+            is_public_on_member_profile: false,
+            status: 'confirmed',
+            release_version_id: null,
+            created_at: '2026-06-11T00:00:00Z',
+          },
+        ],
+      })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    await screen.findByRole('heading', { name: 'Naruto' })
+    fireEvent.click(screen.getByRole('button', { name: /Mitwirkende/ }))
+
+    const dialog = await screen.findByRole('dialog', { name: /Mitwirkende/ })
+    fireEvent.click(within(dialog).getByLabelText('Timing'))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => expect(apiMocks.upsertAnimeContribution).toHaveBeenCalledWith(
+      88,
+      13,
+      expect.objectContaining({
+        member_id: 55,
+        role_codes: ['timer'],
+      }),
+    ))
+    await waitFor(() => expect(apiMocks.getAnimeCoverage).toHaveBeenCalledTimes(2))
   })
 
   it('opens release theme assets in a closable preview modal', async () => {

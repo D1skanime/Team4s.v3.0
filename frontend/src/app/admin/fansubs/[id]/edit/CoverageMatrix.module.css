@@ -1,0 +1,144 @@
+.coverageList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.projectCoverage {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.projectHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.projectHeader h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(154px, 1fr));
+  gap: 0.55rem;
+}
+
+.roleCard {
+  display: grid;
+  min-height: 64px;
+  gap: 0.45rem;
+  align-content: space-between;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-card) 86%, transparent);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.roleCard:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 94%, var(--accent-soft));
+}
+
+.roleCard:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.roleCard:disabled {
+  cursor: default;
+}
+
+.roleCardCovered {
+  border-color: color-mix(in srgb, var(--color-success) 42%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, var(--bg-card));
+}
+
+.roleTitle {
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.memberStack {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.memberAvatar,
+.memberOverflow {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid var(--bg-card);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #243b6b, #7a3346);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 6px 14px color-mix(in srgb, #111827 18%, transparent);
+}
+
+.memberAvatar + .memberAvatar,
+.memberAvatar + .memberOverflow {
+  margin-left: -0.42rem;
+}
+
+.memberAvatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.memberOverflow {
+  background: color-mix(in srgb, var(--text-secondary) 14%, var(--bg-card));
+  color: var(--text-primary);
+}
+
+.coveredFallback,
+.roleMissing {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 24px;
+  align-items: center;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.coveredFallback {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: color-mix(in srgb, var(--color-success) 82%, var(--text-primary));
+}
+
+.roleMissing {
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .roleGrid {
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  }
+}
