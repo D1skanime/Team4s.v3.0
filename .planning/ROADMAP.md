@@ -1479,7 +1479,7 @@ Plans:
 **Goal:** Der Tab „Anime & Veröffentlichungen" wird zum Projekt-Cockpit: (1) Anime-Mitwirkende sind für jede Person der Gruppe gleichwertig zuordenbar (App- UND historische Member, Anker auf `members.id`) mit Leader-Abdeckungssicht (Projekt × Rolle), Inline-Zuweisung und Standard-Team; (2) die bisherigen „Anime-Einblicke" werden in dieselbe Projektkarte integriert (Status-Badges, Inline-Einblick, Routing/Tab-Merge). Kontext + Entscheidungen: `82-CONTEXT.md`; verbindlicher Einblicke-Auftrag: `82-EINBLICKE-AUFTRAG.md`; Design-Seed: `82-SEED.md`.
 **Requirements**: D-01..D-17, EINBLICKE-AUFTRAG
 **Depends on:** Phase 81
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 - [ ] `82-01-PLAN.md` — DB-Migrationen 0104–0107 (members-Backfill, anime_contributions.member_id, Rollen-FK, Standard-Team-Tabelle)
