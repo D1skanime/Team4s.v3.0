@@ -12,12 +12,13 @@ import {
 import type { FansubAnimeReleaseVersionOption } from '@/types/contributions'
 import type {
   AnimeContribution,
-  HistFansubGroupMember,
+  UnifiedGroupMember,
 } from '@/types/fansub'
 import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 
 import styles from './AnimeContributionModal.module.css'
 
+// D-09: nur operative Rollen — fansub_lead wird nicht als Anime-Credit übernommen
 const ANIME_CONTRIBUTION_ROLES = FANSUB_GROUP_ROLE_OPTIONS.filter(
   (role) => role.code !== 'fansub_lead',
 )
@@ -33,17 +34,15 @@ type Props = {
   fansubId: number
   animeId: number
   animeTitle: string
-  members: HistFansubGroupMember[]
+  members: UnifiedGroupMember[]
   existingContributions: AnimeContribution[]
   onClose: () => void
   onSaved: () => void
 }
 
-function groupMemberStatusHint(status: HistFansubGroupMember['status']): string | null {
-  if (status === 'confirmed') return null
-  if (status === 'draft') return 'Entwurf'
-  if (status === 'disputed') return 'umstritten'
-  return 'historisch'
+function memberSourceHint(source: UnifiedGroupMember['source']): string | null {
+  if (source === 'app') return 'Konto'
+  return null
 }
 
 export default function AnimeContributionModal({
@@ -248,45 +247,47 @@ export default function AnimeContributionModal({
           <EmptyState title="Keine Gruppenmitglieder" description="Lege zuerst historische Mitglieder in der Gruppe an." />
         ) : null}
         {members.map((member) => {
-          const isSelected = selectedMemberIds.has(member.id)
-          const roles = rolesByMemberId[member.id] ?? []
-          const visibility = visibilityByMemberId[member.id] ?? { anime: false, profile: false }
-          const memberStatus = statusByMemberId[member.id] ?? 'draft'
-          const releaseVersionValue = releaseVersionByMemberId[member.id] ?? null
-          const versionError = versionErrorByMemberId[member.id]
-          const statusHint = groupMemberStatusHint(member.status)
+          const isSelected = selectedMemberIds.has(member.member_id)
+          const roles = rolesByMemberId[member.member_id] ?? []
+          const visibility = visibilityByMemberId[member.member_id] ?? { anime: false, profile: false }
+          const memberStatus = statusByMemberId[member.member_id] ?? 'draft'
+          const releaseVersionValue = releaseVersionByMemberId[member.member_id] ?? null
+          const versionError = versionErrorByMemberId[member.member_id]
+          const sourceHint = memberSourceHint(member.source)
 
           return (
-            <Card key={member.id} variant={isSelected ? 'nested' : 'nestedFlat'} className={styles.memberCard}>
+            <Card key={member.member_id} variant={isSelected ? 'nested' : 'nestedFlat'} className={styles.memberCard}>
               <div className={styles.memberHeader}>
                 <Button
                   variant={isSelected ? 'primary' : 'secondary'}
                   size="sm"
                   aria-pressed={isSelected}
-                  onClick={() => toggleMember(member.id)}
+                  onClick={() => toggleMember(member.member_id)}
                 >
                   {isSelected ? 'Ausgewählt' : 'Auswählen'}
                 </Button>
                 <span className={styles.memberName}>{member.display_name}</span>
-                {statusHint ? <Badge variant="muted">{statusHint}</Badge> : null}
+                {sourceHint ? <Badge variant="muted">{sourceHint}</Badge> : null}
               </div>
 
               {isSelected ? (
                 <div className={styles.memberDetails}>
+                  {/* D-05: Mehrfachrollen — Checkbox-Gruppe; mehrere Rollen wählbar */}
                   <div className={styles.fieldGroup}>
                     <p className={styles.fieldLabel}>Rollen</p>
                     <div className={styles.chipRow}>
                       {ANIME_CONTRIBUTION_ROLES.map((role) => {
                         const active = roles.includes(role.code)
                         return (
-                          <Button
-                            key={role.code}
-                            size="sm"
-                            variant={active ? 'primary' : 'secondary'}
-                            onClick={() => active ? removeRole(member.id, role.code) : addRole(member.id, role.code)}
-                          >
+                          <label key={role.code} className={styles.roleCheckboxLabel}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={() => active ? removeRole(member.member_id, role.code) : addRole(member.member_id, role.code)}
+                              className={styles.roleCheckbox}
+                            />
                             {role.label}
-                          </Button>
+                          </label>
                         )
                       })}
                     </div>
@@ -298,7 +299,7 @@ export default function AnimeContributionModal({
                       variant={visibility.anime ? 'primary' : 'secondary'}
                       size="sm"
                       aria-pressed={visibility.anime}
-                      onClick={() => setVisibility(member.id, 'anime', !visibility.anime)}
+                      onClick={() => setVisibility(member.member_id, 'anime', !visibility.anime)}
                     >
                       Öffentlich auf Anime-Seite
                     </Button>
@@ -306,7 +307,7 @@ export default function AnimeContributionModal({
                       variant={visibility.profile ? 'primary' : 'secondary'}
                       size="sm"
                       aria-pressed={visibility.profile}
-                      onClick={() => setVisibility(member.id, 'profile', !visibility.profile)}
+                      onClick={() => setVisibility(member.member_id, 'profile', !visibility.profile)}
                     >
                       Im Mitgliederprofil
                     </Button>
@@ -315,7 +316,7 @@ export default function AnimeContributionModal({
                   <FormField label="Status">
                     <Select
                       value={memberStatus}
-                      onChange={(event) => setMemberStatus(member.id, event.target.value as MemberStatus)}
+                      onChange={(event) => setMemberStatus(member.member_id, event.target.value as MemberStatus)}
                     >
                       <option value="draft">Entwurf</option>
                       <option value="confirmed">Bestätigt</option>
@@ -333,7 +334,7 @@ export default function AnimeContributionModal({
                       value={releaseVersionValue === null ? '' : String(releaseVersionValue)}
                       onChange={(event) =>
                         setReleaseVersion(
-                          member.id,
+                          member.member_id,
                           event.target.value === '' ? null : Number(event.target.value),
                         )
                       }
