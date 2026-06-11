@@ -74,14 +74,14 @@ export default function AnimeContributionModal({
     const releaseVersions: Record<number, number | null> = {}
 
     for (const contribution of existingContributions) {
-      ids.add(contribution.fansub_group_member_id)
-      roles[contribution.fansub_group_member_id] = contribution.role_codes ?? []
-      visibility[contribution.fansub_group_member_id] = {
+      ids.add(contribution.member_id)
+      roles[contribution.member_id] = contribution.role_codes ?? []
+      visibility[contribution.member_id] = {
         anime: contribution.is_public_on_anime_page,
         profile: contribution.is_public_on_member_profile,
       }
-      status[contribution.fansub_group_member_id] = contribution.status
-      releaseVersions[contribution.fansub_group_member_id] = contribution.release_version_id ?? null
+      status[contribution.member_id] = contribution.status
+      releaseVersions[contribution.member_id] = contribution.release_version_id ?? null
     }
 
     setSelectedMemberIds(ids)
@@ -181,11 +181,11 @@ export default function AnimeContributionModal({
       await Promise.all(
         Array.from(selectedMemberIds).map(async (memberId) => {
           const existingContribution = existingContributions.find((contribution) => (
-            contribution.fansub_group_member_id === memberId
+            contribution.member_id === memberId
           ))
           try {
             await upsertAnimeContribution(fansubId, animeId, {
-              fansub_group_member_id: memberId,
+              member_id: memberId,
               role_codes: rolesByMemberId[memberId] ?? [],
               started_year: existingContribution?.started_year ?? null,
               ended_year: existingContribution?.ended_year ?? null,
@@ -213,7 +213,7 @@ export default function AnimeContributionModal({
 
       await Promise.all(
         existingContributions
-          .filter((contribution) => !selectedMemberIds.has(contribution.fansub_group_member_id))
+          .filter((contribution) => !selectedMemberIds.has(contribution.member_id))
           .map((contribution) => deleteAnimeContribution(fansubId, animeId, contribution.id)),
       )
 

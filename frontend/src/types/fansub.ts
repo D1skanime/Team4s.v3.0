@@ -617,7 +617,7 @@ export interface UpdateMemberRoleRequest {
 
 export interface AnimeContribution {
   id: number;
-  fansub_group_member_id: number;
+  member_id: number;
   member_display_name: string;
   anime_id: number;
   role_codes: string[];
@@ -641,7 +641,7 @@ export interface AnimeContributionResponse {
 }
 
 export interface UpsertAnimeContributionRequest {
-  fansub_group_member_id: number;
+  member_id: number;
   role_codes: string[];
   started_year: number | null;
   ended_year: number | null;
@@ -651,4 +651,25 @@ export interface UpsertAnimeContributionRequest {
   status: "draft" | "confirmed" | "hidden";
   // Phase 67-04: optionale Release-Version-Zuordnung (null = anime-weit lassen).
   release_version_id: number | null;
+}
+
+// --- Vereinheitlichte Personenliste (hist + App) für Mitwirkenden-Zuordnung (D-02) ---
+
+export interface UnifiedGroupMember {
+  member_id: number;
+  display_name: string;
+  source: "hist" | "app";
+  has_app_account: boolean;
+  group_roles: string[];
+}
+
+// --- Standard-Team (fansub_group_default_crew) (D-04) ---
+
+export interface DefaultCrewEntry {
+  id: number;
+  fansub_group_id: number;
+  member_id: number;
+  role_code: string;
+  created_by: number | null;
+  created_at: string;
 }
