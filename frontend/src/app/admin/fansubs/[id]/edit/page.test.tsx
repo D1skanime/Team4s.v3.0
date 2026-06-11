@@ -45,6 +45,7 @@ const apiMocks = vi.hoisted(() => ({
   getAdminFansubAnimeReleases: vi.fn(),
   getAdminRelease: vi.fn(),
   getAdminReleaseThemeAssets: vi.fn(),
+  getAnimeCoverage: vi.fn().mockResolvedValue({ data: [] }),
   getAnimeFansubProjectNote: vi.fn().mockResolvedValue(null),
   getCurrentUser: vi.fn(),
   getFansubAliases: vi.fn(),

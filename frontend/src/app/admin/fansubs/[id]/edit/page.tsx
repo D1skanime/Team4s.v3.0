@@ -42,6 +42,7 @@ import {
   getAdminAnimeThemeSegments,
   getAdminRelease,
   getAdminReleaseThemeAssets,
+  getAnimeCoverage,
   getCurrentUser,
   getFansubAliases,
   getFansubByID,
@@ -53,6 +54,7 @@ import {
   updateFansubGroup,
   updateFansubLink,
   uploadAdminReleaseThemeAssetForRelease,
+  type AnimeCoverage,
 } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
 import {
@@ -982,6 +984,8 @@ function AdminFansubEditContent({
   const [releaseGroupsError, setReleaseGroupsError] = useState<string | null>(
     null,
   );
+  // Gap-82-07: Coverage-Aggregat: null = noch nicht geladen (D-12: kein falsches "fehlt")
+  const [animeCoverageMap, setAnimeCoverageMap] = useState<Map<number, AnimeCoverage> | null>(null);
   const [releasesByAnimeFansubGroupId, setReleasesByAnimeFansubGroupId] =
     useState<Record<string, AdminFansubRelease[]>>({});
   const [
@@ -1290,10 +1294,14 @@ function AdminFansubEditContent({
     let active = true;
     setReleaseGroupsLoading(true);
     setReleaseGroupsError(null);
+    setAnimeCoverageMap(null);
     resetReleaseWorkspaceState();
 
-    getAdminFansubAnime(fansubID)
-      .then((animeResponse) => {
+    Promise.all([
+      getAdminFansubAnime(fansubID),
+      getAnimeCoverage(fansubID).catch(() => null),
+    ])
+      .then(([animeResponse, coverageResponse]) => {
         if (!active) return;
         setReleaseGroups(
           animeResponse.data.map((anime) => ({
@@ -1301,6 +1309,13 @@ function AdminFansubEditContent({
             anime,
           })),
         );
+        if (coverageResponse) {
+          const map = new Map<number, AnimeCoverage>();
+          for (const item of coverageResponse.data) {
+            map.set(item.anime_id, item);
+          }
+          setAnimeCoverageMap(map);
+        }
       })
       .catch((nextError) => {
         if (!active) return;
@@ -2735,7 +2750,7 @@ function AdminFansubEditContent({
                   rows={releaseGroups.map((rg) => ({
                     animeId: rg.anime.id,
                     animeTitle: rg.anime.title,
-                    coveredRoleCodes: [],
+                    coveredRoleCodes: animeCoverageMap?.get(rg.anime.id)?.covered_role_codes ?? [],
                   } as ProjectCoverageRow))}
                   onCellClick={(animeId) => {
                     const anime = releaseGroups.find((rg) => rg.anime.id === animeId)?.anime
@@ -2838,7 +2853,9 @@ function AdminFansubEditContent({
                           </span>
                         </button>
                         <ProjectCockpitBadges
-                          contributionCount={0}
+                          contributionCount={animeCoverageMap === null
+                            ? null
+                            : (animeCoverageMap.get(releaseGroup.anime.id)?.member_count ?? 0)}
                           note={undefined}
                         />
                         {canOpenReleaseContributors ? (

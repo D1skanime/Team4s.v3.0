@@ -390,9 +390,10 @@ func main() {
 	histGroupMemberRolesHandler := handlers.NewFansubHistGroupMemberRolesHandler(
 		histGroupMemberRolesRepo, badgeService, permissionSvc, auditLogRepo, histGroupMembersRepo,
 	)
+	animeCoverageRepo := repository.NewAnimeCoverageRepository(dbPool)
 	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(
 		animeContributionsRepo, histGroupMemberRolesRepo, permissionSvc, auditLogRepo,
-	).WithBadgeService(badgeService).WithHistMembersRepo(histGroupMembersRepo)
+	).WithBadgeService(badgeService).WithHistMembersRepo(histGroupMembersRepo).WithCoverageRepo(animeCoverageRepo)
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo).
 		WithPermissionSvc(permissionSvc)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo)

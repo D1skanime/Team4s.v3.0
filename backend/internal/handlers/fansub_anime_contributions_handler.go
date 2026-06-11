@@ -19,6 +19,7 @@ type FansubAnimeContributionsHandler struct {
 	contributionsRepo *repository.AnimeContributionsRepository
 	rolesRepo         *repository.HistGroupMemberRolesRepository
 	histMembersRepo   *repository.HistGroupMembersRepository // für ListUnifiedGroupMembers (D-02)
+	coverageRepo      *repository.AnimeCoverageRepository   // für GetAnimeCoverage (Gap-82-07)
 	permissionSvc     *permissions.Service
 	auditLogRepo      *repository.AuditLogRepository
 	badgeService      *services.BadgeService // Phase 68: Badge-Recompute
@@ -49,6 +50,52 @@ func (h *FansubAnimeContributionsHandler) WithHistMembersRepo(repo *repository.H
 func (h *FansubAnimeContributionsHandler) WithBadgeService(svc *services.BadgeService) *FansubAnimeContributionsHandler {
 	h.badgeService = svc
 	return h
+}
+
+// WithCoverageRepo ergänzt das AnimeCoverageRepository (für GetAnimeCoverage, Gap-82-07).
+func (h *FansubAnimeContributionsHandler) WithCoverageRepo(repo *repository.AnimeCoverageRepository) *FansubAnimeContributionsHandler {
+	h.coverageRepo = repo
+	return h
+}
+
+// GetAnimeCoverage liefert pro Anime der Gruppe: member_count und covered_role_codes (Aggregat).
+// GET /admin/fansubs/:id/anime-coverage
+func (h *FansubAnimeContributionsHandler) GetAnimeCoverage(c *gin.Context) {
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige fansub id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
+		return
+	}
+
+	if h.coverageRepo == nil {
+		log.Printf("anime coverage: coverageRepo not wired (fansub_id=%d)", fansubID)
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	items, err := h.coverageRepo.CoverageByFansub(c.Request.Context(), fansubID)
+	if err != nil {
+		log.Printf("anime coverage: repo error (fansub_id=%d): %v", fansubID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
 // ListAnimeContributions gibt alle Beiträge einer Fansub-Gruppe für ein Anime zurück.

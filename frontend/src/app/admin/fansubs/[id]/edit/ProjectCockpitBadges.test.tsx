@@ -36,6 +36,12 @@ function makeNote(overrides: Partial<AnimeFansubProjectNote> = {}): AnimeFansubP
 }
 
 describe('ProjectCockpitBadges', () => {
+  it('zeigt keinen Mitwirkenden-Badge wenn contributionCount=null (noch nicht geladen, D-12)', () => {
+    render(<ProjectCockpitBadges contributionCount={null} note={undefined} />)
+    expect(screen.queryByText('Mitwirkende fehlen')).toBeNull()
+    expect(screen.queryByText(/Mitwirkende \(/)).toBeNull()
+  })
+
   it('zeigt "Mitwirkende fehlen"-Badge (danger) wenn contributionCount=0', () => {
     render(<ProjectCockpitBadges contributionCount={0} note={undefined} />)
     expect(screen.getByText('Mitwirkende fehlen')).not.toBeNull()

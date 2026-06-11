@@ -7679,6 +7679,49 @@ export async function deleteMemberRole(
   }
 }
 
+// --- Anime-Coverage-Aggregat ---
+
+/** Aggregationsdaten für ein einzelnes Anime einer Fansub-Gruppe:
+ * Anzahl DISTINCT Mitwirkender und abgedeckte Rollencodes (Gap-82-07). */
+export interface AnimeCoverage {
+  anime_id: number
+  member_count: number
+  covered_role_codes: string[]
+}
+
+export interface AnimeCoverageListResponse {
+  data: AnimeCoverage[]
+}
+
+/** Lädt das Coverage-Aggregat für alle Anime einer Fansub-Gruppe (ein Call, kein N+1).
+ * Verwendet authorizedFetch (D-14). */
+export async function getAnimeCoverage(
+  fansubId: number,
+  authToken?: string,
+): Promise<AnimeCoverageListResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime-coverage`,
+    { authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<AnimeCoverageListResponse>;
+}
+
 // --- Anime-Contributions ---
 
 export async function listAnimeContributions(
