@@ -2,14 +2,11 @@
 
 import { useEffect, useState } from 'react'
 
-import { Badge, Button, Card, EmptyState, FormField, Modal, Select } from '@/components/ui'
+import { Button, EmptyState, Modal } from '@/components/ui'
 import {
-  ApiError,
   deleteAnimeContribution,
-  getFansubAnimeReleaseVersions,
   upsertAnimeContribution,
 } from '@/lib/api'
-import type { FansubAnimeReleaseVersionOption } from '@/types/contributions'
 import type {
   AnimeContribution,
   UnifiedGroupMember,
@@ -18,17 +15,10 @@ import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 
 import styles from './AnimeContributionModal.module.css'
 
-// D-09: nur operative Rollen — fansub_lead wird nicht als Anime-Credit übernommen
+// D-09: nur operative Rollen, fansub_lead wird nicht als Anime-Credit übernommen.
 const ANIME_CONTRIBUTION_ROLES = FANSUB_GROUP_ROLE_OPTIONS.filter(
   (role) => role.code !== 'fansub_lead',
 )
-
-type MemberVisibility = {
-  anime: boolean
-  profile: boolean
-}
-
-type MemberStatus = 'draft' | 'confirmed' | 'hidden'
 
 type Props = {
   fansubId: number
@@ -38,11 +28,6 @@ type Props = {
   existingContributions: AnimeContribution[]
   onClose: () => void
   onSaved: () => void
-}
-
-function memberSourceHint(source: UnifiedGroupMember['source']): string | null {
-  if (source === 'app') return 'Konto'
-  return null
 }
 
 export default function AnimeContributionModal({
@@ -56,68 +41,21 @@ export default function AnimeContributionModal({
 }: Props) {
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<number>>(new Set())
   const [rolesByMemberId, setRolesByMemberId] = useState<Record<number, string[]>>({})
-  const [visibilityByMemberId, setVisibilityByMemberId] = useState<Record<number, MemberVisibility>>({})
-  const [statusByMemberId, setStatusByMemberId] = useState<Record<number, MemberStatus>>({})
-  const [releaseVersionByMemberId, setReleaseVersionByMemberId] = useState<Record<number, number | null>>({})
-  const [releaseVersionOptions, setReleaseVersionOptions] = useState<FansubAnimeReleaseVersionOption[]>([])
-  const [releaseVersionsLoadError, setReleaseVersionsLoadError] = useState<string | null>(null)
-  const [versionErrorByMemberId, setVersionErrorByMemberId] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const ids = new Set<number>()
     const roles: Record<number, string[]> = {}
-    const visibility: Record<number, MemberVisibility> = {}
-    const status: Record<number, MemberStatus> = {}
-    const releaseVersions: Record<number, number | null> = {}
 
     for (const contribution of existingContributions) {
       ids.add(contribution.member_id)
       roles[contribution.member_id] = contribution.role_codes ?? []
-      visibility[contribution.member_id] = {
-        anime: contribution.is_public_on_anime_page,
-        profile: contribution.is_public_on_member_profile,
-      }
-      status[contribution.member_id] = contribution.status
-      releaseVersions[contribution.member_id] = contribution.release_version_id ?? null
     }
 
     setSelectedMemberIds(ids)
     setRolesByMemberId(roles)
-    setVisibilityByMemberId(visibility)
-    setStatusByMemberId(status)
-    setReleaseVersionByMemberId(releaseVersions)
   }, [existingContributions])
-
-  useEffect(() => {
-    let cancelled = false
-    setReleaseVersionsLoadError(null)
-    getFansubAnimeReleaseVersions(fansubId, animeId)
-      .then((res) => {
-        if (!cancelled) setReleaseVersionOptions(res.data ?? [])
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setReleaseVersionsLoadError(
-            'Release-Versionen konnten nicht geladen werden. Bitte später erneut versuchen.',
-          )
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [fansubId, animeId])
-
-  function setReleaseVersion(memberId: number, value: number | null) {
-    setReleaseVersionByMemberId((prev) => ({ ...prev, [memberId]: value }))
-    setVersionErrorByMemberId((prev) => {
-      if (!(memberId in prev)) return prev
-      const next = { ...prev }
-      delete next[memberId]
-      return next
-    })
-  }
 
   function toggleMember(memberId: number) {
     setSelectedMemberIds((prev) => {
@@ -129,86 +67,65 @@ export default function AnimeContributionModal({
         if (!rolesByMemberId[memberId]) {
           setRolesByMemberId((current) => ({ ...current, [memberId]: [] }))
         }
-        if (!visibilityByMemberId[memberId]) {
-          setVisibilityByMemberId((current) => ({
-            ...current,
-            [memberId]: { anime: false, profile: false },
-          }))
-        }
-        if (!statusByMemberId[memberId]) {
-          setStatusByMemberId((current) => ({ ...current, [memberId]: 'draft' }))
-        }
       }
       return next
     })
   }
 
-  function addRole(memberId: number, code: string) {
-    const trimmed = code.trim()
-    if (!trimmed) return
+  function toggleRole(memberId: number, code: string) {
+    setSelectedMemberIds((prev) => {
+      if (prev.has(memberId)) return prev
+      const next = new Set(prev)
+      next.add(memberId)
+      return next
+    })
     setRolesByMemberId((prev) => {
-      const existing = prev[memberId] ?? []
-      if (existing.includes(trimmed)) return prev
-      return { ...prev, [memberId]: [...existing, trimmed] }
+      const current = prev[memberId] ?? []
+      const nextRoles = current.includes(code)
+        ? current.filter((role) => role !== code)
+        : [...current, code]
+      return { ...prev, [memberId]: nextRoles }
     })
   }
 
-  function removeRole(memberId: number, code: string) {
-    setRolesByMemberId((prev) => ({
-      ...prev,
-      [memberId]: (prev[memberId] ?? []).filter((role) => role !== code),
-    }))
-  }
-
-  function setVisibility(memberId: number, field: 'anime' | 'profile', value: boolean) {
-    setVisibilityByMemberId((prev) => ({
-      ...prev,
-      [memberId]: { ...(prev[memberId] ?? { anime: false, profile: false }), [field]: value },
-    }))
-  }
-
-  function setMemberStatus(memberId: number, value: MemberStatus) {
-    setStatusByMemberId((prev) => ({ ...prev, [memberId]: value }))
-  }
-
   async function handleSave() {
+    const selectedIds = Array.from(selectedMemberIds)
+    const missingRoleMember = selectedIds
+      .map((memberId) => ({
+        memberId,
+        roles: rolesByMemberId[memberId] ?? [],
+      }))
+      .find((item) => item.roles.length === 0)
+
+    if (missingRoleMember) {
+      const member = members.find((item) => item.member_id === missingRoleMember.memberId)
+      setError(`Bitte wähle mindestens eine Rolle für ${member?.display_name ?? 'das Mitglied'}.`)
+      return
+    }
+
     setSaving(true)
     setError(null)
-    setVersionErrorByMemberId({})
-    const fieldErrors: Record<number, string> = {}
+
     try {
       await Promise.all(
-        Array.from(selectedMemberIds).map(async (memberId) => {
+        selectedIds.map(async (memberId) => {
           const existingContribution = existingContributions.find((contribution) => (
             contribution.member_id === memberId
           ))
-          try {
-            await upsertAnimeContribution(fansubId, animeId, {
-              member_id: memberId,
-              role_codes: rolesByMemberId[memberId] ?? [],
-              started_year: existingContribution?.started_year ?? null,
-              ended_year: existingContribution?.ended_year ?? null,
-              note: existingContribution?.note ?? null,
-              is_public_on_anime_page: visibilityByMemberId[memberId]?.anime ?? false,
-              is_public_on_member_profile: visibilityByMemberId[memberId]?.profile ?? false,
-              status: statusByMemberId[memberId] ?? 'draft',
-              release_version_id: releaseVersionByMemberId[memberId] ?? null,
-            })
-          } catch (err) {
-            if (err instanceof ApiError && err.status === 422) {
-              fieldErrors[memberId] =
-                'Diese Gruppe war an der gewählten Release-Version nicht beteiligt. Bitte eine andere Version wählen oder anime-weit lassen.'
-              return
-            }
-            throw err
-          }
+
+          await upsertAnimeContribution(fansubId, animeId, {
+            member_id: memberId,
+            role_codes: rolesByMemberId[memberId] ?? [],
+            started_year: existingContribution?.started_year ?? null,
+            ended_year: existingContribution?.ended_year ?? null,
+            note: existingContribution?.note ?? null,
+            is_public_on_anime_page: existingContribution?.is_public_on_anime_page ?? false,
+            is_public_on_member_profile: existingContribution?.is_public_on_member_profile ?? false,
+            status: existingContribution?.status ?? 'confirmed',
+            release_version_id: existingContribution?.release_version_id ?? null,
+          })
         }),
       )
-
-      if (Object.keys(fieldErrors).length > 0) {
-        setVersionErrorByMemberId(fieldErrors)
-        return
-      }
 
       await Promise.all(
         existingContributions
@@ -242,119 +159,52 @@ export default function AnimeContributionModal({
         </div>
       }
     >
-      <div className={styles.memberList}>
-        {members.length === 0 ? (
-          <EmptyState title="Keine Gruppenmitglieder" description="Lege zuerst historische Mitglieder in der Gruppe an." />
-        ) : null}
-        {members.map((member) => {
-          const isSelected = selectedMemberIds.has(member.member_id)
-          const roles = rolesByMemberId[member.member_id] ?? []
-          const visibility = visibilityByMemberId[member.member_id] ?? { anime: false, profile: false }
-          const memberStatus = statusByMemberId[member.member_id] ?? 'draft'
-          const releaseVersionValue = releaseVersionByMemberId[member.member_id] ?? null
-          const versionError = versionErrorByMemberId[member.member_id]
-          const sourceHint = memberSourceHint(member.source)
+      {members.length === 0 ? (
+        <EmptyState
+          title="Keine Fansub-Member"
+          description="Lege zuerst Mitglieder in der Fansubgruppe an."
+        />
+      ) : (
+        <div className={styles.memberPicker}>
+          <div className={styles.memberPickerHeader}>
+            <span>Member</span>
+            <span>Rollen</span>
+          </div>
+          {members.map((member) => {
+            const isSelected = selectedMemberIds.has(member.member_id)
+            const roles = rolesByMemberId[member.member_id] ?? []
 
-          return (
-            <Card key={member.member_id} variant={isSelected ? 'nested' : 'nestedFlat'} className={styles.memberCard}>
-              <div className={styles.memberHeader}>
-                <Button
-                  variant={isSelected ? 'primary' : 'secondary'}
-                  size="sm"
-                  aria-pressed={isSelected}
-                  onClick={() => toggleMember(member.member_id)}
-                >
-                  {isSelected ? 'Ausgewählt' : 'Auswählen'}
-                </Button>
-                <span className={styles.memberName}>{member.display_name}</span>
-                {sourceHint ? <Badge variant="muted">{sourceHint}</Badge> : null}
-              </div>
-
-              {isSelected ? (
-                <div className={styles.memberDetails}>
-                  {/* D-05: Mehrfachrollen — Checkbox-Gruppe; mehrere Rollen wählbar */}
-                  <div className={styles.fieldGroup}>
-                    <p className={styles.fieldLabel}>Rollen</p>
-                    <div className={styles.chipRow}>
-                      {ANIME_CONTRIBUTION_ROLES.map((role) => {
-                        const active = roles.includes(role.code)
-                        return (
-                          <label key={role.code} className={styles.roleCheckboxLabel}>
-                            <input
-                              type="checkbox"
-                              checked={active}
-                              onChange={() => active ? removeRole(member.member_id, role.code) : addRole(member.member_id, role.code)}
-                              className={styles.roleCheckbox}
-                            />
-                            {role.label}
-                          </label>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  <div className={styles.fieldGroup}>
-                    <p className={styles.fieldLabel}>Sichtbarkeit</p>
-                    <Button
-                      variant={visibility.anime ? 'primary' : 'secondary'}
-                      size="sm"
-                      aria-pressed={visibility.anime}
-                      onClick={() => setVisibility(member.member_id, 'anime', !visibility.anime)}
-                    >
-                      Öffentlich auf Anime-Seite
-                    </Button>
-                    <Button
-                      variant={visibility.profile ? 'primary' : 'secondary'}
-                      size="sm"
-                      aria-pressed={visibility.profile}
-                      onClick={() => setVisibility(member.member_id, 'profile', !visibility.profile)}
-                    >
-                      Im Mitgliederprofil
-                    </Button>
-                  </div>
-
-                  <FormField label="Status">
-                    <Select
-                      value={memberStatus}
-                      onChange={(event) => setMemberStatus(member.member_id, event.target.value as MemberStatus)}
-                    >
-                      <option value="draft">Entwurf</option>
-                      <option value="confirmed">Bestätigt</option>
-                      <option value="hidden">Versteckt</option>
-                    </Select>
-                  </FormField>
-
-                  <FormField
-                    label="Release-Version (optional)"
-                    hint="Leer lassen = die Gruppe war allgemein an der Serie beteiligt."
-                    error={versionError || releaseVersionsLoadError || undefined}
-                    disabled={Boolean(releaseVersionsLoadError)}
-                  >
-                    <Select
-                      value={releaseVersionValue === null ? '' : String(releaseVersionValue)}
-                      onChange={(event) =>
-                        setReleaseVersion(
-                          member.member_id,
-                          event.target.value === '' ? null : Number(event.target.value),
-                        )
-                      }
-                      disabled={Boolean(releaseVersionsLoadError)}
-                      invalid={Boolean(versionError)}
-                    >
-                      <option value="">Anime-weit lassen</option>
-                      {releaseVersionOptions.map((option) => (
-                        <option key={option.release_version_id} value={String(option.release_version_id)}>
-                          Episode {option.episode_number} · {option.version}
-                        </option>
-                      ))}
-                    </Select>
-                  </FormField>
+            return (
+              <div key={member.member_id} className={styles.memberRow}>
+                <label className={styles.memberSelectLabel}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleMember(member.member_id)}
+                  />
+                  <span className={styles.memberName}>{member.display_name}</span>
+                </label>
+                <div className={styles.roleGrid}>
+                  {ANIME_CONTRIBUTION_ROLES.map((role) => {
+                    const active = roles.includes(role.code)
+                    return (
+                      <label key={role.code} className={styles.roleCheckboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={active}
+                          onChange={() => toggleRole(member.member_id, role.code)}
+                          className={styles.roleCheckbox}
+                        />
+                        {role.label}
+                      </label>
+                    )
+                  })}
                 </div>
-              ) : null}
-            </Card>
-          )
-        })}
-      </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </Modal>
   )
 }
