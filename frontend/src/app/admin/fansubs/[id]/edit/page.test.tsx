@@ -619,6 +619,30 @@ describe('AdminFansubEditPage token-free wiring', () => {
     )
   })
 
+  it('opens the project insight workspace from the anime card action', async () => {
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAnimeCoverage.mockResolvedValue({
+      data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false }],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue({ data: [] })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    expect(await screen.findByRole('heading', { name: 'Naruto' })).not.toBeNull()
+    expect(screen.queryByTestId('anime-project-note-workspace')).toBeNull()
+    expect(screen.queryByTestId('coverage-matrix')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Einblick' }))
+
+    expect(await screen.findByTestId('anime-project-note-workspace')).not.toBeNull()
+    expect(screen.getByTestId('coverage-matrix')).not.toBeNull()
+    expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13)
+  })
+
   it('opens release theme assets in a closable preview modal', async () => {
     const release = {
       release_id: 62,

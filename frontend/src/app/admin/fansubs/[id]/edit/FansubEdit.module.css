@@ -1381,9 +1381,45 @@
   gap: 0.75rem;
 }
 
+.fansubEditAnimeReleaseActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .fansubEditAnimeContributorsButton {
   justify-self: end;
   white-space: nowrap;
+}
+
+.fansubEditProjectStatusPanel,
+.fansubEditProjectCoveragePanel {
+  margin: 0.85rem 1rem 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 14%, transparent);
+}
+
+.fansubEditProjectStatusHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.fansubEditProjectStatusHeader h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.fansubEditProjectStatusHeader p {
+  margin: 0.18rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .fansubEditAnimeReleaseHeader:hover {
@@ -2406,6 +2442,15 @@
   .fansubEditAnimeContributorsButton {
     justify-self: start;
     margin-left: 0.65rem;
+  }
+
+  .fansubEditAnimeReleaseActions {
+    justify-content: flex-start;
+    margin-left: 0.65rem;
+  }
+
+  .fansubEditAnimeReleaseActions .fansubEditAnimeContributorsButton {
+    margin-left: 0;
   }
 
   .fansubEditThemeDrawerPanel {

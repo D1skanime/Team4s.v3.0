@@ -489,6 +489,28 @@ endpoints:
     notes:
       - Returns contributions enriched with member_display_name from the members table.
 
+  - name: admin-fansub-anime-coverage
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/anime-coverage
+    auth:
+      required: true
+      permission: fansub_group.members.view for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AnimeCoverageListResponse
+    notes:
+      - Returns one aggregate row per anime_fansub_groups context for the fansub group.
+      - has_project_note is true when a non-deleted anime_fansub_project_notes row exists for the anime/group context.
+
   - name: admin-fansub-anime-contributions-create
     method: POST
     path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions
@@ -783,6 +805,13 @@ types:
     data: AnimeContribution[]
   AnimeContributionResponse:
     data: AnimeContribution
+  AnimeCoverage:
+    anime_id: int64
+    member_count: int32
+    covered_role_codes: string[]
+    has_project_note: boolean
+  AnimeCoverageListResponse:
+    data: AnimeCoverage[]
   UpsertAnimeContributionRequest:
     fansub_group_member_id: int64 (required, minimum: 1)
     role_codes: string[] (required, min_items: 1, role_context: anime_contribution)

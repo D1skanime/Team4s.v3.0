@@ -4106,6 +4106,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/anime-coverage:
+    get:
+      tags: [Admin]
+      summary: List anime contribution and insight coverage for a fansub group
+      operationId: listAdminFansubAnimeCoverage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Aggregate coverage rows for the fansub group's anime contexts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminFansubAnimeCoverageResponse"
+        "400":
+          description: Invalid fansub id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/fansubs/{id}/anime/{animeId}/releases:
     get:
       tags: [Admin]
@@ -9980,6 +10026,30 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdminFansubReleaseSummary"
+    AdminFansubAnimeCoverage:
+      type: object
+      required: [anime_id, member_count, covered_role_codes, has_project_note]
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        member_count:
+          type: integer
+          format: int32
+        covered_role_codes:
+          type: array
+          items:
+            type: string
+        has_project_note:
+          type: boolean
+    AdminFansubAnimeCoverageResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminFansubAnimeCoverage"
     AdminCanonicalFansubAnimeReleaseResponse:
       type: object
       required: [fansub_group_id, anime_id, release]

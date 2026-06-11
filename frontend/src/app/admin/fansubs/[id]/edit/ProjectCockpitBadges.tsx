@@ -8,10 +8,18 @@ import styles from './FansubEdit.module.css'
 type Props = {
   /** null = noch nicht geladen (neutral zeigen, D-12); 0 = geladen und leer (danger) */
   contributionCount: number | null
-  note: AnimeFansubProjectNote | null | undefined // undefined = noch nicht geladen (lazy)
+  note?: AnimeFansubProjectNote | null // Legacy: undefined = noch nicht geladen (lazy)
+  hasProjectNote?: boolean | null // undefined = noch nicht geladen (lazy)
 }
 
-export function ProjectCockpitBadges({ contributionCount, note }: Props) {
+export function ProjectCockpitBadges({ contributionCount, note, hasProjectNote }: Props) {
+  const notePresent =
+    hasProjectNote === undefined
+      ? note === undefined
+        ? undefined
+        : note !== null
+      : Boolean(hasProjectNote)
+
   return (
     <div className={styles.chipRow}>
       {contributionCount === null ? null : contributionCount > 0 ? (
@@ -19,8 +27,8 @@ export function ProjectCockpitBadges({ contributionCount, note }: Props) {
       ) : (
         <Badge variant="danger">Mitwirkende fehlen</Badge>
       )}
-      {note !== undefined ? (
-        note !== null ? (
+      {notePresent !== undefined ? (
+        notePresent ? (
           <Badge variant="success">Einblick vorhanden</Badge>
         ) : (
           <Badge variant="warning">Einblick fehlt</Badge>

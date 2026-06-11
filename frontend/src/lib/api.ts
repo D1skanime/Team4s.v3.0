@@ -7687,6 +7687,7 @@ export interface AnimeCoverage {
   anime_id: number
   member_count: number
   covered_role_codes: string[]
+  has_project_note: boolean
 }
 
 export interface AnimeCoverageListResponse {

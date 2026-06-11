@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  FileText,
   Plus,
   Save,
   Trash2,
@@ -1048,6 +1049,22 @@ function AdminFansubEditContent({
     { code: 'encoder', label: 'Encoding', sort_order: 5 },
     { code: 'quality_checker', label: 'Qualitätscheck', sort_order: 6 },
   ], []);
+  const visibleReleaseGroups = useMemo(() => {
+    if (cockpitFilter === "all" || animeCoverageMap === null) {
+      return releaseGroups;
+    }
+
+    return releaseGroups.filter((releaseGroup) => {
+      const coverage = animeCoverageMap.get(releaseGroup.anime.id);
+      if (cockpitFilter === "no-contributions") {
+        return (coverage?.member_count ?? 0) === 0;
+      }
+      if (cockpitFilter === "no-note") {
+        return !coverage?.has_project_note;
+      }
+      return true;
+    });
+  }, [animeCoverageMap, cockpitFilter, releaseGroups]);
   const [releaseDrawerOpen, setReleaseDrawerOpen] = useState(false);
   const [drawerRelease, setDrawerRelease] = useState<AdminFansubRelease | null>(
     null,
@@ -1131,6 +1148,7 @@ function AdminFansubEditContent({
     isPlatformAdmin,
     capabilities,
   );
+  const canUseProjectNotes = canUseMainTab("notes", isPlatformAdmin, capabilities);
   const canUseAdminReleaseDetails = isPlatformAdmin;
   const canOpenReleaseDrawer =
     canUseAdminReleaseDetails || canUseReleaseMedia;
@@ -1744,6 +1762,20 @@ function AdminFansubEditContent({
       }
       return next;
     });
+  };
+
+  const openAnimeProjectNote = (releaseGroup: FansubReleaseGroup) => {
+    setExpandedAnimeKeys((current) => {
+      if (current.has(releaseGroup.key)) return current;
+      const next = new Set(current);
+      next.add(releaseGroup.key);
+      return next;
+    });
+    setVisibleReleaseCountByAnimeKey((visibleCurrent) => ({
+      ...visibleCurrent,
+      [releaseGroup.key]: INITIAL_RELEASE_BATCH_SIZE,
+    }));
+    void loadAnimeReleases(releaseGroup);
   };
 
   const openAnimeContributions = async (anime: AdminFansubAnimeEntry) => {
@@ -2744,20 +2776,6 @@ function AdminFansubEditContent({
                   onFilterChange={setCockpitFilter}
                 />
               ) : null}
-              {!releaseGroupsLoading && !releaseGroupsError && releaseGroups.length > 0 ? (
-                <CoverageMatrix
-                  roles={catalogRoles}
-                  rows={releaseGroups.map((rg) => ({
-                    animeId: rg.anime.id,
-                    animeTitle: rg.anime.title,
-                    coveredRoleCodes: animeCoverageMap?.get(rg.anime.id)?.covered_role_codes ?? [],
-                  } as ProjectCoverageRow))}
-                  onCellClick={(animeId) => {
-                    const anime = releaseGroups.find((rg) => rg.anime.id === animeId)?.anime
-                    if (anime) void openAnimeContributions(anime)
-                  }}
-                />
-              ) : null}
               {!releaseGroupsLoading &&
               !releaseGroupsError &&
               releaseGroups.length === 0 ? (
@@ -2765,8 +2783,16 @@ function AdminFansubEditContent({
                   Noch keine Anime/Releases mit dieser Fansubgruppe verknüpft.
                 </div>
               ) : null}
+              {!releaseGroupsLoading &&
+              !releaseGroupsError &&
+              releaseGroups.length > 0 &&
+              visibleReleaseGroups.length === 0 ? (
+                <div className={styles.fansubEditReleaseState}>
+                  Keine Projekte passen zum gewählten Filter.
+                </div>
+              ) : null}
               <div className={styles.fansubEditReleaseList}>
-                {releaseGroups.map((releaseGroup) => {
+                {visibleReleaseGroups.map((releaseGroup) => {
                   const animeExpanded = expandedAnimeKeys.has(releaseGroup.key);
                   const releasesLoaded = Object.prototype.hasOwnProperty.call(
                     releasesByAnimeFansubGroupId,
@@ -2800,6 +2826,9 @@ function AdminFansubEditContent({
                   );
                   const animeTypeLabel = formatAnimeTypeLabel(
                     releaseGroup.anime.type,
+                  );
+                  const animeCoverage = animeCoverageMap?.get(
+                    releaseGroup.anime.id,
                   );
                   return (
                     <article
@@ -2852,37 +2881,92 @@ function AdminFansubEditContent({
                             )}
                           </span>
                         </button>
-                        <ProjectCockpitBadges
-                          contributionCount={animeCoverageMap === null
-                            ? null
-                            : (animeCoverageMap.get(releaseGroup.anime.id)?.member_count ?? 0)}
-                          note={undefined}
-                        />
-                        {canOpenReleaseContributors ? (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            leftIcon={<Users size={16} />}
-                            className={styles.fansubEditAnimeContributorsButton}
-                            loading={
-                              contributionModalLoadingAnimeId ===
-                              releaseGroup.anime.id
-                            }
-                            onClick={() =>
-                              void openAnimeContributions(releaseGroup.anime)
-                            }
-                          >
-                            Mitwirkende
-                          </Button>
-                        ) : null}
+                        <div className={styles.fansubEditAnimeReleaseActions}>
+                          <ProjectCockpitBadges
+                            contributionCount={animeCoverageMap === null
+                              ? null
+                              : (animeCoverage?.member_count ?? 0)}
+                            hasProjectNote={animeCoverageMap === null
+                              ? undefined
+                              : Boolean(animeCoverage?.has_project_note)}
+                          />
+                          {canUseProjectNotes ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              leftIcon={<FileText size={16} />}
+                              className={styles.fansubEditAnimeContributorsButton}
+                              onClick={() => openAnimeProjectNote(releaseGroup)}
+                            >
+                              Einblick
+                            </Button>
+                          ) : null}
+                          {canOpenReleaseContributors ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              leftIcon={<Users size={16} />}
+                              className={styles.fansubEditAnimeContributorsButton}
+                              loading={
+                                contributionModalLoadingAnimeId ===
+                                releaseGroup.anime.id
+                              }
+                              onClick={() =>
+                                void openAnimeContributions(releaseGroup.anime)
+                              }
+                            >
+                              Mitwirkende
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
                       {animeExpanded ? (
+                        <div className={styles.fansubEditProjectStatusPanel}>
+                          <div className={styles.fansubEditProjectStatusHeader}>
+                            <div>
+                              <h4>Projektstatus</h4>
+                              <p>
+                                Schneller Überblick für Mitwirkende und
+                                Projekt-Einblick.
+                              </p>
+                            </div>
+                            <ProjectCockpitBadges
+                              contributionCount={animeCoverageMap === null
+                                ? null
+                                : (animeCoverage?.member_count ?? 0)}
+                              hasProjectNote={animeCoverageMap === null
+                                ? undefined
+                                : Boolean(animeCoverage?.has_project_note)}
+                            />
+                          </div>
+                        </div>
+                      ) : null}
+                      {animeExpanded && canUseProjectNotes ? (
                         <AnimeProjectNoteWorkspace
                           fansubId={fansubID}
                           animeId={releaseGroup.anime.id}
                           expanded={animeExpanded}
                         />
+                      ) : null}
+                      {animeExpanded ? (
+                        <div className={styles.fansubEditProjectCoveragePanel}>
+                          <CoverageMatrix
+                            roles={catalogRoles}
+                            rows={[
+                              {
+                                animeId: releaseGroup.anime.id,
+                                animeTitle: releaseGroup.anime.title,
+                                coveredRoleCodes:
+                                  animeCoverage?.covered_role_codes ?? [],
+                              } satisfies ProjectCoverageRow,
+                            ]}
+                            onCellClick={() =>
+                              void openAnimeContributions(releaseGroup.anime)
+                            }
+                          />
+                        </div>
                       ) : null}
                       {animeExpanded && releasesLoading ? (
                         <div className={styles.fansubEditReleaseState}>

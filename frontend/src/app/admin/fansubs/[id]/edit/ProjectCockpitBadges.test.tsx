@@ -66,6 +66,18 @@ describe('ProjectCockpitBadges', () => {
     expect(screen.queryByText('Einblick fehlt')).toBeNull()
   })
 
+  it('zeigt "Einblick fehlt"-Badge wenn hasProjectNote=false ist', () => {
+    render(<ProjectCockpitBadges contributionCount={1} hasProjectNote={false} />)
+    expect(screen.getByText('Einblick fehlt')).not.toBeNull()
+    expect(screen.queryByText('Einblick vorhanden')).toBeNull()
+  })
+
+  it('zeigt "Einblick vorhanden"-Badge wenn hasProjectNote=true ist', () => {
+    render(<ProjectCockpitBadges contributionCount={1} hasProjectNote />)
+    expect(screen.getByText('Einblick vorhanden')).not.toBeNull()
+    expect(screen.queryByText('Einblick fehlt')).toBeNull()
+  })
+
   it('zeigt kein Einblick-Badge wenn note=undefined (noch nicht geladen)', () => {
     render(<ProjectCockpitBadges contributionCount={0} note={undefined} />)
     expect(screen.queryByText('Einblick vorhanden')).toBeNull()
