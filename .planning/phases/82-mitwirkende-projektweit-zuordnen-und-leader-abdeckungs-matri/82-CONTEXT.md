@@ -116,6 +116,7 @@ Der Tab „Anime & Veröffentlichungen" (`tab=releases`) in `/admin/fansubs/[id]
 
 - Person-zentrische Zweitsicht (eine Person → alle Projekte) ist Teil des Cockpit-Gedankens; sofern sie die Phase überlädt, kann sie als kleiner Folge-Slice abgespalten werden (Planung entscheidet nach Größe).
 - Gruppenübergreifendes/globales Leader-Dashboard (mehrere Gruppen) — bewusst außerhalb dieser Phase.
+- **D-06 Volle Konfigurierbarkeit der Matrix-Rollen pro Gruppe:** V1 (Phase 82) zeigt alle `role_definitions`-Rollen mit `contexts @> 'anime_contribution'` als Spalten an (D-07-katalog-getrieben, kein Hardcode). Die pro-Gruppe-Konfigurierbarkeit der sichtbaren Rollen (Leader wählt welche Spalten in seiner Gruppe erscheinen) ist Deferred für eine Folge-Phase — bewusste V1-Vereinfachung, kein stilles Weglassen.
 
 </deferred>
 
@@ -123,3 +124,4 @@ Der Tab „Anime & Veröffentlichungen" (`tab=releases`) in `/admin/fansubs/[id]
 
 *Phase: 82-Mitwirkende projektweit zuordnen + Projekt-Cockpit*
 *Context gathered: 2026-06-10*
+*Revised: 2026-06-11 — D-06-Deferred-Eintrag ergänzt (Checker-Revision)*

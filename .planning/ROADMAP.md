@@ -1483,11 +1483,11 @@ Plans:
 
 Plans:
 - [ ] `82-01-PLAN.md` — DB-Migrationen 0104–0107 (members-Backfill, anime_contributions.member_id, Rollen-FK, Standard-Team-Tabelle)
-- [ ] `82-02-PLAN.md` — Backend-Repositories + Handler (member_id-Semantik, ListUnifiedGroupMembers-Endpoint)
-- [ ] `82-03-PLAN.md` — Frontend-Typen + API-Helper (AnimeContribution.member_id, UnifiedGroupMember, listUnifiedGroupMembers)
-- [ ] `82-04-PLAN.md` — Neue Komponenten (ProjectCockpitBadges, AnimeProjectNoteWorkspace) + AnimeProjectNotesSection Altfall-Migration
-- [ ] `82-05-PLAN.md` — page.tsx Tab-Merge + Cockpit-Verdrahtung + AnimeContributionModal member_id-Migration
-- [ ] `82-06-PLAN.md` — Tests (parseMainTab, Badge-Render) + Human-UAT
+- [ ] `82-02-PLAN.md` — Backend: member_id-Semantik + ListUnifiedGroupMembers + /default-crew CRUD + apply (D-04)
+- [ ] `82-03-PLAN.md` — Frontend-Typen + API-Helper (member_id, UnifiedGroupMember, DefaultCrewEntry, default-crew-Helper)
+- [ ] `82-04-PLAN.md` — Komponenten: ProjectCockpitBadges, AnimeProjectNoteWorkspace, CoverageMatrix (D-07) + Altfall-Migration
+- [ ] `82-05-PLAN.md` — page.tsx + AnimeContributionModal + DefaultCrewManager + AnimeReleasesFilterBar; volle Verdrahtung
+- [ ] `82-06-PLAN.md` — Tests (parseMainTab, Badge, Standard-Team-Button) + Human-UAT (12 Prüfpunkte)
 
 ---
 
