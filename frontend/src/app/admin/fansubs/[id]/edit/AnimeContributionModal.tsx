@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { Button, EmptyState, Modal } from '@/components/ui'
+import { Button, EmptyState, Modal, Select } from '@/components/ui'
 import {
   deleteAnimeContribution,
   upsertAnimeContribution,
@@ -26,6 +26,7 @@ type Props = {
   animeTitle: string
   members: UnifiedGroupMember[]
   existingContributions: AnimeContribution[]
+  focusedRoleCode?: string | null
   onClose: () => void
   onSaved: () => void
 }
@@ -36,13 +37,19 @@ export default function AnimeContributionModal({
   animeTitle,
   members,
   existingContributions,
+  focusedRoleCode = null,
   onClose,
   onSaved,
 }: Props) {
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<number>>(new Set())
   const [rolesByMemberId, setRolesByMemberId] = useState<Record<number, string[]>>({})
+  const [focusedMemberSelectValue, setFocusedMemberSelectValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const focusedRole = useMemo(
+    () => ANIME_CONTRIBUTION_ROLES.find((role) => role.code === focusedRoleCode) ?? null,
+    [focusedRoleCode],
+  )
 
   useEffect(() => {
     const ids = new Set<number>()
@@ -56,6 +63,43 @@ export default function AnimeContributionModal({
     setSelectedMemberIds(ids)
     setRolesByMemberId(roles)
   }, [existingContributions])
+
+  function addFocusedRole(memberId: number) {
+    if (!focusedRole) return
+
+    setSelectedMemberIds((prev) => {
+      const next = new Set(prev)
+      next.add(memberId)
+      return next
+    })
+    setRolesByMemberId((prev) => {
+      const current = prev[memberId] ?? []
+      if (current.includes(focusedRole.code)) return prev
+      return { ...prev, [memberId]: [...current, focusedRole.code] }
+    })
+    setFocusedMemberSelectValue('')
+  }
+
+  function removeFocusedRole(memberId: number) {
+    if (!focusedRole) return
+
+    const remainingRoles = (rolesByMemberId[memberId] ?? []).filter((role) => role !== focusedRole.code)
+    setRolesByMemberId((prev) => {
+      const next = { ...prev }
+      if (remainingRoles.length === 0) {
+        delete next[memberId]
+      } else {
+        next[memberId] = remainingRoles
+      }
+      return next
+    })
+    setSelectedMemberIds((prev) => {
+      if (remainingRoles.length > 0) return prev
+      const next = new Set(prev)
+      next.delete(memberId)
+      return next
+    })
+  }
 
   function toggleMember(memberId: number) {
     setSelectedMemberIds((prev) => {
@@ -142,11 +186,26 @@ export default function AnimeContributionModal({
     }
   }
 
+  const title = focusedRole
+    ? `${focusedRole.label} für „${animeTitle}“ zuweisen`
+    : `Mitwirkende für „${animeTitle}“ bearbeiten`
+
+  const focusedAssignedMembers = focusedRole
+    ? members.filter((member) => (
+        selectedMemberIds.has(member.member_id) &&
+        (rolesByMemberId[member.member_id] ?? []).includes(focusedRole.code)
+      ))
+    : []
+
+  const focusedAvailableMembers = focusedRole
+    ? members.filter((member) => !(rolesByMemberId[member.member_id] ?? []).includes(focusedRole.code))
+    : []
+
   return (
     <Modal
       open
       onClose={onClose}
-      title={`Mitwirkende für „${animeTitle}“ bearbeiten`}
+      title={title}
       footer={
         <div className={styles.modalFooter}>
           {error ? <p className={styles.modalError}>{error}</p> : null}
@@ -164,6 +223,54 @@ export default function AnimeContributionModal({
           title="Keine Fansub-Member"
           description="Lege zuerst Mitglieder in der Fansubgruppe an."
         />
+      ) : focusedRole ? (
+        <div className={styles.focusedRolePanel}>
+          <label className={styles.focusedRoleAdd}>
+            <span>Member hinzufügen</span>
+            <Select
+              value={focusedMemberSelectValue}
+              onChange={(event) => {
+                const memberId = Number(event.currentTarget.value)
+                setFocusedMemberSelectValue(event.currentTarget.value)
+                if (Number.isFinite(memberId) && memberId > 0) {
+                  addFocusedRole(memberId)
+                }
+              }}
+              aria-label="Member hinzufügen"
+              disabled={focusedAvailableMembers.length === 0}
+            >
+              <option value="">
+                {focusedAvailableMembers.length === 0
+                  ? 'Alle Member zugewiesen'
+                  : 'Member auswählen'}
+              </option>
+              {focusedAvailableMembers.map((member) => (
+                <option key={member.member_id} value={member.member_id}>
+                  {member.display_name}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <div className={styles.focusedRoleList}>
+            {focusedAssignedMembers.length === 0 ? (
+              <p className={styles.focusedRoleEmpty}>Noch niemand zugewiesen.</p>
+            ) : (
+              focusedAssignedMembers.map((member) => (
+                <div key={member.member_id} className={styles.focusedRoleMember}>
+                  <span>{member.display_name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFocusedRole(member.member_id)}
+                  >
+                    Entfernen
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       ) : (
         <div className={styles.memberPicker}>
           <div className={styles.memberPickerHeader}>

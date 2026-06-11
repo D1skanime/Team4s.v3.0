@@ -11,6 +11,52 @@
   font-size: 0.85rem;
 }
 
+.focusedRolePanel {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.focusedRoleAdd {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.focusedRoleList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.focusedRoleMember {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--bg-card) 94%, var(--color-success) 6%);
+}
+
+.focusedRoleMember span {
+  min-width: 0;
+  color: var(--text-primary);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.focusedRoleEmpty {
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 22%, transparent);
+  border-radius: var(--radius-md, 8px);
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
 .memberPicker {
   display: grid;
   gap: 0;

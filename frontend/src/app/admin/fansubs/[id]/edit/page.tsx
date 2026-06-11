@@ -198,6 +198,7 @@ type ReleaseDrawerContext = {
 type ContributionModalAnime = {
   id: number;
   title: string;
+  focusedRoleCode?: string | null;
 };
 
 // MAIN_TABS und parseMainTab werden aus mainTabRouting.ts importiert (testbar ohne page.tsx-Kontext)
@@ -1850,7 +1851,10 @@ function AdminFansubEditContent({
     void loadAnimeContributionRows(releaseGroup.anime.id);
   };
 
-  const openAnimeContributions = async (anime: AdminFansubAnimeEntry) => {
+  const openAnimeContributions = async (
+    anime: AdminFansubAnimeEntry,
+    focusedRoleCode: string | null = null,
+  ) => {
     setContributionModalLoadingAnimeId(anime.id);
     setContributionModalError(null);
     try {
@@ -1862,7 +1866,7 @@ function AdminFansubEditContent({
       setContributionMembers(membersResult ?? []);
       setContributionModalRows(contributionRows);
       rememberAnimeContributionRows(anime.id, contributionRows);
-      setContributionModalAnime({ id: anime.id, title: anime.title });
+      setContributionModalAnime({ id: anime.id, title: anime.title, focusedRoleCode });
     } catch (nextError) {
       setContributionModalError(errMessage(nextError));
     } finally {
@@ -3009,10 +3013,6 @@ function AdminFansubEditContent({
                           <div className={styles.fansubEditProjectStatusHeader}>
                             <div>
                               <h4>Projektstatus</h4>
-                              <p>
-                                Schneller Überblick für Mitwirkende und
-                                Projekt-Einblick.
-                              </p>
                             </div>
                             <ProjectCockpitBadges
                               contributionCount={animeCoverageMap === null
@@ -3045,8 +3045,8 @@ function AdminFansubEditContent({
                                 roleMembersByCode,
                               } satisfies ProjectCoverageRow,
                             ]}
-                            onCellClick={() =>
-                              void openAnimeContributions(releaseGroup.anime)
+                            onCellClick={(_, roleCode) =>
+                              void openAnimeContributions(releaseGroup.anime, roleCode)
                             }
                           />
                         </div>
@@ -3516,6 +3516,7 @@ function AdminFansubEditContent({
           animeTitle={contributionModalAnime.title}
           members={contributionMembers}
           existingContributions={contributionModalRows}
+          focusedRoleCode={contributionModalAnime.focusedRoleCode}
           onClose={() => setContributionModalAnime(null)}
           onSaved={() => void refreshAnimeContributions(contributionModalAnime.id)}
         />
