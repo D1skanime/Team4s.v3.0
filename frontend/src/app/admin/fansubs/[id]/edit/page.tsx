@@ -2955,6 +2955,14 @@ function AdminFansubEditContent({
                             <span className={styles.fansubEditAnimeReleaseCount}>
                               {releaseCountLabel}
                             </span>
+                            <ProjectCockpitBadges
+                              contributionCount={animeCoverageMap === null
+                                ? null
+                                : (animeCoverage?.member_count ?? 0)}
+                              hasProjectNote={animeCoverageMap === null
+                                ? undefined
+                                : Boolean(animeCoverage?.has_project_note)}
+                            />
                           </div>
                           <span
                             className={styles.fansubEditAnimeToggle}
@@ -2968,14 +2976,6 @@ function AdminFansubEditContent({
                           </span>
                         </button>
                         <div className={styles.fansubEditAnimeReleaseActions}>
-                          <ProjectCockpitBadges
-                            contributionCount={animeCoverageMap === null
-                              ? null
-                              : (animeCoverage?.member_count ?? 0)}
-                            hasProjectNote={animeCoverageMap === null
-                              ? undefined
-                              : Boolean(animeCoverage?.has_project_note)}
-                          />
                           {canUseProjectNotes ? (
                             <Button
                               type="button"
@@ -3008,34 +3008,23 @@ function AdminFansubEditContent({
                           ) : null}
                         </div>
                       </div>
-                      {animeExpanded ? (
-                        <div className={styles.fansubEditProjectStatusPanel}>
-                          <div className={styles.fansubEditProjectStatusHeader}>
-                            <div>
-                              <h4>Projektstatus</h4>
-                            </div>
-                            <ProjectCockpitBadges
-                              contributionCount={animeCoverageMap === null
-                                ? null
-                                : (animeCoverage?.member_count ?? 0)}
-                              hasProjectNote={animeCoverageMap === null
-                                ? undefined
-                                : Boolean(animeCoverage?.has_project_note)}
-                            />
-                          </div>
-                        </div>
-                      ) : null}
                       {animeExpanded && canUseProjectNotes ? (
-                        <AnimeProjectNoteWorkspace
-                          fansubId={fansubID}
-                          animeId={releaseGroup.anime.id}
-                          expanded={animeExpanded}
-                        />
+                        <section className={styles.fansubEditProjectInsightPanel}>
+                          <AnimeProjectNoteWorkspace
+                            fansubId={fansubID}
+                            animeId={releaseGroup.anime.id}
+                            expanded={animeExpanded}
+                          />
+                        </section>
                       ) : null}
                       {animeExpanded ? (
-                        <div className={styles.fansubEditProjectCoveragePanel}>
+                        <section className={styles.fansubEditProjectTeamPanel}>
+                          <div className={styles.fansubEditProjectPanelHeader}>
+                            <h4>Team & Rollen</h4>
+                          </div>
                           <CoverageMatrix
                             roles={catalogRoles}
+                            showProjectTitle={false}
                             rows={[
                               {
                                 animeId: releaseGroup.anime.id,
@@ -3049,6 +3038,11 @@ function AdminFansubEditContent({
                               void openAnimeContributions(releaseGroup.anime, roleCode)
                             }
                           />
+                        </section>
+                      ) : null}
+                      {animeExpanded ? (
+                        <div className={`${styles.fansubEditProjectPanelHeader} ${styles.fansubEditProjectReleasesHeader}`}>
+                          <h4>Releases</h4>
                         </div>
                       ) : null}
                       {animeExpanded && releasesLoading ? (

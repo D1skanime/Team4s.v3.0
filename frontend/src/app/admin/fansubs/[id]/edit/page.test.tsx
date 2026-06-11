@@ -647,6 +647,9 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     expect(await screen.findByTestId('anime-project-note-workspace')).not.toBeNull()
     expect(screen.getByTestId('coverage-matrix')).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Team & Rollen' })).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Releases' })).not.toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Projektstatus' })).toBeNull()
     expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13)
   })
 

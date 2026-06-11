@@ -31,9 +31,15 @@ type Props = {
   roles: RoleDefinition[]
   rows: ProjectCoverageRow[]
   onCellClick?: (animeId: number, roleCode: string) => void
+  showProjectTitle?: boolean
 }
 
-export function CoverageMatrix({ roles, rows, onCellClick }: Props) {
+export function CoverageMatrix({
+  roles,
+  rows,
+  onCellClick,
+  showProjectTitle = true,
+}: Props) {
   if (rows.length === 0) {
     return (
       <EmptyState
@@ -47,9 +53,11 @@ export function CoverageMatrix({ roles, rows, onCellClick }: Props) {
     <div className={styles.coverageList}>
       {rows.map((row) => (
         <section key={row.animeId} className={styles.projectCoverage}>
-          <div className={styles.projectHeader}>
-            <h4>{row.animeTitle}</h4>
-          </div>
+          {showProjectTitle ? (
+            <div className={styles.projectHeader}>
+              <h4>{row.animeTitle}</h4>
+            </div>
+          ) : null}
           <div className={styles.roleGrid}>
             {roles.map((role) => {
               const members = row.roleMembersByCode?.[role.code] ?? []
