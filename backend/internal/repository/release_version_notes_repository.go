@@ -34,21 +34,23 @@ type ReleaseVersionNote struct {
 }
 
 // MemberRoleForVersion holds a member+role pair associated with a release version,
-// resolved via the join path release_versions → fansub_releases → release_member_roles.
+// resolved via anime_contributions + anime_contribution_roles (D-13).
 type MemberRoleForVersion struct {
 	MemberID   int64
 	MemberName string
-	RoleID     int64
-	RoleName   string
+	RoleCode   string
 	RoleLabel  string
 }
 
 // BulkNoteInput describes a single note in a bulk upsert operation.
 // ID == 0 means "create new"; ID > 0 means "update existing".
+// RoleCode ist der kanonische Schlüssel für die Contributor-Validierung (D-13).
+// RoleID wird für die DB-Persistenz in release_version_notes.role_id benötigt (Legacy-Feld).
 type BulkNoteInput struct {
 	ID         int64 // 0 = create new
 	MemberID   int64
-	RoleID     int64
+	RoleCode   string // für Validierung gegen anime_contributions (D-13)
+	RoleID     int64  // für INSERT in release_version_notes.role_id (Legacy-DB-Feld)
 	Title      *string
 	BodyJSON   []byte
 	BodyHTML   string
@@ -112,22 +114,74 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 	return items, nil
 }
 
-// GetMemberRolesForVersion returns the member+role pairs for a release version via the
-// canonical join path: release_versions → fansub_releases → release_member_roles → members + contributor_roles.
+// GetMemberRolesForVersion returns the member+role pairs for a release version via
+// the two-step resolution from anime_contributions (D-13, D-02):
+//  1. versions-spezifisch: anime_contributions WHERE release_version_id = $1
+//  2. Fallback anime-weit: anime_contributions WHERE release_version_id IS NULL (nur wenn Schritt 1 leer)
 func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 	ctx context.Context,
 	releaseVersionID int64,
 ) ([]MemberRoleForVersion, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT rmr.member_id, m.nickname AS member_name,
-		       rmr.role_id, cr.name AS role_name, cr.label AS role_label
-		FROM release_member_roles rmr
-		JOIN members m ON m.id = rmr.member_id
-		JOIN contributor_roles cr ON cr.id = rmr.role_id
-		JOIN release_versions rv ON rv.release_id = rmr.release_id
-		WHERE rv.id = $1
-		ORDER BY cr.name ASC, m.nickname ASC
-	`, releaseVersionID)
+	// Schritt 1: versions-spezifische Contributions
+	items, err := r.getMemberRolesForVersionStep(ctx, releaseVersionID, true)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) > 0 {
+		return items, nil
+	}
+	// Schritt 2: Fallback anime-weit (nur wenn Schritt 1 leer)
+	return r.getMemberRolesForVersionStep(ctx, releaseVersionID, false)
+}
+
+// getMemberRolesForVersionStep führt einen der zwei Auflösungsschritte aus.
+// Wenn versionSpecific=true: WHERE release_version_id = $1 (Override-Satz).
+// Wenn versionSpecific=false: WHERE release_version_id IS NULL AND anime-weit (Fallback).
+func (r *ReleaseVersionNotesRepository) getMemberRolesForVersionStep(
+	ctx context.Context,
+	releaseVersionID int64,
+	versionSpecific bool,
+) ([]MemberRoleForVersion, error) {
+	var rows interface {
+		Next() bool
+		Scan(dest ...interface{}) error
+		Err() error
+		Close()
+	}
+	var err error
+
+	if versionSpecific {
+		rows, err = r.db.Query(ctx, `
+			SELECT DISTINCT ac.member_id, m.nickname AS member_name,
+			       acr.role_code, rd.label_de AS role_label
+			FROM anime_contributions ac
+			JOIN members m ON m.id = ac.member_id
+			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+			JOIN role_definitions rd ON rd.code = acr.role_code
+			WHERE ac.release_version_id = $1
+			  AND ac.fansub_group_id IN (
+			      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
+			  )
+			ORDER BY rd.label_de ASC, m.nickname ASC
+		`, releaseVersionID)
+	} else {
+		rows, err = r.db.Query(ctx, `
+			SELECT DISTINCT ac.member_id, m.nickname AS member_name,
+			       acr.role_code, rd.label_de AS role_label
+			FROM anime_contributions ac
+			JOIN members m ON m.id = ac.member_id
+			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+			JOIN role_definitions rd ON rd.code = acr.role_code
+			JOIN release_versions rv ON rv.id = $1
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			WHERE ac.release_version_id IS NULL
+			  AND ac.anime_id = fr.anime_id
+			  AND ac.fansub_group_id IN (
+			      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
+			  )
+			ORDER BY rd.label_de ASC, m.nickname ASC
+		`, releaseVersionID)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("get member roles for version %d: %w", releaseVersionID, err)
 	}
@@ -138,7 +192,7 @@ func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 		var mr MemberRoleForVersion
 		if err := rows.Scan(
 			&mr.MemberID, &mr.MemberName,
-			&mr.RoleID, &mr.RoleName, &mr.RoleLabel,
+			&mr.RoleCode, &mr.RoleLabel,
 		); err != nil {
 			return nil, fmt.Errorf("scan member_roles_for_version row: %w", err)
 		}
@@ -150,36 +204,23 @@ func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 	return items, nil
 }
 
-func releaseVersionMemberRoleKey(memberID int64, roleID int64) string {
-	return fmt.Sprintf("%d:%d", memberID, roleID)
+func releaseVersionMemberRoleKey(memberID int64, roleCode string) string {
+	return fmt.Sprintf("%d:%s", memberID, roleCode)
 }
 
 func (r *ReleaseVersionNotesRepository) loadValidMemberRoleKeysForVersion(
 	ctx context.Context,
 	releaseVersionID int64,
 ) (map[string]struct{}, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT rmr.member_id, rmr.role_id
-		FROM release_member_roles rmr
-		JOIN release_versions rv ON rv.release_id = rmr.release_id
-		WHERE rv.id = $1
-	`, releaseVersionID)
+	// Zwei-Stufen-Auflösung analog GetMemberRolesForVersion (D-13, D-02)
+	members, err := r.GetMemberRolesForVersion(ctx, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("load valid member-role pairs for version %d: %w", releaseVersionID, err)
 	}
-	defer rows.Close()
 
 	validKeys := make(map[string]struct{})
-	for rows.Next() {
-		var memberID int64
-		var roleID int64
-		if err := rows.Scan(&memberID, &roleID); err != nil {
-			return nil, fmt.Errorf("scan valid member-role pair for version %d: %w", releaseVersionID, err)
-		}
-		validKeys[releaseVersionMemberRoleKey(memberID, roleID)] = struct{}{}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate valid member-role pairs for version %d: %w", releaseVersionID, err)
+	for _, mr := range members {
+		validKeys[releaseVersionMemberRoleKey(mr.MemberID, mr.RoleCode)] = struct{}{}
 	}
 	return validKeys, nil
 }
@@ -240,7 +281,7 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 	}
 
 	for _, note := range notes {
-		if _, ok := validKeys[releaseVersionMemberRoleKey(note.MemberID, note.RoleID)]; !ok {
+		if _, ok := validKeys[releaseVersionMemberRoleKey(note.MemberID, note.RoleCode)]; !ok {
 			return nil, ErrInvalidReleaseVersionContributorContext
 		}
 		if note.ID == 0 {

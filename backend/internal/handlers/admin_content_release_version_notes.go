@@ -70,7 +70,8 @@ func (h *AdminContentHandler) requireReleaseVersionNoteReadAccess(c *gin.Context
 type bulkNoteItemRequest struct {
 	ID         int64           `json:"id"`
 	MemberID   int64           `json:"member_id" binding:"required"`
-	RoleID     int64           `json:"role_id" binding:"required"`
+	RoleCode   string          `json:"role_code" binding:"required"`
+	RoleID     int64           `json:"role_id"` // Legacy-Feld für DB-Persistenz (release_version_notes.role_id)
 	Title      *string         `json:"title"`
 	BodyJSON   json.RawMessage `json:"body_json"`
 	Visibility string          `json:"visibility" binding:"required,oneof=public internal"`
@@ -150,6 +151,7 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 		inputs = append(inputs, repository.BulkNoteInput{
 			ID:         note.ID,
 			MemberID:   note.MemberID,
+			RoleCode:   note.RoleCode,
 			RoleID:     note.RoleID,
 			Title:      note.Title,
 			BodyJSON:   []byte(note.BodyJSON),

@@ -62,12 +62,24 @@ func TestGetMemberRolesForVersion(t *testing.T) {
 			"Fallback-Query muss release_version_id IS NULL enthalten (anime-weiter Satz, D-02)")
 	})
 
-	// Struct-Prüfung: RoleCode statt RoleID (D-13)
+	// Struct-Prüfung: RoleCode in Datei vorhanden; MemberRoleForVersion-Struct enthält kein RoleID (D-13)
 	t.Run("struct-role-code", func(t *testing.T) {
-		assert.True(t, strings.Contains(content, "RoleCode string"),
-			"MemberRoleForVersion-Struct muss RoleCode string enthalten (statt RoleID int64)")
-		assert.False(t, strings.Contains(content, "RoleID   int64") || strings.Contains(content, "RoleID int64"),
-			"MemberRoleForVersion-Struct darf kein RoleID int64 mehr enthalten (D-13)")
+		assert.True(t, strings.Contains(content, "RoleCode"),
+			"Datei muss ein RoleCode-Feld enthalten (MemberRoleForVersion, D-13)")
+		// MemberRoleForVersion-Struct-Block darf kein RoleID mehr enthalten.
+		// Extraktion: Inhalt zwischen "type MemberRoleForVersion struct {" und der nächsten "}"
+		const structStart = "type MemberRoleForVersion struct {"
+		idx := strings.Index(content, structStart)
+		if idx < 0 {
+			t.Fatal("MemberRoleForVersion-Struct nicht in Quelldatei gefunden")
+		}
+		end := strings.Index(content[idx:], "\n}")
+		if end < 0 {
+			t.Fatal("Ende von MemberRoleForVersion-Struct nicht gefunden")
+		}
+		structBlock := content[idx : idx+end]
+		assert.False(t, strings.Contains(structBlock, "RoleID"),
+			"MemberRoleForVersion-Struct darf kein RoleID-Feld mehr enthalten (D-13)")
 	})
 
 	// Key-Format: %d:%s statt %d:%d (D-13)
