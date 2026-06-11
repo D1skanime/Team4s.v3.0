@@ -1479,15 +1479,17 @@ Plans:
 **Goal:** Der Tab „Anime & Veröffentlichungen" wird zum Projekt-Cockpit: (1) Anime-Mitwirkende sind für jede Person der Gruppe gleichwertig zuordenbar (App- UND historische Member, Anker auf `members.id`) mit Leader-Abdeckungssicht (Projekt × Rolle), Inline-Zuweisung und Standard-Team; (2) die bisherigen „Anime-Einblicke" werden in dieselbe Projektkarte integriert (Status-Badges, Inline-Einblick, Routing/Tab-Merge). Kontext + Entscheidungen: `82-CONTEXT.md`; verbindlicher Einblicke-Auftrag: `82-EINBLICKE-AUFTRAG.md`; Design-Seed: `82-SEED.md`.
 **Requirements**: D-01..D-17, EINBLICKE-AUFTRAG
 **Depends on:** Phase 81
-**Plans:** 6/6 plans complete
+**Status:** Complete — verifiziert 2026-06-11 (Live-UAT approved; `82-VERIFICATION.md`)
+**Plans:** 6/6 + Coverage-Gap-Fix (82-07)
 
 Plans:
-- [ ] `82-01-PLAN.md` — DB-Migrationen 0104–0107 (members-Backfill, anime_contributions.member_id, Rollen-FK, Standard-Team-Tabelle)
-- [ ] `82-02-PLAN.md` — Backend: member_id-Semantik + ListUnifiedGroupMembers + /default-crew CRUD + apply (D-04)
-- [ ] `82-03-PLAN.md` — Frontend-Typen + API-Helper (member_id, UnifiedGroupMember, DefaultCrewEntry, default-crew-Helper)
-- [ ] `82-04-PLAN.md` — Komponenten: ProjectCockpitBadges, AnimeProjectNoteWorkspace, CoverageMatrix (D-07) + Altfall-Migration
-- [ ] `82-05-PLAN.md` — page.tsx + AnimeContributionModal + DefaultCrewManager + AnimeReleasesFilterBar; volle Verdrahtung
-- [ ] `82-06-PLAN.md` — Tests (parseMainTab, Badge, Standard-Team-Button) + Human-UAT (12 Prüfpunkte)
+- [x] `82-01-PLAN.md` — DB-Migrationen 0104–0107 (members-Backfill, anime_contributions.member_id, Rollen-FK, Standard-Team-Tabelle)
+- [x] `82-02-PLAN.md` — Backend: member_id-Semantik + ListUnifiedGroupMembers + /default-crew CRUD + apply (D-04)
+- [x] `82-03-PLAN.md` — Frontend-Typen + API-Helper (member_id, UnifiedGroupMember, DefaultCrewEntry, default-crew-Helper)
+- [x] `82-04-PLAN.md` — Komponenten: ProjectCockpitBadges, AnimeProjectNoteWorkspace, CoverageMatrix (D-07) + Altfall-Migration
+- [x] `82-05-PLAN.md` — page.tsx + AnimeContributionModal + DefaultCrewManager + AnimeReleasesFilterBar; volle Verdrahtung
+- [x] `82-06-PLAN.md` — Tests (parseMainTab, Badge, Standard-Team-Button) + Human-UAT (12 Prüfpunkte)
+- [x] Coverage-Gap-Fix (`82-07`) — Aggregat-Endpoint für echte Badge-/Matrix-Daten (D-12-ehrlich)
 
 ---
 
