@@ -22,6 +22,8 @@ type adminRouteHandlers struct {
 	memberMemorialHandler         *handlers.MemberMemorialHandler
 	// Phase 78: Gruppenmedien-Review (GET-Liste + PATCH Sichtbarkeit/Reviewstatus)
 	fansubMediaReviewHandler *handlers.FansubMediaReviewHandler
+	// Phase 82-02: Standard-Team (D-04)
+	defaultCrewHandler *handlers.FansubDefaultCrewHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -191,4 +193,11 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/member-requests/:requestId/reject", auth, deps.memberRequestsHandler.RejectRequest)
 	// Phase 74: Memorial-Setter (Global Admin only — D-14/D-16-Caveat)
 	v1.POST("/admin/members/:id/memorial", auth, deps.memberMemorialHandler.SetMemorial)
+	// Phase 82-02: Standard-Team CRUD + apply (D-04)
+	if deps.defaultCrewHandler != nil {
+		v1.GET("/admin/fansubs/:id/default-crew", auth, deps.defaultCrewHandler.GetDefaultCrew)
+		v1.PUT("/admin/fansubs/:id/default-crew", auth, deps.defaultCrewHandler.PutDefaultCrew)
+		v1.DELETE("/admin/fansubs/:id/default-crew/:memberId/:roleCode", auth, deps.defaultCrewHandler.DeleteDefaultCrewEntry)
+		v1.POST("/admin/fansubs/:id/default-crew/apply", auth, deps.defaultCrewHandler.ApplyDefaultCrew)
+	}
 }
