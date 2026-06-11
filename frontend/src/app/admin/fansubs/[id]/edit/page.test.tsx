@@ -30,11 +30,12 @@ const mockedUseReleaseVersionMedia = vi.fn<(versionId: number | null) => UseRele
 const mockedUseAuthSession = vi.hoisted(() => vi.fn(() => ({ hasAccessToken: true, isClientInitialized: true })))
 const mediaUploadProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const appMembersSectionProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
-const animeProjectSectionProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const apiMocks = vi.hoisted(() => ({
+  applyDefaultCrew: vi.fn().mockResolvedValue({ applied_count: 0 }),
   createFansubAlias: vi.fn(),
   createFansubLink: vi.fn(),
   deleteAdminReleaseThemeAsset: vi.fn(),
+  deleteDefaultCrewEntry: vi.fn().mockResolvedValue(undefined),
   deleteFansubAlias: vi.fn(),
   deleteFansubGroup: vi.fn(),
   deleteFansubLink: vi.fn(),
@@ -44,15 +45,21 @@ const apiMocks = vi.hoisted(() => ({
   getAdminFansubAnimeReleases: vi.fn(),
   getAdminRelease: vi.fn(),
   getAdminReleaseThemeAssets: vi.fn(),
+  getAnimeFansubProjectNote: vi.fn().mockResolvedValue(null),
   getCurrentUser: vi.fn(),
   getFansubAliases: vi.fn(),
   getFansubByID: vi.fn(),
   getFansubGroupCapabilities: vi.fn(),
   getFansubList: vi.fn(),
+  listAnimeContributions: vi.fn().mockResolvedValue({ data: [] }),
+  listDefaultCrew: vi.fn().mockResolvedValue([]),
+  listUnifiedGroupMembers: vi.fn().mockResolvedValue({ data: [] }),
   resolveApiUrl: vi.fn((value: string) => value),
   updateFansubGroup: vi.fn(),
   updateFansubLink: vi.fn(),
   uploadAdminReleaseThemeAssetForRelease: vi.fn(),
+  upsertAnimeFansubProjectNote: vi.fn().mockResolvedValue(null),
+  upsertDefaultCrewEntry: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/useAuthSession', () => ({
@@ -88,10 +95,23 @@ vi.mock('./FansubAppMembersSection', () => ({
 }))
 
 vi.mock('./AnimeProjectNotesSection', () => ({
-  AnimeProjectNotesSection: (props: Record<string, unknown>) => {
-    animeProjectSectionProps.push(props)
-    return <div data-testid="anime-project-notes-section" />
-  },
+  AnimeProjectNotesSection: () => <div data-testid="anime-project-notes-section" />,
+}))
+
+vi.mock('./AnimeReleasesFilterBar', () => ({
+  AnimeReleasesFilterBar: () => <div data-testid="anime-releases-filter-bar" />,
+}))
+
+vi.mock('./AnimeProjectNoteWorkspace', () => ({
+  AnimeProjectNoteWorkspace: () => <div data-testid="anime-project-note-workspace" />,
+}))
+
+vi.mock('./CoverageMatrix', () => ({
+  CoverageMatrix: () => <div data-testid="coverage-matrix" />,
+}))
+
+vi.mock('./DefaultCrewManager', () => ({
+  DefaultCrewManager: () => <div data-testid="default-crew-manager" />,
 }))
 
 vi.mock('./NotesTab', () => ({
@@ -104,6 +124,7 @@ vi.mock('@/app/admin/episode-versions/[versionId]/edit/useReleaseVersionMedia', 
 
 import { ReleaseVersionMediaDrawerSummary } from './ReleaseVersionMediaDrawerSummary'
 import AdminFansubEditPage from './page'
+import { MAIN_TABS, parseMainTab } from './mainTabRouting'
 
 afterEach(() => {
   cleanup()
@@ -127,7 +148,6 @@ beforeEach(() => {
   })
   mediaUploadProps.length = 0
   appMembersSectionProps.length = 0
-  animeProjectSectionProps.length = 0
   mockedUseAuthSession.mockReturnValue({ hasAccessToken: true, isClientInitialized: true })
   apiMocks.getFansubByID.mockResolvedValue({
     data: {
@@ -555,11 +575,8 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(appMembersSectionProps.at(-1)).toMatchObject({ fansubId: 88, hasAccessToken: true })
     expect(Object.prototype.hasOwnProperty.call(appMembersSectionProps.at(-1), 'authToken')).toBe(false)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Anime-Einblicke' }))
-    expect(await screen.findByTestId('anime-project-notes-section')).not.toBeNull()
-
-    expect(animeProjectSectionProps.at(-1)).toMatchObject({ fansubId: 88, hasAccessToken: true })
-    expect(Object.prototype.hasOwnProperty.call(animeProjectSectionProps.at(-1), 'authToken')).toBe(false)
+    // D-13: Tab 'Anime-Einblicke' existiert nicht mehr; AnimeProjectNotesSection wurde aus page.tsx entfernt
+    expect(screen.queryByRole('button', { name: 'Anime-Einblicke' })).toBeNull()
   })
 
   it('uses release_version_id for drawer media instead of release_id', async () => {
@@ -834,5 +851,36 @@ describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
     // Tab darf bei reiner Mitgliedschaft NICHT sichtbar sein
     // Läuft GRÜN wenn kein readiness-Eintrag in MAIN_TABS ist (korrekt für Wave-0)
     expect(screen.queryByRole('button', { name: 'Veröffentlichung' })).toBeNull()
+  })
+})
+
+describe('parseMainTab und MAIN_TABS — Routing-Logik (D-13)', () => {
+  it('parseMainTab("anime-projekte") === "releases" (Legacy-Redirect D-13)', () => {
+    expect(parseMainTab('anime-projekte')).toBe('releases')
+  })
+
+  it('MAIN_TABS enthält keinen Eintrag mit key === "anime-projekte"', () => {
+    const keys = MAIN_TABS.map((t) => t.key)
+    expect(keys).not.toContain('anime-projekte')
+  })
+
+  it('parseMainTab("releases") === "releases"', () => {
+    expect(parseMainTab('releases')).toBe('releases')
+  })
+
+  it('parseMainTab("basic") === "basic"', () => {
+    expect(parseMainTab('basic')).toBe('basic')
+  })
+
+  it('parseMainTab("rollen") === "collaboration" (Legacy-Redirect)', () => {
+    expect(parseMainTab('rollen')).toBe('collaboration')
+  })
+
+  it('parseMainTab(null) === "basic" (Fallback)', () => {
+    expect(parseMainTab(null)).toBe('basic')
+  })
+
+  it('parseMainTab("unbekannt") === "basic" (Fallback auf unbekannten Wert)', () => {
+    expect(parseMainTab('unbekannt')).toBe('basic')
   })
 })

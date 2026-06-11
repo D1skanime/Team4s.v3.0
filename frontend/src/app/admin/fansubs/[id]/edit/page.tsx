@@ -98,6 +98,7 @@ import { CoverageMatrix, type RoleDefinition, type ProjectCoverageRow } from "./
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
+import { MAIN_TABS, parseMainTab, type MainTab as MainTabType } from "./mainTabRouting";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
 import { ReadinessTab } from "./ReadinessTab";
 import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSection";
@@ -133,7 +134,8 @@ type SectionKey =
   | "claims"
   | "vorschlaege"
   | "readiness";
-type MainTab = SectionKey;
+// MainTab aus mainTabRouting.ts — enthält dieselben Schlüssel wie SectionKey
+type MainTab = MainTabType;
 type FormState = {
   name: string;
   slug: string;
@@ -189,21 +191,7 @@ type ContributionModalAnime = {
   title: string;
 };
 
-const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
-  { key: "basic", label: "Grunddaten" },
-  { key: "notes", label: "Gruppengeschichte" },
-  { key: "media", label: "Medien" },
-  { key: "collaboration", label: "Fansub Members" },
-  { key: "vorschlaege", label: "Vorschläge" },
-  { key: "releases", label: "Anime & Veröffentlichungen" },
-  { key: "readiness", label: "Veröffentlichung" },
-];
-
-function parseMainTab(value: string | null): MainTab {
-  if (value === "rollen" || value === "mitglieder" || value === "claims") return "collaboration";
-  if (value === "anime-projekte") return "releases"; // D-13: Legacy-Redirect
-  return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : "basic";
-}
+// MAIN_TABS und parseMainTab werden aus mainTabRouting.ts importiert (testbar ohne page.tsx-Kontext)
 
 function canUseMainTab(
   tab: MainTab,
