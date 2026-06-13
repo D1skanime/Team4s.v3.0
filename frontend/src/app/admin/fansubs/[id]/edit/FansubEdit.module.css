@@ -1525,7 +1525,7 @@
 
 .fansubEditReleaseRowsScroller {
   max-height: 27rem;
-  overflow-y: auto;
+  overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
@@ -1586,6 +1586,28 @@
 @media (min-width: 900px) {
   .fansubEditReleaseRow {
     min-height: 3.6rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .fansubEditAnimeReleaseCard > .fansubEditReleaseRows {
+    margin-right: 0.65rem;
+    margin-left: 0.65rem;
+  }
+
+  .fansubEditReleaseRowsScroller {
+    max-height: min(70vh, 32rem);
+    overscroll-behavior-x: contain;
+  }
+
+  .fansubEditReleaseTableHeader,
+  .fansubEditReleaseRow {
+    min-width: 54rem;
+    grid-template-columns: 3.5rem minmax(13rem, 1.5fr) 4.5rem 5.5rem minmax(18rem, auto) 2rem;
+  }
+
+  .fansubEditReleaseActions {
+    justify-content: flex-start;
   }
 }
 
@@ -1667,6 +1689,34 @@
   padding: 0 0 0.85rem;
   display: grid;
   gap: 0;
+}
+
+.fansubEditReleaseAssignmentPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.82rem;
+  border-bottom: 1px solid rgba(72, 58, 48, 0.08);
+  background: color-mix(in srgb, #ffffff 74%, #f7efe5);
+}
+
+.fansubEditReleaseAssignmentCopy {
+  display: grid;
+  gap: 0.14rem;
+  min-width: 0;
+}
+
+.fansubEditReleaseAssignmentCopy strong {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.fansubEditReleaseAssignmentCopy span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .fansubEditReleaseIconButton {
@@ -2961,28 +3011,228 @@
   flex-shrink: 0;
 }
 
-.contributionRow {
+.contributionDrawerToolbar {
+  margin-bottom: 0;
+}
+
+.contributionToolbarMeta {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) 0;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.contributionDrawerHint {
+  margin: calc(var(--space-2) * -1) 0 var(--space-1);
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.contributionRows {
+  display: grid;
+  gap: 0;
+  margin-bottom: var(--space-4);
+  min-height: 0;
+  overflow: visible;
+}
+
+.contributionEditRow {
+  display: grid;
+  grid-template-areas:
+    "person actions"
+    "roles actions";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: var(--space-3);
+  row-gap: 0.38rem;
+  min-height: 4.1rem;
+  padding: 0.82rem 0;
   border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+}
+
+.contributionEditRow:last-child {
+  border-bottom: 0;
+}
+
+.contributionEditRow:focus-within,
+.contributionEditRow:hover {
+  background: color-mix(in srgb, var(--accent-primary) 4%, white);
+}
+
+.contributionPersonCell {
+  grid-area: person;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contributionPersonCell > div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.contributionPersonCell strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contributionPersonCell span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.contributionRolesCell {
+  grid-area: roles;
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  padding-left: calc(32px + var(--space-2));
+}
+
+.contributionRoleSummaryLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contributionRoleSummaryChips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.contributionRoleSummaryChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  max-width: 100%;
+  padding: 0.16rem 0.48rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-primary) 7%, white);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.contributionRoleSummaryEmpty {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.contributionRoleToggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.contributionRoleToggle {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 16%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 88%, white);
+  color: var(--text-secondary);
+  cursor: pointer;
+  min-height: 2rem;
+  padding: 0.36rem 0.62rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.15;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.contributionRoleToggle:hover {
+  border-color: color-mix(in srgb, #82122c 28%, transparent);
+  color: var(--text-primary);
+}
+
+.contributionRoleToggleActive {
+  border-color: color-mix(in srgb, #82122c 42%, transparent);
+  background: color-mix(in srgb, #82122c 12%, white);
+  color: #5f1328;
 }
 
 .contributionRowActions {
+  grid-area: actions;
   display: flex;
-  margin-left: auto;
   gap: var(--space-1);
+  justify-content: flex-end;
+  align-items: center;
+  align-self: center;
+  white-space: nowrap;
 }
 
 .contributionRoleLabel {
-  font-size: 14px;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--text-primary);
-  min-width: 80px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
-.contributionMemberName {
-  font-size: 16px;
-  flex: 1;
+.contributionAddPanel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-bottom: 0;
+  border: 1px dashed color-mix(in srgb, #82122c 24%, var(--border-subtle));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #fff 86%, #f7efe5);
+}
+
+.contributionAddActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.contributionInlineWarning {
+  margin: var(--space-2) 0 0;
+  color: var(--color-error);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .fansubEditReleaseAssignmentPanel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .contributionRows {
+    margin-bottom: var(--space-3);
+  }
+
+  .contributionEditRow {
+    grid-template-areas:
+      "person"
+      "roles"
+      "actions";
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .contributionRolesCell {
+    padding-left: 0;
+  }
+
+  .contributionRowActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { MoreHorizontal, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Pencil, Plus, Trash2, Users } from 'lucide-react'
 
 import {
+  Badge,
   Button,
   Drawer,
   EmptyState,
@@ -11,6 +12,7 @@ import {
   FormField,
   LoadingState,
   Select,
+  Toolbar,
 } from '@/components/ui'
 import {
   deleteAnimeContribution,
@@ -23,7 +25,6 @@ import type { EffectiveContributionRow, UnifiedGroupMember } from '@/types/fansu
 import { ContributorAvatar } from './ContributorAvatar'
 import styles from './FansubEdit.module.css'
 
-// STATISCHE LISTE — kein /role-definitions-Endpoint vorhanden. Folgearbeit: Katalog-Endpoint + dynamischer Abruf.
 const ANIME_CONTRIBUTION_ROLES: { code: string; label: string }[] = [
   { code: 'translator', label: 'Übersetzer' },
   { code: 'timer', label: 'Timer' },
@@ -35,9 +36,31 @@ const ANIME_CONTRIBUTION_ROLES: { code: string; label: string }[] = [
   { code: 'designer', label: 'Designer' },
 ]
 
-function getRoleLabel(code: string): string {
-  return ANIME_CONTRIBUTION_ROLES.find((r) => r.code === code)?.label ?? code
+function normalizeRoleCodes(codes: string[]): string[] {
+  const selected = new Set(codes.filter(Boolean))
+  const known = ANIME_CONTRIBUTION_ROLES
+    .map((role) => role.code)
+    .filter((code) => selected.has(code))
+  const unknown = codes.filter(
+    (code) => code && !ANIME_CONTRIBUTION_ROLES.some((role) => role.code === code),
+  )
+  return Array.from(new Set([...known, ...unknown]))
 }
+
+function sameRoleCodes(a: string[], b: string[]): boolean {
+  const left = normalizeRoleCodes(a)
+  const right = normalizeRoleCodes(b)
+  return left.length === right.length && left.every((code, index) => code === right[index])
+}
+
+function roleLabels(codes: string[]): string[] {
+  return normalizeRoleCodes(codes).map(
+    (code) => ANIME_CONTRIBUTION_ROLES.find((role) => role.code === code)?.label ?? code,
+  )
+}
+
+type ContributionSource = 'release_version' | 'anime_default'
+type EditableContributionRow = EffectiveContributionRow & { isNew?: boolean }
 
 interface ReleaseContributionDrawerProps {
   open: boolean
@@ -58,15 +81,19 @@ export function ReleaseContributionDrawer({
   onClose,
   onSaved,
 }: ReleaseContributionDrawerProps) {
-  const [stagedRows, setStagedRows] = useState<EffectiveContributionRow[]>([])
+  const [stagedRows, setStagedRows] = useState<EditableContributionRow[]>([])
+  const [originalRolesById, setOriginalRolesById] = useState<Record<number, string[]>>({})
   const [removedIds, setRemovedIds] = useState<number[]>([])
   const [members, setMembers] = useState<UnifiedGroupMember[]>([])
+  const [source, setSource] = useState<ContributionSource>('anime_default')
+  const [isOverride, setIsOverride] = useState(false)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [addingRow, setAddingRow] = useState(false)
   const [newMemberId, setNewMemberId] = useState<number | null>(null)
-  const [newRoleCode, setNewRoleCode] = useState<string | null>(null)
+  const [newRoleCodes, setNewRoleCodes] = useState<string[]>([])
+  const [editingRoleIds, setEditingRoleIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (!open) return
@@ -75,10 +102,14 @@ export function ReleaseContributionDrawer({
     setLoading(true)
     setError(null)
     setStagedRows([])
+    setOriginalRolesById({})
     setRemovedIds([])
     setAddingRow(false)
     setNewMemberId(null)
-    setNewRoleCode(null)
+    setNewRoleCodes([])
+    setEditingRoleIds(new Set())
+    setSource('anime_default')
+    setIsOverride(false)
 
     Promise.all([
       listUnifiedGroupMembers(fansubId),
@@ -86,8 +117,18 @@ export function ReleaseContributionDrawer({
     ])
       .then(([membersResult, contributionsResult]) => {
         if (cancelled) return
+        const rows = (contributionsResult.data ?? []).map((row) => ({
+          ...row,
+          role_codes: normalizeRoleCodes(row.role_codes),
+        }))
+
         setMembers(membersResult ?? [])
-        setStagedRows(contributionsResult.data ?? [])
+        setStagedRows(rows)
+        setOriginalRolesById(
+          Object.fromEntries(rows.map((row) => [row.contribution_id, row.role_codes])),
+        )
+        setSource(contributionsResult.meta.source)
+        setIsOverride(contributionsResult.meta.is_override)
       })
       .catch((err: unknown) => {
         if (cancelled) return
@@ -102,18 +143,130 @@ export function ReleaseContributionDrawer({
     }
   }, [open, fansubId, releaseVersionId])
 
-  function handleRemove(row: EffectiveContributionRow) {
+  function handleRemove(row: EditableContributionRow) {
     setStagedRows((prev) => prev.filter((r) => r.contribution_id !== row.contribution_id))
-    setRemovedIds((prev) => [...prev, row.contribution_id])
+    if (!row.isNew && source === 'release_version') {
+      setRemovedIds((prev) => [...prev, row.contribution_id])
+    }
+  }
+
+  function handleRoleToggle(contributionId: number, roleCode: string) {
+    setStagedRows((prev) =>
+      prev.map((row) => {
+        if (row.contribution_id !== contributionId) return row
+        const selected = new Set(row.role_codes)
+        if (selected.has(roleCode)) {
+          selected.delete(roleCode)
+        } else {
+          selected.add(roleCode)
+        }
+        return { ...row, role_codes: normalizeRoleCodes(Array.from(selected)) }
+      }),
+    )
+  }
+
+  function toggleRoleEditor(contributionId: number) {
+    setEditingRoleIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(contributionId)) {
+        next.delete(contributionId)
+      } else {
+        next.add(contributionId)
+      }
+      return next
+    })
+  }
+
+  function handleNewRoleToggle(roleCode: string) {
+    setNewRoleCodes((prev) => {
+      const selected = new Set(prev)
+      if (selected.has(roleCode)) {
+        selected.delete(roleCode)
+      } else {
+        selected.add(roleCode)
+      }
+      return normalizeRoleCodes(Array.from(selected))
+    })
+  }
+
+  function handleAddConfirm() {
+    if (newMemberId == null || newRoleCodes.length === 0) return
+    const member = members.find((m) => m.member_id === newMemberId)
+    if (!member) return
+
+    const tempId = -Date.now()
+    setStagedRows((prev) => [
+      ...prev,
+      {
+        contribution_id: tempId,
+        member_id: member.member_id,
+        member_display_name: member.display_name,
+        member_avatar_url: null,
+        role_codes: normalizeRoleCodes(newRoleCodes),
+        isNew: true,
+      },
+    ])
+    setAddingRow(false)
+    setNewMemberId(null)
+    setNewRoleCodes([])
   }
 
   async function handleSave() {
     setSaving(true)
     setError(null)
     try {
-      await Promise.all(
-        removedIds.map((id) => deleteAnimeContribution(fansubId, animeId, id)),
-      )
+      if (stagedRows.some((row) => row.role_codes.length === 0)) {
+        setError('Jede Person braucht mindestens eine Rolle.')
+        return
+      }
+
+      const originalRowCount = Object.keys(originalRolesById).length
+      if (source === 'anime_default' && originalRowCount > 0 && stagedRows.length === 0) {
+        setError('Eine komplett leere Release-Besetzung kann aktuell nicht gespeichert werden.')
+        return
+      }
+
+      const hasRowSetChange = stagedRows.length !== originalRowCount
+      const hasPendingChanges =
+        hasRowSetChange ||
+        removedIds.length > 0 ||
+        stagedRows.some(
+          (row) =>
+            row.isNew ||
+            !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []),
+        )
+
+      if (hasPendingChanges) {
+        if (source === 'release_version') {
+          await Promise.all(removedIds.map((id) => deleteAnimeContribution(fansubId, animeId, id)))
+        }
+
+        const rowsToWrite =
+          source === 'anime_default'
+            ? stagedRows
+            : stagedRows.filter(
+                (row) =>
+                  row.isNew ||
+                  !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []),
+              )
+
+        await Promise.all(
+          rowsToWrite.map((row) =>
+            upsertAnimeContribution(fansubId, animeId, {
+              member_id: row.member_id,
+              role_codes: normalizeRoleCodes(row.role_codes),
+              release_version_id: releaseVersionId,
+              started_year: null,
+              ended_year: null,
+              note: null,
+              is_public_on_anime_page: false,
+              is_public_on_member_profile: false,
+              status: 'confirmed',
+            }),
+          ),
+        )
+      }
+
       onSaved()
       onClose()
     } catch (err) {
@@ -127,53 +280,34 @@ export function ReleaseContributionDrawer({
     }
   }
 
-  function handleAddConfirm() {
-    if (newMemberId == null || newRoleCode == null) return
-    const member = members.find((m) => m.member_id === newMemberId)
-    if (!member) return
-
-    // Synthetic row — contribution_id wird vom Backend vergeben, temporär negative ID
-    const tempId = -(Date.now())
-    const newRow: EffectiveContributionRow = {
-      contribution_id: tempId,
-      member_id: member.member_id,
-      member_display_name: member.display_name,
-      member_avatar_url: null,
-      role_codes: [newRoleCode],
-    }
-
-    setStagedRows((prev) => [...prev, newRow])
-
-    // Direkt upsert — neuer Eintrag wird sofort persistiert beim Speichern
-    upsertAnimeContribution(fansubId, animeId, {
-      member_id: member.member_id,
-      role_codes: [newRoleCode],
-      release_version_id: releaseVersionId,
-      started_year: null,
-      ended_year: null,
-      note: null,
-      is_public_on_anime_page: false,
-      is_public_on_member_profile: false,
-      status: 'confirmed',
-    }).catch((err: unknown) => {
-      setError(err instanceof Error ? err.message : 'Hinzufügen fehlgeschlagen.')
-      setStagedRows((prev) => prev.filter((r) => r.contribution_id !== tempId))
-    })
-
-    setAddingRow(false)
-    setNewMemberId(null)
-    setNewRoleCode(null)
-  }
-
   const assignedMemberIds = new Set(stagedRows.map((r) => r.member_id))
   const availableMembers = members.filter((m) => !assignedMemberIds.has(m.member_id))
+  const hasRowsWithoutRoles = stagedRows.some((row) => row.role_codes.length === 0)
+  const canAddRow = newMemberId != null && newRoleCodes.length > 0
+  const statusLabel = isOverride ? 'Eigene Release-Besetzung' : 'Projektteam geerbt'
+  const statusVariant = isOverride ? 'info' : 'muted'
+
+  const changeHint = useMemo(() => {
+    if (source === 'anime_default') {
+      return 'Beim Speichern wird aus dem Projektteam eine eigene Besetzung nur für diese Folge.'
+    }
+    if (stagedRows.length === 0) {
+      return 'Ohne eigene Zeilen fällt diese Folge wieder auf das Projektteam zurück.'
+    }
+    return 'Änderungen gelten nur für diese Release-Version.'
+  }, [source, stagedRows.length])
 
   const footer = (
     <>
       <Button variant="ghost" onClick={onClose} disabled={saving}>
         Abbrechen
       </Button>
-      <Button variant="primary" onClick={handleSave} loading={saving}>
+      <Button
+        variant="primary"
+        onClick={handleSave}
+        loading={saving}
+        disabled={loading || hasRowsWithoutRoles}
+      >
         Speichern
       </Button>
     </>
@@ -183,8 +317,8 @@ export function ReleaseContributionDrawer({
     <Drawer
       open={open}
       onClose={onClose}
-      title="Mitwirkende"
-      description={`Rollen für ${releaseTitle}`}
+      title="Besetzung dieser Folge"
+      description={releaseTitle}
       footer={footer}
     >
       {loading ? (
@@ -193,102 +327,177 @@ export function ReleaseContributionDrawer({
         <ErrorState title="Fehler" description={error} />
       ) : (
         <>
-          {stagedRows.length === 0 && !addingRow ? (
-            <EmptyState
-              title="Noch keine Mitwirkenden"
-              description="Füge Rollen und Personen für diese Release-Version hinzu."
-            />
-          ) : (
-            <div>
-              {stagedRows.map((row) => (
-                <div key={row.contribution_id} className={styles.contributionRow}>
-                  <span className={styles.contributionRoleLabel}>
-                    {row.role_codes.map(getRoleLabel).join(', ')}
-                  </span>
-                  <ContributorAvatar
-                    name={row.member_display_name}
-                    avatarUrl={row.member_avatar_url}
-                  />
-                  <span className={styles.contributionMemberName}>
-                    {row.member_display_name}
-                  </span>
-                  <div className={styles.contributionRowActions}>
-                    <Button
-                      variant="ghost"
-                      iconOnly
-                      size="sm"
-                      aria-label="Rolle ändern"
-                    >
-                      <MoreHorizontal size={18} />
-                    </Button>
-                    <Button
-                      variant="danger"
-                      iconOnly
-                      size="sm"
-                      aria-label="Mitwirkende entfernen"
-                      onClick={() => handleRemove(row)}
-                    >
-                      <Trash2 size={18} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <Toolbar
+            className={styles.contributionDrawerToolbar}
+            leading={
+              <div className={styles.contributionToolbarMeta}>
+                <Badge variant={statusVariant}>{statusLabel}</Badge>
+                <span>{stagedRows.length} Person{stagedRows.length === 1 ? '' : 'en'}</span>
+              </div>
+            }
+            trailing={
+              !addingRow ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<Plus size={16} />}
+                  onClick={() => setAddingRow(true)}
+                >
+                  Person hinzufügen
+                </Button>
+              ) : null
+            }
+          />
+
+          <p className={styles.contributionDrawerHint}>{changeHint}</p>
 
           {addingRow ? (
-            <div className={styles.contributionRow}>
-              <FormField label="Rolle" htmlFor="new-role-select">
-                <Select
-                  id="new-role-select"
-                  value={newRoleCode ?? ''}
-                  onChange={(e) => setNewRoleCode(e.currentTarget.value || null)}
-                >
-                  <option value="">Rolle wählen</option>
-                  {ANIME_CONTRIBUTION_ROLES.map((role) => (
-                    <option key={role.code} value={role.code}>
-                      {role.label}
-                    </option>
-                  ))}
-                </Select>
-              </FormField>
+            <div className={styles.contributionAddPanel}>
               <FormField label="Person" htmlFor="new-member-select">
                 <Select
                   id="new-member-select"
                   value={newMemberId != null ? String(newMemberId) : ''}
-                  onChange={(e) =>
-                    setNewMemberId(e.currentTarget.value ? Number(e.currentTarget.value) : null)
+                  onChange={(event) =>
+                    setNewMemberId(event.currentTarget.value ? Number(event.currentTarget.value) : null)
                   }
                 >
                   <option value="">Person wählen</option>
-                  {availableMembers.map((m) => (
-                    <option key={m.member_id} value={m.member_id}>
-                      {m.display_name}
+                  {availableMembers.map((member) => (
+                    <option key={member.member_id} value={member.member_id}>
+                      {member.display_name}
                     </option>
                   ))}
                 </Select>
               </FormField>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleAddConfirm}
-                disabled={newMemberId == null || newRoleCode == null}
-              >
-                Hinzufügen
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setAddingRow(false)}>
-                Abbrechen
-              </Button>
+              <div className={styles.contributionRolesCell}>
+                <span className={styles.contributionRoleLabel}>Rollen</span>
+                <div className={styles.contributionRoleToggles} aria-label="Rollen für neue Person">
+                  {ANIME_CONTRIBUTION_ROLES.map((role) => {
+                    const active = newRoleCodes.includes(role.code)
+                    return (
+                      <button
+                        key={role.code}
+                        type="button"
+                        className={`${styles.contributionRoleToggle} ${
+                          active ? styles.contributionRoleToggleActive : ''
+                        }`}
+                        aria-pressed={active}
+                        onClick={() => handleNewRoleToggle(role.code)}
+                      >
+                        {role.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className={styles.contributionAddActions}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleAddConfirm}
+                  leftIcon={<Users size={16} />}
+                  disabled={!canAddRow}
+                >
+                  Übernehmen
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setAddingRow(false)}>
+                  Abbrechen
+                </Button>
+              </div>
             </div>
+          ) : null}
+
+          {stagedRows.length === 0 && !addingRow ? (
+            <EmptyState
+              title="Noch keine Rollen vergeben"
+              description="Füge Personen aus dieser Fansubgruppe hinzu und wähle ihre Rollen für diese Folge."
+            />
           ) : (
-            <Button
-              variant="secondary"
-              leftIcon={<Plus size={16} />}
-              onClick={() => setAddingRow(true)}
-            >
-              Rolle / Person hinzufügen
-            </Button>
+            <div className={styles.contributionRows} role="list" aria-label="Besetzung dieser Folge">
+              {stagedRows.map((row) => {
+                const labels = roleLabels(row.role_codes)
+                return (
+                  <div key={row.contribution_id} className={styles.contributionEditRow} role="listitem">
+                    <div className={styles.contributionPersonCell}>
+                      <ContributorAvatar
+                        name={row.member_display_name}
+                        avatarUrl={row.member_avatar_url}
+                      />
+                      <div>
+                        <strong>{row.member_display_name}</strong>
+                        {row.isNew ? <span>Neu</span> : null}
+                      </div>
+                    </div>
+                    <div className={styles.contributionRolesCell}>
+                      <div className={styles.contributionRoleSummaryLine}>
+                        <div className={styles.contributionRoleSummaryChips}>
+                          {labels.length > 0 ? (
+                            labels.map((label) => (
+                              <span key={label} className={styles.contributionRoleSummaryChip}>
+                                {label}
+                              </span>
+                            ))
+                          ) : (
+                            <span className={styles.contributionRoleSummaryEmpty}>Keine Rolle</span>
+                          )}
+                        </div>
+                      </div>
+                      {editingRoleIds.has(row.contribution_id) ? (
+                        <div
+                          className={styles.contributionRoleToggles}
+                          aria-label={`Rollen für ${row.member_display_name}`}
+                        >
+                          {ANIME_CONTRIBUTION_ROLES.map((role) => {
+                            const active = row.role_codes.includes(role.code)
+                            return (
+                              <button
+                                key={role.code}
+                                type="button"
+                                className={`${styles.contributionRoleToggle} ${
+                                  active ? styles.contributionRoleToggleActive : ''
+                                }`}
+                                aria-pressed={active}
+                                onClick={() => handleRoleToggle(row.contribution_id, role.code)}
+                              >
+                                {role.label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className={styles.contributionRowActions}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={<Pencil size={15} />}
+                        aria-label={`Rollen für ${row.member_display_name} ändern`}
+                        onClick={() => toggleRoleEditor(row.contribution_id)}
+                      >
+                        {editingRoleIds.has(row.contribution_id) ? 'Fertig' : 'Rollen ändern'}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        iconOnly
+                        size="sm"
+                        aria-label={`${row.member_display_name} entfernen`}
+                        onClick={() => handleRemove(row)}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           )}
+
+          {hasRowsWithoutRoles ? (
+            <p className={styles.contributionInlineWarning}>
+              Jede Person braucht mindestens eine Rolle.
+            </p>
+          ) : null}
         </>
       )}
     </Drawer>

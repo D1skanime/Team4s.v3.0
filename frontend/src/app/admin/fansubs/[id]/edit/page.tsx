@@ -3280,7 +3280,8 @@ function AdminFansubEditContent({
                                           type="button"
                                           variant="subtle"
                                           size="sm"
-                                          aria-label={`Mitwirkende für ${release.episode_title ?? `Release-Version ${release.release_version_id}`} bearbeiten`}
+                                          leftIcon={<Users size={15} />}
+                                          aria-label={`Rollen und Personen für ${release.episode_title ?? `Release-Version ${release.release_version_id}`} bearbeiten`}
                                           onClick={(event) => {
                                             event.stopPropagation();
                                             openContributionDrawer(
@@ -3290,7 +3291,7 @@ function AdminFansubEditContent({
                                             );
                                           }}
                                         >
-                                          Mitwirkende
+                                          Rollen & Personen
                                         </Button>
                                       ) : null}
                                     </div>
@@ -3319,6 +3320,34 @@ function AdminFansubEditContent({
                                         styles.fansubEditReleaseExpanded
                                       }
                                     >
+                                      {canOpenReleaseContributors ? (
+                                        <div className={styles.fansubEditReleaseAssignmentPanel}>
+                                          <div className={styles.fansubEditReleaseAssignmentCopy}>
+                                            <strong>Rollen & Personen dieser Folge</strong>
+                                            <span>
+                                              {release.has_override
+                                                ? "Eigene Release-Besetzung aktiv"
+                                                : "Aktuell wird das Projektteam verwendet"}
+                                            </span>
+                                          </div>
+                                          <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            leftIcon={<Users size={16} />}
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              openContributionDrawer(
+                                                release.release_version_id,
+                                                releaseGroup.anime.id,
+                                                release.episode_title ?? `Release-Version ${release.release_version_id}`,
+                                              );
+                                            }}
+                                          >
+                                            Rollen & Personen bearbeiten
+                                          </Button>
+                                        </div>
+                                      ) : null}
                                       <div
                                         className={
                                           styles.fansubEditReleaseExpandedHeader
