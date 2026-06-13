@@ -3034,7 +3034,8 @@
 
 .contributionRows {
   display: grid;
-  gap: 0;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
   margin-bottom: var(--space-4);
   min-height: 0;
   overflow: visible;
@@ -3044,24 +3045,23 @@
   display: grid;
   grid-template-areas:
     "person actions"
-    "roles actions";
+    "roles roles";
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   column-gap: var(--space-3);
-  row-gap: 0.38rem;
-  min-height: 4.1rem;
-  padding: 0.82rem 0;
-  border-bottom: 1px solid var(--border-subtle);
-  background: transparent;
-}
-
-.contributionEditRow:last-child {
-  border-bottom: 0;
+  row-gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .contributionEditRow:focus-within,
 .contributionEditRow:hover {
-  background: color-mix(in srgb, var(--accent-primary) 4%, white);
+  border-color: color-mix(in srgb, var(--accent-primary) 32%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-primary) 4%, var(--bg-secondary));
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 .contributionPersonCell {
@@ -3095,9 +3095,16 @@
 .contributionRolesCell {
   grid-area: roles;
   display: grid;
-  gap: 0.45rem;
+  gap: var(--space-2);
   min-width: 0;
-  padding-left: calc(32px + var(--space-2));
+}
+
+.contributionEditRow .contributionRoleToggles {
+  margin-top: 0.1rem;
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-primary) 55%, var(--bg-secondary));
 }
 
 .contributionRoleSummaryLine {
@@ -3111,23 +3118,23 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .contributionRoleSummaryChip {
   display: inline-flex;
   align-items: center;
-  min-height: 1.45rem;
+  min-height: 1.7rem;
   max-width: 100%;
-  padding: 0.16rem 0.48rem;
+  padding: 0.26rem 0.62rem;
   border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--accent-primary) 7%, white);
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .contributionRoleSummaryEmpty {
@@ -3139,7 +3146,7 @@
 .contributionRoleToggles {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--space-2);
 }
 
 .contributionRoleToggle {
@@ -3148,9 +3155,9 @@
   background: color-mix(in srgb, var(--bg-secondary) 88%, white);
   color: var(--text-secondary);
   cursor: pointer;
-  min-height: 2rem;
-  padding: 0.36rem 0.62rem;
-  font-size: 0.8rem;
+  min-height: 2.2rem;
+  padding: 0.46rem 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.15;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
@@ -3170,10 +3177,10 @@
 .contributionRowActions {
   grid-area: actions;
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-2);
   justify-content: flex-end;
   align-items: center;
-  align-self: center;
+  align-self: start;
   white-space: nowrap;
 }
 
