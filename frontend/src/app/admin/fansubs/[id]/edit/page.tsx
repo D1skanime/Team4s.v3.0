@@ -26,20 +26,16 @@ import {
 } from "lucide-react";
 
 import {
-  deleteAdminReleaseThemeAsset,
   getAdminFansubAnime,
   getAdminFansubAnimeReleases,
   getAdminAnimeThemes,
   getAdminAnimeThemeSegments,
-  getAdminRelease,
   getAdminReleaseThemeAssets,
   getAnimeCoverage,
   getFansubAliases,
   getFansubByID,
   listAnimeContributions,
   listUnifiedGroupMembers,
-  resolveApiUrl,
-  uploadAdminReleaseThemeAssetForRelease,
   type AnimeCoverage,
 } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
@@ -59,7 +55,6 @@ import {
 import {
   Badge,
   Button,
-  Modal,
 } from "@/components/ui";
 import AnimeContributionModal from "./AnimeContributionModal";
 import { AnimeReleasesFilterBar, type CockpitFilter } from "./AnimeReleasesFilterBar";
@@ -73,20 +68,18 @@ import {
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { parseMainTab } from "./mainTabRouting";
-import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
 import { ReadinessTab } from "./ReadinessTab";
-import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSection";
 import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import { UserSuggestionsInbox } from "./UserSuggestionsInbox";
 import { ReleaseContributionDrawer } from "./ReleaseContributionDrawer";
 import { FansubDetailsTab } from "./FansubDetailsTab";
 import { useFansubDetailsForm } from "./useFansubDetailsForm";
+import { ReleaseMediaDrawer } from "./ReleaseMediaDrawer";
+import { useReleaseMediaDrawer } from "./useReleaseMediaDrawer";
 import type {
   ContributionModalAnime,
   FansubReleaseGroup,
   MainTab,
-  ReleaseDrawerContext,
-  ReleaseDrawerTab,
   ReleasePaginationState,
   ReleaseSegmentCard,
   SectionKey,
@@ -94,16 +87,12 @@ import type {
 } from "./fansubEditTypes";
 import {
   compactThemeKind,
-  episodeReleaseTitle,
   errMessage,
   formatAnimeTypeLabel,
   labelForFansubStatus,
   parseClockSeconds,
-  releaseDrawerTitle,
   releaseTimelineMaxSeconds,
   resolveCoverUrl,
-  themeSegmentEpisodeRange,
-  themeSegmentTimeRange,
   timelineLabelFor,
   timelineStatusLabelFor,
 } from "./fansubEditFormatters";
@@ -111,10 +100,7 @@ import {
   animeFansubReleaseContextKey,
   buildAnimeCoverageMap,
   groupContributionMembersByRole,
-  isJellyfinLocked,
   mapReleaseSegmentCards,
-  mergeReleaseThemeAssetCard,
-  releaseThemeSelectionKey,
 } from "./fansubEditReleaseHelpers";
 import {
   canEditReleaseNotes,
@@ -193,15 +179,6 @@ function AdminFansubEditContent({
   >({});
   const [selectedReleaseSegment, setSelectedReleaseSegment] =
     useState<SelectedReleaseSegment | null>(null);
-  const [selectedReleaseId, setSelectedReleaseId] = useState<number | null>(
-    null,
-  );
-  const [selectedAnimeFansubContextKey, setSelectedAnimeFansubContextKey] =
-    useState<string | null>(null);
-  const [selectedAnimeId, setSelectedAnimeId] = useState<number | null>(null);
-  const [selectedFansubGroupId, setSelectedFansubGroupId] = useState<
-    number | null
-  >(null);
   const [contributionModalAnime, setContributionModalAnime] =
     useState<ContributionModalAnime | null>(null);
   const [contributionMembers, setContributionMembers] = useState<
@@ -245,27 +222,10 @@ function AdminFansubEditContent({
       return true;
     });
   }, [animeCoverageMap, cockpitFilter, releaseGroups]);
-  const [releaseDrawerOpen, setReleaseDrawerOpen] = useState(false);
-  const [drawerRelease, setDrawerRelease] = useState<AdminFansubRelease | null>(
-    null,
-  );
-  const [drawerTab, setDrawerTab] = useState<ReleaseDrawerTab>("details");
-  const [drawerReleaseLoading, setDrawerReleaseLoading] = useState(false);
-  const [drawerReleaseError, setDrawerReleaseError] = useState<string | null>(
-    null,
-  );
-  const [themeDrawerOpen, setThemeDrawerOpen] = useState(false);
   const [contributionDrawerOpen, setContributionDrawerOpen] = useState(false);
   const [contributionDrawerVersionId, setContributionDrawerVersionId] = useState<number | null>(null);
   const [contributionDrawerAnimeId, setContributionDrawerAnimeId] = useState<number | null>(null);
   const [contributionDrawerTitle, setContributionDrawerTitle] = useState<string>('');
-  const [drawerBusy, setDrawerBusy] = useState(false);
-  const [drawerUploadProgress, setDrawerUploadProgress] = useState<
-    number | null
-  >(null);
-  const [themePreviewOpen, setThemePreviewOpen] = useState(false);
-  const [drawerError, setDrawerError] = useState<string | null>(null);
-  const [themeUploadName, setThemeUploadName] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>(
     {
@@ -284,15 +244,10 @@ function AdminFansubEditContent({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const themeUploadInputRef = useRef<HTMLInputElement | null>(null);
   const releaseRequestSeqRef = useRef(0);
   const releaseRequestByContextRef = useRef<Record<string, number>>({});
-  const releaseDrawerRequestSeqRef = useRef(0);
   const releaseSegmentRequestSeqRef = useRef(0);
   const releaseSegmentRequestByReleaseRef = useRef<Record<number, number>>({});
-  const themeDrawerMutationSeqRef = useRef(0);
-  const themeDrawerOpenRef = useRef(false);
-  const themeDrawerSelectionKeyRef = useRef<string | null>(null);
   const { hasAccessToken, hasRefreshToken, isClientInitialized } =
     useAuthSession();
   const hasAuthSession = hasAccessToken || hasRefreshToken;
@@ -340,6 +295,85 @@ function AdminFansubEditContent({
   const canOpenReleaseDrawer =
     canUseAdminReleaseDetails || canUseReleaseMedia;
 
+  const loadReleaseSegmentCards = async (
+    release: AdminFansubRelease,
+    force = false,
+  ): Promise<ReleaseSegmentCard[] | null> => {
+    if (!hasAuthSession) return null;
+    const releaseID = release.release_id;
+    if (
+      !force &&
+      (releaseSegmentCards[releaseID] || releaseSegmentLoading[releaseID])
+    )
+      return null;
+
+    const requestID = releaseSegmentRequestSeqRef.current + 1;
+    releaseSegmentRequestSeqRef.current = requestID;
+    releaseSegmentRequestByReleaseRef.current[releaseID] = requestID;
+    const isCurrentRequest = () =>
+      releaseSegmentRequestByReleaseRef.current[releaseID] === requestID;
+
+    setReleaseSegmentLoading((current) => ({ ...current, [releaseID]: true }));
+    setReleaseSegmentErrors((current) => ({ ...current, [releaseID]: null }));
+    try {
+      const [themesResponse, assetsResponse] = await Promise.all([
+        getAdminAnimeThemes(release.anime_id),
+        getAdminReleaseThemeAssets(releaseID),
+      ]);
+      const segmentEntries = await Promise.all(
+        themesResponse.data.map(async (theme) => {
+          const response = await getAdminAnimeThemeSegments(
+            release.anime_id,
+            theme.id,
+          );
+          return [theme.id, response.data] as const;
+        }),
+      );
+      const nextCards = mapReleaseSegmentCards(
+        themesResponse.data,
+        assetsResponse.data,
+        new Map(segmentEntries),
+      );
+      if (!isCurrentRequest()) return null;
+      setReleaseSegmentCards((current) => ({
+        ...current,
+        [releaseID]: nextCards,
+      }));
+      return nextCards;
+    } catch (nextError) {
+      if (isCurrentRequest()) {
+        setReleaseSegmentErrors((current) => ({
+          ...current,
+          [releaseID]: errMessage(nextError),
+        }));
+      }
+      return null;
+    } finally {
+      if (isCurrentRequest()) {
+        setReleaseSegmentLoading((current) => ({
+          ...current,
+          [releaseID]: false,
+        }));
+      }
+    }
+  };
+
+  const drawer = useReleaseMediaDrawer({
+    hasAuthSession,
+    canOpenReleaseDrawer,
+    canUseAdminReleaseDetails,
+    canManageReleaseThemeAssets,
+    selectedReleaseSegment,
+    setSelectedReleaseSegment,
+    releaseSegmentCards,
+    setReleaseSegmentCards,
+    setReleaseSegmentErrors,
+    setExpandedReleaseIds,
+    loadReleaseSegmentCards,
+    onToast: handleDetailsToast,
+  });
+  const { openReleaseDrawer, openThemeDrawer } = drawer;
+
   useEffect(() => {
     const nextTab = resolveMainTabForAccess(
       mainTabFromQuery,
@@ -371,13 +405,15 @@ function AdminFansubEditContent({
     [capabilities, isPlatformAdmin, pathname, router, searchParams],
   );
 
+  const { resetDrawerState, invalidateDrawerRequests } = drawer;
+
   const invalidateReleaseWorkspaceRequests = useCallback(() => {
     releaseRequestSeqRef.current += 1;
-    releaseDrawerRequestSeqRef.current += 1;
     releaseSegmentRequestSeqRef.current += 1;
     releaseRequestByContextRef.current = {};
     releaseSegmentRequestByReleaseRef.current = {};
-  }, []);
+    invalidateDrawerRequests();
+  }, [invalidateDrawerRequests]);
 
   const resetReleaseWorkspaceState = useCallback(() => {
     invalidateReleaseWorkspaceRequests();
@@ -390,31 +426,15 @@ function AdminFansubEditContent({
     setReleaseSegmentCards({});
     setReleaseSegmentLoading({});
     setReleaseSegmentErrors({});
-    setReleaseDrawerOpen(false);
-    setThemeDrawerOpen(false);
     setSelectedReleaseSegment(null);
-    setSelectedReleaseId(null);
-    setSelectedAnimeFansubContextKey(null);
-    setSelectedAnimeId(null);
-    setSelectedFansubGroupId(null);
     setContributionModalAnime(null);
     setContributionMembers([]);
     setContributionModalRows([]);
     setAnimeContributionRowsByAnimeId({});
     setContributionModalLoadingAnimeId(null);
     setContributionModalError(null);
-    setDrawerRelease(null);
-    setDrawerReleaseLoading(false);
-    setDrawerReleaseError(null);
-    setDrawerError(null);
-    setDrawerUploadProgress(null);
-    setThemePreviewOpen(false);
-    setDrawerBusy(false);
-    themeDrawerMutationSeqRef.current += 1;
-    if (themeUploadInputRef.current) {
-      themeUploadInputRef.current.value = "";
-    }
-  }, [invalidateReleaseWorkspaceRequests]);
+    resetDrawerState();
+  }, [invalidateReleaseWorkspaceRequests, resetDrawerState]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
@@ -423,20 +443,6 @@ function AdminFansubEditContent({
     media.addEventListener("change", onChange);
     return () => media.removeEventListener("change", onChange);
   }, []);
-
-  useEffect(() => {
-    themeDrawerOpenRef.current = themeDrawerOpen;
-  }, [themeDrawerOpen]);
-
-  useEffect(() => {
-    themeDrawerSelectionKeyRef.current =
-      themeDrawerOpen && selectedReleaseSegment
-        ? releaseThemeSelectionKey(
-            selectedReleaseSegment.release.release_id,
-            selectedReleaseSegment.card.theme_id,
-          )
-        : null;
-  }, [themeDrawerOpen, selectedReleaseSegment]);
 
   useEffect(() => {
     if (!Number.isFinite(fansubID) || fansubID <= 0) {
@@ -527,164 +533,6 @@ function AdminFansubEditContent({
   const onSectionToggle = (section: SectionKey, open: boolean) => {
     if (!isMobile) return;
     setOpenSections((current) => ({ ...current, [section]: open }));
-  };
-
-  const clearThemeUploadInput = () => {
-    if (themeUploadInputRef.current) {
-      themeUploadInputRef.current.value = "";
-    }
-    setThemeUploadName("");
-  };
-
-  const resetThemeDrawerTransientState = () => {
-    themeDrawerMutationSeqRef.current += 1;
-    setDrawerError(null);
-    setDrawerBusy(false);
-    setDrawerUploadProgress(null);
-    setThemePreviewOpen(false);
-    clearThemeUploadInput();
-  };
-
-  const closeThemeDrawer = () => {
-    setThemeDrawerOpen(false);
-    resetThemeDrawerTransientState();
-  };
-
-  const openThemeDrawer = (
-    release: AdminFansubRelease,
-    card: ReleaseSegmentCard,
-  ) => {
-    setSelectedReleaseSegment({ release, card });
-    setThemeDrawerOpen(true);
-    resetThemeDrawerTransientState();
-  };
-
-  const loadReleaseSegmentCards = async (
-    release: AdminFansubRelease,
-    force = false,
-  ): Promise<ReleaseSegmentCard[] | null> => {
-    if (!hasAuthSession) return null;
-    const releaseID = release.release_id;
-    if (
-      !force &&
-      (releaseSegmentCards[releaseID] || releaseSegmentLoading[releaseID])
-    )
-      return null;
-
-    const requestID = releaseSegmentRequestSeqRef.current + 1;
-    releaseSegmentRequestSeqRef.current = requestID;
-    releaseSegmentRequestByReleaseRef.current[releaseID] = requestID;
-    const isCurrentRequest = () =>
-      releaseSegmentRequestByReleaseRef.current[releaseID] === requestID;
-
-    setReleaseSegmentLoading((current) => ({ ...current, [releaseID]: true }));
-    setReleaseSegmentErrors((current) => ({ ...current, [releaseID]: null }));
-    try {
-      const [themesResponse, assetsResponse] = await Promise.all([
-        getAdminAnimeThemes(release.anime_id),
-        getAdminReleaseThemeAssets(releaseID),
-      ]);
-      const segmentEntries = await Promise.all(
-        themesResponse.data.map(async (theme) => {
-          const response = await getAdminAnimeThemeSegments(
-            release.anime_id,
-            theme.id,
-          );
-          return [theme.id, response.data] as const;
-        }),
-      );
-      const nextCards = mapReleaseSegmentCards(
-        themesResponse.data,
-        assetsResponse.data,
-        new Map(segmentEntries),
-      );
-      if (!isCurrentRequest()) return null;
-      setReleaseSegmentCards((current) => ({
-        ...current,
-        [releaseID]: nextCards,
-      }));
-      return nextCards;
-    } catch (nextError) {
-      if (isCurrentRequest()) {
-        setReleaseSegmentErrors((current) => ({
-          ...current,
-          [releaseID]: errMessage(nextError),
-        }));
-      }
-      return null;
-    } finally {
-      if (isCurrentRequest()) {
-        setReleaseSegmentLoading((current) => ({
-          ...current,
-          [releaseID]: false,
-        }));
-      }
-    }
-  };
-
-  const closeReleaseDrawer = () => {
-    releaseDrawerRequestSeqRef.current += 1;
-    setReleaseDrawerOpen(false);
-    setThemeDrawerOpen(false);
-    setSelectedReleaseSegment(null);
-    setSelectedReleaseId(null);
-    setSelectedAnimeFansubContextKey(null);
-    setSelectedAnimeId(null);
-    setSelectedFansubGroupId(null);
-    setDrawerRelease(null);
-    setDrawerTab("details");
-    setDrawerBusy(false);
-    resetThemeDrawerTransientState();
-    setDrawerReleaseLoading(false);
-    setDrawerReleaseError(null);
-  };
-
-  const openReleaseDrawer = (context: ReleaseDrawerContext) => {
-    if (!canOpenReleaseDrawer) return;
-
-    const { release, animeID, fansubGroupID, contextKey } = context;
-    const requestID = releaseDrawerRequestSeqRef.current + 1;
-    releaseDrawerRequestSeqRef.current = requestID;
-    const initialDrawerTab: ReleaseDrawerTab = canUseAdminReleaseDetails
-      ? "details"
-      : "media";
-
-    setSelectedReleaseId(release.release_id);
-    setSelectedAnimeFansubContextKey(contextKey);
-    setSelectedAnimeId(animeID);
-    setSelectedFansubGroupId(fansubGroupID);
-    setReleaseDrawerOpen(true);
-    setThemeDrawerOpen(false);
-    setSelectedReleaseSegment(null);
-    setDrawerRelease(release);
-    setDrawerTab(initialDrawerTab);
-    setDrawerBusy(false);
-    resetThemeDrawerTransientState();
-    setDrawerReleaseError(null);
-    setDrawerReleaseLoading(hasAuthSession && canUseAdminReleaseDetails);
-    setExpandedReleaseIds((current) =>
-      new Set(current).add(release.release_id),
-    );
-    void loadReleaseSegmentCards(release);
-
-    if (!hasAuthSession || !canUseAdminReleaseDetails) {
-      setDrawerReleaseLoading(false);
-      return;
-    }
-
-    getAdminRelease(release.release_id)
-      .then((response) => {
-        if (releaseDrawerRequestSeqRef.current !== requestID) return;
-        setDrawerRelease(response.data);
-      })
-      .catch((nextError) => {
-        if (releaseDrawerRequestSeqRef.current !== requestID) return;
-        setDrawerReleaseError(errMessage(nextError));
-      })
-      .finally(() => {
-        if (releaseDrawerRequestSeqRef.current !== requestID) return;
-        setDrawerReleaseLoading(false);
-      });
   };
 
   const loadAnimeReleases = async (
@@ -890,161 +738,6 @@ function AdminFansubEditContent({
     void refreshAnimeCoverage();
   };
 
-  useEffect(() => {
-    if (!drawerRelease) return;
-    const cards = releaseSegmentCards[drawerRelease.release_id] ?? [];
-    if (cards.length === 0) return;
-    if (selectedReleaseSegment?.release.release_id === drawerRelease.release_id)
-      return;
-    setSelectedReleaseSegment({ release: drawerRelease, card: cards[0] });
-  }, [
-    drawerRelease,
-    releaseSegmentCards,
-    selectedReleaseSegment?.release.release_id,
-  ]);
-
-  useEffect(() => {
-    if (!selectedReleaseSegment) return;
-    const latestCards =
-      releaseSegmentCards[selectedReleaseSegment.release.release_id] ?? [];
-    const latestCard = latestCards.find(
-      (card) => card.theme_id === selectedReleaseSegment.card.theme_id,
-    );
-    if (!latestCard) {
-      setSelectedReleaseSegment(null);
-      setThemeDrawerOpen(false);
-      setDrawerError(null);
-      setDrawerUploadProgress(null);
-      if (themeUploadInputRef.current) {
-        themeUploadInputRef.current.value = "";
-      }
-      return;
-    }
-    if (latestCard === selectedReleaseSegment.card) return;
-    setSelectedReleaseSegment({
-      release: selectedReleaseSegment.release,
-      card: latestCard,
-    });
-  }, [releaseSegmentCards, selectedReleaseSegment]);
-
-  const handleDrawerUpload = async (file: File | null) => {
-    if (
-      !file ||
-      !selectedReleaseSegment ||
-      !hasAuthSession ||
-      !canManageReleaseThemeAssets
-    )
-      return;
-    const release = selectedReleaseSegment.release;
-    const themeID = selectedReleaseSegment.card.theme_id;
-    const selectionKey = releaseThemeSelectionKey(release.release_id, themeID);
-    const isCurrentSelection = () =>
-      themeDrawerOpenRef.current &&
-      themeDrawerSelectionKeyRef.current === selectionKey;
-    const mutationID = themeDrawerMutationSeqRef.current + 1;
-    themeDrawerMutationSeqRef.current = mutationID;
-    const isCurrentMutation = () =>
-      isCurrentSelection() && themeDrawerMutationSeqRef.current === mutationID;
-    if (!isCurrentSelection()) return;
-    setDrawerBusy(true);
-    setDrawerError(null);
-    setDrawerUploadProgress(0);
-    try {
-      const uploadResponse = await uploadAdminReleaseThemeAssetForRelease({
-        releaseID: release.release_id,
-        themeID,
-        file,
-        onProgress: (progress) => {
-          if (isCurrentSelection()) setDrawerUploadProgress(progress);
-        },
-      });
-      if (!isCurrentMutation()) return;
-      setReleaseSegmentErrors((current) => ({
-        ...current,
-        [release.release_id]: null,
-      }));
-      setReleaseSegmentCards((current) => {
-        const existingCards = current[release.release_id];
-        if (!existingCards) return current;
-        return {
-          ...current,
-          [release.release_id]: mergeReleaseThemeAssetCard(
-            existingCards,
-            uploadResponse.data,
-          ),
-        };
-      });
-      const refreshedCards = await loadReleaseSegmentCards(release, true);
-      if (!isCurrentMutation()) return;
-      if (!refreshedCards) {
-        setReleaseSegmentErrors((current) => ({
-          ...current,
-          [release.release_id]: null,
-        }));
-      }
-      setToast("Theme-Asset gespeichert.");
-      setDrawerUploadProgress(null);
-      clearThemeUploadInput();
-    } catch (nextError) {
-      if (isCurrentMutation()) setDrawerError(errMessage(nextError));
-    } finally {
-      if (isCurrentMutation()) setDrawerBusy(false);
-    }
-  };
-
-  const handleDrawerUploadClick = async () => {
-    const file = themeUploadInputRef.current?.files?.[0] ?? null;
-    if (!file) {
-      setDrawerError("Bitte zuerst eine Videodatei auswählen.");
-      return;
-    }
-    await handleDrawerUpload(file);
-  };
-
-  const handleThemeUploadInputChange = () => {
-    const file = themeUploadInputRef.current?.files?.[0] ?? null;
-    setThemeUploadName(file?.name || "");
-    if (file) {
-      setDrawerError(null);
-    }
-  };
-
-  const handleDrawerDelete = async () => {
-    if (
-      !selectedReleaseSegment ||
-      !hasAuthSession ||
-      !selectedReleaseSegment.card.media_id
-    )
-      return;
-    const release = selectedReleaseSegment.release;
-    const themeID = selectedReleaseSegment.card.theme_id;
-    const mediaID = selectedReleaseSegment.card.media_id;
-    const selectionKey = releaseThemeSelectionKey(release.release_id, themeID);
-    const isCurrentSelection = () =>
-      themeDrawerOpenRef.current &&
-      themeDrawerSelectionKeyRef.current === selectionKey;
-    const mutationID = themeDrawerMutationSeqRef.current + 1;
-    themeDrawerMutationSeqRef.current = mutationID;
-    const isCurrentMutation = () =>
-      isCurrentSelection() && themeDrawerMutationSeqRef.current === mutationID;
-    if (!isCurrentSelection()) return;
-    setDrawerBusy(true);
-    setDrawerError(null);
-    try {
-      await deleteAdminReleaseThemeAsset(release.release_id, themeID, mediaID);
-      if (!isCurrentMutation()) return;
-      await loadReleaseSegmentCards(release, true);
-      if (!isCurrentMutation()) return;
-      setSelectedReleaseSegment(null);
-      closeThemeDrawer();
-      setToast("Theme-Asset entfernt.");
-    } catch (nextError) {
-      if (isCurrentMutation()) setDrawerError(errMessage(nextError));
-    } finally {
-      if (isCurrentMutation()) setDrawerBusy(false);
-    }
-  };
-
   const logoFallback = buildFansubLogoFallback(form.name);
   const bannerPreviewURL = buildMediaPreviewURL(bannerMedia);
   const logoPreviewURL = buildMediaPreviewURL(logoMedia);
@@ -1058,53 +751,6 @@ function AdminFansubEditContent({
       </main>
     );
 
-  const themeSelectedCard = selectedReleaseSegment?.card ?? null;
-  const themeSelectedLocked = themeSelectedCard
-    ? themeSelectedCard.status === "global" ||
-      isJellyfinLocked(themeSelectedCard)
-    : false;
-  const drawerReleaseCards = drawerRelease
-    ? (releaseSegmentCards[drawerRelease.release_id] ?? [])
-    : [];
-  const drawerReleaseReleaseAssetCount = drawerReleaseCards.filter(
-    (card) => card.status === "release",
-  ).length;
-  const drawerReleaseGlobalAssetCount = drawerReleaseCards.filter(
-    (card) => card.status === "global",
-  ).length;
-  const drawerReleaseMissingAssetCount = drawerReleaseCards.filter(
-    (card) => card.status === "missing",
-  ).length;
-  const drawerReleaseThemeSummary =
-    drawerReleaseCards.length > 0
-      ? `${drawerReleaseReleaseAssetCount} Release / ${drawerReleaseGlobalAssetCount} Global / ${drawerReleaseMissingAssetCount} offen`
-      : drawerRelease?.has_theme_assets
-        ? "Theme-Assets vorhanden"
-        : "Keine Theme-Assets";
-  const themePrimarySegment = themeSelectedCard?.segments[0] ?? null;
-  const themeAssetPreviewUrl = themeSelectedCard?.public_url
-    ? resolveApiUrl(themeSelectedCard.public_url)
-    : null;
-  const themePreviewDescription =
-    selectedReleaseSegment && themeSelectedCard
-      ? `${episodeReleaseTitle(selectedReleaseSegment.release)} · ${timelineLabelFor(themeSelectedCard.theme_type_name)}`
-      : undefined;
-  const drawerUploadStatusLabel =
-    drawerUploadProgress === null
-      ? null
-      : drawerUploadProgress >= 100
-        ? "Upload angekommen, wird gespeichert..."
-        : `Upload: ${drawerUploadProgress}%`;
-  const releaseDrawerTabs = drawerRelease
-    ? [
-        ...(canUseAdminReleaseDetails
-          ? [{ key: "details" as const, label: "Details", disabled: false }]
-          : []),
-        ...(canUseReleaseMedia
-          ? [{ key: "media" as const, label: "Media", disabled: false }]
-          : []),
-      ]
-    : [];
   return (
     <main className={styles.page}>
       <p className={styles.backLinks}>
@@ -1989,396 +1635,17 @@ function AdminFansubEditContent({
           onSaved={() => void refreshAnimeContributions(contributionModalAnime.id)}
         />
       ) : null}
-      {releaseDrawerOpen && drawerRelease ? (
-        <div
-          className={styles.fansubEditReleaseDrawerOverlay}
-          onClick={closeReleaseDrawer}
-        >
-          <aside
-            className={styles.fansubEditReleaseDrawer}
-            aria-label="Release bearbeiten"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <header className={styles.fansubEditReleaseDrawerHeader}>
-              <div>
-                <div className={styles.fansubEditReleaseDrawerTitleRow}>
-                  <h2>{releaseDrawerTitle(drawerRelease)}</h2>
-                </div>
-                <p>
-                  {drawerRelease.fansub_name} · {drawerRelease.version_count}{" "}
-                  Version{drawerRelease.version_count === 1 ? "" : "en"}
-                </p>
-              </div>
-              <button
-                type="button"
-                className={styles.fansubEditReleaseExpandButton}
-                onClick={closeReleaseDrawer}
-                aria-label="Drawer schließen"
-              >
-                <X size={16} />
-              </button>
-            </header>
-
-            <div
-              className={styles.fansubEditReleaseDrawerTabs}
-              role="tablist"
-              aria-label="Release Drawer Bereiche"
-            >
-              {releaseDrawerTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  className={
-                    drawerTab === tab.key
-                      ? styles.fansubEditReleaseDrawerTabActive
-                      : undefined
-                  }
-                  disabled={tab.disabled}
-                  aria-disabled={tab.disabled}
-                  onClick={() => {
-                    if (!tab.disabled) setDrawerTab(tab.key);
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.fansubEditReleaseDrawerBody}>
-              {drawerReleaseLoading ? (
-                <div className={styles.fansubEditReleaseState}>
-                  Release-Details werden geladen...
-                </div>
-              ) : null}
-              {drawerReleaseError ? (
-                <div className={styles.errorBox}>{drawerReleaseError}</div>
-              ) : null}
-              {drawerTab === "details" && canUseAdminReleaseDetails ? (
-                <div className={styles.fansubEditReleaseDrawerPanel}>
-                  <div className={styles.fansubEditReleaseDrawerDetailGrid}>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Release-ID</span>
-                      <strong>
-                        {String(selectedReleaseId ?? drawerRelease.release_id)}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Anime-ID</span>
-                      <strong>
-                        {String(selectedAnimeId ?? drawerRelease.anime_id)}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Fansub-Gruppe</span>
-                      <strong>
-                        {String(
-                          selectedFansubGroupId ??
-                            drawerRelease.fansub_group_id,
-                        )}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Kontext-Key</span>
-                      <strong>
-                        {selectedAnimeFansubContextKey ??
-                          animeFansubReleaseContextKey(
-                            drawerRelease.fansub_group_id,
-                            drawerRelease.anime_id,
-                          )}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Anime</span>
-                      <strong>{drawerRelease.anime_title}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Episode</span>
-                      <strong>{drawerRelease.episode_number || "?"}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Titel</span>
-                      <strong>
-                        {(drawerRelease.episode_title || "").trim() ||
-                          "Ohne Episodentitel"}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Versionen</span>
-                      <strong>{String(drawerRelease.version_count)}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Datum</span>
-                      <strong>
-                        {new Date(drawerRelease.created_at).toLocaleDateString(
-                          "de-CH",
-                        )}
-                      </strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Theme-Übersicht</span>
-                      <strong>{drawerReleaseThemeSummary}</strong>
-                    </div>
-                    <div className={styles.fansubEditReleaseDrawerDetailItem}>
-                      <span>Theme-Definitionen</span>
-                      <strong>
-                        {drawerReleaseCards.length > 0
-                          ? `${drawerReleaseCards.length} geladen`
-                          : "Noch keine geladen"}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              {drawerTab === "media" && canUseReleaseMedia ? (
-                <div className={styles.fansubEditReleaseDrawerPanel}>
-                  {drawerRelease.release_version_id > 0 ? (
-                    <>
-                      <ReleaseVersionMediaDrawerSummary
-                        versionId={drawerRelease.release_version_id}
-                        fansubName={drawerRelease.fansub_name}
-                        releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
-                      />
-                      {capabilities ? (
-                        <ReleaseVersionMediaReviewSection
-                          versionId={drawerRelease.release_version_id}
-                          capabilities={capabilities}
-                        />
-                      ) : null}
-                    </>
-                  ) : (
-                    <div className={styles.fansubEditReleaseState}>
-                      Für diesen Release ist keine konkrete Release-Version verfügbar.
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </div>
-
-            <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={closeReleaseDrawer}
-              >
-                Schließen
-              </Button>
-            </footer>
-          </aside>
-        </div>
-      ) : null}
-      {themeDrawerOpen && selectedReleaseSegment && themeSelectedCard ? (
-        <div
-          className={styles.fansubEditReleaseDrawerOverlay}
-          onClick={closeThemeDrawer}
-        >
-          <aside
-            className={`${styles.fansubEditReleaseDrawer} ${styles.fansubEditThemeDrawer}`}
-            aria-label="Theme bearbeiten"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <header className={styles.fansubEditReleaseDrawerHeader}>
-              <div>
-                <p className={styles.fansubEditHint}>
-                  {episodeReleaseTitle(selectedReleaseSegment.release)}
-                </p>
-                <h2>
-                  {timelineLabelFor(themeSelectedCard.theme_type_name)}{" "}
-                  bearbeiten
-                </h2>
-                <p>{themeSelectedCard.theme_title || "Ohne Titel"}</p>
-              </div>
-              <button
-                type="button"
-                className={styles.fansubEditReleaseExpandButton}
-                onClick={closeThemeDrawer}
-                aria-label="Theme Drawer schließen"
-              >
-                <X size={16} />
-              </button>
-            </header>
-            <div className={styles.fansubEditReleaseDrawerBody}>
-              <div
-                className={`${styles.fansubEditReleaseDrawerPanel} ${styles.fansubEditThemeDrawerPanel}`}
-              >
-                {drawerError ? (
-                  <div className={styles.errorBox}>{drawerError}</div>
-                ) : null}
-                <div className={styles.fansubEditReleaseDrawerAssetBox}>
-                  <div className={styles.fansubEditSegmentEditorGrid}>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Status
-                      </span>
-                      <strong>
-                        {themeSelectedCard.status === "global"
-                          ? "Global gesetzt"
-                          : themeSelectedCard.status === "release"
-                            ? "Uploadet"
-                            : "Fehlt noch"}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Theme
-                      </span>
-                      <strong>
-                        {themeSelectedCard.theme_title || "Ohne Titel"}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Quelle
-                      </span>
-                      <strong>
-                        {themeSelectedCard.source_label || "Keine Quelle"}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Release
-                      </span>
-                      <strong>
-                        #{selectedReleaseSegment.release.release_id}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Episode
-                      </span>
-                      <strong>
-                        {themeSegmentEpisodeRange(themePrimarySegment)}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className={styles.fansubEditSegmentEditorLabel}>
-                        Zeitbereich
-                      </span>
-                      <strong>
-                        {themeSegmentTimeRange(themePrimarySegment)}
-                      </strong>
-                    </div>
-                  </div>
-                  {themeAssetPreviewUrl ? (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      leftIcon={<ExternalLink size={16} />}
-                      className={styles.fansubEditReleaseDrawerMediaLink}
-                      onClick={() => setThemePreviewOpen(true)}
-                    >
-                      Aktuelles Asset ansehen
-                    </Button>
-                  ) : null}
-                  {themeSelectedLocked ? (
-                    <p className={styles.fansubEditHint}>
-                      Global/Jellyfin gesetzt - keine Fansub-Überschreibung in
-                      diesem Schritt.
-                    </p>
-                  ) : !canManageReleaseThemeAssets ? (
-                    <p className={styles.fansubEditHint}>
-                      Du kannst die Theme-Zuordnung ansehen. Hochladen oder
-                      Entfernen ist nur mit Release-Media-Recht möglich.
-                    </p>
-                  ) : (
-                    <div className={styles.fansubEditReleaseDrawerDropzone}>
-                      <div className={styles.fansubEditThemeUploadHeader}>
-                        <strong>Theme-Video hochladen</strong>
-                        {drawerUploadStatusLabel ? (
-                          <span className={styles.fansubEditThemeUploadMeta}>
-                            {drawerUploadStatusLabel}
-                          </span>
-                        ) : null}
-                      </div>
-                      <input
-                        ref={themeUploadInputRef}
-                        className={styles.fansubEditThemeUploadInput}
-                        type="file"
-                        accept="video/*"
-                        disabled={drawerBusy || !hasAuthSession}
-                        onChange={handleThemeUploadInputChange}
-                      />
-                      <div className={styles.fansubEditThemeUploadPicker}>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => themeUploadInputRef.current?.click()}
-                          disabled={drawerBusy || !hasAuthSession}
-                        >
-                          Datei wählen
-                        </Button>
-                        <span className={styles.fansubEditThemeUploadFileName}>
-                          {themeUploadName || "Keine Datei ausgewählt"}
-                        </span>
-                      </div>
-                      <div className={styles.fansubEditThemeUploadActions}>
-                        <Button
-                          type="button"
-                          variant="primary"
-                          onClick={() => void handleDrawerUploadClick()}
-                          disabled={drawerBusy || !hasAuthSession}
-                          loading={drawerBusy}
-                        >
-                          Upload starten
-                        </Button>
-                        {themeSelectedCard.status === "release" &&
-                        themeSelectedCard.media_id ? (
-                          <Button
-                            type="button"
-                            variant="danger"
-                            onClick={() => void handleDrawerDelete()}
-                            disabled={drawerBusy}
-                            loading={drawerBusy}
-                          >
-                            Asset entfernen
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <footer className={styles.fansubEditReleaseDrawerFooter}>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={closeThemeDrawer}
-              >
-                Schließen
-              </Button>
-            </footer>
-          </aside>
-        </div>
-      ) : null}
-      {themeAssetPreviewUrl ? (
-        <Modal
-          open={themePreviewOpen}
-          onClose={() => setThemePreviewOpen(false)}
-          title="Theme-Video ansehen"
-          description={themePreviewDescription}
-          footer={
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setThemePreviewOpen(false)}
-            >
-              Schließen
-            </Button>
-          }
-        >
-          <div className={styles.fansubEditThemePreview}>
-            <video
-              className={styles.fansubEditThemePreviewVideo}
-              src={themeAssetPreviewUrl}
-              controls
-              preload="metadata"
-            />
-          </div>
-        </Modal>
-      ) : null}
+      <ReleaseMediaDrawer
+        styles={styles}
+        drawer={drawer}
+        capabilities={capabilities}
+        hasAuthSession={hasAuthSession}
+        canUseAdminReleaseDetails={canUseAdminReleaseDetails}
+        canUseReleaseMedia={canUseReleaseMedia}
+        canManageReleaseThemeAssets={canManageReleaseThemeAssets}
+        selectedReleaseSegment={selectedReleaseSegment}
+        releaseSegmentCards={releaseSegmentCards}
+      />
       {contributionDrawerOpen && contributionDrawerVersionId !== null && contributionDrawerAnimeId !== null ? (
         <ReleaseContributionDrawer
           open={contributionDrawerOpen}
