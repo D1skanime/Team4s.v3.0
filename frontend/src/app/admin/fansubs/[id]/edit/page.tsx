@@ -10,7 +10,6 @@ import {
 } from "next/navigation";
 import {
   type FormEvent,
-  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -31,11 +30,8 @@ import {
 } from "lucide-react";
 
 import {
-  ApiError,
   createFansubAlias,
-  createFansubLink,
   deleteFansubAlias,
-  deleteFansubLink,
   deleteAdminReleaseThemeAsset,
   getAdminFansubAnime,
   getAdminFansubAnimeReleases,
@@ -44,16 +40,13 @@ import {
   getAdminRelease,
   getAdminReleaseThemeAssets,
   getAnimeCoverage,
-  getCurrentUser,
   getFansubAliases,
   getFansubByID,
-  getFansubGroupCapabilities,
   getFansubList,
   listAnimeContributions,
   listUnifiedGroupMembers,
   resolveApiUrl,
   updateFansubGroup,
-  updateFansubLink,
   uploadAdminReleaseThemeAssetForRelease,
   type AnimeCoverage,
 } from "@/lib/api";
@@ -62,21 +55,13 @@ import {
   FansubAlias,
   FansubGroupCapabilities,
   FansubGroup,
-  FansubGroupLink,
   FansubGroupLinkType,
-  FansubGroupPatchRequest,
-  FansubGroupType,
   FansubStatus,
   AnimeContribution,
   UnifiedGroupMember,
   FANSUB_GROUP_ROLE_OPTIONS,
 } from "@/types/fansub";
-import {
-  AdminAnimeTheme,
-  AdminAnimeThemeSegment,
-  AdminFansubAnimeEntry,
-  AdminReleaseThemeAsset,
-} from "@/types/admin";
+import { AdminFansubAnimeEntry } from "@/types/admin";
 import { AdminFansubRelease } from "@/types/fansub";
 import {
   buildFansubLogoFallback,
@@ -92,7 +77,6 @@ import {
   Input,
   Modal,
   Select,
-  YearPicker,
 } from "@/components/ui";
 import AnimeContributionModal from "./AnimeContributionModal";
 import { AnimeReleasesFilterBar, type CockpitFilter } from "./AnimeReleasesFilterBar";
@@ -100,14 +84,13 @@ import { ProjectCockpitBadges } from "./ProjectCockpitBadges";
 import { AnimeProjectNoteWorkspace } from "./AnimeProjectNoteWorkspace";
 import {
   CoverageMatrix,
-  type CoverageRoleMember,
   type RoleDefinition,
   type ProjectCoverageRow,
 } from "./CoverageMatrix";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
-import { MAIN_TABS, parseMainTab, type MainTab as MainTabType } from "./mainTabRouting";
+import { parseMainTab } from "./mainTabRouting";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
 import { ReadinessTab } from "./ReadinessTab";
 import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSection";
@@ -115,6 +98,69 @@ import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
 import { UserSuggestionsInbox } from "./UserSuggestionsInbox";
 import { ReleaseContributionDrawer } from "./ReleaseContributionDrawer";
+import type {
+  CommunityLinkDraft,
+  ContributionModalAnime,
+  FansubReleaseGroup,
+  FormState,
+  MainTab,
+  ReleaseDrawerContext,
+  ReleaseDrawerTab,
+  ReleasePaginationState,
+  ReleaseSegmentCard,
+  SectionKey,
+  SelectedReleaseSegment,
+} from "./fansubEditTypes";
+import {
+  compactThemeKind,
+  episodeReleaseTitle,
+  errMessage,
+  formatAnimeTypeLabel,
+  isAbsoluteURL,
+  isValidSlug,
+  labelForFansubStatus,
+  parseClockSeconds,
+  parseYear,
+  releaseDrawerTitle,
+  releaseTimelineMaxSeconds,
+  resolveCoverUrl,
+  slugify,
+  themeSegmentEpisodeRange,
+  themeSegmentTimeRange,
+  timelineLabelFor,
+  timelineStatusLabelFor,
+} from "./fansubEditFormatters";
+import {
+  animeFansubReleaseContextKey,
+  buildAnimeCoverageMap,
+  groupContributionMembersByRole,
+  isJellyfinLocked,
+  mapReleaseSegmentCards,
+  mergeReleaseThemeAssetCard,
+  releaseThemeSelectionKey,
+} from "./fansubEditReleaseHelpers";
+import {
+  createEmptyLink,
+  emptyForm,
+  formToPayload,
+  mapGroupLinks,
+  mapGroupMedia,
+  mapGroupToForm,
+  syncFansubLinks,
+} from "./fansubEditFormMapping";
+import {
+  canEditReleaseNotes,
+  canUploadReleaseMedia,
+  canUseMainTab,
+  canViewReleaseContributors,
+  canViewReleaseMedia,
+  readFansubIDFromParams,
+  releaseVersionToolsTarget,
+  resolveMainTabForAccess,
+  visibleMainTabs,
+} from "./fansubEditAccess";
+import { FansubEditAccessGate } from "./FansubEditAccessGate";
+import { YEAR_MAX, YEAR_MIN, YearSelectField } from "./YearSelectField";
 import sharedStyles from "../../../admin.module.css";
 import fansubEditStyles from "./FansubEdit.module.css";
 
@@ -129,879 +175,8 @@ const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
   "irc",
 ];
 const RELEASE_PAGE_SIZE = 30;
-const YEAR_MIN = 1900;
-const YEAR_MAX = new Date().getFullYear();
-const URL_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
-
-type ReleasePaginationState = {
-  page: number;
-  perPage: number;
-  total: number;
-  totalPages: number;
-};
-
-type SectionKey =
-  | "basic"
-  | "media"
-  | "links"
-  | "collaboration"
-  | "releases"
-  | "notes"
-  | "mitglieder"
-  | "claims"
-  | "vorschlaege"
-  | "readiness";
-// MainTab aus mainTabRouting.ts — enthält dieselben Schlüssel wie SectionKey
-type MainTab = MainTabType;
-type FormState = {
-  name: string;
-  slug: string;
-  status: FansubStatus;
-  groupType: FansubGroupType;
-  country: string;
-  foundedYear: string;
-  dissolvedYear: string;
-};
-
-type CommunityLinkDraft = {
-  key: string;
-  id: number | null;
-  link_type: FansubGroupLinkType;
-  name: string;
-  url: string;
-};
-
-type FansubReleaseGroup = {
-  key: string;
-  anime: AdminFansubAnimeEntry;
-};
-
-type ReleaseSegmentStatus = "global" | "release" | "missing";
-
-type ReleaseSegmentCard = {
-  theme_id: number;
-  theme_type_name: string;
-  theme_title: string | null;
-  status: ReleaseSegmentStatus;
-  segments: AdminAnimeThemeSegment[];
-  media_id?: number;
-  public_url?: string;
-  source_label?: string;
-};
-
-type SelectedReleaseSegment = {
-  release: AdminFansubRelease;
-  card: ReleaseSegmentCard;
-};
-
-type ReleaseDrawerTab = "details" | "media";
-
-type ReleaseDrawerContext = {
-  release: AdminFansubRelease;
-  animeID: number;
-  fansubGroupID: number;
-  contextKey: string;
-};
-
-type ContributionModalAnime = {
-  id: number;
-  title: string;
-  focusedRoleCode?: string | null;
-};
 
 // MAIN_TABS und parseMainTab werden aus mainTabRouting.ts importiert (testbar ohne page.tsx-Kontext)
-
-function canUseMainTab(
-  tab: MainTab,
-  isPlatformAdmin: boolean,
-  capabilities: FansubGroupCapabilities | null,
-): boolean {
-  if (isPlatformAdmin) return true;
-  if (!capabilities) return false;
-
-  switch (tab) {
-    case "basic":
-    case "media":
-      return capabilities.can_edit_group;
-    case "links":
-      return capabilities.can_manage_links;
-    case "collaboration":
-      return (
-        capabilities.can_view_members ||
-        capabilities.can_manage_members ||
-        capabilities.can_view_invitations ||
-        capabilities.can_create_invitation ||
-        capabilities.can_cancel_invitation
-      );
-    case "claims":
-      return (
-        capabilities.can_view_invitations ||
-        capabilities.can_create_invitation ||
-        capabilities.can_cancel_invitation
-      );
-    case "vorschlaege":
-      return capabilities.can_manage_members;
-    case "releases":
-      return Boolean(capabilities.can_view_releases);
-    case "notes":
-      return capabilities.can_edit_notes;
-    case "readiness":
-      return capabilities.can_edit_group || capabilities.can_edit_notes;
-    default:
-      return false;
-  }
-}
-
-function visibleMainTabs(
-  isPlatformAdmin: boolean,
-  capabilities: FansubGroupCapabilities | null,
-): Array<{ key: MainTab; label: string }> {
-  return MAIN_TABS.filter((tab) =>
-    canUseMainTab(tab.key, isPlatformAdmin, capabilities),
-  );
-}
-
-function resolveMainTabForAccess(
-  requested: MainTab,
-  isPlatformAdmin: boolean,
-  capabilities: FansubGroupCapabilities | null,
-): MainTab {
-  if (canUseMainTab(requested, isPlatformAdmin, capabilities)) return requested;
-  return visibleMainTabs(isPlatformAdmin, capabilities)[0]?.key ?? "basic";
-}
-
-const STATUS_LABELS: Record<FansubStatus, string> = {
-  active: "aktiv",
-  inactive: "inaktiv",
-  dissolved: "aufgelöst",
-};
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
-}
-
-function isValidSlug(value: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-}
-
-function parseYear(value: string): number | null | typeof Number.NaN {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseInt(trimmed, 10);
-  return Number.isInteger(parsed) ? parsed : Number.NaN;
-}
-
-function toOptional(value: string): string | null {
-  const trimmed = value.trim();
-  return trimmed ? trimmed : null;
-}
-
-function isAbsoluteURL(value: string): boolean {
-  if (!value.trim()) return false;
-  try {
-    const parsed = new URL(value.trim());
-    return URL_PROTOCOLS.has(parsed.protocol.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
-function resolveCoverUrl(rawCoverImage?: string | null): string {
-  const value = (rawCoverImage || "").trim();
-  if (!value) return "/covers/placeholder.jpg";
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  if (value.startsWith("/api/")) return resolveApiUrl(value);
-  if (value.startsWith("/")) return value;
-  return `/covers/${value}`;
-}
-
-function formatAnimeTypeLabel(
-  type?: AdminFansubAnimeEntry["type"] | null,
-): string | null {
-  switch (type) {
-    case "film":
-      return "Film";
-    case "ova":
-      return "OVA";
-    case "ona":
-      return "ONA";
-    case "special":
-      return "Special";
-    case "bonus":
-      return "Bonus";
-    case "web":
-      return "Web";
-    case "tv":
-      return "TV-Serie";
-    default:
-      return null;
-  }
-}
-
-function parseClockSeconds(raw?: string | null): number | null {
-  const value = (raw || "").trim();
-  if (!value) return null;
-  const parts = value.split(":").map((part) => Number.parseInt(part, 10));
-  if (
-    parts.length === 0 ||
-    parts.length > 3 ||
-    parts.some((part) => !Number.isFinite(part) || part < 0)
-  )
-    return null;
-  return parts.reduce((total, part) => total * 60 + part, 0);
-}
-
-function knownPositiveSeconds(value?: number | null): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value > 0
-    ? value
-    : null;
-}
-
-function releaseTimelineMaxSeconds(
-  release: AdminFansubRelease,
-  cards: ReleaseSegmentCard[],
-): number {
-  const knownDurations = [
-    knownPositiveSeconds(release.duration_seconds),
-    ...cards.flatMap((card) =>
-      card.segments.flatMap((segment) => [
-        knownPositiveSeconds(segment.playback_duration_seconds),
-        parseClockSeconds(segment.end_time),
-      ]),
-    ),
-  ].filter((value): value is number => value != null && value > 0);
-
-  return Math.max(1, ...knownDurations);
-}
-
-function compactThemeKind(name: string): "op" | "ed" | "insert" | "other" {
-  const normalized = name.toLowerCase();
-  if (normalized.includes("op") || normalized.includes("opening")) return "op";
-  if (normalized.includes("ed") || normalized.includes("ending")) return "ed";
-  if (
-    normalized.includes("insert") ||
-    normalized === "in" ||
-    normalized.includes("pv")
-  )
-    return "insert";
-  return "other";
-}
-
-function timelineLabelFor(name: string): string {
-  const kind = compactThemeKind(name);
-  if (kind === "op") return "OP";
-  if (kind === "ed") return "ED";
-  if (kind === "insert") return "IN";
-  return name.slice(0, 3).toUpperCase();
-}
-
-function timelineStatusLabelFor(status: ReleaseSegmentStatus): string {
-  if (status === "global") return "Global";
-  if (status === "release") return "Uploadet";
-  return "Fehlt";
-}
-
-function episodeReleaseTitle(release: AdminFansubRelease): string {
-  const episode = `Episode ${release.episode_number || "?"}`;
-  const title = (release.episode_title || "").trim();
-  return title ? `${episode}: ${title}` : episode;
-}
-
-function animeFansubReleaseContextKey(
-  fansubID: number,
-  animeID: number,
-): string {
-  return `${fansubID}:${animeID}`;
-}
-
-function buildAnimeCoverageMap(items: AnimeCoverage[]): Map<number, AnimeCoverage> {
-  const map = new Map<number, AnimeCoverage>();
-  for (const item of items) {
-    map.set(item.anime_id, item);
-  }
-  return map;
-}
-
-function groupContributionMembersByRole(
-  contributions: AnimeContribution[],
-): Record<string, CoverageRoleMember[]> {
-  const membersByRole: Record<string, CoverageRoleMember[]> = {};
-  const seenByRole: Record<string, Set<number>> = {};
-
-  for (const contribution of contributions) {
-    for (const roleCode of contribution.role_codes ?? []) {
-      seenByRole[roleCode] ??= new Set<number>();
-      if (seenByRole[roleCode].has(contribution.member_id)) continue;
-
-      seenByRole[roleCode].add(contribution.member_id);
-      membersByRole[roleCode] ??= [];
-      membersByRole[roleCode].push({
-        memberId: contribution.member_id,
-        displayName:
-          contribution.member_display_name?.trim() ||
-          `Mitglied #${contribution.member_id}`,
-        avatarUrl: contribution.member_avatar_url ?? null,
-      });
-    }
-  }
-
-  return membersByRole;
-}
-
-function releaseDrawerTitle(release: AdminFansubRelease): string {
-  const episode = release.episode_number || "?";
-  const title = (release.episode_title || "").trim();
-  return `${release.anime_title} E${episode}${title ? ` - ${title}` : ""}`;
-}
-
-function themeSegmentEpisodeRange(
-  segment?: AdminAnimeThemeSegment | null,
-): string {
-  if (!segment) return "Keine Episode gesetzt";
-  const start =
-    segment.start_episode_number ||
-    (segment.start_episode != null ? String(segment.start_episode) : null);
-  const end =
-    segment.end_episode_number ||
-    (segment.end_episode != null ? String(segment.end_episode) : null);
-  if (start && end && start !== end) return `${start} - ${end}`;
-  if (start || end) return start || end || "Keine Episode gesetzt";
-  return "Keine Episode gesetzt";
-}
-
-function themeSegmentTimeRange(
-  segment?: AdminAnimeThemeSegment | null,
-): string {
-  if (!segment) return "Keine Zeit gesetzt";
-  const start = segment.start_time?.trim();
-  const end = segment.end_time?.trim();
-  if (start && end) return `${start} - ${end}`;
-  if (start || end) return `${start || "?"} - ${end || "?"}`;
-  return "Keine Zeit gesetzt";
-}
-
-function isJellyfinLocked(card: ReleaseSegmentCard): boolean {
-  return card.segments.some(
-    (item) =>
-      item.source_type === "jellyfin_theme" ||
-      item.playback_source_kind === "jellyfin",
-  );
-}
-
-function releaseAssetRequiredBySegment(
-  segment: AdminAnimeThemeSegment,
-): boolean {
-  return segment.source_type === "release_asset";
-}
-
-function releaseAssetRequirementLabel(
-  segments: AdminAnimeThemeSegment[],
-): string {
-  const hasSegmentFallback = segments.some((segment) => {
-    const sourceRef = segment.source_ref?.trim();
-    return (
-      Boolean(sourceRef) || segment.playback_source_kind === "uploaded_asset"
-    );
-  });
-
-  return hasSegmentFallback
-    ? "Segment-Fallback vorhanden - Upload für diese Fansubgruppe fehlt"
-    : "Upload fehlt - Upload durch Fansubgruppe erforderlich";
-}
-
-function releaseThemeSelectionKey(releaseID: number, themeID: number): string {
-  return `${releaseID}:${themeID}`;
-}
-
-function mapGroupToForm(group: FansubGroup): FormState {
-  return {
-    name: group.name || "",
-    slug: group.slug || "",
-    status: group.status,
-    groupType: "group",
-    country: group.country || "",
-    foundedYear: group.founded_year ? String(group.founded_year) : "",
-    dissolvedYear:
-      group.status === "active" || !group.dissolved_year
-        ? ""
-        : String(group.dissolved_year),
-  };
-}
-
-function mapGroupMedia(group: FansubGroup): {
-  logo: EditableMediaValue | null;
-  banner: EditableMediaValue | null;
-} {
-  const logo = group.logo_url
-    ? {
-        id: group.logo_id ?? null,
-        publicURL: group.logo_url,
-        sourceOriginalURL: group.logo_source_original_url ?? null,
-      }
-    : null;
-  const banner = group.banner_url
-    ? {
-        id: group.banner_id ?? null,
-        publicURL: group.banner_url,
-        sourceOriginalURL: group.banner_source_original_url ?? null,
-      }
-    : null;
-  return { logo, banner };
-}
-
-function mapGroupLinks(group: FansubGroup): CommunityLinkDraft[] {
-  const links =
-    group.links && group.links.length > 0
-      ? group.links
-      : legacyLinksFromGroup(group);
-  return links.map((link, index) => ({
-    key: `${link.id}-${index}`,
-    id: link.id,
-    link_type: link.link_type,
-    name: link.name || "",
-    url: link.url || "",
-  }));
-}
-
-function legacyLinksFromGroup(group: FansubGroup): FansubGroupLink[] {
-  const links: FansubGroupLink[] = [];
-  if (group.website_url) {
-    links.push({
-      id: -1,
-      group_id: group.id,
-      link_type: "website",
-      name: null,
-      url: group.website_url,
-      created_at: group.updated_at,
-    });
-  }
-  if (group.discord_url) {
-    links.push({
-      id: -2,
-      group_id: group.id,
-      link_type: "discord",
-      name: null,
-      url: group.discord_url,
-      created_at: group.updated_at,
-    });
-  }
-  if (group.irc_url) {
-    links.push({
-      id: -3,
-      group_id: group.id,
-      link_type: "irc",
-      name: null,
-      url: group.irc_url,
-      created_at: group.updated_at,
-    });
-  }
-  return links;
-}
-
-function formToPayload(
-  form: FormState,
-  logo: EditableMediaValue | null,
-  banner: EditableMediaValue | null,
-  options: { includeSlug: boolean },
-): FansubGroupPatchRequest {
-  const founded = parseYear(form.foundedYear);
-  const dissolved = parseYear(form.dissolvedYear);
-  const payload: FansubGroupPatchRequest = {
-    name: form.name.trim(),
-    status: form.status,
-    group_type: form.groupType,
-    country: toOptional(form.country),
-    founded_year: founded === null ? null : founded,
-    dissolved_year: dissolved === null ? null : dissolved,
-    logo_id: logo?.id ?? null,
-    banner_id: banner?.id ?? null,
-    logo_url: logo?.publicURL?.trim() ? logo.publicURL.trim() : null,
-    banner_url: banner?.publicURL?.trim() ? banner.publicURL.trim() : null,
-  };
-  if (options.includeSlug) {
-    payload.slug = form.slug.trim();
-  }
-  return payload;
-}
-
-function emptyForm(): FormState {
-  return {
-    name: "",
-    slug: "",
-    status: "active",
-    groupType: "group",
-    country: "",
-    foundedYear: "",
-    dissolvedYear: "",
-  };
-}
-
-function createEmptyLink(): CommunityLinkDraft {
-  return {
-    key: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    id: null,
-    link_type: "website",
-    name: "",
-    url: "",
-  };
-}
-
-function labelForFansubStatus(status: FansubStatus): string {
-  return STATUS_LABELS[status] || status;
-}
-
-function errMessage(error: unknown): string {
-  return error instanceof ApiError
-    ? `(${error.status}) ${error.message}`
-    : "Anfrage fehlgeschlagen.";
-}
-
-function mapReleaseSegmentCards(
-  themes: AdminAnimeTheme[],
-  themeAssets: AdminReleaseThemeAsset[],
-  segmentsByThemeID: Map<number, AdminAnimeThemeSegment[]>,
-): ReleaseSegmentCard[] {
-  const assetByThemeID = new Map(
-    themeAssets.map((asset) => [asset.theme_id, asset]),
-  );
-
-  return themes.map((theme) => {
-    const asset = assetByThemeID.get(theme.id);
-    const segments = segmentsByThemeID.get(theme.id) ?? [];
-    if (asset) {
-      return {
-        theme_id: theme.id,
-        theme_type_name: theme.theme_type_name,
-        theme_title: theme.title,
-        status: "release",
-        segments,
-        media_id: asset.media_id,
-        public_url: asset.public_url,
-        source_label: "Upload vorhanden",
-      };
-    }
-
-    if (segments.some(releaseAssetRequiredBySegment)) {
-      return {
-        theme_id: theme.id,
-        theme_type_name: theme.theme_type_name,
-        theme_title: theme.title,
-        status: "missing",
-        segments,
-        source_label: releaseAssetRequirementLabel(segments),
-      };
-    }
-
-    if (segments.length > 0) {
-      return {
-        theme_id: theme.id,
-        theme_type_name: theme.theme_type_name,
-        theme_title: theme.title,
-        status: "global",
-        segments,
-        source_label: `${segments.length} Segment${segments.length === 1 ? "" : "e"} global gesetzt`,
-      };
-    }
-
-    return {
-      theme_id: theme.id,
-      theme_type_name: theme.theme_type_name,
-      theme_title: theme.title,
-      status: "missing",
-      segments,
-      source_label: "Noch kein Segment für diese Theme-Definition",
-    };
-  });
-}
-
-function mergeReleaseThemeAssetCard(
-  cards: ReleaseSegmentCard[],
-  asset: AdminReleaseThemeAsset,
-): ReleaseSegmentCard[] {
-  const nextCard = (previous?: ReleaseSegmentCard): ReleaseSegmentCard => ({
-    theme_id: asset.theme_id,
-    theme_type_name: asset.theme_type_name,
-    theme_title: asset.theme_title,
-    status: "release",
-    segments: previous?.segments ?? [],
-    media_id: asset.media_id,
-    public_url: asset.public_url,
-    source_label: "Upload vorhanden",
-  });
-
-  let replaced = false;
-  const nextCards = cards.map((card) => {
-    if (card.theme_id !== asset.theme_id) return card;
-    replaced = true;
-    return nextCard(card);
-  });
-
-  return replaced ? nextCards : [...nextCards, nextCard()];
-}
-
-async function syncFansubLinks(
-  fansubID: number,
-  initialLinks: CommunityLinkDraft[],
-  currentLinks: CommunityLinkDraft[],
-): Promise<void> {
-  const initialById = new Map(
-    initialLinks
-      .filter((item) => item.id != null && item.id > 0)
-      .map((item) => [item.id as number, item]),
-  );
-  const currentById = new Map(
-    currentLinks
-      .filter((item) => item.id != null && item.id > 0)
-      .map((item) => [item.id as number, item]),
-  );
-
-  for (const [id] of initialById) {
-    if (!currentById.has(id)) {
-      await deleteFansubLink(fansubID, id);
-    }
-  }
-
-  for (const link of currentLinks) {
-    const url = link.url.trim();
-    const name = link.name.trim();
-    if (!url && !name) continue;
-    if (link.id != null && link.id > 0) {
-      const previous = initialById.get(link.id);
-      if (
-        !previous ||
-        previous.link_type !== link.link_type ||
-        previous.name.trim() !== name ||
-        previous.url.trim() !== url
-      ) {
-        await updateFansubLink(fansubID, link.id, {
-          link_type: link.link_type,
-          name: name || null,
-          url,
-        });
-      }
-      continue;
-    }
-
-    await createFansubLink(fansubID, {
-      link_type: link.link_type,
-      name: name || null,
-      url,
-    });
-  }
-}
-
-function hasFansubWorkspaceAccess(
-  capabilities: FansubGroupCapabilities | null,
-): boolean {
-  if (!capabilities) return false;
-  return Object.values(capabilities).some(Boolean);
-}
-
-function canViewReleaseContributors(
-  isPlatformAdmin: boolean,
-  capabilities: FansubGroupCapabilities | null,
-): boolean {
-  return canUseMainTab("collaboration", isPlatformAdmin, capabilities);
-}
-
-function canUploadReleaseMedia(
-  isPlatformAdmin: boolean,
-  capabilities: FansubGroupCapabilities | null,
-): boolean {
-  return (
-    isPlatformAdmin || Boolean(capabilities?.can_upload_release_media)
-  );
-}
-
-function canViewReleaseMedia(
-  isPlatformAdmin: boolean,
-  capabilities: FansubGroupCapabilities | null,
-): boolean {
-  return isPlatformAdmin || Boolean(capabilities?.can_view_release_media);
-}
-
-function canEditReleaseNotes(
-  isPlatformAdmin: boolean,
-  capabilities: FansubGroupCapabilities | null,
-): boolean {
-  return isPlatformAdmin || Boolean(capabilities?.can_edit_release_notes);
-}
-
-function releaseVersionToolsTarget(
-  releaseVersionID: number,
-  options: { canViewMedia: boolean; canEditNotes: boolean },
-): { href: string; label: string } | null {
-  if (releaseVersionID <= 0) return null;
-  if (!options.canEditNotes) return null;
-
-  const tab = "notizen";
-  const label =
-    options.canViewMedia && options.canEditNotes
-      ? "Notizen & Medien"
-      : "Notizen";
-
-  return {
-    href: `/admin/episode-versions/${releaseVersionID}/edit?tab=${tab}`,
-    label,
-  };
-}
-
-type FansubEditAccessContext = {
-  isPlatformAdmin: boolean;
-  capabilities: FansubGroupCapabilities | null;
-};
-
-function readFansubIDFromParams(params?: { id?: string }): number {
-  return Number.parseInt((params?.id || "").trim(), 10);
-}
-
-function FansubEditAccessGate({
-  children,
-  fansubID,
-}: {
-  children: (context: FansubEditAccessContext) => ReactNode;
-  fansubID: number;
-}) {
-  const { hasAccessToken, hasRefreshToken, isClientInitialized } =
-    useAuthSession();
-  const hasAuthSession = hasAccessToken || hasRefreshToken;
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAllowed, setIsAllowed] = useState(false);
-  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [capabilities, setCapabilities] =
-    useState<FansubGroupCapabilities | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isClientInitialized) return;
-
-    let cancelled = false;
-    async function resolveAccess() {
-      if (!hasAuthSession) {
-        if (!cancelled) {
-          setIsAllowed(false);
-          setIsPlatformAdmin(false);
-          setCapabilities(null);
-          setIsLoading(false);
-          setErrorMessage("Anmeldung erforderlich.");
-        }
-        return;
-      }
-
-      if (!Number.isFinite(fansubID) || fansubID <= 0) {
-        if (!cancelled) {
-          setIsAllowed(false);
-          setIsPlatformAdmin(false);
-          setCapabilities(null);
-          setIsLoading(false);
-          setErrorMessage("Ungültige Fansub-ID.");
-        }
-        return;
-      }
-
-      setIsLoading(true);
-      setErrorMessage(null);
-      try {
-        const currentUserResponse = await getCurrentUser();
-        if (currentUserResponse.data.is_platform_admin) {
-          if (!cancelled) {
-            setIsAllowed(true);
-            setIsPlatformAdmin(true);
-            setCapabilities(null);
-          }
-          return;
-        }
-
-        const capabilitiesResponse =
-          await getFansubGroupCapabilities(fansubID);
-        if (!cancelled) {
-          setIsPlatformAdmin(false);
-          setCapabilities(capabilitiesResponse.data);
-          setIsAllowed(hasFansubWorkspaceAccess(capabilitiesResponse.data));
-        }
-      } catch (error: unknown) {
-        if (!cancelled) {
-          setIsAllowed(false);
-          setIsPlatformAdmin(false);
-          setCapabilities(null);
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : "Berechtigung konnte nicht geprüft werden.",
-          );
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    void resolveAccess();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fansubID, hasAuthSession, isClientInitialized]);
-
-  if (isLoading || !isClientInitialized) {
-    return (
-      <main style={{ padding: 32 }}>
-        <p>Berechtigungen werden geladen...</p>
-      </main>
-    );
-  }
-
-  if (!isAllowed) {
-    return (
-      <main style={{ padding: 32, display: "grid", gap: 16 }}>
-        <p>
-          Du hast für diese Fansub-Gruppe keinen Zugriff auf den
-          Arbeitsbereich.
-        </p>
-        {errorMessage ? <p>{errorMessage}</p> : null}
-        <p>
-          <Link href="/manage/groups">Zu Meine Gruppen</Link>
-          <span> | </span>
-          <Link href="/login">Zur Anmeldung</Link>
-        </p>
-      </main>
-    );
-  }
-
-  return <>{children({ isPlatformAdmin, capabilities })}</>;
-}
-
-function YearSelectField({
-  disabled = false,
-  error,
-  id,
-  label,
-  value,
-  onChange,
-}: {
-  disabled?: boolean;
-  error?: string | null;
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <YearPicker
-      id={id}
-      label={label}
-      value={value}
-      minYear={YEAR_MIN}
-      maxYear={YEAR_MAX}
-      disabled={disabled}
-      invalid={Boolean(error)}
-      onChange={onChange}
-    />
-  );
-}
 
 function AdminFansubEditContent({
   fansubID,
