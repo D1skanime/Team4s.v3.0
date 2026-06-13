@@ -23,41 +23,9 @@ import {
 import type { EffectiveContributionRow, UnifiedGroupMember } from '@/types/fansub'
 
 import { ContributorAvatar } from './ContributorAvatar'
+import { normalizeRoleCodes, roleLabels, sameRoleCodes } from './contributionRoles'
+import { RoleToggleGroup } from './RoleToggleGroup'
 import styles from './FansubEdit.module.css'
-
-const ANIME_CONTRIBUTION_ROLES: { code: string; label: string }[] = [
-  { code: 'translator', label: 'Übersetzer' },
-  { code: 'timer', label: 'Timer' },
-  { code: 'typesetter', label: 'Typesetter' },
-  { code: 'editor', label: 'Editor' },
-  { code: 'encoder', label: 'Encoder' },
-  { code: 'raw_provider', label: 'Raw-Provider' },
-  { code: 'quality_checker', label: 'Qualitätsprüfer' },
-  { code: 'designer', label: 'Designer' },
-]
-
-function normalizeRoleCodes(codes: string[]): string[] {
-  const selected = new Set(codes.filter(Boolean))
-  const known = ANIME_CONTRIBUTION_ROLES
-    .map((role) => role.code)
-    .filter((code) => selected.has(code))
-  const unknown = codes.filter(
-    (code) => code && !ANIME_CONTRIBUTION_ROLES.some((role) => role.code === code),
-  )
-  return Array.from(new Set([...known, ...unknown]))
-}
-
-function sameRoleCodes(a: string[], b: string[]): boolean {
-  const left = normalizeRoleCodes(a)
-  const right = normalizeRoleCodes(b)
-  return left.length === right.length && left.every((code, index) => code === right[index])
-}
-
-function roleLabels(codes: string[]): string[] {
-  return normalizeRoleCodes(codes).map(
-    (code) => ANIME_CONTRIBUTION_ROLES.find((role) => role.code === code)?.label ?? code,
-  )
-}
 
 type ContributionSource = 'release_version' | 'anime_default'
 type EditableContributionRow = EffectiveContributionRow & { isNew?: boolean }
@@ -371,24 +339,11 @@ export function ReleaseContributionDrawer({
               </FormField>
               <div className={styles.contributionRolesCell}>
                 <span className={styles.contributionRoleLabel}>Rollen</span>
-                <div className={styles.contributionRoleToggles} aria-label="Rollen für neue Person">
-                  {ANIME_CONTRIBUTION_ROLES.map((role) => {
-                    const active = newRoleCodes.includes(role.code)
-                    return (
-                      <button
-                        key={role.code}
-                        type="button"
-                        className={`${styles.contributionRoleToggle} ${
-                          active ? styles.contributionRoleToggleActive : ''
-                        }`}
-                        aria-pressed={active}
-                        onClick={() => handleNewRoleToggle(role.code)}
-                      >
-                        {role.label}
-                      </button>
-                    )
-                  })}
-                </div>
+                <RoleToggleGroup
+                  selectedCodes={newRoleCodes}
+                  onToggle={handleNewRoleToggle}
+                  ariaLabel="Rollen für neue Person"
+                />
               </div>
               <div className={styles.contributionAddActions}>
                 <Button
@@ -443,27 +398,11 @@ export function ReleaseContributionDrawer({
                         </div>
                       </div>
                       {editingRoleIds.has(row.contribution_id) ? (
-                        <div
-                          className={styles.contributionRoleToggles}
-                          aria-label={`Rollen für ${row.member_display_name}`}
-                        >
-                          {ANIME_CONTRIBUTION_ROLES.map((role) => {
-                            const active = row.role_codes.includes(role.code)
-                            return (
-                              <button
-                                key={role.code}
-                                type="button"
-                                className={`${styles.contributionRoleToggle} ${
-                                  active ? styles.contributionRoleToggleActive : ''
-                                }`}
-                                aria-pressed={active}
-                                onClick={() => handleRoleToggle(row.contribution_id, role.code)}
-                              >
-                                {role.label}
-                              </button>
-                            )
-                          })}
-                        </div>
+                        <RoleToggleGroup
+                          selectedCodes={row.role_codes}
+                          onToggle={(code) => handleRoleToggle(row.contribution_id, code)}
+                          ariaLabel={`Rollen für ${row.member_display_name}`}
+                        />
                       ) : null}
                     </div>
                     <div className={styles.contributionRowActions}>
