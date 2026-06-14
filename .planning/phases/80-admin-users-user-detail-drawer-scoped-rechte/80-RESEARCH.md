@@ -1,140 +1,141 @@
 # Phase 80: admin-users-user-detail-drawer-scoped-rechte - Research
 
-**Researched:** 2026-06-07 [VERIFIED: system date]
-**Domain:** Team4s platform-admin user/rights overview, scoped authorization, audit, admin UI [VERIFIED: .planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md]
-**Confidence:** HIGH for schema/seams, MEDIUM for aggregate query performance until EXPLAIN is run against representative data [VERIFIED: source inspection; VERIFIED: no local graph index]
+**Researched:** 2026-06-14 [VERIFIED: system date]
+**Domain:** Team4s platform-admin user/rights overview, scoped authorization, audit, admin UI, Phase-83-Default/Override-Modell [VERIFIED: .planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md]
+**Confidence:** HIGH für Schema/Seams/Phase-83-Auflösung (Live-Code verifiziert), MEDIUM für Aggregat-Query-Performance bis EXPLAIN auf repräsentativen Daten läuft [VERIFIED: source inspection]
 
 <user_constraints>
 ## User Constraints (from CONTEXT.md)
 
-Source for this section: copied from `.planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md`. [VERIFIED: .planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md]
+Quelle: `.planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md` — Amendment 2026-06-12. [VERIFIED: 80-CONTEXT.md]
 
 ### Locked Decisions
 
 #### Phase Boundary
 
-Start der globalen User- und Rechtezentrale: eine `/admin/users`-Liste plus ein User-Detail-Drawer als Rechte-/Übersichtszentrale. Erster Ausbau - nicht jede Spezialberechtigung ist sofort editierbar. Greenfield (keine bestehende `/admin/users`-Route).
+Start der globalen User- und Rechtezentrale: `/admin/users`-Liste plus User-Detail-Drawer als Rechte-/Übersichtszentrale. Erster Ausbau — nicht jede Spezialberechtigung ist sofort editierbar. Greenfield (keine bestehende `/admin/users`-Route).
 
-**Gelockt aus Milestone v1.2 (Entscheidung 11 + Locks H/I/J/K) - NICHT neu zu entscheiden:**
-- Nur **Plattform-Admin** erreicht die globale Zentrale; Leader sehen gruppenspezifische Rechte in `/admin/fansubs/[id]/edit` (Lock I).
-- Rechte werden **scoped** gedacht (gruppen-/release-version-bezogen), nie pauschal.
-- **Keine** Rechte aus Contributions ableiten; Gruppenmitgliedschaft ist keine pauschale Adminfähigkeit; **keine** Medienrechte ohne Scope.
-- **Alle** rechte-/statusändernden Aktionen sind auditierbar (kein Audit umgehen).
-- **Contract-Disziplin (Lock K):** keine Ad-hoc-Fetches, keine neuen Endpunkte ohne OpenAPI- + Backend- + Frontend-Abgleich; alle API-Aufrufe über `frontend/src/lib/api.ts`.
-- Drawer-Tabs (aus Entscheidung 11): Übersicht, globale Rollen, Member-Profil/Claims, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien, Audit, vorbereitete Streaming-Grants.
-- Datenquellen (aus Entscheidung 11): `app_users`, `app_user_global_roles`, `fansub_group_members`, `fansub_group_member_roles`, `member_claims`, `member_claim_invitations`, `anime_contributions`, `media_assets`, Audit-Tabellen.
+**Post-82/83 Update (2026-06-12):** Phase 80 bleibt globale Plattform-Admin-Übersicht, muss aber das neue Fansub-Release-Modell verstehen:
+- `anime_contributions.member_id` ist der kanonische Member-Anker.
+- `anime_contributions.fansub_group_member_id` ist Legacy/Fallback (nach Migration 0105 nullable).
+- Projektweite Contributions (`release_version_id IS NULL`) sind Default-Mitwirkende für Release-Versionen.
+- Release-Version-Overrides gelten nur für die konkrete Release-Version.
+- Contributor-Medien und Notizen leben in `/me/releases/[versionId]/workspace`; `/admin/users` zeigt und verlinkt, dupliziert die Arbeitsfläche aber nicht.
+
+**Gelockt aus Milestone v1.2, aktualisiert nach Phase 82/83:**
+- Nur **Plattform-Admin** erreicht die globale Zentrale.
+- Rechte werden scoped gedacht (gruppen-/release-version-bezogen), nie pauschal.
+- Keine Rechte aus Contributions ableiten. Ausnahme Phase 83: Release-Version-Rechte dürfen aus dem expliziten Contribution-Mapping (Projekt-Default plus Release-Override) aufgelöst werden, solange der Scope konkret bleibt.
+- Alle rechte-/statusändernden Aktionen sind auditierbar.
+- Contract-Disziplin (Lock K): keine Ad-hoc-Fetches, keine neuen Endpunkte ohne OpenAPI- + Backend- + Frontend-Abgleich; API-Aufrufe über `frontend/src/lib/api.ts`.
+- Drawer-Tabs: Übersicht, globale Rollen, Member-Profil/Claims, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien, Audit, vorbereitete Streaming-Grants.
 
 #### Implementation Decisions
 
-- **D-01:** Globale Rollen (`app_user_global_roles`) sind in v1 **editierbar** - Plattform-Admin kann globale Rollen im Drawer vergeben/entziehen; jede Änderung wird auditiert (`audit_logs`, Outcome `allowed`, Actor = Plattform-Admin). Das ist der Hauptzweck der globalen Rechtezentrale.
-- **D-02:** Accountstatus (z.B. aktiv/gesperrt/deaktiviert) ist in v1 **editierbar** (sperren/aktivieren) mit Audit. **VORBEHALT (Research-Flag R-01):** nur falls `app_users` ein editierbares Statusfeld besitzt. Ist der Accountstatus Keycloak-gehoheitet, fällt v1 auf **read-only Anzeige** zurück bzw. braucht einen expliziten Keycloak-Seam - das klärt der Researcher VOR der Planung.
-- **D-03:** Scoped Gruppen-/Release-Version-Rechte sind im globalen Drawer **read-only** (volle Anzeige). Das tatsächliche Vergeben/Entziehen bleibt **scoped in `/admin/fansubs/[id]/edit`** (Lock I) - keine Duplizierung der Leader-Editierfläche im globalen Drawer.
-- **D-04:** "Vorbereitete Streaming-Grants" + nicht-priorisierte Spezialrechte = sichtbarer, klar gekennzeichneter **Stub** ohne Schreibaktion (passend zu "erster Ausbau").
-- **D-05:** **Breite Aggregat-Tabelle** - alle Aggregate als Spalten: User (Name/E-Mail), Accountstatus, globale Rollen, verknüpftes Member-Profil, Gruppenmitgliedschaften, Leader-Kontexte, offene Claims, offene Contributions, Medienuploads, letzte Aktivität, Konflikte.
-- **D-06:** **Suche** (Name/E-Mail) + **Kernfilter** (Accountstatus, globale Rolle, "hat Konflikte") + **Sortierung** nach letzter Aktivität.
-- **D-07:** **Server-seitige Pagination** (limit/offset oder Cursor), vertragskonform (Lock K); Aggregate werden pro Seite berechnet. **Research-Flag R-02:** effiziente Aggregat-Query pro Seite (kein N+1 über Claims/Contributions/Medien/Konflikte).
-- **D-08:** Bestehende **`@/components/ui` Drawer + Tabs** wiederverwenden (GDS-konform), eigene User-Detail-Inhalte. **NICHT** das 3943-Zeilen-Monolith-Muster aus `/admin/fansubs/[id]/edit/page.tsx` replizieren - saubere, modulare Tab-Komponenten (450-Zeilen-Limit pro Datei).
-- **D-09:** **Lazy-Load pro Tab** - Tab-Daten erst beim Aktivieren über gescopte Endpunkte laden (kein schwerer All-in-One-Fetch).
-- **D-10:** **Volle Anzeige-Listen je Tab**, ABER Schreibaktionen nur gemäß Editierbarkeits-Scope (D-01..D-04): global = Rollen + Accountstatus editierbar; scoped Domains (Gruppenrechte/Contributions/Medien) = volle Anzeige + Verwaltung via **Deep-Link** in die kanonische Fläche (Lock I/F, keine Duplizierung). Übersicht-/globale-Rollen-/Audit-Tabs sind voll funktional.
-- **D-11:** 4 Konflikt-Typen in v1: (a) offener Claim trotz bereits verknüpftem Member-Profil (`member_claims`/`member_claim_invitations`), (b) Gruppenmitglied ohne zugewiesene Rolle (`fansub_group_members` ohne `fansub_group_member_roles`), (c) Medien/Owner ohne gültigen Scope (`owner_consistent = false`, vgl. Phase 78/79), (d) offener Contribution-Dispute (`anime_contributions.dispute_state = 'open'`, Phase 72).
-- **D-12:** Signalisierung: Warn-**Badge** mit Anzahl in der Listenzeile + Listen-**Filter** "nur mit Konflikten" + konkrete **Aufschlüsselung im Übersicht-Tab** des Drawers (konsistent mit Badge-Pattern aus Phase 78/79).
+- **D-01:** Globale Rollen (`app_user_global_roles`) sind in v1 editierbar.
+- **D-02:** Accountstatus editierbar falls `app_users` editierbares Statusfeld besitzt (R-01 aufgelöst: ja).
+- **D-03:** Scoped Gruppen-/Release-Version-Rechte im globalen Drawer read-only.
+- **D-04:** Vorbereitete Streaming-Grants = sichtbarer Stub ohne Schreibaktion.
+- **D-05 bis D-07:** Breite Aggregat-Tabelle, Server-seitige Pagination, keine N+1.
+- **D-08 bis D-11:** Drawer-Reuse `@/components/ui`, Lazy-Load pro Tab, modulare Tab-Komponenten (keine Monolith-Kopie).
+- **D-12 bis D-16 (Phase-82/83-Erweiterungen):**
+  - **D-12:** `anime_contributions.member_id` zuerst; legacy `fansub_group_member_id -> hist_fansub_group_members.member_id` nur als Fallback.
+  - **D-13:** Contributions-Tab gruppiert nach projektweiten Defaults, release-spezifischen Overrides, offenen/disputed und historischen/legacy.
+  - **D-14:** Release-Version-Rechte im Drawer sind resolved read-only (Phase 80 zeigt aufgelösten Zustand).
+  - **D-15:** `/me`-Workspace-Aktivität sichtbar: Mediauploads und Release-Notizen pro `release_version_id`, verlinkt.
+  - **D-16:** Globaler Drawer bearbeitet Release-Notizen, Medien und Release-Contribution-Overrides **nicht** direkt.
+- **D-17 bis D-19 (Konflikte):**
+  - **D-17:** v1-Konflikte: offener Claim trotz Member-Profil, Gruppenmitglied ohne Rolle, Medien/Owner ohne gültigen Scope, offener Contribution-Dispute.
+  - **D-18:** Phase-83-Zusatzkonflikte: Override auf ungültige/gelöschte Release-Version; Default und Override widersprechen sich; User hat Release-Medien/Notizen ohne aufgelöste Contribution-Berechtigung.
+  - **D-19:** Warn-Badge in Listenzeile, Filter "nur mit Konflikten", Aufschlüsselung im Übersicht-Tab.
 
-### the agent's Discretion
+### Claude's Discretion
 
-- Exakter Endpunktschnitt pro Tab und genaue OpenAPI-Form (innerhalb Lock K: OpenAPI + Backend + `api.ts` gemeinsam).
-- Konkrete Spaltenreihenfolge/Verdichtung der breiten Tabelle (Lesbarkeit), solange alle Aggregate aus D-05 vertreten sind.
+- Exakter Endpunktschnitt pro Tab und genaue OpenAPI-Form (innerhalb Lock K).
+- Konkrete Spaltenreihenfolge/Verdichtung der breiten Tabelle, solange alle D-05-Aggregate vertreten sind.
 
 ### Deferred Ideas (OUT OF SCOPE)
 
-- Editieren scoped Gruppen-/Release-Rechte **im globalen Drawer** (statt read-only + Deep-Link) - bewusst späterer Ausbau; v1 hält Lock I.
-- Voll funktionale Streaming-Grants - v1 nur Stub.
-- Weitere Spezialberechtigungen editierbar machen - späterer Ausbau.
-- `2026-05-28-profile-hub-content-activity-redesign.md` - UI-Redesign von `/me/profile`; gehört nicht zur globalen User-/Rechtezentrale.
-- `2026-06-03-contribution-dropdown-auf-globale-ui-primitives-umstellen.md` - Phase-67-Folgearbeit (Contribution-UI), nicht Phase 80.
-- `2026-06-03-credits-ui-konsolidierung-und-permission-bruecke.md` - Credits-UI/Design im Fansub-Workspace, nicht die globale User-Liste.
+- Direktes Bearbeiten scoped Gruppen-/Release-Rechte im globalen Drawer.
+- Direktes Bearbeiten von Release-Contribution-Overrides im globalen Drawer.
+- Voll funktionale Streaming-Grants.
+- Weitere Spezialberechtigungen editierbar machen.
 </user_constraints>
 
 <phase_requirements>
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| Entscheidung I | Rechte scoped; `/admin/users` + User Detail Drawer starten; keine Rechte aus Contributions; keine pauschalen Medienrechte. [VERIFIED: .planning/milestones/v1.2-DISCUSSION.md] | Use platform-admin-only backend gates, scoped read-only rights tabs, and deep links to `/admin/fansubs/[id]/edit` for scoped edits. [VERIFIED: backend/internal/permissions/permissions.go; VERIFIED: backend/internal/handlers/platform_admin_authz.go] |
-| Entscheidung H | Claims, Requests und Contributions bleiben getrennt. [VERIFIED: .planning/milestones/v1.2-DISCUSSION.md] | Drawer tabs should query `member_claims`, `member_claim_invitations`, `member_requests`, and `anime_contributions` separately; do not infer one domain from another. [VERIFIED: database/migrations/0081_historical_members_identity.up.sql; VERIFIED: database/migrations/0092_member_claim_invitations.up.sql; VERIFIED: database/migrations/0086_anime_contributions.up.sql] |
-| Entscheidung K | Contract/API discipline: no ad-hoc fetches and no new endpoints without OpenAPI/backend/frontend alignment. [VERIFIED: .planning/milestones/v1.2-DISCUSSION.md; VERIFIED: docs/api/api-contracts.md] | New list/detail/mutation endpoints must update `shared/contracts/openapi.yaml`, likely `shared/contracts/admin-content.yaml`, backend handlers/repository models, `frontend/src/types/*`, and `frontend/src/lib/api.ts`. [VERIFIED: docs/api/api-contracts.md; VERIFIED: shared contract grep] |
-| Entscheidung J(Teil) | Memorial status is part of user/member overview context but not a normal claimable profile state. [VERIFIED: .planning/milestones/v1.2-DISCUSSION.md] | Member-profile tab should display `members.profile_status` and must not expose memorial mutation except through the existing global-admin memorial seam if needed. [VERIFIED: database/migrations/0097_v12_status_foundation.up.sql; VERIFIED: backend/internal/handlers/member_memorial_handler.go] |
+| ID | Beschreibung | Research-Support |
+|----|--------------|------------------|
+| Entscheidung I | Rechte scoped; `/admin/users` + User Detail Drawer starten; keine Rechte aus Contributions; keine pauschalen Medienrechte. | Platform-admin-only Backend-Gates, scoped read-only Rights-Tabs, Deep Links nach `/admin/fansubs/[id]/edit` für scoped Edits. [VERIFIED: backend/internal/permissions/permissions.go; VERIFIED: backend/internal/handlers/platform_admin_authz.go] |
+| Entscheidung H | Claims, Requests und Contributions bleiben getrennt. | Drawer-Tabs fragen `member_claims`, `member_claim_invitations` und `anime_contributions` separat ab; keine Cross-Domain-Inference. [VERIFIED: database migrations 0081, 0086, 0092] |
+| Entscheidung K | Contract/API-Disziplin: keine Ad-hoc-Fetches, keine neuen Endpunkte ohne OpenAPI/Backend/Frontend-Abgleich. | Neue Endpunkte müssen `shared/contracts/admin-content.yaml`, Backend-Handler, `frontend/src/types/*` und `frontend/src/lib/api.ts` gleichzeitig aktualisieren. [VERIFIED: docs/api/api-contracts.md] |
+| Entscheidung J (Teil) | Memorial-Status ist Übersichtskontext, kein normal claimbarer Zustand. | Member-Profil-Tab zeigt `members.profile_status` read-only; keine Memorial-Mutation ohne Plattform-Admin-Seam. [VERIFIED: database/migrations/0097_v12_status_foundation.up.sql] |
 </phase_requirements>
 
 ## Summary
 
-Phase 80 should extend an existing backend `GET /api/v1/admin/users` seam rather than invent a parallel admin-user API family. [VERIFIED: backend/cmd/server/admin_routes.go; VERIFIED: backend/internal/handlers/app_auth.go; VERIFIED: backend/internal/repository/app_auth_repository.go] The current seam is narrow: it returns app users and global roles only, has no frontend route at `frontend/src/app/admin/users`, and has no exact OpenAPI/admin-content contract entry for `/admin/users`. [VERIFIED: Test-Path frontend/src/app/admin/users; VERIFIED: rg `/admin/users` in shared/contracts; VERIFIED: frontend/src/lib/api.ts]
+Phase 80 erweitert den bestehenden `GET /api/v1/admin/users`-Seam zu einer vollständigen Aggregat-Liste mit Server-seitiger Pagination, Filtern und Tab-basierten Detail-Endpunkten für den User-Detail-Drawer. [VERIFIED: backend/cmd/server/admin_routes.go; VERIFIED: backend/internal/handlers/app_auth.go]
 
-R-01 is resolved: `app_users.status` exists in Team4s DB with `pending`, `active`, and `disabled`, and repository logic preserves `disabled` across Keycloak login sync while promoting `pending` to `active`. [VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql; VERIFIED: backend/internal/repository/app_auth_repository.go; VERIFIED: backend/internal/repository/app_auth_repository_test.go] Plan D-02 as Team4s-owned disable/reactivate writes for `active`/`disabled`; do not plan Keycloak account disable unless a separate Keycloak seam is explicitly added. [VERIFIED: backend/internal/repository/app_auth_repository.go; VERIFIED: docs/frontend/auth-api-client.md]
+**R-01 aufgelöst:** `app_users.status` existiert als Team4s-eigene DB-Spalte mit den Werten `pending`, `active`, `disabled`. Disable/Reactivate ist als Team4s-DB-Mutation planbar, kein Keycloak-Admin-Call nötig. [VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql; VERIFIED: backend/internal/repository/app_auth_repository.go]
 
-R-02/R-04 should be implemented with a page-first aggregate query: first select the paged `app_users` IDs after filters/sort, then join/LATERAL aggregate claims, memberships, roles, contributions, media uploads, audit/latest-activity, and conflict counts for only that page. [VERIFIED: existing LATERAL use in backend/internal/repository/fansub_group_app_members_repository.go; VERIFIED: PostgreSQL-backed schema in docs/architecture/db-schema-fansub-domain.md] Do not fetch drawer tabs from the list response; list rows should contain summary counts/badges, while tab endpoints lazy-load full lists. [VERIFIED: Phase 80 D-09 in CONTEXT.md]
+**R-05/R-06 (Phase-83-Lücke) aufgelöst:** Phase 83 ist vollständig implementiert und verifiziert (16/16 Must-Haves, 2026-06-12). Das kanonische Schema und die Auflösungslogik sind jetzt Live-Code — keine Hypothesen mehr nötig. [VERIFIED: .planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-VERIFICATION.md]
 
-**Primary recommendation:** build `AdminUsersRepository`/`AdminUsersHandler` around `AppAuthHandler` or a small sibling handler, extend contracts first, use one aggregate list endpoint plus tab-specific detail endpoints, and add audited platform-admin-only mutations for global roles and account status. [VERIFIED: backend/internal/handlers/app_auth.go; VERIFIED: backend/internal/repository/audit_logs.go; VERIFIED: docs/api/api-contracts.md]
+**Primary recommendation:** `AdminUsersRepository`/`AdminUsersHandler` aufbauen, der auf `AppAuthHandler`/App-Auth-Repository als kleinen Geschwister-Handler aufsetzt. Aggregate-Listing über Page-First-CTE + LATERAL, Tab-Daten lazy per gescopten Endpunkten. Die Phase-83-Auflösung für den Contributions-Tab und die Drawer-Übersicht muss das bestehende zweistufige Pattern aus `ListEffectiveContributionsForVersion` und `ListActorContributionRolesForVersion` wiederverwenden, nicht neu bauen. [VERIFIED: backend/internal/repository/admin_content_fansub_releases_contributions_repository.go; VERIFIED: backend/internal/repository/authz_permissions.go]
 
 ## Architectural Responsibility Map
 
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |------------|--------------|----------------|-----------|
-| Platform-admin access to global user center | API / Backend | Browser / Client | Backend already owns platform-admin authorization through `requirePlatformAdminIdentity`; frontend gate is UX-only. [VERIFIED: backend/internal/handlers/platform_admin_authz.go; VERIFIED: frontend/src/components/auth/PlatformAdminGate.tsx] |
-| Aggregated `/admin/users` list | API / Backend | Database / Storage | Aggregates span many tables and must avoid N+1 by querying page IDs once and aggregating in SQL. [VERIFIED: database migrations; VERIFIED: backend/internal/repository/app_auth_repository.go] |
-| User detail drawer tabs | Browser / Client | API / Backend | UI owns drawer/tab composition; each tab should call a scoped backend endpoint for its data. [VERIFIED: frontend/src/components/ui/Drawer.tsx; VERIFIED: frontend/src/components/ui/Tabs.tsx] |
-| Global role assign/revoke | API / Backend | Database / Storage | `app_user_global_roles` is Team4s DB-owned and mutation must be platform-admin-only and audited. [VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql; VERIFIED: backend/internal/repository/authz.go; VERIFIED: backend/internal/repository/audit_logs.go] |
-| Account status disable/reactivate | API / Backend | Database / Storage | `app_users.status` is Team4s DB state and disabled users are denied by platform/admin permission seams. [VERIFIED: backend/internal/repository/app_auth_repository_test.go; VERIFIED: backend/internal/handlers/platform_admin_authz.go] |
-| Scoped group/release-version rights display | API / Backend | Browser / Client | Permission scopes are derived from `fansub_group_members`, `fansub_group_member_roles`, and release-version group context; global drawer must display, not edit, scoped rights. [VERIFIED: backend/internal/permissions/permissions.go; VERIFIED: backend/internal/repository/authz_permissions.go] |
-| Audit timeline | API / Backend | Database / Storage | `audit_logs` table has actor, scope, target, event, action, outcome, payload, and created timestamp suitable for user-scoped audit reads. [VERIFIED: database/migrations/0075_audit_logs.up.sql; VERIFIED: backend/internal/repository/audit_logs.go] |
+| Plattform-Admin-Zugang zur globalen Zentrale | API / Backend | Browser / Client | Backend besitzt `requirePlatformAdminIdentity`; Frontend-Gate ist nur UX. [VERIFIED: backend/internal/handlers/platform_admin_authz.go] |
+| Aggregierte `/admin/users`-Liste | API / Backend | Database / Storage | Aggregate über viele Tabellen; N+1 verhindert durch Page-First-CTE. [VERIFIED: DB-Schema; VERIFIED: migrations] |
+| User-Detail-Drawer-Tabs | Browser / Client | API / Backend | UI steuert Drawer/Tab-Komposition; jeder Tab ruft einen gescopten Backend-Endpunkt. [VERIFIED: frontend/src/components/ui/Drawer.tsx; VERIFIED: frontend/src/components/ui/Tabs.tsx] |
+| Globale Rollen Assign/Revoke | API / Backend | Database / Storage | `app_user_global_roles` ist Team4s-DB-Eigentum; Mutation muss Platform-Admin-only und auditiert sein. [VERIFIED: database/migrations/0072; VERIFIED: backend/internal/repository/authz.go] |
+| Account-Status Disable/Reactivate | API / Backend | Database / Storage | `app_users.status` ist Team4s-DB-Zustand; deaktivierte User werden von Permission-Seams abgelehnt. [VERIFIED: app_auth_repository_test.go] |
+| Phase-83-Default/Override-Auflösung (Contributions-Tab) | API / Backend | Database / Storage | Zweistufige SQL-Auflösung bereits in `authz_permissions.go` und `admin_content_fansub_releases_contributions_repository.go` implementiert — wiederverwenden, nicht replizieren. [VERIFIED: authz_permissions.go Z. 190–277; VERIFIED: admin_content_fansub_releases_contributions_repository.go] |
+| Scoped Gruppen-/Release-Rechte (Anzeige) | API / Backend | Browser / Client | Rechte kommen aus `fansub_group_member_roles` und Phase-83-`CanForReleaseVersion`; globaler Drawer zeigt, verlinkt, editiert nicht. [VERIFIED: backend/internal/permissions/permissions.go] |
+| Audit-Timeline | API / Backend | Database / Storage | `audit_logs`-Tabelle hat Actor, Scope, Target, Event, Action, Outcome, Payload. [VERIFIED: database/migrations/0075_audit_logs.up.sql] |
 
-## Project Constraints (from AGENTS.md)
+## Project Constraints (from CLAUDE.md / AGENTS.md)
 
-- Inspect existing code first, keep diffs small, and do not implement in this research phase. [VERIFIED: AGENTS.md; VERIFIED: user request]
-- Do not attach release or fansub data to the wrong domain entity; release-version-scoped process media must stay under `release_version_media`; group media must stay under `fansub_group_media`; `release_media` must not substitute for version-scoped admin/fansub media. [VERIFIED: AGENTS.md; VERIFIED: docs/architecture/db-schema-fansub-domain.md]
-- Before new endpoints/helpers/DTOs/UI controls, search for existing equivalents and prefer extending a usable seam. [VERIFIED: AGENTS.md; VERIFIED: docs/engineering/implementation-contract.md]
-- `shared/contracts/openapi.yaml` is canonical and `shared/contracts/admin-content.yaml` is the focused admin-content contract where present; backend, frontend DTOs, and `frontend/src/lib/api.ts` must match changed behavior. [VERIFIED: AGENTS.md; VERIFIED: docs/api/api-contracts.md]
-- Protected UI must gate on `hasAccessToken || hasRefreshToken`, and API calls must use the central client refresh seam. [VERIFIED: AGENTS.md; VERIFIED: docs/frontend/auth-api-client.md]
-- User-facing German strings must use correct umlauts. [VERIFIED: AGENTS.md]
-- Use global UI primitives in `frontend/src/components/ui` before adding local page-specific controls. [VERIFIED: AGENTS.md; VERIFIED: docs/frontend/ui-system.md]
-- New DB migrations are required for schema changes; old historical migrations must not be edited. [VERIFIED: AGENTS.md]
-- Always plan relevant `typecheck`, `lint`, tests, build if feasible, and `git diff --check`. [VERIFIED: AGENTS.md]
+- Bestehenden Code zuerst inspizieren, Diffs klein halten. [VERIFIED: AGENTS.md]
+- Release-Version-scoped Prozessmedien bleiben unter `release_version_media`; keine Cross-Domain-Vermischung. [VERIFIED: AGENTS.md; VERIFIED: docs/architecture/db-schema-fansub-domain.md]
+- Vor neuen Endpunkten/Helpers/DTOs/UI-Controls nach bestehenden Äquivalenten suchen und vorhandene Seams bevorzugt erweitern. [VERIFIED: AGENTS.md]
+- `shared/contracts/admin-content.yaml` ist kanonisch; Backend-, Frontend-DTOs und `frontend/src/lib/api.ts` müssen das geänderte Verhalten widerspiegeln. [VERIFIED: docs/api/api-contracts.md]
+- Protected UI muss `hasAccessToken || hasRefreshToken` prüfen; API-Aufrufe über zentrale Client-Refresh-Naht. [VERIFIED: docs/frontend/auth-api-client.md]
+- Deutscher UI-Text mit korrekten Umlauten. [VERIFIED: CLAUDE.md]
+- Globale UI-Primitives aus `frontend/src/components/ui` nutzen. [VERIFIED: CLAUDE.md; VERIFIED: docs/frontend/ui-system.md]
+- Neue DB-Migrationen für Schema-Änderungen; alte Migrationen nicht editieren. [VERIFIED: AGENTS.md]
+- Produktcode-Dateien <= 450 Zeilen. [VERIFIED: CLAUDE.md]
+- Immer `typecheck`, `lint`, Tests, Build und `git diff --check` planen. [VERIFIED: AGENTS.md]
 
 ## Standard Stack
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| Go | module declares `go 1.25.0`; local tool is `go1.26.1` | Backend handlers, repositories, tests | Existing backend is Go/Gin; use current repo stack, not a new API runtime. [VERIFIED: backend/go.mod; VERIFIED: go version] |
-| Gin | v1.10.0 | HTTP routing/handlers | Existing admin routes and auth middleware use Gin. [VERIFIED: backend/go.mod; VERIFIED: go list -m github.com/gin-gonic/gin] |
-| pgx/v5 | v5.7.1 | PostgreSQL query execution and transactions | Existing repositories use pgx/pgxpool. [VERIFIED: backend/go.mod; VERIFIED: go list -m github.com/jackc/pgx/v5] |
-| PostgreSQL | docs state PostgreSQL 16 | Aggregate SQL, LATERAL/CTE, audit/user tables | Domain schema and local docs are PostgreSQL-backed. [VERIFIED: docs/architecture/db-schema-fansub-domain.md] |
-| Next.js | repo uses ^16.1.6; npm latest observed 16.2.7 modified 2026-06-06 | Admin route `/admin/users` | Existing frontend is Next App Router. [VERIFIED: frontend/package.json; VERIFIED: npm registry] |
-| React | repo uses 18.3.1; npm latest observed 19.2.7 modified 2026-06-05 | Client drawer/tabs/table components | Existing frontend uses React 18; do not upgrade for this phase. [VERIFIED: frontend/package.json; VERIFIED: npm registry] |
-| Vitest | repo uses ^3.2.4; npm latest observed 4.1.8 modified 2026-06-01 | Frontend unit/render tests | Existing frontend test suite is Vitest. [VERIFIED: frontend/package.json; VERIFIED: npm registry] |
+| Library | Version | Zweck | Warum Standard |
+|---------|---------|-------|----------------|
+| Go | go 1.25.0 im Modul; lokal go1.26.1 | Backend-Handler, Repositories, Tests | Bestehender Go/Gin-Stack. [VERIFIED: backend/go.mod] |
+| Gin | v1.10.0 | HTTP-Routing/Handler | Bestehende Admin-Routen und Auth-Middleware nutzen Gin. [VERIFIED: backend/go.mod] |
+| pgx/v5 | v5.7.1 | PostgreSQL-Query-Ausführung | Bestehende Repositories nutzen pgx/pgxpool. [VERIFIED: backend/go.mod] |
+| PostgreSQL | 16 | Aggregat-SQL, LATERAL/CTE, Audit-/User-Tabellen | Domänen-Schema ist PostgreSQL-backed. [VERIFIED: docs/architecture/db-schema-fansub-domain.md] |
+| Next.js | ^16.1.6 | Admin-Route `/admin/users` | Bestehender Frontend-Stack ist Next.js App Router. [VERIFIED: frontend/package.json] |
+| React | 18.3.1 | Client-Drawer/Tabs/Tabellen-Komponenten | Bestehender Frontend-Stack. [VERIFIED: frontend/package.json] |
+| Vitest | ^3.2.4 | Frontend-Unit-/Render-Tests | Bestehende Frontend-Test-Suite. [VERIFIED: frontend/package.json] |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| lucide-react | repo uses ^0.469.0; npm latest observed 1.17.0 modified 2026-05-28 | Icons in admin actions | Use existing dependency and icons for drawer/table actions; do not introduce another icon set. [VERIFIED: frontend/package.json; VERIFIED: npm registry] |
-| `@/components/ui` | local primitives | Drawer, Tabs, Table, Badge, Pagination, PageHeader, states | Required for Phase 80 page/drawer composition. [VERIFIED: frontend/src/components/ui; VERIFIED: docs/frontend/ui-system.md] |
-| `frontend/src/lib/api.ts` | local central API client | Typed protected API helpers and auth refresh | All Phase 80 browser calls must go through this seam. [VERIFIED: docs/frontend/auth-api-client.md; VERIFIED: frontend/src/lib/api.ts] |
+| Library | Version | Zweck | Wann nutzen |
+|---------|---------|-------|-------------|
+| lucide-react | ^0.469.0 | Icons in Admin-Aktionen | Bestehende Abhängigkeit für Drawer-/Tabellen-Aktionen. [VERIFIED: frontend/package.json] |
+| `@/components/ui` | lokal | Drawer, Tabs, Table, Badge, Pagination, PageHeader, States | Pflicht für Phase-80-Seite/Drawer. [VERIFIED: frontend/src/components/ui; VERIFIED: docs/frontend/ui-system.md] |
+| `frontend/src/lib/api.ts` | lokal | Getypte geschützte API-Helper und Auth-Refresh | Alle Phase-80-Browser-Aufrufe müssen über diesen Seam gehen. [VERIFIED: docs/frontend/auth-api-client.md] |
 
-### Alternatives Considered
+**Installation:** Keine neuen Pakete für Phase 80 notwendig. [VERIFIED: alle Abhängigkeiten bereits vorhanden]
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| Extending `AppAuthHandler`/app auth repository | New independent admin-users subsystem | A new subsystem may be justified for file size/modularity, but it must still reuse platform-admin auth, authz repo, audit repo, and `app_users` models rather than creating a parallel auth domain. [VERIFIED: backend/internal/handlers/app_auth.go; VERIFIED: docs/engineering/implementation-contract.md] |
-| SQL aggregate query | Per-row API calls from UI | Per-row calls would violate D-07/R-02 by creating N+1 over claims, contributions, media, and conflicts. [VERIFIED: 80-CONTEXT.md] |
-| Global scoped-right mutation in drawer | Deep-link to `/admin/fansubs/[id]/edit` | Global scoped-right mutation is explicitly deferred; deep links preserve Lock I. [VERIFIED: 80-CONTEXT.md; VERIFIED: AGENTS.md] |
+## Package Legitimacy Audit
 
-**Installation:**
-```bash
-# No new package install recommended for Phase 80.
-```
-
-**Version verification:** package versions were checked from `frontend/package.json`, `backend/go.mod`, `npm view`, `go list -m`, and local runtime commands. [VERIFIED: package/version commands]
+Keine neuen externen Pakete. Abschnitt entfällt. [VERIFIED: Analyse aller Phase-80-Anforderungen]
 
 ## Architecture Patterns
 
@@ -143,269 +144,373 @@ R-02/R-04 should be implemented with a page-first aggregate query: first select 
 ```text
 Browser /admin/users
   -> PlatformAdminGate + useAuthSession(hasAccessToken || hasRefreshToken)
-  -> listAdminUsers({ search, status, role, has_conflicts, sort, page })
-  -> GET /api/v1/admin/users
+  -> listAdminUsersPage({ search, status, role, has_conflicts, sort, page })
+  -> GET /api/v1/admin/users?q=&status=&global_role=&has_conflicts=&sort=&limit=&offset=
   -> requirePlatformAdminIdentity
   -> AdminUsersRepository.ListUsersPage
-       1. page CTE: app_users filtered/sorted/limited
-       2. aggregate joins: roles, verified member, memberships, leader contexts
-       3. aggregate joins: pending claims, open contributions, media uploads
-       4. conflict CTEs: claim/profile, roleless members, media owner, contribution dispute
-       5. latest activity: GREATEST(last_login_at, updated_at, latest audit/media/contribution)
-  -> response { data, meta }
-  -> table row conflict badge
-  -> user opens Drawer
-  -> tab activation calls /api/v1/admin/users/:id/{overview|roles|claims|memberships|group-rights|contributions|media|audit}
-       -> each endpoint repeats platform-admin gate
-       -> mutations only for /roles and /status
-       -> audit_logs write on every allowed/denied status or role mutation
+       1. page CTE: app_users gefiltert/sortiert/limitiert
+       2. LATERAL: globale Rollen, Member-Profil (member_claims verified)
+       3. LATERAL: Gruppenmitgliedschaften, Leader-Kontexte
+       4. LATERAL: offene Claims, offene Contributions (dispute_state='open')
+       5. LATERAL: Mediauploads, Phase-83-Release-Scope-Aktivität
+       6. Conflict-CTEs: Claim/Profil, rollenlose Mitglieder, Media-Owner, Dispute, Phase-83-Extras
+       7. GREATEST(last_login_at, updated_at, ...) als last_activity_at
+  -> response { data: AdminUserListItem[], meta: { total, limit, offset } }
+  -> Tabellen-Zeile mit Conflict-Badge
+  -> User öffnet Drawer
+  -> Tab-Aktivierung -> /api/v1/admin/users/:id/{overview|roles|claims|memberships|group-rights|contributions|media|audit}
+       -> jeder Endpunkt wiederholt Platform-Admin-Gate
+       -> Mutations nur für /roles und /status
+       -> audit_logs bei jedem allowed/denied Status-/Rollen-Wechsel
+       
+  [Contributions-Tab - Phase-83-Erweiterung]
+  -> GET /api/v1/admin/users/:id/contributions
+  -> AdminUsersRepository.ListUserContributions(userID)
+       1. Projektweite Defaults (release_version_id IS NULL) via member_id
+       2. Release-Overrides (release_version_id IS NOT NULL) via member_id
+       3. Legacy (fansub_group_member_id IS NOT NULL, member_id IS NULL) via COALESCE
+  -> Gruppierung im Frontend: Projekt-Defaults / Release-Overrides / Legacy / Disputes
 ```
-[VERIFIED: frontend/src/components/auth/PlatformAdminGate.tsx; VERIFIED: backend/internal/handlers/platform_admin_authz.go; VERIFIED: database migrations; RECOMMENDED based on Phase 80 D-07/D-09]
+[VERIFIED: frontend/src/components/auth/PlatformAdminGate.tsx; VERIFIED: backend/internal/handlers/platform_admin_authz.go; VERIFIED: backend/internal/repository/admin_content_fansub_releases_contributions_repository.go; RECOMMENDED Endpunkt-/Tab-Schnitt]
 
 ### Recommended Project Structure
 
 ```text
 backend/internal/models/
-├── admin_users.go                  # Admin user list/detail DTOs [RECOMMENDED]
+├── admin_users.go                         # Admin User List/Detail DTOs [RECOMMENDED]
 backend/internal/repository/
-├── admin_users_repository.go        # Aggregate list + tab query repository [RECOMMENDED]
+├── admin_users_repository.go              # Aggregat-Listing + Tab-Query-Repository [RECOMMENDED]
 backend/internal/handlers/
-├── admin_users_handler.go           # Platform-admin endpoints + mutations [RECOMMENDED]
+├── admin_users_handler.go                 # Platform-admin-Endpunkte + Mutations [RECOMMENDED]
 frontend/src/app/admin/users/
-├── page.tsx                         # Route shell with PlatformAdminGate [RECOMMENDED]
-├── AdminUsersClient.tsx             # Filters/table/drawer state [RECOMMENDED]
-├── UserDetailDrawer.tsx             # Drawer + tab composition [RECOMMENDED]
-├── tabs/*.tsx                       # One tab component per drawer tab [RECOMMENDED]
+├── page.tsx                               # Route-Shell mit PlatformAdminGate [RECOMMENDED]
+├── AdminUsersClient.tsx                   # Filter/Tabelle/Drawer-State [RECOMMENDED]
+├── UserDetailDrawer.tsx                   # Drawer + Tab-Komposition [RECOMMENDED]
+├── tabs/
+│   ├── UserOverviewTab.tsx                # Konflikt-Aufschlüsselung, Zusammenfassung [RECOMMENDED]
+│   ├── UserGlobalRolesTab.tsx             # Globale-Rollen-Zuweisung/Entzug [RECOMMENDED]
+│   ├── UserClaimsTab.tsx                  # Claims + Einladungen [RECOMMENDED]
+│   ├── UserMembershipsTab.tsx             # Gruppenmitgliedschaften [RECOMMENDED]
+│   ├── UserGroupRightsTab.tsx             # Scoped-Rechte read-only [RECOMMENDED]
+│   ├── UserContributionsTab.tsx           # Phase-83-aware Contributions [RECOMMENDED]
+│   ├── UserMediaTab.tsx                   # Media-Uploads [RECOMMENDED]
+│   └── UserAuditTab.tsx                   # Audit-Timeline [RECOMMENDED]
 frontend/src/types/
-├── admin-users.ts                   # Phase 80 DTOs [RECOMMENDED]
+├── admin-users.ts                         # Phase-80-DTOs [RECOMMENDED]
 ```
 
-### Pattern 1: Resolve R-01 With Team4s Status Ownership
+### Pattern 1: Phase-83-Default/Override-Auflösung im Contributions-Tab
 
-**What:** Treat `app_users.status` as Team4s-owned for `active`/`disabled` mutations, because the DB defines the field and login sync preserves disabled users. [VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql; VERIFIED: backend/internal/repository/app_auth_repository.go]
+**Was:** Das zweistufige Auflösungsmuster ist in Phase 83 bereits als Live-Code implementiert. Phase 80 muss es für den User-Detail-Drawer adaptieren (User-zentrischer statt Release-zentrischer Blickwinkel).
 
-**When to use:** D-02 account disable/reactivate in the global drawer. [VERIFIED: 80-CONTEXT.md]
+**Phase-83-Implementierung (Live-Code, kanonische Quelle):** [VERIFIED: backend/internal/repository/admin_content_fansub_releases_contributions_repository.go]
 
-**Plan implication:** Add repository method `UpdateAppUserStatus(ctx, targetAppUserID, status)` with allowed values `active` and `disabled`; reject `pending` as a manual target unless a later decision says otherwise. [VERIFIED: backend/internal/repository/app_auth_repository_test.go; RECOMMENDED]
+```go
+// Schritt 1: Versions-spezifische Contributions (is_override = true)
+// WHERE ac.release_version_id = $1 AND ac.fansub_group_id = $2
 
-### Pattern 2: Page-First Aggregate Query
+// Schritt 2 (Fallback wenn Schritt 1 leer): anime-weite Contributions
+// WHERE ac.release_version_id IS NULL AND ac.fansub_group_id = $2
+//   AND ac.anime_id = (SELECT ep.anime_id FROM release_versions rv
+//                      JOIN fansub_releases fr ON fr.id = rv.release_id
+//                      JOIN episodes ep ON ep.id = fr.episode_id
+//                      WHERE rv.id = $1 LIMIT 1)
+```
 
-**What:** Use a `page` CTE or temporary subquery for the exact app-user IDs on the current page, then aggregate child tables for those IDs. [RECOMMENDED based on R-02; VERIFIED: PostgreSQL schema]
+**Phase-80-Adaption für User-Sicht (Contributions-Tab):**
+```sql
+-- Alle Contributions eines Users, aufgeteilt nach Typ
+SELECT
+    ac.id,
+    ac.fansub_group_id,
+    fg.name AS fansub_group_name,
+    ac.anime_id,
+    a.title AS anime_title,
+    ac.release_version_id,           -- NULL = Projekt-Default, gesetzt = Release-Override
+    CASE WHEN ac.release_version_id IS NULL THEN 'project_default' ELSE 'release_override' END AS contribution_type,
+    ac.dispute_state,
+    COALESCE(ARRAY_AGG(acr.role_code), ARRAY[]::text[]) AS role_codes
+FROM anime_contributions ac
+JOIN members m ON m.id = ac.member_id          -- Phase-83-Anker: member_id zuerst [VERIFIED: migration 0105]
+JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
+JOIN anime a ON a.id = ac.anime_id
+LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+WHERE ac.member_id = $1  -- member_id des Users (via verified member_claim)
+GROUP BY ac.id, fg.name, a.title
+ORDER BY a.title, contribution_type DESC, ac.id
+```
+[VERIFIED: migration 0105; VERIFIED: migration 0086; RECOMMENDED SQL-Skelett]
 
-**When to use:** `/api/v1/admin/users` list with D-05 columns and filters. [VERIFIED: 80-CONTEXT.md]
+**Wenn `fansub_group_member_id` (legacy) und `member_id` beide vorhanden:** `member_id` ist seit Migration 0105 NOT NULL und ist der kanonische Anker. `fansub_group_member_id` ist nullable (Übergangsfeld). Keine COALESCE nötig für den Contributions-Tab — direkt `WHERE ac.member_id = :member_id`. [VERIFIED: migration 0105 Schritt D]
 
-**Example:**
+### Pattern 2: `has_override`-Subquery für Conflict-Erkennung (D-18)
+
+**Was:** Ob eine Release-Version einen Override-Satz hat, wird in Phase 83 über eine EXISTS-Subquery ermittelt. Dieselbe Semantik wird in Phase 80 für den Conflict-Typ "D-18: Override verweist auf ungültige/gelöschte Release-Version" und "hat Release-Aktivität ohne aufgelöste Contribution" benötigt.
+
+**Live-Code-Referenz aus Phase 83:** [VERIFIED: backend/internal/repository/admin_content_fansub_releases.go Z. 98–103]
+
+```sql
+EXISTS (
+    SELECT 1 FROM anime_contributions ac_sub
+    JOIN release_versions rv_sub ON rv_sub.id = ac_sub.release_version_id
+    WHERE rv_sub.release_id = fr.id
+      AND ac_sub.fansub_group_id = $1
+) AS has_override
+```
+
+**Phase-80-Conflict-D-18-Adaption:** Ein Conflict "Override auf ungültige Release-Version" liegt vor, wenn:
+```sql
+EXISTS (
+    SELECT 1
+    FROM anime_contributions ac
+    WHERE ac.member_id = :member_id
+      AND ac.release_version_id IS NOT NULL
+      AND NOT EXISTS (
+          SELECT 1 FROM release_versions rv WHERE rv.id = ac.release_version_id
+          -- release_versions hat kein deleted_at; hier müsste Soft-Delete geprüft werden
+          -- wenn noch nicht vorhanden: auch fansub_releases.status prüfen
+      )
+) AS has_invalid_release_override
+```
+[VERIFIED: migration 0091; VERIFIED: admin_content_fansub_releases_contributions_repository.go; RECOMMENDED Conflict-SQL]
+
+### Pattern 3: `ListActorContributionRolesForVersion` — N+1-freie Auflösung
+
+**Was:** Für die User-Detail-Drawer-Übersicht muss Phase 80 anzeigen, für wie viele und welche Release-Versionen ein User Contributions (Default oder Override) hat. Das darf nicht N+1 materialisieren.
+
+**Live-Code aus Phase 83:** [VERIFIED: backend/internal/repository/authz_permissions.go Z. 197–277]
+
+Das Pattern lautet:
+1. Versions-spezifische Contributions (`release_version_id = $versionID`) via `fgm.app_user_id = $appUserID` und `fgm.member_id = ac.member_id`.
+2. Fallback: anime-weite Contributions (`release_version_id IS NULL`) mit `anime_id` über `release_versions -> fansub_releases -> episodes`.
+
+**Phase-80-N+1-freie Aggregat-Adaption für Listenseite:**
+```sql
+-- Zähle Release-Versionen mit Berechtigung (Projekt-Default ODER Override) pro User
+-- Eingebettet als LATERAL in der Page-CTE, nicht als N separate Queries
+LEFT JOIN LATERAL (
+    SELECT COUNT(DISTINCT rv.id) AS release_scope_count
+    FROM release_versions rv
+    JOIN fansub_releases fr ON fr.id = rv.release_id
+    JOIN episodes ep ON ep.id = fr.episode_id
+    JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id  -- via release_version_groups
+    JOIN anime_contributions ac ON
+        (ac.release_version_id = rv.id OR
+         (ac.release_version_id IS NULL AND ac.anime_id = ep.anime_id))
+        AND ac.fansub_group_id = rvg.fansub_group_id
+    JOIN fansub_group_members fgm ON fgm.member_id = ac.member_id
+        AND fgm.app_user_id = page.id
+    JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+) release_scope ON true
+```
+[VERIFIED: authz_permissions.go SQL-Struktur; RECOMMENDED Page-80-Adaption]
+
+### Pattern 4: Page-First Aggregat-Query (R-02)
+
+**Was:** Erst die paged App-User-IDs ermitteln, dann alle Aggregate für genau diese IDs berechnen.
+
+**Beispiel:**
 ```sql
 WITH filtered AS (
-  SELECT au.*
-  FROM app_users au
-  WHERE ($1 = '' OR au.email ILIKE $1 OR au.display_name ILIKE $1)
-    AND ($2 = '' OR au.status = $2)
-    AND (
-      $3 = ''
-      OR EXISTS (
-        SELECT 1 FROM app_user_global_roles agr
-        WHERE agr.app_user_id = au.id AND agr.role = $3
-      )
-    )
+    SELECT au.*
+    FROM app_users au
+    WHERE ($1 = '' OR au.email ILIKE $1 OR au.display_name ILIKE $1)
+      AND ($2 = '' OR au.status = $2)
+      AND ($3 = '' OR EXISTS (
+          SELECT 1 FROM app_user_global_roles agr
+          WHERE agr.app_user_id = au.id AND agr.role = $3
+      ))
 ),
 page AS (
-  SELECT *
-  FROM filtered
-  ORDER BY COALESCE(last_login_at, updated_at, created_at) DESC, id DESC
-  LIMIT $4 OFFSET $5
+    SELECT * FROM filtered
+    ORDER BY COALESCE(last_login_at, updated_at, created_at) DESC, id DESC
+    LIMIT $4 OFFSET $5
 )
 SELECT
-  page.id,
-  page.email,
-  page.display_name,
-  page.status,
-  COALESCE(roles.roles, ARRAY[]::text[]) AS global_roles,
-  COALESCE(memberships.membership_count, 0) AS group_membership_count,
-  COALESCE(conflicts.conflict_count, 0) AS conflict_count
+    page.id, page.email, page.display_name, page.status,
+    COALESCE(roles.roles, ARRAY[]::text[]) AS global_roles,
+    COALESCE(memberships.membership_count, 0) AS group_membership_count,
+    COALESCE(conflicts.conflict_count, 0) AS conflict_count
 FROM page
 LEFT JOIN LATERAL (
-  SELECT ARRAY_AGG(role ORDER BY role) AS roles
-  FROM app_user_global_roles
-  WHERE app_user_id = page.id
+    SELECT ARRAY_AGG(role ORDER BY role) AS roles
+    FROM app_user_global_roles WHERE app_user_id = page.id
 ) roles ON true
 LEFT JOIN LATERAL (
-  SELECT COUNT(*) AS membership_count
-  FROM fansub_group_members fgm
-  WHERE fgm.app_user_id = page.id
+    SELECT COUNT(*) AS membership_count
+    FROM fansub_group_members WHERE app_user_id = page.id
 ) memberships ON true
-LEFT JOIN LATERAL (
-  SELECT
-    (/* claim/profile conflicts */ 0)
-    + (/* roleless memberships */ 0)
-    + (/* media owner conflicts */ 0)
-    + (/* open contribution disputes */ 0) AS conflict_count
-) conflicts ON true;
+-- [weitere LATERAL-Joins für Claims, Contributions, Medien, Konflikte]
 ```
-[RECOMMENDED; VERIFIED: table names from database migrations; VERIFIED: existing LATERAL patterns in fansub_group_app_members_repository.go]
+[RECOMMENDED; VERIFIED: LATERAL-Pattern aus backend/internal/repository/fansub_group_app_members_repository.go; VERIFIED: PostgreSQL-Schema]
 
-### Pattern 3: Mutations Audit After Write, Deny Audit On Permission Failure
+### Pattern 5: Mutations mit Audit
 
-**What:** Use `repository.AuditLogEntry` with `ActorAppUserID`, `EventType`, `TargetType`, `TargetID`, `Action`, `Outcome`, and payload. [VERIFIED: backend/internal/repository/audit_logs.go]
+**Was:** Globale Rollen-Zuweisung/-Entzug und Account-Status-Änderung müssen auditiert werden.
 
-**When to use:** global role assignment/revocation and account status disable/reactivate. [VERIFIED: 80-CONTEXT.md]
+**Empfohlene Event-Namen:** [RECOMMENDED basierend auf VERIFIED: backend/internal/handlers/fansub_media_review_handler.go; VERIFIED: backend/internal/handlers/contribution_review_handler.go]
+- `app_user_global_role.assigned`
+- `app_user_global_role.revoked`
+- `app_user_global_role.assign.denied` / `app_user_global_role.revoke.denied`
+- `app_user_status.disabled`
+- `app_user_status.reactivated`
+- `app_user_status.change.denied`
 
-**Recommended event names:** `app_user_global_role.assigned`, `app_user_global_role.revoked`, `app_user_status.disabled`, `app_user_status.reactivated`, with deny variants ending `.denied`. [RECOMMENDED based on VERIFIED: backend/internal/handlers/fansub_media_review_handler.go; VERIFIED: backend/internal/handlers/contribution_review_handler.go]
+```go
+_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+    ActorAppUserID: &identity.AppUserID,
+    EventType:      "app_user_global_role.assigned",
+    TargetType:     "app_user",
+    TargetID:       &targetAppUserID,
+    Action:         "assign_global_role",
+    Outcome:        "allowed",
+    Payload:        map[string]any{"role": role},
+})
+```
+[RECOMMENDED; VERIFIED: backend/internal/repository/audit_logs.go]
 
-### Pattern 4: Frontend Protected Session Gate
+### Anti-Patterns vermeiden
 
-**What:** Gate Phase 80 UI on `hasAccessToken || hasRefreshToken`, then call `frontend/src/lib/api.ts` helpers so the central client refreshes before requests. [VERIFIED: docs/frontend/auth-api-client.md]
+- **`fansub_group_member_id` statt `member_id` für Contributions-Joins:** Seit Migration 0105 ist `member_id` NOT NULL und kanonisch; `fansub_group_member_id` ist nullable Übergangsfeld. [VERIFIED: migration 0105]
+- **Phase-83-Auflösung neu bauen:** `ListEffectiveContributionsForVersion` und `ListActorContributionRolesForVersion` existieren bereits als getesteter Live-Code — wiederverwenden via Repository-Methoden-Aufruf, nicht replizieren. [VERIFIED: 83-VERIFICATION.md 16/16 passed]
+- **Scoped Rights in globalem Drawer editieren:** Explizit deferred; Anzeige + Deep-Link nach `/admin/fansubs/[id]/edit`. [VERIFIED: 80-CONTEXT.md]
+- **N+1 über Claims/Contributions/Medien/Konflikte:** Immer Page-First-CTE. [VERIFIED: D-07]
+- **Ad-hoc-Browser-Fetches:** Verboten; `frontend/src/lib/api.ts` nutzen. [VERIFIED: Lock K]
 
-**Current pitfall:** `PlatformAdminGate` currently reads only `hasAccessToken`, so Phase 80 should either fix that shared gate or avoid relying on it unchanged. [VERIFIED: frontend/src/components/auth/PlatformAdminGate.tsx]
+## Research Flags — Aufgelöst
 
-**When to use:** `/admin/users` page route and drawer mutations. [VERIFIED: AGENTS.md]
+### R-01: Accountstatus-Authority
 
-### Anti-Patterns to Avoid
+`app_users.status` ist eine editierbare Team4s-DB-Spalte mit den Werten `pending`, `active`, `disabled`. [VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql] Neue App-User erhalten `active`; bestehende `pending`-User werden beim Identity-Sync auf `active` hochgestuft; `disabled`-User bleiben `disabled`. [VERIFIED: backend/internal/repository/app_auth_repository.go; VERIFIED: backend/internal/repository/app_auth_repository_test.go]
 
-- **Using `listAdminUsers` as-is for Phase 80:** it has no pagination/filter/meta and only returns `AppUserListItem`. [VERIFIED: backend/internal/repository/app_auth_repository.go; VERIFIED: frontend/src/types/fansub.ts]
-- **Putting scoped rights edits in global drawer:** explicitly out of scope; use read-only display plus deep links. [VERIFIED: 80-CONTEXT.md]
-- **Deriving rights from Contributions:** forbidden by Lock I and milestone decision 11. [VERIFIED: .planning/milestones/v1.2-DISCUSSION.md]
-- **Treating group membership as admin authority:** permission engine requires roles and action checks, not membership alone. [VERIFIED: backend/internal/permissions/permissions.go]
-- **Ad-hoc browser fetches:** forbidden; use `frontend/src/lib/api.ts`. [VERIFIED: docs/api/api-contracts.md; VERIFIED: docs/frontend/auth-api-client.md]
+**Plan-Implikation:** Disable/Reactivate als Team4s-DB-Mutations auf `app_users.status` implementieren, keine Keycloak-Admin-Calls. Erlaubte Mutations-Targets: `active` und `disabled`; `pending` bleibt read-only. [VERIFIED: RECOMMENDED]
+
+### R-02: Effiziente Aggregat-Query
+
+Bestehende LATERAL-Pattern in `backend/internal/repository/fansub_group_app_members_repository.go` bestätigen die Machbarkeit. [VERIFIED: fansub_group_app_members_repository.go] Die bestehende `ListAppUsers`-Methode hat keine Pagination, Filter oder Aggregat-Counts und muss durch eine neue `ListAdminUsersPage`-Methode ersetzt oder ergänzt werden. [VERIFIED: backend/internal/repository/app_auth_repository.go]
+
+### R-03: Globale Rollen-Modell
+
+`app_user_global_roles` hat Primary Key `(app_user_id, role)` mit den Rollenwerten `platform_admin`, `content_admin`, `user`. [VERIFIED: database/migrations/0072] `platform_admin` ist ein Literal-String, geprüft durch `AppUserHasGlobalRole`. [VERIFIED: backend/internal/repository/authz.go] Ein Assign-Helper existiert, ein Revoke-Helper fehlt noch. [VERIFIED: backend/internal/repository/authz.go; VERIFIED: rg-Suche keine Ergebnisse für `RevokeAppUserGlobalRole`]
+
+**Plan-Implikation:** `RevokeAppUserGlobalRole` mit Last-Admin-Guard hinzufügen; alle Mutations auditieren. [RECOMMENDED]
+
+### R-04: Effiziente Conflict-Berechnung
+
+Vier v1-Conflict-Typen (D-17) plus drei Phase-83-Zusatz-Typen (D-18) als SQL-Booleans/Counts in der Page-CTE, als Detail-Rows im Übersicht-Tab. [RECOMMENDED; VERIFIED: 80-CONTEXT.md]
+
+### R-05: Phase-83-Default/Override-Auflösung — AUFGELÖST
+
+Phase 83 ist vollständig implementiert (2026-06-12, 16/16 Must-Haves). [VERIFIED: 83-VERIFICATION.md]
+
+**Kanonisches Schema:** [VERIFIED: database/migrations/0105_anime_contributions_member_id.up.sql]
+- `anime_contributions.member_id` BIGINT NOT NULL REFERENCES `members(id)` — kanonischer Anker seit Migration 0105
+- `anime_contributions.fansub_group_member_id` BIGINT NULL — Legacy/Übergangsfeld, nullable seit Migration 0105 Schritt F
+- `anime_contributions.release_version_id` BIGINT NULL — NULL = Projekt-Default, gesetzt = Release-Override (seit Migration 0091)
+- Unique-Constraint: `UNIQUE NULLS NOT DISTINCT (fansub_group_id, anime_id, member_id, release_version_id)` [VERIFIED: migration 0105 Schritt E]
+
+**Auflösungsregel (D-02/D-03 aus Phase 83):** [VERIFIED: backend/internal/repository/authz_permissions.go Z. 197–277]
+
+```
+1. Prüfe: Gibt es anime_contributions mit release_version_id = :versionID UND member_id des Users?
+   -> JA: Dieser versions-spezifische Satz gilt. Wenn User fehlt = kein Recht (Absenz-Semantik, D-03).
+   -> NEIN: Weiter zu Schritt 2.
+
+2. Fallback: Prüfe anime_contributions mit release_version_id IS NULL (Projekt-Default)
+   für das anime_id des Releases (via release_versions -> fansub_releases -> episodes -> anime_id).
+   -> Gefundene Rollen = Recht für diese Release-Version.
+   -> Keine Findings = kein Recht (D-04).
+```
+
+**Wichtig: Die Absenz-Semantik (`D-03`) hat kein separates DB-Flag.** Ein "nicht dabei" ist nicht eine explizite Zeile, sondern das Fehlen des Users im Override-Satz. Wenn für eine Release-Version mindestens eine Contribution-Zeile mit gesetztem `release_version_id` existiert (gleichgültig welcher User), dann gilt dieser Satz als Override und der Projekt-Default wird NICHT herangezogen. Fehlt der konkrete User in diesem Override-Satz, hat er kein Recht — ohne zusätzlichen DB-Marker. [VERIFIED: authz_permissions.go Z. 232–234 "Schritt 1 lieferte Ergebnisse → versions-spezifischer Satz gilt"]
+
+**Phase-80-Implikation:** Der Contributions-Tab des Drawers muss zeigen:
+- Welche Contributions ein User als Projekt-Default hat (`release_version_id IS NULL`).
+- Welche Release-Versions-Overrides existieren (`release_version_id IS NOT NULL`).
+- Ob der User in einem Override-Satz eines Releases fehlt (obwohl Projekt-Default ihn einschließt) — das ist ein D-18-Konflikt.
+
+### R-06: Override-Semantik für Konflikte — AUFGELÖST
+
+**"Nicht dabei" (Absenz) vs. Rollen-Ersetzung:** [VERIFIED: backend/internal/repository/authz_permissions.go; VERIFIED: 83-CONTEXT.md D-03]
+- Es gibt **kein** explizites "nicht dabei"-Flag in der DB.
+- **Absenz** = User hat keine `anime_contributions`-Zeile für diese `release_version_id` (und der Override-Satz ist nicht leer).
+- **Rollen-Ersetzung** = User hat eine Zeile für diese `release_version_id`, aber mit anderen `role_codes` als der Projekt-Default.
+- **Override-Satz nicht leer** = EXISTS (SELECT 1 FROM anime_contributions WHERE release_version_id = :versionID AND fansub_group_id = :groupID). [VERIFIED: admin_content_fansub_releases.go has_override-Subquery]
+
+**Phase-83-Zusatzkonflikte (D-18) — Erkennungslogik:**
+
+| Konflikt | Erkennung | SQL-Basis |
+|----------|-----------|-----------|
+| Override auf ungültige Release-Version | `ac.release_version_id IS NOT NULL AND release_versions.id IS NULL` | LEFT JOIN release_versions rv ON rv.id = ac.release_version_id; WHERE rv.id IS NULL |
+| Default/Override-Widerspruch | User in Projekt-Default, aber nicht in vorhandenem Override-Satz des Releases | Zweistufige Auflösung + Vergleich |
+| Media/Notizen ohne aufgelöste Contribution | User hat `release_version_media.uploaded_by_app_user_id` oder Notiz, aber `ListActorContributionRolesForVersion` gibt leere Liste zurück | JOIN release_version_media + Contribution-Check |
+
+[VERIFIED: 83-CONTEXT.md D-18; VERIFIED: authz_permissions.go Auflösungslogik; RECOMMENDED Conflict-SQL-Muster]
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Platform-admin route protection | New role parser or JWT role check | `requirePlatformAdminIdentity` / app global role check | Existing backend gate checks app-user status and `platform_admin`. [VERIFIED: backend/internal/handlers/platform_admin_authz.go] |
-| Scoped permissions | New rights rules in UI | `permissions.Service`, `AuthzRepository`, `fansub_group_member_roles` | Existing engine owns scoped group/release-version actions. [VERIFIED: backend/internal/permissions/permissions.go; VERIFIED: backend/internal/repository/authz_permissions.go] |
-| Audit writes | Custom audit table/helper | `repository.AuditLogRepository.Write` | Existing table/helper already models actor/scope/target/action/outcome/payload. [VERIFIED: database/migrations/0075_audit_logs.up.sql; VERIFIED: backend/internal/repository/audit_logs.go] |
-| Drawer/table/tabs UI primitives | Local drawer/tabs/table system | `@/components/ui` Drawer, Tabs, Table, Badge, Pagination, states | Local UI system requires these primitives for standard surfaces. [VERIFIED: docs/frontend/ui-system.md; VERIFIED: frontend/src/components/ui] |
-| Browser auth refresh | Manual bearer/token/cookie reads | `apiClientFetch`/central API helper seam | Central client owns refresh and 401 retry. [VERIFIED: docs/frontend/auth-api-client.md; VERIFIED: frontend/src/lib/api.ts] |
-| Media owner projection | A central `media_assets.owner_type` column | Existing junction-derived owner projection | Phase 79 confirms owner is composed from junction context, not a central owner field. [VERIFIED: backend/internal/repository/media_ownership_projection_repository.go; VERIFIED: 79-CONTEXT.md] |
+| Problem | Nicht bauen | Stattdessen nutzen | Warum |
+|---------|-------------|-------------------|-------|
+| Platform-admin-Routen-Schutz | Neuer Rollen-Parser / JWT-Check | `requirePlatformAdminIdentity` | Bestehende Backend-Gate. [VERIFIED: backend/internal/handlers/platform_admin_authz.go] |
+| Phase-83-Default/Override-Auflösung | Neue Zweistufen-SQL-Logik | `ListEffectiveContributionsForVersion` / `ListActorContributionRolesForVersion` | Bereits implementiert, getestet (16/16 passed), kein Grund zur Replikation. [VERIFIED: 83-VERIFICATION.md] |
+| Scoped Permissions | Neue Rechteregeln in UI | `permissions.Service`, `AuthzRepository` | Bestehende Engine für Platform/Global/Group/Release-Version-Aktionen. [VERIFIED: permissions.go] |
+| Audit-Writes | Custom Audit-Tabelle/-Helper | `repository.AuditLogRepository.Write` | Bestehende Tabelle/Helper modelliert Actor/Scope/Target/Action/Outcome/Payload. [VERIFIED: audit_logs.go] |
+| Drawer/Table/Tabs UI | Lokales Drawer-/Tabs-System | `@/components/ui` Drawer, Tabs, Table, Badge, Pagination | Pflicht-Primitives gemäss CLAUDE.md. [VERIFIED: docs/frontend/ui-system.md] |
+| Browser-Auth-Refresh | Manuelles Token/Cookie-Lesen | `apiClientFetch` / zentraler API-Helper | Zentraler Client besitzt Refresh und 401-Retry. [VERIFIED: docs/frontend/auth-api-client.md] |
+| Media-Owner-Projektion | Zentrale `media_assets.owner_type`-Spalte | Junction-basierte Owner-Projektion | Phase 79: Owner wird aus Junction-Kontext zusammengesetzt, nicht aus zentralem Owner-Feld. [VERIFIED: backend/internal/repository/media_ownership_projection_repository.go] |
 
-**Key insight:** Phase 80 is an aggregation and governance surface over existing ownership domains; custom shortcuts are dangerous because they can collapse app user, member profile, group membership, contribution, and media-owner concepts into one false permission model. [VERIFIED: docs/architecture/db-schema-fansub-domain.md; VERIFIED: .planning/milestones/v1.2-DISCUSSION.md]
-
-## Existing Analog Files To Read First
-
-| Concern | Files | Why |
-|---------|-------|-----|
-| Platform-admin backend routes | `backend/internal/handlers/platform_admin_authz.go`, `backend/internal/handlers/member_memorial_handler.go`, `backend/internal/handlers/admin_content_authz.go` | Existing global-admin gates and status rejection behavior. [VERIFIED: source inspection] |
-| Existing admin user list API seam | `backend/internal/handlers/app_auth.go`, `backend/internal/repository/app_auth_repository.go`, `backend/internal/models/app_auth.go`, `frontend/src/lib/api.ts`, `frontend/src/types/fansub.ts` | Existing `GET /api/v1/admin/users` is narrow but reusable as the starting seam. [VERIFIED: source inspection] |
-| Scoped permission engine | `backend/internal/permissions/permissions.go`, `backend/internal/repository/authz.go`, `backend/internal/repository/authz_permissions.go` | Source of truth for platform/global/group/release-version capability meaning. [VERIFIED: source inspection] |
-| Drawer/tabs/table UI primitives | `frontend/src/components/ui/Drawer.tsx`, `Tabs.tsx`, `Table.tsx`, `Pagination.tsx`, `Badge.tsx`, `PageHeader.tsx`, `LoadingState.tsx`, `ErrorState.tsx`, `EmptyState.tsx` | Required UI foundation. [VERIFIED: frontend/src/components/ui] |
-| Group member rights analog | `frontend/src/app/admin/fansubs/[id]/edit/FansubAppMembersSection.tsx`, `backend/internal/repository/fansub_group_app_members_repository.go`, `backend/internal/handlers/app_auth.go` | Shows scoped group member/role management that global drawer must not duplicate. [VERIFIED: source inspection] |
-| Audit patterns from 78/79 | `backend/internal/handlers/fansub_media_review_handler.go`, `backend/internal/handlers/contribution_review_handler.go`, `backend/internal/repository/audit_logs.go`, `.planning/phases/79-medien-ownership-in-ui-durchsetzen/79-CONTEXT.md` | Event naming, deny audit, owner-consistency rules. [VERIFIED: source inspection] |
-| Contract files | `shared/contracts/openapi.yaml`, `shared/contracts/admin-content.yaml`, `docs/api/api-contracts.md` | `/admin/users` exact contract is absent today and must be added/updated. [VERIFIED: rg `/admin/users` in shared/contracts] |
-
-## Research Flags Resolved
-
-### R-01: Accountstatus Authority
-
-`app_users.status` is an editable Team4s DB column with allowed values `pending`, `active`, `disabled`. [VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql] New app users default to active; existing pending users are promoted to active during identity sync; disabled users remain disabled. [VERIFIED: backend/internal/repository/app_auth_repository.go; VERIFIED: backend/internal/repository/app_auth_repository_test.go]
-
-**Plan implication:** Implement disable/reactivate as Team4s DB mutations on `app_users.status`, not Keycloak admin calls. [VERIFIED: backend/internal/repository/app_auth_repository.go; RECOMMENDED] Use allowed mutation targets `active` and `disabled`; leave `pending` read-only unless a later decision defines manual pending. [VERIFIED: app_auth_repository_test.go; RECOMMENDED]
-
-### R-02: Efficient Aggregate Query
-
-Use a repository method that selects page IDs first and computes aggregates only for those IDs; do not call detail endpoints per row. [RECOMMENDED based on VERIFIED: 80-CONTEXT.md] The current `ListAppUsers` does no pagination or aggregate counts and must be replaced or overloaded carefully with a new `ListAdminUsersPage` method. [VERIFIED: backend/internal/repository/app_auth_repository.go]
-
-Recommended DTO shape:
-```ts
-type AdminUserListItem = {
-  id: number
-  email: string
-  display_name: string
-  status: 'pending' | 'active' | 'disabled'
-  global_roles: AdminGlobalRole[]
-  member_profile: { member_id: number; display_name: string; slug?: string; profile_status: string } | null
-  group_membership_count: number
-  leader_context_count: number
-  pending_claim_count: number
-  open_contribution_count: number
-  media_upload_count: number
-  last_activity_at: string | null
-  conflict_count: number
-  conflict_types: AdminUserConflictType[]
-}
-```
-[RECOMMENDED; VERIFIED: data sources from 80-CONTEXT.md and migrations]
-
-### R-03: Global Roles Model
-
-`app_user_global_roles` has primary key `(app_user_id, role)` and role constraint `platform_admin`, `content_admin`, `user`. [VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql] `platform_admin` is represented as the literal role string and checked by `AppUserHasGlobalRole`. [VERIFIED: backend/internal/repository/authz.go; VERIFIED: backend/internal/handlers/platform_admin_authz.go] There is an existing assign helper but no matching revoke helper found in source. [VERIFIED: backend/internal/repository/authz.go; VERIFIED: rg `RevokeAppUserGlobalRole` no results]
-
-**Plan implication:** Add `AssignAppUserGlobalRole` use or admin-users-specific wrapper, add `RevokeAppUserGlobalRole`, validate role strings against the DB/model constants, and audit every mutation. [VERIFIED: backend/internal/repository/authz.go; VERIFIED: backend/internal/models/app_auth.go; RECOMMENDED]
-
-Recommended event names:
-- `app_user_global_role.assigned` [RECOMMENDED based on audit patterns]
-- `app_user_global_role.revoked` [RECOMMENDED based on audit patterns]
-- `app_user_global_role.assign.denied` and `app_user_global_role.revoke.denied` [RECOMMENDED based on `.denied` pattern]
-
-### R-04: Efficient Conflict Calculation
-
-Calculate the four v1 conflict types as booleans/counts in SQL for page IDs and as detailed rows in the overview tab. [RECOMMENDED; VERIFIED: 80-CONTEXT.md]
-
-Recommended conflict semantics:
-- `pending_claim_for_linked_profile`: user has a verified member profile and also pending claim/invitation rows for a member context. [VERIFIED: member_claims and member_claim_invitations migrations; RECOMMENDED exact SQL]
-- `group_member_without_role`: active `fansub_group_members` row exists with no `fansub_group_member_roles` row. [VERIFIED: database/migrations/0073_fansub_group_app_memberships.up.sql]
-- `media_owner_invalid`: media owner projection cannot resolve to a valid expected owner context or existing owner consistency projection flags false. [VERIFIED: backend/internal/repository/media_ownership_projection_repository.go; VERIFIED: backend/internal/repository/media_repository.go]
-- `open_contribution_dispute`: `anime_contributions.dispute_state = 'open'` related to the user's verified member or historical memberships. [VERIFIED: database/migrations/0097_v12_status_foundation.up.sql; VERIFIED: database/migrations/0086_anime_contributions.up.sql]
-
-**Plan implication:** Create one SQL helper/view-like CTE for conflict counts and reuse its logic in list and drawer overview tests; avoid duplicating conflict semantics separately in frontend. [RECOMMENDED; VERIFIED: docs/api/api-contracts.md]
-
-## Endpoint Recommendations
-
-| Method | Path | Purpose | Notes |
-|--------|------|---------|-------|
-| GET | `/api/v1/admin/users` | Paged aggregate table | Query: `q`, `status`, `global_role`, `has_conflicts`, `sort=last_activity_desc`, `limit`, `offset`; response includes `data` + `meta`. [RECOMMENDED; VERIFIED: existing route path in admin_routes.go] |
-| GET | `/api/v1/admin/users/:userId/overview` | Drawer overview + conflict breakdown | Full conflict breakdown and summary cards. [RECOMMENDED] |
-| GET | `/api/v1/admin/users/:userId/global-roles` | Role tab read model | Include assignable roles catalog from app constants. [RECOMMENDED; VERIFIED: backend/internal/models/app_auth.go] |
-| PUT | `/api/v1/admin/users/:userId/global-roles/:role` | Assign role | Platform-admin only, audited. [RECOMMENDED; VERIFIED: audit pattern] |
-| DELETE | `/api/v1/admin/users/:userId/global-roles/:role` | Revoke role | Platform-admin only, audited; consider guard against removing last platform admin. [RECOMMENDED] |
-| PUT | `/api/v1/admin/users/:userId/status` | Disable/reactivate account | Body `{ "status": "active" | "disabled" }`; audited. [RECOMMENDED; VERIFIED: app_users.status values] |
-| GET | `/api/v1/admin/users/:userId/member-claims` | Member profile/claims tab | Keep claims and invitations separate in payload sections. [RECOMMENDED; VERIFIED: Lock H] |
-| GET | `/api/v1/admin/users/:userId/group-memberships` | Group memberships tab | Read-only list; deep-link to `/admin/fansubs/[id]/edit`. [RECOMMENDED; VERIFIED: Lock I] |
-| GET | `/api/v1/admin/users/:userId/group-rights` | Scoped rights tab | Read-only derived capabilities by group/release-version context. [RECOMMENDED; VERIFIED: permissions.go] |
-| GET | `/api/v1/admin/users/:userId/contributions` | Contributions tab | Read-only; do not derive rights. [RECOMMENDED; VERIFIED: Lock I/H] |
-| GET | `/api/v1/admin/users/:userId/media` | Media tab | Read-only upload/ownership summary with scoped owner types. [RECOMMENDED; VERIFIED: Phase 79 ownership model] |
-| GET | `/api/v1/admin/users/:userId/audit` | Audit tab | Query `audit_logs` where actor or target app user matches. [RECOMMENDED; VERIFIED: audit_logs schema] |
+**Key Insight:** Phase 80 ist eine Aggregations- und Governance-Fläche über bestehende Ownership-Domänen. Shortcuts, die App-User, Member-Profil, Gruppenmitgliedschaft, Contribution und Media-Owner in ein falsches Permission-Modell kollabieren, sind gefährlich. [VERIFIED: docs/architecture/db-schema-fansub-domain.md]
 
 ## Common Pitfalls
 
-### Pitfall 1: Existing `/admin/users` Contract Drift
+### Pitfall 1: Phase-83-Auflösung replizieren statt wiederverwenden
 
-**What goes wrong:** Frontend consumes fields not documented in shared contracts. [VERIFIED: docs/api/api-contracts.md]
-**Why it happens:** Runtime route exists but exact `/admin/users` contract entry is absent. [VERIFIED: rg `/admin/users` in shared/contracts]
-**How to avoid:** Add contract first, then backend DTOs, frontend types, and `api.ts` helpers in the same implementation plan. [VERIFIED: docs/api/api-contracts.md]
-**Warning signs:** Page code parses `response.data.some_aggregate` without a type in `frontend/src/types/admin-users.ts`. [RECOMMENDED]
+**Was schiefläuft:** Planner/Executor baut eine neue zweistufige Auflösungslogik für Contributions, weil die Phase-83-Implementierung als "Release-zentrisch" erscheint und Phase 80 "User-zentrisch" ist.
+**Warum es passiert:** Die Metho­den heissen `ListEffectiveContributionsForVersion` (Release-Sicht), nicht `ListEffectiveContributionsForUser`. Aber die Logik kann mit User-ID und Member-ID auch für den Contributions-Tab adaptiert werden.
+**Wie vermeiden:** Bestehende Repository-Methoden `ListEffectiveContributionsForVersion` und `ListActorContributionRolesForVersion` als Patterns lesen; für Phase 80 ähnliche Methoden ableiten, nicht neu erfinden. [VERIFIED: 83-VERIFICATION.md 16/16; VERIFIED: authz_permissions.go]
+**Warnsignal:** Neue Datei `admin_users_contributions_resolution.go` mit eigenem Zweistufen-SQL erscheint im Plan.
 
-### Pitfall 2: N+1 Aggregate Loading
+### Pitfall 2: Absenz als DB-Flag suchen
 
-**What goes wrong:** Table rows trigger one request each for claims/contributions/media/conflicts. [VERIFIED: R-02 in 80-CONTEXT.md]
-**Why it happens:** Drawer tab lazy-loading is confused with list aggregate loading. [RECOMMENDED]
-**How to avoid:** One list endpoint returns summary aggregates for the page; tabs lazy-load only after drawer selection. [VERIFIED: 80-CONTEXT.md]
-**Warning signs:** `Promise.all(users.map(...))` in `/admin/users` page. [RECOMMENDED]
+**Was schiefläuft:** Code/Plan sucht nach einem `is_absent`-Flag oder `excluded`-Spalte, um "nicht dabei" zu repräsentieren.
+**Warum es passiert:** CONTEXT.md D-18 erwähnt "nicht dabei" ohne klarzumachen, dass dies reine Absenz ist.
+**Wie vermeiden:** Absenz = User fehlt schlicht in der Rollen-Liste des Override-Satzes. Kein DB-Marker. Das D-03-Verhalten ist: Schritt 1 hat Ergebnisse (Override-Satz nicht leer) UND User nicht im Satz → kein Recht. [VERIFIED: authz_permissions.go Z. 232–234]
+**Warnsignal:** Migration oder DTO mit `excluded_from_release` oder `is_absent`-Feld.
 
-### Pitfall 3: Broken Refresh-Session UI Gate
+### Pitfall 3: Existing `/admin/users` Contract Drift
 
-**What goes wrong:** Protected admin UI shows logged-out state when access token is absent but refresh token is valid. [VERIFIED: AGENTS.md; VERIFIED: docs/frontend/auth-api-client.md]
-**Why it happens:** `PlatformAdminGate` currently checks `hasAccessToken` only. [VERIFIED: frontend/src/components/auth/PlatformAdminGate.tsx]
-**How to avoid:** Update gate/test to use `hasAccessToken || hasRefreshToken`; let `getCurrentUser` refresh centrally. [VERIFIED: docs/frontend/auth-api-client.md]
-**Warning signs:** New Phase 80 tests mock only `hasAccessToken=true` and omit refresh-only cases. [RECOMMENDED]
+**Was schiefläuft:** Frontend konsumiert Felder ohne Dokumentation in den Shared Contracts.
+**Warum es passiert:** Runtime-Route existiert, aber exakter `/admin/users`-Contract-Eintrag ist absent. [VERIFIED: rg `/admin/users` in shared/contracts — kein vollständiger Eintrag gefunden]
+**Wie vermeiden:** Contract zuerst ergänzen, dann Backend-DTOs, Frontend-Types und `api.ts`-Helper im selben Plan. [VERIFIED: docs/api/api-contracts.md]
+**Warnsignal:** Page-Code parsed `response.data.aggregate` ohne Type in `frontend/src/types/admin-users.ts`.
 
-### Pitfall 4: Revoking Last Platform Admin
+### Pitfall 4: N+1 Aggregat-Loading
 
-**What goes wrong:** Platform admin removes the final `platform_admin` role and locks out the global center. [RECOMMENDED risk based on role model]
-**Why it happens:** Existing assign helper has no revoke/last-admin guard. [VERIFIED: backend/internal/repository/authz.go; VERIFIED: rg `RevokeAppUserGlobalRole` no results]
-**How to avoid:** Add repository guard for last active platform admin before revoke or status disable of a platform admin. [RECOMMENDED]
-**Warning signs:** Revoke/status tests do not include "last active platform admin" conflict. [RECOMMENDED]
+**Was schiefläuft:** Tabellen-Zeilen triggern je einen Request für Claims/Contributions/Medien/Konflikte.
+**Wie vermeiden:** Ein Listen-Endpunkt liefert Summary-Aggregate für die Page; Tabs lazy-loaden erst nach Drawer-Auswahl. [VERIFIED: D-07/D-09]
 
-### Pitfall 5: Media Conflict Overreach
+### Pitfall 5: Broken Refresh-Session UI Gate
 
-**What goes wrong:** Planner tries to repair or re-owner media from global user drawer. [VERIFIED: Phase 80 deferred ideas; VERIFIED: 79-CONTEXT.md]
-**Why it happens:** `owner_consistent=false` is mistaken for an editable global permission. [VERIFIED: backend/internal/repository/media_repository.go]
-**How to avoid:** Display owner conflict and deep-link to canonical owner surface; do not add owner mutation in Phase 80. [VERIFIED: 80-CONTEXT.md; VERIFIED: 79-CONTEXT.md]
-**Warning signs:** New endpoint body contains `owner_type`, `owner_id`, or media scope assign fields. [RECOMMENDED]
+**Was schiefläuft:** Protected Admin-UI zeigt Logged-out-Zustand wenn Access-Token fehlt, aber Refresh-Token gültig ist.
+**Warum es passiert:** `PlatformAdminGate` prüft aktuell nur `hasAccessToken`. [VERIFIED: frontend/src/components/auth/PlatformAdminGate.tsx]
+**Wie vermeiden:** Gate/Test auf `hasAccessToken || hasRefreshToken` updaten. [VERIFIED: docs/frontend/auth-api-client.md]
+
+### Pitfall 6: Letzten Plattform-Admin sperren
+
+**Was schiefläuft:** Plattform-Admin entfernt die letzte `platform_admin`-Rolle oder deaktiviert den letzten aktiven Plattform-Admin.
+**Warum es passiert:** Kein bestehender Revoke/Last-Admin-Guard. [VERIFIED: authz.go; VERIFIED: rg `RevokeAppUserGlobalRole` — keine Ergebnisse]
+**Wie vermeiden:** Repository-Guard für letzten aktiven Plattform-Admin vor Revoke und Status-Disable hinzufügen. [RECOMMENDED]
+
+### Pitfall 7: fansub_group_member_id statt member_id für Contribution-Joins
+
+**Was schiefläuft:** Aggregat-Query oder Contributions-Tab joiniert über `fansub_group_member_id -> hist_fansub_group_members.member_id` statt direkt über `anime_contributions.member_id`.
+**Warum es passiert:** Ältere Code-Referenzen (vor Migration 0105) nutzen `fansub_group_member_id` als Hauptanker.
+**Wie vermeiden:** Seit Migration 0105 ist `anime_contributions.member_id` NOT NULL und kanonisch. `fansub_group_member_id` nur noch als Fallback für historische Daten ohne `member_id`. [VERIFIED: migration 0105 Schritt D]
+**Warnsignal:** SQL-JOIN über `hist_fansub_group_members` ohne COALESCE-Alternative.
 
 ## Code Examples
 
-### Platform Admin Gate In Handler
+### Platform-Admin-Gate im Handler
 
 ```go
 func (h *AdminUsersHandler) ListUsers(c *gin.Context) {
@@ -419,188 +524,231 @@ func (h *AdminUsersHandler) ListUsers(c *gin.Context) {
 ```
 [RECOMMENDED; VERIFIED: backend/internal/handlers/platform_admin_authz.go]
 
-### Audited Global Role Assignment
+### Phase-83-Auflösung für Contributions-Tab adaptieren
 
 ```go
-_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-    ActorAppUserID: &identity.AppUserID,
-    EventType:      "app_user_global_role.assigned",
-    TargetType:     "app_user",
-    TargetID:       &targetAppUserID,
-    Action:         "assign_global_role",
-    Outcome:        "allowed",
-    Payload:        map[string]any{"role": role},
-})
-```
-[RECOMMENDED; VERIFIED: backend/internal/repository/audit_logs.go; VERIFIED: backend/internal/handlers/app_auth.go]
+// Statt neu bauen: Bestehende Methoden als Vorlage nutzen
+// authz_permissions.go ListActorContributionRolesForVersion Z. 197–277
+// admin_content_fansub_releases_contributions_repository.go ListEffectiveContributionsForVersion
 
-### Frontend Helper Pattern
+// Phase-80-Adaption: User-zentrische Sicht
+func (r *AdminUsersRepository) ListUserContributions(
+    ctx context.Context,
+    memberID int64,
+) (*UserContributionsResult, error) {
+    // Projektweite Defaults
+    rows, err := r.db.Query(ctx, `
+        SELECT ac.id, ac.fansub_group_id, fg.name AS group_name,
+               ac.anime_id, a.title AS anime_title,
+               'project_default' AS contribution_type,
+               ac.dispute_state,
+               COALESCE(ARRAY_AGG(acr.role_code), ARRAY[]::text[]) AS role_codes
+        FROM anime_contributions ac
+        JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
+        JOIN anime a ON a.id = ac.anime_id
+        LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+        WHERE ac.member_id = $1            -- kanonischer Anker [VERIFIED: migration 0105]
+          AND ac.release_version_id IS NULL -- Projekt-Default
+        GROUP BY ac.id, fg.name, a.title
+    `, memberID)
+    // [weitere Query für Release-Overrides mit release_version_id IS NOT NULL]
+}
+```
+[RECOMMENDED; VERIFIED: migration 0105 member_id-Anker; VERIFIED: admin_content_fansub_releases_contributions_repository.go-Pattern]
+
+### Frontend-Helper-Pattern
 
 ```ts
 export async function listAdminUsersPage(
-  params: AdminUserListParams,
+    params: AdminUserListParams,
 ): Promise<AdminUserListResponse> {
-  const query = new URLSearchParams()
-  if (params.q) query.set('q', params.q)
-  const response = await apiClientFetch(`/api/v1/admin/users?${query.toString()}`, {
-    cache: 'no-store',
-  })
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
-    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
-  }
-  return response.json() as Promise<AdminUserListResponse>
+    const query = new URLSearchParams()
+    if (params.q) query.set('q', params.q)
+    if (params.status) query.set('status', params.status)
+    const response = await apiClientFetch(`/api/v1/admin/users?${query.toString()}`, {
+        cache: 'no-store',
+    })
+    if (!response.ok) {
+        const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+        throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+    }
+    return response.json() as Promise<AdminUserListResponse>
 }
 ```
 [RECOMMENDED; VERIFIED: docs/frontend/auth-api-client.md; VERIFIED: frontend/src/lib/api.ts]
 
+## Endpoint-Empfehlungen
+
+| Methode | Pfad | Zweck | Hinweise |
+|---------|------|-------|---------|
+| GET | `/api/v1/admin/users` | Paged Aggregat-Tabelle | Query: `q`, `status`, `global_role`, `has_conflicts`, `sort=last_activity_desc`, `limit`, `offset`. [RECOMMENDED; VERIFIED: bestehende Route in admin_routes.go] |
+| GET | `/api/v1/admin/users/:userId/overview` | Drawer-Übersicht + Conflict-Aufschlüsselung | Vollständige Conflict-Details und Summary-Cards. [RECOMMENDED] |
+| GET | `/api/v1/admin/users/:userId/global-roles` | Rollen-Tab Read-Modell | Assignierbare Rollen aus App-Konstanten. [RECOMMENDED; VERIFIED: backend/internal/models/app_auth.go] |
+| PUT | `/api/v1/admin/users/:userId/global-roles/:role` | Rolle zuweisen | Platform-admin-only, auditiert. [RECOMMENDED] |
+| DELETE | `/api/v1/admin/users/:userId/global-roles/:role` | Rolle entziehen | Platform-admin-only, auditiert; Last-Admin-Guard. [RECOMMENDED] |
+| PUT | `/api/v1/admin/users/:userId/status` | Account deaktivieren/reaktivieren | Body `{ "status": "active" \| "disabled" }`; auditiert. [RECOMMENDED; VERIFIED: app_users.status-Werte] |
+| GET | `/api/v1/admin/users/:userId/member-claims` | Member-Profil/Claims-Tab | Claims und Einladungen in separaten Payload-Sektionen. [RECOMMENDED; VERIFIED: Lock H] |
+| GET | `/api/v1/admin/users/:userId/group-memberships` | Gruppenmitgliedschaften-Tab | Read-only; Deep-Link nach `/admin/fansubs/[id]/edit`. [RECOMMENDED; VERIFIED: Lock I] |
+| GET | `/api/v1/admin/users/:userId/group-rights` | Scoped-Rechte-Tab | Read-only abgeleitete Capabilities nach Gruppen-/Release-Version-Kontext. [RECOMMENDED; VERIFIED: permissions.go] |
+| GET | `/api/v1/admin/users/:userId/contributions` | Contributions-Tab | Read-only; Phase-83-aware: Projekt-Defaults + Release-Overrides + Legacy + Disputes. [RECOMMENDED; VERIFIED: Lock I/H] |
+| GET | `/api/v1/admin/users/:userId/media` | Medien-Tab | Read-only Upload-/Ownership-Zusammenfassung mit scoped Owner-Types. [RECOMMENDED; VERIFIED: Phase-79-Ownership-Modell] |
+| GET | `/api/v1/admin/users/:userId/audit` | Audit-Tab | `audit_logs` nach Actor oder Target App-User. [RECOMMENDED; VERIFIED: audit_logs-Schema] |
+
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Legacy user/admin role fallback | App-user global role `platform_admin` with legacy fallback in shared helper | Phase 43+ foundation; route helper verified in current code | Phase 80 should prefer AppUserID/global roles and keep legacy fallback only where helper already provides it. [VERIFIED: backend/internal/handlers/platform_admin_authz.go; VERIFIED: database/migrations/0072_keycloak_app_users_foundation.up.sql] |
-| Single unscoped admin role idea | Scoped permissions by group/release-version with platform-admin override | Phase 44+ permissions engine | Global drawer can display scoped rights but must not invent unscoped media/admin grants. [VERIFIED: backend/internal/permissions/permissions.go; VERIFIED: .planning/milestones/v1.2-DISCUSSION.md] |
-| Media owner as generic asset field | Owner derived from canonical junctions (`fansub_group_media`, `release_version_media`, `owner_member_id`, etc.) | Phase 72/79 ownership model | Conflict display should use owner projections, not central owner mutation fields. [VERIFIED: backend/internal/repository/media_ownership_projection_repository.go; VERIFIED: 79-CONTEXT.md] |
+| Alter Ansatz | Aktueller Ansatz | Seit wann | Impact |
+|--------------|------------------|-----------|--------|
+| Legacy `fansub_group_member_id` als einziger Contribution-Anker | `anime_contributions.member_id` NOT NULL als kanonischer Anker (Migration 0105); `fansub_group_member_id` nullable Legacy | Phase 82/83, 2026-06 | Phase 80 muss `member_id` primär verwenden, nie den alten Pfad als Standard. [VERIFIED: migration 0105] |
+| `CanForReleaseVersion` nutzte Gruppen-Mitgliedschaft + `fansub_group_member_roles` | `CanForReleaseVersion` nutzt Contribution-basierte zweistufige Auflösung (Projekt-Default + Release-Override); Leader immer ausgenommen | Phase 83, 2026-06-11 | Phase 80 muss die neuen Permission-Semantics beim Anzeigen von Release-Rechten berücksichtigen. [VERIFIED: permissions.go Z. 243–317] |
+| Kein `has_override`-Flag in Release-Listing | `AdminFansubReleaseSummary.HasOverride bool` aus EXISTS-Subquery | Phase 83, 2026-06-11 | Phase 80 kann dieses Feld für Conflict-D-18-Detektion im Media-Tab wiederverwenden. [VERIFIED: models/admin_release_theme_assets.go Z. 51] |
+| `release_member_roles` für Notizen-Member-Rollenliste | `GetMemberRolesForVersion` liest aus `anime_contributions` + `anime_contribution_roles` | Phase 83, 2026-06-11 | Phase 80 Media-Tab: Anzeige "User hat Notizen/Medien für diese Release-Version" muss ebenfalls `anime_contributions` abfragen, nicht `release_member_roles`. [VERIFIED: release_version_notes_repository.go] |
 
-**Deprecated/outdated:**
-- Legacy `release_version_groups.fansubgroup_id` must not be used. [VERIFIED: AGENTS.md; VERIFIED: docs/architecture/db-schema-fansub-domain.md]
-- Browser UI direct token/bearer handling is forbidden. [VERIFIED: docs/frontend/auth-api-client.md]
-- The current `listAdminUsers(authToken?)` signature is compatible but not ideal for Phase 80 because it uses the older optional `authToken` pattern and no pagination/filter contract. [VERIFIED: frontend/src/lib/api.ts]
+**Deprecated/Veraltet:**
+- `release_member_roles`-Tabelle für Contributor-Rechtsprüfung: ersetzt durch `anime_contributions` + Phase-83-Auflösung. [VERIFIED: 83-CONTEXT.md D-13]
+- Legacy `listAdminUsers(authToken?)`: kompatibel, aber ohne Pagination/Filter/Meta — muss durch `ListAdminUsersPage` ersetzt werden. [VERIFIED: frontend/src/lib/api.ts]
+- `PlatformAdminGate` prüft nur `hasAccessToken`: muss auf `hasAccessToken || hasRefreshToken` erweitert werden. [VERIFIED: frontend/src/components/auth/PlatformAdminGate.tsx]
 
 ## Assumptions Log
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | None. All factual claims are sourced from local code/docs or registry/tool output; endpoint/event/query shapes are marked as recommendations, not existing facts. | All | No user confirmation needed for factual baseline; planner still needs to choose final endpoint names and SQL details. |
+| # | Claim | Abschnitt | Risiko falls falsch |
+|---|-------|-----------|---------------------|
+| A1 | Keine. Alle Sachaussagen sind aus Live-Code, Migrationen oder offiziellen Dokumenten verifiziert; Endpunkt-/Event-/Query-Formen sind als Empfehlungen markiert. | Alle | Keine User-Bestätigung nötig für faktische Basis; Planner wählt finale Endpunkt-Namen und SQL-Details. |
 
 ## Open Questions
 
-1. **Should Phase 80 guard against disabling/revoking the last active platform admin?** [RECOMMENDED]
-   - What we know: global roles are editable and status is editable. [VERIFIED: 80-CONTEXT.md]
-   - What's unclear: no existing last-platform-admin guard exists. [VERIFIED: rg source inspection]
-   - Recommendation: plan a guard and tests because lockout risk is high. [RECOMMENDED]
+1. **Sollte Phase 80 gegen Sperren/Entziehen des letzten aktiven Plattform-Admins absichern?**
+   - Was wir wissen: Globale Rollen und Status sind editierbar. Kein bestehender Last-Admin-Guard. [VERIFIED: authz.go]
+   - Empfehlung: Guard und Tests planen, weil Lockout-Risiko hoch ist. [RECOMMENDED]
 
-2. **Should `/admin/users` live in `AppAuthHandler` or a new `AdminUsersHandler`?** [RECOMMENDED]
-   - What we know: existing narrow `ListAppUsers` is in `AppAuthHandler`. [VERIFIED: backend/internal/handlers/app_auth.go]
-   - What's unclear: file-size pressure and tab endpoints may make a new handler cleaner. [VERIFIED: app_auth.go size/source inspection]
-   - Recommendation: create `AdminUsersHandler` but reuse `AppAuthRepository`/`AuthzRepository`/`AuditLogRepository` patterns; do not create a new auth domain. [RECOMMENDED]
+2. **Soll `/admin/users` in `AppAuthHandler` oder einem neuen `AdminUsersHandler` leben?**
+   - Was wir wissen: Bestehende schmale `ListAppUsers` ist in `AppAuthHandler`. [VERIFIED: app_auth.go]
+   - Empfehlung: Neuer `AdminUsersHandler` erstellen, aber `AppAuthRepository`, `AuthzRepository` und `AuditLogRepository` wiederverwenden — kein neues Auth-Domain. [RECOMMENDED]
 
-3. **Exact media conflict SQL for owner inconsistency needs implementation-time confirmation.** [RECOMMENDED]
-   - What we know: owner projection is junction-composed and group media review exposes `owner_consistent`. [VERIFIED: backend/internal/repository/media_ownership_projection_repository.go; VERIFIED: backend/internal/repository/media_repository.go]
-   - What's unclear: there is no single persisted `owner_consistent` column across all media surfaces. [VERIFIED: rg source inspection]
-   - Recommendation: list conflict should compute invalid owner scopes with explicit owner-context checks per supported surface, and drawer media tab should show read-only details. [RECOMMENDED]
+3. **Exaktes Media-Conflict-SQL für Owner-Inkonsistenz braucht Implementation-Zeit-Bestätigung.**
+   - Was wir wissen: Owner-Projektion ist Junction-komponiert; kein einzelnes persistiertes `owner_consistent`-Feld über alle Media-Surfaces. [VERIFIED: media_ownership_projection_repository.go]
+   - Empfehlung: Conflict-Liste soll ungültige Owner-Scopes mit expliziten Owner-Kontext-Checks pro unterstützter Surface berechnen. [RECOMMENDED]
 
 ## Environment Availability
 
-| Dependency | Required By | Available | Version | Fallback |
-|------------|-------------|-----------|---------|----------|
-| Node.js | Frontend tests/build | Yes | v24.14.0 | None needed. [VERIFIED: node --version] |
-| npm | Frontend scripts and `npm view` | Yes | 11.9.0 | None needed. [VERIFIED: npm --version] |
-| Go | Backend tests/build | Yes | go1.26.1 windows/amd64 | None needed. [VERIFIED: go version] |
-| Docker / Compose | Integration DB/service checks | Yes | Docker 29.4.3; Compose v5.1.3 | Use package-level tests if containers are not running. [VERIFIED: docker --version; VERIFIED: docker compose version] |
-| Git | Diff/check/commit | Yes | 2.41.0.windows.1 | None needed. [VERIFIED: git --version] |
+| Abhängigkeit | Benötigt von | Verfügbar | Version | Fallback |
+|-------------|-------------|-----------|---------|----------|
+| Node.js | Frontend Tests/Build | Ja | v24.14.0 | Nicht nötig. [VERIFIED: node --version] |
+| npm | Frontend Scripts | Ja | 11.9.0 | Nicht nötig. [VERIFIED: npm --version] |
+| Go | Backend Tests/Build | Ja | go1.26.1 windows/amd64 | Nicht nötig. [VERIFIED: go version] |
+| Docker / Compose | Integriertes DB/Service | Ja | Docker 29.4.3; Compose v5.1.3 | Package-level Tests wenn Container nicht laufen. [VERIFIED: docker --version] |
+| Git | Diff/Check/Commit | Ja | 2.41.0.windows.1 | Nicht nötig. [VERIFIED: git --version] |
 
-**Missing dependencies with no fallback:** None found during research. [VERIFIED: environment commands]
-
-**Missing dependencies with fallback:** None found during research. [VERIFIED: environment commands]
+**Fehlende Abhängigkeiten ohne Fallback:** Keine. [VERIFIED: Environment-Checks]
 
 ## Validation Architecture
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | Backend Go `testing` with testify; frontend Vitest 3.2.4. [VERIFIED: backend/go.mod; VERIFIED: frontend/package.json] |
-| Config file | `frontend/vitest.config.ts`; backend package tests use Go defaults. [VERIFIED: rg test infrastructure] |
-| Quick run command | `cd backend && go test ./internal/handlers ./internal/repository ./internal/permissions -run "AdminUsers|AppAuth|Authz|PlatformAdmin|Permissions" -count=1` plus `cd frontend && npm test -- src/components/auth/PlatformAdminGate.test.tsx src/lib/api.no-token-boundary.test.ts` [RECOMMENDED; VERIFIED: test files exist] |
-| Full suite command | `cd backend && go test ./...` and `cd frontend && npm test && npm run typecheck && npm run lint` [VERIFIED: package scripts; VERIFIED: backend test layout] |
+| Eigenschaft | Wert |
+|-------------|------|
+| Framework | Backend Go `testing` mit testify; frontend Vitest 3.2.4. [VERIFIED: backend/go.mod; VERIFIED: frontend/package.json] |
+| Config-Datei | `frontend/vitest.config.ts`; Backend-Pakete nutzen Go-Defaults. [VERIFIED: rg test infrastructure] |
+| Quick Run Command | `cd backend && go test ./internal/handlers ./internal/repository ./internal/permissions -run "AdminUsers\|AppAuth\|Authz\|PlatformAdmin\|Permissions\|MemberIDAnchor\|ContributionRoles" -count=1` plus `cd frontend && npm test -- src/components/auth/PlatformAdminGate.test.tsx src/lib/api.no-token-boundary.test.ts` [RECOMMENDED; VERIFIED: test files exist] |
+| Full Suite Command | `cd backend && go test ./...` und `cd frontend && npm test && npm run typecheck && npm run lint` [VERIFIED: package scripts] |
 
-### Phase Requirements -> Test Map
+### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|--------------|
-| Entscheidung I | Non-platform-admin cannot reach list/detail/mutations; scoped rights read-only in drawer | backend handler + frontend render | `cd backend && go test ./internal/handlers -run AdminUsers -count=1`; `cd frontend && npm test -- src/app/admin/users/page.test.tsx` | Missing Wave 0 [VERIFIED: no frontend admin/users route] |
-| Entscheidung H | Claims, requests, contributions are separate sections and not inferred from each other | backend repository + frontend tab tests | `cd backend && go test ./internal/repository -run AdminUsers -count=1` | Missing Wave 0 [VERIFIED: no admin users tests] |
-| Entscheidung K | Contracts, DTOs, `api.ts`, backend response match | contract/source tests + typecheck | `cd frontend && npm test -- src/lib/api.no-token-boundary.test.ts && npm run typecheck` | Partial existing [VERIFIED: existing no-token test; missing admin-users helper tests] |
-| Entscheidung J(Teil) | Memorial profile status displayed read-only in user/member profile context | backend query + frontend tab render | `cd frontend && npm test -- src/app/admin/users/tabs/UserClaimsTab.test.tsx` | Missing Wave 0 [VERIFIED: no admin/users route] |
+| Req ID | Verhalten | Test-Typ | Automatisierter Command | Datei existiert? |
+|--------|-----------|----------|------------------------|-----------------|
+| Entscheidung I | Nicht-Plattform-Admin kann Liste/Detail/Mutations nicht erreichen; scoped Rechte read-only im Drawer | Backend-Handler + Frontend-Render | `cd backend && go test ./internal/handlers -run AdminUsers -count=1`; `cd frontend && npm test -- src/app/admin/users/page.test.tsx` | Fehlt Wave 0 |
+| Entscheidung H | Claims, Requests, Contributions sind separate Sektionen ohne Cross-Domain-Inference | Backend-Repository + Frontend-Tab | `cd backend && go test ./internal/repository -run AdminUsers -count=1` | Fehlt Wave 0 |
+| Entscheidung K | Contracts, DTOs, `api.ts`, Backend-Response stimmen überein | Contract + Typecheck | `cd frontend && npm test -- src/lib/api.no-token-boundary.test.ts && npm run typecheck` | Partiell vorhanden |
+| Entscheidung J (Teil) | Memorial-Profilstatus read-only im Member-Profil-Kontext | Backend-Query + Frontend-Tab-Render | `cd frontend && npm test -- src/app/admin/users/tabs/UserClaimsTab.test.tsx` | Fehlt Wave 0 |
+| D-12/R-05 | Contributions-Tab liest `anime_contributions.member_id` primär | Backend-Repository | `cd backend && go test ./internal/repository -run "MemberIDAnchor\|AdminUsers" -count=1` | Fehlt Wave 0 |
+| D-14/R-06 | Release-Override-Absenz = kein Recht; kein DB-Flag-Search | Backend-Permissions | `cd backend && go test ./internal/permissions -run "ContributionRoles\|ReleaseVersion" -count=1` | Vorhanden (Phase-83-Tests) |
+| D-18 | Phase-83-Zusatz-Konflikte werden erkannt und gezählt | Backend-Repository + UI | `cd backend && go test ./internal/repository -run "AdminUsers.*Conflict" -count=1` | Fehlt Wave 0 |
 
 ### Sampling Rate
 
-- **Per task commit:** run the narrow backend/frontend tests for touched seam. [RECOMMENDED]
-- **Per wave merge:** run backend package tests for handlers/repository/permissions and frontend tests for `admin/users`, API helpers, and `PlatformAdminGate`. [RECOMMENDED]
-- **Phase gate:** full backend tests, frontend tests, typecheck, lint, build if feasible, and `git diff --check`. [VERIFIED: AGENTS.md]
+- **Pro Task-Commit:** Narrow Backend-/Frontend-Tests für berührten Seam. [RECOMMENDED]
+- **Pro Wave-Merge:** Backend-Pakete für handlers/repository/permissions; Frontend für `admin/users`, API-Helper und `PlatformAdminGate`. [RECOMMENDED]
+- **Phase Gate:** Full Backend-Tests, Frontend-Tests, Typecheck, Lint, Build und `git diff --check`. [VERIFIED: AGENTS.md]
 
 ### Wave 0 Gaps
 
-- [ ] `backend/internal/repository/admin_users_repository_test.go` - locks aggregate SQL behavior and no N+1 list ownership. [RECOMMENDED]
-- [ ] `backend/internal/handlers/admin_users_handler_test.go` - locks platform-admin gate, role/status mutation audits, denied audits, last-admin guard. [RECOMMENDED]
-- [ ] `frontend/src/types/admin-users.ts` - typed DTO owner for Phase 80. [RECOMMENDED]
-- [ ] `frontend/src/lib/api.admin-users.test.ts` or extension in `api.test.ts` - locks query serialization and error handling. [RECOMMENDED]
-- [ ] `frontend/src/app/admin/users/page.test.tsx` and `UserDetailDrawer.test.tsx` - locks table columns, conflict badge, lazy tab calls, read-only scoped tabs. [RECOMMENDED]
-- [ ] `frontend/src/components/auth/PlatformAdminGate.test.tsx` - add refresh-token-only platform-admin access regression. [VERIFIED: existing test file; RECOMMENDED]
+- [ ] `backend/internal/repository/admin_users_repository_test.go` — sichert Aggregat-SQL, No-N+1-Listing, kanonischer `member_id`-Anker, Phase-83-Conflict-Counts. [RECOMMENDED]
+- [ ] `backend/internal/handlers/admin_users_handler_test.go` — sichert Platform-Admin-Gate, Rollen-/Status-Mutations-Audits, Denied-Audits, Last-Admin-Guard. [RECOMMENDED]
+- [ ] `frontend/src/types/admin-users.ts` — getypter DTO-Owner für Phase-80-Responses inkl. Phase-83-Default/Override-Projektionen. [RECOMMENDED]
+- [ ] `frontend/src/lib/api.admin-users.test.ts` — sichert Query-Serialisierung und Fehlerbehandlung. [RECOMMENDED]
+- [ ] `frontend/src/app/admin/users/page.test.tsx` und `UserDetailDrawer.test.tsx` — sichert Tabellen-Spalten, Conflict-Badge, Lazy-Tab-Calls, Read-only Scoped-Tabs. [RECOMMENDED]
+- [ ] `frontend/src/components/auth/PlatformAdminGate.test.tsx` — Regression: Refresh-Token-only Platform-Admin-Zugang. [VERIFIED: existing test file; RECOMMENDED ergänzen]
 
 ## Security Domain
 
 ### Applicable ASVS Categories
 
-| ASVS Category | Applies | Standard Control |
-|---------------|---------|------------------|
-| V2 Authentication | yes | Keycloak/current-user middleware and central browser API client. [VERIFIED: docs/frontend/auth-api-client.md; VERIFIED: backend/cmd/server/main.go] |
-| V3 Session Management | yes | `apiClientFetch`/central refresh seam; UI gate must accept refresh session. [VERIFIED: docs/frontend/auth-api-client.md] |
-| V4 Access Control | yes | `requirePlatformAdminIdentity` for global center; `permissions.Service` for scoped rights display/deep links. [VERIFIED: backend/internal/handlers/platform_admin_authz.go; VERIFIED: backend/internal/permissions/permissions.go] |
-| V5 Input Validation | yes | Validate role/status/path/query parameters in handlers; reject unknown role/status before mutation. [VERIFIED: backend/internal/models/app_auth.go; VERIFIED: existing handler validation patterns] |
-| V6 Cryptography | no new crypto | Do not add crypto; do not handle raw invitation tokens/audit secrets in Phase 80. [VERIFIED: phase scope; VERIFIED: existing invite audit pattern] |
-| V7 Error Handling | yes | Use existing error envelope and avoid leaking sensitive user/provider data. [VERIFIED: docs/api/api-contracts.md; VERIFIED: backend handlers] |
-| V9 Data Protection | yes | Global user center exposes sensitive user/account/audit data only to platform admins. [VERIFIED: Phase 80 SC5; VERIFIED: PLATFORM-ADMIN-BOUNDARY-01] |
+| ASVS Category | Gilt | Standard Control |
+|---------------|------|-----------------|
+| V2 Authentication | ja | Keycloak/current-user-Middleware und zentraler Browser-API-Client. [VERIFIED: docs/frontend/auth-api-client.md] |
+| V3 Session Management | ja | `apiClientFetch`/zentraler Refresh-Seam; UI-Gate muss Refresh-Session akzeptieren. [VERIFIED: docs/frontend/auth-api-client.md] |
+| V4 Access Control | ja | `requirePlatformAdminIdentity` für globale Zentrale; `permissions.Service` (Phase-83-CanForReleaseVersion) für scoped Rechte-Anzeige. [VERIFIED: platform_admin_authz.go; VERIFIED: permissions.go Z. 243–317] |
+| V5 Input Validation | ja | Rollen-/Status-/Pfad-/Query-Parameter in Handlers validieren; unbekannte Rollen/Status vor Mutation ablehnen. [VERIFIED: models/app_auth.go] |
+| V6 Cryptography | kein neues Crypto | Keine Crypto hinzufügen; keine rohen Invitation-Tokens/Audit-Secrets in Phase 80 handhaben. |
+| V7 Error Handling | ja | Bestehenden Error-Envelope nutzen; keine sensitiven User-/Provider-Daten leaken. [VERIFIED: docs/api/api-contracts.md] |
+| V9 Data Protection | ja | Globale User-Zentrale exponiert sensitive User-/Account-/Audit-Daten nur an Plattform-Admins. [VERIFIED: PLATFORM-ADMIN-BOUNDARY-01] |
 
-### Known Threat Patterns for Team4s Stack
+### Known Threat Patterns für Team4s-Stack
 
 | Pattern | STRIDE | Standard Mitigation |
 |---------|--------|---------------------|
-| Non-admin enumerates users | Information Disclosure / Elevation | Server-side `requirePlatformAdminIdentity` on every endpoint; frontend gate only as UX. [VERIFIED: backend/internal/handlers/platform_admin_authz.go] |
-| Last admin lockout | Denial of Service | Guard revoke/disable of final active platform admin; audit denied attempt. [RECOMMENDED based on role model] |
-| Rights escalation through contribution history | Elevation | Do not map `anime_contributions` to permissions; display only. [VERIFIED: Lock I] |
-| Mass N+1 aggregate endpoint abuse | Denial of Service | Server-side pagination, limit cap, page-first aggregate SQL. [VERIFIED: D-07; RECOMMENDED] |
-| Audit repudiation | Repudiation | Write `audit_logs` entries for allowed and denied status/role mutations with actor and target. [VERIFIED: audit_logs schema; VERIFIED: Phase 78 patterns] |
-| Auth refresh bypass/logout false negative | Spoofing / Session Management | Protected UI gates on `hasAccessToken || hasRefreshToken`; central API client refreshes. [VERIFIED: docs/frontend/auth-api-client.md] |
+| Nicht-Admin enumeriert User | Information Disclosure / Elevation | Serverseitiges `requirePlatformAdminIdentity` auf jedem Endpunkt; Frontend-Gate ist nur UX. [VERIFIED: platform_admin_authz.go] |
+| Letzten Admin sperren | Denial of Service | Guard für Revoke/Disable des letzten aktiven Plattform-Admins; Denied-Attempt auditieren. [RECOMMENDED] |
+| Rechte-Eskalation über Contribution-History | Elevation | `anime_contributions` nicht auf Permissions mappen; nur anzeigen. [VERIFIED: Lock I] |
+| Massen-N+1-Aggregat-Endpunkt-Abuse | Denial of Service | Serverseitige Pagination, Limit-Cap, Page-First-Aggregat-SQL. [VERIFIED: D-07] |
+| Audit-Repudiation | Repudiation | `audit_logs`-Einträge für allowed und denied Status-/Rollen-Mutations mit Actor und Target. [VERIFIED: audit_logs-Schema; VERIFIED: Phase-78-Patterns] |
+| Auth-Refresh-Bypass/Logout-False-Negative | Spoofing / Session Management | Protected UI gate auf `hasAccessToken \|\| hasRefreshToken`; zentraler API-Client refresht. [VERIFIED: docs/frontend/auth-api-client.md] |
+| Phase-83-IDOR: Effektive Contributions für fremde Release-Version abrufen | Information Disclosure | `requireReleaseVersionViewAccess` vor Repository-Call (Phase-83-Live-Code). Phase 80 muss analog User-ID-Scope prüfen. [VERIFIED: admin_content_fansub_releases_contributions_handlers.go Z. 45–48] |
 
 ## Sources
 
 ### Primary (HIGH confidence)
 
-- `.planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md` - locked Phase 80 decisions, research flags, constraints. [VERIFIED]
-- `.planning/milestones/v1.2-DISCUSSION.md` - decisions H/I/J/K and Phase 80 scope. [VERIFIED]
-- `AGENTS.md` - project-specific rules. [VERIFIED]
-- `docs/engineering/implementation-contract.md` - reuse/contract planning rules. [VERIFIED]
-- `docs/api/api-contracts.md` - contract workflow. [VERIFIED]
-- `docs/frontend/auth-api-client.md` - auth/API boundary. [VERIFIED]
-- `docs/frontend/ui-system.md` and `docs/agent-guidelines-ui.md` - UI primitives/control mapping. [VERIFIED]
-- `docs/architecture/db-schema-fansub-domain.md` - domain ownership rules. [VERIFIED]
-- `database/migrations/0072_keycloak_app_users_foundation.up.sql` - `app_users` and `app_user_global_roles`. [VERIFIED]
-- `database/migrations/0073_fansub_group_app_memberships.up.sql` and `0074_expand_fansub_group_member_roles.up.sql` - group membership/roles. [VERIFIED]
-- `database/migrations/0075_audit_logs.up.sql` - audit schema. [VERIFIED]
-- `database/migrations/0097_v12_status_foundation.up.sql` - `members.profile_status`, `anime_contributions.dispute_state`, media/contribution visibility/review status. [VERIFIED]
-- `backend/internal/handlers/platform_admin_authz.go`, `app_auth.go`, `member_memorial_handler.go`, `fansub_media_review_handler.go`, `contribution_review_handler.go` - authz/audit patterns. [VERIFIED]
-- `backend/internal/repository/app_auth_repository.go`, `authz.go`, `authz_permissions.go`, `audit_logs.go`, `media_ownership_projection_repository.go`, `media_repository.go` - repository seams. [VERIFIED]
-- `frontend/src/components/ui/*`, `frontend/src/components/auth/PlatformAdminGate.tsx`, `frontend/src/lib/api.ts`, `frontend/src/types/fansub.ts` - frontend seams. [VERIFIED]
+- `.planning/phases/80-admin-users-user-detail-drawer-scoped-rechte/80-CONTEXT.md` — gelockte Phase-80-Entscheidungen, Research-Flags, Constraints, Amendment 2026-06-12. [VERIFIED]
+- `.planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-CONTEXT.md` — Phase-83-Implementierungs-Entscheidungen D-01 bis D-16. [VERIFIED]
+- `.planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-VERIFICATION.md` — 16/16 Must-Haves verified 2026-06-12. [VERIFIED]
+- `.planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-PATTERNS.md` — Datei-Klassifikation, Pattern-Assignments, Code-Beispiele. [VERIFIED]
+- `database/migrations/0104_members_backfill_and_fansub_group_members_member_id.up.sql` — `fansub_group_members.member_id`-Spalte, Backfill. [VERIFIED]
+- `database/migrations/0105_anime_contributions_member_id.up.sql` — `anime_contributions.member_id` NOT NULL, `fansub_group_member_id` nullable, neuer Unique-Constraint. [VERIFIED]
+- `database/migrations/0106_fansub_group_member_roles_fk.up.sql` — Rollen-FK auf `role_definitions`. [VERIFIED]
+- `database/migrations/0107_fansub_group_default_crew.up.sql` — `fansub_group_default_crew`-Tabelle. [VERIFIED]
+- `backend/internal/repository/authz_permissions.go` Z. 197–277 — `ListActorContributionRolesForVersion`: zweistufige SQL-Auflösung (versions-spezifisch → anime-weit Fallback). [VERIFIED]
+- `backend/internal/repository/admin_content_fansub_releases_contributions_repository.go` — `ListEffectiveContributionsForVersion`: zweistufige Row-Auflösung, `EffectiveContributionsResult`, `IsOverride`-Flag. [VERIFIED]
+- `backend/internal/repository/admin_content_fansub_releases.go` Z. 98–103 — `has_override`-Subquery via EXISTS. [VERIFIED]
+- `backend/internal/models/admin_release_theme_assets.go` Z. 51 — `HasOverride bool`. [VERIFIED]
+- `backend/internal/permissions/permissions.go` Z. 243–317 — `CanForReleaseVersion` umgebaut: Leader-Bypass zuerst, dann Contribution-Auflösung. [VERIFIED: 83-VERIFICATION.md Truth 1]
+- `database/migrations/0072_keycloak_app_users_foundation.up.sql` — `app_users.status`, `app_user_global_roles`. [VERIFIED]
+- `database/migrations/0075_audit_logs.up.sql` — Audit-Schema. [VERIFIED]
+- `database/migrations/0097_v12_status_foundation.up.sql` — `members.profile_status`, `anime_contributions.dispute_state`. [VERIFIED]
+- `backend/internal/handlers/platform_admin_authz.go` — `requirePlatformAdminIdentity`. [VERIFIED]
+- `backend/internal/repository/app_auth_repository.go` — `ListAppUsers` (ohne Pagination/Filter — Basis für Erweiterung). [VERIFIED]
+- `backend/internal/repository/authz.go` — `AppUserHasGlobalRole`, Assign-Helper (kein Revoke-Helper). [VERIFIED]
+- `backend/internal/repository/audit_logs.go` — `AuditLogEntry`-Struct, `Write`-Methode. [VERIFIED]
+- `frontend/src/components/auth/PlatformAdminGate.tsx` — prüft nur `hasAccessToken` (zu erweitern). [VERIFIED]
+- `docs/api/api-contracts.md`, `docs/engineering/implementation-contract.md`, `docs/frontend/auth-api-client.md` — Contract-Workflow, Auth-Boundary. [VERIFIED]
+- `.planning/milestones/v1.2-DISCUSSION.md` — Entscheidungen H/I/J/K. [VERIFIED]
 
 ### Secondary (MEDIUM confidence)
 
-- npm registry outputs for latest versions of `next`, `react`, `lucide-react`, and `vitest`; used only to document current ecosystem versions, not to recommend upgrades. [VERIFIED: npm registry]
-- `go list -m` outputs for Gin and pgx module versions. [VERIFIED: go module cache]
+- npm-Registry-Ausgaben für Versions-Vergleich (nur informativ, keine Upgrade-Empfehlung). [VERIFIED: npm registry]
+- `go list -m`-Ausgaben für Gin- und pgx-Modulversionen. [VERIFIED: go module cache]
 
 ### Tertiary (LOW confidence)
 
-- None. [VERIFIED: research log]
+- Keine. [VERIFIED: Research-Log]
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH - local package/module files and registries checked; no new dependency recommended. [VERIFIED: frontend/package.json; VERIFIED: backend/go.mod; VERIFIED: npm registry]
-- Architecture: HIGH - existing backend/frontend/auth/audit seams are concrete; frontend `/admin/users` route is absent. [VERIFIED: source inspection]
-- R-01 status authority: HIGH - migration and repository tests directly answer it. [VERIFIED: migration and tests]
-- R-02/R-04 aggregate/conflict query: MEDIUM - table sources and SQL pattern are clear, but performance needs EXPLAIN/ANALYZE on representative data. [VERIFIED: schema; RECOMMENDED]
-- Pitfalls/security: HIGH for auth/contract/ownership rules; MEDIUM for last-admin guard because it is a recommended risk control, not an existing project rule. [VERIFIED: AGENTS.md; RECOMMENDED]
+- Standard Stack: HIGH — lokale Package-/Module-Dateien geprüft; keine neue Abhängigkeit empfohlen. [VERIFIED]
+- Phase-83-Default/Override-Modell: HIGH — Live-Code verifiziert (16/16 Must-Haves, 2026-06-12). [VERIFIED: 83-VERIFICATION.md]
+- R-01 Status-Authority: HIGH — Migration und Repository-Tests antworten direkt. [VERIFIED]
+- R-02/R-04 Aggregat-/Conflict-Query: MEDIUM — Tabellenquellen und SQL-Pattern klar, Performance braucht EXPLAIN/ANALYZE auf repräsentativen Daten. [VERIFIED: Schema; RECOMMENDED]
+- Pitfalls/Security: HIGH für Auth/Contract/Ownership-Regeln; MEDIUM für Last-Admin-Guard (Risiko-Kontrolle, kein bestehender Projektstandard). [VERIFIED: AGENTS.md; RECOMMENDED]
 
-**Research date:** 2026-06-07 [VERIFIED: system date]
-**Valid until:** 2026-07-07 for local architecture; re-check npm/latest package notes if planning after 2026-06-14. [RECOMMENDED]
+**Research date:** 2026-06-14
+**Valid until:** 2026-07-14 für lokale Architektur; sofort nach weiteren Phase-83-Folgearbeiten neu prüfen falls Permission-Modell sich ändert. [RECOMMENDED]
