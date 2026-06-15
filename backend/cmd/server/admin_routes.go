@@ -24,6 +24,8 @@ type adminRouteHandlers struct {
 	fansubMediaReviewHandler *handlers.FansubMediaReviewHandler
 	// Phase 82-02: Standard-Team (D-04)
 	defaultCrewHandler *handlers.FansubDefaultCrewHandler
+	// Phase 80: Globale User-Verwaltung + Rechte-Zentrale
+	adminUsersHandler *handlers.AdminUsersHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -138,7 +140,24 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/release-versions/:versionId/notes", auth, deps.adminContentHandler.BulkUpsertReleaseVersionNotes)
 	v1.DELETE("/admin/release-versions/:versionId/notes/:noteId", auth, deps.adminContentHandler.DeleteReleaseVersionNote)
 	v1.GET("/admin/release-versions/:versionId/member-roles", auth, deps.adminContentHandler.GetMemberRolesForVersion)
-	v1.GET("/admin/users", auth, deps.appAuthHandler.ListAppUsers)
+	if deps.adminUsersHandler != nil {
+		// Phase 80: Aggregierte User-Übersicht + Detail-Drawer-Endpunkte
+		// Alle Endpunkte sind durch requirePlatformAdminIdentity im Handler geschützt.
+		v1.GET("/admin/users", auth, deps.adminUsersHandler.ListUsers)
+		v1.GET("/admin/users/:userId/overview", auth, deps.adminUsersHandler.GetUserOverview)
+		v1.GET("/admin/users/:userId/global-roles", auth, deps.adminUsersHandler.GetUserGlobalRoles)
+		v1.PUT("/admin/users/:userId/global-roles/:role", auth, deps.adminUsersHandler.AssignGlobalRole)
+		v1.DELETE("/admin/users/:userId/global-roles/:role", auth, deps.adminUsersHandler.RevokeGlobalRole)
+		v1.PUT("/admin/users/:userId/status", auth, deps.adminUsersHandler.UpdateUserStatus)
+		v1.GET("/admin/users/:userId/member-claims", auth, deps.adminUsersHandler.GetUserMemberClaims)
+		v1.GET("/admin/users/:userId/group-memberships", auth, deps.adminUsersHandler.GetUserGroupMemberships)
+		v1.GET("/admin/users/:userId/group-rights", auth, deps.adminUsersHandler.GetUserGroupRights)
+		v1.GET("/admin/users/:userId/contributions", auth, deps.adminUsersHandler.GetUserContributions)
+		v1.GET("/admin/users/:userId/media", auth, deps.adminUsersHandler.GetUserMedia)
+		v1.GET("/admin/users/:userId/audit", auth, deps.adminUsersHandler.GetUserAudit)
+	} else {
+		v1.GET("/admin/users", auth, deps.appAuthHandler.ListAppUsers)
+	}
 	v1.GET("/admin/fansubs/:id/capabilities", auth, deps.appAuthHandler.GetFansubGroupCapabilities)
 	v1.GET("/admin/fansubs/:id/app-members", auth, deps.appAuthHandler.ListFansubGroupAppMembers)
 	v1.GET("/admin/fansubs/:id/app-member-candidates", auth, deps.appAuthHandler.SearchFansubGroupAppMemberCandidates)

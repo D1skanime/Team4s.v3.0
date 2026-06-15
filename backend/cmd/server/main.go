@@ -402,6 +402,9 @@ func main() {
 	defaultCrewHandler := handlers.NewFansubDefaultCrewHandler(defaultCrewRepo, animeContributionsRepo, permissionSvc, auditLogRepo)
 	// Phase 78: Gruppenmedien-Review — GET-Liste + PATCH Sichtbarkeit/Reviewstatus (Lock K/G/D-08/D-09)
 	fansubMediaReviewHandler := handlers.NewFansubMediaReviewHandler(mediaRepo, permissionSvc, auditLogRepo)
+	// Phase 80: Globale User-Verwaltung + Rechte-Zentrale
+	adminUsersRepo := repository.NewAdminUsersRepository(dbPool)
+	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -418,6 +421,7 @@ func main() {
 		memberMemorialHandler:         memberMemorialHandler,
 		fansubMediaReviewHandler:      fansubMediaReviewHandler,
 		defaultCrewHandler:            defaultCrewHandler,
+		adminUsersHandler:             adminUsersHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

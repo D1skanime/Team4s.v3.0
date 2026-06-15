@@ -1050,3 +1050,225 @@ types:
   FansubGroupMediaListResponse:
     description: Liste aller Gruppenmedien für den Review-Tab. Scoped auf die angeforderte Gruppe (D-04).
     data: FansubGroupMediaItem[]
+
+  # Phase 80 — Globale User-Verwaltung + Rechte-Zentrale (Lock K, D-05/D-07/D-12/D-17/D-18/D-19)
+
+  - name: admin-users-list
+    method: GET
+    path: /api/v1/admin/users
+    auth:
+      required: true
+      role: platform_admin
+      unauthenticated_status: 401
+      forbidden_status: 403
+    query_params:
+      q: string (optional, Freitext-Suche über E-Mail und Anzeigename)
+      status: string (optional, enum active|disabled|pending)
+      global_role: string (optional, enum platform_admin|content_admin|user)
+      has_conflicts: boolean (optional, nur User mit Konflikten)
+      sort: string (optional, default last_activity_desc)
+      limit: int (optional, default 25, max 100)
+      offset: int (optional, default 0)
+    response:
+      status: 200
+      type: AdminUserListResponse
+    description: >
+      Paginierte User-Liste mit allen D-05-Aggregat-Counts.
+      Page-First-CTE + LATERAL-Joins (kein N+1, D-07).
+      conflict_count aggregiert alle 7 Konflikttypen (D-17/D-18).
+
+  - name: admin-user-overview
+    method: GET
+    path: /api/v1/admin/users/:userId/overview
+    auth:
+      required: true
+      role: platform_admin
+      forbidden_status: 403
+    response:
+      status: 200
+      type: AdminUserOverview
+      status_404: Benutzer nicht gefunden
+    description: Übersicht-Tab des User-Detail-Drawers inkl. Conflict-Aufschlüsselung (D-19).
+
+  - name: admin-user-global-roles-get
+    method: GET
+    path: /api/v1/admin/users/:userId/global-roles
+    auth:
+      required: true
+      role: platform_admin
+    response:
+      status: 200
+      type: AdminUserGlobalRolesResult
+
+  - name: admin-user-global-role-assign
+    method: PUT
+    path: /api/v1/admin/users/:userId/global-roles/:role
+    auth:
+      required: true
+      role: platform_admin
+    path_params:
+      role: string (enum platform_admin|content_admin|user)
+    response:
+      status: 200
+      status_400: Ungültige Rolle
+      status_403: Keine Berechtigung
+    description: Weist einem User eine globale Rolle zu. Schreibt Audit-Eintrag EventType=app_user_global_role.assigned.
+
+  - name: admin-user-global-role-revoke
+    method: DELETE
+    path: /api/v1/admin/users/:userId/global-roles/:role
+    auth:
+      required: true
+      role: platform_admin
+    path_params:
+      role: string (enum platform_admin|content_admin|user)
+    response:
+      status: 200
+      status_400: Ungültige Rolle
+      status_403: Keine Berechtigung
+      status_409: Last-Admin-Guard (letzte platform_admin-Rolle kann nicht entzogen werden)
+    description: >
+      Entzieht eine globale Rolle. Last-Admin-Guard: Revoke der letzten platform_admin-Rolle → 409.
+      Kein Audit-Write bei Ablehnung.
+
+  - name: admin-user-status-update
+    method: PUT
+    path: /api/v1/admin/users/:userId/status
+    auth:
+      required: true
+      role: platform_admin
+    request_body:
+      required: true
+      schema:
+        status: string (enum active|disabled)
+    response:
+      status: 200
+      status_400: Ungültiger Statuswert
+      status_403: Keine Berechtigung
+      status_409: Last-Admin-Guard (letzter aktiver Platform-Admin kann nicht deaktiviert werden)
+    description: >
+      Ändert den Account-Status (pending ist read-only).
+      Last-Admin-Guard für disable wenn Ziel-User platform_admin hat.
+      Schreibt Audit EventType=app_user_status.disabled|reactivated.
+
+  - name: admin-user-member-claims
+    method: GET
+    path: /api/v1/admin/users/:userId/member-claims
+    auth:
+      required: true
+      role: platform_admin
+    response:
+      status: 200
+      type: AdminUserMemberClaimsResult
+    description: Claims-Tab (Member-Profil + alle Claims). Read-only (Entscheidung H).
+
+  - name: admin-user-group-memberships
+    method: GET
+    path: /api/v1/admin/users/:userId/group-memberships
+    auth:
+      required: true
+      role: platform_admin
+    response:
+      status: 200
+      type: AdminUserGroupMembershipsResult
+
+  - name: admin-user-group-rights
+    method: GET
+    path: /api/v1/admin/users/:userId/group-rights
+    auth:
+      required: true
+      role: platform_admin
+    response:
+      status: 200
+      type: AdminUserGroupRightsResult
+    description: Scoped Gruppenrechte read-only (D-03). Kein Schreibzugriff im globalen Drawer.
+
+  - name: admin-user-contributions
+    method: GET
+    path: /api/v1/admin/users/:userId/contributions
+    auth:
+      required: true
+      role: platform_admin
+    response:
+      status: 200
+      type: AdminUserContributionsResult
+    description: >
+      Contributions-Tab (D-12/D-13). member_id als kanonischer Anker (Migration 0105).
+      Vier Gruppen: project_defaults, release_overrides, open_disputes, legacy_historical.
+
+  - name: admin-user-media
+    method: GET
+    path: /api/v1/admin/users/:userId/media
+    auth:
+      required: true
+      role: platform_admin
+    response:
+      status: 200
+      type: AdminUserMediaResult
+
+  - name: admin-user-audit
+    method: GET
+    path: /api/v1/admin/users/:userId/audit
+    auth:
+      required: true
+      role: platform_admin
+    response:
+      status: 200
+      type: AdminUserAuditResult
+    description: Audit-Timeline (actor oder target = userId). Letzte 100 Einträge absteigend.
+
+  AdminUserListItem:
+    description: Eine Zeile in der paginierten Admin-User-Übersichtsliste (D-05).
+    id: int64
+    email: string
+    display_name: string
+    status: string (enum pending|active|disabled)
+    global_roles: string[]
+    member_profile_id: int64 | null
+    member_profile_name: string | null
+    group_membership_count: int
+    leader_context_count: int
+    open_claims_count: int
+    open_contributions_count: int
+    total_contributions_count: int
+    media_upload_count: int
+    release_scope_count: int
+    conflict_count: int (D-17+D-18, alle 7 Typen aggregiert)
+    last_activity_at: string | null (ISO 8601)
+
+  AdminUserListResponse:
+    description: Response der paginierten Admin-User-Liste.
+    data: AdminUserListItem[]
+    meta:
+      total: int
+      limit: int
+      offset: int
+
+  AdminUserOverview:
+    description: Übersicht-Tab-Response inkl. Conflict-Aufschlüsselung.
+    id: int64
+    email: string
+    display_name: string
+    status: string
+    global_roles: string[]
+    group_membership_count: int
+    leader_context_count: int
+    open_claims_count: int
+    open_contributions_count: int
+    total_contributions_count: int
+    media_upload_count: int
+    release_scope_count: int
+    conflict_details: AdminConflict[] (D-19)
+    last_login_at: string | null
+    created_at: string
+    updated_at: string
+
+  AdminConflict:
+    type: string (enum open_claim_with_profile|member_without_role|media_without_scope|open_dispute|invalid_release_override|override_contradiction|media_without_contribution_rights)
+    message: string
+
+  AdminUserContributionsResult:
+    project_defaults: AdminContributionItem[] (release_version_id IS NULL)
+    release_overrides: AdminContributionItem[] (release_version_id IS NOT NULL)
+    open_disputes: AdminContributionItem[] (dispute_state='open')
+    legacy_historical: AdminContributionItem[] (via fansub_group_member_id ohne member_id)

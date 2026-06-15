@@ -217,6 +217,18 @@ import type {
 import type { DomainProjectionResponse } from "@/types/domain-projection";
 import type { MediaOwnershipProjectionResponse } from "@/types/media-ownership";
 import type {
+  AdminUserListParams,
+  AdminUserListResponse,
+  AdminUserOverviewResponse,
+  AdminUserGlobalRolesResponse,
+  AdminUserMemberClaimsResponse,
+  AdminUserGroupMembershipsResponse,
+  AdminUserGroupRightsResponse,
+  AdminUserContributionsResponse,
+  AdminUserMediaResponse,
+  AdminUserAuditResponse,
+} from "@/types/admin-users";
+import type {
   GroupContributorsResponse,
   GroupProjectNoteResponse,
   GroupThemesResponse,
@@ -3287,6 +3299,240 @@ export async function listAdminUsers(
   }
 
   return response.json() as Promise<AppUserListResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 80: Admin-User-Verwaltung + Rechte-Zentrale
+// Alle Helper nutzen apiClientFetch (zentraler Auth-Refresh-Seam, Lock K).
+// ---------------------------------------------------------------------------
+
+/** Paginierte Admin-User-Liste mit allen D-05-Aggregat-Counts. */
+export async function listAdminUsersPage(
+  params: AdminUserListParams,
+): Promise<AdminUserListResponse> {
+  const query = new URLSearchParams();
+  if (params.q) query.set("q", params.q);
+  if (params.status) query.set("status", params.status);
+  if (params.global_role) query.set("global_role", params.global_role);
+  if (params.has_conflicts) query.set("has_conflicts", "true");
+  if (params.sort) query.set("sort", params.sort);
+  if (params.limit != null) query.set("limit", String(params.limit));
+  if (params.offset != null) query.set("offset", String(params.offset));
+  const response = await apiClientFetch(
+    `/api/v1/admin/users?${query.toString()}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserListResponse>;
+}
+
+/** Übersicht-Tab eines Users inkl. Conflict-Aufschlüsselung (D-19). */
+export async function getAdminUserOverview(
+  userId: number,
+): Promise<AdminUserOverviewResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/overview`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserOverviewResponse>;
+}
+
+/** Globale Rollen eines Users. */
+export async function getAdminUserGlobalRoles(
+  userId: number,
+): Promise<AdminUserGlobalRolesResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/global-roles`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserGlobalRolesResponse>;
+}
+
+/** Weist einem User eine globale Rolle zu (PUT). */
+export async function assignAdminUserGlobalRole(
+  userId: number,
+  role: string,
+): Promise<void> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/global-roles/${encodeURIComponent(role)}`,
+    { method: "PUT", cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+}
+
+/** Entzieht einem User eine globale Rolle (DELETE). */
+export async function revokeAdminUserGlobalRole(
+  userId: number,
+  role: string,
+): Promise<void> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/global-roles/${encodeURIComponent(role)}`,
+    { method: "DELETE", cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+}
+
+/** Ändert den Account-Status eines Users (active|disabled). */
+export async function updateAdminUserStatus(
+  userId: number,
+  status: "active" | "disabled",
+): Promise<void> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/status`,
+    {
+      method: "PUT",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+}
+
+/** Claims-Tab: Member-Profil + alle Claims eines Users. */
+export async function getAdminUserMemberClaims(
+  userId: number,
+): Promise<AdminUserMemberClaimsResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/member-claims`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserMemberClaimsResponse>;
+}
+
+/** Gruppenmitgliedschaften-Tab. */
+export async function getAdminUserGroupMemberships(
+  userId: number,
+): Promise<AdminUserGroupMembershipsResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/group-memberships`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserGroupMembershipsResponse>;
+}
+
+/** Gruppenrechte-Tab (scoped, read-only, D-03). */
+export async function getAdminUserGroupRights(
+  userId: number,
+): Promise<AdminUserGroupRightsResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/group-rights`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserGroupRightsResponse>;
+}
+
+/** Contributions-Tab (D-12/D-13, member_id-Anker). */
+export async function getAdminUserContributions(
+  userId: number,
+): Promise<AdminUserContributionsResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/contributions`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserContributionsResponse>;
+}
+
+/** Medien-Tab: Medien-Uploads eines Users. */
+export async function getAdminUserMedia(
+  userId: number,
+): Promise<AdminUserMediaResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/media`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserMediaResponse>;
+}
+
+/** Audit-Tab: Audit-Timeline (actor oder target = userId). */
+export async function getAdminUserAudit(
+  userId: number,
+): Promise<AdminUserAuditResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/users/${userId}/audit`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminUserAuditResponse>;
 }
 
 export async function listFansubAppMembers(

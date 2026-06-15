@@ -111,6 +111,14 @@ func (s *adminAuthzRepoStub) CountActivePlatformAdmins(ctx context.Context) (int
 	return s.activePlatformAdmins, s.countErr
 }
 
+func (s *adminAuthzRepoStub) AssignAppUserGlobalRole(ctx context.Context, appUserID int64, roleName string) error {
+	return nil
+}
+
+func (s *adminAuthzRepoStub) RevokeAppUserGlobalRole(ctx context.Context, appUserID int64, roleName string) error {
+	return nil
+}
+
 // adminAuditStub fängt Write-Aufrufe ab, ohne etwas zu persistieren.
 type adminAuditStub struct {
 	entries []repository.AuditLogEntry
@@ -190,12 +198,12 @@ func TestAdminUsersHandler_AssignGlobalRole_AuditsAllowed(t *testing.T) {
 	audit := &adminAuditStub{}
 	handler := buildAdminUsersHandler(&adminUsersRepoStub{}, authz, audit)
 
-	body, _ := json.Marshal(map[string]string{"role": "moderator"})
+	body, _ := json.Marshal(map[string]string{"role": "content_admin"})
 	rec := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rec)
-	c.Request = httptest.NewRequest(http.MethodPut, "/api/v1/admin/users/5/global-roles/moderator", bytes.NewReader(body))
+	c.Request = httptest.NewRequest(http.MethodPut, "/api/v1/admin/users/5/global-roles/content_admin", bytes.NewReader(body))
 	c.Request.Header.Set("Content-Type", "application/json")
-	c.Params = gin.Params{{Key: "userId", Value: "5"}, {Key: "role", Value: "moderator"}}
+	c.Params = gin.Params{{Key: "userId", Value: "5"}, {Key: "role", Value: "content_admin"}}
 	setAdminTestAuth(c, 1)
 
 	handler.AssignGlobalRole(c) // AssignGlobalRole ist noch nicht definiert → RED
