@@ -155,3 +155,39 @@ func (r *AuthzRepository) AssignAppUserGlobalRole(ctx context.Context, appUserID
 
 	return nil
 }
+
+// RevokeAppUserGlobalRole entfernt eine globale Rolle von einem App-User (idempotent).
+// Kein Last-Admin-Guard hier — Guard-Logik gehört in den Handler (Phase 80-03).
+func (r *AuthzRepository) RevokeAppUserGlobalRole(ctx context.Context, appUserID int64, roleName string) error {
+	if appUserID <= 0 {
+		return fmt.Errorf("revoke app role: invalid app user id %d", appUserID)
+	}
+	role := strings.TrimSpace(roleName)
+	if role == "" {
+		return fmt.Errorf("revoke app role: role name is required")
+	}
+	if _, err := r.db.Exec(ctx, `
+		DELETE FROM app_user_global_roles
+		WHERE app_user_id = $1 AND role = $2
+	`, appUserID, role); err != nil {
+		return fmt.Errorf("revoke app role %q from app user %d: %w", role, appUserID, err)
+	}
+	return nil
+}
+
+// CountActivePlatformAdmins gibt die Anzahl aktiver Plattform-Admins zurück.
+// Wird vom Handler als Last-Admin-Guard vor Revoke und Status-Disable verwendet.
+func (r *AuthzRepository) CountActivePlatformAdmins(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM app_user_global_roles agr
+		JOIN app_users au ON au.id = agr.app_user_id
+		WHERE agr.role = 'platform_admin'
+		  AND au.status = 'active'
+	`).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("count active platform admins: %w", err)
+	}
+	return count, nil
+}
