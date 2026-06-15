@@ -94,7 +94,14 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `78-04-PLAN.md` — GroupMediaReviewSection (liest via listFansubGroupMedia) + Phase-76-Stubs (D-03/D-04) + page.tsx-Verdrahtung + Human-Verify (Lock F/SC2/SC5)
   - [ ] `78-05-PLAN.md` — Release-Version-Media-Review: release_version_media PATCH-Erweiterung + ReleaseVersionMediaReviewSection im Release-Drawer (D-06 zweite Owner-Fläche, Lock K/G/I)
 - [x] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`). (completed 2026-06-06)
-- [ ] **Phase 80: `/admin/users` + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
+- [ ] **Phase 80:  + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
+  **Plans:** 5 plans
+  Plans:
+  - [ ]  — Typ-Fundament: Go-DTOs, RevokeAppUserGlobalRole/CountActivePlatformAdmins, TypeScript-Interfaces, PlatformAdminGate-Bugfix
+  - [ ]  — Wave-0-Testgerüst (RED): Repository/Handler/Frontend-Tests
+  - [ ]  — Backend-Kern: Repository, Handler, Routing, Contract, api.ts
+  - [ ]  — Frontend-Shell: page.tsx, AdminUsersClient.tsx, UserDetailDrawer.tsx
+  - [ ]  — Tab-Komponenten (8 Tabs) + Human-Verify
 
 ### Korrektur-Phase – Release-Version Mehrfach-Fansubgruppen
 
@@ -1913,6 +1920,13 @@ Plans:
   3. Rechte werden scoped dargestellt/vergeben (z. B. Gruppen-/Release-Version-bezogen), nicht pauschal; Medienrechte ohne Scope werden nicht vergeben.
   4. Rechte werden nicht aus Contributions abgeleitet; Gruppenmitgliedschaft ist keine pauschale Adminfähigkeit.
   5. Alle rechte-/statusändernden Aktionen sind auditierbar; nur Plattform-Admin erreicht die globale Zentrale (Leader sehen gruppenspezifische Rechte in `/admin/fansubs/[id]/edit`).
+
+Plans:
+- [ ] `80-01-PLAN.md` — Typ-Fundament: Go-DTOs, RevokeAppUserGlobalRole/CountActivePlatformAdmins, TypeScript-Interfaces, PlatformAdminGate-Bugfix
+- [ ] `80-02-PLAN.md` — Wave-0-Testgerüst (RED): Repository/Handler/Frontend-Tests
+- [ ] `80-03-PLAN.md` — Backend-Kern: Repository, Handler, Routing, Contract, api.ts
+- [ ] `80-04-PLAN.md` — Frontend-Shell: page.tsx, AdminUsersClient.tsx, UserDetailDrawer.tsx
+- [ ] `80-05-PLAN.md` — Tab-Komponenten (8 Tabs) + Human-Verify
 
 ### Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe
 
