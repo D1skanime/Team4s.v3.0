@@ -1,10 +1,11 @@
 ---
 phase: 80
 slug: admin-users-user-detail-drawer-scoped-rechte
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-15
+reviewed_at: 2026-06-15
 ---
 
 # Phase 80 — UI Design Contract
@@ -335,7 +336,7 @@ Jede Tab-Datei importiert ausschliesslich `@/components/ui`-Primitives. Kein inl
 | Interaction | Verhalten |
 |-------------|-----------|
 | Drawer öffnen | Right-Slide-Over via `Drawer`-Primitiv; kein Full-Screen auf Desktop |
-| Drawer schliessen | × Icon oben rechts; ESC-Taste; Klick ausserhalb |
+| Drawer schliessen | × Icon oben rechts (`aria-label="Drawer schließen"` — sofern die `@/components/ui/Drawer`-Primitive das Schließen-Icon nicht bereits intern mit Accessibility-Label rendert); ESC-Taste; Klick ausserhalb |
 | Tab wechseln | `Tabs`-Primitiv; Tab-Daten werden erst beim ersten Aktivieren geladen (D-09) |
 | Tab lazy load | Ladezustand: `LoadingState`-Primitiv; Fehler: `ErrorState`-Primitiv mit Retry |
 | Tab leer | `EmptyState`-Primitiv |
