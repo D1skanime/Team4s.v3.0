@@ -45,6 +45,39 @@ function FansubListConsumer() {
 }
 
 describe("PlatformAdminGate", () => {
+  // --- Wave-0 RED: Regression für hasRefreshToken-only-Session (Pitfall 5 / T-80-01-02) ---
+  //
+  // Prüft, dass eine Session mit hasRefreshToken=true (aber hasAccessToken=false)
+  // den Admin-Inhalt rendert und KEIN Logout-Flash auslöst.
+  //
+  // Hintergrund: PlatformAdminGate.tsx wurde in Plan 80-01 gefixt:
+  // `if (!hasAccessToken && !hasRefreshToken)` statt `if (!hasAccessToken)`.
+  // Dieser Test sichert die Regression ab, damit der Fix nicht versehentlich rückgängig gemacht wird.
+  it("renders_admin_content_with_refresh_token_only", async () => {
+    // hasAccessToken=false, hasRefreshToken=true → Gate soll Kinder rendern (kein Logout-State)
+    useAuthSessionMock.mockReturnValueOnce({
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      isClientInitialized: true,
+    });
+
+    apiMocks.getCurrentUser.mockResolvedValue({
+      data: { id: 1, display_name: "Admin", is_platform_admin: true },
+    });
+
+    render(
+      <PlatformAdminGate>
+        <p>Admin-Inhalt sichtbar</p>
+      </PlatformAdminGate>,
+    );
+
+    // Das Gate darf nicht in einen Logout-Zustand wechseln.
+    // Nach Ladephase muss Admin-Inhalt rendern (Platform-Admin bestätigt via getCurrentUser).
+    expect(
+      await screen.findByText("Admin-Inhalt sichtbar"),
+    ).not.toBeNull();
+  });
+
   it("does not mount children that would call getFansubList when access is denied", async () => {
     apiMocks.getCurrentUser.mockResolvedValue({
       data: { id: 7, display_name: "Contributor", is_platform_admin: false },
