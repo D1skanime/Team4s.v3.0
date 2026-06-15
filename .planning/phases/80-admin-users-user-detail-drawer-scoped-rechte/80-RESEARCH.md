@@ -614,19 +614,19 @@ export async function listAdminUsersPage(
 |---|-------|-----------|---------------------|
 | A1 | Keine. Alle Sachaussagen sind aus Live-Code, Migrationen oder offiziellen Dokumenten verifiziert; Endpunkt-/Event-/Query-Formen sind als Empfehlungen markiert. | Alle | Keine User-Bestätigung nötig für faktische Basis; Planner wählt finale Endpunkt-Namen und SQL-Details. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Sollte Phase 80 gegen Sperren/Entziehen des letzten aktiven Plattform-Admins absichern?**
    - Was wir wissen: Globale Rollen und Status sind editierbar. Kein bestehender Last-Admin-Guard. [VERIFIED: authz.go]
-   - Empfehlung: Guard und Tests planen, weil Lockout-Risiko hoch ist. [RECOMMENDED]
+   - **RESOLVED:** Last-Admin-Guard wird implementiert — `CountActivePlatformAdmins` + 409-Ablehnung bei Revoke der letzten `platform_admin`-Rolle UND beim Disable des letzten aktiven Plattform-Admins. Abgedeckt in Plan 80-01 (Seam), 80-02 (RED-Tests für beide Pfade) und 80-03 (Handler-Guard).
 
 2. **Soll `/admin/users` in `AppAuthHandler` oder einem neuen `AdminUsersHandler` leben?**
    - Was wir wissen: Bestehende schmale `ListAppUsers` ist in `AppAuthHandler`. [VERIFIED: app_auth.go]
-   - Empfehlung: Neuer `AdminUsersHandler` erstellen, aber `AppAuthRepository`, `AuthzRepository` und `AuditLogRepository` wiederverwenden — kein neues Auth-Domain. [RECOMMENDED]
+   - **RESOLVED:** Neuer `AdminUsersHandler` (Plan 80-03 Task 2), der `AppAuthRepository`, `AuthzRepository` und `AuditLogRepository` wiederverwendet — kein neues Auth-Domain.
 
 3. **Exaktes Media-Conflict-SQL für Owner-Inkonsistenz braucht Implementation-Zeit-Bestätigung.**
    - Was wir wissen: Owner-Projektion ist Junction-komponiert; kein einzelnes persistiertes `owner_consistent`-Feld über alle Media-Surfaces. [VERIFIED: media_ownership_projection_repository.go]
-   - Empfehlung: Conflict-Liste soll ungültige Owner-Scopes mit expliziten Owner-Kontext-Checks pro unterstützter Surface berechnen. [RECOMMENDED]
+   - **RESOLVED:** Die Conflict-Liste berechnet ungültige Owner-Scopes mit expliziten Owner-Kontext-Checks pro Surface als D-18-Konflikterkennung in der `ListAdminUsersPage`-LATERAL-Query (Plan 80-03 Task 1 Behavior).
 
 ## Environment Availability
 

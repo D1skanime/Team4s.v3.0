@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 83 UI-SPEC approved
-last_updated: "2026-06-11T20:21:46.334Z"
-last_activity: 2026-06-11
+last_updated: "2026-06-15T07:42:17.655Z"
+last_activity: 2026-06-15
 progress:
   total_phases: 79
-  completed_phases: 61
-  total_plans: 327
-  completed_plans: 286
-  percent: 77
+  completed_phases: 62
+  total_plans: 332
+  completed_plans: 293
+  percent: 78
 ---
 
 # Project State
@@ -470,5 +470,5 @@ Recent durable decisions:
 
 Last session: 2026-06-11T19:18:48.466Z
 Stopped at: Phase 83 UI-SPEC approved
-Last activity: 2026-06-11
+Last activity: 2026-06-15
 Resume file: .planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-UI-SPEC.md
