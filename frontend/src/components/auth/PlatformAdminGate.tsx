@@ -13,7 +13,7 @@ interface PlatformAdminGateProps {
 }
 
 export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
-  const { hasAccessToken, isClientInitialized } = useAuthSession();
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession();
   const [currentUser, setCurrentUser] = useState<CurrentUserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -23,7 +23,7 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
 
     let cancelled = false;
     async function resolveAdminUser() {
-      if (!hasAccessToken) {
+      if (!hasAccessToken && !hasRefreshToken) {
         if (!cancelled) {
           setIsLoading(false);
           setCurrentUser(null);
