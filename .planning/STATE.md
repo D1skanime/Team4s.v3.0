@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 83 UI-SPEC approved
-last_updated: "2026-06-15T07:50:03.567Z"
+last_updated: "2026-06-15T07:59:00.570Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 79
   completed_phases: 62
   total_plans: 332
-  completed_plans: 294
+  completed_plans: 295
   percent: 78
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 80 (admin-users-user-detail-drawer-scoped-rechte) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Accumulated Context
 
@@ -469,7 +469,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-15T07:50:03.536Z
+Last session: 2026-06-15T07:59:00.535Z
 Stopped at: Phase 83 UI-SPEC approved
 Last activity: 2026-06-15
 Resume file: None
