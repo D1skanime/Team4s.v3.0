@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Phase 83 UI-SPEC approved
-last_updated: "2026-06-15T07:59:00.570Z"
+stopped_at: Completed 80-03-PLAN.md
+last_updated: "2026-06-15T08:19:03.294Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 79
   completed_phases: 62
   total_plans: 332
-  completed_plans: 295
+  completed_plans: 296
   percent: 78
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 80 (admin-users-user-detail-drawer-scoped-rechte) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Accumulated Context
 
@@ -243,6 +243,10 @@ Recent durable decisions:
 - [Phase ?]: [Phase 73-10]: Badge variant=muted fuer 'auch Mitglied' Querverweis-Badge
 - [Phase ?]: 81-01 Split
 - [Phase ?]: 81-02: Migration 0101 NULL-setzt theme_segments+segment_library vor DO LOOP, 0102 guard RAISE EXCEPTION bei active_collabs>0
+- [Phase ?]: AdminUsersRepository in 3 Dateien aufgeteilt (repository.go, queries.go, tab_repository.go) — Datei-Limit eingehalten
+- [Phase ?]: Page-First-CTE mit LATERAL-Joins fuer N+1-freie Aggregation (D-07); release_scope_count vorlaeufig 0
+- [Phase ?]: Wave-0-Repository-Tests: t.Skip() durch Interface-Assertion (var _) und echte GREEN-Tests ersetzt
+- [Phase ?]: Last-Admin-Guard vor Revoke und Disable; HTTP 409 ohne Audit-Write bei Ablehnung
 
 ### Pending Todos
 
@@ -426,6 +430,7 @@ Recent durable decisions:
 | Phase 82 P04 | 5min | 2 tasks | 5 files |
 | Phase 82 P05 | 20min | 2 tasks | 6 files |
 | Phase 80 P01 | 8min | 3 tasks | 4 files |
+| Phase 80 P03 | 105 | 2 tasks | 14 files |
 
 ### Quick Tasks Completed
 
@@ -469,7 +474,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-15T07:59:00.535Z
-Stopped at: Phase 83 UI-SPEC approved
+Last session: 2026-06-15T08:19:03.261Z
+Stopped at: Completed 80-03-PLAN.md
 Last activity: 2026-06-15
 Resume file: None
