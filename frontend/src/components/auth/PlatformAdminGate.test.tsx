@@ -11,7 +11,11 @@ const apiMocks = vi.hoisted(() => ({
 }));
 
 const useAuthSessionMock = vi.hoisted(() =>
-  vi.fn(() => ({ hasAccessToken: true, isClientInitialized: true })),
+  vi.fn(() => ({
+    hasAccessToken: true,
+    hasRefreshToken: false,
+    isClientInitialized: true,
+  })),
 );
 
 vi.mock("next/link", () => ({
