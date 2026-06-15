@@ -105,8 +105,9 @@ describe('UserClaimsTab', () => {
     // Warte auf Laden der Daten
     await waitFor(() => {
       // Sicherstellen, dass die Komponente gerendert hat (Profil oder Empty-State)
-      const content = screen.queryByText(/Team Naruto|Member-Profil|Keine Einträge/)
-      expect(content).not.toBeNull()
+      // queryAllByText statt queryByText: mehrere Elemente möglich (SectionHeader + Profil-Text)
+      const contents = screen.queryAllByText(/Team Naruto|Member-Profil|Keine Einträge/)
+      expect(contents.length).toBeGreaterThan(0)
     })
 
     // Prüfe Abwesenheit aller Mutations-Controls
@@ -126,8 +127,8 @@ describe('UserClaimsTab', () => {
     render(<UserClaimsTab userId={1} />)
 
     await waitFor(() => {
-      const content = screen.queryByText(/Team Naruto|Member-Profil|Keine Einträge/)
-      expect(content).not.toBeNull()
+      const contents = screen.queryAllByText(/Team Naruto|Member-Profil|Keine Einträge/)
+      expect(contents.length).toBeGreaterThan(0)
     })
 
     expect(screen.queryByText('Gedenkprofil')).toBeNull()
