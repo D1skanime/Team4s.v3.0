@@ -134,10 +134,12 @@ describe('AdminUsersPage (/admin/users)', () => {
     fireEvent.click(row)
 
     // Nach dem Klick muss der Drawer-State gesetzt sein.
-    // Der Drawer zeigt entweder den Benutzernamen oder einen Lade-Indikator.
+    // Der geöffnete Drawer rendert die Tab-Leiste (mehrere Tab-Labels gleichzeitig),
+    // daher queryAllByText statt queryByText — Letzteres wirft bei Mehrfachtreffern.
+    // Tab-Labels sind nur sichtbar, wenn der Drawer offen ist.
     await waitFor(() => {
-      const drawerContent = screen.queryByText(/Übersicht|Globale Rollen|Aki/)
-      expect(drawerContent).not.toBeNull()
+      const drawerContent = screen.queryAllByText(/Übersicht|Globale Rollen/)
+      expect(drawerContent.length).toBeGreaterThan(0)
     })
   })
 })
