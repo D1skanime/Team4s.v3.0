@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 83 UI-SPEC approved
-last_updated: "2026-06-15T07:42:17.655Z"
+last_updated: "2026-06-15T07:50:03.567Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 79
   completed_phases: 62
   total_plans: 332
-  completed_plans: 293
+  completed_plans: 294
   percent: 78
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 82 — Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix
+**Current focus:** Phase 80 — admin-users-user-detail-drawer-scoped-rechte
 
 ## Current Position
 
-Phase: 82 (Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix) — EXECUTING
-Plan: 6 of 6
+Phase: 80 (admin-users-user-detail-drawer-scoped-rechte) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -425,6 +425,7 @@ Recent durable decisions:
 | Phase 82 P01 | 30 | 3 tasks | 8 files |
 | Phase 82 P04 | 5min | 2 tasks | 5 files |
 | Phase 82 P05 | 20min | 2 tasks | 6 files |
+| Phase 80 P01 | 8min | 3 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -468,7 +469,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-11T19:18:48.466Z
+Last session: 2026-06-15T07:50:03.536Z
 Stopped at: Phase 83 UI-SPEC approved
 Last activity: 2026-06-15
-Resume file: .planning/phases/83-pro-release-mitwirkenden-zuordnung-release-version-id-im-coc/83-UI-SPEC.md
+Resume file: None
