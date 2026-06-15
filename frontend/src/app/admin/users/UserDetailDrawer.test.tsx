@@ -82,9 +82,10 @@ describe('UserDetailDrawer', () => {
       'Streaming',
     ]
 
+    // getByRole('tab', { name }) findet nur Tab-Buttons, nicht gleichnamige Panel-Inhalte
     for (const tab of expectedTabs) {
       await waitFor(() => {
-        expect(screen.getByText(tab)).not.toBeNull()
+        expect(screen.getByRole('tab', { name: tab })).not.toBeNull()
       })
     }
   })
@@ -115,15 +116,17 @@ describe('UserDetailDrawer', () => {
     expect(mockGetRoles).not.toHaveBeenCalled()
 
     // Klick auf "Globale Rollen" Tab → erst jetzt wird der API-Call durchgeführt
-    fireEvent.click(screen.getByText('Globale Rollen'))
+    // role="tab" selektiert nur den Tab-Button, nicht den SectionHeader im Panel
+    const globalRolesTab = screen.getByRole('tab', { name: 'Globale Rollen' })
+    fireEvent.click(globalRolesTab)
 
     await waitFor(() => {
       expect(mockGetRoles).toHaveBeenCalledWith(1)
     })
 
     // Erneuter Klick auf anderen Tab und zurück → kein zweiter API-Call
-    fireEvent.click(screen.getByText('Übersicht'))
-    fireEvent.click(screen.getByText('Globale Rollen'))
+    fireEvent.click(screen.getByRole('tab', { name: 'Übersicht' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Globale Rollen' }))
     expect(mockGetRoles).toHaveBeenCalledTimes(1)
   })
 
@@ -140,11 +143,11 @@ describe('UserDetailDrawer', () => {
       />,
     )
 
-    // Gruppenrechte-Tab aktivieren
+    // Gruppenrechte-Tab aktivieren (role="tab" vermeidet Kollision mit SectionHeader-Titel)
     await waitFor(() => {
-      expect(screen.queryByText('Gruppenrechte')).not.toBeNull()
+      expect(screen.queryByRole('tab', { name: 'Gruppenrechte' })).not.toBeNull()
     })
-    fireEvent.click(screen.getByText('Gruppenrechte'))
+    fireEvent.click(screen.getByRole('tab', { name: 'Gruppenrechte' }))
 
     await waitFor(() => {
       // Kein Mutations-Button im Gruppenrechte-Tab
@@ -154,7 +157,7 @@ describe('UserDetailDrawer', () => {
     })
 
     // Beiträge-Tab aktivieren
-    fireEvent.click(screen.getByText('Beiträge'))
+    fireEvent.click(screen.getByRole('tab', { name: 'Beiträge' }))
 
     await waitFor(() => {
       // Kein Mutations-Button im Beiträge-Tab
