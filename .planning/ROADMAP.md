@@ -94,7 +94,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `78-04-PLAN.md` — GroupMediaReviewSection (liest via listFansubGroupMedia) + Phase-76-Stubs (D-03/D-04) + page.tsx-Verdrahtung + Human-Verify (Lock F/SC2/SC5)
   - [ ] `78-05-PLAN.md` — Release-Version-Media-Review: release_version_media PATCH-Erweiterung + ReleaseVersionMediaReviewSection im Release-Drawer (D-06 zweite Owner-Fläche, Lock K/G/I)
 - [x] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`). (completed 2026-06-06)
-- [ ] **Phase 80:  + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten.
+- [x] **Phase 80:  + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten. (completed 2026-06-15)
   **Plans:** 5 plans
   Plans:
   - [ ]  — Typ-Fundament: Go-DTOs, RevokeAppUserGlobalRole/CountActivePlatformAdmins, TypeScript-Interfaces, PlatformAdminGate-Bugfix
