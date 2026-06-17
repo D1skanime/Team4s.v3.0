@@ -1514,6 +1514,16 @@ Plans:
 - [x] `83-06-PLAN.md` — page.tsx Cockpit-Verdrahtung: Mitwirkende-Button + Drawer-Mount + Badge
 - [x] `83-07-PLAN.md` — UI-Konsolidierung: AnimeContributionModal natives select -> Select+FormField; ReleaseVersionBreakdown Primitives/Tokens; D-16-Dokumentation
 
+### Phase 85: `/me/contributions` UI-/Flow-Cleanup
+
+**Goal:** Die bestehende `/me/contributions`-Flaeche wird nach UI- und Architektur-Review enger, mobiler und Team4s-konformer gemacht: Claim bleibt Identitaetsvoraussetzung, aber verschwindet als Peer-Aktion aus dem Beitrags-/Melde-Picker; Modals werden global tastaturtauglich; Header/CTA, Proposal-Form und lokale Styles folgen dem UI-System; release-version-spezifische Arbeit wird nicht als animeweiter Beitrag suggeriert oder gespeichert.
+**Requirements**: D-01..D-14 aus `85-CONTEXT.md`
+**Depends on:** Phase 76, Phase 82, Phase 83
+**Plans:** 1 plan
+
+Plans:
+- [ ] `85-01-PLAN.md` - `/me/contributions` UI-/Flow-Cleanup: Modal-A11y, Header/CTA, Claim-Entflechtung, ProposalForm-YearPicker/Release-Version-State, mobile/tokenisierte Styles, fokussierte Tests
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
