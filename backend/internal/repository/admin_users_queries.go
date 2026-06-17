@@ -62,7 +62,7 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
     SELECT
         COUNT(*) AS membership_count,
-        COUNT(*) FILTER (WHERE fgmr.role_code IN ('leader')) AS leader_count
+        COUNT(*) FILTER (WHERE fgmr.role IN ('leader')) AS leader_count
     FROM fansub_group_members fgm
     LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
     WHERE fgm.app_user_id = page.id
@@ -81,7 +81,7 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
     SELECT COUNT(*) AS media_upload_count
     FROM release_version_media rvm
-    WHERE rvm.uploaded_by_app_user_id = page.id
+    WHERE rvm.uploaded_by_user_id = page.id
 ) media_up ON true
 LEFT JOIN LATERAL (
     SELECT (
@@ -95,13 +95,13 @@ LEFT JOIN LATERAL (
         + (CASE WHEN EXISTS (
             SELECT 1 FROM fansub_group_members fgm
             LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
-            WHERE fgm.app_user_id = page.id AND fgmr.id IS NULL
+            WHERE fgm.app_user_id = page.id AND fgmr.fansub_group_member_id IS NULL
         ) THEN 1 ELSE 0 END)
         -- D-17: media_without_scope (Medien ohne gültigen Release-Scope)
         + (CASE WHEN EXISTS (
             SELECT 1 FROM release_version_media rvm
             LEFT JOIN release_versions rv ON rv.id = rvm.release_version_id
-            WHERE rvm.uploaded_by_app_user_id = page.id AND rv.id IS NULL
+            WHERE rvm.uploaded_by_user_id = page.id AND rv.id IS NULL
         ) THEN 1 ELSE 0 END)
         -- D-17: open_dispute
         + (CASE WHEN claimed_m.member_id IS NOT NULL AND EXISTS (
@@ -150,7 +150,7 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
     SELECT
         COUNT(*) AS membership_count,
-        COUNT(*) FILTER (WHERE fgmr.role_code = 'leader') AS leader_count
+        COUNT(*) FILTER (WHERE fgmr.role = 'leader') AS leader_count
     FROM fansub_group_members fgm
     LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
     WHERE fgm.app_user_id = au.id
@@ -169,7 +169,7 @@ LEFT JOIN LATERAL (
 ) contribs ON true
 LEFT JOIN LATERAL (
     SELECT COUNT(*) AS media_upload_count
-    FROM release_version_media rvm WHERE rvm.uploaded_by_app_user_id = au.id
+    FROM release_version_media rvm WHERE rvm.uploaded_by_user_id = au.id
 ) media_up ON true
 WHERE au.id = $1
 `
@@ -194,7 +194,7 @@ SELECT conflict_type, conflict_message FROM (
     WHERE EXISTS (
         SELECT 1 FROM fansub_group_members fgm
         LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
-        WHERE fgm.app_user_id = $1 AND fgmr.id IS NULL
+        WHERE fgm.app_user_id = $1 AND fgmr.fansub_group_member_id IS NULL
     )
     UNION ALL
     -- D-17: Medien-Upload ohne gültigen Release-Scope
@@ -203,7 +203,7 @@ SELECT conflict_type, conflict_message FROM (
     WHERE EXISTS (
         SELECT 1 FROM release_version_media rvm
         LEFT JOIN release_versions rv ON rv.id = rvm.release_version_id
-        WHERE rvm.uploaded_by_app_user_id = $1 AND rv.id IS NULL
+        WHERE rvm.uploaded_by_user_id = $1 AND rv.id IS NULL
     )
     UNION ALL
     -- D-17: offener Contribution-Dispute

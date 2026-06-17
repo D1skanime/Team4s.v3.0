@@ -36,8 +36,8 @@ func (r *AdminUsersRepository) GetUserMemberClaims(
 
 	// Alle Claims
 	rows, err := r.db.Query(ctx, `
-		SELECT mc.id, mc.claim_type, mc.claim_status, mc.member_id,
-		       fg.name, mc.created_at::text, mc.resolved_at::text
+		SELECT mc.id, 'claim'::text, mc.claim_status, mc.member_id,
+		       fg.name, mc.created_at::text, mc.verified_at::text
 		FROM member_claims mc
 		JOIN members m ON m.id = mc.member_id
 		JOIN fansub_group_members fgm ON fgm.member_id = m.id
@@ -67,17 +67,17 @@ func (r *AdminUsersRepository) GetUserGroupMemberships(
 	appUserID int64,
 ) (*models.AdminUserGroupMembershipsResult, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT fg.id, fg.name, fgm.member_status,
+		SELECT fg.id, fg.name, fgm.status,
 		       COALESCE(
-		           ARRAY_AGG(fgmr.role_code ORDER BY fgmr.role_code) FILTER (WHERE fgmr.role_code IS NOT NULL),
+		           ARRAY_AGG(fgmr.role ORDER BY fgmr.role) FILTER (WHERE fgmr.role IS NOT NULL),
 		           ARRAY[]::text[]
 		       ),
-		       fgm.joined_at::text
+		       fgm.created_at::text
 		FROM fansub_group_members fgm
 		JOIN fansub_groups fg ON fg.id = fgm.fansub_group_id
 		LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
 		WHERE fgm.app_user_id = $1
-		GROUP BY fg.id, fg.name, fgm.member_status, fgm.joined_at
+		GROUP BY fg.id, fg.name, fgm.status, fgm.created_at
 		ORDER BY fg.name
 	`, appUserID)
 	if err != nil {
@@ -108,11 +108,11 @@ func (r *AdminUsersRepository) GetUserGroupRights(
 	rows, err := r.db.Query(ctx, `
 		SELECT fg.id, fg.name,
 		       COALESCE(
-		           ARRAY_AGG(DISTINCT fgmr.role_code ORDER BY fgmr.role_code) FILTER (WHERE fgmr.role_code IS NOT NULL),
+		           ARRAY_AGG(DISTINCT fgmr.role ORDER BY fgmr.role) FILTER (WHERE fgmr.role IS NOT NULL),
 		           ARRAY[]::text[]
 		       ),
-		       bool_or(fgmr.role_code IS NOT NULL) AS can_view_members,
-		       bool_or(fgmr.role_code IN ('leader', 'editor', 'contributor')) AS can_edit_content
+		       bool_or(fgmr.role IS NOT NULL) AS can_view_members,
+		       bool_or(fgmr.role IN ('leader', 'editor', 'contributor')) AS can_edit_content
 		FROM fansub_group_members fgm
 		JOIN fansub_groups fg ON fg.id = fgm.fansub_group_id
 		LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
@@ -237,15 +237,17 @@ func (r *AdminUsersRepository) GetUserMedia(
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			rvm.media_asset_id,
-			ma.media_type,
-			COALESCE(ma.original_filename, ''),
-			COALESCE(ma.public_url, ''),
-			COALESCE(ma.file_size_bytes, 0),
+			COALESCE(mt.name, ma.mime_type, 'media'),
+			COALESCE(ma.file_path, ''),
+			''::text,
+			0::bigint,
 			rvm.created_at::text,
 			'release_version:' || rvm.release_version_id::text
 		FROM release_version_media rvm
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
-		WHERE rvm.uploaded_by_app_user_id = $1
+		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
+		WHERE rvm.uploaded_by_user_id = $1
+		  AND rvm.deleted_at IS NULL
 		ORDER BY rvm.created_at DESC
 	`, appUserID)
 	if err != nil {
