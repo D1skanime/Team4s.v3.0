@@ -1,4 +1,4 @@
-# Roadmap: Team4s Admin Anime Intake
+﻿# Roadmap: Team4s Admin Anime Intake
 
 ## Milestones
 
@@ -107,6 +107,11 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 - [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene. (completed 2026-06-09)
 - [ ] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert.
+  **Plans:** 3 plans
+  Plans:
+  - [ ] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
+  - [ ] 86-02-PLAN.md -- permissions.go Cache-Umbau + authz_permissions.go + main.go Verdrahtung
+  - [ ] 86-03-PLAN.md -- 3 SQL-Stellen auf role_capabilities-JOIN + D-11-Kommentare
 
 ## Phase Details
 
@@ -1523,7 +1528,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] `85-01-PLAN.md` - `/me/contributions` UI-/Flow-Cleanup: Modal-A11y, Header/CTA, Claim-Entflechtung, ProposalForm-YearPicker/Release-Version-State, mobile/tokenisierte Styles, fokussierte Tests
+- [x] `85-01-PLAN.md` - `/me/contributions` UI-/Flow-Cleanup: Modal-A11y, Header/CTA, Claim-Entflechtung, ProposalForm-YearPicker/Release-Version-State, mobile/tokenisierte Styles, fokussierte Tests
 
 ---
 
@@ -1970,3 +1975,10 @@ Plans:
   6. Die Phase-80-Gruppenrechte-Query (`can_view_members`/`can_edit_content`) nutzt einen Join auf `role_capabilities` statt `role IN ('leader',…)`; Verhalten unverändert (bestehende Tests grün).
   7. Permission-Checks bleiben performant: kein DB-Roundtrip pro Check (Cache beim Start, Invalidierung nur bei Änderung).
   8. Backend-Tests decken ab: Seed entspricht der alten roleMatrix (Diff-Test), Registry-Lookup, Konsistenz-Check, und mindestens eine umgestellte Bypass-Stelle.
+
+**Plans:** 3 plans
+Plans:
+
+- [ ] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
+- [ ] 86-02-PLAN.md -- permissions.go Cache-Umbau + authz_permissions.go LoadRoleCapabilities + main.go Verdrahtung
+- [ ] 86-03-PLAN.md -- 3 SQL-Stellen (leader_count x2, can_edit_content) auf role_capabilities-JOIN
