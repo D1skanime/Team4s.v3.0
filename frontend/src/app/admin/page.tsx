@@ -39,6 +39,9 @@ export default function AdminOverviewPage() {
             <Link href="/admin/anime" className={styles.button}>
               Studio (Anime + Episoden)
             </Link>
+            <Link href="/admin/users" className={styles.button}>
+              Benutzer &amp; Rechte
+            </Link>
             <Link href="/manage/groups" className={styles.buttonSecondary}>
               Meine Gruppen
             </Link>
