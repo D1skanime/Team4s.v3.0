@@ -55,7 +55,7 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
     return () => {
       cancelled = true;
     };
-  }, [hasAccessToken, isClientInitialized]);
+  }, [hasAccessToken, hasRefreshToken, isClientInitialized]);
 
   if (isLoading || !isClientInitialized) {
     return (
