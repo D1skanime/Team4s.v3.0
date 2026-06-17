@@ -39,10 +39,11 @@ created: 2026-06-17
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 86-01-01 | 01 | 1 | D-01/D-02/D-03 | — | Seed entspricht roleMatrix 1:1 (kein Verhaltenswechsel) | unit | `go test ./internal/permissions -run RoleMatrixSeedParity -count=1` | ❌ W0 | ⬜ pending |
-| 86-02-01 | 02 | 2 | D-04/D-05/D-06 | — | RoleAllowsAction liest Cache, API stabil | unit | `go test ./internal/permissions -run "RoleAllows\|Capability" -count=1` | ❌ W0 | ⬜ pending |
-| 86-03-01 | 03 | 3 | D-10 | — | jede Action-Konstante existiert in action_definitions | unit | `go test ./internal/permissions -run ConsistencyCheck -count=1` | ❌ W0 | ⬜ pending |
-| 86-04-01 | 04 | 3 | D-07/D-08/D-09 | — | SQL-Capability via role_capabilities-Join, Verhalten unverändert | unit | `go test ./internal/repository -run AdminUsers -count=1` | ✅ | ⬜ pending |
+| 86-01-01 | 01 | 1 | D-01/D-02/D-03 | — | Seed entspricht roleMatrix 1:1; alle 18 Actions in action_definitions; platform_admin außerhalb | unit | `go test ./internal/permissions -run "SeedParity\|ActionDefinition" -count=1` | ❌ W0 | ⬜ pending |
+| 86-02-01 | 02 | 2 | D-04/D-05/D-06 | — | RoleAllowsAction liest Cache, API stabil, Fallback auf roleMatrix | unit | `go test ./internal/permissions -run "RoleAllows\|Capability\|Cache" -count=1` | ❌ W0 | ⬜ pending |
+| 86-02-02 | 02 | 2 | D-10 | — | Konsistenz-Check: jede Action-Konstante existiert in action_definitions (Katalog, NICHT role_capabilities); Backend startet | unit | `go test ./internal/permissions -run ConsistencyCheck -count=1` | ❌ W0 | ⬜ pending |
+| 86-03-01 | 03 | 3 | D-07 | — | SQL-Join gegen role_capabilities liefert erwartete Actions je Rolle (Capability nachgewiesen) | unit | `go test ./internal/repository -run CapabilityJoin -count=1` | ❌ W0 | ⬜ pending |
+| 86-03-02 | 03 | 3 | D-08/D-09 | — | 3 Admin-Anzeige-Felder unverändert (behavior-preserving); bestehende Tests grün | unit | `go test ./internal/repository ./internal/handlers -run AdminUsers -count=1` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

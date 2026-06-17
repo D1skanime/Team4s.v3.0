@@ -82,12 +82,14 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 77: Leader Workspace – Public Preview & Readiness** - In `/admin/fansubs/[id]/edit` Public-Preview, Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext ergänzen (capability-gated), ohne `/admin/my-groups/[id]` zu duplizieren.
   **Plans:** 3 plans
   Plans:
+
   - [ ] `77-01-PLAN.md` - Wave-0-Testgeruest: ReadinessTab.test.tsx (RED) + page.test.tsx Capability-Gating-Cases (Req F, I, K)
   - [ ] `77-02-PLAN.md` - ReadinessTab.tsx + PublicPreviewPanel.tsx implementieren (Readiness-Checkliste, Preview-Fallback, CSS)
   - [ ] `77-03-PLAN.md` - page.tsx chirurgisch verdrahten (SectionKey, MAIN_TABS, canUseMainTab, Render-Zweig) + Human-Verify
 - [x] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues. (completed 2026-06-06)
   **Plans:** 5 plans
   Plans:
+
   - [ ] `78-01-PLAN.md` — Wave-0-Testgeruest (RED): ContributionsReviewSection/GroupMediaReviewSection.test.tsx (mockt listFansubGroupMedia) + fansub_media_review_handler_test.go (SC1/SC3/SC4, D-09)
   - [ ] `78-02-PLAN.md` — ContributionsReviewSection (GDS) + ReviewQueue-Primitives-Migration + ClaimManagementPanel offen-Filter (D-01/D-02/D-07/D-08, Lock H)
   - [ ] `78-03-PLAN.md` — Backend Gruppenmedien-Review: GET-Liste + PATCH fansub_group_media + api.ts (listFansubGroupMedia/patchFansubMediaReview, Lock K/G/I, D-05/D-06/D-09); Phase-72-Schema-Gate
@@ -97,6 +99,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 80:  + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten. (completed 2026-06-15)
   **Plans:** 5 plans
   Plans:
+
   - [ ]  — Typ-Fundament: Go-DTOs, RevokeAppUserGlobalRole/CountActivePlatformAdmins, TypeScript-Interfaces, PlatformAdminGate-Bugfix
   - [ ]  — Wave-0-Testgerüst (RED): Repository/Handler/Frontend-Tests
   - [ ]  — Backend-Kern: Repository, Handler, Routing, Contract, api.ts
@@ -109,6 +112,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [ ] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert.
   **Plans:** 3 plans
   Plans:
+
   - [ ] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
   - [ ] 86-02-PLAN.md -- permissions.go Cache-Umbau + authz_permissions.go + main.go Verdrahtung
   - [ ] 86-03-PLAN.md -- 3 SQL-Stellen auf role_capabilities-JOIN + D-11-Kommentare
@@ -1496,6 +1500,7 @@ Plans:
 **Plans:** 6/6 + Coverage-Gap-Fix (82-07)
 
 Plans:
+
 - [x] `82-01-PLAN.md` — DB-Migrationen 0104–0107 (members-Backfill, anime_contributions.member_id, Rollen-FK, Standard-Team-Tabelle)
 - [x] `82-02-PLAN.md` — Backend: member_id-Semantik + ListUnifiedGroupMembers + /default-crew CRUD + apply (D-04)
 - [x] `82-03-PLAN.md` — Frontend-Typen + API-Helper (member_id, UnifiedGroupMember, DefaultCrewEntry, default-crew-Helper)
@@ -1512,6 +1517,7 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
+
 - [x] `83-01-PLAN.md` — Wave-0-Testgeruest: permissions_test.go neue Faelle (RED) + authz_permissions_test.go TestListActorContributionRolesForVersion (RED)
 - [x] `83-02-PLAN.md` — Permission-Umbau CanForReleaseVersion + Resolver-Interface + ListActorContributionRolesForVersion
 - [x] `83-03-PLAN.md` — GetMemberRolesForVersion Migration auf anime_contributions (D-13-Konsistenz)
@@ -1528,6 +1534,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
+
 - [x] `85-01-PLAN.md` - `/me/contributions` UI-/Flow-Cleanup: Modal-A11y, Header/CTA, Claim-Entflechtung, ProposalForm-YearPicker/Release-Version-State, mobile/tokenisierte Styles, fokussierte Tests
 
 ---
@@ -1818,6 +1825,7 @@ Plans:
 
 **Plans:** 7/7 plans complete
 Plans:
+
 - [x] `74-00-PLAN.md` — Wave-0 Test-Stubs (6 RED) + Migrations-Kollisions-Notiz (0096)
 - [x] `74-01-PLAN.md` — Public-Badge-Quelle + Status ins PublicMemberProfile-DTO (Contract-first, Badges-13/C/K)
 - [x] `74-02-PLAN.md` — Memorial-Setter (Global-Admin) + Claim-Sperre (beide Pfade) + Audit (J/D-14..D-17)
@@ -1839,6 +1847,7 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - [x] `75-01-PLAN.md` — Backend: drei neue öffentliche Projektions-Endpoints (Mitwirkende, Themes, Release-Medien) + OpenAPI + TypeScript-Typen + api.ts-Helper (Contract-zuerst per K)
 - [x] `75-02-PLAN.md` — Frontend: page.tsx Umbau zu Orchestrator-Shell + HeroSection + StorySection + GroupSectionsNav (Sticky-Nav, D-04)
 - [x] `75-03-PLAN.md` — Frontend: TeamSection + ReleasesSection + ThemesSection + MediaSection + BacklinksSection + page.tsx Verdrahtung + Human-Verify (Code+Build verifiziert; Human-UAT ausstehend)
@@ -1859,6 +1868,7 @@ Plans:
 **Plans:** 5/5 plans complete
 
 Plans:
+
 - [x] `76-01-PLAN.md` — Schema/Contract/Typ-Fundament: Migration 0098, OpenAPI, Frontend-Typen, Wave-0-Tests
 - [x] `76-02-PLAN.md` — Backend: member_suggestions-Repository + Handler, Reject-Reason, api.ts-Helfer (Lock K)
 - [x] `76-03-PLAN.md` — Frontend-Kernkomponenten: ContributionInbox, ContributionSummary + Stat-Chips, VisibilityDropdown-Migration (C2)
@@ -1917,6 +1927,7 @@ Plans:
 
 **Plans:** 5/5 plans complete
 Plans:
+
 - [x] `79-01-PLAN.md` — TDD: mediaStatusMapping + MediaOwnershipContext-Komponente (D-01/D-02/D-03/D-06/D-07/D-09)
 - [ ] `79-02-PLAN.md` — Lock-K Contract-Pfad: OpenAPI + models + Repository INSERT + Go-Handler (Branding/Prozessmedien-Defaults) + api.ts
 - [ ] `79-03-PLAN.md` — Surface 1 (MediaUpload.tsx Split + MediaOwnershipContext) + Surface 3 (ReleaseThemeAssetsSection + native-select-Migration)
@@ -1938,6 +1949,7 @@ Plans:
   5. Alle rechte-/statusändernden Aktionen sind auditierbar; nur Plattform-Admin erreicht die globale Zentrale (Leader sehen gruppenspezifische Rechte in `/admin/fansubs/[id]/edit`).
 
 Plans:
+
 - [ ] `80-01-PLAN.md` — Typ-Fundament: Go-DTOs, RevokeAppUserGlobalRole/CountActivePlatformAdmins, TypeScript-Interfaces, PlatformAdminGate-Bugfix
 - [ ] `80-02-PLAN.md` — Wave-0-Testgerüst (RED): Repository/Handler/Frontend-Tests
 - [ ] `80-03-PLAN.md` — Backend-Kern: Repository, Handler, Routing, Contract, api.ts
@@ -1979,6 +1991,14 @@ Plans:
 **Plans:** 3 plans
 Plans:
 
+**Wave 1**
+
 - [ ] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 86-02-PLAN.md -- permissions.go Cache-Umbau + authz_permissions.go LoadRoleCapabilities + main.go Verdrahtung
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 86-03-PLAN.md -- 3 SQL-Stellen (leader_count x2, can_edit_content) auf role_capabilities-JOIN

@@ -621,17 +621,11 @@ COUNT(*) FILTER (WHERE EXISTS (
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Action-Code für `can_edit_content`**
-   - Was wir wissen: Bisherige Logik ist `role IN ('leader', 'editor', 'contributor')` — d.h. alle mit edit/notes-Rechten.
-   - Was unklar: Welcher einzelne Action-Code bildet das exakt ab? `release_version_media.update` deckt media-Edit ab, aber `editor` hat nur `fansub_group.notes.write` + `release_version.notes.write` — kein media-Update.
-   - **Empfehlung:** `can_edit_content` auf zwei JOINs umstellen (OR aus mehreren Actions) oder semantisch auf `release_version.notes.write` (alle drei Rollen haben das). Alternativ: `leader_count` und `can_edit_content` als deklarative Bool-Aggregate über alle Actions der Rolle, die im Tab angezeigt werden sollen. **Muss im Plan festgelegt werden.**
+1. **Action-Code für `can_edit_content`** — **RESOLVED (User-Entscheidung 2026-06-18):** Nicht zutreffend. `can_edit_content` (sowie `leader_count` und `can_view_members`) sind Anzeige-Heuristiken im read-only Admin-Tab, KEINE Capability-Entscheidungen, und bilden keine roleMatrix-Capability sauber ab (`'leader'` hat keine Capabilities; `release_version.notes.write` hätten 8 Rollen statt `{editor}` → Verhaltensänderung). Entscheidung: Diese 3 Felder bleiben **unverändert** (behavior-preserving), dokumentiert per Code-Kommentar. Es wird KEIN Action-Code-Mapping für sie festgelegt. Siehe CONTEXT D-07/D-08/D-09.
 
-2. **`ActionFansubGroupInvitationsAccept` im Seed**
-   - Was wir wissen: Diese Konstante wird in `CanAcceptInvitation` genutzt, steht nicht in roleMatrix.
-   - Was unklar: Muss sie in `action_definitions` landen? Ja, wenn der Konsistenz-Check alle Konstanten abgleicht.
-   - Empfehlung: In `action_definitions` seeden, aber keinen `role_capabilities`-Eintrag anlegen (keine Rolle braucht diese Action via `roleAllows`).
+2. **`ActionFansubGroupInvitationsAccept` im Seed** — **RESOLVED:** Wird in `action_definitions` geseedet (Katalog-Eintrag), bekommt aber KEINEN `role_capabilities`-Eintrag (keine Rolle gewährt sie). Der D-10-Konsistenz-Check prüft Action-Konstanten gegen `action_definitions` (Katalog), NICHT gegen `role_capabilities` — daher startet das Backend korrekt (kein fail-open/fail-closed-Konflikt). Alle 18 Action-Konstanten werden in `action_definitions` geseedet.
 
 ---
 

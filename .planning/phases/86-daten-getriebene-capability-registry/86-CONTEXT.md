@@ -29,11 +29,12 @@ Das Rechte-/Rollen-Management wird so umgebaut, dass **neue Rechte zentral als D
 - **D-06:** Permission-Checks bleiben im Hot-Path performant: kein DB-Roundtrip pro Check; Cache beim Start, Invalidierung nur bei Änderung (selten).
 
 ### SQL-Integration & Entkopplung
-- **D-07:** Capability-Entscheidungen in SQL nutzen einen Join/EXISTS gegen `role_capabilities` statt Rollen-Literale. Beispiel: `bool_or(EXISTS (SELECT 1 FROM role_capabilities rc WHERE rc.role_code = fgmr.role AND rc.action_code = '<action>'))`.
-- **D-08:** Alle hartkodierten Rollen-Capability-Checks werden umgestellt (Fundstellen aus der Design-Notiz):
-  - SQL `role IN (...)`: `admin_users_queries.go`, `admin_users_tab_repository.go` (GetUserGroupRights/can_edit_content), `anime_contributions_public_repository.go`, `badge_service.go`.
-  - Go `role == "..."`: `admin_users_mutations_handler.go`, `app_auth.go`, `authz.go` (2 Stellen).
-- **D-09:** Phase-80-Gruppenrechte-Query (`can_view_members`/`can_edit_content`) wird auf den Join umgestellt; Verhalten unverändert (bestehende Tests grün).
+
+**Entscheidung 2026-06-18 (verfeinert nach Research + Behavior-Preservation-Analyse):** Die heutigen SQL-„Rollen-Checks" im Admin-Tab (`leader_count` = `role = 'leader'`, `can_view_members` = `role IS NOT NULL`, `can_edit_content` = `role IN ('leader','editor','contributor')`) sind **Anzeige-Heuristiken im read-only Admin-Tab, KEINE Capability-Entscheidungen** — und sie bilden keine roleMatrix-Capability sauber ab (z.B. `'leader'` hat keine Capabilities; `release_version.notes.write` hätten 8 Rollen statt `{editor}`). Eine Umstellung wäre daher NICHT behavior-preserving. Gewählt: **Infrastruktur bauen, Anzeige-Felder unverändert lassen.**
+
+- **D-07:** Die Registry stellt die **Fähigkeit** bereit, Capability-Entscheidungen in SQL per Join/EXISTS gegen `role_capabilities` zu treffen (`EXISTS (SELECT 1 FROM role_capabilities rc WHERE rc.role_code = <role> AND rc.action_code = '<action>')`). Diese Fähigkeit wird per Test nachgewiesen (Join liefert die erwarteten Actions je Rolle), damit künftige ECHTE SQL-Capability-Checks sie nutzen.
+- **D-08:** Die heutigen SQL-Rollen-Literale im Admin-Tab (`leader_count`, `can_view_members`, `can_edit_content`) bleiben **bewusst unverändert** (Anzeige-Heuristiken, keine Capability-Entscheidungen) — dokumentiert per Code-Kommentar am jeweiligen Ort mit Verweis auf die Registry für künftige echte Checks. `badge_service.go`, `anime_contributions_public_repository.go` sind per Research R-01 Katalog-Anzeigen (keine Capability-Checks); `authz.go` enthält nur Guards. → 100% behavior-preserving.
+- **D-09:** Die Phase-80-Gruppenrechte-Query bleibt unverändert (siehe D-08); die Registry-Join-Fähigkeit (D-07) steht für eine spätere, bewusst geplante Korrektur dieser Anzeige-Semantik bereit (separater Scope).
 
 ### Sicherheit / Konsistenz
 - **D-10:** Startup-Konsistenz-Check + Test: Jede im Code verwendete `Action`-Konstante MUSS in `action_definitions` existieren (FK-Constraints + Test). Ersetzt die durch die Daten-Auslagerung verlorene Compile-Sicherheit.
