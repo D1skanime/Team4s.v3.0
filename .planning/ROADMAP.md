@@ -106,6 +106,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 ### Korrektur-Phase – Release-Version Mehrfach-Fansubgruppen
 
 - [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene. (completed 2026-06-09)
+- [ ] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert.
 
 ## Phase Details
 
@@ -1953,3 +1954,19 @@ Plans:
   6. Beim Speichern werden alle IDs gegen `fansub_groups` validiert, abgewählte Zuordnungen entfernt und ungültige/nicht existierende IDs abgelehnt.
   7. Bestehende falsch erzeugte Kombigruppen werden per Migration über `fansub_collaboration_members` auf ihre echten Mitglieds-IDs gemappt, in `release_version_groups` UND `anime_fansub_groups` materialisiert und anschließend deaktiviert/gelöscht, sofern keine Fremdreferenzen mehr bestehen.
   8. Backend- und Frontend-Tests decken Schreiben (N Zeilen, keine Kombigruppe), Lesen (Aggregation mehrerer Gruppen) und die Bestandsdaten-Migration ab.
+
+### Phase 86: Daten-getriebene Capability-Registry
+
+**Goal:** Rechte werden zentral als Daten verwaltet (`action_definitions` + `role_capabilities`) statt pro `.go`/SQL-Stelle hartkodiert. Ein neues Recht wird durch Daten-Einträge integriert, ohne Rollen-Capability-Logik im Code anzufassen; Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit. Migration ist behavior-preserving aus der heutigen `roleMatrix`. Vollständiges Design: `.planning/notes/capability-registry-design.md`.
+**Requirements:** Capability-Registry-Design (`.planning/notes/capability-registry-design.md`); löst die in Phase 80 sichtbar gewordene Hartkodierung (`role IN ('leader',…)`) auf.
+**Depends on:** Phase 80 (liefert die ersten Rechte-Flächen, die profitieren: Gruppenrechte-Query, Rechte-Drawer)
+**Success Criteria** (what must be TRUE):
+
+  1. Zwei Tabellen `action_definitions(code, label_de, category, sort_order)` und `role_capabilities(role_code FK→role_definitions, action_code FK→action_definitions)` existieren per Migration und sind behavior-preserving aus der heutigen Go-`roleMatrix` geseedet (1:1).
+  2. `backend/internal/permissions/permissions.go` lädt die Matrix beim Start aus `role_capabilities` in einen In-Memory-Cache; die öffentliche API (`RoleAllowsAction`, `AllowedActionsForRole`) und die `Action`-Konstanten bleiben unverändert, alle bestehenden Aufrufer kompilieren ohne Änderung.
+  3. Ein neues Recht hinzufügen erfordert NUR Daten-Inserts (`action_definitions` + `role_capabilities`) — kein `.go`/SQL-Datei-Edit; per Test/Doku nachgewiesen.
+  4. Alle hartkodierten Rollen-Capability-Checks aus der Design-Notiz (SQL `role IN (...)` in admin_users-, badge_service-, anime_contributions_public-Repos; Go `role == ...` in authz.go, app_auth.go, admin_users_mutations_handler.go) konsultieren die Registry; keine Rollen-Literale mehr in Capability-Entscheidungen.
+  5. Startup-Konsistenz-Check + Test: jede im Code verwendete `Action`-Konstante existiert in `action_definitions` (FK + Test) — ersetzt die verlorene Compile-Sicherheit.
+  6. Die Phase-80-Gruppenrechte-Query (`can_view_members`/`can_edit_content`) nutzt einen Join auf `role_capabilities` statt `role IN ('leader',…)`; Verhalten unverändert (bestehende Tests grün).
+  7. Permission-Checks bleiben performant: kein DB-Roundtrip pro Check (Cache beim Start, Invalidierung nur bei Änderung).
+  8. Backend-Tests decken ab: Seed entspricht der alten roleMatrix (Diff-Test), Registry-Lookup, Konsistenz-Check, und mindestens eine umgestellte Bypass-Stelle.
