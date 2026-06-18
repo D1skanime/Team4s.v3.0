@@ -124,6 +124,9 @@ func main() {
 	episodeImportRepo := repository.NewEpisodeImportRepository(dbPool)
 	authzRepo := repository.NewAuthzRepository(dbPool)
 	permissionSvc := permissions.NewService(authzRepo)
+	if err := permissionSvc.LoadCache(ctx, authzRepo); err != nil {
+		log.Fatalf("Capability-Registry laden fehlgeschlagen: %v", err)
+	}
 	auditLogRepo := repository.NewAuditLogRepository(dbPool)
 	memberClaimsRepo := repository.NewMemberClaimsRepository(dbPool).WithAuditLog(auditLogRepo)
 	memberClaimInvitationsRepo := repository.NewMemberClaimInvitationRepository(dbPool, cfg.AppPublicURL).WithAuditLog(auditLogRepo)

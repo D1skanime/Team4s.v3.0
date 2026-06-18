@@ -194,6 +194,37 @@ func (r *AuthzRepository) ListActorGroupRoles(ctx context.Context, appUserID int
 //  2. Fallback: anime-weite Contributions (release_version_id IS NULL, anime_id aus Episode ermittelt)
 //
 // Gibt leere Liste zurück wenn keine Contribution existiert (→ D-04: kein Recht).
+// LoadRoleCapabilities lädt die vollständige Rolle→Action-Matrix aus role_capabilities.
+// Implementiert das permissions.CacheLoader-Interface für den Startup-Load (D-04, D-06).
+// Compile-Zeit-Assertion: var _ permissions.CacheLoader = (*AuthzRepository)(nil)
+func (r *AuthzRepository) LoadRoleCapabilities(ctx context.Context) (map[string][]permissions.Action, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT role_code, action_code
+		FROM role_capabilities
+		ORDER BY role_code, action_code
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("load role capabilities: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[string][]permissions.Action)
+	for rows.Next() {
+		var role, action string
+		if err := rows.Scan(&role, &action); err != nil {
+			return nil, fmt.Errorf("load role capabilities: scan: %w", err)
+		}
+		result[role] = append(result[role], permissions.Action(action))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("load role capabilities: iterate: %w", err)
+	}
+	return result, nil
+}
+
+// Compile-Zeit-Sicherstellung, dass AuthzRepository das CacheLoader-Interface implementiert.
+var _ permissions.CacheLoader = (*AuthzRepository)(nil)
+
 func (r *AuthzRepository) ListActorContributionRolesForVersion(ctx context.Context, appUserID int64, releaseVersionID int64) ([]string, error) {
 	if appUserID <= 0 || releaseVersionID <= 0 {
 		return nil, nil
