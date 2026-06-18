@@ -114,9 +114,9 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   **Plans:** 3 plans
   Plans:
 
-  - [x] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
-  - [x] 86-02-PLAN.md -- permissions.go Cache-Umbau + authz_permissions.go + main.go Verdrahtung
-  - [x] 86-03-PLAN.md -- 3 SQL-Stellen auf role_capabilities-JOIN + D-11-Kommentare
+  - [ ] 87-01-PLAN.md -- Wave-0-RED-Tests + ReloadCache (permissions.go) + OpenAPI-Contract + TypeScript-Typen
+  - [ ] 87-02-PLAN.md -- Repository (CRUD) + Handler (Grant/Revoke/Guard) + View-Enforcement an 3 Admin-Endpunkten + Routing
+  - [ ] 87-03-PLAN.md -- Frontend Capability-Pflege-UI (Rollen x Actions-Matrix) + Nav-Link + Human-Verify
 
 ## Phase Details
 
@@ -1537,6 +1537,16 @@ Plans:
 Plans:
 
 - [x] `85-01-PLAN.md` - `/me/contributions` UI-/Flow-Cleanup: Modal-A11y, Header/CTA, Claim-Entflechtung, ProposalForm-YearPicker/Release-Version-State, mobile/tokenisierte Styles, fokussierte Tests
+
+### Phase 88: Fansubber-Workspace & Contribution-Copy bereinigen
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 87
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 88 to break down)
 
 ---
 
