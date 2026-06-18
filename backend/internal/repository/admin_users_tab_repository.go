@@ -111,6 +111,9 @@ func (r *AdminUsersRepository) GetUserGroupRights(
 		           ARRAY_AGG(DISTINCT fgmr.role ORDER BY fgmr.role) FILTER (WHERE fgmr.role IS NOT NULL),
 		           ARRAY[]::text[]
 		       ),
+		       -- Anzeige-Heuristiken (read-only Admin-Tab): can_view_members + can_edit_content sind keine Capability-Entscheidungen.
+		       -- Bewusst unverändert per User-Entscheidung 2026-06-18 (Phase 86, D-08/D-09).
+		       -- Für echte SQL-Capability-Checks role_capabilities-Join nutzen (D-07).
 		       bool_or(fgmr.role IS NOT NULL) AS can_view_members,
 		       bool_or(fgmr.role IN ('leader', 'editor', 'contributor')) AS can_edit_content
 		FROM fansub_group_members fgm

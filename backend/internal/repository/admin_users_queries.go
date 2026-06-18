@@ -62,6 +62,9 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
     SELECT
         COUNT(*) AS membership_count,
+        -- Anzeige-Heuristik: zählt Mitglieder mit role='leader' (nicht registry-getrieben).
+        -- Bewusst unverändert per User-Entscheidung 2026-06-18 (Phase 86, D-08).
+        -- Für echte Capability-Checks: EXISTS (SELECT 1 FROM role_capabilities rc WHERE rc.role_code = fgmr.role AND rc.action_code = '<action>').
         COUNT(*) FILTER (WHERE fgmr.role IN ('leader')) AS leader_count
     FROM fansub_group_members fgm
     LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
@@ -150,6 +153,9 @@ LEFT JOIN LATERAL (
 LEFT JOIN LATERAL (
     SELECT
         COUNT(*) AS membership_count,
+        -- Anzeige-Heuristik: zählt Mitglieder mit role='leader' (nicht registry-getrieben).
+        -- Bewusst unverändert per User-Entscheidung 2026-06-18 (Phase 86, D-08).
+        -- Für echte Capability-Checks: EXISTS (SELECT 1 FROM role_capabilities rc WHERE rc.role_code = fgmr.role AND rc.action_code = '<action>').
         COUNT(*) FILTER (WHERE fgmr.role = 'leader') AS leader_count
     FROM fansub_group_members fgm
     LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
