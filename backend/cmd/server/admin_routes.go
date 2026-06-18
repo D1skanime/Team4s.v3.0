@@ -26,6 +26,8 @@ type adminRouteHandlers struct {
 	defaultCrewHandler *handlers.FansubDefaultCrewHandler
 	// Phase 80: Globale User-Verwaltung + Rechte-Zentrale
 	adminUsersHandler *handlers.AdminUsersHandler
+	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler)
+	adminCapabilityHandler *handlers.AdminCapabilityHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -222,5 +224,11 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 		v1.PUT("/admin/fansubs/:id/default-crew", auth, deps.defaultCrewHandler.PutDefaultCrew)
 		v1.DELETE("/admin/fansubs/:id/default-crew/:memberId/:roleCode", auth, deps.defaultCrewHandler.DeleteDefaultCrewEntry)
 		v1.POST("/admin/fansubs/:id/default-crew/apply", auth, deps.defaultCrewHandler.ApplyDefaultCrew)
+	}
+	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
+	if deps.adminCapabilityHandler != nil {
+		v1.GET("/admin/role-capabilities", auth, deps.adminCapabilityHandler.ListCapabilityMatrix)
+		v1.PUT("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.GrantCapability)
+		v1.DELETE("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.RevokeCapability)
 	}
 }

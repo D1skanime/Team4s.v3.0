@@ -408,6 +408,8 @@ func main() {
 	// Phase 80: Globale User-Verwaltung + Rechte-Zentrale
 	adminUsersRepo := repository.NewAdminUsersRepository(dbPool)
 	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
+	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
+	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, permissionSvc, auditLogRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -425,6 +427,7 @@ func main() {
 		fansubMediaReviewHandler:      fansubMediaReviewHandler,
 		defaultCrewHandler:            defaultCrewHandler,
 		adminUsersHandler:             adminUsersHandler,
+		adminCapabilityHandler:        adminCapabilityHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)
