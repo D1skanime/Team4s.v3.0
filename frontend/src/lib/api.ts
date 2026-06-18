@@ -8998,8 +8998,9 @@ export async function listRoleCapabilities(): Promise<RoleCapabilityMatrix> {
     )
   }
 
-  const body = (await response.json()) as { data: RoleCapabilityMatrix }
-  return body.data
+  // Der Endpunkt liefert die Matrix gemäß Contract direkt (kein data-Envelope).
+  const body = (await response.json()) as RoleCapabilityMatrix
+  return body
 }
 
 /**
