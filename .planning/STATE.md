@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Completed 80-03-PLAN.md
-last_updated: "2026-06-18T08:39:24.738Z"
+stopped_at: Completed 87-01-PLAN.md
+last_updated: "2026-06-18T12:18:32.703Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 83
   completed_phases: 65
   total_plans: 339
-  completed_plans: 302
+  completed_plans: 303
   percent: 78
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 86 — daten-getriebene-capability-registry
+**Current focus:** Phase 87 — sichtbarkeits-steuerung-per-rolle-capability-pflege-ui
 
 ## Current Position
 
-Phase: 86 (daten-getriebene-capability-registry) — EXECUTING
-Plan: 3 of 3
+Phase: 87 (sichtbarkeits-steuerung-per-rolle-capability-pflege-ui) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -247,6 +247,8 @@ Recent durable decisions:
 - [Phase ?]: Page-First-CTE mit LATERAL-Joins fuer N+1-freie Aggregation (D-07); release_scope_count vorlaeufig 0
 - [Phase ?]: Wave-0-Repository-Tests: t.Skip() durch Interface-Assertion (var _) und echte GREEN-Tests ersetzt
 - [Phase ?]: Last-Admin-Guard vor Revoke und Disable; HTTP 409 ohne Audit-Write bei Ablehnung
+- [Phase ?]: [Phase 87-01]: ReloadCache delegiert vollständig an LoadCache — kein eigener Mutex, Fail-safe inhärent durch LoadCache-Semantik (D-06)
+- [Phase ?]: [Phase 87-01]: IsStandaloneAction als exportierte Paket-Funktion — Consumer hardcoden keine standalone-Action-Codes
 
 ### Pending Todos
 
@@ -435,6 +437,7 @@ Recent durable decisions:
 | Phase 80 P04 | 90min | 2 tasks | 12 files |
 | Phase 86 P01 | 5min | 2 tasks | 4 files |
 | Phase 86-daten-getriebene-capability-registry P02 | 15min | 2 tasks | 3 files |
+| Phase 87 P01 | 5min | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -479,7 +482,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-18T07:17:36.047Z
-Stopped at: Completed 80-03-PLAN.md
+Last session: 2026-06-18T12:18:32.672Z
+Stopped at: Completed 87-01-PLAN.md
 Last activity: 2026-06-18
 Resume file: None

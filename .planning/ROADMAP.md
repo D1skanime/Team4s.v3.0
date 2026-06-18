@@ -114,7 +114,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   **Plans:** 3 plans
   Plans:
 
-  - [ ] 87-01-PLAN.md -- Wave-0-RED-Tests + ReloadCache (permissions.go) + OpenAPI-Contract + TypeScript-Typen
+  - [x] 87-01-PLAN.md -- Wave-0-RED-Tests + ReloadCache (permissions.go) + OpenAPI-Contract + TypeScript-Typen
   - [ ] 87-02-PLAN.md -- Repository (CRUD) + Handler (Grant/Revoke/Guard) + View-Enforcement an 3 Admin-Endpunkten + Routing
   - [ ] 87-03-PLAN.md -- Frontend Capability-Pflege-UI (Rollen x Actions-Matrix) + Nav-Link + Human-Verify
 
