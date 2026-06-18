@@ -110,7 +110,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 - [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene. (completed 2026-06-09)
 - [x] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert. (completed 2026-06-18)
-- [ ] **Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI** - View-Checks an ausgewaehlten Lese-Pfaden + Admin-UI zum Pflegen von role_capabilities (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf Phase 86 auf; steuert daten-getrieben wer was sehen darf.
+- [x] **Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI** - View-Checks an ausgewaehlten Lese-Pfaden + Admin-UI zum Pflegen von role_capabilities (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf Phase 86 auf; steuert daten-getrieben wer was sehen darf. (completed 2026-06-18)
   **Plans:** 3 plans
   Plans:
 
@@ -2002,7 +2002,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 86-03-PLAN.md -- 3 SQL-Stellen (leader_count x2, can_edit_content) auf role_capabilities-JOIN
+- [x] 86-03-PLAN.md -- 3 SQL-Stellen (leader_count x2, can_edit_content) auf role_capabilities-JOIN
 
 ### Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI
 
