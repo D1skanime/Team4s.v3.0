@@ -234,6 +234,7 @@ import type {
   GroupThemesResponse,
   GroupReleaseMediaResponse,
 } from "@/types/groupContributors";
+import type { RoleCapabilityMatrix } from "@/types/admin-capability";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
@@ -8968,6 +8969,99 @@ export async function uploadOwnProfileStoryImage(
       return data;
     },
   });
+}
+
+// --- Capability-Verwaltung (Phase 87) ---
+
+/**
+ * Lädt die vollständige Rollen×Actions-Capability-Matrix.
+ * GET /api/v1/admin/role-capabilities
+ */
+export async function listRoleCapabilities(): Promise<RoleCapabilityMatrix> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/role-capabilities`,
+    { cache: 'no-store' },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    )
+  }
+
+  const body = (await response.json()) as { data: RoleCapabilityMatrix }
+  return body.data
+}
+
+/**
+ * Vergibt eine Capability an eine Rolle.
+ * PUT /api/v1/admin/role-capabilities/:roleCode/:actionCode
+ */
+export async function grantRoleCapability(
+  roleCode: string,
+  actionCode: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/role-capabilities/${encodeURIComponent(roleCode)}/${encodeURIComponent(actionCode)}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    )
+  }
+}
+
+/**
+ * Entzieht einer Rolle eine Capability.
+ * DELETE /api/v1/admin/role-capabilities/:roleCode/:actionCode
+ * Bei 409 (Lockout-Guard): wirft ApiError mit status=409 und code="lockout_guard".
+ */
+export async function revokeRoleCapability(
+  roleCode: string,
+  actionCode: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/role-capabilities/${encodeURIComponent(roleCode)}/${encodeURIComponent(actionCode)}`,
+    { method: 'DELETE' },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    )
+  }
 }
 
 // setMemberMemorial markiert ein Member-Profil als Gedenkprofil (profile_status='memorial').
