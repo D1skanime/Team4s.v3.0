@@ -1,10 +1,11 @@
 ---
 phase: 87
 slug: sichtbarkeits-steuerung-per-rolle-capability-pflege-ui
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-18
+reviewed_at: 2026-06-18
 ---
 
 # Phase 87 — UI Design Contract
@@ -55,8 +56,9 @@ Deklarierte Werte (Quelle: `globals.css` — alle Vielfache von 4):
 | 2xl | `--space-7` | 48px | Große Sektionsumbrüche |
 | 3xl | `--space-8` | 64px | Seiten-Ebene |
 
-Ausnahmen: `--control-height-md: 44px` für Touch-Targets (Button-Mindestgröße auf
-Capability-Zuweisung/Entzug).
+Ausnahmen (begründet, beide Vielfache von 4):
+- `--space-3: 12px` — bestehendes Projekt-Token aus `globals.css` für komprimierte Tabellenzellen-Abstände; kein kleineres Standard-Token zwischen 8px und 16px verfügbar, das die dichte Rolle×Action-Matrix lesbar hält. Nutzung der vorhandenen Design-System-Skala (keine neue Ad-hoc-Größe).
+- `--control-height-md: 44px` — Touch-Target-Mindestgröße auf Capability-Zuweisung/Entzug-Buttons.
 
 ---
 
@@ -125,6 +127,8 @@ Third-Party-Pakete.
 
 ## Seitenstruktur und Layout
 
+**Primärer visueller Anker (Focal Point):** Der `PageHeader` „Capability-Verwaltung" (Display 28px/600, volle Breite) ist das dominante Element der Seite und etabliert die oberste Hierarchiestufe. Darunter folgt absteigend: Kategorie-Filter → Rollen×Action-Matrix-Tabelle → Zell-Aktionen (Badge/Button). Der Blick startet oben links beim Titel und wandert in die Matrix.
+
 ### Route: `/admin/role-capabilities`
 
 ```
@@ -182,7 +186,7 @@ clientseitig ohne API-Call.
 2. `GrantCapabilityModal` öffnet sich mit:
    - Titel: „Capability vergeben"
    - Beschreibung: „Soll die Capability „{action.label_de}" der Rolle „{role.label_de}" zugewiesen werden?"
-   - Footer: `Button variant="secondary"` „Abbrechen" | `Button variant="primary"` „Vergeben"
+   - Footer: `Button variant="secondary"` „Abbrechen" | `Button variant="primary"` „Capability vergeben"
    - Pending-State: Buttons disabled, Bestätigungs-Button zeigt „Wird verarbeitet …"
 3. Bei Erfolg: Modal schließt, `loadData()` neu laden, kein Toast notwendig (Tabelle
    aktualisiert sich sichtbar — die Zelle wechselt von „Vergeben"-Button zu Badge+Entziehen).
@@ -194,7 +198,7 @@ clientseitig ohne API-Call.
 2. `RevokeCapabilityModal` öffnet sich mit:
    - Titel: „Capability entziehen"
    - Beschreibung: „Soll die Capability „{action.label_de}" von der Rolle „{role.label_de}" entzogen werden?"
-   - Footer: `Button variant="secondary"` „Abbrechen" | `Button variant="danger"` „Entziehen"
+   - Footer: `Button variant="secondary"` „Abbrechen" | `Button variant="danger"` „Capability entziehen"
    - Pending-State: Buttons disabled, Bestätigungs-Button zeigt „Wird verarbeitet …"
 3. Bei HTTP 409 (Lockout-Guard): Inline-Fehler im Modal:
    „Diese Capability kann nicht entzogen werden — sie ist die letzte aktive Zuweisung für diese Action."
@@ -225,16 +229,16 @@ Implementierung: `<p>` mit `color: var(--color-text-secondary)`, `font-size: 0.8
 | Kategorie-Filter-Placeholder | Alle Kategorien |
 | Vergabe-Modal-Titel | Capability vergeben |
 | Vergabe-Modal-Beschreibung | Soll die Capability „{action.label_de}" der Rolle „{role.label_de}" zugewiesen werden? |
-| Vergabe-Modal-Bestätigung | Vergeben |
+| Vergabe-Modal-Bestätigung | Capability vergeben |
 | Vergabe-Pending | Wird verarbeitet … |
 | Entzugs-Modal-Titel | Capability entziehen |
 | Entzugs-Modal-Beschreibung | Soll die Capability „{action.label_de}" von der Rolle „{role.label_de}" entzogen werden? |
-| Entzugs-Modal-Bestätigung | Entziehen |
+| Entzugs-Modal-Bestätigung | Capability entziehen |
 | Entzugs-Pending | Wird verarbeitet … |
 | Lockout-Guard-Fehler (409) | Diese Capability kann nicht entzogen werden — sie ist die letzte aktive Zuweisung für diese Action. |
 | Standalone-Aktions-Badge | Systemaktion |
 | Standalone-Aktions-Tooltip (aria-label) | Systemaktion — nicht über Rollen konfigurierbar |
-| Leer-Zustand Titel | Keine Daten |
+| Leer-Zustand Titel | Keine Capabilities gefunden |
 | Leer-Zustand Body | Die Capability-Matrix konnte nicht geladen werden. Seite neu laden. |
 | Lade-Zustand | Wird geladen … |
 | Fehler-Zustand Titel | Fehler beim Laden |
