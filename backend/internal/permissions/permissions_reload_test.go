@@ -63,6 +63,13 @@ func TestReloadCacheReplacesCacheAtomically(t *testing.T) {
 	cacheMu.Lock()
 	loadedCache = nil
 	cacheMu.Unlock()
+	// Globalen Cache nach dem Test wieder auf nil setzen, damit Geschwister-Tests
+	// (die auf den roleMatrix-Fallback bei loadedCache == nil bauen) nicht verschmutzt werden.
+	t.Cleanup(func() {
+		cacheMu.Lock()
+		loadedCache = nil
+		cacheMu.Unlock()
+	})
 
 	ctx := context.Background()
 	svc := NewService(nil)
@@ -85,6 +92,13 @@ func TestReloadCacheFailsafe(t *testing.T) {
 	cacheMu.Lock()
 	loadedCache = nil
 	cacheMu.Unlock()
+	// Globalen Cache nach dem Test wieder auf nil setzen, damit Geschwister-Tests
+	// (die auf den roleMatrix-Fallback bei loadedCache == nil bauen) nicht verschmutzt werden.
+	t.Cleanup(func() {
+		cacheMu.Lock()
+		loadedCache = nil
+		cacheMu.Unlock()
+	})
 
 	ctx := context.Background()
 	svc := NewService(nil)
