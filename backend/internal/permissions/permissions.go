@@ -483,6 +483,20 @@ func (s *Service) canForContext(
 	return denied(ReasonNoMembership, "keine aktive gruppenmitgliedschaft für diese ressource"), nil
 }
 
+// ReloadCache lädt die Capability-Matrix erneut aus der DB (D-06).
+// Delegiert an LoadCache — selber atomarer Swap und D-10-Konsistenz-Check.
+// Nach erfolgreicher Mutation aufrufen, nicht beim Startup (dafür LoadCache).
+// Fail-safe: schlägt LoadCache fehl, bleibt loadedCache unverändert.
+func (s *Service) ReloadCache(ctx context.Context, loader CacheLoader) error {
+	return s.LoadCache(ctx, loader)
+}
+
+// IsStandaloneAction meldet ob eine Action in standaloneActions deklariert ist.
+// Exportierte API damit Handler die paket-private Slice nicht duplizieren müssen.
+func IsStandaloneAction(a Action) bool {
+	return slices.Contains(standaloneActions, a)
+}
+
 func roleAllows(role string, action Action) bool {
 	cacheMu.RLock()
 	cache := loadedCache
