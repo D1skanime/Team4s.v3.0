@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 )
 
 const (
@@ -145,6 +146,41 @@ var roleMatrix = map[string][]Action{
 	},
 }
 
+// paket-globaler In-Memory-Cache für die Rolle→Action-Matrix.
+// loadedCache == nil bedeutet "noch nicht geladen" → roleAllows fällt auf roleMatrix-Fallback zurück.
+var (
+	cacheMu     sync.RWMutex
+	loadedCache map[string][]Action
+)
+
+// allKnownActions enthält alle 18 Action-Konstanten aus permissions.go.
+// Wird von LoadCache für den D-10-Konsistenz-Check genutzt.
+var allKnownActions = []Action{
+	ActionFansubGroupEdit,
+	ActionFansubGroupLinksManage,
+	ActionFansubGroupMembersView,
+	ActionFansubGroupMembersManage,
+	ActionFansubGroupInvitationsView,
+	ActionFansubGroupInvitationsCreate,
+	ActionFansubGroupInvitationsCancel,
+	ActionFansubGroupInvitationsAccept,
+	ActionFansubGroupNotesWrite,
+	ActionAnimeFansubProjectNotesWrite,
+	ActionReleaseView,
+	ActionReleaseVersionView,
+	ActionReleaseVersionMediaView,
+	ActionReleaseVersionMediaUpload,
+	ActionReleaseVersionMediaUpdate,
+	ActionReleaseVersionMediaDelete,
+	ActionReleaseVersionMediaDeleteOwn,
+	ActionReleaseVersionNotesWrite,
+}
+
+// standaloneActions sind Actions, die in action_definitions existieren,
+// aber keinen role_capabilities-Eintrag haben (keine Rolle gewährt sie direkt).
+// ActionFansubGroupInvitationsAccept wird über CanAcceptInvitation ohne Rollen-Lookup geprüft.
+var standaloneActions = []Action{ActionFansubGroupInvitationsAccept}
+
 var fansubGroupRoleCatalog = []string{
 	RoleFansubLead,
 	RoleProjectLead,
@@ -204,14 +240,43 @@ func NewService(resolver Resolver) *Service {
 }
 
 // LoadCache lädt die Capability-Matrix beim Start aus der Datenbank in den In-Memory-Cache.
-// Stub-Implementierung: gibt Fehler zurück bis Plan 86-02 den echten Cache-Umbau liefert.
-// Alle Wave-0-Tests (TestRoleMatrixSeedParity, TestCacheLoadAndLookup, TestStartupConsistencyCheck)
-// schlagen RED fehl, solange diese Methode kein korrektes Verhalten implementiert.
+// Nach erfolgreichem Load wird ein D-10-Konsistenz-Check durchgeführt:
+// Jede Action-Konstante in allKnownActions muss entweder in mindestens einer Rolle im Cache
+// vorkommen ODER in standaloneActions deklariert sein — sonst fail-closed (Fehler).
+// Nach bestandenem Check wird loadedCache gesetzt; roleAllows nutzt fortan den Cache.
 func (s *Service) LoadCache(ctx context.Context, loader CacheLoader) error {
-	return fmt.Errorf("LoadCache: nicht implementiert — Plan 86-02 liefert den Cache-Umbau")
+	m, err := loader.LoadRoleCapabilities(ctx)
+	if err != nil {
+		return fmt.Errorf("permission cache load: %w", err)
+	}
+
+	// D-10: Konsistenz-Check — alle bekannten Action-Konstanten müssen im Cache vorhanden sein
+	// oder als standaloneAction deklariert (d.h. sie haben keinen role_capabilities-Eintrag).
+	seenActions := make(map[Action]bool)
+	for _, actions := range m {
+		for _, a := range actions {
+			seenActions[a] = true
+		}
+	}
+	for _, a := range allKnownActions {
+		if !seenActions[a] && !slices.Contains(standaloneActions, a) {
+			return fmt.Errorf("permission cache: Action %q fehlt in role_capabilities und ist keine standalone-Action — Startup abgebrochen", a)
+		}
+	}
+
+	cacheMu.Lock()
+	loadedCache = m
+	cacheMu.Unlock()
+	return nil
 }
 
 func AllowedActionsForRole(role string) []Action {
+	cacheMu.RLock()
+	cache := loadedCache
+	cacheMu.RUnlock()
+	if cache != nil {
+		return append([]Action(nil), cache[strings.TrimSpace(role)]...)
+	}
 	return append([]Action(nil), roleMatrix[strings.TrimSpace(role)]...)
 }
 
@@ -419,8 +484,14 @@ func (s *Service) canForContext(
 }
 
 func roleAllows(role string, action Action) bool {
-	allowed := roleMatrix[strings.TrimSpace(role)]
-	return slices.Contains(allowed, action)
+	cacheMu.RLock()
+	cache := loadedCache
+	cacheMu.RUnlock()
+	if cache != nil {
+		return slices.Contains(cache[strings.TrimSpace(role)], action)
+	}
+	// Fallback auf statische roleMatrix (nur wenn LoadCache noch nicht aufgerufen wurde, z.B. in Unit-Tests)
+	return slices.Contains(roleMatrix[strings.TrimSpace(role)], action)
 }
 
 func denied(code string, reason string) Result {
