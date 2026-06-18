@@ -115,7 +115,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   Plans:
 
   - [x] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
-  - [ ] 86-02-PLAN.md -- permissions.go Cache-Umbau + authz_permissions.go + main.go Verdrahtung
+  - [x] 86-02-PLAN.md -- permissions.go Cache-Umbau + authz_permissions.go + main.go Verdrahtung
   - [ ] 86-03-PLAN.md -- 3 SQL-Stellen auf role_capabilities-JOIN + D-11-Kommentare
 
 ## Phase Details
@@ -1989,12 +1989,12 @@ Plans:
   7. Permission-Checks bleiben performant: kein DB-Roundtrip pro Check (Cache beim Start, Invalidierung nur bei Änderung).
   8. Backend-Tests decken ab: Seed entspricht der alten roleMatrix (Diff-Test), Registry-Lookup, Konsistenz-Check, und mindestens eine umgestellte Bypass-Stelle.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 
 **Wave 1**
 
-- [ ] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
+- [x] 86-01-PLAN.md -- Migration 0108 (action_definitions + role_capabilities + Seed) + Wave-0-Tests RED
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
