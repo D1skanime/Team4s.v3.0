@@ -19,7 +19,7 @@ created: 2026-06-18
 |----------|-------|
 | **Framework** | Go `testing` + `testify` (Backend); Vitest 3 (Frontend) |
 | **Config file** | `frontend/vitest.config.ts`; Backend Go-Defaults; DB `team4s_v2` via pgx |
-| **Quick run command** | `cd backend && go test ./internal/permissions ./internal/handlers -run "Capability\|Reload\|RoleCapabilit\|Visibility\|LastAction" -count=1` |
+| **Quick run command** | `cd backend && go test ./internal/permissions ./internal/handlers -run "Capability\|Reload\|RoleCapabilit\|Visibility\|LastAction\|ViewCapabilityEnforcement\|IsStandalone" -count=1` |
 | **Full suite command** | `cd backend && go build ./... && go test ./... -count=1` plus `cd frontend && npm test` |
 | **Estimated runtime** | ~90–150 Sekunden |
 
@@ -36,14 +36,16 @@ created: 2026-06-18
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 87-W0 | — | 0 | D-01..D-07 | — | RED-Stubs für Reload, Lockout-Guard, Enforcement, UI | unit | `go test ./internal/permissions ./internal/handlers -run "Reload\|Capability" -count=1` | ❌ W0 | ⬜ pending |
-| 87-RL | — | — | D-06 | — | ReloadCache lädt role_capabilities neu; Mutation wirkt ohne Restart | unit | `go test ./internal/permissions -run ReloadCache -count=1` | ❌ W0 | ⬜ pending |
-| 87-GUARD | — | — | D-07 | T-lockout | Letzte-Rolle-für-Action-Entzug → abgelehnt vor DB-Mutation (kein Reload-Fail) | unit | `go test ./internal/handlers -run "LastAction\|CapabilityRevokeGuard" -count=1` | ❌ W0 | ⬜ pending |
-| 87-ENF | — | — | D-01/D-02 | T-priv-esc | Gegateter Lese-Endpunkt: ohne View-Capability 403, mit 200 | unit | `go test ./internal/handlers -run "Visibility\|RoleCapabilityView" -count=1` | ❌ W0 | ⬜ pending |
-| 87-UI | — | — | D-04/D-05 | — | Pflege-UI rendert Rollen×Actions, Vergeben/Entziehen via @/components/ui | unit | `npm test -- src/app/admin/.../RoleCapabilities` | ❌ W0 | ⬜ pending |
-| 87-AUDIT | — | — | D-06 | T-repudiation | Jede Capability-Mutation schreibt AuditLogEntry | unit | `go test ./internal/handlers -run "CapabilityAudit" -count=1` | ❌ W0 | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File | Status |
+|---------|------|------|-------------|------------|-----------------|-----------|-------------------|------|--------|
+| 87-W0 | 87-01 | 0 | D-01..D-08 | — | RED-Stubs für Reload, Fail-safe, IsStandalone, Lockout-Guard, View-Enforcement, UI | unit | `go test ./internal/permissions ./internal/handlers -run "Reload\|IsStandalone\|Capability\|ViewCapabilityEnforcement" -count=1` | mehrere (Wave-0) | ⬜ pending |
+| 87-RL | 87-01 | 0 | D-06 | — | ReloadCache lädt role_capabilities neu; Mutation wirkt ohne Restart | unit | `go test ./internal/permissions -run TestReloadCacheReplacesCacheAtomically -count=1` | `permissions_reload_test.go` | ⬜ pending |
+| 87-FS | 87-01 | 0 | D-06 | T-87-02b | Fail-safe: fehlgeschlagener Reload überschreibt nie den gültigen Cache (kein fail-open) | unit | `go test ./internal/permissions -run TestReloadCacheFailsafe -count=1` | `permissions_reload_test.go` | ⬜ pending |
+| 87-SA | 87-01 | 0 | — | T-87-03 | IsStandaloneAction(ActionFansubGroupInvitationsAccept)=true; IsStandaloneAction(ActionReleaseView)=false | unit | `go test ./internal/permissions -run TestIsStandaloneAction -count=1` | `permissions_standalone_test.go` | ⬜ pending |
+| 87-GUARD | 87-01/02 | 0/2 | D-07 | T-lockout | Letzte-Rolle-für-Action-Entzug → abgelehnt vor DB-Mutation (kein Reload-Fail) | unit | `go test ./internal/handlers -run "LastAction\|CapabilityRevokeGuard\|TestRevokeCapabilityLastActionGuard" -count=1` | `admin_capability_handler_test.go` | ⬜ pending |
+| 87-ENF | 87-01/02 | 0/2 | D-01/D-02 | T-priv-esc | Gegateter Lese-Endpunkt: ohne View-Capability 403, mit 200 | unit | `go test ./internal/handlers -run "ViewCapabilityEnforcement" -count=1` | `fansub_view_enforcement_test.go` (Wave-0-RED in Plan 87-01; GREEN in Plan 87-02) | ⬜ pending |
+| 87-UI | 87-01/03 | 0/3 | D-04/D-05 | — | Pflege-UI rendert Rollen×Actions, Vergeben/Entziehen via @/components/ui | unit | `npm test -- src/app/admin/role-capabilities/` | `RoleCapabilityClient.test.tsx` | ⬜ pending |
+| 87-AUDIT | 87-01/02 | 0/2 | D-06 | T-repudiation | Jede Capability-Mutation schreibt AuditLogEntry | unit | `go test ./internal/handlers -run "CapabilityAudit" -count=1` | `admin_capability_handler_test.go` | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,8 +53,11 @@ created: 2026-06-18
 
 ## Wave 0 Requirements
 
-- [ ] Backend-Testdateien (RED): `ReloadCache`, Lockout-Guard (letzte Rolle für Action), View-Enforcement (403/200), Capability-Mutations-Audit
-- [ ] Frontend-Testdatei (RED): Capability-Pflege-Komponente (Rollen×Actions, Mutation, @/components/ui)
+- [ ] `backend/internal/permissions/permissions_reload_test.go`: TestReloadCacheReplacesCacheAtomically (RED→GREEN in Plan 87-01), TestReloadCacheFailsafe (RED→GREEN in Plan 87-01)
+- [ ] `backend/internal/permissions/permissions_standalone_test.go`: TestIsStandaloneAction (RED→GREEN in Plan 87-01)
+- [ ] `backend/internal/handlers/admin_capability_handler_test.go`: TestGrantCapabilityRequiresPlatformAdmin, TestRevokeCapabilityLastActionGuard, TestCapabilityAuditOnGrant (RED in Plan 87-01; GREEN in Plan 87-02)
+- [ ] `backend/internal/handlers/fansub_view_enforcement_test.go`: TestViewCapabilityEnforcementGroupMembers, TestViewCapabilityEnforcementUnifiedMembers, TestViewCapabilityEnforcementAnimeCoverage (RED in Plan 87-01; GREEN in Plan 87-02)
+- [ ] `frontend/src/app/admin/role-capabilities/RoleCapabilityClient.test.tsx`: Wave-0-RED-Test (RED in Plan 87-01; GREEN in Plan 87-03)
 
 *Bestehende permissions-/admin-Tests bleiben grün (behavior-preserving für nicht-gegatete Pfade).*
 

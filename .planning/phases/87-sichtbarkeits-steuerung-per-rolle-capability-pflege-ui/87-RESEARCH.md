@@ -508,16 +508,11 @@ Response:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Welche konkreten Admin-Lese-Endpunkte sollen in Phase 87 gated werden?**
-   - Was wir wissen: Mehrere Admin-Endpunkte laufen heute nur mit Legacy-`requireAdmin` ohne View-`CanFor*`. Kandidaten: `/admin/fansubs/:id/group-members`, `/admin/fansubs/:id/unified-members`, `/admin/fansubs/:id/anime-coverage`.
-   - Unklar: Ob der Benutzer alle, einige oder nur neue (noch zu definierende) Endpunkte gaten will.
-   - Empfehlung: Im Discuss-Schritt eine konkrete Auswahl treffen und in D-01 festschreiben.
+1. **Welche konkreten Admin-Lese-Endpunkte sollen in Phase 87 gated werden?** — **RESOLVED (Planung 2026-06-18):** Die drei Admin-Endpunkte `/admin/fansubs/:id/group-members`, `/admin/fansubs/:id/unified-members`, `/admin/fansubs/:id/anime-coverage` werden als v1-Scope gegated (alle drei sind Mitglieder-/Beitrags-Ansichten derselben Fansub-Gruppe → einheitlich `ActionFansubGroupMembersView`). Öffentliche Endpunkte bleiben außer Scope. Festgeschrieben in Plan 87-02.
 
-2. **Wie soll der Lockout-Guard bei `standaloneActions` umgehen?**
-   - Was wir wissen: `ActionFansubGroupInvitationsAccept` ist eine `standaloneAction` — kein `role_capabilities`-Eintrag. Darf diese über die Pflege-UI überhaupt sichtbar/vergebar sein?
-   - Empfehlung: `standaloneActions` in der Pflege-UI als read-only mit Label „Systemaktion" anzeigen, nicht editierbar.
+2. **Wie soll der Lockout-Guard bei `standaloneActions` umgehen?** — **RESOLVED:** `standaloneActions` (z.B. `ActionFansubGroupInvitationsAccept`) werden in der Pflege-UI read-only mit Badge „Systemaktion" angezeigt, nicht editierbar. Der Backend-Lockout-Guard nutzt die exportierte `permissions.IsStandaloneAction(a Action) bool` (KEIN hartkodiertes String-Literal) — eine standalone-Action darf entfernt sein, ohne den D-10-Reload-Check zu verletzen.
 
 ---
 
