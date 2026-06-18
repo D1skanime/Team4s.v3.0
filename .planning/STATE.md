@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Completed 87-01-PLAN.md
-last_updated: "2026-06-18T12:18:32.703Z"
+last_updated: "2026-06-18T12:28:48.148Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 83
   completed_phases: 65
-  total_plans: 339
-  completed_plans: 303
+  total_plans: 342
+  completed_plans: 304
   percent: 78
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 87 (sichtbarkeits-steuerung-per-rolle-capability-pflege-ui) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -482,7 +482,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-18T12:18:32.672Z
+Last session: 2026-06-18T12:28:48.115Z
 Stopped at: Completed 87-01-PLAN.md
 Last activity: 2026-06-18
 Resume file: None

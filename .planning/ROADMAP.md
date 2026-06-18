@@ -115,7 +115,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   Plans:
 
   - [x] 87-01-PLAN.md -- Wave-0-RED-Tests + ReloadCache (permissions.go) + OpenAPI-Contract + TypeScript-Typen
-  - [ ] 87-02-PLAN.md -- Repository (CRUD) + Handler (Grant/Revoke/Guard) + View-Enforcement an 3 Admin-Endpunkten + Routing
+  - [x] 87-02-PLAN.md -- Repository (CRUD) + Handler (Grant/Revoke/Guard) + View-Enforcement an 3 Admin-Endpunkten + Routing
   - [ ] 87-03-PLAN.md -- Frontend Capability-Pflege-UI (Rollen x Actions-Matrix) + Nav-Link + Human-Verify
 
 ## Phase Details
@@ -1543,7 +1543,7 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 87
-**Plans:** 0 plans
+**Plans:** 0/3 plans executed
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 88 to break down)
