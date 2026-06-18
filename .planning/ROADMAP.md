@@ -110,6 +110,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 - [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene. (completed 2026-06-09)
 - [ ] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert.
+- [ ] **Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI** - View-Checks an ausgewaehlten Lese-Pfaden + Admin-UI zum Pflegen von role_capabilities (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf Phase 86 auf; steuert daten-getrieben wer was sehen darf.
   **Plans:** 3 plans
   Plans:
 
@@ -2002,3 +2003,17 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [ ] 86-03-PLAN.md -- 3 SQL-Stellen (leader_count x2, can_edit_content) auf role_capabilities-JOIN
+
+### Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI
+
+**Goal:** Plattform-Admins steuern über die Rollenverwaltung, *wer was sehen darf*: gezielte View-Capability-Checks (`CanFor*` mit `*.view`-Action) an ausgewählten, heute ungated Lese-Pfaden, plus eine Admin-UI zum Pflegen von `role_capabilities` (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf der Phase-86-Registry auf. Voraussetzung: Phase 86 ist ausgeführt.
+**Requirements:** Folgt aus der Capability-Registry-Diskussion (siehe `.planning/notes/capability-registry-design.md`, Abschnitt „optionaler Folge-Schritt"); konkrete Flächen-Liste wird in discuss/plan-phase festgelegt.
+**Depends on:** Phase 86 (liefert action_definitions + role_capabilities + permissions.go-Cache); Phase 80 (Admin-UI-Muster + Last-Admin-Guard).
+**Success Criteria** (what must be TRUE):
+
+  1. Eine in der Phase festgelegte Liste heute ungated Lese-Pfade prüft vor Auslieferung das zutreffende View-Recht über die permissions.Service-Capability-Checks (Daten-getrieben aus Phase 86); gated vs. ungated ist per Test belegt.
+  2. Eine Admin-UI (nur Plattform-Admin) listet alle Rollen mit ihren Capabilities aus `role_capabilities` und erlaubt das Vergeben/Entziehen einzelner Capabilities pro Rolle — ausschließlich über `@/components/ui`-Primitives, deutscher UI-Text mit Umlauten.
+  3. Vergebene/entzogene Capabilities wirken nach Cache-Reload ohne Deploy; jede Änderung ist auditierbar (Audit-Seam wie Phase 80).
+  4. `platform_admin`-Bypass bleibt; ein Last-Admin/Lockout-Schutz verhindert, dass kritische Sichtbarkeit/Admin-Fähigkeit versehentlich global entzogen wird.
+  5. Contract-Disziplin: neue Endpunkte über `shared/contracts/*` (OpenAPI) → Backend → `frontend/src/lib/api.ts` → Frontend-Types; <=450 Zeilen pro Datei.
+  6. Backend- und Frontend-Tests decken Enforcement (gated/ungated), die UI-Mutation (vergeben/entziehen) und die Cache-Reload-Wirkung ab.
