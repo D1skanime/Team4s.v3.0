@@ -189,12 +189,26 @@ type Resolver interface {
 	ListActorContributionRolesForVersion(ctx context.Context, appUserID int64, releaseVersionID int64) ([]string, error)
 }
 
+// CacheLoader lädt die Rolle→Aktion-Matrix aus der Datenbank.
+// Wird in Plan 86-02 von AuthzRepository implementiert.
+type CacheLoader interface {
+	LoadRoleCapabilities(ctx context.Context) (map[string][]Action, error)
+}
+
 type Service struct {
 	resolver Resolver
 }
 
 func NewService(resolver Resolver) *Service {
 	return &Service{resolver: resolver}
+}
+
+// LoadCache lädt die Capability-Matrix beim Start aus der Datenbank in den In-Memory-Cache.
+// Stub-Implementierung: gibt Fehler zurück bis Plan 86-02 den echten Cache-Umbau liefert.
+// Alle Wave-0-Tests (TestRoleMatrixSeedParity, TestCacheLoadAndLookup, TestStartupConsistencyCheck)
+// schlagen RED fehl, solange diese Methode kein korrektes Verhalten implementiert.
+func (s *Service) LoadCache(ctx context.Context, loader CacheLoader) error {
+	return fmt.Errorf("LoadCache: nicht implementiert — Plan 86-02 liefert den Cache-Umbau")
 }
 
 func AllowedActionsForRole(role string) []Action {
