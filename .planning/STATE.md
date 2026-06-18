@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Completed 80-03-PLAN.md
-last_updated: "2026-06-17T22:37:46.068Z"
-last_activity: 2026-06-17
+last_updated: "2026-06-18T07:05:27.767Z"
+last_activity: 2026-06-18
 progress:
-  total_phases: 81
+  total_phases: 82
   completed_phases: 64
   total_plans: 336
-  completed_plans: 299
-  percent: 79
+  completed_plans: 300
+  percent: 78
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 80 — admin-users-user-detail-drawer-scoped-rechte
+**Current focus:** Phase 86 — daten-getriebene-capability-registry
 
 ## Current Position
 
-Phase: 80 (admin-users-user-detail-drawer-scoped-rechte) — EXECUTING
-Plan: 5 of 5
+Phase: 86 (daten-getriebene-capability-registry) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -432,6 +432,7 @@ Recent durable decisions:
 | Phase 80 P01 | 8min | 3 tasks | 4 files |
 | Phase 80 P03 | 105 | 2 tasks | 14 files |
 | Phase 80 P04 | 90min | 2 tasks | 12 files |
+| Phase 86 P01 | 5min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -472,10 +473,11 @@ Recent durable decisions:
 | 260610-hw1 | Banner-Buttons in Fansub-Edit auf 36px Höhe vereinheitlichen (align-content fix) | 2026-06-10 | dfa4497e | [260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h](./quick/260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h/) |
 | 260610-i2j | Fansub-Mitglieder und historische Mitglieder auf einer Collaboration-Seite zusammenführen | 2026-06-10 | this commit | [260610-i2j-fansub-mitglieder-und-historische-mitgli](./quick/260610-i2j-fansub-mitglieder-und-historische-mitgli/) |
 | 260610-iqh | Alias-Verwaltung in Fansub-Edit ins Grunddaten-Grid verschieben (Mehrfach-Aliase erhalten) | 2026-06-10 | 1f45e0b0 | [260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun](./quick/260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun/) |
+| 260618-cjy | Release-Buttons in Meine Gruppen auf member-nahen Workspace umgestellt und Copy fansubber-neutralisiert | 2026-06-18 | working tree | [260618-cjy-release-buttons-in-meine-gruppen-auf-me-](./quick/260618-cjy-release-buttons-in-meine-gruppen-auf-me-/) |
 
 ## Session Continuity
 
-Last session: 2026-06-15T08:54:35.138Z
+Last session: 2026-06-18T07:05:27.706Z
 Stopped at: Completed 80-03-PLAN.md
-Last activity: 2026-06-17
+Last activity: 2026-06-18
 Resume file: None
