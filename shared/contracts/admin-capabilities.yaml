@@ -1,0 +1,271 @@
+openapi: 3.0.3
+info:
+  title: Team4s Admin Capability Management API
+  version: 0.1.0
+  description: |
+    OpenAPI-Contract für die Capability-Pflege-Endpunkte (Phase 87, D-08).
+    Alle Endpunkte erfordern einen gültigen Platform-Admin-Bearer-Token.
+servers:
+  - url: /
+    description: Relativer API-Basispfad
+tags:
+  - name: AdminCapabilities
+    description: Capability-Matrix-Verwaltung für Rollen (nur Platform-Admin).
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/admin/role-capabilities:
+    get:
+      tags: [AdminCapabilities]
+      summary: Capability-Matrix abrufen
+      description: |
+        Gibt alle Rollen mit ihren gewährten Capabilities aus role_capabilities zurück.
+        Nur für Platform-Admins zugänglich (D-03).
+      operationId: getRoleCapabilities
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Capability-Matrix erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleCapabilityMatrix"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/role-capabilities/{roleCode}/{actionCode}:
+    put:
+      tags: [AdminCapabilities]
+      summary: Capability einer Rolle gewähren
+      description: |
+        Gewährt einer Rolle eine Capability (action_code in role_capabilities eintragen).
+        Nur für Platform-Admins zugänglich (D-03). Nach erfolgreichem Schreiben wird
+        der Permissions-Cache neu geladen (D-06). Auditierbar (D-06).
+      operationId: grantCapability
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          description: Rollen-Code (z. B. fansub_lead, editor)
+          schema:
+            type: string
+        - name: actionCode
+          in: path
+          required: true
+          description: Action-Code (z. B. fansub_group.members.view)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Capability erfolgreich gewährt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Capability erfolgreich gewährt"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rollen-Code oder Action-Code nicht gefunden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Lockout-Guard ausgelöst — Capability kann nicht entzogen werden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockoutErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [AdminCapabilities]
+      summary: Capability einer Rolle entziehen
+      description: |
+        Entzieht einer Rolle eine Capability (action_code aus role_capabilities entfernen).
+        Nur für Platform-Admins zugänglich (D-03). Lockout-Guard (D-07): kritische Capabilities
+        können nicht so entzogen werden, dass sich alle Admins aussperren.
+        Nach erfolgreichem Schreiben wird der Permissions-Cache neu geladen (D-06). Auditierbar (D-06).
+      operationId: revokeCapability
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          description: Rollen-Code (z. B. fansub_lead, editor)
+          schema:
+            type: string
+        - name: actionCode
+          in: path
+          required: true
+          description: Action-Code (z. B. fansub_group.members.view)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Capability erfolgreich entzogen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Capability erfolgreich entzogen"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rollen-Code oder Action-Code nicht gefunden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Lockout-Guard ausgelöst — letzte Capability darf nicht entzogen werden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockoutErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Platform-Admin-Bearer-Token (requirePlatformAdmin-Gate)
+  schemas:
+    RoleActionState:
+      type: object
+      required: [code, label_de, category, granted, standalone]
+      properties:
+        code:
+          type: string
+          description: Action-Code (z. B. fansub_group.members.view)
+        label_de:
+          type: string
+          description: Deutscher Anzeigename der Action
+        category:
+          type: string
+          description: Kategorie-Gruppe der Action (z. B. Mitglieder, Releases)
+        granted:
+          type: boolean
+          description: Ob diese Action der Rolle aktuell gewährt ist
+        standalone:
+          type: boolean
+          description: Ob diese Action eine Standalone-Action ist (kein role_capabilities-Eintrag)
+    RoleEntry:
+      type: object
+      required: [role_code, label_de, actions]
+      properties:
+        role_code:
+          type: string
+          description: Rollen-Code (z. B. fansub_lead)
+        label_de:
+          type: string
+          description: Deutscher Anzeigename der Rolle
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleActionState"
+    ActionEntry:
+      type: object
+      required: [code, label_de, category, sort_order]
+      properties:
+        code:
+          type: string
+          description: Action-Code (z. B. release.view)
+        label_de:
+          type: string
+          description: Deutscher Anzeigename der Action
+        category:
+          type: string
+          description: Kategorie-Gruppe der Action
+        sort_order:
+          type: integer
+          description: Sortierreihenfolge der Action innerhalb der Kategorie
+    RoleCapabilityMatrix:
+      type: object
+      required: [roles, all_actions]
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleEntry"
+          description: Alle Rollen mit ihren gewährten Capabilities
+        all_actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActionEntry"
+          description: Alle bekannten Actions (für Spaltenüberschriften in der Matrix-Tabelle)
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+    LockoutErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+              enum: [lockout_guard]
+              description: Fehlercode lockout_guard signalisiert dem Client den Lockout-Guard
