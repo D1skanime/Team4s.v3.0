@@ -1,15 +1,14 @@
 # TOMORROW
 
 ## Top 3 Priorities
-1. Confirm Phase 71 latest state: find whether the reported UAT confirmation is committed locally, in another thread, or still missing as an artifact.
-2. Decide the next post-MVP move: continue Phase 71 polish or start the structured product discussion from the MVP 60-69 summary.
-3. Clean/sync intentionally: keep the local-only MVP summary and `frontend/tsconfig.tsbuildinfo` out of product commits.
+1. Phase 83: make project-wide contributions act as default contributors for concrete release versions.
+2. Add a contributor-visible way for Aki to open Naruto Folge 1/v1 from `/me` even though Aki's current contribution has `release_version_id = NULL`.
+3. Repair the stale handler tests that still instantiate removed `AnimeContributionRow.FansubGroupMemberID`.
 
 ## First 15-Minute Task
-- Run `git status --short --branch`, then list `.planning/phases/71-ui-politur-fansub-contributions-und-member-profil-auf-global` and search for `71-UAT` or `verified`.
+- On `/me/contributions`, hard reload as Aki and confirm the Naruto Projektleitung card is visible; if yes, note the missing release workspace entry as the first Phase-83 acceptance case.
 
 ## Dependencies To Unblock Early
-- If Phase 71 UAT was done by another agent, pull/read that artifact before editing code.
-- Keep `/admin/fansubs/[id]/edit` as the internal edit area; do not put proposal/claim/milestone editing back into `my-groups`.
-- Use `.planning/MVP-PHASES-60-69-SUMMARY.md` as local discussion context only unless the user asks to publish it.
-- Before pushing, decide whether `main...origin/main [ahead 266]` is expected for this workspace.
+- Confirm Claude's Phase-83 assignment editor output before overlapping writes in fansub release cockpit files.
+- Keep backend `team4sv30-backend` on the rebuilt image from today; rebuild again after Phase 83 backend changes.
+- Use Aki/Naruto local data as the UAT fixture: `member_id=2`, `anime_id=1`, `anime_contributions.id=17`, role `project_lead`.

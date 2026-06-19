@@ -1,40 +1,36 @@
 # WORKING_NOTES
 
 ## Current Workflow Phase
-- Phases 60-69 are the current MVP baseline for fansub contributions and historical member identity.
-- Phase 70 is complete and verified: member profile story images are persisted through Team4s media-backed TipTap image references.
-- Phase 71 is the active post-MVP polish/design context, but confirm the latest UAT artifact before treating it as locally closed.
+- Phase 82 is committed as `076a4f31`.
+- Phase 83 is the active next slice: pro-release contributor assignment plus default inheritance from project-wide contributions.
 
 ## Useful Facts To Keep
-- `/admin/fansubs/[id]/edit` owns internal edit workflows for proposals, claims, milestones, historical members, roles, and anime contributions.
-- `/admin/my-groups/[id]` is not the canonical edit route. Treat it as display/contributor-scope unless a later decision changes that.
-- Codex Desktop in-app browser screenshots: if normal `System.Drawing.Graphics.CopyFromScreen(...)` fails with `Handle is invalid` or produces a black image, capture the Codex window via Win32 `PrintWindow` instead. Enumerate visible windows for process `Codex`, pick the large main window, call `PrintWindow(hwnd, hdc, 2)`, save PNG, then crop the web preview region. This successfully captured `/admin/fansubs/1/edit` as `tmp-codex-window-printwindow.png` and the banner crop as `tmp-codex-window-banner-crop.png` on 2026-06-09.
-- Normal app-member invitations and claim invitations are separate products, even if both use links.
-- App users are current Team4s accounts. `members` are historical/archive identities. Claims connect the two.
-- Claiming is more important for historical import/correction workflows than for a fresh database where data is entered correctly from day one.
-- Credits are attribution. Permissions are operational access. Do not merge them implicitly.
-- `anime_contributions.release_version_id` is optional and allows version-specific credits without replacing anime-wide credits.
-- Archive search is public discovery and must keep visibility filters server-side.
-- Phase 70 story images must not be saved as base64 or external URLs.
-- The local MVP summary lives at `.planning/MVP-PHASES-60-69-SUMMARY.md` and is not meant for GitHub unless user reverses that decision.
+- Aki local fixture:
+  - `app_users.id=2`, display `Aki Leader`
+  - `member_claims`: app user 2 verified to `members.id=2`
+  - `anime_contributions.id=17`: Naruto, `member_id=2`, role `project_lead`, `status=confirmed`, `release_version_id=NULL`
+- `/me/contributions` bug fixed today: member-owned contribution queries now use `COALESCE(ac.member_id, hfgm.member_id)` and `LEFT JOIN hist_fansub_group_members`.
+- `/me/releases/[versionId]/workspace` exists and reuses existing media/notes components.
+- Workspace button currently appears only for contributions with `release_version_id`; Phase 83 should add derived release entries for project defaults.
+- The preferred Phase-83 model discussed today:
+  - project contribution (`release_version_id IS NULL`) is the default team for every release of that anime/fansub project
+  - release override applies only to that release version
+  - "not dabei" removes rights for that release only
+  - Leader keeps moderation/admin rights separately
 
 ## Verification Memory
-- Phase 60: SMTP/Mailpit and Keycloak mail UAT passed.
-- Phase 63: Leader frontend UAT passed after live browser/API fixes.
-- Phase 65: Proposal review belongs in `/admin/fansubs/[id]/edit`; live UAT passed there.
-- Phase 66: Claiming UAT passed 6/6; verified claim removes the open Member-Claim action card on `/me/profile`.
-- Phase 67: Release-version credits passed live browser/API/DB verification.
-- Phase 68: Badge engine, milestones, and `/archiv` were live-UAT verified; milestone CRUD was moved out of `my-groups` into fansub edit.
-- Phase 69: Contracts/permissions were hardened and committed in `16429983`.
-- Phase 70: final UAT committed in `39517af0`.
+- Frontend typecheck passed.
+- Focused Vitest suites passed for fansub edit page and `/me` workspace.
+- Backend `go build ./...` passed.
+- Repository focused tests passed.
+- Handler focused test command is blocked by unrelated stale compile errors in `contribution_proposals_me_test.go`.
+- Backend Docker image was rebuilt and container restarted after the final `/me` fix.
 
 ## Commit Hygiene Notes
-- Current closeout did not commit.
-- Dirty local files at closeout: `frontend/tsconfig.tsbuildinfo` and untracked `.planning/MVP-PHASES-60-69-SUMMARY.md`.
-- Do not run `git add .` while these are present unless the user explicitly wants them included.
-- `main` is ahead of `origin/main` by many commits; push should be deliberate.
+- Phase 82 product commit: `076a4f31`.
+- Do not stage `tmp/`.
+- Day-closeout changes are intentionally uncommitted unless the user asks for a closeout commit.
 
 ## Mental Unload
-- The next agent should not rebuild the 60-69 summary from scratch; use the local summary file if discussion context is needed.
-- If continuing Phase 71, first locate the claimed UAT evidence from the other agent/thread.
-- If starting product discussion, use the MVP summary's roles/questions as the opening frame.
+- If Aki still does not see Naruto after hard reload, check browser auth/session first, then call `/api/v1/me/anime-contributions` in network/devtools; DB already confirms the row exists.
+- If Aki sees Naruto but no workspace button, that is expected until Phase 83 derives concrete release-version workspaces from defaults.

@@ -664,3 +664,29 @@ The cropper only needs to solve preview/export parity and interaction quality. L
 
 ### Follow-ups Required
 - If future domains need cropping, integrate the shared cropper as UI/export only and keep each domain's existing upload and ownership contract.
+
+## 2026-06-11 - Project Contributions Are Release Defaults Until Overridden
+
+### Decision
+For Phase 83, an anime/project contribution with `release_version_id IS NULL` is the default contributor assignment for every release version in that anime/fansub project. Explicit release-version assignments are overrides for that one release version only.
+
+### Context
+During Phase 82 UAT, Aki was assigned `project_lead` for Naruto as a project-wide contribution. Aki correctly appears in `/me/contributions` after the `member_id` endpoint fix, but no concrete `/me/releases/[versionId]/workspace` button appears because there is no `release_version_id` yet.
+
+### Options Considered
+- Materialize one contribution row per release version for every project-wide contributor.
+- Derive release-version workspace/access entries from the project-wide contribution and persist only explicit release overrides.
+
+### Why This Won
+Naruto-scale projects can have many releases. Deriving defaults avoids unnecessary row churn and keeps project-wide team changes simple, while release-specific overrides still allow "not dabei" or role changes for a single release.
+
+### Consequences
+- Phase 83 should produce concrete release workspace availability from project-wide contributions.
+- Release overrides must not mutate the project-wide default row.
+- Absence/removal for one release is represented as an override, not by deleting the project-level contribution.
+- Contributor `/me` surfaces can show release workspaces without forcing the leader to create hundreds of duplicate rows.
+
+### Follow-ups Required
+- Define the exact override representation for "not dabei" and role replacement.
+- Make permission checks resolve project default plus release override consistently.
+- Keep leader moderation/admin rights separate from contribution-derived contributor rights.

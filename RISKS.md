@@ -2,43 +2,36 @@
 
 ## Top Risks
 
-### 1. Phase 71 UAT state may be split across agents
+### 1. Phase 83 could duplicate contribution rows unnecessarily
+- **Impact:** High
+- **Likelihood:** Medium
+- **Why it matters:** Naruto-scale projects can have many releases; materializing every project-wide contributor onto every release can create churn and hard-to-debug overrides.
+- **Mitigation:** Prefer deriving default release access/workspace entries from `release_version_id IS NULL` contributions, then store only explicit release overrides.
+
+### 2. Contributor work could leak back into admin routes
 - **Impact:** Medium
 - **Likelihood:** Medium
-- **Why it matters:** The user reports Phase 71 UAT was confirmed, but this worktree currently shows only committed context/discussion/UI-spec artifacts and no local UAT artifact.
-- **Mitigation:** Start next session by locating the Phase 71 UAT artifact or the other agent's commit before changing Phase 71 code or docs.
+- **Why it matters:** Normal editors should not have to work from `/admin/fansubs/[id]/edit`.
+- **Mitigation:** Keep upload/note work in `/me/releases/[versionId]/workspace`; admin cockpit remains for leader assignment and moderation.
 
-### 2. Local-only MVP summary could be accidentally staged
+### 3. Release media ownership regression
+- **Impact:** High
+- **Likelihood:** Medium
+- **Why it matters:** Process media must remain release-version scoped; attaching it to episodes or release-level legacy tables breaks the domain model.
+- **Mitigation:** Reuse `ReleaseVersionMediaSection`, `useReleaseVersionMedia`, and existing `/admin/release-versions/:id/media` permission-checked endpoints.
+
+### 4. Handler package tests currently do not compile
+- **Impact:** Medium
+- **Likelihood:** High
+- **Why it matters:** `go test ./internal/handlers` is blocked by stale test structs using `AnimeContributionRow.FansubGroupMemberID`.
+- **Mitigation:** Update `contribution_proposals_me_test.go` to the canonical `member_id` model early in Phase 83 or a small cleanup slice.
+
+### 5. Dirty local `tmp/` could be staged accidentally
 - **Impact:** Low
 - **Likelihood:** Medium
-- **Why it matters:** `.planning/MVP-PHASES-60-69-SUMMARY.md` is useful discussion context but the user explicitly said it does not need to go to GitHub.
-- **Mitigation:** Do not use `git add .`; stage explicit paths only.
-
-### 3. Generated TypeScript build state could enter a commit
-- **Impact:** Low
-- **Likelihood:** Medium
-- **Why it matters:** `frontend/tsconfig.tsbuildinfo` is dirty local generated state and unrelated to the closeout.
-- **Mitigation:** Leave it unstaged unless a separate cleanup explicitly decides otherwise.
-
-### 4. Edit and display surfaces drift again
-- **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** Live UAT repeatedly found proposal, claim, and milestone editing in the wrong place. `/admin/my-groups/[id]` should not become a shadow edit hub.
-- **Mitigation:** Keep internal mutation workflows in `/admin/fansubs/[id]/edit` unless a new documented decision redefines the route.
-
-### 5. Credits and permissions get conflated
-- **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** A contribution credit is historical/attribution data; a permission is an operational right. Automatically connecting them can create accidental access grants.
-- **Mitigation:** Treat any credit-to-permission bridge as an explicit, separate, reversible product decision.
-
-### 6. Media ownership regressions
-- **Impact:** High
-- **Likelihood:** Medium
-- **Why it matters:** Versioned Admin/Fansub process media belongs to `release_version_media.release_version_id`; profile story images now have their own media-backed TipTap flow.
-- **Mitigation:** Reuse existing upload/auth/API seams and domain-specific media tables; do not substitute `release_media`, `release_id`, or generic uploads for scoped flows.
+- **Why it matters:** `tmp/` contains logs/screenshots, not product code.
+- **Mitigation:** Continue staging explicit paths only; do not run `git add .`.
 
 ## Current Blockers
-- No known blocker remains for phases 60-70.
-- Phase 71 latest UAT status must be reconciled before treating it as locally closed.
-- `main` is ahead of `origin/main` by many commits; push strategy should be explicit.
+- No blocker remains for closing Phase 82.
+- Phase 83 must define and implement default-vs-override behavior before Aki gets a concrete release workspace from a project-wide contribution.

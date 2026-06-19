@@ -1203,3 +1203,48 @@
 
 ### Next Step
 - Run a 15-minute Phase 71 artifact check: inspect the Phase 71 directory and recent commits for a UAT/verification artifact before changing code or docs.
+
+## 2026-06-11
+- Project: `Team4s.v3.0`
+- Milestone: Fansub release cockpit / contributor workspace hardening
+- Today's focus: finish Phase 82 after live UAT, make the release cockpit perform at Naruto scale, and create the first `/me` contributor workspace path.
+
+### Workstreams Touched
+- Fansub release cockpit at `/admin/fansubs/[id]/edit?tab=releases`
+- Paged release loading and API contract updates
+- Release-version media/notes reuse in a contributor-facing `/me` workspace
+- `/me/contributions` compatibility with canonical `anime_contributions.member_id`
+- Phase 83 default/override discussion for pro-release contributors
+
+### Goals Intended vs Achieved
+- Intended: close the remaining Phase 82 UAT gaps without overloading the admin screen.
+- Achieved: release loading is paged, the contributor workspace exists, Aki's project-wide Naruto contribution is visible through `/me/contributions`, and the work was committed in `076a4f31`.
+
+### Problems Solved
+- Root cause: the release cockpit could eagerly load too much data for large anime projects.
+- Fix: backend and frontend now support paged release loading with explicit loaded/total state.
+- Root cause: normal contributors were pushed toward the admin episode-version editor for media/notes.
+- Fix: `/me/releases/[versionId]/workspace` gives contributors a non-admin workspace while reusing the existing release-version media and notes components.
+- Root cause: `/me/contributions` still read only legacy `fansub_group_member_id` links, while Phase 82 writes canonical `anime_contributions.member_id`.
+- Fix: member contribution queries and ownership checks now use `COALESCE(ac.member_id, hfgm.member_id)`.
+
+### Decisions
+- Phase 83 should treat project-wide contributions (`release_version_id IS NULL`) as default contributors for all releases of that anime/fansub project.
+- Explicit release-version overrides should only store deviations from the default.
+- Prefer deriving concrete `/me` release workspaces from defaults instead of materializing hundreds of contribution rows.
+
+### Verification
+- `frontend`: `npm run typecheck` passed.
+- `frontend`: focused Vitest suites passed for fansub edit page, ContributionCard, `/me` workspace page, and ReleaseVersionNotesTab.
+- `backend`: `go build ./...` passed.
+- `backend`: focused repository tests passed for fansub releases and `member_id` fallback.
+- `git diff --check` passed before commit.
+- Docker backend rebuild succeeded and `team4sv30-backend` is running on `:8092`.
+
+### Blockers
+- `go test ./internal/handlers` still does not compile because `contribution_proposals_me_test.go` references removed `AnimeContributionRow.FansubGroupMemberID`; this is a stale-test cleanup, not a Phase 82 runtime blocker.
+- Aki has Naruto Projektleitung as a project-wide contribution, so no `/me` workspace button appears until Phase 83 derives release-version workspaces from defaults.
+- `tmp/` remains untracked local state.
+
+### Next Step
+- Start tomorrow with a 15-minute UAT: hard reload `/me/contributions` as Aki, confirm Naruto Projektleitung is visible, then use that as the first Phase 83 acceptance case for derived release workspace access.
