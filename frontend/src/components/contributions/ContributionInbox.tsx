@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 
-import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
+import { Badge, Card, EmptyState, SectionHeader } from '@/components/ui'
 import type { MeAnimeContribution } from '@/types/contributions'
 
 import styles from './contributions.module.css'
@@ -13,7 +13,6 @@ interface ContributionInboxProps {
   contributions: MeAnimeContribution[]
   onConfirm: (id: number) => void
   onRejectWithReason: (id: number) => void
-  onCorrect: (id: number) => void
   onVisibilityChange: (id: number, isPublic: boolean) => void
 }
 
@@ -24,10 +23,8 @@ interface ContributionInboxProps {
 
 function DisputedItem({
   contribution,
-  onCorrect,
 }: {
   contribution: MeAnimeContribution
-  onCorrect: (id: number) => void
 }) {
   const title = contribution.anime_title?.trim() || `Anime #${contribution.anime_id}`
   return (
@@ -41,21 +38,14 @@ function DisputedItem({
           <strong>Ablehngrund:</strong> {contribution.member_reason}
         </p>
       ) : null}
-      <div className={styles.actionsRow}>
-        <Button size="sm" variant="secondary" onClick={() => onCorrect(contribution.id)}>
-          Details korrigieren
-        </Button>
-      </div>
     </Card>
   )
 }
 
 function RejectedOwnItem({
   contribution,
-  onCorrect,
 }: {
   contribution: MeAnimeContribution
-  onCorrect: (id: number) => void
 }) {
   const title = contribution.anime_title?.trim() || `Anime #${contribution.anime_id}`
   return (
@@ -69,11 +59,6 @@ function RejectedOwnItem({
           <strong>Ablehngrund:</strong> {contribution.review_note}
         </p>
       ) : null}
-      <div className={styles.actionsRow}>
-        <Button size="sm" variant="secondary" onClick={() => onCorrect(contribution.id)}>
-          Details korrigieren
-        </Button>
-      </div>
     </Card>
   )
 }
@@ -108,7 +93,6 @@ export function ContributionInbox({
   contributions,
   onConfirm,
   onRejectWithReason,
-  onCorrect,
   onVisibilityChange,
 }: ContributionInboxProps) {
   const inbox = useMemo(() => {
@@ -159,14 +143,13 @@ export function ContributionInbox({
                 mode="pending"
                 onConfirm={onConfirm}
                 onRejectWithReason={onRejectWithReason}
-                onCorrect={onCorrect}
               />
             ))}
             {inbox.disputed.map((c) => (
-              <DisputedItem key={c.id} contribution={c} onCorrect={onCorrect} />
+              <DisputedItem key={c.id} contribution={c} />
             ))}
             {inbox.rejectedOwn.map((c) => (
-              <RejectedOwnItem key={c.id} contribution={c} onCorrect={onCorrect} />
+              <RejectedOwnItem key={c.id} contribution={c} />
             ))}
             {inbox.visibilityPending.map((c) => (
               <VisibilityPendingItem

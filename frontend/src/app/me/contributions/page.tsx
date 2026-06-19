@@ -123,12 +123,6 @@ export default function MyContributionsPage() {
     setReportModalOpen(true)
   }
 
-  function openCorrectModal(id: number) {
-    setReportPrefillType('fehler')
-    setReportPrefillId(id)
-    setReportModalOpen(true)
-  }
-
   if (!isClientInitialized || isLoading) {
     return <LoadingState title="Projekt-Hinweise werden geladen" description="Team4s lädt offene und bestätigte Projektdaten." />
   }
@@ -166,7 +160,6 @@ export default function MyContributionsPage() {
           contributions={contributions}
           onConfirm={(id) => void handleConfirm(id)}
           onRejectWithReason={setRejectModalOpenId}
-          onCorrect={openCorrectModal}
           onVisibilityChange={handleVisibilityChange}
         />
 
