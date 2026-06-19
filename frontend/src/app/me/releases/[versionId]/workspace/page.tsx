@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 
-import { Badge, Button, ErrorState, LoadingState } from '@/components/ui'
+import { Badge, Button, ErrorState, LoadingState, PageHeader, Tabs } from '@/components/ui'
+import type { TabItem } from '@/components/ui'
 import {
   ApiError,
   getEpisodeVersionEditorContext,
@@ -18,8 +19,6 @@ import { ReleaseVersionMediaSection } from '@/app/admin/episode-versions/[versio
 import { ReleaseVersionNotesTab } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab'
 
 import styles from './workspace.module.css'
-
-type WorkspaceTab = 'media' | 'notes'
 
 function parsePositiveInt(value: string | string[] | undefined): number | null {
   const raw = Array.isArray(value) ? value[0] : value
@@ -47,7 +46,7 @@ export function MeReleaseWorkspacePage() {
   const routeErrorMessage = !versionId
     ? 'Ungültige Release-Version.'
     : !hasAuthSession
-      ? 'Bitte einloggen, um deine Arbeitsfläche zu öffnen.'
+      ? 'Bitte einloggen, um deinen Projektbereich zu öffnen.'
       : null
 
   const [context, setContext] = useState<EpisodeVersionEditorContext | null>(null)
@@ -55,7 +54,6 @@ export function MeReleaseWorkspacePage() {
   const [memberId, setMemberId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>('media')
 
   useEffect(() => {
     if (!isClientInitialized) return
@@ -74,11 +72,10 @@ export function MeReleaseWorkspacePage() {
         setContext(contextResponse.data)
         setCapabilities(nextCapabilities)
         setMemberId(profileResponse.data.member_id > 0 ? profileResponse.data.member_id : null)
-        setActiveTab(nextCapabilities.can_view_media ? 'media' : 'notes')
       })
       .catch((error) => {
         if (!cancelled) {
-          setErrorMessage(readErrorMessage(error, 'Arbeitsfläche konnte nicht geladen werden.'))
+          setErrorMessage(readErrorMessage(error, 'Projektbereich konnte nicht geladen werden.'))
         }
       })
       .finally(() => {
@@ -90,40 +87,33 @@ export function MeReleaseWorkspacePage() {
     }
   }, [isClientInitialized, routeErrorMessage, versionId])
 
-  const availableTabs = useMemo(() => {
-    const tabs: WorkspaceTab[] = []
-    if (capabilities?.can_view_media) tabs.push('media')
-    if (capabilities?.can_edit_notes) tabs.push('notes')
-    return tabs
-  }, [capabilities])
-
   if (!isClientInitialized) {
-    return <LoadingState title="Arbeitsfläche wird geladen" description="Team4s lädt deine Release-Version." />
+    return <LoadingState title="Projektbereich wird geladen" description="Team4s lädt deine Release-Version." />
   }
 
   if (routeErrorMessage) {
     return (
       <main className={styles.page}>
         <ErrorState
-          title="Arbeitsfläche nicht verfügbar"
+          title="Projektbereich nicht verfügbar"
           description={routeErrorMessage}
-          action={<Button href="/me/contributions" variant="secondary">Zu meinen Beiträgen</Button>}
+          action={<Button href="/me/contributions" variant="secondary">Meine Projekte</Button>}
         />
       </main>
     )
   }
 
   if (isLoading) {
-    return <LoadingState title="Arbeitsfläche wird geladen" description="Team4s lädt deine Release-Version." />
+    return <LoadingState title="Projektbereich wird geladen" description="Team4s lädt deine Release-Version." />
   }
 
   if (errorMessage || !context || !capabilities || !versionId) {
     return (
       <main className={styles.page}>
         <ErrorState
-          title="Arbeitsfläche nicht verfügbar"
+          title="Projektbereich nicht verfügbar"
           description={errorMessage ?? 'Diese Release-Version konnte nicht geladen werden.'}
-          action={<Button href="/me/contributions" variant="secondary">Zu meinen Beiträgen</Button>}
+          action={<Button href="/me/contributions" variant="secondary">Meine Projekte</Button>}
         />
       </main>
     )
@@ -136,77 +126,69 @@ export function MeReleaseWorkspacePage() {
   const canUseMedia = capabilities.can_view_media
   const canUseNotes = capabilities.can_edit_notes && memberId != null
   const hasAnyWorkspaceAccess = canUseMedia || capabilities.can_edit_notes
-  const visibleTab = availableTabs.includes(activeTab) ? activeTab : availableTabs[0] ?? activeTab
+  const tabItems: TabItem[] = []
+
+  if (canUseMedia) {
+    tabItems.push({
+      id: 'media',
+      label: 'Bilder & Medien',
+      content: (
+        <section className={styles.panel}>
+          <ReleaseVersionMediaSection
+            versionId={version.id}
+            fansubGroupName={groupName}
+            releaseVersionLabel={releaseVersionLabel}
+          />
+        </section>
+      ),
+    })
+  }
+
+  if (canUseNotes) {
+    tabItems.push({
+      id: 'notes',
+      label: 'Notizen',
+      content: (
+        <section className={styles.panel}>
+          <ReleaseVersionNotesTab versionId={version.id} memberIdFilter={memberId} />
+        </section>
+      ),
+    })
+  }
 
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
-        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-          <Link href="/me/contributions">Meine Beiträge</Link>
-          <span>/</span>
-          <span>{context.anime_title}</span>
-          <span>/</span>
-          <span>{episodeLabel}</span>
-        </nav>
-
-        <header className={styles.header}>
-          <div>
-            <p className={styles.eyebrow}>Release-Arbeitsfläche</p>
-            <h1 className={styles.title}>{context.anime_title}</h1>
-            <p className={styles.subtitle}>
-              {episodeLabel} · {groupName} · {releaseVersionLabel}
-            </p>
-          </div>
-          <div className={styles.badgeRow}>
-            {capabilities.can_upload_media ? <Badge variant="info">Medien Upload</Badge> : null}
-            {capabilities.can_edit_notes ? <Badge variant="success">Notizen</Badge> : null}
-          </div>
-        </header>
+        <PageHeader
+          breadcrumbs={
+            <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+              <Link href="/me/contributions">Meine Projekte</Link>
+              <span>/</span>
+              <span>{context.anime_title}</span>
+              <span>/</span>
+              <span>{episodeLabel}</span>
+            </nav>
+          }
+          eyebrow="Release-Projektbereich"
+          title={context.anime_title}
+          description={`${episodeLabel} · ${groupName} · ${releaseVersionLabel}`}
+          actions={
+            <div className={styles.badgeRow}>
+              {capabilities.can_upload_media ? <Badge variant="info">Medien hochladen</Badge> : null}
+              {capabilities.can_edit_notes ? <Badge variant="success">Notizen</Badge> : null}
+            </div>
+          }
+        />
 
         {!hasAnyWorkspaceAccess ? (
           <ErrorState
-            title="Kein Zugriff auf diese Arbeitsfläche"
+            title="Kein Zugriff auf diesen Projektbereich"
             description="Du bist für diese Release-Version nicht als Mitwirkender freigeschaltet."
-            action={<Button href="/me/contributions" variant="secondary">Zu meinen Beiträgen</Button>}
+            action={<Button href="/me/contributions" variant="secondary">Meine Projekte</Button>}
           />
         ) : (
           <>
-            <div className={styles.tabs} role="tablist" aria-label="Arbeitsfläche">
-              {canUseMedia ? (
-                <button
-                  type="button"
-                  className={visibleTab === 'media' ? styles.tabActive : styles.tab}
-                  onClick={() => setActiveTab('media')}
-                >
-                  Bilder & Medien
-                </button>
-              ) : null}
-              {canUseNotes ? (
-                <button
-                  type="button"
-                  className={visibleTab === 'notes' ? styles.tabActive : styles.tab}
-                  onClick={() => setActiveTab('notes')}
-                >
-                  Notizen
-                </button>
-              ) : null}
-            </div>
-
-            {visibleTab === 'media' && canUseMedia ? (
-              <section className={styles.panel}>
-                <ReleaseVersionMediaSection
-                  versionId={version.id}
-                  fansubGroupName={groupName}
-                  releaseVersionLabel={releaseVersionLabel}
-                />
-              </section>
-            ) : null}
-
-            {visibleTab === 'notes' && canUseNotes ? (
-              <section className={styles.panel}>
-                <ReleaseVersionNotesTab versionId={version.id} memberIdFilter={memberId} />
-              </section>
-            ) : null}
+            <Tabs items={tabItems} defaultTabId={canUseMedia ? 'media' : 'notes'} />
 
             {capabilities.can_edit_notes && memberId == null ? (
               <ErrorState

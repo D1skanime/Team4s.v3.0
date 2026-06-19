@@ -123,8 +123,8 @@ describe('MeReleaseWorkspacePage', () => {
   it('passes the own member id to the notes tab', async () => {
     render(<MeReleaseWorkspacePage />)
 
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Notizen' })).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: 'Notizen' }))
+    const notesTab = await screen.findByRole('tab', { name: 'Notizen' })
+    fireEvent.click(notesTab)
 
     expect(screen.getByTestId('notes-tab').textContent).toContain('Notes 42 member 77')
   })
