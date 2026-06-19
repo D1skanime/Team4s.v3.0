@@ -106,9 +106,19 @@ function AppShellNavGroups({
   const adminItems: AppShellNavItem[] = canAccessAdmin
     ? [{ label: 'Verwaltung', href: '/admin', icon: <ShieldCheck size={17} />, current: isCurrent(currentPath, '/admin') }]
     : []
-  const myItems: AppShellNavItem[] = [
+  const fixedMyItems: AppShellNavItem[] = [
     { label: hasMemberProfile ? 'Mein Profil' : 'Mein Account', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
     { label: 'Meine Projekte', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') },
+  ]
+  const groupenUebersichtItem: AppShellNavItem = {
+    label: 'Gruppen-Übersicht',
+    href: '/manage/groups',
+    icon: <Users size={17} />,
+    current: isCurrent(currentPath, '/manage/groups'),
+  }
+  const myItems: AppShellNavItem[] = [
+    ...fixedMyItems,
+    ...(memberships.length > 0 ? [groupenUebersichtItem] : []),
   ]
   const settingsItems: AppShellNavItem[] = [
     { label: 'Account & Sicherheit', href: '/me/profile', icon: <Settings size={17} />, current: isCurrent(currentPath, '/me/profile') },
