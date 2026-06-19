@@ -482,6 +482,7 @@ Recent durable decisions:
 | 260610-i2j | Fansub-Mitglieder und historische Mitglieder auf einer Collaboration-Seite zusammenführen | 2026-06-10 | this commit | [260610-i2j-fansub-mitglieder-und-historische-mitgli](./quick/260610-i2j-fansub-mitglieder-und-historische-mitgli/) |
 | 260610-iqh | Alias-Verwaltung in Fansub-Edit ins Grunddaten-Grid verschieben (Mehrfach-Aliase erhalten) | 2026-06-10 | 1f45e0b0 | [260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun](./quick/260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun/) |
 | 260618-cjy | Release-Buttons in Meine Gruppen auf member-nahen Workspace umgestellt und Copy fansubber-neutralisiert | 2026-06-18 | working tree | [260618-cjy-release-buttons-in-meine-gruppen-auf-me-](./quick/260618-cjy-release-buttons-in-meine-gruppen-auf-me-/) |
+| 260619-w1n | Drawer-Link zur Meine-Gruppen-Übersicht (/manage/groups) für eingeloggte Mitglieder | 2026-06-19 | 877b60ba | [260619-w1n-drawer-link-zur-meine-gruppen-uebersicht](./quick/260619-w1n-drawer-link-zur-meine-gruppen-uebersicht/) |
 
 ## Session Continuity
 
