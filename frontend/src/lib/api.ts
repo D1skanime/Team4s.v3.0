@@ -8710,10 +8710,22 @@ export async function getMyBadges(
 }
 
 export async function patchMyBadgeVisibility(
+  badgeId: number,
+  visibility: string,
+): Promise<void>
+export async function patchMyBadgeVisibility(
   authToken: string | undefined,
   badgeId: number,
   visibility: string,
+): Promise<void>
+export async function patchMyBadgeVisibility(
+  first: number | string | undefined,
+  second: number | string,
+  third?: string,
 ): Promise<void> {
+  const authToken = typeof first === "number" ? undefined : first
+  const badgeId = typeof first === "number" ? first : Number(second)
+  const visibility = typeof first === "number" ? String(second) : String(third ?? "")
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/me/badges/${badgeId}/visibility`,

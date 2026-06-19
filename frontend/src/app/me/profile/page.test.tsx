@@ -133,7 +133,6 @@ import MyProfilePage from './page'
 
 beforeEach(() => {
   useAuthSessionMock.mockReturnValue({
-    authToken: '',
     hasAccessToken: true,
     hasRefreshToken: true,
     displayName: 'Mika',
@@ -320,7 +319,6 @@ describe('MyProfilePage', () => {
 
   it('renders protected-route feedback without loading profile data when unauthenticated', async () => {
     useAuthSessionMock.mockReturnValue({
-      authToken: '',
       hasAccessToken: false,
       hasRefreshToken: false,
       displayName: '',
@@ -335,7 +333,6 @@ describe('MyProfilePage', () => {
 
   it('loads profile data when the access cookie expired but refresh session remains', async () => {
     useAuthSessionMock.mockReturnValue({
-      authToken: '',
       hasAccessToken: false,
       hasRefreshToken: true,
       displayName: 'Mika',
@@ -401,7 +398,7 @@ describe('MyProfilePage', () => {
 
     const indexToggle = await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' })
     expect(indexToggle).toHaveProperty('disabled', true)
-    expect(screen.getByText('Die Indexierung kann erst nach einem verifizierten Member-Claim geändert werden.')).not.toBeNull()
+    expect(screen.getByText('Die Indexierung kann erst nach einer verifizierten Identität geändert werden.')).not.toBeNull()
   })
 
   it('saves search indexing changes immediately for verified member claims', async () => {
@@ -416,7 +413,7 @@ describe('MyProfilePage', () => {
     fireEvent.click(await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' }))
 
     await waitFor(() => {
-      expect(patchNoindexMock).toHaveBeenCalledWith(false, undefined)
+      expect(patchNoindexMock).toHaveBeenCalledWith(false)
     })
     expect(await screen.findByText('Sichtbarkeitseinstellung wurde gespeichert.')).not.toBeNull()
   })
@@ -430,7 +427,7 @@ describe('MyProfilePage', () => {
     render(<MyProfilePage />)
 
     expect(await screen.findByText('Du bist als UAT66-Claim-202952 verifiziert.')).not.toBeNull()
-    expect(screen.queryByText('Member-Claim')).toBeNull()
+    expect(screen.queryByText('Identität verknüpfen')).toBeNull()
     expect(screen.queryByText('Historischen Nick suchen')).toBeNull()
   })
 

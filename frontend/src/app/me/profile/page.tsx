@@ -36,7 +36,7 @@ import type { MemberProfileFormState } from './components/profileFormTypes'
 import styles from './page.module.css'
 
 export default function MyProfilePage() {
-  const { authToken, hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
   const [myClaim, setMyClaim] = useState<MemberClaimRow | null>(null)
   const [badges, setBadges] = useState<MemberBadge[]>([])
@@ -251,7 +251,7 @@ export default function MyProfilePage() {
       setIsSaving(true)
       setError(null)
       setSuccess(null)
-      await patchNoindex(nextNoindex, authToken || undefined)
+      await patchNoindex(nextNoindex)
       setSuccess('Sichtbarkeitseinstellung wurde gespeichert.')
     } catch (visibilityError) {
       setProfile((current) => current ? { ...current, noindex: previousNoindex } : current)
@@ -272,7 +272,7 @@ export default function MyProfilePage() {
     setSuccess(null)
 
     try {
-      await patchMyBadgeVisibility(authToken || undefined, badgeId, visibility)
+      await patchMyBadgeVisibility(badgeId, visibility)
       setSuccess('Badge-Sichtbarkeit wurde gespeichert.')
     } catch (visibilityError) {
       setBadges(previousBadges)
@@ -376,7 +376,7 @@ export default function MyProfilePage() {
                   <p className={styles.mutedText}>
                     Ein normales Konto ist noch kein öffentliches Member-Profil. Suche deinen historischen Nick oder beantrage einen neuen Member-Eintrag.
                   </p>
-                  <MemberClaimSection currentClaim={myClaim} authToken={authToken || undefined} disabled={isSaving} />
+                  <MemberClaimSection currentClaim={myClaim} disabled={isSaving} />
                 </Card>
               </aside>
             </div>
@@ -414,8 +414,8 @@ export default function MyProfilePage() {
                 </Card>
                 <Card variant="section">
                   <SectionHeader
-                    title="Meine letzten Beiträge"
-                    actions={<Button href="/me/contributions" variant="secondary" size="sm">Alle Beiträge</Button>}
+                    title="Letzte Projekte"
+                    actions={<Button href="/me/contributions" variant="secondary" size="sm">Meine Projekte</Button>}
                   />
                   <RecentContributionsSection items={profile.recent_contributions ?? []} canView={true} isPublicView={false} />
                 </Card>
@@ -452,7 +452,7 @@ export default function MyProfilePage() {
                     onVisibilityChange={handleBadgeVisibilityChange}
                   />
                 </Card>
-                <Card variant="section" title="Claim & Indexierung">
+                <Card variant="section" title="Identität & Indexierung">
                   <ClaimStatusCard
                     noindex={profile.noindex}
                     claimStatus={effectiveClaimStatus}
@@ -462,8 +462,8 @@ export default function MyProfilePage() {
                   />
                 </Card>
                 {effectiveClaimStatus !== 'verified' ? (
-                  <Card variant="section" title="Member-Claim">
-                    <MemberClaimSection currentClaim={myClaim} authToken={authToken || undefined} disabled={isSaving} />
+                  <Card variant="section" title="Identität verknüpfen">
+                    <MemberClaimSection currentClaim={myClaim} disabled={isSaving} />
                   </Card>
                 ) : null}
                 <Card variant="section" title="Account & Sicherheit">

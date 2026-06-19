@@ -11,11 +11,11 @@ type RecentContributionsSectionProps = {
 
 export function RecentContributionsSection({ items, canView }: RecentContributionsSectionProps) {
   if (!canView || items.length === 0) {
-    return <EmptyState title="Noch keine Beiträge." />
+    return <EmptyState title="Noch keine Projekte sichtbar." />
   }
 
   return (
-    <ul className={styles.recentList} aria-label="Letzte Beiträge">
+    <ul className={styles.recentList} aria-label="Letzte Projekte">
       {items.slice(0, 3).map((item) => (
         <li key={item.id}>
           <Card variant="nestedFlat" className={styles.recentContributionCard}>

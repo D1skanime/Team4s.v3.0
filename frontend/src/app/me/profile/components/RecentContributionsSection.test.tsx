@@ -27,7 +27,7 @@ describe('RecentContributionsSection', () => {
   it('renders the exact empty state when there are no contributions', () => {
     render(<RecentContributionsSection items={[]} canView={true} isPublicView={false} />)
 
-    expect(screen.getByText('Noch keine Beiträge.')).not.toBeNull()
+    expect(screen.getByText('Noch keine Projekte sichtbar.')).not.toBeNull()
   })
 
   it('renders contribution cards with anime title, group name, and role label', () => {
@@ -42,7 +42,7 @@ describe('RecentContributionsSection', () => {
       />,
     )
 
-    const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
+    const list = screen.getByRole('list', { name: 'Letzte Projekte' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(2)
     expect(screen.getByText('Maboroshi no Fansub')).not.toBeNull()
     expect(screen.getByText('Phase Fansubs')).not.toBeNull()
