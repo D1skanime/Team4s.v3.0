@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { ApiError, submitMemberCorrection } from '@/lib/api'
+import { ApiError, getOwnProfile, submitMemberCorrection } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { Button, FormField, Modal, Select, Textarea } from '@/components/ui'
 
@@ -14,7 +14,7 @@ interface CorrectionReportModalProps {
 }
 
 export function CorrectionReportModal({ memberId, memberName }: CorrectionReportModalProps) {
-  const { hasAccessToken, hasRefreshToken } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const isLoggedIn = hasAccessToken || hasRefreshToken
 
   const [open, setOpen] = useState(false)
@@ -23,8 +23,28 @@ export function CorrectionReportModal({ memberId, memberName }: CorrectionReport
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [ownMemberId, setOwnMemberId] = useState<number | null>(null)
 
-  if (!isLoggedIn) return null
+  // Eigenen Member ermitteln, um „Korrektur melden" auf dem eigenen Profil auszublenden.
+  useEffect(() => {
+    if (!isClientInitialized || !isLoggedIn) return
+
+    let active = true
+    getOwnProfile()
+      .then((response) => {
+        if (active) setOwnMemberId(response.data.member_id)
+      })
+      .catch(() => {
+        if (active) setOwnMemberId(null)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [isLoggedIn, isClientInitialized])
+
+  // Nicht eingeloggt oder eigenes Profil: keine Korrektur-Meldung anbieten.
+  if (!isLoggedIn || ownMemberId === memberId) return null
 
   function handleOpen() {
     setOpen(true)
