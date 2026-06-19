@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
-stopped_at: Completed 87-01-PLAN.md
-last_updated: "2026-06-18T12:28:48.148Z"
-last_activity: 2026-06-18
+stopped_at: Completed 87-03-PLAN.md; Phase 87 fully done; milestone close unblocked
+last_updated: "2026-06-19T06:28:00.000Z"
+last_activity: 2026-06-19
 progress:
   total_phases: 83
-  completed_phases: 65
+  completed_phases: 68
   total_plans: 342
-  completed_plans: 304
-  percent: 78
+  completed_plans: 309
+  percent: 81
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 87 — sichtbarkeits-steuerung-per-rolle-capability-pflege-ui
+**Current focus:** Phase 87 ist mit Plan 03 vollständig abgeschlossen (Capability-Pflege-UI live unter /admin/role-capabilities). Phase 88 ebenfalls complete — Milestone-Close ist nun nicht mehr durch Phase 87 blockiert.
 
 ## Current Position
 
-Phase: 87 (sichtbarkeits-steuerung-per-rolle-capability-pflege-ui) — EXECUTING
-Plan: 3 of 3
+Phase: 87
+Plan: 3 (complete)
 
 ## Accumulated Context
 
@@ -249,6 +249,9 @@ Recent durable decisions:
 - [Phase ?]: Last-Admin-Guard vor Revoke und Disable; HTTP 409 ohne Audit-Write bei Ablehnung
 - [Phase ?]: [Phase 87-01]: ReloadCache delegiert vollständig an LoadCache — kein eigener Mutex, Fail-safe inhärent durch LoadCache-Semantik (D-06)
 - [Phase ?]: [Phase 87-01]: IsStandaloneAction als exportierte Paket-Funktion — Consumer hardcoden keine standalone-Action-Codes
+- [Phase 87-03]: RoleCapabilityClient bei 243 Zeilen gehalten — kein helpers.ts-Split nötig (Schwelle 450)
+- [Phase 87-03]: Kategorie-Filterung clientseitig via Select aus matrix.all_actions abgeleitet — kein zusätzlicher API-Aufruf
+- [Phase 87-03]: listRoleCapabilities liest Matrix direkt aus Response-Body (kein body.data-Envelope) — Handler liefert Matrix laut Contract unverpackt (Fix baf1b7fb)
 
 ### Pending Todos
 
@@ -482,7 +485,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-18T12:28:48.115Z
-Stopped at: Completed 87-01-PLAN.md
+Last session: 2026-06-18T13:06:30.000Z
+Stopped at: Phase 88 completed; resume Phase 87-03 before milestone close
 Last activity: 2026-06-18
 Resume file: None

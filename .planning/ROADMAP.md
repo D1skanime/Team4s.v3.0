@@ -110,13 +110,13 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 - [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene. (completed 2026-06-09)
 - [x] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert. (completed 2026-06-18)
-- [ ] **Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI** - View-Checks an ausgewaehlten Lese-Pfaden + Admin-UI zum Pflegen von role_capabilities (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf Phase 86 auf; steuert daten-getrieben wer was sehen darf.
+- [x] **Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI** - View-Checks an ausgewaehlten Lese-Pfaden + Admin-UI zum Pflegen von role_capabilities (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf Phase 86 auf; steuert daten-getrieben wer was sehen darf. (completed 2026-06-19)
   **Plans:** 3 plans
   Plans:
 
   - [x] 87-01-PLAN.md -- Wave-0-RED-Tests + ReloadCache (permissions.go) + OpenAPI-Contract + TypeScript-Typen
   - [x] 87-02-PLAN.md -- Repository (CRUD) + Handler (Grant/Revoke/Guard) + View-Enforcement an 3 Admin-Endpunkten + Routing
-  - [ ] 87-03-PLAN.md -- Frontend Capability-Pflege-UI (Rollen x Actions-Matrix) + Nav-Link + Human-Verify
+  - [x] 87-03-PLAN.md -- Frontend Capability-Pflege-UI (Rollen x Actions-Matrix) + Nav-Link + Human-Verify
 
 ## Phase Details
 
@@ -1540,13 +1540,15 @@ Plans:
 
 ### Phase 88: Fansubber-Workspace & Contribution-Copy bereinigen
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Member-facing fansubber workspaces and profile/contribution copy use simple project/group language, route release actions to the member release workspace, and preserve release-native media/auth contracts without broad public/admin credit changes.
+**Requirements**: D-01..D-15 from `88-CONTEXT.md`
 **Depends on:** Phase 87
-**Plans:** 0/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 88 to break down)
+- [x] 88-01 Copy/auth normalization for member contribution and group surfaces
+- [x] 88-02 Profile hub identity-link copy and global UI cleanup
+- [x] 88-03 Release workspace polish and focused UAT handoff
 
 ---
 
