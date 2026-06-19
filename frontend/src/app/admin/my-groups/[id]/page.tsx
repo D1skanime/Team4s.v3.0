@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 
 import {
@@ -50,6 +50,10 @@ function formatReleaseTitle(release: ContributorReleaseVersionSummary): string {
     : `Episode ${release.episode_number}`;
 }
 
+function releaseWorkspaceHref(releaseVersionId: number): string {
+  return `/me/releases/${releaseVersionId}/workspace`;
+}
+
 function readGroupId(params?: PageProps["params"]): number {
   const paramID = typeof params?.id === "string" ? params.id : "";
   if (paramID.trim()) {
@@ -67,20 +71,21 @@ function readGroupId(params?: PageProps["params"]): number {
 }
 
 export default function AdminMyGroupDetailPage({ params }: PageProps) {
-  const { hasAccessToken, isClientInitialized } = useAuthSession();
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession();
   const groupId = readGroupId(params);
   const [detail, setDetail] = useState<ContributorGroupDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasAuthSession = hasAccessToken || hasRefreshToken;
 
   const loadDetail = useCallback(async () => {
     if (!isClientInitialized) {
       return;
     }
 
-    if (!hasAccessToken) {
+    if (!hasAuthSession) {
       setError(
-        "Anmeldung erforderlich. Bitte zuerst einen gültigen Login aufbauen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       setIsLoading(false);
       return;
@@ -106,7 +111,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [groupId, hasAccessToken, isClientInitialized]);
+  }, [groupId, hasAuthSession, isClientInitialized]);
 
   useEffect(() => {
     void loadDetail();
@@ -123,7 +128,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
         {isLoading ? (
           <LoadingState
             title="Gruppendetail wird geladen"
-            description="Team4s prüft den konkreten Gruppen- und Release-Scope."
+            description="Team4s lädt den konkreten Gruppen- und Release-Kontext."
           />
         ) : null}
 
@@ -146,9 +151,9 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
         {!isLoading && !error && detail ? (
           <>
             <PageHeader
-              eyebrow="Gruppenverwaltung"
+              eyebrow="Meine Gruppe"
               title={detail.group.name}
-              description="Release-, Media- und Notiz-Zugriffe bleiben capability-gesteuert und verwenden die bestehende Team4s-Editorfläche sicher weiter."
+              description="Release-, Medien- und Notizbereiche öffnen nur mit passenden Gruppenrechten. Historische Links bleiben Kontext und geben keine Rechte."
               actions={
                 <>
                   <Button
@@ -165,9 +170,9 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
 
             <Card variant="section">
               <SectionHeader
-                eyebrow="Scope"
+                eyebrow="Rechte"
                 title="Berechtigungen und Kontext"
-                description="Capabilities kommen aus der zentralen Permission Engine. Historische Beiträge stehen daneben, erzeugen aber keine Rechte."
+                description="Gruppenrechte kommen aus Team4s. Historische Rollen stehen daneben, erzeugen aber keine Rechte."
               />
               <div className={styles.detailGrid}>
                 <div className={styles.detailItem}>
@@ -210,7 +215,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
                           : "muted"
                       }
                     >
-                      Release-Media hochladen
+                      Release-Medien hochladen
                     </Badge>
                     <Badge
                       variant={
@@ -223,20 +228,22 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
                     </Badge>
                   </>
                 }
-                trailing={<Badge variant="muted">Credits sind read-only</Badge>}
+                trailing={
+                  <Badge variant="muted">Historische Links sind Kontext</Badge>
+                }
               />
             </Card>
 
             <Card variant="section">
               <SectionHeader
                 eyebrow="Meine Beteiligungen"
-                title="Historische Credits"
-                description="Diese Daten prüfen Phase 47 zurück: Kontext ja, Berechtigung nein."
+                title="Historische Rollen"
+                description="Diese Daten erklären den Gruppenkontext, vergeben aber keine App-Rechte."
               />
               {detail.contributions.length === 0 ? (
                 <EmptyState
-                  title="Keine historischen Credits für diese Gruppe"
-                  description="Der Contributor-Zugriff basiert weiterhin ausschließlich auf App-Mitgliedschaften und Capabilities."
+                  title="Keine historischen Rollen für diese Gruppe"
+                  description="Der Gruppenzugriff basiert weiterhin ausschließlich auf App-Mitgliedschaften und Gruppenrechten."
                 />
               ) : (
                 <div className={styles.tableSurface}>
@@ -272,8 +279,8 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
             <Card variant="section">
               <SectionHeader
                 eyebrow="Anime & Releases"
-                title="Release-native Arbeitsfläche"
-                description="Die Liste ist über `release_version_groups.fansub_group_id` gruppen- und coop-sicher gescoped."
+                title="Release-Kontexte"
+                description="Nur Release-Versionen dieser Gruppe werden angezeigt; Kooperationen bleiben erkennbar."
               />
               {detail.anime.length === 0 ? (
                 <EmptyState
@@ -336,75 +343,75 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
                                 </TableCell>
                               </TableRow>
                             ) : (
-                              anime.releases.map((release) => (
-                                <Fragment key={release.release_version_id}>
-                                  <TableRow>
-                                    <TableCell>
-                                      <div className={styles.releaseTitle}>
-                                        <strong>
-                                          {formatReleaseTitle(release)}
-                                        </strong>
-                                        {release.is_coop ? (
-                                          <Badge variant="neutral">Kooperation</Badge>
-                                        ) : null}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>{release.version}</TableCell>
-                                    <TableCell>
-                                      <div className={styles.badgeRow}>
-                                        <Badge
-                                          variant={
-                                            release.media_count > 0
-                                              ? "success"
-                                              : "muted"
-                                          }
-                                        >
-                                          {release.media_count} Medien
-                                        </Badge>
-                                        <Badge
-                                          variant={
-                                            release.has_theme_assets
-                                              ? "success"
-                                              : "warning"
-                                          }
-                                        >
-                                          {release.has_theme_assets
-                                            ? "Themes vorhanden"
-                                            : "Themes offen"}
-                                        </Badge>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className={styles.rowActions}>
-                                        {detail.group.capabilities
-                                          .can_upload_release_media ||
-                                        detail.group.capabilities
-                                          .can_edit_release_descriptions ? (
-                                          <Button
-                                            href={`/admin/episode-versions/${release.release_version_id}/edit?tab=media`}
-                                            variant="secondary"
-                                            size="sm"
-                                            rightIcon={
-                                              <ExternalLink size={14} />
+                              anime.releases.map((release) => {
+                                const canOpenReleaseWorkspace =
+                                  detail.group.capabilities
+                                    .can_upload_release_media ||
+                                  detail.group.capabilities
+                                    .can_edit_release_descriptions;
+
+                                return (
+                                  <Fragment key={release.release_version_id}>
+                                    <TableRow>
+                                      <TableCell>
+                                        <div className={styles.releaseTitle}>
+                                          <strong>
+                                            {formatReleaseTitle(release)}
+                                          </strong>
+                                          {release.is_coop ? (
+                                            <Badge variant="neutral">
+                                              Kooperation
+                                            </Badge>
+                                          ) : null}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>{release.version}</TableCell>
+                                      <TableCell>
+                                        <div className={styles.badgeRow}>
+                                          <Badge
+                                            variant={
+                                              release.media_count > 0
+                                                ? "success"
+                                                : "muted"
                                             }
                                           >
-                                            Arbeitsfläche
-                                          </Button>
-                                        ) : null}
-                                        {detail.group.capabilities
-                                          .can_upload_release_media ? (
-                                          <Button
-                                            href={`/admin/episode-versions/${release.release_version_id}/edit?tab=media`}
-                                            size="sm"
+                                            {release.media_count} Medien
+                                          </Badge>
+                                          <Badge
+                                            variant={
+                                              release.has_theme_assets
+                                                ? "success"
+                                                : "warning"
+                                            }
                                           >
-                                            Media
-                                          </Button>
-                                        ) : null}
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                </Fragment>
-                              ))
+                                            {release.has_theme_assets
+                                              ? "Themes vorhanden"
+                                              : "Themes offen"}
+                                          </Badge>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className={styles.rowActions}>
+                                          {canOpenReleaseWorkspace ? (
+                                            <Button
+                                              href={releaseWorkspaceHref(
+                                                release.release_version_id,
+                                              )}
+                                              variant="secondary"
+                                              size="sm"
+                                              rightIcon={
+                                                <ArrowRight size={14} />
+                                              }
+                                            >
+                                              Medien & Notizen
+                                            </Button>
+                                          ) : null}
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  </Fragment>
+                                );
+                              })
                             )}
                           </TableBody>
                         </Table>

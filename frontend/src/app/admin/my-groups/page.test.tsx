@@ -7,6 +7,11 @@ import { cleanup, render, screen } from "@testing-library/react";
 import type { ContributorGroupsResponse } from "@/types/contributor";
 
 const getMyFansubGroupsMock = vi.fn();
+const authSnapshot = vi.hoisted(() => ({
+  hasAccessToken: true,
+  hasRefreshToken: true,
+  displayName: "Test User",
+}));
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
@@ -24,11 +29,7 @@ vi.mock("@/lib/api", () => ({
       this.status = status;
     }
   },
-  getAuthSessionSnapshot: () => ({
-    hasAccessToken: true,
-    hasRefreshToken: true,
-    displayName: "Test User",
-  }),
+  getAuthSessionSnapshot: () => authSnapshot,
   getMyFansubGroups: (...args: unknown[]) => getMyFansubGroupsMock(...args),
 }));
 
@@ -37,6 +38,11 @@ import AdminMyGroupsPage from "./page";
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  Object.assign(authSnapshot, {
+    hasAccessToken: true,
+    hasRefreshToken: true,
+    displayName: "Test User",
+  });
 });
 
 function makeGroupsResponse(): ContributorGroupsResponse {
@@ -136,7 +142,22 @@ describe("AdminMyGroupsPage", () => {
 
     expect(await screen.findByText("Historical Only")).not.toBeNull();
     expect(screen.queryByRole("link", { name: /Mitglieder/ })).toBeNull();
-    expect(screen.getByText("Credits geben keine Rechte")).not.toBeNull();
+    expect(screen.getByText("Historische Links geben keine Rechte")).not.toBeNull();
+    expect(getMyFansubGroupsMock).toHaveBeenCalledWith();
+  });
+
+  it("loads groups when only a refresh session is present", async () => {
+    Object.assign(authSnapshot, {
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      displayName: "Test User",
+    });
+    getMyFansubGroupsMock.mockResolvedValue(makeGroupsResponse());
+
+    render(<AdminMyGroupsPage />);
+
+    expect(await screen.findByText("AnimeOwnage")).not.toBeNull();
+    expect(screen.queryByText(/Anmeldung erforderlich/)).toBeNull();
     expect(getMyFansubGroupsMock).toHaveBeenCalledWith();
   });
 });

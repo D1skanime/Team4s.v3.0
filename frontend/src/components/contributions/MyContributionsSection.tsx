@@ -8,7 +8,7 @@ import styles from './contributions.module.css'
 
 interface MyContributionsSectionProps {
   /**
-   * Fertig gefilterte und vorbereitete Contributions-Liste (von page.tsx via useMemo).
+   * Fertig gefilterte und vorbereitete Liste (von page.tsx via useMemo).
    * Enthält ausschließlich confirmed-Einträge, die dem aktiven Filter entsprechen.
    */
   contributions: MeAnimeContribution[]
@@ -22,15 +22,15 @@ export function MyContributionsSection({
   return (
     <Card variant="section">
       <SectionHeader
-        title={`Bestätigte Mitwirkungen (${contributions.length})`}
-        description="Von einer Gruppe bestätigte Rollen, die zu deinem öffentlichen Credit-Profil gehören können."
+        title={`Bestätigte Projektrollen (${contributions.length})`}
+        description="Von einer Gruppe bestätigte Rollen, die in deinem öffentlichen Profil erscheinen können."
       />
       <div className={styles.contributionList}>
         {contributions.length === 0 ? (
           <EmptyState
             variant="compact"
-            title="Noch keine bestätigten Mitwirkungen"
-            description="Eigene Vorschläge erscheinen erst hier, nachdem ein Gruppenleader sie bestätigt hat."
+            title="Noch keine bestätigten Projektrollen"
+            description="Hinweise erscheinen erst hier, nachdem eine Gruppe sie bestätigt hat."
           />
         ) : (
           <>

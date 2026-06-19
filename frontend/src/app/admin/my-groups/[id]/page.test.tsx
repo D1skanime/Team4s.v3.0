@@ -7,6 +7,11 @@ import { cleanup, render, screen } from "@testing-library/react";
 import type { ContributorGroupDetailResponse } from "@/types/contributor";
 
 const getMyFansubGroupDetailMock = vi.fn();
+const authSnapshot = vi.hoisted(() => ({
+  hasAccessToken: true,
+  hasRefreshToken: true,
+  displayName: "Test User",
+}));
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
@@ -24,11 +29,7 @@ vi.mock("@/lib/api", () => ({
       this.status = status;
     }
   },
-  getAuthSessionSnapshot: () => ({
-    hasAccessToken: true,
-    hasRefreshToken: true,
-    displayName: "Test User",
-  }),
+  getAuthSessionSnapshot: () => authSnapshot,
   getMyFansubGroupDetail: (...args: unknown[]) =>
     getMyFansubGroupDetailMock(...args),
 }));
@@ -38,6 +39,11 @@ import AdminMyGroupDetailPage from "./page";
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  Object.assign(authSnapshot, {
+    hasAccessToken: true,
+    hasRefreshToken: true,
+    displayName: "Test User",
+  });
 });
 
 function makeDetailResponse(): ContributorGroupDetailResponse {
@@ -123,19 +129,32 @@ describe("AdminMyGroupDetailPage", () => {
     render(<AdminMyGroupDetailPage params={{ id: "88" }} />);
 
     expect(await screen.findByText("AnimeOwnage")).not.toBeNull();
-    expect(screen.getByText("Credits sind read-only")).not.toBeNull();
+    expect(screen.getByText("Historische Links sind Kontext")).not.toBeNull();
     expect(screen.getByText("Keine App-Rechte")).not.toBeNull();
     expect(screen.getByText("Episode 07: Ankunft")).not.toBeNull();
     expect(screen.getByText("Kooperation")).not.toBeNull();
-    const workspaceLink = screen.getByRole("link", { name: "Arbeitsfläche" });
-    const mediaLink = screen.getByRole("link", { name: "Media" });
+    const workspaceLink = screen.getByRole("link", {
+      name: "Medien & Notizen",
+    });
 
     expect(workspaceLink.getAttribute("href")).toBe(
-      "/admin/episode-versions/51/edit?tab=media",
+      "/me/releases/51/workspace",
     );
-    expect(mediaLink.getAttribute("href")).toBe(
-      "/admin/episode-versions/51/edit?tab=media",
-    );
+    expect(getMyFansubGroupDetailMock).toHaveBeenCalledWith(88);
+  });
+
+  it("loads group detail when only a refresh session is present", async () => {
+    Object.assign(authSnapshot, {
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      displayName: "Test User",
+    });
+    getMyFansubGroupDetailMock.mockResolvedValue(makeDetailResponse());
+
+    render(<AdminMyGroupDetailPage params={{ id: "88" }} />);
+
+    expect(await screen.findByText("AnimeOwnage")).not.toBeNull();
+    expect(screen.queryByText(/Anmeldung erforderlich/)).toBeNull();
     expect(getMyFansubGroupDetailMock).toHaveBeenCalledWith(88);
   });
 });

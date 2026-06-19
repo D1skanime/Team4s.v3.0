@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ReportModal } from './ReportModal'
+import { ReportModal, type SuggestionType } from './ReportModal'
 import type { ReportTargetOption } from './reportTargets'
 
 const TARGET_OPTIONS: ReportTargetOption[] = [
@@ -11,11 +11,11 @@ const TARGET_OPTIONS: ReportTargetOption[] = [
     type: 'contribution',
     id: 41,
     label: 'Naruto · AnimeOwnage · Übersetzung',
-    description: 'Contribution #41',
+    description: 'Hinweis #41',
   },
 ]
 
-function renderModal(prefillType: 'fehler' | 'story' | 'medien', targetOptions = TARGET_OPTIONS) {
+function renderModal(prefillType: SuggestionType, targetOptions = TARGET_OPTIONS) {
   return renderToStaticMarkup(
     <ReportModal
       open
@@ -28,6 +28,21 @@ function renderModal(prefillType: 'fehler' | 'story' | 'medien', targetOptions =
 }
 
 describe('ReportModal target context', () => {
+  it('does not expose Claim as a peer option in the contributions modal', () => {
+    const markup = renderToStaticMarkup(
+      <ReportModal
+        open
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        targetOptions={TARGET_OPTIONS}
+      />,
+    )
+
+    expect(markup).toContain('Ich war in einem Projekt dabei')
+    expect(markup).not.toContain('Profil beanspruchen')
+    expect(markup).not.toContain('/me/claim')
+  })
+
   it('shows loaded anime targets in the story form', () => {
     const markup = renderModal('story')
 
@@ -56,7 +71,7 @@ describe('ReportModal target context', () => {
       />,
     )
 
-    expect(markup).toContain('Contribution #77')
+    expect(markup).toContain('Hinweis #77')
     expect(markup).toContain('value="77"')
   })
 

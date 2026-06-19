@@ -18,7 +18,7 @@ type TargetType = ReportTargetType
 
 const TARGET_TYPE_OPTIONS: { value: TargetType; label: string }[] = [
   { value: 'anime', label: 'Anime / Projekt' },
-  { value: 'contribution', label: 'Beitrag / Contribution' },
+  { value: 'contribution', label: 'Projekt-/Rollenhinweis' },
   { value: 'fansub_group', label: 'Fansub-Gruppe' },
   { value: 'member', label: 'Member-Profil' },
 ]
@@ -87,7 +87,7 @@ export function ReportFormFehler({
     ? [{
         type: 'contribution',
         id: prefillContributionId,
-        label: `Contribution #${prefillContributionId}`,
+        label: `Hinweis #${prefillContributionId}`,
       }]
     : []
 
@@ -117,7 +117,7 @@ export function ReportFormFehler({
       <ReportTargetField
         id="fehler-target-id"
         label="Ziel"
-        hint="Wähle einen bekannten Eintrag aus deinen Beiträgen oder gib eine numerische ID ein."
+        hint="Wähle einen bekannten Eintrag aus deinen Hinweisen oder gib eine numerische ID ein."
         targetType={state.targetType}
         targetId={state.targetId}
         targetOptions={targetOptions}

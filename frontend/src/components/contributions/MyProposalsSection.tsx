@@ -7,8 +7,8 @@ import { ApiError, selfPublishContribution } from '@/lib/api'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
 
 import { ANIME_CONTRIBUTION_ROLES } from './contributionRoles'
-import { ProposalForm } from './ProposalForm'
 import styles from './contributions.module.css'
+import { ProposalForm } from './ProposalForm'
 
 function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
@@ -24,8 +24,8 @@ function StatusBadge({ status }: { status: MeAnimeContribution['status'] }) {
     draft: { variant: 'muted', label: 'Entwurf' },
     hidden: { variant: 'muted', label: 'Versteckt' },
   }
-  const v = variants[status] ?? variants.draft
-  return <Badge variant={v.variant} aria-label={`Status: ${v.label}`}>{v.label}</Badge>
+  const variant = variants[status] ?? variants.draft
+  return <Badge variant={variant.variant} aria-label={`Status: ${variant.label}`}>{variant.label}</Badge>
 }
 
 function contributionTitle(contribution: MeAnimeContribution): string {
@@ -37,10 +37,6 @@ function contributionRoleLabel(contribution: MeAnimeContribution, code: string, 
 }
 
 interface MyProposalsSectionProps {
-  /**
-   * Fertig gefilterte Vorschläge-Liste (von page.tsx via useMemo).
-   * Enthält Einträge mit is_own_proposal=true, dem aktiven Filter entsprechend.
-   */
   proposals: MeAnimeContribution[]
   ownGroups: MembershipEntry[]
   onReload: () => void
@@ -69,56 +65,56 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
     onReload()
   }
 
-  const inPruefung = proposals.filter((c) => c.status === 'proposed')
-  const bestaetigt = proposals.filter((c) => c.status === 'confirmed')
-  const abgelehnt = proposals.filter((c) => c.status === 'disputed')
+  const inPruefung = proposals.filter((contribution) => contribution.status === 'proposed')
+  const bestaetigt = proposals.filter((contribution) => contribution.status === 'confirmed')
+  const abgelehnt = proposals.filter((contribution) => contribution.status === 'disputed')
   const total = proposals.length
+  const canCreateProposal = ownGroups.length > 0
 
-
-  function renderProposalCard(c: MeAnimeContribution) {
+  function renderProposalCard(contribution: MeAnimeContribution) {
     return (
-      <Card key={c.id} variant="nestedFlat" className={styles.contributionCard}>
+      <Card key={contribution.id} variant="nestedFlat" className={styles.contributionCard}>
         <div className={styles.contributionCardHeader}>
           <div className={styles.contributionTitleRow}>
-            <StatusBadge status={c.status} />
-            <span className={styles.contributionTitle}>{contributionTitle(c)}</span>
+            <StatusBadge status={contribution.status} />
+            <span className={styles.contributionTitle}>{contributionTitle(contribution)}</span>
           </div>
-          {c.started_year || c.ended_year ? (
+          {contribution.started_year || contribution.ended_year ? (
             <span className={styles.metaText}>
-              {c.started_year && c.ended_year
-                ? `${c.started_year}-${c.ended_year}`
-                : c.started_year
-                  ? `ab ${c.started_year}`
-                  : `bis ${c.ended_year}`}
+              {contribution.started_year && contribution.ended_year
+                ? `${contribution.started_year}-${contribution.ended_year}`
+                : contribution.started_year
+                  ? `ab ${contribution.started_year}`
+                  : `bis ${contribution.ended_year}`}
             </span>
           ) : null}
         </div>
 
         <div className={styles.roleList}>
-          {c.role_codes.map((code, index) => (
+          {contribution.role_codes.map((code, index) => (
             <Badge key={code} variant="info">
-              {contributionRoleLabel(c, code, index)}
+              {contributionRoleLabel(contribution, code, index)}
             </Badge>
           ))}
         </div>
 
-        {c.status === 'confirmed' ? (
-          <span className={styles.metaText}>Dieser Beitrag wurde durch einen Gruppenleader bestätigt.</span>
+        {contribution.status === 'confirmed' ? (
+          <span className={styles.metaText}>Dieser Hinweis wurde durch einen Gruppenleader bestätigt.</span>
         ) : null}
 
-        {c.status === 'disputed' && c.review_note ? (
+        {contribution.status === 'disputed' && contribution.review_note ? (
           <p className={styles.reviewNote}>
-            <strong>Ablehngrund:</strong> {c.review_note}
+            <strong>Ablehngrund:</strong> {contribution.review_note}
           </p>
         ) : null}
 
-        {c.can_self_publish ? (
+        {contribution.can_self_publish ? (
           <div className={styles.selfPublishPanel}>
-            {selfPublishConfirming === c.id ? (
+            {selfPublishConfirming === contribution.id ? (
               <>
-                <span>Dieser Eintrag wird als unverifizierter historischer Beitrag öffentlich sichtbar.</span>
+                <span>Dieser Eintrag wird als unverifizierter historischer Hinweis öffentlich sichtbar.</span>
                 <div className={styles.actionsRow}>
-                  <Button size="sm" variant="secondary" onClick={() => void handleSelfPublish(c.id)}>
+                  <Button size="sm" variant="secondary" onClick={() => void handleSelfPublish(contribution.id)}>
                     Jetzt öffentlich schalten
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setSelfPublishConfirming(null)}>
@@ -127,7 +123,7 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
                 </div>
               </>
             ) : (
-              <Button size="sm" variant="secondary" onClick={() => setSelfPublishConfirming(c.id)}>
+              <Button size="sm" variant="secondary" onClick={() => setSelfPublishConfirming(contribution.id)}>
                 Historisch öffentlich schalten
               </Button>
             )}
@@ -151,55 +147,58 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
       <Card variant="section" className={styles.proposalStack}>
         <div className={styles.proposalHeader}>
           <SectionHeader
-            title={`Eigene Vorschläge (${total})`}
-            description="Mitwirkungen, die du an eine Fansubgruppe zur Prüfung gesendet hast."
+            title={`Eingereichte Hinweise (${total})`}
+            description="Hinweise, die an eine Fansubgruppe gesendet wurden."
           />
-          <Button
-            type="button"
-            onClick={() => setShowForm(true)}
-            disabled={ownGroups.length === 0}
-            title={ownGroups.length === 0 ? 'Kein verifizierter Account verknüpft' : undefined}
-          >
-            Mitwirkung vorschlagen
+          <Button type="button" onClick={() => setShowForm(true)} disabled={!canCreateProposal}>
+            Hinweis senden
           </Button>
         </div>
 
         <div className={styles.proposalIntro}>
-          Vorschläge sind für Mitwirkungen an Projekten deiner eigenen Fansubgruppen. Du wählst zuerst die Gruppe, dann ein Anime/Projekt dieser Gruppe und danach deine Rolle. Der Gruppenleader bestätigt später, ob diese Mitwirkung stimmt.
+          Du sagst, wo du bei einem Projekt oder einer Gruppe dabei warst. Die zuständige Gruppe prüft den Hinweis und entscheidet,
+          ob daraus ein bestätigter Eintrag wird.
         </div>
 
-        {selfPublishError && (
-          <ErrorState title="Aktion fehlgeschlagen" description={selfPublishError} />
-        )}
+        {!canCreateProposal ? (
+          <div className={styles.warningPanel}>
+            Du brauchst zuerst eine verifizierte Mitgliedschaft in einer Fansubgruppe, bevor du Hinweise senden
+            kannst. Prüfe dein Profil oder bitte deine Gruppe, deine Mitgliedschaft zu bestätigen.
+          </div>
+        ) : null}
 
-        {total === 0 && (
+        {selfPublishError ? (
+          <ErrorState title="Aktion fehlgeschlagen" description={selfPublishError} />
+        ) : null}
+
+        {total === 0 ? (
           <EmptyState
             variant="compact"
-            title="Noch keine Vorschläge"
-            description="Schlage deine erste Mitwirkung für ein Projekt einer Gruppe vor, in der du Mitglied bist."
+            title="Noch keine Hinweise"
+            description="Reiche den ersten Hinweis für ein Projekt einer Gruppe ein, in der du Mitglied bist."
           />
-        )}
+        ) : null}
 
-        {inPruefung.length > 0 && (
+        {inPruefung.length > 0 ? (
           <div className={styles.proposalGroup}>
             <SectionHeader title={`In Prüfung (${inPruefung.length})`} />
             <div className={styles.proposalList}>{inPruefung.map(renderProposalCard)}</div>
           </div>
-        )}
+        ) : null}
 
-        {bestaetigt.length > 0 && (
+        {bestaetigt.length > 0 ? (
           <div className={styles.proposalGroup}>
             <SectionHeader title={`Bestätigt (${bestaetigt.length})`} />
             <div className={styles.proposalList}>{bestaetigt.map(renderProposalCard)}</div>
           </div>
-        )}
+        ) : null}
 
-        {abgelehnt.length > 0 && (
+        {abgelehnt.length > 0 ? (
           <div className={styles.proposalGroup}>
             <SectionHeader title={`Abgelehnt (${abgelehnt.length})`} />
             <div className={styles.proposalList}>{abgelehnt.map(renderProposalCard)}</div>
           </div>
-        )}
+        ) : null}
       </Card>
     </>
   )

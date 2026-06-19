@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { Select } from '@/components/ui'
 import { patchAnimeContributionVisibility } from '@/lib/api'
 
+import styles from './contributions.module.css'
+
 interface VisibilityDropdownProps {
   contributionId: number
   isPublic: boolean
@@ -30,26 +32,18 @@ export function VisibilityDropdown({ contributionId, isPublic, onChanged }: Visi
   }
 
   return (
-    <span style={{ display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+    <span className={styles.visibilityControl}>
       <Select
         value={isPublic ? 'public' : 'internal'}
         onChange={handleChange}
         disabled={loading}
-        aria-label="Sichtbarkeit dieser Contribution"
+        aria-label="Sichtbarkeit dieses Eintrags"
       >
         <option value="public">Öffentlich im Member-Profil</option>
         <option value="internal">Nur intern sichtbar</option>
       </Select>
-      {loading && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted, #6b6b70)' }}>
-          Wird gespeichert…
-        </span>
-      )}
-      {error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--button-danger-start, #82122c)' }}>
-          {error}
-        </span>
-      )}
+      {loading ? <span className={styles.visibilityStatus}>Wird gespeichert...</span> : null}
+      {error ? <span className={styles.visibilityError}>{error}</span> : null}
     </span>
   )
 }

@@ -1,3 +1,20 @@
+.contributionsPage {
+  width: min(800px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: var(--space-8) 0;
+}
+
+.contributionsStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.pageHeaderAction {
+  white-space: normal;
+}
+
 .contributionList {
   display: grid;
   gap: 10px;
@@ -18,10 +35,10 @@
 
 .proposalIntro {
   padding: 12px 14px;
-  border: 1px solid rgba(34, 128, 82, 0.28);
+  border: 1px solid color-mix(in srgb, var(--button-success-mid) 28%, var(--border-subtle));
   border-radius: 8px;
-  background: rgba(238, 246, 241, 0.92);
-  color: #28533a;
+  background: color-mix(in srgb, var(--button-success-mid) 11%, var(--surface-card));
+  color: color-mix(in srgb, var(--button-success-end) 72%, var(--text-body));
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -84,10 +101,10 @@
   display: grid;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid rgba(47, 95, 227, 0.18);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
   border-radius: 8px;
-  background: rgba(240, 244, 255, 0.82);
-  color: #3a4c80;
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface-card));
+  color: color-mix(in srgb, var(--accent-primary) 58%, var(--text-body));
   font-size: 0.875rem;
 }
 
@@ -98,40 +115,168 @@
   flex-wrap: wrap;
 }
 
-/* Phase 76: Inbox-Container — ausschließlich --space-*-Tokens (C4/UI-SPEC) */
+.modalFooterActionsEnd,
+.modalFooterActionsBetween {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.modalFooterActionsEnd {
+  justify-content: flex-end;
+}
+
+.modalFooterActionsBetween {
+  justify-content: space-between;
+}
+
+.suggestionTypeGrid,
+.scopeGrid {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.suggestionTypeGrid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.scopeGrid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.suggestionTypeButton,
+.scopeOption {
+  min-height: 88px;
+  text-align: left;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+}
+
+.suggestionTypeButton {
+  padding: 12px;
+}
+
+.suggestionTypeButton strong,
+.scopeOption strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.suggestionTypeButton span,
+.scopeOption span {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.modalBackAction {
+  margin-top: 8px;
+}
+
+.reviewHint {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.proposalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rolePicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.yearFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.infoPanel,
+.warningPanel,
+.errorPanel {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.infoPanel {
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-card));
+  color: color-mix(in srgb, var(--accent-primary) 52%, var(--text-body));
+}
+
+.warningPanel {
+  border: 1px solid color-mix(in srgb, var(--button-warning-mid, #c99333) 34%, var(--border-subtle));
+  background: color-mix(in srgb, var(--button-warning-mid, #c99333) 12%, var(--surface-card));
+  color: color-mix(in srgb, var(--button-warning-end, #6d4c13) 72%, var(--text-body));
+}
+
+.errorPanel,
+.fieldError,
+.visibilityError {
+  color: var(--button-danger-start);
+}
+
+.errorPanel {
+  border: 1px solid color-mix(in srgb, var(--button-danger-start) 20%, var(--border-subtle));
+  background: color-mix(in srgb, var(--button-danger-start) 10%, var(--surface-card));
+}
+
+.fieldError,
+.visibilityStatus,
+.visibilityError {
+  font-size: 0.75rem;
+}
+
+.visibilityControl {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: min(100%, 240px);
+}
+
+.visibilityStatus {
+  color: var(--text-muted);
+}
+
 .inboxContainer {
   display: grid;
   gap: var(--space-4);
 }
 
-/* Phase 76: Summary-Chips-Zeile für Filterachsen */
 .summaryChips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-/* Phase 76: Achsen-Zeile (Label + Chips) */
 .summaryAxisRow {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-/* Phase 76: Achsen-Label über den Chips */
 .summaryAxisLabel {
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-muted, #6b6b70);
 }
 
-/* Phase 76: Aktiver Stat-Chip — Accent-Optik (D-12, UI-SPEC §Color) */
 .chipActive {
   border-color: var(--accent-primary, #5f84dd) !important;
   color: var(--accent-primary, #5f84dd) !important;
 }
 
-/* Phase 76: Inaktiver Stat-Chip — neutrale Optik */
 .chipInactive {
   border-color: transparent;
   color: inherit;
@@ -144,5 +289,20 @@
 
   .proposalHeader > * {
     width: 100%;
+  }
+
+  .contributionsPage {
+    width: min(100% - 24px, 800px);
+    padding-block: var(--space-6);
+  }
+
+  .pageHeaderAction,
+  .modalFooterActionsEnd > *,
+  .modalFooterActionsBetween > * {
+    width: 100%;
+  }
+
+  .yearFields {
+    grid-template-columns: 1fr;
   }
 }

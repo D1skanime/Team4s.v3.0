@@ -108,7 +108,7 @@ function AppShellNavGroups({
     : []
   const myItems: AppShellNavItem[] = [
     { label: hasMemberProfile ? 'Mein Profil' : 'Mein Account', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
-    { label: 'Meine Beiträge', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') },
+    { label: 'Meine Projekte', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') },
   ]
   const settingsItems: AppShellNavItem[] = [
     { label: 'Account & Sicherheit', href: '/me/profile', icon: <Settings size={17} />, current: isCurrent(currentPath, '/me/profile') },

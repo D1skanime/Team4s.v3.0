@@ -58,13 +58,13 @@ describe('buildReportTargetOptions', () => {
         type: 'contribution',
         id: 42,
         label: 'Naruto · AnimeOwnage · Timing',
-        description: 'Contribution #42',
+        description: 'Hinweis #42',
       },
       {
         type: 'contribution',
         id: 41,
         label: 'Naruto · AnimeOwnage · Übersetzung',
-        description: 'Contribution #41',
+        description: 'Hinweis #41',
       },
     ])
   })

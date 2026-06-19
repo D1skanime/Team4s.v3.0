@@ -47,7 +47,7 @@ export function buildReportTargetOptions(contributions: MeAnimeContribution[]): 
       type: 'contribution',
       id: contribution.id,
       label: contributionLabel(contribution),
-      description: `Contribution #${contribution.id}`,
+      description: `Hinweis #${contribution.id}`,
     })
   }
 

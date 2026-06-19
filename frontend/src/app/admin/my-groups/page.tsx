@@ -59,19 +59,20 @@ function activeTimeLabel(group: ContributorGroupOverview): string {
 }
 
 export default function AdminMyGroupsPage() {
-  const { hasAccessToken, isClientInitialized } = useAuthSession();
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession();
   const [groups, setGroups] = useState<ContributorGroupOverview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasAuthSession = hasAccessToken || hasRefreshToken;
 
   const loadGroups = useCallback(async () => {
     if (!isClientInitialized) {
       return;
     }
 
-    if (!hasAccessToken) {
+    if (!hasAuthSession) {
       setError(
-        "Anmeldung erforderlich. Bitte zuerst einen gültigen Login aufbauen.",
+        "Anmeldung erforderlich. Bitte zuerst anmelden.",
       );
       setIsLoading(false);
       return;
@@ -92,7 +93,7 @@ export default function AdminMyGroupsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [hasAccessToken, isClientInitialized]);
+  }, [hasAuthSession, isClientInitialized]);
 
   useEffect(() => {
     void loadGroups();
@@ -125,7 +126,7 @@ export default function AdminMyGroupsPage() {
         <PageHeader
           eyebrow="Meine Gruppen"
           title="Meine Gruppen"
-          description="Eigene Fansub-Kontexte, Rollen und sichere Schnellaktionen. Berechtigungen kommen aus Team4s-Capabilities, historische Credits bleiben nur Kontext."
+          description="Gruppen, bei denen dein Konto aktiv mitwirkt oder historisch verknüpft ist. Historische Links sind Kontext und geben keine Rechte."
           actions={
             <>
               <Button href="/me/profile" variant="secondary" size="sm">
@@ -141,7 +142,7 @@ export default function AdminMyGroupsPage() {
         {isLoading ? (
           <LoadingState
             title="Meine Gruppen werden geladen"
-            description="Team4s prüft Mitgliedschaften, historische Links und Capability-Scope."
+            description="Team4s lädt Mitgliedschaften, historische Links und Gruppenrechte."
           />
         ) : null}
 
@@ -166,8 +167,8 @@ export default function AdminMyGroupsPage() {
             <Card variant="section">
               <SectionHeader
                 eyebrow="Überblick"
-                title="Contributor-Kontext"
-                description="Diese Werte werden aus eigenen Gruppen und read-only Credits zusammengezogen."
+                title="Gruppenkontext"
+                description="Diese Werte werden aus eigenen Gruppen und historischen Links zusammengezogen."
               />
               <div className={styles.metricGrid}>
                 <div className={styles.metricItem}>
@@ -189,7 +190,7 @@ export default function AdminMyGroupsPage() {
               <SectionHeader
                 eyebrow="Navigation"
                 title="Schnellzugriff"
-                description="Die globale Team4s-UI bleibt bewusst ruhig: normale Buttons, Badges und Cards statt Sonderoptik."
+                description="Direkte Wege zu deinem Profil und den Gruppen, für die aktive Rechte vorliegen."
               />
               <Toolbar
                 leading={
@@ -197,7 +198,7 @@ export default function AdminMyGroupsPage() {
                     <Badge variant="info">
                       {groups.length} Gruppen sichtbar
                     </Badge>
-                    <Badge variant="muted">Credits geben keine Rechte</Badge>
+                    <Badge variant="muted">Historische Links geben keine Rechte</Badge>
                   </>
                 }
                 trailing={
@@ -219,7 +220,7 @@ export default function AdminMyGroupsPage() {
             <SectionHeader
               eyebrow="Gruppen"
               title="Eigene Fansub-Gruppen"
-              description="Nur Gruppen mit Capability öffnen Detail- und Arbeitsflächen. Historische Beteiligungen bleiben als Kontext sichtbar."
+              description="Nur Gruppen mit aktiven Rechten öffnen Detailbereiche. Historische Beteiligungen bleiben als Kontext sichtbar."
             />
             {groups.length === 0 ? (
               <EmptyState

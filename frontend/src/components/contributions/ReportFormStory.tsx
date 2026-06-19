@@ -19,7 +19,7 @@ const TARGET_TYPE_OPTIONS: { value: TargetType; label: string }[] = [
   { value: 'anime', label: 'Anime / Projekt' },
   { value: 'fansub_group', label: 'Fansub-Gruppe' },
   { value: 'member', label: 'Member-Profil' },
-  { value: 'contribution', label: 'Beitrag / Contribution' },
+  { value: 'contribution', label: 'Projekt-/Rollenhinweis' },
 ]
 
 interface ReportFormStoryState {
@@ -104,7 +104,7 @@ export function ReportFormStory({ onSuccess, targetOptions = [] }: ReportFormSto
       <ReportTargetField
         id="story-target-id"
         label="Ziel"
-        hint="Wähle einen bekannten Eintrag aus deinen Beiträgen oder gib eine numerische ID ein."
+        hint="Wähle einen bekannten Eintrag aus deinen Hinweisen oder gib eine numerische ID ein."
         targetType={state.targetType}
         targetId={state.targetId}
         targetOptions={targetOptions}

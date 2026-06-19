@@ -87,14 +87,14 @@ describe('AppShell', () => {
     expect(screen.queryByText('Meine Gruppen')).toBeNull()
   })
 
-  it('links signed-in members to their contribution workspace', () => {
+  it('links signed-in members to their project workspace', () => {
     render(
       <AppShell currentPath="/me/profile">
         <main>Profilinhalt</main>
       </AppShell>,
     )
 
-    const contributionsLink = screen.getByRole('link', { name: /Meine Beiträge/i })
+    const contributionsLink = screen.getByRole('link', { name: /Meine Projekte/i })
     expect(contributionsLink.getAttribute('href')).toBe('/me/contributions')
   })
 
