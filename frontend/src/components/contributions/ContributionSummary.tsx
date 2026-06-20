@@ -14,18 +14,6 @@ interface ContributionSummaryProps {
   onFilterChange: (f: ContributionFilterState) => void
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  confirmed: 'Bestätigt',
-  proposed: 'In Prüfung',
-  disputed: 'Bestritten',
-  draft: 'Entwurf',
-  hidden: 'Verborgen',
-}
-
-function statusLabel(status: string): string {
-  return STATUS_LABELS[status] ?? status
-}
-
 // Chip-Zeile für eine Filterachse
 function ChipRow({
   axisLabel,
@@ -59,7 +47,7 @@ function ChipRow({
               className={isActive ? styles.chipActive : styles.chipInactive}
               onClick={() => onSelect(isActive ? null : value)}
             >
-              {axisLabel === 'Status' ? statusLabel(value) : value} ({count})
+              {value} ({count})
             </Button>
           )
         })}
@@ -74,12 +62,10 @@ export function ContributionSummary({
   onFilterChange,
 }: ContributionSummaryProps) {
   const summary = useMemo(() => {
-    const byStatus = new Map<string, number>()
     const byGroup = new Map<string, number>()
     const byRole = new Map<string, number>()
 
     for (const c of contributions) {
-      byStatus.set(c.status, (byStatus.get(c.status) ?? 0) + 1)
       if (c.fansub_group_name) {
         byGroup.set(c.fansub_group_name, (byGroup.get(c.fansub_group_name) ?? 0) + 1)
       }
@@ -88,7 +74,7 @@ export function ContributionSummary({
       }
     }
 
-    return { byStatus, byGroup, byRole }
+    return { byGroup, byRole }
   }, [contributions])
 
   const filtersActive = hasActiveFilters(activeFilters)
@@ -103,12 +89,6 @@ export function ContributionSummary({
         title="Überblick & Filter"
       />
       <div className={styles.inboxContainer}>
-        <ChipRow
-          axisLabel="Status"
-          entries={Array.from(summary.byStatus.entries())}
-          activeValue={activeFilters.status}
-          onSelect={(val) => onFilterChange({ ...activeFilters, status: val })}
-        />
         <ChipRow
           axisLabel="Gruppe"
           entries={Array.from(summary.byGroup.entries())}
