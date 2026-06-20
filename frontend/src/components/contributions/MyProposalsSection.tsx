@@ -98,10 +98,6 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           ))}
         </div>
 
-        {contribution.status === 'confirmed' ? (
-          <span className={styles.metaText}>Dieser Hinweis wurde durch einen Gruppenleader bestätigt.</span>
-        ) : null}
-
         {contribution.status === 'disputed' && contribution.review_note ? (
           <p className={styles.reviewNote}>
             <strong>Ablehngrund:</strong> {contribution.review_note}
@@ -112,7 +108,7 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           <div className={styles.selfPublishPanel}>
             {selfPublishConfirming === contribution.id ? (
               <>
-                <span>Dieser Eintrag wird als unverifizierter historischer Hinweis öffentlich sichtbar.</span>
+                <span>Unverifizierter historischer Eintrag — wird öffentlich sichtbar.</span>
                 <div className={styles.actionsRow}>
                   <Button size="sm" variant="secondary" onClick={() => void handleSelfPublish(contribution.id)}>
                     Jetzt öffentlich schalten
@@ -148,22 +144,15 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
         <div className={styles.proposalHeader}>
           <SectionHeader
             title={`Eingereichte Hinweise (${total})`}
-            description="Hinweise, die an eine Fansubgruppe gesendet wurden."
           />
           <Button type="button" onClick={() => setShowForm(true)} disabled={!canCreateProposal}>
             Hinweis senden
           </Button>
         </div>
 
-        <div className={styles.proposalIntro}>
-          Du sagst, wo du bei einem Projekt oder einer Gruppe dabei warst. Die zuständige Gruppe prüft den Hinweis und entscheidet,
-          ob daraus ein bestätigter Eintrag wird.
-        </div>
-
         {!canCreateProposal ? (
           <div className={styles.warningPanel}>
-            Du brauchst zuerst eine verifizierte Mitgliedschaft in einer Fansubgruppe, bevor du Hinweise senden
-            kannst. Prüfe dein Profil oder bitte deine Gruppe, deine Mitgliedschaft zu bestätigen.
+            Verifizierte Gruppenmitgliedschaft erforderlich.
           </div>
         ) : null}
 

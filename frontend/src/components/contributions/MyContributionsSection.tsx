@@ -23,14 +23,13 @@ export function MyContributionsSection({
     <Card variant="section">
       <SectionHeader
         title={`Bestätigte Projektrollen (${contributions.length})`}
-        description="Von einer Gruppe bestätigte Rollen, die in deinem öffentlichen Profil erscheinen können."
       />
       <div className={styles.contributionList}>
         {contributions.length === 0 ? (
           <EmptyState
             variant="compact"
             title="Noch keine bestätigten Projektrollen"
-            description="Hinweise erscheinen erst hier, nachdem eine Gruppe sie bestätigt hat."
+            description="Noch keine bestätigten Rollen."
           />
         ) : (
           <>
