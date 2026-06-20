@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -12,7 +12,6 @@ import {
   LoadingState,
   PageHeader,
   SectionHeader,
-  Toolbar,
 } from "@/components/ui";
 import { ApiError, getMyFansubGroups } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
@@ -126,16 +125,11 @@ export default function AdminMyGroupsPage() {
         <PageHeader
           eyebrow="Meine Gruppen"
           title="Meine Gruppen"
-          description="Deine aktiven Fansub-Gruppen und historischen Beteiligungen."
+          description="Deine aktiven Fansub-Gruppen und früheren Beteiligungen."
           actions={
-            <>
-              <Button href="/me/profile" variant="secondary" size="sm">
-                Mein Profil
-              </Button>
-              <Button href="/auth" variant="ghost" size="sm">
-                Account & Logout
-              </Button>
-            </>
+            <Button href="/auth" variant="ghost" size="sm">
+              Account & Logout
+            </Button>
           }
         />
 
@@ -176,7 +170,7 @@ export default function AdminMyGroupsPage() {
                   <strong>{activeGroups.length}</strong>
                 </div>
                 <div className={styles.metricItem}>
-                  <span>Historische Links</span>
+                  <span>Frühere Gruppen</span>
                   <strong>{historicalGroups.length}</strong>
                 </div>
                 <div className={styles.metricItem}>
@@ -184,33 +178,6 @@ export default function AdminMyGroupsPage() {
                   <strong>{releaseVersionCount}</strong>
                 </div>
               </div>
-            </Card>
-
-            <Card variant="section">
-              <SectionHeader
-                eyebrow="Navigation"
-                title="Schnellzugriff"
-                description=""
-              />
-              <Toolbar
-                leading={
-                  <>
-                    <Badge variant="info">
-                      {groups.length} Gruppen sichtbar
-                    </Badge>
-                    <Badge variant="muted">Historische Links geben keine Rechte</Badge>
-                  </>
-                }
-                trailing={
-                  <Button
-                    href="/me/profile"
-                    variant="secondary"
-                    leftIcon={<Users size={16} />}
-                  >
-                    Profil öffnen
-                  </Button>
-                }
-              />
             </Card>
           </div>
         ) : null}

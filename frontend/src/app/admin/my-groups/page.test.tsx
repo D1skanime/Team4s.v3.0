@@ -142,7 +142,7 @@ describe("AdminMyGroupsPage", () => {
 
     expect(await screen.findByText("Historical Only")).not.toBeNull();
     expect(screen.queryByRole("link", { name: /Mitglieder/ })).toBeNull();
-    expect(screen.getByText("Historische Links geben keine Rechte")).not.toBeNull();
+    expect(screen.getByText("Frühere Gruppen")).not.toBeNull();
     expect(getMyFansubGroupsMock).toHaveBeenCalledWith();
   });
 
