@@ -81,6 +81,16 @@ export default function MyContributionsPage() {
     return contributions.filter((contribution) => contribution.is_own_proposal && predicate(contribution))
   }, [contributions, activeFilters])
 
+  // Filter nur einblenden, wenn es genug zu filtern gibt — bei wenigen Beiträgen/Gruppen ist er nur Lärm.
+  const showFilter = useMemo(() => {
+    if (!contributions) return false
+    const distinctAnimes = new Set(contributions.map((c) => c.anime_id)).size
+    const distinctGroups = new Set(
+      contributions.map((c) => c.fansub_group_name).filter(Boolean),
+    ).size
+    return contributions.length > 6 || distinctAnimes > 3 || distinctGroups > 2
+  }, [contributions])
+
   async function handleConfirm(id: number) {
     try {
       await confirmAnimeContribution(id)
@@ -131,12 +141,6 @@ export default function MyContributionsPage() {
           onVisibilityChange={handleVisibilityChange}
         />
 
-        <ContributionSummary
-          contributions={contributions}
-          activeFilters={activeFilters}
-          onFilterChange={setActiveFilters}
-        />
-
         <MyContributionsSection
           contributions={filteredContributions}
           onVisibilityChange={handleVisibilityChange}
@@ -147,6 +151,14 @@ export default function MyContributionsPage() {
           ownGroups={ownGroups}
           onReload={() => void reload()}
         />
+
+        {showFilter ? (
+          <ContributionSummary
+            contributions={contributions}
+            activeFilters={activeFilters}
+            onFilterChange={setActiveFilters}
+          />
+        ) : null}
       </div>
 
       <RejectReasonModal

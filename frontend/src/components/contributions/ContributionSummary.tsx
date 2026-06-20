@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
-import { Button, Card, SectionHeader } from '@/components/ui'
+import { Button, Card } from '@/components/ui'
 import type { MeAnimeContribution } from '@/types/contributions'
 
 import { type ContributionFilterState, hasActiveFilters } from './ContributionFilters'
@@ -77,6 +77,7 @@ export function ContributionSummary({
     return { byGroup, byRole }
   }, [contributions])
 
+  const [open, setOpen] = useState(false)
   const filtersActive = hasActiveFilters(activeFilters)
 
   function resetFilters() {
@@ -85,30 +86,37 @@ export function ContributionSummary({
 
   return (
     <Card variant="section">
-      <SectionHeader
-        title="Überblick & Filter"
-      />
-      <div className={styles.inboxContainer}>
-        <ChipRow
-          axisLabel="Gruppe"
-          entries={Array.from(summary.byGroup.entries())}
-          activeValue={activeFilters.group}
-          onSelect={(val) => onFilterChange({ ...activeFilters, group: val })}
-        />
-        <ChipRow
-          axisLabel="Rolle"
-          entries={Array.from(summary.byRole.entries())}
-          activeValue={activeFilters.role}
-          onSelect={(val) => onFilterChange({ ...activeFilters, role: val })}
-        />
+      <div className={styles.actionsRow}>
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? 'Filter schließen' : filtersActive ? 'Filter (aktiv)' : 'Filtern'}
+        </Button>
         {filtersActive ? (
-          <div className={styles.actionsRow}>
-            <Button variant="ghost" size="sm" onClick={resetFilters}>
-              Filter zurücksetzen
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" onClick={resetFilters}>
+            Zurücksetzen
+          </Button>
         ) : null}
       </div>
+      {open ? (
+        <div className={styles.inboxContainer}>
+          <ChipRow
+            axisLabel="Gruppe"
+            entries={Array.from(summary.byGroup.entries())}
+            activeValue={activeFilters.group}
+            onSelect={(val) => onFilterChange({ ...activeFilters, group: val })}
+          />
+          <ChipRow
+            axisLabel="Rolle"
+            entries={Array.from(summary.byRole.entries())}
+            activeValue={activeFilters.role}
+            onSelect={(val) => onFilterChange({ ...activeFilters, role: val })}
+          />
+        </div>
+      ) : null}
     </Card>
   )
 }
