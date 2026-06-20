@@ -9,14 +9,10 @@ import {
   EMPTY_FILTER_STATE,
   type ContributionFilterState,
 } from '@/components/contributions/ContributionFilters'
-import { ANIME_CONTRIBUTION_ROLES } from '@/components/contributions/contributionRoles'
 import styles from '@/components/contributions/contributions.module.css'
 import { MyContributionsSection } from '@/components/contributions/MyContributionsSection'
 import { MyProposalsSection } from '@/components/contributions/MyProposalsSection'
 import { RejectReasonModal } from '@/components/contributions/RejectReasonModal'
-import { ReportModal } from '@/components/contributions/ReportModal'
-import type { SuggestionType } from '@/components/contributions/ReportModal'
-import { buildReportTargetOptions } from '@/components/contributions/reportTargets'
 import { Button, ErrorState, LoadingState, PageHeader } from '@/components/ui'
 import {
   ApiError,
@@ -42,9 +38,6 @@ export default function MyContributionsPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeFilters, setActiveFilters] = useState<ContributionFilterState>(EMPTY_FILTER_STATE)
   const [rejectModalOpenId, setRejectModalOpenId] = useState<number | null>(null)
-  const [reportModalOpen, setReportModalOpen] = useState(false)
-  const [reportPrefillType, setReportPrefillType] = useState<SuggestionType | null>(null)
-  const [reportPrefillId, setReportPrefillId] = useState<number | null>(null)
 
   const hasAuthSession = hasAccessToken || hasRefreshToken
 
@@ -88,11 +81,6 @@ export default function MyContributionsPage() {
     return contributions.filter((contribution) => contribution.is_own_proposal && predicate(contribution))
   }, [contributions, activeFilters])
 
-  const reportTargetOptions = useMemo(
-    () => contributions ? buildReportTargetOptions(contributions) : [],
-    [contributions],
-  )
-
   async function handleConfirm(id: number) {
     try {
       await confirmAnimeContribution(id)
@@ -117,12 +105,6 @@ export default function MyContributionsPage() {
     )
   }
 
-  function openReportModal() {
-    setReportPrefillType(null)
-    setReportPrefillId(null)
-    setReportModalOpen(true)
-  }
-
   if (!isClientInitialized || isLoading) {
     return <LoadingState title="Projekt-Hinweise werden geladen" />
   }
@@ -139,20 +121,7 @@ export default function MyContributionsPage() {
 
   return (
     <main className={styles.contributionsPage}>
-      <PageHeader
-        title="Meine Projekte"
-        actions={
-          <Button
-            variant="primary"
-            size="md"
-            onClick={openReportModal}
-            aria-label="Hinweis senden"
-            className={styles.pageHeaderAction}
-          >
-            Hinweis senden
-          </Button>
-        }
-      />
+      <PageHeader title="Meine Projekte" />
 
       <div className={styles.contributionsStack}>
         <ContributionInbox
@@ -185,20 +154,6 @@ export default function MyContributionsPage() {
         contributionId={rejectModalOpenId}
         onClose={() => setRejectModalOpenId(null)}
         onConfirm={handleRejectWithReason}
-      />
-      <ReportModal
-        open={reportModalOpen}
-        onClose={() => {
-          setReportModalOpen(false)
-          setReportPrefillType(null)
-          setReportPrefillId(null)
-        }}
-        onSuccess={() => void reload()}
-        prefillType={reportPrefillType ?? undefined}
-        prefillContributionId={reportPrefillId ?? undefined}
-        targetOptions={reportTargetOptions}
-        ownGroups={ownGroups}
-        roleDefinitions={ANIME_CONTRIBUTION_ROLES}
       />
     </main>
   )
