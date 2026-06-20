@@ -101,7 +101,6 @@ export function ContributionSummary({
     <Card variant="section">
       <SectionHeader
         title="Überblick & Filter"
-        description="Tippe auf einen Wert, um die Listen darunter zu filtern. Erneutes Tippen hebt den Filter auf."
       />
       <div className={styles.inboxContainer}>
         <ChipRow

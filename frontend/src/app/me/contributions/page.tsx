@@ -124,7 +124,7 @@ export default function MyContributionsPage() {
   }
 
   if (!isClientInitialized || isLoading) {
-    return <LoadingState title="Projekt-Hinweise werden geladen" description="Team4s lädt offene und bestätigte Projektdaten." />
+    return <LoadingState title="Projekt-Hinweise werden geladen" />
   }
 
   if (error || !contributions) {
@@ -141,13 +141,12 @@ export default function MyContributionsPage() {
     <main className={styles.contributionsPage}>
       <PageHeader
         title="Meine Projekte"
-        description="Sende Hinweise zu Projekten und Gruppen, bei denen du dabei warst. Team4s lässt sie prüfen, bevor daraus ein bestätigter Eintrag wird."
         actions={
           <Button
             variant="primary"
             size="md"
             onClick={openReportModal}
-            aria-label="Projekt-Hinweis senden öffnen"
+            aria-label="Hinweis senden"
             className={styles.pageHeaderAction}
           >
             Hinweis senden

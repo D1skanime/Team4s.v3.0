@@ -77,9 +77,6 @@ function VisibilityPendingItem({
         <span className={styles.contributionTitle}>{title}</span>
         <Badge variant="warning">Sichtbarkeit offen</Badge>
       </div>
-      <p className={styles.reviewNote}>
-        Soll diese bestätigte Mitwirkung öffentlich im Profil erscheinen?
-      </p>
       <VisibilityDropdown
         contributionId={contribution.id}
         isPublic={contribution.is_public_on_member_profile}
@@ -125,14 +122,13 @@ export function ContributionInbox({
     <Card variant="section">
       <SectionHeader
         title="Offene Aktionen"
-        description="Diese Punkte brauchen deine Aufmerksamkeit – bestätige Zuordnungen, kläre Widersprüche oder entscheide über die Sichtbarkeit."
       />
       <div className={styles.inboxContainer}>
         {totalInbox === 0 ? (
           <EmptyState
             variant="compact"
             title="Keine offenen Aktionen"
-            description="Es gibt gerade nichts zu klären. Neue Zuordnungen oder Rückmeldungen erscheinen hier."
+            description="Keine Aufgaben ausstehend."
           />
         ) : (
           <>
