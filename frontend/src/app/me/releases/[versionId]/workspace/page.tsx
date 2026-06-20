@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 
-import { Badge, Button, ErrorState, LoadingState, PageHeader, Tabs } from '@/components/ui'
+import { Badge, Button, Card, ErrorState, LoadingState, PageHeader, Tabs } from '@/components/ui'
 import type { TabItem } from '@/components/ui'
 import {
   ApiError,
@@ -133,13 +133,13 @@ export function MeReleaseWorkspacePage() {
       id: 'media',
       label: 'Bilder & Medien',
       content: (
-        <section className={styles.panel}>
+        <Card>
           <ReleaseVersionMediaSection
             versionId={version.id}
             fansubGroupName={groupName}
             releaseVersionLabel={releaseVersionLabel}
           />
-        </section>
+        </Card>
       ),
     })
   }
@@ -149,9 +149,9 @@ export function MeReleaseWorkspacePage() {
       id: 'notes',
       label: 'Notizen',
       content: (
-        <section className={styles.panel}>
+        <Card>
           <ReleaseVersionNotesTab versionId={version.id} memberIdFilter={memberId} />
-        </section>
+        </Card>
       ),
     })
   }
