@@ -126,7 +126,7 @@ export default function AdminMyGroupsPage() {
         <PageHeader
           eyebrow="Meine Gruppen"
           title="Meine Gruppen"
-          description="Gruppen, bei denen dein Konto aktiv mitwirkt oder historisch verknüpft ist. Historische Links sind Kontext und geben keine Rechte."
+          description="Deine aktiven Fansub-Gruppen und historischen Beteiligungen."
           actions={
             <>
               <Button href="/me/profile" variant="secondary" size="sm">
@@ -142,7 +142,7 @@ export default function AdminMyGroupsPage() {
         {isLoading ? (
           <LoadingState
             title="Meine Gruppen werden geladen"
-            description="Team4s lädt Mitgliedschaften, historische Links und Gruppenrechte."
+            description="Einen Moment bitte."
           />
         ) : null}
 
@@ -168,7 +168,7 @@ export default function AdminMyGroupsPage() {
               <SectionHeader
                 eyebrow="Überblick"
                 title="Gruppenkontext"
-                description="Diese Werte werden aus eigenen Gruppen und historischen Links zusammengezogen."
+                description=""
               />
               <div className={styles.metricGrid}>
                 <div className={styles.metricItem}>
@@ -190,7 +190,7 @@ export default function AdminMyGroupsPage() {
               <SectionHeader
                 eyebrow="Navigation"
                 title="Schnellzugriff"
-                description="Direkte Wege zu deinem Profil und den Gruppen, für die aktive Rechte vorliegen."
+                description=""
               />
               <Toolbar
                 leading={
@@ -220,12 +220,12 @@ export default function AdminMyGroupsPage() {
             <SectionHeader
               eyebrow="Gruppen"
               title="Eigene Fansub-Gruppen"
-              description="Nur Gruppen mit aktiven Rechten öffnen Detailbereiche. Historische Beteiligungen bleiben als Kontext sichtbar."
+              description="Gruppen mit aktiver Mitgliedschaft können geöffnet werden."
             />
             {groups.length === 0 ? (
               <EmptyState
                 title="Noch keine Gruppen"
-                description="Für diesen Account sind noch keine App-Mitgliedschaften oder historischen Gruppenlinks sichtbar."
+                description="Noch keine Gruppen verknüpft."
               />
             ) : (
               <ul className={styles.groupList}>

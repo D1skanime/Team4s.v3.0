@@ -128,7 +128,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
         {isLoading ? (
           <LoadingState
             title="Gruppendetail wird geladen"
-            description="Team4s lädt den konkreten Gruppen- und Release-Kontext."
+            description="Einen Moment bitte."
           />
         ) : null}
 
@@ -153,7 +153,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
             <PageHeader
               eyebrow="Meine Gruppe"
               title={detail.group.name}
-              description="Release-, Medien- und Notizbereiche öffnen nur mit passenden Gruppenrechten. Historische Links bleiben Kontext und geben keine Rechte."
+              description="Releases, Medien und deine Beteiligungen in dieser Gruppe."
               actions={
                 <>
                   <Button
@@ -170,9 +170,9 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
 
             <Card variant="section">
               <SectionHeader
-                eyebrow="Rechte"
-                title="Berechtigungen und Kontext"
-                description="Gruppenrechte kommen aus Team4s. Historische Rollen stehen daneben, erzeugen aber keine Rechte."
+                eyebrow="Status"
+                title="Gruppenübersicht"
+                description=""
               />
               <div className={styles.detailGrid}>
                 <div className={styles.detailItem}>
@@ -238,12 +238,12 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
               <SectionHeader
                 eyebrow="Meine Beteiligungen"
                 title="Historische Rollen"
-                description="Diese Daten erklären den Gruppenkontext, vergeben aber keine App-Rechte."
+                description=""
               />
               {detail.contributions.length === 0 ? (
                 <EmptyState
-                  title="Keine historischen Rollen für diese Gruppe"
-                  description="Der Gruppenzugriff basiert weiterhin ausschließlich auf App-Mitgliedschaften und Gruppenrechten."
+                  title="Keine Beteiligungen"
+                  description=""
                 />
               ) : (
                 <div className={styles.tableSurface}>
@@ -280,7 +280,7 @@ export default function AdminMyGroupDetailPage({ params }: PageProps) {
               <SectionHeader
                 eyebrow="Anime & Releases"
                 title="Release-Kontexte"
-                description="Nur Release-Versionen dieser Gruppe werden angezeigt; Kooperationen bleiben erkennbar."
+                description="Release-Versionen dieser Gruppe."
               />
               {detail.anime.length === 0 ? (
                 <EmptyState
