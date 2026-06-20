@@ -484,6 +484,7 @@ Recent durable decisions:
 | 260618-cjy | Release-Buttons in Meine Gruppen auf member-nahen Workspace umgestellt und Copy fansubber-neutralisiert | 2026-06-18 | working tree | [260618-cjy-release-buttons-in-meine-gruppen-auf-me-](./quick/260618-cjy-release-buttons-in-meine-gruppen-auf-me-/) |
 | 260619-w1n | Drawer-Link zur Meine-Gruppen-Übersicht (/manage/groups) für eingeloggte Mitglieder | 2026-06-19 | 877b60ba | [260619-w1n-drawer-link-zur-meine-gruppen-uebersicht](./quick/260619-w1n-drawer-link-zur-meine-gruppen-uebersicht/) |
 | 260620-eaj | Member-Contribution-UI: Hinweis/Claim-Copy verschlankt + Inline-Styles auf Design-System-CSS migriert | 2026-06-20 | 1f3778d5 | [260620-eaj-member-contribution-ui-auf-globales-desi](./quick/260620-eaj-member-contribution-ui-auf-globales-desi/) |
+| 260620-lq7 | Manage-Groups-UI (Übersicht + Detail): Claim-/Rechte-Copy aggressiv verschlankt, nutzerfreundlicher | 2026-06-20 | e225d04e | [260620-lq7-manage-groups-ui-uebersicht-detail-claim](./quick/260620-lq7-manage-groups-ui-uebersicht-detail-claim/) |
 
 ## Session Continuity
 
