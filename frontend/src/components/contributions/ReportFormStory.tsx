@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { FormField, Select, Textarea } from '@/components/ui'
 import { ApiError, submitSuggestion } from '@/lib/api'
 
+import styles from './contributions.module.css'
 import { ReportTargetField } from './ReportTargetField'
 import type { ReportTargetOption, ReportTargetType } from './reportTargets'
 
@@ -79,9 +80,9 @@ export function ReportFormStory({ onSuccess, targetOptions = [] }: ReportFormSto
   }
 
   return (
-    <form id="report-form-story" onSubmit={(event) => void handleSubmit(event)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <form id="report-form-story" onSubmit={(event) => void handleSubmit(event)} className={styles.reportForm}>
       {state.error ? (
-        <p role="alert" style={{ color: 'var(--button-danger-start)', fontSize: '0.875rem' }}>
+        <p role="alert" className={styles.fieldError}>
           {state.error}
         </p>
       ) : null}
@@ -122,9 +123,6 @@ export function ReportFormStory({ onSuccess, targetOptions = [] }: ReportFormSto
         />
       </FormField>
 
-      <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-        Deine Story wird geprüft und kann nach Freigabe veröffentlicht werden.
-      </p>
     </form>
   )
 }

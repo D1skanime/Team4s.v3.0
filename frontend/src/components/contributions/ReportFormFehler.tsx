@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { FormField, Select, Textarea } from '@/components/ui'
 import { ApiError, submitSuggestion } from '@/lib/api'
 
+import styles from './contributions.module.css'
 import { ReportTargetField } from './ReportTargetField'
 import type { ReportTargetOption, ReportTargetType } from './reportTargets'
 
@@ -92,9 +93,9 @@ export function ReportFormFehler({
     : []
 
   return (
-    <form id="report-form-fehler" onSubmit={(event) => void handleSubmit(event)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <form id="report-form-fehler" onSubmit={(event) => void handleSubmit(event)} className={styles.reportForm}>
       {state.error ? (
-        <p role="alert" style={{ color: 'var(--button-danger-start)', fontSize: '0.875rem' }}>
+        <p role="alert" className={styles.fieldError}>
           {state.error}
         </p>
       ) : null}
@@ -136,9 +137,6 @@ export function ReportFormFehler({
         />
       </FormField>
 
-      <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-        Dein Vorschlag wird geprüft und kann bei Bedarf vom Team umgesetzt werden.
-      </p>
     </form>
   )
 }

@@ -5,6 +5,7 @@ import { useRef, useState } from 'react'
 import { FormField, Select } from '@/components/ui'
 import { ApiError, uploadMediaSuggestion } from '@/lib/api'
 
+import styles from './contributions.module.css'
 import { ReportTargetField } from './ReportTargetField'
 import type { ReportTargetOption, ReportTargetType } from './reportTargets'
 
@@ -114,9 +115,9 @@ export function ReportFormMedia({ onSuccess, targetOptions = [] }: ReportFormMed
   }
 
   return (
-    <form id="report-form-media" onSubmit={(event) => void handleSubmit(event)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <form id="report-form-media" onSubmit={(event) => void handleSubmit(event)} className={styles.reportForm}>
       {state.error ? (
-        <p role="alert" style={{ color: 'var(--button-danger-start)', fontSize: '0.875rem' }}>
+        <p role="alert" className={styles.fieldError}>
           {state.error}
         </p>
       ) : null}
@@ -177,20 +178,16 @@ export function ReportFormMedia({ onSuccess, targetOptions = [] }: ReportFormMed
       </FormField>
 
       {state.file ? (
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+        <p className={styles.formNote}>
           Ausgewählt: <strong>{state.file.name}</strong> ({(state.file.size / 1024 / 1024).toFixed(2)} MB)
         </p>
       ) : null}
 
       {state.isUploading ? (
-        <div role="status" style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+        <div role="status" className={styles.formNote}>
           Wird hochgeladen... {state.uploadProgress}%
         </div>
       ) : null}
-
-      <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-        Hochgeladene Medien sind zunächst nur intern sichtbar und werden vor der Veröffentlichung geprüft.
-      </p>
     </form>
   )
 }

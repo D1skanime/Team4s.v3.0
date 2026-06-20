@@ -182,6 +182,17 @@
   font-size: 0.875rem;
 }
 
+.reportForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formNote {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
 .proposalForm {
   display: flex;
   flex-direction: column;
