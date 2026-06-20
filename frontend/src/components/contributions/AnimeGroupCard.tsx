@@ -1,0 +1,226 @@
+'use client'
+
+import { useState } from 'react'
+
+import { Badge, Button, Card } from '@/components/ui'
+import type { MeAnimeContribution } from '@/types/contributions'
+
+import styles from './contributions.module.css'
+import { VisibilityDropdown } from './VisibilityDropdown'
+
+interface AnimeGroupCardProps {
+  animeId: number
+  animeTitle: string
+  contributions: MeAnimeContribution[]
+  onVisibilityChange: (id: number, isPublic: boolean) => void
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  translator: 'Übersetzung',
+  editor: 'Editing',
+  timer: 'Timing',
+  typesetter: 'Typesetting / FX',
+  typesetting: 'Typesetting / FX',
+  encoder: 'Encoding',
+  encoding: 'Encoding',
+  raw_provider: 'Raw-Bereitstellung',
+  quality_checker: 'Qualitätsprüfung',
+  project_lead: 'Projektleitung',
+  project_manager: 'Projektmanagement',
+  designer: 'Design',
+  admin: 'Administration',
+  leader: 'Gruppenleitung',
+  founder: 'Gründer/in',
+  other: 'Sonstiges',
+}
+
+function getRoleLabel(code: string): string {
+  return ROLE_LABELS[code] ?? code
+}
+
+interface EpisodeRangeEntry {
+  label: string
+  role: string
+  release_version_id: number | null
+  id: number
+  is_public_on_member_profile: boolean
+}
+
+function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[] {
+  // Anime-weite Beiträge (kein release_version_id)
+  const animeWide = contribs.filter((c) => c.release_version_id === null)
+  // Versions-spezifische Beiträge, sortiert nach sort_index
+  const withVersion = contribs
+    .filter((c) => c.release_version_id !== null)
+    .sort((a, b) => {
+      const aIdx = a.episode_sort_index ?? 999999
+      const bIdx = b.episode_sort_index ?? 999999
+      return aIdx - bIdx
+    })
+
+  const result: EpisodeRangeEntry[] = []
+
+  // Anime-weite Beiträge als eigene Zeilen
+  for (const c of animeWide) {
+    const primaryCode = c.role_codes[0] ?? ''
+    const primaryLabel =
+      (c.role_labels && c.role_labels[0]) ? c.role_labels[0] : getRoleLabel(primaryCode)
+    result.push({
+      label: `anime-weit: ${primaryLabel}`,
+      role: primaryCode,
+      release_version_id: null,
+      id: c.id,
+      is_public_on_member_profile: c.is_public_on_member_profile,
+    })
+  }
+
+  // Versions-spezifische Beiträge: nach Rolle gruppieren, dann Bereiche bilden
+  const byRole = new Map<string, MeAnimeContribution[]>()
+  for (const c of withVersion) {
+    const code = c.role_codes[0] ?? ''
+    const existing = byRole.get(code)
+    if (existing) {
+      existing.push(c)
+    } else {
+      byRole.set(code, [c])
+    }
+  }
+
+  for (const [roleCode, rolContribs] of byRole.entries()) {
+    // Aufeinanderfolgende sort_index-Werte zu Bereichen zusammenfassen
+    let rangeStart = rolContribs[0]
+    let rangeEnd = rolContribs[0]
+
+    for (let i = 1; i <= rolContribs.length; i++) {
+      const current = rolContribs[i]
+      const prevSortIndex = rangeEnd.episode_sort_index
+      const currSortIndex = current?.episode_sort_index
+
+      const isConsecutive =
+        current !== undefined &&
+        prevSortIndex !== null &&
+        prevSortIndex !== undefined &&
+        currSortIndex !== null &&
+        currSortIndex !== undefined &&
+        currSortIndex === prevSortIndex + 1
+
+      if (isConsecutive) {
+        rangeEnd = current
+      } else {
+        // Bereich abschließen
+        const primaryLabel =
+          (rangeStart.role_labels && rangeStart.role_labels[0])
+            ? rangeStart.role_labels[0]
+            : getRoleLabel(roleCode)
+
+        let episodeLabel: string
+        if (rangeStart.id === rangeEnd.id) {
+          // Einzelfolge
+          episodeLabel = `Folge ${rangeStart.episode_number ?? '?'}`
+        } else {
+          // Bereich
+          episodeLabel = `Folge ${rangeStart.episode_number ?? '?'}–${rangeEnd.episode_number ?? '?'}`
+        }
+
+        result.push({
+          label: `${episodeLabel}: ${primaryLabel}`,
+          role: roleCode,
+          release_version_id: rangeStart.release_version_id,
+          id: rangeStart.id,
+          is_public_on_member_profile: rangeStart.is_public_on_member_profile,
+        })
+
+        if (current !== undefined) {
+          rangeStart = current
+          rangeEnd = current
+        }
+      }
+    }
+  }
+
+  return result
+}
+
+function getUniqueRoles(contribs: MeAnimeContribution[]): Array<{ code: string; label: string }> {
+  const seen = new Set<string>()
+  const roles: Array<{ code: string; label: string }> = []
+  for (const c of contribs) {
+    for (let i = 0; i < c.role_codes.length; i++) {
+      const code = c.role_codes[i]
+      if (!seen.has(code)) {
+        seen.add(code)
+        const label = (c.role_labels && c.role_labels[i]) ? c.role_labels[i] : getRoleLabel(code)
+        roles.push({ code, label })
+      }
+    }
+  }
+  return roles
+}
+
+export function AnimeGroupCard({
+  animeId: _animeId,
+  animeTitle,
+  contributions,
+  onVisibilityChange,
+}: AnimeGroupCardProps) {
+  const [open, setOpen] = useState(false)
+
+  const ranges = buildEpisodeRanges(contributions)
+  const uniqueRoles = getUniqueRoles(contributions)
+
+  return (
+    <Card variant="nestedFlat" className={styles.contributionCard}>
+      <div className={styles.contributionCardHeader}>
+        <span className={styles.contributionTitle}>{animeTitle}</span>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? 'Schließen' : `${ranges.length} Einträge`}
+        </Button>
+      </div>
+
+      {uniqueRoles.length > 0 ? (
+        <div className={styles.roleList}>
+          {uniqueRoles.map(({ code, label }) => (
+            <Badge key={code} variant="info">
+              {label}
+            </Badge>
+          ))}
+        </div>
+      ) : null}
+
+      {open ? (
+        <ul className={styles.accordionList}>
+          {ranges.map((entry) => {
+            const contrib = contributions.find((c) => c.id === entry.id)
+            return (
+              <li key={`${entry.id}-${entry.role}`} className={styles.accordionRow}>
+                <span className={styles.accordionLabel}>{entry.label}</span>
+                <div className={styles.actionsRow}>
+                  {entry.release_version_id !== null ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      href={`/me/releases/${entry.release_version_id}/workspace`}
+                    >
+                      Arbeitsfläche öffnen
+                    </Button>
+                  ) : null}
+                  {contrib ? (
+                    <VisibilityDropdown
+                      contributionId={contrib.id}
+                      isPublic={contrib.is_public_on_member_profile}
+                      onChanged={(isPublic) => onVisibilityChange(contrib.id, isPublic)}
+                    />
+                  ) : null}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
+    </Card>
+  )
+}

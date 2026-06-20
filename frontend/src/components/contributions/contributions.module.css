@@ -297,6 +297,31 @@
   color: inherit;
 }
 
+.accordionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.accordionRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.accordionLabel {
+  font-size: 0.9rem;
+  color: var(--text-body, #1e293b);
+  flex: 1;
+  min-width: 0;
+}
+
 @media (max-width: 640px) {
   .proposalHeader {
     align-items: stretch;

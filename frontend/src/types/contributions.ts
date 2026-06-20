@@ -95,6 +95,10 @@ export interface MeAnimeContribution {
   is_own_proposal: boolean
   /** Phase 76: Eigene Dispute-Begründung (D-09 "Das war ich nicht") */
   member_reason?: string | null
+  /** Episodennummer aus episodes.episode_number (null = anime-weit) */
+  episode_number?: string | null
+  /** Sortier-Index aus episodes.sort_index für Bereichsbildung (null = anime-weit) */
+  episode_sort_index?: number | null
 }
 
 /** Phase 76: Einzelner Vorschlag des eingeloggten Members (Decision 6) */
