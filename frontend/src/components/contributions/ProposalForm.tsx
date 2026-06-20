@@ -168,8 +168,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   return (
     <Modal open={true} onClose={onClose} title="Ich war in diesem Projekt dabei" footer={footer}>
       <div className={styles.infoPanel}>
-        Hier wird kein Credit direkt vergeben. Der Hinweis geht an die zuständige Gruppe.
-        Danach wird entschieden, ob daraus ein bestätigter Eintrag wird.
+        Der Hinweis geht zur Prüfung an die zuständige Gruppe.
       </div>
       {ownGroups.length === 0 ? (
         <div role="status" className={styles.warningPanel}>
@@ -191,7 +190,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
               disabled={ownGroups.length === 0}
             >
               <strong>Projekt insgesamt</strong>
-              <span>Du sagst: Ich war in diesem Projekt dabei. Team4s lässt das prüfen.</span>
             </Button>
             <Button
               type="button"
@@ -202,11 +200,8 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
               title="Noch nicht verfügbar"
             >
               <strong>Bestimmte Folgen / Release-Version</strong>
-              <span>Noch nicht verfügbar: Dafür braucht Team4s zuerst eine echte Folgen- oder Release-Version-Auswahl.</span>
+              <span>Noch nicht verfügbar</span>
             </Button>
-          </div>
-          <div role="status" className={styles.warningPanel}>
-            Release-Version-spezifische Arbeit wird hier nicht als globaler Anime-Beitrag gespeichert.
           </div>
         </FormField>
 
@@ -314,8 +309,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
         </div>
 
         <div className={styles.infoPanel}>
-          Reagiert kein Gruppen-Leader binnen 90 Tagen, kannst du den Vorschlag selbst als unverifizierten historischen
-          Eintrag öffentlich schalten.
+          Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden.
         </div>
       </form>
     </Modal>

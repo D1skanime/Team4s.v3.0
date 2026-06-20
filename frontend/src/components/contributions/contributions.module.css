@@ -249,6 +249,10 @@
   font-size: 0.75rem;
 }
 
+.fieldError {
+  margin-top: 8px;
+}
+
 .visibilityControl {
   display: inline-flex;
   flex-direction: column;

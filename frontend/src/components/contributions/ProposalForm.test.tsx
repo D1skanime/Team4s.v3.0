@@ -36,7 +36,7 @@ describe('ProposalForm', () => {
 
     expect(markup).toContain('Bei welchem Anime/Projekt dieser Gruppe?')
     expect(markup).toContain('Erst Gruppe auswählen')
-    expect(markup).toContain('Hier wird kein Credit direkt vergeben.')
+    expect(markup).toContain('Hinweis geht zur Prüfung an die zuständige Gruppe')
     expect(markup).toContain('Worum geht es?')
     expect(markup).toContain('Projekt insgesamt')
     expect(markup).toContain('Bestimmte Folgen / Release-Version')

@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { Button, FormField, Modal, Textarea } from '@/components/ui'
 import { ApiError } from '@/lib/api'
 
+import styles from './contributions.module.css'
+
 interface RejectReasonModalProps {
   open: boolean
   contributionId: number | null
@@ -86,10 +88,7 @@ export function RejectReasonModal({
         />
       </FormField>
       {error ? (
-        <p
-          role="alert"
-          style={{ color: 'var(--button-danger-start)', fontSize: '0.875rem', marginTop: 8 }}
-        >
+        <p role="alert" className={styles.fieldError}>
           {error}
         </p>
       ) : null}

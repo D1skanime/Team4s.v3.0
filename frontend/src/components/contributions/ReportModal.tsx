@@ -157,12 +157,6 @@ export function ReportModal({
           </Button>
         </div>
       ) : null}
-
-      {type ? (
-        <p className={styles.reviewHint}>
-          Dein Hinweis wird nach dem Absenden von Team4s geprüft.
-        </p>
-      ) : null}
     </Modal>
   )
 }
