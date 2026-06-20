@@ -486,10 +486,11 @@ Recent durable decisions:
 | 260620-eaj | Member-Contribution-UI: Hinweis/Claim-Copy verschlankt + Inline-Styles auf Design-System-CSS migriert | 2026-06-20 | 1f3778d5 | [260620-eaj-member-contribution-ui-auf-globales-desi](./quick/260620-eaj-member-contribution-ui-auf-globales-desi/) |
 | 260620-lq7 | Manage-Groups-UI (Übersicht + Detail): Claim-/Rechte-Copy aggressiv verschlankt, nutzerfreundlicher | 2026-06-20 | e225d04e | [260620-lq7-manage-groups-ui-uebersicht-detail-claim](./quick/260620-lq7-manage-groups-ui-uebersicht-detail-claim/) |
 | 260620-qog | Bestätigte Projektrollen pro Anime gruppieren (Backend episode_number/sort_index + Frontend AnimeGroupCard mit Folge-Rolle-Accordion) | 2026-06-20 | 84711fea | [260620-qog-bestaetigte-projektrollen-pro-anime-grup](./quick/260620-qog-bestaetigte-projektrollen-pro-anime-grup/) |
+| 260620-uez | Workspace-Seite (/me/releases/[versionId]/workspace) auf @/components/ui-Primitives umgestellt: section.panel → Card, verwaiste CSS-Klassen entfernt | 2026-06-20 | 87073dba | [260620-uez-workspace-ui-primitives](./quick/260620-uez-workspace-ui-primitives/) |
 
 ## Session Continuity
 
 Last session: 2026-06-18T13:06:30.000Z
 Stopped at: Phase 88 completed; resume Phase 87-03 before milestone close
-Last activity: 2026-06-18
+Last activity: 2026-06-20 - Completed quick task 260620-uez: Workspace-Seite auf @/components/ui-Primitives
 Resume file: None
