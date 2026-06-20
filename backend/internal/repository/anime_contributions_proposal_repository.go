@@ -221,13 +221,17 @@ func (r *AnimeContributionsRepository) Reject(ctx context.Context, contributionI
 // Felder für die Member-Dashboard-Ansicht. CanSelfPublish und ReviewNote werden in der
 // Member-Listen-Query on-read berechnet — sie gehören NICHT zu animeContributionSelectCols.
 // FansubGroupName und IsOwnProposal sind Phase-76-Erweiterungen (D-12, D-03a).
+// EpisodeNumber und EpisodeSortIndex sind quick-260620-qog-Erweiterungen für die
+// Folgen-Gruppierung im Frontend (NULL bei anime-weiten Beiträgen ohne release_version_id).
 type MemberContributionWithProposalRow struct {
 	AnimeContributionRow
-	AnimeTitle      string  `json:"anime_title"`
-	CanSelfPublish  bool    `json:"can_self_publish"`
-	ReviewNote      *string `json:"review_note"`
-	FansubGroupName string  `json:"fansub_group_name"`
-	IsOwnProposal   bool    `json:"is_own_proposal"`
+	AnimeTitle       string  `json:"anime_title"`
+	CanSelfPublish   bool    `json:"can_self_publish"`
+	ReviewNote       *string `json:"review_note"`
+	FansubGroupName  string  `json:"fansub_group_name"`
+	IsOwnProposal    bool    `json:"is_own_proposal"`
+	EpisodeNumber    *string `json:"episode_number"`
+	EpisodeSortIndex *int    `json:"episode_sort_index"`
 }
 
 // ListByMemberIDWithProposalFields gibt Contributions für einen Member zurück,
@@ -251,15 +255,20 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			(ac.status = 'proposed' AND ac.created_at + INTERVAL '90 days' < NOW()) AS can_self_publish,
 			`+reviewNoteExpr+`,
 			COALESCE(fg.name, '') AS fansub_group_name,
-			COALESCE(ac.created_by = $2, false) AS is_own_proposal
+			COALESCE(ac.created_by = $2, false) AS is_own_proposal,
+			ep.episode_number,
+			ep.sort_index AS episode_sort_index
 		FROM anime_contributions ac
 		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		JOIN anime a ON a.id = ac.anime_id
 		LEFT JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
+		LEFT JOIN release_versions rv ON rv.id = ac.release_version_id
+		LEFT JOIN fansub_releases fr ON fr.id = rv.release_id
+		LEFT JOIN episodes ep ON ep.id = fr.episode_id
 		WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
-		GROUP BY ac.id, a.title_de, a.title_en, a.title, fg.name
+		GROUP BY ac.id, a.title_de, a.title_en, a.title, fg.name, ep.episode_number, ep.sort_index
 		ORDER BY ac.created_at DESC
 		LIMIT 50
 	`, memberID, appUserID)
@@ -296,6 +305,8 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.ReviewNote,
 			&row.FansubGroupName,
 			&row.IsOwnProposal,
+			&row.EpisodeNumber,
+			&row.EpisodeSortIndex,
 		); err != nil {
 			return nil, fmt.Errorf("contributions mit vorschlagsfeldern: scan: %w", err)
 		}

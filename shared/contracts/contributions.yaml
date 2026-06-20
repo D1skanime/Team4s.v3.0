@@ -110,6 +110,33 @@ paths:
                     error:
                       message: "Bitte wähle mindestens eine Rolle aus."
 
+  /api/v1/me/anime-contributions:
+    get:
+      tags: [Contributions]
+      summary: List own confirmed and proposed anime contributions
+      description: |
+        Gibt alle Anime-Contributions des eingeloggten Members zurück (confirmed, proposed, disputed, hidden).
+        Pro Beitrag wird episode_number und episode_sort_index aus der verknüpften Folge geliefert
+        (NULL bei anime-weiten Beiträgen ohne release_version_id).
+      operationId: getMyAnimeContributions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste eigener Anime-Contributions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeAnimeContributionsResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Kein verifizierter Member-Account verknüpft
+
   /api/v1/me/anime-contributions/{contributionId}/self-publish:
     post:
       tags: [Contributions]
@@ -491,6 +518,86 @@ components:
           type: string
           nullable: true
           description: Detailtext aus anime_contributions.note (nur context='anime_contribution'); sonst null. Quelle für den Inline-Expand.
+
+    MeAnimeContribution:
+      type: object
+      required: [id, anime_id, fansub_group_id, fansub_group_member_id, status, role_codes, is_public_on_anime_page, is_public_on_member_profile, is_own_proposal]
+      properties:
+        id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+          nullable: true
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_member_id:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [confirmed, proposed, draft, disputed, hidden]
+        role_codes:
+          type: array
+          items:
+            type: string
+        role_labels:
+          type: array
+          nullable: true
+          items:
+            type: string
+        started_year:
+          type: integer
+          nullable: true
+        ended_year:
+          type: integer
+          nullable: true
+        is_public_on_anime_page:
+          type: boolean
+        is_public_on_member_profile:
+          type: boolean
+        note:
+          type: string
+          nullable: true
+        review_note:
+          type: string
+          nullable: true
+        can_self_publish:
+          type: boolean
+          nullable: true
+        release_version_id:
+          type: integer
+          format: int64
+          nullable: true
+        fansub_group_name:
+          type: string
+          nullable: true
+        is_own_proposal:
+          type: boolean
+        member_reason:
+          type: string
+          nullable: true
+        episode_number:
+          type: string
+          nullable: true
+          description: Episodennummer aus episodes.episode_number (null = anime-weit, kein release_version_id).
+        episode_sort_index:
+          type: integer
+          nullable: true
+          description: Sortier-Index aus episodes.sort_index für stabile Folgen-Bereichsbildung im Frontend (null = anime-weit).
+
+    MeAnimeContributionsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MeAnimeContribution"
 
     PublicMemberContributionsResponse:
       type: object
