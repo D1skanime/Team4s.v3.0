@@ -53,7 +53,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
  (completed 2026-05-11)
 
 - [x] **Phase 41: Globalen TipTap-Rich-Text-Editor einführen** - TipTap als globale Editor-Basis für alle vier Textbereiche; body_json JSONB-Speicherung, body_html für Public-Ausgabe, body_text für Suche, RichTextEditor- und RichTextRenderer-Komponenten, Backend-Validierung und HTML-Sanitizing. (runtime/artifacts retro-verified 2026-05-27)
-- [ ] **Phase 42: TipTap Collaboration MVP fuer fansub_group_notes** - Echtzeit-Kollaboration nur fuer offizielle Gruppennotizen mit note-scope Dokument-ID, Presence-Basis und persistenter Save-Seam zur bestehenden `fansub_group_notes`-Struktur.
+- [ ] **Phase 42: TipTap Collaboration MVP fuer fansub_group_notes** - Geparkt/deferred seit 2026-06-21: Echtzeit-Kollaboration fuer offizielle Gruppennotizen ist nicht implementiert und nicht aktueller Blocker; alter Plan 01 wurde administrativ geschlossen, nicht fachlich ausgeliefert. Siehe `42-VERIFICATION.md`.
 - [x] **Phase 43: MVP Auth-, User- und Fansub-Lead-Foundation mit Keycloak** - Keycloak als externer IdP im Dev-Stack, internes `app_user`-Modell, globale Plattformrollen, Fansub-Gruppenmitgliedschaften und `fansub_lead` als App-DB-Rolle statt Keycloak-Rolle. (runtime retro-verified 2026-05-27; API token boundary corrected by Phase 51)
 - [x] **Phase 44: App Permission Engine fuer Fansub-, Release- und Media-Kontexte** - Zentrale kontextbasierte Permission Engine im Go-Backend, Capabilities fuer das Frontend, group-scope Rollenauswertung aus Team4s-DB und Absicherung der priorisierten Fansub-/Release-/Media-Endpunkte. (runtime retro-verified 2026-05-27)
 - [x] **Phase 45: Fansub Member Management MVP** - App-user-basierte Mitglieder- und Rollenverwaltung pro Fansub-Gruppe mit Permission-Engine-Pruefung, Self-Lockout-Schutz, Audit und minimaler Admin-UI auf Capability-Basis. (runtime retro-verified 2026-05-27)
@@ -876,12 +876,12 @@ Plans:
 **Goal:** Einen schmalen Echtzeit-Kollaborations-MVP fuer offizielle Gruppennotizen (`fansub_group_notes`) auf der bestehenden TipTap-Basis bauen. Mehrere berechtigte Benutzer sollen denselben Gruppennotiz-Text gleichzeitig bearbeiten koennen, ohne Release-/Anime-Domainregeln zu verletzen. Persistente Fachquelle bleibt weiterhin `fansub_group_notes.body_json`; Collaboration fuehrt keinen zweiten konkurrierenden Notizspeicher ein.
 **Requirements**: TIPTAP-COLLAB-01
 **Depends on:** 41
-**Status:** Planned/deferred after historical reconcile on 2026-05-27; no current runtime evidence was found for collaboration provider, Yjs document scope, presence, or multi-session collaboration flow.
-**Plans:** 0/4 plans executed
+**Status:** Parked/deferred after verification on 2026-06-21; no current runtime evidence was found for collaboration provider, Yjs document scope, presence, or multi-session collaboration flow. The old May 2026 implementation plan is retired and must be replanned before any code work.
+**Plans:** 1 historical plan administratively parked; 0 implementation plans executed
 
 Plans:
 
-- [ ] `42-01-PLAN.md` - Collaboration-Architektur, Dokument-ID-Schema, Auth-Zugriff und persistente Save-Seam fuer fansub_group_notes festziehen.
+- [x] `42-01-PLAN.md` - Administrativ geparkt durch `42-01-SUMMARY.md`/`42-VERIFICATION.md`; nicht implementiert, nicht als Feature-Abschluss werten.
 - [ ] `42-02-PLAN.md` - Frontend-Integration im Fansub-Notizen-Tab: Collaboration-Provider, Presence-Basis und Editor-Umschaltung fuer bestehende Notizen.
 - [ ] `42-03-PLAN.md` - Mehrbenutzer-UX, Konflikt-/Offline-Verhalten und Recovery fuer den offiziellen Gruppennotiz-Flow absichern.
 - [ ] `42-04-PLAN.md` - Verifikation, Browser-UAT und Sicherheits-/Betriebscheck fuer den Collaboration-MVP abschliessen.

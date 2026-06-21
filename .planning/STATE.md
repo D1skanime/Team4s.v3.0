@@ -21,7 +21,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 87 ist mit Plan 03 vollständig abgeschlossen (Capability-Pflege-UI live unter /admin/role-capabilities). Phase 88 ebenfalls complete — Milestone-Close ist nun nicht mehr durch Phase 87 blockiert.
+**Current focus:** Phase 87 ist mit Plan 03 vollständig abgeschlossen (Capability-Pflege-UI live unter /admin/role-capabilities). Phase 88 ebenfalls complete — Milestone-Close ist nun nicht mehr durch Phase 87 blockiert. Phase 42 ist seit 2026-06-21 bewusst geparkt/deferred: nicht implementiert, nicht aktueller Blocker, alter Plan 01 administrativ geschlossen.
 
 ## Current Position
 
@@ -36,6 +36,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 42 parking 2026-06-21]: TipTap-Realtime-Collaboration fuer `fansub_group_notes` bleibt ein deferred Feature-Gap. Der alte `42-01-PLAN.md` wurde administrativ geschlossen (`implemented: false`), damit er nicht als aktive Altphase blockiert; bei Reaktivierung ist eine neue Planung gegen aktuelle Auth/API/Permission-Seams erforderlich.
 - [Quick 260621-p80p88-review-bugfixes]: Phase-80 Admin-User-Aggregate müssen Release-Arbeitsflächen und alle D-18-Konflikte aus release-version-scoped Daten ableiten; Phase-88 ReportModal darf ein Contribution-Unterformular nach Erfolg nicht offen halten.
 - [Quick 260610-f7n]: FansubAppMembersSection collaboration tab now uses global table primitives; GroupMembersTab reuses FANSUB_GROUP_ROLE_OPTIONS, backed by migration 0103 so those role codes are valid for group_history.
 - [Quick 260610-fhn]: Fansub Members uses two domain-owned tables in one tab: app/admin members and historical members. Historical member linkage to app profiles happens only through confirmed self-claims; historical rows have no active/disabled/pending workflow status.
