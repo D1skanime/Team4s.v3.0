@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Completed 87-03-PLAN.md; Phase 87 fully done; milestone close unblocked
-last_updated: "2026-06-19T06:28:00.000Z"
-last_activity: 2026-06-19
+last_updated: "2026-06-21T00:00:00.000Z"
+last_activity: 2026-06-21
 progress:
   total_phases: 83
   completed_phases: 68
@@ -36,6 +36,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Quick 260621-p80p88-review-bugfixes]: Phase-80 Admin-User-Aggregate müssen Release-Arbeitsflächen und alle D-18-Konflikte aus release-version-scoped Daten ableiten; Phase-88 ReportModal darf ein Contribution-Unterformular nach Erfolg nicht offen halten.
 - [Quick 260610-f7n]: FansubAppMembersSection collaboration tab now uses global table primitives; GroupMembersTab reuses FANSUB_GROUP_ROLE_OPTIONS, backed by migration 0103 so those role codes are valid for group_history.
 - [Quick 260610-fhn]: Fansub Members uses two domain-owned tables in one tab: app/admin members and historical members. Historical member linkage to app profiles happens only through confirmed self-claims; historical rows have no active/disabled/pending workflow status.
 - [Quick 260610-i2j]: Fansub Collaboration now combines App-/Fansub-Mitglieder, Einladungen, and historical members on one page; legacy tab=mitglieder routes to collaboration and historical app-profile linkage remains claim-only.
@@ -446,6 +447,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260621-p80p88-review-bugfixes | Phase-80/88 Review-Bugs fixen: reale Release-Scope-Aggregate, D-18-Konflikte, Legacy-Historical, Modal-Close | 2026-06-21 | this commit | [260621-p80p88-review-bugfixes](./quick/260621-p80p88-review-bugfixes/) |
 | 260405-kce | Sync Phase-07 completion across roadmap and milestone tracking | 2026-04-05 | uncommitted (dirty workspace) | [260405-kce-sync-phase-07-completion-across-roadmap-](./quick/260405-kce-sync-phase-07-completion-across-roadmap-/) |
 | 260405-pcz | Add tags schema and persistence analogous to genres for anime metadata | 2026-04-05 | uncommitted (dirty workspace) | [260405-pcz-add-tags-schema-and-persistence-analogou](./quick/260405-pcz-add-tags-schema-and-persistence-analogou/) |
 | 260417-qtu | Asset upload UX: leere Slots klickbar, Upload-Hover-Overlay | 2026-04-17 | 136161b | [260417-qtu-asset-upload-ux-leere-slots-klickbar-und](./quick/260417-qtu-asset-upload-ux-leere-slots-klickbar-und/) |
@@ -492,5 +494,5 @@ Recent durable decisions:
 
 Last session: 2026-06-18T13:06:30.000Z
 Stopped at: Phase 88 completed; resume Phase 87-03 before milestone close
-Last activity: 2026-06-20 - Completed quick task 260620-uez: Workspace-Seite auf @/components/ui-Primitives
+Last activity: 2026-06-21 - Completed quick task 260621-p80p88-review-bugfixes: Phase-80/88 review bug fixes and guardrail tests
 Resume file: None

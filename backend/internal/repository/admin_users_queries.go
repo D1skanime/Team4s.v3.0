@@ -44,7 +44,7 @@ SELECT
     COALESCE(contribs.open_contributions_count, 0) AS open_contributions_count,
     COALESCE(contribs.total_contributions_count, 0) AS total_contributions_count,
     COALESCE(media_up.media_upload_count, 0) AS media_upload_count,
-    0 AS release_scope_count,
+    COALESCE(release_scopes.release_scope_count, 0) AS release_scope_count,
     COALESCE(conflicts.conflict_count, 0) AS conflict_count,
     TO_CHAR(GREATEST(page.last_login_at, page.updated_at, page.created_at), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_activity_at
 FROM page
@@ -81,6 +81,34 @@ LEFT JOIN LATERAL (
     FROM anime_contributions ac
     WHERE ac.member_id = claimed_m.member_id
 ) contribs ON true
+LEFT JOIN LATERAL (
+    SELECT COUNT(DISTINCT rv_scope.id) AS release_scope_count
+    FROM member_claims mc_v
+    JOIN anime_contributions ac ON ac.member_id = mc_v.member_id
+    JOIN release_versions rv_scope ON (
+        rv_scope.id = ac.release_version_id
+        OR (
+            ac.release_version_id IS NULL
+            AND EXISTS (
+                SELECT 1
+                FROM fansub_releases fr
+                JOIN episodes e ON e.id = fr.episode_id
+                JOIN release_version_groups rvg ON rvg.release_version_id = rv_scope.id
+                WHERE fr.id = rv_scope.release_id
+                  AND e.anime_id = ac.anime_id
+                  AND rvg.fansub_group_id = ac.fansub_group_id
+            )
+            AND NOT EXISTS (
+                SELECT 1
+                FROM anime_contributions ac_override
+                WHERE ac_override.fansub_group_id = ac.fansub_group_id
+                  AND ac_override.anime_id = ac.anime_id
+                  AND ac_override.release_version_id = rv_scope.id
+            )
+        )
+    )
+    WHERE mc_v.app_user_id = page.id AND mc_v.claim_status = 'verified'
+) release_scopes ON true
 LEFT JOIN LATERAL (
     SELECT COUNT(*) AS media_upload_count
     FROM release_version_media rvm
@@ -119,9 +147,69 @@ LEFT JOIN LATERAL (
               AND ac.release_version_id IS NOT NULL AND rv.id IS NULL
         ) THEN 1 ELSE 0 END)
         -- D-18: override_contradiction (User hat Default aber nicht im Override-Satz)
-        + 0
+        + (CASE WHEN EXISTS (
+            SELECT 1
+            FROM member_claims mc_v
+            JOIN anime_contributions ac_default ON ac_default.member_id = mc_v.member_id
+            JOIN release_versions rv ON EXISTS (
+                SELECT 1
+                FROM fansub_releases fr
+                JOIN episodes e ON e.id = fr.episode_id
+                JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+                WHERE fr.id = rv.release_id
+                  AND e.anime_id = ac_default.anime_id
+                  AND rvg.fansub_group_id = ac_default.fansub_group_id
+            )
+            WHERE mc_v.app_user_id = page.id AND mc_v.claim_status = 'verified'
+              AND ac_default.release_version_id IS NULL
+              AND EXISTS (
+                  SELECT 1
+                  FROM anime_contributions ac_override
+                  WHERE ac_override.fansub_group_id = ac_default.fansub_group_id
+                    AND ac_override.anime_id = ac_default.anime_id
+                    AND ac_override.release_version_id = rv.id
+              )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM anime_contributions ac_member_override
+                  WHERE ac_member_override.member_id = mc_v.member_id
+                    AND ac_member_override.fansub_group_id = ac_default.fansub_group_id
+                    AND ac_member_override.anime_id = ac_default.anime_id
+                    AND ac_member_override.release_version_id = rv.id
+              )
+        ) THEN 1 ELSE 0 END)
         -- D-18: media_without_contribution_rights
-        + 0
+        + (CASE WHEN EXISTS (
+            SELECT 1
+            FROM release_version_media rvm
+            JOIN release_versions rv ON rv.id = rvm.release_version_id
+            JOIN fansub_releases fr ON fr.id = rv.release_id
+            JOIN episodes e ON e.id = fr.episode_id
+            WHERE rvm.uploaded_by_user_id = page.id
+              AND rvm.deleted_at IS NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM member_claims mc_v
+                  JOIN anime_contributions ac ON ac.member_id = mc_v.member_id
+                  JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+                    AND rvg.fansub_group_id = ac.fansub_group_id
+                  WHERE mc_v.app_user_id = page.id AND mc_v.claim_status = 'verified'
+                    AND ac.anime_id = e.anime_id
+                    AND (
+                        ac.release_version_id = rv.id
+                        OR (
+                            ac.release_version_id IS NULL
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM anime_contributions ac_override
+                                WHERE ac_override.fansub_group_id = ac.fansub_group_id
+                                  AND ac_override.anime_id = ac.anime_id
+                                  AND ac_override.release_version_id = rv.id
+                            )
+                        )
+                    )
+              )
+        ) THEN 1 ELSE 0 END)
     ) AS conflict_count
 ) conflicts ON true
 WHERE ($4 = false OR COALESCE(conflicts.conflict_count, 0) > 0)
@@ -141,7 +229,7 @@ SELECT
     COALESCE(contribs.open_contributions_count, 0),
     COALESCE(contribs.total_contributions_count, 0),
     COALESCE(media_up.media_upload_count, 0),
-    0 AS release_scope_count,
+    COALESCE(release_scopes.release_scope_count, 0) AS release_scope_count,
     au.last_login_at,
     au.created_at,
     au.updated_at
@@ -177,6 +265,34 @@ LEFT JOIN LATERAL (
     SELECT COUNT(*) AS media_upload_count
     FROM release_version_media rvm WHERE rvm.uploaded_by_user_id = au.id
 ) media_up ON true
+LEFT JOIN LATERAL (
+    SELECT COUNT(DISTINCT rv_scope.id) AS release_scope_count
+    FROM member_claims mc_v
+    JOIN anime_contributions ac ON ac.member_id = mc_v.member_id
+    JOIN release_versions rv_scope ON (
+        rv_scope.id = ac.release_version_id
+        OR (
+            ac.release_version_id IS NULL
+            AND EXISTS (
+                SELECT 1
+                FROM fansub_releases fr
+                JOIN episodes e ON e.id = fr.episode_id
+                JOIN release_version_groups rvg ON rvg.release_version_id = rv_scope.id
+                WHERE fr.id = rv_scope.release_id
+                  AND e.anime_id = ac.anime_id
+                  AND rvg.fansub_group_id = ac.fansub_group_id
+            )
+            AND NOT EXISTS (
+                SELECT 1
+                FROM anime_contributions ac_override
+                WHERE ac_override.fansub_group_id = ac.fansub_group_id
+                  AND ac_override.anime_id = ac.anime_id
+                  AND ac_override.release_version_id = rv_scope.id
+            )
+        )
+    )
+    WHERE mc_v.app_user_id = au.id AND mc_v.claim_status = 'verified'
+) release_scopes ON true
 WHERE au.id = $1
 `
 
@@ -231,6 +347,76 @@ SELECT conflict_type, conflict_message FROM (
         LEFT JOIN release_versions rv ON rv.id = ac.release_version_id
         WHERE mc_v.app_user_id = $1 AND mc_v.claim_status = 'verified'
           AND ac.release_version_id IS NOT NULL AND rv.id IS NULL
+    )
+    UNION ALL
+    -- D-18: Default-Beitrag wird durch Override-Satz verdrängt
+    SELECT 'override_contradiction',
+           'Projekt-Default ist für mindestens eine Release-Version nicht im Override-Satz enthalten'
+    WHERE EXISTS (
+        SELECT 1
+        FROM member_claims mc_v
+        JOIN anime_contributions ac_default ON ac_default.member_id = mc_v.member_id
+        JOIN release_versions rv ON EXISTS (
+            SELECT 1
+            FROM fansub_releases fr
+            JOIN episodes e ON e.id = fr.episode_id
+            JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+            WHERE fr.id = rv.release_id
+              AND e.anime_id = ac_default.anime_id
+              AND rvg.fansub_group_id = ac_default.fansub_group_id
+        )
+        WHERE mc_v.app_user_id = $1 AND mc_v.claim_status = 'verified'
+          AND ac_default.release_version_id IS NULL
+          AND EXISTS (
+              SELECT 1
+              FROM anime_contributions ac_override
+              WHERE ac_override.fansub_group_id = ac_default.fansub_group_id
+                AND ac_override.anime_id = ac_default.anime_id
+                AND ac_override.release_version_id = rv.id
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM anime_contributions ac_member_override
+              WHERE ac_member_override.member_id = mc_v.member_id
+                AND ac_member_override.fansub_group_id = ac_default.fansub_group_id
+                AND ac_member_override.anime_id = ac_default.anime_id
+                AND ac_member_override.release_version_id = rv.id
+          )
+    )
+    UNION ALL
+    -- D-18: Release-Version-Medium ohne passende Contribution-Rechte
+    SELECT 'media_without_contribution_rights',
+           'Release-Version-Medium ohne passende Contribution-Rechte'
+    WHERE EXISTS (
+        SELECT 1
+        FROM release_version_media rvm
+        JOIN release_versions rv ON rv.id = rvm.release_version_id
+        JOIN fansub_releases fr ON fr.id = rv.release_id
+        JOIN episodes e ON e.id = fr.episode_id
+        WHERE rvm.uploaded_by_user_id = $1
+          AND rvm.deleted_at IS NULL
+          AND NOT EXISTS (
+              SELECT 1
+              FROM member_claims mc_v
+              JOIN anime_contributions ac ON ac.member_id = mc_v.member_id
+              JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+                AND rvg.fansub_group_id = ac.fansub_group_id
+              WHERE mc_v.app_user_id = $1 AND mc_v.claim_status = 'verified'
+                AND ac.anime_id = e.anime_id
+                AND (
+                    ac.release_version_id = rv.id
+                    OR (
+                        ac.release_version_id IS NULL
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM anime_contributions ac_override
+                            WHERE ac_override.fansub_group_id = ac.fansub_group_id
+                              AND ac_override.anime_id = ac.anime_id
+                              AND ac_override.release_version_id = rv.id
+                        )
+                    )
+                )
+          )
     )
 ) AS conflicts
 `

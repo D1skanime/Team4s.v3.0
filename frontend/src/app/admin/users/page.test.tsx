@@ -68,7 +68,7 @@ describe('AdminUsersPage (/admin/users)', () => {
   //
   // Prüft, dass die Admin-Users-Tabelle alle Spaltenköpfe aus der UI-SPEC enthält.
   // Erwartete Spalten (D-05): Benutzer, Status, Globale Rollen, Member-Profil,
-  // Gruppen, Leader-Kontext, Offene Claims, Beiträge, Medienuploads,
+  // Gruppen, Leader-Kontext, Offene Claims, Beiträge, Release-Arbeitsflächen, Medienuploads,
   // Letzte Aktivität, Konflikte.
   it('renders_table_with_all_required_columns', async () => {
     render(<AdminUsersPage />)
@@ -82,6 +82,7 @@ describe('AdminUsersPage (/admin/users)', () => {
       'Leader-Kontext',
       'Offene Claims',
       'Beiträge',
+      'Release-Arbeitsflächen',
       'Medienuploads',
       'Letzte Aktivität',
       'Konflikte',

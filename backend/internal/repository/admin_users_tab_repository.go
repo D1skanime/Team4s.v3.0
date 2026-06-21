@@ -144,7 +144,8 @@ func (r *AdminUsersRepository) GetUserGroupRights(
 }
 
 // ListUserContributions gibt alle Contributions eines Users zurück (D-12/D-13).
-// Verwendet member_id als kanonischen Anker (Migration 0105) — NICHT fansub_group_member_id.
+// Verwendet member_id als kanonischen Anker (Migration 0105) und liest alte historische
+// fansub_group_member_id-Zeilen nur als separaten Legacy-Fallback.
 func (r *AdminUsersRepository) ListUserContributions(
 	ctx context.Context,
 	appUserID int64,
@@ -175,7 +176,8 @@ func (r *AdminUsersRepository) ListUserContributions(
 		LegacyHistorical: []models.AdminContributionItem{},
 	}
 
-	// Alle Contributions via member_id (kanonischer Anker, D-12)
+	// Alle Contributions via member_id (kanonischer Anker, D-12) plus historische
+	// Altzeilen, bei denen nur fansub_group_member_id den Member belegt.
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			ac.id,
@@ -189,13 +191,15 @@ func (r *AdminUsersRepository) ListUserContributions(
 			COALESCE(
 				ARRAY_AGG(acr.role_code ORDER BY acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL),
 				ARRAY[]::text[]
-			)
+			),
+			(ac.member_id IS NULL) AS is_legacy_historical
 		FROM anime_contributions ac
 		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
 		JOIN anime a ON a.id = ac.anime_id
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
-		WHERE ac.member_id = $1
-		GROUP BY ac.id, fg.name, a.title
+		WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+		GROUP BY ac.id, ac.member_id, fg.name, a.title
 		ORDER BY a.title, ac.release_version_id NULLS FIRST, ac.id
 	`, memberID)
 	if err != nil {
@@ -205,6 +209,7 @@ func (r *AdminUsersRepository) ListUserContributions(
 
 	for rows.Next() {
 		var item models.AdminContributionItem
+		var isLegacyHistorical bool
 		if err := rows.Scan(
 			&item.ContributionID,
 			&item.FansubGroupID,
@@ -215,10 +220,13 @@ func (r *AdminUsersRepository) ListUserContributions(
 			&item.ContributionType,
 			&item.DisputeState,
 			&item.RoleCodes,
+			&isLegacyHistorical,
 		); err != nil {
 			return nil, fmt.Errorf("list user contributions: scan: %w", err)
 		}
-		if item.DisputeState == "open" {
+		if isLegacyHistorical {
+			result.LegacyHistorical = append(result.LegacyHistorical, item)
+		} else if item.DisputeState == "open" {
 			result.OpenDisputes = append(result.OpenDisputes, item)
 		} else if item.ContributionType == "project_default" {
 			result.ProjectDefaults = append(result.ProjectDefaults, item)

@@ -68,6 +68,7 @@ export function ReportModal({
   const [type, setType] = useState<SuggestionType | null>(prefillType ?? null)
 
   function handleSuccess() {
+    setType(null)
     onSuccess()
     onClose()
   }
@@ -78,6 +79,8 @@ export function ReportModal({
   }
 
   const subFormId = type ? SUB_FORM_IDS[type] ?? null : null
+
+  if (!open) return null
 
   const footer = type && type !== 'contribution' ? (
     <div className={styles.modalFooterActionsEnd}>

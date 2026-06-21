@@ -194,6 +194,7 @@ export function AdminUsersClient() {
                 <TableHeaderCell>Leader-Kontext</TableHeaderCell>
                 <TableHeaderCell>Offene Claims</TableHeaderCell>
                 <TableHeaderCell>Beiträge</TableHeaderCell>
+                <TableHeaderCell>Release-Arbeitsflächen</TableHeaderCell>
                 <TableHeaderCell>Medienuploads</TableHeaderCell>
                 <TableHeaderCell>Letzte Aktivität</TableHeaderCell>
                 <TableHeaderCell>Konflikte</TableHeaderCell>
@@ -326,6 +327,9 @@ function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
       <TableCell>
         {item.open_contributions_count}/{item.total_contributions_count}
       </TableCell>
+
+      {/* Release-Arbeitsflächen */}
+      <TableCell>{item.release_scope_count}</TableCell>
 
       {/* Medienuploads */}
       <TableCell>{item.media_upload_count}</TableCell>
