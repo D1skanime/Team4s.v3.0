@@ -124,7 +124,6 @@ describe("AdminMyGroupsPage", () => {
 
     expect(await screen.findByText("AnimeOwnage")).not.toBeNull();
     expect(screen.getByText("Historical Only")).not.toBeNull();
-    expect(screen.getByText("Aktive Gruppen")).not.toBeNull();
     expect(screen.queryByRole("link", { name: /Editieren/ })).toBeNull();
     expect(
       screen.getByRole("link", { name: /Öffnen/ }).getAttribute("href"),
@@ -142,7 +141,6 @@ describe("AdminMyGroupsPage", () => {
 
     expect(await screen.findByText("Historical Only")).not.toBeNull();
     expect(screen.queryByRole("link", { name: /Mitglieder/ })).toBeNull();
-    expect(screen.getByText("Frühere Gruppen")).not.toBeNull();
     expect(getMyFansubGroupsMock).toHaveBeenCalledWith();
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   Badge,
@@ -98,39 +98,12 @@ export default function AdminMyGroupsPage() {
     void loadGroups();
   }, [loadGroups]);
 
-  const activeGroups = useMemo(
-    () =>
-      groups.filter((group) => group.capabilities.can_open_contributor_group),
-    [groups],
-  );
-  const historicalGroups = useMemo(
-    () =>
-      groups.filter(
-        (group) =>
-          !group.capabilities.can_open_contributor_group &&
-          group.has_historical_link,
-      ),
-    [groups],
-  );
-  const releaseVersionCount = useMemo(
-    () => groups.reduce((sum, group) => sum + group.release_version_count, 0),
-    [groups],
-  );
-
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
-        <p>Meine Gruppen</p>
-
         <PageHeader
-          eyebrow="Meine Gruppen"
           title="Meine Gruppen"
           description="Deine aktiven Fansub-Gruppen und früheren Beteiligungen."
-          actions={
-            <Button href="/auth" variant="ghost" size="sm">
-              Account & Logout
-            </Button>
-          }
         />
 
         {isLoading ? (
@@ -157,38 +130,8 @@ export default function AdminMyGroupsPage() {
         ) : null}
 
         {!isLoading && !error ? (
-          <div className={styles.overviewGrid}>
-            <Card variant="section">
-              <SectionHeader
-                eyebrow="Überblick"
-                title="Gruppenkontext"
-                description=""
-              />
-              <div className={styles.metricGrid}>
-                <div className={styles.metricItem}>
-                  <span>Aktive Gruppen</span>
-                  <strong>{activeGroups.length}</strong>
-                </div>
-                <div className={styles.metricItem}>
-                  <span>Frühere Gruppen</span>
-                  <strong>{historicalGroups.length}</strong>
-                </div>
-                <div className={styles.metricItem}>
-                  <span>Release-Versionen</span>
-                  <strong>{releaseVersionCount}</strong>
-                </div>
-              </div>
-            </Card>
-          </div>
-        ) : null}
-
-        {!isLoading && !error ? (
           <Card variant="section">
-            <SectionHeader
-              eyebrow="Gruppen"
-              title="Eigene Fansub-Gruppen"
-              description="Gruppen mit aktiver Mitgliedschaft können geöffnet werden."
-            />
+            <SectionHeader title="Eigene Fansub-Gruppen" />
             {groups.length === 0 ? (
               <EmptyState
                 title="Noch keine Gruppen"
