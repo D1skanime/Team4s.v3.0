@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 
 import type { ContributorGroupsResponse } from "@/types/contributor";
 
@@ -12,11 +12,23 @@ const authSnapshot = vi.hoisted(() => ({
   hasRefreshToken: true,
   displayName: "Test User",
 }));
+const routerMock = vi.hoisted(() => ({
+  replace: vi.fn(),
+  push: vi.fn(),
+  prefetch: vi.fn(),
+  back: vi.fn(),
+  forward: vi.fn(),
+  refresh: vi.fn(),
+}));
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
     <a href={href}>{children}</a>
   ),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => routerMock,
 }));
 
 vi.mock("@/lib/api", () => ({
@@ -116,7 +128,21 @@ function makeGroupsResponse(): ContributorGroupsResponse {
   };
 }
 
+function makeSingleGroupResponse(): ContributorGroupsResponse {
+  return { data: [makeGroupsResponse().data[0]] };
+}
+
 describe("AdminMyGroupsPage", () => {
+  it("leitet bei genau einer öffenbaren Gruppe direkt zur Gruppe weiter", async () => {
+    getMyFansubGroupsMock.mockResolvedValue(makeSingleGroupResponse());
+
+    render(<AdminMyGroupsPage />);
+
+    await waitFor(() =>
+      expect(routerMock.replace).toHaveBeenCalledWith("/admin/my-groups/88"),
+    );
+  });
+
   it("renders own groups and opens only capability-backed group details", async () => {
     getMyFansubGroupsMock.mockResolvedValue(makeGroupsResponse());
 

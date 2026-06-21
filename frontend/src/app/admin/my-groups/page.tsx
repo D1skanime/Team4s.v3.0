@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -47,6 +48,7 @@ export default function AdminMyGroupsPage() {
   const [groups, setGroups] = useState<ContributorGroupOverview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   const hasAuthSession = hasAccessToken || hasRefreshToken;
 
   const loadGroups = useCallback(async () => {
@@ -82,6 +84,17 @@ export default function AdminMyGroupsPage() {
   useEffect(() => {
     void loadGroups();
   }, [loadGroups]);
+
+  // Bei genau einer öffenbaren Gruppe direkt dorthin — die Übersicht ist dann ein unnötiger Zwischenschritt.
+  useEffect(() => {
+    if (isLoading || error) return;
+    if (
+      groups.length === 1 &&
+      groups[0].capabilities.can_open_contributor_group
+    ) {
+      router.replace(`/admin/my-groups/${groups[0].id}`);
+    }
+  }, [groups, isLoading, error, router]);
 
   return (
     <main className={styles.page}>
