@@ -25,21 +25,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function statusVariant(
-  status: string,
-): "success" | "warning" | "danger" | "muted" {
-  switch (status) {
-    case "active":
-      return "success";
-    case "inactive":
-      return "warning";
-    case "dissolved":
-      return "danger";
-    default:
-      return "muted";
-  }
-}
-
 function membershipLabel(group: ContributorGroupOverview): string {
   if (group.membership_status === "platform_admin") return "Platform Admin";
   if (group.app_member_status === "active") return "Aktiv";
@@ -160,14 +145,9 @@ export default function AdminMyGroupsPage() {
                         <div className={styles.groupMeta}>
                           <strong>{group.name}</strong>
                           <span className={styles.groupCount}>
-                            {group.anime_count} Anime ·{" "}
-                            {group.release_version_count} Versionen ·{" "}
-                            {activeTimeLabel(group)}
+                            {group.anime_count} Anime · {activeTimeLabel(group)}
                           </span>
                           <div className={styles.badgeRow}>
-                            <Badge variant={statusVariant(group.status)}>
-                              {group.status}
-                            </Badge>
                             <Badge
                               variant={
                                 group.capabilities.can_open_contributor_group
@@ -183,26 +163,26 @@ export default function AdminMyGroupsPage() {
                               </Badge>
                             ))}
                           </div>
-                        </div>
-                        <div className={styles.rowActions}>
-                          {group.capabilities.can_open_contributor_group ? (
-                            <Button
-                              href={`/admin/my-groups/${group.id}`}
-                              size="sm"
-                              rightIcon={<ArrowRight size={14} />}
-                            >
-                              Öffnen
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="subtle"
-                              size="sm"
-                              disabled
-                              rightIcon={<ArrowRight size={14} />}
-                            >
-                              Öffnen
-                            </Button>
-                          )}
+                          <div className={styles.rowActions}>
+                            {group.capabilities.can_open_contributor_group ? (
+                              <Button
+                                href={`/admin/my-groups/${group.id}`}
+                                size="sm"
+                                rightIcon={<ArrowRight size={14} />}
+                              >
+                                Öffnen
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="subtle"
+                                size="sm"
+                                disabled
+                                rightIcon={<ArrowRight size={14} />}
+                              >
+                                Öffnen
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </Card>

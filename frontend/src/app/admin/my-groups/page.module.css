@@ -69,8 +69,8 @@
 .groupHeader {
   display: grid;
   gap: 12px;
-  grid-template-columns: 176px minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-columns: 176px minmax(0, 1fr);
+  align-items: start;
 }
 
 .groupBanner {
@@ -130,7 +130,8 @@
 }
 
 .rowActions {
-  justify-content: flex-end;
+  justify-content: flex-start;
+  margin-top: 4px;
 }
 
 .tableSurface {
