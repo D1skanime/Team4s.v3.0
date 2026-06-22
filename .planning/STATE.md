@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
-status: executing
-stopped_at: Phase 71 planned; next execute 71-01-PLAN.md
-last_updated: "2026-06-22T14:08:55.040Z"
+status: ready_for_milestone_close
+stopped_at: Phase 71 complete (4/4); all tracked phases complete; ready for milestone close/audit
+last_updated: 2026-06-22T14:20:11.812Z
 last_activity: 2026-06-22
 progress:
-  total_phases: 83
-  completed_phases: 70
+  total_phases: 89
+  completed_phases: 89
   total_plans: 346
-  completed_plans: 317
-  percent: 84
+  completed_plans: 344
+  percent: 100
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 71 — ui-politur-fansub-contributions-und-member-profil-auf-global
+**Current focus:** Phase 71 ist abgeschlossen (4/4 Pläne). Laut aktuellem GSD-Fortschritt sind alle getrackten Phasen abgeschlossen; nächster sinnvoller Schritt ist Milestone-Close/Audit statt Phase 72 neu zu starten.
 
 ## Current Position
 
-Phase: 71 (ui-politur-fansub-contributions-und-member-profil-auf-global) — EXECUTING
-Plan: 1 of 4
+Phase: Milestone close
+Plan: Audit/closeout
 
 ## Accumulated Context
 
@@ -36,6 +36,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 71 complete 2026-06-22]: Phase 71 wurde abgeschlossen. Admin-/Cockpit-Anteile waren durch spätere Phasen bereits erfüllt und wurden dokumentiert; umgesetzt wurden Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, `/admin/my-groups/[id]` params-Korrektur und finale UAT-/Acceptance-Scans. Deferred bleiben Permission-Bridge-Implementierung, Custom-Badge-Artwork und projektweite Native-Primitive-Migration.
 - [Phase 71 planning 2026-06-22]: Phase 71 wurde gegen den aktuellen Stand nach Phasen 82/83/88 neu analysiert und in vier Pläne geschnitten. Bereits erledigte Admin-/Cockpit-Anteile werden nur verifiziert/dokumentiert; echte Restarbeit liegt bei Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, params-Korrektur und finaler UAT.
 - [Phase 42 parking 2026-06-21]: TipTap-Realtime-Collaboration fuer `fansub_group_notes` bleibt ein deferred Feature-Gap. Der alte `42-01-PLAN.md` wurde administrativ geschlossen (`implemented: false`), damit er nicht als aktive Altphase blockiert; bei Reaktivierung ist eine neue Planung gegen aktuelle Auth/API/Permission-Seams erforderlich.
 - [Quick 260621-p80p88-review-bugfixes]: Phase-80 Admin-User-Aggregate müssen Release-Arbeitsflächen und alle D-18-Konflikte aus release-version-scoped Daten ableiten; Phase-88 ReportModal darf ein Contribution-Unterformular nach Erfolg nicht offen halten.
@@ -495,6 +496,6 @@ Recent durable decisions:
 ## Session Continuity
 
 Last session: 2026-06-18T13:06:30.000Z
-Stopped at: Phase 71 planned; next execute 71-01-PLAN.md
+Stopped at: Phase 71 complete (4/4); all tracked phases complete; ready for milestone close/audit
 Last activity: 2026-06-22
 Resume file: None

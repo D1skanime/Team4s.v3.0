@@ -1479,20 +1479,20 @@ Plans:
 **Goal:** Bestehende Contribution- und Member-Profil-Flaechen durchgaengig auf das globale Design-System (`@/components/ui`) bringen und Anzeige- von Bearbeiten-Kontext sauber trennen. Buendelt drei beim Live-UAT (2026-06-03) erfasste UI-Befunde; keine neuen Datenmodelle/Backends ausser kleinen Korrektheits-Fixes.
 **Requirements**: P71-SC1, P71-SC2, P71-SC3, P71-SC4
 **Depends on:** Phase 68
-**Status:** Planned on 2026-06-22; ready to execute from current-code research after Phases 82/83/88.
-**Plans:** 4 plans
+**Status:** Complete on 2026-06-22 from current-code research after Phases 82/83/88.
+**Plans:** 4/4 plans complete
 
 Plans:
 
 **Wave 1**
-- [ ] `71-01-PLAN.md` - Cross-phase consolidation for already-satisfied admin/cockpit scope and durable permission-bridge documentation.
+- [x] `71-01-PLAN.md` - Cross-phase consolidation for already-satisfied admin/cockpit scope and durable permission-bridge documentation. (completed 2026-06-22)
 
 **Wave 2 *(blocked on Wave 1 completion)***
-- [ ] `71-02-PLAN.md` - Badge display/edit separation and shared icon/color badge presentation.
-- [ ] `71-03-PLAN.md` - Public member-profile copy, empty timeline behavior, recent media aspect verification, and `/admin/my-groups/[id]` params fix.
+- [x] `71-02-PLAN.md` - Badge display/edit separation and shared icon/color badge presentation. (completed 2026-06-22)
+- [x] `71-03-PLAN.md` - Public member-profile copy, empty timeline behavior, recent media aspect verification, and `/admin/my-groups/[id]` params fix. (completed 2026-06-22)
 
 **Wave 3 *(blocked on Wave 2 completion)***
-- [ ] `71-04-PLAN.md` - Focused Phase 71 verification, final summary, and deferred-scope handoff.
+- [x] `71-04-PLAN.md` - Focused Phase 71 verification, final summary, and deferred-scope handoff. (completed 2026-06-22)
 
 **Cross-cutting constraints:**
 
