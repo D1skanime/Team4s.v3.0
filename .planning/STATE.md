@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: executing
 stopped_at: Phase 71 planned; next execute 71-01-PLAN.md
-last_updated: "2026-06-22T07:05:36.181Z"
+last_updated: "2026-06-22T14:08:55.040Z"
 last_activity: 2026-06-22
 progress:
   total_phases: 83
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 71 ist nach aktueller Codeanalyse geplant und bereit zur Ausführung. Bereits durch spätere Phasen erledigte Admin-/Cockpit-Anteile werden nur verifiziert und dokumentiert; echte Restarbeit liegt bei Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, params-Korrektur und finaler UAT. Phase 42 ist seit 2026-06-21 bewusst geparkt/deferred: nicht implementiert, nicht aktueller Blocker, alter Plan 01 administrativ geschlossen.
+**Current focus:** Phase 71 — ui-politur-fansub-contributions-und-member-profil-auf-global
 
 ## Current Position
 
-Phase: 71
-Plan: 1 (ready to execute)
+Phase: 71 (ui-politur-fansub-contributions-und-member-profil-auf-global) — EXECUTING
+Plan: 1 of 4
 
 ## Accumulated Context
 
