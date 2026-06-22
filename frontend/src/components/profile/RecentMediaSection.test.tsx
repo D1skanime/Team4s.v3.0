@@ -38,6 +38,7 @@ describe('RecentMediaSection', () => {
     const list = screen.getByRole('list', { name: 'Letzte Medien' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(1)
     expect(container.querySelector('img')?.getAttribute('src')).toBe('resolved:/media/release-version/41/thumb.jpg')
+    expect(container.querySelector('[class*="recentMediaThumb"]')).not.toBeNull()
     expect(screen.getByAltText('Medienbild zu Naruto')).not.toBeNull()
     expect(screen.getByText('Release-Version #41 (v2)')).not.toBeNull()
     expect(screen.getByText('Naruto')).not.toBeNull()

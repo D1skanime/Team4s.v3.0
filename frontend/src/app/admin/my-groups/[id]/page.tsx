@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 
@@ -31,12 +32,6 @@ import type {
 
 import styles from "../page.module.css";
 
-interface PageProps {
-  params?: {
-    id?: string;
-  };
-}
-
 function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message;
   if (error instanceof Error) return error.message;
@@ -54,8 +49,8 @@ function releaseWorkspaceHref(releaseVersionId: number): string {
   return `/me/releases/${releaseVersionId}/workspace`;
 }
 
-function readGroupId(params?: PageProps["params"]): number {
-  const paramID = typeof params?.id === "string" ? params.id : "";
+function readGroupId(routeID?: string | string[]): number {
+  const paramID = typeof routeID === "string" ? routeID : "";
   if (paramID.trim()) {
     return Number.parseInt(paramID, 10);
   }
@@ -70,9 +65,10 @@ function readGroupId(params?: PageProps["params"]): number {
   return match ? Number.parseInt(match[1], 10) : Number.NaN;
 }
 
-export default function AdminMyGroupDetailPage({ params }: PageProps) {
+export default function AdminMyGroupDetailPage() {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession();
-  const groupId = readGroupId(params);
+  const routeParams = useParams<{ id?: string }>();
+  const groupId = readGroupId(routeParams?.id);
   const [detail, setDetail] = useState<ContributorGroupDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

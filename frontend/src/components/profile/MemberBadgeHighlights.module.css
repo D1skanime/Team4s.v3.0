@@ -12,25 +12,27 @@
 .badgeItem {
   display: inline-flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 8px 14px;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.28);
-  border-radius: 8px;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 44px;
+  padding-top: 7px;
+  padding-bottom: 7px;
   min-width: 120px;
 }
 
 .badgeLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #93c5fd;
 }
 
 .badgeCategory {
   font-size: 0.72rem;
-  color: var(--text-secondary, #64748b);
+  color: currentColor;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  opacity: 0.76;
 }
 
 .toggleBtn {

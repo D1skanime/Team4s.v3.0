@@ -35,7 +35,7 @@ describe('AchievementBadgesCard', () => {
       />,
     )
 
-    expect(screen.getByText('★ Gründungsmitglied')).not.toBeNull()
+    expect(screen.getByText('Gründungsmitglied')).not.toBeNull()
     expect(screen.getByText('Ausgeblendet')).not.toBeNull()
 
     fireEvent.change(screen.getByLabelText('Sichtbarkeit'), { target: { value: 'public' } })

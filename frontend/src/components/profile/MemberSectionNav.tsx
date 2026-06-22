@@ -4,7 +4,7 @@
  * MemberSectionNav — Sticky-Anker-Navigation für die Member-Profil-Scroll-Seite (D-01).
  *
  * Desktop: flex-row klebende Nav; Mobil: horizontale Chip-Leiste (overflow-x: auto).
- * Sektions-Reihenfolge nach D-02: Identität → Badges → Geschichte → Beiträge.
+ * Sektions-Reihenfolge nach D-02: Identität → Badges → Geschichte → Mitwirkende.
  * IntersectionObserver rootMargin '-20% 0px -70% 0px' (Phase-73-Paradigma 1:1 adaptiert).
  */
 
@@ -21,7 +21,7 @@ const SECTION_LABELS: Record<SectionId, string> = {
   identitaet: 'Identität',
   badges: 'Badges',
   geschichte: 'Geschichte',
-  beitraege: 'Beiträge',
+  beitraege: 'Mitwirkende',
 }
 
 export function MemberSectionNav() {

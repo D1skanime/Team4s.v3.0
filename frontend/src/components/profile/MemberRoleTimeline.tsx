@@ -31,7 +31,7 @@ function formatYearRange(start: number | null, end: number | null): string {
 }
 
 function contextLabel(entry: PublicMemberRoleEntry): string {
-  return entry.context === 'group_history' ? 'Gruppenhistorie' : 'Anime-Beitrag'
+  return entry.context === 'group_history' ? 'Gruppenhistorie' : 'Anime-Mitwirkung'
 }
 
 function isUnverifiedEntry(entry: PublicMemberRoleEntry): boolean {
@@ -97,17 +97,7 @@ function EntryDetail({ entry }: EntryDetailProps) {
 
 export function MemberRoleTimeline({ entries, hasUnverified, isVerified = false }: MemberRoleTimelineProps) {
   if (entries.length === 0) {
-    return (
-      <section className={styles.roleTimelineSection}>
-        <SectionHeader
-          title="Rollen-Timeline"
-          description="Öffentliche Rollen und Beiträge aus der Fansub-Geschichte dieses Mitglieds."
-        />
-        <p className={styles.emptyText}>
-          Noch keine Rollen oder Beiträge öffentlich sichtbar.
-        </p>
-      </section>
-    )
+    return null
   }
 
   const sorted = sortEntries(entries)
@@ -116,7 +106,7 @@ export function MemberRoleTimeline({ entries, hasUnverified, isVerified = false 
     <section className={styles.roleTimelineSection}>
       <SectionHeader
         title="Rollen-Timeline"
-        description="Öffentliche Rollen und Beiträge aus der Fansub-Geschichte dieses Mitglieds."
+        description="Öffentliche Rollen und Mitwirkungen aus der Fansub-Geschichte dieses Mitglieds."
       />
       <ul className={styles.roleTimelineList}>
         {sorted.map((entry, idx) => {

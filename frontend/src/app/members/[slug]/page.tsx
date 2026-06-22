@@ -138,9 +138,9 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         <MemberGroupsHistorySection memberships={profile.memberships ?? []} storyHtml={profile.member_story_html} />
       </section>
 
-      {/* #beitraege — Filterbare Contributions (D-06/D-07/D-08) */}
+      {/* #beitraege — Filterbare Mitwirkenden-Anzeige (D-06/D-07/D-08) */}
       <section id="beitraege" className={styles.section}>
-        <Card variant="section" title="Beiträge">
+        <Card variant="section" title="Mitwirkende">
           {roleTimeline.length > 0
             ? <MemberContributionFilters roleTimeline={roleTimeline} />
             : <MemberRoleTimeline entries={[]} hasUnverified={false} isVerified={profile.is_verified} />}

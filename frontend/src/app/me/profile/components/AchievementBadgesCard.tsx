@@ -1,7 +1,7 @@
 import { Badge, EmptyState, FormField, Select, SectionHeader } from '@/components/ui'
 import type { MemberBadge } from '@/types/contributions'
 
-import { formatMemberBadgeLabel } from '@/components/profile/memberBadgeLabels'
+import { getMemberBadgePresentation } from '@/components/profile/memberBadgeLabels'
 import styles from '../page.module.css'
 
 type BadgeVisibility = MemberBadge['visibility']
@@ -47,11 +47,16 @@ export function AchievementBadgesCard({
           {badges.map((badge) => {
             const selectId = `badge-visibility-${badge.id}`
             const isPending = pendingBadgeId === badge.id
+            const presentation = getMemberBadgePresentation(badge.badge_code)
+            const Icon = presentation.Icon
 
             return (
               <li key={badge.id} className={styles.badgeManagerItem}>
                 <div className={styles.badgeManagerCopy}>
-                  <strong>{formatMemberBadgeLabel(badge.badge_code)}</strong>
+                  <span className={styles.badgeIdentity}>
+                    <Icon size={16} aria-hidden="true" />
+                    <strong>{presentation.label}</strong>
+                  </span>
                   <Badge variant={visibilityVariant(badge.visibility)}>{VISIBILITY_LABELS[badge.visibility]}</Badge>
                 </div>
                 <FormField label="Sichtbarkeit" htmlFor={selectId} disabled={disabled || isPending}>

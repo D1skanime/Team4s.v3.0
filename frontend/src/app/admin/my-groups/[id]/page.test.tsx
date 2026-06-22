@@ -12,11 +12,18 @@ const authSnapshot = vi.hoisted(() => ({
   hasRefreshToken: true,
   displayName: "Test User",
 }));
+const routeParamsSnapshot = vi.hoisted(() => ({
+  id: "88",
+}));
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
     <a href={href}>{children}</a>
   ),
+}));
+
+vi.mock("next/navigation", () => ({
+  useParams: () => routeParamsSnapshot,
 }));
 
 vi.mock("@/lib/api", () => ({
@@ -43,6 +50,9 @@ afterEach(() => {
     hasAccessToken: true,
     hasRefreshToken: true,
     displayName: "Test User",
+  });
+  Object.assign(routeParamsSnapshot, {
+    id: "88",
   });
 });
 
@@ -126,7 +136,7 @@ describe("AdminMyGroupDetailPage", () => {
   it("shows release-native details and keeps historical credits read-only", async () => {
     getMyFansubGroupDetailMock.mockResolvedValue(makeDetailResponse());
 
-    render(<AdminMyGroupDetailPage params={{ id: "88" }} />);
+    render(<AdminMyGroupDetailPage />);
 
     expect(await screen.findByText("AnimeOwnage")).not.toBeNull();
     expect(screen.getByText("Historische Links sind Kontext")).not.toBeNull();
@@ -151,7 +161,7 @@ describe("AdminMyGroupDetailPage", () => {
     });
     getMyFansubGroupDetailMock.mockResolvedValue(makeDetailResponse());
 
-    render(<AdminMyGroupDetailPage params={{ id: "88" }} />);
+    render(<AdminMyGroupDetailPage />);
 
     expect(await screen.findByText("AnimeOwnage")).not.toBeNull();
     expect(screen.queryByText(/Anmeldung erforderlich/)).toBeNull();

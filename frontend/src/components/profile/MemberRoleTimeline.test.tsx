@@ -24,6 +24,18 @@ function makeEntry(overrides: Partial<PublicMemberRoleEntry> = {}): PublicMember
 }
 
 describe('MemberRoleTimeline EntryDetail (D-07)', () => {
+  it('rendert keine Timeline-Sektion für leere Einträge', () => {
+    const { container } = render(
+      <MemberRoleTimeline
+        entries={[]}
+        hasUnverified={false}
+      />,
+    )
+
+    expect(container.firstChild).toBeNull()
+    expect(screen.queryByText(/Noch keine Rollen/)).toBeNull()
+  })
+
   it('zeigt notes im aufgeklappten Detail-Bereich an', () => {
     render(
       <MemberRoleTimeline

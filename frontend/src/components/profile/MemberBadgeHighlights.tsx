@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 
-import { Button } from '@/components/ui'
+import { Badge, Button } from '@/components/ui'
 import type { PublicMemberBadge } from '@/types/profile'
 
-import { formatMemberBadgeLabel } from './memberBadgeLabels'
+import { getMemberBadgePresentation } from './memberBadgeLabels'
 import styles from './MemberBadgeHighlights.module.css'
 
 // Gamification-/Mengenbadge-Kategorien, die bei memorial unterdrückt werden (D-10).
@@ -72,12 +72,20 @@ export function MemberBadgeHighlights({ publicBadges, isMemorial = false }: Memb
   return (
     <div className={styles.container}>
       <div className={styles.badgeGrid}>
-        {visibleBadges.map((badge) => (
-          <span key={badge.id} className={styles.badgeItem}>
-            <span className={styles.badgeLabel}>{formatMemberBadgeLabel(badge.badge_code)}</span>
-            <span className={styles.badgeCategory}>{badge.badge_category}</span>
-          </span>
-        ))}
+        {visibleBadges.map((badge) => {
+          const presentation = getMemberBadgePresentation(badge.badge_code)
+          const Icon = presentation.Icon
+
+          return (
+            <Badge key={badge.id} variant={presentation.variant} className={styles.badgeItem}>
+              <span className={styles.badgeLabel}>
+                <Icon size={14} aria-hidden="true" />
+                {presentation.label}
+              </span>
+              <span className={styles.badgeCategory}>{badge.badge_category}</span>
+            </Badge>
+          )
+        })}
       </div>
 
       {hasMore ? (
