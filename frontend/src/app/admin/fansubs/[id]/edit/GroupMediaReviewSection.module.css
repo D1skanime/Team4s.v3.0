@@ -13,6 +13,12 @@
 .mediaCard {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.uploadPanel {
+  display: grid;
+  gap: var(--space-3);
 }
 
 .ownerFlagRow {
@@ -26,6 +32,40 @@
   flex-direction: column;
   gap: var(--space-3);
   flex: 1;
+}
+
+.previewFrame {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--surface-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.previewFrame :global(img) {
+  object-fit: cover;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.controlGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.fileHint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
 }
 
 /* Aktionszeile am unteren Ende jeder Karte */
@@ -62,6 +102,10 @@
 
 @media (max-width: 600px) {
   .mediaReviewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .controlGrid {
     grid-template-columns: 1fr;
   }
 }

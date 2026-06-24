@@ -89,12 +89,17 @@ func (s *MediaService) SaveUpload(kind models.MediaKind, originalName string, da
 	}
 
 	maxSize := int64(2 * 1024 * 1024)
-	if kind == models.MediaKindBanner {
+	if kind == models.MediaKindImage {
+		maxSize = 15 * 1024 * 1024
+	} else if kind == models.MediaKindBanner {
 		maxSize = 5 * 1024 * 1024
 	}
 	if int64(len(data)) > maxSize {
 		if kind == models.MediaKindLogo {
 			return nil, &MediaValidationError{Message: "logo ist zu gross (max 2MB)"}
+		}
+		if kind == models.MediaKindImage {
+			return nil, &MediaValidationError{Message: "bild ist zu gross (max 15MB)"}
 		}
 		return nil, &MediaValidationError{Message: "banner ist zu gross (max 5MB)"}
 	}
@@ -436,6 +441,13 @@ func validateMimeForKind(kind models.MediaKind, mimeType string) error {
 		"image/jpeg": {},
 		"image/webp": {},
 		"image/gif":  {},
+	}
+
+	if kind == models.MediaKindImage {
+		if _, ok := allowedBanner[mimeType]; !ok {
+			return &MediaValidationError{Message: "ungültiges dateiformat für bild (erlaubt: PNG, JPG, WEBP, GIF)"}
+		}
+		return nil
 	}
 
 	if kind == models.MediaKindLogo {

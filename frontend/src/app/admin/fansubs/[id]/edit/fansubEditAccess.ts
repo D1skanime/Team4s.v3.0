@@ -12,8 +12,15 @@ export function canUseMainTab(
 
   switch (tab) {
     case "basic":
-    case "media":
       return capabilities.can_edit_group;
+    case "media":
+      return Boolean(
+        capabilities.can_edit_group ||
+        capabilities.can_view_group_media ||
+        capabilities.can_upload_group_media ||
+        capabilities.can_update_group_media ||
+        capabilities.can_delete_group_media
+      );
     case "links":
       return capabilities.can_manage_links;
     case "collaboration":

@@ -2343,6 +2343,39 @@ export async function uploadFansubMedia(
     },
   });
 }
+
+export async function uploadFansubGroupMedia(options: {
+  fansubID: number;
+  files: File[];
+  category: FansubGroupMediaCategory;
+  visibilityCode?: string;
+  reviewStatusCode?: string;
+  onProgress?: (progress: number) => void;
+}): Promise<FansubGroupMediaUploadResponse> {
+  if (typeof window === "undefined") {
+    throw new ApiError(500, "Upload ist nur im Browser verfügbar.");
+  }
+
+  const API_BASE_URL = getApiBaseUrl();
+  const endpoint = `${API_BASE_URL}/api/v1/admin/fansubs/${options.fansubID}/media`;
+  return authorizedUploadXhr<FansubGroupMediaUploadResponse>({
+    endpoint,
+    onProgress: options.onProgress,
+    retryEligibility: "never",
+    buildBody: () => {
+      const body = new FormData();
+      body.set("kind", "image");
+      body.set("category", options.category);
+      for (const file of options.files) {
+        body.append("files[]", file);
+      }
+      if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
+      if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
+      return body;
+    },
+  });
+}
+
 export async function deleteFansubMedia(
   fansubID: number,
   kind: FansubMediaKind,
@@ -2351,6 +2384,29 @@ export async function deleteFansubMedia(
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/media/${kind}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+}
+
+export async function deleteFansubGroupMedia(
+  fansubID: number,
+  mediaId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubID}/media/${mediaId}`,
     {
       method: "DELETE",
       headers: withAuthHeader({}, authToken),
@@ -2385,6 +2441,29 @@ export type FansubMediaReviewStatus =
   | "archiviert"
   | "entfernt";
 
+export type FansubGroupMediaCategory =
+  | "gallery"
+  | "history_screenshot"
+  | "old_website"
+  | "forum"
+  | "irc_chat"
+  | "event_meeting"
+  | "artwork_fanart"
+  | "other";
+
+export interface FansubGroupMediaUploadResult {
+  client_file_name: string;
+  status: "ready" | "failed";
+  media_asset_id?: number;
+  preview_url?: string;
+  error_code?: string;
+  message?: string;
+}
+
+export interface FansubGroupMediaUploadResponse {
+  results: FansubGroupMediaUploadResult[];
+}
+
 /**
  * Ein Medieneintrag einer Fansub-Gruppe mit Sichtbarkeit, Prüfstatus und Owner-Konsistenz-Flag.
  * Entspricht FansubGroupMediaItem im Contract admin-content.yaml (Phase 78, Lock K).
@@ -2395,6 +2474,14 @@ export interface FansubGroupMediaItem {
   preview_url?: string | null;
   visibility: FansubMediaVisibility | null;
   review_status: FansubMediaReviewStatus | null;
+  title?: string | null;
+  description?: string | null;
+  alt_text?: string | null;
+  category: FansubGroupMediaCategory;
+  sort_order: number;
+  uploaded_by_display_name?: string | null;
+  created_at: string;
+  updated_at?: string | null;
   owner_type: string;
   owner_id: number;
   owner_consistent: boolean;
@@ -2415,6 +2502,11 @@ export interface FansubGroupMediaListResponse {
 export interface FansubMediaReviewPatch {
   visibility?: FansubMediaVisibility;
   review_status?: FansubMediaReviewStatus;
+  title?: string | null;
+  description?: string | null;
+  alt_text?: string | null;
+  category?: FansubGroupMediaCategory;
+  sort_order?: number;
 }
 
 /**

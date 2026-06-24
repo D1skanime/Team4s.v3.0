@@ -39,6 +39,17 @@ func (s *fansubMediaRepoStub) UpdateFansubMediaReview(
 	return s.updateErr
 }
 
+func (s *fansubMediaRepoStub) UpdateFansubGroupMediaMetadata(
+	ctx context.Context,
+	fansubGroupID, mediaID int64,
+	patch repository.FansubGroupMediaMetadataPatch,
+) error {
+	if s.updatedMediaID != nil {
+		*s.updatedMediaID = mediaID
+	}
+	return s.updateErr
+}
+
 // GetFansubMediaOwner gibt zurück, welcher Gruppe das Medium gehört.
 // Wird für Cross-Group-Tamper-Prüfung verwendet (SC3 / T-78-03).
 func (s *fansubMediaRepoStub) GetFansubMediaOwner(ctx context.Context, mediaID int64) (int64, error) {
@@ -307,8 +318,8 @@ func TestFansubMediaReview_ValidEnumValues_Accepted(t *testing.T) {
 	// visibility: intern | oeffentlich
 	// review_status: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt
 	validCases := []struct {
-		visibility    string
-		reviewStatus  string
+		visibility   string
+		reviewStatus string
 	}{
 		{"intern", "in_pruefung"},
 		{"oeffentlich", "freigegeben"},

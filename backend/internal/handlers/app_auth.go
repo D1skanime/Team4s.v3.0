@@ -31,6 +31,10 @@ type fansubGroupCapabilitiesResponse struct {
 	CanViewReleaseMedia   bool `json:"can_view_release_media"`
 	CanUploadReleaseMedia bool `json:"can_upload_release_media"`
 	CanEditReleaseNotes   bool `json:"can_edit_release_notes"`
+	CanViewGroupMedia     bool `json:"can_view_group_media"`
+	CanUploadGroupMedia   bool `json:"can_upload_group_media"`
+	CanUpdateGroupMedia   bool `json:"can_update_group_media"`
+	CanDeleteGroupMedia   bool `json:"can_delete_group_media"`
 }
 
 type fansubGroupAppMemberStore interface {
@@ -938,8 +942,28 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
 		return
 	}
+	canViewGroupMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canUploadGroupMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpload, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canUpdateGroupMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdate, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canDeleteGroupMedia, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaDelete, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
 
-	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed {
+	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMedia.Allowed && !canUploadGroupMedia.Allowed && !canUpdateGroupMedia.Allowed && !canDeleteGroupMedia.Allowed {
 		writePermissionDenied(c, canViewMembers)
 		return
 	}
@@ -957,6 +981,10 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		CanViewReleaseMedia:   canViewReleaseMedia.Allowed,
 		CanUploadReleaseMedia: canUploadReleaseMedia.Allowed,
 		CanEditReleaseNotes:   canEditReleaseNotes.Allowed,
+		CanViewGroupMedia:     canViewGroupMedia.Allowed,
+		CanUploadGroupMedia:   canUploadGroupMedia.Allowed,
+		CanUpdateGroupMedia:   canUpdateGroupMedia.Allowed,
+		CanDeleteGroupMedia:   canDeleteGroupMedia.Allowed,
 	}})
 }
 

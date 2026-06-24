@@ -24,6 +24,10 @@ const (
 	ActionFansubGroupInvitationsCancel Action = "fansub_group.invitations.cancel"
 	ActionFansubGroupInvitationsAccept Action = "fansub_group.invitations.accept"
 	ActionFansubGroupNotesWrite        Action = "fansub_group.notes.write"
+	ActionFansubGroupMediaView         Action = "fansub_group_media.view"
+	ActionFansubGroupMediaUpload       Action = "fansub_group_media.upload"
+	ActionFansubGroupMediaUpdate       Action = "fansub_group_media.update"
+	ActionFansubGroupMediaDelete       Action = "fansub_group_media.delete"
 	ActionAnimeFansubProjectNotesWrite Action = "anime_fansub_project.notes.write"
 	ActionReleaseView                  Action = "release.view"
 	ActionReleaseVersionView           Action = "release_version.view"
@@ -71,6 +75,10 @@ var roleMatrix = map[string][]Action{
 		ActionFansubGroupInvitationsCreate,
 		ActionFansubGroupInvitationsCancel,
 		ActionFansubGroupNotesWrite,
+		ActionFansubGroupMediaView,
+		ActionFansubGroupMediaUpload,
+		ActionFansubGroupMediaUpdate,
+		ActionFansubGroupMediaDelete,
 		ActionAnimeFansubProjectNotesWrite,
 		ActionReleaseView,
 		ActionReleaseVersionView,
@@ -86,6 +94,10 @@ var roleMatrix = map[string][]Action{
 		ActionFansubGroupMembersView,
 		ActionFansubGroupInvitationsView,
 		ActionFansubGroupNotesWrite,
+		ActionFansubGroupMediaView,
+		ActionFansubGroupMediaUpload,
+		ActionFansubGroupMediaUpdate,
+		ActionFansubGroupMediaDelete,
 		ActionAnimeFansubProjectNotesWrite,
 		ActionReleaseView,
 		ActionReleaseVersionView,
@@ -165,6 +177,10 @@ var allKnownActions = []Action{
 	ActionFansubGroupInvitationsCancel,
 	ActionFansubGroupInvitationsAccept,
 	ActionFansubGroupNotesWrite,
+	ActionFansubGroupMediaView,
+	ActionFansubGroupMediaUpload,
+	ActionFansubGroupMediaUpdate,
+	ActionFansubGroupMediaDelete,
 	ActionAnimeFansubProjectNotesWrite,
 	ActionReleaseView,
 	ActionReleaseVersionView,

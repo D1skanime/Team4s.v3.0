@@ -55,6 +55,10 @@ const fullCapabilities: FansubGroupCapabilities = {
   can_view_release_media: true,
   can_upload_release_media: true,
   can_edit_release_notes: true,
+  can_view_group_media: true,
+  can_upload_group_media: true,
+  can_update_group_media: true,
+  can_delete_group_media: true,
 }
 
 const noUploadCapabilities: FansubGroupCapabilities = {

@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useEffect, useState, type UIEvent } from 'react'
+import { Fragment, useState, type UIEvent } from 'react'
 import { ArrowRight, ChevronDown, ChevronRight, Filter, MoreHorizontal, PanelRight, Pencil, Search, Upload, X } from 'lucide-react'
 
 import {
@@ -117,7 +117,7 @@ const releaseRows = [
   },
   {
     episode: '7',
-    title: 'Sturm Ã¼ber dem TrainingsgelÃ¤nde',
+    title: 'Sturm über dem Trainingsgelände',
     versions: '1',
     date: '29.4.2026',
     status: 'Aktiv',
@@ -125,7 +125,7 @@ const releaseRows = [
   },
   {
     episode: '8',
-    title: 'RÃ¼ckkehr des stillen VerbÃ¼ndeten',
+    title: 'Rückkehr des stillen Verbündeten',
     versions: '3',
     date: '30.4.2026',
     status: 'Aktiv',
@@ -183,13 +183,6 @@ export default function UISystemPlaygroundPage() {
   })
   const visibleReleaseRows = releaseRows.slice(0, visibleReleaseCount)
 
-  useEffect(() => {
-    if (!animeEntryOpen) {
-      setVisibleReleaseCount(INITIAL_RELEASE_BATCH_SIZE)
-      setReleaseRowOpen(true)
-    }
-  }, [animeEntryOpen])
-
   function loadMoreVisibleReleaseRows() {
     setVisibleReleaseCount((current) => {
       if (current >= releaseRows.length) return current
@@ -201,6 +194,14 @@ export default function UISystemPlaygroundPage() {
     const target = event.currentTarget
     if (target.scrollTop + target.clientHeight < target.scrollHeight - 36) return
     loadMoreVisibleReleaseRows()
+  }
+
+  function toggleAnimeEntryOpen() {
+    if (animeEntryOpen) {
+      setVisibleReleaseCount(INITIAL_RELEASE_BATCH_SIZE)
+      setReleaseRowOpen(true)
+    }
+    setAnimeEntryOpen((current) => !current)
   }
 
   function renderAnimeReleasePreview(mode: 'desktop' | 'mobile') {
@@ -223,9 +224,9 @@ export default function UISystemPlaygroundPage() {
               <button
                 type="button"
                 className={`${styles.animeAccordionHeader} ${mode === 'mobile' ? styles.animeAccordionHeaderMobile : ''}`}
-                onClick={() => {
-                  if (anime.expanded) setAnimeEntryOpen((current) => !current)
-                }}
+                  onClick={() => {
+                    if (anime.expanded) toggleAnimeEntryOpen()
+                  }}
                 aria-expanded={isOpen}
                 aria-label={isOpen ? `${anime.title} einklappen` : `${anime.title} ausklappen`}
               >
@@ -912,9 +913,9 @@ export default function UISystemPlaygroundPage() {
                       <button
                         type="button"
                         className={styles.animeAccordionHeader}
-                        onClick={() => {
-                          if (anime.expanded) setAnimeEntryOpen((current) => !current)
-                        }}
+                      onClick={() => {
+                        if (anime.expanded) toggleAnimeEntryOpen()
+                      }}
                         aria-expanded={isOpen}
                         aria-label={isOpen ? `${anime.title} einklappen` : `${anime.title} ausklappen`}
                       >

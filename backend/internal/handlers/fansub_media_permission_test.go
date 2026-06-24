@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -78,5 +80,57 @@ func TestFansubMediaDeleteRejectsMissingGroupRole(t *testing.T) {
 
 	if recorder.Code != http.StatusForbidden {
 		t.Fatalf("expected 403, got %d body=%s", recorder.Code, recorder.Body.String())
+	}
+}
+
+// TestFansubGroupMediaDeleteRejectsMissingGroupRole prüft, dass der numerische
+// Gruppenmedien-Delete-Pfad (DELETE /media/{mediaId}) backendseitig die
+// fansub_group_media.delete-Capability erzwingt. Gruppenmitgliedschaft ohne Rolle
+// genügt nicht — manipulierte Frontend-Capabilities sind wirkungslos.
+func TestFansubGroupMediaDeleteRejectsMissingGroupRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	handler := &FansubHandler{
+		permissionSvc: permissions.NewService(fansubMediaPermissionResolver{}),
+	}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodDelete, "/api/v1/admin/fansubs/88/media/123", nil)
+	c.Params = gin.Params{{Key: "id", Value: "88"}, {Key: "kind", Value: "123"}}
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 2, AppUserStatus: "active", DisplayName: "Member"})
+
+	handler.DeleteFansubMedia(c)
+
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 for group media delete without role, got %d body=%s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestFansubGroupMediaUploadRejectsMissingGroupRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	if err := writer.WriteField("kind", "image"); err != nil {
+		t.Fatalf("write multipart field: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	handler := &FansubHandler{
+		permissionSvc: permissions.NewService(fansubMediaPermissionResolver{}),
+	}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/fansubs/88/media", &body)
+	c.Request.Header.Set("Content-Type", writer.FormDataContentType())
+	c.Params = gin.Params{{Key: "id", Value: "88"}}
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 2, AppUserStatus: "active", DisplayName: "Member"})
+
+	handler.UploadFansubMedia(c)
+
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 for group media upload without role, got %d body=%s", recorder.Code, recorder.Body.String())
 	}
 }

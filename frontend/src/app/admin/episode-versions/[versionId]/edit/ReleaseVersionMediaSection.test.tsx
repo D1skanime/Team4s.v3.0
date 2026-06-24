@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
@@ -689,7 +689,9 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
     const item2 = makeItem({ id: 2, sort_order: 20, caption: 'Second' })
 
     // Use a stateful harness with an exposed patchItem trigger
-    let patchItemRef!: (id: number, patch: ReleaseVersionMediaPatchRequest) => Promise<void>
+    const patchItemRef: {
+      current?: (id: number, patch: ReleaseVersionMediaPatchRequest) => Promise<void>
+    } = {}
 
     function PatchHarness() {
       const [items, setItems] = useState([item1, item2])
@@ -705,7 +707,6 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
             return next
           })
         }
-        patchItemRef = patchItem
         return {
           items,
           isLoading: false,
@@ -730,7 +731,10 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
         },
         capabilitiesError: null,
       }
-    }, [items])
+      }, [items])
+      useEffect(() => {
+        patchItemRef.current = state.patchItem
+      }, [state.patchItem])
       return (
         <ReleaseVersionMediaSection
           versionId={42}
@@ -751,7 +755,10 @@ describe('useReleaseVersionMedia live-resort behavior', () => {
     expect(initialButtons()[1].textContent).toContain('Second')
 
     // Patch item1 to sort_order=30 — now it should appear after item2
-    await patchItemRef(1, { sort_order: 30 })
+    if (!patchItemRef.current) {
+      throw new Error('patchItem ref not initialized')
+    }
+    await patchItemRef.current(1, { sort_order: 30 })
 
     await waitFor(() => {
       const buttons = screen.getAllByRole('button').filter(

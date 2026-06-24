@@ -39,6 +39,8 @@ func (h *FansubHandler) readFansubMediaUpload(
 	readLimit := bannerUploadReadLimitBytes
 	if kind == models.MediaKindLogo {
 		readLimit = logoUploadReadLimitBytes
+	} else if kind == models.MediaKindImage {
+		readLimit = int64(rvmMaxFileSizeBytes)
 	}
 
 	data, err := io.ReadAll(io.LimitReader(file, readLimit+1))
@@ -50,6 +52,8 @@ func (h *FansubHandler) readFansubMediaUpload(
 	if int64(len(data)) > readLimit {
 		if kind == models.MediaKindLogo {
 			badRequest(c, "logo ist zu gross (max 2MB)")
+		} else if kind == models.MediaKindImage {
+			badRequest(c, "bild ist zu gross (max 15MB)")
 		} else {
 			badRequest(c, "banner ist zu gross (max 5MB)")
 		}
@@ -119,6 +123,8 @@ func parseMediaKind(raw string) (models.MediaKind, error) {
 		return models.MediaKindLogo, nil
 	case models.MediaKindBanner:
 		return models.MediaKindBanner, nil
+	case models.MediaKindImage:
+		return models.MediaKindImage, nil
 	default:
 		return "", errors.New("invalid media kind")
 	}

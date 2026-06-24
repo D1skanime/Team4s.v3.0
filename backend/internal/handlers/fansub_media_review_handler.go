@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
@@ -18,7 +20,7 @@ import (
 
 // validVisibilityValues enthält die erlaubten API-seitigen Sichtbarkeitswerte.
 var validVisibilityValues = map[string]struct{}{
-	"intern":     {},
+	"intern":      {},
 	"oeffentlich": {},
 }
 
@@ -29,6 +31,17 @@ var validReviewStatusValues = map[string]struct{}{
 	"abgelehnt":   {},
 	"archiviert":  {},
 	"entfernt":    {},
+}
+
+var validFansubGroupMediaCategories = map[string]struct{}{
+	"gallery":            {},
+	"history_screenshot": {},
+	"old_website":        {},
+	"forum":              {},
+	"irc_chat":           {},
+	"event_meeting":      {},
+	"artwork_fanart":     {},
+	"other":              {},
 }
 
 // --- Interfaces ---
@@ -45,6 +58,7 @@ type FansubMediaReviewRepository interface {
 
 	// GetFansubMediaOwner gibt zurück, welcher Gruppe das Medium gehört (Cross-Group-Prüfung T-78-03).
 	GetFansubMediaOwner(ctx context.Context, mediaID int64) (int64, error)
+	UpdateFansubGroupMediaMetadata(ctx context.Context, fansubGroupID, mediaID int64, patch repository.FansubGroupMediaMetadataPatch) error
 }
 
 // FansubMediaListRepository definiert die Lese-Operation für den GET-Listen-Handler.
@@ -93,13 +107,21 @@ func NewFansubMediaReviewHandler(
 
 // fansubGroupMediaItemResponse ist die API-Antwortstruktur für einen Medieneintrag.
 type fansubGroupMediaItemResponse struct {
-	ID             int64   `json:"id"`
-	PreviewURL     string  `json:"preview_url,omitempty"`
-	Visibility     *string `json:"visibility"`
-	ReviewStatus   *string `json:"review_status"`
-	OwnerType      string  `json:"owner_type"`
-	OwnerID        int64   `json:"owner_id"`
-	OwnerConsistent bool   `json:"owner_consistent"`
+	ID              int64   `json:"id"`
+	PreviewURL      string  `json:"preview_url,omitempty"`
+	Visibility      *string `json:"visibility"`
+	ReviewStatus    *string `json:"review_status"`
+	Title           *string `json:"title"`
+	Description     *string `json:"description"`
+	AltText         *string `json:"alt_text"`
+	Category        string  `json:"category"`
+	SortOrder       int     `json:"sort_order"`
+	UploadedByName  *string `json:"uploaded_by_display_name"`
+	CreatedAt       string  `json:"created_at"`
+	UpdatedAt       *string `json:"updated_at,omitempty"`
+	OwnerType       string  `json:"owner_type"`
+	OwnerID         int64   `json:"owner_id"`
+	OwnerConsistent bool    `json:"owner_consistent"`
 }
 
 // fansubGroupMediaListResponse ist die Listenstruktur.
@@ -124,13 +146,13 @@ func (h *FansubMediaReviewHandler) ListFansubGroupMedia(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupEdit, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaView, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung für Medien-Liste konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.list.denied", &fansubID, "fansub_group_media", nil, permissions.ActionFansubGroupEdit, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.list.denied", &fansubID, "fansub_group_media", nil, permissions.ActionFansubGroupMediaView, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -152,11 +174,24 @@ func (h *FansubMediaReviewHandler) ListFansubGroupMedia(c *gin.Context) {
 
 	items := make([]fansubGroupMediaItemResponse, 0, len(rows))
 	for _, row := range rows {
+		var updatedAt *string
+		if row.UpdatedAt != nil {
+			value := row.UpdatedAt.Format(time.RFC3339)
+			updatedAt = &value
+		}
 		item := fansubGroupMediaItemResponse{
 			ID:              row.MediaAssetID,
 			PreviewURL:      row.PreviewURL,
 			Visibility:      row.Visibility,
 			ReviewStatus:    row.ReviewStatus,
+			Title:           row.Title,
+			Description:     row.Description,
+			AltText:         row.AltText,
+			Category:        row.Category,
+			SortOrder:       row.SortOrder,
+			UploadedByName:  row.UploadedByName,
+			CreatedAt:       row.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:       updatedAt,
 			OwnerType:       row.OwnerType,
 			OwnerID:         row.OwnerID,
 			OwnerConsistent: row.OwnerConsistent,
@@ -195,13 +230,13 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupEdit, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdate, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung für Medien-Review konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.review.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupEdit, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.review.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupMediaUpdate, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -248,8 +283,13 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 	// Leerer Patch (CR-02): weder visibility noch review_status vorhanden → 400 vor
 	// Owner-Prüfung/Mutation/Audit. Verhindert Phantom-Erfolgsaudits für No-op-Writes
 	// und Cross-Group-Probe-Spuren über einen leeren Body.
-	if patch.Visibility == nil && patch.ReviewStatus == nil {
-		badRequest(c, "kein Feld zum Aktualisieren: visibility oder review_status erforderlich")
+	metadataPatch, err := parseFansubGroupMediaMetadataPatch(body)
+	if err != nil {
+		badRequest(c, err.Error())
+		return
+	}
+	if patch.Visibility == nil && patch.ReviewStatus == nil && metadataPatch.IsEmpty() {
+		badRequest(c, "kein Feld zum Aktualisieren")
 		return
 	}
 
@@ -271,14 +311,27 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 	}
 
 	// Mutation ausführen (schreibt nur visibility/review_status — NIEMALS owner_type/owner_id)
-	if err := h.repo.UpdateFansubMediaReview(c.Request.Context(), fansubID, mediaID, patch); err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "medium nicht gefunden oder nicht in dieser gruppe"}})
+	if patch.Visibility != nil || patch.ReviewStatus != nil {
+		if err := h.repo.UpdateFansubMediaReview(c.Request.Context(), fansubID, mediaID, patch); err != nil {
+			if errors.Is(err, repository.ErrNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "medium nicht gefunden oder nicht in dieser gruppe"}})
+				return
+			}
+			log.Printf("fansub media review: UpdateFansubGroupMediaReview error (fansub_id=%d, media_id=%d): %v", fansubID, mediaID, err)
+			internalError(c, "interner serverfehler")
 			return
 		}
-		log.Printf("fansub media review: UpdateFansubGroupMediaReview error (fansub_id=%d, media_id=%d): %v", fansubID, mediaID, err)
-		internalError(c, "interner serverfehler")
-		return
+	}
+	if !metadataPatch.IsEmpty() {
+		if err := h.repo.UpdateFansubGroupMediaMetadata(c.Request.Context(), fansubID, mediaID, metadataPatch); err != nil {
+			if errors.Is(err, repository.ErrNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "medium nicht gefunden oder nicht in dieser gruppe"}})
+				return
+			}
+			log.Printf("fansub media review: UpdateFansubGroupMediaMetadata error (fansub_id=%d, media_id=%d): %v", fansubID, mediaID, err)
+			internalError(c, "interner serverfehler")
+			return
+		}
 	}
 
 	// D-09 Pflicht: Erfolgs-Audit nach Mutation
@@ -289,9 +342,76 @@ func (h *FansubMediaReviewHandler) PatchFansubMediaReview(c *gin.Context) {
 		ScopeID:        &fansubID,
 		TargetType:     "fansub_group_media",
 		TargetID:       &mediaID,
-		Action:         string(permissions.ActionFansubGroupEdit),
+		Action:         string(permissions.ActionFansubGroupMediaUpdate),
 		Outcome:        "allowed",
 	})
 
 	c.JSON(http.StatusOK, gin.H{"message": "Medien-Review wurde aktualisiert."})
+}
+
+func parseFansubGroupMediaMetadataPatch(body map[string]interface{}) (repository.FansubGroupMediaMetadataPatch, error) {
+	var patch repository.FansubGroupMediaMetadataPatch
+	if value, set, err := parseNullableTrimmedString(body, "title", 160); err != nil {
+		return patch, err
+	} else if set {
+		patch.Title = value
+		patch.TitleSet = true
+	}
+	if value, set, err := parseNullableTrimmedString(body, "description", 2000); err != nil {
+		return patch, err
+	} else if set {
+		patch.Description = value
+		patch.DescriptionSet = true
+	}
+	if value, set, err := parseNullableTrimmedString(body, "alt_text", 240); err != nil {
+		return patch, err
+	} else if set {
+		patch.AltText = value
+		patch.AltTextSet = true
+	}
+	if raw, ok := body["category"]; ok {
+		value, ok := raw.(string)
+		if !ok {
+			return patch, errors.New("category muss ein Zeichenkettenwert sein")
+		}
+		category := strings.TrimSpace(value)
+		if _, valid := validFansubGroupMediaCategories[category]; !valid {
+			return patch, errors.New("ungültige Medienkategorie")
+		}
+		patch.Category = &category
+	}
+	if raw, ok := body["sort_order"]; ok {
+		value, ok := raw.(float64)
+		if !ok {
+			return patch, errors.New("sort_order muss eine Zahl sein")
+		}
+		order := int(value)
+		if value != float64(order) || order < 0 || order > 100000 {
+			return patch, errors.New("sort_order muss eine ganze Zahl zwischen 0 und 100000 sein")
+		}
+		patch.SortOrder = &order
+	}
+	return patch, nil
+}
+
+func parseNullableTrimmedString(body map[string]interface{}, key string, maxLength int) (*string, bool, error) {
+	raw, ok := body[key]
+	if !ok {
+		return nil, false, nil
+	}
+	if raw == nil {
+		return nil, true, nil
+	}
+	value, ok := raw.(string)
+	if !ok {
+		return nil, false, errors.New(key + " muss ein Zeichenkettenwert oder null sein")
+	}
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil, true, nil
+	}
+	if len([]rune(trimmed)) > maxLength {
+		return nil, false, errors.New(key + " ist zu lang")
+	}
+	return &trimmed, true, nil
 }

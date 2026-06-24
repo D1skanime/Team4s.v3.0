@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 
@@ -25,6 +26,14 @@ type FansubGroupMediaReviewRow struct {
 	PreviewURL      string
 	Visibility      *string // nil wenn nicht gesetzt; API-seitiger Wert (intern/oeffentlich)
 	ReviewStatus    *string // nil wenn nicht gesetzt; API-seitiger Wert (in_pruefung/...)
+	Title           *string
+	Description     *string
+	AltText         *string
+	Category        string
+	SortOrder       int
+	UploadedByName  *string
+	CreatedAt       time.Time
+	UpdatedAt       *time.Time
 	OwnerType       string
 	OwnerID         int64
 	OwnerConsistent bool // true wenn Medium korrekt zur Gruppe gehört
@@ -40,6 +49,21 @@ type FansubMediaReviewPatch struct {
 // --- Mapping-Tabellen: API-Wert ↔ DB-Lookup-Code ---
 
 // visibilityAPIToDB mappt kanonische API-Werte auf die DB-Namen in der visibilities-Tabelle.
+type FansubGroupMediaMetadataPatch struct {
+	Title          *string
+	TitleSet       bool
+	Description    *string
+	DescriptionSet bool
+	AltText        *string
+	AltTextSet     bool
+	Category       *string
+	SortOrder      *int
+}
+
+func (p FansubGroupMediaMetadataPatch) IsEmpty() bool {
+	return !p.TitleSet && !p.DescriptionSet && !p.AltTextSet && p.Category == nil && p.SortOrder == nil
+}
+
 var visibilityAPIToDB = map[string]string{
 	"intern":      "private",
 	"oeffentlich": "public",
@@ -513,6 +537,14 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			ma.file_path   AS file_path,
 			v.name         AS visibility_name,
 			rs.code        AS review_status_code,
+			fgm.title      AS title,
+			fgm.description AS description,
+			fgm.alt_text   AS alt_text,
+			fgm.category   AS category,
+			fgm.sort_order AS sort_order,
+			u.username     AS uploaded_by_name,
+			fgm.created_at AS created_at,
+			fgm.updated_at AS updated_at,
 			'fansub_group' AS owner_type,
 			fgm.group_id   AS owner_id
 		FROM fansub_group_media fgm
@@ -520,10 +552,12 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 		JOIN fansub_groups fg ON fg.id = fgm.group_id
 		LEFT JOIN visibilities v ON v.id = ma.visibility_id
 		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
+		LEFT JOIN users u ON u.id = fgm.uploaded_by_user_id
 		WHERE fgm.group_id = $1
+		  AND fgm.deleted_at IS NULL
 		  AND (fg.logo_id IS NULL OR ma.id <> fg.logo_id)
 		  AND (fg.banner_id IS NULL OR ma.id <> fg.banner_id)
-		ORDER BY ma.id DESC
+		ORDER BY fgm.sort_order ASC, fgm.created_at DESC, ma.id DESC
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group media for review (group_id=%d): %w", fansubGroupID, err)
@@ -542,6 +576,14 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			&filePath,
 			&visibilityName,
 			&reviewStatusCode,
+			&row.Title,
+			&row.Description,
+			&row.AltText,
+			&row.Category,
+			&row.SortOrder,
+			&row.UploadedByName,
+			&row.CreatedAt,
+			&row.UpdatedAt,
 			&row.OwnerType,
 			&row.OwnerID,
 		); err != nil {
@@ -683,6 +725,106 @@ func (r *MediaRepository) GetFansubMediaOwner(ctx context.Context, mediaID int64
 		return 0, fmt.Errorf("get fansub media owner (media_id=%d): %w", mediaID, err)
 	}
 	return groupID, nil
+}
+
+func (r *MediaRepository) FansubGroupExistsForMedia(ctx context.Context, fansubGroupID int64) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM fansub_groups WHERE id = $1)`, fansubGroupID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check fansub group exists %d: %w", fansubGroupID, err)
+	}
+	return exists, nil
+}
+
+func (r *MediaRepository) GetMaxFansubGroupMediaSortOrder(ctx context.Context, fansubGroupID int64) (int, error) {
+	var maxOrder int
+	err := r.db.QueryRow(ctx, `
+		SELECT COALESCE(MAX(sort_order), 0)
+		FROM fansub_group_media
+		WHERE group_id = $1 AND deleted_at IS NULL
+	`, fansubGroupID).Scan(&maxOrder)
+	if err != nil {
+		return 0, fmt.Errorf("get max fansub group media sort_order %d: %w", fansubGroupID, err)
+	}
+	return maxOrder, nil
+}
+
+type FansubGroupMediaCreateInput struct {
+	FansubGroupID    int64
+	MediaAssetID     int64
+	Category         string
+	SortOrder        int
+	UploadedByUserID *int64
+}
+
+func (r *MediaRepository) CreateFansubGroupMediaAsset(ctx context.Context, tx pgx.Tx, input FansubGroupMediaCreateInput) error {
+	var uploadedByUserID interface{}
+	if input.UploadedByUserID != nil {
+		uploadedByUserID = *input.UploadedByUserID
+	}
+	_, err := tx.Exec(ctx, `
+		INSERT INTO fansub_group_media
+			(group_id, media_id, category, sort_order, uploaded_by_user_id, created_at)
+		VALUES ($1, $2, $3, $4, (SELECT id FROM users WHERE id = $5), NOW())
+	`, input.FansubGroupID, input.MediaAssetID, input.Category, input.SortOrder, uploadedByUserID)
+	if err != nil {
+		return fmt.Errorf("create fansub_group_media (group_id=%d, media_id=%d): %w", input.FansubGroupID, input.MediaAssetID, err)
+	}
+	return nil
+}
+
+func (r *MediaRepository) UpdateFansubGroupMediaMetadata(ctx context.Context, fansubGroupID, mediaID int64, patch FansubGroupMediaMetadataPatch) error {
+	if patch.IsEmpty() {
+		return nil
+	}
+	tag, err := r.db.Exec(ctx, `
+		UPDATE fansub_group_media
+		SET
+			title = CASE WHEN $3 THEN $4 ELSE title END,
+			description = CASE WHEN $5 THEN $6 ELSE description END,
+			alt_text = CASE WHEN $7 THEN $8 ELSE alt_text END,
+			category = COALESCE($9, category),
+			sort_order = COALESCE($10, sort_order),
+			updated_at = NOW()
+		WHERE group_id = $1
+		  AND media_id = $2
+		  AND deleted_at IS NULL
+	`, fansubGroupID, mediaID,
+		patch.TitleSet, patch.Title,
+		patch.DescriptionSet, patch.Description,
+		patch.AltTextSet, patch.AltText,
+		patch.Category, patch.SortOrder,
+	)
+	if err != nil {
+		return fmt.Errorf("update fansub_group_media metadata (group_id=%d, media_id=%d): %w", fansubGroupID, mediaID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *MediaRepository) SoftDeleteFansubGroupMedia(ctx context.Context, fansubGroupID, mediaID int64, deletedByUserID *int64) error {
+	var deletedBy interface{}
+	if deletedByUserID != nil {
+		deletedBy = *deletedByUserID
+	}
+	tag, err := r.db.Exec(ctx, `
+		UPDATE fansub_group_media
+		SET deleted_at = NOW(),
+		    deleted_by_user_id = (SELECT id FROM users WHERE id = $3),
+		    updated_at = NOW()
+		WHERE group_id = $1
+		  AND media_id = $2
+		  AND deleted_at IS NULL
+	`, fansubGroupID, mediaID, deletedBy)
+	if err != nil {
+		return fmt.Errorf("soft delete fansub_group_media (group_id=%d, media_id=%d): %w", fansubGroupID, mediaID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // --- Release-Version-Medien-Review-Methoden (Phase 78) ---

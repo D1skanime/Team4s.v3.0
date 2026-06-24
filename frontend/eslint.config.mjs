@@ -24,6 +24,9 @@ const uiPrimitiveGuard = [
 ]
 
 const config = [
+  {
+    ignores: ['tmp-live-full-flow*.js'],
+  },
   ...nextCoreWebVitals,
   ...nextTypeScript,
   {

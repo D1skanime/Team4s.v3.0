@@ -665,7 +665,7 @@ endpoints:
         name: Authorization
         format: Bearer <signed token>
       notes:
-        - CanForFansubGroup(ActionFansubGroupEdit) wird serverseitig geprüft (D-08).
+        - CanForFansubGroup(ActionFansubGroupMediaView) wird serverseitig geprüft.
         - Gruppenmitgliedschaft allein genügt nicht.
         - Deny-Audit fansub_group_media.list.denied wird geschrieben (D-09).
       unauthenticated_status: 401
@@ -682,7 +682,7 @@ endpoints:
       - status: 401
         description: Nicht angemeldet.
       - status: 403
-        description: Keine Berechtigung (ActionFansubGroupEdit fehlt).
+        description: Keine Berechtigung (fansub_group_media.view fehlt).
       - status: 404
         description: Gruppe nicht gefunden.
       - status: 500
@@ -698,7 +698,7 @@ endpoints:
         name: Authorization
         format: Bearer <signed token>
       notes:
-        - CanForFansubGroup(ActionFansubGroupEdit) wird serverseitig geprüft (D-08).
+        - CanForFansubGroup(ActionFansubGroupMediaUpdate) wird serverseitig geprüft.
         - Enum-Validierung serverseitig gegen kanonischen value-Satz (V5).
         - Owner-Mismatch (Medium gehört anderer Gruppe) → 403 ohne Mutation (T-78-03).
         - Ändert NIEMALS owner_type/owner_id (D-05).
@@ -720,9 +720,12 @@ endpoints:
         Mindestens eines der Felder muss angegeben werden.
         Kanonische Enum-Werte: visibility in {intern, oeffentlich};
         review_status in {in_pruefung, freigegeben, abgelehnt, archiviert, entfernt}.
+        Metadatenfelder: title, description, alt_text, category, sort_order.
       example:
         visibility: "oeffentlich"
         review_status: "freigegeben"
+        title: "Connichi-Stand 2008"
+        category: "event_meeting"
     response:
       status: 200
       example:
@@ -1043,6 +1046,14 @@ types:
     preview_url: string | null (description: "Öffentliche URL des Medienassets")
     visibility: string | null (enum intern|oeffentlich, description: "Sichtbarkeitsachse; null wenn nicht gesetzt")
     review_status: string | null (enum in_pruefung|freigegeben|abgelehnt|archiviert|entfernt, description: "Prüfstatusachse; null wenn nicht gesetzt")
+    title: string | null
+    description: string | null
+    alt_text: string | null
+    category: string (enum gallery|history_screenshot|old_website|forum|irc_chat|event_meeting|artwork_fanart|other)
+    sort_order: integer
+    uploaded_by_display_name: string | null
+    created_at: string (format date-time)
+    updated_at: string | null (format date-time)
     owner_type: string (description: "Typ der Owner-Tabelle, immer 'fansub_group'")
     owner_id: int64 (description: "ID der besitzenden Fansub-Gruppe")
     owner_consistent: boolean (description: "true wenn Medium korrekt zur angefragten Gruppe gehört — nur lesend, kein Setter (D-05/Phase 79)")

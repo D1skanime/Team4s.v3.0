@@ -3582,7 +3582,7 @@ paths:
   /api/v1/admin/fansubs/{id}/media:
     post:
       tags: [Fansubs]
-      summary: Upload fansub logo or banner
+      summary: Upload fansub logo, banner, or group media image
       operationId: uploadFansubMedia
       security:
         - bearerAuth: []
@@ -3607,6 +3607,17 @@ paths:
                 file:
                   type: string
                   format: binary
+                files[]:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Multiple group media image files when kind=image.
+                category:
+                  type: string
+                  nullable: true
+                  enum: [gallery, history_screenshot, old_website, forum, irc_chat, event_meeting, artwork_fanart, other]
+                  description: Group media category when kind=image.
                 visibility_code:
                   type: string
                   nullable: true
@@ -3661,7 +3672,7 @@ paths:
   /api/v1/admin/fansubs/{id}/media/{kind}:
     delete:
       tags: [Fansubs]
-      summary: Delete assigned fansub logo or banner
+      summary: Delete assigned fansub logo/banner or soft-delete a group media item by numeric media id
       operationId: deleteFansubMedia
       security:
         - bearerAuth: []
@@ -8388,7 +8399,7 @@ components:
       enum: [group, collaboration]
     FansubMediaKind:
       type: string
-      enum: [logo, banner]
+      enum: [logo, banner, image]
     MediaAsset:
       type: object
       required:
@@ -11006,6 +11017,10 @@ components:
         - can_view_release_media
         - can_upload_release_media
         - can_edit_release_notes
+        - can_view_group_media
+        - can_upload_group_media
+        - can_update_group_media
+        - can_delete_group_media
       properties:
         can_edit_group:
           type: boolean
@@ -11030,6 +11045,14 @@ components:
         can_upload_release_media:
           type: boolean
         can_edit_release_notes:
+          type: boolean
+        can_view_group_media:
+          type: boolean
+        can_upload_group_media:
+          type: boolean
+        can_update_group_media:
+          type: boolean
+        can_delete_group_media:
           type: boolean
     FansubGroupCapabilitiesResponse:
       type: object

@@ -222,6 +222,10 @@ export interface FansubGroupCapabilities {
   can_view_release_media: boolean;
   can_upload_release_media: boolean;
   can_edit_release_notes: boolean;
+  can_view_group_media: boolean;
+  can_upload_group_media: boolean;
+  can_update_group_media: boolean;
+  can_delete_group_media: boolean;
 }
 
 export interface FansubGroupCapabilitiesResponse {
@@ -458,6 +462,7 @@ export interface MergeFansubsPreviewResponse {
 }
 
 export type FansubMediaKind = "logo" | "banner";
+export type FansubGroupMediaUploadKind = "image";
 
 export interface FansubMediaAsset {
   id: number;

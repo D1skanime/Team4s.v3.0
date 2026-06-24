@@ -31,7 +31,7 @@ func (s stubCacheLoader) LoadRoleCapabilities(_ context.Context) (map[string][]A
 	return s.data, nil
 }
 
-// allActionCodesWave0 enthält alle 18 Action-Code-Strings aus permissions.go als String-Literale.
+// allActionCodesWave0 enthält alle Action-Code-Strings aus permissions.go als String-Literale.
 // Getrennt von den Konstanten, damit der Test den Seed unabhängig validiert (D-10).
 var allActionCodesWave0 = []string{
 	"fansub_group.edit",
@@ -43,6 +43,10 @@ var allActionCodesWave0 = []string{
 	"fansub_group.invitations.cancel",
 	"fansub_group.invitations.accept", // in action_definitions, KEIN role_capabilities-Eintrag (Pitfall 2)
 	"fansub_group.notes.write",
+	"fansub_group_media.view",
+	"fansub_group_media.upload",
+	"fansub_group_media.update",
+	"fansub_group_media.delete",
 	"anime_fansub_project.notes.write",
 	"release.view",
 	"release_version.view",
@@ -67,6 +71,10 @@ func roleMatrixStubData() map[string][]Action {
 			ActionFansubGroupInvitationsCreate,
 			ActionFansubGroupInvitationsCancel,
 			ActionFansubGroupNotesWrite,
+			ActionFansubGroupMediaView,
+			ActionFansubGroupMediaUpload,
+			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaDelete,
 			ActionAnimeFansubProjectNotesWrite,
 			ActionReleaseView,
 			ActionReleaseVersionView,
@@ -82,6 +90,10 @@ func roleMatrixStubData() map[string][]Action {
 			ActionFansubGroupMembersView,
 			ActionFansubGroupInvitationsView,
 			ActionFansubGroupNotesWrite,
+			ActionFansubGroupMediaView,
+			ActionFansubGroupMediaUpload,
+			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaDelete,
 			ActionAnimeFansubProjectNotesWrite,
 			ActionReleaseView,
 			ActionReleaseVersionView,
@@ -145,7 +157,7 @@ func roleMatrixStubData() map[string][]Action {
 
 // TestRoleMatrixSeedParity prüft D-03 + D-10:
 // Der CacheLoader-Stub liefert die vollständige roleMatrix.
-// Nach LoadCache müssen alle 18 Action-Codes (außer invitations.accept) in mindestens einer Rolle vertreten sein.
+// Nach LoadCache müssen alle Action-Codes (außer invitations.accept) in mindestens einer Rolle vertreten sein.
 // MUSS RED sein: svc.LoadCache gibt "nicht implementiert" zurück bis Plan 86-02 den Cache-Umbau liefert.
 func TestRoleMatrixSeedParity(t *testing.T) {
 	ctx := context.Background()
