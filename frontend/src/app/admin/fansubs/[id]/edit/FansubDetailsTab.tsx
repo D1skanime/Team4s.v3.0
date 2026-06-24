@@ -51,6 +51,7 @@ export function FansubDetailsTab({
     activeMainTab === "media" ||
     activeMainTab === "links" ||
     activeMainTab === "collaboration";
+  const showGroupSaveActions = activeMainTab !== "collaboration" && activeMainTab !== "media";
   const fansubEditColumnsClassName = `${styles.fansubEditColumns}${tabUsesLeftWorkspace ? ` ${styles.fansubEditColumnsSingleLeft}` : ""}${tabUsesRightWorkspace ? ` ${styles.fansubEditColumnsSingleRight}` : ""}`;
 
   const communityLinksList = (
@@ -64,7 +65,7 @@ export function FansubDetailsTab({
 
   return (
     <form className={styles.fansubEditForm} onSubmit={save}>
-      {activeMainTab !== "collaboration" ? (
+      {showGroupSaveActions ? (
         <div className={styles.fansubEditStickyActions}>
           <Button
             type="submit"
@@ -162,7 +163,7 @@ export function FansubDetailsTab({
         ) : null}
       </div>
 
-      {activeMainTab !== "collaboration" ? (
+      {showGroupSaveActions ? (
         <div className={styles.fansubEditMobileActionBar}>
           <Button
             type="submit"
