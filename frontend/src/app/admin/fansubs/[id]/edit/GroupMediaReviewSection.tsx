@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Save, Trash2, UploadCloud } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Archive, Edit3, Save, UploadCloud, X } from 'lucide-react'
 import Image from 'next/image'
 
 import {
@@ -49,6 +49,11 @@ interface MediaDraft {
   sort_order: number
 }
 
+type CategoryFilter = 'all' | FansubGroupMediaCategory
+type ReviewStatusFilter = 'all' | FansubMediaReviewStatus
+type VisibilityFilter = 'all' | FansubMediaVisibility
+type SortMode = 'created_desc' | 'created_asc' | 'sort_order'
+
 const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
   { value: 'gallery', label: 'Galerie' },
   { value: 'history_screenshot', label: 'Historische Screenshots' },
@@ -58,6 +63,19 @@ const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }
   { value: 'event_meeting', label: 'Event / Treffen' },
   { value: 'artwork_fanart', label: 'Artwork / Fanart' },
   { value: 'other', label: 'Sonstiges' },
+]
+
+const REVIEW_STATUS_OPTIONS: Array<{ value: FansubMediaReviewStatus; label: string; variant: 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted' }> = [
+  { value: 'in_pruefung', label: 'In Prüfung', variant: 'warning' },
+  { value: 'freigegeben', label: 'Freigegeben', variant: 'success' },
+  { value: 'abgelehnt', label: 'Abgelehnt', variant: 'danger' },
+  { value: 'archiviert', label: 'Archiviert', variant: 'muted' },
+  { value: 'entfernt', label: 'Entfernt', variant: 'muted' },
+]
+
+const VISIBILITY_OPTIONS: Array<{ value: FansubMediaVisibility; label: string }> = [
+  { value: 'intern', label: 'Intern' },
+  { value: 'oeffentlich', label: 'Öffentlich' },
 ]
 
 function readErrorMessage(error: unknown, fallback: string): string {
@@ -76,6 +94,25 @@ function itemToDraft(item: FansubGroupMediaItem): MediaDraft {
     category: item.category ?? 'other',
     sort_order: item.sort_order ?? 0,
   }
+}
+
+function getCategoryLabel(value: FansubGroupMediaCategory): string {
+  return CATEGORY_OPTIONS.find((option) => option.value === value)?.label ?? 'Sonstiges'
+}
+
+function getReviewStatusOption(value: FansubMediaReviewStatus) {
+  return REVIEW_STATUS_OPTIONS.find((option) => option.value === value) ?? REVIEW_STATUS_OPTIONS[0]
+}
+
+function getVisibilityLabel(value: FansubMediaVisibility): string {
+  return VISIBILITY_OPTIONS.find((option) => option.value === value)?.label ?? 'Intern'
+}
+
+function formatDate(value: string | null | undefined): string {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
 }
 
 export function GroupMediaReviewSection({ fansubId, capabilities }: GroupMediaReviewSectionProps) {
@@ -97,6 +134,7 @@ function GroupMediaReviewSectionInner({
   fansubId: number
   capabilities: FansubGroupCapabilities
 }) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [mediaItems, setMediaItems] = useState<FansubGroupMediaItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -108,6 +146,12 @@ function GroupMediaReviewSectionInner({
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [editingMediaId, setEditingMediaId] = useState<number | null>(null)
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<ReviewStatusFilter>('all')
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('all')
+  const [sortMode, setSortMode] = useState<SortMode>('created_desc')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const canUpdate = capabilities.can_update_group_media || capabilities.can_edit_group
   const canUpload = capabilities.can_upload_group_media || capabilities.can_edit_group
@@ -136,6 +180,31 @@ function GroupMediaReviewSectionInner({
     [selectedFiles],
   )
 
+  const filteredMediaItems = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    return mediaItems
+      .filter((item) => {
+        const draft = itemToDraft(item)
+        const matchesCategory = categoryFilter === 'all' || draft.category === categoryFilter
+        const matchesStatus = statusFilter === 'all' || draft.review_status === statusFilter
+        const matchesVisibility = visibilityFilter === 'all' || draft.visibility === visibilityFilter
+        const matchesSearch =
+          normalizedSearch.length === 0 ||
+          [item.title, item.description, item.alt_text, item.uploaded_by_display_name]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase().includes(normalizedSearch))
+
+        return matchesCategory && matchesStatus && matchesVisibility && matchesSearch
+      })
+      .sort((left, right) => {
+        if (sortMode === 'sort_order') return (left.sort_order ?? 0) - (right.sort_order ?? 0)
+        const leftDate = Date.parse(left.created_at ?? '') || 0
+        const rightDate = Date.parse(right.created_at ?? '') || 0
+        return sortMode === 'created_asc' ? leftDate - rightDate : rightDate - leftDate
+      })
+  }, [categoryFilter, mediaItems, searchTerm, sortMode, statusFilter, visibilityFilter])
+
   function updateDraft<K extends keyof MediaDraft>(mediaId: number, field: K, value: MediaDraft[K]) {
     setDrafts((prev) => ({
       ...prev,
@@ -144,6 +213,29 @@ function GroupMediaReviewSectionInner({
         [field]: value,
       },
     }))
+  }
+
+  function handleSelectedFiles(files: File[]) {
+    setUploadError(null)
+    setSelectedFiles(files.filter((file) => file.type.startsWith('image/')))
+  }
+
+  function resetUploadForm() {
+    setSelectedFiles([])
+    setUploadCategory('gallery')
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function startEditing(item: FansubGroupMediaItem) {
+    setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
+    setDrafts((prev) => ({ ...prev, [item.id]: itemToDraft(item) }))
+    setEditingMediaId(item.id)
+  }
+
+  function cancelEditing(item: FansubGroupMediaItem) {
+    setDrafts((prev) => ({ ...prev, [item.id]: itemToDraft(item) }))
+    setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
+    setEditingMediaId(null)
   }
 
   async function handleUpload() {
@@ -163,8 +255,8 @@ function GroupMediaReviewSectionInner({
       if (failed.length > 0) {
         setUploadError(failed.map((result) => `${result.client_file_name}: ${result.message ?? 'Upload fehlgeschlagen'}`).join('\n'))
       } else {
-        setToast('Medien hochgeladen.')
-        setSelectedFiles([])
+        resetUploadForm()
+        setToast('Medien hochgeladen. Auswahl wurde zurückgesetzt.')
       }
       await loadMedia()
     } catch (err) {
@@ -192,6 +284,7 @@ function GroupMediaReviewSectionInner({
         sort_order: draft.sort_order,
       }, undefined)
       setToast('Änderungen gespeichert.')
+      setEditingMediaId(null)
       await loadMedia()
       setTimeout(() => setToast(null), 3500)
     } catch (err) {
@@ -209,13 +302,14 @@ function GroupMediaReviewSectionInner({
     setSaving((prev) => ({ ...prev, [item.id]: true }))
     try {
       await deleteFansubGroupMedia(fansubId, item.id)
-      setToast('Medium entfernt.')
+      setToast('Medium aus der Verwaltung entfernt.')
+      if (editingMediaId === item.id) setEditingMediaId(null)
       await loadMedia()
       setTimeout(() => setToast(null), 3500)
     } catch (err) {
       setSaveErrors((prev) => ({
         ...prev,
-        [item.id]: readErrorMessage(err, 'Medium konnte nicht entfernt werden.'),
+        [item.id]: readErrorMessage(err, 'Medium konnte nicht aus der Verwaltung entfernt werden.'),
       }))
     } finally {
       setSaving((prev) => ({ ...prev, [item.id]: false }))
@@ -231,12 +325,12 @@ function GroupMediaReviewSectionInner({
   }
 
   return (
-    <Card variant="section" className={styles.reviewSection}>
+    <div className={styles.reviewSection}>
       <Toolbar
         leading={
           <SectionHeader
             title="Medien prüfen"
-            description="Galerie, historische Screenshots und Erinnerungsmedien der Gruppe verwalten."
+            description="Gruppenmedien hochladen, filtern und gezielt bearbeiten."
           />
         }
       />
@@ -244,28 +338,55 @@ function GroupMediaReviewSectionInner({
       {toast ? <p className={styles.toastSuccess} role="status">{toast}</p> : null}
 
       {canUpload ? (
-        <Card variant="nested" className={styles.uploadPanel}>
-          <FormField label="Kategorie">
-            <Select
-              value={uploadCategory}
-              onChange={(event) => setUploadCategory(event.target.value as FansubGroupMediaCategory)}
-            >
-              {CATEGORY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label="Dateien">
-            <Input
-              type="file"
-              multiple
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={(event) => setSelectedFiles(Array.from(event.currentTarget.files ?? []))}
+        <Card
+          variant="section"
+          className={styles.uploadPanel}
+          header={
+            <SectionHeader
+              title="Medien hochladen"
+              description="Neue Bilder werden der Gruppe zugeordnet und erscheinen anschließend in der Übersicht."
             />
-          </FormField>
-          {selectedFileNames ? <p className={styles.fileHint}>{selectedFileNames}</p> : null}
+          }
+        >
+          <div className={styles.uploadControls}>
+            <FormField label="Kategorie">
+              <Select
+                value={uploadCategory}
+                onChange={(event) => setUploadCategory(event.target.value as FansubGroupMediaCategory)}
+              >
+                {CATEGORY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </Select>
+            </FormField>
+
+            <FormField label="Dateien">
+              <div
+                className={styles.dropZone}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault()
+                  handleSelectedFiles(Array.from(event.dataTransfer.files))
+                }}
+              >
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className={styles.fileInput}
+                  onChange={(event) => handleSelectedFiles(Array.from(event.currentTarget.files ?? []))}
+                />
+                <p className={styles.dropZoneTitle}>Bilder auswählen oder hier ablegen</p>
+                <p className={styles.fileHint}>PNG, JPG, WebP oder GIF. Die Auswahl wird nach erfolgreichem Upload zurückgesetzt.</p>
+              </div>
+            </FormField>
+          </div>
+
+          {selectedFileNames ? <p className={styles.fileSelection}>{selectedFileNames}</p> : null}
           {uploadProgress !== null ? <p className={styles.fileHint}>Upload: {Math.round(uploadProgress)}%</p> : null}
           {uploadError ? <p className={styles.inlineError} role="alert">{uploadError}</p> : null}
+
           <div className={styles.cardFooterActions}>
             <Button
               variant="primary"
@@ -280,151 +401,260 @@ function GroupMediaReviewSectionInner({
         </Card>
       ) : null}
 
-      {mediaItems.length === 0 ? (
-        <EmptyState
-          title="Keine Medien vorhanden"
-          description="Für diese Gruppe sind noch keine Medien angelegt."
-        />
-      ) : (
-        <div className={styles.mediaReviewGrid}>
-          {mediaItems.map((item) => {
-            const draft = drafts[item.id]
-            if (!draft) return null
+      <Card
+        variant="section"
+        className={styles.managementPanel}
+        header={
+          <SectionHeader
+            title="Medienübersicht"
+            description={`${filteredMediaItems.length} von ${mediaItems.length} Medien sichtbar`}
+          />
+        }
+      >
+        <div className={styles.filterBar}>
+          <FormField label="Kategorie">
+            <Select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}>
+              <option value="all">Alle Kategorien</option>
+              {CATEGORY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </Select>
+          </FormField>
 
-            return (
-              <Card key={item.id} variant="nested" className={styles.mediaCard}>
-                {!item.owner_consistent ? (
-                  <div className={styles.ownerFlagRow}>
-                    <Badge variant="warning">Owner-Zuordnung prüfen</Badge>
-                  </div>
-                ) : null}
+          <FormField label="Prüfstatus">
+            <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ReviewStatusFilter)}>
+              <option value="all">Alle Status</option>
+              {REVIEW_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </Select>
+          </FormField>
 
-                {item.preview_url ? (
-                  <div className={styles.previewFrame}>
-                    <Image
-                      src={resolveApiUrl(item.preview_url)}
-                      alt={draft.alt_text || draft.title || 'Gruppenmedium'}
-                      fill
-                      sizes="(max-width: 600px) 100vw, 320px"
-                      unoptimized
-                    />
-                  </div>
-                ) : null}
+          <FormField label="Sichtbarkeit">
+            <Select value={visibilityFilter} onChange={(event) => setVisibilityFilter(event.target.value as VisibilityFilter)}>
+              <option value="all">Alle Sichtbarkeiten</option>
+              {VISIBILITY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </Select>
+          </FormField>
 
-                <div className={styles.mediaCardBody}>
-                  <div className={styles.metaRow}>
-                    <Badge variant="neutral">{CATEGORY_OPTIONS.find((option) => option.value === draft.category)?.label ?? 'Sonstiges'}</Badge>
-                    <span>{item.uploaded_by_display_name ?? 'Unbekannt'}</span>
-                  </div>
+          <FormField label="Sortierung">
+            <Select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
+              <option value="created_desc">Neueste zuerst</option>
+              <option value="created_asc">Älteste zuerst</option>
+              <option value="sort_order">Sortierungswert</option>
+            </Select>
+          </FormField>
 
-                  <FormField label="Titel">
-                    <Input
-                      value={draft.title}
-                      disabled={!canUpdate}
-                      onChange={(event) => updateDraft(item.id, 'title', event.target.value)}
-                    />
-                  </FormField>
-
-                  <FormField label="Beschreibung">
-                    <Textarea
-                      value={draft.description}
-                      disabled={!canUpdate}
-                      rows={3}
-                      onChange={(event) => updateDraft(item.id, 'description', event.target.value)}
-                    />
-                  </FormField>
-
-                  <FormField label="Alternativtext">
-                    <Input
-                      value={draft.alt_text}
-                      disabled={!canUpdate}
-                      onChange={(event) => updateDraft(item.id, 'alt_text', event.target.value)}
-                    />
-                  </FormField>
-
-                  <div className={styles.controlGrid}>
-                    <FormField label="Kategorie">
-                      <Select
-                        value={draft.category}
-                        disabled={!canUpdate}
-                        onChange={(event) => updateDraft(item.id, 'category', event.target.value as FansubGroupMediaCategory)}
-                      >
-                        {CATEGORY_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </Select>
-                    </FormField>
-
-                    <FormField label="Sortierung">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={draft.sort_order}
-                        disabled={!canUpdate}
-                        onChange={(event) => updateDraft(item.id, 'sort_order', Number(event.target.value))}
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.controlGrid}>
-                    <FormField label="Sichtbarkeit">
-                      <Select
-                        value={draft.visibility}
-                        disabled={!canUpdate}
-                        onChange={(event) => updateDraft(item.id, 'visibility', event.target.value as FansubMediaVisibility)}
-                      >
-                        <option value="intern">Intern</option>
-                        <option value="oeffentlich">Öffentlich</option>
-                      </Select>
-                    </FormField>
-
-                    <FormField label="Prüfstatus">
-                      <Select
-                        value={draft.review_status}
-                        disabled={!canUpdate}
-                        onChange={(event) => updateDraft(item.id, 'review_status', event.target.value as FansubMediaReviewStatus)}
-                      >
-                        <option value="in_pruefung">In Prüfung</option>
-                        <option value="freigegeben">Freigegeben</option>
-                        <option value="abgelehnt">Abgelehnt</option>
-                        <option value="archiviert">Archiviert</option>
-                        <option value="entfernt">Entfernt</option>
-                      </Select>
-                    </FormField>
-                  </div>
-
-                  {saveErrors[item.id] ? <p className={styles.inlineError} role="alert">{saveErrors[item.id]}</p> : null}
-                </div>
-
-                <div className={styles.cardFooterActions}>
-                  {canDelete ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      leftIcon={<Trash2 size={16} />}
-                      disabled={saving[item.id] ?? false}
-                      onClick={() => void handleDelete(item)}
-                    >
-                      Entfernen
-                    </Button>
-                  ) : null}
-                  {canUpdate ? (
-                    <Button
-                      variant="success"
-                      size="sm"
-                      leftIcon={<Save size={16} />}
-                      disabled={saving[item.id] ?? false}
-                      onClick={() => void handleSave(item)}
-                    >
-                      Änderungen speichern
-                    </Button>
-                  ) : null}
-                </div>
-              </Card>
-            )
-          })}
+          <FormField label="Suche">
+            <Input
+              value={searchTerm}
+              placeholder="Titel oder Beschreibung"
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+          </FormField>
         </div>
-      )}
-    </Card>
+
+        {mediaItems.length === 0 ? (
+          <EmptyState
+            title="Keine Medien vorhanden"
+            description="Für diese Gruppe sind noch keine Medien angelegt."
+          />
+        ) : filteredMediaItems.length === 0 ? (
+          <EmptyState
+            title="Keine Treffer"
+            description="Passe Filter oder Suche an, um weitere Medien zu sehen."
+          />
+        ) : (
+          <div className={styles.mediaReviewGrid}>
+            {filteredMediaItems.map((item) => {
+              const draft = drafts[item.id] ?? itemToDraft(item)
+              const persisted = itemToDraft(item)
+              const reviewStatus = getReviewStatusOption(persisted.review_status)
+              const createdAt = formatDate(item.created_at)
+              const isEditing = editingMediaId === item.id
+
+              return (
+                <Card key={item.id} variant="nested" className={styles.mediaCard}>
+                  {!item.owner_consistent ? (
+                    <div className={styles.ownerFlagRow}>
+                      <Badge variant="warning">Owner-Zuordnung prüfen</Badge>
+                    </div>
+                  ) : null}
+
+                  <div className={styles.mediaCompactRow}>
+                    <div className={styles.previewFrame}>
+                      {item.preview_url ? (
+                        <Image
+                          src={resolveApiUrl(item.preview_url)}
+                          alt={persisted.alt_text || persisted.title || 'Gruppenmedium'}
+                          fill
+                          sizes="96px"
+                          unoptimized
+                        />
+                      ) : (
+                        <span>Keine Vorschau</span>
+                      )}
+                    </div>
+
+                    <div className={styles.mediaSummary}>
+                      <div className={styles.mediaTitleRow}>
+                        <h3>{persisted.title || `Medium #${item.id}`}</h3>
+                        <Badge variant="neutral">{getCategoryLabel(persisted.category)}</Badge>
+                      </div>
+                      <div className={styles.badgeRow}>
+                        <Badge variant={reviewStatus.variant}>{reviewStatus.label}</Badge>
+                        <Badge variant="info">{getVisibilityLabel(persisted.visibility)}</Badge>
+                      </div>
+                      <dl className={styles.compactMeta}>
+                        <div>
+                          <dt>Uploader</dt>
+                          <dd>{item.uploaded_by_display_name ?? 'Unbekannt'}</dd>
+                        </div>
+                        {createdAt ? (
+                          <div>
+                            <dt>Upload</dt>
+                            <dd>{createdAt}</dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </div>
+
+                    <div className={styles.compactActions}>
+                      {canUpdate ? (
+                        <Button
+                          variant={isEditing ? 'secondary' : 'primary'}
+                          size="sm"
+                          leftIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
+                          onClick={() => (isEditing ? cancelEditing(item) : startEditing(item))}
+                        >
+                          {isEditing ? 'Schließen' : 'Bearbeiten'}
+                        </Button>
+                      ) : null}
+                      {canDelete ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<Archive size={16} />}
+                          disabled={saving[item.id] ?? false}
+                          onClick={() => void handleDelete(item)}
+                        >
+                          Aus Verwaltung entfernen
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {isEditing ? (
+                    <div className={styles.detailPanel}>
+                      <div className={styles.detailGrid}>
+                        <FormField label="Titel">
+                          <Input
+                            value={draft.title}
+                            disabled={!canUpdate}
+                            onChange={(event) => updateDraft(item.id, 'title', event.target.value)}
+                          />
+                        </FormField>
+
+                        <FormField label="Alternativtext">
+                          <Input
+                            value={draft.alt_text}
+                            disabled={!canUpdate}
+                            onChange={(event) => updateDraft(item.id, 'alt_text', event.target.value)}
+                          />
+                        </FormField>
+                      </div>
+
+                      <FormField label="Beschreibung">
+                        <Textarea
+                          value={draft.description}
+                          disabled={!canUpdate}
+                          rows={3}
+                          onChange={(event) => updateDraft(item.id, 'description', event.target.value)}
+                        />
+                      </FormField>
+
+                      <div className={styles.detailGrid}>
+                        <FormField label="Kategorie">
+                          <Select
+                            value={draft.category}
+                            disabled={!canUpdate}
+                            onChange={(event) => updateDraft(item.id, 'category', event.target.value as FansubGroupMediaCategory)}
+                          >
+                            {CATEGORY_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </Select>
+                        </FormField>
+
+                        <FormField label="Sortierung">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={draft.sort_order}
+                            disabled={!canUpdate}
+                            onChange={(event) => updateDraft(item.id, 'sort_order', Number(event.target.value))}
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.detailGrid}>
+                        <FormField label="Sichtbarkeit">
+                          <Select
+                            value={draft.visibility}
+                            disabled={!canUpdate}
+                            onChange={(event) => updateDraft(item.id, 'visibility', event.target.value as FansubMediaVisibility)}
+                          >
+                            {VISIBILITY_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </Select>
+                        </FormField>
+
+                        <FormField label="Prüfstatus">
+                          <Select
+                            value={draft.review_status}
+                            disabled={!canUpdate}
+                            onChange={(event) => updateDraft(item.id, 'review_status', event.target.value as FansubMediaReviewStatus)}
+                          >
+                            {REVIEW_STATUS_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </Select>
+                        </FormField>
+                      </div>
+
+                      {saveErrors[item.id] ? <p className={styles.inlineError} role="alert">{saveErrors[item.id]}</p> : null}
+
+                      <div className={styles.cardFooterActions}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={<X size={16} />}
+                          disabled={saving[item.id] ?? false}
+                          onClick={() => cancelEditing(item)}
+                        >
+                          Abbrechen
+                        </Button>
+                        <Button
+                          variant="success"
+                          size="sm"
+                          leftIcon={<Save size={16} />}
+                          disabled={saving[item.id] ?? false}
+                          onClick={() => void handleSave(item)}
+                        >
+                          Änderungen speichern
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </Card>
+              )
+            })}
+          </div>
+        )}
+      </Card>
+    </div>
   )
 }

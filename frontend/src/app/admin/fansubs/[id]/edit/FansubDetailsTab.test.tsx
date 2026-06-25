@@ -11,10 +11,6 @@ vi.mock('./GroupMediaReviewSection', () => ({
   GroupMediaReviewSection: () => <div data-testid="group-media-review-section" />,
 }))
 
-vi.mock('./UserSuggestionsInbox', () => ({
-  UserSuggestionsInbox: () => <div data-testid="user-suggestions-inbox" />,
-}))
-
 vi.mock('./FansubAppMembersSection', () => ({
   FansubAppMembersSection: () => <div data-testid="fansub-app-members-section" />,
 }))
@@ -85,5 +81,6 @@ describe('FansubDetailsTab', () => {
 
     expect(screen.getByTestId('group-media-review-section')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Speichern$/ })).toBeNull()
+    expect(screen.queryByTestId('user-suggestions-inbox')).toBeNull()
   })
 })

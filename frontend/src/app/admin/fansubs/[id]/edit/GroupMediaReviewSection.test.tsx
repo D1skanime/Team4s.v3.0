@@ -1,22 +1,28 @@
 // @vitest-environment jsdom
-// Wave-0 RED-Test: GroupMediaReviewSection existiert noch nicht — Compile-Fehler erwartet.
-// Diese Tests laufen RED, bis 78-03 die Komponente implementiert.
-// listFansubGroupMedia und patchFansubMediaReview werden in 78-03 in api.ts geliefert —
-// hier werden sie als benannte vi.fn()-Exports gemockt (definierte Datenquelle SC3).
 
+import { createElement, type ImgHTMLAttributes } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-
-// --- Mock-Definitionen ---
-// listFansubGroupMedia = LESE-QUELLE (78-03, GET /admin/fansubs/:id/media)
-// patchFansubMediaReview = MUTATION (78-03, PATCH /admin/fansubs/:id/media/:mediaId)
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 const listFansubGroupMedia = vi.fn()
 const patchFansubMediaReview = vi.fn()
+const deleteFansubGroupMedia = vi.fn()
+const uploadFansubGroupMedia = vi.fn()
+
+vi.mock('next/image', () => ({
+  default: ({ alt = '', fill, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean; unoptimized?: boolean }) => {
+    void fill
+    void unoptimized
+    return createElement('img', { alt, ...props })
+  },
+}))
 
 vi.mock('@/lib/api', () => ({
   listFansubGroupMedia: (...args: unknown[]) => listFansubGroupMedia(...args),
   patchFansubMediaReview: (...args: unknown[]) => patchFansubMediaReview(...args),
+  deleteFansubGroupMedia: (...args: unknown[]) => deleteFansubGroupMedia(...args),
+  uploadFansubGroupMedia: (...args: unknown[]) => uploadFansubGroupMedia(...args),
+  resolveApiUrl: (value: string) => value,
   ApiError: class ApiError extends Error {
     status: number
     code: string | null
@@ -27,6 +33,7 @@ vi.mock('@/lib/api', () => ({
       retryAfterSeconds: number | null = null,
       code: string | null = null,
     ) {
+      void retryAfterSeconds
       super(message)
       this.status = status
       this.code = code
@@ -34,16 +41,14 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-// Import NACH vi.mock — Compile-Fehler hier ist das erwartete RED-Signal
 import { GroupMediaReviewSection } from './GroupMediaReviewSection'
+import type { FansubGroupMediaItem } from '@/lib/api'
 import type { FansubGroupCapabilities } from '@/types/fansub'
 
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
 })
-
-// --- Hilfsdaten ---
 
 const fullCapabilities: FansubGroupCapabilities = {
   can_edit_group: true,
@@ -64,7 +69,7 @@ const fullCapabilities: FansubGroupCapabilities = {
   can_delete_group_media: true,
 }
 
-const noEditGroupCapabilities: FansubGroupCapabilities = {
+const noMediaCapabilities: FansubGroupCapabilities = {
   ...fullCapabilities,
   can_edit_group: false,
   can_view_group_media: false,
@@ -73,155 +78,134 @@ const noEditGroupCapabilities: FansubGroupCapabilities = {
   can_delete_group_media: false,
 }
 
-// Kanonischer Enum-Satz (78-CONTEXT.md "Offene Fragen RESOLVED"):
-// visibility: intern | oeffentlich
-// review_status: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt
+function mediaItem(overrides: Partial<FansubGroupMediaItem> = {}): FansubGroupMediaItem {
+  const id = overrides.id ?? 101
 
-const sampleMediaItems = [
-  {
-    id: 101,
+  return {
+    id,
+    preview_url: `/media/group/${id}.jpg`,
     visibility: 'intern',
     review_status: 'in_pruefung',
+    title: `Medium ${id}`,
+    description: `Beschreibung ${id}`,
+    alt_text: `Alt ${id}`,
+    category: 'gallery',
+    sort_order: id,
+    uploaded_by_display_name: 'Admin',
+    created_at: `2026-06-${String((id % 20) + 1).padStart(2, '0')}T12:00:00Z`,
+    updated_at: null,
     owner_type: 'fansub_group',
     owner_id: 88,
     owner_consistent: true,
-  },
-  {
-    id: 102,
-    visibility: 'oeffentlich',
-    review_status: 'freigegeben',
-    owner_type: 'fansub_group',
-    owner_id: 88,
-    owner_consistent: false, // Owner-Inkonsistenz-Flag testen
-  },
-]
+    ...overrides,
+  }
+}
 
-// --- D-08: Capability-Gating ---
+function renderSection(items: FansubGroupMediaItem[] = [mediaItem()]) {
+  listFansubGroupMedia.mockResolvedValue(items)
+  return render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
+}
 
-describe('GroupMediaReviewSection — Capability-Gating (D-08)', () => {
-  it('rendert nichts (null), wenn can_edit_group und Gruppenmedien-Rechte fehlen', async () => {
-    listFansubGroupMedia.mockResolvedValue([])
-
+describe('GroupMediaReviewSection', () => {
+  it('rendert nichts, wenn Gruppenmedien-Rechte fehlen', () => {
     const { container } = render(
-      <GroupMediaReviewSection fansubId={88} capabilities={noEditGroupCapabilities} />,
+      <GroupMediaReviewSection fansubId={88} capabilities={noMediaCapabilities} />,
     )
 
-    // Kein Inhalt sichtbar — null-Render
     expect(container.firstChild).toBeNull()
   })
 
-  it('rendert die Sektion, wenn can_edit_group vorhanden ist', async () => {
-    listFansubGroupMedia.mockResolvedValue(sampleMediaItems)
+  it('trennt Upload und kompakte Medienübersicht', async () => {
+    renderSection([mediaItem({ id: 101, title: 'Galerie Bild' })])
 
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
-
-    // Sektions-Titel aus Copywriting-Contract
-    expect(await screen.findByText('Medien prüfen')).toBeTruthy()
-  })
-})
-
-// --- D-05/SC3: Sichtbarkeit- und Prüfstatus-Selektoren pro Medium ---
-
-describe('GroupMediaReviewSection — D-05/SC3: Selektoren-Sichtbarkeit', () => {
-  it('rendert Sichtbarkeit-Label und Prüfstatus-Label pro Medieneintrag', async () => {
-    listFansubGroupMedia.mockResolvedValue(sampleMediaItems)
-
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
-
-    // Beide Elemente aus Copywriting-Contract für mindestens einen Eintrag
-    const sichtbarkeitLabels = await screen.findAllByText('Sichtbarkeit')
-    const pruefstatusLabels = await screen.findAllByText('Prüfstatus')
-
-    // Mindestens so viele Labels wie Medieneinträge
-    expect(sichtbarkeitLabels.length).toBeGreaterThanOrEqual(sampleMediaItems.length)
-    expect(pruefstatusLabels.length).toBeGreaterThanOrEqual(sampleMediaItems.length)
+    expect(await screen.findByText('Medien hochladen')).toBeTruthy()
+    expect(await screen.findByText('Medienübersicht')).toBeTruthy()
+    expect(await screen.findByText('Galerie Bild')).toBeTruthy()
+    expect(screen.queryByDisplayValue('Galerie Bild')).toBeNull()
   })
 
-  it('lädt Medien über listFansubGroupMedia (LESE-QUELLE aus 78-03)', async () => {
-    listFansubGroupMedia.mockResolvedValue(sampleMediaItems)
+  it('skaliert 20 Medien kompakt ohne dauerhaft offene Detailformulare', async () => {
+    renderSection(Array.from({ length: 20 }, (_value, index) => mediaItem({ id: index + 1 })))
 
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
+    expect(await screen.findByText('20 von 20 Medien sichtbar')).toBeTruthy()
+    expect((await screen.findAllByRole('button', { name: 'Bearbeiten' })).length).toBe(20)
+    expect(screen.queryByDisplayValue('Medium 1')).toBeNull()
+    expect(screen.queryByText('Änderungen speichern')).toBeNull()
+  })
 
-    await waitFor(() => {
-      expect(listFansubGroupMedia).toHaveBeenCalledWith(88, undefined)
+  it('öffnet die Detailbearbeitung nur für ein Medium und speichert dessen Draft', async () => {
+    renderSection([
+      mediaItem({ id: 101, title: 'Erstes Medium' }),
+      mediaItem({ id: 102, title: 'Zweites Medium' }),
+    ])
+    patchFansubMediaReview.mockResolvedValue(mediaItem({ id: 101 }))
+
+    await screen.findByText('Erstes Medium')
+    const firstCard = screen.getByText('Erstes Medium').closest('section')
+    expect(firstCard).not.toBeNull()
+    fireEvent.click(within(firstCard as HTMLElement).getByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.change(await screen.findByDisplayValue('Erstes Medium'), {
+      target: { value: 'Geänderter Titel' },
     })
-    // patchFansubMediaReview darf beim initialen Laden NICHT aufgerufen werden
-    expect(patchFansubMediaReview).not.toHaveBeenCalled()
-  })
-})
-
-// --- SC3: „Änderungen speichern" ruft patchFansubMediaReview ---
-
-describe('GroupMediaReviewSection — SC3: Speichern-Mutation', () => {
-  it('ruft patchFansubMediaReview(fansubId, mediaId, { visibility, review_status }) beim Speichern', async () => {
-    listFansubGroupMedia.mockResolvedValue([sampleMediaItems[0]])
-    patchFansubMediaReview.mockResolvedValue({ ...sampleMediaItems[0] })
-
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
-
-    // Speichern-Button aus Copywriting-Contract
-    fireEvent.click(await screen.findByRole('button', { name: /Änderungen speichern/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Änderungen speichern' }))
 
     await waitFor(() => {
       expect(patchFansubMediaReview).toHaveBeenCalledWith(
         88,
         101,
-        expect.objectContaining({
-          visibility: expect.any(String),
-          review_status: expect.any(String),
-        }),
+        expect.objectContaining({ title: 'Geänderter Titel' }),
         undefined,
       )
     })
-  })
-})
-
-// --- D-05: Owner-Inkonsistenz-Flag (kein Owner-Edit-Feld) ---
-
-describe('GroupMediaReviewSection — D-05: Owner-Zuordnung prüfen', () => {
-  it('zeigt Badge „Owner-Zuordnung prüfen" bei owner_consistent=false', async () => {
-    // Medium mit owner_consistent=false
-    listFansubGroupMedia.mockResolvedValue([sampleMediaItems[1]])
-
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
-
-    // Badge-Text aus Copywriting-Contract (korrekte Umlaute)
-    expect(await screen.findByText('Owner-Zuordnung prüfen')).toBeTruthy()
+    expect(screen.queryByDisplayValue('Zweites Medium')).toBeNull()
   })
 
-  it('zeigt kein Owner-Edit-Feld — nur Sichtbarkeit/Prüfstatus-Selektoren (kein Umhängen, D-05)', async () => {
-    listFansubGroupMedia.mockResolvedValue([sampleMediaItems[1]])
+  it('filtert die Übersicht nach Kategorie', async () => {
+    renderSection([
+      mediaItem({ id: 101, title: 'Galerie Bild', category: 'gallery' }),
+      mediaItem({ id: 102, title: 'Forum Bild', category: 'forum' }),
+    ])
 
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
+    await screen.findByText('Galerie Bild')
+    fireEvent.change(screen.getAllByRole('combobox')[1], { target: { value: 'forum' } })
 
-    await screen.findByText('Owner-Zuordnung prüfen')
-
-    // Kein Owner-Bearbeitungs-Feld (kein Input mit "Owner" im Label)
-    expect(screen.queryByLabelText(/owner/i)).toBeNull()
-    expect(screen.queryByPlaceholderText(/owner/i)).toBeNull()
+    expect(await screen.findByText('Forum Bild')).toBeTruthy()
+    expect(screen.queryByText('Galerie Bild')).toBeNull()
   })
 
-  it('zeigt kein Owner-Korrektheit-Badge bei owner_consistent=true', async () => {
-    // Medium mit owner_consistent=true
-    listFansubGroupMedia.mockResolvedValue([sampleMediaItems[0]])
+  it('setzt Dateiauswahl und Upload-Kategorie nach erfolgreichem Upload zurück', async () => {
+    const { container } = renderSection([])
+    uploadFansubGroupMedia.mockResolvedValue({ results: [{ client_file_name: 'test.png', status: 'ready' }] })
 
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
+    await screen.findByText('Medien hochladen')
+    const uploadCategorySelect = screen.getAllByRole('combobox')[0] as HTMLSelectElement
+    fireEvent.change(uploadCategorySelect, { target: { value: 'forum' } })
+    const fileInput = container.querySelector('input[type="file"]')
+    expect(fileInput).not.toBeNull()
+    fireEvent.change(fileInput as HTMLInputElement, {
+      target: { files: [new File(['x'], 'test.png', { type: 'image/png' })] },
+    })
+    expect(await screen.findByText('test.png')).toBeTruthy()
 
-    // Warten bis Daten geladen
-    await screen.findByText('Sichtbarkeit')
+    fireEvent.click(screen.getByRole('button', { name: 'Hochladen' }))
 
-    expect(screen.queryByText('Owner-Zuordnung prüfen')).toBeNull()
+    await waitFor(() => {
+      expect(uploadFansubGroupMedia).toHaveBeenCalledWith(expect.objectContaining({ category: 'forum' }))
+    })
+    expect(screen.queryByText('test.png')).toBeNull()
+    await waitFor(() => {
+      expect((screen.getAllByRole('combobox')[0] as HTMLSelectElement).value).toBe('gallery')
+    })
   })
-})
 
-// --- Sektions-Titel und Beschreibung (Copywriting-Contract) ---
+  it('benennt Entfernen als Verwaltungsvorgang', async () => {
+    renderSection([mediaItem({ id: 101 })])
+    deleteFansubGroupMedia.mockResolvedValue(undefined)
 
-describe('GroupMediaReviewSection — Copywriting-Contract', () => {
-  it('zeigt korrekten Sektions-Titel aus UI-SPEC', async () => {
-    listFansubGroupMedia.mockResolvedValue(sampleMediaItems)
+    fireEvent.click(await screen.findByRole('button', { name: 'Aus Verwaltung entfernen' }))
 
-    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
-
-    expect(await screen.findByText('Medien prüfen')).toBeTruthy()
+    await waitFor(() => {
+      expect(deleteFansubGroupMedia).toHaveBeenCalledWith(88, 101)
+    })
   })
 })

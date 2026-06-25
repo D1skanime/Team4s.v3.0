@@ -3,22 +3,68 @@
   gap: var(--space-5);
 }
 
-/* Medien-Karten-Grid: responsives Auto-Fill-Raster (UI-SPEC mediaReviewGrid) */
-.mediaReviewGrid {
+.uploadPanel,
+.managementPanel {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-4);
 }
 
-.mediaCard {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.uploadControls {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
 }
 
-.uploadPanel {
+.dropZone {
   display: grid;
+  gap: var(--space-2);
+  min-height: 8.5rem;
+  padding: var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-muted) 70%, transparent);
+}
+
+.fileInput {
+  background: var(--surface-card);
+}
+
+.dropZoneTitle {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.fileHint,
+.fileSelection {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+}
+
+.fileSelection {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.filterBar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: var(--space-3);
+  align-items: end;
+}
+
+.mediaReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-3);
+}
+
+.mediaCard {
+  overflow: hidden;
 }
 
 .ownerFlagRow {
@@ -26,59 +72,112 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.mediaCardBody {
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
+.mediaCompactRow {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
   gap: var(--space-3);
-  flex: 1;
+  align-items: center;
+  padding: var(--space-3);
 }
 
 .previewFrame {
   position: relative;
-  aspect-ratio: 16 / 10;
-  background: var(--surface-muted);
-  border-bottom: 1px solid var(--border-subtle);
+  display: grid;
+  place-items: center;
+  width: 96px;
+  aspect-ratio: 1;
   overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .previewFrame :global(img) {
   object-fit: cover;
 }
 
-.metaRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.mediaSummary {
+  display: grid;
+  min-width: 0;
   gap: var(--space-2);
-  color: var(--text-muted);
-  font-size: 0.875rem;
 }
 
-.controlGrid {
+.mediaTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mediaTitleRow h3 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-strong);
+  font-size: 1rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.compactMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.compactMeta div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.compactMeta dt {
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.compactMeta dd {
+  margin: 0;
+}
+
+.compactActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.detailPanel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-card-muted);
+}
+
+.detailGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
 }
 
-.fileHint {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  white-space: pre-wrap;
-}
-
-/* Aktionszeile am unteren Ende jeder Karte */
 .cardFooterActions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--border-subtle);
-  background: var(--surface-card-muted);
 }
 
-/* Inline-Fehlermeldung (analog ClaimManagementPanel.module.css) */
 .inlineError {
   margin: 0;
   border: 1px solid color-mix(in srgb, var(--color-error) 45%, transparent);
@@ -89,7 +188,6 @@
   font-size: 0.875rem;
 }
 
-/* Erfolgs-Toast */
 .toastSuccess {
   margin: 0;
   padding: 0.6rem 0.7rem;
@@ -100,12 +198,42 @@
   font-weight: 700;
 }
 
+@media (max-width: 900px) {
+  .uploadControls,
+  .filterBar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mediaCompactRow {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .compactActions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
 @media (max-width: 600px) {
-  .mediaReviewGrid {
+  .uploadControls,
+  .filterBar,
+  .mediaReviewGrid,
+  .detailGrid {
     grid-template-columns: 1fr;
   }
 
-  .controlGrid {
+  .mediaCompactRow {
     grid-template-columns: 1fr;
+  }
+
+  .previewFrame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  .compactActions,
+  .cardFooterActions {
+    flex-direction: column;
   }
 }

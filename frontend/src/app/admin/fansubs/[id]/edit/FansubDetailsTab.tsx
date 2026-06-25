@@ -6,7 +6,6 @@ import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import { Button } from "@/components/ui";
 import { createEmptyLink } from "./fansubEditFormMapping";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
-import { UserSuggestionsInbox } from "./UserSuggestionsInbox";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { FansubCommunityLinksList } from "./FansubCommunityLinksList";
 import { FansubBasicInfoTab } from "./FansubBasicInfoTab";
@@ -108,10 +107,7 @@ export function FansubDetailsTab({
             {activeMainTab === "media" ? (
               <>
                 {capabilities ? (
-                  <>
-                    <GroupMediaReviewSection fansubId={fansubID} capabilities={capabilities} />
-                    <UserSuggestionsInbox fansubId={fansubID} domain="media" capabilities={capabilities} />
-                  </>
+                  <GroupMediaReviewSection fansubId={fansubID} capabilities={capabilities} />
                 ) : null}
               </>
             ) : null}
