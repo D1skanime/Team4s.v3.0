@@ -108,6 +108,13 @@ function renderSection(items: FansubGroupMediaItem[] = [mediaItem()]) {
   return render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
 }
 
+function findSummaryText(expected: string) {
+  return screen.findByText((_content, element) => {
+    const className = element?.getAttribute('class') ?? ''
+    return className.includes('desktopSummary') && (element?.textContent?.includes(expected) ?? false)
+  })
+}
+
 describe('GroupMediaReviewSection', () => {
   it('rendert nichts, wenn Gruppenmedien-Rechte fehlen', () => {
     const { container } = render(
@@ -117,10 +124,14 @@ describe('GroupMediaReviewSection', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('trennt Upload und kompakte Medienübersicht', async () => {
+  it('hält Upload kompakt und zeigt die Medienübersicht direkt erreichbar', async () => {
     renderSection([mediaItem({ id: 101, title: 'Galerie Bild' })])
 
     expect(await screen.findByText('Medien hochladen')).toBeTruthy()
+    expect(screen.queryByText('Bilder auswählen oder hier ablegen')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Medien hochladen' }))
+    expect(await screen.findByText('Bilder auswählen oder hier ablegen')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Upload schließen' })).toBeTruthy()
     expect(await screen.findByText('Medienübersicht')).toBeTruthy()
     expect(await screen.findByText('Galerie Bild')).toBeTruthy()
     expect(screen.queryByDisplayValue('Galerie Bild')).toBeNull()
@@ -129,13 +140,13 @@ describe('GroupMediaReviewSection', () => {
   it('skaliert 20 Medien kompakt ohne dauerhaft offene Detailformulare', async () => {
     renderSection(Array.from({ length: 20 }, (_value, index) => mediaItem({ id: index + 1 })))
 
-    expect(await screen.findByText('20 von 20 Medien sichtbar')).toBeTruthy()
+    expect(await findSummaryText('20 von 20 Medien sichtbar')).toBeTruthy()
     expect((await screen.findAllByRole('button', { name: 'Bearbeiten' })).length).toBe(20)
     expect(screen.queryByDisplayValue('Medium 1')).toBeNull()
     expect(screen.queryByText('Änderungen speichern')).toBeNull()
   })
 
-  it('nutzt Thumbnails in der Übersicht und lädt das Original erst im Detailpanel', async () => {
+  it('nutzt Thumbnails in der Übersicht und lädt das Original erst im Detail-Drawer', async () => {
     renderSection([mediaItem({ id: 101, title: 'Vorschaubild' })])
 
     await screen.findByText('Vorschaubild')
@@ -154,7 +165,7 @@ describe('GroupMediaReviewSection', () => {
   it('rendert bei 100 Treffern zunächst nur die erste kompakte Seite', async () => {
     renderSection(Array.from({ length: 100 }, (_value, index) => mediaItem({ id: index + 1 })))
 
-    expect(await screen.findByText('100 von 100 Medien sichtbar')).toBeTruthy()
+    expect(await findSummaryText('100 von 100 Medien sichtbar')).toBeTruthy()
     expect(screen.getAllByRole('button', { name: 'Bearbeiten' })).toHaveLength(40)
     fireEvent.click(screen.getByRole('button', { name: 'Weitere Medien anzeigen (60)' }))
 
@@ -240,7 +251,8 @@ describe('GroupMediaReviewSection', () => {
     ])
 
     await screen.findByText('Galerie Bild')
-    fireEvent.change(screen.getAllByRole('combobox')[1], { target: { value: 'forum' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+    fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'forum' } })
 
     expect(await screen.findByText('Forum Bild')).toBeTruthy()
     expect(screen.queryByText('Galerie Bild')).toBeNull()
@@ -250,7 +262,7 @@ describe('GroupMediaReviewSection', () => {
     const { container } = renderSection([])
     uploadFansubGroupMedia.mockResolvedValue({ results: [{ client_file_name: 'test.png', status: 'ready' }] })
 
-    await screen.findByText('Medien hochladen')
+    fireEvent.click(await screen.findByRole('button', { name: 'Medien hochladen' }))
     const uploadCategorySelect = screen.getAllByRole('combobox')[0] as HTMLSelectElement
     fireEvent.change(uploadCategorySelect, { target: { value: 'forum' } })
     const fileInput = container.querySelector('input[type="file"]')
@@ -266,9 +278,7 @@ describe('GroupMediaReviewSection', () => {
       expect(uploadFansubGroupMedia).toHaveBeenCalledWith(expect.objectContaining({ category: 'forum' }))
     })
     expect(screen.queryByText('test.png')).toBeNull()
-    await waitFor(() => {
-      expect((screen.getAllByRole('combobox')[0] as HTMLSelectElement).value).toBe('gallery')
-    })
+    await waitFor(() => expect(screen.queryByText('Bilder auswählen oder hier ablegen')).toBeNull())
   })
 
   it('entfernt Gruppenmedien erst nach Detail-Danger-Zone und Modal-Bestätigung', async () => {
@@ -281,10 +291,13 @@ describe('GroupMediaReviewSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Aus Gruppenmedien entfernen' }))
 
-    const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByText('Medium aus Gruppenmedien entfernen')).toBeTruthy()
-    expect(within(dialog).getByText(/Datei und Asset werden nicht endgültig gelöscht/)).toBeTruthy()
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Aus Gruppenmedien entfernen' }))
+    const dialogTitle = screen.getByText('Medium aus Gruppenmedien entfernen')
+    const dialog = dialogTitle.closest('[role="dialog"]')
+    expect(dialog).not.toBeNull()
+    const modal = dialog as HTMLElement
+    expect(within(modal).getByText('Medium aus Gruppenmedien entfernen')).toBeTruthy()
+    expect(within(modal).getByText(/Datei und Asset werden nicht endgültig gelöscht/)).toBeTruthy()
+    fireEvent.click(within(modal).getByRole('button', { name: 'Aus Gruppenmedien entfernen' }))
 
     await waitFor(() => {
       expect(deleteFansubGroupMedia).toHaveBeenCalledWith(88, 101)

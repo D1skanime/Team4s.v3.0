@@ -1,13 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Archive, Edit3, Save, UploadCloud, X } from 'lucide-react'
+import { Archive, Edit3, Filter, Save, UploadCloud, X } from 'lucide-react'
 import Image from 'next/image'
 
 import {
   Badge,
   Button,
   Card,
+  Drawer,
   EmptyState,
   ErrorState,
   FormField,
@@ -32,6 +33,7 @@ import {
   uploadFansubGroupMedia,
 } from '@/lib/api'
 import type { FansubGroupCapabilities } from '@/types/fansub'
+import { classNames } from '@/components/ui/classNames'
 
 import styles from './GroupMediaReviewSection.module.css'
 
@@ -201,6 +203,8 @@ function GroupMediaReviewSectionInner({
   const [failedPreviewIds, setFailedPreviewIds] = useState<Record<number, boolean>>({})
   const [failedDetailIds, setFailedDetailIds] = useState<Record<number, boolean>>({})
   const [pendingDeleteItem, setPendingDeleteItem] = useState<FansubGroupMediaItem | null>(null)
+  const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   const canUpdate = capabilities.can_update_group_media || capabilities.can_edit_group
   const canUpload = capabilities.can_upload_group_media || capabilities.can_edit_group
@@ -264,6 +268,18 @@ function GroupMediaReviewSectionInner({
   )
 
   const remainingMediaCount = Math.max(filteredMediaItems.length - visibleMediaItems.length, 0)
+  const editingItem = useMemo(
+    () => mediaItems.find((item) => item.id === editingMediaId) ?? null,
+    [editingMediaId, mediaItems],
+  )
+  const activeFilterCount = [
+    categoryFilter !== 'all',
+    statusFilter !== 'all',
+    visibilityFilter !== 'all',
+    searchTerm.trim().length > 0,
+    sortMode !== 'created_desc',
+  ].filter(Boolean).length
+  const shouldShowUploadPanel = canUpload && (isUploadOpen || selectedFiles.length > 0 || uploadProgress !== null || uploadError !== null)
 
   function updateDraft<K extends keyof MediaDraft>(mediaId: number, field: K, value: MediaDraft[K]) {
     setDrafts((prev) => ({
@@ -284,6 +300,15 @@ function GroupMediaReviewSectionInner({
     setSelectedFiles([])
     setUploadCategory('gallery')
     if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function resetFilters() {
+    setCategoryFilter('all')
+    setStatusFilter('all')
+    setVisibilityFilter('all')
+    setSortMode('created_desc')
+    setSearchTerm('')
+    setIsFilterOpen(false)
   }
 
   function startEditing(item: FansubGroupMediaItem) {
@@ -317,6 +342,7 @@ function GroupMediaReviewSectionInner({
       } else {
         resetUploadForm()
         setToast('Medien hochgeladen. Auswahl wurde zurückgesetzt.')
+        setIsUploadOpen(false)
       }
       await loadMedia()
     } catch (err) {
@@ -388,17 +414,31 @@ function GroupMediaReviewSectionInner({
   return (
     <div className={styles.reviewSection}>
       <Toolbar
+        className={styles.mediaToolbar}
         leading={
           <SectionHeader
             title="Medien prüfen"
             description="Gruppenmedien hochladen, filtern und gezielt bearbeiten."
           />
         }
+        trailing={
+          canUpload ? (
+            <Button
+              variant={shouldShowUploadPanel ? 'secondary' : 'primary'}
+              size="sm"
+              leftIcon={shouldShowUploadPanel ? <X size={16} /> : <UploadCloud size={16} />}
+              onClick={() => setIsUploadOpen((current) => !current)}
+              aria-expanded={shouldShowUploadPanel}
+            >
+              {shouldShowUploadPanel ? 'Upload schließen' : 'Medien hochladen'}
+            </Button>
+          ) : null
+        }
       />
 
       {toast ? <p className={styles.toastSuccess} role="status">{toast}</p> : null}
 
-      {canUpload ? (
+      {shouldShowUploadPanel ? (
         <Card
           variant="section"
           className={styles.uploadPanel}
@@ -465,14 +505,39 @@ function GroupMediaReviewSectionInner({
       <Card
         variant="section"
         className={styles.managementPanel}
-        header={
-          <SectionHeader
-            title="Medienübersicht"
-            description={`${filteredMediaItems.length} von ${mediaItems.length} Medien sichtbar`}
-          />
-        }
       >
-        <div className={styles.filterBar}>
+        <div className={styles.managementToolbar}>
+          <div className={styles.managementSummary}>
+            <h2>Medienübersicht</h2>
+            <p className={styles.resultSummary}>
+              <span className={styles.desktopSummary}>
+                {filteredMediaItems.length} von {mediaItems.length} Medien sichtbar · {visibleMediaItems.length} geladen, {remainingMediaCount} weitere per Klick
+              </span>
+              <span className={styles.mobileSummary}>
+                {visibleMediaItems.length} geladen · {remainingMediaCount} weitere
+              </span>
+            </p>
+          </div>
+          <div className={styles.managementActions}>
+            {activeFilterCount > 0 ? (
+              <Button variant="ghost" size="sm" onClick={resetFilters}>
+                Filter zurücksetzen ({activeFilterCount})
+              </Button>
+            ) : null}
+            <Button
+              variant="secondary"
+              size="sm"
+              className={styles.filterToggleButton}
+              leftIcon={<Filter size={16} />}
+              onClick={() => setIsFilterOpen((current) => !current)}
+              aria-expanded={isFilterOpen}
+            >
+              Filter
+            </Button>
+          </div>
+        </div>
+
+        <div className={classNames(styles.filterBar, isFilterOpen && styles.filterBarOpen)}>
           <FormField label="Kategorie">
             <Select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}>
               <option value="all">Alle Kategorien</option>
@@ -530,12 +595,10 @@ function GroupMediaReviewSectionInner({
         ) : (
           <div className={styles.mediaReviewGrid}>
             {visibleMediaItems.map((item) => {
-              const draft = drafts[item.id] ?? itemToDraft(item)
               const persisted = itemToDraft(item)
               const reviewStatus = getReviewStatusOption(persisted.review_status)
               const isEditing = editingMediaId === item.id
               const overviewImageURL = getOverviewImageURL(item)
-              const detailImageURL = getDetailImageURL(item)
               const displayTitle = getMediaDisplayTitle(item)
               const uploaderLine = getUploaderLine(item)
 
@@ -595,145 +658,6 @@ function GroupMediaReviewSectionInner({
                     </div>
                   </div>
 
-                  {isEditing ? (
-                    <div className={styles.detailPanel}>
-                      <div className={styles.detailPreviewFrame}>
-                        {detailImageURL && !failedDetailIds[item.id] ? (
-                          <Image
-                            src={resolveApiUrl(detailImageURL)}
-                            alt={persisted.alt_text || displayTitle}
-                            fill
-                            sizes="(max-width: 700px) 100vw, 720px"
-                            unoptimized
-                            loading="lazy"
-                            onError={() => setFailedDetailIds((prev) => ({ ...prev, [item.id]: true }))}
-                          />
-                        ) : (
-                          <span>Keine große Vorschau</span>
-                        )}
-                      </div>
-
-                      <div className={styles.detailGrid}>
-                        <FormField label="Titel">
-                          <Input
-                            value={draft.title}
-                            disabled={!canUpdate}
-                            onChange={(event) => updateDraft(item.id, 'title', event.target.value)}
-                          />
-                        </FormField>
-
-                        <FormField label="Alternativtext">
-                          <Input
-                            value={draft.alt_text}
-                            disabled={!canUpdate}
-                            onChange={(event) => updateDraft(item.id, 'alt_text', event.target.value)}
-                          />
-                        </FormField>
-                      </div>
-
-                      <FormField label="Beschreibung">
-                        <Textarea
-                          value={draft.description}
-                          disabled={!canUpdate}
-                          rows={3}
-                          onChange={(event) => updateDraft(item.id, 'description', event.target.value)}
-                        />
-                      </FormField>
-
-                      <div className={styles.detailGrid}>
-                        <FormField label="Kategorie">
-                          <Select
-                            value={draft.category}
-                            disabled={!canUpdate}
-                            onChange={(event) => updateDraft(item.id, 'category', event.target.value as FansubGroupMediaCategory)}
-                          >
-                            {CATEGORY_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                          </Select>
-                        </FormField>
-
-                        <FormField label="Sortierung">
-                          <Input
-                            type="number"
-                            min={0}
-                            value={draft.sort_order}
-                            disabled={!canUpdate}
-                            onChange={(event) => updateDraft(item.id, 'sort_order', Number(event.target.value))}
-                          />
-                        </FormField>
-                      </div>
-
-                      <div className={styles.detailGrid}>
-                        <FormField label="Sichtbarkeit">
-                          <Select
-                            value={draft.visibility}
-                            disabled={!canUpdate}
-                            onChange={(event) => updateDraft(item.id, 'visibility', event.target.value as FansubMediaVisibility)}
-                          >
-                            {VISIBILITY_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                          </Select>
-                        </FormField>
-
-                        <FormField label="Prüfstatus">
-                          <Select
-                            value={draft.review_status}
-                            disabled={!canUpdate}
-                            onChange={(event) => updateDraft(item.id, 'review_status', event.target.value as FansubMediaReviewStatus)}
-                          >
-                            {REVIEW_STATUS_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                          </Select>
-                        </FormField>
-                      </div>
-
-                      {saveErrors[item.id] ? <p className={styles.inlineError} role="alert">{saveErrors[item.id]}</p> : null}
-
-                      <div className={styles.cardFooterActions}>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          leftIcon={<X size={16} />}
-                          disabled={saving[item.id] ?? false}
-                          onClick={() => cancelEditing(item)}
-                        >
-                          {canUpdate ? 'Abbrechen' : 'Schließen'}
-                        </Button>
-                        {canUpdate ? (
-                          <Button
-                            variant="success"
-                            size="sm"
-                            leftIcon={<Save size={16} />}
-                            disabled={saving[item.id] ?? false}
-                            onClick={() => void handleSave(item)}
-                          >
-                            Änderungen speichern
-                          </Button>
-                        ) : null}
-                      </div>
-
-                      {canDelete ? (
-                        <div className={styles.dangerZone}>
-                          <div className={styles.dangerZoneText}>
-                            <strong>Aus Gruppenmedien entfernen</strong>
-                            <p>Entfernt die Zuordnung aus dieser Gruppenverwaltung. Datei und Asset werden nicht endgültig gelöscht.</p>
-                          </div>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            leftIcon={<Archive size={16} />}
-                            disabled={saving[item.id] ?? false}
-                            onClick={() => setPendingDeleteItem(item)}
-                          >
-                            Aus Gruppenmedien entfernen
-                          </Button>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
                 </Card>
               )
             })}
@@ -752,6 +676,170 @@ function GroupMediaReviewSectionInner({
           </div>
         ) : null}
       </Card>
+
+      <Drawer
+        open={editingItem !== null}
+        onClose={() => {
+          if (editingItem) cancelEditing(editingItem)
+        }}
+        title={editingItem ? getMediaDisplayTitle(editingItem) : 'Medium bearbeiten'}
+        description={editingItem ? getUploaderLine(editingItem) : undefined}
+        footer={
+          editingItem ? (
+            <div className={styles.drawerActions}>
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<X size={16} />}
+                disabled={saving[editingItem.id] ?? false}
+                onClick={() => cancelEditing(editingItem)}
+              >
+                {canUpdate ? 'Abbrechen' : 'Schließen'}
+              </Button>
+              {canUpdate ? (
+                <Button
+                  variant="success"
+                  size="sm"
+                  leftIcon={<Save size={16} />}
+                  disabled={saving[editingItem.id] ?? false}
+                  onClick={() => void handleSave(editingItem)}
+                >
+                  Änderungen speichern
+                </Button>
+              ) : null}
+            </div>
+          ) : null
+        }
+      >
+        {editingItem ? (
+          <div className={styles.drawerDetail}>
+            {(() => {
+              const draft = drafts[editingItem.id] ?? itemToDraft(editingItem)
+              const persisted = itemToDraft(editingItem)
+              const detailImageURL = getDetailImageURL(editingItem)
+              const displayTitle = getMediaDisplayTitle(editingItem)
+
+              return (
+                <>
+                  <div className={styles.detailPreviewFrame}>
+                    {detailImageURL && !failedDetailIds[editingItem.id] ? (
+                      <Image
+                        src={resolveApiUrl(detailImageURL)}
+                        alt={persisted.alt_text || displayTitle}
+                        fill
+                        sizes="(max-width: 700px) 100vw, 720px"
+                        unoptimized
+                        loading="lazy"
+                        onError={() => setFailedDetailIds((prev) => ({ ...prev, [editingItem.id]: true }))}
+                      />
+                    ) : (
+                      <span>Keine große Vorschau</span>
+                    )}
+                  </div>
+
+                  <div className={styles.detailGrid}>
+                    <FormField label="Titel">
+                      <Input
+                        value={draft.title}
+                        disabled={!canUpdate}
+                        onChange={(event) => updateDraft(editingItem.id, 'title', event.target.value)}
+                      />
+                    </FormField>
+
+                    <FormField label="Alternativtext">
+                      <Input
+                        value={draft.alt_text}
+                        disabled={!canUpdate}
+                        onChange={(event) => updateDraft(editingItem.id, 'alt_text', event.target.value)}
+                      />
+                    </FormField>
+                  </div>
+
+                  <FormField label="Beschreibung">
+                    <Textarea
+                      value={draft.description}
+                      disabled={!canUpdate}
+                      rows={4}
+                      onChange={(event) => updateDraft(editingItem.id, 'description', event.target.value)}
+                    />
+                  </FormField>
+
+                  <div className={styles.detailGrid}>
+                    <FormField label="Kategorie">
+                      <Select
+                        value={draft.category}
+                        disabled={!canUpdate}
+                        onChange={(event) => updateDraft(editingItem.id, 'category', event.target.value as FansubGroupMediaCategory)}
+                      >
+                        {CATEGORY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </Select>
+                    </FormField>
+
+                    <FormField label="Sortierung">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={draft.sort_order}
+                        disabled={!canUpdate}
+                        onChange={(event) => updateDraft(editingItem.id, 'sort_order', Number(event.target.value))}
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className={styles.detailGrid}>
+                    <FormField label="Sichtbarkeit">
+                      <Select
+                        value={draft.visibility}
+                        disabled={!canUpdate}
+                        onChange={(event) => updateDraft(editingItem.id, 'visibility', event.target.value as FansubMediaVisibility)}
+                      >
+                        {VISIBILITY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </Select>
+                    </FormField>
+
+                    <FormField label="Prüfstatus">
+                      <Select
+                        value={draft.review_status}
+                        disabled={!canUpdate}
+                        onChange={(event) => updateDraft(editingItem.id, 'review_status', event.target.value as FansubMediaReviewStatus)}
+                      >
+                        {REVIEW_STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </Select>
+                    </FormField>
+                  </div>
+
+                  {saveErrors[editingItem.id] ? <p className={styles.inlineError} role="alert">{saveErrors[editingItem.id]}</p> : null}
+
+                  {canDelete ? (
+                    <div className={styles.dangerZone}>
+                      <div className={styles.dangerZoneText}>
+                        <strong>Aus Gruppenmedien entfernen</strong>
+                        <p>Entfernt die Zuordnung aus dieser Gruppenverwaltung. Datei und Asset werden nicht endgültig gelöscht.</p>
+                      </div>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        leftIcon={<Archive size={16} />}
+                        disabled={saving[editingItem.id] ?? false}
+                        onClick={() => setPendingDeleteItem(editingItem)}
+                      >
+                        Aus Gruppenmedien entfernen
+                      </Button>
+                    </div>
+                  ) : null}
+                </>
+              )
+            })()}
+          </div>
+        ) : null}
+      </Drawer>
+
       <Modal
         open={pendingDeleteItem !== null}
         onClose={() => {

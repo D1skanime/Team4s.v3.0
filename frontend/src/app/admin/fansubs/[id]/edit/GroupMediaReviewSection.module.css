@@ -9,18 +9,27 @@
   gap: var(--space-4);
 }
 
+.mediaToolbar {
+  align-items: center;
+}
+
+.managementPanel {
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
 .uploadControls {
   display: grid;
   grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
-  gap: var(--space-4);
+  gap: var(--space-3);
   align-items: start;
 }
 
 .dropZone {
   display: grid;
   gap: var(--space-2);
-  min-height: 8.5rem;
-  padding: var(--space-4);
+  min-height: 6rem;
+  padding: var(--space-3);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--surface-muted) 70%, transparent);
@@ -51,10 +60,55 @@
 }
 
 .filterBar {
-  display: grid;
+  display: none;
   grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: var(--space-3);
   align-items: end;
+}
+
+.filterBarOpen {
+  display: grid;
+}
+
+.managementToolbar {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.managementSummary {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.managementSummary h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.managementActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.filterToggleButton {
+  display: inline-flex;
+}
+
+.resultSummary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.mobileSummary {
+  display: none;
 }
 
 .mediaReviewGrid {
@@ -162,6 +216,11 @@
   background: var(--surface-card-muted);
 }
 
+.drawerDetail {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .detailPreviewFrame {
   position: relative;
   display: grid;
@@ -192,6 +251,14 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+.drawerActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  width: 100%;
 }
 
 .dangerZone {
@@ -276,26 +343,99 @@
 
 @media (max-width: 600px) {
   .uploadControls,
-  .filterBar,
-  .mediaReviewGrid,
   .detailGrid {
     grid-template-columns: 1fr;
   }
 
-  .mediaCompactRow {
+  .managementToolbar {
+    align-items: center;
+  }
+
+  .managementSummary h2 {
+    font-size: 0.98rem;
+  }
+
+  .desktopSummary {
+    display: none;
+  }
+
+  .mobileSummary {
+    display: inline;
+  }
+
+  .mediaToolbar :global([class*="sectionDescription"]) {
+    display: none;
+  }
+
+  .managementActions {
+    justify-content: flex-end;
+  }
+
+  .managementActions > * {
+    flex: 1 1 auto;
+  }
+
+  .filterBar {
     grid-template-columns: 1fr;
   }
 
+  .filterBarOpen {
+    display: grid;
+  }
+
+  .mediaReviewGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .mediaCompactRow {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: var(--space-2);
+    align-items: start;
+    padding: var(--space-2);
+  }
+
   .previewFrame {
-    width: 100%;
-    aspect-ratio: 16 / 9;
+    width: 72px;
+    aspect-ratio: 1;
+  }
+
+  .mediaTitleRow {
+    gap: var(--space-1);
+  }
+
+  .mediaTitleRow h3 {
+    display: -webkit-box;
+    font-size: 0.9rem;
+    line-height: 1.25;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .badgeRow {
+    gap: var(--space-1);
+  }
+
+  .mediaMetaLine {
+    font-size: 0.75rem;
   }
 
   .compactActions,
   .cardFooterActions,
   .dangerZone,
+  .drawerActions,
   .modalActions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .compactActions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .detailPreviewFrame {
+    aspect-ratio: 4 / 3;
   }
 }
