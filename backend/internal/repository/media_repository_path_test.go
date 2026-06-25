@@ -57,4 +57,16 @@ func TestListFansubGroupMediaForReviewExcludesBrandingSlots(t *testing.T) {
 	if !strings.Contains(source, "variant = 'original'") {
 		t.Fatal("Review-Query muss media_files.original als Detail-/Fallback-Quelle unterscheiden")
 	}
+	if !strings.Contains(source, "FROM app_users au") {
+		t.Fatal("Review-Query muss technische Upload-User auf app_users auflösen")
+	}
+	if !strings.Contains(source, "fansub_group_members uploader_membership") {
+		t.Fatal("Review-Query muss fachliche Gruppenmitgliedschaften für den Uploader berücksichtigen")
+	}
+	if !strings.Contains(source, "members uploader_member") {
+		t.Fatal("Review-Query muss vorhandene Mitglieder-Anzeigenamen für den Uploader bevorzugen")
+	}
+	if !strings.Contains(source, "COALESCE(uploader_identity.display_name, NULLIF(BTRIM(u.username), '')) AS uploaded_by_name") {
+		t.Fatal("Review-Query muss auf den technischen Benutzernamen zurückfallen, wenn keine fachliche Anzeige verfügbar ist")
+	}
 }

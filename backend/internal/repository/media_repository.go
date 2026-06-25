@@ -546,7 +546,7 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			fgm.alt_text   AS alt_text,
 			fgm.category   AS category,
 			fgm.sort_order AS sort_order,
-			u.username     AS uploaded_by_name,
+			COALESCE(uploader_identity.display_name, NULLIF(BTRIM(u.username), '')) AS uploaded_by_name,
 			fgm.created_at AS created_at,
 			fgm.updated_at AS updated_at,
 			'fansub_group' AS owner_type,
@@ -575,6 +575,23 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 		LEFT JOIN visibilities v ON v.id = ma.visibility_id
 		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
 		LEFT JOIN users u ON u.id = fgm.uploaded_by_user_id
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(
+				NULLIF(BTRIM(uploader_member.display_name), ''),
+				NULLIF(BTRIM(uploader_member.nickname), ''),
+				NULLIF(BTRIM(au.display_name), ''),
+				NULLIF(BTRIM(au.preferred_username), '')
+			) AS display_name
+			FROM app_users au
+			LEFT JOIN fansub_group_members uploader_membership
+				ON uploader_membership.fansub_group_id = fgm.group_id
+			   AND uploader_membership.app_user_id = au.id
+			   AND uploader_membership.status = 'active'
+			LEFT JOIN members uploader_member ON uploader_member.id = uploader_membership.member_id
+			WHERE au.legacy_user_id = u.id
+			ORDER BY CASE WHEN uploader_membership.member_id IS NOT NULL THEN 0 ELSE 1 END, au.id DESC
+			LIMIT 1
+		) uploader_identity ON TRUE
 		WHERE fgm.group_id = $1
 		  AND fgm.deleted_at IS NULL
 		  AND (fg.logo_id IS NULL OR ma.id <> fg.logo_id)

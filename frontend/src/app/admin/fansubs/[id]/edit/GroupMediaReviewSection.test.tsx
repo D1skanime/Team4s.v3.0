@@ -177,6 +177,35 @@ describe('GroupMediaReviewSection', () => {
     expect(overviewImage.getAttribute('src')).toBe('/media/group/101-original.jpg')
   })
 
+  it('zeigt bei fehlendem Titel einen fachlichen Fallback statt einer technischen Medium-ID', async () => {
+    renderSection([
+      mediaItem({
+        id: 19,
+        title: null,
+        alt_text: null,
+        category: 'artwork_fanart',
+        created_at: '2026-06-25T12:00:00Z',
+      }),
+    ])
+
+    expect(await screen.findByText('Artwork vom 25.06.2026')).toBeTruthy()
+    expect(screen.queryByText('Medium #19')).toBeNull()
+    expect(screen.queryByText('Medium / 19')).toBeNull()
+  })
+
+  it('zeigt Uploader und Upload-Datum als kompakte Nutzerzeile', async () => {
+    renderSection([
+      mediaItem({
+        id: 101,
+        uploaded_by_display_name: 'Aolid',
+        created_at: '2026-06-25T12:00:00Z',
+      }),
+    ])
+
+    expect(await screen.findByText('Hochgeladen von Aolid am 25.06.2026')).toBeTruthy()
+    expect(screen.queryByText('Uploader')).toBeNull()
+  })
+
   it('öffnet die Detailbearbeitung nur für ein Medium und speichert dessen Draft', async () => {
     renderSection([
       mediaItem({ id: 101, title: 'Erstes Medium' }),
@@ -242,11 +271,20 @@ describe('GroupMediaReviewSection', () => {
     })
   })
 
-  it('benennt Entfernen als Verwaltungsvorgang', async () => {
-    renderSection([mediaItem({ id: 101 })])
+  it('entfernt Gruppenmedien erst nach Detail-Danger-Zone und Modal-Bestätigung', async () => {
+    renderSection([mediaItem({ id: 101, title: 'Altes Medium' })])
     deleteFansubGroupMedia.mockResolvedValue(undefined)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Aus Verwaltung entfernen' }))
+    expect(screen.queryByRole('button', { name: 'Aus Gruppenmedien entfernen' })).toBeNull()
+
+    await screen.findByText('Altes Medium')
+    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Aus Gruppenmedien entfernen' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Medium aus Gruppenmedien entfernen')).toBeTruthy()
+    expect(within(dialog).getByText(/Datei und Asset werden nicht endgültig gelöscht/)).toBeTruthy()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Aus Gruppenmedien entfernen' }))
 
     await waitFor(() => {
       expect(deleteFansubGroupMedia).toHaveBeenCalledWith(88, 101)

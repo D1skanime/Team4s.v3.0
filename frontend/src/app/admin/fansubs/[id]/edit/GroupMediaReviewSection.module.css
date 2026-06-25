@@ -140,27 +140,11 @@
   gap: var(--space-2);
 }
 
-.compactMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+.mediaMetaLine {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.8rem;
-}
-
-.compactMeta div {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.compactMeta dt {
-  color: var(--text-soft);
-  font-weight: 700;
-}
-
-.compactMeta dd {
-  margin: 0;
+  line-height: 1.4;
 }
 
 .compactActions {
@@ -206,6 +190,43 @@
 
 .cardFooterActions {
   display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.dangerZone {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-error) 35%, var(--border-subtle));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-error) 8%, var(--surface-card));
+}
+
+.dangerZoneText {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.dangerZoneText strong {
+  color: var(--text-strong);
+  font-size: 0.9rem;
+}
+
+.dangerZoneText p,
+.modalText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-2);
 }
@@ -271,7 +292,10 @@
   }
 
   .compactActions,
-  .cardFooterActions {
+  .cardFooterActions,
+  .dangerZone,
+  .modalActions {
     flex-direction: column;
+    align-items: stretch;
   }
 }

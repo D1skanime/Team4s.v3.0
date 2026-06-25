@@ -13,6 +13,7 @@ import {
   FormField,
   Input,
   LoadingState,
+  Modal,
   SectionHeader,
   Select,
   Textarea,
@@ -126,6 +127,39 @@ function getDetailImageURL(item: FansubGroupMediaItem): string {
   return item.original_url || item.preview_url || item.thumbnail_url || ''
 }
 
+function getMediaDisplayTitle(item: FansubGroupMediaItem): string {
+  const title = item.title?.trim()
+  if (title) return title
+
+  const date = formatDate(item.created_at)
+  const suffix = date ? ` vom ${date}` : ''
+
+  switch (item.category) {
+    case 'artwork_fanart':
+      return `Artwork${suffix}`
+    case 'event_meeting':
+      return `Treffen${suffix}`
+    case 'forum':
+      return `Forenbild${suffix}`
+    case 'history_screenshot':
+      return `Historischer Screenshot${suffix}`
+    case 'irc_chat':
+      return `Chatbild${suffix}`
+    case 'old_website':
+      return `Webseitenbild${suffix}`
+    case 'gallery':
+      return `Galeriebild${suffix}`
+    default:
+      return `Gruppenbild${suffix}`
+  }
+}
+
+function getUploaderLine(item: FansubGroupMediaItem): string {
+  const uploader = item.uploaded_by_display_name?.trim() || 'Unbekannt'
+  const createdAt = formatDate(item.created_at)
+  return createdAt ? `Hochgeladen von ${uploader} am ${createdAt}` : `Hochgeladen von ${uploader}`
+}
+
 export function GroupMediaReviewSection({ fansubId, capabilities }: GroupMediaReviewSectionProps) {
   const canUseMedia =
     capabilities.can_view_group_media ||
@@ -166,6 +200,7 @@ function GroupMediaReviewSectionInner({
   const [visibleLimit, setVisibleLimit] = useState(INITIAL_VISIBLE_MEDIA_COUNT)
   const [failedPreviewIds, setFailedPreviewIds] = useState<Record<number, boolean>>({})
   const [failedDetailIds, setFailedDetailIds] = useState<Record<number, boolean>>({})
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<FansubGroupMediaItem | null>(null)
 
   const canUpdate = capabilities.can_update_group_media || capabilities.can_edit_group
   const canUpload = capabilities.can_upload_group_media || capabilities.can_edit_group
@@ -205,7 +240,7 @@ function GroupMediaReviewSectionInner({
         const matchesVisibility = visibilityFilter === 'all' || draft.visibility === visibilityFilter
         const matchesSearch =
           normalizedSearch.length === 0 ||
-          [item.title, item.description, item.alt_text, item.uploaded_by_display_name]
+          [getMediaDisplayTitle(item), item.description, item.alt_text, item.uploaded_by_display_name]
             .filter(Boolean)
             .some((value) => String(value).toLowerCase().includes(normalizedSearch))
 
@@ -327,14 +362,15 @@ function GroupMediaReviewSectionInner({
     setSaving((prev) => ({ ...prev, [item.id]: true }))
     try {
       await deleteFansubGroupMedia(fansubId, item.id)
-      setToast('Medium aus der Verwaltung entfernt.')
+      setToast('Medium aus den Gruppenmedien entfernt.')
+      setPendingDeleteItem(null)
       if (editingMediaId === item.id) setEditingMediaId(null)
       await loadMedia()
       setTimeout(() => setToast(null), 3500)
     } catch (err) {
       setSaveErrors((prev) => ({
         ...prev,
-        [item.id]: readErrorMessage(err, 'Medium konnte nicht aus der Verwaltung entfernt werden.'),
+        [item.id]: readErrorMessage(err, 'Medium konnte nicht aus den Gruppenmedien entfernt werden.'),
       }))
     } finally {
       setSaving((prev) => ({ ...prev, [item.id]: false }))
@@ -497,10 +533,11 @@ function GroupMediaReviewSectionInner({
               const draft = drafts[item.id] ?? itemToDraft(item)
               const persisted = itemToDraft(item)
               const reviewStatus = getReviewStatusOption(persisted.review_status)
-              const createdAt = formatDate(item.created_at)
               const isEditing = editingMediaId === item.id
               const overviewImageURL = getOverviewImageURL(item)
               const detailImageURL = getDetailImageURL(item)
+              const displayTitle = getMediaDisplayTitle(item)
+              const uploaderLine = getUploaderLine(item)
 
               return (
                 <Card key={item.id} variant="nested" className={styles.mediaCard}>
@@ -515,12 +552,12 @@ function GroupMediaReviewSectionInner({
                       type="button"
                       className={styles.previewFrame}
                       onClick={() => startEditing(item)}
-                      aria-label={`${persisted.title || `Medium ${item.id}`} öffnen`}
+                      aria-label={`${displayTitle} öffnen`}
                     >
                       {overviewImageURL && !failedPreviewIds[item.id] ? (
                         <Image
                           src={resolveApiUrl(overviewImageURL)}
-                          alt={persisted.alt_text || persisted.title || 'Gruppenmedium'}
+                          alt={persisted.alt_text || displayTitle}
                           fill
                           sizes="96px"
                           unoptimized
@@ -534,25 +571,14 @@ function GroupMediaReviewSectionInner({
 
                     <div className={styles.mediaSummary}>
                       <div className={styles.mediaTitleRow}>
-                        <h3>{persisted.title || `Medium #${item.id}`}</h3>
+                        <h3>{displayTitle}</h3>
                         <Badge variant="neutral">{getCategoryLabel(persisted.category)}</Badge>
                       </div>
                       <div className={styles.badgeRow}>
                         <Badge variant={reviewStatus.variant}>{reviewStatus.label}</Badge>
                         <Badge variant="info">{getVisibilityLabel(persisted.visibility)}</Badge>
                       </div>
-                      <dl className={styles.compactMeta}>
-                        <div>
-                          <dt>Uploader</dt>
-                          <dd>{item.uploaded_by_display_name ?? 'Unbekannt'}</dd>
-                        </div>
-                        {createdAt ? (
-                          <div>
-                            <dt>Upload</dt>
-                            <dd>{createdAt}</dd>
-                          </div>
-                        ) : null}
-                      </dl>
+                      <p className={styles.mediaMetaLine}>{uploaderLine}</p>
                     </div>
 
                     <div className={styles.compactActions}>
@@ -566,17 +592,6 @@ function GroupMediaReviewSectionInner({
                           {isEditing ? 'Schließen' : 'Bearbeiten'}
                         </Button>
                       ) : null}
-                      {canDelete ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={<Archive size={16} />}
-                          disabled={saving[item.id] ?? false}
-                          onClick={() => void handleDelete(item)}
-                        >
-                          Aus Verwaltung entfernen
-                        </Button>
-                      ) : null}
                     </div>
                   </div>
 
@@ -586,7 +601,7 @@ function GroupMediaReviewSectionInner({
                         {detailImageURL && !failedDetailIds[item.id] ? (
                           <Image
                             src={resolveApiUrl(detailImageURL)}
-                            alt={persisted.alt_text || persisted.title || 'Gruppenmedium'}
+                            alt={persisted.alt_text || displayTitle}
                             fill
                             sizes="(max-width: 700px) 100vw, 720px"
                             unoptimized
@@ -699,6 +714,24 @@ function GroupMediaReviewSectionInner({
                           </Button>
                         ) : null}
                       </div>
+
+                      {canDelete ? (
+                        <div className={styles.dangerZone}>
+                          <div className={styles.dangerZoneText}>
+                            <strong>Aus Gruppenmedien entfernen</strong>
+                            <p>Entfernt die Zuordnung aus dieser Gruppenverwaltung. Datei und Asset werden nicht endgültig gelöscht.</p>
+                          </div>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            leftIcon={<Archive size={16} />}
+                            disabled={saving[item.id] ?? false}
+                            onClick={() => setPendingDeleteItem(item)}
+                          >
+                            Aus Gruppenmedien entfernen
+                          </Button>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </Card>
@@ -719,6 +752,42 @@ function GroupMediaReviewSectionInner({
           </div>
         ) : null}
       </Card>
+      <Modal
+        open={pendingDeleteItem !== null}
+        onClose={() => {
+          if (!pendingDeleteItem || saving[pendingDeleteItem.id]) return
+          setPendingDeleteItem(null)
+        }}
+        title="Medium aus Gruppenmedien entfernen"
+        description="Die Zuordnung wird aus der Gruppenverwaltung entfernt. Datei und Asset werden nicht endgültig gelöscht."
+        footer={
+          <div className={styles.modalActions}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={pendingDeleteItem ? saving[pendingDeleteItem.id] ?? false : false}
+              onClick={() => setPendingDeleteItem(null)}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              leftIcon={<Archive size={16} />}
+              loading={pendingDeleteItem ? saving[pendingDeleteItem.id] ?? false : false}
+              onClick={() => {
+                if (pendingDeleteItem) void handleDelete(pendingDeleteItem)
+              }}
+            >
+              Aus Gruppenmedien entfernen
+            </Button>
+          </div>
+        }
+      >
+        <p className={styles.modalText}>
+          {pendingDeleteItem ? `${getMediaDisplayTitle(pendingDeleteItem)} wird aus den Gruppenmedien entfernt.` : ''}
+        </p>
+      </Modal>
     </div>
   )
 }
