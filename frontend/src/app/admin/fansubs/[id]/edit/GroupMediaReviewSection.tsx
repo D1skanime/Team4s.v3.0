@@ -54,6 +54,9 @@ type ReviewStatusFilter = 'all' | FansubMediaReviewStatus
 type VisibilityFilter = 'all' | FansubMediaVisibility
 type SortMode = 'created_desc' | 'created_asc' | 'sort_order'
 
+const INITIAL_VISIBLE_MEDIA_COUNT = 40
+const LOAD_MORE_MEDIA_COUNT = 40
+
 const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
   { value: 'gallery', label: 'Galerie' },
   { value: 'history_screenshot', label: 'Historische Screenshots' },
@@ -115,6 +118,14 @@ function formatDate(value: string | null | undefined): string {
   return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
 }
 
+function getOverviewImageURL(item: FansubGroupMediaItem): string {
+  return item.thumbnail_url || item.preview_url || item.original_url || ''
+}
+
+function getDetailImageURL(item: FansubGroupMediaItem): string {
+  return item.original_url || item.preview_url || item.thumbnail_url || ''
+}
+
 export function GroupMediaReviewSection({ fansubId, capabilities }: GroupMediaReviewSectionProps) {
   const canUseMedia =
     capabilities.can_view_group_media ||
@@ -152,6 +163,9 @@ function GroupMediaReviewSectionInner({
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('all')
   const [sortMode, setSortMode] = useState<SortMode>('created_desc')
   const [searchTerm, setSearchTerm] = useState('')
+  const [visibleLimit, setVisibleLimit] = useState(INITIAL_VISIBLE_MEDIA_COUNT)
+  const [failedPreviewIds, setFailedPreviewIds] = useState<Record<number, boolean>>({})
+  const [failedDetailIds, setFailedDetailIds] = useState<Record<number, boolean>>({})
 
   const canUpdate = capabilities.can_update_group_media || capabilities.can_edit_group
   const canUpload = capabilities.can_upload_group_media || capabilities.can_edit_group
@@ -204,6 +218,17 @@ function GroupMediaReviewSectionInner({
         return sortMode === 'created_asc' ? leftDate - rightDate : rightDate - leftDate
       })
   }, [categoryFilter, mediaItems, searchTerm, sortMode, statusFilter, visibilityFilter])
+
+  useEffect(() => {
+    setVisibleLimit(INITIAL_VISIBLE_MEDIA_COUNT)
+  }, [categoryFilter, searchTerm, sortMode, statusFilter, visibilityFilter])
+
+  const visibleMediaItems = useMemo(
+    () => filteredMediaItems.slice(0, visibleLimit),
+    [filteredMediaItems, visibleLimit],
+  )
+
+  const remainingMediaCount = Math.max(filteredMediaItems.length - visibleMediaItems.length, 0)
 
   function updateDraft<K extends keyof MediaDraft>(mediaId: number, field: K, value: MediaDraft[K]) {
     setDrafts((prev) => ({
@@ -468,12 +493,14 @@ function GroupMediaReviewSectionInner({
           />
         ) : (
           <div className={styles.mediaReviewGrid}>
-            {filteredMediaItems.map((item) => {
+            {visibleMediaItems.map((item) => {
               const draft = drafts[item.id] ?? itemToDraft(item)
               const persisted = itemToDraft(item)
               const reviewStatus = getReviewStatusOption(persisted.review_status)
               const createdAt = formatDate(item.created_at)
               const isEditing = editingMediaId === item.id
+              const overviewImageURL = getOverviewImageURL(item)
+              const detailImageURL = getDetailImageURL(item)
 
               return (
                 <Card key={item.id} variant="nested" className={styles.mediaCard}>
@@ -484,19 +511,26 @@ function GroupMediaReviewSectionInner({
                   ) : null}
 
                   <div className={styles.mediaCompactRow}>
-                    <div className={styles.previewFrame}>
-                      {item.preview_url ? (
+                    <button
+                      type="button"
+                      className={styles.previewFrame}
+                      onClick={() => startEditing(item)}
+                      aria-label={`${persisted.title || `Medium ${item.id}`} öffnen`}
+                    >
+                      {overviewImageURL && !failedPreviewIds[item.id] ? (
                         <Image
-                          src={resolveApiUrl(item.preview_url)}
+                          src={resolveApiUrl(overviewImageURL)}
                           alt={persisted.alt_text || persisted.title || 'Gruppenmedium'}
                           fill
                           sizes="96px"
                           unoptimized
+                          loading="lazy"
+                          onError={() => setFailedPreviewIds((prev) => ({ ...prev, [item.id]: true }))}
                         />
                       ) : (
                         <span>Keine Vorschau</span>
                       )}
-                    </div>
+                    </button>
 
                     <div className={styles.mediaSummary}>
                       <div className={styles.mediaTitleRow}>
@@ -548,6 +582,22 @@ function GroupMediaReviewSectionInner({
 
                   {isEditing ? (
                     <div className={styles.detailPanel}>
+                      <div className={styles.detailPreviewFrame}>
+                        {detailImageURL && !failedDetailIds[item.id] ? (
+                          <Image
+                            src={resolveApiUrl(detailImageURL)}
+                            alt={persisted.alt_text || persisted.title || 'Gruppenmedium'}
+                            fill
+                            sizes="(max-width: 700px) 100vw, 720px"
+                            unoptimized
+                            loading="lazy"
+                            onError={() => setFailedDetailIds((prev) => ({ ...prev, [item.id]: true }))}
+                          />
+                        ) : (
+                          <span>Keine große Vorschau</span>
+                        )}
+                      </div>
+
                       <div className={styles.detailGrid}>
                         <FormField label="Titel">
                           <Input
@@ -635,17 +685,19 @@ function GroupMediaReviewSectionInner({
                           disabled={saving[item.id] ?? false}
                           onClick={() => cancelEditing(item)}
                         >
-                          Abbrechen
+                          {canUpdate ? 'Abbrechen' : 'Schließen'}
                         </Button>
-                        <Button
-                          variant="success"
-                          size="sm"
-                          leftIcon={<Save size={16} />}
-                          disabled={saving[item.id] ?? false}
-                          onClick={() => void handleSave(item)}
-                        >
-                          Änderungen speichern
-                        </Button>
+                        {canUpdate ? (
+                          <Button
+                            variant="success"
+                            size="sm"
+                            leftIcon={<Save size={16} />}
+                            disabled={saving[item.id] ?? false}
+                            onClick={() => void handleSave(item)}
+                          >
+                            Änderungen speichern
+                          </Button>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}
@@ -654,6 +706,18 @@ function GroupMediaReviewSectionInner({
             })}
           </div>
         )}
+
+        {remainingMediaCount > 0 ? (
+          <div className={styles.loadMoreRow}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setVisibleLimit((current) => current + LOAD_MORE_MEDIA_COUNT)}
+            >
+              Weitere Medien anzeigen ({remainingMediaCount})
+            </Button>
+          </div>
+        ) : null}
       </Card>
     </div>
   )

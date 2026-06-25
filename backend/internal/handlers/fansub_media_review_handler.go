@@ -109,6 +109,8 @@ func NewFansubMediaReviewHandler(
 type fansubGroupMediaItemResponse struct {
 	ID              int64   `json:"id"`
 	PreviewURL      string  `json:"preview_url,omitempty"`
+	ThumbnailURL    string  `json:"thumbnail_url,omitempty"`
+	OriginalURL     string  `json:"original_url,omitempty"`
 	Visibility      *string `json:"visibility"`
 	ReviewStatus    *string `json:"review_status"`
 	Title           *string `json:"title"`
@@ -182,6 +184,8 @@ func (h *FansubMediaReviewHandler) ListFansubGroupMedia(c *gin.Context) {
 		item := fansubGroupMediaItemResponse{
 			ID:              row.MediaAssetID,
 			PreviewURL:      row.PreviewURL,
+			ThumbnailURL:    row.ThumbnailURL,
+			OriginalURL:     row.OriginalURL,
 			Visibility:      row.Visibility,
 			ReviewStatus:    row.ReviewStatus,
 			Title:           row.Title,

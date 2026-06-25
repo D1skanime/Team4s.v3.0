@@ -1043,7 +1043,9 @@ types:
       (visibility: intern | oeffentlich; review_status: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt).
       owner_consistent zeigt NUR an, ob das Medium korrekt zur Gruppe gehört — kein Setter (D-05).
     id: int64
-    preview_url: string | null (description: "Öffentliche URL des Medienassets")
+    preview_url: string | null (description: "Kompatibilitäts-URL: bevorzugt Thumbnail, sonst Original")
+    thumbnail_url: string | null (description: "Öffentliche URL der vorhandenen media_files.thumb-Variante; null wenn keine Thumbnail-Datei existiert")
+    original_url: string | null (description: "Öffentliche URL der vorhandenen media_files.original-Variante oder des Asset-Originals")
     visibility: string | null (enum intern|oeffentlich, description: "Sichtbarkeitsachse; null wenn nicht gesetzt")
     review_status: string | null (enum in_pruefung|freigegeben|abgelehnt|archiviert|entfernt, description: "Prüfstatusachse; null wenn nicht gesetzt")
     title: string | null

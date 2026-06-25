@@ -24,6 +24,8 @@ import (
 type FansubGroupMediaReviewRow struct {
 	MediaAssetID    int64
 	PreviewURL      string
+	ThumbnailURL    string
+	OriginalURL     string
 	Visibility      *string // nil wenn nicht gesetzt; API-seitiger Wert (intern/oeffentlich)
 	ReviewStatus    *string // nil wenn nicht gesetzt; API-seitiger Wert (in_pruefung/...)
 	Title           *string
@@ -534,7 +536,9 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			ma.id          AS media_asset_id,
-			ma.file_path   AS file_path,
+			COALESCE(mf_thumb.path, '') AS thumbnail_path,
+			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
+			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path, '') AS preview_path,
 			v.name         AS visibility_name,
 			rs.code        AS review_status_code,
 			fgm.title      AS title,
@@ -550,6 +554,24 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 		FROM fansub_group_media fgm
 		JOIN media_assets ma ON ma.id = fgm.media_id
 		JOIN fansub_groups fg ON fg.id = fgm.group_id
+		LEFT JOIN LATERAL (
+			SELECT path
+			FROM media_files
+			WHERE media_id = ma.id
+			  AND variant = 'thumb'
+			  AND status = 'ready'
+			ORDER BY id DESC
+			LIMIT 1
+		) mf_thumb ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT path
+			FROM media_files
+			WHERE media_id = ma.id
+			  AND (variant = 'original' OR variant IS NULL)
+			  AND status = 'ready'
+			ORDER BY CASE WHEN variant = 'original' THEN 0 ELSE 1 END, id DESC
+			LIMIT 1
+		) mf_orig ON TRUE
 		LEFT JOIN visibilities v ON v.id = ma.visibility_id
 		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
 		LEFT JOIN users u ON u.id = fgm.uploaded_by_user_id
@@ -567,13 +589,17 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 	var result []FansubGroupMediaReviewRow
 	for rows.Next() {
 		var row FansubGroupMediaReviewRow
-		var filePath string
+		var thumbnailPath string
+		var originalPath string
+		var previewPath string
 		var visibilityName *string
 		var reviewStatusCode *string
 
 		if err := rows.Scan(
 			&row.MediaAssetID,
-			&filePath,
+			&thumbnailPath,
+			&originalPath,
+			&previewPath,
 			&visibilityName,
 			&reviewStatusCode,
 			&row.Title,
@@ -590,7 +616,15 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			return nil, fmt.Errorf("scan fansub group media review row: %w", err)
 		}
 
-		row.PreviewURL = r.buildPublicURL(mediaFilename(filePath))
+		if url := publicMediaURLForPath(thumbnailPath, r.storageDir); url != nil {
+			row.ThumbnailURL = *url
+		}
+		if url := publicMediaURLForPath(originalPath, r.storageDir); url != nil {
+			row.OriginalURL = *url
+		}
+		if url := publicMediaURLForPath(previewPath, r.storageDir); url != nil {
+			row.PreviewURL = *url
+		}
 		row.OwnerConsistent = (row.OwnerID == fansubGroupID)
 
 		// DB-Werte auf kanonische API-Werte mappen

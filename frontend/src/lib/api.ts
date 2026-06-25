@@ -2456,6 +2456,8 @@ export interface FansubGroupMediaUploadResult {
   status: "ready" | "failed";
   media_asset_id?: number;
   preview_url?: string;
+  thumbnail_url?: string;
+  original_url?: string;
   error_code?: string;
   message?: string;
 }
@@ -2472,6 +2474,8 @@ export interface FansubGroupMediaUploadResponse {
 export interface FansubGroupMediaItem {
   id: number;
   preview_url?: string | null;
+  thumbnail_url?: string | null;
+  original_url?: string | null;
   visibility: FansubMediaVisibility | null;
   review_status: FansubMediaReviewStatus | null;
   title?: string | null;

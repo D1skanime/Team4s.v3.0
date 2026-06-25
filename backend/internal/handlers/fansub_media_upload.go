@@ -6,6 +6,9 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"team4s.v3/backend/internal/middleware"
@@ -289,8 +292,23 @@ type fansubGroupMediaFileResult struct {
 	Status         string `json:"status"`
 	MediaAssetID   *int64 `json:"media_asset_id,omitempty"`
 	PreviewURL     string `json:"preview_url,omitempty"`
+	ThumbnailURL   string `json:"thumbnail_url,omitempty"`
+	OriginalURL    string `json:"original_url,omitempty"`
 	ErrorCode      string `json:"error_code,omitempty"`
 	Message        string `json:"message,omitempty"`
+}
+
+func groupMediaThumbPath(originalPath string) string {
+	ext := filepath.Ext(originalPath)
+	return strings.TrimSuffix(originalPath, ext) + "_thumb.jpg"
+}
+
+func groupMediaFileProxyURL(storagePath string) string {
+	filename := strings.TrimSpace(filepath.Base(storagePath))
+	if filename == "" || filename == "." {
+		return ""
+	}
+	return "/api/v1/media/files/" + url.PathEscape(filename)
 }
 
 func (h *FansubHandler) uploadFansubGroupMedia(c *gin.Context, identity middleware.AuthIdentity, fansubID int64) {
@@ -417,6 +435,18 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		log.Printf("fansub group media upload: save failed (fansub_id=%d): %v", fansubID, err)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "STORAGE_FAILED", Message: "datei konnte nicht gespeichert werden"}
 	}
+	thumbData, thumbWidth, thumbHeight, err := generateRVMThumbnail(data, saveResult.CreateInput.MimeType)
+	if err != nil {
+		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		log.Printf("fansub group media thumbnail error for %s: %v", clientName, err)
+		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "THUMBNAIL_FAILED", Message: "thumbnail konnte nicht erzeugt werden"}
+	}
+	thumbPath := groupMediaThumbPath(saveResult.CreateInput.StoragePath)
+	if err := os.WriteFile(thumbPath, thumbData, 0o644); err != nil {
+		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
+		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "STORAGE_FAILED", Message: "thumbnail konnte nicht gespeichert werden"}
+	}
 	saveResult.CreateInput.VisibilityCode = &visibilityCode
 	saveResult.CreateInput.ReviewStatusCode = &reviewStatusCode
 
@@ -424,6 +454,7 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 	tx, err := h.mediaRepo.BeginTx(ctx)
 	if err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "transaktion konnte nicht gestartet werden"}
 	}
 	defer tx.Rollback(ctx)
@@ -431,6 +462,7 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 	mediaAsset, err := h.mediaRepo.CreateMediaAssetWithStatusTx(ctx, tx, saveResult.CreateInput, "processing")
 	if err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media asset konnte nicht erstellt werden"}
 	}
 	width, height := 0, 0
@@ -442,7 +474,13 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 	}
 	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "original", saveResult.CreateInput.StoragePath, width, height, int64(len(data)), "processing"); err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media file konnte nicht erstellt werden"}
+	}
+	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "thumb", thumbPath, thumbWidth, thumbHeight, int64(len(thumbData)), "processing"); err != nil {
+		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
+		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "thumbnail file konnte nicht erstellt werden"}
 	}
 	uploadedBy := uploadedByUserID
 	if err := h.mediaRepo.CreateFansubGroupMediaAsset(ctx, tx, repository.FansubGroupMediaCreateInput{
@@ -453,25 +491,32 @@ func (h *FansubHandler) processOneFansubGroupMediaFile(
 		UploadedByUserID: &uploadedBy,
 	}); err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "gruppenmedium konnte nicht erstellt werden"}
 	}
 	if err := h.mediaRepo.UpdateMediaAssetStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media asset status konnte nicht gesetzt werden"}
 	}
 	if err := h.mediaRepo.UpdateMediaFileStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "media file status konnte nicht gesetzt werden"}
 	}
 	if err := tx.Commit(ctx); err != nil {
 		_ = removeFileQuietly(saveResult.CreateInput.StoragePath)
+		_ = removeFileQuietly(thumbPath)
 		return fansubGroupMediaFileResult{ClientFileName: clientName, Status: "failed", ErrorCode: "DB_FAILED", Message: "transaktion konnte nicht committed werden"}
 	}
 
+	thumbURL := groupMediaFileProxyURL(thumbPath)
 	return fansubGroupMediaFileResult{
 		ClientFileName: clientName,
 		Status:         "ready",
 		MediaAssetID:   &mediaAsset.ID,
-		PreviewURL:     saveResult.CreateInput.PublicURL,
+		PreviewURL:     thumbURL,
+		ThumbnailURL:   thumbURL,
+		OriginalURL:    saveResult.CreateInput.PublicURL,
 	}
 }

@@ -86,17 +86,29 @@
   place-items: center;
   width: 96px;
   aspect-ratio: 1;
+  padding: 0;
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   background: var(--surface-muted);
   color: var(--text-muted);
+  cursor: pointer;
   font-size: 0.75rem;
+  font: inherit;
   text-align: center;
 }
 
 .previewFrame :global(img) {
   object-fit: cover;
+}
+
+.previewFrame:hover {
+  border-color: var(--border-strong);
+}
+
+.previewFrame:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .mediaSummary {
@@ -166,6 +178,26 @@
   background: var(--surface-card-muted);
 }
 
+.detailPreviewFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-height: 520px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.detailPreviewFrame :global(img) {
+  object-fit: contain;
+}
+
 .detailGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -176,6 +208,12 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-3);
 }
 
 .inlineError {

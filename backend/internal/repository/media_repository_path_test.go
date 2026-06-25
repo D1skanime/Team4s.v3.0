@@ -51,4 +51,10 @@ func TestListFansubGroupMediaForReviewExcludesBrandingSlots(t *testing.T) {
 	if !strings.Contains(source, "fg.banner_id IS NULL OR ma.id <> fg.banner_id") {
 		t.Fatal("Review-Query muss das aktuelle Gruppenbanner aus Kontextmedien ausschließen")
 	}
+	if !strings.Contains(source, "variant = 'thumb'") {
+		t.Fatal("Review-Query muss vorhandene media_files.thumb-Varianten für die Übersicht verwenden")
+	}
+	if !strings.Contains(source, "variant = 'original'") {
+		t.Fatal("Review-Query muss media_files.original als Detail-/Fallback-Quelle unterscheiden")
+	}
 }

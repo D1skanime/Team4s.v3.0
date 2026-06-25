@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/permissions"
@@ -26,6 +27,8 @@ type fansubMediaRepoStub struct {
 	updateErr      error
 	updatedMediaID *int64
 	ownerID        *int64 // simuliert Besitzer-Prüfung (Cross-Group-Schutz)
+	listRows       []repository.FansubGroupMediaReviewRow
+	listErr        error
 }
 
 func (s *fansubMediaRepoStub) UpdateFansubMediaReview(
@@ -57,6 +60,10 @@ func (s *fansubMediaRepoStub) GetFansubMediaOwner(ctx context.Context, mediaID i
 		return *s.ownerID, nil
 	}
 	return 0, repository.ErrNotFound
+}
+
+func (s *fansubMediaRepoStub) ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64) ([]repository.FansubGroupMediaReviewRow, error) {
+	return s.listRows, s.listErr
 }
 
 // mediaReviewPermissionSvcStub steuert das Ergebnis von CanForFansubGroup.
@@ -114,6 +121,49 @@ func buildMediaReviewHandler(
 	audit *auditMediaReviewStub,
 ) *FansubMediaReviewHandler {
 	return NewFansubMediaReviewHandler(repo, perm, audit)
+}
+
+func TestFansubMediaReviewList_ReturnsThumbnailAndOriginalURLs(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	repo := &fansubMediaRepoStub{
+		listRows: []repository.FansubGroupMediaReviewRow{{
+			MediaAssetID:    101,
+			PreviewURL:      "/media/group/thumb.jpg",
+			ThumbnailURL:    "/media/group/thumb.jpg",
+			OriginalURL:     "/media/group/original.jpg",
+			Category:        "gallery",
+			SortOrder:       10,
+			CreatedAt:       time.Date(2026, 6, 25, 12, 0, 0, 0, time.UTC),
+			OwnerType:       "fansub_group",
+			OwnerID:         1,
+			OwnerConsistent: true,
+		}},
+	}
+	handler := buildMediaReviewHandler(
+		&mediaReviewPermissionSvcStub{allowed: true},
+		repo,
+		&auditMediaReviewStub{},
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/admin/fansubs/1/media", nil)
+	c.Params = gin.Params{{Key: "id", Value: "1"}}
+	setMediaReviewTestAuth(c, 42)
+
+	handler.ListFansubGroupMedia(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet 200, erhalten %d - body: %s", rec.Code, rec.Body.String())
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, `"thumbnail_url":"/media/group/thumb.jpg"`) {
+		t.Fatalf("thumbnail_url fehlt in Response: %s", body)
+	}
+	if !strings.Contains(body, `"original_url":"/media/group/original.jpg"`) {
+		t.Fatalf("original_url fehlt in Response: %s", body)
+	}
 }
 
 // --- TestFansubMediaReview_PermissionDeny (D-09 + T-78-01) ---

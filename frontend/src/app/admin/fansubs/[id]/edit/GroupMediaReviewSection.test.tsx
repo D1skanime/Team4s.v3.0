@@ -83,7 +83,9 @@ function mediaItem(overrides: Partial<FansubGroupMediaItem> = {}): FansubGroupMe
 
   return {
     id,
-    preview_url: `/media/group/${id}.jpg`,
+    preview_url: `/media/group/${id}-thumb.jpg`,
+    thumbnail_url: `/media/group/${id}-thumb.jpg`,
+    original_url: `/media/group/${id}-original.jpg`,
     visibility: 'intern',
     review_status: 'in_pruefung',
     title: `Medium ${id}`,
@@ -131,6 +133,48 @@ describe('GroupMediaReviewSection', () => {
     expect((await screen.findAllByRole('button', { name: 'Bearbeiten' })).length).toBe(20)
     expect(screen.queryByDisplayValue('Medium 1')).toBeNull()
     expect(screen.queryByText('Änderungen speichern')).toBeNull()
+  })
+
+  it('nutzt Thumbnails in der Übersicht und lädt das Original erst im Detailpanel', async () => {
+    renderSection([mediaItem({ id: 101, title: 'Vorschaubild' })])
+
+    await screen.findByText('Vorschaubild')
+    const overviewImages = screen.getAllByAltText('Alt 101') as HTMLImageElement[]
+    expect(overviewImages).toHaveLength(1)
+    expect(overviewImages[0].getAttribute('src')).toBe('/media/group/101-thumb.jpg')
+    expect(screen.queryByDisplayValue('Vorschaubild')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vorschaubild öffnen' }))
+
+    expect(await screen.findByDisplayValue('Vorschaubild')).toBeTruthy()
+    const openedImages = screen.getAllByAltText('Alt 101') as HTMLImageElement[]
+    expect(openedImages.some((image) => image.getAttribute('src') === '/media/group/101-original.jpg')).toBe(true)
+  })
+
+  it('rendert bei 100 Treffern zunächst nur die erste kompakte Seite', async () => {
+    renderSection(Array.from({ length: 100 }, (_value, index) => mediaItem({ id: index + 1 })))
+
+    expect(await screen.findByText('100 von 100 Medien sichtbar')).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'Bearbeiten' })).toHaveLength(40)
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere Medien anzeigen (60)' }))
+
+    expect(screen.getAllByRole('button', { name: 'Bearbeiten' })).toHaveLength(80)
+  })
+
+  it('fällt bei fehlendem Thumbnail auf vorhandene Original-URL zurück', async () => {
+    renderSection([
+      mediaItem({
+        id: 101,
+        title: 'Altes Medium',
+        preview_url: null,
+        thumbnail_url: null,
+        original_url: '/media/group/101-original.jpg',
+      }),
+    ])
+
+    await screen.findByText('Altes Medium')
+    const overviewImage = screen.getByAltText('Alt 101') as HTMLImageElement
+    expect(overviewImage.getAttribute('src')).toBe('/media/group/101-original.jpg')
   })
 
   it('öffnet die Detailbearbeitung nur für ein Medium und speichert dessen Draft', async () => {
