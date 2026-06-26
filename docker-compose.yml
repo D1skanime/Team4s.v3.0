@@ -102,7 +102,7 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
-      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://127.0.0.1:3002}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://127.0.0.1:3000}
       DATABASE_URL: postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_v2?sslmode=disable
       AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-team4s-local-dev-secret}
       AUTH_ADMIN_BOOTSTRAP_USER_IDS: ${AUTH_ADMIN_BOOTSTRAP_USER_IDS:-1}
@@ -184,7 +184,7 @@ services:
       # New media system - mount media directory
       - ./media:/media
     ports:
-      - "3002:3000"
+      - "3000:3000"
     depends_on:
       - team4sv30-backend
 

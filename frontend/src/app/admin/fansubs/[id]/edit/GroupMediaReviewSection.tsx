@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Archive, Edit3, Filter, Save, UploadCloud, X } from 'lucide-react'
+import { Archive, Ban, Check, Edit3, Filter, Save, UploadCloud, X } from 'lucide-react'
 import Image from 'next/image'
 
 import {
@@ -205,6 +205,9 @@ function GroupMediaReviewSectionInner({
   const [pendingDeleteItem, setPendingDeleteItem] = useState<FansubGroupMediaItem | null>(null)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [selectedMediaIds, setSelectedMediaIds] = useState<Set<number>>(() => new Set())
+  const [bulkSavingStatus, setBulkSavingStatus] = useState<FansubMediaReviewStatus | null>(null)
+  const [bulkError, setBulkError] = useState<string | null>(null)
 
   const canUpdate = capabilities.can_update_group_media || capabilities.can_edit_group
   const canUpload = capabilities.can_upload_group_media || capabilities.can_edit_group
@@ -266,6 +269,10 @@ function GroupMediaReviewSectionInner({
     () => filteredMediaItems.slice(0, visibleLimit),
     [filteredMediaItems, visibleLimit],
   )
+  const filteredMediaIdSet = useMemo(
+    () => new Set(filteredMediaItems.map((item) => item.id)),
+    [filteredMediaItems],
+  )
 
   const remainingMediaCount = Math.max(filteredMediaItems.length - visibleMediaItems.length, 0)
   const editingItem = useMemo(
@@ -280,6 +287,18 @@ function GroupMediaReviewSectionInner({
     sortMode !== 'created_desc',
   ].filter(Boolean).length
   const shouldShowUploadPanel = canUpload && (isUploadOpen || selectedFiles.length > 0 || uploadProgress !== null || uploadError !== null)
+  const selectedCount = selectedMediaIds.size
+  const shouldShowBulkActionBar = selectedCount >= 2
+  const isBulkSaving = bulkSavingStatus !== null
+  const allFilteredSelected =
+    filteredMediaItems.length > 0 && filteredMediaItems.every((item) => selectedMediaIds.has(item.id))
+
+  useEffect(() => {
+    setSelectedMediaIds((current) => {
+      const next = new Set(Array.from(current).filter((id) => filteredMediaIdSet.has(id)))
+      return next.size === current.size ? current : next
+    })
+  }, [filteredMediaIdSet])
 
   function updateDraft<K extends keyof MediaDraft>(mediaId: number, field: K, value: MediaDraft[K]) {
     setDrafts((prev) => ({
@@ -309,6 +328,49 @@ function GroupMediaReviewSectionInner({
     setSortMode('created_desc')
     setSearchTerm('')
     setIsFilterOpen(false)
+  }
+
+  function updateMediaReviewStatus(mediaIds: number[], reviewStatus: FansubMediaReviewStatus) {
+    const idSet = new Set(mediaIds)
+    setMediaItems((current) =>
+      current.map((item) => (idSet.has(item.id) ? { ...item, review_status: reviewStatus } : item)),
+    )
+    setDrafts((current) => {
+      const next = { ...current }
+      for (const mediaId of mediaIds) {
+        if (next[mediaId]) {
+          next[mediaId] = { ...next[mediaId], review_status: reviewStatus }
+        }
+      }
+      return next
+    })
+  }
+
+  function toggleMediaSelection(mediaId: number) {
+    setBulkError(null)
+    setSelectedMediaIds((current) => {
+      const next = new Set(current)
+      if (next.has(mediaId)) {
+        next.delete(mediaId)
+      } else {
+        next.add(mediaId)
+      }
+      return next
+    })
+  }
+
+  function clearSelection() {
+    setBulkError(null)
+    setSelectedMediaIds(new Set())
+  }
+
+  function toggleAllFilteredSelection() {
+    setBulkError(null)
+    if (allFilteredSelected) {
+      setSelectedMediaIds(new Set())
+      return
+    }
+    setSelectedMediaIds(new Set(filteredMediaItems.map((item) => item.id)))
   }
 
   function startEditing(item: FansubGroupMediaItem) {
@@ -383,6 +445,67 @@ function GroupMediaReviewSectionInner({
     }
   }
 
+  async function handleQuickReview(item: FansubGroupMediaItem, reviewStatus: FansubMediaReviewStatus) {
+    if (!canUpdate) return
+    setSaveErrors((prev) => ({ ...prev, [item.id]: '' }))
+    setSaving((prev) => ({ ...prev, [item.id]: true }))
+
+    try {
+      await patchFansubMediaReview(fansubId, item.id, { review_status: reviewStatus }, undefined)
+      updateMediaReviewStatus([item.id], reviewStatus)
+      setToast(reviewStatus === 'freigegeben' ? 'Medium freigegeben.' : 'Medium abgelehnt.')
+      setTimeout(() => setToast(null), 3500)
+    } catch (err) {
+      setSaveErrors((prev) => ({
+        ...prev,
+        [item.id]: readErrorMessage(err, 'Prüfstatus konnte nicht aktualisiert werden.'),
+      }))
+    } finally {
+      setSaving((prev) => ({ ...prev, [item.id]: false }))
+    }
+  }
+
+  async function handleBulkReview(reviewStatus: FansubMediaReviewStatus) {
+    if (!canUpdate || selectedMediaIds.size === 0) return
+    const targetIds = Array.from(selectedMediaIds).filter((id) => filteredMediaIdSet.has(id))
+    if (targetIds.length === 0) return
+
+    setBulkError(null)
+    setBulkSavingStatus(reviewStatus)
+
+    const results = await Promise.all(
+      targetIds.map(async (mediaId) => {
+        try {
+          await patchFansubMediaReview(fansubId, mediaId, { review_status: reviewStatus }, undefined)
+          return { mediaId, ok: true as const }
+        } catch (err) {
+          return { mediaId, ok: false as const, message: readErrorMessage(err, 'Prüfstatus konnte nicht aktualisiert werden.') }
+        }
+      }),
+    )
+
+    const successfulIds = results.filter((result) => result.ok).map((result) => result.mediaId)
+    const failed = results.filter((result) => !result.ok)
+    if (successfulIds.length > 0) {
+      updateMediaReviewStatus(successfulIds, reviewStatus)
+    }
+
+    if (failed.length === 0) {
+      setSelectedMediaIds(new Set())
+      setToast(
+        reviewStatus === 'freigegeben'
+          ? `${successfulIds.length} Medien freigegeben.`
+          : `${successfulIds.length} Medien abgelehnt.`,
+      )
+      setTimeout(() => setToast(null), 3500)
+    } else {
+      setSelectedMediaIds(new Set(failed.map((result) => result.mediaId)))
+      setBulkError(`${failed.length} von ${targetIds.length} Medien konnten nicht aktualisiert werden. ${failed[0]?.message ?? ''}`.trim())
+    }
+
+    setBulkSavingStatus(null)
+  }
+
   async function handleDelete(item: FansubGroupMediaItem) {
     if (!canDelete) return
     setSaving((prev) => ({ ...prev, [item.id]: true }))
@@ -412,7 +535,7 @@ function GroupMediaReviewSectionInner({
   }
 
   return (
-    <div className={styles.reviewSection}>
+    <div className={classNames(styles.reviewSection, shouldShowBulkActionBar && styles.reviewSectionWithBulkBar)}>
       <Toolbar
         className={styles.mediaToolbar}
         leading={
@@ -524,6 +647,16 @@ function GroupMediaReviewSectionInner({
                 Filter zurücksetzen ({activeFilterCount})
               </Button>
             ) : null}
+            {canUpdate ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={filteredMediaItems.length === 0 || isBulkSaving}
+                onClick={toggleAllFilteredSelection}
+              >
+                {allFilteredSelected ? 'Auswahl abbrechen' : 'Alle auswählen'}
+              </Button>
+            ) : null}
             <Button
               variant="secondary"
               size="sm"
@@ -598,12 +731,49 @@ function GroupMediaReviewSectionInner({
               const persisted = itemToDraft(item)
               const reviewStatus = getReviewStatusOption(persisted.review_status)
               const isEditing = editingMediaId === item.id
+              const isSelected = selectedMediaIds.has(item.id)
+              const isSavingItem = saving[item.id] ?? false
               const overviewImageURL = getOverviewImageURL(item)
               const displayTitle = getMediaDisplayTitle(item)
               const uploaderLine = getUploaderLine(item)
 
               return (
-                <Card key={item.id} variant="nested" className={styles.mediaCard}>
+                <Card
+                  key={item.id}
+                  variant="nested"
+                  className={classNames(styles.mediaCard, isSelected && styles.mediaCardSelected)}
+                  tabIndex={0}
+                  onClick={(event) => {
+                    const target = event.target as HTMLElement
+                    if (target.closest('button, input, label, a, select, textarea')) return
+                    startEditing(item)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return
+                    const target = event.target as HTMLElement
+                    if (target.closest('button, input, label, a, select, textarea')) return
+                    event.preventDefault()
+                    startEditing(item)
+                  }}
+                >
+                  <div className={styles.selectionRow}>
+                    {canUpdate ? (
+                      <label className={styles.selectionControl}>
+                        <Input
+                          type="checkbox"
+                          className={classNames(styles.selectionCheckbox, 'media-checkbox')}
+                          checked={isSelected}
+                          disabled={isBulkSaving}
+                          onChange={() => toggleMediaSelection(item.id)}
+                          aria-label={`${displayTitle} auswählen`}
+                        />
+                        <span>{isSelected ? 'Ausgewählt' : 'Auswählen'}</span>
+                      </label>
+                    ) : (
+                      <span />
+                    )}
+                  </div>
+
                   {!item.owner_consistent ? (
                     <div className={styles.ownerFlagRow}>
                       <Badge variant="warning">Owner-Zuordnung prüfen</Badge>
@@ -646,18 +816,43 @@ function GroupMediaReviewSectionInner({
 
                     <div className={styles.compactActions}>
                       {canUpdate ? (
-                        <Button
-                          variant={isEditing ? 'secondary' : 'primary'}
-                          size="sm"
-                          leftIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
-                          onClick={() => (isEditing ? cancelEditing(item) : startEditing(item))}
-                        >
-                          {isEditing ? 'Schließen' : 'Bearbeiten'}
-                        </Button>
+                        <>
+                          <Button
+                            variant="success"
+                            size="sm"
+                            iconOnly
+                            leftIcon={<Check size={16} />}
+                            aria-label={`${displayTitle} freigeben`}
+                            title="Freigeben"
+                            disabled={isSavingItem || isBulkSaving}
+                            onClick={() => void handleQuickReview(item, 'freigegeben')}
+                          />
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            iconOnly
+                            leftIcon={<Ban size={16} />}
+                            aria-label={`${displayTitle} ablehnen`}
+                            title="Ablehnen"
+                            disabled={isSavingItem || isBulkSaving}
+                            onClick={() => void handleQuickReview(item, 'abgelehnt')}
+                          />
+                          <Button
+                            variant={isEditing ? 'secondary' : 'primary'}
+                            size="sm"
+                            iconOnly
+                            leftIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
+                            aria-label={`${displayTitle} bearbeiten`}
+                            title={isEditing ? 'Schließen' : 'Bearbeiten'}
+                            disabled={isBulkSaving}
+                            onClick={() => (isEditing ? cancelEditing(item) : startEditing(item))}
+                          />
+                        </>
                       ) : null}
                     </div>
                   </div>
 
+                  {saveErrors[item.id] ? <p className={styles.inlineCardError} role="alert">{saveErrors[item.id]}</p> : null}
                 </Card>
               )
             })}
@@ -677,6 +872,47 @@ function GroupMediaReviewSectionInner({
         ) : null}
       </Card>
 
+      {shouldShowBulkActionBar ? (
+        <div className={styles.bulkActionBar} role="region" aria-label="Bulk-Aktionen für Medienauswahl">
+          <div className={styles.bulkSummary}>
+            <strong>{selectedCount} ausgewählt</strong>
+            <span>Prüfstatus für die aktuelle Auswahl ändern</span>
+          </div>
+          {bulkError ? <p className={styles.bulkError} role="alert">{bulkError}</p> : null}
+          <div className={styles.bulkActions}>
+            <Button
+              variant="success"
+              size="sm"
+              leftIcon={<Check size={16} />}
+              loading={bulkSavingStatus === 'freigegeben'}
+              disabled={isBulkSaving}
+              onClick={() => void handleBulkReview('freigegeben')}
+            >
+              Freigeben
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              leftIcon={<Ban size={16} />}
+              loading={bulkSavingStatus === 'abgelehnt'}
+              disabled={isBulkSaving}
+              onClick={() => void handleBulkReview('abgelehnt')}
+            >
+              Ablehnen
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<X size={16} />}
+              disabled={isBulkSaving}
+              onClick={clearSelection}
+            >
+              Abbrechen
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       <Drawer
         open={editingItem !== null}
         onClose={() => {
@@ -688,8 +924,9 @@ function GroupMediaReviewSectionInner({
           editingItem ? (
             <div className={styles.drawerActions}>
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="sm"
+                className={styles.drawerCancelButton}
                 leftIcon={<X size={16} />}
                 disabled={saving[editingItem.id] ?? false}
                 onClick={() => cancelEditing(editingItem)}
@@ -757,6 +994,7 @@ function GroupMediaReviewSectionInner({
 
                   <FormField label="Beschreibung">
                     <Textarea
+                      className={styles.descriptionTextarea}
                       value={draft.description}
                       disabled={!canUpdate}
                       rows={4}
@@ -781,6 +1019,7 @@ function GroupMediaReviewSectionInner({
                       <Input
                         type="number"
                         min={0}
+                        className={styles.sortOrderInput}
                         value={draft.sort_order}
                         disabled={!canUpdate}
                         onChange={(event) => updateDraft(editingItem.id, 'sort_order', Number(event.target.value))}

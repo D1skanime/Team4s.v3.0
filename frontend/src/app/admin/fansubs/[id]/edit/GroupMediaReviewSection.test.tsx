@@ -141,7 +141,7 @@ describe('GroupMediaReviewSection', () => {
     renderSection(Array.from({ length: 20 }, (_value, index) => mediaItem({ id: index + 1 })))
 
     expect(await findSummaryText('20 von 20 Medien sichtbar')).toBeTruthy()
-    expect((await screen.findAllByRole('button', { name: 'Bearbeiten' })).length).toBe(20)
+    expect((await screen.findAllByRole('button', { name: /bearbeiten$/ })).length).toBe(20)
     expect(screen.queryByDisplayValue('Medium 1')).toBeNull()
     expect(screen.queryByText('Änderungen speichern')).toBeNull()
   })
@@ -166,10 +166,10 @@ describe('GroupMediaReviewSection', () => {
     renderSection(Array.from({ length: 100 }, (_value, index) => mediaItem({ id: index + 1 })))
 
     expect(await findSummaryText('100 von 100 Medien sichtbar')).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: 'Bearbeiten' })).toHaveLength(40)
+    expect(screen.getAllByRole('button', { name: /bearbeiten$/ })).toHaveLength(40)
     fireEvent.click(screen.getByRole('button', { name: 'Weitere Medien anzeigen (60)' }))
 
-    expect(screen.getAllByRole('button', { name: 'Bearbeiten' })).toHaveLength(80)
+    expect(screen.getAllByRole('button', { name: /bearbeiten$/ })).toHaveLength(80)
   })
 
   it('fällt bei fehlendem Thumbnail auf vorhandene Original-URL zurück', async () => {
@@ -227,7 +227,7 @@ describe('GroupMediaReviewSection', () => {
     await screen.findByText('Erstes Medium')
     const firstCard = screen.getByText('Erstes Medium').closest('section')
     expect(firstCard).not.toBeNull()
-    fireEvent.click(within(firstCard as HTMLElement).getByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.click(within(firstCard as HTMLElement).getByRole('button', { name: 'Erstes Medium bearbeiten' }))
     fireEvent.change(await screen.findByDisplayValue('Erstes Medium'), {
       target: { value: 'Geänderter Titel' },
     })
@@ -242,6 +242,82 @@ describe('GroupMediaReviewSection', () => {
       )
     })
     expect(screen.queryByDisplayValue('Zweites Medium')).toBeNull()
+  })
+
+  it('ändert den Prüfstatus per Quick-Action ohne andere Mediendaten zu senden', async () => {
+    renderSection([mediaItem({ id: 101, title: 'Review Bild', review_status: 'in_pruefung' })])
+    patchFansubMediaReview.mockResolvedValue({ message: 'ok' })
+
+    await screen.findByText('Review Bild')
+    fireEvent.click(screen.getByRole('button', { name: 'Review Bild freigeben' }))
+
+    await waitFor(() => {
+      expect(patchFansubMediaReview).toHaveBeenCalledWith(
+        88,
+        101,
+        { review_status: 'freigegeben' },
+        undefined,
+      )
+    })
+    await waitFor(() => {
+      expect(screen.getAllByText('Freigegeben').length).toBeGreaterThan(1)
+    })
+  })
+
+  it('setzt Bulk-Prüfstatus nur für aktuell gefilterte Treffer und leert die Auswahl', async () => {
+    renderSection([
+      mediaItem({ id: 101, title: 'Galerie Bild', category: 'gallery' }),
+      mediaItem({ id: 102, title: 'Forum Bild', category: 'forum' }),
+      mediaItem({ id: 103, title: 'Forum Banner', category: 'forum' }),
+    ])
+    patchFansubMediaReview.mockResolvedValue({ message: 'ok' })
+
+    await screen.findByText('Galerie Bild')
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+    fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'forum' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Alle auswählen' }))
+
+    const bulkBar = screen.getByRole('region', { name: 'Bulk-Aktionen für Medienauswahl' })
+    expect(within(bulkBar).getByText('2 ausgewählt')).toBeTruthy()
+    fireEvent.click(within(bulkBar).getByRole('button', { name: 'Ablehnen' }))
+
+    await waitFor(() => {
+      expect(patchFansubMediaReview).toHaveBeenCalledTimes(2)
+      expect(patchFansubMediaReview).toHaveBeenCalledWith(
+        88,
+        102,
+        { review_status: 'abgelehnt' },
+        undefined,
+      )
+      expect(patchFansubMediaReview).toHaveBeenCalledWith(
+        88,
+        103,
+        { review_status: 'abgelehnt' },
+        undefined,
+      )
+    })
+    await waitFor(() => {
+      expect(screen.queryByRole('region', { name: 'Bulk-Aktionen für Medienauswahl' })).toBeNull()
+    })
+  })
+
+  it('zeigt die Bulk-Leiste erst ab zwei ausgewählten Medien', async () => {
+    renderSection([
+      mediaItem({ id: 101, title: 'Galerie Bild' }),
+      mediaItem({ id: 102, title: 'Forum Bild' }),
+    ])
+
+    await screen.findByText('Galerie Bild')
+    fireEvent.click(screen.getByLabelText('Galerie Bild auswählen'))
+
+    expect(screen.queryByRole('region', { name: 'Bulk-Aktionen für Medienauswahl' })).toBeNull()
+
+    fireEvent.click(screen.getByLabelText('Forum Bild auswählen'))
+
+    const bulkBar = screen.getByRole('region', { name: 'Bulk-Aktionen für Medienauswahl' })
+    expect(within(bulkBar).getByText('2 ausgewählt')).toBeTruthy()
+    expect(within(bulkBar).getByRole('button', { name: 'Abbrechen' })).toBeTruthy()
+    expect(within(bulkBar).queryByRole('button', { name: 'Aufheben' })).toBeNull()
   })
 
   it('filtert die Übersicht nach Kategorie', async () => {
@@ -288,7 +364,7 @@ describe('GroupMediaReviewSection', () => {
     expect(screen.queryByRole('button', { name: 'Aus Gruppenmedien entfernen' })).toBeNull()
 
     await screen.findByText('Altes Medium')
-    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Altes Medium bearbeiten' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Aus Gruppenmedien entfernen' }))
 
     const dialogTitle = screen.getByText('Medium aus Gruppenmedien entfernen')
