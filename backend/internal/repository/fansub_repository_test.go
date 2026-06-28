@@ -76,6 +76,34 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 	}
 }
 
+func TestFansubRepository_DeleteGroupCleansRestrictedChildrenFirst(t *testing.T) {
+	src, err := os.ReadFile("fansub_repository.go")
+	if err != nil {
+		t.Fatalf("read fansub repository: %v", err)
+	}
+	content := string(src)
+
+	contributionDelete := strings.Index(content, "DELETE FROM anime_contributions WHERE fansub_group_id = $1")
+	histMemberDelete := strings.Index(content, "DELETE FROM hist_fansub_group_members WHERE fansub_group_id = $1")
+	groupDelete := strings.Index(content, "DELETE FROM fansub_groups WHERE id = $1")
+
+	if contributionDelete < 0 {
+		t.Fatalf("DeleteGroup must delete anime_contributions before deleting the group")
+	}
+	if histMemberDelete < 0 {
+		t.Fatalf("DeleteGroup must delete hist_fansub_group_members before deleting the group")
+	}
+	if groupDelete < 0 {
+		t.Fatalf("DeleteGroup must delete fansub_groups")
+	}
+	if !(contributionDelete < histMemberDelete && histMemberDelete < groupDelete) {
+		t.Fatalf("DeleteGroup must delete restricted child rows before fansub_groups")
+	}
+	if !strings.Contains(content, "BeginTx(ctx, pgx.TxOptions{})") {
+		t.Fatalf("DeleteGroup must run cleanup and parent delete in one transaction")
+	}
+}
+
 func strPtr(value string) *string {
 	return &value
 }
