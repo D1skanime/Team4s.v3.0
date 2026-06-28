@@ -24,7 +24,6 @@ export const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: 'collaboration', label: 'Fansub Members' },
   { key: 'vorschlaege', label: 'Vorschläge' },
   { key: 'releases', label: 'Anime & Veröffentlichungen' },
-  { key: 'readiness', label: 'Veröffentlichung' },
 ]
 
 /**
@@ -36,6 +35,6 @@ export const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
  */
 export function parseMainTab(value: string | null): MainTab {
   if (value === 'rollen' || value === 'mitglieder' || value === 'claims') return 'collaboration'
-  if (value === 'anime-projekte') return 'releases' // D-13: Legacy-Redirect
+  if (value === 'anime-projekte') return 'releases'
   return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : 'basic'
 }

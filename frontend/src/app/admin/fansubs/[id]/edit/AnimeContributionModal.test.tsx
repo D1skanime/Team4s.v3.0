@@ -28,6 +28,13 @@ const TEST_MEMBERS: UnifiedGroupMember[] = [
     has_app_account: true,
     group_roles: ['translator'],
   },
+  {
+    member_id: 13,
+    display_name: 'Sakura',
+    source: 'app',
+    has_app_account: true,
+    group_roles: ['timer'],
+  },
 ]
 
 const EXISTING_TRANSLATOR_CONTRIBUTION: AnimeContribution = {
@@ -47,7 +54,7 @@ const EXISTING_TRANSLATOR_CONTRIBUTION: AnimeContribution = {
 }
 
 describe('AnimeContributionModal', () => {
-  it('zeigt nur Fansub-Member und Rollen statt Status, Sichtbarkeit oder Release-Version', async () => {
+  it('fügt bestehende Fansub-Member erst lokal hinzu und speichert projektweit', async () => {
     upsertAnimeContributionMock.mockResolvedValue({ data: {} })
 
     render(
@@ -62,19 +69,25 @@ describe('AnimeContributionModal', () => {
       />,
     )
 
-    expect(screen.getByText('Naru-Fan')).not.toBeNull()
-    expect(screen.getByText('Übersetzung')).not.toBeNull()
+    expect(screen.getByRole('dialog', { name: 'Mitwirkende: Naruto' })).not.toBeNull()
     expect(screen.queryByText('Sichtbarkeit')).toBeNull()
     expect(screen.queryByText('Status')).toBeNull()
     expect(screen.queryByText(/Release-Version/)).toBeNull()
 
-    fireEvent.click(screen.getByLabelText('Übersetzung'))
+    fireEvent.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Person'), { target: { value: '12' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }))
+
+    expect(screen.getByText('Naru-Fan')).not.toBeNull()
+    expect(upsertAnimeContributionMock).not.toHaveBeenCalled()
+
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() => {
       expect(upsertAnimeContributionMock).toHaveBeenCalledWith(1, 13, expect.objectContaining({
         member_id: 12,
-        role_codes: ['translator'],
+        role_codes: ['timer'],
         status: 'confirmed',
         is_public_on_anime_page: false,
         is_public_on_member_profile: false,
@@ -83,7 +96,7 @@ describe('AnimeContributionModal', () => {
     })
   })
 
-  it('öffnet rollenfokussiert und erhält bestehende andere Rollen', async () => {
+  it('ändert Rollen bestehender Projekt-Mitwirkender ohne Release-Zuordnung', async () => {
     upsertAnimeContributionMock.mockResolvedValue({ data: {} })
 
     render(
@@ -93,28 +106,44 @@ describe('AnimeContributionModal', () => {
         animeTitle="Naruto"
         members={TEST_MEMBERS}
         existingContributions={[EXISTING_TRANSLATOR_CONTRIBUTION]}
-        focusedRoleCode="timer"
         onClose={vi.fn()}
         onSaved={vi.fn()}
       />,
     )
 
-    expect(screen.getByRole('dialog', { name: 'Timing für „Naruto“ zuweisen' })).not.toBeNull()
-    expect(screen.queryByText('Übersetzung')).toBeNull()
-    expect(screen.getByText('Noch niemand zugewiesen.')).not.toBeNull()
-
-    fireEvent.change(screen.getByLabelText('Member hinzufügen'), {
-      target: { value: '12' },
-    })
-    expect(screen.getByText('Naru-Fan')).not.toBeNull()
-
+    fireEvent.click(screen.getByRole('button', { name: 'Rollen für Naru-Fan ändern' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() => {
       expect(upsertAnimeContributionMock).toHaveBeenCalledWith(1, 13, expect.objectContaining({
         member_id: 12,
         role_codes: ['translator', 'timer'],
+        release_version_id: null,
       }))
+    })
+  })
+
+  it('archiviert entfernte Projekt-Mitwirkende beim Speichern', async () => {
+    deleteAnimeContributionMock.mockResolvedValue({ data: {} })
+
+    render(
+      <AnimeContributionModal
+        fansubId={1}
+        animeId={13}
+        animeTitle="Naruto"
+        members={TEST_MEMBERS}
+        existingContributions={[EXISTING_TRANSLATOR_CONTRIBUTION]}
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Naru-Fan entfernen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => {
+      expect(deleteAnimeContributionMock).toHaveBeenCalledWith(1, 13, 77)
     })
   })
 })

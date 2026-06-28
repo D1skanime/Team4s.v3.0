@@ -639,7 +639,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     )
   })
 
-  it('opens the project insight workspace from the anime card action', async () => {
+  it('opens the project insight workspace when expanding the anime card', async () => {
     apiMocks.getAdminFansubAnime.mockResolvedValue({
       data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
     })
@@ -656,11 +656,11 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.queryByTestId('anime-project-note-workspace')).toBeNull()
     expect(screen.queryByTestId('coverage-matrix')).toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Einblick' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Naruto ausklappen' }))
 
     expect(await screen.findByTestId('anime-project-note-workspace')).not.toBeNull()
-    expect(screen.getByTestId('coverage-matrix')).not.toBeNull()
-    expect(screen.getByRole('heading', { name: 'Team & Rollen' })).not.toBeNull()
+    expect(screen.queryByTestId('coverage-matrix')).toBeNull()
+    expect(screen.getByRole('button', { name: /Mitwirkende .* Naruto bearbeiten/ })).not.toBeNull()
     expect(screen.getByRole('heading', { name: 'Releases' })).not.toBeNull()
     expect(screen.queryByRole('heading', { name: 'Projektstatus' })).toBeNull()
     expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13, {
@@ -767,10 +767,12 @@ describe('AdminFansubEditPage token-free wiring', () => {
     await screen.findByRole('heading', { name: 'SubGroup' })
     fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
     await screen.findByRole('heading', { name: 'Naruto' })
-    fireEvent.click(screen.getByRole('button', { name: /Mitwirkende/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Naruto ausklappen' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Mitwirkende .* Naruto bearbeiten/ }))
 
     const dialog = await screen.findByRole('dialog', { name: /Mitwirkende/ })
-    fireEvent.click(within(dialog).getByLabelText('Timing'))
+    fireEvent.click(within(dialog).getByRole('button', { name: /Rollen .* Sakura .*ndern/ }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Timer' }))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() => expect(apiMocks.upsertAnimeContribution).toHaveBeenCalledWith(
@@ -949,20 +951,17 @@ describe('AdminFansubEditPage token-free wiring', () => {
 })
 
 describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
-  it('zeigt den Veröffentlichung-Tab wenn can_edit_group=true', async () => {
+  it('versteckt den Veröffentlichung-Tab auch wenn can_edit_group=true', async () => {
     apiMocks.getCurrentUser.mockResolvedValueOnce({
       data: { is_platform_admin: false },
     })
-    // Defaults: can_edit_group=true (gesetzt in beforeEach)
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    // Tab „Veröffentlichung" soll sichtbar sein wenn can_edit_group=true
-    // Läuft ROT solange MAIN_TABS noch kein readiness-Eintrag hat (Plan 03)
-    expect(screen.getByRole('button', { name: 'Veröffentlichung' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Veröffentlichung' })).toBeNull()
   })
 
-  it('zeigt den Veröffentlichung-Tab wenn can_edit_notes=true (aber can_edit_group=false)', async () => {
+  it('versteckt den Veröffentlichung-Tab auch wenn can_edit_notes=true', async () => {
     apiMocks.getCurrentUser.mockResolvedValueOnce({
       data: { is_platform_admin: false },
     })
@@ -986,8 +985,7 @@ describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    // Läuft ROT solange MAIN_TABS noch kein readiness-Eintrag hat (Plan 03)
-    expect(screen.getByRole('button', { name: 'Veröffentlichung' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Veröffentlichung' })).toBeNull()
   })
 
   it('versteckt den Veröffentlichung-Tab bei reiner Mitgliedschaft (can_view_members=true, can_edit_group=false, can_edit_notes=false)', async () => {
@@ -1014,8 +1012,6 @@ describe("Tab 'Veröffentlichung' — Capability-Gating (Req F)", () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    // Tab darf bei reiner Mitgliedschaft NICHT sichtbar sein
-    // Läuft GRÜN wenn kein readiness-Eintrag in MAIN_TABS ist (korrekt für Wave-0)
     expect(screen.queryByRole('button', { name: 'Veröffentlichung' })).toBeNull()
   })
 })
@@ -1030,8 +1026,17 @@ describe('parseMainTab und MAIN_TABS — Routing-Logik (D-13)', () => {
     expect(keys).not.toContain('anime-projekte')
   })
 
+  it('MAIN_TABS enthält keinen sichtbaren Veröffentlichung-Tab mehr', () => {
+    const keys = MAIN_TABS.map((t) => t.key)
+    expect(keys).not.toContain('readiness')
+  })
+
   it('parseMainTab("releases") === "releases"', () => {
     expect(parseMainTab('releases')).toBe('releases')
+  })
+
+  it('parseMainTab("readiness") === "basic" (entfernter Tab)', () => {
+    expect(parseMainTab('readiness')).toBe('basic')
   })
 
   it('parseMainTab("basic") === "basic"', () => {

@@ -197,20 +197,6 @@ export function FansubEditClient({
     [loadAnimeContributionRows, loadAnimeReleases, setExpandedAnimeKeys],
   );
 
-  const openAnimeProjectNote = useCallback(
-    (releaseGroup: FansubReleaseGroup) => {
-      setExpandedAnimeKeys((current) => {
-        if (current.has(releaseGroup.key)) return current;
-        const next = new Set(current);
-        next.add(releaseGroup.key);
-        return next;
-      });
-      void loadAnimeReleases(releaseGroup);
-      void loadAnimeContributionRows(releaseGroup.anime.id);
-    },
-    [loadAnimeContributionRows, loadAnimeReleases, setExpandedAnimeKeys],
-  );
-
   useEffect(() => {
     if (!toast) return;
     const timeout = window.setTimeout(() => setToast(null), 3000);
@@ -273,7 +259,6 @@ export function FansubEditClient({
         onSectionToggle={onSectionToggle}
         onToast={handleDetailsToast}
         onToggleAnime={toggleAnime}
-        onOpenAnimeProjectNote={openAnimeProjectNote}
         onOpenReleaseDrawer={openReleaseDrawer}
         onOpenThemeDrawer={openThemeDrawer}
       />

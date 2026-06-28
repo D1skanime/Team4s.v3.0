@@ -46,7 +46,6 @@ type FansubEditWorkspaceSectionProps = {
   onSectionToggle: (section: SectionKey, open: boolean) => void;
   onToast: (message: string) => void;
   onToggleAnime: (releaseGroup: FansubReleaseGroup) => void;
-  onOpenAnimeProjectNote: (releaseGroup: FansubReleaseGroup) => void;
   onOpenReleaseDrawer: (context: ReleaseDrawerContext) => void;
   onOpenThemeDrawer: (
     release: AdminFansubRelease,
@@ -81,7 +80,6 @@ export function FansubEditWorkspaceSection({
   onSectionToggle,
   onToast,
   onToggleAnime,
-  onOpenAnimeProjectNote,
   onOpenReleaseDrawer,
   onOpenThemeDrawer,
 }: FansubEditWorkspaceSectionProps) {
@@ -136,7 +134,6 @@ export function FansubEditWorkspaceSection({
           isSectionOpen={isSectionOpen}
           onSectionToggle={onSectionToggle}
           onToggleAnime={onToggleAnime}
-          onOpenAnimeProjectNote={onOpenAnimeProjectNote}
           onOpenReleaseDrawer={onOpenReleaseDrawer}
           onOpenThemeDrawer={onOpenThemeDrawer}
         />

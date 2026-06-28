@@ -1,28 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronDown, ChevronRight, FileText, Users } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 import type { AdminFansubRelease } from "@/types/fansub";
-import { FANSUB_GROUP_ROLE_OPTIONS } from "@/types/fansub";
-import { useMemo } from "react";
-import { Button } from "@/components/ui";
 import AnimeContributionModal from "./AnimeContributionModal";
 import { AnimeReleasesFilterBar } from "./AnimeReleasesFilterBar";
 import { ProjectCockpitBadges } from "./ProjectCockpitBadges";
 import { AnimeProjectNoteWorkspace } from "./AnimeProjectNoteWorkspace";
-import {
-  CoverageMatrix,
-  type ProjectCoverageRow,
-  type RoleDefinition,
-} from "./CoverageMatrix";
 import { ReleaseContributionDrawer } from "./ReleaseContributionDrawer";
 import { ReleaseRowDetails } from "./ReleaseRowDetails";
 import {
   formatAnimeTypeLabel,
   resolveCoverUrl,
 } from "./fansubEditFormatters";
-import { groupContributionMembersByRole } from "./fansubEditReleaseHelpers";
 import type {
   FansubReleaseGroup,
   ReleaseDrawerContext,
@@ -46,7 +37,6 @@ type AnimeReleasesCockpitProps = {
   isSectionOpen: (section: SectionKey) => boolean;
   onSectionToggle: (section: SectionKey, open: boolean) => void;
   onToggleAnime: (releaseGroup: FansubReleaseGroup) => void;
-  onOpenAnimeProjectNote: (releaseGroup: FansubReleaseGroup) => void;
   onOpenReleaseDrawer: (context: ReleaseDrawerContext) => void;
   onOpenThemeDrawer: (
     release: AdminFansubRelease,
@@ -63,12 +53,10 @@ export function AnimeReleasesCockpit({
   canOpenReleaseContributors,
   canUseReleaseMedia,
   canUseReleaseNotes,
-  canUseAdminReleaseDetails,
   canOpenReleaseDrawer,
   isSectionOpen,
   onSectionToggle,
   onToggleAnime,
-  onOpenAnimeProjectNote,
   onOpenReleaseDrawer,
   onOpenThemeDrawer,
 }: AnimeReleasesCockpitProps) {
@@ -91,7 +79,6 @@ export function AnimeReleasesCockpit({
     setCockpitFilter,
     visibleReleaseGroups,
     toggleRelease,
-    handleReleaseRowsScroll,
     loadAnimeReleases,
   } = releaseData;
   const {
@@ -111,18 +98,6 @@ export function AnimeReleasesCockpit({
     openContributionDrawer,
     refreshAnimeContributions,
   } = contributions;
-
-  const catalogRoles = useMemo<RoleDefinition[]>(
-    () =>
-      FANSUB_GROUP_ROLE_OPTIONS.filter(
-        (role) => role.code !== "fansub_lead",
-      ).map((role, index) => ({
-        code: role.code,
-        label: role.label,
-        sort_order: index + 1,
-      })),
-    [],
-  );
 
   return (
     <>
@@ -211,8 +186,6 @@ export function AnimeReleasesCockpit({
               );
               const animeContributionRows =
                 animeContributionRowsByAnimeId[releaseGroup.anime.id] ?? [];
-              const roleMembersByCode =
-                groupContributionMembersByRole(animeContributionRows);
               return (
                 <article
                   key={releaseGroup.key}
@@ -276,38 +249,6 @@ export function AnimeReleasesCockpit({
                         )}
                       </span>
                     </button>
-                    <div className={styles.fansubEditAnimeReleaseActions}>
-                      {canUseProjectNotes ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          leftIcon={<FileText size={16} />}
-                          className={styles.fansubEditAnimeContributorsButton}
-                          onClick={() => onOpenAnimeProjectNote(releaseGroup)}
-                        >
-                          Einblick
-                        </Button>
-                      ) : null}
-                      {canOpenReleaseContributors ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          leftIcon={<Users size={16} />}
-                          className={styles.fansubEditAnimeContributorsButton}
-                          loading={
-                            contributionModalLoadingAnimeId ===
-                            releaseGroup.anime.id
-                          }
-                          onClick={() =>
-                            void openAnimeContributions(releaseGroup.anime)
-                          }
-                        >
-                          Mitwirkende
-                        </Button>
-                      ) : null}
-                    </div>
                   </div>
                   {animeExpanded && canUseProjectNotes ? (
                     <section className={styles.fansubEditProjectInsightPanel}>
@@ -320,28 +261,26 @@ export function AnimeReleasesCockpit({
                   ) : null}
                   {animeExpanded ? (
                     <section className={styles.fansubEditProjectTeamPanel}>
-                      <div className={styles.fansubEditProjectPanelHeader}>
-                        <h4>Team & Rollen</h4>
-                      </div>
-                      <CoverageMatrix
-                        roles={catalogRoles}
-                        showProjectTitle={false}
-                        rows={[
-                          {
-                            animeId: releaseGroup.anime.id,
-                            animeTitle: releaseGroup.anime.title,
-                            coveredRoleCodes:
-                              animeCoverage?.covered_role_codes ?? [],
-                            roleMembersByCode,
-                          } satisfies ProjectCoverageRow,
-                        ]}
-                        onCellClick={(_, roleCode) =>
-                          void openAnimeContributions(
-                            releaseGroup.anime,
-                            roleCode,
-                          )
+                      <button
+                        type="button"
+                        className={styles.fansubEditProjectTeamToggle}
+                        onClick={() =>
+                          void openAnimeContributions(releaseGroup.anime)
                         }
-                      />
+                        disabled={
+                          !canOpenReleaseContributors ||
+                          contributionModalLoadingAnimeId === releaseGroup.anime.id
+                        }
+                        aria-label={`Mitwirkende für ${releaseGroup.anime.title} bearbeiten`}
+                      >
+                        <span>
+                          <strong>Team & Rollen</strong>
+                          <small>
+                            {animeContributionRows.length} Person{animeContributionRows.length === 1 ? "" : "en"}
+                          </small>
+                        </span>
+                        <ChevronRight size={22} strokeWidth={2.4} />
+                      </button>
                     </section>
                   ) : null}
                   {animeExpanded ? (
@@ -378,22 +317,19 @@ export function AnimeReleasesCockpit({
                       releasesLoading={releasesLoading}
                       hasMoreReleases={hasMoreReleases}
                       expandedReleaseIds={expandedReleaseIds}
+                      contributionRows={animeContributionRows}
                       releaseSegmentCards={releaseSegmentCards}
                       releaseSegmentLoading={releaseSegmentLoading}
                       releaseSegmentErrors={releaseSegmentErrors}
                       selectedReleaseSegment={selectedReleaseSegment}
                       canUseReleaseMedia={canUseReleaseMedia}
                       canUseReleaseNotes={canUseReleaseNotes}
-                      canUseAdminReleaseDetails={canUseAdminReleaseDetails}
                       canOpenReleaseDrawer={canOpenReleaseDrawer}
                       canOpenReleaseContributors={canOpenReleaseContributors}
                       onToggleRelease={toggleRelease}
                       onOpenReleaseDrawer={onOpenReleaseDrawer}
                       onOpenContributionDrawer={openContributionDrawer}
                       onOpenThemeDrawer={onOpenThemeDrawer}
-                      onRowsScroll={(event) =>
-                        handleReleaseRowsScroll(releaseGroup, event)
-                      }
                       onLoadMore={() => {
                         if (!releasePagination) return;
                         void loadAnimeReleases(
