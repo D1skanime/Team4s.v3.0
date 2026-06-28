@@ -51,6 +51,21 @@ export function groupContributionMembersByRole(
   return membersByRole;
 }
 
+export function uniqueContributionPeople(contributionRows: AnimeContribution[]) {
+  const seen = new Set<number>();
+  return contributionRows.filter((row) => {
+    if (seen.has(row.member_id)) return false;
+    seen.add(row.member_id);
+    return true;
+  });
+}
+
+export function uniqueProjectContributionPeople(contributionRows: AnimeContribution[]) {
+  return uniqueContributionPeople(
+    contributionRows.filter((row) => row.release_version_id == null),
+  );
+}
+
 export function isJellyfinLocked(card: ReleaseSegmentCard): boolean {
   return card.segments.some(
     (item) =>

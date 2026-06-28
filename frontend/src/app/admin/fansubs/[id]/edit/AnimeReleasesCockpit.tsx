@@ -14,6 +14,7 @@ import {
   formatAnimeTypeLabel,
   resolveCoverUrl,
 } from "./fansubEditFormatters";
+import { uniqueProjectContributionPeople } from "./fansubEditReleaseHelpers";
 import type {
   FansubReleaseGroup,
   ReleaseDrawerContext,
@@ -186,6 +187,8 @@ export function AnimeReleasesCockpit({
               );
               const animeContributionRows =
                 animeContributionRowsByAnimeId[releaseGroup.anime.id] ?? [];
+              const projectPeopleCount =
+                uniqueProjectContributionPeople(animeContributionRows).length;
               return (
                 <article
                   key={releaseGroup.key}
@@ -276,7 +279,7 @@ export function AnimeReleasesCockpit({
                         <span>
                           <strong>Team & Rollen</strong>
                           <small>
-                            {animeContributionRows.length} Person{animeContributionRows.length === 1 ? "" : "en"}
+                            {projectPeopleCount} Person{projectPeopleCount === 1 ? "" : "en"}
                           </small>
                         </span>
                         <ChevronRight size={22} strokeWidth={2.4} />
