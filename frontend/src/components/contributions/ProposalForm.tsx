@@ -168,6 +168,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     () => roleDefinitions.find((role) => role.code === selectedRoleCode) ?? null,
     [roleDefinitions, selectedRoleCode],
   )
+  const hasInvalidYearRange = useMemo(() => {
+    if (!startedYear || !endedYear) return false
+    return parseInt(endedYear, 10) < parseInt(startedYear, 10)
+  }, [endedYear, startedYear])
 
   const groupOptions = useMemo<ChoiceOption<number>[]>(
     () => ownGroups.map((group) => ({
@@ -276,6 +280,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
       setRoleError('Bitte wähle eine Rolle aus.')
       return
     }
+    if (hasInvalidYearRange) {
+      setStep(3)
+      return
+    }
 
     const body: ProposalFormData = {
       fansub_group_id: selectedGroup.fansub_group_id,
@@ -298,7 +306,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
       onSuccess()
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setError('Für diese Kombination aus Gruppe, Projekt und deiner Identität existiert bereits ein Hinweis.')
+        setError(err.message || 'Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.')
       } else {
         setError(err instanceof Error ? err.message : 'Der Vorschlag konnte nicht eingereicht werden. Bitte versuche es erneut.')
       }
@@ -337,7 +345,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
       open={true}
       onClose={resetAndClose}
       title="Ich war in diesem Projekt dabei"
-      description={submittedSummary ? undefined : `Schritt ${step} von 3`}
+      description={undefined}
       variant="responsiveSheet"
       footer={footer}
     >
@@ -508,6 +516,11 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
                     />
                   </FormField>
                 </div>
+                {hasInvalidYearRange ? (
+                  <p className={styles.rangeHint} role="status">
+                    Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.
+                  </p>
+                ) : null}
 
                 <div className={styles.infoPanel}>
                   Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden.

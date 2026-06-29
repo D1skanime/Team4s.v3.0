@@ -109,7 +109,46 @@ Verification:
 - Live browser check as `ao-encoder`: step 3 clips note input to 280 characters, shows `280/280`, shows the 90-day note, keeps year pickers visible, and has no horizontal overflow at 420px.
 - Live browser check as `ao-encoder`: desktop 1280px step 1 opens without horizontal overflow.
 
-Live-submit note:
+Live-submit note: superseded by Add-on 4 verification below.
 
-- A live success submit with `ao-encoder` was blocked by the backend with HTTP/API-visible conflict text: `Für diese Kombination aus Gruppe, Projekt und deiner Identität existiert bereits ein Hinweis.`
-- The in-assistant success view and `Fertig` close/reset flow are covered by `ProposalForm.test.tsx` and `ReportModal.test.tsx`.
+## Add-on 4 - Hinweis-Assistent Layout, Duplikat-Anzeige, Submit-500
+
+Scope: Add-on 4 keeps the 3-step assistant from Add-on 3. It fixes step-3 layout defects and verifies duplicate-warning behavior. The already-correct project-role/offene-Aktionen block remains untouched.
+
+Teil A duplicate verification:
+
+- Checked local DB for `ao-encoder` / member `4`, group `AnimeOwnage` (`fansub_group_id=1`), project `Naruto` (`anime_id=1`), historical group member `3`.
+- Existing contribution found before the fix: `anime_contributions.id=2`, `status=confirmed`, `note='Encoding im Naruto-Projekt.'`, roles `{encoder,timer}`, created/confirmed at `2026-06-08 19:15:03.683007+00`.
+- Conclusion: a warning for the exact existing roles is correct, but the old combination-level duplicate block was too broad for another role in the same project.
+
+Implemented:
+
+- Duplicate handling is now role-scoped: a member can submit another role for the same group/project/member context, while identical role duplicates still return `409`.
+- Proposal writes now populate canonical `anime_contributions.member_id` from `hist_fansub_group_members`, fixing the live `500` on `/api/v1/me/contribution-proposals` after migration `0105`.
+- Shared contribution row scans now include `fansub_group_member_id`, so create responses no longer return `fansub_group_member_id: 0`.
+- Step label appears only once per assistant view.
+- Progress segments use the indigo/violet gradient from the reference prototype.
+- `YearPicker` opens as a fixed portal overlay with footer-aware positioning, so it does not push or deform the drawer footer.
+- Step 3 validates `Bis Jahr` before `Von Jahr` and shows `Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.`.
+
+Verification:
+
+- `go test ./internal/repository -run "TestCreateProposal_IsRoleScopedAndSerialized|TestMemberContributionWithProposalRow_HasEpisodeFields"`
+- `go test ./internal/repository ./internal/handlers -run "TestCreateProposal|TestListMemberships|TestMemberContributionWithProposalRow|TestCreateProposal_IsRoleScoped"`
+- `npm --prefix frontend test -- src/components/contributions/ProposalForm.test.tsx`
+- `npm --prefix frontend run typecheck`
+- `npm --prefix frontend run lint` passed with existing unrelated warnings only.
+- `npm --prefix frontend run build`
+- `docker compose build team4sv30-backend`
+- `docker compose up -d --no-deps --force-recreate team4sv30-backend`
+- `git diff --check`
+- `http://127.0.0.1:8092/health` returned HTTP 200.
+- `http://127.0.0.1:3000/me/contributions` returned HTTP 200.
+- Live API submit as `ao-encoder` for `AnimeOwnage` / `Naruto` / `raw_provider` returned HTTP 201 with `fansub_group_member_id=3`, `member_id=4`, `status=proposed`; the temporary test row was deleted immediately after verification.
+- Backend logs after redeploy show the submit as `201` and no `500` for `/api/v1/me/contribution-proposals`.
+
+Live layout checks:
+
+- Mobile 420px: exactly one `Schritt 3 von 3` label; progress computed as `linear-gradient(90deg, rgb(79, 70, 229) 0%, rgb(124, 58, 237) 100%)`.
+- Mobile 420px: open year picker panel stayed fixed above the footer (`panel bottom 386`, footer top `633` in the measured run), with footer buttons retaining stable dimensions and no horizontal overflow.
+- Desktop-width smoke check: `/me/contributions` loaded successfully after redeploy.

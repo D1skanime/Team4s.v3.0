@@ -28,11 +28,12 @@ metrics:
 - Replaced the native visibility select with a segmented `Profil` / `Intern` control that still uses the existing `patchAnimeContributionVisibility` helper.
 - Add-on 2 temporarily tightened the Hinweis form, but is now superseded by Add-on 3.
 - Add-on 3 rebuilds `ProposalForm` as a 3-step bottom-sheet assistant with custom group/project selects, single-role chips, a 280-character note counter, and an in-assistant success view.
+- Add-on 4 fixes step-3 assistant layout defects, makes proposal duplicate handling role-scoped, and fixes the backend submit `500` by writing canonical `member_id` on proposal rows.
 
 ## Deviations
 
 - Requirement 4 help text was intentionally omitted under Option 3, because the current backend does not make role, notes, and images public/private together.
-- No API, backend, media, or contract behavior changed.
+- API/backend/contract behavior changed in Add-on 4 only: duplicate proposal conflicts are role-scoped instead of whole-context scoped.
 - Add-on 3 intentionally removes the project-vs-release-version scope choice until release-version hints are available.
 - The project-role/offene-Aktionen block was not changed by Add-on 3.
 
@@ -47,7 +48,8 @@ metrics:
 - `docker compose build team4sv30-frontend`
 - `docker compose up -d team4sv30-frontend`
 - HTTP 200 from `http://127.0.0.1:3000/me/contributions`
+- Live API submit as `ao-encoder` to `/api/v1/me/contribution-proposals` returned HTTP 201 after backend redeploy; temporary verification row was deleted.
 
 ## Self-Check
 
-PASSED - UI scope implemented without changing ownership, auth, media, or proposal contracts.
+PASSED - UI scope implemented without changing ownership, auth, or media. Proposal contracts were updated for the role-scoped duplicate behavior.

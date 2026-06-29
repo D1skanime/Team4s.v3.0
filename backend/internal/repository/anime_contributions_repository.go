@@ -186,6 +186,7 @@ func (r *AnimeContributionsRepository) GetByIDWithDisplay(ctx context.Context, i
 
 const animeContributionSelectCols = `
 	ac.id,
+	ac.fansub_group_member_id,
 	ac.fansub_group_id,
 	ac.anime_id,
 	ac.member_id,
@@ -210,6 +211,7 @@ func scanAnimeContributionRow(row pgx.Row) (*AnimeContributionRow, error) {
 	var r AnimeContributionRow
 	if err := row.Scan(
 		&r.ID,
+		&r.FansubGroupMemberID,
 		&r.FansubGroupID,
 		&r.AnimeID,
 		&r.MemberID,

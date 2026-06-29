@@ -333,9 +333,8 @@ func (h *ContributionProposalsMeHandler) CreateProposal(c *gin.Context) {
 
 	row, err := h.proposalRepo.CreateProposal(c.Request.Context(), req.FansubGroupID, req.AnimeID, input)
 	if errors.Is(err, repository.ErrConflict) {
-		// D-05: Duplikat-Fehlermeldung mit korrekten Umlauten.
 		c.JSON(http.StatusConflict, gin.H{
-			"error": gin.H{"message": "für diese Kombination aus Gruppe, Anime und deiner Identität existiert bereits ein Beitrag."},
+			"error": gin.H{"message": "Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag."},
 		})
 		return
 	}

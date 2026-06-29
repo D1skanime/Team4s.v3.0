@@ -72,7 +72,7 @@ describe('ProposalForm', () => {
   it('startet als 3-Schritte-Assistent ohne eigenen Kontext-Auswahlschritt', () => {
     renderForm()
 
-    expect(screen.getAllByText('Schritt 1 von 3').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Schritt 1 von 3')).toHaveLength(1)
     expect(screen.getByText('Gruppe & Projekt')).toBeTruthy()
     expect(screen.queryByText('Worum geht es?')).toBeNull()
     expect(screen.queryByText('Projekt insgesamt')).toBeNull()
@@ -85,17 +85,17 @@ describe('ProposalForm', () => {
     expect(screen.getByRole('button', { name: 'Weiter' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
 
-    expect(screen.getAllByText('Schritt 2 von 3').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Schritt 2 von 3')).toHaveLength(1)
     expect(screen.getByText('Rolle')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Zurück' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Weiter' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
-    expect(screen.getAllByText('Schritt 3 von 3').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Schritt 3 von 3')).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Hinweis senden' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Zurück' }))
-    expect(screen.getAllByText('Schritt 2 von 3').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Schritt 2 von 3')).toHaveLength(1)
   })
 
   it('rendert ausschließlich die übergebenen eigenen Gruppen im Custom-Select', () => {
@@ -155,6 +155,24 @@ describe('ProposalForm', () => {
     expect(screen.getByLabelText('Bis Jahr auswählen')).toBeTruthy()
   })
 
+  it('erkennt einen widersprüchlichen Jahresbereich ohne Layout-Schrittwechsel', () => {
+    renderForm()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    fireEvent.click(screen.getByLabelText('Von Jahr auswählen'))
+    fireEvent.click(screen.getByRole('button', { name: 'Früher' }))
+    fireEvent.click(screen.getByRole('button', { name: '2013' }))
+
+    fireEvent.click(screen.getByLabelText('Bis Jahr auswählen'))
+    fireEvent.click(screen.getByRole('button', { name: 'Früher' }))
+    fireEvent.click(screen.getByRole('button', { name: '2012' }))
+
+    expect(screen.getByText('Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.')).toBeTruthy()
+    expect(screen.getAllByText('Schritt 3 von 3')).toHaveLength(1)
+  })
+
   it('zeigt nach dem Senden eine Bestätigung mit Zusammenfassung und schließt erst über Fertig', async () => {
     apiMocks.createContributionProposal.mockResolvedValue(undefined)
     const onClose = vi.fn()
@@ -188,6 +206,24 @@ describe('ProposalForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Fertig' }))
     expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('zeigt rollenbezogene Konfliktmeldungen aus dem API-Fehler', async () => {
+    const { ApiError } = await import('@/lib/api')
+    apiMocks.createContributionProposal.mockRejectedValue(
+      new ApiError(409, 'Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.'),
+    )
+    renderForm()
+
+    await chooseGroupAndAnime()
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hinweis senden' }))
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.',
+    )
   })
 
   it('zeigt einen sichtbaren Blocked-State ohne verifizierte Gruppe', () => {

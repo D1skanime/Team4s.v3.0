@@ -1168,7 +1168,6 @@ Checks/Unique:
 ```txt
 status IN ('draft', 'proposed', 'confirmed', 'disputed', 'hidden')
 ended_year >= started_year, falls beide gesetzt sind
-UNIQUE NULLS NOT DISTINCT (fansub_group_id, anime_id, fansub_group_member_id, release_version_id)
 (fansub_group_id, fansub_group_member_id) -> hist_fansub_group_members(fansub_group_id, id)
 ```
 
@@ -1177,6 +1176,11 @@ Wichtig:
 - Der Composite-FK aus Migration `0088` verhindert Cross-Group-Contributions.
 - `release_version_id` ist optional; NULL bedeutet anime-weit.
 - Wenn eine Release-Version gelöscht wird, bleibt die Contribution als historisches Faktum erhalten und fällt auf NULL zurück.
+
+- Seit Migration `0111` gibt es keinen Row-Unique mehr auf `(fansub_group_id, anime_id, fansub_group_member_id, release_version_id)`.
+  Dadurch kann eine bestaetigte Contribution bestehen bleiben, waehrend eine neue andere Rolle als offener Vorschlag
+  fuer denselben Kontext geprueft wird. Rollenidentische Duplikate werden in der Proposal-Repository-Logik per
+  Kontext-Advisory-Lock und Rollenabgleich blockiert.
 
 ---
 

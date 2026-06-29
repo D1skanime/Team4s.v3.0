@@ -51,7 +51,7 @@ paths:
       description: |
         Submits a new anime contribution proposal for a group the member belongs to.
         The proposal remains in 'proposed' state until a group leader confirms or rejects it.
-        Returns 409 if an identical proposal (same member + anime + group combination) already exists.
+        Returns 409 if at least one submitted role already exists for the same member + anime + group + release context.
       operationId: createContributionProposal
       security:
         - bearerAuth: []
@@ -88,7 +88,7 @@ paths:
                     error:
                       message: "keine Berechtigung"
         "409":
-          description: Duplicate proposal (same member + anime + group already exists)
+          description: Duplicate proposal role for the same member + anime + group + release context
           content:
             application/json:
               schema:
@@ -97,7 +97,7 @@ paths:
                 duplicate:
                   value:
                     error:
-                      message: "Für diese Kombination aus Gruppe, Anime und deiner Identität existiert bereits ein Beitrag."
+                      message: "Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag."
         "422":
           description: Validation error (e.g. no role_codes provided)
           content:

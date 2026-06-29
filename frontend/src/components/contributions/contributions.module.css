@@ -354,11 +354,11 @@
 .progressSegmentActive {
   height: 5px;
   border-radius: 999px;
-  background: #e5eaf3;
+  background: #e8e9ff;
 }
 
 .progressSegmentActive {
-  background: linear-gradient(90deg, #4968b9, #7c3c4f);
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
 }
 
 .progressMeta {
@@ -541,6 +541,14 @@
   color: #6b7190;
   font-size: 0.72rem;
   font-weight: 800;
+}
+
+.rangeHint {
+  margin: -6px 0 0;
+  color: color-mix(in srgb, var(--button-warning-end, #6d4c13) 72%, var(--text-body));
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.4;
 }
 
 .infoPanel,

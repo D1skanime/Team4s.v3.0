@@ -196,7 +196,7 @@ func TestCreateProposal_DuplicateBlocked(t *testing.T) {
 	json.Unmarshal(recorder.Body.Bytes(), &body)
 	errMap, _ := body["error"].(map[string]any)
 	msg, _ := errMap["message"].(string)
-	if !strings.Contains(msg, "existiert bereits") {
+	if !strings.Contains(msg, "Rolle") || !strings.Contains(msg, "Hinweis oder Beitrag") {
 		t.Fatalf("erwartet Duplikat-Fehlermeldung, bekommen %q", msg)
 	}
 }

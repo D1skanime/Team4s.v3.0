@@ -16,7 +16,69 @@ type proposalMergeTarget struct {
 	EndedYear   *int
 }
 
-// findProposalMergeTarget sperrt einen bestehenden Beitrag fuer denselben
+func proposalContextLockValue(fansubGroupID int64, animeID int64, fansubGroupMemberID int64, releaseVersionID *int64) string {
+	releaseKey := "anime"
+	if releaseVersionID != nil {
+		releaseKey = fmt.Sprintf("release:%d", *releaseVersionID)
+	}
+	return fmt.Sprintf("anime-contribution:%d:%d:%d:%s", fansubGroupID, animeID, fansubGroupMemberID, releaseKey)
+}
+
+func (r *AnimeContributionsRepository) lockProposalContext(
+	ctx context.Context,
+	tx pgx.Tx,
+	fansubGroupID int64,
+	animeID int64,
+	fansubGroupMemberID int64,
+	releaseVersionID *int64,
+) error {
+	if _, err := tx.Exec(ctx, `
+		SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))
+	`, proposalContextLockValue(fansubGroupID, animeID, fansubGroupMemberID, releaseVersionID)); err != nil {
+		return fmt.Errorf("vorschlag erstellen: kontext sperren: %w", err)
+	}
+	return nil
+}
+
+func (r *AnimeContributionsRepository) findExistingProposalRoles(
+	ctx context.Context,
+	tx pgx.Tx,
+	fansubGroupID int64,
+	animeID int64,
+	fansubGroupMemberID int64,
+	releaseVersionID *int64,
+	roleCodes []string,
+) ([]string, error) {
+	rows, err := tx.Query(ctx, `
+		SELECT DISTINCT acr.role_code
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		WHERE ac.fansub_group_id = $1
+		  AND ac.anime_id = $2
+		  AND ac.fansub_group_member_id = $3
+		  AND ac.release_version_id IS NOT DISTINCT FROM $4
+		  AND acr.role_code = ANY($5::text[])
+	`, fansubGroupID, animeID, fansubGroupMemberID, releaseVersionID, roleCodes)
+	if err != nil {
+		return nil, fmt.Errorf("vorschlag erstellen: bestehende rollen suchen: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]string, 0)
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return nil, fmt.Errorf("vorschlag erstellen: bestehende rolle scannen: %w", err)
+		}
+		result = append(result, code)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("vorschlag erstellen: bestehende rollen iterieren: %w", err)
+	}
+	return result, nil
+}
+
+// findProposalMergeTarget sperrt einen offenen Beitrag fuer denselben
 // Gruppe/Anime/Member/Release-Kontext, damit weitere Rollen atomar ergaenzt werden koennen.
 func (r *AnimeContributionsRepository) findProposalMergeTarget(
 	ctx context.Context,
@@ -34,6 +96,7 @@ func (r *AnimeContributionsRepository) findProposalMergeTarget(
 		  AND anime_id = $2
 		  AND fansub_group_member_id = $3
 		  AND release_version_id IS NOT DISTINCT FROM $4
+		  AND status IN ('draft', 'proposed')
 		FOR UPDATE
 	`, fansubGroupID, animeID, fansubGroupMemberID, releaseVersionID).Scan(
 		&target.ID,

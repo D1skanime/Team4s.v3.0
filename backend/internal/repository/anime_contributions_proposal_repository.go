@@ -47,6 +47,16 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 	defer tx.Rollback(ctx)
 
 	createdBy := input.AppUserID
+	if err := r.lockProposalContext(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID); err != nil {
+		return nil, err
+	}
+	conflictingRoles, err := r.findExistingProposalRoles(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID, input.RoleCodes)
+	if err != nil {
+		return nil, err
+	}
+	if len(conflictingRoles) > 0 {
+		return nil, fmt.Errorf("vorschlag erstellen: rolle bereits vorhanden: %w", ErrConflict)
+	}
 	existing, err := r.findProposalMergeTarget(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID)
 	if err != nil {
 		return nil, err
@@ -67,6 +77,7 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 			fansub_group_id,
 			anime_id,
 			fansub_group_member_id,
+			member_id,
 			status,
 			note,
 			started_year,
@@ -78,7 +89,23 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 			updated_by,
 			created_at,
 			updated_at
-		) VALUES ($1, $2, $3, 'proposed', $4, $5, $6, false, false, $8, $7, $7, NOW(), NOW())
+		) VALUES (
+			$1,
+			$2,
+			$3,
+			(SELECT member_id FROM hist_fansub_group_members WHERE id = $3 AND fansub_group_id = $1),
+			'proposed',
+			$4,
+			$5,
+			$6,
+			false,
+			false,
+			$8,
+			$7,
+			$7,
+			NOW(),
+			NOW()
+		)
 		RETURNING id
 	`,
 		fansubGroupID,
