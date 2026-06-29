@@ -71,6 +71,42 @@ describe('ProposalForm', () => {
     expect(markup).toContain('nicht als öffentlicher Profiltext angezeigt')
   })
 
+  it('stellt die Folge-Option nicht als gleichwertigen Button dar', () => {
+    render(
+      <ProposalForm
+        onSuccess={vi.fn()}
+        onClose={vi.fn()}
+        ownGroups={OWN_GROUPS}
+        roleDefinitions={ROLE_DEFINITIONS}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Projekt insgesamt' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Bestimmte Folge/ })).toBeNull()
+    expect(screen.getByText('Bestimmte Folge')).toBeTruthy()
+    expect(screen.getByText('Bald verfügbar')).toBeTruthy()
+  })
+
+  it('rendert ausschließlich die übergebenen eigenen Gruppen', () => {
+    render(
+      <ProposalForm
+        onSuccess={vi.fn()}
+        onClose={vi.fn()}
+        ownGroups={[
+          ...OWN_GROUPS,
+          { fansub_group_member_id: 2, fansub_group_id: 20, group_name: 'Zweite Gruppe' },
+        ]}
+        roleDefinitions={ROLE_DEFINITIONS}
+      />,
+    )
+
+    const groupSelect = screen.getByLabelText(/Welche Gruppe soll prüfen/) as HTMLSelectElement
+    const optionLabels = Array.from(groupSelect.options).map((option) => option.textContent)
+
+    expect(optionLabels).toEqual(['Gruppe auswählen', 'Testgruppe', 'Zweite Gruppe'])
+    expect(optionLabels).not.toContain('Fremde Gruppe')
+  })
+
   it('zeigt Rollenoptionen aus den roleDefinitions', () => {
     const markup = renderForm()
 
@@ -93,7 +129,7 @@ describe('ProposalForm', () => {
     expect(markup).toContain('Keine verifizierte Gruppe verfügbar')
   })
 
-  it('zeigt nach Gruppen- und Projektwahl einen Kontext-Breadcrumb', async () => {
+  it('zeigt und entfernt den Kontext-Breadcrumb bei Gruppen- und Projektwahl', async () => {
     apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [{ id: 3, title: 'Naruto' }] })
 
     render(
@@ -119,5 +155,16 @@ describe('ProposalForm', () => {
     const breadcrumb = screen.getByLabelText('Ausgewählter Kontext')
     expect(breadcrumb.textContent).toContain('Testgruppe')
     expect(breadcrumb.textContent).toContain('Naruto')
+
+    fireEvent.change(screen.getByLabelText(/Bei welchem Anime\/Projekt/), { target: { value: '' } })
+    expect(screen.queryByLabelText('Ausgewählter Kontext')).toBeNull()
+
+    fireEvent.change(screen.getByLabelText(/Bei welchem Anime\/Projekt/), { target: { value: '3' } })
+    expect(screen.getByLabelText('Ausgewählter Kontext').textContent).toContain('Naruto')
+
+    fireEvent.change(screen.getByLabelText(/Welche Gruppe soll prüfen/), { target: { value: '' } })
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Ausgewählter Kontext')).toBeNull()
+    })
   })
 })

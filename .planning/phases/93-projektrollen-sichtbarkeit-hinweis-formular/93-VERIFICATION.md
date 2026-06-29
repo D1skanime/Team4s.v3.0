@@ -55,3 +55,19 @@ Verification:
 - `docker compose build team4sv30-frontend` passed.
 - `docker compose up -d team4sv30-frontend` recreated and started the frontend container.
 - `http://127.0.0.1:3000/me/contributions` returned HTTP 200.
+
+## Add-on 2 - Hinweis-Formular UI
+
+Scope: only the "Ich war in diesem Projekt dabei" form. The already-correct project-role/offene-Aktionen block was not changed.
+
+Implemented:
+
+- The unavailable follow-up scope is no longer a disabled full button. It is a compact static notice with a thin border, smaller type, lower height, and the existing "Bald verfügbar" tag.
+- The selected group/project breadcrumb renders only after both dropdowns have values and is removed when either selection is reset.
+- Group scoping remains unchanged and verified: the dropdown is populated only from `ownGroups`, which is loaded via `getMyMemberships()` from `/api/v1/me/memberships`; backend membership listing and submit ownership checks stay in `contribution_proposals_me_handler.go`.
+
+Verification:
+
+- `npm --prefix frontend test -- src/components/contributions/ProposalForm.test.tsx`
+- `npm --prefix frontend run typecheck`
+- `npm --prefix frontend run lint` passed with existing unrelated warnings only.

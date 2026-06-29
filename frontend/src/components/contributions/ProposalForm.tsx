@@ -195,17 +195,14 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
             >
               <strong>Projekt insgesamt</strong>
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className={`${styles.scopeOption} ${styles.scopeOptionSoon}`}
-              disabled
+            <div
+              className={styles.scopeOptionSoon}
               aria-disabled="true"
               title="Bald verfügbar"
             >
               <strong>Bestimmte Folge</strong>
               <span className={styles.soonTag}>Bald verfügbar</span>
-            </Button>
+            </div>
           </div>
         </FormField>
 
