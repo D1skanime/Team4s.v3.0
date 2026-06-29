@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 
 import { Badge, Button, Card, ErrorState, LoadingState, PageHeader, Tabs } from '@/components/ui'
 import type { TabItem } from '@/components/ui'
@@ -38,8 +39,15 @@ function formatEpisodeNumber(value?: number | null): string {
   return `Episode ${String(value).padStart(2, '0')}`
 }
 
+function getProjectReturnPath(raw: string | null, animeId: number, fansubGroupId?: number | null): string | null {
+  if (!raw || !fansubGroupId) return null
+  const expected = `/me/projects/${animeId}/group/${fansubGroupId}`
+  return raw === expected ? raw : null
+}
+
 export function MeReleaseWorkspacePage() {
   const params = useParams<{ versionId: string }>()
+  const searchParams = useSearchParams()
   const versionId = parsePositiveInt(params.versionId)
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
@@ -120,7 +128,9 @@ export function MeReleaseWorkspacePage() {
   }
 
   const version = context.version
-  const groupName = context.selected_groups[0]?.name ?? 'Fansubgruppe'
+  const selectedGroup = context.selected_groups[0]
+  const groupName = selectedGroup?.name ?? 'Fansubgruppe'
+  const projectReturnHref = getProjectReturnPath(searchParams.get('return_to'), version.anime_id, selectedGroup?.id)
   const releaseVersionLabel = version.release_version?.trim() || `Version #${version.id}`
   const episodeLabel = formatEpisodeNumber(version.episode_number)
   const canUseMedia = capabilities.can_view_media
@@ -164,7 +174,7 @@ export function MeReleaseWorkspacePage() {
             <nav className={styles.breadcrumb} aria-label="Breadcrumb">
               <Link href="/me/contributions">Meine Projekte</Link>
               <span>/</span>
-              <span>{context.anime_title}</span>
+              {projectReturnHref ? <Link href={projectReturnHref}>{context.anime_title}</Link> : <span>{context.anime_title}</span>}
               <span>/</span>
               <span>{episodeLabel}</span>
             </nav>
@@ -173,9 +183,21 @@ export function MeReleaseWorkspacePage() {
           title={context.anime_title}
           description={`${episodeLabel} · ${groupName} · ${releaseVersionLabel}`}
           actions={
-            <div className={styles.badgeRow}>
-              {capabilities.can_upload_media ? <Badge variant="info">Medien hochladen</Badge> : null}
-              {capabilities.can_edit_notes ? <Badge variant="success">Notizen</Badge> : null}
+            <div className={styles.headerActions}>
+              {projectReturnHref ? (
+                <Button
+                  href={projectReturnHref}
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<ArrowLeft size={15} aria-hidden="true" />}
+                >
+                  Zurück zum Projekt
+                </Button>
+              ) : null}
+              <div className={styles.badgeRow}>
+                {capabilities.can_upload_media ? <Badge variant="info">Medien hochladen</Badge> : null}
+                {capabilities.can_edit_notes ? <Badge variant="success">Notizen</Badge> : null}
+              </div>
             </div>
           }
         />

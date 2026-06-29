@@ -87,7 +87,9 @@ describe('MyProjectDetailPage', () => {
     expect(getMyProjectDetailMock).toHaveBeenCalledWith(10, 5)
     expect(screen.getByText('MEIN PROJEKT')).toBeTruthy()
     expect(screen.getByText('Deine Rollen insgesamt')).toBeTruthy()
-    expect(screen.getByRole('link', { name: /Notizen & Medien/i }).getAttribute('href')).toBe('/me/releases/41/workspace')
+    expect(screen.getByRole('link', { name: /Notizen & Medien/i }).getAttribute('href')).toBe(
+      '/me/releases/41/workspace?return_to=%2Fme%2Fprojects%2F10%2Fgroup%2F5',
+    )
     expect(screen.queryByText('Keine eigene Mitwirkung')).toBeNull()
   })
 

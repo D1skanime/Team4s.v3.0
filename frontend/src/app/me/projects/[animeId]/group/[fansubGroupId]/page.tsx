@@ -158,6 +158,7 @@ export function MyProjectDetailPage() {
   }
 
   const mediaOverviewHref = `/admin/fansubs/${project.fansub_group_id}/edit?anime_id=${project.anime_id}&section=media`
+  const projectReturnHref = `/me/projects/${project.anime_id}/group/${project.fansub_group_id}`
 
   return (
     <main className={styles.page}>
@@ -264,7 +265,7 @@ export function MyProjectDetailPage() {
                 </div>
                 {release.has_own_contribution ? (
                   <Button
-                    href={`/me/releases/${release.release_version_id}/workspace`}
+                    href={`/me/releases/${release.release_version_id}/workspace?return_to=${encodeURIComponent(projectReturnHref)}`}
                     variant={hasOwnArtifacts ? 'primary' : 'secondary'}
                     size="sm"
                     leftIcon={<Pencil size={15} aria-hidden="true" />}

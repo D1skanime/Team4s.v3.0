@@ -6,10 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const getEpisodeVersionEditorContextMock = vi.fn()
 const getOwnProfileMock = vi.fn()
 const getReleaseVersionCapabilitiesMock = vi.fn()
+const searchParamsMock = vi.hoisted(() => vi.fn())
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ versionId: '42' }),
+  useSearchParams: () => searchParamsMock(),
 }))
 
 vi.mock('@/lib/useAuthSession', () => ({
@@ -97,6 +99,7 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
 }
 
 beforeEach(() => {
+  searchParamsMock.mockReturnValue(new URLSearchParams('return_to=/me/projects/10/group/1'))
   useAuthSessionMock.mockReturnValue({
     hasAccessToken: false,
     hasRefreshToken: true,
@@ -117,6 +120,7 @@ describe('MeReleaseWorkspacePage', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Naruto' })).toBeTruthy())
     expect(getEpisodeVersionEditorContextMock).toHaveBeenCalledWith(42)
     expect(screen.getByText('Episode 01 · Team 4S · v1')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Zurück zum Projekt' }).getAttribute('href')).toBe('/me/projects/10/group/1')
     expect(screen.getByTestId('media-section').textContent).toContain('Media 42')
   })
 
@@ -127,5 +131,15 @@ describe('MeReleaseWorkspacePage', () => {
     fireEvent.click(notesTab)
 
     expect(screen.getByTestId('notes-tab').textContent).toContain('Notes 42 member 77')
+  })
+
+  it('hides the project return action when the workspace was opened without a project return path', async () => {
+    searchParamsMock.mockReturnValue(new URLSearchParams())
+
+    render(<MeReleaseWorkspacePage />)
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Naruto' })).toBeTruthy())
+    expect(screen.queryByRole('link', { name: 'Zurück zum Projekt' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Naruto' })).toBeNull()
   })
 })

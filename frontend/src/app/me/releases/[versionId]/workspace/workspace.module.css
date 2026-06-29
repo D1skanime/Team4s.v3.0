@@ -26,6 +26,14 @@
   text-decoration: none;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .badgeRow {
   display: flex;
   justify-content: flex-end;
@@ -38,6 +46,7 @@
     padding: 20px 12px 36px;
   }
 
+  .headerActions,
   .badgeRow {
     justify-content: flex-start;
   }
