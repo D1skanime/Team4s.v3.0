@@ -4,6 +4,10 @@
 
 `/me/profile` wurde in eine profilzentrierte Bearbeitungsseite mit Header, vier Tabs, Accordions und Sticky-Save-Leiste umgebaut. Die bestehenden Speicher-, Upload-, Auth- und DTO-Pfade bleiben erhalten.
 
+Nachtraeglich wurde das Phase-92 Add-on fuer Projekt-Einblicke abgeschlossen:
+normale Fansub-Mitglieder mit Leserecht sehen Projekt-Einblicke read-only, ohne
+Bearbeitungsaktionen zu erhalten.
+
 ## Analyseergebnis
 
 - Phase 90 und Phase 91 waren vor Beginn abgeschlossen und committed.
@@ -40,6 +44,7 @@
 - `docker compose up -d team4sv30-frontend` - bestanden.
 - `GET http://127.0.0.1:3000/me/profile` - HTTP 200.
 - Browser-Smoke fuer Desktop und Mobile: keine horizontale Ueberbreite auf der unauthentifizierten Route.
+- Phase-92 Add-on Projekt-Einblicke: gezielte Frontend-Tests, Frontend-Typecheck, Backend-Handler-Test und `git diff --check` bestanden.
 
 ## Bekannte Baseline
 
@@ -59,3 +64,7 @@ Die gezielten Phase-92-Tests sind gruen.
 - Story-Bilder bleiben Teil des bestehenden globalen Profil-Speicherns, nicht eines separaten Sofort-Speicherpfads.
 - Projektkarten verwenden ein Initial-/Cover-Tile, weil das vorhandene DTO keine echten Coverbilder fuer die Aktivitaetsliste liefert.
 - Eine echte Live-UAT mit eingeloggtem Benutzer sollte nach dem naechsten auth-faehigen Browserdurchlauf erfolgen.
+
+## Finale Add-on-Commits
+
+- `38621ea8` - `Add Phase 92 project insight read-only access`

@@ -53,5 +53,13 @@ closeout; the Phase-90 targeted checks pass.
 
 ## Result
 
-Phase 90 is ready to commit. Phase 91 may start only after this closeout and the
-associated source changes are committed.
+Phase 90 was committed and subsequently received the final Phase-90 add-on
+hardening for release theme upload segment locks.
+
+Final related commit:
+
+- `475b16c9` - `Fix release theme upload segment locks`
+
+The release theme upload follow-up keeps the existing release-version ownership
+model intact and prevents non-anchor episode versions from uploading OP/ED theme
+assets for a segment range that already belongs to another episode.
