@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import { renderToStaticMarkup } from 'react-dom/server'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -41,130 +40,161 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-function renderForm(ownGroups = OWN_GROUPS) {
-  return renderToStaticMarkup(
+function renderForm(ownGroups = OWN_GROUPS, props?: Partial<Parameters<typeof ProposalForm>[0]>) {
+  return render(
     <ProposalForm
-      onSuccess={vi.fn()}
-      onClose={vi.fn()}
+      onSuccess={props?.onSuccess ?? vi.fn()}
+      onClose={props?.onClose ?? vi.fn()}
       ownGroups={ownGroups}
-      roleDefinitions={ROLE_DEFINITIONS}
+      roleDefinitions={props?.roleDefinitions ?? ROLE_DEFINITIONS}
     />,
   )
 }
 
+async function chooseGroupAndAnime() {
+  apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [{ id: 3, title: 'Naruto' }] })
+
+  fireEvent.click(screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }))
+  fireEvent.click(screen.getByRole('option', { name: /Testgruppe/ }))
+
+  await waitFor(() => {
+    expect(apiMocks.getAdminFansubAnime).toHaveBeenCalledWith(10)
+  })
+  await waitFor(() => {
+    expect((screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  fireEvent.click(screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }))
+  fireEvent.click(screen.getByRole('option', { name: /Naruto/ }))
+}
+
 describe('ProposalForm', () => {
-  it('zeigt den 90-Tage-Hinweis ohne Interaktion', () => {
-    expect(renderForm()).toContain('90 Tagen')
+  it('startet als 3-Schritte-Assistent ohne eigenen Kontext-Auswahlschritt', () => {
+    renderForm()
+
+    expect(screen.getAllByText('Schritt 1 von 3').length).toBeGreaterThan(0)
+    expect(screen.getByText('Gruppe & Projekt')).toBeTruthy()
+    expect(screen.queryByText('Worum geht es?')).toBeNull()
+    expect(screen.queryByText('Projekt insgesamt')).toBeNull()
+    expect(screen.queryByText('Bestimmte Folge / Release-Version')).toBeNull()
   })
 
-  it('enthält die gruppengebundene Anime-Auswahl mit Kontext', () => {
-    const markup = renderForm()
+  it('aktualisiert Fortschritt und Button-Beschriftung bei Vor- und Zurück-Navigation', () => {
+    renderForm()
 
-    expect(markup).toContain('Bei welchem Anime/Projekt dieser Gruppe?')
-    expect(markup).toContain('Erst Gruppe auswählen')
-    expect(markup).toContain('Hinweis geht zur Prüfung an die zuständige Gruppe')
-    expect(markup).toContain('Worum geht es?')
-    expect(markup).toContain('Projekt insgesamt')
-    expect(markup).toContain('Bestimmte Folge')
-    expect(markup).toContain('Bald verfügbar')
-    expect(markup).toContain('Hinweis senden')
-    expect(markup).toContain('nicht als öffentlicher Profiltext angezeigt')
+    expect(screen.getByRole('button', { name: 'Weiter' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    expect(screen.getAllByText('Schritt 2 von 3').length).toBeGreaterThan(0)
+    expect(screen.getByText('Rolle')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Zurück' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Weiter' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    expect(screen.getAllByText('Schritt 3 von 3').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Hinweis senden' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zurück' }))
+    expect(screen.getAllByText('Schritt 2 von 3').length).toBeGreaterThan(0)
   })
 
-  it('stellt die Folge-Option nicht als gleichwertigen Button dar', () => {
-    render(
-      <ProposalForm
-        onSuccess={vi.fn()}
-        onClose={vi.fn()}
-        ownGroups={OWN_GROUPS}
-        roleDefinitions={ROLE_DEFINITIONS}
-      />,
-    )
+  it('rendert ausschließlich die übergebenen eigenen Gruppen im Custom-Select', () => {
+    renderForm([
+      ...OWN_GROUPS,
+      { fansub_group_member_id: 2, fansub_group_id: 20, group_name: 'Zweite Gruppe' },
+    ])
 
-    expect(screen.getByRole('button', { name: 'Projekt insgesamt' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /Bestimmte Folge/ })).toBeNull()
-    expect(screen.getByText('Bestimmte Folge / Release-Version')).toBeTruthy()
-    expect(screen.getByText('Bald verfügbar')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }))
+
+    expect(screen.getByRole('option', { name: /Testgruppe/ })).toBeTruthy()
+    expect(screen.getByRole('option', { name: /Zweite Gruppe/ })).toBeTruthy()
+    expect(screen.queryByText('Fremde Gruppe')).toBeNull()
   })
 
-  it('rendert ausschließlich die übergebenen eigenen Gruppen', () => {
-    render(
-      <ProposalForm
-        onSuccess={vi.fn()}
-        onClose={vi.fn()}
-        ownGroups={[
-          ...OWN_GROUPS,
-          { fansub_group_member_id: 2, fansub_group_id: 20, group_name: 'Zweite Gruppe' },
-        ]}
-        roleDefinitions={ROLE_DEFINITIONS}
-      />,
-    )
+  it('aktiviert die Projekt-Auswahl erst nach Gruppenwahl und zeigt den Kontext-Chip', async () => {
+    renderForm()
 
-    const groupSelect = screen.getByLabelText(/Welche Gruppe soll prüfen/) as HTMLSelectElement
-    const optionLabels = Array.from(groupSelect.options).map((option) => option.textContent)
+    expect((screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }) as HTMLButtonElement).disabled).toBe(true)
 
-    expect(optionLabels).toEqual(['Gruppe auswählen', 'Testgruppe', 'Zweite Gruppe'])
-    expect(optionLabels).not.toContain('Fremde Gruppe')
-  })
-
-  it('zeigt Rollenoptionen aus den roleDefinitions', () => {
-    const markup = renderForm()
-
-    expect(markup).toContain('Übersetzung')
-    expect(markup).toContain('Editing')
-  })
-
-  it('nutzt YearPicker statt raw number inputs für Jahresfelder', () => {
-    const markup = renderForm()
-
-    expect(markup).toContain('aria-label="Von Jahr auswählen"')
-    expect(markup).toContain('aria-label="Bis Jahr auswählen"')
-    expect(markup).not.toContain('type="number"')
-  })
-
-  it('zeigt einen sichtbaren Blocked-State ohne verifizierte Gruppe', () => {
-    const markup = renderForm([])
-
-    expect(markup).toContain('verifizierte Mitgliedschaft')
-    expect(markup).toContain('Keine verifizierte Gruppe verfügbar')
-  })
-
-  it('zeigt und entfernt den Kontext-Breadcrumb bei Gruppen- und Projektwahl', async () => {
-    apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [{ id: 3, title: 'Naruto' }] })
-
-    render(
-      <ProposalForm
-        onSuccess={vi.fn()}
-        onClose={vi.fn()}
-        ownGroups={OWN_GROUPS}
-        roleDefinitions={ROLE_DEFINITIONS}
-      />,
-    )
-
-    fireEvent.change(screen.getByLabelText(/Welche Gruppe soll prüfen/), { target: { value: '1' } })
-
-    await waitFor(() => {
-      expect(apiMocks.getAdminFansubAnime).toHaveBeenCalledWith(10)
-    })
-    await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'Naruto' })).not.toBeNull()
-    })
-
-    fireEvent.change(screen.getByLabelText(/Bei welchem Anime\/Projekt/), { target: { value: '3' } })
+    await chooseGroupAndAnime()
 
     const breadcrumb = screen.getByLabelText('Ausgewählter Kontext')
     expect(breadcrumb.textContent).toContain('Testgruppe')
     expect(breadcrumb.textContent).toContain('Naruto')
+  })
 
-    fireEvent.change(screen.getByLabelText(/Bei welchem Anime\/Projekt/), { target: { value: '' } })
-    expect(screen.queryByLabelText('Ausgewählter Kontext')).toBeNull()
+  it('zeigt Rollen als Single-Choice-Chips mit eindeutigem aktivem Zustand', () => {
+    renderForm()
 
-    fireEvent.change(screen.getByLabelText(/Bei welchem Anime\/Projekt/), { target: { value: '3' } })
-    expect(screen.getByLabelText('Ausgewählter Kontext').textContent).toContain('Naruto')
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    const translation = screen.getByRole('radio', { name: 'Übersetzung' })
+    const editing = screen.getByRole('radio', { name: 'Editing' })
 
-    fireEvent.change(screen.getByLabelText(/Welche Gruppe soll prüfen/), { target: { value: '' } })
+    fireEvent.click(translation)
+    expect(translation.getAttribute('aria-checked')).toBe('true')
+    expect(editing.getAttribute('aria-checked')).toBe('false')
+
+    fireEvent.click(editing)
+    expect(translation.getAttribute('aria-checked')).toBe('false')
+    expect(editing.getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('zeigt Hinweistext, 90-Tage-Regel und begrenzt den Zeichenzähler auf 280', () => {
+    renderForm()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    const note = screen.getByLabelText('Hinweis für den Gruppenleader') as HTMLTextAreaElement
+    fireEvent.change(note, { target: { value: 'x'.repeat(300) } })
+
+    expect(note.value).toHaveLength(280)
+    expect(screen.getByText('280/280')).toBeTruthy()
+    expect(screen.getByText(/Keine Reaktion nach 90 Tagen/)).toBeTruthy()
+    expect(screen.getByLabelText('Von Jahr auswählen')).toBeTruthy()
+    expect(screen.getByLabelText('Bis Jahr auswählen')).toBeTruthy()
+  })
+
+  it('zeigt nach dem Senden eine Bestätigung mit Zusammenfassung und schließt erst über Fertig', async () => {
+    apiMocks.createContributionProposal.mockResolvedValue(undefined)
+    const onClose = vi.fn()
+    const onSuccess = vi.fn()
+    renderForm(OWN_GROUPS, { onClose, onSuccess })
+
+    await chooseGroupAndAnime()
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hinweis senden' }))
+
     await waitFor(() => {
-      expect(screen.queryByLabelText('Ausgewählter Kontext')).toBeNull()
+      expect(apiMocks.createContributionProposal).toHaveBeenCalledWith({
+        fansub_group_id: 10,
+        anime_id: 3,
+        fansub_group_member_id: 1,
+        role_codes: ['translator'],
+        note: null,
+        started_year: null,
+        ended_year: null,
+      })
     })
+
+    expect(onSuccess).toHaveBeenCalledTimes(1)
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByText('Hinweis gesendet')).toBeTruthy()
+    expect(screen.getByText('Testgruppe')).toBeTruthy()
+    expect(screen.getByText('Naruto')).toBeTruthy()
+    expect(screen.getByText('Übersetzung')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fertig' }))
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('zeigt einen sichtbaren Blocked-State ohne verifizierte Gruppe', () => {
+    renderForm([])
+
+    expect(screen.getByText(/verifizierte Mitgliedschaft/)).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: 'Weiter' }) as HTMLButtonElement).disabled).toBe(true)
   })
 })

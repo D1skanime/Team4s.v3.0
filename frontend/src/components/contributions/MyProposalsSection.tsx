@@ -62,7 +62,6 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
   }
 
   function handleFormSuccess() {
-    setShowForm(false)
     onReload()
   }
 

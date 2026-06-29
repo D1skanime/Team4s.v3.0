@@ -58,6 +58,8 @@ Verification:
 
 ## Add-on 2 - Hinweis-Formular UI
 
+Status: superseded by Add-on 3.
+
 Scope: only the "Ich war in diesem Projekt dabei" form. The already-correct project-role/offene-Aktionen block was not changed.
 
 Implemented:
@@ -75,3 +77,39 @@ Verification:
 - `npm --prefix frontend test -- src/components/ui/Modal.test.tsx`
 - `npm --prefix frontend run typecheck`
 - `npm --prefix frontend run lint` passed with existing unrelated warnings only.
+
+## Add-on 3 - Hinweis-Formular als Schritt-Assistent
+
+Scope: Add-on 3 replaces Add-on 2 for the hint form. The project-role/offene-Aktionen block remains untouched.
+
+Implemented:
+
+- `ProposalForm` is now a 3-step `Drawer` bottom-sheet assistant: `Gruppe & Projekt`, `Rolle`, `Hinweis & Zeitraum`.
+- The removed "Worum geht es?" project-vs-release scope is no longer rendered; until release-version hints exist, submissions are project-scoped.
+- The assistant shows three progress segments plus `Schritt X von 3`, and footer navigation uses `Weiter`, `Zurück`, and final `Hinweis senden`.
+- Group/project selection uses local custom select controls with initials avatars and option lists. The project selector is disabled until a group is selected, then shows a compact `Gruppe · Projekt` chip.
+- Group scoping remains verified: groups come only from `ProposalForm.ownGroups`, loaded on `/me/contributions` via `getMyMemberships()` from `/api/v1/me/memberships`; backend submit ownership checks stay in `contribution_proposals_me_handler.go`.
+- Role selection is now single-select with large chips, active fill, and a check icon.
+- The note field has a 280-character limit and live counter; year fields still use `YearPicker`.
+- Successful submit now shows an in-assistant `Hinweis gesendet` confirmation with group, project, and role summary. `Fertig` closes and resets the assistant.
+
+Verification:
+
+- `npm --prefix frontend test -- src/components/contributions/ProposalForm.test.tsx`
+- `npm --prefix frontend test -- src/components/contributions/ReportModal.test.tsx`
+- `npm --prefix frontend run typecheck`
+- `npm --prefix frontend run lint` passed with existing unrelated warnings only.
+- `git diff --check`
+- `npm --prefix frontend run build`
+- `docker compose build team4sv30-frontend`
+- `docker compose up -d team4sv30-frontend`
+- Live browser check as `ao-encoder`: mobile 420px step 1 opens as bottom-sheet, project select is disabled before group selection, and no horizontal overflow was detected (`scrollWidth = clientWidth = 420`).
+- Live browser check as `ao-encoder`: after selecting `AnimeOwnage` and `Naruto`, the confirmation chip renders as `AnimeOwnage · Naruto`, project select is enabled, and no horizontal overflow was detected.
+- Live browser check as `ao-encoder`: step 2 role chips render as touch-sized radio choices with `Zurück`/`Weiter`.
+- Live browser check as `ao-encoder`: step 3 clips note input to 280 characters, shows `280/280`, shows the 90-day note, keeps year pickers visible, and has no horizontal overflow at 420px.
+- Live browser check as `ao-encoder`: desktop 1280px step 1 opens without horizontal overflow.
+
+Live-submit note:
+
+- A live success submit with `ao-encoder` was blocked by the backend with HTTP/API-visible conflict text: `Für diese Kombination aus Gruppe, Projekt und deiner Identität existiert bereits ein Hinweis.`
+- The in-assistant success view and `Fertig` close/reset flow are covered by `ProposalForm.test.tsx` and `ReportModal.test.tsx`.

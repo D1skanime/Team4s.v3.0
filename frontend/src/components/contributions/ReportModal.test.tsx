@@ -4,9 +4,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import type { MembershipEntry } from '@/types/contributions'
+
 import { ReportModal, type SuggestionType } from './ReportModal'
 import type { ReportTargetOption } from './reportTargets'
-import type { MembershipEntry } from '@/types/contributions'
 
 const apiMocks = vi.hoisted(() => ({
   createContributionProposal: vi.fn(),
@@ -114,7 +115,7 @@ describe('ReportModal target context', () => {
     expect(markup).toContain('Ziel-ID manuell eingeben')
   })
 
-  it('resets the contribution sub-form after a successful submit', async () => {
+  it('keeps the contribution assistant open after submit and closes via Fertig', async () => {
     apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [{ id: 3, title: 'Naruto' }] })
     apiMocks.createContributionProposal.mockResolvedValue(undefined)
     const onClose = vi.fn()
@@ -131,18 +132,21 @@ describe('ReportModal target context', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Ich war in einem Projekt dabei/ }))
-    fireEvent.click(screen.getByRole('button', { name: /Projekt insgesamt/ }))
-    fireEvent.change(screen.getByLabelText(/Welche Gruppe soll prüfen/), { target: { value: '19' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }))
+    fireEvent.click(screen.getByRole('option', { name: /AnimeOwnage/ }))
 
     await waitFor(() => {
       expect(apiMocks.getAdminFansubAnime).toHaveBeenCalledWith(88)
     })
     await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'Naruto' })).not.toBeNull()
+      expect((screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }) as HTMLButtonElement).disabled).toBe(false)
     })
 
-    fireEvent.change(screen.getByLabelText(/Bei welchem Anime\/Projekt/), { target: { value: '3' } })
-    fireEvent.click(screen.getByRole('button', { name: /Übersetzung/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }))
+    fireEvent.click(screen.getByRole('option', { name: /Naruto/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
     fireEvent.click(screen.getByRole('button', { name: /^Hinweis senden$/ }))
 
     await waitFor(() => {
@@ -158,6 +162,10 @@ describe('ReportModal target context', () => {
     })
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('Hinweis gesendet')).toBeTruthy()
+    expect(onClose).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fertig' }))
     expect(onClose).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('Ich war in diesem Projekt dabei')).toBeNull()
   })

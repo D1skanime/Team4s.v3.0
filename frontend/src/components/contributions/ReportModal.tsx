@@ -102,7 +102,7 @@ export function ReportModal({
   if (type === 'contribution') {
     return (
       <ProposalForm
-        onSuccess={handleSuccess}
+        onSuccess={onSuccess}
         onClose={handleClose}
         ownGroups={ownGroups}
         roleDefinitions={roleDefinitions}
