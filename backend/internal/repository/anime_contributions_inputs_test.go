@@ -53,6 +53,17 @@ func TestContributionRead_SelectsReleaseVersion(t *testing.T) {
 	}
 }
 
+// TestContributionRead_NullSafeFansubGroupMemberID verifiziert, dass alte
+// member_id-verankerte Beiträge ohne hist_fansub_group_members-Anker nicht beim Scan crashen.
+func TestContributionRead_NullSafeFansubGroupMemberID(t *testing.T) {
+	content := readReleaseLookupSource(t, "anime_contributions_repository.go")
+	normalized := strings.ToLower(content)
+
+	if !strings.Contains(normalized, "coalesce(ac.fansub_group_member_id, 0) as fansub_group_member_id") {
+		t.Fatalf("animeContributionSelectCols muss nullable fansub_group_member_id null-sicher selektieren")
+	}
+}
+
 // TestContributionProposal_InsertsReleaseVersion verifiziert, dass CreateProposal
 // release_version_id in den INSERT aufnimmt (D-08, Pitfall 5).
 func TestContributionProposal_InsertsReleaseVersion(t *testing.T) {

@@ -186,7 +186,7 @@ func (r *AnimeContributionsRepository) GetByIDWithDisplay(ctx context.Context, i
 
 const animeContributionSelectCols = `
 	ac.id,
-	ac.fansub_group_member_id,
+	COALESCE(ac.fansub_group_member_id, 0) AS fansub_group_member_id,
 	ac.fansub_group_id,
 	ac.anime_id,
 	ac.member_id,
