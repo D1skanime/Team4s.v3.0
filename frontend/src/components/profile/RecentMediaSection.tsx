@@ -1,4 +1,4 @@
-import { Card, EmptyState } from '@/components/ui'
+import { Badge, Card, EmptyState } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import type { MemberProfileRecentMedia } from '@/types/profile'
 
@@ -26,8 +26,9 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
 
   return (
     <ul className={styles.recentMediaGrid} aria-label="Letzte Medien">
-      {items.slice(0, 3).map((item) => {
+      {items.slice(0, 3).map((item, index) => {
         const thumbnailURL = resolveApiUrl(item.thumbnail_url || '')
+        const previewLabel = `Vorschau ${index + 1}`
 
         return (
           <li key={item.id}>
@@ -41,7 +42,9 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
                 )}
               </div>
               <div className={styles.recentItemBody}>
-                <strong>{formatReleaseVersionTitle(item)}</strong>
+                <Badge variant="info">{previewLabel}</Badge>
+                <strong>{previewLabel}</strong>
+                <span>{formatReleaseVersionTitle(item)}</span>
                 <span>{item.anime_title}</span>
               </div>
             </Card>

@@ -1,4 +1,4 @@
-import { Badge, EmptyState, FormField, Select, SectionHeader } from '@/components/ui'
+import { EmptyState, SectionHeader } from '@/components/ui'
 import type { MemberBadge } from '@/types/contributions'
 
 import { getMemberBadgePresentation } from '@/components/profile/memberBadgeLabels'
@@ -12,18 +12,6 @@ type AchievementBadgesCardProps = {
   pendingBadgeId: number | null
   error?: string | null
   onVisibilityChange: (badgeId: number, visibility: BadgeVisibility) => void
-}
-
-const VISIBILITY_LABELS: Record<BadgeVisibility, string> = {
-  public: 'Öffentlich',
-  internal: 'Nur intern',
-  hidden: 'Ausgeblendet',
-}
-
-function visibilityVariant(visibility: BadgeVisibility): 'success' | 'info' | 'muted' {
-  if (visibility === 'public') return 'success'
-  if (visibility === 'internal') return 'info'
-  return 'muted'
 }
 
 export function AchievementBadgesCard({
@@ -45,10 +33,11 @@ export function AchievementBadgesCard({
       ) : (
         <ul className={styles.badgeManagerList}>
           {badges.map((badge) => {
-            const selectId = `badge-visibility-${badge.id}`
+            const toggleId = `badge-visibility-${badge.id}`
             const isPending = pendingBadgeId === badge.id
             const presentation = getMemberBadgePresentation(badge.badge_code)
             const Icon = presentation.Icon
+            const isPublic = badge.visibility === 'public'
 
             return (
               <li key={badge.id} className={styles.badgeManagerItem}>
@@ -57,20 +46,24 @@ export function AchievementBadgesCard({
                     <Icon size={16} aria-hidden="true" />
                     <strong>{presentation.label}</strong>
                   </span>
-                  <Badge variant={visibilityVariant(badge.visibility)}>{VISIBILITY_LABELS[badge.visibility]}</Badge>
+                  <label className={styles.badgeToggle} htmlFor={toggleId}>
+                    <input
+                      id={toggleId}
+                      type="checkbox"
+                      checked={isPublic}
+                      disabled={disabled || isPending}
+                      aria-label={`${presentation.label} öffentlich anzeigen`}
+                      onChange={(event) => onVisibilityChange(badge.id, event.target.checked ? 'public' : 'internal')}
+                    />
+                    <span aria-hidden="true" className={styles.badgeToggleTrack}>
+                      <span className={styles.badgeToggleThumb} />
+                    </span>
+                    <span className={styles.badgeToggleLabel}>{isPublic ? 'Öffentlich' : 'Nur für dich'}</span>
+                  </label>
                 </div>
-                <FormField label="Sichtbarkeit" htmlFor={selectId} disabled={disabled || isPending}>
-                  <Select
-                    id={selectId}
-                    value={badge.visibility}
-                    disabled={disabled || isPending}
-                    onChange={(event) => onVisibilityChange(badge.id, event.target.value as BadgeVisibility)}
-                  >
-                    <option value="public">Öffentlich anzeigen</option>
-                    <option value="internal">Nur für mich anzeigen</option>
-                    <option value="hidden">Ausblenden</option>
-                  </Select>
-                </FormField>
+                <p className={styles.mutedText}>
+                  {isPending ? 'Sichtbarkeit wird gespeichert...' : 'Schaltet diese Auszeichnung auf deinem Profil ein oder aus.'}
+                </p>
               </li>
             )
           })}

@@ -71,8 +71,13 @@ function formatProjectStats(item: RecentContributionProject): string | null {
   return parts.length > 0 ? parts.join(' / ') : null
 }
 
+function projectWorkUnits(item: RecentContributionProject): number {
+  return Math.max(1, item.release_version_count + item.episode_count)
+}
+
 export function RecentContributionsSection({ items, canView }: RecentContributionsSectionProps) {
   const projects = toRecentProjects(items)
+  const maxWorkUnits = Math.max(1, ...projects.map(projectWorkUnits))
 
   if (!canView || projects.length === 0) {
     return <EmptyState title="Noch keine Projekte sichtbar." />
@@ -82,10 +87,14 @@ export function RecentContributionsSection({ items, canView }: RecentContributio
     <ul className={styles.recentList} aria-label="Letzte Projekte">
       {projects.slice(0, 3).map((item) => {
         const stats = formatProjectStats(item)
+        const progressValue = Math.round((projectWorkUnits(item) / maxWorkUnits) * 100)
 
         return (
           <li key={item.id}>
             <Card variant="nestedFlat" className={styles.recentContributionCard}>
+              <div className={styles.recentContributionCover} aria-hidden="true">
+                {item.anime_title.slice(0, 2).toUpperCase()}
+              </div>
               <div className={styles.recentItemBody}>
                 <strong>{item.anime_title}</strong>
                 <div className={styles.chipRow}>
@@ -97,6 +106,9 @@ export function RecentContributionsSection({ items, canView }: RecentContributio
                   ))}
                 </div>
                 {stats ? <span>{stats}</span> : null}
+                <div className={styles.projectProgress} aria-label={`Bearbeitungsumfang ${progressValue} Prozent`}>
+                  <span style={{ width: `${progressValue}%` }} />
+                </div>
               </div>
             </Card>
           </li>

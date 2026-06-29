@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { Crop, ImageUp } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
@@ -15,6 +16,8 @@ type ProfileBackgroundCardProps = {
   backgroundURL: string
   sourceBackgroundURL: string
   isUploading: boolean
+  inputRef?: RefObject<HTMLInputElement>
+  variant?: 'full' | 'compact'
   onBackgroundSelected: (payload: { sourceFile: File; croppedFile: File }) => Promise<void> | void
 }
 
@@ -42,15 +45,19 @@ export function ProfileBackgroundCard({
   backgroundURL,
   sourceBackgroundURL,
   isUploading,
+  inputRef,
+  variant = 'full',
   onBackgroundSelected,
 }: ProfileBackgroundCardProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const localInputRef = useRef<HTMLInputElement>(null)
+  const resolvedInputRef = inputRef ?? localInputRef
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isPreparingExistingBackground, setIsPreparingExistingBackground] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const canUpload = profile.capabilities.can_edit_own_profile
   const uploadHintID = 'profile-background-upload-hint'
   const canEditExistingBackground = Boolean(canUpload && sourceBackgroundURL)
+  const isCompact = variant === 'compact'
 
   async function handleEditExistingBackground() {
     if (!canEditExistingBackground || isUploading || isPreparingExistingBackground) return
@@ -73,39 +80,49 @@ export function ProfileBackgroundCard({
   }
 
   return (
-    <div className={styles.backgroundStack}>
-      <div className={styles.backgroundPreview}>
+    <div className={isCompact ? styles.mediaControlRow : styles.backgroundStack}>
+      <div className={isCompact ? styles.mediaControlBanner : styles.backgroundPreview}>
         {backgroundURL ? (
           <Image src={backgroundURL} alt="Aktuelles Profil-Hintergrundbild" width={960} height={192} unoptimized />
         ) : (
           <span>Banner</span>
         )}
       </div>
-      <Button
-        type="button"
-        variant="secondary"
-        leftIcon={<ImageUp size={16} aria-hidden="true" />}
-        loading={isUploading}
-        disabled={isUploading || isPreparingExistingBackground || !canUpload}
-        aria-describedby={uploadHintID}
-        onClick={() => inputRef.current?.click()}
-      >
-        {isUploading ? 'Bild lädt...' : backgroundURL ? 'Hintergrundbild ändern' : 'Hintergrundbild hochladen'}
-      </Button>
-      {canEditExistingBackground ? (
-        <Button
-          type="button"
-          variant="secondary"
-          leftIcon={<Crop size={16} aria-hidden="true" />}
-          loading={isPreparingExistingBackground}
-          disabled={isUploading || isPreparingExistingBackground}
-          onClick={handleEditExistingBackground}
-        >
-          {isPreparingExistingBackground ? 'Bild wird geladen...' : 'Ausschnitt bearbeiten'}
-        </Button>
-      ) : null}
+      <div className={isCompact ? styles.mediaControlBody : styles.backgroundStack}>
+        <div className={styles.mediaControlActions}>
+          <Button
+            type="button"
+            variant="secondary"
+            size={isCompact ? 'sm' : 'md'}
+            leftIcon={<ImageUp size={16} aria-hidden="true" />}
+            loading={isUploading}
+            disabled={isUploading || isPreparingExistingBackground || !canUpload}
+            aria-describedby={uploadHintID}
+            onClick={() => resolvedInputRef.current?.click()}
+          >
+            {isUploading ? 'Bild lädt...' : isCompact ? 'Ändern' : backgroundURL ? 'Hintergrundbild ändern' : 'Hintergrundbild hochladen'}
+          </Button>
+          {canEditExistingBackground ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size={isCompact ? 'sm' : 'md'}
+              leftIcon={<Crop size={16} aria-hidden="true" />}
+              loading={isPreparingExistingBackground}
+              disabled={isUploading || isPreparingExistingBackground}
+              onClick={handleEditExistingBackground}
+            >
+              {isPreparingExistingBackground ? 'Bild wird geladen...' : 'Ausschnitt bearbeiten'}
+            </Button>
+          ) : null}
+        </div>
+        <p id={uploadHintID} className={styles.mutedText}>
+          Wähle ein breites JPG, PNG oder WEBP. Der Ausschnitt wird als Profil-Banner gespeichert.
+        </p>
+        {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
+      </div>
       <input
-        ref={inputRef}
+        ref={resolvedInputRef}
         type="file"
         aria-label="Hintergrundbild auswählen"
         accept="image/jpeg,image/png,image/webp"
@@ -119,10 +136,6 @@ export function ProfileBackgroundCard({
         disabled={isUploading || isPreparingExistingBackground || !canUpload}
         className={styles.visuallyHiddenInput}
       />
-      <p id={uploadHintID} className={styles.mutedText}>
-        Wähle ein breites JPG, PNG oder WEBP. Der Ausschnitt wird als Profil-Banner gespeichert.
-      </p>
-      {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
       {selectedFile ? (
         <Team4sCropper
           file={selectedFile}

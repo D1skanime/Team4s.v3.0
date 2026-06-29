@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { FormField, Input, Textarea } from '@/components/ui'
+import { FormField, Input } from '@/components/ui'
 
 import { getMaxActivityYear, MIN_ACTIVITY_YEAR } from './activityYears'
 import type { MemberProfileFormState } from './profileFormTypes'
@@ -134,8 +134,6 @@ function YearField({ id, label, value, disabled, error, onValueChange }: YearFie
 }
 
 export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileBasicsFormProps) {
-  const bioLength = form.bio.length
-
   return (
     <div className={styles.formGrid}>
       <FormField label="Fansub-Nick" htmlFor="fansubName">
@@ -186,18 +184,6 @@ export function ProfileBasicsForm({ form, disabled, errors, onChange }: ProfileB
           />
         </div>
       </section>
-      <FormField label="Kurzbeschreibung" htmlFor="bio" hint={`${bioLength}/280 Zeichen`}>
-        <Textarea
-          id="bio"
-          className={styles.bioTextarea}
-          rows={2}
-          maxLength={280}
-          value={form.bio}
-          disabled={disabled}
-          onChange={(event) => onChange((current) => ({ ...current, bio: event.target.value }))}
-          placeholder="Ein kurzer Eindruck deiner Fansub-Rolle."
-        />
-      </FormField>
     </div>
   )
 }

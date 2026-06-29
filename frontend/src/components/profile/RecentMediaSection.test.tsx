@@ -32,7 +32,7 @@ function makeMedia(overrides: Partial<MemberProfileRecentMedia> = {}): MemberPro
 }
 
 describe('RecentMediaSection', () => {
-  it('renders public media as visitor-facing image cards without category badges', () => {
+  it('renders public media as visitor-facing image cards with unique preview labels', () => {
     const { container } = render(<RecentMediaSection items={[makeMedia()]} canView={true} isPublicView={true} />)
 
     const list = screen.getByRole('list', { name: 'Letzte Medien' })
@@ -40,10 +40,10 @@ describe('RecentMediaSection', () => {
     expect(container.querySelector('img')?.getAttribute('src')).toBe('resolved:/media/release-version/41/thumb.jpg')
     expect(container.querySelector('[class*="recentMediaThumb"]')).not.toBeNull()
     expect(screen.getByAltText('Medienbild zu Naruto')).not.toBeNull()
+    expect(screen.getAllByText('Vorschau 1')).toHaveLength(2)
     expect(screen.getByText('Release-Version #41 (v2)')).not.toBeNull()
     expect(screen.getByText('Naruto')).not.toBeNull()
     expect(screen.queryByText('Bild aus Naruto')).toBeNull()
     expect(screen.queryByText('screenshot')).toBeNull()
-    expect(container.querySelector('[class*="badge"]')).toBeNull()
   })
 })

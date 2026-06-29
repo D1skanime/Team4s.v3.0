@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { Crop, ImageUp } from 'lucide-react'
 
 import { AvatarCropDialog } from '@/components/media/crop/AvatarCropDialog'
@@ -13,6 +14,8 @@ type MemberAvatarCardProps = {
   avatarURL: string
   sourceAvatarURL: string
   isUploading: boolean
+  inputRef?: RefObject<HTMLInputElement>
+  variant?: 'full' | 'compact'
   onAvatarSelected: (payload: { sourceFile: File; croppedFile: File }) => Promise<void> | void
 }
 
@@ -76,9 +79,12 @@ export function MemberAvatarCard({
   avatarURL,
   sourceAvatarURL,
   isUploading,
+  inputRef,
+  variant = 'full',
   onAvatarSelected,
 }: MemberAvatarCardProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const localInputRef = useRef<HTMLInputElement>(null)
+  const resolvedInputRef = inputRef ?? localInputRef
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isPreparingExistingAvatar, setIsPreparingExistingAvatar] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
@@ -86,6 +92,7 @@ export function MemberAvatarCard({
   const canUpload = profile.capabilities.can_upload_own_avatar
   const uploadHintID = 'profile-avatar-upload-hint'
   const canEditExistingAvatar = Boolean(canUpload && sourceAvatarURL && !isGIFAvatar(profile, sourceAvatarURL))
+  const isCompact = variant === 'compact'
 
   async function handleEditExistingAvatar() {
     if (!canEditExistingAvatar || isUploading || isPreparingExistingAvatar) return
@@ -124,39 +131,49 @@ export function MemberAvatarCard({
   }
 
   return (
-    <div className={styles.avatarStack}>
-      <div className={styles.avatarPreview}>
+    <div className={isCompact ? styles.mediaControlRow : styles.avatarStack}>
+      <div className={isCompact ? styles.mediaControlAvatar : styles.avatarPreview}>
         {avatarURL ? (
           <Image src={avatarURL} alt={`${label} Avatar`} width={420} height={420} unoptimized />
         ) : (
           <span>{(profile.fansub_name || profile.account_display_name || '?').slice(0, 1).toUpperCase()}</span>
         )}
       </div>
-      <Button
-        type="button"
-        variant="secondary"
-        leftIcon={<ImageUp size={16} aria-hidden="true" />}
-        loading={isUploading}
-        disabled={isUploading || isPreparingExistingAvatar || !canUpload}
-        aria-describedby={uploadHintID}
-        onClick={() => inputRef.current?.click()}
-      >
-        {isUploading ? 'Bild lädt...' : avatarURL ? 'Bild ändern' : 'Bild hochladen'}
-      </Button>
-      {canEditExistingAvatar ? (
-        <Button
-          type="button"
-          variant="secondary"
-          leftIcon={<Crop size={16} aria-hidden="true" />}
-          loading={isPreparingExistingAvatar}
-          disabled={isUploading || isPreparingExistingAvatar}
-          onClick={handleEditExistingAvatar}
-        >
-          {isPreparingExistingAvatar ? 'Bild wird geladen...' : 'Ausschnitt bearbeiten'}
-        </Button>
-      ) : null}
+      <div className={isCompact ? styles.mediaControlBody : styles.avatarStack}>
+        <div className={styles.mediaControlActions}>
+          <Button
+            type="button"
+            variant="secondary"
+            size={isCompact ? 'sm' : 'md'}
+            leftIcon={<ImageUp size={16} aria-hidden="true" />}
+            loading={isUploading}
+            disabled={isUploading || isPreparingExistingAvatar || !canUpload}
+            aria-describedby={uploadHintID}
+            onClick={() => resolvedInputRef.current?.click()}
+          >
+            {isUploading ? 'Bild lädt...' : isCompact ? 'Ändern' : avatarURL ? 'Bild ändern' : 'Bild hochladen'}
+          </Button>
+          {canEditExistingAvatar ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size={isCompact ? 'sm' : 'md'}
+              leftIcon={<Crop size={16} aria-hidden="true" />}
+              loading={isPreparingExistingAvatar}
+              disabled={isUploading || isPreparingExistingAvatar}
+              onClick={handleEditExistingAvatar}
+            >
+              {isPreparingExistingAvatar ? 'Bild wird geladen...' : 'Ausschnitt bearbeiten'}
+            </Button>
+          ) : null}
+        </div>
+        <p id={uploadHintID} className={styles.mutedText}>
+          Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.
+        </p>
+        {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
+      </div>
       <input
-        ref={inputRef}
+        ref={resolvedInputRef}
         type="file"
         aria-label="Avatar-Bild auswählen"
         accept="image/jpeg,image/png,image/webp,image/gif"
@@ -169,10 +186,6 @@ export function MemberAvatarCard({
         disabled={isUploading || isPreparingExistingAvatar || !canUpload}
         className={styles.visuallyHiddenInput}
       />
-      <p id={uploadHintID} className={styles.mutedText}>
-        Wähle ein Avatar-Bild als JPG, PNG, WEBP, animiertes WebP oder animiertes GIF.
-      </p>
-      {localError ? <p role="alert" className={styles.inlineError}>{localError}</p> : null}
       {selectedFile ? (
         <AvatarCropDialog
           file={selectedFile}

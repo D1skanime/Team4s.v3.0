@@ -239,13 +239,17 @@ async function pickActivityYear(label: string, year: string) {
   throw new Error(`Jahr ${year} wurde im Year-Picker nicht gefunden.`)
 }
 
+async function openProfileTab(name: string) {
+  fireEvent.click(await screen.findByRole('tab', { name }))
+}
+
 describe('MyProfilePage', () => {
   it('loads the own profile route without admin naming leaks', async () => {
     getOwnProfileMock.mockResolvedValue(makeProfileResponse())
 
     render(<MyProfilePage />)
 
-    expect(await screen.findByRole('heading', { name: 'Mein Profil' })).not.toBeNull()
+    expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
     expect(screen.queryByText('/admin/profile')).toBeNull()
     expect(screen.queryByText(/Admin Content/i)).toBeNull()
     expect(screen.getByText('Meine Fansub-Geschichte')).not.toBeNull()
@@ -291,7 +295,7 @@ describe('MyProfilePage', () => {
     expect(screen.queryByLabelText('Fansub-Nick')).toBeNull()
     expect(screen.queryByText('Meine Fansub-Geschichte')).toBeNull()
     expect(screen.queryByText('Avatar-Bild')).toBeNull()
-    expect(screen.queryByRole('link', { name: /Öffentliches Profil ansehen/i })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Profil ansehen/i })).toBeNull()
   })
 
   it('links from the own profile hub to the public member profile', async () => {
@@ -299,7 +303,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
-    const publicProfileLink = await screen.findByRole('link', { name: /Öffentliches Profil ansehen/i })
+    const publicProfileLink = await screen.findByRole('link', { name: /Profil ansehen/i })
     expect(publicProfileLink.getAttribute('href')).toBe('/members/mikafx')
     expect(publicProfileLink.getAttribute('aria-disabled')).toBe('false')
   })
@@ -342,7 +346,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
-    expect(await screen.findByRole('heading', { name: 'Mein Profil' })).not.toBeNull()
+    expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
     expect(getOwnProfileMock).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('Anmeldung erforderlich')).toBeNull()
   })
@@ -396,6 +400,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     const indexToggle = await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' })
     expect(indexToggle).toHaveProperty('disabled', true)
     expect(screen.getByText('Die Indexierung kann erst nach einer verifizierten Identität geändert werden.')).not.toBeNull()
@@ -410,6 +415,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     fireEvent.click(await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' }))
 
     await waitFor(() => {
@@ -426,6 +432,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     expect(await screen.findByText('Du bist als UAT66-Claim-202952 verifiziert.')).not.toBeNull()
     expect(screen.queryByText('Identität verknüpfen')).toBeNull()
     expect(screen.queryByText('Historischen Nick suchen')).toBeNull()
@@ -441,6 +448,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     const indexToggle = await screen.findByRole('checkbox', { name: 'Mein Profil von Suchmaschinen indexieren lassen' })
     expect(indexToggle).toHaveProperty('disabled', false)
     expect(screen.getByText('Du bist als ClaimNick verifiziert.')).not.toBeNull()
@@ -576,10 +584,12 @@ describe('MyProfilePage', () => {
 
     const fansubNickInput = await screen.findByLabelText('Fansub-Nick')
     fireEvent.change(fansubNickInput, { target: { value: 'Ungespeicherter Nick' } })
+    await openProfileTab('Account')
     fireEvent.click(screen.getByRole('link', { name: 'Accountdaten verwalten' }))
     fireEvent.focus(window)
 
     expect((await screen.findAllByText('Mika Keycloak')).length).toBeGreaterThan(0)
+    await openProfileTab('Profil')
     expect(screen.getByDisplayValue('Ungespeicherter Nick')).not.toBeNull()
     expect(screen.queryByDisplayValue('ServerNick')).toBeNull()
   })
@@ -603,10 +613,12 @@ describe('MyProfilePage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Bearbeiten' }))
     const editor = screen.getByLabelText('Meine Fansub-Geschichte Editor')
     fireEvent.change(editor, { target: { value: 'Ungespeicherte Story' } })
+    await openProfileTab('Account')
     fireEvent.click(screen.getByRole('link', { name: 'Accountdaten verwalten' }))
     fireEvent.focus(window)
 
     expect((await screen.findAllByText('Mika Keycloak')).length).toBeGreaterThan(0)
+    await openProfileTab('Profil')
     expect((screen.getByLabelText('Meine Fansub-Geschichte Editor') as HTMLTextAreaElement).value).toContain('Ungespeicherte Story')
     expect(screen.queryByText('Server Story')).toBeNull()
   })
@@ -641,6 +653,7 @@ describe('MyProfilePage', () => {
 
     const fansubNickInput = await screen.findByLabelText('Fansub-Nick')
     fireEvent.change(fansubNickInput, { target: { value: 'Ungespeicherter Nick' } })
+    await openProfileTab('Sichtbarkeit')
     fireEvent.change(screen.getByLabelText('Avatar-Bild auswählen'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
@@ -673,6 +686,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
       target: { files: [new File(['source'], 'avatar.png', { type: 'image/png' })] },
     })
@@ -701,6 +715,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     const gifFile = new File(['gif'], 'avatar.gif', { type: 'image/gif' })
     fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
       target: { files: [gifFile] },
@@ -739,6 +754,7 @@ describe('MyProfilePage', () => {
     animatedWebPHeader.set([86, 80, 56, 88], 12)
     animatedWebPHeader[20] = 0x02
     const webPFile = new File([animatedWebPHeader], 'avatar.gif.webp', { type: 'image/webp' })
+    await openProfileTab('Sichtbarkeit')
     fireEvent.change(await screen.findByLabelText('Avatar-Bild auswählen'), {
       target: { files: [webPFile] },
     })
@@ -763,6 +779,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     fireEvent.change(await screen.findByLabelText('Hintergrundbild auswählen'), {
       target: { files: [new File(['source'], 'background.png', { type: 'image/png' })] },
     })
@@ -796,6 +813,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt bearbeiten' }))
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/media/profile/3/background/current/source_original.jpg'))
     const cropDialog = await screen.findByRole('dialog', { name: 'Hintergrundbild zuschneiden' })
@@ -832,6 +850,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt bearbeiten' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt übernehmen' }))
 
@@ -860,6 +879,7 @@ describe('MyProfilePage', () => {
 
     render(<MyProfilePage />)
 
+    await openProfileTab('Sichtbarkeit')
     expect((await screen.findAllByAltText('MikaFX Avatar')).length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: 'Ausschnitt bearbeiten' })).toBeNull()
   })

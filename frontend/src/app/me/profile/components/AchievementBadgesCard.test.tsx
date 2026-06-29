@@ -36,9 +36,9 @@ describe('AchievementBadgesCard', () => {
     )
 
     expect(screen.getByText('Gründungsmitglied')).not.toBeNull()
-    expect(screen.getByText('Ausgeblendet')).not.toBeNull()
+    expect(screen.getByText('Nur für dich')).not.toBeNull()
 
-    fireEvent.change(screen.getByLabelText('Sichtbarkeit'), { target: { value: 'public' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Gründungsmitglied öffentlich anzeigen' }))
 
     expect(onVisibilityChange).toHaveBeenCalledWith(7, 'public')
   })
