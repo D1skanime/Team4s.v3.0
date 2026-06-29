@@ -43,6 +43,7 @@ func TestCreateProposal_IsRoleScopedAndSerialized(t *testing.T) {
 		"AND status IN ('draft', 'proposed')",
 		"member_id",
 		"SELECT member_id FROM hist_fansub_group_members WHERE id = $3 AND fansub_group_id = $1",
+		"&row.FansubGroupMemberID",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(source, fragment) {

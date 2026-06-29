@@ -309,6 +309,7 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 		var row MemberContributionWithProposalRow
 		if err := rows.Scan(
 			&row.ID,
+			&row.FansubGroupMemberID,
 			&row.FansubGroupID,
 			&row.AnimeID,
 			&row.MemberID,
