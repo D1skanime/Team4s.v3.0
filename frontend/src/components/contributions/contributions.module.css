@@ -161,6 +161,12 @@
   white-space: normal;
 }
 
+.scopeOptionSoon {
+  min-height: 58px;
+  align-self: center;
+  opacity: 0.78;
+}
+
 .suggestionTypeButton {
   padding: 12px;
 }
@@ -263,7 +269,24 @@
   display: inline-flex;
   flex-direction: column;
   gap: var(--space-1);
-  min-width: min(100%, 240px);
+  min-width: min(100%, 168px);
+}
+
+.visibilitySegmented {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-muted, #f8fafc) 82%, var(--surface-card));
+}
+
+.visibilitySegment {
+  min-width: 0;
+  justify-content: center;
+  padding-inline: 10px;
+  white-space: nowrap;
 }
 
 .visibilityStatus {
@@ -322,10 +345,48 @@
 }
 
 .accordionLabel {
+  display: grid;
+  gap: 2px;
   font-size: 0.9rem;
   color: var(--text-body, #1e293b);
   flex: 1;
   min-width: 0;
+}
+
+.accordionLabel strong {
+  color: var(--color-text, #0f172a);
+  font-size: 0.92rem;
+}
+
+.accordionLabel span {
+  color: var(--text-muted, #64748b);
+  font-size: 0.8rem;
+}
+
+.disclosureButton svg {
+  transition: transform 160ms ease;
+}
+
+.disclosureButton[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.selectionBreadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent-primary) 7%, var(--surface-card));
+  color: var(--text-muted, #64748b);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.selectionBreadcrumb span:not([aria-hidden='true']) {
+  color: var(--text-body, #1e293b);
 }
 
 @media (max-width: 640px) {

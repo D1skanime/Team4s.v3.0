@@ -48,6 +48,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     () => ownGroups.find((group) => group.fansub_group_member_id === selectedGroupMemberId) ?? null,
     [ownGroups, selectedGroupMemberId],
   )
+  const selectedAnime = useMemo(
+    () => groupAnime.find((anime) => anime.id === selectedAnimeId) ?? null,
+    [groupAnime, selectedAnimeId],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -194,13 +198,13 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
             <Button
               type="button"
               variant="secondary"
-              className={styles.scopeOption}
+              className={`${styles.scopeOption} ${styles.scopeOptionSoon}`}
               disabled
               aria-disabled="true"
-              title="Noch nicht verfügbar"
+              title="Bald verfügbar"
             >
               <strong>Bestimmte Folgen / Release-Version</strong>
-              <span>Noch nicht verfügbar</span>
+              <span>Bald verfügbar</span>
             </Button>
           </div>
         </FormField>
@@ -245,6 +249,14 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
             {groupAnime.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
           </Select>
         </FormField>
+
+        {selectedGroup && selectedAnime ? (
+          <div className={styles.selectionBreadcrumb} aria-label="Ausgewählter Kontext">
+            <span>{selectedGroup.group_name}</span>
+            <span aria-hidden="true">→</span>
+            <span>{selectedAnime.title}</span>
+          </div>
+        ) : null}
 
         <FormField label="Welche Rolle soll geprüft werden?" required>
           <div role="group" aria-label="Rollen auswählen" className={styles.rolePicker}>

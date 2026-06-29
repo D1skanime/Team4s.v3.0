@@ -1,5 +1,5 @@
 ---
-status: blocked
+status: passed
 phase: 93-projektrollen-sichtbarkeit-hinweis-formular
 updated: 2026-06-29
 ---
@@ -37,8 +37,21 @@ Conclusion: The current toggle controls role visibility and the anime contributi
 
 ## Execution Result
 
-Per the Auftrag stop condition, UI implementation was not started.
+Option 3 was selected on 2026-06-29: implement the UI polish, but do not add an explanatory visibility help text for notes/images.
 
-Required next decision:
+Implemented:
 
-- Decide whether Phase 93 should narrow the UI copy to role plus contribution note, or whether it should first implement a real shared visibility contract for relevant member-owned project media.
+- `AnimeGroupCard` uses a separate chevron disclosure button and keeps "Projekt öffnen" independent.
+- The expanded role area renders each role code as a separate row with "Für das gesamte Projekt" for anime-wide roles.
+- `VisibilityDropdown` now renders a segmented `Profil` / `Intern` button control while preserving `patchAnimeContributionVisibility`.
+- `ProposalForm` keeps group selection scoped to `ownGroups`, shows "Bestimmte Folgen / Release-Version" as "Bald verfügbar", and displays a selected group/project breadcrumb.
+
+Verification:
+
+- `npm --prefix frontend test -- AnimeGroupCard ProposalForm VisibilityDropdown` passed.
+- `npm --prefix frontend run typecheck` passed.
+- `npm --prefix frontend run lint` passed with existing unrelated warnings only.
+- `npm --prefix frontend run build` passed.
+- `docker compose build team4sv30-frontend` passed.
+- `docker compose up -d team4sv30-frontend` recreated and started the frontend container.
+- `http://127.0.0.1:3000/me/contributions` returned HTTP 200.

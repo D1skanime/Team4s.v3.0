@@ -1,7 +1,7 @@
 # Phase 93: Projektrollen-Sichtbarkeit & Hinweis-Formular - Context
 
 **Gathered:** 2026-06-29
-**Status:** Blocked before UI execution
+**Status:** Implemented under Option 3
 **Source:** GSD-Auftrag attachment and reference prototype `C:/Users/admin/Downloads/team4s-meine-projekte-rollen-hinweis-vorschlag.html`
 
 <domain>
@@ -40,8 +40,9 @@ No release-version-specific hint flow is in scope.
 - Result: a help text claiming "Rolle sowie deine Notizen und Bilder..." would overstate current behavior.
 
 ### D-04 Stop condition
-- Product code was not changed because Teil A Punkt 2 failed the expected behavior.
-- Next action is a product decision: either narrow the UI copy to role + contribution note only, or define/implement a real shared visibility contract for project media.
+- Product decision on 2026-06-29: choose Option 3.
+- Implement the UI polish, but do not add an explanatory visibility help text for notes/images until the underlying semantics are changed.
+- The separate media visibility/review contract remains unchanged.
 </decisions>
 
 <canonical_refs>
@@ -88,8 +89,8 @@ The supplied HTML prototype shows the intended UI direction:
 <deferred>
 ## Deferred Ideas
 
-- UI implementation requirements 1-7 are deferred until the visibility wording/product behavior is decided.
 - No release-version-specific hint option is implemented in this phase.
+- A future product/architecture slice may define a real shared role/notes/media visibility contract.
 </deferred>
 
 ---

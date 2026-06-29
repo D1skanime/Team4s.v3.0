@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 import { Badge, Button, Card } from '@/components/ui'
 import type { MeAnimeContribution } from '@/types/contributions'
@@ -39,7 +40,8 @@ function getRoleLabel(code: string): string {
 }
 
 interface EpisodeRangeEntry {
-  label: string
+  roleLabel: string
+  scopeLabel: string
   role: string
   release_version_id: number | null
   id: number
@@ -64,26 +66,28 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
   const result: EpisodeRangeEntry[] = []
 
   for (const c of animeWide) {
-    const primaryCode = c.role_codes[0] ?? ''
-    const primaryLabel =
-      (c.role_labels && c.role_labels[0]) ? c.role_labels[0] : getRoleLabel(primaryCode)
-    result.push({
-      label: `anime-weit: ${primaryLabel}`,
-      role: primaryCode,
-      release_version_id: null,
-      id: c.id,
-      is_public_on_member_profile: c.is_public_on_member_profile,
-    })
+    for (let i = 0; i < c.role_codes.length; i++) {
+      const code = c.role_codes[i]
+      result.push({
+        roleLabel: c.role_labels?.[i] || getRoleLabel(code),
+        scopeLabel: 'Für das gesamte Projekt',
+        role: code,
+        release_version_id: null,
+        id: c.id,
+        is_public_on_member_profile: c.is_public_on_member_profile,
+      })
+    }
   }
 
   const byRole = new Map<string, MeAnimeContribution[]>()
   for (const c of withVersion) {
-    const code = c.role_codes[0] ?? ''
-    const existing = byRole.get(code)
-    if (existing) {
-      existing.push(c)
-    } else {
-      byRole.set(code, [c])
+    for (const code of c.role_codes) {
+      const existing = byRole.get(code)
+      if (existing) {
+        existing.push(c)
+      } else {
+        byRole.set(code, [c])
+      }
     }
   }
 
@@ -117,7 +121,8 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
           : `Folge ${rangeStart.episode_number ?? '?'}-${rangeEnd.episode_number ?? '?'}`
 
         result.push({
-          label: `${episodeLabel}: ${primaryLabel}`,
+          roleLabel: primaryLabel,
+          scopeLabel: episodeLabel,
           role: roleCode,
           release_version_id: rangeStart.release_version_id,
           id: rangeStart.id,
@@ -194,9 +199,13 @@ export function AnimeGroupCard({
           <Button
             size="sm"
             variant="secondary"
+            iconOnly
+            aria-label={open ? 'Projektrollen ausblenden' : 'Projektrollen anzeigen'}
+            aria-expanded={open}
             onClick={() => setOpen(!open)}
+            className={styles.disclosureButton}
           >
-            {open ? 'Schließen' : `${ranges.length} Einträge`}
+            <ChevronDown aria-hidden="true" size={16} strokeWidth={2.4} />
           </Button>
         </div>
       </div>
@@ -232,7 +241,10 @@ export function AnimeGroupCard({
             const contrib = contributions.find((c) => c.id === entry.id)
             return (
               <li key={`${entry.id}-${entry.role}`} className={styles.accordionRow}>
-                <span className={styles.accordionLabel}>{entry.label}</span>
+                <span className={styles.accordionLabel}>
+                  <strong>{entry.roleLabel}</strong>
+                  <span>{entry.scopeLabel}</span>
+                </span>
                 <div className={styles.actionsRow}>
                   {entry.release_version_id !== null ? (
                     <Button

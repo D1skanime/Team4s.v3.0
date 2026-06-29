@@ -266,6 +266,8 @@ Recent durable decisions:
 ### Roadmap Evolution
 
 - Phase 93 added: Projektrollen-Sichtbarkeit & Hinweis-Formular. Teil A verified group scoping but blocked UI execution because the current member-profile visibility flag does not jointly control role plus related media.
+- Phase 93 option 3 executed: UI polish was implemented without a visibility help text for notes/images; the separate media visibility/review contract remains unchanged.
+- Phase 93 deployed: frontend Docker image rebuilt, `team4sv30-frontend` recreated, and `/me/contributions` returned HTTP 200 on port 3000.
 - Phase 88 added: Fansubber-Workspace & Contribution-Copy bereinigen - verbleibende Fansubber-/Contributor-Oberflächen sollen claim-neutral, global-UI-konform und mobil/desktop-tauglich geplant werden; historische Identitätsklärung bleibt erlaubt, Anime-Mitwirkungsclaims werden vermieden.
 - Phase 82 added: Mitwirkende projektweit zuordnen und Leader-Abdeckungs-Matrix - anime_contributions ankert kuenftig auf members.id (App- und historische Member gleichwertig buchbar), plus Leader-Cockpit (Projekt x Rolle Abdeckungs-Matrix mit Inline-Zuweisung und Standard-Team). Gelockte Entscheidungen + offene Fragen im Design-Seed 82-SEED.md; naechster Schritt /gsd:discuss-phase 82.
 - Phase 70 added: TipTap-Bilder fuer Member-Profilgeschichte - Member koennen Bilder in ihre eigene Fansub-Geschichte einfuegen; Bilder werden ueber bestehende Team4s-Media-Seams gespeichert und im TipTap-Dokument per Media-Asset-Referenz eingebettet, ohne Base64/externe URLs oder parallelen Upload-Weg.

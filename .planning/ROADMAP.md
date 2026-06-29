@@ -117,7 +117,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [x] 87-01-PLAN.md -- Wave-0-RED-Tests + ReloadCache (permissions.go) + OpenAPI-Contract + TypeScript-Typen
   - [x] 87-02-PLAN.md -- Repository (CRUD) + Handler (Grant/Revoke/Guard) + View-Enforcement an 3 Admin-Endpunkten + Routing
   - [x] 87-03-PLAN.md -- Frontend Capability-Pflege-UI (Rollen x Actions-Matrix) + Nav-Link + Human-Verify
-- [ ] **Phase 93: Projektrollen-Sichtbarkeit & Hinweis-Formular** - `/me/contributions` soll die bestätigten Projektrollen und das Hinweis-Formular gemäß abgestimmtem Prototyp polieren; Teil-A-Verifizierung hat am 2026-06-29 die Gruppen-Scoping-Erwartung bestätigt, aber die gemeinsame Rolle+Notizen+Bilder-Sichtbarkeit nicht bestätigt, daher ist die UI-Umsetzung bis zur Produktentscheidung blockiert.
+- [x] **Phase 93: Projektrollen-Sichtbarkeit & Hinweis-Formular** - `/me/contributions` poliert bestätigte Projektrollen und Hinweis-Formular gemäß abgestimmtem Prototyp; Teil-A-Verifizierung hat die Gruppen-Scoping-Erwartung bestätigt, die gemeinsame Rolle+Notizen+Bilder-Sichtbarkeit nicht bestätigt, daher wurde Option 3 umgesetzt: UI-Polish ohne erklärenden Sichtbarkeits-Hilfetext zu Bildern/Notizen. (completed 2026-06-29; Docker deployed on :3000)
 
 ## Phase Details
 
@@ -1569,11 +1569,11 @@ Plans:
 **Goal:** `/me/contributions` zeigt bestätigte Projektrollen pro Anime verständlicher, nutzt einen separaten Chevron-Disclosure für Rollendetails, ersetzt die native Sichtbarkeitsauswahl durch eine passende UI-System-Kontrolle und macht das Hinweis-Formular kontextklarer, ohne Gruppen-/Member-/Release-Media-Ownership zu vermischen.
 **Requirements:** Phase-93 Auftrag aus `93-CONTEXT.md`; Teil A ist vor UI-Umsetzung verpflichtend.
 **Depends on:** Phase 76, Phase 85, Phase 88
-**Status:** Blockiert nach Teil A Punkt 2. Gruppen-Scoping ist bestätigt; der aktuelle Sichtbarkeits-Toggle steuert Rolle und `anime_contributions.note`, aber nicht release-version-scoped Medien, die separat über `media_assets.visibility_id` und `review_status_id` freigegeben werden.
-**Plans:** 1 plan blocked
+**Status:** Complete under Option 3 on 2026-06-29; Docker deployed on :3000. Gruppen-Scoping ist bestätigt; der aktuelle Sichtbarkeits-Toggle steuert Rolle und `anime_contributions.note`, aber nicht release-version-scoped Medien, die separat über `media_assets.visibility_id` und `review_status_id` freigegeben werden. Deshalb enthält die UI keinen erklärenden Sichtbarkeits-Hilfetext zu Bildern/Notizen.
+**Plans:** 1 plan implemented
 
 Plans:
-- [ ] `93-01-PLAN.md` - Teil A dokumentieren; UI-Umsetzung erst nach Produktentscheidung zur gemeinsamen Rolle/Notizen/Bilder-Sichtbarkeit.
+- [x] `93-01-PLAN.md` - Projektrollen-Karte, segmentierte Sichtbarkeit und Hinweis-Formular-Breadcrumb ohne irreführenden Bilder-/Notizen-Hilfetext.
 
 ---
 

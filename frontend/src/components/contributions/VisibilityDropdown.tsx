@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { Select } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { patchAnimeContributionVisibility } from '@/lib/api'
 
 import styles from './contributions.module.css'
@@ -17,8 +17,9 @@ export function VisibilityDropdown({ contributionId, isPublic, onChanged }: Visi
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const nextPublic = event.target.value === 'public'
+  async function handleChange(nextPublic: boolean) {
+    if (nextPublic === isPublic || loading) return
+
     setLoading(true)
     setError(null)
     try {
@@ -33,15 +34,34 @@ export function VisibilityDropdown({ contributionId, isPublic, onChanged }: Visi
 
   return (
     <span className={styles.visibilityControl}>
-      <Select
-        value={isPublic ? 'public' : 'internal'}
-        onChange={handleChange}
-        disabled={loading}
+      <span
+        className={styles.visibilitySegmented}
+        role="group"
         aria-label="Sichtbarkeit dieses Eintrags"
       >
-        <option value="public">Öffentlich im Member-Profil</option>
-        <option value="internal">Nur intern sichtbar</option>
-      </Select>
+        <Button
+          type="button"
+          size="sm"
+          variant={isPublic ? 'primary' : 'subtle'}
+          aria-pressed={isPublic}
+          disabled={loading}
+          onClick={() => void handleChange(true)}
+          className={styles.visibilitySegment}
+        >
+          Profil
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={!isPublic ? 'primary' : 'subtle'}
+          aria-pressed={!isPublic}
+          disabled={loading}
+          onClick={() => void handleChange(false)}
+          className={styles.visibilitySegment}
+        >
+          Intern
+        </Button>
+      </span>
       {loading ? <span className={styles.visibilityStatus}>Wird gespeichert...</span> : null}
       {error ? <span className={styles.visibilityError}>{error}</span> : null}
     </span>
