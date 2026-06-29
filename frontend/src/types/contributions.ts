@@ -169,6 +169,35 @@ export interface MeAnimeContributionsResponse {
   data: MeAnimeContribution[]
 }
 
+export interface MeProjectReleaseVersion {
+  release_version_id: number
+  episode_number: string
+  episode_title: string | null
+  episode_sort_index: number | null
+  version: string
+  title: string | null
+  role_codes: string[]
+  role_labels: string[]
+  has_own_contribution: boolean
+  has_own_notes: boolean
+  has_own_media: boolean
+}
+
+export interface MeProjectDetail {
+  anime_id: number
+  anime_title: string
+  fansub_group_id: number
+  fansub_group_name: string
+  backdrop_url: string | null
+  role_codes: string[]
+  role_labels: string[]
+  release_versions: MeProjectReleaseVersion[]
+}
+
+export interface MeProjectDetailResponse {
+  data: MeProjectDetail
+}
+
 export interface MeGroupContributionsResponse {
   data: MeGroupContribution[]
 }

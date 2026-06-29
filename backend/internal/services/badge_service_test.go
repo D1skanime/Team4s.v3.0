@@ -212,11 +212,11 @@ func TestGetMemberIDForContribution_MethodExists(t *testing.T) {
 	if !strings.Contains(normalized, "getmemberidforcontribution") {
 		t.Fatal("GetMemberIDForContribution-Methode fehlt in anime_contributions_upsert_repository.go")
 	}
-	if !strings.Contains(normalized, "from anime_contributions ac") {
-		t.Fatal("Query muss 'FROM anime_contributions ac' enthalten")
+	if !strings.Contains(normalized, "from anime_contributions") {
+		t.Fatal("Query muss 'FROM anime_contributions' enthalten")
 	}
-	if !strings.Contains(normalized, "where ac.id = $1") {
-		t.Fatal("Query muss 'WHERE ac.id = $1' enthalten")
+	if !strings.Contains(normalized, "where id = $1") {
+		t.Fatal("Query muss 'WHERE id = $1' enthalten")
 	}
 	if !strings.Contains(normalized, "errnotfound") {
 		t.Fatal("Muss ErrNotFound bei ErrNoRows zurückgeben")

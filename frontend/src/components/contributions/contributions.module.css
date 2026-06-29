@@ -90,6 +90,12 @@
   gap: 6px;
 }
 
+.projectButtonRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .reviewNote {
   margin: 0;
   color: var(--color-text-muted, #64748b);

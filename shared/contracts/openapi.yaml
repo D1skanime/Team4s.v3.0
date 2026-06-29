@@ -6588,6 +6588,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/me/projects/{animeId}:
+    get:
+      tags: [Profile]
+      summary: Load own project detail for one anime/fansub context
+      operationId: getMyProjectDetail
+      description: >
+        Liefert die projektorientierte Detailansicht "Mein Projekt" fuer einen
+        verifizierten Member. Die Berechtigung wird ueber confirmed
+        anime_contributions des Members fuer animeId plus fansub_group_id geprueft.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: fansub_group_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Own project detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeProjectDetailResponse"
+        "400":
+          description: Invalid anime id or missing fansub_group_id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Verified member account or own project not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/me/anime-contributions/{contributionId}/self-publish:
     post:
       tags: [Profile]
@@ -9106,6 +9158,90 @@ components:
           type: string
         badge_category:
           type: string
+    MeProjectReleaseVersion:
+      type: object
+      required:
+        - release_version_id
+        - episode_number
+        - version
+        - role_codes
+        - role_labels
+        - has_own_contribution
+        - has_own_notes
+        - has_own_media
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        episode_title:
+          type: string
+          nullable: true
+        episode_sort_index:
+          type: integer
+          nullable: true
+        version:
+          type: string
+        title:
+          type: string
+          nullable: true
+        role_codes:
+          type: array
+          items:
+            type: string
+        role_labels:
+          type: array
+          items:
+            type: string
+        has_own_contribution:
+          type: boolean
+        has_own_notes:
+          type: boolean
+        has_own_media:
+          type: boolean
+    MeProjectDetail:
+      type: object
+      required:
+        - anime_id
+        - anime_title
+        - fansub_group_id
+        - fansub_group_name
+        - role_codes
+        - role_labels
+        - release_versions
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        backdrop_url:
+          type: string
+          nullable: true
+        role_codes:
+          type: array
+          items:
+            type: string
+        role_labels:
+          type: array
+          items:
+            type: string
+        release_versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MeProjectReleaseVersion"
+    MeProjectDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/MeProjectDetail"
     PublicMemberProfileData:
       type: object
       required:

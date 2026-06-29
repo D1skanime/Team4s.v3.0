@@ -450,6 +450,7 @@ func main() {
 	v1.GET("/anime/:id/contributions", contributionsPublicHandler.GetAnimeContributions)
 	v1.GET("/members/:slug/contributions", contributionsPublicHandler.GetMemberContributions)
 	v1.GET("/me/anime-contributions", authMiddleware, contributionsMeHandler.ListMyAnimeContributions)
+	v1.GET("/me/projects/:animeId", authMiddleware, contributionsMeHandler.GetMyProjectDetail)
 	v1.GET("/me/group-contributions", authMiddleware, contributionsMeHandler.ListMyGroupContributions)
 	v1.PATCH("/me/anime-contributions/:contributionId/visibility", authMiddleware, contributionsMeHandler.UpdateMyAnimeContributionVisibility)
 	v1.POST("/me/anime-contributions/:contributionId/confirm", authMiddleware, contributionsMeHandler.ConfirmMyAnimeContribution)

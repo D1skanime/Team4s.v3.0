@@ -46,10 +46,13 @@ interface EpisodeRangeEntry {
   is_public_on_member_profile: boolean
 }
 
+interface ProjectGroupEntry {
+  fansubGroupId: number
+  fansubGroupName: string
+}
+
 function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[] {
-  // Anime-weite Beiträge (kein release_version_id)
   const animeWide = contribs.filter((c) => c.release_version_id === null)
-  // Versions-spezifische Beiträge, sortiert nach sort_index
   const withVersion = contribs
     .filter((c) => c.release_version_id !== null)
     .sort((a, b) => {
@@ -60,7 +63,6 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
 
   const result: EpisodeRangeEntry[] = []
 
-  // Anime-weite Beiträge als eigene Zeilen
   for (const c of animeWide) {
     const primaryCode = c.role_codes[0] ?? ''
     const primaryLabel =
@@ -74,7 +76,6 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
     })
   }
 
-  // Versions-spezifische Beiträge: nach Rolle gruppieren, dann Bereiche bilden
   const byRole = new Map<string, MeAnimeContribution[]>()
   for (const c of withVersion) {
     const code = c.role_codes[0] ?? ''
@@ -86,13 +87,12 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
     }
   }
 
-  for (const [roleCode, rolContribs] of byRole.entries()) {
-    // Aufeinanderfolgende sort_index-Werte zu Bereichen zusammenfassen
-    let rangeStart = rolContribs[0]
-    let rangeEnd = rolContribs[0]
+  for (const [roleCode, roleContribs] of byRole.entries()) {
+    let rangeStart = roleContribs[0]
+    let rangeEnd = roleContribs[0]
 
-    for (let i = 1; i <= rolContribs.length; i++) {
-      const current = rolContribs[i]
+    for (let i = 1; i <= roleContribs.length; i++) {
+      const current = roleContribs[i]
       const prevSortIndex = rangeEnd.episode_sort_index
       const currSortIndex = current?.episode_sort_index
 
@@ -107,20 +107,14 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
       if (isConsecutive) {
         rangeEnd = current
       } else {
-        // Bereich abschließen
         const primaryLabel =
           (rangeStart.role_labels && rangeStart.role_labels[0])
             ? rangeStart.role_labels[0]
             : getRoleLabel(roleCode)
 
-        let episodeLabel: string
-        if (rangeStart.id === rangeEnd.id) {
-          // Einzelfolge
-          episodeLabel = `Folge ${rangeStart.episode_number ?? '?'}`
-        } else {
-          // Bereich
-          episodeLabel = `Folge ${rangeStart.episode_number ?? '?'}–${rangeEnd.episode_number ?? '?'}`
-        }
+        const episodeLabel = rangeStart.id === rangeEnd.id
+          ? `Folge ${rangeStart.episode_number ?? '?'}`
+          : `Folge ${rangeStart.episode_number ?? '?'}-${rangeEnd.episode_number ?? '?'}`
 
         result.push({
           label: `${episodeLabel}: ${primaryLabel}`,
@@ -157,8 +151,22 @@ function getUniqueRoles(contribs: MeAnimeContribution[]): Array<{ code: string; 
   return roles
 }
 
+function getUniqueGroups(contribs: MeAnimeContribution[]): ProjectGroupEntry[] {
+  const seen = new Set<number>()
+  const groups: ProjectGroupEntry[] = []
+  for (const contribution of contribs) {
+    if (seen.has(contribution.fansub_group_id)) continue
+    seen.add(contribution.fansub_group_id)
+    groups.push({
+      fansubGroupId: contribution.fansub_group_id,
+      fansubGroupName: contribution.fansub_group_name?.trim() || `Gruppe #${contribution.fansub_group_id}`,
+    })
+  }
+  return groups
+}
+
 export function AnimeGroupCard({
-  animeId: _animeId,
+  animeId,
   animeTitle,
   contributions,
   onVisibilityChange,
@@ -167,18 +175,30 @@ export function AnimeGroupCard({
 
   const ranges = buildEpisodeRanges(contributions)
   const uniqueRoles = getUniqueRoles(contributions)
+  const projectGroups = getUniqueGroups(contributions)
 
   return (
     <Card variant="nestedFlat" className={styles.contributionCard}>
       <div className={styles.contributionCardHeader}>
         <span className={styles.contributionTitle}>{animeTitle}</span>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? 'Schließen' : `${ranges.length} Einträge`}
-        </Button>
+        <div className={styles.actionsRow}>
+          {projectGroups.length === 1 ? (
+            <Button
+              size="sm"
+              variant="primary"
+              href={`/me/projects/${animeId}/group/${projectGroups[0].fansubGroupId}`}
+            >
+              Projekt öffnen
+            </Button>
+          ) : null}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? 'Schließen' : `${ranges.length} Einträge`}
+          </Button>
+        </div>
       </div>
 
       {uniqueRoles.length > 0 ? (
@@ -187,6 +207,21 @@ export function AnimeGroupCard({
             <Badge key={code} variant="info">
               {label}
             </Badge>
+          ))}
+        </div>
+      ) : null}
+
+      {projectGroups.length > 1 ? (
+        <div className={styles.projectButtonRow}>
+          {projectGroups.map((group) => (
+            <Button
+              key={group.fansubGroupId}
+              size="sm"
+              variant="secondary"
+              href={`/me/projects/${animeId}/group/${group.fansubGroupId}`}
+            >
+              Projekt öffnen: {group.fansubGroupName}
+            </Button>
           ))}
         </div>
       ) : null}

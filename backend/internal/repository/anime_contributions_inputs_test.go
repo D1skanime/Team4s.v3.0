@@ -29,12 +29,12 @@ func TestContributionInputs_ReleaseVersionFieldsExist(t *testing.T) {
 }
 
 // TestContributionUpsert_FourColumnConflict verifiziert das vierspaltige ON CONFLICT-Target
-// inkl. release_version_id (Pitfall 1, T-67-02-DUP).
+// inkl. release_version_id und kanonischem member_id-Anker (Pitfall 1, T-67-02-DUP).
 func TestContributionUpsert_FourColumnConflict(t *testing.T) {
 	content := readReleaseLookupSource(t, "anime_contributions_upsert_repository.go")
 	normalized := strings.ToLower(content)
 
-	if !strings.Contains(normalized, "on conflict (fansub_group_id, anime_id, fansub_group_member_id, release_version_id)") {
+	if !strings.Contains(normalized, "on conflict (fansub_group_id, anime_id, member_id, release_version_id)") {
 		t.Fatalf("erwartetes vierspaltiges ON CONFLICT-Target im Upsert")
 	}
 	if !strings.Contains(normalized, "release_version_id") {

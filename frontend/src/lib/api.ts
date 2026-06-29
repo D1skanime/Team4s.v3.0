@@ -205,6 +205,7 @@ import {
 import { getBrowserApiBaseUrl, resolvePublicApiUrl } from "@/lib/publicApiUrl";
 import type {
   MeAnimeContributionsResponse,
+  MeProjectDetailResponse,
   MeSuggestionsResponse,
   PublicGroupContributionsResponse,
   PublicAnimeContributionsResponse,
@@ -8334,6 +8335,33 @@ export async function getMyAnimeContributions(): Promise<MeAnimeContributionsRes
   }
 
   return response.json() as Promise<MeAnimeContributionsResponse>;
+}
+
+export async function getMyProjectDetail(
+  animeId: number,
+  fansubGroupId: number,
+): Promise<MeProjectDetailResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/projects/${animeId}?fansub_group_id=${fansubGroupId}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<MeProjectDetailResponse>;
 }
 
 export async function patchAnimeContributionVisibility(

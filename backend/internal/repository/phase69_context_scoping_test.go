@@ -65,7 +65,11 @@ func TestPhase69HistGroupMemberRolesMutationsUseFansubScope(t *testing.T) {
 }
 
 func TestPhase69AnimeContributionMutationsUseRouteScope(t *testing.T) {
-	contributions := phase69NormalizeSQL(phase69ReadRepoSource(t, "anime_contributions_repository.go"))
+	contributions := phase69NormalizeSQL(
+		phase69ReadRepoSource(t, "anime_contributions_repository.go") +
+			"\n" +
+			phase69ReadRepoSource(t, "anime_contributions_write_repository.go"),
+	)
 	memberFile := phase69NormalizeSQL(phase69ReadRepoSource(t, "anime_contributions_member_repository.go"))
 
 	requiredContributions := []string{
