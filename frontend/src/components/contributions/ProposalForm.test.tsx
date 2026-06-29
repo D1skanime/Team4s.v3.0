@@ -83,7 +83,7 @@ describe('ProposalForm', () => {
 
     expect(screen.getByRole('button', { name: 'Projekt insgesamt' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Bestimmte Folge/ })).toBeNull()
-    expect(screen.getByText('Bestimmte Folge')).toBeTruthy()
+    expect(screen.getByText('Bestimmte Folge / Release-Version')).toBeTruthy()
     expect(screen.getByText('Bald verfügbar')).toBeTruthy()
   })
 

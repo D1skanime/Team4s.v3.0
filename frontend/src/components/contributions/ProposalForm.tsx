@@ -200,7 +200,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
               aria-disabled="true"
               title="Bald verfügbar"
             >
-              <strong>Bestimmte Folge</strong>
+              <strong>Bestimmte Folge / Release-Version</strong>
               <span className={styles.soonTag}>Bald verfügbar</span>
             </div>
           </div>

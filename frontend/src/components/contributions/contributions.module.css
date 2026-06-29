@@ -226,11 +226,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .suggestionTypeButton,
 .scopeOption {
   flex: 1 1 68%;
+  min-width: 0;
   min-height: 64px;
   justify-content: center;
   text-align: left;
@@ -243,6 +245,7 @@
 .scopeOptionSoon {
   display: inline-flex;
   flex: 0 0 min(148px, 38%);
+  max-width: 100%;
   min-height: 38px;
   align-self: center;
   flex-direction: column;
@@ -326,6 +329,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+}
+
+.rolePicker > * {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
 }
 
 .yearFields {
@@ -575,6 +585,25 @@
   .modalFooterActionsEnd > *,
   .modalFooterActionsBetween > * {
     width: 100%;
+  }
+
+  .scopeGrid {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .scopeOption {
+    flex: 1 1 100%;
+    width: 100%;
+    min-height: 58px;
+  }
+
+  .scopeOptionSoon {
+    flex: 0 1 auto;
+    min-height: 34px;
+    align-items: flex-start;
+    padding: 5px 7px;
+    text-align: left;
   }
 
   .yearFields {

@@ -959,10 +959,12 @@
 }
 
 .modalPanel {
-  width: min(560px, 100%);
+  width: min(560px, calc(100vw - 48px));
+  max-height: calc(100dvh - 48px);
   border-radius: 24px;
   padding: 0;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0;
   overflow: hidden;
 }
@@ -1046,6 +1048,9 @@
 .modalBody {
   display: grid;
   gap: 16px;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
   padding: 18px 22px 20px;
 }
 
@@ -1170,6 +1175,8 @@
   }
 
   .modalPanel {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
     border-radius: 20px;
   }
 

@@ -63,11 +63,15 @@ Scope: only the "Ich war in diesem Projekt dabei" form. The already-correct proj
 Implemented:
 
 - The unavailable follow-up scope is no longer a disabled full button. It is a compact static notice with a thin border, smaller type, lower height, and the existing "Bald verfügbar" tag.
+- Add-on 2 tablet fix: modals now have a viewport-bound height with an internal scrollable body, so the close action and footer stay reachable on narrow/tablet viewports.
+- Add-on 2 tablet fix: the form's scope row now wraps below 640px, preventing the compact "Bestimmte Folge / Release-Version" notice from pushing the dialog wider than the screen.
+- Add-on 2 tablet fix: role buttons can wrap within the picker instead of forcing horizontal overflow.
 - The selected group/project breadcrumb renders only after both dropdowns have values and is removed when either selection is reset.
 - Group scoping remains unchanged and verified: the dropdown is populated only from `ownGroups`, which is loaded via `getMyMemberships()` from `/api/v1/me/memberships`; backend membership listing and submit ownership checks stay in `contribution_proposals_me_handler.go`.
 
 Verification:
 
 - `npm --prefix frontend test -- src/components/contributions/ProposalForm.test.tsx`
+- `npm --prefix frontend test -- src/components/ui/Modal.test.tsx`
 - `npm --prefix frontend run typecheck`
 - `npm --prefix frontend run lint` passed with existing unrelated warnings only.
