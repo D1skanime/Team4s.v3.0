@@ -21,6 +21,7 @@ func TestMemberProjectDetailRepositorySourceInvariants(t *testing.T) {
 		"rvm.uploaded_by_user_id = $2",
 		"coalesce(ac.member_id, hfgm.member_id) = $1",
 		"ac.status = 'confirmed'",
+		"(ac.release_version_id = rv.id or ac.release_version_id is null)",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(src, fragment) {

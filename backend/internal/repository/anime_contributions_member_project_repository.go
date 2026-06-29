@@ -164,7 +164,7 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 			  AND ac.anime_id = $3
 			  AND ac.fansub_group_id = $4
 			  AND ac.status = 'confirmed'
-			  AND ac.release_version_id = rv.id
+			  AND (ac.release_version_id = rv.id OR ac.release_version_id IS NULL)
 		) own ON true
 		WHERE ep.anime_id = $3
 		  AND rvg.fansub_group_id = $4
