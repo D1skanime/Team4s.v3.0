@@ -64,6 +64,8 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"recent media must resolve the concrete release version")
 	assert.True(t, strings.Contains(content, "COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text))"),
 		"recent media must expose a readable release version label")
+	assert.True(t, strings.Contains(content, "COALESCE(NULLIF(BTRIM(rvm.caption), ''), '')"),
+		"recent media must expose the user's release-version-media caption when present")
 	assert.True(t, strings.Contains(content, "JOIN media_assets ma ON ma.id = rvm.media_asset_id"),
 		"recent media must inspect the media asset status")
 	assert.True(t, strings.Contains(content, "LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'"),

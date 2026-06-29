@@ -8774,6 +8774,10 @@ components:
           format: int64
         category:
           type: string
+        caption:
+          type: string
+          nullable: true
+          description: Optional user-entered release-version-media caption.
         thumbnail_url:
           type: string
           nullable: true

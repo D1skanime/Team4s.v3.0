@@ -19,6 +19,11 @@ function formatReleaseVersionTitle(item: MemberProfileRecentMedia): string {
     : `Release-Version #${releaseVersionID}`
 }
 
+function formatMediaTitle(item: MemberProfileRecentMedia, fallback: string): string {
+  const caption = item.caption?.trim() ?? ''
+  return caption || fallback
+}
+
 export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) {
   if (!canView || items.length === 0) {
     return <EmptyState title="Noch keine Medien hochgeladen." />
@@ -29,6 +34,7 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
       {items.slice(0, 3).map((item, index) => {
         const thumbnailURL = resolveApiUrl(item.thumbnail_url || '')
         const previewLabel = `Vorschau ${index + 1}`
+        const mediaTitle = formatMediaTitle(item, previewLabel)
 
         return (
           <li key={item.id}>
@@ -43,7 +49,7 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
               </div>
               <div className={styles.recentItemBody}>
                 <Badge variant="info">{previewLabel}</Badge>
-                <strong>{previewLabel}</strong>
+                <strong>{mediaTitle}</strong>
                 <span>{formatReleaseVersionTitle(item)}</span>
                 <span>{item.anime_title}</span>
               </div>

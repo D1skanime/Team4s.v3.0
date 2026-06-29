@@ -44,6 +44,7 @@ type MemberProfileCredit struct {
 type MemberProfileRecentMedia struct {
 	ID                  int64  `json:"id"`
 	Category            string `json:"category"`
+	Caption             string `json:"caption,omitempty"`
 	ThumbnailURL        string `json:"thumbnail_url,omitempty"`
 	AnimeTitle          string `json:"anime_title"`
 	ReleaseVersionID    int64  `json:"release_version_id"`
