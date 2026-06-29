@@ -73,11 +73,11 @@ describe('ReleaseContributionDrawer', () => {
         onSaved={vi.fn()}
       />,
     )
-    expect(screen.queryByText('Besetzung dieser Folge')).toBeNull()
+    expect(screen.queryByText('Besetzung: Naruto Staffel 1')).toBeNull()
     expect(mockListEffectiveContributionsForVersion).not.toHaveBeenCalled()
   })
 
-  it('rendert Titel "Besetzung dieser Folge" wenn open=true', async () => {
+  it('rendert Sheet-Titel wenn open=true', async () => {
     const ReleaseContributionDrawer = await importDrawer()
     render(
       <ReleaseContributionDrawer
@@ -91,7 +91,8 @@ describe('ReleaseContributionDrawer', () => {
       />,
     )
     await waitFor(() => {
-      expect(screen.getByText('Besetzung dieser Folge')).toBeDefined()
+      expect(screen.getByText('Besetzung: Naruto Staffel 1')).toBeDefined()
+      expect(screen.getByText(/gilt nur für diese Version/)).toBeDefined()
     })
   })
 
@@ -290,7 +291,7 @@ describe('ReleaseContributionDrawer', () => {
         name: 'Timer',
       }),
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Übernehmen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }))
 
     expect(screen.getByText('Bob Schmidt')).toBeDefined()
     expect(mockUpsertAnimeContribution).not.toHaveBeenCalled()
@@ -325,7 +326,7 @@ describe('ReleaseContributionDrawer', () => {
       />,
     )
     await waitFor(() => {
-      expect(screen.getByText('Besetzung dieser Folge')).toBeDefined()
+      expect(screen.getByText('Besetzung: Naruto Staffel 1')).toBeDefined()
     })
     const cancelButton = screen.getByText('Abbrechen')
     fireEvent.click(cancelButton)

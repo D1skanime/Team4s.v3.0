@@ -37,7 +37,8 @@ type FansubEditWorkspaceSectionProps = {
   releaseData: FansubReleaseData;
   contributions: ReleaseContributions;
   canUseProjectNotes: boolean;
-  canOpenReleaseContributors: boolean;
+  canViewReleaseContributors: boolean;
+  canEditReleaseContributors: boolean;
   canUseReleaseMedia: boolean;
   canUseReleaseNotes: boolean;
   canUseAdminReleaseDetails: boolean;
@@ -71,7 +72,8 @@ export function FansubEditWorkspaceSection({
   releaseData,
   contributions,
   canUseProjectNotes,
-  canOpenReleaseContributors,
+  canViewReleaseContributors,
+  canEditReleaseContributors,
   canUseReleaseMedia,
   canUseReleaseNotes,
   canUseAdminReleaseDetails,
@@ -126,7 +128,8 @@ export function FansubEditWorkspaceSection({
           releaseData={releaseData}
           contributions={contributions}
           canUseProjectNotes={canUseProjectNotes}
-          canOpenReleaseContributors={canOpenReleaseContributors}
+          canViewReleaseContributors={canViewReleaseContributors}
+          canEditReleaseContributors={canEditReleaseContributors}
           canUseReleaseMedia={canUseReleaseMedia}
           canUseReleaseNotes={canUseReleaseNotes}
           canUseAdminReleaseDetails={canUseAdminReleaseDetails}

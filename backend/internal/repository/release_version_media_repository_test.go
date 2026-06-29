@@ -172,6 +172,10 @@ func TestReleaseVersionMedia_ReorderOwnershipValidationExists(t *testing.T) {
 		"ValidateReleaseVersionMediaOwnership must return ErrOwnershipMismatch for cross-version IDs")
 	assert.True(t, strings.Contains(content, "ErrNotFound"),
 		"ValidateReleaseVersionMediaOwnership must return ErrNotFound for nonexistent IDs")
+	assert.True(t, strings.Contains(content, "func (r *MediaRepository) ValidateReleaseVersionMediaUploader"),
+		"ValidateReleaseVersionMediaUploader must exist for contributor-scoped reorder")
+	assert.True(t, strings.Contains(content, "uploaded_by_user_id = $3"),
+		"ValidateReleaseVersionMediaUploader must restrict relation IDs to the current uploader")
 }
 
 // TestReleaseVersionMedia_CategoryChangePrevented verifies the repository

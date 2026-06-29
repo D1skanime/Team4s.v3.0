@@ -5,6 +5,7 @@ import { Plus, Save } from "lucide-react";
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import { Button } from "@/components/ui";
 import { createEmptyLink } from "./fansubEditFormMapping";
+import { canUseMainTab } from "./fansubEditAccess";
 import { GroupMediaReviewSection } from "./GroupMediaReviewSection";
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 import { FansubCommunityLinksList } from "./FansubCommunityLinksList";
@@ -106,8 +107,12 @@ export function FansubDetailsTab({
           <div className={styles.fansubEditRightColumn}>
             {activeMainTab === "media" ? (
               <>
-                {capabilities ? (
-                  <GroupMediaReviewSection fansubId={fansubID} capabilities={capabilities} />
+                {canUseMainTab("media", isPlatformAdmin, capabilities) ? (
+                  <GroupMediaReviewSection
+                    fansubId={fansubID}
+                    capabilities={capabilities}
+                    isPlatformAdmin={isPlatformAdmin}
+                  />
                 ) : null}
               </>
             ) : null}

@@ -146,9 +146,15 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 					ORDER BY role
 				),
 				ARRAY[]::varchar[]
-			) AS member_roles
+			) AS member_roles,
+			COALESCE(fgmp.can_upload, FALSE) AS can_upload_media,
+			COALESCE(fgmp.can_delete_own, FALSE) AS can_delete_own_media,
+			COALESCE(fgmp.can_delete_all, FALSE) AS can_delete_all_media,
+			COALESCE(fgmp.can_reorder, FALSE) AS can_reorder_media
 		FROM fansub_group_members fgm
 		JOIN app_users au ON au.id = fgm.app_user_id
+		LEFT JOIN fansub_group_member_media_permissions fgmp
+			ON fgmp.fansub_group_member_id = fgm.id
 		LEFT JOIN LATERAL (
 			SELECT member_id
 			FROM member_claims
@@ -188,6 +194,10 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			&memberIdentity.FansubName,
 			&avatarPath,
 			&memberRoles,
+			&member.MediaPermissions.CanUpload,
+			&member.MediaPermissions.CanDeleteOwn,
+			&member.MediaPermissions.CanDeleteAll,
+			&member.MediaPermissions.CanReorder,
 		); err != nil {
 			return nil, fmt.Errorf("list fansub group members: scan: %w", err)
 		}
@@ -264,6 +274,95 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 	}
 
 	return r.GetByID(ctx, memberID)
+}
+
+func (r *FansubGroupAppMemberRepository) SetMediaPermissions(
+	ctx context.Context,
+	fansubGroupID int64,
+	appUserID int64,
+	input models.FansubGroupMemberMediaPermissionsUpdateInput,
+) (*models.FansubGroupAppMember, error) {
+	if fansubGroupID <= 0 || appUserID <= 0 {
+		return nil, fmt.Errorf("set fansub group member media permissions: invalid ids")
+	}
+
+	memberID, err := r.lookupMemberID(ctx, fansubGroupID, appUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = r.db.Exec(ctx, `
+		INSERT INTO fansub_group_member_media_permissions (
+			fansub_group_member_id,
+			can_upload,
+			can_delete_own,
+			can_delete_all,
+			can_reorder,
+			updated_by_app_user_id,
+			created_at,
+			updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+		ON CONFLICT (fansub_group_member_id) DO UPDATE SET
+			can_upload = EXCLUDED.can_upload,
+			can_delete_own = EXCLUDED.can_delete_own,
+			can_delete_all = EXCLUDED.can_delete_all,
+			can_reorder = EXCLUDED.can_reorder,
+			updated_by_app_user_id = EXCLUDED.updated_by_app_user_id,
+			updated_at = NOW()
+	`, memberID, input.Permissions.CanUpload, input.Permissions.CanDeleteOwn, input.Permissions.CanDeleteAll, input.Permissions.CanReorder, input.UpdatedByAppUserID)
+	if err != nil {
+		return nil, fmt.Errorf("set fansub group member media permissions: %w", err)
+	}
+
+	now := time.Now().UTC()
+	if _, err := r.db.Exec(ctx, `
+		UPDATE fansub_group_members
+		SET updated_by_app_user_id = $2, updated_at = $3
+		WHERE id = $1
+	`, memberID, input.UpdatedByAppUserID, now); err != nil {
+		return nil, fmt.Errorf("set fansub group member media permissions: touch member: %w", err)
+	}
+
+	return r.GetByID(ctx, memberID)
+}
+
+func (r *FansubGroupAppMemberRepository) GetMediaPermissionsForAppUser(
+	ctx context.Context,
+	fansubGroupID int64,
+	appUserID int64,
+) (models.FansubGroupMediaPermissions, error) {
+	var perms models.FansubGroupMediaPermissions
+	if fansubGroupID <= 0 || appUserID <= 0 {
+		return perms, nil
+	}
+
+	err := r.db.QueryRow(ctx, `
+		SELECT
+			COALESCE(fgmp.can_upload, FALSE),
+			COALESCE(fgmp.can_delete_own, FALSE),
+			COALESCE(fgmp.can_delete_all, FALSE),
+			COALESCE(fgmp.can_reorder, FALSE)
+		FROM fansub_group_members fgm
+		LEFT JOIN fansub_group_member_media_permissions fgmp
+			ON fgmp.fansub_group_member_id = fgm.id
+		WHERE fgm.fansub_group_id = $1
+		  AND fgm.app_user_id = $2
+		  AND fgm.status = $3
+		LIMIT 1
+	`, fansubGroupID, appUserID, models.FansubGroupMemberStatusActive).Scan(
+		&perms.CanUpload,
+		&perms.CanDeleteOwn,
+		&perms.CanDeleteAll,
+		&perms.CanReorder,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return perms, nil
+	}
+	if err != nil {
+		return perms, fmt.Errorf("get fansub group member media permissions: %w", err)
+	}
+	return perms, nil
 }
 
 func (r *FansubGroupAppMemberRepository) SetRole(

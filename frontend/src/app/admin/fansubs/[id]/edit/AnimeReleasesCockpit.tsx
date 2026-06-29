@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 import type { AdminFansubRelease } from "@/types/fansub";
 import AnimeContributionModal from "./AnimeContributionModal";
+import { roleLabels } from "./contributionRoles";
 import { AnimeReleasesFilterBar } from "./AnimeReleasesFilterBar";
 import { ProjectCockpitBadges } from "./ProjectCockpitBadges";
 import { AnimeProjectNoteWorkspace } from "./AnimeProjectNoteWorkspace";
@@ -30,7 +32,8 @@ type AnimeReleasesCockpitProps = {
   releaseData: FansubReleaseData;
   contributions: ReleaseContributions;
   canUseProjectNotes: boolean;
-  canOpenReleaseContributors: boolean;
+  canViewReleaseContributors: boolean;
+  canEditReleaseContributors: boolean;
   canUseReleaseMedia: boolean;
   canUseReleaseNotes: boolean;
   canUseAdminReleaseDetails: boolean;
@@ -51,7 +54,8 @@ export function AnimeReleasesCockpit({
   releaseData,
   contributions,
   canUseProjectNotes,
-  canOpenReleaseContributors,
+  canViewReleaseContributors,
+  canEditReleaseContributors,
   canUseReleaseMedia,
   canUseReleaseNotes,
   canOpenReleaseDrawer,
@@ -99,6 +103,21 @@ export function AnimeReleasesCockpit({
     openContributionDrawer,
     refreshAnimeContributions,
   } = contributions;
+  const [openReadOnlyTeamAnimeIds, setOpenReadOnlyTeamAnimeIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+
+  function toggleReadOnlyTeam(animeID: number) {
+    setOpenReadOnlyTeamAnimeIds((current) => {
+      const next = new Set(current);
+      if (next.has(animeID)) {
+        next.delete(animeID);
+      } else {
+        next.add(animeID);
+      }
+      return next;
+    });
+  }
 
   return (
     <>
@@ -187,6 +206,16 @@ export function AnimeReleasesCockpit({
               );
               const animeContributionRows =
                 animeContributionRowsByAnimeId[releaseGroup.anime.id] ?? [];
+              const projectContributionRows = animeContributionRows.filter(
+                (row) => row.release_version_id == null,
+              );
+              const teamRows =
+                projectContributionRows.length > 0
+                  ? projectContributionRows
+                  : animeContributionRows;
+              const teamReadOnlyOpen = openReadOnlyTeamAnimeIds.has(
+                releaseGroup.anime.id,
+              );
               const projectPeopleCount =
                 uniqueProjectContributionPeople(animeContributionRows).length;
               return (
@@ -262,19 +291,32 @@ export function AnimeReleasesCockpit({
                       />
                     </section>
                   ) : null}
-                  {animeExpanded ? (
+                  {animeExpanded && canViewReleaseContributors ? (
                     <section className={styles.fansubEditProjectTeamPanel}>
                       <button
                         type="button"
                         className={styles.fansubEditProjectTeamToggle}
-                        onClick={() =>
-                          void openAnimeContributions(releaseGroup.anime)
-                        }
+                        onClick={() => {
+                          if (canEditReleaseContributors) {
+                            void openAnimeContributions(releaseGroup.anime);
+                          } else {
+                            toggleReadOnlyTeam(releaseGroup.anime.id);
+                          }
+                        }}
                         disabled={
-                          !canOpenReleaseContributors ||
+                          !canViewReleaseContributors ||
                           contributionModalLoadingAnimeId === releaseGroup.anime.id
                         }
-                        aria-label={`Mitwirkende für ${releaseGroup.anime.title} bearbeiten`}
+                        aria-expanded={
+                          canEditReleaseContributors
+                            ? undefined
+                            : teamReadOnlyOpen
+                        }
+                        aria-label={
+                          canEditReleaseContributors
+                            ? `Mitwirkende für ${releaseGroup.anime.title} bearbeiten`
+                            : `Mitwirkende für ${releaseGroup.anime.title} anzeigen`
+                        }
                       >
                         <span>
                           <strong>Team & Rollen</strong>
@@ -282,8 +324,57 @@ export function AnimeReleasesCockpit({
                             {projectPeopleCount} Person{projectPeopleCount === 1 ? "" : "en"}
                           </small>
                         </span>
-                        <ChevronRight size={22} strokeWidth={2.4} />
+                        {canEditReleaseContributors || !teamReadOnlyOpen ? (
+                          <ChevronRight size={22} strokeWidth={2.4} />
+                        ) : (
+                          <ChevronDown size={22} strokeWidth={2.4} />
+                        )}
                       </button>
+                      {!canEditReleaseContributors && teamReadOnlyOpen ? (
+                        <div className={styles.fansubEditProjectTeamReadOnly}>
+                          {teamRows.length === 0 ? (
+                            <p>Keine Mitwirkenden hinterlegt.</p>
+                          ) : (
+                            <ul>
+                              {teamRows.map((row) => {
+                                const labels = roleLabels(row.role_codes);
+
+                                return (
+                                  <li key={row.id}>
+                                    <span>{row.member_display_name}</span>
+                                    <div
+                                      className={
+                                        styles.contributionRoleSummaryChips
+                                      }
+                                    >
+                                      {labels.length > 0 ? (
+                                        labels.map((label) => (
+                                          <span
+                                            key={label}
+                                            className={
+                                              styles.contributionRoleSummaryChip
+                                            }
+                                          >
+                                            {label}
+                                          </span>
+                                        ))
+                                      ) : (
+                                        <span
+                                          className={
+                                            styles.contributionRoleSummaryEmpty
+                                          }
+                                        >
+                                          Keine Rolle
+                                        </span>
+                                      )}
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                        </div>
+                      ) : null}
                     </section>
                   ) : null}
                   {animeExpanded ? (
@@ -328,7 +419,7 @@ export function AnimeReleasesCockpit({
                       canUseReleaseMedia={canUseReleaseMedia}
                       canUseReleaseNotes={canUseReleaseNotes}
                       canOpenReleaseDrawer={canOpenReleaseDrawer}
-                      canOpenReleaseContributors={canOpenReleaseContributors}
+                      canOpenReleaseContributors={canEditReleaseContributors}
                       onToggleRelease={toggleRelease}
                       onOpenReleaseDrawer={onOpenReleaseDrawer}
                       onOpenContributionDrawer={openContributionDrawer}

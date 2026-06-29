@@ -69,4 +69,10 @@ func TestListFansubGroupMediaForReviewExcludesBrandingSlots(t *testing.T) {
 	if !strings.Contains(source, "COALESCE(uploader_identity.display_name, NULLIF(BTRIM(u.username), '')) AS uploaded_by_name") {
 		t.Fatal("Review-Query muss auf den technischen Benutzernamen zurückfallen, wenn keine fachliche Anzeige verfügbar ist")
 	}
+	if !strings.Contains(source, "ORDER BY fgm.sort_order ASC, fgm.created_at ASC, ma.id ASC") {
+		t.Fatal("Review-Query muss gespeicherte Reihenfolge mit stabilem Fallback respektieren")
+	}
+	if !strings.Contains(source, "sortOrder := (index + 1) * 1000") {
+		t.Fatal("Reorder muss sort_order backendseitig in konsistenten 1000er-Schritten normalisieren")
+	}
 }

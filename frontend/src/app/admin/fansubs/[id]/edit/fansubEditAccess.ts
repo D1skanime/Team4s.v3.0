@@ -19,6 +19,8 @@ export function canUseMainTab(
         capabilities.can_view_group_media ||
         capabilities.can_upload_group_media ||
         capabilities.can_update_group_media ||
+        capabilities.can_reorder_group_media ||
+        capabilities.can_delete_own_group_media ||
         capabilities.can_delete_group_media
       );
     case "links":
@@ -79,7 +81,14 @@ export function canViewReleaseContributors(
   isPlatformAdmin: boolean,
   capabilities: FansubGroupCapabilities | null,
 ): boolean {
-  return canUseMainTab("collaboration", isPlatformAdmin, capabilities);
+  return isPlatformAdmin || Boolean(capabilities?.can_view_releases);
+}
+
+export function canManageReleaseContributors(
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  return isPlatformAdmin || Boolean(capabilities?.can_manage_members);
 }
 
 export function canUploadReleaseMedia(
@@ -108,13 +117,15 @@ export function releaseVersionToolsTarget(
   options: { canViewMedia: boolean; canEditNotes: boolean },
 ): { href: string; label: string } | null {
   if (releaseVersionID <= 0) return null;
-  if (!options.canEditNotes) return null;
+  if (!options.canEditNotes && !options.canViewMedia) return null;
 
-  const tab = "notizen";
+  const tab = options.canEditNotes ? "notizen" : "media";
   const label =
     options.canViewMedia && options.canEditNotes
       ? "Notizen & Medien"
-      : "Notizen";
+      : options.canViewMedia
+        ? "Medien"
+        : "Notizen";
 
   return {
     href: `/admin/episode-versions/${releaseVersionID}/edit?tab=${tab}`,

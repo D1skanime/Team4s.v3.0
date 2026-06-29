@@ -794,6 +794,31 @@ types:
       status: 201
       type: FansubAppMemberResponse
 
+  - name: fansub-app-member-media-permissions-update
+    method: PUT
+    path: /api/v1/admin/fansubs/{id}/app-members/{appUserId}/media-permissions
+    auth:
+      required: true
+      permission: can_manage_members for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: appUserId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: FansubGroupMediaPermissions
+    response:
+      status: 200
+      type: FansubAppMemberResponse
+
   - name: fansub-group-members-list
     method: GET
     path: /api/v1/admin/fansubs/{id}/group-members
@@ -1063,9 +1088,15 @@ types_append:
     app_user_id: int64
     status: string (enum: active, disabled)
     roles: string[]
+    media_permissions: FansubGroupMediaPermissions
     created_at: datetime
     updated_at: datetime
     member: FansubGroupMemberIdentitySummary | null
+  FansubGroupMediaPermissions:
+    can_upload: bool
+    can_delete_own: bool
+    can_delete_all: bool
+    can_reorder: bool
   FansubGroupCapabilities:
     can_edit_group: bool
     can_manage_links: bool
@@ -1079,6 +1110,12 @@ types_append:
     can_view_release_media: bool
     can_upload_release_media: bool
     can_edit_release_notes: bool
+    can_view_group_media: bool
+    can_upload_group_media: bool
+    can_update_group_media: bool
+    can_delete_own_group_media: bool
+    can_delete_group_media: bool
+    can_reorder_group_media: bool
   FansubGroupCapabilitiesResponse:
     data: FansubGroupCapabilities
   FansubAppMemberListResponse:

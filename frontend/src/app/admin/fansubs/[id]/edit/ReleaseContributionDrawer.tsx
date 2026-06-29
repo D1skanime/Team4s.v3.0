@@ -12,7 +12,6 @@ import {
   FormField,
   LoadingState,
   Select,
-  Toolbar,
 } from '@/components/ui'
 import {
   deleteAnimeContribution,
@@ -285,9 +284,10 @@ export function ReleaseContributionDrawer({
     <Drawer
       open={open}
       onClose={onClose}
-      title="Besetzung dieser Folge"
-      description={releaseTitle}
+      title={`Besetzung: ${releaseTitle}`}
+      description={`Eigene Release-Besetzung · ${stagedRows.length} Person${stagedRows.length === 1 ? '' : 'en'} — gilt nur für diese Version`}
       footer={footer}
+      variant="responsiveSheet"
     >
       {loading ? (
         <LoadingState />
@@ -295,29 +295,21 @@ export function ReleaseContributionDrawer({
         <ErrorState title="Fehler" description={error} />
       ) : (
         <>
-          <Toolbar
-            className={styles.contributionDrawerToolbar}
-            leading={
-              <div className={styles.contributionToolbarMeta}>
-                <Badge variant={statusVariant}>{statusLabel}</Badge>
-                <span>{stagedRows.length} Person{stagedRows.length === 1 ? '' : 'en'}</span>
-              </div>
-            }
-            trailing={
-              !addingRow ? (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  leftIcon={<Plus size={16} />}
-                  onClick={() => setAddingRow(true)}
-                >
-                  Person hinzufügen
-                </Button>
-              ) : null
-            }
-          />
-
-          <p className={styles.contributionDrawerHint}>{changeHint}</p>
+          <div className={styles.contributionSheetIntro}>
+            <div className={styles.contributionToolbarMeta}>
+              <Badge variant={statusVariant}>{statusLabel}</Badge>
+              <span>{changeHint}</span>
+            </div>
+            {!addingRow ? (
+              <Button
+                variant="secondary"
+                leftIcon={<Plus size={16} />}
+                onClick={() => setAddingRow(true)}
+              >
+                Person hinzufügen
+              </Button>
+            ) : null}
+          </div>
 
           {addingRow ? (
             <div className={styles.contributionAddPanel}>
@@ -353,7 +345,7 @@ export function ReleaseContributionDrawer({
                   leftIcon={<Users size={16} />}
                   disabled={!canAddRow}
                 >
-                  Übernehmen
+                  Hinzufügen
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setAddingRow(false)}>
                   Abbrechen
@@ -417,10 +409,11 @@ export function ReleaseContributionDrawer({
                         {editingRoleIds.has(row.contribution_id) ? 'Fertig' : 'Rollen ändern'}
                       </Button>
                       <Button
-                        variant="danger"
+                        variant="ghost"
                         iconOnly
                         size="sm"
                         aria-label={`${row.member_display_name} entfernen`}
+                        className={styles.contributionRemoveButton}
                         onClick={() => handleRemove(row)}
                       >
                         <Trash2 size={18} />

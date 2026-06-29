@@ -34,6 +34,8 @@ export interface ReleaseVersionMediaItem {
   caption: string | null
   sort_order: number
   is_preview_candidate: boolean
+  visibility?: ReleaseVersionMediaVisibility | null
+  review_status?: ReleaseVersionMediaReviewStatus | null
   thumbnail_url: string | null
   original_url: string | null
   uploaded_by_user_id: number | null
@@ -92,6 +94,7 @@ export interface ReleaseVersionCapabilities {
   can_upload_media: boolean
   can_update_media: boolean
   can_delete_media: boolean
+  can_delete_own_media?: boolean
   can_edit_notes: boolean
 }
 

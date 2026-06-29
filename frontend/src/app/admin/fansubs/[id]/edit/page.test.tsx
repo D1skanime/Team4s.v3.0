@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, createElement, type ImgHTMLAttributes, type ReactNode } from 'react'
+import { createElement, type ImgHTMLAttributes, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
@@ -207,6 +207,12 @@ beforeEach(() => {
       can_view_release_media: true,
       can_upload_release_media: true,
       can_edit_release_notes: true,
+      can_view_group_media: true,
+      can_upload_group_media: true,
+      can_update_group_media: true,
+      can_delete_own_group_media: true,
+      can_delete_group_media: true,
+      can_reorder_group_media: true,
     },
   })
   apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [] })
@@ -233,16 +239,6 @@ function makeMediaState(): UseReleaseVersionMediaResult {
     deleteError: null,
     reorderError: null,
   }
-}
-
-function deferred<T>() {
-  let resolve!: (value: T) => void
-  let reject!: (reason?: unknown) => void
-  const promise = new Promise<T>((promiseResolve, promiseReject) => {
-    resolve = promiseResolve
-    reject = promiseReject
-  })
-  return { promise, resolve, reject }
 }
 
 describe('ReleaseVersionMediaDrawerSummary', () => {
@@ -363,7 +359,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(await screen.findByRole('button', { name: 'Anime & Veröffentlichungen' })).not.toBeNull()
     expect(await screen.findByRole('heading', { name: 'Naruto' })).not.toBeNull()
     fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
-    expect((await screen.findAllByRole('button', { name: 'Release 62 ausklappen' })).length).toBeGreaterThan(0)
+    expect((await screen.findAllByRole('button', { name: 'Episode 1 ausklappen' })).length).toBeGreaterThan(0)
     expect(apiMocks.getFansubGroupCapabilities).toHaveBeenCalledWith(88)
     expect(screen.queryByRole('button', { name: 'Grunddaten' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Mitwirkende' })).toBeNull()
@@ -430,15 +426,14 @@ describe('AdminFansubEditPage token-free wiring', () => {
 
     await screen.findByRole('heading', { name: 'SubGroup' })
     fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Medien' }))
 
     expect(screen.queryByRole('button', { name: 'Details' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Media' })).not.toBeNull()
-    await waitFor(() => expect(mockedUseReleaseVersionMedia).toHaveBeenCalledWith(41))
-    expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
-    expect(screen.getByRole('link', { name: 'Media verwalten' }).getAttribute('href')).toContain(
+    fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
+    const mediaLink = await screen.findByRole('link', { name: 'Medien öffnen' })
+    expect(mediaLink.getAttribute('href')).toContain(
       '/admin/episode-versions/41/edit?tab=media',
     )
+    expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
 
   it('hides slug management from non-platform fansub leads and saves the group name without slug changes', async () => {
@@ -629,14 +624,14 @@ describe('AdminFansubEditPage token-free wiring', () => {
     await screen.findByRole('heading', { name: 'SubGroup' })
     fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
     fireEvent.click(await screen.findByRole('button', { name: '11eyes ausklappen' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Editieren' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Media' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
 
-    await waitFor(() => expect(mockedUseReleaseVersionMedia).toHaveBeenCalledWith(6201))
-    expect(mockedUseReleaseVersionMedia).not.toHaveBeenCalledWith(62)
-    expect(screen.getByRole('link', { name: 'Media verwalten' }).getAttribute('href')).toContain(
-      '/admin/episode-versions/6201/edit',
+    const toolsLink = await screen.findByRole('link', { name: 'Notizen & Medien öffnen' })
+    expect(toolsLink.getAttribute('href')).toContain(
+      '/admin/episode-versions/6201/edit?tab=notizen',
     )
+    expect(toolsLink.getAttribute('href')).not.toContain('/admin/episode-versions/62/edit')
+    expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
 
   it('opens the project insight workspace when expanding the anime card', async () => {
@@ -708,7 +703,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
 
-    expect((await screen.findAllByRole('button', { name: 'Release 62 ausklappen' })).length).toBeGreaterThan(0)
+    expect((await screen.findAllByRole('button', { name: 'Episode 1 ausklappen' })).length).toBeGreaterThan(0)
     fireEvent.click(await screen.findByRole('button', { name: 'Weitere Releases laden' }))
 
     await waitFor(() =>
@@ -717,13 +712,14 @@ describe('AdminFansubEditPage token-free wiring', () => {
         per_page: 30,
       }),
     )
-    expect((await screen.findAllByRole('button', { name: 'Release 63 ausklappen' })).length).toBeGreaterThan(0)
+    expect((await screen.findAllByRole('button', { name: 'Episode 2 ausklappen' })).length).toBeGreaterThan(0)
   })
 
   it('refreshes anime coverage after saving contribution roles', async () => {
     apiMocks.getAdminFansubAnime.mockResolvedValue({
       data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
     })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([]))
     apiMocks.getAnimeCoverage
       .mockResolvedValueOnce({
         data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false }],
@@ -740,27 +736,25 @@ describe('AdminFansubEditPage token-free wiring', () => {
         group_roles: [],
       },
     ])
-    apiMocks.listAnimeContributions
-      .mockResolvedValueOnce({ data: [] })
-      .mockResolvedValueOnce({
-        data: [
-          {
-            id: 91,
-            member_id: 55,
-            member_display_name: 'Timer User',
-            anime_id: 13,
-            role_codes: ['timer'],
-            started_year: null,
-            ended_year: null,
-            note: null,
-            is_public_on_anime_page: false,
-            is_public_on_member_profile: false,
-            status: 'confirmed',
-            release_version_id: null,
-            created_at: '2026-06-11T00:00:00Z',
-          },
-        ],
-      })
+    apiMocks.listAnimeContributions.mockResolvedValue({
+      data: [
+        {
+          id: 91,
+          member_id: 55,
+          member_display_name: 'Timer User',
+          anime_id: 13,
+          role_codes: ['encoder'],
+          started_year: null,
+          ended_year: null,
+          note: null,
+          is_public_on_anime_page: false,
+          is_public_on_member_profile: false,
+          status: 'confirmed',
+          release_version_id: null,
+          created_at: '2026-06-11T00:00:00Z',
+        },
+      ],
+    })
 
     render(<AdminFansubEditPage />)
 
@@ -771,7 +765,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(await screen.findByRole('button', { name: /Mitwirkende .* Naruto bearbeiten/ }))
 
     const dialog = await screen.findByRole('dialog', { name: /Mitwirkende/ })
-    fireEvent.click(within(dialog).getByRole('button', { name: /Rollen .* Sakura .*ndern/ }))
+    fireEvent.click(within(dialog).getByRole('button', { name: /Rollen .* Timer User .*ndern/ }))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Timer' }))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }))
 
@@ -780,7 +774,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       13,
       expect.objectContaining({
         member_id: 55,
-        role_codes: ['timer'],
+        role_codes: ['timer', 'encoder'],
       }),
     ))
     await waitFor(() => expect(apiMocks.getAnimeCoverage).toHaveBeenCalledTimes(2))
@@ -869,8 +863,8 @@ describe('AdminFansubEditPage token-free wiring', () => {
     await screen.findByRole('heading', { name: 'SubGroup' })
     fireEvent.click(screen.getByRole('button', { name: /Anime &/i }))
     fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
-    fireEvent.click((await screen.findAllByRole('button', { name: 'Release 62 ausklappen' }))[0])
-    fireEvent.click(await screen.findByRole('button', { name: /IN Uploadet/i }))
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Episode 1 ausklappen' }))[0])
+    fireEvent.click(await screen.findByRole('button', { name: /IN.*Uploadet/i }))
     fireEvent.click(await screen.findByRole('button', { name: 'Aktuelles Asset ansehen' }))
 
     const dialog = screen.getByRole('dialog', { name: 'Theme-Video ansehen' })
@@ -906,21 +900,10 @@ describe('AdminFansubEditPage token-free wiring', () => {
       episode_number: '2',
       episode_title: 'Zweite Folge',
     }
-    const staleFirstResponse = deferred<{ data: typeof firstRelease }>()
-
     apiMocks.getAdminFansubAnime.mockResolvedValue({
       data: [{ id: 13, title: '11eyes', type: 'tv', header_image: null, cover_image: null }],
     })
     apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([firstRelease, secondRelease]))
-    apiMocks.getAdminRelease.mockImplementation((releaseID: number) => {
-      if (releaseID === firstRelease.release_id) return staleFirstResponse.promise
-      return Promise.resolve({
-        data: {
-          ...secondRelease,
-          episode_title: 'Aktuelle Drawer-Details',
-        },
-      })
-    })
 
     render(<AdminFansubEditPage />)
 
@@ -928,25 +911,16 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
     fireEvent.click(await screen.findByRole('button', { name: '11eyes ausklappen' }))
 
-    const editButtons = await screen.findAllByRole('button', { name: 'Editieren' })
-    fireEvent.click(editButtons[0])
-    await waitFor(() => expect(apiMocks.getAdminRelease).toHaveBeenCalledWith(firstRelease.release_id))
+    fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
+    expect(
+      (await screen.findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
+    ).toContain('/admin/episode-versions/6201/edit?tab=notizen')
 
-    fireEvent.click(editButtons[1])
-    await screen.findByText('Aktuelle Drawer-Details')
-
-    await act(async () => {
-      staleFirstResponse.resolve({
-        data: {
-          ...firstRelease,
-          episode_title: 'Veraltete Drawer-Details',
-        },
-      })
-      await staleFirstResponse.promise
-    })
-
-    expect(screen.queryByText('Veraltete Drawer-Details')).toBeNull()
-    expect(screen.getByText('Aktuelle Drawer-Details')).not.toBeNull()
+    fireEvent.click(await screen.findByRole('button', { name: 'Episode 2 ausklappen' }))
+    expect(
+      (await screen.findByRole('link', { name: 'Notizen & Medien öffnen' })).getAttribute('href'),
+    ).toContain('/admin/episode-versions/6301/edit?tab=notizen')
+    expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()
   })
 })
 

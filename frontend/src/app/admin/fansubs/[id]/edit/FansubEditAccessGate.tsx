@@ -9,6 +9,27 @@ import type { FansubGroupCapabilities } from "@/types/fansub";
 import { hasFansubWorkspaceAccess } from "./fansubEditAccess";
 import type { FansubEditAccessContext } from "./fansubEditTypes";
 
+const PLATFORM_ADMIN_CAPABILITIES: FansubGroupCapabilities = {
+  can_edit_group: true,
+  can_manage_links: true,
+  can_view_members: true,
+  can_manage_members: true,
+  can_edit_notes: true,
+  can_view_invitations: true,
+  can_create_invitation: true,
+  can_cancel_invitation: true,
+  can_view_releases: true,
+  can_view_release_media: true,
+  can_upload_release_media: true,
+  can_edit_release_notes: true,
+  can_view_group_media: true,
+  can_upload_group_media: true,
+  can_update_group_media: true,
+  can_delete_own_group_media: true,
+  can_delete_group_media: true,
+  can_reorder_group_media: true,
+};
+
 export function FansubEditAccessGate({
   children,
   fansubID,
@@ -61,7 +82,7 @@ export function FansubEditAccessGate({
           if (!cancelled) {
             setIsAllowed(true);
             setIsPlatformAdmin(true);
-            setCapabilities(null);
+            setCapabilities(PLATFORM_ADMIN_CAPABILITIES);
           }
           return;
         }

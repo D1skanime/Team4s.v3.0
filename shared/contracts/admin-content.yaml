@@ -480,7 +480,7 @@ endpoints:
     path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions
     auth:
       required: true
-      permission: fansub_group.members.view for the addressed fansub group
+      permission: release.view for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -504,7 +504,7 @@ endpoints:
     path: /api/v1/admin/fansubs/{id}/anime-coverage
     auth:
       required: true
-      permission: fansub_group.members.view for the addressed fansub group
+      permission: release.view for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -665,7 +665,7 @@ endpoints:
         name: Authorization
         format: Bearer <signed token>
       notes:
-        - CanForFansubGroup(ActionFansubGroupMediaView) wird serverseitig geprüft.
+        - CanForFansubGroup(ActionFansubGroupMediaView) oder ein individuelles Gruppenmedienrecht wird serverseitig geprüft.
         - Gruppenmitgliedschaft allein genügt nicht.
         - Deny-Audit fansub_group_media.list.denied wird geschrieben (D-09).
       unauthenticated_status: 401
@@ -739,6 +739,49 @@ endpoints:
         description: Keine Berechtigung oder Medium gehört anderer Gruppe (Owner-Mismatch).
       - status: 404
         description: Medium oder Gruppe nicht gefunden.
+      - status: 500
+        description: Interner Serverfehler.
+
+  # Phase 90d — Gruppenmedien-Reihenfolge
+  - name: admin-fansub-group-media-reorder
+    method: PATCH
+    path: /api/v1/admin/fansubs/{id}/media/reorder
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - CanForFansubGroup(ActionFansubGroupMediaUpdate) oder individuelles can_reorder wird serverseitig geprüft.
+        - Frontend sendet nur Medien-IDs in Zielreihenfolge, keine sort_order-Werte.
+        - Backend validiert, dass alle IDs aktive Gruppenmedien der angegebenen Gruppe sind.
+        - Backend normalisiert sort_order in konsistenten 1000er-Schritten.
+        - Erfolgs-Audit fansub_group_media.reordered + Deny-Audit.
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+        description: ID der Fansub-Gruppe.
+    request_body:
+      required: true
+      type: FansubGroupMediaReorderRequest
+      example:
+        mediaIds: [123, 124, 125]
+    response:
+      status: 200
+      example:
+        status: "ok"
+    error_responses:
+      - status: 400
+        description: mediaIds fehlt, ist leer, enthält ungültige oder doppelte IDs.
+      - status: 401
+        description: Nicht angemeldet.
+      - status: 403
+        description: Keine Berechtigung.
+      - status: 404
+        description: Eine oder mehrere Medien gehören nicht zu dieser Gruppe.
       - status: 500
         description: Interner Serverfehler.
 
@@ -825,6 +868,8 @@ types:
     caption: string | null
     sort_order: int32
     is_preview_candidate: boolean
+    visibility: string | null (optional, enum: intern | oeffentlich)
+    review_status: string | null (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)
     uploaded_by_user_id: int64 | null
     created_at: timestamp
     updated_at: timestamp | null
@@ -1054,6 +1099,7 @@ types:
     category: string (enum gallery|history_screenshot|old_website|forum|irc_chat|event_meeting|artwork_fanart|other)
     sort_order: integer
     uploaded_by_display_name: string | null
+    uploaded_by_current_user: boolean (description: "true wenn das Medium vom aktuellen App-User über dessen Legacy-User hochgeladen wurde")
     created_at: string (format date-time)
     updated_at: string | null (format date-time)
     owner_type: string (description: "Typ der Owner-Tabelle, immer 'fansub_group'")
@@ -1063,6 +1109,10 @@ types:
   FansubGroupMediaListResponse:
     description: Liste aller Gruppenmedien für den Review-Tab. Scoped auf die angeforderte Gruppe (D-04).
     data: FansubGroupMediaItem[]
+
+  FansubGroupMediaReorderRequest:
+    description: Neue globale Reihenfolge aktiver Gruppenmedien; Frontend sendet keine technischen sort_order-Werte.
+    mediaIds: int64[] (minItems: 1, complete ordered active group-media ID list)
 
   # Phase 80 — Globale User-Verwaltung + Rechte-Zentrale (Lock K, D-05/D-07/D-12/D-17/D-18/D-19)
 

@@ -13,6 +13,7 @@ import { ColorTokenExtension } from './ColorTokenExtension'
 import type { ColorToken } from './ColorTokenExtension'
 import { StoryImageExtension } from './StoryImageExtension'
 import { StoryImageToolbarButton } from './StoryImageToolbarButton'
+import { Button } from '@/components/ui'
 import type { Editor } from '@tiptap/react'
 import styles from './RichTextEditor.module.css'
 
@@ -22,6 +23,8 @@ type RichTextEditorProps = {
   placeholder?: string
   helperText?: string
   mode?: 'longform' | 'shortnote'
+  toolbarVariant?: 'full' | 'minimal'
+  showShortnoteHint?: boolean
   disabled?: boolean
   minHeight?: number
   /** Opt-in Bild-Feature: nur bei true wird StoryImageExtension geladen + Toolbar-Button gerendert (D-11) */
@@ -49,6 +52,7 @@ function cloneRichTextValue(value: unknown | null): object {
 
 type ToolbarProps = {
   editor: Editor
+  variant?: 'full' | 'minimal'
   enableImages?: boolean
   onPendingImageAdded?: (pendingKey: string, file: File) => void
 }
@@ -63,7 +67,7 @@ const COLOR_TOKEN_META: Array<{ token: ColorToken; label: string }> = [
   { token: 'purple', label: 'Lila' },
 ]
 
-function EditorToolbar({ editor, enableImages, onPendingImageAdded }: ToolbarProps) {
+function EditorToolbar({ editor, variant = 'full', enableImages, onPendingImageAdded }: ToolbarProps) {
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
   const colorMenuId = useId()
   const colorMenuRef = useRef<HTMLDivElement | null>(null)
@@ -110,6 +114,44 @@ function EditorToolbar({ editor, enableImages, onPendingImageAdded }: ToolbarPro
       document.removeEventListener('keydown', handleEscape)
     }
   }, [colorMenuOpen])
+
+  if (variant === 'minimal') {
+    return (
+      <div className={styles.toolbar} role="toolbar" aria-label="Textformatierung">
+        <Button
+          type="button"
+          variant={editor.isActive('bold') ? 'secondary' : 'subtle'}
+          size="sm"
+          iconOnly
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          title="Fett"
+          aria-label="Fett"
+        >
+          <strong>B</strong>
+        </Button>
+        <Button
+          type="button"
+          variant={editor.isActive('italic') ? 'secondary' : 'subtle'}
+          size="sm"
+          iconOnly
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          title="Kursiv"
+          aria-label="Kursiv"
+        >
+          <em>I</em>
+        </Button>
+        <Button
+          type="button"
+          variant={editor.isActive('bulletList') ? 'secondary' : 'subtle'}
+          size="sm"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          title="Liste"
+        >
+          Liste
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.toolbar} role="toolbar" aria-label="Textformatierung">
@@ -379,6 +421,8 @@ export function RichTextEditor({
   placeholder,
   helperText,
   mode = 'longform',
+  toolbarVariant = 'full',
+  showShortnoteHint = true,
   disabled = false,
   minHeight = 160,
   enableImages,
@@ -434,6 +478,7 @@ export function RichTextEditor({
       {editor && !disabled && (
         <EditorToolbar
           editor={editor}
+          variant={toolbarVariant}
           enableImages={enableImages}
           onPendingImageAdded={onPendingImageAdded}
         />
@@ -441,7 +486,7 @@ export function RichTextEditor({
       <div className={styles.editorContent} style={{ minHeight }}>
         <EditorContent editor={editor} />
       </div>
-      {mode === 'shortnote' && (
+      {mode === 'shortnote' && showShortnoteHint && (
         <p className={styles.shortnoteHint}>{SHORTNOTE_HINT}</p>
       )}
     </div>

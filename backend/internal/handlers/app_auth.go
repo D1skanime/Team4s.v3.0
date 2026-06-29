@@ -19,22 +19,24 @@ import (
 )
 
 type fansubGroupCapabilitiesResponse struct {
-	CanEditGroup          bool `json:"can_edit_group"`
-	CanManageLinks        bool `json:"can_manage_links"`
-	CanViewMembers        bool `json:"can_view_members"`
-	CanManageMembers      bool `json:"can_manage_members"`
-	CanEditNotes          bool `json:"can_edit_notes"`
-	CanViewInvitations    bool `json:"can_view_invitations"`
-	CanCreateInvitation   bool `json:"can_create_invitation"`
-	CanCancelInvitation   bool `json:"can_cancel_invitation"`
-	CanViewReleases       bool `json:"can_view_releases"`
-	CanViewReleaseMedia   bool `json:"can_view_release_media"`
-	CanUploadReleaseMedia bool `json:"can_upload_release_media"`
-	CanEditReleaseNotes   bool `json:"can_edit_release_notes"`
-	CanViewGroupMedia     bool `json:"can_view_group_media"`
-	CanUploadGroupMedia   bool `json:"can_upload_group_media"`
-	CanUpdateGroupMedia   bool `json:"can_update_group_media"`
-	CanDeleteGroupMedia   bool `json:"can_delete_group_media"`
+	CanEditGroup           bool `json:"can_edit_group"`
+	CanManageLinks         bool `json:"can_manage_links"`
+	CanViewMembers         bool `json:"can_view_members"`
+	CanManageMembers       bool `json:"can_manage_members"`
+	CanEditNotes           bool `json:"can_edit_notes"`
+	CanViewInvitations     bool `json:"can_view_invitations"`
+	CanCreateInvitation    bool `json:"can_create_invitation"`
+	CanCancelInvitation    bool `json:"can_cancel_invitation"`
+	CanViewReleases        bool `json:"can_view_releases"`
+	CanViewReleaseMedia    bool `json:"can_view_release_media"`
+	CanUploadReleaseMedia  bool `json:"can_upload_release_media"`
+	CanEditReleaseNotes    bool `json:"can_edit_release_notes"`
+	CanViewGroupMedia      bool `json:"can_view_group_media"`
+	CanUploadGroupMedia    bool `json:"can_upload_group_media"`
+	CanUpdateGroupMedia    bool `json:"can_update_group_media"`
+	CanDeleteOwnGroupMedia bool `json:"can_delete_own_group_media"`
+	CanDeleteGroupMedia    bool `json:"can_delete_group_media"`
+	CanReorderGroupMedia   bool `json:"can_reorder_group_media"`
 }
 
 type fansubGroupAppMemberStore interface {
@@ -43,6 +45,8 @@ type fansubGroupAppMemberStore interface {
 	Create(ctx context.Context, fansubGroupID int64, input models.FansubGroupMemberCreateInput) (*models.FansubGroupAppMember, error)
 	SetRole(ctx context.Context, fansubGroupID int64, appUserID int64, input models.FansubGroupMemberRoleUpdateInput) (*models.FansubGroupAppMember, error)
 	UpdateStatus(ctx context.Context, fansubGroupID int64, appUserID int64, input models.FansubGroupMemberStatusUpdateInput) (*models.FansubGroupAppMember, error)
+	SetMediaPermissions(ctx context.Context, fansubGroupID int64, appUserID int64, input models.FansubGroupMemberMediaPermissionsUpdateInput) (*models.FansubGroupAppMember, error)
+	GetMediaPermissionsForAppUser(ctx context.Context, fansubGroupID int64, appUserID int64) (models.FansubGroupMediaPermissions, error)
 }
 
 type fansubGroupInvitationStore interface {
@@ -212,6 +216,13 @@ type setFansubGroupMemberRoleRequest struct {
 
 type setFansubGroupMemberStatusRequest struct {
 	Status string `json:"status"`
+}
+
+type setFansubGroupMemberMediaPermissionsRequest struct {
+	CanUpload    bool `json:"can_upload"`
+	CanDeleteOwn bool `json:"can_delete_own"`
+	CanDeleteAll bool `json:"can_delete_all"`
+	CanReorder   bool `json:"can_reorder"`
 }
 
 type createFansubGroupInvitationRequest struct {
@@ -870,8 +881,85 @@ func (h *AppAuthHandler) UpdateFansubGroupMemberStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": member})
 }
 
+func (h *AppAuthHandler) SetFansubGroupMemberMediaPermissions(c *gin.Context) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+	if h.memberRepo == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige fansub-id"}})
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_member_media_permissions.denied", &fansubID, "fansub_group", &fansubID, permissions.ActionFansubGroupMembersManage, result)
+		writePermissionDenied(c, result)
+		return
+	}
+
+	appUserID, err := parseFansubID(c.Param("appUserId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige app-user-id"}})
+		return
+	}
+
+	var req setFansubGroupMemberMediaPermissionsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige anfrage"}})
+		return
+	}
+
+	member, err := h.memberRepo.SetMediaPermissions(c.Request.Context(), fansubID, appUserID, models.FansubGroupMemberMediaPermissionsUpdateInput{
+		Permissions: models.FansubGroupMediaPermissions{
+			CanUpload:    req.CanUpload,
+			CanDeleteOwn: req.CanDeleteOwn,
+			CanDeleteAll: req.CanDeleteAll,
+			CanReorder:   req.CanReorder,
+		},
+		UpdatedByAppUserID: &identity.AppUserID,
+	})
+	if err != nil {
+		if err == repository.ErrNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "mitgliedschaft nicht gefunden"}})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		return
+	}
+
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "fansub_group_member_media_permissions.updated",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "app_user",
+		TargetID:       &appUserID,
+		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Outcome:        "allowed",
+		Payload: map[string]any{
+			"can_upload":     req.CanUpload,
+			"can_delete_own": req.CanDeleteOwn,
+			"can_delete_all": req.CanDeleteAll,
+			"can_reorder":    req.CanReorder,
+		},
+	})
+
+	c.JSON(http.StatusOK, gin.H{"data": member})
+}
+
 func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
-	_, actor, ok := permissionActorFromContext(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -963,28 +1051,48 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		return
 	}
 
-	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMedia.Allowed && !canUploadGroupMedia.Allowed && !canUpdateGroupMedia.Allowed && !canDeleteGroupMedia.Allowed {
+	var customMediaPermissions models.FansubGroupMediaPermissions
+	if h.memberRepo != nil {
+		customMediaPermissions, err = h.memberRepo.GetMediaPermissionsForAppUser(c.Request.Context(), fansubID, identity.AppUserID)
+		if err != nil {
+			writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+			return
+		}
+	}
+	hasAnyCustomMediaPermission := customMediaPermissions.CanUpload ||
+		customMediaPermissions.CanDeleteOwn ||
+		customMediaPermissions.CanDeleteAll ||
+		customMediaPermissions.CanReorder
+	canViewGroupMediaAllowed := canViewGroupMedia.Allowed || hasAnyCustomMediaPermission
+	canUploadGroupMediaAllowed := canUploadGroupMedia.Allowed || customMediaPermissions.CanUpload
+	canDeleteOwnGroupMediaAllowed := canDeleteGroupMedia.Allowed || customMediaPermissions.CanDeleteAll || customMediaPermissions.CanDeleteOwn
+	canDeleteGroupMediaAllowed := canDeleteGroupMedia.Allowed || customMediaPermissions.CanDeleteAll
+	canReorderGroupMediaAllowed := canUpdateGroupMedia.Allowed || customMediaPermissions.CanReorder
+
+	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMediaAllowed && !canUploadGroupMediaAllowed && !canUpdateGroupMedia.Allowed && !canDeleteOwnGroupMediaAllowed && !canDeleteGroupMediaAllowed && !canReorderGroupMediaAllowed {
 		writePermissionDenied(c, canViewMembers)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": fansubGroupCapabilitiesResponse{
-		CanEditGroup:          canEditGroup.Allowed,
-		CanManageLinks:        canManageLinks.Allowed,
-		CanViewMembers:        canViewMembers.Allowed,
-		CanManageMembers:      canManageMembers.Allowed,
-		CanEditNotes:          canEditNotes.Allowed,
-		CanViewInvitations:    canViewInvitations.Allowed,
-		CanCreateInvitation:   canCreateInvitation.Allowed,
-		CanCancelInvitation:   canCancelInvitation.Allowed,
-		CanViewReleases:       canViewReleases.Allowed,
-		CanViewReleaseMedia:   canViewReleaseMedia.Allowed,
-		CanUploadReleaseMedia: canUploadReleaseMedia.Allowed,
-		CanEditReleaseNotes:   canEditReleaseNotes.Allowed,
-		CanViewGroupMedia:     canViewGroupMedia.Allowed,
-		CanUploadGroupMedia:   canUploadGroupMedia.Allowed,
-		CanUpdateGroupMedia:   canUpdateGroupMedia.Allowed,
-		CanDeleteGroupMedia:   canDeleteGroupMedia.Allowed,
+		CanEditGroup:           canEditGroup.Allowed,
+		CanManageLinks:         canManageLinks.Allowed,
+		CanViewMembers:         canViewMembers.Allowed,
+		CanManageMembers:       canManageMembers.Allowed,
+		CanEditNotes:           canEditNotes.Allowed,
+		CanViewInvitations:     canViewInvitations.Allowed,
+		CanCreateInvitation:    canCreateInvitation.Allowed,
+		CanCancelInvitation:    canCancelInvitation.Allowed,
+		CanViewReleases:        canViewReleases.Allowed,
+		CanViewReleaseMedia:    canViewReleaseMedia.Allowed,
+		CanUploadReleaseMedia:  canUploadReleaseMedia.Allowed,
+		CanEditReleaseNotes:    canEditReleaseNotes.Allowed,
+		CanViewGroupMedia:      canViewGroupMediaAllowed,
+		CanUploadGroupMedia:    canUploadGroupMediaAllowed,
+		CanUpdateGroupMedia:    canUpdateGroupMedia.Allowed,
+		CanDeleteOwnGroupMedia: canDeleteOwnGroupMediaAllowed,
+		CanDeleteGroupMedia:    canDeleteGroupMediaAllowed,
+		CanReorderGroupMedia:   canReorderGroupMediaAllowed,
 	}})
 }
 

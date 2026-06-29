@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
@@ -59,6 +60,8 @@ type FansubMediaReviewRepository interface {
 	// GetFansubMediaOwner gibt zurück, welcher Gruppe das Medium gehört (Cross-Group-Prüfung T-78-03).
 	GetFansubMediaOwner(ctx context.Context, mediaID int64) (int64, error)
 	UpdateFansubGroupMediaMetadata(ctx context.Context, fansubGroupID, mediaID int64, patch repository.FansubGroupMediaMetadataPatch) error
+	ReorderFansubGroupMedia(ctx context.Context, fansubGroupID int64, mediaIDs []int64) error
+	GetFansubGroupMediaPermissionsForAppUser(ctx context.Context, fansubGroupID int64, appUserID int64) (models.FansubGroupMediaPermissions, error)
 }
 
 // FansubMediaListRepository definiert die Lese-Operation für den GET-Listen-Handler.
@@ -66,7 +69,7 @@ type FansubMediaReviewRepository interface {
 type FansubMediaListRepository interface {
 	// ListFansubGroupMediaForReview liest alle Medienassets einer Gruppe mit
 	// Sichtbarkeit/Reviewstatus/Owner-Info. Scoped strikt auf fansubGroupID (IDOR-Schutz D-04).
-	ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64) ([]repository.FansubGroupMediaReviewRow, error)
+	ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64, actorAppUserID *int64) ([]repository.FansubGroupMediaReviewRow, error)
 }
 
 // mediaReviewPermChecker abstrahiert den Permission-Service für den Handler.
@@ -107,28 +110,33 @@ func NewFansubMediaReviewHandler(
 
 // fansubGroupMediaItemResponse ist die API-Antwortstruktur für einen Medieneintrag.
 type fansubGroupMediaItemResponse struct {
-	ID              int64   `json:"id"`
-	PreviewURL      string  `json:"preview_url,omitempty"`
-	ThumbnailURL    string  `json:"thumbnail_url,omitempty"`
-	OriginalURL     string  `json:"original_url,omitempty"`
-	Visibility      *string `json:"visibility"`
-	ReviewStatus    *string `json:"review_status"`
-	Title           *string `json:"title"`
-	Description     *string `json:"description"`
-	AltText         *string `json:"alt_text"`
-	Category        string  `json:"category"`
-	SortOrder       int     `json:"sort_order"`
-	UploadedByName  *string `json:"uploaded_by_display_name"`
-	CreatedAt       string  `json:"created_at"`
-	UpdatedAt       *string `json:"updated_at,omitempty"`
-	OwnerType       string  `json:"owner_type"`
-	OwnerID         int64   `json:"owner_id"`
-	OwnerConsistent bool    `json:"owner_consistent"`
+	ID                    int64   `json:"id"`
+	PreviewURL            string  `json:"preview_url,omitempty"`
+	ThumbnailURL          string  `json:"thumbnail_url,omitempty"`
+	OriginalURL           string  `json:"original_url,omitempty"`
+	Visibility            *string `json:"visibility"`
+	ReviewStatus          *string `json:"review_status"`
+	Title                 *string `json:"title"`
+	Description           *string `json:"description"`
+	AltText               *string `json:"alt_text"`
+	Category              string  `json:"category"`
+	SortOrder             int     `json:"sort_order"`
+	UploadedByName        *string `json:"uploaded_by_display_name"`
+	UploadedByCurrentUser bool    `json:"uploaded_by_current_user"`
+	CreatedAt             string  `json:"created_at"`
+	UpdatedAt             *string `json:"updated_at,omitempty"`
+	OwnerType             string  `json:"owner_type"`
+	OwnerID               int64   `json:"owner_id"`
+	OwnerConsistent       bool    `json:"owner_consistent"`
 }
 
 // fansubGroupMediaListResponse ist die Listenstruktur.
 type fansubGroupMediaListResponse struct {
 	Data []fansubGroupMediaItemResponse `json:"data"`
+}
+
+type fansubGroupMediaReorderBody struct {
+	MediaIDs []int64 `json:"mediaIds"`
 }
 
 // ListFansubGroupMedia gibt alle Gruppenmedien für den Review-Tab zurück.
@@ -154,16 +162,23 @@ func (h *FansubMediaReviewHandler) ListFansubGroupMedia(c *gin.Context) {
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.list.denied", &fansubID, "fansub_group_media", nil, permissions.ActionFansubGroupMediaView, result)
-		writePermissionDenied(c, result)
-		return
+		customPerms, permErr := h.repo.GetFansubGroupMediaPermissionsForAppUser(c.Request.Context(), fansubID, identity.AppUserID)
+		if permErr != nil {
+			writePermissionInternalError(c, permErr, "Berechtigung für Medien-Liste konnte nicht geprüft werden.")
+			return
+		}
+		if !customPerms.CanUpload && !customPerms.CanDeleteOwn && !customPerms.CanDeleteAll && !customPerms.CanReorder {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.list.denied", &fansubID, "fansub_group_media", nil, permissions.ActionFansubGroupMediaView, result)
+			writePermissionDenied(c, result)
+			return
+		}
 	}
 
 	if h.listRepo == nil {
 		internalError(c, "interner serverfehler")
 		return
 	}
-	rows, err := h.listRepo.ListFansubGroupMediaForReview(c.Request.Context(), fansubID)
+	rows, err := h.listRepo.ListFansubGroupMediaForReview(c.Request.Context(), fansubID, &identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "gruppe nicht gefunden"}})
 		return
@@ -182,28 +197,102 @@ func (h *FansubMediaReviewHandler) ListFansubGroupMedia(c *gin.Context) {
 			updatedAt = &value
 		}
 		item := fansubGroupMediaItemResponse{
-			ID:              row.MediaAssetID,
-			PreviewURL:      row.PreviewURL,
-			ThumbnailURL:    row.ThumbnailURL,
-			OriginalURL:     row.OriginalURL,
-			Visibility:      row.Visibility,
-			ReviewStatus:    row.ReviewStatus,
-			Title:           row.Title,
-			Description:     row.Description,
-			AltText:         row.AltText,
-			Category:        row.Category,
-			SortOrder:       row.SortOrder,
-			UploadedByName:  row.UploadedByName,
-			CreatedAt:       row.CreatedAt.Format(time.RFC3339),
-			UpdatedAt:       updatedAt,
-			OwnerType:       row.OwnerType,
-			OwnerID:         row.OwnerID,
-			OwnerConsistent: row.OwnerConsistent,
+			ID:                    row.MediaAssetID,
+			PreviewURL:            row.PreviewURL,
+			ThumbnailURL:          row.ThumbnailURL,
+			OriginalURL:           row.OriginalURL,
+			Visibility:            row.Visibility,
+			ReviewStatus:          row.ReviewStatus,
+			Title:                 row.Title,
+			Description:           row.Description,
+			AltText:               row.AltText,
+			Category:              row.Category,
+			SortOrder:             row.SortOrder,
+			UploadedByName:        row.UploadedByName,
+			UploadedByCurrentUser: row.UploadedByCurrentUser,
+			CreatedAt:             row.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:             updatedAt,
+			OwnerType:             row.OwnerType,
+			OwnerID:               row.OwnerID,
+			OwnerConsistent:       row.OwnerConsistent,
 		}
 		items = append(items, item)
 	}
 
 	c.JSON(http.StatusOK, fansubGroupMediaListResponse{Data: items})
+}
+
+func (h *FansubMediaReviewHandler) ReorderFansubGroupMedia(c *gin.Context) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungÃ¼ltige fansub-id")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdate, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung fÃ¼r Medien-Reihenfolge konnte nicht geprÃ¼ft werden.")
+		return
+	}
+	if !result.Allowed {
+		customPerms, permErr := h.repo.GetFansubGroupMediaPermissionsForAppUser(c.Request.Context(), fansubID, identity.AppUserID)
+		if permErr != nil {
+			writePermissionInternalError(c, permErr, "Berechtigung für Medien-Reihenfolge konnte nicht geprüft werden.")
+			return
+		}
+		if !customPerms.CanReorder {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.reorder.denied", &fansubID, "fansub_group_media", nil, permissions.ActionFansubGroupMediaUpdate, result)
+			writePermissionDenied(c, result)
+			return
+		}
+	}
+
+	var body fansubGroupMediaReorderBody
+	if err := c.ShouldBindJSON(&body); err != nil || len(body.MediaIDs) == 0 {
+		badRequest(c, "mediaIds array fehlt oder ist leer")
+		return
+	}
+	seen := make(map[int64]struct{}, len(body.MediaIDs))
+	for _, mediaID := range body.MediaIDs {
+		if mediaID <= 0 {
+			badRequest(c, "mediaIds enthÃ¤lt eine ungÃ¼ltige media-id")
+			return
+		}
+		if _, exists := seen[mediaID]; exists {
+			badRequest(c, "mediaIds enthÃ¤lt doppelte media-ids")
+			return
+		}
+		seen[mediaID] = struct{}{}
+	}
+
+	if err := h.repo.ReorderFansubGroupMedia(c.Request.Context(), fansubID, body.MediaIDs); err != nil {
+		if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrOwnershipMismatch) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere medien gehÃ¶ren nicht zu dieser gruppe"}})
+			return
+		}
+		log.Printf("fansub media review: ReorderFansubGroupMedia error (fansub_id=%d): %v", fansubID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    &identity.AppUserID,
+		ActorLegacyUserID: &identity.UserID,
+		EventType:         "fansub_group_media.reordered",
+		ScopeType:         permissions.ScopeTypeGroup,
+		ScopeID:           &fansubID,
+		TargetType:        "fansub_group_media",
+		Action:            string(permissions.ActionFansubGroupMediaUpdate),
+		Outcome:           "allowed",
+		Payload:           map[string]any{"items": len(body.MediaIDs)},
+	})
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 // PatchFansubMediaReview aktualisiert Sichtbarkeit und/oder Reviewstatus eines Gruppenmediums.

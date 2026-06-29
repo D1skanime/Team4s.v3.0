@@ -24,6 +24,7 @@ export interface MemberRoleForVersion {
   memberId: number;
   memberName: string;
   roleId: number;
+  roleCode: string;
   roleName: string;
   roleLabel: string;
 }
@@ -32,6 +33,7 @@ export interface BulkNoteInput {
   id: number;
   memberId: number;
   roleId: number;
+  roleCode: string;
   title?: string | null;
   bodyJson: unknown | null;
   visibility: 'public' | 'internal';

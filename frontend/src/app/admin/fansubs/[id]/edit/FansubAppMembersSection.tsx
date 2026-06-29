@@ -2,7 +2,7 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Pencil, UserPlus } from 'lucide-react'
+import { Check, Pencil, UserPlus } from 'lucide-react'
 
 import {
   Badge,
@@ -32,11 +32,12 @@ import {
   listFansubAppMembers,
   searchFansubAppMemberCandidates,
   updateFansubAppMemberRole,
-  updateFansubAppMemberStatus,
+  updateFansubAppMemberMediaPermissions,
 } from '@/lib/api'
 import {
   FANSUB_GROUP_ROLE_OPTIONS,
   type FansubAppMember,
+  type FansubGroupMediaPermissions,
   type FansubGroupCapabilities,
   type FansubGroupInvitation,
   type FansubGroupMemberCandidate,
@@ -56,6 +57,19 @@ type FansubAppMembersSectionProps = {
 }
 
 const ROLE_LABELS = new Map<string, string>(FANSUB_GROUP_ROLE_OPTIONS.map((option) => [option.code, option.label]))
+const MEDIA_PERMISSION_OPTIONS: Array<{ key: keyof FansubGroupMediaPermissions; label: string; description: string }> = [
+  { key: 'can_upload', label: 'Hochladen', description: 'Kann neue Gruppenmedien hinzufügen.' },
+  { key: 'can_delete_own', label: 'Eigene archivieren', description: 'Kann selbst hochgeladene Gruppenmedien archivieren.' },
+  { key: 'can_delete_all', label: 'Alle archivieren', description: 'Kann alle Gruppenmedien dieser Gruppe archivieren.' },
+  { key: 'can_reorder', label: 'Reihenfolge ändern', description: 'Kann die Reihenfolge der Gruppenmedien ändern.' },
+]
+
+const EMPTY_MEDIA_PERMISSIONS: FansubGroupMediaPermissions = {
+  can_upload: false,
+  can_delete_own: false,
+  can_delete_all: false,
+  can_reorder: false,
+}
 
 function formatApiError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
@@ -111,8 +125,19 @@ function formatMemberStatusLabel(status: FansubAppMember['status']): string {
   return status === 'active' ? 'Aktiv' : 'Deaktiviert'
 }
 
-function memberStatusVariant(status: FansubAppMember['status']): 'success' | 'muted' {
-  return status === 'active' ? 'success' : 'muted'
+function getMediaPermissions(member: FansubAppMember): FansubGroupMediaPermissions {
+  return {
+    ...EMPTY_MEDIA_PERMISSIONS,
+    ...(member.media_permissions ?? {}),
+  }
+}
+
+function countMediaPermissions(permissions: FansubGroupMediaPermissions): number {
+  return MEDIA_PERMISSION_OPTIONS.filter((option) => permissions[option.key]).length
+}
+
+function mediaPermissionsEqual(left: FansubGroupMediaPermissions, right: FansubGroupMediaPermissions): boolean {
+  return MEDIA_PERMISSION_OPTIONS.every((option) => left[option.key] === right[option.key])
 }
 
 function formatInvitationStatusLabel(status: FansubGroupInvitation['status']): string {
@@ -149,7 +174,10 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false)
   const [isAddChoiceOpen, setIsAddChoiceOpen] = useState(false)
   const [historicalActions, setHistoricalActions] = useState<GroupMembersTabActions | null>(null)
-  const [roleEditorMemberId, setRoleEditorMemberId] = useState<number | null>(null)
+  const [editorMemberId, setEditorMemberId] = useState<number | null>(null)
+  const [memberEditorTab, setMemberEditorTab] = useState<'roles' | 'media'>('roles')
+  const [memberRoleDraft, setMemberRoleDraft] = useState<string[]>([])
+  const [mediaPermissionDraft, setMediaPermissionDraft] = useState<FansubGroupMediaPermissions>(EMPTY_MEDIA_PERMISSIONS)
   const [invitations, setInvitations] = useState<FansubGroupInvitation[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRoles, setInviteRoles] = useState<FansubGroupRoleCode[]>([])
@@ -209,6 +237,12 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   }, [loadSection])
 
   useEffect(() => {
+    if (!successMessage) return undefined
+    const timeout = window.setTimeout(() => setSuccessMessage(null), 1800)
+    return () => window.clearTimeout(timeout)
+  }, [successMessage])
+
+  useEffect(() => {
     let cancelled = false
 
     async function runSearch() {
@@ -258,9 +292,9 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
     () => members.filter((member) => member.status === 'active').length,
     [members],
   )
-  const roleEditorMember = useMemo(
-    () => members.find((member) => member.id === roleEditorMemberId) ?? null,
-    [members, roleEditorMemberId],
+  const editorMember = useMemo(
+    () => members.find((member) => member.id === editorMemberId) ?? null,
+    [members, editorMemberId],
   )
   const selectedCandidate = useMemo(
     () => candidateResults.find((candidate) => String(candidate.app_user_id) === selectedCandidateId) ?? null,
@@ -368,52 +402,80 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
     }
   }
 
-  async function handleToggleRole(member: FansubAppMember, role: string) {
-    const enabled = !member.roles.includes(role)
-    const nextBusyKey = `role:${member.app_user_id}:${role}`
-
-    try {
-      setBusyKey(nextBusyKey)
-      setActionError(null)
-      setSuccessMessage(null)
-      const response = await updateFansubAppMemberRole(
-        fansubId,
-        member.app_user_id,
-        { role, enabled },
-      )
-      setMembers((current) =>
-        current.map((item) => (item.app_user_id === member.app_user_id ? response.data : item)),
-      )
-      await loadSection()
-      setSuccessMessage(enabled ? `${formatRoleLabel(role)} wurde vergeben.` : `${formatRoleLabel(role)} wurde entfernt.`)
-    } catch (error) {
-      setActionError(formatApiError(error, 'Rolle konnte nicht geändert werden.'))
-      setSuccessMessage(null)
-    } finally {
-      setBusyKey(null)
-    }
+  function openMemberEditor(member: FansubAppMember) {
+    setEditorMemberId(member.id)
+    setMemberEditorTab('roles')
+    setMemberRoleDraft([...member.roles])
+    setMediaPermissionDraft(getMediaPermissions(member))
   }
 
-  async function handleToggleStatus(member: FansubAppMember) {
-    const nextStatus = member.status === 'active' ? 'disabled' : 'active'
+  function closeMemberEditor() {
+    if (editorMember && busyKey === `member-editor:${editorMember.app_user_id}`) return
+    setEditorMemberId(null)
+    setMemberEditorTab('roles')
+    setMemberRoleDraft([])
+    setMediaPermissionDraft(EMPTY_MEDIA_PERMISSIONS)
+  }
+
+  function toggleMemberRoleDraft(role: string) {
+    setMemberRoleDraft((current) =>
+      current.includes(role) ? current.filter((item) => item !== role) : [...current, role],
+    )
+  }
+
+  function toggleMediaPermissionDraft(permission: keyof FansubGroupMediaPermissions) {
+    setMediaPermissionDraft((current) => ({
+      ...current,
+      [permission]: !current[permission],
+    }))
+  }
+
+  async function handleSaveMemberEditor() {
+    if (!editorMember) return
+
+    const originalRoles = new Set(editorMember.roles)
+    const nextRoles = new Set(memberRoleDraft)
+    const rolesToEnable = memberRoleDraft.filter((role) => !originalRoles.has(role))
+    const rolesToDisable = editorMember.roles.filter((role) => !nextRoles.has(role))
+    const originalPermissions = getMediaPermissions(editorMember)
+    const shouldSaveMediaPermissions = !mediaPermissionsEqual(originalPermissions, mediaPermissionDraft)
 
     try {
-      setBusyKey(`status:${member.app_user_id}`)
+      setBusyKey(`member-editor:${editorMember.app_user_id}`)
       setActionError(null)
       setSuccessMessage(null)
-      const response = await updateFansubAppMemberStatus(
-        fansubId,
-        member.app_user_id,
-        { status: nextStatus },
-      )
+
+      let latestMember: FansubAppMember = editorMember
+
+      for (const role of rolesToEnable) {
+        const response = await updateFansubAppMemberRole(fansubId, editorMember.app_user_id, { role, enabled: true })
+        latestMember = response.data
+      }
+
+      for (const role of rolesToDisable) {
+        const response = await updateFansubAppMemberRole(fansubId, editorMember.app_user_id, { role, enabled: false })
+        latestMember = response.data
+      }
+
+      if (shouldSaveMediaPermissions) {
+        const response = await updateFansubAppMemberMediaPermissions(
+          fansubId,
+          editorMember.app_user_id,
+          mediaPermissionDraft,
+        )
+        latestMember = response.data
+      }
+
       setMembers((current) =>
-        current.map((item) => (item.app_user_id === member.app_user_id ? response.data : item)),
+        current.map((item) => (item.app_user_id === editorMember.app_user_id ? latestMember : item)),
       )
-      await loadSection()
-      setRoleEditorMemberId(null)
-      setSuccessMessage(nextStatus === 'active' ? 'Mitglied wurde reaktiviert.' : 'Mitglied wurde deaktiviert.')
+      setEditorMemberId(null)
+      setMemberEditorTab('roles')
+      setMemberRoleDraft([])
+      setMediaPermissionDraft(EMPTY_MEDIA_PERMISSIONS)
+      setSuccessMessage('Änderungen gespeichert.')
     } catch (error) {
-      setActionError(formatApiError(error, 'Mitgliedsstatus konnte nicht geändert werden.'))
+      setActionError(formatApiError(error, 'Änderungen konnten nicht gespeichert werden.'))
       setSuccessMessage(null)
     } finally {
       setBusyKey(null)
@@ -504,109 +566,89 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
                   </Badge>
                 }
               />
-              <div className={styles.fansubEditTableSurface}>
-                <Table
-                  variant="withActions"
-                  caption="Mitglieder dieser Fansubgruppe"
-                  containerClassName={styles.fansubEditTableWrapWine}
-                >
-                  <TableHead>
-                    <TableRow>
-                      <TableHeaderCell>Mitglied</TableHeaderCell>
-                      <TableHeaderCell>Rollen</TableHeaderCell>
-                      <TableHeaderCell>Status</TableHeaderCell>
-                      <TableHeaderCell>Seit</TableHeaderCell>
-                      {canManageMembers ? <TableHeaderCell>Aktionen</TableHeaderCell> : null}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {members.length === 0
-                      ? (
-                        <TableEmptyState
-                          colSpan={canManageMembers ? 5 : 4}
-                          title="Noch keine Mitglieder in dieser Gruppe"
-                          description="Sobald jemand hinzugefügt wurde, erscheinen Rollen und Status hier in der Übersicht."
-                        />
-                      )
-                      : members.map((member) => {
-                          const fansubName = member.member?.fansub_name?.trim() || `Mitglied #${member.app_user_id}`
-                          const avatarUrl = member.member?.avatar_url?.trim()
-                          const isStatusBusy = busyKey === `status:${member.app_user_id}`
+              <div className={styles.fansubEditMembersCompactList} aria-label="Mitglieder dieser Fansubgruppe">
+                {members.length === 0 ? (
+                  <div className={styles.fansubEditMemberCompactCard}>
+                    <strong>Noch keine Mitglieder in dieser Gruppe</strong>
+                    <p className={styles.fansubEditHint}>
+                      Sobald jemand hinzugefügt wurde, erscheinen Rollen und Status hier in der Übersicht.
+                    </p>
+                  </div>
+                ) : members.map((member) => {
+                    const fansubName = member.member?.fansub_name?.trim() || `Mitglied #${member.app_user_id}`
+                    const avatarUrl = member.member?.avatar_url?.trim()
+                    const mediaPermissions = getMediaPermissions(member)
+                    const mediaPermissionCount = countMediaPermissions(mediaPermissions)
 
-                          return (
-                            <TableRow key={member.id}>
-                              <TableCell>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <div className={styles.fansubEditMembershipAvatar} aria-hidden="true" style={{ width: 32, height: 32, fontSize: '0.75rem' }}>
-                                    {avatarUrl ? (
-                                      <Image
-                                        src={avatarUrl}
-                                        alt=""
-                                        width={32}
-                                        height={32}
-                                        unoptimized
-                                      />
-                                    ) : (
-                                      formatMemberInitials(fansubName)
-                                    )}
-                                  </div>
-                                  <strong>{fansubName}</strong>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className={styles.chipRow}>
-                                  {member.roles.length > 0
-                                    ? member.roles.map((role) => (
-                                        <Badge
-                                          key={role}
-                                          variant="info"
-                                          className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
-                                        >
-                                          {formatRoleLabel(role)}
-                                        </Badge>
-                                      ))
-                                    : <span className={styles.fansubEditHint}>Keine</span>
-                                  }
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant={memberStatusVariant(member.status)}>
-                                  {formatMemberStatusLabel(member.status)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>{formatDateTime(member.created_at)}</TableCell>
-                              {canManageMembers ? (
-                                <TableCell>
-                                  <div className={styles.fansubEditTableRowActions}>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      leftIcon={<Pencil size={14} aria-hidden="true" />}
-                                      onClick={() => setRoleEditorMemberId((current) => (current === member.id ? null : member.id))}
-                                    >
-                                      Rollen bearbeiten
-                                    </Button>
-                                    <Button
-                                      variant={member.status === 'active' ? 'ghost' : 'secondary'}
-                                      size="sm"
-                                      disabled={isStatusBusy}
-                                      onClick={() => void handleToggleStatus(member)}
-                                    >
-                                      {isStatusBusy
-                                        ? 'Bitte warten...'
-                                        : member.status === 'active'
-                                          ? 'Deaktivieren'
-                                          : 'Reaktivieren'}
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              ) : null}
-                            </TableRow>
-                          )
-                        })
-                    }
-                  </TableBody>
-                </Table>
+                    return (
+                      <div className={styles.fansubEditMemberCompactCard} key={member.id}>
+                        <div className={styles.fansubEditMemberCompactHeader}>
+                          <div className={styles.fansubEditMemberCompactIdentity}>
+                            <div className={styles.fansubEditMembershipAvatar} aria-hidden="true">
+                              {avatarUrl ? (
+                                <Image
+                                  src={avatarUrl}
+                                  alt=""
+                                  width={40}
+                                  height={40}
+                                  unoptimized
+                                />
+                              ) : (
+                                formatMemberInitials(fansubName)
+                              )}
+                            </div>
+                            <div>
+                              <strong>{fansubName}</strong>
+                              <span className={styles.fansubEditMemberCompactMeta}>
+                                <span
+                                  className={styleNames(
+                                    styles.fansubEditMemberStatusDot,
+                                    member.status === 'active' ? styles.fansubEditMemberStatusDotActive : styles.fansubEditMemberStatusDotInactive,
+                                  )}
+                                  aria-hidden="true"
+                                />
+                                {formatMemberStatusLabel(member.status)} / seit {formatDateTime(member.created_at)}
+                              </span>
+                            </div>
+                          </div>
+                          {canManageMembers ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              iconOnly
+                              aria-label={`${fansubName} bearbeiten`}
+                              title={`${fansubName} bearbeiten`}
+                              className={styles.fansubEditMemberEditButton}
+                              onClick={() => openMemberEditor(member)}
+                            >
+                              <Pencil size={16} aria-hidden="true" />
+                            </Button>
+                          ) : null}
+                        </div>
+                        <div className={styles.fansubEditMemberCompactBody}>
+                          <div className={styles.chipRow}>
+                            {member.roles.length > 0
+                              ? member.roles.map((role) => (
+                                  <Badge
+                                    key={`${member.id}-${role}`}
+                                    variant="info"
+                                    className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
+                                  >
+                                    {formatRoleLabel(role)}
+                                  </Badge>
+                                ))
+                              : <span className={styles.fansubEditHint}>Keine Rollen</span>
+                            }
+                          </div>
+                          {mediaPermissionCount > 0 ? (
+                            <Badge variant="muted" className={styles.fansubEditMemberExtraRightsChip}>
+                              {mediaPermissionCount} Zusatzrecht{mediaPermissionCount === 1 ? '' : 'e'}
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
+                    )
+                  })}
               </div>
             </>
           ) : null}
@@ -905,36 +947,115 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
       </Modal>
 
       <Modal
-        open={Boolean(roleEditorMember)}
-        onClose={() => setRoleEditorMemberId(null)}
-        title="Rollen bearbeiten"
-        description={roleEditorMember?.member?.fansub_name ? `Aufgaben für ${roleEditorMember.member.fansub_name} setzen.` : 'Aufgaben für dieses Mitglied setzen.'}
+        open={Boolean(editorMember)}
+        onClose={closeMemberEditor}
+        title="Mitglied bearbeiten"
+        description={editorMember?.member?.fansub_name ? `Rollen und Medienrechte für ${editorMember.member.fansub_name} setzen.` : 'Rollen und Medienrechte für dieses Mitglied setzen.'}
+        footer={editorMember ? (
+          <div className={styles.fansubEditMemberEditorFooter}>
+            <Button
+              variant="ghost"
+              className={styles.fansubEditMemberEditorCancelButton}
+              disabled={busyKey === `member-editor:${editorMember.app_user_id}`}
+              onClick={closeMemberEditor}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              variant="primary"
+              loading={busyKey === `member-editor:${editorMember.app_user_id}`}
+              onClick={() => void handleSaveMemberEditor()}
+            >
+              Speichern
+            </Button>
+          </div>
+        ) : null}
       >
-        {roleEditorMember ? (
-          <div className={styles.fansubEditMembershipModalStack}>
-            <div className={styles.fansubEditMembershipRoleEditor}>
+        {editorMember ? (
+          <div className={styles.fansubEditMemberEditor}>
+            <div className={styles.fansubEditMemberEditorTabs} role="tablist" aria-label="Bearbeitungsbereiche">
+              <button
+                type="button"
+                className={styleNames(
+                  styles.fansubEditMemberEditorTab,
+                  memberEditorTab === 'roles' && styles.fansubEditMemberEditorTabActive,
+                )}
+                role="tab"
+                aria-selected={memberEditorTab === 'roles'}
+                aria-controls="fansub-member-editor-roles"
+                onClick={() => setMemberEditorTab('roles')}
+              >
+                Rollen · {memberRoleDraft.length}
+              </button>
+              <button
+                type="button"
+                className={styleNames(
+                  styles.fansubEditMemberEditorTab,
+                  memberEditorTab === 'media' && styles.fansubEditMemberEditorTabActive,
+                )}
+                role="tab"
+                aria-selected={memberEditorTab === 'media'}
+                aria-controls="fansub-member-editor-media"
+                onClick={() => setMemberEditorTab('media')}
+              >
+                Medienrechte · {countMediaPermissions(mediaPermissionDraft)}
+              </button>
+            </div>
+            {memberEditorTab === 'roles' ? (
+            <section id="fansub-member-editor-roles" className={styles.fansubEditMemberEditorPanel} aria-label="Rollen">
               <p className={styles.fansubEditHint}>Aktive Rollen bestimmen, was dieses Mitglied ab jetzt in der Gruppe tun darf.</p>
-              <div className={styles.chipRow}>
+              <div className={styles.fansubEditMemberRoleGrid}>
                 {FANSUB_GROUP_ROLE_OPTIONS.map((option) => {
-                  const enabled = roleEditorMember.roles.includes(option.code)
-                  const roleBusy = busyKey === `role:${roleEditorMember.app_user_id}:${option.code}`
+                  const enabled = memberRoleDraft.includes(option.code)
                   return (
-                    <Button
+                    <button
                       key={option.code}
-                      variant={enabled ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className={styleNames(styles.fansubEditRoleOption, getRoleClassName(option.code), enabled && styles.fansubEditRoleOptionSelected)}
+                      type="button"
+                      className={styleNames(
+                        styles.fansubEditMemberRoleToggle,
+                        getRoleClassName(option.code),
+                        enabled && styles.fansubEditMemberRoleToggleSelected,
+                      )}
                       aria-pressed={enabled}
-                      disabled={roleBusy}
-                      onClick={() => void handleToggleRole(roleEditorMember, option.code)}
+                      onClick={() => toggleMemberRoleDraft(option.code)}
                       title={option.description}
                     >
-                      {roleBusy ? 'Bitte warten...' : option.label}
-                    </Button>
+                      {enabled ? <Check size={14} aria-hidden="true" /> : null}
+                      <span>{option.label}</span>
+                    </button>
                   )
                 })}
               </div>
-            </div>
+            </section>
+            ) : null}
+            {memberEditorTab === 'media' ? (
+            <section id="fansub-member-editor-media" className={styles.fansubEditMemberEditorPanel} aria-label="Medienrechte">
+              <p className={styles.fansubEditHint}>Diese Rechte gelten zusätzlich zu den Rollen dieses Mitglieds.</p>
+              <div className={styles.fansubEditMediaSwitchList}>
+                {MEDIA_PERMISSION_OPTIONS.map((option) => {
+                  const enabled = mediaPermissionDraft[option.key]
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      role="switch"
+                      aria-checked={enabled}
+                      className={styleNames(styles.fansubEditMediaSwitchRow, enabled && styles.fansubEditMediaSwitchRowActive)}
+                      onClick={() => toggleMediaPermissionDraft(option.key)}
+                    >
+                      <span>
+                        <strong>{option.label}</strong>
+                        <small>{option.description}</small>
+                      </span>
+                      <span className={styles.fansubEditMediaSwitchTrack} aria-hidden="true">
+                        <span />
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+            ) : null}
           </div>
         ) : null}
       </Modal>

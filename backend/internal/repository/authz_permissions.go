@@ -261,10 +261,6 @@ func (r *AuthzRepository) ListActorContributionRolesForVersion(ctx context.Conte
 	}
 
 	// Schritt 1 lieferte Ergebnisse → versions-spezifischer Satz gilt (D-02/D-03).
-	if len(roleCodes) > 0 {
-		return roleCodes, nil
-	}
-
 	// Schritt 2 (Fallback anime-weit): role_codes aus anime_contributions mit
 	// release_version_id IS NULL, wenn Schritt 1 kein Ergebnis lieferte.
 	// anime_id wird über release_versions → fansub_releases → episodes ermittelt.

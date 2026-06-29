@@ -87,6 +87,7 @@ export interface FansubAppMember {
   app_user_id: number;
   status: 'active' | 'disabled';
   roles: string[];
+  media_permissions: FansubGroupMediaPermissions;
   created_by_app_user_id?: number | null;
   updated_by_app_user_id?: number | null;
   created_at: string;
@@ -105,6 +106,13 @@ export interface FansubGroupMemberCandidate {
   app_user_id: number;
   member_id: number;
   fansub_name: string;
+}
+
+export interface FansubGroupMediaPermissions {
+  can_upload: boolean;
+  can_delete_own: boolean;
+  can_delete_all: boolean;
+  can_reorder: boolean;
 }
 
 export interface FansubAlias {
@@ -225,12 +233,16 @@ export interface FansubGroupCapabilities {
   can_view_group_media: boolean;
   can_upload_group_media: boolean;
   can_update_group_media: boolean;
+  can_delete_own_group_media: boolean;
   can_delete_group_media: boolean;
+  can_reorder_group_media: boolean;
 }
 
 export interface FansubGroupCapabilitiesResponse {
   data: FansubGroupCapabilities;
 }
+
+export type FansubAppMemberMediaPermissionsUpdateRequest = FansubGroupMediaPermissions;
 
 export interface FansubAliasListResponse {
   data: FansubAlias[];

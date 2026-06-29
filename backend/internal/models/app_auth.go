@@ -57,17 +57,25 @@ type KeycloakIdentity struct {
 }
 
 type FansubGroupAppMember struct {
-	ID               int64                      `json:"id"`
-	FansubGroupID    int64                      `json:"fansub_group_id"`
-	AppUserID        int64                      `json:"app_user_id"`
-	Status           string                     `json:"status"`
-	Roles            []string                   `json:"roles"`
-	CreatedByAppUser *int64                     `json:"created_by_app_user_id,omitempty"`
-	UpdatedByAppUser *int64                     `json:"updated_by_app_user_id,omitempty"`
-	CreatedAt        time.Time                  `json:"created_at"`
-	UpdatedAt        time.Time                  `json:"updated_at"`
-	AppUser          *AppUser                   `json:"app_user,omitempty"`
-	Member           *FansubGroupMemberIdentity `json:"member,omitempty"`
+	ID               int64                       `json:"id"`
+	FansubGroupID    int64                       `json:"fansub_group_id"`
+	AppUserID        int64                       `json:"app_user_id"`
+	Status           string                      `json:"status"`
+	Roles            []string                    `json:"roles"`
+	MediaPermissions FansubGroupMediaPermissions `json:"media_permissions"`
+	CreatedByAppUser *int64                      `json:"created_by_app_user_id,omitempty"`
+	UpdatedByAppUser *int64                      `json:"updated_by_app_user_id,omitempty"`
+	CreatedAt        time.Time                   `json:"created_at"`
+	UpdatedAt        time.Time                   `json:"updated_at"`
+	AppUser          *AppUser                    `json:"app_user,omitempty"`
+	Member           *FansubGroupMemberIdentity  `json:"member,omitempty"`
+}
+
+type FansubGroupMediaPermissions struct {
+	CanUpload    bool `json:"can_upload"`
+	CanDeleteOwn bool `json:"can_delete_own"`
+	CanDeleteAll bool `json:"can_delete_all"`
+	CanReorder   bool `json:"can_reorder"`
 }
 
 type AppUserListItem struct {
@@ -100,6 +108,11 @@ type FansubGroupMemberRoleUpdateInput struct {
 
 type FansubGroupMemberStatusUpdateInput struct {
 	Status             string
+	UpdatedByAppUserID *int64
+}
+
+type FansubGroupMemberMediaPermissionsUpdateInput struct {
+	Permissions        FansubGroupMediaPermissions
 	UpdatedByAppUserID *int64
 }
 

@@ -61,9 +61,20 @@ func (h *FansubHandler) UploadFansubMedia(c *gin.Context) {
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.upload.denied", &fansubID, "fansub_group", &fansubID, action, result)
-		writePermissionDenied(c, result)
-		return
+		allowedByCustomMediaPermission := false
+		if kind == models.MediaKindImage && h.mediaRepo != nil {
+			customPerms, permErr := h.mediaRepo.GetFansubGroupMediaPermissionsForAppUser(c.Request.Context(), fansubID, identity.AppUserID)
+			if permErr != nil {
+				writePermissionInternalError(c, permErr, "Fansub-Media-Berechtigung konnte nicht geprüft werden.")
+				return
+			}
+			allowedByCustomMediaPermission = customPerms.CanUpload
+		}
+		if !allowedByCustomMediaPermission {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.upload.denied", &fansubID, "fansub_group", &fansubID, action, result)
+			writePermissionDenied(c, result)
+			return
+		}
 	}
 	if h.mediaRepo == nil || h.mediaService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfügbar"}})

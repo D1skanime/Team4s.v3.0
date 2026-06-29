@@ -3669,6 +3669,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/media/reorder:
+    patch:
+      tags: [Fansubs]
+      summary: Reorder group media for one fansub group
+      operationId: reorderFansubGroupMedia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubGroupMediaReorderRequest"
+      responses:
+        "200":
+          description: Reorder accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Invalid mediaIds request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Group media update permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: One or more media IDs do not belong to this group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/fansubs/{id}/media/{kind}:
     delete:
       tags: [Fansubs]
@@ -3867,6 +3925,71 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: User already a member or conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/media-permissions:
+    put:
+      tags: [Fansubs]
+      summary: Update per-member fansub group media permissions
+      operationId: updateFansubAppMemberMediaPermissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: appUserId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FansubGroupMediaPermissions"
+      responses:
+        "200":
+          description: Updated app member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubAppMemberResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Membership not found
           content:
             application/json:
               schema:
@@ -10138,6 +10261,14 @@ components:
           format: int32
         is_preview_candidate:
           type: boolean
+        visibility:
+          type: string
+          nullable: true
+          enum: [intern, oeffentlich]
+        review_status:
+          type: string
+          nullable: true
+          enum: [in_pruefung, freigegeben, abgelehnt, archiviert, entfernt]
         uploaded_by_user_id:
           type: integer
           format: int64
@@ -10207,6 +10338,12 @@ components:
           nullable: true
         is_preview_candidate:
           type: boolean
+        visibility:
+          type: string
+          enum: [intern, oeffentlich]
+        review_status:
+          type: string
+          enum: [in_pruefung, freigegeben, abgelehnt, archiviert, entfernt]
     ReleaseVersionMediaReorderItem:
       type: object
       required: [id, sort_order]
@@ -10226,6 +10363,18 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/ReleaseVersionMediaReorderItem"
+    FansubGroupMediaReorderRequest:
+      type: object
+      required: [mediaIds]
+      properties:
+        mediaIds:
+          type: array
+          minItems: 1
+          description: Complete ordered list of active group media asset IDs. Backend normalizes sort_order.
+          items:
+            type: integer
+            format: int64
+            minimum: 1
     ReleaseVersionCapabilities:
       type: object
       required:
@@ -10233,6 +10382,7 @@ components:
         - can_upload_media
         - can_update_media
         - can_delete_media
+        - can_delete_own_media
         - can_edit_notes
       properties:
         can_view_media:
@@ -10242,6 +10392,8 @@ components:
         can_update_media:
           type: boolean
         can_delete_media:
+          type: boolean
+        can_delete_own_media:
           type: boolean
         can_edit_notes:
           type: boolean
@@ -10973,6 +11125,7 @@ components:
         - app_user_id
         - status
         - roles
+        - media_permissions
         - created_at
         - updated_at
       properties:
@@ -10992,6 +11145,8 @@ components:
           type: array
           items:
             type: string
+        media_permissions:
+          $ref: "#/components/schemas/FansubGroupMediaPermissions"
         created_at:
           type: string
           format: date-time
@@ -11002,6 +11157,22 @@ components:
           nullable: true
           allOf:
             - $ref: "#/components/schemas/FansubGroupMemberIdentitySummary"
+    FansubGroupMediaPermissions:
+      type: object
+      required:
+        - can_upload
+        - can_delete_own
+        - can_delete_all
+        - can_reorder
+      properties:
+        can_upload:
+          type: boolean
+        can_delete_own:
+          type: boolean
+        can_delete_all:
+          type: boolean
+        can_reorder:
+          type: boolean
     FansubGroupCapabilities:
       type: object
       required:
@@ -11020,7 +11191,9 @@ components:
         - can_view_group_media
         - can_upload_group_media
         - can_update_group_media
+        - can_delete_own_group_media
         - can_delete_group_media
+        - can_reorder_group_media
       properties:
         can_edit_group:
           type: boolean
@@ -11052,7 +11225,11 @@ components:
           type: boolean
         can_update_group_media:
           type: boolean
+        can_delete_own_group_media:
+          type: boolean
         can_delete_group_media:
+          type: boolean
+        can_reorder_group_media:
           type: boolean
     FansubGroupCapabilitiesResponse:
       type: object

@@ -270,14 +270,11 @@ export function useFansubReleaseData({
   const toggleRelease = useCallback(
     (release: AdminFansubRelease) => {
       setExpandedReleaseIds((current) => {
-        const next = new Set(current);
-        if (next.has(release.release_id)) {
-          next.delete(release.release_id);
-        } else {
-          next.add(release.release_id);
-          void loadReleaseSegmentCards(release);
+        if (current.has(release.release_id)) {
+          return new Set();
         }
-        return next;
+        void loadReleaseSegmentCards(release);
+        return new Set([release.release_id]);
       });
     },
     [loadReleaseSegmentCards],

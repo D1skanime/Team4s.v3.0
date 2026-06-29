@@ -43,7 +43,9 @@ const capabilities: FansubGroupCapabilities = {
   can_view_group_media: true,
   can_upload_group_media: true,
   can_update_group_media: true,
+  can_delete_own_group_media: true,
   can_delete_group_media: true,
+  can_reorder_group_media: true,
 }
 
 function createDetails(): FansubDetailsForm {
@@ -82,5 +84,28 @@ describe('FansubDetailsTab', () => {
     expect(screen.getByTestId('group-media-review-section')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Speichern$/ })).toBeNull()
     expect(screen.queryByTestId('user-suggestions-inbox')).toBeNull()
+  })
+
+  it('rendert den Medien-Tab für Platform-Admins auch ohne Gruppen-Rechteobjekt', () => {
+    render(
+      <FansubDetailsTab
+        styles={styles}
+        details={createDetails()}
+        fansubID={88}
+        group={null}
+        capabilities={null}
+        isPlatformAdmin
+        hasAuthSession
+        isClientInitialized
+        activeMainTab="media"
+        error={null}
+        onToast={vi.fn()}
+        isSectionOpen={() => true}
+        onSectionToggle={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('group-media-review-section')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Speichern$/ })).toBeNull()
   })
 })

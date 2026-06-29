@@ -501,10 +501,54 @@ func (h *AdminContentHandler) buildRVMPublicURL(storagePath string) string {
 	return "/media/" + rel
 }
 
+func releaseVersionMediaHasAllScope(result permissions.Result) bool {
+	return result.ReasonCode == permissions.ReasonPlatformAdmin ||
+		result.MatchedRole == permissions.RoleFansubLead ||
+		result.MatchedRole == permissions.RoleProjectLead
+}
+
+func releaseVersionMediaUploadedByCurrentUser(uploadedByUserID *int64, currentLegacyUserID int64) bool {
+	return uploadedByUserID != nil && *uploadedByUserID == currentLegacyUserID
+}
+
+func filterReleaseVersionMediaItemsForActor(items []repository.ReleaseVersionMediaItem, currentLegacyUserID int64, result permissions.Result) []repository.ReleaseVersionMediaItem {
+	if releaseVersionMediaHasAllScope(result) {
+		return items
+	}
+
+	filtered := make([]repository.ReleaseVersionMediaItem, 0, len(items))
+	for _, item := range items {
+		if releaseVersionMediaUploadedByCurrentUser(item.UploadedByUserID, currentLegacyUserID) {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
+}
+
+func releaseVersionMediaOwnerMismatchResult() permissions.Result {
+	return permissions.Result{
+		Allowed:    false,
+		ReasonCode: permissions.ReasonOwnerMismatch,
+		Reason:     "Medium gehört einem anderen Benutzer.",
+	}
+}
+
+func releaseVersionMediaCanDeleteOwn(results ...permissions.Result) bool {
+	for _, result := range results {
+		if releaseVersionMediaHasAllScope(result) {
+			return true
+		}
+		if permissions.RoleAllowsAction(result.MatchedRole, permissions.ActionReleaseVersionMediaDeleteOwn) {
+			return true
+		}
+	}
+	return false
+}
+
 // ListReleaseVersionMedia handles GET /api/v1/admin/release-versions/:versionId/media.
-// Returns all non-deleted media for a release version with populated URLs.
+// Returns scoped, non-deleted media for a release version with populated URLs.
 func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
-	_, actor, ok := permissionActorFromContext(c)
+	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -537,6 +581,7 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 	if items == nil {
 		items = make([]repository.ReleaseVersionMediaItem, 0)
 	}
+	items = filterReleaseVersionMediaItemsForActor(items, identity.UserID, result)
 
 	for i := range items {
 		if items[i].OriginalFilePath != "" {
@@ -615,6 +660,12 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 	}
 	if relationMeta.ReleaseVersionID != versionID {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation gehoert nicht zu dieser release version"}})
+		return
+	}
+	if !releaseVersionMediaHasAllScope(result) && !releaseVersionMediaUploadedByCurrentUser(relationMeta.UploadedByUserID, identity.UserID) {
+		ownerResult := releaseVersionMediaOwnerMismatchResult()
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.update.denied", nil, "release_version_media", &relationID, permissions.ActionReleaseVersionMediaUpdate, ownerResult)
+		writePermissionDenied(c, ownerResult)
 		return
 	}
 
@@ -820,6 +871,12 @@ func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation gehoert nicht zu dieser release version"}})
 		return
 	}
+	if !releaseVersionMediaHasAllScope(result) && !releaseVersionMediaUploadedByCurrentUser(relationMeta.UploadedByUserID, identity.UserID) {
+		ownerResult := releaseVersionMediaOwnerMismatchResult()
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.delete.denied", nil, "release_version_media", &relationID, permissions.ActionReleaseVersionMediaDelete, ownerResult)
+		writePermissionDenied(c, ownerResult)
+		return
+	}
 
 	if err := h.mediaRepo.SoftDeleteReleaseVersionMedia(c.Request.Context(), relationID, identity.UserID); err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -854,11 +911,12 @@ type rvmReorderBody struct {
 }
 
 type releaseVersionCapabilitiesResponse struct {
-	CanViewMedia   bool `json:"can_view_media"`
-	CanUploadMedia bool `json:"can_upload_media"`
-	CanUpdateMedia bool `json:"can_update_media"`
-	CanDeleteMedia bool `json:"can_delete_media"`
-	CanEditNotes   bool `json:"can_edit_notes"`
+	CanViewMedia      bool `json:"can_view_media"`
+	CanUploadMedia    bool `json:"can_upload_media"`
+	CanUpdateMedia    bool `json:"can_update_media"`
+	CanDeleteMedia    bool `json:"can_delete_media"`
+	CanDeleteOwnMedia bool `json:"can_delete_own_media"`
+	CanEditNotes      bool `json:"can_edit_notes"`
 }
 
 // ReorderReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media/reorder.
@@ -912,6 +970,18 @@ func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
 		}
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
 		return
+	}
+	if !releaseVersionMediaHasAllScope(result) {
+		if err := h.mediaRepo.ValidateReleaseVersionMediaUploader(c.Request.Context(), versionID, relationIDs, identity.UserID); err != nil {
+			if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrOwnershipMismatch) {
+				ownerResult := releaseVersionMediaOwnerMismatchResult()
+				auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaUpdate, ownerResult)
+				writePermissionDenied(c, ownerResult)
+				return
+			}
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
+			return
+		}
 	}
 
 	tx, err := h.mediaRepo.BeginTx(c.Request.Context())
@@ -998,10 +1068,11 @@ func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": releaseVersionCapabilitiesResponse{
-		CanViewMedia:   canViewMedia.Allowed,
-		CanUploadMedia: canUploadMedia.Allowed,
-		CanUpdateMedia: canUpdateMedia.Allowed,
-		CanDeleteMedia: canDeleteMedia.Allowed,
-		CanEditNotes:   canEditNotes.Allowed,
+		CanViewMedia:      canViewMedia.Allowed,
+		CanUploadMedia:    canUploadMedia.Allowed,
+		CanUpdateMedia:    canUpdateMedia.Allowed,
+		CanDeleteMedia:    canDeleteMedia.Allowed,
+		CanDeleteOwnMedia: releaseVersionMediaCanDeleteOwn(canViewMedia, canUploadMedia, canUpdateMedia, canDeleteMedia),
+		CanEditNotes:      canEditNotes.Allowed,
 	}})
 }

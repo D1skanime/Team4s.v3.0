@@ -58,6 +58,8 @@ type ReleaseVersionMediaItem struct {
 	SortOrder          int        `json:"sort_order"`
 	IsPreviewCandidate bool       `json:"is_preview_candidate"`
 	UploadedByUserID   *int64     `json:"uploaded_by_user_id"`
+	Visibility         *string    `json:"visibility,omitempty"`
+	ReviewStatus       *string    `json:"review_status,omitempty"`
 	CreatedAt          time.Time  `json:"created_at"`
 	UpdatedAt          *time.Time `json:"updated_at,omitempty"`
 	OriginalFilePath   string     `json:"-"` // storage path of the original file (from media_files JOIN)
@@ -72,6 +74,7 @@ type ReleaseVersionMediaRelationMeta struct {
 	RelationID       int64
 	ReleaseVersionID int64
 	Category         string
+	UploadedByUserID *int64
 }
 
 // BeginTx starts a new database transaction on the MediaRepository pool.
@@ -206,11 +209,16 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			rvm.sort_order,
 			rvm.is_preview_candidate,
 			rvm.uploaded_by_user_id,
+			v.name,
+			rs.code,
 			rvm.created_at,
 			rvm.updated_at,
 			COALESCE(mf_orig.path, ''),
 			COALESCE(mf_thumb.path, '')
 		FROM release_version_media rvm
+		LEFT JOIN media_assets ma ON ma.id = rvm.media_asset_id
+		LEFT JOIN visibilities v ON v.id = ma.visibility_id
+		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
 		LEFT JOIN media_files mf_orig  ON mf_orig.media_id  = rvm.media_asset_id AND mf_orig.variant  = 'original'
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb'
 		WHERE rvm.release_version_id = $1
@@ -225,14 +233,33 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 	var items []ReleaseVersionMediaItem
 	for rows.Next() {
 		var item ReleaseVersionMediaItem
+		var visibilityName *string
+		var reviewStatusCode *string
 		if err := rows.Scan(
 			&item.ID, &item.ReleaseVersionID, &item.MediaAssetID,
 			&item.Category, &item.Caption, &item.SortOrder,
 			&item.IsPreviewCandidate, &item.UploadedByUserID,
+			&visibilityName, &reviewStatusCode,
 			&item.CreatedAt, &item.UpdatedAt,
 			&item.OriginalFilePath, &item.ThumbFilePath,
 		); err != nil {
 			return nil, fmt.Errorf("scan release_version_media row: %w", err)
+		}
+		if visibilityName != nil {
+			trimmed := strings.TrimSpace(*visibilityName)
+			if apiVal, ok := visibilityDBToAPI[trimmed]; ok {
+				item.Visibility = &apiVal
+			} else if trimmed != "" {
+				item.Visibility = &trimmed
+			}
+		}
+		if reviewStatusCode != nil {
+			trimmed := strings.TrimSpace(*reviewStatusCode)
+			if apiVal, ok := reviewStatusDBToAPI[trimmed]; ok {
+				item.ReviewStatus = &apiVal
+			} else if trimmed != "" {
+				item.ReviewStatus = &trimmed
+			}
 		}
 		items = append(items, item)
 	}
@@ -448,10 +475,10 @@ func (r *MediaRepository) GetRVMCategory(ctx context.Context, relationID int64) 
 func (r *MediaRepository) GetReleaseVersionMediaRelation(ctx context.Context, relationID int64) (*ReleaseVersionMediaRelationMeta, error) {
 	var meta ReleaseVersionMediaRelationMeta
 	err := r.db.QueryRow(ctx, `
-		SELECT id, release_version_id, category
+		SELECT id, release_version_id, category, uploaded_by_user_id
 		FROM release_version_media
 		WHERE id = $1 AND deleted_at IS NULL
-	`, relationID).Scan(&meta.RelationID, &meta.ReleaseVersionID, &meta.Category)
+	`, relationID).Scan(&meta.RelationID, &meta.ReleaseVersionID, &meta.Category, &meta.UploadedByUserID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -493,6 +520,30 @@ func (r *MediaRepository) ValidateReleaseVersionMediaOwnership(ctx context.Conte
 	}
 	if totalCount < int64(len(relationIDs)) {
 		return ErrNotFound
+	}
+	return ErrOwnershipMismatch
+}
+
+// ValidateReleaseVersionMediaUploader ensures all provided relation IDs belong to the routed release version
+// and were uploaded by the current legacy user. Used by contributor-scoped reorder requests.
+func (r *MediaRepository) ValidateReleaseVersionMediaUploader(ctx context.Context, releaseVersionID int64, relationIDs []int64, uploadedByUserID int64) error {
+	if len(relationIDs) == 0 {
+		return nil
+	}
+	var count int64
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM release_version_media
+		WHERE release_version_id = $1
+		  AND id = ANY($2)
+		  AND uploaded_by_user_id = $3
+		  AND deleted_at IS NULL
+	`, releaseVersionID, relationIDs, uploadedByUserID).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("validate rvm uploader for version %d: %w", releaseVersionID, err)
+	}
+	if count == int64(len(relationIDs)) {
+		return nil
 	}
 	return ErrOwnershipMismatch
 }

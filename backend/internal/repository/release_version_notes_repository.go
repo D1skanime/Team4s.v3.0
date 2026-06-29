@@ -38,6 +38,7 @@ type ReleaseVersionNote struct {
 type MemberRoleForVersion struct {
 	MemberID   int64
 	MemberName string
+	RoleID     int64
 	RoleCode   string
 	RoleLabel  string
 }
@@ -114,10 +115,79 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 	return items, nil
 }
 
+func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotesForMember(
+	ctx context.Context,
+	releaseVersionID int64,
+	memberID int64,
+) ([]ReleaseVersionNote, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, release_version_id, member_id, role_id,
+		       title, body_markdown, body_html, body_json, body_text,
+		       editor_type, content_schema_version,
+		       visibility, status, sort_order,
+		       created_by_user_id, updated_by_user_id,
+		       created_at, updated_at, deleted_at
+		FROM release_version_notes
+		WHERE release_version_id = $1
+		  AND member_id = $2
+		  AND deleted_at IS NULL
+		ORDER BY sort_order ASC, member_id ASC, role_id ASC
+	`, releaseVersionID, memberID)
+	if err != nil {
+		return nil, fmt.Errorf("list release_version_notes for version %d member %d: %w", releaseVersionID, memberID, err)
+	}
+	defer rows.Close()
+
+	var items []ReleaseVersionNote
+	for rows.Next() {
+		var n ReleaseVersionNote
+		if err := rows.Scan(
+			&n.ID, &n.ReleaseVersionID, &n.MemberID, &n.RoleID,
+			&n.Title, &n.BodyMarkdown, &n.BodyHTML, &n.BodyJSON, &n.BodyText,
+			&n.EditorType, &n.ContentSchemaVersion,
+			&n.Visibility, &n.Status, &n.SortOrder,
+			&n.CreatedByUserID, &n.UpdatedByUserID,
+			&n.CreatedAt, &n.UpdatedAt, &n.DeletedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan release_version_notes member row: %w", err)
+		}
+		items = append(items, n)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate release_version_notes member rows: %w", err)
+	}
+	return items, nil
+}
+
+func (r *ReleaseVersionNotesRepository) ResolveMemberIDForAppUser(
+	ctx context.Context,
+	appUserID int64,
+) (int64, bool, error) {
+	var memberID int64
+	err := r.db.QueryRow(ctx, `
+		SELECT member_id
+		FROM member_claims
+		WHERE app_user_id = $1
+		  AND claim_status = 'verified'
+		  AND member_id IS NOT NULL
+		ORDER BY verified_at DESC NULLS LAST, id DESC
+		LIMIT 1
+	`, appUserID).Scan(&memberID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, false, nil
+	}
+	if err != nil {
+		return 0, false, fmt.Errorf("resolve member id for app_user %d: %w", appUserID, err)
+	}
+	return memberID, true, nil
+}
+
 // GetMemberRolesForVersion returns the member+role pairs for a release version via
 // the two-step resolution from anime_contributions (D-13, D-02):
 //  1. versions-spezifisch: anime_contributions WHERE release_version_id = $1
 //  2. Fallback anime-weit: anime_contributions WHERE release_version_id IS NULL (nur wenn Schritt 1 leer)
+//  3. Projektleitung aus dem anime-weiten Satz bleibt zusätzlich schreibberechtigt,
+//     auch wenn für die Version eine eigene Besetzung gepflegt wurde.
 func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 	ctx context.Context,
 	releaseVersionID int64,
@@ -127,11 +197,11 @@ func (r *ReleaseVersionNotesRepository) GetMemberRolesForVersion(
 	if err != nil {
 		return nil, err
 	}
-	if len(items) > 0 {
-		return items, nil
+	projectRoles, err := r.getMemberRolesForVersionStep(ctx, releaseVersionID, false)
+	if err != nil {
+		return nil, err
 	}
-	// Schritt 2: Fallback anime-weit (nur wenn Schritt 1 leer)
-	return r.getMemberRolesForVersionStep(ctx, releaseVersionID, false)
+	return mergeMemberRolesForVersion(items, projectRoles), nil
 }
 
 // getMemberRolesForVersionStep führt einen der zwei Auflösungsschritte aus.
@@ -153,33 +223,38 @@ func (r *ReleaseVersionNotesRepository) getMemberRolesForVersionStep(
 	if versionSpecific {
 		rows, err = r.db.Query(ctx, `
 			SELECT DISTINCT ac.member_id, m.nickname AS member_name,
-			       acr.role_code, rd.label_de AS role_label
+			       cr.id AS role_id, acr.role_code, rd.label_de AS role_label,
+			       rd.sort_order AS role_sort_order
 			FROM anime_contributions ac
 			JOIN members m ON m.id = ac.member_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 			JOIN role_definitions rd ON rd.code = acr.role_code
+			JOIN contributor_roles cr ON cr.name = acr.role_code
 			WHERE ac.release_version_id = $1
 			  AND ac.fansub_group_id IN (
 			      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
 			  )
-			ORDER BY rd.label_de ASC, m.nickname ASC
+			ORDER BY role_sort_order ASC, role_label ASC, member_name ASC
 		`, releaseVersionID)
 	} else {
 		rows, err = r.db.Query(ctx, `
 			SELECT DISTINCT ac.member_id, m.nickname AS member_name,
-			       acr.role_code, rd.label_de AS role_label
+			       cr.id AS role_id, acr.role_code, rd.label_de AS role_label,
+			       rd.sort_order AS role_sort_order
 			FROM anime_contributions ac
 			JOIN members m ON m.id = ac.member_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 			JOIN role_definitions rd ON rd.code = acr.role_code
+			JOIN contributor_roles cr ON cr.name = acr.role_code
 			JOIN release_versions rv ON rv.id = $1
 			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes e ON e.id = fr.episode_id
 			WHERE ac.release_version_id IS NULL
-			  AND ac.anime_id = fr.anime_id
+			  AND ac.anime_id = e.anime_id
 			  AND ac.fansub_group_id IN (
 			      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
 			  )
-			ORDER BY rd.label_de ASC, m.nickname ASC
+			ORDER BY role_sort_order ASC, role_label ASC, member_name ASC
 		`, releaseVersionID)
 	}
 	if err != nil {
@@ -190,9 +265,11 @@ func (r *ReleaseVersionNotesRepository) getMemberRolesForVersionStep(
 	var items []MemberRoleForVersion
 	for rows.Next() {
 		var mr MemberRoleForVersion
+		var roleSortOrder int
 		if err := rows.Scan(
 			&mr.MemberID, &mr.MemberName,
-			&mr.RoleCode, &mr.RoleLabel,
+			&mr.RoleID, &mr.RoleCode, &mr.RoleLabel,
+			&roleSortOrder,
 		); err != nil {
 			return nil, fmt.Errorf("scan member_roles_for_version row: %w", err)
 		}
@@ -202,6 +279,70 @@ func (r *ReleaseVersionNotesRepository) getMemberRolesForVersionStep(
 		return nil, fmt.Errorf("iterate member_roles_for_version rows: %w", err)
 	}
 	return items, nil
+}
+
+func (r *ReleaseVersionNotesRepository) getProjectLeadRolesForVersion(
+	ctx context.Context,
+	releaseVersionID int64,
+) ([]MemberRoleForVersion, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ac.member_id, m.nickname AS member_name,
+		       cr.id AS role_id, acr.role_code, rd.label_de AS role_label,
+		       rd.sort_order AS role_sort_order
+		FROM anime_contributions ac
+		JOIN members m ON m.id = ac.member_id
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		JOIN role_definitions rd ON rd.code = acr.role_code
+		JOIN contributor_roles cr ON cr.name = acr.role_code
+		JOIN release_versions rv ON rv.id = $1
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		WHERE ac.release_version_id IS NULL
+		  AND ac.anime_id = e.anime_id
+		  AND acr.role_code = 'project_lead'
+		  AND ac.fansub_group_id IN (
+		      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
+		  )
+		ORDER BY role_sort_order ASC, role_label ASC, member_name ASC
+	`, releaseVersionID)
+	if err != nil {
+		return nil, fmt.Errorf("get project lead roles for version %d: %w", releaseVersionID, err)
+	}
+	defer rows.Close()
+
+	var items []MemberRoleForVersion
+	for rows.Next() {
+		var mr MemberRoleForVersion
+		var roleSortOrder int
+		if err := rows.Scan(
+			&mr.MemberID, &mr.MemberName,
+			&mr.RoleID, &mr.RoleCode, &mr.RoleLabel,
+			&roleSortOrder,
+		); err != nil {
+			return nil, fmt.Errorf("scan project_lead member_roles_for_version row: %w", err)
+		}
+		items = append(items, mr)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate project_lead member_roles_for_version rows: %w", err)
+	}
+	return items, nil
+}
+
+func mergeMemberRolesForVersion(groups ...[]MemberRoleForVersion) []MemberRoleForVersion {
+	seen := make(map[string]struct{})
+	var merged []MemberRoleForVersion
+	for _, group := range groups {
+		for _, item := range group {
+			key := releaseVersionMemberRoleKey(item.MemberID, item.RoleCode)
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			merged = append(merged, item)
+		}
+	}
+	return merged
 }
 
 func releaseVersionMemberRoleKey(memberID int64, roleCode string) string {

@@ -8,6 +8,7 @@ import { useAuthSession } from "@/lib/useAuthSession";
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import {
   canEditReleaseNotes,
+  canManageReleaseContributors,
   canUploadReleaseMedia,
   canUseMainTab,
   canViewReleaseContributors,
@@ -85,7 +86,11 @@ export function FansubEditClient({
   });
   const { isSectionOpen, onSectionToggle } = useFansubEditMobileSections();
 
-  const canOpenReleaseContributors = canViewReleaseContributors(
+  const canSeeReleaseContributors = canViewReleaseContributors(
+    isPlatformAdmin,
+    capabilities,
+  );
+  const canEditReleaseContributors = canManageReleaseContributors(
     isPlatformAdmin,
     capabilities,
   );
@@ -250,7 +255,8 @@ export function FansubEditClient({
         releaseData={releaseData}
         contributions={contributions}
         canUseProjectNotes={canUseProjectNotes}
-        canOpenReleaseContributors={canOpenReleaseContributors}
+        canViewReleaseContributors={canSeeReleaseContributors}
+        canEditReleaseContributors={canEditReleaseContributors}
         canUseReleaseMedia={canUseReleaseMedia}
         canUseReleaseNotes={canUseReleaseNotes}
         canUseAdminReleaseDetails={canUseAdminReleaseDetails}

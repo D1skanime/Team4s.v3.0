@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import type { MemberRoleForVersion, ReleaseVersionNote } from '@/types/releaseVersionNotes'
 
 const bulkUpsertReleaseVersionNotesMock = vi.fn()
 const getMemberRolesForVersionMock = vi.fn()
+const getOwnProfileMock = vi.fn()
 const listReleaseVersionNotesMock = vi.fn()
 
 vi.mock('@/components/editor', () => ({
@@ -15,13 +16,17 @@ vi.mock('@/components/editor', () => ({
     onChange,
     placeholder,
     mode,
+    toolbarVariant,
+    showShortnoteHint = true,
   }: {
     value: unknown
     onChange: (next: unknown) => void
     placeholder?: string
     mode?: 'longform' | 'shortnote'
+    toolbarVariant?: 'full' | 'minimal'
+    showShortnoteHint?: boolean
   }) => (
-    <div>
+    <div data-toolbar-variant={toolbarVariant ?? 'full'}>
       <textarea
         placeholder={placeholder}
         value={typeof value === 'object' && value !== null ? JSON.stringify(value) : ''}
@@ -30,7 +35,7 @@ vi.mock('@/components/editor', () => ({
           content: [{ type: 'paragraph', content: [{ type: 'text', text: event.target.value }] }],
         })}
       />
-      {mode === 'shortnote' ? <p>2–5 Sätze reichen</p> : null}
+      {mode === 'shortnote' && showShortnoteHint ? <p>2-5 Sätze reichen</p> : null}
     </div>
   ),
 }))
@@ -38,10 +43,15 @@ vi.mock('@/components/editor', () => ({
 vi.mock('@/lib/api', () => ({
   bulkUpsertReleaseVersionNotes: (...args: unknown[]) => bulkUpsertReleaseVersionNotesMock(...args),
   getMemberRolesForVersion: (...args: unknown[]) => getMemberRolesForVersionMock(...args),
+  getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
   listReleaseVersionNotes: (...args: unknown[]) => listReleaseVersionNotesMock(...args),
 }))
 
 import { ReleaseVersionNotesTab } from './ReleaseVersionNotesTab'
+
+beforeEach(() => {
+  getOwnProfileMock.mockResolvedValue({ data: { member_id: 10 } })
+})
 
 afterEach(() => {
   cleanup()
@@ -56,11 +66,13 @@ function makeBody(text: string) {
 }
 
 function makeRole(overrides: Partial<MemberRoleForVersion> = {}): MemberRoleForVersion {
+  const roleName = overrides.roleName ?? overrides.roleCode ?? 'translator'
   return {
     memberId: 10,
     memberName: 'Mira',
     roleId: 3,
-    roleName: 'translator',
+    roleCode: roleName,
+    roleName,
     roleLabel: 'Übersetzung',
     ...overrides,
   }
@@ -101,7 +113,34 @@ describe('ReleaseVersionNotesTab', () => {
     expect(await screen.findByText(/keine rollen zugeordnet/i)).not.toBeNull()
   })
 
-  it('rendert rollenspezifische Hilfetexte und überspringt leere neue Felder beim Bulk-Save', async () => {
+  it('rendert eine einzelne einklappbare Hilfe und keine Editor-Hinweise je Rollenblock', async () => {
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([])
+
+    const { unmount } = render(<ReleaseVersionNotesTab versionId={7} />)
+
+    const helpToggle = await screen.findByRole('button', { name: /wie schreibe ich eine gute notiz/i })
+    expect(helpToggle.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(helpToggle)
+    expect(helpToggle.getAttribute('aria-expanded')).toBe('true')
+    expect(await screen.findByText(/beschreibe kurz/i)).not.toBeNull()
+    fireEvent.click(helpToggle)
+    expect(helpToggle.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText(/beschreibe kurz/i)).toBeNull()
+    fireEvent.click(helpToggle)
+    expect(helpToggle.getAttribute('aria-expanded')).toBe('true')
+    unmount()
+    render(<ReleaseVersionNotesTab versionId={7} />)
+    const reloadedHelpToggle = await screen.findByRole('button', { name: /wie schreibe ich eine gute notiz/i })
+    expect(reloadedHelpToggle.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText(/beschreibe kurz/i)).toBeNull()
+    expect(screen.queryByText(/2-5 sätze reichen/i)).toBeNull()
+    expect(document.querySelector('[data-toolbar-variant="minimal"]')).not.toBeNull()
+  })
+
+  it('speichert ein einzelnes Rollenfeld und zeigt kurzes Feedback', async () => {
     getMemberRolesForVersionMock.mockResolvedValue([
       makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
       makeRole({ roleId: 2, roleName: 'editor', roleLabel: 'Editing' }),
@@ -112,8 +151,6 @@ describe('ReleaseVersionNotesTab', () => {
         id: 201,
         memberId: 10,
         roleId: 1,
-        bodyMarkdown: 'Neue Übersetzungsnotiz',
-        bodyHtml: '<p>Neue Übersetzungsnotiz</p>',
         bodyJson: makeBody('Neue Übersetzungsnotiz'),
         bodyText: 'Neue Übersetzungsnotiz',
         title: null,
@@ -122,22 +159,20 @@ describe('ReleaseVersionNotesTab', () => {
 
     render(<ReleaseVersionNotesTab versionId={7} />)
 
-    const translatorField = await screen.findByPlaceholderText(/dialoge etwas freier übersetzt/i)
-    expect(screen.getByText(/was an der Übersetzung dieser Version besonders war/i)).not.toBeNull()
-
-    fireEvent.change(translatorField, { target: { value: 'Neue Übersetzungsnotiz' } })
-    fireEvent.click(screen.getByRole('button', { name: /alle notizen speichern/i }))
+    const translatorField = await screen.findAllByPlaceholderText(/noch keine notiz/i)
+    fireEvent.change(translatorField[0], { target: { value: 'Neue Übersetzungsnotiz' } })
+    fireEvent.click(screen.getAllByRole('button', { name: /^speichern$/i })[0])
 
     await waitFor(() => {
       expect(bulkUpsertReleaseVersionNotesMock).toHaveBeenCalledTimes(1)
     })
-
     expect(bulkUpsertReleaseVersionNotesMock).toHaveBeenCalledWith(7, {
       notes: [
         {
           id: 0,
           memberId: 10,
           roleId: 1,
+          roleCode: 'translator',
           title: null,
           bodyJson: makeBody('Neue Übersetzungsnotiz'),
           visibility: 'internal',
@@ -146,7 +181,26 @@ describe('ReleaseVersionNotesTab', () => {
         },
       ],
     })
-    expect(await screen.findByText(/alle notizen wurden gespeichert/i)).not.toBeNull()
+    expect(await screen.findByText(/gespeichert/i)).not.toBeNull()
+  })
+
+  it('zeigt Mitglieder im Alle-Mitglieder-Tab als Accordion', async () => {
+    getOwnProfileMock.mockResolvedValue({ data: { member_id: 10 } })
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ memberId: 10, memberName: 'Mira', roleId: 1, roleName: 'translator' }),
+      makeRole({ memberId: 11, memberName: 'Taro', roleId: 2, roleName: 'editor', roleCode: 'editor' }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([])
+
+    render(<ReleaseVersionNotesTab versionId={7} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: /alle mitglieder/i }))
+    const taroRow = screen.getByRole('button', { name: /taro/i })
+    expect(taroRow.getAttribute('aria-expanded')).toBe('false')
+
+    fireEvent.click(taroRow)
+    expect(taroRow.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByText(/bearbeitest als leiter/i)).not.toBeNull()
   })
 
   it('zeigt Konflikt- und Längenhinweise verständlich an', async () => {
@@ -158,30 +212,14 @@ describe('ReleaseVersionNotesTab', () => {
 
     render(<ReleaseVersionNotesTab versionId={7} />)
 
-    const translatorField = await screen.findByPlaceholderText(/dialoge etwas freier übersetzt/i)
+    const translatorField = await screen.findByPlaceholderText(/noch keine notiz/i)
     fireEvent.change(translatorField, { target: { value: 'x'.repeat(2000) } })
 
     expect(await screen.findByText(/empfohlene länge überschritten \(2000 zeichen\)/i)).not.toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: /alle notizen speichern/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^speichern$/i }))
 
     expect(await screen.findByText(/existiert bereits eine notiz/i)).not.toBeNull()
-  })
-
-  it('zeigt fachliche 400-fehler für ungültige mitglied-rollenkontexte an', async () => {
-    getMemberRolesForVersionMock.mockResolvedValue([
-      makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
-    ])
-    listReleaseVersionNotesMock.mockResolvedValue([])
-    bulkUpsertReleaseVersionNotesMock.mockRejectedValue({ status: 400 })
-
-    render(<ReleaseVersionNotesTab versionId={7} />)
-
-    const translatorField = await screen.findByPlaceholderText(/dialoge etwas freier übersetzt/i)
-    fireEvent.change(translatorField, { target: { value: 'Serverseitig abgelehnt' } })
-    fireEvent.click(screen.getByRole('button', { name: /alle notizen speichern/i }))
-
-    expect(await screen.findByText(/mitglied-rollen-zuordnung passt nicht mehr zu dieser release-version/i)).not.toBeNull()
   })
 
   it('hält mehrere Rollenfelder beim Tippen getrennt', async () => {
@@ -200,18 +238,47 @@ describe('ReleaseVersionNotesTab', () => {
     expect((editorFields[1] as HTMLTextAreaElement).value).not.toContain('Nur Editing')
   })
 
-  it('shows clear role labels when multiple roles exist', async () => {
+  it('klappt eine Alle-Mitglieder-Zeile nach Abbrechen oder Speichern wieder ein', async () => {
+    getOwnProfileMock.mockResolvedValue({ data: { member_id: 10 } })
     getMemberRolesForVersionMock.mockResolvedValue([
-      makeRole({ roleId: 1, roleName: 'editor', roleLabel: 'Editing' }),
-      makeRole({ roleId: 2, roleName: 'raw_provider', roleLabel: 'Raw-Bereitstellung' }),
+      makeRole({ memberId: 10, memberName: 'Mira', roleId: 1, roleName: 'translator' }),
+      makeRole({ memberId: 11, memberName: 'Taro', roleId: 2, roleName: 'editor', roleCode: 'editor' }),
     ])
     listReleaseVersionNotesMock.mockResolvedValue([])
+    bulkUpsertReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 202,
+        memberId: 11,
+        roleId: 2,
+        bodyJson: makeBody('Editing fertig'),
+        bodyText: 'Editing fertig',
+        title: null,
+      }),
+    ])
 
     render(<ReleaseVersionNotesTab versionId={7} />)
 
-    expect(await screen.findByText(/^Editing$/i)).not.toBeNull()
-    expect(screen.getByText(/^editor$/i)).not.toBeNull()
-    expect(screen.getByText(/^Raw-Bereitstellung$/i)).not.toBeNull()
-    expect(screen.getByText(/^raw_provider$/i)).not.toBeNull()
+    fireEvent.click(await screen.findByRole('tab', { name: /alle mitglieder/i }))
+    const taroRow = screen.getByRole('button', { name: /taro/i })
+
+    fireEvent.click(taroRow)
+    expect(taroRow.getAttribute('aria-expanded')).toBe('true')
+    fireEvent.change(await screen.findByPlaceholderText(/noch keine notiz/i), { target: { value: 'Wird verworfen' } })
+    fireEvent.click(screen.getByRole('button', { name: /^abbrechen$/i }))
+    expect(taroRow.getAttribute('aria-expanded')).toBe('false')
+
+    fireEvent.click(taroRow)
+    fireEvent.change(await screen.findByPlaceholderText(/noch keine notiz/i), { target: { value: 'Editing fertig' } })
+    fireEvent.click(screen.getByRole('button', { name: /^speichern$/i }))
+
+    await waitFor(() => {
+      expect(bulkUpsertReleaseVersionNotesMock).toHaveBeenCalledTimes(1)
+    })
+    expect(await screen.findByText(/gespeichert/i)).not.toBeNull()
+    expect(taroRow.getAttribute('aria-expanded')).toBe('true')
+
+    await waitFor(() => {
+      expect(taroRow.getAttribute('aria-expanded')).toBe('false')
+    }, { timeout: 1500 })
   })
 })

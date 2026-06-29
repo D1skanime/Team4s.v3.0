@@ -59,7 +59,9 @@ const fullCapabilities: FansubGroupCapabilities = {
   can_view_group_media: true,
   can_upload_group_media: true,
   can_update_group_media: true,
+  can_delete_own_group_media: true,
   can_delete_group_media: true,
+  can_reorder_group_media: true,
 }
 
 const noMembersCapabilities: FansubGroupCapabilities = {

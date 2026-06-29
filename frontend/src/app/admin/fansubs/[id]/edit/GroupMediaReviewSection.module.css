@@ -136,6 +136,16 @@
   outline-offset: 2px;
 }
 
+.mediaCardDragging {
+  opacity: 0.62;
+  transform: scale(0.985);
+}
+
+.mediaCardDropTarget {
+  border-color: var(--button-primary-mid);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--button-primary-mid) 35%, transparent);
+}
+
 .selectionRow {
   display: flex;
   align-items: center;
@@ -153,6 +163,43 @@
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.dragHandle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 -0.35rem 0 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.dragHandle:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.dragHandle:focus-visible {
+  outline: 2px solid var(--button-primary-mid);
+  outline-offset: 2px;
 }
 
 .selectionCheckbox {
@@ -351,18 +398,6 @@
   overflow-y: auto;
 }
 
-.sortOrderInput {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.sortOrderInput::-webkit-inner-spin-button,
-.sortOrderInput::-webkit-outer-spin-button {
-  margin: 0;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
 .cardFooterActions {
   display: flex;
   justify-content: flex-end;
@@ -450,6 +485,13 @@
   color: var(--color-error);
   padding: 0.5rem 0.6rem;
   font-size: 0.78rem;
+}
+
+.reorderHint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .toastSuccess {

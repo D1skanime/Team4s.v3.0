@@ -124,6 +124,7 @@ import {
   FansubAppMemberResponse,
   FansubAppMemberRoleUpdateRequest,
   FansubAppMemberStatusUpdateRequest,
+  FansubAppMemberMediaPermissionsUpdateRequest,
   FansubGroupCapabilitiesResponse,
   FansubLeadUpdateRequest,
   AppUserListResponse,
@@ -2484,6 +2485,7 @@ export interface FansubGroupMediaItem {
   category: FansubGroupMediaCategory;
   sort_order: number;
   uploaded_by_display_name?: string | null;
+  uploaded_by_current_user?: boolean;
   created_at: string;
   updated_at?: string | null;
   owner_type: string;
@@ -2511,6 +2513,10 @@ export interface FansubMediaReviewPatch {
   alt_text?: string | null;
   category?: FansubGroupMediaCategory;
   sort_order?: number;
+}
+
+export interface FansubGroupMediaReorderRequest {
+  mediaIds: number[];
 }
 
 /**
@@ -2577,6 +2583,36 @@ export async function patchFansubMediaReview(
   }
 
   return response.json();
+}
+
+/**
+ * Persistiert die globale Reihenfolge aller Gruppenmedien einer Fansub-Gruppe.
+ * PATCH /api/v1/admin/fansubs/{fansubId}/media/reorder
+ *
+ * Frontend sendet nur Medien-IDs; das Backend normalisiert sort_order.
+ */
+export async function reorderFansubGroupMedia(
+  fansubId: number,
+  body: FansubGroupMediaReorderRequest,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/media/reorder`,
+    {
+      method: "PATCH",
+      headers: withAuthHeader({ "Content-Type": "application/json" }, authToken),
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
 }
 
 // --- Ende Phase 78 Gruppenmedien-Review ---
@@ -4271,6 +4307,40 @@ export async function updateFansubAppMemberStatus(
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/status`,
+    {
+      method: "PUT",
+      authToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<FansubAppMemberResponse>;
+}
+
+export async function updateFansubAppMemberMediaPermissions(
+  fansubId: number,
+  appUserId: number,
+  payload: FansubAppMemberMediaPermissionsUpdateRequest,
+  authToken?: string,
+): Promise<FansubAppMemberResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/app-members/${appUserId}/media-permissions`,
     {
       method: "PUT",
       authToken,
@@ -7391,6 +7461,7 @@ type RawMemberRoleForVersion = {
   MemberID: number;
   MemberName: string;
   RoleID: number;
+  RoleCode: string;
   RoleName: string;
   RoleLabel: string;
 };
@@ -7452,7 +7523,8 @@ function mapMemberRoleForVersion(
     memberId: raw.MemberID,
     memberName: raw.MemberName,
     roleId: raw.RoleID,
-    roleName: raw.RoleName,
+    roleCode: raw.RoleCode,
+    roleName: raw.RoleName ?? raw.RoleCode,
     roleLabel: raw.RoleLabel,
   };
 }
@@ -7528,6 +7600,7 @@ export async function bulkUpsertReleaseVersionNotes(
       id: note.id,
       member_id: note.memberId,
       role_id: note.roleId,
+      role_code: note.roleCode,
       title: note.title ?? null,
       body_json: note.bodyJson,
       visibility: note.visibility,

@@ -26,12 +26,13 @@ import (
 )
 
 type memberRepoStub struct {
-	listMembers []models.FansubGroupAppMember
-	listErr     error
-	createErr   error
-	createResp  *models.FansubGroupAppMember
-	listCalls   int
-	createCalls int
+	listMembers      []models.FansubGroupAppMember
+	listErr          error
+	createErr        error
+	createResp       *models.FansubGroupAppMember
+	mediaPermissions models.FansubGroupMediaPermissions
+	listCalls        int
+	createCalls      int
 }
 
 func (s *memberRepoStub) ListByFansubGroup(_ context.Context, _ int64) ([]models.FansubGroupAppMember, error) {
@@ -54,6 +55,14 @@ func (s *memberRepoStub) SetRole(_ context.Context, _ int64, _ int64, _ models.F
 
 func (s *memberRepoStub) UpdateStatus(_ context.Context, _ int64, _ int64, _ models.FansubGroupMemberStatusUpdateInput) (*models.FansubGroupAppMember, error) {
 	return nil, nil
+}
+
+func (s *memberRepoStub) SetMediaPermissions(_ context.Context, _ int64, _ int64, _ models.FansubGroupMemberMediaPermissionsUpdateInput) (*models.FansubGroupAppMember, error) {
+	return nil, nil
+}
+
+func (s *memberRepoStub) GetMediaPermissionsForAppUser(_ context.Context, _ int64, _ int64) (models.FansubGroupMediaPermissions, error) {
+	return s.mediaPermissions, nil
 }
 
 type auditLogStub struct {

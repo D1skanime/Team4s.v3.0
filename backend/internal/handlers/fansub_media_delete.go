@@ -75,9 +75,29 @@ func (h *FansubHandler) deleteFansubGroupMedia(c *gin.Context, identity middlewa
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.delete.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupMediaDelete, result)
-		writePermissionDenied(c, result)
-		return
+		allowedByCustomMediaPermission := false
+		if h.mediaRepo != nil {
+			customPerms, permErr := h.mediaRepo.GetFansubGroupMediaPermissionsForAppUser(c.Request.Context(), fansubID, identity.AppUserID)
+			if permErr != nil {
+				writePermissionInternalError(c, permErr, "Fansub-Media-Berechtigung konnte nicht geprüft werden.")
+				return
+			}
+			if customPerms.CanDeleteAll {
+				allowedByCustomMediaPermission = true
+			} else if customPerms.CanDeleteOwn {
+				uploadedByCurrentUser, ownerErr := h.mediaRepo.FansubGroupMediaUploadedByAppUser(c.Request.Context(), fansubID, mediaID, identity.AppUserID)
+				if ownerErr != nil {
+					writePermissionInternalError(c, ownerErr, "Fansub-Media-Berechtigung konnte nicht geprüft werden.")
+					return
+				}
+				allowedByCustomMediaPermission = uploadedByCurrentUser
+			}
+		}
+		if !allowedByCustomMediaPermission {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.delete.denied", &fansubID, "fansub_group_media", &mediaID, permissions.ActionFansubGroupMediaDelete, result)
+			writePermissionDenied(c, result)
+			return
+		}
 	}
 	if h.mediaRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media service nicht verfügbar"}})

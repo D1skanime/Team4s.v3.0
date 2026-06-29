@@ -81,6 +81,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	// damit Gin den GET-Pfad korrekt auflöst (kein Konflikt mit :kind-Parameter).
 	if deps.fansubMediaReviewHandler != nil {
 		v1.GET("/admin/fansubs/:id/media", auth, deps.fansubMediaReviewHandler.ListFansubGroupMedia)
+		v1.PATCH("/admin/fansubs/:id/media/reorder", auth, deps.fansubMediaReviewHandler.ReorderFansubGroupMedia)
 		v1.PATCH("/admin/fansubs/:id/media/:mediaId", auth, deps.fansubMediaReviewHandler.PatchFansubMediaReview)
 	}
 	v1.POST("/fansubs", auth, deps.fansubHandler.CreateFansub)
@@ -169,6 +170,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/fansubs/:id/invitations/:invitationId/cancel", auth, deps.appAuthHandler.CancelFansubGroupInvitation)
 	v1.PUT("/admin/fansubs/:id/app-members/:appUserId/roles", auth, deps.appAuthHandler.SetFansubGroupMemberRole)
 	v1.PUT("/admin/fansubs/:id/app-members/:appUserId/status", auth, deps.appAuthHandler.UpdateFansubGroupMemberStatus)
+	v1.PUT("/admin/fansubs/:id/app-members/:appUserId/media-permissions", auth, deps.appAuthHandler.SetFansubGroupMemberMediaPermissions)
 	v1.PUT("/admin/fansubs/:id/app-members/:appUserId/roles/fansub-lead", auth, deps.appAuthHandler.SetFansubLead)
 	// Fansub-Notes routes (Phase 40)
 	v1.GET("/admin/fansubs/:id/notes", auth, deps.adminContentHandler.ListFansubGroupNotes)

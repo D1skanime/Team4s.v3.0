@@ -6,6 +6,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 
 const listFansubGroupMedia = vi.fn()
 const patchFansubMediaReview = vi.fn()
+const reorderFansubGroupMedia = vi.fn()
 const deleteFansubGroupMedia = vi.fn()
 const uploadFansubGroupMedia = vi.fn()
 
@@ -20,6 +21,7 @@ vi.mock('next/image', () => ({
 vi.mock('@/lib/api', () => ({
   listFansubGroupMedia: (...args: unknown[]) => listFansubGroupMedia(...args),
   patchFansubMediaReview: (...args: unknown[]) => patchFansubMediaReview(...args),
+  reorderFansubGroupMedia: (...args: unknown[]) => reorderFansubGroupMedia(...args),
   deleteFansubGroupMedia: (...args: unknown[]) => deleteFansubGroupMedia(...args),
   uploadFansubGroupMedia: (...args: unknown[]) => uploadFansubGroupMedia(...args),
   resolveApiUrl: (value: string) => value,
@@ -47,6 +49,7 @@ import type { FansubGroupCapabilities } from '@/types/fansub'
 
 afterEach(() => {
   cleanup()
+  vi.restoreAllMocks()
   vi.clearAllMocks()
 })
 
@@ -66,7 +69,9 @@ const fullCapabilities: FansubGroupCapabilities = {
   can_view_group_media: true,
   can_upload_group_media: true,
   can_update_group_media: true,
+  can_delete_own_group_media: true,
   can_delete_group_media: true,
+  can_reorder_group_media: true,
 }
 
 const noMediaCapabilities: FansubGroupCapabilities = {
@@ -75,7 +80,9 @@ const noMediaCapabilities: FansubGroupCapabilities = {
   can_view_group_media: false,
   can_upload_group_media: false,
   can_update_group_media: false,
+  can_delete_own_group_media: false,
   can_delete_group_media: false,
+  can_reorder_group_media: false,
 }
 
 function mediaItem(overrides: Partial<FansubGroupMediaItem> = {}): FansubGroupMediaItem {
@@ -122,6 +129,23 @@ describe('GroupMediaReviewSection', () => {
     )
 
     expect(container.firstChild).toBeNull()
+  })
+
+  it('zeigt 403 als Berechtigungsfehler statt als Ladefehler', async () => {
+    const { ApiError: MockApiError } = await import('@/lib/api')
+    listFansubGroupMedia.mockRejectedValue(
+      new MockApiError(403, 'keine berechtigung für diese aktion'),
+    )
+
+    render(<GroupMediaReviewSection fansubId={88} capabilities={fullCapabilities} />)
+
+    expect(await screen.findByText('Keine Berechtigung')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Du hast keine Berechtigung für diese Aktion. Bitte wende dich an einen Fansub-Admin.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByText('Fehler beim Laden')).toBeNull()
   })
 
   it('hält Upload kompakt und zeigt die Medienübersicht direkt erreichbar', async () => {
@@ -231,6 +255,7 @@ describe('GroupMediaReviewSection', () => {
     fireEvent.change(await screen.findByDisplayValue('Erstes Medium'), {
       target: { value: 'Geänderter Titel' },
     })
+    expect(screen.queryByDisplayValue('101')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Änderungen speichern' }))
 
     await waitFor(() => {
@@ -241,7 +266,87 @@ describe('GroupMediaReviewSection', () => {
         undefined,
       )
     })
+    expect(patchFansubMediaReview.mock.calls[0][2]).not.toHaveProperty('sort_order')
     expect(screen.queryByDisplayValue('Zweites Medium')).toBeNull()
+  })
+
+  it('speichert die Gruppenmedien-Reihenfolge per Drag & Drop über Medien-IDs', async () => {
+    const { container } = renderSection([
+      mediaItem({ id: 101, title: 'Erstes Medium', sort_order: 1000 }),
+      mediaItem({ id: 102, title: 'Zweites Medium', sort_order: 2000 }),
+    ])
+    reorderFansubGroupMedia.mockResolvedValue(undefined)
+
+    await screen.findByText('Erstes Medium')
+    const dragHandle = screen.getByRole('button', { name: 'Erstes Medium verschieben' })
+    const secondCard = screen.getByText('Zweites Medium').closest('section')
+    expect(secondCard).not.toBeNull()
+
+    fireEvent.dragStart(dragHandle, {
+      dataTransfer: { setData: vi.fn(), effectAllowed: 'move' },
+    })
+    fireEvent.dragOver(secondCard as HTMLElement, {
+      dataTransfer: { dropEffect: 'move' },
+    })
+    fireEvent.drop(secondCard as HTMLElement, {
+      dataTransfer: { getData: vi.fn(() => '101') },
+    })
+
+    await waitFor(() => {
+      expect(reorderFansubGroupMedia).toHaveBeenCalledWith(
+        88,
+        { mediaIds: [102, 101] },
+        undefined,
+      )
+    })
+    const cardTitles = Array.from(container.querySelectorAll('h3')).map((element) => element.textContent)
+    expect(cardTitles).toEqual(['Zweites Medium', 'Erstes Medium'])
+  })
+
+  it('speichert die Gruppenmedien-Reihenfolge per Touch-Geste über den Verschiebegriff', async () => {
+    renderSection([
+      mediaItem({ id: 101, title: 'Erstes Medium', sort_order: 1000 }),
+      mediaItem({ id: 102, title: 'Zweites Medium', sort_order: 2000 }),
+    ])
+    reorderFansubGroupMedia.mockResolvedValue(undefined)
+
+    await screen.findByText('Erstes Medium')
+    const dragHandle = screen.getByRole('button', { name: 'Erstes Medium verschieben' })
+    const secondCard = screen.getByText('Zweites Medium').closest('section')
+    expect(secondCard).not.toBeNull()
+    dragHandle.setPointerCapture = vi.fn()
+    dragHandle.releasePointerCapture = vi.fn()
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: vi.fn(() => secondCard as Element),
+    })
+
+    fireEvent.pointerDown(dragHandle, {
+      pointerId: 7,
+      pointerType: 'touch',
+      clientX: 10,
+      clientY: 10,
+    })
+    fireEvent.pointerMove(dragHandle, {
+      pointerId: 7,
+      pointerType: 'touch',
+      clientX: 22,
+      clientY: 22,
+    })
+    fireEvent.pointerUp(dragHandle, {
+      pointerId: 7,
+      pointerType: 'touch',
+      clientX: 22,
+      clientY: 22,
+    })
+
+    await waitFor(() => {
+      expect(reorderFansubGroupMedia).toHaveBeenCalledWith(
+        88,
+        { mediaIds: [102, 101] },
+        undefined,
+      )
+    })
   })
 
   it('ändert den Prüfstatus per Quick-Action ohne andere Mediendaten zu senden', async () => {

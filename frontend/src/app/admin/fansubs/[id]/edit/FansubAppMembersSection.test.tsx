@@ -8,6 +8,7 @@ const getFansubGroupCapabilities = vi.fn();
 const searchFansubAppMemberCandidates = vi.fn();
 const createFansubAppMember = vi.fn();
 const updateFansubAppMemberRole = vi.fn();
+const updateFansubAppMemberMediaPermissions = vi.fn();
 const updateFansubAppMemberStatus = vi.fn();
 const listFansubGroupInvitations = vi.fn();
 const createFansubGroupInvitation = vi.fn();
@@ -44,6 +45,7 @@ vi.mock("@/lib/api", () => ({
   searchFansubAppMemberCandidates: (...args: unknown[]) => searchFansubAppMemberCandidates(...args),
   createFansubAppMember: (...args: unknown[]) => createFansubAppMember(...args),
   updateFansubAppMemberRole: (...args: unknown[]) => updateFansubAppMemberRole(...args),
+  updateFansubAppMemberMediaPermissions: (...args: unknown[]) => updateFansubAppMemberMediaPermissions(...args),
   updateFansubAppMemberStatus: (...args: unknown[]) => updateFansubAppMemberStatus(...args),
   listFansubGroupInvitations: (...args: unknown[]) => listFansubGroupInvitations(...args),
   createFansubGroupInvitation: (...args: unknown[]) => createFansubGroupInvitation(...args),
@@ -98,6 +100,12 @@ describe("FansubAppMembersSection", () => {
         can_view_release_media: true,
         can_upload_release_media: true,
         can_edit_release_notes: true,
+        can_view_group_media: true,
+        can_upload_group_media: true,
+        can_update_group_media: true,
+        can_delete_own_group_media: true,
+        can_delete_group_media: true,
+        can_reorder_group_media: true,
       },
     });
     listFansubAppMembers.mockResolvedValue({
@@ -108,6 +116,12 @@ describe("FansubAppMembersSection", () => {
           app_user_id: 11,
           status: "active",
           roles: ["fansub_lead", "editor"],
+          media_permissions: {
+            can_upload: true,
+            can_delete_own: true,
+            can_delete_all: true,
+            can_reorder: true,
+          },
           created_at: "2026-05-16T08:10:00Z",
           updated_at: "2026-05-16T08:20:00Z",
           member: {
@@ -181,7 +195,7 @@ describe("FansubAppMembersSection", () => {
 
     render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
 
-    expect(await screen.findByText("Phase Admin")).not.toBeNull();
+    expect((await screen.findAllByText("Phase Admin")).length).toBeGreaterThan(0);
     expect(await screen.findByText("Archiv Admin")).not.toBeNull();
     expect(await screen.findByText("Archiv Claim")).not.toBeNull();
     expect(screen.getByText("Bestätigt/verknüpft")).not.toBeNull();
@@ -189,7 +203,7 @@ describe("FansubAppMembersSection", () => {
     expect(screen.getByText("Das bin ich.")).not.toBeNull();
     expect(screen.getAllByText("Fansub-Lead").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
-    expect(screen.getByText("Aktiv")).not.toBeNull();
+    expect(screen.getAllByText(/Aktiv/).length).toBeGreaterThan(0);
     expect(screen.queryByText("phase-admin@example.local")).toBeNull();
     expect(screen.queryByText(/phase 45 mvp/i)).toBeNull();
 
@@ -215,6 +229,12 @@ describe("FansubAppMembersSection", () => {
         can_view_release_media: false,
         can_upload_release_media: false,
         can_edit_release_notes: false,
+        can_view_group_media: false,
+        can_upload_group_media: false,
+        can_update_group_media: false,
+        can_delete_own_group_media: false,
+        can_delete_group_media: false,
+        can_reorder_group_media: false,
       },
     });
     listFansubAppMembers
@@ -227,6 +247,12 @@ describe("FansubAppMembersSection", () => {
             app_user_id: 12,
             status: "active",
             roles: ["fansub_lead", "editor"],
+            media_permissions: {
+              can_upload: false,
+              can_delete_own: false,
+              can_delete_all: false,
+              can_reorder: false,
+            },
             created_at: "2026-05-16T08:15:00Z",
             updated_at: "2026-05-16T08:15:00Z",
             member: {
@@ -287,6 +313,12 @@ describe("FansubAppMembersSection", () => {
         can_view_release_media: true,
         can_upload_release_media: true,
         can_edit_release_notes: true,
+        can_view_group_media: true,
+        can_upload_group_media: true,
+        can_update_group_media: true,
+        can_delete_own_group_media: true,
+        can_delete_group_media: true,
+        can_reorder_group_media: true,
       },
     });
     listFansubAppMembers.mockResolvedValue({ data: [] });
@@ -366,6 +398,12 @@ describe("FansubAppMembersSection", () => {
         can_view_release_media: true,
         can_upload_release_media: true,
         can_edit_release_notes: true,
+        can_view_group_media: true,
+        can_upload_group_media: true,
+        can_update_group_media: true,
+        can_delete_own_group_media: true,
+        can_delete_group_media: true,
+        can_reorder_group_media: true,
       },
     });
     listFansubAppMembers.mockResolvedValue({ data: [] });
@@ -391,5 +429,119 @@ describe("FansubAppMembersSection", () => {
     expect(
       await screen.findByText("Einladungsmail konnte nicht zugestellt werden. Bitte SMTP-Konfiguration prüfen."),
     ).not.toBeNull();
+  });
+
+  it("saves roles and media rights together from the unified member editor", async () => {
+    getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: true,
+        can_view_members: true,
+        can_manage_members: true,
+        can_edit_notes: true,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: true,
+        can_view_group_media: true,
+        can_upload_group_media: true,
+        can_update_group_media: true,
+        can_delete_own_group_media: true,
+        can_delete_group_media: true,
+        can_reorder_group_media: true,
+      },
+    });
+    listFansubAppMembers.mockResolvedValue({
+      data: [
+        {
+          id: 31,
+          fansub_group_id: 88,
+          app_user_id: 13,
+          status: "active",
+          roles: ["editor"],
+          media_permissions: {
+            can_upload: false,
+            can_delete_own: false,
+            can_delete_all: false,
+            can_reorder: false,
+          },
+          created_at: "2026-05-16T08:15:00Z",
+          updated_at: "2026-05-16T08:15:00Z",
+          member: {
+            member_id: 46,
+            fansub_name: "Phase Editor",
+          },
+        },
+      ],
+    });
+    updateFansubAppMemberRole.mockResolvedValue({
+      data: {
+        id: 31,
+        fansub_group_id: 88,
+        app_user_id: 13,
+        status: "active",
+        roles: ["editor", "timer"],
+        media_permissions: {
+          can_upload: false,
+          can_delete_own: false,
+          can_delete_all: false,
+          can_reorder: false,
+        },
+        created_at: "2026-05-16T08:15:00Z",
+        updated_at: "2026-05-16T08:15:00Z",
+        member: {
+          member_id: 46,
+          fansub_name: "Phase Editor",
+        },
+      },
+    });
+    updateFansubAppMemberMediaPermissions.mockResolvedValue({
+      data: {
+        id: 31,
+        fansub_group_id: 88,
+        app_user_id: 13,
+        status: "active",
+        roles: ["editor", "timer"],
+        media_permissions: {
+          can_upload: true,
+          can_delete_own: false,
+          can_delete_all: false,
+          can_reorder: false,
+        },
+        created_at: "2026-05-16T08:15:00Z",
+        updated_at: "2026-05-16T08:15:00Z",
+        member: {
+          member_id: 46,
+          fansub_name: "Phase Editor",
+        },
+      },
+    });
+
+    render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Phase Editor bearbeiten" }));
+    fireEvent.click(screen.getByRole("button", { name: /Timing/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /Medienrechte/ }));
+    fireEvent.click(screen.getByRole("switch", { name: /Hochladen/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Speichern" }));
+
+    await waitFor(() => {
+      expect(updateFansubAppMemberRole).toHaveBeenCalledWith(88, 13, { role: "timer", enabled: true });
+      expect(updateFansubAppMemberMediaPermissions).toHaveBeenCalledWith(
+        88,
+        13,
+        {
+          can_upload: true,
+          can_delete_own: false,
+          can_delete_all: false,
+          can_reorder: false,
+        },
+      );
+    });
+    expect(await screen.findByText("Änderungen gespeichert.")).not.toBeNull();
+    expect(screen.queryByRole("dialog", { name: "Mitglied bearbeiten" })).toBeNull();
   });
 });

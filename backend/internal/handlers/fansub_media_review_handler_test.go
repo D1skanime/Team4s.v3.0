@@ -9,11 +9,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
@@ -24,11 +26,14 @@ import (
 
 // fansubMediaRepoStub implementiert das (noch nicht existierende) FansubMediaReviewRepository-Interface.
 type fansubMediaRepoStub struct {
-	updateErr      error
-	updatedMediaID *int64
-	ownerID        *int64 // simuliert Besitzer-Prüfung (Cross-Group-Schutz)
-	listRows       []repository.FansubGroupMediaReviewRow
-	listErr        error
+	updateErr        error
+	updatedMediaID   *int64
+	ownerID          *int64 // simuliert Besitzer-Prüfung (Cross-Group-Schutz)
+	listRows         []repository.FansubGroupMediaReviewRow
+	listErr          error
+	reorderMediaIDs  []int64
+	reorderErr       error
+	mediaPermissions models.FansubGroupMediaPermissions
 }
 
 func (s *fansubMediaRepoStub) UpdateFansubMediaReview(
@@ -62,8 +67,17 @@ func (s *fansubMediaRepoStub) GetFansubMediaOwner(ctx context.Context, mediaID i
 	return 0, repository.ErrNotFound
 }
 
-func (s *fansubMediaRepoStub) ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64) ([]repository.FansubGroupMediaReviewRow, error) {
+func (s *fansubMediaRepoStub) ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64, actorAppUserID *int64) ([]repository.FansubGroupMediaReviewRow, error) {
 	return s.listRows, s.listErr
+}
+
+func (s *fansubMediaRepoStub) ReorderFansubGroupMedia(ctx context.Context, fansubGroupID int64, mediaIDs []int64) error {
+	s.reorderMediaIDs = append([]int64(nil), mediaIDs...)
+	return s.reorderErr
+}
+
+func (s *fansubMediaRepoStub) GetFansubGroupMediaPermissionsForAppUser(ctx context.Context, fansubGroupID int64, appUserID int64) (models.FansubGroupMediaPermissions, error) {
+	return s.mediaPermissions, nil
 }
 
 // mediaReviewPermissionSvcStub steuert das Ergebnis von CanForFansubGroup.
@@ -163,6 +177,95 @@ func TestFansubMediaReviewList_ReturnsThumbnailAndOriginalURLs(t *testing.T) {
 	}
 	if !strings.Contains(body, `"original_url":"/media/group/original.jpg"`) {
 		t.Fatalf("original_url fehlt in Response: %s", body)
+	}
+}
+
+func TestFansubMediaReviewReorder_PersistsMediaIDsAndAudits(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	audit := &auditMediaReviewStub{}
+	repo := &fansubMediaRepoStub{}
+	handler := buildMediaReviewHandler(
+		&mediaReviewPermissionSvcStub{allowed: true},
+		repo,
+		audit,
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPatch, "/api/v1/admin/fansubs/1/media/reorder", strings.NewReader(`{"mediaIds":[103,101,102]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "1"}}
+	setMediaReviewTestAuth(c, 42)
+
+	handler.ReorderFansubGroupMedia(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet 200, erhalten %d - body: %s", rec.Code, rec.Body.String())
+	}
+	if !slices.Equal(repo.reorderMediaIDs, []int64{103, 101, 102}) {
+		t.Fatalf("falsche Reorder-IDs: %#v", repo.reorderMediaIDs)
+	}
+	if audit.lastEventType() != "fansub_group_media.reordered" {
+		t.Fatalf("falsches Audit-EventType: %q", audit.lastEventType())
+	}
+}
+
+func TestFansubMediaReviewReorder_PermissionDeny(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	audit := &auditMediaReviewStub{}
+	repo := &fansubMediaRepoStub{}
+	handler := buildMediaReviewHandler(
+		&mediaReviewPermissionSvcStub{allowed: false},
+		repo,
+		audit,
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPatch, "/api/v1/admin/fansubs/1/media/reorder", strings.NewReader(`{"mediaIds":[101,102]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "1"}}
+	setMediaReviewTestAuth(c, 42)
+
+	handler.ReorderFansubGroupMedia(c)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("erwartet 403, erhalten %d - body: %s", rec.Code, rec.Body.String())
+	}
+	if len(repo.reorderMediaIDs) > 0 {
+		t.Fatalf("Reorder darf bei Deny nicht mutieren: %#v", repo.reorderMediaIDs)
+	}
+	if !strings.HasSuffix(audit.lastEventType(), ".denied") {
+		t.Fatalf("Deny-Audit fehlt oder falsch: %q", audit.lastEventType())
+	}
+}
+
+func TestFansubMediaReviewReorder_RejectsDuplicateIDs(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	repo := &fansubMediaRepoStub{}
+	handler := buildMediaReviewHandler(
+		&mediaReviewPermissionSvcStub{allowed: true},
+		repo,
+		&auditMediaReviewStub{},
+	)
+
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPatch, "/api/v1/admin/fansubs/1/media/reorder", strings.NewReader(`{"mediaIds":[101,101]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "1"}}
+	setMediaReviewTestAuth(c, 42)
+
+	handler.ReorderFansubGroupMedia(c)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("erwartet 400, erhalten %d - body: %s", rec.Code, rec.Body.String())
+	}
+	if len(repo.reorderMediaIDs) > 0 {
+		t.Fatalf("Reorder darf bei doppelten IDs nicht mutieren: %#v", repo.reorderMediaIDs)
 	}
 }
 

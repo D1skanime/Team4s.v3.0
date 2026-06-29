@@ -146,7 +146,7 @@ func testAnimeCoverageViewHandler(permSvc viewPermissionSvc, auditRepo auditLogW
 			return
 		}
 
-		result, err := permSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
+		result, err := permSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
 		if err != nil {
 			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 			return
@@ -274,7 +274,7 @@ func TestViewCapabilityEnforcementAnimeCoverage(t *testing.T) {
 		DisplayName:   "Mitglied",
 	}
 
-	t.Run("ohne ActionFansubGroupMembersView → 403", func(t *testing.T) {
+	t.Run("ohne ActionReleaseView → 403", func(t *testing.T) {
 		c, rec := makeViewTestContext(http.MethodGet, "/admin/fansubs/1/anime-coverage", activeIdentity, "1")
 		permStub := &stubViewPermissionSvc{allowed: false}
 		h := testAnimeCoverageViewHandler(permStub, auditStub)
@@ -284,7 +284,7 @@ func TestViewCapabilityEnforcementAnimeCoverage(t *testing.T) {
 		}
 	})
 
-	t.Run("mit ActionFansubGroupMembersView → 200", func(t *testing.T) {
+	t.Run("mit ActionReleaseView → 200", func(t *testing.T) {
 		c, rec := makeViewTestContext(http.MethodGet, "/admin/fansubs/1/anime-coverage", activeIdentity, "1")
 		permStub := &stubViewPermissionSvc{allowed: true}
 		h := testAnimeCoverageViewHandler(permStub, auditStub)

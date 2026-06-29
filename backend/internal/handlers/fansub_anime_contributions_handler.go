@@ -72,7 +72,7 @@ func (h *FansubAnimeContributionsHandler) GetAnimeCoverage(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
@@ -118,13 +118,13 @@ func (h *FansubAnimeContributionsHandler) ListAnimeContributions(c *gin.Context)
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "anime_contribution.list.denied", &fansubID, "anime_contribution", nil, permissions.ActionFansubGroupMembersView, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "anime_contribution.list.denied", &fansubID, "anime_contribution", nil, permissions.ActionReleaseView, result)
 		writePermissionDenied(c, result)
 		return
 	}

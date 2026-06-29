@@ -16,6 +16,8 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/permissions"
+	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -629,4 +631,50 @@ func TestReleaseVersionMedia_PartialFailureResultsArray(t *testing.T) {
 	assert.Contains(t, s, `"ready"`)
 	assert.Contains(t, s, `"failed"`)
 	assert.Contains(t, s, `"INVALID_MIME_TYPE"`)
+}
+
+func TestReleaseVersionMedia_ContributorListFiltersToOwnUploads(t *testing.T) {
+	ownUploader := int64(7)
+	otherUploader := int64(8)
+	items := []repository.ReleaseVersionMediaItem{
+		{ID: 1, UploadedByUserID: &ownUploader},
+		{ID: 2, UploadedByUserID: &otherUploader},
+		{ID: 3, UploadedByUserID: nil},
+	}
+
+	filtered := filterReleaseVersionMediaItemsForActor(items, ownUploader, permissions.Result{
+		Allowed:     true,
+		MatchedRole: permissions.RoleEncoder,
+	})
+
+	require.Len(t, filtered, 1)
+	assert.Equal(t, int64(1), filtered[0].ID)
+}
+
+func TestReleaseVersionMedia_LeaderListKeepsAllUploads(t *testing.T) {
+	ownUploader := int64(7)
+	otherUploader := int64(8)
+	items := []repository.ReleaseVersionMediaItem{
+		{ID: 1, UploadedByUserID: &ownUploader},
+		{ID: 2, UploadedByUserID: &otherUploader},
+		{ID: 3, UploadedByUserID: nil},
+	}
+
+	filtered := filterReleaseVersionMediaItemsForActor(items, ownUploader, permissions.Result{
+		Allowed:     true,
+		MatchedRole: permissions.RoleProjectLead,
+	})
+
+	assert.Len(t, filtered, 3)
+}
+
+func TestReleaseVersionMedia_CapabilitiesExposeOwnDelete(t *testing.T) {
+	src, err := os.ReadFile("admin_content_release_version_media.go")
+	require.NoError(t, err)
+
+	assert.Contains(t, string(src), "CanDeleteOwnMedia")
+	assert.Contains(t, string(src), `json:"can_delete_own_media"`)
+	assert.True(t,
+		releaseVersionMediaCanDeleteOwn(permissions.Result{Allowed: true, MatchedRole: permissions.RoleEncoder}),
+		"encoder must retain own-delete capability for own uploads")
 }

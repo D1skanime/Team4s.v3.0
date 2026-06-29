@@ -10,6 +10,7 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  getErrorStateCopy,
   LoadingState,
   SectionHeader,
   Select,
@@ -91,7 +92,7 @@ function ReleaseVersionMediaReviewSectionInner({ versionId, externalMedia, owner
   // Wenn externe Media-Daten übergeben werden, kein eigenes Fetch — sonst selbst laden.
   const [internalMedia, setInternalMedia] = useState<ReleaseVersionMediaItem[]>(externalMedia ?? [])
   const [isLoading, setIsLoading] = useState(externalMedia === undefined)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<ReturnType<typeof getErrorStateCopy> | null>(null)
 
   const media = externalMedia ?? internalMedia
 
@@ -103,7 +104,11 @@ function ReleaseVersionMediaReviewSectionInner({ versionId, externalMedia, owner
       const response = await getReleaseVersionMedia(versionId)
       setInternalMedia(Array.isArray(response.data) ? response.data : [])
     } catch (err) {
-      setLoadError(readErrorMessage(err, 'Release-Medien konnten nicht geladen werden.'))
+      setLoadError(
+        getErrorStateCopy(err, {
+          defaultDescription: 'Release-Medien konnten nicht geladen werden.',
+        }),
+      )
     } finally {
       setIsLoading(false)
     }
@@ -179,7 +184,7 @@ function ReleaseVersionMediaReviewSectionInner({ versionId, externalMedia, owner
   }
 
   if (loadError) {
-    return <ErrorState title="Fehler beim Laden" description={loadError} />
+    return <ErrorState title={loadError.title} description={loadError.description} />
   }
 
   return (

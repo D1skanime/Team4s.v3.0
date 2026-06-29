@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Archive, Ban, Check, Edit3, Filter, Save, UploadCloud, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react'
+import { Archive, Ban, Check, Edit3, Filter, GripVertical, Save, UploadCloud, X } from 'lucide-react'
 import Image from 'next/image'
 
 import {
@@ -12,6 +12,7 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  getErrorStateCopy,
   Input,
   LoadingState,
   Modal,
@@ -29,6 +30,7 @@ import {
   deleteFansubGroupMedia,
   listFansubGroupMedia,
   patchFansubMediaReview,
+  reorderFansubGroupMedia,
   resolveApiUrl,
   uploadFansubGroupMedia,
 } from '@/lib/api'
@@ -39,7 +41,8 @@ import styles from './GroupMediaReviewSection.module.css'
 
 interface GroupMediaReviewSectionProps {
   fansubId: number
-  capabilities: FansubGroupCapabilities
+  capabilities: FansubGroupCapabilities | null
+  isPlatformAdmin?: boolean
 }
 
 interface MediaDraft {
@@ -55,10 +58,18 @@ interface MediaDraft {
 type CategoryFilter = 'all' | FansubGroupMediaCategory
 type ReviewStatusFilter = 'all' | FansubMediaReviewStatus
 type VisibilityFilter = 'all' | FansubMediaVisibility
-type SortMode = 'created_desc' | 'created_asc' | 'sort_order'
+type SortMode = 'sort_order' | 'created_desc' | 'created_asc'
+type PointerReorderState = {
+  mediaId: number
+  pointerId: number
+  startX: number
+  startY: number
+}
 
 const INITIAL_VISIBLE_MEDIA_COUNT = 40
 const LOAD_MORE_MEDIA_COUNT = 40
+const SORT_ORDER_STEP = 1000
+const POINTER_REORDER_THRESHOLD_PX = 6
 
 const CATEGORY_OPTIONS: Array<{ value: FansubGroupMediaCategory; label: string }> = [
   { value: 'gallery', label: 'Galerie' },
@@ -162,29 +173,47 @@ function getUploaderLine(item: FansubGroupMediaItem): string {
   return createdAt ? `Hochgeladen von ${uploader} am ${createdAt}` : `Hochgeladen von ${uploader}`
 }
 
-export function GroupMediaReviewSection({ fansubId, capabilities }: GroupMediaReviewSectionProps) {
+export function GroupMediaReviewSection({
+  fansubId,
+  capabilities,
+  isPlatformAdmin = false,
+}: GroupMediaReviewSectionProps) {
   const canUseMedia =
-    capabilities.can_view_group_media ||
-    capabilities.can_upload_group_media ||
-    capabilities.can_update_group_media ||
-    capabilities.can_delete_group_media ||
-    capabilities.can_edit_group
+    isPlatformAdmin ||
+    Boolean(
+      capabilities?.can_view_group_media ||
+        capabilities?.can_upload_group_media ||
+        capabilities?.can_update_group_media ||
+        capabilities?.can_reorder_group_media ||
+        capabilities?.can_delete_own_group_media ||
+        capabilities?.can_delete_group_media ||
+        capabilities?.can_edit_group,
+    )
   if (!canUseMedia) return null
 
-  return <GroupMediaReviewSectionInner fansubId={fansubId} capabilities={capabilities} />
+  return (
+    <GroupMediaReviewSectionInner
+      fansubId={fansubId}
+      capabilities={capabilities}
+      isPlatformAdmin={isPlatformAdmin}
+    />
+  )
 }
 
 function GroupMediaReviewSectionInner({
   fansubId,
   capabilities,
+  isPlatformAdmin,
 }: {
   fansubId: number
-  capabilities: FansubGroupCapabilities
+  capabilities: FansubGroupCapabilities | null
+  isPlatformAdmin: boolean
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const pointerReorderRef = useRef<PointerReorderState | null>(null)
   const [mediaItems, setMediaItems] = useState<FansubGroupMediaItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<ReturnType<typeof getErrorStateCopy> | null>(null)
   const [drafts, setDrafts] = useState<Record<number, MediaDraft>>({})
   const [saveErrors, setSaveErrors] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState<Record<number, boolean>>({})
@@ -197,7 +226,7 @@ function GroupMediaReviewSectionInner({
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
   const [statusFilter, setStatusFilter] = useState<ReviewStatusFilter>('all')
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('all')
-  const [sortMode, setSortMode] = useState<SortMode>('created_desc')
+  const [sortMode, setSortMode] = useState<SortMode>('sort_order')
   const [searchTerm, setSearchTerm] = useState('')
   const [visibleLimit, setVisibleLimit] = useState(INITIAL_VISIBLE_MEDIA_COUNT)
   const [failedPreviewIds, setFailedPreviewIds] = useState<Record<number, boolean>>({})
@@ -208,10 +237,19 @@ function GroupMediaReviewSectionInner({
   const [selectedMediaIds, setSelectedMediaIds] = useState<Set<number>>(() => new Set())
   const [bulkSavingStatus, setBulkSavingStatus] = useState<FansubMediaReviewStatus | null>(null)
   const [bulkError, setBulkError] = useState<string | null>(null)
+  const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null)
+  const [dragOverMediaId, setDragOverMediaId] = useState<number | null>(null)
+  const [reorderSaving, setReorderSaving] = useState(false)
+  const [reorderError, setReorderError] = useState<string | null>(null)
 
-  const canUpdate = capabilities.can_update_group_media || capabilities.can_edit_group
-  const canUpload = capabilities.can_upload_group_media || capabilities.can_edit_group
-  const canDelete = capabilities.can_delete_group_media || capabilities.can_edit_group
+  const canUpdate =
+    isPlatformAdmin || Boolean(capabilities?.can_update_group_media || capabilities?.can_edit_group)
+  const canUpload =
+    isPlatformAdmin || Boolean(capabilities?.can_upload_group_media || capabilities?.can_edit_group)
+  const canDeleteAll =
+    isPlatformAdmin || Boolean(capabilities?.can_delete_group_media || capabilities?.can_edit_group)
+  const canDeleteOwn = Boolean(capabilities?.can_delete_own_group_media || canDeleteAll)
+  const canReorder = Boolean(capabilities?.can_reorder_group_media || canUpdate)
 
   const loadMedia = useCallback(async () => {
     try {
@@ -221,7 +259,11 @@ function GroupMediaReviewSectionInner({
       setMediaItems(items)
       setDrafts(Object.fromEntries(items.map((item) => [item.id, itemToDraft(item)])))
     } catch (err) {
-      setLoadError(readErrorMessage(err, 'Medien konnten nicht geladen werden.'))
+      setLoadError(
+        getErrorStateCopy(err, {
+          defaultDescription: 'Medien konnten nicht geladen werden.',
+        }),
+      )
     } finally {
       setIsLoading(false)
     }
@@ -254,9 +296,11 @@ function GroupMediaReviewSectionInner({
         return matchesCategory && matchesStatus && matchesVisibility && matchesSearch
       })
       .sort((left, right) => {
-        if (sortMode === 'sort_order') return (left.sort_order ?? 0) - (right.sort_order ?? 0)
         const leftDate = Date.parse(left.created_at ?? '') || 0
         const rightDate = Date.parse(right.created_at ?? '') || 0
+        if (sortMode === 'sort_order') {
+          return (left.sort_order ?? 0) - (right.sort_order ?? 0) || leftDate - rightDate || left.id - right.id
+        }
         return sortMode === 'created_asc' ? leftDate - rightDate : rightDate - leftDate
       })
   }, [categoryFilter, mediaItems, searchTerm, sortMode, statusFilter, visibilityFilter])
@@ -284,12 +328,19 @@ function GroupMediaReviewSectionInner({
     statusFilter !== 'all',
     visibilityFilter !== 'all',
     searchTerm.trim().length > 0,
-    sortMode !== 'created_desc',
+    sortMode !== 'sort_order',
   ].filter(Boolean).length
+  const isCanonicalReorderView =
+    categoryFilter === 'all' &&
+    statusFilter === 'all' &&
+    visibilityFilter === 'all' &&
+    searchTerm.trim().length === 0 &&
+    sortMode === 'sort_order'
   const shouldShowUploadPanel = canUpload && (isUploadOpen || selectedFiles.length > 0 || uploadProgress !== null || uploadError !== null)
   const selectedCount = selectedMediaIds.size
   const shouldShowBulkActionBar = selectedCount >= 2
   const isBulkSaving = bulkSavingStatus !== null
+  const canReorderMedia = canReorder && isCanonicalReorderView && !isBulkSaving && !reorderSaving
   const allFilteredSelected =
     filteredMediaItems.length > 0 && filteredMediaItems.every((item) => selectedMediaIds.has(item.id))
 
@@ -310,6 +361,10 @@ function GroupMediaReviewSectionInner({
     }))
   }
 
+  function canDeleteMediaItem(item: FansubGroupMediaItem): boolean {
+    return canDeleteAll || (canDeleteOwn && item.uploaded_by_current_user === true)
+  }
+
   function handleSelectedFiles(files: File[]) {
     setUploadError(null)
     setSelectedFiles(files.filter((file) => file.type.startsWith('image/')))
@@ -325,7 +380,7 @@ function GroupMediaReviewSectionInner({
     setCategoryFilter('all')
     setStatusFilter('all')
     setVisibilityFilter('all')
-    setSortMode('created_desc')
+    setSortMode('sort_order')
     setSearchTerm('')
     setIsFilterOpen(false)
   }
@@ -429,7 +484,6 @@ function GroupMediaReviewSectionInner({
         description: draft.description.trim() || null,
         alt_text: draft.alt_text.trim() || null,
         category: draft.category,
-        sort_order: draft.sort_order,
       }, undefined)
       setToast('Änderungen gespeichert.')
       setEditingMediaId(null)
@@ -506,8 +560,139 @@ function GroupMediaReviewSectionInner({
     setBulkSavingStatus(null)
   }
 
+  function handleDragStart(event: DragEvent<HTMLButtonElement>, item: FansubGroupMediaItem) {
+    if (!canReorderMedia) return
+    event.stopPropagation()
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', String(item.id))
+    setReorderError(null)
+    setDraggedMediaId(item.id)
+  }
+
+  function handleDragOver(event: DragEvent<HTMLElement>, item: FansubGroupMediaItem) {
+    if (!canReorderMedia || draggedMediaId === null || draggedMediaId === item.id) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    setDragOverMediaId(item.id)
+  }
+
+  function handleDragEnd() {
+    pointerReorderRef.current = null
+    setDraggedMediaId(null)
+    setDragOverMediaId(null)
+  }
+
+  async function applyMediaReorder(sourceMediaId: number, targetMediaId: number) {
+    if (!canReorderMedia || sourceMediaId === targetMediaId) {
+      return
+    }
+
+    const previousItems = mediaItems
+    const sourceIndex = previousItems.findIndex((item) => item.id === sourceMediaId)
+    const targetIndex = previousItems.findIndex((item) => item.id === targetMediaId)
+    if (sourceIndex === -1 || targetIndex === -1) return
+
+    const reorderedItems = [...previousItems]
+    const [movedItem] = reorderedItems.splice(sourceIndex, 1)
+    reorderedItems.splice(targetIndex, 0, movedItem)
+    const normalizedItems = reorderedItems.map((item, index) => ({
+      ...item,
+      sort_order: (index + 1) * SORT_ORDER_STEP,
+    }))
+
+    setReorderError(null)
+    setReorderSaving(true)
+    setMediaItems(normalizedItems)
+    setDrafts((current) => {
+      const next = { ...current }
+      normalizedItems.forEach((item) => {
+        if (next[item.id]) {
+          next[item.id] = { ...next[item.id], sort_order: item.sort_order }
+        }
+      })
+      return next
+    })
+
+    try {
+      await reorderFansubGroupMedia(fansubId, { mediaIds: normalizedItems.map((item) => item.id) }, undefined)
+      setToast('Reihenfolge gespeichert.')
+      setTimeout(() => setToast(null), 3500)
+    } catch (err) {
+      setMediaItems(previousItems)
+      setDrafts(Object.fromEntries(previousItems.map((item) => [item.id, itemToDraft(item)])))
+      setReorderError(readErrorMessage(err, 'Reihenfolge konnte nicht gespeichert werden.'))
+    } finally {
+      setReorderSaving(false)
+    }
+  }
+
+  async function handleReorderDrop(event: DragEvent<HTMLElement>, targetItem: FansubGroupMediaItem) {
+    if (!canReorderMedia || draggedMediaId === null || draggedMediaId === targetItem.id) {
+      handleDragEnd()
+      return
+    }
+    event.preventDefault()
+    event.stopPropagation()
+
+    const sourceMediaId = draggedMediaId
+    handleDragEnd()
+    await applyMediaReorder(sourceMediaId, targetItem.id)
+  }
+
+  function getPointerTargetMediaId(event: PointerEvent<HTMLButtonElement>): number | null {
+    const targetElement = document.elementFromPoint(event.clientX, event.clientY)
+    const mediaCard = targetElement?.closest<HTMLElement>('[data-media-card-id]')
+    const targetMediaId = Number(mediaCard?.dataset.mediaCardId)
+    return Number.isInteger(targetMediaId) ? targetMediaId : null
+  }
+
+  function handlePointerDragStart(event: PointerEvent<HTMLButtonElement>, item: FansubGroupMediaItem) {
+    if (!canReorderMedia || event.pointerType === 'mouse') return
+    event.preventDefault()
+    event.stopPropagation()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    pointerReorderRef.current = {
+      mediaId: item.id,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+    }
+    setReorderError(null)
+    setDraggedMediaId(item.id)
+    setDragOverMediaId(null)
+  }
+
+  function handlePointerDragMove(event: PointerEvent<HTMLButtonElement>) {
+    const pointerState = pointerReorderRef.current
+    if (!canReorderMedia || !pointerState || pointerState.pointerId !== event.pointerId) return
+    event.preventDefault()
+    event.stopPropagation()
+
+    const movementX = Math.abs(event.clientX - pointerState.startX)
+    const movementY = Math.abs(event.clientY - pointerState.startY)
+    if (movementX < POINTER_REORDER_THRESHOLD_PX && movementY < POINTER_REORDER_THRESHOLD_PX) return
+
+    const targetMediaId = getPointerTargetMediaId(event)
+    setDragOverMediaId(targetMediaId !== null && targetMediaId !== pointerState.mediaId ? targetMediaId : null)
+  }
+
+  async function handlePointerDragEnd(event: PointerEvent<HTMLButtonElement>) {
+    const pointerState = pointerReorderRef.current
+    if (!pointerState || pointerState.pointerId !== event.pointerId) return
+    event.preventDefault()
+    event.stopPropagation()
+    event.currentTarget.releasePointerCapture(event.pointerId)
+
+    const targetMediaId = dragOverMediaId ?? getPointerTargetMediaId(event)
+    const sourceMediaId = pointerState.mediaId
+    handleDragEnd()
+    if (targetMediaId !== null && targetMediaId !== sourceMediaId) {
+      await applyMediaReorder(sourceMediaId, targetMediaId)
+    }
+  }
+
   async function handleDelete(item: FansubGroupMediaItem) {
-    if (!canDelete) return
+    if (!canDeleteMediaItem(item)) return
     setSaving((prev) => ({ ...prev, [item.id]: true }))
     try {
       await deleteFansubGroupMedia(fansubId, item.id)
@@ -531,7 +716,7 @@ function GroupMediaReviewSectionInner({
   }
 
   if (loadError) {
-    return <ErrorState title="Fehler beim Laden" description={loadError} />
+    return <ErrorState title={loadError.title} description={loadError.description} />
   }
 
   return (
@@ -700,9 +885,9 @@ function GroupMediaReviewSectionInner({
 
           <FormField label="Sortierung">
             <Select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
+              <option value="sort_order">Gespeicherte Reihenfolge</option>
               <option value="created_desc">Neueste zuerst</option>
               <option value="created_asc">Älteste zuerst</option>
-              <option value="sort_order">Sortierungswert</option>
             </Select>
           </FormField>
 
@@ -714,6 +899,11 @@ function GroupMediaReviewSectionInner({
             />
           </FormField>
         </div>
+
+        {reorderError ? <p className={styles.inlineError} role="alert">{reorderError}</p> : null}
+        {canUpdate && !isCanonicalReorderView ? (
+          <p className={styles.reorderHint}>Reihenfolge kann nur in der Gesamtansicht geändert werden.</p>
+        ) : null}
 
         {mediaItems.length === 0 ? (
           <EmptyState
@@ -733,6 +923,8 @@ function GroupMediaReviewSectionInner({
               const isEditing = editingMediaId === item.id
               const isSelected = selectedMediaIds.has(item.id)
               const isSavingItem = saving[item.id] ?? false
+              const isDragging = draggedMediaId === item.id
+              const isDropTarget = dragOverMediaId === item.id && draggedMediaId !== null && draggedMediaId !== item.id
               const overviewImageURL = getOverviewImageURL(item)
               const displayTitle = getMediaDisplayTitle(item)
               const uploaderLine = getUploaderLine(item)
@@ -741,8 +933,19 @@ function GroupMediaReviewSectionInner({
                 <Card
                   key={item.id}
                   variant="nested"
-                  className={classNames(styles.mediaCard, isSelected && styles.mediaCardSelected)}
+                  data-media-card-id={item.id}
+                  className={classNames(
+                    styles.mediaCard,
+                    isSelected && styles.mediaCardSelected,
+                    isDragging && styles.mediaCardDragging,
+                    isDropTarget && styles.mediaCardDropTarget,
+                  )}
                   tabIndex={0}
+                  onDragOver={(event) => handleDragOver(event, item)}
+                  onDrop={(event) => void handleReorderDrop(event, item)}
+                  onDragLeave={() => {
+                    if (dragOverMediaId === item.id) setDragOverMediaId(null)
+                  }}
                   onClick={(event) => {
                     const target = event.target as HTMLElement
                     if (target.closest('button, input, label, a, select, textarea')) return
@@ -772,6 +975,30 @@ function GroupMediaReviewSectionInner({
                     ) : (
                       <span />
                     )}
+                    {canUpdate ? (
+                      <button
+                        type="button"
+                        draggable={canReorderMedia}
+                        className={styles.dragHandle}
+                        aria-label={`${displayTitle} verschieben`}
+                        title={
+                          canReorderMedia
+                            ? 'Reihenfolge ändern'
+                            : 'Reihenfolge kann nur in der Gesamtansicht geändert werden'
+                        }
+                        disabled={!canReorderMedia}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                        onDragStart={(event) => handleDragStart(event, item)}
+                        onDragEnd={handleDragEnd}
+                        onPointerDown={(event) => handlePointerDragStart(event, item)}
+                        onPointerMove={handlePointerDragMove}
+                        onPointerUp={(event) => void handlePointerDragEnd(event)}
+                        onPointerCancel={handleDragEnd}
+                      >
+                        <GripVertical size={16} aria-hidden="true" />
+                      </button>
+                    ) : null}
                   </div>
 
                   {!item.owner_consistent ? (
@@ -1014,17 +1241,6 @@ function GroupMediaReviewSectionInner({
                         ))}
                       </Select>
                     </FormField>
-
-                    <FormField label="Sortierung">
-                      <Input
-                        type="number"
-                        min={0}
-                        className={styles.sortOrderInput}
-                        value={draft.sort_order}
-                        disabled={!canUpdate}
-                        onChange={(event) => updateDraft(editingItem.id, 'sort_order', Number(event.target.value))}
-                      />
-                    </FormField>
                   </div>
 
                   <div className={styles.detailGrid}>
@@ -1055,7 +1271,7 @@ function GroupMediaReviewSectionInner({
 
                   {saveErrors[editingItem.id] ? <p className={styles.inlineError} role="alert">{saveErrors[editingItem.id]}</p> : null}
 
-                  {canDelete ? (
+                  {canDeleteMediaItem(editingItem) ? (
                     <div className={styles.dangerZone}>
                       <div className={styles.dangerZoneText}>
                         <strong>Aus Gruppenmedien entfernen</strong>

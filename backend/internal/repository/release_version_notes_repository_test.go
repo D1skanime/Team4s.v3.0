@@ -78,8 +78,8 @@ func TestGetMemberRolesForVersion(t *testing.T) {
 			t.Fatal("Ende von MemberRoleForVersion-Struct nicht gefunden")
 		}
 		structBlock := content[idx : idx+end]
-		assert.False(t, strings.Contains(structBlock, "RoleID"),
-			"MemberRoleForVersion-Struct darf kein RoleID-Feld mehr enthalten (D-13)")
+		assert.True(t, strings.Contains(structBlock, "RoleID"),
+			"MemberRoleForVersion-Struct muss RoleID fÃ¼r release_version_notes.role_id enthalten")
 	})
 
 	// Key-Format: %d:%s statt %d:%d (D-13)

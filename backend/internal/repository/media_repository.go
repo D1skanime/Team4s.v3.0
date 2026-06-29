@@ -22,23 +22,24 @@ import (
 // FansubGroupMediaReviewRow enthält einen Medieneintrag mit Sichtbarkeit/Reviewstatus
 // für den Review-Tab. Wird von ListFansubGroupMediaForReview befüllt.
 type FansubGroupMediaReviewRow struct {
-	MediaAssetID    int64
-	PreviewURL      string
-	ThumbnailURL    string
-	OriginalURL     string
-	Visibility      *string // nil wenn nicht gesetzt; API-seitiger Wert (intern/oeffentlich)
-	ReviewStatus    *string // nil wenn nicht gesetzt; API-seitiger Wert (in_pruefung/...)
-	Title           *string
-	Description     *string
-	AltText         *string
-	Category        string
-	SortOrder       int
-	UploadedByName  *string
-	CreatedAt       time.Time
-	UpdatedAt       *time.Time
-	OwnerType       string
-	OwnerID         int64
-	OwnerConsistent bool // true wenn Medium korrekt zur Gruppe gehört
+	MediaAssetID          int64
+	PreviewURL            string
+	ThumbnailURL          string
+	OriginalURL           string
+	Visibility            *string // nil wenn nicht gesetzt; API-seitiger Wert (intern/oeffentlich)
+	ReviewStatus          *string // nil wenn nicht gesetzt; API-seitiger Wert (in_pruefung/...)
+	Title                 *string
+	Description           *string
+	AltText               *string
+	Category              string
+	SortOrder             int
+	UploadedByName        *string
+	UploadedByCurrentUser bool
+	CreatedAt             time.Time
+	UpdatedAt             *time.Time
+	OwnerType             string
+	OwnerID               int64
+	OwnerConsistent       bool // true wenn Medium korrekt zur Gruppe gehört
 }
 
 // FansubMediaReviewPatch enthält die zu ändernden Felder.
@@ -532,7 +533,11 @@ func mediaFormatForKind(kind models.MediaKind) string {
 // ListFansubGroupMediaForReview liest alle Medienassets einer Fansub-Gruppe mit
 // Sichtbarkeit/Reviewstatus für den Review-Tab. Scoped strikt auf fansubGroupID (IDOR-Schutz D-04).
 // Gibt die Werte als API-seitige kanonische Strings zurück (intern/oeffentlich, in_pruefung/...).
-func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64) ([]FansubGroupMediaReviewRow, error) {
+func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fansubGroupID int64, actorAppUserID *int64) ([]FansubGroupMediaReviewRow, error) {
+	var actorAppUserParam any
+	if actorAppUserID != nil {
+		actorAppUserParam = *actorAppUserID
+	}
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			ma.id          AS media_asset_id,
@@ -547,6 +552,7 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			fgm.category   AS category,
 			fgm.sort_order AS sort_order,
 			COALESCE(uploader_identity.display_name, NULLIF(BTRIM(u.username), '')) AS uploaded_by_name,
+			COALESCE(current_uploader.is_current_user, FALSE) AS uploaded_by_current_user,
 			fgm.created_at AS created_at,
 			fgm.updated_at AS updated_at,
 			'fansub_group' AS owner_type,
@@ -592,12 +598,20 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			ORDER BY CASE WHEN uploader_membership.member_id IS NOT NULL THEN 0 ELSE 1 END, au.id DESC
 			LIMIT 1
 		) uploader_identity ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT TRUE AS is_current_user
+			FROM app_users current_au
+			WHERE current_au.id = $2
+			  AND current_au.legacy_user_id IS NOT NULL
+			  AND current_au.legacy_user_id = fgm.uploaded_by_user_id
+			LIMIT 1
+		) current_uploader ON TRUE
 		WHERE fgm.group_id = $1
 		  AND fgm.deleted_at IS NULL
 		  AND (fg.logo_id IS NULL OR ma.id <> fg.logo_id)
 		  AND (fg.banner_id IS NULL OR ma.id <> fg.banner_id)
-		ORDER BY fgm.sort_order ASC, fgm.created_at DESC, ma.id DESC
-	`, fansubGroupID)
+		ORDER BY fgm.sort_order ASC, fgm.created_at ASC, ma.id ASC
+	`, fansubGroupID, actorAppUserParam)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group media for review (group_id=%d): %w", fansubGroupID, err)
 	}
@@ -625,6 +639,7 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 			&row.Category,
 			&row.SortOrder,
 			&row.UploadedByName,
+			&row.UploadedByCurrentUser,
 			&row.CreatedAt,
 			&row.UpdatedAt,
 			&row.OwnerType,
@@ -666,6 +681,73 @@ func (r *MediaRepository) ListFansubGroupMediaForReview(ctx context.Context, fan
 		return nil, fmt.Errorf("iterate fansub group media review rows: %w", err)
 	}
 	return result, nil
+}
+
+func (r *MediaRepository) GetFansubGroupMediaPermissionsForAppUser(
+	ctx context.Context,
+	fansubGroupID int64,
+	appUserID int64,
+) (models.FansubGroupMediaPermissions, error) {
+	var perms models.FansubGroupMediaPermissions
+	if fansubGroupID <= 0 || appUserID <= 0 {
+		return perms, nil
+	}
+
+	err := r.db.QueryRow(ctx, `
+		SELECT
+			COALESCE(fgmp.can_upload, FALSE),
+			COALESCE(fgmp.can_delete_own, FALSE),
+			COALESCE(fgmp.can_delete_all, FALSE),
+			COALESCE(fgmp.can_reorder, FALSE)
+		FROM fansub_group_members fgm
+		LEFT JOIN fansub_group_member_media_permissions fgmp
+			ON fgmp.fansub_group_member_id = fgm.id
+		WHERE fgm.fansub_group_id = $1
+		  AND fgm.app_user_id = $2
+		  AND fgm.status = $3
+		LIMIT 1
+	`, fansubGroupID, appUserID, models.FansubGroupMemberStatusActive).Scan(
+		&perms.CanUpload,
+		&perms.CanDeleteOwn,
+		&perms.CanDeleteAll,
+		&perms.CanReorder,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return perms, nil
+	}
+	if err != nil {
+		return perms, fmt.Errorf("get fansub group media permissions: %w", err)
+	}
+	return perms, nil
+}
+
+func (r *MediaRepository) FansubGroupMediaUploadedByAppUser(
+	ctx context.Context,
+	fansubGroupID int64,
+	mediaID int64,
+	appUserID int64,
+) (bool, error) {
+	if fansubGroupID <= 0 || mediaID <= 0 || appUserID <= 0 {
+		return false, nil
+	}
+
+	var uploadedByCurrentUser bool
+	err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM fansub_group_media fgm
+			JOIN app_users au ON au.id = $3
+			WHERE fgm.group_id = $1
+			  AND fgm.media_id = $2
+			  AND fgm.deleted_at IS NULL
+			  AND au.legacy_user_id IS NOT NULL
+			  AND fgm.uploaded_by_user_id = au.legacy_user_id
+		)
+	`, fansubGroupID, mediaID, appUserID).Scan(&uploadedByCurrentUser)
+	if err != nil {
+		return false, fmt.Errorf("check fansub group media uploader: %w", err)
+	}
+	return uploadedByCurrentUser, nil
 }
 
 // UpdateFansubMediaReview setzt ausschließlich Sichtbarkeit und/oder Reviewstatus
@@ -798,6 +880,75 @@ func (r *MediaRepository) GetMaxFansubGroupMediaSortOrder(ctx context.Context, f
 		return 0, fmt.Errorf("get max fansub group media sort_order %d: %w", fansubGroupID, err)
 	}
 	return maxOrder, nil
+}
+
+func (r *MediaRepository) ReorderFansubGroupMedia(ctx context.Context, fansubGroupID int64, mediaIDs []int64) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin reorder fansub_group_media (group_id=%d): %w", fansubGroupID, err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	rows, err := tx.Query(ctx, `
+		SELECT fgm.media_id
+		FROM fansub_group_media fgm
+		JOIN fansub_groups fg ON fg.id = fgm.group_id
+		WHERE fgm.group_id = $1
+		  AND fgm.deleted_at IS NULL
+		  AND (fg.logo_id IS NULL OR fgm.media_id <> fg.logo_id)
+		  AND (fg.banner_id IS NULL OR fgm.media_id <> fg.banner_id)
+		FOR UPDATE OF fgm
+	`, fansubGroupID)
+	if err != nil {
+		return fmt.Errorf("select fansub_group_media for reorder (group_id=%d): %w", fansubGroupID, err)
+	}
+	defer rows.Close()
+
+	expected := make(map[int64]struct{})
+	for rows.Next() {
+		var mediaID int64
+		if err := rows.Scan(&mediaID); err != nil {
+			return fmt.Errorf("scan fansub_group_media reorder row (group_id=%d): %w", fansubGroupID, err)
+		}
+		expected[mediaID] = struct{}{}
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate fansub_group_media reorder rows (group_id=%d): %w", fansubGroupID, err)
+	}
+	if len(expected) == 0 {
+		return ErrNotFound
+	}
+	if len(mediaIDs) != len(expected) {
+		return ErrOwnershipMismatch
+	}
+	for _, mediaID := range mediaIDs {
+		if _, ok := expected[mediaID]; !ok {
+			return ErrOwnershipMismatch
+		}
+	}
+
+	for index, mediaID := range mediaIDs {
+		sortOrder := (index + 1) * 1000
+		tag, err := tx.Exec(ctx, `
+			UPDATE fansub_group_media
+			SET sort_order = $3,
+			    updated_at = NOW()
+			WHERE group_id = $1
+			  AND media_id = $2
+			  AND deleted_at IS NULL
+		`, fansubGroupID, mediaID, sortOrder)
+		if err != nil {
+			return fmt.Errorf("reorder fansub_group_media (group_id=%d, media_id=%d): %w", fansubGroupID, mediaID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrNotFound
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit reorder fansub_group_media (group_id=%d): %w", fansubGroupID, err)
+	}
+	return nil
 }
 
 type FansubGroupMediaCreateInput struct {
