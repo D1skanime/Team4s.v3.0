@@ -37,7 +37,7 @@ describe('RecentContributionsSection', () => {
         isPublicView={true}
         items={[
           makeContribution({ id: 1, anime_title: 'Maboroshi no Fansub', fansub_group_name: 'Phase Fansubs', role_label: 'Typesetter' }),
-          makeContribution({ id: 2, anime_title: 'QC Memories', fansub_group_name: 'Archiv Team', role_label: 'Quality Check' }),
+          makeContribution({ id: 2, anime_id: 12, anime_title: 'QC Memories', fansub_group_name: 'Archiv Team', role_label: 'Quality Check' }),
         ]}
       />,
     )
