@@ -51,6 +51,7 @@ type WizardStep = 1 | 2 | 3
 const FORM_ID = 'proposal-form'
 const MIN_YEAR = 1990
 const MAX_NOTE_LENGTH = 280
+const FINAL_SUBMIT_ARM_DELAY_MS = 500
 
 const STEPS: Array<{ id: WizardStep; title: string }> = [
   { id: 1, title: 'Gruppe & Projekt' },
@@ -152,6 +153,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   const [startedYear, setStartedYear] = useState('')
   const [endedYear, setEndedYear] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isFinalSubmitArmed, setIsFinalSubmitArmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [roleError, setRoleError] = useState<string | null>(null)
   const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
@@ -223,6 +225,17 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     }
   }, [selectedGroup])
 
+  useEffect(() => {
+    if (step !== 3) {
+      setIsFinalSubmitArmed(false)
+      return
+    }
+
+    setIsFinalSubmitArmed(false)
+    const timeoutId = window.setTimeout(() => setIsFinalSubmitArmed(true), FINAL_SUBMIT_ARM_DELAY_MS)
+    return () => window.clearTimeout(timeoutId)
+  }, [step])
+
   function resetAndClose() {
     setStep(1)
     setSelectedGroupMemberId('')
@@ -259,6 +272,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     event.preventDefault()
     setError(null)
     setRoleError(null)
+
+    if (!isFinalSubmitArmed) {
+      return
+    }
 
     if (ownGroups.length === 0) {
       setStep(1)
@@ -333,7 +350,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
         form={step === 3 ? FORM_ID : undefined}
         variant="primary"
         onClick={step === 3 ? undefined : goNext}
-        disabled={isSubmitting || ownGroups.length === 0}
+        disabled={isSubmitting || ownGroups.length === 0 || (step === 3 && !isFinalSubmitArmed)}
       >
         {step === 3 ? (isSubmitting ? 'Wird gesendet...' : 'Hinweis senden') : 'Weiter'}
       </Button>

@@ -68,6 +68,14 @@ async function chooseGroupAndAnime() {
   fireEvent.click(screen.getByRole('option', { name: /Naruto/ }))
 }
 
+async function waitForFinalSubmitButton() {
+  const button = screen.getByRole('button', { name: 'Hinweis senden' }) as HTMLButtonElement
+  await waitFor(() => {
+    expect(button.disabled).toBe(false)
+  })
+  return button
+}
+
 describe('ProposalForm', () => {
   it('startet als 3-Schritte-Assistent ohne eigenen Kontext-Auswahlschritt', () => {
     renderForm()
@@ -139,6 +147,20 @@ describe('ProposalForm', () => {
     expect(editing.getAttribute('aria-checked')).toBe('true')
   })
 
+  it('wechselt nach der Rollenauswahl zur Texteingabe ohne direkt zu senden', async () => {
+    apiMocks.createContributionProposal.mockResolvedValue(undefined)
+    renderForm()
+
+    await chooseGroupAndAnime()
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    expect(screen.getAllByText('Schritt 3 von 3')).toHaveLength(1)
+    expect(screen.getByLabelText('Hinweis für den Gruppenleader')).toBeTruthy()
+    expect(apiMocks.createContributionProposal).not.toHaveBeenCalled()
+  })
+
   it('zeigt Hinweistext, 90-Tage-Regel und begrenzt den Zeichenzähler auf 280', () => {
     renderForm()
 
@@ -183,7 +205,7 @@ describe('ProposalForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
     fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Hinweis senden' }))
+    fireEvent.click(await waitForFinalSubmitButton())
 
     await waitFor(() => {
       expect(apiMocks.createContributionProposal).toHaveBeenCalledWith({
@@ -219,7 +241,7 @@ describe('ProposalForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
     fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Hinweis senden' }))
+    fireEvent.click(await waitForFinalSubmitButton())
 
     expect((await screen.findByRole('alert')).textContent).toContain(
       'Für diese Rolle existiert in diesem Projekt bereits ein Hinweis oder Beitrag.',
