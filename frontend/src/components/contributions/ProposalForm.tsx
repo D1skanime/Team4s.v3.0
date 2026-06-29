@@ -203,8 +203,8 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
               aria-disabled="true"
               title="Bald verfügbar"
             >
-              <strong>Bestimmte Folgen / Release-Version</strong>
-              <span>Bald verfügbar</span>
+              <strong>Bestimmte Folge</strong>
+              <span className={styles.soonTag}>Bald verfügbar</span>
             </Button>
           </div>
         </FormField>
@@ -253,7 +253,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
         {selectedGroup && selectedAnime ? (
           <div className={styles.selectionBreadcrumb} aria-label="Ausgewählter Kontext">
             <span>{selectedGroup.group_name}</span>
-            <span aria-hidden="true">→</span>
+            <span className={styles.breadcrumbArrow} aria-hidden="true">→</span>
             <span>{selectedAnime.title}</span>
           </div>
         ) : null}

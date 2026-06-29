@@ -183,10 +183,21 @@ export function AnimeGroupCard({
   const projectGroups = getUniqueGroups(contributions)
 
   return (
-    <Card variant="nestedFlat" className={styles.contributionCard}>
-      <div className={styles.contributionCardHeader}>
-        <span className={styles.contributionTitle}>{animeTitle}</span>
-        <div className={styles.actionsRow}>
+    <Card variant="nestedFlat" className={styles.roleCard}>
+      <div className={styles.roleCardTop}>
+        <div>
+          <span className={styles.roleCardTitle}>{animeTitle}</span>
+          {uniqueRoles.length > 0 ? (
+            <div className={styles.roleChips}>
+              {uniqueRoles.map(({ code, label }) => (
+                <Badge key={code} variant="info">
+                  {label}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div className={styles.roleCardActions}>
           {projectGroups.length === 1 ? (
             <Button
               size="sm"
@@ -210,16 +221,6 @@ export function AnimeGroupCard({
         </div>
       </div>
 
-      {uniqueRoles.length > 0 ? (
-        <div className={styles.roleList}>
-          {uniqueRoles.map(({ code, label }) => (
-            <Badge key={code} variant="info">
-              {label}
-            </Badge>
-          ))}
-        </div>
-      ) : null}
-
       {projectGroups.length > 1 ? (
         <div className={styles.projectButtonRow}>
           {projectGroups.map((group) => (
@@ -236,37 +237,40 @@ export function AnimeGroupCard({
       ) : null}
 
       {open ? (
-        <ul className={styles.accordionList}>
-          {ranges.map((entry) => {
-            const contrib = contributions.find((c) => c.id === entry.id)
-            return (
-              <li key={`${entry.id}-${entry.role}`} className={styles.accordionRow}>
-                <span className={styles.accordionLabel}>
-                  <strong>{entry.roleLabel}</strong>
-                  <span>{entry.scopeLabel}</span>
-                </span>
-                <div className={styles.actionsRow}>
-                  {entry.release_version_id !== null ? (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      href={`/me/releases/${entry.release_version_id}/workspace`}
-                    >
-                      Arbeitsfläche öffnen
-                    </Button>
-                  ) : null}
-                  {contrib ? (
-                    <VisibilityDropdown
-                      contributionId={contrib.id}
-                      isPublic={contrib.is_public_on_member_profile}
-                      onChanged={(isPublic) => onVisibilityChange(contrib.id, isPublic)}
-                    />
-                  ) : null}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
+        <div className={styles.roleCardBody}>
+          <p className={styles.roleVisibilityLabel}>Sichtbarkeit deiner Rollen</p>
+          <ul className={styles.accordionList}>
+            {ranges.map((entry) => {
+              const contrib = contributions.find((c) => c.id === entry.id)
+              return (
+                <li key={`${entry.id}-${entry.role}`} className={styles.accordionRow}>
+                  <span className={styles.accordionLabel}>
+                    <strong>{entry.roleLabel}</strong>
+                    <span>{entry.scopeLabel}</span>
+                  </span>
+                  <div className={styles.actionsRow}>
+                    {entry.release_version_id !== null ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        href={`/me/releases/${entry.release_version_id}/workspace`}
+                      >
+                        Arbeitsfläche öffnen
+                      </Button>
+                    ) : null}
+                    {contrib ? (
+                      <VisibilityDropdown
+                        contributionId={contrib.id}
+                        isPublic={contrib.is_public_on_member_profile}
+                        onChanged={(isPublic) => onVisibilityChange(contrib.id, isPublic)}
+                      />
+                    ) : null}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       ) : null}
     </Card>
   )

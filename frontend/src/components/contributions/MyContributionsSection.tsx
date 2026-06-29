@@ -41,7 +41,7 @@ export function MyContributionsSection({
   }, [contributions])
 
   return (
-    <Card variant="section">
+    <Card variant="section" className={styles.confirmedRolesSection}>
       <SectionHeader
         title={`Bestätigte Projektrollen (${grouped.length} Animes)`}
       />

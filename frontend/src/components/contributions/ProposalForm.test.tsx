@@ -65,7 +65,7 @@ describe('ProposalForm', () => {
     expect(markup).toContain('Hinweis geht zur Prüfung an die zuständige Gruppe')
     expect(markup).toContain('Worum geht es?')
     expect(markup).toContain('Projekt insgesamt')
-    expect(markup).toContain('Bestimmte Folgen / Release-Version')
+    expect(markup).toContain('Bestimmte Folge')
     expect(markup).toContain('Bald verfügbar')
     expect(markup).toContain('Hinweis senden')
     expect(markup).toContain('nicht als öffentlicher Profiltext angezeigt')

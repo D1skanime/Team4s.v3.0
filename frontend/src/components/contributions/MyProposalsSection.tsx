@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { Inbox } from 'lucide-react'
 
-import { Badge, Button, Card, EmptyState, ErrorState, SectionHeader } from '@/components/ui'
+import { Badge, Button, Card, ErrorState, SectionHeader } from '@/components/ui'
 import { ApiError, selfPublishContribution } from '@/lib/api'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
 
@@ -161,11 +162,15 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
         ) : null}
 
         {total === 0 ? (
-          <EmptyState
-            variant="compact"
-            title="Noch keine Hinweise"
-            description="Reiche den ersten Hinweis für ein Projekt einer Gruppe ein, in der du Mitglied bist."
-          />
+          <div className={styles.proposalEmptyCard}>
+            <span className={styles.proposalEmptyIcon} aria-hidden="true">
+              <Inbox size={17} strokeWidth={2.2} />
+            </span>
+            <span>
+              <strong>Noch keine Hinweise</strong>
+              <span>Reiche den ersten Hinweis für ein Projekt einer Gruppe ein, in der du Mitglied bist.</span>
+            </span>
+          </div>
         ) : null}
 
         {inPruefung.length > 0 ? (
