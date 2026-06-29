@@ -8792,6 +8792,7 @@ components:
         - id
         - anime_title
         - anime_id
+        - fansub_group_id
         - fansub_group_name
         - fansub_group_names
         - role_name
@@ -8807,6 +8808,9 @@ components:
         anime_title:
           type: string
         anime_id:
+          type: integer
+          format: int64
+        fansub_group_id:
           type: integer
           format: int64
         fansub_group_name:

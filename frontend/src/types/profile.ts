@@ -45,6 +45,7 @@ export interface MemberProfileRecentContribution {
   id: number
   anime_title: string
   anime_id: number
+  fansub_group_id: number
   fansub_group_name: string
   fansub_group_names?: string[]
   role_name: string

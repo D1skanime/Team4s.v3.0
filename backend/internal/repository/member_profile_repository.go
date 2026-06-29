@@ -1122,6 +1122,7 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 				created_at,
 				anime_title,
 				anime_id,
+				fansub_group_id,
 				fansub_group_name,
 				role_name,
 				role_label
@@ -1133,6 +1134,7 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 				anime_id AS id,
 				anime_title,
 				anime_id,
+				fansub_group_id,
 				(ARRAY_AGG(DISTINCT fansub_group_name ORDER BY fansub_group_name))[1] AS fansub_group_name,
 				COALESCE(ARRAY_AGG(DISTINCT fansub_group_name ORDER BY fansub_group_name), ARRAY[]::text[]) AS fansub_group_names,
 				(ARRAY_AGG(DISTINCT role_name ORDER BY role_name))[1] AS role_name,
@@ -1143,12 +1145,13 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 				COUNT(DISTINCT episode_id)::int AS episode_count,
 				MAX(created_at) AS created_at
 			FROM deduped
-			GROUP BY anime_id, anime_title
+			GROUP BY anime_id, anime_title, fansub_group_id
 		)
 		SELECT
 			id,
 			anime_title,
 			anime_id,
+			fansub_group_id,
 			fansub_group_name,
 			fansub_group_names,
 			role_name,
@@ -1173,6 +1176,7 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 			&item.ID,
 			&item.AnimeTitle,
 			&item.AnimeID,
+			&item.FansubGroupID,
 			&item.FansubGroupName,
 			&item.FansubGroupNames,
 			&item.RoleName,

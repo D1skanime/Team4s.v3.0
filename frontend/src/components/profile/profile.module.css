@@ -171,6 +171,11 @@
   background: linear-gradient(90deg, var(--color-primary, #2f5fe3), var(--color-success, #2f9b79));
 }
 
+.projectActionRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
 .recentItemBody span {
   color: var(--color-text-muted, #64748b);
   font-size: 0.9rem;

@@ -16,6 +16,7 @@ function makeContribution(overrides: Partial<MemberProfileRecentContribution> = 
     id: 1,
     anime_id: 11,
     anime_title: 'Maboroshi no Fansub',
+    fansub_group_id: 7,
     fansub_group_name: 'Phase Fansubs',
     role_name: 'typesetter',
     role_label: 'Typesetter',
@@ -61,6 +62,38 @@ describe('RecentContributionsSection', () => {
     expect(screen.getByText('Typesetter')).not.toBeNull()
     expect(screen.getByText('Editing')).not.toBeNull()
     expect(screen.getByText('2 Release-Versionen / 2 Folgen')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Projekt öffnen' }).getAttribute('href')).toBe('/me/projects/11/group/7')
+  })
+
+  it('keeps anime projects separate per fansub group for own project links', () => {
+    render(
+      <RecentContributionsSection
+        canView={true}
+        isPublicView={false}
+        items={[
+          makeContribution({ id: 1, fansub_group_id: 7, fansub_group_name: 'Phase Fansubs' }),
+          makeContribution({ id: 2, fansub_group_id: 8, fansub_group_name: 'Archiv Team' }),
+        ]}
+      />,
+    )
+
+    const list = screen.getByRole('list', { name: 'Letzte Projekte' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+    const links = screen.getAllByRole('link', { name: 'Projekt öffnen' })
+    expect(links[0].getAttribute('href')).toBe('/me/projects/11/group/7')
+    expect(links[1].getAttribute('href')).toBe('/me/projects/11/group/8')
+  })
+
+  it('does not link public profile projects to the private me workspace', () => {
+    render(
+      <RecentContributionsSection
+        canView={true}
+        isPublicView={true}
+        items={[makeContribution()]}
+      />,
+    )
+
+    expect(screen.queryByRole('link', { name: 'Projekt öffnen' })).toBeNull()
   })
 
   it('deduplicates repeated roles and keeps distinct fansub groups', () => {

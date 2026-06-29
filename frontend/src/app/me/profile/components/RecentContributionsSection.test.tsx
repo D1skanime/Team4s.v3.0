@@ -16,6 +16,7 @@ function makeContribution(overrides: Partial<MemberProfileRecentContribution> = 
     id: 1,
     anime_id: 11,
     anime_title: 'Maboroshi no Fansub',
+    fansub_group_id: 7,
     fansub_group_name: 'Phase Fansubs',
     role_name: 'typesetter',
     role_label: 'Typesetter',

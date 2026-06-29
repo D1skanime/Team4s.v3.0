@@ -1,4 +1,4 @@
-import { Badge, Card, EmptyState } from '@/components/ui'
+import { Badge, Button, Card, EmptyState } from '@/components/ui'
 import type { MemberProfileRecentContribution } from '@/types/profile'
 
 import styles from './profile.module.css'
@@ -25,10 +25,11 @@ function appendUnique(target: string[], values: Array<string | null | undefined>
 }
 
 function toRecentProjects(items: MemberProfileRecentContribution[]): RecentContributionProject[] {
-  const projects = new Map<number, RecentContributionProject>()
+  const projects = new Map<string, RecentContributionProject>()
 
   for (const item of items) {
-    const existing = projects.get(item.anime_id)
+    const projectKey = `${item.anime_id}:${item.fansub_group_id}`
+    const existing = projects.get(projectKey)
     const groupNames = [...(item.fansub_group_names ?? []), item.fansub_group_name]
     const roleNames = [...(item.role_names ?? []), item.role_name]
     const roleLabels = [...(item.role_labels ?? []), item.role_label]
@@ -54,7 +55,7 @@ function toRecentProjects(items: MemberProfileRecentContribution[]): RecentContr
     appendUnique(project.fansub_group_names, groupNames)
     appendUnique(project.role_names, roleNames)
     appendUnique(project.role_labels, roleLabels)
-    projects.set(item.anime_id, project)
+    projects.set(projectKey, project)
   }
 
   return Array.from(projects.values())
@@ -75,7 +76,7 @@ function projectWorkUnits(item: RecentContributionProject): number {
   return Math.max(1, item.release_version_count + item.episode_count)
 }
 
-export function RecentContributionsSection({ items, canView }: RecentContributionsSectionProps) {
+export function RecentContributionsSection({ items, canView, isPublicView = false }: RecentContributionsSectionProps) {
   const projects = toRecentProjects(items)
   const maxWorkUnits = Math.max(1, ...projects.map(projectWorkUnits))
 
@@ -90,7 +91,7 @@ export function RecentContributionsSection({ items, canView }: RecentContributio
         const progressValue = Math.round((projectWorkUnits(item) / maxWorkUnits) * 100)
 
         return (
-          <li key={item.id}>
+          <li key={`${item.anime_id}:${item.fansub_group_id}`}>
             <Card variant="nestedFlat" className={styles.recentContributionCard}>
               <div className={styles.recentContributionCover} aria-hidden="true">
                 {item.anime_title.slice(0, 2).toUpperCase()}
@@ -109,6 +110,17 @@ export function RecentContributionsSection({ items, canView }: RecentContributio
                 <div className={styles.projectProgress} aria-label={`Bearbeitungsumfang ${progressValue} Prozent`}>
                   <span style={{ width: `${progressValue}%` }} />
                 </div>
+                {!isPublicView ? (
+                  <div className={styles.projectActionRow}>
+                    <Button
+                      href={`/me/projects/${item.anime_id}/group/${item.fansub_group_id}`}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      Projekt öffnen
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </Card>
           </li>

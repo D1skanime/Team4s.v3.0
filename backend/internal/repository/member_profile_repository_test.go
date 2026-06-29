@@ -82,8 +82,8 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"fansub_releases has no anime_id column; recent profile SQL must not use it")
 	assert.True(t, strings.Contains(content, "anime_id AS id"),
 		"recent profile projects must use anime_id as the stable project card id")
-	assert.True(t, strings.Contains(content, "GROUP BY anime_id, anime_title"),
-		"recent profile projects must aggregate release credits into one anime project row")
+	assert.True(t, strings.Contains(content, "GROUP BY anime_id, anime_title, fansub_group_id"),
+		"recent profile projects must aggregate release credits into one anime/fansub project row")
 	assert.True(t, strings.Contains(content, "ARRAY_AGG(DISTINCT role_label ORDER BY role_label)"),
 		"recent profile projects must merge duplicate roles into distinct labels")
 	assert.True(t, strings.Contains(content, "ARRAY_AGG(DISTINCT fansub_group_name ORDER BY fansub_group_name)"),

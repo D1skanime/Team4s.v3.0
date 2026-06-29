@@ -54,6 +54,7 @@ type MemberProfileRecentContribution struct {
 	ID                  int64    `json:"id"`
 	AnimeTitle          string   `json:"anime_title"`
 	AnimeID             int64    `json:"anime_id"`
+	FansubGroupID       int64    `json:"fansub_group_id"`
 	FansubGroupName     string   `json:"fansub_group_name"`
 	FansubGroupNames    []string `json:"fansub_group_names"`
 	RoleName            string   `json:"role_name"`

@@ -8,6 +8,7 @@ Das Add-on zu Phase 91 wurde umgesetzt: "Projekt öffnen" führt nun zu einer ei
 
 - Neuer memberbezogener Backend-Endpoint für Projektdetails.
 - Neue Frontend-Route `/me/projects/[animeId]/group/[fansubGroupId]`.
+- Profilbereich "Letzte Projekte" verlinkt eigene Projektkarten direkt auf die Detailroute.
 - Projektkopf mit Backdrop, blauem Fallback, Titel, Gruppe und aggregierten Rollen.
 - Quick-Jump "Medien zu [Projekt]".
 - Release-Versionen-Liste als einzige Liste auf der Seite.
@@ -24,6 +25,7 @@ Das Add-on zu Phase 91 wurde umgesetzt: "Projekt öffnen" führt nun zu einer ei
 - `cd frontend && npm run typecheck` - bestanden.
 - `cd frontend && npm run lint` - bestanden mit bestehenden Repo-Warnungen.
 - Gezielte Frontend-Tests - bestanden.
+- Profil-Absprung-Tests fuer "Letzte Projekte" - bestanden.
 - `cd backend && go test ./...` - bestanden.
 - `git diff --check` - bestanden mit CRLF-Hinweisen.
 - `cd frontend && npm test -- --run` - ausgeführt; bestehende Baseline-Fehler in Admin-Anime/Auth-Boundary/Fansub-Public/MemberContributionFilters bleiben außerhalb dieses Add-ons offen.
