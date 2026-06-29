@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Pencil, Search } from 'lucide-react'
 
-import { Badge, Button, Card, ErrorState, Input, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
+import { Button, Card, ErrorState, Input, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
 import { ApiError, getMyProjectDetail } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MeProjectDetail, MeProjectReleaseVersion } from '@/types/contributions'
@@ -210,12 +210,13 @@ export function MyProjectDetailPage() {
             <p>{project.fansub_group_name}</p>
           </div>
           <div className={styles.rolePanel}>
-            <span>Deine Rollen insgesamt</span>
-            <div className={styles.roleList}>
+            <span>Deine Projektrollen</span>
+            <div className={styles.roleDetailList} role="group" aria-label="Deine Projektrollen in diesem Projekt">
               {project.role_labels.map((label, index) => (
-                <Badge key={`${project.role_codes[index] ?? label}-${label}`} variant="info">
-                  {label}
-                </Badge>
+                <div key={`${project.role_codes[index] ?? label}-${label}`} className={styles.roleDetailRow}>
+                  <strong>{label}</strong>
+                  <small>Für das gesamte Projekt</small>
+                </div>
               ))}
             </div>
           </div>
