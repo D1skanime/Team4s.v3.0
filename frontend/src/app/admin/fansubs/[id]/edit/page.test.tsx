@@ -30,6 +30,7 @@ const mockedUseReleaseVersionMedia = vi.fn<(versionId: number | null) => UseRele
 const mockedUseAuthSession = vi.hoisted(() => vi.fn(() => ({ hasAccessToken: true, isClientInitialized: true })))
 const mediaUploadProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const appMembersSectionProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
+const animeProjectNoteWorkspaceProps = vi.hoisted(() => [] as Array<Record<string, unknown>>)
 const apiMocks = vi.hoisted(() => ({
   applyDefaultCrew: vi.fn().mockResolvedValue({ applied_count: 0 }),
   createFansubAlias: vi.fn(),
@@ -106,7 +107,10 @@ vi.mock('./AnimeReleasesFilterBar', () => ({
 }))
 
 vi.mock('./AnimeProjectNoteWorkspace', () => ({
-  AnimeProjectNoteWorkspace: () => <div data-testid="anime-project-note-workspace" />,
+  AnimeProjectNoteWorkspace: (props: Record<string, unknown>) => {
+    animeProjectNoteWorkspaceProps.push(props)
+    return <div data-testid="anime-project-note-workspace" />
+  },
 }))
 
 vi.mock('./CoverageMatrix', () => ({
@@ -163,6 +167,7 @@ beforeEach(() => {
   })
   mediaUploadProps.length = 0
   appMembersSectionProps.length = 0
+  animeProjectNoteWorkspaceProps.length = 0
   mockedUseAuthSession.mockReturnValue({ hasAccessToken: true, isClientInitialized: true })
   apiMocks.getAdminFansubAnimeReleases.mockReset()
   apiMocks.getAnimeCoverage.mockResolvedValue({ data: [] })
@@ -661,6 +666,53 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(apiMocks.getAdminFansubAnimeReleases).toHaveBeenCalledWith(88, 13, {
       page: 1,
       per_page: 30,
+    })
+  })
+
+  it('shows project insight read-only for release viewers without note edit rights', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: false,
+        can_manage_links: false,
+        can_view_members: false,
+        can_manage_members: false,
+        can_edit_notes: false,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
+        can_view_group_media: false,
+        can_upload_group_media: false,
+        can_update_group_media: false,
+        can_delete_own_group_media: false,
+        can_delete_group_media: false,
+        can_reorder_group_media: false,
+      },
+    })
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAnimeCoverage.mockResolvedValue({
+      data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: true }],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([]))
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
+
+    expect(await screen.findByTestId('anime-project-note-workspace')).not.toBeNull()
+    expect(animeProjectNoteWorkspaceProps.at(-1)).toMatchObject({
+      fansubId: 88,
+      animeId: 13,
+      expanded: true,
+      canEdit: false,
     })
   })
 

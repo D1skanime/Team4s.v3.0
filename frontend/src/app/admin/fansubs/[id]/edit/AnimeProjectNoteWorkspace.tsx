@@ -44,9 +44,10 @@ type Props = {
   fansubId: number
   animeId: number
   expanded: boolean // lazy load trigger (D-12)
+  canEdit: boolean
 }
 
-export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded }: Props) {
+export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit }: Props) {
   const [noteState, setNoteState] = useState<NoteLoadState>('idle')
   const [note, setNote] = useState<AnimeFansubProjectNote | null>(null)
   const [form, setForm] = useState<NoteFormState>(emptyForm)
@@ -143,9 +144,11 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded }: Props
           title="Projekt-Einblick fehlt"
           description="Noch kein Einblick für dieses Projekt vorhanden."
           action={
-            <Button variant="primary" size="sm" onClick={handleEdit}>
-              Einblick hinzufügen
-            </Button>
+            canEdit ? (
+              <Button variant="primary" size="sm" onClick={handleEdit}>
+                Einblick hinzufügen
+              </Button>
+            ) : undefined
           }
         />
       </div>
@@ -159,9 +162,11 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded }: Props
         <SectionHeader
           title="Projekt-Einblick"
           actions={
-            <Button variant="ghost" size="sm" onClick={handleEdit}>
-              Einblick bearbeiten
-            </Button>
+            canEdit ? (
+              <Button variant="ghost" size="sm" onClick={handleEdit}>
+                Einblick bearbeiten
+              </Button>
+            ) : undefined
           }
         />
         <RichTextRenderer bodyHtml={note.bodyHtml} />

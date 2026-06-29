@@ -16,6 +16,10 @@ func TestAdminContentFansubNotes_ProjectNoteSourceInvariants(t *testing.T) {
 
 	assert.True(t, strings.Contains(content, "ErrInvalidAnimeFansubContext"),
 		"handler must map invalid anime/fansub context errors explicitly")
+	assert.True(t, strings.Contains(content, "requireAnimeProjectNoteReadAccess(c)"),
+		"project note GET must use read access, not write access")
+	assert.True(t, strings.Contains(content, "permissions.ActionReleaseView"),
+		"project note read access must follow release.view")
 	assert.True(t, strings.Contains(content, "Anime-Fansub-Zuordnung nicht gefunden"),
 		"handler must return a clear German 4xx message for invalid anime/fansub context")
 	assert.True(t, strings.Contains(content, "DeleteAnimeFansubProjectNote(c.Request.Context(), noteID, animeID, fansubID, identity.UserID)"),

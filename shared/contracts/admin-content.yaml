@@ -521,6 +521,32 @@ endpoints:
       - Returns one aggregate row per anime_fansub_groups context for the fansub group.
       - has_project_note is true when a non-deleted anime_fansub_project_notes row exists for the anime/group context.
 
+  - name: admin-fansub-anime-project-note-get
+    method: GET
+    path: /api/v1/admin/fansubs/{id}/anime/{animeId}/notes
+    auth:
+      required: true
+      permission: release.view for the addressed fansub group
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      unauthenticated_status: 401
+      forbidden_status: 403
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: animeId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AnimeFansubProjectNoteResponse
+    not_found_status: 404
+    notes:
+      - Read-only release viewers may load the project insight.
+      - Creating, updating, and deleting project insights still require note write access.
+
   - name: admin-fansub-anime-contributions-create
     method: POST
     path: /api/v1/admin/fansubs/{id}/anime/{animeId}/contributions

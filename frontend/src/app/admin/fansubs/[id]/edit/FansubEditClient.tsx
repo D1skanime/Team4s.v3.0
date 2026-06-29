@@ -100,7 +100,9 @@ export function FansubEditClient({
   );
   const canUseReleaseMedia = canViewReleaseMedia(isPlatformAdmin, capabilities);
   const canUseReleaseNotes = canEditReleaseNotes(isPlatformAdmin, capabilities);
-  const canUseProjectNotes = canUseMainTab(
+  const canViewProjectNotes =
+    isPlatformAdmin || Boolean(capabilities?.can_view_releases);
+  const canEditProjectNotes = canUseMainTab(
     "notes",
     isPlatformAdmin,
     capabilities,
@@ -254,7 +256,8 @@ export function FansubEditClient({
         error={error}
         releaseData={releaseData}
         contributions={contributions}
-        canUseProjectNotes={canUseProjectNotes}
+        canViewProjectNotes={canViewProjectNotes}
+        canEditProjectNotes={canEditProjectNotes}
         canViewReleaseContributors={canSeeReleaseContributors}
         canEditReleaseContributors={canEditReleaseContributors}
         canUseReleaseMedia={canUseReleaseMedia}

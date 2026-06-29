@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -20,9 +22,35 @@ type upsertAnimeFansubProjectNoteRequest struct {
 	SortOrder  int             `json:"sort_order"`
 }
 
+func (h *AdminContentHandler) requireAnimeProjectNoteReadAccess(c *gin.Context) (middleware.AuthIdentity, bool) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return middleware.AuthIdentity{}, false
+	}
+
+	fansubID, err := parseFansubRouteID(c)
+	if err != nil || fansubID <= 0 {
+		badRequest(c, "ungültige fansub id")
+		return middleware.AuthIdentity{}, false
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionReleaseView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Einblick-Berechtigung konnte nicht geprüft werden.")
+		return middleware.AuthIdentity{}, false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "anime_project_note.read.denied", &fansubID, "anime_fansub_project_note", nil, permissions.ActionReleaseView, result)
+		writePermissionDenied(c, result)
+		return middleware.AuthIdentity{}, false
+	}
+
+	return identity, true
+}
+
 // GetAnimeFansubProjectNote verarbeitet GET /api/v1/admin/fansubs/:id/anime/:animeId/notes.
 func (h *AdminContentHandler) GetAnimeFansubProjectNote(c *gin.Context) {
-	if _, ok := h.requireFansubGroupNoteWriteAccess(c); !ok {
+	if _, ok := h.requireAnimeProjectNoteReadAccess(c); !ok {
 		return
 	}
 

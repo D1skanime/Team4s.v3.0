@@ -31,7 +31,8 @@ type AnimeReleasesCockpitProps = {
   fansubID: number;
   releaseData: FansubReleaseData;
   contributions: ReleaseContributions;
-  canUseProjectNotes: boolean;
+  canViewProjectNotes: boolean;
+  canEditProjectNotes: boolean;
   canViewReleaseContributors: boolean;
   canEditReleaseContributors: boolean;
   canUseReleaseMedia: boolean;
@@ -53,7 +54,8 @@ export function AnimeReleasesCockpit({
   fansubID,
   releaseData,
   contributions,
-  canUseProjectNotes,
+  canViewProjectNotes,
+  canEditProjectNotes,
   canViewReleaseContributors,
   canEditReleaseContributors,
   canUseReleaseMedia,
@@ -282,12 +284,13 @@ export function AnimeReleasesCockpit({
                       </span>
                     </button>
                   </div>
-                  {animeExpanded && canUseProjectNotes ? (
+                  {animeExpanded && canViewProjectNotes ? (
                     <section className={styles.fansubEditProjectInsightPanel}>
                       <AnimeProjectNoteWorkspace
                         fansubId={fansubID}
                         animeId={releaseGroup.anime.id}
                         expanded={animeExpanded}
+                        canEdit={canEditProjectNotes}
                       />
                     </section>
                   ) : null}
