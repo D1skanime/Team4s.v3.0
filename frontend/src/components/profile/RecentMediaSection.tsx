@@ -10,6 +10,13 @@ type RecentMediaSectionProps = {
   isPublicView?: boolean
 }
 
+const RECENT_MEDIA_CATEGORY_LABELS: Record<string, string> = {
+  screenshot: 'Screenshot',
+  typesetting_karaoke: 'Typesetting / Karaoke',
+  fun_outtake: 'Fun / Outtake',
+  other: 'Sonstiges',
+}
+
 function formatReleaseVersionTitle(item: MemberProfileRecentMedia): string {
   const releaseVersionID = Number.isFinite(item.release_version_id) ? item.release_version_id : null
   const label = item.release_version_label?.trim() ?? ''
@@ -24,6 +31,10 @@ function formatMediaTitle(item: MemberProfileRecentMedia, fallback: string): str
   return caption || fallback
 }
 
+function formatMediaCategory(category: string): string {
+  return RECENT_MEDIA_CATEGORY_LABELS[category] ?? category
+}
+
 export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) {
   if (!canView || items.length === 0) {
     return <EmptyState title="Noch keine Medien hochgeladen." />
@@ -35,6 +46,7 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
         const thumbnailURL = resolveApiUrl(item.thumbnail_url || '')
         const previewLabel = `Vorschau ${index + 1}`
         const mediaTitle = formatMediaTitle(item, previewLabel)
+        const categoryLabel = formatMediaCategory(item.category)
 
         return (
           <li key={item.id}>
@@ -48,8 +60,9 @@ export function RecentMediaSection({ items, canView }: RecentMediaSectionProps) 
                 )}
               </div>
               <div className={styles.recentItemBody}>
-                <Badge variant="info">{previewLabel}</Badge>
+                <Badge variant="info">{categoryLabel}</Badge>
                 <strong>{mediaTitle}</strong>
+                <span>{previewLabel}</span>
                 <span>{formatReleaseVersionTitle(item)}</span>
                 <span>{item.anime_title}</span>
               </div>

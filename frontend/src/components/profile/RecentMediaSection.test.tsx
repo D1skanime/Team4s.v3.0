@@ -42,6 +42,7 @@ describe('RecentMediaSection', () => {
     expect(container.querySelector('[class*="recentMediaThumb"]')).not.toBeNull()
     expect(screen.getByAltText('Medienbild zu Naruto')).not.toBeNull()
     expect(screen.getAllByText('Vorschau 1')).toHaveLength(1)
+    expect(screen.getByText('Screenshot')).not.toBeNull()
     expect(screen.getByText('Typesetting war die Herausforderung')).not.toBeNull()
     expect(screen.getByText('Release-Version #41 (v2)')).not.toBeNull()
     expect(screen.getByText('Naruto')).not.toBeNull()
@@ -53,5 +54,11 @@ describe('RecentMediaSection', () => {
     render(<RecentMediaSection items={[makeMedia({ caption: '   ' })]} canView={true} isPublicView={false} />)
 
     expect(screen.getAllByText('Vorschau 1')).toHaveLength(2)
+  })
+
+  it('renders known release media categories as user-facing labels', () => {
+    render(<RecentMediaSection items={[makeMedia({ category: 'typesetting_karaoke' })]} canView={true} />)
+
+    expect(screen.getByText('Typesetting / Karaoke')).not.toBeNull()
   })
 })
