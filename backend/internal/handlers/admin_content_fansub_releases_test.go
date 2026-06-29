@@ -129,6 +129,9 @@ func (s *fansubReleaseThemeRepoStub) ListReleaseThemeAssetsByFansubAnime(ctx con
 func (s *fansubReleaseThemeRepoStub) HasGlobalThemeSegmentCoverageForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error) {
 	return false, nil
 }
+func (s *fansubReleaseThemeRepoStub) HasReleaseAssetSegmentUploadBlockedForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error) {
+	return false, nil
+}
 func (s *fansubReleaseThemeRepoStub) CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error) {
 	return nil, nil
 }

@@ -250,6 +250,19 @@ func (h *AdminContentHandler) UploadReleaseThemeAsset(c *gin.Context) {
 		return
 	}
 
+	blockedBySegmentAnchor, err := h.themeRepo.HasReleaseAssetSegmentUploadBlockedForRelease(c.Request.Context(), *releaseID, themeID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprueft werden.")
+		return
+	}
+	if blockedBySegmentAnchor {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"message": "dieses theme gilt für einen episodenbereich; upload ist nur am segmentstart möglich",
+			"code":    "theme_segment_upload_anchor_required",
+		}})
+		return
+	}
+
 	saveResult, err := h.mediaService.SaveReleaseThemeVideoUpload(services.ReleaseThemeVideoStorageContext{
 		ReleaseID: *releaseID,
 		ThemeID:   themeID,
@@ -398,6 +411,19 @@ func (h *AdminContentHandler) UploadReleaseThemeAssetForRelease(c *gin.Context) 
 		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
 			"message": "dieses theme ist bereits global für den episodenbereich gesetzt und kann hier nicht abweichend hochgeladen werden",
 			"code":    "theme_segment_locked",
+		}})
+		return
+	}
+
+	blockedBySegmentAnchor, err := h.themeRepo.HasReleaseAssetSegmentUploadBlockedForRelease(c.Request.Context(), releaseID, themeID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Theme-Regel konnte nicht geprueft werden.")
+		return
+	}
+	if blockedBySegmentAnchor {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+			"message": "dieses theme gilt für einen episodenbereich; upload ist nur am segmentstart möglich",
+			"code":    "theme_segment_upload_anchor_required",
 		}})
 		return
 	}

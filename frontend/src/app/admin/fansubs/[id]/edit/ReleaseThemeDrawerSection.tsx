@@ -54,7 +54,8 @@ export function ReleaseThemeDrawerSection({
   const themeSelectedCard = selectedReleaseSegment?.card ?? null;
   const themeSelectedLocked = themeSelectedCard
     ? themeSelectedCard.status === "global" ||
-      isJellyfinLocked(themeSelectedCard)
+      isJellyfinLocked(themeSelectedCard) ||
+      Boolean(themeSelectedCard.release_asset_upload_locked)
     : false;
   const themePrimarySegment = themeSelectedCard?.segments[0] ?? null;
   const themeAssetPreviewUrl = themeSelectedCard?.public_url
@@ -179,8 +180,9 @@ export function ReleaseThemeDrawerSection({
                   ) : null}
                   {themeSelectedLocked ? (
                     <p className={styles.fansubEditHint}>
-                      Global/Jellyfin gesetzt - keine Fansub-Überschreibung in
-                      diesem Schritt.
+                      {themeSelectedCard.release_asset_upload_locked
+                        ? "Dieses Theme gilt für einen Episodenbereich. Der Upload wird am Segmentstart verwaltet, nicht an dieser Folge."
+                        : "Global/Jellyfin gesetzt - keine Fansub-Überschreibung in diesem Schritt."}
                     </p>
                   ) : !canManageReleaseThemeAssets ? (
                     <p className={styles.fansubEditHint}>

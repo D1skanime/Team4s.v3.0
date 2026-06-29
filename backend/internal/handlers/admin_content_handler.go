@@ -71,6 +71,7 @@ type adminThemeRepository interface {
 	ListReleaseThemeAssets(ctx context.Context, releaseID int64) ([]models.AdminReleaseThemeAsset, error)
 	ListReleaseThemeAssetsByFansubAnime(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, []models.AdminReleaseThemeAsset, error)
 	HasGlobalThemeSegmentCoverageForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error)
+	HasReleaseAssetSegmentUploadBlockedForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error)
 	CreateReleaseThemeAsset(ctx context.Context, input models.AdminReleaseThemeAssetCreateInput) (*models.AdminReleaseThemeAsset, error)
 	DeleteReleaseThemeAsset(ctx context.Context, releaseID int64, themeID int64, mediaID int64) error
 	ListFansubAnimeReleasesPage(ctx context.Context, fansubGroupID int64, animeID int64, page int, perPage int) ([]models.AdminFansubReleaseSummary, int64, error)
@@ -129,27 +130,27 @@ type adminFansubReleasesContributionsRepo interface {
 // AdminContentHandler ist der zentrale Handler für alle Admin-Content-Operationen:
 // Anime anlegen/bearbeiten/löschen, Episoden, Assets, Relationen und Jellyfin-Integration.
 type AdminContentHandler struct {
-	repo                      *repository.AdminContentRepository
-	relationRepo              adminContentRelationRepository
-	themeRepo                 adminThemeRepository
-	animeAssetRepo            *repository.AnimeAssetRepository
-	fansubRepo                *repository.FansubRepository
-	episodeVersionRepo        *repository.EpisodeVersionRepository
-	episodeImportRepo         adminEpisodeImportRepository
-	authzRepo                 adminRoleChecker
-	mediaRepo                 *repository.MediaRepository
-	aniSearchRepo             adminAniSearchRepository
-	adminRoleName             string
-	mediaStorageDir           string
-	jellyfinAPIKey            string
-	jellyfinBaseURL           string
-	jellyfinStreamPath        string
-	jellyfinAllowedLibraryIDs []string
-	httpClient                *http.Client
-	enrichmentService         adminAniSearchDraftLoader
-	aniSearchEpisodes         adminAniSearchEpisodeFetcher
-	assetSearchService        adminAnimeAssetSearchService
-	mediaService              *services.MediaService
+	repo                            *repository.AdminContentRepository
+	relationRepo                    adminContentRelationRepository
+	themeRepo                       adminThemeRepository
+	animeAssetRepo                  *repository.AnimeAssetRepository
+	fansubRepo                      *repository.FansubRepository
+	episodeVersionRepo              *repository.EpisodeVersionRepository
+	episodeImportRepo               adminEpisodeImportRepository
+	authzRepo                       adminRoleChecker
+	mediaRepo                       *repository.MediaRepository
+	aniSearchRepo                   adminAniSearchRepository
+	adminRoleName                   string
+	mediaStorageDir                 string
+	jellyfinAPIKey                  string
+	jellyfinBaseURL                 string
+	jellyfinStreamPath              string
+	jellyfinAllowedLibraryIDs       []string
+	httpClient                      *http.Client
+	enrichmentService               adminAniSearchDraftLoader
+	aniSearchEpisodes               adminAniSearchEpisodeFetcher
+	assetSearchService              adminAnimeAssetSearchService
+	mediaService                    *services.MediaService
 	fansubNotesRepo                 *repository.FansubNotesRepository
 	releaseVersionNotesRepo         *repository.ReleaseVersionNotesRepository
 	fansubReleasesContributionsRepo adminFansubReleasesContributionsRepo

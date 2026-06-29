@@ -2062,19 +2062,63 @@ func (r *AdminContentRepository) HasGlobalThemeSegmentCoverageForRelease(ctx con
 			  AND ts.fansub_group_id IS NULL
 			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), '') = ''
 			  AND (ts.start_episode IS NULL OR ts.start_episode <= ra.episode_anchor)
-			  AND (ts.end_episode IS NULL OR ts.end_episode >= ra.episode_anchor)
-			  AND (
-				COALESCE(NULLIF(BTRIM(ts.source_ref), ''), '') <> ''
-				OR COALESCE(NULLIF(BTRIM(ts.source_jellyfin_item_id), ''), '') <> ''
-				OR COALESCE(NULLIF(BTRIM(ts.source_label), ''), '') <> ''
-				OR COALESCE(NULLIF(BTRIM(ts.source_type), ''), '') <> ''
-			  )
-		)
-	`, releaseID, themeID).Scan(&covered); err != nil {
+				  AND (ts.end_episode IS NULL OR ts.end_episode >= ra.episode_anchor)
+				  AND (
+					COALESCE(NULLIF(BTRIM(ts.source_ref), ''), '') <> ''
+					OR COALESCE(NULLIF(BTRIM(ts.source_jellyfin_item_id), ''), '') <> ''
+					OR COALESCE(NULLIF(BTRIM(ts.source_type), ''), '') IN ('jellyfin_theme')
+					OR (
+						COALESCE(NULLIF(BTRIM(ts.source_type), ''), '') <> 'release_asset'
+						AND COALESCE(NULLIF(BTRIM(ts.source_label), ''), '') <> ''
+					)
+				  )
+			)
+		`, releaseID, themeID).Scan(&covered); err != nil {
 		return false, fmt.Errorf("check global theme segment coverage release=%d theme=%d: %w", releaseID, themeID, err)
 	}
 
 	return covered, nil
+}
+
+// HasReleaseAssetSegmentUploadBlockedForRelease meldet, ob ein Release innerhalb
+// eines release_asset-Segments liegt, aber nicht dessen Start-Anker ist.
+func (r *AdminContentRepository) HasReleaseAssetSegmentUploadBlockedForRelease(ctx context.Context, releaseID int64, themeID int64) (bool, error) {
+	if releaseID <= 0 || themeID <= 0 {
+		return false, ErrNotFound
+	}
+
+	var blocked bool
+	if err := r.db.QueryRow(ctx, `
+		WITH release_context AS (
+			SELECT
+				COALESCE(
+					ep.sort_index,
+					CASE WHEN COALESCE(ep.episode_number, '') ~ '^[0-9]+$' THEN ep.episode_number::int ELSE NULL END
+				) AS episode_anchor,
+				ARRAY_REMOVE(ARRAY_AGG(DISTINCT rvg.fansub_group_id), NULL) AS fansub_group_ids
+			FROM fansub_releases fr
+			JOIN episodes ep ON ep.id = fr.episode_id
+			LEFT JOIN release_versions rv ON rv.release_id = fr.id
+			LEFT JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			WHERE fr.id = $1
+			GROUP BY ep.sort_index, ep.episode_number
+		)
+		SELECT EXISTS (
+			SELECT 1
+			FROM release_context rc
+			JOIN theme_segments ts ON ts.theme_id = $2
+			WHERE rc.episode_anchor IS NOT NULL
+			  AND ts.source_type = 'release_asset'
+			  AND (ts.start_episode IS NULL OR ts.start_episode <= rc.episode_anchor)
+			  AND (ts.end_episode IS NULL OR ts.end_episode >= rc.episode_anchor)
+			  AND (ts.fansub_group_id IS NULL OR ts.fansub_group_id = ANY(rc.fansub_group_ids))
+			  AND (ts.start_episode IS NULL OR ts.start_episode <> rc.episode_anchor)
+		)
+	`, releaseID, themeID).Scan(&blocked); err != nil {
+		return false, fmt.Errorf("check release asset theme segment upload lock release=%d theme=%d: %w", releaseID, themeID, err)
+	}
+
+	return blocked, nil
 }
 
 // CreateReleaseThemeAsset legt die Release-Theme-Zuordnung an und liefert den neuen Datensatz zurueck.

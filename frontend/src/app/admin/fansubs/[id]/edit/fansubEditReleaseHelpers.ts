@@ -4,7 +4,7 @@ import type {
   AdminAnimeThemeSegment,
   AdminReleaseThemeAsset,
 } from "@/types/admin";
-import type { AnimeContribution } from "@/types/fansub";
+import type { AdminFansubRelease, AnimeContribution } from "@/types/fansub";
 import type { CoverageRoleMember } from "./CoverageMatrix";
 import type { ReleaseSegmentCard } from "./fansubEditTypes";
 
@@ -80,6 +80,38 @@ export function releaseAssetRequiredBySegment(
   return segment.source_type === "release_asset";
 }
 
+function releaseEpisodeAnchor(release: AdminFansubRelease): number | null {
+  const episodeNumber = release.episode_number?.trim() ?? "";
+  if (!/^\d+$/.test(episodeNumber)) return null;
+
+  return Number.parseInt(episodeNumber, 10);
+}
+
+function segmentCoversEpisode(
+  segment: AdminAnimeThemeSegment,
+  episodeAnchor: number,
+): boolean {
+  return (
+    (segment.start_episode == null || segment.start_episode <= episodeAnchor) &&
+    (segment.end_episode == null || segment.end_episode >= episodeAnchor)
+  );
+}
+
+export function releaseAssetUploadLockedBySegment(
+  release: AdminFansubRelease,
+  segments: AdminAnimeThemeSegment[],
+): boolean {
+  const episodeAnchor = releaseEpisodeAnchor(release);
+  if (episodeAnchor == null) return false;
+
+  return segments.some(
+    (segment) =>
+      releaseAssetRequiredBySegment(segment) &&
+      segmentCoversEpisode(segment, episodeAnchor) &&
+      segment.start_episode !== episodeAnchor,
+  );
+}
+
 export function releaseAssetRequirementLabel(
   segments: AdminAnimeThemeSegment[],
 ): string {
@@ -103,6 +135,7 @@ export function releaseThemeSelectionKey(
 }
 
 export function mapReleaseSegmentCards(
+  release: AdminFansubRelease,
   themes: AdminAnimeTheme[],
   themeAssets: AdminReleaseThemeAsset[],
   segmentsByThemeID: Map<number, AdminAnimeThemeSegment[]>,
@@ -128,13 +161,21 @@ export function mapReleaseSegmentCards(
     }
 
     if (segments.some(releaseAssetRequiredBySegment)) {
+      const releaseAssetUploadLocked = releaseAssetUploadLockedBySegment(
+        release,
+        segments,
+      );
+
       return {
         theme_id: theme.id,
         theme_type_name: theme.theme_type_name,
         theme_title: theme.title,
         status: "missing",
         segments,
-        source_label: releaseAssetRequirementLabel(segments),
+        source_label: releaseAssetUploadLocked
+          ? "Zentraler Theme-Upload am Segmentstart erforderlich"
+          : releaseAssetRequirementLabel(segments),
+        release_asset_upload_locked: releaseAssetUploadLocked,
       };
     }
 

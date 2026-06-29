@@ -80,3 +80,14 @@ func TestReleaseThemeAsset_UsesFansubPermissionsForUploadAndDelete(t *testing.T)
 		}
 	}
 }
+
+func TestReleaseThemeAsset_BlocksNonAnchorReleaseAssetSegmentUploads(t *testing.T) {
+	handlerSrc := readReleaseThemeHandlerSource(t)
+
+	if count := strings.Count(handlerSrc, "HasReleaseAssetSegmentUploadBlockedForRelease"); count < 2 {
+		t.Fatalf("Release-Theme-Uploads muessen den Segmentstart-Lock in beiden Upload-Pfaden pruefen, gefunden: %d", count)
+	}
+	if !strings.Contains(handlerSrc, "theme_segment_upload_anchor_required") {
+		t.Fatal("Release-Theme-Upload braucht einen stabilen Fehlercode fuer Nicht-Start-Episoden im Segmentbereich")
+	}
+}

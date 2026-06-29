@@ -153,6 +153,7 @@ export function useFansubReleaseData({
           }),
         );
         const nextCards = mapReleaseSegmentCards(
+          release,
           themesResponse.data,
           assetsResponse.data,
           new Map(segmentEntries),

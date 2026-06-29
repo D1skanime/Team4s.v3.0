@@ -66,6 +66,7 @@ export type ReleaseSegmentCard = {
   media_id?: number;
   public_url?: string;
   source_label?: string;
+  release_asset_upload_locked?: boolean;
 };
 
 export type SelectedReleaseSegment = {
