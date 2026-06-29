@@ -80,6 +80,18 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"recent profile activity must resolve anime through the canonical episodes.anime_id column")
 	assert.False(t, strings.Contains(content, "fr."+"anime_id"),
 		"fansub_releases has no anime_id column; recent profile SQL must not use it")
+	assert.True(t, strings.Contains(content, "anime_id AS id"),
+		"recent profile projects must use anime_id as the stable project card id")
+	assert.True(t, strings.Contains(content, "GROUP BY anime_id, anime_title"),
+		"recent profile projects must aggregate release credits into one anime project row")
+	assert.True(t, strings.Contains(content, "ARRAY_AGG(DISTINCT role_label ORDER BY role_label)"),
+		"recent profile projects must merge duplicate roles into distinct labels")
+	assert.True(t, strings.Contains(content, "ARRAY_AGG(DISTINCT fansub_group_name ORDER BY fansub_group_name)"),
+		"recent profile projects must retain distinct fansub group context as metadata")
+	assert.True(t, strings.Contains(content, "COUNT(DISTINCT release_version_id)::int AS release_version_count"),
+		"recent profile projects must expose a distinct release-version count")
+	assert.True(t, strings.Contains(content, "COUNT(DISTINCT episode_id)::int AS episode_count"),
+		"recent profile projects must expose a distinct episode count")
 	assert.True(t, strings.Contains(content, "ORDER BY rvm.created_at DESC"),
 		"recent media must show newest uploads first")
 	assert.True(t, strings.Contains(content, "ORDER BY created_at DESC"),

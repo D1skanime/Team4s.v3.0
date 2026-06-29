@@ -46,8 +46,13 @@ export interface MemberProfileRecentContribution {
   anime_title: string
   anime_id: number
   fansub_group_name: string
+  fansub_group_names?: string[]
   role_name: string
+  role_names?: string[]
   role_label: string
+  role_labels?: string[]
+  release_version_count?: number
+  episode_count?: number
 }
 
 export interface MemberProfileData {

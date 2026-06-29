@@ -1091,16 +1091,19 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 
 func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, memberID int64) ([]models.MemberProfileRecentContribution, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT release_id, anime_title, anime_id, fansub_group_name, role_name, role_label
-		FROM (
-			SELECT DISTINCT ON (rmr.release_id, rmr.role_id)
+		WITH release_credit_rows AS (
+			SELECT
 				rmr.release_id,
+				rmr.role_id,
+				fg.id     AS fansub_group_id,
+				rv.id     AS release_version_id,
+				e.id      AS episode_id,
 				rmr.created_at,
 				a.title   AS anime_title,
 				a.id      AS anime_id,
-				fg.name   AS fansub_group_name,
-				cr.name   AS role_name,
-				cr.label  AS role_label
+				fg.name::text   AS fansub_group_name,
+				cr.name::text   AS role_name,
+				cr.label::text  AS role_label
 			FROM release_member_roles rmr
 			JOIN contributor_roles cr ON cr.id = rmr.role_id
 			JOIN fansub_releases fr ON fr.id = rmr.release_id
@@ -1110,8 +1113,51 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 			JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 			WHERE rmr.member_id = $1
-			ORDER BY rmr.release_id, rmr.role_id, rmr.created_at DESC
-		) deduped
+		),
+		deduped AS (
+			SELECT DISTINCT ON (anime_id, release_id, role_id, fansub_group_id)
+				release_id,
+				release_version_id,
+				episode_id,
+				created_at,
+				anime_title,
+				anime_id,
+				fansub_group_name,
+				role_name,
+				role_label
+			FROM release_credit_rows
+			ORDER BY anime_id, release_id, role_id, fansub_group_id, created_at DESC
+		),
+		project_rows AS (
+			SELECT
+				anime_id AS id,
+				anime_title,
+				anime_id,
+				(ARRAY_AGG(DISTINCT fansub_group_name ORDER BY fansub_group_name))[1] AS fansub_group_name,
+				COALESCE(ARRAY_AGG(DISTINCT fansub_group_name ORDER BY fansub_group_name), ARRAY[]::text[]) AS fansub_group_names,
+				(ARRAY_AGG(DISTINCT role_name ORDER BY role_name))[1] AS role_name,
+				COALESCE(ARRAY_AGG(DISTINCT role_name ORDER BY role_name), ARRAY[]::text[]) AS role_names,
+				(ARRAY_AGG(DISTINCT role_label ORDER BY role_label))[1] AS role_label,
+				COALESCE(ARRAY_AGG(DISTINCT role_label ORDER BY role_label), ARRAY[]::text[]) AS role_labels,
+				COUNT(DISTINCT release_version_id)::int AS release_version_count,
+				COUNT(DISTINCT episode_id)::int AS episode_count,
+				MAX(created_at) AS created_at
+			FROM deduped
+			GROUP BY anime_id, anime_title
+		)
+		SELECT
+			id,
+			anime_title,
+			anime_id,
+			fansub_group_name,
+			fansub_group_names,
+			role_name,
+			role_names,
+			role_label,
+			role_labels,
+			release_version_count,
+			episode_count
+		FROM project_rows
 		ORDER BY created_at DESC
 		LIMIT 3
 	`, memberID)
@@ -1128,8 +1174,13 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 			&item.AnimeTitle,
 			&item.AnimeID,
 			&item.FansubGroupName,
+			&item.FansubGroupNames,
 			&item.RoleName,
+			&item.RoleNames,
 			&item.RoleLabel,
+			&item.RoleLabels,
+			&item.ReleaseVersionCount,
+			&item.EpisodeCount,
 		); err != nil {
 			return nil, fmt.Errorf("scan recent contribution row: %w", err)
 		}

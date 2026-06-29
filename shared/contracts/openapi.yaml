@@ -8741,8 +8741,13 @@ components:
         - anime_title
         - anime_id
         - fansub_group_name
+        - fansub_group_names
         - role_name
+        - role_names
         - role_label
+        - role_labels
+        - release_version_count
+        - episode_count
       properties:
         id:
           type: integer
@@ -8754,10 +8759,33 @@ components:
           format: int64
         fansub_group_name:
           type: string
+        fansub_group_names:
+          type: array
+          description: Distinct fansub groups represented in this anime project card.
+          items:
+            type: string
         role_name:
           type: string
+        role_names:
+          type: array
+          description: Distinct role codes represented in this anime project card.
+          items:
+            type: string
         role_label:
           type: string
+        role_labels:
+          type: array
+          description: Distinct role labels represented in this anime project card.
+          items:
+            type: string
+        release_version_count:
+          type: integer
+          format: int32
+          description: Distinct release versions represented by this anime project card.
+        episode_count:
+          type: integer
+          format: int32
+          description: Distinct episodes represented by this anime project card.
     MemberProfile:
       type: object
       required:

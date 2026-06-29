@@ -51,12 +51,17 @@ type MemberProfileRecentMedia struct {
 }
 
 type MemberProfileRecentContribution struct {
-	ID              int64  `json:"id"`
-	AnimeTitle      string `json:"anime_title"`
-	AnimeID         int64  `json:"anime_id"`
-	FansubGroupName string `json:"fansub_group_name"`
-	RoleName        string `json:"role_name"`
-	RoleLabel       string `json:"role_label"`
+	ID                  int64    `json:"id"`
+	AnimeTitle          string   `json:"anime_title"`
+	AnimeID             int64    `json:"anime_id"`
+	FansubGroupName     string   `json:"fansub_group_name"`
+	FansubGroupNames    []string `json:"fansub_group_names"`
+	RoleName            string   `json:"role_name"`
+	RoleNames           []string `json:"role_names"`
+	RoleLabel           string   `json:"role_label"`
+	RoleLabels          []string `json:"role_labels"`
+	ReleaseVersionCount int32    `json:"release_version_count"`
+	EpisodeCount        int32    `json:"episode_count"`
 }
 
 type MemberProfile struct {
