@@ -1,0 +1,44 @@
+---
+status: blocked
+phase: 93-projektrollen-sichtbarkeit-hinweis-formular
+updated: 2026-06-29
+---
+
+# Phase 93 Verification
+
+## Teil A Results
+
+### Punkt 1 - Gruppen-Scoping im Hinweis-Formular
+
+Status: expected behavior confirmed.
+
+Evidence:
+
+- `frontend/src/app/me/contributions/page.tsx` loads `getMyMemberships()` into `ownGroups`.
+- `frontend/src/components/contributions/ProposalForm.tsx` renders the group dropdown only from `ownGroups`.
+- The dropdown value is `fansub_group_member_id`, and submit derives `fansub_group_id` from the selected membership row.
+- `backend/internal/handlers/contribution_proposals_me_handler.go` lists memberships for the resolved verified member through `hist_fansub_group_members`.
+- The submit handler checks that the submitted `fansub_group_member_id` belongs to the submitting member and that it belongs to the submitted `fansub_group_id`.
+
+Conclusion: The form does not freely list arbitrary groups; it is scoped to the member's own verified memberships.
+
+### Punkt 2 - Wirkung des Sichtbarkeits-Toggles
+
+Status: expected behavior not confirmed.
+
+Evidence:
+
+- `backend/internal/handlers/contributions_me_handler.go` updates only `anime_contributions.is_public_on_member_profile`.
+- `backend/internal/repository/anime_contributions_public_repository.go` uses `ac.is_public_on_member_profile = true` for the public member role timeline and projects `ac.note AS notes`, so contribution notes follow the role flag.
+- `backend/internal/repository/group_release_media_repository.go` exposes release-version media only when `media_assets.status = 'ready'`, `visibilities.name = 'public'`, and `review_statuses.code = 'approved'`.
+- `release_version_media` media therefore has an independent media visibility/review path and is not toggled by `anime_contributions.is_public_on_member_profile`.
+
+Conclusion: The current toggle controls role visibility and the anime contribution note in the public role timeline, but not related project/release media. A help text claiming role, notes, and images are all controlled together would be misleading.
+
+## Execution Result
+
+Per the Auftrag stop condition, UI implementation was not started.
+
+Required next decision:
+
+- Decide whether Phase 93 should narrow the UI copy to role plus contribution note, or whether it should first implement a real shared visibility contract for relevant member-owned project media.

@@ -117,6 +117,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [x] 87-01-PLAN.md -- Wave-0-RED-Tests + ReloadCache (permissions.go) + OpenAPI-Contract + TypeScript-Typen
   - [x] 87-02-PLAN.md -- Repository (CRUD) + Handler (Grant/Revoke/Guard) + View-Enforcement an 3 Admin-Endpunkten + Routing
   - [x] 87-03-PLAN.md -- Frontend Capability-Pflege-UI (Rollen x Actions-Matrix) + Nav-Link + Human-Verify
+- [ ] **Phase 93: Projektrollen-Sichtbarkeit & Hinweis-Formular** - `/me/contributions` soll die bestätigten Projektrollen und das Hinweis-Formular gemäß abgestimmtem Prototyp polieren; Teil-A-Verifizierung hat am 2026-06-29 die Gruppen-Scoping-Erwartung bestätigt, aber die gemeinsame Rolle+Notizen+Bilder-Sichtbarkeit nicht bestätigt, daher ist die UI-Umsetzung bis zur Produktentscheidung blockiert.
 
 ## Phase Details
 
@@ -1562,6 +1563,17 @@ Plans:
 - [x] 88-01 Copy/auth normalization for member contribution and group surfaces
 - [x] 88-02 Profile hub identity-link copy and global UI cleanup
 - [x] 88-03 Release workspace polish and focused UAT handoff
+
+### Phase 93: Projektrollen-Sichtbarkeit & Hinweis-Formular
+
+**Goal:** `/me/contributions` zeigt bestätigte Projektrollen pro Anime verständlicher, nutzt einen separaten Chevron-Disclosure für Rollendetails, ersetzt die native Sichtbarkeitsauswahl durch eine passende UI-System-Kontrolle und macht das Hinweis-Formular kontextklarer, ohne Gruppen-/Member-/Release-Media-Ownership zu vermischen.
+**Requirements:** Phase-93 Auftrag aus `93-CONTEXT.md`; Teil A ist vor UI-Umsetzung verpflichtend.
+**Depends on:** Phase 76, Phase 85, Phase 88
+**Status:** Blockiert nach Teil A Punkt 2. Gruppen-Scoping ist bestätigt; der aktuelle Sichtbarkeits-Toggle steuert Rolle und `anime_contributions.note`, aber nicht release-version-scoped Medien, die separat über `media_assets.visibility_id` und `review_status_id` freigegeben werden.
+**Plans:** 1 plan blocked
+
+Plans:
+- [ ] `93-01-PLAN.md` - Teil A dokumentieren; UI-Umsetzung erst nach Produktentscheidung zur gemeinsamen Rolle/Notizen/Bilder-Sichtbarkeit.
 
 ---
 
