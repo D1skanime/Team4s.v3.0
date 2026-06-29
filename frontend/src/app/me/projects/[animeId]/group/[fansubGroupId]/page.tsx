@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { Pencil, Search } from 'lucide-react'
+import { useParams, useSearchParams } from 'next/navigation'
+import { ArrowLeft, Pencil, Search } from 'lucide-react'
 
 import { Badge, Button, Card, ErrorState, Input, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
 import { ApiError, getMyProjectDetail } from '@/lib/api'
@@ -31,6 +31,10 @@ function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error) return error.message
   return fallback
+}
+
+function getProfileReturnPath(raw: string | null): string | null {
+  return raw === '/me/profile' ? raw : null
 }
 
 function releaseLabel(release: MeProjectReleaseVersion): string {
@@ -63,6 +67,7 @@ function filterReleases(
 
 export function MyProjectDetailPage() {
   const params = useParams<{ animeId: string; fansubGroupId: string }>()
+  const searchParams = useSearchParams()
   const animeId = parsePositiveInt(params.animeId)
   const fansubGroupId = parsePositiveInt(params.fansubGroupId)
   const routeKey = animeId && fansubGroupId ? `${animeId}:${fansubGroupId}` : null
@@ -159,6 +164,7 @@ export function MyProjectDetailPage() {
 
   const mediaOverviewHref = `/admin/fansubs/${project.fansub_group_id}/edit?anime_id=${project.anime_id}&section=media`
   const projectReturnHref = `/me/projects/${project.anime_id}/group/${project.fansub_group_id}`
+  const profileReturnHref = getProfileReturnPath(searchParams.get('return_to'))
 
   return (
     <main className={styles.page}>
@@ -174,9 +180,21 @@ export function MyProjectDetailPage() {
         title={project.anime_title}
         description={project.fansub_group_name}
         actions={
-          <Button href={mediaOverviewHref} variant="secondary" size="sm">
-            Medien zu {project.anime_title}
-          </Button>
+          <div className={styles.headerActions}>
+            {profileReturnHref ? (
+              <Button
+                href={profileReturnHref}
+                variant="secondary"
+                size="sm"
+                leftIcon={<ArrowLeft size={15} aria-hidden="true" />}
+              >
+                Zurück zum Profil
+              </Button>
+            ) : null}
+            <Button href={mediaOverviewHref} variant="secondary" size="sm">
+              Medien zu {project.anime_title}
+            </Button>
+          </div>
         }
       />
 

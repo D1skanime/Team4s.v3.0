@@ -19,6 +19,14 @@
   text-decoration: none;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .cover {
   min-height: 310px;
   margin-top: var(--space-6);
@@ -224,10 +232,15 @@
   }
 
   .toolbar,
+  .headerActions,
   .searchField,
   .releaseRow a,
   .releaseRowMuted a {
     width: 100%;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
   }
 
   .segmented {

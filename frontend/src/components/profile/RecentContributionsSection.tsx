@@ -76,6 +76,11 @@ function projectWorkUnits(item: RecentContributionProject): number {
   return Math.max(1, item.release_version_count + item.episode_count)
 }
 
+function profileProjectHref(item: RecentContributionProject): string {
+  const projectPath = `/me/projects/${item.anime_id}/group/${item.fansub_group_id}`
+  return `${projectPath}?return_to=${encodeURIComponent('/me/profile')}`
+}
+
 export function RecentContributionsSection({ items, canView, isPublicView = false }: RecentContributionsSectionProps) {
   const projects = toRecentProjects(items)
   const maxWorkUnits = Math.max(1, ...projects.map(projectWorkUnits))
@@ -113,7 +118,7 @@ export function RecentContributionsSection({ items, canView, isPublicView = fals
                 {!isPublicView ? (
                   <div className={styles.projectActionRow}>
                     <Button
-                      href={`/me/projects/${item.anime_id}/group/${item.fansub_group_id}`}
+                      href={profileProjectHref(item)}
                       variant="secondary"
                       size="sm"
                     >

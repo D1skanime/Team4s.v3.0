@@ -62,7 +62,7 @@ describe('RecentContributionsSection', () => {
     expect(screen.getByText('Typesetter')).not.toBeNull()
     expect(screen.getByText('Editing')).not.toBeNull()
     expect(screen.getByText('2 Release-Versionen / 2 Folgen')).not.toBeNull()
-    expect(screen.getByRole('link', { name: 'Projekt öffnen' }).getAttribute('href')).toBe('/me/projects/11/group/7')
+    expect(screen.getByRole('link', { name: 'Projekt öffnen' }).getAttribute('href')).toBe('/me/projects/11/group/7?return_to=%2Fme%2Fprofile')
   })
 
   it('keeps anime projects separate per fansub group for own project links', () => {
@@ -80,8 +80,8 @@ describe('RecentContributionsSection', () => {
     const list = screen.getByRole('list', { name: 'Letzte Projekte' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(2)
     const links = screen.getAllByRole('link', { name: 'Projekt öffnen' })
-    expect(links[0].getAttribute('href')).toBe('/me/projects/11/group/7')
-    expect(links[1].getAttribute('href')).toBe('/me/projects/11/group/8')
+    expect(links[0].getAttribute('href')).toBe('/me/projects/11/group/7?return_to=%2Fme%2Fprofile')
+    expect(links[1].getAttribute('href')).toBe('/me/projects/11/group/8?return_to=%2Fme%2Fprofile')
   })
 
   it('does not link public profile projects to the private me workspace', () => {

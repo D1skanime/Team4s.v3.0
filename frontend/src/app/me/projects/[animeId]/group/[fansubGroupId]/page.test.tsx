@@ -5,9 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getMyProjectDetailMock = vi.hoisted(() => vi.fn())
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
+const useSearchParamsMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ animeId: '10', fansubGroupId: '5' }),
+  useSearchParams: () => useSearchParamsMock(),
 }))
 
 vi.mock('@/lib/useAuthSession', () => ({
@@ -60,6 +62,7 @@ function makeProject(releases: MeProjectReleaseVersion[] = []): MeProjectDetail 
 }
 
 beforeEach(() => {
+  useSearchParamsMock.mockReturnValue(new URLSearchParams())
   useAuthSessionMock.mockReturnValue({
     hasAccessToken: false,
     hasRefreshToken: true,
@@ -90,7 +93,20 @@ describe('MyProjectDetailPage', () => {
     expect(screen.getByRole('link', { name: /Notizen & Medien/i }).getAttribute('href')).toBe(
       '/me/releases/41/workspace?return_to=%2Fme%2Fprojects%2F10%2Fgroup%2F5',
     )
+    expect(screen.queryByRole('link', { name: 'Zurück zum Profil' })).toBeNull()
     expect(screen.queryByText('Keine eigene Mitwirkung')).toBeNull()
+  })
+
+  it('shows a profile return button when opened from the profile hub', async () => {
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('return_to=/me/profile'))
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([makeRelease({ release_version_id: 41 })]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.getByRole('link', { name: 'Zurück zum Profil' }).getAttribute('href')).toBe('/me/profile')
   })
 
   it('shows all release versions with search only in all mode', async () => {
