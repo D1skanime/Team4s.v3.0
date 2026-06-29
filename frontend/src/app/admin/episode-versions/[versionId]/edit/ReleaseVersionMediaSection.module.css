@@ -183,6 +183,8 @@
 .mediaCardBody {
   min-width: 0;
   display: grid;
+  align-content: start;
+  align-items: start;
   gap: 0.55rem;
   padding: 0.75rem;
 }
@@ -424,6 +426,7 @@
 
 .editPreview {
   min-height: 220px;
+  max-height: min(42vh, 420px);
   border-radius: calc(var(--radius-md) + 6px);
   display: grid;
   place-items: center;
@@ -434,7 +437,7 @@
 
 .editPreview img {
   width: 100%;
-  max-height: min(54vh, 520px);
+  max-height: min(42vh, 420px);
   object-fit: contain;
   display: block;
 }

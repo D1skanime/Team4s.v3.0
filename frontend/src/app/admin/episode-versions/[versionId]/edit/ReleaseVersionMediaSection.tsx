@@ -593,7 +593,7 @@ export function ReleaseVersionMediaSection({
       <Drawer
         open={Boolean(selectedItem)}
         onClose={() => setSelectedItemId(null)}
-        title={selectedItem ? getAssetName(selectedItem) : 'Medium bearbeiten'}
+        title="Medium bearbeiten"
         description={selectedItem ? categoryLabel(selectedItem.category) : undefined}
         variant="responsiveSheet"
         footer={

@@ -61,4 +61,11 @@ describe('RecentMediaSection', () => {
 
     expect(screen.getByText('Typesetting / Karaoke')).not.toBeNull()
   })
+
+  it('shows markdown-like captions as a compact plain-text preview', () => {
+    render(<RecentMediaSection items={[makeMedia({ caption: '## Meine Fansub-Geschichte\n\nEin langer Text' })]} canView={true} />)
+
+    expect(screen.getByText('Meine Fansub-Geschichte Ein langer Text')).not.toBeNull()
+    expect(screen.queryByText(/## Meine Fansub-Geschichte/)).toBeNull()
+  })
 })

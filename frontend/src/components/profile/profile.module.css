@@ -134,6 +134,12 @@
   gap: 10px;
 }
 
+.recentItemBody {
+  min-width: 0;
+  align-content: start;
+  align-items: start;
+}
+
 .recentContributionCard {
   display: grid;
   grid-template-columns: 74px minmax(0, 1fr);
@@ -181,8 +187,20 @@
   font-size: 0.9rem;
 }
 
+.recentItemBody strong {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text-strong, #111827);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 .recentMediaCard {
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
+  align-content: start;
   height: 100%;
   padding: 12px;
 }

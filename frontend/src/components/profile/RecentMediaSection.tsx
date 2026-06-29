@@ -27,7 +27,10 @@ function formatReleaseVersionTitle(item: MemberProfileRecentMedia): string {
 }
 
 function formatMediaTitle(item: MemberProfileRecentMedia, fallback: string): string {
-  const caption = item.caption?.trim() ?? ''
+  const caption = item.caption
+    ?.replace(/^#{1,6}\s+/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim() ?? ''
   return caption || fallback
 }
 

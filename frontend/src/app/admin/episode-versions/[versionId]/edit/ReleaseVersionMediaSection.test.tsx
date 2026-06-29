@@ -184,7 +184,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Edit me bearbeiten/i }))
-    const dialog = await screen.findByRole('dialog', { name: 'Edit me' })
+    const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
 
     fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Neue Beschreibung' } })
     fireEvent.change(within(dialog).getByRole('combobox'), { target: { value: 'oeffentlich' } })
@@ -221,7 +221,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Own upload bearbeiten/i }))
-    const dialog = await screen.findByRole('dialog', { name: 'Own upload' })
+    const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
 
     await waitFor(() => expect(deleteItem).toHaveBeenCalledWith(41))
