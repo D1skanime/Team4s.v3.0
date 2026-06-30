@@ -405,11 +405,43 @@ func (r *FansubGroupAppMemberRepository) SetRole(
 			return nil, fmt.Errorf("set fansub group member role: insert role: %w", err)
 		}
 	} else {
+		// D-10: created_at der Rolle vor dem Löschen speichern (für started_year).
+		var roleCreatedAt time.Time
+		_ = r.db.QueryRow(ctx,
+			`SELECT created_at FROM fansub_group_member_roles
+			 WHERE fansub_group_member_id = $1 AND role = $2`,
+			memberID, role).Scan(&roleCreatedAt)
+
 		if _, err := r.db.Exec(ctx, `
 			DELETE FROM fansub_group_member_roles
 			WHERE fansub_group_member_id = $1 AND role = $2
 		`, memberID, role); err != nil {
 			return nil, fmt.Errorf("set fansub group member role: delete role: %w", err)
+		}
+
+		// D-10: Auto-Archivierung — fail-open INSERT in hist_group_member_roles.
+		// Linkage A1: fansub_group_members.app_user_id
+		//           → member_claims.app_user_id (claim_status='verified')
+		//           → member_claims.member_id
+		//           → hist_fansub_group_members.member_id
+		// Kein Fehler-Return wenn Lookup fehlschlägt — der DELETE war erfolgreich.
+		if !roleCreatedAt.IsZero() {
+			var histMemberID int64
+			err := r.db.QueryRow(ctx,
+				`SELECT hfgm.id FROM hist_fansub_group_members hfgm
+				 JOIN member_claims mc ON mc.member_id = hfgm.member_id AND mc.claim_status = 'verified'
+				 JOIN fansub_group_members fgm ON fgm.app_user_id = mc.app_user_id
+				 WHERE fgm.id = $1 AND hfgm.fansub_group_id = $2
+				 LIMIT 1`,
+				memberID, fansubGroupID).Scan(&histMemberID)
+			if err == nil && histMemberID > 0 {
+				_, _ = r.db.Exec(ctx,
+					`INSERT INTO hist_group_member_roles
+					 (hist_fansub_group_member_id, role_code, started_year, ended_year, status, visibility)
+					 VALUES ($1, $2, $3, $4, 'ended', 'internal')
+					 ON CONFLICT DO NOTHING`,
+					histMemberID, role, roleCreatedAt.Year(), time.Now().Year())
+			}
 		}
 	}
 

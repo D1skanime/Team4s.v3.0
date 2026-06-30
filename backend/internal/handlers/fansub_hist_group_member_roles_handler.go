@@ -142,6 +142,32 @@ func (h *FansubHistGroupMemberRolesHandler) ListHistGroupMemberRoles(c *gin.Cont
 		return
 	}
 
+	// WR-02 (D-14): Cross-Group-Guard — prüft ob die member_id zur angegebenen
+	// Fansub-Gruppe gehört, bevor Rollen-Daten zurückgegeben werden.
+	// Ohne diesen Check könnten Admins Rollen-Daten fremder Gruppen lesen.
+	memberRow, err := h.histMembersRepo.GetByID(c.Request.Context(), memberID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"message": "mitgliedschaftseintrag nicht gefunden",
+			},
+		})
+		return
+	}
+	if err != nil {
+		log.Printf("hist group member roles list: member lookup error (member_id=%d): %v", memberID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if memberRow.FansubGroupID != fansubID {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"message": "mitglied gehört nicht zu dieser fansubgruppe",
+			},
+		})
+		return
+	}
+
 	items, err := h.rolesRepo.ListByMember(c.Request.Context(), memberID)
 	if err != nil {
 		log.Printf("hist group member roles list: repo error (member_id=%d): %v", memberID, err)
@@ -234,13 +260,10 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
-	valid, err := h.rolesRepo.RoleCodeExistsForContext(c.Request.Context(), req.RoleCode, "group_history")
-	if err != nil {
-		log.Printf("hist group member roles create: role validation error (role_code=%s): %v", req.RoleCode, err)
-		internalError(c, "interner serverfehler")
-		return
-	}
-	if !valid {
+	// CR-01 (D-13): Whitelist-Check ersetzt breiten DB-Context-Check.
+	// IsGroupHistoryWhitelistRole prüft nur die sechs kanonischen Gruppenrollen-Codes.
+	// App-Rollen-Codes wie 'translator' liefern false → 422.
+	if !h.rolesRepo.IsGroupHistoryWhitelistRole(req.RoleCode) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
 				"message": "ungültiger role_code für group_history-Kontext",
