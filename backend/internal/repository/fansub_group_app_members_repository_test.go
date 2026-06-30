@@ -70,3 +70,40 @@ func TestNormalizeFansubGroupRolesRejectsUnknownRole(t *testing.T) {
 		t.Fatal("expected unknown role to be rejected")
 	}
 }
+
+// TestSetRoleRejectsHistoricalRoleCode prüft AC-2 (D-01):
+// Historische Rollen dürfen NICHT als aktive App-Rollen gesetzt werden.
+//
+// Produktiv-Validierung: fansub_group_app_members_repository.go:378
+//   role := strings.TrimSpace(input.Role)
+//   if !permissions.IsKnownFansubGroupRole(role) { return nil, fmt.Errorf("... unknown role") }
+//
+// Die IsKnownFansubGroupRole-Prüfung läuft VOR jedem DB-Zugriff (Z.374–380),
+// daher ist kein Live-DB-Pool nötig — nil ist sicher.
+func TestSetRoleRejectsHistoricalRoleCode(t *testing.T) {
+	// Erwartung aus dem Katalog ableiten — keine hartkodierte Rollenliste im Test.
+	// Vorbedingung: "founder" ist keine aktive App-Rolle laut permissions-Katalog.
+	if permissions.IsKnownFansubGroupRole("founder") {
+		t.Fatal("Testvorbedingung nicht erfüllt: 'founder' ist eine aktive App-Rolle — TestSetRoleRejectsHistoricalRoleCode wäre bedeutungslos")
+	}
+	// Positivfall: mindestens eine aktive App-Rolle existiert im Katalog.
+	activeRoles := permissions.FansubGroupRoles()
+	if len(activeRoles) == 0 {
+		t.Fatal("Testvorbedingung nicht erfüllt: keine aktiven App-Rollen im Katalog")
+	}
+
+	// nil-Pool ist sicher: die Rollen-Whitelist-Prüfung bricht vor jedem DB-Zugriff ab.
+	repo := NewFansubGroupAppMemberRepository(nil)
+	_, err := repo.SetRole(
+		t.Context(),
+		1, // gültige fansubGroupID
+		1, // gültige appUserID
+		models.FansubGroupMemberRoleUpdateInput{
+			Role:   "founder", // historische Rolle — darf nicht gesetzt werden
+			Enable: true,
+		},
+	)
+	if err == nil {
+		t.Fatal("SetRole hätte den historischen role_code 'founder' ablehnen sollen, hat aber keinen Fehler zurückgegeben")
+	}
+}
