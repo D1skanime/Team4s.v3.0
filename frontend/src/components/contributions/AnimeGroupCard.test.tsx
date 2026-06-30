@@ -54,7 +54,7 @@ describe('AnimeGroupCard', () => {
     expect(projectLink.getAttribute('href')).toBe('/me/projects/10/group/5')
   })
 
-  it('zeigt jede animeweite Rolle als eigene Zeile mit eigenem Toggle', () => {
+  it('zeigt animeweite Rollen als eigene Zeilen mit gemeinsamem Sichtbarkeits-Slider pro Eintrag', () => {
     render(
       <AnimeGroupCard
         animeId={10}
@@ -71,6 +71,8 @@ describe('AnimeGroupCard', () => {
     expect(within(rows[0]).getByText('Encoding')).not.toBeNull()
     expect(within(rows[1]).getByText('Timing')).not.toBeNull()
     expect(screen.getAllByText('Für das gesamte Projekt')).toHaveLength(2)
-    expect(screen.getAllByRole('group', { name: 'Sichtbarkeit dieses Eintrags' })).toHaveLength(2)
+    expect(screen.getAllByRole('group', { name: 'Sichtbarkeit dieses Eintrags' })).toHaveLength(1)
+    expect(screen.getByText('Rollen aus demselben Eintrag teilen sich eine Sichtbarkeit.')).not.toBeNull()
+    expect(screen.getByText('wie oben')).not.toBeNull()
   })
 })

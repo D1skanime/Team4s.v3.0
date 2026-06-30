@@ -35,7 +35,7 @@ describe('VisibilityDropdown', () => {
     expect(onChanged).toHaveBeenCalledWith(false)
   })
 
-  it('rendert Profil und Intern als segmentierte Button-Auswahl', () => {
+  it('rendert Profil und Intern als stabilen Sichtbarkeits-Slider', () => {
     render(
       <VisibilityDropdown contributionId={7} isPublic={false} onChanged={vi.fn()} />,
     )
@@ -43,5 +43,6 @@ describe('VisibilityDropdown', () => {
     expect(screen.getByRole('group', { name: 'Sichtbarkeit dieses Eintrags' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Profil' }).getAttribute('aria-pressed')).toBe('false')
     expect(screen.getByRole('button', { name: 'Intern' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('group', { name: 'Sichtbarkeit dieses Eintrags' }).getAttribute('data-public')).toBe('false')
   })
 })

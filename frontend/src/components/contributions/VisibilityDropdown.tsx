@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 
-import { Button } from '@/components/ui'
 import { patchAnimeContributionVisibility } from '@/lib/api'
 
 import styles from './contributions.module.css'
@@ -38,29 +37,26 @@ export function VisibilityDropdown({ contributionId, isPublic, onChanged }: Visi
         className={styles.visibilitySegmented}
         role="group"
         aria-label="Sichtbarkeit dieses Eintrags"
+        data-public={isPublic ? 'true' : 'false'}
       >
-        <Button
+        <button
           type="button"
-          size="sm"
-          variant={isPublic ? 'primary' : 'subtle'}
           aria-pressed={isPublic}
           disabled={loading}
           onClick={() => void handleChange(true)}
           className={styles.visibilitySegment}
         >
           Profil
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
-          size="sm"
-          variant={!isPublic ? 'primary' : 'subtle'}
           aria-pressed={!isPublic}
           disabled={loading}
           onClick={() => void handleChange(false)}
           className={styles.visibilitySegment}
         >
           Intern
-        </Button>
+        </button>
       </span>
       {loading ? <span className={styles.visibilityStatus}>Wird gespeichert...</span> : null}
       {error ? <span className={styles.visibilityError}>{error}</span> : null}

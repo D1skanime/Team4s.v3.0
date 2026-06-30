@@ -501,7 +501,7 @@
 
 .yearPickerPanel {
   position: fixed;
-  z-index: var(--z-dropdown);
+  z-index: calc(var(--z-modal) + 1);
   display: grid;
   gap: 12px;
   overflow: auto;
@@ -999,9 +999,9 @@
 }
 
 .drawerPanelSheet {
-  width: min(720px, 100%);
-  height: auto;
-  max-height: 88vh;
+  width: min(760px, calc(100vw - 48px));
+  height: min(680px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
   border-radius: 22px;
   border-left-color: var(--border-subtle);
 }
@@ -1216,6 +1216,7 @@
 
   .drawerPanelSheet {
     width: 100%;
+    height: auto;
     max-height: 88vh;
     border-radius: 22px 22px 0 0;
     border-right: 0;

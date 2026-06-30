@@ -453,6 +453,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260630-phase93-contributions-responsive-polish | Phase 93 Quick: Meine Projekte Desktop/Mobile-Layout, Hinweis-Wizard, YearPicker und Sichtbarkeits-Slider polishen | 2026-06-30 | this commit | [260630-phase93-contributions-responsive-polish](./quick/260630-phase93-contributions-responsive-polish/) |
 | 260621-p80p88-review-bugfixes | Phase-80/88 Review-Bugs fixen: reale Release-Scope-Aggregate, D-18-Konflikte, Legacy-Historical, Modal-Close | 2026-06-21 | this commit | [260621-p80p88-review-bugfixes](./quick/260621-p80p88-review-bugfixes/) |
 | 260405-kce | Sync Phase-07 completion across roadmap and milestone tracking | 2026-04-05 | uncommitted (dirty workspace) | [260405-kce-sync-phase-07-completion-across-roadmap-](./quick/260405-kce-sync-phase-07-completion-across-roadmap-/) |
 | 260405-pcz | Add tags schema and persistence analogous to genres for anime metadata | 2026-04-05 | uncommitted (dirty workspace) | [260405-pcz-add-tags-schema-and-persistence-analogou](./quick/260405-pcz-add-tags-schema-and-persistence-analogou/) |

@@ -181,6 +181,13 @@ export function AnimeGroupCard({
   const ranges = buildEpisodeRanges(contributions)
   const uniqueRoles = getUniqueRoles(contributions)
   const projectGroups = getUniqueGroups(contributions)
+  const seenVisibilityIds = new Set<number>()
+  const rangesWithVisibility = ranges.map((entry) => {
+    const showVisibilityControl = !seenVisibilityIds.has(entry.id)
+    seenVisibilityIds.add(entry.id)
+    return { entry, showVisibilityControl }
+  })
+  const hasSharedVisibility = rangesWithVisibility.some(({ showVisibilityControl }) => !showVisibilityControl)
 
   return (
     <Card variant="nestedFlat" className={styles.roleCard}>
@@ -239,8 +246,13 @@ export function AnimeGroupCard({
       {open ? (
         <div className={styles.roleCardBody}>
           <p className={styles.roleVisibilityLabel}>Sichtbarkeit deiner Rollen</p>
+          {hasSharedVisibility ? (
+            <p className={styles.sharedVisibilityHint}>
+              Rollen aus demselben Eintrag teilen sich eine Sichtbarkeit.
+            </p>
+          ) : null}
           <ul className={styles.accordionList}>
-            {ranges.map((entry) => {
+            {rangesWithVisibility.map(({ entry, showVisibilityControl }) => {
               const contrib = contributions.find((c) => c.id === entry.id)
               return (
                 <li key={`${entry.id}-${entry.role}`} className={styles.accordionRow}>
@@ -258,12 +270,14 @@ export function AnimeGroupCard({
                         Arbeitsfläche öffnen
                       </Button>
                     ) : null}
-                    {contrib ? (
+                    {contrib && showVisibilityControl ? (
                       <VisibilityDropdown
                         contributionId={contrib.id}
                         isPublic={contrib.is_public_on_member_profile}
                         onChanged={(isPublic) => onVisibilityChange(contrib.id, isPublic)}
                       />
+                    ) : contrib ? (
+                      <span className={styles.sharedVisibilityLabel}>wie oben</span>
                     ) : null}
                   </div>
                 </li>
