@@ -1588,14 +1588,14 @@ Plans:
 **Plans:** 8/8 plans complete
 
 Plans:
-- [ ] `94-01-PLAN.md` — Wave-0 Go-Tests (Assignable-Guard 422, Matrix-assignable, group_history-Read)
-- [ ] `94-02-PLAN.md` — Backend Assignable-Guard (Grant/Revoke 422) + Matrix-Anreicherung (assignable/contexts)
-- [ ] `94-03-PLAN.md` — Backend group_history Read-Endpunkt (kuratierte Whitelist) + Route
-- [ ] `94-04-PLAN.md` — Contract/Typen/api.ts/Test synchron (assignable/contexts + group_history-Helper)
-- [ ] `94-05-PLAN.md` — Neue UI-Primitives Switch + Accordion (@/components/ui)
-- [ ] `94-06-PLAN.md` — Capability-UI Master-Detail-Umbau (Badges, Accordion+Switch, Mobile-Sheet)
-- [ ] `94-07-PLAN.md` — Komponenten-Splits GroupMembersTab + FansubAppMembersSection (450-Limit)
-- [ ] `94-08-PLAN.md` — Mitglieder-Dialoge: historische Rollenquelle (D-07/D-09) + Aktive-Rechte-Label (D-10)
+- [x] `94-01-PLAN.md` — Wave-0 Go-Tests (Assignable-Guard 422, Matrix-assignable, group_history-Read)
+- [x] `94-02-PLAN.md` — Backend Assignable-Guard (Grant/Revoke 422) + Matrix-Anreicherung (assignable/contexts)
+- [x] `94-03-PLAN.md` — Backend group_history Read-Endpunkt (kuratierte Whitelist) + Route
+- [x] `94-04-PLAN.md` — Contract/Typen/api.ts/Test synchron (assignable/contexts + group_history-Helper)
+- [x] `94-05-PLAN.md` — Neue UI-Primitives Switch + Accordion (@/components/ui)
+- [x] `94-06-PLAN.md` — Capability-UI Master-Detail-Umbau (Badges, Accordion+Switch, Mobile-Sheet)
+- [x] `94-07-PLAN.md` — Komponenten-Splits GroupMembersTab + FansubAppMembersSection (450-Limit)
+- [x] `94-08-PLAN.md` — Mitglieder-Dialoge: historische Rollenquelle (D-07/D-09) + Aktive-Rechte-Label (D-10)
 
 ---
 
