@@ -236,7 +236,7 @@ import type {
   GroupThemesResponse,
   GroupReleaseMediaResponse,
 } from "@/types/groupContributors";
-import type { RoleCapabilityMatrix } from "@/types/admin-capability";
+import type { RoleCapabilityMatrix, RoleDefinitionOption } from "@/types/admin-capability";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
@@ -9278,6 +9278,38 @@ export async function revokeRoleCapability(
       parsed.details,
     )
   }
+}
+
+/**
+ * Lädt die kuratierte group_history-Rollenliste für eine Fansub-Gruppe.
+ * GET /api/v1/admin/fansubs/:fansubId/role-definitions?context=group_history
+ * Gibt genau die vier kuratierten Rollen (Gründer/in, Gruppenleitung, Co-Leitung, Projektmanagement) zurück.
+ */
+export async function listGroupHistoryRoleDefinitions(
+  fansubId: number | string,
+): Promise<RoleDefinitionOption[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${encodeURIComponent(String(fansubId))}/role-definitions?context=group_history`,
+    { cache: 'no-store' },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    )
+  }
+
+  const payload = (await response.json()) as { data?: RoleDefinitionOption[] }
+  return payload.data ?? []
 }
 
 // setMemberMemorial markiert ein Member-Profil als Gedenkprofil (profile_status='memorial').
