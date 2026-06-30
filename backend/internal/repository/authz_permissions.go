@@ -225,6 +225,36 @@ func (r *AuthzRepository) LoadRoleCapabilities(ctx context.Context) (map[string]
 // Compile-Zeit-Sicherstellung, dass AuthzRepository das CacheLoader-Interface implementiert.
 var _ permissions.CacheLoader = (*AuthzRepository)(nil)
 
+// LoadFansubGroupRoles lädt alle assignable Rollen aus role_definitions.
+// Implementiert das permissions.CatalogLoader-Interface für den Startup-Load (D-12).
+func (r *AuthzRepository) LoadFansubGroupRoles(ctx context.Context) ([]string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT code FROM role_definitions
+		WHERE assignable = true
+		ORDER BY sort_order, code
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("load fansub group roles: %w", err)
+	}
+	defer rows.Close()
+
+	var result []string
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return nil, fmt.Errorf("load fansub group roles: scan: %w", err)
+		}
+		result = append(result, strings.TrimSpace(code))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("load fansub group roles: iterate: %w", err)
+	}
+	return result, nil
+}
+
+// Compile-Zeit-Assertion: AuthzRepository implementiert CatalogLoader (aktiviert nach Task 2).
+// var _ permissions.CatalogLoader = (*AuthzRepository)(nil)
+
 func (r *AuthzRepository) ListActorContributionRolesForVersion(ctx context.Context, appUserID int64, releaseVersionID int64) ([]string, error) {
 	if appUserID <= 0 || releaseVersionID <= 0 {
 		return nil, nil
