@@ -270,11 +270,11 @@ const label = role.assignable ? 'Aktive App-Rolle' : 'Historische Rolle'
 | A3 | Display-Mapping statt Migration für 5 fachliche Kategorien | Pattern 5 | Falls User echte DB-Kategorien will → kleine Migration nötig (aber deferred-nah) |
 | A4 | Neuer Read-Endpunkt statt Frontend-Konstante für D-07 | Pattern 4 | Beides von CONTEXT erlaubt; Endpunkt = mehr Backend-Arbeit, weniger Drift |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Welche Rollen genau im historischen Dialog?** Wegen Migration 0103 tragen alle App-Rollen `group_history`. Fachlich gewollt sind vermutlich nur `founder`, `leader`, `co_leader`, `project_manager` (= CONTEXT-Pflichtliste Gründer/in, Gruppenleitung, Co-Leitung, Projektmanagement). **Empfehlung:** explizite Whitelist; vor Implementierung in Discuss-Phase bestätigen.
-2. **Kategorie-Granularität:** Sollen die 3 technischen Kategorien (`gruppe/projekt/release`) für die UI auf die 5 fachlichen CONTEXT-Kategorien gemappt/erweitert werden? Empfehlung: Display-Mapping (keine Migration).
-3. **Auth-Gate des neuen role-definitions-Endpunkts:** `requirePlatformAdminIdentity` (wie Capability-Endpunkte) oder `CanForFansubGroup` (wie Hist-Roles-Liste)? Da der Hist-Dialog im Fansub-Edit-Kontext lebt, ist `CanForFansubGroup(... MembersView)` konsistenter.
+1. **Welche Rollen genau im historischen Dialog?** Wegen Migration 0103 tragen alle App-Rollen `group_history`. Fachlich gewollt sind nur `founder`, `leader`, `co_leader`, `project_manager` (= CONTEXT-Pflichtliste Gründer/in, Gruppenleitung, Co-Leitung, Projektmanagement). **RESOLVED:** explizite kuratierte Whitelist `founder/leader/co_leader/project_manager` (NICHT `'group_history' = ANY(contexts)`). Verankert in CONTEXT D-07 und umgesetzt in Plan 94-03 (group_history-Read-Repo-Methode).
+2. **Kategorie-Granularität:** Sollen die 3 technischen Kategorien (`gruppe/projekt/release`) für die UI auf die 5 fachlichen CONTEXT-Kategorien gemappt/erweitert werden? **RESOLVED:** Display-Mapping im Frontend (3 → 5 fachliche Labels), **keine** Migration (Non-Goal „keine grosse Migration"). Verankert in CONTEXT D-11, umgesetzt in Plan 94-06.
+3. **Auth-Gate des neuen role-definitions-Endpunkts:** `requirePlatformAdminIdentity` (wie Capability-Endpunkte) oder `CanForFansubGroup` (wie Hist-Roles-Liste)? **RESOLVED:** `CanForFansubGroup(... MembersView)` — konsistent mit dem Fansub-Edit-Kontext, in dem der Hist-Dialog lebt. Umgesetzt in Plan 94-03 (Handler + Auth-Gate).
 
 ## Environment Availability
 
