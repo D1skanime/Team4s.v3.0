@@ -68,6 +68,44 @@ type histGroupMemberRolePatchRequest struct {
 	SourceNote  **string `json:"source_note"`
 }
 
+// ListGroupHistoryRoleDefinitions gibt die kuratierte Liste der historischen Gruppenrollen
+// aus role_definitions zurück (nur group_history-Whitelist: Gründer/in, Gruppenleitung,
+// Co-Leitung, Projektmanagement).
+// GET /admin/fansubs/:id/role-definitions
+// Autorisierung: CanForFansubGroup(ActionFansubGroupMembersView)
+func (h *FansubHistGroupMemberRolesHandler) ListGroupHistoryRoleDefinitions(c *gin.Context) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+
+	fansubID, err := parseFansubID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige Fansub-ID")
+		return
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "role_definitions.list.denied", &fansubID, "role_definition", nil, permissions.ActionFansubGroupMembersView, result)
+		writePermissionDenied(c, result)
+		return
+	}
+
+	items, err := h.rolesRepo.ListGroupHistoryRoleDefinitions(c.Request.Context())
+	if err != nil {
+		log.Printf("role definitions list: repo error (fansub_id=%d): %v", fansubID, err)
+		internalError(c, "interner Serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": items})
+}
+
 // ListHistGroupMemberRoles gibt alle Rollen eines Mitglieds zurück.
 // GET /admin/fansubs/:id/member-roles?member_id=N
 func (h *FansubHistGroupMemberRolesHandler) ListHistGroupMemberRoles(c *gin.Context) {

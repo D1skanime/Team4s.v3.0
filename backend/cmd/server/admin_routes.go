@@ -194,6 +194,8 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/fansubs/:id/member-roles", auth, deps.histGroupMemberRolesHandler.CreateHistGroupMemberRole)
 	v1.PATCH("/admin/fansubs/:id/member-roles/:roleId", auth, deps.histGroupMemberRolesHandler.UpdateHistGroupMemberRole)
 	v1.DELETE("/admin/fansubs/:id/member-roles/:roleId", auth, deps.histGroupMemberRolesHandler.DeleteHistGroupMemberRole)
+	// Phase 94-03: Kuratierte group_history-Rollenliste (D-07, AC-1/3)
+	v1.GET("/admin/fansubs/:id/role-definitions", auth, deps.histGroupMemberRolesHandler.ListGroupHistoryRoleDefinitions)
 	v1.GET("/admin/fansubs/:id/history", auth, deps.groupHistoryHandler.ListGroupHistory)
 	v1.POST("/admin/fansubs/:id/history", auth, deps.groupHistoryHandler.CreateGroupHistory)
 	v1.PATCH("/admin/fansubs/:id/history/:historyId", auth, deps.groupHistoryHandler.UpdateGroupHistory)
