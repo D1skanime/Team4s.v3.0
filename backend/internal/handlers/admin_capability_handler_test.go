@@ -521,9 +521,11 @@ func (h *adminCapabilityHandlerWithStubs) ListCapabilityMatrix(c *gin.Context) {
 		return
 	}
 
-	// RED: Anreicherung mit assignable-Feld fehlt noch (wird in Plan 02 implementiert).
-	// Sobald Plan 02 den Guard einbaut, soll dieser Handler-Stub auch die Anreicherung spiegeln.
-	// Für den Nyquist-RED-Test: Matrix ohne assignable zurückgeben → Test schlägt fehl.
+	// D-04: Assignable-Anreicherung — spiegelt die Produktionsimplementierung (Plan 02).
+	for i := range matrix.Roles {
+		matrix.Roles[i].Assignable = permissions.IsKnownFansubGroupRole(matrix.Roles[i].RoleCode)
+	}
+
 	c.JSON(http.StatusOK, matrix)
 }
 
@@ -538,6 +540,17 @@ func (h *adminCapabilityHandlerWithStubs) GrantCapability(c *gin.Context) {
 
 	if roleCode == "" || actionCode == "" {
 		badRequest(c, "roleCode und actionCode sind erforderlich.")
+		return
+	}
+
+	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten.
+	if !permissions.IsKnownFansubGroupRole(roleCode) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"code":    "role_not_assignable",
+				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
+			},
+		})
 		return
 	}
 
@@ -573,6 +586,18 @@ func (h *adminCapabilityHandlerWithStubs) RevokeCapability(c *gin.Context) {
 
 	if roleCode == "" || actionCode == "" {
 		badRequest(c, "roleCode und actionCode sind erforderlich.")
+		return
+	}
+
+	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten.
+	// VOR dem Lockout-Guard prüfen (Pitfall 4: Guard in BEIDEN Mutationspfaden).
+	if !permissions.IsKnownFansubGroupRole(roleCode) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"code":    "role_not_assignable",
+				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
+			},
+		})
 		return
 	}
 

@@ -60,6 +60,12 @@ func (h *AdminCapabilityHandler) ListCapabilityMatrix(c *gin.Context) {
 		return
 	}
 
+	// D-04: Assignable-Anreicherung — Repository darf permissions nicht importieren (Kommentar Z.52).
+	// Handler setzt Assignable nach permissions.IsKnownFansubGroupRole als Wahrheitsquelle.
+	for i := range matrix.Roles {
+		matrix.Roles[i].Assignable = permissions.IsKnownFansubGroupRole(matrix.Roles[i].RoleCode)
+	}
+
 	c.JSON(http.StatusOK, matrix)
 }
 
@@ -79,6 +85,17 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 
 	if roleCode == "" || actionCode == "" {
 		badRequest(c, "roleCode und actionCode sind erforderlich.")
+		return
+	}
+
+	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten (T-94-01).
+	if !permissions.IsKnownFansubGroupRole(roleCode) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"code":    "role_not_assignable",
+				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
+			},
+		})
 		return
 	}
 
@@ -123,6 +140,18 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 
 	if roleCode == "" || actionCode == "" {
 		badRequest(c, "roleCode und actionCode sind erforderlich.")
+		return
+	}
+
+	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten (T-94-01).
+	// VOR dem Lockout-Guard prüfen (Pitfall 4: Guard in BEIDEN Mutationspfaden).
+	if !permissions.IsKnownFansubGroupRole(roleCode) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": gin.H{
+				"code":    "role_not_assignable",
+				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
+			},
+		})
 		return
 	}
 
