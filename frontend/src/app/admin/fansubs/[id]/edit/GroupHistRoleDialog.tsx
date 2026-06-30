@@ -9,7 +9,8 @@ import {
   Textarea,
   YearPicker,
 } from '@/components/ui'
-import { FANSUB_GROUP_ROLE_OPTIONS, type HistFansubGroupMember } from '@/types/fansub'
+import { type RoleDefinitionOption } from '@/types/admin-capability'
+import { type HistFansubGroupMember } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -36,7 +37,10 @@ export type GroupHistRoleDialogProps = {
   members: HistFansubGroupMember[]
   yearMin: number
   yearMax: number
-  roleOptions?: typeof FANSUB_GROUP_ROLE_OPTIONS
+  /** Frühere Funktionen aus der group_history-Quelle (Plan 03 / Plan 04) */
+  historyRoleOptions: RoleDefinitionOption[]
+  /** Optionaler Ladefehler für die group_history-Rollen */
+  historyRoleLoadError?: string | null
 }
 
 export function GroupHistRoleDialog({
@@ -51,14 +55,15 @@ export function GroupHistRoleDialog({
   members,
   yearMin,
   yearMax,
-  roleOptions = FANSUB_GROUP_ROLE_OPTIONS,
+  historyRoleOptions,
+  historyRoleLoadError,
 }: GroupHistRoleDialogProps) {
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={isEditing ? 'Rolle bearbeiten' : 'Rolle hinzufügen'}
-      description="Historische Gruppenrolle für ein Mitglied anlegen oder bearbeiten."
+      title={isEditing ? 'Frühere Funktion bearbeiten' : 'Frühere Funktion hinzufügen'}
+      description="Historische Funktion in der Gruppe dokumentieren — keine aktiven App-Rechte."
       footer={
         <div className={styles.fansubEditMembershipModalActions}>
           <Button variant="secondary" onClick={onClose} disabled={isSaving}>
@@ -78,8 +83,15 @@ export function GroupHistRoleDialog({
       <div className={styles.fansubEditMembershipModalStack}>
         {error ? (
           <ErrorState
-            title="Rolle konnte nicht gespeichert werden"
+            title="Funktion konnte nicht gespeichert werden"
             description={error}
+          />
+        ) : null}
+
+        {historyRoleLoadError ? (
+          <ErrorState
+            title="Frühere Funktionen konnten nicht geladen werden"
+            description={historyRoleLoadError}
           />
         ) : null}
 
@@ -100,17 +112,17 @@ export function GroupHistRoleDialog({
           </Select>
         </FormField>
 
-        <FormField label="Rolle" htmlFor="member-role-role" required>
+        <FormField label="Frühere Funktion in der Gruppe" htmlFor="member-role-role" required>
           <Select
             id="member-role-role"
             value={roleForm.roleCode}
             onChange={(e) => setRoleForm((f) => ({ ...f, roleCode: e.target.value }))}
-            aria-label="Rolle auswählen"
+            aria-label="Frühere Funktion auswählen"
           >
-            <option value="">Rolle auswählen</option>
-            {roleOptions.map((option) => (
+            <option value="">Frühere Funktion wählen</option>
+            {historyRoleOptions.map((option) => (
               <option key={option.code} value={option.code}>
-                {option.label}
+                {option.label_de}
               </option>
             ))}
           </Select>

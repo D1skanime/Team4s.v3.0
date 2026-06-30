@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 import { Plus } from 'lucide-react'
 
 import {
@@ -9,6 +11,8 @@ import {
   SectionHeader,
   Toolbar,
 } from '@/components/ui'
+import { listGroupHistoryRoleDefinitions } from '@/lib/api'
+import { type RoleDefinitionOption } from '@/types/admin-capability'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -48,6 +52,28 @@ export function GroupMembersTab({
   showHeaderActions = true,
 }: GroupMembersTabProps) {
   const tab = useGroupMembersTab({ fansubId, onActionsChange })
+
+  const [historyRoleOptions, setHistoryRoleOptions] = useState<RoleDefinitionOption[]>([])
+  const [historyRoleLoadError, setHistoryRoleLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    listGroupHistoryRoleDefinitions(fansubId)
+      .then((options) => {
+        if (!cancelled) {
+          setHistoryRoleOptions(options)
+          setHistoryRoleLoadError(null)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setHistoryRoleLoadError('Frühere Funktionen konnten nicht geladen werden.')
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [fansubId])
 
   return (
     <section className={embedded ? styles.fansubEditEmbeddedMembershipSurface : styles.fansubEditMembershipSurface}>
@@ -143,6 +169,8 @@ export function GroupMembersTab({
         members={tab.members}
         yearMin={tab.YEAR_MIN}
         yearMax={tab.CURRENT_YEAR}
+        historyRoleOptions={historyRoleOptions}
+        historyRoleLoadError={historyRoleLoadError}
       />
 
       <GroupMemberFormModals
