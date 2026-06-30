@@ -413,7 +413,7 @@ func main() {
 	adminUsersRepo := repository.NewAdminUsersRepository(dbPool)
 	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
-	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, permissionSvc, auditLogRepo)
+	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, authzRepo, permissionSvc, auditLogRepo)
 	// Phase 95-02: Assignable Gruppenrollen-Liste (D-12)
 	adminGroupRolesHandler := handlers.NewAdminGroupRolesHandler(authzRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{

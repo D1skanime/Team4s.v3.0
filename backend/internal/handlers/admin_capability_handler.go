@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -11,36 +12,51 @@ import (
 )
 
 // capabilityAuthzRepo ist das minimale Interface, das der Capability-Handler für die
-// Platform-Admin-Prüfung und die Capability-Mutationen benötigt.
+// Platform-Admin-Prüfung benötigt.
 type capabilityAuthzRepo interface {
-	AppUserHasGlobalRole(ctx interface{ Done() <-chan struct{} }, appUserID int64, roleName string) (bool, error)
+	AppUserHasGlobalRole(ctx context.Context, appUserID int64, roleName string) (bool, error)
 }
 
-// capabilityMutationRepo kapselt die DB-Operationen für Capability-Mutationen.
+// capabilityMutationRepo kapselt die DB-Operationen für Capability-Mutationen
+// und implementiert zugleich permissions.CacheLoader für den Cache-Reload nach Mutationen.
 type capabilityMutationRepo interface {
-	ListCapabilityMatrix(ctx interface{ Done() <-chan struct{} }) (*repository.CapabilityMatrix, error)
-	GrantRoleCapability(ctx interface{ Done() <-chan struct{} }, roleCode, actionCode string) error
-	RevokeRoleCapability(ctx interface{ Done() <-chan struct{} }, roleCode, actionCode string) error
-	CountRolesWithAction(ctx interface{ Done() <-chan struct{} }, actionCode string) (int64, error)
+	ListCapabilityMatrix(ctx context.Context) (*repository.CapabilityMatrix, error)
+	GrantRoleCapability(ctx context.Context, roleCode, actionCode string) error
+	RevokeRoleCapability(ctx context.Context, roleCode, actionCode string) error
+	CountRolesWithAction(ctx context.Context, actionCode string) (int64, error)
+	LoadRoleCapabilities(ctx context.Context) (map[string][]permissions.Action, error)
+}
+
+// capabilityPermissionSvc kapselt den Permission-Service für Cache-Reloads nach Mutationen.
+type capabilityPermissionSvc interface {
+	ReloadCache(ctx context.Context, loader permissions.CacheLoader) error
+}
+
+// capabilityAuditRepo kapselt das Audit-Log-Repository für Capability-Mutations-Audit.
+type capabilityAuditRepo interface {
+	Write(ctx context.Context, entry repository.AuditLogEntry) error
 }
 
 // AdminCapabilityHandler verwaltet die Capability-Matrix-Endpunkte.
 type AdminCapabilityHandler struct {
-	authzRepo    *repository.AuthzRepository
-	permissionSvc *permissions.Service
-	auditLogRepo *repository.AuditLogRepository
+	authzRepo     capabilityAuthzRepo
+	mutationRepo  capabilityMutationRepo
+	permissionSvc capabilityPermissionSvc
+	auditLogRepo  capabilityAuditRepo
 }
 
 // NewAdminCapabilityHandler erstellt einen neuen AdminCapabilityHandler.
 func NewAdminCapabilityHandler(
-	authzRepo *repository.AuthzRepository,
-	permissionSvc *permissions.Service,
-	auditLogRepo *repository.AuditLogRepository,
+	authzRepo     capabilityAuthzRepo,
+	mutationRepo  capabilityMutationRepo,
+	permissionSvc capabilityPermissionSvc,
+	auditLogRepo  capabilityAuditRepo,
 ) *AdminCapabilityHandler {
 	return &AdminCapabilityHandler{
-		authzRepo:    authzRepo,
+		authzRepo:     authzRepo,
+		mutationRepo:  mutationRepo,
 		permissionSvc: permissionSvc,
-		auditLogRepo: auditLogRepo,
+		auditLogRepo:  auditLogRepo,
 	}
 }
 
@@ -53,7 +69,7 @@ func (h *AdminCapabilityHandler) ListCapabilityMatrix(c *gin.Context) {
 		return
 	}
 
-	matrix, err := h.authzRepo.ListCapabilityMatrix(c.Request.Context())
+	matrix, err := h.mutationRepo.ListCapabilityMatrix(c.Request.Context())
 	if err != nil {
 		log.Printf("capability matrix: repo error: %v", err)
 		internalError(c, "Capability-Matrix konnte nicht geladen werden.")
@@ -99,7 +115,7 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 		return
 	}
 
-	if err := h.authzRepo.GrantRoleCapability(c.Request.Context(), roleCode, actionCode); err != nil {
+	if err := h.mutationRepo.GrantRoleCapability(c.Request.Context(), roleCode, actionCode); err != nil {
 		log.Printf("capability grant: repo error (role=%q, action=%q): %v", roleCode, actionCode, err)
 		internalError(c, "Capability konnte nicht zugewiesen werden.")
 		return
@@ -107,7 +123,7 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 
 	// D-06: Cache nach erfolgreicher Mutation neu laden.
 	// Fail-safe: Reload-Fehler wird nur geloggt — Mutation war erfolgreich, alter Cache bleibt gültig.
-	if err := h.permissionSvc.ReloadCache(c.Request.Context(), h.authzRepo); err != nil {
+	if err := h.permissionSvc.ReloadCache(c.Request.Context(), h.mutationRepo); err != nil {
 		log.Printf("capability grant: ReloadCache fehlgeschlagen (role=%q, action=%q): %v — alter Cache bleibt gültig", roleCode, actionCode, err)
 	}
 
@@ -156,7 +172,7 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 	}
 
 	// D-07: Lockout-Guard — VOR der DB-Mutation prüfen.
-	count, err := h.authzRepo.CountRolesWithAction(c.Request.Context(), actionCode)
+	count, err := h.mutationRepo.CountRolesWithAction(c.Request.Context(), actionCode)
 	if err != nil {
 		log.Printf("capability revoke: CountRolesWithAction error (action=%q): %v", actionCode, err)
 		internalError(c, "Lockout-Prüfung fehlgeschlagen.")
@@ -174,7 +190,7 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 		return
 	}
 
-	if err := h.authzRepo.RevokeRoleCapability(c.Request.Context(), roleCode, actionCode); err != nil {
+	if err := h.mutationRepo.RevokeRoleCapability(c.Request.Context(), roleCode, actionCode); err != nil {
 		log.Printf("capability revoke: repo error (role=%q, action=%q): %v", roleCode, actionCode, err)
 		internalError(c, "Capability konnte nicht entzogen werden.")
 		return
@@ -182,7 +198,7 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 
 	// D-06: Cache nach erfolgreicher Mutation neu laden.
 	// Fail-safe: Reload-Fehler wird nur geloggt — Mutation war erfolgreich, alter Cache bleibt gültig.
-	if err := h.permissionSvc.ReloadCache(c.Request.Context(), h.authzRepo); err != nil {
+	if err := h.permissionSvc.ReloadCache(c.Request.Context(), h.mutationRepo); err != nil {
 		log.Printf("capability revoke: ReloadCache fehlgeschlagen (role=%q, action=%q): %v — alter Cache bleibt gültig", roleCode, actionCode, err)
 	}
 
