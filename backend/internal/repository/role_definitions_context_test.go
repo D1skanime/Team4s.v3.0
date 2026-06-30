@@ -23,13 +23,16 @@ import (
 
 // GroupHistoryRoleWhitelist ist die verbindliche Liste der historischen Gruppenrollen.
 // Entspricht dem Seed in database/migrations/0085_role_definitions_seed.up.sql
-// (Schritt 3: contexts = group_history).
+// und der Bereinigung aus 0112_role_model_cleanup (D-04/D-06/D-07):
+// leader → fansub_lead, project_manager → project_lead, neu: techadmin, gfxler.
 // KEINE Rollen aus permissions.FansubGroupRoles() dürfen enthalten sein (Pitfall 2).
 var groupHistoryRoleWhitelist = []string{
 	"founder",
-	"leader",
+	"fansub_lead",
 	"co_leader",
-	"project_manager",
+	"project_lead",
+	"techadmin",
+	"gfxler",
 }
 
 // GroupHistoryRoleDefinition ist die erwartete DTO-Struktur der geplanten Repo-Methode.
@@ -53,14 +56,13 @@ type GroupHistoryRoleDefinition struct {
 // TestRoleDefinitionsContextWhitelistOnly prüft die Whitelist-Invariante deterministisch:
 //
 //  1. Die Whitelist ist nicht leer.
-//  2. Kein Code aus groupHistoryRoleWhitelist ist in permissions.FansubGroupRoles() enthalten
-//     (Set-Schnitt == leer). Pitfall 2: Migration 0103 wäre ein stiller Fehler.
-//  3. Kein Code aus permissions.FansubGroupRoles() soll von der geplanten Methode zurückgegeben
-//     werden (Whitelist-Filter stellt sicher, dass translator/encoder nicht erscheinen).
+//  2. Projekt-/Anime-Ebenen-Rollen (translator, encoder, …) sind NICHT in der Whitelist.
+//     Nach Phase 95 (D-01/D-06) dürfen Gruppen-Rollen (fansub_lead, project_lead, techadmin,
+//     gfxler) in beiden Listen erscheinen — das ist das Design-Ziel. Nur reine App-only-Rollen
+//     (translator, editor, timer, …) dürfen NICHT im group_history-Read erscheinen.
+//  3. Historisch-pure Codes (founder, co_leader) dürfen nicht im App-Katalog erscheinen.
 //
 // Behavior: Läuft ohne Live-DB und ist deterministisch.
-// RED-Hinweis: Wenn ListGroupHistoryRoleDefinitions noch nicht existiert, kompiliert
-// dieser Test trotzdem — er prüft nur die Whitelist-Konstante und deren Disjunktheit.
 func TestRoleDefinitionsContextWhitelistOnly(t *testing.T) {
 	// (1) Whitelist ist nicht leer
 	if len(groupHistoryRoleWhitelist) == 0 {
@@ -72,48 +74,63 @@ func TestRoleDefinitionsContextWhitelistOnly(t *testing.T) {
 		t.Fatal("permissions.FansubGroupRoles() ist leer — Testvorbedingung verletzt")
 	}
 
-	// Schnellzugriff: App-Rollen als Set
-	appRoleSet := make(map[string]bool, len(appRoles))
-	for _, r := range appRoles {
-		appRoleSet[r] = true
+	// Projekt-/Anime-Rollen (nur App-Ebene): dürfen nie in der Whitelist erscheinen.
+	// Nach D-01/D-02: translator, editor, timer, typesetter, encoder, raw_provider,
+	// quality_checker, designer sind Projekt-Ebene — kein Historien-Kontext.
+	projektRoles := map[string]bool{
+		"translator":      true,
+		"editor":          true,
+		"timer":           true,
+		"typesetter":      true,
+		"encoder":         true,
+		"raw_provider":    true,
+		"quality_checker": true,
+		"designer":        true,
 	}
 
-	// (2) Set-Schnitt: Whitelist ∩ FansubGroupRoles() == leer
-	// Pitfall 2: Falls Migration 0103 historische Rollen fälschlicherweise in den App-Katalog
-	// aufnimmt, würde dieser Test fehlschlagen — das ist die Schutzfunktion.
-	for _, histCode := range groupHistoryRoleWhitelist {
-		if appRoleSet[histCode] {
-			t.Errorf("Whitelist-Code %q ist auch in permissions.FansubGroupRoles() enthalten — "+
-				"Disjunktheit verletzt (Pitfall 2: Migration 0103 Drift)", histCode)
-		}
-	}
-
-	// (3) Kein App-Rollen-Code darf in der Whitelist erscheinen.
-	// Ergänzende Prüfung von der App-Rollen-Seite aus.
 	whitelistSet := make(map[string]bool, len(groupHistoryRoleWhitelist))
 	for _, code := range groupHistoryRoleWhitelist {
 		whitelistSet[code] = true
 	}
-	for _, appRole := range appRoles {
-		if whitelistSet[appRole] {
-			t.Errorf("App-Rolle %q ist fälschlicherweise in groupHistoryRoleWhitelist — "+
-				"aktive App-Rollen dürfen NICHT im group_history-Read erscheinen", appRole)
+
+	// (2) Keine Projekt-Rollen in der Whitelist
+	for projektRole := range projektRoles {
+		if whitelistSet[projektRole] {
+			t.Errorf("Projekt-Rolle %q ist fälschlicherweise in groupHistoryRoleWhitelist — "+
+				"nur Gruppen-Ebenen-Rollen dürfen im group_history-Read erscheinen", projektRole)
+		}
+	}
+
+	// (3) Historisch-pure Codes (founder, co_leader) nicht im App-Katalog
+	historicalOnlyCodes := []string{"founder", "co_leader"}
+	appRoleSet := make(map[string]bool, len(appRoles))
+	for _, r := range appRoles {
+		appRoleSet[r] = true
+	}
+	for _, histOnly := range historicalOnlyCodes {
+		if appRoleSet[histOnly] {
+			t.Errorf("Historisch-purer Code %q ist fälschlicherweise in permissions.FansubGroupRoles() — "+
+				"founder/co_leader sind keine assignable App-Rollen", histOnly)
 		}
 	}
 
 	// Zusammenfassung im Erfolgsfall
-	t.Logf("Whitelist OK: %v (keine Überschneidung mit %d App-Rollen)", groupHistoryRoleWhitelist, len(appRoles))
+	t.Logf("Whitelist OK: %v (%d App-Rollen im Katalog)", groupHistoryRoleWhitelist, len(appRoles))
 }
 
 // TestRoleDefinitionsContextWhitelistExpectedCodes prüft, dass die Whitelist die vier
 // erwarteten historischen Rollen aus dem 0085-Seed enthält und keine zusätzlichen.
 // Dieser Test verhindert stilles Erweitern der Whitelist ohne explizite Review.
 func TestRoleDefinitionsContextWhitelistExpectedCodes(t *testing.T) {
+	// Nach Migration 0112: kanonische Codes (D-04/D-06/D-07)
+	// leader → fansub_lead, project_manager → project_lead, neu: techadmin, gfxler
 	expected := map[string]bool{
-		"founder":         true,
-		"leader":          true,
-		"co_leader":       true,
-		"project_manager": true,
+		"founder":    true,
+		"fansub_lead": true,
+		"co_leader":  true,
+		"project_lead": true,
+		"techadmin":  true,
+		"gfxler":     true,
 	}
 
 	if len(groupHistoryRoleWhitelist) != len(expected) {
@@ -123,7 +140,7 @@ func TestRoleDefinitionsContextWhitelistExpectedCodes(t *testing.T) {
 
 	for _, code := range groupHistoryRoleWhitelist {
 		if !expected[code] {
-			t.Errorf("unerwarteter Code in Whitelist: %q — nur {founder, leader, co_leader, project_manager} erlaubt", code)
+			t.Errorf("unerwarteter Code in Whitelist: %q — nur {founder, fansub_lead, co_leader, project_lead, techadmin, gfxler} erlaubt", code)
 		}
 	}
 }

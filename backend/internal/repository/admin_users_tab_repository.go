@@ -115,7 +115,7 @@ func (r *AdminUsersRepository) GetUserGroupRights(
 		       -- Bewusst unverändert per User-Entscheidung 2026-06-18 (Phase 86, D-08/D-09).
 		       -- Für echte SQL-Capability-Checks role_capabilities-Join nutzen (D-07).
 		       bool_or(fgmr.role IS NOT NULL) AS can_view_members,
-		       bool_or(fgmr.role IN ('leader', 'editor', 'contributor')) AS can_edit_content
+		       bool_or(fgmr.role IN ('fansub_lead', 'editor', 'contributor')) AS can_edit_content
 		FROM fansub_group_members fgm
 		JOIN fansub_groups fg ON fg.id = fgm.fansub_group_id
 		LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id

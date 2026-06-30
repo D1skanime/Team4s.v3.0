@@ -12,9 +12,11 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 vi.mock('@/lib/api', () => ({
   listGroupHistoryRoleDefinitions: vi.fn().mockResolvedValue([
     { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
-    { code: 'leader', label_de: 'Gruppenleitung', sort_order: 2 },
+    { code: 'fansub_lead', label_de: 'Gruppenleitung', sort_order: 2 },
     { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
-    { code: 'project_manager', label_de: 'Projektmanagement', sort_order: 4 },
+    { code: 'project_lead', label_de: 'Fansub-Projektleitung', sort_order: 4 },
+    { code: 'techadmin', label_de: 'Techadmin', sort_order: 5 },
+    { code: 'gfxler', label_de: 'GFX / Grafik', sort_order: 6 },
   ]),
 }))
 
@@ -65,9 +67,11 @@ const defaultRoleForm: RoleFormFields = {
 
 const historyRoles: RoleDefinitionOption[] = [
   { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
-  { code: 'leader', label_de: 'Gruppenleitung', sort_order: 2 },
+  { code: 'fansub_lead', label_de: 'Gruppenleitung', sort_order: 2 },
   { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
-  { code: 'project_manager', label_de: 'Projektmanagement', sort_order: 4 },
+  { code: 'project_lead', label_de: 'Fansub-Projektleitung', sort_order: 4 },
+  { code: 'techadmin', label_de: 'Techadmin', sort_order: 5 },
+  { code: 'gfxler', label_de: 'GFX / Grafik', sort_order: 6 },
 ]
 
 const noop = () => {}
@@ -91,18 +95,20 @@ describe('GroupHistRoleDialog', () => {
       />
     )
 
-    // Alle vier historischen Rollen müssen als Optionen vorhanden sein
+    // Alle sechs historischen Gruppenrollen müssen als Optionen vorhanden sein (D-04/D-06/D-07)
     expect(screen.getByRole('option', { name: 'Gründer/in' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Gruppenleitung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Co-Leitung' })).toBeDefined()
-    expect(screen.getByRole('option', { name: 'Projektmanagement' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Fansub-Projektleitung' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Techadmin' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'GFX / Grafik' })).toBeDefined()
 
     // Aktive App-Rollen dürfen NICHT vorhanden sein
     expect(screen.queryByRole('option', { name: 'Übersetzung' })).toBeNull()
     expect(screen.queryByRole('option', { name: 'Encoding' })).toBeNull()
   })
 
-  it('Test 2: die angebotenen Labels enthalten alle vier Gruppenhistorie-Bezeichnungen mit korrekten Umlauten', () => {
+  it('Test 2: die angebotenen Labels enthalten alle sechs Gruppenhistorie-Bezeichnungen mit korrekten Umlauten', () => {
     render(
       <GroupHistRoleDialog
         open={true}
@@ -120,11 +126,13 @@ describe('GroupHistRoleDialog', () => {
       />
     )
 
-    // Umlautkorrekte Bezeichnungen (ä, ö, ü, ß) müssen erscheinen
+    // Umlautkorrekte Bezeichnungen (ä, ö, ü, ß) müssen erscheinen (D-04/D-05/D-07)
     expect(screen.getByText('Gründer/in')).toBeDefined()
     expect(screen.getByText('Gruppenleitung')).toBeDefined()
     expect(screen.getByText('Co-Leitung')).toBeDefined()
-    expect(screen.getByText('Projektmanagement')).toBeDefined()
+    expect(screen.getByText('Fansub-Projektleitung')).toBeDefined()
+    expect(screen.getByText('Techadmin')).toBeDefined()
+    expect(screen.getByText('GFX / Grafik')).toBeDefined()
   })
 
   it('Test 3: verwendet das Select-Primitiv aus @/components/ui (kein natives <select> ohne Primitiv)', () => {

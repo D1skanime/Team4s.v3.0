@@ -90,7 +90,7 @@ func (s *BadgeService) computeHistoricalLeader(ctx context.Context, memberID int
 		FROM hist_group_member_roles r
 		JOIN hist_fansub_group_members fgm ON fgm.id = r.hist_fansub_group_member_id
 		WHERE fgm.member_id = $1
-		  AND r.role_code IN ('leader', 'founder')
+		  AND r.role_code IN ('fansub_lead', 'founder')
 		LIMIT 1
 	`, memberID).Scan(&rowID)
 	if err != nil {

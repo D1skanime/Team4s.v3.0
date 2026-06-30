@@ -244,9 +244,11 @@ type RoleDefinitionOption struct {
 //   auf die vier Rollen aus dem 0085-Seed mit echtem group_history-Ursprung.
 var groupHistoryDialogRoleWhitelist = []string{
 	"founder",
-	"leader",
+	"fansub_lead",
 	"co_leader",
-	"project_manager",
+	"project_lead",
+	"techadmin",
+	"gfxler",
 }
 
 // ListGroupHistoryRoleDefinitions gibt die kuratierte Liste der historischen Gruppenrollen

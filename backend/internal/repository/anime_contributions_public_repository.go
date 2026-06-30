@@ -240,7 +240,7 @@ func (r *AnimeContributionsRepository) GetPublicGroupContributions(ctx context.C
 		JOIN members m ON m.id = hfgm.member_id
 		LEFT JOIN role_definitions rd ON rd.code = r.role_code
 		WHERE hfgm.fansub_group_id = $1
-		  AND r.role_code IN ('leader', 'founder')
+		  AND r.role_code IN ('fansub_lead', 'founder')
 		  AND r.visibility = 'public'
 		ORDER BY COALESCE(r.started_year, 9999), member_display_name
 	`
