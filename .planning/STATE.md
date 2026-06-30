@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Abgeschlossen 95-02-PLAN.md
-last_updated: "2026-06-30T16:21:00.935Z"
+stopped_at: Abgeschlossen 95-03-PLAN.md
+last_updated: "2026-06-30T16:29:55.122Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 87
   completed_phases: 73
   total_plans: 361
-  completed_plans: 332
+  completed_plans: 333
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 95 (rollenmodell-entwirren-gruppen-vs-projekt-ebene-techadmin-gf) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Accumulated Context
 
@@ -259,6 +259,9 @@ Recent durable decisions:
 - [Phase ?]: stubCapabilityAuthzRepo.matrixRoles additiv ergänzt
 - [Phase ?]: [Phase 94-02]: Repository bleibt permissions-frei (D-03 eingehalten) — Assignable im Handler via permissions.IsKnownFansubGroupRole gesetzt
 - [Phase ?]: [Phase 95-02]: fansubGroupRoleCatalog dynamisiert — LoadFansubGroupCatalog() lädt aus role_definitions WHERE assignable=true; TestMain-Setup in handlers/repository-Paket nötig für catalog-abhängige Tests
+- [Phase ?]: [Phase 95-03]: CR-01: IsGroupHistoryWhitelistRole ersetzt RoleCodeExistsForContext im Handler
+- [Phase ?]: [Phase 95-03]: WR-02: Cross-Group-Guard (GetByID + FansubGroupID-Check) vor ListByMember in ListHistGroupMemberRoles
+- [Phase ?]: [Phase 95-03]: D-10 Auto-Archivierung fail-open in SetRole(false): 2-Hop-Join member_claims, ON CONFLICT DO NOTHING
 
 ### Pending Todos
 
@@ -459,6 +462,7 @@ Recent durable decisions:
 | Phase 94 P06 | 7min | 2 tasks | 8 files |
 | Phase 95 P01 | 5min | 2 tasks | 9 files |
 | Phase 95 P02 | 15min | 2 tasks | 8 files |
+| Phase 95 P03 | 10min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -510,7 +514,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-30T16:21:00.898Z
-Stopped at: Abgeschlossen 95-02-PLAN.md
+Last session: 2026-06-30T16:29:55.089Z
+Stopped at: Abgeschlossen 95-03-PLAN.md
 Last activity: 2026-06-30
 Resume file: None
