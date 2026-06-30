@@ -65,12 +65,22 @@ export default function RoleCapabilityClient({
   const [selectedRoleCode, setSelectedRoleCode] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
 
+  // Controlled Accordion-Open-Zustand — überlebt Switch-Toggle + Daten-Refresh,
+  // sodass eine aufgeklappte Kategorie nach einer Mutation offen bleibt.
+  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set())
+
   const [capabilityError, setCapabilityError] = useState<string | null>(null)
   const [isMutating, setIsMutating] = useState(false)
 
-  const loadData = useCallback(async () => {
+  /**
+   * Lädt die Matrix neu.
+   * @param showLoading - true beim Initial-Load (vollflächiger LoadingState);
+   *   false bei Refresh nach einer Mutation, damit das Detail-Panel (und damit
+   *   der Accordion-Open-Zustand) NICHT unmounted/neu gemountet wird.
+   */
+  const loadData = useCallback(async (showLoading = true) => {
     if (isControlled) return
-    setIsLoading(true)
+    if (showLoading) setIsLoading(true)
     setError(null)
     try {
       const data = await listRoleCapabilities()
@@ -82,7 +92,7 @@ export default function RoleCapabilityClient({
         setError('Fehler beim Laden der Capability-Matrix.')
       }
     } finally {
-      setIsLoading(false)
+      if (showLoading) setIsLoading(false)
     }
   }, [isControlled])
 
@@ -120,7 +130,7 @@ export default function RoleCapabilityClient({
     setCapabilityError(null)
     try {
       await grantRoleCapability(roleCode, actionCode)
-      await loadData()
+      await loadData(false)
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 422 && err.code === 'role_not_assignable') {
@@ -144,7 +154,7 @@ export default function RoleCapabilityClient({
     setCapabilityError(null)
     try {
       await revokeRoleCapability(roleCode, actionCode)
-      await loadData()
+      await loadData(false)
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 422 && err.code === 'role_not_assignable') {
@@ -226,6 +236,8 @@ export default function RoleCapabilityClient({
               onGrant={handleGrant}
               onRevoke={handleRevoke}
               inlineError={capabilityError}
+              openCategories={openCategories}
+              onOpenCategoriesChange={setOpenCategories}
             />
           </div>
         )}
@@ -247,6 +259,8 @@ export default function RoleCapabilityClient({
             onGrant={handleGrant}
             onRevoke={handleRevoke}
             inlineError={capabilityError}
+            openCategories={openCategories}
+            onOpenCategoriesChange={setOpenCategories}
           />
         </Drawer>
       )}

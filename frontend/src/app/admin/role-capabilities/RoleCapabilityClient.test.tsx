@@ -270,4 +270,42 @@ describe("RoleCapabilityClient", () => {
       expect(dialogEl.contains(sw)).toBe(true);
     });
   });
+
+  it("hält das Accordion offen nach erfolgreichem Grant + Daten-Refresh (uncontrolled Pfad)", async () => {
+    mockMatchMedia(false); // Desktop
+
+    const apiModule = await import("@/lib/api");
+    // listRoleCapabilities liefert die Matrix (Initial-Load + Refresh nach Grant)
+    vi.spyOn(apiModule, "listRoleCapabilities").mockResolvedValue(sampleMatrix);
+    // Grant ist erfolgreich → handleGrant ruft loadData(false) (kein LoadingState-Unmount)
+    vi.spyOn(apiModule, "grantRoleCapability").mockResolvedValue(undefined as never);
+
+    // Uncontrolled: kein matrix-Prop → interner Fetch über listRoleCapabilities
+    await act(async () => {
+      render(<RoleCapabilityClient />);
+    });
+
+    // Rolle auswählen
+    const fansublLeadButton = screen.getByRole("button", { name: /Fansub-Lead/i });
+    fireEvent.click(fansublLeadButton);
+
+    // Accordion "Gruppe" öffnen
+    const gruppeHeaders = screen.getAllByText("Gruppe");
+    fireEvent.click(gruppeHeaders[0]);
+
+    // Switch (granted=false) für "Gruppe bearbeiten" togglen → Grant + Refresh
+    const switches = screen.getAllByRole("switch");
+    const offSwitch = switches.find((s) => s.getAttribute("aria-checked") === "false");
+    expect(offSwitch).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.click(offSwitch!);
+    });
+
+    // Nach Grant + Refresh muss die Kategorie "Gruppe" weiterhin aufgeklappt sein
+    const headerButton = screen.getByText("Gruppe").closest("button");
+    expect(headerButton?.getAttribute("aria-expanded")).toBe("true");
+    // Und die Switches sind weiterhin sichtbar (Panel nicht zugeklappt)
+    expect(screen.getAllByRole("switch").length).toBeGreaterThan(0);
+  });
 });

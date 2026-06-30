@@ -11,6 +11,13 @@ export interface RoleCapabilityDetailProps {
   onRevoke: (roleCode: string, actionCode: string) => void
   /** Inline-Fehler (z.B. 422 role_not_assignable oder 409 lockout_guard). */
   inlineError: string | null
+  /**
+   * Controlled Accordion-Open-Zustand (Kategorie-IDs). Vom Parent gehalten,
+   * damit eine aufgeklappte Kategorie nach einem Switch-Toggle / Daten-Refresh
+   * offen bleibt.
+   */
+  openCategories: Set<string>
+  onOpenCategoriesChange: (next: Set<string>) => void
 }
 
 /**
@@ -25,6 +32,8 @@ export function RoleCapabilityDetail({
   onGrant,
   onRevoke,
   inlineError,
+  openCategories,
+  onOpenCategoriesChange,
 }: RoleCapabilityDetailProps) {
   const isAssignable = role.assignable !== false
 
@@ -150,7 +159,12 @@ export function RoleCapabilityDetail({
           Keine Capabilities für diese Rolle.
         </p>
       ) : (
-        <Accordion items={accordionItems} mode="multi" />
+        <Accordion
+          items={accordionItems}
+          mode="multi"
+          openIds={openCategories}
+          onOpenChange={onOpenCategoriesChange}
+        />
       )}
     </div>
   )

@@ -17,25 +17,37 @@ export interface AccordionProps {
   /** Modus: 'multi' (Standard) = mehrere Items gleichzeitig offen; 'single' = nur ein Item offen */
   mode?: 'multi' | 'single'
   className?: string
+  /**
+   * Controlled-Modus: offene Item-IDs werden vom Parent gehalten.
+   * Muss zusammen mit onOpenChange genutzt werden. Bleibt der Open-Zustand so
+   * über Re-Mounts/Daten-Refreshes hinweg stabil (z.B. nach einer Mutation).
+   */
+  openIds?: Set<string>
+  /** Controlled-Modus: Callback bei Toggle; erhält die neue Menge offener IDs. */
+  onOpenChange?: (next: Set<string>) => void
 }
 
-export function Accordion({ items, mode = 'multi', className }: AccordionProps) {
+export function Accordion({ items, mode = 'multi', className, openIds: controlledOpenIds, onOpenChange }: AccordionProps) {
   const baseId = useId()
-  const [openIds, setOpenIds] = useState<Set<string>>(new Set())
+  const isControlled = controlledOpenIds !== undefined
+  const [internalOpenIds, setInternalOpenIds] = useState<Set<string>>(new Set())
+  const openIds = isControlled ? controlledOpenIds : internalOpenIds
 
   function toggle(id: string) {
-    setOpenIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        if (mode === 'single') {
-          next.clear()
-        }
-        next.add(id)
+    const next = new Set(openIds)
+    if (next.has(id)) {
+      next.delete(id)
+    } else {
+      if (mode === 'single') {
+        next.clear()
       }
-      return next
-    })
+      next.add(id)
+    }
+    if (isControlled) {
+      onOpenChange?.(next)
+    } else {
+      setInternalOpenIds(next)
+    }
   }
 
   return (
