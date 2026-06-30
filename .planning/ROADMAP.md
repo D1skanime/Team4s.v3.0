@@ -1602,13 +1602,17 @@ Plans:
 ### Phase 95: Rollenmodell entwirren — Gruppen- vs. Projekt-Ebene, Techadmin/GFXler, data-driven
 
 **Goal:** Das Rollenmodell wird fachlich entwirrt und vereinheitlicht — zwei klare Ebenen mit gemeinsamem `role_code`-Vokabular. (a) Gruppen-Ebene (gruppenweit, rechte-tragend/assignable): Gründer/in, Gruppenleitung/Fansub-Lead (`leader`+`fansub_lead` vereint), Co-Leitung, Fansub-Projektleitung (`project_manager`+`project_lead` vereint; eigene Rolle, ungleich Gruppenleitung), NEU Techadmin (Fansub-Page/Technik) und GFXler (Gruppen-Grafik). (b) Projekt-/Anime-Ebene (Contribution): Übersetzung/Editing/Timing/Typesetting/Encoding/Raw/QC/Design, wobei GFXler und Designer dasselbe Skill in zwei Scopes sind. Lifecycle = koexistieren (aktive Rolle = jetzt; historische Rolle = Jahres-Zeitraum via `hist_group_member_roles`, bereits vorhanden). Rollen werden voll data-driven (fansubGroupRoleCatalog aus `role_definitions` laden + Frontend-Rollenoptionen per API), sodass neue Rollen nur per Migration entstehen. Zusätzlich werden die aus Phase 94 verschobenen Review-Schulden behoben: CR-01 (Schreibpfad-Whitelist-Härtung historischer Rollen), WR-02 (Cross-Group-Scope-Check), WR-01 (Capability-Tests gegen Prod-Handler), WR-03/04 (Line-Limits), WR-05 (deterministische Kategorie-Reihenfolge).
-**Requirements:** TBD — über `/gsd:discuss-phase 95` festlegen. Basis: Memory `project_role_model_rework`, `95-SEED.md`, `94-REVIEW.md`.
+**Requirements:** D-01 bis D-17 (Entscheidungen aus 95-CONTEXT.md)
 **Depends on:** Phase 94
-**Plans:** 0 plans (planen via discuss-phase, dann plan-phase)
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (Start: `/gsd:discuss-phase 95`)
-
+- [ ] `95-01-PLAN.md` — Migration 0112 + Go-Backend-SQL-Sync (D-04/D-05/D-06/D-07/D-08)
+- [ ] `95-02-PLAN.md` — Data-driven Catalog: LoadFansubGroupRoles + GET /admin/fansub-group-roles (D-12)
+- [ ] `95-03-PLAN.md` — Security-Fixes CR-01/WR-02 + Auto-Archivierung D-10 (D-13/D-14)
+- [ ] `95-04-PLAN.md` — Interface-Refaktorierung AdminCapabilityHandler + Stub-Entfernung (D-15)
+- [ ] `95-05-PLAN.md` — Frontend: Typen/API/contributionRoles + RoleCapabilityDetail D-17 (D-04/D-05/D-12/D-17)
+- [ ] `95-06-PLAN.md` — Datei-Splits D-16 + Backend-Rebuild + Human-Verify (D-16)
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
