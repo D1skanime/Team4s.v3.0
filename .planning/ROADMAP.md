@@ -1611,7 +1611,7 @@ Plans:
 - [ ] `95-02-PLAN.md` — Data-driven Catalog: LoadFansubGroupRoles + GET /admin/fansub-group-roles (D-12)
 - [ ] `95-03-PLAN.md` — Security-Fixes CR-01/WR-02 + Auto-Archivierung D-10 (D-13/D-14)
 - [ ] `95-04-PLAN.md` — Interface-Refaktorierung AdminCapabilityHandler + Stub-Entfernung (D-15)
-- [ ] `95-05-PLAN.md` — Frontend: Typen/API/contributionRoles + RoleCapabilityDetail D-17 (D-04/D-05/D-12/D-17)
+- [ ] `95-05-PLAN.md` — Frontend: Typen/API + Member-Add-Consumer-Verdrahtung + contributionRoles + RoleCapabilityDetail D-17 (D-04/D-05/D-12/D-17)
 - [ ] `95-06-PLAN.md` — Datei-Splits D-16 + Backend-Rebuild + Human-Verify (D-16)
 ---
 

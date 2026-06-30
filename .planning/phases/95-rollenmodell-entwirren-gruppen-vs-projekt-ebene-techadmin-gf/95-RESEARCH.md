@@ -732,22 +732,20 @@ func (r *AuthzRepository) LoadFansubGroupRoles(ctx context.Context) ([]string, e
 
 ---
 
-## Offene Fragen
+## Offene Fragen (RESOLVED)
 
-1. **hist_fansub_group_members.app_user_id-Spalte (für D-10)**
-   - Was bekannt: `hist_fansub_group_members` hat `fansub_group_id`, `member_id`, Datum-Felder
-   - Unklar: Gibt es eine direkte `app_user_id`-Verknüpfung oder nur über Member-Claims?
-   - Empfehlung: Beim Planern direkt in `hist_fansub_group_members`-Schema prüfen. Falls kein Link: Auto-Archivierung nur möglich wenn Member eine aktive hist-Mitgliedschaft hat.
+1. **hist↔app-user-Linkage für D-10/A1 — RESOLVED**
+   - Ergebnis: `hist_fansub_group_members` hat KEINE direkte `app_user_id`-Spalte (verifiziert in Migration 0082: nur `member_id` FK auf `members`).
+   - Gewählter Pfad: 2-Hop-Join `fansub_group_members.app_user_id` → `member_claims.app_user_id` (claim_status=verified) → `member_claims.member_id` → `hist_fansub_group_members.member_id`.
+   - Umgesetzt in Plan 95-03 (Auto-Archivierung in SetMemberRole), fail-open ohne Link (kein hist-Eintrag, kein Fehler). Annahme A1 damit korrigiert.
 
-2. **Scope `contributionRoles.ts` in `components/contributions/` (A3)**
-   - Was bekannt: Enthält `project_manager` und `project_lead` — beides Gruppen-Rollen-Codes
-   - Unklar: Ob ProposalForm nur für Anime-Contributions gedacht ist (dann sind Gruppen-Codes irrtümlich)
-   - Empfehlung: `project_manager` entfernen (D-04); `project_lead` im Planer mit Nutzer klären
+2. **Scope `contributionRoles.ts` in `components/contributions/` (A3) — RESOLVED**
+   - Ergebnis: `project_manager` (Z.12) wird in Plan 95-05 ersatzlos entfernt (D-04).
+   - `project_lead` bleibt erhalten (historische Contributions). Touch-Point 3 (`app/admin/fansubs/[id]/edit/contributionRoles.ts`) bleibt UNVERÄNDERT — enthält weder `project_manager` noch Gruppenrollen.
 
-3. **API-Endpunkt-Scoping für D-12 (Fansub-spezifisch vs. global)**
-   - Was bekannt: Bestehender Endpunkt `GET /admin/fansubs/:id/role-definitions` liefert `group_history`-Whitelist
-   - Unklar: Soll der neue Endpunkt Fansub-ID-scoped sein (mit Permission-Check) oder als Platform-Admin-Endpunkt global?
-   - Empfehlung: Platform-Admin-Endpunkt `GET /api/v1/admin/role-definitions?context=fansub_group` für Einfachheit; Fansub-Mitglieder-Formulare rufen ihn mit ihrem Kontext auf.
+3. **API-Endpunkt-Scoping für D-12 — RESOLVED**
+   - Ergebnis: Platform-Admin-Endpunkt `GET /api/v1/admin/fansub-group-roles` (kein Fansub-ID-Scope), umgesetzt in Plan 95-02 mit `requirePlatformAdminIdentity`.
+   - Frontend-Consumer (Plan 95-05) rufen ihn ohne Fansub-ID auf.
 
 ---
 

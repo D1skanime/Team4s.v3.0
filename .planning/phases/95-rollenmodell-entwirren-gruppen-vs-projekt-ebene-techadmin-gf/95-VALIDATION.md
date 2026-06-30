@@ -3,7 +3,7 @@ phase: 95
 slug: rollenmodell-entwirren-gruppen-vs-projekt-ebene-techadmin-gf
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-30
 ---
 
