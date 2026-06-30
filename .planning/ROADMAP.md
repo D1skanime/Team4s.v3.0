@@ -1575,6 +1575,16 @@ Plans:
 Plans:
 - [x] `93-01-PLAN.md` - Projektrollen-Karte, segmentierte Sichtbarkeit und Hinweis-Formular-Breadcrumb ohne irreführenden Bilder-/Notizen-Hilfetext.
 
+### Phase 94: Rollen-/Capability-UX fachlich entwirren und mobil nutzbar machen
+
+**Goal:** Aktive App-Gruppenrollen, historische Gruppenrollen und Anime-Beitragsrollen werden fachlich klar getrennt: die historische Rollen-UI nutzt eine eigene `group_history`-Rollenliste (Gründer/in, Gruppenleitung, Co-Leitung, Projektmanagement), die aktive Mitglieder-UI zeigt nur aktive App-Rechte mit verständlicheren Begriffen, die Capability-Verwaltung bearbeitet/zeigt nur permission-bearing Rollen (Backend-Guard blockiert Grant/Revoke an rein historische Rollen), und die Capability-Pflege wird von einer breiten Vollmatrix auf eine rollenbasierte, kategorisierte, bei 390 px ohne horizontales Scrollen bedienbare Oberfläche umgebaut.
+**Requirements:** Phase-94 Auftrag aus `94-CONTEXT.md` (Acceptance Criteria 1–11).
+**Depends on:** Phase 86, Phase 87, Phase 93
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 94 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
