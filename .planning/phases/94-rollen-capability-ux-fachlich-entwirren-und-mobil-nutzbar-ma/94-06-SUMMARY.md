@@ -33,9 +33,16 @@ key_files:
     - frontend/src/app/admin/role-capabilities/RoleMasterList.test.tsx
     - frontend/src/app/admin/role-capabilities/RoleCapabilityDetail.tsx
     - frontend/src/app/admin/role-capabilities/RoleCapabilityDetail.test.tsx
+  created:
+    - frontend/src/app/admin/role-capabilities/roleCapabilities.module.css
   modified:
     - frontend/src/app/admin/role-capabilities/RoleCapabilityClient.tsx
     - frontend/src/app/admin/role-capabilities/RoleCapabilityClient.test.tsx
+    - frontend/src/app/admin/role-capabilities/RoleCapabilityDetail.tsx
+    - frontend/src/app/admin/role-capabilities/RoleCapabilityDetail.test.tsx
+    - frontend/src/app/admin/role-capabilities/page.tsx
+    - frontend/src/components/ui/Accordion.tsx
+    - frontend/src/components/ui/Accordion.test.tsx
 decisions:
   - "Display-Mapping (gruppe/projekt/release → deutsche Labels) rein im Frontend ohne DB-Migration (D-11/Pattern 5)"
   - "Accordion startet geschlossen (multi-open Modus aus Plan-05) — Tests öffnen Header vor Switch-Interaktion"
@@ -44,11 +51,13 @@ decisions:
   - "422 role_not_assignable als Inline-Fehler direkt im Detail-Panel (kein Modal), analog 409-Muster"
   - "RoleCapabilityTable bleibt für ältere Tests kompatibel durch Import-Cleanup; neue UI hat keine Vollmatrix mehr als Hauptbedienung"
   - "capabilityError-State im Client für beide Mutationspfade (grant + revoke) geteilt; setzt sich bei Rollenwechsel zurück"
+  - "Seitencontainer (roleCapabilities.module.css) hält Inhalt vom fixierten AppShell-Edge-Strip (16px) frei — padding-left 32px"
+  - "Accordion-Open-Zustand controlled im Client gehalten + loadData(false) bei Mutations-Refresh — kein LoadingState-Unmount, Kategorie bleibt offen"
 metrics:
-  duration: 25min
+  duration: 50min
   completed_date: "2026-06-30"
   tasks: 3
-  files: 2
+  files: 8
 ---
 
 # Phase 94 Plan 06: Master-Detail Capability-UI (Accordion+Switch, Mobile-Sheet) Summary
@@ -111,12 +120,14 @@ Master-Detail-Capability-UI (Accordion+Switch+Drawer-Mobile-Sheet) mit Kontext-B
 |-------|-------|--------|
 | capabilityCategories.test.ts | 4 | GRÜN |
 | RoleMasterList.test.tsx | 4 | GRÜN |
-| RoleCapabilityDetail.test.tsx | 4 | GRÜN |
-| RoleCapabilityClient.test.tsx | 7 | GRÜN |
-| **Gesamt** | **19** | **GRÜN** |
+| RoleCapabilityDetail.test.tsx | 5 | GRÜN |
+| RoleCapabilityClient.test.tsx | 8 | GRÜN |
+| Accordion.test.tsx (UI-Primitive) | 6 | GRÜN |
+| **Gesamt (role-capabilities + Accordion)** | **27** | **GRÜN** |
 
-- `npx vitest run src/app/admin/role-capabilities`: 19/19 PASS
+- `npx vitest run src/app/admin/role-capabilities src/components/ui/Accordion.test.tsx`: 27/27 PASS
 - `npx tsc --noEmit`: exit 0
+- `npx eslint` (berührte Dateien): keine Fehler
 - `git diff --check`: sauber
 
 ## Deviationen vom Plan
@@ -149,9 +160,29 @@ Master-Detail-Capability-UI (Accordion+Switch+Drawer-Mobile-Sheet) mit Kontext-B
 - **Files modified:** `RoleCapabilityClient.tsx`, `RoleCapabilityClient.test.tsx`
 - **Commit:** 589d055a
 
+### Live-UAT Bug-Fix A: Seiteninhalt links abgeschnitten (Rule 1 — Bug-Fix)
+
+**4. [Rule 1 - Bug] Überschrift/Text werden am linken Rand unter dem AppShell-Edge-Strip abgeschnitten**
+- **Found during:** Task 3 Live-Verifikation auf Dev-Server :3000 (zweite UAT-Runde)
+- **Issue:** "Capability-Verwaltung" erschien als "apability-Verwaltung" — der Seiteninhalt saß zu nah am linken Rand. Der AppShell rendert einen fixierten `.edgeStrip` (16px, `position: fixed`, `left: 0`) als Drawer-Trigger; die `page.tsx` wickelte den Client ohne Container/Padding, sodass der Inhalt unter dem Edge-Strip clippte.
+- **Root cause:** Fehlender Seitencontainer mit horizontalem Padding (andere Admin-Seiten nutzen `<main className={styles.page}>`); role-capabilities hatte gar keinen.
+- **Fix:** `roleCapabilities.module.css` mit `.page`-Container (padding-left 32px > 16px Edge-Strip) angelegt und `page.tsx` auf `<main className={styles.page}>` umgestellt — folgt dem Admin-`.page`-Containermuster, nur Design-System-Konventionen.
+- **Files modified:** `page.tsx`; **created:** `roleCapabilities.module.css`
+- **Commit:** 3d4efaf5
+
+### Live-UAT Bug-Fix B: Accordion klappt beim Switch-Toggle zu (Rule 1 — Bug-Fix)
+
+**5. [Rule 1 - Bug] Aufgeklappte Kategorie klappt nach Capability-Toggle sofort wieder zu**
+- **Found during:** Task 3 Live-Verifikation auf Dev-Server :3000 (zweite UAT-Runde)
+- **Issue:** Beim Umschalten eines Switch innerhalb einer offenen Accordion-Kategorie klappte das Panel sofort zu.
+- **Root cause (verifiziert, nicht geraten):** Kein Event-Bubbling (Switch-Button und Accordion-Header sind Geschwister, nicht verschachtelt). Echte Ursache: `handleGrant`/`handleRevoke` riefen `loadData()` mit `setIsLoading(true)` → die Komponente rendert den vollflächigen `LoadingState` statt des Master-Detail-Layouts → das `Accordion` (uncontrolled interner open-state) wird unmounted → nach dem Refetch startet es mit leerem open-Set.
+- **Fix:** (1) `Accordion`-Primitive um abwärtskompatiblen controlled-Modus erweitert (`openIds` + `onOpenChange`). (2) `RoleCapabilityClient` hält den `openCategories`-State und reicht ihn an beide Detail-Instanzen (Desktop + Drawer) durch — übersteht Mutation + Refresh. (3) `loadData(showLoading=false)` beim Mutations-Refresh verhindert das LoadingState-Unmount komplett. Neue Tests: Accordion controlled-Modus + Re-Render-Stabilität (2), Detail open-state übersteht Toggle (1), Client uncontrolled Grant+Refresh hält Accordion offen (1).
+- **Files modified:** `Accordion.tsx`, `Accordion.test.tsx`, `RoleCapabilityDetail.tsx`, `RoleCapabilityDetail.test.tsx`, `RoleCapabilityClient.tsx`, `RoleCapabilityClient.test.tsx`
+- **Commit:** 56c61809
+
 ## Checkpoint-Status
 
-Task 3 (Mobile-/UX-Verifikation): Code-Level abgeschlossen, Bug-Fix committed (`589d055a`). Live-Re-Verifikation durch den Orchestrator nach Docker-Rebuild ausstehend.
+Task 3 (Mobile-/UX-Verifikation): Code-Level abgeschlossen. Drei Live-UAT-Defekte behoben: Doppel-Render (`589d055a`), Links-Clipping (`3d4efaf5`), Accordion-Zuklappen (`56c61809`). Live-Re-Verifikation durch den Orchestrator nach Docker-Rebuild ausstehend.
 
 ## Known Stubs
 
@@ -168,10 +199,16 @@ T-94-07-UI (historische Rolle editierbar): Kontext-Badge "Historische Rolle" + d
 
 - capabilityCategories.ts: FOUND (27 Zeilen)
 - RoleMasterList.tsx: FOUND (87 Zeilen)
-- RoleCapabilityDetail.tsx: FOUND (157 Zeilen)
-- RoleCapabilityClient.tsx: FOUND (256 Zeilen, useIsMobile-Gate, Desktop/Mobile-exklusiv)
+- RoleCapabilityDetail.tsx: FOUND (171 Zeilen, controlled openCategories)
+- RoleCapabilityClient.tsx: FOUND (269 Zeilen, useIsMobile-Gate, controlled Accordion-State, loadData(showLoading))
+- page.tsx: FOUND (21 Zeilen, <main className={styles.page}>)
+- roleCapabilities.module.css: FOUND (24 Zeilen, Container hält Edge-Strip frei)
+- Accordion.tsx: FOUND (100 Zeilen, controlled-Modus additiv)
 - commit a99f197d: FOUND
 - commit 8b91cc7d: FOUND
 - commit 589d055a: FOUND (Bug-Fix Desktop/Mobile-Exklusivität)
-- `npx vitest run src/app/admin/role-capabilities`: 19 Tests PASS
+- commit 3d4efaf5: FOUND (Bug-Fix Links-Clipping)
+- commit 56c61809: FOUND (Bug-Fix Accordion-Zuklappen)
+- `npx vitest run src/app/admin/role-capabilities src/components/ui/Accordion.test.tsx`: 27 Tests PASS
 - `npx tsc --noEmit`: exit 0
+- `npx eslint` (berührte Dateien): keine Fehler
