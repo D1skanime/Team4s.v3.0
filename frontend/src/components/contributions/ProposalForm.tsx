@@ -1,43 +1,25 @@
 'use client'
 
-import { Check, ChevronDown } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
-import { Button, FormField, Modal, Textarea, YearPicker } from '@/components/ui'
+import { Button, FormField, Modal } from '@/components/ui'
 import { ApiError, createContributionProposal, getAdminFansubAnime } from '@/lib/api'
 import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { MembershipEntry, ProposalFormData } from '@/types/contributions'
 
+import { Step1GroupProject, Step2Role, Step3NoteRange } from './ProposalForm.steps'
+import type { RoleDefinition } from './ProposalForm.steps'
 import styles from './contributions.module.css'
 
-export interface RoleDefinition {
-  code: string
-  label_de: string
-}
+export type { RoleDefinition }
 
 interface ProposalFormProps {
   onSuccess: () => void
   onClose: () => void
   ownGroups: MembershipEntry[]
   roleDefinitions: RoleDefinition[]
-}
-
-interface ChoiceOption<T extends number | string> {
-  value: T
-  label: string
-  subtitle?: string
-}
-
-interface ChoiceSelectProps<T extends number | string> {
-  label: string
-  value: T | ''
-  options: ChoiceOption<T>[]
-  placeholder: string
-  disabled?: boolean
-  loading?: boolean
-  emptyLabel?: string
-  onChange: (value: T | '') => void
 }
 
 interface SubmittedSummary {
@@ -49,8 +31,6 @@ interface SubmittedSummary {
 type WizardStep = 1 | 2 | 3
 
 const FORM_ID = 'proposal-form'
-const MIN_YEAR = 1990
-const MAX_NOTE_LENGTH = 280
 
 const STEPS: Array<{ id: WizardStep; title: string }> = [
   { id: 1, title: 'Gruppe & Projekt' },
@@ -58,89 +38,7 @@ const STEPS: Array<{ id: WizardStep; title: string }> = [
   { id: 3, title: 'Hinweis & Zeitraum' },
 ]
 
-function initials(label: string): string {
-  const parts = label.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')
-}
-
-function ChoiceSelect<T extends number | string>({
-  label,
-  value,
-  options,
-  placeholder,
-  disabled = false,
-  loading = false,
-  emptyLabel = 'Keine Optionen verfügbar',
-  onChange,
-}: ChoiceSelectProps<T>) {
-  const [open, setOpen] = useState(false)
-  const selected = options.find((option) => option.value === value) ?? null
-  const isDisabled = disabled || loading
-
-  function toggleOpen() {
-    if (isDisabled) return
-    setOpen((current) => !current)
-  }
-
-  function selectOption(nextValue: T) {
-    onChange(nextValue)
-    setOpen(false)
-  }
-
-  return (
-    <div className={styles.choiceSelect}>
-      <button
-        type="button"
-        className={styles.choiceSelectTrigger}
-        aria-label={label}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        disabled={isDisabled}
-        onClick={toggleOpen}
-      >
-        <span className={styles.choiceAvatar} aria-hidden="true">
-          {selected ? initials(selected.label) : '?'}
-        </span>
-        <span className={styles.choiceSelectText}>
-          <span>{loading ? 'Wird geladen' : selected?.label ?? placeholder}</span>
-          {selected?.subtitle ? <small>{selected.subtitle}</small> : null}
-        </span>
-        <ChevronDown size={17} aria-hidden="true" />
-      </button>
-
-      {open ? (
-        <div className={styles.choiceOptions} role="listbox" aria-label={label}>
-          {options.length > 0 ? (
-            options.map((option) => (
-              <button
-                key={String(option.value)}
-                type="button"
-                role="option"
-                aria-selected={option.value === value}
-                className={styles.choiceOption}
-                onClick={() => selectOption(option.value)}
-              >
-                <span className={styles.choiceAvatar} aria-hidden="true">
-                  {initials(option.label)}
-                </span>
-                <span className={styles.choiceSelectText}>
-                  <span>{option.label}</span>
-                  {option.subtitle ? <small>{option.subtitle}</small> : null}
-                </span>
-              </button>
-            ))
-          ) : (
-            <div className={styles.choiceEmpty}>{emptyLabel}</div>
-          )}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
 export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }: ProposalFormProps) {
-  const currentYear = new Date().getFullYear()
   const [step, setStep] = useState<WizardStep>(1)
   const [selectedGroupMemberId, setSelectedGroupMemberId] = useState<number | ''>('')
   const [selectedAnimeId, setSelectedAnimeId] = useState<number | ''>('')
@@ -173,7 +71,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     return parseInt(endedYear, 10) < parseInt(startedYear, 10)
   }, [endedYear, startedYear])
 
-  const groupOptions = useMemo<ChoiceOption<number>[]>(
+  const groupOptions = useMemo<Array<{ value: number; label: string; subtitle?: string }>>(
     () => ownGroups.map((group) => ({
       value: group.fansub_group_member_id,
       label: group.group_name,
@@ -181,7 +79,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     })),
     [ownGroups],
   )
-  const animeOptions = useMemo<ChoiceOption<number>[]>(
+  const animeOptions = useMemo<Array<{ value: number; label: string; subtitle?: string }>>(
     () => groupAnime.map((anime) => ({
       value: anime.id,
       label: anime.title,
@@ -406,132 +304,43 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
 
           <form id={FORM_ID} onSubmit={(event) => void handleSubmit(event)} className={styles.proposalForm}>
             {step === 1 ? (
-              <div className={styles.wizardStepPanel}>
-                <FormField label="Welche Gruppe soll prüfen?" required>
-                  <ChoiceSelect
-                    label="Welche Gruppe soll prüfen?"
-                    value={selectedGroupMemberId}
-                    options={groupOptions}
-                    placeholder={ownGroups.length === 0 ? 'Keine verifizierte Gruppe verfügbar' : 'Gruppe auswählen'}
-                    disabled={ownGroups.length === 0}
-                    onChange={(value) => setSelectedGroupMemberId(value === '' ? '' : Number(value))}
-                  />
-                </FormField>
-
-                <FormField
-                  label="Bei welchem Anime/Projekt dieser Gruppe?"
-                  error={groupAnimeError ?? undefined}
-                  required
-                >
-                  <ChoiceSelect
-                    label="Bei welchem Anime/Projekt dieser Gruppe?"
-                    value={selectedAnimeId}
-                    options={animeOptions}
-                    placeholder={
-                      !selectedGroup
-                        ? 'Erst Gruppe auswählen'
-                        : isLoadingGroupAnime
-                          ? 'Anime/Projekte werden geladen'
-                          : groupAnime.length === 0
-                            ? 'Keine Anime/Projekte für diese Gruppe'
-                            : 'Anime/Projekt auswählen'
-                    }
-                    disabled={!selectedGroup || groupAnime.length === 0}
-                    loading={isLoadingGroupAnime}
-                    emptyLabel="Keine Anime/Projekte für diese Gruppe"
-                    onChange={(value) => setSelectedAnimeId(value === '' ? '' : Number(value))}
-                  />
-                </FormField>
-
-                {selectedGroup && selectedAnime ? (
-                  <div className={styles.selectionBreadcrumb} aria-label="Ausgewählter Kontext">
-                    <span>{selectedGroup.group_name}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{selectedAnime.title}</span>
-                  </div>
-                ) : null}
-              </div>
+              <Step1GroupProject
+                ownGroups={ownGroups}
+                groupOptions={groupOptions}
+                animeOptions={animeOptions}
+                selectedGroupMemberId={selectedGroupMemberId}
+                selectedAnimeId={selectedAnimeId}
+                selectedGroup={selectedGroup}
+                selectedAnime={selectedAnime}
+                isLoadingGroupAnime={isLoadingGroupAnime}
+                groupAnime={groupAnime}
+                groupAnimeError={groupAnimeError}
+                onGroupChange={setSelectedGroupMemberId}
+                onAnimeChange={setSelectedAnimeId}
+              />
             ) : null}
 
             {step === 2 ? (
-              <FormField label="Welche Rolle soll geprüft werden?" error={roleError ?? undefined} required>
-                <div role="radiogroup" aria-label="Rolle auswählen" className={styles.rolePicker}>
-                  {roleDefinitions.map((role) => {
-                    const selected = selectedRoleCode === role.code
-                    return (
-                      <button
-                        key={role.code}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        className={selected ? styles.roleChoiceActive : styles.roleChoice}
-                        onClick={() => selectRole(role.code)}
-                        disabled={ownGroups.length === 0}
-                      >
-                        {selected ? <Check size={15} aria-hidden="true" /> : null}
-                        <span>{role.label_de}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </FormField>
+              <Step2Role
+                roleDefinitions={roleDefinitions}
+                selectedRoleCode={selectedRoleCode}
+                roleError={roleError}
+                ownGroups={ownGroups}
+                onSelectRole={selectRole}
+              />
             ) : null}
 
             {step === 3 ? (
-              <div className={styles.wizardStepPanel}>
-                <FormField
-                  label="Hinweis für den Gruppenleader"
-                  htmlFor="proposal-note"
-                  hint="Dieser Hinweis ist für die Gruppe gedacht und wird nicht als öffentlicher Profiltext angezeigt."
-                >
-                  <Textarea
-                    id="proposal-note"
-                    value={note}
-                    onChange={(event) => setNote(event.target.value.slice(0, MAX_NOTE_LENGTH))}
-                    rows={4}
-                    maxLength={MAX_NOTE_LENGTH}
-                    placeholder="Kurze Erläuterung, z. B. welche Folgen, Releases oder Zeitraum betroffen sind."
-                    disabled={ownGroups.length === 0}
-                  />
-                  <span className={styles.characterCounter} aria-live="polite">
-                    {note.length}/{MAX_NOTE_LENGTH}
-                  </span>
-                </FormField>
-
-                <div className={styles.yearFields}>
-                  <FormField label="Von Jahr" htmlFor="proposal-started">
-                    <YearPicker
-                      id="proposal-started"
-                      label="Von Jahr auswählen"
-                      value={startedYear}
-                      minYear={MIN_YEAR}
-                      maxYear={currentYear}
-                      disabled={ownGroups.length === 0}
-                      onChange={setStartedYear}
-                    />
-                  </FormField>
-                  <FormField label="Bis Jahr" htmlFor="proposal-ended">
-                    <YearPicker
-                      id="proposal-ended"
-                      label="Bis Jahr auswählen"
-                      value={endedYear}
-                      minYear={MIN_YEAR}
-                      maxYear={currentYear}
-                      disabled={ownGroups.length === 0}
-                      onChange={setEndedYear}
-                    />
-                  </FormField>
-                </div>
-                {hasInvalidYearRange ? (
-                  <p className={styles.rangeHint} role="status">
-                    Das Bis-Jahr darf nicht vor dem Von-Jahr liegen.
-                  </p>
-                ) : null}
-
-                <div className={styles.infoPanel}>
-                  Keine Reaktion nach 90 Tagen: Vorschlag kann selbst öffentlich geschaltet werden.
-                </div>
-              </div>
+              <Step3NoteRange
+                note={note}
+                startedYear={startedYear}
+                endedYear={endedYear}
+                hasInvalidYearRange={hasInvalidYearRange}
+                ownGroups={ownGroups}
+                onNoteChange={setNote}
+                onStartedYearChange={setStartedYear}
+                onEndedYearChange={setEndedYear}
+              />
             ) : null}
           </form>
         </>
