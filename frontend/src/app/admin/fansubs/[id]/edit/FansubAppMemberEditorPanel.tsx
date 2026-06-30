@@ -114,7 +114,7 @@ export function FansubAppMemberEditorPanel({
               aria-controls="fansub-member-editor-roles"
               onClick={() => setMemberEditorTab('roles')}
             >
-              Rollen · {memberRoleDraft.length}
+              Aktive Rechte · {memberRoleDraft.length}
             </button>
             <button
               type="button"
@@ -132,8 +132,8 @@ export function FansubAppMemberEditorPanel({
           </div>
 
           {memberEditorTab === 'roles' ? (
-            <section id="fansub-member-editor-roles" className={styles.fansubEditMemberEditorPanel} aria-label="Rollen">
-              <p className={styles.fansubEditHint}>Aktive Rollen bestimmen, was dieses Mitglied ab jetzt in der Gruppe tun darf.</p>
+            <section id="fansub-member-editor-roles" className={styles.fansubEditMemberEditorPanel} aria-label="Aktive Rechte">
+              <p className={styles.fansubEditHint}>Aktive Rechte bestimmen, was dieses Mitglied ab jetzt in der Gruppe tun darf.</p>
               <div className={styles.fansubEditMemberRoleGrid}>
                 {FANSUB_GROUP_ROLE_OPTIONS.map((option) => {
                   const enabled = memberRoleDraft.includes(option.code)
