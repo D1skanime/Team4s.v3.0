@@ -39,15 +39,16 @@ key_files:
 decisions:
   - "Display-Mapping (gruppe/projekt/release → deutsche Labels) rein im Frontend ohne DB-Migration (D-11/Pattern 5)"
   - "Accordion startet geschlossen (multi-open Modus aus Plan-05) — Tests öffnen Header vor Switch-Interaktion"
-  - "Drawer + Desktop-Panel rendern beide RoleCapabilityDetail — Tests nutzen getAllByText statt getByText"
+  - "useIsMobile-Hook (matchMedia < 760px) steuert gegenseitige Exklusivität Desktop-Panel vs. Drawer-Sheet"
+  - "Drawer und Desktop-Panel nie gleichzeitig gemountet — useIsMobile entscheidet am Klick-Zeitpunkt"
   - "422 role_not_assignable als Inline-Fehler direkt im Detail-Panel (kein Modal), analog 409-Muster"
   - "RoleCapabilityTable bleibt für ältere Tests kompatibel durch Import-Cleanup; neue UI hat keine Vollmatrix mehr als Hauptbedienung"
   - "capabilityError-State im Client für beide Mutationspfade (grant + revoke) geteilt; setzt sich bei Rollenwechsel zurück"
 metrics:
-  duration: 7min
+  duration: 25min
   completed_date: "2026-06-30"
-  tasks: 2
-  files: 8
+  tasks: 3
+  files: 2
 ---
 
 # Phase 94 Plan 06: Master-Detail Capability-UI (Accordion+Switch, Mobile-Sheet) Summary
@@ -64,7 +65,7 @@ Master-Detail-Capability-UI (Accordion+Switch+Drawer-Mobile-Sheet) mit Kontext-B
 |---|------|--------|--------|
 | 1 | Kategorie-Display-Mapping + Master-Rollenliste mit Badges | a99f197d | Abgeschlossen |
 | 2 | Detail-Ansicht (Accordion + Switch, Mobile-Sheet) + Client-Verdrahtung mit 422-Inline-Fehler | 8b91cc7d | Abgeschlossen |
-| 3 | Mobile-/UX-Verifikation (Checkpoint) | — | Ausstehend (manuell) |
+| 3 | Mobile-/UX-Verifikation + Bug-Fix (Desktop/Mobile-Exklusivität) | 589d055a | Abgeschlossen |
 
 ## Ergebnisse
 
@@ -92,15 +93,17 @@ Master-Detail-Capability-UI (Accordion+Switch+Drawer-Mobile-Sheet) mit Kontext-B
 - Nur `@/components/ui`-Primitives (Accordion, Switch)
 - 4 Tests grün
 
-### RoleCapabilityClient.tsx (231 Zeilen)
+### RoleCapabilityClient.tsx (256 Zeilen)
 
 - **Master-Detail-Layout**: `RoleMasterList` links (280px) + `RoleCapabilityDetail` rechts
-- **Mobile**: `Drawer variant="responsiveSheet"` öffnet bei Rollenwahl (`isDetailOpen`)
+- **useIsMobile-Hook**: `matchMedia('(max-width: 759px)')` — SSR-sicher, reagiert auf Viewport-Änderungen
+- **Desktop (>= 760px)**: Nur `{!isMobile && selectedRole && <div>}` — kein Drawer-Mount
+- **Mobile (< 760px)**: Nur `{isMobile && selectedRole && <Drawer>}` — kein Inline-Panel-Mount
+- **handleSelectRole**: `setIsSheetOpen(true)` nur wenn `isMobile === true`
 - **422-Behandlung**: `err.status === 422 && err.code === 'role_not_assignable'` → spezifischer Inline-Fehlertext (nicht generisches Banner)
 - **409-Behandlung**: analog Lockout-Guard-Muster beibehalten
 - Bestehende `loadData`/`grant`/`revoke`-Logik beibehalten
-- Vollmatrix (`RoleCapabilityTable`) nicht mehr die primäre Bedienung (D-11 erfüllt)
-- 5 Tests grün (inkl. 422 + 409 + Master-Detail)
+- 7 Tests grün (inkl. Desktop-Exklusivität + Mobile-Exklusivität)
 
 ## Test-Status
 
@@ -109,10 +112,10 @@ Master-Detail-Capability-UI (Accordion+Switch+Drawer-Mobile-Sheet) mit Kontext-B
 | capabilityCategories.test.ts | 4 | GRÜN |
 | RoleMasterList.test.tsx | 4 | GRÜN |
 | RoleCapabilityDetail.test.tsx | 4 | GRÜN |
-| RoleCapabilityClient.test.tsx | 5 | GRÜN |
-| **Gesamt** | **17** | **GRÜN** |
+| RoleCapabilityClient.test.tsx | 7 | GRÜN |
+| **Gesamt** | **19** | **GRÜN** |
 
-- `npx vitest run src/app/admin/role-capabilities`: 17/17 PASS
+- `npx vitest run src/app/admin/role-capabilities`: 19/19 PASS
 - `npx tsc --noEmit`: exit 0
 - `git diff --check`: sauber
 
@@ -136,9 +139,19 @@ Master-Detail-Capability-UI (Accordion+Switch+Drawer-Mobile-Sheet) mit Kontext-B
 - **Files modified:** `RoleCapabilityDetail.test.tsx`, `RoleCapabilityClient.test.tsx`
 - **Commit:** 8b91cc7d
 
+### Live-UAT Bug-Fix: Desktop zeigt doppelte Ansicht (Rule 1 — Bug-Fix)
+
+**3. [Rule 1 - Bug] Desktop + Mobile-Sheet beide gleichzeitig aktiv nach Rollenklick**
+- **Found during:** Task 3 Live-Verifikation auf Dev-Server :3000
+- **Issue:** `handleSelectRole` setzte immer `isDetailOpen(true)`, ohne auf die Viewport-Breite zu achten. `Drawer` hatte kein CSS-Guard der Viewport-Breite — er öffnete sich auf Desktop und Mobile gleichzeitig. Kein CSS-Modul mit `capabilityDetailDesktop` war vorhanden.
+- **Root cause:** Die Exklusivität Desktop/Mobile war im JSX über CSS-only geplant (`capabilityDetailDesktop`-Klasse), aber die Klasse hatte keine Media-Query-Definition und der Drawer-State war viewport-agnostisch.
+- **Fix:** `useIsMobile`-Hook (matchMedia `(max-width: 759px)`) eingebaut; Inline-Panel nur wenn `!isMobile && selectedRole`; Drawer nur wenn `isMobile && selectedRole`; `handleSelectRole` öffnet Sheet nur wenn `isMobile === true`. Zwei neue Tests verifizieren gegenseitige Exklusivität (Desktop: kein dialog-Element; Mobile: Switches nur im dialog).
+- **Files modified:** `RoleCapabilityClient.tsx`, `RoleCapabilityClient.test.tsx`
+- **Commit:** 589d055a
+
 ## Checkpoint-Status
 
-Task 3 (Mobile-/UX-Verifikation) ist ein `checkpoint:human-verify` — der Plan pausiert hier für manuelle Live-Verifikation am Dev-Server :3000.
+Task 3 (Mobile-/UX-Verifikation): Code-Level abgeschlossen, Bug-Fix committed (`589d055a`). Live-Re-Verifikation durch den Orchestrator nach Docker-Rebuild ausstehend.
 
 ## Known Stubs
 
@@ -156,8 +169,9 @@ T-94-07-UI (historische Rolle editierbar): Kontext-Badge "Historische Rolle" + d
 - capabilityCategories.ts: FOUND (27 Zeilen)
 - RoleMasterList.tsx: FOUND (87 Zeilen)
 - RoleCapabilityDetail.tsx: FOUND (157 Zeilen)
-- RoleCapabilityClient.tsx: FOUND (231 Zeilen, Master-Detail-Layout)
+- RoleCapabilityClient.tsx: FOUND (256 Zeilen, useIsMobile-Gate, Desktop/Mobile-exklusiv)
 - commit a99f197d: FOUND
 - commit 8b91cc7d: FOUND
-- `npx vitest run src/app/admin/role-capabilities`: 17 Tests PASS
+- commit 589d055a: FOUND (Bug-Fix Desktop/Mobile-Exklusivität)
+- `npx vitest run src/app/admin/role-capabilities`: 19 Tests PASS
 - `npx tsc --noEmit`: exit 0
