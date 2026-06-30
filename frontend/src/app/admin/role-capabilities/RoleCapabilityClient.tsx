@@ -12,6 +12,26 @@ import { RoleMasterList } from './RoleMasterList'
 import { RoleCapabilityDetail } from './RoleCapabilityDetail'
 
 /**
+ * Gibt zurück, ob der Viewport als "mobil" gilt (< 760 px).
+ * Wird per matchMedia gated — reagiert auf Viewport-Änderungen.
+ * SSR-sicher: Startzustand ist false (Desktop-Annahme), bis matchMedia läuft.
+ */
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia('(max-width: 759px)')
+    const onChange = () => setIsMobile(media.matches)
+    onChange()
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+
+  return isMobile
+}
+
+/**
  * Props-Interface für externe Kontrolle (z.B. Tests).
  * Wenn matrix + isLoading übergeben werden, überspringt die Komponente den internen Fetch.
  */
@@ -40,8 +60,10 @@ export default function RoleCapabilityClient({
   const [isLoading, setIsLoading] = useState(externalLoading ?? !isControlled)
   const [error, setError] = useState<string | null>(null)
 
+  const isMobile = useIsMobile()
+
   const [selectedRoleCode, setSelectedRoleCode] = useState<string | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
 
   const [capabilityError, setCapabilityError] = useState<string | null>(null)
   const [isMutating, setIsMutating] = useState(false)
@@ -86,7 +108,10 @@ export default function RoleCapabilityClient({
   function handleSelectRole(roleCode: string) {
     setSelectedRoleCode(roleCode)
     setCapabilityError(null)
-    setIsDetailOpen(true)
+    // Sheet nur auf Mobile öffnen — Desktop zeigt den Inline-Panel
+    if (isMobile) {
+      setIsSheetOpen(true)
+    }
   }
 
   async function handleGrant(roleCode: string, actionCode: string) {
@@ -188,10 +213,9 @@ export default function RoleCapabilityClient({
           )}
         </div>
 
-        {/* Detail: Desktop-Panel (>= 760 px) */}
-        {selectedRole && (
+        {/* Detail: Inline-Panel nur auf Desktop (>= 760 px) */}
+        {!isMobile && selectedRole && (
           <div
-            className="capabilityDetailDesktop"
             style={{
               flex: 1,
               minWidth: 0,
@@ -207,12 +231,12 @@ export default function RoleCapabilityClient({
         )}
       </div>
 
-      {/* Mobile-Detail: Drawer variant="responsiveSheet" (< 760 px) */}
-      {selectedRole && (
+      {/* Mobile-Detail: Drawer variant="responsiveSheet" nur auf Mobile (< 760 px) */}
+      {isMobile && selectedRole && (
         <Drawer
-          open={isDetailOpen}
+          open={isSheetOpen}
           onClose={() => {
-            setIsDetailOpen(false)
+            setIsSheetOpen(false)
             setCapabilityError(null)
           }}
           title={selectedRole.label_de}

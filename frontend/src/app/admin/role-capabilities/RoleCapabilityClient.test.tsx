@@ -7,11 +7,33 @@
  * Test 3: Lockout-Inline-Fehler nach HTTP-409 auf revoke
  * Test 4 (94-06): Master-Detail — Rollenliste rendert beide Rollen (Plan 94-06)
  * Test 5 (94-06): 422 role_not_assignable zeigt spezifischen Inline-Fehler
+ * Test 6 (94-06-fix): Desktop-Modus: nur Inline-Panel, kein Sheet-Dialog gleichzeitig
+ * Test 7 (94-06-fix): Mobile-Modus: Sheet öffnet, kein Inline-Panel im DOM
  */
 import { render, screen, act, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import RoleCapabilityClient from "./RoleCapabilityClient";
 import type { RoleCapabilityMatrix } from "@/types/admin-capability";
+
+/**
+ * matchMedia-Mock für jsdom (jsdom implementiert window.matchMedia nicht).
+ * @param matches - ob die Media-Query zutrifft (true = Mobile, false = Desktop)
+ */
+function mockMatchMedia(matches: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
 
 const sampleMatrix: RoleCapabilityMatrix = {
   roles: [
@@ -79,6 +101,8 @@ const sampleMatrix: RoleCapabilityMatrix = {
 describe("RoleCapabilityClient", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    // Standard: Desktop-Ansicht (matchMedia gibt false zurück = kein Mobile)
+    mockMatchMedia(false);
   });
 
   it("zeigt Ladezustand wenn isLoading=true übergeben wird", () => {
@@ -175,7 +199,6 @@ describe("RoleCapabilityClient", () => {
     fireEvent.click(fansublLeadButton);
 
     // Accordion "Mitglieder" öffnen (der granted Switch ist dort)
-    // getAllByText weil Desktop + Drawer jeweils den Header zeigen können
     const mitgliederHeaders = screen.getAllByText("Mitglieder");
     fireEvent.click(mitgliederHeaders[0]);
 
@@ -196,5 +219,55 @@ describe("RoleCapabilityClient", () => {
       el.textContent?.toLowerCase().includes("entzogen")
     );
     expect(hasLockoutText || alerts.length > 0).toBe(true);
+  });
+
+  it("Desktop: nach Rollenauswahl erscheint NUR der Inline-Panel, kein sheet-dialog (gegenseitige Exklusivität)", () => {
+    // matchMedia gibt false zurück (Desktop, kein Match für max-width: 759px)
+    mockMatchMedia(false);
+
+    render(<RoleCapabilityClient matrix={sampleMatrix} isLoading={false} />);
+
+    const fansublLeadButton = screen.getByRole("button", { name: /Fansub-Lead/i });
+    fireEvent.click(fansublLeadButton);
+
+    // Inline-Panel soll vorhanden sein (Rollenüberschrift im Detail)
+    const headings = screen.queryAllByRole("heading", { level: 3 });
+    const detailHeading = headings.find((h) => h.textContent?.includes("Fansub-Lead"));
+    expect(detailHeading).toBeTruthy();
+
+    // Kein Dialog/Sheet soll geöffnet sein
+    const dialogs = screen.queryAllByRole("dialog");
+    expect(dialogs.length).toBe(0);
+  });
+
+  it("Mobile: nach Rollenauswahl öffnet NUR der Sheet-Dialog, kein Inline-Panel außerhalb des Dialogs", () => {
+    // matchMedia gibt true zurück (Mobile, max-width: 759px trifft zu)
+    mockMatchMedia(true);
+
+    const { container } = render(<RoleCapabilityClient matrix={sampleMatrix} isLoading={false} />);
+
+    const fansublLeadButton = screen.getByRole("button", { name: /Fansub-Lead/i });
+    fireEvent.click(fansublLeadButton);
+
+    // Sheet/Dialog soll geöffnet sein (Drawer rendert role="dialog")
+    const dialogs = screen.queryAllByRole("dialog");
+    expect(dialogs.length).toBeGreaterThan(0);
+
+    // Kein Inline-Panel-DIV außerhalb des Dialogs:
+    // Im Mobile-Modus darf !isMobile && selectedRole der Inline-Panel-Zweig NICHT gerendert sein.
+    // Das bedeutet: kein flex-1-Div mit RoleCapabilityDetail außerhalb des dialog-Elements.
+    const dialogEl = dialogs[0];
+    // Alle Accordion-Elemente im DOM — im Mobile-Modus nur innerhalb des Dialogs
+    const allAccordions = container.querySelectorAll('[data-accordion], [class*="accordion"]');
+    // Wenn Accordions vorhanden, müssen alle innerhalb des Dialog-Elements liegen
+    allAccordions.forEach((accordion) => {
+      expect(dialogEl.contains(accordion)).toBe(true);
+    });
+
+    // Schalter (Switches) dürfen nur innerhalb des Dialogs vorkommen (kein doppelter Inline-Panel)
+    const allSwitches = container.querySelectorAll('[role="switch"]');
+    allSwitches.forEach((sw) => {
+      expect(dialogEl.contains(sw)).toBe(true);
+    });
   });
 });
