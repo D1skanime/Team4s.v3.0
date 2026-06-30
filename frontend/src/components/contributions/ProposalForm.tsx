@@ -4,7 +4,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
-import { Button, Drawer, FormField, Textarea, YearPicker } from '@/components/ui'
+import { Button, FormField, Modal, Textarea, YearPicker } from '@/components/ui'
 import { ApiError, createContributionProposal, getAdminFansubAnime } from '@/lib/api'
 import type { AdminFansubAnimeEntry } from '@/types/admin'
 import type { MembershipEntry, ProposalFormData } from '@/types/contributions'
@@ -51,7 +51,6 @@ type WizardStep = 1 | 2 | 3
 const FORM_ID = 'proposal-form'
 const MIN_YEAR = 1990
 const MAX_NOTE_LENGTH = 280
-const FINAL_SUBMIT_ARM_DELAY_MS = 500
 
 const STEPS: Array<{ id: WizardStep; title: string }> = [
   { id: 1, title: 'Gruppe & Projekt' },
@@ -153,7 +152,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   const [startedYear, setStartedYear] = useState('')
   const [endedYear, setEndedYear] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isFinalSubmitArmed, setIsFinalSubmitArmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [roleError, setRoleError] = useState<string | null>(null)
   const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
@@ -225,17 +223,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     }
   }, [selectedGroup])
 
-  useEffect(() => {
-    if (step !== 3) {
-      setIsFinalSubmitArmed(false)
-      return
-    }
-
-    setIsFinalSubmitArmed(false)
-    const timeoutId = window.setTimeout(() => setIsFinalSubmitArmed(true), FINAL_SUBMIT_ARM_DELAY_MS)
-    return () => window.clearTimeout(timeoutId)
-  }, [step])
-
   function resetAndClose() {
     setStep(1)
     setSelectedGroupMemberId('')
@@ -263,6 +250,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
     setStep((current) => (current > 1 ? (current - 1) as WizardStep : current))
   }
 
+  function requestFinalSubmit() {
+    void submitProposal()
+  }
+
   function selectRole(code: string) {
     setRoleError(null)
     setSelectedRoleCode(code)
@@ -270,12 +261,12 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    await submitProposal()
+  }
+
+  async function submitProposal() {
     setError(null)
     setRoleError(null)
-
-    if (!isFinalSubmitArmed) {
-      return
-    }
 
     if (ownGroups.length === 0) {
       setStep(1)
@@ -346,11 +337,10 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
         </Button>
       ) : null}
       <Button
-        type={step === 3 ? 'submit' : 'button'}
-        form={step === 3 ? FORM_ID : undefined}
+        type="button"
         variant="primary"
-        onClick={step === 3 ? undefined : goNext}
-        disabled={isSubmitting || ownGroups.length === 0 || (step === 3 && !isFinalSubmitArmed)}
+        onClick={step === 3 ? requestFinalSubmit : goNext}
+        disabled={isSubmitting || ownGroups.length === 0}
       >
         {step === 3 ? (isSubmitting ? 'Wird gesendet...' : 'Hinweis senden') : 'Weiter'}
       </Button>
@@ -358,12 +348,11 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   )
 
   return (
-    <Drawer
+    <Modal
       open={true}
       onClose={resetAndClose}
       title="Ich war in diesem Projekt dabei"
       description={undefined}
-      variant="responsiveSheet"
       footer={footer}
     >
       {submittedSummary ? (
@@ -547,6 +536,6 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
           </form>
         </>
       )}
-    </Drawer>
+    </Modal>
   )
 }

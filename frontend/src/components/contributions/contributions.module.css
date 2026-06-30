@@ -942,6 +942,12 @@
   .yearFields {
     grid-template-columns: 1fr;
   }
+
+  .choiceOptions {
+    position: static;
+    margin-top: 6px;
+    max-height: min(220px, 36dvh);
+  }
 }
 
 @media (min-width: 641px) {
