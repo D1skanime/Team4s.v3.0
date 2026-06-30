@@ -1604,7 +1604,7 @@ Plans:
 **Goal:** Das Rollenmodell wird fachlich entwirrt und vereinheitlicht — zwei klare Ebenen mit gemeinsamem `role_code`-Vokabular. (a) Gruppen-Ebene (gruppenweit, rechte-tragend/assignable): Gründer/in, Gruppenleitung/Fansub-Lead (`leader`+`fansub_lead` vereint), Co-Leitung, Fansub-Projektleitung (`project_manager`+`project_lead` vereint; eigene Rolle, ungleich Gruppenleitung), NEU Techadmin (Fansub-Page/Technik) und GFXler (Gruppen-Grafik). (b) Projekt-/Anime-Ebene (Contribution): Übersetzung/Editing/Timing/Typesetting/Encoding/Raw/QC/Design, wobei GFXler und Designer dasselbe Skill in zwei Scopes sind. Lifecycle = koexistieren (aktive Rolle = jetzt; historische Rolle = Jahres-Zeitraum via `hist_group_member_roles`, bereits vorhanden). Rollen werden voll data-driven (fansubGroupRoleCatalog aus `role_definitions` laden + Frontend-Rollenoptionen per API), sodass neue Rollen nur per Migration entstehen. Zusätzlich werden die aus Phase 94 verschobenen Review-Schulden behoben: CR-01 (Schreibpfad-Whitelist-Härtung historischer Rollen), WR-02 (Cross-Group-Scope-Check), WR-01 (Capability-Tests gegen Prod-Handler), WR-03/04 (Line-Limits), WR-05 (deterministische Kategorie-Reihenfolge).
 **Requirements:** D-01 bis D-17 (Entscheidungen aus 95-CONTEXT.md)
 **Depends on:** Phase 94
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 - [ ] `95-01-PLAN.md` — Migration 0112 + Go-Backend-SQL-Sync (D-04/D-05/D-06/D-07/D-08)
