@@ -3,6 +3,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+const listFansubGroupRoles = vi.fn();
+const listGroupHistoryRoleDefinitions = vi.fn();
 const listFansubAppMembers = vi.fn();
 const getFansubGroupCapabilities = vi.fn();
 const searchFansubAppMemberCandidates = vi.fn();
@@ -40,6 +42,8 @@ vi.mock("@/lib/api", () => ({
       this.status = status;
     }
   },
+  listFansubGroupRoles: (...args: unknown[]) => listFansubGroupRoles(...args),
+  listGroupHistoryRoleDefinitions: (...args: unknown[]) => listGroupHistoryRoleDefinitions(...args),
   listFansubAppMembers: (...args: unknown[]) => listFansubAppMembers(...args),
   getFansubGroupCapabilities: (...args: unknown[]) => getFansubGroupCapabilities(...args),
   searchFansubAppMemberCandidates: (...args: unknown[]) => searchFansubAppMemberCandidates(...args),
@@ -72,6 +76,8 @@ vi.mock("@/lib/api", () => ({
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 
 beforeEach(() => {
+  listFansubGroupRoles.mockResolvedValue([]);
+  listGroupHistoryRoleDefinitions.mockResolvedValue([]);
   listGroupMembers.mockResolvedValue({ data: [] });
   listMemberRoles.mockResolvedValue({ data: [] });
   listClaimInvitations.mockResolvedValue([]);
@@ -201,7 +207,7 @@ describe("FansubAppMembersSection", () => {
     expect(screen.getByText("Bestätigt/verknüpft")).not.toBeNull();
     expect(screen.getByText("Offener Claim")).not.toBeNull();
     expect(screen.getByText("Das bin ich.")).not.toBeNull();
-    expect(screen.getAllByText("Fansub-Lead").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Gruppenleitung").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Aktiv/).length).toBeGreaterThan(0);
     expect(screen.queryByText("phase-admin@example.local")).toBeNull();

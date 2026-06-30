@@ -9,7 +9,6 @@ import {
   Modal,
 } from '@/components/ui'
 import {
-  FANSUB_GROUP_ROLE_OPTIONS,
   type FansubGroupMemberCandidate,
   type FansubGroupRoleCode,
 } from '@/types/fansub'
@@ -101,6 +100,8 @@ export type FansubAppMemberAddModalProps = {
   inviteEmail: string
   inviteRoles: FansubGroupRoleCode[]
   isCreatingInvite: boolean
+  /** API-getriebene Rollenoptionen (von FansubAppMembersSection via listFansubGroupRoles) */
+  roleOptions: { code: FansubGroupRoleCode; label: string; description?: string }[]
   onClose: () => void
   onCandidateQueryChange: (value: string) => void
   onCandidateSelect: (candidate: FansubGroupMemberCandidate) => void
@@ -125,6 +126,7 @@ export function FansubAppMemberAddModal({
   inviteEmail,
   inviteRoles,
   isCreatingInvite,
+  roleOptions,
   onClose,
   onCandidateQueryChange,
   onCandidateSelect,
@@ -201,7 +203,7 @@ export function FansubAppMemberAddModal({
             <div>
               <p className={styles.fansubEditHint}>Aufgaben in dieser Gruppe</p>
               <div className={styles.chipRow}>
-                {FANSUB_GROUP_ROLE_OPTIONS.map((option) => {
+                {roleOptions.map((option) => {
                   const selected = selectedRoles.includes(option.code)
                   return (
                     <Button
@@ -256,7 +258,7 @@ export function FansubAppMemberAddModal({
             <div>
               <p className={styles.fansubEditHint}>Aufgaben nach Annahme</p>
               <div className={styles.chipRow}>
-                {FANSUB_GROUP_ROLE_OPTIONS.map((option) => {
+                {roleOptions.map((option) => {
                   const selected = inviteRoles.includes(option.code)
                   return (
                     <Button
