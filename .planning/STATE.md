@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_for_milestone_close
 stopped_at: Completed 94-02-PLAN.md
-last_updated: "2026-06-30T09:52:35.803Z"
+last_updated: "2026-06-30T10:03:22.492Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 85
   completed_phases: 72
   total_plans: 355
-  completed_plans: 328
+  completed_plans: 329
   percent: 85
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 94 (rollen-capability-ux-fachlich-entwirren-und-mobil-nutzbar-ma) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 
 ## Accumulated Context
 
@@ -455,6 +455,7 @@ Recent durable decisions:
 | Phase 94 P07 | 40min | 2 tasks | 11 files |
 | Phase 94 P02 | 9min | 2 tasks | 3 files |
 | Phase 94 P03 | 7min | 3 tasks | 4 files |
+| Phase 94 P06 | 7min | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -506,7 +507,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-30T09:52:35.766Z
+Last session: 2026-06-30T10:03:22.455Z
 Stopped at: Completed 94-02-PLAN.md
 Last activity: 2026-06-30
 Resume file: None
