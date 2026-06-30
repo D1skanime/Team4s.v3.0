@@ -2076,3 +2076,14 @@ Plans:
   4. `platform_admin`-Bypass bleibt; ein Last-Admin/Lockout-Schutz verhindert, dass kritische Sichtbarkeit/Admin-Fähigkeit versehentlich global entzogen wird.
   5. Contract-Disziplin: neue Endpunkte über `shared/contracts/*` (OpenAPI) → Backend → `frontend/src/lib/api.ts` → Frontend-Types; <=450 Zeilen pro Datei.
   6. Backend- und Frontend-Tests decken Enforcement (gated/ungated), die UI-Mutation (vergeben/entziehen) und die Cache-Reload-Wirkung ab.
+
+## Backlog
+
+### Phase 999.1: Querverlinkung role-capabilities <-> users (Impact-Count + Rollen-Detail-Link) (BACKLOG)
+
+**Goal:** Querverlinkung zwischen /admin/role-capabilities und /admin/users, OHNE die Seiten zu verschmelzen (Separation of Concerns bleibt; getrennte Seiten = bewusst gut, Standard-RBAC-Muster). (1) Im User-Drawer-Tab "Gruppenrechte" pro Rolle ein Link zur role-capabilities-Detailansicht ("Was darf diese Rolle?"). (2) Auf /admin/role-capabilities pro Rolle ein Impact-Count ("N-mal vergeben") mit Sprung zu den betroffenen Usern. Ziel: gedankliche Luecke Regel (Rolle->Rechte) und Person (User->Rolle) schliessen. Eigenes UX-Anliegen, NICHT Phase 94.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
