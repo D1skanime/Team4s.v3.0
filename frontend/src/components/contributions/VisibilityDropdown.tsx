@@ -8,11 +8,12 @@ import styles from './contributions.module.css'
 
 interface VisibilityDropdownProps {
   contributionId: number
+  roleCode?: string
   isPublic: boolean
-  onChanged: (isPublic: boolean) => void
+  onChanged: (isPublic: boolean, contributionId: number) => void
 }
 
-export function VisibilityDropdown({ contributionId, isPublic, onChanged }: VisibilityDropdownProps) {
+export function VisibilityDropdown({ contributionId, roleCode, isPublic, onChanged }: VisibilityDropdownProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,8 +23,8 @@ export function VisibilityDropdown({ contributionId, isPublic, onChanged }: Visi
     setLoading(true)
     setError(null)
     try {
-      await patchAnimeContributionVisibility(contributionId, nextPublic)
-      onChanged(nextPublic)
+      const response = await patchAnimeContributionVisibility(contributionId, nextPublic, roleCode)
+      onChanged(nextPublic, response.contribution_id ?? contributionId)
     } catch {
       setError('Sichtbarkeit konnte nicht gespeichert werden.')
     } finally {

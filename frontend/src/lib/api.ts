@@ -8367,14 +8367,18 @@ export async function getMyProjectDetail(
 export async function patchAnimeContributionVisibility(
   contributionId: number,
   isPublic: boolean,
-): Promise<void> {
+  roleCode?: string,
+): Promise<{ contribution_id: number }> {
   const API_BASE_URL = getApiBaseUrl();
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/visibility`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ is_public_on_member_profile: isPublic }),
+      body: JSON.stringify({
+        is_public_on_member_profile: isPublic,
+        ...(roleCode ? { role_code: roleCode } : {}),
+      }),
     },
   );
 
@@ -8391,6 +8395,8 @@ export async function patchAnimeContributionVisibility(
       parsed.details,
     );
   }
+
+  return response.json() as Promise<{ contribution_id: number }>;
 }
 
 export async function confirmAnimeContribution(

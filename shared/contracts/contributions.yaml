@@ -137,6 +137,64 @@ paths:
         "404":
           description: Kein verifizierter Member-Account verknüpft
 
+  /api/v1/me/anime-contributions/{contributionId}/visibility:
+    patch:
+      tags: [Contributions]
+      summary: Update own contribution visibility
+      description: |
+        Aktualisiert die Profil-Sichtbarkeit einer eigenen Anime-Contribution.
+        Wenn role_code gesetzt ist und die Contribution mehrere Rollen enthält,
+        trennt der Server diese Rolle in eine eigene Contribution-Zeile, damit
+        Rollen individuell sichtbar oder intern bleiben können.
+      operationId: patchMyAnimeContributionVisibility
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: contributionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeContributionVisibilityPatchRequest"
+      responses:
+        "200":
+          description: Sichtbarkeit aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeContributionVisibilityPatchResponse"
+        "400":
+          description: UngÃ¼ltiger Request oder role_code gehÃ¶rt nicht zur Contribution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Contribution gehÃ¶rt nicht zum authentifizierten Member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Contribution nicht gefunden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/me/projects/{animeId}:
     get:
       tags: [Contributions]
@@ -653,6 +711,28 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MeAnimeContribution"
+
+    MeContributionVisibilityPatchRequest:
+      type: object
+      required: [is_public_on_member_profile]
+      properties:
+        is_public_on_member_profile:
+          type: boolean
+        role_code:
+          type: string
+          nullable: true
+          description: Optionaler Rollen-Code fÃ¼r rollenbezogene Sichtbarkeit.
+
+    MeContributionVisibilityPatchResponse:
+      type: object
+      required: [message, contribution_id]
+      properties:
+        message:
+          type: string
+        contribution_id:
+          type: integer
+          format: int64
+          description: ID der aktualisierten Contribution; bei Split kann diese von der angefragten ID abweichen.
 
     MeProjectReleaseVersion:
       type: object

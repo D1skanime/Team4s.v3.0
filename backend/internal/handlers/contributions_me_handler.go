@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/repository"
@@ -20,6 +21,8 @@ type ContributionsMeHandler struct {
 	groupRolesRepo    *repository.HistGroupMemberRolesRepository
 	db                *pgxpool.Pool
 }
+
+var errContributionVisibilityForbidden = errors.New("contribution visibility forbidden")
 
 // NewContributionsMeHandler erstellt einen neuen ContributionsMeHandler.
 func NewContributionsMeHandler(
@@ -55,7 +58,8 @@ func (h *ContributionsMeHandler) resolveVerifiedMemberID(ctx context.Context, ap
 
 // meContributionVisibilityPatchRequest ist der Request-Body für PATCH Visibility auf anime_contributions.
 type meContributionVisibilityPatchRequest struct {
-	IsPublicOnMemberProfile *bool `json:"is_public_on_member_profile"`
+	IsPublicOnMemberProfile *bool   `json:"is_public_on_member_profile"`
+	RoleCode                *string `json:"role_code"`
 }
 
 // meContributionRejectRequest ist der Request-Body für Reject mit Pflicht-Begründung (D-09, Phase 76).
@@ -190,21 +194,219 @@ func (h *ContributionsMeHandler) UpdateMyAnimeContributionVisibility(c *gin.Cont
 		return
 	}
 
-	if !h.authorizeAnimeContributionOwner(c, contributionID, memberID) {
-		return
+	roleCode := ""
+	if req.RoleCode != nil {
+		roleCode = strings.TrimSpace(*req.RoleCode)
+		if roleCode == "" {
+			badRequest(c, "role_code darf nicht leer sein")
+			return
+		}
 	}
 
-	_, err = h.db.Exec(c.Request.Context(), `
-		UPDATE anime_contributions
-		SET is_public_on_member_profile = $1, updated_at = NOW()
-		WHERE id = $2
-	`, req.IsPublicOnMemberProfile, contributionID)
+	nextContributionID, err := h.updateAnimeContributionVisibility(
+		c.Request.Context(),
+		contributionID,
+		memberID,
+		*req.IsPublicOnMemberProfile,
+		roleCode,
+	)
+	if errors.Is(err, repository.ErrNotFound) {
+		notFound(c, "Contribution nicht gefunden")
+		return
+	}
+	if errors.Is(err, errContributionVisibilityForbidden) {
+		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
+		return
+	}
+	if errors.Is(err, repository.ErrConflict) {
+		badRequest(c, "Rolle gehört nicht zu dieser Contribution")
+		return
+	}
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Sichtbarkeit aktualisiert"})
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "Sichtbarkeit aktualisiert",
+		"contribution_id": nextContributionID,
+	})
+}
+
+func (h *ContributionsMeHandler) updateAnimeContributionVisibility(
+	ctx context.Context,
+	contributionID int64,
+	memberID int64,
+	isPublic bool,
+	roleCode string,
+) (int64, error) {
+	tx, err := h.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback(ctx)
+
+	var ownerMemberID int64
+	err = tx.QueryRow(ctx, `
+		SELECT COALESCE(ac.member_id, hfgm.member_id)
+		FROM anime_contributions ac
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		WHERE ac.id = $1
+		FOR UPDATE OF ac
+	`, contributionID).Scan(&ownerMemberID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, repository.ErrNotFound
+	}
+	if err != nil {
+		return 0, err
+	}
+	if ownerMemberID != memberID {
+		return 0, errContributionVisibilityForbidden
+	}
+
+	if roleCode == "" {
+		_, err = tx.Exec(ctx, `
+			UPDATE anime_contributions
+			SET is_public_on_member_profile = $1, updated_at = NOW()
+			WHERE id = $2
+		`, isPublic, contributionID)
+		if err != nil {
+			return 0, err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return 0, err
+		}
+		return contributionID, nil
+	}
+
+	rows, err := tx.Query(ctx, `
+		SELECT role_code
+		FROM anime_contribution_roles
+		WHERE anime_contribution_id = $1
+		ORDER BY role_code
+		FOR UPDATE
+	`, contributionID)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	roles := make([]string, 0)
+	hasRole := false
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return 0, err
+		}
+		if code == roleCode {
+			hasRole = true
+		}
+		roles = append(roles, code)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+	if !hasRole {
+		return 0, repository.ErrConflict
+	}
+
+	if len(roles) <= 1 {
+		_, err = tx.Exec(ctx, `
+			UPDATE anime_contributions
+			SET is_public_on_member_profile = $1, updated_at = NOW()
+			WHERE id = $2
+		`, isPublic, contributionID)
+		if err != nil {
+			return 0, err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return 0, err
+		}
+		return contributionID, nil
+	}
+
+	var newContributionID int64
+	err = tx.QueryRow(ctx, `
+		INSERT INTO anime_contributions (
+			fansub_group_id,
+			anime_id,
+			fansub_group_member_id,
+			status,
+			note,
+			started_year,
+			ended_year,
+			is_public_on_anime_page,
+			is_public_on_member_profile,
+			confirmed_by,
+			confirmed_at,
+			created_by,
+			created_at,
+			updated_by,
+			updated_at,
+			release_version_id,
+			member_id,
+			dispute_state,
+			visibility_id,
+			review_status_id,
+			member_reason,
+			review_note
+		)
+		SELECT
+			fansub_group_id,
+			anime_id,
+			fansub_group_member_id,
+			status,
+			note,
+			started_year,
+			ended_year,
+			is_public_on_anime_page,
+			$2,
+			confirmed_by,
+			confirmed_at,
+			created_by,
+			created_at,
+			updated_by,
+			NOW(),
+			release_version_id,
+			member_id,
+			dispute_state,
+			visibility_id,
+			review_status_id,
+			member_reason,
+			review_note
+		FROM anime_contributions
+		WHERE id = $1
+		RETURNING id
+	`, contributionID, isPublic).Scan(&newContributionID)
+	if err != nil {
+		return 0, err
+	}
+
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM anime_contribution_roles
+		WHERE anime_contribution_id = $1 AND role_code = $2
+	`, contributionID, roleCode); err != nil {
+		return 0, err
+	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO anime_contribution_roles (anime_contribution_id, role_code)
+		VALUES ($1, $2)
+	`, newContributionID, roleCode); err != nil {
+		return 0, err
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE anime_contributions
+		SET updated_at = NOW()
+		WHERE id = $1
+	`, contributionID); err != nil {
+		return 0, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return 0, err
+	}
+	return newContributionID, nil
 }
 
 // ConfirmMyAnimeContribution handles POST /api/v1/me/anime-contributions/:contributionId/confirm

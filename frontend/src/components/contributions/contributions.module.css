@@ -678,26 +678,6 @@
   color: var(--text-muted);
 }
 
-.sharedVisibilityHint {
-  margin: -2px 0 2px;
-  color: #6b7190;
-  font-size: 0.75rem;
-  line-height: 1.4;
-}
-
-.sharedVisibilityLabel {
-  display: inline-flex;
-  min-height: 28px;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: #f3f5fa;
-  color: #6b7190;
-  font-size: 0.69rem;
-  font-weight: 850;
-  white-space: nowrap;
-}
-
 .inboxContainer {
   display: grid;
   gap: var(--space-4);

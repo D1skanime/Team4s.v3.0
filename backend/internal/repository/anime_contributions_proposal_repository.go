@@ -57,20 +57,6 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 	if len(conflictingRoles) > 0 {
 		return nil, fmt.Errorf("vorschlag erstellen: rolle bereits vorhanden: %w", ErrConflict)
 	}
-	existing, err := r.findProposalMergeTarget(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID)
-	if err != nil {
-		return nil, err
-	}
-	if existing != nil {
-		if err := r.mergeProposalRoles(ctx, tx, existing, input); err != nil {
-			return nil, err
-		}
-		if err := tx.Commit(ctx); err != nil {
-			return nil, fmt.Errorf("vorschlag erweitern: commit: %w", err)
-		}
-		return r.GetByID(ctx, existing.ID)
-	}
-
 	var newID int64
 	err = tx.QueryRow(ctx, `
 		INSERT INTO anime_contributions (

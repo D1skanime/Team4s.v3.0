@@ -14,7 +14,7 @@ interface MyContributionsSectionProps {
    * Enthält ausschließlich confirmed-Einträge, die dem aktiven Filter entsprechen.
    */
   contributions: MeAnimeContribution[]
-  onVisibilityChange: (id: number, isPublic: boolean) => void
+  onVisibilityChange: (id: number, isPublic: boolean, roleCode?: string, nextContributionId?: number) => void
 }
 
 export function MyContributionsSection({

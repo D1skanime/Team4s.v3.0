@@ -105,12 +105,40 @@ export default function MyContributionsPage() {
     await reload()
   }
 
-  function handleVisibilityChange(id: number, isPublic: boolean) {
+  function handleVisibilityChange(id: number, isPublic: boolean, roleCode?: string, nextContributionId?: number) {
     setContributions((prev) =>
       prev
-        ? prev.map((contribution) =>
-            contribution.id === id ? { ...contribution, is_public_on_member_profile: isPublic } : contribution,
-          )
+        ? prev.flatMap((contribution) => {
+            if (contribution.id !== id) return [contribution]
+
+            if (!roleCode || !nextContributionId || nextContributionId === id || contribution.role_codes.length <= 1) {
+              return [{ ...contribution, is_public_on_member_profile: isPublic }]
+            }
+
+            const roleIndex = contribution.role_codes.indexOf(roleCode)
+            if (roleIndex < 0) {
+              return [{ ...contribution, is_public_on_member_profile: isPublic }]
+            }
+
+            const roleLabel = contribution.role_labels?.[roleIndex]
+            const remainingRoleCodes = contribution.role_codes.filter((_, index) => index !== roleIndex)
+            const remainingRoleLabels = contribution.role_labels?.filter((_, index) => index !== roleIndex)
+
+            return [
+              {
+                ...contribution,
+                role_codes: remainingRoleCodes,
+                role_labels: remainingRoleLabels,
+              },
+              {
+                ...contribution,
+                id: nextContributionId,
+                role_codes: [roleCode],
+                role_labels: roleLabel ? [roleLabel] : undefined,
+                is_public_on_member_profile: isPublic,
+              },
+            ]
+          })
         : prev,
     )
   }

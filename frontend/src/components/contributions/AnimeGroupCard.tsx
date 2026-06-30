@@ -13,7 +13,7 @@ interface AnimeGroupCardProps {
   animeId: number
   animeTitle: string
   contributions: MeAnimeContribution[]
-  onVisibilityChange: (id: number, isPublic: boolean) => void
+  onVisibilityChange: (id: number, isPublic: boolean, roleCode?: string, nextContributionId?: number) => void
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -181,13 +181,6 @@ export function AnimeGroupCard({
   const ranges = buildEpisodeRanges(contributions)
   const uniqueRoles = getUniqueRoles(contributions)
   const projectGroups = getUniqueGroups(contributions)
-  const seenVisibilityIds = new Set<number>()
-  const rangesWithVisibility = ranges.map((entry) => {
-    const showVisibilityControl = !seenVisibilityIds.has(entry.id)
-    seenVisibilityIds.add(entry.id)
-    return { entry, showVisibilityControl }
-  })
-  const hasSharedVisibility = rangesWithVisibility.some(({ showVisibilityControl }) => !showVisibilityControl)
 
   return (
     <Card variant="nestedFlat" className={styles.roleCard}>
@@ -246,13 +239,8 @@ export function AnimeGroupCard({
       {open ? (
         <div className={styles.roleCardBody}>
           <p className={styles.roleVisibilityLabel}>Sichtbarkeit deiner Rollen</p>
-          {hasSharedVisibility ? (
-            <p className={styles.sharedVisibilityHint}>
-              Rollen aus demselben Eintrag teilen sich eine Sichtbarkeit.
-            </p>
-          ) : null}
           <ul className={styles.accordionList}>
-            {rangesWithVisibility.map(({ entry, showVisibilityControl }) => {
+            {ranges.map((entry) => {
               const contrib = contributions.find((c) => c.id === entry.id)
               return (
                 <li key={`${entry.id}-${entry.role}`} className={styles.accordionRow}>
@@ -270,14 +258,15 @@ export function AnimeGroupCard({
                         Arbeitsfläche öffnen
                       </Button>
                     ) : null}
-                    {contrib && showVisibilityControl ? (
+                    {contrib ? (
                       <VisibilityDropdown
                         contributionId={contrib.id}
+                        roleCode={entry.role}
                         isPublic={contrib.is_public_on_member_profile}
-                        onChanged={(isPublic) => onVisibilityChange(contrib.id, isPublic)}
+                        onChanged={(isPublic, nextContributionId) =>
+                          onVisibilityChange(contrib.id, isPublic, entry.role, nextContributionId)
+                        }
                       />
-                    ) : contrib ? (
-                      <span className={styles.sharedVisibilityLabel}>wie oben</span>
                     ) : null}
                   </div>
                 </li>

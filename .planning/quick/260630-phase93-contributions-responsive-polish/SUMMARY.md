@@ -27,19 +27,29 @@ der Modalebene.
   zu liegen.
 - Sichtbarkeit `Profil/Intern` wurde von zwei Button-Varianten auf einen
   stabilen Slider mit fixem Track und bewegtem Thumb umgebaut.
-- Rollen, die denselben Contribution-Eintrag teilen, zeigen nur noch einen
-  gemeinsamen Sichtbarkeits-Slider plus Hinweistext.
+- Rollen werden fachlich einzeln steuerbar angezeigt; `wie oben`/gemeinsame
+  Slider wurden entfernt.
+- Der Visibility-Patch nimmt optional `role_code` entgegen. Wenn ein alter
+  Contribution-Eintrag mehrere Rollen enthaelt, trennt der Server die
+  geaenderte Rolle beim Speichern in einen eigenen Contribution-Eintrag.
+- Neue Vorschlaege werden nicht mehr in einen bestehenden offenen
+  Mehrfachrollen-Eintrag hineingemerged, sondern bleiben rollenbezogen.
+- Der fokussierte Contributions-API-Vertrag dokumentiert den rollenbezogenen
+  Visibility-Patch.
 
 ## Verifikation
 
 Bestanden:
 
 - `cd frontend && npm test -- --run src/components/contributions/ProposalForm.test.tsx src/components/contributions/AnimeGroupCard.test.tsx src/components/contributions/ContributionInbox.test.tsx src/components/contributions/VisibilityDropdown.test.tsx`
+- `cd frontend && npm test -- --run src/components/contributions/AnimeGroupCard.test.tsx src/components/contributions/VisibilityDropdown.test.tsx src/components/contributions/ContributionInbox.test.tsx src/components/contributions/ContributionCard.test.tsx`
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint` - 0 Fehler, bestehende Warnungen bleiben.
+- `cd backend && go test ./internal/handlers -run TestRejectContributionRequiresReason`
+- `cd backend && go test ./internal/repository -run TestSelfPublish_StatusBleibtProposed`
 - `git diff --check`
-- `docker compose build team4sv30-frontend`
-- `docker compose up -d team4sv30-frontend`
+- `docker compose build team4sv30-backend team4sv30-frontend`
+- `docker compose up -d team4sv30-backend team4sv30-frontend`
 - `GET http://127.0.0.1:3000/me/contributions` - HTTP 200.
 
 Eingeschraenkt:
@@ -51,8 +61,9 @@ Eingeschraenkt:
 
 ## Risiken / Hinweise
 
-- Die Sichtbarkeit ist weiterhin datenmodellbedingt pro Contribution-Eintrag,
-  nicht pro einzelne Rolle. Die UI zeigt diese gemeinsame Sichtbarkeit nun
-  explizit, statt mehrere scheinbar unabhaengige Schalter zu zeigen.
+- Breiter Backend-Handler-Testlauf (`go test ./internal/handlers
+  ./internal/repository`) scheitert an bestehenden Capability-Tests
+  (`admin_capability_handler_test.go`), waehrend das Repository-Paket und der
+  fokussierte Contributions-Handler-Test gruen sind.
 - Untracked Phase-94-Planartefakte im Arbeitsbaum gehoeren nicht zu diesem
   Quick-Fix und wurden nicht angefasst.

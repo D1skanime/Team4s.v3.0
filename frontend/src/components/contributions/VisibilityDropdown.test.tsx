@@ -20,19 +20,19 @@ afterEach(() => {
 
 describe('VisibilityDropdown', () => {
   it('speichert über den bestehenden Helper und meldet den neuen Status', async () => {
-    apiMocks.patchAnimeContributionVisibility.mockResolvedValue({ message: 'ok' })
+    apiMocks.patchAnimeContributionVisibility.mockResolvedValue({ contribution_id: 9 })
     const onChanged = vi.fn()
 
     render(
-      <VisibilityDropdown contributionId={7} isPublic={true} onChanged={onChanged} />,
+      <VisibilityDropdown contributionId={7} roleCode="encoder" isPublic={true} onChanged={onChanged} />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Intern' }))
 
     await waitFor(() => {
-      expect(apiMocks.patchAnimeContributionVisibility).toHaveBeenCalledWith(7, false)
+      expect(apiMocks.patchAnimeContributionVisibility).toHaveBeenCalledWith(7, false, 'encoder')
     })
-    expect(onChanged).toHaveBeenCalledWith(false)
+    expect(onChanged).toHaveBeenCalledWith(false, 9)
   })
 
   it('rendert Profil und Intern als stabilen Sichtbarkeits-Slider', () => {
