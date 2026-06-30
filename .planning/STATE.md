@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_for_milestone_close
 stopped_at: Phase 71 complete (4/4); all tracked phases complete; ready for milestone close/audit
-last_updated: "2026-06-30T08:58:11.753Z"
+last_updated: "2026-06-30T09:12:41.757Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 85
   completed_phases: 72
   total_plans: 355
-  completed_plans: 322
+  completed_plans: 323
   percent: 85
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 71 ist abgeschlossen (4/4 Pläne). Laut aktuellem GSD-Fortschritt sind alle getrackten Phasen abgeschlossen; nächster sinnvoller Schritt ist Milestone-Close/Audit statt Phase 72 neu zu starten.
+**Current focus:** Phase 94 — rollen-capability-ux-fachlich-entwirren-und-mobil-nutzbar-ma
 
 ## Current Position
 
-Phase: Milestone close
-Plan: Audit/closeout
+Phase: 94 (rollen-capability-ux-fachlich-entwirren-und-mobil-nutzbar-ma) — EXECUTING
+Plan: 2 of 8
 
 ## Accumulated Context
 
@@ -256,6 +256,7 @@ Recent durable decisions:
 - [Phase 87-03]: RoleCapabilityClient bei 243 Zeilen gehalten — kein helpers.ts-Split nötig (Schwelle 450)
 - [Phase 87-03]: Kategorie-Filterung clientseitig via Select aus matrix.all_actions abgeleitet — kein zusätzlicher API-Aufruf
 - [Phase 87-03]: listRoleCapabilities liest Matrix direkt aus Response-Body (kein body.data-Envelope) — Handler liefert Matrix laut Contract unverpackt (Fix baf1b7fb)
+- [Phase ?]: stubCapabilityAuthzRepo.matrixRoles additiv ergänzt
 
 ### Pending Todos
 
@@ -448,6 +449,7 @@ Recent durable decisions:
 | Phase 86 P01 | 5min | 2 tasks | 4 files |
 | Phase 86-daten-getriebene-capability-registry P02 | 15min | 2 tasks | 3 files |
 | Phase 87 P01 | 5min | 2 tasks | 8 files |
+| Phase 94 P01 | 8min | 2 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -499,7 +501,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-18T13:06:30.000Z
+Last session: 2026-06-30T09:12:41.707Z
 Stopped at: Phase 71 complete (4/4); all tracked phases complete; ready for milestone close/audit
 Last activity: 2026-06-30
 Resume file: None
