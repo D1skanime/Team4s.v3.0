@@ -402,7 +402,9 @@ export type FansubGroupRoleCode =
   | 'encoder'
   | 'raw_provider'
   | 'quality_checker'
-  | 'designer';
+  | 'designer'
+  | 'techadmin'
+  | 'gfxler';
 
 export interface FansubGroupRoleOption {
   code: FansubGroupRoleCode;
@@ -410,8 +412,15 @@ export interface FansubGroupRoleOption {
   description: string;
 }
 
+/** API-Response-Typ für GET /api/v1/admin/fansub-group-roles */
+export interface FansubGroupRoleItem {
+  code: FansubGroupRoleCode;
+  label_de: string;
+  sort_order: number;
+}
+
 export const FANSUB_GROUP_ROLE_OPTIONS: FansubGroupRoleOption[] = [
-  { code: 'fansub_lead', label: 'Fansub-Lead', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
+  { code: 'fansub_lead', label: 'Gruppenleitung', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
   { code: 'project_lead', label: 'Projektleitung', description: 'Kann Projekte koordinieren, aber keine Mitglieder verwalten.' },
   { code: 'translator', label: 'Übersetzung', description: 'Arbeitet an Text und Release-Notizen.' },
   { code: 'timer', label: 'Timing', description: 'Pflegt Timing-bezogene Release-Arbeit.' },
@@ -421,6 +430,8 @@ export const FANSUB_GROUP_ROLE_OPTIONS: FansubGroupRoleOption[] = [
   { code: 'raw_provider', label: 'Raw-Quelle', description: 'Liefert Quellmaterial ohne Verwaltungsrechte.' },
   { code: 'quality_checker', label: 'Qualitätscheck', description: 'Prüft Medien und Release-Notizen.' },
   { code: 'designer', label: 'Design', description: 'Arbeitet an Release-Medien und eigenen Uploads.' },
+  { code: 'techadmin', label: 'Techadmin', description: 'Technische Administration der Gruppe.' },
+  { code: 'gfxler', label: 'GFX / Grafik', description: 'Zuständig für Grafik und visuelle Gestaltung.' },
 ];
 
 export interface FansubAliasCreateRequest {

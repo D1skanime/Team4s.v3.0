@@ -157,4 +157,55 @@ describe('RoleCapabilityDetail', () => {
     const header = screen.getByText('Gruppe').closest('button')
     expect(header?.getAttribute('aria-expanded')).toBe('true')
   })
+
+  it('TestKategorieReihenfolge: Accordion-Items erscheinen in Reihenfolge gruppe→projekt→release (D-17)', () => {
+    // Rolle mit Actions in gemischter Reihenfolge [release, projekt, gruppe]
+    const roleWithMixedCategories: RoleEntry = {
+      role_code: 'test_role',
+      label_de: 'Test-Rolle',
+      assignable: true,
+      contexts: ['app_group'],
+      actions: [
+        {
+          code: 'release.publish',
+          label_de: 'Release veröffentlichen',
+          category: 'release',
+          granted: false,
+          standalone: false,
+        },
+        {
+          code: 'projekt.manage',
+          label_de: 'Projekt verwalten',
+          category: 'projekt',
+          granted: false,
+          standalone: false,
+        },
+        {
+          code: 'gruppe.view',
+          label_de: 'Gruppe anzeigen',
+          category: 'gruppe',
+          granted: false,
+          standalone: false,
+        },
+      ],
+    }
+
+    render(<DetailHarness role={roleWithMixedCategories} />)
+
+    // Alle Accordion-Header-Buttons ermitteln
+    const buttons = screen.getAllByRole('button')
+    // Filtere auf Accordion-Trigger-Buttons (haben aria-expanded-Attribut)
+    const accordionTriggers = buttons.filter(
+      (btn) => btn.hasAttribute('aria-expanded')
+    )
+
+    // Prüfe dass genau 3 Kategorien vorhanden sind
+    expect(accordionTriggers.length).toBe(3)
+
+    // Prüfe Reihenfolge: gruppe → projekt → release
+    const triggerTexts = accordionTriggers.map((btn) => btn.textContent?.toLowerCase() ?? '')
+    expect(triggerTexts[0]).toContain('gruppe')
+    expect(triggerTexts[1]).toContain('projekt')
+    expect(triggerTexts[2]).toContain('release')
+  })
 })

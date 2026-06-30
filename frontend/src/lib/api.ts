@@ -156,6 +156,7 @@ import {
   UnifiedGroupMember,
   DefaultCrewEntry,
   EffectiveContributionsResponse,
+  FansubGroupRoleItem,
 } from "@/types/fansub";
 import {
   PaginatedWatchlistResponse,
@@ -9309,6 +9310,37 @@ export async function listGroupHistoryRoleDefinitions(
   }
 
   const payload = (await response.json()) as { data?: RoleDefinitionOption[] }
+  return payload.data ?? []
+}
+
+/**
+ * listFansubGroupRoles lädt alle zuweisbaren Gruppenrollen vom Backend.
+ * GET /api/v1/admin/fansub-group-roles
+ * Erfordert Platform-Admin-Identität. Liefert techadmin, gfxler und alle
+ * anderen assignable role_definitions.
+ */
+export async function listFansubGroupRoles(): Promise<FansubGroupRoleItem[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansub-group-roles`,
+    { cache: 'no-store' },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    )
+  }
+
+  const payload = (await response.json()) as { data?: FansubGroupRoleItem[] }
   return payload.data ?? []
 }
 

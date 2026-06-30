@@ -95,11 +95,11 @@ describe('FansubAppMemberEditorPanel', () => {
     const bodyText = document.body.textContent ?? ''
 
     // Aktive App-Rollen müssen vorhanden sein
-    expect(bodyText).toMatch(/Fansub-Lead|Übersetzung|Encoding|Timing/)
+    // fansub_lead heißt jetzt "Gruppenleitung" (D-05), nicht mehr "Fansub-Lead"
+    expect(bodyText).toMatch(/Gruppenleitung|Übersetzung|Encoding|Timing/)
 
-    // Historische Rollen dürfen NICHT vorhanden sein
+    // Historische hist_group_member_roles-Rollen dürfen NICHT vorhanden sein
     expect(bodyText).not.toMatch(/Gründer\/in/)
-    expect(bodyText).not.toMatch(/Gruppenleitung/)
     expect(bodyText).not.toMatch(/Co-Leitung/)
     expect(bodyText).not.toMatch(/Projektmanagement/)
   })

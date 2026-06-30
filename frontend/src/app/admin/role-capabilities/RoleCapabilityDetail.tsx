@@ -1,9 +1,12 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Accordion } from '@/components/ui/Accordion'
 import { Switch } from '@/components/ui/Switch'
 import type { RoleEntry } from '@/types/admin-capability'
 import { categoryDisplayLabel } from './capabilityCategories'
+
+const CATEGORY_ORDER = ['gruppe', 'projekt', 'release']
 
 export interface RoleCapabilityDetailProps {
   role: RoleEntry
@@ -37,71 +40,86 @@ export function RoleCapabilityDetail({
 }: RoleCapabilityDetailProps) {
   const isAssignable = role.assignable !== false
 
-  // Aktionen nach Kategorie gruppieren
-  const byCategory = new Map<string, typeof role.actions>()
-  for (const action of role.actions) {
-    const existing = byCategory.get(action.category) ?? []
-    existing.push(action)
-    byCategory.set(action.category, existing)
-  }
+  const accordionItems = useMemo(() => {
+    // Aktionen nach Kategorie gruppieren
+    const byCategory = new Map<string, typeof role.actions>()
+    for (const action of role.actions) {
+      const existing = byCategory.get(action.category) ?? []
+      existing.push(action)
+      byCategory.set(action.category, existing)
+    }
 
-  const accordionItems = Array.from(byCategory.entries()).map(([cat, actions]) => ({
-    id: cat,
-    title: categoryDisplayLabel(cat),
-    children: (
-      <div>
-        {actions.map((action) => (
-          <div
-            key={action.code}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 'var(--space-3)',
-              padding: 'var(--space-2) var(--space-3)',
-              borderBottom: '1px solid var(--color-border)',
-              minHeight: '44px',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.875rem',
-                color: 'var(--color-text-primary)',
-                flex: 1,
-              }}
-            >
-              {action.label_de}
-            </span>
-            {action.standalone ? (
-              <span
+    // Deterministische Reihenfolge: CATEGORY_ORDER zuerst, unbekannte Kategorien alphabetisch ans Ende
+    const sortedCats = [...byCategory.keys()].sort((a, b) => {
+      const ai = CATEGORY_ORDER.indexOf(a)
+      const bi = CATEGORY_ORDER.indexOf(b)
+      if (ai === -1 && bi === -1) return a.localeCompare(b)
+      if (ai === -1) return 1
+      if (bi === -1) return -1
+      return ai - bi
+    })
+
+    return sortedCats.map((cat) => {
+      const actions = byCategory.get(cat) ?? []
+      return {
+        id: cat,
+        title: categoryDisplayLabel(cat),
+        children: (
+          <div>
+            {actions.map((action) => (
+              <div
+                key={action.code}
                 style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--color-text-secondary)',
-                  fontStyle: 'italic',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 'var(--space-3)',
+                  padding: 'var(--space-2) var(--space-3)',
+                  borderBottom: '1px solid var(--color-border)',
+                  minHeight: '44px',
                 }}
               >
-                Systemaktion
-              </span>
-            ) : (
-              <Switch
-                checked={action.granted}
-                disabled={!isAssignable}
-                aria-label={action.label_de}
-                onCheckedChange={(next) => {
-                  if (!isAssignable) return
-                  if (next) {
-                    onGrant(role.role_code, action.code)
-                  } else {
-                    onRevoke(role.role_code, action.code)
-                  }
-                }}
-              />
-            )}
+                <span
+                  style={{
+                    fontSize: '0.875rem',
+                    color: 'var(--color-text-primary)',
+                    flex: 1,
+                  }}
+                >
+                  {action.label_de}
+                </span>
+                {action.standalone ? (
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-secondary)',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    Systemaktion
+                  </span>
+                ) : (
+                  <Switch
+                    checked={action.granted}
+                    disabled={!isAssignable}
+                    aria-label={action.label_de}
+                    onCheckedChange={(next) => {
+                      if (!isAssignable) return
+                      if (next) {
+                        onGrant(role.role_code, action.code)
+                      } else {
+                        onRevoke(role.role_code, action.code)
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    ),
-  }))
+        ),
+      }
+    })
+  }, [role, isAssignable, onGrant, onRevoke])
 
   return (
     <div>
