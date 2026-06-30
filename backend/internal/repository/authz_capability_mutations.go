@@ -28,9 +28,11 @@ type CapabilityMatrixActionState struct {
 
 // CapabilityMatrixRoleEntry ist eine Rolle mit ihren Action-Zuständen.
 type CapabilityMatrixRoleEntry struct {
-	RoleCode string                        `json:"role_code"`
-	LabelDE  string                        `json:"label_de"`
-	Actions  []CapabilityMatrixActionState `json:"actions"`
+	RoleCode   string                        `json:"role_code"`
+	LabelDE    string                        `json:"label_de"`
+	Actions    []CapabilityMatrixActionState `json:"actions"`
+	Assignable bool                          `json:"assignable"`         // Wird im Handler gesetzt (permissions.IsKnownFansubGroupRole)
+	Contexts   []string                      `json:"contexts,omitempty"` // Aus role_definitions.contexts
 }
 
 // CapabilityMatrixActionEntry ist eine Action-Definition (für all_actions-Liste).
@@ -65,7 +67,8 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			rd.code           AS role_code,
 			rd.label_de       AS role_label,
 			(rc.action_code IS NOT NULL) AS granted,
-			(ad.code = ANY($1)) AS standalone
+			(ad.code = ANY($1)) AS standalone,
+			COALESCE(rd.contexts, '{}') AS role_contexts
 		FROM action_definitions ad
 		CROSS JOIN role_definitions rd
 		LEFT JOIN role_capabilities rc
@@ -82,12 +85,14 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 	// Sammle Daten in geordneten Strukturen
 	roleOrder := make([]string, 0)
 	roleLabels := make(map[string]string)
+	roleContexts := make(map[string][]string)
 	roleActions := make(map[string][]CapabilityMatrixActionState)
 	actionOrder := make([]string, 0)
 	actionEntries := make(map[string]CapabilityMatrixActionEntry)
 
 	for rows.Next() {
 		var row CapabilityMatrixRoleRow
+		var contexts []string
 		if err := rows.Scan(
 			&row.ActionCode,
 			&row.ActionLabel,
@@ -97,6 +102,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			&row.RoleLabel,
 			&row.Granted,
 			&row.Standalone,
+			&contexts,
 		); err != nil {
 			return nil, fmt.Errorf("list capability matrix: scan: %w", err)
 		}
@@ -116,6 +122,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 		if _, seen := roleLabels[row.RoleCode]; !seen {
 			roleOrder = append(roleOrder, row.RoleCode)
 			roleLabels[row.RoleCode] = row.RoleLabel
+			roleContexts[row.RoleCode] = contexts
 		}
 
 		// Action-Zustand für Rolle
@@ -131,13 +138,14 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 		return nil, fmt.Errorf("list capability matrix: iterate: %w", err)
 	}
 
-	// Rollen-Liste aufbauen
+	// Rollen-Liste aufbauen (Assignable bleibt Go-Zero-Wert false — wird im Handler gesetzt)
 	roles := make([]CapabilityMatrixRoleEntry, 0, len(roleOrder))
 	for _, roleCode := range roleOrder {
 		roles = append(roles, CapabilityMatrixRoleEntry{
 			RoleCode: roleCode,
 			LabelDE:  roleLabels[roleCode],
 			Actions:  roleActions[roleCode],
+			Contexts: roleContexts[roleCode],
 		})
 	}
 
