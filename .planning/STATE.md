@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_for_milestone_close
-stopped_at: Phase 71 complete (4/4); all tracked phases complete; ready for milestone close/audit
-last_updated: "2026-06-30T09:35:08.278Z"
+stopped_at: Completed 94-02-PLAN.md
+last_updated: "2026-06-30T09:42:31.955Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 85
   completed_phases: 72
   total_plans: 355
-  completed_plans: 325
+  completed_plans: 326
   percent: 85
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 94 (rollen-capability-ux-fachlich-entwirren-und-mobil-nutzbar-ma) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 
 ## Accumulated Context
 
@@ -257,6 +257,7 @@ Recent durable decisions:
 - [Phase 87-03]: Kategorie-Filterung clientseitig via Select aus matrix.all_actions abgeleitet — kein zusätzlicher API-Aufruf
 - [Phase 87-03]: listRoleCapabilities liest Matrix direkt aus Response-Body (kein body.data-Envelope) — Handler liefert Matrix laut Contract unverpackt (Fix baf1b7fb)
 - [Phase ?]: stubCapabilityAuthzRepo.matrixRoles additiv ergänzt
+- [Phase ?]: [Phase 94-02]: Repository bleibt permissions-frei (D-03 eingehalten) — Assignable im Handler via permissions.IsKnownFansubGroupRole gesetzt
 
 ### Pending Todos
 
@@ -452,6 +453,7 @@ Recent durable decisions:
 | Phase 94 P01 | 8min | 2 tasks | 2 files |
 | Phase 94 P05 | 8min | 2 tasks | 7 files |
 | Phase 94 P07 | 40min | 2 tasks | 11 files |
+| Phase 94 P02 | 9min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -503,7 +505,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-30T09:35:08.240Z
-Stopped at: Phase 71 complete (4/4); all tracked phases complete; ready for milestone close/audit
+Last session: 2026-06-30T09:42:31.925Z
+Stopped at: Completed 94-02-PLAN.md
 Last activity: 2026-06-30
 Resume file: None
