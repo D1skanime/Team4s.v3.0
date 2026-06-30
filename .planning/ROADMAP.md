@@ -75,9 +75,11 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 ### Milestone v1.2 – Public Experience, Historie & Scoped Rights (Phasen 72–80)
 
 - [x] **Phase 72: Domänen-Projektionen & Status-Fundament** - Backend/Contract-Fundament, das Mitglied vs. Mitwirkender vs. historische Nennung in DTOs/Projektionen sauber trennt und die phasenübergreifend nötigen Statusfelder einführt (`memorial`-Profilstatus, Contribution-Status/-Sichtbarkeit, Media owner/visibility/review-Metadaten), damit 73–80 ohne doppelte DTO-Arbeit darauf aufsetzen.
-- [x] **Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern** - Bestehende Public-Fansub-Seite kuratiert ausbauen (Hero, Story/Timeline, Highlights, Mitglieder vs. Mitwirkende, Medien nach Ownership, Projektkarten) durch Reuse von `FansubProfileTabs`, `GroupLeaderTimeline` und public contribution helpers. (completed 2026-06-07)
+- [x] **Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern** - Bestehende Public-Fansub-Seite kuratiert ausbauen (Hero, Story/Timeline, Highlights, Mitglieder vs. Mitwirkende, Medien nach Ownership, Projektkarten) durch Reuse von `FansubProfileTabs`, `GroupLeaderTimeline` und public contribution helpers.
+ (completed 2026-06-07)
 - [x] **Phase 74: Public Member Profile `/members/[slug]` + Memorial** - Member-Profil als dreistufige Public-Seite erweitern (Hero+Status, Geschichte/Gruppenbezug, filterbare Contributions) inkl. Gedenkprofil-Darstellung und kuratierter Badge-Anzeige; Reuse Member API, Public Member Components, `RichTextRenderer`, Badge-Service.
-- [x] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs. (completed 2026-06-05)
+- [x] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs.
+ (completed 2026-06-05)
 - [x] **Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge** - Eigene Beitragsseite zum Klärungsdashboard ausbauen (Summary, „Das war ich"/„war ich nicht", Sichtbarkeit, Filter) und registrierte-User-Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) review-gebunden integrieren; Reuse `getMyAnimeContributions`, Proposal-/Review-Strukturen. (completed 2026-06-06)
 - [ ] **Phase 77: Leader Workspace – Public Preview & Readiness** - In `/admin/fansubs/[id]/edit` Public-Preview, Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext ergänzen (capability-gated), ohne `/admin/my-groups/[id]` zu duplizieren.
   **Plans:** 3 plans
@@ -86,7 +88,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `77-01-PLAN.md` - Wave-0-Testgeruest: ReadinessTab.test.tsx (RED) + page.test.tsx Capability-Gating-Cases (Req F, I, K)
   - [ ] `77-02-PLAN.md` - ReadinessTab.tsx + PublicPreviewPanel.tsx implementieren (Readiness-Checkliste, Preview-Fallback, CSS)
   - [ ] `77-03-PLAN.md` - page.tsx chirurgisch verdrahten (SectionKey, MAIN_TABS, canUseMainTab, Render-Zweig) + Human-Verify
-- [x] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues. (completed 2026-06-06)
+- [x] **Phase 78: Leader Workspace – Review & Pflege** - In `/admin/fansubs/[id]/edit` die Review-/Pflege-Flächen ergänzen (offene Claims, offene Contributions, historische Member, externe Mitwirkende, Medienprüfung) auf bestehenden Claim-/Contribution-/Media-Seams, capability-gated, ohne Parallel-Queues.
+ (completed 2026-06-06)
   **Plans:** 5 plans
   Plans:
 
@@ -95,7 +98,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `78-03-PLAN.md` — Backend Gruppenmedien-Review: GET-Liste + PATCH fansub_group_media + api.ts (listFansubGroupMedia/patchFansubMediaReview, Lock K/G/I, D-05/D-06/D-09); Phase-72-Schema-Gate
   - [ ] `78-04-PLAN.md` — GroupMediaReviewSection (liest via listFansubGroupMedia) + Phase-76-Stubs (D-03/D-04) + page.tsx-Verdrahtung + Human-Verify (Lock F/SC2/SC5)
   - [ ] `78-05-PLAN.md` — Release-Version-Media-Review: release_version_media PATCH-Erweiterung + ReleaseVersionMediaReviewSection im Release-Drawer (D-06 zweite Owner-Fläche, Lock K/G/I)
-- [x] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`). (completed 2026-06-06)
+- [x] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`).
+ (completed 2026-06-06)
 - [x] **Phase 80:  + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten. (completed 2026-06-15)
   **Plans:** 5 plans
   Plans:
@@ -108,7 +112,8 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 ### Korrektur-Phase – Release-Version Mehrfach-Fansubgruppen
 
-- [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene. (completed 2026-06-09)
+- [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene.
+ (completed 2026-06-09)
 - [x] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert. (completed 2026-06-18)
 - [x] **Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI** - View-Checks an ausgewaehlten Lese-Pfaden + Admin-UI zum Pflegen von role_capabilities (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf Phase 86 auf; steuert daten-getrieben wer was sehen darf. (completed 2026-06-19)
   **Plans:** 3 plans
@@ -1580,10 +1585,17 @@ Plans:
 **Goal:** Aktive App-Gruppenrollen, historische Gruppenrollen und Anime-Beitragsrollen werden fachlich klar getrennt: die historische Rollen-UI nutzt eine eigene `group_history`-Rollenliste (Gründer/in, Gruppenleitung, Co-Leitung, Projektmanagement), die aktive Mitglieder-UI zeigt nur aktive App-Rechte mit verständlicheren Begriffen, die Capability-Verwaltung bearbeitet/zeigt nur permission-bearing Rollen (Backend-Guard blockiert Grant/Revoke an rein historische Rollen), und die Capability-Pflege wird von einer breiten Vollmatrix auf eine rollenbasierte, kategorisierte, bei 390 px ohne horizontales Scrollen bedienbare Oberfläche umgebaut.
 **Requirements:** Phase-94 Auftrag aus `94-CONTEXT.md` (Acceptance Criteria 1–11).
 **Depends on:** Phase 86, Phase 87, Phase 93
-**Plans:** 0 plans
+**Plans:** 8 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 94 to break down)
+- [ ] `94-01-PLAN.md` — Wave-0 Go-Tests (Assignable-Guard 422, Matrix-assignable, group_history-Read)
+- [ ] `94-02-PLAN.md` — Backend Assignable-Guard (Grant/Revoke 422) + Matrix-Anreicherung (assignable/contexts)
+- [ ] `94-03-PLAN.md` — Backend group_history Read-Endpunkt (kuratierte Whitelist) + Route
+- [ ] `94-04-PLAN.md` — Contract/Typen/api.ts/Test synchron (assignable/contexts + group_history-Helper)
+- [ ] `94-05-PLAN.md` — Neue UI-Primitives Switch + Accordion (@/components/ui)
+- [ ] `94-06-PLAN.md` — Capability-UI Master-Detail-Umbau (Badges, Accordion+Switch, Mobile-Sheet)
+- [ ] `94-07-PLAN.md` — Komponenten-Splits GroupMembersTab + FansubAppMembersSection (450-Limit)
+- [ ] `94-08-PLAN.md` — Mitglieder-Dialoge: historische Rollenquelle (D-07/D-09) + Aktive-Rechte-Label (D-10)
 
 ---
 
