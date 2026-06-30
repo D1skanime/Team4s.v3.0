@@ -4,6 +4,7 @@ import { Fragment, useState, type UIEvent } from 'react'
 import { ArrowRight, ChevronDown, ChevronRight, Filter, MoreHorizontal, PanelRight, Pencil, Search, Upload, X } from 'lucide-react'
 
 import {
+  Accordion,
   ActionBar,
   Badge,
   Button,
@@ -19,6 +20,7 @@ import {
   Pagination,
   SectionHeader,
   Select,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -169,6 +171,8 @@ export default function UISystemPlaygroundPage() {
   const [animeEntryOpen, setAnimeEntryOpen] = useState(true)
   const [releaseRowOpen, setReleaseRowOpen] = useState(true)
   const [visibleReleaseCount, setVisibleReleaseCount] = useState(INITIAL_RELEASE_BATCH_SIZE)
+  const [switchBenachrichtigungen, setSwitchBenachrichtigungen] = useState(true)
+  const [switchSichtbar, setSwitchSichtbar] = useState(false)
   const [projectNoteTitle, setProjectNoteTitle] = useState('ffff')
   const [projectNoteVisibility, setProjectNoteVisibility] = useState<'internal' | 'public'>('internal')
   const [projectNoteStatus, setProjectNoteStatus] = useState<'draft' | 'published' | 'archived' | 'deleted'>('draft')
@@ -691,7 +695,77 @@ export default function UISystemPlaygroundPage() {
         </Card>
 
         <Card variant="section">
-          <SectionHeader eyebrow="08" title="Kompositionsbeispiele" description="Nicht nur Einzelteile, sondern typische Admin-Layer mit Mockdaten und ohne Fachlogik." />
+          <SectionHeader
+            eyebrow="08"
+            title="Switch &amp; Accordion"
+            description="Neue globale Primitives für Toggle-Steuerung und aufklappbare Kategorien — mobil und barrierefrei."
+          />
+          <div className={styles.showcaseGrid}>
+            <Card variant="flat" title="Switch-Primitiv" description="Globales Toggle-Primitiv mit role=switch und korrekten ARIA-Attributen.">
+              <div className={styles.stack}>
+                <Switch
+                  checked={switchBenachrichtigungen}
+                  onCheckedChange={setSwitchBenachrichtigungen}
+                  label="Benachrichtigungen aktiviert"
+                  aria-label="Benachrichtigungen umschalten"
+                />
+                <Switch
+                  checked={switchSichtbar}
+                  onCheckedChange={setSwitchSichtbar}
+                  label="Öffentlich sichtbar"
+                  aria-label="Öffentliche Sichtbarkeit umschalten"
+                />
+                <Switch
+                  checked={false}
+                  onCheckedChange={() => {}}
+                  label="Gesperrte Option"
+                  aria-label="Gesperrte Option"
+                  disabled
+                />
+              </div>
+            </Card>
+
+            <Card variant="flat" title="Accordion-Primitiv" description="Aufklappbare Kategorien — unabhängig schaltbar, Touch-Ziel >= 44 px, kein horizontaler Scroll.">
+              <Accordion
+                items={[
+                  {
+                    id: 'uebers',
+                    title: 'Übersetzung',
+                    children: (
+                      <div className={styles.stack}>
+                        <Badge variant="success">Aktiv</Badge>
+                        <p>Dieser Bereich zeigt Capability-Switches für die Übersetzungsrolle.</p>
+                      </div>
+                    ),
+                  },
+                  {
+                    id: 'bearb',
+                    title: 'Bearbeitung & Qualitätssicherung',
+                    children: (
+                      <div className={styles.stack}>
+                        <Badge variant="info">Geplant</Badge>
+                        <p>Bearbeitungs- und QS-Berechtigungen werden hier gesteuert.</p>
+                      </div>
+                    ),
+                  },
+                  {
+                    id: 'veroefl',
+                    title: 'Veröffentlichung',
+                    children: (
+                      <div className={styles.stack}>
+                        <Badge variant="warning">Eingeschränkt</Badge>
+                        <p>Veröffentlichungs-Capabilities sind nur für zuweisbare Rollen aktiv.</p>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        </Card>
+
+        <Card variant="section">
+          <SectionHeader eyebrow="09" title="Kompositionsbeispiele" description="Nicht nur Einzelteile, sondern typische Admin-Layer mit Mockdaten und ohne Fachlogik." />
           <div className={styles.compositionGrid}>
             <Card variant="section" title="Komposition 1 – Admin List Layout" description="PageHeader, Toolbar, Tabelle, Pagination und Row Actions.">
               <Toolbar
