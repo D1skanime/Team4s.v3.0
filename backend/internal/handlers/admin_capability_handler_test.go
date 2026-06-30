@@ -59,7 +59,7 @@ func (s *stubCapabilityAuthzRepo) CountRolesWithAction(_ context.Context, _ stri
 	return s.countRolesWithAction, s.countErr
 }
 
-func (s *stubCapabilityAuthzRepo) LoadRoleCapabilities(_ context.Context) (map[string]permissions.Action, error) {
+func (s *stubCapabilityAuthzRepo) LoadRoleCapabilities(_ context.Context) (map[string][]permissions.Action, error) {
 	return nil, nil
 }
 
@@ -95,14 +95,6 @@ func makeCapabilityTestContext(method, path string, identity middleware.AuthIden
 	return c, rec
 }
 
-// capabilityHandlerWithStubs erstellt einen AdminCapabilityHandler mit Stub-Abhängigkeiten.
-// Da AdminCapabilityHandler ein *repository.AuthzRepository erwartet, brauchen wir einen
-// anderen Ansatz: Wir testen die Logik direkt über die Handler-Methoden indem wir
-// die Abhängigkeiten austauschbar machen.
-// Da AuthzRepository eine Struct ist (kein Interface), bauen wir den Handler mit nil
-// und überschreiben die Felder via Reflection nicht — stattdessen testen wir via
-// den Handler direkt mit konkreten Typen, aber simulieren den Auth-Layer im Context.
-
 // --- Tests ---
 
 // TestGrantCapabilityRequiresPlatformAdmin prüft, dass PUT /api/v1/admin/role-capabilities/{roleCode}/{actionCode}
@@ -128,11 +120,7 @@ func TestGrantCapabilityRequiresPlatformAdmin(t *testing.T) {
 	permStub := &stubCapabilityPermissionSvc{}
 	auditStub := &captureAuditLogRepo{}
 
-	h := &adminCapabilityHandlerWithStubs{
-		authzStub: authzStub,
-		permStub:  permStub,
-		auditStub: auditStub,
-	}
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
 	h.GrantCapability(c)
 
 	if rec.Code != http.StatusForbidden {
@@ -171,11 +159,7 @@ func TestRevokeCapabilityLastActionGuard(t *testing.T) {
 	permStub := &stubCapabilityPermissionSvc{}
 	auditStub := &captureAuditLogRepo{}
 
-	h := &adminCapabilityHandlerWithStubs{
-		authzStub: authzStub,
-		permStub:  permStub,
-		auditStub: auditStub,
-	}
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
 	h.RevokeCapability(c)
 
 	if rec.Code != http.StatusConflict {
@@ -231,11 +215,7 @@ func TestGrantCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
 	permStub := &stubCapabilityPermissionSvc{}
 	auditStub := &captureAuditLogRepo{}
 
-	h := &adminCapabilityHandlerWithStubs{
-		authzStub: authzStub,
-		permStub:  permStub,
-		auditStub: auditStub,
-	}
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
 	h.GrantCapability(c)
 
 	if rec.Code != http.StatusUnprocessableEntity {
@@ -290,11 +270,7 @@ func TestRevokeCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
 	permStub := &stubCapabilityPermissionSvc{}
 	auditStub := &captureAuditLogRepo{}
 
-	h := &adminCapabilityHandlerWithStubs{
-		authzStub: authzStub,
-		permStub:  permStub,
-		auditStub: auditStub,
-	}
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
 	h.RevokeCapability(c)
 
 	if rec.Code != http.StatusUnprocessableEntity {
@@ -355,11 +331,7 @@ func TestGrantCapabilityAssignableGuardAllowsAppRole(t *testing.T) {
 	permStub := &stubCapabilityPermissionSvc{}
 	auditStub := &captureAuditLogRepo{}
 
-	h := &adminCapabilityHandlerWithStubs{
-		authzStub: authzStub,
-		permStub:  permStub,
-		auditStub: auditStub,
-	}
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
 	h.GrantCapability(c)
 
 	// Guard darf NICHT 422 auslösen für eine assignable Rolle.
@@ -409,11 +381,7 @@ func TestListCapabilityMatrixAssignableEnrichment(t *testing.T) {
 	permStub := &stubCapabilityPermissionSvc{}
 	auditStub := &captureAuditLogRepo{}
 
-	h := &adminCapabilityHandlerWithStubs{
-		authzStub: authzStub,
-		permStub:  permStub,
-		auditStub: auditStub,
-	}
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
 	h.ListCapabilityMatrix(c)
 
 	if rec.Code != http.StatusOK {
@@ -470,11 +438,7 @@ func TestCapabilityAuditOnGrant(t *testing.T) {
 	permStub := &stubCapabilityPermissionSvc{}
 	auditStub := &captureAuditLogRepo{}
 
-	h := &adminCapabilityHandlerWithStubs{
-		authzStub: authzStub,
-		permStub:  permStub,
-		auditStub: auditStub,
-	}
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
 	h.GrantCapability(c)
 
 	if rec.Code != http.StatusOK {
@@ -499,128 +463,3 @@ func TestCapabilityAuditOnGrant(t *testing.T) {
 	}
 }
 
-// --- Handler-Wrapper mit Stubs ---
-// Da AdminCapabilityHandler konkrete *repository.AuthzRepository-Felder hat,
-// verwenden wir einen lokalen Wrapper für die Tests.
-
-type adminCapabilityHandlerWithStubs struct {
-	authzStub *stubCapabilityAuthzRepo
-	permStub  *stubCapabilityPermissionSvc
-	auditStub *captureAuditLogRepo
-}
-
-func (h *adminCapabilityHandlerWithStubs) ListCapabilityMatrix(c *gin.Context) {
-	_, ok := requirePlatformAdminIdentity(c, h.authzStub, "")
-	if !ok {
-		return
-	}
-
-	matrix, err := h.authzStub.ListCapabilityMatrix(c.Request.Context())
-	if err != nil {
-		internalError(c, "Capability-Matrix konnte nicht geladen werden.")
-		return
-	}
-
-	// D-04: Assignable-Anreicherung — spiegelt die Produktionsimplementierung (Plan 02).
-	for i := range matrix.Roles {
-		matrix.Roles[i].Assignable = permissions.IsKnownFansubGroupRole(matrix.Roles[i].RoleCode)
-	}
-
-	c.JSON(http.StatusOK, matrix)
-}
-
-func (h *adminCapabilityHandlerWithStubs) GrantCapability(c *gin.Context) {
-	identity, ok := requirePlatformAdminIdentity(c, h.authzStub, "")
-	if !ok {
-		return
-	}
-
-	roleCode := c.Param("roleCode")
-	actionCode := c.Param("actionCode")
-
-	if roleCode == "" || actionCode == "" {
-		badRequest(c, "roleCode und actionCode sind erforderlich.")
-		return
-	}
-
-	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten.
-	if !permissions.IsKnownFansubGroupRole(roleCode) {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": gin.H{
-				"code":    "role_not_assignable",
-				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
-			},
-		})
-		return
-	}
-
-	if err := h.authzStub.GrantRoleCapability(c.Request.Context(), roleCode, actionCode); err != nil {
-		internalError(c, "Capability konnte nicht zugewiesen werden.")
-		return
-	}
-
-	if err := h.permStub.ReloadCache(c.Request.Context(), nil); err != nil {
-		// Fail-safe: Reload-Fehler wird nur geloggt
-	}
-
-	_ = h.auditStub.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID: &identity.AppUserID,
-		EventType:      "role_capability.granted",
-		TargetType:     "role_capability",
-		Action:         "grant_capability",
-		Outcome:        "allowed",
-		Payload:        map[string]any{"role_code": roleCode, "action_code": actionCode},
-	})
-
-	c.JSON(http.StatusOK, gin.H{"message": "Capability erfolgreich zugewiesen."})
-}
-
-func (h *adminCapabilityHandlerWithStubs) RevokeCapability(c *gin.Context) {
-	_, ok := requirePlatformAdminIdentity(c, h.authzStub, "")
-	if !ok {
-		return
-	}
-
-	roleCode := c.Param("roleCode")
-	actionCode := c.Param("actionCode")
-
-	if roleCode == "" || actionCode == "" {
-		badRequest(c, "roleCode und actionCode sind erforderlich.")
-		return
-	}
-
-	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten.
-	// VOR dem Lockout-Guard prüfen (Pitfall 4: Guard in BEIDEN Mutationspfaden).
-	if !permissions.IsKnownFansubGroupRole(roleCode) {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": gin.H{
-				"code":    "role_not_assignable",
-				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
-			},
-		})
-		return
-	}
-
-	count, err := h.authzStub.CountRolesWithAction(c.Request.Context(), actionCode)
-	if err != nil {
-		internalError(c, "Lockout-Prüfung fehlgeschlagen.")
-		return
-	}
-
-	if count <= 1 && !permissions.IsStandaloneAction(permissions.Action(actionCode)) {
-		c.JSON(http.StatusConflict, gin.H{
-			"error": gin.H{
-				"code":    "lockout_guard",
-				"message": "Diese Berechtigung kann nicht entzogen werden, da sonst keine Rolle mehr über sie verfügt.",
-			},
-		})
-		return
-	}
-
-	if err := h.authzStub.RevokeRoleCapability(c.Request.Context(), roleCode, actionCode); err != nil {
-		internalError(c, "Capability konnte nicht entzogen werden.")
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Capability erfolgreich entzogen."})
-}
