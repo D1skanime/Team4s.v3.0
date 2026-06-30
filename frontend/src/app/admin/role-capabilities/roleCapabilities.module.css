@@ -1,0 +1,24 @@
+/**
+ * Container für die Capability-Verwaltungsseite.
+ *
+ * Hält den Seiteninhalt vom fixierten AppShell-Edge-Strip (16px, position: fixed,
+ * left: 0) frei, damit Überschrift, Beschreibung und Karten am linken Rand nicht
+ * abgeschnitten werden. Folgt dem .page-Containermuster des Admin-Bereichs.
+ */
+.page {
+  max-width: 1920px;
+  width: 100%;
+  margin: 0 auto;
+  /* Linkes Padding > Edge-Strip-Breite (16px), damit nichts unter dem Strip clippt. */
+  padding: 24px 24px 48px 32px;
+  display: grid;
+  gap: 16px;
+}
+
+@media (max-width: 860px) {
+  .page {
+    /* Auf Mobile ist der Edge-Strip ausgeblendet — kompakteres Padding genügt. */
+    padding: 16px 14px 28px;
+    gap: 12px;
+  }
+}
