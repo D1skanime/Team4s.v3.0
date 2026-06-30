@@ -251,6 +251,18 @@ var groupHistoryDialogRoleWhitelist = []string{
 	"gfxler",
 }
 
+// IsGroupHistoryWhitelistRole prüft ob der angegebene Code in der
+// groupHistoryDialogRoleWhitelist enthalten ist. Pure Slice-Prüfung, kein DB-Aufruf.
+// Wird von CreateHistGroupMemberRole als CR-01-Gate genutzt (D-13).
+func (r *HistGroupMemberRolesRepository) IsGroupHistoryWhitelistRole(code string) bool {
+	for _, c := range groupHistoryDialogRoleWhitelist {
+		if c == code {
+			return true
+		}
+	}
+	return false
+}
+
 // ListGroupHistoryRoleDefinitions gibt die kuratierte Liste der historischen Gruppenrollen
 // aus role_definitions zurück (nur Codes aus der expliziten Whitelist).
 // Entspricht dem Seed in database/migrations/0085_role_definitions_seed.up.sql.
