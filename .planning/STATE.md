@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 94 complete (8/8) — Phase 95 (Rollenmodell entwirren) angelegt, ready to discuss
-last_updated: 2026-06-30T13:18:32.131Z
+stopped_at: Phase 95 context gathered
+last_updated: "2026-06-30T14:56:51.875Z"
 last_activity: 2026-06-30
 progress:
-  total_phases: 86
-  completed_phases: 1
+  total_phases: 87
+  completed_phases: 73
   total_plans: 355
-  completed_plans: 353
-  percent: 1
+  completed_plans: 330
+  percent: 84
 ---
 
 # Project State
@@ -507,7 +507,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-06-30T12:33:15.270Z
-Stopped at: Completed 94-02-PLAN.md
+Last session: 2026-06-30T14:56:51.829Z
+Stopped at: Phase 95 context gathered
 Last activity: 2026-06-30
-Resume file: None
+Resume file: .planning/phases/95-rollenmodell-entwirren-gruppen-vs-projekt-ebene-techadmin-gf/95-CONTEXT.md
