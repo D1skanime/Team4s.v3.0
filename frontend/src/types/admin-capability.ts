@@ -17,6 +17,17 @@ export interface RoleEntry {
   role_code: string;
   label_de: string;
   actions: RoleActionState[];
+  /** Ob die Rolle Capabilities erhalten darf (App-Gruppenrolle). Historische Rollen haben assignable=false. */
+  assignable?: boolean;
+  /** role_definitions.contexts (für Kontext-Badges). */
+  contexts?: string[];
+}
+
+/** Eine kuratierte Rollendefinition aus dem group_history-Endpunkt. */
+export interface RoleDefinitionOption {
+  code: string;
+  label_de: string;
+  sort_order: number;
 }
 
 /** Metadaten zu einer einzelnen Action (für Spaltenüberschriften in der Matrix-Tabelle). */

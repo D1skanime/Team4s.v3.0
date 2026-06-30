@@ -108,6 +108,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LockoutErrorResponse"
+        "422":
+          description: Rolle ist nicht zuweisbar (historische Gruppenrolle)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignableErrorResponse"
         "500":
           description: Interner Serverfehler
           content:
@@ -173,6 +179,66 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LockoutErrorResponse"
+        "422":
+          description: Rolle ist nicht zuweisbar (historische Gruppenrolle)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignableErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{fansubId}/role-definitions:
+    get:
+      tags: [AdminCapabilities]
+      summary: Kuratierte group_history-Rollenliste abrufen
+      description: |
+        Gibt die kuratierten Rollendefinitionen für den Kontext group_history zurück
+        (Whitelist: founder, leader, co_leader, project_manager).
+        Nur für berechtigte Akteure zugänglich (CanForFansubGroup.MembersView).
+      operationId: listGroupHistoryRoleDefinitions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fansubId
+          in: path
+          required: true
+          description: ID der Fansub-Gruppe
+          schema:
+            type: integer
+        - name: context
+          in: query
+          required: false
+          description: Kontext-Filter (z. B. group_history)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Kuratierte Rollenliste erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoleDefinitionOption"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Interner Serverfehler
           content:
@@ -219,6 +285,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RoleActionState"
+        assignable:
+          type: boolean
+          description: "Ob die Rolle Capabilities erhalten darf (App-Gruppenrolle)."
+        contexts:
+          type: array
+          items:
+            type: string
+          description: "role_definitions.contexts (für Kontext-Badges)."
     ActionEntry:
       type: object
       required: [code, label_de, category, sort_order]
@@ -269,3 +343,28 @@ components:
               type: string
               enum: [lockout_guard]
               description: Fehlercode lockout_guard signalisiert dem Client den Lockout-Guard
+    AssignableErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+              enum: [role_not_assignable]
+              description: Fehlercode role_not_assignable — Rolle ist eine historische Gruppenrolle und darf keine Capabilities erhalten oder verlieren.
+    RoleDefinitionOption:
+      type: object
+      required: [code, label_de, sort_order]
+      properties:
+        code:
+          type: string
+          description: Rollen-Code (z. B. founder, leader)
+        label_de:
+          type: string
+          description: Deutscher Anzeigename der Rollendefinition
+        sort_order:
+          type: integer
+          description: Sortierreihenfolge innerhalb der kuratierten Liste

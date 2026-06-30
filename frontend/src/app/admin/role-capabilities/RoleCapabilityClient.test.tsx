@@ -16,12 +16,36 @@ const sampleMatrix: RoleCapabilityMatrix = {
     {
       role_code: "fansub_lead",
       label_de: "Fansub-Lead",
+      assignable: true,
+      contexts: ["app_group"],
       actions: [
         {
           code: "fansub_group.members.view",
           label_de: "Mitglieder anzeigen",
           category: "Mitglieder",
           granted: true,
+          standalone: false,
+        },
+        {
+          code: "fansub_group.edit",
+          label_de: "Gruppe bearbeiten",
+          category: "Gruppe",
+          granted: false,
+          standalone: false,
+        },
+      ],
+    },
+    {
+      role_code: "founder",
+      label_de: "Gründer/in",
+      assignable: false,
+      contexts: ["group_history"],
+      actions: [
+        {
+          code: "fansub_group.members.view",
+          label_de: "Mitglieder anzeigen",
+          category: "Mitglieder",
+          granted: false,
           standalone: false,
         },
         {
