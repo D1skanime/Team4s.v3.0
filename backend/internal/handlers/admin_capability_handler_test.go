@@ -25,6 +25,7 @@ type stubCapabilityAuthzRepo struct {
 	countErr              error
 	grantErr              error
 	revokeErr             error
+	matrixRoles           []repository.CapabilityMatrixRoleEntry
 }
 
 func (s *stubCapabilityAuthzRepo) AppUserHasGlobalRole(_ context.Context, _ int64, _ string) (bool, error) {
@@ -36,8 +37,12 @@ func (s *stubCapabilityAuthzRepo) UserHasRole(_ context.Context, _ int64, _ stri
 }
 
 func (s *stubCapabilityAuthzRepo) ListCapabilityMatrix(_ context.Context) (*repository.CapabilityMatrix, error) {
+	roles := s.matrixRoles
+	if roles == nil {
+		roles = []repository.CapabilityMatrixRoleEntry{}
+	}
 	return &repository.CapabilityMatrix{
-		Roles:      []repository.CapabilityMatrixRoleEntry{},
+		Roles:      roles,
 		AllActions: []repository.CapabilityMatrixActionEntry{},
 	}, nil
 }
@@ -194,6 +199,255 @@ func TestRevokeCapabilityLastActionGuard(t *testing.T) {
 	}
 }
 
+// --- AssignableGuard-Tests (Nyquist RED — Guard existiert noch nicht in Plan 01) ---
+
+// TestGrantCapabilityAssignableGuardRejectsHistoricalRole prüft, dass GrantCapability
+// mit einer historischen Rolle (founder) HTTP 422 und "role_not_assignable" zurückgibt.
+// RED: Der Guard ist noch nicht implementiert → Test schlägt fehl (kein 422, sondern 200).
+func TestGrantCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// Negativ-Rolle: "founder" ist NICHT in permissions.FansubGroupRoles() enthalten.
+	historicalRole := "founder"
+	if permissions.IsKnownFansubGroupRole(historicalRole) {
+		t.Fatalf("Testvorbedingung verletzt: %q sollte keine bekannte Fansub-Gruppenrolle sein", historicalRole)
+	}
+
+	c, rec := makeCapabilityTestContext(http.MethodPut,
+		"/admin/role-capabilities/"+historicalRole+"/release.view",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+	c.Params = gin.Params{
+		{Key: "roleCode", Value: historicalRole},
+		{Key: "actionCode", Value: "release.view"},
+	}
+
+	authzStub := &stubCapabilityAuthzRepo{isPlatformAdmin: true}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := &adminCapabilityHandlerWithStubs{
+		authzStub: authzStub,
+		permStub:  permStub,
+		auditStub: auditStub,
+	}
+	h.GrantCapability(c)
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("erwartet HTTP 422 für historische Rolle %q, erhalten %d (body: %s)",
+			historicalRole, rec.Code, rec.Body.String())
+	}
+
+	var body struct {
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("body parsen fehlgeschlagen: %v", err)
+	}
+	if body.Error.Code != "role_not_assignable" {
+		t.Fatalf("erwartet error.code='role_not_assignable', erhalten %q", body.Error.Code)
+	}
+}
+
+// TestRevokeCapabilityAssignableGuardRejectsHistoricalRole prüft, dass RevokeCapability
+// mit einer historischen Rolle (co_leader) HTTP 422 und "role_not_assignable" zurückgibt.
+// RED: Der Guard muss in BEIDEN Mutationspfaden vorhanden sein (Pitfall 4) — noch nicht implementiert.
+func TestRevokeCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// Negativ-Rolle: "co_leader" ist NICHT in permissions.FansubGroupRoles() enthalten.
+	historicalRole := "co_leader"
+	if permissions.IsKnownFansubGroupRole(historicalRole) {
+		t.Fatalf("Testvorbedingung verletzt: %q sollte keine bekannte Fansub-Gruppenrolle sein", historicalRole)
+	}
+
+	c, rec := makeCapabilityTestContext(http.MethodDelete,
+		"/admin/role-capabilities/"+historicalRole+"/release.view",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+	c.Params = gin.Params{
+		{Key: "roleCode", Value: historicalRole},
+		{Key: "actionCode", Value: "release.view"},
+	}
+
+	// CountRolesWithAction > 1 → Lockout-Guard greift nicht → AssignableGuard soll zuerst feuern.
+	authzStub := &stubCapabilityAuthzRepo{
+		isPlatformAdmin:      true,
+		countRolesWithAction: 5,
+	}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := &adminCapabilityHandlerWithStubs{
+		authzStub: authzStub,
+		permStub:  permStub,
+		auditStub: auditStub,
+	}
+	h.RevokeCapability(c)
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("erwartet HTTP 422 für historische Rolle %q, erhalten %d (body: %s)",
+			historicalRole, rec.Code, rec.Body.String())
+	}
+
+	var body struct {
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("body parsen fehlgeschlagen: %v", err)
+	}
+	if body.Error.Code != "role_not_assignable" {
+		t.Fatalf("erwartet error.code='role_not_assignable', erhalten %q", body.Error.Code)
+	}
+}
+
+// TestGrantCapabilityAssignableGuardAllowsAppRole prüft, dass GrantCapability
+// mit einer zuweisbaren App-Rolle (erstes Element aus FansubGroupRoles) NICHT 422 liefert.
+// RED (Erwartung Guard noch nicht implementiert): dieser Test ist GRÜN, weil der Guard
+// fehlt und die assignable Rolle daher durchgelassen wird.
+// Sobald der Guard implementiert ist, bleibt dieser Test grün (erwünschtes Verhalten).
+func TestGrantCapabilityAssignableGuardAllowsAppRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// Positiv-Rolle: erstes Element aus FansubGroupRoles() ist immer assignable.
+	appRoles := permissions.FansubGroupRoles()
+	if len(appRoles) == 0 {
+		t.Fatal("FansubGroupRoles() ist leer — Testvorbedingung verletzt")
+	}
+	assignableRole := appRoles[0]
+	if !permissions.IsKnownFansubGroupRole(assignableRole) {
+		t.Fatalf("Testvorbedingung verletzt: %q sollte eine bekannte Fansub-Gruppenrolle sein", assignableRole)
+	}
+
+	c, rec := makeCapabilityTestContext(http.MethodPut,
+		"/admin/role-capabilities/"+assignableRole+"/release.view",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+	c.Params = gin.Params{
+		{Key: "roleCode", Value: assignableRole},
+		{Key: "actionCode", Value: "release.view"},
+	}
+
+	// grantErr = nil → GrantRoleCapability erfolgreich
+	authzStub := &stubCapabilityAuthzRepo{
+		isPlatformAdmin: true,
+		grantErr:        nil,
+	}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := &adminCapabilityHandlerWithStubs{
+		authzStub: authzStub,
+		permStub:  permStub,
+		auditStub: auditStub,
+	}
+	h.GrantCapability(c)
+
+	// Guard darf NICHT 422 auslösen für eine assignable Rolle.
+	if rec.Code == http.StatusUnprocessableEntity {
+		t.Fatalf("AssignableGuard hat fälschlicherweise 422 für assignable Rolle %q ausgelöst (body: %s)",
+			assignableRole, rec.Body.String())
+	}
+}
+
+// TestListCapabilityMatrixAssignableEnrichment prüft, dass der ListCapabilityMatrix-Handler
+// jede RoleEntry mit dem Feld assignable=true (App-Rolle) bzw. assignable=false (historische Rolle) anreichert.
+// RED: Die Anreicherung existiert noch nicht → assignable-Feld fehlt oder ist immer false/true im JSON.
+// Erwartungsorakel: permissions.IsKnownFansubGroupRole (keine hartkodierten Rollenlisten).
+func TestListCapabilityMatrixAssignableEnrichment(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	appRoles := permissions.FansubGroupRoles()
+	if len(appRoles) == 0 {
+		t.Fatal("FansubGroupRoles() ist leer — Testvorbedingung verletzt")
+	}
+	appRole := appRoles[0]     // z.B. "fansub_lead" — assignable=true erwartet
+	histRole := "founder"      // nicht im Katalog — assignable=false erwartet
+
+	if permissions.IsKnownFansubGroupRole(histRole) {
+		t.Fatalf("Testvorbedingung verletzt: %q sollte keine bekannte Fansub-Gruppenrolle sein", histRole)
+	}
+
+	// Stub-Matrix mit je einer App-Rolle und einer historischen Rolle
+	stubRoles := []repository.CapabilityMatrixRoleEntry{
+		{RoleCode: appRole, LabelDE: "App-Rolle Test", Actions: []repository.CapabilityMatrixActionState{}},
+		{RoleCode: histRole, LabelDE: "Historische Rolle Test", Actions: []repository.CapabilityMatrixActionState{}},
+	}
+
+	c, rec := makeCapabilityTestContext(http.MethodGet, "/admin/role-capabilities",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+
+	authzStub := &stubCapabilityAuthzRepo{
+		isPlatformAdmin: true,
+		matrixRoles:     stubRoles,
+	}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := &adminCapabilityHandlerWithStubs{
+		authzStub: authzStub,
+		permStub:  permStub,
+		auditStub: auditStub,
+	}
+	h.ListCapabilityMatrix(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet 200, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+	}
+
+	// JSON-Response parsen: Roles-Array mit assignable-Feld prüfen
+	var response struct {
+		Roles []struct {
+			RoleCode   string `json:"role_code"`
+			Assignable *bool  `json:"assignable"`
+		} `json:"roles"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+		t.Fatalf("response body parsen fehlgeschlagen: %v\nbody: %s", err, rec.Body.String())
+	}
+
+	if len(response.Roles) != 2 {
+		t.Fatalf("erwartet 2 Rollen im Response, erhalten %d", len(response.Roles))
+	}
+
+	for _, role := range response.Roles {
+		expectedAssignable := permissions.IsKnownFansubGroupRole(role.RoleCode)
+
+		if role.Assignable == nil {
+			t.Fatalf("Rolle %q: assignable-Feld fehlt im JSON-Response (Anreicherung nicht implementiert)", role.RoleCode)
+		}
+		if *role.Assignable != expectedAssignable {
+			t.Fatalf("Rolle %q: erwartet assignable=%v (laut permissions.IsKnownFansubGroupRole), erhalten %v",
+				role.RoleCode, expectedAssignable, *role.Assignable)
+		}
+	}
+}
+
 // TestCapabilityAuditOnGrant prüft, dass nach einem erfolgreichen Grant-Aufruf
 // ein Audit-Log-Eintrag mit EventType "role_capability.granted" erzeugt wurde.
 func TestCapabilityAuditOnGrant(t *testing.T) {
@@ -253,6 +507,24 @@ type adminCapabilityHandlerWithStubs struct {
 	authzStub *stubCapabilityAuthzRepo
 	permStub  *stubCapabilityPermissionSvc
 	auditStub *captureAuditLogRepo
+}
+
+func (h *adminCapabilityHandlerWithStubs) ListCapabilityMatrix(c *gin.Context) {
+	_, ok := requirePlatformAdminIdentity(c, h.authzStub, "")
+	if !ok {
+		return
+	}
+
+	matrix, err := h.authzStub.ListCapabilityMatrix(c.Request.Context())
+	if err != nil {
+		internalError(c, "Capability-Matrix konnte nicht geladen werden.")
+		return
+	}
+
+	// RED: Anreicherung mit assignable-Feld fehlt noch (wird in Plan 02 implementiert).
+	// Sobald Plan 02 den Guard einbaut, soll dieser Handler-Stub auch die Anreicherung spiegeln.
+	// Für den Nyquist-RED-Test: Matrix ohne assignable zurückgeben → Test schlägt fehl.
+	c.JSON(http.StatusOK, matrix)
 }
 
 func (h *adminCapabilityHandlerWithStubs) GrantCapability(c *gin.Context) {
