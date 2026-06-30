@@ -1585,7 +1585,7 @@ Plans:
 **Goal:** Aktive App-Gruppenrollen, historische Gruppenrollen und Anime-Beitragsrollen werden fachlich klar getrennt: die historische Rollen-UI nutzt eine eigene `group_history`-Rollenliste (Gründer/in, Gruppenleitung, Co-Leitung, Projektmanagement), die aktive Mitglieder-UI zeigt nur aktive App-Rechte mit verständlicheren Begriffen, die Capability-Verwaltung bearbeitet/zeigt nur permission-bearing Rollen (Backend-Guard blockiert Grant/Revoke an rein historische Rollen), und die Capability-Pflege wird von einer breiten Vollmatrix auf eine rollenbasierte, kategorisierte, bei 390 px ohne horizontales Scrollen bedienbare Oberfläche umgebaut.
 **Requirements:** Phase-94 Auftrag aus `94-CONTEXT.md` (Acceptance Criteria 1–11).
 **Depends on:** Phase 86, Phase 87, Phase 93
-**Plans:** 1/8 plans executed
+**Plans:** 2/8 plans executed
 
 Plans:
 - [ ] `94-01-PLAN.md` — Wave-0 Go-Tests (Assignable-Guard 422, Matrix-assignable, group_history-Read)
