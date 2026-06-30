@@ -1,7 +1,8 @@
 .shell {
+  --app-shell-edge-width: 16px;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: var(--app-shell-edge-width) minmax(0, 1fr);
   background:
     linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.94)),
     var(--color-surface, #f8fafc);
@@ -40,7 +41,7 @@
   top: 0;
   left: 0;
   z-index: var(--z-drawer, 80);
-  width: 16px;
+  width: var(--app-shell-edge-width);
   height: 100vh;
   padding: 0;
   border: 0;
@@ -245,6 +246,7 @@
 }
 
 .content {
+  grid-column: 2;
   min-width: 0;
 }
 
