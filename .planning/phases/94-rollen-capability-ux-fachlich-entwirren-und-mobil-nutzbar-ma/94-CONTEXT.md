@@ -82,10 +82,13 @@ sind die nachverfolgbaren Decision-Anker für die Plan-/Verify-Gates.
   `assignable: boolean` und Kontext-Information für Badges), **oder** filtert serverseitig auf
   permission-bearing Rollen. Bevorzugt: Metadaten mitliefern, damit das Frontend Badges/Disabled
   ableiten kann. *(AC 6)*
-- **D-05** `GrantRoleCapability` / `RevokeRoleCapability` blockieren jede Mutation an rein
-  historischen (nicht-assignable) Rollen **serverseitig** mit kontrolliertem, verständlichem Fehler
-  (eigener Fehlercode, z. B. `role_not_assignable`; HTTP 409 oder 422). Nicht nur im Frontend
-  verstecken. *(AC 7)*
+- **D-05** Grant **und** Revoke blockieren jede Mutation an rein historischen (nicht-assignable)
+  Rollen **serverseitig** mit kontrolliertem, verständlichem Fehler. Festgelegt (Research): Guard
+  im **Handler** (nicht im Repository — `authz_capability_mutations.go:52` verbietet eine
+  `permissions`-Abhängigkeit im Repo; der Handler importiert `permissions` bereits via
+  `IsKnownFansubGroupRole()`). Fehlercode `role_not_assignable`, **HTTP 422** (409 ist durch
+  `lockout_guard` belegt). Guard in beiden Mutationspfaden. Nicht nur im Frontend verstecken.
+  *(AC 7)*
 - **D-06** Bei API-Shape-Änderung werden synchron aktualisiert: `shared/contracts/admin-capabilities.yaml`,
   Frontend-Typen (`@/types/admin-capability`), API-Client/Helper (`@/lib/api`), betroffene Tests.
   Keine stillen Breaking Changes. *(AC 11)*
@@ -98,9 +101,11 @@ sind die nachverfolgbaren Decision-Anker für die Plan-/Verify-Gates.
   serverseitig aus `role_definitions` (Kontext `group_history`) geladen; eine frontend-seitige
   Konstante analog `FANSUB_GROUP_ROLE_OPTIONS` ist nur zulässig, wenn sie eindeutig als
   historischer Kontext geführt wird und mit dem DB-Seed übereinstimmt. *(AC 1, 3)*
-- **D-08** Native `<select>/<option>` im historischen Rollen-Dialog werden durch das globale
-  UI-System-Primitiv (`Select` aus `@/components/ui`) ersetzt. *(globales UI-Gebot,
-  [[feedback_global_ui_primitives_mandatory]])*
+- **D-08** Der historische Rollen-Dialog nutzt das globale `Select`-Primitiv aus `@/components/ui`
+  (Research-Korrektur: `GroupMembersTab.tsx:1090` verwendet bereits `Select`, **kein** natives
+  `<select>` — D-08 ist faktisch erfüllt). Verbleibende Pflicht: beim Umbau das `Select`-Primitiv
+  beibehalten und nicht durch Eigen-Markup ersetzen. Der reale Defekt liegt allein in der
+  Rollenquelle (D-07). *(globales UI-Gebot, [[feedback_global_ui_primitives_mandatory]])*
 - **D-09** Der historische Kontext wird sprachlich klar als frühere/historische Funktion innerhalb
   der Gruppe formuliert; keine Begriffe, die wie aktuelle App-Berechtigungen wirken. *(AC 9)*
 
@@ -114,8 +119,12 @@ sind die nachverfolgbaren Decision-Anker für die Plan-/Verify-Gates.
 - **D-11** Die breite Vollmatrix ist nicht mehr die einzige/primäre Bedienform. Desktop-Zielbild:
   links Rollenliste, rechts kategorisierte Capability-Details der gewählten Rolle; Capabilities
   nach fachlichen Kategorien gruppiert (z. B. Fansub-Verwaltung, Mitglieder, Medien, Anime/Beiträge,
-  Administration — Kategorien aus `action_definitions.category`); pro Capability Beschreibung,
-  aktueller Status und Aktion. *(AC 6)*
+  Administration); pro Capability Beschreibung, aktueller Status und Aktion. *(AC 6)*
+  Research-Hinweis: `action_definitions.category` enthält aktuell nur 3 technische Werte
+  (`gruppe`/`projekt`/`release`). Die 5 fachlichen Kategorien werden über ein **Display-Mapping**
+  im Frontend erzeugt, **keine** Migration (Non-Goal „keine grosse Migration"). Neue/zusätzliche
+  Switch- und Accordion-Primitives müssen in `@/components/ui` gebaut werden (existieren noch nicht);
+  natives `<button>`/`<input type=checkbox>` ist verboten.
 - **D-12** Mobile-Zielbild bei 390 px: Rolle auswählen → Action-Kategorien als Accordions/List-Rows
   → pro Capability ein klarer Switch/Button. Keine horizontale Vollmatrix als Hauptbedienung, kein
   verschachteltes horizontales Scrollen, keine abgeschnittenen Labels. *(AC 8)*
