@@ -28,6 +28,8 @@ type adminRouteHandlers struct {
 	adminUsersHandler *handlers.AdminUsersHandler
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler)
 	adminCapabilityHandler *handlers.AdminCapabilityHandler
+	// Phase 95-02: Assignable Gruppenrollen aus role_definitions (D-12)
+	adminGroupRolesHandler *handlers.AdminGroupRolesHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -234,5 +236,9 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 		v1.GET("/admin/role-capabilities", auth, deps.adminCapabilityHandler.ListCapabilityMatrix)
 		v1.PUT("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.GrantCapability)
 		v1.DELETE("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.RevokeCapability)
+	}
+	// Phase 95-02: Assignable Gruppenrollen-Liste (requirePlatformAdminIdentity im Handler — D-12)
+	if deps.adminGroupRolesHandler != nil {
+		v1.GET("/admin/fansub-group-roles", auth, deps.adminGroupRolesHandler.ListFansubGroupRoles)
 	}
 }

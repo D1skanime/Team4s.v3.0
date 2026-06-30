@@ -53,6 +53,12 @@ const (
 	RoleDesigner       = "designer"
 )
 
+// Neue Gruppenrollen (D-07): in Migration 0112 mit assignable=true angelegt.
+const (
+	RoleTechadmin = "techadmin"
+	RoleGfxler    = "gfxler"
+)
+
 const (
 	ReasonAllowed            = "allowed"
 	ReasonPlatformAdmin      = "platform_admin"
@@ -197,18 +203,12 @@ var allKnownActions = []Action{
 // ActionFansubGroupInvitationsAccept wird über CanAcceptInvitation ohne Rollen-Lookup geprüft.
 var standaloneActions = []Action{ActionFansubGroupInvitationsAccept}
 
-var fansubGroupRoleCatalog = []string{
-	RoleFansubLead,
-	RoleProjectLead,
-	RoleTranslator,
-	RoleTimer,
-	RoleTypesetter,
-	RoleEditor,
-	RoleEncoder,
-	RoleRawProvider,
-	RoleQualityChecker,
-	RoleDesigner,
-}
+// fansubGroupRoleCatalog: wird beim Start via LoadFansubGroupCatalog aus role_definitions geladen (D-12).
+// Leer bei Init — LoadFansubGroupCatalog MUSS vor dem ersten Zugriff aufgerufen werden.
+var (
+	catalogMu              sync.RWMutex
+	fansubGroupRoleCatalog []string
+)
 
 type Actor struct {
 	AppUserID       int64
@@ -245,6 +245,12 @@ type Resolver interface {
 // Wird in Plan 86-02 von AuthzRepository implementiert.
 type CacheLoader interface {
 	LoadRoleCapabilities(ctx context.Context) (map[string][]Action, error)
+}
+
+// CatalogLoader lädt die assignable Gruppenrollen aus role_definitions.
+// Wird von AuthzRepository in Plan 95-02 implementiert (D-12).
+type CatalogLoader interface {
+	LoadFansubGroupRoles(ctx context.Context) ([]string, error)
 }
 
 type Service struct {
@@ -286,6 +292,19 @@ func (s *Service) LoadCache(ctx context.Context, loader CacheLoader) error {
 	return nil
 }
 
+// LoadFansubGroupCatalog lädt die assignable Gruppenrollen aus der DB in den In-Memory-Cache (D-12).
+// MUSS nach LoadCache aufgerufen werden (Fallstrick 5: LoadCache ZUERST).
+func (s *Service) LoadFansubGroupCatalog(ctx context.Context, loader CatalogLoader) error {
+	roles, err := loader.LoadFansubGroupRoles(ctx)
+	if err != nil {
+		return fmt.Errorf("fansub group catalog load: %w", err)
+	}
+	catalogMu.Lock()
+	fansubGroupRoleCatalog = roles
+	catalogMu.Unlock()
+	return nil
+}
+
 func AllowedActionsForRole(role string) []Action {
 	cacheMu.RLock()
 	cache := loadedCache
@@ -297,10 +316,14 @@ func AllowedActionsForRole(role string) []Action {
 }
 
 func FansubGroupRoles() []string {
+	catalogMu.RLock()
+	defer catalogMu.RUnlock()
 	return append([]string(nil), fansubGroupRoleCatalog...)
 }
 
 func IsKnownFansubGroupRole(role string) bool {
+	catalogMu.RLock()
+	defer catalogMu.RUnlock()
 	return slices.Contains(fansubGroupRoleCatalog, strings.TrimSpace(role))
 }
 

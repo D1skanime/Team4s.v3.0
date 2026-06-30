@@ -127,6 +127,10 @@ func main() {
 	if err := permissionSvc.LoadCache(ctx, authzRepo); err != nil {
 		log.Fatalf("Capability-Registry laden fehlgeschlagen: %v", err)
 	}
+	// D-12: Gruppenrollen-Catalog aus role_definitions laden (NACH LoadCache — Fallstrick 5).
+	if err := permissionSvc.LoadFansubGroupCatalog(ctx, authzRepo); err != nil {
+		log.Fatalf("Gruppenrollen-Catalog laden fehlgeschlagen: %v", err)
+	}
 	auditLogRepo := repository.NewAuditLogRepository(dbPool)
 	memberClaimsRepo := repository.NewMemberClaimsRepository(dbPool).WithAuditLog(auditLogRepo)
 	memberClaimInvitationsRepo := repository.NewMemberClaimInvitationRepository(dbPool, cfg.AppPublicURL).WithAuditLog(auditLogRepo)
@@ -410,6 +414,8 @@ func main() {
 	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
 	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, permissionSvc, auditLogRepo)
+	// Phase 95-02: Assignable Gruppenrollen-Liste (D-12)
+	adminGroupRolesHandler := handlers.NewAdminGroupRolesHandler(authzRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -428,6 +434,7 @@ func main() {
 		defaultCrewHandler:            defaultCrewHandler,
 		adminUsersHandler:             adminUsersHandler,
 		adminCapabilityHandler:        adminCapabilityHandler,
+		adminGroupRolesHandler:        adminGroupRolesHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

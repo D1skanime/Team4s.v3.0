@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -14,18 +15,19 @@ import (
 )
 
 // stubGroupRolesAuthzRepo implementiert capabilityAuthzRepo für GroupRoles-Tests.
+// Die Signatur von AppUserHasGlobalRole muss exakt mit capabilityAuthzRepo übereinstimmen.
 type stubGroupRolesAuthzRepo struct {
 	isPlatformAdmin bool
 }
 
-func (s *stubGroupRolesAuthzRepo) AppUserHasGlobalRole(_ interface{ Done() <-chan struct{} }, _ int64, _ string) (bool, error) {
+func (s *stubGroupRolesAuthzRepo) AppUserHasGlobalRole(_ context.Context, _ int64, _ string) (bool, error) {
 	return s.isPlatformAdmin, nil
 }
 
 // groupRolesHandlerWithCatalog ist ein Test-Wrapper, der permissions.FansubGroupRoles()
 // aus dem aktuellen In-Memory-Catalog liest (wird in TestListFansubGroupRoles vorbereitet).
 type groupRolesHandlerWithCatalog struct {
-	authzRepo capabilityAuthzRepo
+	authzRepo any
 }
 
 func (h *groupRolesHandlerWithCatalog) ListFansubGroupRoles(c *gin.Context) {
@@ -145,6 +147,6 @@ type stubGroupRolesCatalogLoader struct {
 	roles []string
 }
 
-func (s *stubGroupRolesCatalogLoader) LoadFansubGroupRoles(_ interface{ Done() <-chan struct{} }) ([]string, error) {
+func (s *stubGroupRolesCatalogLoader) LoadFansubGroupRoles(_ context.Context) ([]string, error) {
 	return s.roles, nil
 }

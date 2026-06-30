@@ -252,8 +252,8 @@ func (r *AuthzRepository) LoadFansubGroupRoles(ctx context.Context) ([]string, e
 	return result, nil
 }
 
-// Compile-Zeit-Assertion: AuthzRepository implementiert CatalogLoader (aktiviert nach Task 2).
-// var _ permissions.CatalogLoader = (*AuthzRepository)(nil)
+// Compile-Zeit-Assertion: AuthzRepository implementiert CatalogLoader (D-12).
+var _ permissions.CatalogLoader = (*AuthzRepository)(nil)
 
 func (r *AuthzRepository) ListActorContributionRolesForVersion(ctx context.Context, appUserID int64, releaseVersionID int64) ([]string, error) {
 	if appUserID <= 0 || releaseVersionID <= 0 {
