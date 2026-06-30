@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 94 complete (8/8) — ready to discuss Phase 999.1
+stopped_at: Phase 94 complete (8/8) — Phase 95 (Rollenmodell entwirren) angelegt, ready to discuss
 last_updated: 2026-06-30T13:18:32.131Z
 last_activity: 2026-06-30
 progress:
@@ -21,11 +21,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 999.1 — querverlinkung role capabilities und users impact count roll
+**Current focus:** Phase 95 — Rollenmodell entwirren (Gruppen- vs. Projekt-Ebene, Techadmin/GFXler, data-driven)
 
 ## Current Position
 
-Phase: 999.1
+Phase: 95 (rollenmodell-entwirren-gruppen-vs-projekt-ebene-techadmin-gf) — ready to discuss
 Plan: Not started
 
 ## Accumulated Context

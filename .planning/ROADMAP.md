@@ -1599,6 +1599,18 @@ Plans:
 
 ---
 
+### Phase 95: Rollenmodell entwirren — Gruppen- vs. Projekt-Ebene, Techadmin/GFXler, data-driven
+
+**Goal:** Das Rollenmodell wird fachlich entwirrt und vereinheitlicht — zwei klare Ebenen mit gemeinsamem `role_code`-Vokabular. (a) Gruppen-Ebene (gruppenweit, rechte-tragend/assignable): Gründer/in, Gruppenleitung/Fansub-Lead (`leader`+`fansub_lead` vereint), Co-Leitung, Fansub-Projektleitung (`project_manager`+`project_lead` vereint; eigene Rolle, ungleich Gruppenleitung), NEU Techadmin (Fansub-Page/Technik) und GFXler (Gruppen-Grafik). (b) Projekt-/Anime-Ebene (Contribution): Übersetzung/Editing/Timing/Typesetting/Encoding/Raw/QC/Design, wobei GFXler und Designer dasselbe Skill in zwei Scopes sind. Lifecycle = koexistieren (aktive Rolle = jetzt; historische Rolle = Jahres-Zeitraum via `hist_group_member_roles`, bereits vorhanden). Rollen werden voll data-driven (fansubGroupRoleCatalog aus `role_definitions` laden + Frontend-Rollenoptionen per API), sodass neue Rollen nur per Migration entstehen. Zusätzlich werden die aus Phase 94 verschobenen Review-Schulden behoben: CR-01 (Schreibpfad-Whitelist-Härtung historischer Rollen), WR-02 (Cross-Group-Scope-Check), WR-01 (Capability-Tests gegen Prod-Handler), WR-03/04 (Line-Limits), WR-05 (deterministische Kategorie-Reihenfolge).
+**Requirements:** TBD — über `/gsd:discuss-phase 95` festlegen. Basis: Memory `project_role_model_rework`, `95-SEED.md`, `94-REVIEW.md`.
+**Depends on:** Phase 94
+**Plans:** 0 plans (planen via discuss-phase, dann plan-phase)
+
+Plans:
+- [ ] TBD (Start: `/gsd:discuss-phase 95`)
+
+---
+
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
 
 ### Phase 61: Fansub Contributions Datenmodell
