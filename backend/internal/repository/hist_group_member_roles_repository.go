@@ -228,6 +228,57 @@ func (r *HistGroupMemberRolesRepository) GetByIDForFansub(ctx context.Context, f
 	return &row, nil
 }
 
+// RoleDefinitionOption ist der DTO-Rückgabetyp für kuratierte Rollendefinitionen.
+// Wird von ListGroupHistoryRoleDefinitions zurückgegeben.
+type RoleDefinitionOption struct {
+	Code      string `json:"code"`
+	LabelDE   string `json:"label_de"`
+	SortOrder int    `json:"sort_order"`
+}
+
+// groupHistoryDialogRoleWhitelist enthält die vier echten historischen Gruppenrollen.
+// Hintergrund (Pitfall 2 / RESEARCH Pattern 4):
+//   Migration 0103 markiert App-Rollen (translator, encoder, …) zusätzlich mit
+//   dem Kontext "group_history". Ein naives WHERE 'group_history' = ANY(contexts)
+//   liefert dadurch auch aktive App-Rollen. Diese Whitelist begrenzt das Ergebnis
+//   auf die vier Rollen aus dem 0085-Seed mit echtem group_history-Ursprung.
+var groupHistoryDialogRoleWhitelist = []string{
+	"founder",
+	"leader",
+	"co_leader",
+	"project_manager",
+}
+
+// ListGroupHistoryRoleDefinitions gibt die kuratierte Liste der historischen Gruppenrollen
+// aus role_definitions zurück (nur Codes aus der expliziten Whitelist).
+// Entspricht dem Seed in database/migrations/0085_role_definitions_seed.up.sql.
+func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT code, label_de, sort_order
+		FROM role_definitions
+		WHERE 'group_history' = ANY(contexts)
+		  AND code = ANY($1)
+		ORDER BY sort_order, code
+	`, groupHistoryDialogRoleWhitelist)
+	if err != nil {
+		return nil, fmt.Errorf("list group history role definitions: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]RoleDefinitionOption, 0, len(groupHistoryDialogRoleWhitelist))
+	for rows.Next() {
+		var opt RoleDefinitionOption
+		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.SortOrder); err != nil {
+			return nil, fmt.Errorf("list group history role definitions: scan: %w", err)
+		}
+		result = append(result, opt)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list group history role definitions: iterate: %w", err)
+	}
+	return result, nil
+}
+
 func (r *HistGroupMemberRolesRepository) RoleCodeExistsForContext(ctx context.Context, roleCode string, contextName string) (bool, error) {
 	var exists bool
 	err := r.db.QueryRow(ctx, `
