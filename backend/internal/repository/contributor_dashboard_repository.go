@@ -76,8 +76,8 @@ func (r *ContributorDashboardRepository) ListContributorGroups(
 				),
 				ARRAY[]::varchar[]
 			) AS app_member_roles,
-			gm.joined_year,
-			gm.left_year,
+			EXTRACT(YEAR FROM gm.joined_date)::int AS joined_year,
+			EXTRACT(YEAR FROM gm.left_date)::int AS left_year,
 			fgm.created_at AS active_from,
 			CASE WHEN fgm.status = 'disabled' THEN fgm.updated_at ELSE NULL END AS active_until,
 			(gm.id IS NOT NULL) AS has_historical_link,

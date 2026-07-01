@@ -938,8 +938,8 @@ func (r *MemberProfileRepository) loadMemberships(
 			fg.slug,
 			fg.logo_url,
 			fg.status,
-			hgm.joined_year,
-			hgm.left_year,
+			EXTRACT(YEAR FROM hgm.joined_date)::int AS joined_year,
+			EXTRACT(YEAR FROM hgm.left_date)::int AS left_year,
 			fgm.status,
 			COALESCE(
 				ARRAY(

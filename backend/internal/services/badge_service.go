@@ -66,8 +66,8 @@ func (s *BadgeService) computeFoundingMember(ctx context.Context, memberID int64
 		FROM hist_fansub_group_members fgm
 		JOIN fansub_groups fg ON fg.id = fgm.fansub_group_id
 		WHERE fgm.member_id = $1
-		  AND fgm.joined_year IS NOT NULL
-		  AND fgm.joined_year = fg.founded_year
+		  AND fgm.joined_date IS NOT NULL
+		  AND EXTRACT(YEAR FROM fgm.joined_date)::int = fg.founded_year
 		LIMIT 1
 	`, memberID).Scan(&rowID)
 	if err != nil {
@@ -114,10 +114,10 @@ func (s *BadgeService) computeLongTermMember(ctx context.Context, memberID int64
 		FROM hist_fansub_group_members
 		WHERE member_id = $1
 		  AND (
-		      (joined_year IS NOT NULL AND left_year IS NOT NULL AND left_year - joined_year >= 5)
+		      (joined_date IS NOT NULL AND left_date IS NOT NULL AND left_date >= joined_date + INTERVAL '5 years')
 		      OR
-		      (joined_year IS NOT NULL AND left_year IS NULL
-		       AND (EXTRACT(YEAR FROM NOW())::int - joined_year) >= 5)
+		      (joined_date IS NOT NULL AND left_date IS NULL
+		       AND CURRENT_DATE >= joined_date + INTERVAL '5 years')
 		  )
 		LIMIT 1
 	`, memberID).Scan(&rowID)

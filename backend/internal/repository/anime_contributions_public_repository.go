@@ -232,8 +232,8 @@ func (r *AnimeContributionsRepository) GetPublicGroupContributions(ctx context.C
 			` + slugCol + ` AS member_slug,
 			r.role_code,
 			COALESCE(rd.label_de, r.role_code) AS role_label,
-			r.started_year,
-			r.ended_year,
+			EXTRACT(YEAR FROM r.started_date)::int AS started_year,
+			EXTRACT(YEAR FROM r.ended_date)::int AS ended_year,
 			r.status
 		FROM hist_group_member_roles r
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
@@ -242,7 +242,7 @@ func (r *AnimeContributionsRepository) GetPublicGroupContributions(ctx context.C
 		WHERE hfgm.fansub_group_id = $1
 		  AND r.role_code IN ('fansub_lead', 'founder')
 		  AND r.visibility = 'public'
-		ORDER BY COALESCE(r.started_year, 9999), member_display_name
+		ORDER BY COALESCE(r.started_date, '9999-01-01'::date), member_display_name
 	`
 	rows, err := r.db.Query(ctx, leaderQuery, fansubGroupID)
 	if err != nil {
@@ -340,8 +340,8 @@ func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.
 			'group_history'::text AS context,
 			NULL::text AS anime_title,
 			NULL::bigint AS anime_id,
-			r.started_year,
-			r.ended_year,
+			EXTRACT(YEAR FROM r.started_date)::int AS started_year,
+			EXTRACT(YEAR FROM r.ended_date)::int AS ended_year,
 			r.status,
 			NULL::text AS notes
 		FROM hist_group_member_roles r

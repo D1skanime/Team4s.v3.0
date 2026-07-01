@@ -165,8 +165,8 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 			`+slugCol+` AS member_slug,
 			COALESCE(ARRAY_AGG(hgmr.role_code) FILTER (WHERE hgmr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, hgmr.role_code)) FILTER (WHERE hgmr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels,
-			hfgm.joined_year,
-			hfgm.left_year,
+			EXTRACT(YEAR FROM hfgm.joined_date)::int AS joined_year,
+			EXTRACT(YEAR FROM hfgm.left_date)::int AS left_year,
 			hfgm.status,
 			m.profile_status,
 			EXISTS (
@@ -184,8 +184,8 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 		  AND hfgm.status IN ('historical', 'confirmed')
 		  AND hfgm.visibility = 'public'
 		  AND m.profile_visibility = 'public'
-		GROUP BY hfgm.id, hfgm.member_id, m.display_name, m.nickname, m.profile_status, hfgm.joined_year, hfgm.left_year, hfgm.status
-		ORDER BY COALESCE(hfgm.joined_year, 9999), member_display_name, hfgm.id
+		GROUP BY hfgm.id, hfgm.member_id, m.display_name, m.nickname, m.profile_status, hfgm.joined_date, hfgm.left_date, hfgm.status
+		ORDER BY COALESCE(hfgm.joined_date, '9999-01-01'::date), member_display_name, hfgm.id
 	`, groupID)
 	if err != nil {
 		return nil, fmt.Errorf("domain projection: historical: %w", err)
