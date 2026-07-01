@@ -49,19 +49,19 @@ func (h *FansubHistGroupMembersHandler) recomputeBadges(c *gin.Context, memberID
 }
 
 type histGroupMemberCreateRequest struct {
-	MemberID    int64  `json:"member_id"`
-	DisplayName string `json:"display_name"`
-	JoinedYear  *int   `json:"joined_year"`
-	LeftYear    *int   `json:"left_year"`
-	Status      string `json:"status"`
-	Visibility  string `json:"visibility"`
+	MemberID    int64   `json:"member_id"`
+	DisplayName string  `json:"display_name"`
+	JoinedDate  *string `json:"joined_date"`
+	LeftDate    *string `json:"left_date"`
+	Status      string  `json:"status"`
+	Visibility  string  `json:"visibility"`
 }
 
 type histGroupMemberPatchRequest struct {
-	JoinedYear **int   `json:"joined_year"`
-	LeftYear   **int   `json:"left_year"`
-	Status     *string `json:"status"`
-	Visibility *string `json:"visibility"`
+	JoinedDate **string `json:"joined_date"`
+	LeftDate   **string `json:"left_date"`
+	Status     *string  `json:"status"`
+	Visibility *string  `json:"visibility"`
 }
 
 func confirmedActorForStatus(status string, actorAppUserID int64) *int64 {
@@ -161,11 +161,22 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		return
 	}
 
+	joinedDate, err := parseOptionalDate(req.JoinedDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+	leftDate, err := parseOptionalDate(req.LeftDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+
 	input := repository.HistGroupMemberAutoCreateInput{
 		FansubGroupID: fansubID,
 		DisplayName:   displayName,
-		JoinedYear:    req.JoinedYear,
-		LeftYear:      req.LeftYear,
+		JoinedDate:    joinedDate,
+		LeftDate:      leftDate,
 		Status:        status,
 		Visibility:    visibility,
 		ConfirmedBy:   confirmedActorForStatus(status, identity.AppUserID),
@@ -265,9 +276,20 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 		return
 	}
 
+	joinedDate, err := parseOptionalPatchDate(req.JoinedDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+	leftDate, err := parseOptionalPatchDate(req.LeftDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+
 	input := repository.HistGroupMemberPatchInput{
-		JoinedYear:  req.JoinedYear,
-		LeftYear:    req.LeftYear,
+		JoinedDate:  joinedDate,
+		LeftDate:    leftDate,
 		Status:      req.Status,
 		Visibility:  req.Visibility,
 		ConfirmedBy: &identity.AppUserID,

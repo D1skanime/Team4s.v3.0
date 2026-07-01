@@ -1132,8 +1132,8 @@ types_append:
     display_name: string
     app_user_id: int64 | null
     app_username: string | null
-    joined_year: int32 | null
-    left_year: int32 | null
+    joined_date: string(date) | null
+    left_date: string(date) | null
     status: string (enum: draft, historical, confirmed, disputed)
     confirmed_by_app_user_id: int64 | null
     confirmed_by_display_name: string | null
@@ -1145,13 +1145,13 @@ types_append:
     data: HistFansubGroupMember
   CreateGroupMemberRequest:
     display_name: string (required, min_length: 1)
-    joined_year: int32 | null
-    left_year: int32 | null
+    joined_date: string(date) | null
+    left_date: string(date) | null
     status: string (required, enum: draft, historical, confirmed, disputed)
     visibility: string (optional, enum: internal, public)
   UpdateGroupMemberRequest:
-    joined_year: int32 | null
-    left_year: int32 | null
+    joined_date: string(date) | null
+    left_date: string(date) | null
     status: string (optional, enum: draft, historical, confirmed, disputed)
     visibility: string (optional, enum: internal, public)
   HistGroupMemberRole:
@@ -1160,8 +1160,8 @@ types_append:
     member_display_name: string
     role_code: string
     role_label: string | null
-    started_year: int32 | null
-    ended_year: int32 | null
+    started_date: string(date) | null
+    ended_date: string(date) | null
     note: string | null
     status: string (enum: draft, historical, confirmed, disputed)
     created_at: datetime
@@ -1172,14 +1172,14 @@ types_append:
   CreateMemberRoleRequest:
     hist_fansub_group_member_id: int64 (required, minimum: 1)
     role_code: string (required)
-    started_year: int32 | null
-    ended_year: int32 | null
+    started_date: string(date) | null
+    ended_date: string(date) | null
     status: string (required, enum: draft, historical, confirmed, disputed)
     visibility: string (optional, enum: internal, public)
     source_note: string | null
   UpdateMemberRoleRequest:
-    started_year: int32 | null
-    ended_year: int32 | null
+    started_date: string(date) | null
+    ended_date: string(date) | null
     status: string (optional, enum: draft, historical, confirmed, disputed)
     visibility: string (optional, enum: internal, public)
     source_note: string | null

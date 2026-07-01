@@ -53,16 +53,16 @@ func (h *FansubHistGroupMemberRolesHandler) recomputeBadges(c *gin.Context, hist
 type histGroupMemberRoleCreateRequest struct {
 	HistFansubGroupMemberID int64   `json:"hist_fansub_group_member_id"`
 	RoleCode                string  `json:"role_code"`
-	StartedYear             *int    `json:"started_year"`
-	EndedYear               *int    `json:"ended_year"`
+	StartedDate             *string `json:"started_date"`
+	EndedDate               *string `json:"ended_date"`
 	Status                  string  `json:"status"`
 	Visibility              string  `json:"visibility"`
 	SourceNote              *string `json:"source_note"`
 }
 
 type histGroupMemberRolePatchRequest struct {
-	StartedYear **int    `json:"started_year"`
-	EndedYear   **int    `json:"ended_year"`
+	StartedDate **string `json:"started_date"`
+	EndedDate   **string `json:"ended_date"`
 	Status      *string  `json:"status"`
 	Visibility  *string  `json:"visibility"`
 	SourceNote  **string `json:"source_note"`
@@ -243,6 +243,17 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 	}
 
 	// Cross-Group-Guard: prüfen ob das Mitglied zur angegebenen Fansub-Gruppe gehört.
+	startedDate, err := parseOptionalDate(req.StartedDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+	endedDate, err := parseOptionalDate(req.EndedDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+
 	memberRow, err := h.histMembersRepo.GetByID(c.Request.Context(), req.HistFansubGroupMemberID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -281,8 +292,8 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 	input := repository.HistGroupMemberRoleInput{
 		HistFansubGroupMemberID: req.HistFansubGroupMemberID,
 		RoleCode:                req.RoleCode,
-		StartedYear:             req.StartedYear,
-		EndedYear:               req.EndedYear,
+		StartedDate:             startedDate,
+		EndedDate:               endedDate,
 		Status:                  status,
 		Visibility:              visibility,
 		SourceNote:              req.SourceNote,
@@ -373,9 +384,20 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
+	startedDate, err := parseOptionalPatchDate(req.StartedDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+	endedDate, err := parseOptionalPatchDate(req.EndedDate)
+	if err != nil {
+		badRequest(c, "Ungültiges Datum - Format JJJJ-MM-TT erwartet.")
+		return
+	}
+
 	input := repository.HistGroupMemberRolePatchInput{
-		StartedYear: req.StartedYear,
-		EndedYear:   req.EndedYear,
+		StartedDate: startedDate,
+		EndedDate:   endedDate,
 		Status:      req.Status,
 		Visibility:  req.Visibility,
 		SourceNote:  req.SourceNote,

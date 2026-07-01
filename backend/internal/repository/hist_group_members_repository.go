@@ -15,8 +15,8 @@ type HistGroupMemberRow struct {
 	ID            int64
 	FansubGroupID int64
 	MemberID      int64
-	JoinedYear    *int
-	LeftYear      *int
+	JoinedDate    *time.Time
+	LeftDate      *time.Time
 	Status        string
 	Visibility    string
 	ConfirmedBy   *int64
@@ -29,8 +29,8 @@ type HistGroupMemberRow struct {
 type HistGroupMemberInput struct {
 	FansubGroupID int64
 	MemberID      int64
-	JoinedYear    *int
-	LeftYear      *int
+	JoinedDate    *time.Time
+	LeftDate      *time.Time
 	Status        string
 	Visibility    string
 	ConfirmedBy   *int64
@@ -38,8 +38,8 @@ type HistGroupMemberInput struct {
 }
 
 type HistGroupMemberPatchInput struct {
-	JoinedYear  **int
-	LeftYear    **int
+	JoinedDate  **time.Time
+	LeftDate    **time.Time
 	Status      *string
 	Visibility  *string
 	ConfirmedBy *int64
@@ -62,8 +62,8 @@ type HistGroupMemberDisplayRow struct {
 	DisplayName            string     `json:"display_name"`
 	AppUserID              *int64     `json:"app_user_id"`
 	AppUsername            *string    `json:"app_username"`
-	JoinedYear             *int       `json:"joined_year"`
-	LeftYear               *int       `json:"left_year"`
+	JoinedDate             *time.Time `json:"joined_date"`
+	LeftDate               *time.Time `json:"left_date"`
 	Status                 string     `json:"status"`
 	ConfirmedByAppUserID   *int64     `json:"confirmed_by_app_user_id"`
 	ConfirmedByDisplayName *string    `json:"confirmed_by_display_name"`
@@ -79,7 +79,7 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		       m.nickname AS display_name,
 		       claimed_user.id AS app_user_id,
 		       COALESCE(NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
-		       hfgm.joined_year, hfgm.left_year, hfgm.status,
+		       hfgm.joined_date, hfgm.left_date, hfgm.status,
 		       hfgm.confirmed_by AS confirmed_by_app_user_id,
 		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
 		       hfgm.confirmed_at,
@@ -102,7 +102,7 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		LEFT JOIN app_users confirmer ON confirmer.id = hfgm.confirmed_by
 		WHERE hfgm.fansub_group_id = $1
 		  AND active_group_member.id IS NULL
-		ORDER BY COALESCE(hfgm.joined_year, 9999), hfgm.id
+		ORDER BY COALESCE(hfgm.joined_date, '9999-01-01'::date), hfgm.id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list hist group members with display: %w", err)
@@ -115,7 +115,7 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		if err := rows.Scan(
 			&row.ID, &row.FansubGroupID, &row.MemberID,
 			&row.DisplayName, &row.AppUserID, &row.AppUsername,
-			&row.JoinedYear, &row.LeftYear, &row.Status,
+			&row.JoinedDate, &row.LeftDate, &row.Status,
 			&row.ConfirmedByAppUserID, &row.ConfirmedByDisplayName, &row.ConfirmedAt,
 			&row.CreatedAt,
 		); err != nil {
@@ -131,10 +131,10 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 
 func (r *HistGroupMembersRepository) ListByFansubGroup(ctx context.Context, fansubGroupID int64) ([]HistGroupMemberRow, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
+		SELECT id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
 		FROM hist_fansub_group_members
 		WHERE fansub_group_id = $1
-		ORDER BY COALESCE(joined_year, 9999), id
+		ORDER BY COALESCE(joined_date, '9999-01-01'::date), id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list hist group members: %w", err)
@@ -146,7 +146,7 @@ func (r *HistGroupMembersRepository) ListByFansubGroup(ctx context.Context, fans
 		var row HistGroupMemberRow
 		if err := rows.Scan(
 			&row.ID, &row.FansubGroupID, &row.MemberID,
-			&row.JoinedYear, &row.LeftYear,
+			&row.JoinedDate, &row.LeftDate,
 			&row.Status, &row.Visibility,
 			&row.ConfirmedBy, &row.ConfirmedAt,
 			&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -164,12 +164,12 @@ func (r *HistGroupMembersRepository) ListByFansubGroup(ctx context.Context, fans
 func (r *HistGroupMembersRepository) GetByID(ctx context.Context, id int64) (*HistGroupMemberRow, error) {
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, `
-		SELECT id, fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
+		SELECT id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
 		FROM hist_fansub_group_members
 		WHERE id = $1
 	`, id).Scan(
 		&row.ID, &row.FansubGroupID, &row.MemberID,
-		&row.JoinedYear, &row.LeftYear,
+		&row.JoinedDate, &row.LeftDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -186,12 +186,12 @@ func (r *HistGroupMembersRepository) GetByID(ctx context.Context, id int64) (*Hi
 func (r *HistGroupMembersRepository) GetByIDForFansub(ctx context.Context, fansubGroupID int64, id int64) (*HistGroupMemberRow, error) {
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, `
-		SELECT id, fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
+		SELECT id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
 		FROM hist_fansub_group_members
 		WHERE id = $1 AND fansub_group_id = $2
 	`, id, fansubGroupID).Scan(
 		&row.ID, &row.FansubGroupID, &row.MemberID,
-		&row.JoinedYear, &row.LeftYear,
+		&row.JoinedDate, &row.LeftDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -209,14 +209,14 @@ func (r *HistGroupMembersRepository) Create(ctx context.Context, input HistGroup
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO hist_fansub_group_members
-			(fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by)
+			(fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN $7 ELSE NULL END, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN NOW() ELSE NULL END, $8)
-		RETURNING id, fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
-	`, input.FansubGroupID, input.MemberID, input.JoinedYear, input.LeftYear,
+		RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
+	`, input.FansubGroupID, input.MemberID, input.JoinedDate, input.LeftDate,
 		input.Status, input.Visibility, input.ConfirmedBy, input.CreatedBy,
 	).Scan(
 		&row.ID, &row.FansubGroupID, &row.MemberID,
-		&row.JoinedYear, &row.LeftYear,
+		&row.JoinedDate, &row.LeftDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -238,14 +238,14 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID i
 	args := make([]any, 0, 6)
 	argIdx := 1
 
-	if input.JoinedYear != nil {
-		setClauses = append(setClauses, fmt.Sprintf("joined_year = $%d", argIdx))
-		args = append(args, *input.JoinedYear)
+	if input.JoinedDate != nil {
+		setClauses = append(setClauses, fmt.Sprintf("joined_date = $%d", argIdx))
+		args = append(args, *input.JoinedDate)
 		argIdx++
 	}
-	if input.LeftYear != nil {
-		setClauses = append(setClauses, fmt.Sprintf("left_year = $%d", argIdx))
-		args = append(args, *input.LeftYear)
+	if input.LeftDate != nil {
+		setClauses = append(setClauses, fmt.Sprintf("left_date = $%d", argIdx))
+		args = append(args, *input.LeftDate)
 		argIdx++
 	}
 	if input.Status != nil {
@@ -288,13 +288,13 @@ func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID i
 		UPDATE hist_fansub_group_members
 		SET %s
 		WHERE id = $%d AND fansub_group_id = $%d
-		RETURNING id, fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
+		RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
 	`, strings.Join(setClauses, ", "), idxID, argIdx)
 
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, query, args...).Scan(
 		&row.ID, &row.FansubGroupID, &row.MemberID,
-		&row.JoinedYear, &row.LeftYear,
+		&row.JoinedDate, &row.LeftDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -324,8 +324,8 @@ func (r *HistGroupMembersRepository) Delete(ctx context.Context, fansubGroupID i
 type HistGroupMemberAutoCreateInput struct {
 	FansubGroupID int64
 	DisplayName   string // wird als members.nickname gesetzt
-	JoinedYear    *int
-	LeftYear      *int
+	JoinedDate    *time.Time
+	LeftDate      *time.Time
 	Status        string
 	Visibility    string
 	ConfirmedBy   *int64
@@ -360,15 +360,15 @@ func (r *HistGroupMembersRepository) CreateWithAutoMember(
 	if err := tx.QueryRow(ctx, `
 		WITH inserted AS (
 			INSERT INTO hist_fansub_group_members
-				(fansub_group_id, member_id, joined_year, left_year, status, visibility, confirmed_by, confirmed_at, created_by)
+				(fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by)
 			VALUES ($1, $2, $3, $4, $5::varchar, $6::varchar, CASE WHEN $5::varchar = 'confirmed' AND $7::bigint IS NOT NULL THEN $7::bigint ELSE NULL END, CASE WHEN $5::varchar = 'confirmed' AND $7::bigint IS NOT NULL THEN NOW() ELSE NULL END, $8)
-			RETURNING id, fansub_group_id, member_id, joined_year, left_year, status, confirmed_by, confirmed_at, created_at
+			RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, confirmed_by, confirmed_at, created_at
 		)
 		SELECT inserted.id,
 		       inserted.fansub_group_id,
 		       inserted.member_id,
-		       inserted.joined_year,
-		       inserted.left_year,
+		       inserted.joined_date,
+		       inserted.left_date,
 		       inserted.status,
 		       inserted.confirmed_by AS confirmed_by_app_user_id,
 		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
@@ -379,8 +379,8 @@ func (r *HistGroupMembersRepository) CreateWithAutoMember(
 	`,
 		input.FansubGroupID,
 		memberID,
-		input.JoinedYear,
-		input.LeftYear,
+		input.JoinedDate,
+		input.LeftDate,
 		input.Status,
 		input.Visibility,
 		input.ConfirmedBy,
@@ -389,8 +389,8 @@ func (r *HistGroupMembersRepository) CreateWithAutoMember(
 		&row.ID,
 		&row.FansubGroupID,
 		&row.MemberID,
-		&row.JoinedYear,
-		&row.LeftYear,
+		&row.JoinedDate,
+		&row.LeftDate,
 		&row.Status,
 		&row.ConfirmedByAppUserID,
 		&row.ConfirmedByDisplayName,

@@ -15,8 +15,8 @@ type HistGroupMemberRoleRow struct {
 	ID                      int64
 	HistFansubGroupMemberID int64
 	RoleCode                string
-	StartedYear             *int
-	EndedYear               *int
+	StartedDate             *time.Time
+	EndedDate               *time.Time
 	Status                  string
 	Visibility              string
 	ConfirmedBy             *int64
@@ -30,8 +30,8 @@ type HistGroupMemberRoleRow struct {
 type HistGroupMemberRoleInput struct {
 	HistFansubGroupMemberID int64
 	RoleCode                string
-	StartedYear             *int
-	EndedYear               *int
+	StartedDate             *time.Time
+	EndedDate               *time.Time
 	Status                  string
 	Visibility              string
 	SourceNote              *string
@@ -39,8 +39,8 @@ type HistGroupMemberRoleInput struct {
 }
 
 type HistGroupMemberRolePatchInput struct {
-	StartedYear **int
-	EndedYear   **int
+	StartedDate **time.Time
+	EndedDate   **time.Time
 	Status      *string
 	Visibility  *string
 	SourceNote  **string
@@ -57,16 +57,16 @@ func NewHistGroupMemberRolesRepository(db *pgxpool.Pool) *HistGroupMemberRolesRe
 // HistGroupMemberRoleDisplayRow is the frontend-facing response type enriched with
 // display data joined from hist_fansub_group_members and members.
 type HistGroupMemberRoleDisplayRow struct {
-	ID                  int64     `json:"id"`
-	FansubGroupMemberID int64     `json:"fansub_group_member_id"`
-	MemberDisplayName   string    `json:"member_display_name"`
-	RoleCode            string    `json:"role_code"`
-	RoleLabel           *string   `json:"role_label"`
-	StartedYear         *int      `json:"started_year"`
-	EndedYear           *int      `json:"ended_year"`
-	Note                *string   `json:"note"`
-	Status              string    `json:"status"`
-	CreatedAt           time.Time `json:"created_at"`
+	ID                  int64      `json:"id"`
+	FansubGroupMemberID int64      `json:"fansub_group_member_id"`
+	MemberDisplayName   string     `json:"member_display_name"`
+	RoleCode            string     `json:"role_code"`
+	RoleLabel           *string    `json:"role_label"`
+	StartedDate         *time.Time `json:"started_date"`
+	EndedDate           *time.Time `json:"ended_date"`
+	Note                *string    `json:"note"`
+	Status              string     `json:"status"`
+	CreatedAt           time.Time  `json:"created_at"`
 }
 
 // ListByFansubGroup returns all member roles for a fansub group, enriched with display names.
@@ -77,8 +77,8 @@ func (r *HistGroupMemberRolesRepository) ListByFansubGroup(ctx context.Context, 
 		       m.nickname                    AS member_display_name,
 		       r.role_code,
 		       NULL::text                    AS role_label,
-		       r.started_year,
-		       r.ended_year,
+		       r.started_date,
+		       r.ended_date,
 		       r.source_note                 AS note,
 		       r.status,
 		       r.created_at
@@ -86,7 +86,7 @@ func (r *HistGroupMemberRolesRepository) ListByFansubGroup(ctx context.Context, 
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
 		JOIN members m ON m.id = hfgm.member_id
 		WHERE hfgm.fansub_group_id = $1
-		ORDER BY COALESCE(r.started_year, 9999), r.id
+		ORDER BY COALESCE(r.started_date, '9999-01-01'::date), r.id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list hist group member roles by fansub: %w", err)
@@ -99,7 +99,7 @@ func (r *HistGroupMemberRolesRepository) ListByFansubGroup(ctx context.Context, 
 		if err := rows.Scan(
 			&row.ID, &row.FansubGroupMemberID, &row.MemberDisplayName,
 			&row.RoleCode, &row.RoleLabel,
-			&row.StartedYear, &row.EndedYear, &row.Note,
+			&row.StartedDate, &row.EndedDate, &row.Note,
 			&row.Status, &row.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("list hist group member roles by fansub: scan: %w", err)
@@ -114,11 +114,11 @@ func (r *HistGroupMemberRolesRepository) ListByFansubGroup(ctx context.Context, 
 
 func (r *HistGroupMemberRolesRepository) ListByMember(ctx context.Context, histFansubGroupMemberID int64) ([]HistGroupMemberRoleRow, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, hist_fansub_group_member_id, role_code, started_year, ended_year,
+		SELECT id, hist_fansub_group_member_id, role_code, started_date, ended_date,
 		       status, visibility, confirmed_by, confirmed_at, source_note, created_by, created_at, updated_at
 		FROM hist_group_member_roles
 		WHERE hist_fansub_group_member_id = $1
-		ORDER BY COALESCE(started_year, 9999), id
+		ORDER BY COALESCE(started_date, '9999-01-01'::date), id
 	`, histFansubGroupMemberID)
 	if err != nil {
 		return nil, fmt.Errorf("list hist group member roles: %w", err)
@@ -130,7 +130,7 @@ func (r *HistGroupMemberRolesRepository) ListByMember(ctx context.Context, histF
 		var row HistGroupMemberRoleRow
 		if err := rows.Scan(
 			&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
-			&row.StartedYear, &row.EndedYear,
+			&row.StartedDate, &row.EndedDate,
 			&row.Status, &row.Visibility,
 			&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
 			&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -148,12 +148,12 @@ func (r *HistGroupMemberRolesRepository) ListByMember(ctx context.Context, histF
 // ListByMemberID returns group member roles for the given member (used by Me-routes).
 func (r *HistGroupMemberRolesRepository) ListByMemberID(ctx context.Context, memberID int64) ([]HistGroupMemberRoleRow, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT r.id, r.hist_fansub_group_member_id, r.role_code, r.started_year, r.ended_year,
+		SELECT r.id, r.hist_fansub_group_member_id, r.role_code, r.started_date, r.ended_date,
 		       r.status, r.visibility, r.confirmed_by, r.confirmed_at, r.source_note, r.created_by, r.created_at, r.updated_at
 		FROM hist_group_member_roles r
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
 		WHERE hfgm.member_id = $1
-		ORDER BY COALESCE(r.started_year, 9999), r.id
+		ORDER BY COALESCE(r.started_date, '9999-01-01'::date), r.id
 		LIMIT 50
 	`, memberID)
 	if err != nil {
@@ -166,7 +166,7 @@ func (r *HistGroupMemberRolesRepository) ListByMemberID(ctx context.Context, mem
 		var row HistGroupMemberRoleRow
 		if err := rows.Scan(
 			&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
-			&row.StartedYear, &row.EndedYear,
+			&row.StartedDate, &row.EndedDate,
 			&row.Status, &row.Visibility,
 			&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
 			&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -184,13 +184,13 @@ func (r *HistGroupMemberRolesRepository) ListByMemberID(ctx context.Context, mem
 func (r *HistGroupMemberRolesRepository) GetByID(ctx context.Context, id int64) (*HistGroupMemberRoleRow, error) {
 	var row HistGroupMemberRoleRow
 	err := r.db.QueryRow(ctx, `
-		SELECT id, hist_fansub_group_member_id, role_code, started_year, ended_year,
+		SELECT id, hist_fansub_group_member_id, role_code, started_date, ended_date,
 		       status, visibility, confirmed_by, confirmed_at, source_note, created_by, created_at, updated_at
 		FROM hist_group_member_roles
 		WHERE id = $1
 	`, id).Scan(
 		&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
-		&row.StartedYear, &row.EndedYear,
+		&row.StartedDate, &row.EndedDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -207,14 +207,14 @@ func (r *HistGroupMemberRolesRepository) GetByID(ctx context.Context, id int64) 
 func (r *HistGroupMemberRolesRepository) GetByIDForFansub(ctx context.Context, fansubGroupID int64, id int64) (*HistGroupMemberRoleRow, error) {
 	var row HistGroupMemberRoleRow
 	err := r.db.QueryRow(ctx, `
-		SELECT r.id, r.hist_fansub_group_member_id, r.role_code, r.started_year, r.ended_year,
+		SELECT r.id, r.hist_fansub_group_member_id, r.role_code, r.started_date, r.ended_date,
 		       r.status, r.visibility, r.confirmed_by, r.confirmed_at, r.source_note, r.created_by, r.created_at, r.updated_at
 		FROM hist_group_member_roles r
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
 		WHERE r.id = $1 AND hfgm.fansub_group_id = $2
 	`, id, fansubGroupID).Scan(
 		&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
-		&row.StartedYear, &row.EndedYear,
+		&row.StartedDate, &row.EndedDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -238,10 +238,11 @@ type RoleDefinitionOption struct {
 
 // groupHistoryDialogRoleWhitelist enthält die vier echten historischen Gruppenrollen.
 // Hintergrund (Pitfall 2 / RESEARCH Pattern 4):
-//   Migration 0103 markiert App-Rollen (translator, encoder, …) zusätzlich mit
-//   dem Kontext "group_history". Ein naives WHERE 'group_history' = ANY(contexts)
-//   liefert dadurch auch aktive App-Rollen. Diese Whitelist begrenzt das Ergebnis
-//   auf die vier Rollen aus dem 0085-Seed mit echtem group_history-Ursprung.
+//
+//	Migration 0103 markiert App-Rollen (translator, encoder, …) zusätzlich mit
+//	dem Kontext "group_history". Ein naives WHERE 'group_history' = ANY(contexts)
+//	liefert dadurch auch aktive App-Rollen. Diese Whitelist begrenzt das Ergebnis
+//	auf die vier Rollen aus dem 0085-Seed mit echtem group_history-Ursprung.
 var groupHistoryDialogRoleWhitelist = []string{
 	"founder",
 	"fansub_lead",
@@ -346,15 +347,15 @@ func (r *HistGroupMemberRolesRepository) Create(ctx context.Context, input HistG
 	var row HistGroupMemberRoleRow
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO hist_group_member_roles
-			(hist_fansub_group_member_id, role_code, started_year, ended_year, status, visibility, source_note, created_by)
+			(hist_fansub_group_member_id, role_code, started_date, ended_date, status, visibility, source_note, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, hist_fansub_group_member_id, role_code, started_year, ended_year,
+		RETURNING id, hist_fansub_group_member_id, role_code, started_date, ended_date,
 		          status, visibility, confirmed_by, confirmed_at, source_note, created_by, created_at, updated_at
-	`, input.HistFansubGroupMemberID, input.RoleCode, input.StartedYear, input.EndedYear,
+	`, input.HistFansubGroupMemberID, input.RoleCode, input.StartedDate, input.EndedDate,
 		input.Status, input.Visibility, input.SourceNote, input.CreatedBy,
 	).Scan(
 		&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
-		&row.StartedYear, &row.EndedYear,
+		&row.StartedDate, &row.EndedDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
@@ -373,14 +374,14 @@ func (r *HistGroupMemberRolesRepository) Update(ctx context.Context, fansubGroup
 	args := make([]any, 0, 7)
 	argIdx := 1
 
-	if input.StartedYear != nil {
-		setClauses = append(setClauses, fmt.Sprintf("started_year = $%d", argIdx))
-		args = append(args, *input.StartedYear)
+	if input.StartedDate != nil {
+		setClauses = append(setClauses, fmt.Sprintf("started_date = $%d", argIdx))
+		args = append(args, *input.StartedDate)
 		argIdx++
 	}
-	if input.EndedYear != nil {
-		setClauses = append(setClauses, fmt.Sprintf("ended_year = $%d", argIdx))
-		args = append(args, *input.EndedYear)
+	if input.EndedDate != nil {
+		setClauses = append(setClauses, fmt.Sprintf("ended_date = $%d", argIdx))
+		args = append(args, *input.EndedDate)
 		argIdx++
 	}
 	if input.Status != nil {
@@ -419,14 +420,14 @@ func (r *HistGroupMemberRolesRepository) Update(ctx context.Context, fansubGroup
 		      WHERE hfgm.id = hist_group_member_roles.hist_fansub_group_member_id
 		        AND hfgm.fansub_group_id = $%d
 		  )
-		RETURNING id, hist_fansub_group_member_id, role_code, started_year, ended_year,
+		RETURNING id, hist_fansub_group_member_id, role_code, started_date, ended_date,
 		          status, visibility, confirmed_by, confirmed_at, source_note, created_by, created_at, updated_at
 	`, strings.Join(setClauses, ", "), idxID, argIdx)
 
 	var row HistGroupMemberRoleRow
 	err := r.db.QueryRow(ctx, query, args...).Scan(
 		&row.ID, &row.HistFansubGroupMemberID, &row.RoleCode,
-		&row.StartedYear, &row.EndedYear,
+		&row.StartedDate, &row.EndedDate,
 		&row.Status, &row.Visibility,
 		&row.ConfirmedBy, &row.ConfirmedAt, &row.SourceNote,
 		&row.CreatedBy, &row.CreatedAt, &row.UpdatedAt,
