@@ -1,17 +1,20 @@
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 const approveMemberRequest = vi.fn()
 const cancelClaimInvitation = vi.fn()
 const generateClaimInvitation = vi.fn()
+const listFansubGroupRoleDefinitions = vi.fn()
 const listClaimInvitations = vi.fn()
 const listGroupMembers = vi.fn()
+const listMemberRoles = vi.fn()
 const listMemberRequests = vi.fn()
 const listPendingMemberClaims = vi.fn()
 const rejectMemberClaim = vi.fn()
 const rejectMemberRequest = vi.fn()
+const updateFansubAppMemberRole = vi.fn()
 const verifyMemberClaim = vi.fn()
 
 vi.mock('@/lib/api', () => ({
@@ -28,12 +31,15 @@ vi.mock('@/lib/api', () => ({
   },
   cancelClaimInvitation: (...args: unknown[]) => cancelClaimInvitation(...args),
   generateClaimInvitation: (...args: unknown[]) => generateClaimInvitation(...args),
+  listFansubGroupRoleDefinitions: (...args: unknown[]) => listFansubGroupRoleDefinitions(...args),
   listClaimInvitations: (...args: unknown[]) => listClaimInvitations(...args),
   listGroupMembers: (...args: unknown[]) => listGroupMembers(...args),
+  listMemberRoles: (...args: unknown[]) => listMemberRoles(...args),
   listMemberRequests: (...args: unknown[]) => listMemberRequests(...args),
   listPendingMemberClaims: (...args: unknown[]) => listPendingMemberClaims(...args),
   rejectMemberClaim: (...args: unknown[]) => rejectMemberClaim(...args),
   rejectMemberRequest: (...args: unknown[]) => rejectMemberRequest(...args),
+  updateFansubAppMemberRole: (...args: unknown[]) => updateFansubAppMemberRole(...args),
   verifyMemberClaim: (...args: unknown[]) => verifyMemberClaim(...args),
 }))
 
@@ -42,6 +48,14 @@ import { ClaimManagementPanel } from './ClaimManagementPanel'
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+})
+
+beforeEach(() => {
+  listFansubGroupRoleDefinitions.mockResolvedValue([
+    { code: 'project_lead', label_de: 'Projektleitung', sort_order: 20 },
+  ])
+  listMemberRoles.mockResolvedValue({ data: [] })
+  updateFansubAppMemberRole.mockResolvedValue({ data: {} })
 })
 
 describe('ClaimManagementPanel', () => {
@@ -194,5 +208,74 @@ describe('ClaimManagementPanel', () => {
       expect(cancelClaimInvitation).toHaveBeenCalledWith(88, 2, 7)
     })
     expect(await screen.findByText('Aktive Einladung zurückgezogen. Du kannst jetzt einen neuen Link generieren.')).not.toBeNull()
+  })
+
+  it('offers an active role assignment after verifying a claim with ended historical roles', async () => {
+    listGroupMembers.mockResolvedValue({
+      data: [
+        {
+          id: 12,
+          fansub_group_id: 88,
+          member_id: 2,
+          display_name: 'Phase Admin',
+          joined_date: '2005-01-01',
+          left_date: null,
+          app_user_id: 9,
+          app_username: 'phase-admin',
+          status: 'confirmed',
+          created_at: '2026-06-02T17:58:30.134384+02:00',
+        },
+      ],
+    })
+    listClaimInvitations.mockResolvedValue([])
+    listPendingMemberClaims.mockResolvedValue([
+      {
+        id: 5,
+        app_user_id: 9,
+        member_id: 2,
+        member_nickname: 'Phase Admin',
+        claim_status: 'pending',
+        note: null,
+        created_at: '2026-06-02T17:58:30.134384+02:00',
+      },
+    ])
+    listMemberRequests.mockResolvedValue([])
+    listMemberRoles.mockResolvedValue({
+      data: [
+        {
+          id: 77,
+          hist_fansub_group_member_id: 12,
+          fansub_group_member_id: 12,
+          member_display_name: 'Phase Admin',
+          role_code: 'co_leader',
+          role_label: 'Co-Leitung',
+          started_date: '2005-01-01',
+          ended_date: '2010-01-01',
+          note: null,
+          status: 'historical',
+          created_at: '2026-06-02T17:58:30.134384+02:00',
+        },
+      ],
+    })
+    verifyMemberClaim.mockResolvedValue(undefined)
+
+    render(<ClaimManagementPanel groupId={88} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Bestätigen' }))
+
+    await waitFor(() => {
+      expect(verifyMemberClaim).toHaveBeenCalledWith(88, 5)
+      expect(listMemberRoles).toHaveBeenCalledWith(88, 12)
+    })
+
+    expect(await screen.findByRole('heading', { name: 'Aktive Rolle zuweisen' })).not.toBeNull()
+    expect(await screen.findByText(/Co-Leitung/)).not.toBeNull()
+
+    fireEvent.change(screen.getByLabelText('Aktive Rolle auswählen'), { target: { value: 'project_lead' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Aktive Rolle zuweisen' }))
+
+    await waitFor(() => {
+      expect(updateFansubAppMemberRole).toHaveBeenCalledWith(88, 9, { role: 'project_lead', enabled: true })
+    })
   })
 })

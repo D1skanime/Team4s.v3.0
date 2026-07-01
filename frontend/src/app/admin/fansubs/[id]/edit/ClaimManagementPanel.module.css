@@ -17,6 +17,15 @@
   padding: 0.6rem 0.7rem;
 }
 
+.inlineSuccess {
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--color-success) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+  padding: 0.6rem 0.7rem;
+}
+
 .inviteLinkRow {
   display: grid;
   gap: 0.55rem;
@@ -64,6 +73,37 @@
   border-bottom: 3px solid #82122c;
 }
 
+.roleAssignmentPanel {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.roleAssignmentPanel h3,
+.roleAssignmentPanel p {
+  margin: 0;
+}
+
+.roleAssignmentPanel p {
+  color: var(--text-secondary);
+}
+
+.roleAssignmentList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.roleAssignmentItem {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, 14rem) auto;
+  align-items: end;
+}
+
+.roleAssignmentItem p {
+  margin-top: 0.2rem;
+  font-size: 0.88rem;
+}
+
 @media (max-width: 720px) {
   .inviteLinkRow {
     grid-template-columns: 1fr;
@@ -71,5 +111,10 @@
 
   .rowActions {
     justify-content: flex-start;
+  }
+
+  .roleAssignmentItem {
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 }

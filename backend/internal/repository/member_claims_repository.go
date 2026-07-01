@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -233,6 +234,11 @@ func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, fansubGroupID 
 
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("verify member claim: commit: %w", err)
+	}
+	if err := r.ResolvePendingRolesToActive(ctx, memberID, fansubGroupID, verifiedByAppUserID); err != nil {
+		// Die Claim-Verifikation ist bereits committed. Rollen-Aktivierung ist ein
+		// nachgelagerter Komfortpfad und darf den erfolgreichen Claim nicht kippen.
+		log.Printf("verify member claim: resolve pending roles: %v", err)
 	}
 	return nil
 }

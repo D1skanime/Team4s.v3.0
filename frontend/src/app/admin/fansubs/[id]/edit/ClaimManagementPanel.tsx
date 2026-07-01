@@ -25,14 +25,16 @@ import {
   cancelClaimInvitation,
   generateClaimInvitation,
   listClaimInvitations,
+  listFansubGroupRoleDefinitions,
   listGroupMembers,
+  listMemberRoles,
   listMemberRequests,
   listPendingMemberClaims,
   rejectMemberClaim,
   rejectMemberRequest,
   verifyMemberClaim,
 } from '@/lib/api'
-import type { HistFansubGroupMember } from '@/types/fansub'
+import { FANSUB_GROUP_ROLE_OPTIONS, type HistFansubGroupMember } from '@/types/fansub'
 import type {
   GenerateClaimInvitationResponse,
   MemberClaimInvitationResponse,
@@ -41,6 +43,7 @@ import type {
 } from '@/types/profile'
 
 import styles from './ClaimManagementPanel.module.css'
+import { RoleAssignmentAfterClaim, type ClaimRoleAssignment } from './RoleAssignmentAfterClaim'
 
 type ClaimManagementPanelProps = {
   groupId: number
@@ -49,6 +52,7 @@ type ClaimManagementPanelProps = {
 }
 
 type CopyState = 'copied' | 'selected'
+type ActiveRoleOption = { code: string; label: string }
 
 function formatDate(value: string): string {
   const date = new Date(value)
@@ -73,12 +77,20 @@ function normalizeInviteLink(rawLink: string): string {
   }
 }
 
+function initialActiveRoleOptions(): ActiveRoleOption[] {
+  return FANSUB_GROUP_ROLE_OPTIONS
+    .filter((option) => option.code !== 'fansub_lead')
+    .map((option) => ({ code: option.code, label: option.label }))
+}
+
 export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimManagementPanelProps) {
   const [members, setMembers] = useState<HistFansubGroupMember[]>([])
   const [pendingClaims, setPendingClaims] = useState<MemberClaimRow[]>([])
   const [memberRequests, setMemberRequests] = useState<MemberRequestRow[]>([])
   const [generatedInvites, setGeneratedInvites] = useState<Record<number, GenerateClaimInvitationResponse>>({})
   const [memberInvitations, setMemberInvitations] = useState<Record<number, MemberClaimInvitationResponse[]>>({})
+  const [roleAssignments, setRoleAssignments] = useState<ClaimRoleAssignment[]>([])
+  const [activeRoleOptions, setActiveRoleOptions] = useState<ActiveRoleOption[]>(() => initialActiveRoleOptions())
   const [copyStates, setCopyStates] = useState<Record<number, CopyState>>({})
   const [approveNicknames, setApproveNicknames] = useState<Record<number, string>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -120,6 +132,23 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
   useEffect(() => {
     void loadClaimData()
   }, [loadClaimData])
+
+  useEffect(() => {
+    let cancelled = false
+    listFansubGroupRoleDefinitions(groupId)
+      .then((items) => {
+        if (cancelled || items.length === 0) return
+        setActiveRoleOptions(
+          items
+            .filter((item) => item.code !== 'fansub_lead')
+            .map((item) => ({ code: item.code, label: item.label_de })),
+        )
+      })
+      .catch(() => {
+        // Fallback: statische FANSUB_GROUP_ROLE_OPTIONS bleiben aktiv.
+      })
+    return () => { cancelled = true }
+  }, [groupId])
 
   async function handleGenerateInvitation(rowId: number, memberId: number) {
     try {
@@ -211,11 +240,37 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
     }
   }
 
+  async function queueRoleAssignmentIfNeeded(claim: MemberClaimRow) {
+    const member = members.find((item) => item.member_id === claim.member_id)
+    if (!member || claim.app_user_id <= 0) return
+    try {
+      const roleResponse = await listMemberRoles(groupId, member.id)
+      const endedRoles = roleResponse.data.filter((role) => !!role.ended_date)
+      if (endedRoles.length === 0) return
+      const assignment: ClaimRoleAssignment = {
+        id: `${claim.id}:${claim.app_user_id}`,
+        appUserId: claim.app_user_id,
+        memberName: member.display_name || claim.member_nickname,
+        endedRoleLabels: endedRoles.map((role) => role.role_label ?? role.role_code),
+      }
+      setRoleAssignments((current) => {
+        if (current.some((item) => item.id === assignment.id)) return current
+        return [...current, assignment]
+      })
+    } catch {
+      setActionError('Claim bestätigt. Die Prüfung beendeter Rollen konnte nicht geladen werden.')
+    }
+  }
+
   async function handleVerifyClaim(claimId: number) {
+    const claim = pendingClaims.find((item) => item.id === claimId)
     try {
       setActionError(null)
       await verifyMemberClaim(groupId, claimId)
       setPendingClaims((current) => current.filter((claim) => claim.id !== claimId))
+      if (claim) {
+        await queueRoleAssignmentIfNeeded(claim)
+      }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Claim konnte nicht bestätigt werden.')
     }
@@ -347,6 +402,13 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
           ))}</TableBody>
         </Table>
       )}
+
+      <RoleAssignmentAfterClaim
+        groupId={groupId}
+        assignments={roleAssignments}
+        roleOptions={activeRoleOptions}
+        onAssigned={(assignmentId) => setRoleAssignments((current) => current.filter((item) => item.id !== assignmentId))}
+      />
 
       <SectionHeader title={`Neuanlage-Anträge (${memberRequests.length})`} description="Mitglieder ohne passenden historischen Eintrag können eine Neuanlage beantragen." />
       {memberRequests.length === 0 ? (
