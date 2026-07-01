@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Abgeschlossen 95-03-PLAN.md
-last_updated: "2026-06-30T17:13:40.803Z"
+stopped_at: Phase 95 complete (6/6) — ready to discuss Phase 999.1
+last_updated: 2026-07-01T10:46:12.462Z
 last_activity: 2026-06-30
 progress:
   total_phases: 87
-  completed_phases: 73
+  completed_phases: 1
   total_plans: 361
-  completed_plans: 335
-  percent: 84
+  completed_plans: 359
+  percent: 1
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 95 — rollenmodell-entwirren-gruppen-vs-projekt-ebene-techadmin-gf
+**Current focus:** Phase 999.1 — querverlinkung role capabilities und users impact count roll
 
 ## Current Position
 
-Phase: 95 (rollenmodell-entwirren-gruppen-vs-projekt-ebene-techadmin-gf) — EXECUTING
-Plan: 6 of 6
+Phase: 999.1
+Plan: Not started
 
 ## Accumulated Context
 
@@ -517,5 +517,5 @@ Recent durable decisions:
 
 Last session: 2026-06-30T17:13:40.771Z
 Stopped at: Abgeschlossen 95-03-PLAN.md
-Last activity: 2026-06-30
+Last activity: 2026-07-01
 Resume file: None
