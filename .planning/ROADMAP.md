@@ -1622,7 +1622,7 @@ Plans:
 **Goal:** Den Rollen-Lebenszyklus in Richtung **historisch → aktiv** vervollständigen und datentechnisch korrekt abbilden. (1) Historische Rollen mit **tagesgenauen** Start-/Enddaten authoren, direkt im „Historisches Mitglied anlegen/bearbeiten"-Dialog wählbar, **mehrere Rollen pro Person**. (2) **Enddatum-Regel:** ohne Enddatum = weiterhin aktiv; mit Enddatum = beendet/historisch (kein separater „Entzug"). (3) **Claim-Aktivierung:** wenn eine historische Person sich einloggt und ihre Identität bestätigt wird, werden Rollen ohne Enddatum als aktive App-Rollen übernommen, für beendete weist der Admin ggf. neue aktive Rollen zu. (4) **Aktive Rollen zuweisen** (Admin). (5) **Capability** definiert nur Rechte aktiver Rollen (konsistent mit Phase-95-G4); historische tragen keine Rechte. (6) **Sichtbarkeit:** historische Rollen (Start+Enddatum) im Member-Profil, später public — konkrete UI nachgelagert; Priorität = korrekte DB-Abbildung. Baut auf Phase 95 auf (Auto-Archivierung aktiv→historisch/D-10 ist bereits gebaut — dies ist die Gegenrichtung). Teil des Rollenmodell-Reworks (Sheppert-Modell).
 **Requirements:** siehe `97-CONTEXT.md` (D-01 bis D-08)
 **Depends on:** Phase 95
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 - [ ] `97-00-PLAN.md` -- Wave 0: RED-Test-Gerueste (D-02/D-03/D-04/D-05)
