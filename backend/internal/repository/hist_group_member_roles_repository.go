@@ -265,13 +265,15 @@ func (r *HistGroupMemberRolesRepository) IsGroupHistoryWhitelistRole(code string
 
 // ListGroupHistoryRoleDefinitions gibt die kuratierte Liste der historischen Gruppenrollen
 // aus role_definitions zurück (nur Codes aus der expliziten Whitelist).
-// Entspricht dem Seed in database/migrations/0085_role_definitions_seed.up.sql.
+// Die explizite Whitelist (groupHistoryDialogRoleWhitelist) ist die alleinige Kuration;
+// eine zusätzliche 'group_history' = ANY(contexts)-Bedingung wäre redundant und würde
+// die neuen Rollen techadmin/gfxler fälschlich ausschließen (Gap G2, Phase 95), da diese
+// nur den Kontext fansub_group tragen. Der Whitelist-Filter allein ist präzise genug.
 func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT code, label_de, sort_order
 		FROM role_definitions
-		WHERE 'group_history' = ANY(contexts)
-		  AND code = ANY($1)
+		WHERE code = ANY($1)
 		ORDER BY sort_order, code
 	`, groupHistoryDialogRoleWhitelist)
 	if err != nil {
@@ -289,6 +291,38 @@ func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx con
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("list group history role definitions: iterate: %w", err)
+	}
+	return result, nil
+}
+
+// ListFansubGroupRoleDefinitions gibt die zuweisbaren Gruppenrollen (Kontext fansub_group)
+// mit Label und Sortierung zurück. Quelle für den App-Mitglied-Add-Flow (Gap G1, Phase 95):
+// dieser Endpunkt ist member-scoped (ActionFansubGroupMembersView) und für Fansub-Leitungen
+// erreichbar — anders als der platform-admin-only Catalog /admin/fansub-group-roles, der für
+// Leitungen 403 lieferte und die API-getriebene Rollenanzeige (D-12) unbrauchbar machte.
+func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT code, label_de, sort_order
+		FROM role_definitions
+		WHERE 'fansub_group' = ANY(contexts)
+		  AND assignable = true
+		ORDER BY sort_order, code
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("list fansub group role definitions: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]RoleDefinitionOption, 0, len(groupHistoryDialogRoleWhitelist))
+	for rows.Next() {
+		var opt RoleDefinitionOption
+		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.SortOrder); err != nil {
+			return nil, fmt.Errorf("list fansub group role definitions: scan: %w", err)
+		}
+		result = append(result, opt)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list fansub group role definitions: iterate: %w", err)
 	}
 	return result, nil
 }

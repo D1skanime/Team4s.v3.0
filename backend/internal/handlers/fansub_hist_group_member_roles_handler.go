@@ -68,11 +68,12 @@ type histGroupMemberRolePatchRequest struct {
 	SourceNote  **string `json:"source_note"`
 }
 
-// ListGroupHistoryRoleDefinitions gibt die kuratierte Liste der historischen Gruppenrollen
-// aus role_definitions zurück (nur group_history-Whitelist: Gründer/in, Gruppenleitung,
-// Co-Leitung, Projektmanagement).
-// GET /admin/fansubs/:id/role-definitions
-// Autorisierung: CanForFansubGroup(ActionFansubGroupMembersView)
+// ListGroupHistoryRoleDefinitions gibt kuratierte Rollendefinitionen für einen Fansub zurück.
+// GET /admin/fansubs/:id/role-definitions[?context=group_history|fansub_group]
+// - context=group_history (Default): historische Gruppenrollen für den hist-Dialog.
+// - context=fansub_group: zuweisbare Gruppenrollen für den App-Mitglied-Add-Flow (Gap G1, D-12).
+// Autorisierung: CanForFansubGroup(ActionFansubGroupMembersView) — member-scoped, für
+// Fansub-Leitungen erreichbar (anders als der platform-admin-only Catalog).
 func (h *FansubHistGroupMemberRolesHandler) ListGroupHistoryRoleDefinitions(c *gin.Context) {
 	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
@@ -96,7 +97,12 @@ func (h *FansubHistGroupMemberRolesHandler) ListGroupHistoryRoleDefinitions(c *g
 		return
 	}
 
-	items, err := h.rolesRepo.ListGroupHistoryRoleDefinitions(c.Request.Context())
+	var items []repository.RoleDefinitionOption
+	if c.Query("context") == "fansub_group" {
+		items, err = h.rolesRepo.ListFansubGroupRoleDefinitions(c.Request.Context())
+	} else {
+		items, err = h.rolesRepo.ListGroupHistoryRoleDefinitions(c.Request.Context())
+	}
 	if err != nil {
 		log.Printf("role definitions list: repo error (fansub_id=%d): %v", fansubID, err)
 		internalError(c, "interner Serverfehler")
