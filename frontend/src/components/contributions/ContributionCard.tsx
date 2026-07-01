@@ -30,7 +30,7 @@ const ROLE_LABELS: Record<string, string> = {
   project_manager: 'Projektmanagement',
   designer: 'Design',
   admin: 'Administration',
-  leader: 'Gruppenleitung',
+  leader: 'Leader',
   founder: 'Gründer/in',
   other: 'Sonstiges',
 }

@@ -28,7 +28,7 @@ const SECTION_LABELS: Record<SectionId, string> = {
   team: 'Team',
   mitwirkende: 'Mitwirkende',
   medien: 'Medien',
-  gruppenleitung: 'Gruppenleitung',
+  gruppenleitung: 'Leader',
   'deep-dive': 'Mehr',
 }
 

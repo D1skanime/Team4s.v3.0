@@ -420,7 +420,7 @@ export interface FansubGroupRoleItem {
 }
 
 export const FANSUB_GROUP_ROLE_OPTIONS: FansubGroupRoleOption[] = [
-  { code: 'fansub_lead', label: 'Gruppenleitung', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
+  { code: 'fansub_lead', label: 'Leader', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
   { code: 'project_lead', label: 'Projektleitung', description: 'Kann Projekte koordinieren, aber keine Mitglieder verwalten.' },
   { code: 'translator', label: 'Übersetzung', description: 'Arbeitet an Text und Release-Notizen.' },
   { code: 'timer', label: 'Timing', description: 'Pflegt Timing-bezogene Release-Arbeit.' },

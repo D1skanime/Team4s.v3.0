@@ -14,11 +14,11 @@ export function GroupLeaderTimeline({ entries, fallbackLeads }: GroupLeaderTimel
   if (effectiveEntries.length === 0) {
     return (
       <section className={styles.timeline}>
-        <SectionHeader title="Gruppenleitung" />
+        <SectionHeader title="Leader" />
         <EmptyState
           variant="compact"
-          title="Noch keine Gruppenleitung eingetragen"
-          description="Für diese Gruppe ist noch keine öffentliche Leitungs-Historie vorhanden."
+          title="Noch kein Leader eingetragen"
+          description="Für diese Gruppe ist noch keine öffentliche Leader-Historie vorhanden."
         />
       </section>
     )
@@ -26,7 +26,7 @@ export function GroupLeaderTimeline({ entries, fallbackLeads }: GroupLeaderTimel
 
   return (
     <section className={styles.timeline}>
-      <SectionHeader title="Gruppenleitung" />
+      <SectionHeader title="Leader" />
       <Card variant="flat">
         <ol className={styles.list}>
           {effectiveEntries.map((entry, index) => (
