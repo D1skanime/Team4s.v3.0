@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
@@ -66,6 +67,42 @@ type histGroupMemberRolePatchRequest struct {
 	Status      *string  `json:"status"`
 	Visibility  *string  `json:"visibility"`
 	SourceNote  **string `json:"source_note"`
+}
+
+type histGroupMemberRoleResponse struct {
+	ID                  int64     `json:"id"`
+	FansubGroupMemberID int64     `json:"fansub_group_member_id"`
+	MemberDisplayName   string    `json:"member_display_name"`
+	RoleCode            string    `json:"role_code"`
+	RoleLabel           *string   `json:"role_label"`
+	StartedDate         *string   `json:"started_date"`
+	EndedDate           *string   `json:"ended_date"`
+	Note                *string   `json:"note"`
+	Status              string    `json:"status"`
+	CreatedAt           time.Time `json:"created_at"`
+}
+
+func dateOnlyStringPtr(value *time.Time) *string {
+	if value == nil {
+		return nil
+	}
+	formatted := value.Format("2006-01-02")
+	return &formatted
+}
+
+func histGroupMemberRoleResponseFromRow(row repository.HistGroupMemberRoleRow, memberDisplayName string) histGroupMemberRoleResponse {
+	return histGroupMemberRoleResponse{
+		ID:                  row.ID,
+		FansubGroupMemberID: row.HistFansubGroupMemberID,
+		MemberDisplayName:   memberDisplayName,
+		RoleCode:            row.RoleCode,
+		RoleLabel:           nil,
+		StartedDate:         dateOnlyStringPtr(row.StartedDate),
+		EndedDate:           dateOnlyStringPtr(row.EndedDate),
+		Note:                row.SourceNote,
+		Status:              row.Status,
+		CreatedAt:           row.CreatedAt,
+	}
 }
 
 // ListGroupHistoryRoleDefinitions gibt kuratierte Rollendefinitionen für einen Fansub zurück.
@@ -180,8 +217,12 @@ func (h *FansubHistGroupMemberRolesHandler) ListHistGroupMemberRoles(c *gin.Cont
 		internalError(c, "interner serverfehler")
 		return
 	}
+	responseItems := make([]histGroupMemberRoleResponse, 0, len(items))
+	for _, item := range items {
+		responseItems = append(responseItems, histGroupMemberRoleResponseFromRow(item, ""))
+	}
 
-	c.JSON(http.StatusOK, gin.H{"data": items})
+	c.JSON(http.StatusOK, gin.H{"data": responseItems})
 }
 
 // CreateHistGroupMemberRole legt einen neuen Rolleneintrag für ein historisches Mitglied an.
@@ -328,7 +369,7 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 
 	h.recomputeBadges(c, item.HistFansubGroupMemberID)
 
-	c.JSON(http.StatusCreated, gin.H{"data": item})
+	c.JSON(http.StatusCreated, gin.H{"data": histGroupMemberRoleResponseFromRow(*item, "")})
 }
 
 // UpdateHistGroupMemberRole aktualisiert einen Rolleneintrag.
@@ -432,7 +473,7 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 
 	h.recomputeBadges(c, item.HistFansubGroupMemberID)
 
-	c.JSON(http.StatusOK, gin.H{"data": item})
+	c.JSON(http.StatusOK, gin.H{"data": histGroupMemberRoleResponseFromRow(*item, "")})
 }
 
 // DeleteHistGroupMemberRole entfernt einen Rolleneintrag.

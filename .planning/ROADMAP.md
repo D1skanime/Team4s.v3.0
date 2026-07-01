@@ -1622,15 +1622,16 @@ Plans:
 **Goal:** Den Rollen-Lebenszyklus in Richtung **historisch → aktiv** vervollständigen und datentechnisch korrekt abbilden. (1) Historische Rollen mit **tagesgenauen** Start-/Enddaten authoren, direkt im „Historisches Mitglied anlegen/bearbeiten"-Dialog wählbar, **mehrere Rollen pro Person**. (2) **Enddatum-Regel:** ohne Enddatum = weiterhin aktiv; mit Enddatum = beendet/historisch (kein separater „Entzug"). (3) **Claim-Aktivierung:** wenn eine historische Person sich einloggt und ihre Identität bestätigt wird, werden Rollen ohne Enddatum als aktive App-Rollen übernommen, für beendete weist der Admin ggf. neue aktive Rollen zu. (4) **Aktive Rollen zuweisen** (Admin). (5) **Capability** definiert nur Rechte aktiver Rollen (konsistent mit Phase-95-G4); historische tragen keine Rechte. (6) **Sichtbarkeit:** historische Rollen (Start+Enddatum) im Member-Profil, später public — konkrete UI nachgelagert; Priorität = korrekte DB-Abbildung. Baut auf Phase 95 auf (Auto-Archivierung aktiv→historisch/D-10 ist bereits gebaut — dies ist die Gegenrichtung). Teil des Rollenmodell-Reworks (Sheppert-Modell).
 **Requirements:** siehe `97-CONTEXT.md` (D-01 bis D-08)
 **Depends on:** Phase 95
-**Plans:** 5/6 plans executed
+**Status:** Completed 2026-07-01
+**Plans:** 6/6 plans complete
 
 Plans:
-- [ ] `97-00-PLAN.md` -- Wave 0: RED-Test-Gerueste (D-02/D-03/D-04/D-05)
-- [ ] `97-01-PLAN.md` -- Wave 1: DB-Migrationen 0114/0115 (INT->DATE) + D-10-Auto-Archiv-Fix (atomar)
-- [ ] `97-02-PLAN.md` -- Wave 2: Backend-Structs + Handler-DTOs auf DATE-Typen umstellen
-- [ ] `97-03-PLAN.md` -- Wave 3: TypeScript-Typen + Admin-Dialog-UI (Input type=date, N Rollen) + GroupMembersTab
-- [ ] `97-04-PLAN.md` -- Wave 4: Claim-Aktivierung (ResolvePendingRolesToActive) + D-06 ClaimManagementPanel-Zuweisung
-- [ ] `97-05-PLAN.md` -- Wave 5: Vollverifikation + Human-UAT
+- [x] `97-00-PLAN.md` -- Wave 0: RED-Test-Gerueste (D-02/D-03/D-04/D-05)
+- [x] `97-01-PLAN.md` -- Wave 1: DB-Migrationen 0114/0115 (INT->DATE) + D-10-Auto-Archiv-Fix (atomar)
+- [x] `97-02-PLAN.md` -- Wave 2: Backend-Structs + Handler-DTOs auf DATE-Typen umstellen
+- [x] `97-03-PLAN.md` -- Wave 3: TypeScript-Typen + Admin-Dialog-UI (Input type=date, N Rollen) + GroupMembersTab
+- [x] `97-04-PLAN.md` -- Wave 4: Claim-Aktivierung (ResolvePendingRolesToActive) + D-06 ClaimManagementPanel-Zuweisung
+- [x] `97-05-PLAN.md` -- Wave 5: Vollverifikation + Human-UAT
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
