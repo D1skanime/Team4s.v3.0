@@ -260,11 +260,13 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 		return nil, fmt.Errorf("create fansub group member: %w", err)
 	}
 
+	tenureStartedOn := time.Now().UTC().Truncate(24 * time.Hour)
 	for _, role := range roles {
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO fansub_group_member_roles (fansub_group_member_id, role, created_by_app_user_id, created_at)
-			VALUES ($1, $2, $3, NOW())
-		`, memberID, role, input.CreatedByAppUserID); err != nil {
+			INSERT INTO fansub_group_member_roles
+				(fansub_group_member_id, role, created_by_app_user_id, tenure_started_on, created_at)
+			VALUES ($1, $2, $3, $4, NOW())
+		`, memberID, role, input.CreatedByAppUserID, tenureStartedOn); err != nil {
 			return nil, fmt.Errorf("create fansub group member: insert role: %w", err)
 		}
 	}
@@ -397,15 +399,17 @@ func (r *FansubGroupAppMemberRepository) SetRole(
 	}
 
 	if input.Enable {
+		tenureStartedOn := time.Now().UTC().Truncate(24 * time.Hour)
 		if _, err := r.db.Exec(ctx, `
-			INSERT INTO fansub_group_member_roles (fansub_group_member_id, role, created_by_app_user_id, created_at)
-			VALUES ($1, $2, $3, NOW())
+			INSERT INTO fansub_group_member_roles
+				(fansub_group_member_id, role, created_by_app_user_id, tenure_started_on, created_at)
+			VALUES ($1, $2, $3, $4, NOW())
 			ON CONFLICT (fansub_group_member_id, role) DO NOTHING
-		`, memberID, role, input.CreatedByAppUserID); err != nil {
+		`, memberID, role, input.CreatedByAppUserID, tenureStartedOn); err != nil {
 			return nil, fmt.Errorf("set fansub group member role: insert role: %w", err)
 		}
 	} else {
-		// D-10: created_at der Rolle vor dem Löschen speichern (für started_year).
+		// D-10: created_at der Rolle vor dem Löschen speichern (für started_date).
 		var roleCreatedAt time.Time
 		_ = r.db.QueryRow(ctx,
 			`SELECT created_at FROM fansub_group_member_roles
@@ -435,12 +439,14 @@ func (r *FansubGroupAppMemberRepository) SetRole(
 				 LIMIT 1`,
 				memberID, fansubGroupID).Scan(&histMemberID)
 			if err == nil && histMemberID > 0 {
+				startedDate := roleCreatedAt.UTC().Truncate(24 * time.Hour)
+				endedDate := time.Now().UTC().Truncate(24 * time.Hour)
 				_, _ = r.db.Exec(ctx,
 					`INSERT INTO hist_group_member_roles
-					 (hist_fansub_group_member_id, role_code, started_year, ended_year, status, visibility)
+					 (hist_fansub_group_member_id, role_code, started_date, ended_date, status, visibility)
 					 VALUES ($1, $2, $3, $4, 'ended', 'internal')
 					 ON CONFLICT DO NOTHING`,
-					histMemberID, role, roleCreatedAt.Year(), time.Now().Year())
+					histMemberID, role, startedDate, endedDate)
 			}
 		}
 	}
