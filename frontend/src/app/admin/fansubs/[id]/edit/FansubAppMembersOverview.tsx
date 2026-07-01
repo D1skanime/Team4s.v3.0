@@ -25,6 +25,7 @@ import {
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import { useFansubEditMediaQuery } from './hooks/useFansubEditViewport'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -118,6 +119,8 @@ export function FansubAppMembersOverview({
   onEditMember,
   onCancelInvitation,
 }: FansubAppMembersOverviewProps) {
+  const useMobileCards = useFansubEditMediaQuery('(max-width: 767px)')
+
   return (
     <>
       {canViewMembers ? (
@@ -172,13 +175,13 @@ export function FansubAppMembersOverview({
                       <Button
                         variant="ghost"
                         size="sm"
-                        iconOnly
                         aria-label={`${fansubName} bearbeiten`}
                         title={`${fansubName} bearbeiten`}
                         className={styles.fansubEditMemberEditButton}
                         onClick={() => onEditMember(member)}
                       >
                         <Pencil size={16} aria-hidden="true" />
+                        <span>Bearbeiten</span>
                       </Button>
                     ) : null}
                   </div>
@@ -234,6 +237,7 @@ export function FansubAppMembersOverview({
             ) : null}
 
             <div className={styles.fansubEditTableSurface}>
+              <div className={styles.fansubEditMembersDesktopTable}>
               <Table
                 variant="withActions"
                 caption="Offene Einladungen"
@@ -303,6 +307,58 @@ export function FansubAppMembersOverview({
                   }
                 </TableBody>
               </Table>
+              </div>
+              {useMobileCards && invitations.length > 0 ? (
+                <div className={styles.fansubEditMembersMobileList} aria-label="Offene Einladungen">
+                  {invitations.map((invitation) => {
+                    const invitedFansubName = invitation.member?.fansub_name?.trim()
+                    const invitationBusy = busyKey === `invitation:${invitation.id}`
+                    return (
+                      <article className={styles.fansubEditMemberMobileCard} key={`mobile-invitation-${invitation.id}`}>
+                        <div className={styles.fansubEditMemberMobileHeader}>
+                          <div>
+                            <strong>{invitedFansubName || invitation.email}</strong>
+                            {invitedFansubName ? <span>{invitation.email}</span> : null}
+                          </div>
+                          <Badge variant={invitationStatusVariant(invitation.status)}>
+                            {formatInvitationStatusLabel(invitation.status)}
+                          </Badge>
+                        </div>
+                        <div className={styles.fansubEditMemberMobileBlock}>
+                          <span>Rollen nach Annahme</span>
+                          <div className={styles.chipRow}>
+                            {invitation.invited_role_codes.map((role) => (
+                              <Badge
+                                key={`mobile-${invitation.id}-${role}`}
+                                variant="info"
+                                className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
+                              >
+                                {formatRoleLabel(role)}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className={styles.fansubEditMemberMobileBlock}>
+                          <span>Läuft ab</span>
+                          <strong>{formatDateTime(invitation.expires_at)}</strong>
+                        </div>
+                        {canCancelInvitation ? (
+                          <div className={styles.fansubEditMemberMobileActions}>
+                            <Button
+                              variant="danger"
+                              disabled={invitationBusy}
+                              fullWidth
+                              onClick={() => onCancelInvitation(invitation.id)}
+                            >
+                              {invitationBusy ? 'Bitte warten...' : 'Zurückziehen'}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </article>
+                    )
+                  })}
+                </div>
+              ) : null}
             </div>
           </>
         )}

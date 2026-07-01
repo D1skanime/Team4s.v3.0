@@ -26,6 +26,7 @@ import type {
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import { useFansubEditMediaQuery } from './hooks/useFansubEditViewport'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -45,6 +46,12 @@ function formatRoleZeitraum(role: HistGroupMemberRole): string {
   const von = role.started_year ?? '?'
   const bis = role.ended_year ?? 'heute'
   return `${von} – ${bis}`
+}
+
+function formatRoleDuration(role: HistGroupMemberRole): string {
+  if (!role.started_year || !role.ended_year || role.ended_year < role.started_year) return 'Dauer unbekannt'
+  const years = role.ended_year - role.started_year + 1
+  return `${years} Jahr${years === 1 ? '' : 'e'}`
 }
 
 function formatDate(value: string): string {
@@ -88,7 +95,50 @@ export type GroupMembersHistTableProps = {
   onCopyLink: (rowId: number, link: string) => void
 }
 
-export function GroupMembersHistTable({
+export function GroupMembersHistTable(props: GroupMembersHistTableProps) {
+  const {
+    members,
+    rolesByMember,
+    pendingClaimsByMember,
+    generatedInvites,
+    memberInvitations,
+    canCreateClaimInvitation,
+  } = props
+  const useMobileCards = useFansubEditMediaQuery('(max-width: 767px)')
+
+  return (
+    <>
+      <div className={styles.fansubEditMembersDesktopTable}>
+        <DesktopHistoricalMembersTable {...props} />
+      </div>
+      {useMobileCards && members.length > 0 ? (
+        <div className={styles.fansubEditMembersMobileList} aria-label="Historische Mitglieder">
+          {members.map((member) => {
+            const memberRoles = rolesByMember.get(member.id) ?? []
+            const memberClaims = pendingClaimsByMember.get(member.member_id) ?? []
+            const invite = generatedInvites[member.id]
+            const activeInvitation = (memberInvitations[member.id] ?? []).find((inv) => inv.status === 'pending')
+            const canGenerateClaimLink = !member.app_username && memberClaims.length === 0 && !invite && !activeInvitation && canCreateClaimInvitation
+
+            return (
+              <HistoricalMemberMobileCard
+                key={`mobile-member-${member.id}`}
+                {...props}
+                member={member}
+                memberRoles={memberRoles}
+                memberClaims={memberClaims}
+                canGenerateClaimLink={canGenerateClaimLink}
+                activeInvitation={activeInvitation}
+              />
+            )
+          })}
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function DesktopHistoricalMembersTable({
   members,
   rolesByMember,
   pendingClaimsByMember,
@@ -152,31 +202,13 @@ export function GroupMembersHistTable({
                 {memberRoles.length > 0 ? (
                   <div className={styles.fansubEditMembershipRoleList}>
                     {memberRoles.map((role) => (
-                      <div key={role.id} className={styles.fansubEditMembershipRoleItem}>
-                        <div className={styles.fansubEditMembershipRoleItemMain}>
-                          <strong>{role.role_label ?? roleLabelForCode(role.role_code)}</strong>
-                          <span>{formatRoleZeitraum(role)}</span>
-                          {role.note ? <span>{role.note}</span> : null}
-                        </div>
-                        <div className={styles.fansubEditMembershipRoleControls}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            iconOnly
-                            aria-label="Rolle bearbeiten"
-                            leftIcon={<Pencil size={14} aria-hidden="true" />}
-                            onClick={() => onEditRole(role)}
-                          />
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            iconOnly
-                            aria-label="Rolle löschen"
-                            leftIcon={<Trash2 size={14} aria-hidden="true" />}
-                            onClick={() => onDeleteRole(role)}
-                          />
-                        </div>
-                      </div>
+                      <RoleItem
+                        key={role.id}
+                        role={role}
+                        roleLabelForCode={roleLabelForCode}
+                        onEditRole={onEditRole}
+                        onDeleteRole={onDeleteRole}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -184,100 +216,22 @@ export function GroupMembersHistTable({
                 )}
               </TableCell>
               <TableCell>
-                <div className={styles.fansubEditClaimCell}>
-                  <Badge variant={claimVariant(member, memberClaims)}>{claimLabel(member, memberClaims)}</Badge>
-                  {member.app_username ? (
-                    <>
-                      <br />
-                      <span className={styles.fansubEditHint}>{member.app_username}</span>
-                    </>
-                  ) : null}
-                  {!member.app_username && memberClaims.length > 0 ? (
-                    <div className={styles.fansubEditClaimList}>
-                      {memberClaims.map((claim) => (
-                        <div key={claim.id} className={styles.fansubEditClaimItem}>
-                          <span className={styles.fansubEditHint}>App-User-ID {claim.app_user_id} · {formatDate(claim.created_at)}</span>
-                          {claim.note ? <span>{claim.note}</span> : null}
-                          {canManageClaims ? (
-                            <div className={styles.fansubEditClaimActions}>
-                              <Button
-                                size="sm"
-                                variant="success"
-                                leftIcon={<UserCheck size={14} aria-hidden="true" />}
-                                onClick={() => onVerifyClaim(claim.id)}
-                              >
-                                Bestätigen
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="danger"
-                                leftIcon={<UserX size={14} aria-hidden="true" />}
-                                onClick={() => onRejectClaim(claim.id, claim.member_nickname)}
-                              >
-                                Ablehnen
-                              </Button>
-                            </div>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                  {!member.app_username && memberClaims.length === 0 && invite ? (
-                    <div className={styles.fansubEditClaimInvite}>
-                      <Input
-                        id={`hist-claim-invite-link-${member.id}`}
-                        type="text"
-                        aria-label={`Einladungslink für ${member.display_name}`}
-                        readOnly
-                        value={inviteLink}
-                        onFocus={(event) => event.currentTarget.select()}
-                      />
-                      <div className={styles.fansubEditClaimActions}>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          leftIcon={<Copy size={14} aria-hidden="true" />}
-                          onClick={() => onCopyLink(member.id, inviteLink)}
-                        >
-                          {copyStates[member.id] === 'copied' ? 'Kopiert!' : copyStates[member.id] === 'selected' ? 'Link markiert' : 'Kopieren'}
-                        </Button>
-                        <Button
-                          href={inviteLink}
-                          size="sm"
-                          variant="secondary"
-                          leftIcon={<Link2 size={14} aria-hidden="true" />}
-                        >
-                          Öffnen
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-                  {!member.app_username && memberClaims.length === 0 && !invite && activeInvitation ? (
-                    <div className={styles.fansubEditClaimInvite}>
-                      <Badge variant="muted">Einladung aktiv bis {formatDate(activeInvitation.expires_at)}</Badge>
-                      {canCancelClaimInvitation ? (
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          leftIcon={<UserX size={14} aria-hidden="true" />}
-                          onClick={() => onCancelInvitation(member.id, member.member_id, activeInvitation.id)}
-                        >
-                          Zurückziehen
-                        </Button>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {!member.app_username && memberClaims.length === 0 && !invite && !activeInvitation && canCreateClaimInvitation ? (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      leftIcon={<UserPlus size={14} aria-hidden="true" />}
-                      onClick={() => onGenerateInvitation(member.id, member.member_id)}
-                    >
-                      Claim-Link
-                    </Button>
-                  ) : null}
-                </div>
+                <ClaimStatusBlock
+                  member={member}
+                  memberClaims={memberClaims}
+                  inviteLink={inviteLink}
+                  activeInvitation={activeInvitation}
+                  copyStates={copyStates}
+                  canManageClaims={canManageClaims}
+                  canCancelClaimInvitation={canCancelClaimInvitation}
+                  canCreateClaimInvitation={canCreateClaimInvitation}
+                  onVerifyClaim={onVerifyClaim}
+                  onRejectClaim={onRejectClaim}
+                  onCancelInvitation={onCancelInvitation}
+                  onGenerateInvitation={onGenerateInvitation}
+                  onCopyLink={onCopyLink}
+                  showCreateClaimAction
+                />
               </TableCell>
               <TableCell>
                 <div className={styles.fansubEditTableRowActions}>
@@ -312,5 +266,284 @@ export function GroupMembersHistTable({
         })}
       </TableBody>
     </Table>
+  )
+}
+
+type HistoricalMemberMobileCardProps = GroupMembersHistTableProps & {
+  member: HistFansubGroupMember
+  memberRoles: HistGroupMemberRole[]
+  memberClaims: MemberClaimRow[]
+  canGenerateClaimLink: boolean
+  activeInvitation?: MemberClaimInvitationResponse
+}
+
+function HistoricalMemberMobileCard({
+  member,
+  memberRoles,
+  memberClaims,
+  generatedInvites,
+  copyStates,
+  canManageClaims,
+  canCancelClaimInvitation,
+  canCreateClaimInvitation,
+  canGenerateClaimLink,
+  activeInvitation,
+  roleLabelForCode,
+  normalizeInviteLink,
+  onEditMember,
+  onDeleteMember,
+  onEditRole,
+  onDeleteRole,
+  onAddRole,
+  onVerifyClaim,
+  onRejectClaim,
+  onGenerateInvitation,
+  onCancelInvitation,
+  onCopyLink,
+}: HistoricalMemberMobileCardProps) {
+  const invite = generatedInvites[member.id]
+  const inviteLink = invite ? normalizeInviteLink(invite.invite_link) : ''
+
+  return (
+    <article className={styles.fansubEditMemberMobileCard}>
+      <div className={styles.fansubEditMemberMobileHeader}>
+        <div>
+          <strong>{member.display_name}</strong>
+          <span>{formatZeitraum(member)}</span>
+        </div>
+        <Badge variant="muted">{visibilityLabel(member.visibility ?? 'internal')}</Badge>
+      </div>
+      <div className={styles.fansubEditMemberMobileBlock}>
+        <span>Aufgaben/Rollen</span>
+        {memberRoles.length > 0 ? (
+          <div className={styles.fansubEditMembershipRoleList}>
+            {memberRoles.map((role) => (
+              <RoleItem
+                key={`mobile-role-${role.id}`}
+                role={role}
+                roleLabelForCode={roleLabelForCode}
+                onEditRole={onEditRole}
+                onDeleteRole={onDeleteRole}
+                showDuration
+              />
+            ))}
+          </div>
+        ) : (
+          <span className={styles.fansubEditHint}>Keine historischen Rollen</span>
+        )}
+      </div>
+      <ClaimStatusBlock
+        member={member}
+        memberClaims={memberClaims}
+        inviteLink={inviteLink}
+        activeInvitation={activeInvitation}
+        copyStates={copyStates}
+        canManageClaims={canManageClaims}
+        canCancelClaimInvitation={canCancelClaimInvitation}
+        canCreateClaimInvitation={canCreateClaimInvitation}
+        onVerifyClaim={onVerifyClaim}
+        onRejectClaim={onRejectClaim}
+        onCancelInvitation={onCancelInvitation}
+        onGenerateInvitation={onGenerateInvitation}
+        onCopyLink={onCopyLink}
+      />
+      <div className={styles.fansubEditMemberMobileActions}>
+        {canCreateClaimInvitation ? (
+          <Button
+            variant="primary"
+            disabled={!canGenerateClaimLink}
+            leftIcon={<UserPlus size={14} aria-hidden="true" />}
+            onClick={() => onGenerateInvitation(member.id, member.member_id)}
+          >
+            Claim-Link
+          </Button>
+        ) : null}
+        <Button
+          variant="ghost"
+          leftIcon={<Pencil size={14} aria-hidden="true" />}
+          onClick={() => onEditMember(member)}
+        >
+          Bearbeiten
+        </Button>
+        <Button
+          variant="ghost"
+          leftIcon={<Pencil size={14} aria-hidden="true" />}
+          onClick={() => onAddRole(member)}
+        >
+          Rolle
+        </Button>
+        <Button
+          variant="danger"
+          leftIcon={<Trash2 size={14} aria-hidden="true" />}
+          onClick={() => onDeleteMember(member)}
+        >
+          Löschen
+        </Button>
+      </div>
+    </article>
+  )
+}
+
+type RoleItemProps = {
+  role: HistGroupMemberRole
+  roleLabelForCode: (code: string) => string
+  onEditRole: (role: HistGroupMemberRole) => void
+  onDeleteRole: (role: HistGroupMemberRole) => void
+  showDuration?: boolean
+}
+
+function RoleItem({ role, roleLabelForCode, onEditRole, onDeleteRole, showDuration = false }: RoleItemProps) {
+  return (
+    <div className={styles.fansubEditMembershipRoleItem}>
+      <div className={styles.fansubEditMembershipRoleItemMain}>
+        <strong>{role.role_label ?? roleLabelForCode(role.role_code)}</strong>
+        <span>{formatRoleZeitraum(role)}{showDuration ? ` · ${formatRoleDuration(role)}` : ''}</span>
+        {role.note ? <span>{role.note}</span> : null}
+      </div>
+      <div className={styles.fansubEditMembershipRoleControls}>
+        <Button
+          variant="ghost"
+          size="sm"
+          iconOnly
+          aria-label="Rolle bearbeiten"
+          leftIcon={<Pencil size={14} aria-hidden="true" />}
+          onClick={() => onEditRole(role)}
+        />
+        <Button
+          variant="danger"
+          size="sm"
+          iconOnly
+          aria-label="Rolle löschen"
+          leftIcon={<Trash2 size={14} aria-hidden="true" />}
+          onClick={() => onDeleteRole(role)}
+        />
+      </div>
+    </div>
+  )
+}
+
+type ClaimStatusBlockProps = {
+  member: HistFansubGroupMember
+  memberClaims: MemberClaimRow[]
+  inviteLink: string
+  activeInvitation?: MemberClaimInvitationResponse
+  copyStates: Record<number, CopyState>
+  canManageClaims: boolean
+  canCancelClaimInvitation: boolean
+  canCreateClaimInvitation: boolean
+  onVerifyClaim: (claimId: number) => void
+  onRejectClaim: (claimId: number, memberNick: string) => void
+  onGenerateInvitation: (rowId: number, memberId: number) => void
+  onCancelInvitation: (rowId: number, memberId: number, invitationId: number) => void
+  onCopyLink: (rowId: number, link: string) => void
+  showCreateClaimAction?: boolean
+}
+
+function ClaimStatusBlock({
+  member,
+  memberClaims,
+  inviteLink,
+  activeInvitation,
+  copyStates,
+  canManageClaims,
+  canCancelClaimInvitation,
+  canCreateClaimInvitation,
+  onVerifyClaim,
+  onRejectClaim,
+  onGenerateInvitation,
+  onCancelInvitation,
+  onCopyLink,
+  showCreateClaimAction = false,
+}: ClaimStatusBlockProps) {
+  return (
+    <div className={styles.fansubEditClaimCell}>
+      <Badge variant={claimVariant(member, memberClaims)}>{claimLabel(member, memberClaims)}</Badge>
+      {member.app_username ? <span className={styles.fansubEditHint}>{member.app_username}</span> : null}
+      {!member.app_username && memberClaims.length > 0 ? (
+        <div className={styles.fansubEditClaimList}>
+          {memberClaims.map((claim) => (
+            <div key={claim.id} className={styles.fansubEditClaimItem}>
+              <span className={styles.fansubEditHint}>App-User-ID {claim.app_user_id} · {formatDate(claim.created_at)}</span>
+              {claim.note ? <span>{claim.note}</span> : null}
+              {canManageClaims ? (
+                <div className={styles.fansubEditClaimActions}>
+                  <Button
+                    size="sm"
+                    variant="success"
+                    leftIcon={<UserCheck size={14} aria-hidden="true" />}
+                    onClick={() => onVerifyClaim(claim.id)}
+                  >
+                    Bestätigen
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    leftIcon={<UserX size={14} aria-hidden="true" />}
+                    onClick={() => onRejectClaim(claim.id, claim.member_nickname)}
+                  >
+                    Ablehnen
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {!member.app_username && memberClaims.length === 0 && inviteLink ? (
+        <div className={styles.fansubEditClaimInvite}>
+          <Input
+            id={`hist-claim-invite-link-${showCreateClaimAction ? 'desktop' : 'mobile'}-${member.id}`}
+            type="text"
+            aria-label={`Einladungslink für ${member.display_name}`}
+            readOnly
+            value={inviteLink}
+            onFocus={(event) => event.currentTarget.select()}
+          />
+          <div className={styles.fansubEditClaimActions}>
+            <Button
+              size="sm"
+              variant="secondary"
+              leftIcon={<Copy size={14} aria-hidden="true" />}
+              onClick={() => onCopyLink(member.id, inviteLink)}
+            >
+              {copyStates[member.id] === 'copied' ? 'Kopiert!' : copyStates[member.id] === 'selected' ? 'Link markiert' : 'Kopieren'}
+            </Button>
+            <Button
+              href={inviteLink}
+              size="sm"
+              variant="secondary"
+              leftIcon={<Link2 size={14} aria-hidden="true" />}
+            >
+              Öffnen
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {!member.app_username && memberClaims.length === 0 && !inviteLink && activeInvitation ? (
+        <div className={styles.fansubEditClaimInvite}>
+          <Badge variant="muted">Einladung aktiv bis {formatDate(activeInvitation.expires_at)}</Badge>
+          {canCancelClaimInvitation ? (
+            <Button
+              size="sm"
+              variant="danger"
+              leftIcon={<UserX size={14} aria-hidden="true" />}
+              onClick={() => onCancelInvitation(member.id, member.member_id, activeInvitation.id)}
+            >
+              Zurückziehen
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+      {!member.app_username && memberClaims.length === 0 && !inviteLink && !activeInvitation && canCreateClaimInvitation && showCreateClaimAction ? (
+        <Button
+          size="sm"
+          variant="secondary"
+          leftIcon={<UserPlus size={14} aria-hidden="true" />}
+          onClick={() => onGenerateInvitation(member.id, member.member_id)}
+        >
+          Claim-Link
+        </Button>
+      ) : null}
+    </div>
   )
 }

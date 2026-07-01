@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 import { buildFansubLogoFallback } from "@/components/admin/MediaUpload";
 import { labelForFansubStatus } from "./fansubEditFormatters";
@@ -31,6 +32,21 @@ export function FansubEditHeaderCard({
   onMainTabChange,
 }: FansubEditHeaderCardProps) {
   const logoFallback = buildFansubLogoFallback(form.name);
+  const tabRowRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const activeButton = tabRowRef.current?.querySelector<HTMLButtonElement>(
+      '[data-active-tab="true"]',
+    );
+    if (!activeButton || typeof activeButton.scrollIntoView !== "function") {
+      return;
+    }
+    activeButton.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activeMainTab]);
 
   return (
     <header className={styles.fansubEditHeaderCard}>
@@ -93,6 +109,7 @@ export function FansubEditHeaderCard({
         </div>
       </div>
       <nav
+        ref={tabRowRef}
         className={styles.fansubEditMainTabRow}
         aria-label="Fansub Bearbeitungsbereiche"
       >
@@ -100,6 +117,7 @@ export function FansubEditHeaderCard({
           <button
             key={tab.key}
             type="button"
+            data-active-tab={activeMainTab === tab.key ? "true" : undefined}
             className={`${styles.fansubEditMainTabButton} ${activeMainTab === tab.key ? styles.fansubEditMainTabButtonActive : ""}`}
             onClick={() => onMainTabChange(tab.key)}
           >

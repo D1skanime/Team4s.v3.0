@@ -94,6 +94,19 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 399px) {
+  .fansubEditMembershipHeaderActions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fansubEditMembershipHeaderActions > button,
+  .fansubEditMembershipHeaderActions > a {
+    width: 100%;
+  }
+}
+
 .fansubEditMembershipAssignCard,
 .fansubEditMembershipCard,
 .fansubEditMembershipEmpty {
@@ -307,12 +320,26 @@
 .fansubEditMembershipModalSection {
   display: grid;
   gap: 0.9rem;
+  align-content: start;
+  align-self: start;
+  grid-auto-rows: max-content;
+  height: fit-content;
+  min-height: 0;
+}
+
+.fansubEditMembershipModalStack > *,
+.fansubEditMembershipModalGrid > *,
+.fansubEditMembershipModalSection > * {
+  align-self: start;
+  min-height: 0;
 }
 
 .fansubEditMembershipModalGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
+  align-content: start;
+  grid-auto-rows: max-content;
   gap: 0.9rem;
 }
 
@@ -334,6 +361,21 @@
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--bg-secondary) 74%, transparent);
   padding: 0.85rem;
+}
+
+.fansubEditMemberChoiceList {
+  gap: 0.65rem;
+}
+
+.fansubEditMemberChoiceButton {
+  align-self: start;
+  min-height: 52px;
+  height: auto;
+}
+
+.fansubEditMemberAddCard {
+  gap: 0.75rem;
+  min-height: 0;
 }
 
 .fansubEditCandidateResults {
@@ -3115,18 +3157,24 @@
   }
 
   .fansubEditMainTabRow {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
     gap: 0.45rem;
+    overflow-x: auto;
+    scrollbar-width: none;
     padding: 0.65rem 0.7rem 0.8rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .fansubEditMainTabRow::-webkit-scrollbar {
+    display: none;
   }
 
   .fansubEditMainTabButton {
-    width: 100%;
-    min-width: 0;
-    min-height: 38px;
-    padding-inline: 0.55rem;
-    white-space: normal;
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 10px 16px;
+    white-space: nowrap;
     line-height: 1.15;
   }
 
@@ -3381,6 +3429,10 @@
   border-radius: 999px;
 }
 
+.fansubEditMemberEditButton span {
+  display: none;
+}
+
 .fansubEditMemberCompactBody {
   display: flex;
   align-items: center;
@@ -3397,12 +3449,19 @@
 .fansubEditMemberEditor {
   display: grid;
   gap: 14px;
+  align-content: start;
+  align-self: start;
+  grid-auto-rows: max-content;
+  height: fit-content;
   min-width: 0;
+  min-height: 0;
 }
 
 .fansubEditMemberEditorTabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: start;
+  align-items: stretch;
   gap: 6px;
   padding: 4px;
   border: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
@@ -3411,8 +3470,10 @@
 }
 
 .fansubEditMemberEditorTab {
+  align-self: stretch;
   min-width: 0;
   min-height: 38px;
+  height: auto;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
@@ -3430,6 +3491,8 @@
 .fansubEditMemberEditorPanel {
   display: grid;
   gap: 12px;
+  align-content: start;
+  grid-auto-rows: max-content;
   min-width: 0;
   padding-bottom: 6px;
 }
@@ -3437,6 +3500,7 @@
 .fansubEditMemberRoleGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: max-content;
   gap: 8px;
 }
 
@@ -3450,6 +3514,7 @@
   gap: 6px;
   min-width: 0;
   min-height: 40px;
+  height: auto;
   border: 1px solid var(--role-accent);
   border-radius: 999px;
   background: transparent;
@@ -3573,7 +3638,87 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
+  .fansubEditMembershipModalStack {
+    gap: 0.75rem;
+    align-self: start;
+    height: fit-content;
+  }
+
+  .fansubEditMembershipModalStack input,
+  .fansubEditMembershipModalStack select,
+  .fansubEditMembershipModalStack button,
+  .fansubEditMembershipModalGrid button,
+  .fansubEditMembershipModalSection button {
+    align-self: start;
+    height: auto;
+  }
+
+  .fansubEditMemberChoiceButton {
+    min-height: 54px;
+    max-height: 64px;
+  }
+
+  .fansubEditMemberAddCard {
+    padding: 12px;
+  }
+
+  .fansubEditMemberAddCard .chipRow {
+    gap: 0.38rem;
+  }
+
+  .fansubEditMemberAddCard .chipRow > button,
+  .fansubEditMemberEditorPanel .chipRow > button {
+    min-height: 40px;
+    padding-inline: 10px;
+  }
+
+  .fansubEditMemberEditor {
+    gap: 0.75rem;
+    align-self: start;
+    height: fit-content;
+  }
+
+  .fansubEditMemberEditorTabs {
+    gap: 4px;
+    padding: 3px;
+  }
+
+  .fansubEditMemberEditorTab {
+    min-height: 44px;
+    max-height: 54px;
+    padding-inline: 8px;
+    line-height: 1.15;
+  }
+
+  .fansubEditMemberRoleGrid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .fansubEditMemberRoleToggle {
+    justify-content: flex-start;
+    min-height: 44px;
+    max-height: 54px;
+    padding-inline: 14px;
+    text-align: left;
+  }
+
+  .fansubEditMediaSwitchRow {
+    min-height: 52px;
+    max-height: 76px;
+    padding: 9px 10px;
+  }
+
+  .fansubEditMembershipModalActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fansubEditMembershipModalActions > * {
+    width: 100%;
+  }
+
   .fansubEditMembersDesktopTable {
     display: none;
   }
@@ -3591,8 +3736,38 @@
     justify-self: start;
   }
 
-  .fansubEditMemberMobileActions > * {
-    flex: 1 1 140px;
+  .fansubEditMemberMobileCard {
+    min-width: 0;
+  }
+
+  .fansubEditMemberMobileActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fansubEditMemberMobileActions > *,
+  .fansubEditMemberMobileCard .fansubEditClaimActions > *,
+  .fansubEditMemberMobileCard .fansubEditMembershipRoleControls > *,
+  .fansubEditMemberCompactCard .chipRow > *,
+  .fansubEditMemberMobileCard .chipRow > * {
+    min-height: 44px;
+  }
+
+  .fansubEditMemberMobileCard .fansubEditMembershipRoleControls > * {
+    min-width: 44px;
+  }
+
+  .fansubEditMemberEditButton {
+    width: auto;
+    min-width: 0;
+    min-height: 44px;
+    height: auto;
+    padding-inline: 14px;
+    border-radius: 8px;
+  }
+
+  .fansubEditMemberEditButton span {
+    display: inline;
   }
 }
 

@@ -45,10 +45,11 @@ export function FansubAppMemberChoiceModal({
       title="Mitglied hinzufügen"
       description="Wähle, ob du App-Zugriff vergibst oder einen historischen Eintrag anlegst."
     >
-      <div className={styles.fansubEditMembershipModalStack}>
+      <div className={`${styles.fansubEditMembershipModalStack} ${styles.fansubEditMemberChoiceList}`}>
         <Button
           variant="primary"
           fullWidth
+          className={styles.fansubEditMemberChoiceButton}
           onClick={onAppMemberFlow}
           disabled={!canManageMembers && !canCreateInvitation}
         >
@@ -57,6 +58,7 @@ export function FansubAppMemberChoiceModal({
         <Button
           variant="secondary"
           fullWidth
+          className={styles.fansubEditMemberChoiceButton}
           onClick={onHistoricalMemberFlow}
           disabled={!canManageMembers || !hasHistoricalActions}
         >
@@ -147,6 +149,7 @@ export function FansubAppMemberAddModal({
         {canManageMembers ? (
           <Card
             variant="nestedFlat"
+            className={styles.fansubEditMemberAddCard}
             title="Bestehendes Profil"
             description="Fansub-Nick suchen und mit dieser Gruppe verbinden."
           >
@@ -242,6 +245,7 @@ export function FansubAppMemberAddModal({
         {canCreateInvitation ? (
           <Card
             variant="nestedFlat"
+            className={styles.fansubEditMemberAddCard}
             title="Einladung"
             description="Per E-Mail einladen und Aufgaben für die Annahme festlegen."
           >
