@@ -405,22 +405,25 @@ import { FormField, Input } from '@/components/ui'
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Claim-Aktivierung: Welche Rollencodes sollen automatisch aktiv werden?**
    - Was bekannt: `D-05` sagt alle Rollen ohne Enddatum.
    - Was unklar: Gilt das für `founder` (historische Ehrenrolle, kein aktiver Zweck) und `fansub_lead` (Sonderweg mit Last-Admin-Guard)?
    - Empfehlung: Im Plan explizit whitelist für Claim-Aktivierung definieren — analog zu `groupHistoryDialogRoleWhitelist`. Sicherste Lösung: nur `co_leader`, `project_lead`, `techadmin`, `gfxler`, `fansub_lead` (mit Guard) — `founder` ausschließen.
+   - **(RESOLVED)** Plan 04 Task 1 SQL: AND role_code <> ALL(ARRAY['fansub_lead','founder']) — beide explizit ausgeschlossen. IsGroupHistoryWhitelistRole als zweiter defensiver Guard. fansub_lead muss Admin manuell via D-06 ClaimManagementPanel/SetRole zuweisen.
 
 2. **D-03: Soll der Mitglied-Dialog (GroupMemberFormModals) Rollen direkt integrieren oder bleibt der separate `GroupHistRoleDialog` erhalten?**
    - Was bekannt: Aktuell sind beide getrennt. D-03 sagt „integrieren".
    - Was unklar: Ob das bedeutet, den `GroupHistRoleDialog` abzuschaffen oder ihn über einen „Rollen hinzufügen"-Button innerhalb `GroupMemberFormModals` einzubetten.
    - Empfehlung: Im Plan klären. Pragmatischer Weg: `GroupHistRoleDialog` als Inline-Sektion in `GroupMemberFormModals` einbetten (kein eigener Button mehr), aber Dialog-Code bleibt als eigene Datei (450-Zeilen-Limit).
+   - **(RESOLVED)** Plan 03 Task 2: GroupHistRoleDialog bleibt als eigene Datei erhalten (450-Zeilen-Limit). Einbettung in GroupMembersTab über bestehenden Aufruf-Flow. D-01-Mehrfachrollen via wiederholtes Dialog-Öffnen (Schema unterstützt N Rollen pro Person).
 
 3. **Existiert `hist_group_members_repository.go` als separate Datei neben dem Roles-Repository?**
    - Was bekannt: `main.go` instanziiert `repository.NewHistGroupMembersRepository(dbPool)`.
    - Was unklar: Dateiname und Struct-Struktur (für die DATE-Migration relevant).
    - Empfehlung: Datei vor dem Plan lesen (Glob: `backend/internal/repository/hist_group_members_repository.go`).
+   - **(RESOLVED)** Plan 02 read_first bestätigt: `backend/internal/repository/hist_group_members_repository.go` existiert (418 Zeilen), Struct `HistGroupMemberRow` mit `JoinedYear/LeftYear *int` — wird in Plan 02 Task 2 auf `JoinedDate/LeftDate *time.Time` umgestellt.
 
 ---
 
@@ -451,11 +454,11 @@ import { FormField, Input } from '@/components/ui'
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| D-02 | Migration läuft durch (up + down) | Integration (SQL) | `go test ./...` (migrate-Paket, falls vorhanden) | ❌ Wave 0 |
+| D-02 | Migration läuft durch (up + down) | Integration (SQL) | `go test ./...` (migrate-Paket, falls vorhanden) | ✅ Wave 0 (97-00) |
 | D-02 | Go-Structs kompilieren mit DATE-Typen | Compile | `go build ./...` | ✅ (implizit) |
-| D-03 | Rollen-Dialog rendert `started_date`/`ended_date` statt YearPicker | Unit (Vitest) | `npm --prefix frontend run test -- GroupHistRoleDialog` | ❌ Wave 0 |
-| D-04 | Enddatum-Regel: Rolle ohne Enddatum gilt als aktiv | Unit (Go) | `go test ./... -run TestHistRoleEndDateRule` | ❌ Wave 0 |
-| D-05 | VerifyClaim → Rollen ohne Enddatum werden in fansub_group_member_roles geschrieben | Unit (Go) | `go test ./... -run TestVerifyClaimActivatesRoles` | ❌ Wave 0 |
+| D-03 | Rollen-Dialog rendert `started_date`/`ended_date` statt YearPicker | Unit (Vitest) | `npm --prefix frontend run test -- GroupHistRoleDialog` | ✅ Wave 0 (97-00) |
+| D-04 | Enddatum-Regel: Rolle ohne Enddatum gilt als aktiv | Unit (Go) | `go test ./... -run TestHistRoleEndDateRule` | ✅ Wave 0 (97-00) |
+| D-05 | VerifyClaim → Rollen ohne Enddatum werden in fansub_group_member_roles geschrieben | Unit (Go) | `go test ./... -run TestVerifyClaimActivatesRoles` | ✅ Wave 0 (97-00) |
 | D-07 | canForContext liest nur aktive Rollen (keine hist-Tabelle) | Unit (Go, bestehend) | `go test ./internal/permissions/...` | ✅ (bestehende Tests) |
 
 ### Sampling Rate
@@ -464,9 +467,9 @@ import { FormField, Input } from '@/components/ui'
 - **Phase Gate:** Vollständige Suite grün + Live-UAT auf `:3000` vor `/gsd:verify-work`
 
 ### Wave 0 Gaps
-- [ ] `backend/internal/repository/member_claims_repository_claim_activation_test.go` — deckt D-05
-- [ ] `backend/internal/repository/hist_group_member_roles_date_test.go` — deckt D-02/D-04
-- [ ] Frontend: `GroupHistRoleDialog.test.tsx` aktualisieren — deckt D-03 (Datumseingabe statt YearPicker)
+- [x] `backend/internal/repository/member_claims_repository_claim_activation_test.go` — deckt D-05 (Plan 97-00)
+- [x] `backend/internal/repository/hist_group_member_roles_date_test.go` — deckt D-02/D-04 (Plan 97-00)
+- [x] Frontend: `GroupHistRoleDialog.test.tsx` — deckt D-03 (Plan 97-00)
 
 ---
 

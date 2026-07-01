@@ -2,7 +2,7 @@
 phase: 97
 slug: revoke-rollen-lifecycle-uebergang
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-01
 ---
@@ -37,13 +37,21 @@ created: 2026-07-01
 
 ## Per-Task Verification Map
 
-*Wird vom Planner/Executor je Plan gefüllt (Task-IDs 97-NN-MM). Kern-Invarianten:*
-
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------|-------------------|--------|
-| 97-01-* | 01 | 1 | D-02 | migration | `migrate up` + psql-Check DATE-Spalten vorhanden, Bestandsdaten gemappt | ⬜ pending |
-| 97-0x-* | 0x | * | D-05 | unit (Go) | `go test ./internal/repository/...` — Claim-Aktivierung: hist ohne Enddatum → aktive Rolle | ⬜ pending |
-| 97-0x-* | 0x | * | D-01/D-03 | unit (Vitest) | `npx vitest run` — Historie-Dialog Rollenauswahl + DATE-Felder | ⬜ pending |
+| 97-00-1 | 00 | 0 | D-02/D-04 | unit (Go, RED) | `cd backend && go test ./internal/repository/... -run TestHistRoleStructHasDateFields\|TestHistRoleEndDateRule` | ⬜ pending |
+| 97-00-2 | 00 | 0 | D-05 | unit (Go, RED) | `cd backend && go test ./internal/repository/... -run TestResolvePendingRolesToActive\|TestVerifyClaimActivatesRoles` | ⬜ pending |
+| 97-00-3 | 00 | 0 | D-03 | unit (Vitest, RED) | `cd frontend && npx vitest run src/app/admin/fansubs` | ⬜ pending |
+| 97-01-1 | 01 | 1 | D-02 | migration | `migrate up` + psql-Check DATE-Spalten vorhanden, Bestandsdaten gemappt | ⬜ pending |
+| 97-01-2 | 01 | 1 | D-04 | compile | `cd backend && go build ./...` — D-10-Auto-Archivierung mit DATE-Spalten | ⬜ pending |
+| 97-02-1 | 02 | 2 | D-02 | compile | `cd backend && go build ./internal/repository/...` — Structs mit *time.Time | ⬜ pending |
+| 97-02-2 | 02 | 2 | D-02 | unit (Go) | `cd backend && go test ./internal/repository/... ./internal/handlers/...` | ⬜ pending |
+| 97-03-1 | 03 | 3 | D-01/D-03 | typecheck | `cd frontend && npx tsc --noEmit` | ⬜ pending |
+| 97-03-2 | 03 | 3 | D-03 | unit (Vitest, GREEN) | `cd frontend && npx vitest run src/app/admin/fansubs` — Wave-0-Tests nun grün | ⬜ pending |
+| 97-04-1 | 04 | 4 | D-05 | unit (Go, GREEN) | `cd backend && go test ./internal/repository/... -run TestResolvePendingRolesToActive\|TestVerifyClaimActivatesRoles` | ⬜ pending |
+| 97-04-2 | 04 | 4 | D-06 | typecheck | `cd frontend && npx tsc --noEmit` — ClaimManagementPanel.tsx kompiliert | ⬜ pending |
+| 97-05-1 | 05 | 5 | D-08 | smoke (curl) | Bearer-Token + curl auf ListByMember-Endpunkt → started_date ISO-String im Response | ⬜ pending |
+| 97-05-2 | 05 | 5 | D-07 | grep-gate | `grep -rn "hist_group_member_roles" backend/internal/permissions/` → 0 Treffer | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,9 +59,9 @@ created: 2026-07-01
 
 ## Wave 0 Requirements
 
-- [ ] Go-Repository-Tests für Claim-Aktivierung (D-05) + DATE-Auto-Archiv-Sync (Pitfall D-10)
-- [ ] Vitest für erweiterten Historie-Dialog (Rollenauswahl + DATE)
-- [ ] Bestehende Infrastruktur (go test, vitest) deckt den Rest.
+- [x] Go-Repository-Tests für D-02/D-04: `hist_group_member_roles_date_test.go` (Plan 97-00)
+- [x] Go-Repository-Tests für D-05: `member_claims_repository_claim_activation_test.go` (Plan 97-00)
+- [x] Vitest-Test für D-03: `GroupHistRoleDialog.test.tsx` (Plan 97-00)
 
 *Frameworks sind vorhanden — kein Install nötig.*
 
@@ -64,17 +72,18 @@ created: 2026-07-01
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | Claim-Aktivierung end-to-end im Browser | D-05 | Login/Claim-Flow + Admin-Bestätigung | :3000 als Admin, hist-Mitglied claimen, Rollen ohne Enddatum werden aktiv |
+| D-06 ClaimManagementPanel: Rollen-Select + Button | D-06 | UI-Interaktion im Browser | :3000 → Claim-Management → Dropdown + "Aktive Rolle zuweisen"-Button testen |
 | Historie-Anzeige im Profil | D-08 | UI nachgelagert, nur DB-Korrektheit in dieser Phase | DB-Check + Basisanzeige; polierte UI = Folge-Phase |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] Alle Tasks haben `<automated>` verify oder Wave-0-Abhängigkeit
-- [ ] Sampling-Kontinuität: keine 3 Tasks in Folge ohne automatisierte Prüfung
-- [ ] Wave 0 deckt alle MISSING-Referenzen
+- [x] Alle Tasks haben `<automated>` verify oder Wave-0-Abhängigkeit
+- [x] Sampling-Kontinuität: keine 3 Tasks in Folge ohne automatisierte Prüfung
+- [x] Wave 0 deckt alle MISSING-Referenzen (97-00-PLAN.md anlegt RED-Tests für D-02/D-03/D-04/D-05)
 - [ ] Keine watch-mode-Flags
 - [ ] Feedback-Latenz < 60 s
-- [ ] `nyquist_compliant: true` in Frontmatter gesetzt
+- [x] `nyquist_compliant: true` in Frontmatter gesetzt
 
-**Approval:** pending
+**Approval:** pending (wave_0_complete wird nach Plan-97-00-Ausführung true)
