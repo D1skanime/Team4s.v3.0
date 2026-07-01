@@ -188,4 +188,68 @@ describe('GroupHistRoleDialog', () => {
       dialogText.includes('Historische')
     expect(hasHistoricalContext).toBe(true)
   })
+
+  it('Test 5: rendert Input type=date fuer Rollen-Start', () => {
+    const { container } = render(
+      <GroupHistRoleDialog
+        open={true}
+        onClose={noop}
+        isEditing={false}
+        roleForm={defaultRoleForm}
+        setRoleForm={noop as never}
+        onSubmit={noop}
+        isSaving={false}
+        error={null}
+        members={[]}
+        yearMin={2000}
+        yearMax={2024}
+        historyRoleOptions={historyRoles}
+      />
+    )
+
+    expect(container.querySelector('input[type="date"]')).not.toBeNull()
+  })
+
+  it('Test 6: rendert Input type=date fuer Rollen-Ende mit Hinweis', () => {
+    const { container } = render(
+      <GroupHistRoleDialog
+        open={true}
+        onClose={noop}
+        isEditing={false}
+        roleForm={defaultRoleForm}
+        setRoleForm={noop as never}
+        onSubmit={noop}
+        isSaving={false}
+        error={null}
+        members={[]}
+        yearMin={2000}
+        yearMax={2024}
+        historyRoleOptions={historyRoles}
+      />
+    )
+
+    expect(container.querySelectorAll('input[type="date"]')).toHaveLength(2)
+    expect(document.body.textContent ?? '').toContain('Leer lassen')
+  })
+
+  it('Test 7: enthaelt Rollenauswahl-Select', () => {
+    const { container } = render(
+      <GroupHistRoleDialog
+        open={true}
+        onClose={noop}
+        isEditing={false}
+        roleForm={defaultRoleForm}
+        setRoleForm={noop as never}
+        onSubmit={noop}
+        isSaving={false}
+        error={null}
+        members={[]}
+        yearMin={2000}
+        yearMax={2024}
+        historyRoleOptions={historyRoles}
+      />
+    )
+
+    expect(container.querySelector('select')).not.toBeNull()
+  })
 })
