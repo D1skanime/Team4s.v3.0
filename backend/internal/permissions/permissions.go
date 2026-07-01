@@ -15,28 +15,31 @@ const (
 type Action string
 
 const (
-	ActionFansubGroupEdit              Action = "fansub_group.edit"
-	ActionFansubGroupLinksManage       Action = "fansub_group.links.manage"
-	ActionFansubGroupMembersView       Action = "fansub_group.members.view"
-	ActionFansubGroupMembersManage     Action = "fansub_group.members.manage"
-	ActionFansubGroupInvitationsView   Action = "fansub_group.invitations.view"
-	ActionFansubGroupInvitationsCreate Action = "fansub_group.invitations.create"
-	ActionFansubGroupInvitationsCancel Action = "fansub_group.invitations.cancel"
-	ActionFansubGroupInvitationsAccept Action = "fansub_group.invitations.accept"
-	ActionFansubGroupNotesWrite        Action = "fansub_group.notes.write"
-	ActionFansubGroupMediaView         Action = "fansub_group_media.view"
-	ActionFansubGroupMediaUpload       Action = "fansub_group_media.upload"
-	ActionFansubGroupMediaUpdate       Action = "fansub_group_media.update"
-	ActionFansubGroupMediaDelete       Action = "fansub_group_media.delete"
-	ActionAnimeFansubProjectNotesWrite Action = "anime_fansub_project.notes.write"
-	ActionReleaseView                  Action = "release.view"
-	ActionReleaseVersionView           Action = "release_version.view"
-	ActionReleaseVersionMediaView      Action = "release_version_media.view"
-	ActionReleaseVersionMediaUpload    Action = "release_version_media.upload"
-	ActionReleaseVersionMediaUpdate    Action = "release_version_media.update"
-	ActionReleaseVersionMediaDelete    Action = "release_version_media.delete"
-	ActionReleaseVersionMediaDeleteOwn Action = "release_version_media.delete_own"
-	ActionReleaseVersionNotesWrite     Action = "release_version.notes.write"
+	ActionFansubGroupEdit                    Action = "fansub_group.edit"
+	ActionFansubGroupLinksManage             Action = "fansub_group.links.manage"
+	ActionFansubGroupMembersView             Action = "fansub_group.members.view"
+	ActionFansubGroupMembersManage           Action = "fansub_group.members.manage"
+	ActionFansubGroupHistoricalMembersManage Action = "fansub_group.historical_members.manage"
+	ActionFansubGroupHistoricalRolesManage   Action = "fansub_group.historical_roles.manage"
+	ActionFansubGroupHistoricalMembersLink   Action = "fansub_group.historical_members.link"
+	ActionFansubGroupInvitationsView         Action = "fansub_group.invitations.view"
+	ActionFansubGroupInvitationsCreate       Action = "fansub_group.invitations.create"
+	ActionFansubGroupInvitationsCancel       Action = "fansub_group.invitations.cancel"
+	ActionFansubGroupInvitationsAccept       Action = "fansub_group.invitations.accept"
+	ActionFansubGroupNotesWrite              Action = "fansub_group.notes.write"
+	ActionFansubGroupMediaView               Action = "fansub_group_media.view"
+	ActionFansubGroupMediaUpload             Action = "fansub_group_media.upload"
+	ActionFansubGroupMediaUpdate             Action = "fansub_group_media.update"
+	ActionFansubGroupMediaDelete             Action = "fansub_group_media.delete"
+	ActionAnimeFansubProjectNotesWrite       Action = "anime_fansub_project.notes.write"
+	ActionReleaseView                        Action = "release.view"
+	ActionReleaseVersionView                 Action = "release_version.view"
+	ActionReleaseVersionMediaView            Action = "release_version_media.view"
+	ActionReleaseVersionMediaUpload          Action = "release_version_media.upload"
+	ActionReleaseVersionMediaUpdate          Action = "release_version_media.update"
+	ActionReleaseVersionMediaDelete          Action = "release_version_media.delete"
+	ActionReleaseVersionMediaDeleteOwn       Action = "release_version_media.delete_own"
+	ActionReleaseVersionNotesWrite           Action = "release_version.notes.write"
 )
 
 const (
@@ -77,6 +80,9 @@ var roleMatrix = map[string][]Action{
 		ActionFansubGroupLinksManage,
 		ActionFansubGroupMembersView,
 		ActionFansubGroupMembersManage,
+		ActionFansubGroupHistoricalMembersManage,
+		ActionFansubGroupHistoricalRolesManage,
+		ActionFansubGroupHistoricalMembersLink,
 		ActionFansubGroupInvitationsView,
 		ActionFansubGroupInvitationsCreate,
 		ActionFansubGroupInvitationsCancel,
@@ -178,6 +184,9 @@ var allKnownActions = []Action{
 	ActionFansubGroupLinksManage,
 	ActionFansubGroupMembersView,
 	ActionFansubGroupMembersManage,
+	ActionFansubGroupHistoricalMembersManage,
+	ActionFansubGroupHistoricalRolesManage,
+	ActionFansubGroupHistoricalMembersLink,
 	ActionFansubGroupInvitationsView,
 	ActionFansubGroupInvitationsCreate,
 	ActionFansubGroupInvitationsCancel,

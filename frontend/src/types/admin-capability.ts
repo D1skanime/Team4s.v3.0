@@ -29,7 +29,7 @@ export interface RoleEntry {
   contexts?: string[];
 }
 
-/** Eine kuratierte Rollendefinition aus dem group_history-Endpunkt. */
+/** Eine Rollendefinition aus dem role-definitions-Endpunkt. */
 export interface RoleDefinitionOption {
   code: string;
   label_de: string;

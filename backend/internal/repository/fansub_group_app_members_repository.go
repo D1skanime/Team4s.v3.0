@@ -136,7 +136,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			fgm.created_at,
 			fgm.updated_at,
 			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
-			COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied') AS fansub_name,
+			COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied') AS fansub_name,
 			COALESCE(claimed_avatar.file_path, legacy_avatar.file_path, '') AS avatar_path,
 			COALESCE(
 				ARRAY(
@@ -168,7 +168,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 		LEFT JOIN media_assets claimed_avatar ON claimed_avatar.id = claimed_m.avatar_media_id
 		LEFT JOIN media_assets legacy_avatar ON legacy_avatar.id = legacy_m.avatar_media_id
 		WHERE fgm.fansub_group_id = $1
-		ORDER BY LOWER(COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied')), au.id
+		ORDER BY LOWER(COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied')), au.id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group members: %w", err)
@@ -226,15 +226,64 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 	if err != nil {
 		return nil, err
 	}
-	if len(roles) == 0 {
-		return nil, fmt.Errorf("create fansub group member: at least one role is required")
-	}
 
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("create fansub group member: begin tx: %w", err)
 	}
 	defer tx.Rollback(ctx)
+
+	var historicalMemberID int64
+	hasHistoricalMember := input.HistoricalMemberID != nil && *input.HistoricalMemberID > 0
+	if input.HistoricalMemberID != nil && *input.HistoricalMemberID > 0 {
+		var hasOpenRole bool
+		var hasVerifiedClaim bool
+		if err := tx.QueryRow(ctx, `
+			SELECT hfgm.member_id,
+			       EXISTS (
+			         SELECT 1
+			         FROM hist_group_member_roles hgr
+			         WHERE hgr.hist_fansub_group_member_id = hfgm.id
+			           AND hgr.ended_date IS NULL
+			       ) AS has_open_role,
+			       EXISTS (
+			         SELECT 1
+			         FROM member_claims mc
+			         WHERE mc.member_id = hfgm.member_id
+			           AND mc.claim_status = 'verified'
+			       ) AS has_verified_claim
+			FROM hist_fansub_group_members hfgm
+			WHERE hfgm.id = $1
+			  AND hfgm.fansub_group_id = $2
+			FOR UPDATE
+		`, *input.HistoricalMemberID, fansubGroupID).Scan(&historicalMemberID, &hasOpenRole, &hasVerifiedClaim); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, ErrNotFound
+			}
+			return nil, fmt.Errorf("create fansub group member: lookup historical member: %w", err)
+		}
+		if !hasOpenRole {
+			return nil, &MemberMutationConflict{
+				Code:    "historical_member_not_current",
+				Message: "Historische Identität kann nur verknüpft werden, wenn sie eine offene Rolle bis heute hat.",
+			}
+		}
+		if hasVerifiedClaim {
+			return nil, &MemberMutationConflict{
+				Code:    "historical_member_already_linked",
+				Message: "Diese historische Identität ist bereits mit einem App-User verknüpft.",
+			}
+		}
+		openHistoricalRoles, err := listOpenHistoricalRolesForAppMemberCreate(ctx, tx, *input.HistoricalMemberID)
+		if err != nil {
+			return nil, err
+		}
+		roles = mergeFansubGroupRoles(roles, openHistoricalRoles)
+	}
+
+	if len(roles) == 0 {
+		return nil, fmt.Errorf("create fansub group member: at least one role is required")
+	}
 
 	var memberID int64
 	err = tx.QueryRow(ctx, `
@@ -268,6 +317,36 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 			VALUES ($1, $2, $3, $4, NOW())
 		`, memberID, role, input.CreatedByAppUserID, tenureStartedOn); err != nil {
 			return nil, fmt.Errorf("create fansub group member: insert role: %w", err)
+		}
+	}
+
+	if hasHistoricalMember {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO member_claims (
+				app_user_id,
+				member_id,
+				claim_status,
+				verification_method,
+				verified_by,
+				verified_at,
+				created_at,
+				updated_at
+			)
+			VALUES ($1, $2, 'verified', 'manual_review', $3, NOW(), NOW(), NOW())
+			ON CONFLICT (member_id, app_user_id)
+			DO UPDATE SET
+				claim_status = 'verified',
+				verification_method = 'manual_review',
+				verified_by = $3,
+				verified_at = NOW(),
+				updated_at = NOW()
+		`, input.AppUserID, historicalMemberID, input.CreatedByAppUserID); err != nil {
+			return nil, fmt.Errorf("create fansub group member: link historical member: %w", err)
+		}
+		if _, err := tx.Exec(ctx, `
+			UPDATE members SET noindex = false, updated_at = NOW() WHERE id = $1
+		`, historicalMemberID); err != nil {
+			return nil, fmt.Errorf("create fansub group member: update historical member profile: %w", err)
 		}
 	}
 
@@ -802,6 +881,56 @@ func normalizeFansubGroupRoles(roles []string) ([]string, error) {
 		normalized = append(normalized, trimmed)
 	}
 	return normalizeDistinctStrings(normalized), nil
+}
+
+func mergeFansubGroupRoles(primary []string, additional []string) []string {
+	merged := make([]string, 0, len(primary)+len(additional))
+	seen := make(map[string]struct{}, len(primary)+len(additional))
+	for _, role := range append(primary, additional...) {
+		trimmed := strings.TrimSpace(role)
+		if trimmed == "" {
+			continue
+		}
+		if _, ok := seen[trimmed]; ok {
+			continue
+		}
+		seen[trimmed] = struct{}{}
+		merged = append(merged, trimmed)
+	}
+	return merged
+}
+
+func listOpenHistoricalRolesForAppMemberCreate(ctx context.Context, tx pgx.Tx, histFansubGroupMemberID int64) ([]string, error) {
+	rows, err := tx.Query(ctx, `
+		SELECT DISTINCT hgr.role_code
+		FROM hist_group_member_roles hgr
+		JOIN role_definitions rd ON rd.code = hgr.role_code
+		WHERE hgr.hist_fansub_group_member_id = $1
+		  AND hgr.ended_date IS NULL
+		  AND (
+		    rd.assignable = true
+		    OR 'fansub_group' = ANY(rd.contexts)
+		    OR 'anime_contribution' = ANY(rd.contexts)
+		  )
+		ORDER BY hgr.role_code
+	`, histFansubGroupMemberID)
+	if err != nil {
+		return nil, fmt.Errorf("create fansub group member: list open historical roles: %w", err)
+	}
+	defer rows.Close()
+
+	roles := make([]string, 0, 4)
+	for rows.Next() {
+		var role string
+		if err := rows.Scan(&role); err != nil {
+			return nil, fmt.Errorf("create fansub group member: scan open historical role: %w", err)
+		}
+		roles = append(roles, role)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("create fansub group member: iterate open historical roles: %w", err)
+	}
+	return normalizeFansubGroupRoles(roles)
 }
 
 func removeRole(roles []string, target string) []string {

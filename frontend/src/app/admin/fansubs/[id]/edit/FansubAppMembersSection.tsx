@@ -91,6 +91,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   const [candidateQuery, setCandidateQuery] = useState('')
   const [candidateResults, setCandidateResults] = useState<FansubGroupMemberCandidate[]>([])
   const [selectedCandidateId, setSelectedCandidateId] = useState('')
+  const [selectedHistoricalMemberId, setSelectedHistoricalMemberId] = useState('')
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false)
   const [isAddChoiceOpen, setIsAddChoiceOpen] = useState(false)
@@ -136,6 +137,10 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
 
   const canViewMembers = capabilities?.can_view_members ?? false
   const canManageMembers = capabilities?.can_manage_members ?? false
+  const canManageHistoricalMembers = capabilities?.can_manage_historical_members ?? canManageMembers
+  const canManageHistoricalRoles = capabilities?.can_manage_historical_roles ?? canManageMembers
+  const canLinkHistoricalMembers = capabilities?.can_link_historical_members ?? canManageMembers
+  const canEditHistoricalMemberRecords = canManageHistoricalMembers && canManageHistoricalRoles
   const canViewInvitations = capabilities?.can_view_invitations ?? false
   const canCreateInvitation = capabilities?.can_create_invitation ?? false
   const canCancelInvitation = capabilities?.can_cancel_invitation ?? false
@@ -179,7 +184,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   useEffect(() => {
     let cancelled = false
     async function runSearch() {
-      if (!hasAccessToken || !canManageMembers || deferredCandidateQuery.length < 2) {
+      if (!hasAccessToken || (!canManageMembers && !canLinkHistoricalMembers) || deferredCandidateQuery.length < 2) {
         if (!cancelled) { setCandidateResults([]); setSelectedCandidateId('') }
         return
       }
@@ -205,7 +210,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
     }
     void runSearch()
     return () => { cancelled = true }
-  }, [hasAccessToken, canManageMembers, deferredCandidateQuery, fansubId])
+  }, [hasAccessToken, canManageMembers, canLinkHistoricalMembers, deferredCandidateQuery, fansubId])
 
   const activeMemberCount = useMemo(() => members.filter((m) => m.status === 'active').length, [members])
   const editorMember = useMemo(() => members.find((m) => m.id === editorMemberId) ?? null, [members, editorMemberId])
@@ -222,21 +227,37 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   }
   function handleCandidateQueryChange(value: string) {
     setCandidateQuery(value)
-    if (selectedCandidate && value.trim() !== selectedCandidate.fansub_name) setSelectedCandidateId('')
+    if (selectedCandidate && value.trim() !== selectedCandidate.fansub_name) {
+      setSelectedCandidateId('')
+      setSelectedHistoricalMemberId('')
+    }
   }
   function handleCandidateSelect(candidate: FansubGroupMemberCandidate) {
     if (!candidate.app_user_id) return
     setSelectedCandidateId(String(candidate.app_user_id))
+    setSelectedHistoricalMemberId('')
     setCandidateQuery(candidate.fansub_name)
+  }
+  function handleHistoricalMemberChange(value: string) {
+    setSelectedHistoricalMemberId(value)
+    if (value.trim()) {
+      setSelectedRoles([])
+    }
   }
 
   async function handleAddMember() {
     const appUserId = Number.parseInt(selectedCandidateId, 10)
-    if (!hasAccessToken || !Number.isFinite(appUserId) || appUserId <= 0 || selectedRoles.length === 0) return
+    const historicalMemberId = Number.parseInt(selectedHistoricalMemberId, 10)
+    const hasHistoricalSelection = Number.isFinite(historicalMemberId) && historicalMemberId > 0
+    if (!hasAccessToken || !Number.isFinite(appUserId) || appUserId <= 0 || (selectedRoles.length === 0 && !hasHistoricalSelection)) return
     try {
       setIsAdding(true); setActionError(null); setSuccessMessage(null)
-      await createFansubAppMember(fansubId, { app_user_id: appUserId, roles: selectedRoles })
-      setCandidateQuery(''); setCandidateResults([]); setSelectedCandidateId(''); setSelectedRoles([]); setCreatedInviteLink(null)
+      await createFansubAppMember(fansubId, {
+        app_user_id: appUserId,
+        roles: selectedRoles,
+        historical_member_id: hasHistoricalSelection ? historicalMemberId : undefined,
+      })
+      setCandidateQuery(''); setCandidateResults([]); setSelectedCandidateId(''); setSelectedHistoricalMemberId(''); setSelectedRoles([]); setCreatedInviteLink(null)
       await loadSection()
       setIsMemberModalOpen(false)
       setSuccessMessage('Mitglied wurde mit den gewählten Rollen zur Gruppe hinzugefügt.')
@@ -323,9 +344,13 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
     }
   }
 
-  function openAppMemberFlow() { setIsAddChoiceOpen(false); setIsMemberModalOpen(true) }
+  function openAppMemberFlow() {
+    setIsAddChoiceOpen(false)
+    setSelectedHistoricalMemberId('')
+    setIsMemberModalOpen(true)
+  }
   function openHistoricalMemberFlow() {
-    if (!canManageMembers) return
+    if (!canEditHistoricalMemberRecords) return
     setIsAddChoiceOpen(false)
     historicalActions?.openHistoricalMemberForm()
   }
@@ -342,7 +367,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
             <strong>{members.length} Mitglied{members.length === 1 ? '' : 'er'}</strong>
             <p>{activeMemberCount} aktiv, {members.length - activeMemberCount} deaktiviert</p>
           </div>
-          {canManageMembers || canCreateInvitation ? (
+          {canManageMembers || canCreateInvitation || canEditHistoricalMemberRecords || canLinkHistoricalMembers ? (
             <Button
               variant="primary"
               leftIcon={<UserPlus size={15} aria-hidden="true" />}
@@ -386,6 +411,20 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
           <FansubAppMembersOverview
             members={members}
             invitations={invitations}
+            afterMembers={(
+              <GroupMembersTab
+                embedded
+                canCancelClaimInvitation={canLinkHistoricalMembers}
+                canCreateClaimInvitation={canLinkHistoricalMembers}
+                canManageClaims={canLinkHistoricalMembers}
+                canManageHistoricalMembers={canEditHistoricalMemberRecords}
+                canManageHistoricalRoles={canManageHistoricalRoles}
+                fansubId={fansubId}
+                onActionsChange={setHistoricalActions}
+                showClaimRequests={canLinkHistoricalMembers}
+                showHeaderActions={false}
+              />
+            )}
             canViewMembers={canViewMembers}
             canViewInvitations={canViewInvitations}
             canManageMembers={canManageMembers}
@@ -395,25 +434,14 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
             onEditMember={openMemberEditor}
             onCancelInvitation={(invId) => void handleCancelInvitation(invId)}
           />
-
-          <GroupMembersTab
-            embedded
-            canCancelClaimInvitation={canCancelInvitation || canManageMembers}
-            canCreateClaimInvitation={canCreateInvitation || canManageMembers}
-            canManageClaims={canManageMembers}
-            fansubId={fansubId}
-            onActionsChange={setHistoricalActions}
-            showClaimRequests={canManageMembers}
-            showHeaderActions={false}
-          />
         </>
       ) : null}
 
       <FansubAppMemberChoiceModal
         open={isAddChoiceOpen}
-        canManageMembers={canManageMembers}
+        canManageMembers={canManageMembers || canLinkHistoricalMembers}
         canCreateInvitation={canCreateInvitation}
-        hasHistoricalActions={!!historicalActions}
+        hasHistoricalActions={!!historicalActions && canEditHistoricalMemberRecords}
         onClose={() => setIsAddChoiceOpen(false)}
         onAppMemberFlow={openAppMemberFlow}
         onHistoricalMemberFlow={openHistoricalMemberFlow}
@@ -421,13 +449,15 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
 
       <FansubAppMemberAddModal
         open={isMemberModalOpen}
-        canManageMembers={canManageMembers}
+        canManageMembers={canManageMembers || canLinkHistoricalMembers}
         canCreateInvitation={canCreateInvitation}
         candidateQuery={candidateQuery}
         candidateResults={candidateResults}
         selectedCandidateId={selectedCandidateId}
         selectedCandidate={selectedCandidate}
         selectedRoles={selectedRoles}
+        historicalIdentityOptions={historicalActions?.historicalIdentityOptions ?? []}
+        selectedHistoricalMemberId={selectedHistoricalMemberId}
         isSearching={isSearching}
         isAdding={isAdding}
         inviteEmail={inviteEmail}
@@ -438,6 +468,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
         onCandidateQueryChange={handleCandidateQueryChange}
         onCandidateSelect={handleCandidateSelect}
         onToggleRole={toggleSelectedRole}
+        onHistoricalMemberChange={handleHistoricalMemberChange}
         onAddMember={() => void handleAddMember()}
         onInviteEmailChange={setInviteEmail}
         onToggleInviteRole={toggleInviteRole}

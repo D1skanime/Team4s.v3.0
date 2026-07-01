@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -26,6 +27,30 @@ func TestEvaluateMemberMutationConflictBlocksLastActiveLead(t *testing.T) {
 	}
 	if conflict.Code != "last_active_lead" {
 		t.Fatalf("expected last_active_lead, got %q", conflict.Code)
+	}
+}
+
+func TestCreateCanLinkOpenHistoricalMemberByVerifiedClaim(t *testing.T) {
+	content := strings.ToLower(readRepositorySource(t, "fansub_group_app_members_repository.go"))
+
+	required := []string{
+		"historicalmemberid",
+		"from hist_fansub_group_members hfgm",
+		"from hist_group_member_roles hgr",
+		"hgr.ended_date is null",
+		"from member_claims mc",
+		"mc.claim_status = 'verified'",
+		"listopenhistoricalrolesforappmembercreate",
+		"mergefansubgrouproles",
+		"select distinct hgr.role_code",
+		"join role_definitions rd",
+		"'manual_review'",
+		"on conflict (member_id, app_user_id)",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected app member create historical-link flow to contain %q", fragment)
+		}
 	}
 }
 

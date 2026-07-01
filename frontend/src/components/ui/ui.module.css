@@ -576,6 +576,308 @@
   grid-column: 1 / -1;
 }
 
+.datePicker {
+  position: relative;
+  width: 100%;
+}
+
+.datePickerTopRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.datePickerTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height-md);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.94));
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  padding: 0 12px;
+  text-align: left;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 8px 18px -18px rgba(17, 24, 39, 0.24);
+}
+
+.datePickerTrigger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent-primary) 38%, transparent);
+}
+
+.datePickerTrigger:focus-visible {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow:
+    0 0 0 3px rgba(122, 160, 240, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.datePickerTrigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.datePickerValue,
+.datePickerPlaceholder {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.datePickerPlaceholder {
+  color: var(--text-muted);
+}
+
+.datePickerInlineClear {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.datePickerInlineClear:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  text-decoration: underline;
+}
+
+.datePickerInlineClear:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.48;
+  text-decoration: none;
+}
+
+.datePickerPanel {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  gap: 10px;
+  width: min(100vw - 32px, 334px);
+  max-height: min(430px, 72vh);
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff 0%, #f7f9fd 100%);
+  padding: 12px;
+  box-shadow:
+    0 20px 46px -26px rgba(20, 30, 52, 0.55),
+    0 3px 10px rgba(20, 30, 52, 0.14);
+}
+
+.datePickerPanelAbove {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.datePickerPanelHeader {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+}
+
+.datePickerNavButton,
+.datePickerPanelTitle button,
+.datePickerDay,
+.datePickerMonthGrid button,
+.datePickerYearGrid button,
+.datePickerFooter button {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.datePickerNavButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0;
+}
+
+.datePickerNavButton:hover:not(:disabled),
+.datePickerPanelTitle button:hover,
+.datePickerMonthGrid button:hover:not(:disabled),
+.datePickerYearGrid button:hover:not(:disabled),
+.datePickerDay:hover:not(:disabled),
+.datePickerFooter button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 8%, #fff);
+}
+
+.datePickerNavButton:disabled,
+.datePickerDay:disabled,
+.datePickerMonthGrid button:disabled,
+.datePickerYearGrid button:disabled,
+.datePickerFooter button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.datePickerPanelTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-primary);
+  font-weight: 900;
+}
+
+.datePickerPanelTitle button,
+.datePickerPanelTitle span {
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.datePickerWeekdays,
+.datePickerDayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.datePickerWeekdays span {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.datePickerWeekdays span:nth-child(6),
+.datePickerWeekdays span:nth-child(7) {
+  color: #9a2441;
+}
+
+.datePickerDay {
+  min-width: 0;
+  min-height: 36px;
+  padding: 0;
+  text-align: center;
+}
+
+.datePickerDayMuted {
+  color: var(--text-muted);
+  opacity: 0.62;
+}
+
+.datePickerDayWeekend {
+  color: #9a2441;
+}
+
+.datePickerDayToday {
+  border-color: color-mix(in srgb, var(--accent-primary) 34%, transparent);
+}
+
+.datePickerDaySelected,
+.datePickerTileSelected {
+  border-color: #25416f !important;
+  background: linear-gradient(180deg, #466dbd 0%, #263f72 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px -14px rgba(38, 63, 114, 0.65);
+}
+
+.datePickerMonthGrid,
+.datePickerYearGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.datePickerMonthGrid button,
+.datePickerYearGrid button {
+  min-height: 42px;
+  border-color: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  background: color-mix(in srgb, #fff 84%, var(--bg-secondary));
+}
+
+.datePickerFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  padding-top: 10px;
+}
+
+.datePickerFooter button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: var(--accent-primary);
+}
+
+.datePickerFooter button:last-child {
+  color: #8d1530;
+}
+
+.datePickerClear {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.datePickerClear:hover:not(:disabled) {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+
+.datePickerClear:focus-visible {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow:
+    0 0 0 3px rgba(122, 160, 240, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.datePickerClear:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+@media (max-width: 560px) {
+  .datePickerTopRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .datePickerInlineClear {
+    justify-self: start;
+  }
+
+  .datePickerPanel {
+    width: min(100vw - 28px, 318px);
+    max-height: min(390px, 68vh);
+  }
+}
+
 .textarea {
   min-height: 144px;
   resize: vertical;

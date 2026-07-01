@@ -31,7 +31,7 @@ import type {
 
 import type { RoleFormFields } from './GroupHistRoleDialog'
 import type { MemberFormFields } from './GroupMemberFormModals'
-import type { GroupMembersTabActions } from './GroupMembersTab'
+import type { GroupMembersTabActions, HistoricalIdentityOption } from './GroupMembersTab'
 import { useGroupMembersClaimActions } from './useGroupMembersClaimActions'
 
 function formatApiError(error: unknown, fallback: string): string {
@@ -76,11 +76,34 @@ export const EMPTY_ROLE_FORM: RoleFormFields = {
   note: '',
 }
 
+export type InlineMemberRoleDraft = {
+  id: string
+  roleId?: number
+  roleCode: string
+  startedDate: string
+  endedDate: string
+}
+
+export const EMPTY_INLINE_ROLE_DRAFT: InlineMemberRoleDraft = {
+  id: 'role-1',
+  roleCode: '',
+  startedDate: '',
+  endedDate: '',
+}
+
+function normalizeDateValue(value: string | null | undefined): string {
+  if (!value) return ''
+  const trimmed = value.trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10)
+  if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
+  return ''
+}
+
 export function memberToForm(m: HistFansubGroupMember): MemberFormFields {
   return {
     displayName: m.display_name,
-    joinedDate: m.joined_date ?? '',
-    leftDate: m.left_date ?? '',
+    joinedDate: normalizeDateValue(m.joined_date),
+    leftDate: normalizeDateValue(m.left_date),
     visibility: m.visibility ?? 'internal',
   }
 }
@@ -89,13 +112,13 @@ export function roleToForm(role: HistGroupMemberRole): RoleFormFields {
   return {
     memberId: String(role.fansub_group_member_id),
     roleCode: role.role_code,
-    startedDate: role.started_date ?? '',
-    endedDate: role.ended_date ?? '',
+    startedDate: normalizeDateValue(role.started_date),
+    endedDate: normalizeDateValue(role.ended_date),
     note: role.note ?? '',
   }
 }
 
-export const YEAR_MIN = 1980
+export const YEAR_MIN = 1960
 export const CURRENT_YEAR = new Date().getFullYear()
 
 export type UseGroupMembersTabOptions = {
@@ -111,6 +134,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<HistFansubGroupMember | null>(null)
   const [form, setForm] = useState<MemberFormFields>(EMPTY_MEMBER_FORM)
+  const [inlineRoleDrafts, setInlineRoleDrafts] = useState<InlineMemberRoleDraft[]>([EMPTY_INLINE_ROLE_DRAFT])
   const [saving, setSaving] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<HistFansubGroupMember | null>(null)
@@ -201,16 +225,39 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
     return grouped
   }, [claimActions.pendingClaims])
 
+  const historicalIdentityOptions = useMemo<HistoricalIdentityOption[]>(() => {
+    return members
+      .filter((member) => !member.app_user_id)
+      .map((member) => {
+        const openRoles = (rolesByMember.get(member.id) ?? []).filter((role) => !role.ended_date)
+        return {
+          id: member.id,
+          displayName: member.display_name,
+          roleSummary: openRoles.map((role) => role.role_label ?? roleLabelForCode(role.role_code)).join(', '),
+        }
+      })
+      .filter((option) => option.roleSummary.length > 0)
+  }, [members, rolesByMember])
+
   const openNew = useCallback(() => {
     setEditTarget(null)
     setForm(EMPTY_MEMBER_FORM)
+    setInlineRoleDrafts([EMPTY_INLINE_ROLE_DRAFT])
     setModalError(null)
     setModalOpen(true)
   }, [])
 
   function openEdit(member: HistFansubGroupMember) {
+    const memberRoles = (rolesByMember.get(member.id) ?? []).map((role) => ({
+      id: `role-${role.id}`,
+      roleId: role.id,
+      roleCode: role.role_code,
+      startedDate: normalizeDateValue(role.started_date),
+      endedDate: normalizeDateValue(role.ended_date),
+    }))
     setEditTarget(member)
     setForm(memberToForm(member))
+    setInlineRoleDrafts(memberRoles.length > 0 ? memberRoles : [EMPTY_INLINE_ROLE_DRAFT])
     setModalError(null)
     setModalOpen(true)
   }
@@ -223,11 +270,20 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
 
   async function handleSave() {
     if (!form.displayName.trim()) { setModalError('Anzeigename darf nicht leer sein.'); return }
-    const joinedDate = form.joinedDate || null
-    const leftDate = form.leftDate || null
-    if (joinedDate !== null && leftDate !== null && leftDate < joinedDate) {
-      setModalError('Austrittsdatum darf nicht vor dem Beitrittsdatum liegen.')
+    const joinedDate = editTarget ? form.joinedDate || null : null
+    const leftDate = editTarget ? form.leftDate || null : null
+    const filledInlineRoles = inlineRoleDrafts.filter((item) => item.roleCode.trim())
+    if (filledInlineRoles.length === 0) {
+      setModalError('Bitte mindestens eine frühere Funktion auswählen.')
       return
+    }
+    for (const draft of filledInlineRoles) {
+      const startedDate = draft.startedDate || null
+      const endedDate = draft.endedDate || null
+      if (startedDate !== null && endedDate !== null && endedDate < startedDate) {
+        setModalError('Austrittsdatum darf nicht vor dem Eintrittsdatum liegen.')
+        return
+      }
     }
     try {
       setSaving(true)
@@ -237,12 +293,51 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
           display_name: form.displayName.trim(), joined_date: joinedDate, left_date: leftDate,
           status: editTarget.status, visibility: form.visibility,
         })
+        const remainingRoleIds = new Set(filledInlineRoles.map((draft) => draft.roleId).filter((roleId): roleId is number => typeof roleId === 'number'))
+        const existingRoles = rolesByMember.get(editTarget.id) ?? []
+        for (const role of existingRoles) {
+          if (!remainingRoleIds.has(role.id)) {
+            await deleteMemberRole(fansubId, role.id)
+          }
+        }
+        for (const draft of filledInlineRoles) {
+          if (draft.roleId) {
+            await updateMemberRole(fansubId, draft.roleId, {
+              role_code: draft.roleCode.trim(),
+              started_date: draft.startedDate || null,
+              ended_date: draft.endedDate || null,
+              status: 'historical',
+              visibility: 'internal',
+            })
+          } else {
+            await createMemberRole(fansubId, {
+              hist_fansub_group_member_id: editTarget.id,
+              role_code: draft.roleCode.trim(),
+              started_date: draft.startedDate || null,
+              ended_date: draft.endedDate || null,
+              source_note: null,
+              status: 'historical',
+              visibility: 'internal',
+            })
+          }
+        }
       } else {
         const body: CreateGroupMemberRequest = {
           display_name: form.displayName.trim(), joined_date: joinedDate, left_date: leftDate,
           status: 'historical', visibility: form.visibility,
         }
-        await createGroupMember(fansubId, body)
+        const created = await createGroupMember(fansubId, body)
+        for (const draft of filledInlineRoles) {
+          await createMemberRole(fansubId, {
+            hist_fansub_group_member_id: created.data.id,
+            role_code: draft.roleCode.trim(),
+            started_date: draft.startedDate || null,
+            ended_date: draft.endedDate || null,
+            source_note: null,
+            status: 'historical',
+            visibility: 'internal',
+          })
+        }
       }
       await load()
       closeModal()
@@ -293,7 +388,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
     const startedDate = roleForm.startedDate || null
     const endedDate = roleForm.endedDate || null
     if (startedDate !== null && endedDate !== null && endedDate < startedDate) {
-      setRoleModalError('Rolle bis darf nicht vor Rolle von liegen.')
+      setRoleModalError('Austrittsdatum darf nicht vor dem Eintrittsdatum liegen.')
       return
     }
     try {
@@ -325,11 +420,12 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
     if (!onActionsChange) return
     onActionsChange({
       canCreateRole: members.length > 0,
+      historicalIdentityOptions,
       openHistoricalMemberForm: openNew,
       openHistoricalRoleForm: () => openNewRole(),
     })
     return () => onActionsChange(null)
-  }, [members.length, onActionsChange, openNew, openNewRole])
+  }, [historicalIdentityOptions, members.length, onActionsChange, openNew, openNewRole])
 
   async function handleRoleDeleteConfirm() {
     if (!roleDeleteTarget) return
@@ -349,7 +445,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
   return {
     members, roles, loading, error,
     rolesByMember, pendingClaimsByMember,
-    modalOpen, editTarget, form, setForm, saving, modalError,
+    modalOpen, editTarget, form, setForm, inlineRoleDrafts, setInlineRoleDrafts, saving, modalError,
     deleteTarget, setDeleteTarget, deleting, deleteError,
     roleModalOpen, roleEditTarget, roleForm, setRoleForm, roleSaving, roleModalError,
     roleDeleteTarget, setRoleDeleteTarget, roleDeleting, roleDeleteError,

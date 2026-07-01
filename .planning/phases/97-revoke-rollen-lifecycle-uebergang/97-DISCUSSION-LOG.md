@@ -28,3 +28,10 @@ Ursprünglich als „Revoke" (aktiv→historisch) angelegt. Im Gespräch stellte
 ## Deferred
 - Polierte/öffentliche Historie-Timeline-UI (eigene Folge-Phase).
 - G3 Mobile (Phase 96 in Arbeit).
+
+## UAT-Follow-up: historische Rollen bei aktiven Mitgliedern
+- Nutzerentscheidung: Nachträgliche historische Rollen für aktive App-Mitglieder sollen dort gepflegt werden, wo Leader heute aktive Rollen und Rechte setzen: im Member-Tab / aktiven Mitglied-Editor.
+- Beispiel: Ema Encoder ist aktuell aktiv, war aber von 2009 bis 2013 als Qualitätscheck tätig. Diese Rolle soll als historischer Credit mit Datum am selben Member dokumentiert werden.
+- Wichtig: Historische Rollen bleiben reine Credits und geben keine Rechte.
+- Wichtig: Der historische Credit muss an derselben `member_id` hängen, damit Public-Profil und spätere Gruppenansicht die Person nicht doppelt anzeigen.
+- Auftrag erfasst in `97-UAT-FOLLOWUP-ACTIVE-MEMBER-HIST-ROLES.md`.

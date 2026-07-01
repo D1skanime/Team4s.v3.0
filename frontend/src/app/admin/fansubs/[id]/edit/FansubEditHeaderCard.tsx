@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 
 import { buildFansubLogoFallback } from "@/components/admin/MediaUpload";
+import { Select } from "@/components/ui";
 import { labelForFansubStatus } from "./fansubEditFormatters";
 import { visibleMainTabs } from "./fansubEditAccess";
 import type { FansubGroupCapabilities } from "@/types/fansub";
@@ -125,6 +126,18 @@ export function FansubEditHeaderCard({
           </button>
         ))}
       </nav>
+      <Select
+        className={styles.fansubEditMainTabSelect}
+        value={activeMainTab}
+        aria-label="Fansub Bearbeitungsbereich auswählen"
+        onChange={(event) => onMainTabChange(event.target.value as MainTab)}
+      >
+        {availableMainTabs.map((tab) => (
+          <option key={tab.key} value={tab.key}>
+            {tab.label}
+          </option>
+        ))}
+      </Select>
     </header>
   );
 }

@@ -194,10 +194,12 @@ paths:
   /api/v1/admin/fansubs/{fansubId}/role-definitions:
     get:
       tags: [AdminCapabilities]
-      summary: Kuratierte group_history-Rollenliste abrufen
+      summary: Rollenliste für historische Mitgliedsfunktionen abrufen
       description: |
-        Gibt die kuratierten Rollendefinitionen für den Kontext group_history zurück
-        (Whitelist: founder, leader, co_leader, project_manager).
+        Gibt Rollendefinitionen für historische Mitgliedsfunktionen zurück:
+        Rollen wie Übersetzung, Timing, Typesetting, Editing, Encoding,
+        Raw-Quelle, Qualitätsprüfung und Design dokumentieren Archivdaten
+        und vergeben keine aktiven App-Rechte.
         Nur für berechtigte Akteure zugänglich (CanForFansubGroup.MembersView).
       operationId: listGroupHistoryRoleDefinitions
       security:

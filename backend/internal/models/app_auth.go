@@ -97,6 +97,7 @@ type FansubGroupMemberCandidate struct {
 type FansubGroupMemberCreateInput struct {
 	AppUserID          int64
 	Roles              []string
+	HistoricalMemberID *int64
 	CreatedByAppUserID *int64
 }
 

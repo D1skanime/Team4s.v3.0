@@ -15,6 +15,14 @@ vi.mock('@/lib/api', () => ({
     { code: 'fansub_lead', label_de: 'Gruppenleitung', sort_order: 2 },
     { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
     { code: 'project_lead', label_de: 'Fansub-Projektleitung', sort_order: 4 },
+    { code: 'translator', label_de: 'Übersetzung', sort_order: 10 },
+    { code: 'editor', label_de: 'Editing', sort_order: 20 },
+    { code: 'timer', label_de: 'Timing', sort_order: 30 },
+    { code: 'typesetter', label_de: 'Typesetting / FX', sort_order: 40 },
+    { code: 'encoder', label_de: 'Encoding', sort_order: 50 },
+    { code: 'raw_provider', label_de: 'Raw-Bereitstellung', sort_order: 60 },
+    { code: 'quality_checker', label_de: 'Qualitätsprüfung', sort_order: 70 },
+    { code: 'designer', label_de: 'Design', sort_order: 90 },
     { code: 'techadmin', label_de: 'Techadmin', sort_order: 5 },
     { code: 'gfxler', label_de: 'GFX / Grafik', sort_order: 6 },
   ]),
@@ -24,6 +32,14 @@ vi.mock('@/lib/api', () => ({
 vi.mock('@/components/ui', () => ({
   Button: ({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) => (
     <button onClick={onClick} disabled={disabled}>{children}</button>
+  ),
+  DatePicker: ({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (value: string) => void }) => (
+    <div data-testid="date-picker">
+      <select id={id} aria-label={`${label}: Tag`} value={value.slice(8, 10)} onChange={(event) => onChange(`2024-01-${event.target.value}`)}>
+        <option value="">Tag</option>
+        <option value="01">01</option>
+      </select>
+    </div>
   ),
   ErrorState: ({ title, description }: { title: string; description: string }) => (
     <div data-testid="error-state">{title}: {description}</div>
@@ -70,6 +86,14 @@ const historyRoles: RoleDefinitionOption[] = [
   { code: 'fansub_lead', label_de: 'Gruppenleitung', sort_order: 2 },
   { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
   { code: 'project_lead', label_de: 'Fansub-Projektleitung', sort_order: 4 },
+  { code: 'translator', label_de: 'Übersetzung', sort_order: 10 },
+  { code: 'editor', label_de: 'Editing', sort_order: 20 },
+  { code: 'timer', label_de: 'Timing', sort_order: 30 },
+  { code: 'typesetter', label_de: 'Typesetting / FX', sort_order: 40 },
+  { code: 'encoder', label_de: 'Encoding', sort_order: 50 },
+  { code: 'raw_provider', label_de: 'Raw-Bereitstellung', sort_order: 60 },
+  { code: 'quality_checker', label_de: 'Qualitätsprüfung', sort_order: 70 },
+  { code: 'designer', label_de: 'Design', sort_order: 90 },
   { code: 'techadmin', label_de: 'Techadmin', sort_order: 5 },
   { code: 'gfxler', label_de: 'GFX / Grafik', sort_order: 6 },
 ]
@@ -77,7 +101,7 @@ const historyRoles: RoleDefinitionOption[] = [
 const noop = () => {}
 
 describe('GroupHistRoleDialog', () => {
-  it('Test 1: rendert Optionen aus der group_history-Quelle, nicht aus FANSUB_GROUP_ROLE_OPTIONS', () => {
+  it('Test 1: rendert historische Funktionsrollen aus der API-Quelle', () => {
     render(
       <GroupHistRoleDialog
         open={true}
@@ -95,20 +119,24 @@ describe('GroupHistRoleDialog', () => {
       />
     )
 
-    // Alle sechs historischen Gruppenrollen müssen als Optionen vorhanden sein (D-04/D-06/D-07)
+    // Historische Funktionsrollen müssen als Optionen vorhanden sein.
     expect(screen.getByRole('option', { name: 'Gründer/in' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Gruppenleitung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Co-Leitung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Fansub-Projektleitung' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Übersetzung' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Timing' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Typesetting / FX' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Editing' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Encoding' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Raw-Bereitstellung' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Qualitätsprüfung' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Design' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Techadmin' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'GFX / Grafik' })).toBeDefined()
-
-    // Aktive App-Rollen dürfen NICHT vorhanden sein
-    expect(screen.queryByRole('option', { name: 'Übersetzung' })).toBeNull()
-    expect(screen.queryByRole('option', { name: 'Encoding' })).toBeNull()
   })
 
-  it('Test 2: die angebotenen Labels enthalten alle sechs Gruppenhistorie-Bezeichnungen mit korrekten Umlauten', () => {
+  it('Test 2: die angebotenen Labels enthalten Rollenbezeichnungen mit korrekten Umlauten', () => {
     render(
       <GroupHistRoleDialog
         open={true}
@@ -128,6 +156,8 @@ describe('GroupHistRoleDialog', () => {
 
     // Umlautkorrekte Bezeichnungen (ä, ö, ü, ß) müssen erscheinen (D-04/D-05/D-07)
     expect(screen.getByText('Gründer/in')).toBeDefined()
+    expect(screen.getByText('Übersetzung')).toBeDefined()
+    expect(screen.getByText('Qualitätsprüfung')).toBeDefined()
     expect(screen.getByText('Gruppenleitung')).toBeDefined()
     expect(screen.getByText('Co-Leitung')).toBeDefined()
     expect(screen.getByText('Fansub-Projektleitung')).toBeDefined()
@@ -189,7 +219,7 @@ describe('GroupHistRoleDialog', () => {
     expect(hasHistoricalContext).toBe(true)
   })
 
-  it('Test 5: rendert Input type=date fuer Rollen-Start', () => {
+  it('Test 5: rendert modernen DatePicker fuer Rollen-Start', () => {
     const { container } = render(
       <GroupHistRoleDialog
         open={true}
@@ -207,10 +237,11 @@ describe('GroupHistRoleDialog', () => {
       />
     )
 
-    expect(container.querySelector('input[type="date"]')).not.toBeNull()
+    expect(container.querySelector('input[type="date"]')).toBeNull()
+    expect(screen.getByLabelText('Eintrittsdatum: Tag')).toBeDefined()
   })
 
-  it('Test 6: rendert Input type=date fuer Rollen-Ende mit Hinweis', () => {
+  it('Test 6: rendert modernen DatePicker fuer Rollen-Ende ohne nativen Date-Input', () => {
     const { container } = render(
       <GroupHistRoleDialog
         open={true}
@@ -228,8 +259,9 @@ describe('GroupHistRoleDialog', () => {
       />
     )
 
-    expect(container.querySelectorAll('input[type="date"]')).toHaveLength(2)
-    expect(document.body.textContent ?? '').toContain('Leer lassen')
+    expect(container.querySelectorAll('input[type="date"]')).toHaveLength(0)
+    expect(screen.getByLabelText('Austrittsdatum: Tag')).toBeDefined()
+    expect(document.body.textContent ?? '').not.toContain('Leer lassen')
   })
 
   it('Test 7: enthaelt Rollenauswahl-Select', () => {

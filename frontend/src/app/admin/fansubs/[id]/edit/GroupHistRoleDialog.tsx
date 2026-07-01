@@ -2,9 +2,9 @@
 
 import {
   Button,
+  DatePicker,
   ErrorState,
   FormField,
-  Input,
   Modal,
   Select,
   Textarea,
@@ -37,9 +37,9 @@ export type GroupHistRoleDialogProps = {
   members: HistFansubGroupMember[]
   yearMin: number
   yearMax: number
-  /** Frühere Funktionen aus der group_history-Quelle (Plan 03 / Plan 04) */
+  /** Frühere Funktionen aus der historischen Rollenquelle. */
   historyRoleOptions: RoleDefinitionOption[]
-  /** Optionaler Ladefehler für die group_history-Rollen */
+  /** Optionaler Ladefehler für die historischen Rollen. */
   historyRoleLoadError?: string | null
 }
 
@@ -53,6 +53,8 @@ export function GroupHistRoleDialog({
   isSaving,
   error,
   members,
+  yearMin,
+  yearMax,
   historyRoleOptions,
   historyRoleLoadError,
 }: GroupHistRoleDialogProps) {
@@ -127,26 +129,26 @@ export function GroupHistRoleDialog({
         </FormField>
 
         <div className={styles.fansubEditMembershipModalGrid}>
-          <FormField label="Rolle von" htmlFor="member-role-started-date">
-            <Input
+          <FormField label="Eintrittsdatum" htmlFor="member-role-started-date">
+            <DatePicker
               id="member-role-started-date"
-              type="date"
+              label="Eintrittsdatum"
               value={roleForm.startedDate}
-              onChange={(e) => setRoleForm((f) => ({ ...f, startedDate: e.target.value }))}
-              aria-label="Rolle von"
+              onChange={(value) => setRoleForm((f) => ({ ...f, startedDate: value }))}
+              minYear={yearMin}
+              maxYear={yearMax}
+              maxDate={roleForm.endedDate || undefined}
             />
           </FormField>
-          <FormField
-            label="Rolle bis"
-            htmlFor="member-role-ended-date"
-            hint="Leer lassen, wenn die Person weiterhin aktiv in dieser Funktion ist."
-          >
-            <Input
+          <FormField label="Austrittsdatum" htmlFor="member-role-ended-date">
+            <DatePicker
               id="member-role-ended-date"
-              type="date"
+              label="Austrittsdatum"
               value={roleForm.endedDate}
-              onChange={(e) => setRoleForm((f) => ({ ...f, endedDate: e.target.value }))}
-              aria-label="Rolle bis"
+              onChange={(value) => setRoleForm((f) => ({ ...f, endedDate: value }))}
+              minYear={yearMin}
+              maxYear={yearMax}
+              minDate={roleForm.startedDate || undefined}
             />
           </FormField>
         </div>

@@ -57,13 +57,13 @@ func (h *MemberClaimInvitationsHandler) ListClaimInvitations(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsView, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersLink, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "member_claim_invitation.view.denied", &fansubID, "member", &memberID, permissions.ActionFansubGroupInvitationsView, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "member_claim_invitation.view.denied", &fansubID, "member", &memberID, permissions.ActionFansubGroupHistoricalMembersLink, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -110,13 +110,13 @@ func (h *MemberClaimInvitationsHandler) CreateClaimInvitation(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsCreate, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersLink, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "member_claim_invitation.create.denied", &fansubID, "member", &memberID, permissions.ActionFansubGroupInvitationsCreate, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "member_claim_invitation.create.denied", &fansubID, "member", &memberID, permissions.ActionFansubGroupHistoricalMembersLink, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -126,7 +126,7 @@ func (h *MemberClaimInvitationsHandler) CreateClaimInvitation(c *gin.Context) {
 		return
 	}
 
-	h.writeAudit(c, identity.AppUserID, "member_claim_invitation.created", fansubID, "member_claim_invitation", created.Invitation.ID, string(permissions.ActionFansubGroupInvitationsCreate), map[string]any{
+	h.writeAudit(c, identity.AppUserID, "member_claim_invitation.created", fansubID, "member_claim_invitation", created.Invitation.ID, string(permissions.ActionFansubGroupHistoricalMembersLink), map[string]any{
 		"member_id":       memberID,
 		"fansub_group_id": fansubID,
 	})
@@ -196,13 +196,13 @@ func (h *MemberClaimInvitationsHandler) CancelClaimInvitation(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsCancel, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersLink, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "member_claim_invitation.cancel.denied", &fansubID, "member_claim_invitation", &invitationID, permissions.ActionFansubGroupInvitationsCancel, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "member_claim_invitation.cancel.denied", &fansubID, "member_claim_invitation", &invitationID, permissions.ActionFansubGroupHistoricalMembersLink, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -212,7 +212,7 @@ func (h *MemberClaimInvitationsHandler) CancelClaimInvitation(c *gin.Context) {
 		return
 	}
 
-	h.writeAudit(c, identity.AppUserID, "member_claim_invitation.cancelled", fansubID, "member_claim_invitation", invitationID, string(permissions.ActionFansubGroupInvitationsCancel), map[string]any{
+	h.writeAudit(c, identity.AppUserID, "member_claim_invitation.cancelled", fansubID, "member_claim_invitation", invitationID, string(permissions.ActionFansubGroupHistoricalMembersLink), map[string]any{
 		"member_id":       memberID,
 		"fansub_group_id": fansubID,
 	})

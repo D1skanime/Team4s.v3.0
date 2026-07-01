@@ -5,9 +5,9 @@ package handlers
 // Enthält:
 //   - TestListGroupHistoryRoleDefinitionsDeniesUnauthorizedActor:
 //     Auth-Gate-Test (Plan 94-03) — CanForFansubGroup-Gate lehnt nicht-berechtigten Actor ab.
-//   - TestCreateHistGroupMemberRoleWhitelistReject (CR-01/D-13, Plan 95-03):
-//     Source-Inspection — CreateHistGroupMemberRole enthält IsGroupHistoryWhitelistRole statt
-//     RoleCodeExistsForContext; kein DB-Aufruf für Role-Validierung.
+//   - TestCreateHistGroupMemberRoleHistoricalRoleValidation:
+//     Source-Inspection — CreateHistGroupMemberRole enthält IsHistoricalMemberRoleCode statt
+//     der alten engen group_history-Whitelist.
 //   - TestListHistGroupMemberRolesCrossGroupGuard (WR-02/D-14, Plan 95-03):
 //     Source-Inspection — ListHistGroupMemberRoles enthält GetByID + FansubGroupID-Check
 //     vor ListByMember.
@@ -51,10 +51,10 @@ func TestListGroupHistoryRoleDefinitionsDeniesUnauthorizedActor(t *testing.T) {
 	// rolesRepo mit nil-Pool — wird im Deny-Pfad nicht erreicht
 	handler := NewFansubHistGroupMemberRolesHandler(
 		repository.NewHistGroupMemberRolesRepository(nil),
-		nil,  // badgeService — nicht benötigt im Deny-Pfad
+		nil, // badgeService — nicht benötigt im Deny-Pfad
 		permSvc,
-		nil,  // auditLogRepo — nil-safe im Deny-Pfad (auditPermissionDenied prüft nil)
-		nil,  // histMembersRepo — nicht benötigt im Deny-Pfad
+		nil, // auditLogRepo — nil-safe im Deny-Pfad (auditPermissionDenied prüft nil)
+		nil, // histMembersRepo — nicht benötigt im Deny-Pfad
 	)
 
 	recorder := httptest.NewRecorder()
@@ -81,34 +81,33 @@ func TestListGroupHistoryRoleDefinitionsDeniesUnauthorizedActor(t *testing.T) {
 	}
 }
 
-// TestCreateHistGroupMemberRoleWhitelistReject (CR-01 / D-13, Plan 95-03)
+// TestCreateHistGroupMemberRoleHistoricalRoleValidation
 //
-// Source-Inspection-Test: prüft dass CreateHistGroupMemberRole die Whitelist-basierte
-// Validierung (IsGroupHistoryWhitelistRole) verwendet statt der breiten DB-Abfrage
-// (RoleCodeExistsForContext). Damit wird sichergestellt, dass App-Rollen-Codes wie
-// 'translator' nicht als historische Gruppenrollen akzeptiert werden.
+// Source-Inspection-Test: prüft dass CreateHistGroupMemberRole die historische
+// Rollenvalidierung verwendet. Diese erlaubt historische Funktionsrollen wie
+// "translator", ohne daraus aktive App-Rechte abzuleiten.
 //
 // Strategie: Source-Inspection analog zu fansub_group_history_handler_test.go.
 // Der Handler hält *repository.HistGroupMemberRolesRepository als konkreten Typ —
 // kein Interface-Mock möglich ohne architektonischen Refactor (Regel 4).
-func TestCreateHistGroupMemberRoleWhitelistReject(t *testing.T) {
+func TestCreateHistGroupMemberRoleHistoricalRoleValidation(t *testing.T) {
 	const handlerFile = "fansub_hist_group_member_roles_handler.go"
 	src := readSource(t, handlerFile)
 
-	// CR-01: IsGroupHistoryWhitelistRole muss im Create-Handler vorhanden sein.
-	if !strings.Contains(src, "IsGroupHistoryWhitelistRole") {
-		t.Error("CreateHistGroupMemberRole: IsGroupHistoryWhitelistRole-Aufruf fehlt (CR-01/D-13 nicht umgesetzt)")
+	// Historische Rollenvalidierung muss im Create-Handler vorhanden sein.
+	if !strings.Contains(src, "IsHistoricalMemberRoleCode") {
+		t.Error("CreateHistGroupMemberRole: IsHistoricalMemberRoleCode-Aufruf fehlt")
 	}
 
-	// CR-01: RoleCodeExistsForContext darf im Create-Pfad nicht mehr aufgerufen werden.
-	// Die Methode darf im Repository verbleiben, aber der Handler-Aufruf muss entfernt sein.
 	body := funcBody(t, src, "CreateHistGroupMemberRole")
+	if strings.Contains(body, "IsGroupHistoryWhitelistRole") {
+		t.Error("CreateHistGroupMemberRole: alte enge group_history-Whitelist wird noch verwendet")
+	}
 	if strings.Contains(body, "RoleCodeExistsForContext") {
 		t.Error("CreateHistGroupMemberRole: RoleCodeExistsForContext-Aufruf noch vorhanden — " +
-			"muss durch IsGroupHistoryWhitelistRole ersetzt werden (CR-01/D-13)")
+			"muss durch IsHistoricalMemberRoleCode ersetzt werden")
 	}
 
-	// CR-01: Bei ungültigem Role-Code muss 422 zurückgegeben werden.
 	if !strings.Contains(body, "http.StatusUnprocessableEntity") {
 		t.Error("CreateHistGroupMemberRole: HTTP 422 bei ungültigem role_code fehlt")
 	}

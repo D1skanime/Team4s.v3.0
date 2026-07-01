@@ -103,11 +103,26 @@ func TestRoleAllowsActionDifferentiatesManagerRoles(t *testing.T) {
 	if !RoleAllowsAction(RoleFansubLead, ActionFansubGroupMembersManage) {
 		t.Fatal("expected fansub lead to manage members")
 	}
+	if !RoleAllowsAction(RoleFansubLead, ActionFansubGroupHistoricalMembersManage) {
+		t.Fatal("expected fansub lead to manage historical members")
+	}
+	if !RoleAllowsAction(RoleFansubLead, ActionFansubGroupHistoricalRolesManage) {
+		t.Fatal("expected fansub lead to manage historical roles")
+	}
+	if !RoleAllowsAction(RoleFansubLead, ActionFansubGroupHistoricalMembersLink) {
+		t.Fatal("expected fansub lead to link historical members")
+	}
 	if RoleAllowsAction(RoleProjectLead, ActionFansubGroupMembersManage) {
 		t.Fatal("expected project lead to not manage members")
 	}
+	if RoleAllowsAction(RoleProjectLead, ActionFansubGroupHistoricalMembersManage) {
+		t.Fatal("expected project lead to not manage historical members")
+	}
 	if RoleAllowsAction(RoleDesigner, ActionFansubGroupMembersManage) {
 		t.Fatal("expected designer to not manage members")
+	}
+	if RoleAllowsAction(RoleRawProvider, ActionFansubGroupHistoricalMembersManage) {
+		t.Fatal("expected historical/contribution role to not manage historical members")
 	}
 }
 

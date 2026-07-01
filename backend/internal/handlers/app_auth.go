@@ -19,24 +19,27 @@ import (
 )
 
 type fansubGroupCapabilitiesResponse struct {
-	CanEditGroup           bool `json:"can_edit_group"`
-	CanManageLinks         bool `json:"can_manage_links"`
-	CanViewMembers         bool `json:"can_view_members"`
-	CanManageMembers       bool `json:"can_manage_members"`
-	CanEditNotes           bool `json:"can_edit_notes"`
-	CanViewInvitations     bool `json:"can_view_invitations"`
-	CanCreateInvitation    bool `json:"can_create_invitation"`
-	CanCancelInvitation    bool `json:"can_cancel_invitation"`
-	CanViewReleases        bool `json:"can_view_releases"`
-	CanViewReleaseMedia    bool `json:"can_view_release_media"`
-	CanUploadReleaseMedia  bool `json:"can_upload_release_media"`
-	CanEditReleaseNotes    bool `json:"can_edit_release_notes"`
-	CanViewGroupMedia      bool `json:"can_view_group_media"`
-	CanUploadGroupMedia    bool `json:"can_upload_group_media"`
-	CanUpdateGroupMedia    bool `json:"can_update_group_media"`
-	CanDeleteOwnGroupMedia bool `json:"can_delete_own_group_media"`
-	CanDeleteGroupMedia    bool `json:"can_delete_group_media"`
-	CanReorderGroupMedia   bool `json:"can_reorder_group_media"`
+	CanEditGroup               bool `json:"can_edit_group"`
+	CanManageLinks             bool `json:"can_manage_links"`
+	CanViewMembers             bool `json:"can_view_members"`
+	CanManageMembers           bool `json:"can_manage_members"`
+	CanManageHistoricalMembers bool `json:"can_manage_historical_members"`
+	CanManageHistoricalRoles   bool `json:"can_manage_historical_roles"`
+	CanLinkHistoricalMembers   bool `json:"can_link_historical_members"`
+	CanEditNotes               bool `json:"can_edit_notes"`
+	CanViewInvitations         bool `json:"can_view_invitations"`
+	CanCreateInvitation        bool `json:"can_create_invitation"`
+	CanCancelInvitation        bool `json:"can_cancel_invitation"`
+	CanViewReleases            bool `json:"can_view_releases"`
+	CanViewReleaseMedia        bool `json:"can_view_release_media"`
+	CanUploadReleaseMedia      bool `json:"can_upload_release_media"`
+	CanEditReleaseNotes        bool `json:"can_edit_release_notes"`
+	CanViewGroupMedia          bool `json:"can_view_group_media"`
+	CanUploadGroupMedia        bool `json:"can_upload_group_media"`
+	CanUpdateGroupMedia        bool `json:"can_update_group_media"`
+	CanDeleteOwnGroupMedia     bool `json:"can_delete_own_group_media"`
+	CanDeleteGroupMedia        bool `json:"can_delete_group_media"`
+	CanReorderGroupMedia       bool `json:"can_reorder_group_media"`
 }
 
 type fansubGroupAppMemberStore interface {
@@ -205,8 +208,9 @@ func (h *AppAuthHandler) HandleKeycloakBackchannelLogout(c *gin.Context) {
 }
 
 type createFansubGroupAppMemberRequest struct {
-	AppUserID int64    `json:"app_user_id"`
-	Roles     []string `json:"roles"`
+	AppUserID          int64    `json:"app_user_id"`
+	Roles              []string `json:"roles"`
+	HistoricalMemberID *int64   `json:"historical_member_id"`
 }
 
 type setFansubGroupMemberRoleRequest struct {
@@ -252,7 +256,7 @@ func (h *AppAuthHandler) ListFansubGroupAppMembers(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -282,16 +286,24 @@ func (h *AppAuthHandler) SearchFansubGroupAppMemberCandidates(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige fansub-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige fansub-id"}})
 		return
 	}
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht gepr\u00fcft werden.")
 		return
 	}
+	linkResult := result
 	if !result.Allowed {
+		linkResult, err = h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersLink, fansubID)
+		if err != nil {
+			writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht gepr\u00fcft werden.")
+			return
+		}
+	}
+	if !result.Allowed && !linkResult.Allowed {
 		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_members.search.denied", &fansubID, "fansub_group", &fansubID, permissions.ActionFansubGroupMembersManage, result)
 		writePermissionDenied(c, result)
 		return
@@ -325,7 +337,7 @@ func (h *AppAuthHandler) ListFansubGroupInvitations(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsView, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprÃ¼ft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -361,7 +373,7 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsCreate, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprÃ¼ft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -406,8 +418,8 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 		mailErr := h.mailer.Send(mailCtx, services.MailMessage{
 			To:       created.Invitation.Email,
 			Subject:  "Einladung zur Fansub-Gruppe",
-			BodyText: fmt.Sprintf("Du wurdest zu einer Fansub-Gruppe eingeladen.\n\nLink zum Annehmen: %s\n\nDieser Link ist 7 Tage gültig.", inviteURL),
-			BodyHTML: fmt.Sprintf(`<p>Du wurdest zu einer Fansub-Gruppe eingeladen.</p><p><a href="%s">Einladung annehmen</a></p><p>Dieser Link ist 7 Tage gültig.</p>`, inviteURL),
+			BodyText: fmt.Sprintf("Du wurdest zu einer Fansub-Gruppe eingeladen.\n\nLink zum Annehmen: %s\n\nDieser Link ist 7 Tage gÃ¼ltig.", inviteURL),
+			BodyHTML: fmt.Sprintf(`<p>Du wurdest zu einer Fansub-Gruppe eingeladen.</p><p><a href="%s">Einladung annehmen</a></p><p>Dieser Link ist 7 Tage gÃ¼ltig.</p>`, inviteURL),
 		})
 		if mailErr != nil {
 			// Einladung stornieren damit kein stiller pending-Record verbleibt.
@@ -429,7 +441,7 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 				},
 			})
 			c.JSON(http.StatusBadGateway, gin.H{"error": gin.H{
-				"message":     "Einladung konnte nicht gesendet werden. Bitte prüfe die SMTP-Konfiguration.",
+				"message":     "Einladung konnte nicht gesendet werden. Bitte prÃ¼fe die SMTP-Konfiguration.",
 				"reason_code": "mail_delivery_failed",
 			}})
 			return
@@ -487,7 +499,7 @@ func (h *AppAuthHandler) CancelFansubGroupInvitation(c *gin.Context) {
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupInvitationsCancel, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Einladungsberechtigung konnte nicht geprÃ¼ft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -622,17 +634,6 @@ func (h *AppAuthHandler) CreateFansubGroupAppMember(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
-	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
-		return
-	}
-	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_members.manage.denied", &fansubID, "fansub_group", &fansubID, permissions.ActionFansubGroupMembersManage, result)
-		writePermissionDenied(c, result)
-		return
-	}
-
 	var req createFansubGroupAppMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.AppUserID <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "app_user_id ist erforderlich"}})
@@ -643,17 +644,41 @@ func (h *AppAuthHandler) CreateFansubGroupAppMember(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": err.Error()}})
 		return
 	}
-	if len(roles) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "Mindestens eine Gruppenrolle ist erforderlich."}})
+	hasHistoricalLink := req.HistoricalMemberID != nil && *req.HistoricalMemberID > 0
+	if len(roles) == 0 && !hasHistoricalLink {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "Mindestens eine Gruppenrolle oder historische Identit\u00e4t ist erforderlich."}})
+		return
+	}
+
+	requiredAction := permissions.ActionFansubGroupMembersManage
+	deniedEvent := "fansub_group_members.manage.denied"
+	if hasHistoricalLink && len(roles) == 0 {
+		requiredAction = permissions.ActionFansubGroupHistoricalMembersLink
+		deniedEvent = "hist_group_member.link.denied"
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, requiredAction, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht gepr\u00fcft werden.")
+		return
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, deniedEvent, &fansubID, "fansub_group", &fansubID, requiredAction, result)
+		writePermissionDenied(c, result)
 		return
 	}
 
 	member, err := h.memberRepo.Create(c.Request.Context(), fansubID, models.FansubGroupMemberCreateInput{
 		AppUserID:          req.AppUserID,
 		Roles:              roles,
+		HistoricalMemberID: req.HistoricalMemberID,
 		CreatedByAppUserID: &identity.AppUserID,
 	})
 	if err != nil {
+		if conflict, ok := repository.AsMemberMutationConflict(err); ok {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": conflict.Message, "code": conflict.Code}})
+			return
+		}
 		switch err {
 		case repository.ErrConflict:
 			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "mitgliedschaft existiert bereits"}})
@@ -672,14 +697,13 @@ func (h *AppAuthHandler) CreateFansubGroupAppMember(c *gin.Context) {
 		ScopeID:        &fansubID,
 		TargetType:     "fansub_group_member",
 		TargetID:       &member.ID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Action:         string(requiredAction),
 		Outcome:        "allowed",
 		Payload:        map[string]any{"app_user_id": req.AppUserID, "roles": roles},
 	})
 
 	c.JSON(http.StatusCreated, gin.H{"data": member})
 }
-
 func (h *AppAuthHandler) SetFansubGroupMemberRole(c *gin.Context) {
 	h.setFansubGroupMemberRole(c, "")
 }
@@ -706,7 +730,7 @@ func (h *AppAuthHandler) setFansubGroupMemberRole(c *gin.Context, forcedRole str
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -800,13 +824,13 @@ func (h *AppAuthHandler) UpdateFansubGroupMemberStatus(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige fansub-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige fansub-id"}})
 		return
 	}
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -817,13 +841,13 @@ func (h *AppAuthHandler) UpdateFansubGroupMemberStatus(c *gin.Context) {
 
 	appUserID, err := parseFansubID(c.Param("appUserId"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige app-user-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige app-user-id"}})
 		return
 	}
 
 	var req setFansubGroupMemberStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige anfrage"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige anfrage"}})
 		return
 	}
 	status := strings.TrimSpace(req.Status)
@@ -893,13 +917,13 @@ func (h *AppAuthHandler) SetFansubGroupMemberMediaPermissions(c *gin.Context) {
 
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige fansub-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige fansub-id"}})
 		return
 	}
 
 	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
 	if err != nil {
-		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprüft werden.")
+		writePermissionInternalError(c, err, "Mitgliederberechtigung konnte nicht geprÃ¼ft werden.")
 		return
 	}
 	if !result.Allowed {
@@ -910,13 +934,13 @@ func (h *AppAuthHandler) SetFansubGroupMemberMediaPermissions(c *gin.Context) {
 
 	appUserID, err := parseFansubID(c.Param("appUserId"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige app-user-id"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige app-user-id"}})
 		return
 	}
 
 	var req setFansubGroupMemberMediaPermissionsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige anfrage"}})
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungÃ¼ltige anfrage"}})
 		return
 	}
 
@@ -981,6 +1005,21 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		return
 	}
 	canManageMembers, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canManageHistoricalMembers, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canManageHistoricalRoles, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalRolesManage, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canLinkHistoricalMembers, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersLink, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
 		return
@@ -1069,30 +1108,33 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 	canDeleteGroupMediaAllowed := canDeleteGroupMedia.Allowed || customMediaPermissions.CanDeleteAll
 	canReorderGroupMediaAllowed := canUpdateGroupMedia.Allowed || customMediaPermissions.CanReorder
 
-	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMediaAllowed && !canUploadGroupMediaAllowed && !canUpdateGroupMedia.Allowed && !canDeleteOwnGroupMediaAllowed && !canDeleteGroupMediaAllowed && !canReorderGroupMediaAllowed {
+	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageHistoricalMembers.Allowed && !canManageHistoricalRoles.Allowed && !canLinkHistoricalMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMediaAllowed && !canUploadGroupMediaAllowed && !canUpdateGroupMedia.Allowed && !canDeleteOwnGroupMediaAllowed && !canDeleteGroupMediaAllowed && !canReorderGroupMediaAllowed {
 		writePermissionDenied(c, canViewMembers)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": fansubGroupCapabilitiesResponse{
-		CanEditGroup:           canEditGroup.Allowed,
-		CanManageLinks:         canManageLinks.Allowed,
-		CanViewMembers:         canViewMembers.Allowed,
-		CanManageMembers:       canManageMembers.Allowed,
-		CanEditNotes:           canEditNotes.Allowed,
-		CanViewInvitations:     canViewInvitations.Allowed,
-		CanCreateInvitation:    canCreateInvitation.Allowed,
-		CanCancelInvitation:    canCancelInvitation.Allowed,
-		CanViewReleases:        canViewReleases.Allowed,
-		CanViewReleaseMedia:    canViewReleaseMedia.Allowed,
-		CanUploadReleaseMedia:  canUploadReleaseMedia.Allowed,
-		CanEditReleaseNotes:    canEditReleaseNotes.Allowed,
-		CanViewGroupMedia:      canViewGroupMediaAllowed,
-		CanUploadGroupMedia:    canUploadGroupMediaAllowed,
-		CanUpdateGroupMedia:    canUpdateGroupMedia.Allowed,
-		CanDeleteOwnGroupMedia: canDeleteOwnGroupMediaAllowed,
-		CanDeleteGroupMedia:    canDeleteGroupMediaAllowed,
-		CanReorderGroupMedia:   canReorderGroupMediaAllowed,
+		CanEditGroup:               canEditGroup.Allowed,
+		CanManageLinks:             canManageLinks.Allowed,
+		CanViewMembers:             canViewMembers.Allowed,
+		CanManageMembers:           canManageMembers.Allowed,
+		CanManageHistoricalMembers: canManageHistoricalMembers.Allowed,
+		CanManageHistoricalRoles:   canManageHistoricalRoles.Allowed,
+		CanLinkHistoricalMembers:   canLinkHistoricalMembers.Allowed,
+		CanEditNotes:               canEditNotes.Allowed,
+		CanViewInvitations:         canViewInvitations.Allowed,
+		CanCreateInvitation:        canCreateInvitation.Allowed,
+		CanCancelInvitation:        canCancelInvitation.Allowed,
+		CanViewReleases:            canViewReleases.Allowed,
+		CanViewReleaseMedia:        canViewReleaseMedia.Allowed,
+		CanUploadReleaseMedia:      canUploadReleaseMedia.Allowed,
+		CanEditReleaseNotes:        canEditReleaseNotes.Allowed,
+		CanViewGroupMedia:          canViewGroupMediaAllowed,
+		CanUploadGroupMedia:        canUploadGroupMediaAllowed,
+		CanUpdateGroupMedia:        canUpdateGroupMedia.Allowed,
+		CanDeleteOwnGroupMedia:     canDeleteOwnGroupMediaAllowed,
+		CanDeleteGroupMedia:        canDeleteGroupMediaAllowed,
+		CanReorderGroupMedia:       canReorderGroupMediaAllowed,
 	}})
 }
 

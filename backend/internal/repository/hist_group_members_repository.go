@@ -62,6 +62,7 @@ type HistGroupMemberDisplayRow struct {
 	DisplayName            string     `json:"display_name"`
 	AppUserID              *int64     `json:"app_user_id"`
 	AppUsername            *string    `json:"app_username"`
+	ActiveAppMemberID      *int64     `json:"active_app_member_id,omitempty"`
 	JoinedDate             *time.Time `json:"joined_date"`
 	LeftDate               *time.Time `json:"left_date"`
 	Status                 string     `json:"status"`
@@ -79,6 +80,7 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		       m.nickname AS display_name,
 		       claimed_user.id AS app_user_id,
 		       COALESCE(NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
+		       active_group_member.id AS active_app_member_id,
 		       hfgm.joined_date, hfgm.left_date, hfgm.status,
 		       hfgm.confirmed_by AS confirmed_by_app_user_id,
 		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
@@ -101,7 +103,6 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		   AND active_group_member.status = 'active'
 		LEFT JOIN app_users confirmer ON confirmer.id = hfgm.confirmed_by
 		WHERE hfgm.fansub_group_id = $1
-		  AND active_group_member.id IS NULL
 		ORDER BY COALESCE(hfgm.joined_date, '9999-01-01'::date), hfgm.id
 	`, fansubGroupID)
 	if err != nil {
@@ -115,6 +116,7 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		if err := rows.Scan(
 			&row.ID, &row.FansubGroupID, &row.MemberID,
 			&row.DisplayName, &row.AppUserID, &row.AppUsername,
+			&row.ActiveAppMemberID,
 			&row.JoinedDate, &row.LeftDate, &row.Status,
 			&row.ConfirmedByAppUserID, &row.ConfirmedByDisplayName, &row.ConfirmedAt,
 			&row.CreatedAt,

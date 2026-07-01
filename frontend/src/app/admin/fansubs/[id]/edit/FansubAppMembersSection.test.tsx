@@ -185,7 +185,22 @@ describe("FansubAppMembersSection", () => {
           },
         ],
       })
-      .mockResolvedValueOnce({ data: [] });
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 402,
+            fansub_group_member_id: 302,
+            member_display_name: "Archiv Claim",
+            role_code: "timer",
+            role_label: "Timing",
+            started_date: "2008-01-01",
+            ended_date: "2010-01-01",
+            note: null,
+            status: "historical",
+            created_at: "2026-05-16T08:12:00Z",
+          },
+        ],
+      });
     listPendingMemberClaims.mockResolvedValue([
       {
         id: 701,
@@ -204,20 +219,12 @@ describe("FansubAppMembersSection", () => {
     expect((await screen.findAllByText("Phase Admin")).length).toBeGreaterThan(0);
     expect(await screen.findByText("Archiv Admin")).not.toBeNull();
     expect(await screen.findByText("Archiv Claim")).not.toBeNull();
-    expect(screen.getByText("Bestätigt/verknüpft")).not.toBeNull();
-    expect(screen.getByText("Offener Claim")).not.toBeNull();
-    expect(screen.getByText("Das bin ich.")).not.toBeNull();
+    expect(screen.getByText("Verknüpft mit phase-admin")).not.toBeNull();
     expect(screen.getAllByText("Leader").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Aktiv/).length).toBeGreaterThan(0);
     expect(screen.queryByText("phase-admin@example.local")).toBeNull();
     expect(screen.queryByText(/phase 45 mvp/i)).toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: "Bestätigen" }));
-
-    await waitFor(() => {
-      expect(verifyMemberClaim).toHaveBeenCalledWith(88, 701);
-    });
   });
 
   it("adds a new member through candidate search with selected roles", async () => {
@@ -300,6 +307,104 @@ describe("FansubAppMembersSection", () => {
       expect(createFansubAppMember).toHaveBeenCalledWith(
         88,
         { app_user_id: 12, roles: ["editor"] },
+      );
+    });
+  });
+
+  it("links a historical identity without requiring an extra selected role", async () => {
+    getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: true,
+        can_view_members: true,
+        can_manage_members: true,
+        can_edit_notes: true,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: false,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
+        can_view_group_media: false,
+        can_upload_group_media: false,
+        can_update_group_media: false,
+        can_delete_own_group_media: false,
+        can_delete_group_media: false,
+        can_reorder_group_media: false,
+      },
+    });
+    listFansubAppMembers.mockResolvedValue({ data: [] });
+    listGroupMembers.mockResolvedValue({
+      data: [
+        {
+          id: 302,
+          fansub_group_id: 88,
+          member_id: 45,
+          display_name: "Gon",
+          joined_date: "2010-11-22",
+          left_date: null,
+          app_user_id: null,
+          app_username: null,
+          status: "historical",
+          visibility: "internal",
+          created_at: "2026-05-16T08:11:00Z",
+        },
+      ],
+    });
+    listMemberRoles.mockResolvedValue({
+      data: [
+        {
+          id: 401,
+          fansub_group_member_id: 302,
+          member_display_name: "Gon",
+          role_code: "raw_provider",
+          role_label: "Raw-Quelle",
+          started_date: "2010-11-22",
+          ended_date: null,
+          note: null,
+          status: "historical",
+          created_at: "2026-05-16T08:10:00Z",
+        },
+      ],
+    });
+    searchFansubAppMemberCandidates.mockResolvedValue({
+      data: [
+        {
+          app_user_id: 12,
+          member_id: 0,
+          fansub_name: "aa2",
+        },
+      ],
+    });
+    createFansubAppMember.mockResolvedValue({ data: {} });
+
+    render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Mitglied hinzufügen" }));
+    fireEvent.click(await screen.findByRole("button", { name: "App-Mitglied / Einladung" }));
+
+    const searchInput = await screen.findByPlaceholderText("Fansub-Nick suchen");
+    fireEvent.change(searchInput, { target: { value: "aa2" } });
+
+    fireEvent.click(await screen.findByRole("button", { name: /aa2/ }));
+    expect(screen.getByText("Aufgaben in dieser Gruppe")).not.toBeNull();
+    expect(screen.getAllByRole("button", { name: /Editing/ }).length).toBeGreaterThan(0);
+
+    fireEvent.change(await screen.findByLabelText("Historische Identität"), { target: { value: "302" } });
+
+    expect(screen.queryByText("Aufgaben in dieser Gruppe")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Editing/ })).toBeNull();
+    expect(screen.getByText("Offene historische Rollen werden automatisch übernommen.")).not.toBeNull();
+
+    const submitButton = screen.getByRole("button", { name: "Mitglied verknüpfen" });
+    expect((submitButton as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(createFansubAppMember).toHaveBeenCalledWith(
+        88,
+        { app_user_id: 12, roles: [], historical_member_id: 302 },
       );
     });
   });

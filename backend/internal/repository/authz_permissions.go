@@ -225,12 +225,17 @@ func (r *AuthzRepository) LoadRoleCapabilities(ctx context.Context) (map[string]
 // Compile-Zeit-Sicherstellung, dass AuthzRepository das CacheLoader-Interface implementiert.
 var _ permissions.CacheLoader = (*AuthzRepository)(nil)
 
-// LoadFansubGroupRoles lädt alle assignable Rollen aus role_definitions.
+// LoadFansubGroupRoles lädt alle Rollen, die in aktiven Gruppen-/Arbeitskontexten
+// als Gruppenmitglied-Rolle gespeichert werden dürfen. Reine Spezialfälle ohne
+// aktiven Kontext bleiben draußen; historische offene Rollen können so beim
+// Verknüpfen eines App-Mitglieds übernommen werden.
 // Implementiert das permissions.CatalogLoader-Interface für den Startup-Load (D-12).
 func (r *AuthzRepository) LoadFansubGroupRoles(ctx context.Context) ([]string, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT code FROM role_definitions
 		WHERE assignable = true
+		   OR 'fansub_group' = ANY(contexts)
+		   OR 'anime_contribution' = ANY(contexts)
 		ORDER BY sort_order, code
 	`)
 	if err != nil {

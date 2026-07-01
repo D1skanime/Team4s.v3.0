@@ -33,6 +33,7 @@ type memberRepoStub struct {
 	mediaPermissions models.FansubGroupMediaPermissions
 	listCalls        int
 	createCalls      int
+	createInput      models.FansubGroupMemberCreateInput
 }
 
 func (s *memberRepoStub) ListByFansubGroup(_ context.Context, _ int64) ([]models.FansubGroupAppMember, error) {
@@ -44,8 +45,9 @@ func (s *memberRepoStub) SearchCandidates(_ context.Context, _ int64, _ string, 
 	return []models.FansubGroupMemberCandidate{}, nil
 }
 
-func (s *memberRepoStub) Create(_ context.Context, _ int64, _ models.FansubGroupMemberCreateInput) (*models.FansubGroupAppMember, error) {
+func (s *memberRepoStub) Create(_ context.Context, _ int64, input models.FansubGroupMemberCreateInput) (*models.FansubGroupAppMember, error) {
 	s.createCalls++
+	s.createInput = input
 	return s.createResp, s.createErr
 }
 
@@ -1140,6 +1142,71 @@ func TestCreateFansubGroupAppMemberMapsDuplicateMembershipConflict(t *testing.T)
 	}
 	if errBody["message"] != "mitgliedschaft existiert bereits" {
 		t.Fatalf("expected duplicate membership message, got %#v", errBody["message"])
+	}
+}
+
+func TestCreateFansubGroupAppMemberPassesHistoricalMemberLink(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	memberRepo := &memberRepoStub{createResp: &models.FansubGroupAppMember{ID: 77, FansubGroupID: 88, AppUserID: 12}}
+	handler := &AppAuthHandler{
+		memberRepo: memberRepo,
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleFansubLead}},
+		}),
+		auditLogRepo: &auditLogStub{},
+	}
+
+	body := []byte(`{"app_user_id":12,"roles":["fansub_lead"],"historical_member_id":44}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPost, "/api/v1/admin/fansubs/88/app-members", body, middleware.AuthIdentity{
+		UserID:        104,
+		AppUserID:     11,
+		DisplayName:   "Phase Lead",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.CreateFansubGroupAppMember(c)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if memberRepo.createInput.HistoricalMemberID == nil || *memberRepo.createInput.HistoricalMemberID != 44 {
+		t.Fatalf("expected historical member id 44 to be passed, got %#v", memberRepo.createInput.HistoricalMemberID)
+	}
+}
+
+func TestCreateFansubGroupAppMemberAllowsHistoricalLinkWithoutExplicitRoles(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	memberRepo := &memberRepoStub{createResp: &models.FansubGroupAppMember{ID: 77, FansubGroupID: 88, AppUserID: 12}}
+	handler := &AppAuthHandler{
+		memberRepo: memberRepo,
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleFansubLead}},
+		}),
+		auditLogRepo: &auditLogStub{},
+	}
+
+	body := []byte(`{"app_user_id":12,"roles":[],"historical_member_id":44}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPost, "/api/v1/admin/fansubs/88/app-members", body, middleware.AuthIdentity{
+		UserID:        104,
+		AppUserID:     11,
+		DisplayName:   "Phase Lead",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.CreateFansubGroupAppMember(c)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if len(memberRepo.createInput.Roles) != 0 {
+		t.Fatalf("expected no explicit roles to be required, got %#v", memberRepo.createInput.Roles)
+	}
+	if memberRepo.createInput.HistoricalMemberID == nil || *memberRepo.createInput.HistoricalMemberID != 44 {
+		t.Fatalf("expected historical member id 44 to be passed, got %#v", memberRepo.createInput.HistoricalMemberID)
 	}
 }
 

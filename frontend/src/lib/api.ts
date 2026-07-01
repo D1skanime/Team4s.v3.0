@@ -9282,9 +9282,10 @@ export async function revokeRoleCapability(
 }
 
 /**
- * Lädt die kuratierte group_history-Rollenliste für eine Fansub-Gruppe.
+ * Lädt die Rollenliste für historische Mitgliedsfunktionen einer Fansub-Gruppe.
  * GET /api/v1/admin/fansubs/:fansubId/role-definitions?context=group_history
- * Gibt genau die vier kuratierten Rollen (Gründer/in, Gruppenleitung, Co-Leitung, Projektmanagement) zurück.
+ * Gibt historische Funktionsrollen wie Übersetzung, Timing und Encoding zurück.
+ * Diese Auswahl dokumentiert Archivdaten und vergibt keine aktiven App-Rechte.
  */
 export async function listGroupHistoryRoleDefinitions(
   fansubId: number | string,

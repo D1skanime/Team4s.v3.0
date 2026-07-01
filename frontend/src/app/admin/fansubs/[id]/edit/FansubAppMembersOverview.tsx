@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import type { ReactNode } from 'react'
 import { Pencil } from 'lucide-react'
 
 import {
@@ -97,6 +98,7 @@ function invitationStatusVariant(status: FansubGroupInvitation['status']): 'info
 export type FansubAppMembersOverviewProps = {
   members: FansubAppMember[]
   invitations: FansubGroupInvitation[]
+  afterMembers?: ReactNode
   canViewMembers: boolean
   canViewInvitations: boolean
   canManageMembers: boolean
@@ -110,6 +112,7 @@ export type FansubAppMembersOverviewProps = {
 export function FansubAppMembersOverview({
   members,
   invitations,
+  afterMembers,
   canViewMembers,
   canViewInvitations,
   canManageMembers,
@@ -210,6 +213,7 @@ export function FansubAppMembersOverview({
               )
             })}
           </div>
+          {afterMembers}
         </>
       ) : null}
 

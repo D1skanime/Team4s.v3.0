@@ -115,7 +115,7 @@ func (h *MemberClaimsHandler) GetMyClaim(c *gin.Context) {
 }
 
 func (h *MemberClaimsHandler) ListPendingClaimsForGroup(c *gin.Context) {
-	fansubID, ok := h.requireFansubPermission(c, permissions.ActionFansubGroupInvitationsCreate, "member_claim.list.denied", nil)
+	fansubID, ok := h.requireFansubPermission(c, permissions.ActionFansubGroupHistoricalMembersLink, "member_claim.list.denied", nil)
 	if !ok {
 		return
 	}
@@ -139,7 +139,7 @@ func (h *MemberClaimsHandler) VerifyClaim(c *gin.Context) {
 		badRequest(c, "Ungültige claim-id.")
 		return
 	}
-	fansubID, ok := h.requireFansubPermission(c, permissions.ActionFansubGroupInvitationsCreate, "member_claim.verify.denied", &claimID)
+	fansubID, ok := h.requireFansubPermission(c, permissions.ActionFansubGroupHistoricalMembersLink, "member_claim.verify.denied", &claimID)
 	if !ok {
 		return
 	}
@@ -164,7 +164,7 @@ func (h *MemberClaimsHandler) RejectClaim(c *gin.Context) {
 		badRequest(c, "Ungültige claim-id.")
 		return
 	}
-	fansubID, ok := h.requireFansubPermission(c, permissions.ActionFansubGroupInvitationsCreate, "member_claim.reject.denied", &claimID)
+	fansubID, ok := h.requireFansubPermission(c, permissions.ActionFansubGroupHistoricalMembersLink, "member_claim.reject.denied", &claimID)
 	if !ok {
 		return
 	}

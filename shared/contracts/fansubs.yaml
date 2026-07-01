@@ -845,7 +845,7 @@ types:
     path: /api/v1/admin/fansubs/{id}/group-members
     auth:
       required: true
-      permission: fansub_group.members.manage for the addressed fansub group
+      permission: fansub_group.historical_members.manage for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -875,7 +875,7 @@ types:
     path: /api/v1/admin/fansubs/{id}/group-members/{memberId}
     auth:
       required: true
-      permission: fansub_group.members.manage for the addressed fansub group
+      permission: fansub_group.historical_members.manage for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -903,7 +903,7 @@ types:
     path: /api/v1/admin/fansubs/{id}/group-members/{memberId}
     auth:
       required: true
-      permission: fansub_group.members.manage for the addressed fansub group
+      permission: fansub_group.historical_members.manage for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -955,7 +955,7 @@ types:
     path: /api/v1/admin/fansubs/{id}/member-roles
     auth:
       required: true
-      permission: fansub_group.members.manage for the addressed fansub group
+      permission: fansub_group.historical_roles.manage for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -985,7 +985,7 @@ types:
     path: /api/v1/admin/fansubs/{id}/member-roles/{roleId}
     auth:
       required: true
-      permission: fansub_group.members.manage for the addressed fansub group
+      permission: fansub_group.historical_roles.manage for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -1013,7 +1013,7 @@ types:
     path: /api/v1/admin/fansubs/{id}/member-roles/{roleId}
     auth:
       required: true
-      permission: fansub_group.members.manage for the addressed fansub group
+      permission: fansub_group.historical_roles.manage for the addressed fansub group
       header:
         name: Authorization
         format: Bearer <signed token>
@@ -1102,6 +1102,9 @@ types_append:
     can_manage_links: bool
     can_view_members: bool
     can_manage_members: bool
+    can_manage_historical_members: bool
+    can_manage_historical_roles: bool
+    can_link_historical_members: bool
     can_edit_notes: bool
     can_view_invitations: bool
     can_create_invitation: bool

@@ -7,6 +7,7 @@ import {
   Input,
   LoadingState,
   Modal,
+  Select,
 } from '@/components/ui'
 import {
   type FansubGroupMemberCandidate,
@@ -15,6 +16,7 @@ import {
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
+import type { HistoricalIdentityOption } from './GroupMembersTab'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -97,6 +99,8 @@ export type FansubAppMemberAddModalProps = {
   selectedCandidateId: string
   selectedCandidate: FansubGroupMemberCandidate | null
   selectedRoles: string[]
+  historicalIdentityOptions: HistoricalIdentityOption[]
+  selectedHistoricalMemberId: string
   isSearching: boolean
   isAdding: boolean
   inviteEmail: string
@@ -108,6 +112,7 @@ export type FansubAppMemberAddModalProps = {
   onCandidateQueryChange: (value: string) => void
   onCandidateSelect: (candidate: FansubGroupMemberCandidate) => void
   onToggleRole: (role: string) => void
+  onHistoricalMemberChange: (value: string) => void
   onAddMember: () => void
   onInviteEmailChange: (value: string) => void
   onToggleInviteRole: (role: FansubGroupRoleCode) => void
@@ -123,6 +128,8 @@ export function FansubAppMemberAddModal({
   selectedCandidateId,
   selectedCandidate,
   selectedRoles,
+  historicalIdentityOptions,
+  selectedHistoricalMemberId,
   isSearching,
   isAdding,
   inviteEmail,
@@ -133,11 +140,15 @@ export function FansubAppMemberAddModal({
   onCandidateQueryChange,
   onCandidateSelect,
   onToggleRole,
+  onHistoricalMemberChange,
   onAddMember,
   onInviteEmailChange,
   onToggleInviteRole,
   onCreateInvitation,
 }: FansubAppMemberAddModalProps) {
+  const hasHistoricalSelection = selectedHistoricalMemberId.trim().length > 0
+  const canSubmitMember = Boolean(selectedCandidateId) && (selectedRoles.length > 0 || hasHistoricalSelection)
+
   return (
     <Modal
       open={open}
@@ -203,40 +214,67 @@ export function FansubAppMemberAddModal({
               </div>
             ) : null}
 
-            <div>
-              <p className={styles.fansubEditHint}>Aufgaben in dieser Gruppe</p>
-              <div className={styles.chipRow}>
-                {roleOptions.map((option) => {
-                  const selected = selectedRoles.includes(option.code)
-                  return (
-                    <Button
-                      key={option.code}
-                      variant={selected ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className={styleNames(styles.fansubEditRoleOption, getRoleClassName(option.code), selected && styles.fansubEditRoleOptionSelected)}
-                      aria-pressed={selected}
-                      onClick={() => onToggleRole(option.code)}
-                      title={option.description}
-                    >
-                      {option.label}
-                    </Button>
-                  )
-                })}
+            {selectedCandidate ? (
+              <FormField
+                label="Historische Identität"
+                htmlFor="fansub-member-historical-identity"
+                hint="Optional verknüpfen, wenn dieses App-Mitglied bereits als historisches Mitglied mit offener Rolle existiert."
+              >
+                <Select
+                  id="fansub-member-historical-identity"
+                  value={selectedHistoricalMemberId}
+                  onChange={(event) => onHistoricalMemberChange(event.target.value)}
+                >
+                  <option value="">Keine historische Identität verknüpfen</option>
+                  {historicalIdentityOptions.map((option) => (
+                    <option key={option.id} value={String(option.id)}>
+                      {option.displayName} - {option.roleSummary}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+            ) : null}
+
+            {hasHistoricalSelection ? (
+              <p className={styles.fansubEditHint}>Offene historische Rollen werden automatisch übernommen.</p>
+            ) : (
+              <div>
+                <p className={styles.fansubEditHint}>Aufgaben in dieser Gruppe</p>
+                <div className={styles.chipRow}>
+                  {roleOptions.map((option) => {
+                    const selected = selectedRoles.includes(option.code)
+                    return (
+                      <Button
+                        key={option.code}
+                        variant={selected ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className={styleNames(styles.fansubEditRoleOption, getRoleClassName(option.code), selected && styles.fansubEditRoleOptionSelected)}
+                        aria-pressed={selected}
+                        onClick={() => onToggleRole(option.code)}
+                        title={option.description}
+                      >
+                        {option.label}
+                      </Button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             <Button
               variant="primary"
               fullWidth
               onClick={onAddMember}
-              disabled={isAdding || !selectedCandidateId || selectedRoles.length === 0}
+              disabled={isAdding || !canSubmitMember}
             >
               {isAdding
                 ? 'Wird hinzugefügt...'
                 : !selectedCandidateId
                   ? 'Profil auswählen'
-                  : selectedRoles.length === 0
+                  : !canSubmitMember
                     ? 'Aufgabe auswählen'
+                    : hasHistoricalSelection
+                      ? 'Mitglied verknüpfen'
                     : 'Mitglied hinzufügen'}
             </Button>
           </Card>

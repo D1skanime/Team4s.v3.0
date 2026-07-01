@@ -2,13 +2,16 @@
 
 import {
   Button,
+  DatePicker,
   ErrorState,
   FormField,
   Input,
   Modal,
   Select,
 } from '@/components/ui'
+import { type RoleDefinitionOption } from '@/types/admin-capability'
 import type { HistFansubGroupMember, HistoricalContributionVisibility } from '@/types/fansub'
+import type { InlineMemberRoleDraft } from './useGroupMembersTab'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -28,6 +31,10 @@ export type GroupMemberFormModalsProps = {
   editTarget: HistFansubGroupMember | null
   form: MemberFormFields
   setForm: (updater: (prev: MemberFormFields) => MemberFormFields) => void
+  inlineRoleDrafts: InlineMemberRoleDraft[]
+  setInlineRoleDrafts: (updater: (prev: InlineMemberRoleDraft[]) => InlineMemberRoleDraft[]) => void
+  historyRoleOptions: RoleDefinitionOption[]
+  historyRoleLoadError?: string | null
   saving: boolean
   modalError: string | null
   onClose: () => void
@@ -54,6 +61,10 @@ export function GroupMemberFormModals({
   editTarget,
   form,
   setForm,
+  inlineRoleDrafts,
+  setInlineRoleDrafts,
+  historyRoleOptions,
+  historyRoleLoadError,
   saving,
   modalError,
   onClose,
@@ -63,6 +74,8 @@ export function GroupMemberFormModals({
   deleteError,
   onCloseDelete,
   onConfirmDelete,
+  yearMin,
+  yearMax,
   roleDeleteTarget,
   roleDeleting,
   roleDeleteError,
@@ -70,6 +83,24 @@ export function GroupMemberFormModals({
   onConfirmRoleDelete,
   roleLabelForCode,
 }: GroupMemberFormModalsProps) {
+  const hasRequiredRole = inlineRoleDrafts.some((role) => role.roleCode.trim())
+  const canSave = Boolean(form.displayName.trim()) && hasRequiredRole
+
+  const addInlineRole = () => {
+    setInlineRoleDrafts((current) => [
+      ...current,
+      { id: `role-${current.length + 1}-${Date.now()}`, roleCode: '', startedDate: '', endedDate: '' },
+    ])
+  }
+
+  const updateInlineRole = (id: string, patch: Partial<InlineMemberRoleDraft>) => {
+    setInlineRoleDrafts((current) => current.map((role) => (role.id === id ? { ...role, ...patch } : role)))
+  }
+
+  const removeInlineRole = (id: string) => {
+    setInlineRoleDrafts((current) => current.filter((role) => role.id !== id))
+  }
+
   return (
     <>
       <Modal
@@ -86,7 +117,7 @@ export function GroupMemberFormModals({
               variant="success"
               loading={saving}
               onClick={onSave}
-              disabled={!form.displayName.trim()}
+              disabled={!canSave}
             >
               Speichern
             </Button>
@@ -112,28 +143,6 @@ export function GroupMemberFormModals({
             />
           </FormField>
 
-          <div className={styles.fansubEditMembershipModalGrid}>
-            <FormField label="Beitrittsdatum" htmlFor="hist-member-joined-date" hint="Optionaler Startpunkt der Mitgliedschaft.">
-              <Input
-                id="hist-member-joined-date"
-                type="date"
-                value={form.joinedDate}
-                onChange={(e) => setForm((f) => ({ ...f, joinedDate: e.target.value }))}
-                aria-label="Beitrittsdatum"
-              />
-            </FormField>
-
-            <FormField label="Austrittsdatum" htmlFor="hist-member-left-date" hint="Leer lassen, wenn die Person weiterhin aktiv ist.">
-              <Input
-                id="hist-member-left-date"
-                type="date"
-                value={form.leftDate}
-                onChange={(e) => setForm((f) => ({ ...f, leftDate: e.target.value }))}
-                aria-label="Austrittsdatum"
-              />
-            </FormField>
-          </div>
-
           <FormField label="Sichtbarkeit" htmlFor="hist-member-visibility">
             <Select
               id="hist-member-visibility"
@@ -147,6 +156,74 @@ export function GroupMemberFormModals({
               <option value="public">öffentlich</option>
             </Select>
           </FormField>
+
+          <section className={styles.fansubEditInlineRolePanel} aria-label="Frühere Funktionen">
+            <div className={styles.fansubEditInlineRoleHeader}>
+              <div>
+                <h3>Frühere Funktionen</h3>
+                <p>Historische Rollen mit Eintritts- und optionalem Austrittsdatum.</p>
+              </div>
+            </div>
+
+            {historyRoleLoadError ? (
+              <ErrorState title="Frühere Funktionen konnten nicht geladen werden" description={historyRoleLoadError} />
+            ) : null}
+
+            {inlineRoleDrafts.map((role, index) => (
+              <div className={styles.fansubEditInlineRoleRow} key={role.id}>
+                <FormField label={`Rolle ${index + 1}`} htmlFor={`hist-member-role-${role.id}`} required>
+                  <Select
+                    id={`hist-member-role-${role.id}`}
+                    value={role.roleCode}
+                    onChange={(event) => updateInlineRole(role.id, { roleCode: event.target.value })}
+                  >
+                    <option value="">Rolle wählen</option>
+                    {historyRoleOptions.map((option) => (
+                      <option key={option.code} value={option.code}>
+                        {option.label_de}
+                      </option>
+                    ))}
+                  </Select>
+                </FormField>
+                <FormField label="Eintrittsdatum" htmlFor={`hist-member-role-start-${role.id}`}>
+                  <DatePicker
+                    id={`hist-member-role-start-${role.id}`}
+                    label={`Rolle ${index + 1} Eintrittsdatum`}
+                    value={role.startedDate}
+                    onChange={(value) => updateInlineRole(role.id, { startedDate: value })}
+                    minYear={yearMin}
+                    maxYear={yearMax}
+                    maxDate={role.endedDate || undefined}
+                  />
+                </FormField>
+                <FormField label="Austrittsdatum" htmlFor={`hist-member-role-end-${role.id}`}>
+                  <DatePicker
+                    id={`hist-member-role-end-${role.id}`}
+                    label={`Rolle ${index + 1} Austrittsdatum`}
+                    value={role.endedDate}
+                    onChange={(value) => updateInlineRole(role.id, { endedDate: value })}
+                    minYear={yearMin}
+                    maxYear={yearMax}
+                    minDate={role.startedDate || undefined}
+                  />
+                </FormField>
+                <Button
+                  type="button"
+                  variant={inlineRoleDrafts.length <= 1 ? 'ghost' : 'danger'}
+                  size="sm"
+                  onClick={() => removeInlineRole(role.id)}
+                  disabled={inlineRoleDrafts.length <= 1}
+                >
+                  Entfernen
+                </Button>
+              </div>
+            ))}
+            <div className={styles.fansubEditInlineRoleFooter}>
+              <Button type="button" variant="secondary" size="sm" onClick={addInlineRole}>
+                Weitere Rolle hinzufügen
+              </Button>
+            </div>
+          </section>
         </div>
       </Modal>
 

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui'
 import { listGroupHistoryRoleDefinitions } from '@/lib/api'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
+import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -24,11 +25,33 @@ import { normalizeInviteLink, roleLabelForCode, useGroupMembersTab } from './use
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
+const STATIC_HISTORICAL_ROLE_OPTIONS: RoleDefinitionOption[] = [
+  { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
+  { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
+  ...FANSUB_GROUP_ROLE_OPTIONS.map((option, index) => ({
+    code: option.code,
+    label_de: option.label,
+    sort_order: 100 + index,
+  })),
+]
+
+function mergeHistoricalRoleOptions(options: RoleDefinitionOption[]): RoleDefinitionOption[] {
+  const byCode = new Map<string, RoleDefinitionOption>()
+  for (const option of [...options, ...STATIC_HISTORICAL_ROLE_OPTIONS]) {
+    if (!byCode.has(option.code)) {
+      byCode.set(option.code, option)
+    }
+  }
+  return Array.from(byCode.values()).sort((a, b) => a.sort_order - b.sort_order || a.label_de.localeCompare(b.label_de, 'de'))
+}
+
 type GroupMembersTabProps = {
   embedded?: boolean
   canCancelClaimInvitation?: boolean
   canCreateClaimInvitation?: boolean
   canManageClaims?: boolean
+  canManageHistoricalMembers?: boolean
+  canManageHistoricalRoles?: boolean
   fansubId: number
   onActionsChange?: (actions: GroupMembersTabActions | null) => void
   showClaimRequests?: boolean
@@ -37,8 +60,15 @@ type GroupMembersTabProps = {
 
 export type GroupMembersTabActions = {
   canCreateRole: boolean
+  historicalIdentityOptions: HistoricalIdentityOption[]
   openHistoricalMemberForm: () => void
   openHistoricalRoleForm: () => void
+}
+
+export type HistoricalIdentityOption = {
+  id: number
+  displayName: string
+  roleSummary: string
 }
 
 export function GroupMembersTab({
@@ -46,6 +76,8 @@ export function GroupMembersTab({
   canCancelClaimInvitation = true,
   canCreateClaimInvitation = true,
   canManageClaims = true,
+  canManageHistoricalMembers = true,
+  canManageHistoricalRoles = true,
   fansubId,
   onActionsChange,
   showClaimRequests = true,
@@ -61,12 +93,13 @@ export function GroupMembersTab({
     listGroupHistoryRoleDefinitions(fansubId)
       .then((options) => {
         if (!cancelled) {
-          setHistoryRoleOptions(options)
+          setHistoryRoleOptions(mergeHistoricalRoleOptions(options))
           setHistoryRoleLoadError(null)
         }
       })
       .catch(() => {
         if (!cancelled) {
+          setHistoryRoleOptions(mergeHistoricalRoleOptions([]))
           setHistoryRoleLoadError('Frühere Funktionen konnten nicht geladen werden.')
         }
       })
@@ -78,21 +111,23 @@ export function GroupMembersTab({
   return (
     <section className={embedded ? styles.fansubEditEmbeddedMembershipSurface : styles.fansubEditMembershipSurface}>
       <SectionHeader
-        eyebrow="Historische Mitglieder"
+        eyebrow={embedded ? undefined : 'Historische Mitglieder'}
         title="Historische Mitglieder"
-        description="Öffentliche oder interne historische Fansub-Einträge. Die App-Profil-Verknüpfung entsteht nur durch bestätigte Claims."
+        description="Mitglieder ohne verknüpften Account oder mit historisch dokumentierten Rollen."
         actions={showHeaderActions ? (
           <Toolbar
             leading={
               <>
-                <Button variant="primary" leftIcon={<Plus size={15} aria-hidden="true" />} onClick={tab.openNew}>
-                  Mitglied hinzufügen
-                </Button>
+                {canManageHistoricalMembers ? (
+                  <Button variant="primary" leftIcon={<Plus size={15} aria-hidden="true" />} onClick={tab.openNew}>
+                    Mitglied hinzufügen
+                  </Button>
+                ) : null}
                 <Button
                   variant="secondary"
                   leftIcon={<Plus size={15} aria-hidden="true" />}
                   onClick={() => tab.openNewRole()}
-                  disabled={tab.members.length === 0}
+                  disabled={!canManageHistoricalRoles || tab.members.length === 0}
                 >
                   Rolle hinzufügen
                 </Button>
@@ -120,7 +155,7 @@ export function GroupMembersTab({
       ) : null}
 
       {!tab.loading && !tab.error ? (
-        <div className={styles.fansubEditTableSurface}>
+        <div className={styles.fansubEditHistoricalMembersSurface}>
           <GroupMembersHistTable
             members={tab.members}
             rolesByMember={tab.rolesByMember}
@@ -131,6 +166,8 @@ export function GroupMembersTab({
             canManageClaims={canManageClaims}
             canCancelClaimInvitation={canCancelClaimInvitation}
             canCreateClaimInvitation={canCreateClaimInvitation}
+            canManageHistoricalMembers={canManageHistoricalMembers}
+            canManageHistoricalRoles={canManageHistoricalRoles}
             roleLabelForCode={roleLabelForCode}
             normalizeInviteLink={normalizeInviteLink}
             onEditMember={tab.openEdit}
@@ -178,6 +215,10 @@ export function GroupMembersTab({
         editTarget={tab.editTarget}
         form={tab.form}
         setForm={tab.setForm}
+        inlineRoleDrafts={tab.inlineRoleDrafts}
+        setInlineRoleDrafts={tab.setInlineRoleDrafts}
+        historyRoleOptions={historyRoleOptions}
+        historyRoleLoadError={historyRoleLoadError}
         saving={tab.saving}
         modalError={tab.modalError}
         onClose={tab.closeModal}

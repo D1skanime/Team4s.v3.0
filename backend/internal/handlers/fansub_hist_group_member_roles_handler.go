@@ -105,9 +105,9 @@ func histGroupMemberRoleResponseFromRow(row repository.HistGroupMemberRoleRow, m
 	}
 }
 
-// ListGroupHistoryRoleDefinitions gibt kuratierte Rollendefinitionen für einen Fansub zurück.
+// ListGroupHistoryRoleDefinitions gibt Rollendefinitionen für historische Mitglieder zurück.
 // GET /admin/fansubs/:id/role-definitions[?context=group_history|fansub_group]
-// - context=group_history (Default): historische Gruppenrollen für den hist-Dialog.
+// - context=group_history (Default): historische Funktionen inklusive operativer Rollen.
 // - context=fansub_group: zuweisbare Gruppenrollen für den App-Mitglied-Add-Flow (Gap G1, D-12).
 // Autorisierung: CanForFansubGroup(ActionFansubGroupMembersView) — member-scoped, für
 // Fansub-Leitungen erreichbar (anders als der platform-admin-only Catalog).
@@ -239,13 +239,13 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalRolesManage, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.create.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupMembersManage, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.create.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupHistoricalRolesManage, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -318,13 +318,16 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
-	// CR-01 (D-13): Whitelist-Check ersetzt breiten DB-Context-Check.
-	// IsGroupHistoryWhitelistRole prüft nur die sechs kanonischen Gruppenrollen-Codes.
-	// App-Rollen-Codes wie 'translator' liefern false → 422.
-	if !h.rolesRepo.IsGroupHistoryWhitelistRole(req.RoleCode) {
+	roleAllowed, err := h.rolesRepo.IsHistoricalMemberRoleCode(c.Request.Context(), req.RoleCode)
+	if err != nil {
+		log.Printf("hist group member roles create: role validation error (role_code=%s): %v", req.RoleCode, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if !roleAllowed {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
-				"message": "ungültiger role_code für group_history-Kontext",
+				"message": "ungültiger role_code für historische Mitglieder",
 			},
 		})
 		return
@@ -362,7 +365,7 @@ func (h *FansubHistGroupMemberRolesHandler) CreateHistGroupMemberRole(c *gin.Con
 		ScopeID:        &fansubID,
 		TargetType:     "hist_fansub_group_member_role",
 		TargetID:       &item.ID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Action:         string(permissions.ActionFansubGroupHistoricalRolesManage),
 		Outcome:        "allowed",
 		Payload:        map[string]any{"role_code": req.RoleCode},
 	})
@@ -386,13 +389,13 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalRolesManage, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.update.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupMembersManage, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.update.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupHistoricalRolesManage, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -466,7 +469,7 @@ func (h *FansubHistGroupMemberRolesHandler) UpdateHistGroupMemberRole(c *gin.Con
 		ScopeID:        &fansubID,
 		TargetType:     "hist_fansub_group_member_role",
 		TargetID:       &roleID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Action:         string(permissions.ActionFansubGroupHistoricalRolesManage),
 		Outcome:        "allowed",
 		Payload:        map[string]any{},
 	})
@@ -490,13 +493,13 @@ func (h *FansubHistGroupMemberRolesHandler) DeleteHistGroupMemberRole(c *gin.Con
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalRolesManage, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.delete.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupMembersManage, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member_role.delete.denied", &fansubID, "hist_fansub_group_member_role", nil, permissions.ActionFansubGroupHistoricalRolesManage, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -527,7 +530,7 @@ func (h *FansubHistGroupMemberRolesHandler) DeleteHistGroupMemberRole(c *gin.Con
 		ScopeID:        &fansubID,
 		TargetType:     "hist_fansub_group_member_role",
 		TargetID:       &roleID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Action:         string(permissions.ActionFansubGroupHistoricalRolesManage),
 		Outcome:        "allowed",
 		Payload:        map[string]any{},
 	})

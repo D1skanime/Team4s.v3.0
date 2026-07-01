@@ -120,13 +120,13 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersManage, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member.create.denied", &fansubID, "hist_fansub_group_member", nil, permissions.ActionFansubGroupMembersManage, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member.create.denied", &fansubID, "hist_fansub_group_member", nil, permissions.ActionFansubGroupHistoricalMembersManage, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -213,7 +213,7 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		ScopeID:        &fansubID,
 		TargetType:     "hist_fansub_group_member",
 		TargetID:       &item.ID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Action:         string(permissions.ActionFansubGroupHistoricalMembersManage),
 		Outcome:        "allowed",
 		Payload:        map[string]any{"display_name": displayName},
 	})
@@ -237,13 +237,13 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersManage, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member.update.denied", &fansubID, "hist_fansub_group_member", nil, permissions.ActionFansubGroupMembersManage, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member.update.denied", &fansubID, "hist_fansub_group_member", nil, permissions.ActionFansubGroupHistoricalMembersManage, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -317,7 +317,7 @@ func (h *FansubHistGroupMembersHandler) UpdateHistGroupMember(c *gin.Context) {
 		ScopeID:        &fansubID,
 		TargetType:     "hist_fansub_group_member",
 		TargetID:       &memberID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Action:         string(permissions.ActionFansubGroupHistoricalMembersManage),
 		Outcome:        "allowed",
 		Payload:        map[string]any{},
 	})
@@ -341,13 +341,13 @@ func (h *FansubHistGroupMembersHandler) DeleteHistGroupMember(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersManage, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupHistoricalMembersManage, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member.delete.denied", &fansubID, "hist_fansub_group_member", nil, permissions.ActionFansubGroupMembersManage, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "hist_group_member.delete.denied", &fansubID, "hist_fansub_group_member", nil, permissions.ActionFansubGroupHistoricalMembersManage, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -378,7 +378,7 @@ func (h *FansubHistGroupMembersHandler) DeleteHistGroupMember(c *gin.Context) {
 		ScopeID:        &fansubID,
 		TargetType:     "hist_fansub_group_member",
 		TargetID:       &memberID,
-		Action:         string(permissions.ActionFansubGroupMembersManage),
+		Action:         string(permissions.ActionFansubGroupHistoricalMembersManage),
 		Outcome:        "allowed",
 		Payload:        map[string]any{},
 	})

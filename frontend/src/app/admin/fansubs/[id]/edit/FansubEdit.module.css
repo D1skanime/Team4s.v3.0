@@ -307,6 +307,14 @@
   .fansubEditMembershipModalGrid {
     grid-template-columns: 1fr;
   }
+
+  .fansubEditInlineRoleRow {
+    grid-template-columns: 1fr;
+  }
+
+  .fansubEditInlineRoleRow > button {
+    width: 100%;
+  }
 }
 
 .fansubEditMembershipRoleEditor {
@@ -361,6 +369,58 @@
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--bg-secondary) 74%, transparent);
   padding: 0.85rem;
+}
+
+.fansubEditInlineRolePanel {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 80%, var(--bg-card));
+  padding: 0.8rem;
+}
+
+.fansubEditInlineRoleHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fansubEditInlineRoleHeader h3,
+.fansubEditInlineRoleHeader p {
+  margin: 0;
+}
+
+.fansubEditInlineRoleHeader h3 {
+  color: var(--text-primary);
+  font-size: 0.98rem;
+}
+
+.fansubEditInlineRoleHeader p {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.fansubEditInlineRoleRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  border-top: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  padding-top: 0.75rem;
+}
+
+.fansubEditInlineRoleRow > button {
+  justify-self: start;
+}
+
+.fansubEditInlineRoleFooter {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.2rem;
 }
 
 .fansubEditMemberChoiceList {
@@ -677,6 +737,10 @@
   overflow: visible;
   padding: 0 0.95rem 0.85rem;
   border-top: 1px solid color-mix(in srgb, var(--text-secondary) 12%, transparent);
+}
+
+.fansubEditMainTabSelect {
+  display: none;
 }
 
 .fansubEditMainTabButton {
@@ -3209,6 +3273,19 @@
   }
 }
 
+@media (max-width: 768px) {
+  .fansubEditMainTabRow {
+    display: none;
+  }
+
+  .fansubEditMainTabSelect {
+    display: block;
+    width: calc(100% - 1.4rem);
+    min-height: 44px;
+    margin: 0 0.7rem 0.8rem;
+  }
+}
+
 
 @media (min-width: 901px) {
   .fansubEditSectionSummary {
@@ -3273,6 +3350,12 @@
 .fansubEditTableSurface .fansubEditTableWrapWine thead th {
   background: transparent;
   border-bottom: 3px solid #82122c;
+}
+
+.fansubEditHistoricalMembersSurface {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
 }
 
 .fansubEditTableRowActions {
@@ -3433,6 +3516,20 @@
   display: none;
 }
 
+.fansubEditHistoricalMemberHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fansubEditHistoricalMemberHeaderActions > button {
+  min-width: 38px;
+  width: 38px;
+  min-height: 38px;
+  height: 38px;
+  border-radius: 999px;
+}
+
 .fansubEditMemberCompactBody {
   display: flex;
   align-items: center;
@@ -3444,6 +3541,97 @@
 
 .fansubEditMemberExtraRightsChip {
   white-space: nowrap;
+}
+
+.fansubEditHistoricalRoleBadge {
+  display: inline-grid;
+  gap: 1px;
+  align-items: center;
+  min-height: 34px;
+  max-width: min(100%, 190px);
+  padding-block: 4px;
+}
+
+.fansubEditHistoricalRoleBadge span,
+.fansubEditHistoricalRoleBadge small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fansubEditHistoricalRoleBadge small {
+  color: color-mix(in srgb, var(--role-accent) 74%, var(--text-secondary));
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.fansubEditHistoricalMemberBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding-left: 50px;
+}
+
+.fansubEditHistoricalMemberRoleChips {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fansubEditHistoricalRoleChip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: min(100%, 220px);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 14%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, #fff 88%, var(--bg-secondary));
+  padding: 8px 9px;
+}
+
+.fansubEditHistoricalRoleChip strong,
+.fansubEditHistoricalRoleChip span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fansubEditHistoricalRoleChip span {
+  grid-column: 1 / -1;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.fansubEditHistoricalRoleActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fansubEditHistoricalRoleActions > button {
+  min-width: 34px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+}
+
+.fansubEditHistoricalMemberMetaRow,
+.fansubEditHistoricalMemberActions,
+.fansubEditHistoricalClaimActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fansubEditHistoricalMemberActions > button,
+.fansubEditHistoricalClaimActions button {
+  min-height: 36px;
 }
 
 .fansubEditMemberEditor {
@@ -3625,8 +3813,13 @@
     padding: 10px;
   }
 
-  .fansubEditMemberCompactBody {
+  .fansubEditMemberCompactBody,
+  .fansubEditHistoricalMemberBody {
     padding-left: 0;
+  }
+
+  .fansubEditHistoricalRoleChip {
+    width: 100%;
   }
 
   .fansubEditMemberRoleGrid {

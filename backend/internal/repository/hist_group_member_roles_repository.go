@@ -264,17 +264,16 @@ func (r *HistGroupMemberRolesRepository) IsGroupHistoryWhitelistRole(code string
 	return false
 }
 
-// ListGroupHistoryRoleDefinitions gibt die kuratierte Liste der historischen Gruppenrollen
-// aus role_definitions zurück (nur Codes aus der expliziten Whitelist).
-// Die explizite Whitelist (groupHistoryDialogRoleWhitelist) ist die alleinige Kuration;
-// eine zusätzliche 'group_history' = ANY(contexts)-Bedingung wäre redundant und würde
-// die neuen Rollen techadmin/gfxler fälschlich ausschließen (Gap G2, Phase 95), da diese
-// nur den Kontext fansub_group tragen. Der Whitelist-Filter allein ist präzise genug.
+// ListGroupHistoryRoleDefinitions gibt die Rollen zurück, die für historische
+// Mitgliedsfunktionen auswählbar sind. Diese Namen beschreiben historische Arbeit
+// und vergeben keine aktiven App-Rechte.
 func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT code, label_de, sort_order
 		FROM role_definitions
-		WHERE code = ANY($1)
+		WHERE 'group_history' = ANY(contexts)
+		   OR 'anime_contribution' = ANY(contexts)
+		   OR code = ANY($1)
 		ORDER BY sort_order, code
 	`, groupHistoryDialogRoleWhitelist)
 	if err != nil {
@@ -282,7 +281,7 @@ func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx con
 	}
 	defer rows.Close()
 
-	result := make([]RoleDefinitionOption, 0, len(groupHistoryDialogRoleWhitelist))
+	result := make([]RoleDefinitionOption, 0, 16)
 	for rows.Next() {
 		var opt RoleDefinitionOption
 		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.SortOrder); err != nil {
@@ -296,21 +295,45 @@ func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx con
 	return result, nil
 }
 
-// ListFansubGroupRoleDefinitions gibt die zuweisbaren Gruppenrollen (Kontext fansub_group)
-// mit Label und Sortierung zurück. Quelle für den App-Mitglied-Add-Flow (Gap G1, Phase 95):
+// IsHistoricalMemberRoleCode prüft, ob ein role_code als historische Funktion eines
+// Gruppenmitglieds gespeichert werden darf. Die Predicate entspricht bewusst dem Picker.
+// Historische Funktionen sind reine Archivdaten, bis ein User seine Identität claimt.
+func (r *HistGroupMemberRolesRepository) IsHistoricalMemberRoleCode(ctx context.Context, code string) (bool, error) {
+	if code == "" {
+		return false, nil
+	}
+	var exists bool
+	err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM role_definitions
+			WHERE code = $1
+			  AND (
+			    'group_history' = ANY(contexts)
+			    OR 'anime_contribution' = ANY(contexts)
+			    OR code = ANY($2)
+			  )
+		)
+	`, code, groupHistoryDialogRoleWhitelist).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check historical member role code: %w", err)
+	}
+	return exists, nil
+}
+
+// ListFansubGroupRoleDefinitions gibt die auswählbaren Rollen für aktive
+// Gruppenmitglieder mit Label und Sortierung zurück. Quelle für den
+// App-Mitglied-Add-Flow (Gap G1, Phase 95):
 // dieser Endpunkt ist member-scoped (ActionFansubGroupMembersView) und für Fansub-Leitungen
 // erreichbar — anders als der platform-admin-only Catalog /admin/fansub-group-roles, der für
 // Leitungen 403 lieferte und die API-getriebene Rollenanzeige (D-12) unbrauchbar machte.
-// fansub_lead (Gruppenleitung) ist bewusst ausgeschlossen: die Gruppenleitung wird ausschließlich
-// über den dedizierten SetFansubLead-Pfad (/roles/fansub-lead) gesetzt, nicht als generisch
-// wählbare Rolle im Mitglied-Add-Picker.
 func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT code, label_de, sort_order
 		FROM role_definitions
-		WHERE 'fansub_group' = ANY(contexts)
-		  AND assignable = true
-		  AND code <> 'fansub_lead'
+		WHERE assignable = true
+		   OR 'fansub_group' = ANY(contexts)
+		   OR 'anime_contribution' = ANY(contexts)
 		ORDER BY sort_order, code
 	`)
 	if err != nil {

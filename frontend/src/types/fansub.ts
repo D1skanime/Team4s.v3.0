@@ -222,6 +222,9 @@ export interface FansubGroupCapabilities {
   can_manage_links: boolean;
   can_view_members: boolean;
   can_manage_members: boolean;
+  can_manage_historical_members?: boolean;
+  can_manage_historical_roles?: boolean;
+  can_link_historical_members?: boolean;
   can_edit_notes: boolean;
   can_view_invitations: boolean;
   can_create_invitation: boolean;
@@ -321,6 +324,7 @@ export interface FansubMemberPatchRequest {
 export interface FansubAppMemberCreateRequest {
   app_user_id: number;
   roles: string[];
+  historical_member_id?: number | null;
 }
 
 export interface FansubLeadUpdateRequest {
@@ -569,6 +573,7 @@ export interface HistFansubGroupMember {
   left_date: string | null;
   app_user_id: number | null;
   app_username: string | null;
+  active_app_member_id?: number | null;
   status: HistoricalContributionStatus;
   visibility?: HistoricalContributionVisibility;
   confirmed_by_app_user_id?: number | null;

@@ -11352,6 +11352,9 @@ components:
         - can_manage_links
         - can_view_members
         - can_manage_members
+        - can_manage_historical_members
+        - can_manage_historical_roles
+        - can_link_historical_members
         - can_edit_notes
         - can_view_invitations
         - can_create_invitation
@@ -11374,6 +11377,12 @@ components:
         can_view_members:
           type: boolean
         can_manage_members:
+          type: boolean
+        can_manage_historical_members:
+          type: boolean
+        can_manage_historical_roles:
+          type: boolean
+        can_link_historical_members:
           type: boolean
         can_edit_notes:
           type: boolean
@@ -11436,6 +11445,12 @@ components:
           minItems: 1
           items:
             type: string
+        historical_member_id:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+          description: Optional hist_fansub_group_members.id to verify/link while adding the app member. The historical member must belong to the same group, be unclaimed, and have at least one open-ended historical role.
     MemberCorrectionRequest:
       type: object
       required: [target_type, reason_text]
