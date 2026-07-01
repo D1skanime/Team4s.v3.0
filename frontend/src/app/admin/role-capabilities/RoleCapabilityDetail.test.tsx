@@ -49,6 +49,7 @@ const assignableRole: RoleEntry = {
   role_code: 'fansub_lead',
   label_de: 'Fansub-Lead',
   assignable: true,
+  capability_editable: true,
   contexts: ['app_group'],
   actions: [
     {
@@ -72,6 +73,7 @@ const historicalRole: RoleEntry = {
   role_code: 'founder',
   label_de: 'Gründer/in',
   assignable: false,
+  capability_editable: false,
   contexts: ['group_history'],
   actions: [
     {
@@ -164,6 +166,7 @@ describe('RoleCapabilityDetail', () => {
       role_code: 'test_role',
       label_de: 'Test-Rolle',
       assignable: true,
+      capability_editable: true,
       contexts: ['app_group'],
       actions: [
         {

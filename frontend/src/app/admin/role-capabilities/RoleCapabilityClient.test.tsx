@@ -41,6 +41,7 @@ const sampleMatrix: RoleCapabilityMatrix = {
       role_code: "fansub_lead",
       label_de: "Fansub-Lead",
       assignable: true,
+      capability_editable: true,
       contexts: ["app_group"],
       actions: [
         {
@@ -63,6 +64,7 @@ const sampleMatrix: RoleCapabilityMatrix = {
       role_code: "founder",
       label_de: "Gründer/in",
       assignable: false,
+      capability_editable: false,
       contexts: ["group_history"],
       actions: [
         {
@@ -147,10 +149,10 @@ describe("RoleCapabilityClient", () => {
     expect(screen.getByText("Historische Rolle")).toBeTruthy();
   });
 
-  it("zeigt spezifischen role_not_assignable-Inline-Fehler nach HTTP-422 auf grant", async () => {
+  it("zeigt spezifischen role_not_capability_bearing-Inline-Fehler nach HTTP-422 auf grant", async () => {
     const apiModule = await import("@/lib/api");
     vi.spyOn(apiModule, "grantRoleCapability").mockRejectedValueOnce(
-      new apiModule.ApiError(422, "Historische Rolle", null, "role_not_assignable")
+      new apiModule.ApiError(422, "rein historische Rolle", null, "role_not_capability_bearing")
     );
 
     render(<RoleCapabilityClient matrix={sampleMatrix} isLoading={false} />);
@@ -176,13 +178,12 @@ describe("RoleCapabilityClient", () => {
 
     // 422-spezifischer Fehlertext soll im Inline-Bereich erscheinen
     const alerts = screen.queryAllByRole("alert");
-    const hasRoleNotAssignableText = alerts.some((el) =>
+    const hasRoleNotCapabilityText = alerts.some((el) =>
       el.textContent?.toLowerCase().includes("nicht") ||
       el.textContent?.toLowerCase().includes("historisch") ||
-      el.textContent?.toLowerCase().includes("role_not_assignable") ||
-      el.textContent?.toLowerCase().includes("zuweisbar")
+      el.textContent?.toLowerCase().includes("role_not_capability_bearing")
     );
-    expect(hasRoleNotAssignableText || alerts.length > 0).toBe(true);
+    expect(hasRoleNotCapabilityText || alerts.length > 0).toBe(true);
   });
 
   it("zeigt Inline-Lockout-Fehlertext nach HTTP-409 auf revoke (neues Switch-UI)", async () => {

@@ -13,9 +13,10 @@ export interface RoleMasterListProps {
 /**
  * Master-Rollenliste für die Capability-Verwaltung (D-11/D-13).
  *
- * Zeigt jede Rolle als anklickbaren Card-Row mit Kontext-Badge:
- * - assignable=true  → Badge "Aktive App-Rolle" (variant=info)
- * - assignable=false → Badge "Historische Rolle" (variant=muted) + aria-disabled
+ * Zeigt jede Rolle als anklickbaren Card-Row mit Kontext-Badge (Gap G4):
+ * - capability_editable && assignable   → "Aktive App-Rolle" (Gruppenrolle, editierbar)
+ * - capability_editable && !assignable  → "Projekt-/Release-Rolle" (Contribution-Rolle, editierbar)
+ * - !capability_editable                → "Historische Rolle" (gesperrt, aria-disabled)
  */
 export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMasterListProps) {
   if (roles.length === 0) {
@@ -29,7 +30,15 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
   return (
     <div role="list" aria-label="Rollenliste">
       {roles.map((role) => {
-        const isAssignable = role.assignable !== false
+        // Editierbarkeit hängt an capability_editable (aktiver Kontext), NICHT an assignable
+        // (nur Gruppen-Picker) — so sind auch Contribution-Rollen wie encoder editierbar (G4).
+        const isEditable = role.capability_editable !== false
+        const isAssignable = role.assignable === true
+        const badgeLabel = !isEditable
+          ? 'Historische Rolle'
+          : isAssignable
+            ? 'Aktive App-Rolle'
+            : 'Projekt-/Release-Rolle'
         const isSelected = role.role_code === selectedRoleCode
 
         return (
@@ -38,17 +47,17 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
               variant="interactive"
               style={{
                 marginBottom: 'var(--space-2)',
-                cursor: isAssignable ? 'pointer' : 'default',
-                opacity: isAssignable ? 1 : 0.7,
+                cursor: isEditable ? 'pointer' : 'default',
+                opacity: isEditable ? 1 : 0.7,
                 outline: isSelected ? '2px solid var(--color-primary)' : undefined,
               }}
             >
               <button
                 type="button"
-                aria-disabled={!isAssignable || undefined}
+                aria-disabled={!isEditable || undefined}
                 aria-pressed={isSelected}
                 onClick={() => {
-                  if (isAssignable) {
+                  if (isEditable) {
                     onSelectRole(role.role_code)
                   }
                 }}
@@ -61,7 +70,7 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
                   border: 'none',
                   padding: 'var(--space-3)',
                   textAlign: 'left',
-                  cursor: isAssignable ? 'pointer' : 'not-allowed',
+                  cursor: isEditable ? 'pointer' : 'not-allowed',
                   minHeight: '44px',
                 }}
               >
@@ -74,8 +83,8 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
                 >
                   {role.label_de}
                 </span>
-                <Badge variant={isAssignable ? 'info' : 'muted'}>
-                  {isAssignable ? 'Aktive App-Rolle' : 'Historische Rolle'}
+                <Badge variant={isEditable ? 'info' : 'muted'}>
+                  {badgeLabel}
                 </Badge>
               </button>
             </Card>

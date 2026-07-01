@@ -17,8 +17,14 @@ export interface RoleEntry {
   role_code: string;
   label_de: string;
   actions: RoleActionState[];
-  /** Ob die Rolle Capabilities erhalten darf (App-Gruppenrolle). Historische Rollen haben assignable=false. */
+  /** Ob die Rolle im Gruppen-Add-Picker zuweisbar ist (die App-Gruppenrollen). */
   assignable?: boolean;
+  /**
+   * Ob die Capabilities dieser Rolle editierbar sind — true für alle aktiven Rollen mit
+   * Kontext fansub_group ODER anime_contribution (auch Contribution-/Projekt-Rollen wie
+   * encoder). Nur rein historische Rollen haben capability_editable=false (Gap G4).
+   */
+  capability_editable?: boolean;
   /** role_definitions.contexts (für Kontext-Badges). */
   contexts?: string[];
 }

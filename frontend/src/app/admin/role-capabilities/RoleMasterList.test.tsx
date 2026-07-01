@@ -16,6 +16,7 @@ const assignableRole: RoleEntry = {
   role_code: 'fansub_lead',
   label_de: 'Fansub-Lead',
   assignable: true,
+  capability_editable: true,
   contexts: ['app_group'],
   actions: [],
 }
@@ -24,7 +25,19 @@ const historicalRole: RoleEntry = {
   role_code: 'founder',
   label_de: 'Gründer/in',
   assignable: false,
+  capability_editable: false,
   contexts: ['group_history'],
+  actions: [],
+}
+
+// Contribution-/Projekt-Rolle: nicht im Gruppen-Picker (assignable=false), aber aktiv und
+// capability-editierbar (Kontext anime_contribution) — Gap G4.
+const contributionRole: RoleEntry = {
+  role_code: 'encoder',
+  label_de: 'Encoding',
+  assignable: false,
+  capability_editable: true,
+  contexts: ['anime_contribution', 'group_history'],
   actions: [],
 }
 
@@ -51,7 +64,7 @@ describe('RoleMasterList', () => {
     expect(screen.getByText('Historische Rolle')).toBeTruthy()
   })
 
-  it('markiert nicht-assignable Rolle als aria-disabled', () => {
+  it('markiert nicht-capability-editierbare (historische) Rolle als aria-disabled', () => {
     render(
       <RoleMasterList
         roles={[historicalRole]}
@@ -61,6 +74,22 @@ describe('RoleMasterList', () => {
     )
     const roleItem = screen.getByRole('button', { name: /Gründer\/in/i })
     expect(roleItem.getAttribute('aria-disabled')).toBe('true')
+  })
+
+  it('zeigt Badge "Projekt-/Release-Rolle" und ist editierbar für Contribution-Rolle (G4)', () => {
+    const onSelectRole = vi.fn()
+    render(
+      <RoleMasterList
+        roles={[contributionRole]}
+        selectedRoleCode={null}
+        onSelectRole={onSelectRole}
+      />
+    )
+    expect(screen.getByText('Projekt-/Release-Rolle')).toBeTruthy()
+    const roleItem = screen.getByRole('button', { name: /Encoding/i })
+    expect(roleItem.getAttribute('aria-disabled')).toBeNull()
+    fireEvent.click(roleItem)
+    expect(onSelectRole).toHaveBeenCalledWith('encoder')
   })
 
   it('ruft onSelectRole mit role_code auf, wenn eine Rolle angeklickt wird', () => {

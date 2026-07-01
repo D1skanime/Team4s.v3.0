@@ -28,7 +28,7 @@ export interface RoleCapabilityDetailProps {
  *
  * - Gruppiert actions nach category → je Kategorie ein Accordion-Item.
  * - Pro Capability eine Row mit Switch (checked = granted).
- * - Bei role.assignable === false alle Switches disabled.
+ * - Bei role.capability_editable === false (rein historische Rolle) alle Switches disabled.
  */
 export function RoleCapabilityDetail({
   role,
@@ -38,7 +38,7 @@ export function RoleCapabilityDetail({
   openCategories,
   onOpenCategoriesChange,
 }: RoleCapabilityDetailProps) {
-  const isAssignable = role.assignable !== false
+  const isEditable = role.capability_editable !== false
 
   const accordionItems = useMemo(() => {
     // Aktionen nach Kategorie gruppieren
@@ -101,10 +101,10 @@ export function RoleCapabilityDetail({
                 ) : (
                   <Switch
                     checked={action.granted}
-                    disabled={!isAssignable}
+                    disabled={!isEditable}
                     aria-label={action.label_de}
                     onCheckedChange={(next) => {
-                      if (!isAssignable) return
+                      if (!isEditable) return
                       if (next) {
                         onGrant(role.role_code, action.code)
                       } else {
@@ -119,7 +119,7 @@ export function RoleCapabilityDetail({
         ),
       }
     })
-  }, [role, isAssignable, onGrant, onRevoke])
+  }, [role, isEditable, onGrant, onRevoke])
 
   return (
     <div>
@@ -141,7 +141,7 @@ export function RoleCapabilityDetail({
         >
           {role.label_de}
         </h3>
-        {!isAssignable && (
+        {!isEditable && (
           <p
             style={{
               fontSize: '0.8125rem',

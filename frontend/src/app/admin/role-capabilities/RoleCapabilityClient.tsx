@@ -133,9 +133,9 @@ export default function RoleCapabilityClient({
       await loadData(false)
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 422 && err.code === 'role_not_assignable') {
+        if (err.status === 422 && err.code === 'role_not_capability_bearing') {
           setCapabilityError(
-            'Diese Rolle ist nicht zuweisbar (historische Rolle). Capabilities können nicht vergeben werden.'
+            'Diese Rolle ist eine rein historische Rolle. Capabilities können nicht vergeben werden.'
           )
         } else {
           setCapabilityError(err.message || 'Fehler beim Vergeben der Capability.')
@@ -157,9 +157,9 @@ export default function RoleCapabilityClient({
       await loadData(false)
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 422 && err.code === 'role_not_assignable') {
+        if (err.status === 422 && err.code === 'role_not_capability_bearing') {
           setCapabilityError(
-            'Diese Rolle ist nicht zuweisbar (historische Rolle). Capabilities können nicht entzogen werden.'
+            'Diese Rolle ist eine rein historische Rolle. Capabilities können nicht entzogen werden.'
           )
         } else if (err.status === 409) {
           setCapabilityError(
