@@ -1615,6 +1615,19 @@ Plans:
 - [ ] `95-06-PLAN.md` — Datei-Splits D-16 + Backend-Rebuild + Human-Verify (D-16)
 ---
 
+<!-- Phase 96 ist parallel in Arbeit (responsive/mobile Member-Management-UI) und wird von ihrem eigenen Lauf registriert — Nummer bewusst freigehalten. -->
+
+### Phase 97: Revoke — Rollen-Lifecycle-Übergang aktiv→historisch
+
+**Goal:** Wenn einer Person eine AKTIVE Gruppen-/App-Rolle entzogen wird (z. B. Sheppert hört als Timer auf), wird sie sauber in einen HISTORISCHEN Eintrag überführt — aktiv-bis-Datum-X → historisch-ab-X — statt gelöscht zu werden. Umfasst: (1) Revoke-Flow im Admin-UI (aktive Rolle entziehen); (2) automatisches Erzeugen/Vorschlagen des „ended"-Eintrags in `hist_group_member_roles` beim Entzug statt manueller Doppelpflege; (3) Koexistenz-Garantie — die entstandene historische Rolle bleibt ohne Rechte bestehen, während andere aktive Rollen der Person mit Rechten weiterlaufen; (4) ggf. tagesgenaue Daten (DATE) statt nur Jahre in den hist-Tabellen. Baut auf Phase 95 (Rollenmodell entwirren) auf; die Koexistenz historischer + aktiver Rollen ist datentechnisch bereits möglich (`hist_group_member_roles` + `fansub_group_member_roles`, beide an `members`). Teil des Rollenmodell-Reworks (Sheppert-Modell).
+**Requirements:** noch offen (in discuss/plan-phase zu erheben)
+**Depends on:** Phase 95
+**Plans:** Not planned yet
+
+Plans:
+- (noch nicht geplant — `/gsd:discuss-phase 97` → `/gsd:plan-phase 97`)
+---
+
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
 
 ### Phase 61: Fansub Contributions Datenmodell
