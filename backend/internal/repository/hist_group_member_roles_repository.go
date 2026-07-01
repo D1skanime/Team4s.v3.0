@@ -300,12 +300,16 @@ func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx con
 // dieser Endpunkt ist member-scoped (ActionFansubGroupMembersView) und für Fansub-Leitungen
 // erreichbar — anders als der platform-admin-only Catalog /admin/fansub-group-roles, der für
 // Leitungen 403 lieferte und die API-getriebene Rollenanzeige (D-12) unbrauchbar machte.
+// fansub_lead (Gruppenleitung) ist bewusst ausgeschlossen: die Gruppenleitung wird ausschließlich
+// über den dedizierten SetFansubLead-Pfad (/roles/fansub-lead) gesetzt, nicht als generisch
+// wählbare Rolle im Mitglied-Add-Picker.
 func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT code, label_de, sort_order
 		FROM role_definitions
 		WHERE 'fansub_group' = ANY(contexts)
 		  AND assignable = true
+		  AND code <> 'fansub_lead'
 		ORDER BY sort_order, code
 	`)
 	if err != nil {
