@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-const listFansubGroupRoles = vi.fn();
+const listFansubGroupRoleDefinitions = vi.fn();
 const listGroupHistoryRoleDefinitions = vi.fn();
 const listFansubAppMembers = vi.fn();
 const getFansubGroupCapabilities = vi.fn();
@@ -42,7 +42,7 @@ vi.mock("@/lib/api", () => ({
       this.status = status;
     }
   },
-  listFansubGroupRoles: (...args: unknown[]) => listFansubGroupRoles(...args),
+  listFansubGroupRoleDefinitions: (...args: unknown[]) => listFansubGroupRoleDefinitions(...args),
   listGroupHistoryRoleDefinitions: (...args: unknown[]) => listGroupHistoryRoleDefinitions(...args),
   listFansubAppMembers: (...args: unknown[]) => listFansubAppMembers(...args),
   getFansubGroupCapabilities: (...args: unknown[]) => getFansubGroupCapabilities(...args),
@@ -76,7 +76,7 @@ vi.mock("@/lib/api", () => ({
 import { FansubAppMembersSection } from "./FansubAppMembersSection";
 
 beforeEach(() => {
-  listFansubGroupRoles.mockResolvedValue([]);
+  listFansubGroupRoleDefinitions.mockResolvedValue([]);
   listGroupHistoryRoleDefinitions.mockResolvedValue([]);
   listGroupMembers.mockResolvedValue({ data: [] });
   listMemberRoles.mockResolvedValue({ data: [] });

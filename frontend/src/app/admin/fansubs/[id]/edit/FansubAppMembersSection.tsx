@@ -18,7 +18,7 @@ import {
   getFansubGroupCapabilities,
   listFansubGroupInvitations,
   listFansubAppMembers,
-  listFansubGroupRoles,
+  listFansubGroupRoleDefinitions,
   searchFansubAppMemberCandidates,
   updateFansubAppMemberRole,
   updateFansubAppMemberMediaPermissions,
@@ -83,7 +83,8 @@ function mediaPermissionsEqual(left: FansubGroupMediaPermissions, right: FansubG
 export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: FansubAppMembersSectionProps) {
   const [members, setMembers] = useState<FansubAppMember[]>([])
   const [capabilities, setCapabilities] = useState<FansubGroupCapabilities | null>(null)
-  // Rollenoptionen: API-getrieben via listFansubGroupRoles(), Fallback auf statische Liste
+  // Rollenoptionen: API-getrieben via listFansubGroupRoleDefinitions(fansubId) (member-scoped,
+  // für Fansub-Leitungen erreichbar — Gap G1/D-12), Fallback auf statische Liste
   const [roleOptions, setRoleOptions] = useState<{ code: FansubGroupRoleCode; label: string; description?: string }[]>(
     FANSUB_GROUP_ROLE_OPTIONS
   )
@@ -112,15 +113,15 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const deferredCandidateQuery = useDeferredValue(candidateQuery.trim())
 
-  // Rollenoptionen beim Mount via API laden; bei Fehler oder leerer Antwort bleibt statischer Fallback aktiv (fail-soft)
+  // Rollenoptionen je Fansub via API laden; bei Fehler oder leerer Antwort bleibt statischer Fallback aktiv (fail-soft)
   useEffect(() => {
     let cancelled = false
-    listFansubGroupRoles()
+    listFansubGroupRoleDefinitions(fansubId)
       .then((items) => {
         if (!cancelled && items.length > 0) {
           setRoleOptions(
             items.map((item) => ({
-              code: item.code,
+              code: item.code as FansubGroupRoleCode,
               label: item.label_de,
               description: undefined,
             }))
@@ -131,7 +132,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
         // Fehler still abfangen — Fallback FANSUB_GROUP_ROLE_OPTIONS bleibt aktiv
       })
     return () => { cancelled = true }
-  }, [])
+  }, [fansubId])
 
   const canViewMembers = capabilities?.can_view_members ?? false
   const canManageMembers = capabilities?.can_manage_members ?? false

@@ -9314,6 +9314,40 @@ export async function listGroupHistoryRoleDefinitions(
 }
 
 /**
+ * listFansubGroupRoleDefinitions lädt die zuweisbaren Gruppenrollen (Kontext fansub_group)
+ * eines Fansubs — Quelle für den App-Mitglied-Add-Flow (Gap G1, D-12).
+ * GET /api/v1/admin/fansubs/:fansubId/role-definitions?context=fansub_group
+ * Member-scoped (ActionFansubGroupMembersView): für Fansub-Leitungen erreichbar und liefert
+ * techadmin, gfxler und die übrigen zuweisbaren Gruppenrollen inklusive Label und Sortierung.
+ */
+export async function listFansubGroupRoleDefinitions(
+  fansubId: number | string,
+): Promise<RoleDefinitionOption[]> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${encodeURIComponent(String(fansubId))}/role-definitions?context=fansub_group`,
+    { cache: 'no-store' },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    )
+  }
+
+  const payload = (await response.json()) as { data?: RoleDefinitionOption[] }
+  return payload.data ?? []
+}
+
+/**
  * listFansubGroupRoles lädt alle zuweisbaren Gruppenrollen vom Backend.
  * GET /api/v1/admin/fansub-group-roles
  * Erfordert Platform-Admin-Identität. Liefert techadmin, gfxler und alle
