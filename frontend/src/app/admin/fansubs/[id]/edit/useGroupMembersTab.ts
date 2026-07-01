@@ -63,24 +63,24 @@ export function normalizeInviteLink(rawLink: string): string {
 
 export const EMPTY_MEMBER_FORM: MemberFormFields = {
   displayName: '',
-  joinedYear: '',
-  leftYear: '',
+  joinedDate: '',
+  leftDate: '',
   visibility: 'internal',
 }
 
 export const EMPTY_ROLE_FORM: RoleFormFields = {
   memberId: '',
   roleCode: '',
-  startedYear: '',
-  endedYear: '',
+  startedDate: '',
+  endedDate: '',
   note: '',
 }
 
 export function memberToForm(m: HistFansubGroupMember): MemberFormFields {
   return {
     displayName: m.display_name,
-    joinedYear: m.joined_year != null ? String(m.joined_year) : '',
-    leftYear: m.left_year != null ? String(m.left_year) : '',
+    joinedDate: m.joined_date ?? '',
+    leftDate: m.left_date ?? '',
     visibility: m.visibility ?? 'internal',
   }
 }
@@ -89,8 +89,8 @@ export function roleToForm(role: HistGroupMemberRole): RoleFormFields {
   return {
     memberId: String(role.fansub_group_member_id),
     roleCode: role.role_code,
-    startedYear: role.started_year != null ? String(role.started_year) : '',
-    endedYear: role.ended_year != null ? String(role.ended_year) : '',
+    startedDate: role.started_date ?? '',
+    endedDate: role.ended_date ?? '',
     note: role.note ?? '',
   }
 }
@@ -167,7 +167,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
       )
       setRoles(
         loadedRoles.sort((a, b) => {
-          const startedDiff = (b.started_year ?? 0) - (a.started_year ?? 0)
+          const startedDiff = (b.started_date ?? '').localeCompare(a.started_date ?? '')
           return startedDiff !== 0 ? startedDiff : a.id - b.id
         }),
       )
@@ -223,10 +223,10 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
 
   async function handleSave() {
     if (!form.displayName.trim()) { setModalError('Anzeigename darf nicht leer sein.'); return }
-    const joinedYear = form.joinedYear ? Number(form.joinedYear) : null
-    const leftYear = form.leftYear ? Number(form.leftYear) : null
-    if (joinedYear !== null && leftYear !== null && leftYear < joinedYear) {
-      setModalError('Austrittsjahr darf nicht vor dem Beitrittsjahr liegen.')
+    const joinedDate = form.joinedDate || null
+    const leftDate = form.leftDate || null
+    if (joinedDate !== null && leftDate !== null && leftDate < joinedDate) {
+      setModalError('Austrittsdatum darf nicht vor dem Beitrittsdatum liegen.')
       return
     }
     try {
@@ -234,12 +234,12 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
       setModalError(null)
       if (editTarget) {
         await updateGroupMember(fansubId, editTarget.id, {
-          display_name: form.displayName.trim(), joined_year: joinedYear, left_year: leftYear,
+          display_name: form.displayName.trim(), joined_date: joinedDate, left_date: leftDate,
           status: editTarget.status, visibility: form.visibility,
         })
       } else {
         const body: CreateGroupMemberRequest = {
-          display_name: form.displayName.trim(), joined_year: joinedYear, left_year: leftYear,
+          display_name: form.displayName.trim(), joined_date: joinedDate, left_date: leftDate,
           status: 'historical', visibility: form.visibility,
         }
         await createGroupMember(fansubId, body)
@@ -290,9 +290,9 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
   async function handleRoleSave() {
     if (!roleForm.memberId) { setRoleModalError('Bitte ein Mitglied auswählen.'); return }
     if (!roleForm.roleCode.trim()) { setRoleModalError('Rollenbezeichnung darf nicht leer sein.'); return }
-    const startedYear = roleForm.startedYear ? Number(roleForm.startedYear) : null
-    const endedYear = roleForm.endedYear ? Number(roleForm.endedYear) : null
-    if (startedYear !== null && endedYear !== null && endedYear < startedYear) {
+    const startedDate = roleForm.startedDate || null
+    const endedDate = roleForm.endedDate || null
+    if (startedDate !== null && endedDate !== null && endedDate < startedDate) {
       setRoleModalError('Rolle bis darf nicht vor Rolle von liegen.')
       return
     }
@@ -301,13 +301,13 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
       setRoleModalError(null)
       if (roleEditTarget) {
         await updateMemberRole(fansubId, roleEditTarget.id, {
-          role_code: roleForm.roleCode.trim(), started_year: startedYear, ended_year: endedYear,
+          role_code: roleForm.roleCode.trim(), started_date: startedDate, ended_date: endedDate,
           source_note: roleForm.note.trim() || null, status: roleEditTarget.status, visibility: 'internal',
         })
       } else {
         const body: CreateMemberRoleRequest = {
           hist_fansub_group_member_id: Number(roleForm.memberId),
-          role_code: roleForm.roleCode.trim(), started_year: startedYear, ended_year: endedYear,
+          role_code: roleForm.roleCode.trim(), started_date: startedDate, ended_date: endedDate,
           source_note: roleForm.note.trim() || null, status: 'historical', visibility: 'internal',
         }
         await createMemberRole(fansubId, body)

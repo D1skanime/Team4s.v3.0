@@ -565,8 +565,8 @@ export interface HistFansubGroupMember {
   fansub_group_id: number;
   member_id: number;
   display_name: string;
-  joined_year: number | null;
-  left_year: number | null;
+  joined_date: string | null;
+  left_date: string | null;
   app_user_id: number | null;
   app_username: string | null;
   status: HistoricalContributionStatus;
@@ -587,16 +587,16 @@ export interface HistFansubGroupMemberResponse {
 
 export interface CreateGroupMemberRequest {
   display_name: string;
-  joined_year: number | null;
-  left_year: number | null;
+  joined_date: string | null;
+  left_date: string | null;
   status: HistoricalContributionStatus;
   visibility: HistoricalContributionVisibility;
 }
 
 export interface UpdateGroupMemberRequest {
   display_name?: string;
-  joined_year?: number | null;
-  left_year?: number | null;
+  joined_date?: string | null;
+  left_date?: string | null;
   status?: HistoricalContributionStatus;
   visibility?: HistoricalContributionVisibility;
 }
@@ -609,8 +609,8 @@ export interface HistGroupMemberRole {
   member_display_name: string;
   role_code: string;
   role_label: string | null;
-  started_year: number | null;
-  ended_year: number | null;
+  started_date: string | null;
+  ended_date: string | null;
   note: string | null;
   status: "historical" | "confirmed";
   created_at: string;
@@ -627,8 +627,8 @@ export interface HistGroupMemberRoleResponse {
 export interface CreateMemberRoleRequest {
   hist_fansub_group_member_id: number;
   role_code: string;
-  started_year: number | null;
-  ended_year: number | null;
+  started_date: string | null;
+  ended_date: string | null;
   source_note: string | null;
   status: "historical" | "confirmed";
   visibility: HistoricalContributionVisibility;
@@ -636,8 +636,8 @@ export interface CreateMemberRoleRequest {
 
 export interface UpdateMemberRoleRequest {
   role_code?: string;
-  started_year?: number | null;
-  ended_year?: number | null;
+  started_date?: string | null;
+  ended_date?: string | null;
   source_note?: string | null;
   status?: "historical" | "confirmed";
   visibility?: HistoricalContributionVisibility;

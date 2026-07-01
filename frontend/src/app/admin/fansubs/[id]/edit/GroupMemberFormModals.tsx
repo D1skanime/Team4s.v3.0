@@ -7,7 +7,6 @@ import {
   Input,
   Modal,
   Select,
-  YearPicker,
 } from '@/components/ui'
 import type { HistFansubGroupMember, HistoricalContributionVisibility } from '@/types/fansub'
 
@@ -18,8 +17,8 @@ const styles = { ...sharedStyles, ...fansubEditStyles }
 
 export type MemberFormFields = {
   displayName: string
-  joinedYear: string
-  leftYear: string
+  joinedDate: string
+  leftDate: string
   visibility: HistoricalContributionVisibility
 }
 
@@ -59,8 +58,6 @@ export function GroupMemberFormModals({
   modalError,
   onClose,
   onSave,
-  yearMin,
-  yearMax,
   deleteTarget,
   deleting,
   deleteError,
@@ -116,25 +113,23 @@ export function GroupMemberFormModals({
           </FormField>
 
           <div className={styles.fansubEditMembershipModalGrid}>
-            <FormField label="Beitrittsjahr" htmlFor="hist-member-joined-year" hint="Optionaler Startpunkt der Mitgliedschaft.">
-              <YearPicker
-                id="hist-member-joined-year"
-                label="Beitrittsjahr"
-                value={form.joinedYear}
-                minYear={yearMin}
-                maxYear={yearMax}
-                onChange={(value) => setForm((f) => ({ ...f, joinedYear: value }))}
+            <FormField label="Beitrittsdatum" htmlFor="hist-member-joined-date" hint="Optionaler Startpunkt der Mitgliedschaft.">
+              <Input
+                id="hist-member-joined-date"
+                type="date"
+                value={form.joinedDate}
+                onChange={(e) => setForm((f) => ({ ...f, joinedDate: e.target.value }))}
+                aria-label="Beitrittsdatum"
               />
             </FormField>
 
-            <FormField label="Austrittsjahr" htmlFor="hist-member-left-year" hint="Leer lassen, wenn die Person weiterhin aktiv ist.">
-              <YearPicker
-                id="hist-member-left-year"
-                label="Austrittsjahr"
-                value={form.leftYear}
-                minYear={yearMin}
-                maxYear={yearMax}
-                onChange={(value) => setForm((f) => ({ ...f, leftYear: value }))}
+            <FormField label="Austrittsdatum" htmlFor="hist-member-left-date" hint="Leer lassen, wenn die Person weiterhin aktiv ist.">
+              <Input
+                id="hist-member-left-date"
+                type="date"
+                value={form.leftDate}
+                onChange={(e) => setForm((f) => ({ ...f, leftDate: e.target.value }))}
+                aria-label="Austrittsdatum"
               />
             </FormField>
           </div>

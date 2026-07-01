@@ -33,8 +33,8 @@ const styles = { ...sharedStyles, ...fansubEditStyles }
 type CopyState = 'copied' | 'selected'
 
 function formatZeitraum(member: HistFansubGroupMember): string {
-  const von = member.joined_year ?? '?'
-  const bis = member.left_year ?? 'aktiv'
+  const von = member.joined_date ? formatDate(member.joined_date) : '?'
+  const bis = member.left_date ? formatDate(member.left_date) : 'aktiv'
   return `${von} – ${bis}`
 }
 
@@ -43,14 +43,17 @@ function visibilityLabel(visibility: string): string {
 }
 
 function formatRoleZeitraum(role: HistGroupMemberRole): string {
-  const von = role.started_year ?? '?'
-  const bis = role.ended_year ?? 'heute'
+  const von = role.started_date ? formatDate(role.started_date) : '?'
+  const bis = role.ended_date ? formatDate(role.ended_date) : 'heute'
   return `${von} – ${bis}`
 }
 
 function formatRoleDuration(role: HistGroupMemberRole): string {
-  if (!role.started_year || !role.ended_year || role.ended_year < role.started_year) return 'Dauer unbekannt'
-  const years = role.ended_year - role.started_year + 1
+  if (!role.started_date || !role.ended_date || role.ended_date < role.started_date) return 'Dauer unbekannt'
+  const started = new Date(role.started_date)
+  const ended = new Date(role.ended_date)
+  if (Number.isNaN(started.getTime()) || Number.isNaN(ended.getTime())) return 'Dauer unbekannt'
+  const years = ended.getFullYear() - started.getFullYear() + 1
   return `${years} Jahr${years === 1 ? '' : 'e'}`
 }
 

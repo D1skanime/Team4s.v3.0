@@ -4,10 +4,10 @@ import {
   Button,
   ErrorState,
   FormField,
+  Input,
   Modal,
   Select,
   Textarea,
-  YearPicker,
 } from '@/components/ui'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
 import { type HistFansubGroupMember } from '@/types/fansub'
@@ -20,8 +20,8 @@ const styles = { ...sharedStyles, ...fansubEditStyles }
 export type RoleFormFields = {
   memberId: string
   roleCode: string
-  startedYear: string
-  endedYear: string
+  startedDate: string
+  endedDate: string
   note: string
 }
 
@@ -53,8 +53,6 @@ export function GroupHistRoleDialog({
   isSaving,
   error,
   members,
-  yearMin,
-  yearMax,
   historyRoleOptions,
   historyRoleLoadError,
 }: GroupHistRoleDialogProps) {
@@ -129,24 +127,26 @@ export function GroupHistRoleDialog({
         </FormField>
 
         <div className={styles.fansubEditMembershipModalGrid}>
-          <FormField label="Rolle von" htmlFor="member-role-started-year">
-            <YearPicker
-              id="member-role-started-year"
-              label="Rolle von"
-              value={roleForm.startedYear}
-              minYear={yearMin}
-              maxYear={yearMax}
-              onChange={(year) => setRoleForm((f) => ({ ...f, startedYear: year }))}
+          <FormField label="Rolle von" htmlFor="member-role-started-date">
+            <Input
+              id="member-role-started-date"
+              type="date"
+              value={roleForm.startedDate}
+              onChange={(e) => setRoleForm((f) => ({ ...f, startedDate: e.target.value }))}
+              aria-label="Rolle von"
             />
           </FormField>
-          <FormField label="Rolle bis" htmlFor="member-role-ended-year">
-            <YearPicker
-              id="member-role-ended-year"
-              label="Rolle bis"
-              value={roleForm.endedYear}
-              minYear={yearMin}
-              maxYear={yearMax}
-              onChange={(year) => setRoleForm((f) => ({ ...f, endedYear: year }))}
+          <FormField
+            label="Rolle bis"
+            htmlFor="member-role-ended-date"
+            hint="Leer lassen, wenn die Person weiterhin aktiv in dieser Funktion ist."
+          >
+            <Input
+              id="member-role-ended-date"
+              type="date"
+              value={roleForm.endedDate}
+              onChange={(e) => setRoleForm((f) => ({ ...f, endedDate: e.target.value }))}
+              aria-label="Rolle bis"
             />
           </FormField>
         </div>

@@ -145,8 +145,8 @@ describe("FansubAppMembersSection", () => {
           fansub_group_id: 88,
           member_id: 44,
           display_name: "Archiv Admin",
-          joined_year: 2005,
-          left_year: null,
+          joined_date: "2005-01-01",
+          left_date: null,
           app_user_id: 11,
           app_username: "phase-admin",
           status: "historical",
@@ -158,8 +158,8 @@ describe("FansubAppMembersSection", () => {
           fansub_group_id: 88,
           member_id: 45,
           display_name: "Archiv Claim",
-          joined_year: 2008,
-          left_year: 2010,
+          joined_date: "2008-01-01",
+          left_date: "2010-01-01",
           app_user_id: null,
           app_username: null,
           status: "historical",
@@ -177,8 +177,8 @@ describe("FansubAppMembersSection", () => {
             member_display_name: "Archiv Admin",
             role_code: "editor",
             role_label: "Editing",
-            started_year: 2005,
-            ended_year: null,
+            started_date: "2005-01-01",
+            ended_date: null,
             note: null,
             status: "historical",
             created_at: "2026-05-16T08:10:00Z",
@@ -207,7 +207,7 @@ describe("FansubAppMembersSection", () => {
     expect(screen.getByText("Bestätigt/verknüpft")).not.toBeNull();
     expect(screen.getByText("Offener Claim")).not.toBeNull();
     expect(screen.getByText("Das bin ich.")).not.toBeNull();
-    expect(screen.getAllByText("Gruppenleitung").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Leader").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Aktiv/).length).toBeGreaterThan(0);
     expect(screen.queryByText("phase-admin@example.local")).toBeNull();

@@ -28,8 +28,11 @@ vi.mock('@/components/ui', () => ({
   ErrorState: ({ title, description }: { title: string; description: string }) => (
     <div data-testid="error-state">{title}: {description}</div>
   ),
-  FormField: ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div><label>{label}</label>{children}</div>
+  FormField: ({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) => (
+    <div><label>{label}</label>{children}{hint ? <p>{hint}</p> : null}</div>
+  ),
+  Input: ({ value, onChange, id, type, 'aria-label': ariaLabel }: { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; id?: string; type?: string; 'aria-label'?: string }) => (
+    <input id={id} type={type} aria-label={ariaLabel} value={value} onChange={onChange} />
   ),
   Modal: ({ open, children, title, description, footer }: { open: boolean; children: React.ReactNode; title: string; description?: string; footer?: React.ReactNode }) =>
     open ? (
@@ -48,9 +51,6 @@ vi.mock('@/components/ui', () => ({
   Textarea: ({ value, onChange, placeholder, id, 'aria-label': ariaLabel }: { value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; placeholder?: string; id?: string; 'aria-label'?: string }) => (
     <textarea id={id} aria-label={ariaLabel} value={value} onChange={onChange} placeholder={placeholder} />
   ),
-  YearPicker: ({ value, label }: { value: string; label: string }) => (
-    <input type="text" aria-label={label} defaultValue={value} />
-  ),
 }))
 
 import React from 'react'
@@ -60,8 +60,8 @@ import { GroupHistRoleDialog, type RoleFormFields } from './GroupHistRoleDialog'
 const defaultRoleForm: RoleFormFields = {
   memberId: '1',
   roleCode: '',
-  startedYear: '',
-  endedYear: '',
+  startedDate: '',
+  endedDate: '',
   note: '',
 }
 
@@ -88,7 +88,7 @@ describe('GroupHistRoleDialog', () => {
         onSubmit={noop}
         isSaving={false}
         error={null}
-        members={[{ id: 1, member_id: 1, fansub_group_id: 1, display_name: 'Test Mitglied', joined_year: null, left_year: null, app_user_id: null, app_username: null, status: 'historical', created_at: '' }]}
+        members={[{ id: 1, member_id: 1, fansub_group_id: 1, display_name: 'Test Mitglied', joined_date: null, left_date: null, app_user_id: null, app_username: null, status: 'historical', created_at: '' }]}
         yearMin={2000}
         yearMax={2024}
         historyRoleOptions={historyRoles}
