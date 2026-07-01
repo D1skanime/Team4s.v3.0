@@ -43,3 +43,8 @@ func (t *testCatalogLoader) LoadFansubGroupRoles(_ context.Context) ([]string, e
 		"gfxler",
 	}, nil
 }
+
+// LoadCapabilityRoles: dieselben aktiven Rollen sind capability-editierbar (G4).
+func (t *testCatalogLoader) LoadCapabilityRoles(ctx context.Context) ([]string, error) {
+	return t.LoadFansubGroupRoles(ctx)
+}

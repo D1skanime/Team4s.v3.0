@@ -252,6 +252,35 @@ func (r *AuthzRepository) LoadFansubGroupRoles(ctx context.Context) ([]string, e
 	return result, nil
 }
 
+// LoadCapabilityRoles lädt alle Rollen mit aktivem Kontext (fansub_group ODER
+// anime_contribution) aus role_definitions — also auch Contribution-/Projekt-Rollen wie
+// encoder/editor, deren Capabilities editierbar sein sollen (Gap G4). Rein historische
+// Rollen (nur group_history) werden ausgeschlossen.
+func (r *AuthzRepository) LoadCapabilityRoles(ctx context.Context) ([]string, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT code FROM role_definitions
+		WHERE 'fansub_group' = ANY(contexts) OR 'anime_contribution' = ANY(contexts)
+		ORDER BY sort_order, code
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("load capability roles: %w", err)
+	}
+	defer rows.Close()
+
+	var result []string
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return nil, fmt.Errorf("load capability roles: scan: %w", err)
+		}
+		result = append(result, strings.TrimSpace(code))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("load capability roles: iterate: %w", err)
+	}
+	return result, nil
+}
+
 // Compile-Zeit-Assertion: AuthzRepository implementiert CatalogLoader (D-12).
 var _ permissions.CatalogLoader = (*AuthzRepository)(nil)
 

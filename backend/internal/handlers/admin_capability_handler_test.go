@@ -186,15 +186,15 @@ func TestRevokeCapabilityLastActionGuard(t *testing.T) {
 // --- AssignableGuard-Tests (Nyquist RED — Guard existiert noch nicht in Plan 01) ---
 
 // TestGrantCapabilityAssignableGuardRejectsHistoricalRole prüft, dass GrantCapability
-// mit einer historischen Rolle (founder) HTTP 422 und "role_not_assignable" zurückgibt.
-// RED: Der Guard ist noch nicht implementiert → Test schlägt fehl (kein 422, sondern 200).
+// mit einer nicht capability-tragenden Rolle HTTP 422 und "role_not_capability_bearing"
+// zurückgibt (G4: nur rein historische Rollen ohne aktiven Kontext werden abgelehnt).
 func TestGrantCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// Negativ-Rolle: "founder" ist NICHT in permissions.FansubGroupRoles() enthalten.
+	// Negativ-Rolle: nicht im Capability-Katalog des Test-Stubs → nicht capability-tragend.
 	historicalRole := "founder"
-	if permissions.IsKnownFansubGroupRole(historicalRole) {
-		t.Fatalf("Testvorbedingung verletzt: %q sollte keine bekannte Fansub-Gruppenrolle sein", historicalRole)
+	if permissions.IsCapabilityBearingRole(historicalRole) {
+		t.Fatalf("Testvorbedingung verletzt: %q sollte keine capability-tragende Rolle sein", historicalRole)
 	}
 
 	c, rec := makeCapabilityTestContext(http.MethodPut,
@@ -231,21 +231,21 @@ func TestGrantCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
 		t.Fatalf("body parsen fehlgeschlagen: %v", err)
 	}
-	if body.Error.Code != "role_not_assignable" {
-		t.Fatalf("erwartet error.code='role_not_assignable', erhalten %q", body.Error.Code)
+	if body.Error.Code != "role_not_capability_bearing" {
+		t.Fatalf("erwartet error.code='role_not_capability_bearing', erhalten %q", body.Error.Code)
 	}
 }
 
 // TestRevokeCapabilityAssignableGuardRejectsHistoricalRole prüft, dass RevokeCapability
-// mit einer historischen Rolle (co_leader) HTTP 422 und "role_not_assignable" zurückgibt.
-// RED: Der Guard muss in BEIDEN Mutationspfaden vorhanden sein (Pitfall 4) — noch nicht implementiert.
+// mit einer nicht capability-tragenden Rolle HTTP 422 und "role_not_capability_bearing"
+// zurückgibt. Der Guard muss in BEIDEN Mutationspfaden vorhanden sein (Pitfall 4).
 func TestRevokeCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// Negativ-Rolle: "co_leader" ist NICHT in permissions.FansubGroupRoles() enthalten.
+	// Negativ-Rolle: nicht im Capability-Katalog des Test-Stubs → nicht capability-tragend.
 	historicalRole := "co_leader"
-	if permissions.IsKnownFansubGroupRole(historicalRole) {
-		t.Fatalf("Testvorbedingung verletzt: %q sollte keine bekannte Fansub-Gruppenrolle sein", historicalRole)
+	if permissions.IsCapabilityBearingRole(historicalRole) {
+		t.Fatalf("Testvorbedingung verletzt: %q sollte keine capability-tragende Rolle sein", historicalRole)
 	}
 
 	c, rec := makeCapabilityTestContext(http.MethodDelete,
@@ -286,8 +286,8 @@ func TestRevokeCapabilityAssignableGuardRejectsHistoricalRole(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
 		t.Fatalf("body parsen fehlgeschlagen: %v", err)
 	}
-	if body.Error.Code != "role_not_assignable" {
-		t.Fatalf("erwartet error.code='role_not_assignable', erhalten %q", body.Error.Code)
+	if body.Error.Code != "role_not_capability_bearing" {
+		t.Fatalf("erwartet error.code='role_not_capability_bearing', erhalten %q", body.Error.Code)
 	}
 }
 

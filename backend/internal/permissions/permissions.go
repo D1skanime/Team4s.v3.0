@@ -205,9 +205,15 @@ var standaloneActions = []Action{ActionFansubGroupInvitationsAccept}
 
 // fansubGroupRoleCatalog: wird beim Start via LoadFansubGroupCatalog aus role_definitions geladen (D-12).
 // Leer bei Init — LoadFansubGroupCatalog MUSS vor dem ersten Zugriff aufgerufen werden.
+// capabilityRoleCatalog: alle Rollen, die in einem AKTIVEN Kontext (fansub_group ODER
+// anime_contribution) Rechte tragen können — also auch Contribution-/Projekt-Rollen wie
+// encoder/editor, nicht nur die im Gruppen-Picker zuweisbaren. Grundlage dafür, dass die
+// Capability-Matrix diese Rollen editierbar macht (Gap G4: assignable != capability-editierbar).
+// Rein historische Rollen (nur group_history) sind hier NICHT enthalten und bleiben gesperrt.
 var (
 	catalogMu              sync.RWMutex
 	fansubGroupRoleCatalog []string
+	capabilityRoleCatalog  []string
 )
 
 type Actor struct {
@@ -247,10 +253,13 @@ type CacheLoader interface {
 	LoadRoleCapabilities(ctx context.Context) (map[string][]Action, error)
 }
 
-// CatalogLoader lädt die assignable Gruppenrollen aus role_definitions.
-// Wird von AuthzRepository in Plan 95-02 implementiert (D-12).
+// CatalogLoader lädt die assignable Gruppenrollen sowie die capability-tragenden Rollen
+// aus role_definitions. Wird von AuthzRepository implementiert (D-12, Gap G4).
 type CatalogLoader interface {
 	LoadFansubGroupRoles(ctx context.Context) ([]string, error)
+	// LoadCapabilityRoles gibt alle Rollen mit aktivem Kontext (fansub_group ODER
+	// anime_contribution) zurück — die Rollen, deren Capabilities editierbar sein sollen.
+	LoadCapabilityRoles(ctx context.Context) ([]string, error)
 }
 
 type Service struct {
@@ -299,8 +308,13 @@ func (s *Service) LoadFansubGroupCatalog(ctx context.Context, loader CatalogLoad
 	if err != nil {
 		return fmt.Errorf("fansub group catalog load: %w", err)
 	}
+	capRoles, err := loader.LoadCapabilityRoles(ctx)
+	if err != nil {
+		return fmt.Errorf("capability role catalog load: %w", err)
+	}
 	catalogMu.Lock()
 	fansubGroupRoleCatalog = roles
+	capabilityRoleCatalog = capRoles
 	catalogMu.Unlock()
 	return nil
 }
@@ -325,6 +339,15 @@ func IsKnownFansubGroupRole(role string) bool {
 	catalogMu.RLock()
 	defer catalogMu.RUnlock()
 	return slices.Contains(fansubGroupRoleCatalog, strings.TrimSpace(role))
+}
+
+// IsCapabilityBearingRole prüft, ob die Rolle in einem aktiven Kontext (fansub_group ODER
+// anime_contribution) Rechte tragen kann und daher in der Capability-Matrix editierbar sein
+// soll. Rein historische Rollen (nur group_history) liefern false und bleiben gesperrt (G4).
+func IsCapabilityBearingRole(role string) bool {
+	catalogMu.RLock()
+	defer catalogMu.RUnlock()
+	return slices.Contains(capabilityRoleCatalog, strings.TrimSpace(role))
 }
 
 func RoleAllowsAction(role string, action Action) bool {

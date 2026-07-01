@@ -76,10 +76,14 @@ func (h *AdminCapabilityHandler) ListCapabilityMatrix(c *gin.Context) {
 		return
 	}
 
-	// D-04: Assignable-Anreicherung — Repository darf permissions nicht importieren (Kommentar Z.52).
-	// Handler setzt Assignable nach permissions.IsKnownFansubGroupRole als Wahrheitsquelle.
+	// D-04: Anreicherung — Repository darf permissions nicht importieren (Kommentar Z.52).
+	// Assignable  = im Gruppen-Add-Picker zuweisbar (die 6 fansub_group-Rollen).
+	// CapabilityEditable = Rolle trägt in aktivem Kontext Rechte (auch Contribution-/Projekt-
+	// Rollen wie encoder) → ihre Capabilities sind editierbar (Gap G4). Nur rein historische
+	// Rollen bleiben nicht-editierbar.
 	for i := range matrix.Roles {
 		matrix.Roles[i].Assignable = permissions.IsKnownFansubGroupRole(matrix.Roles[i].RoleCode)
+		matrix.Roles[i].CapabilityEditable = permissions.IsCapabilityBearingRole(matrix.Roles[i].RoleCode)
 	}
 
 	c.JSON(http.StatusOK, matrix)
@@ -104,12 +108,14 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 		return
 	}
 
-	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten (T-94-01).
-	if !permissions.IsKnownFansubGroupRole(roleCode) {
+	// G4: Nur rein historische Rollen dürfen keine Capabilities erhalten. Aktive Rollen mit
+	// Kontext fansub_group ODER anime_contribution (auch Contribution-/Projekt-Rollen wie
+	// encoder) sind editierbar — entkoppelt von der Gruppen-Zuweisbarkeit (T-94-01 verfeinert).
+	if !permissions.IsCapabilityBearingRole(roleCode) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
-				"code":    "role_not_assignable",
-				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
+				"code":    "role_not_capability_bearing",
+				"message": "Diese Rolle ist eine rein historische Rolle und kann keine Berechtigungen erhalten.",
 			},
 		})
 		return
@@ -159,13 +165,13 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 		return
 	}
 
-	// D-05: Assignable-Guard — historische Rollen dürfen keine Capabilities erhalten (T-94-01).
-	// VOR dem Lockout-Guard prüfen (Pitfall 4: Guard in BEIDEN Mutationspfaden).
-	if !permissions.IsKnownFansubGroupRole(roleCode) {
+	// G4: Nur rein historische Rollen sind gesperrt — Guard in BEIDEN Mutationspfaden (Pitfall 4).
+	// Aktive Rollen (Kontext fansub_group ODER anime_contribution) sind editierbar.
+	if !permissions.IsCapabilityBearingRole(roleCode) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
-				"code":    "role_not_assignable",
-				"message": "Diese Rolle ist eine historische bzw. nicht-zuweisbare Rolle und kann keine Berechtigungen erhalten.",
+				"code":    "role_not_capability_bearing",
+				"message": "Diese Rolle ist eine rein historische Rolle und kann keine Berechtigungen erhalten.",
 			},
 		})
 		return

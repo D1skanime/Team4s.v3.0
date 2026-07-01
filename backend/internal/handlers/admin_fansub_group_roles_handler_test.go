@@ -150,3 +150,7 @@ type stubGroupRolesCatalogLoader struct {
 func (s *stubGroupRolesCatalogLoader) LoadFansubGroupRoles(_ context.Context) ([]string, error) {
 	return s.roles, nil
 }
+
+func (s *stubGroupRolesCatalogLoader) LoadCapabilityRoles(_ context.Context) ([]string, error) {
+	return s.roles, nil
+}

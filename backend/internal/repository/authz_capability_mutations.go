@@ -28,11 +28,12 @@ type CapabilityMatrixActionState struct {
 
 // CapabilityMatrixRoleEntry ist eine Rolle mit ihren Action-Zuständen.
 type CapabilityMatrixRoleEntry struct {
-	RoleCode   string                        `json:"role_code"`
-	LabelDE    string                        `json:"label_de"`
-	Actions    []CapabilityMatrixActionState `json:"actions"`
-	Assignable bool                          `json:"assignable"`         // Wird im Handler gesetzt (permissions.IsKnownFansubGroupRole)
-	Contexts   []string                      `json:"contexts,omitempty"` // Aus role_definitions.contexts
+	RoleCode           string                        `json:"role_code"`
+	LabelDE            string                        `json:"label_de"`
+	Actions            []CapabilityMatrixActionState `json:"actions"`
+	Assignable         bool                          `json:"assignable"`          // Im Gruppen-Add-Picker zuweisbar (permissions.IsKnownFansubGroupRole)
+	CapabilityEditable bool                          `json:"capability_editable"` // Capabilities editierbar (permissions.IsCapabilityBearingRole) — G4
+	Contexts           []string                      `json:"contexts,omitempty"`  // Aus role_definitions.contexts
 }
 
 // CapabilityMatrixActionEntry ist eine Action-Definition (für all_actions-Liste).
