@@ -13,16 +13,22 @@ import {
 import {
   ApiError,
   cancelFansubGroupInvitation,
+  createGroupMember,
   createFansubGroupInvitation,
   createFansubAppMember,
+  createMemberRole,
+  deleteMemberRole,
   getFansubGroupCapabilities,
   listFansubGroupInvitations,
   listFansubAppMembers,
+  listGroupHistoryRoleDefinitions,
   listFansubGroupRoleDefinitions,
   searchFansubAppMemberCandidates,
+  updateMemberRole,
   updateFansubAppMemberRole,
   updateFansubAppMemberMediaPermissions,
 } from '@/lib/api'
+import { type RoleDefinitionOption } from '@/types/admin-capability'
 import {
   type FansubAppMember,
   type FansubGroupMediaPermissions,
@@ -36,9 +42,10 @@ import {
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
 import { FansubAppMemberAddModal, FansubAppMemberChoiceModal } from './FansubAppMemberAddModal'
-import { FansubAppMemberEditorPanel } from './FansubAppMemberEditorPanel'
+import { FansubAppMemberEditorPanel, type FansubAppMemberEditorTab } from './FansubAppMemberEditorPanel'
 import { FansubAppMembersOverview } from './FansubAppMembersOverview'
-import { GroupMembersTab, type GroupMembersTabActions } from './GroupMembersTab'
+import { GroupMembersTab, mergeHistoricalRoleOptions, type GroupMembersTabActions } from './GroupMembersTab'
+import { CURRENT_YEAR, EMPTY_INLINE_ROLE_DRAFT, YEAR_MIN, type InlineMemberRoleDraft } from './useGroupMembersTab'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
@@ -80,6 +87,25 @@ function mediaPermissionsEqual(left: FansubGroupMediaPermissions, right: FansubG
   return MEDIA_PERMISSION_OPTIONS.every((option) => left[option.key] === right[option.key])
 }
 
+function normalizeDateValue(value: string | null | undefined): string {
+  if (!value) return ''
+  const trimmed = value.trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10)
+  if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
+  return ''
+}
+
+function roleDraftsFromHistoricalRoles(roles: Array<{ id: number; role_code: string; started_date: string | null; ended_date: string | null }>): InlineMemberRoleDraft[] {
+  const drafts = roles.map((role) => ({
+    id: `history-role-${role.id}`,
+    roleId: role.id,
+    roleCode: role.role_code,
+    startedDate: normalizeDateValue(role.started_date),
+    endedDate: normalizeDateValue(role.ended_date),
+  }))
+  return drafts.length > 0 ? drafts : [{ ...EMPTY_INLINE_ROLE_DRAFT }]
+}
+
 export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: FansubAppMembersSectionProps) {
   const [members, setMembers] = useState<FansubAppMember[]>([])
   const [capabilities, setCapabilities] = useState<FansubGroupCapabilities | null>(null)
@@ -97,9 +123,12 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   const [isAddChoiceOpen, setIsAddChoiceOpen] = useState(false)
   const [historicalActions, setHistoricalActions] = useState<GroupMembersTabActions | null>(null)
   const [editorMemberId, setEditorMemberId] = useState<number | null>(null)
-  const [memberEditorTab, setMemberEditorTab] = useState<'roles' | 'media'>('roles')
+  const [memberEditorTab, setMemberEditorTab] = useState<FansubAppMemberEditorTab>('roles')
   const [memberRoleDraft, setMemberRoleDraft] = useState<string[]>([])
   const [mediaPermissionDraft, setMediaPermissionDraft] = useState<FansubGroupMediaPermissions>(EMPTY_MEDIA_PERMISSIONS)
+  const [historicalRoleDrafts, setHistoricalRoleDrafts] = useState<InlineMemberRoleDraft[]>([EMPTY_INLINE_ROLE_DRAFT])
+  const [historyRoleOptions, setHistoryRoleOptions] = useState<RoleDefinitionOption[]>([])
+  const [historyRoleLoadError, setHistoryRoleLoadError] = useState<string | null>(null)
   const [invitations, setInvitations] = useState<FansubGroupInvitation[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRoles, setInviteRoles] = useState<FansubGroupRoleCode[]>([])
@@ -131,6 +160,24 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
       })
       .catch(() => {
         // Fehler still abfangen — Fallback FANSUB_GROUP_ROLE_OPTIONS bleibt aktiv
+      })
+    return () => { cancelled = true }
+  }, [fansubId])
+
+  useEffect(() => {
+    let cancelled = false
+    listGroupHistoryRoleDefinitions(fansubId)
+      .then((items) => {
+        if (!cancelled) {
+          setHistoryRoleOptions(mergeHistoricalRoleOptions(items))
+          setHistoryRoleLoadError(null)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setHistoryRoleOptions(mergeHistoricalRoleOptions([]))
+          setHistoryRoleLoadError('Frühere Funktionen konnten nicht geladen werden.')
+        }
       })
     return () => { cancelled = true }
   }, [fansubId])
@@ -214,6 +261,15 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
 
   const activeMemberCount = useMemo(() => members.filter((m) => m.status === 'active').length, [members])
   const editorMember = useMemo(() => members.find((m) => m.id === editorMemberId) ?? null, [members, editorMemberId])
+  const editorHistoricalMember = useMemo(() => {
+    const memberId = editorMember?.member?.member_id
+    if (!memberId) return null
+    return historicalActions?.historicalMembers.find((member) => member.member_id === memberId) ?? null
+  }, [editorMember?.member?.member_id, historicalActions])
+  const editorHistoricalRoles = useMemo(() => {
+    if (!editorHistoricalMember) return []
+    return historicalActions?.historicalRolesByMember.get(editorHistoricalMember.id) ?? []
+  }, [editorHistoricalMember, historicalActions])
   const selectedCandidate = useMemo(
     () => candidateResults.find((c) => String(c.app_user_id) === selectedCandidateId) ?? null,
     [candidateResults, selectedCandidateId],
@@ -303,12 +359,98 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   function openMemberEditor(member: FansubAppMember) {
     setEditorMemberId(member.id); setMemberEditorTab('roles')
     setMemberRoleDraft([...member.roles]); setMediaPermissionDraft(getMediaPermissions(member))
+    const historicalMember = member.member?.member_id
+      ? historicalActions?.historicalMembers.find((item) => item.member_id === member.member?.member_id)
+      : null
+    const historicalRoles = historicalMember
+      ? historicalActions?.historicalRolesByMember.get(historicalMember.id) ?? []
+      : []
+    setHistoricalRoleDrafts(roleDraftsFromHistoricalRoles(historicalRoles))
   }
 
   function closeMemberEditor() {
     if (editorMember && busyKey === `member-editor:${editorMember.app_user_id}`) return
     setEditorMemberId(null); setMemberEditorTab('roles')
     setMemberRoleDraft([]); setMediaPermissionDraft(EMPTY_MEDIA_PERMISSIONS)
+    setHistoricalRoleDrafts([{ ...EMPTY_INLINE_ROLE_DRAFT }])
+  }
+
+  function addHistoricalRoleDraft() {
+    setHistoricalRoleDrafts((current) => [
+      ...current,
+      { id: `history-role-new-${current.length + 1}-${Date.now()}`, roleCode: '', startedDate: '', endedDate: '' },
+    ])
+  }
+
+  function updateHistoricalRoleDraft(id: string, patch: Partial<InlineMemberRoleDraft>) {
+    setHistoricalRoleDrafts((current) => current.map((role) => (role.id === id ? { ...role, ...patch } : role)))
+  }
+
+  function removeHistoricalRoleDraft(id: string) {
+    setHistoricalRoleDrafts((current) => {
+      const next = current.filter((role) => role.id !== id)
+      return next.length > 0 ? next : [{ ...EMPTY_INLINE_ROLE_DRAFT }]
+    })
+  }
+
+  async function saveHistoricalRoleDraftsForEditor(member: FansubAppMember) {
+    if (!canManageHistoricalRoles) return
+    const memberId = member.member?.member_id
+    if (!memberId) return
+    const filledDrafts = historicalRoleDrafts.filter((draft) => draft.roleCode.trim())
+    const hasExistingHistoricalRoles = editorHistoricalRoles.length > 0
+    if (filledDrafts.length === 0 && !hasExistingHistoricalRoles) return
+    for (const draft of filledDrafts) {
+      const startedDate = draft.startedDate || null
+      const endedDate = draft.endedDate || null
+      if (startedDate !== null && endedDate !== null && endedDate < startedDate) {
+        throw new Error('Austrittsdatum darf nicht vor dem Eintrittsdatum liegen.')
+      }
+    }
+
+    let historicalMember = editorHistoricalMember
+    if (!historicalMember) {
+      const created = await createGroupMember(fansubId, {
+        member_id: memberId,
+        display_name: member.member?.fansub_name ?? '',
+        joined_date: null,
+        left_date: null,
+        status: 'historical',
+        visibility: 'internal',
+      })
+      historicalMember = created.data
+    }
+
+    const remainingRoleIds = new Set(
+      filledDrafts.map((draft) => draft.roleId).filter((roleId): roleId is number => typeof roleId === 'number'),
+    )
+    for (const role of editorHistoricalRoles) {
+      if (!remainingRoleIds.has(role.id)) {
+        await deleteMemberRole(fansubId, role.id)
+      }
+    }
+    for (const draft of filledDrafts) {
+      if (draft.roleId) {
+        await updateMemberRole(fansubId, draft.roleId, {
+          role_code: draft.roleCode.trim(),
+          started_date: draft.startedDate || null,
+          ended_date: draft.endedDate || null,
+          status: 'historical',
+          visibility: 'internal',
+        })
+      } else {
+        await createMemberRole(fansubId, {
+          hist_fansub_group_member_id: historicalMember.id,
+          role_code: draft.roleCode.trim(),
+          started_date: draft.startedDate || null,
+          ended_date: draft.endedDate || null,
+          source_note: null,
+          status: 'historical',
+          visibility: 'internal',
+        })
+      }
+    }
+    await historicalActions?.reloadHistoricalMembers()
   }
 
   async function handleSaveMemberEditor() {
@@ -333,8 +475,9 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
         const response = await updateFansubAppMemberMediaPermissions(fansubId, editorMember.app_user_id, mediaPermissionDraft)
         latestMember = response.data
       }
+      await saveHistoricalRoleDraftsForEditor(editorMember)
       setMembers((current) => current.map((item) => (item.app_user_id === editorMember.app_user_id ? latestMember : item)))
-      setEditorMemberId(null); setMemberEditorTab('roles'); setMemberRoleDraft([]); setMediaPermissionDraft(EMPTY_MEDIA_PERMISSIONS)
+      setEditorMemberId(null); setMemberEditorTab('roles'); setMemberRoleDraft([]); setMediaPermissionDraft(EMPTY_MEDIA_PERMISSIONS); setHistoricalRoleDrafts([{ ...EMPTY_INLINE_ROLE_DRAFT }])
       setSuccessMessage('Änderungen gespeichert.')
     } catch (error) {
       setActionError(formatApiError(error, 'Änderungen konnten nicht gespeichert werden.'))
@@ -481,11 +624,21 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
         setMemberEditorTab={setMemberEditorTab}
         memberRoleDraft={memberRoleDraft}
         mediaPermissionDraft={mediaPermissionDraft}
+        historicalRoleDrafts={historicalRoleDrafts}
+        historyRoleOptions={historyRoleOptions}
+        historyRoleLoadError={historyRoleLoadError}
+        canManageHistoricalRoles={canManageHistoricalRoles}
+        historicalRoleCount={editorHistoricalRoles.length}
+        yearMin={YEAR_MIN}
+        yearMax={CURRENT_YEAR}
         isBusy={busyKey === `member-editor:${editorMember?.app_user_id}`}
         onClose={closeMemberEditor}
         onSave={() => void handleSaveMemberEditor()}
         onToggleRole={(role) => setMemberRoleDraft((current) => current.includes(role) ? current.filter((r) => r !== role) : [...current, role])}
         onToggleMediaPermission={(permission) => setMediaPermissionDraft((current) => ({ ...current, [permission]: !current[permission] }))}
+        onAddHistoricalRole={addHistoricalRoleDraft}
+        onUpdateHistoricalRole={updateHistoricalRoleDraft}
+        onRemoveHistoricalRole={removeHistoricalRoleDraft}
       />
     </Card>
   )

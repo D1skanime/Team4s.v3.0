@@ -421,11 +421,14 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
     onActionsChange({
       canCreateRole: members.length > 0,
       historicalIdentityOptions,
+      historicalMembers: members,
+      historicalRolesByMember: rolesByMember,
+      reloadHistoricalMembers: load,
       openHistoricalMemberForm: openNew,
       openHistoricalRoleForm: () => openNewRole(),
     })
     return () => onActionsChange(null)
-  }, [historicalIdentityOptions, members.length, onActionsChange, openNew, openNewRole])
+  }, [historicalIdentityOptions, load, members, onActionsChange, openNew, openNewRole, rolesByMember])
 
   async function handleRoleDeleteConfirm() {
     if (!roleDeleteTarget) return

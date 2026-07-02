@@ -423,6 +423,41 @@
   padding-top: 0.2rem;
 }
 
+.fansubEditMemberHistoryRoleCard {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 16%, var(--border-subtle));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 78%, var(--bg-card));
+  padding: 0.8rem;
+}
+
+.fansubEditMemberHistoryRoleRow {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, #fff 72%, var(--bg-secondary));
+  padding: 0.75rem;
+}
+
+.fansubEditMemberHistoryRoleRow > :first-child,
+.fansubEditMemberHistoryRoleRow > .fansubEditDangerOutlineButton {
+  grid-column: 1 / -1;
+}
+
+.fansubEditDangerOutlineButton {
+  border: 1px solid color-mix(in srgb, var(--button-danger-start) 58%, transparent);
+  background: transparent;
+  color: var(--button-danger-start);
+  box-shadow: none;
+}
+
+.fansubEditDangerOutlineButton:hover:not(:disabled) {
+  border-color: var(--button-danger-mid);
+  background: color-mix(in srgb, var(--button-danger-start) 8%, transparent);
+  color: var(--button-danger-mid);
+}
+
 .fansubEditMemberChoiceList {
   gap: 0.65rem;
 }
@@ -3166,6 +3201,7 @@
   }
 
   .fansubEditStickyActions {
+    display: none;
     padding: 0.6rem 0.65rem;
   }
 
@@ -3647,7 +3683,7 @@
 
 .fansubEditMemberEditorTabs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-self: start;
   align-items: stretch;
   gap: 6px;
@@ -3685,6 +3721,26 @@
   padding-bottom: 6px;
 }
 
+.fansubEditMemberRoleGroups {
+  display: grid;
+  gap: 12px;
+}
+
+.fansubEditMemberRoleGroup {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.fansubEditMemberRoleGroup h3 {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
 .fansubEditMemberRoleGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3701,7 +3757,7 @@
   justify-content: center;
   gap: 6px;
   min-width: 0;
-  min-height: 40px;
+  min-height: 48px;
   height: auto;
   border: 1px solid var(--role-accent);
   border-radius: 999px;
@@ -3716,9 +3772,8 @@
 
 .fansubEditMemberRoleToggle span {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .fansubEditMemberRoleToggleSelected {
@@ -3831,6 +3886,12 @@
   }
 }
 
+@media (max-width: 359px) {
+  .fansubEditMemberHistoryRoleRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 767px) {
   .fansubEditMembershipModalStack {
     gap: 0.75rem;
@@ -3873,6 +3934,7 @@
   }
 
   .fansubEditMemberEditorTabs {
+    grid-template-columns: 1fr;
     gap: 4px;
     padding: 3px;
   }
@@ -3885,16 +3947,23 @@
   }
 
   .fansubEditMemberRoleGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
 
   .fansubEditMemberRoleToggle {
-    justify-content: flex-start;
-    min-height: 44px;
-    max-height: 54px;
-    padding-inline: 14px;
-    text-align: left;
+    min-height: 48px;
+    padding-inline: 10px;
+  }
+
+  .fansubEditMemberHistoryRoleCard {
+    gap: 0.65rem;
+    padding: 0.65rem;
+  }
+
+  .fansubEditMemberHistoryRoleRow {
+    gap: 0.55rem;
+    padding: 0.65rem;
   }
 
   .fansubEditMediaSwitchRow {

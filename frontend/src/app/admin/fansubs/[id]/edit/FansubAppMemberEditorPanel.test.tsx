@@ -1,17 +1,23 @@
 /**
  * @vitest-environment jsdom
- *
- * Tests für FansubAppMemberEditorPanel — aktives Editor-Panel.
- * AC-4/AC-5/D-10
  */
 
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { vi, describe, it, expect } from 'vitest'
 
-// UI-Primitives mocken
 vi.mock('@/components/ui', () => ({
   Button: ({ children, onClick, disabled, loading }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; loading?: boolean }) => (
     <button onClick={onClick} disabled={disabled || loading}>{children}</button>
+  ),
+  DatePicker: ({ id, value, onChange, disabled }: { id: string; value: string; onChange: (value: string) => void; disabled?: boolean }) => (
+    <input id={id} value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} />
+  ),
+  ErrorState: ({ title, description }: { title: string; description?: string }) => (
+    <div role="alert">{title}{description}</div>
+  ),
+  FormField: ({ children, label, htmlFor }: { children: React.ReactNode; label: string; htmlFor?: string }) => (
+    <label htmlFor={htmlFor}>{label}{children}</label>
   ),
   Modal: ({ open, children, title, description, footer }: { open: boolean; children: React.ReactNode; title: string; description?: string; footer?: React.ReactNode }) =>
     open ? (
@@ -22,9 +28,11 @@ vi.mock('@/components/ui', () => ({
         {footer}
       </div>
     ) : null,
+  Select: ({ children, value, onChange, disabled, id }: { children: React.ReactNode; value: string; onChange: React.ChangeEventHandler<HTMLSelectElement>; disabled?: boolean; id?: string }) => (
+    <select id={id} value={value} onChange={onChange} disabled={disabled}>{children}</select>
+  ),
 }))
 
-import React from 'react'
 import { type FansubAppMember, type FansubGroupMediaPermissions } from '@/types/fansub'
 import { FansubAppMemberEditorPanel } from './FansubAppMemberEditorPanel'
 
@@ -51,9 +59,24 @@ const mockMember: FansubAppMember = {
 }
 
 const noop = () => {}
+const defaultEditorProps = {
+  historicalRoleDrafts: [{ id: 'role-1', roleCode: '', startedDate: '', endedDate: '' }],
+  historyRoleOptions: [
+    { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
+    { code: 'quality_checker', label_de: 'Qualitätscheck', sort_order: 2 },
+  ],
+  historyRoleLoadError: null,
+  canManageHistoricalRoles: true,
+  historicalRoleCount: 0,
+  yearMin: 1960,
+  yearMax: 2026,
+  onAddHistoricalRole: noop,
+  onUpdateHistoricalRole: noop,
+  onRemoveHistoricalRole: noop,
+}
 
 describe('FansubAppMemberEditorPanel', () => {
-  it('Test 1: zeigt die Section-Überschrift/Label "Aktive Rechte" statt nur "Rollen"', () => {
+  it('zeigt aktive Rechte als eigenen Bearbeitungsbereich', () => {
     render(
       <FansubAppMemberEditorPanel
         editorMember={mockMember}
@@ -66,17 +89,20 @@ describe('FansubAppMemberEditorPanel', () => {
         onSave={noop}
         onToggleRole={noop}
         onToggleMediaPermission={noop as never}
-      />
+        {...defaultEditorProps}
+      />,
     )
 
-    const bodyText = document.body.textContent ?? ''
-    // Muss "Aktive Rechte" enthalten — entweder im Tab-Label oder im Section-Text
-    expect(bodyText).toMatch(/Aktive Rechte/)
-    // Darf NICHT nur "Rollen" als reinen Begriff ohne "Aktive" zeigen
-    // (der Tab-Zähler "Aktive Rechte · N" enthält "Aktive Rechte")
+    expect(document.body.textContent ?? '').toMatch(/Aktive Rolle in der Fansubgruppe/)
+    expect(screen.getByRole('heading', { name: 'Leitung' })).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Übersetzung & Text' })).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Technik & Quelle' })).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Gestaltung' })).not.toBeNull()
+    expect(screen.getByRole('tab', { name: /Historische Rollen/ })).not.toBeNull()
+    expect(screen.queryByLabelText('Rolle 1')).toBeNull()
   })
 
-  it('Test 2: listet ausschließlich aktive App-Rollen aus FANSUB_GROUP_ROLE_OPTIONS; keine historischen Rollen', () => {
+  it('listet im aktive-Rollen-Panel nur aktive App-Rollen', () => {
     render(
       <FansubAppMemberEditorPanel
         editorMember={mockMember}
@@ -89,26 +115,20 @@ describe('FansubAppMemberEditorPanel', () => {
         onSave={noop}
         onToggleRole={noop}
         onToggleMediaPermission={noop as never}
-      />
+        {...defaultEditorProps}
+      />,
     )
 
     const bodyText = document.body.textContent ?? ''
-
-    // Aktive App-Rollen müssen vorhanden sein
-    // fansub_lead heißt jetzt "Gruppenleitung" (D-05), nicht mehr "Fansub-Lead"
     expect(bodyText).toMatch(/Gruppenleitung|Übersetzung|Encoding|Timing/)
-
-    // Historische hist_group_member_roles-Rollen dürfen NICHT vorhanden sein
-    expect(bodyText).not.toMatch(/Gründer\/in/)
-    expect(bodyText).not.toMatch(/Co-Leitung/)
-    expect(bodyText).not.toMatch(/Projektmanagement/)
+    expect(screen.queryByLabelText('Rolle 1')).toBeNull()
   })
 
-  it('Test 3: Erklärtexte sprechen von aktiven Rechten/Aufgaben, nicht von historischen Funktionen', () => {
+  it('bietet historische Rollen als eigenen Tab mit Datumsfeldern an', () => {
     render(
       <FansubAppMemberEditorPanel
         editorMember={mockMember}
-        memberEditorTab="roles"
+        memberEditorTab="history"
         setMemberEditorTab={noop}
         memberRoleDraft={[]}
         mediaPermissionDraft={defaultMediaPermissions}
@@ -117,22 +137,14 @@ describe('FansubAppMemberEditorPanel', () => {
         onSave={noop}
         onToggleRole={noop}
         onToggleMediaPermission={noop as never}
-      />
+        {...defaultEditorProps}
+      />,
     )
 
-    const bodyText = document.body.textContent ?? ''
-
-    // Erklärtexte müssen aktiven Kontext (Rechte/Aufgaben) vermitteln
-    const hasActiveContext =
-      bodyText.includes('Aktive Rechte') ||
-      bodyText.includes('aktive Rechte') ||
-      bodyText.includes('aktiven Rechte') ||
-      bodyText.includes('Aufgaben & Rechte') ||
-      bodyText.includes('ab jetzt')
-    expect(hasActiveContext).toBe(true)
-
-    // Kein historischer Begriff
-    expect(bodyText).not.toMatch(/[Ff]rühere Funktion/)
-    expect(bodyText).not.toMatch(/[Hh]istorisch/)
+    expect(screen.getByText(/geben keine aktiven Rechte/)).not.toBeNull()
+    expect(screen.getByLabelText('Rolle 1')).not.toBeNull()
+    expect(screen.getByText('Gründer/in')).not.toBeNull()
+    expect(screen.getByLabelText('Eintrittsdatum')).not.toBeNull()
+    expect(screen.getByLabelText('Austrittsdatum')).not.toBeNull()
   })
 })

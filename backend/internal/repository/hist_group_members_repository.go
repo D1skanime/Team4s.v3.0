@@ -235,6 +235,67 @@ func (r *HistGroupMembersRepository) Create(ctx context.Context, input HistGroup
 	return &row, nil
 }
 
+func (r *HistGroupMembersRepository) CreateForExistingMemberWithDisplay(ctx context.Context, input HistGroupMemberInput) (*HistGroupMemberDisplayRow, error) {
+	var row HistGroupMemberDisplayRow
+	err := r.db.QueryRow(ctx, `
+		WITH inserted AS (
+			INSERT INTO hist_fansub_group_members
+				(fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by)
+			VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN $7 ELSE NULL END, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN NOW() ELSE NULL END, $8)
+			RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, confirmed_by, confirmed_at, created_at
+		)
+		SELECT inserted.id,
+		       inserted.fansub_group_id,
+		       inserted.member_id,
+		       m.nickname AS display_name,
+		       claimed_user.id AS app_user_id,
+		       COALESCE(NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
+		       active_group_member.id AS active_app_member_id,
+		       inserted.joined_date,
+		       inserted.left_date,
+		       inserted.status,
+		       inserted.confirmed_by AS confirmed_by_app_user_id,
+		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
+		       inserted.confirmed_at,
+		       inserted.created_at
+		FROM inserted
+		JOIN members m ON m.id = inserted.member_id
+		LEFT JOIN LATERAL (
+			SELECT mc.app_user_id
+			FROM member_claims mc
+			WHERE mc.member_id = inserted.member_id
+			  AND mc.claim_status = 'verified'
+			ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
+			LIMIT 1
+		) verified_claim ON true
+		LEFT JOIN app_users claimed_user ON claimed_user.id = verified_claim.app_user_id
+		LEFT JOIN fansub_group_members active_group_member
+			ON active_group_member.fansub_group_id = inserted.fansub_group_id
+		   AND active_group_member.app_user_id = verified_claim.app_user_id
+		   AND active_group_member.status = 'active'
+		LEFT JOIN app_users confirmer ON confirmer.id = inserted.confirmed_by
+	`, input.FansubGroupID, input.MemberID, input.JoinedDate, input.LeftDate,
+		input.Status, input.Visibility, input.ConfirmedBy, input.CreatedBy,
+	).Scan(
+		&row.ID, &row.FansubGroupID, &row.MemberID,
+		&row.DisplayName, &row.AppUserID, &row.AppUsername,
+		&row.ActiveAppMemberID,
+		&row.JoinedDate, &row.LeftDate, &row.Status,
+		&row.ConfirmedByAppUserID, &row.ConfirmedByDisplayName, &row.ConfirmedAt,
+		&row.CreatedAt,
+	)
+	if err != nil {
+		if isUniqueViolation(err) {
+			return nil, ErrConflict
+		}
+		if isForeignKeyViolation(err) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("create hist group member for existing member: %w", err)
+	}
+	return &row, nil
+}
+
 func (r *HistGroupMembersRepository) Update(ctx context.Context, fansubGroupID int64, id int64, input HistGroupMemberPatchInput) (*HistGroupMemberRow, error) {
 	setClauses := make([]string, 0, 5)
 	args := make([]any, 0, 6)

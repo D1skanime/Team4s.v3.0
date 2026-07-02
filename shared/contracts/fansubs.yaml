@@ -1147,7 +1147,8 @@ types_append:
   HistFansubGroupMemberResponse:
     data: HistFansubGroupMember
   CreateGroupMemberRequest:
-    display_name: string (required, min_length: 1)
+    member_id: int64 (optional, minimum: 1, existing members.id; when set, display_name is only fallback text)
+    display_name: string (required without member_id, min_length: 1)
     joined_date: string(date) | null
     left_date: string(date) | null
     status: string (required, enum: draft, historical, confirmed, disputed)

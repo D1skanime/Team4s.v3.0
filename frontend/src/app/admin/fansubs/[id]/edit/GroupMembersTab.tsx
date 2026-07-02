@@ -25,7 +25,7 @@ import { normalizeInviteLink, roleLabelForCode, useGroupMembersTab } from './use
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
-const STATIC_HISTORICAL_ROLE_OPTIONS: RoleDefinitionOption[] = [
+export const STATIC_HISTORICAL_ROLE_OPTIONS: RoleDefinitionOption[] = [
   { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
   { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
   ...FANSUB_GROUP_ROLE_OPTIONS.map((option, index) => ({
@@ -35,7 +35,7 @@ const STATIC_HISTORICAL_ROLE_OPTIONS: RoleDefinitionOption[] = [
   })),
 ]
 
-function mergeHistoricalRoleOptions(options: RoleDefinitionOption[]): RoleDefinitionOption[] {
+export function mergeHistoricalRoleOptions(options: RoleDefinitionOption[]): RoleDefinitionOption[] {
   const byCode = new Map<string, RoleDefinitionOption>()
   for (const option of [...options, ...STATIC_HISTORICAL_ROLE_OPTIONS]) {
     if (!byCode.has(option.code)) {
@@ -61,6 +61,9 @@ type GroupMembersTabProps = {
 export type GroupMembersTabActions = {
   canCreateRole: boolean
   historicalIdentityOptions: HistoricalIdentityOption[]
+  historicalMembers: ReturnType<typeof useGroupMembersTab>['members']
+  historicalRolesByMember: ReturnType<typeof useGroupMembersTab>['rolesByMember']
+  reloadHistoricalMembers: () => Promise<void>
   openHistoricalMemberForm: () => void
   openHistoricalRoleForm: () => void
 }

@@ -591,6 +591,7 @@ export interface HistFansubGroupMemberResponse {
 }
 
 export interface CreateGroupMemberRequest {
+  member_id?: number;
   display_name: string;
   joined_date: string | null;
   left_date: string | null;

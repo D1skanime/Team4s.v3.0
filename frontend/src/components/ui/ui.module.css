@@ -583,9 +583,9 @@
 
 .datePickerTopRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  align-items: start;
   min-width: 0;
 }
 
@@ -640,7 +640,8 @@
 }
 
 .datePickerInlineClear {
-  min-height: 34px;
+  justify-self: start;
+  min-height: 22px;
   border: 0;
   border-radius: 6px;
   background: transparent;
@@ -649,7 +650,7 @@
   font: inherit;
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 0 6px;
+  padding: 0 2px;
 }
 
 .datePickerInlineClear:hover:not(:disabled) {

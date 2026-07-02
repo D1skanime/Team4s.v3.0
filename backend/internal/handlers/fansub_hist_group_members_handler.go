@@ -138,7 +138,7 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 	}
 
 	displayName := strings.TrimSpace(req.DisplayName)
-	if displayName == "" {
+	if req.MemberID <= 0 && displayName == "" {
 		badRequest(c, "display_name ist erforderlich")
 		return
 	}
@@ -172,18 +172,30 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		return
 	}
 
-	input := repository.HistGroupMemberAutoCreateInput{
-		FansubGroupID: fansubID,
-		DisplayName:   displayName,
-		JoinedDate:    joinedDate,
-		LeftDate:      leftDate,
-		Status:        status,
-		Visibility:    visibility,
-		ConfirmedBy:   confirmedActorForStatus(status, identity.AppUserID),
-		CreatedBy:     &identity.AppUserID,
+	var item *repository.HistGroupMemberDisplayRow
+	if req.MemberID > 0 {
+		item, err = h.histMembersRepo.CreateForExistingMemberWithDisplay(c.Request.Context(), repository.HistGroupMemberInput{
+			FansubGroupID: fansubID,
+			MemberID:      req.MemberID,
+			JoinedDate:    joinedDate,
+			LeftDate:      leftDate,
+			Status:        status,
+			Visibility:    visibility,
+			ConfirmedBy:   confirmedActorForStatus(status, identity.AppUserID),
+			CreatedBy:     &identity.AppUserID,
+		})
+	} else {
+		item, err = h.histMembersRepo.CreateWithAutoMember(c.Request.Context(), repository.HistGroupMemberAutoCreateInput{
+			FansubGroupID: fansubID,
+			DisplayName:   displayName,
+			JoinedDate:    joinedDate,
+			LeftDate:      leftDate,
+			Status:        status,
+			Visibility:    visibility,
+			ConfirmedBy:   confirmedActorForStatus(status, identity.AppUserID),
+			CreatedBy:     &identity.AppUserID,
+		})
 	}
-
-	item, err := h.histMembersRepo.CreateWithAutoMember(c.Request.Context(), input)
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": gin.H{
@@ -215,7 +227,7 @@ func (h *FansubHistGroupMembersHandler) CreateHistGroupMember(c *gin.Context) {
 		TargetID:       &item.ID,
 		Action:         string(permissions.ActionFansubGroupHistoricalMembersManage),
 		Outcome:        "allowed",
-		Payload:        map[string]any{"display_name": displayName},
+		Payload:        map[string]any{"display_name": item.DisplayName, "member_id": item.MemberID},
 	})
 
 	h.recomputeBadges(c, item.MemberID)

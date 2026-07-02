@@ -85,6 +85,112 @@ beforeEach(() => {
   listPendingMemberClaims.mockResolvedValue([]);
 });
 
+describe("FansubAppMembersSection", () => {
+  it("adds a historical role from the active member editor using the app member anchor", async () => {
+    getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: true,
+        can_view_members: true,
+        can_manage_members: true,
+        can_manage_historical_members: true,
+        can_manage_historical_roles: true,
+        can_link_historical_members: true,
+        can_edit_notes: true,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: true,
+        can_view_group_media: true,
+        can_upload_group_media: true,
+        can_update_group_media: true,
+        can_delete_own_group_media: true,
+        can_delete_group_media: true,
+        can_reorder_group_media: true,
+      },
+    });
+    listGroupHistoryRoleDefinitions.mockResolvedValue([
+      { code: "quality_checker", label_de: "Qualitätscheck", sort_order: 1 },
+    ]);
+    listFansubAppMembers.mockResolvedValue({
+      data: [
+        {
+          id: 41,
+          fansub_group_id: 88,
+          app_user_id: 14,
+          status: "active",
+          roles: ["encoder"],
+          media_permissions: {
+            can_upload: false,
+            can_delete_own: false,
+            can_delete_all: false,
+            can_reorder: false,
+          },
+          created_at: "2026-05-16T08:15:00Z",
+          updated_at: "2026-05-16T08:15:00Z",
+          member: {
+            member_id: 47,
+            fansub_name: "Ema Encoder",
+          },
+        },
+      ],
+    });
+    listGroupMembers.mockResolvedValue({ data: [] });
+    createGroupMember.mockResolvedValue({
+      data: {
+        id: 501,
+        fansub_group_id: 88,
+        member_id: 47,
+        display_name: "Ema Encoder",
+        joined_date: null,
+        left_date: null,
+        app_user_id: 14,
+        app_username: "ema",
+        status: "historical",
+        visibility: "internal",
+        created_at: "2026-05-16T08:15:00Z",
+      },
+    });
+    createMemberRole.mockResolvedValue({ data: {} });
+
+    render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Ema Encoder bearbeiten" }));
+    fireEvent.click(screen.getByRole("tab", { name: /Historische Rollen/ }));
+    fireEvent.change(await screen.findByLabelText("Rolle 1"), { target: { value: "quality_checker" } });
+    fireEvent.click(screen.getByRole("button", { name: "Speichern" }));
+
+    await waitFor(() => {
+      expect(createGroupMember).toHaveBeenCalledWith(
+        88,
+        {
+          member_id: 47,
+          display_name: "Ema Encoder",
+          joined_date: null,
+          left_date: null,
+          status: "historical",
+          visibility: "internal",
+        },
+      );
+      expect(createMemberRole).toHaveBeenCalledWith(
+        88,
+        {
+          hist_fansub_group_member_id: 501,
+          role_code: "quality_checker",
+          started_date: null,
+          ended_date: null,
+          source_note: null,
+          status: "historical",
+          visibility: "internal",
+        },
+      );
+    });
+  });
+});
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
