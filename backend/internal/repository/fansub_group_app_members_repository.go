@@ -290,15 +290,16 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 		INSERT INTO fansub_group_members (
 			fansub_group_id,
 			app_user_id,
+			member_id,
 			status,
 			created_by_app_user_id,
 			updated_by_app_user_id,
 			created_at,
 			updated_at
 		)
-		VALUES ($1, $2, $3, $4, $4, NOW(), NOW())
+		VALUES ($1, $2, NULLIF($5, 0), $3, $4, $4, NOW(), NOW())
 		RETURNING id
-	`, fansubGroupID, input.AppUserID, models.FansubGroupMemberStatusActive, input.CreatedByAppUserID).Scan(&memberID)
+	`, fansubGroupID, input.AppUserID, models.FansubGroupMemberStatusActive, input.CreatedByAppUserID, historicalMemberID).Scan(&memberID)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return nil, ErrConflict

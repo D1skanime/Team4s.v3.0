@@ -949,6 +949,7 @@ Wichtige Spalten `fansub_group_members`:
 id bigint NOT NULL
 fansub_group_id bigint NOT NULL -> fansub_groups.id
 app_user_id bigint NOT NULL -> app_users.id
+member_id bigint NULL -> members.id
 status varchar(20) NOT NULL
 created_by_app_user_id bigint NULL -> app_users.id
 updated_by_app_user_id bigint NULL -> app_users.id
@@ -968,6 +969,7 @@ role IN ('fansub_lead', 'project_lead', 'translator', 'timer', 'typesetter', 'ed
 Wichtig:
 
 - Diese Tabellen steuern aktuelle App-Mitgliedschaften und Rechte.
+- `member_id` ist der kanonische Personenanker, wenn eine App-Mitgliedschaft mit einer historischen `members`-Identität verknüpft ist.
 - Historische Mitgliedschaft gehört nicht hierhin, sondern in `hist_fansub_group_members`.
 - Ein historischer Eintrag kann existieren, ohne dass ein App-User Mitglied ist.
 

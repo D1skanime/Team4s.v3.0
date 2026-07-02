@@ -10,12 +10,12 @@ import (
 // DefaultCrewEntry ist ein Eintrag in der Stamm-Crew einer Fansub-Gruppe (D-04).
 // Mehrere Rollen pro Person sind möglich (D-05: many-to-many via mehrere Zeilen).
 type DefaultCrewEntry struct {
-	ID            int64   `json:"id"`
-	FansubGroupID int64   `json:"fansub_group_id"`
-	MemberID      int64   `json:"member_id"`
-	RoleCode      string  `json:"role_code"`
-	CreatedBy     *int64  `json:"created_by"`
-	CreatedAt     string  `json:"created_at"`
+	ID            int64  `json:"id"`
+	FansubGroupID int64  `json:"fansub_group_id"`
+	MemberID      int64  `json:"member_id"`
+	RoleCode      string `json:"role_code"`
+	CreatedBy     *int64 `json:"created_by"`
+	CreatedAt     string `json:"created_at"`
 }
 
 // FansubDefaultCrewRepository verwaltet die Stamm-Crew-Einträge (fansub_group_default_crew).
@@ -92,7 +92,8 @@ func (r *FansubDefaultCrewRepository) DeleteDefaultCrewEntry(ctx context.Context
 }
 
 // ApplyDefaultCrewToEmptyProjects legt Contributions aus der Stamm-Crew für Anime-Projekte
-// der Gruppe an, die noch keine Contributions haben (idempotent via ON CONFLICT DO NOTHING).
+// der Gruppe an, die noch keine Contributions haben. Seit Migration 0111 gibt es keinen
+// Row-Unique mehr auf anime_contributions; Idempotenz entsteht deshalb ueber NOT EXISTS.
 // Wenn animeIDs leer ist, werden alle Projekte der Gruppe ohne Contributions berücksichtigt.
 // Gibt die Anzahl der neu angelegten Contribution-Zeilen zurück.
 func (r *FansubDefaultCrewRepository) ApplyDefaultCrewToEmptyProjects(ctx context.Context, fansubGroupID int64, animeIDs []int64) (int, error) {
@@ -150,8 +151,15 @@ func (r *FansubDefaultCrewRepository) ApplyDefaultCrewToEmptyProjects(ctx contex
 		for _, entry := range crew {
 			tag, err := r.db.Exec(ctx, `
 				INSERT INTO anime_contributions (fansub_group_id, anime_id, member_id, status, created_at, updated_at)
-				VALUES ($1, $2, $3, 'draft', NOW(), NOW())
-				ON CONFLICT (fansub_group_id, anime_id, member_id, release_version_id) DO NOTHING
+				SELECT $1, $2, $3, 'draft', NOW(), NOW()
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM anime_contributions
+					WHERE fansub_group_id = $1
+					  AND anime_id = $2
+					  AND member_id = $3
+					  AND release_version_id IS NULL
+				)
 			`, fansubGroupID, animeID, entry.MemberID)
 			if err != nil {
 				return applied, fmt.Errorf("apply default crew: contribution einfügen (anime_id=%d, member_id=%d): %w", animeID, entry.MemberID, err)

@@ -44,6 +44,9 @@ func TestCreateCanLinkOpenHistoricalMemberByVerifiedClaim(t *testing.T) {
 		"mergefansubgrouproles",
 		"select distinct hgr.role_code",
 		"join role_definitions rd",
+		"insert into fansub_group_members",
+		"member_id",
+		"nullif($5, 0)",
 		"'manual_review'",
 		"on conflict (member_id, app_user_id)",
 	}
@@ -100,8 +103,9 @@ func TestNormalizeFansubGroupRolesRejectsUnknownRole(t *testing.T) {
 // Historische Rollen dürfen NICHT als aktive App-Rollen gesetzt werden.
 //
 // Produktiv-Validierung: fansub_group_app_members_repository.go:378
-//   role := strings.TrimSpace(input.Role)
-//   if !permissions.IsKnownFansubGroupRole(role) { return nil, fmt.Errorf("... unknown role") }
+//
+//	role := strings.TrimSpace(input.Role)
+//	if !permissions.IsKnownFansubGroupRole(role) { return nil, fmt.Errorf("... unknown role") }
 //
 // Die IsKnownFansubGroupRole-Prüfung läuft VOR jedem DB-Zugriff (Z.374–380),
 // daher ist kein Live-DB-Pool nötig — nil ist sicher.

@@ -28,17 +28,53 @@ func TestContributionInputs_ReleaseVersionFieldsExist(t *testing.T) {
 	}
 }
 
-// TestContributionUpsert_FourColumnConflict verifiziert das vierspaltige ON CONFLICT-Target
-// inkl. release_version_id und kanonischem member_id-Anker (Pitfall 1, T-67-02-DUP).
-func TestContributionUpsert_FourColumnConflict(t *testing.T) {
+// TestContributionUpsert_UsesExplicitContextLock verifiziert, dass der adminseitige
+// Upsert nach Migration 0111 keinen Row-Unique/ON-CONFLICT mehr voraussetzt. Der
+// kanonische member_id-Anker und release_version_id-Kontext werden per Advisory-Lock
+// und IS-NOT-DISTINCT-FROM-Lookup serialisiert.
+func TestContributionUpsert_UsesExplicitContextLock(t *testing.T) {
 	content := readReleaseLookupSource(t, "anime_contributions_upsert_repository.go")
 	normalized := strings.ToLower(content)
 
-	if !strings.Contains(normalized, "on conflict (fansub_group_id, anime_id, member_id, release_version_id)") {
-		t.Fatalf("erwartetes vierspaltiges ON CONFLICT-Target im Upsert")
+	forbidden := "on conflict (fansub_group_id, anime_id, member_id, release_version_id)"
+	if strings.Contains(normalized, forbidden) {
+		t.Fatalf("admin-upsert darf kein entferntes Row-Unique-ON-CONFLICT-Target mehr verwenden")
+	}
+	requiredFragments := []string{
+		"pg_advisory_xact_lock",
+		"anime-contribution-member",
+		"member_id = $3",
+		"release_version_id is not distinct from $4",
+		"status <> 'proposed'",
+	}
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("erwartetes Fragment %q im expliziten Contribution-Upsert", fragment)
+		}
 	}
 	if !strings.Contains(normalized, "release_version_id") {
 		t.Fatalf("Upsert muss release_version_id in die INSERT-Spaltenliste aufnehmen")
+	}
+}
+
+// TestDefaultCrewApply_DoesNotUseRemovedContributionUnique verifiziert, dass der
+// Default-Crew-Apply-Pfad ebenfalls nicht mehr vom entfernten Row-Unique abhaengt.
+func TestDefaultCrewApply_DoesNotUseRemovedContributionUnique(t *testing.T) {
+	content := readReleaseLookupSource(t, "fansub_default_crew_repository.go")
+	normalized := strings.ToLower(content)
+
+	if strings.Contains(normalized, "on conflict (fansub_group_id, anime_id, member_id, release_version_id)") {
+		t.Fatalf("Default-Crew-Apply darf kein entferntes anime_contributions-ON-CONFLICT-Target verwenden")
+	}
+	requiredFragments := []string{
+		"where not exists",
+		"release_version_id is null",
+		"member_id = $3",
+	}
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("erwartetes Fragment %q im Default-Crew-Apply", fragment)
+		}
 	}
 }
 

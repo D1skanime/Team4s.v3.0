@@ -26,11 +26,72 @@ func (r *AnimeContributionsRepository) GetMemberIDForContribution(ctx context.Co
 	return memberID, nil
 }
 
-// CreateOrUpdate fuehrt einen Upsert fuer eine Anime-Contribution durch.
-// Bei einem UNIQUE-Konflikt auf (fansub_group_id, anime_id, member_id, release_version_id)
-// werden die bestehenden Felder aktualisiert statt einen Fehler zurueckzugeben. Das vierspaltige
-// Target (Phase 67-02, Pitfall 1) stellt sicher, dass ein versions-spezifischer Eintrag NICHT den
-// anime-weiten Eintrag (release_version_id IS NULL) desselben Members ueberschreibt.
+func contributionMemberContextLockValue(fansubGroupID int64, animeID int64, memberID int64, releaseVersionID *int64) string {
+	releaseKey := "anime"
+	if releaseVersionID != nil {
+		releaseKey = fmt.Sprintf("release:%d", *releaseVersionID)
+	}
+	return fmt.Sprintf("anime-contribution-member:%d:%d:%d:%s", fansubGroupID, animeID, memberID, releaseKey)
+}
+
+func lockContributionMemberContext(
+	ctx context.Context,
+	tx pgx.Tx,
+	fansubGroupID int64,
+	animeID int64,
+	memberID int64,
+	releaseVersionID *int64,
+) error {
+	if _, err := tx.Exec(ctx, `
+		SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))
+	`, contributionMemberContextLockValue(fansubGroupID, animeID, memberID, releaseVersionID)); err != nil {
+		return fmt.Errorf("create or update anime contribution: lock context: %w", err)
+	}
+	return nil
+}
+
+func findAdminContributionUpdateTarget(
+	ctx context.Context,
+	tx pgx.Tx,
+	fansubGroupID int64,
+	animeID int64,
+	input AnimeContributionInput,
+) (int64, bool, error) {
+	var id int64
+	err := tx.QueryRow(ctx, `
+		SELECT id
+		FROM anime_contributions
+		WHERE fansub_group_id = $1
+		  AND anime_id = $2
+		  AND member_id = $3
+		  AND release_version_id IS NOT DISTINCT FROM $4
+		  AND status <> 'proposed'
+		ORDER BY
+		  CASE status
+		    WHEN 'confirmed' THEN 0
+		    WHEN 'draft' THEN 1
+		    WHEN 'hidden' THEN 2
+		    WHEN 'disputed' THEN 3
+		    ELSE 4
+		  END,
+		  id
+		LIMIT 1
+		FOR UPDATE
+	`, fansubGroupID, animeID, input.MemberID, input.ReleaseVersionID).Scan(&id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, false, nil
+	}
+	if err != nil {
+		return 0, false, fmt.Errorf("create or update anime contribution: find update target: %w", err)
+	}
+	return id, true, nil
+}
+
+// CreateOrUpdate fuehrt einen adminseitigen Upsert fuer eine Anime-Contribution durch.
+// Migration 0111 entfernt bewusst den Row-Unique, damit rollen-spezifische Vorschlaege
+// parallel bestehen koennen. Deshalb darf diese Methode kein DB-ON-CONFLICT-Target mehr
+// voraussetzen. Stattdessen sperrt sie den Member-/Anime-/Release-Kontext explizit,
+// aktualisiert eine vorhandene nicht-offene Contribution oder legt eine neue Zeile an.
 // Rollencodes werden dabei atomar ersetzt (DELETE + INSERT in derselben Transaktion).
 // Falls input.Status leer ist, wird "draft" als Standardwert verwendet.
 func (r *AnimeContributionsRepository) CreateOrUpdate(
@@ -49,53 +110,87 @@ func (r *AnimeContributionsRepository) CreateOrUpdate(
 	}
 	defer tx.Rollback(ctx)
 
+	if err := lockContributionMemberContext(ctx, tx, fansubGroupID, animeID, input.MemberID, input.ReleaseVersionID); err != nil {
+		return nil, err
+	}
+
 	var newID int64
-	err = tx.QueryRow(ctx, `
-		INSERT INTO anime_contributions (
-			fansub_group_id,
-			anime_id,
-			member_id,
-			status,
-			note,
-			started_year,
-			ended_year,
-			is_public_on_anime_page,
-			is_public_on_member_profile,
-			release_version_id,
-			created_by,
-			updated_by,
-			created_at,
-			updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $11, $10, $10, NOW(), NOW())
-		ON CONFLICT (fansub_group_id, anime_id, member_id, release_version_id)
-		DO UPDATE SET
-			status                      = EXCLUDED.status,
-			note                        = EXCLUDED.note,
-			started_year                = EXCLUDED.started_year,
-			ended_year                  = EXCLUDED.ended_year,
-			is_public_on_anime_page     = EXCLUDED.is_public_on_anime_page,
-			is_public_on_member_profile = EXCLUDED.is_public_on_member_profile,
-			updated_by                  = EXCLUDED.updated_by,
-			updated_at                  = NOW()
-		RETURNING id
-	`,
-		fansubGroupID,
-		animeID,
-		input.MemberID,
-		input.Status,
-		input.Note,
-		input.StartedYear,
-		input.EndedYear,
-		input.IsPublicOnAnimePage,
-		input.IsPublicOnMemberProfile,
-		input.CreatedBy,
-		input.ReleaseVersionID,
-	).Scan(&newID)
+	targetID, found, err := findAdminContributionUpdateTarget(ctx, tx, fansubGroupID, animeID, input)
 	if err != nil {
-		if isForeignKeyViolation(err) {
+		return nil, err
+	}
+	if found {
+		newID = targetID
+		tag, err := tx.Exec(ctx, `
+			UPDATE anime_contributions
+			SET
+				status                      = $4,
+				note                        = $5,
+				started_year                = $6,
+				ended_year                  = $7,
+				is_public_on_anime_page     = $8,
+				is_public_on_member_profile = $9,
+				updated_by                  = $10,
+				updated_at                  = NOW()
+			WHERE id = $1
+			  AND fansub_group_id = $2
+			  AND anime_id = $3
+		`,
+			newID,
+			fansubGroupID,
+			animeID,
+			input.Status,
+			input.Note,
+			input.StartedYear,
+			input.EndedYear,
+			input.IsPublicOnAnimePage,
+			input.IsPublicOnMemberProfile,
+			input.CreatedBy,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create or update anime contribution: update: %w", err)
+		}
+		if tag.RowsAffected() == 0 {
 			return nil, ErrNotFound
 		}
-		return nil, fmt.Errorf("create or update anime contribution: upsert: %w", err)
+	} else {
+		err = tx.QueryRow(ctx, `
+			INSERT INTO anime_contributions (
+				fansub_group_id,
+				anime_id,
+				member_id,
+				status,
+				note,
+				started_year,
+				ended_year,
+				is_public_on_anime_page,
+				is_public_on_member_profile,
+				release_version_id,
+				created_by,
+				updated_by,
+				created_at,
+				updated_at
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $11, $10, $10, NOW(), NOW())
+			RETURNING id
+		`,
+			fansubGroupID,
+			animeID,
+			input.MemberID,
+			input.Status,
+			input.Note,
+			input.StartedYear,
+			input.EndedYear,
+			input.IsPublicOnAnimePage,
+			input.IsPublicOnMemberProfile,
+			input.CreatedBy,
+			input.ReleaseVersionID,
+		).Scan(&newID)
+		if err != nil {
+			if isForeignKeyViolation(err) {
+				return nil, ErrNotFound
+			}
+			return nil, fmt.Errorf("create or update anime contribution: insert: %w", err)
+		}
 	}
 
 	if _, err := tx.Exec(ctx, `
