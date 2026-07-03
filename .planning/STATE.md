@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Completed 97-05-PLAN.md
-last_updated: "2026-07-01T14:25:00.000Z"
-last_activity: 2026-07-01
+last_updated: "2026-07-03T08:18:00.000Z"
+last_activity: 2026-07-03
 progress:
   total_phases: 88
   completed_phases: 75
@@ -475,6 +475,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260703-bc9 | Fix sticky admin auth/logout state blocking leader/member E2E | 2026-07-03 | this commit | [260703-bc9-fix-sticky-admin-auth-logout-state-block](./quick/260703-bc9-fix-sticky-admin-auth-logout-state-block/) |
 | 260703-a3r | UI-first E2E Viper's Creed Jellyfin fresh reset retest | 2026-07-03 | working tree | [260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres](./quick/260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres/) |
 | 260701-phase96-mobile-fansub-members-closeout | Phase 96 Quick: Admin-Fansub Members Mobile-Polish, kompakte Dialoge, lokale Dev-Hot-Reload-Absicherung | 2026-07-01 | this commit | [260701-phase96-mobile-fansub-members-closeout](./quick/260701-phase96-mobile-fansub-members-closeout/) |
 | 260630-phase93-contributions-responsive-polish | Phase 93 Quick: Meine Projekte Desktop/Mobile-Layout, Hinweis-Wizard, YearPicker und Sichtbarkeits-Slider polishen | 2026-06-30 | this commit | [260630-phase93-contributions-responsive-polish](./quick/260630-phase93-contributions-responsive-polish/) |
@@ -525,5 +526,5 @@ Recent durable decisions:
 
 Last session: 2026-07-01T14:25:00.000Z
 Stopped at: Completed 97-05-PLAN.md
-Last activity: 2026-07-03 - Quick 260703-a3r blocked/partial UI-first E2E retest: Viper's Creed Jellyfin fresh reset retest
+Last activity: 2026-07-03 - Completed quick task 260703-bc9: Fix sticky admin auth/logout state blocking leader/member E2E
 Resume file: None

@@ -1235,14 +1235,16 @@ export async function refreshActiveAuthSession(): Promise<CurrentUserResponse | 
 
 export async function logoutActiveAuthSession(): Promise<void> {
   const refreshToken = getRuntimeRefreshToken();
+  clearAuthSession();
+
   try {
     if (isKeycloakEnabled()) {
       await logoutFromKeycloak(refreshToken || undefined);
     } else {
       await revokeAuthToken(refreshToken ? { refresh_token: refreshToken } : {});
     }
-  } finally {
-    clearAuthSession();
+  } catch {
+    // Remote revocation is best effort; the local browser session is already gone.
   }
 }
 

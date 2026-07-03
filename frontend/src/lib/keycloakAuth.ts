@@ -4,6 +4,7 @@ const KEYCLOAK_REALM = (process.env.NEXT_PUBLIC_KEYCLOAK_REALM || '').trim()
 const KEYCLOAK_CLIENT_ID = (process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || '').trim()
 const KEYCLOAK_REDIRECT_PATH = '/login'
 const KEYCLOAK_PROXY_TOKEN_PATH = '/api/auth/keycloak/token'
+const KEYCLOAK_PROXY_LOGOUT_PATH = '/api/auth/keycloak/logout'
 const PKCE_VERIFIER_STORAGE_KEY = 'team4s.keycloak.pkce_verifier'
 const PKCE_STATE_STORAGE_KEY = 'team4s.keycloak.pkce_state'
 
@@ -181,15 +182,13 @@ export async function logoutFromKeycloak(refreshToken?: string): Promise<void> {
     return
   }
 
-  const body = new URLSearchParams()
-  body.set('client_id', KEYCLOAK_CLIENT_ID)
-  body.set('refresh_token', refreshToken.trim())
-
-  await fetch(`${currentRealmBase()}/protocol/openid-connect/logout`, {
+  await fetch(KEYCLOAK_PROXY_LOGOUT_PATH, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
     },
-    body: body.toString(),
+    body: JSON.stringify({
+      refresh_token: refreshToken.trim(),
+    }),
   })
 }

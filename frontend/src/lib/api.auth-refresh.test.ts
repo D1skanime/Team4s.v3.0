@@ -3,19 +3,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const refreshKeycloakTokenMock = vi.fn()
+const logoutFromKeycloakMock = vi.fn()
 
 vi.mock('@/lib/keycloakAuth', () => ({
   isKeycloakEnabled: () => true,
+  logoutFromKeycloak: (...args: unknown[]) => logoutFromKeycloakMock(...args),
   refreshKeycloakToken: (...args: unknown[]) => refreshKeycloakTokenMock(...args),
 }))
 
 import {
   ApiError,
+  AUTH_DISPLAY_NAME_COOKIE_NAME,
+  AUTH_REFRESH_COOKIE_NAME,
+  AUTH_TOKEN_COOKIE_NAME,
   clearAuthSession,
   createFansubGroup,
   getEpisodeImportContext,
   getAuthSessionSnapshot,
   getReleaseVersionMedia,
+  logoutActiveAuthSession,
   persistAuthSession,
   uploadAdminAnimeMedia,
 } from './api'
@@ -106,6 +112,7 @@ describe('authorized auth refresh flow', () => {
 
   afterEach(() => {
     clearAuthSession()
+    logoutFromKeycloakMock.mockReset()
     refreshKeycloakTokenMock.mockReset()
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
@@ -312,6 +319,43 @@ describe('authorized auth refresh flow', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()
     expect(window.localStorage.getItem('team4s.auth.refresh_token')).toBeNull()
+  })
+
+  it('clears the local session before remote Keycloak logout settles', async () => {
+    let resolveRemoteLogout!: () => void
+    logoutFromKeycloakMock.mockReturnValueOnce(new Promise<void>((resolve) => {
+      resolveRemoteLogout = resolve
+    }))
+
+    expect(readCookie(AUTH_TOKEN_COOKIE_NAME)).toBe('stale-access-token')
+    expect(readCookie(AUTH_REFRESH_COOKIE_NAME)).toBe('refresh-token-1')
+
+    const logoutPromise = logoutActiveAuthSession()
+
+    expect(logoutFromKeycloakMock).toHaveBeenCalledWith('refresh-token-1')
+    expect(readCookie(AUTH_TOKEN_COOKIE_NAME)).toBe('')
+    expect(readCookie(AUTH_REFRESH_COOKIE_NAME)).toBe('')
+    expect(readCookie(AUTH_DISPLAY_NAME_COOKIE_NAME)).toBe('')
+    expect(getAuthSessionSnapshot()).toMatchObject({
+      hasAccessToken: false,
+      hasRefreshToken: false,
+    })
+
+    resolveRemoteLogout()
+    await expect(logoutPromise).resolves.toBeUndefined()
+  })
+
+  it('keeps local logout complete when remote Keycloak logout fails', async () => {
+    logoutFromKeycloakMock.mockRejectedValueOnce(new Error('Keycloak logout unavailable'))
+
+    await expect(logoutActiveAuthSession()).resolves.toBeUndefined()
+
+    expect(readCookie(AUTH_TOKEN_COOKIE_NAME)).toBe('')
+    expect(readCookie(AUTH_REFRESH_COOKIE_NAME)).toBe('')
+    expect(getAuthSessionSnapshot()).toMatchObject({
+      hasAccessToken: false,
+      hasRefreshToken: false,
+    })
   })
 
   it('retries a mutation at most once before surfacing the second 401', async () => {

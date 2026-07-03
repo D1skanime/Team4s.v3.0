@@ -61,7 +61,7 @@ describe('keycloakAuth refresh/logout browser paths', () => {
     )
   })
 
-  it('logs out directly against the browser-visible Keycloak logout endpoint', async () => {
+  it('logs out through the same-origin Keycloak logout proxy', async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -69,11 +69,13 @@ describe('keycloakAuth refresh/logout browser paths', () => {
     await logoutFromKeycloak('refresh-1')
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8081/realms/team4s/protocol/openid-connect/logout',
+      '/api/auth/keycloak/logout',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'client_id=team4s-frontend&refresh_token=refresh-1',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refresh_token: 'refresh-1',
+        }),
       }),
     )
   })
