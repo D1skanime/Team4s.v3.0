@@ -134,7 +134,7 @@ export function FansubEditAccessGate({
         </p>
         {errorMessage ? <p>{errorMessage}</p> : null}
         <p>
-          <Link href="/manage/groups">Zu Meine Gruppen</Link>
+          <Link href="/me/profile">Zum Profil</Link>
           <span> | </span>
           <Link href="/login">Zur Anmeldung</Link>
         </p>

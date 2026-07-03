@@ -404,4 +404,25 @@ describe("EpisodeVersionEditorPage media tab", () => {
     expect(screen.getByText("CRC32")).not.toBeNull();
     expect(screen.getByDisplayValue("1CC0A2E3")).not.toBeNull();
   });
+
+  it("uses the project DatePicker for the release date", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue({
+      ...makeEditorState(),
+      formState: {
+        ...makeEditorState().formState,
+        releaseDate: "2009-12-24",
+      },
+    });
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    await screen.findByRole("button", { name: "Informationen" });
+
+    expect(
+      screen.getByRole("button", { name: "Release-Datum auswählen" }),
+    ).not.toBeNull();
+    expect(screen.getByText("24.12.2009")).not.toBeNull();
+  });
 });

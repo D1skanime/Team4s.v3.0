@@ -66,10 +66,6 @@ import {
   CurrentUserResponse,
 } from "@/types/auth";
 import {
-  ContributorGroupDetailResponse,
-  ContributorGroupsResponse,
-} from "@/types/contributor";
-import {
   GenerateClaimInvitationResponse,
   MemberClaimInvitationResponse,
   MemberClaimRow,
@@ -3223,65 +3219,6 @@ export async function submitMemberRequest(
 
   const body = (await response.json()) as { data: MemberRequestRow };
   return body.data;
-}
-
-export async function getMyFansubGroups(
-  authToken?: string,
-): Promise<ContributorGroupsResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/me/fansub-groups`,
-    {
-      cache: "no-store",
-      authToken,
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  return response.json() as Promise<ContributorGroupsResponse>;
-}
-
-export async function getMyFansubGroupDetail(
-  fansubGroupId: number,
-  authToken?: string,
-): Promise<ContributorGroupDetailResponse> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/me/fansub-groups/${fansubGroupId}`,
-    {
-      cache: "no-store",
-      authToken,
-    },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  return response.json() as Promise<ContributorGroupDetailResponse>;
 }
 
 export async function updateOwnProfile(

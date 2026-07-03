@@ -23,6 +23,7 @@ import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
 import styles from "./EpisodeVersionEditor.module.css";
 import { Button } from "@/components/ui/Button";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Input } from "@/components/ui/Input";
 
 type ActiveTab =
@@ -601,19 +602,22 @@ export function EpisodeVersionEditorPage() {
                         }
                       />
                     </label>
-                    <label className={styles.field}>
+                    <div className={styles.field}>
                       <span>Release-Datum</span>
-                      <input
-                        type="datetime-local"
+                      <DatePicker
+                        id="release-date"
+                        label="Release-Datum"
                         value={editor.formState.releaseDate}
-                        onChange={(event) =>
+                        minYear={1900}
+                        maxYear={2100}
+                        onChange={(value) =>
                           editor.setFormState((current) => ({
                             ...current,
-                            releaseDate: event.target.value,
+                            releaseDate: value,
                           }))
                         }
                       />
-                    </label>
+                    </div>
                     <label className={styles.field}>
                       <span>Untertitel-Typ</span>
                       <select

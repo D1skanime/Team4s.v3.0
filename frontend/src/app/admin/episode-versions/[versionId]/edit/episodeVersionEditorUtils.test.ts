@@ -4,8 +4,10 @@ import {
   buildInitialFormState,
   buildSnapshot,
   formatDurationInput,
+  fromDateInputValue,
   normalizeCRC32Draft,
   parseDurationInput,
+  toDateInputValue,
 } from './episodeVersionEditorUtils'
 
 describe('parseDurationInput', () => {
@@ -72,5 +74,20 @@ describe('release version crc32 helpers', () => {
 
     expect(formState.crc32).toBe('1CC0A2E3')
     expect(buildSnapshot(formState, [])).toContain('"crc32":"1CC0A2E3"')
+  })
+})
+
+describe('release version date helpers', () => {
+  it('formats API release dates as date-only picker values', () => {
+    expect(toDateInputValue('2010-11-14T00:00:00.000Z')).toBe('2010-11-14')
+  })
+
+  it('converts date-only picker values to ISO strings', () => {
+    expect(fromDateInputValue('2010-11-14')).toBe('2010-11-14T00:00:00.000Z')
+  })
+
+  it('rejects malformed date-only values', () => {
+    expect(fromDateInputValue('2010-99-99')).toBeNull()
+    expect(fromDateInputValue('14.11.2010')).toBeNull()
   })
 })

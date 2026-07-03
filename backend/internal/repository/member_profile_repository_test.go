@@ -56,6 +56,10 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"profile avatar replacement must remove the previous avatar media_asset after the new avatar is linked")
 	assert.True(t, strings.Contains(content, "base.RecentMedia, err = r.loadRecentMedia(ctx, appUserID)"),
 		"own profile reads must load recent media by authenticated app user id")
+	membershipLoadIndex := strings.Index(content, "base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true)")
+	accountOnlyReturnIndex := strings.Index(content, "if !base.HasMemberProfile")
+	assert.True(t, membershipLoadIndex >= 0 && accountOnlyReturnIndex >= 0 && membershipLoadIndex < accountOnlyReturnIndex,
+		"own profile reads must load app memberships before the account-only return so the drawer can link direct group workspaces")
 	assert.True(t, strings.Contains(content, "base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID)"),
 		"own profile reads must load recent contributions by authenticated member id")
 	assert.True(t, strings.Contains(content, "WHERE rvm.uploaded_by_user_id = $1"),

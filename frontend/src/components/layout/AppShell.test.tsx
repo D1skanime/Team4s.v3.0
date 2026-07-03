@@ -291,8 +291,8 @@ describe('AppShell drawer behavior', () => {
   })
 })
 
-describe('Gruppen-Übersicht-Link', () => {
-  it('Test A: zeigt Gruppen-Übersicht-Link für Mitglied mit Memberships', () => {
+describe('Gruppen-Drawer-Links', () => {
+  it('zeigt keinen separaten Gruppen-Übersicht-Link für Mitglied mit Memberships', () => {
     render(
       <AppShell
         hasMemberProfile
@@ -302,11 +302,10 @@ describe('Gruppen-Übersicht-Link', () => {
       </AppShell>,
     )
 
-    const link = screen.getByRole('link', { name: /Gruppen-Übersicht/i })
-    expect(link.getAttribute('href')).toBe('/manage/groups')
+    expect(screen.queryByRole('link', { name: /Gruppen-Übersicht/i })).toBeNull()
   })
 
-  it('Test B: versteckt Gruppen-Übersicht-Link wenn keine Memberships vorhanden', () => {
+  it('versteckt Gruppen-Übersicht-Link wenn keine Memberships vorhanden', () => {
     render(
       <AppShell hasMemberProfile memberships={[]}>
         <main>Inhalt</main>
@@ -316,22 +315,7 @@ describe('Gruppen-Übersicht-Link', () => {
     expect(screen.queryByRole('link', { name: /Gruppen-Übersicht/i })).toBeNull()
   })
 
-  it('Test C: markiert Link als aktiv wenn currentPath=/manage/groups', () => {
-    render(
-      <AppShell
-        currentPath="/manage/groups"
-        hasMemberProfile
-        memberships={[{ fansub_group_id: 5, fansub_group_name: 'Test Sub', fansub_group_slug: 'test-sub' }]}
-      >
-        <main>Inhalt</main>
-      </AppShell>,
-    )
-
-    const link = screen.getByRole('link', { name: /Gruppen-Übersicht/i })
-    expect(link.getAttribute('aria-current')).toBe('page')
-  })
-
-  it('Test D: per-Gruppe-Edit-Link bleibt weiterhin vorhanden (Regression)', () => {
+  it('per-Gruppe-Edit-Link bleibt weiterhin vorhanden', () => {
     render(
       <AppShell
         hasMemberProfile

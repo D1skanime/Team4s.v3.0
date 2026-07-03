@@ -70,7 +70,7 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
       <main style={{ padding: 32, display: "grid", gap: 16 }}>
         <p>Diese Ansicht ist dem Team4s-Admin vorbehalten.</p>
         <p>
-          <Link href="/manage/groups">Zu Meine Gruppen</Link>
+          <Link href="/me/profile">Zum Profil</Link>
           <span> | </span>
           <Link href="/login">Zur Anmeldung</Link>
         </p>

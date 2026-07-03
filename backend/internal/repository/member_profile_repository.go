@@ -61,18 +61,17 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 	if err != nil {
 		return nil, err
 	}
+	base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true)
+	if err != nil {
+		return nil, err
+	}
 	if !base.HasMemberProfile {
-		base.Memberships = []models.MemberProfileMembership{}
 		base.HistoricalCredits = []models.MemberProfileCredit{}
 		base.RecentMedia = []models.MemberProfileRecentMedia{}
 		base.RecentContributions = []models.MemberProfileRecentContribution{}
 		return base, nil
 	}
 
-	base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true)
-	if err != nil {
-		return nil, err
-	}
 	base.HistoricalCredits, err = r.loadHistoricalCredits(ctx, base.MemberID)
 	if err != nil {
 		return nil, err

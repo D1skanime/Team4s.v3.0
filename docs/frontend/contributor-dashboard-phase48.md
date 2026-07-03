@@ -1,5 +1,13 @@
 # Contributor Dashboard Phase 48
 
+> Stand 2026-07-03: Die frühere Contributor-Zwischenseite wurde retired.
+> App-Gruppenmitgliedschaften werden jetzt über `GET /api/v1/me/profile`
+> in den App-Drawer geladen; Gruppen führen direkt auf den kanonischen
+> Workspace `/admin/fansubs/[id]/edit`. Die alten Endpunkte
+> `GET /api/v1/me/fansub-groups` und `GET /api/v1/me/fansub-groups/:id`
+> sowie die Routen `/manage/groups` und `/admin/my-groups` sind nicht mehr
+> Teil der laufenden App.
+
 ## Ist-Analyse
 
 Phase 48 baut keine zweite Admin-Anwendung. Der Slice macht bestehende, geprüfte Team4s-Funktionen für Contributors erreichbar:
@@ -8,13 +16,13 @@ Phase 48 baut keine zweite Admin-Anwendung. Der Slice macht bestehende, geprüft
 - Mitgliedschaft: `fansub_group_members` ist die App-Rechtequelle; `group_members` bleibt nur historischer Kontext aus Phase 47.
 - Release-Scope: Release-Versionen werden über `release_version_groups.fansub_group_id` geladen, damit Coop-Releases nur für beteiligte Gruppen sichtbar sind.
 - UI-Basis: `PageHeader`, `SectionHeader`, `Card`, `Badge`, `Button`, `Toolbar`, `Table`, `LoadingState`, `ErrorState` und `EmptyState` aus `frontend/src/components/ui`.
-- Navigation: `/admin` bleibt der Einstieg; `/admin/profile` und `/admin/my-groups` sind die Contributor-Ziele.
+- Navigation: Der App-Drawer zeigt unter `Meine Gruppen` direkte Links auf `/admin/fansubs/[id]/edit`; `/admin/my-groups` ist kein aktuelles Contributor-Ziel mehr.
 
 Es war keine neue Migration nötig. Die Umsetzung nutzt bestehende Tabellen und die vorhandene Permission Engine.
 
 ## Backend-Modell
 
-Neue Read-Surfaces:
+Historische, inzwischen entfernte Read-Surfaces:
 
 - `GET /api/v1/me/fansub-groups`
 - `GET /api/v1/me/fansub-groups/:id`

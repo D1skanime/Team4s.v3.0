@@ -54,6 +54,35 @@ export function fromDateTimeLocalValue(value: string): string | null {
   return parsed.toISOString()
 }
 
+export function toDateInputValue(value?: string | null): string {
+  if (!value) return ''
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return ''
+  const year = parsed.getUTCFullYear()
+  const month = `${parsed.getUTCMonth() + 1}`.padStart(2, '0')
+  const day = `${parsed.getUTCDate()}`.padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export function fromDateInputValue(value: string): string | null {
+  const trimmed = value.trim()
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null
+  const [yearRaw, monthRaw, dayRaw] = trimmed.split('-')
+  const year = Number(yearRaw)
+  const month = Number(monthRaw)
+  const day = Number(dayRaw)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null
+  }
+  return parsed.toISOString()
+}
+
 export function formatDateTime(value?: string | null): string {
   if (!value) return 'n/a'
   const parsed = new Date(value)
@@ -84,7 +113,7 @@ export function buildInitialFormState(context: EpisodeVersionEditorContext): For
     mediaItemID: context.version.media_item_id || '',
     videoQuality: context.version.video_quality || '',
     subtitleType: context.version.subtitle_type || '',
-    releaseDate: toDateTimeLocalValue(context.version.release_date),
+    releaseDate: toDateInputValue(context.version.release_date),
     crc32: context.version.crc32 || '',
     streamURL: context.version.stream_url || '',
     durationSeconds: formatDurationInput(context.version.duration_seconds),
@@ -113,7 +142,7 @@ export function buildSnapshot(formState: FormState, selectedGroups: FansubGroupS
     mediaItemID: formState.mediaItemID.trim(),
     videoQuality: normalizeOptional(formState.videoQuality),
     subtitleType: formState.subtitleType || null,
-    releaseDate: fromDateTimeLocalValue(formState.releaseDate),
+    releaseDate: fromDateInputValue(formState.releaseDate),
     crc32: normalizeOptional(formState.crc32),
     streamURL: normalizeOptional(formState.streamURL),
     durationSeconds: parseDurationInput(formState.durationSeconds),

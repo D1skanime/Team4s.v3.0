@@ -84,8 +84,8 @@ interface GroupHistorySectionProps {
   authToken?: string
   /**
    * Nur-Anzeige-Modus: blendet alle Bearbeiten-Steuerelemente aus (kein
-   * Hinzufügen/Bearbeiten/Löschen). Für künftig-öffentliche Flächen wie
-   * /admin/my-groups, wo die Timeline nur gelesen werden darf.
+   * Hinzufügen/Bearbeiten/Löschen). Für künftige öffentliche Flächen, auf
+   * denen die Timeline nur gelesen werden darf.
    */
   readOnly?: boolean
 }

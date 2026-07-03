@@ -59,11 +59,6 @@ type fansubGroupInvitationStore interface {
 	Accept(ctx context.Context, input models.AcceptFansubInvitationInput) (*models.FansubGroupInvitation, *models.FansubGroupAppMember, error)
 }
 
-type contributorDashboardStore interface {
-	ListContributorGroups(ctx context.Context, input models.ContributorGroupQueryInput) ([]models.ContributorGroupOverview, error)
-	GetContributorGroupDetail(ctx context.Context, input models.ContributorGroupQueryInput, fansubGroupID int64) (*models.ContributorGroupDetail, error)
-}
-
 type auditLogWriter interface {
 	Write(ctx context.Context, entry repository.AuditLogEntry) error
 }
@@ -75,7 +70,6 @@ type AppAuthHandler struct {
 	memberRepo         fansubGroupAppMemberStore
 	invitationRepo     fansubGroupInvitationStore
 	profileRepo        memberProfileStore
-	contributorRepo    contributorDashboardStore
 	keycloakVerifier   *backendauth.KeycloakVerifier
 	permissionSvc      *permissions.Service
 	auditLogRepo       auditLogWriter
@@ -94,7 +88,6 @@ func NewAppAuthHandler(
 	memberRepo *repository.FansubGroupAppMemberRepository,
 	invitationRepo *repository.FansubGroupInvitationRepository,
 	profileRepo *repository.MemberProfileRepository,
-	contributorRepo *repository.ContributorDashboardRepository,
 	keycloakVerifier *backendauth.KeycloakVerifier,
 	permissionSvc *permissions.Service,
 	auditLogRepo *repository.AuditLogRepository,
@@ -112,7 +105,6 @@ func NewAppAuthHandler(
 		memberRepo:         memberRepo,
 		invitationRepo:     invitationRepo,
 		profileRepo:        profileRepo,
-		contributorRepo:    contributorRepo,
 		keycloakVerifier:   keycloakVerifier,
 		permissionSvc:      permissionSvc,
 		auditLogRepo:       auditLogRepo,
@@ -1136,134 +1128,6 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		CanDeleteGroupMedia:        canDeleteGroupMediaAllowed,
 		CanReorderGroupMedia:       canReorderGroupMediaAllowed,
 	}})
-}
-
-func (h *AppAuthHandler) ListMyFansubGroups(c *gin.Context) {
-	identity, actor, ok := permissionActorFromContext(c)
-	if !ok {
-		return
-	}
-	if h.contributorRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "contributor dashboard nicht verfuegbar"}})
-		return
-	}
-	if strings.TrimSpace(identity.AppUserStatus) == models.AppUserStatusDisabled {
-		writePermissionDenied(c, permissions.Result{ReasonCode: permissions.ReasonDisabledUser})
-		return
-	}
-
-	groups, err := h.contributorRepo.ListContributorGroups(c.Request.Context(), contributorQueryInput(identity))
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Meine Gruppen konnten nicht geladen werden.")
-		return
-	}
-
-	for i := range groups {
-		capabilities, err := h.contributorCapabilities(c.Request.Context(), actor, groups[i].ID)
-		if err != nil {
-			writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
-			return
-		}
-		groups[i].Capabilities = capabilities
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": groups})
-}
-
-func (h *AppAuthHandler) GetMyFansubGroupDetail(c *gin.Context) {
-	identity, actor, ok := permissionActorFromContext(c)
-	if !ok {
-		return
-	}
-	if h.contributorRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "contributor dashboard nicht verfuegbar"}})
-		return
-	}
-	if strings.TrimSpace(identity.AppUserStatus) == models.AppUserStatusDisabled {
-		writePermissionDenied(c, permissions.Result{ReasonCode: permissions.ReasonDisabledUser})
-		return
-	}
-
-	fansubID, err := parseFansubID(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungueltige fansub-id"}})
-		return
-	}
-
-	detail, err := h.contributorRepo.GetContributorGroupDetail(c.Request.Context(), contributorQueryInput(identity), fansubID)
-	if errors.Is(err, repository.ErrNotFound) {
-		writePermissionDenied(c, permissions.Result{ReasonCode: permissions.ReasonNoMembership})
-		return
-	}
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Gruppendetail konnte nicht geladen werden.")
-		return
-	}
-
-	capabilities, err := h.contributorCapabilities(c.Request.Context(), actor, detail.Group.ID)
-	if err != nil {
-		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
-		return
-	}
-	if !capabilities.CanOpenContributorGroup {
-		writePermissionDenied(c, permissions.Result{ReasonCode: permissions.ReasonNoMembership})
-		return
-	}
-	detail.Group.Capabilities = capabilities
-
-	c.JSON(http.StatusOK, gin.H{"data": detail})
-}
-
-func contributorQueryInput(identity middleware.AuthIdentity) models.ContributorGroupQueryInput {
-	var legacyUserID *int64
-	if identity.UserID > 0 {
-		value := identity.UserID
-		legacyUserID = &value
-	}
-
-	return models.ContributorGroupQueryInput{
-		AppUserID:       identity.AppUserID,
-		LegacyUserID:    legacyUserID,
-		IsPlatformAdmin: identity.IsPlatformAdmin,
-	}
-}
-
-func (h *AppAuthHandler) contributorCapabilities(ctx context.Context, actor permissions.Actor, fansubID int64) (models.ContributorGroupCapabilities, error) {
-	var caps models.ContributorGroupCapabilities
-	if h.permissionSvc == nil || fansubID <= 0 {
-		return caps, nil
-	}
-
-	canEditGroup, err := h.permissionSvc.CanForFansubGroup(ctx, actor, permissions.ActionFansubGroupEdit, fansubID)
-	if err != nil {
-		return caps, err
-	}
-	canManageMembers, err := h.permissionSvc.CanForFansubGroup(ctx, actor, permissions.ActionFansubGroupMembersManage, fansubID)
-	if err != nil {
-		return caps, err
-	}
-	canEditNotes, err := h.permissionSvc.CanForFansubGroup(ctx, actor, permissions.ActionFansubGroupNotesWrite, fansubID)
-	if err != nil {
-		return caps, err
-	}
-	canViewReleases, err := h.permissionSvc.CanForFansubGroup(ctx, actor, permissions.ActionReleaseView, fansubID)
-	if err != nil {
-		return caps, err
-	}
-	canUploadReleaseMedia, err := h.permissionSvc.CanForFansubGroup(ctx, actor, permissions.ActionReleaseVersionMediaUpload, fansubID)
-	if err != nil {
-		return caps, err
-	}
-
-	caps.CanEditGroup = canEditGroup.Allowed
-	caps.CanViewGroupMedia = canEditGroup.Allowed || canViewReleases.Allowed
-	caps.CanUploadGroupMedia = canEditGroup.Allowed
-	caps.CanViewReleases = canViewReleases.Allowed
-	caps.CanEditReleaseDescriptions = canEditNotes.Allowed
-	caps.CanUploadReleaseMedia = canUploadReleaseMedia.Allowed
-	caps.CanManageMembers = canManageMembers.Allowed
-	caps.CanOpenContributorGroup = caps.CanEditGroup || caps.CanViewGroupMedia || caps.CanViewReleases || caps.CanManageMembers
-	return caps, nil
 }
 
 func normalizeRequestedFansubRoles(roles []string) ([]string, error) {

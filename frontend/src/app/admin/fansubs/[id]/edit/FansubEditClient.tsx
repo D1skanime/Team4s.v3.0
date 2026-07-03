@@ -232,7 +232,6 @@ export function FansubEditClient({
           </>
         ) : (
           <>
-            <Link href="/manage/groups">Meine Gruppen</Link> /{" "}
             <span>{form.name.trim() || "Gruppe"}</span>
           </>
         )}

@@ -466,7 +466,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
     render(<AdminFansubEditPage />)
 
     await screen.findByRole('heading', { name: 'SubGroup' })
-    expect(screen.getByRole('link', { name: 'Meine Gruppen' }).getAttribute('href')).toBe('/manage/groups')
+    expect(screen.queryByRole('link', { name: 'Meine Gruppen' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Admin' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Fansubs' })).toBeNull()
     expect(screen.getByLabelText(/Fansubgruppen-Name/i)).not.toBeNull()

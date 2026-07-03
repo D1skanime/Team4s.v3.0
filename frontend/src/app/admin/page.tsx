@@ -45,9 +45,6 @@ export default function AdminOverviewPage() {
             <Link href="/admin/role-capabilities" className={styles.button}>
               Capability-Verwaltung
             </Link>
-            <Link href="/manage/groups" className={styles.buttonSecondary}>
-              Meine Gruppen
-            </Link>
             <Link href="/me/profile" className={styles.buttonSecondary}>
               Mein Profil
             </Link>
