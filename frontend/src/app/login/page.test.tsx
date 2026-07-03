@@ -11,6 +11,7 @@ const authMocks = vi.hoisted(() => ({
   beginKeycloakLoginMock: vi.fn(),
   completeKeycloakAuthCallbackMock: vi.fn(),
   getAuthSessionSnapshotMock: vi.fn(),
+  logoutActiveAuthSessionMock: vi.fn(),
   isKeycloakEnabledMock: vi.fn(() => true),
   ApiError: class ApiError extends Error {
     status: number
@@ -32,6 +33,7 @@ vi.mock('@/lib/api', () => ({
   ApiError: authMocks.ApiError,
   completeKeycloakAuthCallback: authMocks.completeKeycloakAuthCallbackMock,
   getAuthSessionSnapshot: authMocks.getAuthSessionSnapshotMock,
+  logoutActiveAuthSession: authMocks.logoutActiveAuthSessionMock,
 }))
 
 vi.mock('@/lib/keycloakAuth', () => ({
@@ -52,6 +54,7 @@ describe('LoginPage', () => {
     })
     authMocks.isKeycloakEnabledMock.mockReturnValue(true)
     authMocks.beginKeycloakLoginMock.mockResolvedValue(undefined)
+    authMocks.logoutActiveAuthSessionMock.mockResolvedValue(undefined)
     authMocks.completeKeycloakAuthCallbackMock.mockResolvedValue({
       data: {
         app_user_id: 1,
@@ -67,6 +70,23 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(authMocks.beginKeycloakLoginMock).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('clears the active session and forces the identity prompt for relogin', async () => {
+    authMocks.getAuthSessionSnapshotMock.mockReturnValue({
+      hasAccessToken: true,
+      hasRefreshToken: true,
+      displayName: 'Phase Admin',
+    })
+
+    render(<LoginPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut anmelden' }))
+
+    await waitFor(() => {
+      expect(authMocks.logoutActiveAuthSessionMock).toHaveBeenCalledTimes(1)
+      expect(authMocks.beginKeycloakLoginMock).toHaveBeenCalledWith({ prompt: 'login' })
     })
   })
 

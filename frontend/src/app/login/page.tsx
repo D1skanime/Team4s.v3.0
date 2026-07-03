@@ -8,6 +8,7 @@ import {
   ApiError,
   completeKeycloakAuthCallback,
   getAuthSessionSnapshot,
+  logoutActiveAuthSession,
 } from '@/lib/api'
 import {
   beginKeycloakLogin,
@@ -95,12 +96,18 @@ export default function LoginPage() {
     try {
       setIsBusy(true)
       setErrorMessage(null)
+      if (isAlreadySignedIn) {
+        await logoutActiveAuthSession()
+        setIsAlreadySignedIn(false)
+        await beginKeycloakLogin({ prompt: 'login' })
+        return
+      }
       await beginKeycloakLogin()
     } catch (error) {
       setErrorMessage(readErrorMessage(error, 'Anmeldung konnte nicht gestartet werden.'))
       setIsBusy(false)
     }
-  }, [keycloakEnabled])
+  }, [isAlreadySignedIn, keycloakEnabled])
 
   return (
     <main className={styles.page}>

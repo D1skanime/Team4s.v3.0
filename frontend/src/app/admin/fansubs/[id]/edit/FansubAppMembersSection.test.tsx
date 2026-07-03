@@ -333,6 +333,68 @@ describe("FansubAppMembersSection", () => {
     expect(screen.queryByText(/phase 45 mvp/i)).toBeNull();
   });
 
+  it("renders app user display name for members without linked history", async () => {
+    getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: true,
+        can_manage_links: true,
+        can_view_members: true,
+        can_manage_members: true,
+        can_edit_notes: true,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: true,
+        can_view_release_media: true,
+        can_upload_release_media: true,
+        can_edit_release_notes: true,
+        can_view_group_media: true,
+        can_upload_group_media: true,
+        can_update_group_media: true,
+        can_delete_own_group_media: true,
+        can_delete_group_media: true,
+        can_reorder_group_media: true,
+      },
+    });
+    listFansubAppMembers.mockResolvedValue({
+      data: [
+        {
+          id: 33,
+          fansub_group_id: 88,
+          app_user_id: 22,
+          status: "active",
+          roles: ["fansub_lead"],
+          media_permissions: {
+            can_upload: false,
+            can_delete_own: false,
+            can_delete_all: false,
+            can_reorder: false,
+          },
+          created_at: "2026-05-16T08:10:00Z",
+          updated_at: "2026-05-16T08:20:00Z",
+          app_user: {
+            id: 22,
+            keycloak_subject: "keycloak-csubs-leader",
+            email: "csubs.leader@example.local",
+            display_name: "CSubs Leader",
+            preferred_username: "csubs-leader",
+            status: "active",
+            created_at: "2026-05-16T08:10:00Z",
+            updated_at: "2026-05-16T08:20:00Z",
+            global_roles: [],
+          },
+          member: null,
+        },
+      ],
+    });
+    listFansubGroupInvitations.mockResolvedValue({ data: [] });
+
+    render(<FansubAppMembersSection fansubId={88} hasAccessToken />);
+
+    expect(await screen.findByText("CSubs Leader")).not.toBeNull();
+    expect(screen.queryByText("Mitglied #22")).toBeNull();
+  });
+
   it("adds a new member through candidate search with selected roles", async () => {
     getFansubGroupCapabilities.mockResolvedValue({
       data: {

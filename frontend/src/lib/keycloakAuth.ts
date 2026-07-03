@@ -96,7 +96,13 @@ export function isKeycloakEnabled(): boolean {
   return KEYCLOAK_ENABLED
 }
 
-export async function beginKeycloakLogin(): Promise<void> {
+export type KeycloakLoginPrompt = 'login'
+
+export type BeginKeycloakLoginOptions = {
+  prompt?: KeycloakLoginPrompt
+}
+
+export async function beginKeycloakLogin(options: BeginKeycloakLoginOptions = {}): Promise<void> {
   const verifier = randomString(64)
   const state = randomString(32)
   const challenge = await sha256Base64Url(verifier)
@@ -110,6 +116,9 @@ export async function beginKeycloakLogin(): Promise<void> {
   authURL.searchParams.set('code_challenge', challenge)
   authURL.searchParams.set('code_challenge_method', 'S256')
   authURL.searchParams.set('state', state)
+  if (options.prompt) {
+    authURL.searchParams.set('prompt', options.prompt)
+  }
 
   window.location.assign(authURL.toString())
 }

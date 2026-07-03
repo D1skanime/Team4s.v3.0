@@ -57,6 +57,24 @@ func TestCreateCanLinkOpenHistoricalMemberByVerifiedClaim(t *testing.T) {
 	}
 }
 
+func TestListByFansubGroupIncludesAppUserPayload(t *testing.T) {
+	content := strings.ToLower(readRepositorySource(t, "fansub_group_app_members_repository.go"))
+
+	required := []string{
+		"au.keycloak_subject",
+		"au.email",
+		"au.display_name",
+		"au.preferred_username",
+		"var appuser models.appuser",
+		"member.appuser = &appuser",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected app member list query to hydrate app user payload containing %q", fragment)
+		}
+	}
+}
+
 func TestEvaluateMemberMutationConflictBlocksLastActiveManager(t *testing.T) {
 	err := evaluateMemberMutationConflict(
 		models.FansubGroupMemberStatusActive,

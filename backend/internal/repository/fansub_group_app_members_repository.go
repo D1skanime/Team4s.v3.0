@@ -135,6 +135,19 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			fgm.updated_by_app_user_id,
 			fgm.created_at,
 			fgm.updated_at,
+			au.id,
+			au.legacy_user_id,
+			au.keycloak_subject,
+			au.email,
+			au.display_name,
+			au.preferred_username,
+			au.given_name,
+			au.family_name,
+			au.status,
+			au.last_login_at,
+			au.last_logout_at,
+			au.created_at,
+			au.updated_at,
 			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
 			COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied') AS fansub_name,
 			COALESCE(claimed_avatar.file_path, legacy_avatar.file_path, '') AS avatar_path,
@@ -179,6 +192,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 	for rows.Next() {
 		var member models.FansubGroupAppMember
 		var memberRoles []string
+		var appUser models.AppUser
 		var memberIdentity models.FansubGroupMemberIdentity
 		var avatarPath string
 		if err := rows.Scan(
@@ -190,6 +204,19 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			&member.UpdatedByAppUser,
 			&member.CreatedAt,
 			&member.UpdatedAt,
+			&appUser.ID,
+			&appUser.LegacyUserID,
+			&appUser.KeycloakSubject,
+			&appUser.Email,
+			&appUser.DisplayName,
+			&appUser.PreferredUsername,
+			&appUser.GivenName,
+			&appUser.FamilyName,
+			&appUser.Status,
+			&appUser.LastLoginAt,
+			&appUser.LastLogoutAt,
+			&appUser.CreatedAt,
+			&appUser.UpdatedAt,
 			&memberIdentity.MemberID,
 			&memberIdentity.FansubName,
 			&avatarPath,
@@ -201,6 +228,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 		); err != nil {
 			return nil, fmt.Errorf("list fansub group members: scan: %w", err)
 		}
+		member.AppUser = &appUser
 		member.Roles = normalizeDistinctStrings(memberRoles)
 		if avatarURL := r.publicURLForPath(avatarPath); avatarURL != "" {
 			memberIdentity.AvatarURL = &avatarURL

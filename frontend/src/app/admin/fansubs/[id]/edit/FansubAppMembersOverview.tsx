@@ -47,6 +47,16 @@ function formatMemberInitials(name: string): string {
   return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase()
 }
 
+function formatAppMemberName(member: FansubAppMember): string {
+  return (
+    member.member?.fansub_name?.trim()
+    || member.app_user?.display_name?.trim()
+    || member.app_user?.preferred_username?.trim()
+    || member.app_user?.email?.trim()
+    || `Mitglied #${member.app_user_id}`
+  )
+}
+
 function getRoleClassName(role: string): string {
   const roleClassMap: Record<string, string> = {
     fansub_lead: styles.fansubEditRoleLead,
@@ -145,7 +155,7 @@ export function FansubAppMembersOverview({
                 </p>
               </div>
             ) : members.map((member) => {
-              const fansubName = member.member?.fansub_name?.trim() || `Mitglied #${member.app_user_id}`
+              const fansubName = formatAppMemberName(member)
               const avatarUrl = member.member?.avatar_url?.trim()
               const mediaPermissionCount = getMediaPermissionCount(member)
 

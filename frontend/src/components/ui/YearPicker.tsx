@@ -19,10 +19,16 @@ type YearPickerProps = {
   onChange: (value: string) => void
 }
 
+function clampYear(year: number, minYear: number, maxYear: number): number {
+  return Math.min(maxYear, Math.max(minYear, year))
+}
+
 function pageStartForYear(rawYear: string, minYear: number, maxYear: number): number {
   const parsed = Number.parseInt(rawYear, 10)
-  if (!Number.isFinite(parsed) || parsed < minYear || parsed > maxYear) return maxYear
-  const offset = maxYear - parsed
+  const targetYear = Number.isFinite(parsed) && parsed >= minYear && parsed <= maxYear
+    ? parsed
+    : clampYear(new Date().getFullYear(), minYear, maxYear)
+  const offset = maxYear - targetYear
   return maxYear - Math.floor(offset / YEARS_PER_PAGE) * YEARS_PER_PAGE
 }
 

@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -78,5 +78,36 @@ describe('keycloakAuth refresh/logout browser paths', () => {
         }),
       }),
     )
+  })
+
+  it('can force the Keycloak login identity prompt', async () => {
+    const assignMock = vi.fn()
+    vi.stubGlobal('window', {
+      location: {
+        origin: 'http://localhost:3000',
+        assign: assignMock,
+      },
+    })
+    vi.stubGlobal('sessionStorage', {
+      setItem: vi.fn(),
+    })
+    vi.stubGlobal('crypto', {
+      getRandomValues: (bytes: Uint8Array) => {
+        bytes.fill(1)
+        return bytes
+      },
+      subtle: {
+        digest: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]).buffer),
+      },
+    })
+    vi.stubGlobal('btoa', (value: string) => Buffer.from(value, 'binary').toString('base64'))
+
+    const { beginKeycloakLogin } = await import('./keycloakAuth')
+    await beginKeycloakLogin({ prompt: 'login' })
+
+    expect(assignMock).toHaveBeenCalledTimes(1)
+    const authURL = new URL(assignMock.mock.calls[0][0])
+    expect(authURL.searchParams.get('prompt')).toBe('login')
+    expect(authURL.searchParams.get('client_id')).toBe('team4s-frontend')
   })
 })
