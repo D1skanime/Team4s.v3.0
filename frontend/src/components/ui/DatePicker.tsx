@@ -132,12 +132,6 @@ export function DatePicker({
   const [openAbove, setOpenAbove] = useState(false)
 
   useEffect(() => {
-    if (!selectedDate || isOpen) return
-    setVisibleMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1))
-    setYearPageStart(pageStartForYear(selectedDate.getFullYear()))
-  }, [selectedDate, isOpen])
-
-  useEffect(() => {
     if (!isOpen) return undefined
     function handlePointerDown(event: MouseEvent) {
       if (!rootRef.current?.contains(event.target as Node)) {
