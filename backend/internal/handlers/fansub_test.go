@@ -199,6 +199,32 @@ func TestValidateEpisodeVersionCreateRequest_InvalidSubtitleType(t *testing.T) {
 	}
 }
 
+func TestValidateEpisodeVersionCreateRequest_NormalizesCRC32(t *testing.T) {
+	input, message := validateEpisodeVersionCreateRequest(episodeVersionCreateRequest{
+		MediaProvider: "jellyfin",
+		MediaItemID:   "6425",
+		CRC32:         ptrString(" crc: 1cc0a2e3 "),
+	})
+	if message != "" {
+		t.Fatalf("expected no validation error, got %q", message)
+	}
+	if input.CRC32 == nil || *input.CRC32 != "1CC0A2E3" {
+		t.Fatalf("expected normalized crc32, got %#v", input.CRC32)
+	}
+}
+
+func TestValidateEpisodeVersionPatchRequest_RejectsInvalidCRC32(t *testing.T) {
+	var patch models.EpisodeVersionPatchInput
+	if err := json.Unmarshal([]byte(`{"crc32":"XYZ"}`), &patch); err != nil {
+		t.Fatalf("unmarshal patch: %v", err)
+	}
+
+	_, message := validateEpisodeVersionPatchRequest(patch)
+	if message != "crc32 muss aus 8 Hex-Zeichen bestehen" {
+		t.Fatalf("unexpected message: %q", message)
+	}
+}
+
 func TestValidateEpisodeVersionCreateRequest_AcceptsExplicitFansubGroups(t *testing.T) {
 	input, message := validateEpisodeVersionCreateRequest(episodeVersionCreateRequest{
 		MediaProvider: "emby",

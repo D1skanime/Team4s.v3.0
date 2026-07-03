@@ -9,6 +9,7 @@ export interface FormState {
   videoQuality: string
   subtitleType: '' | SubtitleType
   releaseDate: string
+  crc32: string
   streamURL: string
   durationSeconds: string
 }
@@ -22,6 +23,10 @@ export function parsePositiveInt(raw: string): number | null {
 export function normalizeOptional(value: string): string | null {
   const trimmed = value.trim()
   return trimmed ? trimmed : null
+}
+
+export function normalizeCRC32Draft(value: string): string {
+  return value.trim().toUpperCase()
 }
 
 export function formatError(error: unknown): string {
@@ -80,6 +85,7 @@ export function buildInitialFormState(context: EpisodeVersionEditorContext): For
     videoQuality: context.version.video_quality || '',
     subtitleType: context.version.subtitle_type || '',
     releaseDate: toDateTimeLocalValue(context.version.release_date),
+    crc32: context.version.crc32 || '',
     streamURL: context.version.stream_url || '',
     durationSeconds: formatDurationInput(context.version.duration_seconds),
   }
@@ -108,6 +114,7 @@ export function buildSnapshot(formState: FormState, selectedGroups: FansubGroupS
     videoQuality: normalizeOptional(formState.videoQuality),
     subtitleType: formState.subtitleType || null,
     releaseDate: fromDateTimeLocalValue(formState.releaseDate),
+    crc32: normalizeOptional(formState.crc32),
     streamURL: normalizeOptional(formState.streamURL),
     durationSeconds: parseDurationInput(formState.durationSeconds),
     selectedGroupIDs: selectedGroups.map((group) => group.id).sort((left, right) => left - right),

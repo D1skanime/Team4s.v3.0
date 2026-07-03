@@ -1,6 +1,7 @@
-﻿package handlers
+package handlers
 
 import (
+	"strings"
 	"time"
 
 	"team4s.v3/backend/internal/models"
@@ -20,7 +21,27 @@ type episodeVersionCreateRequest struct {
 	VideoQuality  *string                           `json:"video_quality"`
 	SubtitleType  *string                           `json:"subtitle_type"`
 	ReleaseDate   *time.Time                        `json:"release_date"`
+	CRC32         *string                           `json:"crc32"`
 	StreamURL     *string                           `json:"stream_url"`
+}
+
+func normalizeCRC32(value *string) (*string, string) {
+	normalized := normalizeNullableString(value)
+	if normalized == nil {
+		return nil, ""
+	}
+	trimmed := strings.ToUpper(strings.TrimSpace(*normalized))
+	trimmed = strings.TrimSpace(strings.TrimPrefix(trimmed, "CRC:"))
+	trimmed = strings.TrimSpace(strings.TrimPrefix(trimmed, "CRC32:"))
+	if len(trimmed) != 8 {
+		return nil, "crc32 muss aus 8 Hex-Zeichen bestehen"
+	}
+	for _, char := range trimmed {
+		if !((char >= '0' && char <= '9') || (char >= 'A' && char <= 'F')) {
+			return nil, "crc32 muss aus 8 Hex-Zeichen bestehen"
+		}
+	}
+	return &trimmed, ""
 }
 
 // validateEpisodeVersionCreateRequest prüft und normalisiert die Felder eines Erstellungs-Requests für eine Episodenversion.
@@ -60,6 +81,10 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 			return models.EpisodeVersionCreateInput{}, "ungültiger subtitle_type parameter"
 		}
 	}
+	crc32, crcMessage := normalizeCRC32(req.CRC32)
+	if crcMessage != "" {
+		return models.EpisodeVersionCreateInput{}, crcMessage
+	}
 
 	return models.EpisodeVersionCreateInput{
 		Title:         title,
@@ -70,6 +95,7 @@ func validateEpisodeVersionCreateRequest(req episodeVersionCreateRequest) (model
 		VideoQuality:  videoQuality,
 		SubtitleType:  subtitleType,
 		ReleaseDate:   req.ReleaseDate,
+		CRC32:         crc32,
 		StreamURL:     normalizeNullableString(req.StreamURL),
 	}, ""
 }
@@ -85,6 +111,7 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 		!req.VideoQuality.Set &&
 		!req.SubtitleType.Set &&
 		!req.ReleaseDate.Set &&
+		!req.CRC32.Set &&
 		!req.StreamURL.Set &&
 		!req.DurationSeconds.Set {
 		return models.EpisodeVersionPatchInput{}, "mindestens ein feld ist erforderlich"
@@ -133,6 +160,13 @@ func validateEpisodeVersionPatchRequest(req models.EpisodeVersionPatchInput) (mo
 				return models.EpisodeVersionPatchInput{}, "ungültiger subtitle_type parameter"
 			}
 		}
+	}
+	if req.CRC32.Set {
+		crc32, crcMessage := normalizeCRC32(req.CRC32.Value)
+		if crcMessage != "" {
+			return models.EpisodeVersionPatchInput{}, crcMessage
+		}
+		req.CRC32.Value = crc32
 	}
 	if req.StreamURL.Set {
 		req.StreamURL.Value = normalizeNullableString(req.StreamURL.Value)

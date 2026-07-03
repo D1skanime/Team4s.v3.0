@@ -22,6 +22,7 @@ type episodeVersionWriteState struct {
 	ReleaseDate      *time.Time
 	VideoQuality     *string
 	SubtitleType     *string
+	CRC32            *string
 	DurationSeconds  *int32
 	MediaProvider    string
 	MediaItemID      string
@@ -40,6 +41,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
 			rv.subtitle_type,
+			rv.crc32,
 			rv.duration_seconds,
 			COALESCE(ss.provider_type, ''),
 			COALESCE(ss.external_id, rs.jellyfin_item_id, ''),
@@ -63,6 +65,7 @@ func loadEpisodeVersionStateForUpdate(ctx context.Context, tx pgx.Tx, versionID 
 		&state.ReleaseDate,
 		&state.VideoQuality,
 		&state.SubtitleType,
+		&state.CRC32,
 		&state.DurationSeconds,
 		&state.MediaProvider,
 		&state.MediaItemID,
@@ -110,6 +113,7 @@ func applyEpisodeVersionVariantMetadata(
 	variantID int64,
 	videoQuality *string,
 	subtitleType *string,
+	crc32 *string,
 	title *string,
 	durationSeconds *int32,
 ) error {
@@ -120,13 +124,14 @@ func applyEpisodeVersionVariantMetadata(
 		SET resolution = $1,
 		    video_quality = $1,
 		    subtitle_type = $2,
-		    filename = NULLIF($3, ''),
-		    container = NULLIF($4, ''),
-		    duration_seconds = $5,
+		    crc32 = $3,
+		    filename = NULLIF($4, ''),
+		    container = NULLIF($5, ''),
+		    duration_seconds = $6,
 		    updated_at = NOW(),
 		    modified_at = NOW()
-		WHERE id = $6
-	`, videoQuality, subtitleType, filename, container, durationSeconds, variantID); err != nil {
+		WHERE id = $7
+	`, videoQuality, subtitleType, crc32, filename, container, durationSeconds, variantID); err != nil {
 		return fmt.Errorf("update release variant metadata variant=%d: %w", variantID, err)
 	}
 	return nil
@@ -346,7 +351,6 @@ func (r *EpisodeVersionRepository) Delete(ctx context.Context, versionID int64) 
 	}
 	return nil
 }
-
 
 func lookupEpisodeIDByAnimeAndNumber(ctx context.Context, tx pgx.Tx, animeID int64, episodeNumber int32) (int64, error) {
 	var episodeID int64

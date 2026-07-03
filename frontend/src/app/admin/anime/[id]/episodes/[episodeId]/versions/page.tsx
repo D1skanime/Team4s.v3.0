@@ -12,6 +12,7 @@ import {
   getGroupedEpisodes,
 } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { Input } from "@/components/ui/Input";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { AnimeDetail, EpisodeListItem } from "@/types/anime";
 import {
@@ -39,6 +40,7 @@ interface CreateFormState {
   videoQuality: string;
   subtitleType: "" | SubtitleType;
   releaseDate: string;
+  crc32: string;
   streamURL: string;
 }
 
@@ -119,6 +121,7 @@ function AdminAnimeEpisodeVersionsContent() {
     videoQuality: "",
     subtitleType: "",
     releaseDate: "",
+    crc32: "",
     streamURL: "",
   });
 
@@ -262,6 +265,7 @@ function AdminAnimeEpisodeVersionsContent() {
         video_quality: normalizeOptionalText(formState.videoQuality),
         subtitle_type: formState.subtitleType || null,
         release_date: fromDateTimeLocalValue(formState.releaseDate),
+        crc32: normalizeOptionalText(formState.crc32.trim().toUpperCase()),
         stream_url: normalizeOptionalText(formState.streamURL),
       });
 
@@ -274,6 +278,7 @@ function AdminAnimeEpisodeVersionsContent() {
         videoQuality: "",
         subtitleType: "",
         releaseDate: "",
+        crc32: "",
         streamURL: "",
       });
       setShowCreateForm(false);
@@ -496,7 +501,7 @@ function AdminAnimeEpisodeVersionsContent() {
                   </label>
 
                   <label className={styles.field}>
-                    <span>Qualitaet</span>
+                    <span>Qualität</span>
                     <input
                       className={styles.input}
                       value={formState.videoQuality}
@@ -504,6 +509,22 @@ function AdminAnimeEpisodeVersionsContent() {
                         setFormState((current) => ({
                           ...current,
                           videoQuality: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>CRC32</span>
+                    <Input
+                      className={styles.input}
+                      value={formState.crc32}
+                      maxLength={13}
+                      placeholder="1CC0A2E3"
+                      onChange={(event) =>
+                        setFormState((current) => ({
+                          ...current,
+                          crc32: event.target.value.trim().toUpperCase(),
                         }))
                       }
                     />
@@ -623,7 +644,7 @@ function AdminAnimeEpisodeVersionsContent() {
                       <span
                         className={`${styles.badge} ${styles.badgeWarning}`}
                       >
-                        {version.video_quality || "Qualitaet offen"}
+                        {version.video_quality || "Qualität offen"}
                       </span>
                       <span
                         className={`${styles.badge} ${styles.badgeSuccess}`}

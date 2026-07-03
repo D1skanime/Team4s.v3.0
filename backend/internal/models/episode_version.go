@@ -9,24 +9,25 @@ import (
 // EpisodeVersion repräsentiert eine einzelne Release-Version einer Episode,
 // verknüpft mit einer Fansub-Gruppe und einem Medien-Provider (z.B. Jellyfin).
 type EpisodeVersion struct {
-	ID                    int64               `json:"id"`
-	AnimeID               int64               `json:"anime_id"`
-	EpisodeNumber         int32               `json:"episode_number"`
-	Title                 *string             `json:"title,omitempty"`
-	ReleaseVersion        *string             `json:"release_version,omitempty"`
+	ID                    int64                `json:"id"`
+	AnimeID               int64                `json:"anime_id"`
+	EpisodeNumber         int32                `json:"episode_number"`
+	Title                 *string              `json:"title,omitempty"`
+	ReleaseVersion        *string              `json:"release_version,omitempty"`
 	FansubGroups          []FansubGroupSummary `json:"fansub_groups,omitempty"`
-	MediaProvider         string              `json:"media_provider"`
-	MediaItemID           string              `json:"media_item_id"`
-	CoveredEpisodeNumbers []int32             `json:"covered_episode_numbers,omitempty"`
-	VideoQuality          *string             `json:"video_quality,omitempty"`
-	SubtitleType          *string             `json:"subtitle_type,omitempty"`
-	ReleaseDate           *time.Time          `json:"release_date,omitempty"`
-	StreamURL             *string             `json:"stream_url,omitempty"`
-	SegmentCount          int32               `json:"segment_count"`
-	HasSegmentAsset       bool                `json:"has_segment_asset"`
-	DurationSeconds       *int32              `json:"duration_seconds,omitempty"`
-	CreatedAt             time.Time           `json:"created_at"`
-	UpdatedAt             time.Time           `json:"updated_at"`
+	MediaProvider         string               `json:"media_provider"`
+	MediaItemID           string               `json:"media_item_id"`
+	CoveredEpisodeNumbers []int32              `json:"covered_episode_numbers,omitempty"`
+	VideoQuality          *string              `json:"video_quality,omitempty"`
+	SubtitleType          *string              `json:"subtitle_type,omitempty"`
+	ReleaseDate           *time.Time           `json:"release_date,omitempty"`
+	CRC32                 *string              `json:"crc32,omitempty"`
+	StreamURL             *string              `json:"stream_url,omitempty"`
+	SegmentCount          int32                `json:"segment_count"`
+	HasSegmentAsset       bool                 `json:"has_segment_asset"`
+	DurationSeconds       *int32               `json:"duration_seconds,omitempty"`
+	CreatedAt             time.Time            `json:"created_at"`
+	UpdatedAt             time.Time            `json:"updated_at"`
 }
 
 // GroupedEpisode fasst alle Versionen einer einzelnen Episode zusammen
@@ -59,6 +60,7 @@ type EpisodeVersionCreateInput struct {
 	VideoQuality    *string
 	SubtitleType    *string
 	ReleaseDate     *time.Time
+	CRC32           *string
 	StreamURL       *string
 	DurationSeconds *int32
 }
@@ -74,6 +76,7 @@ type EpisodeVersionPatchInput struct {
 	VideoQuality    OptionalString               `json:"video_quality"`
 	SubtitleType    OptionalString               `json:"subtitle_type"`
 	ReleaseDate     OptionalTime                 `json:"release_date"`
+	CRC32           OptionalString               `json:"crc32"`
 	StreamURL       OptionalString               `json:"stream_url"`
 	DurationSeconds OptionalInt32                `json:"duration_seconds"`
 }
@@ -113,10 +116,10 @@ type ReleaseStreamSource struct {
 // EpisodeVersionEditorContext liefert alle Kontextdaten für den Admin-Editor
 // einer Episodenversion, inklusive Anime-Pfad und verfügbare Fansub-Gruppen.
 type EpisodeVersionEditorContext struct {
-	Version              EpisodeVersion       `json:"version"`
-	AnimeTitle           string               `json:"anime_title"`
-	AnimeFolderPath      *string              `json:"anime_folder_path,omitempty"`
-	SelectedGroups       []FansubGroupSummary `json:"selected_groups"`
+	Version         EpisodeVersion       `json:"version"`
+	AnimeTitle      string               `json:"anime_title"`
+	AnimeFolderPath *string              `json:"anime_folder_path,omitempty"`
+	SelectedGroups  []FansubGroupSummary `json:"selected_groups"`
 }
 
 // EpisodeVersionMediaFile repräsentiert eine einzelne Mediendatei aus einem

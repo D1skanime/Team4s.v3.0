@@ -257,6 +257,7 @@ types:
     video_quality: string | null
     subtitle_type: SubtitleType | null
     release_date: datetime | null
+    crc32: string | null
     stream_url: string | null
     created_at: datetime
     updated_at: datetime
@@ -294,6 +295,7 @@ types:
     video_quality: string | null
     subtitle_type: SubtitleType | null
     release_date: datetime | null
+    crc32: string | null (8 uppercase hex characters)
     stream_url: string | null
   EpisodeVersionPatchRequest:
     title: string | null
@@ -303,6 +305,7 @@ types:
     video_quality: string | null
     subtitle_type: SubtitleType | null
     release_date: datetime | null
+    crc32: string | null (8 uppercase hex characters)
     stream_url: string | null
   FansubGroupShort:
     id: int64

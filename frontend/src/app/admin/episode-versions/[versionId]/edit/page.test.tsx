@@ -126,6 +126,7 @@ function makeEditorState() {
         anime_id: 1,
         episode_number: 1,
         release_version: "v1",
+        crc32: "1CC0A2E3",
         duration_seconds: null,
       },
       selected_groups: [{ id: 10, name: "SubGroup" }],
@@ -139,6 +140,7 @@ function makeEditorState() {
       videoQuality: "",
       subtitleType: "",
       releaseDate: "",
+      crc32: "1CC0A2E3",
       streamURL: "",
       durationSeconds: "",
     },
@@ -388,5 +390,18 @@ describe("EpisodeVersionEditorPage media tab", () => {
     // next/link ist als <a> gemockt — suche nach dem Link mit Text "SubGroup"
     const subtitleLink = screen.getByRole("link", { name: "SubGroup" });
     expect(subtitleLink.getAttribute("href")).toBe("/admin/fansubs/10/edit");
+  });
+
+  it("shows the CRC32 field on the information tab", async () => {
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    await screen.findByRole("button", { name: "Informationen" });
+
+    expect(screen.getByText("CRC32")).not.toBeNull();
+    expect(screen.getByDisplayValue("1CC0A2E3")).not.toBeNull();
   });
 });

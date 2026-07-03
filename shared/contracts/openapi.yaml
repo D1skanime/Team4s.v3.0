@@ -10144,6 +10144,10 @@ components:
           type: string
           format: date-time
           nullable: true
+        crc32:
+          type: string
+          pattern: "^[0-9A-F]{8}$"
+          nullable: true
         stream_url:
           type: string
           nullable: true
@@ -10227,6 +10231,10 @@ components:
           type: string
           format: date-time
           nullable: true
+        crc32:
+          type: string
+          pattern: "^[0-9A-F]{8}$"
+          nullable: true
         stream_url:
           type: string
           nullable: true
@@ -10261,6 +10269,10 @@ components:
         release_date:
           type: string
           format: date-time
+          nullable: true
+        crc32:
+          type: string
+          pattern: "^[0-9A-F]{8}$"
           nullable: true
         stream_url:
           type: string

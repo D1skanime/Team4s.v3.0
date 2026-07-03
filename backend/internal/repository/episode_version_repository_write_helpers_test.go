@@ -31,6 +31,20 @@ func TestSyncEpisodeVersionSelectedGroups_WritesNJunctionRows(t *testing.T) {
 	}
 }
 
+func TestApplyEpisodeVersionVariantMetadataWritesCRC32(t *testing.T) {
+	t.Parallel()
+
+	content, err := os.ReadFile("episode_version_repository_write_helpers.go")
+	if err != nil {
+		t.Fatalf("read write helper source: %v", err)
+	}
+	source := string(content)
+
+	if !strings.Contains(source, "crc32 = $3") {
+		t.Fatal("expected variant metadata update to write crc32")
+	}
+}
+
 // TestResolveImportFansubMemberGroups_RejectsUnknownGroupID prüft per Source-Scan,
 // dass ErrNotFound-Validierung vor dem Gruppen-Upsert ausgewertet wird (P81-SC6).
 // Nach dem Helper-Split (Plan 03) liegt lookupImportFansubGroupByID (ErrNotFound) in

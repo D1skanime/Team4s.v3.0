@@ -20,6 +20,7 @@ import {
   buildSnapshot,
   formatError,
   fromDateTimeLocalValue,
+  normalizeCRC32Draft,
   normalizeOptional,
   parsePositiveInt,
   parseDurationInput,
@@ -40,6 +41,7 @@ export function useEpisodeVersionEditor() {
     videoQuality: '',
     subtitleType: '',
     releaseDate: '',
+    crc32: '',
     streamURL: '',
     durationSeconds: '',
   })
@@ -235,6 +237,7 @@ export function useEpisodeVersionEditor() {
           video_quality: normalizeOptional(formState.videoQuality),
           subtitle_type: formState.subtitleType || null,
           release_date: fromDateTimeLocalValue(formState.releaseDate),
+          crc32: normalizeOptional(normalizeCRC32Draft(formState.crc32)),
           stream_url: normalizeOptional(formState.streamURL),
           duration_seconds: parsedDurationSeconds,
         },

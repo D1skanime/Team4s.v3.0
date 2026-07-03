@@ -117,6 +117,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			) AS covered_episode_numbers,
 			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
 			rv.subtitle_type,
+			rv.crc32,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			ss.url AS stream_url,
 			COALESCE(seg.segment_count, 0) AS segment_count,
@@ -185,6 +186,7 @@ func (r *EpisodeVersionRepository) listReleaseVariantsByAnimeID(
 			rv.video_quality,
 			rv.resolution,
 			rv.subtitle_type,
+			rv.crc32,
 			rev.release_date,
 			fr.release_date,
 			ss.url,
@@ -286,6 +288,7 @@ func scanReleaseVariantAsEpisodeVersion(scanner rowScanner, includeFansubs bool)
 		&item.CoveredEpisodeNumbers,
 		&item.VideoQuality,
 		&item.SubtitleType,
+		&item.CRC32,
 		&item.ReleaseDate,
 		&item.StreamURL,
 		&item.SegmentCount,
@@ -410,4 +413,3 @@ func (r *EpisodeVersionRepository) ListReleaseAssets(ctx context.Context, releas
 		Assets:    assets,
 	}, nil
 }
-

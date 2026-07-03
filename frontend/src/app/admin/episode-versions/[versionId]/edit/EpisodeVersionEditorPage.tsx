@@ -13,6 +13,7 @@ import {
   formatBytes,
   formatDateTime,
   formatDurationInput,
+  normalizeCRC32Draft,
   padEpisodeNumber,
   parseDurationInput,
 } from "./episodeVersionEditorUtils";
@@ -22,6 +23,7 @@ import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
 import styles from "./EpisodeVersionEditor.module.css";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 type ActiveTab =
   | "uebersicht"
@@ -630,13 +632,27 @@ export function EpisodeVersionEditorPage() {
                       </select>
                     </label>
                     <label className={styles.field}>
-                      <span>Aufloesung</span>
+                      <span>Auflösung</span>
                       <input
                         value={editor.formState.videoQuality}
                         onChange={(event) =>
                           editor.setFormState((current) => ({
                             ...current,
                             videoQuality: event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>CRC32</span>
+                      <Input
+                        value={editor.formState.crc32}
+                        maxLength={13}
+                        placeholder="1CC0A2E3"
+                        onChange={(event) =>
+                          editor.setFormState((current) => ({
+                            ...current,
+                            crc32: normalizeCRC32Draft(event.target.value),
                           }))
                         }
                       />

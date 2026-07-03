@@ -78,6 +78,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			) AS covered_episode_numbers,
 			COALESCE(rv.video_quality, rv.resolution) AS video_quality,
 			rv.subtitle_type,
+			rv.crc32,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			ss.url AS stream_url,
 			COALESCE(seg.segment_count, 0) AS segment_count,
@@ -128,6 +129,7 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			rv.video_quality,
 			rv.resolution,
 			rv.subtitle_type,
+			rv.crc32,
 			rev.release_date,
 			fr.release_date,
 			ss.url,
@@ -203,7 +205,7 @@ func (r *EpisodeVersionRepository) Create(
 		}
 		return nil, err
 	}
-	if err := applyEpisodeVersionVariantMetadata(ctx, tx, variantID, input.VideoQuality, input.SubtitleType, input.Title, input.DurationSeconds); err != nil {
+	if err := applyEpisodeVersionVariantMetadata(ctx, tx, variantID, input.VideoQuality, input.SubtitleType, input.CRC32, input.Title, input.DurationSeconds); err != nil {
 		return nil, err
 	}
 	if err := ensureEpisodeVersionStream(ctx, tx, variantID, input.MediaProvider, input.MediaItemID, input.StreamURL); err != nil {
@@ -265,12 +267,16 @@ func (r *EpisodeVersionRepository) Update(
 	if input.SubtitleType.Set {
 		subtitleType = input.SubtitleType.Value
 	}
+	crc32 := state.CRC32
+	if input.CRC32.Set {
+		crc32 = input.CRC32.Value
+	}
 	durationSeconds := state.DurationSeconds
 	if input.DurationSeconds.Set {
 		durationSeconds = input.DurationSeconds.Value
 	}
-	if input.Title.Set || input.VideoQuality.Set || input.SubtitleType.Set || input.DurationSeconds.Set {
-		if err := applyEpisodeVersionVariantMetadata(ctx, tx, state.VariantID, videoQuality, subtitleType, title, durationSeconds); err != nil {
+	if input.Title.Set || input.VideoQuality.Set || input.SubtitleType.Set || input.CRC32.Set || input.DurationSeconds.Set {
+		if err := applyEpisodeVersionVariantMetadata(ctx, tx, state.VariantID, videoQuality, subtitleType, crc32, title, durationSeconds); err != nil {
 			return nil, err
 		}
 	}
