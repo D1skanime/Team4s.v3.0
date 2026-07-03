@@ -475,6 +475,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260703-br4 | Fresh UI-first Viper's Creed E2E retest after auth/logout and DatePicker fixes | 2026-07-03 | this commit | [260703-br4-fresh-ui-first-viper-s-creed-e2e-retest-](./quick/260703-br4-fresh-ui-first-viper-s-creed-e2e-retest-/) |
 | 260703-bmp | Fix DatePicker react-hooks set-state-in-effect lint blocker | 2026-07-03 | this commit | [260703-bmp-fix-datepicker-react-hooks-set-state-in-](./quick/260703-bmp-fix-datepicker-react-hooks-set-state-in-/) |
 | 260703-bc9 | Fix sticky admin auth/logout state blocking leader/member E2E | 2026-07-03 | this commit | [260703-bc9-fix-sticky-admin-auth-logout-state-block](./quick/260703-bc9-fix-sticky-admin-auth-logout-state-block/) |
 | 260703-a3r | UI-first E2E Viper's Creed Jellyfin fresh reset retest | 2026-07-03 | working tree | [260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres](./quick/260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres/) |
