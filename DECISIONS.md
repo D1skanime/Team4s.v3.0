@@ -1,5 +1,27 @@
 # DECISIONS
 
+## 2026-07-04 - Public Segment Playback Must Use Bounded Segment Streams Or Clips
+
+### Decision
+Public OP/ED/Kara playback must not expose the full release-version stream with only a client-side stop timer. Admin/contributor segment preview may keep using the release-version Jellyfin stream with `startTimeTicks` for live operator verification, but public playback needs a server-owned bounded segment seam.
+
+The preferred long-term implementation is a dedicated segment playback endpoint and generated/cached short clips derived from the approved `theme_segments` / `theme_segment_playback_sources` window. Public URLs must represent only the approved segment, not the entire episode release version.
+
+### Why This Won
+- The current admin preview can start at the segment offset, but the browser is responsible for stopping after the segment length.
+- Public users could otherwise keep or reuse the release stream URL and watch beyond the approved OP/ED/Kara window.
+- Team4s already stores segment start/end, playback source, max 4-minute validation, and release-version stream metadata, so a bounded segment seam fits the existing model.
+
+### Consequences
+- Do not build public OP/ED/Kara playback directly on `/api/releases/:id/stream` as the final public contract.
+- Public segment playback should validate segment status, source ownership, start/end offsets, and max duration server-side.
+- A future segment grant should authorize only one segment for a short TTL, not the whole release version.
+- Clip generation/cache invalidation should belong to a separate backend/media phase, not the current protected Admin/Leader/Fansubber test pass.
+
+### Follow-ups Required
+- Plan a dedicated GSD slice for bounded segment playback and clip cache generation.
+- Keep the current test run focused on protected workflows; treat public playback UI as later scope.
+
 ## 2026-06-10 - Fansub Members Uses Two Domain Tables; Historical Linkage Only Through Confirmed Claims
 
 ### Decision
