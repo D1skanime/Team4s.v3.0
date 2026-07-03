@@ -131,6 +131,29 @@ describe('useReleaseSegments auth contract', () => {
     expect(result.current.segments[0]?.theme_title).toBe('Visible OP')
     expect(result.current.errorMessage).toBeNull()
   })
+
+  it('loads release segment data when only a refresh session is present', async () => {
+    mockedUseAuthSession.mockReturnValue({
+      authToken: '',
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      displayName: '',
+      isClientInitialized: true,
+    })
+
+    renderHook(() =>
+      useReleaseSegments({
+        animeId: 1,
+        groupId: 2,
+        version: 'v2',
+        releaseVariantId: 9,
+      }),
+    )
+
+    await waitFor(() => {
+      expect(mockedGetAnimeSegments).toHaveBeenCalledWith(1, 2, 'v2', undefined, 9)
+    })
+  })
 })
 
 describe('SegmenteTab table', () => {

@@ -62,7 +62,9 @@ function parseActiveTab(value: string | null): ActiveTab {
 
 export function EpisodeVersionEditorPage() {
   const searchParams = useSearchParams();
-  const { hasAccessToken, isClientInitialized } = useAuthSession();
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } =
+    useAuthSession();
+  const hasAuthSession = hasAccessToken || hasRefreshToken;
   const editor = useEpisodeVersionEditor();
   const version = editor.contextData?.version;
   const [currentUser, setCurrentUser] = useState<CurrentUserData | null>(null);
@@ -78,7 +80,7 @@ export function EpisodeVersionEditorPage() {
   );
 
   useEffect(() => {
-    if (!isClientInitialized || !hasAccessToken || !version?.id) {
+    if (!isClientInitialized || !hasAuthSession || !version?.id) {
       return;
     }
 
@@ -103,7 +105,7 @@ export function EpisodeVersionEditorPage() {
     return () => {
       cancelled = true;
     };
-  }, [hasAccessToken, isClientInitialized, version?.id]);
+  }, [hasAuthSession, isClientInitialized, version?.id]);
 
   const segmentAnimeId = editor.contextData?.version.anime_id ?? null;
   const segmentGroupId = editor.contextData?.selected_groups[0]?.id ?? null;

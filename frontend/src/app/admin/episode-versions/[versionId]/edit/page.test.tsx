@@ -32,6 +32,7 @@ vi.mock("next/navigation", () => ({
 
 const useEpisodeVersionEditorMock = vi.fn();
 const useReleaseVersionMediaMock = vi.fn<() => UseReleaseVersionMediaResult>();
+const getAuthSessionSnapshotMock = vi.fn();
 const getCurrentUserMock = vi.fn();
 const getReleaseVersionCapabilitiesMock = vi.fn();
 
@@ -55,11 +56,7 @@ vi.mock("./SegmenteTab", () => ({
 
 vi.mock("@/lib/api", () => ({
   AUTH_SESSION_CHANGED_EVENT: "team4s:auth-session-changed",
-  getAuthSessionSnapshot: () => ({
-    hasAccessToken: true,
-    hasRefreshToken: true,
-    displayName: "Admin",
-  }),
+  getAuthSessionSnapshot: () => getAuthSessionSnapshotMock(),
   getCurrentUser: () => getCurrentUserMock(),
   getReleaseVersionCapabilities: (...args: unknown[]) =>
     getReleaseVersionCapabilitiesMock(...args),
@@ -75,6 +72,11 @@ afterEach(() => {
 beforeEach(() => {
   useSearchParamsMock.mockReturnValue({
     get: () => null as string | null,
+  });
+  getAuthSessionSnapshotMock.mockReturnValue({
+    hasAccessToken: true,
+    hasRefreshToken: true,
+    displayName: "Admin",
   });
 });
 
@@ -259,6 +261,24 @@ describe("EpisodeVersionEditorPage media tab", () => {
     expect(
       await screen.findByRole("button", { name: "Media / Assets" }),
     ).not.toBeNull();
+  });
+
+  it("loads release capabilities when only a refresh session is present", async () => {
+    getAuthSessionSnapshotMock.mockReturnValue({
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      displayName: "Admin",
+    });
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    expect(
+      await screen.findByRole("button", { name: "Informationen" }),
+    ).not.toBeNull();
+    expect(getReleaseVersionCapabilitiesMock).toHaveBeenCalledWith(42);
   });
 
   it("shows the context card with fansub and release version on the media tab", async () => {

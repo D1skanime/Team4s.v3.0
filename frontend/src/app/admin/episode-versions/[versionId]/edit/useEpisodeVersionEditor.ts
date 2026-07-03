@@ -32,7 +32,8 @@ export function useEpisodeVersionEditor() {
   const router = useRouter()
 
   const versionID = useMemo(() => parsePositiveInt((params.versionId || '').trim()), [params.versionId])
-  const { hasAccessToken, isClientInitialized } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
+  const hasAuthSession = hasAccessToken || hasRefreshToken
   const [contextData, setContextData] = useState<EpisodeVersionEditorContext | null>(null)
   const [formState, setFormState] = useState<FormState>({
     title: '',
@@ -78,7 +79,7 @@ export function useEpisodeVersionEditor() {
       if (!isClientInitialized) {
         return
       }
-      if (!hasAccessToken) {
+      if (!hasAuthSession) {
         setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
         setIsLoading(false)
         return
@@ -112,11 +113,11 @@ export function useEpisodeVersionEditor() {
     }
 
     void loadData()
-  }, [hasAccessToken, isClientInitialized, versionID])
+  }, [hasAuthSession, isClientInitialized, versionID])
 
   useEffect(() => {
     const query = groupQuery.trim()
-    if (!hasAccessToken || query.length < 1) {
+    if (!hasAuthSession || query.length < 1) {
       setGroupResults([])
       setSearchMessage(null)
       setIsSearching(false)
@@ -146,10 +147,10 @@ export function useEpisodeVersionEditor() {
       cancelled = true
       window.clearTimeout(timeoutID)
     }
-  }, [groupQuery, hasAccessToken, selectedGroups])
+  }, [groupQuery, hasAuthSession, selectedGroups])
 
   async function handleScanFolder() {
-    if (!hasAccessToken || !versionID) {
+    if (!hasAuthSession || !versionID) {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
@@ -210,7 +211,7 @@ export function useEpisodeVersionEditor() {
     setErrorMessage(null)
     setSuccessMessage(null)
 
-    if (!hasAccessToken || !versionID) {
+    if (!hasAuthSession || !versionID) {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }
@@ -263,7 +264,7 @@ export function useEpisodeVersionEditor() {
     setErrorMessage(null)
     setSuccessMessage(null)
 
-    if (!hasAccessToken || !versionID) {
+    if (!hasAuthSession || !versionID) {
       setErrorMessage('Anmeldung erforderlich. Bitte zuerst anmelden.')
       return
     }

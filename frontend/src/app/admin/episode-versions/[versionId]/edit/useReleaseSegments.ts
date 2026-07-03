@@ -78,7 +78,8 @@ function deriveGenericThemeOptions(themeTypes: AdminThemeType[]): GenericSegment
 }
 
 export function useReleaseSegments({ animeId, groupId, version, releaseVariantId }: UseReleaseSegmentsOptions) {
-  const { hasAccessToken } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken } = useAuthSession()
+  const hasAuthSession = hasAccessToken || hasRefreshToken
   const [segments, setSegments] = useState<AdminThemeSegment[]>([])
   const [themes, setThemes] = useState<AdminAnimeTheme[]>([])
   const [themeTypes, setThemeTypes] = useState<AdminThemeType[]>([])
@@ -86,7 +87,7 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    if (!animeId || !hasAccessToken) return
+    if (!animeId || !hasAuthSession) return
     setIsLoading(true)
     setErrorMessage(null)
     try {
@@ -105,12 +106,12 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
     } finally {
       setIsLoading(false)
     }
-  }, [animeId, groupId, version, hasAccessToken, releaseVariantId])
+  }, [animeId, groupId, version, hasAuthSession, releaseVariantId])
 
   useEffect(() => { void load() }, [load])
 
   async function ensureThemeFromSelection(selection: string, title: string): Promise<number | null> {
-    if (!animeId || !hasAccessToken) return null
+    if (!animeId || !hasAuthSession) return null
     const selectedKind = selection.trim().toLocaleLowerCase() as GenericSegmentThemeKind
     if (!selectedKind) return null
 
@@ -141,7 +142,7 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
   }
 
   async function create(input: AdminThemeSegmentCreateRequest): Promise<AdminThemeSegment | null> {
-    if (!animeId || !hasAccessToken) return null
+    if (!animeId || !hasAuthSession) return null
     try {
       const res = await createAnimeSegment(animeId, input, undefined, releaseVariantId)
       setSegments((current) => [...current, res.data])
@@ -153,7 +154,7 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
   }
 
   async function update(segmentId: number, input: AdminThemeSegmentPatchRequest): Promise<{ data: AdminThemeSegment } | null> {
-    if (!animeId || !hasAccessToken) return null
+    if (!animeId || !hasAuthSession) return null
     try {
       const res = await updateAnimeSegment(animeId, segmentId, input, undefined, releaseVariantId)
       await load()
@@ -165,7 +166,7 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
   }
 
   async function remove(segmentId: number): Promise<boolean> {
-    if (!animeId || !hasAccessToken) return false
+    if (!animeId || !hasAuthSession) return false
     try {
       await deleteAnimeSegment(animeId, segmentId, undefined, releaseVariantId)
       setSegments((current) => current.filter((s) => s.id !== segmentId))
