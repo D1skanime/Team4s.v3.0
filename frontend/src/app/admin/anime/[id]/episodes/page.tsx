@@ -107,8 +107,8 @@ function AdminAnimeEpisodesContent() {
   }, [animeID]);
 
   const episodeCount = useMemo(
-    () => anime?.episodes?.length || 0,
-    [anime?.episodes],
+    () => groupedEpisodes.length,
+    [groupedEpisodes],
   );
 
   async function handleCreateEpisode(event: FormEvent<HTMLFormElement>) {

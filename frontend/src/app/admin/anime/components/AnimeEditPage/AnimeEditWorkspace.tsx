@@ -417,7 +417,7 @@ export function AnimeEditWorkspace({
       hasProviderSource('jellyfin:', effectiveSource, anime.source_links),
   )
   const effectiveSourceKind = adoptedJellyfinPreview ? 'Jellyfin' : formatSourceKindLabel(jellyfinContext?.source_kind)
-  const isLinkedToJellyfin = Boolean(adoptedJellyfinPreview?.jellyfin_series_id || jellyfinContext?.linked)
+  const isLinkedToJellyfin = Boolean(hasJellyfinSource || jellyfinContext?.linked)
   const coverSourceLabel =
     adoptedJellyfinPreview?.asset_slots.cover.present
       ? 'Jellyfin'
