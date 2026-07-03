@@ -110,7 +110,14 @@ func (r *EpisodeVersionRepository) GetByID(ctx context.Context, versionID int64)
 			FROM theme_segments ts
 			JOIN themes t ON t.id = ts.theme_id
 			WHERE t.anime_id = primary_episode.anime_id
-			  AND COALESCE(ts.fansub_group_id, 0) = COALESCE(rvg.fansub_group_id, 0)
+			  AND (
+				ts.fansub_group_id IS NULL
+				OR ts.fansub_group_id IN (
+					SELECT rvg_segment.fansub_group_id
+					FROM release_version_groups rvg_segment
+					WHERE rvg_segment.release_version_id = rev.id
+				)
+			  )
 			  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
 			  AND (ts.start_episode IS NULL OR ts.start_episode <= CAST(primary_episode.episode_number AS INTEGER))
 			  AND (ts.end_episode IS NULL OR ts.end_episode >= CAST(primary_episode.episode_number AS INTEGER))

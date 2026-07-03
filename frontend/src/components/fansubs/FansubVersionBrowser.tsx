@@ -99,6 +99,10 @@ function resolveReleaseName(version: EpisodeVersion): string {
   return `Release #${version.id}`
 }
 
+function formatVersionCount(count: number): string {
+  return `+${count} ${count === 1 ? 'Version' : 'Versionen'}`
+}
+
 function getSummaryVersion(
   episode: GroupedEpisode,
   activeFansubGroupID: number | null,
@@ -208,7 +212,7 @@ export function FansubVersionBrowser({ animeID, fansubs, episodes, onActiveFansu
                     <p className={styles.episodeNumber}>Folge {episode.episode_number}</p>
                     <p className={styles.summaryLine}>{episodeTitle}</p>
                   </div>
-                  <span className={styles.countBadge}>+{episode.version_count} Versionen</span>
+                  <span className={styles.countBadge}>{formatVersionCount(episode.version_count)}</span>
                 </button>
 
                 {expanded ? (

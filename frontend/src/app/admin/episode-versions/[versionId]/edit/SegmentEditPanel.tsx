@@ -78,6 +78,10 @@ export function SegmentEditPanel({
   const effectiveDuration = editingSegment?.playback_duration_seconds ?? durationSeconds ?? null
   const exceedsDuration = effectiveDuration != null && endSeconds != null && endSeconds > effectiveDuration
   const exceedsMaxSegmentWindow = startSeconds != null && endSeconds != null && endSeconds - startSeconds > 240
+  const hasInvalidTimeRange =
+    (startSeconds != null && endSeconds != null && endSeconds <= startSeconds) ||
+    exceedsMaxSegmentWindow
+  const saveDisabled = isSaving || hasInvalidTimeRange
   const runtimeKnown = effectiveDuration != null
   const runtimeFromPlayback = editingSegment?.playback_duration_seconds != null
   const previewDurationSeconds =
@@ -480,7 +484,7 @@ export function SegmentEditPanel({
           <button type="button" className={styles.panelCancelButton} onClick={onClose}>
             Abbrechen
           </button>
-          <button type="button" className={styles.panelSaveButton} onClick={onSave} disabled={isSaving}>
+          <button type="button" className={styles.panelSaveButton} onClick={onSave} disabled={saveDisabled}>
             {isSaving ? 'Speichert...' : 'Speichern'}
           </button>
         </div>

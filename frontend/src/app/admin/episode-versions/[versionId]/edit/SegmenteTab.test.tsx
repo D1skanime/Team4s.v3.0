@@ -14,6 +14,7 @@ import {
 
 import { parseFlexibleTimeInput, formatTimeInput } from './SegmenteTab.helpers'
 import { useReleaseSegments } from './useReleaseSegments'
+import { SegmentEditPanel } from './SegmentEditPanel'
 import {
   getAdminAnimeThemes,
   getAdminThemeTypes,
@@ -171,6 +172,50 @@ describe('SegmenteTab table', () => {
     fireEvent.click(within(activeRow as HTMLTableRowElement).getByTitle('Bearbeiten'))
 
     expect(await screen.findByText('Segment bearbeiten')).toBeTruthy()
+  })
+})
+
+describe('SegmentEditPanel validation', () => {
+  it('deaktiviert Speichern, wenn der Segment-Zeitbereich länger als 4 Minuten ist', () => {
+    render(
+      <SegmentEditPanel
+        editingSegment={null}
+        formState={{
+          themeKind: 'op',
+          themeTitle: '',
+          startEpisode: '1',
+          endEpisode: '1',
+          startTime: '0:00',
+          endTime: '5:00',
+          sourceType: 'none',
+          sourceRef: '',
+          sourceLabel: '',
+        }}
+        pendingUploadFile={null}
+        durationSeconds={1425}
+        genericThemeOptions={[{ key: 'op', label: 'OP Kara', preferredThemeTypeId: 1 }]}
+        isSaving={false}
+        formError={null}
+        isUploading={false}
+        isDeletingAsset={false}
+        isLoadingReuseCandidates={false}
+        isAttachingReuse={false}
+        uploadError={null}
+        reuseCandidates={[]}
+        reuseError={null}
+        previewStreamHref={null}
+        onClose={vi.fn()}
+        onFormChange={vi.fn()}
+        onPendingUploadFileChange={vi.fn()}
+        onSave={vi.fn()}
+        onAssetUpload={vi.fn()}
+        onAssetDelete={vi.fn()}
+        onAttachReuseCandidate={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('Segment-Zeitbereich darf maximal 4 Minuten lang sein.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', true)
   })
 })
 

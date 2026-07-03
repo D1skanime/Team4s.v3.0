@@ -190,6 +190,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
   const infoBannerURL = resolveInfoBannerURL(backdropManifest)
   const infoLogoURL = resolveInfoLogoURL(backdropManifest)
+  const episodeCount = groupedEpisodesResponse?.data.episodes.length ?? anime.episodes.length
 
   // Get cover image for banner background
   const coverUrl = getCoverUrl(anime.cover_image)
@@ -357,7 +358,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
       {/* Content Area (Episodes, Comments) */}
       <div className={styles.contentArea}>
         <section className={styles.episodesSection}>
-          <h2>Episoden ({anime.episodes.length})</h2>
+          <h2>Episoden ({episodeCount})</h2>
           {animeFansubsResponse && animeFansubsResponse.data.length > 0 && (
             <div className={styles.fansubRow}>
               {animeFansubsResponse.data.map((relation) =>
