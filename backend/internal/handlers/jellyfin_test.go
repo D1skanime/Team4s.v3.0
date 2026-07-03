@@ -227,6 +227,14 @@ func TestNormalizeNullableStringPtr(t *testing.T) {
 	}
 }
 
+func TestJellyfinSeriesIDFromAnimeSourceUsesSourceLinks(t *testing.T) {
+	source := "anisearch:12345"
+	got := jellyfinSeriesIDFromAnimeSource(&source, []string{"anisearch:12345", "jellyfin:series-42"})
+	if got != "series-42" {
+		t.Fatalf("expected jellyfin series ID from source_links, got %q", got)
+	}
+}
+
 func TestInt16FromCount(t *testing.T) {
 	if int16FromCount(0) != nil {
 		t.Fatal("expected nil for zero")

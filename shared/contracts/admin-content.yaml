@@ -977,6 +977,9 @@ types:
     genre: string | null
     description: string | null
     cover_image: string | null
+    source: string | null
+    source_links: string[]
+    folder_name: string | null
   AdminAnimePatchRequest:
     title: string (optional, min: 1, max: 255)
     title_de: string | null
@@ -989,6 +992,8 @@ types:
     genre: string | null
     description: string | null
     cover_image: string | null
+    source: string | null
+    folder_name: string | null
   AdminEpisodeCreateRequest:
     anime_id: int64 (required, minimum: 1)
     episode_number: string (required, min: 1, max: 32)
@@ -1093,6 +1098,11 @@ types:
     genre: string | null
     description: string | null
     cover_image: string | null
+    source: string | null
+    source_links: string[]
+    folder_name: string | null
+    anisearch_id: string | null
+    jellyfin_series_id: string | null
   AdminEpisodeItem:
     id: int64
     anime_id: int64

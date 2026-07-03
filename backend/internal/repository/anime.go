@@ -97,7 +97,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 
 	query := `
 		SELECT id, title, title_de, title_en, type, content_type, status, year,
-		       max_episodes, genre, description, cover_image, source, folder_name, view_count
+		       max_episodes, genre, description, cover_image, source, folder_name, anisearch_id, view_count
 		FROM anime
 		WHERE id = $1
 	`
@@ -121,6 +121,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 		&anime.CoverImage,
 		&anime.Source,
 		&anime.FolderName,
+		&anime.AniSearchID,
 		&anime.ViewCount,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -129,6 +130,15 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 	if err != nil {
 		return nil, fmt.Errorf("query anime detail %d: %w", id, err)
 	}
+	sourceLinks, err := loadAnimeSourceLinks(ctx, r.db, id)
+	if err != nil {
+		return nil, err
+	}
+	anime.SourceLinks = sourceLinks
+	if anime.AniSearchID == nil {
+		anime.AniSearchID = normalizeNullableStringValue(extractAnimeSourceIDByPrefix(anime.Source, sourceLinks, "anisearch:"))
+	}
+	anime.JellyfinSeriesID = normalizeNullableStringValue(extractAnimeSourceIDByPrefix(anime.Source, sourceLinks, "jellyfin:"))
 
 	if anime.Genre != nil && *anime.Genre != "" {
 		parts := strings.Split(*anime.Genre, ",")

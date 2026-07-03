@@ -132,6 +132,10 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 	if !schema.HasFolderName {
 		folderNameSelect = `NULL::text`
 	}
+	aniSearchIDSelect := `NULL::text`
+	if schema.HasAniSearchID {
+		aniSearchIDSelect = `anime.anisearch_id::text`
+	}
 
 	query := `
 		SELECT
@@ -169,7 +173,8 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 			anime.description,
 			poster.file_path,
 			` + sourceSelect + ` AS source,
-			` + folderNameSelect + ` AS folder_name
+			` + folderNameSelect + ` AS folder_name,
+			` + aniSearchIDSelect + ` AS anisearch_id
 		FROM anime
 		LEFT JOIN anime_types at ON at.id = anime.anime_type_id
 		LEFT JOIN LATERAL (
@@ -202,6 +207,7 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 		&anime.CoverImage,
 		&anime.Source,
 		&anime.FolderName,
+		&anime.AniSearchID,
 	); err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, ErrNotFound
@@ -212,6 +218,15 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 	anime.Type = mapAnimeTypeNameToAPI(animeType)
 	anime.ViewCount = 0
 	anime.Episodes = []models.EpisodeListItem{}
+	sourceLinks, err := loadAnimeSourceLinks(ctx, r.db, id)
+	if err != nil {
+		return nil, err
+	}
+	anime.SourceLinks = sourceLinks
+	if anime.AniSearchID == nil {
+		anime.AniSearchID = normalizeNullableStringValue(extractAnimeSourceIDByPrefix(anime.Source, sourceLinks, "anisearch:"))
+	}
+	anime.JellyfinSeriesID = normalizeNullableStringValue(extractAnimeSourceIDByPrefix(anime.Source, sourceLinks, "jellyfin:"))
 
 	if normalized, err := r.loadNormalizedAnimeMetadata(ctx, anime.ID); err != nil {
 		return nil, err

@@ -82,6 +82,7 @@ func TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns(t *testin
 			HasStatus:      true,
 			HasMaxEpisodes: true,
 			HasSource:      true,
+			HasAniSearchID: true,
 		},
 		7,
 		models.AdminAnimeCreateInput{
@@ -93,15 +94,75 @@ func TestBuildCreateAnimeV2InsertQuery_IncludesAvailableRuntimeColumns(t *testin
 	)
 
 	normalized := strings.ToLower(query)
-	required := []string{"title", "type", "content_type", "status", "max_episodes", "source", "folder_name", "slug", "modified_by"}
+	required := []string{"title", "type", "content_type", "status", "max_episodes", "source", "anisearch_id", "folder_name", "slug", "modified_by"}
 	for _, fragment := range required {
 		if !strings.Contains(normalized, fragment) {
 			t.Fatalf("expected query to contain %q: %s", fragment, query)
 		}
 	}
 
-	if len(args) != 12 {
-		t.Fatalf("expected 12 args for full runtime schema, got %d", len(args))
+	if len(args) != 13 {
+		t.Fatalf("expected 13 args for full runtime schema, got %d", len(args))
+	}
+}
+
+func TestBuildCreateAnimeV2InsertQuery_DerivesAniSearchIDWhenPrimarySourceIsJellyfin(t *testing.T) {
+	t.Parallel()
+
+	jellyfinSource := "jellyfin:series-42"
+	query, args := buildCreateAnimeV2InsertQuery(
+		animeV2SchemaInfo{
+			HasSlug:        true,
+			HasSource:      true,
+			HasAniSearchID: true,
+		},
+		7,
+		models.AdminAnimeCreateInput{
+			Title:       "Lain",
+			Type:        "tv",
+			ContentType: "anime",
+			Status:      "ongoing",
+			Source:      &jellyfinSource,
+			SourceLinks: []string{"jellyfin:series-42", "anisearch:12345"},
+		},
+		"lain",
+		nil,
+	)
+
+	if !strings.Contains(strings.ToLower(query), "anisearch_id") {
+		t.Fatalf("expected query to persist anisearch_id: %s", query)
+	}
+	got, ok := args[6].(*string)
+	if !ok || got == nil || *got != "12345" {
+		t.Fatalf("expected derived string anisearch id arg, got %#v", args[6])
+	}
+}
+
+func TestBuildCreateAnimeV2InsertQuery_DerivesNumericAniSearchID(t *testing.T) {
+	t.Parallel()
+
+	source := "anisearch:12345"
+	_, args := buildCreateAnimeV2InsertQuery(
+		animeV2SchemaInfo{
+			HasSlug:             true,
+			HasAniSearchID:      true,
+			AniSearchIDIsNumber: true,
+		},
+		7,
+		models.AdminAnimeCreateInput{
+			Title:       "Lain",
+			Type:        "tv",
+			ContentType: "anime",
+			Status:      "ongoing",
+			Source:      &source,
+		},
+		"lain",
+		nil,
+	)
+
+	got, ok := args[5].(*int64)
+	if !ok || got == nil || *got != 12345 {
+		t.Fatalf("expected derived numeric anisearch id arg, got %#v", args[5])
 	}
 }
 

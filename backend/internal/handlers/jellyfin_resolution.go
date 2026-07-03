@@ -114,6 +114,13 @@ func jellyfinSeriesIDFromSource(source *string) string {
 	return strings.TrimSpace(trimmed[len("jellyfin:"):])
 }
 
+func jellyfinSeriesIDFromAnimeSource(source *string, sourceLinks []string) string {
+	return firstNonEmptyString(
+		jellyfinSeriesIDFromSource(source),
+		extractJellyfinSeriesIDFromSourceLinks(sourceLinks),
+	)
+}
+
 // findExactJellyfinSeriesMatches filters items by exact title match.
 func findExactJellyfinSeriesMatches(items []jellyfinSeriesItem, title string) []jellyfinSeriesItem {
 	normalizedTitle := normalizeJellyfinLookup(title)

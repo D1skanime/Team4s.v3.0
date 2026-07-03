@@ -12,20 +12,22 @@ type animeSchemaQuerier interface {
 }
 
 type animeV2SchemaInfo struct {
-	HasSlug        bool
-	HasContentType bool
-	HasStatus      bool
-	HasMaxEpisodes bool
-	HasSource      bool
-	HasFolderName  bool
-	HasCoverImage  bool
+	HasSlug             bool
+	HasContentType      bool
+	HasStatus           bool
+	HasMaxEpisodes      bool
+	HasSource           bool
+	HasFolderName       bool
+	HasCoverImage       bool
+	HasAniSearchID      bool
+	AniSearchIDIsNumber bool
 }
 
 func loadAnimeV2SchemaInfo(ctx context.Context, db animeSchemaQuerier) (animeV2SchemaInfo, error) {
 	rows, err := db.Query(
 		ctx,
 		`
-		SELECT column_name
+		SELECT column_name, data_type
 		FROM information_schema.columns
 		WHERE table_schema = current_schema()
 		  AND table_name = 'anime'
@@ -39,7 +41,8 @@ func loadAnimeV2SchemaInfo(ctx context.Context, db animeSchemaQuerier) (animeV2S
 	var info animeV2SchemaInfo
 	for rows.Next() {
 		var columnName string
-		if err := rows.Scan(&columnName); err != nil {
+		var dataType string
+		if err := rows.Scan(&columnName, &dataType); err != nil {
 			return animeV2SchemaInfo{}, fmt.Errorf("scan anime schema column: %w", err)
 		}
 
@@ -58,6 +61,12 @@ func loadAnimeV2SchemaInfo(ctx context.Context, db animeSchemaQuerier) (animeV2S
 			info.HasFolderName = true
 		case "cover_image":
 			info.HasCoverImage = true
+		case "anisearch_id":
+			info.HasAniSearchID = true
+			switch dataType {
+			case "bigint", "integer", "numeric", "smallint":
+				info.AniSearchIDIsNumber = true
+			}
 		}
 	}
 	if err := rows.Err(); err != nil {

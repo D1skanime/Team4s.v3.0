@@ -72,6 +72,16 @@ function formatSourceKindLabel(kind?: 'manual' | 'jellyfin'): string {
   return 'Manuell'
 }
 
+function hasProviderSource(
+  prefix: 'anisearch:' | 'jellyfin:',
+  source?: string | null,
+  sourceLinks?: string[] | null,
+): boolean {
+  const normalizedPrefix = prefix.toLowerCase()
+  if ((source || '').trim().toLowerCase().startsWith(normalizedPrefix)) return true
+  return (sourceLinks ?? []).some((value) => value.trim().toLowerCase().startsWith(normalizedPrefix))
+}
+
 export function AnimeEditWorkspace({
   anime,
   onSaved,
@@ -398,6 +408,14 @@ export function AnimeEditWorkspace({
     || jellyfinContext?.jellyfin_series_id
     || anime.jellyfin_series_id
     || ''
+  const hasAniSearchSource = Boolean(
+    anime.anisearch_id ||
+      hasProviderSource('anisearch:', effectiveSource, anime.source_links),
+  )
+  const hasJellyfinSource = Boolean(
+    effectiveJellyfinSeriesID ||
+      hasProviderSource('jellyfin:', effectiveSource, anime.source_links),
+  )
   const effectiveSourceKind = adoptedJellyfinPreview ? 'Jellyfin' : formatSourceKindLabel(jellyfinContext?.source_kind)
   const isLinkedToJellyfin = Boolean(adoptedJellyfinPreview?.jellyfin_series_id || jellyfinContext?.linked)
   const coverSourceLabel =
@@ -768,8 +786,8 @@ export function AnimeEditWorkspace({
       missingFields={reviewMissingFields}
       hasTitle={patch.values.title.trim().length > 0}
       hasCover={Boolean(persistedAssets.cover?.url || patch.values.coverImage.trim())}
-      hasAniSearch={Boolean((patch.values.source || hydratedState.values.source).startsWith('anisearch:'))}
-      hasJellyfin={Boolean((patch.values.source || hydratedState.values.source).startsWith('jellyfin:'))}
+      hasAniSearch={hasAniSearchSource}
+      hasJellyfin={hasJellyfinSource}
       assetCount={
         (persistedAssets.backgrounds?.length ?? 0) +
         (persistedAssets.banner ? 1 : 0) +

@@ -7776,6 +7776,26 @@ components:
         cover_image:
           type: string
           nullable: true
+        source:
+          type: string
+          nullable: true
+          description: Primary anime provenance source, e.g. jellyfin:<id> or anisearch:<id>.
+        source_links:
+          type: array
+          description: All normalized provider source links associated with the neutral anime record.
+          items:
+            type: string
+        folder_name:
+          type: string
+          nullable: true
+        anisearch_id:
+          type: string
+          nullable: true
+          description: AniSearch ID derived from source/source_links for compatibility with existing mapper flows.
+        jellyfin_series_id:
+          type: string
+          nullable: true
+          description: Jellyfin series ID derived from source/source_links.
         view_count:
           type: integer
           format: int32
@@ -8014,6 +8034,19 @@ components:
         cover_image:
           type: string
           nullable: true
+        source:
+          type: string
+          nullable: true
+          description: Primary anime provenance source, e.g. jellyfin:<id> or anisearch:<id>.
+        source_links:
+          type: array
+          description: Additional normalized provider source links associated with the neutral anime record.
+          items:
+            type: string
+        folder_name:
+          type: string
+          nullable: true
+          description: Provider folder/path hint used by Jellyfin matching.
     AdminAnimePatchRequest:
       type: object
       minProperties: 1
@@ -8057,6 +8090,14 @@ components:
         cover_image:
           type: string
           nullable: true
+        source:
+          type: string
+          nullable: true
+          description: Primary anime provenance source, e.g. jellyfin:<id> or anisearch:<id>.
+        folder_name:
+          type: string
+          nullable: true
+          description: Provider folder/path hint used by Jellyfin matching.
     AdminAnimeJellyfinSyncRequest:
       type: object
       properties:
@@ -8180,6 +8221,26 @@ components:
         cover_image:
           type: string
           nullable: true
+        source:
+          type: string
+          nullable: true
+          description: Primary anime provenance source, e.g. jellyfin:<id> or anisearch:<id>.
+        source_links:
+          type: array
+          description: All normalized provider source links associated with the neutral anime record.
+          items:
+            type: string
+        folder_name:
+          type: string
+          nullable: true
+        anisearch_id:
+          type: string
+          nullable: true
+          description: AniSearch ID derived from source/source_links for compatibility with existing mapper flows.
+        jellyfin_series_id:
+          type: string
+          nullable: true
+          description: Jellyfin series ID derived from source/source_links.
     AdminEpisodeItem:
       type: object
       required:

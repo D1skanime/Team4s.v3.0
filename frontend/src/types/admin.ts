@@ -17,6 +17,11 @@ export interface AdminAnimeItem {
   genre?: string;
   description?: string;
   cover_image?: string;
+  source?: string;
+  source_links?: string[];
+  folder_name?: string;
+  anisearch_id?: string;
+  jellyfin_series_id?: string;
 }
 
 /** Kompakte Episoden-Datendarstellung für die Admin-Listensicht. */

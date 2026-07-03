@@ -338,6 +338,18 @@ func loadAdminAnimeItemV2(
 	if schema.HasMaxEpisodes {
 		maxEpisodesSelect = "anime.max_episodes"
 	}
+	sourceSelect := `NULL::text`
+	if schema.HasSource {
+		sourceSelect = "anime.source"
+	}
+	folderNameSelect := `NULL::text`
+	if schema.HasFolderName {
+		folderNameSelect = "anime.folder_name"
+	}
+	aniSearchIDSelect := `NULL::text`
+	if schema.HasAniSearchID {
+		aniSearchIDSelect = "anime.anisearch_id::text"
+	}
 
 	query := fmt.Sprintf(`
 		SELECT
@@ -373,7 +385,10 @@ func loadAdminAnimeItemV2(
 			anime.year,
 			`+maxEpisodesSelect+` AS max_episodes,
 			anime.description,
-			poster.file_path
+			poster.file_path,
+			`+sourceSelect+` AS source,
+			`+folderNameSelect+` AS folder_name,
+			`+aniSearchIDSelect+` AS anisearch_id
 		FROM anime
 		LEFT JOIN anime_types at ON at.id = anime.anime_type_id
 		LEFT JOIN LATERAL (
@@ -401,6 +416,9 @@ func loadAdminAnimeItemV2(
 		&item.MaxEpisodes,
 		&item.Description,
 		&item.CoverImage,
+		&item.Source,
+		&item.FolderName,
+		&item.AniSearchID,
 	); errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
 	} else if err != nil {
@@ -408,6 +426,15 @@ func loadAdminAnimeItemV2(
 	}
 
 	item.Type = mapAnimeTypeNameToAPI(animeType)
+	sourceLinks, err := loadAnimeSourceLinks(ctx, tx, animeID)
+	if err != nil {
+		return nil, err
+	}
+	item.SourceLinks = sourceLinks
+	if item.AniSearchID == nil {
+		item.AniSearchID = normalizeNullableStringValue(extractAnimeSourceIDByPrefix(item.Source, sourceLinks, "anisearch:"))
+	}
+	item.JellyfinSeriesID = normalizeNullableStringValue(extractAnimeSourceIDByPrefix(item.Source, sourceLinks, "jellyfin:"))
 
 	if normalized, err := loadNormalizedAnimeMetadata(ctx, tx, animeID); err != nil {
 		return nil, err

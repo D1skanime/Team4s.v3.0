@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -67,7 +67,7 @@ func (h *AdminContentHandler) PreviewAnimeFromJellyfin(c *gin.Context) {
 	seriesTitles := uniqueLookupTitles(animeSource.Title, animeSource.TitleDE, animeSource.TitleEN)
 	resolvedSeriesID := strings.TrimSpace(input.JellyfinSeriesID)
 	if resolvedSeriesID == "" {
-		resolvedSeriesID = jellyfinSeriesIDFromSource(animeSource.Source)
+		resolvedSeriesID = jellyfinSeriesIDFromAnimeSource(animeSource.Source, animeSource.SourceLinks)
 	}
 
 	series, statusCode, resolveErr := h.resolveJellyfinSeries(c.Request.Context(), seriesTitles, resolvedSeriesID)

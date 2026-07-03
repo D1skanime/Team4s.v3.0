@@ -306,19 +306,24 @@ type AdminEpisodePatchInput struct {
 }
 
 type AdminAnimeItem struct {
-	ID          int64    `json:"id"`
-	Title       string   `json:"title"`
-	TitleDE     *string  `json:"title_de,omitempty"`
-	TitleEN     *string  `json:"title_en,omitempty"`
-	Type        string   `json:"type"`
-	ContentType string   `json:"content_type"`
-	Status      string   `json:"status"`
-	Year        *int16   `json:"year,omitempty"`
-	MaxEpisodes *int16   `json:"max_episodes,omitempty"`
-	Genre       *string  `json:"genre,omitempty"`
-	Description *string  `json:"description,omitempty"`
-	CoverImage  *string  `json:"cover_image,omitempty"`
-	Tags        []string `json:"tags,omitempty"`
+	ID               int64    `json:"id"`
+	Title            string   `json:"title"`
+	TitleDE          *string  `json:"title_de,omitempty"`
+	TitleEN          *string  `json:"title_en,omitempty"`
+	Type             string   `json:"type"`
+	ContentType      string   `json:"content_type"`
+	Status           string   `json:"status"`
+	Year             *int16   `json:"year,omitempty"`
+	MaxEpisodes      *int16   `json:"max_episodes,omitempty"`
+	Genre            *string  `json:"genre,omitempty"`
+	Description      *string  `json:"description,omitempty"`
+	CoverImage       *string  `json:"cover_image,omitempty"`
+	Source           *string  `json:"source,omitempty"`
+	SourceLinks      []string `json:"source_links,omitempty"`
+	FolderName       *string  `json:"folder_name,omitempty"`
+	AniSearchID      *string  `json:"anisearch_id,omitempty"`
+	JellyfinSeriesID *string  `json:"jellyfin_series_id,omitempty"`
+	Tags             []string `json:"tags,omitempty"`
 }
 
 type AdminAnimeDeleteResult struct {

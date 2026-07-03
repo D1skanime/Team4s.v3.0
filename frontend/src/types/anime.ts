@@ -63,7 +63,9 @@ export interface AnimeDetail {
   description?: string
   cover_image?: string
   source?: string
+  source_links?: string[]
   folder_name?: string
+  anisearch_id?: string
   jellyfin_series_id?: string
   jellyfin_series_path?: string
   view_count: number

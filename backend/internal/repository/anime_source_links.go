@@ -66,3 +66,18 @@ func loadAnimeSourceLinks(ctx context.Context, q animeSourceLinkQueryer, animeID
 
 	return result, nil
 }
+
+func extractAnimeSourceIDByPrefix(primary *string, sourceLinks []string, prefix string) string {
+	normalizedPrefix := strings.ToLower(strings.TrimSpace(prefix))
+	if normalizedPrefix == "" {
+		return ""
+	}
+	for _, source := range append([]string{derefString(primary)}, sourceLinks...) {
+		trimmed := strings.TrimSpace(source)
+		if trimmed == "" || !strings.HasPrefix(strings.ToLower(trimmed), normalizedPrefix) {
+			continue
+		}
+		return strings.TrimSpace(trimmed[len(normalizedPrefix):])
+	}
+	return ""
+}

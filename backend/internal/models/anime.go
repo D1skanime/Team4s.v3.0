@@ -40,24 +40,27 @@ type EpisodeListItem struct {
 // AnimeDetail enthält die vollständige Detailansicht eines Anime inklusive Episodenliste,
 // wird von der öffentlichen Anime-Detailseite verwendet.
 type AnimeDetail struct {
-	ID          int64             `json:"id"`
-	Title       string            `json:"title"`
-	TitleDE     *string           `json:"title_de,omitempty"`
-	TitleEN     *string           `json:"title_en,omitempty"`
-	Type        string            `json:"type"`
-	ContentType string            `json:"content_type"`
-	Status      string            `json:"status"`
-	Year        *int16            `json:"year,omitempty"`
-	MaxEpisodes *int16            `json:"max_episodes,omitempty"`
-	Genre       *string           `json:"genre,omitempty"`
-	Genres      []string          `json:"genres,omitempty"`
-	Tags        []string          `json:"tags,omitempty"`
-	Description *string           `json:"description,omitempty"`
-	CoverImage  *string           `json:"cover_image,omitempty"`
-	Source      *string           `json:"source,omitempty"`
-	FolderName  *string           `json:"folder_name,omitempty"`
-	ViewCount   int32             `json:"view_count"`
-	Episodes    []EpisodeListItem `json:"episodes"`
+	ID               int64             `json:"id"`
+	Title            string            `json:"title"`
+	TitleDE          *string           `json:"title_de,omitempty"`
+	TitleEN          *string           `json:"title_en,omitempty"`
+	Type             string            `json:"type"`
+	ContentType      string            `json:"content_type"`
+	Status           string            `json:"status"`
+	Year             *int16            `json:"year,omitempty"`
+	MaxEpisodes      *int16            `json:"max_episodes,omitempty"`
+	Genre            *string           `json:"genre,omitempty"`
+	Genres           []string          `json:"genres,omitempty"`
+	Tags             []string          `json:"tags,omitempty"`
+	Description      *string           `json:"description,omitempty"`
+	CoverImage       *string           `json:"cover_image,omitempty"`
+	Source           *string           `json:"source,omitempty"`
+	SourceLinks      []string          `json:"source_links,omitempty"`
+	FolderName       *string           `json:"folder_name,omitempty"`
+	AniSearchID      *string           `json:"anisearch_id,omitempty"`
+	JellyfinSeriesID *string           `json:"jellyfin_series_id,omitempty"`
+	ViewCount        int32             `json:"view_count"`
+	Episodes         []EpisodeListItem `json:"episodes"`
 }
 
 // AnimeMediaLookup enthält die für Medienpfad-Lookups benötigten Titelfelder eines Anime,

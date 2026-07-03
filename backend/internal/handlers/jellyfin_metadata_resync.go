@@ -21,12 +21,12 @@ type adminAnimeJellyfinMetadataRequest struct {
 
 // adminAnimeJellyfinMetadataApplyRequest enthält die Parameter zum Anwenden von Jellyfin-Metadaten auf einen Anime.
 type adminAnimeJellyfinMetadataApplyRequest struct {
-	JellyfinSeriesID *string `json:"jellyfin_series_id"`
-	ApplyCover       *bool   `json:"apply_cover"`
-	ApplyBanner      *bool   `json:"apply_banner"`
-	ApplyLogo        *bool   `json:"apply_logo"`
-	ApplyBackgrounds *bool   `json:"apply_backgrounds"`
-	ApplyBackgroundVideo *bool `json:"apply_background_video"`
+	JellyfinSeriesID     *string `json:"jellyfin_series_id"`
+	ApplyCover           *bool   `json:"apply_cover"`
+	ApplyBanner          *bool   `json:"apply_banner"`
+	ApplyLogo            *bool   `json:"apply_logo"`
+	ApplyBackgrounds     *bool   `json:"apply_backgrounds"`
+	ApplyBackgroundVideo *bool   `json:"apply_background_video"`
 }
 
 // validateAdminAnimeJellyfinMetadataSeriesID prüft und bereinigt eine optionale Jellyfin-Serien-ID.
@@ -302,7 +302,7 @@ func (h *AdminContentHandler) buildAnimeJellyfinContext(
 ) (models.AdminAnimeJellyfinProvenanceContext, int, error) {
 	seriesID := strings.TrimSpace(explicitSeriesID)
 	if seriesID == "" {
-		seriesID = jellyfinSeriesIDFromSource(animeSource.Source)
+		seriesID = jellyfinSeriesIDFromAnimeSource(animeSource.Source, animeSource.SourceLinks)
 	}
 
 	result := models.AdminAnimeJellyfinProvenanceContext{
@@ -372,7 +372,7 @@ func (h *AdminContentHandler) buildAnimeJellyfinMetadataPreview(
 	seriesTitles := uniqueLookupTitles(animeSource.Title, animeSource.TitleDE, animeSource.TitleEN)
 	resolvedSeriesID := strings.TrimSpace(explicitSeriesID)
 	if resolvedSeriesID == "" {
-		resolvedSeriesID = jellyfinSeriesIDFromSource(animeSource.Source)
+		resolvedSeriesID = jellyfinSeriesIDFromAnimeSource(animeSource.Source, animeSource.SourceLinks)
 	}
 	if resolvedSeriesID == "" && len(seriesTitles) == 0 {
 		return models.AdminAnimeJellyfinMetadataPreviewResult{}, http.StatusBadRequest, errors.New("kein jellyfin-link für diesen anime vorhanden")

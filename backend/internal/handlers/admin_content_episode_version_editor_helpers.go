@@ -125,7 +125,7 @@ func (h *AdminContentHandler) resolveEpisodeVersionFolderPath(
 		return nil, "", nil
 	}
 
-	if seriesID := extractJellyfinSourceID(animeSource.Source); seriesID != "" {
+	if seriesID := jellyfinSeriesIDFromAnimeSource(animeSource.Source, animeSource.SourceLinks); seriesID != "" {
 		if h.ensureJellyfinConfiguredForEditor() {
 			series, err := h.getJellyfinSeriesByID(ctx, seriesID)
 			if err != nil {

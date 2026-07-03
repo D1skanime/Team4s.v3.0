@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -182,6 +183,15 @@ func buildCreateAnimeV2InsertQuery(
 		columns = append(columns, "source")
 		args = append(args, input.Source)
 	}
+	if schema.HasAniSearchID {
+		columns = append(columns, "anisearch_id")
+		aniSearchID := extractAnimeSourceIDByPrefix(input.Source, input.SourceLinks, "anisearch:")
+		if schema.AniSearchIDIsNumber {
+			args = append(args, nullableInt64(aniSearchID))
+		} else {
+			args = append(args, normalizeNullableStringValue(aniSearchID))
+		}
+	}
 
 	columns = append(columns, "folder_name", "slug", "modified_by")
 	args = append(args, input.FolderName, slug, modifiedBy)
@@ -200,6 +210,26 @@ func buildCreateAnimeV2InsertQuery(
 	`, strings.Join(columns, ",\n\t\t\t"), strings.Join(placeholders, ", "))
 
 	return query, args
+}
+
+func nullableInt64(value string) *int64 {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil
+	}
+	parsed, err := strconv.ParseInt(trimmed, 10, 64)
+	if err != nil {
+		return nil
+	}
+	return &parsed
+}
+
+func normalizeNullableStringValue(value string) *string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }
 
 func resolveAnimeTypeID(ctx context.Context, tx pgx.Tx, rawType string) (int64, error) {
