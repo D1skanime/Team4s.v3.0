@@ -82,6 +82,18 @@ $truncateSql = "TRUNCATE TABLE $($quotedTables -join ', ') RESTART IDENTITY CASC
 Write-Output "Resetting disposable local anime/import/media state in team4s_v2..."
 Invoke-LocalPsql $truncateSql | Out-Null
 
+$referenceSeedSql = @"
+INSERT INTO public.theme_types (name) VALUES
+    ('OP Kara'),
+    ('ED Kara'),
+    ('Insert Kara'),
+    ('Outro')
+ON CONFLICT (name) DO NOTHING;
+"@
+
+Write-Output "Restoring local reference data..."
+Invoke-LocalPsql $referenceSeedSql | Out-Null
+
 $countSql = @"
 WITH tracked(table_name) AS (
     VALUES
@@ -94,6 +106,7 @@ WITH tracked(table_name) AS (
         ('fansub_releases'),
         ('release_versions'),
         ('release_variants'),
+        ('theme_types'),
         ('release_streams'),
         ('stream_sources'),
         ('media_assets'),
