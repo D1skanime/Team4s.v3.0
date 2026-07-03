@@ -1,6 +1,6 @@
 ---
 date: 2026-07-03
-status: in_progress
+status: completed
 scenario: fresh UI-first Viper's Creed E2E rerun with Jellyfin gate
 ---
 
@@ -112,6 +112,12 @@ Important extracted matching rule:
     - Normaler Playwright/Chromium konnte das C-Subs-Logo ueber die Gruppen-UI hochladen.
     - Normaler Playwright/Chromium konnte einen Screenshot ueber `/admin/episode-versions/2/edit` in der Kategorie `Screenshot` hochladen.
     - Diagnose bestaetigt: Release-Version-Medium landet in `release_version_media`; `release_media` bleibt leer.
+20. Oeffentliche Routen geprueft:
+    - `/anime/1` zeigt `Viper's Creed`, C-Subs und Honto.
+    - `/fansubs/c-subs` zeigt das C-Subs-Profil, Projekt, Geschichte und Logo.
+    - `/anime/1/group/3` zeigt die C-Subs-spezifische Anime-Seite.
+    - `/anime/1/group/3/releases` zeigt 12 Releases inklusive `-Cyclops-` und `Neuer Rekrut -unknown-`.
+    - Public-Fansub-Profil zaehlt `3 Mitglieder`, zeigt im Team/Mitwirkende-Bereich aber `Keine Mitglieder eingetragen`.
 
 ## Screenshots
 
@@ -144,6 +150,7 @@ Important extracted matching rule:
 - `27-csubs-group-media-controls.png`
 - `28-playwright-group-logo-upload.png`
 - `29-playwright-release-version-media-upload.png`
+- `30-public-fansub-members-empty.png`
 
 ## Findings
 
@@ -176,6 +183,7 @@ Important extracted matching rule:
 - Die Einladung/Annahme verknuepft den App-User nicht automatisch mit dem gleichnamigen historischen Member-Eintrag: `fansub_group_members.member_id` bleibt leer und das Profil zeigt weiter `noch keinem verifizierten Member-Eintrag`.
 - Rollenlabels lecken weiterhin technische Keys in mehreren Kontexten: historische Rollen zeigen `other`/`admin`, Einladungstabelle zeigt bei Sheppert `admin`.
 - Datei-Uploads sind in der Codex-In-App-Browser-Steuerung nicht moeglich, funktionieren aber mit normalem Playwright/Chromium ueber die echte UI.
+- Public-Fansub-Profil-Projektion ist inkonsistent: Kennzahl `3 Mitglieder`, aber Team/Mitwirkende zeigen `Keine Mitglieder eingetragen`; Sokolada fehlt oeffentlich komplett.
 
 ## DB Invariants
 
