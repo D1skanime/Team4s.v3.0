@@ -40,6 +40,7 @@ const (
 	ActionReleaseVersionMediaDelete          Action = "release_version_media.delete"
 	ActionReleaseVersionMediaDeleteOwn       Action = "release_version_media.delete_own"
 	ActionReleaseVersionNotesWrite           Action = "release_version.notes.write"
+	ActionReleaseVersionSegmentsManage       Action = "release_version.segments.manage"
 )
 
 const (
@@ -99,6 +100,7 @@ var roleMatrix = map[string][]Action{
 		ActionReleaseVersionMediaUpdate,
 		ActionReleaseVersionMediaDelete,
 		ActionReleaseVersionNotesWrite,
+		ActionReleaseVersionSegmentsManage,
 	},
 	RoleProjectLead: {
 		ActionFansubGroupEdit,
@@ -118,6 +120,7 @@ var roleMatrix = map[string][]Action{
 		ActionReleaseVersionMediaUpdate,
 		ActionReleaseVersionMediaDelete,
 		ActionReleaseVersionNotesWrite,
+		ActionReleaseVersionSegmentsManage,
 	},
 	RoleDesigner: {
 		ActionReleaseView,
@@ -138,6 +141,7 @@ var roleMatrix = map[string][]Action{
 		ActionReleaseView,
 		ActionReleaseVersionView,
 		ActionReleaseVersionNotesWrite,
+		ActionReleaseVersionSegmentsManage,
 	},
 	RoleTimer: {
 		ActionReleaseView,
@@ -205,6 +209,7 @@ var allKnownActions = []Action{
 	ActionReleaseVersionMediaDelete,
 	ActionReleaseVersionMediaDeleteOwn,
 	ActionReleaseVersionNotesWrite,
+	ActionReleaseVersionSegmentsManage,
 }
 
 // standaloneActions sind Actions, die in action_definitions existieren,

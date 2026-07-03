@@ -35,6 +35,7 @@ interface SegmentEditPanelProps {
   uploadError: string | null
   reuseCandidates: AdminSegmentLibraryCandidate[]
   reuseError: string | null
+  previewStreamHref?: string | null
   onClose: () => void
   onFormChange: (patch: Partial<FormState>) => void
   onPendingUploadFileChange: (file: File | null) => void
@@ -59,6 +60,7 @@ export function SegmentEditPanel({
   uploadError,
   reuseCandidates,
   reuseError,
+  previewStreamHref,
   onClose,
   onFormChange,
   onPendingUploadFileChange,
@@ -75,8 +77,14 @@ export function SegmentEditPanel({
   // Use segment's resolved playback duration as first authority; fall back to page-level version duration
   const effectiveDuration = editingSegment?.playback_duration_seconds ?? durationSeconds ?? null
   const exceedsDuration = effectiveDuration != null && endSeconds != null && endSeconds > effectiveDuration
+  const exceedsMaxSegmentWindow = startSeconds != null && endSeconds != null && endSeconds - startSeconds > 240
   const runtimeKnown = effectiveDuration != null
   const runtimeFromPlayback = editingSegment?.playback_duration_seconds != null
+  const previewDurationSeconds =
+    startSeconds != null && endSeconds != null && endSeconds > startSeconds
+      ? Math.min(endSeconds - startSeconds, 240)
+      : null
+  const previewOriginRef = useRef<number | null>(null)
 
   // Parse backend validation errors for start_time/end_time from formError
   const isStartTimeError = formError != null && (formError.toLowerCase().includes('start') || formError.toLowerCase().includes('start_time'))
@@ -216,6 +224,11 @@ export function SegmentEditPanel({
             Ende muss nach dem Start liegen.
           </div>
         ) : null}
+        {exceedsMaxSegmentWindow ? (
+          <div className={styles.assetError}>
+            Segment-Zeitbereich darf maximal 4 Minuten lang sein.
+          </div>
+        ) : null}
 
         {/* Resolved playback status when editing an existing segment */}
         {editingSegment?.playback_source_kind ? (
@@ -241,6 +254,39 @@ export function SegmentEditPanel({
         ) : null}
 
         {/* Source type selector — Episode-Version/Jellyfin is default; upload is explicit fallback */}
+        {previewStreamHref && previewDurationSeconds ? (
+          <div className={styles.previewSection}>
+            <div className={styles.assetSectionHeader}>
+              <FileVideo size={14} />
+              Jellyfin-Vorschau
+            </div>
+            <video
+              className={styles.previewVideo}
+              src={previewStreamHref}
+              controls
+              preload="metadata"
+              onPlay={(event) => {
+                previewOriginRef.current = event.currentTarget.currentTime
+              }}
+              onTimeUpdate={(event) => {
+                const video = event.currentTarget
+                if (previewOriginRef.current == null) {
+                  previewOriginRef.current = video.currentTime
+                }
+                if (video.currentTime - previewOriginRef.current >= previewDurationSeconds) {
+                  video.pause()
+                }
+              }}
+              onSeeking={(event) => {
+                previewOriginRef.current = event.currentTarget.currentTime
+              }}
+            />
+            <p className={styles.sourceHelpText}>
+              Spielt direkt aus Jellyfin ab und stoppt nach der Segmentlänge.
+            </p>
+          </div>
+        ) : null}
+
         <div className={styles.panelField}>
           <label htmlFor="seg-source-type">Provenance / Fallback-Wahl</label>
           <select

@@ -51,14 +51,23 @@ func TestValidateSegmentTimes_ValidTimesWithKnownRuntime(t *testing.T) {
 	}
 }
 
-// TestValidateSegmentTimes_NullRuntimeAllowsAnySave verifies that when runtime is null,
-// any valid (start < end) timing is accepted without upper bound rejection.
-func TestValidateSegmentTimes_NullRuntimeAllowsAnySave(t *testing.T) {
+// TestValidateSegmentTimes_RejectsSegmentsLongerThanFourMinutes verifies that
+// OP/ED segment windows cannot be abused to stream a full episode.
+func TestValidateSegmentTimes_RejectsSegmentsLongerThanFourMinutes(t *testing.T) {
 	start := "00:00:00"
 	end := "23:59:59"
 	msg := validateSegmentTimes(&start, &end, nil)
+	if msg == "" {
+		t.Fatal("expected validation error when segment exceeds four minutes, got empty string")
+	}
+}
+
+func TestValidateSegmentTimes_AllowsExactlyFourMinutes(t *testing.T) {
+	start := "00:00:00"
+	end := "00:04:00"
+	msg := validateSegmentTimes(&start, &end, nil)
 	if msg != "" {
-		t.Fatalf("expected no validation error when runtime is null, got: %q", msg)
+		t.Fatalf("expected no validation error for exactly four minutes, got: %q", msg)
 	}
 }
 

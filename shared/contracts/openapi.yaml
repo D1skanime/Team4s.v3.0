@@ -10629,6 +10629,7 @@ components:
         - can_delete_media
         - can_delete_own_media
         - can_edit_notes
+        - can_manage_segments
       properties:
         can_view_media:
           type: boolean
@@ -10641,6 +10642,8 @@ components:
         can_delete_own_media:
           type: boolean
         can_edit_notes:
+          type: boolean
+        can_manage_segments:
           type: boolean
     ReleaseVersionCapabilitiesResponse:
       type: object

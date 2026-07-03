@@ -65,6 +65,7 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
   can_update_media: boolean
   can_delete_media: boolean
   can_edit_notes: boolean
+  can_manage_segments: boolean
 }> = {}) {
   getEpisodeVersionEditorContextMock.mockResolvedValue({
     data: {
@@ -90,6 +91,7 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
       can_update_media: true,
       can_delete_media: false,
       can_edit_notes: true,
+      can_manage_segments: false,
       ...capabilityOverrides,
     },
   })

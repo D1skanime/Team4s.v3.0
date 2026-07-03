@@ -1,16 +1,37 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
+
+func appendReleaseStreamStartOffset(targetURL string, rawStartTimeTicks string) string {
+	trimmed := strings.TrimSpace(rawStartTimeTicks)
+	if trimmed == "" {
+		return targetURL
+	}
+	value, err := strconv.ParseInt(trimmed, 10, 64)
+	if err != nil || value < 0 {
+		return targetURL
+	}
+	parsed, err := url.Parse(targetURL)
+	if err != nil {
+		return targetURL
+	}
+	query := parsed.Query()
+	query.Set("startTimeTicks", strconv.FormatInt(value, 10))
+	parsed.RawQuery = query.Encode()
+	return parsed.String()
+}
 
 // StreamRelease leitet den Videostream einer Release-Version nach Autorisierungsprüfung als Proxy weiter.
 func (h *FansubHandler) StreamRelease(c *gin.Context) {
@@ -41,6 +62,7 @@ func (h *FansubHandler) StreamRelease(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "stream nicht gefunden"}})
 		return
 	}
+	targetURL = appendReleaseStreamStartOffset(targetURL, firstNonEmpty([]string{c.Query("startTimeTicks"), c.Query("StartTimeTicks")}))
 
 	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, targetURL, nil)
 	if err != nil {

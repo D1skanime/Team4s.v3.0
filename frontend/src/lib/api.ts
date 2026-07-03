@@ -6352,10 +6352,15 @@ export async function deleteAnimeSegment(
   animeId: number,
   segmentId: number,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}`,
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}${qs}`,
     {
       method: "DELETE",
       headers: withAuthHeader({}, authToken),
@@ -6424,12 +6429,15 @@ export async function getSegmentLibraryCandidates(
   kind: string,
   name?: string | null,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<AdminSegmentLibraryCandidatesResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const params = new URLSearchParams();
   params.set("group_id", String(groupId));
   params.set("kind", kind);
   if (name?.trim()) params.set("name", name.trim());
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
 
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/library-candidates?${params.toString()}`,
@@ -6461,10 +6469,15 @@ export async function attachSegmentLibraryAsset(
   segmentId: number,
   payload: AdminSegmentLibraryAttachRequest,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<{ data: AdminThemeSegment }> {
   const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/reuse`,
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/reuse${qs}`,
     {
       method: "POST",
       headers: withAuthHeader(
@@ -6502,13 +6515,18 @@ export async function uploadSegmentAsset(
   segmentId: number,
   file: File,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<{ data: AdminThemeSegment }> {
   const API_BASE_URL = getApiBaseUrl();
   const formData = new FormData();
   formData.append("file", file);
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
 
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset${qs}`,
     {
       method: "POST",
       headers: withAuthHeader({}, authToken),
@@ -6541,10 +6559,15 @@ export async function deleteSegmentAsset(
   animeId: number,
   segmentId: number,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<void> {
   const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset`,
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/asset${qs}`,
     {
       method: "DELETE",
       authToken,

@@ -49,6 +49,10 @@ vi.mock("./ReleaseVersionNotesTab", () => ({
   ),
 }));
 
+vi.mock("./SegmenteTab", () => ({
+  SegmenteTab: () => <div data-testid="segmente-tab">Segmente</div>,
+}));
+
 vi.mock("@/lib/api", () => ({
   AUTH_SESSION_CHANGED_EVENT: "team4s:auth-session-changed",
   getAuthSessionSnapshot: () => ({
@@ -93,6 +97,7 @@ function mockPlatformAdminScope() {
       can_update_media: true,
       can_delete_media: true,
       can_edit_notes: true,
+      can_manage_segments: true,
     },
   });
 }
@@ -103,6 +108,7 @@ function mockContributorScope(capabilities: {
   can_update_media?: boolean;
   can_delete_media?: boolean;
   can_edit_notes: boolean;
+  can_manage_segments?: boolean;
 }) {
   getCurrentUserMock.mockResolvedValue({
     data: { id: 2, display_name: "Contributor", is_platform_admin: false },
@@ -114,6 +120,7 @@ function mockContributorScope(capabilities: {
       can_update_media: capabilities.can_update_media ?? false,
       can_delete_media: capabilities.can_delete_media ?? false,
       can_edit_notes: capabilities.can_edit_notes,
+      can_manage_segments: capabilities.can_manage_segments ?? false,
     },
   });
 }
@@ -209,6 +216,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
         can_update_media: boolean;
         can_delete_media: boolean;
         can_edit_notes: boolean;
+        can_manage_segments: boolean;
       };
     }>();
     getCurrentUserMock.mockReturnValue(user.promise);
@@ -232,6 +240,7 @@ describe("EpisodeVersionEditorPage media tab", () => {
         can_update_media: true,
         can_delete_media: true,
         can_edit_notes: true,
+        can_manage_segments: true,
       },
     });
 
@@ -330,6 +339,30 @@ describe("EpisodeVersionEditorPage media tab", () => {
 
     expect(
       screen.queryByRole("button", { name: "Media / Assets" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Informationen" }),
+    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Speichern" })).toBeNull();
+  });
+
+  it("shows only segments for non-platform users with segment capability", async () => {
+    mockContributorScope({
+      can_view_media: false,
+      can_edit_notes: false,
+      can_manage_segments: true,
+    });
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    expect(await screen.findByRole("button", { name: "Segmente" })).not.toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Media / Assets" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Notizen / BeitrÃ¤ge" }),
     ).toBeNull();
     expect(
       screen.queryByRole("button", { name: "Informationen" }),

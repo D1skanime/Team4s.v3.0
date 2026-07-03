@@ -116,6 +116,7 @@ export function EpisodeVersionEditorPage() {
   const isPlatformAdmin = currentUser?.is_platform_admin === true;
   const canUseContributorMedia = releaseCapabilities?.can_view_media === true;
   const canUseContributorNotes = releaseCapabilities?.can_edit_notes === true;
+  const canManageSegments = releaseCapabilities?.can_manage_segments === true;
   const isCapabilityScopeReady =
     currentUser != null && releaseCapabilities != null;
   const isCapabilityScopeLoading =
@@ -123,7 +124,7 @@ export function EpisodeVersionEditorPage() {
   const isContributorScopedEditor =
     isCapabilityScopeReady &&
     !isPlatformAdmin &&
-    (canUseContributorMedia || canUseContributorNotes);
+    (canUseContributorMedia || canUseContributorNotes || canManageSegments);
   const shouldRenderAdminTabs = isCapabilityScopeReady && isPlatformAdmin;
   const shouldRenderContributorTabs =
     isCapabilityScopeReady && isContributorScopedEditor;
@@ -145,10 +146,12 @@ export function EpisodeVersionEditorPage() {
       ]);
     }
     const tabs: ActiveTab[] = [];
+    if (canManageSegments) tabs.push("segmente");
     if (canUseContributorMedia) tabs.push("media");
     if (canUseContributorNotes) tabs.push("notizen");
     return new Set<ActiveTab>(tabs);
   }, [
+    canManageSegments,
     canUseContributorMedia,
     canUseContributorNotes,
     isCapabilityScopeReady,
@@ -156,7 +159,9 @@ export function EpisodeVersionEditorPage() {
   ]);
   const visibleActiveTab: ActiveTab = allowedTabs.has(activeTab)
     ? activeTab
-    : allowedTabs.has("media")
+    : allowedTabs.has("segmente")
+      ? "segmente"
+      : allowedTabs.has("media")
       ? "media"
       : allowedTabs.has("notizen")
         ? "notizen"
@@ -285,6 +290,17 @@ export function EpisodeVersionEditorPage() {
               <div className={styles.tabNav}>
                 {shouldRenderContributorTabs ? (
                 <>
+                  {allowedTabs.has("segmente") ? (
+                    <button
+                      type="button"
+                      className={
+                        visibleActiveTab === "segmente" ? styles.tabActive : styles.tab
+                      }
+                      onClick={() => setActiveTab("segmente")}
+                    >
+                      Segmente
+                    </button>
+                  ) : null}
                   {allowedTabs.has("media") ? (
                     <button
                       type="button"

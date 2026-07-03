@@ -64,6 +64,8 @@ const EMPTY_FORM: FormState = {
   sourceLabel: '',
 }
 
+const MAX_SEGMENT_WINDOW_SECONDS = 240
+
 function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
   return {
     themeKind:
@@ -85,6 +87,21 @@ function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
     sourceRef: segment.source_ref ?? segment.source_jellyfin_item_id ?? '',
     sourceLabel: segment.source_label ?? '',
   }
+}
+
+function buildSegmentPreviewStreamHref(segment: AdminThemeSegment | null): string | null {
+  if (!segment?.playback_release_variant_id || !segment.start_time || !segment.end_time) {
+    return null
+  }
+  const startSeconds = parseFlexibleTimeInput(segment.start_time)
+  const endSeconds = parseFlexibleTimeInput(segment.end_time)
+  if (startSeconds == null || endSeconds == null) return null
+  const durationSeconds = endSeconds - startSeconds
+  if (durationSeconds <= 0 || durationSeconds > MAX_SEGMENT_WINDOW_SECONDS) return null
+
+  const params = new URLSearchParams()
+  params.set('startTimeTicks', String(Math.max(0, startSeconds) * 10_000_000))
+  return `/api/releases/${segment.playback_release_variant_id}/stream?${params.toString()}`
 }
 
 // --- Main component ---
@@ -189,6 +206,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       groupId,
       formState.themeKind,
       formState.themeTitle,
+      undefined,
+      releaseVariantId,
     )
       .then((res) => {
         setReuseCandidates(
@@ -205,7 +224,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       .finally(() => {
         setIsLoadingReuseCandidates(false)
       })
-  }, [animeId, editingSegment, formState.sourceType, formState.themeKind, formState.themeTitle, groupId, hasAccessToken, panelOpen])
+  }, [animeId, editingSegment, formState.sourceType, formState.themeKind, formState.themeTitle, groupId, hasAccessToken, panelOpen, releaseVariantId])
 
   async function adoptSuggestion(suggestion: AdminThemeSegment) {
     if (!animeId) return
@@ -268,6 +287,10 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         setFormError('Ende muss nach dem Start liegen.')
         return
       }
+      if (parsedStart != null && parsedEnd != null && parsedEnd - parsedStart > MAX_SEGMENT_WINDOW_SECONDS) {
+        setFormError('Segment-Zeitbereich darf maximal 4 Minuten lang sein.')
+        return
+      }
 
       const resolvedThemeID = await ensureThemeFromSelection(formState.themeKind, formState.themeTitle)
       if (!resolvedThemeID) {
@@ -313,7 +336,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           return
         }
         if (pendingUploadFile && formState.sourceType === 'release_asset') {
-          const res = await uploadSegmentAsset(animeId, createdSegment.id, pendingUploadFile)
+          const res = await uploadSegmentAsset(animeId, createdSegment.id, pendingUploadFile, undefined, releaseVariantId)
           await reload()
           setEditingSegment(res.data)
         }
@@ -337,7 +360,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setIsUploading(true)
     setUploadError(null)
     try {
-      const res = await uploadSegmentAsset(animeId, editingSegment.id, file)
+      const res = await uploadSegmentAsset(animeId, editingSegment.id, file, undefined, releaseVariantId)
       // Reload so table + panel get fresh data
       await reload()
       // Refresh the editing segment from reloaded list
@@ -356,7 +379,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setIsDeletingAsset(true)
     setUploadError(null)
     try {
-      await deleteSegmentAsset(animeId, editingSegment.id)
+      await deleteSegmentAsset(animeId, editingSegment.id, undefined, releaseVariantId)
       await reload()
       // Update panel to reflect cleared asset
       setEditingSegment((prev) =>
@@ -379,6 +402,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         animeId,
         editingSegment.id,
         { asset_id: candidate.asset_id },
+        undefined,
+        releaseVariantId,
       )
       await reload()
       setEditingSegment(res.data)
@@ -612,6 +637,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           uploadError={uploadError}
           reuseCandidates={reuseCandidates}
           reuseError={reuseError}
+          previewStreamHref={buildSegmentPreviewStreamHref(editingSegment)}
           onClose={closePanel}
           onFormChange={(patch) => {
             if (patch.sourceType && patch.sourceType !== 'release_asset') {

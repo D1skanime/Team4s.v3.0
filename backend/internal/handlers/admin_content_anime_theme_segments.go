@@ -12,13 +12,17 @@ import (
 	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-const segmentSourceTypeReleaseAsset = "release_asset"
+const (
+	segmentSourceTypeReleaseAsset = "release_asset"
+	maxSegmentWindowSeconds       = int32(240)
+)
 
 // validateSegmentTimes validates start_time and end_time for a segment save.
 // Rules:
@@ -37,6 +41,9 @@ func validateSegmentTimes(startTime, endTime *string, durationSeconds *int32) st
 	if start != nil && end != nil {
 		if *start >= *end {
 			return "start_time muss vor end_time liegen"
+		}
+		if *end-*start > maxSegmentWindowSeconds {
+			return "Segment-Zeitbereich darf maximal 4 Minuten lang sein"
 		}
 	}
 
@@ -137,10 +144,63 @@ type adminSegmentLibraryAttachRequest struct {
 	AssetID int64 `json:"asset_id"`
 }
 
+func parseReleaseVariantIDQuery(c *gin.Context) int64 {
+	raw := strings.TrimSpace(c.Query("release_variant_id"))
+	if raw == "" {
+		return 0
+	}
+	value, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || value <= 0 {
+		return -1
+	}
+	return value
+}
+
+func (h *AdminContentHandler) requireSegmentManage(c *gin.Context, releaseVariantID int64) bool {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return false
+	}
+	if actor.IsPlatformAdmin {
+		return true
+	}
+	if releaseVariantID <= 0 {
+		badRequest(c, "release_variant_id ist erforderlich")
+		return false
+	}
+	if h.permissionSvc == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "permission service nicht verfügbar"}})
+		return false
+	}
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionSegmentsManage, releaseVariantID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Segment-Berechtigung konnte nicht geprüft werden.")
+		return false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version.segments.manage.denied", nil, "release_version", &releaseVariantID, permissions.ActionReleaseVersionSegmentsManage, result)
+		writePermissionDenied(c, result)
+		return false
+	}
+	return true
+}
+
+func segmentPlaybackVariantID(segment *models.AdminThemeSegment) int64 {
+	if segment == nil || segment.PlaybackVariantID == nil || *segment.PlaybackVariantID <= 0 {
+		return 0
+	}
+	return *segment.PlaybackVariantID
+}
+
 // ListAnimeSegments verarbeitet GET /api/v1/admin/anime/:id/segments
 // Query-Parameter: group_id (optional, int64), version (optional, string).
 func (h *AdminContentHandler) ListAnimeSegments(c *gin.Context) {
-	if _, _, ok := permissionActorFromContext(c); !ok {
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 	if h.themeRepo == nil {
@@ -184,7 +244,12 @@ func (h *AdminContentHandler) ListAnimeSegments(c *gin.Context) {
 //
 //	start_time?, end_time?, source_jellyfin_item_id? }
 func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 	if h.themeRepo == nil {
@@ -263,9 +328,6 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 // UpdateAnimeSegment verarbeitet PATCH /api/v1/admin/anime/:id/segments/:segmentId
 // Body: alle Felder optional (partieller Patch).
 func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
-		return
-	}
 	if h.themeRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
@@ -290,6 +352,18 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
+		return
+	}
+
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if releaseVariantID == 0 {
+		releaseVariantID = segmentPlaybackVariantID(existingSegment)
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 
@@ -400,17 +474,41 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 
 // DeleteAnimeSegment verarbeitet DELETE /api/v1/admin/anime/:id/segments/:segmentId.
 func (h *AdminContentHandler) DeleteAnimeSegment(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
-		return
-	}
 	if h.themeRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
+		return
+	}
+
+	animeID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || animeID <= 0 {
+		badRequest(c, "ungültige anime id")
 		return
 	}
 
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
 		badRequest(c, "ungültige segment id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
+		return
+	}
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if releaseVariantID == 0 {
+		releaseVariantID = segmentPlaybackVariantID(existingSegment)
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 
@@ -431,7 +529,12 @@ func (h *AdminContentHandler) DeleteAnimeSegment(c *gin.Context) {
 // ListSegmentLibraryCandidates verarbeitet
 // GET /api/v1/admin/anime/:id/segments/library-candidates?group_id=...&kind=...&name=...
 func (h *AdminContentHandler) ListSegmentLibraryCandidates(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 	if h.themeRepo == nil {
@@ -480,9 +583,6 @@ func (h *AdminContentHandler) ListSegmentLibraryCandidates(c *gin.Context) {
 // AttachSegmentLibraryAsset verarbeitet
 // POST /api/v1/admin/anime/:id/segments/:segmentId/reuse
 func (h *AdminContentHandler) AttachSegmentLibraryAsset(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
-		return
-	}
 	if h.themeRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "theme service nicht verfügbar"}})
 		return
@@ -496,6 +596,27 @@ func (h *AdminContentHandler) AttachSegmentLibraryAsset(c *gin.Context) {
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
 		badRequest(c, "ungültige segment id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
+		return
+	}
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if releaseVariantID == 0 {
+		releaseVariantID = segmentPlaybackVariantID(existingSegment)
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 
@@ -529,9 +650,6 @@ func (h *AdminContentHandler) AttachSegmentLibraryAsset(c *gin.Context) {
 // Speichert eine Videodatei als Segment-Asset und aktualisiert die Segment-Source-Felder.
 // Bestehende Assets werden vor dem Speichern des neuen Assets aufgeraeumt.
 func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
-		return
-	}
 	if h.themeRepo == nil || h.mediaRepo == nil || h.mediaService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment asset service nicht verfügbar"}})
 		return
@@ -556,6 +674,17 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
+		return
+	}
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if releaseVariantID == 0 {
+		releaseVariantID = segmentPlaybackVariantID(seg)
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 
@@ -648,9 +777,6 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 // DeleteSegmentAsset verarbeitet DELETE /api/v1/admin/anime/:id/segments/:segmentId/asset.
 // Leert die Source-Felder des Segments, loescht die Datei und den media_assets-Eintrag.
 func (h *AdminContentHandler) DeleteSegmentAsset(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
-		return
-	}
 	if h.themeRepo == nil || h.mediaRepo == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment asset service nicht verfügbar"}})
 		return
@@ -664,6 +790,27 @@ func (h *AdminContentHandler) DeleteSegmentAsset(c *gin.Context) {
 	segmentID, err := strconv.ParseInt(c.Param("segmentId"), 10, 64)
 	if err != nil || segmentID <= 0 {
 		badRequest(c, "ungültige segment id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
+		return
+	}
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if releaseVariantID == 0 {
+		releaseVariantID = segmentPlaybackVariantID(existingSegment)
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 

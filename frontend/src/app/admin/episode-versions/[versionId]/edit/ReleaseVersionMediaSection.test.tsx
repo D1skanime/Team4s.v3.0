@@ -64,6 +64,7 @@ function makeMediaState(
     can_delete_media: true,
     can_delete_own_media: true,
     can_edit_notes: true,
+    can_manage_segments: false,
   }
 
   return {
@@ -216,6 +217,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
           can_delete_media: false,
           can_delete_own_media: true,
           can_edit_notes: true,
+          can_manage_segments: false,
         },
       }),
     )

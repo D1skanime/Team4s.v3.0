@@ -165,7 +165,7 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
   async function remove(segmentId: number): Promise<boolean> {
     if (!animeId || !hasAccessToken) return false
     try {
-      await deleteAnimeSegment(animeId, segmentId)
+      await deleteAnimeSegment(animeId, segmentId, undefined, releaseVariantId)
       setSegments((current) => current.filter((s) => s.id !== segmentId))
       return true
     } catch (error) {

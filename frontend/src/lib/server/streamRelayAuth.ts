@@ -219,7 +219,14 @@ async function refreshSession(
  */
 function buildGrantTarget(streamURL: string, grantToken: string): string {
   if (!grantToken) return streamURL
-  return `${streamURL}?grant=${encodeURIComponent(grantToken)}`
+  try {
+    const parsed = new URL(streamURL)
+    parsed.searchParams.set('grant', grantToken)
+    return parsed.toString()
+  } catch {
+    const separator = streamURL.includes('?') ? '&' : '?'
+    return `${streamURL}${separator}grant=${encodeURIComponent(grantToken)}`
+  }
 }
 
 /**

@@ -56,6 +56,7 @@ func fullValidCacheData() map[string][]Action {
 			ActionReleaseVersionMediaUpdate,
 			ActionReleaseVersionMediaDelete,
 			ActionReleaseVersionNotesWrite,
+			ActionReleaseVersionSegmentsManage,
 		},
 		RoleDesigner: {
 			ActionReleaseVersionMediaDeleteOwn,

@@ -59,6 +59,7 @@ var allActionCodesWave0 = []string{
 	"release_version_media.delete",
 	"release_version_media.delete_own",
 	"release_version.notes.write",
+	"release_version.segments.manage",
 }
 
 // roleMatrixStubData gibt die vollständige roleMatrix als map zurück (Seed-Quelle R-02).
@@ -89,6 +90,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionMediaUpdate,
 			ActionReleaseVersionMediaDelete,
 			ActionReleaseVersionNotesWrite,
+			ActionReleaseVersionSegmentsManage,
 		},
 		RoleProjectLead: {
 			ActionFansubGroupEdit,
@@ -108,6 +110,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionMediaUpdate,
 			ActionReleaseVersionMediaDelete,
 			ActionReleaseVersionNotesWrite,
+			ActionReleaseVersionSegmentsManage,
 		},
 		RoleDesigner: {
 			ActionReleaseView,
@@ -133,6 +136,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseView,
 			ActionReleaseVersionView,
 			ActionReleaseVersionNotesWrite,
+			ActionReleaseVersionSegmentsManage,
 		},
 		RoleTypesetter: {
 			ActionReleaseView,

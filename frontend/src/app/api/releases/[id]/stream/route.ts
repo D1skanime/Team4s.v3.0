@@ -53,9 +53,19 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
 
   const apiBaseURL = getApiBaseURL()
   const providedGrant = (request.nextUrl.searchParams.get('grant') || '').trim()
+  const startTimeTicks = (
+    request.nextUrl.searchParams.get('startTimeTicks') ||
+    request.nextUrl.searchParams.get('StartTimeTicks') ||
+    ''
+  ).trim()
+  const streamParams = new URLSearchParams()
+  if (/^\d+$/.test(startTimeTicks)) {
+    streamParams.set('startTimeTicks', startTimeTicks)
+  }
+  const streamPath = `/api/v1/releases/${releaseID}/stream${streamParams.toString() ? `?${streamParams.toString()}` : ''}`
   let relayTarget = await resolveStreamRelayTarget({
     apiBaseURL,
-    streamPath: `/api/v1/releases/${releaseID}/stream`,
+    streamPath,
     grantPath: `/api/v1/releases/${releaseID}/grant`,
     providedGrant,
     accessToken: tokenFromCookie,
@@ -84,7 +94,7 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
   if (upstream.status === 401) {
     const unauthorizedRecoveryTarget = await resolveStreamRelayTarget({
       apiBaseURL,
-      streamPath: `/api/v1/releases/${releaseID}/stream`,
+      streamPath,
       grantPath: `/api/v1/releases/${releaseID}/grant`,
       providedGrant: '',
       accessToken: relayTarget.authorizationToken && refreshTokenFromCookie ? '' : tokenFromCookie,
