@@ -141,12 +141,12 @@ var roleMatrix = map[string][]Action{
 		ActionReleaseView,
 		ActionReleaseVersionView,
 		ActionReleaseVersionNotesWrite,
-		ActionReleaseVersionSegmentsManage,
 	},
 	RoleTimer: {
 		ActionReleaseView,
 		ActionReleaseVersionView,
 		ActionReleaseVersionNotesWrite,
+		ActionReleaseVersionSegmentsManage,
 	},
 	RoleTypesetter: {
 		ActionReleaseView,
@@ -425,27 +425,14 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 		return denied(ReasonResourceNotFound, "ressource nicht gefunden"), nil
 	}
 
-	// Schritt 2: Leader-Check ZUERST (D-05, Pitfall 1).
-	// fansub_lead UND project_lead werden beide in fansub_group_member_roles.role gespeichert
-	// und über ListActorGroupRoles aufgelöst — kein separater Abfragepfad nötig.
-	for _, fansubGroupID := range resourceCtx.FansubGroupIDs {
-		groupRoles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
-		if err != nil {
-			return Result{}, err
-		}
-		for _, role := range groupRoles {
-			if role == RoleFansubLead || role == RoleProjectLead {
-				if roleAllows(role, action) {
-					return Result{
-						Allowed:      true,
-						ReasonCode:   ReasonAllowed,
-						Reason:       "berechtigung über leader-rolle bestätigt",
-						MatchedRole:  role,
-						MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
-					}, nil
-				}
-			}
-		}
+	// Schritt 2: Aktive Gruppenrollen pruefen. Release-Versionen koennen mehrere
+	// Fansub-Gruppen haben; eine passende Rolle in irgendeiner Gruppe reicht.
+	groupRoleResult, hasGroupMembership, err := s.canForReleaseVersionGroupRole(ctx, actor, action, resourceCtx)
+	if err != nil {
+		return Result{}, err
+	}
+	if groupRoleResult.Allowed {
+		return groupRoleResult, nil
 	}
 
 	// Schritt 3: Contribution-Check (D-01..D-04).
@@ -468,7 +455,36 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 	if len(roleCodes) > 0 {
 		return denied(ReasonInsufficientRole, "contribution vorhanden, aber rolle reicht nicht aus"), nil
 	}
+	if hasGroupMembership {
+		return denied(ReasonInsufficientRole, "gruppenmitgliedschaft vorhanden, aber rolle reicht nicht aus"), nil
+	}
 	return denied(ReasonNoMembership, "keine contribution für diese release-version"), nil
+}
+
+func (s *Service) canForReleaseVersionGroupRole(ctx context.Context, actor Actor, action Action, resourceCtx *Context) (Result, bool, error) {
+	hasGroupMembership := false
+	for _, fansubGroupID := range resourceCtx.FansubGroupIDs {
+		groupRoles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
+		if err != nil {
+			return Result{}, false, err
+		}
+		for _, role := range groupRoles {
+			if strings.TrimSpace(role) == "" {
+				continue
+			}
+			hasGroupMembership = true
+			if roleAllows(role, action) {
+				return Result{
+					Allowed:      true,
+					ReasonCode:   ReasonAllowed,
+					Reason:       "berechtigung über gruppenrolle bestätigt",
+					MatchedRole:  role,
+					MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
+				}, true, nil
+			}
+		}
+	}
+	return Result{}, hasGroupMembership, nil
 }
 
 func (s *Service) CanForReleaseVersionMedia(ctx context.Context, actor Actor, action Action, relationID int64) (Result, error) {

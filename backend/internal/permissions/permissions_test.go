@@ -247,6 +247,24 @@ func TestCanForReleaseVersionLeaderBypass(t *testing.T) {
 	assert.True(t, result.Allowed, "erwartet: fansub_lead hat Zugriff trotz fehlender Contribution (D-05)")
 }
 
+func TestCanForReleaseVersionAllowsCollaborativeGroupRole(t *testing.T) {
+	service := NewService(resolverStub{
+		context: &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{3, 4}},
+		roles: map[int64][]string{
+			3: {RoleTimer},
+		},
+	})
+
+	result, err := service.CanForReleaseVersion(context.Background(), Actor{AppUserID: 3, Status: "active"}, ActionReleaseVersionSegmentsManage, 1)
+	if err != nil {
+		t.Fatalf("CanForReleaseVersion group role: %v", err)
+	}
+
+	assert.True(t, result.Allowed, "expected timer group role to manage segments for a collaborative release version")
+	assert.Equal(t, RoleTimer, result.MatchedRole)
+	assert.Equal(t, "group:3", result.MatchedScope)
+}
+
 // TestCanForReleaseVersionProjectLeadBypass prüft D-05 (project_lead):
 // project_lead darf trotz fehlender Contribution auf eine Release-Version zugreifen.
 // project_lead wird in fansub_group_member_roles.role gespeichert — gleicher Abfragepfad wie fansub_lead.
