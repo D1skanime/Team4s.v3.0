@@ -91,6 +91,28 @@ Important extracted matching rule:
     - Historisches Mitglied `Sheppert` mit Rollen `Übersetzung`, `Timing`, `Typesetting / FX`, `Encoding`, `Administration` angelegt.
     - Historisches Mitglied `Sokolada` mit Rollen `Design`, `Editing`, `Qualitätsprüfung`, `GFX / Grafik` angelegt.
 
+16. Leader-Einstieg ueber sichtbare Navigation geprueft:
+    - `csubs.leader@team4s.local` sieht im Drawer unter `Meine Gruppen` direkt `C-Subs -> /admin/fansubs/3/edit`.
+    - `/admin/fansubs/3/edit` ist als Leader erreichbar; `/admin/fansubs/4/edit` (`Honto`) wird mit Zugriffshinweis blockiert.
+    - Der Leader sieht keinen Plattform-Admin-Dashboard-Link.
+17. Leader-Member-Workflow ueber UI geprueft:
+    - CSubs Leader wird als aktives App-Mitglied angezeigt.
+    - Historische Mitglieder `KamiKarin`, `Sheppert`, `Sokolada` werden im Leader-Tab geladen.
+    - Einladungen fuer `sheppert@team4s.local` und `sokolada@team4s.local` wurden ueber die Leader-UI erstellt.
+18. Echte Testuser ueber UI getestet:
+    - `sheppert` und `sokolada` wurden ueber Keycloak mit Passwort `123` angemeldet.
+    - Beide haben ihre Fansub-Einladung ueber die echte `/invitations/accept?token=...` UI angenommen.
+    - Danach zeigen beide im Drawer `Meine Gruppen -> C-Subs`.
+    - Beide bleiben dennoch `Account ohne verifizierten Member-Eintrag`; die Einladung verknuepft App-Gruppenrechte, aber nicht automatisch den historischen Member.
+    - Sheppert sieht fuer C-Subs nur `Anime & Veroeffentlichungen`; Honto ist blockiert.
+    - Sokolada sieht fuer C-Subs `Vorschlaege` und `Anime & Veroeffentlichungen`; Honto ist blockiert.
+19. Medienflaechen und Uploads geprueft:
+    - C-Subs-Grunddaten zeigen gruppeneigene Logo-/Banner-Upload-Controls.
+    - Codex-In-App-Browser kann keine lokalen Dateien setzen (`File uploads are not supported by Codex In-app Browser.`); das war ein Tooling-Limit, kein Produkt-Bug.
+    - Normaler Playwright/Chromium konnte das C-Subs-Logo ueber die Gruppen-UI hochladen.
+    - Normaler Playwright/Chromium konnte einen Screenshot ueber `/admin/episode-versions/2/edit` in der Kategorie `Screenshot` hochladen.
+    - Diagnose bestaetigt: Release-Version-Medium landet in `release_version_media`; `release_media` bleibt leer.
+
 ## Screenshots
 
 - `01-admin-login-profile.png`
@@ -118,6 +140,11 @@ Important extracted matching rule:
 - `23-csubs-members-app-and-historical.png`
 - Live-DOM-Nachweis ohne Screenshot: `csubs.leader@team4s.local` sieht im App-Drawer `Meine Gruppen` mit direktem Link `C-Subs -> /admin/fansubs/3/edit`; `/manage/groups` liefert HTTP 404.
 
+- `26-release-version-media-upload-drawer.png`
+- `27-csubs-group-media-controls.png`
+- `28-playwright-group-logo-upload.png`
+- `29-playwright-release-version-media-upload.png`
+
 ## Findings
 
 ### Zwischenbefund: Mapper-Feld falsch interpretiert
@@ -144,6 +171,11 @@ Important extracted matching rule:
 - Die historische Mitgliederliste zeigt einzelne Rollen als technische Keys statt deutsche Labels (`other`, `admin`), obwohl `role_definitions.label_de` korrekte Labels enthält.
 - App-Mitglied `CSubs Leader` wird in der UI korrekt als `CSubs Leader` und `Leader` angezeigt. DB-seitig ist es über `app_user_id` verknüpft; `member_id` bleibt bei diesem App-Member leer.
 - Die frühere Zwischenseite `Meine Gruppen` wurde entfernt: keine Links mehr auf `/manage/groups`, `/manage/groups` ist 404, und der App-Drawer nutzt die Memberships aus `/me/profile` direkt für Gruppenlinks.
+
+- Fansub-Einladungen funktionieren fuer echte Testuser (`Sheppert`, `Sokolada`) und erzeugen aktive App-Gruppenmitgliedschaften mit begrenzten Rollenrechten.
+- Die Einladung/Annahme verknuepft den App-User nicht automatisch mit dem gleichnamigen historischen Member-Eintrag: `fansub_group_members.member_id` bleibt leer und das Profil zeigt weiter `noch keinem verifizierten Member-Eintrag`.
+- Rollenlabels lecken weiterhin technische Keys in mehreren Kontexten: historische Rollen zeigen `other`/`admin`, Einladungstabelle zeigt bei Sheppert `admin`.
+- Datei-Uploads sind in der Codex-In-App-Browser-Steuerung nicht moeglich, funktionieren aber mit normalem Playwright/Chromium ueber die echte UI.
 
 ## DB Invariants
 
@@ -200,6 +232,33 @@ Sokolada  designer        Design            public
 Sokolada  editor          Editing           public
 Sokolada  gfxler          GFX / Grafik      public
 Sokolada  quality_checker Qualitätsprüfung  public
+```
+
+Nach Einladung/Annahme der echten Testuser wurden per Diagnose-SQL geprueft:
+
+```txt
+csubs.leader@team4s.local C-Subs active member_id=NULL fansub_lead
+sheppert@team4s.local     C-Subs active member_id=NULL admin,encoder,timer,translator,typesetter
+sokolada@team4s.local     C-Subs active member_id=NULL designer,editor,gfxler,quality_checker
+
+sheppert@team4s.local accepted expires 2026-07-10
+sokolada@team4s.local accepted expires 2026-07-10
+```
+
+Nach Medien-Uploads ueber normalen Playwright/Chromium wurden per Diagnose-SQL geprueft:
+
+```txt
+release_media         0
+release_version_media 1
+fansub_group_media    0
+csubs_logo_id         5
+
+release_version_media:
+id=1 release_version_id=2 category=screenshot media_asset_id=6
+file_path=/app/media/release-version/2/59341fc3-dda0-4c64-bf6b-0539f5c8d367/original.jpg mime_type=image/jpeg
+
+fansub_groups:
+C-Subs logo_id=5
 ```
 
 ## Recommendation
