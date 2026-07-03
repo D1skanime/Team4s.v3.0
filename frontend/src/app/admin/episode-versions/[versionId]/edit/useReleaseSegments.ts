@@ -90,14 +90,16 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
     setIsLoading(true)
     setErrorMessage(null)
     try {
-      const [segRes, themeRes, themeTypesRes] = await Promise.all([
-        getAnimeSegments(animeId, groupId, version, undefined, releaseVariantId),
+      const segRes = await getAnimeSegments(animeId, groupId, version, undefined, releaseVariantId)
+      setSegments(segRes.data)
+
+      const [themeRes, themeTypesRes] = await Promise.allSettled([
         getAdminAnimeThemes(animeId),
         getAdminThemeTypes(),
       ])
-      setSegments(segRes.data)
-      setThemes(themeRes.data)
-      setThemeTypes(themeTypesRes.data)
+
+      setThemes(themeRes.status === 'fulfilled' ? themeRes.value.data : [])
+      setThemeTypes(themeTypesRes.status === 'fulfilled' ? themeTypesRes.value.data : [])
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Fehler beim Laden der Segmente.')
     } finally {

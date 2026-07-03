@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -16,7 +16,12 @@ import (
 // Gibt Segmente zurück, deren Episodenbereich den angegebenen episode-Wert abdeckt,
 // mit Ausnahme der aktuellen (exclude_group_id, exclude_version)-Kombination.
 func (h *AdminContentHandler) GetAnimeSegmentSuggestions(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+	if !h.requireSegmentManage(c, releaseVariantID) {
 		return
 	}
 	if h.themeRepo == nil {

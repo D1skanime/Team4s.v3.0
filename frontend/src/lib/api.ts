@@ -6392,12 +6392,15 @@ export async function getAnimeSegmentSuggestions(
   excludeGroupId?: number | null,
   excludeVersion?: string | null,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<AdminSegmentSuggestionsResponse> {
   const API_BASE_URL = getApiBaseUrl();
   const params = new URLSearchParams();
   params.set("episode", String(episode));
   if (excludeGroupId) params.set("exclude_group_id", String(excludeGroupId));
   if (excludeVersion) params.set("exclude_version", excludeVersion);
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/suggestions?${params.toString()}`,
     {

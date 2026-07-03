@@ -153,11 +153,18 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setSuggestionsLoading(true)
     const excludeGroupId = groupId ?? undefined
     const excludeVersion = version ?? undefined
-    getAnimeSegmentSuggestions(animeId, episodeNumber, excludeGroupId ?? undefined, excludeVersion ?? undefined)
+    getAnimeSegmentSuggestions(
+      animeId,
+      episodeNumber,
+      excludeGroupId ?? undefined,
+      excludeVersion ?? undefined,
+      undefined,
+      releaseVariantId,
+    )
       .then((res) => { setSuggestions(res.data) })
       .catch(() => { setSuggestions([]) })
       .finally(() => { setSuggestionsLoading(false) })
-  }, [animeId, episodeNumber, groupId, hasAccessToken, version])
+  }, [animeId, episodeNumber, groupId, hasAccessToken, releaseVariantId, version])
 
   function openAddPanel() {
     setEditingSegment(null)

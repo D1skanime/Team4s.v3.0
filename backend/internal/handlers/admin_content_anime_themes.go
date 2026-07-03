@@ -26,7 +26,7 @@ type adminAnimeThemePatchRequest struct {
 
 // ListThemeTypes verarbeitet GET /api/v1/admin/theme-types und gibt alle verfügbaren Theme-Typen zurück.
 func (h *AdminContentHandler) ListThemeTypes(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	if _, _, ok := permissionActorFromContext(c); !ok {
 		return
 	}
 	if h.themeRepo == nil {

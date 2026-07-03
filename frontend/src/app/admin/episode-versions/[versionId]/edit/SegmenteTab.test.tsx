@@ -107,6 +107,29 @@ describe('useReleaseSegments auth contract', () => {
     expect(mockedGetAdminAnimeThemes).toHaveBeenCalledWith(1)
     expect(mockedGetAdminThemeTypes).toHaveBeenCalledWith()
   })
+
+  it('keeps segment data visible when helper metadata fails to load', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [makeSegment({ id: 77, theme_title: 'Visible OP' })],
+    })
+    mockedGetAdminThemeTypes.mockRejectedValue(new Error('keine berechtigung'))
+
+    const { result } = renderHook(() =>
+      useReleaseSegments({
+        animeId: 1,
+        groupId: 2,
+        version: 'v1',
+        releaseVariantId: 9,
+      }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.segments).toHaveLength(1)
+    })
+
+    expect(result.current.segments[0]?.theme_title).toBe('Visible OP')
+    expect(result.current.errorMessage).toBeNull()
+  })
 })
 
 describe('SegmenteTab table', () => {
@@ -136,6 +159,9 @@ describe('SegmenteTab table', () => {
     )
 
     const table = await screen.findByRole('table')
+    await waitFor(() => {
+      expect(mockedGetAnimeSegmentSuggestions).toHaveBeenCalledWith(1, 2, 2, 'v1', undefined, 9)
+    })
     expect(within(table).getByRole('columnheader', { name: 'Typ' })).toBeTruthy()
     expect(within(table).getByText('Sakura OP')).toBeTruthy()
 
