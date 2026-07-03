@@ -9,6 +9,7 @@ import type { FansubGroup } from '@/types/fansub'
 import styles from './page.module.css'
 
 const EMPTY_SELECTED_FANSUB_GROUPS: EpisodeImportSelectedFansubGroup[] = []
+const FREE_TEXT_GROUP_SEPARATOR = /[,;\n]+/
 
 interface EpisodeImportMappingRowCardProps {
   episodeNumber: number
@@ -112,14 +113,21 @@ export function EpisodeImportMappingRowCard({
     }
   }, [isSkipped, query, selectedGroupKeys])
 
-  function handleAddFreeTextChip() {
-    const trimmedQuery = query.trim()
-    if (!trimmedQuery) {
+  function handleAddFreeTextChips() {
+    const nextGroups = query
+      .split(FREE_TEXT_GROUP_SEPARATOR)
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .map((name) => ({ name }))
+
+    if (nextGroups.length === 0) {
       return
     }
 
-    const nextGroup = { name: trimmedQuery }
-    onAddSelectedFansubGroup(row.media_item_id, nextGroup)
+    onSetSelectedFansubGroups(row.media_item_id, [
+      ...selectedFansubGroups,
+      ...nextGroups,
+    ])
     setQuery('')
     setResults([])
     setSearchMessage(null)
@@ -135,7 +143,7 @@ export function EpisodeImportMappingRowCard({
   function handleGroupInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter' || event.key === ',') {
       event.preventDefault()
-      handleAddFreeTextChip()
+      handleAddFreeTextChips()
       return
     }
 
@@ -197,7 +205,7 @@ export function EpisodeImportMappingRowCard({
                   className={styles.releaseScopeButton}
                   type="button"
                   disabled={isSkipped || !query.trim()}
-                  onClick={handleAddFreeTextChip}
+                  onClick={handleAddFreeTextChips}
                 >
                   Als Chip
                 </button>
