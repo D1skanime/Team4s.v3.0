@@ -475,6 +475,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260703-a3r | UI-first E2E Viper's Creed Jellyfin fresh reset retest | 2026-07-03 | working tree | [260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres](./quick/260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres/) |
 | 260701-phase96-mobile-fansub-members-closeout | Phase 96 Quick: Admin-Fansub Members Mobile-Polish, kompakte Dialoge, lokale Dev-Hot-Reload-Absicherung | 2026-07-01 | this commit | [260701-phase96-mobile-fansub-members-closeout](./quick/260701-phase96-mobile-fansub-members-closeout/) |
 | 260630-phase93-contributions-responsive-polish | Phase 93 Quick: Meine Projekte Desktop/Mobile-Layout, Hinweis-Wizard, YearPicker und Sichtbarkeits-Slider polishen | 2026-06-30 | this commit | [260630-phase93-contributions-responsive-polish](./quick/260630-phase93-contributions-responsive-polish/) |
 | 260621-p80p88-review-bugfixes | Phase-80/88 Review-Bugs fixen: reale Release-Scope-Aggregate, D-18-Konflikte, Legacy-Historical, Modal-Close | 2026-06-21 | this commit | [260621-p80p88-review-bugfixes](./quick/260621-p80p88-review-bugfixes/) |
@@ -524,5 +525,5 @@ Recent durable decisions:
 
 Last session: 2026-07-01T14:25:00.000Z
 Stopped at: Completed 97-05-PLAN.md
-Last activity: 2026-07-01
+Last activity: 2026-07-03 - Quick 260703-a3r blocked/partial UI-first E2E retest: Viper's Creed Jellyfin fresh reset retest
 Resume file: None
