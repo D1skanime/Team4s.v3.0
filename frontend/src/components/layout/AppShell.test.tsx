@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 
 import type { ImgHTMLAttributes, ReactNode } from 'react'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { AppShell } from './AppShell'
 
-const routerPushMock = vi.hoisted(() => vi.fn())
+const routerReplaceMock = vi.hoisted(() => vi.fn())
 const logoutAuthSessionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/link', () => ({
@@ -17,7 +17,7 @@ vi.mock('next/link', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: routerPushMock,
+    replace: routerReplaceMock,
   }),
 }))
 
@@ -274,7 +274,32 @@ describe('AppShell drawer behavior', () => {
 
     await waitFor(() => {
       expect(logoutAuthSessionMock).toHaveBeenCalledTimes(1)
-      expect(routerPushMock).toHaveBeenCalledWith('/login')
+      expect(routerReplaceMock).toHaveBeenCalledWith('/login')
+    })
+  })
+
+  it('navigates to login immediately when remote logout is slow', async () => {
+    let resolveLogout!: () => void
+    logoutAuthSessionMock.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLogout = resolve
+      }),
+    )
+
+    render(
+      <AppShell currentPath="/admin" user={{ displayName: 'Admin', email: 'admin@example.com' }} canAccessAdmin>
+        <main>Admininhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Abmelden/i }))
+
+    expect(logoutAuthSessionMock).toHaveBeenCalledTimes(1)
+    expect(routerReplaceMock).toHaveBeenCalledWith('/login')
+
+    await act(async () => {
+      resolveLogout()
     })
   })
 

@@ -306,6 +306,24 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.queryByRole('link', { name: 'Meine Gruppen' })).toBeNull()
   })
 
+  it('starts loading group capabilities while current-user loading is still pending', async () => {
+    let resolveCurrentUser!: (value: { data: { is_platform_admin: boolean } }) => void
+    apiMocks.getCurrentUser.mockReturnValueOnce(
+      new Promise<{ data: { is_platform_admin: boolean } }>((resolve) => {
+        resolveCurrentUser = resolve
+      }),
+    )
+
+    render(<AdminFansubEditPage />)
+
+    await waitFor(() => expect(apiMocks.getCurrentUser).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(apiMocks.getFansubGroupCapabilities).toHaveBeenCalledWith(88))
+
+    resolveCurrentUser({ data: { is_platform_admin: false } })
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+  })
+
   it('allows a non-platform release role into the fansub edit workspace with only release tabs', async () => {
     apiMocks.getCurrentUser.mockResolvedValue({
       data: { is_platform_admin: false },

@@ -1512,6 +1512,76 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/anime/{id}/themes:
+    post:
+      tags: [Admin]
+      summary: Create anime theme anchor
+      description: |
+        Platform admins may create anime themes directly. Non-admin segment managers
+        must pass `release_variant_id` and need `release_version.segments.manage`
+        for that release context. The release variant must belong to this anime.
+      operationId: adminCreateAnimeTheme
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/AdminAnimeId"
+        - name: release_variant_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: Required for non-admin segment managers creating a missing theme anchor from the segment editor.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAnimeThemeCreateRequest"
+      responses:
+        "201":
+          description: Created anime theme
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAnimeThemeCreateResponse"
+        "400":
+          description: Invalid anime id, release_variant_id, or request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Anime not found or release variant is outside this anime context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Invalid theme type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/anime/{id}/assets/cover:
     put:
       tags: [Admin]
@@ -8268,6 +8338,44 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/AdminAnimeItem"
+    AdminAnimeThemeCreateRequest:
+      type: object
+      required: [theme_type_id]
+      properties:
+        theme_type_id:
+          type: integer
+          format: int64
+          minimum: 1
+        title:
+          type: string
+          nullable: true
+    AdminAnimeTheme:
+      type: object
+      required: [id, anime_id, theme_type_id, theme_type_name, created_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+        anime_id:
+          type: integer
+          format: int64
+        theme_type_id:
+          type: integer
+          format: int64
+        theme_type_name:
+          type: string
+        title:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    AdminAnimeThemeCreateResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/AdminAnimeTheme"
     AdminUploadAssetType:
       type: string
       enum: [poster, banner, logo, gallery, background, video, background_video]

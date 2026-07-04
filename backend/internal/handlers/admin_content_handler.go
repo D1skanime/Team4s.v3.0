@@ -50,6 +50,7 @@ type adminThemeRepository interface {
 	ListThemeTypes(ctx context.Context) ([]models.AdminThemeType, error)
 	ListAdminAnimeThemes(ctx context.Context, animeID int64) ([]models.AdminAnimeTheme, error)
 	CreateAdminAnimeTheme(ctx context.Context, animeID int64, input models.AdminAnimeThemeCreateInput) (*models.AdminAnimeTheme, error)
+	ReleaseVariantBelongsToAnime(ctx context.Context, releaseVariantID int64, animeID int64) (bool, error)
 	UpdateAdminAnimeTheme(ctx context.Context, themeID int64, input models.AdminAnimeThemePatchInput) error
 	DeleteAdminAnimeTheme(ctx context.Context, themeID int64) error
 	ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string) ([]models.AdminThemeSegment, error)

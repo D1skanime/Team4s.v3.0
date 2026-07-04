@@ -9,6 +9,10 @@ import type { FansubGroupCapabilities } from "@/types/fansub";
 import { hasFansubWorkspaceAccess } from "./fansubEditAccess";
 import type { FansubEditAccessContext } from "./fansubEditTypes";
 
+type CapabilitiesRequestResult =
+  | { ok: true; data: FansubGroupCapabilities }
+  | { ok: false; error: unknown };
+
 const PLATFORM_ADMIN_CAPABILITIES: FansubGroupCapabilities = {
   can_edit_group: true,
   can_manage_links: true,
@@ -29,6 +33,15 @@ const PLATFORM_ADMIN_CAPABILITIES: FansubGroupCapabilities = {
   can_delete_group_media: true,
   can_reorder_group_media: true,
 };
+
+function loadCapabilitiesForAccessGate(
+  fansubID: number,
+): Promise<CapabilitiesRequestResult> {
+  return getFansubGroupCapabilities(fansubID).then(
+    (response): CapabilitiesRequestResult => ({ ok: true, data: response.data }),
+    (error: unknown): CapabilitiesRequestResult => ({ ok: false, error }),
+  );
+}
 
 export function FansubEditAccessGate({
   children,
@@ -77,7 +90,9 @@ export function FansubEditAccessGate({
       setIsLoading(true);
       setErrorMessage(null);
       try {
-        const currentUserResponse = await getCurrentUser();
+        const currentUserPromise = getCurrentUser();
+        const capabilitiesPromise = loadCapabilitiesForAccessGate(fansubID);
+        const currentUserResponse = await currentUserPromise;
         if (currentUserResponse.data.is_platform_admin) {
           if (!cancelled) {
             setIsAllowed(true);
@@ -87,8 +102,8 @@ export function FansubEditAccessGate({
           return;
         }
 
-        const capabilitiesResponse =
-          await getFansubGroupCapabilities(fansubID);
+        const capabilitiesResponse = await capabilitiesPromise;
+        if (!capabilitiesResponse.ok) throw capabilitiesResponse.error;
         if (!cancelled) {
           setIsPlatformAdmin(false);
           setCapabilities(capabilitiesResponse.data);

@@ -378,6 +378,35 @@ endpoints:
       status: 200
       type: AdminCanonicalFansubAnimeReleaseResponse
 
+  - name: admin-anime-theme-create
+    method: POST
+    path: /api/v1/admin/anime/:id/themes
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Platform admins may create anime themes without a release context.
+        - Non-admin users must pass release_variant_id and need release_version.segments.manage for that release context.
+        - The release variant must belong to the anime identified by :id.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    query_params:
+      - name: release_variant_id
+        type: int64
+        required: false
+        minimum: 1
+        description: "Required for non-admin segment managers when creating a missing theme anchor from the segment editor."
+    request_body:
+      required: true
+      type: AdminAnimeThemeCreateRequest
+    response:
+      status: 201
+      type: AdminAnimeThemeCreateResponse
+
   - name: admin-release-get
     method: GET
     path: /api/v1/admin/releases/:releaseId
@@ -994,6 +1023,18 @@ types:
     cover_image: string | null
     source: string | null
     folder_name: string | null
+  AdminAnimeThemeCreateRequest:
+    theme_type_id: int64 (required, minimum: 1)
+    title: string | null
+  AdminAnimeThemeCreateResponse:
+    data: AdminAnimeTheme
+  AdminAnimeTheme:
+    id: int64
+    anime_id: int64
+    theme_type_id: int64
+    theme_type_name: string
+    title: string | null
+    created_at: datetime
   AdminEpisodeCreateRequest:
     anime_id: int64 (required, minimum: 1)
     episode_number: string (required, min: 1, max: 32)

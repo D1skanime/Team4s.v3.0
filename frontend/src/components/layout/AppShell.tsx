@@ -278,16 +278,13 @@ export function AppShell({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [drawerOpen])
 
-  async function handleLogout() {
+  function handleLogout() {
     if (isLoggingOut) return
     setIsLoggingOut(true)
-    try {
-      await logoutAuthSession()
-    } finally {
-      setDrawerOpen(false)
-      router.push('/login')
-      setIsLoggingOut(false)
-    }
+    const logoutPromise = logoutAuthSession().catch(() => undefined)
+    setDrawerOpen(false)
+    router.replace('/login')
+    void logoutPromise.finally(() => setIsLoggingOut(false))
   }
 
   return (

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, it, expect, vi } from 'vitest'
-import { fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react'
 import type { AdminThemeSegment } from '@/types/admin'
 
 import {
@@ -20,6 +20,7 @@ import {
   getAdminThemeTypes,
   getAnimeSegmentSuggestions,
   getAnimeSegments,
+  createAdminAnimeTheme,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { SegmenteTab } from './SegmenteTab'
@@ -48,6 +49,7 @@ const mockedGetAnimeSegments = vi.mocked(getAnimeSegments)
 const mockedGetAnimeSegmentSuggestions = vi.mocked(getAnimeSegmentSuggestions)
 const mockedGetAdminAnimeThemes = vi.mocked(getAdminAnimeThemes)
 const mockedGetAdminThemeTypes = vi.mocked(getAdminThemeTypes)
+const mockedCreateAdminAnimeTheme = vi.mocked(createAdminAnimeTheme)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -62,6 +64,16 @@ beforeEach(() => {
   mockedGetAnimeSegmentSuggestions.mockResolvedValue({ data: [] })
   mockedGetAdminAnimeThemes.mockResolvedValue({ data: [] })
   mockedGetAdminThemeTypes.mockResolvedValue({ data: [] })
+  mockedCreateAdminAnimeTheme.mockResolvedValue({
+    data: {
+      id: 99,
+      anime_id: 1,
+      theme_type_id: 1,
+      theme_type_name: 'OP',
+      title: null,
+      created_at: '2026-01-01T00:00:00Z',
+    },
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -153,6 +165,46 @@ describe('useReleaseSegments auth contract', () => {
     await waitFor(() => {
       expect(mockedGetAnimeSegments).toHaveBeenCalledWith(1, 2, 'v2', undefined, 9)
     })
+  })
+
+  it('creates missing theme anchors with the release variant context', async () => {
+    mockedGetAdminThemeTypes.mockResolvedValue({
+      data: [{ id: 5, name: 'OP' }],
+    })
+    mockedCreateAdminAnimeTheme.mockResolvedValue({
+      data: {
+        id: 12,
+        anime_id: 1,
+        theme_type_id: 5,
+        theme_type_name: 'OP',
+        title: "Viper's Creed Honto",
+        created_at: '2026-01-01T00:00:00Z',
+      },
+    })
+
+    const { result } = renderHook(() =>
+      useReleaseSegments({
+        animeId: 1,
+        groupId: 2,
+        version: 'v2',
+        releaseVariantId: 9,
+      }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.genericThemeOptions).toHaveLength(1)
+    })
+
+    await act(async () => {
+      await expect(result.current.ensureThemeFromSelection('op', "Viper's Creed Honto")).resolves.toBe(12)
+    })
+
+    expect(mockedCreateAdminAnimeTheme).toHaveBeenCalledWith(
+      1,
+      { theme_type_id: 5, title: "Viper's Creed Honto" },
+      undefined,
+      9,
+    )
   })
 })
 

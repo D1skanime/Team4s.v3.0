@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
@@ -26,6 +27,8 @@ type fansubReleaseThemeRepoStub struct {
 	listFansubAnimeReleasesPage           func(ctx context.Context, fansubGroupID int64, animeID int64, page int, perPage int) ([]models.AdminFansubReleaseSummary, int64, error)
 	getCanonicalFansubAnimeReleaseSummary func(ctx context.Context, fansubGroupID int64, animeID int64) (*models.CanonicalFansubAnimeReleaseResponse, error)
 	getAdminReleaseByID                   func(ctx context.Context, releaseID int64) (*models.AdminFansubReleaseSummary, error)
+	createAdminAnimeTheme                 func(ctx context.Context, animeID int64, input models.AdminAnimeThemeCreateInput) (*models.AdminAnimeTheme, error)
+	releaseVariantBelongsToAnime          func(ctx context.Context, releaseVariantID int64, animeID int64) (bool, error)
 }
 
 type releasePermissionResolverStub struct{}
@@ -61,7 +64,16 @@ func (s *fansubReleaseThemeRepoStub) ListAdminAnimeThemes(ctx context.Context, a
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) CreateAdminAnimeTheme(ctx context.Context, animeID int64, input models.AdminAnimeThemeCreateInput) (*models.AdminAnimeTheme, error) {
+	if s.createAdminAnimeTheme != nil {
+		return s.createAdminAnimeTheme(ctx, animeID, input)
+	}
 	return nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) ReleaseVariantBelongsToAnime(ctx context.Context, releaseVariantID int64, animeID int64) (bool, error) {
+	if s.releaseVariantBelongsToAnime != nil {
+		return s.releaseVariantBelongsToAnime(ctx, releaseVariantID, animeID)
+	}
+	return true, nil
 }
 func (s *fansubReleaseThemeRepoStub) UpdateAdminAnimeTheme(ctx context.Context, themeID int64, input models.AdminAnimeThemePatchInput) error {
 	return nil
@@ -269,6 +281,97 @@ func TestAdminFansubReleases_ListFansubAnimeAllowsFansubLead(t *testing.T) {
 	}
 	if len(resp.Data) != 1 || resp.Data[0].Title != "Naruto" {
 		t.Fatalf("unexpected anime response: %+v", resp.Data)
+	}
+}
+
+func TestCreateAnimeThemeAllowsSegmentManagerWithReleaseVariantContext(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	var capturedAnimeID int64
+	var capturedReleaseVariantID int64
+	stub := &fansubReleaseThemeRepoStub{
+		releaseVariantBelongsToAnime: func(_ context.Context, releaseVariantID int64, animeID int64) (bool, error) {
+			capturedReleaseVariantID = releaseVariantID
+			if animeID != 10 {
+				t.Fatalf("expected anime id 10, got %d", animeID)
+			}
+			return true, nil
+		},
+		createAdminAnimeTheme: func(_ context.Context, animeID int64, input models.AdminAnimeThemeCreateInput) (*models.AdminAnimeTheme, error) {
+			capturedAnimeID = animeID
+			if input.ThemeTypeID != 3 {
+				t.Fatalf("expected theme_type_id 3, got %d", input.ThemeTypeID)
+			}
+			return &models.AdminAnimeTheme{
+				ID:            77,
+				AnimeID:       animeID,
+				ThemeTypeID:   input.ThemeTypeID,
+				ThemeTypeName: "OP",
+				Title:         input.Title,
+				CreatedAt:     time.Now(),
+			}, nil
+		},
+	}
+	handler := &AdminContentHandler{
+		themeRepo:     stub,
+		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
+	}
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/10/themes?release_variant_id=42", strings.NewReader(`{"theme_type_id":3,"title":"Viper's Creed Honto"}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "10"}}
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, AppUserStatus: models.AppUserStatusActive, DisplayName: "Lead"})
+
+	handler.CreateAnimeTheme(c)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d body=%s", recorder.Code, recorder.Body.String())
+	}
+	if capturedAnimeID != 10 {
+		t.Fatalf("expected create anime id 10, got %d", capturedAnimeID)
+	}
+	if capturedReleaseVariantID != 42 {
+		t.Fatalf("expected release variant id 42, got %d", capturedReleaseVariantID)
+	}
+}
+
+func TestCreateAnimeThemeRejectsSegmentManagerWhenReleaseVariantBelongsToOtherAnime(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	createCalled := false
+	stub := &fansubReleaseThemeRepoStub{
+		releaseVariantBelongsToAnime: func(_ context.Context, releaseVariantID int64, animeID int64) (bool, error) {
+			if releaseVariantID != 42 || animeID != 10 {
+				t.Fatalf("unexpected ownership check variant=%d anime=%d", releaseVariantID, animeID)
+			}
+			return false, nil
+		},
+		createAdminAnimeTheme: func(_ context.Context, animeID int64, input models.AdminAnimeThemeCreateInput) (*models.AdminAnimeTheme, error) {
+			createCalled = true
+			return nil, nil
+		},
+	}
+	handler := &AdminContentHandler{
+		themeRepo:     stub,
+		permissionSvc: permissions.NewService(releasePermissionResolverStub{}),
+	}
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/admin/anime/10/themes?release_variant_id=42", strings.NewReader(`{"theme_type_id":3}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{{Key: "id", Value: "10"}}
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, AppUserStatus: models.AppUserStatusActive, DisplayName: "Lead"})
+
+	handler.CreateAnimeTheme(c)
+
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d body=%s", recorder.Code, recorder.Body.String())
+	}
+	if createCalled {
+		t.Fatal("create should not be called when release variant belongs to another anime")
 	}
 }
 

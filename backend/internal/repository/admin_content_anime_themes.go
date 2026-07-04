@@ -276,6 +276,30 @@ func (r *AdminContentRepository) CreateAdminAnimeTheme(ctx context.Context, anim
 	return &theme, nil
 }
 
+// ReleaseVariantBelongsToAnime prueft, ob die technische Release-Variante zum Anime-Kontext gehoert.
+func (r *AdminContentRepository) ReleaseVariantBelongsToAnime(ctx context.Context, releaseVariantID int64, animeID int64) (bool, error) {
+	if releaseVariantID <= 0 || animeID <= 0 {
+		return false, nil
+	}
+
+	var exists bool
+	err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM release_variants rv
+			JOIN release_versions rev ON rev.id = rv.release_version_id
+			JOIN fansub_releases fr ON fr.id = rev.release_id
+			JOIN episodes ep ON ep.id = fr.episode_id
+			WHERE rv.id = $1
+			  AND ep.anime_id = $2
+		)
+	`, releaseVariantID, animeID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check release variant anime release_variant=%d anime=%d: %w", releaseVariantID, animeID, err)
+	}
+	return exists, nil
+}
+
 // UpdateAdminAnimeTheme aktualisiert theme_type_id und/oder title eines Themes (partieller Patch).
 func (r *AdminContentRepository) UpdateAdminAnimeTheme(ctx context.Context, themeID int64, input models.AdminAnimeThemePatchInput) error {
 	if themeID <= 0 {

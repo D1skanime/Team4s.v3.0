@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -76,7 +78,8 @@ func (h *AdminContentHandler) ListAnimeThemes(c *gin.Context) {
 
 // CreateAnimeTheme verarbeitet POST /api/v1/admin/anime/:id/themes und legt ein neues Theme an.
 func (h *AdminContentHandler) CreateAnimeTheme(c *gin.Context) {
-	if _, ok := h.requireAdmin(c); !ok {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
 		return
 	}
 	if h.themeRepo == nil {
@@ -87,6 +90,10 @@ func (h *AdminContentHandler) CreateAnimeTheme(c *gin.Context) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige anime id")
+		return
+	}
+
+	if !h.requireAnimeThemeCreate(c, identity, actor, animeID) {
 		return
 	}
 
@@ -122,6 +129,49 @@ func (h *AdminContentHandler) CreateAnimeTheme(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"data": created})
+}
+
+func (h *AdminContentHandler) requireAnimeThemeCreate(c *gin.Context, identity middleware.AuthIdentity, actor permissions.Actor, animeID int64) bool {
+	if actor.IsPlatformAdmin {
+		return true
+	}
+
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return false
+	}
+	if releaseVariantID <= 0 {
+		badRequest(c, "release_variant_id ist erforderlich")
+		return false
+	}
+	if h.permissionSvc == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "permission service nicht verfügbar"}})
+		return false
+	}
+
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionSegmentsManage, releaseVariantID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Segment-Berechtigung konnte nicht geprüft werden.")
+		return false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, "anime_theme.create_for_segment.denied", nil, "release_variant", &releaseVariantID, permissions.ActionReleaseVersionSegmentsManage, result)
+		writePermissionDenied(c, result)
+		return false
+	}
+
+	matches, err := h.themeRepo.ReleaseVariantBelongsToAnime(c.Request.Context(), releaseVariantID, animeID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Variante konnte nicht geprüft werden.")
+		return false
+	}
+	if !matches {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "Release-Variante gehört nicht zu diesem Anime."}})
+		return false
+	}
+
+	return true
 }
 
 // UpdateAnimeTheme verarbeitet PATCH /api/v1/admin/anime/:id/themes/:themeId und aktualisiert ein Theme.

@@ -5664,10 +5664,12 @@ export async function createAdminAnimeTheme(
   animeID: number,
   payload: AdminAnimeThemeCreateRequest,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<AdminAnimeThemeCreateResponse> {
   const API_BASE_URL = getApiBaseUrl();
+  const query = releaseVariantId ? `?release_variant_id=${releaseVariantId}` : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes`,
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/themes${query}`,
     {
       method: "POST",
       headers: withAuthHeader(

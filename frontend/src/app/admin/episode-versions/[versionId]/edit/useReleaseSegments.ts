@@ -136,6 +136,8 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
         theme_type_id: option.preferredThemeTypeId,
         title: normalizedTitle || undefined,
       },
+      undefined,
+      releaseVariantId,
     )
     setThemes((current) => [...current, response.data])
     return response.data.id
