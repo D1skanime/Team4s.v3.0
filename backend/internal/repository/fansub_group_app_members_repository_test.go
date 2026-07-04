@@ -46,7 +46,8 @@ func TestCreateCanLinkOpenHistoricalMemberByVerifiedClaim(t *testing.T) {
 		"join role_definitions rd",
 		"insert into fansub_group_members",
 		"member_id",
-		"nullif($5, 0)",
+		"ensureappusermemberanchortx",
+		"values ($1, $2, $5",
 		"'manual_review'",
 		"on conflict (member_id, app_user_id)",
 	}
@@ -71,6 +72,23 @@ func TestListByFansubGroupIncludesAppUserPayload(t *testing.T) {
 	for _, fragment := range required {
 		if !strings.Contains(content, fragment) {
 			t.Fatalf("expected app member list query to hydrate app user payload containing %q", fragment)
+		}
+	}
+}
+
+func TestAppMembersAlwaysResolveCanonicalMemberAnchor(t *testing.T) {
+	content := strings.ToLower(readRepositorySource(t, "fansub_group_app_members_repository.go"))
+
+	required := []string{
+		"func ensureappusermemberanchortx",
+		"select coalesce(claimed.member_id, legacy.id, existing.member_id, 0)",
+		"insert into members (nickname, created_at, updated_at)",
+		"left join members fgm_member on fgm_member.id = fgm.member_id",
+		"coalesce(fgm_member.id, claimed_m.id, legacy_m.id, 0) as member_id",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected app member repository to preserve canonical member anchor via %q", fragment)
 		}
 	}
 }

@@ -11,7 +11,7 @@ import (
 type UnifiedGroupMember struct {
 	MemberID      int64    `json:"member_id"`
 	DisplayName   string   `json:"display_name"`
-	Source        string   `json:"source"`         // "hist" | "app"
+	Source        string   `json:"source"` // "hist" | "app"
 	HasAppAccount bool     `json:"has_app_account"`
 	GroupRoles    []string `json:"group_roles"`
 }
@@ -45,12 +45,14 @@ func (r *HistGroupMembersRepository) ListUnifiedByFansub(
 		),
 		app_members AS (
 			SELECT
-				m.id AS member_id,
+				COALESCE(fgm_member.id, claimed_m.id, legacy_m.id) AS member_id,
 				COALESCE(
 					NULLIF(TRIM(au.display_name), ''),
 					NULLIF(TRIM(au.preferred_username), ''),
 					NULLIF(TRIM(au.email), ''),
-					m.nickname
+					fgm_member.nickname,
+					claimed_m.nickname,
+					legacy_m.nickname
 				) AS display_name,
 				'app' AS source,
 				true AS has_app_account,
@@ -60,12 +62,29 @@ func (r *HistGroupMembersRepository) ListUnifiedByFansub(
 				) AS group_roles
 			FROM fansub_group_members fgm
 			JOIN app_users au ON au.id = fgm.app_user_id
-			JOIN members m ON m.id = fgm.member_id
+			LEFT JOIN members fgm_member ON fgm_member.id = fgm.member_id
+			LEFT JOIN LATERAL (
+				SELECT mc.member_id
+				FROM member_claims mc
+				WHERE mc.app_user_id = au.id
+				  AND mc.claim_status = 'verified'
+				ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
+				LIMIT 1
+			) claimed ON true
+			LEFT JOIN members claimed_m ON claimed_m.id = claimed.member_id
+			LEFT JOIN members legacy_m ON legacy_m.user_id = au.legacy_user_id
 			LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
 			WHERE fgm.fansub_group_id = $1
 			  AND fgm.status = 'active'
-			  AND fgm.member_id IS NOT NULL
-			GROUP BY m.id, au.display_name, au.preferred_username, au.email, m.nickname
+			  AND COALESCE(fgm_member.id, claimed_m.id, legacy_m.id) IS NOT NULL
+			GROUP BY
+				COALESCE(fgm_member.id, claimed_m.id, legacy_m.id),
+				au.display_name,
+				au.preferred_username,
+				au.email,
+				fgm_member.nickname,
+				claimed_m.nickname,
+				legacy_m.nickname
 		),
 		combined AS (
 			SELECT * FROM app_members

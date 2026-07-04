@@ -71,8 +71,8 @@ func (r *FansubGroupAppMemberRepository) SearchCandidates(
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			au.id,
-			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
-			COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied') AS fansub_name
+			COALESCE(claimed_m.id, legacy_m.id, existing_m.id, 0) AS member_id,
+			COALESCE(NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(existing_m.nickname, ''), NULLIF(au.display_name, ''), 'Mitglied') AS fansub_name
 		FROM app_users au
 		LEFT JOIN LATERAL (
 			SELECT member_id
@@ -86,6 +86,16 @@ func (r *FansubGroupAppMemberRepository) SearchCandidates(
 			ON claimed_m.id = mc.member_id
 		LEFT JOIN members legacy_m
 			ON legacy_m.user_id = au.legacy_user_id
+		LEFT JOIN LATERAL (
+			SELECT fgm_existing.member_id
+			FROM fansub_group_members fgm_existing
+			WHERE fgm_existing.app_user_id = au.id
+			  AND fgm_existing.member_id IS NOT NULL
+			ORDER BY fgm_existing.id DESC
+			LIMIT 1
+		) existing_link ON true
+		LEFT JOIN members existing_m
+			ON existing_m.id = existing_link.member_id
 		LEFT JOIN fansub_group_members fgm
 			ON fgm.app_user_id = au.id
 			AND fgm.fansub_group_id = $1
@@ -148,9 +158,9 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			au.last_logout_at,
 			au.created_at,
 			au.updated_at,
-			COALESCE(claimed_m.id, legacy_m.id, 0) AS member_id,
-			COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied') AS fansub_name,
-			COALESCE(claimed_avatar.file_path, legacy_avatar.file_path, '') AS avatar_path,
+			COALESCE(fgm_member.id, claimed_m.id, legacy_m.id, 0) AS member_id,
+			COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(fgm_member.nickname, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied') AS fansub_name,
+			COALESCE(fgm_member_avatar.file_path, claimed_avatar.file_path, legacy_avatar.file_path, '') AS avatar_path,
 			COALESCE(
 				ARRAY(
 					SELECT role
@@ -177,11 +187,13 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			LIMIT 1
 		) mc ON true
 		LEFT JOIN members claimed_m ON claimed_m.id = mc.member_id
+		LEFT JOIN members fgm_member ON fgm_member.id = fgm.member_id
 		LEFT JOIN members legacy_m ON legacy_m.user_id = au.legacy_user_id
+		LEFT JOIN media_assets fgm_member_avatar ON fgm_member_avatar.id = fgm_member.avatar_media_id
 		LEFT JOIN media_assets claimed_avatar ON claimed_avatar.id = claimed_m.avatar_media_id
 		LEFT JOIN media_assets legacy_avatar ON legacy_avatar.id = legacy_m.avatar_media_id
 		WHERE fgm.fansub_group_id = $1
-		ORDER BY LOWER(COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied')), au.id
+		ORDER BY LOWER(COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(fgm_member.nickname, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied')), au.id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group members: %w", err)
@@ -313,6 +325,13 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 		return nil, fmt.Errorf("create fansub group member: at least one role is required")
 	}
 
+	if !hasHistoricalMember {
+		historicalMemberID, err = ensureAppUserMemberAnchorTx(ctx, tx, input.AppUserID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var memberID int64
 	err = tx.QueryRow(ctx, `
 		INSERT INTO fansub_group_members (
@@ -325,7 +344,7 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 			created_at,
 			updated_at
 		)
-		VALUES ($1, $2, NULLIF($5, 0), $3, $4, $4, NOW(), NOW())
+		VALUES ($1, $2, $5, $3, $4, $4, NOW(), NOW())
 		RETURNING id
 	`, fansubGroupID, input.AppUserID, models.FansubGroupMemberStatusActive, input.CreatedByAppUserID, historicalMemberID).Scan(&memberID)
 	if err != nil {
@@ -672,6 +691,68 @@ func (r *FansubGroupAppMemberRepository) EnsureInvitationAcceptance(
 	}
 
 	return r.GetByID(ctx, memberID)
+}
+
+func ensureAppUserMemberAnchorTx(ctx context.Context, tx pgx.Tx, appUserID int64) (int64, error) {
+	if appUserID <= 0 {
+		return 0, fmt.Errorf("ensure app user member anchor: invalid app user id")
+	}
+
+	var memberID int64
+	err := tx.QueryRow(ctx, `
+		SELECT COALESCE(claimed.member_id, legacy.id, existing.member_id, 0) AS member_id
+		FROM app_users au
+		LEFT JOIN LATERAL (
+			SELECT mc.member_id
+			FROM member_claims mc
+			WHERE mc.app_user_id = au.id
+			  AND mc.claim_status = 'verified'
+			ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
+			LIMIT 1
+		) claimed ON true
+		LEFT JOIN members legacy ON legacy.user_id = au.legacy_user_id
+		LEFT JOIN LATERAL (
+			SELECT fgm.member_id
+			FROM fansub_group_members fgm
+			WHERE fgm.app_user_id = au.id
+			  AND fgm.member_id IS NOT NULL
+			ORDER BY fgm.id DESC
+			LIMIT 1
+		) existing ON true
+		WHERE au.id = $1
+	`, appUserID).Scan(&memberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrNotFound
+		}
+		return 0, fmt.Errorf("ensure app user member anchor: resolve existing member: %w", err)
+	}
+	if memberID > 0 {
+		return memberID, nil
+	}
+
+	err = tx.QueryRow(ctx, `
+		INSERT INTO members (nickname, created_at, updated_at)
+		SELECT
+			COALESCE(
+				NULLIF(TRIM(au.display_name), ''),
+				NULLIF(TRIM(au.preferred_username), ''),
+				NULLIF(TRIM(au.email), ''),
+				'Mitglied'
+			),
+			NOW(),
+			NOW()
+		FROM app_users au
+		WHERE au.id = $1
+		RETURNING id
+	`, appUserID).Scan(&memberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrNotFound
+		}
+		return 0, fmt.Errorf("ensure app user member anchor: create member: %w", err)
+	}
+	return memberID, nil
 }
 
 func (r *FansubGroupAppMemberRepository) GetByID(ctx context.Context, memberID int64) (*models.FansubGroupAppMember, error) {
