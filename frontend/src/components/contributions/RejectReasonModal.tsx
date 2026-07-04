@@ -75,7 +75,7 @@ export function RejectReasonModal({
       <FormField
         label="Warum trifft diese Zuordnung nicht zu?"
         htmlFor="reject-reason"
-        hint="Die Begründung ist erforderlich und hilft dem Gruppen-Leader, den Widerspruch einzuordnen. Es wird nichts gelöscht."
+        hint="Die Begründung ist erforderlich und hilft der Gruppenleitung, den Widerspruch einzuordnen. Es wird nichts gelöscht."
         required
       >
         <Textarea

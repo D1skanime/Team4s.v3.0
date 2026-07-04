@@ -162,7 +162,7 @@ func (h *MemberClaimInvitationsHandler) AcceptClaimInvitation(c *gin.Context) {
 	}
 
 	err := h.invitationsRepo.AcceptInvitation(c.Request.Context(), req.Token, identity.AppUserID)
-	if h.writeInvitationError(c, err, "Ungültiger Einladungslink. Bitte überprüfe den Link oder wende dich an deinen Leader.") {
+	if h.writeInvitationError(c, err, "Ungültiger Einladungslink. Bitte überprüfe den Link oder wende dich an die Gruppenleitung.") {
 		return
 	}
 
@@ -270,7 +270,7 @@ func (h *MemberClaimInvitationsHandler) writeAudit(c *gin.Context, actorAppUserI
 func memberClaimInvitationMessage(code string, fallback string) string {
 	switch strings.TrimSpace(code) {
 	case "invitation_expired":
-		return "Dieser Einladungslink ist abgelaufen. Bitte deinen Leader, einen neuen Link zu erstellen."
+		return "Dieser Einladungslink ist abgelaufen. Bitte die Gruppenleitung, einen neuen Link zu erstellen."
 	case "invitation_used":
 		return "Diese Einladung wurde bereits verwendet."
 	case "invitation_cancelled":

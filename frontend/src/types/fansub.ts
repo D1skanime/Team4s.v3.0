@@ -424,18 +424,18 @@ export interface FansubGroupRoleItem {
 }
 
 export const FANSUB_GROUP_ROLE_OPTIONS: FansubGroupRoleOption[] = [
-  { code: 'fansub_lead', label: 'Leader', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
+  { code: 'fansub_lead', label: 'Gruppenleitung', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
   { code: 'project_lead', label: 'Projektleitung', description: 'Kann Projekte koordinieren, aber keine Mitglieder verwalten.' },
   { code: 'translator', label: 'Übersetzung', description: 'Arbeitet an Text und Release-Notizen.' },
   { code: 'timer', label: 'Timing', description: 'Pflegt Timing-bezogene Release-Arbeit.' },
-  { code: 'typesetter', label: 'Typesetting', description: 'Bearbeitet Typesetting und Version-Notizen.' },
+  { code: 'typesetter', label: 'Typesetting / FX', description: 'Bearbeitet Typesetting und Version-Notizen.' },
   { code: 'editor', label: 'Editing', description: 'Bearbeitet Inhalte und Gruppennotizen.' },
   { code: 'encoder', label: 'Encoding', description: 'Bearbeitet Release-Versionen ohne Mitgliederrechte.' },
-  { code: 'raw_provider', label: 'Raw-Quelle', description: 'Liefert Quellmaterial ohne Verwaltungsrechte.' },
-  { code: 'quality_checker', label: 'Qualitätscheck', description: 'Prüft Medien und Release-Notizen.' },
+  { code: 'raw_provider', label: 'Raw-Bereitstellung', description: 'Liefert Quellmaterial ohne Verwaltungsrechte.' },
+  { code: 'quality_checker', label: 'Qualitätsprüfung', description: 'Prüft Medien und Release-Notizen.' },
   { code: 'designer', label: 'Design', description: 'Arbeitet an Release-Medien und eigenen Uploads.' },
-  { code: 'techadmin', label: 'Techadmin', description: 'Technische Administration der Gruppe.' },
-  { code: 'gfxler', label: 'GFX / Grafik', description: 'Zuständig für Grafik und visuelle Gestaltung.' },
+  { code: 'techadmin', label: 'Technische Administration', description: 'Technische Administration der Gruppe.' },
+  { code: 'gfxler', label: 'Grafik', description: 'Zuständig für Grafik und visuelle Gestaltung.' },
 ];
 
 export interface FansubAliasCreateRequest {

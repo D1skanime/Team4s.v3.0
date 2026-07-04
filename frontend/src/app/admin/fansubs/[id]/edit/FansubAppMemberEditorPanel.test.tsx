@@ -62,8 +62,8 @@ const noop = () => {}
 const defaultEditorProps = {
   historicalRoleDrafts: [{ id: 'role-1', roleCode: '', startedDate: '', endedDate: '' }],
   historyRoleOptions: [
-    { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
-    { code: 'quality_checker', label_de: 'Qualitätscheck', sort_order: 2 },
+    { code: 'founder', label_de: 'Gründung', sort_order: 1 },
+    { code: 'quality_checker', label_de: 'Qualitätsprüfung', sort_order: 2 },
   ],
   historyRoleLoadError: null,
   canManageHistoricalRoles: true,
@@ -143,7 +143,7 @@ describe('FansubAppMemberEditorPanel', () => {
 
     expect(screen.getByText(/geben keine aktiven Rechte/)).not.toBeNull()
     expect(screen.getByLabelText('Rolle 1')).not.toBeNull()
-    expect(screen.getByText('Gründer/in')).not.toBeNull()
+    expect(screen.getByText('Gründung')).not.toBeNull()
     expect(screen.getByLabelText('Eintrittsdatum')).not.toBeNull()
     expect(screen.getByLabelText('Austrittsdatum')).not.toBeNull()
   })

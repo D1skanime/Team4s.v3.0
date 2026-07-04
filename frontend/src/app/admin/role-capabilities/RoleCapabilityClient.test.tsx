@@ -62,7 +62,7 @@ const sampleMatrix: RoleCapabilityMatrix = {
     },
     {
       role_code: "founder",
-      label_de: "Gründer/in",
+      label_de: "Gründung",
       assignable: false,
       capability_editable: false,
       contexts: ["group_history"],
@@ -142,7 +142,7 @@ describe("RoleCapabilityClient", () => {
     );
     // Beide Rollen sollen in der Rollenliste sichtbar sein
     expect(screen.getByText("Fansub-Lead")).toBeTruthy();
-    expect(screen.getByText("Gründer/in")).toBeTruthy();
+    expect(screen.getByText("Gründung")).toBeTruthy();
     // Badge für assignable Rolle
     expect(screen.getByText("Aktive App-Rolle")).toBeTruthy();
     // Badge für historische Rolle

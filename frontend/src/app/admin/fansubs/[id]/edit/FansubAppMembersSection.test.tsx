@@ -113,7 +113,7 @@ describe("FansubAppMembersSection", () => {
       },
     });
     listGroupHistoryRoleDefinitions.mockResolvedValue([
-      { code: "quality_checker", label_de: "Qualitätscheck", sort_order: 1 },
+      { code: "quality_checker", label_de: "Qualitätsprüfung", sort_order: 1 },
     ]);
     listFansubAppMembers.mockResolvedValue({
       data: [
@@ -326,7 +326,7 @@ describe("FansubAppMembersSection", () => {
     expect(await screen.findByText("Archiv Admin")).not.toBeNull();
     expect(await screen.findByText("Archiv Claim")).not.toBeNull();
     expect(screen.getByText("Verknüpft mit phase-admin")).not.toBeNull();
-    expect(screen.getAllByText("Leader").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Gruppenleitung").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Editing").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Aktiv/).length).toBeGreaterThan(0);
     expect(screen.queryByText("phase-admin@example.local")).toBeNull();
@@ -527,7 +527,7 @@ describe("FansubAppMembersSection", () => {
           fansub_group_member_id: 302,
           member_display_name: "Gon",
           role_code: "raw_provider",
-          role_label: "Raw-Quelle",
+          role_label: "Raw-Bereitstellung",
           started_date: "2010-11-22",
           ended_date: null,
           note: null,

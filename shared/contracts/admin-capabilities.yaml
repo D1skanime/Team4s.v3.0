@@ -198,7 +198,7 @@ paths:
       description: |
         Gibt Rollendefinitionen für historische Mitgliedsfunktionen zurück:
         Rollen wie Übersetzung, Timing, Typesetting, Editing, Encoding,
-        Raw-Quelle, Qualitätsprüfung und Design dokumentieren Archivdaten
+        Raw-Bereitstellung, Qualitätsprüfung und Design dokumentieren Archivdaten
         und vergeben keine aktiven App-Rechte.
         Nur für berechtigte Akteure zugänglich (CanForFansubGroup.MembersView).
       operationId: listGroupHistoryRoleDefinitions

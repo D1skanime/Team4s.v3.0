@@ -191,7 +191,7 @@ export function AdminUsersClient() {
                 <TableHeaderCell>Globale Rollen</TableHeaderCell>
                 <TableHeaderCell>Member-Profil</TableHeaderCell>
                 <TableHeaderCell>Gruppen</TableHeaderCell>
-                <TableHeaderCell>Leader-Kontext</TableHeaderCell>
+                <TableHeaderCell>Leitungskontext</TableHeaderCell>
                 <TableHeaderCell>Offene Claims</TableHeaderCell>
                 <TableHeaderCell>Beiträge</TableHeaderCell>
                 <TableHeaderCell>Release-Arbeitsflächen</TableHeaderCell>
@@ -311,7 +311,7 @@ function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
       {/* Gruppen */}
       <TableCell>{item.group_membership_count}</TableCell>
 
-      {/* Leader-Kontext */}
+      {/* Leitungskontext */}
       <TableCell>{item.leader_context_count}</TableCell>
 
       {/* Offene Claims */}

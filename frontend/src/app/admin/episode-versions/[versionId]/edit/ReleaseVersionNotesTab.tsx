@@ -489,7 +489,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
                       noteStates={noteStates}
                       savingKeys={savingKeys}
                       recentlySavedKey={recentlySavedKey}
-                      tagLabel={isOwn ? 'Eigene Rolle' : 'Bearbeitest als Leader'}
+                      tagLabel={isOwn ? 'Eigene Rolle' : 'Bearbeitest als Gruppenleitung'}
                       onUpdateField={updateField}
                       onResetRole={resetRole}
                       onSaveRole={(role) => void handleSaveRole(role)}

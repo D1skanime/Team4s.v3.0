@@ -29,9 +29,13 @@ const ROLE_LABELS: Record<string, string> = {
   project_lead: 'Projektleitung',
   project_manager: 'Projektmanagement',
   designer: 'Design',
+  techadmin: 'Technische Administration',
+  gfxler: 'Grafik',
   admin: 'Administration',
-  leader: 'Leader',
-  founder: 'Gründer/in',
+  fansub_lead: 'Gruppenleitung',
+  leader: 'Gruppenleitung',
+  co_leader: 'Co-Leitung',
+  founder: 'Gründung',
   other: 'Sonstiges',
 }
 

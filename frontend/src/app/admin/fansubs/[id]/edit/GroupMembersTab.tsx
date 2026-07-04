@@ -26,7 +26,7 @@ import { normalizeInviteLink, roleLabelForCode, useGroupMembersTab } from './use
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
 export const STATIC_HISTORICAL_ROLE_OPTIONS: RoleDefinitionOption[] = [
-  { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
+  { code: 'founder', label_de: 'Gründung', sort_order: 1 },
   { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
   ...FANSUB_GROUP_ROLE_OPTIONS.map((option, index) => ({
     code: option.code,

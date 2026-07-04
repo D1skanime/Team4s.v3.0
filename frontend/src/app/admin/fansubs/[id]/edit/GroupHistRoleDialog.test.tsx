@@ -11,10 +11,10 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 // group_history-Rollendaten mocken — kein echter API-Aufruf nötig
 vi.mock('@/lib/api', () => ({
   listGroupHistoryRoleDefinitions: vi.fn().mockResolvedValue([
-    { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
+    { code: 'founder', label_de: 'Gründung', sort_order: 1 },
     { code: 'fansub_lead', label_de: 'Gruppenleitung', sort_order: 2 },
     { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
-    { code: 'project_lead', label_de: 'Fansub-Projektleitung', sort_order: 4 },
+    { code: 'project_lead', label_de: 'Projektleitung', sort_order: 4 },
     { code: 'translator', label_de: 'Übersetzung', sort_order: 10 },
     { code: 'editor', label_de: 'Editing', sort_order: 20 },
     { code: 'timer', label_de: 'Timing', sort_order: 30 },
@@ -23,8 +23,8 @@ vi.mock('@/lib/api', () => ({
     { code: 'raw_provider', label_de: 'Raw-Bereitstellung', sort_order: 60 },
     { code: 'quality_checker', label_de: 'Qualitätsprüfung', sort_order: 70 },
     { code: 'designer', label_de: 'Design', sort_order: 90 },
-    { code: 'techadmin', label_de: 'Techadmin', sort_order: 5 },
-    { code: 'gfxler', label_de: 'GFX / Grafik', sort_order: 6 },
+    { code: 'techadmin', label_de: 'Technische Administration', sort_order: 5 },
+    { code: 'gfxler', label_de: 'Grafik', sort_order: 6 },
   ]),
 }))
 
@@ -82,10 +82,10 @@ const defaultRoleForm: RoleFormFields = {
 }
 
 const historyRoles: RoleDefinitionOption[] = [
-  { code: 'founder', label_de: 'Gründer/in', sort_order: 1 },
+  { code: 'founder', label_de: 'Gründung', sort_order: 1 },
   { code: 'fansub_lead', label_de: 'Gruppenleitung', sort_order: 2 },
   { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
-  { code: 'project_lead', label_de: 'Fansub-Projektleitung', sort_order: 4 },
+  { code: 'project_lead', label_de: 'Projektleitung', sort_order: 4 },
   { code: 'translator', label_de: 'Übersetzung', sort_order: 10 },
   { code: 'editor', label_de: 'Editing', sort_order: 20 },
   { code: 'timer', label_de: 'Timing', sort_order: 30 },
@@ -94,8 +94,8 @@ const historyRoles: RoleDefinitionOption[] = [
   { code: 'raw_provider', label_de: 'Raw-Bereitstellung', sort_order: 60 },
   { code: 'quality_checker', label_de: 'Qualitätsprüfung', sort_order: 70 },
   { code: 'designer', label_de: 'Design', sort_order: 90 },
-  { code: 'techadmin', label_de: 'Techadmin', sort_order: 5 },
-  { code: 'gfxler', label_de: 'GFX / Grafik', sort_order: 6 },
+  { code: 'techadmin', label_de: 'Technische Administration', sort_order: 5 },
+  { code: 'gfxler', label_de: 'Grafik', sort_order: 6 },
 ]
 
 const noop = () => {}
@@ -120,10 +120,10 @@ describe('GroupHistRoleDialog', () => {
     )
 
     // Historische Funktionsrollen müssen als Optionen vorhanden sein.
-    expect(screen.getByRole('option', { name: 'Gründer/in' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Gründung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Gruppenleitung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Co-Leitung' })).toBeDefined()
-    expect(screen.getByRole('option', { name: 'Fansub-Projektleitung' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Projektleitung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Übersetzung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Timing' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Typesetting / FX' })).toBeDefined()
@@ -132,8 +132,8 @@ describe('GroupHistRoleDialog', () => {
     expect(screen.getByRole('option', { name: 'Raw-Bereitstellung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Qualitätsprüfung' })).toBeDefined()
     expect(screen.getByRole('option', { name: 'Design' })).toBeDefined()
-    expect(screen.getByRole('option', { name: 'Techadmin' })).toBeDefined()
-    expect(screen.getByRole('option', { name: 'GFX / Grafik' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Technische Administration' })).toBeDefined()
+    expect(screen.getByRole('option', { name: 'Grafik' })).toBeDefined()
   })
 
   it('Test 2: die angebotenen Labels enthalten Rollenbezeichnungen mit korrekten Umlauten', () => {
@@ -155,14 +155,14 @@ describe('GroupHistRoleDialog', () => {
     )
 
     // Umlautkorrekte Bezeichnungen (ä, ö, ü, ß) müssen erscheinen (D-04/D-05/D-07)
-    expect(screen.getByText('Gründer/in')).toBeDefined()
+    expect(screen.getByText('Gründung')).toBeDefined()
     expect(screen.getByText('Übersetzung')).toBeDefined()
     expect(screen.getByText('Qualitätsprüfung')).toBeDefined()
     expect(screen.getByText('Gruppenleitung')).toBeDefined()
     expect(screen.getByText('Co-Leitung')).toBeDefined()
-    expect(screen.getByText('Fansub-Projektleitung')).toBeDefined()
-    expect(screen.getByText('Techadmin')).toBeDefined()
-    expect(screen.getByText('GFX / Grafik')).toBeDefined()
+    expect(screen.getByText('Projektleitung')).toBeDefined()
+    expect(screen.getByText('Technische Administration')).toBeDefined()
+    expect(screen.getByText('Grafik')).toBeDefined()
   })
 
   it('Test 3: verwendet das Select-Primitiv aus @/components/ui (kein natives <select> ohne Primitiv)', () => {

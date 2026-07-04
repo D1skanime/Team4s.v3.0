@@ -68,7 +68,7 @@ export function GroupHistoryForm({
         <Input
           id="history-title"
           type="text"
-          placeholder="z. B. Gegründet, Leaderwechsel, Aufgelöst …"
+          placeholder="z. B. Gegründet, Leitungswechsel, Aufgelöst …"
           value={form.title}
           onChange={(e) => onFormChange((f) => ({ ...f, title: e.target.value }))}
           invalid={!!titleError}

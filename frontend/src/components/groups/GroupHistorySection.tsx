@@ -303,7 +303,7 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
       {!isLoading && !loadError && entries.length === 0 ? (
         <EmptyState
           title="Noch keine Meilensteine"
-          description="Füge wichtige Ereignisse wie Gründung, Leaderwechsel oder Auflösung hinzu."
+          description="Füge wichtige Ereignisse wie Gründung, Leitungswechsel oder Auflösung hinzu."
         />
       ) : null}
 

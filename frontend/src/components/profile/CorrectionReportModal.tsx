@@ -157,7 +157,7 @@ export function CorrectionReportModal({ memberId, memberName }: CorrectionReport
             </FormField>
 
             <div style={{ background: '#f0f4ff', border: '1px solid #c5d3f5', borderRadius: 6, padding: '10px 14px', fontSize: '0.85rem', color: '#3a4c80', lineHeight: 1.5 }}>
-              Dein Vorschlag wird durch einen Leader oder Admin geprüft. Es entsteht keine sofortige öffentliche Änderung.
+              Dein Vorschlag wird durch Gruppenleitung oder Administration geprüft. Es entsteht keine sofortige öffentliche Änderung.
             </div>
           </div>
         )}

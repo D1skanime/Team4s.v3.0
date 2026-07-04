@@ -11,7 +11,7 @@ function claimInvitationErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     switch (error.code) {
       case 'invitation_expired':
-        return 'Dieser Einladungslink ist abgelaufen. Bitte deinen Leader, einen neuen Link zu erstellen.'
+        return 'Dieser Einladungslink ist abgelaufen. Bitte die Gruppenleitung, einen neuen Link zu erstellen.'
       case 'invitation_used':
         return 'Diese Einladung wurde bereits verwendet.'
       case 'invitation_cancelled':

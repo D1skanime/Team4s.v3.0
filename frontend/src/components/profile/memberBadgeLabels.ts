@@ -19,7 +19,7 @@ export type MemberBadgePresentation = {
 
 export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation> = {
   founding_member: { label: 'Gründungsmitglied', variant: 'warning', Icon: Crown },
-  historical_leader: { label: 'Historischer Leader', variant: 'info', Icon: Shield },
+  historical_leader: { label: 'Historische Leitung', variant: 'info', Icon: Shield },
   long_term_member: { label: '5+ Jahre Mitglied', variant: 'success', Icon: CalendarClock },
   first_contribution: { label: 'Erste Mitwirkung', variant: 'neutral', Icon: Sparkles },
   productive_bronze: { label: 'Produktiv · 10+ Anime', variant: 'muted', Icon: Layers },

@@ -135,8 +135,8 @@ describe('ReleaseContributionDrawer', () => {
       expect(screen.getByText('Alice Müller')).toBeDefined()
       expect(screen.getByText('Bob Schmidt')).toBeDefined()
     })
-    expect(screen.getByText('Übersetzer')).toBeDefined()
-    expect(screen.getByText('Editor')).toBeDefined()
+    expect(screen.getByText('Übersetzung')).toBeDefined()
+    expect(screen.getByText('Editing')).toBeDefined()
     expect(screen.queryByLabelText('Rollen für Alice Müller')).toBeNull()
   })
 
@@ -288,7 +288,7 @@ describe('ReleaseContributionDrawer', () => {
     fireEvent.change(screen.getByLabelText('Person'), { target: { value: '2' } })
     fireEvent.click(
       within(screen.getByLabelText('Rollen für neue Person')).getByRole('button', {
-        name: 'Timer',
+        name: 'Timing',
       }),
     )
     fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }))

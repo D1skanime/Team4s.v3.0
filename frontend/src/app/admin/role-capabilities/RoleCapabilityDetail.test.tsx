@@ -71,7 +71,7 @@ const assignableRole: RoleEntry = {
 
 const historicalRole: RoleEntry = {
   role_code: 'founder',
-  label_de: 'Gründer/in',
+  label_de: 'Gründung',
   assignable: false,
   capability_editable: false,
   contexts: ['group_history'],
