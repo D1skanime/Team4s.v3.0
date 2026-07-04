@@ -147,21 +147,28 @@ export default function AnimeContributionModal({
     })
   }
 
-  function handleAddConfirm() {
-    if (newMemberId == null || newRoleCodes.length === 0) return
+  function buildPendingNewRow(): EditableProjectContribution | null {
+    if (newMemberId == null || newRoleCodes.length === 0) return null
     const member = members.find((item) => item.member_id === newMemberId)
-    if (!member) return
+    if (!member) return null
+
+    return {
+      contribution_id: -Date.now(),
+      member_id: member.member_id,
+      member_display_name: member.display_name,
+      member_avatar_url: null,
+      role_codes: normalizeRoleCodes(newRoleCodes),
+      isNew: true,
+    }
+  }
+
+  function handleAddConfirm() {
+    const pendingRow = buildPendingNewRow()
+    if (!pendingRow) return
 
     setStagedRows((prev) => [
       ...prev,
-      {
-        contribution_id: -Date.now(),
-        member_id: member.member_id,
-        member_display_name: member.display_name,
-        member_avatar_url: null,
-        role_codes: normalizeRoleCodes(newRoleCodes),
-        isNew: true,
-      },
+      pendingRow,
     ])
     setAddingRow(false)
     setNewMemberId(null)
@@ -169,7 +176,16 @@ export default function AnimeContributionModal({
   }
 
   async function handleSave() {
-    if (stagedRows.some((row) => row.role_codes.length === 0)) {
+    const pendingRow = addingRow ? buildPendingNewRow() : null
+
+    if (addingRow && (newMemberId != null || newRoleCodes.length > 0) && !pendingRow) {
+      setError('Bitte wähle eine Person und mindestens eine Rolle aus.')
+      return
+    }
+
+    const rowsForSave = pendingRow ? [...stagedRows, pendingRow] : stagedRows
+
+    if (rowsForSave.some((row) => row.role_codes.length === 0)) {
       setError('Jede Person braucht mindestens eine Rolle.')
       return
     }
@@ -181,7 +197,7 @@ export default function AnimeContributionModal({
       await Promise.all(removedIds.map((id) => deleteAnimeContribution(fansubId, animeId, id)))
 
       const originalById = new Map(originalProjectRows.map((row) => [row.id, row]))
-      const rowsToWrite = stagedRows.filter(
+      const rowsToWrite = rowsForSave.filter(
         (row) =>
           row.isNew ||
           !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []),

@@ -76,7 +76,7 @@ describe('AnimeContributionModal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
     fireEvent.change(screen.getByLabelText('Person'), { target: { value: '12' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timing' }))
     fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }))
 
     expect(screen.getByText('Naru-Fan')).not.toBeNull()
@@ -88,6 +88,38 @@ describe('AnimeContributionModal', () => {
       expect(upsertAnimeContributionMock).toHaveBeenCalledWith(1, 13, expect.objectContaining({
         member_id: 12,
         role_codes: ['timer'],
+        status: 'confirmed',
+        is_public_on_anime_page: false,
+        is_public_on_member_profile: false,
+        release_version_id: null,
+      }))
+    })
+  })
+
+  it('speichert eine aktuell ausgewählte neue Person auch ohne separaten Hinzufügen-Klick', async () => {
+    upsertAnimeContributionMock.mockResolvedValue({ data: {} })
+
+    render(
+      <AnimeContributionModal
+        fansubId={1}
+        animeId={13}
+        animeTitle="Naruto"
+        members={TEST_MEMBERS}
+        existingContributions={[]}
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Person'), { target: { value: '13' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Projektleitung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => {
+      expect(upsertAnimeContributionMock).toHaveBeenCalledWith(1, 13, expect.objectContaining({
+        member_id: 13,
+        role_codes: ['project_lead'],
         status: 'confirmed',
         is_public_on_anime_page: false,
         is_public_on_member_profile: false,
@@ -112,7 +144,7 @@ describe('AnimeContributionModal', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Rollen für Naru-Fan ändern' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Timing' }))
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() => {
