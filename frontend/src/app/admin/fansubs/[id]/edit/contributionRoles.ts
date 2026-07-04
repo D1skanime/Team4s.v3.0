@@ -1,12 +1,13 @@
 export const ANIME_CONTRIBUTION_ROLES: { code: string; label: string }[] = [
-  { code: 'translator', label: 'Übersetzer' },
-  { code: 'timer', label: 'Timer' },
-  { code: 'typesetter', label: 'Typesetter' },
-  { code: 'editor', label: 'Editor' },
-  { code: 'encoder', label: 'Encoder' },
-  { code: 'raw_provider', label: 'Raw-Provider' },
-  { code: 'quality_checker', label: 'Qualitätsprüfer' },
-  { code: 'designer', label: 'Designer' },
+  { code: 'translator', label: 'Übersetzung' },
+  { code: 'timer', label: 'Timing' },
+  { code: 'typesetter', label: 'Typesetting / FX' },
+  { code: 'editor', label: 'Editing' },
+  { code: 'encoder', label: 'Encoding' },
+  { code: 'raw_provider', label: 'Raw-Bereitstellung' },
+  { code: 'quality_checker', label: 'Qualitätsprüfung' },
+  { code: 'project_lead', label: 'Projektleitung' },
+  { code: 'designer', label: 'Design' },
 ]
 
 export function normalizeRoleCodes(codes: string[]): string[] {
