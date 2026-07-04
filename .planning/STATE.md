@@ -271,6 +271,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 98 added and discussed: Segmentstream bleibt ein segment-spezifischer Playback-Layer fuer OP/ED/Kara; MVP ist vorbereiteter browserfaehiger Clip-Render mit Segment-Grants, nicht HLS-first. Context: `.planning/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-CONTEXT.md`.
 - Phase 93 added: Projektrollen-Sichtbarkeit & Hinweis-Formular. Teil A verified group scoping but blocked UI execution because the current member-profile visibility flag does not jointly control role plus related media.
 - Phase 93 option 3 executed: UI polish was implemented without a visibility help text for notes/images; the separate media visibility/review contract remains unchanged.
 - Phase 93 deployed: frontend Docker image rebuilt, `team4sv30-frontend` recreated, and `/me/contributions` returned HTTP 200 on port 3000.

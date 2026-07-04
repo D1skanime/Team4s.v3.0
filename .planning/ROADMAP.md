@@ -1632,6 +1632,19 @@ Plans:
 - [x] `97-03-PLAN.md` -- Wave 3: TypeScript-Typen + Admin-Dialog-UI (Input type=date, N Rollen) + GroupMembersTab
 - [x] `97-04-PLAN.md` -- Wave 4: Claim-Aktivierung (ResolvePendingRolesToActive) + D-06 ClaimManagementPanel-Zuweisung
 - [x] `97-05-PLAN.md` -- Wave 5: Vollverifikation + Human-UAT
+
+---
+
+### Phase 98: Segmentstream: serverseitig begrenzter HLS/Jellyfin-Playback-Layer fuer OP/ED/Kara-Segmente
+
+**Goal:** Eine segment-spezifische, serverseitig begrenzte Playback-Schicht fuer OP/ED/Kara-Segmente planen und bauen: Wiedergabe erfolgt ueber gespeicherte Segmentquellen/-zeiten, kurze Segment-Grants und vorbereitete browserfaehige Clips, damit ASS/Kara-Effekte aus Release-Versionen erhalten bleiben. HLS ist kein MVP-Zwang.
+**Requirements**: Segment-ID statt freier Stream-Parameter; harte 4-Minuten-Grenze fuer automatisch abgeleitete Clips; Background-Render/Cache mit Status; bestehende Segment-Upload-Fallbacks wiederverwenden; capability-getriebene Admin/Fansub-Rechte; public-faehiger Backend/API-Schnitt.
+**Depends on:** Phase 97; bestehende Segmentquellen aus Migration 0054; bestehende Release-/Episode-Playback-Auth-Seams
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 98 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
