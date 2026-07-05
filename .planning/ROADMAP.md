@@ -1640,14 +1640,14 @@ Plans:
 **Goal:** Eine segment-spezifische, serverseitig begrenzte Playback-Schicht fuer OP/ED/Kara-Segmente planen und bauen: Wiedergabe erfolgt ueber gespeicherte Segmentquellen/-zeiten, kurze Segment-Grants und vorbereitete browserfaehige Clips, damit ASS/Kara-Effekte aus Release-Versionen erhalten bleiben. HLS ist kein MVP-Zwang.
 **Requirements**: Segment-ID statt freier Stream-Parameter; harte 4-Minuten-Grenze fuer automatisch abgeleitete Clips; Background-Render/Cache mit Status; bestehende Segment-Upload-Fallbacks ohne neue Media-Struktur wiederverwenden; app-user-scoped Capabilities statt Rollen-Hardcode; public-faehiger Backend/API-Schnitt.
 **Depends on:** Phase 97; bestehende Segmentquellen aus Migration 0054; bestehende Release-/Episode-Playback-Auth-Seams
-**Plans:** 6 plans
+**Plans:** 5/6 plans executed
 
 Plans:
 - [x] 98-00-PLAN.md - Tests und Contract-Flaeche zuerst
 - [x] 98-01-PLAN.md - Schema, Runtime und Derived-Cache
-- [ ] 98-02-PLAN.md - Render-Service und Jellyfin-Probing
-- [ ] 98-03-PLAN.md - Segment-Grant, Stream-API und Next-Relay
-- [ ] 98-04-PLAN.md - Admin/Leader Segment-UI
+- [x] 98-02-PLAN.md - Render-Service und Jellyfin-Probing
+- [x] 98-03-PLAN.md - Segment-Grant, Stream-API und Next-Relay
+- [x] 98-04-PLAN.md - Admin/Leader Segment-UI
 - [ ] 98-05-PLAN.md - E2E-Verifikation und UAT
 
 ---

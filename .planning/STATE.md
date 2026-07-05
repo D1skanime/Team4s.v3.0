@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 98-01-PLAN.md
-last_updated: "2026-07-05T00:00:00.000Z"
+stopped_at: Completed 98-04-PLAN.md; 98-05 (E2E/UAT) remaining
+last_updated: "2026-07-05T18:00:00.000Z"
 last_activity: 2026-07-05
 progress:
   total_phases: 89
   completed_phases: 75
   total_plans: 373
-  completed_plans: 344
+  completed_plans: 347
   percent: 84
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 98 - Segmentstream serverseitig begrenzter Jellyfin/Kara Playback-Layer ist geplant und bereit zur Umsetzung.
+**Current focus:** Phase 98 - Segmentstream/Jellyfin-Kara-Playback: Pläne 00-04 umgesetzt (Recovery-Reconciliation + Untertitel-Burn-in), es fehlt nur noch 98-05 (E2E/UAT, Live-Test).
 
 ## Current Position
 
 Phase: 98 (segmentstream-serverseitig-begrenzter-hls-jellyfin-playback) - IN PROGRESS
-Plan: 2 of 6 complete
+Plan: 5 of 6 complete (98-05 E2E/UAT verbleibt)
 
 ## Accumulated Context
 
