@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -118,4 +119,31 @@ func derefString(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+// resolveControlledFilePath loest einen relativen oder absoluten Pfad kontrolliert unterhalb von root auf.
+// Pfade, die ausserhalb von root liegen wuerden (z.B. per "../"), werden abgelehnt.
+func resolveControlledFilePath(root string, rawPath string) (string, bool) {
+	trimmedRoot := strings.TrimSpace(root)
+	trimmedPath := strings.TrimSpace(rawPath)
+	if trimmedRoot == "" || trimmedPath == "" {
+		return "", false
+	}
+	rootAbs, err := filepath.Abs(trimmedRoot)
+	if err != nil {
+		return "", false
+	}
+	candidate := trimmedPath
+	if !filepath.IsAbs(candidate) {
+		candidate = filepath.Join(rootAbs, filepath.FromSlash(candidate))
+	}
+	candidateAbs, err := filepath.Abs(candidate)
+	if err != nil {
+		return "", false
+	}
+	rel, err := filepath.Rel(rootAbs, candidateAbs)
+	if err != nil || rel == "." || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
+		return "", false
+	}
+	return candidateAbs, true
 }

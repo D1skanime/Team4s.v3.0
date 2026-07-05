@@ -227,13 +227,19 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 	}
 	_ = os.Remove(outputPath)
 
+	subtitle := h.resolveSegmentSubtitleForRender(c.Request.Context(), segmentID, cache.CacheKey, source)
+	if subtitle.SubtitleFilePath != "" {
+		defer func(path string) { _ = os.Remove(path) }(subtitle.SubtitleFilePath)
+	}
+
 	durationSeconds := *source.EndOffsetSeconds - *source.StartOffsetSeconds
 	args, err := services.BuildFFmpegSegmentArgs(services.SegmentRenderCommandInput{
-		FFmpegPath:      h.segmentRenderFFmpegPath,
-		StreamURL:       *source.StreamURL,
-		OutputPath:      outputPath,
-		StartSeconds:    *source.StartOffsetSeconds,
-		DurationSeconds: durationSeconds,
+		FFmpegPath:       h.segmentRenderFFmpegPath,
+		StreamURL:        *source.StreamURL,
+		SubtitleFilePath: subtitle.SubtitleFilePath,
+		OutputPath:       outputPath,
+		StartSeconds:     *source.StartOffsetSeconds,
+		DurationSeconds:  durationSeconds,
 	})
 	if err != nil {
 		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(c.Request.Context(), cache.CacheKey, "invalid_render_command", err.Error())
@@ -258,12 +264,14 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 	}
 
 	if err := themeRepo.MarkThemeSegmentRenderCacheReady(c.Request.Context(), models.ThemeSegmentRenderCacheReadyInput{
-		CacheKey:        cache.CacheKey,
-		OutputPath:      outputRel,
-		MimeType:        "video/mp4",
-		DurationSeconds: durationSeconds,
-		VideoCodec:      "h264",
-		AudioCodec:      "aac",
+		CacheKey:            cache.CacheKey,
+		OutputPath:          outputRel,
+		MimeType:            "video/mp4",
+		DurationSeconds:     durationSeconds,
+		VideoCodec:          "h264",
+		AudioCodec:          "aac",
+		SubtitleStreamIndex: subtitle.StreamIndex,
+		SubtitleCodec:       subtitle.Codec,
 	}); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Renderstatus konnte nicht gespeichert werden.")
 		return
@@ -415,29 +423,4 @@ func rejectsSegmentStreamQuery(c *gin.Context) bool {
 		}
 	}
 	return false
-}
-
-func resolveControlledFilePath(root string, rawPath string) (string, bool) {
-	trimmedRoot := strings.TrimSpace(root)
-	trimmedPath := strings.TrimSpace(rawPath)
-	if trimmedRoot == "" || trimmedPath == "" {
-		return "", false
-	}
-	rootAbs, err := filepath.Abs(trimmedRoot)
-	if err != nil {
-		return "", false
-	}
-	candidate := trimmedPath
-	if !filepath.IsAbs(candidate) {
-		candidate = filepath.Join(rootAbs, filepath.FromSlash(candidate))
-	}
-	candidateAbs, err := filepath.Abs(candidate)
-	if err != nil {
-		return "", false
-	}
-	rel, err := filepath.Rel(rootAbs, candidateAbs)
-	if err != nil || rel == "." || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
-		return "", false
-	}
-	return candidateAbs, true
 }

@@ -59,8 +59,12 @@ type jellyfinEpisodeItem struct {
 
 // jellyfinMediaStream repräsentiert einen Medien-Stream (Video, Audio, Untertitel) innerhalb einer Jellyfin-Episode.
 type jellyfinMediaStream struct {
-	Type   string `json:"Type"`
-	Height *int   `json:"Height"`
+	Index     int32  `json:"Index"`
+	Type      string `json:"Type"`
+	Codec     string `json:"Codec"`
+	Height    *int   `json:"Height"`
+	IsDefault bool   `json:"IsDefault"`
+	IsForced  bool   `json:"IsForced"`
 }
 
 // searchJellyfinSeries searches for series by title.
