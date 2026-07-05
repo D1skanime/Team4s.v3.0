@@ -18,6 +18,7 @@ The phase title mentions HLS because that was the initial discussion hook. The l
 - Background preparation of derived clips when segment source/times change.
 - Render status visible in the admin/leader segment editor.
 - Reuse of the existing uploaded segment fallback flow where manual upload is the better source.
+- App-user-scoped segment management rights through capabilities, so a leader can decide which concrete users may create, edit, delete, prepare, or upload segment fallbacks.
 - Backend/API shape that can later be reused by public pages.
 
 ### Out Of Scope
@@ -27,6 +28,7 @@ The phase title mentions HLS because that was the initial discussion hook. The l
 - Subtitle-track selection UI.
 - New upload tables or a parallel media ownership model.
 - Treating generated clips as normal user-managed `media_assets`.
+- Runtime checks that hardcode broad role names such as leader/timer instead of checking explicit app-user capabilities.
 
 ## Locked Decisions
 
@@ -41,14 +43,14 @@ The phase title mentions HLS because that was the initial discussion hook. The l
 ### Duration Limits
 
 - D-06: Automatically derived clips from release/Jellyfin sources must never exceed 4 minutes.
-- D-07: Uploaded fallback clips can be longer than 4 minutes because they are curated OP/ED/Kara assets, but this risk must be explicit in the UI/product model.
+- D-07: Uploaded fallback clips can be longer than 4 minutes because they are curated OP/ED/Kara assets, but this risk must be explicit in the UI/product model. They still require segment-scoped grants and must not become a general episode-stream escape hatch.
 
 ### Source Selection
 
 - D-08: Default source is the concrete release version / release variant so fansub-specific softsubs, ASS, and Kara effects can be preserved.
 - D-09: Jellyfin theme and uploaded asset sources are explicit fallbacks, not silent replacements.
 - D-10: If a release-version source cannot be rendered, the segment enters an error state. The system must not auto-fallback to a different source.
-- D-11: Uploaded fallbacks reuse the existing segment asset/library flow. Do not create another upload flow or table.
+- D-11: Uploaded fallbacks reuse the existing segment asset/library flow. Do not create another upload flow, table, release-media substitute, or episode-attached media shortcut.
 - D-12: Uploaded fallbacks are treated as already cut; the player may play the uploaded clip directly instead of clipping it again by start/end.
 
 ### Rendering And Cache
@@ -64,13 +66,13 @@ The phase title mentions HLS because that was the initial discussion hook. The l
 - D-18: MVP output is a normal browser-playable clip, such as MP4/H.264/AAC. HLS is deferred.
 - D-19: ASS/subtitle tracks should be burned into derived clips by default so Kara effects work in the browser.
 - D-20: If no suitable subtitle track exists, render without subtitles and keep a diagnostic hint.
-- D-21: If multiple subtitle tracks exist, choose default/forced/first suitable ASS/sub track automatically. No track-picker UI in Phase 98.
+- D-21: If multiple subtitle tracks exist, choose default/forced/first suitable ASS/sub track automatically and keep diagnostics for ambiguity. No track-picker UI in Phase 98.
 - D-22: Use exactly one standard browser-ready render profile in Phase 98.
 
 ### Rights And UI Placement
 
-- D-23: Admins and capability-authorized fansub members can manage fallback upload and segment playback preparation.
-- D-24: Rights must be capability-driven and ready for Rechte-Management, not hardcoded to one role name.
+- D-23: Admins and app users with an explicit segment-management capability can create, edit, delete, prepare, and upload fallback assets for segments.
+- D-24: Rights must be capability-driven at app-user level and ready for Rechte-Management. A group/project leader should be able to decide which concrete app users receive the segment capability. Existing role mappings may seed defaults, but runtime authorization must not hardcode role names.
 - D-25: First UI target is the admin/leader segment editor.
 - D-26: Backend and contract should be public-capable now, even though public UI follows later.
 
@@ -118,7 +120,10 @@ The phase title mentions HLS because that was the initial discussion hook. The l
 - Do not attach release-version process media directly to episodes.
 - Do not invent parallel upload/media logic for OP/ED/Kara fallbacks.
 - Do not use `release_media` as a substitute for version-scoped process media or existing segment fallback assets.
+- Do not attach generated segment clips or fallback clips directly to episodes.
+- Do not add new upload tables, release-media shortcuts, or duplicate media ownership just for segment playback.
 - Do not expose an endpoint where the browser can turn an OP preview into a full episode stream by changing query parameters.
+- Do not authorize segment management by checking broad role labels directly; check app-user capabilities.
 - Do not make admin-only API shapes that later need to be thrown away for public playback.
 
 ## Open Implementation Choices

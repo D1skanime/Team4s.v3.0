@@ -9,9 +9,9 @@ Die wichtigsten Produktentscheidungen aus `98-CONTEXT.md` bleiben gueltig:
 - Gespielt wird ein gespeichertes Segment, nicht ein frei parametrisierbarer Stream.
 - Der Server verwendet immer gespeicherte Start-/Endzeiten.
 - Automatisch abgeleitete Clips aus Release/Jellyfin-Quellen sind hart auf 4 Minuten begrenzt.
-- Upload-Fallbacks bleiben als bewusst kuratierte Clips erlaubt und verwenden die vorhandene Segment-Asset-Logik.
+- Upload-Fallbacks bleiben als bewusst kuratierte Clips erlaubt und verwenden die vorhandene Segment-Asset-Logik. Sie duerfen keine neue Media-Struktur, kein `release_media`-Shortcut und keine Episode-Media-Abkuerzung einfuehren.
 - MVP ist nicht HLS-first. Browserfaehige MP4-Clips mit H.264/AAC reichen, solange ASS/Kara-Effekte erhalten werden.
-- Rechte sind capability-getrieben und muessen spaeter im Rechtemanagement sichtbar vergeben werden koennen.
+- Rechte sind capability-getrieben auf konkrete App-User und muessen im Rechtemanagement sichtbar vergeben werden koennen. Rollen duerfen hoechstens Defaults seeden; die Runtime darf keine Rollennamen hardcoden.
 
 ## Spike-Ergebnis
 
@@ -34,6 +34,7 @@ Damit ist der technische Kern tragfaehig: Team4s kann aus einer ueber Jellyfin e
 - Die Datenbank speichert bei Release-Versionen teilweise `hardsub`, waehrend Jellyfin trotzdem eine ASS-Spur meldet. Die Renderlogik darf deshalb nicht allein dem DB-Feld `subtitle_type` vertrauen, sondern muss Jellyfin-MediaStreams pruefen.
 - Der aktuelle Admin-Preview-Flow nutzt release-stream plus `startTimeTicks` und stoppt das Ende im Browser. Das ist fuer Public/Segmentstream nicht ausreichend, weil das Ende nicht serverseitig erzwungen wird.
 - Der Segment-Upload-Fallback existiert bereits und darf nicht durch eine parallele Upload-/Media-Struktur ersetzt werden.
+- Mehrere oder falsche Subtitle-Tracks bleiben ein echtes Risiko. Phase 98 soll automatisch default/forced/erste passende ASS/Sub-Spur waehlen, die Wahl diagnostizieren und keine Track-Picker-UI bauen.
 
 ## Relevante bestehende Stellen
 
@@ -83,6 +84,7 @@ Damit ist der technische Kern tragfaehig: Team4s kann aus einer ueber Jellyfin e
    - Segment-Editor zeigt Renderstatus.
    - Preview benutzt Segmentstream, nicht release-stream mit Client-Stopp.
    - Fehler und Retry sind sichtbar, aber Upload-Fallback bleibt der bekannte Weg.
+   - Segmentverwaltung prueft konkrete App-User-Capabilities. Ein Leader soll ueber Rechtevergabe entscheiden koennen, welche App-User Segmente erstellen, editieren, loeschen, vorbereiten oder Fallbacks hochladen duerfen.
 
 5. Public-Vorbereitung ohne Public-UI
    - Backend/API wird so gebaut, dass spaeter Public-Seiten dieselbe Segment-ID-basierte Schicht nutzen koennen.
@@ -94,3 +96,14 @@ Damit ist der technische Kern tragfaehig: Team4s kann aus einer ueber Jellyfin e
 - Jellyfin-Transcode-/Stream-URLs koennen je nach Server-Konfiguration variieren; die Renderlogik muss Fehler sauber als Segmentstatus ablegen.
 - ASS-Kara-Effekte koennen visuell von Player/Renderer abweichen. Der Akzeptanztest muss mindestens ein echtes Viper's-Creed-Segment visuell pruefen.
 - Lange Upload-Fallbacks sind bewusst erlaubt; sie duerfen aber nur als Segment-Asset abgespielt werden, nicht als frei zuschneidbarer Episode-Stream.
+
+## Negative Scope / Guardrails
+
+- Kein HLS-MVP, solange MP4/H.264/AAC den Bedarf deckt.
+- Keine neue Upload-Tabelle, kein neuer fachlicher Media-Typ und kein Anhängen von Segmentclips an Episoden.
+- Kein `release_media` als Ersatz fuer Segment-Fallbacks oder technische Render-Caches.
+- Kein On-demand-Encoding beim ersten Play-Klick.
+- Kein stiller Fallback auf andere Quellen, wenn die gewaehlte Release-/Jellyfin-Quelle nicht renderbar ist.
+- Keine freien Start-/Endparameter am Segmentstream.
+- Kein Rollen-Hardcode wie `leader darf immer`; Runtime prueft explizite App-User-Capabilities.
+- Keine Subtitle-Track-Picker-UI in Phase 98; automatische Wahl plus Diagnose reicht.

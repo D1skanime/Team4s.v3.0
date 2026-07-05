@@ -79,3 +79,9 @@ Reason: Prepared clips must be reproducible, invalidated correctly when source/t
 - Some release sources may not expose a usable subtitle track; these must become visible errors, not silent fallbacks.
 - Uploaded fallbacks longer than 4 minutes are intentionally allowed but should remain clearly curated and permission-gated.
 - Cache cleanup must be conservative to avoid deleting unrelated media or active prepared clips.
+
+## Post-Plan Critical Review, 2026-07-05
+
+- Neue Media-Strukturen sind ausdruecklich nicht gewollt: keine neue Upload-Tabelle, kein `release_media`-Shortcut, keine Episode-Media-Abkuerzung fuer Segmentclips oder Fallbacks.
+- Subtitle-/Kara-Auswahl bleibt bewusst begrenzt: Phase 98 waehlt automatisch default/forced/erste passende ASS/Sub-Spur, speichert Diagnosen bei Mehrdeutigkeit und baut keine Track-Picker-UI.
+- Segmentrechte werden nicht an Rollen hart gekoppelt. Laufzeit-Autorisierung prueft konkrete App-User-Capabilities; Rollen duerfen hoechstens Defaults seeden. Eine Gruppen-/Projektleitung soll entscheiden koennen, welche App-User Segmente erstellen, editieren, loeschen, vorbereiten oder Fallbacks hochladen duerfen.
