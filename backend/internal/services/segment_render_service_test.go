@@ -115,3 +115,11 @@ func TestSanitizeSegmentRenderLogRedactsSecrets(t *testing.T) {
 		t.Fatalf("expected api_key redaction, got %q", clean)
 	}
 }
+
+func TestSanitizeSegmentRenderLogRedactsEmbyToken(t *testing.T) {
+	raw := "jellyfin request failed X-Emby-Token: emby-secret-value tail"
+	clean := SanitizeSegmentRenderLog(raw)
+	if strings.Contains(clean, "emby-secret-value") {
+		t.Fatalf("expected X-Emby-Token redacted, got %q", clean)
+	}
+}

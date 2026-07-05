@@ -120,6 +120,13 @@ func main() {
 	watchlistRepo := repository.NewWatchlistRepository(dbPool)
 	watchlistHandler := handlers.NewWatchlistHandler(watchlistRepo)
 	adminContentRepo := repository.NewAdminContentRepository(dbPool)
+	if cfg.SegmentRenderEnabled {
+		if reset, err := adminContentRepo.ResetInterruptedThemeSegmentRenders(ctx); err != nil {
+			log.Printf("Segment-Render-Recovery beim Start fehlgeschlagen: %v", err)
+		} else if reset > 0 {
+			log.Printf("Segment-Render-Recovery: %d unterbrochene Render-Jobs auf 'failed' gesetzt", reset)
+		}
+	}
 	episodeImportRepo := repository.NewEpisodeImportRepository(dbPool)
 	authzRepo := repository.NewAuthzRepository(dbPool)
 	permissionSvc := permissions.NewService(authzRepo)

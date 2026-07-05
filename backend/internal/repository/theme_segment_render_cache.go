@@ -330,6 +330,28 @@ func (r *AdminContentRepository) MarkThemeSegmentRenderCacheStale(ctx context.Co
 	return nil
 }
 
+// ResetInterruptedThemeSegmentRenders markiert beim Backend-Start alle haengengebliebenen
+// 'rendering'-Eintraege als 'failed'. Segment-Renders laufen synchron innerhalb eines Requests,
+// daher kann eine 'rendering'-Zeile nach einem Neustart nur ein abgebrochener Job sein. Ohne diese
+// Wiederaufnahme bliebe der Eintrag dauerhaft auf 'rendering' und der Admin koennte ihn im Editor
+// nicht erneut ausloesen. Rueckgabe: Anzahl zurueckgesetzter Eintraege.
+func (r *AdminContentRepository) ResetInterruptedThemeSegmentRenders(ctx context.Context) (int64, error) {
+	tag, err := r.db.Exec(ctx, `
+		UPDATE theme_segment_render_cache
+		SET status = 'failed',
+		    error_code = 'render_interrupted',
+		    error_message = 'Render durch Neustart unterbrochen, bitte erneut vorbereiten.',
+		    completed_at = NOW(),
+		    invalidated_at = NULL,
+		    updated_at = NOW()
+		WHERE status = 'rendering'
+	`)
+	if err != nil {
+		return 0, fmt.Errorf("reset interrupted theme segment renders: %w", err)
+	}
+	return tag.RowsAffected(), nil
+}
+
 func validateThemeSegmentRenderCacheUpsertInput(input models.ThemeSegmentRenderCacheUpsertInput) error {
 	if input.ThemeSegmentID <= 0 {
 		return fmt.Errorf("theme segment render cache: theme_segment_id is required")

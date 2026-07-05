@@ -156,6 +156,7 @@ func SanitizeSegmentRenderLog(raw string, secrets ...string) string {
 		regexp.MustCompile(`(?i)(access_token=)[^&\s]+`),
 		regexp.MustCompile(`(?i)(token=)[^&\s]+`),
 		regexp.MustCompile(`(?i)(x-mediabrowser-token:?\s*)[^\s]+`),
+		regexp.MustCompile(`(?i)(x-emby-token:?\s*)[^\s]+`),
 	} {
 		out = re.ReplaceAllString(out, "${1}[REDACTED]")
 	}

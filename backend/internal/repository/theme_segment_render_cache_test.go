@@ -40,6 +40,7 @@ func TestThemeSegmentRenderCacheRepositoryMethodsDeclared(t *testing.T) {
 		"MarkThemeSegmentRenderCacheReady",
 		"MarkThemeSegmentRenderCacheFailed",
 		"MarkThemeSegmentRenderCacheStale",
+		"ResetInterruptedThemeSegmentRenders",
 		"ON CONFLICT (cache_key)",
 		"status = 'ready'",
 		"status = 'failed'",
