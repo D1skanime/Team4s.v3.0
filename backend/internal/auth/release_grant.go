@@ -1,10 +1,6 @@
 package auth
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -56,19 +52,11 @@ func CreateReleaseStreamGrant(
 		ExpiresAt: expiresAt,
 	}
 
-	payloadBytes, err := json.Marshal(payload)
+	token, err := createSignedGrant(payload, trimmedSecret)
 	if err != nil {
 		return "", 0, ErrReleaseGrantPayload
 	}
-
-	payloadSegment := base64.RawURLEncoding.EncodeToString(payloadBytes)
-	mac := hmac.New(sha256.New, []byte(trimmedSecret))
-	if _, err := mac.Write([]byte(payloadSegment)); err != nil {
-		return "", 0, ErrReleaseGrantPayload
-	}
-	signatureSegment := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
-
-	return payloadSegment + "." + signatureSegment, expiresAt, nil
+	return token, expiresAt, nil
 }
 
 // ParseAndVerifyReleaseStreamGrant parst ein Release-Stream-Grant-Token, verifiziert Signatur
@@ -82,36 +70,16 @@ func ParseAndVerifyReleaseStreamGrant(
 		return ReleaseStreamGrantClaims{}, ErrReleaseGrantFormat
 	}
 
-	parts := strings.Split(token, ".")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return ReleaseStreamGrantClaims{}, ErrReleaseGrantFormat
-	}
-
-	payloadSegment := parts[0]
-	signatureSegment := parts[1]
-
-	signature, err := base64.RawURLEncoding.DecodeString(signatureSegment)
-	if err != nil {
-		return ReleaseStreamGrantClaims{}, ErrReleaseGrantFormat
-	}
-
-	mac := hmac.New(sha256.New, []byte(strings.TrimSpace(secret)))
-	if _, err := mac.Write([]byte(payloadSegment)); err != nil {
-		return ReleaseStreamGrantClaims{}, ErrReleaseGrantFormat
-	}
-	expectedSignature := mac.Sum(nil)
-	if !hmac.Equal(signature, expectedSignature) {
-		return ReleaseStreamGrantClaims{}, ErrReleaseGrantSignature
-	}
-
-	payloadBytes, err := base64.RawURLEncoding.DecodeString(payloadSegment)
-	if err != nil {
-		return ReleaseStreamGrantClaims{}, ErrReleaseGrantFormat
-	}
-
 	var payload releaseStreamGrantPayload
-	if err := json.Unmarshal(payloadBytes, &payload); err != nil {
-		return ReleaseStreamGrantClaims{}, ErrReleaseGrantPayload
+	if err := parseSignedGrant(token, secret, &payload); err != nil {
+		switch err {
+		case errSignedGrantFormat:
+			return ReleaseStreamGrantClaims{}, ErrReleaseGrantFormat
+		case errSignedGrantSignature:
+			return ReleaseStreamGrantClaims{}, ErrReleaseGrantSignature
+		default:
+			return ReleaseStreamGrantClaims{}, ErrReleaseGrantPayload
+		}
 	}
 	if payload.ReleaseID <= 0 || payload.UserID <= 0 {
 		return ReleaseStreamGrantClaims{}, ErrReleaseGrantPayload

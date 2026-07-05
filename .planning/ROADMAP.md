@@ -1643,7 +1643,7 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 98-00-PLAN.md - Tests und Contract-Flaeche zuerst
+- [x] 98-00-PLAN.md - Tests und Contract-Flaeche zuerst
 - [ ] 98-01-PLAN.md - Schema, Runtime und Derived-Cache
 - [ ] 98-02-PLAN.md - Render-Service und Jellyfin-Probing
 - [ ] 98-03-PLAN.md - Segment-Grant, Stream-API und Next-Relay

@@ -141,4 +141,68 @@ func TestCreateUpdateAnimeSegment_SharedValidationSeamExists(t *testing.T) {
 	}
 }
 
+func TestAdminAnimeSegments_UsesCapabilityWithoutRuntimeRoleHardcode(t *testing.T) {
+	src := readSegmentHandlerSource(t)
+
+	if !strings.Contains(src, "permissions.ActionReleaseVersionSegmentsManage") {
+		t.Fatal("segment handler must check the release_version.segments.manage capability")
+	}
+	if !strings.Contains(src, "CanForReleaseVersion") {
+		t.Fatal("segment handler must authorize through the permission service release-version seam")
+	}
+
+	forbidden := []string{
+		"permissions.RoleFansubLead",
+		"permissions.RoleProjectLead",
+		"permissions.RoleTimer",
+		`"fansub_lead"`,
+		`"project_lead"`,
+		`"timer"`,
+	}
+	for _, token := range forbidden {
+		if strings.Contains(src, token) {
+			t.Fatalf("segment handler must not hardcode role token %s; use app-user capabilities", token)
+		}
+	}
+}
+
+func TestAdminAnimeSegments_NoParallelMediaOwnershipShortcuts(t *testing.T) {
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Skip("cannot determine test file path")
+	}
+	handlerSrc := readSegmentHandlerSource(t)
+	repoBytes, err := os.ReadFile(filepath.Join(filepath.Dir(thisFile), "..", "repository", "admin_content_anime_themes.go"))
+	if err != nil {
+		t.Fatalf("read repository source: %v", err)
+	}
+	src := handlerSrc + "\n" + string(repoBytes)
+
+	if !strings.Contains(src, "theme_segment_playback_sources") {
+		t.Fatal("segment playback source ownership seam missing")
+	}
+	if !strings.Contains(src, "media_assets") {
+		t.Fatal("existing uploaded segment fallback should continue through media_assets")
+	}
+	forbidden := []string{"release_media", "episode_media"}
+	for _, token := range forbidden {
+		if strings.Contains(src, token) {
+			t.Fatalf("segment flow must not use %s as a shortcut for segment playback/fallback media", token)
+		}
+	}
+}
+
+func readSegmentHandlerSource(t *testing.T) string {
+	t.Helper()
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Skip("cannot determine test file path")
+	}
+	content, err := os.ReadFile(filepath.Join(filepath.Dir(thisFile), "admin_content_anime_theme_segments.go"))
+	if err != nil {
+		t.Fatalf("read handler source: %v", err)
+	}
+	return string(content)
+}
+
 func handlerInt32ptr(v int32) *int32 { return &v }
