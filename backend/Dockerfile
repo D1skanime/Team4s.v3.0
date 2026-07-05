@@ -16,8 +16,9 @@ RUN CGO_ENABLED=1 GOOS=linux go build -o migrate ./cmd/migrate
 FROM alpine:3.20
 WORKDIR /app
 
-# Runtime shared library for govips dynamic linking
-RUN apk add --no-cache vips
+# Runtime shared library for govips dynamic linking, plus FFmpeg/FFprobe
+# for prepared OP/ED/Kara segment clips.
+RUN apk add --no-cache vips ffmpeg
 
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/migrate ./migrate

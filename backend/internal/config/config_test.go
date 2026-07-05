@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"path/filepath"
+	"testing"
+)
 
 func TestGetEnvInt64List(t *testing.T) {
 	t.Setenv("AUTH_ADMIN_BOOTSTRAP_USER_IDS", "1, 2,2, invalid, -1, 3")
@@ -116,5 +119,60 @@ func TestLoad_PrefersCanonicalOverLegacySMTPNames(t *testing.T) {
 	}
 	if cfg.SMTPUsername != "canonical-user" {
 		t.Fatalf("SMTP_USER sollte Vorrang haben, bekam: %q", cfg.SMTPUsername)
+	}
+}
+
+func TestLoad_DefaultsSegmentRenderConfigUnderMediaStorage(t *testing.T) {
+	t.Setenv("MEDIA_STORAGE_DIR", filepath.Join("var", "team4s", "media"))
+	t.Setenv("SEGMENT_RENDER_DIR", "")
+	t.Setenv("SEGMENT_RENDER_ENABLED", "")
+	t.Setenv("SEGMENT_RENDER_MAX_SECONDS", "")
+	t.Setenv("SEGMENT_RENDER_CONCURRENCY", "")
+
+	cfg := Load()
+	expectedDir := filepath.Join("var", "team4s", "media", "derived", "segments")
+	if cfg.SegmentRenderDir != expectedDir {
+		t.Fatalf("unexpected SegmentRenderDir: %q", cfg.SegmentRenderDir)
+	}
+	if !cfg.SegmentRenderEnabled {
+		t.Fatal("expected segment render to be enabled by default")
+	}
+	if cfg.SegmentRenderMaxSeconds != 240 {
+		t.Fatalf("unexpected SegmentRenderMaxSeconds: %d", cfg.SegmentRenderMaxSeconds)
+	}
+	if cfg.SegmentRenderConcurrency != 1 {
+		t.Fatalf("unexpected SegmentRenderConcurrency: %d", cfg.SegmentRenderConcurrency)
+	}
+	if cfg.SegmentRenderFFmpegPath != cfg.FFmpegPath {
+		t.Fatalf("expected SegmentRenderFFmpegPath to default to FFmpegPath, got %q vs %q", cfg.SegmentRenderFFmpegPath, cfg.FFmpegPath)
+	}
+}
+
+func TestLoad_ParsesSegmentRenderEnv(t *testing.T) {
+	t.Setenv("SEGMENT_RENDER_ENABLED", "false")
+	t.Setenv("SEGMENT_RENDER_DIR", "/cache/segments")
+	t.Setenv("SEGMENT_RENDER_MAX_SECONDS", "180")
+	t.Setenv("SEGMENT_RENDER_FFMPEG_PATH", "/custom/ffmpeg")
+	t.Setenv("SEGMENT_RENDER_FFPROBE_PATH", "/custom/ffprobe")
+	t.Setenv("SEGMENT_RENDER_CONCURRENCY", "2")
+
+	cfg := Load()
+	if cfg.SegmentRenderEnabled {
+		t.Fatal("expected SegmentRenderEnabled false")
+	}
+	if cfg.SegmentRenderDir != "/cache/segments" {
+		t.Fatalf("unexpected SegmentRenderDir: %q", cfg.SegmentRenderDir)
+	}
+	if cfg.SegmentRenderMaxSeconds != 180 {
+		t.Fatalf("unexpected SegmentRenderMaxSeconds: %d", cfg.SegmentRenderMaxSeconds)
+	}
+	if cfg.SegmentRenderFFmpegPath != "/custom/ffmpeg" {
+		t.Fatalf("unexpected SegmentRenderFFmpegPath: %q", cfg.SegmentRenderFFmpegPath)
+	}
+	if cfg.SegmentRenderFFprobePath != "/custom/ffprobe" {
+		t.Fatalf("unexpected SegmentRenderFFprobePath: %q", cfg.SegmentRenderFFprobePath)
+	}
+	if cfg.SegmentRenderConcurrency != 2 {
+		t.Fatalf("unexpected SegmentRenderConcurrency: %d", cfg.SegmentRenderConcurrency)
 	}
 }

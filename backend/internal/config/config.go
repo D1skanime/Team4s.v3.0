@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -46,6 +47,12 @@ type Config struct {
 	MediaStorageDir              string   // Lokales Verzeichnis für hochgeladene Mediendateien
 	MediaPublicBaseURL           string   // Öffentliche Basis-URL für die Medienauslieferung
 	FFmpegPath                   string   // Dateipfad zur FFmpeg-Binärdatei
+	SegmentRenderEnabled         bool     // Aktiviert die Vorbereitung technischer Segment-Clips
+	SegmentRenderDir             string   // Verzeichnis für technische Segment-Render-Caches
+	SegmentRenderMaxSeconds      int      // Maximale Dauer automatisch gerenderter Segmente
+	SegmentRenderFFmpegPath      string   // FFmpeg-Pfad für Segment-Rendering
+	SegmentRenderFFprobePath     string   // FFprobe-Pfad für Segment-Metadaten
+	SegmentRenderConcurrency     int      // Maximale parallele Segment-Renderjobs
 	TMDBAPIKey                   string   // API-Schlüssel für The Movie Database (TMDB)
 	FanartAPIKey                 string   // API-Schlüssel für fanart.tv
 	// SMTP-Mailer-Konfiguration
@@ -67,6 +74,9 @@ type Config struct {
 // Fehlende Werte werden durch sinnvolle Standardwerte ersetzt.
 func Load() Config {
 	bootstrapAdminUserIDs := getEnvInt64List("AUTH_ADMIN_BOOTSTRAP_USER_IDS", nil)
+	mediaStorageDir := strings.TrimSpace(getEnv("MEDIA_STORAGE_DIR", "./storage/media"))
+	segmentRenderDir := strings.TrimSpace(getEnv("SEGMENT_RENDER_DIR", filepath.Join(mediaStorageDir, "derived", "segments")))
+	ffmpegPath := strings.TrimSpace(getEnv("FFMPEG_PATH", "/usr/bin/ffmpeg"))
 
 	return Config{
 		Port:                         getEnv("PORT", "8092"),
@@ -104,9 +114,15 @@ func Load() Config {
 		EpisodePlaybackRateLimit:     getEnvInt("EPISODE_PLAYBACK_RATE_LIMIT", 30),
 		EpisodePlaybackRateWindowSec: getEnvInt("EPISODE_PLAYBACK_RATE_WINDOW_SECONDS", 60),
 		EpisodePlaybackMaxConcurrent: getEnvInt("EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS", 12),
-		MediaStorageDir:              strings.TrimSpace(getEnv("MEDIA_STORAGE_DIR", "./storage/media")),
+		MediaStorageDir:              mediaStorageDir,
 		MediaPublicBaseURL:           strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "http://localhost:8092")),
-		FFmpegPath:                   strings.TrimSpace(getEnv("FFMPEG_PATH", "/usr/bin/ffmpeg")),
+		FFmpegPath:                   ffmpegPath,
+		SegmentRenderEnabled:         getEnvBool("SEGMENT_RENDER_ENABLED", true),
+		SegmentRenderDir:             segmentRenderDir,
+		SegmentRenderMaxSeconds:      getEnvInt("SEGMENT_RENDER_MAX_SECONDS", 240),
+		SegmentRenderFFmpegPath:      strings.TrimSpace(getEnv("SEGMENT_RENDER_FFMPEG_PATH", ffmpegPath)),
+		SegmentRenderFFprobePath:     strings.TrimSpace(getEnv("SEGMENT_RENDER_FFPROBE_PATH", "/usr/bin/ffprobe")),
+		SegmentRenderConcurrency:     getEnvInt("SEGMENT_RENDER_CONCURRENCY", 1),
 		TMDBAPIKey:                   strings.TrimSpace(os.Getenv("TMDB_API_KEY")),
 		FanartAPIKey:                 strings.TrimSpace(os.Getenv("FANART_API_KEY")),
 		SMTPEnabled:                  getEnvBool("SMTP_ENABLED", false),
