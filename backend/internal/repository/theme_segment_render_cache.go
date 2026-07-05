@@ -212,8 +212,13 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 	return &item, nil
 }
 
-func (r *AdminContentRepository) MarkThemeSegmentRenderCacheRendering(ctx context.Context, cacheKey string) error {
-	tag, err := r.db.Exec(ctx, `
+// ClaimNextQueuedThemeSegmentRender beansprucht atomar die aelteste 'queued'-Zeile und markiert sie
+// als 'rendering'. Der Row-Lock via FOR UPDATE SKIP LOCKED stellt sicher, dass niemals zwei Worker
+// (oder ein Worker + ein zweiter Request) denselben Cache-Eintrag gleichzeitig claimen koennen --
+// das ist der einzige atomare queued->rendering Uebergang im System (fixes B1: Rendering-Race).
+// Rueckgabe ErrNotFound, wenn aktuell keine Zeile mit status='queued' vorhanden ist.
+func (r *AdminContentRepository) ClaimNextQueuedThemeSegmentRender(ctx context.Context) (*models.ThemeSegmentRenderCache, error) {
+	row := r.db.QueryRow(ctx, `
 		UPDATE theme_segment_render_cache
 		SET status = 'rendering',
 		    attempts = attempts + 1,
@@ -223,15 +228,16 @@ func (r *AdminContentRepository) MarkThemeSegmentRenderCacheRendering(ctx contex
 		    error_code = NULL,
 		    error_message = NULL,
 		    updated_at = NOW()
-		WHERE cache_key = $1
-	`, strings.TrimSpace(cacheKey))
-	if err != nil {
-		return fmt.Errorf("mark theme segment render cache rendering %q: %w", cacheKey, err)
-	}
-	if tag.RowsAffected() == 0 {
-		return ErrNotFound
-	}
-	return nil
+		WHERE id = (
+			SELECT id
+			FROM theme_segment_render_cache
+			WHERE status = 'queued'
+			ORDER BY queued_at ASC
+			LIMIT 1
+			FOR UPDATE SKIP LOCKED
+		)
+		RETURNING `+themeSegmentRenderCacheColumns)
+	return scanThemeSegmentRenderCache(row)
 }
 
 func (r *AdminContentRepository) MarkThemeSegmentRenderCacheReady(
@@ -330,24 +336,24 @@ func (r *AdminContentRepository) MarkThemeSegmentRenderCacheStale(ctx context.Co
 	return nil
 }
 
-// ResetInterruptedThemeSegmentRenders markiert beim Backend-Start alle haengengebliebenen
-// 'rendering'-Eintraege als 'failed'. Segment-Renders laufen synchron innerhalb eines Requests,
-// daher kann eine 'rendering'-Zeile nach einem Neustart nur ein abgebrochener Job sein. Ohne diese
-// Wiederaufnahme bliebe der Eintrag dauerhaft auf 'rendering' und der Admin koennte ihn im Editor
-// nicht erneut ausloesen. Rueckgabe: Anzahl zurueckgesetzter Eintraege.
-func (r *AdminContentRepository) ResetInterruptedThemeSegmentRenders(ctx context.Context) (int64, error) {
+// RequeueInterruptedThemeSegmentRenders markiert beim Backend-Start alle haengengebliebenen
+// 'rendering'-Eintraege wieder als 'queued'. Renders laufen jetzt asynchron ueber einen einzelnen
+// Hintergrund-Worker (StartSegmentRenderWorker); eine 'rendering'-Zeile nach einem Neustart ist ein
+// abgebrochener Job, dessen Ergebnis unbrauchbar ist, der aber vom Worker automatisch erneut
+// verarbeitet werden soll -- ohne dass der Admin manuell eingreifen muss. Rueckgabe: Anzahl
+// requeueter Eintraege.
+func (r *AdminContentRepository) RequeueInterruptedThemeSegmentRenders(ctx context.Context) (int64, error) {
 	tag, err := r.db.Exec(ctx, `
 		UPDATE theme_segment_render_cache
-		SET status = 'failed',
-		    error_code = 'render_interrupted',
-		    error_message = 'Render durch Neustart unterbrochen, bitte erneut vorbereiten.',
-		    completed_at = NOW(),
-		    invalidated_at = NULL,
+		SET status = 'queued',
+		    error_code = NULL,
+		    error_message = NULL,
+		    started_at = NULL,
 		    updated_at = NOW()
 		WHERE status = 'rendering'
 	`)
 	if err != nil {
-		return 0, fmt.Errorf("reset interrupted theme segment renders: %w", err)
+		return 0, fmt.Errorf("requeue interrupted theme segment renders: %w", err)
 	}
 	return tag.RowsAffected(), nil
 }
