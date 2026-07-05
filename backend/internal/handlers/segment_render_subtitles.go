@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -273,4 +274,45 @@ func segmentSubtitleTempDir(segmentRenderDir string) string {
 		return ""
 	}
 	return filepath.Join(trimmed, "subtitle-tmp")
+}
+
+// SegmentSubtitleCleanupInterval bestimmt, wie oft verwaiste Untertitel-Temp-Dateien entfernt werden.
+const SegmentSubtitleCleanupInterval = 30 * time.Minute
+
+// CleanupOrphanedSegmentSubtitles entfernt verwaiste .ass-Temp-Dateien aus dem subtitle-tmp-Verzeichnis.
+// Normalerweise raeumt RenderSegment die Datei per defer auf; stuerzt der Prozess zwischen Download und
+// defer ab, bleibt sie liegen. Entfernt werden nur Dateien, die aelter als maxAge sind (Renders dauern
+// Sekunden bis wenige Minuten, alles Aeltere ist ein abgebrochener Job). Rueckgabe: Anzahl entfernter Dateien.
+func (h *AdminContentHandler) CleanupOrphanedSegmentSubtitles(maxAge time.Duration) (int, error) {
+	dir := segmentSubtitleTempDir(h.segmentRenderDir)
+	if strings.TrimSpace(dir) == "" {
+		return 0, nil
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, nil
+		}
+		return 0, err
+	}
+
+	cutoff := time.Now().Add(-maxAge)
+	removed := 0
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".ass") {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil || info.ModTime().After(cutoff) {
+			continue
+		}
+		path, ok := resolveControlledFilePath(dir, entry.Name())
+		if !ok {
+			continue
+		}
+		if err := os.Remove(path); err == nil {
+			removed++
+		}
+	}
+	return removed, nil
 }

@@ -8,9 +8,49 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 )
+
+func TestCleanupOrphanedSegmentSubtitles(t *testing.T) {
+	renderDir := t.TempDir()
+	tmpDir := segmentSubtitleTempDir(renderDir)
+	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	oldFile := filepath.Join(tmpDir, "segment-subtitle-old.ass")
+	freshFile := filepath.Join(tmpDir, "segment-subtitle-fresh.ass")
+	keepFile := filepath.Join(tmpDir, "not-a-subtitle.txt")
+	for _, p := range []string{oldFile, freshFile, keepFile} {
+		if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+			t.Fatalf("write %s: %v", p, err)
+		}
+	}
+	twoHoursAgo := time.Now().Add(-2 * time.Hour)
+	if err := os.Chtimes(oldFile, twoHoursAgo, twoHoursAgo); err != nil {
+		t.Fatalf("chtimes: %v", err)
+	}
+
+	handler := &AdminContentHandler{segmentRenderDir: renderDir}
+	removed, err := handler.CleanupOrphanedSegmentSubtitles(time.Hour)
+	if err != nil {
+		t.Fatalf("cleanup: %v", err)
+	}
+	if removed != 1 {
+		t.Fatalf("expected 1 removed, got %d", removed)
+	}
+	if _, err := os.Stat(oldFile); !os.IsNotExist(err) {
+		t.Fatal("expected old .ass to be removed")
+	}
+	if _, err := os.Stat(freshFile); err != nil {
+		t.Fatalf("expected fresh .ass to remain: %v", err)
+	}
+	if _, err := os.Stat(keepFile); err != nil {
+		t.Fatalf("expected non-.ass file to remain: %v", err)
+	}
+}
 
 func TestMapJellyfinMediaStreamsToSegmentProbe(t *testing.T) {
 	streams := []jellyfinMediaStream{

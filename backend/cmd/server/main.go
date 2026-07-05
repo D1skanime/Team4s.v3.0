@@ -247,6 +247,19 @@ func main() {
 		// context.Background() statt des Startup-Contexts: der Worker läuft für die gesamte
 		// Prozesslaufzeit, unabhängig vom kurzen 10s-Timeout, der nur den Boot-Vorgang begrenzt.
 		go adminContentHandler.StartSegmentRenderWorker(context.Background())
+		// Periodischer Cleanup verwaister Untertitel-Temp-Dateien (Prozess-Crash zwischen Download
+		// und dem defer-Cleanup in RenderSegment). Best-effort, stoppt den Server nie.
+		go func() {
+			ticker := time.NewTicker(handlers.SegmentSubtitleCleanupInterval)
+			defer ticker.Stop()
+			for range ticker.C {
+				if removed, err := adminContentHandler.CleanupOrphanedSegmentSubtitles(time.Hour); err != nil {
+					log.Printf("Segment-Untertitel-Cleanup fehlgeschlagen: %v", err)
+				} else if removed > 0 {
+					log.Printf("Segment-Untertitel-Cleanup: %d verwaiste Dateien entfernt", removed)
+				}
+			}
+		}()
 	}
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,
