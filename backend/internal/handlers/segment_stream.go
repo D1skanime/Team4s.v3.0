@@ -1,20 +1,19 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"log"
 	"mime"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	"team4s.v3/backend/internal/auth"
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
@@ -29,9 +28,46 @@ type segmentStreamThemeRepository interface {
 	GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error)
 	GetLatestThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error)
 	UpsertThemeSegmentRenderCacheQueued(ctx context.Context, input models.ThemeSegmentRenderCacheUpsertInput) (*models.ThemeSegmentRenderCache, error)
-	MarkThemeSegmentRenderCacheRendering(ctx context.Context, cacheKey string) error
+	ClaimNextQueuedThemeSegmentRender(ctx context.Context) (*models.ThemeSegmentRenderCache, error)
 	MarkThemeSegmentRenderCacheReady(ctx context.Context, input models.ThemeSegmentRenderCacheReadyInput) error
 	MarkThemeSegmentRenderCacheFailed(ctx context.Context, cacheKey string, errorCode string, errorMessage string) error
+}
+
+// authorizeSegmentManage buendelt die Nicht-Platform-Admin-Berechtigungspruefung, die
+// CreateSegmentStreamGrant und RenderSegment identisch benoetigen (V4: Duplikat-Entfernung).
+// Platform-Admins werden gar nicht erst geprueft. Bei fehlender Berechtigung wird die Ablehnung
+// auditiert und die Fehlerantwort geschrieben; Rueckgabe false bedeutet: der Aufrufer muss sofort
+// zurueckkehren, die Response wurde bereits gesetzt.
+func (h *AdminContentHandler) authorizeSegmentManage(
+	c *gin.Context,
+	identity middleware.AuthIdentity,
+	actor permissions.Actor,
+	source *models.ThemeSegmentRenderSource,
+	segmentID int64,
+	auditAction string,
+) bool {
+	if actor.IsPlatformAdmin {
+		return true
+	}
+	if source.ReleaseVariantID == nil || *source.ReleaseVariantID <= 0 {
+		writePermissionDenied(c, permissions.Result{Allowed: false, ReasonCode: permissions.ReasonResourceNotFound})
+		return false
+	}
+	if h.permissionSvc == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "permission service nicht verfügbar"}})
+		return false
+	}
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionSegmentsManage, *source.ReleaseVariantID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Segment-Berechtigung konnte nicht geprüft werden.")
+		return false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, auditAction, nil, "theme_segment", &segmentID, permissions.ActionReleaseVersionSegmentsManage, result)
+		writePermissionDenied(c, result)
+		return false
+	}
+	return true
 }
 
 func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
@@ -56,29 +92,13 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 		return
 	}
 	if err != nil {
+		log.Printf("segment render: source lookup failed (segment_id=%d, user_id=%d): %v", segmentID, identity.UserID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Quelle konnte nicht geladen werden.")
 		return
 	}
 
-	if !actor.IsPlatformAdmin {
-		if source.ReleaseVariantID == nil || *source.ReleaseVariantID <= 0 {
-			writePermissionDenied(c, permissions.Result{Allowed: false, ReasonCode: permissions.ReasonResourceNotFound})
-			return
-		}
-		if h.permissionSvc == nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "permission service nicht verfügbar"}})
-			return
-		}
-		result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionSegmentsManage, *source.ReleaseVariantID)
-		if err != nil {
-			writePermissionInternalError(c, err, "Segment-Berechtigung konnte nicht geprüft werden.")
-			return
-		}
-		if !result.Allowed {
-			auditPermissionDenied(c, h.auditLogRepo, identity, "segment_stream.grant.denied", nil, "theme_segment", &segmentID, permissions.ActionReleaseVersionSegmentsManage, result)
-			writePermissionDenied(c, result)
-			return
-		}
+	if !h.authorizeSegmentManage(c, identity, actor, source, segmentID, "segment_stream.grant.denied") {
+		return
 	}
 
 	if h.segmentGrantTTL <= 0 || strings.TrimSpace(h.segmentGrantSecret) == "" {
@@ -111,6 +131,10 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 	})
 }
 
+// RenderSegment ist enqueue-only: nach Berechtigungs- und Quellenpruefung wird der Cache-Eintrag
+// auf 'queued' gesetzt und sofort mit 202 Accepted beantwortet (V1: kein synchrones ffmpeg mehr
+// im Request). Der einzelne Hintergrund-Worker (StartSegmentRenderWorker) beansprucht die Zeile
+// atomar per ClaimNextQueuedThemeSegmentRender und fuehrt den eigentlichen Render aus.
 func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {
@@ -137,29 +161,13 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 		return
 	}
 	if err != nil {
+		log.Printf("segment render: source lookup failed (segment_id=%d, user_id=%d): %v", segmentID, identity.UserID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Quelle konnte nicht geladen werden.")
 		return
 	}
 
-	if !actor.IsPlatformAdmin {
-		if source.ReleaseVariantID == nil || *source.ReleaseVariantID <= 0 {
-			writePermissionDenied(c, permissions.Result{Allowed: false, ReasonCode: permissions.ReasonResourceNotFound})
-			return
-		}
-		if h.permissionSvc == nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "permission service nicht verfügbar"}})
-			return
-		}
-		result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionSegmentsManage, *source.ReleaseVariantID)
-		if err != nil {
-			writePermissionInternalError(c, err, "Segment-Berechtigung konnte nicht geprüft werden.")
-			return
-		}
-		if !result.Allowed {
-			auditPermissionDenied(c, h.auditLogRepo, identity, "segment_stream.render.denied", nil, "theme_segment", &segmentID, permissions.ActionReleaseVersionSegmentsManage, result)
-			writePermissionDenied(c, result)
-			return
-		}
+	if !h.authorizeSegmentManage(c, identity, actor, source, segmentID, "segment_stream.render.denied") {
+		return
 	}
 
 	if source.SourceKind == "uploaded_asset" {
@@ -193,6 +201,7 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 		RenderProfile:  services.DefaultSegmentRenderProfile,
 	})
 	if err != nil {
+		log.Printf("segment render: cache key build failed (segment_id=%d, user_id=%d): %v", segmentID, identity.UserID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render-Key konnte nicht erstellt werden.")
 		return
 	}
@@ -206,83 +215,14 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 		RenderProfile:     services.DefaultSegmentRenderProfile,
 	})
 	if err != nil {
+		log.Printf("segment render: queue upsert failed (segment_id=%d, user_id=%d, playback_source_id=%d): %v", segmentID, identity.UserID, source.PlaybackSourceID, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nicht vorbereitet werden.")
 		return
 	}
 
-	if err := themeRepo.MarkThemeSegmentRenderCacheRendering(c.Request.Context(), cache.CacheKey); err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nicht gestartet werden.")
-		return
-	}
+	h.notifySegmentRenderQueued()
 
-	outputRel := cache.CacheKey + ".mp4"
-	outputPath, ok := resolveControlledFilePath(h.segmentRenderDir, outputRel)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment-renderpfad ist ungültig"}})
-		return
-	}
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0o755); err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Renderverzeichnis konnte nicht erstellt werden.")
-		return
-	}
-	_ = os.Remove(outputPath)
-
-	subtitle := h.resolveSegmentSubtitleForRender(c.Request.Context(), segmentID, cache.CacheKey, source)
-	if subtitle.SubtitleFilePath != "" {
-		defer func(path string) { _ = os.Remove(path) }(subtitle.SubtitleFilePath)
-	}
-
-	durationSeconds := *source.EndOffsetSeconds - *source.StartOffsetSeconds
-	args, err := services.BuildFFmpegSegmentArgs(services.SegmentRenderCommandInput{
-		FFmpegPath:       h.segmentRenderFFmpegPath,
-		StreamURL:        *source.StreamURL,
-		SubtitleFilePath: subtitle.SubtitleFilePath,
-		OutputPath:       outputPath,
-		StartSeconds:     *source.StartOffsetSeconds,
-		DurationSeconds:  durationSeconds,
-	})
-	if err != nil {
-		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(c.Request.Context(), cache.CacheKey, "invalid_render_command", err.Error())
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment-render konnte nicht erstellt werden", "code": "invalid_render_command"}})
-		return
-	}
-
-	renderCtx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Minute)
-	defer cancel()
-	var combined bytes.Buffer
-	cmd := exec.CommandContext(renderCtx, args[0], args[1:]...)
-	cmd.Stdout = &combined
-	cmd.Stderr = &combined
-	if err := cmd.Run(); err != nil {
-		message := services.SanitizeSegmentRenderLog(combined.String(), h.segmentGrantSecret)
-		if strings.TrimSpace(message) == "" {
-			message = err.Error()
-		}
-		_ = themeRepo.MarkThemeSegmentRenderCacheFailed(c.Request.Context(), cache.CacheKey, "ffmpeg_failed", message)
-		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment-render ist fehlgeschlagen", "code": "ffmpeg_failed"}})
-		return
-	}
-
-	if err := themeRepo.MarkThemeSegmentRenderCacheReady(c.Request.Context(), models.ThemeSegmentRenderCacheReadyInput{
-		CacheKey:            cache.CacheKey,
-		OutputPath:          outputRel,
-		MimeType:            "video/mp4",
-		DurationSeconds:     durationSeconds,
-		VideoCodec:          "h264",
-		AudioCodec:          "aac",
-		SubtitleStreamIndex: subtitle.StreamIndex,
-		SubtitleCodec:       subtitle.Codec,
-	}); err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Renderstatus konnte nicht gespeichert werden.")
-		return
-	}
-
-	ready, err := themeRepo.GetThemeSegmentRenderCacheByKey(c.Request.Context(), cache.CacheKey)
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Renderstatus konnte nicht geladen werden.")
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"data": ready})
+	c.JSON(http.StatusAccepted, gin.H{"data": cache})
 }
 
 func (h *AdminContentHandler) StreamSegment(c *gin.Context) {
@@ -351,11 +291,13 @@ func (h *AdminContentHandler) StreamSegment(c *gin.Context) {
 
 func (h *AdminContentHandler) segmentStreamThemeRepo(c *gin.Context) (segmentStreamThemeRepository, bool) {
 	if h.themeRepo == nil {
+		log.Printf("segment stream: theme repo missing")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segment service nicht verfügbar"}})
 		return nil, false
 	}
 	repo, ok := h.themeRepo.(segmentStreamThemeRepository)
 	if !ok {
+		log.Printf("segment stream: theme repo does not implement segment stream repository (type=%T)", h.themeRepo)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "segmentstream service nicht verfügbar"}})
 		return nil, false
 	}

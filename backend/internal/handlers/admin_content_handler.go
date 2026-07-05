@@ -165,6 +165,9 @@ type AdminContentHandler struct {
 	segmentRenderDir                string
 	segmentRenderMaxSeconds         int32
 	segmentRenderFFmpegPath         string
+	// segmentRenderWakeup weckt StartSegmentRenderWorker nicht-blockierend auf, sobald
+	// RenderSegment einen neuen Job einreiht (reduziert Poll-Latenz; siehe segment_render_worker.go).
+	segmentRenderWakeup chan struct{}
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -292,6 +295,9 @@ func (h *AdminContentHandler) WithSegmentStreamDeps(
 	h.segmentRenderDir = strings.TrimSpace(renderDir)
 	h.segmentRenderMaxSeconds = int32(renderMaxSeconds)
 	h.segmentRenderFFmpegPath = strings.TrimSpace(renderFFmpegPath)
+	if h.segmentRenderWakeup == nil {
+		h.segmentRenderWakeup = make(chan struct{}, 1)
+	}
 	return h
 }
 

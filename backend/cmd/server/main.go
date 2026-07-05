@@ -121,10 +121,10 @@ func main() {
 	watchlistHandler := handlers.NewWatchlistHandler(watchlistRepo)
 	adminContentRepo := repository.NewAdminContentRepository(dbPool)
 	if cfg.SegmentRenderEnabled {
-		if reset, err := adminContentRepo.ResetInterruptedThemeSegmentRenders(ctx); err != nil {
+		if reset, err := adminContentRepo.RequeueInterruptedThemeSegmentRenders(ctx); err != nil {
 			log.Printf("Segment-Render-Recovery beim Start fehlgeschlagen: %v", err)
 		} else if reset > 0 {
-			log.Printf("Segment-Render-Recovery: %d unterbrochene Render-Jobs auf 'failed' gesetzt", reset)
+			log.Printf("Segment-Render-Recovery: %d unterbrochene Render-Jobs erneut eingereiht", reset)
 		}
 	}
 	episodeImportRepo := repository.NewEpisodeImportRepository(dbPool)
@@ -243,6 +243,11 @@ func main() {
 			cfg.SegmentRenderMaxSeconds,
 			cfg.SegmentRenderFFmpegPath,
 		)
+	if cfg.SegmentRenderEnabled {
+		// context.Background() statt des Startup-Contexts: der Worker läuft für die gesamte
+		// Prozesslaufzeit, unabhängig vom kurzen 10s-Timeout, der nur den Boot-Vorgang begrenzt.
+		go adminContentHandler.StartSegmentRenderWorker(context.Background())
+	}
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,
 		episodeVersionRepo,

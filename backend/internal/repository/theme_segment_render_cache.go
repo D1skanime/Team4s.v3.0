@@ -236,7 +236,7 @@ func (r *AdminContentRepository) ClaimNextQueuedThemeSegmentRender(ctx context.C
 			LIMIT 1
 			FOR UPDATE SKIP LOCKED
 		)
-		RETURNING `+themeSegmentRenderCacheColumns)
+	RETURNING `+themeSegmentRenderCacheColumns)
 	return scanThemeSegmentRenderCache(row)
 }
 
