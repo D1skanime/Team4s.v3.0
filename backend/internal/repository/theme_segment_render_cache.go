@@ -163,7 +163,7 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 			tps.release_variant_id,
 			tps.jellyfin_item_id,
 			tps.media_asset_id,
-			COALESCE(NULLIF(tps.source_ref, ''), ma.file_path),
+			COALESCE(ma.file_path, NULLIF(ts.source_ref, '')),
 			tps.source_label,
 			tps.start_offset_seconds,
 			tps.end_offset_seconds,
