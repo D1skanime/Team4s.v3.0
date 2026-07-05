@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Clock, MoreHorizontal } from 'lucide-react'
+import { Plus, Pencil, Trash2, Clock, MoreHorizontal, RefreshCw } from 'lucide-react'
 
 import { useReleaseSegments } from './useReleaseSegments'
 import {
@@ -90,18 +90,27 @@ function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
 }
 
 function buildSegmentPreviewStreamHref(segment: AdminThemeSegment | null): string | null {
-  if (!segment?.playback_release_variant_id || !segment.start_time || !segment.end_time) {
-    return null
-  }
-  const startSeconds = parseFlexibleTimeInput(segment.start_time)
-  const endSeconds = parseFlexibleTimeInput(segment.end_time)
-  if (startSeconds == null || endSeconds == null) return null
-  const durationSeconds = endSeconds - startSeconds
-  if (durationSeconds <= 0 || durationSeconds > MAX_SEGMENT_WINDOW_SECONDS) return null
+  if (!segment?.id) return null
+  if (segment.playback_source_kind === 'uploaded_asset') return `/api/segments/${segment.id}/stream`
+  if (segment.render_status !== 'ready') return null
+  return `/api/segments/${segment.id}/stream`
+}
 
-  const params = new URLSearchParams()
-  params.set('startTimeTicks', String(Math.max(0, startSeconds) * 10_000_000))
-  return `/api/releases/${segment.playback_release_variant_id}/stream?${params.toString()}`
+function renderStatusLabel(segment: AdminThemeSegment): string {
+  if (segment.playback_source_kind === 'uploaded_asset') return 'Fallback-Datei'
+  switch (segment.render_status) {
+    case 'ready':
+      return 'Bereit'
+    case 'queued':
+    case 'rendering':
+      return 'Wird vorbereitet'
+    case 'failed':
+      return 'Fehlgeschlagen'
+    case 'stale':
+      return 'Veraltet'
+    default:
+      return 'Nicht vorbereitet'
+  }
 }
 
 // --- Main component ---
@@ -114,6 +123,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     create,
     update,
     remove,
+    render,
     reload,
     ensureThemeFromSelection,
   } = useReleaseSegments({
@@ -135,6 +145,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [renderingSegmentId, setRenderingSegmentId] = useState<number | null>(null)
 
   // Asset upload state
   const [isUploading, setIsUploading] = useState(false)
@@ -363,6 +374,15 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     await remove(segment.id)
   }
 
+  async function handleRenderSegment(segment: AdminThemeSegment) {
+    setRenderingSegmentId(segment.id)
+    try {
+      await render(segment.id)
+    } finally {
+      setRenderingSegmentId(null)
+    }
+  }
+
   async function handleAssetUpload(file: File) {
     if (!animeId || !editingSegment || !hasAuthSession) return
     setIsUploading(true)
@@ -557,10 +577,29 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                               {resolveSegmentProvenanceDetails(segment) ? ` · ${resolveSegmentProvenanceDetails(segment)}` : ''}
                             </span>
                           ) : null}
+                          <span className={styles.renderStatus}>
+                            {renderStatusLabel(segment)}
+                            {segment.render_error_message ? ` · ${segment.render_error_message}` : ''}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {segment.playback_source_kind && segment.playback_source_kind !== 'uploaded_asset' && segment.render_status !== 'ready' ? (
+                            <button
+                              type="button"
+                              className={styles.actionButton}
+                              title="Segment vorbereiten"
+                              disabled={
+                                renderingSegmentId === segment.id ||
+                                segment.render_status === 'queued' ||
+                                segment.render_status === 'rendering'
+                              }
+                              onClick={() => { void handleRenderSegment(segment) }}
+                            >
+                              <RefreshCw size={14} />
+                            </button>
+                          ) : null}
                           <button
                             type="button"
                             className={styles.actionButton}

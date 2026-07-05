@@ -84,11 +84,18 @@ export function SegmentEditPanel({
   const saveDisabled = isSaving || hasInvalidTimeRange
   const runtimeKnown = effectiveDuration != null
   const runtimeFromPlayback = editingSegment?.playback_duration_seconds != null
-  const previewDurationSeconds =
-    startSeconds != null && endSeconds != null && endSeconds > startSeconds
-      ? Math.min(endSeconds - startSeconds, 240)
-      : null
-  const previewOriginRef = useRef<number | null>(null)
+  const renderStatus =
+    editingSegment?.playback_source_kind === 'uploaded_asset'
+      ? 'Fallback-Datei'
+      : editingSegment?.render_status === 'ready'
+        ? 'Bereit'
+        : editingSegment?.render_status === 'queued' || editingSegment?.render_status === 'rendering'
+          ? 'Wird vorbereitet'
+          : editingSegment?.render_status === 'failed'
+            ? 'Fehlgeschlagen'
+            : editingSegment?.render_status === 'stale'
+              ? 'Veraltet'
+              : 'Nicht vorbereitet'
 
   // Parse backend validation errors for start_time/end_time from formError
   const isStartTimeError = formError != null && (formError.toLowerCase().includes('start') || formError.toLowerCase().includes('start_time'))
@@ -220,7 +227,7 @@ export function SegmentEditPanel({
         </div>
         {exceedsDuration ? (
           <div className={styles.assetError}>
-            Ende liegt ueber der bekannten Videodauer und wird beim Verlassen des Felds auf {formatTimeInput(effectiveDuration!)} begrenzt.
+            Ende liegt über der bekannten Videodauer und wird beim Verlassen des Felds auf {formatTimeInput(effectiveDuration!)} begrenzt.
           </div>
         ) : null}
         {startSeconds != null && endSeconds != null && endSeconds <= startSeconds ? (
@@ -257,40 +264,32 @@ export function SegmentEditPanel({
           </div>
         ) : null}
 
-        {/* Source type selector — Episode-Version/Jellyfin is default; upload is explicit fallback */}
-        {previewStreamHref && previewDurationSeconds ? (
+        {/* Segmentstream preview */}
+        {editingSegment ? (
           <div className={styles.previewSection}>
             <div className={styles.assetSectionHeader}>
               <FileVideo size={14} />
-              Jellyfin-Vorschau
+              Segment-Vorschau
             </div>
-            <video
-              className={styles.previewVideo}
-              src={previewStreamHref}
-              controls
-              preload="metadata"
-              onPlay={(event) => {
-                previewOriginRef.current = event.currentTarget.currentTime
-              }}
-              onTimeUpdate={(event) => {
-                const video = event.currentTarget
-                if (previewOriginRef.current == null) {
-                  previewOriginRef.current = video.currentTime
-                }
-                if (video.currentTime - previewOriginRef.current >= previewDurationSeconds) {
-                  video.pause()
-                }
-              }}
-              onSeeking={(event) => {
-                previewOriginRef.current = event.currentTarget.currentTime
-              }}
-            />
+            {previewStreamHref ? (
+              <video
+                className={styles.previewVideo}
+                src={previewStreamHref}
+                controls
+                preload="metadata"
+              />
+            ) : (
+              <div className={styles.previewStatus}>{renderStatus}</div>
+            )}
             <p className={styles.sourceHelpText}>
-              Spielt direkt aus Jellyfin ab und stoppt nach der Segmentlänge.
+              {previewStreamHref
+                ? 'Spielt den serverseitig vorbereiteten Segmentstream ab.'
+                : editingSegment.render_error_message || 'Der Segmentstream ist noch nicht bereit.'}
             </p>
           </div>
         ) : null}
 
+        {/* Source type selector — Episode-Version/Jellyfin is default; upload is explicit fallback */}
         <div className={styles.panelField}>
           <label htmlFor="seg-source-type">Provenance / Fallback-Wahl</label>
           <select
@@ -303,9 +302,9 @@ export function SegmentEditPanel({
             <option value="jellyfin_theme">Jellyfin Serien-Theme (Legacy)</option>
           </select>
           {formState.sourceType === 'none' ? (
-            <p className={styles.sourceHelpText}>Standard: Playback laeuft ueber den Jellyfin-Stream der aktuellen Episode-Version. Kein Upload erforderlich.</p>
+            <p className={styles.sourceHelpText}>Standard: Playback läuft über den Jellyfin-Stream der aktuellen Episode-Version. Kein Upload erforderlich.</p>
           ) : formState.sourceType === 'release_asset' ? (
-            <p className={styles.sourceHelpText}>Hochgeladener Fallback: Eine eigene Segment-Datei wird als explizit gew&auml;hlte Playback-Quelle hinterlegt.</p>
+            <p className={styles.sourceHelpText}>Hochgeladener Fallback: Eine eigene Segment-Datei wird als explizit gewählte Playback-Quelle hinterlegt.</p>
           ) : formState.sourceType === 'jellyfin_theme' ? (
             <p className={styles.sourceHelpText}>Legacy: Timing stammt aus einem Jellyfin Serien-Theme-Eintrag.</p>
           ) : null}

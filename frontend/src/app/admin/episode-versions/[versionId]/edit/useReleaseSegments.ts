@@ -10,6 +10,7 @@ import {
   getAdminAnimeThemes,
   getAdminThemeTypes,
   createAdminAnimeTheme,
+  renderAnimeSegment,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type {
@@ -179,6 +180,19 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
     }
   }
 
+  async function render(segmentId: number): Promise<boolean> {
+    if (!animeId || !hasAuthSession) return false
+    try {
+      await renderAnimeSegment(segmentId)
+      await load()
+      return true
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Segment konnte nicht vorbereitet werden.')
+      await load()
+      return false
+    }
+  }
+
   return {
     segments,
     themes,
@@ -190,6 +204,7 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
     create,
     update,
     remove,
+    render,
     reload: load,
     ensureThemeFromSelection,
   }

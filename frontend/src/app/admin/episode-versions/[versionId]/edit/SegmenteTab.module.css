@@ -137,6 +137,11 @@
   color: #1c1c1e;
 }
 
+.actionButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .actionButtonDanger:hover {
   background: #fff0f0;
   color: #dc3545;
@@ -423,6 +428,21 @@
   color: #1c1c1e;
 }
 
+.renderStatus {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  min-height: 22px;
+  align-items: center;
+  padding: 0 7px;
+  border: 1px solid #d8e0f0;
+  border-radius: 4px;
+  background: #f7f9fd;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .previewSection {
   margin-bottom: 0.75rem;
   border: 1px solid #d8e0f0;
@@ -439,6 +459,19 @@
   max-height: 220px;
   border-radius: 6px;
   background: #111111;
+}
+
+.previewStatus {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #d8e0f0;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 0 12px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .assetExisting {

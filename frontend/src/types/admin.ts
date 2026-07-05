@@ -860,6 +860,13 @@ export interface AdminThemeSegment {
   playback_start_offset_seconds?: number | null
   playback_end_offset_seconds?: number | null
   playback_duration_seconds?: number | null
+  render_cache_id?: number | null
+  render_cache_key?: string | null
+  render_status?: 'queued' | 'rendering' | 'ready' | 'failed' | 'stale' | string | null
+  render_error_message?: string | null
+  render_duration_seconds?: number | null
+  render_completed_at?: string | null
+  can_retry_render?: boolean
   library_definition_id?: number | null
   library_asset_id?: number | null
   library_segment_kind?: string | null
@@ -875,6 +882,37 @@ export interface AdminThemeSegment {
 /** API-Response für Segment-Listen. */
 export interface AdminAnimeSegmentsResponse {
   data: AdminThemeSegment[]
+}
+
+export interface AdminThemeSegmentRenderCache {
+  id: number
+  theme_segment_id: number
+  playback_source_id?: number | null
+  cache_key: string
+  source_kind: string
+  source_fingerprint: string
+  render_profile: string
+  status: 'queued' | 'rendering' | 'ready' | 'failed' | 'stale' | string
+  output_path?: string | null
+  mime_type?: string | null
+  duration_seconds?: number | null
+  video_codec?: string | null
+  audio_codec?: string | null
+  subtitle_stream_index?: number | null
+  subtitle_codec?: string | null
+  error_code?: string | null
+  error_message?: string | null
+  attempts: number
+  queued_at: string
+  started_at?: string | null
+  completed_at?: string | null
+  invalidated_at?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminThemeSegmentRenderResponse {
+  data: AdminThemeSegmentRenderCache
 }
 
 /** API-Response für Segment-Vorschläge aus anderen Releases. */
