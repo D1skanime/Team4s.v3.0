@@ -106,6 +106,45 @@ func (r *AdminContentRepository) GetThemeSegmentRenderCacheByKey(
 	return scanThemeSegmentRenderCache(row)
 }
 
+func (r *AdminContentRepository) GetReadyThemeSegmentRenderCache(
+	ctx context.Context,
+	segmentID int64,
+) (*models.ThemeSegmentRenderCache, error) {
+	if segmentID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	row := r.db.QueryRow(ctx, `
+		SELECT `+themeSegmentRenderCacheColumns+`
+		FROM theme_segment_render_cache
+		WHERE theme_segment_id = $1
+		  AND status = 'ready'
+		  AND invalidated_at IS NULL
+		ORDER BY completed_at DESC NULLS LAST, id DESC
+		LIMIT 1
+	`, segmentID)
+	return scanThemeSegmentRenderCache(row)
+}
+
+func (r *AdminContentRepository) GetLatestThemeSegmentRenderCache(
+	ctx context.Context,
+	segmentID int64,
+) (*models.ThemeSegmentRenderCache, error) {
+	if segmentID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	row := r.db.QueryRow(ctx, `
+		SELECT `+themeSegmentRenderCacheColumns+`
+		FROM theme_segment_render_cache
+		WHERE theme_segment_id = $1
+		  AND invalidated_at IS NULL
+		ORDER BY updated_at DESC, id DESC
+		LIMIT 1
+	`, segmentID)
+	return scanThemeSegmentRenderCache(row)
+}
+
 func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 	ctx context.Context,
 	segmentID int64,
@@ -124,7 +163,7 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 			tps.release_variant_id,
 			tps.jellyfin_item_id,
 			tps.media_asset_id,
-			ma.file_path,
+			COALESCE(NULLIF(tps.source_ref, ''), ma.file_path),
 			tps.source_label,
 			tps.start_offset_seconds,
 			tps.end_offset_seconds,

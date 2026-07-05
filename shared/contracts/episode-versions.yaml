@@ -191,6 +191,79 @@ endpoints:
       status: 200
       type: binary-stream
 
+  - name: segment-stream-proxy
+    method: POST
+    path: /api/v1/segments/:id/grant
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Grants are issued for a theme segment id, not for arbitrary start/end query parameters.
+        - Non-admin users need release_version.segments.manage for the segment release-version context.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 201
+      type: SegmentStreamGrantResponse
+
+  - name: segment-render
+    method: POST
+    path: /api/v1/segments/:id/render
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Prepares a server-side bounded preview artifact for a persisted theme segment id.
+        - Non-admin users need release_version.segments.manage for the segment release-version context.
+      unauthenticated_status: 401
+      unauthenticated_response:
+        error:
+          message: "anmeldung erforderlich"
+      forbidden_status: 403
+      forbidden_response:
+        error:
+          message: "keine berechtigung"
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: SegmentRenderCacheResponse
+
+  - name: segment-stream-proxy
+    method: GET
+    path: /api/v1/segments/:id/stream
+    notes:
+      - Streams only the server-side bounded segment artifact or explicit uploaded fallback for the theme segment id.
+      - Free-form start/end/duration/startTimeTicks query parameters are rejected.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+    query_params:
+      - name: grant
+        type: string
+        required: true
+        description: Short-lived signed segment stream grant token issued by /api/v1/segments/:id/grant.
+    response:
+      status: 200
+      type: binary-stream
+
   - name: media-image-proxy
     method: GET
     path: /api/v1/media/image
@@ -240,6 +313,10 @@ types:
     data: EpisodeVersionFolderScanResult
   ReleaseStreamGrantResponse:
     data: ReleaseStreamGrant
+  SegmentStreamGrantResponse:
+    data: SegmentStreamGrant
+  SegmentRenderCacheResponse:
+    data: SegmentRenderCache
   GroupedEpisode:
     episode_number: int32
     episode_title: string | null
@@ -287,6 +364,37 @@ types:
     expires_at: int64
     ttl_seconds: int64
     issued_for: int64
+  SegmentStreamGrant:
+    theme_segment_id: int64
+    grant_token: string
+    expires_at: int64
+    ttl_seconds: int64
+    issued_for: int64
+  SegmentRenderCache:
+    id: int64
+    theme_segment_id: int64
+    playback_source_id: int64 | null
+    cache_key: string
+    source_kind: string
+    source_fingerprint: string
+    render_profile: string
+    status: queued | rendering | ready | failed | stale
+    output_path: string | null
+    mime_type: string | null
+    duration_seconds: int32 | null
+    video_codec: string | null
+    audio_codec: string | null
+    subtitle_stream_index: int32 | null
+    subtitle_codec: string | null
+    error_code: string | null
+    error_message: string | null
+    attempts: int32
+    queued_at: datetime
+    started_at: datetime | null
+    completed_at: datetime | null
+    invalidated_at: datetime | null
+    created_at: datetime
+    updated_at: datetime
   EpisodeVersionCreateRequest:
     title: string | null
     fansub_group_id: int64 | null

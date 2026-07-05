@@ -47,6 +47,7 @@ import {
   AdminSegmentSuggestionsResponse,
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
+  AdminThemeSegmentRenderResponse,
   AdminThemeSegmentPatchRequest,
 } from "@/types/admin";
 import {
@@ -6382,6 +6383,36 @@ export async function deleteAnimeSegment(
       parsed.details,
     );
   }
+}
+
+export async function renderAnimeSegment(
+  segmentId: number,
+  authToken?: string,
+): Promise<AdminThemeSegmentRenderResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/segments/${segmentId}/render`,
+    {
+      method: "POST",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<AdminThemeSegmentRenderResponse>;
 }
 
 /**

@@ -159,6 +159,12 @@ type AdminContentHandler struct {
 	tiptapSvc                       *services.TipTapService
 	permissionSvc                   *permissions.Service
 	auditLogRepo                    *repository.AuditLogRepository
+	segmentGrantSecret              string
+	segmentGrantTTL                 time.Duration
+	segmentRenderEnabled            bool
+	segmentRenderDir                string
+	segmentRenderMaxSeconds         int32
+	segmentRenderFFmpegPath         string
 }
 
 // AdminContentJellyfinConfig enthält die Verbindungsparameter für die Jellyfin-Integration im Admin-Bereich.
@@ -269,6 +275,23 @@ func (h *AdminContentHandler) WithTipTapDeps(tiptapSvc *services.TipTapService) 
 func (h *AdminContentHandler) WithPermissionDeps(permissionSvc *permissions.Service, auditLogRepo *repository.AuditLogRepository) *AdminContentHandler {
 	h.permissionSvc = permissionSvc
 	h.auditLogRepo = auditLogRepo
+	return h
+}
+
+func (h *AdminContentHandler) WithSegmentStreamDeps(
+	grantSecret string,
+	grantTTLSeconds int,
+	renderEnabled bool,
+	renderDir string,
+	renderMaxSeconds int,
+	renderFFmpegPath string,
+) *AdminContentHandler {
+	h.segmentGrantSecret = strings.TrimSpace(grantSecret)
+	h.segmentGrantTTL = time.Duration(grantTTLSeconds) * time.Second
+	h.segmentRenderEnabled = renderEnabled
+	h.segmentRenderDir = strings.TrimSpace(renderDir)
+	h.segmentRenderMaxSeconds = int32(renderMaxSeconds)
+	h.segmentRenderFFmpegPath = strings.TrimSpace(renderFFmpegPath)
 	return h
 }
 

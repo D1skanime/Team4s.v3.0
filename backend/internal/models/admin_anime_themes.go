@@ -33,40 +33,47 @@ type AdminAnimeThemePatchInput struct {
 
 // AdminThemeSegment repraesentiert ein Release-Segment (OP/ED-Timing) fuer eine Fansub-Gruppe und Version.
 type AdminThemeSegment struct {
-	ID                   int64     `json:"id"`
-	ThemeID              int64     `json:"theme_id"`
-	AnimeID              int64     `json:"anime_id"`
-	ThemeTitle           *string   `json:"theme_title"`
-	ThemeTypeName        string    `json:"theme_type_name"`
-	FansubGroupID        *int64    `json:"fansub_group_id"`
-	Version              string    `json:"version"`
-	StartEpisode         *int      `json:"start_episode"`
-	EndEpisode           *int      `json:"end_episode"`
-	StartTime            *string   `json:"start_time"` // Interval als HH:MM:SS-String
-	EndTime              *string   `json:"end_time"`   // Interval als HH:MM:SS-String
-	SourceJellyfinItemID *string   `json:"source_jellyfin_item_id"`
-	SourceType           *string   `json:"source_type,omitempty"`
-	SourceRef            *string   `json:"source_ref,omitempty"`
-	SourceLabel          *string   `json:"source_label,omitempty"`
-	PlaybackSourceID     *int64    `json:"playback_source_id,omitempty"`
-	PlaybackSourceKind   *string   `json:"playback_source_kind,omitempty"`
-	PlaybackVariantID    *int64    `json:"playback_release_variant_id,omitempty"`
-	PlaybackJellyfinID   *string   `json:"playback_jellyfin_item_id,omitempty"`
-	PlaybackMediaAssetID *int64    `json:"playback_media_asset_id,omitempty"`
-	PlaybackSourceLabel  *string   `json:"playback_source_label,omitempty"`
-	PlaybackStartSeconds *int32    `json:"playback_start_offset_seconds,omitempty"`
-	PlaybackEndSeconds   *int32    `json:"playback_end_offset_seconds,omitempty"`
-	PlaybackDuration     *int32    `json:"playback_duration_seconds,omitempty"`
-	LibraryDefinitionID  *int64    `json:"library_definition_id,omitempty"`
-	LibraryAssetID       *int64    `json:"library_asset_id,omitempty"`
-	LibrarySegmentKind   *string   `json:"library_segment_kind,omitempty"`
-	LibrarySegmentName   *string   `json:"library_segment_name,omitempty"`
-	LibraryAnimeProvider *string   `json:"library_anime_source_provider,omitempty"`
-	LibraryAnimeExternal *string   `json:"library_anime_source_external_id,omitempty"`
-	LibraryIdentity      *string   `json:"library_identity_status,omitempty"`
-	LibraryOwnership     *string   `json:"library_ownership_scope,omitempty"`
-	LibraryAttachSource  *string   `json:"library_attach_source,omitempty"`
-	CreatedAt            time.Time `json:"created_at"`
+	ID                   int64      `json:"id"`
+	ThemeID              int64      `json:"theme_id"`
+	AnimeID              int64      `json:"anime_id"`
+	ThemeTitle           *string    `json:"theme_title"`
+	ThemeTypeName        string     `json:"theme_type_name"`
+	FansubGroupID        *int64     `json:"fansub_group_id"`
+	Version              string     `json:"version"`
+	StartEpisode         *int       `json:"start_episode"`
+	EndEpisode           *int       `json:"end_episode"`
+	StartTime            *string    `json:"start_time"` // Interval als HH:MM:SS-String
+	EndTime              *string    `json:"end_time"`   // Interval als HH:MM:SS-String
+	SourceJellyfinItemID *string    `json:"source_jellyfin_item_id"`
+	SourceType           *string    `json:"source_type,omitempty"`
+	SourceRef            *string    `json:"source_ref,omitempty"`
+	SourceLabel          *string    `json:"source_label,omitempty"`
+	PlaybackSourceID     *int64     `json:"playback_source_id,omitempty"`
+	PlaybackSourceKind   *string    `json:"playback_source_kind,omitempty"`
+	PlaybackVariantID    *int64     `json:"playback_release_variant_id,omitempty"`
+	PlaybackJellyfinID   *string    `json:"playback_jellyfin_item_id,omitempty"`
+	PlaybackMediaAssetID *int64     `json:"playback_media_asset_id,omitempty"`
+	PlaybackSourceLabel  *string    `json:"playback_source_label,omitempty"`
+	PlaybackStartSeconds *int32     `json:"playback_start_offset_seconds,omitempty"`
+	PlaybackEndSeconds   *int32     `json:"playback_end_offset_seconds,omitempty"`
+	PlaybackDuration     *int32     `json:"playback_duration_seconds,omitempty"`
+	RenderCacheID        *int64     `json:"render_cache_id,omitempty"`
+	RenderCacheKey       *string    `json:"render_cache_key,omitempty"`
+	RenderStatus         *string    `json:"render_status,omitempty"`
+	RenderErrorMessage   *string    `json:"render_error_message,omitempty"`
+	RenderDuration       *int32     `json:"render_duration_seconds,omitempty"`
+	RenderCompletedAt    *time.Time `json:"render_completed_at,omitempty"`
+	CanRetryRender       bool       `json:"can_retry_render"`
+	LibraryDefinitionID  *int64     `json:"library_definition_id,omitempty"`
+	LibraryAssetID       *int64     `json:"library_asset_id,omitempty"`
+	LibrarySegmentKind   *string    `json:"library_segment_kind,omitempty"`
+	LibrarySegmentName   *string    `json:"library_segment_name,omitempty"`
+	LibraryAnimeProvider *string    `json:"library_anime_source_provider,omitempty"`
+	LibraryAnimeExternal *string    `json:"library_anime_source_external_id,omitempty"`
+	LibraryIdentity      *string    `json:"library_identity_status,omitempty"`
+	LibraryOwnership     *string    `json:"library_ownership_scope,omitempty"`
+	LibraryAttachSource  *string    `json:"library_attach_source,omitempty"`
+	CreatedAt            time.Time  `json:"created_at"`
 }
 
 // AdminThemeSegmentCreateInput enthaelt die Felder zum Anlegen eines neuen Segments.

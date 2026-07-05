@@ -5930,6 +5930,216 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/segments/{id}/grant:
+    post:
+      tags: [Releases]
+      summary: Issue short-lived stream grant token for a bounded theme segment
+      description: |
+        Issues a grant for a canonical theme segment id. The stream endpoint does
+        not accept free-form start/end/duration offsets; segment timing is resolved
+        from persisted theme segment data and server-side render cache state.
+      operationId: createSegmentStreamGrant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "201":
+          description: Segment stream grant created
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegmentStreamGrantResponse"
+        "400":
+          description: Invalid segment id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Segment management permission required for this release-version context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Theme segment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Grant service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/segments/{id}/render:
+    post:
+      tags: [Releases]
+      summary: Prepare a server-side bounded theme segment artifact
+      description: |
+        Renders the persisted theme segment window from its canonical playback source
+        into the server-side segment render cache. Uploaded fallback assets do not
+        require rendering and are rejected by this endpoint.
+      operationId: renderSegment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Segment render cache entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegmentRenderCacheResponse"
+        "400":
+          description: Invalid segment id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Segment management permission required for this release-version context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Theme segment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Segment cannot be rendered from its current source or window
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Segment rendering disabled or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/segments/{id}/stream:
+    get:
+      tags: [Releases]
+      summary: Stream a server-side bounded theme segment
+      description: |
+        Streams the ready server-rendered segment artifact or the explicit uploaded
+        fallback for the persisted theme segment id. Free-form start/end/duration
+        query parameters are rejected.
+      operationId: streamSegment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: grant
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Short-lived segment stream grant token issued by /api/v1/segments/{id}/grant.
+      responses:
+        "200":
+          description: Segment stream payload
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+            video/x-matroska:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid segment id or forbidden free-form timing query parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Theme segment or stream artifact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Segment render artifact is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/releases/{releaseId}/images:
     get:
       tags: [Releases]
@@ -10795,6 +11005,125 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/ReleaseStreamGrant"
+    SegmentStreamGrant:
+      type: object
+      required: [theme_segment_id, grant_token, expires_at, ttl_seconds, issued_for]
+      properties:
+        theme_segment_id:
+          type: integer
+          format: int64
+        grant_token:
+          type: string
+        expires_at:
+          type: integer
+          format: int64
+        ttl_seconds:
+          type: integer
+          format: int64
+        issued_for:
+          type: integer
+          format: int64
+    SegmentStreamGrantResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/SegmentStreamGrant"
+    SegmentRenderCache:
+      type: object
+      required:
+        - id
+        - theme_segment_id
+        - cache_key
+        - source_kind
+        - source_fingerprint
+        - render_profile
+        - status
+        - attempts
+        - queued_at
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          format: int64
+        theme_segment_id:
+          type: integer
+          format: int64
+        playback_source_id:
+          type: integer
+          format: int64
+          nullable: true
+        cache_key:
+          type: string
+        source_kind:
+          type: string
+        source_fingerprint:
+          type: string
+        render_profile:
+          type: string
+        status:
+          type: string
+          enum: [queued, rendering, ready, failed, stale]
+        output_path:
+          type: string
+          nullable: true
+        mime_type:
+          type: string
+          nullable: true
+        duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        video_codec:
+          type: string
+          nullable: true
+        audio_codec:
+          type: string
+          nullable: true
+        subtitle_stream_index:
+          type: integer
+          format: int32
+          nullable: true
+        subtitle_codec:
+          type: string
+          nullable: true
+        error_code:
+          type: string
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+        attempts:
+          type: integer
+          format: int32
+        queued_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        invalidated_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SegmentRenderCacheResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/SegmentRenderCache"
     EpisodePlaybackGrant:
       type: object
       required: [episode_id, grant_token, expires_at, ttl_seconds, issued_for]

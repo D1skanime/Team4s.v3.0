@@ -1096,6 +1096,48 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 		return fmt.Errorf("hydrate segment playback metadata segment=%d: %w", seg.ID, err)
 	}
 
+	if ok, err := r.hasTable(ctx, "theme_segment_render_cache"); err != nil {
+		return err
+	} else if ok {
+		var status string
+		if err := r.db.QueryRow(ctx, `
+			SELECT
+				id,
+				cache_key,
+				status,
+				error_message,
+				duration_seconds,
+				completed_at
+			FROM theme_segment_render_cache
+			WHERE theme_segment_id = $1
+			  AND invalidated_at IS NULL
+			ORDER BY
+				CASE status
+					WHEN 'ready' THEN 0
+					WHEN 'rendering' THEN 1
+					WHEN 'queued' THEN 2
+					WHEN 'failed' THEN 3
+					WHEN 'stale' THEN 4
+					ELSE 5
+				END,
+				updated_at DESC,
+				id DESC
+			LIMIT 1
+		`, seg.ID).Scan(
+			&seg.RenderCacheID,
+			&seg.RenderCacheKey,
+			&status,
+			&seg.RenderErrorMessage,
+			&seg.RenderDuration,
+			&seg.RenderCompletedAt,
+		); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("hydrate segment render metadata segment=%d: %w", seg.ID, err)
+		} else if status != "" {
+			seg.RenderStatus = &status
+			seg.CanRetryRender = status == "failed" || status == "stale"
+		}
+	}
+
 	return nil
 }
 

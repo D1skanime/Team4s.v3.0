@@ -227,7 +227,15 @@ func main() {
 		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool)).
 		WithFansubReleasesContributionsDeps(repository.NewFansubReleasesContributionsRepository(dbPool)).
 		WithTipTapDeps(tiptapSvc).
-		WithPermissionDeps(permissionSvc, auditLogRepo)
+		WithPermissionDeps(permissionSvc, auditLogRepo).
+		WithSegmentStreamDeps(
+			resolveReleaseGrantSecret(cfg),
+			cfg.ReleaseStreamGrantTTLSeconds,
+			cfg.SegmentRenderEnabled,
+			cfg.SegmentRenderDir,
+			cfg.SegmentRenderMaxSeconds,
+			cfg.SegmentRenderFFmpegPath,
+		)
 	fansubHandler := handlers.NewFansubHandler(
 		fansubRepo,
 		episodeVersionRepo,
@@ -379,6 +387,21 @@ func main() {
 		"/releases/:id/stream",
 		authOptionalMiddleware,
 		fansubHandler.StreamRelease,
+	)
+	v1.POST(
+		"/segments/:id/grant",
+		authMiddleware,
+		adminContentHandler.CreateSegmentStreamGrant,
+	)
+	v1.POST(
+		"/segments/:id/render",
+		authMiddleware,
+		adminContentHandler.RenderSegment,
+	)
+	v1.GET(
+		"/segments/:id/stream",
+		authOptionalMiddleware,
+		adminContentHandler.StreamSegment,
 	)
 	v1.GET("/releases/:id/assets", releaseAssetsHandler.ListReleaseAssets)
 	v1.GET("/releases/:id/images", episodeVersionImagesHandler.ListReleaseImages)
