@@ -31,6 +31,7 @@ const ssrServerBoundaryAllowlist = new Set([
 const streamingServerBoundaryAllowlist = new Set([
   'src/app/api/episodes/[id]/play/route.ts',
   'src/app/api/releases/[id]/stream/route.ts',
+  'src/app/api/segments/[id]/stream/route.ts',
   'src/lib/server/streamRelayAuth.ts',
 ])
 
