@@ -106,6 +106,73 @@ func (r *AdminContentRepository) GetThemeSegmentRenderCacheByKey(
 	return scanThemeSegmentRenderCache(row)
 }
 
+func (r *AdminContentRepository) GetThemeSegmentRenderSource(
+	ctx context.Context,
+	segmentID int64,
+) (*models.ThemeSegmentRenderSource, error) {
+	if segmentID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	var item models.ThemeSegmentRenderSource
+	if err := r.db.QueryRow(ctx, `
+		SELECT
+			ts.id,
+			t.anime_id,
+			tps.id,
+			tps.source_kind,
+			tps.release_variant_id,
+			tps.jellyfin_item_id,
+			tps.media_asset_id,
+			ma.file_path,
+			tps.source_label,
+			tps.start_offset_seconds,
+			tps.end_offset_seconds,
+			tps.duration_seconds,
+			ss.provider_type,
+			COALESCE(NULLIF(ss.external_id, ''), NULLIF(rs.jellyfin_item_id, '')),
+			ss.url,
+			rev.title
+		FROM theme_segments ts
+		JOIN themes t ON t.id = ts.theme_id
+		JOIN theme_segment_playback_sources tps ON tps.theme_segment_id = ts.id
+		LEFT JOIN release_variants rv ON rv.id = tps.release_variant_id
+		LEFT JOIN release_versions rev ON rev.id = rv.release_version_id
+		LEFT JOIN release_streams rs ON rs.variant_id = rv.id
+		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
+		LEFT JOIN media_assets ma ON ma.id = tps.media_asset_id
+		WHERE ts.id = $1
+		ORDER BY
+			CASE WHEN ss.provider_type = 'jellyfin' THEN 0 ELSE 1 END,
+			rs.id ASC NULLS LAST
+		LIMIT 1
+	`, segmentID).Scan(
+		&item.SegmentID,
+		&item.AnimeID,
+		&item.PlaybackSourceID,
+		&item.SourceKind,
+		&item.ReleaseVariantID,
+		&item.JellyfinItemID,
+		&item.MediaAssetID,
+		&item.MediaAssetPath,
+		&item.SourceLabel,
+		&item.StartOffsetSeconds,
+		&item.EndOffsetSeconds,
+		&item.DurationSeconds,
+		&item.StreamProvider,
+		&item.StreamExternalID,
+		&item.StreamURL,
+		&item.ReleaseVariantTitle,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get theme segment render source segment=%d: %w", segmentID, err)
+	}
+
+	return &item, nil
+}
+
 func (r *AdminContentRepository) MarkThemeSegmentRenderCacheRendering(ctx context.Context, cacheKey string) error {
 	tag, err := r.db.Exec(ctx, `
 		UPDATE theme_segment_render_cache

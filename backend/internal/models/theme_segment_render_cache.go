@@ -58,3 +58,22 @@ type ThemeSegmentRenderCacheReadyInput struct {
 	SubtitleStreamIndex *int32
 	SubtitleCodec       *string
 }
+
+type ThemeSegmentRenderSource struct {
+	SegmentID           int64   `json:"theme_segment_id"`
+	AnimeID             int64   `json:"anime_id"`
+	PlaybackSourceID    int64   `json:"playback_source_id"`
+	SourceKind          string  `json:"source_kind"`
+	ReleaseVariantID    *int64  `json:"release_variant_id,omitempty"`
+	JellyfinItemID      *string `json:"jellyfin_item_id,omitempty"`
+	MediaAssetID        *int64  `json:"media_asset_id,omitempty"`
+	MediaAssetPath      *string `json:"media_asset_path,omitempty"`
+	SourceLabel         *string `json:"source_label,omitempty"`
+	StartOffsetSeconds  *int32  `json:"start_offset_seconds,omitempty"`
+	EndOffsetSeconds    *int32  `json:"end_offset_seconds,omitempty"`
+	DurationSeconds     *int32  `json:"duration_seconds,omitempty"`
+	StreamProvider      *string `json:"stream_provider,omitempty"`
+	StreamExternalID    *string `json:"stream_external_id,omitempty"`
+	StreamURL           *string `json:"stream_url,omitempty"`
+	ReleaseVariantTitle *string `json:"release_variant_title,omitempty"`
+}

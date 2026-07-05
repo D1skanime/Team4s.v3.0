@@ -35,6 +35,7 @@ func TestThemeSegmentRenderCacheRepositoryMethodsDeclared(t *testing.T) {
 	required := []string{
 		"UpsertThemeSegmentRenderCacheQueued",
 		"GetThemeSegmentRenderCacheByKey",
+		"GetThemeSegmentRenderSource",
 		"MarkThemeSegmentRenderCacheRendering",
 		"MarkThemeSegmentRenderCacheReady",
 		"MarkThemeSegmentRenderCacheFailed",
@@ -47,6 +48,25 @@ func TestThemeSegmentRenderCacheRepositoryMethodsDeclared(t *testing.T) {
 	for _, pattern := range required {
 		if !strings.Contains(src, pattern) {
 			t.Fatalf("theme_segment_render_cache.go missing %q", pattern)
+		}
+	}
+}
+
+func TestThemeSegmentRenderSourceResolvesStoredPlaybackSource(t *testing.T) {
+	src := readRepositorySourceFile(t, "theme_segment_render_cache.go")
+
+	required := []string{
+		"JOIN theme_segment_playback_sources tps ON tps.theme_segment_id = ts.id",
+		"LEFT JOIN release_variants rv ON rv.id = tps.release_variant_id",
+		"LEFT JOIN release_versions rev ON rev.id = rv.release_version_id",
+		"LEFT JOIN release_streams rs ON rs.variant_id = rv.id",
+		"LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id",
+		"LEFT JOIN media_assets ma ON ma.id = tps.media_asset_id",
+		"CASE WHEN ss.provider_type = 'jellyfin' THEN 0 ELSE 1 END",
+	}
+	for _, pattern := range required {
+		if !strings.Contains(src, pattern) {
+			t.Fatalf("render source resolver missing %q", pattern)
 		}
 	}
 }
