@@ -54,7 +54,15 @@ type jellyfinEpisodeItem struct {
 	ParentIndexNumber *int                  `json:"ParentIndexNumber"`
 	PremiereDate      *string               `json:"PremiereDate"`
 	MediaStreams      []jellyfinMediaStream `json:"MediaStreams"`
+	MediaSources      []jellyfinMediaSource `json:"MediaSources"`
 	RunTimeTicks      *int64                `json:"RunTimeTicks"`
+}
+
+// jellyfinMediaSource repräsentiert eine Media-Source eines Jellyfin-Items. Die Id wird fuer den
+// Subtitle-Download-Pfad (/Videos/{itemId}/{mediaSourceId}/Subtitles/...) benoetigt und ist nicht
+// zwangslaeufig gleich der Item-Id (Multi-Version-Items).
+type jellyfinMediaSource struct {
+	ID string `json:"Id"`
 }
 
 // jellyfinMediaStream repräsentiert einen Medien-Stream (Video, Audio, Untertitel) innerhalb einer Jellyfin-Episode.
