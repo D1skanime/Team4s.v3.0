@@ -84,6 +84,15 @@ func (r *AdminContentRepository) ListFansubAnimeReleasesPage(
 				FROM release_theme_assets rta
 				WHERE rta.release_id = fr.id
 			)                                           AS has_theme_assets,
+			EXISTS (
+				SELECT 1
+				FROM theme_segments ts
+				JOIN themes th ON th.id = ts.theme_id
+				WHERE th.anime_id = a.id
+				  AND ep.episode_number ~ '^[0-9]+$'
+				  AND (ts.start_episode IS NULL OR ts.start_episode <= ep.episode_number::int)
+				  AND (ts.end_episode IS NULL OR ts.end_episode >= ep.episode_number::int)
+			)                                           AS has_theme_segments,
 			(
 				SELECT rv.duration_seconds
 				FROM release_versions rev
@@ -137,6 +146,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleasesPage(
 			&item.Source,
 			&item.VersionCount,
 			&item.HasThemeAssets,
+			&item.HasThemeSegments,
 			&item.DurationSeconds,
 			&item.CreatedAt,
 			&item.HasOverride,
@@ -195,6 +205,15 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 				FROM release_theme_assets rta
 				WHERE rta.release_id = fr.id
 			)                                           AS has_theme_assets,
+			EXISTS (
+				SELECT 1
+				FROM theme_segments ts
+				JOIN themes th ON th.id = ts.theme_id
+				WHERE th.anime_id = a.id
+				  AND ep.episode_number ~ '^[0-9]+$'
+				  AND (ts.start_episode IS NULL OR ts.start_episode <= ep.episode_number::int)
+				  AND (ts.end_episode IS NULL OR ts.end_episode >= ep.episode_number::int)
+			)                                           AS has_theme_segments,
 			(
 				SELECT rv.duration_seconds
 				FROM release_versions rev
@@ -233,6 +252,7 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 		&item.Source,
 		&item.VersionCount,
 		&item.HasThemeAssets,
+		&item.HasThemeSegments,
 		&item.DurationSeconds,
 		&item.CreatedAt,
 	)
@@ -284,6 +304,15 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 				FROM release_theme_assets rta
 				WHERE rta.release_id = fr.id
 			)                                           AS has_theme_assets,
+			EXISTS (
+				SELECT 1
+				FROM theme_segments ts
+				JOIN themes th ON th.id = ts.theme_id
+				WHERE th.anime_id = a.id
+				  AND ep.episode_number ~ '^[0-9]+$'
+				  AND (ts.start_episode IS NULL OR ts.start_episode <= ep.episode_number::int)
+				  AND (ts.end_episode IS NULL OR ts.end_episode >= ep.episode_number::int)
+			)                                           AS has_theme_segments,
 			(
 				SELECT rv.duration_seconds
 				FROM release_versions rev
@@ -314,6 +343,7 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 		&item.Source,
 		&item.VersionCount,
 		&item.HasThemeAssets,
+		&item.HasThemeSegments,
 		&item.DurationSeconds,
 		&item.CreatedAt,
 	)
