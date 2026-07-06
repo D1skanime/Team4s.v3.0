@@ -110,6 +110,8 @@ export function ReleaseRowDetails({
             (release.episode_title || "").trim() || "Ohne Episodentitel";
           const visiblePeople = people.slice(0, 5);
           const remainingPeople = Math.max(0, people.length - visiblePeople.length);
+          const hasThemes =
+            release.has_theme_assets || Boolean(release.has_theme_segments);
 
           return (
             <article
@@ -138,10 +140,8 @@ export function ReleaseRowDetails({
                   <Badge variant={peopleCount > 0 ? "info" : "muted"}>
                     {peopleCount} Person{peopleCount === 1 ? "" : "en"}
                   </Badge>
-                  <Badge variant={release.has_theme_assets ? "success" : "muted"}>
-                    {release.has_theme_assets
-                      ? `${Math.max(cards.length, 1)} Theme${Math.max(cards.length, 1) === 1 ? "" : "s"}`
-                      : "Keine Themes"}
+                  <Badge variant={hasThemes ? "success" : "muted"}>
+                    {hasThemes ? "Themes" : "Keine Themes"}
                   </Badge>
                 </span>
                 <span className={styles.fansubEditReleaseCardDisclosure} aria-hidden="true">

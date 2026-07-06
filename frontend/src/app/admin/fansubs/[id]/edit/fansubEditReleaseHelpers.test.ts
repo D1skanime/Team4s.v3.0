@@ -50,6 +50,7 @@ function release(overrides: Partial<AdminFansubRelease> = {}): AdminFansubReleas
     source: null,
     version_count: 1,
     has_theme_assets: false,
+    has_theme_segments: false,
     duration_seconds: 1200,
     created_at: '2026-06-29T00:00:00Z',
     ...overrides,

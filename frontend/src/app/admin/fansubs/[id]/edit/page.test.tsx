@@ -370,6 +370,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
           source: null,
           version_count: 1,
           has_theme_assets: false,
+          has_theme_segments: false,
           duration_seconds: null,
           created_at: '2026-05-25T00:00:00Z',
         },
@@ -395,6 +396,51 @@ describe('AdminFansubEditPage token-free wiring', () => {
     ).toBeNull()
   })
 
+  it('shows the green Themes badge when a release has theme segments but no uploaded theme asset', async () => {
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [
+        {
+          id: 13,
+          title: 'Naruto',
+          type: 'tv',
+          header_image: null,
+          cover_image: null,
+        },
+      ],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(
+      releaseListResponse([
+        {
+          release_id: 62,
+          release_version_id: 41,
+          anime_id: 13,
+          anime_title: 'Naruto',
+          fansub_group_id: 88,
+          fansub_name: 'SubGroup',
+          episode_id: 249,
+          episode_number: '1',
+          episode_title: 'Wer ist Naruto?',
+          source: null,
+          version_count: 1,
+          has_theme_assets: false,
+          has_theme_segments: true,
+          duration_seconds: null,
+          created_at: '2026-05-25T00:00:00Z',
+        },
+      ]),
+    )
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    await screen.findByRole('heading', { name: 'Naruto' })
+    fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
+
+    expect(await screen.findByText('Themes')).not.toBeNull()
+    expect(screen.queryByText('Keine Themes')).toBeNull()
+  })
+
   it('opens the release drawer directly on Media for non-platform users with media rights', async () => {
     const release = {
       release_id: 62,
@@ -409,6 +455,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       source: null,
       version_count: 1,
       has_theme_assets: false,
+      has_theme_segments: false,
       duration_seconds: null,
       created_at: '2026-05-25T00:00:00Z',
     }
@@ -632,6 +679,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       source: null,
       version_count: 1,
       has_theme_assets: false,
+      has_theme_segments: false,
       duration_seconds: null,
       created_at: '2026-05-25T00:00:00Z',
     }
@@ -748,6 +796,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       source: null,
       version_count: 1,
       has_theme_assets: false,
+      has_theme_segments: false,
       duration_seconds: null,
       created_at: '2026-05-25T00:00:00Z',
     }
@@ -864,6 +913,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       source: null,
       version_count: 1,
       has_theme_assets: true,
+      has_theme_segments: false,
       duration_seconds: 240,
       created_at: '2026-05-25T00:00:00Z',
     }
@@ -959,6 +1009,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       source: null,
       version_count: 1,
       has_theme_assets: true,
+      has_theme_segments: false,
       duration_seconds: 240,
       created_at: '2026-05-25T00:00:00Z',
     }
@@ -1013,6 +1064,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       source: null,
       version_count: 1,
       has_theme_assets: false,
+      has_theme_segments: false,
       duration_seconds: null,
       created_at: '2026-05-25T00:00:00Z',
     }
