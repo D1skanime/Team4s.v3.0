@@ -143,10 +143,20 @@ export function mapReleaseSegmentCards(
   const assetByThemeID = new Map(
     themeAssets.map((asset) => [asset.theme_id, asset]),
   );
+  const episodeAnchor = releaseEpisodeAnchor(release);
 
   return themes.map((theme) => {
     const asset = assetByThemeID.get(theme.id);
-    const segments = segmentsByThemeID.get(theme.id) ?? [];
+    const allSegments = segmentsByThemeID.get(theme.id) ?? [];
+    // Nur Segmente zeigen, deren Episodenbereich diese Release-Folge abdeckt.
+    // Bei nicht-numerischer Episodennummer (episodeAnchor null) laesst sich die
+    // Folge nicht bestimmen -> alle Segmente behalten, statt sie faelschlich zu verbergen.
+    const segments =
+      episodeAnchor == null
+        ? allSegments
+        : allSegments.filter((segment) =>
+            segmentCoversEpisode(segment, episodeAnchor),
+          );
     if (asset) {
       return {
         theme_id: theme.id,

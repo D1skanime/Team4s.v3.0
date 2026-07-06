@@ -135,4 +135,32 @@ describe('fansubEditReleaseHelpers', () => {
       source_label: 'Zentraler Theme-Upload am Segmentstart erforderlich',
     })
   })
+
+  it('blendet Segmente aus, deren Episodenbereich diese Release-Folge nicht abdeckt', () => {
+    // Segment gilt nur fuer Folge 1, Release ist Folge 2 -> darf kein Segment zeigen.
+    const cards = mapReleaseSegmentCards(
+      release({ episode_number: '2' }),
+      [theme()],
+      [],
+      new Map([[7, [segment({ start_episode: 1, end_episode: 1 })]]]),
+    )
+
+    expect(cards[0]).toMatchObject({
+      status: 'missing',
+      source_label: 'Noch kein Segment für diese Theme-Definition',
+    })
+    expect(cards[0].segments).toHaveLength(0)
+  })
+
+  it('zeigt Segmente ohne Episodenbereich (null) fuer jede Folge', () => {
+    const cards = mapReleaseSegmentCards(
+      release({ episode_number: '2' }),
+      [theme()],
+      [],
+      new Map([[7, [segment({ start_episode: null, end_episode: null, source_type: 'none' })]]]),
+    )
+
+    expect(cards[0].segments).toHaveLength(1)
+    expect(cards[0].status).toBe('global')
+  })
 })
