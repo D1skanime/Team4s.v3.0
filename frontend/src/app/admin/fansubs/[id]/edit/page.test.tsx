@@ -945,6 +945,60 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(screen.queryByRole('dialog', { name: 'Theme-Video ansehen' })).toBeNull()
   })
 
+  it('passes release_version_id as releaseVariantId when loading theme segments in the fansub cockpit', async () => {
+    const release = {
+      release_id: 62,
+      release_version_id: 6201,
+      anime_id: 13,
+      anime_title: 'Naruto',
+      fansub_group_id: 88,
+      fansub_name: 'SubGroup',
+      episode_id: 249,
+      episode_number: '1',
+      episode_title: 'Wer ist Naruto?',
+      source: null,
+      version_count: 1,
+      has_theme_assets: true,
+      duration_seconds: 240,
+      created_at: '2026-05-25T00:00:00Z',
+    }
+
+    apiMocks.getAdminFansubAnime.mockResolvedValue({
+      data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
+    })
+    apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([release]))
+    apiMocks.getAdminAnimeThemes.mockResolvedValue({
+      data: [
+        {
+          id: 7,
+          anime_id: 13,
+          theme_type_id: 3,
+          theme_type_name: 'Insert',
+          title: 'Naruto Inserttheme',
+          created_at: '2026-05-25T00:00:00Z',
+        },
+      ],
+    })
+    apiMocks.getAdminAnimeThemeSegments.mockResolvedValue({ data: [] })
+    apiMocks.getAdminReleaseThemeAssets.mockResolvedValue({ data: [] })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.click(screen.getByRole('button', { name: 'Anime & Veröffentlichungen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Naruto ausklappen' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
+
+    await waitFor(() =>
+      expect(apiMocks.getAdminAnimeThemeSegments).toHaveBeenCalledWith(
+        release.anime_id,
+        7,
+        undefined,
+        release.release_version_id,
+      ),
+    )
+  })
+
   it('ignores stale release drawer detail responses after another release is opened', async () => {
     const firstRelease = {
       release_id: 62,
