@@ -5769,10 +5769,15 @@ export async function getAdminAnimeThemeSegments(
   animeID: number,
   themeID: number,
   authToken?: string,
+  releaseVariantId?: number | null,
 ): Promise<AdminAnimeThemeSegmentsResponse> {
   const API_BASE_URL = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (releaseVariantId != null)
+    params.set("release_variant_id", String(releaseVariantId));
+  const qs = params.toString() ? `?${params.toString()}` : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments`,
+    `${API_BASE_URL}/api/v1/admin/anime/${animeID}/segments${qs}`,
     {
       headers: withAuthHeader({}, authToken),
       cache: "no-store",

@@ -148,6 +148,8 @@ export function useFansubReleaseData({
             const response = await getAdminAnimeThemeSegments(
               release.anime_id,
               theme.id,
+              undefined,
+              release.release_version_id,
             );
             return [theme.id, response.data] as const;
           }),
