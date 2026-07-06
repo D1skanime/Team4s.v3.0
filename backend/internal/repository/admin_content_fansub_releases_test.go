@@ -81,11 +81,32 @@ func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *test
 		"episode_id",
 		"version_count",
 		"has_theme_assets",
+		"has_theme_segments",
 		"duration_seconds",
 	}
 	for _, field := range requiredFields {
 		if !strings.Contains(normalized, field) {
 			t.Fatalf("expected DTO json field %q to exist in admin_release_theme_assets.go", field)
+		}
+	}
+}
+
+// TestAdminContentFansubReleases_SelectsHasThemeSegments verifies that the
+// release queries compute has_theme_segments via a correlated EXISTS subquery
+// scoped to the episode's covered range, consistent with the expanded
+// segment list rendering.
+func TestAdminContentFansubReleases_SelectsHasThemeSegments(t *testing.T) {
+	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
+	normalized := strings.ToLower(content)
+
+	requiredPatterns := []string{
+		"as has_theme_segments",
+		"theme_segments ts",
+		"episode_number::int",
+	}
+	for _, pattern := range requiredPatterns {
+		if !strings.Contains(normalized, pattern) {
+			t.Fatalf("expected repository query to include %q", pattern)
 		}
 	}
 }
