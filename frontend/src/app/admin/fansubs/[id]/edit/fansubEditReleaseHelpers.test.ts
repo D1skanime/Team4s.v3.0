@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import type { AdminAnimeTheme, AdminAnimeThemeSegment } from '@/types/admin'
+import type {
+  AdminAnimeTheme,
+  AdminAnimeThemeSegment,
+  AdminReleaseThemeAsset,
+} from '@/types/admin'
 import type { AdminFansubRelease, AnimeContribution } from '@/types/fansub'
 
 import {
@@ -136,8 +140,8 @@ describe('fansubEditReleaseHelpers', () => {
     })
   })
 
-  it('blendet Segmente aus, deren Episodenbereich diese Release-Folge nicht abdeckt', () => {
-    // Segment gilt nur fuer Folge 1, Release ist Folge 2 -> darf kein Segment zeigen.
+  it('blendet Theme-Karten aus, deren Segment diese Release-Folge nicht abdeckt', () => {
+    // Segment gilt nur fuer Folge 1, Release ist Folge 2 -> Karte darf nicht erscheinen.
     const cards = mapReleaseSegmentCards(
       release({ episode_number: '2' }),
       [theme()],
@@ -145,11 +149,42 @@ describe('fansubEditReleaseHelpers', () => {
       new Map([[7, [segment({ start_episode: 1, end_episode: 1 })]]]),
     )
 
-    expect(cards[0]).toMatchObject({
-      status: 'missing',
-      source_label: 'Noch kein Segment für diese Theme-Definition',
-    })
-    expect(cards[0].segments).toHaveLength(0)
+    expect(cards).toHaveLength(0)
+  })
+
+  it('blendet Themes ohne jegliches Segment aus (kein Upload, kein Segment)', () => {
+    const cards = mapReleaseSegmentCards(
+      release({ episode_number: '2' }),
+      [theme()],
+      [],
+      new Map(),
+    )
+
+    expect(cards).toHaveLength(0)
+  })
+
+  it('behaelt eine Theme-Karte mit Release-Upload auch ohne abdeckendes Segment', () => {
+    const cards = mapReleaseSegmentCards(
+      release({ episode_number: '2' }),
+      [theme()],
+      [
+        {
+          release_id: 2,
+          theme_id: 7,
+          theme_type_name: 'OP',
+          theme_title: 'Naruto OP 1',
+          media_id: 900,
+          public_url: '/media/900',
+          mime_type: 'video/mp4',
+          size_bytes: 1000,
+          created_at: '2026-06-29T00:00:00Z',
+        } satisfies AdminReleaseThemeAsset,
+      ],
+      new Map([[7, [segment({ start_episode: 1, end_episode: 1 })]]]),
+    )
+
+    expect(cards).toHaveLength(1)
+    expect(cards[0]).toMatchObject({ status: 'release' })
   })
 
   it('zeigt Segmente ohne Episodenbereich (null) fuer jede Folge', () => {

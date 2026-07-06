@@ -145,7 +145,7 @@ export function mapReleaseSegmentCards(
   );
   const episodeAnchor = releaseEpisodeAnchor(release);
 
-  return themes.map((theme) => {
+  const cards = themes.map((theme): ReleaseSegmentCard | null => {
     const asset = assetByThemeID.get(theme.id);
     const allSegments = segmentsByThemeID.get(theme.id) ?? [];
     // Nur Segmente zeigen, deren Episodenbereich diese Release-Folge abdeckt.
@@ -200,15 +200,16 @@ export function mapReleaseSegmentCards(
       };
     }
 
-    return {
-      theme_id: theme.id,
-      theme_type_name: theme.theme_type_name,
-      theme_title: theme.title,
-      status: "missing",
-      segments,
-      source_label: "Noch kein Segment für diese Theme-Definition",
-    };
+    // Theme ohne abdeckendes Segment und ohne Release-Upload ist fuer diese
+    // Folge nicht relevant -> Karte ganz ausblenden. Beispiel: ein Mitte-Kara,
+    // das nur bei Folge 5 ein Segment hat, darf bei anderen Folgen nicht als
+    // "kein Segment" erscheinen.
+    return null;
   });
+
+  return cards.filter(
+    (card): card is ReleaseSegmentCard => card !== null,
+  );
 }
 
 export function mergeReleaseThemeAssetCard(
