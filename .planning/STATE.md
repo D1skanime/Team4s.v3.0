@@ -476,6 +476,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260706-x0v | Fix 400 release_variant_id-Fehler beim Laden der Theme-Segmente im Fansub-Cockpit fuer Nicht-Plattform-Admins | 2026-07-06 | 5bd95f2e | [260706-x0v-fix-400-release-variant-id-fehler-beim-l](./quick/260706-x0v-fix-400-release-variant-id-fehler-beim-l/) |
 | 260703-crc | Release-Version CRC32-Feld und pro-Folge fansub.de-Matching-Regel fuer Vipers-Creed-Retest | 2026-07-03 | this commit | [260703-add-release-version-crc-field](./quick/260703-add-release-version-crc-field/) |
 | 260703-br4 | Fresh UI-first Viper's Creed E2E retest after auth/logout and DatePicker fixes | 2026-07-03 | this commit | [260703-br4-fresh-ui-first-viper-s-creed-e2e-retest-](./quick/260703-br4-fresh-ui-first-viper-s-creed-e2e-retest-/) |
 | 260703-bmp | Fix DatePicker react-hooks set-state-in-effect lint blocker | 2026-07-03 | this commit | [260703-bmp-fix-datepicker-react-hooks-set-state-in-](./quick/260703-bmp-fix-datepicker-react-hooks-set-state-in-/) |
@@ -531,5 +532,5 @@ Recent durable decisions:
 
 Last session: 2026-07-01T14:25:00.000Z
 Stopped at: Completed 97-05-PLAN.md
-Last activity: 2026-07-03 - Completed quick task 260703-crb: Fix admin anime Jellyfin link status and episode stat source-of-truth
+Last activity: 2026-07-06 - Completed quick task 260706-x0v: Fix 400 release_variant_id-Fehler beim Laden der Theme-Segmente im Fansub-Cockpit
 Resume file: None
