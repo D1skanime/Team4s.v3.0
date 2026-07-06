@@ -476,6 +476,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260707-16l | Fansub-Cockpit Header-Badge zeigt gruen "Themes" wenn die Folge Theme-Segmente ODER Uploads hat (neues Backend-Feld has_theme_segments) | 2026-07-07 | b3d2e3dd | [260707-16l-fansub-cockpit-header-badge-zeigt-gruen-](./quick/260707-16l-fansub-cockpit-header-badge-zeigt-gruen-/) |
 | fast-260707b | Theme-Karten ohne abdeckendes Segment im Fansub-Cockpit ganz ausblenden (episoden-spezifische Segmente wie Mitte-Kara nur bei ihrer Folge) | 2026-07-07 | 84c38f69 | — (fast) |
 | fast-260707 | Theme-Segmente im Fansub-Cockpit nach Episodennummer des Releases filtern (Segment 1-1 erschien faelschlich bei Folge 2) | 2026-07-07 | 974ed8ec | — (fast) |
 | 260706-x0v | Fix 400 release_variant_id-Fehler beim Laden der Theme-Segmente im Fansub-Cockpit fuer Nicht-Plattform-Admins | 2026-07-06 | 5bd95f2e | [260706-x0v-fix-400-release-variant-id-fehler-beim-l](./quick/260706-x0v-fix-400-release-variant-id-fehler-beim-l/) |
