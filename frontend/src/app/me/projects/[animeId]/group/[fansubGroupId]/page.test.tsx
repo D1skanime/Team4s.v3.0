@@ -149,6 +149,7 @@ describe('MyProjectDetailPage', () => {
     const releases = Array.from({ length: 25 }, (_, index) => makeRelease({
       release_version_id: 100 + index,
       episode_number: String(index + 1).padStart(2, '0'),
+      has_own_notes: true,
     }))
     getMyProjectDetailMock.mockResolvedValue({ data: makeProject(releases) })
 

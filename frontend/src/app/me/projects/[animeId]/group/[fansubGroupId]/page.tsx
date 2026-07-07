@@ -55,8 +55,10 @@ function filterReleases(
   mode: ReleaseFilterMode,
   episodeQuery: string,
 ): MeProjectReleaseVersion[] {
+  // has_own_contribution ist projektweit fast immer true (Zuordnung zum Projekt),
+  // "Nur meine Beiträge" soll aber konkrete eigene Notiz-/Medienarbeit meinen.
   const base = mode === 'mine'
-    ? releases.filter((release) => release.has_own_contribution)
+    ? releases.filter((release) => release.has_own_notes || release.has_own_media)
     : releases
 
   const query = episodeQuery.trim().toLowerCase()
