@@ -165,3 +165,86 @@ func TestMemberProfileRepositoryPublicURLForPathNormalizesStoragePaths(t *testin
 		repo.publicURLForPath("http://cdn.local/media/thumb.jpg"),
 	)
 }
+
+func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
+	repoSrc, err := os.ReadFile("member_profile_repository.go")
+	require.NoError(t, err)
+	modelSrc, err := os.ReadFile("../models/member_profile.go")
+	require.NoError(t, err)
+	repo := string(repoSrc)
+	models := string(modelSrc)
+
+	assert.True(t, strings.Contains(models, "CurrentProjects"),
+		"public member profile DTO must expose current_projects derived from confirmed public anime_contributions")
+	assert.True(t, strings.Contains(models, "LatestContributions"),
+		"public member profile DTO must expose a unified latest_contributions feed instead of separate old recent arrays")
+	assert.True(t, strings.Contains(models, "PreviousContributions"),
+		"public member profile DTO must expose previous contribution history behind the collapsed UI")
+	assert.True(t, strings.Contains(models, "PreviousContributionsCount"),
+		"previous contribution count must exclude no-period rows so the UI never reintroduces 'ohne Jahr'")
+
+	assert.True(t, strings.Contains(repo, "loadCurrentProjects"),
+		"GetPublicMemberProfile must load current project cards from the member contribution source")
+	assert.True(t, strings.Contains(repo, "loadPreviousContributions"),
+		"GetPublicMemberProfile must load collapsed previous-history rows from real contribution periods")
+	assert.True(t, strings.Contains(repo, "loadLatestContributions"),
+		"GetPublicMemberProfile must load one normalized latest feed for public notes and media")
+
+	assert.True(t, strings.Contains(repo, "ac.status = 'confirmed'"),
+		"current projects must only use confirmed anime_contributions")
+	assert.True(t, strings.Contains(repo, "ac.is_public_on_member_profile = true"),
+		"current and previous project rows must be explicitly public on the member profile")
+	assert.True(t, strings.Contains(repo, "ac.ended_year IS NULL"),
+		"current project classification must be evidence-based and treat open-ended contributions as current")
+	assert.True(t, strings.Contains(repo, "ac.ended_year IS NOT NULL"),
+		"previous-history rows must require a real ended period and exclude no-period rows")
+	assert.True(t, strings.Contains(repo, "LEFT JOIN hist_fansub_group_members"),
+		"member contribution projections must retain the existing historical-membership compatibility seam")
+}
+
+func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
+	repoSrc, err := os.ReadFile("member_profile_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.True(t, strings.Contains(content, "FROM release_version_notes"),
+		"latest text items must come from release_version_notes")
+	assert.True(t, strings.Contains(content, "release_version_notes") && strings.Contains(content, "visibility = 'public'"),
+		"latest text items must require public note visibility")
+	assert.True(t, strings.Contains(content, "release_version_notes") && strings.Contains(content, "status = 'published'"),
+		"latest text items must require published note status")
+	assert.True(t, strings.Contains(content, "NULLIF(BTRIM(body_text), '')") ||
+		strings.Contains(content, "NULLIF(BTRIM(body_html), '')") ||
+		strings.Contains(content, "NULLIF(BTRIM(body_markdown), '')"),
+		"latest text items must exclude notes without usable text or HTML")
+
+	assert.True(t, strings.Contains(content, "FROM release_version_media"),
+		"latest media items must come from release_version_media")
+	assert.True(t, strings.Contains(content, "JOIN media_assets"),
+		"latest media items must inspect media_assets for visibility/review/asset status")
+	assert.True(t, strings.Contains(content, "JOIN media_files") || strings.Contains(content, "LEFT JOIN media_files"),
+		"latest media items must require a ready media_files variant")
+	assert.True(t, strings.Contains(content, "JOIN visibilities") && strings.Contains(content, "name = 'public'"),
+		"latest media items must require public media visibility")
+	assert.True(t, strings.Contains(content, "JOIN review_statuses") && strings.Contains(content, "code = 'approved'"),
+		"latest media items must require approved media review status")
+	assert.True(t, strings.Contains(content, "ma.status = 'ready'"),
+		"latest media items must exclude processing or failed media assets")
+	assert.True(t, strings.Contains(content, "mf.status = 'ready'") || strings.Contains(content, "mf_thumb.status = 'ready'"),
+		"latest media items must exclude media without a ready file variant")
+	assert.True(t, strings.Contains(content, "rvm.release_version_id IS NOT NULL") ||
+		strings.Contains(content, "JOIN release_versions rv ON rv.id = rvm.release_version_id"),
+		"latest media items must be addressed by a real release_version_id")
+	assert.False(t, strings.Contains(content, "FROM release_media"),
+		"latest media feed must not substitute release_media for release-version-scoped process media")
+	assert.False(t, strings.Contains(content, "episode_media"),
+		"latest media feed must not attach release media directly to neutral episodes")
+	assert.True(t, strings.Contains(content, "member_claims") && strings.Contains(content, "claim_status = 'verified'"),
+		"latest media owner mapping must include only uploader rows linked to the verified member account")
+	assert.True(t, strings.Contains(content, "uploaded_by_user_id"),
+		"latest media feed must use the release_version_media uploader column for owner filtering")
+	assert.True(t, strings.Contains(content, "UNION ALL"),
+		"latest contribution feed must combine public notes and approved media before applying LIMIT 3")
+	assert.True(t, strings.Contains(content, "ORDER BY") && strings.Contains(content, "LIMIT 3"),
+		"latest contribution feed must sort by timestamp and return exactly the newest three rows")
+}
