@@ -130,6 +130,21 @@ describe('MyProjectDetailPage', () => {
     expect(screen.queryByRole('link', { name: /Notizen & Medien/i })).toBeNull()
   })
 
+  it('shows only releases with own notes or media in mine mode, even when has_own_contribution is true project-wide', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: true, has_own_media: false }),
+        makeRelease({ release_version_id: 44, episode_number: '04', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.getByText('Folge 01 · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 04 · v1')).toBeNull()
+  })
+
   it('loads all release versions in 20 item steps', async () => {
     const releases = Array.from({ length: 25 }, (_, index) => makeRelease({
       release_version_id: 100 + index,
