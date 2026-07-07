@@ -52,18 +52,20 @@ type MemberProfileRecentMedia struct {
 }
 
 type MemberProfileRecentContribution struct {
-	ID                  int64    `json:"id"`
-	AnimeTitle          string   `json:"anime_title"`
-	AnimeID             int64    `json:"anime_id"`
-	FansubGroupID       int64    `json:"fansub_group_id"`
-	FansubGroupName     string   `json:"fansub_group_name"`
-	FansubGroupNames    []string `json:"fansub_group_names"`
-	RoleName            string   `json:"role_name"`
-	RoleNames           []string `json:"role_names"`
-	RoleLabel           string   `json:"role_label"`
-	RoleLabels          []string `json:"role_labels"`
-	ReleaseVersionCount int32    `json:"release_version_count"`
-	EpisodeCount        int32    `json:"episode_count"`
+	ID                        int64    `json:"id"`
+	AnimeTitle                string   `json:"anime_title"`
+	AnimeID                   int64    `json:"anime_id"`
+	FansubGroupID             int64    `json:"fansub_group_id"`
+	FansubGroupName           string   `json:"fansub_group_name"`
+	FansubGroupNames          []string `json:"fansub_group_names"`
+	RoleName                  string   `json:"role_name"`
+	RoleNames                 []string `json:"role_names"`
+	RoleLabel                 string   `json:"role_label"`
+	RoleLabels                []string `json:"role_labels"`
+	ReleaseVersionCount       int32    `json:"release_version_count"`
+	EpisodeCount              int32    `json:"episode_count"`
+	WorkedReleaseVersionCount int32    `json:"worked_release_version_count"`
+	TotalReleaseVersionCount  int32    `json:"total_release_version_count"`
 }
 
 type MemberProfile struct {

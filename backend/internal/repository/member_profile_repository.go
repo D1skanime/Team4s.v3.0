@@ -1186,7 +1186,36 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 			role_label,
 			role_labels,
 			release_version_count,
-			episode_count
+			episode_count,
+			(SELECT COUNT(DISTINCT rv.id) FROM release_versions rv
+			 JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			 JOIN fansub_releases fr ON fr.id = rv.release_id
+			 JOIN episodes ep ON ep.id = fr.episode_id
+			 WHERE ep.anime_id = project_rows.anime_id
+			   AND rvg.fansub_group_id = project_rows.fansub_group_id)::int AS total_release_version_count,
+			(SELECT COUNT(DISTINCT rv.id) FROM release_versions rv
+			 JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			 JOIN fansub_releases fr ON fr.id = rv.release_id
+			 JOIN episodes ep ON ep.id = fr.episode_id
+			 WHERE ep.anime_id = project_rows.anime_id
+			   AND rvg.fansub_group_id = project_rows.fansub_group_id
+			   AND (
+			     EXISTS (
+			       SELECT 1 FROM release_version_notes n
+			       WHERE n.release_version_id = rv.id
+			         AND n.member_id = $1
+			         AND n.deleted_at IS NULL
+			     )
+			     OR EXISTS (
+			       SELECT 1 FROM release_version_media m
+			       WHERE m.release_version_id = rv.id
+			         AND m.deleted_at IS NULL
+			         AND m.uploaded_by_user_id IN (
+			           SELECT mc.app_user_id FROM member_claims mc
+			           WHERE mc.member_id = $1 AND mc.claim_status = 'verified'
+			         )
+			     )
+			   ))::int AS worked_release_version_count
 		FROM project_rows
 		ORDER BY created_at DESC
 		LIMIT 3
@@ -1212,6 +1241,8 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 			&item.RoleLabels,
 			&item.ReleaseVersionCount,
 			&item.EpisodeCount,
+			&item.TotalReleaseVersionCount,
+			&item.WorkedReleaseVersionCount,
 		); err != nil {
 			return nil, fmt.Errorf("scan recent contribution row: %w", err)
 		}
