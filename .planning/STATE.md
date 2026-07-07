@@ -476,6 +476,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260707-f3t | Profil "Letzte Projekte" Fortschrittsbalken als echte Metrik: Anteil Release-Versionen mit eigener Notiz/Medien (worked/total), Gamification | 2026-07-07 | c57ca4dd | [260707-f3t-profil-letzte-projekte-fortschrittsbalke](./quick/260707-f3t-profil-letzte-projekte-fortschrittsbalke/) |
 | 260707-ehc | Profil "Letzte Projekte" auch aus anime_contributions (Besetzung) speisen, nicht nur release_member_roles; publicOnly-Sichtbarkeitsfilter | 2026-07-07 | 055f9a06 | [260707-ehc-profil-letzte-projekte-auch-aus-anime-co](./quick/260707-ehc-profil-letzte-projekte-auch-aus-anime-co/) |
 | 260707-16l | Fansub-Cockpit Header-Badge zeigt gruen "Themes" wenn die Folge Theme-Segmente ODER Uploads hat (neues Backend-Feld has_theme_segments) | 2026-07-07 | b3d2e3dd | [260707-16l-fansub-cockpit-header-badge-zeigt-gruen-](./quick/260707-16l-fansub-cockpit-header-badge-zeigt-gruen-/) |
 | fast-260707b | Theme-Karten ohne abdeckendes Segment im Fansub-Cockpit ganz ausblenden (episoden-spezifische Segmente wie Mitte-Kara nur bei ihrer Folge) | 2026-07-07 | 84c38f69 | — (fast) |
