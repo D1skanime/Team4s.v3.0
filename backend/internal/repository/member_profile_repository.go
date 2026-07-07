@@ -461,22 +461,26 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		appUserID = *row.appUserID
 	}
 	profile := &models.PublicMemberProfile{
-		MemberID:            row.memberID,
-		AppUserID:           appUserID,
-		FansubName:          strings.TrimSpace(row.fansubName),
-		Bio:                 normalizeLoadedOptionalString(row.bio),
-		MemberStoryHTML:     normalizeLoadedOptionalString(row.memberStoryHTML),
-		ActiveFromDate:      profileActivityDateOrYear(row.activeFromDate, nil),
-		ActiveUntilDate:     profileActivityDateOrYear(row.activeUntilDate, nil),
-		IsCurrentlyActive:   row.isCurrentlyActive,
-		Noindex:             row.noindex,
-		IsVerified:          row.isVerified,
-		ProfileStatus:       strings.TrimSpace(valueOrDefault(&row.profileStatus, "active")),
-		ProfileVisibility:   strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityMembersOnly)),
-		Memberships:         []models.MemberProfileMembership{},
-		PublicBadges:        []models.PublicMemberBadge{},
-		RecentMedia:         []models.MemberProfileRecentMedia{},
-		RecentContributions: []models.MemberProfileRecentContribution{},
+		MemberID:                   row.memberID,
+		AppUserID:                  appUserID,
+		FansubName:                 strings.TrimSpace(row.fansubName),
+		Bio:                        normalizeLoadedOptionalString(row.bio),
+		MemberStoryHTML:            normalizeLoadedOptionalString(row.memberStoryHTML),
+		ActiveFromDate:             profileActivityDateOrYear(row.activeFromDate, nil),
+		ActiveUntilDate:            profileActivityDateOrYear(row.activeUntilDate, nil),
+		IsCurrentlyActive:          row.isCurrentlyActive,
+		Noindex:                    row.noindex,
+		IsVerified:                 row.isVerified,
+		ProfileStatus:              strings.TrimSpace(valueOrDefault(&row.profileStatus, "active")),
+		ProfileVisibility:          strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityMembersOnly)),
+		Memberships:                []models.MemberProfileMembership{},
+		PublicBadges:               []models.PublicMemberBadge{},
+		RecentMedia:                []models.MemberProfileRecentMedia{},
+		RecentContributions:        []models.MemberProfileRecentContribution{},
+		CurrentProjects:            []models.PublicMemberCurrentProject{},
+		LatestContributions:        []models.PublicMemberLatestContribution{},
+		PreviousContributions:      []models.PublicMemberPreviousContribution{},
+		PreviousContributionsCount: 0,
 	}
 	if row.avatarPath != nil && strings.TrimSpace(*row.avatarPath) != "" {
 		profile.Avatar = &models.MemberProfileAvatar{
@@ -508,6 +512,19 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	profile.CurrentProjects, loadErr = r.loadCurrentProjects(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	profile.LatestContributions, loadErr = r.loadLatestContributions(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	profile.PreviousContributions, loadErr = r.loadPreviousContributions(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	profile.PreviousContributionsCount = len(profile.PreviousContributions)
 
 	return profile, nil
 }
@@ -1032,6 +1049,322 @@ func (r *MemberProfileRepository) loadHistoricalCredits(ctx context.Context, mem
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate historical credits for member %d: %w", memberID, err)
+	}
+	return items, nil
+}
+
+func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, memberID int64) ([]models.PublicMemberCurrentProject, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			a.id,
+			COALESCE(a.title_de, a.title_en, a.title, ''),
+			NULLIF(a.cover_image, ''),
+			fg.id,
+			COALESCE(fg.name, ''),
+			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS roles,
+			BOOL_OR(ac.release_version_id IS NULL) AS is_project_level,
+			'confirmed'::text AS contribution_status,
+			MIN(ac.started_year)::int,
+			MAX(ac.ended_year)::int
+		FROM anime_contributions ac
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		JOIN anime a ON a.id = ac.anime_id
+		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
+		WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+		  AND ac.status = 'confirmed'
+		  AND ac.is_public_on_member_profile = true
+		  AND ac.ended_year IS NULL
+		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, fg.id, fg.name
+		ORDER BY MAX(ac.updated_at) DESC, a.title ASC, fg.name ASC
+	`, memberID)
+	if err != nil {
+		return nil, fmt.Errorf("load current projects for member %d: %w", memberID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.PublicMemberCurrentProject, 0)
+	for rows.Next() {
+		var item models.PublicMemberCurrentProject
+		var coverPath *string
+		if err := rows.Scan(
+			&item.AnimeID,
+			&item.AnimeTitle,
+			&coverPath,
+			&item.FansubGroupID,
+			&item.FansubGroupName,
+			&item.Roles,
+			&item.IsProjectLevel,
+			&item.ContributionStatus,
+			&item.StartedYear,
+			&item.EndedYear,
+		); err != nil {
+			return nil, fmt.Errorf("scan current project row: %w", err)
+		}
+		if coverPath != nil {
+			if url := r.publicURLForPath(*coverPath); url != "" {
+				item.CoverURL = &url
+			}
+		}
+		releaseVersions, err := r.loadCurrentProjectReleaseVersions(ctx, memberID, item.AnimeID, item.FansubGroupID)
+		if err != nil {
+			return nil, err
+		}
+		item.ReleaseVersions = releaseVersions
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate current projects for member %d: %w", memberID, err)
+	}
+	return items, nil
+}
+
+func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
+	ctx context.Context,
+	memberID int64,
+	animeID int64,
+	fansubGroupID int64,
+) ([]models.PublicMemberProjectReleaseVersion, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			rv.id,
+			COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
+			COALESCE(NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS version,
+			NULLIF(rv.title, '') AS title,
+			COALESCE(ep.episode_number, '') AS episode_number,
+			ep.title AS episode_title,
+			COALESCE(own.roles, ARRAY[]::text[]) AS roles
+		FROM release_versions rv
+		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes ep ON ep.id = fr.episode_id
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS roles
+			FROM anime_contributions ac
+			LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+			LEFT JOIN role_definitions rd ON rd.code = acr.role_code
+			WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+			  AND ac.anime_id = $2
+			  AND ac.fansub_group_id = $3
+			  AND ac.status = 'confirmed'
+			  AND ac.is_public_on_member_profile = true
+			  AND ac.ended_year IS NULL
+			  AND (ac.release_version_id = rv.id OR ac.release_version_id IS NULL)
+		) own ON true
+		WHERE ep.anime_id = $2
+		  AND rvg.fansub_group_id = $3
+		  AND COALESCE(array_length(own.roles, 1), 0) > 0
+		ORDER BY COALESCE(ep.sort_index, 2147483647), ep.id, rv.version, rv.id
+	`, memberID, animeID, fansubGroupID)
+	if err != nil {
+		return nil, fmt.Errorf("load current project release versions anime=%d fansub=%d: %w", animeID, fansubGroupID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.PublicMemberProjectReleaseVersion, 0)
+	for rows.Next() {
+		var item models.PublicMemberProjectReleaseVersion
+		if err := rows.Scan(
+			&item.ReleaseVersionID,
+			&item.ReleaseVersionLabel,
+			&item.Version,
+			&item.Title,
+			&item.EpisodeNumber,
+			&item.EpisodeTitle,
+			&item.Roles,
+		); err != nil {
+			return nil, fmt.Errorf("scan current project release version row: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate current project release versions anime=%d fansub=%d: %w", animeID, fansubGroupID, err)
+	}
+	return items, nil
+}
+
+func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, memberID int64) ([]models.PublicMemberLatestContribution, error) {
+	rows, err := r.db.Query(ctx, `
+		WITH text_rows AS (
+			SELECT
+				'text'::text AS type,
+				release_version_notes.id AS id,
+				COALESCE(release_version_notes.updated_at, release_version_notes.created_at) AS occurred_at,
+				a.id AS anime_id,
+				COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
+				rv.id AS release_version_id,
+				COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
+				LEFT(COALESCE(NULLIF(BTRIM(body_text), ''), NULLIF(BTRIM(body_html), '')), 280) AS text_preview,
+				NULLIF(BTRIM(body_html), '') AS body_html,
+				NULL::text AS image_path,
+				NULL::text AS thumbnail_path,
+				NULL::text AS caption,
+				NULL::text AS category
+			FROM release_version_notes
+			JOIN release_versions rv ON rv.id = release_version_notes.release_version_id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes e ON e.id = fr.episode_id
+			JOIN anime a ON a.id = e.anime_id
+			WHERE release_version_notes.member_id = $1
+			  AND release_version_notes.visibility = 'public'
+			  AND release_version_notes.status = 'published'
+			  AND release_version_notes.deleted_at IS NULL
+			  AND (NULLIF(BTRIM(body_text), '') IS NOT NULL OR NULLIF(BTRIM(body_html), '') IS NOT NULL)
+		),
+		media_rows AS (
+			SELECT DISTINCT ON (rvm.id)
+				'media'::text AS type,
+				rvm.id,
+				rvm.created_at AS occurred_at,
+				a.id AS anime_id,
+				COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
+				rv.id AS release_version_id,
+				COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
+				NULL::text AS text_preview,
+				NULL::text AS body_html,
+				mf.path AS image_path,
+				COALESCE(mf_thumb.path, mf.path) AS thumbnail_path,
+				NULLIF(BTRIM(COALESCE(rvm.caption, ma.caption, '')), '') AS caption,
+				rvm.category::text AS category
+			FROM release_version_media rvm
+			JOIN media_assets ma ON ma.id = rvm.media_asset_id
+			JOIN visibilities v ON v.id = ma.visibility_id AND v.name = 'public'
+			JOIN review_statuses rs ON rs.id = ma.review_status_id AND rs.code = 'approved'
+			JOIN media_files mf ON mf.media_id = rvm.media_asset_id AND mf.status = 'ready'
+			LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
+			JOIN release_versions rv ON rv.id = rvm.release_version_id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes e ON e.id = fr.episode_id
+			JOIN anime a ON a.id = e.anime_id
+			WHERE rvm.uploaded_by_user_id IN (
+				SELECT au.legacy_user_id
+				FROM member_claims mc
+				JOIN app_users au ON au.id = mc.app_user_id
+				WHERE mc.member_id = $1
+				  AND mc.claim_status = 'verified'
+				  AND au.legacy_user_id IS NOT NULL
+			)
+			  AND rvm.release_version_id IS NOT NULL
+			  AND rvm.deleted_at IS NULL
+			  AND ma.status = 'ready'
+			ORDER BY rvm.id, rvm.created_at DESC, CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+		),
+		latest AS (
+			SELECT * FROM text_rows
+			UNION ALL
+			SELECT * FROM media_rows
+		)
+		SELECT
+			type,
+			id,
+			occurred_at,
+			anime_id,
+			anime_title,
+			release_version_id,
+			release_version_label,
+			text_preview,
+			body_html,
+			image_path,
+			thumbnail_path,
+			caption,
+			category
+		FROM latest
+		ORDER BY occurred_at DESC, id DESC
+		LIMIT 3
+	`, memberID)
+	if err != nil {
+		return nil, fmt.Errorf("load latest contributions for member %d: %w", memberID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.PublicMemberLatestContribution, 0)
+	for rows.Next() {
+		var item models.PublicMemberLatestContribution
+		var imagePath *string
+		var thumbnailPath *string
+		if err := rows.Scan(
+			&item.Type,
+			&item.ID,
+			&item.OccurredAt,
+			&item.AnimeID,
+			&item.AnimeTitle,
+			&item.ReleaseVersionID,
+			&item.ReleaseVersionLabel,
+			&item.TextPreview,
+			&item.BodyHTML,
+			&imagePath,
+			&thumbnailPath,
+			&item.Caption,
+			&item.Category,
+		); err != nil {
+			return nil, fmt.Errorf("scan latest contribution row: %w", err)
+		}
+		if imagePath != nil {
+			if url := r.publicURLForPath(*imagePath); url != "" {
+				item.ImageURL = &url
+			}
+		}
+		if thumbnailPath != nil {
+			if url := r.publicURLForPath(*thumbnailPath); url != "" {
+				item.ThumbnailURL = &url
+			}
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate latest contributions for member %d: %w", memberID, err)
+	}
+	return items, nil
+}
+
+func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context, memberID int64) ([]models.PublicMemberPreviousContribution, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			a.id,
+			COALESCE(a.title_de, a.title_en, a.title, ''),
+			fg.id,
+			COALESCE(fg.name, ''),
+			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS roles,
+			MIN(ac.started_year)::int,
+			MAX(ac.ended_year)::int AS ended_year
+		FROM anime_contributions ac
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		JOIN anime a ON a.id = ac.anime_id
+		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
+		WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+		  AND ac.status = 'confirmed'
+		  AND ac.is_public_on_member_profile = true
+		  AND ac.ended_year IS NOT NULL
+		GROUP BY a.id, a.title_de, a.title_en, a.title, fg.id, fg.name
+		ORDER BY MAX(ac.ended_year) DESC, a.title ASC, fg.name ASC
+	`, memberID)
+	if err != nil {
+		return nil, fmt.Errorf("load previous contributions for member %d: %w", memberID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.PublicMemberPreviousContribution, 0)
+	for rows.Next() {
+		var item models.PublicMemberPreviousContribution
+		if err := rows.Scan(
+			&item.AnimeID,
+			&item.AnimeTitle,
+			&item.FansubGroupID,
+			&item.FansubGroupName,
+			&item.Roles,
+			&item.StartedYear,
+			&item.EndedYear,
+		); err != nil {
+			return nil, fmt.Errorf("scan previous contribution row: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate previous contributions for member %d: %w", memberID, err)
 	}
 	return items, nil
 }

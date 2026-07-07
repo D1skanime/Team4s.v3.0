@@ -140,6 +140,58 @@ export interface PublicMemberBadge {
   badge_category: string
 }
 
+export interface PublicMemberProjectReleaseVersion {
+  release_version_id: number
+  release_version_label: string
+  version: string
+  title?: string | null
+  episode_number: string
+  episode_title?: string | null
+  roles: string[]
+}
+
+export interface PublicMemberCurrentProject {
+  anime_id: number
+  anime_title: string
+  cover_url?: string | null
+  fansub_group_id: number
+  fansub_group_name: string
+  roles: string[]
+  release_versions: PublicMemberProjectReleaseVersion[]
+  is_project_level: boolean
+  contribution_status: 'confirmed'
+  started_year?: number | null
+  ended_year?: number | null
+}
+
+export type PublicMemberLatestContributionType = 'text' | 'media'
+
+export interface PublicMemberLatestContribution {
+  type: PublicMemberLatestContributionType
+  id: number
+  occurred_at: string
+  anime_id: number
+  anime_title: string
+  release_version_id: number
+  release_version_label: string
+  text_preview?: string | null
+  body_html?: string | null
+  image_url?: string | null
+  thumbnail_url?: string | null
+  caption?: string | null
+  category?: string | null
+}
+
+export interface PublicMemberPreviousContribution {
+  anime_id: number
+  anime_title: string
+  fansub_group_id: number
+  fansub_group_name: string
+  roles: string[]
+  started_year?: number | null
+  ended_year: number
+}
+
 export interface PublicMemberProfileData {
   member_id: number
   fansub_name: string
@@ -165,6 +217,10 @@ export interface PublicMemberProfileData {
   public_badges: PublicMemberBadge[]
   recent_media: MemberProfileRecentMedia[]
   recent_contributions: MemberProfileRecentContribution[]
+  current_projects?: PublicMemberCurrentProject[]
+  latest_contributions?: PublicMemberLatestContribution[]
+  previous_contributions?: PublicMemberPreviousContribution[]
+  previous_contributions_count?: number
 }
 
 export type PublicMemberProfileResponse =

@@ -9225,6 +9225,160 @@ components:
           type: integer
           format: int32
           description: Distinct episodes represented by this anime project card.
+    PublicMemberProjectReleaseVersion:
+      type: object
+      required:
+        - release_version_id
+        - release_version_label
+        - version
+        - episode_number
+        - roles
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        release_version_label:
+          type: string
+        version:
+          type: string
+        title:
+          type: string
+          nullable: true
+        episode_number:
+          type: string
+        episode_title:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+    PublicMemberCurrentProject:
+      type: object
+      required:
+        - anime_id
+        - anime_title
+        - fansub_group_id
+        - fansub_group_name
+        - roles
+        - release_versions
+        - is_project_level
+        - contribution_status
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        cover_url:
+          type: string
+          nullable: true
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        release_versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicMemberProjectReleaseVersion"
+        is_project_level:
+          type: boolean
+        contribution_status:
+          type: string
+          enum: [confirmed]
+        started_year:
+          type: integer
+          format: int32
+          nullable: true
+        ended_year:
+          type: integer
+          format: int32
+          nullable: true
+    PublicMemberLatestContribution:
+      type: object
+      required:
+        - type
+        - id
+        - occurred_at
+        - anime_id
+        - anime_title
+        - release_version_id
+        - release_version_label
+      properties:
+        type:
+          type: string
+          enum: [text, media]
+        id:
+          type: integer
+          format: int64
+        occurred_at:
+          type: string
+          format: date-time
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        release_version_id:
+          type: integer
+          format: int64
+          description: Concrete release version for either text or media contribution.
+        release_version_label:
+          type: string
+        text_preview:
+          type: string
+          nullable: true
+        body_html:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+        thumbnail_url:
+          type: string
+          nullable: true
+        caption:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+    PublicMemberPreviousContribution:
+      type: object
+      required:
+        - anime_id
+        - anime_title
+        - fansub_group_id
+        - fansub_group_name
+        - roles
+        - ended_year
+      properties:
+        anime_id:
+          type: integer
+          format: int64
+        anime_title:
+          type: string
+        fansub_group_id:
+          type: integer
+          format: int64
+        fansub_group_name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        started_year:
+          type: integer
+          format: int32
+          nullable: true
+        ended_year:
+          type: integer
+          format: int32
     MemberProfile:
       type: object
       required:
@@ -9641,6 +9795,10 @@ components:
         - public_badges
         - recent_media
         - recent_contributions
+        - current_projects
+        - latest_contributions
+        - previous_contributions
+        - previous_contributions_count
       properties:
         member_id:
           type: integer
@@ -9701,6 +9859,23 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MemberProfileRecentContribution"
+        current_projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicMemberCurrentProject"
+        latest_contributions:
+          type: array
+          description: Newest three public profile contribution items across published notes and approved release-version media.
+          items:
+            $ref: "#/components/schemas/PublicMemberLatestContribution"
+        previous_contributions:
+          type: array
+          description: Historical rows with real period evidence only; rows without ended_year are excluded.
+          items:
+            $ref: "#/components/schemas/PublicMemberPreviousContribution"
+        previous_contributions_count:
+          type: integer
+          format: int32
     FansubMediaUploadResponse:
       type: object
       required: [data]

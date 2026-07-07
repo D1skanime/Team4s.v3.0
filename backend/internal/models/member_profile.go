@@ -185,23 +185,77 @@ type PublicMemberBadge struct {
 	BadgeCategory string `json:"badge_category"`
 }
 
+type PublicMemberProjectReleaseVersion struct {
+	ReleaseVersionID    int64    `json:"release_version_id"`
+	ReleaseVersionLabel string   `json:"release_version_label"`
+	Version             string   `json:"version"`
+	Title               *string  `json:"title,omitempty"`
+	EpisodeNumber       string   `json:"episode_number"`
+	EpisodeTitle        *string  `json:"episode_title,omitempty"`
+	Roles               []string `json:"roles"`
+}
+
+type PublicMemberCurrentProject struct {
+	AnimeID            int64                               `json:"anime_id"`
+	AnimeTitle         string                              `json:"anime_title"`
+	CoverURL           *string                             `json:"cover_url,omitempty"`
+	FansubGroupID      int64                               `json:"fansub_group_id"`
+	FansubGroupName    string                              `json:"fansub_group_name"`
+	Roles              []string                            `json:"roles"`
+	ReleaseVersions    []PublicMemberProjectReleaseVersion `json:"release_versions"`
+	IsProjectLevel     bool                                `json:"is_project_level"`
+	ContributionStatus string                              `json:"contribution_status"`
+	StartedYear        *int32                              `json:"started_year,omitempty"`
+	EndedYear          *int32                              `json:"ended_year,omitempty"`
+}
+
+type PublicMemberLatestContribution struct {
+	Type                string    `json:"type"`
+	ID                  int64     `json:"id"`
+	OccurredAt          time.Time `json:"occurred_at"`
+	AnimeID             int64     `json:"anime_id"`
+	AnimeTitle          string    `json:"anime_title"`
+	ReleaseVersionID    int64     `json:"release_version_id"`
+	ReleaseVersionLabel string    `json:"release_version_label"`
+	TextPreview         *string   `json:"text_preview,omitempty"`
+	BodyHTML            *string   `json:"body_html,omitempty"`
+	ImageURL            *string   `json:"image_url,omitempty"`
+	ThumbnailURL        *string   `json:"thumbnail_url,omitempty"`
+	Caption             *string   `json:"caption,omitempty"`
+	Category            *string   `json:"category,omitempty"`
+}
+
+type PublicMemberPreviousContribution struct {
+	AnimeID         int64    `json:"anime_id"`
+	AnimeTitle      string   `json:"anime_title"`
+	FansubGroupID   int64    `json:"fansub_group_id"`
+	FansubGroupName string   `json:"fansub_group_name"`
+	Roles           []string `json:"roles"`
+	StartedYear     *int32   `json:"started_year,omitempty"`
+	EndedYear       int32    `json:"ended_year"`
+}
+
 type PublicMemberProfile struct {
-	MemberID            int64                             `json:"member_id"`
-	AppUserID           int64                             `json:"-"`
-	FansubName          string                            `json:"fansub_name"`
-	Bio                 *string                           `json:"bio,omitempty"`
-	MemberStoryHTML     *string                           `json:"member_story_html,omitempty"`
-	ActiveFromDate      *string                           `json:"active_from_date,omitempty"`
-	ActiveUntilDate     *string                           `json:"active_until_date,omitempty"`
-	IsCurrentlyActive   bool                              `json:"is_currently_active"`
-	Noindex             bool                              `json:"noindex"`
-	IsVerified          bool                              `json:"is_verified"`
-	ProfileStatus       string                            `json:"profile_status"`
-	ProfileVisibility   string                            `json:"profile_visibility"`
-	Avatar              *MemberProfileAvatar              `json:"avatar,omitempty"`
-	BackgroundImage     *MemberProfileBgImage             `json:"background_image,omitempty"`
-	Memberships         []MemberProfileMembership         `json:"memberships"`
-	PublicBadges        []PublicMemberBadge               `json:"public_badges"`
-	RecentMedia         []MemberProfileRecentMedia        `json:"recent_media"`
-	RecentContributions []MemberProfileRecentContribution `json:"recent_contributions"`
+	MemberID                   int64                              `json:"member_id"`
+	AppUserID                  int64                              `json:"-"`
+	FansubName                 string                             `json:"fansub_name"`
+	Bio                        *string                            `json:"bio,omitempty"`
+	MemberStoryHTML            *string                            `json:"member_story_html,omitempty"`
+	ActiveFromDate             *string                            `json:"active_from_date,omitempty"`
+	ActiveUntilDate            *string                            `json:"active_until_date,omitempty"`
+	IsCurrentlyActive          bool                               `json:"is_currently_active"`
+	Noindex                    bool                               `json:"noindex"`
+	IsVerified                 bool                               `json:"is_verified"`
+	ProfileStatus              string                             `json:"profile_status"`
+	ProfileVisibility          string                             `json:"profile_visibility"`
+	Avatar                     *MemberProfileAvatar               `json:"avatar,omitempty"`
+	BackgroundImage            *MemberProfileBgImage              `json:"background_image,omitempty"`
+	Memberships                []MemberProfileMembership          `json:"memberships"`
+	PublicBadges               []PublicMemberBadge                `json:"public_badges"`
+	RecentMedia                []MemberProfileRecentMedia         `json:"recent_media"`
+	RecentContributions        []MemberProfileRecentContribution  `json:"recent_contributions"`
+	CurrentProjects            []PublicMemberCurrentProject       `json:"current_projects"`
+	LatestContributions        []PublicMemberLatestContribution   `json:"latest_contributions"`
+	PreviousContributions      []PublicMemberPreviousContribution `json:"previous_contributions"`
+	PreviousContributionsCount int                                `json:"previous_contributions_count"`
 }
