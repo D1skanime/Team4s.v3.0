@@ -476,6 +476,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260707-hx0 | Meine-Projekt-Detailseite als To-Do-Workspace: nur zugeordnete Folgen, Filter Alle/Offen/Erledigt, Status-Badges, offene zuerst | 2026-07-07 | e02b5c8f | [260707-hx0-meine-projekt-detailseite-als-to-do-work](./quick/260707-hx0-meine-projekt-detailseite-als-to-do-work/) |
 | 260707-g70 | Meine-Projekte-Detailseite: Banner-Background via relativer Media-URL (Proxy, host-agnostisch), Cover entschlackt, Rollen-Card, Filter "Nur meine Beitraege" auf konkrete Arbeit (Notiz/Medien) | 2026-07-07 | bbbc6e83 | [260707-g70-meine-projekte-detailseite-banner-backgr](./quick/260707-g70-meine-projekte-detailseite-banner-backgr/) |
 | 260707-f3t | Profil "Letzte Projekte" Fortschrittsbalken als echte Metrik: Anteil Release-Versionen mit eigener Notiz/Medien (worked/total), Gamification | 2026-07-07 | c57ca4dd | [260707-f3t-profil-letzte-projekte-fortschrittsbalke](./quick/260707-f3t-profil-letzte-projekte-fortschrittsbalke/) |
 | 260707-ehc | Profil "Letzte Projekte" auch aus anime_contributions (Besetzung) speisen, nicht nur release_member_roles; publicOnly-Sichtbarkeitsfilter | 2026-07-07 | 055f9a06 | [260707-ehc-profil-letzte-projekte-auch-aus-anime-co](./quick/260707-ehc-profil-letzte-projekte-auch-aus-anime-co/) |
