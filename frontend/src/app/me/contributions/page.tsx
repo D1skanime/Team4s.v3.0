@@ -162,15 +162,15 @@ export default function MyContributionsPage() {
       <PageHeader title="Meine Projekte" />
 
       <div className={styles.contributionsStack}>
+        <MyContributionsSection
+          contributions={filteredContributions}
+          onVisibilityChange={handleVisibilityChange}
+        />
+
         <ContributionInbox
           contributions={contributions}
           onConfirm={(id) => void handleConfirm(id)}
           onRejectWithReason={setRejectModalOpenId}
-          onVisibilityChange={handleVisibilityChange}
-        />
-
-        <MyContributionsSection
-          contributions={filteredContributions}
           onVisibilityChange={handleVisibilityChange}
         />
 

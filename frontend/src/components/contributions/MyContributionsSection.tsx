@@ -43,7 +43,7 @@ export function MyContributionsSection({
   return (
     <Card variant="section" className={styles.confirmedRolesSection}>
       <SectionHeader
-        title={`Bestätigte Projektrollen (${grouped.length} Animes)`}
+        title={`Meine Projekte (${grouped.length})`}
       />
       <div className={styles.contributionList}>
         {grouped.length === 0 ? (
