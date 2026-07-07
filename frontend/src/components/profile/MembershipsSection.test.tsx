@@ -50,13 +50,14 @@ function makeMembership(overrides: Partial<MemberProfileMembership> = {}): Membe
 
 describe('MembershipsSection', () => {
   it('renders each group as a real card link with logo, role, and group action', () => {
-    const { container } = render(<MembershipsSection memberships={[makeMembership()]} />)
+    const { container } = render(<MembershipsSection memberships={[makeMembership({ joined_year: 2014 })]} />)
 
     expect(screen.getByRole('link', { name: /AnimeOwnage/i }).getAttribute('href')).toBe('/fansubs/animeownage')
     expect(container.querySelector('section[class*="cardInteractive"]')).not.toBeNull()
     expect(container.querySelector('img')?.getAttribute('src')).toBe('resolved:/api/v1/media/files/logo.png')
     expect(container.querySelector('img')?.getAttribute('alt')).toBe('AnimeOwnage Logo')
-    expect(screen.getAllByText('Fansub-Lead')).toHaveLength(1)
+    expect(screen.getAllByText('Gruppenleitung')).toHaveLength(1)
+    expect(screen.getAllByText('Mitglied seit 2014')).toHaveLength(1)
     expect(screen.getByText('Zur Gruppe')).not.toBeNull()
     expect(screen.queryByText('fansub_lead')).toBeNull()
     expect(container.querySelector('[class*="badge"]')).toBeNull()

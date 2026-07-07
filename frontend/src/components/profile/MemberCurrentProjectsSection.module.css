@@ -1,0 +1,143 @@
+.section {
+  display: grid;
+  gap: 14px;
+}
+
+.projectList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.projectCard {
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+.projectLink {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 148px;
+  padding: 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.projectLink:hover strong,
+.projectLink:focus-visible strong {
+  text-decoration: underline;
+}
+
+.cover {
+  width: 96px;
+  aspect-ratio: 2 / 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(47, 95, 227, 0.16), rgba(47, 155, 121, 0.12)),
+    rgba(248, 250, 252, 0.94);
+  color: var(--color-primary, #2f5fe3);
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.projectBody,
+.projectTitleRow {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.projectTitleRow strong {
+  color: var(--text-strong, #111827);
+  font-size: 1.06rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.projectGroup {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chipRow span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.versionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.versionChip {
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid rgba(100, 116, 139, 0.22);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.78);
+  color: var(--text-secondary, #64748b);
+  font-size: 0.84rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.projectAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary, #2f5fe3);
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .projectLink {
+    grid-template-columns: 76px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .cover {
+    width: 76px;
+  }
+
+  .projectAction {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 420px) {
+  .projectLink {
+    grid-template-columns: 1fr;
+  }
+
+  .projectAction {
+    grid-column: auto;
+  }
+}

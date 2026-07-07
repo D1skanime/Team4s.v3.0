@@ -7,8 +7,7 @@ import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile
 import { VerifiedBadge } from './VerifiedBadge'
 import { MemberStatusPill } from './MemberStatusPill'
 import { MemberProfileMemorialHero } from './MemberProfileMemorialHero'
-import { deriveKnownFor } from './deriveKnownFor'
-import type { RoleTimelineEntry } from './deriveKnownFor'
+import type { KnownForResult } from './deriveKnownFor'
 import styles from './profile.module.css'
 
 type MemberProfileHeroProps = {
@@ -19,8 +18,6 @@ type MemberProfileHeroProps = {
   isSaving?: boolean
   canSave?: boolean
   isVerified?: boolean
-  /** role_timeline für read-only „Bekannt für"-Ableitung (D-03). Optional — leerer Fallback. */
-  roleTimeline?: RoleTimelineEntry[]
 }
 
 function getAccountDisplayName(profile: MemberProfileData | PublicMemberProfileData): string {
@@ -57,6 +54,26 @@ function getProfileStatus(
   return null
 }
 
+function deriveKnownForFromPublicProfile(profile: MemberProfileData | PublicMemberProfileData): KnownForResult {
+  if (!('current_projects' in profile)) return { activeYears: '', topRoles: [], knownGroups: [] }
+
+  const roles = new Map<string, number>()
+  for (const project of profile.current_projects ?? []) {
+    for (const role of project.roles ?? []) {
+      const label = role.trim()
+      if (!label) continue
+      roles.set(label, (roles.get(label) ?? 0) + 1)
+    }
+  }
+
+  const topRoles = Array.from(roles.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'))
+    .slice(0, 3)
+    .map(([role]) => role)
+
+  return { activeYears: '', topRoles, knownGroups: [] }
+}
+
 export function MemberProfileHero({
   profile,
   avatarURL = '',
@@ -65,7 +82,6 @@ export function MemberProfileHero({
   isSaving = false,
   canSave = false,
   isVerified = false,
-  roleTimeline = [],
 }: MemberProfileHeroProps) {
   const accountDisplayName = getAccountDisplayName(profile)
   const displayName = profile.fansub_name || accountDisplayName || 'Mein Profil'
@@ -73,11 +89,8 @@ export function MemberProfileHero({
   const publicProfileHref = getPublicProfileHref(profile)
   const publicActivityLabel = isPublicView ? formatPublicActivity(profile) : ''
   const profileStatus = getProfileStatus(profile)
+  const knownFor = deriveKnownForFromPublicProfile(profile)
 
-  // „Bekannt für"-Ableitung (D-03 — rein read-only aus role_timeline, kein Schreib-Flow)
-  const knownFor = deriveKnownFor(roleTimeline)
-
-  // Memorial-Variante delegieren (D-10) — nur im Public-View für PublicMemberProfileData
   if (isPublicView && profileStatus === 'memorial' && 'profile_status' in profile) {
     return (
       <MemberProfileMemorialHero
@@ -156,7 +169,11 @@ export function MemberProfileHero({
               <MemberStatusPill status={profileStatus} />
             ) : null}
           </h2>
-          <p>{profile.bio || 'Noch keine Kurzbeschreibung hinterlegt.'}</p>
+          {profile.bio ? (
+            <p>{profile.bio}</p>
+          ) : !isPublicView ? (
+            <p>Noch keine Kurzbeschreibung hinterlegt.</p>
+          ) : null}
           {publicActivityLabel ? (
             <span className={styles.heroMetaLine}>
               <CalendarDays size={15} aria-hidden="true" />
@@ -164,7 +181,6 @@ export function MemberProfileHero({
             </span>
           ) : null}
 
-          {/* „Bekannt für"-Block (D-03 — read-only, kein Schreib-Flow, kein neues DB-Feld) */}
           {isPublicView && (knownFor.activeYears || knownFor.topRoles.length > 0) ? (
             <div className={styles.knownForBlock}>
               {knownFor.activeYears ? (

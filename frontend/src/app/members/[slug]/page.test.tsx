@@ -98,10 +98,38 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
       },
     ],
     public_badges: [
-      { id: 1, badge_code: 'founder', badge_category: 'historical_achievement' },
+      { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
     ],
     recent_media: [],
     recent_contributions: [],
+    current_projects: [
+      {
+        anime_id: 11,
+        anime_title: 'Maboroshi no Fansub',
+        cover_url: null,
+        fansub_group_id: 7,
+        fansub_group_name: 'AnimeOwnage',
+        roles: ['Timing', 'Typesetting'],
+        release_versions: [
+          {
+            release_version_id: 501,
+            release_version_label: 'Episode 01 - v2',
+            version: 'v2',
+            title: null,
+            episode_number: '01',
+            episode_title: 'Start',
+            roles: ['Timing'],
+          },
+        ],
+        is_project_level: false,
+        contribution_status: 'confirmed',
+        started_year: 2014,
+        ended_year: null,
+      },
+    ],
+    latest_contributions: [],
+    previous_contributions: [],
+    previous_contributions_count: 0,
     ...overrides,
   }
 }
@@ -126,17 +154,14 @@ afterEach(() => {
 })
 
 describe('MemberProfilePage Phase 99 route composition', () => {
-  it('renders the locked single-scroll public section order', async () => {
+  it('renders the staged top-shell section order without requiring lower sections from Plan 99-03', async () => {
     await renderMemberPage(makePublicProfile())
 
     const orderedSections = [
-      screen.getByRole('heading', { name: 'Ballelboy' }),
+      screen.getAllByRole('heading', { name: 'Ballelboy' })[0],
       screen.getByRole('heading', { name: 'Gruppenzugehörigkeit' }),
       screen.getByRole('heading', { name: 'Aktuelle Projekte' }),
       screen.getByRole('heading', { name: 'Auszeichnungen' }),
-      screen.getByRole('heading', { name: 'Letzte Beiträge' }),
-      screen.getByRole('heading', { name: 'Fansub-Geschichte' }),
-      screen.getByRole('heading', { name: 'Frühere Mitwirkungen' }),
     ]
 
     for (let index = 1; index < orderedSections.length; index += 1) {
@@ -144,9 +169,13 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       const next = orderedSections[index]
       expect(previous.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
     }
+
+    expect(screen.queryByRole('heading', { name: 'Letzte Beiträge' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Fansub-Geschichte' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Frühere Mitwirkungen' })).toBeNull()
   })
 
-  it('does not render the old public tab navigation labels as section navigation', async () => {
+  it('does not render the old public tab navigation labels as section navigation or fetch the old timeline', async () => {
     await renderMemberPage(makePublicProfile())
 
     expect(screen.queryByRole('navigation', { name: 'Seitennavigation' })).toBeNull()
@@ -154,6 +183,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(screen.queryByRole('button', { name: 'Badges' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Geschichte' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Mitwirkende' })).toBeNull()
+    expect(getMemberContributionsMock).not.toHaveBeenCalled()
   })
 
   it('keeps the hidden-profile owner preview path intact', async () => {

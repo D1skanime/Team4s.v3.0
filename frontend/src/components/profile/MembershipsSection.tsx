@@ -11,6 +11,7 @@ import styles from './profile.module.css'
 
 type MembershipsSectionProps = {
   memberships: MemberProfileMembership[]
+  title?: string
 }
 
 function membershipContextLabel(membership: MemberProfileMembership): string | null {
@@ -30,16 +31,28 @@ function membershipContextLabel(membership: MemberProfileMembership): string | n
   }
 }
 
-export function MembershipsSection({ memberships }: MembershipsSectionProps) {
+function membershipPeriodLabel(membership: MemberProfileMembership): string | null {
+  if (!membership.joined_year) return null
+  if (membership.left_year && membership.left_year !== membership.joined_year) {
+    return `Mitglied ${membership.joined_year} bis ${membership.left_year}`
+  }
+  return `Mitglied seit ${membership.joined_year}`
+}
+
+export function MembershipsSection({
+  memberships,
+  title = 'Fansub-Gruppen',
+}: MembershipsSectionProps) {
   return (
     <section className={styles.membershipsSection}>
-      <SectionHeader title="Fansub-Gruppen" />
+      <SectionHeader title={title} />
       {memberships.length === 0 ? (
         <p className={styles.emptyText}>Keine Gruppen eingetragen.</p>
       ) : (
         <ul className={styles.membershipsList}>
           {memberships.map((membership) => {
             const contextLabel = membershipContextLabel(membership)
+            const periodLabel = membershipPeriodLabel(membership)
 
             return (
               <li key={membership.fansub_group_id}>
@@ -61,6 +74,7 @@ export function MembershipsSection({ memberships }: MembershipsSectionProps) {
                     <span className={styles.membershipName}>
                       <strong>{membership.fansub_group_name}</strong>
                       {contextLabel ? <span>{contextLabel}</span> : null}
+                      {periodLabel ? <span>{periodLabel}</span> : null}
                     </span>
                     <span className={styles.membershipAction}>
                       Zur Gruppe

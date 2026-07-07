@@ -6,17 +6,13 @@ import {
   ApiError,
   AUTH_TOKEN_COOKIE_NAME,
   getMemberProfile,
-  getMemberContributions,
   resolveApiUrl,
 } from '@/lib/api'
-import { Card } from '@/components/ui'
 import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
-import { MemberGroupsHistorySection } from '@/components/profile/MemberGroupsHistorySection'
-import { MemberSectionNav } from '@/components/profile/MemberSectionNav'
-import { MemberBadgeHighlights } from '@/components/profile/MemberBadgeHighlights'
-import { MemberContributionFilters } from '@/components/profile/MemberContributionFilters'
-import { MemberRoleTimeline } from '@/components/profile/MemberRoleTimeline'
-import type { PublicMemberRoleEntry } from '@/types/contributions'
+import { MembershipsSection } from '@/components/profile/MembershipsSection'
+import { MemberCurrentProjectsSection } from '@/components/profile/MemberCurrentProjectsSection'
+import { MemberBadgeChain } from '@/components/profile/MemberBadgeChain'
+import { PUBLIC_MEMBER_BADGE_CATALOG } from '@/components/profile/memberBadgeLabels'
 import type { PublicMemberProfileData } from '@/types/profile'
 
 import { CorrectionReportModal } from '@/components/profile/CorrectionReportModal'
@@ -88,15 +84,8 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
 
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
-
-  let roleTimeline: PublicMemberRoleEntry[] = []
-  try {
-    const contributionsData = await getMemberContributions(slug)
-    roleTimeline = contributionsData.role_timeline ?? []
-  } catch { /* Keine Contributions — leere Timeline */ }
-
-  // Badges aus DTO (public_badges) — kein getMyBadges (Fallstrick 2, Badges-13)
   const publicBadges = profile.public_badges ?? []
+  const currentProjects = profile.current_projects ?? []
 
   return (
     <main className={styles.page}>
@@ -106,45 +95,40 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
           <span>&gt;</span><span>Members</span><span>&gt;</span>
           <span>{profile.fansub_name}</span>
         </nav>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className={styles.toolbarActions}>
           <OwnProfileEditLink publicMemberId={profile.member_id} />
-          {/* CorrectionReportModal: nur für eingeloggte User sichtbar (via useAuthSession, D-18) */}
           <CorrectionReportModal memberId={profile.member_id} memberName={profile.fansub_name} />
         </div>
       </div>
 
-      <MemberSectionNav />
-
-      {/* #identitaet — Hero (D-02 Reihenfolge) */}
-      <section id="identitaet" className={styles.section}>
+      <section className={styles.section} aria-label="Profilkopf">
         <MemberProfileHero
-          profile={profile} avatarURL={avatarURL} backgroundImageURL={backgroundImageURL}
-          isPublicView={true} isVerified={profile.is_verified} roleTimeline={roleTimeline}
+          profile={profile}
+          avatarURL={avatarURL}
+          backgroundImageURL={backgroundImageURL}
+          isPublicView={true}
+          isVerified={profile.is_verified}
         />
       </section>
 
-      {/* #badges — Badge-Highlights (D-11, D-10) */}
-      <section id="badges" className={styles.section}>
-        <Card variant="section" title="Badges">
-          <MemberBadgeHighlights
-            publicBadges={publicBadges}
-            isMemorial={profile.profile_status === 'memorial'}
-          />
-        </Card>
+      <section className={styles.section} aria-label="Gruppenzugehörigkeit">
+        <MembershipsSection
+          memberships={profile.memberships ?? []}
+          title="Gruppenzugehörigkeit"
+        />
       </section>
 
-      {/* #geschichte — Gruppen & Geschichte (D-02) */}
-      <section id="geschichte" className={styles.section}>
-        <MemberGroupsHistorySection memberships={profile.memberships ?? []} storyHtml={profile.member_story_html} />
+      <section className={styles.section} aria-label="Aktuelle Projekte">
+        <MemberCurrentProjectsSection
+          projects={currentProjects}
+        />
       </section>
 
-      {/* #beitraege — Filterbare Mitwirkenden-Anzeige (D-06/D-07/D-08) */}
-      <section id="beitraege" className={styles.section}>
-        <Card variant="section" title="Mitwirkende">
-          {roleTimeline.length > 0
-            ? <MemberContributionFilters roleTimeline={roleTimeline} />
-            : <MemberRoleTimeline entries={[]} hasUnverified={false} isVerified={profile.is_verified} />}
-        </Card>
+      <section className={styles.section} aria-label="Auszeichnungen">
+        <MemberBadgeChain
+          earnedBadges={publicBadges}
+          catalog={PUBLIC_MEMBER_BADGE_CATALOG}
+        />
       </section>
     </main>
   )

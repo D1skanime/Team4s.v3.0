@@ -28,7 +28,13 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .editProfileLink {
@@ -67,10 +73,9 @@
   color: var(--text-primary);
 }
 
-/* Einspaltige Sektions-Scroll-Seite (D-01/D-02) */
 .section {
-  max-width: 820px;
-  margin: 0 auto 32px;
+  max-width: 920px;
+  margin: 0 auto 28px;
   width: 100%;
 }
 
@@ -119,6 +124,11 @@
 
   .profileToolbar {
     display: grid;
+  }
+
+  .toolbarActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .editProfileLink {
