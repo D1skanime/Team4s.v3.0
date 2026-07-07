@@ -25,6 +25,8 @@ function makeContribution(overrides: Partial<MemberProfileRecentContribution> = 
     role_labels: ['Typesetter'],
     release_version_count: 1,
     episode_count: 1,
+    worked_release_version_count: 1,
+    total_release_version_count: 1,
     ...overrides,
   }
 }
@@ -135,5 +137,66 @@ describe('RecentContributionsSection', () => {
     expect(within(list).getAllByRole('listitem')).toHaveLength(2)
     expect(screen.getByText('Maboroshi no Fansub')).not.toBeNull()
     expect(screen.getByText('QC Memories')).not.toBeNull()
+  })
+
+  it('renders an absolute worked/total progress bar instead of a relative one', () => {
+    render(
+      <RecentContributionsSection
+        canView={true}
+        isPublicView={false}
+        items={[
+          makeContribution({
+            worked_release_version_count: 1,
+            total_release_version_count: 12,
+          }),
+        ]}
+      />,
+    )
+
+    expect(screen.getByLabelText('1 von 12 Release-Versionen bearbeitet')).not.toBeNull()
+  })
+
+  it('does not sum worked/total across merged role rows of the same project', () => {
+    render(
+      <RecentContributionsSection
+        canView={true}
+        isPublicView={false}
+        items={[
+          makeContribution({
+            id: 101,
+            worked_release_version_count: 1,
+            total_release_version_count: 12,
+          }),
+          makeContribution({
+            id: 102,
+            role_name: 'editor',
+            role_label: 'Editing',
+            role_names: undefined,
+            role_labels: undefined,
+            worked_release_version_count: 1,
+            total_release_version_count: 12,
+          }),
+        ]}
+      />,
+    )
+
+    expect(screen.getByLabelText('1 von 12 Release-Versionen bearbeitet')).not.toBeNull()
+  })
+
+  it('renders 0 percent without crashing when total_release_version_count is 0', () => {
+    render(
+      <RecentContributionsSection
+        canView={true}
+        isPublicView={false}
+        items={[
+          makeContribution({
+            worked_release_version_count: 0,
+            total_release_version_count: 0,
+          }),
+        ]}
+      />,
+    )
+
+    expect(screen.getByLabelText('Noch keine Release-Versionen vorhanden')).not.toBeNull()
   })
 })

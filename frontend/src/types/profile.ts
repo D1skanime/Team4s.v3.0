@@ -55,6 +55,8 @@ export interface MemberProfileRecentContribution {
   role_labels?: string[]
   release_version_count?: number
   episode_count?: number
+  worked_release_version_count?: number
+  total_release_version_count?: number
 }
 
 export interface MemberProfileData {
