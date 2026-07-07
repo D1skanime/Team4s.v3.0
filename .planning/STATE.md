@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 98-04-PLAN.md; 98-05 (E2E/UAT) remaining
-last_updated: "2026-07-05T18:00:00.000Z"
-last_activity: 2026-07-05
+stopped_at: Completed 98-04-PLAN.md; 98-05 (E2E/UAT) remaining; Phase 99 planned
+last_updated: "2026-07-07T16:37:40.950Z"
+last_activity: 2026-07-07
 progress:
-  total_phases: 89
-  completed_phases: 75
-  total_plans: 373
-  completed_plans: 347
+  total_phases: 90
+  completed_phases: 76
+  total_plans: 378
+  completed_plans: 348
   percent: 84
 ---
 
@@ -271,6 +271,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 99 added: Öffentliches Fansub-Member-Profil (Redesign) - public Member-Profil als scrollbare, datengetriebene Seite auf Basis bestehender Gruppen-, Projektrollen-, Badge-, Notizen-/Beitrags- und Medien-Seams; Kontext aus angehängtem GSD-Auftrag in `.planning/phases/99-ffentliches-fansub-member-profil-redesign/99-CONTEXT.md`.
 - Phase 98 added and discussed: Segmentstream bleibt ein segment-spezifischer Playback-Layer fuer OP/ED/Kara; MVP ist vorbereiteter browserfaehiger Clip-Render mit Segment-Grants, nicht HLS-first. Context: `.planning/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-CONTEXT.md`.
 - Phase 93 added: Projektrollen-Sichtbarkeit & Hinweis-Formular. Teil A verified group scoping but blocked UI execution because the current member-profile visibility flag does not jointly control role plus related media.
 - Phase 93 option 3 executed: UI polish was implemented without a visibility help text for notes/images; the separate media visibility/review contract remains unchanged.
@@ -541,5 +542,5 @@ Recent durable decisions:
 
 Last session: 2026-07-01T14:25:00.000Z
 Stopped at: Completed 97-05-PLAN.md
-Last activity: 2026-07-06 - Completed quick task 260706-x0v: Fix 400 release_variant_id-Fehler beim Laden der Theme-Segmente im Fansub-Cockpit
+Last activity: 2026-07-07 - Phase 99 planned: Öffentliches Fansub-Member-Profil (Redesign)
 Resume file: None

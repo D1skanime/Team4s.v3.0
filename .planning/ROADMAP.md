@@ -1650,6 +1650,21 @@ Plans:
 - [x] 98-04-PLAN.md - Admin/Leader Segment-UI
 - [ ] 98-05-PLAN.md - E2E-Verifikation und UAT
 
+### Phase 99: Öffentliches Fansub-Member-Profil (Redesign)
+
+**Goal:** Das öffentliche Fansub-Member-Profil wird von der bisherigen Tab-Struktur zu einer einzelnen scrollbaren Profilseite umgebaut: Hero, Gruppenzugehörigkeit, aktuelle Projektbeteiligungen, Auszeichnungen, letzte öffentliche/veröffentlichte Beiträge, Fansub-Geschichte und eingeklappte frühere Mitwirkungen. Umsetzung nutzt bestehende Member-, Rollen-, Release-Version-, Notizen-/Beitrags-, Medien-, Badge- und Gruppen-Projektionen; keine Platzhalterdaten, keine neue Eingabeoberfläche und keine parallelen Media-/Contribution-Strukturen.
+**Requirements**: siehe `99-CONTEXT.md` (D-01 bis D-20; A-01 bis A-05 vor Umsetzung klären)
+**Depends on:** Phase 98
+**Status:** Planned 2026-07-07
+**Plans:** 5 plans ready
+
+Plans:
+- [ ] `99-00-PLAN.md` - Wave 0: RED-Tests und Contract-Gates für Profilstruktur, Datenfilter, Media-Ownership, Badges, Story und frühere Mitwirkungen
+- [ ] `99-01-PLAN.md` - Wave 1: Backend/Public-Profile-DTO, Projektionen und OpenAPI/TypeScript-Contract
+- [ ] `99-02-PLAN.md` - Wave 2: Public-Profil Top-Sections Hero, Gruppenzugehörigkeit, aktuelle Projekte und Auszeichnungen
+- [ ] `99-03-PLAN.md` - Wave 3: Letzte Beiträge, Fansub-Geschichte-Clamp und eingeklappte frühere Mitwirkungen
+- [ ] `99-04-PLAN.md` - Wave 4: Integration, Mobile/Desktop-Browser-UAT und Human-Verify
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
