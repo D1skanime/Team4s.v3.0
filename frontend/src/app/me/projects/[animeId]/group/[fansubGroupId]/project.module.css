@@ -126,8 +126,7 @@
   padding: 0;
 }
 
-.releaseRow,
-.releaseRowMuted {
+.releaseRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,20 +134,14 @@
   padding: 12px 14px;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-}
-
-.releaseRow {
   background: var(--surface-card);
 }
 
-.releaseRowMuted {
-  background: color-mix(in srgb, var(--surface-muted) 72%, var(--surface-card));
-  opacity: 0.68;
-}
-
 .releaseMain {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px 8px;
   min-width: 0;
 }
 
@@ -198,8 +191,7 @@
     min-height: 200px;
   }
 
-  .releaseRow,
-  .releaseRowMuted {
+  .releaseRow {
     align-items: stretch;
     flex-direction: column;
   }
@@ -207,8 +199,7 @@
   .toolbar,
   .headerActions,
   .searchField,
-  .releaseRow a,
-  .releaseRowMuted a {
+  .releaseRow a {
     width: 100%;
   }
 

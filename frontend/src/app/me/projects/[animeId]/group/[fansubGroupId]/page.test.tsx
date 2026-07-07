@@ -111,7 +111,7 @@ describe('MyProjectDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Zurück zum Profil' }).getAttribute('href')).toBe('/me/profile')
   })
 
-  it('shows all release versions with search only in all mode', async () => {
+  it('shows all release versions with search available in all mode', async () => {
     getMyProjectDetailMock.mockResolvedValue({
       data: makeProject([
         makeRelease({ release_version_id: 41, episode_number: '01' }),
@@ -125,14 +125,70 @@ describe('MyProjectDetailPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
     fireEvent.change(screen.getByLabelText('Folgen-Nummer suchen'), { target: { value: '03' } })
 
-    expect(screen.getByText('Folge 03 · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 03 · v1')).toBeNull()
     expect(screen.queryByRole('link', { name: /Notizen & Medien/i })).toBeNull()
   })
 
-  it('shows only releases with own notes or media in mine mode, even when has_own_contribution is true project-wide', async () => {
+  it('excludes releases without has_own_contribution in every mode (all/open/done)', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: true }),
+        makeRelease({ release_version_id: 42, episode_number: '02', has_own_contribution: false, role_codes: [], role_labels: [] }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.queryByText('Folge 02 · v1')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
+    expect(screen.queryByText('Folge 02 · v1')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
+    expect(screen.queryByText('Folge 02 · v1')).toBeNull()
+  })
+
+  it('shows only open (not-done) assigned releases in open mode', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+        makeRelease({ release_version_id: 44, episode_number: '04', has_own_contribution: true, has_own_notes: true, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
+
+    expect(screen.getByText('Folge 01 · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 04 · v1')).toBeNull()
+  })
+
+  it('shows only done assigned releases in done mode', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+        makeRelease({ release_version_id: 44, episode_number: '04', has_own_contribution: true, has_own_notes: false, has_own_media: true }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
+
+    expect(screen.getByText('Folge 04 · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 01 · v1')).toBeNull()
+  })
+
+  it('shows open releases before done releases in all mode, preserving order within each group', async () => {
     getMyProjectDetailMock.mockResolvedValue({
       data: makeProject([
         makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: true, has_own_media: false }),
+        makeRelease({ release_version_id: 42, episode_number: '02', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+        makeRelease({ release_version_id: 43, episode_number: '03', has_own_contribution: true, has_own_notes: false, has_own_media: true }),
         makeRelease({ release_version_id: 44, episode_number: '04', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
       ]),
     })
@@ -140,8 +196,26 @@ describe('MyProjectDetailPage', () => {
     render(<MyProjectDetailPage />)
 
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
-    expect(screen.getByText('Folge 01 · v1')).toBeTruthy()
-    expect(screen.queryByText('Folge 04 · v1')).toBeNull()
+    const labels = screen.getAllByText(/^Folge \d{2} · v1$/).map((node) => node.textContent)
+    expect(labels).toEqual(['Folge 02 · v1', 'Folge 04 · v1', 'Folge 01 · v1', 'Folge 03 · v1'])
+  })
+
+  it('filters by episode number search in open and done modes too', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+        makeRelease({ release_version_id: 42, episode_number: '02', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
+    fireEvent.change(screen.getByLabelText('Folgen-Nummer suchen'), { target: { value: '02' } })
+
+    expect(screen.queryByText('Folge 01 · v1')).toBeNull()
+    expect(screen.getByText('Folge 02 · v1')).toBeTruthy()
   })
 
   it('loads all release versions in 20 item steps', async () => {
@@ -160,5 +234,98 @@ describe('MyProjectDetailPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Weitere laden' }))
 
     expect(screen.getByText('Folge 25 · v1')).toBeTruthy()
+  })
+
+  it('shows a status badge (Offen/Erledigt) per visible release row', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+        makeRelease({ release_version_id: 42, episode_number: '02', has_own_contribution: true, has_own_notes: true, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    const openBadges = screen.getAllByText('Offen').filter((node) => node.tagName === 'SPAN')
+    const doneBadges = screen.getAllByText('Erledigt').filter((node) => node.tagName === 'SPAN')
+    expect(openBadges).toHaveLength(1)
+    expect(doneBadges).toHaveLength(1)
+  })
+
+  it('shows the assigned-count SectionHeader description instead of total versions', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+        makeRelease({ release_version_id: 42, episode_number: '02', has_own_contribution: true, has_own_notes: true, has_own_media: false }),
+        makeRelease({ release_version_id: 43, episode_number: '03', has_own_contribution: false, role_codes: [], role_labels: [] }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.getByText('1 offen · 1 erledigt')).toBeTruthy()
+    expect(screen.queryByText(/Versionen sichtbar/)).toBeNull()
+  })
+
+  it('shows a motivating empty state when the user has no assigned releases at all', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: false, role_codes: [], role_labels: [] }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.getByText('Du bist noch keiner Folge in diesem Projekt zugeordnet.')).toBeTruthy()
+  })
+
+  it('shows an empty state when open mode has no open releases left', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: true, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
+
+    expect(screen.getByText('Alle deine Folgen sind erledigt.')).toBeTruthy()
+  })
+
+  it('shows an empty state when done mode has no done releases yet', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
+
+    expect(screen.getByText('Noch keine Folge erledigt.')).toBeTruthy()
+  })
+
+  it('keeps the episode search field visible and usable in open and done modes', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', has_own_contribution: true, has_own_notes: false, has_own_media: false }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
+    expect(screen.getByLabelText('Folgen-Nummer suchen')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
+    expect(screen.getByLabelText('Folgen-Nummer suchen')).toBeTruthy()
   })
 })

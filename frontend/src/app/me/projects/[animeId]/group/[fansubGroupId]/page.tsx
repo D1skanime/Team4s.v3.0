@@ -5,14 +5,14 @@ import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Pencil, Search } from 'lucide-react'
 
-import { Button, Card, ErrorState, Input, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
+import { Badge, Button, Card, ErrorState, Input, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
 import { ApiError, getMyProjectDetail } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type { MeProjectDetail, MeProjectReleaseVersion } from '@/types/contributions'
 
 import styles from './project.module.css'
 
-type ReleaseFilterMode = 'mine' | 'all'
+type ReleaseFilterMode = 'all' | 'open' | 'done'
 
 interface ProjectLoadState {
   key: string | null
@@ -43,19 +43,30 @@ function releaseLabel(release: MeProjectReleaseVersion): string {
   return `${episode} · ${version}`
 }
 
+function isDone(release: MeProjectReleaseVersion): boolean {
+  return release.has_own_notes || release.has_own_media
+}
+
 function filterReleases(
   releases: MeProjectReleaseVersion[],
   mode: ReleaseFilterMode,
   episodeQuery: string,
 ): MeProjectReleaseVersion[] {
-  // has_own_contribution ist projektweit fast immer true (Zuordnung zum Projekt),
-  // "Nur meine Beiträge" soll aber konkrete eigene Notiz-/Medienarbeit meinen.
-  const base = mode === 'mine'
-    ? releases.filter((release) => release.has_own_notes || release.has_own_media)
-    : releases
+  const assigned = releases.filter((release) => release.has_own_contribution)
+
+  let base: MeProjectReleaseVersion[]
+  if (mode === 'open') {
+    base = assigned.filter((release) => !isDone(release))
+  } else if (mode === 'done') {
+    base = assigned.filter((release) => isDone(release))
+  } else {
+    // 'all': offene Folgen zuerst, erledigte danach; stabiler Sort erhält
+    // die Eingabereihenfolge innerhalb jeder Gruppe.
+    base = [...assigned].sort((a, b) => Number(isDone(a)) - Number(isDone(b)))
+  }
 
   const query = episodeQuery.trim().toLowerCase()
-  if (mode !== 'all' || query === '') return base
+  if (query === '') return base
 
   return base.filter((release) => release.episode_number.toLowerCase().includes(query))
 }
@@ -74,7 +85,7 @@ export function MyProjectDetailPage() {
     project: null,
     errorMessage: null,
   })
-  const [mode, setMode] = useState<ReleaseFilterMode>('mine')
+  const [mode, setMode] = useState<ReleaseFilterMode>('all')
   const [episodeQuery, setEpisodeQuery] = useState('')
   const [visibleCount, setVisibleCount] = useState(20)
   const project = loadState.key === routeKey ? loadState.project : null
@@ -124,6 +135,27 @@ export function MyProjectDetailPage() {
   )
   const visibleReleases = filteredReleases.slice(0, visibleCount)
   const hasMore = visibleCount < filteredReleases.length
+
+  const assignedReleases = project?.release_versions.filter((release) => release.has_own_contribution) ?? []
+  const assignedCount = assignedReleases.length
+  const openCount = assignedReleases.filter((release) => !isDone(release)).length
+  const doneCount = assignedReleases.filter((release) => isDone(release)).length
+  const hasActiveSearch = episodeQuery.trim() !== ''
+
+  let emptyText: string | null = null
+  if (visibleReleases.length === 0) {
+    if (assignedCount === 0) {
+      emptyText = 'Du bist noch keiner Folge in diesem Projekt zugeordnet.'
+    } else if (hasActiveSearch) {
+      emptyText = 'Keine Release-Versionen für diesen Filter.'
+    } else if (mode === 'open') {
+      emptyText = 'Alle deine Folgen sind erledigt.'
+    } else if (mode === 'done') {
+      emptyText = 'Noch keine Folge erledigt.'
+    } else {
+      emptyText = 'Keine Release-Versionen für diesen Filter.'
+    }
+  }
 
   if (!isClientInitialized) {
     return <LoadingState title="Projekt wird geladen" description="Team4s lädt deine Projektansicht." />
@@ -213,21 +245,11 @@ export function MyProjectDetailPage() {
       <Card variant="section" className={styles.releaseSection}>
         <SectionHeader
           title="Release-Versionen"
-          description={`${filteredReleases.length} von ${project.release_versions.length} Versionen sichtbar`}
+          description={`${openCount} offen · ${doneCount} erledigt`}
         />
 
         <div className={styles.toolbar}>
           <div className={styles.segmented} role="group" aria-label="Release-Versionen filtern">
-            <button
-              type="button"
-              className={mode === 'mine' ? styles.segmentActive : undefined}
-              onClick={() => {
-                setMode('mine')
-                setVisibleCount(20)
-              }}
-            >
-              Nur meine Beiträge
-            </button>
             <button
               type="button"
               className={mode === 'all' ? styles.segmentActive : undefined}
@@ -238,54 +260,71 @@ export function MyProjectDetailPage() {
             >
               Alle
             </button>
+            <button
+              type="button"
+              className={mode === 'open' ? styles.segmentActive : undefined}
+              onClick={() => {
+                setMode('open')
+                setVisibleCount(20)
+              }}
+            >
+              Offen
+            </button>
+            <button
+              type="button"
+              className={mode === 'done' ? styles.segmentActive : undefined}
+              onClick={() => {
+                setMode('done')
+                setVisibleCount(20)
+              }}
+            >
+              Erledigt
+            </button>
           </div>
 
-          {mode === 'all' ? (
-            <label className={styles.searchField}>
-              <Search size={16} aria-hidden="true" />
-              <Input
-                value={episodeQuery}
-                onChange={(event) => {
-                  setEpisodeQuery(event.target.value)
-                  setVisibleCount(20)
-                }}
-                placeholder="Folgen-Nummer suchen"
-                aria-label="Folgen-Nummer suchen"
-              />
-            </label>
-          ) : null}
+          <label className={styles.searchField}>
+            <Search size={16} aria-hidden="true" />
+            <Input
+              value={episodeQuery}
+              onChange={(event) => {
+                setEpisodeQuery(event.target.value)
+                setVisibleCount(20)
+              }}
+              placeholder="Folgen-Nummer suchen"
+              aria-label="Folgen-Nummer suchen"
+            />
+          </label>
         </div>
 
         <ul className={styles.releaseList}>
           {visibleReleases.map((release) => {
             const hasOwnArtifacts = release.has_own_notes || release.has_own_media
+            const releaseDone = isDone(release)
             return (
-              <li
-                key={release.release_version_id}
-                className={release.has_own_contribution ? styles.releaseRow : styles.releaseRowMuted}
-              >
+              <li key={release.release_version_id} className={styles.releaseRow}>
                 <div className={styles.releaseMain}>
                   <strong>{releaseLabel(release)}</strong>
                   {release.episode_title ? <span>{release.episode_title}</span> : null}
+                  <Badge variant={releaseDone ? 'success' : 'warning'}>
+                    {releaseDone ? 'Erledigt' : 'Offen'}
+                  </Badge>
                 </div>
-                {release.has_own_contribution ? (
-                  <Button
-                    href={`/me/releases/${release.release_version_id}/workspace?return_to=${encodeURIComponent(projectReturnHref)}`}
-                    variant={hasOwnArtifacts ? 'primary' : 'secondary'}
-                    size="sm"
-                    leftIcon={<Pencil size={15} aria-hidden="true" />}
-                    className={!hasOwnArtifacts ? styles.emptyWorkspaceButton : undefined}
-                  >
-                    Notizen & Medien
-                  </Button>
-                ) : null}
+                <Button
+                  href={`/me/releases/${release.release_version_id}/workspace?return_to=${encodeURIComponent(projectReturnHref)}`}
+                  variant={hasOwnArtifacts ? 'primary' : 'secondary'}
+                  size="sm"
+                  leftIcon={<Pencil size={15} aria-hidden="true" />}
+                  className={!hasOwnArtifacts ? styles.emptyWorkspaceButton : undefined}
+                >
+                  Notizen & Medien
+                </Button>
               </li>
             )
           })}
         </ul>
 
-        {visibleReleases.length === 0 ? (
-          <p className={styles.emptyText}>Keine Release-Versionen für diesen Filter.</p>
+        {emptyText ? (
+          <p className={styles.emptyText}>{emptyText}</p>
         ) : null}
 
         {hasMore ? (
