@@ -99,6 +99,12 @@ export interface MeAnimeContribution {
   episode_number?: string | null
   /** Sortier-Index aus episodes.sort_index für Bereichsbildung (null = anime-weit) */
   episode_sort_index?: number | null
+  /**
+   * Phase quick-260707-jya: worked/total Release-Versionen pro Anime+Gruppe
+   * (D-01) — für alle role-Zeilen desselben Projekts identisch.
+   */
+  worked_release_version_count?: number
+  total_release_version_count?: number
 }
 
 /** Phase 76: Einzelner Vorschlag des eingeloggten Members (Decision 6) */

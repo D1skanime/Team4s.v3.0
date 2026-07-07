@@ -55,6 +55,26 @@ interface EpisodeRangeEntry {
 interface ProjectGroupEntry {
   fansubGroupId: number
   fansubGroupName: string
+  workedCount: number
+  totalCount: number
+}
+
+/**
+ * Phase quick-260707-jya (D-02): Prozentualer Fortschritt worked/total Release-Versionen.
+ * 0 wenn total<=0 (noch keine Release-Versionen vorhanden), sonst gerundeter Prozentwert.
+ */
+function progressPercent(worked: number, total: number): number {
+  return total > 0 ? Math.round((worked / total) * 100) : 0
+}
+
+/**
+ * Phase quick-260707-jya (D-02): aria-label-Text für den Fortschrittsbalken.
+ */
+function progressLabel(worked: number, total: number): string {
+  if (total <= 0) {
+    return 'Noch keine Release-Versionen vorhanden'
+  }
+  return `${worked} von ${total} Release-Versionen bearbeitet`
 }
 
 function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[] {
@@ -169,6 +189,10 @@ function getUniqueGroups(contribs: MeAnimeContribution[]): ProjectGroupEntry[] {
     groups.push({
       fansubGroupId: contribution.fansub_group_id,
       fansubGroupName: contribution.fansub_group_name?.trim() || `Gruppe #${contribution.fansub_group_id}`,
+      // worked/total sind pro Anime+Gruppe bereits identisch für alle Rollen-Zeilen dieser
+      // Gruppe — daher aus der ERSTEN Contribution dieser Gruppe übernehmen, nicht summieren.
+      workedCount: contribution.worked_release_version_count ?? 0,
+      totalCount: contribution.total_release_version_count ?? 0,
     })
   }
   return groups
@@ -225,17 +249,41 @@ export function AnimeGroupCard({
         </div>
       </div>
 
+      {projectGroups.length === 1 ? (
+        <div
+          className={styles.projectProgressBar}
+          aria-label={progressLabel(projectGroups[0].workedCount, projectGroups[0].totalCount)}
+        >
+          <span
+            style={{
+              width: `${progressPercent(projectGroups[0].workedCount, projectGroups[0].totalCount)}%`,
+            }}
+          />
+        </div>
+      ) : null}
+
       {projectGroups.length > 1 ? (
         <div className={styles.projectButtonRow}>
           {projectGroups.map((group) => (
-            <Button
-              key={group.fansubGroupId}
-              size="sm"
-              variant="secondary"
-              href={`/me/projects/${animeId}/group/${group.fansubGroupId}`}
-            >
-              Projekt öffnen: {group.fansubGroupName}
-            </Button>
+            <div key={group.fansubGroupId}>
+              <Button
+                size="sm"
+                variant="secondary"
+                href={`/me/projects/${animeId}/group/${group.fansubGroupId}`}
+              >
+                Projekt öffnen: {group.fansubGroupName}
+              </Button>
+              <div
+                className={styles.projectProgressBar}
+                aria-label={progressLabel(group.workedCount, group.totalCount)}
+              >
+                <span
+                  style={{
+                    width: `${progressPercent(group.workedCount, group.totalCount)}%`,
+                  }}
+                />
+              </div>
+            </div>
           ))}
         </div>
       ) : null}
