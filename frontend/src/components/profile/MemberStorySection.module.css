@@ -1,0 +1,42 @@
+.section {
+  display: grid;
+  gap: 14px;
+}
+
+.storyCard {
+  display: grid;
+  gap: 12px;
+}
+
+.storyFrame {
+  position: relative;
+  min-width: 0;
+}
+
+.storyContentClamped,
+.storyContentExpanded {
+  color: var(--text-primary, #111827);
+}
+
+.storyContentClamped {
+  max-height: 5.4rem;
+  overflow: hidden;
+}
+
+.storyContentExpanded {
+  max-height: none;
+}
+
+.fade {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2.2rem;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--color-surface, #fff));
+}
+
+.toggle {
+  justify-self: start;
+}

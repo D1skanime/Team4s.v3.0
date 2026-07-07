@@ -1,0 +1,82 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+
+import { Badge, Button, Card, SectionHeader } from '@/components/ui'
+import type { PublicMemberPreviousContribution } from '@/types/profile'
+
+import styles from './PreviousContributionsSection.module.css'
+
+type PreviousContributionsSectionProps = {
+  items: PublicMemberPreviousContribution[]
+  totalCount?: number
+}
+
+function periodLabel(item: PublicMemberPreviousContribution): string | null {
+  if (!Number.isFinite(item.ended_year)) return null
+  if (Number.isFinite(item.started_year)) return `${item.started_year}-${item.ended_year}`
+  return `bis ${item.ended_year}`
+}
+
+function displayRoles(item: PublicMemberPreviousContribution): string[] {
+  return item.roles.map((role) => role.trim()).filter(Boolean)
+}
+
+export function PreviousContributionsSection({
+  items,
+  totalCount,
+}: PreviousContributionsSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const validItems = useMemo(
+    () => items.filter((item) => periodLabel(item) !== null),
+    [items],
+  )
+  const displayCount = typeof totalCount === 'number' ? totalCount : validItems.length
+
+  if (displayCount <= 0) return null
+
+  return (
+    <section className={styles.section}>
+      <SectionHeader title="Frühere Mitwirkungen" />
+      <Card variant="section" className={styles.card}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => setIsExpanded((current) => !current)}
+        >
+          {isExpanded
+            ? 'Frühere Mitwirkungen ausblenden'
+            : `Frühere Mitwirkungen anzeigen (${displayCount})`}
+        </Button>
+
+        {isExpanded ? (
+          <ul className={styles.list} aria-label="Frühere Mitwirkungen">
+            {validItems.map((item) => {
+              const roles = displayRoles(item)
+              const label = periodLabel(item)
+              if (!label) return null
+
+              return (
+                <li key={`${item.anime_id}:${item.fansub_group_id}:${label}`}>
+                  <div className={styles.entry}>
+                    <div className={styles.entryHeader}>
+                      <strong>{item.anime_title}</strong>
+                      <span>{item.fansub_group_name}</span>
+                    </div>
+                    <div className={styles.metaRow}>
+                      <Badge variant="muted">{label}</Badge>
+                      {roles.map((role) => (
+                        <Badge key={role} variant="success">{role}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
+      </Card>
+    </section>
+  )
+}

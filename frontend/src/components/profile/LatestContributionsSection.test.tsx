@@ -4,28 +4,10 @@ import type { ComponentType } from 'react'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-type LatestContributionItem =
-  | {
-      id: string
-      type: 'text'
-      body_text?: string | null
-      body_html?: string | null
-      anime_title: string
-      release_version_label: string
-      created_at: string
-    }
-  | {
-      id: string
-      type: 'media'
-      image_url: string
-      description?: string | null
-      anime_title: string
-      release_version_label: string
-      created_at: string
-    }
+import type { PublicMemberLatestContribution } from '@/types/profile'
 
 async function loadLatestContributionsSection(): Promise<{
-  LatestContributionsSection: ComponentType<{ items: LatestContributionItem[] }>
+  LatestContributionsSection: ComponentType<{ items: PublicMemberLatestContribution[] }>
 }> {
   try {
     const modulePath = './LatestContributionsSection'
@@ -39,27 +21,30 @@ afterEach(() => {
   cleanup()
 })
 
-function makeTextItem(id: string, text: string): LatestContributionItem {
+function makeTextItem(id: number, text: string): PublicMemberLatestContribution {
   return {
     id,
     type: 'text',
-    body_text: text,
-    body_html: `<p>${text}</p>`,
+    occurred_at: '2026-07-07T10:00:00Z',
+    anime_id: 21,
     anime_title: 'Karaoke Memoirs',
+    release_version_id: 501,
     release_version_label: 'v2',
-    created_at: '2026-07-07T10:00:00Z',
+    text_preview: text,
   }
 }
 
-function makeMediaItem(id: string): LatestContributionItem {
+function makeMediaItem(id: number): PublicMemberLatestContribution {
   return {
     id,
     type: 'media',
-    image_url: '/media/release-version/41/thumb.jpg',
-    description: 'Timing-Vergleich aus der Release-Version.',
+    occurred_at: '2026-07-07T11:00:00Z',
+    anime_id: 22,
     anime_title: 'Screenshot Stories',
+    release_version_id: 502,
     release_version_label: 'v1',
-    created_at: '2026-07-07T11:00:00Z',
+    image_url: '/media/release-version/41/thumb.jpg',
+    caption: 'Timing-Vergleich aus der Release-Version.',
   }
 }
 
@@ -70,11 +55,11 @@ describe('LatestContributionsSection', () => {
     render(
       <LatestContributionsSection
         items={[
-          makeMediaItem('media-1'),
-          makeTextItem('note-1', 'Ein kompakter Beitrag aus der Übersetzung.'),
-          makeTextItem('note-2', 'Ein kurzer QC-Hinweis.'),
-          makeTextItem('empty-1', '   '),
-          makeTextItem('note-3', 'Dieser vierte Beitrag gehört nicht mehr ins Fenster.'),
+          makeMediaItem(1),
+          makeTextItem(2, 'Ein kompakter Beitrag aus der Übersetzung.'),
+          makeTextItem(3, 'Ein kurzer QC-Hinweis.'),
+          makeTextItem(4, '   '),
+          makeTextItem(5, 'Dieser vierte Beitrag gehört nicht mehr ins Fenster.'),
         ]}
       />,
     )
@@ -89,7 +74,7 @@ describe('LatestContributionsSection', () => {
     const { LatestContributionsSection } = await loadLatestContributionsSection()
 
     const { container } = render(
-      <LatestContributionsSection items={[makeTextItem('note-1', 'Ein Beitrag mit genug Text für den Clamp-Test.')]} />,
+      <LatestContributionsSection items={[makeTextItem(1, 'Ein Beitrag mit genug Text für den Clamp-Test.')]} />,
     )
 
     expect(screen.getByText('Ein Beitrag mit genug Text für den Clamp-Test.')).not.toBeNull()
@@ -100,7 +85,7 @@ describe('LatestContributionsSection', () => {
   it('uses a full-width 16:9 object-cover media preview without square thumbnails', async () => {
     const { LatestContributionsSection } = await loadLatestContributionsSection()
 
-    const { container } = render(<LatestContributionsSection items={[makeMediaItem('media-1')]} />)
+    const { container } = render(<LatestContributionsSection items={[makeMediaItem(1)]} />)
     const preview = screen.getByTestId('latest-contribution-media-preview') as HTMLElement
     const image = screen.getByRole('img', { name: /Screenshot Stories/i }) as HTMLImageElement
 

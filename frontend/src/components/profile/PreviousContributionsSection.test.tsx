@@ -4,17 +4,11 @@ import type { ComponentType } from 'react'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-type PreviousContributionItem = {
-  id: string
-  anime_title: string
-  fansub_group_name: string
-  period_label?: string | null
-  role_labels: string[]
-}
+import type { PublicMemberPreviousContribution } from '@/types/profile'
 
 async function loadPreviousContributionsSection(): Promise<{
   PreviousContributionsSection: ComponentType<{
-    items: PreviousContributionItem[]
+    items: PublicMemberPreviousContribution[]
     totalCount?: number
   }>
 }> {
@@ -30,20 +24,24 @@ afterEach(() => {
   cleanup()
 })
 
-const previousItems: PreviousContributionItem[] = [
+const previousItems: PublicMemberPreviousContribution[] = [
   {
-    id: 'previous-1',
+    anime_id: 31,
     anime_title: 'Archiv der Sterne',
+    fansub_group_id: 7,
     fansub_group_name: 'AnimeOwnage',
-    period_label: '2014-2017',
-    role_labels: ['Übersetzung', 'Timing'],
+    started_year: 2014,
+    ended_year: 2017,
+    roles: ['Übersetzung', 'Timing'],
   },
   {
-    id: 'previous-no-period',
+    anime_id: 32,
     anime_title: 'Ohne Jahr darf nicht erscheinen',
+    fansub_group_id: 7,
     fansub_group_name: 'AnimeOwnage',
-    period_label: null,
-    role_labels: ['Encoding'],
+    started_year: null,
+    ended_year: Number.NaN,
+    roles: ['Encoding'],
   },
 ]
 

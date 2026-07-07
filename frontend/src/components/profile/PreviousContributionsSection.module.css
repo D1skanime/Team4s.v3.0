@@ -1,0 +1,51 @@
+.section {
+  display: grid;
+  gap: 14px;
+}
+
+.card {
+  display: grid;
+  gap: 14px;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.entryHeader {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.entryHeader strong {
+  color: var(--text-strong, #111827);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.entryHeader span {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}

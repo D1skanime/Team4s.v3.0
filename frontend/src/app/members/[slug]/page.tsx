@@ -12,6 +12,9 @@ import { MemberProfileHero } from '@/components/profile/MemberProfileHero'
 import { MembershipsSection } from '@/components/profile/MembershipsSection'
 import { MemberCurrentProjectsSection } from '@/components/profile/MemberCurrentProjectsSection'
 import { MemberBadgeChain } from '@/components/profile/MemberBadgeChain'
+import { LatestContributionsSection } from '@/components/profile/LatestContributionsSection'
+import { MemberStorySection } from '@/components/profile/MemberStorySection'
+import { PreviousContributionsSection } from '@/components/profile/PreviousContributionsSection'
 import { PUBLIC_MEMBER_BADGE_CATALOG } from '@/components/profile/memberBadgeLabels'
 import type { PublicMemberProfileData } from '@/types/profile'
 
@@ -86,6 +89,9 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
   const publicBadges = profile.public_badges ?? []
   const currentProjects = profile.current_projects ?? []
+  const latestContributions = profile.latest_contributions ?? []
+  const previousContributions = profile.previous_contributions ?? []
+  const previousContributionsCount = profile.previous_contributions_count ?? previousContributions.length
 
   return (
     <main className={styles.page}>
@@ -128,6 +134,21 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         <MemberBadgeChain
           earnedBadges={publicBadges}
           catalog={PUBLIC_MEMBER_BADGE_CATALOG}
+        />
+      </section>
+
+      <section className={styles.section} aria-label="Letzte Beiträge">
+        <LatestContributionsSection items={latestContributions} />
+      </section>
+
+      <section className={styles.section} aria-label="Fansub-Geschichte">
+        <MemberStorySection storyHtml={profile.member_story_html} />
+      </section>
+
+      <section className={styles.section} aria-label="Frühere Mitwirkungen">
+        <PreviousContributionsSection
+          items={previousContributions}
+          totalCount={previousContributionsCount}
         />
       </section>
     </main>

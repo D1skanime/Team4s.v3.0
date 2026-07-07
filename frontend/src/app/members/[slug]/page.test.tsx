@@ -127,9 +127,30 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         ended_year: null,
       },
     ],
-    latest_contributions: [],
-    previous_contributions: [],
-    previous_contributions_count: 0,
+    latest_contributions: [
+      {
+        type: 'text',
+        id: 91,
+        occurred_at: '2026-07-07T10:00:00Z',
+        anime_id: 11,
+        anime_title: 'Maboroshi no Fansub',
+        release_version_id: 501,
+        release_version_label: 'Episode 01 - v2',
+        text_preview: 'Ein kurzer öffentlicher Beitrag.',
+      },
+    ],
+    previous_contributions: [
+      {
+        anime_id: 12,
+        anime_title: 'Archiv der Sterne',
+        fansub_group_id: 7,
+        fansub_group_name: 'AnimeOwnage',
+        roles: ['Übersetzung'],
+        started_year: 2014,
+        ended_year: 2017,
+      },
+    ],
+    previous_contributions_count: 1,
     ...overrides,
   }
 }
@@ -154,7 +175,7 @@ afterEach(() => {
 })
 
 describe('MemberProfilePage Phase 99 route composition', () => {
-  it('renders the staged top-shell section order without requiring lower sections from Plan 99-03', async () => {
+  it('renders the full locked seven-section public profile order', async () => {
     await renderMemberPage(makePublicProfile())
 
     const orderedSections = [
@@ -162,6 +183,9 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       screen.getByRole('heading', { name: 'Gruppenzugehörigkeit' }),
       screen.getByRole('heading', { name: 'Aktuelle Projekte' }),
       screen.getByRole('heading', { name: 'Auszeichnungen' }),
+      screen.getByRole('heading', { name: 'Letzte Beiträge' }),
+      screen.getByRole('heading', { name: 'Fansub-Geschichte' }),
+      screen.getByRole('heading', { name: 'Frühere Mitwirkungen' }),
     ]
 
     for (let index = 1; index < orderedSections.length; index += 1) {
@@ -170,9 +194,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       expect(previous.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
     }
 
-    expect(screen.queryByRole('heading', { name: 'Letzte Beiträge' })).toBeNull()
-    expect(screen.queryByRole('heading', { name: 'Fansub-Geschichte' })).toBeNull()
-    expect(screen.queryByRole('heading', { name: 'Frühere Mitwirkungen' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })).not.toBeNull()
   })
 
   it('does not render the old public tab navigation labels as section navigation or fetch the old timeline', async () => {
