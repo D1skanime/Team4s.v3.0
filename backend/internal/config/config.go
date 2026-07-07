@@ -115,7 +115,11 @@ func Load() Config {
 		EpisodePlaybackRateWindowSec: getEnvInt("EPISODE_PLAYBACK_RATE_WINDOW_SECONDS", 60),
 		EpisodePlaybackMaxConcurrent: getEnvInt("EPISODE_PLAYBACK_MAX_CONCURRENT_STREAMS", 12),
 		MediaStorageDir:              mediaStorageDir,
-		MediaPublicBaseURL:           strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "http://localhost:8092")),
+		// Leerer Default => relative Media-URLs (/media/...), die same-origin ueber den
+		// Frontend-Proxy ausgeliefert werden und damit host-/port-unabhaengig sind.
+		// Ein absoluter Default (frueher http://localhost:8092) ist im Browser nicht
+		// erreichbar, sobald Frontend und Backend nicht denselben Host/Port teilen.
+		MediaPublicBaseURL:           strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "")),
 		FFmpegPath:                   ffmpegPath,
 		SegmentRenderEnabled:         getEnvBool("SEGMENT_RENDER_ENABLED", true),
 		SegmentRenderDir:             segmentRenderDir,
