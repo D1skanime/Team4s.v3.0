@@ -28,7 +28,7 @@
 }
 
 .cover {
-  min-height: 310px;
+  min-height: 220px;
   margin-top: var(--space-6);
   border-radius: 8px;
   overflow: hidden;
@@ -40,53 +40,8 @@
   box-shadow: var(--shadow-md);
 }
 
-.coverOverlay {
-  min-height: 310px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-5);
-  padding: clamp(24px, 5vw, 44px);
-  background: linear-gradient(180deg, rgba(7, 14, 26, 0.08), rgba(7, 14, 26, 0.72));
-  color: #fff;
-}
-
-.coverEyebrow {
-  margin: 0 0 8px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  opacity: 0.78;
-}
-
-.cover h2 {
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 3.4rem);
-  line-height: 1;
-}
-
-.cover p {
-  margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.86);
-  font-weight: 700;
-}
-
-.rolePanel {
-  display: grid;
-  gap: 10px;
-  width: min(320px, 100%);
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  border-radius: 8px;
-  background: rgba(8, 18, 34, 0.58);
-  backdrop-filter: blur(10px);
-}
-
-.rolePanel > span {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.78);
+.rolesCard {
+  margin-top: var(--space-5);
 }
 
 .roleDetailList {
@@ -98,19 +53,19 @@
   display: grid;
   gap: 2px;
   padding: 9px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--surface-muted);
 }
 
 .roleDetailRow strong {
-  color: #fff;
+  color: var(--text-strong);
   font-size: 0.92rem;
   line-height: 1.25;
 }
 
 .roleDetailRow small {
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--text-muted);
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -239,12 +194,10 @@
     padding-block: var(--space-6);
   }
 
-  .cover,
-  .coverOverlay {
-    min-height: 360px;
+  .cover {
+    min-height: 200px;
   }
 
-  .coverOverlay,
   .releaseRow,
   .releaseRowMuted {
     align-items: stretch;

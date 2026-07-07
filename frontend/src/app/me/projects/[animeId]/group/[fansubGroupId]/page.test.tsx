@@ -126,7 +126,6 @@ describe('MyProjectDetailPage', () => {
     fireEvent.change(screen.getByLabelText('Folgen-Nummer suchen'), { target: { value: '03' } })
 
     expect(screen.getByText('Folge 03 · v1')).toBeTruthy()
-    expect(screen.getByText('Keine eigene Mitwirkung')).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Notizen & Medien/i })).toBeNull()
   })
 

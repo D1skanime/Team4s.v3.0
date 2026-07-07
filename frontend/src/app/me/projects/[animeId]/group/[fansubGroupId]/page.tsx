@@ -43,13 +43,6 @@ function releaseLabel(release: MeProjectReleaseVersion): string {
   return `${episode} · ${version}`
 }
 
-function roleText(release: MeProjectReleaseVersion): string {
-  if (!release.has_own_contribution) return 'Keine eigene Mitwirkung'
-  const labels = release.role_labels.length > 0 ? release.role_labels : release.role_codes
-  if (labels.length === 0) return 'Mitwirkung von dir'
-  return `${labels.join(' & ')} von dir`
-}
-
 function filterReleases(
   releases: MeProjectReleaseVersion[],
   mode: ReleaseFilterMode,
@@ -204,26 +197,18 @@ export function MyProjectDetailPage() {
         className={styles.cover}
         style={project.backdrop_url ? { backgroundImage: `url("${project.backdrop_url}")` } : undefined}
         aria-label={`Cover zu ${project.anime_title}`}
-      >
-        <div className={styles.coverOverlay}>
-          <div>
-            <p className={styles.coverEyebrow}>Projekt-Kopfbereich</p>
-            <h2>{project.anime_title}</h2>
-            <p>{project.fansub_group_name}</p>
-          </div>
-          <div className={styles.rolePanel}>
-            <span>Deine Projektrollen</span>
-            <div className={styles.roleDetailList} role="group" aria-label="Deine Projektrollen in diesem Projekt">
-              {project.role_labels.map((label, index) => (
-                <div key={`${project.role_codes[index] ?? label}-${label}`} className={styles.roleDetailRow}>
-                  <strong>{label}</strong>
-                  <small>Für das gesamte Projekt</small>
-                </div>
-              ))}
+      />
+
+      <Card title="Deine Projektrollen" className={styles.rolesCard}>
+        <div className={styles.roleDetailList} role="group" aria-label="Deine Projektrollen in diesem Projekt">
+          {project.role_labels.map((label, index) => (
+            <div key={`${project.role_codes[index] ?? label}-${label}`} className={styles.roleDetailRow}>
+              <strong>{label}</strong>
+              <small>Für das gesamte Projekt</small>
             </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </Card>
 
       <Card variant="section" className={styles.releaseSection}>
         <SectionHeader
@@ -282,7 +267,6 @@ export function MyProjectDetailPage() {
                 <div className={styles.releaseMain}>
                   <strong>{releaseLabel(release)}</strong>
                   {release.episode_title ? <span>{release.episode_title}</span> : null}
-                  <small>{roleText(release)}</small>
                 </div>
                 {release.has_own_contribution ? (
                   <Button
