@@ -236,15 +236,20 @@ func (r *AnimeContributionsRepository) Reject(ctx context.Context, contributionI
 // FansubGroupName und IsOwnProposal sind Phase-76-Erweiterungen (D-12, D-03a).
 // EpisodeNumber und EpisodeSortIndex sind quick-260620-qog-Erweiterungen für die
 // Folgen-Gruppierung im Frontend (NULL bei anime-weiten Beiträgen ohne release_version_id).
+// WorkedReleaseVersionCount und TotalReleaseVersionCount sind quick-260707-jya-Erweiterungen
+// (D-01): korrelierte Zählwerte pro Anime+Gruppe dieser Zeile — kein Aggregat über mehrere
+// Zeilen, sondern für alle Rollen-Zeilen desselben Projekts (anime_id+fansub_group_id) identisch.
 type MemberContributionWithProposalRow struct {
 	AnimeContributionRow
-	AnimeTitle       string  `json:"anime_title"`
-	CanSelfPublish   bool    `json:"can_self_publish"`
-	ReviewNote       *string `json:"review_note"`
-	FansubGroupName  string  `json:"fansub_group_name"`
-	IsOwnProposal    bool    `json:"is_own_proposal"`
-	EpisodeNumber    *string `json:"episode_number"`
-	EpisodeSortIndex *int    `json:"episode_sort_index"`
+	AnimeTitle                string  `json:"anime_title"`
+	CanSelfPublish            bool    `json:"can_self_publish"`
+	ReviewNote                *string `json:"review_note"`
+	FansubGroupName           string  `json:"fansub_group_name"`
+	IsOwnProposal             bool    `json:"is_own_proposal"`
+	EpisodeNumber             *string `json:"episode_number"`
+	EpisodeSortIndex          *int    `json:"episode_sort_index"`
+	TotalReleaseVersionCount  int32   `json:"total_release_version_count"`
+	WorkedReleaseVersionCount int32   `json:"worked_release_version_count"`
 }
 
 // ListByMemberIDWithProposalFields gibt Contributions für einen Member zurück,
@@ -270,7 +275,36 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			COALESCE(fg.name, '') AS fansub_group_name,
 			COALESCE(ac.created_by = $2, false) AS is_own_proposal,
 			ep.episode_number,
-			ep.sort_index AS episode_sort_index
+			ep.sort_index AS episode_sort_index,
+			(SELECT COUNT(DISTINCT rv.id) FROM release_versions rv
+			 JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			 JOIN fansub_releases fr2 ON fr2.id = rv.release_id
+			 JOIN episodes ep ON ep.id = fr2.episode_id
+			 WHERE ep.anime_id = ac.anime_id
+			   AND rvg.fansub_group_id = ac.fansub_group_id)::int AS total_release_version_count,
+			(SELECT COUNT(DISTINCT rv.id) FROM release_versions rv
+			 JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			 JOIN fansub_releases fr2 ON fr2.id = rv.release_id
+			 JOIN episodes ep ON ep.id = fr2.episode_id
+			 WHERE ep.anime_id = ac.anime_id
+			   AND rvg.fansub_group_id = ac.fansub_group_id
+			   AND (
+			     EXISTS (
+			       SELECT 1 FROM release_version_notes n
+			       WHERE n.release_version_id = rv.id
+			         AND n.member_id = $1
+			         AND n.deleted_at IS NULL
+			     )
+			     OR EXISTS (
+			       SELECT 1 FROM release_version_media m
+			       WHERE m.release_version_id = rv.id
+			         AND m.deleted_at IS NULL
+			         AND m.uploaded_by_user_id IN (
+			           SELECT mc.app_user_id FROM member_claims mc
+			           WHERE mc.member_id = $1 AND mc.claim_status = 'verified'
+			         )
+			     )
+			   ))::int AS worked_release_version_count
 		FROM anime_contributions ac
 		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		JOIN anime a ON a.id = ac.anime_id
@@ -321,6 +355,8 @@ func (r *AnimeContributionsRepository) ListByMemberIDWithProposalFields(ctx cont
 			&row.IsOwnProposal,
 			&row.EpisodeNumber,
 			&row.EpisodeSortIndex,
+			&row.TotalReleaseVersionCount,
+			&row.WorkedReleaseVersionCount,
 		); err != nil {
 			return nil, fmt.Errorf("contributions mit vorschlagsfeldern: scan: %w", err)
 		}
