@@ -15,6 +15,8 @@ type RecentContributionProject = MemberProfileRecentContribution & {
   role_labels: string[]
   release_version_count: number
   episode_count: number
+  worked_release_version_count: number
+  total_release_version_count: number
 }
 
 function appendUnique(target: string[], values: Array<string | null | undefined>) {
@@ -51,6 +53,8 @@ function toRecentProjects(items: MemberProfileRecentContribution[]): RecentContr
       role_labels: [],
       release_version_count: item.release_version_count ?? 1,
       episode_count: item.episode_count ?? 1,
+      worked_release_version_count: item.worked_release_version_count ?? 0,
+      total_release_version_count: item.total_release_version_count ?? 0,
     }
     appendUnique(project.fansub_group_names, groupNames)
     appendUnique(project.role_names, roleNames)
@@ -72,8 +76,17 @@ function formatProjectStats(item: RecentContributionProject): string | null {
   return parts.length > 0 ? parts.join(' / ') : null
 }
 
-function projectWorkUnits(item: RecentContributionProject): number {
-  return Math.max(1, item.release_version_count + item.episode_count)
+function progressPercent(item: RecentContributionProject): number {
+  return item.total_release_version_count > 0
+    ? Math.round((item.worked_release_version_count / item.total_release_version_count) * 100)
+    : 0
+}
+
+function progressLabel(item: RecentContributionProject): string {
+  if (item.total_release_version_count <= 0) {
+    return 'Noch keine Release-Versionen vorhanden'
+  }
+  return `${item.worked_release_version_count} von ${item.total_release_version_count} Release-Versionen bearbeitet`
 }
 
 function profileProjectHref(item: RecentContributionProject): string {
@@ -83,7 +96,6 @@ function profileProjectHref(item: RecentContributionProject): string {
 
 export function RecentContributionsSection({ items, canView, isPublicView = false }: RecentContributionsSectionProps) {
   const projects = toRecentProjects(items)
-  const maxWorkUnits = Math.max(1, ...projects.map(projectWorkUnits))
 
   if (!canView || projects.length === 0) {
     return <EmptyState title="Noch keine Projekte sichtbar." />
@@ -93,7 +105,7 @@ export function RecentContributionsSection({ items, canView, isPublicView = fals
     <ul className={styles.recentList} aria-label="Letzte Projekte">
       {projects.slice(0, 3).map((item) => {
         const stats = formatProjectStats(item)
-        const progressValue = Math.round((projectWorkUnits(item) / maxWorkUnits) * 100)
+        const progressValue = progressPercent(item)
 
         return (
           <li key={`${item.anime_id}:${item.fansub_group_id}`}>
@@ -112,7 +124,7 @@ export function RecentContributionsSection({ items, canView, isPublicView = fals
                   ))}
                 </div>
                 {stats ? <span>{stats}</span> : null}
-                <div className={styles.projectProgress} aria-label={`Bearbeitungsumfang ${progressValue} Prozent`}>
+                <div className={styles.projectProgress} aria-label={progressLabel(item)}>
                   <span style={{ width: `${progressValue}%` }} />
                 </div>
                 {!isPublicView ? (
