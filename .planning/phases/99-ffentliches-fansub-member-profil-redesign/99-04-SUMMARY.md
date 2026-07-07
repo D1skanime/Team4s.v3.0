@@ -16,7 +16,7 @@ affects: [public-member-profile-route, profile-components, member-profile-reposi
 tech-stack:
   added: []
   patterns:
-    - "Use source-launched backend/frontend when Docker containers are stale relative to the workspace"
+    - "Rebuild stale Docker services before final human UAT when the shared test URL must stay on port 3000"
     - "Keep browser UAT against a real local profile route and document local dev-data setup"
 key-files:
   created:
@@ -24,9 +24,9 @@ key-files:
   modified: []
 key-decisions:
   - "No scoped CSS polish was needed after desktop and 390px browser verification."
-  - "Human review should use the source-backed local URL `http://localhost:3002/members/sheppert`."
+  - "Human review should use the shared Docker local URL `http://localhost:3000/members/sheppert`."
 metrics:
-  duration: 75min
+  duration: 95min
   tasks: 2 automated complete, 1 human checkpoint pending
   files: 1
 completed: null
@@ -41,8 +41,8 @@ Final automated and responsive browser verification for the redesigned public Fa
 
 - Ran the focused backend repository checks for public member profile filters and media ownership.
 - Ran the Phase 99 route/component test set, frontend typecheck, frontend lint, forbidden-regression grep gate, and diff hygiene check.
-- Started current-source local services because the already-running Docker frontend/backend were stale relative to the workspace.
-- Verified the real public member profile route at `http://localhost:3002/members/sheppert` on desktop `1366x900` and mobile `390x844`.
+- Rebuilt stale Docker backend/frontend runtime state so the shared test URL on port `3000` served the current Phase 99 implementation.
+- Verified the real public member profile route at `http://localhost:3000/members/sheppert` on desktop `1366x900`, mobile `390x844`, and the Codex in-app browser.
 - Confirmed no Phase 99 CSS polish was required: no horizontal overflow, no major section overlap, no old public tabs/archive strings, media preview stayed 16:9 with `object-fit: cover`, and badge-chain scrolling did not resize the page.
 
 ## Files Changed
@@ -63,11 +63,12 @@ No source or CSS files were modified.
 
 ## Browser Evidence
 
-- URL: `http://localhost:3002/members/sheppert`
-- Backend used for UAT: current-source Go server at `http://localhost:18093`
-- Frontend used for UAT: current-source Next dev server at `http://localhost:3002`
+- URL: `http://localhost:3000/members/sheppert`
+- Backend used for UAT: rebuilt Docker backend at `http://localhost:18092` / internal `http://team4sv30-backend:8092`
+- Frontend used for UAT: rebuilt/restarted Docker frontend at `http://localhost:3000`
 - Local dev-data setup: `members.id=2` (`sheppert`) was toggled from `members_only` to `public` in the local Docker database so the anonymous public route could be verified with real seeded data.
-- Source DTO evidence from `http://localhost:18093/api/v1/members/sheppert`: `current_projects=1`, `latest_contributions=2`, `previous_contributions_count=0`, `memberships=1`, `public_badges=1`, `member_story_html` present.
+- Source DTO evidence from `http://localhost:18092/api/v1/members/sheppert`: `current_projects` present, `latest_contributions` present, `previous_contributions_count=0`, `memberships=1`, `public_badges=1`, `member_story_html` present.
+- Codex in-app browser evidence on port `3000`: H1 `Sheppert`; `Gruppenzugehörigkeit`, `Aktuelle Projekte`, `Letzte Beiträge`, and `Fansub-Geschichte` present; project data includes `Viper's Creed`; latest contribution data present; no compile overlay; no browser error logs.
 - Screenshots captured outside the repo:
   - `C:\Users\admin\AppData\Local\Temp\team4s-phase99-browser\members-sheppert-desktop.png`
   - `C:\Users\admin\AppData\Local\Temp\team4s-phase99-browser\members-sheppert-mobile390.png`
@@ -89,10 +90,10 @@ None. No code or CSS fixes were required.
 
 ### Verification Environment Adjustments
 
-**1. [Rule 3 - Blocking] Used source-launched services instead of stale Docker containers**
+**1. [Rule 3 - Blocking] Rebuilt stale Docker services before shared port-3000 UAT**
 - **Found during:** Task 2 browser verification
-- **Issue:** The existing Docker frontend on port `3000` could not resolve the Phase 99 lower-section components, and the existing Docker backend on host port `18092` returned the pre-99-01 public DTO without `current_projects` or `latest_contributions`.
-- **Fix:** Started a current-source backend on port `18093` and a current-source frontend on port `3002`, then verified `http://localhost:3002/members/sheppert`.
+- **Issue:** The existing Docker frontend on port `3000` had stale Next compile cache and initially could not resolve the Phase 99 lower-section components. After clearing that, the existing Docker backend on host port `18092` still returned the pre-99-01 public DTO without `current_projects` or `latest_contributions`.
+- **Fix:** Stopped the temporary `3002` dev server, cleared `frontend/.next`, restarted `team4sv30-frontend`, rebuilt/recreated `team4sv30-backend`, then verified `http://localhost:3000/members/sheppert`.
 - **Files modified:** None
 
 **2. [Rule 3 - Blocking] Made one local seed profile public for anonymous UAT**
@@ -111,7 +112,7 @@ None. This plan added no endpoint, auth path, upload flow, schema change, filesy
 
 ## Human Verification
 
-Pending. Use `http://localhost:3002/members/sheppert`.
+Pending. Use `http://localhost:3000/members/sheppert`.
 
 Verify:
 - Page order: Hero, Gruppenzugehörigkeit, Aktuelle Projekte, Auszeichnungen, Letzte Beiträge, Fansub-Geschichte, Frühere Mitwirkungen when data exists.
