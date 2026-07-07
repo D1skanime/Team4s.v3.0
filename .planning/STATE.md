@@ -476,6 +476,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260707-kut | Hinweis-senden fuer App-Mitglieder (fansub_group_members): Proposal-Flow member_id-zentrisch statt hist_fansub_group_members; ListMembershipsForMember UNION beider Tabellen; MemberBelongsToFansub-Gate; Leader-Review-Queue fix | 2026-07-07 | b1543e6d | [260707-kut-hinweis-senden-fuer-app-mitglieder-propo](./quick/260707-kut-hinweis-senden-fuer-app-mitglieder-propo/) |
 | 260707-jya | Meine-Projekte-Seite (/me/contributions): Projektliste primaer mit Fortschrittsbalken pro Projekt (worked/total im getMyAnimeContributions-Endpoint), Offene Aktionen/Hinweise nachrangig | 2026-07-07 | 815e1d6d | [260707-jya-meine-projekte-seite-umbauen-projektlist](./quick/260707-jya-meine-projekte-seite-umbauen-projektlist/) |
 | 260707-hx0 | Meine-Projekt-Detailseite als To-Do-Workspace: nur zugeordnete Folgen, Filter Alle/Offen/Erledigt, Status-Badges, offene zuerst | 2026-07-07 | e02b5c8f | [260707-hx0-meine-projekt-detailseite-als-to-do-work](./quick/260707-hx0-meine-projekt-detailseite-als-to-do-work/) |
 | 260707-g70 | Meine-Projekte-Detailseite: Banner-Background via relativer Media-URL (Proxy, host-agnostisch), Cover entschlackt, Rollen-Card, Filter "Nur meine Beitraege" auf konkrete Arbeit (Notiz/Medien) | 2026-07-07 | bbbc6e83 | [260707-g70-meine-projekte-detailseite-banner-backgr](./quick/260707-g70-meine-projekte-detailseite-banner-backgr/) |
