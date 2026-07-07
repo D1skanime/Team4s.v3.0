@@ -51,14 +51,14 @@ function renderForm(ownGroups = OWN_GROUPS, props?: Partial<Parameters<typeof Pr
   )
 }
 
-async function chooseGroupAndAnime() {
+async function chooseGroupAndAnime(groupNamePattern: RegExp = /Testgruppe/, expectedFansubGroupId = 10) {
   apiMocks.getAdminFansubAnime.mockResolvedValue({ data: [{ id: 3, title: 'Naruto' }] })
 
   fireEvent.click(screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }))
-  fireEvent.click(screen.getByRole('option', { name: /Testgruppe/ }))
+  fireEvent.click(screen.getByRole('option', { name: groupNamePattern }))
 
   await waitFor(() => {
-    expect(apiMocks.getAdminFansubAnime).toHaveBeenCalledWith(10)
+    expect(apiMocks.getAdminFansubAnime).toHaveBeenCalledWith(expectedFansubGroupId)
   })
   await waitFor(() => {
     expect((screen.getByRole('button', { name: 'Bei welchem Anime/Projekt dieser Gruppe?' }) as HTMLButtonElement).disabled).toBe(false)
@@ -254,5 +254,45 @@ describe('ProposalForm', () => {
     expect(screen.getByText(/verifizierte Mitgliedschaft/)).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }) as HTMLButtonElement).disabled).toBe(true)
     expect((screen.getByRole('button', { name: 'Weiter' }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  // quick-260707-kut: App-Mitglieder (fansub_group_member_id: 0, kein hist-Anker) muessen
+  // den Wizard vollstaendig durchlaufen koennen. Regressionstest fuer den Submit-Guard in
+  // submitProposal() (vormals Zeile 174), der faelschlich auf selectedGroupMemberId (fuer
+  // App-Mitglieder falsy=0) statt auf selectedGroupId (an fansub_group_id gebunden) prüfte.
+  it('erlaubt App-Mitgliedern ohne hist-Anker (fansub_group_member_id: 0) den vollstaendigen Wizard-Durchlauf', async () => {
+    apiMocks.createContributionProposal.mockResolvedValue(undefined)
+    const appMemberGroups: MembershipEntry[] = [
+      { fansub_group_member_id: 0, fansub_group_id: 5, group_name: 'App-Only-Gruppe' },
+    ]
+    renderForm(appMemberGroups)
+
+    expect((screen.getByRole('button', { name: 'Welche Gruppe soll prüfen?' }) as HTMLButtonElement).disabled).toBe(false)
+
+    await chooseGroupAndAnime(/App-Only-Gruppe/, 5)
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    // Pflicht-Assertion: der Submit-Guard darf NICHT auf "Bitte wähle eine Gruppe aus." auflaufen,
+    // obwohl fansub_group_member_id für dieses Mitglied 0 (falsy) ist.
+    expect(screen.queryByText('Bitte wähle eine Gruppe aus.')).toBeNull()
+    expect(screen.getAllByText('Schritt 2 von 3')).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Übersetzung' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    fireEvent.click(await waitForFinalSubmitButton())
+
+    await waitFor(() => {
+      expect(apiMocks.createContributionProposal).toHaveBeenCalledWith({
+        fansub_group_id: 5,
+        anime_id: 3,
+        fansub_group_member_id: 0,
+        role_codes: ['translator'],
+        note: null,
+        started_year: null,
+        ended_year: null,
+      })
+    })
+
+    expect(screen.getByText('Hinweis gesendet')).toBeTruthy()
   })
 })

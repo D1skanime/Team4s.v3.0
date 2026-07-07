@@ -118,7 +118,7 @@ interface Step1Props {
   ownGroups: MembershipEntry[]
   groupOptions: Array<{ value: number; label: string; subtitle?: string }>
   animeOptions: Array<{ value: number; label: string; subtitle?: string }>
-  selectedGroupMemberId: number | ''
+  selectedGroupId: number | ''
   selectedAnimeId: number | ''
   selectedGroup: MembershipEntry | null
   selectedAnime: AdminFansubAnimeEntry | null
@@ -133,7 +133,7 @@ export function Step1GroupProject({
   ownGroups,
   groupOptions,
   animeOptions,
-  selectedGroupMemberId,
+  selectedGroupId,
   selectedAnimeId,
   selectedGroup,
   selectedAnime,
@@ -148,7 +148,7 @@ export function Step1GroupProject({
       <FormField label="Welche Gruppe soll prüfen?" required>
         <ChoiceSelect
           label="Welche Gruppe soll prüfen?"
-          value={selectedGroupMemberId}
+          value={selectedGroupId}
           options={groupOptions}
           placeholder={ownGroups.length === 0 ? 'Keine verifizierte Gruppe verfügbar' : 'Gruppe auswählen'}
           disabled={ownGroups.length === 0}

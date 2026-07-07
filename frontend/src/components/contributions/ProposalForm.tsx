@@ -40,7 +40,7 @@ const STEPS: Array<{ id: WizardStep; title: string }> = [
 
 export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }: ProposalFormProps) {
   const [step, setStep] = useState<WizardStep>(1)
-  const [selectedGroupMemberId, setSelectedGroupMemberId] = useState<number | ''>('')
+  const [selectedGroupId, setSelectedGroupId] = useState<number | ''>('')
   const [selectedAnimeId, setSelectedAnimeId] = useState<number | ''>('')
   const [groupAnime, setGroupAnime] = useState<AdminFansubAnimeEntry[]>([])
   const [isLoadingGroupAnime, setIsLoadingGroupAnime] = useState(false)
@@ -55,8 +55,8 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
   const [submittedSummary, setSubmittedSummary] = useState<SubmittedSummary | null>(null)
 
   const selectedGroup = useMemo(
-    () => ownGroups.find((group) => group.fansub_group_member_id === selectedGroupMemberId) ?? null,
-    [ownGroups, selectedGroupMemberId],
+    () => ownGroups.find((group) => group.fansub_group_id === selectedGroupId) ?? null,
+    [ownGroups, selectedGroupId],
   )
   const selectedAnime = useMemo(
     () => groupAnime.find((anime) => anime.id === selectedAnimeId) ?? null,
@@ -73,7 +73,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
 
   const groupOptions = useMemo<Array<{ value: number; label: string; subtitle?: string }>>(
     () => ownGroups.map((group) => ({
-      value: group.fansub_group_member_id,
+      value: group.fansub_group_id,
       label: group.group_name,
       subtitle: 'Eigene Gruppe',
     })),
@@ -123,7 +123,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
 
   function resetAndClose() {
     setStep(1)
-    setSelectedGroupMemberId('')
+    setSelectedGroupId('')
     setSelectedAnimeId('')
     setGroupAnime([])
     setSelectedRoleCode('')
@@ -171,7 +171,7 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
       setError('Für einen Hinweis brauchst du zuerst eine verifizierte Gruppenmitgliedschaft.')
       return
     }
-    if (!selectedGroupMemberId || !selectedGroup) {
+    if (!selectedGroupId || !selectedGroup) {
       setStep(1)
       setError('Bitte wähle eine Gruppe aus.')
       return
@@ -308,14 +308,14 @@ export function ProposalForm({ onSuccess, onClose, ownGroups, roleDefinitions }:
                 ownGroups={ownGroups}
                 groupOptions={groupOptions}
                 animeOptions={animeOptions}
-                selectedGroupMemberId={selectedGroupMemberId}
+                selectedGroupId={selectedGroupId}
                 selectedAnimeId={selectedAnimeId}
                 selectedGroup={selectedGroup}
                 selectedAnime={selectedAnime}
                 isLoadingGroupAnime={isLoadingGroupAnime}
                 groupAnime={groupAnime}
                 groupAnimeError={groupAnimeError}
-                onGroupChange={setSelectedGroupMemberId}
+                onGroupChange={setSelectedGroupId}
                 onAnimeChange={setSelectedAnimeId}
               />
             ) : null}

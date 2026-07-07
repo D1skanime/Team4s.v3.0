@@ -151,6 +151,8 @@ export interface GroupProposalsResponse {
 }
 
 export interface MembershipEntry {
+  /** 0 wenn der Member nur App-Mitglied ist (kein hist_fansub_group_members-Eintrag) —
+   * fansub_group_id bleibt der massgebliche Auswahl-Schluessel. */
   fansub_group_member_id: number
   fansub_group_id: number
   group_name: string
