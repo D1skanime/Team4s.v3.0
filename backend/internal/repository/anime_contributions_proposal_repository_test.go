@@ -31,6 +31,50 @@ func TestMemberContributionWithProposalRow_HasEpisodeFields(t *testing.T) {
 	}
 }
 
+// TestMemberContributionWithProposalRow_HasWorkedTotalFields stellt sicher, dass das
+// Member-Contribution-DTO die worked/total Release-Versionen-Felder traegt (D-01),
+// die ListByMemberIDWithProposalFields per korrelierter Subquery auf ac.anime_id +
+// ac.fansub_group_id befuellt.
+func TestMemberContributionWithProposalRow_HasWorkedTotalFields(t *testing.T) {
+	var row MemberContributionWithProposalRow
+
+	if row.WorkedReleaseVersionCount != 0 {
+		t.Fatalf("WorkedReleaseVersionCount sollte initial 0 sein")
+	}
+	if row.TotalReleaseVersionCount != 0 {
+		t.Fatalf("TotalReleaseVersionCount sollte initial 0 sein")
+	}
+
+	row.WorkedReleaseVersionCount = 3
+	row.TotalReleaseVersionCount = 12
+
+	if row.WorkedReleaseVersionCount != 3 || row.TotalReleaseVersionCount != 12 {
+		t.Fatalf("worked/total Felder nicht korrekt gesetzt: got %v / %v", row.WorkedReleaseVersionCount, row.TotalReleaseVersionCount)
+	}
+}
+
+// TestListByMemberIDWithProposalFields_SelectsWorkedTotalSubqueries prueft per
+// Source-Inspektion, dass die Query in ListByMemberIDWithProposalFields die
+// korrelierten worked/total Subqueries auf ac.anime_id/ac.fansub_group_id enthaelt
+// (analog member_profile_repository.go loadRecentContributions, siehe PLAN <interfaces>).
+func TestListByMemberIDWithProposalFields_SelectsWorkedTotalSubqueries(t *testing.T) {
+	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go")
+
+	required := []string{
+		"total_release_version_count",
+		"worked_release_version_count",
+		"ep.anime_id = ac.anime_id",
+		"rvg.fansub_group_id = ac.fansub_group_id",
+		"n.member_id = $1",
+		"mc.claim_status = 'verified'",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(source, fragment) {
+			t.Fatalf("ListByMemberIDWithProposalFields muss worked/total Subqueries enthalten; Fragment fehlt: %q", fragment)
+		}
+	}
+}
+
 func TestCreateProposal_IsRoleScopedAndSerialized(t *testing.T) {
 	source := readProposalRepositorySource(t, "anime_contributions_proposal_repository.go") +
 		readProposalRepositorySource(t, "anime_contributions_proposal_merge_repository.go")
