@@ -14,12 +14,16 @@ import (
 // ProposalInput enthält die Eingabefelder für einen neuen Contribution-Vorschlag.
 type ProposalInput struct {
 	FansubGroupMemberID int64
-	RoleCodes           []string // min. 1 Eintrag erforderlich
-	Note                *string
-	StartedYear         *int
-	EndedYear           *int
-	ReleaseVersionID    *int64 // nil => anime-weit; gesetzt => versions-spezifisch (Phase 67-02)
-	AppUserID           int64  // App-User-ID des einreichenden Members (created_by)
+	// MemberID ist die member_id des server-seitig verifizierten Members — Server-Wahrheit,
+	// NIE aus dem Request (quick-260707-kut, T-260707kut-01/03). Wird direkt fuer
+	// anime_contributions.member_id gebunden statt ueber eine hist-only Subquery abgeleitet.
+	MemberID         int64
+	RoleCodes        []string // min. 1 Eintrag erforderlich
+	Note             *string
+	StartedYear      *int
+	EndedYear        *int
+	ReleaseVersionID *int64 // nil => anime-weit; gesetzt => versions-spezifisch (Phase 67-02)
+	AppUserID        int64  // App-User-ID des einreichenden Members (created_by)
 }
 
 // GroupProposalRow ist die Rückgabe für ListProposedByGroup — enthält Member- und
@@ -47,15 +51,23 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 	defer tx.Rollback(ctx)
 
 	createdBy := input.AppUserID
-	if err := r.lockProposalContext(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID); err != nil {
+	if err := r.lockProposalContext(ctx, tx, fansubGroupID, animeID, input.MemberID, input.ReleaseVersionID); err != nil {
 		return nil, err
 	}
-	conflictingRoles, err := r.findExistingProposalRoles(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID, input.RoleCodes)
+	conflictingRoles, err := r.findExistingProposalRoles(ctx, tx, fansubGroupID, animeID, input.MemberID, input.ReleaseVersionID, input.RoleCodes)
 	if err != nil {
 		return nil, err
 	}
 	if len(conflictingRoles) > 0 {
 		return nil, fmt.Errorf("vorschlag erstellen: rolle bereits vorhanden: %w", ErrConflict)
+	}
+	// fansub_group_member_id bleibt NULL, wenn kein hist-Anker vorhanden ist (App-Mitglied
+	// ohne hist_fansub_group_members-Eintrag, quick-260707-kut). Der Composite-FK
+	// fk_anime_contributions_member_group referenziert hist_fansub_group_members(fansub_group_id, id)
+	// per MATCH SIMPLE — bei NULL wird der FK nicht geprueft, kein Konflikt.
+	var fansubGroupMemberIDParam any = input.FansubGroupMemberID
+	if input.FansubGroupMemberID == 0 {
+		fansubGroupMemberIDParam = nil
 	}
 	var newID int64
 	err = tx.QueryRow(ctx, `
@@ -79,7 +91,7 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 			$1,
 			$2,
 			$3,
-			(SELECT member_id FROM hist_fansub_group_members WHERE id = $3 AND fansub_group_id = $1),
+			$9,
 			'proposed',
 			$4,
 			$5,
@@ -96,12 +108,13 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 	`,
 		fansubGroupID,
 		animeID,
-		input.FansubGroupMemberID,
+		fansubGroupMemberIDParam,
 		input.Note,
 		input.StartedYear,
 		input.EndedYear,
 		createdBy,
 		input.ReleaseVersionID,
+		input.MemberID,
 	).Scan(&newID)
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -138,10 +151,14 @@ func (r *AnimeContributionsRepository) CreateProposal(ctx context.Context, fansu
 // ListProposedByGroup gibt alle offenen Vorschläge (status='proposed') für eine Gruppe
 // zurück, angereichert mit Member-Anzeigename und Anime-Titel.
 func (r *AnimeContributionsRepository) ListProposedByGroup(ctx context.Context, fansubGroupID int64) ([]GroupProposalRow, error) {
+	// JOIN direkt über ac.member_id (NOT NULL) statt über hist_fansub_group_members —
+	// funktioniert fuer hist- und App-Mitglieder-Vorschlaege gleichermassen, sonst
+	// verschwinden App-Mitglieder-Vorschlaege (fansub_group_member_id NULL) aus der
+	// Review-Queue (T-260707kut-04, quick-260707-kut).
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			ac.id,
-			ac.fansub_group_member_id,
+			COALESCE(ac.fansub_group_member_id, 0) AS fansub_group_member_id,
 			COALESCE(NULLIF(TRIM(m.display_name), ''), m.nickname) AS member_display_name,
 			ac.anime_id,
 			COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
@@ -149,8 +166,7 @@ func (r *AnimeContributionsRepository) ListProposedByGroup(ctx context.Context, 
 			ac.note,
 			ac.created_at
 		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		JOIN members m ON m.id = hfgm.member_id
+		JOIN members m ON m.id = ac.member_id
 		JOIN anime a ON a.id = ac.anime_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		WHERE ac.status = 'proposed' AND ac.fansub_group_id = $1

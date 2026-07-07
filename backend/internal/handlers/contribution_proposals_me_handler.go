@@ -16,7 +16,6 @@ import (
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -47,6 +46,13 @@ type OwnershipChecker interface {
 	MemberIDForAnimeContribution(ctx context.Context, contributionID int64) (int64, error)
 }
 
+// FansubMembershipChecker prüft Gruppenzugehörigkeit über member_id (hist UNION app),
+// analog AnimeContributionsRepository.MemberBelongsToFansub. Ersetzt im CreateProposal-Pfad
+// den bisherigen hist-only Ownership-Check über fansub_group_member_id (quick-260707-kut).
+type FansubMembershipChecker interface {
+	MemberBelongsToFansub(ctx context.Context, memberID int64, fansubGroupID int64) (bool, error)
+}
+
 // MembershipsLister gibt die hist_fansub_group_members eines Members zurück.
 type MembershipsLister interface {
 	ListMembershipsForMember(ctx context.Context, memberID int64) ([]MembershipEntry, error)
@@ -73,6 +79,7 @@ type ContributionProposalsMeHandler struct {
 	auditLogRepo          *repository.AuditLogRepository
 	memberResolver        MemberResolver
 	ownershipChecker      OwnershipChecker
+	membershipChecker     FansubMembershipChecker
 	membershipsLister     MembershipsLister
 	releaseVersionChecker ReleaseVersionParticipationChecker
 }
@@ -89,119 +96,23 @@ func NewContributionProposalsMeHandler(
 	if checker, ok := proposalRepo.(ReleaseVersionParticipationChecker); ok {
 		releaseVersionChecker = checker
 	}
+	var membershipChecker FansubMembershipChecker
+	if checker, ok := proposalRepo.(FansubMembershipChecker); ok {
+		membershipChecker = checker
+	}
 	return &ContributionProposalsMeHandler{
 		proposalRepo:          proposalRepo,
 		rolesRepo:             rolesRepo,
 		auditLogRepo:          auditLogRepo,
 		memberResolver:        dbResolver,
 		ownershipChecker:      &dbOwnershipChecker{db: db},
+		membershipChecker:     membershipChecker,
 		membershipsLister:     &dbMembershipsLister{db: db},
 		releaseVersionChecker: releaseVersionChecker,
 	}
 }
 
-// --- DB-Implementierungen der Interfaces ---
-
-// dbMemberResolver loest member_claims aus der Datenbank auf.
-type dbMemberResolver struct {
-	db *pgxpool.Pool
-}
-
-func (r *dbMemberResolver) ResolveVerifiedMemberID(ctx context.Context, appUserID int64) (int64, error) {
-	var memberID int64
-	err := r.db.QueryRow(ctx, `
-		SELECT member_id FROM member_claims
-		WHERE app_user_id = $1 AND claim_status = 'verified'
-		ORDER BY verified_at DESC
-		LIMIT 1
-	`, appUserID).Scan(&memberID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, repository.ErrNotFound
-		}
-		return 0, err
-	}
-	return memberID, nil
-}
-
-// dbOwnershipChecker prueft Eigentuemer via DB-Joins.
-type dbOwnershipChecker struct {
-	db *pgxpool.Pool
-}
-
-func (c *dbOwnershipChecker) MemberIDForFansubGroupMember(ctx context.Context, fansubGroupMemberID int64) (int64, error) {
-	var memberID int64
-	err := c.db.QueryRow(ctx, `
-		SELECT member_id FROM hist_fansub_group_members WHERE id = $1
-	`, fansubGroupMemberID).Scan(&memberID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, repository.ErrNotFound
-		}
-		return 0, err
-	}
-	return memberID, nil
-}
-
-func (c *dbOwnershipChecker) FansubGroupIDForFansubGroupMember(ctx context.Context, fansubGroupMemberID int64) (int64, error) {
-	var fansubGroupID int64
-	err := c.db.QueryRow(ctx, `
-		SELECT fansub_group_id FROM hist_fansub_group_members WHERE id = $1
-	`, fansubGroupMemberID).Scan(&fansubGroupID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, repository.ErrNotFound
-		}
-		return 0, err
-	}
-	return fansubGroupID, nil
-}
-
-func (c *dbOwnershipChecker) MemberIDForAnimeContribution(ctx context.Context, contributionID int64) (int64, error) {
-	var memberID int64
-	err := c.db.QueryRow(ctx, `
-		SELECT hfgm.member_id
-		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		WHERE ac.id = $1
-	`, contributionID).Scan(&memberID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, repository.ErrNotFound
-		}
-		return 0, err
-	}
-	return memberID, nil
-}
-
-// dbMembershipsLister fragt hist_fansub_group_members aus der Datenbank ab.
-type dbMembershipsLister struct {
-	db *pgxpool.Pool
-}
-
-func (l *dbMembershipsLister) ListMembershipsForMember(ctx context.Context, memberID int64) ([]MembershipEntry, error) {
-	rows, err := l.db.Query(ctx, `
-		SELECT hfgm.id AS fansub_group_member_id, fg.id AS fansub_group_id, fg.name AS group_name
-		FROM hist_fansub_group_members hfgm
-		JOIN fansub_groups fg ON fg.id = hfgm.fansub_group_id
-		WHERE hfgm.member_id = $1
-		ORDER BY fg.name ASC
-	`, memberID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	result := make([]MembershipEntry, 0)
-	for rows.Next() {
-		var e MembershipEntry
-		if err := rows.Scan(&e.FansubGroupMemberID, &e.FansubGroupID, &e.GroupName); err != nil {
-			return nil, err
-		}
-		result = append(result, e)
-	}
-	return result, rows.Err()
-}
+// --- DB-Implementierungen der Interfaces siehe contribution_proposals_me_db.go ---
 
 // --- Request-Typen ---
 
@@ -257,31 +168,20 @@ func (h *ContributionProposalsMeHandler) CreateProposal(c *gin.Context) {
 		return
 	}
 
-	// D-03: Ownership-Check — fansub_group_member_id muss zum eingeloggten Member gehören.
-	ownerMemberID, err := h.ownershipChecker.MemberIDForFansubGroupMember(c.Request.Context(), req.FansubGroupMemberID)
-	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
+	// D-03/T-260707kut-02: Ownership-Check — der eingeloggte Member muss Mitglied der
+	// Ziel-Gruppe sein (hist UNION app), ersetzt die bisherige rein hist-basierte
+	// fansub_group_member_id-Doppelprüfung. req.FansubGroupMemberID darf 0 sein
+	// (App-Mitglied ohne hist-Anker) — wird hier nicht mehr hart validiert.
+	if h.membershipChecker == nil {
+		internalError(c, "interner Serverfehler")
 		return
 	}
+	belongs, err := h.membershipChecker.MemberBelongsToFansub(c.Request.Context(), memberID, req.FansubGroupID)
 	if err != nil {
 		internalError(c, "interner Serverfehler")
 		return
 	}
-	if ownerMemberID != memberID {
-		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
-		return
-	}
-
-	ownerFansubGroupID, err := h.ownershipChecker.FansubGroupIDForFansubGroupMember(c.Request.Context(), req.FansubGroupMemberID)
-	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
-		return
-	}
-	if err != nil {
-		internalError(c, "interner Serverfehler")
-		return
-	}
-	if ownerFansubGroupID != req.FansubGroupID {
+	if !belongs {
 		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine Berechtigung"}})
 		return
 	}
@@ -323,6 +223,7 @@ func (h *ContributionProposalsMeHandler) CreateProposal(c *gin.Context) {
 
 	input := repository.ProposalInput{
 		FansubGroupMemberID: req.FansubGroupMemberID,
+		MemberID:            memberID,
 		RoleCodes:           req.RoleCodes,
 		Note:                req.Note,
 		StartedYear:         req.StartedYear,

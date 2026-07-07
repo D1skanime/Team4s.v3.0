@@ -80,19 +80,23 @@ func TestCreateProposal_IsRoleScopedAndSerialized(t *testing.T) {
 		readProposalRepositorySource(t, "anime_contributions_proposal_merge_repository.go")
 
 	required := []string{
-		"lockProposalContext(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID)",
-		"findExistingProposalRoles(ctx, tx, fansubGroupID, animeID, input.FansubGroupMemberID, input.ReleaseVersionID, input.RoleCodes)",
+		"lockProposalContext(ctx, tx, fansubGroupID, animeID, input.MemberID, input.ReleaseVersionID)",
+		"findExistingProposalRoles(ctx, tx, fansubGroupID, animeID, input.MemberID, input.ReleaseVersionID, input.RoleCodes)",
 		"SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))",
 		"acr.role_code = ANY($5::text[])",
 		"AND status IN ('draft', 'proposed')",
 		"member_id",
-		"SELECT member_id FROM hist_fansub_group_members WHERE id = $3 AND fansub_group_id = $1",
 		"&row.FansubGroupMemberID",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(source, fragment) {
 			t.Fatalf("CreateProposal muss rollenbezogene Duplikate serialisiert pruefen; Fragment fehlt: %q", fragment)
 		}
+	}
+
+	oldFragment := "SELECT member_id FROM hist_fansub_group_members WHERE id = $3 AND fansub_group_id = $1"
+	if strings.Contains(source, oldFragment) {
+		t.Fatalf("CreateProposal darf member_id nicht mehr per hist-only Subquery ableiten; verbotenes Fragment gefunden: %q", oldFragment)
 	}
 }
 

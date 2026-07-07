@@ -84,6 +84,19 @@ func (s *ownershipCheckerStub) MemberIDForAnimeContribution(ctx context.Context,
 	return s.ownerMemberID, s.err
 }
 
+// membershipCheckerStub steuert das Ergebnis von MemberBelongsToFansub im Test
+// (ersetzt im CreateProposal-Pfad den hist-only ownershipCheckerStub — quick-260707-kut).
+type membershipCheckerStub struct {
+	belongs bool
+	err     error
+}
+
+func (s *membershipCheckerStub) MemberBelongsToFansub(ctx context.Context, memberID int64, fansubGroupID int64) (bool, error) {
+	return s.belongs, s.err
+}
+
+var _ FansubMembershipChecker = (*membershipCheckerStub)(nil)
+
 // releaseVersionCheckerStub steuert die D-03-Beteiligungspruefung im Member-Pfad.
 // participates wird nur abgefragt, wenn der Handler bei gesetztem release_version_id
 // den Check aufruft.
@@ -108,7 +121,9 @@ func setTestAuthIdentity(c *gin.Context, appUserID int64) {
 	})
 }
 
-// Hilfsfunktion: baut einen Handler für Tests mit steuerbaren Stubs
+// Hilfsfunktion: baut einen Handler für Tests mit steuerbaren Stubs.
+// membershipChecker defaultet auf belongs=true, damit bestehende Erfolgstests grün
+// bleiben (quick-260707-kut: ersetzt den hist-only Ownership-Check im CreateProposal-Pfad).
 func buildTestProposalHandler(
 	proposalRepo ProposalRepository,
 	rolesRepo RolesRepository,
@@ -121,6 +136,7 @@ func buildTestProposalHandler(
 		auditLogRepo:          repository.NewAuditLogRepository(nil),
 		memberResolver:        memberResolver,
 		ownershipChecker:      ownershipChecker,
+		membershipChecker:     &membershipCheckerStub{belongs: true},
 		releaseVersionChecker: &releaseVersionCheckerStub{participates: true},
 	}
 }
@@ -203,13 +219,14 @@ func TestCreateProposal_DuplicateBlocked(t *testing.T) {
 
 func TestCreateProposal_ForeignMembershipRejected(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	// ownerMemberID 99 != memberID 10 → 403
+	// membershipChecker liefert belongs=false → 403, unabhaengig vom Ownership-Checker-Stub.
 	h := buildTestProposalHandler(
 		&proposalRepoStub{},
 		&rolesRepoStub{exists: true},
 		&memberResolverStub{memberID: 10},
 		&ownershipCheckerStub{ownerMemberID: 99},
 	)
+	h.membershipChecker = &membershipCheckerStub{belongs: false}
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
@@ -224,16 +241,68 @@ func TestCreateProposal_ForeignMembershipRejected(t *testing.T) {
 
 func TestCreateProposal_MembershipGroupMismatchRejected(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	// membershipChecker liefert belongs=false → 403 (Cross-Group-Versuch ueber MemberBelongsToFansub).
 	h := buildTestProposalHandler(
 		&proposalRepoStub{},
 		&rolesRepoStub{exists: true},
 		&memberResolverStub{memberID: 10},
 		&ownershipCheckerStub{ownerMemberID: 10, ownerGroupID: 2},
 	)
+	h.membershipChecker = &membershipCheckerStub{belongs: false}
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
 		strings.NewReader(`{"fansub_group_id":1,"anime_id":2,"fansub_group_member_id":3,"role_codes":["sub"]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	setTestAuthIdentity(c, 42)
+	h.CreateProposal(c)
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("erwartet 403, bekommen %d (%s)", recorder.Code, recorder.Body.String())
+	}
+}
+
+// TestCreateProposal_AppMemberWithoutHistEntrySucceeds prueft, dass ein App-Mitglied
+// (fansub_group_member_id: 0, kein hist-Anker) einen Hinweis senden kann, sofern
+// MemberBelongsToFansub true liefert. ProposalInput.MemberID muss == memberID sein
+// (nicht req.FansubGroupMemberID) — Kernverhalten von quick-260707-kut.
+func TestCreateProposal_AppMemberWithoutHistEntrySucceeds(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	repoStub := &proposalRepoStub{createResult: &repository.AnimeContributionRow{ID: 7, Status: "proposed"}}
+	h := buildTestProposalHandler(
+		repoStub,
+		&rolesRepoStub{exists: true},
+		&memberResolverStub{memberID: 2},
+		&ownershipCheckerStub{ownerMemberID: 2},
+	)
+	h.membershipChecker = &membershipCheckerStub{belongs: true}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
+		strings.NewReader(`{"fansub_group_id":1,"anime_id":2,"fansub_group_member_id":0,"role_codes":["sub"]}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	setTestAuthIdentity(c, 42)
+	h.CreateProposal(c)
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("erwartet 201, bekommen %d (%s)", recorder.Code, recorder.Body.String())
+	}
+}
+
+// TestCreateProposal_CrossGroupRejectedViaMembershipCheck prueft, dass ein Cross-Group-Versuch
+// unabhaengig vom Wert von fansub_group_member_id mit 403 abgelehnt wird, sobald
+// MemberBelongsToFansub false liefert (T-260707kut-02).
+func TestCreateProposal_CrossGroupRejectedViaMembershipCheck(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := buildTestProposalHandler(
+		&proposalRepoStub{},
+		&rolesRepoStub{exists: true},
+		&memberResolverStub{memberID: 2},
+		&ownershipCheckerStub{ownerMemberID: 2},
+	)
+	h.membershipChecker = &membershipCheckerStub{belongs: false}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/v1/me/contribution-proposals",
+		strings.NewReader(`{"fansub_group_id":99,"anime_id":2,"fansub_group_member_id":0,"role_codes":["sub"]}`))
 	c.Request.Header.Set("Content-Type", "application/json")
 	setTestAuthIdentity(c, 42)
 	h.CreateProposal(c)
@@ -488,6 +557,80 @@ func TestListMemberships_Success(t *testing.T) {
 	data, _ := body["data"].([]any)
 	if len(data) != 1 {
 		t.Fatalf("erwartet 1 Mitgliedschaft, bekommen %d", len(data))
+	}
+}
+
+// TestListMemberships_IncludesAppMembersWithoutHistEntry prueft, dass der Handler einen
+// Eintrag mit FansubGroupMemberID: 0 (App-Mitglied ohne hist-Anker) unveraendert
+// durchreicht (keine Filterung im Handler). Deckt NUR den Handler gegen den Stub ab —
+// die reale SQL-Query wird in TestDbMembershipsLister_QueryReferencesBothMembershipTables
+// verifiziert (siehe unten).
+func TestListMemberships_IncludesAppMembersWithoutHistEntry(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	h := buildTestProposalHandler(
+		&proposalRepoStub{},
+		&rolesRepoStub{},
+		&memberResolverStub{memberID: 2},
+		&ownershipCheckerStub{ownerMemberID: 2},
+	)
+	h.membershipsLister = &membershipsListerStub{
+		entries: []MembershipEntry{
+			{FansubGroupMemberID: 0, FansubGroupID: 1, GroupName: "C-Subs"},
+		},
+	}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/me/memberships", nil)
+	setTestAuthIdentity(c, 42)
+	h.ListMemberships(c)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("erwartet 200, bekommen %d (%s)", recorder.Code, recorder.Body.String())
+	}
+	var body map[string]any
+	json.Unmarshal(recorder.Body.Bytes(), &body)
+	data, _ := body["data"].([]any)
+	if len(data) != 1 {
+		t.Fatalf("erwartet 1 Mitgliedschaft, bekommen %d", len(data))
+	}
+	entry, _ := data[0].(map[string]any)
+	fgmID, _ := entry["fansub_group_member_id"].(float64)
+	if fgmID != 0 {
+		t.Fatalf("erwartet fansub_group_member_id=0 fuer App-Mitglied ohne hist-Anker, bekommen %v", fgmID)
+	}
+}
+
+// TestDbMembershipsLister_QueryReferencesBothMembershipTables ist PFLICHT (nicht optional):
+// TestListMemberships_IncludesAppMembersWithoutHistEntry prueft nur den Handler gegen den
+// Stub und deckt das reale SQL NICHT ab. Dieser Source-Inspektions-Test (analog
+// TestCreateProposal_IsRoleScopedAndSerialized im Repository-Paket) liest den Quelltext von
+// dbMembershipsLister.ListMembershipsForMember und verifiziert, dass die ECHTE DB-Query
+// beide Mitgliedschaftstabellen referenziert und pro Gruppe dedupliziert — der Beweis, dass
+// das Kernfeature (App-Mitglied sieht Gruppe unter GET /me/memberships) tatsaechlich
+// funktioniert und nicht nur der Handler-Wrapper (quick-260707-kut).
+func TestDbMembershipsLister_QueryReferencesBothMembershipTables(t *testing.T) {
+	dbFilePath := filepath.Join(".", "contribution_proposals_me_db.go")
+	content, err := os.ReadFile(dbFilePath)
+	if err != nil {
+		t.Fatalf("db-datei lesen: %v", err)
+	}
+	source := string(content)
+	start := strings.Index(source, "func (l *dbMembershipsLister) ListMembershipsForMember")
+	if start < 0 {
+		t.Fatalf("ListMembershipsForMember-Methode nicht gefunden")
+	}
+	methodSource := source[start:]
+	if next := strings.Index(methodSource[len("func "):], "\nfunc "); next >= 0 {
+		methodSource = methodSource[:len("func ")+next]
+	}
+	required := []string{
+		"hist_fansub_group_members",
+		"fansub_group_members",
+		"DISTINCT ON",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(methodSource, fragment) {
+			t.Fatalf("ListMembershipsForMember muss %q enthalten (reale DB-Query, nicht nur Stub)", fragment)
+		}
 	}
 }
 
