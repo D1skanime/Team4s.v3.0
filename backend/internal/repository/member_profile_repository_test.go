@@ -60,7 +60,7 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 	accountOnlyReturnIndex := strings.Index(content, "if !base.HasMemberProfile")
 	assert.True(t, membershipLoadIndex >= 0 && accountOnlyReturnIndex >= 0 && membershipLoadIndex < accountOnlyReturnIndex,
 		"own profile reads must load app memberships before the account-only return so the drawer can link direct group workspaces")
-	assert.True(t, strings.Contains(content, "base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID)"),
+	assert.True(t, strings.Contains(content, "base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID, false)"),
 		"own profile reads must load recent contributions by authenticated member id")
 	assert.True(t, strings.Contains(content, "WHERE rvm.uploaded_by_user_id = $1"),
 		"recent media must be isolated by release_version_media.uploaded_by_user_id")

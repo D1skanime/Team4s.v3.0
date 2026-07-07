@@ -80,7 +80,7 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 	if err != nil {
 		return nil, err
 	}
-	base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID)
+	base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -504,7 +504,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 			return nil, loadErr
 		}
 	}
-	profile.RecentContributions, loadErr = r.loadRecentContributions(ctx, row.memberID)
+	profile.RecentContributions, loadErr = r.loadRecentContributions(ctx, row.memberID, true)
 	if loadErr != nil {
 		return nil, loadErr
 	}
@@ -1090,7 +1090,7 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 	return items, nil
 }
 
-func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, memberID int64) ([]models.MemberProfileRecentContribution, error) {
+func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, memberID int64, publicOnly bool) ([]models.MemberProfileRecentContribution, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH release_credit_rows AS (
 			SELECT
@@ -1115,6 +1115,32 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 			JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 			WHERE rmr.member_id = $1
 		),
+		contribution_credit_rows AS (
+			SELECT
+				NULL::bigint  AS release_id,
+				cr.id         AS role_id,
+				fg.id         AS fansub_group_id,
+				ac.release_version_id,
+				NULL::bigint  AS episode_id,
+				ac.created_at,
+				a.title       AS anime_title,
+				a.id          AS anime_id,
+				fg.name::text AS fansub_group_name,
+				cr.name::text AS role_name,
+				cr.label::text AS role_label
+			FROM anime_contributions ac
+			JOIN anime a ON a.id = ac.anime_id
+			JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
+			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+			JOIN contributor_roles cr ON cr.name = acr.role_code
+			WHERE ac.member_id = $1 AND ac.status = 'confirmed'
+			  AND (NOT $2 OR ac.is_public_on_member_profile = true)
+		),
+		all_credit_rows AS (
+			SELECT * FROM release_credit_rows
+			UNION ALL
+			SELECT * FROM contribution_credit_rows
+		),
 		deduped AS (
 			SELECT DISTINCT ON (anime_id, release_id, role_id, fansub_group_id)
 				release_id,
@@ -1127,7 +1153,7 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 				fansub_group_name,
 				role_name,
 				role_label
-			FROM release_credit_rows
+			FROM all_credit_rows
 			ORDER BY anime_id, release_id, role_id, fansub_group_id, created_at DESC
 		),
 		project_rows AS (
@@ -1164,7 +1190,7 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 		FROM project_rows
 		ORDER BY created_at DESC
 		LIMIT 3
-	`, memberID)
+	`, memberID, publicOnly)
 	if err != nil {
 		return nil, fmt.Errorf("load recent contributions for member %d: %w", memberID, err)
 	}
