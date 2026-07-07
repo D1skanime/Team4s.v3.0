@@ -125,6 +125,25 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"own profile reads must load all confirmed contributions regardless of the public-profile flag")
 	assert.True(t, strings.Contains(content, "r.loadRecentContributions(ctx, row.memberID, true)"),
 		"public profile reads must only load contributions flagged as public")
+
+	assert.True(t, strings.Contains(content, "worked_release_version_count"),
+		"recent contributions must expose a worked_release_version_count column distinguishing real work from role credit")
+	assert.True(t, strings.Contains(content, "total_release_version_count"),
+		"recent contributions must expose a total_release_version_count column for the absolute progress metric")
+	assert.True(t, strings.Contains(content, "FROM release_version_notes n"),
+		"the worked-count metric must count release versions with the member's own notes")
+	assert.True(t, strings.Contains(content, "n.deleted_at IS NULL"),
+		"own-notes matching must exclude soft-deleted release_version_notes")
+	assert.True(t, strings.Contains(content, "FROM release_version_media m"),
+		"the worked-count metric must count release versions with the member's own uploaded media")
+	assert.True(t, strings.Contains(content, "m.deleted_at IS NULL"),
+		"own-media matching must exclude soft-deleted release_version_media")
+	assert.True(t, strings.Contains(content, "FROM member_claims mc"),
+		"own-media matching must resolve the member's app_user_id via member_claims since appUserID is not a parameter here")
+	assert.True(t, strings.Contains(content, "mc.claim_status = 'verified'"),
+		"member_claims resolution for own-media matching must only use verified claims")
+	assert.True(t, strings.Contains(content, "&item.TotalReleaseVersionCount,\n\t\t\t&item.WorkedReleaseVersionCount,"),
+		"loadRecentContributions scan must bind TotalReleaseVersionCount then WorkedReleaseVersionCount after EpisodeCount")
 }
 
 func TestMemberProfileRepositoryPublicURLForPathNormalizesStoragePaths(t *testing.T) {
