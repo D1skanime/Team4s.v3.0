@@ -25,15 +25,15 @@ func newUUID() string {
 // --- Mock implementation ---
 
 type mockRVMCleanupStore struct {
-	staleAssets        []repository.StaleProcessingCleanupCandidate
-	missingCandidates  []repository.MissingFileCleanupCandidate
+	staleAssets          []repository.StaleProcessingCleanupCandidate
+	missingCandidates    []repository.MissingFileCleanupCandidate
 	softDeleteCandidates []repository.SoftDeleteCleanupCandidate
-	referencedAssets   map[int64]bool // assetID -> referenced by another active RVM
+	referencedAssets     map[int64]bool // assetID -> referenced by another active RVM
 
-	markedAssetStatus  map[int64]string
-	markedFileMissing  []int64
-	hardDeletedPairs   [][2]int64 // [relationID, assetID]
-	hasReadyFile       map[int64]bool
+	markedAssetStatus map[int64]string
+	markedFileMissing []int64
+	hardDeletedPairs  [][2]int64 // [relationID, assetID]
+	hasReadyFile      map[int64]bool
 }
 
 func newMockRVMCleanupStore() *mockRVMCleanupStore {
@@ -150,6 +150,51 @@ func TestRVMCleanupService_MissingFile_ReadyVariantExists(t *testing.T) {
 		"asset must NOT be escalated when a ready variant still exists")
 }
 
+// TestRVMCleanupService_MissingFile_SkipsUnmanagedAbsolutePath verifies that a
+// cleanup runtime does not mark Docker-owned absolute paths missing when its
+// configured storage root is elsewhere.
+func TestRVMCleanupService_MissingFile_SkipsUnmanagedAbsolutePath(t *testing.T) {
+	store := newMockRVMCleanupStore()
+	store.missingCandidates = []repository.MissingFileCleanupCandidate{
+		{MediaFileID: 7, MediaAssetID: 42, FilePath: "/app/media/release-version/3/original.jpg"},
+	}
+	store.hasReadyFile[42] = false
+
+	svc := NewRVMCleanupService(store, t.TempDir())
+	svc.RunOnce(context.Background())
+
+	assert.Empty(t, store.markedFileMissing,
+		"unmanaged absolute paths must not be marked missing by this runtime")
+	assert.Empty(t, store.markedAssetStatus,
+		"unmanaged absolute paths must not demote the media asset")
+}
+
+// TestRVMCleanupService_MissingFile_PublicMediaPathMapsToStorage verifies that
+// stored public /media paths are checked against the configured storage root.
+func TestRVMCleanupService_MissingFile_PublicMediaPathMapsToStorage(t *testing.T) {
+	tmpDir := t.TempDir()
+	readyFile := filepath.Join(tmpDir, "release-version", "3", "original.jpg")
+	if err := os.MkdirAll(filepath.Dir(readyFile), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(readyFile, []byte("ready"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	store := newMockRVMCleanupStore()
+	store.missingCandidates = []repository.MissingFileCleanupCandidate{
+		{MediaFileID: 7, MediaAssetID: 42, FilePath: "/media/release-version/3/original.jpg"},
+	}
+
+	svc := NewRVMCleanupService(store, tmpDir)
+	svc.RunOnce(context.Background())
+
+	assert.Empty(t, store.markedFileMissing,
+		"existing files behind /media paths must stay ready")
+	assert.Empty(t, store.markedAssetStatus,
+		"existing files behind /media paths must not demote the media asset")
+}
+
 // TestRVMCleanupService_SoftDelete verifies that files are physically deleted
 // and the DB rows are hard-deleted for exclusively-owned soft-deleted relations.
 func TestRVMCleanupService_SoftDelete(t *testing.T) {
@@ -218,6 +263,29 @@ func TestRVMCleanupService_SoftDelete_SharedAsset(t *testing.T) {
 		"shared asset file must NOT be removed when another active relation exists")
 	assert.Empty(t, store.hardDeletedPairs,
 		"hard delete must NOT be called for shared assets")
+}
+
+// TestRVMCleanupService_SoftDelete_SkipsUnmanagedAbsolutePath verifies that a
+// runtime does not hard-delete DB rows when it cannot safely manage the
+// physical file path.
+func TestRVMCleanupService_SoftDelete_SkipsUnmanagedAbsolutePath(t *testing.T) {
+	store := newMockRVMCleanupStore()
+	store.softDeleteCandidates = []repository.SoftDeleteCleanupCandidate{
+		{
+			RelationID:       55,
+			MediaAssetID:     42,
+			OriginalFilePath: "/app/media/release-version/3/original.jpg",
+			ThumbFilePath:    "",
+			DeletedAt:        time.Now().Add(-48 * time.Hour),
+		},
+	}
+	store.referencedAssets[42] = false
+
+	svc := NewRVMCleanupService(store, t.TempDir())
+	svc.RunOnce(context.Background())
+
+	assert.Empty(t, store.hardDeletedPairs,
+		"unmanaged file paths must not be hard-deleted by this runtime")
 }
 
 // TestRVMCleanupServiceConstructor ensures NewRVMCleanupService returns a

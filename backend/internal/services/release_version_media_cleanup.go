@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -89,7 +92,11 @@ func (s *RVMCleanupService) passMissingFiles(ctx context.Context) {
 		if c.FilePath == "" {
 			continue
 		}
-		if _, statErr := os.Stat(c.FilePath); statErr == nil {
+		exists, checked := s.managedFileExists(c.FilePath)
+		if !checked {
+			continue
+		}
+		if exists {
 			// file exists — nothing to do
 			continue
 		}
@@ -134,14 +141,125 @@ func (s *RVMCleanupService) passSoftDelete(ctx context.Context) {
 		}
 
 		// Remove physical files first so the DB rows are only deleted on success.
-		removeFileQuietly(c.OriginalFilePath)
-		removeFileQuietly(c.ThumbFilePath)
+		if !s.removeManagedFileQuietly(c.OriginalFilePath) || !s.removeManagedFileQuietly(c.ThumbFilePath) {
+			log.Printf("rvm cleanup: skipping hard delete for relation %d asset %d because a file path is outside managed storage",
+				c.RelationID, c.MediaAssetID)
+			continue
+		}
 
 		if err := s.store.HardDeleteRVMAndAsset(ctx, c.RelationID, c.MediaAssetID); err != nil {
 			log.Printf("rvm cleanup: hard delete relation %d asset %d: %v",
 				c.RelationID, c.MediaAssetID, err)
 		}
 	}
+}
+
+// managedFileExists checks a file only after resolving it against this
+// runtime's configured storage root. Unmanaged absolute paths are skipped so a
+// host-side dev server cannot demote Docker-owned media rows.
+func (s *RVMCleanupService) managedFileExists(rawPath string) (bool, bool) {
+	managedPath, ok := s.managedStoragePath(rawPath)
+	if !ok {
+		log.Printf("rvm cleanup: skipping unmanaged media path %s", strings.TrimSpace(rawPath))
+		return false, false
+	}
+	if _, statErr := os.Stat(managedPath); statErr == nil {
+		return true, true
+	} else if os.IsNotExist(statErr) {
+		return false, true
+	} else {
+		log.Printf("rvm cleanup: stat media file %s: %v", managedPath, statErr)
+		return false, false
+	}
+}
+
+// removeManagedFileQuietly deletes a single managed file, logging but not
+// propagating errors. Empty or whitespace-only paths are silently accepted.
+func (s *RVMCleanupService) removeManagedFileQuietly(rawPath string) bool {
+	trimmed := strings.TrimSpace(rawPath)
+	if trimmed == "" {
+		return true
+	}
+	managedPath, ok := s.managedStoragePath(trimmed)
+	if !ok {
+		log.Printf("rvm cleanup: refusing to remove unmanaged media path %s", trimmed)
+		return false
+	}
+	if err := os.Remove(managedPath); err != nil && !os.IsNotExist(err) {
+		log.Printf("rvm cleanup: remove file %s: %v", managedPath, err)
+		return false
+	}
+	return true
+}
+
+func (s *RVMCleanupService) managedStoragePath(rawPath string) (string, bool) {
+	trimmed := strings.TrimSpace(rawPath)
+	if trimmed == "" {
+		return "", false
+	}
+	storageRoot := strings.TrimSpace(s.storageDir)
+	if storageRoot == "" {
+		return "", false
+	}
+
+	storageSlash := strings.TrimRight(path.Clean(filepath.ToSlash(storageRoot)), "/")
+	if storageSlash == "." || storageSlash == "" {
+		return "", false
+	}
+	rawSlash := path.Clean(filepath.ToSlash(trimmed))
+
+	if rel, ok := mediaPublicRelativePath(rawSlash); ok {
+		return s.storagePathFromRelative(storageSlash, rel)
+	}
+	if sameOrChildSlashPath(storageSlash, rawSlash) {
+		return filepath.FromSlash(rawSlash), true
+	}
+	if isAbsoluteLikeSlashPath(rawSlash) {
+		return "", false
+	}
+	return s.storagePathFromRelative(storageSlash, rawSlash)
+}
+
+func (s *RVMCleanupService) storagePathFromRelative(storageSlash, relSlash string) (string, bool) {
+	cleanRel := path.Clean(relSlash)
+	if cleanRel == "." || cleanRel == ".." || strings.HasPrefix(cleanRel, "../") || strings.HasPrefix(cleanRel, "/") {
+		return "", false
+	}
+	candidate := path.Join(storageSlash, cleanRel)
+	if !sameOrChildSlashPath(storageSlash, candidate) {
+		return "", false
+	}
+	return filepath.FromSlash(candidate), true
+}
+
+func mediaPublicRelativePath(rawSlash string) (string, bool) {
+	switch {
+	case rawSlash == "/media" || rawSlash == "media":
+		return "", false
+	case strings.HasPrefix(rawSlash, "/media/"):
+		return strings.TrimPrefix(rawSlash, "/media/"), true
+	case strings.HasPrefix(rawSlash, "media/"):
+		return strings.TrimPrefix(rawSlash, "media/"), true
+	default:
+		return "", false
+	}
+}
+
+func sameOrChildSlashPath(root, candidate string) bool {
+	cleanRoot := strings.TrimRight(path.Clean(root), "/")
+	cleanCandidate := strings.TrimRight(path.Clean(candidate), "/")
+	if runtime.GOOS == "windows" {
+		cleanRoot = strings.ToLower(cleanRoot)
+		cleanCandidate = strings.ToLower(cleanCandidate)
+	}
+	return cleanCandidate == cleanRoot || strings.HasPrefix(cleanCandidate, cleanRoot+"/")
+}
+
+func isAbsoluteLikeSlashPath(slashPath string) bool {
+	if strings.HasPrefix(slashPath, "/") {
+		return true
+	}
+	return len(slashPath) > 2 && slashPath[1] == ':' && slashPath[2] == '/'
 }
 
 // removeFileQuietly deletes a single file, logging but not propagating errors.

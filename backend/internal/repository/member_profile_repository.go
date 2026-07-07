@@ -952,7 +952,7 @@ func (r *MemberProfileRepository) loadMemberships(
 			fg.id,
 			fg.name,
 			fg.slug,
-			fg.logo_url,
+			COALESCE(NULLIF(BTRIM(fg.logo_url), ''), logo_file.path) AS logo_url,
 			fg.status,
 			EXTRACT(YEAR FROM hgm.joined_date)::int AS joined_year,
 			EXTRACT(YEAR FROM hgm.left_date)::int AS left_year,
@@ -969,6 +969,17 @@ func (r *MemberProfileRepository) loadMemberships(
 			(hgm.id IS NOT NULL) AS has_historical_link,
 			hgm.status AS historical_member_status
 		FROM fansub_groups fg
+		LEFT JOIN media_assets logo_asset
+			ON logo_asset.id = fg.logo_id
+		   AND logo_asset.status = 'ready'
+		LEFT JOIN LATERAL (
+			SELECT mf.path
+			FROM media_files mf
+			WHERE mf.media_id = logo_asset.id
+			  AND mf.status = 'ready'
+			ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+			LIMIT 1
+		) logo_file ON true
 		LEFT JOIN hist_fansub_group_members hgm
 			ON hgm.fansub_group_id = fg.id
 		   AND hgm.member_id = $1
@@ -1058,7 +1069,12 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		SELECT
 			a.id,
 			COALESCE(a.title_de, a.title_en, a.title, ''),
-			NULLIF(a.cover_image, ''),
+			COALESCE(
+				NULLIF(BTRIM(a.cover_image), ''),
+				NULLIF(BTRIM(cover_file.path), ''),
+				NULLIF(BTRIM(cover_asset.file_path), ''),
+				NULLIF(BTRIM(anime_cover.path), '')
+			) AS cover_path,
 			fg.id,
 			COALESCE(fg.name, ''),
 			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS roles,
@@ -1069,6 +1085,50 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		FROM anime_contributions ac
 		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		JOIN anime a ON a.id = ac.anime_id
+		LEFT JOIN media_assets cover_asset
+			ON cover_asset.id = a.cover_asset_id
+		   AND cover_asset.status = 'ready'
+		LEFT JOIN LATERAL (
+			SELECT mf.path
+			FROM media_files mf
+			WHERE mf.media_id = cover_asset.id
+			  AND mf.status = 'ready'
+			ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+			LIMIT 1
+		) cover_file ON true
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(anime_media_file.path, anime_media_asset.file_path) AS path
+			FROM anime_media am
+			JOIN media_assets anime_media_asset
+				ON anime_media_asset.id = am.media_id
+			   AND anime_media_asset.status = 'ready'
+			LEFT JOIN LATERAL (
+				SELECT mf.path
+				FROM media_files mf
+				WHERE mf.media_id = anime_media_asset.id
+				  AND mf.status = 'ready'
+				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+				LIMIT 1
+			) anime_media_file ON true
+			WHERE am.anime_id = a.id
+			  AND (
+				anime_media_asset.mime_type LIKE 'image/%'
+				OR NULLIF(BTRIM(anime_media_asset.file_path), '') IS NOT NULL
+			  )
+			ORDER BY
+				CASE
+					WHEN anime_media_asset.file_path ILIKE '%kind=primary%' THEN 0
+					WHEN anime_media_asset.file_path ILIKE '%cover%' THEN 1
+					WHEN anime_media_asset.file_path ILIKE '%poster%' THEN 1
+					WHEN anime_media_asset.file_path ILIKE '%kind=logo%' THEN 4
+					WHEN anime_media_asset.file_path ILIKE '%kind=banner%' THEN 5
+					WHEN anime_media_asset.file_path ILIKE '%kind=backdrop%' THEN 6
+					ELSE 2
+				END,
+				am.sort_order,
+				anime_media_asset.id
+			LIMIT 1
+		) anime_cover ON true
 		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
 		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
@@ -1076,7 +1136,7 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		  AND ac.status = 'confirmed'
 		  AND ac.is_public_on_member_profile = true
 		  AND ac.ended_year IS NULL
-		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, fg.id, fg.name
+		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, cover_file.path, cover_asset.file_path, anime_cover.path, fg.id, fg.name
 		ORDER BY MAX(ac.updated_at) DESC, a.title ASC, fg.name ASC
 	`, memberID)
 	if err != nil {

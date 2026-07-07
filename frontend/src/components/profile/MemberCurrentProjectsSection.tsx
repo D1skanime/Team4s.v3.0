@@ -16,18 +16,6 @@ function projectHref(project: PublicMemberCurrentProject): string {
   return `/anime/${project.anime_id}/group/${project.fansub_group_id}`
 }
 
-function releaseVersionLabel(version: PublicMemberCurrentProject['release_versions'][number]): string {
-  const label = version.release_version_label?.trim()
-  if (label) return label
-
-  const parts = [
-    version.episode_number ? `Episode ${version.episode_number}` : '',
-    version.version,
-  ].filter(Boolean)
-
-  return parts.join(' - ')
-}
-
 export function MemberCurrentProjectsSection({
   projects,
 }: MemberCurrentProjectsSectionProps) {
@@ -74,16 +62,6 @@ export function MemberCurrentProjectsSection({
                         </Badge>
                       ) : null}
                     </span>
-
-                    {project.release_versions.length > 0 ? (
-                      <span className={styles.versionList}>
-                        {project.release_versions.map((version) => (
-                          <span key={version.release_version_id} className={styles.versionChip}>
-                            {releaseVersionLabel(version)}
-                          </span>
-                        ))}
-                      </span>
-                    ) : null}
                   </span>
 
                   <span className={styles.projectAction}>

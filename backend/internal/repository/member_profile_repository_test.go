@@ -200,6 +200,10 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 		"previous-history rows must require a real ended period and exclude no-period rows")
 	assert.True(t, strings.Contains(repo, "LEFT JOIN hist_fansub_group_members"),
 		"member contribution projections must retain the existing historical-membership compatibility seam")
+	assert.True(t, strings.Contains(repo, "logo_asset.id = fg.logo_id") && strings.Contains(repo, "logo_file.path"),
+		"public memberships must fall back from fansub_groups.logo_url to the canonical logo_id media asset")
+	assert.True(t, strings.Contains(repo, "cover_asset.id = a.cover_asset_id") && strings.Contains(repo, "FROM anime_media am"),
+		"current projects must resolve anime poster images from cover_asset_id and existing anime_media when legacy cover_image is empty")
 }
 
 func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
