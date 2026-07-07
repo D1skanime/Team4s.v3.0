@@ -104,6 +104,27 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"recent contributions must show newest role credits first")
 	assert.True(t, strings.Contains(content, "LIMIT 3"),
 		"profile recent sections must stay capped for hub display")
+
+	assert.True(t, strings.Contains(content, "func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, memberID int64, publicOnly bool)"),
+		"loadRecentContributions must accept a publicOnly parameter to control anime_contributions visibility")
+	assert.True(t, strings.Contains(content, "contribution_credit_rows AS ("),
+		"recent contributions must also source from a contribution_credit_rows CTE built on anime_contributions")
+	assert.True(t, strings.Contains(content, "FROM anime_contributions ac"),
+		"recent contributions must read cast/crew credits from anime_contributions")
+	assert.True(t, strings.Contains(content, "JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id"),
+		"anime_contributions credits must only count when at least one role is attached")
+	assert.True(t, strings.Contains(content, "JOIN contributor_roles cr ON cr.name = acr.role_code"),
+		"anime_contributions role codes must resolve to contributor_roles labels")
+	assert.True(t, strings.Contains(content, "ac.status = 'confirmed'"),
+		"only confirmed anime_contributions may appear as recent projects")
+	assert.True(t, strings.Contains(content, "(NOT $2 OR ac.is_public_on_member_profile = true)"),
+		"publicOnly must gate anime_contributions visibility without affecting the release_member_roles branch")
+	assert.True(t, strings.Contains(content, "UNION ALL"),
+		"release_member_roles and anime_contributions credit rows must be combined via UNION ALL")
+	assert.True(t, strings.Contains(content, "r.loadRecentContributions(ctx, base.MemberID, false)"),
+		"own profile reads must load all confirmed contributions regardless of the public-profile flag")
+	assert.True(t, strings.Contains(content, "r.loadRecentContributions(ctx, row.memberID, true)"),
+		"public profile reads must only load contributions flagged as public")
 }
 
 func TestMemberProfileRepositoryPublicURLForPathNormalizesStoragePaths(t *testing.T) {
