@@ -118,3 +118,7 @@ None - keine externe Konfiguration erforderlich.
 ---
 *Phase: 99-ffentliches-fansub-member-profil-redesign*
 *Completed: 2026-07-08*
+
+## Self-Check: PASSED
+
+Alle referenzierten Dateien und Commit-Hashes (94508a01, 1a334b24, 652178e9) wurden verifiziert.
