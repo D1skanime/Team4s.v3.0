@@ -129,18 +129,10 @@ export function HeroSection({
       </section>
 
       {groupAssetsError ? (
-        <div className={styles.errorBox}>{groupAssetsError}</div>
-      ) : !hasGroupFolder ? (
         <div className={styles.errorBox}>
-          Für diese Gruppenversion wurde noch kein passender Subgroups-Ordner
-          gefunden.
+          Medien konnten gerade nicht geladen werden.
         </div>
-      ) : !hasEpisodeAssets ? (
-        <div className={styles.errorBox}>
-          Der Subgroups-Ordner wurde gefunden, enthält aber noch keine
-          Episoden-Assets.
-        </div>
-      ) : (
+      ) : hasGroupFolder && hasEpisodeAssets ? (
         <section className={styles.assetsPanel}>
           <GroupAssetShowcase
             animeID={animeID}
@@ -149,7 +141,7 @@ export function HeroSection({
             releaseEpisodes={releaseEpisodes}
           />
         </section>
-      )}
+      ) : null}
     </>
   );
 }

@@ -22,7 +22,6 @@ export function GroupAssetShowcase({ animeID, groupID, episodes, releaseEpisodes
       animeID={animeID}
       groupID={groupID}
       episodes={episodes}
-      folderFound={episodes.length > 0}
       releaseEpisodes={releaseEpisodes}
     />
   )

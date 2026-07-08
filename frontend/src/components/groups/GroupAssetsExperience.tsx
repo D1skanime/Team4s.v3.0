@@ -16,7 +16,6 @@ interface GroupAssetsExperienceProps {
   animeID: number
   groupID: number
   episodes: GroupEpisodeAssets[]
-  folderFound: boolean
   releaseEpisodes: EpisodeReleaseSummary[]
   errorMessage?: string | null
 }
@@ -61,7 +60,6 @@ export function GroupAssetsExperience({
   animeID,
   groupID,
   episodes,
-  folderFound,
   releaseEpisodes,
   errorMessage = null,
 }: GroupAssetsExperienceProps) {
@@ -130,13 +128,7 @@ export function GroupAssetsExperience({
           {hasEpisodes ? <p className={styles.groupAssetsMeta}>{episodeCountLabel}</p> : null}
         </div>
 
-        {errorMessage ? <div className={styles.stateBox}>{errorMessage}</div> : null}
-        {!errorMessage && !folderFound ? (
-          <div className={styles.stateBox}>Für diese Gruppenversion wurde noch kein Subgroups-Ordner erkannt.</div>
-        ) : null}
-        {!errorMessage && folderFound && !hasEpisodes ? (
-          <div className={styles.stateBox}>Der Gruppenordner ist vorhanden, enthält aber noch keine Episoden-Assets.</div>
-        ) : null}
+        {errorMessage ? <div className={styles.stateBox}>Medien konnten gerade nicht geladen werden.</div> : null}
 
         {episodes.map((episode) => {
           const release = releaseByEpisode.get(episode.episode_number) || null
