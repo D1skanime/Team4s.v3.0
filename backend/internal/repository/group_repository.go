@@ -88,11 +88,27 @@ func (r *GroupRepository) getGroupStats(
 ) (*models.GroupStats, error) {
 	var stats models.GroupStats
 
-	// Count members (global group member count)
+	// Count members: mirrors countVisibleTeamMembers (FansubTeamSection.tsx) —
+	// active fansub_group_members (no profile_visibility row filter, so private/
+	// unclaimed active members are still counted, matching listProjectionMembers)
+	// PLUS publicly visible historical members (matching listProjectionHistorical).
 	err := r.db.QueryRow(ctx, `
-		SELECT COUNT(*)
-		FROM fansub_members
-		WHERE fansub_group_id = $1
+		SELECT
+			(
+				SELECT COUNT(*)
+				FROM fansub_group_members fgm
+				JOIN app_users au ON au.id = fgm.app_user_id
+				WHERE fgm.fansub_group_id = $1
+				  AND fgm.status = 'active'
+			)
+			+
+			(
+				SELECT COUNT(*)
+				FROM hist_fansub_group_members hfgm
+				WHERE hfgm.fansub_group_id = $1
+				  AND hfgm.status IN ('historical', 'confirmed')
+				  AND hfgm.visibility = 'public'
+			)
 	`, groupID).Scan(&stats.MemberCount)
 	if err != nil {
 		return nil, fmt.Errorf("count group members %d: %w", groupID, err)

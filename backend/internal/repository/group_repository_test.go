@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -337,6 +339,49 @@ func TestGroupRepository_GetGroupReleases_ReturnsMultipleVersionsPerRelease(t *t
 	}
 	if data.Episodes[1].VersionLabel == nil || *data.Episodes[1].VersionLabel != "v2" {
 		t.Fatalf("expected second version label v2, got %#v", data.Episodes[1].VersionLabel)
+	}
+}
+
+// TestGetGroupStats_MemberCountMatchesCountVisibleTeamMembers pins the AO4-01
+// counting semantics at the source level (no DB harness available here — see
+// setupTestRepo). getGroupStats must sum active fansub_group_members (no
+// profile_visibility row filter, so a private/unclaimed active member still
+// counts as 1 — matching listProjectionMembers) plus publicly visible
+// historical hist_fansub_group_members rows (matching listProjectionHistorical),
+// and must never reference the legacy fansub_members table.
+func TestGetGroupStats_MemberCountMatchesCountVisibleTeamMembers(t *testing.T) {
+	src, err := os.ReadFile("group_repository.go")
+	if err != nil {
+		t.Fatalf("read group repository: %v", err)
+	}
+	content := string(src)
+
+	statsStart := strings.Index(content, "func (r *GroupRepository) getGroupStats(")
+	if statsStart < 0 {
+		t.Fatalf("getGroupStats function not found")
+	}
+	releasesStart := strings.Index(content, "func (r *GroupRepository) GetGroupReleases(")
+	if releasesStart < 0 || releasesStart < statsStart {
+		t.Fatalf("could not bound getGroupStats function body")
+	}
+	body := content[statsStart:releasesStart]
+
+	for _, fragment := range []string{
+		"fansub_group_members",
+		"status = 'active'",
+		"hist_fansub_group_members",
+		"visibility = 'public'",
+	} {
+		if !strings.Contains(body, fragment) {
+			t.Fatalf("expected getGroupStats to contain %q", fragment)
+		}
+	}
+
+	if strings.Contains(body, "profile_visibility = 'public'") || strings.Contains(body, "profile_visibility='public'") {
+		t.Fatalf("getGroupStats must not filter active members by profile_visibility = 'public' (would exclude private/unclaimed active members, contradicting listProjectionMembers)")
+	}
+	if strings.Contains(body, "FROM fansub_members") {
+		t.Fatalf("getGroupStats must not reference legacy fansub_members table")
 	}
 }
 
