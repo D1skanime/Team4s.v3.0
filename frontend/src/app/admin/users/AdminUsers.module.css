@@ -1,0 +1,56 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.roleFilterLabel {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.desktopDetailPanel {
+  display: none;
+}
+
+.desktopDetailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.desktopDetailTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.desktopDetailMeta {
+  margin: 4px 0 0;
+  color: var(--color-muted, #666666);
+  font-size: 13px;
+}
+
+.selectedRow td {
+  background: #f7f9fd;
+}
+
+@media (min-width: 1024px) {
+  .desktopDetailPanel {
+    display: block;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+  }
+}

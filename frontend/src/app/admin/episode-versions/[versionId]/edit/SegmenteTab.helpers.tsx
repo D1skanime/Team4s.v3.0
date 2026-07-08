@@ -99,6 +99,13 @@ export function formatTimeInput(totalSeconds: number): string {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
+export function parsePositiveEpisodeInput(value: string): number | null {
+  const trimmed = value.trim()
+  if (!/^\d+$/.test(trimmed)) return null
+  const parsed = Number.parseInt(trimmed, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
 export function formatEpisodeRange(start: number | null, end: number | null): string {
   if (start == null && end == null) return '\u2014'
   if (start === end) return String(start ?? '?')

@@ -637,6 +637,8 @@ describe('MyProfilePage', () => {
 
     fireEvent.click(activeFromPicker)
 
+    const pickerDialog = screen.getByRole('dialog', { name: 'Aktiv seit auswählen' })
+    expect(pickerDialog.parentElement).toBe(document.body)
     expect(screen.getByRole('button', { name: currentYear })).not.toBeNull()
     expect(screen.queryByRole('button', { name: '2100' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Keine Angabe' })).not.toBeNull()

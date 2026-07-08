@@ -248,9 +248,74 @@ describe('SegmenteTab table', () => {
 
     expect(await screen.findByText('Segment bearbeiten')).toBeTruthy()
   })
+
+  it('befüllt neue Segmente mit echten Standardwerten statt nur Platzhaltern', async () => {
+    render(
+      <SegmenteTab
+        animeId={1}
+        groupId={2}
+        version="v1"
+        episodeNumber={2}
+        durationSeconds={1425}
+        releaseVariantId={9}
+      />,
+    )
+
+    await screen.findByRole('table')
+    fireEvent.click(screen.getByRole('button', { name: /Segment hinzufügen/i }))
+
+    expect((await screen.findByLabelText('Von') as HTMLInputElement).value).toBe('2')
+    expect((screen.getByLabelText('Bis') as HTMLInputElement).value).toBe('2')
+    expect((screen.getByLabelText('Start') as HTMLInputElement).value).toBe('00:00:00')
+    expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:01:20')
+    expect(screen.getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', false)
+  })
 })
 
 describe('SegmentEditPanel validation', () => {
+  it('deaktiviert Speichern, wenn Episoden- oder Zeitbereich fehlen', () => {
+    render(
+      <SegmentEditPanel
+        editingSegment={null}
+        formState={{
+          themeKind: 'op',
+          themeTitle: '',
+          startEpisode: '',
+          endEpisode: '',
+          startTime: '',
+          endTime: '',
+          sourceType: 'none',
+          sourceRef: '',
+          sourceLabel: '',
+        }}
+        pendingUploadFile={null}
+        durationSeconds={1425}
+        genericThemeOptions={[{ key: 'op', label: 'OP Kara', preferredThemeTypeId: 1 }]}
+        isSaving={false}
+        formError={null}
+        isUploading={false}
+        isDeletingAsset={false}
+        isLoadingReuseCandidates={false}
+        isAttachingReuse={false}
+        uploadError={null}
+        reuseCandidates={[]}
+        reuseError={null}
+        previewStreamHref={null}
+        onClose={vi.fn()}
+        onFormChange={vi.fn()}
+        onPendingUploadFileChange={vi.fn()}
+        onSave={vi.fn()}
+        onAssetUpload={vi.fn()}
+        onAssetDelete={vi.fn()}
+        onAttachReuseCandidate={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText(/Bitte Von und Bis ausfüllen/i)).toBeTruthy()
+    expect(screen.getByText(/Bitte Start und Ende ausfüllen/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', true)
+  })
+
   it('deaktiviert Speichern, wenn der Segment-Zeitbereich länger als 4 Minuten ist', () => {
     render(
       <SegmentEditPanel

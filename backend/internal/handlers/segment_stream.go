@@ -27,10 +27,20 @@ type segmentStreamThemeRepository interface {
 	GetThemeSegmentRenderCacheByKey(ctx context.Context, cacheKey string) (*models.ThemeSegmentRenderCache, error)
 	GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error)
 	GetLatestThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error)
+	ListThemeSegmentRenderCaches(ctx context.Context, segmentID int64) ([]models.ThemeSegmentRenderCache, error)
+	DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64) (int64, error)
 	UpsertThemeSegmentRenderCacheQueued(ctx context.Context, input models.ThemeSegmentRenderCacheUpsertInput) (*models.ThemeSegmentRenderCache, error)
 	ClaimNextQueuedThemeSegmentRender(ctx context.Context) (*models.ThemeSegmentRenderCache, error)
 	MarkThemeSegmentRenderCacheReady(ctx context.Context, input models.ThemeSegmentRenderCacheReadyInput) error
 	MarkThemeSegmentRenderCacheFailed(ctx context.Context, cacheKey string, errorCode string, errorMessage string) error
+}
+
+type segmentRenderPrepareError struct {
+	status  int
+	message string
+	code    string
+	err     error
+	detail  string
 }
 
 // authorizeSegmentManage buendelt die Nicht-Platform-Admin-Berechtigungspruefung, die

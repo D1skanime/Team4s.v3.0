@@ -278,7 +278,7 @@ describe('AppShell drawer behavior', () => {
     })
   })
 
-  it('navigates to login immediately when remote logout is slow', async () => {
+  it('navigates to login as soon as local logout starts', async () => {
     let resolveLogout!: () => void
     logoutAuthSessionMock.mockReturnValue(
       new Promise<void>((resolve) => {

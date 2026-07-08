@@ -1,0 +1,13 @@
+services:
+  team4sv30-backend:
+    environment:
+      APP_PUBLIC_URL: http://127.0.0.1:3000
+      KEYCLOAK_ISSUER_URL: http://127.0.0.1:18081/realms/team4s
+      KEYCLOAK_ACCOUNT_URL: http://127.0.0.1:18081/realms/team4s/account
+      MEDIA_PUBLIC_BASE_URL: http://127.0.0.1:18092
+
+  team4sv30-frontend:
+    environment:
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:18092
+      API_INTERNAL_URL: http://team4sv30-backend:8092
+      NEXT_PUBLIC_KEYCLOAK_BASE_URL: http://127.0.0.1:18081

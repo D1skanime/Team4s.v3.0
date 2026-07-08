@@ -281,10 +281,13 @@ export function AppShell({
   function handleLogout() {
     if (isLoggingOut) return
     setIsLoggingOut(true)
-    const logoutPromise = logoutAuthSession().catch(() => undefined)
     setDrawerOpen(false)
+    void logoutAuthSession()
+      .catch(() => undefined)
+      .finally(() => {
+        setIsLoggingOut(false)
+      })
     router.replace('/login')
-    void logoutPromise.finally(() => setIsLoggingOut(false))
   }
 
   return (

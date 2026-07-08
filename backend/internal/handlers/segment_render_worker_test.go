@@ -48,6 +48,14 @@ func (f *fakeSegmentStreamThemeRepo) GetLatestThemeSegmentRenderCache(ctx contex
 	return nil, repository.ErrNotFound
 }
 
+func (f *fakeSegmentStreamThemeRepo) ListThemeSegmentRenderCaches(ctx context.Context, segmentID int64) ([]models.ThemeSegmentRenderCache, error) {
+	return nil, nil
+}
+
+func (f *fakeSegmentStreamThemeRepo) DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64) (int64, error) {
+	return 0, nil
+}
+
 func (f *fakeSegmentStreamThemeRepo) UpsertThemeSegmentRenderCacheQueued(ctx context.Context, input models.ThemeSegmentRenderCacheUpsertInput) (*models.ThemeSegmentRenderCache, error) {
 	f.upsertCalled = true
 	if f.upsertErr != nil {

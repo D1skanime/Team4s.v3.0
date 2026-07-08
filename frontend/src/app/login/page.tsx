@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   ApiError,
@@ -40,6 +40,7 @@ export default function LoginPage() {
   const [isBusy, setIsBusy] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isAlreadySignedIn, setIsAlreadySignedIn] = useState(false)
+  const callbackCompletionRef = useRef<Promise<void> | null>(null)
   const nextPath = useMemo(() => readSafeNextPath(), [])
 
   useEffect(() => {
@@ -69,11 +70,13 @@ export default function LoginPage() {
       try {
         setIsBusy(true)
         setErrorMessage(null)
-        await completeKeycloakAuthCallback(code, state)
+        callbackCompletionRef.current ??= completeKeycloakAuthCallback(code, state).then(() => undefined)
+        await callbackCompletionRef.current
         if (!cancelled) router.replace(nextPath)
       } catch (error) {
         if (!cancelled) {
           setErrorMessage(readErrorMessage(error, 'Anmeldung konnte nicht abgeschlossen werden.'))
+          window.history.replaceState({}, document.title, window.location.pathname)
         }
       } finally {
         if (!cancelled) setIsBusy(false)

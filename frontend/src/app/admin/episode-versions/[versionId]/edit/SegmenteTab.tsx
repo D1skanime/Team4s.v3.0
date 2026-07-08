@@ -11,6 +11,7 @@ import {
   formatEpisodeRange,
   formatTimeInput,
   parseFlexibleTimeInput,
+  parsePositiveEpisodeInput,
   resolveSegmentProvenanceDetails,
   resolveSegmentProvenance,
   resolveSourceLabel,
@@ -65,6 +66,14 @@ const EMPTY_FORM: FormState = {
 }
 
 const MAX_SEGMENT_WINDOW_SECONDS = 240
+const DEFAULT_SEGMENT_END_SECONDS = 80
+
+function getDefaultSegmentEndSeconds(durationSeconds?: number | null): number {
+  if (durationSeconds != null && Number.isFinite(durationSeconds) && durationSeconds > 0) {
+    return Math.min(Math.floor(durationSeconds), DEFAULT_SEGMENT_END_SECONDS)
+  }
+  return DEFAULT_SEGMENT_END_SECONDS
+}
 
 function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
   return {
@@ -91,9 +100,13 @@ function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
 
 function buildSegmentPreviewStreamHref(segment: AdminThemeSegment | null): string | null {
   if (!segment?.id) return null
-  if (segment.playback_source_kind === 'uploaded_asset') return `/api/segments/${segment.id}/stream`
+  const params = new URLSearchParams()
+  if (segment.render_cache_key) params.set('cache_key', segment.render_cache_key)
+  if (segment.playback_source_kind === 'uploaded_asset') {
+    return `/api/segments/${segment.id}/stream${params.size > 0 ? `?${params.toString()}` : ''}`
+  }
   if (segment.render_status !== 'ready') return null
-  return `/api/segments/${segment.id}/stream`
+  return `/api/segments/${segment.id}/stream${params.size > 0 ? `?${params.toString()}` : ''}`
 }
 
 function renderStatusLabel(segment: AdminThemeSegment): string {
@@ -181,7 +194,15 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   function openAddPanel() {
     setEditingSegment(null)
     const defaultThemeKind = genericThemeOptions[0]?.key ?? ''
-    setFormState({ ...EMPTY_FORM, themeKind: defaultThemeKind })
+    const defaultEpisode = episodeNumber != null ? String(episodeNumber) : ''
+    setFormState({
+      ...EMPTY_FORM,
+      themeKind: defaultThemeKind,
+      startEpisode: defaultEpisode,
+      endEpisode: defaultEpisode,
+      startTime: formatTimeInput(0),
+      endTime: formatTimeInput(getDefaultSegmentEndSeconds(durationSeconds)),
+    })
     setFormError(null)
     setPendingUploadFile(null)
     setPanelOpen(true)
@@ -287,6 +308,24 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           : null)
 
     try {
+      if (!formState.startEpisode.trim() || !formState.endEpisode.trim()) {
+        setFormError('Bitte den Episodenbereich vollständig ausfüllen.')
+        return
+      }
+      const parsedStartEpisode = parsePositiveEpisodeInput(formState.startEpisode)
+      const parsedEndEpisode = parsePositiveEpisodeInput(formState.endEpisode)
+      if (parsedStartEpisode == null || parsedEndEpisode == null) {
+        setFormError('Episoden müssen positive ganze Zahlen sein.')
+        return
+      }
+      if (parsedEndEpisode < parsedStartEpisode) {
+        setFormError('Bis muss größer oder gleich Von sein.')
+        return
+      }
+      if (!formState.startTime.trim() || !formState.endTime.trim()) {
+        setFormError('Bitte den Zeitbereich vollständig ausfüllen.')
+        return
+      }
       const parsedStart = formState.startTime.trim() ? parseFlexibleTimeInput(formState.startTime) : null
       if (formState.startTime.trim() && parsedStart == null) {
         setFormError('Start-Zeit ist ungültig. Erlaubt sind z. B. 1:20 oder 00:01:20.')
@@ -320,8 +359,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
       if (editingSegment) {
         const patch: AdminThemeSegmentPatchRequest = {
           theme_id: resolvedThemeID,
-          start_episode: formState.startEpisode ? parseInt(formState.startEpisode, 10) : null,
-          end_episode: formState.endEpisode ? parseInt(formState.endEpisode, 10) : null,
+          start_episode: parsedStartEpisode,
+          end_episode: parsedEndEpisode,
           start_time: parsedStart != null ? formatTimeInput(parsedStart) : null,
           end_time: parsedEnd != null ? formatTimeInput(parsedEnd) : null,
           source_jellyfin_item_id:
@@ -340,8 +379,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           theme_id: resolvedThemeID,
           fansub_group_id: groupId ?? null,
           version: version ?? 'v1',
-          start_episode: formState.startEpisode ? parseInt(formState.startEpisode, 10) : null,
-          end_episode: formState.endEpisode ? parseInt(formState.endEpisode, 10) : null,
+          start_episode: parsedStartEpisode,
+          end_episode: parsedEndEpisode,
           start_time: parsedStart != null ? formatTimeInput(parsedStart) : null,
           end_time: parsedEnd != null ? formatTimeInput(parsedEnd) : null,
           source_jellyfin_item_id: formState.sourceType === 'jellyfin_theme' ? normalizedSourceRef : null,

@@ -145,6 +145,54 @@ func (r *AdminContentRepository) GetLatestThemeSegmentRenderCache(
 	return scanThemeSegmentRenderCache(row)
 }
 
+func (r *AdminContentRepository) ListThemeSegmentRenderCaches(
+	ctx context.Context,
+	segmentID int64,
+) ([]models.ThemeSegmentRenderCache, error) {
+	if segmentID <= 0 {
+		return nil, ErrNotFound
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT `+themeSegmentRenderCacheColumns+`
+		FROM theme_segment_render_cache
+		WHERE theme_segment_id = $1
+		ORDER BY updated_at DESC, id DESC
+	`, segmentID)
+	if err != nil {
+		return nil, fmt.Errorf("list theme segment render caches segment=%d: %w", segmentID, err)
+	}
+	defer rows.Close()
+
+	items := make([]models.ThemeSegmentRenderCache, 0)
+	for rows.Next() {
+		item, err := scanThemeSegmentRenderCache(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, *item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list theme segment render caches rows segment=%d: %w", segmentID, err)
+	}
+	return items, nil
+}
+
+func (r *AdminContentRepository) DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64) (int64, error) {
+	if segmentID <= 0 {
+		return 0, ErrNotFound
+	}
+
+	tag, err := r.db.Exec(ctx, `
+		DELETE FROM theme_segment_render_cache
+		WHERE theme_segment_id = $1
+	`, segmentID)
+	if err != nil {
+		return 0, fmt.Errorf("delete theme segment render caches segment=%d: %w", segmentID, err)
+	}
+	return tag.RowsAffected(), nil
+}
+
 func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 	ctx context.Context,
 	segmentID int64,

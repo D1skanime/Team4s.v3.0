@@ -61,6 +61,7 @@ import AdminUsersPage from './page'
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('AdminUsersPage (/admin/users)', () => {
@@ -141,6 +142,33 @@ describe('AdminUsersPage (/admin/users)', () => {
     await waitFor(() => {
       const drawerContent = screen.queryAllByText(/Übersicht|Globale Rollen/)
       expect(drawerContent.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('clicking_row_keeps_table_visible_on_desktop', async () => {
+    vi.stubGlobal('matchMedia', vi.fn().mockImplementation((query: string) => ({
+      matches: query === '(min-width: 1024px)',
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })))
+
+    render(<AdminUsersPage />)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Aki')).not.toBeNull()
+    })
+
+    const row = screen.getByText('Aki').closest('tr') ?? screen.getByText('Aki')
+    fireEvent.click(row)
+
+    await waitFor(() => {
+      expect(screen.getByRole('table')).not.toBeNull()
+      expect(screen.getByRole('tab', { name: 'Globale Rollen' })).not.toBeNull()
     })
   })
 })

@@ -182,6 +182,7 @@ func (h *AdminContentHandler) executeSegmentRender(
 		SubtitleStreamIndex: subtitle.StreamIndex,
 		SubtitleCodec:       subtitle.Codec,
 	}); err != nil {
+		_ = os.Remove(outputPath)
 		log.Printf("segment render worker: mark ready fehlgeschlagen (cache_key=%s): %v", cache.CacheKey, err)
 		return err
 	}

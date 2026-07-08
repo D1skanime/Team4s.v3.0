@@ -142,7 +142,7 @@ services:
       SEGMENT_RENDER_FFPROBE_PATH: ${SEGMENT_RENDER_FFPROBE_PATH:-/usr/bin/ffprobe}
       SEGMENT_RENDER_CONCURRENCY: ${SEGMENT_RENDER_CONCURRENCY:-1}
     ports:
-      - "8092:8092"
+      - "${BACKEND_PORT:-8092}:8092"
     volumes:
       - ./database/migrations:/app/database/migrations:ro
       - ./media:/app/media

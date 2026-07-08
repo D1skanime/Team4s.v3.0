@@ -5,7 +5,14 @@ import { X, Upload, FileVideo, XCircle } from 'lucide-react'
 
 import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
-import { formatTimeInput, parseFlexibleTimeInput, resolveLibraryCandidateLabel, resolveSegmentProvenance, resolveSegmentProvenanceDetails } from './SegmenteTab.helpers'
+import {
+  formatTimeInput,
+  parseFlexibleTimeInput,
+  parsePositiveEpisodeInput,
+  resolveLibraryCandidateLabel,
+  resolveSegmentProvenance,
+  resolveSegmentProvenanceDetails,
+} from './SegmenteTab.helpers'
 import styles from './SegmenteTab.module.css'
 
 export interface FormState {
@@ -72,8 +79,22 @@ export function SegmentEditPanel({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const provenance = editingSegment ? resolveSegmentProvenance(editingSegment) : null
   const provenanceDetails = editingSegment ? resolveSegmentProvenanceDetails(editingSegment) : null
+  const startEpisodeValue = formState.startEpisode.trim()
+  const endEpisodeValue = formState.endEpisode.trim()
+  const startEpisodeNumber = parsePositiveEpisodeInput(formState.startEpisode)
+  const endEpisodeNumber = parsePositiveEpisodeInput(formState.endEpisode)
+  const isMissingEpisodeRange = startEpisodeValue === '' || endEpisodeValue === ''
+  const hasInvalidEpisodeValue =
+    (startEpisodeValue !== '' && startEpisodeNumber == null) ||
+    (endEpisodeValue !== '' && endEpisodeNumber == null)
+  const hasInvalidEpisodeRange =
+    startEpisodeNumber != null && endEpisodeNumber != null && endEpisodeNumber < startEpisodeNumber
   const startSeconds = parseFlexibleTimeInput(formState.startTime)
   const endSeconds = parseFlexibleTimeInput(formState.endTime)
+  const isMissingTimeRange = formState.startTime.trim() === '' || formState.endTime.trim() === ''
+  const hasInvalidTimeInput =
+    (formState.startTime.trim() !== '' && startSeconds == null) ||
+    (formState.endTime.trim() !== '' && endSeconds == null)
   // Use segment's resolved playback duration as first authority; fall back to page-level version duration
   const effectiveDuration = editingSegment?.playback_duration_seconds ?? durationSeconds ?? null
   const exceedsDuration = effectiveDuration != null && endSeconds != null && endSeconds > effectiveDuration
@@ -81,7 +102,14 @@ export function SegmentEditPanel({
   const hasInvalidTimeRange =
     (startSeconds != null && endSeconds != null && endSeconds <= startSeconds) ||
     exceedsMaxSegmentWindow
-  const saveDisabled = isSaving || hasInvalidTimeRange
+  const saveDisabled =
+    isSaving ||
+    isMissingEpisodeRange ||
+    hasInvalidEpisodeValue ||
+    hasInvalidEpisodeRange ||
+    isMissingTimeRange ||
+    hasInvalidTimeInput ||
+    hasInvalidTimeRange
   const runtimeKnown = effectiveDuration != null
   const runtimeFromPlayback = editingSegment?.playback_duration_seconds != null
   const renderStatus =
@@ -148,6 +176,9 @@ export function SegmentEditPanel({
 
         <div className={styles.panelField}>
           <label>Episodenbereich</label>
+          <span className={styles.sourceHelpText}>
+            Von und Bis werden gespeichert. Für eine einzelne Folge beide Felder gleich setzen.
+          </span>
         </div>
         <div className={styles.panelFieldRow}>
           <div className={styles.panelField}>
@@ -156,7 +187,7 @@ export function SegmentEditPanel({
               id="seg-ep-start"
               type="number"
               min="1"
-              placeholder="1"
+              placeholder="z. B. 1"
               value={formState.startEpisode}
               onChange={(e) => onFormChange({ startEpisode: e.target.value })}
             />
@@ -167,12 +198,25 @@ export function SegmentEditPanel({
               id="seg-ep-end"
               type="number"
               min="1"
-              placeholder="12"
+              placeholder="z. B. 12"
               value={formState.endEpisode}
               onChange={(e) => onFormChange({ endEpisode: e.target.value })}
             />
           </div>
         </div>
+        {isMissingEpisodeRange ? (
+          <div className={styles.assetError}>
+            Bitte Von und Bis ausfüllen. Für eine einzelne Folge beide Felder gleich setzen.
+          </div>
+        ) : hasInvalidEpisodeValue ? (
+          <div className={styles.assetError}>
+            Episoden müssen positive ganze Zahlen sein.
+          </div>
+        ) : hasInvalidEpisodeRange ? (
+          <div className={styles.assetError}>
+            Bis muss größer oder gleich Von sein.
+          </div>
+        ) : null}
 
         <div className={styles.panelField}>
           <label>Zeitbereich im Video</label>
@@ -190,7 +234,7 @@ export function SegmentEditPanel({
               id="seg-time-start"
               type="text"
               inputMode="numeric"
-              placeholder="0:00"
+              placeholder="z. B. 0:00"
               value={formState.startTime}
               onChange={(e) => onFormChange({ startTime: e.target.value })}
               onBlur={(e) => {
@@ -209,7 +253,7 @@ export function SegmentEditPanel({
               id="seg-time-end"
               type="text"
               inputMode="numeric"
-              placeholder="1:20"
+              placeholder="z. B. 1:20"
               value={formState.endTime}
               onChange={(e) => onFormChange({ endTime: e.target.value })}
               onBlur={(e) => {
@@ -225,6 +269,15 @@ export function SegmentEditPanel({
             ) : null}
           </div>
         </div>
+        {isMissingTimeRange ? (
+          <div className={styles.assetError}>
+            Bitte Start und Ende ausfüllen.
+          </div>
+        ) : hasInvalidTimeInput ? (
+          <div className={styles.assetError}>
+            Zeitangaben müssen z. B. 1:20, 00:01:20 oder Sekunden sein.
+          </div>
+        ) : null}
         {exceedsDuration ? (
           <div className={styles.assetError}>
             Ende liegt über der bekannten Videodauer und wird beim Verlassen des Felds auf {formatTimeInput(effectiveDuration!)} begrenzt.
@@ -273,6 +326,7 @@ export function SegmentEditPanel({
             </div>
             {previewStreamHref ? (
               <video
+                key={previewStreamHref}
                 className={styles.previewVideo}
                 src={previewStreamHref}
                 controls

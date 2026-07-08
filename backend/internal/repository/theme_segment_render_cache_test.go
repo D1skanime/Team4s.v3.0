@@ -36,6 +36,8 @@ func TestThemeSegmentRenderCacheRepositoryMethodsDeclared(t *testing.T) {
 		"UpsertThemeSegmentRenderCacheQueued",
 		"GetThemeSegmentRenderCacheByKey",
 		"GetThemeSegmentRenderSource",
+		"ListThemeSegmentRenderCaches",
+		"DeleteThemeSegmentRenderCaches",
 		"ClaimNextQueuedThemeSegmentRender",
 		"MarkThemeSegmentRenderCacheReady",
 		"MarkThemeSegmentRenderCacheFailed",

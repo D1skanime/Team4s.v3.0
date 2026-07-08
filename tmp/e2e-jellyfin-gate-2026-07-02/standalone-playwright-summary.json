@@ -1,0 +1,6 @@
+{
+  "finalUrl": "http://127.0.0.1:3000/admin/anime/1/episodes",
+  "contextHadJellyfin": true,
+  "groupCount": 12,
+  "finalText": "Admin\n/\nAnime\n/\nBearbeiten\n/\nEpisoden\n\nSCHRITT 3\n\nEpisoden-Übersicht\n\nEpisoden mit allen Versionen, Fansub-Zuordnungen und Version-Counts pro Episode. Accordion zeigt Details bei Bedarf.\n\nZurück zum Anime\nImport & Mapping\nNeue Episode\n\nAnime\n\nViper’s Creed\n\nEpisoden\n\n0\n\nVersionen gesamt\n\n12\n\nEpisoden mit Versionen\n\nAccordion-Ansicht mit Version-Counts, Fansub-Badges und direkten Bearbeitungslinks. Der normale Staffel-Import bleibt der Jellyfin Saison-Sync im Anime-Editor.\n\nEP 01\n-Cyclops-\n1 Version\nv\nEP 02\nNeuer Rekrut -unknown-\n1 Version\nv\nEP 03\nKanonenschuss\n1 Version\nv\nEP 04\nHexe\n1 Version\nv\nEP 05\nTodesgott\n1 Version\nv\nEP 06\nHolzpuppe\n1 Version\nv\nEP 07\nChaos -riot-\n1 Version\nv\nEP 08\nParadiese\n1 Version\nv\nEP 09\nVerschwörung -intrigue-\n1 Version\nv\nEP 10\nGegenschlag -counterattack-\n1 Version\nv\nEP 11\nWahrheit -truth-\n1 Version\nv\nEP 12\nEin Auge -blindness-\n1 Version\nv"
+}

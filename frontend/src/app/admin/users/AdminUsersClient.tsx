@@ -21,6 +21,8 @@ import {
 import { ApiError, listAdminUsersPage } from '@/lib/api'
 import type { AdminUserListItem, AdminUserListParams } from '@/types/admin-users'
 
+import styles from './AdminUsers.module.css'
+import { UserDetailContent } from './UserDetailContent'
 import { UserDetailDrawer } from './UserDetailDrawer'
 
 function formatRelativeDate(isoDate: string | null): string {
@@ -54,6 +56,21 @@ function readErrorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
+function useDesktopUserDetails(): boolean {
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia('(min-width: 1024px)')
+    const update = () => setIsDesktop(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+
+  return isDesktop
+}
+
 export function AdminUsersClient() {
   const [items, setItems] = useState<AdminUserListItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -67,6 +84,7 @@ export function AdminUsersClient() {
   })
   const [searchValue, setSearchValue] = useState('')
   const [hasConflictsOnly, setHasConflictsOnly] = useState(false)
+  const isDesktopUserDetails = useDesktopUserDetails()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadUsers = useCallback(async () => {
@@ -112,17 +130,20 @@ export function AdminUsersClient() {
   const limit = params.limit ?? 25
   const currentPage = Math.floor((params.offset ?? 0) / limit) + 1
   const totalPages = Math.ceil(total / limit)
+  const selectedUser = selectedUserId != null
+    ? items.find((item) => item.id === selectedUserId) ?? null
+    : null
 
   function handlePageChange(page: number) {
     setParams((prev) => ({ ...prev, offset: (page - 1) * limit }))
   }
 
   return (
-    <div>
+    <div className={styles.page}>
       <h1>Benutzerverwaltung</h1>
 
       {/* Filter-Bereich */}
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px', alignItems: 'center' }}>
+      <div className={styles.filters}>
         <Input
           type="search"
           placeholder="Name oder E-Mail-Adresse suchen …"
@@ -146,7 +167,7 @@ export function AdminUsersClient() {
         </div>
 
         <div>
-          <label htmlFor="role-filter" style={{ display: 'block', fontSize: '14px', marginBottom: '4px' }}>
+          <label htmlFor="role-filter" className={styles.roleFilterLabel}>
             Globale Rolle
           </label>
           <Select
@@ -172,7 +193,27 @@ export function AdminUsersClient() {
       </div>
 
       {/* Tabelle — wird nicht gerendert wenn Drawer offen ist */}
-      {selectedUserId !== null ? null : isLoading ? (
+      {selectedUserId !== null && isDesktopUserDetails ? (
+        <section className={styles.desktopDetailPanel} aria-label="Benutzerdetails">
+          <div className={styles.desktopDetailHeader}>
+            <div>
+              <h2 className={styles.desktopDetailTitle}>
+                {selectedUser?.display_name ?? `Benutzer #${selectedUserId}`}
+              </h2>
+              {selectedUser?.email ? (
+                <p className={styles.desktopDetailMeta}>{selectedUser.email}</p>
+              ) : null}
+            </div>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedUserId(null)}>
+              Schließen
+            </Button>
+          </div>
+          <UserDetailContent userId={selectedUserId} />
+        </section>
+      ) : null}
+
+      {/* Tabelle */}
+      {isLoading ? (
         <LoadingState />
       ) : error ? (
         <ErrorState title="Fehler beim Laden" description={error} />
@@ -205,6 +246,7 @@ export function AdminUsersClient() {
                 <AdminUserTableRow
                   key={item.id}
                   item={item}
+                  isSelected={item.id === selectedUserId}
                   onClick={() => setSelectedUserId(item.id)}
                 />
               ))}
@@ -221,7 +263,7 @@ export function AdminUsersClient() {
         </>
       )}
 
-      {selectedUserId !== null && (
+      {selectedUserId !== null && !isDesktopUserDetails && (
         <UserDetailDrawer
           userId={selectedUserId}
           onClose={() => setSelectedUserId(null)}
@@ -233,10 +275,11 @@ export function AdminUsersClient() {
 
 interface AdminUserTableRowProps {
   item: AdminUserListItem
+  isSelected: boolean
   onClick: () => void
 }
 
-function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
+function AdminUserTableRow({ item, isSelected, onClick }: AdminUserTableRowProps) {
   const initials = item.display_name
     .split(' ')
     .map((n) => n[0])
@@ -250,7 +293,9 @@ function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
   return (
     <TableRow
       onClick={onClick}
+      className={isSelected ? styles.selectedRow : undefined}
       style={{ cursor: 'pointer' }}
+      aria-selected={isSelected}
       role="row"
     >
       {/* Benutzer */}

@@ -468,6 +468,19 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		}
 	}
 
+	if segmentRenderInputsChanged(existingSegment, updatedSegment) {
+		if err := h.resetAndQueueSegmentRenderAfterChange(c.Request.Context(), segmentID); err != nil {
+			log.Printf("admin anime segment update: refresh render cache segment_id=%d: %v", segmentID, err)
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nach der Zeitänderung nicht neu vorbereitet werden.")
+			return
+		}
+		updatedSegment, err = h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+		if err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nach Render-Refresh nicht geladen werden.")
+			return
+		}
+	}
+
 	// Return the fully hydrated segment so the frontend immediately receives updated playback_* fields.
 	c.JSON(http.StatusOK, gin.H{"data": updatedSegment})
 }

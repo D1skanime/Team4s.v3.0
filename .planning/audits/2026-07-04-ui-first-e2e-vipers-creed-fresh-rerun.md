@@ -336,10 +336,114 @@ Diagnose-/DB-Invarianten:
   - `fansub_group_media=0`
 - `media_assets=4` stammen aus vorherigen Anime/Jellyfin-Asset-Schritten, nicht aus Segmentupload.
 
+### 13. Nachtest nach neutralen Rollen und vollstaendigem C-Subs-History-Import
+
+Grund:
+- Der Rollen-/Projektmitgliederblock war ein frueher Hauptblocker.
+- Danach wurden die neutralen Rollenlabels committed und die Dev-Container neu gebaut.
+- Alle auf fansub.de fuer C-Subs gefundenen historischen Mitglieder wurden als historische Mitglieder importiert.
+- Bekannte Viper's-Creed-Projektrollen wurden den historischen Mitgliedern am Projekt zugeordnet.
+- Es wurden dabei keine neuen App-User oder Keycloak-Accounts angelegt.
+
+Diagnose-/DB-Invarianten:
+- `fansub_group_members`: 3 aktive App-Mitglieder fuer C-Subs.
+- `hist_fansub_group_members`: 25 historische C-Subs-Mitglieder.
+- `anime_contributions`: 24 historische Personen fuer Viper's Creed / C-Subs.
+- `release_media=0`, `release_version_media=0`, `fansub_group_media=0`, `theme_segments=1`.
+
+UI-Ergebnis als `csubs-leader`:
+- C-Subs `Fansub Members` zeigt die aktive Mitgliedschaft mit neutraleren Labels:
+  - `csubs-leader`: `Gruppenleitung`, `Projektleitung`
+  - `Sokolada`: `Design`, `Editing`, `Grafik`, `Qualitaetspruefung`
+- Historische Liste zeigt 25 importierte Personen.
+- Stichproben sichtbar: `2sek`, `Akropolis`, `Askat`, `Blackiris`, `KamiKarin`, `Sheppert`, `Sokolada`, `Takayuki`, `Yuuichi`.
+- Alte Labels `Leader`, `GFX / Grafik`, `Qualitaetscheck`, `Gruender/in` wurden in den geprueften Listen nicht mehr gefunden.
+
+Befunde:
+- Rohrollen `admin` und `other` erscheinen in der historischen Mitgliederliste weiterhin als Codes statt als deutsche/neutralere Labels.
+- Die Mitgliederliste erzeugt beim Laden N+1-Fanout:
+  - viele einzelne `/member-roles?member_id=...` Requests
+  - viele einzelne `/group-members/{id}/claim-invitations` Requests
+  - ein fuer Leader sichtbarer/caught `403` auf `/api/v1/admin/member-requests`
+- Bei 25 historischen Personen ist das sichtbar traege. Performance-Kandidat: Rollen und Claim-State batchen, Admin-only Requests capability-gaten.
+
+### 14. Projekt-/Releaseuebersicht fuer Leader und Mitglieder
+
+Route:
+- `http://127.0.0.1:3000/admin/fansubs/1/edit?tab=releases`
+
+UI-Ergebnis:
+- Als `csubs-leader`, `sokolada` und `sheppert` ist C-Subs im Drawer direkt erreichbar.
+- Die Viper's-Creed-Karte zeigt:
+  - `Releases: 12/12`
+  - `Mitwirkende (24)`
+  - `Einblick fehlt`
+- Aufgeklappt zeigt die Karte `Team & Rollen` mit `24 Personen`.
+- Jede Episode zeigt `Versionen: 1` und `24 Personen`.
+- Der fruehere Fehler `+2 VERSIONEN` fuer eine Release-Version mit zwei Gruppen ist in diesem Lauf nicht reproduziert.
+
+Befunde:
+- Die Uebersicht zeigt nur Counts, aber keine konkrete Liste der 24 Personen/Rollen.
+- Das als Leader angelegte OP-Kara-Segment fuer EP01-EP12 wird in der Uebersicht nicht als Theme erkannt; alle Episoden zeigen weiter `Keine Themes`.
+- Die Releaseuebersicht nutzt sichtbar teilweise den neutralen Episodentitel statt `release_versions.title`.
+  - DB: EP08 `episode_title=Paradiese`, `version_title=Paradies -eden-`.
+  - UI: EP08 zeigt `Paradiese`.
+  - DB: EP03-EP06 haben korrekte `version_title` mit Suffix, UI zeigt nur `Kanonenschuss`, `Hexe`, `Todesgott`, `Holzpuppe`.
+- Gespeicherte Version-/Variantendaten sind dabei korrekt:
+  - 12 Release-Versionen mit fansub.de-Titeln, Datum, `1280x720`, CRC.
+  - CRC/Aufloesung liegen in `release_variants`, Titel/Datum in `release_versions`.
+
+### 15. Nicht verifizierte Member-Profile und Mitgliederrechte
+
+Route:
+- `http://127.0.0.1:3000/me/profile`
+- `http://127.0.0.1:3000/me/projects/1/group/1`
+- `http://127.0.0.1:3000/admin/episode-versions/1/edit?tab=segmente`
+
+UI-Ergebnis:
+- `sokolada` und `sheppert` koennen sich mit Passwort `123` anmelden.
+- Beide sehen C-Subs unter `MEINE GRUPPEN`.
+- Beide sehen den eingeschraenkten Gruppen-Releasebereich.
+- Beide Profile zeigen weiterhin: `Dieser Login ist noch keinem verifizierten Member-Eintrag zugeordnet.`
+- Direkte Projektseite fuer `csubs-leader` war nicht verfuegbar: `kein verifizierter Member-Account verknuepft`.
+
+Befunde:
+- App-Mitgliedschaft, historische Member-Identitaet und verifizierter Member-Link bleiben getrennte Konzepte.
+- Das kann fachlich korrekt sein, blockiert aber `Meine Projekte`/Member-Projektseiten fuer aktive Gruppenmitglieder, solange kein Claim/Link erfolgt.
+- Als `sokolada` leitet `?tab=segmente` nicht zur Segmentverwaltung, sondern faktisch in den `Media / Assets`-Bereich.
+- Segmenttab/Rechte sind fuer normale Mitglieder damit unklar: keine sichtbare Fehlermeldung, keine klare Tab-Ausblendung, kein Segmentformular.
+- Release-Version-Media-Upload-UI ist fuer `sokolada` sichtbar und release-version-scoped:
+  - Kontext `Fansub-Gruppe C-Subs`, `Release-Version v1`
+  - Kategorien `Screenshot`, `Typesetting / Karaoke`, `Fun / Outtake`, `Sonstiges`
+  - Upload-Hinweis: neue Uploads starten als `In Pruefung`
+- Echter Datei-Upload konnte mit dem aktuellen Browser-Control nicht sauber ausgefuehrt werden, weil die File-Input-Setzfunktion in dieser Umgebung nicht verfuegbar ist.
+
+### 16. Logout-Regression bleibt offen
+
+Route:
+- `http://127.0.0.1:3000/admin/episode-versions/1/edit?tab=segmente`
+- `http://127.0.0.1:3000/login`
+
+UI-Schritte:
+- Als `sokolada` sichtbaren Button `Abmelden` eindeutig gezaehlt: 1 Treffer.
+- Button geklickt.
+- 1,5 Sekunden gewartet.
+
+Ergebnis:
+- URL blieb unveraendert.
+- Sichtbare Session blieb `Sokolada Member`.
+- Keine verwertbare Browser-Console-Fehlermeldung.
+- Rollenwechsel war weiterhin nur ueber `/login` -> `Erneut anmelden` -> Keycloak `prompt=login` verlaesslich moeglich.
+
 ## Offene naechste Schritte
 
-- Admin/Leader: Rollenlabels weiter beurteilen; `Leader` ist weiterhin nicht neutral, `Projektleitung` ist vorhanden.
-- Release-Version-Medienupload real testen und `release_version_media`-Invariante nach Upload pruefen.
+- Quick-Fix-Kandidaten aus diesem Lauf:
+  - Logout-Button reparieren; aktuell keine sichtbare Session-Beendigung.
+  - Historische Rollenlabels `admin`/`other` sauber deutsch/neutral anzeigen.
+  - Gruppen-Releaseuebersicht muss `release_versions.title` fuer Release-Versionen nutzen und Theme-Segmente korrekt zaehlen.
+  - Segmenttab fuer normale Mitglieder klar regeln: sichtbar mit Rechten oder sauber ausgeblendet/erklaert.
+  - Historische Mitglieder/Claim-State batchen, um den N+1-Ladevorgang zu entschaerfen.
+- Release-Version-Medienupload real testen und `release_version_media`-Invariante nach Upload pruefen, sobald File-Upload im Browser-Test sauber ausfuehrbar ist.
 - Gruppenmedienupload real testen und `fansub_group_media`-Invariante nach Upload pruefen.
 - Mitglieder: Sheppert ebenfalls stichprobenartig auf Rechte/Releasebereich pruefen.
 - Optional: ED-Segment analog anlegen, falls Zeiten/Quelle geprueft werden sollen.

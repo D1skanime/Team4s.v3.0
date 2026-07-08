@@ -47,6 +47,7 @@ func TestCreateCanLinkOpenHistoricalMemberByVerifiedClaim(t *testing.T) {
 		"insert into fansub_group_members",
 		"member_id",
 		"ensureappusermemberanchortx",
+		"upsertverifiedappmemberclaimtx",
 		"values ($1, $2, $5",
 		"'manual_review'",
 		"on conflict (member_id, app_user_id)",
@@ -89,6 +90,25 @@ func TestAppMembersAlwaysResolveCanonicalMemberAnchor(t *testing.T) {
 	for _, fragment := range required {
 		if !strings.Contains(content, fragment) {
 			t.Fatalf("expected app member repository to preserve canonical member anchor via %q", fragment)
+		}
+	}
+}
+
+func TestCreateVerifiesGeneratedAppMemberAnchor(t *testing.T) {
+	content := strings.ToLower(readRepositorySource(t, "fansub_group_app_members_repository.go"))
+
+	required := []string{
+		"if !hashistoricalmember",
+		"historicalmemberid, err = ensureappusermemberanchortx",
+		"if err := upsertverifiedappmemberclaimtx(ctx, tx, input.appuserid, historicalmemberid, input.createdbyappuserid)",
+		"insert into member_claims",
+		"claim_status",
+		"'verified'",
+		"on conflict (member_id, app_user_id)",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected app member create to verify generated member anchors via %q", fragment)
 		}
 	}
 }

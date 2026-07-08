@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 98-04-PLAN.md; 98-05 (E2E/UAT) remaining; Phase 99 planned
-last_updated: "2026-07-07T16:37:40.950Z"
+stopped_at: Completed 97-05-PLAN.md
+last_updated: "2026-07-07T17:11:52.427Z"
 last_activity: 2026-07-07
 progress:
   total_phases: 90
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 98 - Segmentstream/Jellyfin-Kara-Playback: Pläne 00-04 umgesetzt (Recovery-Reconciliation + Untertitel-Burn-in), es fehlt nur noch 98-05 (E2E/UAT, Live-Test).
+**Current focus:** Phase 99 — Öffentliches Fansub-Member-Profil (Redesign)
 
 ## Current Position
 
-Phase: 98 (segmentstream-serverseitig-begrenzter-hls-jellyfin-playback) - IN PROGRESS
-Plan: 5 of 6 complete (98-05 E2E/UAT verbleibt)
+Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
+Plan: 1 of 5
 
 ## Accumulated Context
 
@@ -542,5 +542,5 @@ Recent durable decisions:
 
 Last session: 2026-07-01T14:25:00.000Z
 Stopped at: Completed 97-05-PLAN.md
-Last activity: 2026-07-07 - Phase 99 planned: Öffentliches Fansub-Member-Profil (Redesign)
+Last activity: 2026-07-07
 Resume file: None

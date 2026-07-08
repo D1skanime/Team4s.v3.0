@@ -368,32 +368,11 @@ func (r *FansubGroupAppMemberRepository) Create(ctx context.Context, fansubGroup
 		}
 	}
 
+	if err := upsertVerifiedAppMemberClaimTx(ctx, tx, input.AppUserID, historicalMemberID, input.CreatedByAppUserID); err != nil {
+		return nil, fmt.Errorf("create fansub group member: link member profile: %w", err)
+	}
 	if hasHistoricalMember {
-		if _, err := tx.Exec(ctx, `
-			INSERT INTO member_claims (
-				app_user_id,
-				member_id,
-				claim_status,
-				verification_method,
-				verified_by,
-				verified_at,
-				created_at,
-				updated_at
-			)
-			VALUES ($1, $2, 'verified', 'manual_review', $3, NOW(), NOW(), NOW())
-			ON CONFLICT (member_id, app_user_id)
-			DO UPDATE SET
-				claim_status = 'verified',
-				verification_method = 'manual_review',
-				verified_by = $3,
-				verified_at = NOW(),
-				updated_at = NOW()
-		`, input.AppUserID, historicalMemberID, input.CreatedByAppUserID); err != nil {
-			return nil, fmt.Errorf("create fansub group member: link historical member: %w", err)
-		}
-		if _, err := tx.Exec(ctx, `
-			UPDATE members SET noindex = false, updated_at = NOW() WHERE id = $1
-		`, historicalMemberID); err != nil {
+		if err := publishVerifiedMemberProfileTx(ctx, tx, historicalMemberID); err != nil {
 			return nil, fmt.Errorf("create fansub group member: update historical member profile: %w", err)
 		}
 	}
@@ -753,6 +732,43 @@ func ensureAppUserMemberAnchorTx(ctx context.Context, tx pgx.Tx, appUserID int64
 		return 0, fmt.Errorf("ensure app user member anchor: create member: %w", err)
 	}
 	return memberID, nil
+}
+
+func upsertVerifiedAppMemberClaimTx(ctx context.Context, tx pgx.Tx, appUserID int64, memberID int64, verifiedByAppUserID *int64) error {
+	if appUserID <= 0 || memberID <= 0 {
+		return fmt.Errorf("upsert verified app member claim: invalid ids")
+	}
+	_, err := tx.Exec(ctx, `
+		INSERT INTO member_claims (
+			app_user_id,
+			member_id,
+			claim_status,
+			verification_method,
+			verified_by,
+			verified_at,
+			created_at,
+			updated_at
+		)
+		VALUES ($1, $2, 'verified', 'manual_review', $3, NOW(), NOW(), NOW())
+		ON CONFLICT (member_id, app_user_id)
+		DO UPDATE SET
+			claim_status = 'verified',
+			verification_method = 'manual_review',
+			verified_by = $3,
+			verified_at = NOW(),
+			updated_at = NOW()
+	`, appUserID, memberID, verifiedByAppUserID)
+	return err
+}
+
+func publishVerifiedMemberProfileTx(ctx context.Context, tx pgx.Tx, memberID int64) error {
+	if memberID <= 0 {
+		return fmt.Errorf("publish verified member profile: invalid member id")
+	}
+	_, err := tx.Exec(ctx, `
+		UPDATE members SET noindex = false, updated_at = NOW() WHERE id = $1
+	`, memberID)
+	return err
 }
 
 func (r *FansubGroupAppMemberRepository) GetByID(ctx context.Context, memberID int64) (*models.FansubGroupAppMember, error) {

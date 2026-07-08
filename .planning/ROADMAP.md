@@ -1656,7 +1656,7 @@ Plans:
 **Requirements**: siehe `99-CONTEXT.md` (D-01 bis D-20; A-01 bis A-05 vor Umsetzung klären)
 **Depends on:** Phase 98
 **Status:** Planned 2026-07-07
-**Plans:** 5 plans ready
+**Plans:** 5 plans ready (Member-Profil) + 10 plans ready (Add-on 4)
 
 Plans:
 - [ ] `99-00-PLAN.md` - Wave 0: RED-Tests und Contract-Gates für Profilstruktur, Datenfilter, Media-Ownership, Badges, Story und frühere Mitwirkungen
@@ -1664,6 +1664,20 @@ Plans:
 - [ ] `99-02-PLAN.md` - Wave 2: Public-Profil Top-Sections Hero, Gruppenzugehörigkeit, aktuelle Projekte und Auszeichnungen
 - [ ] `99-03-PLAN.md` - Wave 3: Letzte Beiträge, Fansub-Geschichte-Clamp und eingeklappte frühere Mitwirkungen
 - [ ] `99-04-PLAN.md` - Wave 4: Integration, Mobile/Desktop-Browser-UAT und Human-Verify
+
+**Add-on 4 — Öffentliche Gruppen-, Projekt- & Release-Detailseite** (angehängt 2026-07-08)
+**Requirements**: siehe `99-ADDON4-CONTEXT.md` (AO4-01 bis AO4-25; Teil A/B geklärt)
+
+- [ ] `99-05-PLAN.md` - Wave 5: AO4-01 Mitgliederzahl-Bugfix (`getGroupStats`/`MembersCount` = aktive `fansub_group_members` + öffentlich-historische, `== countVisibleTeamMembers`)
+- [ ] `99-06-PLAN.md` - Wave 5: AO4-04 OP/ED/Middle-Zeitcodes aus `theme_segments` ins `PublicGroupTheme`-DTO + OpenAPI/TS
+- [ ] `99-07-PLAN.md` - Wave 5: AO4-02/AO4-05 aggregierender Public-Release-Endpoint (release_version-basiert) + OpenAPI + api.ts
+- [ ] `99-08-PLAN.md` - Wave 6: AO4-03/AO4-24 additive Cursor-Pagination für genau 3 Listen (Release-Liste, Galerie, Textliste)
+- [ ] `99-09-PLAN.md` - Wave 7: AO4-06/AO4-07 Fansub-Gruppenseite Reihenfolge/Stat-Zeile/Sammel-Hinweis (Verify + Nachzieh)
+- [ ] `99-10-PLAN.md` - Wave 7: AO4-08/09/10/14 Projektseite: Subgroups-Fehlertext entfernen, Hero-Verlaufs-Overlay, beschriftete Navigation
+- [ ] `99-11-PLAN.md` - Wave 8: AO4-11/12/13/21/22/23/25 eingebettetes neuestes Release + ältere Releases (Cursor-Infinite-Scroll + Mehr laden)
+- [ ] `99-12-PLAN.md` - Wave 8: AO4-15/16/17/20/23 neue Release-Detailroute: Hero-Kennzahlen, Beteiligten-Avatarreihe, OP/ED/Middle-Timeline ohne Player
+- [ ] `99-13-PLAN.md` - Wave 9: AO4-18/19/05/21/22/23/24/25 vollständige Galerie (Typ-Tag+Autor) + Textliste, Cursor-Infinite-Scroll, Lazy/Skeleton/srcset, Mehr laden
+- [ ] `99-14-PLAN.md` - Wave 10: Integration — Kennzahlen-Konsistenz über 3 Seiten, Live-UAT :3000 Mobile+Desktop, Human-Verify
 
 ---
 

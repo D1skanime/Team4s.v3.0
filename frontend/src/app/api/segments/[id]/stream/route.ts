@@ -127,11 +127,13 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
     'content-range',
     'etag',
     'last-modified',
-    'cache-control',
   ]) {
     const value = upstream.headers.get(key)
     if (value) responseHeaders.set(key, value)
   }
+  responseHeaders.set('cache-control', 'no-store, max-age=0')
+  responseHeaders.set('pragma', 'no-cache')
+  responseHeaders.set('expires', '0')
 
   const response = new NextResponse(upstream.body, {
     status: upstream.status,
