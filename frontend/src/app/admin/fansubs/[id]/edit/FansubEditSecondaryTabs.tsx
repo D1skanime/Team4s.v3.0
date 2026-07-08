@@ -5,7 +5,6 @@ import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReadinessTab } from "./ReadinessTab";
 import { ContributionsReviewSection } from "./ContributionsReviewSection";
-import { UserSuggestionsInbox } from "./UserSuggestionsInbox";
 import type { MainTab } from "./fansubEditTypes";
 
 type FansubEditSecondaryTabsProps = {
@@ -27,27 +26,13 @@ export function FansubEditSecondaryTabs({
         <>
           <NotesTab fansubId={fansubID} />
           <GroupHistorySection fansubGroupId={fansubID} />
-          {capabilities ? (
-            <UserSuggestionsInbox
-              fansubId={fansubID}
-              domain="notes"
-              capabilities={capabilities}
-            />
-          ) : null}
         </>
       ) : null}
       {activeMainTab === "vorschlaege" && capabilities ? (
-        <>
-          <ContributionsReviewSection
-            fansubId={fansubID}
-            capabilities={capabilities}
-          />
-          <UserSuggestionsInbox
-            fansubId={fansubID}
-            domain="contribution"
-            capabilities={capabilities}
-          />
-        </>
+        <ContributionsReviewSection
+          fansubId={fansubID}
+          capabilities={capabilities}
+        />
       ) : null}
       {activeMainTab === "readiness" && group ? (
         <ReadinessTab fansubId={fansubID} group={group} />
