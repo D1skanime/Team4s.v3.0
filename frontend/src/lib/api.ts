@@ -234,6 +234,7 @@ import type {
   GroupThemesResponse,
   GroupReleaseMediaResponse,
 } from "@/types/groupContributors";
+import type { ReleaseDetailResponse } from "@/types/releaseDetail";
 import type { RoleCapabilityMatrix, RoleDefinitionOption } from "@/types/admin-capability";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
@@ -6189,6 +6190,28 @@ export async function getGroupReleaseMedia(
   }
 
   return response.json() as Promise<GroupReleaseMediaResponse>;
+}
+
+export async function getGroupReleaseDetail(
+  animeID: number,
+  groupID: number,
+  releaseVersionID: number,
+): Promise<ReleaseDetailResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<ReleaseDetailResponse>;
 }
 
 export async function getGroupProjectNote(
