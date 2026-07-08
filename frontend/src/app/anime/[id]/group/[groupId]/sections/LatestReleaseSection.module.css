@@ -1,0 +1,155 @@
+.section {
+  padding: 32px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.card {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.date {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statItem {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: var(--surface-card-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+/* ── Bild-Vorschauen (3-4 + X-Kachel), feste Aspect-Ratio-Box gegen Layout-Sprung (AO4-22) ── */
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.imageTile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-card-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.imageThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.imageSkeleton {
+  width: 100%;
+  height: 100%;
+  background: var(--surface-card-muted);
+}
+
+.imageBadge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+}
+
+.imageMoreTile {
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* ── Text-Vorschauen ── */
+.noteList {
+  display: grid;
+  gap: 10px;
+}
+
+.noteItem {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--surface-card-muted);
+  border: 1px solid var(--border-subtle);
+  display: grid;
+  gap: 4px;
+}
+
+.noteAuthor {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.noteExcerpt {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+/* ── Beteiligten-Avatare ── */
+.contributorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contributorAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detailLink {
+  justify-self: start;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.detailLink:hover {
+  text-decoration: underline;
+}
