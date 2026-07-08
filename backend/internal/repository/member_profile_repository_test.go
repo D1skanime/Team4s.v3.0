@@ -215,9 +215,9 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 		"public memberships must not expose current app permission roles as public group roles")
 	assert.True(t, strings.Contains(repo, "cover_asset.id = a.cover_asset_id") && strings.Contains(repo, "FROM anime_media am"),
 		"current projects must resolve anime poster images from cover_asset_id and existing anime_media when legacy cover_image is empty")
-	assert.True(t, strings.Contains(repo, "COALESCE(anime_media_file.path, anime_media_asset.file_path) ILIKE '/media/%'") &&
-		strings.Contains(repo, "anime_media_asset.file_path ILIKE '%kind=primary%' THEN 2"),
-		"current project cards must prefer ready local anime media over stale provider proxy poster URLs")
+	assert.True(t, strings.Contains(repo, "JOIN media_types anime_media_type") &&
+		strings.Contains(repo, "anime_media_type.name = 'poster'"),
+		"current project cards must use the same anime_media poster slot as public anime pages")
 }
 
 func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {

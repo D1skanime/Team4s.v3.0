@@ -1076,7 +1076,7 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 				NULLIF(BTRIM(a.cover_image), ''),
 				NULLIF(BTRIM(cover_file.path), ''),
 				NULLIF(BTRIM(cover_asset.file_path), ''),
-				NULLIF(BTRIM(anime_cover.path), '')
+				NULLIF(BTRIM(anime_poster.path), '')
 			) AS cover_path,
 			fg.id,
 			COALESCE(fg.name, ''),
@@ -1105,6 +1105,9 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 			JOIN media_assets anime_media_asset
 				ON anime_media_asset.id = am.media_id
 			   AND anime_media_asset.status = 'ready'
+			JOIN media_types anime_media_type
+				ON anime_media_type.id = anime_media_asset.media_type_id
+			   AND anime_media_type.name = 'poster'
 			LEFT JOIN LATERAL (
 				SELECT mf.path
 				FROM media_files mf
@@ -1114,27 +1117,9 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 				LIMIT 1
 			) anime_media_file ON true
 			WHERE am.anime_id = a.id
-			  AND (
-				anime_media_asset.mime_type LIKE 'image/%'
-				OR NULLIF(BTRIM(anime_media_asset.file_path), '') IS NOT NULL
-			  )
-			ORDER BY
-				CASE
-					WHEN COALESCE(anime_media_file.path, anime_media_asset.file_path) ILIKE '/media/%'
-						AND COALESCE(anime_media_file.path, anime_media_asset.file_path) ~* '(cover|poster)' THEN 0
-					WHEN COALESCE(anime_media_file.path, anime_media_asset.file_path) ILIKE '/media/%' THEN 1
-					WHEN anime_media_asset.file_path ILIKE '%kind=primary%' THEN 2
-					WHEN anime_media_asset.file_path ILIKE '%cover%' THEN 3
-					WHEN anime_media_asset.file_path ILIKE '%poster%' THEN 3
-					WHEN anime_media_asset.file_path ILIKE '%kind=logo%' THEN 4
-					WHEN anime_media_asset.file_path ILIKE '%kind=banner%' THEN 5
-					WHEN anime_media_asset.file_path ILIKE '%kind=backdrop%' THEN 6
-					ELSE 2
-				END,
-				am.sort_order,
-				anime_media_asset.id
+			ORDER BY am.sort_order, anime_media_asset.id
 			LIMIT 1
-		) anime_cover ON true
+		) anime_poster ON true
 		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
 		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
@@ -1142,7 +1127,7 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		  AND ac.status = 'confirmed'
 		  AND ac.is_public_on_member_profile = true
 		  AND ac.ended_year IS NULL
-		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, cover_file.path, cover_asset.file_path, anime_cover.path, fg.id, fg.name
+		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, cover_file.path, cover_asset.file_path, anime_poster.path, fg.id, fg.name
 		ORDER BY MAX(ac.updated_at) DESC, a.title ASC, fg.name ASC
 	`, memberID)
 	if err != nil {
