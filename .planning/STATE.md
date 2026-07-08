@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 99-13-PLAN.md
-last_updated: "2026-07-08T18:55:28.201Z"
+stopped_at: Completed 99-15-PLAN.md
+last_updated: "2026-07-08T20:20:03.935Z"
 last_activity: 2026-07-08
 progress:
   total_phases: 90
   completed_phases: 76
-  total_plans: 388
-  completed_plans: 362
+  total_plans: 392
+  completed_plans: 363
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 10 of 15
+Plan: 2 of 15
 
 ## Accumulated Context
 
@@ -271,6 +271,7 @@ Recent durable decisions:
 - [Phase 99]: 99-11: LatestReleaseSection bettet das neueste Release (getGroupReleaseDetail) direkt ein, OlderReleasesList nachlaedt aeltere Releases per Seek-Cursor mit IntersectionObserver+Mehr-laden-Fallback; GetGroupReleasesCursor liefert additiv images_count/notes_count pro Zeile (Rule-3-Fix); Projektseite folgt AO4-13-Reihenfolge mit einem Sammel-Hinweis fuer leere Bereiche (AO4-07), live gegen Docker-Backend/Frontend verifiziert.
 - [Phase 99]: 99-12: ReleaseDetailHero/ContributorsRow/ThemeTimeline nutzen Initialen-Avatare und keinen Player, da das getGroupReleaseDetail-Payload (99-07) bewusst kein avatar_url-Feld enthaelt; Galerie/Textliste folgen strukturell einfach in 99-13 nach ThemeTimeline.
 - [Phase ?]: [Phase 99]: 99-13: ReleaseGallery/ReleaseNotesList laden Cursor-Seiten mit Dedupe-per-id nach; PublicReleaseImage.author_name additiv ergaenzt (LATERAL-Join uploaded_by_user_id->users->app_users->verified member_claims->members), da AO4-18-Autor-Chip ohne dieses Feld nicht erfuellbar war.
+- [Phase 99]: 99-15: CommunityLinks additiv ueber ListGroupLinks ins Public-Profil geladen; listPublicFansubMedia selektiert fgm.title/description/category und filtert fgm.deleted_at IS NULL (Soft-Delete-Bugfix).
 
 ### Pending Todos
 
@@ -490,6 +491,7 @@ Recent durable decisions:
 | Phase 99 P11 | 55min | 3 tasks | 12 files |
 | Phase 99 P12 | 35min | 3 tasks | 5 files |
 | Phase 99 P13 | 50min | 3 tasks | 9 files |
+| Phase 99 P15 | 25min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -558,7 +560,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-08T18:55:27.959Z
-Stopped at: Completed 99-13-PLAN.md
+Last session: 2026-07-08T20:20:03.733Z
+Stopped at: Completed 99-15-PLAN.md
 Last activity: 2026-07-08
 Resume file: None
