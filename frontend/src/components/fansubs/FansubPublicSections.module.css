@@ -93,25 +93,55 @@
 
 .mediaItemGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
-.mediaImage {
+.mediaCard {
+  display: grid;
+  gap: 10px;
+}
+
+.mediaThumbFrame {
+  position: relative;
   width: 100%;
-  height: auto;
   aspect-ratio: 16 / 9;
   border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-hover);
+}
+
+.mediaImage {
   object-fit: cover;
+}
+
+.mediaThumbSkeleton {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-hover);
+}
+
+.mediaCardBody {
+  display: grid;
+  gap: 6px;
+}
+
+.mediaCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .mediaLabel {
   display: block;
 }
 
-.mediaLabelWithImage {
-  display: block;
-  margin-top: 10px;
+.mediaDescription {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .inlineLink {
