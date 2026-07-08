@@ -55,7 +55,27 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			NULLIF(BTRIM(rev.version), '') AS version_label,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			0::BIGINT AS screenshot_count,
-			NULL::TEXT AS thumbnail_url
+			NULL::TEXT AS thumbnail_url,
+			(
+				SELECT COUNT(*)
+				FROM release_version_media rvm
+				JOIN media_assets ma ON ma.id = rvm.media_asset_id
+				JOIN visibilities v_img ON v_img.id = ma.visibility_id
+				JOIN review_statuses rs_img ON rs_img.id = ma.review_status_id
+				WHERE rvm.release_version_id = rev.id
+				  AND rvm.deleted_at IS NULL
+				  AND ma.status = 'ready'
+				  AND v_img.name = 'public'
+				  AND rs_img.code = 'approved'
+			) AS images_count,
+			(
+				SELECT COUNT(*)
+				FROM release_version_notes rvn
+				WHERE rvn.release_version_id = rev.id
+				  AND rvn.deleted_at IS NULL
+				  AND rvn.visibility = 'public'
+				  AND rvn.status = 'published'
+			) AS notes_count
 		FROM release_versions rev
 		JOIN fansub_releases fr ON fr.id = rev.release_id
 		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
@@ -76,6 +96,8 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		var ep models.EpisodeReleaseSummary
 		var episodeID sql.NullInt64
 		var screenshotCount int64
+		var imagesCount int64
+		var notesCount int64
 		if err := rows.Scan(
 			&ep.ID,
 			&episodeID,
@@ -85,6 +107,8 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			&ep.ReleasedAt,
 			&screenshotCount,
 			&ep.ThumbnailURL,
+			&imagesCount,
+			&notesCount,
 		); err != nil {
 			return nil, fmt.Errorf("scan cursor episode release row: %w", err)
 		}
@@ -97,6 +121,8 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		ep.KaraokeCount = 0
 		ep.InsertCount = 0
 		ep.ScreenshotCount = int32(screenshotCount)
+		ep.ImagesCount = int32(imagesCount)
+		ep.NotesCount = int32(notesCount)
 		episodes = append(episodes, ep)
 	}
 	if err := rows.Err(); err != nil {

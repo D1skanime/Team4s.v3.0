@@ -11841,6 +11841,18 @@ components:
           type: string
           format: date-time
           nullable: true
+        images_count:
+          type: integer
+          format: int32
+          description: >-
+            Anzahl oeffentlich sichtbarer Release-Bilder (AO4-11/AO4-12). Nur vom
+            Cursor-Endpunkt /release-list populiert, bei /releases (Offset) 0.
+        notes_count:
+          type: integer
+          format: int32
+          description: >-
+            Anzahl oeffentlich sichtbarer Release-Texte (AO4-11/AO4-12). Nur vom
+            Cursor-Endpunkt /release-list populiert, bei /releases (Offset) 0.
     GroupReleasesData:
       type: object
       required: [group, episodes, other_groups]

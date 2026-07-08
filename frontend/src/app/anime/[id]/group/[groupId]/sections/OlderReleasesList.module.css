@@ -1,0 +1,76 @@
+.section {
+  padding: 32px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.error {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--color-error);
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.row {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rowMain {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.rowTitle:hover {
+  text-decoration: underline;
+}
+
+.rowMeta {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.rowCounts {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Feste Hoehe gegen Layout-Sprung waehrend des Nachladens (AO4-22). */
+.skeletonRow {
+  height: 52px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-card-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.loadMoreRow {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.loadTrigger {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+}

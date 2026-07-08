@@ -49,6 +49,12 @@ type EpisodeReleaseSummary struct {
 	ScreenshotCount int32      `json:"screenshot_count"`
 	ThumbnailURL    *string    `json:"thumbnail_url,omitempty"`
 	ReleasedAt      *time.Time `json:"released_at,omitempty"`
+	// ImagesCount/NotesCount (AO4-11/AO4-12): oeffentlich sichtbare Zaehler je
+	// release_version_id. Nur von GetGroupReleasesCursor populiert (Weitere-
+	// Releases-Liste); die Offset-Variante GetGroupReleases laesst sie auf 0,
+	// da die alte /releases-Seite diese Felder nicht rendert.
+	ImagesCount int32 `json:"images_count"`
+	NotesCount  int32 `json:"notes_count"`
 }
 
 // GroupReleasesData contains group detail and episode releases

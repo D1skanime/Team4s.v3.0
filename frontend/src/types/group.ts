@@ -43,6 +43,10 @@ export interface EpisodeReleaseSummary {
   screenshot_count: number
   thumbnail_url?: string | null
   released_at?: string | null
+  /** AO4-11/AO4-12: nur vom Cursor-Endpunkt (getGroupReleaseListCursor) populiert. */
+  images_count?: number
+  /** AO4-11/AO4-12: nur vom Cursor-Endpunkt (getGroupReleaseListCursor) populiert. */
+  notes_count?: number
 }
 
 export interface GroupReleasesData {
