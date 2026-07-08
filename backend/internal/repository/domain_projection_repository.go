@@ -93,15 +93,17 @@ func (r *DomainProjectionRepository) GetFansubGroupDomainProjection(ctx context.
 }
 
 func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, groupID int64) ([]DomainProjectionMemberRow, error) {
-	displayCol := fmt.Sprintf(domainProjectionMemberDisplayExpr, "m", "m")
 	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			fgm.id,
 			m.id AS member_id,
-			COALESCE(`+displayCol+`, NULLIF(au.display_name, ''), 'Mitglied') AS member_display_name,
-			`+slugCol+` AS member_slug,
+			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), NULLIF(TRIM(au.display_name), ''), 'Mitglied') AS member_display_name,
+			CASE
+				WHEN m.id IS NOT NULL AND m.profile_visibility = 'public' THEN `+slugCol+`
+				ELSE NULL
+			END AS member_slug,
 			COALESCE(ARRAY_AGG(fgmr.role::text) FILTER (WHERE fgmr.role IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, fgmr.role::text)) FILTER (WHERE fgmr.role IS NOT NULL), ARRAY[]::text[]) AS role_labels,
 			fgm.status,
@@ -119,9 +121,7 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 		LEFT JOIN role_definitions rd ON rd.code = fgmr.role
 		WHERE fgm.fansub_group_id = $1
 		  AND fgm.status = 'active'
-		  AND m.id IS NOT NULL
-		  AND m.profile_visibility = 'public'
-		GROUP BY fgm.id, m.id, m.display_name, m.nickname, m.profile_status, au.display_name, fgm.status
+		GROUP BY fgm.id, m.id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, au.display_name, fgm.status
 		ORDER BY member_display_name, fgm.id
 	`, groupID)
 	if err != nil {
@@ -162,7 +162,10 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 			hfgm.id,
 			hfgm.member_id,
 			`+displayCol+` AS member_display_name,
-			`+slugCol+` AS member_slug,
+			CASE
+				WHEN m.profile_visibility = 'public' THEN `+slugCol+`
+				ELSE NULL
+			END AS member_slug,
 			COALESCE(ARRAY_AGG(hgmr.role_code) FILTER (WHERE hgmr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, hgmr.role_code)) FILTER (WHERE hgmr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels,
 			EXTRACT(YEAR FROM hfgm.joined_date)::int AS joined_year,
@@ -183,8 +186,7 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 		WHERE hfgm.fansub_group_id = $1
 		  AND hfgm.status IN ('historical', 'confirmed')
 		  AND hfgm.visibility = 'public'
-		  AND m.profile_visibility = 'public'
-		GROUP BY hfgm.id, hfgm.member_id, m.display_name, m.nickname, m.profile_status, hfgm.joined_date, hfgm.left_date, hfgm.status
+		GROUP BY hfgm.id, hfgm.member_id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, hfgm.joined_date, hfgm.left_date, hfgm.status
 		ORDER BY COALESCE(hfgm.joined_date, '9999-01-01'::date), member_display_name, hfgm.id
 	`, groupID)
 	if err != nil {

@@ -57,7 +57,7 @@ func TestProjectionClaimedDerivedFromClaims(t *testing.T) {
 		}
 	}
 
-	memberBlockStart := strings.Index(normalized, "from fansub_group_members")
+	memberBlockStart := strings.Index(normalized, "func (r *domainprojectionrepository) listprojectionmembers")
 	historicalBlockStart := strings.Index(normalized, "from hist_fansub_group_members")
 	if memberBlockStart < 0 || historicalBlockStart < 0 || historicalBlockStart <= memberBlockStart {
 		t.Fatalf("expected member SELECT block before historical SELECT block")
@@ -85,13 +85,57 @@ func TestProjectionPublicMemberRowsAvoidInternalIdentity(t *testing.T) {
 		}
 	}
 
-	required := []string{
-		"m.id is not null",
-		"m.profile_visibility = 'public'",
+	memberBlockStart := strings.Index(normalized, "func (r *domainprojectionrepository) listprojectionmembers")
+	historicalBlockStart := strings.Index(normalized, "from hist_fansub_group_members")
+	if memberBlockStart < 0 || historicalBlockStart < 0 || historicalBlockStart <= memberBlockStart {
+		t.Fatalf("expected member SELECT block before historical SELECT block")
 	}
-	for _, fragment := range required {
-		if !strings.Contains(normalized, fragment) {
+	memberBlock := normalized[memberBlockStart:historicalBlockStart]
+	memberBlockCompact := strings.Join(strings.Fields(memberBlock), " ")
+	if strings.Contains(memberBlockCompact, "and fgm.status = 'active' and m.id is not null") {
+		t.Fatalf("expected public domain projection to include active group members without requiring a linked member profile")
+	}
+	if strings.Contains(memberBlockCompact, "and fgm.status = 'active' and m.profile_visibility = 'public'") {
+		t.Fatalf("expected public domain projection not to hide active group membership behind member profile visibility")
+	}
+
+	requiredMemberFragments := []string{
+		"nullif(trim(au.display_name), '')",
+		"when m.id is not null and m.profile_visibility = 'public'",
+		"else null",
+	}
+	for _, fragment := range requiredMemberFragments {
+		if !strings.Contains(memberBlockCompact, fragment) {
 			t.Fatalf("expected public domain projection member query to contain %q", fragment)
+		}
+	}
+}
+
+func TestProjectionHistoricalRowsUseMembershipVisibilityForListing(t *testing.T) {
+	content := readRepositorySource(t, "domain_projection_repository.go")
+	normalized := strings.ToLower(content)
+
+	historicalBlockStart := strings.Index(normalized, "func (r *domainprojectionrepository) listprojectionhistorical")
+	contributorBlockStart := strings.Index(normalized, "from anime_contributions")
+	if historicalBlockStart < 0 || contributorBlockStart < 0 || contributorBlockStart <= historicalBlockStart {
+		t.Fatalf("expected historical SELECT block before contributor SELECT block")
+	}
+	historicalBlock := normalized[historicalBlockStart:contributorBlockStart]
+	historicalBlockCompact := strings.Join(strings.Fields(historicalBlock), " ")
+	if !strings.Contains(historicalBlock, "hfgm.visibility = 'public'") {
+		t.Fatalf("expected historical group membership listing to be guarded by membership visibility")
+	}
+	if strings.Contains(historicalBlock, "and m.profile_visibility = 'public'") {
+		t.Fatalf("expected historical group membership not to be hidden behind member profile visibility")
+	}
+
+	requiredSlugFragments := []string{
+		"when m.profile_visibility = 'public'",
+		"else null",
+	}
+	for _, fragment := range requiredSlugFragments {
+		if !strings.Contains(historicalBlockCompact, fragment) {
+			t.Fatalf("expected historical member slug query to contain %q", fragment)
 		}
 	}
 }
