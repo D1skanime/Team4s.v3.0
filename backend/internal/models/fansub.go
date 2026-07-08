@@ -63,11 +63,12 @@ type FansubGroup struct {
 
 // PublicFansubProfileResponse bundles the public data needed by /fansubs/[slug].
 type PublicFansubProfileResponse struct {
-	Group    FansubGroup             `json:"group"`
-	Story    *PublicFansubStory      `json:"story"`
-	Projects []PublicFansubProject   `json:"projects"`
-	History  []PublicFansubHistory   `json:"history"`
-	Media    []PublicFansubMediaItem `json:"media"`
+	Group          FansubGroup             `json:"group"`
+	Story          *PublicFansubStory      `json:"story"`
+	Projects       []PublicFansubProject   `json:"projects"`
+	History        []PublicFansubHistory   `json:"history"`
+	Media          []PublicFansubMediaItem `json:"media"`
+	CommunityLinks []FansubGroupLink       `json:"community_links"`
 }
 
 // PublicFansubStory is the public, published fansub_group_notes projection.
@@ -108,6 +109,9 @@ type PublicFansubMediaItem struct {
 	MimeType     string  `json:"mime_type"`
 	ThumbnailURL *string `json:"thumbnail_url,omitempty"`
 	OriginalURL  *string `json:"original_url,omitempty"`
+	Title        *string `json:"title,omitempty"`
+	Description  *string `json:"description,omitempty"`
+	Category     string  `json:"category"`
 }
 
 // FansubGroupSummary ist eine kompakte Kurzform einer Fansub-Gruppe.

@@ -248,10 +248,11 @@ func (r *FansubRepository) GetPublicProfileBySlug(ctx context.Context, slug stri
 	}
 
 	resp := &models.PublicFansubProfileResponse{
-		Group:    *group,
-		Projects: make([]models.PublicFansubProject, 0),
-		History:  make([]models.PublicFansubHistory, 0),
-		Media:    make([]models.PublicFansubMediaItem, 0),
+		Group:          *group,
+		Projects:       make([]models.PublicFansubProject, 0),
+		History:        make([]models.PublicFansubHistory, 0),
+		Media:          make([]models.PublicFansubMediaItem, 0),
+		CommunityLinks: make([]models.FansubGroupLink, 0),
 	}
 
 	story, err := r.getPublicFansubStory(ctx, group.ID)
@@ -277,6 +278,12 @@ func (r *FansubRepository) GetPublicProfileBySlug(ctx context.Context, slug stri
 		return nil, err
 	}
 	resp.Media = media
+
+	links, err := r.ListGroupLinks(ctx, group.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp.CommunityLinks = links
 
 	return resp, nil
 }
@@ -393,7 +400,10 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 			ma.caption,
 			ma.mime_type,
 			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path,
-			COALESCE(mf_orig.path, mf_thumb.path, ma.file_path) AS original_path
+			COALESCE(mf_orig.path, mf_thumb.path, ma.file_path) AS original_path,
+			fgm.title,
+			fgm.description,
+			fgm.category
 		FROM fansub_group_media fgm
 		JOIN media_assets ma ON ma.id = fgm.media_id
 		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
@@ -405,6 +415,7 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 		  AND ma.status = 'ready'
 		  AND v.name = 'public'
 		  AND rs.code = 'approved'
+		  AND fgm.deleted_at IS NULL
 		  AND ($2::bigint IS NULL OR ma.id <> $2)
 		  AND ($3::bigint IS NULL OR ma.id <> $3)
 		ORDER BY ma.created_at ASC, ma.id ASC
@@ -428,6 +439,9 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 			&item.MimeType,
 			&thumbnailPath,
 			&originalPath,
+			&item.Title,
+			&item.Description,
+			&item.Category,
 		); err != nil {
 			return nil, fmt.Errorf("scan public fansub media row: %w", err)
 		}
