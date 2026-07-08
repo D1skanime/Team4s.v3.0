@@ -24,4 +24,29 @@ describe('fansub public page', () => {
     expect(pageSource).not.toContain('GroupLeaderTimeline')
     expect(pageSource).not.toContain('FansubDeepDiveSection')
   })
+
+  it('rendert die Sektionen in der Reihenfolge Hero -> Projekte -> Team -> Geschichte -> Erfolge -> Sammelhinweis (AO4-06/07)', () => {
+    const heroIndex = pageSource.indexOf('<FansubHeroSection')
+    const projectsIndex = pageSource.indexOf('<FansubProjectsSection')
+    const teamIndex = pageSource.indexOf('<FansubTeamSection')
+    const storyIndex = pageSource.indexOf('<FansubStorySection')
+    const historyIndex = pageSource.indexOf('<FansubHistorySection')
+    const summaryIndex = pageSource.indexOf('styles.emptySummary')
+
+    expect(heroIndex).toBeGreaterThan(-1)
+    expect(projectsIndex).toBeGreaterThan(heroIndex)
+    expect(teamIndex).toBeGreaterThan(projectsIndex)
+    expect(storyIndex).toBeGreaterThan(teamIndex)
+    expect(historyIndex).toBeGreaterThan(storyIndex)
+    expect(summaryIndex).toBeGreaterThan(historyIndex)
+  })
+
+  it('rendert genau einen Sammelhinweis-Block und keine eigenständigen Leer-Sektionen', () => {
+    const summaryOccurrences = pageSource.split('styles.emptySummary').length - 1
+    expect(summaryOccurrences).toBe(1)
+
+    expect(pageSource).not.toMatch(/<FansubContributorsSection/)
+    expect(pageSource).not.toMatch(/<FansubMediaSection/)
+    expect(pageSource).not.toMatch(/<GroupLeaderTimeline/)
+  })
 })
