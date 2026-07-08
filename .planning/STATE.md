@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 99-08-PLAN.md
-last_updated: "2026-07-08T16:19:15.793Z"
+stopped_at: Completed 99-09-PLAN.md
+last_updated: "2026-07-08T16:29:20.353Z"
 last_activity: 2026-07-08
 progress:
   total_phases: 90
   completed_phases: 76
   total_plans: 388
-  completed_plans: 357
+  completed_plans: 358
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 5 of 15
+Plan: 6 of 15
 
 ## Accumulated Context
 
@@ -266,6 +266,7 @@ Recent durable decisions:
 - [Phase 99]: 99-06: PublicGroupTheme liefert start_time/end_time aus theme_segments (LEFT JOIN, ::text-Cast) statt Berechnung/Platzhalter — OpenAPI+TS-Typ gespiegelt fuer die kuenftige OP/ED/Middle-Timeline (AO4-20)
 - [Phase ?]: [Phase 99]: 99-07: Neuer oeffentlicher Endpoint GET /anime/:id/group/:groupId/releases/:releaseVersionId aggregiert release_versions (Kopf-Kennzahlen, Beteiligte via anime_contributions.member_id, Bilder via release_version_media inkl. category, Texte via release_version_notes); live gegen Docker-Backend verifiziert (200 mit echten Daten, 404 bei ungueltiger/gruppenfremder release_version_id).
 - [Phase 99]: 99-08: GetGroupReleasesCursor/ListReleaseVersionImagesCursor/ListReleaseVersionNotesCursor liefern additive Seek-Cursor-Pagination (Base64 (episode_number|sort_order|created_at, id)) mit einheitlichem items/next_cursor/has_more-Contract fuer genau die drei Nachlade-Listen (Release-Liste, Bildergalerie, Textliste); Offset-GetGroupReleases/GetPublicReleaseDetail bleiben unveraendert, live verifiziert.
+- [Phase 99]: 99-09: Fansub-Gruppenseite erfuellte AO4-06/AO4-07 (Reihenfolge Hero->Projekte->Team->Geschichte->Erfolge, Stat-Zeile, ein Sammelhinweis, Story nur mit Inhalt) bereits vollstaendig -- Plan als reiner Verify-/Regressionstest-Plan ausgefuehrt; hasStoryContent/buildEmptyAreaLabels aus page.tsx exportiert und mit Pure-Function-Tests abgesichert.
 
 ### Pending Todos
 
@@ -480,6 +481,7 @@ Recent durable decisions:
 | Phase 99 P06 | 12min | 2 tasks | 4 files |
 | Phase 99 P07 | 20min | 3 tasks | 7 files |
 | Phase 99 P08 | 40min | 3 tasks | 8 files |
+| Phase 99 P09 | 8min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -548,7 +550,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-08T16:19:15.654Z
-Stopped at: Completed 99-08-PLAN.md
+Last session: 2026-07-08T16:29:20.284Z
+Stopped at: Completed 99-09-PLAN.md
 Last activity: 2026-07-08
 Resume file: None
