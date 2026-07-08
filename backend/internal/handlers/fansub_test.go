@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -275,6 +278,35 @@ func TestValidateFansubAliasCreateRequest(t *testing.T) {
 	}
 	if input.NormalizedAlias != "bsh" {
 		t.Fatalf("expected normalized alias bsh, got %q", input.NormalizedAlias)
+	}
+}
+
+func TestFansubAliasMutationsUseGroupEditPermission(t *testing.T) {
+	content, err := os.ReadFile(filepath.Join(".", "fansub_group_aliases.go"))
+	if err != nil {
+		t.Fatalf("read fansub_group_aliases.go: %v", err)
+	}
+	source := string(content)
+	normalized := strings.ToLower(source)
+
+	if strings.Contains(normalized, "func (h *fansubhandler) createfansubalias(c *gin.context) {\n\tidentity, ok := h.requireadmin(c)") {
+		t.Fatal("CreateFansubAlias must not require platform-admin-only access")
+	}
+	if strings.Contains(normalized, "func (h *fansubhandler) deletefansubalias(c *gin.context) {\n\tidentity, ok := h.requireadmin(c)") {
+		t.Fatal("DeleteFansubAlias must not require platform-admin-only access")
+	}
+
+	required := []string{
+		"permissionactorfromcontext(c)",
+		"permissions.actionfansubgroupedit",
+		"canforfansubgroup",
+		"fansub_group_alias.create.denied",
+		"fansub_group_alias.delete.denied",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(normalized, fragment) {
+			t.Fatalf("expected alias mutation permission guard to contain %q", fragment)
+		}
 	}
 }
 

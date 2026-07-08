@@ -1,10 +1,12 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
 	"log"
 	"net/http"
 
+	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -44,14 +46,13 @@ func (h *FansubHandler) ListFansubAliases(c *gin.Context) {
 
 // CreateFansubAlias fügt einer Fansub-Gruppe einen neuen Alias hinzu.
 func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
-	if !ok {
-		return
-	}
-
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
+		return
+	}
+	identity, ok := h.requireFansubAliasWriteAccess(c, fansubID, "fansub_group_alias.create.denied", "fansub_group", &fansubID)
+	if !ok {
 		return
 	}
 
@@ -95,6 +96,18 @@ func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "fansub_group_alias.created",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "fansub_group_alias",
+		TargetID:       &item.ID,
+		Action:         string(permissions.ActionFansubGroupEdit),
+		Outcome:        "allowed",
+		Payload:        map[string]any{"alias": item.Alias},
+	})
+
 	c.JSON(http.StatusCreated, gin.H{
 		"data": item,
 	})
@@ -102,11 +115,6 @@ func (h *FansubHandler) CreateFansubAlias(c *gin.Context) {
 
 // DeleteFansubAlias entfernt einen Alias aus einer Fansub-Gruppe.
 func (h *FansubHandler) DeleteFansubAlias(c *gin.Context) {
-	identity, ok := h.requireAdmin(c)
-	if !ok {
-		return
-	}
-
 	fansubID, err := parseFansubID(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige fansub id")
@@ -115,6 +123,10 @@ func (h *FansubHandler) DeleteFansubAlias(c *gin.Context) {
 	aliasID, err := parseFansubAliasID(c.Param("aliasId"))
 	if err != nil {
 		badRequest(c, "ungültige alias id")
+		return
+	}
+	identity, ok := h.requireFansubAliasWriteAccess(c, fansubID, "fansub_group_alias.delete.denied", "fansub_group_alias", &aliasID)
+	if !ok {
 		return
 	}
 
@@ -135,5 +147,43 @@ func (h *FansubHandler) DeleteFansubAlias(c *gin.Context) {
 		return
 	}
 
+	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "fansub_group_alias.deleted",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "fansub_group_alias",
+		TargetID:       &aliasID,
+		Action:         string(permissions.ActionFansubGroupEdit),
+		Outcome:        "allowed",
+		Payload:        map[string]any{},
+	})
+
 	c.Status(http.StatusNoContent)
+}
+
+func (h *FansubHandler) requireFansubAliasWriteAccess(
+	c *gin.Context,
+	fansubID int64,
+	deniedEvent string,
+	targetType string,
+	targetID *int64,
+) (middleware.AuthIdentity, bool) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return middleware.AuthIdentity{}, false
+	}
+
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupEdit, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Alias-Berechtigung konnte nicht geprüft werden.")
+		return middleware.AuthIdentity{}, false
+	}
+	if !result.Allowed {
+		auditPermissionDenied(c, h.auditLogRepo, identity, deniedEvent, &fansubID, targetType, targetID, permissions.ActionFansubGroupEdit, result)
+		writePermissionDenied(c, result)
+		return middleware.AuthIdentity{}, false
+	}
+
+	return identity, true
 }

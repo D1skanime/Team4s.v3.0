@@ -3095,7 +3095,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: Admin permission required
+          description: Fansub group edit permission required
           content:
             application/json:
               schema:
@@ -3156,7 +3156,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: Admin permission required
+          description: Fansub group edit permission required
           content:
             application/json:
               schema:
