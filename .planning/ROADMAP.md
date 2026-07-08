@@ -1677,7 +1677,15 @@ Plans:
 - [ ] `99-11-PLAN.md` - Wave 8: AO4-11/12/13/21/22/23/25 eingebettetes neuestes Release + ältere Releases (Cursor-Infinite-Scroll + Mehr laden)
 - [ ] `99-12-PLAN.md` - Wave 8: AO4-15/16/17/20/23 neue Release-Detailroute: Hero-Kennzahlen, Beteiligten-Avatarreihe, OP/ED/Middle-Timeline ohne Player
 - [ ] `99-13-PLAN.md` - Wave 9: AO4-18/19/05/21/22/23/24/25 vollständige Galerie (Typ-Tag+Autor) + Textliste, Cursor-Infinite-Scroll, Lazy/Skeleton/srcset, Mehr laden
-- [ ] `99-14-PLAN.md` - Wave 10: Integration — Kennzahlen-Konsistenz über 3 Seiten, Live-UAT :3000 Mobile+Desktop, Human-Verify
+- [~] `99-14-PLAN.md` - Wave 10: Integration/UAT — ERSETZT durch 99-18 (kombinierter finaler UAT Add-on 4 + 5)
+
+**Add-on 5 — Öffentliche Fansub-Profilseite /fansubs/[slug] vervollständigen & polieren** (angehängt 2026-07-08)
+**Requirements**: siehe `99-ADDON5-CONTEXT.md` (AO5-01 bis AO5-08)
+
+- [ ] `99-15-PLAN.md` - Wave 11: AO5-01/AO5-02 Public-DTO: community_links + media title/description/category + deleted_at-Bugfix; OpenAPI/TS/Tests
+- [ ] `99-16-PLAN.md` - Wave 12: AO5-05/AO5-06/AO5-08 Community-Links-Sektion + Medien-Sektion (Titel/Beschreibung/Typ-Tag, lazy/Skeleton/srcset) + deutsche Label-Maps
+- [ ] `99-17-PLAN.md` - Wave 13: AO5-03/AO5-04/AO5-07 Reihenfolge (Hero→Geschichte→Projekte→Team→Erfolge→Medien) + Geschichte-Clamp + visuelle Politur
+- [ ] `99-18-PLAN.md` - Wave 14: Finaler kombinierter Live-UAT (Add-on 4 + 5), Mobile+Desktop, Human-Verify — ersetzt 99-14
 
 ---
 
