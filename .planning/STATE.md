@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 99-10-PLAN.md
-last_updated: "2026-07-08T16:45:34.297Z"
+stopped_at: Completed 99-11-PLAN.md
+last_updated: "2026-07-08T17:34:16.110Z"
 last_activity: 2026-07-08
 progress:
   total_phases: 90
   completed_phases: 76
   total_plans: 388
-  completed_plans: 359
+  completed_plans: 360
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 7 of 15
+Plan: 8 of 15
 
 ## Accumulated Context
 
@@ -268,6 +268,7 @@ Recent durable decisions:
 - [Phase 99]: 99-08: GetGroupReleasesCursor/ListReleaseVersionImagesCursor/ListReleaseVersionNotesCursor liefern additive Seek-Cursor-Pagination (Base64 (episode_number|sort_order|created_at, id)) mit einheitlichem items/next_cursor/has_more-Contract fuer genau die drei Nachlade-Listen (Release-Liste, Bildergalerie, Textliste); Offset-GetGroupReleases/GetPublicReleaseDetail bleiben unveraendert, live verifiziert.
 - [Phase 99]: 99-09: Fansub-Gruppenseite erfuellte AO4-06/AO4-07 (Reihenfolge Hero->Projekte->Team->Geschichte->Erfolge, Stat-Zeile, ein Sammelhinweis, Story nur mit Inhalt) bereits vollstaendig -- Plan als reiner Verify-/Regressionstest-Plan ausgefuehrt; hasStoryContent/buildEmptyAreaLabels aus page.tsx exportiert und mit Pure-Function-Tests abgesichert.
 - [Phase 99]: 99-10: HeroSection/GroupAssetsExperience blenden Asset-Sektion bei fehlendem Jellyfin-Ordner statt Fehlertext aus; GroupEdgeNavigation zeigt optionale currentGroupName-Prop mit Label "Weitere Projekte von {Gruppe}"; Hero-Backdrop nutzte bereits ein Verlaufs-Overlay (page.module.css unveraendert).
+- [Phase 99]: 99-11: LatestReleaseSection bettet das neueste Release (getGroupReleaseDetail) direkt ein, OlderReleasesList nachlaedt aeltere Releases per Seek-Cursor mit IntersectionObserver+Mehr-laden-Fallback; GetGroupReleasesCursor liefert additiv images_count/notes_count pro Zeile (Rule-3-Fix); Projektseite folgt AO4-13-Reihenfolge mit einem Sammel-Hinweis fuer leere Bereiche (AO4-07), live gegen Docker-Backend/Frontend verifiziert.
 
 ### Pending Todos
 
@@ -484,6 +485,7 @@ Recent durable decisions:
 | Phase 99 P08 | 40min | 3 tasks | 8 files |
 | Phase 99 P09 | 8min | 2 tasks | 3 files |
 | Phase 99 P10 | 25min | 2 tasks | 5 files |
+| Phase 99 P11 | 55min | 3 tasks | 12 files |
 
 ### Quick Tasks Completed
 
@@ -552,7 +554,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-08T16:45:33.841Z
-Stopped at: Completed 99-10-PLAN.md
+Last session: 2026-07-08T17:34:15.856Z
+Stopped at: Completed 99-11-PLAN.md
 Last activity: 2026-07-08
 Resume file: None
