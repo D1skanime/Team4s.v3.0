@@ -29,6 +29,8 @@ export interface PublicGroupTheme {
   type: string
   title: string
   assets: PublicThemeAsset[]
+  start_time: string | null
+  end_time: string | null
 }
 
 export interface GroupThemesResponse {

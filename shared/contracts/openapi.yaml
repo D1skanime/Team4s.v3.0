@@ -11664,6 +11664,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicThemeAsset"
+        start_time:
+          type: string
+          nullable: true
+          description: Startzeit des Segments im HH:MM:SS-Format, null wenn nicht hinterlegt
+        end_time:
+          type: string
+          nullable: true
+          description: Endzeit des Segments im HH:MM:SS-Format, null wenn nicht hinterlegt
     GroupThemesResponse:
       type: object
       required: [themes]
