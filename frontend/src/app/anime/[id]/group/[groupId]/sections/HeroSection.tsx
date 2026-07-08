@@ -25,7 +25,6 @@ interface HeroSectionProps {
   breadcrumbItems: { label: string; href?: string }[];
   navigationGroups: FansubGroupSummary[];
   groupAssetsResponse: GroupAssetsResponse | null;
-  groupAssetsError: string | null;
   releaseEpisodes: EpisodeReleaseSummary[];
 }
 
@@ -42,7 +41,6 @@ export function HeroSection({
   breadcrumbItems,
   navigationGroups,
   groupAssetsResponse,
-  groupAssetsError,
   releaseEpisodes,
 }: HeroSectionProps) {
   const hasGroupFolder = Boolean(groupAssetsResponse?.data.folder_name);
@@ -129,11 +127,7 @@ export function HeroSection({
         ) : null}
       </section>
 
-      {groupAssetsError ? (
-        <div className={styles.errorBox}>
-          Medien konnten gerade nicht geladen werden.
-        </div>
-      ) : hasGroupFolder && hasEpisodeAssets ? (
+      {hasGroupFolder && hasEpisodeAssets ? (
         <section className={styles.assetsPanel}>
           <GroupAssetShowcase
             animeID={animeID}

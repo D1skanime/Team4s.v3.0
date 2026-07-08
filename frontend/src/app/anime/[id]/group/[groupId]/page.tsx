@@ -54,7 +54,6 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
   let groupResponse: Awaited<ReturnType<typeof getGroupDetail>> | null = null;
   let animeResponse: Awaited<ReturnType<typeof getAnimeByID>> | null = null;
   let groupAssetsResponse: Awaited<ReturnType<typeof getGroupAssets>> | null = null;
-  let groupAssetsError: string | null = null;
   let errorMessage: string | null = null;
   try {
     [groupResponse, animeResponse] = await Promise.all([getGroupDetail(animeID, groupID), getAnimeByID(animeID)]);
@@ -75,7 +74,7 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
   try {
     groupAssetsResponse = await getGroupAssets(animeID, groupID);
   } catch (error) {
-    groupAssetsError = error instanceof ApiError ? error.message : "Gruppen-Assets konnten nicht geladen werden.";
+    void error;
   }
   let otherGroups: Awaited<ReturnType<typeof getGroupReleases>>["data"]["other_groups"] = [];
   let releaseEpisodes: Awaited<ReturnType<typeof getGroupReleases>>["data"]["episodes"] = [];
@@ -137,7 +136,7 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
         heroBackdropUrl={heroBackdropUrl} infoPanelBackgroundUrl={infoPanelBackgroundUrl} posterImage={posterImage}
         heroStyle={heroStyle} infoPanelStyle={infoPanelStyle} breadcrumbItems={breadcrumbItems}
         navigationGroups={navigationGroups} groupAssetsResponse={groupAssetsResponse}
-        groupAssetsError={groupAssetsError} releaseEpisodes={releaseEpisodes}
+        releaseEpisodes={releaseEpisodes}
       />
       <GroupSectionsNav />
       {hasTeamContent ? (

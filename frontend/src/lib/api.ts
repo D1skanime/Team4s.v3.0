@@ -278,6 +278,8 @@ const AUTH_BYPASS_LOCAL =
   ).toLowerCase() === "true";
 const AUTH_BYPASS_DISPLAY_NAME = "LocalAdmin";
 export const API_AUTH_SESSION_TOKEN = "__team4s_runtime_auth__";
+const NETWORK_RETRY_DELAYS_MS = [300];
+const IDEMPOTENT_METHODS = new Set(["GET", "HEAD"]);
 
 /**
  * Gibt die richtige API-Basis-URL zurück — je nachdem ob der Code im Browser
@@ -289,6 +291,21 @@ function getApiBaseUrl(): string {
   return typeof window === "undefined"
     ? API_INTERNAL_BASE_URL
     : getBrowserApiBaseUrl();
+}
+
+function waitForNetworkRetry(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+function isIdempotentRequest(init: RequestInit): boolean {
+  const method = init.method?.toUpperCase() ?? "GET";
+  return IDEMPOTENT_METHODS.has(method);
+}
+
+function isFetchNetworkError(error: unknown): boolean {
+  return error instanceof TypeError && error.message === "fetch failed";
 }
 
 function isLoopbackHost(hostname: string): boolean {
@@ -1264,15 +1281,32 @@ async function authorizedFetch(
     ...init
   } = options;
 
-  const send = (token?: string) => {
+  const send = async (token?: string) => {
     const requestHeaders = { ...headers };
     if (token || !requestHeaders.Authorization) {
       withAuthHeader(requestHeaders, token);
     }
-    return fetch(input, {
+    const requestInit = {
       ...init,
       headers: requestHeaders,
-    });
+    };
+
+    for (let attempt = 0; attempt <= NETWORK_RETRY_DELAYS_MS.length; attempt += 1) {
+      try {
+        return await fetch(input, requestInit);
+      } catch (error) {
+        const canRetry =
+          attempt < NETWORK_RETRY_DELAYS_MS.length &&
+          isIdempotentRequest(requestInit) &&
+          isFetchNetworkError(error);
+        if (!canRetry) {
+          throw error;
+        }
+        await waitForNetworkRetry(NETWORK_RETRY_DELAYS_MS[attempt]);
+      }
+    }
+
+    throw new TypeError("fetch failed");
   };
 
   if (!skipAuthPreflight) {

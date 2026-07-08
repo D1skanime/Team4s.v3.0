@@ -140,6 +140,22 @@ describe('authorized auth refresh flow', () => {
     expect(refreshKeycloakTokenMock).not.toHaveBeenCalled()
   })
 
+  it('retries an idempotent request once after a transient network failure', async () => {
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(
+        makeResponse({ data: { anisearch_id: '1078', jellyfin_series_id: 'bleach' } }, { ok: true, status: 200 }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getEpisodeImportContext(15)).resolves.toEqual({
+      data: { anisearch_id: '1078', jellyfin_series_id: 'bleach' },
+    })
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(refreshKeycloakTokenMock).not.toHaveBeenCalled()
+  })
+
   it('keeps expiry metadata private in the UI session snapshot', () => {
     const snapshot = getAuthSessionSnapshot() as unknown as Record<string, unknown>
 
