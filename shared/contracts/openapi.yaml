@@ -5031,6 +5031,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/releases/{releaseVersionId}:
+    get:
+      tags: [Fansubs]
+      summary: Get the aggregated public release detail for a release_version_id (AO4-02)
+      description: >-
+        Liefert Kopf-Kennzahlen (Anzahl Bilder, Texte, Beteiligte, Veröffentlichungsdatum),
+        Beteiligte (Name + Rolle), Bilder (mit Typ-Kategorie) und Texte für genau eine
+        release_version_id. Aggregationseinheit ist release_versions (nicht fansub_releases).
+        Nur öffentlich sichtbare, freigegebene Inhalte werden ausgeliefert.
+      operationId: getAnimeGroupReleaseDetail
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: releaseVersionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Aggregiertes öffentliches Release-Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseDetailResponse"
+        "400":
+          description: Invalid anime-id, group-id or release-version-id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Release-Version nicht gefunden oder gehört nicht zu diesem Anime+Gruppe
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime/{animeId}/group/{groupId}/project-note:
     get:
       tags: [Fansubs]
@@ -11703,6 +11760,99 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicReleaseMediaItem"
+    PublicReleaseContributor:
+      type: object
+      required: [member_id, name, role_label]
+      properties:
+        member_id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        role_label:
+          type: string
+          description: Kommagetrennte deutsche Rollen-Labels des Beteiligten
+    PublicReleaseImage:
+      type: object
+      required: [id, category]
+      properties:
+        id:
+          type: integer
+          format: int64
+        category:
+          type: string
+          enum: [screenshot, typesetting_karaoke, fun_outtake, other]
+          description: Bildtyp-Kategorie (AO4-05)
+        thumbnail_url:
+          type: string
+          nullable: true
+        original_url:
+          type: string
+          nullable: true
+        caption:
+          type: string
+          nullable: true
+    PublicReleaseNote:
+      type: object
+      required: [id, member_name, role_label, body_html, created_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+        member_name:
+          type: string
+        role_label:
+          type: string
+        body_html:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ReleaseDetailResponse:
+      type: object
+      required:
+        - release_version_id
+        - episode_number
+        - title
+        - images_count
+        - notes_count
+        - contributors_count
+        - contributors
+        - images
+        - notes
+      properties:
+        release_version_id:
+          type: integer
+          format: int64
+        episode_number:
+          type: string
+        title:
+          type: string
+        release_date:
+          type: string
+          format: date-time
+          nullable: true
+        images_count:
+          type: integer
+          format: int64
+        notes_count:
+          type: integer
+          format: int64
+        contributors_count:
+          type: integer
+          format: int64
+        contributors:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseContributor"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseImage"
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseNote"
     PublicAnimeFansubProjectNote:
       type: object
       required: [id, title, body_html, body_text]

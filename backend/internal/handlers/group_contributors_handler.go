@@ -12,10 +12,11 @@ import (
 // GroupPublicHandler verwaltet öffentliche HTTP-Endpunkte für Gruppen-Projektions-Daten.
 // Diese Routen erfordern keine Authentifizierung.
 type GroupPublicHandler struct {
-	contributorsRepo *repository.GroupContributorsRepository
-	themesRepo       *repository.GroupThemesRepository
-	mediaRepo        *repository.GroupReleaseMediaRepository
-	notesRepo        *repository.FansubNotesRepository
+	contributorsRepo  *repository.GroupContributorsRepository
+	themesRepo        *repository.GroupThemesRepository
+	mediaRepo         *repository.GroupReleaseMediaRepository
+	notesRepo         *repository.FansubNotesRepository
+	releaseDetailRepo *repository.ReleaseDetailPublicRepository
 }
 
 // NewGroupPublicHandler erstellt einen neuen GroupPublicHandler.
@@ -31,6 +32,14 @@ func NewGroupPublicHandler(
 		mediaRepo:        mediaRepo,
 		notesRepo:        notesRepo,
 	}
+}
+
+// WithReleaseDetailRepo haengt das ReleaseDetailPublicRepository (AO4-02) an,
+// ohne die bestehende Konstruktor-Signatur zu aendern (vermeidet Aufruf-Churn
+// an allen bisherigen NewGroupPublicHandler-Call-Sites).
+func (h *GroupPublicHandler) WithReleaseDetailRepo(repo *repository.ReleaseDetailPublicRepository) *GroupPublicHandler {
+	h.releaseDetailRepo = repo
+	return h
 }
 
 // GetGroupContributors handles GET /api/v1/anime/:id/group/:groupId/contributors
@@ -127,4 +136,43 @@ func (h *GroupPublicHandler) GetGroupProjectNote(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, repository.PublicAnimeFansubProjectNoteResponse{Data: note})
+}
+
+// GetGroupReleaseDetail handles GET /api/v1/anime/:id/group/:groupId/releases/:releaseVersionId
+// Gibt das aggregierte öffentliche Release-Detail zurück (Kopf-Kennzahlen, Beteiligte,
+// Bilder, Texte) für eine release_version_id (AO4-02). Aggregationseinheit ist
+// release_versions — NICHT fansub_releases.
+func (h *GroupPublicHandler) GetGroupReleaseDetail(c *gin.Context) {
+	animeID, err := parseAnimeID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige anime-id")
+		return
+	}
+	groupID, err := parseGroupID(c.Param("groupId"))
+	if err != nil {
+		badRequest(c, "ungültige group-id")
+		return
+	}
+	releaseVersionID, err := parseAnimeID(c.Param("releaseVersionId"))
+	if err != nil {
+		badRequest(c, "ungültige release-version-id")
+		return
+	}
+
+	if h.releaseDetailRepo == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	detail, err := h.releaseDetailRepo.GetPublicReleaseDetail(c.Request.Context(), animeID, groupID, releaseVersionID)
+	if errors.Is(err, repository.ErrNotFound) {
+		notFound(c, "release nicht gefunden")
+		return
+	}
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, detail)
 }
