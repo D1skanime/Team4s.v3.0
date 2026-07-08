@@ -369,6 +369,16 @@ describe('GroupMediaReviewSection', () => {
     })
   })
 
+  it('blendet den Freigeben-Button bei bereits freigegebenen Medien aus', async () => {
+    renderSection([mediaItem({ id: 101, title: 'Schon frei', review_status: 'freigegeben' })])
+
+    await screen.findByText('Schon frei')
+
+    expect(screen.queryByRole('button', { name: 'Schon frei freigeben' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Schon frei ablehnen' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Schon frei bearbeiten' })).toBeTruthy()
+  })
+
   it('setzt Bulk-Prüfstatus nur für aktuell gefilterte Treffer und leert die Auswahl', async () => {
     renderSection([
       mediaItem({ id: 101, title: 'Galerie Bild', category: 'gallery' }),

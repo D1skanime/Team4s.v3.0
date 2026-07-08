@@ -1044,16 +1044,18 @@ function GroupMediaReviewSectionInner({
                     <div className={styles.compactActions}>
                       {canUpdate ? (
                         <>
-                          <Button
-                            variant="success"
-                            size="sm"
-                            iconOnly
-                            leftIcon={<Check size={16} />}
-                            aria-label={`${displayTitle} freigeben`}
-                            title="Freigeben"
-                            disabled={isSavingItem || isBulkSaving}
-                            onClick={() => void handleQuickReview(item, 'freigegeben')}
-                          />
+                          {persisted.review_status !== 'freigegeben' ? (
+                            <Button
+                              variant="success"
+                              size="sm"
+                              iconOnly
+                              leftIcon={<Check size={16} />}
+                              aria-label={`${displayTitle} freigeben`}
+                              title="Freigeben"
+                              disabled={isSavingItem || isBulkSaving}
+                              onClick={() => void handleQuickReview(item, 'freigegeben')}
+                            />
+                          ) : null}
                           <Button
                             variant="danger"
                             size="sm"
