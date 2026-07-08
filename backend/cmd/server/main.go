@@ -288,7 +288,7 @@ func main() {
 		groupThemesRepo,
 		groupReleaseMediaRepo,
 		repository.NewFansubNotesRepository(dbPool),
-	).WithReleaseDetailRepo(releaseDetailPublicRepo)
+	).WithReleaseDetailRepo(releaseDetailPublicRepo).WithGroupReleasesRepo(groupRepo)
 	groupAssetsHandler := handlers.NewGroupAssetsHandler(
 		groupRepo,
 		handlers.AnimeMediaConfig{
@@ -351,7 +351,10 @@ func main() {
 	v1.GET("/anime/:id/group/:groupId", groupHandler.GetGroupDetail)
 	v1.GET("/anime/:id/group/:groupId/assets", groupAssetsHandler.GetGroupAssets)
 	v1.GET("/anime/:id/group/:groupId/releases", groupHandler.GetGroupReleases)
+	v1.GET("/anime/:id/group/:groupId/release-list", groupPublicHandler.GetGroupReleaseListCursor)
 	v1.GET("/anime/:id/group/:groupId/releases/:releaseVersionId", groupPublicHandler.GetGroupReleaseDetail)
+	v1.GET("/anime/:id/group/:groupId/releases/:releaseVersionId/images", groupPublicHandler.GetGroupReleaseImages)
+	v1.GET("/anime/:id/group/:groupId/releases/:releaseVersionId/notes", groupPublicHandler.GetGroupReleaseNotes)
 	v1.GET("/anime/:id/group/:groupId/contributors", groupPublicHandler.GetGroupContributors)
 	v1.GET("/anime/:id/group/:groupId/themes", groupPublicHandler.GetGroupThemes)
 	v1.GET("/anime/:id/group/:groupId/release-media", groupPublicHandler.GetGroupReleaseMedia)

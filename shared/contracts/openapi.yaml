@@ -4914,6 +4914,218 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/release-list:
+    get:
+      tags: [Fansubs]
+      summary: Get a cursor-paginated page of the full release list (AO4-03/AO4-24)
+      description: >-
+        Additive Seek-Cursor-Pagination fuer die vollstaendige Release-Liste, fuer
+        Infinite Scroll/"Mehr laden" (AO4-11/AO4-12/AO4-21/AO4-25). Sortierschluessel
+        identisch zur Offset-Route (episode_number, rev.id). Die bestehende
+        Offset-Route GET .../releases bleibt unveraendert und wird von dieser Route
+        nicht ersetzt.
+      operationId: getAnimeGroupReleaseListCursor
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Base64-kodierter Seek-Cursor aus einer vorherigen Antwort (next_cursor)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 24
+            minimum: 1
+            maximum: 100
+        - name: has_op
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: has_ed
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: has_karaoke
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cursor-Seite der Release-Liste
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupReleaseListCursorResponse"
+        "400":
+          description: Invalid anime-id, group-id or filter parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/releases/{releaseVersionId}/images:
+    get:
+      tags: [Fansubs]
+      summary: Get a cursor-paginated page of a release version's full image gallery (AO4-03/AO4-18/AO4-24)
+      description: >-
+        Additive Seek-Cursor-Pagination fuer die vollstaendige Bildergalerie einer
+        Release-Version, fuer Infinite Scroll/"Mehr laden" auf der Release-Detailseite.
+        Gleiches Sichtbarkeits-Gate wie das vollstaendig ladende
+        GET .../releases/{releaseVersionId}.
+      operationId: getAnimeGroupReleaseImagesCursor
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: releaseVersionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Base64-kodierter Seek-Cursor aus einer vorherigen Antwort (next_cursor)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 24
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Cursor-Seite der Bildergalerie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseImagesCursorResponse"
+        "400":
+          description: Invalid anime-id, group-id or release-version-id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/releases/{releaseVersionId}/notes:
+    get:
+      tags: [Fansubs]
+      summary: Get a cursor-paginated page of a release version's full note list (AO4-03/AO4-19/AO4-24)
+      description: >-
+        Additive Seek-Cursor-Pagination fuer die vollstaendige Textliste einer
+        Release-Version, fuer Infinite Scroll/"Mehr laden" auf der Release-Detailseite.
+        Gleiches Sichtbarkeits-Gate wie das vollstaendig ladende
+        GET .../releases/{releaseVersionId}.
+      operationId: getAnimeGroupReleaseNotesCursor
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: releaseVersionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Base64-kodierter Seek-Cursor aus einer vorherigen Antwort (next_cursor)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 24
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Cursor-Seite der Textliste
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseNotesCursorResponse"
+        "400":
+          description: Invalid anime-id, group-id or release-version-id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime/{animeId}/group/{groupId}/contributors:
     get:
       tags: [Fansubs]
@@ -11853,6 +12065,48 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicReleaseNote"
+    GroupReleaseListCursorResponse:
+      type: object
+      description: Seek-Cursor-Seite der vollstaendigen Release-Liste (AO4-03/AO4-24)
+      required: [items, next_cursor, has_more]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeReleaseSummary"
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+    ReleaseImagesCursorResponse:
+      type: object
+      description: Seek-Cursor-Seite der vollstaendigen Bildergalerie einer Release-Version (AO4-03/AO4-24)
+      required: [items, next_cursor, has_more]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseImage"
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+    ReleaseNotesCursorResponse:
+      type: object
+      description: Seek-Cursor-Seite der vollstaendigen Textliste einer Release-Version (AO4-03/AO4-24)
+      required: [items, next_cursor, has_more]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseNote"
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
     PublicAnimeFansubProjectNote:
       type: object
       required: [id, title, body_html, body_text]

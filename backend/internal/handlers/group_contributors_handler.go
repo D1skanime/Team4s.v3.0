@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"team4s.v3/backend/internal/repository"
 
@@ -17,6 +18,7 @@ type GroupPublicHandler struct {
 	mediaRepo         *repository.GroupReleaseMediaRepository
 	notesRepo         *repository.FansubNotesRepository
 	releaseDetailRepo *repository.ReleaseDetailPublicRepository
+	groupReleasesRepo *repository.GroupRepository
 }
 
 // NewGroupPublicHandler erstellt einen neuen GroupPublicHandler.
@@ -40,6 +42,29 @@ func NewGroupPublicHandler(
 func (h *GroupPublicHandler) WithReleaseDetailRepo(repo *repository.ReleaseDetailPublicRepository) *GroupPublicHandler {
 	h.releaseDetailRepo = repo
 	return h
+}
+
+// WithGroupReleasesRepo haengt das GroupRepository an (fuer die additive Cursor-
+// Release-Liste, AO4-03), analog zu WithReleaseDetailRepo — vermeidet Aufruf-Churn
+// an bisherigen NewGroupPublicHandler-Call-Sites.
+func (h *GroupPublicHandler) WithGroupReleasesRepo(repo *repository.GroupRepository) *GroupPublicHandler {
+	h.groupReleasesRepo = repo
+	return h
+}
+
+// parseCursorLimitQuery liest den optionalen limit-Query-Parameter (AO4-03/AO4-24).
+// Fehlende oder ungueltige Werte liefern 0 — das Repository setzt dafuer per
+// clampCursorLimit den Default und deckelt gegen Missbrauch (MaxCursorPageLimit).
+func parseCursorLimitQuery(c *gin.Context) int {
+	raw := c.Query("limit")
+	if raw == "" {
+		return 0
+	}
+	limit, err := strconv.Atoi(raw)
+	if err != nil || limit < 0 {
+		return 0
+	}
+	return limit
 }
 
 // GetGroupContributors handles GET /api/v1/anime/:id/group/:groupId/contributors
@@ -175,4 +200,119 @@ func (h *GroupPublicHandler) GetGroupReleaseDetail(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, detail)
+}
+
+// GetGroupReleaseListCursor handles GET /api/v1/anime/:id/group/:groupId/release-list
+// Liefert eine Seek-paginierte (Cursor-)Seite der vollstaendigen Release-Liste
+// (AO4-03/AO4-24), additiv neben der Offset-Route GetGroupReleases — die alte
+// Offset-`releases/page.tsx` bleibt unveraendert und ungestoert.
+func (h *GroupPublicHandler) GetGroupReleaseListCursor(c *gin.Context) {
+	animeID, err := parseAnimeID(c.Param("id"))
+	if err != nil {
+		badRequest(c, "ungültige anime-id")
+		return
+	}
+	groupID, err := parseGroupID(c.Param("groupId"))
+	if err != nil {
+		badRequest(c, "ungültige group-id")
+		return
+	}
+
+	if h.groupReleasesRepo == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	filter, err := parseGroupReleasesFilter(c)
+	if err != nil {
+		badRequest(c, "ungültige filter parameter")
+		return
+	}
+
+	cursor := c.Query("cursor")
+	limit := parseCursorLimitQuery(c)
+
+	page, err := h.groupReleasesRepo.GetGroupReleasesCursor(c.Request.Context(), animeID, groupID, filter, cursor, limit)
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, page)
+}
+
+// GetGroupReleaseImages handles
+// GET /api/v1/anime/:id/group/:groupId/releases/:releaseVersionId/images
+// Liefert eine Seek-paginierte (Cursor-)Seite der vollstaendigen Bildergalerie
+// einer Release-Version (AO4-03/AO4-18/AO4-24), additiv neben dem vollstaendig
+// ladenden GetGroupReleaseDetail. Kein zusaetzlicher Ownership-Check gegen
+// animeID/groupID hier — die initiale volle Detailseite validiert das bereits.
+func (h *GroupPublicHandler) GetGroupReleaseImages(c *gin.Context) {
+	if _, err := parseAnimeID(c.Param("id")); err != nil {
+		badRequest(c, "ungültige anime-id")
+		return
+	}
+	if _, err := parseGroupID(c.Param("groupId")); err != nil {
+		badRequest(c, "ungültige group-id")
+		return
+	}
+	releaseVersionID, err := parseAnimeID(c.Param("releaseVersionId"))
+	if err != nil {
+		badRequest(c, "ungültige release-version-id")
+		return
+	}
+
+	if h.releaseDetailRepo == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	cursor := c.Query("cursor")
+	limit := parseCursorLimitQuery(c)
+
+	page, err := h.releaseDetailRepo.ListReleaseVersionImagesCursor(c.Request.Context(), releaseVersionID, cursor, limit)
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, page)
+}
+
+// GetGroupReleaseNotes handles
+// GET /api/v1/anime/:id/group/:groupId/releases/:releaseVersionId/notes
+// Liefert eine Seek-paginierte (Cursor-)Seite der vollstaendigen Textliste einer
+// Release-Version (AO4-03/AO4-19/AO4-24), additiv neben dem vollstaendig ladenden
+// GetGroupReleaseDetail. Kein zusaetzlicher Ownership-Check gegen animeID/groupID
+// hier — die initiale volle Detailseite validiert das bereits.
+func (h *GroupPublicHandler) GetGroupReleaseNotes(c *gin.Context) {
+	if _, err := parseAnimeID(c.Param("id")); err != nil {
+		badRequest(c, "ungültige anime-id")
+		return
+	}
+	if _, err := parseGroupID(c.Param("groupId")); err != nil {
+		badRequest(c, "ungültige group-id")
+		return
+	}
+	releaseVersionID, err := parseAnimeID(c.Param("releaseVersionId"))
+	if err != nil {
+		badRequest(c, "ungültige release-version-id")
+		return
+	}
+
+	if h.releaseDetailRepo == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	cursor := c.Query("cursor")
+	limit := parseCursorLimitQuery(c)
+
+	page, err := h.releaseDetailRepo.ListReleaseVersionNotesCursor(c.Request.Context(), releaseVersionID, cursor, limit)
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+
+	c.JSON(http.StatusOK, page)
 }
