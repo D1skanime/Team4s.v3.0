@@ -18,9 +18,8 @@ function mediaURL(item: PublicMemberLatestContribution): string {
   return resolveApiUrl((item.image_url || item.thumbnail_url || '').trim())
 }
 
-function contextLabel(item: PublicMemberLatestContribution): string {
-  const releaseLabel = item.release_version_label?.trim()
-  return releaseLabel ? `${item.anime_title} - ${releaseLabel}` : item.anime_title
+function contributionTitle(item: PublicMemberLatestContribution): string {
+  return item.title?.trim() || item.anime_title
 }
 
 function usableItems(items: PublicMemberLatestContribution[]): PublicMemberLatestContribution[] {
@@ -44,7 +43,7 @@ export function LatestContributionsSection({ items }: LatestContributionsSection
         {visibleItems.map((item) => {
           if (item.type === 'media') {
             const previewURL = mediaURL(item)
-            const caption = (item.caption ?? '').trim()
+            const description = textPreview(item)
             return (
               <li key={`${item.type}:${item.id}`}>
                 <Card variant="flat" className={styles.mediaCard} data-contribution-type="media">
@@ -66,9 +65,8 @@ export function LatestContributionsSection({ items }: LatestContributionsSection
                       <ImageIcon size={14} aria-hidden="true" />
                       Medienbeitrag
                     </Badge>
-                    <strong>{item.anime_title}</strong>
-                    <span>{contextLabel(item)}</span>
-                    {caption ? <p>{caption}</p> : null}
+                    <strong>{contributionTitle(item)}</strong>
+                    {description ? <p>{description}</p> : null}
                   </div>
                 </Card>
               </li>
@@ -83,8 +81,7 @@ export function LatestContributionsSection({ items }: LatestContributionsSection
                 </span>
                 <span className={styles.textBody}>
                   <Badge variant="success">Textbeitrag</Badge>
-                  <strong>{item.anime_title}</strong>
-                  <span>{contextLabel(item)}</span>
+                  <strong>{contributionTitle(item)}</strong>
                   <p data-line-clamp="2">{textPreview(item)}</p>
                 </span>
               </Card>

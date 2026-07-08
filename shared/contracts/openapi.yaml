@@ -9307,8 +9307,6 @@ components:
         - occurred_at
         - anime_id
         - anime_title
-        - release_version_id
-        - release_version_label
       properties:
         type:
           type: string
@@ -9324,12 +9322,10 @@ components:
           format: int64
         anime_title:
           type: string
-        release_version_id:
-          type: integer
-          format: int64
-          description: Concrete release version for either text or media contribution.
-        release_version_label:
+        title:
           type: string
+          nullable: true
+          description: Optional curated public contribution title. Falls back to anime_title in the UI when absent.
         text_preview:
           type: string
           nullable: true
@@ -9340,12 +9336,6 @@ components:
           type: string
           nullable: true
         thumbnail_url:
-          type: string
-          nullable: true
-        caption:
-          type: string
-          nullable: true
-        category:
           type: string
           nullable: true
     PublicMemberPreviousContribution:
@@ -9842,6 +9832,7 @@ components:
           nullable: true
         memberships:
           type: array
+          description: Public group memberships. Current app permission fields such as app_member_status and app_member_roles are omitted.
           items:
             $ref: "#/components/schemas/MemberProfileMembership"
         public_badges:

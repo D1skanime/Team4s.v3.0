@@ -56,7 +56,7 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"profile avatar replacement must remove the previous avatar media_asset after the new avatar is linked")
 	assert.True(t, strings.Contains(content, "base.RecentMedia, err = r.loadRecentMedia(ctx, appUserID)"),
 		"own profile reads must load recent media by authenticated app user id")
-	membershipLoadIndex := strings.Index(content, "base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true)")
+	membershipLoadIndex := strings.Index(content, "base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true, true)")
 	accountOnlyReturnIndex := strings.Index(content, "if !base.HasMemberProfile")
 	assert.True(t, membershipLoadIndex >= 0 && accountOnlyReturnIndex >= 0 && membershipLoadIndex < accountOnlyReturnIndex,
 		"own profile reads must load app memberships before the account-only return so the drawer can link direct group workspaces")
@@ -173,11 +173,20 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 	require.NoError(t, err)
 	repo := string(repoSrc)
 	models := string(modelSrc)
+	latestModelStart := strings.Index(models, "type PublicMemberLatestContribution struct {")
+	latestModelEnd := strings.Index(models, "type PublicMemberPreviousContribution struct {")
+	require.GreaterOrEqual(t, latestModelStart, 0)
+	require.Greater(t, latestModelEnd, latestModelStart)
+	latestModel := models[latestModelStart:latestModelEnd]
 
 	assert.True(t, strings.Contains(models, "CurrentProjects"),
 		"public member profile DTO must expose current_projects derived from confirmed public anime_contributions")
 	assert.True(t, strings.Contains(models, "LatestContributions"),
 		"public member profile DTO must expose a unified latest_contributions feed instead of separate old recent arrays")
+	assert.False(t, strings.Contains(latestModel, "`json:\"release_version_label\"`"),
+		"public latest contribution DTO must not expose internal release version labels")
+	assert.False(t, strings.Contains(latestModel, "`json:\"category,omitempty\"`"),
+		"public latest contribution DTO must not expose internal media category metadata")
 	assert.True(t, strings.Contains(models, "PreviousContributions"),
 		"public member profile DTO must expose previous contribution history behind the collapsed UI")
 	assert.True(t, strings.Contains(models, "PreviousContributionsCount"),
@@ -202,8 +211,13 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 		"member contribution projections must retain the existing historical-membership compatibility seam")
 	assert.True(t, strings.Contains(repo, "logo_asset.id = fg.logo_id") && strings.Contains(repo, "logo_file.path"),
 		"public memberships must fall back from fansub_groups.logo_url to the canonical logo_id media asset")
+	assert.True(t, strings.Contains(repo, "includeAppMembershipDetails") && strings.Contains(repo, "loadMemberships(ctx, row.memberID, appUserID, false, false)"),
+		"public memberships must not expose current app permission roles as public group roles")
 	assert.True(t, strings.Contains(repo, "cover_asset.id = a.cover_asset_id") && strings.Contains(repo, "FROM anime_media am"),
 		"current projects must resolve anime poster images from cover_asset_id and existing anime_media when legacy cover_image is empty")
+	assert.True(t, strings.Contains(repo, "COALESCE(anime_media_file.path, anime_media_asset.file_path) ILIKE '/media/%'") &&
+		strings.Contains(repo, "anime_media_asset.file_path ILIKE '%kind=primary%' THEN 2"),
+		"current project cards must prefer ready local anime media over stale provider proxy poster URLs")
 }
 
 func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
@@ -221,6 +235,8 @@ func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
 		strings.Contains(content, "NULLIF(BTRIM(body_html), '')") ||
 		strings.Contains(content, "NULLIF(BTRIM(body_markdown), '')"),
 		"latest text items must exclude notes without usable text or HTML")
+	assert.True(t, strings.Contains(content, "NULLIF(BTRIM(release_version_notes.title), '') AS contribution_title"),
+		"latest text items must expose only the optional curated note title as public title")
 
 	assert.True(t, strings.Contains(content, "FROM release_version_media"),
 		"latest media items must come from release_version_media")
@@ -247,6 +263,10 @@ func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
 		"latest media owner mapping must include only uploader rows linked to the verified member account")
 	assert.True(t, strings.Contains(content, "uploaded_by_user_id"),
 		"latest media feed must use the release_version_media uploader column for owner filtering")
+	assert.False(t, strings.Contains(content, "rvm.category::text AS category"),
+		"public latest media feed must not expose internal release-version-media category metadata")
+	assert.False(t, strings.Contains(content, "release_version_label,\n\t\t\ttext_preview"),
+		"public latest feed must not expose release version labels or filenames as context text")
 	assert.True(t, strings.Contains(content, "UNION ALL"),
 		"latest contribution feed must combine public notes and approved media before applying LIMIT 3")
 	assert.True(t, strings.Contains(content, "ORDER BY") && strings.Contains(content, "LIMIT 3"),

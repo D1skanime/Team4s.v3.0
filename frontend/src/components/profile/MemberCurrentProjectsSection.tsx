@@ -29,8 +29,12 @@ export function MemberCurrentProjectsSection({
         <ul className={styles.projectList} aria-label="Aktuelle Projekte">
           {projects.map((project) => (
             <li key={`${project.anime_id}:${project.fansub_group_id}`}>
-              <Card variant="interactive" className={styles.projectCard}>
-                <Link href={projectHref(project)} className={styles.projectLink}>
+              <Link
+                href={projectHref(project)}
+                className={styles.projectLink}
+                aria-label={`${project.anime_title} öffnen`}
+              >
+                <Card variant="interactive" className={styles.projectCard}>
                   <span className={styles.cover} aria-hidden={!project.cover_url}>
                     {project.cover_url ? (
                       <Image
@@ -64,12 +68,11 @@ export function MemberCurrentProjectsSection({
                     </span>
                   </span>
 
-                  <span className={styles.projectAction}>
-                    Projekt öffnen
+                  <span className={styles.projectArrow} aria-hidden="true">
                     <ArrowRight size={15} aria-hidden="true" />
                   </span>
-                </Link>
-              </Card>
+                </Card>
+              </Link>
             </li>
           ))}
         </ul>

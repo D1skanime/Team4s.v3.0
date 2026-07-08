@@ -16,7 +16,7 @@
   background:
     linear-gradient(135deg, rgba(31, 41, 55, 0.92), rgba(47, 95, 227, 0.72)),
     #1f2937;
-  background-position: center;
+  background-position: center center;
   background-size: cover;
   color: #fff;
 }
@@ -311,6 +311,13 @@
   .heroPanel,
   .recentMediaGrid {
     grid-template-columns: 1fr;
+  }
+
+  .heroPanel {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    align-content: end;
+    background-position: center center;
   }
 
   .recentContributionCard {

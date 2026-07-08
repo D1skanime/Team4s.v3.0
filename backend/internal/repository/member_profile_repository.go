@@ -61,7 +61,7 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 	if err != nil {
 		return nil, err
 	}
-	base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true)
+	base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true, true)
 	if err != nil {
 		return nil, err
 	}
@@ -494,7 +494,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	}
 
 	var loadErr error
-	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, appUserID, false)
+	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, appUserID, false, false)
 	if loadErr != nil {
 		return nil, loadErr
 	}
@@ -946,6 +946,7 @@ func (r *MemberProfileRepository) loadMemberships(
 	memberID int64,
 	appUserID int64,
 	includeInternalHistorical bool,
+	includeAppMembershipDetails bool,
 ) ([]models.MemberProfileMembership, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
@@ -956,16 +957,18 @@ func (r *MemberProfileRepository) loadMemberships(
 			fg.status,
 			EXTRACT(YEAR FROM hgm.joined_date)::int AS joined_year,
 			EXTRACT(YEAR FROM hgm.left_date)::int AS left_year,
-			fgm.status,
-			COALESCE(
-				ARRAY(
-					SELECT fgmr.role
-					FROM fansub_group_member_roles fgmr
-					WHERE fgmr.fansub_group_member_id = fgm.id
-					ORDER BY fgmr.role
-				),
-				ARRAY[]::varchar[]
-			) AS app_member_roles,
+			CASE WHEN $4 THEN fgm.status ELSE NULL END AS app_member_status,
+			CASE WHEN $4 THEN
+				COALESCE(
+					ARRAY(
+						SELECT fgmr.role
+						FROM fansub_group_member_roles fgmr
+						WHERE fgmr.fansub_group_member_id = fgm.id
+						ORDER BY fgmr.role
+					),
+					ARRAY[]::varchar[]
+				)
+			ELSE ARRAY[]::varchar[] END AS app_member_roles,
 			(hgm.id IS NOT NULL) AS has_historical_link,
 			hgm.status AS historical_member_status
 		FROM fansub_groups fg
@@ -990,7 +993,7 @@ func (r *MemberProfileRepository) loadMemberships(
 		WHERE hgm.id IS NOT NULL
 		   OR fgm.id IS NOT NULL
 		ORDER BY fg.name ASC
-	`, memberID, appUserID, includeInternalHistorical)
+	`, memberID, appUserID, includeInternalHistorical, includeAppMembershipDetails)
 	if err != nil {
 		return nil, fmt.Errorf("load memberships for member %d: %w", memberID, err)
 	}
@@ -1117,9 +1120,12 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 			  )
 			ORDER BY
 				CASE
-					WHEN anime_media_asset.file_path ILIKE '%kind=primary%' THEN 0
-					WHEN anime_media_asset.file_path ILIKE '%cover%' THEN 1
-					WHEN anime_media_asset.file_path ILIKE '%poster%' THEN 1
+					WHEN COALESCE(anime_media_file.path, anime_media_asset.file_path) ILIKE '/media/%'
+						AND COALESCE(anime_media_file.path, anime_media_asset.file_path) ~* '(cover|poster)' THEN 0
+					WHEN COALESCE(anime_media_file.path, anime_media_asset.file_path) ILIKE '/media/%' THEN 1
+					WHEN anime_media_asset.file_path ILIKE '%kind=primary%' THEN 2
+					WHEN anime_media_asset.file_path ILIKE '%cover%' THEN 3
+					WHEN anime_media_asset.file_path ILIKE '%poster%' THEN 3
 					WHEN anime_media_asset.file_path ILIKE '%kind=logo%' THEN 4
 					WHEN anime_media_asset.file_path ILIKE '%kind=banner%' THEN 5
 					WHEN anime_media_asset.file_path ILIKE '%kind=backdrop%' THEN 6
@@ -1254,14 +1260,11 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 				COALESCE(release_version_notes.updated_at, release_version_notes.created_at) AS occurred_at,
 				a.id AS anime_id,
 				COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
-				rv.id AS release_version_id,
-				COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
+				NULLIF(BTRIM(release_version_notes.title), '') AS contribution_title,
 				LEFT(COALESCE(NULLIF(BTRIM(body_text), ''), NULLIF(BTRIM(body_html), '')), 280) AS text_preview,
 				NULLIF(BTRIM(body_html), '') AS body_html,
 				NULL::text AS image_path,
-				NULL::text AS thumbnail_path,
-				NULL::text AS caption,
-				NULL::text AS category
+				NULL::text AS thumbnail_path
 			FROM release_version_notes
 			JOIN release_versions rv ON rv.id = release_version_notes.release_version_id
 			JOIN fansub_releases fr ON fr.id = rv.release_id
@@ -1280,14 +1283,11 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 				rvm.created_at AS occurred_at,
 				a.id AS anime_id,
 				COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
-				rv.id AS release_version_id,
-				COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
-				NULL::text AS text_preview,
+				NULL::text AS contribution_title,
+				NULLIF(BTRIM(COALESCE(rvm.caption, ma.caption, '')), '') AS text_preview,
 				NULL::text AS body_html,
 				mf.path AS image_path,
-				COALESCE(mf_thumb.path, mf.path) AS thumbnail_path,
-				NULLIF(BTRIM(COALESCE(rvm.caption, ma.caption, '')), '') AS caption,
-				rvm.category::text AS category
+				COALESCE(mf_thumb.path, mf.path) AS thumbnail_path
 			FROM release_version_media rvm
 			JOIN media_assets ma ON ma.id = rvm.media_asset_id
 			JOIN visibilities v ON v.id = ma.visibility_id AND v.name = 'public'
@@ -1322,14 +1322,11 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 			occurred_at,
 			anime_id,
 			anime_title,
-			release_version_id,
-			release_version_label,
+			contribution_title,
 			text_preview,
 			body_html,
 			image_path,
-			thumbnail_path,
-			caption,
-			category
+			thumbnail_path
 		FROM latest
 		ORDER BY occurred_at DESC, id DESC
 		LIMIT 3
@@ -1350,14 +1347,11 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 			&item.OccurredAt,
 			&item.AnimeID,
 			&item.AnimeTitle,
-			&item.ReleaseVersionID,
-			&item.ReleaseVersionLabel,
+			&item.Title,
 			&item.TextPreview,
 			&item.BodyHTML,
 			&imagePath,
 			&thumbnailPath,
-			&item.Caption,
-			&item.Category,
 		); err != nil {
 			return nil, fmt.Errorf("scan latest contribution row: %w", err)
 		}
