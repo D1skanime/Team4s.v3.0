@@ -95,6 +95,25 @@ describe('buildEmptyAreaLabels', () => {
     expect(labels).toContain('Erfolge')
   })
 
+  it('laesst "Mehr" weg wenn community_links vorhanden sind, auch ohne website_url (AO5-03)', () => {
+    const profile: PublicFansubProfile = {
+      ...emptyProfile,
+      community_links: [
+        { id: 1, group_id: 1, link_type: 'discord', name: null, url: 'https://discord.test', created_at: '2026-01-01T00:00:00Z' },
+      ],
+    }
+
+    const labels = buildEmptyAreaLabels(profile, emptyDomainProjection, emptyContributions)
+
+    expect(labels).not.toContain('Mehr')
+  })
+
+  it('fuehrt "Mehr" wenn weder website_url noch community_links vorhanden sind', () => {
+    const labels = buildEmptyAreaLabels(emptyProfile, emptyDomainProjection, emptyContributions)
+
+    expect(labels).toContain('Mehr')
+  })
+
   it('liefert leere Liste wenn alle Bereiche befuellt sind', () => {
     const profile: PublicFansubProfile = {
       group: { ...baseGroup, website_url: 'https://example.test' },

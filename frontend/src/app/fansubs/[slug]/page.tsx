@@ -1,7 +1,9 @@
 import Link from 'next/link'
 
+import { FansubCommunityLinksSection } from '@/components/fansubs/FansubCommunityLinksSection'
 import { FansubHistorySection } from '@/components/fansubs/FansubHistorySection'
 import { FansubHeroSection } from '@/components/fansubs/FansubHeroSection'
+import { FansubMediaSection } from '@/components/fansubs/FansubMediaSection'
 import { FansubProjectsSection } from '@/components/fansubs/FansubProjectsSection'
 import { FansubStorySection } from '@/components/fansubs/FansubStorySection'
 import { countVisibleTeamMembers, FansubTeamSection } from '@/components/fansubs/FansubTeamSection'
@@ -56,7 +58,7 @@ export function buildEmptyAreaLabels(
   }
   if (profile.media.length === 0) labels.push('Medien')
   if ((contributions?.leader_timeline ?? []).length === 0) labels.push('Gruppenleitung')
-  if (!profile.group.website_url) labels.push('Mehr')
+  if (!profile.group.website_url && profile.community_links.length === 0) labels.push('Mehr')
 
   return labels
 }
@@ -120,12 +122,20 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   const storyAvailable = hasStoryContent(profile.story)
   const hasTeam = visibleTeamCount > 0
   const hasHistory = profile.history.length > 0
+  const hasCommunityLinks = profile.community_links.length > 0
+  const hasMedia = profile.media.length > 0
   const emptyAreaLabels = buildEmptyAreaLabels(profile, domainProjection, contributions)
 
   return (
     <main className={styles.page}>
       <div className={styles.readingColumn}>
         <FansubHeroSection group={group} stats={heroStats} />
+
+        {storyAvailable ? (
+          <div className={styles.sectionSpacing}>
+            <FansubStorySection group={group} story={profile.story} />
+          </div>
+        ) : null}
       </div>
 
       {profile.projects.length > 0 ? (
@@ -141,15 +151,21 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
           </div>
         ) : null}
 
-        {storyAvailable ? (
-          <div className={styles.sectionSpacing}>
-            <FansubStorySection group={group} story={profile.story} />
-          </div>
-        ) : null}
-
         {hasHistory ? (
           <div className={styles.sectionSpacing}>
             <FansubHistorySection history={profile.history} />
+          </div>
+        ) : null}
+
+        {hasCommunityLinks ? (
+          <div className={styles.sectionSpacing}>
+            <FansubCommunityLinksSection links={profile.community_links} />
+          </div>
+        ) : null}
+
+        {hasMedia ? (
+          <div className={styles.sectionSpacing}>
+            <FansubMediaSection media={profile.media} />
           </div>
         ) : null}
 

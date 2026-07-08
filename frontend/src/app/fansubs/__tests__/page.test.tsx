@@ -20,25 +20,31 @@ describe('fansub public page', () => {
     expect(pageSource).toContain('buildEmptyAreaLabels')
     expect(pageSource).toContain('Weitere Bereiche sind noch nicht öffentlich befüllt')
     expect(pageSource).not.toContain('FansubContributorsSection')
-    expect(pageSource).not.toContain('FansubMediaSection')
     expect(pageSource).not.toContain('GroupLeaderTimeline')
     expect(pageSource).not.toContain('FansubDeepDiveSection')
   })
 
-  it('rendert die Sektionen in der Reihenfolge Hero -> Projekte -> Team -> Geschichte -> Erfolge -> Sammelhinweis (AO4-06/07)', () => {
+  it('rendert die Sektionen in der Reihenfolge Hero -> Geschichte -> Projekte -> Team -> Erfolge -> Medien (AO5-03)', () => {
     const heroIndex = pageSource.indexOf('<FansubHeroSection')
+    const storyIndex = pageSource.indexOf('<FansubStorySection')
     const projectsIndex = pageSource.indexOf('<FansubProjectsSection')
     const teamIndex = pageSource.indexOf('<FansubTeamSection')
-    const storyIndex = pageSource.indexOf('<FansubStorySection')
     const historyIndex = pageSource.indexOf('<FansubHistorySection')
+    const mediaIndex = pageSource.indexOf('<FansubMediaSection')
     const summaryIndex = pageSource.indexOf('styles.emptySummary')
 
     expect(heroIndex).toBeGreaterThan(-1)
-    expect(projectsIndex).toBeGreaterThan(heroIndex)
+    expect(storyIndex).toBeGreaterThan(heroIndex)
+    expect(projectsIndex).toBeGreaterThan(storyIndex)
     expect(teamIndex).toBeGreaterThan(projectsIndex)
-    expect(storyIndex).toBeGreaterThan(teamIndex)
-    expect(historyIndex).toBeGreaterThan(storyIndex)
-    expect(summaryIndex).toBeGreaterThan(historyIndex)
+    expect(historyIndex).toBeGreaterThan(teamIndex)
+    expect(mediaIndex).toBeGreaterThan(historyIndex)
+    expect(summaryIndex).toBeGreaterThan(mediaIndex)
+  })
+
+  it('bindet die Community-Links- und Medien-Sektion aus 99-16 ein (AO5-03)', () => {
+    expect(pageSource).toMatch(/<FansubCommunityLinksSection\s+links=\{profile\.community_links\}/)
+    expect(pageSource).toMatch(/<FansubMediaSection\s+media=\{profile\.media\}/)
   })
 
   it('rendert genau einen Sammelhinweis-Block und keine eigenständigen Leer-Sektionen', () => {
@@ -46,7 +52,6 @@ describe('fansub public page', () => {
     expect(summaryOccurrences).toBe(1)
 
     expect(pageSource).not.toMatch(/<FansubContributorsSection/)
-    expect(pageSource).not.toMatch(/<FansubMediaSection/)
     expect(pageSource).not.toMatch(/<GroupLeaderTimeline/)
   })
 })
