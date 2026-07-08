@@ -37,3 +37,13 @@ export interface ReleaseDetailResponse {
   images: PublicReleaseImage[];
   notes: PublicReleaseNote[];
 }
+
+// Generische Seek-Cursor-Seiten-Huelle (AO4-03/AO4-24) fuer die drei nachladenden
+// Listen (vollstaendige Release-Liste, Bildergalerie, Textliste). Spiegelt die
+// Backend-Result-Structs (GroupReleasesCursorPage, ReleaseImagesCursorPage,
+// ReleaseNotesCursorPage), die alle identisch items/next_cursor/has_more liefern.
+export interface CursorPage<T> {
+  items: T[];
+  next_cursor: string | null;
+  has_more: boolean;
+}

@@ -172,6 +172,7 @@ import {
   GroupDetailResponse,
   GroupReleasesResponse,
   GroupReleasesParams,
+  EpisodeReleaseSummary,
 } from "@/types/group";
 import { GroupAssetsResponse } from "@/types/groupAsset";
 import { ReleaseAssetsResponse } from "@/types/mediaAsset";
@@ -234,7 +235,12 @@ import type {
   GroupThemesResponse,
   GroupReleaseMediaResponse,
 } from "@/types/groupContributors";
-import type { ReleaseDetailResponse } from "@/types/releaseDetail";
+import type {
+  ReleaseDetailResponse,
+  CursorPage,
+  PublicReleaseImage,
+  PublicReleaseNote,
+} from "@/types/releaseDetail";
 import type { RoleCapabilityMatrix, RoleDefinitionOption } from "@/types/admin-capability";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
@@ -6212,6 +6218,89 @@ export async function getGroupReleaseDetail(
   }
 
   return response.json() as Promise<ReleaseDetailResponse>;
+}
+
+// --- Cursor-Pagination (AO4-03/AO4-24) — ausschliesslich fuer die drei
+// nachladenden Listen (vollstaendige Release-Liste, Bildergalerie, Textliste).
+// Die Offset-Funktionen getGroupReleases/getGroupReleaseDetail bleiben unveraendert. ---
+
+interface CursorQueryOpts {
+  cursor?: string;
+  limit?: number;
+}
+
+function buildCursorQuery(opts: CursorQueryOpts): string {
+  const query = new URLSearchParams();
+  if (opts.cursor) query.set("cursor", opts.cursor);
+  if (opts.limit) query.set("limit", String(opts.limit));
+  return query.toString();
+}
+
+export async function getGroupReleaseListCursor(
+  animeID: number,
+  groupID: number,
+  opts: CursorQueryOpts = {},
+): Promise<CursorPage<EpisodeReleaseSummary>> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildCursorQuery(opts);
+  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/release-list${query ? `?${query}` : ""}`;
+  const response = await fetch(url, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<CursorPage<EpisodeReleaseSummary>>;
+}
+
+export async function getGroupReleaseImages(
+  animeID: number,
+  groupID: number,
+  releaseVersionID: number,
+  opts: CursorQueryOpts = {},
+): Promise<CursorPage<PublicReleaseImage>> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildCursorQuery(opts);
+  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}/images${query ? `?${query}` : ""}`;
+  const response = await authorizedFetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<CursorPage<PublicReleaseImage>>;
+}
+
+export async function getGroupReleaseNotes(
+  animeID: number,
+  groupID: number,
+  releaseVersionID: number,
+  opts: CursorQueryOpts = {},
+): Promise<CursorPage<PublicReleaseNote>> {
+  const API_BASE_URL = getApiBaseUrl();
+  const query = buildCursorQuery(opts);
+  const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}/notes${query ? `?${query}` : ""}`;
+  const response = await authorizedFetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<CursorPage<PublicReleaseNote>>;
 }
 
 export async function getGroupProjectNote(
