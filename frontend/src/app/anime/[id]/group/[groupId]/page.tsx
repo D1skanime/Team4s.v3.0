@@ -23,6 +23,28 @@ interface GroupStoryPageProps {
   params: { id: string; groupId: string } | Promise<{ id: string; groupId: string }>;
 }
 
+/** AO4-13: Geschichte nur bei vorhandenem Inhalt rendern (Projektnotiz hat Vorrang vor group.story). */
+export function hasStoryContent(story: string | null | undefined, projectNotesHtml: string | null | undefined): boolean {
+  return Boolean((projectNotesHtml ?? story)?.trim());
+}
+
+/** AO4-07: ein einziger Sammel-Hinweis fuer tatsaechlich leere Bereiche statt Einzel-Rendern. */
+export function buildEmptyAreaLabels(params: {
+  hasTeamContent: boolean;
+  hasStory: boolean;
+  hasReleases: boolean;
+  hasThemes: boolean;
+  hasMedia: boolean;
+}): string[] {
+  const labels: string[] = [];
+  if (!params.hasTeamContent) labels.push("Beteiligte am Projekt");
+  if (!params.hasStory) labels.push("Geschichte");
+  if (!params.hasReleases) labels.push("Releases");
+  if (!params.hasThemes) labels.push("OP/ED/Middle");
+  if (!params.hasMedia) labels.push("Release-Einblicke");
+  return labels;
+}
+
 export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
   const resolvedParams = await params;
   const animeID = Number.parseInt(resolvedParams.id, 10);
@@ -83,6 +105,15 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
     projectNotesHtml = projectNoteResponse.data?.body_html?.trim() || null;
   } catch { /* EmptyState */ }
 
+  const hasTeamContent = contributorsData.team_members.length > 0 || contributorsData.external_contributors.length > 0;
+  const storyAvailable = hasStoryContent(group.story, projectNotesHtml);
+  const hasReleases = releaseEpisodes.length > 0;
+  const hasThemes = themesData.themes.length > 0;
+  const hasMedia = releaseMediaData.items.length > 0;
+  const emptyAreaLabels = buildEmptyAreaLabels({
+    hasTeamContent, hasStory: storyAvailable, hasReleases, hasThemes, hasMedia,
+  });
+
   const navigationGroups = buildGroupNavigationGroups({ currentGroup: group.fansub, fallbackOtherGroups: otherGroups, animeFansubRelations });
   const breadcrumbItems = [
     { label: "Anime", href: "/anime" }, { label: anime.title, href: `/anime/${animeID}` },
@@ -109,11 +140,18 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
         groupAssetsError={groupAssetsError} releaseEpisodes={releaseEpisodes}
       />
       <GroupSectionsNav />
-      <StorySection story={group.story} projectNotesHtml={projectNotesHtml} />
-      <TeamSection teamMembers={contributorsData.team_members} externalContributors={contributorsData.external_contributors} />
-      <ReleasesSection episodes={releaseEpisodes.slice(0, 5)} animeID={animeID} groupID={groupID} />
-      <ThemesSection themes={themesData.themes} />
-      <MediaSection items={releaseMediaData.items} />
+      {hasTeamContent ? (
+        <TeamSection teamMembers={contributorsData.team_members} externalContributors={contributorsData.external_contributors} />
+      ) : null}
+      {storyAvailable ? <StorySection story={group.story} projectNotesHtml={projectNotesHtml} /> : null}
+      {hasReleases ? <ReleasesSection episodes={releaseEpisodes} animeID={animeID} groupID={groupID} /> : null}
+      {hasThemes ? <ThemesSection themes={themesData.themes} /> : null}
+      {hasMedia ? <MediaSection items={releaseMediaData.items} /> : null}
+      {emptyAreaLabels.length > 0 ? (
+        <aside className={styles.emptySummary} aria-label="Noch offene Projektbereiche">
+          <p>Weitere Bereiche sind noch nicht öffentlich befüllt: {emptyAreaLabels.join(", ")}.</p>
+        </aside>
+      ) : null}
       <BacklinksSection fansubSlug={group.fansub.slug} animeID={animeID} />
     </main>
   );
