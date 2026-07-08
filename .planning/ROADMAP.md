@@ -1656,7 +1656,7 @@ Plans:
 **Requirements**: siehe `99-CONTEXT.md` (D-01 bis D-20; A-01 bis A-05 vor Umsetzung klären)
 **Depends on:** Phase 98
 **Status:** Planned 2026-07-07
-**Plans:** 12/15 plans executed
+**Plans:** 13/15 plans executed
 
 Plans:
 - [ ] `99-00-PLAN.md` - Wave 0: RED-Tests und Contract-Gates für Profilstruktur, Datenfilter, Media-Ownership, Badges, Story und frühere Mitwirkungen
