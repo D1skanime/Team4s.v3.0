@@ -21,20 +21,12 @@
 .storyContentClamped {
   max-height: 5.4rem;
   overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, rgba(0, 0, 0, 0));
+  mask-image: linear-gradient(180deg, #000 72%, rgba(0, 0, 0, 0));
 }
 
 .storyContentExpanded {
   max-height: none;
-}
-
-.fade {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2.2rem;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--color-surface, #fff));
 }
 
 .toggle {

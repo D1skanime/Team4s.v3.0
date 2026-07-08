@@ -20,8 +20,9 @@ export function MemberStorySection({ storyHtml }: MemberStorySectionProps) {
   const measureOverflow = useCallback(() => {
     const element = contentRef.current
     if (!element) return
-    setIsOverflowing(element.scrollHeight > element.clientHeight)
-  }, [])
+    const nextIsOverflowing = element.scrollHeight > element.clientHeight
+    setIsOverflowing((current) => isExpanded ? current || nextIsOverflowing : nextIsOverflowing)
+  }, [isExpanded])
 
   useEffect(() => {
     measureOverflow()
@@ -53,7 +54,6 @@ export function MemberStorySection({ storyHtml }: MemberStorySectionProps) {
           >
             <RichTextRenderer bodyHtml={trimmedStory} editorType="tiptap" contentSchemaVersion={1} />
           </div>
-          {isClamped && isOverflowing ? <span className={styles.fade} aria-hidden="true" /> : null}
         </div>
         {isOverflowing ? (
           <Button

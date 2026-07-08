@@ -48,7 +48,7 @@ describe('MemberStorySection', () => {
     expect(screen.queryByRole('button', { name: 'Mehr lesen' })).toBeNull()
   })
 
-  it('shows Mehr lesen only after measured overflow and toggles to Weniger anzeigen', async () => {
+  it('shows Mehr lesen only after measured overflow and toggles both ways', async () => {
     const { MemberStorySection } = await loadMemberStorySection()
 
     vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(160)
@@ -59,7 +59,12 @@ describe('MemberStorySection', () => {
     const expandButton = await screen.findByRole('button', { name: 'Mehr lesen' })
     fireEvent.click(expandButton)
 
-    expect(screen.getByRole('button', { name: 'Weniger anzeigen' })).not.toBeNull()
+    const collapseButton = screen.getByRole('button', { name: 'Weniger anzeigen' })
+    expect(collapseButton).not.toBeNull()
     expect(screen.getByTestId('rich-text-renderer').textContent).toContain('Eine lange Fansub-Geschichte')
+
+    fireEvent.click(collapseButton)
+
+    expect(screen.getByRole('button', { name: 'Mehr lesen' })).not.toBeNull()
   })
 })
