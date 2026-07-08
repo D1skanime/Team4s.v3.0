@@ -36,6 +36,11 @@ type PublicGroupTheme struct {
 	ThemeType string             `json:"type"`
 	Title     string             `json:"title"`
 	Assets    []PublicThemeAsset `json:"assets"`
+	// StartTime/EndTime stammen aus theme_segments.start_time/end_time (interval, als
+	// HH:MM:SS-Text gescannt). Nil, wenn kein Segment fuer dieses Theme+Gruppe existiert.
+	// Keine Berechnung, kein Default-Wert (AO4-04).
+	StartTime *string `json:"start_time"`
+	EndTime   *string `json:"end_time"`
 }
 
 // GroupThemesResponse ist die Antwort für GET /anime/:id/group/:groupId/themes.
@@ -64,7 +69,9 @@ func (r *GroupThemesRepository) GetPublicGroupThemes(ctx context.Context, animeI
 			END AS theme_type,
 			COALESCE(t.title, '') AS title,
 			ma.id AS asset_id,
-			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path
+			COALESCE(mf_thumb.path, mf_orig.path, ma.file_path) AS thumbnail_path,
+			ts.start_time::text AS segment_start_time,
+			ts.end_time::text AS segment_end_time
 		FROM themes t
 		JOIN theme_types tt ON tt.id = t.theme_type_id
 		JOIN release_theme_assets rta ON rta.theme_id = t.id
@@ -77,6 +84,7 @@ func (r *GroupThemesRepository) GetPublicGroupThemes(ctx context.Context, animeI
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
 		JOIN visibilities v ON v.id = ma.visibility_id
 		JOIN review_statuses rs ON rs.id = ma.review_status_id
+		LEFT JOIN theme_segments ts ON ts.theme_id = t.id AND ts.fansub_group_id = $2
 		WHERE e.anime_id = $1
 		  AND rvg.fansub_group_id = $2
 		  AND ma.status = 'ready'
@@ -100,8 +108,10 @@ func (r *GroupThemesRepository) GetPublicGroupThemes(ctx context.Context, animeI
 			title         string
 			assetID       int64
 			thumbnailPath *string
+			segmentStart  *string
+			segmentEnd    *string
 		)
-		if err := rows.Scan(&themeID, &themeType, &title, &assetID, &thumbnailPath); err != nil {
+		if err := rows.Scan(&themeID, &themeType, &title, &assetID, &thumbnailPath, &segmentStart, &segmentEnd); err != nil {
 			return nil, fmt.Errorf("group themes: scan: %w", err)
 		}
 
@@ -122,6 +132,8 @@ func (r *GroupThemesRepository) GetPublicGroupThemes(ctx context.Context, animeI
 				ThemeType: themeType,
 				Title:     title,
 				Assets:    make([]PublicThemeAsset, 0),
+				StartTime: segmentStart,
+				EndTime:   segmentEnd,
 			})
 			idx = len(resp.Themes) - 1
 			themeIndex[themeID] = idx
