@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 97-05-PLAN.md
-last_updated: "2026-07-07T17:11:52.427Z"
-last_activity: 2026-07-07
+stopped_at: Completed 99-05-PLAN.md
+last_updated: "2026-07-08T15:24:05.883Z"
+last_activity: 2026-07-08
 progress:
   total_phases: 90
   completed_phases: 76
-  total_plans: 378
-  completed_plans: 348
+  total_plans: 388
+  completed_plans: 354
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 1 of 5
+Plan: 2 of 15
 
 ## Accumulated Context
 
@@ -262,6 +262,7 @@ Recent durable decisions:
 - [Phase ?]: [Phase 95-03]: CR-01: IsGroupHistoryWhitelistRole ersetzt RoleCodeExistsForContext im Handler
 - [Phase ?]: [Phase 95-03]: WR-02: Cross-Group-Guard (GetByID + FansubGroupID-Check) vor ListByMember in ListHistGroupMemberRoles
 - [Phase ?]: [Phase 95-03]: D-10 Auto-Archivierung fail-open in SetRole(false): 2-Hop-Join member_claims, ON CONFLICT DO NOTHING
+- [Phase 99]: 99-05: getGroupStats und MembersCount-Batch zaehlen Mitglieder jetzt identisch zu countVisibleTeamMembers (aktive fansub_group_members ohne profile_visibility-Filter + oeffentlich-historische hist_fansub_group_members), fansub_members wird in beiden Zaehlpfaden nicht mehr referenziert.
 
 ### Pending Todos
 
@@ -472,6 +473,7 @@ Recent durable decisions:
 | Phase 97 P03 | 30min | 2 tasks | 9 files |
 | Phase 97 P04 | 45min | 2 tasks | 6 files |
 | Phase 97 P05 | 35min | 2 tasks | 3 files |
+| Phase 99 P05 | 12min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -540,7 +542,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-01T14:25:00.000Z
-Stopped at: Completed 97-05-PLAN.md
-Last activity: 2026-07-07
+Last session: 2026-07-08T15:24:05.807Z
+Stopped at: Completed 99-05-PLAN.md
+Last activity: 2026-07-08
 Resume file: None
