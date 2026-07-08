@@ -1612,9 +1612,30 @@ func (r *FansubRepository) attachGroupCounts(ctx context.Context, items []models
 		return fmt.Errorf("load episode version counts: %w", err)
 	}
 
+	// MembersCount mirrors countVisibleTeamMembers (FansubTeamSection.tsx): active
+	// fansub_group_members (no profile_visibility row filter, so private/unclaimed
+	// active members still count, matching listProjectionMembers) PLUS publicly
+	// visible historical hist_fansub_group_members rows (matching
+	// listProjectionHistorical). Groups with no visible members keep 0.
 	if err := r.populateCountMap(
 		ctx,
-		`SELECT fansub_group_id, COUNT(*) FROM fansub_members WHERE fansub_group_id = ANY($1) GROUP BY fansub_group_id`,
+		`
+		SELECT group_id, COUNT(*)
+		FROM (
+			SELECT fgm.fansub_group_id AS group_id
+			FROM fansub_group_members fgm
+			JOIN app_users au ON au.id = fgm.app_user_id
+			WHERE fgm.fansub_group_id = ANY($1)
+			  AND fgm.status = 'active'
+			UNION ALL
+			SELECT hfgm.fansub_group_id AS group_id
+			FROM hist_fansub_group_members hfgm
+			WHERE hfgm.fansub_group_id = ANY($1)
+			  AND hfgm.status IN ('historical', 'confirmed')
+			  AND hfgm.visibility = 'public'
+		) combined
+		GROUP BY group_id
+		`,
 		ids,
 		func(i int, count int) { items[i].MembersCount = count },
 		indexByID,

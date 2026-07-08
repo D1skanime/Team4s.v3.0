@@ -76,6 +76,51 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 	}
 }
 
+// TestAttachGroupCounts_MembersCountMatchesCountVisibleTeamMembers pins the
+// AO4-01 counting semantics for the MembersCount batch at the source level
+// (no DB harness available here). The batch must sum active
+// fansub_group_members (no profile_visibility row filter, so a private/
+// unclaimed active member still counts, matching listProjectionMembers) plus
+// publicly visible historical hist_fansub_group_members rows (matching
+// listProjectionHistorical), and must never reference the legacy
+// fansub_members table.
+func TestAttachGroupCounts_MembersCountMatchesCountVisibleTeamMembers(t *testing.T) {
+	src, err := os.ReadFile("fansub_repository.go")
+	if err != nil {
+		t.Fatalf("read fansub repository: %v", err)
+	}
+	content := string(src)
+
+	start := strings.Index(content, "func (r *FansubRepository) attachGroupCounts(")
+	if start < 0 {
+		t.Fatalf("attachGroupCounts function not found")
+	}
+	end := strings.Index(content, "func (r *FansubRepository) attachGroupLinks(")
+	if end < 0 || end < start {
+		t.Fatalf("could not bound attachGroupCounts function body")
+	}
+	body := content[start:end]
+
+	for _, fragment := range []string{
+		"fansub_group_members",
+		"status = 'active'",
+		"hist_fansub_group_members",
+		"visibility = 'public'",
+		"GROUP BY group_id",
+	} {
+		if !strings.Contains(body, fragment) {
+			t.Fatalf("expected MembersCount batch query to contain %q", fragment)
+		}
+	}
+
+	if strings.Contains(body, "profile_visibility = 'public'") || strings.Contains(body, "profile_visibility='public'") {
+		t.Fatalf("MembersCount batch must not filter active members by profile_visibility = 'public' (would exclude private/unclaimed active members, contradicting listProjectionMembers)")
+	}
+	if strings.Contains(body, "FROM fansub_members") {
+		t.Fatalf("MembersCount batch must not reference legacy fansub_members table")
+	}
+}
+
 func TestFansubRepository_DeleteGroupCleansRestrictedChildrenFirst(t *testing.T) {
 	src, err := os.ReadFile("fansub_repository.go")
 	if err != nil {
