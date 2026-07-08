@@ -30,11 +30,13 @@ function resolveSettled<T>(result: PromiseSettledResult<T>, fallback: T): T {
   return result.status === 'fulfilled' ? result.value : fallback
 }
 
-function hasStoryContent(story: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data']['story']): boolean {
+export function hasStoryContent(
+  story: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data']['story'],
+): boolean {
   return Boolean(story && (story.title?.trim() || story.body_html?.trim() || story.body_text?.trim()))
 }
 
-function buildEmptyAreaLabels(
+export function buildEmptyAreaLabels(
   profile: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data'],
   domainProjection: DomainProjectionResponse,
   contributions: PublicGroupContributionsResponse | null,
