@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { FansubTeamSection } from '../FansubTeamSection'
+import { countVisibleTeamMembers, FansubTeamSection } from '../FansubTeamSection'
 import type { DomainProjectionHistoricalRow, DomainProjectionMemberRow } from '@/types/domain-projection'
 
 function activeMember(overrides: Partial<DomainProjectionMemberRow> = {}): DomainProjectionMemberRow {
@@ -37,6 +37,11 @@ function historicalMember(overrides: Partial<DomainProjectionHistoricalRow> = {}
 }
 
 describe('FansubTeamSection', () => {
+  it('nutzt dieselbe sichtbare Team-Zählung wie die öffentliche Seite', () => {
+    expect(countVisibleTeamMembers([activeMember()], [historicalMember()])).toBe(2)
+    expect(renderToStaticMarkup(<FansubTeamSection members={[]} historical={[]} />)).toBe('')
+  })
+
   it('trennt aktive, historische und Memorial-Mitglieder', () => {
     const html = renderToStaticMarkup(
       <FansubTeamSection

@@ -11,6 +11,7 @@ import styles from '../../app/fansubs/[slug]/page.module.css'
 
 interface FansubHeroSectionProps {
   group: FansubGroup
+  stats?: Array<{ label: string; value: number | string }>
   isCollaboration?: boolean
   collaborationMembers?: FansubGroupSummary[]
 }
@@ -44,7 +45,7 @@ function yearsLabel(group: FansubGroup): string | null {
   return null
 }
 
-export function FansubHeroSection({ group, isCollaboration, collaborationMembers }: FansubHeroSectionProps) {
+export function FansubHeroSection({ group, stats, isCollaboration, collaborationMembers }: FansubHeroSectionProps) {
   const logoURL = resolveApiUrl(group.logo_url || '')
   const bannerURL = resolveApiUrl(group.banner_url || '')
   const years = yearsLabel(group)
@@ -79,6 +80,17 @@ export function FansubHeroSection({ group, isCollaboration, collaborationMembers
             <Badge variant={statusVariant(group.status)}>{statusLabel(group.status)}</Badge>
           </div>
           <p className={styles.subtitle}>{factSummary || 'Keine Kurzbeschreibung vorhanden.'}</p>
+
+          {(stats ?? []).length > 0 ? (
+            <dl className={styles.heroStats} aria-label="Gruppenkennzahlen">
+              {(stats ?? []).map((stat) => (
+                <div key={stat.label} className={styles.heroStatItem}>
+                  <dt>{stat.label}</dt>
+                  <dd>{stat.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
 
           <div className={styles.heroFacts}>
             {years ? <Badge variant="info">{years}</Badge> : null}

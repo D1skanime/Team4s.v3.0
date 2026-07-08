@@ -24,9 +24,9 @@ describe('FansubHistorySection', () => {
     expect(html).not.toContain('Gruppenleitung')
   })
 
-  it('zeigt EmptyState wenn keine Historie geliefert wird', () => {
+  it('rendert keinen Abschnitt wenn keine Historie geliefert wird', () => {
     const html = renderToStaticMarkup(<FansubHistorySection history={[]} />)
 
-    expect(html).toContain('Noch keine Erfolge veröffentlicht')
+    expect(html).toBe('')
   })
 })

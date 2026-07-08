@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { Card, EmptyState, SectionHeader } from '@/components/ui'
+import { Card, SectionHeader } from '@/components/ui'
 import type { PublicFansubProject } from '@/types/fansub'
 
 import styles from './FansubPublicSections.module.css'
@@ -45,43 +45,39 @@ function groupProjects(projects: PublicFansubProject[]): Record<ProjectBucketKey
 }
 
 export function FansubProjectsSection({ projects, groupId }: FansubProjectsSectionProps) {
+  if (projects.length === 0) {
+    return null
+  }
+
   const projectsByBucket = groupProjects(projects)
 
   return (
     <section id="projekte">
-      <SectionHeader title="Projekte" />
-      {projects.length === 0 ? (
-        <EmptyState
-          variant="compact"
-          title="Noch keine Projekte"
-          description="Diese Gruppe hat bisher keine öffentlich zugänglichen Anime-Projekte."
-        />
-      ) : (
-        <div className={styles.stack}>
-          {projectBucketOrder.map((bucket) => {
-            const items = projectsByBucket[bucket]
-            if (items.length === 0) return null
+      <SectionHeader title="Laufende Projekte" />
+      <div className={styles.stack}>
+        {projectBucketOrder.map((bucket) => {
+          const items = projectsByBucket[bucket]
+          if (items.length === 0) return null
 
-            return (
-              <div key={bucket} className={styles.compactStack}>
-                <h3 className={styles.sectionTitle}>{projectBucketLabel[bucket]}</h3>
-                <div className={styles.cardGrid}>
-                  {items.map((item) => (
-                    <Link key={item.id} href={`/anime/${item.id}/group/${groupId}`} className={styles.projectLink}>
-                      <Card variant="interactive">
-                        <strong>{item.title}</strong>
-                        {item.year ? (
-                          <p className={styles.projectYear}>{item.year}</p>
-                        ) : null}
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
+          return (
+            <div key={bucket} className={styles.compactStack}>
+              <h3 className={styles.sectionTitle}>{projectBucketLabel[bucket]}</h3>
+              <div className={styles.cardGrid}>
+                {items.map((item) => (
+                  <Link key={item.id} href={`/anime/${item.id}/group/${groupId}`} className={styles.projectLink}>
+                    <Card variant="interactive">
+                      <strong>{item.title}</strong>
+                      {item.year ? (
+                        <p className={styles.projectYear}>{item.year}</p>
+                      ) : null}
+                    </Card>
+                  </Link>
+                ))}
               </div>
-            )
-          })}
-        </div>
-      )}
+            </div>
+          )
+        })}
+      </div>
     </section>
   )
 }

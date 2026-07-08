@@ -34,9 +34,9 @@ describe('FansubStorySection', () => {
     expect(html).not.toContain('Noch keine Geschichte hinterlegt')
   })
 
-  it('zeigt EmptyState wenn keine Public-Story geliefert wird', () => {
+  it('rendert keinen Abschnitt wenn keine Public-Story geliefert wird', () => {
     const html = renderToStaticMarkup(<FansubStorySection group={group} story={null} />)
 
-    expect(html).toContain('Noch keine Geschichte hinterlegt')
+    expect(html).toBe('')
   })
 })

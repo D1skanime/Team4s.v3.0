@@ -2,9 +2,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { FansubProjectsSection } from '../FansubProjectsSection'
-import type { AnimeListItem } from '@/types/anime'
+import type { PublicFansubProject } from '@/types/fansub'
 
-const project: AnimeListItem = {
+const project: PublicFansubProject = {
   id: 123,
   title: 'Projekt Anime',
   type: 'TV',
@@ -20,9 +20,9 @@ describe('FansubProjectsSection', () => {
     expect(html).not.toContain('href="/anime/123"')
   })
 
-  it('zeigt Empty State wenn projects-Array leer ist', () => {
+  it('rendert keinen Abschnitt wenn keine Projekte geliefert werden', () => {
     const html = renderToStaticMarkup(<FansubProjectsSection projects={[]} groupId={77} />)
 
-    expect(html).toContain('Noch keine Projekte')
+    expect(html).toBe('')
   })
 })

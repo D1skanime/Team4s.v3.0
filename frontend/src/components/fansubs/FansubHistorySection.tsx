@@ -1,4 +1,4 @@
-import { Card, EmptyState, SectionHeader } from '@/components/ui'
+import { Card, SectionHeader } from '@/components/ui'
 import type { PublicFansubHistory } from '@/types/fansub'
 
 import styles from './FansubPublicSections.module.css'
@@ -12,36 +12,32 @@ function historyTitle(item: PublicFansubHistory): string {
 }
 
 export function FansubHistorySection({ history }: FansubHistorySectionProps) {
+  if (history.length === 0) {
+    return null
+  }
+
   return (
     <section id="erfolge">
       <SectionHeader title="Historie & Erfolge" />
-      {history.length === 0 ? (
-        <EmptyState
-          variant="compact"
-          title="Noch keine Erfolge veröffentlicht"
-          description="Für diese Gruppe sind noch keine bestätigten öffentlichen Historieneinträge vorhanden."
-        />
-      ) : (
-        <ol className={styles.historyList}>
-          {history.map((item) => (
-            <li key={item.id}>
-              <Card variant="flat">
-                <div className={styles.historyEntry}>
-                  {item.year ? (
-                    <strong className={styles.historyYear}>{item.year}</strong>
+      <ol className={styles.historyList}>
+        {history.map((item) => (
+          <li key={item.id}>
+            <Card variant="flat">
+              <div className={styles.historyEntry}>
+                {item.year ? (
+                  <strong className={styles.historyYear}>{item.year}</strong>
+                ) : null}
+                <div>
+                  <strong>{historyTitle(item)}</strong>
+                  {item.note ? (
+                    <p className={styles.historyNote}>{item.note}</p>
                   ) : null}
-                  <div>
-                    <strong>{historyTitle(item)}</strong>
-                    {item.note ? (
-                      <p className={styles.historyNote}>{item.note}</p>
-                    ) : null}
-                  </div>
                 </div>
-              </Card>
-            </li>
-          ))}
-        </ol>
-      )}
+              </div>
+            </Card>
+          </li>
+        ))}
+      </ol>
     </section>
   )
 }

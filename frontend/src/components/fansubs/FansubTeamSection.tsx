@@ -1,4 +1,4 @@
-import { EmptyState, SectionHeader } from '@/components/ui'
+import { SectionHeader } from '@/components/ui'
 import type { DomainProjectionHistoricalRow, DomainProjectionMemberRow } from '@/types/domain-projection'
 
 import { FansubTeamActiveGroup } from './FansubTeamActiveGroup'
@@ -11,30 +11,35 @@ interface FansubTeamSectionProps {
   historical: DomainProjectionHistoricalRow[]
 }
 
+export function countVisibleTeamMembers(
+  members: DomainProjectionMemberRow[],
+  historical: DomainProjectionHistoricalRow[],
+): number {
+  const activeMembers = members.filter((member) => member.profile_status !== 'memorial')
+  const memorialMembers = members.filter((member) => member.profile_status === 'memorial')
+  const historicalNonMemorial = historical.filter((member) => member.profile_status !== 'memorial')
+  const memorialHistorical = historical.filter((member) => member.profile_status === 'memorial')
+
+  return activeMembers.length + historicalNonMemorial.length + memorialMembers.length + memorialHistorical.length
+}
+
 export function FansubTeamSection({ members, historical }: FansubTeamSectionProps) {
   const activeMembers = members.filter((member) => member.profile_status !== 'memorial')
   const memorialMembers = members.filter((member) => member.profile_status === 'memorial')
   const historicalNonMemorial = historical.filter((member) => member.profile_status !== 'memorial')
   const memorialHistorical = historical.filter((member) => member.profile_status === 'memorial')
   const allMemorial = [...memorialMembers, ...memorialHistorical]
-  const isEmpty = activeMembers.length === 0 && historicalNonMemorial.length === 0 && allMemorial.length === 0
+
+  if (countVisibleTeamMembers(members, historical) === 0) {
+    return null
+  }
 
   return (
     <section id="team" className={styles.teamSection}>
       <SectionHeader eyebrow="Fansub" title="Team & Mitglieder" />
-      {isEmpty ? (
-        <EmptyState
-          variant="compact"
-          title="Keine Mitglieder eingetragen"
-          description="Für diese Gruppe sind noch keine Mitglieder erfasst."
-        />
-      ) : (
-        <>
-          <FansubTeamActiveGroup members={activeMembers} />
-          <FansubTeamHistoricalGroup historical={historicalNonMemorial} />
-          <FansubTeamMemorialBlock memorial={allMemorial} />
-        </>
-      )}
+      <FansubTeamActiveGroup members={activeMembers} />
+      <FansubTeamHistoricalGroup historical={historicalNonMemorial} />
+      <FansubTeamMemorialBlock memorial={allMemorial} />
     </section>
   )
 }
