@@ -15,6 +15,7 @@ const STATUS_LABELS: Record<FansubStatus, string> = {
 
 const DEFAULT_LINK_PROTOCOLS = new Set(["http:", "https:"]);
 const IRC_LINK_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
+const DISCORD_INVITE_PREFIX = "https://discord.gg/";
 
 export function slugify(value: string): string {
   return value
@@ -61,6 +62,12 @@ export function communityLinkURLError(
   return linkType === "irc"
     ? "Bitte IRC-Link mit irc:// oder ircs:// verwenden."
     : "Bitte absolute URL mit http:// oder https:// verwenden.";
+}
+
+export function defaultCommunityLinkURL(
+  linkType: FansubGroupLinkType,
+): string {
+  return linkType === "discord" ? DISCORD_INVITE_PREFIX : "";
 }
 
 export function resolveCoverUrl(rawCoverImage?: string | null): string {

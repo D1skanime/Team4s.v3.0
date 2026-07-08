@@ -6,6 +6,7 @@ import { ExternalLink, Trash2 } from "lucide-react";
 import type { FansubGroupLinkType } from "@/types/fansub";
 import { Button, FormField, Input, Select } from "@/components/ui";
 import { createEmptyLink } from "./fansubEditFormMapping";
+import { defaultCommunityLinkURL } from "./fansubEditFormatters";
 import type { CommunityLinkDraft } from "./fansubEditTypes";
 
 const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
@@ -46,19 +47,22 @@ export function FansubCommunityLinksList({
               <Select
                 id={`community-link-type-${link.key}`}
                 value={link.link_type}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const nextType = event.target.value as FansubGroupLinkType;
                   setLinks((current) =>
                     current.map((item) =>
                       item.key === link.key
                         ? {
                             ...item,
-                            link_type: event.target
-                              .value as FansubGroupLinkType,
+                            link_type: nextType,
+                            url: item.url.trim()
+                              ? item.url
+                              : defaultCommunityLinkURL(nextType),
                           }
                         : item,
                     ),
-                  )
-                }
+                  );
+                }}
               >
                 {LINK_TYPE_OPTIONS.map((option) => (
                   <option key={option} value={option}>

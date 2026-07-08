@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   communityLinkURLError,
+  defaultCommunityLinkURL,
   isAllowedCommunityLinkURL,
 } from "./fansubEditFormatters";
 
@@ -27,5 +28,10 @@ describe("fansubEditFormatters community links", () => {
   it("zeigt für IRC einen schemabezogenen Fehlertext", () => {
     expect(communityLinkURLError("irc")).toContain("irc://");
     expect(communityLinkURLError("irc")).toContain("ircs://");
+  });
+
+  it("bereitet Discord-Links mit dem Invite-Prefix vor", () => {
+    expect(defaultCommunityLinkURL("discord")).toBe("https://discord.gg/");
+    expect(defaultCommunityLinkURL("website")).toBe("");
   });
 });
