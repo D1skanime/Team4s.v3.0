@@ -16,6 +16,12 @@ const LINK_TYPE_OPTIONS: FansubGroupLinkType[] = [
   "irc",
 ];
 
+function placeholderForLinkType(linkType: FansubGroupLinkType): string {
+  if (linkType === "irc") return "ircs://irc.example.net/#channel";
+  if (linkType === "discord") return "https://discord.gg/...";
+  return "https://...";
+}
+
 type FansubCommunityLinksListProps = {
   styles: Record<string, string>;
   links: CommunityLinkDraft[];
@@ -105,7 +111,7 @@ export function FansubCommunityLinksList({
                       ),
                     )
                   }
-                  placeholder="https://..."
+                  placeholder={placeholderForLinkType(link.link_type)}
                 />
                 {url && !urlError ? (
                   <Button

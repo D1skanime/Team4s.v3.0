@@ -11,7 +11,13 @@ import {
 } from "@/lib/api";
 import type { EditableMediaValue } from "@/components/admin/MediaUpload";
 import type { FansubAlias, FansubGroup } from "@/types/fansub";
-import { errMessage, isAbsoluteURL, isValidSlug, slugify } from "./fansubEditFormatters";
+import {
+  communityLinkURLError,
+  errMessage,
+  isAllowedCommunityLinkURL,
+  isValidSlug,
+  slugify,
+} from "./fansubEditFormatters";
 import { parseYear } from "./fansubEditFormatters";
 import {
   emptyForm,
@@ -216,8 +222,9 @@ export function useFansubDetailsForm({
       ? "Auflösungsjahr muss größer oder gleich dem Gründungsjahr sein."
       : null;
   const linkErrors = links.map((link) =>
-    link.url.trim().length > 0 && !isAbsoluteURL(link.url)
-      ? "Bitte absolute URL mit Protokoll verwenden."
+    link.url.trim().length > 0 &&
+    !isAllowedCommunityLinkURL(link.link_type, link.url)
+      ? communityLinkURLError(link.link_type)
       : null,
   );
   const anyMediaBusy = mediaBusy.logo || mediaBusy.banner;

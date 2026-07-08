@@ -1,6 +1,10 @@
 import { ApiError, resolveApiUrl } from "@/lib/api";
 import type { AdminAnimeThemeSegment, AdminFansubAnimeEntry } from "@/types/admin";
-import type { AdminFansubRelease, FansubStatus } from "@/types/fansub";
+import type {
+  AdminFansubRelease,
+  FansubGroupLinkType,
+  FansubStatus,
+} from "@/types/fansub";
 import type { ReleaseSegmentCard, ReleaseSegmentStatus } from "./fansubEditTypes";
 
 const STATUS_LABELS: Record<FansubStatus, string> = {
@@ -9,7 +13,8 @@ const STATUS_LABELS: Record<FansubStatus, string> = {
   dissolved: "aufgelöst",
 };
 
-const URL_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
+const DEFAULT_LINK_PROTOCOLS = new Set(["http:", "https:"]);
+const IRC_LINK_PROTOCOLS = new Set(["http:", "https:", "irc:", "ircs:"]);
 
 export function slugify(value: string): string {
   return value
@@ -35,14 +40,27 @@ export function toOptional(value: string): string | null {
   return trimmed ? trimmed : null;
 }
 
-export function isAbsoluteURL(value: string): boolean {
+export function isAllowedCommunityLinkURL(
+  linkType: FansubGroupLinkType,
+  value: string,
+): boolean {
   if (!value.trim()) return false;
   try {
     const parsed = new URL(value.trim());
-    return URL_PROTOCOLS.has(parsed.protocol.toLowerCase());
+    const protocols =
+      linkType === "irc" ? IRC_LINK_PROTOCOLS : DEFAULT_LINK_PROTOCOLS;
+    return protocols.has(parsed.protocol.toLowerCase());
   } catch {
     return false;
   }
+}
+
+export function communityLinkURLError(
+  linkType: FansubGroupLinkType,
+): string {
+  return linkType === "irc"
+    ? "Bitte IRC-Link mit irc:// oder ircs:// verwenden."
+    : "Bitte absolute URL mit http:// oder https:// verwenden.";
 }
 
 export function resolveCoverUrl(rawCoverImage?: string | null): string {
