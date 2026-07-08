@@ -1,0 +1,80 @@
+.section {
+  padding: 24px 0;
+  border-top: 1px solid var(--border-subtle);
+  display: grid;
+  gap: 16px;
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-error);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.imageShell {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-card-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  background: var(--surface-sunken);
+}
+
+.typeTag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+.authorChip {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* Feste Groesse gegen Layout-Sprung waehrend des Nachladens (AO4-22). */
+.skeletonCard {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  background: var(--surface-card-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.loadMoreRow {
+  margin-top: 4px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.loadTrigger {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+}

@@ -44,6 +44,9 @@ type PublicReleaseImage struct {
 	ThumbnailURL *string `json:"thumbnail_url"`
 	OriginalURL  *string `json:"original_url"`
 	Caption      *string `json:"caption"`
+	// AuthorName ist der aufgeloeste Anzeigename des Hochladers (release_version_media.uploaded_by_user_id),
+	// nil wenn kein Hochlader hinterlegt oder kein Anzeigename ermittelbar ist (AO4-18 Autor-Chip).
+	AuthorName *string `json:"author_name"`
 }
 
 // PublicReleaseNote ist ein oeffentlich sichtbarer Textbeitrag einer Release-Version.
@@ -225,13 +228,15 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
 			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
-			rvm.sort_order
+			rvm.sort_order,
+			uploader_author.name AS author_name
 		FROM release_version_media rvm
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
 		JOIN visibilities v ON v.id = ma.visibility_id
 		JOIN review_statuses rs ON rs.id = ma.review_status_id
+		%s
 		WHERE rvm.release_version_id = $1
 		  AND rvm.deleted_at IS NULL
 		  AND ma.status = 'ready'
@@ -240,7 +245,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 		  %s
 		ORDER BY rvm.sort_order ASC, rvm.id ASC
 		LIMIT %d
-	`, seekSQL, limit+1)
+	`, uploaderAuthorNameJoin, seekSQL, limit+1)
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
@@ -259,7 +264,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&row.image.ID, &row.image.Category, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder); err != nil {
+		if err := rows.Scan(&row.image.ID, &row.image.Category, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName); err != nil {
 			return nil, fmt.Errorf("release detail: scan image cursor row: %w", err)
 		}
 		if thumbnailPath != nil {

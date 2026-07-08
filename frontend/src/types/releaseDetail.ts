@@ -15,6 +15,8 @@ export interface PublicReleaseImage {
   thumbnail_url: string | null;
   original_url: string | null;
   caption: string | null;
+  /** Anzeigename des Hochladers, null wenn kein Hochlader hinterlegt/aufloesbar (AO4-18 Autor-Chip). */
+  author_name: string | null;
 }
 
 export interface PublicReleaseNote {

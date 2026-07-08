@@ -16,6 +16,32 @@ import (
 	"fmt"
 )
 
+// uploaderAuthorNameJoin loest den Anzeigenamen des Hochladers eines
+// release_version_media-Bildes auf (AO4-18 Autor-Chip). Prioritaet identisch zu
+// den uebrigen Public-Reads dieser Datei (Mitglieds-Anzeigename > App-User-Anzeigename
+// > legacy Username). Liefert NULL (kein Join-Treffer), wenn uploaded_by_user_id NULL
+// ist oder kein Anzeigename ermittelbar ist. Nutzt eine LATERAL-Subquery statt
+// direkter JOINs, damit ein Bild pro Ausgabezeile bestehen bleibt (kein Zeilen-
+// Fan-out ueber mehrere member_claims-Zeilen desselben app_user_id).
+const uploaderAuthorNameJoin = `
+	LEFT JOIN LATERAL (
+		SELECT COALESCE(
+			NULLIF(TRIM(mem.display_name), ''),
+			NULLIF(TRIM(mem.nickname), ''),
+			NULLIF(TRIM(au.display_name), ''),
+			NULLIF(TRIM(au.preferred_username), ''),
+			NULLIF(TRIM(u.username), '')
+		) AS name
+		FROM users u
+		LEFT JOIN app_users au ON au.legacy_user_id = u.id
+		LEFT JOIN member_claims mc ON mc.app_user_id = au.id AND mc.claim_status = 'verified'
+		LEFT JOIN members mem ON mem.id = mc.member_id
+		WHERE u.id = rvm.uploaded_by_user_id
+		ORDER BY mc.id DESC
+		LIMIT 1
+	) uploader_author ON TRUE
+`
+
 // loadContributors liefert Name+Rolle der oeffentlich sichtbaren Beteiligten einer
 // Release-Version, sortiert nach Name. Mehrere Rollen eines Mitglieds werden zu
 // einem kommagetrennten role_label zusammengefasst.
@@ -92,7 +118,7 @@ func (r *ReleaseDetailPublicRepository) loadImages(ctx context.Context, releaseV
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&item.ID, &item.Category, &item.Caption, &thumbnailPath, &originalPath); err != nil {
+		if err := rows.Scan(&item.ID, &item.Category, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName); err != nil {
 			return nil, fmt.Errorf("release detail: scan image row: %w", err)
 		}
 		if thumbnailPath != nil {
@@ -134,26 +160,28 @@ func (r *ReleaseDetailPublicRepository) countImages(ctx context.Context, release
 // imagesQuery ist die gemeinsame Query fuer loadImages; identisches Sichtbarkeits-Gate
 // wie group_release_media_repository.go (v.name='public', rs.code='approved', ma.status='ready').
 func (r *ReleaseDetailPublicRepository) imagesQuery() string {
-	return `
+	return fmt.Sprintf(`
 		SELECT
 			rvm.id,
 			rvm.category,
 			rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
-			COALESCE(mf_orig.path, ma.file_path, '') AS original_path
+			COALESCE(mf_orig.path, ma.file_path, '') AS original_path,
+			uploader_author.name AS author_name
 		FROM release_version_media rvm
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = ma.id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = ma.id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
 		JOIN visibilities v ON v.id = ma.visibility_id
 		JOIN review_statuses rs ON rs.id = ma.review_status_id
+		%s
 		WHERE rvm.release_version_id = $1
 		  AND rvm.deleted_at IS NULL
 		  AND ma.status = 'ready'
 		  AND v.name = 'public'
 		  AND rs.code = 'approved'
 		ORDER BY rvm.sort_order ASC, rvm.id ASC
-	`
+	`, uploaderAuthorNameJoin)
 }
 
 // loadNotes liefert oeffentlich sichtbare release_version_notes (visibility='public',

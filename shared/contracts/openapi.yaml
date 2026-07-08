@@ -12016,6 +12016,10 @@ components:
         caption:
           type: string
           nullable: true
+        author_name:
+          type: string
+          nullable: true
+          description: Anzeigename des Hochladers, null wenn nicht ermittelbar (AO4-18 Autor-Chip)
     PublicReleaseNote:
       type: object
       required: [id, member_name, role_label, body_html, created_at]
