@@ -169,21 +169,23 @@ export function EpisodeVersionEditorPage() {
         ? "notizen"
         : activeTab;
 
-  const backHref =
-    animeIDFromQuery && episodeIDFromQuery
-      ? `/admin/anime/${animeIDFromQuery}/episodes/${episodeIDFromQuery}/versions`
-      : editor.contextData
-        ? `/admin/anime/${editor.contextData.version.anime_id}/episodes`
-        : "/admin/anime";
-
-  const animeHref = editor.contextData
-    ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
-    : "/admin/anime";
-
   const fansubGroupHref =
     segmentGroupId != null
       ? `/admin/fansubs/${segmentGroupId}/edit`
       : null;
+
+  const backHref =
+    animeIDFromQuery && episodeIDFromQuery
+      ? `/admin/anime/${animeIDFromQuery}/episodes/${episodeIDFromQuery}/versions`
+      : fansubGroupHref != null
+        ? `${fansubGroupHref}?tab=releases`
+        : editor.contextData
+          ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
+          : "/admin/anime";
+
+  const animeHref = editor.contextData
+    ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
+    : "/admin/anime";
 
   const episodesHref = editor.contextData
     ? `/admin/anime/${editor.contextData.version.anime_id}/episodes`
