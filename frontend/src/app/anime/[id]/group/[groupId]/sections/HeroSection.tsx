@@ -124,6 +124,7 @@ export function HeroSection({
             animeTitle={anime.title}
             otherGroups={navigationGroups}
             mode="story"
+            currentGroupName={group.fansub.name}
           />
         ) : null}
       </section>

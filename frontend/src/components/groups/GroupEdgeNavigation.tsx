@@ -18,6 +18,7 @@ interface GroupEdgeNavigationProps {
   animeTitle: string
   otherGroups: FansubGroupSummary[]
   mode: Mode
+  currentGroupName?: string
 }
 
 function getGroupUrl(animeId: number, groupId: number, mode: Mode): string {
@@ -31,6 +32,7 @@ export function GroupEdgeNavigation({
   animeTitle,
   otherGroups,
   mode,
+  currentGroupName,
 }: GroupEdgeNavigationProps) {
   const router = useRouter()
   const [hoverDirection, setHoverDirection] = useState<Direction | null>(null)
@@ -58,6 +60,9 @@ export function GroupEdgeNavigation({
 
   return (
     <div className={styles.overlay}>
+      {currentGroupName ? (
+        <span className={styles.groupLabel}>Weitere Projekte von {currentGroupName}</span>
+      ) : null}
       <button
         type="button"
         className={styles.navButton}

@@ -35,6 +35,22 @@
   cursor: not-allowed;
 }
 
+.groupLabel {
+  pointer-events: none;
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--group-nav-border-color, var(--color-border));
+  background: var(--group-nav-bg, var(--color-white));
+  color: var(--group-nav-color, var(--color-text-primary));
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .previewCard {
   pointer-events: none;
   position: absolute;
@@ -114,6 +130,15 @@
     pointer-events: auto;
     justify-content: center;
     gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .groupLabel {
+    position: static;
+    transform: none;
+    order: -1;
+    width: 100%;
+    text-align: center;
   }
 
   .previewCard {
