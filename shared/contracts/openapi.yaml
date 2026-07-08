@@ -10325,7 +10325,7 @@ components:
           type: string
     PublicFansubMediaItem:
       type: object
-      required: [id, media_type, mime_type]
+      required: [id, media_type, mime_type, category]
       properties:
         id:
           type: integer
@@ -10343,9 +10343,38 @@ components:
         original_url:
           type: string
           nullable: true
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        category:
+          type: string
+    FansubGroupLink:
+      type: object
+      required: [id, group_id, link_type, url, created_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+        group_id:
+          type: integer
+          format: int64
+        link_type:
+          type: string
+          enum: [website, discord, twitter, github, irc]
+        name:
+          type: string
+          nullable: true
+        url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
     PublicFansubProfile:
       type: object
-      required: [group, story, projects, history, media]
+      required: [group, story, projects, history, media, community_links]
       properties:
         group:
           $ref: "#/components/schemas/FansubGroup"
@@ -10369,6 +10398,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FansubGroupSummary"
+        community_links:
+          type: array
+          items:
+            $ref: "#/components/schemas/FansubGroupLink"
     FansubMember:
       type: object
       required:

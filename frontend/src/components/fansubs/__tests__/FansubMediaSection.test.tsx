@@ -13,6 +13,7 @@ function mediaRow(overrides: Partial<PublicFansubMediaItem> = {}): PublicFansubM
     mime_type: 'image/jpeg',
     thumbnail_url: '/media/group-gallery-thumb.jpg',
     original_url: '/media/group-gallery.jpg',
+    category: 'other',
     ...overrides,
   }
 }

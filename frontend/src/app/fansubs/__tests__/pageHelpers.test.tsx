@@ -24,6 +24,7 @@ const emptyProfile: PublicFansubProfile = {
   projects: [],
   history: [],
   media: [],
+  community_links: [],
 }
 
 const emptyDomainProjection: DomainProjectionResponse = {
@@ -100,7 +101,8 @@ describe('buildEmptyAreaLabels', () => {
       story: { id: 1, title: 'Titel', body_html: '<p>Text</p>', body_text: 'Text' },
       projects: [{ id: 1, title: 'Projekt', type: 'anime', status: 'ongoing' }],
       history: [{ id: 1, event_type: 'award', status: 'public' }],
-      media: [{ id: 1, media_type: 'image', mime_type: 'image/png' }],
+      media: [{ id: 1, media_type: 'image', mime_type: 'image/png', category: 'other' }],
+      community_links: [],
     }
     const domainProjection: DomainProjectionResponse = {
       members: [

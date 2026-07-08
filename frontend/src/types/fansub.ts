@@ -175,6 +175,9 @@ export interface PublicFansubMediaItem {
   mime_type: string;
   thumbnail_url?: string | null;
   original_url?: string | null;
+  title?: string | null;
+  description?: string | null;
+  category: string;
 }
 
 export interface PublicFansubProfile {
@@ -183,6 +186,7 @@ export interface PublicFansubProfile {
   projects: PublicFansubProject[];
   history: PublicFansubHistory[];
   media: PublicFansubMediaItem[];
+  community_links: FansubGroupLink[];
 }
 
 export interface PublicFansubProfileResponse {
