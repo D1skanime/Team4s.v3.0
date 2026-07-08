@@ -142,6 +142,10 @@ None — keine externe Service-Konfiguration nötig. Docker-Umgebung lief bereit
 *Phase: 99-ffentliches-fansub-member-profil-redesign*
 *Completed: 2026-07-08*
 
+## Addendum (post-commit note)
+
+While this plan's checkpoint report was being finalized, a **concurrent commit landed directly on `main`** (per the known "parallele GSD-Agenten auf main"-Risiko): `b308db63 fix(99): harden public profile route fetches` (author D1sk, 2026-07-08 23:15:20+02:00) — **not part of this plan/executor session**. It adds a one-retry (300ms) network-retry wrapper for idempotent GET/HEAD requests in `authorizedFetch` (`frontend/src/lib/api.ts`) plus a small `HeroSection.tsx`/`page.tsx` cleanup (removes an unused `groupAssetsError` prop/empty-state branch). This addresses almost exactly the `ConnectTimeoutError`/`TypeError: fetch failed` flakiness this plan's Task 2 encountered and worked around via `docker restart team4sv30-frontend`. Noted here for transparency — it did not touch any file in this plan's scope (`files_modified`), required no action from this executor, and does not change any of the pass/fail verdicts documented above (all checks that used it benefited from more stable fetches, not less).
+
 ## Self-Check: PASSED
 
 No code files were created/modified by this plan (verification-only), so there are no created-file or task-commit-hash claims to check against disk/git. The only artifact is this SUMMARY.md, verified present:
