@@ -6,6 +6,8 @@ import { ApiError, getAnimeByID, getGroupDetail, getGroupReleaseDetail } from "@
 
 import { ContributorsRow } from "./ContributorsRow";
 import { ReleaseDetailHero } from "./ReleaseDetailHero";
+import { ReleaseGallery } from "./ReleaseGallery";
+import { ReleaseNotesList } from "./ReleaseNotesList";
 import { ThemeTimeline } from "./ThemeTimeline";
 import styles from "./page.module.css";
 
@@ -19,7 +21,7 @@ interface ReleaseDetailPageProps {
  * AO4-15: eigenstaendige oeffentliche Release-Detailseite, gespeist vom
  * aggregierenden Endpoint getGroupReleaseDetail (AO4-02, 99-07). Diese Route
  * ersetzt fuer neue Verlinkungen die alte episodes/[id]?releaseId=-Umleitung.
- * Galerie/Textliste folgen in 99-13 — hier nur Hero/Beteiligte/Timeline.
+ * Reihenfolge: Hero -> Beteiligte -> Galerie -> Textliste -> OP/ED/Middle (99-13).
  */
 export default async function ReleaseDetailPage({ params }: ReleaseDetailPageProps) {
   const resolvedParams = await params;
@@ -96,6 +98,22 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
       />
 
       <ContributorsRow contributors={detail.contributors} />
+
+      <ReleaseGallery
+        animeID={animeID}
+        groupID={groupID}
+        releaseVersionID={releaseVersionID}
+        initialImages={detail.images}
+        totalCount={detail.images_count}
+      />
+
+      <ReleaseNotesList
+        animeID={animeID}
+        groupID={groupID}
+        releaseVersionID={releaseVersionID}
+        initialNotes={detail.notes}
+        totalCount={detail.notes_count}
+      />
 
       <ThemeTimeline animeID={animeID} groupID={groupID} />
     </main>
