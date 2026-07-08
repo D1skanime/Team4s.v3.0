@@ -6,15 +6,18 @@ import {
   Layers,
   Shield,
   Sparkles,
+  Star,
   type LucideIcon,
 } from 'lucide-react'
 
 export type MemberBadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted'
+export type MemberBadgePalette = 'gold' | 'indigo' | 'orange' | 'mint' | 'red'
 
 export type MemberBadgePresentation = {
   label: string
   variant: MemberBadgeVariant
   Icon: LucideIcon
+  palette: MemberBadgePalette
 }
 
 export type PublicMemberBadgeCatalogItem = {
@@ -24,15 +27,15 @@ export type PublicMemberBadgeCatalogItem = {
 }
 
 export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation> = {
-  founding_member: { label: 'Gründungsmitglied', variant: 'warning', Icon: Crown },
-  historical_leader: { label: 'Historische Leitung', variant: 'info', Icon: Shield },
-  long_term_member: { label: '5+ Jahre Mitglied', variant: 'success', Icon: CalendarClock },
-  first_contribution: { label: 'Erste Mitwirkung', variant: 'neutral', Icon: Sparkles },
-  productive_bronze: { label: 'Produktiv · 10+ Anime', variant: 'muted', Icon: Layers },
-  productive_silver: { label: 'Produktiv · 25+ Anime', variant: 'neutral', Icon: Layers },
-  productive_gold: { label: 'Produktiv · 50+ Anime', variant: 'warning', Icon: Layers },
-  all_rounder: { label: 'Allrounder', variant: 'info', Icon: Hexagon },
-  verified: { label: 'Verifiziert', variant: 'success', Icon: BadgeCheck },
+  founding_member: { label: 'Gründungsmitglied', variant: 'warning', Icon: Crown, palette: 'gold' },
+  historical_leader: { label: 'Historische Leitung', variant: 'info', Icon: Shield, palette: 'indigo' },
+  long_term_member: { label: '5+ Jahre Mitglied', variant: 'success', Icon: CalendarClock, palette: 'orange' },
+  first_contribution: { label: 'Erste Mitwirkung', variant: 'neutral', Icon: Sparkles, palette: 'mint' },
+  productive_bronze: { label: 'Produktiv · 10+ Anime', variant: 'muted', Icon: Layers, palette: 'mint' },
+  productive_silver: { label: 'Produktiv · 25+ Anime', variant: 'neutral', Icon: Layers, palette: 'mint' },
+  productive_gold: { label: 'Produktiv · 50+ Anime', variant: 'warning', Icon: Star, palette: 'gold' },
+  all_rounder: { label: 'Allrounder', variant: 'info', Icon: Hexagon, palette: 'red' },
+  verified: { label: 'Verifiziert', variant: 'success', Icon: BadgeCheck, palette: 'red' },
 }
 
 export const PUBLIC_MEMBER_BADGE_CATALOG: PublicMemberBadgeCatalogItem[] = [
@@ -57,6 +60,7 @@ export function getMemberBadgePresentation(badgeCode: string): MemberBadgePresen
       label: badgeCode,
       variant: 'neutral',
       Icon: Sparkles,
+      palette: 'mint',
     }
   )
 }

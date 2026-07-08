@@ -210,16 +210,19 @@ type PublicMemberCurrentProject struct {
 }
 
 type PublicMemberLatestContribution struct {
-	Type         string    `json:"type"`
-	ID           int64     `json:"id"`
-	OccurredAt   time.Time `json:"occurred_at"`
-	AnimeID      int64     `json:"anime_id"`
-	AnimeTitle   string    `json:"anime_title"`
-	Title        *string   `json:"title,omitempty"`
-	TextPreview  *string   `json:"text_preview,omitempty"`
-	BodyHTML     *string   `json:"body_html,omitempty"`
-	ImageURL     *string   `json:"image_url,omitempty"`
-	ThumbnailURL *string   `json:"thumbnail_url,omitempty"`
+	Type                string    `json:"type"`
+	ID                  int64     `json:"id"`
+	OccurredAt          time.Time `json:"occurred_at"`
+	AnimeID             int64     `json:"anime_id"`
+	AnimeTitle          string    `json:"anime_title"`
+	ReleaseVersionID    int64     `json:"release_version_id"`
+	ReleaseVersionLabel string    `json:"release_version_label"`
+	Title               *string   `json:"title,omitempty"`
+	TextPreview         *string   `json:"text_preview,omitempty"`
+	BodyHTML            *string   `json:"body_html,omitempty"`
+	ImageURL            *string   `json:"image_url,omitempty"`
+	ThumbnailURL        *string   `json:"thumbnail_url,omitempty"`
+	MediaCategory       *string   `json:"media_category,omitempty"`
 }
 
 type PublicMemberPreviousContribution struct {

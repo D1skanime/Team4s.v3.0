@@ -9307,6 +9307,8 @@ components:
         - occurred_at
         - anime_id
         - anime_title
+        - release_version_id
+        - release_version_label
       properties:
         type:
           type: string
@@ -9322,6 +9324,13 @@ components:
           format: int64
         anime_title:
           type: string
+        release_version_id:
+          type: integer
+          format: int64
+          description: Public release-version context for the contribution card.
+        release_version_label:
+          type: string
+          description: Public release-version label for contribution context.
         title:
           type: string
           nullable: true
@@ -9338,6 +9347,11 @@ components:
         thumbnail_url:
           type: string
           nullable: true
+        media_category:
+          allOf:
+            - $ref: "#/components/schemas/ReleaseVersionMediaCategory"
+          nullable: true
+          description: Existing release-version-media category shown as public image type for media contributions.
     PublicMemberPreviousContribution:
       type: object
       required:

@@ -132,6 +132,8 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         occurred_at: '2026-07-07T10:00:00Z',
         anime_id: 11,
         anime_title: 'Maboroshi no Fansub',
+        release_version_id: 501,
+        release_version_label: 'Episode 01 - v2',
         title: 'Ein Versuch',
         text_preview: 'Ein kurzer öffentlicher Beitrag.',
       },
@@ -177,11 +179,11 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
     const orderedSections = [
       screen.getAllByRole('heading', { name: 'Ballelboy' })[0],
+      screen.getByRole('heading', { name: 'Fansub-Geschichte' }),
       screen.getByRole('heading', { name: 'Gruppenzugehörigkeit' }),
       screen.getByRole('heading', { name: 'Aktuelle Projekte' }),
       screen.getByRole('heading', { name: 'Auszeichnungen' }),
       screen.getByRole('heading', { name: 'Letzte Beiträge' }),
-      screen.getByRole('heading', { name: 'Fansub-Geschichte' }),
       screen.getByRole('heading', { name: 'Frühere Mitwirkungen' }),
     ]
 

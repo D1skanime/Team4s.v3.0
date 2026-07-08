@@ -28,6 +28,8 @@ function makeTextItem(id: number, text: string): PublicMemberLatestContribution 
     occurred_at: '2026-07-07T10:00:00Z',
     anime_id: 21,
     anime_title: 'Karaoke Memoirs',
+    release_version_id: 41,
+    release_version_label: 'Episode 01 - v2',
     title: 'Mein Timing-Rückblick',
     text_preview: text,
   }
@@ -40,7 +42,10 @@ function makeMediaItem(id: number): PublicMemberLatestContribution {
     occurred_at: '2026-07-07T11:00:00Z',
     anime_id: 22,
     anime_title: 'Visual Stories',
+    release_version_id: 42,
+    release_version_label: 'Episode 03 - v1',
     image_url: '/media/release-version/41/thumb.jpg',
+    media_category: 'typesetting_karaoke',
     text_preview: 'Timing-Vergleich aus der Release-Version.',
   }
 }
@@ -76,10 +81,12 @@ describe('LatestContributionsSection', () => {
 
     expect(screen.getByText('Ein Beitrag mit genug Text für den Clamp-Test.')).not.toBeNull()
     expect(screen.getByText('Mein Timing-Rückblick')).not.toBeNull()
+    expect(screen.getByText('Karaoke Memoirs')).not.toBeNull()
+    expect(screen.getByText('Episode 01 - v2')).not.toBeNull()
     expect(screen.getByText('Textbeitrag').innerHTML).not.toContain('Mein Timing-Rückblick')
     expect(container.querySelector('[data-contribution-type="text"]')).not.toBeNull()
     expect(container.querySelector('[data-line-clamp="2"]')).not.toBeNull()
-    expect(screen.queryByText(/v2|S01E|\.mkv/i)).toBeNull()
+    expect(screen.queryByText(/S01E|\.mkv/i)).toBeNull()
   })
 
   it('uses a full-width 16:9 object-cover media preview without internal metadata', async () => {
@@ -91,6 +98,8 @@ describe('LatestContributionsSection', () => {
 
     expect(preview.style.aspectRatio).toBe('16 / 9')
     expect(image.style.objectFit).toBe('cover')
+    expect(screen.getByText('Typesetting-/Karaoke-Beispiel')).not.toBeNull()
+    expect(screen.getByText('Episode 03 - v1')).not.toBeNull()
     expect(screen.getByText('Timing-Vergleich aus der Release-Version.')).not.toBeNull()
     expect(container.querySelector('[class*="square"]')).toBeNull()
     expect(screen.queryByText(/S01E03|\.mkv|typesetting_karaoke/i)).toBeNull()

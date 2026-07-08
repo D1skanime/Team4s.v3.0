@@ -138,14 +138,13 @@ export function MemberProfileHero({
 
       <div
         className={styles.heroPanel}
-        style={
-          backgroundImageURL
-            ? {
-                backgroundImage: `linear-gradient(135deg, rgba(31, 41, 55, 0.9), rgba(47, 95, 227, 0.64)), url("${backgroundImageURL}")`,
-              }
-            : undefined
-        }
       >
+        {backgroundImageURL ? (
+          <div className={styles.heroBackdrop} aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={backgroundImageURL} alt="" />
+          </div>
+        ) : null}
         <div className={styles.heroAvatar}>
           {avatarURL ? (
             <Image

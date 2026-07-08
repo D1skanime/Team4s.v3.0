@@ -183,10 +183,12 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 		"public member profile DTO must expose current_projects derived from confirmed public anime_contributions")
 	assert.True(t, strings.Contains(models, "LatestContributions"),
 		"public member profile DTO must expose a unified latest_contributions feed instead of separate old recent arrays")
-	assert.False(t, strings.Contains(latestModel, "`json:\"release_version_label\"`"),
-		"public latest contribution DTO must not expose internal release version labels")
+	assert.True(t, strings.Contains(latestModel, "`json:\"release_version_label\"`"),
+		"public latest contribution DTO must expose release version labels as explicit contribution context")
 	assert.False(t, strings.Contains(latestModel, "`json:\"category,omitempty\"`"),
-		"public latest contribution DTO must not expose internal media category metadata")
+		"public latest contribution DTO must not expose raw internal category metadata")
+	assert.True(t, strings.Contains(latestModel, "`json:\"media_category,omitempty\"`"),
+		"public latest media contribution DTO must expose the existing release-version-media category as media_category")
 	assert.True(t, strings.Contains(models, "PreviousContributions"),
 		"public member profile DTO must expose previous contribution history behind the collapsed UI")
 	assert.True(t, strings.Contains(models, "PreviousContributionsCount"),
@@ -235,6 +237,9 @@ func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
 		strings.Contains(content, "NULLIF(BTRIM(body_html), '')") ||
 		strings.Contains(content, "NULLIF(BTRIM(body_markdown), '')"),
 		"latest text items must exclude notes without usable text or HTML")
+	assert.True(t, strings.Contains(content, "rv.id AS release_version_id") &&
+		strings.Contains(content, "release_version_label"),
+		"latest items must include release-version context for public contribution cards")
 	assert.True(t, strings.Contains(content, "NULLIF(BTRIM(release_version_notes.title), '') AS contribution_title"),
 		"latest text items must expose only the optional curated note title as public title")
 
@@ -264,9 +269,9 @@ func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
 	assert.True(t, strings.Contains(content, "uploaded_by_user_id"),
 		"latest media feed must use the release_version_media uploader column for owner filtering")
 	assert.False(t, strings.Contains(content, "rvm.category::text AS category"),
-		"public latest media feed must not expose internal release-version-media category metadata")
-	assert.False(t, strings.Contains(content, "release_version_label,\n\t\t\ttext_preview"),
-		"public latest feed must not expose release version labels or filenames as context text")
+		"public latest media feed must not expose the raw category field name")
+	assert.True(t, strings.Contains(content, "rvm.category::text AS media_category"),
+		"public latest media feed must expose the existing image type as media_category")
 	assert.True(t, strings.Contains(content, "UNION ALL"),
 		"latest contribution feed must combine public notes and approved media before applying LIMIT 3")
 	assert.True(t, strings.Contains(content, "ORDER BY") && strings.Contains(content, "LIMIT 3"),

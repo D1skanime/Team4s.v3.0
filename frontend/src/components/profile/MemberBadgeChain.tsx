@@ -1,6 +1,6 @@
 import { Lock } from 'lucide-react'
 
-import { Badge, Card, SectionHeader } from '@/components/ui'
+import { Card, SectionHeader } from '@/components/ui'
 import type { PublicMemberBadge } from '@/types/profile'
 
 import {
@@ -42,15 +42,24 @@ export function MemberBadgeChain({
   const earnedCodes = new Set(earnedBadges.map((badge) => badge.badge_code))
   const visibleCatalog = catalogWithEarnedBadges(catalog, earnedBadges)
   const earnedCount = visibleCatalog.filter((item) => earnedCodes.has(item.badge_code)).length
+  const progressPercent = visibleCatalog.length > 0
+    ? Math.round((earnedCount / visibleCatalog.length) * 100)
+    : 0
 
   return (
     <section className={styles.section}>
-      <SectionHeader
-        title="Auszeichnungen"
-        description={`${earnedCount} von ${visibleCatalog.length}`}
-      />
+      <SectionHeader title="Auszeichnungen" />
 
       <Card variant="section" className={styles.chainCard}>
+        <div className={styles.progressBlock} aria-label={`${earnedCount} von ${visibleCatalog.length} Auszeichnungen`}>
+          <div className={styles.progressMeta}>
+            <span>{earnedCount} von {visibleCatalog.length}</span>
+          </div>
+          <div className={styles.progressTrack} aria-hidden="true">
+            <span style={{ width: `${progressPercent}%` }} />
+          </div>
+        </div>
+
         <ul className={styles.chain} aria-label="Auszeichnungen" data-orientation="horizontal">
           {visibleCatalog.map((item) => {
             const isEarned = earnedCodes.has(item.badge_code)
@@ -58,20 +67,18 @@ export function MemberBadgeChain({
             const Icon = presentation.Icon
 
             return (
-              <li key={item.badge_code} className={isEarned ? styles.badgeStep : styles.badgeStepLocked}>
-                <Badge
-                  variant={isEarned ? presentation.variant : 'muted'}
-                  className={styles.badgeItem}
-                >
-                  {isEarned ? (
-                    <Icon size={15} aria-hidden="true" />
-                  ) : (
-                    <span className={styles.lockIcon} aria-label={`${item.label} gesperrt`}>
-                      <Lock size={15} aria-hidden="true" />
-                    </span>
-                  )}
+              <li
+                key={item.badge_code}
+                className={isEarned ? styles.badgeStep : styles.badgeStepLocked}
+                data-palette={presentation.palette}
+                data-earned={isEarned ? 'true' : 'false'}
+              >
+                <span className={styles.badgeItem}>
+                  <span className={styles.badgeIcon} aria-label={isEarned ? undefined : `${item.label} gesperrt`}>
+                    {isEarned ? <Icon size={16} aria-hidden="true" /> : <Lock size={16} aria-hidden="true" />}
+                  </span>
                   <span>{item.label}</span>
-                </Badge>
+                </span>
               </li>
             )
           })}

@@ -117,6 +117,10 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         />
       </section>
 
+      <section className={styles.section} aria-label="Fansub-Geschichte">
+        <MemberStorySection storyHtml={profile.member_story_html} />
+      </section>
+
       <section className={styles.section} aria-label="Gruppenzugehörigkeit">
         <MembershipsSection
           memberships={profile.memberships ?? []}
@@ -139,10 +143,6 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
 
       <section className={styles.section} aria-label="Letzte Beiträge">
         <LatestContributionsSection items={latestContributions} />
-      </section>
-
-      <section className={styles.section} aria-label="Fansub-Geschichte">
-        <MemberStorySection storyHtml={profile.member_story_html} />
       </section>
 
       <section className={styles.section} aria-label="Frühere Mitwirkungen">

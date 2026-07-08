@@ -1245,11 +1245,14 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 				COALESCE(release_version_notes.updated_at, release_version_notes.created_at) AS occurred_at,
 				a.id AS anime_id,
 				COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
+				rv.id AS release_version_id,
+				COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
 				NULLIF(BTRIM(release_version_notes.title), '') AS contribution_title,
 				LEFT(COALESCE(NULLIF(BTRIM(body_text), ''), NULLIF(BTRIM(body_html), '')), 280) AS text_preview,
 				NULLIF(BTRIM(body_html), '') AS body_html,
 				NULL::text AS image_path,
-				NULL::text AS thumbnail_path
+				NULL::text AS thumbnail_path,
+				NULL::text AS media_category
 			FROM release_version_notes
 			JOIN release_versions rv ON rv.id = release_version_notes.release_version_id
 			JOIN fansub_releases fr ON fr.id = rv.release_id
@@ -1268,11 +1271,14 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 				rvm.created_at AS occurred_at,
 				a.id AS anime_id,
 				COALESCE(a.title_de, a.title_en, a.title, '') AS anime_title,
+				rv.id AS release_version_id,
+				COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
 				NULL::text AS contribution_title,
 				NULLIF(BTRIM(COALESCE(rvm.caption, ma.caption, '')), '') AS text_preview,
 				NULL::text AS body_html,
 				mf.path AS image_path,
-				COALESCE(mf_thumb.path, mf.path) AS thumbnail_path
+				COALESCE(mf_thumb.path, mf.path) AS thumbnail_path,
+				rvm.category::text AS media_category
 			FROM release_version_media rvm
 			JOIN media_assets ma ON ma.id = rvm.media_asset_id
 			JOIN visibilities v ON v.id = ma.visibility_id AND v.name = 'public'
@@ -1307,11 +1313,14 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 			occurred_at,
 			anime_id,
 			anime_title,
+			release_version_id,
+			release_version_label,
 			contribution_title,
 			text_preview,
 			body_html,
 			image_path,
-			thumbnail_path
+			thumbnail_path,
+			media_category
 		FROM latest
 		ORDER BY occurred_at DESC, id DESC
 		LIMIT 3
@@ -1332,11 +1341,14 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 			&item.OccurredAt,
 			&item.AnimeID,
 			&item.AnimeTitle,
+			&item.ReleaseVersionID,
+			&item.ReleaseVersionLabel,
 			&item.Title,
 			&item.TextPreview,
 			&item.BodyHTML,
 			&imagePath,
 			&thumbnailPath,
+			&item.MediaCategory,
 		); err != nil {
 			return nil, fmt.Errorf("scan latest contribution row: %w", err)
 		}

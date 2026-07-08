@@ -172,11 +172,14 @@ export interface PublicMemberLatestContribution {
   occurred_at: string
   anime_id: number
   anime_title: string
+  release_version_id: number
+  release_version_label: string
   title?: string | null
   text_preview?: string | null
   body_html?: string | null
   image_url?: string | null
   thumbnail_url?: string | null
+  media_category?: string | null
 }
 
 export interface PublicMemberPreviousContribution {
