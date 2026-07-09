@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 import { Card } from '@/components/ui'
@@ -12,8 +13,9 @@ interface FansubTeamActiveGroupProps {
 function renderMemberName(member: DomainProjectionMemberRow) {
   if (member.member_slug !== null) {
     return (
-      <Link href={'/members/' + member.member_slug} className={styles.memberName}>
+      <Link href={'/members/' + member.member_slug} className={styles.memberLink}>
         {member.member_display_name}
+        <ChevronRight size={14} aria-hidden="true" />
       </Link>
     )
   }
