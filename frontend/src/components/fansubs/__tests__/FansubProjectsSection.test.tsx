@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { forwardRef, type ImgHTMLAttributes } from 'react'
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { FansubProjectBannerCard } from '../FansubProjectBannerCard'
@@ -88,5 +88,30 @@ describe('FansubProjectsSection', () => {
     const { container } = render(<FansubProjectsSection projects={[]} groupId={77} />)
 
     expect(container.innerHTML).toBe('')
+  })
+
+  it('rendert laufende Projekte als Banner-Karten und abgeschlossene/archivierte im Karussell mit genau einem Header', async () => {
+    render(
+      <FansubProjectsSection
+        projects={[
+          project({ id: 1, title: 'Laufendes Projekt', status: 'ongoing' }),
+          project({ id: 2, title: 'Abgeschlossenes Projekt', status: 'done' }),
+          project({ id: 3, title: 'Archiviertes Projekt', status: 'cancelled' }),
+        ]}
+        groupId={77}
+      />,
+    )
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+
+    expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(1)
+    expect(screen.getByText('Projekte')).toBeTruthy()
+    expect(screen.queryByText('Laufende Projekte')).toBeNull()
+
+    expect(screen.getByText('Laufendes Projekt')).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Projekt-Karussell' })).toBeTruthy()
+    expect(screen.getByText('Abgeschlossenes Projekt')).toBeTruthy()
+    expect(screen.getByText('Archiviertes Projekt')).toBeTruthy()
   })
 })
