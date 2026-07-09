@@ -1,76 +1,34 @@
-'use client'
-
-import { useCallback, useEffect, useRef, useState } from 'react'
-
-import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
-import { Button, SectionHeader } from '@/components/ui'
+import { FansubStoryBlock } from '@/components/fansubs/FansubStoryBlock'
+import { SectionHeader } from '@/components/ui'
 import type { FansubGroup, PublicFansubStory } from '@/types/fansub'
 
-import sharedStyles from './FansubPublicSections.module.css'
 import styles from './FansubStorySection.module.css'
 
 interface FansubStorySectionProps {
   group: FansubGroup
-  story: PublicFansubStory | null
+  stories: PublicFansubStory[]
 }
 
-export function FansubStorySection({ group, story }: FansubStorySectionProps) {
+function hasStoryContent(story: PublicFansubStory): boolean {
+  return Boolean(story.title?.trim() || story.body_html?.trim() || story.body_text?.trim())
+}
+
+export function FansubStorySection({ group, stories }: FansubStorySectionProps) {
   void group
-  const bodyHtml = story?.body_html?.trim() ?? ''
-  const bodyText = story?.body_text?.trim() ?? ''
-  const title = story?.title?.trim() ?? ''
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isOverflowing, setIsOverflowing] = useState(false)
+  const publishedStories = stories.filter(hasStoryContent)
 
-  const measureOverflow = useCallback(() => {
-    const element = contentRef.current
-    if (!element) return
-    const nextIsOverflowing = element.scrollHeight > element.clientHeight
-    setIsOverflowing((current) => (isExpanded ? current || nextIsOverflowing : nextIsOverflowing))
-  }, [isExpanded])
-
-  useEffect(() => {
-    measureOverflow()
-    const element = contentRef.current
-    const resizeObserver = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(measureOverflow)
-      : null
-
-    if (element) resizeObserver?.observe(element)
-    window.addEventListener('resize', measureOverflow)
-    return () => {
-      resizeObserver?.disconnect()
-      window.removeEventListener('resize', measureOverflow)
-    }
-  }, [bodyHtml, bodyText, measureOverflow])
-
-  if (!story || (!bodyHtml && !bodyText && !title)) {
+  if (publishedStories.length === 0) {
     return null
   }
-
-  const contentClassName = isExpanded ? styles.storyContentExpanded : styles.storyContentClamped
 
   return (
     <section id="geschichte">
       <SectionHeader title="Geschichte" />
-      <article className={sharedStyles.storyArticle}>
-        {title ? <h3 className={sharedStyles.sectionTitle}>{title}</h3> : null}
-        <div ref={contentRef} className={contentClassName}>
-          {bodyHtml ? <RichTextRenderer bodyHtml={bodyHtml} /> : <p className={sharedStyles.bodyText}>{bodyText}</p>}
-        </div>
-        {isOverflowing ? (
-          <Button
-            type="button"
-            variant="subtle"
-            size="sm"
-            className={styles.toggle}
-            onClick={() => setIsExpanded((current) => !current)}
-          >
-            {isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
-          </Button>
-        ) : null}
-      </article>
+      <div className={styles.storyStack}>
+        {publishedStories.map((story) => (
+          <FansubStoryBlock key={story.id} story={story} />
+        ))}
+      </div>
     </section>
   )
 }

@@ -1,20 +1,4 @@
-.storyContentClamped,
-.storyContentExpanded {
-  min-width: 0;
-  color: var(--text-primary);
-}
-
-.storyContentClamped {
-  max-height: 8.5rem;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(180deg, var(--text-primary) 72%, transparent);
-  mask-image: linear-gradient(180deg, var(--text-primary) 72%, transparent);
-}
-
-.storyContentExpanded {
-  max-height: none;
-}
-
-.toggle {
-  justify-self: start;
+.storyStack {
+  display: grid;
+  gap: 24px;
 }

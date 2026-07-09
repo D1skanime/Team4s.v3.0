@@ -47,6 +47,10 @@ describe('fansub public page', () => {
     expect(pageSource).toMatch(/<FansubMediaSection\s+media=\{profile\.media\}/)
   })
 
+  it('uebergibt das Stories-Array an FansubStorySection statt der einzelnen Story (AO6-03)', () => {
+    expect(pageSource).toMatch(/stories=\{profile\.stories\}/)
+  })
+
   it('rendert genau einen Sammelhinweis-Block und keine eigenständigen Leer-Sektionen', () => {
     const summaryOccurrences = pageSource.split('styles.emptySummary').length - 1
     expect(summaryOccurrences).toBe(1)
