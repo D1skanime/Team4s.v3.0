@@ -1,28 +1,92 @@
-import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
 
+import { forwardRef, type ImgHTMLAttributes } from 'react'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { FansubProjectBannerCard } from '../FansubProjectBannerCard'
 import { FansubProjectsSection } from '../FansubProjectsSection'
 import type { PublicFansubProject } from '@/types/fansub'
 
-const project: PublicFansubProject = {
-  id: 123,
-  title: 'Projekt Anime',
-  type: 'TV',
-  status: 'ongoing',
-  year: 2012,
+vi.mock('next/image', () => {
+  const MockNextImage = forwardRef<
+    HTMLImageElement,
+    ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean; priority?: boolean; fill?: boolean }
+  >(({ alt, unoptimized, priority, fill, ...props }, ref) => {
+    void unoptimized
+    void priority
+    void fill
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img ref={ref} alt={alt} {...props} />
+  })
+  MockNextImage.displayName = 'MockNextImage'
+  return { default: MockNextImage }
+})
+
+afterEach(() => {
+  cleanup()
+})
+
+function project(overrides: Partial<PublicFansubProject> = {}): PublicFansubProject {
+  return {
+    id: 123,
+    title: 'Projekt Anime',
+    type: 'TV',
+    status: 'ongoing',
+    year: 2012,
+    ...overrides,
+  }
 }
 
-describe('FansubProjectsSection', () => {
-  it('Projektkarten verlinken auf /anime/[id]/group/[groupId]', () => {
-    const html = renderToStaticMarkup(<FansubProjectsSection projects={[project]} groupId={77} />)
+describe('FansubProjectBannerCard', () => {
+  it('rendert das lazy Banner-Bild und die Status-Pill wenn banner_url gesetzt ist', () => {
+    const { container } = render(
+      <FansubProjectBannerCard
+        project={project({ banner_url: '/api/media/banner.jpg' })}
+        groupId={77}
+        statusLabel="Laufend"
+      />,
+    )
 
-    expect(html).toContain('/anime/123/group/77')
-    expect(html).not.toContain('href="/anime/123"')
+    const img = container.querySelector('img')
+    expect(img).toBeTruthy()
+    expect(img?.getAttribute('loading')).toBe('lazy')
+    expect(img?.getAttribute('sizes')).toBeTruthy()
+    expect(screen.getByText('Laufend')).toBeTruthy()
+    expect(screen.getByRole('link').getAttribute('href')).toBe('/anime/123/group/77')
   })
 
-  it('rendert keinen Abschnitt wenn keine Projekte geliefert werden', () => {
-    const html = renderToStaticMarkup(<FansubProjectsSection projects={[]} groupId={77} />)
+  it('faellt auf cover_image zurueck wenn kein banner_url gesetzt ist', () => {
+    const { container } = render(
+      <FansubProjectBannerCard
+        project={project({ banner_url: null, cover_image: '/api/media/cover.jpg' })}
+        groupId={77}
+        statusLabel="Abgeschlossen"
+      />,
+    )
 
-    expect(html).toBe('')
+    const img = container.querySelector('img')
+    expect(img?.getAttribute('src')).toContain('cover.jpg')
+  })
+
+  it('zeigt einen Skeleton-Platzhalter wenn weder banner_url noch cover_image gesetzt sind', () => {
+    const { container } = render(
+      <FansubProjectBannerCard
+        project={project({ banner_url: null, cover_image: null })}
+        groupId={77}
+        statusLabel="Archiviert"
+      />,
+    )
+
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy()
+  })
+})
+
+describe('FansubProjectsSection', () => {
+  it('rendert keinen Abschnitt wenn keine Projekte geliefert werden', () => {
+    const { container } = render(<FansubProjectsSection projects={[]} groupId={77} />)
+
+    expect(container.innerHTML).toBe('')
   })
 })
