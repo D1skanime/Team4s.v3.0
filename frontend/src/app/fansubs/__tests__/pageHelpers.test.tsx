@@ -133,6 +133,7 @@ describe('buildEmptyAreaLabels', () => {
           member_id: 1,
           member_display_name: 'Mitglied',
           member_slug: 'mitglied',
+          member_avatar_url: null,
           roles: ['translator'],
           role_labels: ['Übersetzung'],
           status: 'active',

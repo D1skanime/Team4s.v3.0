@@ -7909,6 +7909,7 @@ components:
         - member_id
         - member_display_name
         - member_slug
+        - member_avatar_url
         - roles
         - role_labels
         - status
@@ -7925,6 +7926,9 @@ components:
         member_display_name:
           type: string
         member_slug:
+          type: string
+          nullable: true
+        member_avatar_url:
           type: string
           nullable: true
         roles:
@@ -7948,6 +7952,7 @@ components:
         - member_id
         - member_display_name
         - member_slug
+        - member_avatar_url
         - roles
         - role_labels
         - joined_year
@@ -7965,6 +7970,9 @@ components:
         member_display_name:
           type: string
         member_slug:
+          type: string
+          nullable: true
+        member_avatar_url:
           type: string
           nullable: true
         roles:
@@ -11881,6 +11889,16 @@ components:
           type: string
           format: date-time
           nullable: true
+        duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
+          description: Laufzeit der Release-Version aus release_variants, falls bekannt.
+        timeline_segments:
+          type: array
+          description: OP/ED/Insert/Kara-Timing-Vorschau fuer die Release-Liste.
+          items:
+            $ref: "#/components/schemas/ReleaseTimelineSegment"
         images_count:
           type: integer
           format: int32
@@ -11893,6 +11911,24 @@ components:
           description: >-
             Anzahl oeffentlich sichtbarer Release-Texte (AO4-11/AO4-12). Nur vom
             Cursor-Endpunkt /release-list populiert, bei /releases (Offset) 0.
+    ReleaseTimelineSegment:
+      type: object
+      required: [id, type, title]
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          description: Kompakter Segmenttyp, z.B. OP, ED, INSERT oder KARA.
+        title:
+          type: string
+        start_time:
+          type: string
+          nullable: true
+        end_time:
+          type: string
+          nullable: true
     GroupReleasesData:
       type: object
       required: [group, episodes, other_groups]

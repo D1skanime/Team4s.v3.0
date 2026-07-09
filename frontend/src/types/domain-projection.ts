@@ -17,6 +17,7 @@ export interface DomainProjectionMemberRow {
   member_id: number | null;
   member_display_name: string;
   member_slug: string | null;
+  member_avatar_url: string | null;
   roles: string[];
   role_labels: string[];
   status: string;
@@ -29,6 +30,7 @@ export interface DomainProjectionHistoricalRow {
   member_id: number;
   member_display_name: string;
   member_slug: string | null;
+  member_avatar_url: string | null;
   roles: string[];
   role_labels: string[];
   joined_year: number | null;

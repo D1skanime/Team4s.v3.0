@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 import type { DomainProjectionMemberRow } from '@/types/domain-projection'
 
-import { getAvatarColorIndex, getMemberInitials } from './fansubTeamInitials'
+import { FansubMemberAvatar } from './FansubMemberAvatar'
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamActiveGroupProps {
@@ -16,12 +16,7 @@ function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
 
   return (
     <>
-      <span
-        className={`${styles.avatar} ${styles['avatarC' + getAvatarColorIndex(member.member_display_name)]}`}
-        aria-hidden="true"
-      >
-        {getMemberInitials(member.member_display_name)}
-      </span>
+      <FansubMemberAvatar name={member.member_display_name} avatarUrl={member.member_avatar_url} />
       <span className={styles.memberMeta}>
         <span className={isLinked ? styles.memberNameLink : styles.memberName}>
           {member.member_display_name}

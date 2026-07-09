@@ -16,6 +16,7 @@ function historicalMember(overrides: Partial<DomainProjectionHistoricalRow> = {}
     member_id: 101,
     member_display_name: 'Ehemalig',
     member_slug: null,
+    member_avatar_url: null,
     roles: ['timing'],
     role_labels: ['Timing'],
     joined_year: 2008,

@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { Badge, Button } from '@/components/ui'
 import type { DomainProjectionHistoricalRow } from '@/types/domain-projection'
 
-import { getMemberInitials } from './fansubTeamInitials'
+import { FansubMemberAvatar } from './FansubMemberAvatar'
 import { formatMemberPeriod } from './fansubTeamPeriod'
 import styles from './FansubTeamSection.module.css'
 
@@ -39,9 +39,7 @@ function HistoricalRow({ member, unconfirmed }: { member: DomainProjectionHistor
 
   const inner = (
     <>
-      <span className={`${styles.avatar} ${styles.avatarMuted}`} aria-hidden="true">
-        {getMemberInitials(member.member_display_name)}
-      </span>
+      <FansubMemberAvatar name={member.member_display_name} avatarUrl={member.member_avatar_url} muted />
       <span className={styles.memberMeta}>
         <span className={styles.memberNameRow}>
           <span className={isLinked ? styles.memberNameLink : styles.memberName}>

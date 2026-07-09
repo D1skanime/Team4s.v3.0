@@ -27,6 +27,14 @@
   text-decoration: none;
 }
 
+.memberRowLink {
+  border-radius: 8px;
+}
+
+.memberRowLink:hover {
+  background: var(--surface-sunken);
+}
+
 .memberRowLink:hover .memberNameLink {
   text-decoration: underline;
 }
@@ -80,6 +88,13 @@
   color: var(--text-faint);
 }
 
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 .memberMeta {
   display: flex;
   flex-direction: column;
@@ -119,7 +134,7 @@
 
 .chevron {
   flex: none;
-  color: var(--text-faint);
+  color: var(--accent-primary);
 }
 
 .historicalList {
