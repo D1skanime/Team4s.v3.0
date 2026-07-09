@@ -45,7 +45,38 @@
   font-weight: 600;
 }
 
+.avatarC1 {
+  background: var(--avatar-1-bg);
+  color: var(--avatar-1-fg);
+}
+
+.avatarC2 {
+  background: var(--avatar-2-bg);
+  color: var(--avatar-2-fg);
+}
+
+.avatarC3 {
+  background: var(--avatar-3-bg);
+  color: var(--avatar-3-fg);
+}
+
+.avatarC4 {
+  background: var(--avatar-4-bg);
+  color: var(--avatar-4-fg);
+}
+
+.avatarC5 {
+  background: var(--avatar-5-bg);
+  color: var(--avatar-5-fg);
+}
+
+.avatarC6 {
+  background: var(--avatar-6-bg);
+  color: var(--avatar-6-fg);
+}
+
 .avatarMuted {
+  background: var(--surface-sunken);
   color: var(--text-faint);
 }
 

@@ -14,3 +14,11 @@ export function getMemberInitials(name: string): string {
 
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
+
+export function getAvatarColorIndex(name: string): number {
+  let sum = 0
+  for (let index = 0; index < name.length; index += 1) {
+    sum += name.charCodeAt(index)
+  }
+  return (sum % 6) + 1
+}

@@ -30,6 +30,19 @@
   --accent-soft: var(--color-primary);
   --accent-dark: var(--color-primary-active);
 
+  --avatar-1-bg: #eeedfe;
+  --avatar-1-fg: #3c3489;
+  --avatar-2-bg: #e1f5ee;
+  --avatar-2-fg: #0f6e56;
+  --avatar-3-bg: #faece7;
+  --avatar-3-fg: #993c1d;
+  --avatar-4-bg: #e6f1fb;
+  --avatar-4-fg: #0c447c;
+  --avatar-5-bg: #faeeda;
+  --avatar-5-fg: #633806;
+  --avatar-6-bg: #fbeaf0;
+  --avatar-6-fg: #993556;
+
   --button-primary-start: #7aa0f0;
   --button-primary-mid: #5f84dd;
   --button-primary-end: #4363b4;
