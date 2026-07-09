@@ -261,16 +261,15 @@
     font-size: 30px;
   }
 
-  .heroStats {
-    grid-template-columns: 1fr;
-  }
-
   .heroStatItem {
-    border-left: 0;
-    border-top: 1px solid var(--border-subtle);
+    padding: 8px 10px;
   }
 
-  .heroStatItem:first-child {
-    border-top: 0;
+  .heroStatItem dt {
+    font-size: 11px;
+  }
+
+  .heroStatItem dd {
+    font-size: 17px;
   }
 }
