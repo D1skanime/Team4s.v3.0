@@ -1687,6 +1687,18 @@ Plans:
 - [ ] `99-17-PLAN.md` - Wave 13: AO5-03/AO5-04/AO5-07 Reihenfolge (Hero→Geschichte→Projekte→Team→Erfolge→Medien) + Geschichte-Clamp + visuelle Politur
 - [ ] `99-18-PLAN.md` - Wave 14: Finaler kombinierter Live-UAT (Add-on 4 + 5), Mobile+Desktop, Human-Verify — ersetzt 99-14
 
+**Add-on 6 — Design-Polish & Skalierung /fansubs/[slug]** (angehängt 2026-07-09)
+**Requirements**: siehe `99-ADDON6-CONTEXT.md` (AO6-01 bis AO6-12)
+
+- [ ] `99-19-PLAN.md` - Wave 15: AO6-01/02/03 Backend-DTO: banner_url je Projekt, Medien ORDER BY sort_order, story→stories[] + OpenAPI/TS/Tests
+- [ ] `99-20-PLAN.md` - Wave 16: AO6-03/05 Frontend story→stories[]-Migration + mehrere Geschichts-Blöcke (Titel + Clamp)
+- [ ] `99-21-PLAN.md` - Wave 16: AO6-07/08 Team zweispaltig, klickbare Mitglieder, historische Rolle+Zeitraum + Einklappen
+- [ ] `99-22-PLAN.md` - Wave 16: AO6-09/10 Meilensteine farblich + einheitliche Community-Chips
+- [ ] `99-23-PLAN.md` - Wave 16: AO6-06 Banner-Projektkarten + A11y-Lazy-Karussell (scroll-snap, Pfeile, Skeleton, weitere anzeigen)
+- [ ] `99-24-PLAN.md` - Wave 17: AO6-11 Medien-Vorschau 5 + Überlauf/Alle anzeigen + 2-Zeilen-Snippet + Lightbox-Trigger
+- [ ] `99-25-PLAN.md` - Wave 18: AO6-12 Bild-Lightbox (Original, Weiter/Zurück, voller Text, Esc/←/→, A11y)
+- [ ] `99-26-PLAN.md` - Wave 19: Finaler Live-UAT Add-on 6, Mobile+Desktop, Human-Verify
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
