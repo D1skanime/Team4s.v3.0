@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 
-import { Badge, Button, Card, EmptyState } from '@/components/ui'
+import { Button, Card, EmptyState } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubMediaCategoryLabel } from '@/lib/fansub-labels'
 import type { PublicFansubMediaItem } from '@/types/fansub'
@@ -19,6 +19,21 @@ interface FansubGroupMediaBlockProps {
 const MEDIA_IMAGE_SIZES = '(max-width: 640px) 100vw, 220px'
 const PREVIEW_LIMIT = 5
 const MEDIA_BATCH = 10
+
+const CATEGORY_TAG_CLASS: Record<string, string> = {
+  gallery: 'tagGallery',
+  history_screenshot: 'tagHistory',
+  old_website: 'tagOldweb',
+  forum: 'tagForum',
+  irc_chat: 'tagIrc',
+  event_meeting: 'tagEvent',
+  artwork_fanart: 'tagArtwork',
+  other: 'tagOther',
+}
+
+function categoryTagClass(category: string): string {
+  return CATEGORY_TAG_CLASS[category] || 'tagOther'
+}
 
 function isImage(item: PublicFansubMediaItem): boolean {
   return item.mime_type.startsWith('image/')
@@ -102,7 +117,9 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
               <div className={styles.mediaCardBody}>
                 <div className={styles.mediaCardHeader}>
                   <strong className={styles.mediaLabel}>{title}</strong>
-                  <Badge variant="neutral">{getFansubMediaCategoryLabel(item.category)}</Badge>
+                  <span className={`${styles.mediaTag} ${styles[categoryTagClass(item.category)]}`}>
+                    {getFansubMediaCategoryLabel(item.category)}
+                  </span>
                 </div>
                 {description ? <p className={styles.mediaDescription}>{description}</p> : null}
                 {item.original_url && !isImage(item) ? (

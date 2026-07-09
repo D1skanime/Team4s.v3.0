@@ -55,6 +55,9 @@ Der eigentliche Nachhol-Punkt. Medien-Sektion muss real:
 - **Lightbox:** Klick auf ein Thumbnail ODER die Überlauf-Kachel öffnet die Lightbox mit **Originalbild** groß, **Weiter/Zurück durch ALLE** Medien (globaler Index), **voller** Titel + Beschreibung + farbiger Typ-Tag, Positions-Zähler „n / N", Esc/←/→, Fokus-Falle/-Rückgabe.
 - **40-Bilder-Verhalten explizit:** Grid zeigt 5 + „+35 weitere"; „Alle 40 anzeigen" enthüllt inline; Lightbox blättert durch alle 40. Muss im UAT (mit ausreichend Seed- oder Testdaten) sichtbar geprüft werden.
 
+### AO7-08 (Backend-Bugfix: Claim verknüpft members.user_id) — UMGESETZT
+`VerifyClaim` setzt beim Bestätigen `members.user_id = legacy_user_id` des **claimenden** App-Users (`member_claims.app_user_id`), in der Verify-Tx, nur wenn noch NULL. Behebt den systemischen Bug, dass neu geclaimte Mitglieder dauerhaft `members.user_id=NULL` behielten → Domain-Projektion konnte Profil-Link/Slug/Zählung nie auflösen. Flow: Admin legt his an → User registriert sich als App-User → Claim → Admin bestätigt (hier wird verknüpft). Kein Backfill (Testdaten). Datei: `backend/internal/repository/member_claims_repository.go` `VerifyClaim`. Regressionstest: `TestMemberClaimsRepositoryVerifyLinksUserID`. **Status: fertig + live.**
+
 ### AO7-07 (Konsistente Dichte/Typografie über alle Sektionen)
 Einheitliche Sektions-Header (klein/gedämpft wie im Team `subgroupTitle`), konsistente Kachel-/Zeilen-Abstände, keine überdimensionierten leeren Kästen, keine Doppel-Header — durchgehend im Team4s-Tokensystem, `@/components/ui`-Primitives für alle interaktiven Elemente (kein natives select/input/textarea/button).
 </decisions>

@@ -43,6 +43,23 @@
   --avatar-6-bg: #fbeaf0;
   --avatar-6-fg: #993556;
 
+  --tag-gallery-bg: #e6f1fb;
+  --tag-gallery-fg: #0c447c;
+  --tag-history-bg: #eeedfe;
+  --tag-history-fg: #3c3489;
+  --tag-oldweb-bg: #f1efe8;
+  --tag-oldweb-fg: #444441;
+  --tag-forum-bg: #faeeda;
+  --tag-forum-fg: #633806;
+  --tag-irc-bg: #e1f5ee;
+  --tag-irc-fg: #0f6e56;
+  --tag-event-bg: #eaf3de;
+  --tag-event-fg: #3b6d11;
+  --tag-artwork-bg: #fbeaf0;
+  --tag-artwork-fg: #993556;
+  --tag-other-bg: #f1efe8;
+  --tag-other-fg: #444441;
+
   --button-primary-start: #7aa0f0;
   --button-primary-mid: #5f84dd;
   --button-primary-end: #4363b4;

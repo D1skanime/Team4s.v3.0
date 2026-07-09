@@ -154,6 +154,56 @@
   overflow: hidden;
 }
 
+.mediaTag {
+  display: inline-block;
+  flex: none;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tagGallery {
+  background: var(--tag-gallery-bg);
+  color: var(--tag-gallery-fg);
+}
+
+.tagHistory {
+  background: var(--tag-history-bg);
+  color: var(--tag-history-fg);
+}
+
+.tagOldweb {
+  background: var(--tag-oldweb-bg);
+  color: var(--tag-oldweb-fg);
+}
+
+.tagForum {
+  background: var(--tag-forum-bg);
+  color: var(--tag-forum-fg);
+}
+
+.tagIrc {
+  background: var(--tag-irc-bg);
+  color: var(--tag-irc-fg);
+}
+
+.tagEvent {
+  background: var(--tag-event-bg);
+  color: var(--tag-event-fg);
+}
+
+.tagArtwork {
+  background: var(--tag-artwork-bg);
+  color: var(--tag-artwork-fg);
+}
+
+.tagOther {
+  background: var(--tag-other-bg);
+  color: var(--tag-other-fg);
+}
+
 .mediaThumbTrigger {
   display: block !important;
   width: 100%;
