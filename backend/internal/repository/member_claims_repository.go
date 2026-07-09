@@ -232,6 +232,24 @@ func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, fansubGroupID 
 		return fmt.Errorf("verify member claim: update member noindex: %w", err)
 	}
 
+	// Verknüpfe den Member-Datensatz mit dem CLAIMENDEN App-User (nicht dem
+	// bestätigenden Admin), damit die Domain-Projektion Profil-Link, Slug und
+	// Mitgliederzählung für neu geclaimte Mitglieder auflösen kann. Ohne diesen
+	// Schritt bliebe members.user_id NULL und die Verknüpfung dauerhaft fehlen.
+	// Nur setzen, wenn noch nicht verknüpft (Legacy-Links nicht überschreiben).
+	if _, err := tx.Exec(ctx, `
+		UPDATE members m
+		SET user_id = au.legacy_user_id, updated_at = NOW()
+		FROM member_claims mc
+		JOIN app_users au ON au.id = mc.app_user_id
+		WHERE m.id = $1
+		  AND mc.id = $2
+		  AND mc.app_user_id IS NOT NULL
+		  AND m.user_id IS NULL
+	`, memberID, claimID); err != nil {
+		return fmt.Errorf("verify member claim: link member to app user: %w", err)
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("verify member claim: commit: %w", err)
 	}
