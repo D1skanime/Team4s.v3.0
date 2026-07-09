@@ -1,9 +1,7 @@
 import { SectionHeader } from '@/components/ui'
 import type { PublicFansubProject } from '@/types/fansub'
 
-import { FansubProjectBannerCard } from './FansubProjectBannerCard'
 import { FansubProjectsGrid } from './FansubProjectsGrid'
-import styles from './FansubProjectsSection.module.css'
 
 interface FansubProjectsSectionProps {
   projects: PublicFansubProject[]
@@ -45,9 +43,10 @@ function groupProjects(projects: PublicFansubProject[]): Record<ProjectBucketKey
 }
 
 /**
- * AO6-06/AO6-01/AO6-04: laufende Projekte als volle 16:9-Banner-Karten, abgeschlossene
- * und archivierte Projekte gemeinsam im Lazy-Karussell (scroll-snap, Pfeile, Tastatur,
- * "weitere anzeigen"). Genau ein SectionHeader (kein "Laufende Projekte / Laufend"-Doppel).
+ * AO6-06/AO7-03: alle Projekte in EINEM responsiven Grid (laufende zuerst, dann
+ * abgeschlossene/archivierte), jede Karte gleich gross mit Status-Pill. Das Grid
+ * bricht per Breakpoint um und blendet den Rest ueber "X weitere anzeigen" inline
+ * ein - kein horizontales Karussell, keine ueberbreite Einzelkarte, ein Header.
  */
 export function FansubProjectsSection({ projects, groupId }: FansubProjectsSectionProps) {
   if (projects.length === 0) {
@@ -55,30 +54,17 @@ export function FansubProjectsSection({ projects, groupId }: FansubProjectsSecti
   }
 
   const projectsByBucket = groupProjects(projects)
-  const ongoing = projectsByBucket.ongoing
-  const carouselItems = [...projectsByBucket.completed, ...projectsByBucket.archived].map((project) => ({
-    project,
-    statusLabel: projectBucketLabel[resolveProjectBucket(project.status)],
-  }))
+  const items = projectBucketOrder.flatMap((bucket) =>
+    projectsByBucket[bucket].map((project) => ({
+      project,
+      statusLabel: projectBucketLabel[bucket],
+    })),
+  )
 
   return (
     <section id="projekte">
       <SectionHeader title="Projekte" />
-      <div className={styles.stack}>
-        {ongoing.length > 0 ? (
-          <div className={styles.bannerGrid}>
-            {ongoing.map((item) => (
-              <FansubProjectBannerCard
-                key={item.id}
-                project={item}
-                groupId={groupId}
-                statusLabel={projectBucketLabel.ongoing}
-              />
-            ))}
-          </div>
-        ) : null}
-        {carouselItems.length > 0 ? <FansubProjectsGrid items={carouselItems} groupId={groupId} /> : null}
-      </div>
+      <FansubProjectsGrid items={items} groupId={groupId} />
     </section>
   )
 }

@@ -21,7 +21,7 @@
   aspect-ratio: 16 / 9;
   border-radius: 8px;
   overflow: hidden;
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
 }
 
 .bannerImage {
@@ -31,7 +31,7 @@
 .bannerSkeleton {
   position: absolute;
   inset: 0;
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
 }
 
 .bannerStatusPill {
