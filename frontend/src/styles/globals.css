@@ -29,6 +29,7 @@
   --accent-primary: var(--color-primary);
   --accent-soft: var(--color-primary);
   --accent-dark: var(--color-primary-active);
+  --accent-deep: #185fa5;
 
   --avatar-1-bg: #eeedfe;
   --avatar-1-fg: #3c3489;

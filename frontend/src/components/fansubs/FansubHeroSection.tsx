@@ -42,6 +42,7 @@ export function FansubHeroSection({ group, stats, isCollaboration, collaboration
   const logoURL = resolveApiUrl(group.logo_url || '')
   const bannerURL = resolveApiUrl(group.banner_url || '')
   const factSummary = buildFansubFactSummary(group)
+  const heroStats = stats ?? []
 
   return (
     <Card id="hero" variant="section" className={styles.hero}>
@@ -49,7 +50,7 @@ export function FansubHeroSection({ group, stats, isCollaboration, collaboration
         <FansubBannerDisplay bannerURL={bannerURL} altText={`${group.name} Banner`} />
       ) : null}
 
-      <div className={styles.heroContent}>
+      <div className={styles.heroHeader}>
         <div className={styles.heroLogo} aria-label={`${group.name} Logo`}>
           {logoURL ? (
             <Image
@@ -65,40 +66,37 @@ export function FansubHeroSection({ group, stats, isCollaboration, collaboration
           )}
         </div>
 
-        <div className={styles.heroCopy}>
-          <p className={styles.slug}>/{group.slug}</p>
+        <div className={styles.heroIntro}>
           <div className={styles.heroTitleRow}>
             <h1 className={styles.title}>{group.name}</h1>
             <Badge variant={statusVariant(group.status)}>{statusLabel(group.status)}</Badge>
           </div>
           <p className={styles.subtitle}>{factSummary || 'Keine Kurzbeschreibung vorhanden.'}</p>
-
-          {(stats ?? []).length > 0 ? (
-            <dl className={styles.heroStats} aria-label="Gruppenkennzahlen">
-              {(stats ?? []).map((stat) => (
-                <div key={stat.label} className={styles.heroStatItem}>
-                  <dt>{stat.label}</dt>
-                  <dd>{stat.value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-
-          {group.website_url ? (
-            <div className={styles.heroFacts}>
-              <a className={styles.heroLink} href={group.website_url} target="_blank" rel="noreferrer">
-                Webseite besuchen
-              </a>
-            </div>
-          ) : null}
         </div>
       </div>
 
+      {heroStats.length > 0 ? (
+        <dl className={styles.heroStats} aria-label="Gruppenkennzahlen">
+          {heroStats.map((stat) => (
+            <div key={stat.label} className={styles.heroStatItem}>
+              <dt>{stat.label}</dt>
+              <dd>{stat.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+
+      {group.website_url ? (
+        <div className={styles.heroFacts}>
+          <a className={styles.heroLink} href={group.website_url} target="_blank" rel="noreferrer">
+            Webseite besuchen
+          </a>
+        </div>
+      ) : null}
+
       {isCollaboration ? (
         <div className={styles.collaborationPanel}>
-          <p className={styles.collaborationIntro}>
-            Dies ist eine Kollaboration zwischen:
-          </p>
+          <p className={styles.collaborationIntro}>Dies ist eine Kollaboration zwischen:</p>
           {(collaborationMembers ?? []).length > 0 ? (
             <ul className={styles.collaborationList}>
               {(collaborationMembers ?? []).map((member) => (
@@ -110,9 +108,7 @@ export function FansubHeroSection({ group, stats, isCollaboration, collaboration
               ))}
             </ul>
           ) : (
-            <p className={styles.collaborationEmpty}>
-              Keine Gruppenangaben hinterlegt.
-            </p>
+            <p className={styles.collaborationEmpty}>Keine Gruppenangaben hinterlegt.</p>
           )}
         </div>
       ) : null}
