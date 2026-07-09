@@ -38,17 +38,9 @@ function statusVariant(status: FansubGroup['status']): 'success' | 'warning' | '
   return 'muted'
 }
 
-function yearsLabel(group: FansubGroup): string | null {
-  if (group.founded_year && group.dissolved_year) return `${group.founded_year} bis ${group.dissolved_year}`
-  if (group.founded_year) return `gegründet ${group.founded_year}`
-  if (group.dissolved_year) return `bis ${group.dissolved_year}`
-  return null
-}
-
 export function FansubHeroSection({ group, stats, isCollaboration, collaborationMembers }: FansubHeroSectionProps) {
   const logoURL = resolveApiUrl(group.logo_url || '')
   const bannerURL = resolveApiUrl(group.banner_url || '')
-  const years = yearsLabel(group)
   const factSummary = buildFansubFactSummary(group)
 
   return (
@@ -92,15 +84,13 @@ export function FansubHeroSection({ group, stats, isCollaboration, collaboration
             </dl>
           ) : null}
 
-          <div className={styles.heroFacts}>
-            {years ? <Badge variant="info">{years}</Badge> : null}
-            {group.country ? <Badge variant="neutral">{group.country}</Badge> : null}
-            {group.website_url ? (
+          {group.website_url ? (
+            <div className={styles.heroFacts}>
               <a className={styles.heroLink} href={group.website_url} target="_blank" rel="noreferrer">
                 Webseite besuchen
               </a>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
