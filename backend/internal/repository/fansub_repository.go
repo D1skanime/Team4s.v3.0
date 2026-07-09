@@ -249,17 +249,18 @@ func (r *FansubRepository) GetPublicProfileBySlug(ctx context.Context, slug stri
 
 	resp := &models.PublicFansubProfileResponse{
 		Group:          *group,
+		Stories:        make([]models.PublicFansubStory, 0),
 		Projects:       make([]models.PublicFansubProject, 0),
 		History:        make([]models.PublicFansubHistory, 0),
 		Media:          make([]models.PublicFansubMediaItem, 0),
 		CommunityLinks: make([]models.FansubGroupLink, 0),
 	}
 
-	story, err := r.getPublicFansubStory(ctx, group.ID)
+	stories, err := r.listPublicFansubStories(ctx, group.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp.Story = story
+	resp.Stories = stories
 
 	projects, err := r.listPublicFansubProjects(ctx, group.ID)
 	if err != nil {
@@ -288,9 +289,8 @@ func (r *FansubRepository) GetPublicProfileBySlug(ctx context.Context, slug stri
 	return resp, nil
 }
 
-func (r *FansubRepository) getPublicFansubStory(ctx context.Context, groupID int64) (*models.PublicFansubStory, error) {
-	var story models.PublicFansubStory
-	err := r.db.QueryRow(ctx, `
+func (r *FansubRepository) listPublicFansubStories(ctx context.Context, groupID int64) ([]models.PublicFansubStory, error) {
+	rows, err := r.db.Query(ctx, `
 		SELECT id, title, body_html, body_text, COALESCE(updated_at, created_at)::text
 		FROM fansub_group_notes
 		WHERE fansub_group_id = $1
@@ -298,21 +298,30 @@ func (r *FansubRepository) getPublicFansubStory(ctx context.Context, groupID int
 		  AND status = 'published'
 		  AND deleted_at IS NULL
 		ORDER BY sort_order ASC, id ASC
-		LIMIT 1
-	`, groupID).Scan(
-		&story.ID,
-		&story.Title,
-		&story.BodyHTML,
-		&story.BodyText,
-		&story.UpdatedAt,
-	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil
-	}
+	`, groupID)
 	if err != nil {
-		return nil, fmt.Errorf("get public fansub story for group %d: %w", groupID, err)
+		return nil, fmt.Errorf("list public fansub stories for group %d: %w", groupID, err)
 	}
-	return &story, nil
+	defer rows.Close()
+
+	stories := make([]models.PublicFansubStory, 0)
+	for rows.Next() {
+		var story models.PublicFansubStory
+		if err := rows.Scan(
+			&story.ID,
+			&story.Title,
+			&story.BodyHTML,
+			&story.BodyText,
+			&story.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan public fansub story row: %w", err)
+		}
+		stories = append(stories, story)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate public fansub stories for group %d: %w", groupID, err)
+	}
+	return stories, nil
 }
 
 func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID int64) ([]models.PublicFansubProject, error) {
@@ -324,7 +333,19 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 			a.status::text,
 			a.year,
 			a.cover_image,
-			a.max_episodes
+			a.max_episodes,
+			COALESCE(
+				NULLIF(BTRIM(a.banner_resolved_url), ''),
+				(
+					SELECT bmf.path
+					FROM media_files bmf
+					WHERE bmf.media_id = a.banner_asset_id
+					  AND (bmf.variant = 'original' OR bmf.variant IS NULL)
+					  AND bmf.status = 'ready'
+					ORDER BY bmf.id ASC
+					LIMIT 1
+				)
+			) AS banner_url
 		FROM anime_fansub_groups afg
 		JOIN anime a ON a.id = afg.anime_id
 		WHERE afg.fansub_group_id = $1
@@ -339,6 +360,7 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 	projects := make([]models.PublicFansubProject, 0)
 	for rows.Next() {
 		var project models.PublicFansubProject
+		var bannerPath *string
 		if err := rows.Scan(
 			&project.ID,
 			&project.Title,
@@ -347,8 +369,12 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 			&project.Year,
 			&project.CoverImage,
 			&project.MaxEpisodes,
+			&bannerPath,
 		); err != nil {
 			return nil, fmt.Errorf("scan public fansub project row: %w", err)
+		}
+		if bannerPath != nil {
+			project.BannerURL = publicMediaURLForPath(*bannerPath, r.mediaStorageDir)
 		}
 		projects = append(projects, project)
 	}
@@ -418,7 +444,7 @@ func (r *FansubRepository) listPublicFansubMedia(ctx context.Context, groupID in
 		  AND fgm.deleted_at IS NULL
 		  AND ($2::bigint IS NULL OR ma.id <> $2)
 		  AND ($3::bigint IS NULL OR ma.id <> $3)
-		ORDER BY ma.created_at ASC, ma.id ASC
+		ORDER BY fgm.sort_order ASC, ma.created_at ASC, ma.id ASC
 	`, groupID, logoID, bannerID)
 	if err != nil {
 		return nil, fmt.Errorf("list public fansub media for group %d: %w", groupID, err)

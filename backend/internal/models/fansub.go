@@ -64,7 +64,7 @@ type FansubGroup struct {
 // PublicFansubProfileResponse bundles the public data needed by /fansubs/[slug].
 type PublicFansubProfileResponse struct {
 	Group          FansubGroup             `json:"group"`
-	Story          *PublicFansubStory      `json:"story"`
+	Stories        []PublicFansubStory     `json:"stories"`
 	Projects       []PublicFansubProject   `json:"projects"`
 	History        []PublicFansubHistory   `json:"history"`
 	Media          []PublicFansubMediaItem `json:"media"`
@@ -89,6 +89,7 @@ type PublicFansubProject struct {
 	Year        *int16  `json:"year,omitempty"`
 	CoverImage  *string `json:"cover_image,omitempty"`
 	MaxEpisodes *int16  `json:"max_episodes,omitempty"`
+	BannerURL   *string `json:"banner_url,omitempty"`
 }
 
 // PublicFansubHistory is a confirmed fansub_group_history milestone.
