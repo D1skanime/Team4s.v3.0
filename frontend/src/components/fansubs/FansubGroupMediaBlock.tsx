@@ -8,6 +8,7 @@ import { resolveApiUrl } from '@/lib/api'
 import { getFansubMediaCategoryLabel } from '@/lib/fansub-labels'
 import type { PublicFansubMediaItem } from '@/types/fansub'
 
+import { FansubMediaLightbox } from './FansubMediaLightbox'
 import styles from './FansubPublicSections.module.css'
 
 interface FansubGroupMediaBlockProps {
@@ -31,6 +32,12 @@ function isImage(item: PublicFansubMediaItem): boolean {
  */
 export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlockProps) {
   const [visibleCount, setVisibleCount] = useState(PREVIEW_LIMIT)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+
+  function openLightbox(globalIndex: number) {
+    setActiveIndex(globalIndex)
+    onSelect?.(globalIndex)
+  }
 
   if (media.length === 0) {
     return (
@@ -73,7 +80,7 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
                   variant="ghost"
                   className={styles.mediaThumbTrigger}
                   aria-label={title}
-                  onClick={() => onSelect?.(globalIndex)}
+                  onClick={() => openLightbox(globalIndex)}
                 >
                   <div className={styles.mediaThumbFrame}>
                     <Image
@@ -122,6 +129,12 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
           </Button>
         </div>
       ) : null}
+      <FansubMediaLightbox
+        media={media}
+        index={activeIndex}
+        onClose={() => setActiveIndex(null)}
+        onNavigate={setActiveIndex}
+      />
     </div>
   )
 }
