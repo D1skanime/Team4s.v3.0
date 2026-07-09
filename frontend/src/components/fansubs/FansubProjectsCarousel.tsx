@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 
 import { Button } from '@/components/ui'
 import type { PublicFansubProject } from '@/types/fansub'
@@ -23,24 +23,16 @@ const CAROUSEL_INITIAL = 8
 const CARD_SCROLL_WIDTH = 252
 
 /**
- * AO6-06: horizontales Lazy-Karussell fuer abgeschlossene/archivierte Projekte.
+ * AO6-06: horizontales Karussell fuer abgeschlossene/archivierte Projekte.
  * scroll-snap-Bahn, Pfeil-Buttons (@/components/ui Button) und Tastaturbedienung
- * (ArrowLeft/ArrowRight auf der Bahn selbst), Skeleton-Zustand bis Karten geladen
- * sind, sowie eine "X weitere anzeigen"-Endkachel die den Rest inline aus dem
- * bereits geladenen Datensatz einblendet (kein Netzwerk-Nachladen, kein Auto-Scroll).
+ * (ArrowLeft/ArrowRight auf der Bahn selbst), Banner-Bilder laden per loading="lazy"
+ * (bannerFrame-Flaeche als Platzhalter), sowie eine "X weitere anzeigen"-Endkachel,
+ * die den Rest inline aus dem bereits geladenen Datensatz einblendet (kein
+ * Netzwerk-Nachladen, kein Auto-Scroll).
  */
 export function FansubProjectsCarousel({ items, groupId }: FansubProjectsCarouselProps) {
   const trackRef = useRef<HTMLDivElement | null>(null)
   const [visibleCount, setVisibleCount] = useState(Math.min(CAROUSEL_INITIAL, items.length))
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    // Kurzer Skeleton-Zustand direkt nach Mount reicht als einfache Lazy-Uebergabe;
-    // der Timer entkoppelt das Umschalten vom Effekt-Commit (kein direktes
-    // synchrones setState im Effekt-Koerper, react-hooks/set-state-in-effect).
-    const timer = setTimeout(() => setReady(true), 0)
-    return () => clearTimeout(timer)
-  }, [])
 
   if (items.length === 0) {
     return null
@@ -85,15 +77,11 @@ export function FansubProjectsCarousel({ items, groupId }: FansubProjectsCarouse
           tabIndex={0}
           onKeyDown={handleTrackKeyDown}
         >
-          {ready
-            ? visibleItems.map(({ project, statusLabel }) => (
-                <div key={project.id} className={styles.carouselItem}>
-                  <FansubProjectBannerCard project={project} groupId={groupId} statusLabel={statusLabel} />
-                </div>
-              ))
-            : visibleItems.map(({ project }) => (
-                <div key={project.id} className={styles.carouselSkeleton} aria-hidden="true" />
-              ))}
+          {visibleItems.map(({ project, statusLabel }) => (
+            <div key={project.id} className={styles.carouselItem}>
+              <FansubProjectBannerCard project={project} groupId={groupId} statusLabel={statusLabel} />
+            </div>
+          ))}
         </div>
         <Button
           variant="ghost"
