@@ -503,6 +503,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260709-vdf | Sichtbarkeits-Defaults fuer neue bestaetigte Anime-Contributions auf public=true; Projektseite zaehlt echte bestaetigte Projektmitwirkende statt Gruppenmitglieder | 2026-07-09 | this commit | [260709-vdf-visibility-defaults-project-counts](./quick/260709-vdf-visibility-defaults-project-counts/) |
 | 260707-kut | Hinweis-senden fuer App-Mitglieder (fansub_group_members): Proposal-Flow member_id-zentrisch statt hist_fansub_group_members; ListMembershipsForMember UNION beider Tabellen; MemberBelongsToFansub-Gate; Leader-Review-Queue fix | 2026-07-07 | b1543e6d | [260707-kut-hinweis-senden-fuer-app-mitglieder-propo](./quick/260707-kut-hinweis-senden-fuer-app-mitglieder-propo/) |
 | 260707-jya | Meine-Projekte-Seite (/me/contributions): Projektliste primaer mit Fortschrittsbalken pro Projekt (worked/total im getMyAnimeContributions-Endpoint), Offene Aktionen/Hinweise nachrangig | 2026-07-07 | 815e1d6d | [260707-jya-meine-projekte-seite-umbauen-projektlist](./quick/260707-jya-meine-projekte-seite-umbauen-projektlist/) |
 | 260707-hx0 | Meine-Projekt-Detailseite als To-Do-Workspace: nur zugeordnete Folgen, Filter Alle/Offen/Erledigt, Status-Badges, offene zuerst | 2026-07-07 | e02b5c8f | [260707-hx0-meine-projekt-detailseite-als-to-do-work](./quick/260707-hx0-meine-projekt-detailseite-als-to-do-work/) |

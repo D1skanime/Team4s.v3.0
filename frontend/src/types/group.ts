@@ -9,6 +9,7 @@ export interface GroupPeriod {
 
 export interface GroupStats {
   member_count: number
+  project_contributor_count: number
   episode_count: number
 }
 

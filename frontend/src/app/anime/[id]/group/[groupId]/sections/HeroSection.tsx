@@ -50,6 +50,7 @@ export function HeroSection({
     group.period?.start || group.period?.end
       ? `${group.period?.start ?? "?"} - ${group.period?.end ?? "?"}`
       : null;
+  const projectContributorCount = group.stats.project_contributor_count;
 
   return (
     <>
@@ -93,7 +94,7 @@ export function HeroSection({
                 <span className={styles.statItem}>Periode: {periodText}</span>
               ) : null}
               <span className={styles.statItem}>
-                {group.stats.member_count} Mitglieder
+                {projectContributorCount} Projektmitwirkende
               </span>
               <span className={styles.statItem}>
                 {group.stats.episode_count} Episoden

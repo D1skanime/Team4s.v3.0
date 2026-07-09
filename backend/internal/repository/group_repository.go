@@ -114,6 +114,20 @@ func (r *GroupRepository) getGroupStats(
 		return nil, fmt.Errorf("count group members %d: %w", groupID, err)
 	}
 
+	// Count confirmed project contributors for this anime/group regardless of
+	// public card visibility. Public flags decide whether profiles/cards render,
+	// not whether the project stat represents the real team size.
+	err = r.db.QueryRow(ctx, `
+		SELECT COUNT(DISTINCT ac.member_id)
+		FROM anime_contributions ac
+		WHERE ac.anime_id = $1
+		  AND ac.fansub_group_id = $2
+		  AND ac.status = 'confirmed'
+	`, animeID, groupID).Scan(&stats.ProjectContributorCount)
+	if err != nil {
+		return nil, fmt.Errorf("count project contributors (%d,%d): %w", animeID, groupID, err)
+	}
+
 	// Count episodes for this anime
 	err = r.db.QueryRow(ctx, `
 		SELECT COUNT(DISTINCT e.id)

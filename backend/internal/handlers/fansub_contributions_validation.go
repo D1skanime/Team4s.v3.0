@@ -35,8 +35,8 @@ type animeContributionCreateRequest struct {
 	StartedYear             *int     `json:"started_year"`
 	EndedYear               *int     `json:"ended_year"`
 	Note                    *string  `json:"note"`
-	IsPublicOnAnimePage     bool     `json:"is_public_on_anime_page"`
-	IsPublicOnMemberProfile bool     `json:"is_public_on_member_profile"`
+	IsPublicOnAnimePage     *bool    `json:"is_public_on_anime_page"`
+	IsPublicOnMemberProfile *bool    `json:"is_public_on_member_profile"`
 	ReleaseVersionID        *int64   `json:"release_version_id"`
 }
 

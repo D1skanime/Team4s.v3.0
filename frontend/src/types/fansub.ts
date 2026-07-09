@@ -157,6 +157,7 @@ export interface PublicFansubProject {
   year?: number | null;
   cover_image?: string | null;
   max_episodes?: number | null;
+  banner_url?: string | null;
 }
 
 export interface PublicFansubHistory {
@@ -688,8 +689,8 @@ export interface UpsertAnimeContributionRequest {
   started_year: number | null;
   ended_year: number | null;
   note: string | null;
-  is_public_on_anime_page: boolean;
-  is_public_on_member_profile: boolean;
+  is_public_on_anime_page?: boolean;
+  is_public_on_member_profile?: boolean;
   status: "draft" | "confirmed" | "hidden";
   // Phase 67-04: optionale Release-Version-Zuordnung (null = anime-weit lassen).
   release_version_id: number | null;

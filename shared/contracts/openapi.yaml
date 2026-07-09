@@ -7769,8 +7769,6 @@ components:
       required:
         - fansub_group_member_id
         - role_codes
-        - is_public_on_anime_page
-        - is_public_on_member_profile
         - status
       properties:
         fansub_group_member_id:
@@ -7791,8 +7789,10 @@ components:
           nullable: true
         is_public_on_anime_page:
           type: boolean
+          default: true
         is_public_on_member_profile:
           type: boolean
+          default: true
         status:
           type: string
           enum: [draft, confirmed, hidden]
@@ -10303,6 +10303,9 @@ components:
         max_episodes:
           type: integer
           nullable: true
+        banner_url:
+          type: string
+          nullable: true
     PublicFansubHistory:
       type: object
       required: [id, event_type, status]
@@ -10374,14 +10377,14 @@ components:
           format: date-time
     PublicFansubProfile:
       type: object
-      required: [group, story, projects, history, media, community_links]
+      required: [group, stories, projects, history, media, community_links]
       properties:
         group:
           $ref: "#/components/schemas/FansubGroup"
-        story:
-          nullable: true
-          oneOf:
-            - $ref: "#/components/schemas/PublicFansubStory"
+        stories:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicFansubStory"
         projects:
           type: array
           items:
@@ -11643,12 +11646,16 @@ components:
           description: End date or period description
     GroupStats:
       type: object
-      required: [member_count, episode_count]
+      required: [member_count, project_contributor_count, episode_count]
       properties:
         member_count:
           type: integer
           format: int32
-          description: Number of members in the group
+          description: Number of active plus public historical members in the group
+        project_contributor_count:
+          type: integer
+          format: int32
+          description: Number of confirmed contributors for this anime/group, independent of public profile-card visibility
         episode_count:
           type: integer
           format: int32

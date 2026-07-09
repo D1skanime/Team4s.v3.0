@@ -19,7 +19,7 @@ type FansubAnimeContributionsHandler struct {
 	contributionsRepo *repository.AnimeContributionsRepository
 	rolesRepo         *repository.HistGroupMemberRolesRepository
 	histMembersRepo   *repository.HistGroupMembersRepository // für ListUnifiedGroupMembers (D-02)
-	coverageRepo      *repository.AnimeCoverageRepository   // für GetAnimeCoverage (Gap-82-07)
+	coverageRepo      *repository.AnimeCoverageRepository    // für GetAnimeCoverage (Gap-82-07)
 	permissionSvc     *permissions.Service
 	auditLogRepo      *repository.AuditLogRepository
 	badgeService      *services.BadgeService // Phase 68: Badge-Recompute
@@ -216,6 +216,14 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 	} else {
 		status = "draft"
 	}
+	isPublicOnAnimePage := status == "confirmed"
+	if req.IsPublicOnAnimePage != nil {
+		isPublicOnAnimePage = *req.IsPublicOnAnimePage
+	}
+	isPublicOnMemberProfile := status == "confirmed"
+	if req.IsPublicOnMemberProfile != nil {
+		isPublicOnMemberProfile = *req.IsPublicOnMemberProfile
+	}
 
 	for _, code := range req.RoleCodes {
 		valid, err := h.rolesRepo.RoleCodeExistsForContext(c.Request.Context(), code, "anime_contribution")
@@ -241,8 +249,8 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		StartedYear:             req.StartedYear,
 		EndedYear:               req.EndedYear,
 		Note:                    req.Note,
-		IsPublicOnAnimePage:     req.IsPublicOnAnimePage,
-		IsPublicOnMemberProfile: req.IsPublicOnMemberProfile,
+		IsPublicOnAnimePage:     isPublicOnAnimePage,
+		IsPublicOnMemberProfile: isPublicOnMemberProfile,
 		ReleaseVersionID:        req.ReleaseVersionID,
 	}
 

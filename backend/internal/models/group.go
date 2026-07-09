@@ -31,8 +31,9 @@ type GroupPeriod struct {
 
 // GroupStats contains statistics about a group's work
 type GroupStats struct {
-	MemberCount  int32 `json:"member_count"`
-	EpisodeCount int32 `json:"episode_count"`
+	MemberCount             int32 `json:"member_count"`
+	ProjectContributorCount int32 `json:"project_contributor_count"`
+	EpisodeCount            int32 `json:"episode_count"`
 }
 
 // EpisodeReleaseSummary represents a summary of an episode release

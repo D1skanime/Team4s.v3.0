@@ -65,6 +65,9 @@ func TestGroupRepository_GetGroupDetail(t *testing.T) {
 	if detail.Stats.MemberCount != 1 {
 		t.Errorf("expected member_count 1, got %d", detail.Stats.MemberCount)
 	}
+	if detail.Stats.ProjectContributorCount != 0 {
+		t.Errorf("expected project_contributor_count 0, got %d", detail.Stats.ProjectContributorCount)
+	}
 	if detail.Stats.EpisodeCount != 0 {
 		t.Errorf("expected episode_count 0, got %d", detail.Stats.EpisodeCount)
 	}
@@ -382,6 +385,40 @@ func TestGetGroupStats_MemberCountMatchesCountVisibleTeamMembers(t *testing.T) {
 	}
 	if strings.Contains(body, "FROM fansub_members") {
 		t.Fatalf("getGroupStats must not reference legacy fansub_members table")
+	}
+}
+
+func TestGetGroupStats_ProjectContributorCountUsesConfirmedAnimeContributions(t *testing.T) {
+	src, err := os.ReadFile("group_repository.go")
+	if err != nil {
+		t.Fatalf("read group repository: %v", err)
+	}
+	content := string(src)
+
+	statsStart := strings.Index(content, "func (r *GroupRepository) getGroupStats(")
+	if statsStart < 0 {
+		t.Fatalf("getGroupStats function not found")
+	}
+	releasesStart := strings.Index(content, "func (r *GroupRepository) GetGroupReleases(")
+	if releasesStart < 0 || releasesStart < statsStart {
+		t.Fatalf("could not bound getGroupStats function body")
+	}
+	body := content[statsStart:releasesStart]
+
+	for _, fragment := range []string{
+		"anime_contributions ac",
+		"COUNT(DISTINCT ac.member_id)",
+		"ac.anime_id = $1",
+		"ac.fansub_group_id = $2",
+		"ac.status = 'confirmed'",
+	} {
+		if !strings.Contains(body, fragment) {
+			t.Fatalf("expected getGroupStats project contributor count to contain %q", fragment)
+		}
+	}
+
+	if strings.Contains(body, "ac.is_public_on_anime_page = true") {
+		t.Fatalf("project contributor stat must not be filtered by public card visibility")
 	}
 }
 

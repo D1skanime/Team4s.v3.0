@@ -206,6 +206,8 @@ export default function AnimeContributionModal({
       await Promise.all(
         rowsToWrite.map((row) => {
           const original = originalById.get(row.contribution_id)
+          const status = original?.status ?? 'confirmed'
+          const defaultPublic = status === 'confirmed'
           return upsertAnimeContribution(fansubId, animeId, {
             member_id: row.member_id,
             role_codes: normalizeRoleCodes(row.role_codes),
@@ -213,9 +215,9 @@ export default function AnimeContributionModal({
             started_year: original?.started_year ?? null,
             ended_year: original?.ended_year ?? null,
             note: original?.note ?? null,
-            is_public_on_anime_page: original?.is_public_on_anime_page ?? false,
-            is_public_on_member_profile: original?.is_public_on_member_profile ?? false,
-            status: original?.status ?? 'confirmed',
+            is_public_on_anime_page: original?.is_public_on_anime_page ?? defaultPublic,
+            is_public_on_member_profile: original?.is_public_on_member_profile ?? defaultPublic,
+            status,
           })
         }),
       )

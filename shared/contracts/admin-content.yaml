@@ -981,8 +981,8 @@ types:
     started_year: int32 | null
     ended_year: int32 | null
     note: string | null
-    is_public_on_anime_page: boolean (required)
-    is_public_on_member_profile: boolean (required)
+    is_public_on_anime_page: boolean (optional, default true for confirmed creates)
+    is_public_on_member_profile: boolean (optional, default true for confirmed creates)
     release_version_id: int64 | null
     status: string (required, enum: draft, proposed, confirmed, disputed, hidden)
   UpdateAnimeContributionRequest:

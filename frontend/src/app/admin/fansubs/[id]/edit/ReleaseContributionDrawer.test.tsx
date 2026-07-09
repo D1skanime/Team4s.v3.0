@@ -306,6 +306,8 @@ describe('ReleaseContributionDrawer', () => {
           member_id: 2,
           release_version_id: 3,
           role_codes: ['timer'],
+          is_public_on_anime_page: true,
+          is_public_on_member_profile: true,
         }),
       )
     })

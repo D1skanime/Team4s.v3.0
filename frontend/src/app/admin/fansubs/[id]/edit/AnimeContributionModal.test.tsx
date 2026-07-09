@@ -89,8 +89,8 @@ describe('AnimeContributionModal', () => {
         member_id: 12,
         role_codes: ['timer'],
         status: 'confirmed',
-        is_public_on_anime_page: false,
-        is_public_on_member_profile: false,
+        is_public_on_anime_page: true,
+        is_public_on_member_profile: true,
         release_version_id: null,
       }))
     })
@@ -121,8 +121,8 @@ describe('AnimeContributionModal', () => {
         member_id: 13,
         role_codes: ['project_lead'],
         status: 'confirmed',
-        is_public_on_anime_page: false,
-        is_public_on_member_profile: false,
+        is_public_on_anime_page: true,
+        is_public_on_member_profile: true,
         release_version_id: null,
       }))
     })
