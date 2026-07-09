@@ -1,9 +1,9 @@
-import Link from 'next/link'
-
-import { Card, SectionHeader } from '@/components/ui'
+import { SectionHeader } from '@/components/ui'
 import type { PublicFansubProject } from '@/types/fansub'
 
-import styles from './FansubPublicSections.module.css'
+import { FansubProjectBannerCard } from './FansubProjectBannerCard'
+import { FansubProjectsCarousel } from './FansubProjectsCarousel'
+import styles from './FansubProjectsSection.module.css'
 
 interface FansubProjectsSectionProps {
   projects: PublicFansubProject[]
@@ -44,39 +44,40 @@ function groupProjects(projects: PublicFansubProject[]): Record<ProjectBucketKey
   return buckets
 }
 
+/**
+ * AO6-06/AO6-01/AO6-04: laufende Projekte als volle 16:9-Banner-Karten, abgeschlossene
+ * und archivierte Projekte gemeinsam im Lazy-Karussell (scroll-snap, Pfeile, Tastatur,
+ * "weitere anzeigen"). Genau ein SectionHeader (kein "Laufende Projekte / Laufend"-Doppel).
+ */
 export function FansubProjectsSection({ projects, groupId }: FansubProjectsSectionProps) {
   if (projects.length === 0) {
     return null
   }
 
   const projectsByBucket = groupProjects(projects)
+  const ongoing = projectsByBucket.ongoing
+  const carouselItems = [...projectsByBucket.completed, ...projectsByBucket.archived].map((project) => ({
+    project,
+    statusLabel: projectBucketLabel[resolveProjectBucket(project.status)],
+  }))
 
   return (
     <section id="projekte">
-      <SectionHeader title="Laufende Projekte" />
+      <SectionHeader title="Projekte" />
       <div className={styles.stack}>
-        {projectBucketOrder.map((bucket) => {
-          const items = projectsByBucket[bucket]
-          if (items.length === 0) return null
-
-          return (
-            <div key={bucket} className={styles.compactStack}>
-              <h3 className={styles.sectionTitle}>{projectBucketLabel[bucket]}</h3>
-              <div className={styles.cardGrid}>
-                {items.map((item) => (
-                  <Link key={item.id} href={`/anime/${item.id}/group/${groupId}`} className={styles.projectLink}>
-                    <Card variant="interactive">
-                      <strong>{item.title}</strong>
-                      {item.year ? (
-                        <p className={styles.projectYear}>{item.year}</p>
-                      ) : null}
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )
-        })}
+        {ongoing.length > 0 ? (
+          <div className={styles.bannerGrid}>
+            {ongoing.map((item) => (
+              <FansubProjectBannerCard
+                key={item.id}
+                project={item}
+                groupId={groupId}
+                statusLabel={projectBucketLabel.ongoing}
+              />
+            ))}
+          </div>
+        ) : null}
+        {carouselItems.length > 0 ? <FansubProjectsCarousel items={carouselItems} groupId={groupId} /> : null}
       </div>
     </section>
   )
