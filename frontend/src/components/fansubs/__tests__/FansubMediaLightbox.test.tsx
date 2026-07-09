@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { forwardRef, useState, type ImgHTMLAttributes } from 'react'
+import { forwardRef, type ImgHTMLAttributes } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
@@ -137,35 +137,46 @@ describe('FansubMediaLightbox', () => {
   })
 })
 
-describe('FansubGroupMediaBlock + FansubMediaLightbox Integration', () => {
-  function LightboxHost({ media }: { media: PublicFansubMediaItem[] }) {
-    const items = media
-    // Minimal Host, der activeIndex haelt (spiegelt die spaetere Verdrahtung in FansubGroupMediaBlock).
-    const [activeIndex, setActiveIndex] = useState<number | null>(null)
-    return (
-      <>
-        <FansubGroupMediaBlock media={items} onSelect={setActiveIndex} />
-        <FansubMediaLightbox
-          media={items}
-          index={activeIndex}
-          onClose={() => setActiveIndex(null)}
-          onNavigate={setActiveIndex}
-        />
-      </>
-    )
-  }
-
+describe('FansubGroupMediaBlock + FansubMediaLightbox Integration (verdrahtet in FansubGroupMediaBlock)', () => {
   it('oeffnet die Lightbox am korrekten globalen Index nach "Alle anzeigen" und Klick auf ein spaet sichtbares Thumbnail', () => {
     const items = Array.from({ length: 7 }, (_, index) =>
       mediaRow({ id: index + 1, title: `Medium ${index + 1}`, description: `Beschreibung ${index + 1}` }),
     )
 
-    render(<LightboxHost media={items} />)
+    render(<FansubGroupMediaBlock media={items} />)
 
     fireEvent.click(screen.getByText('Alle 7 anzeigen'))
     fireEvent.click(screen.getByAltText('Medium 6'))
 
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(screen.getByText('6 / 7')).toBeTruthy()
+    expect(screen.getAllByText('Medium 6').length).toBeGreaterThan(0)
+  })
+
+  it('schliesst die Lightbox per Escape und Fokus kehrt zum ausloesenden Thumbnail-Button zurueck', () => {
+    const items = Array.from({ length: 2 }, (_, index) => mediaRow({ id: index + 1, title: `Medium ${index + 1}` }))
+
+    render(<FansubGroupMediaBlock media={items} />)
+
+    const trigger = screen.getByAltText('Medium 1').closest('button') as HTMLButtonElement
+    fireEvent.click(trigger)
+    expect(screen.getByRole('dialog')).toBeTruthy()
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('ruft weiterhin ein optionales externes onSelect mit dem globalen Index auf, oeffnet die Lightbox aber trotzdem intern', () => {
+    const onSelect = vi.fn()
+    const items = Array.from({ length: 3 }, (_, index) => mediaRow({ id: index + 1, title: `Medium ${index + 1}` }))
+
+    render(<FansubGroupMediaBlock media={items} onSelect={onSelect} />)
+
+    fireEvent.click(screen.getByAltText('Medium 2'))
+
+    expect(onSelect).toHaveBeenCalledWith(1)
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(screen.getByText('2 / 3')).toBeTruthy()
   })
 })
