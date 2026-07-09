@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: "Checkpoint: 99-18-PLAN.md Task 3 (Nutzer-Freigabe) — awaiting human-verify, Tasks 1+2 done"
-last_updated: "2026-07-08T22:10:31.720Z"
-last_activity: 2026-07-08
+stopped_at: Completed 99-19-PLAN.md
+last_updated: "2026-07-09T09:41:29.047Z"
+last_activity: 2026-07-09
 progress:
   total_phases: 90
   completed_phases: 76
-  total_plans: 392
-  completed_plans: 366
+  total_plans: 400
+  completed_plans: 367
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 4 of 15
+Plan: 5 of 15
 
 ## Accumulated Context
 
@@ -275,6 +275,7 @@ Recent durable decisions:
 - [Phase 99]: Plan 99-16: Community-Links-Sektion + aufgewertete Medien-Sektion (Titel/Beschreibung/Typ-Tag, lazy/skeleton/sizes) + zentrale deutsche Enum-Label-Maps ergaenzt; Wiring in page.tsx folgt in 99-17.
 - [Phase ?]: 99-17: Fansub-Profilseite final komponiert - Reihenfolge Hero->Geschichte->Projekte->Team->Erfolge->Community-Links->Medien, Geschichte-Clamp analog MemberStorySection, Team-Grid auf 220px vereinheitlicht (AO5-03/AO5-04/AO5-07).
 - [Phase 99]: Phase 99-18: Kombinierter Live-UAT (Add-on 4 + 5) bestaetigt alle automatisiert pruefbaren Kriterien ohne Code-Aenderung (Soft-Delete-Bugfix live per reversiblem DB-Test verifiziert, Mitglieder-Konsistenz 4==4, Reihenfolge/Community-Links/Medien/Release-Detail/Infinite-Scroll-Scope bestaetigt); finale visuelle Freigabe (Mobile-Viewport, Story-Clamp-Klickverhalten) steht beim Nutzer aus, da kein Browser-Tool im Executor verfuegbar war.
+- [Phase 99-19]: Public-DTO stories[] statt Story, PublicFansubProject.BannerURL, listPublicFansubMedia respektiert fgm.sort_order — AO6-01/02/03: TS story bleibt bis Plan 99-20 unveraendert, damit typecheck gruen bleibt
 
 ### Pending Todos
 
@@ -498,6 +499,7 @@ Recent durable decisions:
 | Phase 99 P16 | 12min | 3 tasks | 9 files |
 | Phase 99 P17 | 25min | 3 tasks | 7 files |
 | Phase 99 P18 | 75min | 2 tasks | 0 files |
+| Phase 99 P19 | 35min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -567,7 +569,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-08T22:09:49.699Z
-Stopped at: Checkpoint: 99-18-PLAN.md Task 3 (Nutzer-Freigabe) — awaiting human-verify, Tasks 1+2 done
-Last activity: 2026-07-08
-Resume file: .planning/phases/99-ffentliches-fansub-member-profil-redesign/99-18-PLAN.md
+Last session: 2026-07-09T09:41:28.984Z
+Stopped at: Completed 99-19-PLAN.md
+Last activity: 2026-07-09
+Resume file: None
