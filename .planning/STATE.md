@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 99-20-PLAN.md
-last_updated: "2026-07-09T09:56:20.328Z"
+stopped_at: Completed 99-21-PLAN.md
+last_updated: "2026-07-09T10:20:47.953Z"
 last_activity: 2026-07-09
 progress:
   total_phases: 90
   completed_phases: 76
   total_plans: 400
-  completed_plans: 368
+  completed_plans: 369
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 6 of 15
+Plan: 7 of 15
 
 ## Accumulated Context
 
@@ -277,6 +277,8 @@ Recent durable decisions:
 - [Phase 99]: Phase 99-18: Kombinierter Live-UAT (Add-on 4 + 5) bestaetigt alle automatisiert pruefbaren Kriterien ohne Code-Aenderung (Soft-Delete-Bugfix live per reversiblem DB-Test verifiziert, Mitglieder-Konsistenz 4==4, Reihenfolge/Community-Links/Medien/Release-Detail/Infinite-Scroll-Scope bestaetigt); finale visuelle Freigabe (Mobile-Viewport, Story-Clamp-Klickverhalten) steht beim Nutzer aus, da kein Browser-Tool im Executor verfuegbar war.
 - [Phase 99-19]: Public-DTO stories[] statt Story, PublicFansubProject.BannerURL, listPublicFansubMedia respektiert fgm.sort_order — AO6-01/02/03: TS story bleibt bis Plan 99-20 unveraendert, damit typecheck gruen bleibt
 - [Phase 99]: 99-20: Frontend auf stories[] migriert; FansubStorySection (Server) + FansubStoryBlock (Client, per-Block-Clamp) rendern alle veroeffentlichten Bloecke unter einem SectionHeader; Backend-Container fuer Live-Check neu gebaut, da 99-19 den Rebuild mangels erreichbarem Docker nicht durchfuehren konnte.
+- [Phase 99-21]: HISTORICAL_COLLAPSE_THRESHOLD=9 als eigene Konstante je Teilliste (Ehemalige/Historische Nennungen), nicht global kombiniert
+- [Phase 99-21]: c-subs Seed-Daten haben durchgehend member_slug=null; Link+Chevron und Einklapp-Schwelle sind code-/unit-test-verifiziert, aber nicht live am Beispiel eines verlinkten Mitglieds bestaetigt
 
 ### Pending Todos
 
@@ -502,6 +504,7 @@ Recent durable decisions:
 | Phase 99 P18 | 75min | 2 tasks | 0 files |
 | Phase 99 P19 | 35min | 2 tasks | 5 files |
 | Phase 99 P20 | 45min | 2 tasks | 10 files |
+| Phase 99 P21 | 20min | 2 tasks | 9 files |
 
 ### Quick Tasks Completed
 
@@ -571,7 +574,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-09T09:56:20.241Z
-Stopped at: Completed 99-20-PLAN.md
+Last session: 2026-07-09T10:20:47.856Z
+Stopped at: Completed 99-21-PLAN.md
 Last activity: 2026-07-09
 Resume file: None
