@@ -63,8 +63,8 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 20px;
   align-items: end;
-  padding: 0 28px 28px;
-  margin-top: -42px;
+  padding: 0 24px 22px;
+  margin-top: -36px;
 }
 
 .heroLogo {
@@ -94,7 +94,7 @@
 
 .heroCopy {
   min-width: 0;
-  padding-top: 54px;
+  padding-top: 44px;
 }
 
 .heroTitleRow {
@@ -110,13 +110,13 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .heroStats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 18px 0 0;
+  margin: 14px 0 0;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   overflow: hidden;
