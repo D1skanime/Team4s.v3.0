@@ -2,7 +2,7 @@ import { SectionHeader } from '@/components/ui'
 import type { PublicFansubProject } from '@/types/fansub'
 
 import { FansubProjectBannerCard } from './FansubProjectBannerCard'
-import { FansubProjectsCarousel } from './FansubProjectsCarousel'
+import { FansubProjectsGrid } from './FansubProjectsGrid'
 import styles from './FansubProjectsSection.module.css'
 
 interface FansubProjectsSectionProps {
@@ -77,7 +77,7 @@ export function FansubProjectsSection({ projects, groupId }: FansubProjectsSecti
             ))}
           </div>
         ) : null}
-        {carouselItems.length > 0 ? <FansubProjectsCarousel items={carouselItems} groupId={groupId} /> : null}
+        {carouselItems.length > 0 ? <FansubProjectsGrid items={carouselItems} groupId={groupId} /> : null}
       </div>
     </section>
   )

@@ -90,7 +90,7 @@ describe('FansubProjectsSection', () => {
     expect(container.innerHTML).toBe('')
   })
 
-  it('rendert laufende Projekte als Banner-Karten und abgeschlossene/archivierte im Karussell mit genau einem Header', async () => {
+  it('rendert laufende Projekte als Banner-Karten und abgeschlossene/archivierte im Grid mit genau einem Header', async () => {
     render(
       <FansubProjectsSection
         projects={[
@@ -110,7 +110,9 @@ describe('FansubProjectsSection', () => {
     expect(screen.queryByText('Laufende Projekte')).toBeNull()
 
     expect(screen.getByText('Laufendes Projekt')).toBeTruthy()
-    expect(screen.getByRole('region', { name: 'Projekt-Karussell' })).toBeTruthy()
+    // Abgeschlossene/archivierte Projekte rendern in einem responsiven Grid
+    // (kein horizontales Karussell mehr -> keine "Projekt-Karussell"-Region).
+    expect(screen.queryByRole('region', { name: 'Projekt-Karussell' })).toBeNull()
     expect(screen.getByText('Abgeschlossenes Projekt')).toBeTruthy()
     expect(screen.getByText('Archiviertes Projekt')).toBeTruthy()
   })
