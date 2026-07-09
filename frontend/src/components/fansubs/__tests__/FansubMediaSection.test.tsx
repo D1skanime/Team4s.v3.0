@@ -32,10 +32,11 @@ describe('FansubMediaSection', () => {
     expect(html).toContain('Noch keine Medien hinterlegt')
   })
 
-  it('rendert keinen Release- oder Member-Medienblock aus einem group-scoped Fetch', () => {
+  it('rendert genau einen Medien-Header ohne redundanten Zwischentitel (AO6-04)', () => {
     const html = renderToStaticMarkup(<FansubMediaSection media={[mediaRow()]} />)
 
-    expect(html).toContain('Gruppenmedien')
+    expect(html).toContain('visible_group_media')
+    expect(html).not.toContain('Gruppenmedien')
     expect(html).not.toContain('Release-Einblicke')
     expect(html).not.toContain('Team &amp; Erinnerungen')
   })

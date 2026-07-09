@@ -2,20 +2,17 @@ import { SectionHeader } from '@/components/ui'
 import type { PublicFansubMediaItem } from '@/types/fansub'
 
 import { FansubGroupMediaBlock } from './FansubGroupMediaBlock'
-import styles from './FansubPublicSections.module.css'
 
 interface FansubMediaSectionProps {
   media: PublicFansubMediaItem[]
 }
 
+/** AO6-04: genau ein Header ('Medien'), kein redundanter Zwischentitel. */
 export function FansubMediaSection({ media }: FansubMediaSectionProps) {
   return (
     <section id="medien">
       <SectionHeader title="Medien" />
-      <div className={styles.compactStack}>
-        <h3 className={styles.sectionTitle}>Gruppenmedien</h3>
-        <FansubGroupMediaBlock media={media} />
-      </div>
+      <FansubGroupMediaBlock media={media} />
     </section>
   )
 }
