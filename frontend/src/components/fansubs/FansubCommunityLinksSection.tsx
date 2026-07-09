@@ -1,6 +1,6 @@
 import { Github, Globe, Hash, MessageCircle, Twitter } from 'lucide-react'
 
-import { Badge, SectionHeader } from '@/components/ui'
+import { SectionHeader } from '@/components/ui'
 import { getFansubLinkTypeLabel } from '@/lib/fansub-labels'
 import type { FansubGroupLink, FansubGroupLinkType } from '@/types/fansub'
 
@@ -34,6 +34,7 @@ export function FansubCommunityLinksSection({ links }: FansubCommunityLinksSecti
         {links.map((link) => {
           const Icon = iconForLinkType(link.link_type)
           const name = link.name?.trim()
+          const displayText = name || getFansubLinkTypeLabel(link.link_type)
 
           return (
             <li key={link.id}>
@@ -43,11 +44,8 @@ export function FansubCommunityLinksSection({ links }: FansubCommunityLinksSecti
                 rel="noreferrer noopener"
                 className={styles.chip}
               >
-                <Badge variant="info" className={styles.chipBadge}>
-                  <Icon size={14} aria-hidden="true" />
-                  <span>{getFansubLinkTypeLabel(link.link_type)}</span>
-                </Badge>
-                {name ? <span className={styles.chipName}>{name}</span> : null}
+                <Icon size={14} aria-hidden="true" className={styles.chipIcon} />
+                <span className={styles.chipName}>{displayText}</span>
               </a>
             </li>
           )
