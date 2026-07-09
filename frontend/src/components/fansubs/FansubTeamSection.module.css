@@ -46,3 +46,8 @@
   color: var(--text-secondary);
   font-size: 14px;
 }
+
+.memberPeriod {
+  color: var(--text-muted);
+  font-size: 13px;
+}
