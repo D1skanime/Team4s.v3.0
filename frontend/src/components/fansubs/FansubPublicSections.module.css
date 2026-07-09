@@ -77,6 +77,8 @@
 
 .historyYear {
   min-width: 48px;
+  color: var(--accent-primary);
+  font-weight: 600;
 }
 
 .historyNote {
@@ -87,8 +89,8 @@
 
 .milestoneEntry {
   border-left: 3px solid var(--accent-primary);
-  background: var(--bg-hover);
-  padding-left: 12px;
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-card));
+  padding-left: 14px;
 }
 
 .mediaGrid {
