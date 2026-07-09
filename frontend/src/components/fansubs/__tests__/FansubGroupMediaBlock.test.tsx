@@ -2,7 +2,7 @@
 
 import { forwardRef, type ImgHTMLAttributes } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 import { FansubGroupMediaBlock } from '../FansubGroupMediaBlock'
 import type { PublicFansubMediaItem } from '@/types/fansub'
@@ -70,5 +70,42 @@ describe('FansubGroupMediaBlock', () => {
     render(<FansubGroupMediaBlock media={[]} />)
 
     expect(screen.getByText('Noch keine Medien hinterlegt')).toBeTruthy()
+  })
+
+  it('begrenzt die Vorschau auf 5 Kacheln mit Ueberlaufkachel und Alle-anzeigen-Button', () => {
+    const items = Array.from({ length: 6 }, (_, index) =>
+      mediaRow({ id: index + 1, title: `Medium ${index + 1}` }),
+    )
+    render(<FansubGroupMediaBlock media={items} />)
+
+    expect(screen.getByText('+2 weitere')).toBeTruthy()
+    expect(screen.getByText('Alle 6 anzeigen')).toBeTruthy()
+    expect(screen.queryByText('Medium 5')).toBeNull()
+    expect(screen.queryByText('Medium 6')).toBeNull()
+  })
+
+  it('zeigt nach Klick auf Alle anzeigen alle Kacheln', () => {
+    const items = Array.from({ length: 6 }, (_, index) =>
+      mediaRow({ id: index + 1, title: `Medium ${index + 1}` }),
+    )
+    render(<FansubGroupMediaBlock media={items} />)
+
+    fireEvent.click(screen.getByText('Alle 6 anzeigen'))
+
+    expect(screen.getByText('Medium 5')).toBeTruthy()
+    expect(screen.getByText('Medium 6')).toBeTruthy()
+    expect(screen.queryByText('+2 weitere')).toBeNull()
+  })
+
+  it('ruft onSelect mit dem korrekten Index beim Klick auf ein Thumbnail auf', () => {
+    const onSelect = vi.fn()
+    const items = Array.from({ length: 3 }, (_, index) =>
+      mediaRow({ id: index + 1, title: `Medium ${index + 1}` }),
+    )
+    render(<FansubGroupMediaBlock media={items} onSelect={onSelect} />)
+
+    fireEvent.click(screen.getByAltText('Medium 2'))
+
+    expect(onSelect).toHaveBeenCalledWith(1)
   })
 })
