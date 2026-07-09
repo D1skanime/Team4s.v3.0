@@ -51,6 +51,7 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 
 	for _, fragment := range []string{
 		"func (r *FansubRepository) GetPublicProfileBySlug",
+		"func (r *FansubRepository) listPublicFansubStories",
 		"FROM fansub_group_notes",
 		"visibility = 'public'",
 		"status = 'published'",
@@ -69,6 +70,8 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 		"fgm.title",
 		"fgm.description",
 		"fgm.category",
+		"ORDER BY fgm.sort_order ASC",
+		"banner_resolved_url",
 		"r.ListGroupLinks(ctx, group.ID)",
 		"CommunityLinks",
 	} {
