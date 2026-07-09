@@ -18,23 +18,25 @@ interface FansubProjectsGridProps {
   groupId: number
 }
 
-const GRID_INITIAL = 8
+const PREVIEW_COUNT = 5
 
 /**
- * AO6-06 (Ueberarbeitung): responsives Grid fuer abgeschlossene/archivierte Projekte
- * statt eines horizontalen Karussells. Das Grid bricht per Breakpoint um (Mobil 2 /
- * Tablet 3 / Desktop 4 Spalten), zeigt initial GRID_INITIAL Karten und blendet den
- * Rest inline ueber "X weitere anzeigen" ein (kein Auto-Scroll, kein Seiten-Overflow).
+ * AO6-06/AO7-03: Vorschau der ersten PREVIEW_COUNT Projekte als responsive
+ * Banner-Kacheln (Breakpoint-Grid, kein horizontales Karussell) plus eine
+ * "Zaehler-Card" als naechste Kachel, die beim Klick alle Projekte inline
+ * ausklappt. Im ausgeklappten Zustand ein "weniger anzeigen"-Button.
  */
 export function FansubProjectsGrid({ items, groupId }: FansubProjectsGridProps) {
-  const [visibleCount, setVisibleCount] = useState(Math.min(GRID_INITIAL, items.length))
+  const [expanded, setExpanded] = useState(false)
 
   if (items.length === 0) {
     return null
   }
 
-  const visibleItems = items.slice(0, visibleCount)
-  const remaining = items.length - visibleCount
+  const hasMore = items.length > PREVIEW_COUNT
+  const showCountCard = hasMore && !expanded
+  const visibleItems = showCountCard ? items.slice(0, PREVIEW_COUNT) : items
+  const remaining = items.length - PREVIEW_COUNT
 
   return (
     <div className={styles.projectsGroup}>
@@ -42,16 +44,22 @@ export function FansubProjectsGrid({ items, groupId }: FansubProjectsGridProps) 
         {visibleItems.map(({ project, statusLabel }) => (
           <FansubProjectBannerCard key={project.id} project={project} groupId={groupId} statusLabel={statusLabel} />
         ))}
+        {showCountCard ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className={styles.projectCountCard}
+            onClick={() => setExpanded(true)}
+            aria-label={`Alle ${items.length} Projekte anzeigen`}
+          >
+            <span className={styles.projectCountValue}>+{remaining}</span>
+            <span className={styles.projectCountLabel}>weitere Projekte</span>
+          </Button>
+        ) : null}
       </div>
-      {remaining > 0 ? (
-        <Button
-          type="button"
-          variant="subtle"
-          size="sm"
-          className={styles.moreTile}
-          onClick={() => setVisibleCount(items.length)}
-        >
-          {`${remaining} weitere anzeigen`}
+      {expanded && hasMore ? (
+        <Button type="button" variant="subtle" size="sm" className={styles.moreTile} onClick={() => setExpanded(false)}>
+          Weniger anzeigen
         </Button>
       ) : null}
     </div>

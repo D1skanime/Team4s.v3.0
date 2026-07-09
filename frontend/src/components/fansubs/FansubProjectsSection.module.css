@@ -125,3 +125,30 @@
 .moreTile {
   justify-self: start;
 }
+
+.projectCountCard {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 0 !important;
+  padding: 8px !important;
+  border: 0 !important;
+  border-radius: 8px;
+  background: var(--accent-deep) !important;
+  color: #fff !important;
+  text-align: center;
+}
+
+.projectCountValue {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.projectCountLabel {
+  font-size: 12px;
+}
