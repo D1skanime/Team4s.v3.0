@@ -22,6 +22,7 @@ describe('FansubHistorySection', () => {
     expect(html).toContain('Historie &amp; Erfolge')
     expect(html).toContain('Erstes Komplettprojekt abgeschlossen')
     expect(html).not.toContain('Gruppenleitung')
+    expect(html).toMatch(/class="[^"]*milestone[^"]*"/)
   })
 
   it('rendert keinen Abschnitt wenn keine Historie geliefert wird', () => {
