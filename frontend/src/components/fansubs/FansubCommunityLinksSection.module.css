@@ -27,6 +27,26 @@
   color: var(--text-secondary);
 }
 
+.iconWebsite {
+  color: var(--accent-primary);
+}
+
+.iconDiscord {
+  color: var(--link-discord);
+}
+
+.iconIrc {
+  color: var(--link-irc);
+}
+
+.iconTwitter {
+  color: var(--link-twitter);
+}
+
+.iconGithub {
+  color: var(--link-github);
+}
+
 .chipName {
   color: var(--text-primary);
   font-size: 14px;

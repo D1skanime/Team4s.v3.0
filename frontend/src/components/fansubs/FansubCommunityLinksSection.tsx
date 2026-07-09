@@ -18,6 +18,14 @@ const LINK_TYPE_ICONS: Record<FansubGroupLinkType, typeof Globe> = {
   github: Github,
 }
 
+const LINK_TYPE_ICON_CLASS: Record<FansubGroupLinkType, string> = {
+  website: 'iconWebsite',
+  discord: 'iconDiscord',
+  irc: 'iconIrc',
+  twitter: 'iconTwitter',
+  github: 'iconGithub',
+}
+
 function iconForLinkType(linkType: FansubGroupLinkType) {
   return LINK_TYPE_ICONS[linkType] ?? Globe
 }
@@ -44,7 +52,11 @@ export function FansubCommunityLinksSection({ links }: FansubCommunityLinksSecti
                 rel="noreferrer noopener"
                 className={styles.chip}
               >
-                <Icon size={14} aria-hidden="true" className={styles.chipIcon} />
+                <Icon
+                  size={16}
+                  aria-hidden="true"
+                  className={`${styles.chipIcon} ${styles[LINK_TYPE_ICON_CLASS[link.link_type] ?? 'iconWebsite']}`}
+                />
                 <span className={styles.chipName}>{displayText}</span>
               </a>
             </li>
