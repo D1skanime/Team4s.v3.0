@@ -22,7 +22,7 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
       <ol className={styles.historyList}>
         {history.map((item) => (
           <li key={item.id}>
-            <Card variant="flat">
+            <Card variant="flat" className={styles.milestoneEntry}>
               <div className={styles.historyEntry}>
                 {item.year ? (
                   <strong className={styles.historyYear}>{item.year}</strong>

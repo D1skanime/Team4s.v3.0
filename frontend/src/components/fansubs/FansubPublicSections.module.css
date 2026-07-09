@@ -85,6 +85,12 @@
   font-size: 14px;
 }
 
+.milestoneEntry {
+  border-left: 3px solid var(--accent-primary);
+  background: var(--bg-hover);
+  padding-left: 12px;
+}
+
 .mediaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
