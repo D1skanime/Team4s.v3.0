@@ -1,26 +1,33 @@
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
-import { Card } from '@/components/ui'
 import type { DomainProjectionMemberRow } from '@/types/domain-projection'
 
+import { getMemberInitials } from './fansubTeamInitials'
 import styles from './FansubTeamSection.module.css'
 
 interface FansubTeamActiveGroupProps {
   members: DomainProjectionMemberRow[]
 }
 
-function renderMemberName(member: DomainProjectionMemberRow) {
-  if (member.member_slug !== null) {
-    return (
-      <Link href={'/members/' + member.member_slug} className={styles.memberLink}>
-        {member.member_display_name}
-        <ChevronRight size={14} aria-hidden="true" />
-      </Link>
-    )
-  }
+function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
+  const roles = member.role_labels.join(' · ') || 'Rolle nicht hinterlegt'
+  const isLinked = member.member_slug !== null
 
-  return <span className={styles.memberName}>{member.member_display_name}</span>
+  return (
+    <>
+      <span className={styles.avatar} aria-hidden="true">
+        {getMemberInitials(member.member_display_name)}
+      </span>
+      <span className={styles.memberMeta}>
+        <span className={isLinked ? styles.memberNameLink : styles.memberName}>
+          {member.member_display_name}
+        </span>
+        <span className={styles.memberRoles}>{roles}</span>
+      </span>
+      {isLinked ? <ChevronRight size={16} className={styles.chevron} aria-hidden="true" /> : null}
+    </>
+  )
 }
 
 export function FansubTeamActiveGroup({ members }: FansubTeamActiveGroupProps) {
@@ -30,16 +37,23 @@ export function FansubTeamActiveGroup({ members }: FansubTeamActiveGroupProps) {
 
   return (
     <div>
-      <h3 className={styles.subgroupTitle}>Aktive Mitglieder</h3>
-      <div className={styles.activeGrid}>
-        {members.map((member) => (
-          <Card key={member.member_display_name} variant="elevated">
-            <div>
-              {renderMemberName(member)}
-              <p className={styles.memberRoles}>{member.role_labels.join(', ') || 'Rolle nicht hinterlegt'}</p>
+      <h3 className={styles.subgroupTitle}>Aktive Mitglieder · {members.length}</h3>
+      <div className={styles.memberGrid}>
+        {members.map((member) =>
+          member.member_slug !== null ? (
+            <Link
+              key={member.member_display_name}
+              href={'/members/' + member.member_slug}
+              className={styles.memberRowLink}
+            >
+              <MemberRowInner member={member} />
+            </Link>
+          ) : (
+            <div key={member.member_display_name} className={styles.memberRow}>
+              <MemberRowInner member={member} />
             </div>
-          </Card>
-        ))}
+          ),
+        )}
       </div>
     </div>
   )

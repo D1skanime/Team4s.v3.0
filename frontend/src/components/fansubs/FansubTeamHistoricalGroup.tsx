@@ -1,11 +1,13 @@
 'use client'
 
+import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
-import { Badge, Button, Card } from '@/components/ui'
+import { Badge, Button } from '@/components/ui'
 import type { DomainProjectionHistoricalRow } from '@/types/domain-projection'
 
+import { getMemberInitials } from './fansubTeamInitials'
 import { formatMemberPeriod } from './fansubTeamPeriod'
 import styles from './FansubTeamSection.module.css'
 
@@ -15,24 +17,12 @@ interface FansubTeamHistoricalGroupProps {
 
 const HISTORICAL_COLLAPSE_THRESHOLD = 9
 
-function renderLinkedName(member: DomainProjectionHistoricalRow) {
-  if (member.member_slug !== null) {
-    return (
-      <Link href={'/members/' + member.member_slug} className={styles.memberName}>
-        {member.member_display_name}
-      </Link>
-    )
-  }
-
-  return <span className={styles.memberName}>{member.member_display_name}</span>
-}
-
-function renderRoleAndPeriod(member: DomainProjectionHistoricalRow) {
-  const roles = member.role_labels.join(', ') || 'Rolle nicht hinterlegt'
+function MemberRolesAndPeriod({ member }: { member: DomainProjectionHistoricalRow }) {
+  const roles = member.role_labels.join(' · ') || 'Rolle nicht hinterlegt'
   const period = formatMemberPeriod(member.joined_year, member.left_year)
 
   return (
-    <>
+    <span className={styles.memberRoles}>
       <span>{roles}</span>
       {period ? (
         <>
@@ -40,7 +30,37 @@ function renderRoleAndPeriod(member: DomainProjectionHistoricalRow) {
           <span className={styles.memberPeriod}>{period}</span>
         </>
       ) : null}
+    </span>
+  )
+}
+
+function HistoricalRow({ member, unconfirmed }: { member: DomainProjectionHistoricalRow; unconfirmed?: boolean }) {
+  const isLinked = member.member_slug !== null
+
+  const inner = (
+    <>
+      <span className={`${styles.avatar} ${styles.avatarMuted}`} aria-hidden="true">
+        {getMemberInitials(member.member_display_name)}
+      </span>
+      <span className={styles.memberMeta}>
+        <span className={styles.memberNameRow}>
+          <span className={isLinked ? styles.memberNameLink : styles.memberName}>
+            {member.member_display_name}
+          </span>
+          {unconfirmed ? <Badge variant="muted">unbestätigt</Badge> : null}
+        </span>
+        <MemberRolesAndPeriod member={member} />
+      </span>
+      {isLinked ? <ChevronRight size={16} className={styles.chevron} aria-hidden="true" /> : null}
     </>
+  )
+
+  return isLinked ? (
+    <Link href={'/members/' + member.member_slug} className={styles.memberRowLink}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={styles.memberRow}>{inner}</div>
   )
 }
 
@@ -69,13 +89,10 @@ export function FansubTeamHistoricalGroup({ historical }: FansubTeamHistoricalGr
     <div>
       {former.length > 0 ? (
         <div>
-          <h3 className={styles.subgroupTitle}>Ehemalige Mitglieder</h3>
-          <div className={styles.historicalList}>
+          <h3 className={styles.subgroupTitle}>Ehemalige Mitglieder · {former.length}</h3>
+          <div className={styles.memberGrid}>
             {formerCollapse.visible.map((member) => (
-              <Card key={member.member_display_name} variant="flat">
-                {renderLinkedName(member)}
-                <p className={styles.memberRoles}>{renderRoleAndPeriod(member)}</p>
-              </Card>
+              <HistoricalRow key={member.member_display_name} member={member} />
             ))}
           </div>
           {formerCollapse.isCollapsible ? (
@@ -93,14 +110,10 @@ export function FansubTeamHistoricalGroup({ historical }: FansubTeamHistoricalGr
 
       {unconfirmed.length > 0 ? (
         <div>
-          <h3 className={styles.subgroupTitle}>Historische Nennungen</h3>
-          <div className={styles.historicalList}>
+          <h3 className={styles.subgroupTitle}>Historische Nennungen · {unconfirmed.length}</h3>
+          <div className={styles.memberGrid}>
             {unconfirmedCollapse.visible.map((member) => (
-              <div key={member.member_display_name} className={styles.historicalEntry}>
-                <span>{member.member_display_name}</span>
-                <Badge variant="muted">unbestätigt</Badge>
-                {renderRoleAndPeriod(member)}
-              </div>
+              <HistoricalRow key={member.member_display_name} member={member} unconfirmed />
             ))}
           </div>
           {unconfirmedCollapse.isCollapsible ? (
