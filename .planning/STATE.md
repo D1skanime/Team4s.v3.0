@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 99-23-PLAN.md
-last_updated: "2026-07-09T11:47:21.819Z"
+stopped_at: Completed 99-24-PLAN.md
+last_updated: "2026-07-09T12:43:37.589Z"
 last_activity: 2026-07-09
 progress:
   total_phases: 90
   completed_phases: 76
   total_plans: 400
-  completed_plans: 371
+  completed_plans: 372
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 9 of 15
+Plan: 10 of 15
 
 ## Accumulated Context
 
@@ -282,6 +282,7 @@ Recent durable decisions:
 - [Phase 99]: 99-22: Meilenstein-Akzentkante (var(--accent-primary)+var(--bg-hover)) und einheitlicher Community-Link-Chip (ein <a> je Link, Name bevorzugt vor deutschem Label) abgeschlossen; Task 1 + RED von Task 2 lagen bereits committet aus vorherigem Lauf vor, GREEN von Task 2 in diesem Lauf verifiziert und committet.
 - [Phase 99]: 99-23: AO6-06 Karussell fasst completed+archived-Buckets zusammen statt separater Mini-Karussells
 - [Phase 99]: 99-23: Skeleton-Uebergang im Karussell per setTimeout(0) im useEffect statt synchronem setState (react-hooks/set-state-in-effect-konform)
+- [Phase 99]: [Phase 99]: 99-24: Medien-Grid-Skalierung (AO6-11) und Header-Bereinigung (AO6-04) waren bereits committet (548e5f81/51a552e1) vorgefunden; diese Session hat Acceptance-Criteria, Tests und Typecheck re-verifiziert statt den Code zu duplizieren.
 
 ### Pending Todos
 
@@ -510,6 +511,7 @@ Recent durable decisions:
 | Phase 99 P21 | 20min | 2 tasks | 9 files |
 | Phase 99 P22 | 37min | 2 tasks | 6 files |
 | Phase 99 P23 | 55min | 2 tasks | 6 files |
+| Phase 99 P24 | 6min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -579,7 +581,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-09T11:47:21.681Z
-Stopped at: Completed 99-23-PLAN.md
+Last session: 2026-07-09T12:43:37.563Z
+Stopped at: Completed 99-24-PLAN.md
 Last activity: 2026-07-09
 Resume file: None
