@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 99-22-PLAN.md
-last_updated: "2026-07-09T11:04:48.277Z"
+stopped_at: Completed 99-23-PLAN.md
+last_updated: "2026-07-09T11:47:21.819Z"
 last_activity: 2026-07-09
 progress:
   total_phases: 90
   completed_phases: 76
   total_plans: 400
-  completed_plans: 370
+  completed_plans: 371
   percent: 84
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 8 of 15
+Plan: 9 of 15
 
 ## Accumulated Context
 
@@ -280,6 +280,8 @@ Recent durable decisions:
 - [Phase 99-21]: HISTORICAL_COLLAPSE_THRESHOLD=9 als eigene Konstante je Teilliste (Ehemalige/Historische Nennungen), nicht global kombiniert
 - [Phase 99-21]: c-subs Seed-Daten haben durchgehend member_slug=null; Link+Chevron und Einklapp-Schwelle sind code-/unit-test-verifiziert, aber nicht live am Beispiel eines verlinkten Mitglieds bestaetigt
 - [Phase 99]: 99-22: Meilenstein-Akzentkante (var(--accent-primary)+var(--bg-hover)) und einheitlicher Community-Link-Chip (ein <a> je Link, Name bevorzugt vor deutschem Label) abgeschlossen; Task 1 + RED von Task 2 lagen bereits committet aus vorherigem Lauf vor, GREEN von Task 2 in diesem Lauf verifiziert und committet.
+- [Phase 99]: 99-23: AO6-06 Karussell fasst completed+archived-Buckets zusammen statt separater Mini-Karussells
+- [Phase 99]: 99-23: Skeleton-Uebergang im Karussell per setTimeout(0) im useEffect statt synchronem setState (react-hooks/set-state-in-effect-konform)
 
 ### Pending Todos
 
@@ -507,6 +509,7 @@ Recent durable decisions:
 | Phase 99 P20 | 45min | 2 tasks | 10 files |
 | Phase 99 P21 | 20min | 2 tasks | 9 files |
 | Phase 99 P22 | 37min | 2 tasks | 6 files |
+| Phase 99 P23 | 55min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -576,7 +579,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-09T11:04:48.191Z
-Stopped at: Completed 99-22-PLAN.md
+Last session: 2026-07-09T11:47:21.681Z
+Stopped at: Completed 99-23-PLAN.md
 Last activity: 2026-07-09
 Resume file: None
