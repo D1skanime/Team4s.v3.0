@@ -32,10 +32,10 @@ function resolveSettled<T>(result: PromiseSettledResult<T>, fallback: T): T {
   return result.status === 'fulfilled' ? result.value : fallback
 }
 
-export function hasStoryContent(
-  story: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data']['story'],
+export function hasStoriesContent(
+  stories: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data']['stories'],
 ): boolean {
-  return Boolean(story && (story.title?.trim() || story.body_html?.trim() || story.body_text?.trim()))
+  return stories.some((story) => Boolean(story.title?.trim() || story.body_html?.trim() || story.body_text?.trim()))
 }
 
 export function buildEmptyAreaLabels(
@@ -47,7 +47,7 @@ export function buildEmptyAreaLabels(
 
   if (profile.projects.length === 0) labels.push('Laufende Projekte')
   if (countVisibleTeamMembers(domainProjection.members, domainProjection.historical) === 0) labels.push('Team')
-  if (!hasStoryContent(profile.story)) labels.push('Geschichte')
+  if (!hasStoriesContent(profile.stories)) labels.push('Geschichte')
   if (profile.history.length === 0) labels.push('Erfolge')
   if (
     domainProjection.contributors.filter(
@@ -119,7 +119,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
     { label: 'Release-Versionen', value: group.release_versions_count },
     { label: 'Mitglieder', value: visibleTeamCount },
   ]
-  const storyAvailable = hasStoryContent(profile.story)
+  const storyAvailable = hasStoriesContent(profile.stories)
   const hasTeam = visibleTeamCount > 0
   const hasHistory = profile.history.length > 0
   const hasCommunityLinks = profile.community_links.length > 0
@@ -133,7 +133,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
 
         {storyAvailable ? (
           <div className={styles.sectionSpacing}>
-            <FansubStorySection group={group} story={profile.story} />
+            <FansubStorySection group={group} stories={profile.stories} />
           </div>
         ) : null}
       </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildEmptyAreaLabels, hasStoryContent } from '../[slug]/page'
+import { buildEmptyAreaLabels, hasStoriesContent } from '../[slug]/page'
 import type { DomainProjectionResponse } from '@/types/domain-projection'
 import type { PublicGroupContributionsResponse } from '@/types/contributions'
 import type { FansubGroup, PublicFansubProfile, PublicFansubStory } from '@/types/fansub'
@@ -20,7 +20,7 @@ const baseGroup: FansubGroup = {
 
 const emptyProfile: PublicFansubProfile = {
   group: baseGroup,
-  story: null,
+  stories: [],
   projects: [],
   history: [],
   media: [],
@@ -39,24 +39,27 @@ const emptyContributions: PublicGroupContributionsResponse = {
   member_count: 0,
 }
 
-describe('hasStoryContent', () => {
-  it('liefert false wenn keine Story vorhanden ist', () => {
-    expect(hasStoryContent(null)).toBe(false)
+describe('hasStoriesContent', () => {
+  it('liefert false wenn keine Bloecke vorhanden sind', () => {
+    expect(hasStoriesContent([])).toBe(false)
   })
 
-  it('liefert false bei Story ohne Titel/Text/HTML', () => {
-    const story: PublicFansubStory = { id: 1, title: '', body_html: '', body_text: '' }
-    expect(hasStoryContent(story)).toBe(false)
+  it('liefert false wenn alle Bloecke ohne Titel/Text/HTML sind', () => {
+    const stories: PublicFansubStory[] = [{ id: 1, title: '', body_html: '', body_text: '' }]
+    expect(hasStoriesContent(stories)).toBe(false)
   })
 
-  it('liefert true wenn body_html befuellt ist', () => {
-    const story: PublicFansubStory = { id: 1, title: '', body_html: '<p>Inhalt</p>', body_text: '' }
-    expect(hasStoryContent(story)).toBe(true)
+  it('liefert true wenn mindestens ein Block body_html befuellt hat', () => {
+    const stories: PublicFansubStory[] = [
+      { id: 1, title: '', body_html: '', body_text: '' },
+      { id: 2, title: '', body_html: '<p>Inhalt</p>', body_text: '' },
+    ]
+    expect(hasStoriesContent(stories)).toBe(true)
   })
 
-  it('liefert true wenn nur der Titel befuellt ist', () => {
-    const story: PublicFansubStory = { id: 1, title: 'Unsere Geschichte', body_html: '', body_text: '' }
-    expect(hasStoryContent(story)).toBe(true)
+  it('liefert true wenn mindestens ein Block nur einen Titel hat', () => {
+    const stories: PublicFansubStory[] = [{ id: 1, title: 'Unsere Geschichte', body_html: '', body_text: '' }]
+    expect(hasStoriesContent(stories)).toBe(true)
   })
 })
 
@@ -117,7 +120,7 @@ describe('buildEmptyAreaLabels', () => {
   it('liefert leere Liste wenn alle Bereiche befuellt sind', () => {
     const profile: PublicFansubProfile = {
       group: { ...baseGroup, website_url: 'https://example.test' },
-      story: { id: 1, title: 'Titel', body_html: '<p>Text</p>', body_text: 'Text' },
+      stories: [{ id: 1, title: 'Titel', body_html: '<p>Text</p>', body_text: 'Text' }],
       projects: [{ id: 1, title: 'Projekt', type: 'anime', status: 'ongoing' }],
       history: [{ id: 1, event_type: 'award', status: 'public' }],
       media: [{ id: 1, media_type: 'image', mime_type: 'image/png', category: 'other' }],

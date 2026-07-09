@@ -183,7 +183,7 @@ export interface PublicFansubMediaItem {
 
 export interface PublicFansubProfile {
   group: FansubGroup;
-  story: PublicFansubStory | null;
+  stories: PublicFansubStory[];
   projects: PublicFansubProject[];
   history: PublicFansubHistory[];
   media: PublicFansubMediaItem[];
