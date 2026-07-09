@@ -113,14 +113,27 @@
 .mediaThumbFrame {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 6px;
+  aspect-ratio: 16 / 10;
+  border-radius: 8px;
   overflow: hidden;
   background: var(--bg-hover);
 }
 
 .mediaImage {
   object-fit: cover;
+}
+
+.mediaMaximize {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-primary);
 }
 
 .mediaThumbSkeleton {
@@ -220,14 +233,14 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 10;
   min-height: 0 !important;
   padding: 0 !important;
-  border-radius: 6px;
-  background: var(--bg-hover);
-  color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 700;
+  border-radius: 8px;
+  background: var(--accent-dark) !important;
+  color: #fff !important;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .mediaShowAll {

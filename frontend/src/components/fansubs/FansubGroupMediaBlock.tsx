@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { Maximize2 } from 'lucide-react'
 
-import { Button, Card, EmptyState } from '@/components/ui'
+import { Button, EmptyState } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubMediaCategoryLabel } from '@/lib/fansub-labels'
 import type { PublicFansubMediaItem } from '@/types/fansub'
@@ -88,7 +89,7 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
           const description = item.description?.trim()
 
           return (
-            <Card key={item.id} variant="section" className={styles.mediaCard}>
+            <div key={item.id} className={styles.mediaCard}>
               {showImage && resolvedImageUrl ? (
                 <Button
                   type="button"
@@ -107,6 +108,9 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
                       className={styles.mediaImage}
                       unoptimized
                     />
+                    <span className={styles.mediaMaximize} aria-hidden="true">
+                      <Maximize2 size={14} />
+                    </span>
                   </div>
                 </Button>
               ) : (
@@ -128,15 +132,13 @@ export function FansubGroupMediaBlock({ media, onSelect }: FansubGroupMediaBlock
                   </a>
                 ) : null}
               </div>
-            </Card>
+            </div>
           )
         })}
         {hasOverflow ? (
-          <Card variant="section" className={styles.mediaCard}>
-            <Button type="button" variant="ghost" className={styles.mediaOverflowTile} onClick={revealMore}>
-              +{overflowCount} weitere
-            </Button>
-          </Card>
+          <Button type="button" variant="ghost" className={styles.mediaOverflowTile} onClick={revealMore}>
+            +{overflowCount} weitere
+          </Button>
         ) : null}
       </div>
       {hasOverflow ? (
