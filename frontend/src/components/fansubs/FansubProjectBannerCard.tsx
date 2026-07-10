@@ -11,6 +11,7 @@ interface FansubProjectBannerCardProps {
   project: PublicFansubProject
   groupId: number
   statusLabel: string
+  statusVariant?: 'warning' | 'success' | 'danger' | 'neutral'
 }
 
 const BANNER_IMAGE_SIZES = '(max-width: 640px) 100vw, 480px'
@@ -20,7 +21,7 @@ const BANNER_IMAGE_SIZES = '(max-width: 640px) 100vw, 480px'
  * Bildquelle: banner_url (Anime-Banner) mit Fallback auf cover_image (Poster);
  * ohne beides Skeleton-Platzhalter derselben Flaeche (kein Layout-Sprung).
  */
-export function FansubProjectBannerCard({ project, groupId, statusLabel }: FansubProjectBannerCardProps) {
+export function FansubProjectBannerCard({ project, groupId, statusLabel, statusVariant = 'neutral' }: FansubProjectBannerCardProps) {
   const source = project.banner_url || project.cover_image || ''
   const resolvedImageUrl = source ? resolveApiUrl(source) : ''
 
@@ -40,7 +41,7 @@ export function FansubProjectBannerCard({ project, groupId, statusLabel }: Fansu
         ) : (
           <div className={styles.bannerSkeleton} aria-hidden="true" />
         )}
-        <Badge variant="neutral" className={styles.bannerStatusPill}>
+        <Badge variant={statusVariant} className={styles.bannerStatusPill}>
           {statusLabel}
         </Badge>
         <div className={styles.bannerOverlay}>

@@ -47,12 +47,12 @@
   right: 0;
   bottom: 0;
   padding: 10px 12px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
+  background: linear-gradient(to top, var(--scrim-strong), transparent);
 }
 
 .bannerTitle {
   display: block;
-  color: #fff;
+  color: var(--color-white);
   font-size: 15px;
   line-height: 1.3;
 }
@@ -73,15 +73,54 @@
 }
 
 .carouselTrack {
+  --cards-visible: 4;
+  --track-gap: 12px;
   display: flex;
-  gap: 12px;
+  gap: var(--track-gap);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   flex: 1;
   min-width: 0;
   padding: 2px;
+  cursor: grab;
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+.carouselTrack.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* Natives Bild-/Link-Ziehen unterbinden, sonst bricht das Maus-Sliden (pointercancel) ab */
+.carouselTrack a,
+.carouselTrack img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+@media (min-width: 1600px) {
+  .carouselTrack {
+    --cards-visible: 5;
+  }
+}
+
+@media (max-width: 1099px) {
+  .carouselTrack {
+    --cards-visible: 3;
+  }
+}
+
+@media (max-width: 767px) {
+  .carouselTrack {
+    --cards-visible: 2;
+  }
+}
+
+@media (max-width: 559px) {
+  .carouselTrack {
+    --cards-visible: 1;
+  }
 }
 
 .carouselTrack::-webkit-scrollbar {
@@ -94,12 +133,18 @@
 }
 
 .carouselItem {
-  flex: 0 0 clamp(200px, 62vw, 244px);
+  /* Kartenbreite = (Container - Luecken) / N -> ganze Kartenzahl, skaliert mit der Breite */
+  flex: 0 0 calc((100% - (var(--cards-visible) - 1) * var(--track-gap)) / var(--cards-visible));
   scroll-snap-align: start;
 }
 
 .carouselArrow {
   flex-shrink: 0;
+}
+
+/* Pfeil-Icon in der Weinrot-Farbe des Design-Systems (disclosure arrow), stabil ueber den Ghost-Button */
+.carouselArrow svg {
+  color: var(--ui-arrow);
 }
 
 .carouselSkeleton {
@@ -149,7 +194,7 @@
   border: 0 !important;
   border-radius: 8px;
   background: var(--accent-deep) !important;
-  color: #fff !important;
+  color: var(--color-white) !important;
   text-align: center;
 }
 

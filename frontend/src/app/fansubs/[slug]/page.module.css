@@ -1,7 +1,13 @@
 .page {
-  width: min(1280px, 100% - 48px);
+  width: min(1360px, 100% - 48px);
   margin: 0 auto;
-  padding: 24px 0 48px;
+  padding: 0 0 64px;
+}
+
+@media (min-width: 1600px) {
+  .page {
+    width: min(1480px, 100% - 64px);
+  }
 }
 
 .backLink {
@@ -32,32 +38,109 @@
   text-decoration: none;
 }
 
+/* ── Album-Art-Hero: voller Backdrop (unscharfer Banner) + gedeckelter, scharfer Inhalt ── */
 .hero {
-  margin-top: 20px;
-  gap: 0;
-  overflow: hidden;
-  padding: 0;
+  position: relative;
+  isolation: isolate;
   border-top: 3px solid var(--accent-deep);
+}
+
+.heroBackdrop {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(34px) brightness(0.72) saturate(1.25);
+  transform: scale(1.15);
+}
+
+.heroBackdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 12, 25, 0.28) 0%, rgba(15, 12, 25, 0.42) 55%, var(--surface-canvas) 100%);
+}
+
+.heroFg {
+  position: relative;
+  z-index: 1;
+  width: min(1360px, 100% - 48px);
+  margin: 0 auto;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 1600px) {
+  .heroFg {
+    width: min(1480px, 100% - 64px);
+  }
+}
+
+/* Banner + Inhalt als EIN durchscheinender Glas-Block (Variante B) */
+.heroCard {
+  margin-top: 18px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 12px 38px rgba(20, 15, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.heroBannerWrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px 16px 0;
+}
+
+.heroBannerImg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: clamp(140px, 17vw, 200px);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+}
+
+.heroBody {
+  padding: 16px 24px 20px;
 }
 
 .title {
   margin: 0;
-  font-size: clamp(24px, 3.4vw, 34px);
+  /* Titel skaliert gemeinsam mit dem Logo (--logo auf .heroHeader) */
+  font-size: calc(var(--logo, 92px) * 0.4);
   line-height: 1.1;
 }
 
 .subtitle {
   margin: 6px 0 0;
-  color: var(--text-secondary);
+  /* kraeftiger fuer Kontrast auf dem Glas */
+  color: rgba(28, 24, 38, 0.74);
   line-height: 1.5;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .heroHeader {
   display: flex;
-  gap: 16px;
+  justify-content: space-between;
   align-items: center;
-  padding: 16px 24px 0;
+  gap: 24px;
+  flex-wrap: wrap;
+  /* --logo steuert Logo UND Titel gemeinsam -> beide skalieren zusammen */
+  --logo: clamp(64px, 6vw, 96px);
+}
+
+.heroIdentity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
 }
 
 .heroLogo {
@@ -65,19 +148,20 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 84px;
-  height: 84px;
+  width: var(--logo);
+  height: var(--logo);
   overflow: hidden;
-  border: 3px solid var(--surface-card);
-  border-radius: 16px;
-  background: var(--surface-sunken);
+  border: 0;
+  border-radius: 50%; /* rundes Logo -> runder Rahmen, kein Rechteck */
+  background: var(--surface-card);
+  /* blauer Leucht-Rand um den Logo-Kreis */
+  box-shadow: 0 0 0 2px var(--accent-primary), 0 0 20px 2px rgba(95, 132, 221, 0.55);
 }
 
 .heroLogoImage {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 6px;
+  object-fit: cover;
 }
 
 .heroLogoFallback {
@@ -88,7 +172,6 @@
 
 .heroIntro {
   min-width: 0;
-  padding-bottom: 6px;
 }
 
 .heroTitleRow {
@@ -96,6 +179,39 @@
   flex-wrap: wrap;
   gap: 8px 12px;
   align-items: center;
+}
+
+.heroLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.heroChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.heroChip:hover {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.heroChipDot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .heroFacts {
@@ -108,39 +224,32 @@
   border-top: 0.5px solid var(--border-subtle);
 }
 
+/* Inline rechts neben der Identität (fuellt die Kopfzeile, keine tote Flaeche) */
 .heroStats {
   display: flex;
-  margin: 16px 24px 0;
-  padding-top: 12px;
-  border-top: 0.5px solid var(--border-subtle);
+  gap: 26px;
+  margin: 0;
+  align-items: flex-start;
 }
 
 .heroStatItem {
   display: grid;
   gap: 2px;
-  flex: 1;
   min-width: 0;
-  padding: 0 16px;
-  border-left: 0.5px solid var(--border-subtle);
-}
-
-.heroStatItem:first-child {
-  border-left: 0;
-  padding-left: 0;
 }
 
 .heroStatItem dt {
-  color: var(--text-secondary);
+  color: rgba(28, 24, 38, 0.64);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .heroStatItem dd {
   margin: 2px 0 0;
   color: var(--accent-deep);
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1.1;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .collaborationPanel {
@@ -149,7 +258,7 @@
   margin: 16px 28px 28px;
   padding: 12px 16px;
   border-radius: 8px;
-  background: var(--surface-secondary, #f5f5f5);
+  background: var(--surface-sunken);
 }
 
 .collaborationIntro,
@@ -195,65 +304,69 @@
   padding: 16px;
 }
 
-.readingColumn {
-  width: min(780px, 100% - 48px);
-  margin: 0 auto;
-}
-
-.sectionSpacing {
-  margin-top: 32px;
-}
-
 .gridSection {
-  width: min(1280px, 100% - 48px);
-  margin: 32px auto 0;
+  width: min(1360px, 100% - 48px);
+  margin: 40px auto 0;
 }
 
-.emptySummary {
-  margin-top: 32px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-card-muted);
+@media (min-width: 1600px) {
+  .gridSection {
+    width: min(1480px, 100% - 64px);
+  }
 }
 
-.emptySummary p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
+/* Section-Band: sanfter, unscharfer Banner-Backdrop hinter einer Sektion */
+.sectionBand {
+  position: relative;
+  isolation: isolate;
+}
+
+.sectionBandBackdrop {
+  position: absolute;
+  top: -24px;
+  bottom: -24px;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(44px) saturate(1.3);
+  opacity: 0.32;
+}
+
+.sectionBand > .gridSection {
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 767px) {
   .page {
-    width: min(100% - 24px, 1280px);
-    padding-top: 16px;
+    width: min(100% - 24px, 1360px);
+    padding-top: 0;
   }
 
-  .readingColumn {
-    width: 100%;
+
+  .heroBannerWrap {
+    padding: 12px 12px 0;
+  }
+
+  .heroBannerImg {
+    max-height: 120px;
+  }
+
+  .heroBody {
+    padding: 14px 16px 16px;
   }
 
   .heroHeader {
-    gap: 12px;
-    padding: 14px 16px 0;
-  }
-
-  .heroLogo {
-    width: 72px;
-    height: 72px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
   }
 
   .heroStats {
-    margin: 14px 16px 0;
-  }
-
-  .heroFacts {
-    margin: 12px 16px 18px;
-  }
-
-  .heroStatItem {
-    padding: 0 10px;
+    flex-wrap: wrap;
+    gap: 16px 22px;
   }
 
   .heroStatItem dt {
@@ -261,6 +374,6 @@
   }
 
   .heroStatItem dd {
-    font-size: 18px;
+    font-size: 20px;
   }
 }

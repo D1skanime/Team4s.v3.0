@@ -17,7 +17,7 @@ interface FansubMediaLightboxProps {
   onNavigate: (index: number) => void
 }
 
-const LIGHTBOX_IMAGE_SIZES = '(max-width: 768px) 100vw, 900px'
+const LIGHTBOX_IMAGE_SIZES = '(max-width: 768px) 100vw, 1100px'
 
 /**
  * AO6-12: Lightbox fuer Gruppenmedien auf Basis des @/components/ui Modal.
@@ -69,7 +69,7 @@ export function FansubMediaLightbox({ media, index, onClose, onNavigate }: Fansu
   }
 
   return (
-    <Modal open={isOpen} onClose={onClose} title={title}>
+    <Modal open={isOpen} onClose={onClose} title={title} size="lg">
       <div className={styles.lightboxBody}>
         {resolvedOriginalUrl ? (
           <div className={styles.imageFrame}>

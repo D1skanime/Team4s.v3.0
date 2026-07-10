@@ -17,6 +17,7 @@ function activeMember(overrides: Partial<DomainProjectionMemberRow> = {}): Domai
     member_display_name: 'Aktives Mitglied',
     member_slug: 'aktives-mitglied',
     member_avatar_url: null,
+    member_slogan: null,
     roles: ['translation'],
     role_labels: ['Übersetzung'],
     status: 'active',

@@ -16,9 +16,10 @@ describe('fansub public page', () => {
     expect(pageSource).not.toContain('group.members_count || contributions?.member_count')
   })
 
-  it('bündelt leere optionale Bereiche in einem Sammelhinweis', () => {
-    expect(pageSource).toContain('buildEmptyAreaLabels')
-    expect(pageSource).toContain('Weitere Bereiche sind noch nicht öffentlich befüllt')
+  it('zeigt keinen Leer-Bereichs-Sammelhinweis mehr', () => {
+    expect(pageSource).not.toContain('buildEmptyAreaLabels')
+    expect(pageSource).not.toContain('Weitere Bereiche sind noch nicht öffentlich befüllt')
+    expect(pageSource).not.toContain('styles.emptySummary')
     expect(pageSource).not.toContain('FansubContributorsSection')
     expect(pageSource).not.toContain('GroupLeaderTimeline')
     expect(pageSource).not.toContain('FansubDeepDiveSection')
@@ -31,7 +32,6 @@ describe('fansub public page', () => {
     const teamIndex = pageSource.indexOf('<FansubTeamSection')
     const historyIndex = pageSource.indexOf('<FansubHistorySection')
     const mediaIndex = pageSource.indexOf('<FansubMediaSection')
-    const summaryIndex = pageSource.indexOf('styles.emptySummary')
 
     expect(heroIndex).toBeGreaterThan(-1)
     expect(storyIndex).toBeGreaterThan(heroIndex)
@@ -39,23 +39,15 @@ describe('fansub public page', () => {
     expect(teamIndex).toBeGreaterThan(projectsIndex)
     expect(historyIndex).toBeGreaterThan(teamIndex)
     expect(mediaIndex).toBeGreaterThan(historyIndex)
-    expect(summaryIndex).toBeGreaterThan(mediaIndex)
   })
 
-  it('bindet die Community-Links- und Medien-Sektion aus 99-16 ein (AO5-03)', () => {
-    expect(pageSource).toMatch(/<FansubCommunityLinksSection\s+links=\{profile\.community_links\}/)
+  it('reicht Community-Links an den Hero und bindet die Medien-Sektion ein', () => {
+    expect(pageSource).toMatch(/communityLinks=\{profile\.community_links\}/)
+    expect(pageSource).not.toContain('FansubCommunityLinksSection')
     expect(pageSource).toMatch(/<FansubMediaSection\s+media=\{profile\.media\}/)
   })
 
   it('uebergibt das Stories-Array an FansubStorySection statt der einzelnen Story (AO6-03)', () => {
     expect(pageSource).toMatch(/stories=\{profile\.stories\}/)
-  })
-
-  it('rendert genau einen Sammelhinweis-Block und keine eigenständigen Leer-Sektionen', () => {
-    const summaryOccurrences = pageSource.split('styles.emptySummary').length - 1
-    expect(summaryOccurrences).toBe(1)
-
-    expect(pageSource).not.toMatch(/<FansubContributorsSection/)
-    expect(pageSource).not.toMatch(/<GroupLeaderTimeline/)
   })
 })

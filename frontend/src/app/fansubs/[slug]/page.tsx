@@ -1,19 +1,17 @@
 import Link from 'next/link'
 
-import { FansubCommunityLinksSection } from '@/components/fansubs/FansubCommunityLinksSection'
 import { FansubHistorySection } from '@/components/fansubs/FansubHistorySection'
 import { FansubHeroSection } from '@/components/fansubs/FansubHeroSection'
 import { FansubMediaSection } from '@/components/fansubs/FansubMediaSection'
 import { FansubProjectsSection } from '@/components/fansubs/FansubProjectsSection'
 import { FansubStorySection } from '@/components/fansubs/FansubStorySection'
 import { countVisibleTeamMembers, FansubTeamSection } from '@/components/fansubs/FansubTeamSection'
-import type { PublicGroupContributionsResponse } from '@/types/contributions'
 import type { DomainProjectionResponse } from '@/types/domain-projection'
 import {
   ApiError,
-  getFansubContributions,
   getFansubGroupDomainProjection,
   getPublicFansubProfileBySlug,
+  resolveApiUrl,
 } from '@/lib/api'
 
 import styles from './page.module.css'
@@ -28,39 +26,10 @@ interface FansubProfilePageProps {
       }>
 }
 
-function resolveSettled<T>(result: PromiseSettledResult<T>, fallback: T): T {
-  return result.status === 'fulfilled' ? result.value : fallback
-}
-
 export function hasStoriesContent(
   stories: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data']['stories'],
 ): boolean {
   return stories.some((story) => Boolean(story.title?.trim() || story.body_html?.trim() || story.body_text?.trim()))
-}
-
-export function buildEmptyAreaLabels(
-  profile: Awaited<ReturnType<typeof getPublicFansubProfileBySlug>>['data'],
-  domainProjection: DomainProjectionResponse,
-  contributions: PublicGroupContributionsResponse | null,
-): string[] {
-  const labels: string[] = []
-
-  if (profile.projects.length === 0) labels.push('Laufende Projekte')
-  if (countVisibleTeamMembers(domainProjection.members, domainProjection.historical) === 0) labels.push('Team')
-  if (!hasStoriesContent(profile.stories)) labels.push('Geschichte')
-  if (profile.history.length === 0) labels.push('Erfolge')
-  if (
-    domainProjection.contributors.filter(
-      (contributor) => contributor.visibility === 'public' && contributor.review_status === 'approved',
-    ).length === 0
-  ) {
-    labels.push('Externe Mitwirkende')
-  }
-  if (profile.media.length === 0) labels.push('Medien')
-  if ((contributions?.leader_timeline ?? []).length === 0) labels.push('Gruppenleitung')
-  if (!profile.group.website_url && profile.community_links.length === 0) labels.push('Mehr')
-
-  return labels
 }
 
 export default async function FansubProfilePage({ params }: FansubProfilePageProps) {
@@ -104,14 +73,10 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   const profile = profileResponse.data
   const group = profile.group
 
-  const [contributionsResult, domainProjectionResult] = await Promise.allSettled([
-    getFansubContributions(group.id),
-    getFansubGroupDomainProjection(group.id),
-  ])
-  const contributions = resolveSettled<PublicGroupContributionsResponse | null>(contributionsResult, null)
-  const domainProjection =
-    domainProjectionResult.status === 'fulfilled'
-      ? domainProjectionResult.value
+  const domainProjectionResult = await Promise.allSettled([getFansubGroupDomainProjection(group.id)])
+  const domainProjection: DomainProjectionResponse =
+    domainProjectionResult[0].status === 'fulfilled'
+      ? domainProjectionResult[0].value
       : { members: [], historical: [], contributors: [] }
   const visibleTeamCount = countVisibleTeamMembers(domainProjection.members, domainProjection.historical)
   const heroStats = [
@@ -122,59 +87,60 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
   const storyAvailable = hasStoriesContent(profile.stories)
   const hasTeam = visibleTeamCount > 0
   const hasHistory = profile.history.length > 0
-  const hasCommunityLinks = profile.community_links.length > 0
   const hasMedia = profile.media.length > 0
-  const emptyAreaLabels = buildEmptyAreaLabels(profile, domainProjection, contributions)
+  const bannerBackdrop = group.banner_url ? resolveApiUrl(group.banner_url) : ''
 
   return (
     <main className={styles.page}>
-      <div className={styles.readingColumn}>
-        <FansubHeroSection group={group} stats={heroStats} />
+      <FansubHeroSection group={group} stats={heroStats} communityLinks={profile.community_links} />
 
-        {storyAvailable ? (
-          <div className={styles.sectionSpacing}>
-            <FansubStorySection group={group} stories={profile.stories} />
-          </div>
-        ) : null}
-      </div>
-
-      {profile.projects.length > 0 ? (
+      {storyAvailable ? (
         <div className={styles.gridSection}>
-          <FansubProjectsSection projects={profile.projects} groupId={group.id} />
+          <FansubStorySection group={group} stories={profile.stories} />
         </div>
       ) : null}
 
-      <div className={styles.readingColumn}>
-        {hasTeam ? (
-          <div className={styles.sectionSpacing}>
-            <FansubTeamSection members={domainProjection.members} historical={domainProjection.historical} />
+      {profile.projects.length > 0 ? (
+        <div className={styles.sectionBand}>
+          {bannerBackdrop ? (
+            <div
+              className={styles.sectionBandBackdrop}
+              style={{ backgroundImage: `url("${bannerBackdrop}")` }}
+              aria-hidden="true"
+            />
+          ) : null}
+          <div className={styles.gridSection}>
+            <FansubProjectsSection projects={profile.projects} groupId={group.id} />
           </div>
-        ) : null}
+        </div>
+      ) : null}
 
-        {hasHistory ? (
-          <div className={styles.sectionSpacing}>
-            <FansubHistorySection history={profile.history} />
-          </div>
-        ) : null}
+      {hasTeam ? (
+        <div className={styles.gridSection}>
+          <FansubTeamSection members={domainProjection.members} historical={domainProjection.historical} />
+        </div>
+      ) : null}
 
-        {hasCommunityLinks ? (
-          <div className={styles.sectionSpacing}>
-            <FansubCommunityLinksSection links={profile.community_links} />
-          </div>
-        ) : null}
+      {hasHistory ? (
+        <div className={styles.gridSection}>
+          <FansubHistorySection history={profile.history} />
+        </div>
+      ) : null}
 
-        {hasMedia ? (
-          <div className={styles.sectionSpacing}>
+      {hasMedia ? (
+        <div className={styles.sectionBand}>
+          {bannerBackdrop ? (
+            <div
+              className={styles.sectionBandBackdrop}
+              style={{ backgroundImage: `url("${bannerBackdrop}")` }}
+              aria-hidden="true"
+            />
+          ) : null}
+          <div className={styles.gridSection}>
             <FansubMediaSection media={profile.media} />
           </div>
-        ) : null}
-
-        {emptyAreaLabels.length > 0 ? (
-          <aside className={styles.emptySummary} aria-label="Noch offene Profilbereiche">
-            <p>Weitere Bereiche sind noch nicht öffentlich befüllt: {emptyAreaLabels.join(', ')}.</p>
-          </aside>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </main>
   )
 }

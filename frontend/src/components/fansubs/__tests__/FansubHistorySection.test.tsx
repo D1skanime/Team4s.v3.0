@@ -22,7 +22,10 @@ describe('FansubHistorySection', () => {
     expect(html).toContain('Historie &amp; Erfolge')
     expect(html).toContain('Erstes Komplettprojekt abgeschlossen')
     expect(html).not.toContain('Gruppenleitung')
-    expect(html).toMatch(/class="[^"]*milestone[^"]*"/)
+    // milestone -> Gold-Medaille (Trophaee) mit Jahres-Chip
+    expect(html).toMatch(/class="[^"]*achGold[^"]*"/)
+    expect(html).toContain('🏆')
+    expect(html).toContain('2014')
   })
 
   it('rendert keinen Abschnitt wenn keine Historie geliefert wird', () => {

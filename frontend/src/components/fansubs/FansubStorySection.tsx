@@ -23,7 +23,7 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
 
   return (
     <section id="geschichte">
-      <SectionHeader title="Geschichte" />
+      <SectionHeader title="Geschichte" underline />
       <div className={styles.storyStack}>
         {publishedStories.map((story) => (
           <FansubStoryBlock key={story.id} story={story} />

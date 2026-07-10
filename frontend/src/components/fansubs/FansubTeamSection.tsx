@@ -36,7 +36,7 @@ export function FansubTeamSection({ members, historical }: FansubTeamSectionProp
 
   return (
     <section id="team" className={styles.teamSection}>
-      <SectionHeader title="Team & Mitglieder" />
+      <SectionHeader title="Team & Mitglieder" underline />
       <FansubTeamActiveGroup members={activeMembers} />
       <FansubTeamHistoricalGroup historical={historicalNonMemorial} />
       <FansubTeamMemorialBlock memorial={allMemorial} />

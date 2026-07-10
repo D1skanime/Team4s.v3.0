@@ -14,7 +14,7 @@
 .bodyText {
   margin: 0;
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.65;
 }
 
 .stack {
@@ -93,16 +93,162 @@
   padding-left: 14px;
 }
 
+/* ── Erfolge als Medaillen-Karten ─────────────────────────────────── */
+.achGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ach {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  overflow: hidden;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ach:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(24, 21, 18, 0.13);
+}
+
+.ach::before {
+  content: '';
+  position: absolute;
+  left: -42px;
+  top: -42px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: var(--ach-color);
+  opacity: 0.13;
+  filter: blur(4px);
+}
+
+.medal {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  background: var(--ach-grad);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.55);
+}
+
+.medal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%);
+}
+
+.achBody {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding-right: 54px;
+  display: grid;
+  gap: 2px;
+}
+
+.achBody strong {
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.achNote {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.achYear {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: var(--ach-color);
+  background: var(--ach-soft);
+}
+
+.achGold {
+  --ach-color: var(--ach-gold);
+  --ach-grad: var(--ach-gold-grad);
+  --ach-soft: var(--ach-gold-soft);
+}
+
+.achAccent {
+  --ach-color: var(--ach-accent);
+  --ach-grad: var(--ach-accent-grad);
+  --ach-soft: var(--ach-accent-soft);
+}
+
+.achGreen {
+  --ach-color: var(--ach-green);
+  --ach-grad: var(--ach-green-grad);
+  --ach-soft: var(--ach-green-soft);
+}
+
+.achPink {
+  --ach-color: var(--ach-pink);
+  --ach-grad: var(--ach-pink-grad);
+  --ach-soft: var(--ach-pink-soft);
+}
+
+.achMuted {
+  --ach-color: var(--ach-muted);
+  --ach-grad: var(--ach-muted-grad);
+  --ach-soft: var(--ach-muted-soft);
+}
+
 .mediaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
+/* Galerie: feste Spaltenzahl mit 1fr -> Thumbnails skalieren mit der Breite
+   (echtes Bild kommt erst per Klick in der Lightbox). */
 .mediaItemGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+}
+
+@media (min-width: 1600px) {
+  .mediaItemGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 999px) {
+  .mediaItemGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 639px) {
+  .mediaItemGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .mediaCard {
@@ -132,7 +278,7 @@
   justify-content: center;
   padding: 3px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--scrim-icon);
   color: var(--text-primary);
 }
 
@@ -238,7 +384,7 @@
   padding: 0 !important;
   border-radius: 8px;
   background: var(--accent-dark) !important;
-  color: #fff !important;
+  color: var(--color-white) !important;
   font-size: 15px;
   font-weight: 600;
 }

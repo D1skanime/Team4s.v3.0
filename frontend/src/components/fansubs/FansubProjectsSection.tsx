@@ -18,6 +18,13 @@ const projectBucketLabel: Record<ProjectBucketKey, string> = {
   archived: 'Archiviert',
 }
 
+// Status-Farben aus dem globalen Badge-System: laufend gelb, abgeschlossen gruen, archiviert rot
+const projectBucketBadge: Record<ProjectBucketKey, 'warning' | 'success' | 'danger'> = {
+  ongoing: 'warning',
+  completed: 'success',
+  archived: 'danger',
+}
+
 function resolveProjectBucket(status: PublicFansubProject['status']): ProjectBucketKey {
   if (status === 'ongoing') return 'ongoing'
   if (status === 'done') return 'completed'
@@ -58,12 +65,13 @@ export function FansubProjectsSection({ projects, groupId }: FansubProjectsSecti
     projectsByBucket[bucket].map((project) => ({
       project,
       statusLabel: projectBucketLabel[bucket],
+      statusVariant: projectBucketBadge[bucket],
     })),
   )
 
   return (
     <section id="projekte">
-      <SectionHeader title="Projekte" />
+      <SectionHeader title="Projekte" underline />
       <FansubProjectsGrid items={items} groupId={groupId} />
     </section>
   )

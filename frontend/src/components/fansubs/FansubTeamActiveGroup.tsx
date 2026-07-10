@@ -22,6 +22,7 @@ function MemberRowInner({ member }: { member: DomainProjectionMemberRow }) {
           {member.member_display_name}
         </span>
         <span className={styles.memberRoles}>{roles}</span>
+        {member.member_slogan ? <span className={styles.memberSlogan}>„{member.member_slogan}“</span> : null}
       </span>
       {isLinked ? <ChevronRight size={16} className={styles.chevron} aria-hidden="true" /> : null}
     </>

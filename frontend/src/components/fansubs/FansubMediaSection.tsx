@@ -11,7 +11,7 @@ interface FansubMediaSectionProps {
 export function FansubMediaSection({ media }: FansubMediaSectionProps) {
   return (
     <section id="medien">
-      <SectionHeader title="Medien" />
+      <SectionHeader title="Medien" underline />
       <FansubGroupMediaBlock media={media} />
     </section>
   )

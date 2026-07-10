@@ -1,4 +1,8 @@
 .storyStack {
   display: grid;
   gap: 24px;
+  /* Fliesstext linksbuendig auf lesbarer Measure (~66 Zeichen), Section selbst volle Breite */
+  max-width: 68ch;
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  line-height: 1.65;
 }

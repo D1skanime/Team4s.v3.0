@@ -6,11 +6,13 @@
 .imageFrame {
   position: relative;
   width: 100%;
-  max-height: 70vh;
+  max-height: 78vh;
   aspect-ratio: 16 / 9;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   background: var(--bg-hover);
+  /* blauer Leucht-Rahmen ums Bild */
+  box-shadow: 0 0 0 2px var(--accent-primary), 0 0 22px 1px rgba(95, 132, 221, 0.5);
 }
 
 .image {
@@ -29,6 +31,11 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
+}
+
+/* Weiter/Zurueck-Pfeile in der Weinrot-Farbe des Design-Systems */
+.navigationRow svg {
+  color: var(--ui-arrow);
 }
 
 .counter {

@@ -48,6 +48,7 @@ function HistoricalRow({ member, unconfirmed }: { member: DomainProjectionHistor
           {unconfirmed ? <Badge variant="muted">unbestätigt</Badge> : null}
         </span>
         <MemberRolesAndPeriod member={member} />
+        {member.member_slogan ? <span className={styles.memberSlogan}>„{member.member_slogan}“</span> : null}
       </span>
       {isLinked ? <ChevronRight size={16} className={styles.chevron} aria-hidden="true" /> : null}
     </>
