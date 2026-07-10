@@ -910,6 +910,13 @@
   flex-wrap: wrap;
 }
 
+/* Opt-in: Wein-Header-Linie des Design-Systems unter dem Section-Header */
+.sectionHeaderUnderline {
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--ui-line);
+}
+
 .pageHeader {
   gap: 20px 28px;
   padding-bottom: 6px;
@@ -1269,6 +1276,11 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0;
   overflow: hidden;
+}
+
+/* Breite Variante (z. B. Bild-Lightbox): skaliert mit dem Bildschirm */
+.modalPanelLg {
+  width: min(1100px, calc(100vw - 48px));
 }
 
 .drawerWrap {

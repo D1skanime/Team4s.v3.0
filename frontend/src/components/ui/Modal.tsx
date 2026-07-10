@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import type { KeyboardEvent, ReactNode } from 'react'
 
 import { Button } from './Button'
@@ -14,6 +15,8 @@ export interface ModalProps {
   description?: string
   children: ReactNode
   footer?: ReactNode
+  /** 'md' (Standard) oder 'lg' fuer breite Inhalte wie Bild-Lightboxen. */
+  size?: 'md' | 'lg'
 }
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
@@ -33,7 +36,7 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
   })
 }
 
-export function Modal({ open, onClose, title, description, children, footer }: ModalProps) {
+export function Modal({ open, onClose, title, description, children, footer, size = 'md' }: ModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
   const previouslyFocusedRef = useRef<HTMLElement | null>(null)
@@ -81,11 +84,15 @@ export function Modal({ open, onClose, title, description, children, footer }: M
     return null
   }
 
-  return (
+  const modal = (
     <div className={styles.modalWrap} role="dialog" aria-modal="true" aria-labelledby="ui-modal-title" onKeyDown={handleKeyDown}>
       <div className={styles.overlay} aria-hidden="true" />
       <button type="button" className={styles.overlayClose} aria-label="Modal schließen" onClick={onClose} />
-      <div className={styles.modalPanel} ref={panelRef} tabIndex={-1}>
+      <div
+        className={size === 'lg' ? `${styles.modalPanel} ${styles.modalPanelLg}` : styles.modalPanel}
+        ref={panelRef}
+        tabIndex={-1}
+      >
         <div className={styles.dialogHeader}>
           <div>
             <h3 className={styles.dialogTitle} id="ui-modal-title">{title}</h3>
@@ -102,4 +109,7 @@ export function Modal({ open, onClose, title, description, children, footer }: M
       </div>
     </div>
   )
+
+  // Portal an document.body -> Modal entkommt allen isolation/z-index-Kontexten (z. B. Section-Backdrop)
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal
 }

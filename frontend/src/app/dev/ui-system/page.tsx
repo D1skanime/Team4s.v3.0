@@ -41,6 +41,29 @@ const tokenSwatches = [
   { name: 'Success', variable: '--color-success', color: '#28a745' },
 ]
 
+const avatarFamily = Array.from({ length: 6 }, (_, index) => ({
+  label: `Avatar ${index + 1}`,
+  variable: `--avatar-${index + 1}`,
+}))
+
+const categoryTagFamily = [
+  { label: 'Galerie', key: 'gallery' },
+  { label: 'Historie', key: 'history' },
+  { label: 'Old-Web', key: 'oldweb' },
+  { label: 'Forum', key: 'forum' },
+  { label: 'IRC', key: 'irc' },
+  { label: 'Event', key: 'event' },
+  { label: 'Artwork', key: 'artwork' },
+  { label: 'Sonstiges', key: 'other' },
+]
+
+const communityLinkFamily = [
+  { label: 'Discord', variable: '--link-discord' },
+  { label: 'IRC', variable: '--link-irc' },
+  { label: 'Twitter/X', variable: '--link-twitter' },
+  { label: 'GitHub', variable: '--link-github' },
+]
+
 const tableRows = [
   { name: 'Anime no Hikari', status: 'Aktiv', owners: '3 Rollen', progress: '12 Versionen' },
   { name: 'Pixel Fansubs', status: 'Pausiert', owners: '1 Rolle', progress: '4 Versionen' },
@@ -153,6 +176,62 @@ export default function UISystemPlaygroundPage() {
                 <div className={styles.tokenLine}><span>Metatext</span><code>--text-soft / --text-faint</code></div>
               </div>
             </Card>
+          </div>
+        </Card>
+
+        <Card variant="section">
+          <SectionHeader
+            eyebrow="01b"
+            title="Farbfamilien – öffentliche Profile"
+            description="Zusätzliche Token-Familien für die öffentlichen Fansub-Seiten: farbige Avatar-Kreise, Medien-Kategorie-Tags und Community-Logo-Farben. Alle über CSS-Variablen, keine Inline-Hex-Werte in den Komponenten."
+          />
+          <div className={styles.stack}>
+            <div>
+              <div className={styles.tokenLine}><strong>Avatar-Kreise</strong><code>--avatar-N-bg / -fg</code></div>
+              <div className={styles.colorFamilyGrid}>
+                {avatarFamily.map((item) => (
+                  <span
+                    key={item.variable}
+                    className={styles.colorChip}
+                    style={{ background: `var(${item.variable}-bg)`, color: `var(${item.variable}-fg)` }}
+                  >
+                    {item.label}
+                    <code>{item.variable}</code>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className={styles.tokenLine}><strong>Medien-Kategorie-Tags</strong><code>--tag-KEY-bg / -fg</code></div>
+              <div className={styles.colorFamilyGrid}>
+                {categoryTagFamily.map((item) => (
+                  <span
+                    key={item.key}
+                    className={styles.colorChip}
+                    style={{ background: `var(--tag-${item.key}-bg)`, color: `var(--tag-${item.key}-fg)` }}
+                  >
+                    {item.label}
+                    <code>{`--tag-${item.key}`}</code>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className={styles.tokenLine}><strong>Community-Logo-Farben</strong><code>--link-KEY</code></div>
+              <div className={styles.colorFamilyGrid}>
+                {communityLinkFamily.map((item) => (
+                  <span key={item.variable} className={styles.colorChip}>
+                    <span className={styles.colorDot} style={{ background: `var(${item.variable})` }} />
+                    {item.label}
+                    <code>{item.variable}</code>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className={styles.tokenLine}>
+              <span>Weitere Tokens</span>
+              <code>--accent-deep · --scrim-strong · --scrim-icon</code>
+            </div>
           </div>
         </Card>
 

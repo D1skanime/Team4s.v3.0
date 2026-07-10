@@ -69,6 +69,38 @@
   font-size: 14px;
 }
 
+.colorFamilyGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.colorChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 41, 38, 0.1);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.colorChip code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  flex: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
 .radiusRow,
 .shadowRow,
 .spacingRow,
@@ -964,7 +996,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #7c3c4f;
+  color: var(--ui-arrow);
 }
 
 .disclosureIcon {

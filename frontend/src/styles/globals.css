@@ -66,6 +66,30 @@
   --link-twitter: #1d9bf0;
   --link-github: #24292f;
 
+  --scrim-strong: rgba(0, 0, 0, 0.72);
+  --scrim-icon: rgba(255, 255, 255, 0.85);
+
+  /* Navigations-/Disclosure-Pfeil (Chevron) des Design-Systems */
+  --ui-arrow: #7c3c4f;
+  /* Wein-Header-Linie des Design-Systems (dev-ui tableWrapHeaderLineWine) */
+  --ui-line: #82122c;
+
+  --ach-gold: #c98a12;
+  --ach-gold-grad: linear-gradient(145deg, #ffd873, #d68e17);
+  --ach-gold-soft: #faf1d7;
+  --ach-accent: #185fa5;
+  --ach-accent-grad: linear-gradient(145deg, #6fa2f4, #185fa5);
+  --ach-accent-soft: #e6f1fb;
+  --ach-green: #1f9d63;
+  --ach-green-grad: linear-gradient(145deg, #63e6a4, #1f9d63);
+  --ach-green-soft: #e1f5ee;
+  --ach-pink: #993556;
+  --ach-pink-grad: linear-gradient(145deg, #ff9ec4, #993556);
+  --ach-pink-soft: #fbeaf0;
+  --ach-muted: #6b6b70;
+  --ach-muted-grad: linear-gradient(145deg, #b8b8bd, #6b6b70);
+  --ach-muted-soft: #f0ece5;
+
   --button-primary-start: #7aa0f0;
   --button-primary-mid: #5f84dd;
   --button-primary-end: #4363b4;
@@ -153,6 +177,9 @@ body {
   color: var(--text-primary);
   background: var(--bg-primary);
   line-height: 1.5;
+  /* Full-Bleed-Elemente (100vw, z. B. Hero-Backdrop) duerfen keine Horizontalscrollbar erzeugen.
+     'clip' statt 'hidden' -> erzeugt keinen Scroll-Container, bricht kein position: sticky. */
+  overflow-x: clip;
 }
 
 a {
