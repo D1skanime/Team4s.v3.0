@@ -217,7 +217,11 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 
 	anime.Type = mapAnimeTypeNameToAPI(animeType)
 	anime.ViewCount = 0
-	anime.Episodes = []models.EpisodeListItem{}
+	episodes, err := r.loadAnimeEpisodes(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	anime.Episodes = episodes
 	sourceLinks, err := loadAnimeSourceLinks(ctx, r.db, id)
 	if err != nil {
 		return nil, err

@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1180" viewBox="0 0 1120 1180" role="img" aria-labelledby="title desc">
+  <title id="title">History event icon proposals</title>
+  <desc id="desc">Three outlined icon proposals for each fansub group history event type.</desc>
+  <style>
+    .sheet { fill: #f7f5ef; }
+    .title { font: 700 28px Arial, sans-serif; fill: #242424; }
+    .subtitle { font: 400 14px Arial, sans-serif; fill: #66615a; }
+    .header { font: 700 12px Arial, sans-serif; fill: #625f58; letter-spacing: .04em; text-transform: uppercase; }
+    .row-label { font: 700 14px Arial, sans-serif; fill: #2e2b28; }
+    .row-note { font: 400 11px Arial, sans-serif; fill: #776f65; }
+    .cell-label { font: 600 12px Arial, sans-serif; fill: #3b3934; }
+    .card { fill: #fffdf8; stroke: #ded6c9; stroke-width: 1; }
+    .icon { fill: none; stroke: #252525; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .accent-gold { stroke: #b7791f; }
+    .accent-pink { stroke: #b83280; }
+    .accent-blue { stroke: #2c5282; }
+    .accent-green { stroke: #2f855a; }
+    .accent-red { stroke: #c53030; }
+    .accent-muted { stroke: #6b7280; }
+    .accent-purple { stroke: #6b46c1; }
+  </style>
+  <rect class="sheet" width="1120" height="1180"/>
+  <text class="title" x="32" y="44">Historie &amp; Erfolge: Icon-Entwuerfe</text>
+  <text class="subtitle" x="32" y="68">Drei Varianten je event_type, als spätere SVG-Dateien oder Lucide-Mappings nutzbar.</text>
+  <text class="header" x="32" y="106">Typ</text>
+  <text class="header" x="262" y="106">Variante A</text>
+  <text class="header" x="542" y="106">Variante B</text>
+  <text class="header" x="822" y="106">Variante C</text>
+
+  <!-- founding -->
+  <g transform="translate(0 120)">
+    <text class="row-label" x="32" y="32">founding</text><text class="row-note" x="32" y="50">Gründung</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-pink" transform="translate(260 18)"><path d="M5 20l4-12 7 7-11 5z"/><path d="M14 6l4-4"/><path d="M17 10l5-1"/><path d="M11 3l1-4"/></g><text class="cell-label" x="300" y="37">party-popper</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(540 18)"><path d="M6 22V3"/><path d="M6 4h13l-3 5 3 5H6"/></g><text class="cell-label" x="580" y="37">flag</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><path d="M12 2l2.5 6 6.5 1-5 4.4 1.5 6.6L12 16.5 6.5 20 8 13.4 3 9l6.5-1z"/></g><text class="cell-label" x="860" y="37">sparkles</text>
+  </g>
+
+  <!-- disbanding -->
+  <g transform="translate(0 194)">
+    <text class="row-label" x="32" y="32">disbanding</text><text class="row-note" x="32" y="50">Auflösung</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-muted" transform="translate(260 18)"><path d="M4 7h16"/><path d="M6 7v14h12V7"/><path d="M9 11h6"/><path d="M8 3h8l2 4H6z"/></g><text class="cell-label" x="300" y="37">archive</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-red" transform="translate(540 18)"><circle cx="12" cy="12" r="9"/><path d="M6 18L18 6"/></g><text class="cell-label" x="580" y="37">circle-slash</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-muted" transform="translate(820 18)"><path d="M7 21V4h10v17"/><path d="M10 12h.1"/><path d="M5 21h14"/></g><text class="cell-label" x="860" y="37">door-closed</text>
+  </g>
+
+  <!-- hiatus -->
+  <g transform="translate(0 268)">
+    <text class="row-label" x="32" y="32">hiatus</text><text class="row-note" x="32" y="50">Pause</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-muted" transform="translate(260 18)"><circle cx="12" cy="12" r="9"/><path d="M10 8v8"/><path d="M14 8v8"/></g><text class="cell-label" x="300" y="37">pause-circle</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(540 18)"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/></g><text class="cell-label" x="580" y="37">moon</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><path d="M7 3h10"/><path d="M7 21h10"/><path d="M8 3c0 5 8 5 8 9s-8 4-8 9"/><path d="M16 3c0 5-8 5-8 9s8 4 8 9"/></g><text class="cell-label" x="860" y="37">hourglass</text>
+  </g>
+
+  <!-- rebranding -->
+  <g transform="translate(0 342)">
+    <text class="row-label" x="32" y="32">rebranding</text><text class="row-note" x="32" y="50">Umbenennung</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-purple" transform="translate(260 18)"><path d="M12 3a9 9 0 0 0 0 18h1.5a2.5 2.5 0 0 0 0-5H12a1.5 1.5 0 0 1 0-3h4a5 5 0 0 0 0-10z"/><circle cx="7.5" cy="10" r=".5"/><circle cx="10" cy="7" r=".5"/><circle cx="14" cy="7" r=".5"/></g><text class="cell-label" x="300" y="37">palette</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(540 18)"><path d="M20 11a8 8 0 0 0-14-5l-2 2"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></g><text class="cell-label" x="580" y="37">refresh-cw</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></g><text class="cell-label" x="860" y="37">sparkles</text>
+  </g>
+
+  <!-- milestone -->
+  <g transform="translate(0 416)">
+    <text class="row-label" x="32" y="32">milestone</text><text class="row-note" x="32" y="50">Meilenstein</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(260 18)"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M5 5H3a3 3 0 0 0 4 5"/><path d="M19 5h2a3 3 0 0 1-4 5"/></g><text class="cell-label" x="300" y="37">trophy</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(540 18)"><circle cx="12" cy="8" r="5"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></g><text class="cell-label" x="580" y="37">medal</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><path d="M12 2l3 6 6 .9-4.5 4.4 1.1 6.2L12 16.5 6.4 19.5l1.1-6.2L3 8.9 9 8z"/></g><text class="cell-label" x="860" y="37">star</text>
+  </g>
+
+  <!-- other -->
+  <g transform="translate(0 490)">
+    <text class="row-label" x="32" y="32">other</text><text class="row-note" x="32" y="50">Sonstiges</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-muted" transform="translate(260 18)"><path d="M12 4v16"/><path d="M5 8l14 8"/><path d="M19 8L5 16"/></g><text class="cell-label" x="300" y="37">asterisk</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-muted" transform="translate(540 18)"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/></g><text class="cell-label" x="580" y="37">circle-dot</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(820 18)"><path d="M7 4h10v17l-5-3-5 3z"/></g><text class="cell-label" x="860" y="37">bookmark</text>
+  </g>
+
+  <!-- first_release -->
+  <g transform="translate(0 564)">
+    <text class="row-label" x="32" y="32">first_release</text><text class="row-note" x="32" y="50">Erstes Release</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-red" transform="translate(260 18)"><path d="M12 2c4 2 6 6 6 11l-4 4H10l-4-4c0-5 2-9 6-11z"/><path d="M9 17l-2 4"/><path d="M15 17l2 4"/><circle cx="12" cy="9" r="2"/></g><text class="cell-label" x="300" y="37">rocket</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(540 18)"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></g><text class="cell-label" x="580" y="37">play-circle</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(820 18)"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></g><text class="cell-label" x="860" y="37">send</text>
+  </g>
+
+  <!-- anniversary -->
+  <g transform="translate(0 638)">
+    <text class="row-label" x="32" y="32">anniversary</text><text class="row-note" x="32" y="50">Jubiläum</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-pink" transform="translate(260 18)"><path d="M4 13h16v8H4z"/><path d="M4 13c2-4 4 1 8-3 4 4 6-1 8 3"/><path d="M8 9V6"/><path d="M12 9V5"/><path d="M16 9V6"/></g><text class="cell-label" x="300" y="37">cake</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-red" transform="translate(540 18)"><path d="M6 4v4"/><path d="M18 4v4"/><path d="M4 7h16v14H4z"/><path d="M4 11h16"/><path d="M12 18s-4-2.5-4-5a2 2 0 0 1 4-1 2 2 0 0 1 4 1c0 2.5-4 5-4 5z"/></g><text class="cell-label" x="580" y="37">calendar-heart</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><path d="M12 3l7 4v6c0 4-3 7-7 9-4-2-7-5-7-9V7z"/><path d="M9 12h6"/><path d="M12 9v6"/></g><text class="cell-label" x="860" y="37">badge</text>
+  </g>
+
+  <!-- collaboration -->
+  <g transform="translate(0 712)">
+    <text class="row-label" x="32" y="32">collaboration</text><text class="row-note" x="32" y="50">Kooperation</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(260 18)"><path d="M8 12l3 3a3 3 0 0 0 4 0l4-4"/><path d="M2 12l4-4 5 5"/><path d="M22 12l-4-4-5 5"/><path d="M6 16l2 2"/><path d="M16 18l2-2"/></g><text class="cell-label" x="300" y="37">handshake</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(540 18)"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21c1-4 4-6 6-6s5 2 6 6"/><path d="M14 16c2 0 5 1.5 6 5"/></g><text class="cell-label" x="580" y="37">users</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-purple" transform="translate(820 18)"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><circle cx="6" cy="18" r="2"/><path d="M8 6h4a4 4 0 0 1 4 4v6"/><path d="M8 18h8"/></g><text class="cell-label" x="860" y="37">git-merge</text>
+  </g>
+
+  <!-- revival -->
+  <g transform="translate(0 786)">
+    <text class="row-label" x="32" y="32">revival</text><text class="row-note" x="32" y="50">Wiederaufnahme</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-red" transform="translate(260 18)"><path d="M12 22c4-2 6-5 6-9 0-4-3-7-5-10-1 4-5 5-5 10 0 4 2 7 4 9z"/><path d="M12 22c-2-2-2-5 0-8 2 3 2 6 0 8z"/></g><text class="cell-label" x="300" y="37">flame</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(540 18)"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/></g><text class="cell-label" x="580" y="37">rotate-ccw</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 5v3"/><path d="M5 11l2 2"/><path d="M19 11l-2 2"/></g><text class="cell-label" x="860" y="37">sunrise</text>
+  </g>
+
+  <!-- project_completed -->
+  <g transform="translate(0 860)">
+    <text class="row-label" x="32" y="32">project_completed</text><text class="row-note" x="32" y="50">Projekt abgeschlossen</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(260 18)"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 6-7"/></g><text class="cell-label" x="300" y="37">check-circle</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(540 18)"><path d="M4 7l8-4 8 4-8 4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M9 14l2 2 4-5"/></g><text class="cell-label" x="580" y="37">package-check</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(820 18)"><path d="M12 3l7 4v6c0 4-3 7-7 9-4-2-7-5-7-9V7z"/><path d="M8.5 12l2.5 2.5 5-6"/></g><text class="cell-label" x="860" y="37">badge-check</text>
+  </g>
+
+  <!-- team_change -->
+  <g transform="translate(0 934)">
+    <text class="row-label" x="32" y="32">team_change</text><text class="row-note" x="32" y="50">Teamwechsel</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-purple" transform="translate(260 18)"><circle cx="10" cy="8" r="4"/><path d="M3 21c1-5 4-7 7-7"/><circle cx="17" cy="16" r="3"/><path d="M17 12v1"/><path d="M17 19v1"/><path d="M13 16h1"/><path d="M20 16h1"/></g><text class="cell-label" x="300" y="37">user-cog</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(540 18)"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 21c.8-4 3-6 5-6"/><path d="M11 21c.8-4 3-6 5-6"/><path d="M8 15h8"/></g><text class="cell-label" x="580" y="37">users-round</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(820 18)"><path d="M16 3h5v5"/><path d="M4 20l17-17"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></g><text class="cell-label" x="860" y="37">shuffle</text>
+  </g>
+
+  <!-- website_launch -->
+  <g transform="translate(0 1008)">
+    <text class="row-label" x="32" y="32">website_launch</text><text class="row-note" x="32" y="50">Website gestartet</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-blue" transform="translate(260 18)"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3 3 15 0 18"/><path d="M12 3c-3 3-3 15 0 18"/></g><text class="cell-label" x="300" y="37">globe</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-green" transform="translate(540 18)"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M8 21h8"/><path d="M12 15v6"/><path d="M12 12V7"/><path d="M9 10l3-3 3 3"/></g><text class="cell-label" x="580" y="37">monitor-up</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></g><text class="cell-label" x="860" y="37">rss</text>
+  </g>
+
+  <!-- award -->
+  <g transform="translate(0 1082)">
+    <text class="row-label" x="32" y="32">award</text><text class="row-note" x="32" y="50">Auszeichnung</text>
+    <rect class="card" x="240" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(260 18)"><circle cx="12" cy="8" r="5"/><path d="M9 13l-2 8 5-3 5 3-2-8"/><path d="M10 8l1.5 1.5L15 6"/></g><text class="cell-label" x="300" y="37">award</text>
+    <rect class="card" x="520" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(540 18)"><path d="M3 7l5 4 4-7 4 7 5-4-2 12H5z"/><path d="M5 21h14"/></g><text class="cell-label" x="580" y="37">crown</text>
+    <rect class="card" x="800" y="0" width="230" height="64" rx="8"/><g class="icon accent-gold" transform="translate(820 18)"><circle cx="12" cy="8" r="5"/><path d="M9 13l-2 8 5-3 5 3-2-8"/><path d="M12 5l.9 1.8 2 .3-1.4 1.4.3 2-1.8-1-1.8 1 .3-2L9.1 7.1l2-.3z"/></g><text class="cell-label" x="860" y="37">medal-star</text>
+  </g>
+</svg>

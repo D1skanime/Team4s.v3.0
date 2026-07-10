@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Legendary Erfolge - Legende</title>
+    <style>
+      :root {
+        --bg: #f6efe4;
+        --card: #fffaf2;
+        --line: #decfbc;
+        --ink: #201a17;
+        --muted: #71665d;
+        --gold: #b87818;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Arial, sans-serif;
+      }
+
+      main {
+        width: 1440px;
+        padding: 36px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 34px;
+        line-height: 1.08;
+      }
+
+      .intro {
+        margin: 0 0 28px;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+      }
+
+      article {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--card);
+        box-shadow: 0 14px 40px rgb(74 50 22 / 10%);
+      }
+
+      .crop {
+        width: 100%;
+        aspect-ratio: 1;
+        background-image: url("legendary-count-achievements-v1.png");
+        background-size: 300% 300%;
+      }
+
+      .p1 { background-position: 0% 0%; }
+      .p2 { background-position: 50% 0%; }
+      .p3 { background-position: 100% 0%; }
+      .p4 { background-position: 0% 50%; }
+      .p5 { background-position: 50% 50%; }
+      .p6 { background-position: 100% 50%; }
+      .p7 { background-position: 0% 100%; }
+      .p8 { background-position: 50% 100%; }
+      .p9 { background-position: 100% 100%; }
+
+      .body {
+        padding: 16px 18px 18px;
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+      }
+
+      code {
+        border-radius: 999px;
+        background: #f0e4d4;
+        padding: 3px 7px;
+        font-size: 12px;
+      }
+
+      h2 {
+        margin: 0 0 6px;
+        font-size: 22px;
+      }
+
+      p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Legendary Erfolge - Legende</h1>
+      <p class="intro">Jede Kachel steht für einen seltenen, später automatisch aus DB-Zahlen abgeleiteten Erfolg.</p>
+      <section class="grid">
+        <article>
+          <div class="crop p1"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>projects_10</code></p>
+            <h2>10 Projekte</h2>
+            <p>Erreicht, wenn eine Gruppe mindestens 10 bestätigte Projekte hat.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p2"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>projects_50</code></p>
+            <h2>50 Projekte</h2>
+            <p>Seltener Projekt-Meilenstein für mindestens 50 bestätigte Projekte.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p3"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>releases_100</code></p>
+            <h2>100 Releases</h2>
+            <p>Erster großer Release-Meilenstein ab mindestens 100 Releases.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p4"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>releases_500</code></p>
+            <h2>500 Releases</h2>
+            <p>Sehr hoher Release-Meilenstein mit Vault-/Archivwirkung.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p5"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>projects_100</code></p>
+            <h2>100 Projekte</h2>
+            <p>Legendärer Projektbestand, dargestellt als große Projektbibliothek.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p6"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>releases_1000</code></p>
+            <h2>1000 Releases</h2>
+            <p>Legendärer Release-Erfolg mit Disc-Konstellation und Filmstreifen.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p7"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>releases_5000</code></p>
+            <h2>5000 Releases</h2>
+            <p>Mythischer Release-Erfolg mit Regenbogen-Prisma und vielen Fragmenten.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p8"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>releases_10000</code></p>
+            <h2>10000 Releases</h2>
+            <p>Ultimativer Release-Erfolg mit kosmischer Krone und Galaxie-Aura.</p>
+          </div>
+        </article>
+        <article>
+          <div class="crop p9"></div>
+          <div class="body">
+            <p class="eyebrow">Code <code>projects_500</code></p>
+            <h2>500 Projekte</h2>
+            <p>Extrem seltener Projekt-Erfolg, dargestellt als monumentales Projektarchiv.</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

@@ -46,6 +46,8 @@ const makeEpisode = (overrides: Partial<EpisodeReleaseSummary> = {}): EpisodeRel
   karaoke_count: 0,
   insert_count: 0,
   screenshot_count: 0,
+  duration_seconds: 1425,
+  timeline_segments: [],
   images_count: 2,
   notes_count: 1,
   ...overrides,
@@ -70,6 +72,46 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     expect(screen.getByRole('button', { name: 'Mehr laden' })).not.toBeNull()
     expect(screen.getByText('2 Bilder')).not.toBeNull()
     expect(screen.getByText('1 Texte')).not.toBeNull()
+    expect(screen.getByText('Hauptinhalt')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Ansicht' })).not.toBeNull()
+  })
+
+  it('Test 1b: rendert OP/ED-Segmente als Timeline-Kaesten', async () => {
+    getGroupReleaseListCursor.mockResolvedValueOnce({
+      items: [
+        makeEpisode({
+          id: 10,
+          episode_number: 1,
+          title: 'Episode 1',
+          timeline_segments: [
+            {
+              id: 1,
+              type: 'OP',
+              title: 'Viper OP',
+              start_time: '00:00:00',
+              end_time: '00:00:45',
+            },
+            {
+              id: 2,
+              type: 'ED',
+              title: 'Viper ED',
+              start_time: '00:21:45',
+              end_time: '00:23:12',
+            },
+          ],
+        }),
+      ],
+      next_cursor: null,
+      has_more: false,
+    })
+
+    render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
+
+    await waitFor(() => expect(screen.getByText('Episode 1')).not.toBeNull())
+    expect(screen.getByText('OP')).not.toBeNull()
+    expect(screen.getByText('ED')).not.toBeNull()
+    expect(screen.getByText('00:00:00 - 00:00:45')).not.toBeNull()
+    expect(screen.getByText('00:21:45 - 00:23:12')).not.toBeNull()
   })
 
   it('Test 2: clicking "Mehr laden" fetches the next cursor page and appends items', async () => {

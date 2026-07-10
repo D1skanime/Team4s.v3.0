@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"strconv"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
@@ -24,10 +26,14 @@ func (r *AdminContentRepository) CreateEpisode(
 	}
 
 	query := `
-		INSERT INTO episodes (anime_id, episode_number, title, status, stream_links)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO episodes (
+			anime_id, episode_number, title, status, stream_links,
+			episode_type_id, number, number_decimal, number_text, sort_index
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id, anime_id, episode_number, title, status, stream_links[1]
 	`
+	episodeTypeID, number, numberDecimal, numberText, sortIndex := normalEpisodeMetadata(input.EpisodeNumber)
 
 	var item models.AdminEpisodeItem
 	if err := r.db.QueryRow(
@@ -38,6 +44,11 @@ func (r *AdminContentRepository) CreateEpisode(
 		input.Title,
 		input.Status,
 		streamLinksFromOptionalString(input.StreamLink),
+		episodeTypeID,
+		number,
+		numberDecimal,
+		numberText,
+		sortIndex,
 	).Scan(
 		&item.ID,
 		&item.AnimeID,
@@ -64,8 +75,24 @@ func (r *AdminContentRepository) UpdateEpisode(
 	assignments = append(assignments, "updated_at = NOW()")
 
 	if input.EpisodeNumber.Set {
+		episodeTypeID, number, numberDecimal, numberText, sortIndex := normalEpisodeMetadata(*input.EpisodeNumber.Value)
 		assignments = append(assignments, fmt.Sprintf("episode_number = $%d", argPos))
 		args = append(args, input.EpisodeNumber.Value)
+		argPos++
+		assignments = append(assignments, fmt.Sprintf("episode_type_id = $%d", argPos))
+		args = append(args, episodeTypeID)
+		argPos++
+		assignments = append(assignments, fmt.Sprintf("number = $%d", argPos))
+		args = append(args, number)
+		argPos++
+		assignments = append(assignments, fmt.Sprintf("number_decimal = $%d", argPos))
+		args = append(args, numberDecimal)
+		argPos++
+		assignments = append(assignments, fmt.Sprintf("number_text = $%d", argPos))
+		args = append(args, numberText)
+		argPos++
+		assignments = append(assignments, fmt.Sprintf("sort_index = $%d", argPos))
+		args = append(args, sortIndex)
 		argPos++
 	}
 	if input.Title.Set {
@@ -239,6 +266,21 @@ func streamLinksFromOptionalString(value *string) []string {
 	}
 
 	return []string{trimmed}
+}
+
+func normalEpisodeMetadata(episodeNumber string) (*int64, *int32, *float64, *string, *int32) {
+	trimmed := strings.TrimSpace(episodeNumber)
+	parsed, err := strconv.Atoi(trimmed)
+	if err != nil || parsed <= 0 || parsed > math.MaxInt32 {
+		return nil, nil, nil, nil, nil
+	}
+
+	episodeTypeID := int64(1)
+	number := int32(parsed)
+	numberDecimal := float64(parsed)
+	numberText := strconv.Itoa(parsed)
+
+	return &episodeTypeID, &number, &numberDecimal, &numberText, &number
 }
 
 func scanAdminEpisodeItem(scanner interface {

@@ -5,13 +5,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
-import { getAnimeByID } from "@/lib/api";
+import { getAnimeByID, getAnimeFansubs, getFansubBySlug } from "@/lib/api";
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
 import { useAuthSession } from "@/lib/useAuthSession";
 import { AnimeDetail } from "@/types/anime";
+import { FansubGroup } from "@/types/fansub";
 
 import { AnimeEditWorkspace } from "../../components/AnimeEditPage/AnimeEditWorkspace";
 import { AnimeRelationsSection } from "../../components/AnimeEditPage/AnimeRelationsSection";
+import { AnimeContextFansubs } from "../../components/AnimeContext/AnimeContextFansubs";
+import { AnimeContextFansubManager } from "../../components/AnimeContext/AnimeContextFansubManager";
 import styles from "../../AdminStudio.module.css";
 import { parsePositiveInt, resolveCoverUrl } from "../../utils/anime-helpers";
 import { formatAdminError } from "../../utils/studio-helpers";
@@ -33,7 +36,9 @@ function AdminAnimeEditContent() {
 
   const { hasAccessToken } = useAuthSession();
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
+  const [fansubs, setFansubs] = useState<FansubGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingFansubs, setIsLoadingFansubs] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [lastRequest, setLastRequest] = useState<string | null>(null);
@@ -64,6 +69,44 @@ function AdminAnimeEditContent() {
     }
 
     void loadAnime();
+  }, [animeID]);
+
+  async function loadFansubs() {
+    if (!animeID) {
+      setFansubs([]);
+      return;
+    }
+
+    setIsLoadingFansubs(true);
+    try {
+      const response = await getAnimeFansubs(animeID);
+      const slugs = Array.from(
+        new Set(
+          response.data
+            .map((relation) => relation.fansub_group?.slug?.trim() || "")
+            .filter((slug) => slug.length > 0),
+        ),
+      );
+      const details = await Promise.allSettled(
+        slugs.map((slug) => getFansubBySlug(slug)),
+      );
+      setFansubs(
+        details
+          .filter((result) => result.status === "fulfilled")
+          .map((result) =>
+            result.status === "fulfilled" ? result.value.data : null,
+          )
+          .filter((group): group is FansubGroup => group !== null),
+      );
+    } catch {
+      setFansubs([]);
+    } finally {
+      setIsLoadingFansubs(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadFansubs();
   }, [animeID]);
 
   return (
@@ -158,18 +201,50 @@ function AdminAnimeEditContent() {
           />
 
           {hasAccessToken ? (
-            <AnimeRelationsSection
-              animeID={anime.id}
-              defaultOpen
-              onSuccess={(message) => {
-                setErrorMessage(null);
-                setSuccessMessage(message);
-              }}
-              onError={(message) => {
-                setSuccessMessage(null);
-                setErrorMessage(message);
-              }}
-            />
+            <>
+              <section className={styles.card}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>Fansub-Gruppen</h2>
+                    <p className={styles.sectionMeta}>
+                      Verknüpfe diesen Anime mit Fansub-Gruppen, damit er in
+                      Gruppenprofilen und Release-Workflows auswählbar ist.
+                    </p>
+                  </div>
+                </div>
+                <AnimeContextFansubs
+                  fansubs={fansubs}
+                  isLoading={isLoadingFansubs}
+                />
+                <AnimeContextFansubManager
+                  animeID={anime.id}
+                  attachedFansubs={fansubs}
+                  disabled={isLoadingFansubs}
+                  onChanged={loadFansubs}
+                  onSuccess={(message) => {
+                    setErrorMessage(null);
+                    setSuccessMessage(message);
+                  }}
+                  onError={(message) => {
+                    setSuccessMessage(null);
+                    setErrorMessage(message);
+                  }}
+                />
+              </section>
+
+              <AnimeRelationsSection
+                animeID={anime.id}
+                defaultOpen
+                onSuccess={(message) => {
+                  setErrorMessage(null);
+                  setSuccessMessage(message);
+                }}
+                onError={(message) => {
+                  setSuccessMessage(null);
+                  setErrorMessage(message);
+                }}
+              />
+            </>
           ) : null}
 
           {lastRequest || lastResponse ? (

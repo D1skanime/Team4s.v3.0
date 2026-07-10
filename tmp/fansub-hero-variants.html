@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>C-Subs Hero – Varianten</title>
+<style>
+  :root {
+    --font-sans: Inter, "Segoe UI", system-ui, sans-serif;
+    --surface-canvas: #f6f4ef;
+    --surface-card: #ffffff;
+    --surface-sunken: #f0ece5;
+    --text-primary: #1c1c1e;
+    --border-subtle: rgba(28,28,30,0.10);
+    --accent-primary: #5f84dd;
+    --accent-deep: #185fa5;
+    --color-success: #28a745;
+    --link-discord:#5865f2; --link-irc:#6b6b70;
+    /* kontraststarke Varianten fuer Glas */
+    --glass-meta: rgba(28,24,38,0.74);
+    --glass-label: rgba(28,24,38,0.64);
+    --banner: url('http://127.0.0.1:18092/api/v1/media/files/banner_1783518947023_791b6ceabf784f75.png');
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--surface-canvas); color:var(--text-primary);
+         font-family:var(--font-sans); overflow-x:clip; }
+  .note { background:#10233b; color:#cfe0ff; font-size:13px; padding:10px 16px; text-align:center; }
+  .note b { color:#fff; }
+  .label { max-width:1180px; margin:26px auto 8px; padding:0 24px; font-weight:700; color:#444; }
+  .label span { font-weight:400; color:#777; font-size:14px; }
+
+  /* ── gemeinsamer Hero-Rahmen ── */
+  .heroBlock { position:relative; isolation:isolate; border-top:3px solid var(--accent-deep); padding-bottom:22px; }
+  .bd { position:absolute; inset:0; z-index:0; background-image:var(--banner);
+        background-size:cover; background-position:center; filter:blur(34px) brightness(0.72) saturate(1.25);
+        transform:scale(1.15); }
+  .bd::after { content:""; position:absolute; inset:0;
+        background:linear-gradient(180deg, rgba(15,12,25,0.30) 0%, rgba(15,12,25,0.44) 55%, var(--surface-canvas) 100%); }
+  .fg { position:relative; z-index:1; width:min(1180px, 100% - 48px); margin:0 auto; }
+
+  .bannerImg { display:block; width:auto; height:auto; max-width:100%; max-height:210px;
+        border-radius:12px; box-shadow:0 10px 34px rgba(0,0,0,.32); }
+
+  /* Glas-Panel (Basis) */
+  .panel { border-radius:18px; background:rgba(255,255,255,0.6);
+        -webkit-backdrop-filter:blur(18px) saturate(1.5); backdrop-filter:blur(18px) saturate(1.5);
+        border:1px solid rgba(255,255,255,0.55);
+        box-shadow:0 10px 34px rgba(20,15,30,.18), inset 0 1px 0 rgba(255,255,255,.55); }
+
+  .logo { width:88px; height:88px; flex:none; border-radius:50%; overflow:hidden;
+        background:var(--surface-card);
+        box-shadow:0 0 0 2px var(--accent-primary), 0 0 20px 2px rgba(95,132,221,.55); }
+  .logo img { width:100%; height:100%; object-fit:cover; }
+  .titlerow { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .titlerow h1 { margin:0; font-size:30px; line-height:1.1; }
+  .badge { font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px;
+        background:#e6f6ec; color:var(--color-success); }
+  .meta { margin:6px 0 0; color:var(--glass-meta); font-size:14px; font-weight:500; }
+
+  .statsInline { display:flex; gap:26px; margin:0; }
+  .statsInline > div { display:grid; gap:2px; }
+  .statsInline dt { color:var(--glass-label); font-size:12px; font-weight:600; }
+  .statsInline dd { margin:0; color:var(--accent-deep); font-size:24px; font-weight:700; line-height:1; }
+
+  .links { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px;
+        border:1px solid var(--border-subtle); background:rgba(255,255,255,0.75); font-size:13px; font-weight:600;
+        color:var(--text-primary); text-decoration:none; }
+  .dot { width:10px; height:10px; border-radius:999px; }
+
+  /* ── VARIANTE A: Logo-Bruecke + Stats rechts ── */
+  .vA .bannerWrap { display:flex; justify-content:center; padding:20px 0 0; }
+  .vA .panel { margin-top:14px; padding:0 22px 18px; }
+  .vA .head { display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; }
+  .vA .idcol { display:flex; align-items:center; gap:16px; }
+  .vA .logo { margin-top:-40px; }           /* bridge: Logo lugt zum Banner hoch */
+  .vA .idtext { padding-top:14px; }
+  .vA .statsInline { padding-top:14px; }
+
+  /* ── VARIANTE B: Banner + Inhalt als EIN Glas-Block ── */
+  .vB .card { border-radius:18px; overflow:hidden; margin-top:18px;
+        background:rgba(255,255,255,0.6);
+        -webkit-backdrop-filter:blur(18px) saturate(1.5); backdrop-filter:blur(18px) saturate(1.5);
+        border:1px solid rgba(255,255,255,0.55);
+        box-shadow:0 12px 38px rgba(20,15,30,.2), inset 0 1px 0 rgba(255,255,255,.55); }
+  .vB .bannerWrapB { display:flex; justify-content:center; padding:16px 16px 0; }
+  .vB .bannerImgB { display:block; width:auto; height:auto; max-width:100%; max-height:190px; border-radius:10px;
+        box-shadow:0 6px 20px rgba(0,0,0,.24); }
+  .vB .body { padding:16px 22px 18px; }
+  .vB .head { display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; }
+  .vB .idcol { display:flex; align-items:center; gap:16px; }
+
+  /* ── AKTUELL (Referenz): Inhalt links, Stats volle Zeile darunter ── */
+  .vCur .bannerWrap { display:flex; justify-content:center; padding:20px 0 0; }
+  .vCur .panel { margin-top:16px; padding:18px 24px; }
+  .vCur .head { display:flex; align-items:center; gap:18px; }
+  .vCur .statsRow { display:flex; margin-top:16px; padding-top:14px; border-top:.5px solid var(--border-subtle); }
+  .vCur .statsRow > div { flex:1; display:grid; gap:2px; }
+  .vCur .statsRow dt { color:var(--glass-label); font-size:12px; font-weight:600; }
+  .vCur .statsRow dd { margin:0; color:var(--accent-deep); font-size:24px; font-weight:700; }
+
+  @media (max-width: 720px) {
+    .vA .head, .vB .head { flex-direction:column; align-items:flex-start; }
+    .statsInline { flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="note">
+  <b>Hero-Varianten für C-Subs</b> — echter Banner/Logo. Beide neuen Varianten füllen die tote Fläche (Stats nach rechts),
+  verbinden Banner+Panel und haben stärkeren Textkontrast. <i>(Lädt Bilder von 127.0.0.1:18092 — Dev-Backend muss laufen; sonst direkt im Chrome öffnen.)</i>
+</div>
+
+<!-- AKTUELL -->
+<div class="label">Aktuell <span>— Inhalt links, rechts + unten leer, Banner/Panel getrennt</span></div>
+<section class="heroBlock vCur">
+  <div class="bd"></div>
+  <div class="fg">
+    <div class="bannerWrap"><img class="bannerImg" src="http://127.0.0.1:18092/api/v1/media/files/banner_1783518947023_791b6ceabf784f75.png" alt=""></div>
+    <div class="panel">
+      <div class="head">
+        <div class="logo"><img src="http://127.0.0.1:18092/api/v1/media/files/logo_1783518907127_16a90a82e1699280.png" alt=""></div>
+        <div><div class="titlerow"><h1>C-Subs</h1><span class="badge">aktiv</span></div>
+          <p class="meta">gegründet 2002 · Deutschland · aktiv</p></div>
+      </div>
+      <dl class="statsRow">
+        <div><dt>Anime-Projekte</dt><dd>23</dd></div>
+        <div><dt>Release-Versionen</dt><dd>64</dd></div>
+        <div><dt>Mitglieder</dt><dd>4</dd></div>
+      </dl>
+      <div class="links">
+        <a class="chip"><span class="dot" style="background:var(--accent-primary)"></span>Webseite</a>
+        <a class="chip"><span class="dot" style="background:var(--link-discord)"></span>Csubs diskord</a>
+        <a class="chip"><span class="dot" style="background:var(--link-irc)"></span>IC von Cookie</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VARIANTE A -->
+<div class="label">Variante A <span>— Logo-Brücke zum Banner, Stats rechts (füllt die Kopfzeile)</span></div>
+<section class="heroBlock vA">
+  <div class="bd"></div>
+  <div class="fg">
+    <div class="bannerWrap"><img class="bannerImg" src="http://127.0.0.1:18092/api/v1/media/files/banner_1783518947023_791b6ceabf784f75.png" alt=""></div>
+    <div class="panel">
+      <div class="head">
+        <div class="idcol">
+          <div class="logo"><img src="http://127.0.0.1:18092/api/v1/media/files/logo_1783518907127_16a90a82e1699280.png" alt=""></div>
+          <div class="idtext"><div class="titlerow"><h1>C-Subs</h1><span class="badge">aktiv</span></div>
+            <p class="meta">gegründet 2002 · Deutschland · aktiv</p></div>
+        </div>
+        <dl class="statsInline">
+          <div><dt>Anime-Projekte</dt><dd>23</dd></div>
+          <div><dt>Release-Versionen</dt><dd>64</dd></div>
+          <div><dt>Mitglieder</dt><dd>4</dd></div>
+        </dl>
+      </div>
+      <div class="links">
+        <a class="chip"><span class="dot" style="background:var(--accent-primary)"></span>Webseite</a>
+        <a class="chip"><span class="dot" style="background:var(--link-discord)"></span>Csubs diskord</a>
+        <a class="chip"><span class="dot" style="background:var(--link-irc)"></span>IC von Cookie</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VARIANTE B -->
+<div class="label">Variante B <span>— Banner + Inhalt als EIN Glas-Block (verschmolzen), Stats rechts</span></div>
+<section class="heroBlock vB">
+  <div class="bd"></div>
+  <div class="fg">
+    <div class="card">
+      <div class="bannerWrapB"><img class="bannerImgB" src="http://127.0.0.1:18092/api/v1/media/files/banner_1783518947023_791b6ceabf784f75.png" alt=""></div>
+      <div class="body">
+        <div class="head">
+          <div class="idcol">
+            <div class="logo"><img src="http://127.0.0.1:18092/api/v1/media/files/logo_1783518907127_16a90a82e1699280.png" alt=""></div>
+            <div><div class="titlerow"><h1>C-Subs</h1><span class="badge">aktiv</span></div>
+              <p class="meta">gegründet 2002 · Deutschland · aktiv</p></div>
+          </div>
+          <dl class="statsInline">
+            <div><dt>Anime-Projekte</dt><dd>23</dd></div>
+            <div><dt>Release-Versionen</dt><dd>64</dd></div>
+            <div><dt>Mitglieder</dt><dd>4</dd></div>
+          </dl>
+        </div>
+        <div class="links">
+          <a class="chip"><span class="dot" style="background:var(--accent-primary)"></span>Webseite</a>
+          <a class="chip"><span class="dot" style="background:var(--link-discord)"></span>Csubs diskord</a>
+          <a class="chip"><span class="dot" style="background:var(--link-irc)"></span>IC von Cookie</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="height:60px"></div>
+</body>
+</html>

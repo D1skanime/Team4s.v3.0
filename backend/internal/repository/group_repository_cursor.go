@@ -10,6 +10,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 )
@@ -57,6 +58,13 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			0::BIGINT AS screenshot_count,
 			NULL::TEXT AS thumbnail_url,
 			(
+				SELECT rv.duration_seconds
+				FROM release_variants rv
+				WHERE rv.release_version_id = rev.id
+				ORDER BY rv.duration_seconds IS NOT NULL DESC, rv.id ASC
+				LIMIT 1
+			) AS duration_seconds,
+			(
 				SELECT COUNT(*)
 				FROM release_version_media rvm
 				JOIN media_assets ma ON ma.id = rvm.media_asset_id
@@ -96,6 +104,7 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		var ep models.EpisodeReleaseSummary
 		var episodeID sql.NullInt64
 		var screenshotCount int64
+		var durationSeconds sql.NullInt64
 		var imagesCount int64
 		var notesCount int64
 		if err := rows.Scan(
@@ -107,6 +116,7 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			&ep.ReleasedAt,
 			&screenshotCount,
 			&ep.ThumbnailURL,
+			&durationSeconds,
 			&imagesCount,
 			&notesCount,
 		); err != nil {
@@ -121,12 +131,21 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		ep.KaraokeCount = 0
 		ep.InsertCount = 0
 		ep.ScreenshotCount = int32(screenshotCount)
+		if durationSeconds.Valid {
+			value := int32(durationSeconds.Int64)
+			ep.DurationSeconds = &value
+		}
+		ep.TimelineSegments = make([]models.ReleaseTimelineSegment, 0)
 		ep.ImagesCount = int32(imagesCount)
 		ep.NotesCount = int32(notesCount)
 		episodes = append(episodes, ep)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate cursor group release rows: %w", err)
+	}
+
+	if err := r.attachReleaseTimelineSegments(ctx, animeID, groupID, episodes); err != nil {
+		return nil, err
 	}
 
 	page, nextCursor, hasMore := trimCursorPage(episodes, limit, func(ep models.EpisodeReleaseSummary) string {
@@ -138,4 +157,96 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		NextCursor: nextCursor,
 		HasMore:    hasMore,
 	}, nil
+}
+
+func (r *GroupRepository) attachReleaseTimelineSegments(
+	ctx context.Context,
+	animeID int64,
+	groupID int64,
+	episodes []models.EpisodeReleaseSummary,
+) error {
+	if len(episodes) == 0 {
+		return nil
+	}
+
+	releaseIDs := make([]int64, 0, len(episodes))
+	indexByReleaseID := make(map[int64]int, len(episodes))
+	for index, episode := range episodes {
+		releaseIDs = append(releaseIDs, episode.ID)
+		indexByReleaseID[episode.ID] = index
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			rev.id AS release_version_id,
+			ts.id AS segment_id,
+			CASE
+				WHEN LOWER(tt.name) LIKE '%op%' OR LOWER(tt.name) LIKE '%opening%' THEN 'OP'
+				WHEN LOWER(tt.name) LIKE '%ed%' OR LOWER(tt.name) LIKE '%ending%' OR LOWER(tt.name) LIKE '%outro%' THEN 'ED'
+				WHEN LOWER(tt.name) LIKE '%insert%' THEN 'INSERT'
+				WHEN LOWER(tt.name) LIKE '%kara%' THEN 'KARA'
+				ELSE UPPER(tt.name)
+			END AS segment_type,
+			COALESCE(NULLIF(BTRIM(t.title), ''), tt.name) AS title,
+			ts.start_time::text AS start_time,
+			ts.end_time::text AS end_time,
+			LOWER(tt.name) LIKE '%kara%' AS is_karaoke
+		FROM release_versions rev
+		JOIN fansub_releases fr ON fr.id = rev.release_id
+		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
+		JOIN theme_segments ts ON ts.fansub_group_id = $2
+		JOIN themes t ON t.id = ts.theme_id AND t.anime_id = $1
+		JOIN theme_types tt ON tt.id = t.theme_type_id
+		WHERE rev.id = ANY($3::bigint[])
+		  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
+		  AND (ts.start_episode IS NULL OR ts.start_episode <= e.episode_number::int)
+		  AND (ts.end_episode IS NULL OR ts.end_episode >= e.episode_number::int)
+		ORDER BY rev.id, ts.start_time NULLS LAST, ts.id
+	`, animeID, groupID, releaseIDs)
+	if err != nil {
+		return fmt.Errorf("query release timeline segments (%d,%d): %w", animeID, groupID, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			releaseID int64
+			segment   models.ReleaseTimelineSegment
+			isKaraoke bool
+		)
+		if err := rows.Scan(
+			&releaseID,
+			&segment.ID,
+			&segment.Type,
+			&segment.Title,
+			&segment.StartTime,
+			&segment.EndTime,
+			&isKaraoke,
+		); err != nil {
+			return fmt.Errorf("scan release timeline segment: %w", err)
+		}
+
+		index, ok := indexByReleaseID[releaseID]
+		if !ok {
+			continue
+		}
+
+		episodes[index].TimelineSegments = append(episodes[index].TimelineSegments, segment)
+		switch strings.ToUpper(segment.Type) {
+		case "OP":
+			episodes[index].HasOP = true
+		case "ED":
+			episodes[index].HasED = true
+		case "INSERT":
+			episodes[index].InsertCount++
+		}
+		if isKaraoke {
+			episodes[index].KaraokeCount++
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate release timeline segments: %w", err)
+	}
+
+	return nil
 }

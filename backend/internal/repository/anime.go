@@ -174,15 +174,23 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 		}
 	}
 
-	episodeQuery := `
+	episodes, err := r.loadAnimeEpisodes(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	anime.Episodes = episodes
+	return &anime, nil
+}
+
+func (r *AnimeRepository) loadAnimeEpisodes(ctx context.Context, animeID int64) ([]models.EpisodeListItem, error) {
+	rows, err := r.db.Query(ctx, `
 		SELECT id, episode_number, title, status, view_count, download_count, stream_links, filename
 		FROM episodes
 		WHERE anime_id = $1
-	`
-
-	rows, err := r.db.Query(ctx, episodeQuery, id)
+	`, animeID)
 	if err != nil {
-		return nil, fmt.Errorf("query episodes for anime %d: %w", id, err)
+		return nil, fmt.Errorf("query episodes for anime %d: %w", animeID, err)
 	}
 	defer rows.Close()
 
@@ -209,8 +217,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 	}
 
 	sortEpisodeListItems(episodes)
-	anime.Episodes = episodes
-	return &anime, nil
+	return episodes, nil
 }
 
 func (r *AnimeRepository) GetMediaLookupByID(

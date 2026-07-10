@@ -11,17 +11,22 @@
 
 .list {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   margin-top: 24px;
 }
 
 .row {
-  padding: 12px 16px;
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.rowHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
 .rowMain {
@@ -47,17 +52,157 @@
   color: var(--color-text-secondary);
 }
 
-.rowCounts {
+.rowActions {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.rowCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
+.timelinePreview {
+  display: grid;
+  gap: 5px;
+}
+
+.timelineTimes {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.timelineTrack {
+  position: relative;
+  min-height: 56px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.34)),
+    var(--surface-card-muted);
+  overflow: hidden;
+}
+
+.timelineTrack::before {
+  content: "";
+  position: absolute;
+  inset: 22px 0 0;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.mainContentLabel {
+  position: absolute;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.segmentPill {
+  position: absolute;
+  left: var(--segment-left);
+  top: 6px;
+  width: var(--segment-width);
+  min-width: 86px;
+  max-width: 180px;
+  display: grid;
+  gap: 1px;
+  justify-items: center;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.segmentPill:hover,
+.segmentPill:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  outline: none;
+}
+
+.segmentOp {
+  background: linear-gradient(180deg, rgba(172, 235, 199, 0.96), rgba(132, 214, 173, 0.92));
+  border-color: rgba(53, 157, 103, 0.34);
+}
+
+.segmentEd {
+  background: linear-gradient(180deg, rgba(196, 222, 255, 0.98), rgba(159, 200, 247, 0.94));
+  border-color: rgba(78, 135, 210, 0.38);
+}
+
+.segmentInsert,
+.segmentKara {
+  background: linear-gradient(180deg, rgba(218, 194, 255, 0.98), rgba(194, 163, 244, 0.94));
+  border-color: rgba(135, 88, 214, 0.36);
+}
+
+.segmentType {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.segmentTime {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .rowActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .timelineTrack {
+    min-height: 76px;
+  }
+
+  .timelineTrack::before {
+    top: 34px;
+  }
+
+  .mainContentLabel {
+    top: 40px;
+  }
+
+  .segmentPill {
+    min-width: 72px;
+    padding: 6px;
+  }
+}
+
 /* Feste Hoehe gegen Layout-Sprung waehrend des Nachladens (AO4-22). */
 .skeletonRow {
-  height: 52px;
+  height: 118px;
   border-radius: var(--radius-sm);
   background: var(--surface-card-muted);
   border: 1px solid var(--border-subtle);

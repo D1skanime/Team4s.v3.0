@@ -38,24 +38,36 @@ type GroupStats struct {
 
 // EpisodeReleaseSummary represents a summary of an episode release
 type EpisodeReleaseSummary struct {
-	ID              int64      `json:"id"`
-	EpisodeID       *int64     `json:"episode_id,omitempty"`
-	EpisodeNumber   int32      `json:"episode_number"`
-	Title           *string    `json:"title,omitempty"`
-	VersionLabel    *string    `json:"version_label,omitempty"`
-	HasOP           bool       `json:"has_op"`
-	HasED           bool       `json:"has_ed"`
-	KaraokeCount    int32      `json:"karaoke_count"`
-	InsertCount     int32      `json:"insert_count"`
-	ScreenshotCount int32      `json:"screenshot_count"`
-	ThumbnailURL    *string    `json:"thumbnail_url,omitempty"`
-	ReleasedAt      *time.Time `json:"released_at,omitempty"`
+	ID               int64                    `json:"id"`
+	EpisodeID        *int64                   `json:"episode_id,omitempty"`
+	EpisodeNumber    int32                    `json:"episode_number"`
+	Title            *string                  `json:"title,omitempty"`
+	VersionLabel     *string                  `json:"version_label,omitempty"`
+	HasOP            bool                     `json:"has_op"`
+	HasED            bool                     `json:"has_ed"`
+	KaraokeCount     int32                    `json:"karaoke_count"`
+	InsertCount      int32                    `json:"insert_count"`
+	ScreenshotCount  int32                    `json:"screenshot_count"`
+	ThumbnailURL     *string                  `json:"thumbnail_url,omitempty"`
+	ReleasedAt       *time.Time               `json:"released_at,omitempty"`
+	DurationSeconds  *int32                   `json:"duration_seconds,omitempty"`
+	TimelineSegments []ReleaseTimelineSegment `json:"timeline_segments,omitempty"`
 	// ImagesCount/NotesCount (AO4-11/AO4-12): oeffentlich sichtbare Zaehler je
 	// release_version_id. Nur von GetGroupReleasesCursor populiert (Weitere-
 	// Releases-Liste); die Offset-Variante GetGroupReleases laesst sie auf 0,
 	// da die alte /releases-Seite diese Felder nicht rendert.
 	ImagesCount int32 `json:"images_count"`
 	NotesCount  int32 `json:"notes_count"`
+}
+
+// ReleaseTimelineSegment is a compact public OP/ED/Insert/Kara timing preview
+// for one release version in the public release list.
+type ReleaseTimelineSegment struct {
+	ID        int64   `json:"id"`
+	Type      string  `json:"type"`
+	Title     string  `json:"title"`
+	StartTime *string `json:"start_time"`
+	EndTime   *string `json:"end_time"`
 }
 
 // GroupReleasesData contains group detail and episode releases

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1320" viewBox="0 0 1180 1320">
+  <defs>
+    <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#202a38"/>
+      <stop offset="0.55" stop-color="#435060"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="poster" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#7db7e8"/>
+      <stop offset="0.45" stop-color="#d8dde8"/>
+      <stop offset="1" stop-color="#384b68"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#182033" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .page { fill: #ffffff; filter: url(#softShadow); }
+      .muted { fill: #667085; font: 16px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .eyebrow { fill: #516179; font: 700 14px system-ui, -apple-system, Segoe UI, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+      .title { fill: #111827; font: 800 34px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .h2 { fill: #111827; font: 800 24px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .h3 { fill: #111827; font: 760 19px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .small { fill: #667085; font: 14px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .tiny { fill: #667085; font: 12px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .white { fill: #ffffff; }
+      .heroTitle { fill: #ffffff; font: 850 48px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .heroText { fill: rgba(255,255,255,.78); font: 16px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .card { fill: #ffffff; stroke: #d9e0eb; stroke-width: 1; }
+      .softCard { fill: #f7faff; stroke: #d9e0eb; stroke-width: 1; }
+      .line { stroke: #d9e0eb; stroke-width: 1; }
+      .pill { fill: #eef3ff; stroke: #d9e0eb; stroke-width: 1; }
+      .pillText { fill: #344054; font: 700 13px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .blue { fill: #4f76d9; }
+      .blueText { fill: #ffffff; font: 800 15px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .link { fill: #476bbf; font: 760 15px system-ui, -apple-system, Segoe UI, sans-serif; }
+      .note { fill: #667085; font: 14px system-ui, -apple-system, Segoe UI, sans-serif; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1180" height="1320"/>
+  <rect class="page" x="70" y="44" width="1040" height="1218" rx="18"/>
+
+  <text x="110" y="94" class="small">Anime</text>
+  <text x="166" y="94" class="small">›</text>
+  <text x="194" y="94" class="small">Viper’s Creed</text>
+  <text x="305" y="94" class="small">›</text>
+  <text x="333" y="94" class="small">C-Subs Projektseite</text>
+
+  <rect x="110" y="132" width="960" height="300" rx="12" fill="#111827"/>
+  <rect x="110" y="132" width="960" height="300" rx="12" fill="url(#hero)"/>
+  <rect x="132" y="154" width="194" height="256" rx="10" fill="url(#poster)"/>
+  <rect x="148" y="170" width="162" height="54" rx="7" fill="#e9edf6" opacity=".72"/>
+  <text x="162" y="205" fill="#20304a" font="800 20px system-ui, -apple-system, Segoe UI, sans-serif">VIPER'S CREED</text>
+  <circle cx="199" cy="304" r="48" fill="#f5d7bd" opacity=".9"/>
+  <rect x="168" y="335" width="112" height="58" rx="18" fill="#27384e" opacity=".9"/>
+  <path d="M252 246 L304 225 L288 302 Z" fill="#63748d" opacity=".9"/>
+
+  <text x="370" y="193" class="heroText">C-Subs präsentiert</text>
+  <text x="370" y="254" class="heroTitle">Viper’s Creed</text>
+  <text x="370" y="292" class="heroText">Öffentliche Projektübersicht mit Releases, Einblicken und Gruppenbezug.</text>
+  <rect x="370" y="326" width="116" height="34" rx="17" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.18)"/>
+  <text x="389" y="348" class="white" font="700 14px system-ui, -apple-system, Segoe UI, sans-serif">4 Mitglieder</text>
+  <rect x="498" y="326" width="112" height="34" rx="17" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.18)"/>
+  <text x="517" y="348" class="white" font="700 14px system-ui, -apple-system, Segoe UI, sans-serif">12 Episoden</text>
+  <rect x="622" y="326" width="142" height="34" rx="17" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.18)"/>
+  <text x="641" y="348" class="white" font="700 14px system-ui, -apple-system, Segoe UI, sans-serif">laufendes Projekt</text>
+  <rect x="370" y="382" width="154" height="42" rx="8" class="blue"/>
+  <text x="397" y="408" class="blueText">Releases ansehen</text>
+  <rect x="536" y="382" width="136" height="42" rx="8" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.25)"/>
+  <text x="560" y="408" class="white" font="760 15px system-ui, -apple-system, Segoe UI, sans-serif">Zur C-Subs-Seite</text>
+
+  <text x="110" y="500" class="eyebrow">Aktuell</text>
+  <text x="110" y="536" class="h2">Neuestes Release</text>
+  <rect x="110" y="564" width="960" height="116" rx="10" class="softCard"/>
+  <text x="136" y="602" class="small">Episode 12 · C-Subs v1</text>
+  <text x="136" y="634" class="h3">Vipers Creed. S01E12-CSUbs.mkv</text>
+  <rect x="136" y="652" width="74" height="26" rx="13" class="pill"/>
+  <text x="154" y="670" class="tiny">0 Bilder</text>
+  <rect x="218" y="652" width="70" height="26" rx="13" class="pill"/>
+  <text x="236" y="670" class="tiny">0 Texte</text>
+  <text x="846" y="634" class="link">Vollständig ansehen →</text>
+
+  <line x1="110" y1="732" x2="1070" y2="732" class="line"/>
+  <text x="110" y="782" class="eyebrow">Archiv</text>
+  <text x="110" y="818" class="h2">Weitere Releases</text>
+  <rect x="914" y="784" width="156" height="42" rx="8" class="blue"/>
+  <text x="942" y="810" class="blueText">Alle Releases</text>
+
+  <rect x="110" y="852" width="960" height="58" rx="8" class="card"/>
+  <rect x="110" y="852" width="5" height="58" rx="2" fill="#4f76d9"/>
+  <text x="136" y="886" class="h3">Episode 1</text>
+  <text x="238" y="886" class="small">Ein Auge -blindness- · v1</text>
+  <rect x="854" y="868" width="68" height="26" rx="13" class="pill"/>
+  <text x="874" y="886" class="tiny">1 Bild</text>
+  <rect x="930" y="868" width="70" height="26" rx="13" class="pill"/>
+  <text x="948" y="886" class="tiny">2 Texte</text>
+
+  <rect x="110" y="922" width="960" height="58" rx="8" class="card"/>
+  <text x="136" y="956" class="h3">Episode 2</text>
+  <text x="238" y="956" class="small">Vipers Creed. S01E02-CSUbs.mkv · v1</text>
+  <rect x="854" y="938" width="68" height="26" rx="13" class="pill"/>
+  <text x="872" y="956" class="tiny">0 Bilder</text>
+  <rect x="930" y="938" width="70" height="26" rx="13" class="pill"/>
+  <text x="950" y="956" class="tiny">1 Text</text>
+
+  <line x1="110" y1="1034" x2="1070" y2="1034" class="line"/>
+  <text x="110" y="1084" class="eyebrow">Einblicke</text>
+  <text x="110" y="1120" class="h2">Release-Medien</text>
+  <rect x="110" y="1148" width="600" height="170" rx="10" class="card"/>
+  <rect x="110" y="1148" width="250" height="170" rx="10" fill="#dfe9f7"/>
+  <rect x="128" y="1166" width="214" height="126" rx="8" fill="#9dc4e8"/>
+  <path d="M154 1268 C198 1208 235 1240 268 1196 C297 1160 326 1190 342 1168 L342 1292 L128 1292 Z" fill="#4d6f94" opacity=".65"/>
+  <rect x="386" y="1170" width="128" height="28" rx="14" fill="#eef2ff"/>
+  <text x="405" y="1189" fill="#3446a2" font="700 13px system-ui, -apple-system, Segoe UI, sans-serif">Spaßbild / Outtake</text>
+  <text x="386" y="1230" class="h3">Moment aus Release 1</text>
+  <text x="386" y="1262" class="small">Ein kurzer, lesbarer Blick hinter die Arbeit</text>
+  <text x="386" y="1284" class="small">am ersten Release statt langer Textwand.</text>
+
+  <rect x="732" y="1148" width="338" height="170" rx="10" class="card"/>
+  <rect x="750" y="1166" width="302" height="86" rx="8" fill="#f4bfd1"/>
+  <text x="750" y="1280" class="h3">Forenbild</text>
+  <text x="750" y="1302" class="small">Forum · öffentlich</text>
+</svg>

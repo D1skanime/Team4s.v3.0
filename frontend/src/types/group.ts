@@ -44,10 +44,20 @@ export interface EpisodeReleaseSummary {
   screenshot_count: number
   thumbnail_url?: string | null
   released_at?: string | null
+  duration_seconds?: number | null
+  timeline_segments?: ReleaseTimelineSegment[]
   /** AO4-11/AO4-12: nur vom Cursor-Endpunkt (getGroupReleaseListCursor) populiert. */
   images_count?: number
   /** AO4-11/AO4-12: nur vom Cursor-Endpunkt (getGroupReleaseListCursor) populiert. */
   notes_count?: number
+}
+
+export interface ReleaseTimelineSegment {
+  id: number
+  type: string
+  title: string
+  start_time?: string | null
+  end_time?: string | null
 }
 
 export interface GroupReleasesData {
