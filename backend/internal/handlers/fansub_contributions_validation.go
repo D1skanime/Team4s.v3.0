@@ -112,7 +112,7 @@ func validHistoricalContributionStatus(value string) bool {
 
 func normalizeHistoricalContributionVisibility(value string) (string, bool) {
 	if value == "" {
-		return "internal", true
+		return "public", true
 	}
 	_, ok := historicalContributionVisibilities[value]
 	return value, ok

@@ -27,6 +27,7 @@ type DomainProjectionMemberRow struct {
 	MemberDisplayName string   `json:"member_display_name"`
 	MemberSlug        *string  `json:"member_slug"`
 	MemberAvatarURL   *string  `json:"member_avatar_url"`
+	MemberSlogan      *string  `json:"member_slogan"`
 	Roles             []string `json:"roles"`
 	RoleLabels        []string `json:"role_labels"`
 	Status            string   `json:"status"`
@@ -40,6 +41,7 @@ type DomainProjectionHistoricalRow struct {
 	MemberDisplayName string   `json:"member_display_name"`
 	MemberSlug        *string  `json:"member_slug"`
 	MemberAvatarURL   *string  `json:"member_avatar_url"`
+	MemberSlogan      *string  `json:"member_slogan"`
 	Roles             []string `json:"roles"`
 	RoleLabels        []string `json:"role_labels"`
 	JoinedYear        *int     `json:"joined_year"`
@@ -110,6 +112,7 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 				WHEN m.id IS NOT NULL AND m.profile_visibility = 'public' THEN avatar.file_path
 				ELSE NULL
 			END AS member_avatar_url,
+			NULLIF(m.slogan, '') AS member_slogan,
 			COALESCE(ARRAY_AGG(fgmr.role::text) FILTER (WHERE fgmr.role IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, fgmr.role::text)) FILTER (WHERE fgmr.role IS NOT NULL), ARRAY[]::text[]) AS role_labels,
 			fgm.status,
@@ -128,7 +131,7 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 		LEFT JOIN role_definitions rd ON rd.code = fgmr.role
 		WHERE fgm.fansub_group_id = $1
 		  AND fgm.status = 'active'
-		GROUP BY fgm.id, m.id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, avatar.file_path, au.display_name, fgm.status
+		GROUP BY fgm.id, m.id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, m.slogan, avatar.file_path, au.display_name, fgm.status
 		ORDER BY member_display_name, fgm.id
 	`, groupID)
 	if err != nil {
@@ -145,6 +148,7 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 			&row.MemberDisplayName,
 			&row.MemberSlug,
 			&row.MemberAvatarURL,
+			&row.MemberSlogan,
 			&row.Roles,
 			&row.RoleLabels,
 			&row.Status,
@@ -178,6 +182,7 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 				WHEN m.profile_visibility = 'public' THEN avatar.file_path
 				ELSE NULL
 			END AS member_avatar_url,
+			NULLIF(m.slogan, '') AS member_slogan,
 			COALESCE(ARRAY_AGG(hgmr.role_code) FILTER (WHERE hgmr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, hgmr.role_code)) FILTER (WHERE hgmr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels,
 			EXTRACT(YEAR FROM hfgm.joined_date)::int AS joined_year,
@@ -199,7 +204,7 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 		WHERE hfgm.fansub_group_id = $1
 		  AND hfgm.status IN ('historical', 'confirmed')
 		  AND hfgm.visibility = 'public'
-		GROUP BY hfgm.id, hfgm.member_id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, avatar.file_path, hfgm.joined_date, hfgm.left_date, hfgm.status
+		GROUP BY hfgm.id, hfgm.member_id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, m.slogan, avatar.file_path, hfgm.joined_date, hfgm.left_date, hfgm.status
 		ORDER BY COALESCE(hfgm.joined_date, '9999-01-01'::date), member_display_name, hfgm.id
 	`, groupID)
 	if err != nil {
@@ -216,6 +221,7 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 			&row.MemberDisplayName,
 			&row.MemberSlug,
 			&row.MemberAvatarURL,
+			&row.MemberSlogan,
 			&row.Roles,
 			&row.RoleLabels,
 			&row.JoinedYear,

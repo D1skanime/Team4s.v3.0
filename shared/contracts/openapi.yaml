@@ -7910,6 +7910,7 @@ components:
         - member_display_name
         - member_slug
         - member_avatar_url
+        - member_slogan
         - roles
         - role_labels
         - status
@@ -7929,6 +7930,9 @@ components:
           type: string
           nullable: true
         member_avatar_url:
+          type: string
+          nullable: true
+        member_slogan:
           type: string
           nullable: true
         roles:
@@ -7953,6 +7957,7 @@ components:
         - member_display_name
         - member_slug
         - member_avatar_url
+        - member_slogan
         - roles
         - role_labels
         - joined_year
@@ -7973,6 +7978,9 @@ components:
           type: string
           nullable: true
         member_avatar_url:
+          type: string
+          nullable: true
+        member_slogan:
           type: string
           nullable: true
         roles:
