@@ -238,7 +238,11 @@ func (r *MemberClaimInvitationRepository) AcceptInvitation(ctx context.Context, 
 	}
 
 	if _, err := tx.Exec(ctx, `
-		UPDATE members SET noindex = false, updated_at = NOW() WHERE id = $1
+		UPDATE members
+		SET noindex = false,
+			profile_visibility = 'public',
+			updated_at = NOW()
+		WHERE id = $1
 	`, invitation.MemberID); err != nil {
 		return fmt.Errorf("accept member claim invitation: update member noindex: %w", err)
 	}

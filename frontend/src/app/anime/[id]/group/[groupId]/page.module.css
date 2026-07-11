@@ -8,30 +8,8 @@
   isolation: isolate;
 }
 
-.pageWithBackdrop::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background:
-    linear-gradient(180deg, rgba(8, 6, 10, 0.32) 0%, rgba(10, 7, 9, 0.48) 42%, rgba(12, 8, 10, 0.64) 100%),
-    var(--group-page-backdrop);
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-}
-
-.pageWithBackdrop::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(circle at top right, rgba(140, 18, 40, 0.08), transparent 34%),
-    radial-gradient(circle at top left, rgba(58, 16, 92, 0.06), transparent 26%),
-    linear-gradient(180deg, rgba(7, 4, 8, 0.08) 0%, rgba(7, 4, 8, 0.28) 100%);
-  pointer-events: none;
-}
+/* Heller Look (angeglichen an die Fansub-Seite) -> kein dunkler Ganzseiten-Backdrop.
+   Der unscharfe Banner-Backdrop lebt jetzt scoped im Hero (.heroBackdrop). */
 
 .backLink {
   margin: 0;
@@ -57,136 +35,133 @@
 
 .heroShell {
   position: relative;
+  isolation: isolate;
   display: grid;
   gap: 16px;
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
+  border-top: 3px solid var(--accent-deep);
 }
 
-.hero {
-  display: flex;
-  gap: 24px;
-  padding: 40px max(24px, calc((100vw - 1200px) / 2 + 20px));
-  background: linear-gradient(180deg, rgba(28, 12, 18, 0.18) 0%, rgba(16, 8, 12, 0.28) 100%);
-  color: var(--color-white);
-  overflow: hidden;
+/* Full-Bleed unscharfer Banner/Backdrop -> banner-eigene Farben, unten in die Canvas auslaufend */
+.heroBackdrop {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
+  filter: blur(38px) brightness(0.78) saturate(1.25);
+  transform: scale(1.12);
 }
 
-.heroWithBackdrop {
-  min-height: 420px;
-}
-
-.hero::after {
-  content: '';
+.heroBackdrop::after {
+  content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(10, 12, 18, 0.12) 0%, rgba(10, 12, 18, 0.08) 24%, rgba(10, 12, 18, 0.34) 100%),
-    linear-gradient(90deg, rgba(10, 12, 18, 0.24) 0%, rgba(10, 12, 18, 0.14) 34%, rgba(10, 12, 18, 0.24) 100%);
-  pointer-events: none;
+  background: linear-gradient(180deg, rgba(15, 12, 25, 0.24) 0%, rgba(15, 12, 25, 0.4) 52%, var(--bg-primary) 100%);
 }
 
-.hero > * {
+.heroFg {
   position: relative;
   z-index: 1;
+  width: min(1200px, 100% - 40px);
+  margin: 0 auto;
+  padding: 26px 0 10px;
+}
+
+/* Glas-Panel: Poster + Info als ein durchscheinender Block */
+.heroCard {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 12px 38px rgba(20, 15, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .poster {
-  width: 220px;
-  height: 320px;
-  border-radius: 16px;
+  width: 200px;
+  height: 288px;
+  flex: 0 0 200px;
+  border-radius: 12px;
   object-fit: cover;
-  flex: 0 0 220px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
 }
 
 .posterPlaceholder {
-  width: 220px;
-  height: 320px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  width: 200px;
+  height: 288px;
+  flex: 0 0 200px;
+  border-radius: 12px;
+  background: var(--surface-sunken);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 220px;
 }
 
 .posterInitial {
   font-size: 72px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.76);
+  color: var(--accent-primary);
 }
 
-.info {
+.heroInfo {
   flex: 1;
   min-width: 0;
   display: grid;
-  align-content: start;
-  gap: 16px;
-  padding: 24px;
-  border-radius: 20px;
-  background: rgba(8, 8, 10, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  overflow: hidden;
-  position: relative;
-}
-
-.info::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(10, 12, 18, 0.02) 0%, rgba(10, 12, 18, 0.1) 100%),
-    linear-gradient(90deg, rgba(10, 12, 18, 0.08) 0%, rgba(10, 12, 18, 0.02) 58%, rgba(10, 12, 18, 0.08) 100%);
-  pointer-events: none;
-}
-
-.info > * {
-  position: relative;
-  z-index: 1;
-}
-
-.infoWithBackdrop {
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  align-content: center;
+  gap: 14px;
 }
 
 .eyebrow {
   margin: 0;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-deep);
 }
 
 .title {
   margin: 0;
-  font-size: 36px;
+  font-size: clamp(26px, 3vw, 38px);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
+  color: var(--text-primary);
 }
 
 .stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 0;
+  gap: 28px;
+  margin: 6px 0 0;
+  align-items: flex-start;
 }
 
 .statItem {
-  font-size: 14px;
-  color: var(--color-white);
-  background: rgba(12, 10, 14, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 999px;
-  padding: 8px 12px;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.statItem dt {
+  color: rgba(28, 24, 38, 0.64);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statItem dd {
+  margin: 0;
+  color: var(--accent-deep);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .story {
@@ -224,24 +199,23 @@
 }
 
 .releasesButton {
-  background: var(--color-primary);
+  background: var(--accent-deep);
   color: var(--color-white);
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--accent-deep);
 }
 
 .releasesButton:hover {
-  background: var(--color-primary-hover, #0056b3);
-  border-color: var(--color-primary-hover, #0056b3);
+  filter: brightness(1.08);
 }
 
 .profileButton {
-  background: rgba(8, 8, 10, 0.22);
-  color: var(--color-white);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .profileButton:hover {
-  border-color: rgba(255, 255, 255, 0.32);
+  background: var(--surface-sunken);
 }
 
 .assetsPanel {
@@ -335,30 +309,39 @@
 .deepLink:hover { text-decoration: underline; }
 
 @media (max-width: 768px) {
-  .hero {
+  .heroFg {
+    width: min(100% - 24px, 1200px);
+  }
+
+  .heroCard {
     flex-direction: column;
-    gap: 20px;
-    padding: 28px 20px;
+    gap: 18px;
+    align-items: center;
+    text-align: center;
   }
 
   .poster,
   .posterPlaceholder {
-    width: 180px;
-    height: 260px;
-    flex: 0 0 180px;
-    align-self: center;
+    width: 170px;
+    height: 244px;
+    flex: 0 0 244px;
   }
 
   .posterInitial {
     font-size: 64px;
   }
 
-  .title {
-    font-size: 24px;
+  .heroInfo {
+    justify-items: center;
+  }
+
+  .stats {
+    justify-content: center;
   }
 
   .actions {
     flex-direction: column;
+    width: 100%;
   }
 
   .releasesButton,

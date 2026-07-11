@@ -711,7 +711,7 @@ func ensureAppUserMemberAnchorTx(ctx context.Context, tx pgx.Tx, appUserID int64
 	}
 
 	err = tx.QueryRow(ctx, `
-		INSERT INTO members (nickname, created_at, updated_at)
+		INSERT INTO members (nickname, profile_visibility, noindex, created_at, updated_at)
 		SELECT
 			COALESCE(
 				NULLIF(TRIM(au.display_name), ''),
@@ -719,6 +719,8 @@ func ensureAppUserMemberAnchorTx(ctx context.Context, tx pgx.Tx, appUserID int64
 				NULLIF(TRIM(au.email), ''),
 				'Mitglied'
 			),
+			'public',
+			false,
 			NOW(),
 			NOW()
 		FROM app_users au
@@ -766,7 +768,11 @@ func publishVerifiedMemberProfileTx(ctx context.Context, tx pgx.Tx, memberID int
 		return fmt.Errorf("publish verified member profile: invalid member id")
 	}
 	_, err := tx.Exec(ctx, `
-		UPDATE members SET noindex = false, updated_at = NOW() WHERE id = $1
+		UPDATE members
+		SET noindex = false,
+			profile_visibility = 'public',
+			updated_at = NOW()
+		WHERE id = $1
 	`, memberID)
 	return err
 }

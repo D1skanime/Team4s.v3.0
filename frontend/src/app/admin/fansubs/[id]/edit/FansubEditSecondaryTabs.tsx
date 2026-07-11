@@ -6,12 +6,24 @@ import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReadinessTab } from "./ReadinessTab";
 import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import type { MainTab } from "./fansubEditTypes";
+import { hasQualifiedFirstProject } from "./fansubEditReleaseHelpers";
+import type { FansubReleaseData } from "./useFansubReleaseData";
+
+function hasWebsiteCommunityLink(group: FansubGroup | null): boolean {
+  if (!group) return false;
+  return Boolean(
+    group.links?.some(
+      (link) => link.link_type === "website" && link.url.trim() !== "",
+    ),
+  );
+}
 
 type FansubEditSecondaryTabsProps = {
   activeMainTab: MainTab;
   fansubID: number;
   group: FansubGroup | null;
   capabilities: FansubGroupCapabilities | null;
+  releaseData: FansubReleaseData;
 };
 
 export function FansubEditSecondaryTabs({
@@ -19,13 +31,19 @@ export function FansubEditSecondaryTabs({
   fansubID,
   group,
   capabilities,
+  releaseData,
 }: FansubEditSecondaryTabsProps) {
   return (
     <>
       {activeMainTab === "notes" ? (
         <>
           <NotesTab fansubId={fansubID} />
-          <GroupHistorySection fansubGroupId={fansubID} />
+          <GroupHistorySection
+            fansubGroupId={fansubID}
+            foundedYear={group?.founded_year ?? null}
+            hasWebsiteLink={hasWebsiteCommunityLink(group)}
+            hasFirstProject={hasQualifiedFirstProject(releaseData.animeCoverageMap)}
+          />
         </>
       ) : null}
       {activeMainTab === "vorschlaege" && capabilities ? (

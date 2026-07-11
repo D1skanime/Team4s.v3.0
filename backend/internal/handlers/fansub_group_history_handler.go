@@ -13,13 +13,33 @@ import (
 )
 
 var allowedGroupHistoryEventTypes = map[string]struct{}{
-	"founding":   {},
-	"disbanding": {},
-	"hiatus":     {},
-	"rebranding": {},
-	"milestone":  {},
-	"other":      {},
+	"founding":          {},
+	"disbanding":        {},
+	"hiatus":            {},
+	"rebranding":        {},
+	"milestone":         {},
+	"other":             {},
+	"first_release":     {},
+	"anniversary":       {},
+	"collaboration":     {},
+	"revival":           {},
+	"project_completed": {},
+	"team_change":       {},
+	"website_launch":    {},
+	"award":             {},
+	"projects_10":       {},
+	"projects_50":       {},
+	"projects_100":      {},
+	"projects_500":      {},
+	"releases_100":      {},
+	"releases_500":      {},
+	"releases_1000":     {},
+	"releases_5000":     {},
+	"releases_10000":    {},
 }
+
+const allowedGroupHistoryEventTypesMessage = "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, other, first_release, anniversary, collaboration, revival, project_completed, team_change, website_launch, award, projects_10, projects_50, projects_100, projects_500, releases_100, releases_500, releases_1000, releases_5000, releases_10000"
+const firstProjectGuardMessage = "Erstes Projekt ist noch nicht vollständig. Bitte Ausblick schreiben und Rollen Übersetzer, Timer und Encoder vergeben."
 
 // FansubGroupHistoryHandler verwaltet Admin-Endpunkte für fansub_group_history.
 type FansubGroupHistoryHandler struct {
@@ -36,6 +56,32 @@ func NewFansubGroupHistoryHandler(repo *repository.FansubGroupHistoryRepository)
 func (h *FansubGroupHistoryHandler) WithPermissionSvc(svc *permissions.Service) *FansubGroupHistoryHandler {
 	h.permissionSvc = svc
 	return h
+}
+
+func (h *FansubGroupHistoryHandler) validateEventUnlocked(c *gin.Context, fansubID int64, eventType string) bool {
+	switch eventType {
+	case "website_launch":
+		if err := h.historyRepo.ValidateWebsiteLaunchAllowed(c.Request.Context(), fansubID); err != nil {
+			if errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Webseite fehlt. Bitte zuerst einen Community-Link vom Typ Webseite eintragen."}})
+				return false
+			}
+			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+			internalError(c, "interner serverfehler")
+			return false
+		}
+	case "first_release":
+		if err := h.historyRepo.ValidateFirstProjectAllowed(c.Request.Context(), fansubID); err != nil {
+			if errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": firstProjectGuardMessage}})
+				return false
+			}
+			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+			internalError(c, "interner serverfehler")
+			return false
+		}
+	}
+	return true
 }
 
 type groupHistoryCreateRequest struct {
@@ -116,9 +162,12 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 	if _, ok := allowedGroupHistoryEventTypes[req.EventType]; !ok {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
-				"message": "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, other",
+				"message": allowedGroupHistoryEventTypesMessage,
 			},
 		})
+		return
+	}
+	if !h.validateEventUnlocked(c, fansubID, req.EventType) {
 		return
 	}
 
@@ -223,9 +272,12 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 		if _, ok := allowedGroupHistoryEventTypes[*req.EventType]; !ok {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"error": gin.H{
-					"message": "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, other",
+					"message": allowedGroupHistoryEventTypesMessage,
 				},
 			})
+			return
+		}
+		if *req.EventType != existing.EventType && !h.validateEventUnlocked(c, fansubID, *req.EventType) {
 			return
 		}
 	}

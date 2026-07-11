@@ -32,7 +32,7 @@ export function toFormState(profile: MemberProfileData): MemberProfileFormState 
     activeFromYear: yearFromProfileDate(profile.active_from_date, profile.active_from_year),
     activeUntilYear: yearFromProfileDate(profile.active_until_date, profile.active_until_year),
     isCurrentlyActive: Boolean(profile.is_currently_active),
-    profileVisibility: profile.profile_visibility || 'members_only',
+    profileVisibility: profile.profile_visibility || 'public',
   }
 }
 
@@ -44,7 +44,7 @@ export function emptyFormState(): MemberProfileFormState {
     activeFromYear: '',
     activeUntilYear: '',
     isCurrentlyActive: false,
-    profileVisibility: 'members_only',
+    profileVisibility: 'public',
   }
 }
 

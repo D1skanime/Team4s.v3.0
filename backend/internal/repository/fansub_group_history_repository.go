@@ -120,6 +120,104 @@ func (r *FansubGroupHistoryRepository) GetByID(ctx context.Context, id int64) (*
 	return row, nil
 }
 
+// HasWebsiteCommunityLink reports whether the group has a canonical website community link.
+func (r *FansubGroupHistoryRepository) HasWebsiteCommunityLink(ctx context.Context, fansubGroupID int64) (bool, error) {
+	if fansubGroupID <= 0 {
+		return false, ErrNotFound
+	}
+
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM fansub_group_links
+			WHERE group_id = $1
+			  AND link_type = 'website'
+			  AND btrim(url) <> ''
+		)
+	`, fansubGroupID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("check group website community link: %w", err)
+	}
+	return exists, nil
+}
+
+func (r *FansubGroupHistoryRepository) ValidateWebsiteLaunchAllowed(ctx context.Context, fansubGroupID int64) error {
+	hasWebsite, err := r.HasWebsiteCommunityLink(ctx, fansubGroupID)
+	if err != nil {
+		return err
+	}
+	if !hasWebsite {
+		return ErrValidation
+	}
+	return nil
+}
+
+// HasQualifiedFirstProject reports whether at least one assigned anime has an
+// active project note plus the core fansub roles required for the first project badge.
+func (r *FansubGroupHistoryRepository) HasQualifiedFirstProject(ctx context.Context, fansubGroupID int64) (bool, error) {
+	if fansubGroupID <= 0 {
+		return false, ErrNotFound
+	}
+
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM anime_fansub_groups afg
+			WHERE afg.fansub_group_id = $1
+			  AND EXISTS (
+				SELECT 1
+				FROM anime_fansub_project_notes afpn
+				WHERE afpn.anime_id = afg.anime_id
+				  AND afpn.fansub_group_id = afg.fansub_group_id
+				  AND afpn.deleted_at IS NULL
+				  AND afpn.status <> 'deleted'
+			  )
+			  AND EXISTS (
+				SELECT 1
+				FROM anime_contributions ac
+				JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+				WHERE ac.anime_id = afg.anime_id
+				  AND ac.fansub_group_id = afg.fansub_group_id
+				  AND ac.status <> 'rejected'
+				  AND acr.role_code = 'translator'
+			  )
+			  AND EXISTS (
+				SELECT 1
+				FROM anime_contributions ac
+				JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+				WHERE ac.anime_id = afg.anime_id
+				  AND ac.fansub_group_id = afg.fansub_group_id
+				  AND ac.status <> 'rejected'
+				  AND acr.role_code = 'timer'
+			  )
+			  AND EXISTS (
+				SELECT 1
+				FROM anime_contributions ac
+				JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+				WHERE ac.anime_id = afg.anime_id
+				  AND ac.fansub_group_id = afg.fansub_group_id
+				  AND ac.status <> 'rejected'
+				  AND acr.role_code = 'encoder'
+			  )
+		)
+	`, fansubGroupID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("check group first project qualification: %w", err)
+	}
+	return exists, nil
+}
+
+func (r *FansubGroupHistoryRepository) ValidateFirstProjectAllowed(ctx context.Context, fansubGroupID int64) error {
+	hasFirstProject, err := r.HasQualifiedFirstProject(ctx, fansubGroupID)
+	if err != nil {
+		return err
+	}
+	if !hasFirstProject {
+		return ErrValidation
+	}
+	return nil
+}
+
 // Create inserts a new group history entry and returns the created record.
 func (r *FansubGroupHistoryRepository) Create(ctx context.Context, fansubGroupID int64, input GroupHistoryInput) (*GroupHistoryRow, error) {
 	var newID int64

@@ -25,6 +25,26 @@ export function buildAnimeCoverageMap(
   return map;
 }
 
+export const FIRST_PROJECT_REQUIRED_ROLE_CODES = [
+  "translator",
+  "timer",
+  "encoder",
+] as const;
+
+export function hasQualifiedFirstProject(
+  animeCoverageMap: Map<number, AnimeCoverage> | null,
+): boolean {
+  if (!animeCoverageMap) return false;
+
+  return Array.from(animeCoverageMap.values()).some((coverage) => {
+    if (!coverage.has_project_note) return false;
+    const coveredRoles = new Set(coverage.covered_role_codes);
+    return FIRST_PROJECT_REQUIRED_ROLE_CODES.every((roleCode) =>
+      coveredRoles.has(roleCode),
+    );
+  });
+}
+
 export function groupContributionMembersByRole(
   contributions: AnimeContribution[],
 ): Record<string, CoverageRoleMember[]> {

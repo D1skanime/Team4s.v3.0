@@ -45,12 +45,12 @@ export function HeroSection({
 }: HeroSectionProps) {
   const hasGroupFolder = Boolean(groupAssetsResponse?.data.folder_name);
   const hasEpisodeAssets = Boolean(groupAssetsResponse?.data.episodes?.length);
+  void heroStyle;
+  void infoPanelStyle;
 
-  const periodText =
-    group.period?.start || group.period?.end
-      ? `${group.period?.start ?? "?"} - ${group.period?.end ?? "?"}`
-      : null;
   const projectContributorCount = group.stats.project_contributor_count;
+  // Album-Art-Backdrop: Anime-Backdrop bevorzugt, sonst Banner, sonst Poster
+  const backdropUrl = heroBackdropUrl ?? infoPanelBackgroundUrl ?? posterImage;
 
   return (
     <>
@@ -61,61 +61,48 @@ export function HeroSection({
       </p>
 
       <section className={styles.heroShell}>
-        <section
-          className={`${styles.hero} ${heroBackdropUrl ? styles.heroWithBackdrop : ""}`}
-          style={heroStyle}
-        >
-          {posterImage ? (
-            <Image
-              src={posterImage}
-              alt={anime.title}
-              width={240}
-              height={340}
-              className={styles.poster}
-              unoptimized={posterImage.includes("/api/")}
-            />
-          ) : (
-            <div className={styles.posterPlaceholder}>
-              <span className={styles.posterInitial}>
-                {anime.title.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
-
+        {backdropUrl ? (
           <div
-            className={`${styles.info} ${infoPanelBackgroundUrl ? styles.infoWithBackdrop : ""}`}
-            style={infoPanelStyle}
-          >
-            <p className={styles.eyebrow}>{group.fansub.name}</p>
-            <h1 className={styles.title}>{anime.title}</h1>
-            <div className={styles.stats}>
-              <span className={styles.statItem}>Fansubgruppe</span>
-              {periodText ? (
-                <span className={styles.statItem}>Periode: {periodText}</span>
-              ) : null}
-              <span className={styles.statItem}>
-                {projectContributorCount} Projektmitwirkende
-              </span>
-              <span className={styles.statItem}>
-                {group.stats.episode_count} Episoden
-              </span>
-            </div>
-            <div className={styles.actions}>
-              <Link
-                href={`/anime/${animeID}/group/${groupID}/releases`}
-                className={styles.releasesButton}
-              >
-                Releases ansehen
-              </Link>
-              <Link
-                href={`/fansubs/${group.fansub.slug}`}
-                className={styles.profileButton}
-              >
-                Fansub-Profil
-              </Link>
+            className={styles.heroBackdrop}
+            style={{ backgroundImage: `url("${backdropUrl}")` }}
+            aria-hidden="true"
+          />
+        ) : null}
+        <div className={styles.heroFg}>
+          <div className={styles.heroCard}>
+            {posterImage ? (
+              <Image
+                src={posterImage}
+                alt={anime.title}
+                width={240}
+                height={340}
+                className={styles.poster}
+                unoptimized={posterImage.includes("/api/")}
+              />
+            ) : (
+              <div className={styles.posterPlaceholder}>
+                <span className={styles.posterInitial}>
+                  {anime.title.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+
+            <div className={styles.heroInfo}>
+              <p className={styles.eyebrow}>{group.fansub.name}</p>
+              <h1 className={styles.title}>{anime.title}</h1>
+              <dl className={styles.stats}>
+                <div className={styles.statItem}>
+                  <dt>Projektmitwirkende</dt>
+                  <dd>{projectContributorCount}</dd>
+                </div>
+                <div className={styles.statItem}>
+                  <dt>Releases</dt>
+                  <dd>{releaseEpisodes.length}</dd>
+                </div>
+              </dl>
             </div>
           </div>
-        </section>
+        </div>
         {navigationGroups.length > 1 ? (
           <GroupEdgeNavigation
             currentGroupId={groupID}

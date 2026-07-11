@@ -123,8 +123,8 @@ func (r *MemberRequestsRepository) ApproveRequest(ctx context.Context, requestID
 
 	var memberID int64
 	if err := tx.QueryRow(ctx, `
-		INSERT INTO members (nickname, display_name, noindex, updated_at)
-		VALUES ($1, $1, false, NOW())
+		INSERT INTO members (nickname, display_name, noindex, profile_visibility, updated_at)
+		VALUES ($1, $1, false, 'public', NOW())
 		RETURNING id
 	`, nick).Scan(&memberID); err != nil {
 		return fmt.Errorf("approve member request: create member: %w", err)

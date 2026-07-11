@@ -227,7 +227,11 @@ func (r *MemberClaimsRepository) VerifyClaim(ctx context.Context, fansubGroupID 
 	}
 
 	if _, err := tx.Exec(ctx, `
-		UPDATE members SET noindex = false, updated_at = NOW() WHERE id = $1
+		UPDATE members
+		SET noindex = false,
+			profile_visibility = 'public',
+			updated_at = NOW()
+		WHERE id = $1
 	`, memberID); err != nil {
 		return fmt.Errorf("verify member claim: update member noindex: %w", err)
 	}

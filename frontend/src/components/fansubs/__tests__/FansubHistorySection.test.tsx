@@ -1,4 +1,4 @@
-import { renderToStaticMarkup } from 'react-dom/server'
+﻿import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { FansubHistorySection } from '../FansubHistorySection'
@@ -16,15 +16,16 @@ const history: PublicFansubHistory[] = [
 ]
 
 describe('FansubHistorySection', () => {
-  it('rendert bestätigte Historie getrennt von Gruppenleitung', () => {
+  it('rendert bestÃ¤tigte Historie getrennt von Gruppenleitung', () => {
     const html = renderToStaticMarkup(<FansubHistorySection history={history} />)
 
     expect(html).toContain('Historie &amp; Erfolge')
     expect(html).toContain('Erstes Komplettprojekt abgeschlossen')
     expect(html).not.toContain('Gruppenleitung')
-    // milestone -> Gold-Medaille (Trophaee) mit Jahres-Chip
+    // milestone -> echtes Achievement-Bild mit Jahres-Chip
     expect(html).toMatch(/class="[^"]*achGold[^"]*"/)
-    expect(html).toContain('🏆')
+    expect(html).toContain('/history-event-badges-transparent/milestone.png')
+    expect(html).toContain('Meilenstein')
     expect(html).toContain('2014')
   })
 

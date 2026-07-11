@@ -1,6 +1,10 @@
 'use client'
 
 import { Button, FormField, Input, Select, Textarea, YearPicker } from '@/components/ui'
+import {
+  GROUP_HISTORY_EVENT_OPTIONS,
+  getGroupHistoryEventPresentation,
+} from '@/lib/group-history-events'
 import styles from './groups.module.css'
 
 // ---------------------------------------------------------------------------
@@ -23,6 +27,15 @@ export interface HistoryFormState {
   note: string
 }
 
+export interface HistoryEventOptionState {
+  value: string
+  label: string
+  imageSrc: string
+  disabled?: boolean
+  disabledReason?: string
+  suggestedYear?: number | null
+}
+
 export const EMPTY_HISTORY_FORM: HistoryFormState = {
   title: '',
   eventType: 'milestone',
@@ -42,6 +55,7 @@ interface GroupHistoryFormProps {
   titleError: string | null
   saveError: string | null
   isEdit: boolean
+  eventOptions?: HistoryEventOptionState[]
 }
 
 // ---------------------------------------------------------------------------
@@ -57,7 +71,11 @@ export function GroupHistoryForm({
   titleError,
   saveError,
   isEdit,
+  eventOptions = GROUP_HISTORY_EVENT_OPTIONS,
 }: GroupHistoryFormProps) {
+  const selectedEvent = getGroupHistoryEventPresentation(form.eventType)
+  const lockedOptions = eventOptions.filter((opt) => opt.disabled && opt.disabledReason)
+
   return (
     <form
       className={styles.historyForm}
@@ -76,18 +94,37 @@ export function GroupHistoryForm({
         />
       </FormField>
 
-      <FormField label="Ereignistyp" htmlFor="history-event-type">
-        <Select
-          id="history-event-type"
-          value={form.eventType}
-          onChange={(e) => onFormChange((f) => ({ ...f, eventType: e.target.value }))}
-        >
-          {EVENT_TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </Select>
+      <FormField label="Erfolgstyp" htmlFor="history-event-type">
+        <div className={styles.historyEventPicker}>
+          <Select
+            id="history-event-type"
+            value={form.eventType}
+            onChange={(e) => {
+              const nextEventType = e.target.value
+              const nextOption = eventOptions.find((opt) => opt.value === nextEventType)
+              onFormChange((f) => ({
+                ...f,
+                eventType: nextEventType,
+                year: nextOption?.suggestedYear ? String(nextOption.suggestedYear) : f.year,
+              }))
+            }}
+          >
+            {eventOptions.map((opt) => (
+              <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                {opt.disabledReason ? `${opt.label} (${opt.disabledReason})` : opt.label}
+              </option>
+            ))}
+          </Select>
+          {lockedOptions.length > 0 ? (
+            <p className={styles.historyEventHint}>
+              Gesperrt: {lockedOptions.map((opt) => `${opt.label} - ${opt.disabledReason}`).join(', ')}
+            </p>
+          ) : null}
+          <div className={styles.historyEventPreview} aria-hidden="true">
+            <img src={selectedEvent.imageSrc} alt="" className={styles.historyEventPreviewImage} />
+            <span>{selectedEvent.label}</span>
+          </div>
+        </div>
       </FormField>
 
       <div className={styles.historyFormRow}>

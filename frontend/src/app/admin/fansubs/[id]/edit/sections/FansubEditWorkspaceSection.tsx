@@ -149,6 +149,7 @@ export function FansubEditWorkspaceSection({
         fansubID={fansubID}
         group={group}
         capabilities={capabilities}
+        releaseData={releaseData}
       />
     </section>
   );

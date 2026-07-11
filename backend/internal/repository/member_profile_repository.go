@@ -383,7 +383,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 				to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
 				to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
 				COALESCE(m.is_currently_active, false) AS is_currently_active,
-				COALESCE(m.noindex, true) AS noindex,
+				COALESCE(m.noindex, false) AS noindex,
 				EXISTS(
 					SELECT 1
 					FROM member_claims mc
@@ -472,7 +472,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		Noindex:                    row.noindex,
 		IsVerified:                 row.isVerified,
 		ProfileStatus:              strings.TrimSpace(valueOrDefault(&row.profileStatus, "active")),
-		ProfileVisibility:          strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityMembersOnly)),
+		ProfileVisibility:          strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityPublic)),
 		Memberships:                []models.MemberProfileMembership{},
 		PublicBadges:               []models.PublicMemberBadge{},
 		RecentMedia:                []models.MemberProfileRecentMedia{},
@@ -568,7 +568,7 @@ func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx co
 			to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
 			to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
 			COALESCE(m.is_currently_active, false) AS is_currently_active,
-			COALESCE(m.noindex, true) AS noindex,
+			COALESCE(m.noindex, false) AS noindex,
 			EXISTS(
 				SELECT 1
 				FROM member_claims mc
@@ -726,7 +726,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			m.active_from_year,
 			m.active_until_year,
 			COALESCE(m.is_currently_active, false),
-			COALESCE(m.noindex, true),
+			COALESCE(m.noindex, false),
 			EXISTS(
 				SELECT 1
 				FROM member_claims mc
@@ -853,9 +853,9 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			MemberStoryEditorType:           "tiptap",
 			MemberStoryContentSchemaVersion: 1,
 			IsCurrentlyActive:               false,
-			Noindex:                         true,
+			Noindex:                         false,
 			IsVerified:                      false,
-			ProfileVisibility:               models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:               models.ProfileVisibilityPublic,
 			CreatedAt:                       row.accountCreatedAt,
 			UpdatedAt:                       row.accountUpdatedAt,
 			AccountStatus:                   row.accountStatus,
@@ -901,7 +901,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		IsCurrentlyActive:               row.currentlyActive,
 		Noindex:                         row.noindex,
 		IsVerified:                      row.isVerified,
-		ProfileVisibility:               strings.TrimSpace(valueOrDefault(row.visibility, models.ProfileVisibilityMembersOnly)),
+		ProfileVisibility:               strings.TrimSpace(valueOrDefault(row.visibility, models.ProfileVisibilityPublic)),
 		CreatedAt:                       valueOrNow(row.memberCreatedAt),
 		UpdatedAt:                       valueOrNow(row.memberUpdatedAt),
 		AccountStatus:                   row.accountStatus,

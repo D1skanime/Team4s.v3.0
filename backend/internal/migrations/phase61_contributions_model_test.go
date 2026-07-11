@@ -94,6 +94,53 @@ func TestPhase61RoleDefinitionsAndHistoryMigrationContracts(t *testing.T) {
 	})
 }
 
+func TestGroupHistoryAchievementEventTypesMigrationContract(t *testing.T) {
+	achievementUp := strings.ToLower(readMigrationFile(t, "0125_group_history_achievement_event_types.up.sql"))
+	achievementDown := strings.ToLower(readMigrationFile(t, "0125_group_history_achievement_event_types.down.sql"))
+
+	assertContainsAll(t, achievementUp, []string{
+		"drop constraint if exists chk_fansub_group_history_event_type",
+		"add constraint chk_fansub_group_history_event_type",
+		"'first_release'",
+		"'anniversary'",
+		"'collaboration'",
+		"'revival'",
+		"'project_completed'",
+		"'team_change'",
+		"'website_launch'",
+		"'award'",
+		"'projects_10'",
+		"'projects_50'",
+		"'projects_100'",
+		"'projects_500'",
+		"'releases_100'",
+		"'releases_500'",
+		"'releases_1000'",
+		"'releases_5000'",
+		"'releases_10000'",
+	})
+
+	assertContainsAll(t, achievementDown, []string{
+		"cannot restore old fansub_group_history event_type constraint while newer achievement event types exist",
+		"check (event_type in ('founding', 'disbanding', 'hiatus', 'rebranding', 'milestone', 'other'))",
+	})
+}
+
+func TestMemberProfilePublicDefaultsMigrationContract(t *testing.T) {
+	publicDefaultsUp := strings.ToLower(readMigrationFile(t, "0126_member_profile_public_defaults.up.sql"))
+	publicDefaultsDown := strings.ToLower(readMigrationFile(t, "0126_member_profile_public_defaults.down.sql"))
+
+	assertContainsAll(t, publicDefaultsUp, []string{
+		"alter column profile_visibility set default 'public'",
+		"alter column noindex set default false",
+	})
+
+	assertContainsAll(t, publicDefaultsDown, []string{
+		"alter column profile_visibility set default 'members_only'",
+		"alter column noindex set default true",
+	})
+}
+
 func TestPhase61AnimeContributionRoleAndBadgeMigrationContracts(t *testing.T) {
 	contributionsUp := strings.ToLower(readMigrationFile(t, "0086_anime_contributions.up.sql"))
 	contributionsDown := strings.ToLower(readMigrationFile(t, "0086_anime_contributions.down.sql"))

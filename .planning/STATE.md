@@ -295,6 +295,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 100 added and planned: Fansub Erfolge Freischaltlogik und Meilenstein-Katalog - die Erfolge werden als sequenzielle Diskussions-/Implementierungsqueue geführt; `100-CONTEXT.md` und `100-00-PLAN.md` listen alle 23 aktuellen Erfolgscodes, starten mit `founding` / `Gründung` und erzwingen "diskutieren -> umsetzen -> testen -> nächster Erfolg".
 - Phase 99 added: Öffentliches Fansub-Member-Profil (Redesign) - public Member-Profil als scrollbare, datengetriebene Seite auf Basis bestehender Gruppen-, Projektrollen-, Badge-, Notizen-/Beitrags- und Medien-Seams; Kontext aus angehängtem GSD-Auftrag in `.planning/phases/99-ffentliches-fansub-member-profil-redesign/99-CONTEXT.md`.
 - Phase 98 added and discussed: Segmentstream bleibt ein segment-spezifischer Playback-Layer fuer OP/ED/Kara; MVP ist vorbereiteter browserfaehiger Clip-Render mit Segment-Grants, nicht HLS-first. Context: `.planning/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-CONTEXT.md`.
 - Phase 93 added: Projektrollen-Sichtbarkeit & Hinweis-Formular. Teil A verified group scoping but blocked UI execution because the current member-profile visibility flag does not jointly control role plus related media.

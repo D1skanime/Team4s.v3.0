@@ -86,6 +86,65 @@ func TestCreateGroupHistory_TitleRequired(t *testing.T) {
 }
 
 // Die DELETE-Route muss registriert und mit auth-Middleware geschützt sein.
+func TestWebsiteLaunchRequiresCommunityWebsiteLink(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	assert.Contains(t, createBody, "validateEventUnlocked",
+		"CreateGroupHistory muss event_type gegen Freischaltregeln absichern")
+	assert.Contains(t, unlockBody, `case "website_launch"`,
+		"validateEventUnlocked muss website_launch gesondert validieren")
+	assert.Contains(t, unlockBody, "ValidateWebsiteLaunchAllowed",
+		"CreateGroupHistory muss website_launch gegen Community-Link absichern")
+	assert.Contains(t, updateBody, "validateEventUnlocked",
+		"UpdateGroupHistory muss event_type-Wechsel gegen Freischaltregeln absichern")
+	assert.Contains(t, unlockBody, "ValidateWebsiteLaunchAllowed",
+		"UpdateGroupHistory muss website_launch gegen Community-Link absichern")
+}
+
+func TestFirstProjectRequiresQualifiedProjectCoverage(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	assert.Contains(t, createBody, "validateEventUnlocked",
+		"CreateGroupHistory muss first_release gegen Freischaltregeln absichern")
+	assert.Contains(t, updateBody, "validateEventUnlocked",
+		"UpdateGroupHistory muss Wechsel auf first_release gegen Freischaltregeln absichern")
+	assert.Contains(t, unlockBody, `case "first_release"`,
+		"validateEventUnlocked muss first_release gesondert validieren")
+	assert.Contains(t, unlockBody, "ValidateFirstProjectAllowed",
+		"first_release darf erst nach qualifizierter Projekt-Coverage gespeichert werden")
+}
+
+func TestGroupHistoryEventTypeWhitelistIncludesAchievementPreviewTypes(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	for _, code := range []string{
+		"first_release",
+		"anniversary",
+		"collaboration",
+		"revival",
+		"project_completed",
+		"team_change",
+		"website_launch",
+		"award",
+		"projects_10",
+		"projects_50",
+		"projects_100",
+		"projects_500",
+		"releases_100",
+		"releases_500",
+		"releases_1000",
+		"releases_5000",
+		"releases_10000",
+	} {
+		assert.Contains(t, src, `"`+code+`"`, "event type %s is allowed for manual preview assignment", code)
+	}
+}
+
 func TestDeleteGroupHistory_RouteRegistered(t *testing.T) {
 	routes := readSource(t, "../../cmd/server/admin_routes.go")
 	assert.Regexp(t,

@@ -109,7 +109,7 @@
   gap: 14px;
   align-items: center;
   overflow: hidden;
-  padding: 16px 18px;
+  padding: 14px 18px 14px 14px;
   border-radius: 16px;
   background: var(--surface-card);
   border: 1px solid var(--color-border);
@@ -139,22 +139,23 @@
   position: relative;
   z-index: 1;
   flex: none;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  width: 88px;
+  height: 88px;
   display: grid;
   place-items: center;
-  font-size: 26px;
-  background: var(--ach-grad);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.55);
+  filter: drop-shadow(0 8px 14px rgba(18, 24, 38, 0.18));
 }
 
 .medal::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%);
+  content: none;
+}
+
+.achImage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .achBody {
@@ -174,6 +175,12 @@
 .achNote {
   color: var(--text-secondary);
   font-size: 13px;
+}
+
+.achType {
+  color: color-mix(in srgb, var(--ach-color) 72%, var(--text-secondary));
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .achYear {
@@ -217,6 +224,82 @@
   --ach-color: var(--ach-muted);
   --ach-grad: var(--ach-muted-grad);
   --ach-soft: var(--ach-muted-soft);
+}
+
+.achBlue {
+  --ach-color: #2563eb;
+  --ach-grad: linear-gradient(135deg, #dbeafe, #60a5fa);
+  --ach-soft: #dbeafe;
+}
+
+.achViolet {
+  --ach-color: #7c3aed;
+  --ach-grad: linear-gradient(135deg, #ede9fe, #a78bfa);
+  --ach-soft: #ede9fe;
+}
+
+.achRed {
+  --ach-color: #be123c;
+  --ach-grad: linear-gradient(135deg, #ffe4e6, #fb7185);
+  --ach-soft: #ffe4e6;
+}
+
+.achLegendary {
+  --ach-color: #a16207;
+  --ach-grad: linear-gradient(135deg, #fef3c7, #c4b5fd 52%, #67e8f9);
+  --ach-soft: #fef3c7;
+}
+
+@media (min-width: 768px) {
+  .achGrid {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+
+  .ach {
+    gap: 16px;
+    padding: 16px 20px 16px 16px;
+  }
+
+  .ach::before {
+    left: -48px;
+    top: -48px;
+    width: 178px;
+    height: 178px;
+    opacity: 0.14;
+  }
+
+  .medal {
+    width: 104px;
+    height: 104px;
+  }
+
+  .achBody strong {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .achGrid {
+    gap: 18px;
+  }
+
+  .ach {
+    gap: 18px;
+    padding: 18px 22px 18px 18px;
+  }
+
+  .ach::before {
+    left: -52px;
+    top: -52px;
+    width: 196px;
+    height: 196px;
+  }
+
+  .medal {
+    width: 112px;
+    height: 112px;
+  }
 }
 
 .mediaGrid {

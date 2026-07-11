@@ -1,4 +1,5 @@
 import { SectionHeader } from '@/components/ui'
+import { getGroupHistoryEventPresentation } from '@/lib/group-history-events'
 import type { PublicFansubHistory } from '@/types/fansub'
 
 import styles from './FansubPublicSections.module.css'
@@ -28,6 +29,15 @@ const ACHIEVEMENT_BY_EVENT: Record<string, AchievementStyle> = {
 }
 
 function achievementStyle(eventType: string): AchievementStyle {
+  const presentation = getGroupHistoryEventPresentation(eventType)
+  if (presentation.tone === 'green') return { className: 'achGreen', icon: '' }
+  if (presentation.tone === 'blue') return { className: 'achBlue', icon: '' }
+  if (presentation.tone === 'violet') return { className: 'achViolet', icon: '' }
+  if (presentation.tone === 'red') return { className: 'achRed', icon: '' }
+  if (presentation.tone === 'legendary') return { className: 'achLegendary', icon: '' }
+  if (presentation.tone === 'pink') return { className: 'achPink', icon: '' }
+  if (presentation.tone === 'muted') return { className: 'achMuted', icon: '' }
+  if (presentation.tone === 'gold') return { className: 'achGold', icon: '' }
   return ACHIEVEMENT_BY_EVENT[eventType] ?? ACHIEVEMENT_BY_EVENT.other
 }
 
@@ -46,13 +56,15 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
       <ol className={styles.achGrid}>
         {history.map((item) => {
           const style = achievementStyle(item.event_type)
+          const presentation = getGroupHistoryEventPresentation(item.event_type)
           return (
             <li key={item.id} className={`${styles.ach} ${styles[style.className]}`}>
               <span className={styles.medal} aria-hidden="true">
-                {style.icon}
+                <img src={presentation.imageSrc} alt="" className={styles.achImage} />
               </span>
               <span className={styles.achBody}>
                 <strong>{historyTitle(item)}</strong>
+                <span className={styles.achType}>{presentation.label}</span>
                 {item.note ? <span className={styles.achNote}>{item.note}</span> : null}
               </span>
               {item.year ? <span className={styles.achYear}>{item.year}</span> : null}

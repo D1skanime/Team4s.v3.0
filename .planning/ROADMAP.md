@@ -1699,6 +1699,24 @@ Plans:
 - [ ] `99-25-PLAN.md` - Wave 18: AO6-12 Bild-Lightbox (Original, Weiter/Zurück, voller Text, Esc/←/→, A11y)
 - [ ] `99-26-PLAN.md` - Wave 19: Finaler Live-UAT Add-on 6, Mobile+Desktop, Human-Verify
 
+### Phase 100: Fansub Erfolge Freischaltlogik und Meilenstein-Katalog
+
+**Goal:** Die Fansub-Gruppen-Erfolge werden nicht mehr pauschal/frei als Katalog umgesetzt, sondern pro Erfolg fachlich diskutiert, einzeln freigeschaltet, einzeln implementiert und getestet. Start ist `founding` / `Gründung`; alle weiteren History-, Projekt- und Release-Erfolge bleiben als explizite Todo-Liste sichtbar, damit keiner vergessen wird.
+**Requirements**: Phase 100 Context D-01 bis D-07
+**Depends on:** Phase 99
+**Plans:** 1 plan
+
+Plans:
+- [ ] `100-00-PLAN.md` - Wave 0: Diskussionsqueue und Umsetzungsprotokoll für alle 23 Fansub-Erfolge; erster Slice `founding` / `Gründung`
+
+**Success Criteria** (what must be TRUE):
+
+  1. Jeder aktuelle Erfolgscode (`founding`, `first_release`, `anniversary`, `collaboration`, `project_completed`, `team_change`, `website_launch`, `award`, `revival`, `hiatus`, `disbanding`, `rebranding`, `milestone`, `other`, `projects_10`, `projects_50`, `projects_100`, `projects_500`, `releases_100`, `releases_500`, `releases_1000`, `releases_5000`, `releases_10000`) hat einen eigenen Diskussions-/Implementierungs-/Test-Todo.
+  2. Die Arbeitsweise ist strikt sequenziell: ein Erfolg diskutieren, einen Erfolg implementieren, testen, dann erst der nächste.
+  3. Bereits genutzte Erfolge verschwinden aus der Admin-Auswahlliste; gesperrte, noch nicht verfügbare Erfolge bleiben sichtbar und disabled.
+  4. `founding` / `Gründung` ist der erste konkrete Umsetzungs-Slice: Gründungsjahr vorhanden -> auswählbar; Gründungsjahr fehlt -> disabled; bereits genutzt -> ausgeblendet.
+  5. Count-Erfolge werden erst nach eigener Quellenentscheidung aus Backend-Daten freigeschaltet; keine frei wählbaren Legendary-Zähler als Dauerzustand.
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie

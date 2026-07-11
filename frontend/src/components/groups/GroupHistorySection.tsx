@@ -21,10 +21,15 @@ import {
   deleteGroupHistory,
   type GroupHistoryRow,
 } from '@/lib/api'
+import {
+  GROUP_HISTORY_EVENT_OPTIONS,
+  getGroupHistoryEventPresentation,
+} from '@/lib/group-history-events'
 
 import {
   GroupHistoryForm,
   EMPTY_HISTORY_FORM,
+  type HistoryEventOptionState,
   type HistoryFormState,
 } from './GroupHistoryForm'
 import styles from './groups.module.css'
@@ -57,6 +62,15 @@ function eventTypeBadgeVariant(eventType: string): 'neutral' | 'success' | 'warn
   return EVENT_TYPE_BADGE_VARIANTS[eventType as keyof typeof EVENT_TYPE_BADGE_VARIANTS] ?? 'muted'
 }
 
+function achievementBadgeVariant(eventType: string): 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted' {
+  const presentation = getGroupHistoryEventPresentation(eventType)
+  if (presentation.tone === 'green') return 'success'
+  if (presentation.tone === 'red') return 'danger'
+  if (presentation.tone === 'gold' || presentation.tone === 'legendary' || presentation.tone === 'pink') return 'warning'
+  if (presentation.tone === 'blue' || presentation.tone === 'violet' || presentation.tone === 'accent') return 'info'
+  return eventTypeBadgeVariant(eventType)
+}
+
 function sortEntries(entries: GroupHistoryRow[]): GroupHistoryRow[] {
   return [...entries].sort((a, b) => {
     if (a.year === null && b.year === null) return 0
@@ -81,6 +95,9 @@ function entryToFormState(entry: GroupHistoryRow): HistoryFormState {
 
 interface GroupHistorySectionProps {
   fansubGroupId: number
+  foundedYear?: number | null
+  hasWebsiteLink?: boolean
+  hasFirstProject?: boolean
   authToken?: string
   /**
    * Nur-Anzeige-Modus: blendet alle Bearbeiten-Steuerelemente aus (kein
@@ -90,11 +107,69 @@ interface GroupHistorySectionProps {
   readOnly?: boolean
 }
 
+export function buildHistoryEventOptions(
+  entries: GroupHistoryRow[],
+  editTarget: GroupHistoryRow | null,
+  foundedYear?: number | null,
+  hasWebsiteLink = false,
+  hasFirstProject = false,
+): HistoryEventOptionState[] {
+  const foundingUsedByAnotherEntry = entries.some(
+    (entry) => entry.event_type === 'founding' && entry.id !== editTarget?.id,
+  )
+  const firstProjectUsedByAnotherEntry = entries.some(
+    (entry) => entry.event_type === 'first_release' && entry.id !== editTarget?.id,
+  )
+  const websiteLaunchUsedByAnotherEntry = entries.some(
+    (entry) => entry.event_type === 'website_launch' && entry.id !== editTarget?.id,
+  )
+
+  return getGroupHistoryEventOptions().flatMap((option) => {
+    if (option.value === 'founding' && foundingUsedByAnotherEntry) {
+      return []
+    }
+
+    if (option.value === 'founding' && !foundedYear) {
+      return [{ ...option, disabled: true, disabledReason: 'Gründungsjahr fehlt' }]
+    }
+
+    if (option.value === 'founding') {
+      return [{ ...option, suggestedYear: foundedYear }]
+    }
+
+    if (option.value === 'first_release' && firstProjectUsedByAnotherEntry) {
+      return []
+    }
+
+    if (option.value === 'first_release' && !hasFirstProject && editTarget?.event_type !== 'first_release') {
+      return [{ ...option, disabled: true, disabledReason: 'Ausblick/Rollen fehlen' }]
+    }
+
+    if (option.value === 'website_launch' && websiteLaunchUsedByAnotherEntry) {
+      return []
+    }
+
+    if (option.value === 'website_launch' && !hasWebsiteLink && editTarget?.event_type !== 'website_launch') {
+      return [{ ...option, disabled: true, disabledReason: 'Webseite fehlt' }]
+    }
+
+    return [option]
+  })
+}
+
+function getGroupHistoryEventOptions(): HistoryEventOptionState[] {
+  return GROUP_HISTORY_EVENT_OPTIONS.map((option) => ({
+    value: option.value,
+    label: option.label,
+    imageSrc: option.imageSrc,
+  }))
+}
+
 // ---------------------------------------------------------------------------
 // Komponente
 // ---------------------------------------------------------------------------
 
-export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false }: GroupHistorySectionProps) {
+export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, authToken, readOnly = false }: GroupHistorySectionProps) {
   const [entries, setEntries] = useState<GroupHistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -185,6 +260,14 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
       }
       setTitleError(null)
       setSaveError(null)
+      if (form.eventType === 'website_launch' && !hasWebsiteLink && editTarget?.event_type !== 'website_launch') {
+        setSaveError('Webseite fehlt. Bitte zuerst einen Community-Link vom Typ Webseite eintragen.')
+        return
+      }
+      if (form.eventType === 'first_release' && !hasFirstProject && editTarget?.event_type !== 'first_release') {
+        setSaveError('Erstes Projekt ist noch nicht vollständig. Bitte Ausblick schreiben und Rollen Übersetzer, Timer und Encoder vergeben.')
+        return
+      }
       setIsSaving(true)
       try {
         const yearValue = form.year.trim() !== '' ? Number(form.year) : null
@@ -213,7 +296,7 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
         setIsSaving(false)
       }
     },
-    [form, editTarget, fansubGroupId, authToken, closeForm, showSuccess],
+    [form, editTarget, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------
@@ -237,6 +320,7 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
   }, [deleteTarget, fansubGroupId, authToken, showSuccess])
 
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
+  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject)
 
   // ---------------------------------------------------------------------------
   // Render
@@ -282,6 +366,7 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
           titleError={titleError}
           saveError={saveError}
           isEdit={editTarget !== null}
+          eventOptions={eventOptions}
         />
       ) : null}
 
@@ -310,13 +395,16 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
       {!isLoading && !loadError && entries.length > 0 ? (
         <>
           <ul className={styles.historyList}>
-            {visibleEntries.map((entry) => (
+            {visibleEntries.map((entry) => {
+              const presentation = getGroupHistoryEventPresentation(entry.event_type)
+              return (
               <li key={entry.id} className={styles.historyRow}>
                 <span className={styles.historyYear}>{entry.year ?? '—'}</span>
+                <img src={presentation.imageSrc} alt="" className={styles.historyBadgeImage} />
                 <div className={styles.historyContent}>
                   <div className={styles.historyMetaRow}>
-                    <Badge variant={eventTypeBadgeVariant(entry.event_type)}>
-                      {EVENT_TYPE_LABELS[entry.event_type] ?? entry.event_type}
+                    <Badge variant={achievementBadgeVariant(entry.event_type)}>
+                      {presentation.label}
                     </Badge>
                   </div>
                   <strong className={styles.historyTitle}>{entry.title}</strong>
@@ -345,7 +433,8 @@ export function GroupHistorySection({ fansubGroupId, authToken, readOnly = false
                   </div>
                 ) : null}
               </li>
-            ))}
+              )
+            })}
           </ul>
 
           {entries.length > COLLAPSE_THRESHOLD ? (
