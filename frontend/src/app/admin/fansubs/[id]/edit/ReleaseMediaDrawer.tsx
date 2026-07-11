@@ -7,7 +7,7 @@ import { Button } from "@/components/ui";
 import { ReleaseVersionMediaDrawerSummary } from "./ReleaseVersionMediaDrawerSummary";
 import { ReleaseVersionMediaReviewSection } from "./ReleaseVersionMediaReviewSection";
 import { ReleaseThemeDrawerSection } from "./ReleaseThemeDrawerSection";
-import { releaseDrawerTitle } from "./fansubEditFormatters";
+import { releaseDrawerTitle, releaseFansubDisplayName } from "./fansubEditFormatters";
 import { animeFansubReleaseContextKey } from "./fansubEditReleaseHelpers";
 import type { ReleaseSegmentCard, SelectedReleaseSegment } from "./fansubEditTypes";
 import type { ReleaseMediaDrawer as ReleaseMediaDrawerState } from "./useReleaseMediaDrawer";
@@ -53,7 +53,6 @@ export function ReleaseMediaDrawer({
     selectedReleaseId,
     selectedAnimeFansubContextKey,
     selectedAnimeId,
-    selectedFansubGroupId,
     themeUploadInputRef,
     closeReleaseDrawer,
     closeThemeDrawer,
@@ -80,6 +79,9 @@ export function ReleaseMediaDrawer({
       : drawerRelease?.has_theme_assets
         ? "Theme-Assets vorhanden"
         : "Keine Theme-Assets";
+  const drawerFansubName = drawerRelease
+    ? releaseFansubDisplayName(drawerRelease)
+    : "";
   const releaseDrawerTabs = drawerRelease
     ? [
         ...(canUseAdminReleaseDetails
@@ -109,7 +111,7 @@ export function ReleaseMediaDrawer({
                   <h2>{releaseDrawerTitle(drawerRelease)}</h2>
                 </div>
                 <p>
-                  {drawerRelease.fansub_name} · {drawerRelease.version_count}{" "}
+                  {drawerFansubName} · {drawerRelease.version_count}{" "}
                   Version{drawerRelease.version_count === 1 ? "" : "en"}
                 </p>
               </div>
@@ -175,10 +177,7 @@ export function ReleaseMediaDrawer({
                     <div className={styles.fansubEditReleaseDrawerDetailItem}>
                       <span>Fansub-Gruppe</span>
                       <strong>
-                        {String(
-                          selectedFansubGroupId ??
-                            drawerRelease.fansub_group_id,
-                        )}
+                        {drawerFansubName}
                       </strong>
                     </div>
                     <div className={styles.fansubEditReleaseDrawerDetailItem}>
@@ -240,7 +239,7 @@ export function ReleaseMediaDrawer({
                     <>
                       <ReleaseVersionMediaDrawerSummary
                         versionId={drawerRelease.release_version_id}
-                        fansubName={drawerRelease.fansub_name}
+                        fansubName={drawerFansubName}
                         releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
                       />
                       {capabilities ? (

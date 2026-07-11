@@ -108,13 +108,18 @@ export function EpisodeVersionEditorPage() {
   }, [hasAuthSession, isClientInitialized, version?.id]);
 
   const segmentAnimeId = editor.contextData?.version.anime_id ?? null;
-  const segmentGroupId = editor.contextData?.selected_groups[0]?.id ?? null;
+  const selectedGroups = editor.selectedGroups;
+  const primaryGroup = selectedGroups[0] ?? null;
+  const segmentGroupId = primaryGroup?.id ?? null;
   const segmentVersion: string | null =
     editor.contextData?.version.release_version?.trim() || "v1";
 
   const animeTitle = editor.contextData?.anime_title ?? "";
   const episodeNumber = version?.episode_number ?? null;
-  const groupName = editor.contextData?.selected_groups[0]?.name ?? null;
+  const groupName =
+    selectedGroups.length > 0
+      ? selectedGroups.map((group) => group.name).join(" & ")
+      : null;
   const isPlatformAdmin = currentUser?.is_platform_admin === true;
   const canUseContributorMedia = releaseCapabilities?.can_view_media === true;
   const canUseContributorNotes = releaseCapabilities?.can_edit_notes === true;
@@ -170,8 +175,8 @@ export function EpisodeVersionEditorPage() {
         : activeTab;
 
   const fansubGroupHref =
-    segmentGroupId != null
-      ? `/admin/fansubs/${segmentGroupId}/edit`
+    primaryGroup != null
+      ? `/admin/fansubs/${primaryGroup.id}/edit`
       : null;
 
   const backHref =
@@ -240,7 +245,7 @@ export function EpisodeVersionEditorPage() {
                 {groupName ? (
                   <>
                     {" \u00B7 "}
-                    {fansubGroupHref != null ? (
+                    {fansubGroupHref != null && selectedGroups.length === 1 ? (
                       <Link
                         href={fansubGroupHref}
                         className={styles.subtitleGroupLink}
@@ -877,7 +882,7 @@ export function EpisodeVersionEditorPage() {
               <Link href={backHref} className={styles.secondaryButton}>
                 Zurück
               </Link>
-              {fansubGroupHref != null ? (
+              {fansubGroupHref != null && selectedGroups.length === 1 ? (
                 <Button href={fansubGroupHref} variant="secondary">
                   Zur Fansubgruppe
                 </Button>

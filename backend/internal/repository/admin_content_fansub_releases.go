@@ -70,6 +70,13 @@ func (r *AdminContentRepository) ListFansubAnimeReleasesPage(
 			a.title                                     AS anime_title,
 			fg.id                                       AS fansub_group_id,
 			fg.name                                     AS fansub_name,
+			COALESCE((
+				SELECT ARRAY_AGG(DISTINCT fg_all.name ORDER BY fg_all.name)
+				FROM release_versions rv_all
+				JOIN release_version_groups rvg_all ON rvg_all.release_version_id = rv_all.id
+				JOIN fansub_groups fg_all ON fg_all.id = rvg_all.fansub_group_id
+				WHERE rv_all.release_id = fr.id
+			), ARRAY[]::text[])                         AS fansub_names,
 			ep.id                                       AS episode_id,
 			COALESCE(ep.episode_number, '')             AS episode_number,
 			ep.title                                    AS episode_title,
@@ -140,6 +147,7 @@ func (r *AdminContentRepository) ListFansubAnimeReleasesPage(
 			&item.AnimeTitle,
 			&item.FansubGroupID,
 			&item.FansubName,
+			&item.FansubNames,
 			&item.EpisodeID,
 			&item.EpisodeNumber,
 			&item.EpisodeTitle,
@@ -191,6 +199,13 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 			a.title                                     AS anime_title,
 			fg.id                                       AS fansub_group_id,
 			fg.name                                     AS fansub_name,
+			COALESCE((
+				SELECT ARRAY_AGG(DISTINCT fg_all.name ORDER BY fg_all.name)
+				FROM release_versions rv_all
+				JOIN release_version_groups rvg_all ON rvg_all.release_version_id = rv_all.id
+				JOIN fansub_groups fg_all ON fg_all.id = rvg_all.fansub_group_id
+				WHERE rv_all.release_id = fr.id
+			), ARRAY[]::text[])                         AS fansub_names,
 			ep.id                                       AS episode_id,
 			COALESCE(ep.episode_number, '')             AS episode_number,
 			ep.title                                    AS episode_title,
@@ -246,6 +261,7 @@ func (r *AdminContentRepository) GetCanonicalFansubAnimeReleaseSummary(
 		&item.AnimeTitle,
 		&item.FansubGroupID,
 		&item.FansubName,
+		&item.FansubNames,
 		&item.EpisodeID,
 		&item.EpisodeNumber,
 		&item.EpisodeTitle,
@@ -290,6 +306,13 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 			a.title                                     AS anime_title,
 			COALESCE(MIN(fg.id), 0)                     AS fansub_group_id,
 			COALESCE(MIN(fg.name), '')                  AS fansub_name,
+			COALESCE((
+				SELECT ARRAY_AGG(DISTINCT fg_all.name ORDER BY fg_all.name)
+				FROM release_versions rv_all
+				JOIN release_version_groups rvg_all ON rvg_all.release_version_id = rv_all.id
+				JOIN fansub_groups fg_all ON fg_all.id = rvg_all.fansub_group_id
+				WHERE rv_all.release_id = fr.id
+			), ARRAY[]::text[])                         AS fansub_names,
 			ep.id                                       AS episode_id,
 			COALESCE(ep.episode_number, '')             AS episode_number,
 			ep.title                                    AS episode_title,
@@ -337,6 +360,7 @@ func (r *AdminContentRepository) GetAdminReleaseByID(
 		&item.AnimeTitle,
 		&item.FansubGroupID,
 		&item.FansubName,
+		&item.FansubNames,
 		&item.EpisodeID,
 		&item.EpisodeNumber,
 		&item.EpisodeTitle,

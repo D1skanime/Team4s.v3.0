@@ -98,6 +98,7 @@ interface GroupHistorySectionProps {
   foundedYear?: number | null
   hasWebsiteLink?: boolean
   hasFirstProject?: boolean
+  hasFirstRelease?: boolean
   authToken?: string
   /**
    * Nur-Anzeige-Modus: blendet alle Bearbeiten-Steuerelemente aus (kein
@@ -113,11 +114,15 @@ export function buildHistoryEventOptions(
   foundedYear?: number | null,
   hasWebsiteLink = false,
   hasFirstProject = false,
+  hasFirstRelease = false,
 ): HistoryEventOptionState[] {
   const foundingUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'founding' && entry.id !== editTarget?.id,
   )
   const firstProjectUsedByAnotherEntry = entries.some(
+    (entry) => entry.event_type === 'first_project' && entry.id !== editTarget?.id,
+  )
+  const firstReleaseUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'first_release' && entry.id !== editTarget?.id,
   )
   const websiteLaunchUsedByAnotherEntry = entries.some(
@@ -137,12 +142,20 @@ export function buildHistoryEventOptions(
       return [{ ...option, suggestedYear: foundedYear }]
     }
 
-    if (option.value === 'first_release' && firstProjectUsedByAnotherEntry) {
+    if (option.value === 'first_project' && firstProjectUsedByAnotherEntry) {
       return []
     }
 
-    if (option.value === 'first_release' && !hasFirstProject && editTarget?.event_type !== 'first_release') {
+    if (option.value === 'first_project' && !hasFirstProject && editTarget?.event_type !== 'first_project') {
       return [{ ...option, disabled: true, disabledReason: 'Ausblick/Rollen fehlen' }]
+    }
+
+    if (option.value === 'first_release' && firstReleaseUsedByAnotherEntry) {
+      return []
+    }
+
+    if (option.value === 'first_release' && !hasFirstRelease && editTarget?.event_type !== 'first_release') {
+      return [{ ...option, disabled: true, disabledReason: 'Release/Kara fehlt' }]
     }
 
     if (option.value === 'website_launch' && websiteLaunchUsedByAnotherEntry) {
@@ -169,7 +182,7 @@ function getGroupHistoryEventOptions(): HistoryEventOptionState[] {
 // Komponente
 // ---------------------------------------------------------------------------
 
-export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, authToken, readOnly = false }: GroupHistorySectionProps) {
+export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, authToken, readOnly = false }: GroupHistorySectionProps) {
   const [entries, setEntries] = useState<GroupHistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -264,8 +277,12 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setSaveError('Webseite fehlt. Bitte zuerst einen Community-Link vom Typ Webseite eintragen.')
         return
       }
-      if (form.eventType === 'first_release' && !hasFirstProject && editTarget?.event_type !== 'first_release') {
+      if (form.eventType === 'first_project' && !hasFirstProject && editTarget?.event_type !== 'first_project') {
         setSaveError('Erstes Projekt ist noch nicht vollständig. Bitte Ausblick schreiben und Rollen Übersetzer, Timer und Encoder vergeben.')
+        return
+      }
+      if (form.eventType === 'first_release' && !hasFirstRelease && editTarget?.event_type !== 'first_release') {
+        setSaveError('Erstes Release ist noch nicht vollständig. Bitte zuerst ein Kara-Segment und mindestens einen Release-Text oder ein Release-Bild hinterlegen.')
         return
       }
       setIsSaving(true)
@@ -296,7 +313,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setIsSaving(false)
       }
     },
-    [form, editTarget, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, closeForm, showSuccess],
+    [form, editTarget, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------
@@ -320,7 +337,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
   }, [deleteTarget, fansubGroupId, authToken, showSuccess])
 
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
-  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject)
+  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease)
 
   // ---------------------------------------------------------------------------
   // Render

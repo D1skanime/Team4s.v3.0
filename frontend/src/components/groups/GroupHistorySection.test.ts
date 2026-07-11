@@ -55,7 +55,7 @@ describe('buildHistoryEventOptions', () => {
   it('locks first project while project coverage is incomplete', () => {
     const options = buildHistoryEventOptions([], null, 2007, true, false)
 
-    expect(options.find((option) => option.value === 'first_release')).toMatchObject({
+    expect(options.find((option) => option.value === 'first_project')).toMatchObject({
       disabled: true,
       disabledReason: 'Ausblick/Rollen fehlen',
     })
@@ -64,22 +64,56 @@ describe('buildHistoryEventOptions', () => {
   it('allows first project when project coverage is complete', () => {
     const options = buildHistoryEventOptions([], null, 2007, true, true)
 
-    const option = options.find((option) => option.value === 'first_release')
-    expect(option).toMatchObject({ value: 'first_release' })
+    const option = options.find((option) => option.value === 'first_project')
+    expect(option).toMatchObject({ value: 'first_project' })
     expect(option?.disabled).toBeUndefined()
   })
 
   it('hides first project after it was already used by another entry', () => {
     const options = buildHistoryEventOptions([
-      historyRow({ id: 13, event_type: 'first_release' }),
+      historyRow({ id: 13, event_type: 'first_project' }),
     ], null, 2007, true, true)
+
+    expect(options.some((option) => option.value === 'first_project')).toBe(false)
+  })
+
+  it('keeps first project available while editing its own entry', () => {
+    const entry = historyRow({ id: 13, event_type: 'first_project' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true, false)
+
+    const option = options.find((option) => option.value === 'first_project')
+    expect(option).toMatchObject({ value: 'first_project' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
+  it('locks first release while release coverage is incomplete', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, false)
+
+    expect(options.find((option) => option.value === 'first_release')).toMatchObject({
+      disabled: true,
+      disabledReason: 'Release/Kara fehlt',
+    })
+  })
+
+  it('allows first release when release coverage is complete', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true)
+
+    const option = options.find((option) => option.value === 'first_release')
+    expect(option).toMatchObject({ value: 'first_release' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
+  it('hides first release after it was already used by another entry', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 14, event_type: 'first_release' }),
+    ], null, 2007, true, true, true)
 
     expect(options.some((option) => option.value === 'first_release')).toBe(false)
   })
 
-  it('keeps first project available while editing its own entry', () => {
-    const entry = historyRow({ id: 13, event_type: 'first_release' })
-    const options = buildHistoryEventOptions([entry], entry, 2007, true, false)
+  it('keeps first release available while editing its own entry', () => {
+    const entry = historyRow({ id: 14, event_type: 'first_release' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true, true, false)
 
     const option = options.find((option) => option.value === 'first_release')
     expect(option).toMatchObject({ value: 'first_release' })

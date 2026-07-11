@@ -78,6 +78,7 @@ func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *test
 		"release_version_id",
 		"anime_id",
 		"fansub_group_id",
+		"fansub_names",
 		"episode_id",
 		"version_count",
 		"has_theme_assets",
@@ -87,6 +88,22 @@ func TestAdminContentFansubReleases_ReleaseSummaryContainsRequiredFields(t *test
 	for _, field := range requiredFields {
 		if !strings.Contains(normalized, field) {
 			t.Fatalf("expected DTO json field %q to exist in admin_release_theme_assets.go", field)
+		}
+	}
+}
+
+func TestAdminContentFansubReleases_AggregatesCoopFansubNames(t *testing.T) {
+	content := readFansubReleasesSource(t, "admin_content_fansub_releases.go")
+	normalized := strings.ToLower(content)
+
+	requiredPatterns := []string{
+		"as fansub_names",
+		"array_agg(distinct fg_all.name order by fg_all.name)",
+		"join release_version_groups rvg_all on rvg_all.release_version_id = rv_all.id",
+	}
+	for _, pattern := range requiredPatterns {
+		if !strings.Contains(normalized, pattern) {
+			t.Fatalf("expected coop fansub-name aggregation to include %q", pattern)
 		}
 	}
 }

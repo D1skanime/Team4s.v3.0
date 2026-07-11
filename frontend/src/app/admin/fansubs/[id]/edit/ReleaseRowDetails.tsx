@@ -5,7 +5,11 @@ import { ChevronDown, ChevronRight, ExternalLink, Users } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 import type { AdminFansubRelease, AnimeContribution } from "@/types/fansub";
 import { releaseVersionToolsTarget } from "./fansubEditAccess";
-import { timelineLabelFor, timelineStatusLabelFor } from "./fansubEditFormatters";
+import {
+  releaseFansubDisplayName,
+  timelineLabelFor,
+  timelineStatusLabelFor,
+} from "./fansubEditFormatters";
 import type {
   FansubReleaseGroup,
   ReleasePaginationState,
@@ -132,10 +136,10 @@ export function ReleaseRowDetails({
                 <span className={styles.fansubEditReleaseEpisodeBadge}>
                   EP {release.episode_number || "?"}
                 </span>
-                <span className={styles.fansubEditReleaseCardTitle}>
-                  <strong>{title}</strong>
-                  <span>Versionen: {release.version_count}</span>
-                </span>
+                  <span className={styles.fansubEditReleaseCardTitle}>
+                    <strong>{title}</strong>
+                    <span>{releaseFansubDisplayName(release)} · Versionen: {release.version_count}</span>
+                  </span>
                 <span className={styles.fansubEditReleaseCardChips}>
                   <Badge variant={peopleCount > 0 ? "info" : "muted"}>
                     {peopleCount} Person{peopleCount === 1 ? "" : "en"}

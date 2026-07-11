@@ -8268,6 +8268,7 @@ export interface AnimeCoverage {
   member_count: number
   covered_role_codes: string[]
   has_project_note: boolean
+  has_first_release: boolean
 }
 
 export interface AnimeCoverageListResponse {

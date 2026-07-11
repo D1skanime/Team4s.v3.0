@@ -111,18 +111,42 @@ func TestFirstProjectRequiresQualifiedProjectCoverage(t *testing.T) {
 	unlockBody := funcBody(t, src, "validateEventUnlocked")
 
 	assert.Contains(t, createBody, "validateEventUnlocked",
+		"CreateGroupHistory muss first_project gegen Freischaltregeln absichern")
+	assert.Contains(t, updateBody, "validateEventUnlocked",
+		"UpdateGroupHistory muss Wechsel auf first_project gegen Freischaltregeln absichern")
+	assert.Contains(t, unlockBody, `case "first_project"`,
+		"validateEventUnlocked muss first_project gesondert validieren")
+	assert.Contains(t, unlockBody, "ValidateFirstProjectAllowed",
+		"first_project darf erst nach qualifizierter Projekt-Coverage gespeichert werden")
+}
+
+func TestFirstReleaseRequiresReleaseContributionAndKaraCoverage(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	assert.Contains(t, createBody, "validateEventUnlocked",
 		"CreateGroupHistory muss first_release gegen Freischaltregeln absichern")
 	assert.Contains(t, updateBody, "validateEventUnlocked",
 		"UpdateGroupHistory muss Wechsel auf first_release gegen Freischaltregeln absichern")
 	assert.Contains(t, unlockBody, `case "first_release"`,
 		"validateEventUnlocked muss first_release gesondert validieren")
-	assert.Contains(t, unlockBody, "ValidateFirstProjectAllowed",
-		"first_release darf erst nach qualifizierter Projekt-Coverage gespeichert werden")
+	assert.Contains(t, unlockBody, "ValidateFirstReleaseAllowed",
+		"first_release darf erst nach Release-Beitrag und Kara-Segment gespeichert werden")
+	assert.Contains(t, repoSrc, "anime_contributions ac_note",
+		"first_release-Textbeitrag muss einem Beitrag derselben Fansubgruppe zuordenbar sein")
+	assert.Contains(t, repoSrc, "member_claims mc_media",
+		"first_release-Media muss den Uploader ueber verifizierte Claims aufloesen")
+	assert.Contains(t, repoSrc, "ac_media.fansub_group_id = rvg.fansub_group_id",
+		"first_release-Media darf keine fremde Coop-Gruppe freischalten")
 }
 
 func TestGroupHistoryEventTypeWhitelistIncludesAchievementPreviewTypes(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
 	for _, code := range []string{
+		"first_project",
 		"first_release",
 		"anniversary",
 		"collaboration",

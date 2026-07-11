@@ -126,6 +126,24 @@ func TestGroupHistoryAchievementEventTypesMigrationContract(t *testing.T) {
 	})
 }
 
+func TestGroupHistoryFirstProjectSplitMigrationContract(t *testing.T) {
+	splitUp := strings.ToLower(readMigrationFile(t, "0127_split_first_project_and_first_release.up.sql"))
+	splitDown := strings.ToLower(readMigrationFile(t, "0127_split_first_project_and_first_release.down.sql"))
+
+	assertContainsAll(t, splitUp, []string{
+		"drop constraint if exists chk_fansub_group_history_event_type",
+		"set event_type = 'first_project'",
+		"where event_type = 'first_release'",
+		"'first_project'",
+		"'first_release'",
+	})
+	assertContainsAll(t, splitDown, []string{
+		"set event_type = 'first_release'",
+		"where event_type = 'first_project'",
+		"'first_release'",
+	})
+}
+
 func TestMemberProfilePublicDefaultsMigrationContract(t *testing.T) {
 	publicDefaultsUp := strings.ToLower(readMigrationFile(t, "0126_member_profile_public_defaults.up.sql"))
 	publicDefaultsDown := strings.ToLower(readMigrationFile(t, "0126_member_profile_public_defaults.down.sql"))

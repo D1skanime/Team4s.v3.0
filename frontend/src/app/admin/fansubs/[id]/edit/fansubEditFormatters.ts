@@ -177,6 +177,15 @@ export function releaseDrawerTitle(release: AdminFansubRelease): string {
   return `${release.anime_title} E${episode}${title ? ` - ${title}` : ""}`;
 }
 
+export function releaseFansubDisplayName(release: AdminFansubRelease): string {
+  const names = (release.fansub_names ?? [])
+    .map((name) => name.trim())
+    .filter(Boolean);
+  const uniqueNames = Array.from(new Set(names));
+  if (uniqueNames.length > 0) return uniqueNames.join(" & ");
+  return release.fansub_name;
+}
+
 export function themeSegmentEpisodeRange(
   segment?: AdminAnimeThemeSegment | null,
 ): string {

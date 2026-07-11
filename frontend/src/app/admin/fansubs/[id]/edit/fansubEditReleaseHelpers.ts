@@ -45,6 +45,16 @@ export function hasQualifiedFirstProject(
   });
 }
 
+export function hasQualifiedFirstRelease(
+  animeCoverageMap: Map<number, AnimeCoverage> | null,
+): boolean {
+  if (!animeCoverageMap) return false;
+
+  return Array.from(animeCoverageMap.values()).some(
+    (coverage) => coverage.has_first_release,
+  );
+}
+
 export function groupContributionMembersByRole(
   contributions: AnimeContribution[],
 ): Record<string, CoverageRoleMember[]> {

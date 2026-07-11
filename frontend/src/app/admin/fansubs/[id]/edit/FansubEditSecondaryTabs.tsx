@@ -6,7 +6,10 @@ import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReadinessTab } from "./ReadinessTab";
 import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import type { MainTab } from "./fansubEditTypes";
-import { hasQualifiedFirstProject } from "./fansubEditReleaseHelpers";
+import {
+  hasQualifiedFirstProject,
+  hasQualifiedFirstRelease,
+} from "./fansubEditReleaseHelpers";
 import type { FansubReleaseData } from "./useFansubReleaseData";
 
 function hasWebsiteCommunityLink(group: FansubGroup | null): boolean {
@@ -43,6 +46,7 @@ export function FansubEditSecondaryTabs({
             foundedYear={group?.founded_year ?? null}
             hasWebsiteLink={hasWebsiteCommunityLink(group)}
             hasFirstProject={hasQualifiedFirstProject(releaseData.animeCoverageMap)}
+            hasFirstRelease={hasQualifiedFirstRelease(releaseData.animeCoverageMap)}
           />
         </>
       ) : null}

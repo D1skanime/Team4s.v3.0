@@ -549,6 +549,7 @@ endpoints:
     notes:
       - Returns one aggregate row per anime_fansub_groups context for the fansub group.
       - has_project_note is true when a non-deleted anime_fansub_project_notes row exists for the anime/group context.
+      - has_first_release is true when at least one release version for the anime/group has a matching kara segment and a non-deleted release note or release media item authored/uploaded by a contributor mapped to that same fansub group.
 
   - name: admin-fansub-anime-project-note-get
     method: GET
@@ -883,6 +884,7 @@ types:
     anime_title: string
     fansub_group_id: int64
     fansub_name: string
+    fansub_names: "string[] (description: Alle an der Release-Version/dem Release beteiligten Gruppen fuer Coop-Anzeige; fansub_name bleibt Fallback/Scope-Name.)"
     episode_id: int64
     episode_number: string
     episode_title: string | null
@@ -973,6 +975,7 @@ types:
     member_count: int32
     covered_role_codes: string[]
     has_project_note: boolean
+    has_first_release: boolean
   AnimeCoverageListResponse:
     data: AnimeCoverage[]
   UpsertAnimeContributionRequest:

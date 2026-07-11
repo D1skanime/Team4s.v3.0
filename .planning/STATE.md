@@ -523,6 +523,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260711-release-edit-coop-first-release-scope | Coop-Releases im Admin-Editbereich mit allen Gruppennamen anzeigen; First-Release-Meilenstein auf gruppeneigene Text-/Media-Beitraege begrenzen | 2026-07-11 | this commit | [260711-release-edit-coop-first-release-scope](./quick/260711-release-edit-coop-first-release-scope/) |
 | 260709-vdf | Sichtbarkeits-Defaults fuer neue bestaetigte Anime-Contributions auf public=true; Projektseite zaehlt echte bestaetigte Projektmitwirkende statt Gruppenmitglieder | 2026-07-09 | this commit | [260709-vdf-visibility-defaults-project-counts](./quick/260709-vdf-visibility-defaults-project-counts/) |
 | 260707-kut | Hinweis-senden fuer App-Mitglieder (fansub_group_members): Proposal-Flow member_id-zentrisch statt hist_fansub_group_members; ListMembershipsForMember UNION beider Tabellen; MemberBelongsToFansub-Gate; Leader-Review-Queue fix | 2026-07-07 | b1543e6d | [260707-kut-hinweis-senden-fuer-app-mitglieder-propo](./quick/260707-kut-hinweis-senden-fuer-app-mitglieder-propo/) |
 | 260707-jya | Meine-Projekte-Seite (/me/contributions): Projektliste primaer mit Fortschrittsbalken pro Projekt (worked/total im getMyAnimeContributions-Endpoint), Offene Aktionen/Hinweise nachrangig | 2026-07-07 | 815e1d6d | [260707-jya-meine-projekte-seite-umbauen-projektlist](./quick/260707-jya-meine-projekte-seite-umbauen-projektlist/) |

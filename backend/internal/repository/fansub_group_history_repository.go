@@ -218,6 +218,103 @@ func (r *FansubGroupHistoryRepository) ValidateFirstProjectAllowed(ctx context.C
 	return nil
 }
 
+// HasQualifiedFirstRelease reports whether the group has at least one release
+// version with a matching kara segment and a real release contribution.
+func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Context, fansubGroupID int64) (bool, error) {
+	if fansubGroupID <= 0 {
+		return false, ErrNotFound
+	}
+
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM release_versions rv
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes ep ON ep.id = fr.episode_id
+			WHERE rvg.fansub_group_id = $1
+			  AND (
+				EXISTS (
+					SELECT 1
+					FROM release_version_notes rvn
+					WHERE rvn.release_version_id = rv.id
+					  AND rvn.deleted_at IS NULL
+					  AND rvn.status <> 'deleted'
+					  AND COALESCE(
+						NULLIF(BTRIM(rvn.body_text), ''),
+						NULLIF(BTRIM(rvn.body_markdown), ''),
+						NULLIF(BTRIM(rvn.body_html), ''),
+						NULLIF(BTRIM(COALESCE(rvn.title, '')), '')
+					  ) IS NOT NULL
+					  AND EXISTS (
+						SELECT 1
+						FROM anime_contributions ac_note
+						LEFT JOIN hist_fansub_group_members hfgm_note ON hfgm_note.id = ac_note.fansub_group_member_id
+						WHERE ac_note.anime_id = ep.anime_id
+						  AND ac_note.fansub_group_id = rvg.fansub_group_id
+						  AND COALESCE(ac_note.member_id, hfgm_note.member_id) = rvn.member_id
+						  AND ac_note.status <> 'rejected'
+						  AND (ac_note.release_version_id = rv.id OR ac_note.release_version_id IS NULL)
+					  )
+				)
+				OR EXISTS (
+					SELECT 1
+					FROM release_version_media rvm
+					WHERE rvm.release_version_id = rv.id
+					  AND rvm.deleted_at IS NULL
+					  AND EXISTS (
+						SELECT 1
+						FROM member_claims mc_media
+						JOIN anime_contributions ac_media ON ac_media.member_id = mc_media.member_id
+						LEFT JOIN hist_fansub_group_members hfgm_media ON hfgm_media.id = ac_media.fansub_group_member_id
+						WHERE mc_media.app_user_id = rvm.uploaded_by_user_id
+						  AND mc_media.claim_status = 'verified'
+						  AND ac_media.anime_id = ep.anime_id
+						  AND ac_media.fansub_group_id = rvg.fansub_group_id
+						  AND COALESCE(ac_media.member_id, hfgm_media.member_id) = mc_media.member_id
+						  AND ac_media.status <> 'rejected'
+						  AND (ac_media.release_version_id = rv.id OR ac_media.release_version_id IS NULL)
+					  )
+				)
+			  )
+			  AND EXISTS (
+				SELECT 1
+				FROM theme_segments ts
+				JOIN themes th ON th.id = ts.theme_id
+				JOIN theme_types tt ON tt.id = th.theme_type_id
+				CROSS JOIN LATERAL (
+					SELECT COALESCE(
+						ep.sort_index,
+						CASE WHEN COALESCE(ep.episode_number, '') ~ '^[0-9]+$' THEN ep.episode_number::int ELSE NULL END
+					) AS episode_anchor
+				) anchor
+				WHERE th.anime_id = ep.anime_id
+				  AND LOWER(tt.name) LIKE '%kara%'
+				  AND anchor.episode_anchor IS NOT NULL
+				  AND (ts.start_episode IS NULL OR ts.start_episode <= anchor.episode_anchor)
+				  AND (ts.end_episode IS NULL OR ts.end_episode >= anchor.episode_anchor)
+				  AND (ts.fansub_group_id IS NULL OR ts.fansub_group_id = rvg.fansub_group_id)
+				  AND COALESCE(NULLIF(BTRIM(ts.version), ''), COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')) = COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')
+			  )
+		)
+	`, fansubGroupID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("check group first release qualification: %w", err)
+	}
+	return exists, nil
+}
+
+func (r *FansubGroupHistoryRepository) ValidateFirstReleaseAllowed(ctx context.Context, fansubGroupID int64) error {
+	hasFirstRelease, err := r.HasQualifiedFirstRelease(ctx, fansubGroupID)
+	if err != nil {
+		return err
+	}
+	if !hasFirstRelease {
+		return ErrValidation
+	}
+	return nil
+}
+
 // Create inserts a new group history entry and returns the created record.
 func (r *FansubGroupHistoryRepository) Create(ctx context.Context, fansubGroupID int64, input GroupHistoryInput) (*GroupHistoryRow, error) {
 	var newID int64

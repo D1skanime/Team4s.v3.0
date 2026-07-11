@@ -19,6 +19,7 @@ var allowedGroupHistoryEventTypes = map[string]struct{}{
 	"rebranding":        {},
 	"milestone":         {},
 	"other":             {},
+	"first_project":     {},
 	"first_release":     {},
 	"anniversary":       {},
 	"collaboration":     {},
@@ -38,8 +39,9 @@ var allowedGroupHistoryEventTypes = map[string]struct{}{
 	"releases_10000":    {},
 }
 
-const allowedGroupHistoryEventTypesMessage = "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, other, first_release, anniversary, collaboration, revival, project_completed, team_change, website_launch, award, projects_10, projects_50, projects_100, projects_500, releases_100, releases_500, releases_1000, releases_5000, releases_10000"
+const allowedGroupHistoryEventTypesMessage = "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, other, first_project, first_release, anniversary, collaboration, revival, project_completed, team_change, website_launch, award, projects_10, projects_50, projects_100, projects_500, releases_100, releases_500, releases_1000, releases_5000, releases_10000"
 const firstProjectGuardMessage = "Erstes Projekt ist noch nicht vollständig. Bitte Ausblick schreiben und Rollen Übersetzer, Timer und Encoder vergeben."
+const firstReleaseGuardMessage = "Erstes Release ist noch nicht vollständig. Bitte zuerst ein Kara-Segment und mindestens einen Release-Text oder ein Release-Bild hinterlegen."
 
 // FansubGroupHistoryHandler verwaltet Admin-Endpunkte für fansub_group_history.
 type FansubGroupHistoryHandler struct {
@@ -70,10 +72,20 @@ func (h *FansubGroupHistoryHandler) validateEventUnlocked(c *gin.Context, fansub
 			internalError(c, "interner serverfehler")
 			return false
 		}
-	case "first_release":
+	case "first_project":
 		if err := h.historyRepo.ValidateFirstProjectAllowed(c.Request.Context(), fansubID); err != nil {
 			if errors.Is(err, repository.ErrValidation) {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": firstProjectGuardMessage}})
+				return false
+			}
+			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+			internalError(c, "interner serverfehler")
+			return false
+		}
+	case "first_release":
+		if err := h.historyRepo.ValidateFirstReleaseAllowed(c.Request.Context(), fansubID); err != nil {
+			if errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": firstReleaseGuardMessage}})
 				return false
 			}
 			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)

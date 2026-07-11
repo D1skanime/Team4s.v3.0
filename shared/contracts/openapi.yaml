@@ -10341,6 +10341,7 @@ components:
             - rebranding
             - milestone
             - other
+            - first_project
             - first_release
             - anniversary
             - collaboration
@@ -11234,6 +11235,11 @@ components:
           format: int64
         fansub_name:
           type: string
+        fansub_names:
+          type: array
+          description: All fansub group names participating in this release context for admin edit display. fansub_name remains the scoped fallback name.
+          items:
+            type: string
         episode_id:
           type: integer
           format: int64
@@ -11269,7 +11275,7 @@ components:
           $ref: "#/components/schemas/PaginationMeta"
     AdminFansubAnimeCoverage:
       type: object
-      required: [anime_id, member_count, covered_role_codes, has_project_note]
+      required: [anime_id, member_count, covered_role_codes, has_project_note, has_first_release]
       properties:
         anime_id:
           type: integer
@@ -11283,6 +11289,9 @@ components:
             type: string
         has_project_note:
           type: boolean
+        has_first_release:
+          type: boolean
+          description: True only when the anime/group has a matching kara segment and a non-deleted release note or release media item attributable to a contributor of that same fansub group.
     AdminFansubAnimeCoverageResponse:
       type: object
       required: [data]

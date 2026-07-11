@@ -529,6 +529,7 @@ export interface AdminFansubRelease {
   anime_title: string;
   fansub_group_id: number;
   fansub_name: string;
+  fansub_names?: string[];
   episode_id: number;
   episode_number: string;
   episode_title?: string | null;

@@ -42,6 +42,7 @@ type AdminFansubReleaseSummary struct {
 	AnimeTitle       string    `json:"anime_title"`
 	FansubGroupID    int64     `json:"fansub_group_id"`
 	FansubName       string    `json:"fansub_name"`
+	FansubNames      []string  `json:"fansub_names,omitempty"`
 	EpisodeID        int64     `json:"episode_id"`
 	EpisodeNumber    string    `json:"episode_number"`
 	EpisodeTitle     *string   `json:"episode_title,omitempty"`
