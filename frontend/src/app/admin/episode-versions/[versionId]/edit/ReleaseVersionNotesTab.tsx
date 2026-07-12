@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Info } from 'lucide-react'
+import { ChevronDown, Info, Pencil } from 'lucide-react'
 
 import { RichTextEditor } from '@/components/editor'
 import { Badge, Button, EmptyState, ErrorState, FormField, Input, LoadingState, Select } from '@/components/ui'
@@ -184,6 +184,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
   const [hasTouchedPanel, setHasTouchedPanel] = useState(false)
   const [isInfoOpen, setIsInfoOpen] = useState<boolean>(() => false)
   const [expandedMemberId, setExpandedMemberId] = useState<number | null>(null)
+  const [editingRoleKeys, setEditingRoleKeys] = useState<Record<string, boolean>>({})
   const [savingKeys, setSavingKeys] = useState<Record<string, boolean>>({})
   const [recentlySavedKey, setRecentlySavedKey] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -239,6 +240,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
           setNoteStates(initialState)
           setInitialNoteStates(initialState)
           setExpandedMemberId(null)
+          setEditingRoleKeys({})
         }
       } catch {
         if (!cancelled) {
@@ -290,6 +292,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
       [key]: { ...initial, bodyJson: ensureRichTextValue(initial.bodyJson) },
     }))
     setErrorMessage(null)
+    setEditingRoleKeys((prev) => ({ ...prev, [key]: false }))
     setExpandedMemberId((current) => (current === memberRole.memberId ? null : current))
   }
 
@@ -338,6 +341,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
 
       setNoteStates((prev) => ({ ...prev, [key]: nextState }))
       setInitialNoteStates((prev) => ({ ...prev, [key]: nextState }))
+      setEditingRoleKeys((prev) => ({ ...prev, [key]: false }))
       setRecentlySavedKey(key)
       window.setTimeout(() => {
         setExpandedMemberId((current) => (current === memberRole.memberId ? null : current))
@@ -448,9 +452,13 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
             noteStates={noteStates}
             savingKeys={savingKeys}
             recentlySavedKey={recentlySavedKey}
+            editingRoleKeys={editingRoleKeys}
             tagLabel="Eigene Rolle"
             onUpdateField={updateField}
             onResetRole={resetRole}
+            onStartEditing={(role) => {
+              setEditingRoleKeys((prev) => ({ ...prev, [buildKey(role.memberId, role.roleId)]: true }))
+            }}
             onSaveRole={(role) => void handleSaveRole(role)}
           />
         </div>
@@ -496,9 +504,13 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
                       noteStates={noteStates}
                       savingKeys={savingKeys}
                       recentlySavedKey={recentlySavedKey}
+                      editingRoleKeys={editingRoleKeys}
                       tagLabel={isOwn ? 'Eigene Rolle' : canEditMember ? 'Bearbeitest als Gruppenleitung' : 'Nur Ansicht'}
                       onUpdateField={updateField}
                       onResetRole={resetRole}
+                      onStartEditing={(role) => {
+                        setEditingRoleKeys((prev) => ({ ...prev, [buildKey(role.memberId, role.roleId)]: true }))
+                      }}
                       onSaveRole={(role) => void handleSaveRole(role)}
                     />
                   </div>
@@ -519,9 +531,11 @@ interface MemberEditorBodyProps {
   noteStates: Record<string, NoteFormState>
   savingKeys: Record<string, boolean>
   recentlySavedKey: string | null
+  editingRoleKeys: Record<string, boolean>
   tagLabel: string
   onUpdateField: <K extends keyof NoteFormState>(key: string, field: K, value: NoteFormState[K]) => void
   onResetRole: (memberRole: MemberRoleForVersion) => void
+  onStartEditing: (memberRole: MemberRoleForVersion) => void
   onSaveRole: (memberRole: MemberRoleForVersion) => void
 }
 
@@ -532,9 +546,11 @@ function MemberEditorBody({
   noteStates,
   savingKeys,
   recentlySavedKey,
+  editingRoleKeys,
   tagLabel,
   onUpdateField,
   onResetRole,
+  onStartEditing,
   onSaveRole,
 }: MemberEditorBodyProps) {
   return (
@@ -558,9 +574,11 @@ function MemberEditorBody({
               state={noteStates[key]}
               isSaving={savingKeys[key] === true}
               isRecentlySaved={recentlySavedKey === key}
+              isEditing={editingRoleKeys[key] === true}
               canEdit={canEdit}
               onUpdate={onUpdateField}
               onReset={() => onResetRole(memberRole)}
+              onStartEdit={() => onStartEditing(memberRole)}
               onSave={() => onSaveRole(memberRole)}
             />
           )
@@ -575,19 +593,25 @@ interface RoleNoteFieldProps {
   state: NoteFormState | undefined
   isSaving: boolean
   isRecentlySaved: boolean
+  isEditing: boolean
   canEdit: boolean
   onUpdate: <K extends keyof NoteFormState>(key: string, field: K, value: NoteFormState[K]) => void
   onReset: () => void
+  onStartEdit: () => void
   onSave: () => void
 }
 
-function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, canEdit, onUpdate, onReset, onSave }: RoleNoteFieldProps) {
+function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing, canEdit, onUpdate, onReset, onStartEdit, onSave }: RoleNoteFieldProps) {
   const key = buildKey(memberRole.memberId, memberRole.roleId)
   const roleInfo = ROLE_HELP_TEXTS[memberRole.roleName]
   const label = roleInfo?.label ?? memberRole.roleLabel
   const placeholder = roleInfo?.placeholder ?? 'Noch keine Notiz - kurz ergänzen?'
   const charCount = getPlainTextLength(state?.bodyJson ?? null)
   const isOverLimit = charCount >= CHAR_WARN_LIMIT
+  const hasSavedNote = (state?.id ?? 0) > 0
+  const plainText = collectPlainText(state?.bodyJson ?? null).trim()
+  const shouldShowViewMode = hasSavedNote && !isEditing
+  const shouldShowReadonlyEmpty = !canEdit && !hasSavedNote
 
   return (
     <div className={styles.roleCard}>
@@ -599,6 +623,35 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, canEdit, 
         <Badge variant="neutral">{memberRole.roleName}</Badge>
       </div>
 
+      {shouldShowViewMode || shouldShowReadonlyEmpty ? (
+        <>
+          <div className={styles.notePreview}>
+            {state?.title ? <p className={styles.notePreviewTitle}>{state.title}</p> : null}
+            <p className={plainText ? styles.notePreviewText : styles.notePreviewEmpty}>
+              {plainText || 'Noch keine Notiz hinterlegt.'}
+            </p>
+            {hasSavedNote ? (
+              <div className={styles.notePreviewMeta}>
+                <Badge variant={state?.visibility === 'public' ? 'info' : 'muted'}>
+                  {state?.visibility === 'public' ? 'öffentlich' : 'intern'}
+                </Badge>
+                <Badge variant={state?.status === 'published' ? 'success' : 'neutral'}>
+                  {state?.status === 'published' ? 'Veröffentlicht' : state?.status === 'archived' ? 'Archiviert' : state?.status === 'deleted' ? 'Gelöscht' : 'Entwurf'}
+                </Badge>
+              </div>
+            ) : null}
+          </div>
+          <div className={styles.roleActions}>
+            {canEdit && hasSavedNote ? (
+              <Button variant="secondary" type="button" onClick={onStartEdit}>
+                <Pencil size={15} aria-hidden="true" />
+                Bearbeiten
+              </Button>
+            ) : null}
+          </div>
+        </>
+      ) : (
+        <>
       <RichTextEditor
         value={ensureRichTextValue(state?.bodyJson ?? null)}
         onChange={(value) => {
@@ -666,6 +719,8 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, canEdit, 
           {isRecentlySaved ? 'Gespeichert ✓' : isSaving ? 'Speichert...' : 'Speichern'}
         </Button>
       </div>
+        </>
+      )}
     </div>
   )
 }

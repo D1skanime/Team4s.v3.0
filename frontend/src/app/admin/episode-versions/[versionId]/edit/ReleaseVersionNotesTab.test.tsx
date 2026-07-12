@@ -143,7 +143,7 @@ describe('ReleaseVersionNotesTab', () => {
     expect(document.querySelector('[data-toolbar-variant="minimal"]')).not.toBeNull()
   })
 
-  it('speichert ein einzelnes Rollenfeld und zeigt kurzes Feedback', async () => {
+  it('speichert ein einzelnes Rollenfeld und zeigt danach die Ansicht', async () => {
     getMemberRolesForVersionMock.mockResolvedValue([
       makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
       makeRole({ roleId: 2, roleName: 'editor', roleLabel: 'Editing' }),
@@ -184,7 +184,8 @@ describe('ReleaseVersionNotesTab', () => {
         },
       ],
     })
-    expect(await screen.findByText(/gespeichert/i)).not.toBeNull()
+    expect(await screen.findByText(/neue übersetzungsnotiz/i)).not.toBeNull()
+    expect(screen.getByRole('button', { name: /bearbeiten/i })).not.toBeNull()
   })
 
   it('zeigt Mitglieder im Alle-Mitglieder-Tab als Accordion', async () => {
@@ -230,12 +231,54 @@ describe('ReleaseVersionNotesTab', () => {
     fireEvent.click(screen.getByRole('button', { name: /taro/i }))
 
     expect(screen.getByText(/nur ansicht/i)).not.toBeNull()
-    const readonlyField = await screen.findByPlaceholderText(/noch keine notiz/i)
-    expect(readonlyField).toHaveProperty('disabled', true)
-    expect(screen.getByRole('button', { name: /^speichern$/i })).toHaveProperty('disabled', true)
-    fireEvent.click(screen.getByRole('button', { name: /^speichern$/i }))
+    expect(screen.getByText(/csubs text/i)).not.toBeNull()
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.queryByRole('button', { name: /^speichern$/i })).toBeNull()
     expect(bulkUpsertReleaseVersionNotesMock).not.toHaveBeenCalled()
   })
+
+  it('öffnet gespeicherte eigene Notizen zuerst als Ansicht und erst per Bearbeiten im Editor', async () => {
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 301,
+        memberId: 10,
+        roleId: 1,
+        bodyJson: makeBody('Schon gespeicherter Text'),
+        bodyText: 'Schon gespeicherter Text',
+        title: null,
+      }),
+    ])
+    bulkUpsertReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 301,
+        memberId: 10,
+        roleId: 1,
+        bodyJson: makeBody('Aktualisierter Text'),
+        bodyText: 'Aktualisierter Text',
+        title: null,
+      }),
+    ])
+
+    render(<ReleaseVersionNotesTab versionId={7} />)
+
+    expect(await screen.findByText(/schon gespeicherter text/i)).not.toBeNull()
+    expect(screen.queryByRole('textbox')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /bearbeiten/i }))
+    const [editor] = await screen.findAllByRole('textbox')
+    fireEvent.change(editor, { target: { value: 'Aktualisierter Text' } })
+    fireEvent.click(screen.getByRole('button', { name: /^speichern$/i }))
+
+    await waitFor(() => {
+      expect(bulkUpsertReleaseVersionNotesMock).toHaveBeenCalledTimes(1)
+    })
+    expect(await screen.findByText(/aktualisierter text/i)).not.toBeNull()
+    expect(screen.queryByRole('textbox')).toBeNull()
+  })
+
   it('zeigt Konflikt- und Längenhinweise verständlich an', async () => {
     getMemberRolesForVersionMock.mockResolvedValue([
       makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
@@ -307,7 +350,7 @@ describe('ReleaseVersionNotesTab', () => {
     await waitFor(() => {
       expect(bulkUpsertReleaseVersionNotesMock).toHaveBeenCalledTimes(1)
     })
-    expect(await screen.findByText(/gespeichert/i)).not.toBeNull()
+    expect(await screen.findByText(/editing fertig/i)).not.toBeNull()
     expect(taroRow.getAttribute('aria-expanded')).toBe('true')
 
     await waitFor(() => {
