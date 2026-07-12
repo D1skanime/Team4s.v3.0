@@ -698,8 +698,8 @@ describe('AdminFansubEditPage token-free wiring', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Episode 1 ausklappen' }))
 
     const toolsLink = await screen.findByRole('link', { name: 'Notizen & Medien öffnen' })
-    expect(toolsLink.getAttribute('href')).toContain(
-      '/admin/episode-versions/6201/edit?tab=notizen',
+    expect(toolsLink.getAttribute('href')).toBe(
+      '/admin/episode-versions/6201/edit?tab=notizen&return_to=%2Fadmin%2Ffansubs%2F88%2Fedit%3Ftab%3Dreleases',
     )
     expect(toolsLink.getAttribute('href')).not.toContain('/admin/episode-versions/62/edit')
     expect(apiMocks.getAdminRelease).not.toHaveBeenCalled()

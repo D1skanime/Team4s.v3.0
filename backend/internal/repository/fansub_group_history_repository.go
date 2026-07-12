@@ -282,7 +282,6 @@ func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Cont
 				SELECT 1
 				FROM theme_segments ts
 				JOIN themes th ON th.id = ts.theme_id
-				JOIN theme_types tt ON tt.id = th.theme_type_id
 				CROSS JOIN LATERAL (
 					SELECT COALESCE(
 						ep.sort_index,
@@ -290,7 +289,6 @@ func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Cont
 					) AS episode_anchor
 				) anchor
 				WHERE th.anime_id = ep.anime_id
-				  AND LOWER(tt.name) LIKE '%kara%'
 				  AND anchor.episode_anchor IS NOT NULL
 				  AND (ts.start_episode IS NULL OR ts.start_episode <= anchor.episode_anchor)
 				  AND (ts.end_episode IS NULL OR ts.end_episode >= anchor.episode_anchor)

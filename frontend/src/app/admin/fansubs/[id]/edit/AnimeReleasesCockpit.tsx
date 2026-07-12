@@ -108,6 +108,7 @@ export function AnimeReleasesCockpit({
   const [openReadOnlyTeamAnimeIds, setOpenReadOnlyTeamAnimeIds] = useState<Set<number>>(
     () => new Set(),
   );
+  const releaseWorkspaceReturnHref = `/admin/fansubs/${fansubID}/edit?tab=releases`;
 
   function toggleReadOnlyTeam(animeID: number) {
     setOpenReadOnlyTeamAnimeIds((current) => {
@@ -423,6 +424,7 @@ export function AnimeReleasesCockpit({
                       canUseReleaseNotes={canUseReleaseNotes}
                       canOpenReleaseDrawer={canOpenReleaseDrawer}
                       canOpenReleaseContributors={canEditReleaseContributors}
+                      releaseWorkspaceReturnHref={releaseWorkspaceReturnHref}
                       onToggleRelease={toggleRelease}
                       onOpenReleaseDrawer={onOpenReleaseDrawer}
                       onOpenContributionDrawer={openContributionDrawer}

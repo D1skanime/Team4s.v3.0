@@ -123,6 +123,7 @@ func TestFirstProjectRequiresQualifiedProjectCoverage(t *testing.T) {
 func TestFirstReleaseRequiresReleaseContributionAndKaraCoverage(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
 	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	coverageRepoSrc := readSource(t, "../repository/anime_coverage_repository.go")
 	createBody := funcBody(t, src, "CreateGroupHistory")
 	updateBody := funcBody(t, src, "UpdateGroupHistory")
 	unlockBody := funcBody(t, src, "validateEventUnlocked")
@@ -141,6 +142,14 @@ func TestFirstReleaseRequiresReleaseContributionAndKaraCoverage(t *testing.T) {
 		"first_release-Media muss den Uploader ueber verifizierte Claims aufloesen")
 	assert.Contains(t, repoSrc, "ac_media.fansub_group_id = rvg.fansub_group_id",
 		"first_release-Media darf keine fremde Coop-Gruppe freischalten")
+	assert.Contains(t, repoSrc, "ts.fansub_group_id IS NULL OR ts.fansub_group_id = rvg.fansub_group_id",
+		"first_release muss globales Kara fuer die jeweilige Episode akzeptieren")
+	assert.Contains(t, coverageRepoSrc, "ts.fansub_group_id IS NULL OR ts.fansub_group_id = afg.fansub_group_id",
+		"first_release-Coverage muss globales Kara fuer die UI akzeptieren")
+	assert.NotContains(t, repoSrc, "LOWER(tt.name) LIKE '%kara%'",
+		"first_release darf nicht vom Theme-Typ-Namen abhaengen, OP/ED/Insert-Segmente sind Kara-Segmente")
+	assert.NotContains(t, coverageRepoSrc, "LOWER(tt.name) LIKE '%kara%'",
+		"first_release-Coverage darf nicht vom Theme-Typ-Namen abhaengen")
 }
 
 func TestGroupHistoryEventTypeWhitelistIncludesAchievementPreviewTypes(t *testing.T) {

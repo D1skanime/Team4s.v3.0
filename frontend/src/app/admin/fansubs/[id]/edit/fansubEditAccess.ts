@@ -115,6 +115,7 @@ export function canEditReleaseNotes(
 export function releaseVersionToolsTarget(
   releaseVersionID: number,
   options: { canViewMedia: boolean; canEditNotes: boolean },
+  returnTo?: string,
 ): { href: string; label: string } | null {
   if (releaseVersionID <= 0) return null;
   if (!options.canEditNotes && !options.canViewMedia) return null;
@@ -126,9 +127,12 @@ export function releaseVersionToolsTarget(
       : options.canViewMedia
         ? "Medien"
         : "Notizen";
+  const href = `/admin/episode-versions/${releaseVersionID}/edit?tab=${tab}`;
 
   return {
-    href: `/admin/episode-versions/${releaseVersionID}/edit?tab=${tab}`,
+    href: returnTo
+      ? `${href}&return_to=${encodeURIComponent(returnTo)}`
+      : href,
     label,
   };
 }

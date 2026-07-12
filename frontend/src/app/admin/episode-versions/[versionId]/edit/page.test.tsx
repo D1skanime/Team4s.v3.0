@@ -446,6 +446,25 @@ describe("EpisodeVersionEditorPage media tab", () => {
     );
   });
 
+  it("bevorzugt einen sicheren return_to-Rückweg vor der ersten Release-Gruppe", async () => {
+    useSearchParamsMock.mockReturnValue({
+      get: (key: string) =>
+        key === "return_to" ? "/admin/fansubs/88/edit?tab=releases" : null,
+    });
+    mockPlatformAdminScope();
+    useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());
+    useReleaseVersionMediaMock.mockReturnValue(makeMediaState());
+
+    render(<EpisodeVersionEditorPage />);
+
+    await screen.findByRole("button", { name: "Informationen" });
+
+    const backLink = screen.getByRole("link", { name: "Zurück" });
+    expect(backLink.getAttribute("href")).toBe(
+      "/admin/fansubs/88/edit?tab=releases",
+    );
+  });
+
   it("zeigt groupName in der Subtitle als Link zur Fansubgruppe", async () => {
     mockPlatformAdminScope();
     useEpisodeVersionEditorMock.mockReturnValue(makeEditorState());

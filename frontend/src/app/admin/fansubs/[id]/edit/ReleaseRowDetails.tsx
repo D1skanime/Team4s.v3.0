@@ -34,6 +34,7 @@ type ReleaseRowDetailsProps = {
   canUseReleaseNotes: boolean;
   canOpenReleaseDrawer: boolean;
   canOpenReleaseContributors: boolean;
+  releaseWorkspaceReturnHref: string;
   onToggleRelease: (release: AdminFansubRelease) => void;
   onOpenReleaseDrawer: (context: {
     release: AdminFansubRelease;
@@ -86,6 +87,7 @@ export function ReleaseRowDetails({
   canUseReleaseNotes,
   canOpenReleaseDrawer,
   canOpenReleaseContributors,
+  releaseWorkspaceReturnHref,
   onToggleRelease,
   onOpenReleaseDrawer,
   onOpenContributionDrawer,
@@ -106,6 +108,7 @@ export function ReleaseRowDetails({
               canViewMedia: canUseReleaseMedia,
               canEditNotes: canUseReleaseNotes,
             },
+            releaseWorkspaceReturnHref,
           );
           const cards = releaseSegmentCards[release.release_id] ?? [];
           const cardsLoading = releaseSegmentLoading[release.release_id];

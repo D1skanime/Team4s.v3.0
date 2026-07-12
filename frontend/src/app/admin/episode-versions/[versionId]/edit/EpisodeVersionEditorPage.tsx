@@ -60,6 +60,30 @@ function parseActiveTab(value: string | null): ActiveTab {
     : "informationen";
 }
 
+function getSafeReturnPath(value: string | null): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return null;
+  if (trimmed.includes("\\") || trimmed.includes("://")) return null;
+
+  try {
+    const parsed = new URL(trimmed, "http://team4s.local");
+    if (parsed.origin !== "http://team4s.local") return null;
+
+    const isAdminFansubWorkspace = /^\/admin\/fansubs\/\d+\/edit$/.test(
+      parsed.pathname,
+    );
+    const isMemberProjectWorkspace = /^\/me\/projects\/\d+\/group\/\d+$/.test(
+      parsed.pathname,
+    );
+    if (!isAdminFansubWorkspace && !isMemberProjectWorkspace) return null;
+
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
+}
+
 export function EpisodeVersionEditorPage() {
   const searchParams = useSearchParams();
   const { hasAccessToken, hasRefreshToken, isClientInitialized } =
@@ -178,15 +202,17 @@ export function EpisodeVersionEditorPage() {
     primaryGroup != null
       ? `/admin/fansubs/${primaryGroup.id}/edit`
       : null;
+  const returnHrefFromQuery = getSafeReturnPath(searchParams.get("return_to"));
 
   const backHref =
-    animeIDFromQuery && episodeIDFromQuery
+    returnHrefFromQuery ??
+    (animeIDFromQuery && episodeIDFromQuery
       ? `/admin/anime/${animeIDFromQuery}/episodes/${episodeIDFromQuery}/versions`
       : fansubGroupHref != null
         ? `${fansubGroupHref}?tab=releases`
         : editor.contextData
           ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
-          : "/admin/anime";
+          : "/admin/anime");
 
   const animeHref = editor.contextData
     ? `/admin/anime/${editor.contextData.version.anime_id}/edit`
