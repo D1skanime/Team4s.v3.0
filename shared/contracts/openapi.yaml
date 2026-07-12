@@ -11275,7 +11275,7 @@ components:
           $ref: "#/components/schemas/PaginationMeta"
     AdminFansubAnimeCoverage:
       type: object
-      required: [anime_id, member_count, covered_role_codes, has_project_note, has_first_release]
+      required: [anime_id, member_count, covered_role_codes, has_project_note, has_first_release, has_completed_project]
       properties:
         anime_id:
           type: integer
@@ -11292,6 +11292,9 @@ components:
         has_first_release:
           type: boolean
           description: True only when the anime/group has a matching theme segment from any group attached to that same release version, or a global segment, and a non-deleted release note or release media item attributable to a contributor of that same fansub group.
+        has_completed_project:
+          type: boolean
+          description: True only when the anime/group has at least one release version and every release version attached to that fansub group for the anime has a non-deleted release note or release media item attributable to a contributor of that same fansub group.
     AdminFansubAnimeCoverageResponse:
       type: object
       required: [data]

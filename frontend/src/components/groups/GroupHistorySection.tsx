@@ -99,6 +99,7 @@ interface GroupHistorySectionProps {
   hasWebsiteLink?: boolean
   hasFirstProject?: boolean
   hasFirstRelease?: boolean
+  hasCompletedProject?: boolean
   authToken?: string
   /**
    * Nur-Anzeige-Modus: blendet alle Bearbeiten-Steuerelemente aus (kein
@@ -115,6 +116,7 @@ export function buildHistoryEventOptions(
   hasWebsiteLink = false,
   hasFirstProject = false,
   hasFirstRelease = false,
+  hasCompletedProject = false,
 ): HistoryEventOptionState[] {
   const foundingUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'founding' && entry.id !== editTarget?.id,
@@ -124,6 +126,9 @@ export function buildHistoryEventOptions(
   )
   const firstReleaseUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'first_release' && entry.id !== editTarget?.id,
+  )
+  const projectCompletedUsedByAnotherEntry = entries.some(
+    (entry) => entry.event_type === 'project_completed' && entry.id !== editTarget?.id,
   )
   const websiteLaunchUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'website_launch' && entry.id !== editTarget?.id,
@@ -158,6 +163,14 @@ export function buildHistoryEventOptions(
       return [{ ...option, disabled: true, disabledReason: 'Release/Kara fehlt' }]
     }
 
+    if (option.value === 'project_completed' && projectCompletedUsedByAnotherEntry) {
+      return []
+    }
+
+    if (option.value === 'project_completed' && !hasCompletedProject && editTarget?.event_type !== 'project_completed') {
+      return [{ ...option, disabled: true, disabledReason: 'Release-Beiträge fehlen' }]
+    }
+
     if (option.value === 'website_launch' && websiteLaunchUsedByAnotherEntry) {
       return []
     }
@@ -182,7 +195,7 @@ function getGroupHistoryEventOptions(): HistoryEventOptionState[] {
 // Komponente
 // ---------------------------------------------------------------------------
 
-export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, authToken, readOnly = false }: GroupHistorySectionProps) {
+export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, hasCompletedProject = false, authToken, readOnly = false }: GroupHistorySectionProps) {
   const [entries, setEntries] = useState<GroupHistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -285,6 +298,10 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setSaveError('Erstes Release ist noch nicht vollständig. Bitte zuerst ein Kara-Segment und mindestens einen Release-Text oder ein Release-Bild hinterlegen.')
         return
       }
+      if (form.eventType === 'project_completed' && !hasCompletedProject && editTarget?.event_type !== 'project_completed') {
+        setSaveError('Projekt abgeschlossen ist noch nicht vollständig. Bitte bei jedem Release dieses Projekts mindestens einen Release-Text oder ein Release-Bild der Gruppe hinterlegen.')
+        return
+      }
       setIsSaving(true)
       try {
         const yearValue = form.year.trim() !== '' ? Number(form.year) : null
@@ -313,7 +330,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setIsSaving(false)
       }
     },
-    [form, editTarget, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, closeForm, showSuccess],
+    [form, editTarget, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------
@@ -337,7 +354,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
   }, [deleteTarget, fansubGroupId, authToken, showSuccess])
 
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
-  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease)
+  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject)
 
   // ---------------------------------------------------------------------------
   // Render

@@ -710,7 +710,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
     })
     apiMocks.getAnimeCoverage.mockResolvedValue({
-      data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false, has_first_release: false }],
+      data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false, has_first_release: false, has_completed_project: false }],
     })
     apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([]))
 
@@ -763,7 +763,7 @@ describe('AdminFansubEditPage token-free wiring', () => {
       data: [{ id: 13, title: 'Naruto', type: 'tv', header_image: null, cover_image: null }],
     })
     apiMocks.getAnimeCoverage.mockResolvedValue({
-      data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: true, has_first_release: false }],
+      data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: true, has_first_release: false, has_completed_project: false }],
     })
     apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([]))
 
@@ -841,10 +841,10 @@ describe('AdminFansubEditPage token-free wiring', () => {
     apiMocks.getAdminFansubAnimeReleases.mockResolvedValue(releaseListResponse([]))
     apiMocks.getAnimeCoverage
       .mockResolvedValueOnce({
-        data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false, has_first_release: false }],
+        data: [{ anime_id: 13, member_count: 0, covered_role_codes: [], has_project_note: false, has_first_release: false, has_completed_project: false }],
       })
       .mockResolvedValueOnce({
-        data: [{ anime_id: 13, member_count: 1, covered_role_codes: ['timer'], has_project_note: false, has_first_release: false }],
+        data: [{ anime_id: 13, member_count: 1, covered_role_codes: ['timer'], has_project_note: false, has_first_release: false, has_completed_project: false }],
       })
     apiMocks.listUnifiedGroupMembers.mockResolvedValue([
       {

@@ -42,6 +42,14 @@ var allowedGroupHistoryEventTypes = map[string]struct{}{
 const allowedGroupHistoryEventTypesMessage = "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, other, first_project, first_release, anniversary, collaboration, revival, project_completed, team_change, website_launch, award, projects_10, projects_50, projects_100, projects_500, releases_100, releases_500, releases_1000, releases_5000, releases_10000"
 const firstProjectGuardMessage = "Erstes Projekt ist noch nicht vollständig. Bitte Ausblick schreiben und Rollen Übersetzer, Timer und Encoder vergeben."
 const firstReleaseGuardMessage = "Erstes Release ist noch nicht vollständig. Bitte zuerst ein Kara-Segment und mindestens einen Release-Text oder ein Release-Bild hinterlegen."
+const projectCompletedGuardMessage = "Projekt abgeschlossen ist noch nicht vollständig. Bitte bei jedem Release dieses Projekts mindestens einen Release-Text oder ein Release-Bild der Gruppe hinterlegen."
+const singleUseGroupHistoryEventMessage = "Dieser Meilenstein wurde bereits eingetragen."
+
+var singleUseGroupHistoryEventTypes = map[string]struct{}{
+	"first_project":     {},
+	"first_release":     {},
+	"project_completed": {},
+}
 
 // FansubGroupHistoryHandler verwaltet Admin-Endpunkte für fansub_group_history.
 type FansubGroupHistoryHandler struct {
@@ -92,6 +100,33 @@ func (h *FansubGroupHistoryHandler) validateEventUnlocked(c *gin.Context, fansub
 			internalError(c, "interner serverfehler")
 			return false
 		}
+	case "project_completed":
+		if err := h.historyRepo.ValidateCompletedProjectAllowed(c.Request.Context(), fansubID); err != nil {
+			if errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": projectCompletedGuardMessage}})
+				return false
+			}
+			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+			internalError(c, "interner serverfehler")
+			return false
+		}
+	}
+	return true
+}
+
+func (h *FansubGroupHistoryHandler) validateSingleUseEvent(c *gin.Context, fansubID int64, eventType string, excludeID *int64) bool {
+	if _, ok := singleUseGroupHistoryEventTypes[eventType]; !ok {
+		return true
+	}
+	exists, err := h.historyRepo.HasEventType(c.Request.Context(), fansubID, eventType, excludeID)
+	if err != nil {
+		log.Printf("group history single-use guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+		internalError(c, "interner serverfehler")
+		return false
+	}
+	if exists {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": singleUseGroupHistoryEventMessage}})
+		return false
 	}
 	return true
 }
@@ -177,6 +212,9 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 				"message": allowedGroupHistoryEventTypesMessage,
 			},
 		})
+		return
+	}
+	if !h.validateSingleUseEvent(c, fansubID, req.EventType, nil) {
 		return
 	}
 	if !h.validateEventUnlocked(c, fansubID, req.EventType) {
@@ -289,8 +327,13 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 			})
 			return
 		}
-		if *req.EventType != existing.EventType && !h.validateEventUnlocked(c, fansubID, *req.EventType) {
-			return
+		if *req.EventType != existing.EventType {
+			if !h.validateSingleUseEvent(c, fansubID, *req.EventType, &historyID) {
+				return
+			}
+			if !h.validateEventUnlocked(c, fansubID, *req.EventType) {
+				return
+			}
 		}
 	}
 	if req.Status != nil && !validHistoricalContributionStatus(*req.Status) {

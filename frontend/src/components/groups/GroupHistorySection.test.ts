@@ -119,4 +119,38 @@ describe('buildHistoryEventOptions', () => {
     expect(option).toMatchObject({ value: 'first_release' })
     expect(option?.disabled).toBeUndefined()
   })
+
+  it('locks project completed while not every release has a group contribution', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, false)
+
+    expect(options.find((option) => option.value === 'project_completed')).toMatchObject({
+      disabled: true,
+      disabledReason: 'Release-Beiträge fehlen',
+    })
+  })
+
+  it('allows project completed when release coverage is complete', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true)
+
+    const option = options.find((option) => option.value === 'project_completed')
+    expect(option).toMatchObject({ value: 'project_completed' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
+  it('hides project completed after it was already used by another entry', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 15, event_type: 'project_completed' }),
+    ], null, 2007, true, true, true, true)
+
+    expect(options.some((option) => option.value === 'project_completed')).toBe(false)
+  })
+
+  it('keeps project completed available while editing its own entry', () => {
+    const entry = historyRow({ id: 15, event_type: 'project_completed' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true, true, true, false)
+
+    const option = options.find((option) => option.value === 'project_completed')
+    expect(option).toMatchObject({ value: 'project_completed' })
+    expect(option?.disabled).toBeUndefined()
+  })
 })

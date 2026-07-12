@@ -156,6 +156,52 @@ func TestFirstReleaseRequiresReleaseContributionAndKaraCoverage(t *testing.T) {
 		"first_release-Coverage darf nicht vom Theme-Typ-Namen abhaengen")
 }
 
+func TestProjectCompletedRequiresContributionOnEveryRelease(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	coverageRepoSrc := readSource(t, "../repository/anime_coverage_repository.go")
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	assert.Contains(t, createBody, "validateEventUnlocked",
+		"CreateGroupHistory muss project_completed gegen Freischaltregeln absichern")
+	assert.Contains(t, updateBody, "validateEventUnlocked",
+		"UpdateGroupHistory muss Wechsel auf project_completed gegen Freischaltregeln absichern")
+	assert.Contains(t, unlockBody, `case "project_completed"`,
+		"validateEventUnlocked muss project_completed gesondert validieren")
+	assert.Contains(t, unlockBody, "ValidateCompletedProjectAllowed",
+		"project_completed darf erst nach Beitrags-Coverage aller Releases gespeichert werden")
+	assert.Contains(t, repoSrc, "HasQualifiedCompletedProject",
+		"Repository muss project_completed fachlich pruefen")
+	assert.Contains(t, repoSrc, "AND NOT EXISTS",
+		"project_completed muss fehlende Release-Beitraege ausschliessen")
+	assert.Contains(t, repoSrc, "release_version_notes rvn",
+		"project_completed muss Release-Texte als Beitrag zaehlen")
+	assert.Contains(t, repoSrc, "release_version_media rvm",
+		"project_completed muss Release-Bilder als Beitrag zaehlen")
+	assert.Contains(t, coverageRepoSrc, "has_completed_project",
+		"Anime-Coverage muss project_completed fuer die UI liefern")
+}
+
+func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+
+	assert.Contains(t, src, "singleUseGroupHistoryEventTypes",
+		"Handler muss eine zentrale Einmal-Liste fuer Achievements besitzen")
+	for _, code := range []string{"first_project", "first_release", "project_completed"} {
+		assert.Contains(t, src, `"`+code+`"`, "event type %s muss als Einmal-Meilenstein geschuetzt sein", code)
+	}
+	assert.Contains(t, createBody, "validateSingleUseEvent",
+		"CreateGroupHistory muss Einmal-Meilensteine vor Duplikaten schuetzen")
+	assert.Contains(t, updateBody, "validateSingleUseEvent",
+		"UpdateGroupHistory muss Wechsel auf Einmal-Meilensteine vor Duplikaten schuetzen")
+	assert.Contains(t, src, "HasEventType",
+		"Handler muss bestehende Eventtypen ueber das Repository pruefen")
+}
+
 func TestGroupHistoryEventTypeWhitelistIncludesAchievementPreviewTypes(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
 	for _, code := range []string{

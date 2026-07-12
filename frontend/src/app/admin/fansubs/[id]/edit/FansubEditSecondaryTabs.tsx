@@ -7,6 +7,7 @@ import { ReadinessTab } from "./ReadinessTab";
 import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import type { MainTab } from "./fansubEditTypes";
 import {
+  hasQualifiedCompletedProject,
   hasQualifiedFirstProject,
   hasQualifiedFirstRelease,
 } from "./fansubEditReleaseHelpers";
@@ -47,6 +48,7 @@ export function FansubEditSecondaryTabs({
             hasWebsiteLink={hasWebsiteCommunityLink(group)}
             hasFirstProject={hasQualifiedFirstProject(releaseData.animeCoverageMap)}
             hasFirstRelease={hasQualifiedFirstRelease(releaseData.animeCoverageMap)}
+            hasCompletedProject={hasQualifiedCompletedProject(releaseData.animeCoverageMap)}
           />
         </>
       ) : null}

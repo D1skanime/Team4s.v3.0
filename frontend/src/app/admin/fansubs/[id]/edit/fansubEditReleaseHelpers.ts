@@ -55,6 +55,16 @@ export function hasQualifiedFirstRelease(
   );
 }
 
+export function hasQualifiedCompletedProject(
+  animeCoverageMap: Map<number, AnimeCoverage> | null,
+): boolean {
+  if (!animeCoverageMap) return false;
+
+  return Array.from(animeCoverageMap.values()).some(
+    (coverage) => coverage.has_completed_project,
+  );
+}
+
 export function groupContributionMembersByRole(
   contributions: AnimeContribution[],
 ): Record<string, CoverageRoleMember[]> {

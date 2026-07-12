@@ -8271,6 +8271,7 @@ export interface AnimeCoverage {
   covered_role_codes: string[]
   has_project_note: boolean
   has_first_release: boolean
+  has_completed_project: boolean
 }
 
 export interface AnimeCoverageListResponse {

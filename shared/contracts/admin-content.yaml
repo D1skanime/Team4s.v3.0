@@ -550,6 +550,7 @@ endpoints:
       - Returns one aggregate row per anime_fansub_groups context for the fansub group.
       - has_project_note is true when a non-deleted anime_fansub_project_notes row exists for the anime/group context.
       - has_first_release is true when at least one release version for the anime/group has a matching theme segment from any group attached to that same release version (or a global segment) and a non-deleted release note or release media item authored/uploaded by a contributor mapped to that same fansub group.
+      - has_completed_project is true when the anime/group has at least one release version and every release version attached to that fansub group for the anime has a non-deleted release note or release media item authored/uploaded by a contributor mapped to that same fansub group.
 
   - name: admin-fansub-anime-project-note-get
     method: GET
@@ -978,6 +979,7 @@ types:
     covered_role_codes: string[]
     has_project_note: boolean
     has_first_release: boolean
+    has_completed_project: boolean
   AnimeCoverageListResponse:
     data: AnimeCoverage[]
   UpsertAnimeContributionRequest:
