@@ -11275,7 +11275,7 @@ components:
           $ref: "#/components/schemas/PaginationMeta"
     AdminFansubAnimeCoverage:
       type: object
-      required: [anime_id, member_count, covered_role_codes, has_project_note, has_first_release, has_completed_project]
+      required: [anime_id, member_count, covered_role_codes, has_project_note, has_first_release, has_completed_project, has_collaboration]
       properties:
         anime_id:
           type: integer
@@ -11295,6 +11295,9 @@ components:
         has_completed_project:
           type: boolean
           description: True only when the anime/group has at least one release version and every release version attached to that fansub group for the anime has a non-deleted release note or release media item attributable to a contributor of that same fansub group.
+        has_collaboration:
+          type: boolean
+          description: True when the anime/group has at least one release version with two or more distinct fansub groups attached.
     AdminFansubAnimeCoverageResponse:
       type: object
       required: [data]

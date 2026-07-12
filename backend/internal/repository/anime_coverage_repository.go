@@ -16,6 +16,7 @@ type AnimeCoverageRow struct {
 	HasProjectNote      bool     `json:"has_project_note"`
 	HasFirstRelease     bool     `json:"has_first_release"`
 	HasCompletedProject bool     `json:"has_completed_project"`
+	HasCollaboration    bool     `json:"has_collaboration"`
 }
 
 // AnimeCoverageRepository berechnet Aggregations-Coverage für alle Anime einer Fansub-Gruppe.
@@ -189,7 +190,21 @@ func (r *AnimeCoverageRepository) CoverageByFansub(ctx context.Context, fansubGr
 						)
 					  )
 				)
-			) AS has_completed_project
+			) AS has_completed_project,
+			EXISTS (
+				SELECT 1
+				FROM release_versions rv
+				JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+				JOIN fansub_releases fr ON fr.id = rv.release_id
+				JOIN episodes ep ON ep.id = fr.episode_id
+				WHERE rvg.fansub_group_id = afg.fansub_group_id
+				  AND ep.anime_id = afg.anime_id
+				  AND (
+					SELECT COUNT(DISTINCT rvg_peer.fansub_group_id)
+					FROM release_version_groups rvg_peer
+					WHERE rvg_peer.release_version_id = rv.id
+				  ) >= 2
+			) AS has_collaboration
 		FROM anime_fansub_groups afg
 		LEFT JOIN anime_contributions ac
 			ON ac.anime_id = afg.anime_id
@@ -208,7 +223,7 @@ func (r *AnimeCoverageRepository) CoverageByFansub(ctx context.Context, fansubGr
 	result := make([]AnimeCoverageRow, 0)
 	for rows.Next() {
 		var row AnimeCoverageRow
-		if err := rows.Scan(&row.AnimeID, &row.MemberCount, &row.CoveredRoleCodes, &row.HasProjectNote, &row.HasFirstRelease, &row.HasCompletedProject); err != nil {
+		if err := rows.Scan(&row.AnimeID, &row.MemberCount, &row.CoveredRoleCodes, &row.HasProjectNote, &row.HasFirstRelease, &row.HasCompletedProject, &row.HasCollaboration); err != nil {
 			return nil, fmt.Errorf("anime coverage by fansub: scan: %w", err)
 		}
 		result = append(result, row)

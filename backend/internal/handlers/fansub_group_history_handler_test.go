@@ -184,6 +184,30 @@ func TestProjectCompletedRequiresContributionOnEveryRelease(t *testing.T) {
 		"Anime-Coverage muss project_completed fuer die UI liefern")
 }
 
+func TestCollaborationRequiresCoopReleaseVersion(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	coverageRepoSrc := readSource(t, "../repository/anime_coverage_repository.go")
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	assert.Contains(t, createBody, "validateEventUnlocked",
+		"CreateGroupHistory muss collaboration gegen Freischaltregeln absichern")
+	assert.Contains(t, updateBody, "validateEventUnlocked",
+		"UpdateGroupHistory muss Wechsel auf collaboration gegen Freischaltregeln absichern")
+	assert.Contains(t, unlockBody, `case "collaboration"`,
+		"validateEventUnlocked muss collaboration gesondert validieren")
+	assert.Contains(t, unlockBody, "ValidateCollaborationAllowed",
+		"collaboration darf erst nach einer Coop-Release-Version gespeichert werden")
+	assert.Contains(t, repoSrc, "HasQualifiedCollaboration",
+		"Repository muss collaboration fachlich pruefen")
+	assert.Contains(t, repoSrc, "COUNT(DISTINCT rvg_peer.fansub_group_id)",
+		"collaboration muss mindestens zwei beteiligte Gruppen verlangen")
+	assert.Contains(t, coverageRepoSrc, "has_collaboration",
+		"Anime-Coverage muss collaboration fuer die UI liefern")
+}
+
 func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
 	createBody := funcBody(t, src, "CreateGroupHistory")
@@ -191,7 +215,7 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 
 	assert.Contains(t, src, "singleUseGroupHistoryEventTypes",
 		"Handler muss eine zentrale Einmal-Liste fuer Achievements besitzen")
-	for _, code := range []string{"first_project", "first_release", "project_completed"} {
+	for _, code := range []string{"first_project", "first_release", "project_completed", "collaboration"} {
 		assert.Contains(t, src, `"`+code+`"`, "event type %s muss als Einmal-Meilenstein geschuetzt sein", code)
 	}
 	assert.Contains(t, createBody, "validateSingleUseEvent",

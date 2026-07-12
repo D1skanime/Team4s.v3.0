@@ -43,12 +43,14 @@ const allowedGroupHistoryEventTypesMessage = "ungültiger event_type; erlaubte W
 const firstProjectGuardMessage = "Erstes Projekt ist noch nicht vollständig. Bitte Ausblick schreiben und Rollen Übersetzer, Timer und Encoder vergeben."
 const firstReleaseGuardMessage = "Erstes Release ist noch nicht vollständig. Bitte zuerst ein Kara-Segment und mindestens einen Release-Text oder ein Release-Bild hinterlegen."
 const projectCompletedGuardMessage = "Projekt abgeschlossen ist noch nicht vollständig. Bitte bei jedem Release dieses Projekts mindestens einen Release-Text oder ein Release-Bild der Gruppe hinterlegen."
+const collaborationGuardMessage = "Kooperation ist noch nicht vollständig. Bitte zuerst eine Release-Version mit mindestens zwei beteiligten Fansubgruppen anlegen."
 const singleUseGroupHistoryEventMessage = "Dieser Meilenstein wurde bereits eingetragen."
 
 var singleUseGroupHistoryEventTypes = map[string]struct{}{
 	"first_project":     {},
 	"first_release":     {},
 	"project_completed": {},
+	"collaboration":     {},
 }
 
 // FansubGroupHistoryHandler verwaltet Admin-Endpunkte für fansub_group_history.
@@ -104,6 +106,16 @@ func (h *FansubGroupHistoryHandler) validateEventUnlocked(c *gin.Context, fansub
 		if err := h.historyRepo.ValidateCompletedProjectAllowed(c.Request.Context(), fansubID); err != nil {
 			if errors.Is(err, repository.ErrValidation) {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": projectCompletedGuardMessage}})
+				return false
+			}
+			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+			internalError(c, "interner serverfehler")
+			return false
+		}
+	case "collaboration":
+		if err := h.historyRepo.ValidateCollaborationAllowed(c.Request.Context(), fansubID); err != nil {
+			if errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": collaborationGuardMessage}})
 				return false
 			}
 			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)

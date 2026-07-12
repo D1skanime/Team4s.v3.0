@@ -8272,6 +8272,7 @@ export interface AnimeCoverage {
   has_project_note: boolean
   has_first_release: boolean
   has_completed_project: boolean
+  has_collaboration: boolean
 }
 
 export interface AnimeCoverageListResponse {

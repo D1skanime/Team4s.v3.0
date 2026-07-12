@@ -438,6 +438,42 @@ func (r *FansubGroupHistoryRepository) ValidateCompletedProjectAllowed(ctx conte
 	return nil
 }
 
+// HasQualifiedCollaboration reports whether the group participates in at least
+// one release version with another fansub group.
+func (r *FansubGroupHistoryRepository) HasQualifiedCollaboration(ctx context.Context, fansubGroupID int64) (bool, error) {
+	if fansubGroupID <= 0 {
+		return false, ErrNotFound
+	}
+
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM release_version_groups rvg
+			WHERE rvg.fansub_group_id = $1
+			  AND (
+				SELECT COUNT(DISTINCT rvg_peer.fansub_group_id)
+				FROM release_version_groups rvg_peer
+				WHERE rvg_peer.release_version_id = rvg.release_version_id
+			  ) >= 2
+		)
+	`, fansubGroupID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("check group collaboration qualification: %w", err)
+	}
+	return exists, nil
+}
+
+func (r *FansubGroupHistoryRepository) ValidateCollaborationAllowed(ctx context.Context, fansubGroupID int64) error {
+	hasCollaboration, err := r.HasQualifiedCollaboration(ctx, fansubGroupID)
+	if err != nil {
+		return err
+	}
+	if !hasCollaboration {
+		return ErrValidation
+	}
+	return nil
+}
+
 // Create inserts a new group history entry and returns the created record.
 func (r *FansubGroupHistoryRepository) Create(ctx context.Context, fansubGroupID int64, input GroupHistoryInput) (*GroupHistoryRow, error) {
 	var newID int64

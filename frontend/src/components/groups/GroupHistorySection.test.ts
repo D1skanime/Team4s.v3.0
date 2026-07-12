@@ -153,4 +153,38 @@ describe('buildHistoryEventOptions', () => {
     expect(option).toMatchObject({ value: 'project_completed' })
     expect(option?.disabled).toBeUndefined()
   })
+
+  it('locks collaboration while no co-op release exists', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, false)
+
+    expect(options.find((option) => option.value === 'collaboration')).toMatchObject({
+      disabled: true,
+      disabledReason: 'Kooperation fehlt',
+    })
+  })
+
+  it('allows collaboration when a co-op release exists', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true)
+
+    const option = options.find((option) => option.value === 'collaboration')
+    expect(option).toMatchObject({ value: 'collaboration' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
+  it('hides collaboration after it was already used by another entry', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 16, event_type: 'collaboration' }),
+    ], null, 2007, true, true, true, true, true)
+
+    expect(options.some((option) => option.value === 'collaboration')).toBe(false)
+  })
+
+  it('keeps collaboration available while editing its own entry', () => {
+    const entry = historyRow({ id: 16, event_type: 'collaboration' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true, true, true, true, false)
+
+    const option = options.find((option) => option.value === 'collaboration')
+    expect(option).toMatchObject({ value: 'collaboration' })
+    expect(option?.disabled).toBeUndefined()
+  })
 })
