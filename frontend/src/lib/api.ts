@@ -7615,6 +7615,7 @@ type RawMemberRoleForVersion = {
   RoleCode: string;
   RoleName: string;
   RoleLabel: string;
+  CanEdit?: boolean;
 };
 
 function decodeReleaseVersionBodyJson(value: unknown): unknown | null {
@@ -7677,6 +7678,7 @@ function mapMemberRoleForVersion(
     roleCode: raw.RoleCode,
     roleName: raw.RoleName ?? raw.RoleCode,
     roleLabel: raw.RoleLabel,
+    canEdit: raw.CanEdit ?? true,
   };
 }
 

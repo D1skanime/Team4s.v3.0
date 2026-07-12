@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
@@ -37,6 +37,8 @@ function makeItem(overrides: Partial<ReleaseVersionMediaItem> = {}): ReleaseVers
     thumbnail_url: 'https://example.com/thumb.jpg',
     original_url: 'https://example.com/original.png',
     uploaded_by_user_id: 1,
+    can_update: true,
+    can_delete: true,
     created_at: '2026-05-08T00:00:00Z',
     deleted_at: null,
     ...overrides,
@@ -227,6 +229,28 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Löschen' }))
 
     await waitFor(() => expect(deleteItem).toHaveBeenCalledWith(41))
+  })
+
+  it('keeps coop media visible but disables edit and delete for readonly items', async () => {
+    const patchItem = vi.fn().mockResolvedValue(undefined)
+    const deleteItem = vi.fn().mockResolvedValue(undefined)
+
+    renderSection(
+      makeMediaState({
+        items: [makeItem({ id: 51, caption: 'CSubs upload', can_update: false, can_delete: false })],
+        patchItem,
+        deleteItem,
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /CSubs upload ansehen/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Medium ansehen' })
+
+    expect(within(dialog).getByRole('textbox')).toHaveProperty('disabled', true)
+    expect(within(dialog).getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', true)
+    expect(within(dialog).getByRole('button', { name: 'Löschen' })).toHaveProperty('disabled', true)
+    expect(patchItem).not.toHaveBeenCalled()
+    expect(deleteItem).not.toHaveBeenCalled()
   })
 
   it('keeps failed upload retry rows inside the upload sheet', () => {

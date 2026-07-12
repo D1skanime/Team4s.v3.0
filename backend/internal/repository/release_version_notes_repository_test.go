@@ -96,3 +96,15 @@ func TestGetMemberRolesForVersion(t *testing.T) {
 			"Query muss release_version_groups für Gruppen-Scope einbeziehen (T-83-01)")
 	})
 }
+
+func TestReleaseVersionNotesRepository_GroupScopedEditResolversExist(t *testing.T) {
+	repoSrc, err := os.ReadFile("release_version_notes_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.Contains(t, content, "CanEdit")
+	assert.Contains(t, content, "ListReleaseVersionMemberRoleGroupIDs")
+	assert.Contains(t, content, "GetReleaseVersionNoteMemberRole")
+	assert.Contains(t, content, "JOIN anime_contribution_roles acr")
+	assert.Contains(t, content, "SELECT fansub_group_id FROM release_version_groups")
+}

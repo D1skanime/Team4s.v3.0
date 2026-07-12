@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -18,6 +18,7 @@ vi.mock('@/components/editor', () => ({
     mode,
     toolbarVariant,
     showShortnoteHint = true,
+    disabled = false,
   }: {
     value: unknown
     onChange: (next: unknown) => void
@@ -25,11 +26,13 @@ vi.mock('@/components/editor', () => ({
     mode?: 'longform' | 'shortnote'
     toolbarVariant?: 'full' | 'minimal'
     showShortnoteHint?: boolean
+    disabled?: boolean
   }) => (
     <div data-toolbar-variant={toolbarVariant ?? 'full'}>
       <textarea
         placeholder={placeholder}
         value={typeof value === 'object' && value !== null ? JSON.stringify(value) : ''}
+        disabled={disabled}
         onChange={(event) => onChange({
           type: 'doc',
           content: [{ type: 'paragraph', content: [{ type: 'text', text: event.target.value }] }],
@@ -200,9 +203,39 @@ describe('ReleaseVersionNotesTab', () => {
 
     fireEvent.click(taroRow)
     expect(taroRow.getAttribute('aria-expanded')).toBe('true')
-    expect(screen.getByText(/bearbeitest als leiter/i)).not.toBeNull()
+    expect(screen.getByText(/bearbeitest als gruppenleitung/i)).not.toBeNull()
   })
 
+
+  it('zeigt fremde Coop-Rollen als Nur-Ansicht und speichert sie nicht', async () => {
+    getOwnProfileMock.mockResolvedValue({ data: { member_id: 10 } })
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ memberId: 10, memberName: 'Mira', roleId: 1, roleName: 'translator', canEdit: true }),
+      makeRole({ memberId: 11, memberName: 'Taro', roleId: 2, roleName: 'editor', roleCode: 'editor', canEdit: false }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 301,
+        memberId: 11,
+        roleId: 2,
+        bodyJson: makeBody('CSubs Text'),
+        bodyText: 'CSubs Text',
+        title: null,
+      }),
+    ])
+
+    render(<ReleaseVersionNotesTab versionId={7} />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: /alle mitglieder/i }))
+    fireEvent.click(screen.getByRole('button', { name: /taro/i }))
+
+    expect(screen.getByText(/nur ansicht/i)).not.toBeNull()
+    const readonlyField = await screen.findByPlaceholderText(/noch keine notiz/i)
+    expect(readonlyField).toHaveProperty('disabled', true)
+    expect(screen.getByRole('button', { name: /^speichern$/i })).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getByRole('button', { name: /^speichern$/i }))
+    expect(bulkUpsertReleaseVersionNotesMock).not.toHaveBeenCalled()
+  })
   it('zeigt Konflikt- und Längenhinweise verständlich an', async () => {
     getMemberRolesForVersionMock.mockResolvedValue([
       makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),

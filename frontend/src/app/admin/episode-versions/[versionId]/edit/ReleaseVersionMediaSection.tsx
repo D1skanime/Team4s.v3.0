@@ -201,8 +201,8 @@ export function ReleaseVersionMediaSection({
   const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy
   const canUpload = canChooseFiles && selectedFiles.length > 0
   const canEditPreviewCandidate = selectedItem ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] : false
-  const canEditSelectedItem = Boolean(selectedItem && canUpdateMedia)
-  const canDeleteSelectedItem = Boolean(selectedItem && (canDeleteMedia || canDeleteOwnMedia))
+  const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
+  const canDeleteSelectedItem = Boolean(selectedItem && (selectedItem.can_delete ?? (canDeleteMedia || canDeleteOwnMedia)))
   const uploadSummaryVisible =
     media.uploadItems.length > 0 && media.uploadItems.every((item) => isTerminalStatus(item.status))
   const successCount = media.uploadItems.filter((item) => item.status === 'ready').length
@@ -406,7 +406,7 @@ export function ReleaseVersionMediaSection({
                 type="button"
                 className={styles.mediaCard}
                 onClick={() => openEditSheet(item)}
-                aria-label={`${getAssetName(item)} bearbeiten`}
+                aria-label={`${getAssetName(item)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}`}
               >
                 <span className={styles.mediaThumb}>
                   {item.thumbnail_url || item.original_url ? (
@@ -593,7 +593,7 @@ export function ReleaseVersionMediaSection({
       <Drawer
         open={Boolean(selectedItem)}
         onClose={() => setSelectedItemId(null)}
-        title="Medium bearbeiten"
+        title={canEditSelectedItem ? 'Medium bearbeiten' : 'Medium ansehen'}
         description={selectedItem ? categoryLabel(selectedItem.category) : undefined}
         variant="responsiveSheet"
         footer={

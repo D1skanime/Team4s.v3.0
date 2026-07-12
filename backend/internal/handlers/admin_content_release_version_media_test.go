@@ -678,3 +678,15 @@ func TestReleaseVersionMedia_CapabilitiesExposeOwnDelete(t *testing.T) {
 		releaseVersionMediaCanDeleteOwn(permissions.Result{Allowed: true, MatchedRole: permissions.RoleEncoder}),
 		"encoder must retain own-delete capability for own uploads")
 }
+
+func TestReleaseVersionMedia_HandlerUsesContributorGroupMutationGuard(t *testing.T) {
+	src, err := os.ReadFile("admin_content_release_version_media.go")
+	require.NoError(t, err)
+	content := string(src)
+
+	assert.Contains(t, content, "canMutateReleaseVersionMediaRelation")
+	assert.Contains(t, content, "ListReleaseVersionMediaContributorGroupIDs")
+	assert.Contains(t, content, "CanForFansubGroup(c.Request.Context(), actor, action, groupID)")
+	assert.Contains(t, content, "items[i].CanUpdate = canUpdate")
+	assert.Contains(t, content, "items[i].CanDelete = canDelete")
+}

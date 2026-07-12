@@ -161,6 +161,10 @@ function groupRolesByMember(memberRoles: MemberRoleForVersion[]) {
   return Array.from(memberMap.entries())
 }
 
+function canEditMemberRole(memberRole: MemberRoleForVersion): boolean {
+  return memberRole.canEdit !== false
+}
+
 function formatCharacterStatus(length: number): string {
   return length === 0 ? 'Leer' : `${length} Zeichen`
 }
@@ -290,6 +294,8 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
   }
 
   async function handleSaveRole(memberRole: MemberRoleForVersion) {
+    if (!canEditMemberRole(memberRole)) return
+
     const key = buildKey(memberRole.memberId, memberRole.roleId)
     const state = noteStates[key]
     if (!state) return
@@ -459,6 +465,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
               return total + getPlainTextLength(state?.bodyJson ?? null)
             }, 0)
             const isOwn = ownMemberId === memberId
+            const canEditMember = roles.some(canEditMemberRole)
 
             return (
               <article className={styles.memberAccordion} key={memberId}>
@@ -489,7 +496,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
                       noteStates={noteStates}
                       savingKeys={savingKeys}
                       recentlySavedKey={recentlySavedKey}
-                      tagLabel={isOwn ? 'Eigene Rolle' : 'Bearbeitest als Gruppenleitung'}
+                      tagLabel={isOwn ? 'Eigene Rolle' : canEditMember ? 'Bearbeitest als Gruppenleitung' : 'Nur Ansicht'}
                       onUpdateField={updateField}
                       onResetRole={resetRole}
                       onSaveRole={(role) => void handleSaveRole(role)}
@@ -543,6 +550,7 @@ function MemberEditorBody({
       <div className={styles.roleList}>
         {roles.map((memberRole) => {
           const key = buildKey(memberId, memberRole.roleId)
+          const canEdit = canEditMemberRole(memberRole)
           return (
             <RoleNoteField
               key={key}
@@ -550,6 +558,7 @@ function MemberEditorBody({
               state={noteStates[key]}
               isSaving={savingKeys[key] === true}
               isRecentlySaved={recentlySavedKey === key}
+              canEdit={canEdit}
               onUpdate={onUpdateField}
               onReset={() => onResetRole(memberRole)}
               onSave={() => onSaveRole(memberRole)}
@@ -566,12 +575,13 @@ interface RoleNoteFieldProps {
   state: NoteFormState | undefined
   isSaving: boolean
   isRecentlySaved: boolean
+  canEdit: boolean
   onUpdate: <K extends keyof NoteFormState>(key: string, field: K, value: NoteFormState[K]) => void
   onReset: () => void
   onSave: () => void
 }
 
-function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, onUpdate, onReset, onSave }: RoleNoteFieldProps) {
+function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, canEdit, onUpdate, onReset, onSave }: RoleNoteFieldProps) {
   const key = buildKey(memberRole.memberId, memberRole.roleId)
   const roleInfo = ROLE_HELP_TEXTS[memberRole.roleName]
   const label = roleInfo?.label ?? memberRole.roleLabel
@@ -591,12 +601,15 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, onUpdate,
 
       <RichTextEditor
         value={ensureRichTextValue(state?.bodyJson ?? null)}
-        onChange={(value) => onUpdate(key, 'bodyJson', value)}
+        onChange={(value) => {
+          if (canEdit) onUpdate(key, 'bodyJson', value)
+        }}
         placeholder={placeholder}
         mode="shortnote"
         toolbarVariant="minimal"
         showShortnoteHint={false}
         minHeight={118}
+        disabled={!canEdit}
       />
 
       <div className={styles.charFooter}>
@@ -613,6 +626,7 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, onUpdate,
               type="text"
               value={state?.title ?? ''}
               onChange={(e) => onUpdate(key, 'title', e.target.value)}
+              disabled={!canEdit}
             />
           </FormField>
 
@@ -621,6 +635,7 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, onUpdate,
               <Select
                 value={state?.visibility ?? 'internal'}
                 onChange={(e) => onUpdate(key, 'visibility', e.target.value as 'public' | 'internal')}
+                disabled={!canEdit}
               >
                 <option value="internal">intern</option>
                 <option value="public">öffentlich</option>
@@ -631,6 +646,7 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, onUpdate,
               <Select
                 value={state?.status ?? 'draft'}
                 onChange={(e) => onUpdate(key, 'status', e.target.value as NoteFormState['status'])}
+                disabled={!canEdit}
               >
                 <option value="draft">Entwurf</option>
                 <option value="published">Veröffentlicht</option>
@@ -643,10 +659,10 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, onUpdate,
       </details>
 
       <div className={styles.roleActions}>
-        <Button variant="ghost" type="button" onClick={onReset} disabled={isSaving || !state?.isDirty}>
+        <Button variant="ghost" type="button" onClick={onReset} disabled={!canEdit || isSaving || !state?.isDirty}>
           Abbrechen
         </Button>
-        <Button variant="success" type="button" loading={isSaving} onClick={onSave}>
+        <Button variant="success" type="button" loading={isSaving} onClick={onSave} disabled={!canEdit}>
           {isRecentlySaved ? 'Gespeichert ✓' : isSaving ? 'Speichert...' : 'Speichern'}
         </Button>
       </div>

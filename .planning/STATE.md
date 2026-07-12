@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
 stopped_at: Completed 99-26-PLAN.md (Human-Verify-Checkpoint dokumentiert, ausstehende visuelle Nutzerabnahme)
-last_updated: "2026-07-09T13:01:45.850Z"
-last_activity: 2026-07-09
+last_updated: "2026-07-12T12:23:18.967+02:00"
+last_activity: 2026-07-12
 progress:
   total_phases: 90
   completed_phases: 76
@@ -523,6 +523,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260712-release-version-coop-edit-scope | Release-Version-Editbereich: Coop-Beitraege gruppenuebergreifend sichtbar, aber Media/Notizen nur fuer die eigene Fansubgruppe editierbar/loeschbar | 2026-07-12 | this commit | [260712-release-version-coop-edit-scope](./quick/260712-release-version-coop-edit-scope/) |
 | 260711-release-edit-coop-first-release-scope | Coop-Releases im Admin-Editbereich mit allen Gruppennamen anzeigen; First-Release-Meilenstein auf gruppeneigene Text-/Media-Beitraege begrenzen | 2026-07-11 | this commit | [260711-release-edit-coop-first-release-scope](./quick/260711-release-edit-coop-first-release-scope/) |
 | 260709-vdf | Sichtbarkeits-Defaults fuer neue bestaetigte Anime-Contributions auf public=true; Projektseite zaehlt echte bestaetigte Projektmitwirkende statt Gruppenmitglieder | 2026-07-09 | this commit | [260709-vdf-visibility-defaults-project-counts](./quick/260709-vdf-visibility-defaults-project-counts/) |
 | 260707-kut | Hinweis-senden fuer App-Mitglieder (fansub_group_members): Proposal-Flow member_id-zentrisch statt hist_fansub_group_members; ListMembershipsForMember UNION beider Tabellen; MemberBelongsToFansub-Gate; Leader-Review-Queue fix | 2026-07-07 | b1543e6d | [260707-kut-hinweis-senden-fuer-app-mitglieder-propo](./quick/260707-kut-hinweis-senden-fuer-app-mitglieder-propo/) |

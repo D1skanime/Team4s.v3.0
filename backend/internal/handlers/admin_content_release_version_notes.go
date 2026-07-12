@@ -15,6 +15,7 @@ import (
 
 type releaseVersionNoteAccess struct {
 	identity     middleware.AuthIdentity
+	actor        permissions.Actor
 	versionID    int64
 	canManageAll bool
 	memberID     int64
@@ -87,17 +88,21 @@ func (h *AdminContentHandler) requireReleaseVersionNoteAccess(c *gin.Context) (r
 
 	access := releaseVersionNoteAccess{
 		identity:     identity,
+		actor:        actor,
 		versionID:    versionID,
 		canManageAll: canManageAllReleaseVersionNotes(result),
-	}
-	if access.canManageAll {
-		return access, true
 	}
 
 	memberID, found, err := h.releaseVersionNotesRepo.ResolveMemberIDForAppUser(c.Request.Context(), identity.AppUserID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Member-Zuordnung konnte nicht geladen werden.")
 		return releaseVersionNoteAccess{}, false
+	}
+	if found {
+		access.memberID = memberID
+	}
+	if access.canManageAll {
+		return access, true
 	}
 	if !found {
 		c.JSON(http.StatusForbidden, gin.H{
@@ -106,8 +111,51 @@ func (h *AdminContentHandler) requireReleaseVersionNoteAccess(c *gin.Context) (r
 		return releaseVersionNoteAccess{}, false
 	}
 
-	access.memberID = memberID
 	return access, true
+}
+
+func (h *AdminContentHandler) canEditReleaseVersionMemberRole(
+	c *gin.Context,
+	access releaseVersionNoteAccess,
+	memberID int64,
+	roleCode string,
+) (bool, error) {
+	if access.actor.IsPlatformAdmin {
+		return true, nil
+	}
+
+	groupIDs, err := h.releaseVersionNotesRepo.ListReleaseVersionMemberRoleGroupIDs(
+		c.Request.Context(), access.versionID, memberID, roleCode,
+	)
+	if err != nil {
+		return false, err
+	}
+	for _, groupID := range groupIDs {
+		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), access.actor, permissions.ActionReleaseVersionNotesWrite, groupID)
+		if err != nil {
+			return false, err
+		}
+		if result.Allowed {
+			return true, nil
+		}
+	}
+
+	return access.memberID > 0 && access.memberID == memberID, nil
+}
+
+func (h *AdminContentHandler) annotateMemberRolesEditability(
+	c *gin.Context,
+	access releaseVersionNoteAccess,
+	memberRoles []repository.MemberRoleForVersion,
+) error {
+	for i := range memberRoles {
+		canEdit, err := h.canEditReleaseVersionMemberRole(c, access, memberRoles[i].MemberID, memberRoles[i].RoleCode)
+		if err != nil {
+			return err
+		}
+		memberRoles[i].CanEdit = canEdit
+	}
+	return nil
 }
 
 func (h *AdminContentHandler) ListReleaseVersionNotes(c *gin.Context) {
@@ -147,6 +195,10 @@ func (h *AdminContentHandler) GetMemberRolesForVersion(c *gin.Context) {
 	if !access.canManageAll {
 		memberRoles = filterMemberRolesForMember(memberRoles, access.memberID)
 	}
+	if err := h.annotateMemberRolesEditability(c, access, memberRoles); err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Member-Rollen-Rechte konnten nicht geladen werden.")
+		return
+	}
 	if memberRoles == nil {
 		memberRoles = []repository.MemberRoleForVersion{}
 	}
@@ -167,9 +219,14 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 
 	inputs := make([]repository.BulkNoteInput, 0, len(req.Notes))
 	for _, note := range req.Notes {
-		if !access.canManageAll && note.MemberID != access.memberID {
+		canEdit, err := h.canEditReleaseVersionMemberRole(c, access, note.MemberID, note.RoleCode)
+		if err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Notiz-Rechte konnten nicht geladen werden.")
+			return
+		}
+		if !canEdit {
 			c.JSON(http.StatusForbidden, gin.H{
-				"error": gin.H{"message": "Du darfst nur deine eigenen Notizen bearbeiten."},
+				"error": gin.H{"message": "Du darfst nur Notizen deiner Gruppe bearbeiten."},
 			})
 			return
 		}
@@ -244,25 +301,25 @@ func (h *AdminContentHandler) DeleteReleaseVersionNote(c *gin.Context) {
 		return
 	}
 
-	if !access.canManageAll {
-		notes, err := h.releaseVersionNotesRepo.ListReleaseVersionNotesForMember(c.Request.Context(), access.versionID, access.memberID)
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Version-Notizen konnten nicht geladen werden.")
-			return
-		}
-		found := false
-		for _, note := range notes {
-			if note.ID == noteID {
-				found = true
-				break
-			}
-		}
-		if !found {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": gin.H{"message": "Du darfst nur deine eigenen Notizen bearbeiten."},
-			})
-			return
-		}
+	memberID, roleCode, err := h.releaseVersionNotesRepo.GetReleaseVersionNoteMemberRole(c.Request.Context(), noteID, access.versionID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "notiz nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Version-Notiz konnte nicht geladen werden.")
+		return
+	}
+	canEdit, err := h.canEditReleaseVersionMemberRole(c, access, memberID, roleCode)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Notiz-Rechte konnten nicht geladen werden.")
+		return
+	}
+	if !canEdit {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": gin.H{"message": "Du darfst nur Notizen deiner Gruppe bearbeiten."},
+		})
+		return
 	}
 
 	err = h.releaseVersionNotesRepo.DeleteReleaseVersionNote(c.Request.Context(), noteID, access.versionID, access.identity.UserID)

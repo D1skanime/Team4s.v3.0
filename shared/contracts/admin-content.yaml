@@ -928,6 +928,8 @@ types:
     visibility: string | null (optional, enum: intern | oeffentlich)
     review_status: string | null (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)
     uploaded_by_user_id: int64 | null
+    can_update: boolean
+    can_delete: boolean
     created_at: timestamp
     updated_at: timestamp | null
     thumbnail_url: string | null

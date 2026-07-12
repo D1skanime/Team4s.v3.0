@@ -60,6 +60,8 @@ type ReleaseVersionMediaItem struct {
 	UploadedByUserID   *int64     `json:"uploaded_by_user_id"`
 	Visibility         *string    `json:"visibility,omitempty"`
 	ReviewStatus       *string    `json:"review_status,omitempty"`
+	CanUpdate          bool       `json:"can_update"`
+	CanDelete          bool       `json:"can_delete"`
 	CreatedAt          time.Time  `json:"created_at"`
 	UpdatedAt          *time.Time `json:"updated_at,omitempty"`
 	OriginalFilePath   string     `json:"-"` // storage path of the original file (from media_files JOIN)
@@ -486,6 +488,49 @@ func (r *MediaRepository) GetReleaseVersionMediaRelation(ctx context.Context, re
 		return nil, fmt.Errorf("get release_version_media relation %d: %w", relationID, err)
 	}
 	return &meta, nil
+}
+
+// ListReleaseVersionMediaContributorGroupIDs resolves the fansub group(s) that own a media
+// relation through the uploader's verified member identity and anime contributions.
+func (r *MediaRepository) ListReleaseVersionMediaContributorGroupIDs(ctx context.Context, relationID int64) ([]int64, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ac.fansub_group_id
+		FROM release_version_media rvm
+		JOIN app_users au ON au.legacy_user_id = rvm.uploaded_by_user_id
+		JOIN member_claims mc ON mc.app_user_id = au.id
+		  AND mc.claim_status = 'verified'
+		  AND mc.member_id IS NOT NULL
+		JOIN release_versions rv ON rv.id = rvm.release_version_id
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes ep ON ep.id = fr.episode_id
+		JOIN anime_contributions ac ON ac.member_id = mc.member_id
+		JOIN release_version_groups rvg ON rvg.release_version_id = rvm.release_version_id
+		  AND rvg.fansub_group_id = ac.fansub_group_id
+		WHERE rvm.id = $1
+		  AND rvm.deleted_at IS NULL
+		  AND (
+		    ac.release_version_id = rvm.release_version_id
+		    OR (ac.release_version_id IS NULL AND ac.anime_id = ep.anime_id)
+		  )
+		ORDER BY ac.fansub_group_id
+	`, relationID)
+	if err != nil {
+		return nil, fmt.Errorf("list rvm contributor groups for relation %d: %w", relationID, err)
+	}
+	defer rows.Close()
+
+	groupIDs := make([]int64, 0)
+	for rows.Next() {
+		var groupID int64
+		if err := rows.Scan(&groupID); err != nil {
+			return nil, fmt.Errorf("scan rvm contributor group for relation %d: %w", relationID, err)
+		}
+		groupIDs = append(groupIDs, groupID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate rvm contributor groups for relation %d: %w", relationID, err)
+	}
+	return groupIDs, nil
 }
 
 // ValidateReleaseVersionMediaOwnership ensures all provided relation IDs belong to the routed release version

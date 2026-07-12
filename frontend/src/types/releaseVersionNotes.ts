@@ -27,6 +27,7 @@ export interface MemberRoleForVersion {
   roleCode: string;
   roleName: string;
   roleLabel: string;
+  canEdit?: boolean;
 }
 
 export interface BulkNoteInput {

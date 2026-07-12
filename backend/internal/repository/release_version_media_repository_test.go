@@ -178,6 +178,17 @@ func TestReleaseVersionMedia_ReorderOwnershipValidationExists(t *testing.T) {
 		"ValidateReleaseVersionMediaUploader must restrict relation IDs to the current uploader")
 }
 
+func TestReleaseVersionMedia_ContributorGroupOwnershipResolverExists(t *testing.T) {
+	repoSrc, err := os.ReadFile("release_version_media_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.Contains(t, content, "ListReleaseVersionMediaContributorGroupIDs")
+	assert.Contains(t, content, "JOIN member_claims mc")
+	assert.Contains(t, content, "JOIN anime_contributions ac")
+	assert.Contains(t, content, "rvg.fansub_group_id = ac.fansub_group_id")
+}
+
 // TestReleaseVersionMedia_CategoryChangePrevented verifies the repository
 // does NOT have a SetCategory method — category changes are prevented at the
 // handler layer by rejecting the PATCH body field before calling the repository.

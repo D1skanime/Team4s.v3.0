@@ -41,6 +41,7 @@ type MemberRoleForVersion struct {
 	RoleID     int64
 	RoleCode   string
 	RoleLabel  string
+	CanEdit    bool
 }
 
 // BulkNoteInput describes a single note in a bulk upsert operation.
@@ -364,6 +365,78 @@ func (r *ReleaseVersionNotesRepository) loadValidMemberRoleKeysForVersion(
 		validKeys[releaseVersionMemberRoleKey(mr.MemberID, mr.RoleCode)] = struct{}{}
 	}
 	return validKeys, nil
+}
+
+// ListReleaseVersionMemberRoleGroupIDs resolves the fansub group(s) that own a
+// member+role pair in this release-version context.
+func (r *ReleaseVersionNotesRepository) ListReleaseVersionMemberRoleGroupIDs(
+	ctx context.Context,
+	releaseVersionID int64,
+	memberID int64,
+	roleCode string,
+) ([]int64, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ac.fansub_group_id
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		JOIN release_versions rv ON rv.id = $1
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes ep ON ep.id = fr.episode_id
+		WHERE ac.member_id = $2
+		  AND acr.role_code = $3
+		  AND ac.fansub_group_id IN (
+		      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
+		  )
+		  AND (
+		    ac.release_version_id = $1
+		    OR (ac.release_version_id IS NULL AND ac.anime_id = ep.anime_id)
+		  )
+		ORDER BY ac.fansub_group_id
+	`, releaseVersionID, memberID, roleCode)
+	if err != nil {
+		return nil, fmt.Errorf("list release-version member-role groups version=%d member=%d role=%s: %w",
+			releaseVersionID, memberID, roleCode, err)
+	}
+	defer rows.Close()
+
+	groupIDs := make([]int64, 0)
+	for rows.Next() {
+		var groupID int64
+		if err := rows.Scan(&groupID); err != nil {
+			return nil, fmt.Errorf("scan release-version member-role group version=%d member=%d role=%s: %w",
+				releaseVersionID, memberID, roleCode, err)
+		}
+		groupIDs = append(groupIDs, groupID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate release-version member-role groups version=%d member=%d role=%s: %w",
+			releaseVersionID, memberID, roleCode, err)
+	}
+	return groupIDs, nil
+}
+
+func (r *ReleaseVersionNotesRepository) GetReleaseVersionNoteMemberRole(
+	ctx context.Context,
+	noteID int64,
+	releaseVersionID int64,
+) (int64, string, error) {
+	var memberID int64
+	var roleCode string
+	err := r.db.QueryRow(ctx, `
+		SELECT rvn.member_id, cr.name
+		FROM release_version_notes rvn
+		JOIN contributor_roles cr ON cr.id = rvn.role_id
+		WHERE rvn.id = $1
+		  AND rvn.release_version_id = $2
+		  AND rvn.deleted_at IS NULL
+	`, noteID, releaseVersionID).Scan(&memberID, &roleCode)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, "", ErrNotFound
+	}
+	if err != nil {
+		return 0, "", fmt.Errorf("get release-version note member-role note=%d version=%d: %w", noteID, releaseVersionID, err)
+	}
+	return memberID, roleCode, nil
 }
 
 func (r *ReleaseVersionNotesRepository) validateExistingReleaseVersionNoteContributor(

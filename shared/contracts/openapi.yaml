@@ -11334,6 +11334,8 @@ components:
         - sort_order
         - is_preview_candidate
         - uploaded_by_user_id
+        - can_update
+        - can_delete
         - created_at
         - thumbnail_url
         - original_url
@@ -11370,6 +11372,12 @@ components:
           type: integer
           format: int64
           nullable: true
+        can_update:
+          type: boolean
+          description: True when the current actor may update this concrete media relation.
+        can_delete:
+          type: boolean
+          description: True when the current actor may delete this concrete media relation.
         created_at:
           type: string
           format: date-time

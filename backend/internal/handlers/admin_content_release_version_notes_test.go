@@ -23,3 +23,16 @@ func TestAdminContentReleaseVersionNotes_ContributorGuardSourceInvariants(t *tes
 	assert.True(t, strings.Contains(content, "Für dieses Mitglied und diese Rolle existiert bereits eine Notiz"),
 		"duplicate-note conflicts must remain distinguishable from invalid contributor context")
 }
+
+func TestAdminContentReleaseVersionNotes_GroupScopedEditGuardSourceInvariants(t *testing.T) {
+	handlerSrc, err := os.ReadFile("admin_content_release_version_notes.go")
+	require.NoError(t, err)
+	content := string(handlerSrc)
+
+	assert.Contains(t, content, "canEditReleaseVersionMemberRole")
+	assert.Contains(t, content, "annotateMemberRolesEditability")
+	assert.Contains(t, content, "ListReleaseVersionMemberRoleGroupIDs")
+	assert.Contains(t, content, "GetReleaseVersionNoteMemberRole")
+	assert.Contains(t, content, "Du darfst nur Notizen deiner Gruppe bearbeiten.")
+	assert.Contains(t, content, "memberRoles[i].CanEdit = canEdit")
+}
