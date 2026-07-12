@@ -11291,7 +11291,7 @@ components:
           type: boolean
         has_first_release:
           type: boolean
-          description: True only when the anime/group has a matching kara segment and a non-deleted release note or release media item attributable to a contributor of that same fansub group.
+          description: True only when the anime/group has a matching theme segment from any group attached to that same release version, or a global segment, and a non-deleted release note or release media item attributable to a contributor of that same fansub group.
     AdminFansubAnimeCoverageResponse:
       type: object
       required: [data]

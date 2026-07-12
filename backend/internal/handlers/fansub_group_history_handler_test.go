@@ -142,10 +142,14 @@ func TestFirstReleaseRequiresReleaseContributionAndKaraCoverage(t *testing.T) {
 		"first_release-Media muss den Uploader ueber verifizierte Claims aufloesen")
 	assert.Contains(t, repoSrc, "ac_media.fansub_group_id = rvg.fansub_group_id",
 		"first_release-Media darf keine fremde Coop-Gruppe freischalten")
-	assert.Contains(t, repoSrc, "ts.fansub_group_id IS NULL OR ts.fansub_group_id = rvg.fansub_group_id",
-		"first_release muss globales Kara fuer die jeweilige Episode akzeptieren")
-	assert.Contains(t, coverageRepoSrc, "ts.fansub_group_id IS NULL OR ts.fansub_group_id = afg.fansub_group_id",
-		"first_release-Coverage muss globales Kara fuer die UI akzeptieren")
+	assert.Contains(t, repoSrc, "FROM release_version_groups rvg_segment",
+		"first_release muss Kara von jeder Coop-Gruppe derselben Release-Version akzeptieren")
+	assert.Contains(t, repoSrc, "WHERE rvg_segment.release_version_id = rv.id",
+		"first_release-Kara darf nur von derselben Release-Version kommen")
+	assert.Contains(t, coverageRepoSrc, "FROM release_version_groups rvg_segment",
+		"first_release-Coverage muss Kara von jeder Coop-Gruppe derselben Release-Version akzeptieren")
+	assert.Contains(t, coverageRepoSrc, "WHERE rvg_segment.release_version_id = rv.id",
+		"first_release-Coverage darf nur Kara derselben Release-Version zaehlen")
 	assert.NotContains(t, repoSrc, "LOWER(tt.name) LIKE '%kara%'",
 		"first_release darf nicht vom Theme-Typ-Namen abhaengen, OP/ED/Insert-Segmente sind Kara-Segmente")
 	assert.NotContains(t, coverageRepoSrc, "LOWER(tt.name) LIKE '%kara%'",

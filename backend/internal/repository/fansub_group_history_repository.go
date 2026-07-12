@@ -219,7 +219,7 @@ func (r *FansubGroupHistoryRepository) ValidateFirstProjectAllowed(ctx context.C
 }
 
 // HasQualifiedFirstRelease reports whether the group has at least one release
-// version with a matching kara segment and a real release contribution.
+// version with a matching release/co-op segment and a real release contribution.
 func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Context, fansubGroupID int64) (bool, error) {
 	if fansubGroupID <= 0 {
 		return false, ErrNotFound
@@ -292,7 +292,14 @@ func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Cont
 				  AND anchor.episode_anchor IS NOT NULL
 				  AND (ts.start_episode IS NULL OR ts.start_episode <= anchor.episode_anchor)
 				  AND (ts.end_episode IS NULL OR ts.end_episode >= anchor.episode_anchor)
-				  AND (ts.fansub_group_id IS NULL OR ts.fansub_group_id = rvg.fansub_group_id)
+				  AND (
+					ts.fansub_group_id IS NULL
+					OR ts.fansub_group_id IN (
+						SELECT rvg_segment.fansub_group_id
+						FROM release_version_groups rvg_segment
+						WHERE rvg_segment.release_version_id = rv.id
+					)
+				  )
 				  AND COALESCE(NULLIF(BTRIM(ts.version), ''), COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')) = COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')
 			  )
 		)

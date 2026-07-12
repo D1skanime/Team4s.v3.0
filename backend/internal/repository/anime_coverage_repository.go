@@ -114,7 +114,14 @@ func (r *AnimeCoverageRepository) CoverageByFansub(ctx context.Context, fansubGr
 					  AND anchor.episode_anchor IS NOT NULL
 					  AND (ts.start_episode IS NULL OR ts.start_episode <= anchor.episode_anchor)
 					  AND (ts.end_episode IS NULL OR ts.end_episode >= anchor.episode_anchor)
-					  AND (ts.fansub_group_id IS NULL OR ts.fansub_group_id = afg.fansub_group_id)
+					  AND (
+						ts.fansub_group_id IS NULL
+						OR ts.fansub_group_id IN (
+							SELECT rvg_segment.fansub_group_id
+							FROM release_version_groups rvg_segment
+							WHERE rvg_segment.release_version_id = rv.id
+						)
+					  )
 					  AND COALESCE(NULLIF(BTRIM(ts.version), ''), COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')) = COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')
 				  )
 			) AS has_first_release
