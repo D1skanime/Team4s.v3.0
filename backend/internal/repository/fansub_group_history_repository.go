@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -51,6 +52,22 @@ type FansubGroupHistoryRepository struct {
 // NewFansubGroupHistoryRepository returns a new FansubGroupHistoryRepository.
 func NewFansubGroupHistoryRepository(db *pgxpool.Pool) *FansubGroupHistoryRepository {
 	return &FansubGroupHistoryRepository{db: db}
+}
+
+// GetFansubFoundedYear returns the group's founded_year, preserving NULL as nil.
+func (r *FansubGroupHistoryRepository) GetFansubFoundedYear(ctx context.Context, fansubGroupID int64) (*int, error) {
+	var foundedYear *int
+	if err := r.db.QueryRow(ctx, `
+		SELECT founded_year
+		FROM fansub_groups
+		WHERE id = $1
+	`, fansubGroupID).Scan(&foundedYear); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("get fansub founded year: %w", err)
+	}
+	return foundedYear, nil
 }
 
 func scanGroupHistoryRow(rows pgx.Rows) (*GroupHistoryRow, error) {

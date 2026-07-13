@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
@@ -47,6 +48,8 @@ const revivalGuardMessage = "Wiederaufnahme ist noch nicht möglich. Bitte zuers
 const projectCountGuardMessage = "Projekt-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend vollständig bearbeitete Projekte abschließen."
 const releaseCountGuardMessage = "Release-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend Releases mit Kara und Gruppenbeitrag abschließen."
 const singleUseGroupHistoryEventMessage = "Dieser Meilenstein wurde bereits eingetragen."
+const groupHistoryYearBeforeFoundedMessage = "Meilenstein-Jahr darf nicht vor dem Gründungsjahr liegen."
+const groupHistoryYearInFutureMessage = "Meilenstein-Jahr darf nicht in der Zukunft liegen."
 
 var singleUseGroupHistoryEventTypes = map[string]struct{}{
 	"disbanding":        {},
@@ -200,6 +203,31 @@ func (h *FansubGroupHistoryHandler) validateSingleUseEvent(c *gin.Context, fansu
 	return true
 }
 
+func (h *FansubGroupHistoryHandler) validateGroupHistoryYear(c *gin.Context, fansubID int64, year *int) bool {
+	if year == nil {
+		return true
+	}
+	foundedYear, err := h.historyRepo.GetFansubFoundedYear(c.Request.Context(), fansubID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "fansubgruppe nicht gefunden"}})
+		return false
+	}
+	if err != nil {
+		log.Printf("group history year guard failed (fansub_id=%d): %v", fansubID, err)
+		internalError(c, "interner serverfehler")
+		return false
+	}
+	if foundedYear != nil && *year < *foundedYear {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": groupHistoryYearBeforeFoundedMessage}})
+		return false
+	}
+	if *year > time.Now().Year() {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": groupHistoryYearInFutureMessage}})
+		return false
+	}
+	return true
+}
+
 type groupHistoryCreateRequest struct {
 	Year      *int    `json:"year"`
 	EventType string  `json:"event_type"`
@@ -281,6 +309,9 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 				"message": allowedGroupHistoryEventTypesMessage,
 			},
 		})
+		return
+	}
+	if !h.validateGroupHistoryYear(c, fansubID, req.Year) {
 		return
 	}
 	if !h.validateSingleUseEvent(c, fansubID, req.EventType, nil) {
@@ -403,6 +434,11 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 			if !h.validateEventUnlocked(c, fansubID, *req.EventType) {
 				return
 			}
+		}
+	}
+	if req.Year != nil && *req.Year != nil {
+		if !h.validateGroupHistoryYear(c, fansubID, *req.Year) {
+			return
 		}
 	}
 	if req.Status != nil && !validHistoricalContributionStatus(*req.Status) {
