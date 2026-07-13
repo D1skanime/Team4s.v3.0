@@ -1253,7 +1253,7 @@ func (r *AnimeAssetRepository) applyProviderBackgroundsV2(
 		WHERE am.anime_id = $1
 		  AND mt.name = 'background'
 		ORDER BY am.sort_order ASC, am.media_id ASC
-		FOR UPDATE
+		FOR UPDATE OF am, ma
 	`, animeID)
 	if err != nil {
 		return fmt.Errorf("query anime background rows for v2 update %d: %w", animeID, err)

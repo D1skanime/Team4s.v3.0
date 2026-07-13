@@ -2,6 +2,7 @@ package repository
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -56,5 +57,17 @@ func TestResolveAnimeAssetURL_PrefersLocalMediaPath(t *testing.T) {
 	got := resolveAnimeAssetURL(&mediaID, &resolvedURL, &mediaPath)
 	if got != mediaPath {
 		t.Fatalf("expected media path %q, got %q", mediaPath, got)
+	}
+}
+
+func TestApplyProviderBackgroundsV2LocksOnlyNonNullableRows(t *testing.T) {
+	content := readRepositorySource(t, "anime_assets.go")
+	normalized := strings.ToLower(content)
+
+	if !strings.Contains(normalized, "for update of am, ma") {
+		t.Fatalf("expected v2 background apply query to lock anime_media/media_assets explicitly")
+	}
+	if strings.Contains(normalized, "order by am.sort_order asc, am.media_id asc\n\t\tfor update\n") {
+		t.Fatalf("v2 background apply query must not use broad FOR UPDATE with nullable lateral join")
 	}
 }
