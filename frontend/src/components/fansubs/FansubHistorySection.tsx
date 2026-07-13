@@ -30,6 +30,9 @@ function achievementStyle(eventType: string): string {
 
 function achievementEventStyle(eventType: string): string | null {
   if (eventType === 'projects_500') return 'historyTimelineEventProjects500'
+  if (eventType === 'releases_500') return 'historyTimelineEventReleases500'
+  if (eventType === 'releases_1000') return 'historyTimelineEventReleases1000'
+  if (eventType === 'releases_5000') return 'historyTimelineEventReleases5000'
   if (eventType === 'releases_10000') return 'historyTimelineEventReleases10000'
   return null
 }

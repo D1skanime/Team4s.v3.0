@@ -87,6 +87,30 @@ describe('FansubHistorySection', () => {
       <FansubHistorySection
         history={[
           {
+            id: 7,
+            year: 2028,
+            event_type: 'releases_500',
+            title: '500 Releases',
+            note: null,
+            status: 'confirmed',
+          },
+          {
+            id: 8,
+            year: 2029,
+            event_type: 'releases_1000',
+            title: '1000 Releases',
+            note: null,
+            status: 'confirmed',
+          },
+          {
+            id: 9,
+            year: 2029,
+            event_type: 'releases_5000',
+            title: '5000 Releases',
+            note: null,
+            status: 'confirmed',
+          },
+          {
             id: 5,
             year: 2030,
             event_type: 'projects_500',
@@ -106,6 +130,9 @@ describe('FansubHistorySection', () => {
       />,
     )
 
+    expect(html).toContain('historyTimelineEventReleases500')
+    expect(html).toContain('historyTimelineEventReleases1000')
+    expect(html).toContain('historyTimelineEventReleases5000')
     expect(html).toContain('historyTimelineEventProjects500')
     expect(html).toContain('historyTimelineEventReleases10000')
   })
