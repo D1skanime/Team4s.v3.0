@@ -224,6 +224,30 @@ func TestProjectCountAchievementsRequireCompletedProjectThresholds(t *testing.T)
 		"Repository muss Projekt-Zaehler fachlich validieren")
 }
 
+func TestReleaseCountAchievementsRequireQualifiedReleaseThresholds(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	coverageRepoSrc := readSource(t, "../repository/anime_coverage_repository.go")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	for _, code := range []string{"releases_100", "releases_500", "releases_1000", "releases_5000", "releases_10000"} {
+		assert.Contains(t, unlockBody, `"`+code+`"`,
+			"validateEventUnlocked muss %s gesondert validieren", code)
+		assert.Contains(t, src, `"`+code+`"`,
+			"%s muss im Handler bekannt sein", code)
+	}
+	assert.Contains(t, src, "releaseCountHistoryEventThresholds",
+		"Handler muss zentrale Schwellenwerte fuer Release-Erfolge besitzen")
+	assert.Contains(t, unlockBody, "ValidateReleaseCountAllowed",
+		"Release-Zaehler duerfen erst nach ausreichend qualifizierten Releases gespeichert werden")
+	assert.Contains(t, repoSrc, "CountQualifiedFirstReleases",
+		"Repository muss qualifizierte Releases zaehlen")
+	assert.Contains(t, repoSrc, "ValidateReleaseCountAllowed",
+		"Repository muss Release-Zaehler fachlich validieren")
+	assert.Contains(t, coverageRepoSrc, "qualified_release_count",
+		"Anime-Coverage muss qualifizierte Releases fuer die UI liefern")
+}
+
 func TestCollaborationRequiresCoopReleaseVersion(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
 	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
@@ -255,7 +279,7 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 
 	assert.Contains(t, src, "singleUseGroupHistoryEventTypes",
 		"Handler muss eine zentrale Einmal-Liste fuer Achievements besitzen")
-	for _, code := range []string{"disbanding", "first_project", "first_release", "project_completed", "collaboration", "projects_10", "projects_50", "projects_100", "projects_500"} {
+	for _, code := range []string{"disbanding", "first_project", "first_release", "project_completed", "collaboration", "projects_10", "projects_50", "projects_100", "projects_500", "releases_100", "releases_500", "releases_1000", "releases_5000", "releases_10000"} {
 		assert.Contains(t, src, `"`+code+`"`, "event type %s muss als Einmal-Meilenstein geschuetzt sein", code)
 	}
 	assert.Contains(t, createBody, "validateSingleUseEvent",

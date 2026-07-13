@@ -8,6 +8,7 @@ import { ContributionsReviewSection } from "./ContributionsReviewSection";
 import type { MainTab } from "./fansubEditTypes";
 import {
   countQualifiedCompletedProjects,
+  countQualifiedReleases,
   hasQualifiedCollaboration,
   hasQualifiedCompletedProject,
   hasQualifiedFirstProject,
@@ -50,6 +51,7 @@ export function FansubEditSecondaryTabs({
             hasWebsiteLink={hasWebsiteCommunityLink(group)}
             hasFirstProject={hasQualifiedFirstProject(releaseData.animeCoverageMap)}
             hasFirstRelease={hasQualifiedFirstRelease(releaseData.animeCoverageMap)}
+            qualifiedReleaseCount={countQualifiedReleases(releaseData.animeCoverageMap)}
             hasCompletedProject={hasQualifiedCompletedProject(releaseData.animeCoverageMap)}
             completedProjectCount={countQualifiedCompletedProjects(releaseData.animeCoverageMap)}
             hasCollaboration={hasQualifiedCollaboration(releaseData.animeCoverageMap)}

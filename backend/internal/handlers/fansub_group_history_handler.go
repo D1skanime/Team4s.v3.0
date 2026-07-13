@@ -45,6 +45,7 @@ const projectCompletedGuardMessage = "Projekt abgeschlossen ist noch nicht volls
 const collaborationGuardMessage = "Kooperation ist noch nicht vollständig. Bitte zuerst eine Release-Version mit mindestens zwei beteiligten Fansubgruppen anlegen."
 const revivalGuardMessage = "Wiederaufnahme ist noch nicht möglich. Bitte zuerst Pause eintragen."
 const projectCountGuardMessage = "Projekt-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend vollständig bearbeitete Projekte abschließen."
+const releaseCountGuardMessage = "Release-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend Releases mit Kara und Gruppenbeitrag abschließen."
 const singleUseGroupHistoryEventMessage = "Dieser Meilenstein wurde bereits eingetragen."
 
 var singleUseGroupHistoryEventTypes = map[string]struct{}{
@@ -57,6 +58,11 @@ var singleUseGroupHistoryEventTypes = map[string]struct{}{
 	"projects_50":       {},
 	"projects_100":      {},
 	"projects_500":      {},
+	"releases_100":      {},
+	"releases_500":      {},
+	"releases_1000":     {},
+	"releases_5000":     {},
+	"releases_10000":    {},
 }
 
 var projectCountHistoryEventThresholds = map[string]int{
@@ -64,6 +70,14 @@ var projectCountHistoryEventThresholds = map[string]int{
 	"projects_50":  50,
 	"projects_100": 100,
 	"projects_500": 500,
+}
+
+var releaseCountHistoryEventThresholds = map[string]int{
+	"releases_100":   100,
+	"releases_500":   500,
+	"releases_1000":  1000,
+	"releases_5000":  5000,
+	"releases_10000": 10000,
 }
 
 // FansubGroupHistoryHandler verwaltet Admin-Endpunkte für fansub_group_history.
@@ -129,6 +143,16 @@ func (h *FansubGroupHistoryHandler) validateEventUnlocked(c *gin.Context, fansub
 		if err := h.historyRepo.ValidateProjectCountAllowed(c.Request.Context(), fansubID, projectCountHistoryEventThresholds[eventType]); err != nil {
 			if errors.Is(err, repository.ErrValidation) {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": projectCountGuardMessage}})
+				return false
+			}
+			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+			internalError(c, "interner serverfehler")
+			return false
+		}
+	case "releases_100", "releases_500", "releases_1000", "releases_5000", "releases_10000":
+		if err := h.historyRepo.ValidateReleaseCountAllowed(c.Request.Context(), fansubID, releaseCountHistoryEventThresholds[eventType]); err != nil {
+			if errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": releaseCountGuardMessage}})
 				return false
 			}
 			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)

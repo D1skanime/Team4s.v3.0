@@ -48,10 +48,17 @@ export function hasQualifiedFirstProject(
 export function hasQualifiedFirstRelease(
   animeCoverageMap: Map<number, AnimeCoverage> | null,
 ): boolean {
-  if (!animeCoverageMap) return false;
+  return countQualifiedReleases(animeCoverageMap) >= 1;
+}
 
-  return Array.from(animeCoverageMap.values()).some(
-    (coverage) => coverage.has_first_release,
+export function countQualifiedReleases(
+  animeCoverageMap: Map<number, AnimeCoverage> | null,
+): number {
+  if (!animeCoverageMap) return 0;
+
+  return Array.from(animeCoverageMap.values()).reduce(
+    (total, coverage) => total + coverage.qualified_release_count,
+    0,
   );
 }
 

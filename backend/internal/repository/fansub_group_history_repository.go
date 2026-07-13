@@ -254,17 +254,16 @@ func (r *FansubGroupHistoryRepository) ValidateFirstProjectAllowed(ctx context.C
 	return nil
 }
 
-// HasQualifiedFirstRelease reports whether the group has at least one release
-// version with a matching release/co-op segment and a real release contribution.
-func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Context, fansubGroupID int64) (bool, error) {
+// CountQualifiedFirstReleases counts release versions for the group with a
+// matching release/co-op segment and a real release contribution.
+func (r *FansubGroupHistoryRepository) CountQualifiedFirstReleases(ctx context.Context, fansubGroupID int64) (int, error) {
 	if fansubGroupID <= 0 {
-		return false, ErrNotFound
+		return 0, ErrNotFound
 	}
 
-	var exists bool
+	var count int
 	if err := r.db.QueryRow(ctx, `
-		SELECT EXISTS (
-			SELECT 1
+		SELECT COUNT(DISTINCT rv.id)
 			FROM release_versions rv
 			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 			JOIN fansub_releases fr ON fr.id = rv.release_id
@@ -338,11 +337,20 @@ func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Cont
 				  )
 				  AND COALESCE(NULLIF(BTRIM(ts.version), ''), COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')) = COALESCE(NULLIF(BTRIM(rv.version), ''), 'v1')
 			  )
-		)
-	`, fansubGroupID).Scan(&exists); err != nil {
-		return false, fmt.Errorf("check group first release qualification: %w", err)
+	`, fansubGroupID).Scan(&count); err != nil {
+		return 0, fmt.Errorf("count group first release qualifications: %w", err)
 	}
-	return exists, nil
+	return count, nil
+}
+
+// HasQualifiedFirstRelease reports whether the group has at least one release
+// version with a matching release/co-op segment and a real release contribution.
+func (r *FansubGroupHistoryRepository) HasQualifiedFirstRelease(ctx context.Context, fansubGroupID int64) (bool, error) {
+	count, err := r.CountQualifiedFirstReleases(ctx, fansubGroupID)
+	if err != nil {
+		return false, err
+	}
+	return count >= 1, nil
 }
 
 func (r *FansubGroupHistoryRepository) ValidateFirstReleaseAllowed(ctx context.Context, fansubGroupID int64) error {
@@ -351,6 +359,17 @@ func (r *FansubGroupHistoryRepository) ValidateFirstReleaseAllowed(ctx context.C
 		return err
 	}
 	if !hasFirstRelease {
+		return ErrValidation
+	}
+	return nil
+}
+
+func (r *FansubGroupHistoryRepository) ValidateReleaseCountAllowed(ctx context.Context, fansubGroupID int64, minimum int) error {
+	count, err := r.CountQualifiedFirstReleases(ctx, fansubGroupID)
+	if err != nil {
+		return err
+	}
+	if count < minimum {
 		return ErrValidation
 	}
 	return nil

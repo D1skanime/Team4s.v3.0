@@ -155,6 +155,43 @@ describe('buildHistoryEventOptions', () => {
     expect(option?.disabled).toBeUndefined()
   })
 
+  it('hides release count achievements before their qualified-release threshold is reached', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 99)
+
+    expect(options.some((option) => option.value === 'releases_100')).toBe(false)
+    expect(options.some((option) => option.value === 'releases_500')).toBe(false)
+    expect(options.some((option) => option.value === 'releases_1000')).toBe(false)
+    expect(options.some((option) => option.value === 'releases_5000')).toBe(false)
+    expect(options.some((option) => option.value === 'releases_10000')).toBe(false)
+  })
+
+  it('shows release count achievements whose qualified-release threshold is reached', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 1000)
+
+    expect(options.some((option) => option.value === 'releases_100')).toBe(true)
+    expect(options.some((option) => option.value === 'releases_500')).toBe(true)
+    expect(options.some((option) => option.value === 'releases_1000')).toBe(true)
+    expect(options.some((option) => option.value === 'releases_5000')).toBe(false)
+    expect(options.some((option) => option.value === 'releases_10000')).toBe(false)
+  })
+
+  it('hides a release count achievement after it was already used by another entry', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 21, event_type: 'releases_100' }),
+    ], null, 2007, true, true, true, true, true, 0, 100)
+
+    expect(options.some((option) => option.value === 'releases_100')).toBe(false)
+  })
+
+  it('keeps a release count achievement available while editing its own entry', () => {
+    const entry = historyRow({ id: 21, event_type: 'releases_100' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true, true, true, true, true, 0, 0)
+
+    const option = options.find((item) => item.value === 'releases_100')
+    expect(option).toMatchObject({ value: 'releases_100' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
   it('locks project completed while not every release has a group contribution', () => {
     const options = buildHistoryEventOptions([], null, 2007, true, true, true, false)
 
