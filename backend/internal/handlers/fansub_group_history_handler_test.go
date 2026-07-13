@@ -85,6 +85,42 @@ func TestCreateGroupHistory_TitleRequired(t *testing.T) {
 		"CreateGroupHistory lehnt fehlenden Titel mit 422 ab (D-10)")
 }
 
+func TestGroupHistoryYearValidation(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+	yearGuardBody := funcBody(t, src, "validateGroupHistoryYear")
+
+	assert.Contains(t, src, "Meilenstein-Jahr darf nicht vor dem Gründungsjahr liegen.",
+		"CreateGroupHistory muss year < founded_year mit fachlicher Fehlermeldung ablehnen")
+	assert.Contains(t, src, "Meilenstein-Jahr darf nicht in der Zukunft liegen.",
+		"CreateGroupHistory muss future years mit fachlicher Fehlermeldung ablehnen")
+	assert.Contains(t, yearGuardBody, "GetFansubFoundedYear",
+		"Year-Guard muss founded_year aus der Gruppenquelle laden")
+	assert.Contains(t, yearGuardBody, "time.Now().Year()",
+		"Year-Guard muss gegen das aktuelle Kalenderjahr prüfen")
+	assert.Contains(t, yearGuardBody, "http.StatusUnprocessableEntity",
+		"Ungültige Jahre müssen als 422 zurückgegeben werden")
+	assert.Contains(t, repoSrc, "GetFansubFoundedYear",
+		"Repository muss einen founded_year-Lookup für den Guard bereitstellen")
+	assert.Contains(t, repoSrc, "SELECT founded_year",
+		"Repository muss founded_year aus fansub_groups lesen")
+
+	assert.Contains(t, createBody, "validateGroupHistoryYear(c, fansubID, req.Year)",
+		"CreateGroupHistory muss das eingereichte Jahr vor dem Speichern validieren")
+	createGuardIdx := strings.Index(createBody, "validateGroupHistoryYear(c, fansubID, req.Year)")
+	createIdx := strings.Index(createBody, "historyRepo.Create(")
+	require.GreaterOrEqual(t, createGuardIdx, 0, "CreateGroupHistory ruft validateGroupHistoryYear auf")
+	require.GreaterOrEqual(t, createIdx, 0, "CreateGroupHistory ruft Create auf")
+	assert.Less(t, createGuardIdx, createIdx, "Year-Guard steht vor Create")
+
+	assert.Contains(t, updateBody, "req.Year != nil && *req.Year != nil",
+		"UpdateGroupHistory darf explizites year:null nicht durch den Year-Guard ablehnen")
+	assert.Contains(t, updateBody, "validateGroupHistoryYear(c, fansubID, *req.Year)",
+		"UpdateGroupHistory muss nicht-null Jahre vor dem Speichern validieren")
+}
+
 // Die DELETE-Route muss registriert und mit auth-Middleware geschützt sein.
 func TestWebsiteLaunchRequiresCommunityWebsiteLink(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
