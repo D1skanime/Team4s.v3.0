@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 99-26-PLAN.md (Human-Verify-Checkpoint dokumentiert, ausstehende visuelle Nutzerabnahme)
-last_updated: "2026-07-13T08:21:43.056Z"
+stopped_at: Completed 101-01-PLAN.md
+last_updated: "2026-07-13T08:34:36.030Z"
 last_activity: 2026-07-13
 progress:
   total_phases: 92
   completed_phases: 76
   total_plans: 403
-  completed_plans: 374
+  completed_plans: 375
   percent: 83
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 99 — Öffentliches Fansub-Member-Profil (Redesign)
+**Current focus:** Phase 101 — Meilensteine Zeitmanagement und Anzeige der Meilensteine verbessern
 
 ## Current Position
 
-Phase: 99 (Öffentliches Fansub-Member-Profil (Redesign)) — EXECUTING
-Plan: 12 of 15
+Phase: 101 (Meilensteine Zeitmanagement und Anzeige der Meilensteine verbessern) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -285,6 +285,8 @@ Recent durable decisions:
 - [Phase 99]: [Phase 99]: 99-24: Medien-Grid-Skalierung (AO6-11) und Header-Bereinigung (AO6-04) waren bereits committet (548e5f81/51a552e1) vorgefunden; diese Session hat Acceptance-Criteria, Tests und Typecheck re-verifiziert statt den Code zu duplizieren.
 - [Phase 99]: 99-25: FansubMediaLightbox als gesteuerte Komponente (index:number|null + onNavigate/onClose) mit Wrap-around-Navigation auf @/components/ui Modal-Basis; FansubGroupMediaBlock haelt activeIndex intern und ruft zusaetzlich ein optionales externes onSelect auf (AO6-12).
 - [Phase ?]: [Phase 99]: 99-26: Finaler Live-UAT Add-on 6 strukturell (Server-HTML + Public-API) durchgefuehrt, da kein Computer-Use-/Chrome-MCP-Werkzeug im Executor gebunden war; alle acht AO6-Kriterien bestaetigt oder ehrlich als mit dem 1-Projekt/3-Medien-C-Subs-Seed nicht pruefbar dokumentiert; keine page.module.css-Aenderung noetig; finale visuelle Nutzerabnahme steht aus.
+- [Phase 101]: Full milestone catalog visibility is based on persisted first_project and first_release history entries, not coverage booleans alone. — Matches Phase 101 D-05 and keeps the selector tied to actual timeline milestones.
+- [Phase 101]: Group history year bounds reuse the existing YearPicker with founded_year as min and current year as max; backend enforcement remains in Plan 101-02. — Avoids a duplicate year control while preserving the planned frontend/backend split.
 
 ### Pending Todos
 
@@ -519,6 +521,7 @@ Recent durable decisions:
 | Phase 99 P24 | 6min | 2 tasks | 5 files |
 | Phase 99 P25 | 12min | 2 tasks | 4 files |
 | Phase 99 P26 | 35min | 1 tasks | 1 files |
+| Phase 101 P01 | 5min | 4 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -591,7 +594,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-09T13:01:45.820Z
-Stopped at: Completed 99-26-PLAN.md (Human-Verify-Checkpoint dokumentiert, ausstehende visuelle Nutzerabnahme)
+Last session: 2026-07-13T08:34:35.965Z
+Stopped at: Completed 101-01-PLAN.md
 Last activity: 2026-07-13
 Resume file: None
