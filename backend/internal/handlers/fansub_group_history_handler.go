@@ -18,7 +18,6 @@ var allowedGroupHistoryEventTypes = map[string]struct{}{
 	"hiatus":            {},
 	"rebranding":        {},
 	"milestone":         {},
-	"other":             {},
 	"first_project":     {},
 	"first_release":     {},
 	"anniversary":       {},
@@ -39,7 +38,7 @@ var allowedGroupHistoryEventTypes = map[string]struct{}{
 	"releases_10000":    {},
 }
 
-const allowedGroupHistoryEventTypesMessage = "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, other, first_project, first_release, anniversary, collaboration, revival, project_completed, team_change, website_launch, award, projects_10, projects_50, projects_100, projects_500, releases_100, releases_500, releases_1000, releases_5000, releases_10000"
+const allowedGroupHistoryEventTypesMessage = "ungültiger event_type; erlaubte Werte: founding, disbanding, hiatus, rebranding, milestone, first_project, first_release, anniversary, collaboration, revival, project_completed, team_change, website_launch, award, projects_10, projects_50, projects_100, projects_500, releases_100, releases_500, releases_1000, releases_5000, releases_10000"
 const firstProjectGuardMessage = "Erstes Projekt ist noch nicht vollständig. Bitte Ausblick schreiben und Rollen Übersetzer, Timer und Encoder vergeben."
 const firstReleaseGuardMessage = "Erstes Release ist noch nicht vollständig. Bitte zuerst ein Kara-Segment und mindestens einen Release-Text oder ein Release-Bild hinterlegen."
 const projectCompletedGuardMessage = "Projekt abgeschlossen ist noch nicht vollständig. Bitte bei jedem Release dieses Projekts mindestens einen Release-Text oder ein Release-Bild der Gruppe hinterlegen."

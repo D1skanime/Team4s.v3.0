@@ -247,6 +247,10 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 
 func TestGroupHistoryEventTypeWhitelistIncludesAchievementPreviewTypes(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
+	assert.NotContains(t, src, `"other":`,
+		"other darf nicht mehr als Group-History-Typ erstellt werden")
+	assert.NotContains(t, src, "milestone, other,",
+		"Fehlermeldung darf other nicht mehr als erlaubten Group-History-Typ nennen")
 	for _, code := range []string{
 		"first_project",
 		"first_release",

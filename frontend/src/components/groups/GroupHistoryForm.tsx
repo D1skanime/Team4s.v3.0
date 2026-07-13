@@ -11,15 +11,6 @@ import styles from './groups.module.css'
 // Typen & Konstanten
 // ---------------------------------------------------------------------------
 
-export const EVENT_TYPE_OPTIONS = [
-  { value: 'founding', label: 'Gründung' },
-  { value: 'disbanding', label: 'Auflösung' },
-  { value: 'hiatus', label: 'Pause' },
-  { value: 'rebranding', label: 'Umbenennung' },
-  { value: 'milestone', label: 'Meilenstein' },
-  { value: 'other', label: 'Sonstiges' },
-]
-
 export interface HistoryFormState {
   title: string
   eventType: string

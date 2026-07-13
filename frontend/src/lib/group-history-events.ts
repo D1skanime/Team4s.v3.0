@@ -16,7 +16,6 @@ export const GROUP_HISTORY_EVENT_OPTIONS: GroupHistoryEventPresentation[] = [
   { value: 'hiatus', label: 'Pause', category: 'history', imageSrc: `${BADGE_BASE_PATH}/hiatus.png`, tone: 'violet' },
   { value: 'rebranding', label: 'Umbenennung', category: 'history', imageSrc: `${BADGE_BASE_PATH}/rebranding.png`, tone: 'accent' },
   { value: 'milestone', label: 'Meilenstein', category: 'history', imageSrc: `${BADGE_BASE_PATH}/milestone.png`, tone: 'gold' },
-  { value: 'other', label: 'Sonstiges', category: 'history', imageSrc: `${BADGE_BASE_PATH}/other.png`, tone: 'accent' },
   { value: 'first_project', label: 'Erstes Projekt', category: 'history', imageSrc: `${BADGE_BASE_PATH}/first_project.png`, tone: 'gold' },
   { value: 'first_release', label: 'Erstes Release', category: 'history', imageSrc: `${BADGE_BASE_PATH}/first_release.png`, tone: 'blue' },
   { value: 'anniversary', label: 'Jubiläum', category: 'history', imageSrc: `${BADGE_BASE_PATH}/anniversary.png`, tone: 'pink' },
@@ -48,5 +47,5 @@ export const GROUP_HISTORY_EVENT_BY_VALUE = GROUP_HISTORY_EVENT_OPTIONS.reduce<R
 )
 
 export function getGroupHistoryEventPresentation(eventType: string): GroupHistoryEventPresentation {
-  return GROUP_HISTORY_EVENT_BY_VALUE[eventType] ?? GROUP_HISTORY_EVENT_BY_VALUE.other
+  return GROUP_HISTORY_EVENT_BY_VALUE[eventType] ?? GROUP_HISTORY_EVENT_BY_VALUE.milestone
 }

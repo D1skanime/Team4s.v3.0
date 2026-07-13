@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import type { GroupHistoryRow } from '@/lib/api'
+import {
+  GROUP_HISTORY_EVENT_OPTIONS,
+  getGroupHistoryEventPresentation,
+} from '@/lib/group-history-events'
 import { buildHistoryEventOptions } from './GroupHistorySection'
 
 function historyRow(overrides: Partial<GroupHistoryRow>): GroupHistoryRow {
@@ -18,6 +22,20 @@ function historyRow(overrides: Partial<GroupHistoryRow>): GroupHistoryRow {
 }
 
 describe('buildHistoryEventOptions', () => {
+  it('does not offer the generic other event type anymore', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true)
+
+    expect(GROUP_HISTORY_EVENT_OPTIONS.some((option) => option.value === 'other')).toBe(false)
+    expect(options.some((option) => option.value === 'other')).toBe(false)
+  })
+
+  it('falls back to milestone presentation for legacy unknown event types', () => {
+    expect(getGroupHistoryEventPresentation('other')).toMatchObject({
+      value: 'milestone',
+      label: 'Meilenstein',
+    })
+  })
+
   it('locks website launch while no website community link exists', () => {
     const options = buildHistoryEventOptions([], null, 2007, false)
 

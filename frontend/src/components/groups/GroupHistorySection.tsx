@@ -46,7 +46,6 @@ const EVENT_TYPE_BADGE_VARIANTS = {
   hiatus: 'warning',
   rebranding: 'info',
   milestone: 'neutral',
-  other: 'muted',
 } as const
 
 function eventTypeBadgeVariant(eventType: string): 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted' {
