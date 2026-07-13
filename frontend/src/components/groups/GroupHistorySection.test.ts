@@ -21,6 +21,14 @@ function historyRow(overrides: Partial<GroupHistoryRow>): GroupHistoryRow {
   }
 }
 
+function unlockedHistoryEntries(extraEntries: GroupHistoryRow[] = []): GroupHistoryRow[] {
+  return [
+    historyRow({ id: 101, event_type: 'first_project' }),
+    historyRow({ id: 102, event_type: 'first_release' }),
+    ...extraEntries,
+  ]
+}
+
 describe('buildHistoryEventOptions', () => {
   it('returns only locked founding before a founding year exists', () => {
     const options = buildHistoryEventOptions([], null, null, false, false, false)
@@ -60,10 +68,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('shows later catalog entries after first project and first release both exist', () => {
-    const options = buildHistoryEventOptions([
-      historyRow({ id: 13, event_type: 'first_project' }),
-      historyRow({ id: 14, event_type: 'first_release' }),
-    ], null, 2007, true, true, true, true, true, 0, 0)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 0)
 
     expect(options.some((option) => option.value === 'award')).toBe(true)
     expect(options.some((option) => option.value === 'team_change')).toBe(true)
@@ -92,7 +97,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('locks website launch while no website community link exists', () => {
-    const options = buildHistoryEventOptions([], null, 2007, false)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, false)
 
     expect(options.find((option) => option.value === 'website_launch')).toMatchObject({
       disabled: true,
@@ -101,7 +106,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('allows website launch when a website community link exists', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true)
 
     const option = options.find((option) => option.value === 'website_launch')
     expect(option).toMatchObject({ value: 'website_launch' })
@@ -109,9 +114,9 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('hides website launch after it was already used by another entry', () => {
-    const options = buildHistoryEventOptions([
+    const options = buildHistoryEventOptions(unlockedHistoryEntries([
       historyRow({ id: 12, event_type: 'website_launch' }),
-    ], null, 2007, true)
+    ]), null, 2007, true)
 
     expect(options.some((option) => option.value === 'website_launch')).toBe(false)
   })
@@ -126,9 +131,9 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('hides disbanding after it was already used by another entry', () => {
-    const options = buildHistoryEventOptions([
+    const options = buildHistoryEventOptions(unlockedHistoryEntries([
       historyRow({ id: 19, event_type: 'disbanding' }),
-    ], null, 2007, true)
+    ]), null, 2007, true)
 
     expect(options.some((option) => option.value === 'disbanding')).toBe(false)
   })
@@ -211,7 +216,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('hides release count achievements before their qualified-release threshold is reached', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 99)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 99)
 
     expect(options.some((option) => option.value === 'releases_100')).toBe(false)
     expect(options.some((option) => option.value === 'releases_500')).toBe(false)
@@ -221,7 +226,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('shows release count achievements whose qualified-release threshold is reached', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 1000)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 1000)
 
     expect(options.some((option) => option.value === 'releases_100')).toBe(true)
     expect(options.some((option) => option.value === 'releases_500')).toBe(true)
@@ -231,17 +236,17 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('uses exact threshold boundaries for legendary release achievements', () => {
-    const almostLegendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 9999)
-    const legendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 10000)
+    const almostLegendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 9999)
+    const legendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 10000)
 
     expect(almostLegendary.some((option) => option.value === 'releases_10000')).toBe(false)
     expect(legendary.some((option) => option.value === 'releases_10000')).toBe(true)
   })
 
   it('hides a release count achievement after it was already used by another entry', () => {
-    const options = buildHistoryEventOptions([
+    const options = buildHistoryEventOptions(unlockedHistoryEntries([
       historyRow({ id: 21, event_type: 'releases_100' }),
-    ], null, 2007, true, true, true, true, true, 0, 100)
+    ]), null, 2007, true, true, true, true, true, 0, 100)
 
     expect(options.some((option) => option.value === 'releases_100')).toBe(false)
   })
@@ -256,7 +261,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('locks project completed while not every release has a group contribution', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, false)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, false)
 
     expect(options.find((option) => option.value === 'project_completed')).toMatchObject({
       disabled: true,
@@ -265,7 +270,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('allows project completed when release coverage is complete', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true)
 
     const option = options.find((option) => option.value === 'project_completed')
     expect(option).toMatchObject({ value: 'project_completed' })
@@ -273,9 +278,9 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('hides project completed after it was already used by another entry', () => {
-    const options = buildHistoryEventOptions([
+    const options = buildHistoryEventOptions(unlockedHistoryEntries([
       historyRow({ id: 15, event_type: 'project_completed' }),
-    ], null, 2007, true, true, true, true)
+    ]), null, 2007, true, true, true, true)
 
     expect(options.some((option) => option.value === 'project_completed')).toBe(false)
   })
@@ -290,7 +295,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('locks collaboration while no co-op release exists', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, false)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, false)
 
     expect(options.find((option) => option.value === 'collaboration')).toMatchObject({
       disabled: true,
@@ -299,7 +304,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('allows collaboration when a co-op release exists', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true)
 
     const option = options.find((option) => option.value === 'collaboration')
     expect(option).toMatchObject({ value: 'collaboration' })
@@ -307,9 +312,9 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('hides collaboration after it was already used by another entry', () => {
-    const options = buildHistoryEventOptions([
+    const options = buildHistoryEventOptions(unlockedHistoryEntries([
       historyRow({ id: 16, event_type: 'collaboration' }),
-    ], null, 2007, true, true, true, true, true)
+    ]), null, 2007, true, true, true, true, true)
 
     expect(options.some((option) => option.value === 'collaboration')).toBe(false)
   })
@@ -324,7 +329,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('hides project count achievements before their completed-project threshold is reached', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 9)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 9)
 
     expect(options.some((option) => option.value === 'projects_10')).toBe(false)
     expect(options.some((option) => option.value === 'projects_50')).toBe(false)
@@ -333,7 +338,7 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('shows project count achievements whose completed-project threshold is reached', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 100)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 100)
 
     expect(options.some((option) => option.value === 'projects_10')).toBe(true)
     expect(options.some((option) => option.value === 'projects_50')).toBe(true)
@@ -342,17 +347,17 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('uses exact threshold boundaries for legendary project achievements', () => {
-    const almostLegendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 499)
-    const legendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 500)
+    const almostLegendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 499)
+    const legendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 500)
 
     expect(almostLegendary.some((option) => option.value === 'projects_500')).toBe(false)
     expect(legendary.some((option) => option.value === 'projects_500')).toBe(true)
   })
 
   it('hides a project count achievement after it was already used by another entry', () => {
-    const options = buildHistoryEventOptions([
+    const options = buildHistoryEventOptions(unlockedHistoryEntries([
       historyRow({ id: 20, event_type: 'projects_10' }),
-    ], null, 2007, true, true, true, true, true, 10)
+    ]), null, 2007, true, true, true, true, true, 10)
 
     expect(options.some((option) => option.value === 'projects_10')).toBe(false)
   })
@@ -367,15 +372,15 @@ describe('buildHistoryEventOptions', () => {
   })
 
   it('hides revival while no pause exists', () => {
-    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true)
+    const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true)
 
     expect(options.some((option) => option.value === 'revival')).toBe(false)
   })
 
   it('shows revival after a pause exists', () => {
-    const options = buildHistoryEventOptions([
+    const options = buildHistoryEventOptions(unlockedHistoryEntries([
       historyRow({ id: 17, event_type: 'hiatus' }),
-    ], null, 2007, true, true, true, true, true)
+    ]), null, 2007, true, true, true, true, true)
 
     const option = options.find((option) => option.value === 'revival')
     expect(option).toMatchObject({ value: 'revival' })

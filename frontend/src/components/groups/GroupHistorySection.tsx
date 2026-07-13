@@ -152,8 +152,21 @@ export function buildHistoryEventOptions(
   const websiteLaunchUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'website_launch' && entry.id !== editTarget?.id,
   )
+  const hasFirstProjectEntry = entries.some((entry) => entry.event_type === 'first_project')
+  const hasFirstReleaseEntry = entries.some((entry) => entry.event_type === 'first_release')
+  const fullCatalogUnlocked = hasFirstProjectEntry && hasFirstReleaseEntry
+
+  if (!foundedYear && editTarget === null) {
+    const foundingOption = getGroupHistoryEventOptions().find((option) => option.value === 'founding')
+    return foundingOption ? [{ ...foundingOption, disabled: true, disabledReason: 'Gründungsjahr fehlt' }] : []
+  }
 
   return getGroupHistoryEventOptions().flatMap((option) => {
+    const isStageOption = option.value === 'founding' || option.value === 'first_project' || option.value === 'first_release'
+    if (!fullCatalogUnlocked && !isStageOption && editTarget?.event_type !== option.value) {
+      return []
+    }
+
     if (option.value === 'founding' && foundingUsedByAnotherEntry) {
       return []
     }
