@@ -13,6 +13,13 @@ func publicMediaURLForPath(filePath string, mediaStorageDir string) *string {
 	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
 		return &trimmed
 	}
+	if strings.HasPrefix(trimmed, "/api/") {
+		return &trimmed
+	}
+	if strings.HasPrefix(trimmed, "api/") {
+		url := "/" + trimmed
+		return &url
+	}
 
 	normalized := filepath.ToSlash(trimmed)
 	storageRoot := filepath.ToSlash(strings.TrimSpace(mediaStorageDir))

@@ -118,12 +118,13 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
     { label: "Anime", href: "/anime" }, { label: anime.title, href: `/anime/${animeID}` },
     { label: "Gruppe" }, { label: group.fansub.name },
   ];
-  const heroBackdropUrl = groupAssetsResponse?.data.hero.backdrop_url ? resolvePublicApiUrl(groupAssetsResponse.data.hero.backdrop_url) : null;
+  const animeBannerUrl = anime.banner_url ? resolvePublicApiUrl(anime.banner_url) : null;
+  const heroBackdropUrl = animeBannerUrl ?? (groupAssetsResponse?.data.hero.backdrop_url ? resolvePublicApiUrl(groupAssetsResponse.data.hero.backdrop_url) : null);
   const firstEp = groupAssetsResponse?.data.episodes.find((ep) => ep.episode_number === 1) ?? groupAssetsResponse?.data.episodes.find((ep) => ep.images.length > 0);
   const firstEpImage = firstEp?.images.find((img) => img.title.toLowerCase().includes("landscape")) ?? firstEp?.images[0] ?? null;
-  const infoPanelBackgroundUrl = groupAssetsResponse?.data.hero.banner_url
+  const infoPanelBackgroundUrl = animeBannerUrl ?? (groupAssetsResponse?.data.hero.banner_url
     ? resolvePublicApiUrl(groupAssetsResponse.data.hero.banner_url)
-    : firstEpImage ? resolvePublicApiUrl(firstEpImage.image_url) : null;
+    : firstEpImage ? resolvePublicApiUrl(firstEpImage.image_url) : null);
   const posterImage = (groupAssetsResponse?.data.hero.poster_url ? resolvePublicApiUrl(groupAssetsResponse.data.hero.poster_url) : null) ?? anime.cover_image ?? group.fansub.logo_url ?? null;
   const heroStyle = heroBackdropUrl ? { backgroundImage: `linear-gradient(90deg, rgba(17, 10, 14, 0.42) 0%, rgba(17, 10, 14, 0.18) 44%, rgba(17, 10, 14, 0.42) 100%), url(${heroBackdropUrl})` } : undefined;
   const infoPanelStyle = infoPanelBackgroundUrl ? { backgroundImage: `linear-gradient(180deg, rgba(12, 6, 9, 0.04) 0%, rgba(12, 6, 9, 0.12) 100%), url(${infoPanelBackgroundUrl})` } : undefined;

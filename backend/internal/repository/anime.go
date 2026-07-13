@@ -96,10 +96,30 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 	}
 
 	query := `
-		SELECT id, title, title_de, title_en, type, content_type, status, year,
-		       max_episodes, genre, description, cover_image, source, folder_name, anisearch_id, view_count
+		SELECT anime.id, title, title_de, title_en, type, content_type, status, year,
+		       max_episodes, genre, description, cover_image,
+		       COALESCE(
+			       banner.path,
+			       NULLIF(BTRIM(anime.banner_resolved_url), '')
+		       ) AS banner_url,
+		       source, folder_name, anisearch_id, view_count
 		FROM anime
-		WHERE id = $1
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(banner_file.path, ma.file_path) AS path
+			FROM media_assets ma
+			LEFT JOIN LATERAL (
+				SELECT mf.path
+				FROM media_files mf
+				WHERE mf.media_id = ma.id
+				  AND (mf.variant = 'original' OR mf.variant IS NULL)
+				  AND (mf.status = 'ready' OR mf.status IS NULL)
+				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+				LIMIT 1
+			) banner_file ON true
+			WHERE ma.id = anime.banner_asset_id
+			LIMIT 1
+		) banner ON true
+		WHERE anime.id = $1
 	`
 	if !includeDisabled {
 		query += " AND status <> 'disabled'"
@@ -119,6 +139,7 @@ func (r *AnimeRepository) GetByID(ctx context.Context, id int64, includeDisabled
 		&anime.Genre,
 		&anime.Description,
 		&anime.CoverImage,
+		&anime.BannerURL,
 		&anime.Source,
 		&anime.FolderName,
 		&anime.AniSearchID,

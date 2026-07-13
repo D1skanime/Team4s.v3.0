@@ -335,6 +335,7 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 			a.cover_image,
 			a.max_episodes,
 			COALESCE(
+				anime_banner.path,
 				NULLIF(BTRIM(a.banner_resolved_url), ''),
 				(
 					SELECT bmf.path
@@ -348,6 +349,25 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 			) AS banner_url
 		FROM anime_fansub_groups afg
 		JOIN anime a ON a.id = afg.anime_id
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(anime_banner_file.path, ma.file_path) AS path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			LEFT JOIN LATERAL (
+				SELECT mf.path
+				FROM media_files mf
+				WHERE mf.media_id = ma.id
+				  AND (mf.variant = 'original' OR mf.variant IS NULL)
+				  AND (mf.status = 'ready' OR mf.status IS NULL)
+				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+				LIMIT 1
+			) anime_banner_file ON true
+			WHERE am.anime_id = a.id
+			  AND mt.name = 'banner'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) anime_banner ON true
 		WHERE afg.fansub_group_id = $1
 		  AND a.status <> 'disabled'
 		ORDER BY a.title ASC, a.id ASC

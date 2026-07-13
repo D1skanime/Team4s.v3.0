@@ -62,6 +62,7 @@ export interface AnimeDetail {
   tags?: string[]
   description?: string
   cover_image?: string
+  banner_url?: string
   source?: string
   source_links?: string[]
   folder_name?: string

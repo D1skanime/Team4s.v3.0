@@ -54,6 +54,7 @@ type AnimeDetail struct {
 	Tags             []string          `json:"tags,omitempty"`
 	Description      *string           `json:"description,omitempty"`
 	CoverImage       *string           `json:"cover_image,omitempty"`
+	BannerURL        *string           `json:"banner_url,omitempty"`
 	Source           *string           `json:"source,omitempty"`
 	SourceLinks      []string          `json:"source_links,omitempty"`
 	FolderName       *string           `json:"folder_name,omitempty"`

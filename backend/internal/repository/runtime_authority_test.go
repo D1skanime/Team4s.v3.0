@@ -14,8 +14,10 @@ func TestAnimeRepository_ReadPathUsesFlatColumnsWithNormalizedOverlay(t *testing
 
 	required := []string{
 		"from anime",
-		"select id, title, title_de, title_en, type, content_type, status, year,",
-		"max_episodes, genre, description, cover_image, source, folder_name, anisearch_id, view_count",
+		"select anime.id, title, title_de, title_en, type, content_type, status, year,",
+		"max_episodes, genre, description, cover_image,",
+		"as banner_url",
+		"source, folder_name, anisearch_id, view_count",
 		"select id, %s as display_title, type, status, year, cover_image, max_episodes",
 		"from anime_titles at",
 		"join languages l on l.id = at.language_id",
@@ -71,6 +73,8 @@ func TestAnimeV2CreateAndReadPathsPersistRuntimeFields(t *testing.T) {
 		"anime.content_type",
 		"anime.status",
 		"anime.max_episodes",
+		"mt.name = 'banner'",
+		"as banner_url",
 		"anime.source",
 		"anime.folder_name",
 	}

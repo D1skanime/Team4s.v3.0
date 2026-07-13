@@ -172,6 +172,10 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 			` + maxEpisodesSelect + ` AS max_episodes,
 			anime.description,
 			poster.file_path,
+			COALESCE(
+				banner.path,
+				NULLIF(BTRIM(anime.banner_resolved_url), '')
+			) AS banner_url,
 			` + sourceSelect + ` AS source,
 			` + folderNameSelect + ` AS folder_name,
 			` + aniSearchIDSelect + ` AS anisearch_id
@@ -187,6 +191,25 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 			ORDER BY am.sort_order ASC, ma.id ASC
 			LIMIT 1
 		) poster ON true
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(anime_banner_file.path, ma.file_path) AS path
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			LEFT JOIN LATERAL (
+				SELECT mf.path
+				FROM media_files mf
+				WHERE mf.media_id = ma.id
+				  AND (mf.variant = 'original' OR mf.variant IS NULL)
+				  AND (mf.status = 'ready' OR mf.status IS NULL)
+				ORDER BY CASE WHEN mf.variant = 'original' THEN 0 ELSE 1 END, mf.id ASC
+				LIMIT 1
+			) anime_banner_file ON true
+			WHERE am.anime_id = anime.id
+			  AND mt.name = 'banner'
+			ORDER BY am.sort_order ASC, ma.id ASC
+			LIMIT 1
+		) banner ON true
 		WHERE anime.id = $1
 	`
 	if !includeDisabled && schema.HasStatus {
@@ -205,6 +228,7 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 		&anime.MaxEpisodes,
 		&anime.Description,
 		&anime.CoverImage,
+		&anime.BannerURL,
 		&anime.Source,
 		&anime.FolderName,
 		&anime.AniSearchID,

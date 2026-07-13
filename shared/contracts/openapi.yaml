@@ -8341,6 +8341,10 @@ components:
         cover_image:
           type: string
           nullable: true
+        banner_url:
+          type: string
+          nullable: true
+          description: Anime banner image URL resolved from anime_media banner, with legacy banner fallback.
         source:
           type: string
           nullable: true
