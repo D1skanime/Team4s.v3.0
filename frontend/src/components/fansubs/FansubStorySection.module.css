@@ -168,6 +168,12 @@
   }
 
   .archiveStory {
+    display: none;
+  }
+
+  .archiveStoryDialog {
+    display: block;
+    height: auto;
     max-height: none;
     padding: 16px;
   }

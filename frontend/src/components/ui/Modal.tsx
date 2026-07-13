@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { KeyboardEvent, ReactNode } from 'react'
 
@@ -37,6 +37,7 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
 }
 
 export function Modal({ open, onClose, title, description, children, footer, size = 'md' }: ModalProps) {
+  const titleID = useId()
   const panelRef = useRef<HTMLDivElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
   const previouslyFocusedRef = useRef<HTMLElement | null>(null)
@@ -85,7 +86,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
   }
 
   const modal = (
-    <div className={styles.modalWrap} role="dialog" aria-modal="true" aria-labelledby="ui-modal-title" onKeyDown={handleKeyDown}>
+    <div className={styles.modalWrap} role="dialog" aria-modal="true" aria-labelledby={titleID} onKeyDown={handleKeyDown}>
       <div className={styles.overlay} aria-hidden="true" />
       <button type="button" className={styles.overlayClose} aria-label="Modal schließen" onClick={onClose} />
       <div
@@ -95,7 +96,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
       >
         <div className={styles.dialogHeader}>
           <div>
-            <h3 className={styles.dialogTitle} id="ui-modal-title">{title}</h3>
+            <h3 className={styles.dialogTitle} id={titleID}>{title}</h3>
             {description ? <p className={styles.dialogDescription}>{description}</p> : null}
           </div>
           <button type="button" ref={closeButtonRef} className={styles.closeButton} aria-label="Schließen" onClick={onClose}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { RichTextRenderer } from '@/components/editor/RichTextRenderer'
 import { FansubStoryBlock } from '@/components/fansubs/FansubStoryBlock'
@@ -19,11 +19,36 @@ function hasStoryContent(story: PublicFansubStory): boolean {
 }
 
 const INLINE_STORY_LIMIT = 2
+const MOBILE_ARCHIVE_QUERY = '(max-width: 560px)'
+
+function useIsArchiveMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+
+    const media = window.matchMedia(MOBILE_ARCHIVE_QUERY)
+    const handleChange = () => setIsMobile(media.matches)
+    handleChange()
+    media.addEventListener('change', handleChange)
+    return () => media.removeEventListener('change', handleChange)
+  }, [])
+
+  return isMobile
+}
 
 export function FansubStorySection({ group, stories }: FansubStorySectionProps) {
   const [isArchiveOpen, setIsArchiveOpen] = useState(false)
+  const [isMobileStoryOpen, setIsMobileStoryOpen] = useState(false)
   const [selectedStoryID, setSelectedStoryID] = useState<number | null>(null)
+  const isArchiveMobile = useIsArchiveMobile()
   const publishedStories = stories.filter(hasStoryContent)
+
+  useEffect(() => {
+    if (!isArchiveMobile) {
+      setIsMobileStoryOpen(false)
+    }
+  }, [isArchiveMobile])
 
   if (publishedStories.length === 0) {
     return null
@@ -45,6 +70,38 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
     setIsArchiveOpen(true)
   }
 
+  function closeArchive() {
+    setIsMobileStoryOpen(false)
+    setIsArchiveOpen(false)
+  }
+
+  function selectStory(storyID: number) {
+    setSelectedStoryID(storyID)
+    if (isArchiveMobile) {
+      setIsMobileStoryOpen(true)
+    }
+  }
+
+  function renderSelectedStory(className: string) {
+    return (
+      <article className={className}>
+        <div className={styles.archiveStoryHeader}>
+          <p className={styles.archiveStoryMeta}>
+            Geschichte {selectedStoryIndex + 1} von {publishedStories.length}
+          </p>
+          <h3 className={styles.archiveTitle}>{modalTitle}</h3>
+        </div>
+        <div className={styles.archiveStoryContent}>
+          {modalBodyHtml ? (
+            <RichTextRenderer bodyHtml={modalBodyHtml} />
+          ) : (
+            <p className={styles.archiveText}>{modalBodyText}</p>
+          )}
+        </div>
+      </article>
+    )
+  }
+
   return (
     <section id="geschichte">
       <SectionHeader title="Geschichte" underline />
@@ -62,7 +119,7 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
       ) : null}
       <Modal
         open={isArchiveOpen}
-        onClose={() => setIsArchiveOpen(false)}
+        onClose={closeArchive}
         title="Geschichtenarchiv"
         description={`Alle öffentlichen Geschichten von ${group.name}.`}
         size="lg"
@@ -80,7 +137,7 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
                     type="button"
                     className={isActive ? `${styles.archiveNavItem} ${styles.archiveNavItemActive}` : styles.archiveNavItem}
                     aria-current={isActive ? 'true' : undefined}
-                    onClick={() => setSelectedStoryID(story.id)}
+                    onClick={() => selectStory(story.id)}
                   >
                     <span className={styles.archiveNavIndex}>{String(index + 1).padStart(2, '0')}</span>
                     <span className={styles.archiveNavTitle}>{title}</span>
@@ -89,22 +146,21 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
               })}
             </nav>
           </aside>
-          <article className={styles.archiveStory}>
-            <div className={styles.archiveStoryHeader}>
-              <p className={styles.archiveStoryMeta}>
-                Geschichte {selectedStoryIndex + 1} von {publishedStories.length}
-              </p>
-              <h3 className={styles.archiveTitle}>{modalTitle}</h3>
-            </div>
-            <div className={styles.archiveStoryContent}>
-              {modalBodyHtml ? (
-                <RichTextRenderer bodyHtml={modalBodyHtml} />
-              ) : (
-                <p className={styles.archiveText}>{modalBodyText}</p>
-              )}
-            </div>
-          </article>
+          {renderSelectedStory(styles.archiveStory)}
         </div>
+      </Modal>
+      <Modal
+        open={isArchiveOpen && isArchiveMobile && isMobileStoryOpen}
+        onClose={() => setIsMobileStoryOpen(false)}
+        title={modalTitle}
+        description="Geschichte lesen"
+        footer={
+          <Button variant="secondary" onClick={() => setIsMobileStoryOpen(false)}>
+            Zurück zum Archiv
+          </Button>
+        }
+      >
+        {renderSelectedStory(`${styles.archiveStory} ${styles.archiveStoryDialog}`)}
       </Modal>
     </section>
   )
