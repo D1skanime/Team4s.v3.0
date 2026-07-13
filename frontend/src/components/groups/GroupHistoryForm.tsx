@@ -69,7 +69,6 @@ export function GroupHistoryForm({
   maxYear,
 }: GroupHistoryFormProps) {
   const selectedEvent = getGroupHistoryEventPresentation(form.eventType)
-  const lockedOptions = eventOptions.filter((opt) => opt.disabled && opt.disabledReason)
   const historyMinYear = minYear ?? HISTORY_YEAR_MIN
   const historyMaxYear = maxYear ?? HISTORY_YEAR_FALLBACK_MAX
 
@@ -112,11 +111,6 @@ export function GroupHistoryForm({
               </option>
             ))}
           </Select>
-          {lockedOptions.length > 0 ? (
-            <p className={styles.historyEventHint}>
-              Gesperrt: {lockedOptions.map((opt) => `${opt.label} - ${opt.disabledReason}`).join(', ')}
-            </p>
-          ) : null}
           <div className={styles.historyEventPreview} aria-hidden="true">
             <img src={selectedEvent.imageSrc} alt="" className={styles.historyEventPreviewImage} />
             <span>{selectedEvent.label}</span>

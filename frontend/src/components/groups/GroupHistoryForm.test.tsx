@@ -63,7 +63,7 @@ describe('GroupHistoryForm achievement availability', () => {
     }) as HTMLOptionElement
 
     expect(foundingOption.disabled).toBe(true)
-    expect(screen.getByText('Gesperrt: Gründung - Gründungsjahr fehlt')).not.toBeNull()
+    expect(screen.queryByText(/Gesperrt:/)).toBeNull()
   })
 
   it('hides founding from the select list when it was already used', () => {
