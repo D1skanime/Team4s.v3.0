@@ -1,6 +1,7 @@
 .lightboxBody {
   display: grid;
   gap: 12px;
+  align-content: start;
 }
 
 .imageFrame {
@@ -20,10 +21,12 @@
 }
 
 .description {
+  max-width: 78ch;
   margin: 0;
   color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .navigationRow {
@@ -43,4 +46,25 @@
   text-align: center;
   color: var(--text-secondary);
   font-size: 14px;
+}
+
+@media (max-width: 767px) {
+  .lightboxBody {
+    gap: 14px;
+  }
+
+  .imageFrame {
+    max-height: 42vh;
+    border-radius: 12px;
+  }
+
+  .description {
+    max-width: calc(100% - 18px);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .navigationRow {
+    gap: 14px;
+  }
 }
