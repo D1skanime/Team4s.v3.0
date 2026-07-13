@@ -104,6 +104,25 @@ func TestWebsiteLaunchRequiresCommunityWebsiteLink(t *testing.T) {
 		"UpdateGroupHistory muss website_launch gegen Community-Link absichern")
 }
 
+func TestRevivalRequiresPreviousHiatus(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	createBody := funcBody(t, src, "CreateGroupHistory")
+	updateBody := funcBody(t, src, "UpdateGroupHistory")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	assert.Contains(t, createBody, "validateEventUnlocked",
+		"CreateGroupHistory muss revival gegen Freischaltregeln absichern")
+	assert.Contains(t, updateBody, "validateEventUnlocked",
+		"UpdateGroupHistory muss Wechsel auf revival gegen Freischaltregeln absichern")
+	assert.Contains(t, unlockBody, `case "revival"`,
+		"validateEventUnlocked muss revival gesondert validieren")
+	assert.Contains(t, unlockBody, "ValidateRevivalAllowed",
+		"revival darf erst nach Pause gespeichert werden")
+	assert.Contains(t, repoSrc, `HasEventType(ctx, fansubGroupID, "hiatus", nil)`,
+		"Repository muss fuer revival eine bestehende Pause verlangen")
+}
+
 func TestFirstProjectRequiresQualifiedProjectCoverage(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
 	createBody := funcBody(t, src, "CreateGroupHistory")

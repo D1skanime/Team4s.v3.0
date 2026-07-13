@@ -152,6 +152,17 @@ func (r *FansubGroupHistoryRepository) ValidateWebsiteLaunchAllowed(ctx context.
 	return nil
 }
 
+func (r *FansubGroupHistoryRepository) ValidateRevivalAllowed(ctx context.Context, fansubGroupID int64) error {
+	hasHiatus, err := r.HasEventType(ctx, fansubGroupID, "hiatus", nil)
+	if err != nil {
+		return err
+	}
+	if !hasHiatus {
+		return ErrValidation
+	}
+	return nil
+}
+
 func (r *FansubGroupHistoryRepository) HasEventType(ctx context.Context, fansubGroupID int64, eventType string, excludeID *int64) (bool, error) {
 	if fansubGroupID <= 0 {
 		return false, ErrNotFound

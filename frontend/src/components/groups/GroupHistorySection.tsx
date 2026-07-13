@@ -126,6 +126,7 @@ export function buildHistoryEventOptions(
   const collaborationUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'collaboration' && entry.id !== editTarget?.id,
   )
+  const hasHiatusEntry = entries.some((entry) => entry.event_type === 'hiatus')
   const websiteLaunchUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'website_launch' && entry.id !== editTarget?.id,
   )
@@ -173,6 +174,10 @@ export function buildHistoryEventOptions(
 
     if (option.value === 'collaboration' && !hasCollaboration && editTarget?.event_type !== 'collaboration') {
       return [{ ...option, disabled: true, disabledReason: 'Kooperation fehlt' }]
+    }
+
+    if (option.value === 'revival' && !hasHiatusEntry && editTarget?.event_type !== 'revival') {
+      return []
     }
 
     if (option.value === 'website_launch' && websiteLaunchUsedByAnotherEntry) {
@@ -310,6 +315,10 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setSaveError('Kooperation ist noch nicht vollständig. Bitte zuerst eine Release-Version mit mindestens zwei beteiligten Fansubgruppen anlegen.')
         return
       }
+      if (form.eventType === 'revival' && !entries.some((entry) => entry.event_type === 'hiatus') && editTarget?.event_type !== 'revival') {
+        setSaveError('Wiederaufnahme ist noch nicht möglich. Bitte zuerst Pause eintragen.')
+        return
+      }
       setIsSaving(true)
       try {
         const yearValue = form.year.trim() !== '' ? Number(form.year) : null
@@ -338,7 +347,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setIsSaving(false)
       }
     },
-    [form, editTarget, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, closeForm, showSuccess],
+    [form, editTarget, entries, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------

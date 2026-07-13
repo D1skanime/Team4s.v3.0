@@ -187,4 +187,29 @@ describe('buildHistoryEventOptions', () => {
     expect(option).toMatchObject({ value: 'collaboration' })
     expect(option?.disabled).toBeUndefined()
   })
+
+  it('hides revival while no pause exists', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true)
+
+    expect(options.some((option) => option.value === 'revival')).toBe(false)
+  })
+
+  it('shows revival after a pause exists', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 17, event_type: 'hiatus' }),
+    ], null, 2007, true, true, true, true, true)
+
+    const option = options.find((option) => option.value === 'revival')
+    expect(option).toMatchObject({ value: 'revival' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
+  it('keeps revival available while editing its own entry', () => {
+    const entry = historyRow({ id: 18, event_type: 'revival' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true, true, true, true, true)
+
+    const option = options.find((option) => option.value === 'revival')
+    expect(option).toMatchObject({ value: 'revival' })
+    expect(option?.disabled).toBeUndefined()
+  })
 })
