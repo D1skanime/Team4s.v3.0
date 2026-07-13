@@ -187,6 +187,7 @@ After editing:
   - `STATUS.md`
 - Prefer documented APIs; avoid relying on undocumented behavior.
 - For filesystem changes on media hosts, use project-owned controlled automation.
+- Do not delete the production milestone badge assets in `frontend/public/history-event-badges-transparent/` during DB resets, upload cleanup, media cleanup, seed resets, or "clean everything" tasks. This directory is a tracked frontend asset source, not generated upload/media data. Only modify or remove files there when the user explicitly asks for milestone badge asset changes.
 
 ## Quality Bar
 - Changes should be reproducible from repo docs.
