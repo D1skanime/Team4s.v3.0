@@ -28,6 +28,12 @@ function achievementStyle(eventType: string): string {
   return 'achAccent'
 }
 
+function achievementEventStyle(eventType: string): string | null {
+  if (eventType === 'projects_500') return 'historyTimelineEventProjects500'
+  if (eventType === 'releases_10000') return 'historyTimelineEventReleases10000'
+  return null
+}
+
 function historyTitle(item: PublicFansubHistory): string {
   return item.title?.trim() || item.event_type
 }
@@ -87,14 +93,20 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
       <ol className={styles.historyTimeline}>
         {visibleHistory.map((item, index) => {
           const style = achievementStyle(item.event_type)
+          const eventStyle = achievementEventStyle(item.event_type)
           const presentation = getGroupHistoryEventPresentation(item.event_type)
           const publicLabel = publicHistoryLabel(presentation)
           return (
             <li
               key={item.id}
-              className={`${styles.historyTimelineItem} ${styles[style]} ${
-                index % 2 === 1 ? styles.historyTimelineItemRight : styles.historyTimelineItemLeft
-              }`}
+              className={[
+                styles.historyTimelineItem,
+                styles[style],
+                eventStyle ? styles[eventStyle] : null,
+                index % 2 === 1 ? styles.historyTimelineItemRight : styles.historyTimelineItemLeft,
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
               <div className={styles.historyTimelinePair}>
                 {item.year ? <span className={styles.historyTimelineAxisYear}>{item.year}</span> : null}

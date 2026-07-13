@@ -568,6 +568,91 @@
   }
 }
 
+.historyTimelineEventProjects500 .historyTimelineBadge {
+  filter:
+    drop-shadow(0 0 34px rgba(124, 58, 237, 0.36))
+    drop-shadow(0 18px 34px color-mix(in srgb, var(--ach-color) 34%, transparent))
+    drop-shadow(0 18px 30px rgba(18, 24, 38, 0.16));
+}
+
+.historyTimelineEventProjects500 .historyTimelineBadge::before {
+  inset: 10%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.58), transparent 28%),
+    conic-gradient(from 15deg, rgba(124, 58, 237, 0.44), rgba(251, 191, 36, 0.34), rgba(14, 165, 233, 0.34), rgba(124, 58, 237, 0.44));
+  box-shadow:
+    0 0 0 10px rgba(124, 58, 237, 0.08),
+    0 0 46px rgba(124, 58, 237, 0.28),
+    0 0 72px rgba(251, 191, 36, 0.18);
+}
+
+.historyTimelineEventProjects500 .historyTimelineCard {
+  border-color: color-mix(in srgb, #7c3aed 28%, var(--color-border));
+  box-shadow:
+    0 0 0 1px rgba(124, 58, 237, 0.12),
+    0 16px 34px rgba(24, 21, 18, 0.12),
+    0 0 48px rgba(124, 58, 237, 0.2);
+}
+
+.historyTimelineEventReleases10000 {
+  --history-badge-size: clamp(168px, 16vw, 230px);
+}
+
+.historyTimelineEventReleases10000 .historyTimelineBadge {
+  filter:
+    drop-shadow(0 0 36px rgba(250, 204, 21, 0.32))
+    drop-shadow(0 0 54px rgba(34, 211, 238, 0.24))
+    drop-shadow(0 22px 38px rgba(18, 24, 38, 0.18));
+}
+
+.historyTimelineEventReleases10000 .historyTimelineBadge::before {
+  inset: 6%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.7), transparent 25%),
+    conic-gradient(from 90deg, rgba(250, 204, 21, 0.42), rgba(236, 72, 153, 0.28), rgba(34, 211, 238, 0.38), rgba(167, 139, 250, 0.32), rgba(250, 204, 21, 0.42));
+  box-shadow:
+    0 0 0 12px rgba(250, 204, 21, 0.08),
+    0 0 58px rgba(250, 204, 21, 0.3),
+    0 0 86px rgba(34, 211, 238, 0.24);
+}
+
+.historyTimelineEventReleases10000 .historyTimelineCard {
+  border-color: color-mix(in srgb, #facc15 34%, var(--color-border));
+  background:
+    radial-gradient(circle at 12% 18%, rgba(250, 204, 21, 0.16), transparent 46%),
+    radial-gradient(circle at 92% 20%, rgba(34, 211, 238, 0.12), transparent 40%),
+    var(--surface-card);
+  box-shadow:
+    0 0 0 1px rgba(250, 204, 21, 0.14),
+    0 18px 38px rgba(24, 21, 18, 0.12),
+    0 0 56px rgba(250, 204, 21, 0.2),
+    0 0 76px rgba(34, 211, 238, 0.14);
+}
+
+@media (min-width: 1200px) {
+  .historyTimelineEventReleases10000 {
+    --history-badge-size: clamp(220px, 16.5vw, 260px);
+  }
+}
+
+@media (min-width: 1500px) {
+  .historyTimelineEventReleases10000 {
+    --history-badge-size: 300px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .historyTimelineEventReleases10000 {
+    --history-badge-size: clamp(150px, 24vw, 194px);
+  }
+}
+
+@media (max-width: 760px) {
+  .historyTimelineEventReleases10000 {
+    --history-badge-size: clamp(118px, 33vw, 148px);
+  }
+}
+
 .mediaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

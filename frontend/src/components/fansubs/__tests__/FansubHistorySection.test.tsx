@@ -82,6 +82,34 @@ describe('FansubHistorySection', () => {
     expect(html).not.toContain('Erstes Release')
   })
 
+  it('markiert besonders seltene Meilensteine mit eigener Public-Timeline-Klasse', () => {
+    const html = renderToStaticMarkup(
+      <FansubHistorySection
+        history={[
+          {
+            id: 5,
+            year: 2030,
+            event_type: 'projects_500',
+            title: '500 Projekte',
+            note: null,
+            status: 'confirmed',
+          },
+          {
+            id: 6,
+            year: 2031,
+            event_type: 'releases_10000',
+            title: '10000 Releases',
+            note: null,
+            status: 'confirmed',
+          },
+        ]}
+      />,
+    )
+
+    expect(html).toContain('historyTimelineEventProjects500')
+    expect(html).toContain('historyTimelineEventReleases10000')
+  })
+
   it('zeigt zuerst sechs Einträge und klappt weitere auf', () => {
     const manyHistory = Array.from({ length: 7 }, (_, index): PublicFansubHistory => ({
       id: index + 1,
