@@ -11,8 +11,8 @@ files_reviewed_list:
   - backend/internal/handlers/fansub_group_history_handler.go
   - backend/internal/repository/fansub_group_history_repository.go
   - backend/internal/handlers/fansub_group_history_handler_test.go
-  - backend/database/migrations/002_group_history_single_use_events.up.sql
-  - backend/database/migrations/002_group_history_single_use_events.down.sql
+  - database/migrations/0128_group_history_single_use_events.up.sql
+  - database/migrations/0128_group_history_single_use_events.down.sql
 findings:
   critical: 0
   warning: 2
@@ -36,7 +36,7 @@ Previous CR-01 remains resolved. The add form initializes from the visible optio
 
 The latest quick fix remains correct. Project-count and release-count achievements now stay visible as disabled select options until their thresholds are reached at `GroupHistorySection.tsx:212-219` and `GroupHistorySection.tsx:238-245`, with regression coverage for below-threshold, boundary, and unlocked cases.
 
-CR-02 is resolved. `founding` is now included in the server single-use set at `fansub_group_history_handler.go:54-70`, create/update map repository unique violations to the duplicate milestone message at `fansub_group_history_handler.go:357-358` and `fansub_group_history_handler.go:475-476`, repository writes translate PostgreSQL unique violations to `ErrValidation` at `fansub_group_history_repository.go:563-565` and `fansub_group_history_repository.go:610-612`, and the new partial unique index enforces duplicate/race protection in `002_group_history_single_use_events.up.sql:1-19`.
+CR-02 is resolved. `founding` is now included in the server single-use set at `fansub_group_history_handler.go:54-70`, create/update map repository unique violations to the duplicate milestone message at `fansub_group_history_handler.go:357-358` and `fansub_group_history_handler.go:475-476`, repository writes translate PostgreSQL unique violations to `ErrValidation` at `fansub_group_history_repository.go:563-565` and `fansub_group_history_repository.go:610-612`, and the new partial unique index enforces duplicate/race protection in `0128_group_history_single_use_events.up.sql:1-19`.
 
 ## Resolved Blocker Checks
 
@@ -52,7 +52,7 @@ CR-02 is resolved. `founding` is now included in the server single-use set at `f
 
 **Classification:** BLOCKER - resolved
 
-**File:** `backend/database/migrations/002_group_history_single_use_events.up.sql:1`
+**File:** `database/migrations/0128_group_history_single_use_events.up.sql:1`
 
 **Resolution:** The handler and database now agree on the single-use event family, including `founding`, and the partial unique index closes the read-before-write race that the handler-only guard could not prevent.
 

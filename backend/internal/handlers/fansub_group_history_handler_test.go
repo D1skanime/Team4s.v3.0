@@ -329,8 +329,8 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 func TestSingleUseAchievementEventsHaveDatabaseConstraint(t *testing.T) {
 	handlerSrc := readSource(t, handlerSrcPath)
 	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
-	migrationSrc := readSource(t, "../../database/migrations/002_group_history_single_use_events.up.sql")
-	downMigrationSrc := readSource(t, "../../database/migrations/002_group_history_single_use_events.down.sql")
+	migrationSrc := readSource(t, "../../../database/migrations/0128_group_history_single_use_events.up.sql")
+	downMigrationSrc := readSource(t, "../../../database/migrations/0128_group_history_single_use_events.down.sql")
 	createBody := funcBody(t, handlerSrc, "CreateGroupHistory")
 	updateBody := funcBody(t, handlerSrc, "UpdateGroupHistory")
 
