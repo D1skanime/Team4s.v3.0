@@ -35,7 +35,7 @@ export const EMPTY_HISTORY_FORM: HistoryFormState = {
 }
 
 const HISTORY_YEAR_MIN = 1990
-const HISTORY_YEAR_MAX = 2099
+const HISTORY_YEAR_FALLBACK_MAX = new Date().getFullYear()
 
 interface GroupHistoryFormProps {
   form: HistoryFormState
@@ -47,6 +47,8 @@ interface GroupHistoryFormProps {
   saveError: string | null
   isEdit: boolean
   eventOptions?: HistoryEventOptionState[]
+  minYear?: number
+  maxYear?: number
 }
 
 // ---------------------------------------------------------------------------
@@ -63,9 +65,13 @@ export function GroupHistoryForm({
   saveError,
   isEdit,
   eventOptions = GROUP_HISTORY_EVENT_OPTIONS,
+  minYear,
+  maxYear,
 }: GroupHistoryFormProps) {
   const selectedEvent = getGroupHistoryEventPresentation(form.eventType)
   const lockedOptions = eventOptions.filter((opt) => opt.disabled && opt.disabledReason)
+  const historyMinYear = minYear ?? HISTORY_YEAR_MIN
+  const historyMaxYear = maxYear ?? HISTORY_YEAR_FALLBACK_MAX
 
   return (
     <form
@@ -128,8 +134,8 @@ export function GroupHistoryForm({
             id="history-year"
             label="Jahr"
             value={form.year}
-            minYear={HISTORY_YEAR_MIN}
-            maxYear={HISTORY_YEAR_MAX}
+            minYear={historyMinYear}
+            maxYear={historyMaxYear}
             onChange={(value) => onFormChange((f) => ({ ...f, year: value }))}
           />
         </FormField>

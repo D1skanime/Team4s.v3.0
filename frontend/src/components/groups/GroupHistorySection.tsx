@@ -441,6 +441,8 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
 
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
   const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount)
+  const historyMinYear = foundedYear ?? 1990
+  const historyMaxYear = new Date().getFullYear()
 
   // ---------------------------------------------------------------------------
   // Render
@@ -487,6 +489,8 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
           saveError={saveError}
           isEdit={editTarget !== null}
           eventOptions={eventOptions}
+          minYear={historyMinYear}
+          maxYear={historyMaxYear}
         />
       ) : null}
 
