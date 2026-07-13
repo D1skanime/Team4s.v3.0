@@ -26,6 +26,7 @@ const baseOptions: HistoryEventOptionState[] = [
 function renderForm(
   options: HistoryEventOptionState[],
   initialForm: HistoryFormState = EMPTY_HISTORY_FORM,
+  yearBounds: { minYear?: number; maxYear?: number } = {},
 ) {
   let form = initialForm
   const onFormChange = vi.fn((updater: (prev: HistoryFormState) => HistoryFormState) => {
@@ -43,6 +44,7 @@ function renderForm(
       saveError={null}
       isEdit={false}
       eventOptions={options}
+      {...yearBounds}
     />,
   )
 
@@ -82,5 +84,27 @@ describe('GroupHistoryForm achievement availability', () => {
     })
 
     expect(getForm()).toMatchObject({ eventType: 'founding', year: '2007' })
+  })
+
+  it('does not offer years before the founding year', () => {
+    renderForm(
+      baseOptions,
+      { ...EMPTY_HISTORY_FORM, year: '2007' },
+      { minYear: 2007, maxYear: 2026 },
+    )
+
+    fireEvent.click(screen.getByLabelText('Jahr'))
+
+    expect(screen.getByRole('button', { name: '2007' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: '2006' })).toBeNull()
+  })
+
+  it('does not offer future years', () => {
+    renderForm(baseOptions, EMPTY_HISTORY_FORM, { maxYear: 2026 })
+
+    fireEvent.click(screen.getByLabelText('Jahr'))
+
+    expect(screen.getByRole('button', { name: '2026' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: '2027' })).toBeNull()
   })
 })
