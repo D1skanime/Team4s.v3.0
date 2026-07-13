@@ -303,7 +303,7 @@
   height: var(--history-badge-size);
   display: grid;
   place-items: center;
-  z-index: 2;
+  z-index: 5;
   filter:
     drop-shadow(0 18px 28px color-mix(in srgb, var(--ach-color) 25%, transparent))
     drop-shadow(0 16px 26px rgba(18, 24, 38, 0.15));
@@ -330,7 +330,7 @@
   font-weight: 900;
   line-height: 1;
   text-align: center;
-  z-index: 4;
+  z-index: 6;
 }
 
 .historyTimelineBadge::before {
@@ -497,9 +497,9 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1100px) {
   .historyTimeline {
-    gap: 24px;
+    gap: 28px;
     padding-left: 0;
   }
 
@@ -508,7 +508,7 @@
   }
 
   .historyTimelineItem {
-    --history-badge-size: clamp(108px, 31vw, 132px);
+    --history-badge-size: clamp(132px, 22vw, 180px);
 
     min-height: 0;
     padding-left: 0;
@@ -539,7 +539,8 @@
   .historyTimelineItemRight .historyTimelineCard {
     grid-column: 1;
     grid-row: auto;
-    justify-self: stretch;
+    justify-self: center;
+    width: min(560px, 92vw);
     margin: -10px 0 0;
     padding: 16px;
     text-align: center;
@@ -548,6 +549,22 @@
   .historyTimelineType,
   .historyTimelineItemLeft .historyTimelineType {
     justify-self: center;
+  }
+}
+
+@media (max-width: 760px) {
+  .historyTimeline {
+    gap: 24px;
+  }
+
+  .historyTimelineItem {
+    --history-badge-size: clamp(108px, 31vw, 132px);
+  }
+
+  .historyTimelineCard,
+  .historyTimelineItemLeft .historyTimelineCard,
+  .historyTimelineItemRight .historyTimelineCard {
+    width: min(100%, 92vw);
   }
 }
 
