@@ -253,9 +253,9 @@
 .historyTimeline {
   position: relative;
   display: grid;
-  gap: 22px;
+  gap: clamp(30px, 4vw, 58px);
   margin: 0;
-  padding: 4px 0;
+  padding: 10px 0;
   list-style: none;
 }
 
@@ -278,26 +278,35 @@
 }
 
 .historyTimelineItem {
+  --history-badge-size: clamp(152px, 15vw, 210px);
+  --history-card-overlap: clamp(10px, 1.3vw, 18px);
+
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 132px minmax(0, 1fr);
-  align-items: center;
-  min-height: 154px;
+  min-height: calc(var(--history-badge-size) + 8px);
   isolation: isolate;
 }
 
+.historyTimelinePair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--history-badge-size) minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  min-height: var(--history-badge-size);
+}
+
 .historyTimelineBadge {
-  position: relative;
   grid-column: 2;
+  grid-row: 1;
+  position: relative;
   justify-self: center;
-  width: clamp(108px, 9vw, 136px);
-  height: clamp(108px, 9vw, 136px);
+  width: var(--history-badge-size);
+  height: var(--history-badge-size);
   display: grid;
   place-items: center;
   z-index: 2;
   filter:
-    drop-shadow(0 14px 20px color-mix(in srgb, var(--ach-color) 24%, transparent))
-    drop-shadow(0 12px 20px rgba(18, 24, 38, 0.16));
+    drop-shadow(0 18px 28px color-mix(in srgb, var(--ach-color) 25%, transparent))
+    drop-shadow(0 16px 26px rgba(18, 24, 38, 0.15));
 }
 
 .historyTimelineBadge::before {
@@ -317,28 +326,37 @@
 }
 
 .historyTimelineCard {
+  grid-row: 1;
   position: relative;
   display: grid;
+  align-self: center;
   gap: 6px;
   min-width: 0;
+  width: min(400px, 92%);
   padding: 18px 20px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background:
-    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--ach-color) 10%, transparent), transparent 34%),
+    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--ach-color) 22%, transparent), transparent 48%),
     var(--surface-card);
-  box-shadow: 0 10px 24px rgba(24, 21, 18, 0.1);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ach-color) 10%, transparent),
+    0 14px 30px rgba(24, 21, 18, 0.11),
+    0 0 42px color-mix(in srgb, var(--ach-color) 20%, transparent);
+  z-index: 3;
 }
 
 .historyTimelineItemLeft .historyTimelineCard {
   grid-column: 1;
   justify-self: end;
+  margin-right: calc(var(--history-card-overlap) * -1);
   text-align: right;
 }
 
 .historyTimelineItemRight .historyTimelineCard {
   grid-column: 3;
   justify-self: start;
+  margin-left: calc(var(--history-card-overlap) * -1);
 }
 
 .historyTimelineCard strong {
@@ -439,54 +457,63 @@
 
 @media (min-width: 1200px) {
   .historyTimeline {
-    gap: 26px;
+    gap: clamp(38px, 4.6vw, 70px);
   }
 
   .historyTimelineItem {
-    grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
-    min-height: 174px;
-  }
-
-  .historyTimelineBadge {
-    width: 150px;
-    height: 150px;
+    --history-badge-size: clamp(190px, 15vw, 240px);
+    --history-card-overlap: clamp(16px, 1.4vw, 24px);
   }
 
   .historyTimelineCard {
-    max-width: 360px;
+    width: min(420px, 92%);
+  }
+}
+
+@media (min-width: 1500px) {
+  .historyTimelineItem {
+    --history-badge-size: 270px;
+    --history-card-overlap: 24px;
   }
 }
 
 @media (max-width: 760px) {
   .historyTimeline {
-    gap: 18px;
-    padding-left: 18px;
+    gap: 24px;
+    padding-left: 0;
   }
 
   .historyTimeline::before {
-    left: 18px;
+    left: 50%;
   }
 
   .historyTimelineItem {
-    grid-template-columns: 1fr;
+    --history-badge-size: clamp(108px, 31vw, 132px);
+
     min-height: 0;
-    padding-left: 12px;
+    padding-left: 0;
+  }
+
+  .historyTimelinePair {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    min-height: 0;
   }
 
   .historyTimelineBadge {
     grid-column: 1;
-    justify-self: start;
-    width: clamp(82px, 26vw, 104px);
-    height: clamp(82px, 26vw, 104px);
-    margin-left: 4px;
+    grid-row: auto;
+    justify-self: center;
+    margin-left: 0;
   }
 
   .historyTimelineCard,
   .historyTimelineItemLeft .historyTimelineCard,
   .historyTimelineItemRight .historyTimelineCard {
     grid-column: 1;
+    grid-row: auto;
     justify-self: stretch;
-    margin-top: -8px;
+    margin: -10px 0 0;
     padding: 16px;
     text-align: left;
   }

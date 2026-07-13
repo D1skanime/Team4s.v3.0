@@ -65,15 +65,17 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
                 index % 2 === 1 ? styles.historyTimelineItemRight : styles.historyTimelineItemLeft
               }`}
             >
-              <div className={styles.historyTimelineBadge} aria-hidden="true">
-                <img src={presentation.imageSrc} alt="" className={styles.historyTimelineImage} />
+              <div className={styles.historyTimelinePair}>
+                <div className={styles.historyTimelineBadge} aria-hidden="true">
+                  <img src={presentation.imageSrc} alt="" className={styles.historyTimelineImage} />
+                </div>
+                <article className={styles.historyTimelineCard}>
+                  {item.year ? <span className={styles.historyTimelineYear}>{item.year}</span> : null}
+                  <strong>{historyTitle(item)}</strong>
+                  <span className={styles.historyTimelineType}>{presentation.label}</span>
+                  {item.note ? <p className={styles.historyTimelineNote}>{item.note}</p> : null}
+                </article>
               </div>
-              <article className={styles.historyTimelineCard}>
-                {item.year ? <span className={styles.historyTimelineYear}>{item.year}</span> : null}
-                <strong>{historyTitle(item)}</strong>
-                <span className={styles.historyTimelineType}>{presentation.label}</span>
-                {item.note ? <p className={styles.historyTimelineNote}>{item.note}</p> : null}
-              </article>
             </li>
           )
         })}

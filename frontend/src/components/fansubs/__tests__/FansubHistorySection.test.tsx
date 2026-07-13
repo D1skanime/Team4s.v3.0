@@ -30,6 +30,7 @@ describe('FansubHistorySection', () => {
     expect(html).toContain('/history-event-badges-transparent/milestone.png')
     expect(html).toContain('Meilenstein')
     expect(html).toContain('2014')
+    expect(html).toContain('historyTimelinePair')
   })
 
   it('zeigt zuerst sechs Einträge und klappt weitere auf', () => {
