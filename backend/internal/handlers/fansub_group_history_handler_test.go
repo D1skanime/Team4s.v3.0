@@ -234,7 +234,7 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 
 	assert.Contains(t, src, "singleUseGroupHistoryEventTypes",
 		"Handler muss eine zentrale Einmal-Liste fuer Achievements besitzen")
-	for _, code := range []string{"first_project", "first_release", "project_completed", "collaboration"} {
+	for _, code := range []string{"disbanding", "first_project", "first_release", "project_completed", "collaboration"} {
 		assert.Contains(t, src, `"`+code+`"`, "event type %s muss als Einmal-Meilenstein geschuetzt sein", code)
 	}
 	assert.Contains(t, createBody, "validateSingleUseEvent",

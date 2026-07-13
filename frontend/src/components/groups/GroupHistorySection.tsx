@@ -114,6 +114,9 @@ export function buildHistoryEventOptions(
   const foundingUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'founding' && entry.id !== editTarget?.id,
   )
+  const disbandingUsedByAnotherEntry = entries.some(
+    (entry) => entry.event_type === 'disbanding' && entry.id !== editTarget?.id,
+  )
   const firstProjectUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'first_project' && entry.id !== editTarget?.id,
   )
@@ -142,6 +145,10 @@ export function buildHistoryEventOptions(
 
     if (option.value === 'founding') {
       return [{ ...option, suggestedYear: foundedYear }]
+    }
+
+    if (option.value === 'disbanding' && disbandingUsedByAnotherEntry) {
+      return []
     }
 
     if (option.value === 'first_project' && firstProjectUsedByAnotherEntry) {

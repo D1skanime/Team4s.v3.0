@@ -52,6 +52,23 @@ describe('buildHistoryEventOptions', () => {
     expect(option?.disabled).toBeUndefined()
   })
 
+  it('hides disbanding after it was already used by another entry', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 19, event_type: 'disbanding' }),
+    ], null, 2007, true)
+
+    expect(options.some((option) => option.value === 'disbanding')).toBe(false)
+  })
+
+  it('keeps disbanding available while editing its own entry', () => {
+    const entry = historyRow({ id: 19, event_type: 'disbanding' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true)
+
+    const option = options.find((option) => option.value === 'disbanding')
+    expect(option).toMatchObject({ value: 'disbanding' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
   it('locks first project while project coverage is incomplete', () => {
     const options = buildHistoryEventOptions([], null, 2007, true, false)
 

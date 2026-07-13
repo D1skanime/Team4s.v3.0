@@ -48,6 +48,7 @@ const revivalGuardMessage = "Wiederaufnahme ist noch nicht möglich. Bitte zuers
 const singleUseGroupHistoryEventMessage = "Dieser Meilenstein wurde bereits eingetragen."
 
 var singleUseGroupHistoryEventTypes = map[string]struct{}{
+	"disbanding":        {},
 	"first_project":     {},
 	"first_release":     {},
 	"project_completed": {},
