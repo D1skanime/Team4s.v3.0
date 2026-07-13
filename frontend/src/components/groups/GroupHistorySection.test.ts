@@ -175,6 +175,14 @@ describe('buildHistoryEventOptions', () => {
     expect(options.some((option) => option.value === 'releases_10000')).toBe(false)
   })
 
+  it('uses exact threshold boundaries for legendary release achievements', () => {
+    const almostLegendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 9999)
+    const legendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 0, 10000)
+
+    expect(almostLegendary.some((option) => option.value === 'releases_10000')).toBe(false)
+    expect(legendary.some((option) => option.value === 'releases_10000')).toBe(true)
+  })
+
   it('hides a release count achievement after it was already used by another entry', () => {
     const options = buildHistoryEventOptions([
       historyRow({ id: 21, event_type: 'releases_100' }),
@@ -276,6 +284,14 @@ describe('buildHistoryEventOptions', () => {
     expect(options.some((option) => option.value === 'projects_50')).toBe(true)
     expect(options.some((option) => option.value === 'projects_100')).toBe(true)
     expect(options.some((option) => option.value === 'projects_500')).toBe(false)
+  })
+
+  it('uses exact threshold boundaries for legendary project achievements', () => {
+    const almostLegendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 499)
+    const legendary = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 500)
+
+    expect(almostLegendary.some((option) => option.value === 'projects_500')).toBe(false)
+    expect(legendary.some((option) => option.value === 'projects_500')).toBe(true)
   })
 
   it('hides a project count achievement after it was already used by another entry', () => {
