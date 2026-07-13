@@ -40,6 +40,13 @@ import styles from './groups.module.css'
 
 const COLLAPSE_THRESHOLD = 5
 
+const PROJECT_COUNT_EVENT_THRESHOLDS: Record<string, number> = {
+  projects_10: 10,
+  projects_50: 50,
+  projects_100: 100,
+  projects_500: 500,
+}
+
 const EVENT_TYPE_BADGE_VARIANTS = {
   founding: 'success',
   disbanding: 'danger',
@@ -91,6 +98,7 @@ interface GroupHistorySectionProps {
   hasFirstRelease?: boolean
   hasCompletedProject?: boolean
   hasCollaboration?: boolean
+  completedProjectCount?: number
   authToken?: string
   /**
    * Nur-Anzeige-Modus: blendet alle Bearbeiten-Steuerelemente aus (kein
@@ -109,6 +117,7 @@ export function buildHistoryEventOptions(
   hasFirstRelease = false,
   hasCompletedProject = false,
   hasCollaboration = false,
+  completedProjectCount = 0,
 ): HistoryEventOptionState[] {
   const foundingUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'founding' && entry.id !== editTarget?.id,
@@ -128,6 +137,7 @@ export function buildHistoryEventOptions(
   const collaborationUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'collaboration' && entry.id !== editTarget?.id,
   )
+  const usedEventTypes = new Set(entries.filter((entry) => entry.id !== editTarget?.id).map((entry) => entry.event_type))
   const hasHiatusEntry = entries.some((entry) => entry.event_type === 'hiatus')
   const websiteLaunchUsedByAnotherEntry = entries.some(
     (entry) => entry.event_type === 'website_launch' && entry.id !== editTarget?.id,
@@ -182,6 +192,16 @@ export function buildHistoryEventOptions(
       return [{ ...option, disabled: true, disabledReason: 'Kooperation fehlt' }]
     }
 
+    const projectCountThreshold = PROJECT_COUNT_EVENT_THRESHOLDS[option.value]
+    if (projectCountThreshold) {
+      if (usedEventTypes.has(option.value)) {
+        return []
+      }
+      if (completedProjectCount < projectCountThreshold && editTarget?.event_type !== option.value) {
+        return []
+      }
+    }
+
     if (option.value === 'revival' && !hasHiatusEntry && editTarget?.event_type !== 'revival') {
       return []
     }
@@ -210,7 +230,7 @@ function getGroupHistoryEventOptions(): HistoryEventOptionState[] {
 // Komponente
 // ---------------------------------------------------------------------------
 
-export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, hasCompletedProject = false, hasCollaboration = false, authToken, readOnly = false }: GroupHistorySectionProps) {
+export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, hasCompletedProject = false, hasCollaboration = false, completedProjectCount = 0, authToken, readOnly = false }: GroupHistorySectionProps) {
   const [entries, setEntries] = useState<GroupHistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -321,6 +341,11 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setSaveError('Kooperation ist noch nicht vollständig. Bitte zuerst eine Release-Version mit mindestens zwei beteiligten Fansubgruppen anlegen.')
         return
       }
+      const projectCountThreshold = PROJECT_COUNT_EVENT_THRESHOLDS[form.eventType]
+      if (projectCountThreshold && completedProjectCount < projectCountThreshold && editTarget?.event_type !== form.eventType) {
+        setSaveError('Projekt-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend vollständig bearbeitete Projekte abschließen.')
+        return
+      }
       if (form.eventType === 'revival' && !entries.some((entry) => entry.event_type === 'hiatus') && editTarget?.event_type !== 'revival') {
         setSaveError('Wiederaufnahme ist noch nicht möglich. Bitte zuerst Pause eintragen.')
         return
@@ -353,7 +378,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setIsSaving(false)
       }
     },
-    [form, editTarget, entries, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, closeForm, showSuccess],
+    [form, editTarget, entries, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------
@@ -377,7 +402,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
   }, [deleteTarget, fansubGroupId, authToken, showSuccess])
 
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
-  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration)
+  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount)
 
   // ---------------------------------------------------------------------------
   // Render

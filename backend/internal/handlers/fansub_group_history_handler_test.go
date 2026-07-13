@@ -203,6 +203,27 @@ func TestProjectCompletedRequiresContributionOnEveryRelease(t *testing.T) {
 		"Anime-Coverage muss project_completed fuer die UI liefern")
 }
 
+func TestProjectCountAchievementsRequireCompletedProjectThresholds(t *testing.T) {
+	src := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	unlockBody := funcBody(t, src, "validateEventUnlocked")
+
+	for _, code := range []string{"projects_10", "projects_50", "projects_100", "projects_500"} {
+		assert.Contains(t, unlockBody, `"`+code+`"`,
+			"validateEventUnlocked muss %s gesondert validieren", code)
+		assert.Contains(t, src, `"`+code+`"`,
+			"%s muss im Handler bekannt sein", code)
+	}
+	assert.Contains(t, src, "projectCountHistoryEventThresholds",
+		"Handler muss zentrale Schwellenwerte fuer Projekt-Erfolge besitzen")
+	assert.Contains(t, unlockBody, "ValidateProjectCountAllowed",
+		"Projekt-Zaehler duerfen erst nach ausreichend abgeschlossenen Projekten gespeichert werden")
+	assert.Contains(t, repoSrc, "CountQualifiedCompletedProjects",
+		"Repository muss abgeschlossene Projekte zaehlen")
+	assert.Contains(t, repoSrc, "ValidateProjectCountAllowed",
+		"Repository muss Projekt-Zaehler fachlich validieren")
+}
+
 func TestCollaborationRequiresCoopReleaseVersion(t *testing.T) {
 	src := readSource(t, handlerSrcPath)
 	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
@@ -234,7 +255,7 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 
 	assert.Contains(t, src, "singleUseGroupHistoryEventTypes",
 		"Handler muss eine zentrale Einmal-Liste fuer Achievements besitzen")
-	for _, code := range []string{"disbanding", "first_project", "first_release", "project_completed", "collaboration"} {
+	for _, code := range []string{"disbanding", "first_project", "first_release", "project_completed", "collaboration", "projects_10", "projects_50", "projects_100", "projects_500"} {
 		assert.Contains(t, src, `"`+code+`"`, "event type %s muss als Einmal-Meilenstein geschuetzt sein", code)
 	}
 	assert.Contains(t, createBody, "validateSingleUseEvent",

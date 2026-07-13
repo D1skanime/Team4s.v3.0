@@ -356,86 +356,94 @@ func (r *FansubGroupHistoryRepository) ValidateFirstReleaseAllowed(ctx context.C
 	return nil
 }
 
+// CountQualifiedCompletedProjects counts anime whose every release version for
+// that group has a real group contribution.
+func (r *FansubGroupHistoryRepository) CountQualifiedCompletedProjects(ctx context.Context, fansubGroupID int64) (int, error) {
+	if fansubGroupID <= 0 {
+		return 0, ErrNotFound
+	}
+
+	var count int
+	if err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM anime_fansub_groups afg
+		WHERE afg.fansub_group_id = $1
+		  AND EXISTS (
+			SELECT 1
+			FROM release_versions rv
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes ep ON ep.id = fr.episode_id
+			WHERE rvg.fansub_group_id = afg.fansub_group_id
+			  AND ep.anime_id = afg.anime_id
+		  )
+		  AND NOT EXISTS (
+			SELECT 1
+			FROM release_versions rv
+			JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+			JOIN fansub_releases fr ON fr.id = rv.release_id
+			JOIN episodes ep ON ep.id = fr.episode_id
+			WHERE rvg.fansub_group_id = afg.fansub_group_id
+			  AND ep.anime_id = afg.anime_id
+			  AND NOT (
+				EXISTS (
+					SELECT 1
+					FROM release_version_notes rvn
+					WHERE rvn.release_version_id = rv.id
+					  AND rvn.deleted_at IS NULL
+					  AND rvn.status <> 'deleted'
+					  AND COALESCE(
+						NULLIF(BTRIM(rvn.body_text), ''),
+						NULLIF(BTRIM(rvn.body_markdown), ''),
+						NULLIF(BTRIM(rvn.body_html), ''),
+						NULLIF(BTRIM(COALESCE(rvn.title, '')), '')
+					  ) IS NOT NULL
+					  AND EXISTS (
+						SELECT 1
+						FROM anime_contributions ac_note
+						LEFT JOIN hist_fansub_group_members hfgm_note ON hfgm_note.id = ac_note.fansub_group_member_id
+						WHERE ac_note.anime_id = ep.anime_id
+						  AND ac_note.fansub_group_id = rvg.fansub_group_id
+						  AND COALESCE(ac_note.member_id, hfgm_note.member_id) = rvn.member_id
+						  AND ac_note.status <> 'rejected'
+						  AND (ac_note.release_version_id = rv.id OR ac_note.release_version_id IS NULL)
+					  )
+				)
+				OR EXISTS (
+					SELECT 1
+					FROM release_version_media rvm
+					WHERE rvm.release_version_id = rv.id
+					  AND rvm.deleted_at IS NULL
+					  AND EXISTS (
+						SELECT 1
+						FROM member_claims mc_media
+						JOIN anime_contributions ac_media ON ac_media.member_id = mc_media.member_id
+						LEFT JOIN hist_fansub_group_members hfgm_media ON hfgm_media.id = ac_media.fansub_group_member_id
+						WHERE mc_media.app_user_id = rvm.uploaded_by_user_id
+						  AND mc_media.claim_status = 'verified'
+						  AND ac_media.anime_id = ep.anime_id
+						  AND ac_media.fansub_group_id = rvg.fansub_group_id
+						  AND COALESCE(ac_media.member_id, hfgm_media.member_id) = mc_media.member_id
+						  AND ac_media.status <> 'rejected'
+						  AND (ac_media.release_version_id = rv.id OR ac_media.release_version_id IS NULL)
+					  )
+				)
+			  )
+		)
+	`, fansubGroupID).Scan(&count); err != nil {
+		return 0, fmt.Errorf("count group completed project qualifications: %w", err)
+	}
+	return count, nil
+}
+
 // HasQualifiedCompletedProject reports whether the group has at least one anime
 // whose every release version for that group has a real group contribution.
 func (r *FansubGroupHistoryRepository) HasQualifiedCompletedProject(ctx context.Context, fansubGroupID int64) (bool, error) {
-	if fansubGroupID <= 0 {
-		return false, ErrNotFound
+	count, err := r.CountQualifiedCompletedProjects(ctx, fansubGroupID)
+	if err != nil {
+		return false, err
 	}
-
-	var exists bool
-	if err := r.db.QueryRow(ctx, `
-		SELECT EXISTS (
-			SELECT 1
-			FROM anime_fansub_groups afg
-			WHERE afg.fansub_group_id = $1
-			  AND EXISTS (
-				SELECT 1
-				FROM release_versions rv
-				JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
-				JOIN fansub_releases fr ON fr.id = rv.release_id
-				JOIN episodes ep ON ep.id = fr.episode_id
-				WHERE rvg.fansub_group_id = afg.fansub_group_id
-				  AND ep.anime_id = afg.anime_id
-			  )
-			  AND NOT EXISTS (
-				SELECT 1
-				FROM release_versions rv
-				JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
-				JOIN fansub_releases fr ON fr.id = rv.release_id
-				JOIN episodes ep ON ep.id = fr.episode_id
-				WHERE rvg.fansub_group_id = afg.fansub_group_id
-				  AND ep.anime_id = afg.anime_id
-				  AND NOT (
-					EXISTS (
-						SELECT 1
-						FROM release_version_notes rvn
-						WHERE rvn.release_version_id = rv.id
-						  AND rvn.deleted_at IS NULL
-						  AND rvn.status <> 'deleted'
-						  AND COALESCE(
-							NULLIF(BTRIM(rvn.body_text), ''),
-							NULLIF(BTRIM(rvn.body_markdown), ''),
-							NULLIF(BTRIM(rvn.body_html), ''),
-							NULLIF(BTRIM(COALESCE(rvn.title, '')), '')
-						  ) IS NOT NULL
-						  AND EXISTS (
-							SELECT 1
-							FROM anime_contributions ac_note
-							LEFT JOIN hist_fansub_group_members hfgm_note ON hfgm_note.id = ac_note.fansub_group_member_id
-							WHERE ac_note.anime_id = ep.anime_id
-							  AND ac_note.fansub_group_id = rvg.fansub_group_id
-							  AND COALESCE(ac_note.member_id, hfgm_note.member_id) = rvn.member_id
-							  AND ac_note.status <> 'rejected'
-							  AND (ac_note.release_version_id = rv.id OR ac_note.release_version_id IS NULL)
-						  )
-					)
-					OR EXISTS (
-						SELECT 1
-						FROM release_version_media rvm
-						WHERE rvm.release_version_id = rv.id
-						  AND rvm.deleted_at IS NULL
-						  AND EXISTS (
-							SELECT 1
-							FROM member_claims mc_media
-							JOIN anime_contributions ac_media ON ac_media.member_id = mc_media.member_id
-							LEFT JOIN hist_fansub_group_members hfgm_media ON hfgm_media.id = ac_media.fansub_group_member_id
-							WHERE mc_media.app_user_id = rvm.uploaded_by_user_id
-							  AND mc_media.claim_status = 'verified'
-							  AND ac_media.anime_id = ep.anime_id
-							  AND ac_media.fansub_group_id = rvg.fansub_group_id
-							  AND COALESCE(ac_media.member_id, hfgm_media.member_id) = mc_media.member_id
-							  AND ac_media.status <> 'rejected'
-							  AND (ac_media.release_version_id = rv.id OR ac_media.release_version_id IS NULL)
-						  )
-					)
-				  )
-			  )
-		)
-	`, fansubGroupID).Scan(&exists); err != nil {
-		return false, fmt.Errorf("check group completed project qualification: %w", err)
-	}
-	return exists, nil
+	return count >= 1, nil
 }
 
 func (r *FansubGroupHistoryRepository) ValidateCompletedProjectAllowed(ctx context.Context, fansubGroupID int64) error {
@@ -444,6 +452,17 @@ func (r *FansubGroupHistoryRepository) ValidateCompletedProjectAllowed(ctx conte
 		return err
 	}
 	if !hasCompletedProject {
+		return ErrValidation
+	}
+	return nil
+}
+
+func (r *FansubGroupHistoryRepository) ValidateProjectCountAllowed(ctx context.Context, fansubGroupID int64, minimum int) error {
+	count, err := r.CountQualifiedCompletedProjects(ctx, fansubGroupID)
+	if err != nil {
+		return err
+	}
+	if count < minimum {
 		return ErrValidation
 	}
 	return nil

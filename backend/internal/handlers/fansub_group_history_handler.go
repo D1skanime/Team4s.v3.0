@@ -44,6 +44,7 @@ const firstReleaseGuardMessage = "Erstes Release ist noch nicht vollständig. Bi
 const projectCompletedGuardMessage = "Projekt abgeschlossen ist noch nicht vollständig. Bitte bei jedem Release dieses Projekts mindestens einen Release-Text oder ein Release-Bild der Gruppe hinterlegen."
 const collaborationGuardMessage = "Kooperation ist noch nicht vollständig. Bitte zuerst eine Release-Version mit mindestens zwei beteiligten Fansubgruppen anlegen."
 const revivalGuardMessage = "Wiederaufnahme ist noch nicht möglich. Bitte zuerst Pause eintragen."
+const projectCountGuardMessage = "Projekt-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend vollständig bearbeitete Projekte abschließen."
 const singleUseGroupHistoryEventMessage = "Dieser Meilenstein wurde bereits eingetragen."
 
 var singleUseGroupHistoryEventTypes = map[string]struct{}{
@@ -52,6 +53,17 @@ var singleUseGroupHistoryEventTypes = map[string]struct{}{
 	"first_release":     {},
 	"project_completed": {},
 	"collaboration":     {},
+	"projects_10":       {},
+	"projects_50":       {},
+	"projects_100":      {},
+	"projects_500":      {},
+}
+
+var projectCountHistoryEventThresholds = map[string]int{
+	"projects_10":  10,
+	"projects_50":  50,
+	"projects_100": 100,
+	"projects_500": 500,
 }
 
 // FansubGroupHistoryHandler verwaltet Admin-Endpunkte für fansub_group_history.
@@ -107,6 +119,16 @@ func (h *FansubGroupHistoryHandler) validateEventUnlocked(c *gin.Context, fansub
 		if err := h.historyRepo.ValidateCompletedProjectAllowed(c.Request.Context(), fansubID); err != nil {
 			if errors.Is(err, repository.ErrValidation) {
 				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": projectCompletedGuardMessage}})
+				return false
+			}
+			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)
+			internalError(c, "interner serverfehler")
+			return false
+		}
+	case "projects_10", "projects_50", "projects_100", "projects_500":
+		if err := h.historyRepo.ValidateProjectCountAllowed(c.Request.Context(), fansubID, projectCountHistoryEventThresholds[eventType]); err != nil {
+			if errors.Is(err, repository.ErrValidation) {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": projectCountGuardMessage}})
 				return false
 			}
 			log.Printf("group history guard failed (event_type=%s, fansub_id=%d): %v", eventType, fansubID, err)

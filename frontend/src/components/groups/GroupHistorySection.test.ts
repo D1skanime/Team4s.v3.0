@@ -223,6 +223,41 @@ describe('buildHistoryEventOptions', () => {
     expect(option?.disabled).toBeUndefined()
   })
 
+  it('hides project count achievements before their completed-project threshold is reached', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 9)
+
+    expect(options.some((option) => option.value === 'projects_10')).toBe(false)
+    expect(options.some((option) => option.value === 'projects_50')).toBe(false)
+    expect(options.some((option) => option.value === 'projects_100')).toBe(false)
+    expect(options.some((option) => option.value === 'projects_500')).toBe(false)
+  })
+
+  it('shows project count achievements whose completed-project threshold is reached', () => {
+    const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true, 100)
+
+    expect(options.some((option) => option.value === 'projects_10')).toBe(true)
+    expect(options.some((option) => option.value === 'projects_50')).toBe(true)
+    expect(options.some((option) => option.value === 'projects_100')).toBe(true)
+    expect(options.some((option) => option.value === 'projects_500')).toBe(false)
+  })
+
+  it('hides a project count achievement after it was already used by another entry', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 20, event_type: 'projects_10' }),
+    ], null, 2007, true, true, true, true, true, 10)
+
+    expect(options.some((option) => option.value === 'projects_10')).toBe(false)
+  })
+
+  it('keeps a project count achievement available while editing its own entry', () => {
+    const entry = historyRow({ id: 20, event_type: 'projects_10' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, true, true, true, true, true, 0)
+
+    const option = options.find((item) => item.value === 'projects_10')
+    expect(option).toMatchObject({ value: 'projects_10' })
+    expect(option?.disabled).toBeUndefined()
+  })
+
   it('hides revival while no pause exists', () => {
     const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true)
 

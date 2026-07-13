@@ -58,11 +58,17 @@ export function hasQualifiedFirstRelease(
 export function hasQualifiedCompletedProject(
   animeCoverageMap: Map<number, AnimeCoverage> | null,
 ): boolean {
-  if (!animeCoverageMap) return false;
+  return countQualifiedCompletedProjects(animeCoverageMap) >= 1;
+}
 
-  return Array.from(animeCoverageMap.values()).some(
+export function countQualifiedCompletedProjects(
+  animeCoverageMap: Map<number, AnimeCoverage> | null,
+): number {
+  if (!animeCoverageMap) return 0;
+
+  return Array.from(animeCoverageMap.values()).filter(
     (coverage) => coverage.has_completed_project,
-  );
+  ).length;
 }
 
 export function hasQualifiedCollaboration(
