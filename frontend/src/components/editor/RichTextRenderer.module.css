@@ -39,6 +39,8 @@
   padding: 6px 12px;
   color: var(--text-secondary);
   font-style: italic;
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+  border-radius: 0 10px 10px 0;
 }
 
 .richTextOutput hr {
@@ -55,19 +57,67 @@
   font-size: 0.9rem;
   overflow-x: auto;
   display: block;
+  border-radius: 10px;
 }
 
 .richTextOutput th,
 .richTextOutput td {
   border: 1px solid color-mix(in srgb, var(--text-secondary) 25%, transparent);
-  padding: 6px 10px;
+  padding: 8px 10px;
   vertical-align: top;
   text-align: left;
 }
 
 .richTextOutput th {
-  background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
-  font-weight: 600;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 9%, white), color-mix(in srgb, var(--bg-primary) 88%, transparent));
+  color: var(--text-strong);
+  font-weight: 800;
+}
+
+.richTextOutput tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--bg-primary) 56%, transparent);
+}
+
+.richTextOutput mark {
+  padding: 0.05em 0.25em;
+  border-radius: 6px;
+  background: color-mix(in srgb, #f6c85f 34%, transparent);
+  color: var(--text-primary);
+}
+
+.richTextOutput :global(.color-token-gray),
+.richTextOutput [data-color-token='gray'] {
+  color: #6b7280;
+}
+
+.richTextOutput :global(.color-token-red),
+.richTextOutput [data-color-token='red'] {
+  color: #dc2626;
+}
+
+.richTextOutput :global(.color-token-orange),
+.richTextOutput [data-color-token='orange'] {
+  color: #ea580c;
+}
+
+.richTextOutput :global(.color-token-yellow),
+.richTextOutput [data-color-token='yellow'] {
+  color: #a16207;
+}
+
+.richTextOutput :global(.color-token-green),
+.richTextOutput [data-color-token='green'] {
+  color: #15803d;
+}
+
+.richTextOutput :global(.color-token-blue),
+.richTextOutput [data-color-token='blue'] {
+  color: #2563eb;
+}
+
+.richTextOutput :global(.color-token-purple),
+.richTextOutput [data-color-token='purple'] {
+  color: #9333ea;
 }
 
 /* Story-Bild-Ausrichtungs-Klassen fuer server-gerenderte img-Tags (Phase 70).

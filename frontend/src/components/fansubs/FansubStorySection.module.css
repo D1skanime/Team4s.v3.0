@@ -13,22 +13,49 @@
 
 .archiveLayout {
   display: grid;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(210px, 260px) minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
+  height: 100%;
+  min-height: min(62vh, 680px);
+}
+
+.archiveSidebar {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  align-self: start;
+}
+
+.archiveSidebarLabel {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .archiveNav {
   display: grid;
   gap: 8px;
+  max-height: min(58vh, 620px);
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .archiveNavItem {
   width: 100%;
-  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--surface-card);
+  border-radius: 10px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 98%, white), color-mix(in srgb, var(--surface-sunken) 32%, var(--surface-card)));
   color: var(--text-primary);
   font: inherit;
   font-size: 14px;
@@ -44,35 +71,103 @@
   background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface-card));
 }
 
+.archiveNavItemActive {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 10px 22px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.archiveNavIndex {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-primary) 11%, white);
+  color: color-mix(in srgb, var(--accent-primary) 78%, var(--text-primary));
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.archiveNavTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .archiveStory {
   min-width: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 84%, var(--accent-primary));
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 92%, white), color-mix(in srgb, var(--surface-sunken) 52%, var(--surface-card))),
+    var(--surface-card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 18px 36px rgba(27, 30, 38, 0.08);
   color: var(--text-primary);
   line-height: 1.65;
 }
 
+.archiveStoryHeader {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 84%, transparent);
+}
+
+.archiveStoryMeta {
+  margin: 0 0 4px;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .archiveTitle {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 22px;
   line-height: 1.2;
+}
+
+.archiveStoryContent {
+  min-width: 0;
 }
 
 .archiveText {
   margin: 0;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 560px) {
   .archiveLayout {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+    gap: 14px;
+  }
+
+  .archiveSidebar {
+    position: static;
   }
 
   .archiveNav {
     display: flex;
     gap: 8px;
+    max-height: none;
     overflow-x: auto;
     padding-bottom: 4px;
   }
 
   .archiveNavItem {
     min-width: 180px;
+  }
+
+  .archiveStory {
+    max-height: none;
+    padding: 16px;
   }
 }

@@ -32,6 +32,10 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
   const inlineStories = publishedStories.slice(0, INLINE_STORY_LIMIT)
   const hasStoryArchive = publishedStories.length > INLINE_STORY_LIMIT
   const selectedStory = publishedStories.find((story) => story.id === selectedStoryID) ?? publishedStories[0]
+  const selectedStoryIndex = Math.max(
+    0,
+    publishedStories.findIndex((story) => story.id === selectedStory?.id),
+  )
   const modalTitle = selectedStory?.title?.trim() || 'Geschichte'
   const modalBodyHtml = selectedStory?.body_html?.trim() ?? ''
   const modalBodyText = selectedStory?.body_text?.trim() ?? ''
@@ -64,30 +68,41 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
         size="lg"
       >
         <div className={styles.archiveLayout}>
-          <nav className={styles.archiveNav} aria-label="Geschichten">
-            {publishedStories.map((story, index) => {
-              const title = story.title?.trim() || `Geschichte ${index + 1}`
-              const isActive = story.id === selectedStory?.id
-              return (
-                <button
-                  key={story.id}
-                  type="button"
-                  className={isActive ? `${styles.archiveNavItem} ${styles.archiveNavItemActive}` : styles.archiveNavItem}
-                  aria-current={isActive ? 'true' : undefined}
-                  onClick={() => setSelectedStoryID(story.id)}
-                >
-                  {title}
-                </button>
-              )
-            })}
-          </nav>
+          <aside className={styles.archiveSidebar}>
+            <p className={styles.archiveSidebarLabel}>Geschichten</p>
+            <nav className={styles.archiveNav} aria-label="Geschichten">
+              {publishedStories.map((story, index) => {
+                const title = story.title?.trim() || `Geschichte ${index + 1}`
+                const isActive = story.id === selectedStory?.id
+                return (
+                  <button
+                    key={story.id}
+                    type="button"
+                    className={isActive ? `${styles.archiveNavItem} ${styles.archiveNavItemActive}` : styles.archiveNavItem}
+                    aria-current={isActive ? 'true' : undefined}
+                    onClick={() => setSelectedStoryID(story.id)}
+                  >
+                    <span className={styles.archiveNavIndex}>{String(index + 1).padStart(2, '0')}</span>
+                    <span className={styles.archiveNavTitle}>{title}</span>
+                  </button>
+                )
+              })}
+            </nav>
+          </aside>
           <article className={styles.archiveStory}>
-            <h3 className={styles.archiveTitle}>{modalTitle}</h3>
-            {modalBodyHtml ? (
-              <RichTextRenderer bodyHtml={modalBodyHtml} />
-            ) : (
-              <p className={styles.archiveText}>{modalBodyText}</p>
-            )}
+            <div className={styles.archiveStoryHeader}>
+              <p className={styles.archiveStoryMeta}>
+                Geschichte {selectedStoryIndex + 1} von {publishedStories.length}
+              </p>
+              <h3 className={styles.archiveTitle}>{modalTitle}</h3>
+            </div>
+            <div className={styles.archiveStoryContent}>
+              {modalBodyHtml ? (
+                <RichTextRenderer bodyHtml={modalBodyHtml} />
+              ) : (
+                <p className={styles.archiveText}>{modalBodyText}</p>
+              )}
+            </div>
           </article>
         </div>
       </Modal>
