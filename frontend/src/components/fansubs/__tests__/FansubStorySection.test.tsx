@@ -32,8 +32,15 @@ const storyB: PublicFansubStory = {
   body_text: '2010 kam ein neues Kapitel.',
 }
 
+const storyC: PublicFansubStory = {
+  id: 10,
+  title: 'Der dritte Block',
+  body_html: '<p>2015 wurde die Geschichte groesser.</p>',
+  body_text: '2015 wurde die Geschichte groesser.',
+}
+
 describe('FansubStorySection', () => {
-  it('rendert genau einen Sektions-Header und alle Bloecke mit eigenem Titel in Reihenfolge', () => {
+  it('rendert genau einen Sektions-Header und bis zu zwei Bloecke mit eigenem Titel in Reihenfolge', () => {
     const html = renderToStaticMarkup(<FansubStorySection group={group} stories={[storyA, storyB]} />)
 
     const headerOccurrences = html.split('Geschichte').length - 1
@@ -41,6 +48,15 @@ describe('FansubStorySection', () => {
     expect(html).toContain('Alle jahre wieder')
     expect(html).toContain('Der zweite Block')
     expect(html.indexOf('Alle jahre wieder')).toBeLessThan(html.indexOf('Der zweite Block'))
+  })
+
+  it('begrenzt die Inline-Ausgabe und bietet bei mehr als zwei Stories das Archiv an', () => {
+    const html = renderToStaticMarkup(<FansubStorySection group={group} stories={[storyA, storyB, storyC]} />)
+
+    expect(html).toContain('Alle jahre wieder')
+    expect(html).toContain('Der zweite Block')
+    expect(html).not.toContain('Der dritte Block')
+    expect(html).toContain('Alle Geschichten lesen (3)')
   })
 
   it('ueberspringt Bloecke ohne jeglichen Inhalt', () => {
