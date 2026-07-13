@@ -96,6 +96,13 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
 }
 
+.posterWide {
+  width: 360px;
+  height: 203px;
+  flex-basis: 360px;
+  align-self: center;
+}
+
 .posterPlaceholder {
   width: 200px;
   height: 288px;
@@ -325,6 +332,13 @@
     width: 170px;
     height: 244px;
     flex: 0 0 244px;
+  }
+
+  .posterWide {
+    width: min(100%, 340px);
+    height: auto;
+    aspect-ratio: 16 / 9;
+    flex: 0 1 auto;
   }
 
   .posterInitial {

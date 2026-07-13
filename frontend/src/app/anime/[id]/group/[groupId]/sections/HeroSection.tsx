@@ -19,6 +19,8 @@ interface HeroSectionProps {
   animeID: number;
   heroBackdropUrl: string | null;
   infoPanelBackgroundUrl: string | null;
+  heroImageUrl: string | null;
+  heroImageIsBanner: boolean;
   posterImage: string | null;
   heroStyle: CSSProperties | undefined;
   infoPanelStyle: CSSProperties | undefined;
@@ -35,6 +37,8 @@ export function HeroSection({
   animeID,
   heroBackdropUrl,
   infoPanelBackgroundUrl,
+  heroImageUrl,
+  heroImageIsBanner,
   posterImage,
   heroStyle,
   infoPanelStyle,
@@ -70,14 +74,14 @@ export function HeroSection({
         ) : null}
         <div className={styles.heroFg}>
           <div className={styles.heroCard}>
-            {posterImage ? (
+            {heroImageUrl ? (
               <Image
-                src={posterImage}
+                src={heroImageUrl}
                 alt={anime.title}
-                width={240}
-                height={340}
-                className={styles.poster}
-                unoptimized={posterImage.includes("/api/")}
+                width={heroImageIsBanner ? 360 : 240}
+                height={heroImageIsBanner ? 203 : 340}
+                className={`${styles.poster} ${heroImageIsBanner ? styles.posterWide : ""}`}
+                unoptimized={heroImageUrl.includes("/api/")}
               />
             ) : (
               <div className={styles.posterPlaceholder}>

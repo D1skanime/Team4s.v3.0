@@ -126,6 +126,7 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
     ? resolvePublicApiUrl(groupAssetsResponse.data.hero.banner_url)
     : firstEpImage ? resolvePublicApiUrl(firstEpImage.image_url) : null);
   const posterImage = (groupAssetsResponse?.data.hero.poster_url ? resolvePublicApiUrl(groupAssetsResponse.data.hero.poster_url) : null) ?? anime.cover_image ?? group.fansub.logo_url ?? null;
+  const heroImageUrl = animeBannerUrl ?? posterImage;
   const heroStyle = heroBackdropUrl ? { backgroundImage: `linear-gradient(90deg, rgba(17, 10, 14, 0.42) 0%, rgba(17, 10, 14, 0.18) 44%, rgba(17, 10, 14, 0.42) 100%), url(${heroBackdropUrl})` } : undefined;
   const infoPanelStyle = infoPanelBackgroundUrl ? { backgroundImage: `linear-gradient(180deg, rgba(12, 6, 9, 0.04) 0%, rgba(12, 6, 9, 0.12) 100%), url(${infoPanelBackgroundUrl})` } : undefined;
   const pageStyle = heroBackdropUrl ? ({ "--group-page-backdrop": `url(${heroBackdropUrl})` } as CSSProperties) : undefined;
@@ -134,7 +135,8 @@ export default async function GroupStoryPage({ params }: GroupStoryPageProps) {
     <main className={`${styles.page} ${heroBackdropUrl ? styles.pageWithBackdrop : ""}`} style={pageStyle}>
       <HeroSection
         group={group} anime={anime} groupID={groupID} animeID={animeID}
-        heroBackdropUrl={heroBackdropUrl} infoPanelBackgroundUrl={infoPanelBackgroundUrl} posterImage={posterImage}
+        heroBackdropUrl={heroBackdropUrl} infoPanelBackgroundUrl={infoPanelBackgroundUrl}
+        heroImageUrl={heroImageUrl} heroImageIsBanner={Boolean(animeBannerUrl)} posterImage={posterImage}
         heroStyle={heroStyle} infoPanelStyle={infoPanelStyle} breadcrumbItems={breadcrumbItems}
         navigationGroups={navigationGroups} groupAssetsResponse={groupAssetsResponse}
         releaseEpisodes={releaseEpisodes}
