@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
 stopped_at: Completed 99-26-PLAN.md (Human-Verify-Checkpoint dokumentiert, ausstehende visuelle Nutzerabnahme)
-last_updated: "2026-07-12T13:25:44.285+02:00"
-last_activity: 2026-07-12
+last_updated: "2026-07-13T08:21:43.056Z"
+last_activity: 2026-07-13
 progress:
-  total_phases: 90
+  total_phases: 92
   completed_phases: 76
-  total_plans: 400
+  total_plans: 403
   completed_plans: 374
-  percent: 84
+  percent: 83
 ---
 
 # Project State
@@ -295,6 +295,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 101 added and planned: Meilensteine Zeitmanagement und Anzeige der Meilensteine verbessern - globale Progressions- und Jahresregeln für die Fansub-Meilenstein-Auswahl; Kontext in `.planning/phases/101-meilensteine-zeitmanagement-und-anzeige-der-meilensteine-ver/101-CONTEXT.md`, Pläne `101-01-PLAN.md` und `101-02-PLAN.md`.
 - Phase 100 added and planned: Fansub Erfolge Freischaltlogik und Meilenstein-Katalog - die Erfolge werden als sequenzielle Diskussions-/Implementierungsqueue geführt; `100-CONTEXT.md` und `100-00-PLAN.md` listen alle 23 aktuellen Erfolgscodes, starten mit `founding` / `Gründung` und erzwingen "diskutieren -> umsetzen -> testen -> nächster Erfolg".
 - Phase 99 added: Öffentliches Fansub-Member-Profil (Redesign) - public Member-Profil als scrollbare, datengetriebene Seite auf Basis bestehender Gruppen-, Projektrollen-, Badge-, Notizen-/Beitrags- und Medien-Seams; Kontext aus angehängtem GSD-Auftrag in `.planning/phases/99-ffentliches-fansub-member-profil-redesign/99-CONTEXT.md`.
 - Phase 98 added and discussed: Segmentstream bleibt ein segment-spezifischer Playback-Layer fuer OP/ED/Kara; MVP ist vorbereiteter browserfaehiger Clip-Render mit Segment-Grants, nicht HLS-first. Context: `.planning/phases/98-segmentstream-serverseitig-begrenzter-hls-jellyfin-playback-/98-CONTEXT.md`.
@@ -592,5 +593,5 @@ Recent durable decisions:
 
 Last session: 2026-07-09T13:01:45.820Z
 Stopped at: Completed 99-26-PLAN.md (Human-Verify-Checkpoint dokumentiert, ausstehende visuelle Nutzerabnahme)
-Last activity: 2026-07-09
+Last activity: 2026-07-13
 Resume file: None

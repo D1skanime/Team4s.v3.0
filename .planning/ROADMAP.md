@@ -1717,6 +1717,26 @@ Plans:
   4. `founding` / `Gründung` ist der erste konkrete Umsetzungs-Slice: Gründungsjahr vorhanden -> auswählbar; Gründungsjahr fehlt -> disabled; bereits genutzt -> ausgeblendet.
   5. Count-Erfolge werden erst nach eigener Quellenentscheidung aus Backend-Daten freigeschaltet; keine frei wählbaren Legendary-Zähler als Dauerzustand.
 
+### Phase 101: Meilensteine Zeitmanagement und Anzeige der Meilensteine verbessern
+
+**Goal:** Die Meilenstein-Auswahl folgt einer klaren zeitlichen Progression: ohne Gründungsjahr ist nur `Gründung` gesperrt sichtbar; mit Gründungsjahr erscheinen zunächst nur `Gründung`, `Erstes Projekt` und `Erstes Release`; erst nach `first_project` und `first_release` wird der restliche Katalog sichtbar. Alle Meilenstein-Jahre sind auf `founded_year <= year <= aktuelles Jahr` begrenzt, frontendseitig im YearPicker und backendseitig gegen direkte API-Schreibzugriffe.
+**Requirements**: Phase 101 Context D-01 bis D-06
+**Depends on:** Phase 100
+**Status:** Planned 2026-07-13
+**Plans:** 2 plans
+
+Plans:
+- [ ] `101-01-PLAN.md` - Wave 0: Frontend-Regelfundament und Tests für stufenweise Meilenstein-Sichtbarkeit sowie YearPicker-Grenzen
+- [ ] `101-02-PLAN.md` - Wave 1: Save-Validierung im Frontend, Backend-Jahresguard und Live-UAT auf `:3000`
+
+**Success Criteria** (what must be TRUE):
+
+  1. Ohne `founded_year` sieht der Admin im Meilenstein-Event-Selector nur `Gründung`, disabled mit `Gründungsjahr fehlt`.
+  2. Mit `founded_year`, aber ohne eingetragene `first_project`- und `first_release`-Meilensteine, sind nur `Gründung`, `Erstes Projekt` und `Erstes Release` sichtbar.
+  3. Erst wenn `first_project` und `first_release` als Einträge existieren, wird der restliche Meilenstein-Katalog nach den bestehenden Phase-100-Regeln sichtbar.
+  4. Der YearPicker erlaubt keine Jahre vor `founded_year` und keine Jahre nach dem aktuellen Kalenderjahr.
+  5. Backend-Create und Backend-Update für `fansub_group_history` lehnen direkte API-Schreibzugriffe mit `year < founded_year` oder `year > current year` ab.
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
