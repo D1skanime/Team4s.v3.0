@@ -155,15 +155,16 @@
   }
 
   .archiveNav {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 8px;
     max-height: none;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .archiveNavItem {
-    min-width: 180px;
+    min-width: 0;
   }
 
   .archiveStory {
