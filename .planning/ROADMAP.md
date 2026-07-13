@@ -1723,7 +1723,7 @@ Plans:
 **Requirements**: Phase 101 Context D-01 bis D-06
 **Depends on:** Phase 100
 **Status:** Planned 2026-07-13
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] `101-01-PLAN.md` - Wave 0: Frontend-Regelfundament und Tests für stufenweise Meilenstein-Sichtbarkeit sowie YearPicker-Grenzen

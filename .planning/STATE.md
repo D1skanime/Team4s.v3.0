@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 101-01-PLAN.md
-last_updated: "2026-07-13T08:34:36.030Z"
+stopped_at: Completed 101-02-PLAN.md
+last_updated: "2026-07-13T08:44:05.085Z"
 last_activity: 2026-07-13
 progress:
   total_phases: 92
-  completed_phases: 76
+  completed_phases: 77
   total_plans: 403
-  completed_plans: 375
-  percent: 83
+  completed_plans: 376
+  percent: 84
 ---
 
 # Project State
@@ -287,6 +287,8 @@ Recent durable decisions:
 - [Phase ?]: [Phase 99]: 99-26: Finaler Live-UAT Add-on 6 strukturell (Server-HTML + Public-API) durchgefuehrt, da kein Computer-Use-/Chrome-MCP-Werkzeug im Executor gebunden war; alle acht AO6-Kriterien bestaetigt oder ehrlich als mit dem 1-Projekt/3-Medien-C-Subs-Seed nicht pruefbar dokumentiert; keine page.module.css-Aenderung noetig; finale visuelle Nutzerabnahme steht aus.
 - [Phase 101]: Full milestone catalog visibility is based on persisted first_project and first_release history entries, not coverage booleans alone. — Matches Phase 101 D-05 and keeps the selector tied to actual timeline milestones.
 - [Phase 101]: Group history year bounds reuse the existing YearPicker with founded_year as min and current year as max; backend enforcement remains in Plan 101-02. — Avoids a duplicate year control while preserving the planned frontend/backend split.
+- [Phase 101]: Plan 101-02 keeps explicit null years valid on group history update; only submitted non-null years are bounded.
+- [Phase 101]: Plan 101-02 keeps group history year validation on the existing request/response shape and api.ts helper seam.
 
 ### Pending Todos
 
@@ -522,6 +524,7 @@ Recent durable decisions:
 | Phase 99 P25 | 12min | 2 tasks | 4 files |
 | Phase 99 P26 | 35min | 1 tasks | 1 files |
 | Phase 101 P01 | 5min | 4 tasks | 4 files |
+| Phase 101 P02 | 5min | 4 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -594,7 +597,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-13T08:34:35.965Z
-Stopped at: Completed 101-01-PLAN.md
+Last session: 2026-07-13T08:43:16.851Z
+Stopped at: Completed 101-02-PLAN.md
 Last activity: 2026-07-13
 Resume file: None
