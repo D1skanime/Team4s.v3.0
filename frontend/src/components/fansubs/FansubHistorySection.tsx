@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { Button, SectionHeader } from '@/components/ui'
 import { getGroupHistoryEventPresentation } from '@/lib/group-history-events'
+import type { GroupHistoryEventPresentation } from '@/lib/group-history-events'
 import type { PublicFansubHistory } from '@/types/fansub'
 
 import styles from './FansubPublicSections.module.css'
@@ -29,6 +30,35 @@ function achievementStyle(eventType: string): string {
 
 function historyTitle(item: PublicFansubHistory): string {
   return item.title?.trim() || item.event_type
+}
+
+function publicDomainTerms(text: string): string {
+  return text
+    .replaceAll('Fansub-Projekte', '__FANSUB_PROJECTS__')
+    .replaceAll('Fansub-Projekt', '__FANSUB_PROJECT__')
+    .replaceAll('Fansub-Releases', '__FANSUB_RELEASES__')
+    .replaceAll('Fansub-Release', '__FANSUB_RELEASE__')
+    .replaceAll('Projekte', 'Fansub-Projekte')
+    .replaceAll('Projekt', 'Fansub-Projekt')
+    .replaceAll('Releases', 'Fansub-Releases')
+    .replaceAll('Release', 'Fansub-Release')
+    .replaceAll('__FANSUB_PROJECTS__', 'Fansub-Projekte')
+    .replaceAll('__FANSUB_PROJECT__', 'Fansub-Projekt')
+    .replaceAll('__FANSUB_RELEASES__', 'Fansub-Releases')
+    .replaceAll('__FANSUB_RELEASE__', 'Fansub-Release')
+    .replaceAll('Fansub-Fansub-', 'Fansub-')
+}
+
+function publicHistoryLabel(presentation: GroupHistoryEventPresentation): string {
+  return publicDomainTerms(presentation.label)
+}
+
+function publicHistoryTitle(item: PublicFansubHistory, presentation: GroupHistoryEventPresentation): string {
+  const title = historyTitle(item)
+  if (title === item.event_type || title === presentation.label) {
+    return publicHistoryLabel(presentation)
+  }
+  return publicDomainTerms(title)
 }
 
 function sortHistory(history: PublicFansubHistory[]): PublicFansubHistory[] {
@@ -58,6 +88,7 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
         {visibleHistory.map((item, index) => {
           const style = achievementStyle(item.event_type)
           const presentation = getGroupHistoryEventPresentation(item.event_type)
+          const publicLabel = publicHistoryLabel(presentation)
           return (
             <li
               key={item.id}
@@ -66,13 +97,14 @@ export function FansubHistorySection({ history }: FansubHistorySectionProps) {
               }`}
             >
               <div className={styles.historyTimelinePair}>
+                {item.year ? <span className={styles.historyTimelineAxisYear}>{item.year}</span> : null}
                 <div className={styles.historyTimelineBadge} aria-hidden="true">
                   <img src={presentation.imageSrc} alt="" className={styles.historyTimelineImage} />
                 </div>
                 <article className={styles.historyTimelineCard}>
                   {item.year ? <span className={styles.historyTimelineYear}>{item.year}</span> : null}
-                  <strong>{historyTitle(item)}</strong>
-                  <span className={styles.historyTimelineType}>{presentation.label}</span>
+                  <strong>{publicHistoryTitle(item, presentation)}</strong>
+                  <span className={styles.historyTimelineType}>{publicLabel}</span>
                   {item.note ? <p className={styles.historyTimelineNote}>{item.note}</p> : null}
                 </article>
               </div>

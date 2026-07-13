@@ -18,6 +18,25 @@ const history: PublicFansubHistory[] = [
   },
 ]
 
+const countHistory: PublicFansubHistory[] = [
+  {
+    id: 2,
+    year: 2020,
+    event_type: 'projects_10',
+    title: '10 Projekte',
+    note: null,
+    status: 'confirmed',
+  },
+  {
+    id: 3,
+    year: 2021,
+    event_type: 'releases_100',
+    title: '100 Releases',
+    note: null,
+    status: 'confirmed',
+  },
+]
+
 describe('FansubHistorySection', () => {
   it('rendert bestätigte Historie getrennt von Gruppenleitung', () => {
     const html = renderToStaticMarkup(<FansubHistorySection history={history} />)
@@ -31,6 +50,36 @@ describe('FansubHistorySection', () => {
     expect(html).toContain('Meilenstein')
     expect(html).toContain('2014')
     expect(html).toContain('historyTimelinePair')
+    expect(html).toContain('historyTimelineAxisYear')
+  })
+
+  it('benennt Zähler-Meilensteine öffentlich als Fansub-Projekte und Fansub-Releases', () => {
+    const html = renderToStaticMarkup(<FansubHistorySection history={countHistory} />)
+
+    expect(html).toContain('10 Fansub-Projekte')
+    expect(html).toContain('100 Fansub-Releases')
+    expect(html).not.toContain('10 Projekte')
+    expect(html).not.toContain('100 Releases')
+  })
+
+  it('benennt gespeicherte Public-Titel mit Release/Projekt ebenfalls um', () => {
+    const html = renderToStaticMarkup(
+      <FansubHistorySection
+        history={[
+          {
+            id: 4,
+            year: 2022,
+            event_type: 'first_release',
+            title: 'Erstes Release',
+            note: null,
+            status: 'confirmed',
+          },
+        ]}
+      />,
+    )
+
+    expect(html).toContain('Erstes Fansub-Release')
+    expect(html).not.toContain('Erstes Release')
   })
 
   it('zeigt zuerst sechs Einträge und klappt weitere auf', () => {

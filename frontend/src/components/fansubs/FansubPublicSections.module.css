@@ -309,6 +309,30 @@
     drop-shadow(0 16px 26px rgba(18, 24, 38, 0.15));
 }
 
+.historyTimelineAxisYear {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: center;
+  min-width: 58px;
+  margin-top: -12px;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--ach-color) 24%, var(--color-border));
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--ach-color) 18%, transparent), transparent 60%),
+    var(--surface-card);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--ach-color) 8%, transparent),
+    0 10px 22px rgba(24, 21, 18, 0.12);
+  color: color-mix(in srgb, var(--ach-color) 72%, var(--text-primary));
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  z-index: 4;
+}
+
 .historyTimelineBadge::before {
   content: '';
   position: absolute;
@@ -505,6 +529,13 @@
     grid-row: auto;
     justify-self: center;
     margin-left: 0;
+  }
+
+  .historyTimelineAxisYear {
+    grid-column: 1;
+    grid-row: auto;
+    align-self: auto;
+    margin: 0 0 -8px;
   }
 
   .historyTimelineCard,
