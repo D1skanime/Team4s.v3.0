@@ -25,7 +25,6 @@ import {
   detectMappingConflicts,
   markAllSuggestedConfirmed,
   markAllSuggestedSkipped,
-  markMappingSkipped,
   resolveEpisodeDisplayTitle,
   removeMappingFansubGroup,
   serializeEpisodeImportMappingRow,
@@ -34,6 +33,8 @@ import {
   setMappingTargets,
   skipEpisodeMappingRows,
   summarizeImportPreview,
+  resolveMappingGroupEpisodeNumber,
+  toggleMappingSkipped,
 } from './episodeImportMapping'
 
 export interface EpisodeGroup {
@@ -152,11 +153,11 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
 
     const groupMap = new Map<number, EpisodeImportMappingRow[]>()
     for (const row of mappings) {
-      const suggested = row.suggested_episode_numbers?.[0]
-      if (suggested != null) {
-        const existing = groupMap.get(suggested) ?? []
+      const groupEpisodeNumber = resolveMappingGroupEpisodeNumber(row)
+      if (groupEpisodeNumber != null) {
+        const existing = groupMap.get(groupEpisodeNumber) ?? []
         existing.push(row)
-        groupMap.set(suggested, existing)
+        groupMap.set(groupEpisodeNumber, existing)
       }
     }
 
@@ -196,9 +197,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
 
   // Mapping rows that have no suggested episode (unmapped candidates)
   const unmappedMappingRows = useMemo<EpisodeImportMappingRow[]>(() => {
-    return mappings.filter(
-      (row) => !row.suggested_episode_numbers || row.suggested_episode_numbers.length === 0,
-    )
+    return mappings.filter((row) => resolveMappingGroupEpisodeNumber(row) == null)
   }, [mappings])
 
   async function loadPreview() {
@@ -324,7 +323,7 @@ export function useEpisodeImportBuilder(animeID: number | null): UseEpisodeImpor
         }
       }),
     skipMapping: (mediaItemID) =>
-      setMappings((current) => markMappingSkipped(current, mediaItemID)),
+      setMappings((current) => toggleMappingSkipped(current, mediaItemID)),
     skipAllSuggested: () =>
       setMappings((current) => markAllSuggestedSkipped(current)),
     confirmAllSuggested: () =>

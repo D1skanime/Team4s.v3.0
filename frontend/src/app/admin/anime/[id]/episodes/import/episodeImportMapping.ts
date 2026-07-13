@@ -47,6 +47,37 @@ export function markMappingSkipped(
   )
 }
 
+export function toggleMappingSkipped(
+  rows: EpisodeImportMappingRow[],
+  mediaItemId: string,
+): EpisodeImportMappingRow[] {
+  return detectMappingConflicts(
+    rows.map((row) => {
+      if (row.media_item_id !== mediaItemId) {
+        return row
+      }
+
+      if (row.status !== 'skipped') {
+        return { ...row, target_episode_numbers: [], status: 'skipped' }
+      }
+
+      const restoredTargets = row.suggested_episode_numbers ?? []
+      return {
+        ...row,
+        target_episode_numbers: restoredTargets,
+        status: 'suggested',
+      }
+    }),
+  )
+}
+
+export function resolveMappingGroupEpisodeNumber(row: EpisodeImportMappingRow): number | null {
+  if (row.status === 'skipped') {
+    return row.suggested_episode_numbers?.[0] ?? null
+  }
+  return row.suggested_episode_numbers?.[0] ?? row.target_episode_numbers?.[0] ?? null
+}
+
 /**
  * Bulk-skip all rows that are still in 'suggested' state.
  * Useful for quickly clearing unresolved automatic suggestions.

@@ -467,21 +467,22 @@ func resolveEpisodeImportSuggestedTargets(
 	seasonOffset int32,
 	seasonBaseOffsets map[int32]int32,
 ) []int32 {
-	if media.JellyfinEpisodeNumber == nil || *media.JellyfinEpisodeNumber <= 0 {
+	episodeNumber := episodeImportEvidenceEpisodeNumber(media)
+	if episodeNumber == nil || *episodeNumber <= 0 {
 		return nil
 	}
 
-	targets := []int32{*media.JellyfinEpisodeNumber}
-	if rangeEnd := parseEpisodeImportFilenameRangeEnd(media.FileName); rangeEnd != nil && *rangeEnd > *media.JellyfinEpisodeNumber {
-		targets = make([]int32, 0, *rangeEnd-*media.JellyfinEpisodeNumber+1)
-		for current := *media.JellyfinEpisodeNumber; current <= *rangeEnd; current++ {
+	targets := []int32{*episodeNumber}
+	if rangeEnd := parseEpisodeImportFilenameRangeEnd(media.FileName); rangeEnd != nil && *rangeEnd > *episodeNumber {
+		targets = make([]int32, 0, *rangeEnd-*episodeNumber+1)
+		for current := *episodeNumber; current <= *rangeEnd; current++ {
 			targets = append(targets, current)
 		}
 	}
 
 	totalOffset := seasonOffset
-	if media.JellyfinSeasonNumber != nil {
-		if seasonBaseOffset, ok := seasonBaseOffsets[*media.JellyfinSeasonNumber]; ok {
+	if seasonNumber := episodeImportEvidenceSeasonNumber(media); seasonNumber != nil {
+		if seasonBaseOffset, ok := seasonBaseOffsets[*seasonNumber]; ok {
 			totalOffset += seasonBaseOffset
 		}
 	}
@@ -497,6 +498,57 @@ func resolveEpisodeImportSuggestedTargets(
 }
 
 var episodeImportFilenameRangePattern = regexp.MustCompile(`(?i)e(\d{1,4})-(\d{1,4})`)
+var episodeImportFilenameSeasonEpisodePattern = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])s(\d{1,3})e(\d{1,4})(?:[^0-9]|$)`)
+var episodeImportFilenameEpisodePattern = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])e(\d{1,4})(?:[^0-9]|$)`)
+
+func episodeImportEvidenceEpisodeNumber(media models.EpisodeImportMediaCandidate) *int32 {
+	if media.JellyfinEpisodeNumber != nil && *media.JellyfinEpisodeNumber > 0 {
+		return media.JellyfinEpisodeNumber
+	}
+	if _, episode := parseEpisodeImportFilenameSeasonEpisode(media.FileName); episode != nil {
+		return episode
+	}
+	return parseEpisodeImportFilenameEpisode(media.FileName)
+}
+
+func episodeImportEvidenceSeasonNumber(media models.EpisodeImportMediaCandidate) *int32 {
+	if media.JellyfinSeasonNumber != nil && *media.JellyfinSeasonNumber > 0 {
+		return media.JellyfinSeasonNumber
+	}
+	season, _ := parseEpisodeImportFilenameSeasonEpisode(media.FileName)
+	return season
+}
+
+func parseEpisodeImportFilenameSeasonEpisode(fileName string) (*int32, *int32) {
+	match := episodeImportFilenameSeasonEpisodePattern.FindStringSubmatch(strings.TrimSpace(fileName))
+	if len(match) != 3 {
+		return nil, nil
+	}
+	season, err := strconv.Atoi(match[1])
+	if err != nil || season <= 0 {
+		return nil, nil
+	}
+	episode, err := strconv.Atoi(match[2])
+	if err != nil || episode <= 0 {
+		return nil, nil
+	}
+	seasonValue := int32(season)
+	episodeValue := int32(episode)
+	return &seasonValue, &episodeValue
+}
+
+func parseEpisodeImportFilenameEpisode(fileName string) *int32 {
+	match := episodeImportFilenameEpisodePattern.FindStringSubmatch(strings.TrimSpace(fileName))
+	if len(match) != 2 {
+		return nil
+	}
+	episode, err := strconv.Atoi(match[1])
+	if err != nil || episode <= 0 {
+		return nil
+	}
+	value := int32(episode)
+	return &value
+}
 
 func parseEpisodeImportFilenameRangeEnd(fileName string) *int32 {
 	match := episodeImportFilenameRangePattern.FindStringSubmatch(strings.TrimSpace(fileName))
@@ -520,16 +572,16 @@ func buildEpisodeImportSeasonBaseOffsets(
 ) map[int32]int32 {
 	maxBySeason := make(map[int32]int32)
 	for _, media := range mediaCandidates {
-		if media.JellyfinSeasonNumber == nil || media.JellyfinEpisodeNumber == nil {
+		seasonNumber := episodeImportEvidenceSeasonNumber(media)
+		episodeNumber := episodeImportEvidenceEpisodeNumber(media)
+		if seasonNumber == nil || episodeNumber == nil {
 			continue
 		}
-		seasonNumber := *media.JellyfinSeasonNumber
-		episodeNumber := *media.JellyfinEpisodeNumber
-		if seasonNumber <= 0 || episodeNumber <= 0 {
+		if *seasonNumber <= 0 || *episodeNumber <= 0 {
 			continue
 		}
-		if episodeNumber > maxBySeason[seasonNumber] {
-			maxBySeason[seasonNumber] = episodeNumber
+		if *episodeNumber > maxBySeason[*seasonNumber] {
+			maxBySeason[*seasonNumber] = *episodeNumber
 		}
 	}
 

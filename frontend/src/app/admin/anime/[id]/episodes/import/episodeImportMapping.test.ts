@@ -10,10 +10,12 @@ import {
   markAllSuggestedConfirmed,
   markAllSuggestedSkipped,
   markMappingSkipped,
+  resolveMappingGroupEpisodeNumber,
   resolveEpisodeDisplayTitle,
   setMappingTargets,
   skipEpisodeMappingRows,
   summarizeImportPreview,
+  toggleMappingSkipped,
 } from './episodeImportMapping'
 import { buildEpisodeImportApplyInput } from './useEpisodeImportBuilder'
 
@@ -308,6 +310,49 @@ describe('episodeImportMapping', () => {
 
     expect(result[0].status).toBe('skipped')
     expect(result[0].fansub_groups).toEqual([{ name: '[HorribleSubs]' }])
+  })
+
+  it('toggleMappingSkipped reactivates skipped rows with their suggested episode target', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'jellyfin-ep7',
+      target_episode_numbers: [],
+      suggested_episode_numbers: [7],
+      status: 'skipped',
+      fansub_groups: [{ name: 'C-Subs' }],
+    }]
+
+    const result = toggleMappingSkipped(rows, 'jellyfin-ep7')
+
+    expect(result[0]).toMatchObject({
+      status: 'suggested',
+      target_episode_numbers: [7],
+      fansub_groups: [{ name: 'C-Subs' }],
+    })
+  })
+
+  it('toggleMappingSkipped reactivates unmapped rows so the operator can assign an episode manually', () => {
+    const rows: EpisodeImportMappingRow[] = [{
+      media_item_id: 'jellyfin-unmapped',
+      target_episode_numbers: [],
+      suggested_episode_numbers: [],
+      status: 'skipped',
+    }]
+
+    const result = toggleMappingSkipped(rows, 'jellyfin-unmapped')
+
+    expect(result[0]).toMatchObject({
+      status: 'suggested',
+      target_episode_numbers: [],
+    })
+  })
+
+  it('resolveMappingGroupEpisodeNumber uses manual targets for active rows without suggestions', () => {
+    expect(resolveMappingGroupEpisodeNumber({
+      media_item_id: 'manual-ep12',
+      target_episode_numbers: [12],
+      suggested_episode_numbers: [],
+      status: 'confirmed',
+    })).toBe(12)
   })
 
   // --- Naruto-scale bulk mapping controls ---

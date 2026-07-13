@@ -252,6 +252,50 @@ func TestPreviewEpisodeImport_ExpandsFilenameEpisodeRangesAcrossSeasonOffsets(t 
 	}
 }
 
+func TestPreviewEpisodeImport_FallsBackToFilenameEpisodeWhenJellyfinIndexIsMissing(t *testing.T) {
+	t.Parallel()
+
+	preview := buildEpisodeImportPreview(
+		13,
+		"Arata The Legend",
+		episodeImportStringPtr("9999"),
+		episodeImportStringPtr("arata-series"),
+		episodeImportStringPtr(`/media/Anime.TV.Sub/Arata The Legend`),
+		[]models.EpisodeImportCanonicalEpisode{
+			{EpisodeNumber: 1},
+			{EpisodeNumber: 2},
+		},
+		[]models.EpisodeImportMediaCandidate{
+			{
+				MediaItemID: "arata-s01e01-csubs-yks",
+				FileName:    "Arata The Legend.S01E01-C-Subs&YKS.mkv",
+				Path:        `/media/Anime.TV.Sub/Arata The Legend/Arata The Legend.S01E01-C-Subs&YKS.mkv`,
+			},
+			{
+				MediaItemID: "arata-s01e02-csubs-yks",
+				FileName:    "Arata The Legend.S01E02-C-Subs&YKS.mkv",
+				Path:        `/media/Anime.TV.Sub/Arata The Legend/Arata The Legend.S01E02-C-Subs&YKS.mkv`,
+			},
+		},
+		0,
+	)
+
+	got := make(map[string]models.EpisodeImportMappingRow, len(preview.Mappings))
+	for _, row := range preview.Mappings {
+		got[row.MediaItemID] = row
+	}
+
+	if row := got["arata-s01e01-csubs-yks"]; row.Status != models.EpisodeImportMappingStatusSuggested || len(row.SuggestedEpisodeNumbers) != 1 || row.SuggestedEpisodeNumbers[0] != 1 {
+		t.Fatalf("expected filename S01E01 to become episode 1 suggestion, got %+v", row)
+	}
+	if row := got["arata-s01e02-csubs-yks"]; row.Status != models.EpisodeImportMappingStatusSuggested || len(row.SuggestedEpisodeNumbers) != 1 || row.SuggestedEpisodeNumbers[0] != 2 {
+		t.Fatalf("expected filename S01E02 to become episode 2 suggestion, got %+v", row)
+	}
+	if len(preview.UnmappedMediaItemIDs) != 0 {
+		t.Fatalf("expected filename-derived rows not to be unmapped, got %v", preview.UnmappedMediaItemIDs)
+	}
+}
+
 func TestPreviewEpisodeImport_MappingRowsCarryReadableFileEvidence(t *testing.T) {
 	t.Parallel()
 
