@@ -391,6 +391,14 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
       setIsSaving(true)
       try {
         const yearValue = form.year.trim() !== '' ? Number(form.year) : null
+        if (yearValue !== null && foundedYear && yearValue < foundedYear) {
+          setSaveError('Meilenstein-Jahr darf nicht vor dem Gründungsjahr liegen.')
+          return
+        }
+        if (yearValue !== null && yearValue > new Date().getFullYear()) {
+          setSaveError('Meilenstein-Jahr darf nicht in der Zukunft liegen.')
+          return
+        }
         if (editTarget) {
           const updated = await updateGroupHistory(
             fansubGroupId,
@@ -416,7 +424,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setIsSaving(false)
       }
     },
-    [form, editTarget, entries, fansubGroupId, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, qualifiedReleaseCount, hasCompletedProject, hasCollaboration, completedProjectCount, closeForm, showSuccess],
+    [form, editTarget, entries, fansubGroupId, foundedYear, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, qualifiedReleaseCount, hasCompletedProject, hasCollaboration, completedProjectCount, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------
