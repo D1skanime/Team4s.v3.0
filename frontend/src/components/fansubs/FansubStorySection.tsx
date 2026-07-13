@@ -19,7 +19,7 @@ function hasStoryContent(story: PublicFansubStory): boolean {
 }
 
 const INLINE_STORY_LIMIT = 2
-const MOBILE_ARCHIVE_QUERY = '(max-width: 560px)'
+const MOBILE_ARCHIVE_QUERY = '(max-width: 900px)'
 
 function useIsArchiveMobile(): boolean {
   const [isMobile, setIsMobile] = useState(false)
