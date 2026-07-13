@@ -22,6 +22,61 @@ function historyRow(overrides: Partial<GroupHistoryRow>): GroupHistoryRow {
 }
 
 describe('buildHistoryEventOptions', () => {
+  it('returns only locked founding before a founding year exists', () => {
+    const options = buildHistoryEventOptions([], null, null, false, false, false)
+
+    expect(options).toHaveLength(1)
+    expect(options[0]).toMatchObject({
+      value: 'founding',
+      disabled: true,
+      disabledReason: 'Gründungsjahr fehlt',
+    })
+  })
+
+  it('shows only founding and first next steps after a founding year exists', () => {
+    const options = buildHistoryEventOptions([], null, 2007, false, false, false)
+
+    expect(options.map((option) => option.value)).toEqual(['founding', 'first_project', 'first_release'])
+    expect(options.find((option) => option.value === 'first_project')).toMatchObject({
+      disabled: true,
+      disabledReason: 'Ausblick/Rollen fehlen',
+    })
+    expect(options.find((option) => option.value === 'first_release')).toMatchObject({
+      disabled: true,
+      disabledReason: 'Release/Kara fehlt',
+    })
+  })
+
+  it('keeps the later catalog hidden until first project and first release both exist', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 13, event_type: 'first_project' }),
+    ], null, 2007, true, true, true, true, true, 500, 1000)
+
+    expect(options.some((option) => option.value === 'award')).toBe(false)
+    expect(options.some((option) => option.value === 'team_change')).toBe(false)
+    expect(options.some((option) => option.value === 'website_launch')).toBe(false)
+    expect(options.some((option) => option.value === 'projects_10')).toBe(false)
+    expect(options.some((option) => option.value === 'releases_100')).toBe(false)
+  })
+
+  it('shows later catalog entries after first project and first release both exist', () => {
+    const options = buildHistoryEventOptions([
+      historyRow({ id: 13, event_type: 'first_project' }),
+      historyRow({ id: 14, event_type: 'first_release' }),
+    ], null, 2007, true, true, true, true, true, 0, 0)
+
+    expect(options.some((option) => option.value === 'award')).toBe(true)
+    expect(options.some((option) => option.value === 'team_change')).toBe(true)
+    expect(options.some((option) => option.value === 'website_launch')).toBe(true)
+  })
+
+  it('keeps an existing later entry visible while editing before the full catalog is unlocked', () => {
+    const entry = historyRow({ id: 22, event_type: 'award' })
+    const options = buildHistoryEventOptions([entry], entry, 2007, false, false, false)
+
+    expect(options.some((option) => option.value === 'award')).toBe(true)
+  })
+
   it('does not offer the generic other event type anymore', () => {
     const options = buildHistoryEventOptions([], null, 2007, true, true, true, true, true)
 
