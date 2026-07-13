@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 
 import {
@@ -91,6 +91,16 @@ function entryToFormState(entry: GroupHistoryRow): HistoryFormState {
     eventType: entry.event_type,
     year: entry.year !== null ? String(entry.year) : '',
     note: entry.note ?? '',
+  }
+}
+
+export function buildInitialHistoryFormState(eventOptions: HistoryEventOptionState[]): HistoryFormState {
+  const firstAvailableOption = eventOptions.find((option) => !option.disabled) ?? eventOptions[0]
+
+  return {
+    ...EMPTY_HISTORY_FORM,
+    eventType: firstAvailableOption?.value ?? EMPTY_HISTORY_FORM.eventType,
+    year: firstAvailableOption?.suggestedYear ? String(firstAvailableOption.suggestedYear) : '',
   }
 }
 
@@ -205,7 +215,7 @@ export function buildHistoryEventOptions(
         return []
       }
       if (qualifiedReleaseCount < releaseCountThreshold && editTarget?.event_type !== option.value) {
-        return []
+        return [{ ...option, disabled: true, disabledReason: `${releaseCountThreshold} Releases erforderlich` }]
       }
     }
 
@@ -231,7 +241,7 @@ export function buildHistoryEventOptions(
         return []
       }
       if (completedProjectCount < projectCountThreshold && editTarget?.event_type !== option.value) {
-        return []
+        return [{ ...option, disabled: true, disabledReason: `${projectCountThreshold} Projekte erforderlich` }]
       }
     }
 
@@ -317,17 +327,27 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     successTimerRef.current = setTimeout(() => setSuccessMessage(null), 3000)
   }, [])
 
+  const eventOptions = useMemo(
+    () => buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount),
+    [entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount],
+  )
+
+  const addEventOptions = useMemo(
+    () => buildHistoryEventOptions(entries, null, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount),
+    [entries, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount],
+  )
+
   // ---------------------------------------------------------------------------
   // Formular
   // ---------------------------------------------------------------------------
 
   const openAddForm = useCallback(() => {
     setEditTarget(null)
-    setForm(EMPTY_HISTORY_FORM)
+    setForm(buildInitialHistoryFormState(addEventOptions))
     setTitleError(null)
     setSaveError(null)
     setIsFormOpen(true)
-  }, [])
+  }, [addEventOptions])
 
   const openEditForm = useCallback((entry: GroupHistoryRow) => {
     setEditTarget(entry)
@@ -354,6 +374,11 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
       }
       setTitleError(null)
       setSaveError(null)
+      const selectedEventOption = eventOptions.find((option) => option.value === form.eventType)
+      if (!selectedEventOption || selectedEventOption.disabled) {
+        setSaveError(selectedEventOption?.disabledReason ?? 'Dieser Meilenstein ist noch nicht freigeschaltet.')
+        return
+      }
       if (form.eventType === 'website_launch' && !hasWebsiteLink && editTarget?.event_type !== 'website_launch') {
         setSaveError('Webseite fehlt. Bitte zuerst einen Community-Link vom Typ Webseite eintragen.')
         return
@@ -424,7 +449,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setIsSaving(false)
       }
     },
-    [form, editTarget, entries, fansubGroupId, foundedYear, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, qualifiedReleaseCount, hasCompletedProject, hasCollaboration, completedProjectCount, closeForm, showSuccess],
+    [form, editTarget, entries, eventOptions, fansubGroupId, foundedYear, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, qualifiedReleaseCount, hasCompletedProject, hasCollaboration, completedProjectCount, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------
@@ -448,7 +473,6 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
   }, [deleteTarget, fansubGroupId, authToken, showSuccess])
 
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
-  const eventOptions = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount)
   const historyMinYear = foundedYear ?? 1990
   const historyMaxYear = new Date().getFullYear()
 

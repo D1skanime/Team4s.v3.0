@@ -1,11 +1,43 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
 
-import type { GroupHistoryRow } from '@/lib/api'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { createElement } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import {
+  createGroupHistory,
+  listGroupHistory,
+  type GroupHistoryRow,
+} from '@/lib/api'
 import {
   GROUP_HISTORY_EVENT_OPTIONS,
   getGroupHistoryEventPresentation,
 } from '@/lib/group-history-events'
-import { buildHistoryEventOptions } from './GroupHistorySection'
+import {
+  buildHistoryEventOptions,
+  buildInitialHistoryFormState,
+  GroupHistorySection,
+} from './GroupHistorySection'
+
+vi.mock('@/lib/api', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/api')>('@/lib/api')
+
+  return {
+    ...actual,
+    listGroupHistory: vi.fn(),
+    createGroupHistory: vi.fn(),
+    updateGroupHistory: vi.fn(),
+    deleteGroupHistory: vi.fn(),
+  }
+})
+
+const listGroupHistoryMock = vi.mocked(listGroupHistory)
+const createGroupHistoryMock = vi.mocked(createGroupHistory)
+
+afterEach(() => {
+  cleanup()
+  vi.clearAllMocks()
+})
 
 function historyRow(overrides: Partial<GroupHistoryRow>): GroupHistoryRow {
   return {
@@ -28,6 +60,35 @@ function unlockedHistoryEntries(extraEntries: GroupHistoryRow[] = []): GroupHist
     ...extraEntries,
   ]
 }
+
+describe('buildInitialHistoryFormState', () => {
+  it('uses the first visible locked option instead of the legacy milestone default', () => {
+    const options = buildHistoryEventOptions([], null, null, false, false, false)
+
+    expect(buildInitialHistoryFormState(options)).toMatchObject({
+      eventType: 'founding',
+      year: '',
+    })
+  })
+})
+
+describe('GroupHistorySection', () => {
+  it('does not submit the hidden legacy milestone default before a founding year exists', async () => {
+    listGroupHistoryMock.mockResolvedValue([])
+    createGroupHistoryMock.mockResolvedValue(historyRow({ id: 99 }))
+
+    render(createElement(GroupHistorySection, { fansubGroupId: 88, foundedYear: null }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Meilenstein hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Versteckter Meilenstein' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Meilenstein speichern' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain('Gründungsjahr fehlt')
+    })
+    expect(createGroupHistoryMock).not.toHaveBeenCalled()
+  })
+})
 
 describe('buildHistoryEventOptions', () => {
   it('returns only locked founding before a founding year exists', () => {
@@ -215,14 +276,29 @@ describe('buildHistoryEventOptions', () => {
     expect(option?.disabled).toBeUndefined()
   })
 
-  it('hides release count achievements before their qualified-release threshold is reached', () => {
+  it('locks release count achievements before their qualified-release threshold is reached', () => {
     const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 99)
 
-    expect(options.some((option) => option.value === 'releases_100')).toBe(false)
-    expect(options.some((option) => option.value === 'releases_500')).toBe(false)
-    expect(options.some((option) => option.value === 'releases_1000')).toBe(false)
-    expect(options.some((option) => option.value === 'releases_5000')).toBe(false)
-    expect(options.some((option) => option.value === 'releases_10000')).toBe(false)
+    expect(options.find((option) => option.value === 'releases_100')).toMatchObject({
+      disabled: true,
+      disabledReason: '100 Releases erforderlich',
+    })
+    expect(options.find((option) => option.value === 'releases_500')).toMatchObject({
+      disabled: true,
+      disabledReason: '500 Releases erforderlich',
+    })
+    expect(options.find((option) => option.value === 'releases_1000')).toMatchObject({
+      disabled: true,
+      disabledReason: '1000 Releases erforderlich',
+    })
+    expect(options.find((option) => option.value === 'releases_5000')).toMatchObject({
+      disabled: true,
+      disabledReason: '5000 Releases erforderlich',
+    })
+    expect(options.find((option) => option.value === 'releases_10000')).toMatchObject({
+      disabled: true,
+      disabledReason: '10000 Releases erforderlich',
+    })
   })
 
   it('shows release count achievements whose qualified-release threshold is reached', () => {
@@ -231,16 +307,25 @@ describe('buildHistoryEventOptions', () => {
     expect(options.some((option) => option.value === 'releases_100')).toBe(true)
     expect(options.some((option) => option.value === 'releases_500')).toBe(true)
     expect(options.some((option) => option.value === 'releases_1000')).toBe(true)
-    expect(options.some((option) => option.value === 'releases_5000')).toBe(false)
-    expect(options.some((option) => option.value === 'releases_10000')).toBe(false)
+    expect(options.find((option) => option.value === 'releases_5000')).toMatchObject({
+      disabled: true,
+      disabledReason: '5000 Releases erforderlich',
+    })
+    expect(options.find((option) => option.value === 'releases_10000')).toMatchObject({
+      disabled: true,
+      disabledReason: '10000 Releases erforderlich',
+    })
   })
 
   it('uses exact threshold boundaries for legendary release achievements', () => {
     const almostLegendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 9999)
     const legendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 0, 10000)
 
-    expect(almostLegendary.some((option) => option.value === 'releases_10000')).toBe(false)
-    expect(legendary.some((option) => option.value === 'releases_10000')).toBe(true)
+    expect(almostLegendary.find((option) => option.value === 'releases_10000')).toMatchObject({
+      disabled: true,
+      disabledReason: '10000 Releases erforderlich',
+    })
+    expect(legendary.find((option) => option.value === 'releases_10000')?.disabled).toBeUndefined()
   })
 
   it('hides a release count achievement after it was already used by another entry', () => {
@@ -328,13 +413,25 @@ describe('buildHistoryEventOptions', () => {
     expect(option?.disabled).toBeUndefined()
   })
 
-  it('hides project count achievements before their completed-project threshold is reached', () => {
+  it('locks project count achievements before their completed-project threshold is reached', () => {
     const options = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 9)
 
-    expect(options.some((option) => option.value === 'projects_10')).toBe(false)
-    expect(options.some((option) => option.value === 'projects_50')).toBe(false)
-    expect(options.some((option) => option.value === 'projects_100')).toBe(false)
-    expect(options.some((option) => option.value === 'projects_500')).toBe(false)
+    expect(options.find((option) => option.value === 'projects_10')).toMatchObject({
+      disabled: true,
+      disabledReason: '10 Projekte erforderlich',
+    })
+    expect(options.find((option) => option.value === 'projects_50')).toMatchObject({
+      disabled: true,
+      disabledReason: '50 Projekte erforderlich',
+    })
+    expect(options.find((option) => option.value === 'projects_100')).toMatchObject({
+      disabled: true,
+      disabledReason: '100 Projekte erforderlich',
+    })
+    expect(options.find((option) => option.value === 'projects_500')).toMatchObject({
+      disabled: true,
+      disabledReason: '500 Projekte erforderlich',
+    })
   })
 
   it('shows project count achievements whose completed-project threshold is reached', () => {
@@ -343,15 +440,21 @@ describe('buildHistoryEventOptions', () => {
     expect(options.some((option) => option.value === 'projects_10')).toBe(true)
     expect(options.some((option) => option.value === 'projects_50')).toBe(true)
     expect(options.some((option) => option.value === 'projects_100')).toBe(true)
-    expect(options.some((option) => option.value === 'projects_500')).toBe(false)
+    expect(options.find((option) => option.value === 'projects_500')).toMatchObject({
+      disabled: true,
+      disabledReason: '500 Projekte erforderlich',
+    })
   })
 
   it('uses exact threshold boundaries for legendary project achievements', () => {
     const almostLegendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 499)
     const legendary = buildHistoryEventOptions(unlockedHistoryEntries(), null, 2007, true, true, true, true, true, 500)
 
-    expect(almostLegendary.some((option) => option.value === 'projects_500')).toBe(false)
-    expect(legendary.some((option) => option.value === 'projects_500')).toBe(true)
+    expect(almostLegendary.find((option) => option.value === 'projects_500')).toMatchObject({
+      disabled: true,
+      disabledReason: '500 Projekte erforderlich',
+    })
+    expect(legendary.find((option) => option.value === 'projects_500')?.disabled).toBeUndefined()
   })
 
   it('hides a project count achievement after it was already used by another entry', () => {

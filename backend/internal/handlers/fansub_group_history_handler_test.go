@@ -315,7 +315,7 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 
 	assert.Contains(t, src, "singleUseGroupHistoryEventTypes",
 		"Handler muss eine zentrale Einmal-Liste fuer Achievements besitzen")
-	for _, code := range []string{"disbanding", "first_project", "first_release", "project_completed", "collaboration", "projects_10", "projects_50", "projects_100", "projects_500", "releases_100", "releases_500", "releases_1000", "releases_5000", "releases_10000"} {
+	for _, code := range []string{"founding", "disbanding", "first_project", "first_release", "project_completed", "collaboration", "projects_10", "projects_50", "projects_100", "projects_500", "releases_100", "releases_500", "releases_1000", "releases_5000", "releases_10000"} {
 		assert.Contains(t, src, `"`+code+`"`, "event type %s muss als Einmal-Meilenstein geschuetzt sein", code)
 	}
 	assert.Contains(t, createBody, "validateSingleUseEvent",
@@ -324,6 +324,32 @@ func TestSingleUseAchievementEventsAreGuardedServerSide(t *testing.T) {
 		"UpdateGroupHistory muss Wechsel auf Einmal-Meilensteine vor Duplikaten schuetzen")
 	assert.Contains(t, src, "HasEventType",
 		"Handler muss bestehende Eventtypen ueber das Repository pruefen")
+}
+
+func TestSingleUseAchievementEventsHaveDatabaseConstraint(t *testing.T) {
+	handlerSrc := readSource(t, handlerSrcPath)
+	repoSrc := readSource(t, "../repository/fansub_group_history_repository.go")
+	migrationSrc := readSource(t, "../../database/migrations/002_group_history_single_use_events.up.sql")
+	downMigrationSrc := readSource(t, "../../database/migrations/002_group_history_single_use_events.down.sql")
+	createBody := funcBody(t, handlerSrc, "CreateGroupHistory")
+	updateBody := funcBody(t, handlerSrc, "UpdateGroupHistory")
+
+	assert.Contains(t, repoSrc, "isUniqueViolation(err)",
+		"Repository muss Unique-Verletzungen des Einmal-Indexes fachlich behandeln")
+	assert.Contains(t, repoSrc, "ErrValidation",
+		"Repository muss Unique-Verletzungen an den Handler als Validation melden")
+	assert.Contains(t, createBody, "singleUseGroupHistoryEventMessage",
+		"CreateGroupHistory muss DB-Unique-Verletzungen als bekannte Einmal-Meldung ausgeben")
+	assert.Contains(t, updateBody, "singleUseGroupHistoryEventMessage",
+		"UpdateGroupHistory muss DB-Unique-Verletzungen als bekannte Einmal-Meldung ausgeben")
+	assert.Contains(t, migrationSrc, "uq_fansub_group_history_single_use_event",
+		"Migration muss einen benannten Unique-Index fuer Einmal-Meilensteine anlegen")
+	assert.Contains(t, migrationSrc, "ON fansub_group_history (fansub_group_id, event_type)",
+		"Unique-Index muss pro Gruppe und Event-Typ greifen")
+	assert.Contains(t, migrationSrc, "'founding'",
+		"Unique-Index muss Gruendung als einmaligen Meilenstein schuetzen")
+	assert.Contains(t, downMigrationSrc, "DROP INDEX IF EXISTS uq_fansub_group_history_single_use_event",
+		"Down-Migration muss den Unique-Index reversibel entfernen")
 }
 
 func TestGroupHistoryEventTypeWhitelistIncludesAchievementPreviewTypes(t *testing.T) {

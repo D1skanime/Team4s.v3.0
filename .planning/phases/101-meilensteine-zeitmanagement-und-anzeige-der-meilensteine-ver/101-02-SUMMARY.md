@@ -30,6 +30,7 @@ key-files:
 key-decisions:
   - "Explicit null years remain valid on update; only submitted non-null years are bounded."
   - "No request or response shape changed, so frontend calls continue through the existing api.ts helpers."
+  - "The group-history CRUD route is not yet represented in shared/contracts; Phase 101 records the new 422 year-bound behavior here instead of adding a partial endpoint contract."
 
 patterns-established:
   - "Group history direct-write guards should return 422 with the same German messages the UI shows locally."
@@ -81,6 +82,14 @@ completed: 2026-07-13
 - Explicit null years remain valid because optional timeline entries are still allowed by the domain model.
 - The backend guard uses the URL `fansubID` already validated by existing handlers; no new route, DTO, or auth seam was introduced.
 - Shared OpenAPI shape was not changed because requests and responses stayed the same and errors still use the existing project error envelope.
+- The group-history CRUD route is currently absent from the shared contract files. Phase 101 intentionally keeps that broader contract addition out of scope and records the new 422 year-bound behavior in this artifact; the full `/api/v1/admin/fansubs/{id}/history` contract should be added before the next API-expansion slice touches this endpoint again.
+
+## Review Follow-up
+
+- Fixed the code-review blocker where the add form could keep the legacy hidden `milestone` default before a founding year existed. The form now initializes from the visible option catalog and submit rejects unavailable or disabled event types before any API call.
+- Added a jsdom regression test proving `createGroupHistory` is not called when no founding year exists and the only visible option is locked `Gründung`.
+- Applied a quick follow-up so project-count and release-count achievements stay visible after the full catalog is unlocked, but remain disabled with threshold hints until the group reaches the required counts.
+- Fixed the final backend review blocker by treating `founding` as a single-use milestone, adding a partial unique index for all single-use milestone event types, and mapping DB unique violations to the existing duplicate milestone 422 message.
 
 ## Deviations from Plan
 

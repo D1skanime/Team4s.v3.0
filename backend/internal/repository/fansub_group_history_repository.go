@@ -560,6 +560,9 @@ func (r *FansubGroupHistoryRepository) Create(ctx context.Context, fansubGroupID
 		if isForeignKeyViolation(err) {
 			return nil, ErrNotFound
 		}
+		if isUniqueViolation(err) {
+			return nil, ErrValidation
+		}
 		return nil, fmt.Errorf("create group history: %w", err)
 	}
 	return r.GetByID(ctx, newID)
@@ -604,6 +607,9 @@ func (r *FansubGroupHistoryRepository) Update(ctx context.Context, id int64, inp
 
 	tag, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
+		if isUniqueViolation(err) {
+			return nil, ErrValidation
+		}
 		return nil, fmt.Errorf("update group history: %w", err)
 	}
 	if tag.RowsAffected() == 0 {

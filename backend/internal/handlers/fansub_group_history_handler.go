@@ -52,6 +52,7 @@ const groupHistoryYearBeforeFoundedMessage = "Meilenstein-Jahr darf nicht vor de
 const groupHistoryYearInFutureMessage = "Meilenstein-Jahr darf nicht in der Zukunft liegen."
 
 var singleUseGroupHistoryEventTypes = map[string]struct{}{
+	"founding":          {},
 	"disbanding":        {},
 	"first_project":     {},
 	"first_release":     {},
@@ -353,6 +354,10 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 		})
 		return
 	}
+	if errors.Is(err, repository.ErrValidation) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": singleUseGroupHistoryEventMessage}})
+		return
+	}
 	if err != nil {
 		log.Printf("group history create: repo error (fansub_id=%d): %v", fansubID, err)
 		internalError(c, "interner serverfehler")
@@ -465,6 +470,10 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 				"message": "historieneintrag nicht gefunden",
 			},
 		})
+		return
+	}
+	if errors.Is(err, repository.ErrValidation) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": singleUseGroupHistoryEventMessage}})
 		return
 	}
 	if err != nil {

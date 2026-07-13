@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS uq_fansub_group_history_single_use_event;
