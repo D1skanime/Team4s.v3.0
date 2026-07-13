@@ -73,18 +73,40 @@
   padding: 26px 0 10px;
 }
 
-/* Glas-Panel: Poster + Info als ein durchscheinender Block */
+/* Glas-Panel: Banner + Inhalt wie auf der Public-Fansubgruppe */
 .heroCard {
-  display: flex;
-  gap: 24px;
-  align-items: stretch;
-  padding: 20px;
+  display: grid;
+  margin-top: 18px;
   border-radius: 18px;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.62);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
   backdrop-filter: blur(18px) saturate(1.5);
   border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow: 0 12px 38px rgba(20, 15, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.heroBannerWrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px 16px 0;
+}
+
+.heroBannerImg {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: clamp(140px, 17vw, 200px);
+  border-radius: 10px;
+  object-fit: contain;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+}
+
+.heroBody {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 16px 24px 24px;
 }
 
 .poster {
@@ -94,13 +116,6 @@
   border-radius: 12px;
   object-fit: cover;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-}
-
-.posterWide {
-  width: 360px;
-  height: 203px;
-  flex-basis: 360px;
-  align-self: center;
 }
 
 .posterPlaceholder {
@@ -321,10 +336,22 @@
   }
 
   .heroCard {
+    text-align: center;
+  }
+
+  .heroBannerWrap {
+    padding: 12px 12px 0;
+  }
+
+  .heroBannerImg {
+    max-height: 160px;
+  }
+
+  .heroBody {
     flex-direction: column;
     gap: 18px;
     align-items: center;
-    text-align: center;
+    padding: 14px 18px 20px;
   }
 
   .poster,
@@ -332,13 +359,6 @@
     width: 170px;
     height: 244px;
     flex: 0 0 244px;
-  }
-
-  .posterWide {
-    width: min(100%, 340px);
-    height: auto;
-    aspect-ratio: 16 / 9;
-    flex: 0 1 auto;
   }
 
   .posterInitial {

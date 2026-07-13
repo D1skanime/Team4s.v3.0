@@ -74,36 +74,54 @@ export function HeroSection({
         ) : null}
         <div className={styles.heroFg}>
           <div className={styles.heroCard}>
-            {heroImageUrl ? (
-              <Image
-                src={heroImageUrl}
-                alt={anime.title}
-                width={heroImageIsBanner ? 360 : 240}
-                height={heroImageIsBanner ? 203 : 340}
-                className={`${styles.poster} ${heroImageIsBanner ? styles.posterWide : ""}`}
-                unoptimized={heroImageUrl.includes("/api/")}
-              />
-            ) : (
-              <div className={styles.posterPlaceholder}>
-                <span className={styles.posterInitial}>
-                  {anime.title.charAt(0).toUpperCase()}
-                </span>
+            {heroImageUrl && heroImageIsBanner ? (
+              <div className={styles.heroBannerWrap}>
+                <Image
+                  src={heroImageUrl}
+                  alt={`${anime.title} Banner`}
+                  width={1200}
+                  height={200}
+                  className={styles.heroBannerImg}
+                  unoptimized={heroImageUrl.includes("/api/")}
+                  priority
+                />
               </div>
-            )}
+            ) : null}
 
-            <div className={styles.heroInfo}>
-              <p className={styles.eyebrow}>{group.fansub.name}</p>
-              <h1 className={styles.title}>{anime.title}</h1>
-              <dl className={styles.stats}>
-                <div className={styles.statItem}>
-                  <dt>Projektmitwirkende</dt>
-                  <dd>{projectContributorCount}</dd>
-                </div>
-                <div className={styles.statItem}>
-                  <dt>Releases</dt>
-                  <dd>{releaseEpisodes.length}</dd>
-                </div>
-              </dl>
+            <div className={styles.heroBody}>
+              {!heroImageIsBanner ? (
+                heroImageUrl ? (
+                  <Image
+                    src={heroImageUrl}
+                    alt={anime.title}
+                    width={240}
+                    height={340}
+                    className={styles.poster}
+                    unoptimized={heroImageUrl.includes("/api/")}
+                  />
+                ) : (
+                  <div className={styles.posterPlaceholder}>
+                    <span className={styles.posterInitial}>
+                      {anime.title.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )
+              ) : null}
+
+              <div className={styles.heroInfo}>
+                <p className={styles.eyebrow}>{group.fansub.name}</p>
+                <h1 className={styles.title}>{anime.title}</h1>
+                <dl className={styles.stats}>
+                  <div className={styles.statItem}>
+                    <dt>Projektmitwirkende</dt>
+                    <dd>{projectContributorCount}</dd>
+                  </div>
+                  <div className={styles.statItem}>
+                    <dt>Releases</dt>
+                    <dd>{releaseEpisodes.length}</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           </div>
         </div>
