@@ -298,6 +298,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
   const [editTarget, setEditTarget] = useState<GroupHistoryRow | null>(null)
   const [form, setForm] = useState<HistoryFormState>(EMPTY_HISTORY_FORM)
   const [titleError, setTitleError] = useState<string | null>(null)
+  const [yearError, setYearError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -359,6 +360,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     setEditTarget(null)
     setForm(buildInitialHistoryFormState(addEventOptions))
     setTitleError(null)
+    setYearError(null)
     setSaveError(null)
     setIsFormOpen(true)
   }, [addEventOptions])
@@ -367,6 +369,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     setEditTarget(entry)
     setForm(entryToFormState(entry))
     setTitleError(null)
+    setYearError(null)
     setSaveError(null)
     setIsFormOpen(true)
   }, [])
@@ -376,7 +379,17 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     setEditTarget(null)
     setForm(EMPTY_HISTORY_FORM)
     setTitleError(null)
+    setYearError(null)
     setSaveError(null)
+  }, [])
+
+  const handleFormChange = useCallback((updater: (prev: HistoryFormState) => HistoryFormState) => {
+    setForm((previous) => {
+      const next = updater(previous)
+      if (next.title.trim()) setTitleError(null)
+      if (next.year.trim()) setYearError(null)
+      return next
+    })
   }, [])
 
   const handleSubmit = useCallback(
@@ -393,6 +406,11 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setSaveError(selectedEventOption?.disabledReason ?? 'Dieser Meilenstein ist noch nicht freigeschaltet.')
         return
       }
+      if (!form.year.trim()) {
+        setYearError('Jahr ist ein Pflichtfeld.')
+        return
+      }
+      setYearError(null)
       if (form.eventType === 'website_launch' && !hasWebsiteLink && editTarget?.event_type !== 'website_launch') {
         setSaveError('Webseite fehlt. Bitte zuerst einen Community-Link vom Typ Webseite eintragen.')
         return
@@ -429,12 +447,16 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
       }
       setIsSaving(true)
       try {
-        const yearValue = form.year.trim() !== '' ? Number(form.year) : null
-        if (yearValue !== null && foundedYear && yearValue < foundedYear) {
+        const yearValue = Number(form.year)
+        if (!Number.isFinite(yearValue)) {
+          setYearError('Bitte ein gültiges Jahr auswählen.')
+          return
+        }
+        if (foundedYear && yearValue < foundedYear) {
           setSaveError('Meilenstein-Jahr darf nicht vor dem Gründungsjahr liegen.')
           return
         }
-        if (yearValue !== null && yearValue > new Date().getFullYear()) {
+        if (yearValue > new Date().getFullYear()) {
           setSaveError('Meilenstein-Jahr darf nicht in der Zukunft liegen.')
           return
         }
@@ -527,11 +549,12 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
       {isFormOpen && !readOnly ? (
         <GroupHistoryForm
           form={form}
-          onFormChange={setForm}
+          onFormChange={handleFormChange}
           onSubmit={(e) => void handleSubmit(e)}
           onCancel={closeForm}
           isSaving={isSaving}
           titleError={titleError}
+          yearError={yearError}
           saveError={saveError}
           isEdit={editTarget !== null}
           eventOptions={eventOptions}

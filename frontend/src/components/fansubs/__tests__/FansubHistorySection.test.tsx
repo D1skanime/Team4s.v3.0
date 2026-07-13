@@ -1,4 +1,7 @@
-﻿import { renderToStaticMarkup } from 'react-dom/server'
+// @vitest-environment jsdom
+
+import { fireEvent, render, screen } from '@testing-library/react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { FansubHistorySection } from '../FansubHistorySection'
@@ -16,17 +19,39 @@ const history: PublicFansubHistory[] = [
 ]
 
 describe('FansubHistorySection', () => {
-  it('rendert bestÃ¤tigte Historie getrennt von Gruppenleitung', () => {
+  it('rendert bestätigte Historie getrennt von Gruppenleitung', () => {
     const html = renderToStaticMarkup(<FansubHistorySection history={history} />)
 
     expect(html).toContain('Historie &amp; Erfolge')
     expect(html).toContain('Erstes Komplettprojekt abgeschlossen')
     expect(html).not.toContain('Gruppenleitung')
-    // milestone -> echtes Achievement-Bild mit Jahres-Chip
+    expect(html).toContain('historyTimeline')
     expect(html).toMatch(/class="[^"]*achGold[^"]*"/)
     expect(html).toContain('/history-event-badges-transparent/milestone.png')
     expect(html).toContain('Meilenstein')
     expect(html).toContain('2014')
+  })
+
+  it('zeigt zuerst sechs Einträge und klappt weitere auf', () => {
+    const manyHistory = Array.from({ length: 7 }, (_, index): PublicFansubHistory => ({
+      id: index + 1,
+      year: 2000 + index,
+      event_type: 'milestone',
+      title: `Meilenstein ${index + 1}`,
+      note: null,
+      status: 'confirmed',
+    }))
+
+    render(<FansubHistorySection history={manyHistory} />)
+
+    expect(screen.getByText('Meilenstein 1')).not.toBeNull()
+    expect(screen.getByText('Meilenstein 6')).not.toBeNull()
+    expect(screen.queryByText('Meilenstein 7')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere 1 anzeigen' }))
+
+    expect(screen.getByText('Meilenstein 7')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Weniger anzeigen' })).not.toBeNull()
   })
 
   it('rendert keinen Abschnitt wenn keine Historie geliefert wird', () => {

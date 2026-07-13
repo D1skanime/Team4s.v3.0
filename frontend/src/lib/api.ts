@@ -9129,7 +9129,7 @@ export interface GroupHistoryRow {
 export interface GroupHistoryCreateRequest {
   event_type: string
   title: string
-  year?: number | null
+  year: number
   note?: string | null
   status?: string
 }
@@ -9137,7 +9137,7 @@ export interface GroupHistoryCreateRequest {
 export interface GroupHistoryUpdateRequest {
   event_type?: string
   title?: string | null
-  year?: number | null
+  year?: number
   note?: string | null
   status?: string
 }

@@ -88,6 +88,28 @@ describe('GroupHistorySection', () => {
     })
     expect(createGroupHistoryMock).not.toHaveBeenCalled()
   })
+
+  it('requires a year before saving an available milestone', async () => {
+    listGroupHistoryMock.mockResolvedValue([
+      historyRow({ id: 10, event_type: 'founding', year: 2007 }),
+    ])
+    createGroupHistoryMock.mockResolvedValue(historyRow({ id: 99 }))
+
+    render(createElement(GroupHistorySection, {
+      fansubGroupId: 88,
+      foundedYear: 2007,
+      hasFirstProject: true,
+    }))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Meilenstein hinzufügen' }))
+    fireEvent.change(screen.getByLabelText('Titel'), { target: { value: 'Erstes Projekt' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Meilenstein speichern' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Jahr ist ein Pflichtfeld.')).not.toBeNull()
+    })
+    expect(createGroupHistoryMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('buildHistoryEventOptions', () => {

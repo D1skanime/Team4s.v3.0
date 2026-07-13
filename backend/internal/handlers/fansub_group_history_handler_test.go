@@ -96,6 +96,8 @@ func TestGroupHistoryYearValidation(t *testing.T) {
 		"CreateGroupHistory muss year < founded_year mit fachlicher Fehlermeldung ablehnen")
 	assert.Contains(t, src, "Meilenstein-Jahr darf nicht in der Zukunft liegen.",
 		"CreateGroupHistory muss future years mit fachlicher Fehlermeldung ablehnen")
+	assert.Contains(t, src, "Meilenstein-Jahr ist ein Pflichtfeld.",
+		"CreateGroupHistory muss fehlendes Jahr mit fachlicher Fehlermeldung ablehnen")
 	assert.Contains(t, yearGuardBody, "GetFansubFoundedYear",
 		"Year-Guard muss founded_year aus der Gruppenquelle laden")
 	assert.Contains(t, yearGuardBody, "time.Now().Year()",
@@ -109,14 +111,18 @@ func TestGroupHistoryYearValidation(t *testing.T) {
 
 	assert.Contains(t, createBody, "validateGroupHistoryYear(c, fansubID, req.Year)",
 		"CreateGroupHistory muss das eingereichte Jahr vor dem Speichern validieren")
+	assert.Contains(t, createBody, "req.Year == nil",
+		"CreateGroupHistory muss ein fehlendes Jahr vor dem Speichern ablehnen")
 	createGuardIdx := strings.Index(createBody, "validateGroupHistoryYear(c, fansubID, req.Year)")
 	createIdx := strings.Index(createBody, "historyRepo.Create(")
 	require.GreaterOrEqual(t, createGuardIdx, 0, "CreateGroupHistory ruft validateGroupHistoryYear auf")
 	require.GreaterOrEqual(t, createIdx, 0, "CreateGroupHistory ruft Create auf")
 	assert.Less(t, createGuardIdx, createIdx, "Year-Guard steht vor Create")
 
-	assert.Contains(t, updateBody, "req.Year != nil && *req.Year != nil",
-		"UpdateGroupHistory darf explizites year:null nicht durch den Year-Guard ablehnen")
+	assert.Contains(t, updateBody, "req.Year != nil && *req.Year == nil",
+		"UpdateGroupHistory muss explizites year:null ablehnen")
+	assert.Contains(t, updateBody, "req.Year == nil && existing.Year == nil",
+		"UpdateGroupHistory muss alte Einträge ohne Jahr beim Speichern auf ein Pflichtjahr zwingen")
 	assert.Contains(t, updateBody, "validateGroupHistoryYear(c, fansubID, *req.Year)",
 		"UpdateGroupHistory muss nicht-null Jahre vor dem Speichern validieren")
 }

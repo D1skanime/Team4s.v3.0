@@ -48,6 +48,7 @@ const revivalGuardMessage = "Wiederaufnahme ist noch nicht möglich. Bitte zuers
 const projectCountGuardMessage = "Projekt-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend vollständig bearbeitete Projekte abschließen."
 const releaseCountGuardMessage = "Release-Erfolg ist noch nicht freigeschaltet. Bitte zuerst genügend Releases mit Kara und Gruppenbeitrag abschließen."
 const singleUseGroupHistoryEventMessage = "Dieser Meilenstein wurde bereits eingetragen."
+const groupHistoryYearRequiredMessage = "Meilenstein-Jahr ist ein Pflichtfeld."
 const groupHistoryYearBeforeFoundedMessage = "Meilenstein-Jahr darf nicht vor dem Gründungsjahr liegen."
 const groupHistoryYearInFutureMessage = "Meilenstein-Jahr darf nicht in der Zukunft liegen."
 
@@ -304,6 +305,10 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 	if req.EventType == "" {
 		req.EventType = "milestone"
 	}
+	if req.Year == nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": groupHistoryYearRequiredMessage}})
+		return
+	}
 	if _, ok := allowedGroupHistoryEventTypes[req.EventType]; !ok {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{
@@ -441,7 +446,15 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 			}
 		}
 	}
-	if req.Year != nil && *req.Year != nil {
+	if req.Year != nil && *req.Year == nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": groupHistoryYearRequiredMessage}})
+		return
+	}
+	if req.Year == nil && existing.Year == nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": groupHistoryYearRequiredMessage}})
+		return
+	}
+	if req.Year != nil {
 		if !h.validateGroupHistoryYear(c, fansubID, *req.Year) {
 			return
 		}

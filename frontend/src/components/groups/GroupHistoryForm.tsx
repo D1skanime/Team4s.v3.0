@@ -54,6 +54,7 @@ interface GroupHistoryFormProps {
   onCancel: () => void
   isSaving: boolean
   titleError: string | null
+  yearError: string | null
   saveError: string | null
   isEdit: boolean
   eventOptions?: HistoryEventOptionState[]
@@ -72,6 +73,7 @@ export function GroupHistoryForm({
   onCancel,
   isSaving,
   titleError,
+  yearError,
   saveError,
   isEdit,
   eventOptions = GROUP_HISTORY_EVENT_OPTIONS,
@@ -198,7 +200,9 @@ export function GroupHistoryForm({
         <FormField
           label="Jahr"
           htmlFor="history-year"
-          hint="Optionaler Zeitpunkt für die Timeline."
+          hint="Pflichtfeld für die öffentliche Timeline."
+          required
+          error={yearError ?? undefined}
         >
           <YearPicker
             id="history-year"
@@ -206,6 +210,7 @@ export function GroupHistoryForm({
             value={form.year}
             minYear={historyMinYear}
             maxYear={historyMaxYear}
+            invalid={!!yearError}
             onChange={(value) => onFormChange((f) => ({ ...f, year: value }))}
           />
         </FormField>

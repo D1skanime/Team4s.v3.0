@@ -41,6 +41,7 @@ function renderForm(
       onCancel={vi.fn()}
       isSaving={false}
       titleError={null}
+      yearError={null}
       saveError={null}
       isEdit={false}
       eventOptions={options}
