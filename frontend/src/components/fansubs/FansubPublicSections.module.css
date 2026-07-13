@@ -367,6 +367,7 @@
     0 0 0 1px color-mix(in srgb, var(--ach-color) 10%, transparent),
     0 14px 30px rgba(24, 21, 18, 0.11),
     0 0 42px color-mix(in srgb, var(--ach-color) 20%, transparent);
+  text-align: left;
   z-index: 3;
 }
 
@@ -374,7 +375,6 @@
   grid-column: 1;
   justify-self: end;
   margin-right: calc(var(--history-card-overlap) * -1);
-  text-align: right;
 }
 
 .historyTimelineItemRight .historyTimelineCard {
@@ -408,10 +408,6 @@
   font-size: 12px;
   font-weight: 850;
   line-height: 1;
-}
-
-.historyTimelineItemLeft .historyTimelineType {
-  justify-self: end;
 }
 
 .historyTimelineNote {
@@ -546,11 +542,12 @@
     justify-self: stretch;
     margin: -10px 0 0;
     padding: 16px;
-    text-align: left;
+    text-align: center;
   }
 
+  .historyTimelineType,
   .historyTimelineItemLeft .historyTimelineType {
-    justify-self: start;
+    justify-self: center;
   }
 }
 
