@@ -211,12 +211,18 @@ export function buildHistoryEventOptions(
 
     const releaseCountThreshold = RELEASE_COUNT_EVENT_THRESHOLDS[option.value]
     if (releaseCountThreshold) {
+      const optionWithProgress = {
+        ...option,
+        progressCurrent: qualifiedReleaseCount,
+        progressTarget: releaseCountThreshold,
+      }
       if (usedEventTypes.has(option.value)) {
         return []
       }
       if (qualifiedReleaseCount < releaseCountThreshold && editTarget?.event_type !== option.value) {
-        return [{ ...option, disabled: true, disabledReason: `${releaseCountThreshold} Releases erforderlich` }]
+        return [{ ...optionWithProgress, disabled: true, disabledReason: `${releaseCountThreshold} Releases erforderlich` }]
       }
+      return [optionWithProgress]
     }
 
     if (option.value === 'project_completed' && projectCompletedUsedByAnotherEntry) {
@@ -237,12 +243,18 @@ export function buildHistoryEventOptions(
 
     const projectCountThreshold = PROJECT_COUNT_EVENT_THRESHOLDS[option.value]
     if (projectCountThreshold) {
+      const optionWithProgress = {
+        ...option,
+        progressCurrent: completedProjectCount,
+        progressTarget: projectCountThreshold,
+      }
       if (usedEventTypes.has(option.value)) {
         return []
       }
       if (completedProjectCount < projectCountThreshold && editTarget?.event_type !== option.value) {
-        return [{ ...option, disabled: true, disabledReason: `${projectCountThreshold} Projekte erforderlich` }]
+        return [{ ...optionWithProgress, disabled: true, disabledReason: `${projectCountThreshold} Projekte erforderlich` }]
       }
+      return [optionWithProgress]
     }
 
     if (option.value === 'revival' && !hasHiatusEntry && editTarget?.event_type !== 'revival') {
@@ -265,7 +277,9 @@ function getGroupHistoryEventOptions(): HistoryEventOptionState[] {
   return GROUP_HISTORY_EVENT_OPTIONS.map((option) => ({
     value: option.value,
     label: option.label,
+    category: option.category,
     imageSrc: option.imageSrc,
+    tone: option.tone,
   }))
 }
 

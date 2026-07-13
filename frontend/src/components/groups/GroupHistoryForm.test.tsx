@@ -58,19 +58,19 @@ describe('GroupHistoryForm achievement availability', () => {
       baseOptions[1],
     ])
 
-    const foundingOption = screen.getByRole('option', {
-      name: 'Gründung (Gründungsjahr fehlt)',
-    }) as HTMLOptionElement
+    const foundingOption = screen.getByRole('radio', {
+      name: /Gründung/,
+    }) as HTMLButtonElement
 
     expect(foundingOption.disabled).toBe(true)
     expect(screen.queryByText(/Gesperrt:/)).toBeNull()
   })
 
-  it('hides founding from the select list when it was already used', () => {
+  it('hides founding from the picker when it was already used', () => {
     renderForm([baseOptions[1]])
 
-    expect(screen.queryByRole('option', { name: 'Gründung' })).toBeNull()
-    expect(screen.getByRole('option', { name: 'Meilenstein' })).not.toBeNull()
+    expect(screen.queryByRole('radio', { name: /Gründung/ })).toBeNull()
+    expect(screen.getByRole('radio', { name: /Meilenstein/ })).not.toBeNull()
   })
 
   it('prefills the year when selecting an available founding achievement', () => {
@@ -79,11 +79,39 @@ describe('GroupHistoryForm achievement availability', () => {
       baseOptions[1],
     ])
 
-    fireEvent.change(screen.getByLabelText('Erfolgstyp'), {
-      target: { value: 'founding' },
-    })
+    fireEvent.click(screen.getByRole('radio', { name: /Gründung/ }))
 
     expect(getForm()).toMatchObject({ eventType: 'founding', year: '2007' })
+  })
+
+  it('shows progress for locked project and release achievements', () => {
+    renderForm([
+      {
+        value: 'projects_10',
+        label: '10 Projekte',
+        category: 'project_count',
+        imageSrc: '/history-event-badges-transparent/projects_10.png',
+        disabled: true,
+        disabledReason: '10 Projekte erforderlich',
+        progressCurrent: 8,
+        progressTarget: 10,
+      },
+      {
+        value: 'releases_100',
+        label: '100 Releases',
+        category: 'release_count',
+        imageSrc: '/history-event-badges-transparent/releases_100.png',
+        disabled: true,
+        disabledReason: '100 Releases erforderlich',
+        progressCurrent: 42,
+        progressTarget: 100,
+      },
+    ])
+
+    expect(screen.getByText('8/10')).not.toBeNull()
+    expect(screen.getByText('42/100')).not.toBeNull()
+    expect(screen.getByText('fast geschafft')).not.toBeNull()
+    expect((screen.getByRole('radio', { name: /10 Projekte/ }) as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('does not offer years before the founding year', () => {
