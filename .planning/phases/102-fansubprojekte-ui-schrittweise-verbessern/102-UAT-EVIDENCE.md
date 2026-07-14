@@ -71,6 +71,12 @@ automated pre-UAT gates.
 - **Local UAT data correction:** The three confirmed Viper Creed contribution rows (`anime_id=1`, `fansub_group_id=1`) were updated to `is_public_on_anime_page=true` and `is_public_on_member_profile=true` after the code fix because they had been saved through the hidden-default path.
 - **Files modified:** `backend/internal/repository/group_contributors_repository.go`, `backend/internal/repository/group_contributors_repository_test.go`, `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.test.tsx`.
 
+**8. [Rule 1 - Bug] Public project member avatars were not rendered**
+- **Found during:** Human visual acceptance recheck after item 7.
+- **Issue:** The user reported that member avatars were missing even though Viper Creed contributors were now visible. DB inspection showed avatars on the affected members, but `/api/v1/anime/1/group/1/contributors` did not expose avatar URLs and `ProjectMemberRows` always passed `avatarUrl={null}`.
+- **Fix:** The group contributors API now returns `member_avatar_url` for team and member-anchored project contributors, the TypeScript/OpenAPI contracts include the field, and `ProjectMemberRows` forwards it to the existing `FansubMemberAvatar` component.
+- **Files modified:** `backend/internal/repository/group_contributors_repository.go`, `backend/internal/repository/group_contributors_repository_test.go`, `frontend/src/types/groupContributors.ts`, `frontend/src/components/fansubs/ProjectMemberRows.tsx`, `frontend/src/components/fansubs/ProjectMemberRows.test.tsx`, `frontend/src/app/anime/[id]/group/[groupId]/sections/TeamSection.test.tsx`, `shared/contracts/openapi.yaml`.
+
 ## Post-Fix Automated Gates
 
 | Command | Result | Notes |
@@ -81,6 +87,7 @@ automated pre-UAT gates.
 | `npm --prefix frontend run test -- src/app/admin/fansubs/[id]/edit/AnimeProjectNoteWorkspace.test.tsx` | PASS | 4 tests passed, including the hidden-default regression for `public/published` cockpit saves. |
 | `npm --prefix frontend run test -- src/app/admin/fansubs/[id]/edit/AnimeContributionModal.test.tsx` | PASS | 5 tests passed, including hidden project-team rows being saved as public/confirmed. |
 | `cd backend; go test ./internal/repository -run "TestGroupContributorsRepository|TestGetProjectContributors"` | PASS | Public contributors query keeps member_id-anchored project-team rows visible behind the public gates. |
+| `npm --prefix frontend run test -- src/components/fansubs/ProjectMemberRows.test.tsx src/app/anime/[id]/group/[groupId]/sections/TeamSection.test.tsx` | PASS | 6 tests passed, including project member avatar rendering. |
 | `git diff --check` | PASS | No whitespace/conflict-marker issues; Git reported LF-to-CRLF warnings only. |
 
 ## Route And Viewport Evidence

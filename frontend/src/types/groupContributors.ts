@@ -4,12 +4,14 @@ export interface GroupTeamMember {
   member_id: number
   member_display_name: string
   member_slug: string | null
+  member_avatar_url: string | null
   role_labels: string[]
 }
 
 export interface GroupExternalContributor {
   member_display_name: string
   member_slug: string | null
+  member_avatar_url: string | null
   role_labels: string[]
   is_verified: boolean
 }

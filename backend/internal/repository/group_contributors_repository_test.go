@@ -166,6 +166,8 @@ func TestGroupContributorsRepositoryUsesMemberAnchoredPublicProjectContributions
 	content := strings.ToLower(string(contentBytes))
 
 	assert.Contains(t, content, "join members m on m.id = ac.member_id")
+	assert.Contains(t, content, "nullif(trim(member_avatar.file_path), '') as member_avatar_url")
+	assert.Contains(t, content, "left join media_assets member_avatar on member_avatar.id = m.avatar_media_id")
 	assert.Contains(t, content, "left join hist_fansub_group_members hfgm on hfgm.id = ac.fansub_group_member_id")
 	assert.Contains(t, content, "left join visibilities v on v.id = ac.visibility_id")
 	assert.Contains(t, content, "coalesce(v.name, 'public') = 'public'")

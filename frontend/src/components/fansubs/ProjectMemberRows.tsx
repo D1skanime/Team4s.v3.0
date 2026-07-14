@@ -15,6 +15,7 @@ type ProjectMemberRow = {
   key: string
   member_display_name: string
   member_slug: string | null
+  member_avatar_url: string | null
   role_labels: string[]
 }
 
@@ -27,12 +28,14 @@ function toRows(
       key: `team-${member.member_id}`,
       member_display_name: member.member_display_name,
       member_slug: member.member_slug,
+      member_avatar_url: member.member_avatar_url,
       role_labels: member.role_labels,
     })),
     ...externalContributors.map((contributor) => ({
       key: `external-${contributor.member_slug ?? contributor.member_display_name}`,
       member_display_name: contributor.member_display_name,
       member_slug: contributor.member_slug,
+      member_avatar_url: contributor.member_avatar_url,
       role_labels: contributor.role_labels,
     })),
   ]
@@ -44,7 +47,7 @@ function ProjectMemberRowInner({ member }: { member: ProjectMemberRow }) {
 
   return (
     <>
-      <FansubMemberAvatar name={member.member_display_name} avatarUrl={null} />
+      <FansubMemberAvatar name={member.member_display_name} avatarUrl={member.member_avatar_url} />
       <span className={styles.memberMeta}>
         <span className={isLinked ? styles.memberNameLink : styles.memberName}>
           {member.member_display_name}

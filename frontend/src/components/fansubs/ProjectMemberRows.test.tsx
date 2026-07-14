@@ -8,6 +8,7 @@ const teamMember = (overrides: Partial<GroupTeamMember> = {}): GroupTeamMember =
   member_id: 1,
   member_display_name: 'Geclaimt',
   member_slug: 'example-slug',
+  member_avatar_url: null,
   role_labels: ['Übersetzung', 'Timing'],
   ...overrides,
 })
@@ -17,6 +18,7 @@ const externalContributor = (
 ): GroupExternalContributor => ({
   member_display_name: 'Externe Person',
   member_slug: null,
+  member_avatar_url: null,
   role_labels: ['Typesetting'],
   is_verified: true,
   ...overrides,

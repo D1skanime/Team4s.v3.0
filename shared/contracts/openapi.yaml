@@ -12034,6 +12034,9 @@ components:
         member_slug:
           type: string
           nullable: true
+        member_avatar_url:
+          type: string
+          nullable: true
         role_labels:
           type: array
           items:
@@ -12045,6 +12048,9 @@ components:
         member_display_name:
           type: string
         member_slug:
+          type: string
+          nullable: true
+        member_avatar_url:
           type: string
           nullable: true
         role_labels:

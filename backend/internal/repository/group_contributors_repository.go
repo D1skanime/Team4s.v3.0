@@ -24,6 +24,7 @@ type GroupTeamMember struct {
 	MemberID          int64    `json:"member_id"`
 	MemberDisplayName string   `json:"member_display_name"`
 	MemberSlug        *string  `json:"member_slug"`
+	MemberAvatarURL   *string  `json:"member_avatar_url"`
 	RoleLabels        []string `json:"role_labels"`
 }
 
@@ -31,6 +32,7 @@ type GroupTeamMember struct {
 type GroupExternalContributor struct {
 	MemberDisplayName string   `json:"member_display_name"`
 	MemberSlug        *string  `json:"member_slug"`
+	MemberAvatarURL   *string  `json:"member_avatar_url"`
 	RoleLabels        []string `json:"role_labels"`
 	IsVerified        bool     `json:"is_verified"`
 }
@@ -64,10 +66,12 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 		SELECT
 			` + displayCol + ` AS member_display_name,
 			` + slugCol + ` AS member_slug,
+			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
 			(ac.status = 'confirmed') AS is_verified,
 			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code)) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels
 		FROM anime_contributions ac
 		JOIN members m ON m.id = ac.member_id
+		LEFT JOIN media_assets member_avatar ON member_avatar.id = m.avatar_media_id
 		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 		LEFT JOIN visibilities v ON v.id = ac.visibility_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
@@ -78,7 +82,7 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 		  AND COALESCE(v.name, 'public') = 'public'
 		  AND (ac.fansub_group_member_id IS NULL OR hfgm.visibility = 'public')
 		  AND ac.release_version_id IS NULL
-		GROUP BY m.id, m.display_name, m.nickname, ac.status
+		GROUP BY m.id, m.display_name, m.nickname, member_avatar.file_path, ac.status
 		ORDER BY member_display_name
 	`
 
@@ -93,6 +97,7 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 		if err := extRows.Scan(
 			&c.MemberDisplayName,
 			&c.MemberSlug,
+			&c.MemberAvatarURL,
 			&c.IsVerified,
 			&c.RoleLabels,
 		); err != nil {
@@ -114,16 +119,18 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 			m.id AS member_id,
 			` + displayCol + ` AS member_display_name,
 			` + slugCol + ` AS member_slug,
+			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
 			COALESCE(ARRAY_AGG(DISTINCT cr.label) FILTER (WHERE cr.label IS NOT NULL), ARRAY[]::text[]) AS role_labels
 		FROM release_member_roles rmr
 		JOIN members m ON m.id = rmr.member_id
+		LEFT JOIN media_assets member_avatar ON member_avatar.id = m.avatar_media_id
 		JOIN contributor_roles cr ON cr.id = rmr.role_id
 		JOIN fansub_releases fr ON fr.id = rmr.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_versions rv ON rv.release_id = fr.id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		WHERE e.anime_id = $1 AND rvg.fansub_group_id = $2
-		GROUP BY m.id, m.display_name, m.nickname
+		GROUP BY m.id, m.display_name, m.nickname, member_avatar.file_path
 		ORDER BY m.id, member_display_name
 	`
 
@@ -139,6 +146,7 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 			&tm.MemberID,
 			&tm.MemberDisplayName,
 			&tm.MemberSlug,
+			&tm.MemberAvatarURL,
 			&tm.RoleLabels,
 		); err != nil {
 			return nil, fmt.Errorf("group contributors: team scan: %w", err)

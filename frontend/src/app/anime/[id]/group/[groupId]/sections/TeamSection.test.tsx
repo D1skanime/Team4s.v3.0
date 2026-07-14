@@ -8,6 +8,7 @@ const makeTeamMember = (overrides: Partial<GroupTeamMember> = {}): GroupTeamMemb
   member_id: 1,
   member_display_name: 'Testnutzer',
   member_slug: 'example-slug',
+  member_avatar_url: null,
   role_labels: ['Übersetzung'],
   ...overrides,
 })
@@ -15,6 +16,7 @@ const makeTeamMember = (overrides: Partial<GroupTeamMember> = {}): GroupTeamMemb
 const makeExternal = (overrides: Partial<GroupExternalContributor> = {}): GroupExternalContributor => ({
   member_display_name: 'Externer',
   member_slug: null,
+  member_avatar_url: null,
   role_labels: ['Timing'],
   is_verified: false,
   ...overrides,
@@ -45,6 +47,23 @@ describe('TeamSection', () => {
     expect(html).toContain('href="/members/external-slug"')
     expect(html).not.toContain('Team-Beteiligte')
     expect(html).not.toContain('Externe Mitwirkende')
+  })
+
+  it('renders project member avatars when the API provides avatar URLs', () => {
+    const html = renderToStaticMarkup(
+      <TeamSection
+        teamMembers={[
+          makeTeamMember({
+            member_display_name: 'Avatar Member',
+            member_avatar_url: '/media/profile/1/avatar/original.png',
+          }),
+        ]}
+        externalContributors={[]}
+      />,
+    )
+
+    expect(html).toContain('/media/profile/1/avatar/original.png')
+    expect(html).toContain('Avatar Member')
   })
 
   it('keeps the section title with a scoped empty state when no project contributors exist', () => {
