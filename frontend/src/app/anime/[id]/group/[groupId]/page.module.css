@@ -327,6 +327,46 @@
   padding: 24px 0;
 }
 
+.projectStoryArticle {
+  display: grid;
+  gap: 14px;
+  max-width: 68ch;
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.projectStoryContent,
+.projectStoryContentClamped,
+.projectStoryContentExpanded {
+  min-width: 0;
+}
+
+.projectStoryContent p,
+.projectStoryContentClamped p,
+.projectStoryContentExpanded p {
+  margin: 0;
+}
+
+.projectStoryContentClamped {
+  position: relative;
+  max-height: 12.8em;
+  overflow: hidden;
+}
+
+.projectStoryContentClamped::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 4em;
+  background: linear-gradient(180deg, transparent, var(--bg-primary));
+  pointer-events: none;
+}
+
+.projectStoryToggle {
+  justify-self: start;
+}
+
 .sectionShell {
   padding: 32px 0;
   border-top: 1px solid var(--border-subtle);
