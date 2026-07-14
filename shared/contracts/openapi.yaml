@@ -11925,6 +11925,12 @@ components:
         title:
           type: string
           nullable: true
+          description: >-
+            Public release label. Uses a curated release_versions.title only when
+            it is safe for public display; raw import or file names are unsafe
+            and are replaced by a neutral fallback built from episode title,
+            fansub group name, and release version.
+          example: Kanonenschuss (Honto) Version 1
         version_label:
           type: string
           nullable: true
@@ -12196,6 +12202,12 @@ components:
           type: string
         title:
           type: string
+          description: >-
+            Public release detail label. Uses a curated release_versions.title
+            only when it is safe for public display; raw import or file names are
+            unsafe and are replaced by a neutral fallback built from episode
+            title, fansub group name, and release version.
+          example: Kanonenschuss (Honto) Version 1
         release_date:
           type: string
           format: date-time

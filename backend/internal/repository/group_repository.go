@@ -168,6 +168,7 @@ func (r *GroupRepository) GetGroupReleases(
 		JOIN fansub_releases fr ON fr.id = rev.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		%s
 	`, whereSQL)
 
@@ -186,7 +187,7 @@ func (r *GroupRepository) GetGroupReleases(
 			rev.id,
 			e.id AS episode_id,
 			CAST(e.episode_number AS INTEGER) AS episode_number,
-			COALESCE(rev.title, e.title) AS title,
+			%s AS title,
 			NULLIF(BTRIM(rev.version), '') AS version_label,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			0::BIGINT AS screenshot_count,
@@ -195,13 +196,14 @@ func (r *GroupRepository) GetGroupReleases(
 		JOIN fansub_releases fr ON fr.id = rev.release_id
 		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
 		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		LEFT JOIN LATERAL (
 			SELECT 1
 		) AS release_assets_deferred ON TRUE
 		%s
 		ORDER BY CAST(e.episode_number AS INTEGER) ASC, rev.id ASC
 		LIMIT $%d OFFSET $%d
-	`, whereSQL, limitPos, offsetPos)
+	`, publicReleaseTitleSQL("rev", "e", "fg"), whereSQL, limitPos, offsetPos)
 
 	rows, err := r.db.Query(ctx, listQuery, append(args, filter.PerPage, offset)...)
 	if err != nil {
@@ -277,7 +279,7 @@ func (r *GroupRepository) buildReleasesWhere(
 	if filter.Q != "" {
 		trimmedQuery := strings.TrimSpace(filter.Q)
 		if trimmedQuery != "" {
-			searchConditions := []string{fmt.Sprintf("COALESCE(rev.title, e.title, '') ILIKE $%d", argPos)}
+			searchConditions := []string{fmt.Sprintf("COALESCE(%s, '') ILIKE $%d", publicReleaseTitleSQL("rev", "e", "fg"), argPos)}
 			args = append(args, "%"+trimmedQuery+"%")
 			argPos++
 
@@ -292,19 +294,19 @@ func (r *GroupRepository) buildReleasesWhere(
 	}
 
 	if filter.HasOP != nil {
-		conditions = append(conditions, buildRegexFilterCondition("COALESCE(rev.title, e.title, '')", opTitleRegex, argPos, *filter.HasOP))
+		conditions = append(conditions, buildRegexFilterCondition("COALESCE("+publicReleaseTitleSQL("rev", "e", "fg")+", '')", opTitleRegex, argPos, *filter.HasOP))
 		args = append(args, opTitleRegex)
 		argPos++
 	}
 
 	if filter.HasED != nil {
-		conditions = append(conditions, buildRegexFilterCondition("COALESCE(rev.title, e.title, '')", edTitleRegex, argPos, *filter.HasED))
+		conditions = append(conditions, buildRegexFilterCondition("COALESCE("+publicReleaseTitleSQL("rev", "e", "fg")+", '')", edTitleRegex, argPos, *filter.HasED))
 		args = append(args, edTitleRegex)
 		argPos++
 	}
 
 	if filter.HasKaraoke != nil {
-		conditions = append(conditions, buildRegexFilterCondition("COALESCE(rev.title, e.title, '')", karaokeTitleRegex, argPos, *filter.HasKaraoke))
+		conditions = append(conditions, buildRegexFilterCondition("COALESCE("+publicReleaseTitleSQL("rev", "e", "fg")+", '')", karaokeTitleRegex, argPos, *filter.HasKaraoke))
 		args = append(args, karaokeTitleRegex)
 		argPos++
 	}
@@ -325,6 +327,33 @@ func buildRegexFilterCondition(field string, pattern string, position int, expec
 		return condition
 	}
 	return "NOT (" + condition + ")"
+}
+
+func publicReleaseTitleSQL(releaseVersionAlias string, episodeAlias string, groupAlias string) string {
+	titleExpr := fmt.Sprintf("BTRIM(%s.title)", releaseVersionAlias)
+	episodeTitleExpr := fmt.Sprintf("NULLIF(BTRIM(%s.title), '')", episodeAlias)
+	fallbackEpisodeTitleExpr := fmt.Sprintf("CONCAT('Episode ', %s.episode_number)", episodeAlias)
+	versionExpr := publicReleaseVersionLabelSQL(releaseVersionAlias)
+
+	return fmt.Sprintf(`CASE
+				WHEN NULLIF(%[1]s, '') IS NOT NULL
+				  AND %[1]s !~* '\.(mkv|mp4|avi|m2ts|ass)([^[:alnum:]]|$)'
+				  AND POSITION('/' IN %[1]s) = 0
+				  AND POSITION('\' IN %[1]s) = 0
+				  AND %[1]s !~ '^\[[^]]+\]'
+				THEN %[1]s
+				ELSE CONCAT(COALESCE(%[2]s, %[3]s), ' (', %[4]s.name, ') ', %[5]s)
+			END`, titleExpr, episodeTitleExpr, fallbackEpisodeTitleExpr, groupAlias, versionExpr)
+}
+
+func publicReleaseVersionLabelSQL(releaseVersionAlias string) string {
+	versionExpr := fmt.Sprintf("NULLIF(BTRIM(%s.version), '')", releaseVersionAlias)
+
+	return fmt.Sprintf(`CASE
+				WHEN %[1]s IS NULL THEN 'Version 1'
+				WHEN %[1]s ~* '^version\s+' THEN %[1]s
+				ELSE CONCAT('Version ', REGEXP_REPLACE(%[1]s, '^[vV]\s*', ''))
+			END`, versionExpr)
 }
 
 // getOtherGroups retrieves other fansub groups that worked on this anime

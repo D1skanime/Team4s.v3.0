@@ -345,6 +345,134 @@ func TestGroupRepository_GetGroupReleases_ReturnsMultipleVersionsPerRelease(t *t
 	}
 }
 
+func TestGroupRepository_PublicReleaseTitleFallbackSafety(t *testing.T) {
+	repo := setupTestRepo(t)
+	ctx := context.Background()
+
+	animeID := createTestAnime(t, repo.db)
+	fansubRepo := NewFansubRepository(repo.db)
+	group, err := fansubRepo.CreateGroup(ctx, models.FansubGroupCreateInput{
+		Slug:   "honto-public-title-fallback",
+		Name:   "Honto",
+		Status: "active",
+	})
+	if err != nil {
+		t.Fatalf("failed to create test group: %v", err)
+	}
+	if _, err := fansubRepo.AttachAnimeFansub(ctx, animeID, group.ID, models.AnimeFansubAttachInput{IsPrimary: true}); err != nil {
+		t.Fatalf("failed to attach group: %v", err)
+	}
+
+	var episodeID int64
+	if err := repo.db.QueryRow(ctx, `
+		INSERT INTO episodes (anime_id, episode_number, title, status)
+		VALUES ($1, '2', 'Kanonenschuss', 'public')
+		RETURNING id
+	`, animeID).Scan(&episodeID); err != nil {
+		t.Fatalf("failed to create episode: %v", err)
+	}
+
+	var releaseID int64
+	if err := repo.db.QueryRow(ctx, `
+		INSERT INTO fansub_releases (episode_id)
+		VALUES ($1)
+		RETURNING id
+	`, episodeID).Scan(&releaseID); err != nil {
+		t.Fatalf("failed to create release: %v", err)
+	}
+
+	var releaseVersionID int64
+	if err := repo.db.QueryRow(ctx, `
+		INSERT INTO release_versions (release_id, version, title)
+		VALUES ($1, '1', 'Vipers Creed. S01E02-CSubs.mkv')
+		RETURNING id
+	`, releaseID).Scan(&releaseVersionID); err != nil {
+		t.Fatalf("failed to create release version: %v", err)
+	}
+	if _, err := repo.db.Exec(ctx, `
+		INSERT INTO release_version_groups (release_version_id, fansub_group_id)
+		VALUES ($1, $2)
+	`, releaseVersionID, group.ID); err != nil {
+		t.Fatalf("failed to create release version group: %v", err)
+	}
+
+	groupRepo := NewGroupRepository(repo.db)
+	data, total, err := groupRepo.GetGroupReleases(ctx, animeID, group.ID, models.GroupReleasesFilter{Page: 1, PerPage: 20})
+	if err != nil {
+		t.Fatalf("GetGroupReleases failed: %v", err)
+	}
+	if total != 1 || len(data.Episodes) != 1 {
+		t.Fatalf("expected one public release, got total=%d count=%d", total, len(data.Episodes))
+	}
+	const neutralFallback = "Kanonenschuss (Honto) Version 1"
+	if data.Episodes[0].Title == nil || *data.Episodes[0].Title != neutralFallback {
+		t.Fatalf("expected raw filename title to fall back to %q, got %#v", neutralFallback, data.Episodes[0].Title)
+	}
+
+	cursorPage, err := groupRepo.GetGroupReleasesCursor(ctx, animeID, group.ID, models.GroupReleasesFilter{}, "", 10)
+	if err != nil {
+		t.Fatalf("GetGroupReleasesCursor failed: %v", err)
+	}
+	if len(cursorPage.Items) != 1 || cursorPage.Items[0].Title == nil || *cursorPage.Items[0].Title != neutralFallback {
+		t.Fatalf("expected cursor list raw filename title fallback %q, got %#v", neutralFallback, cursorPage.Items)
+	}
+
+	detailRepo := NewReleaseDetailPublicRepository(repo.db, "")
+	detail, err := detailRepo.GetPublicReleaseDetail(ctx, animeID, group.ID, releaseVersionID)
+	if err != nil {
+		t.Fatalf("GetPublicReleaseDetail failed: %v", err)
+	}
+	if detail.Title != neutralFallback {
+		t.Fatalf("expected detail raw filename title fallback %q, got %q", neutralFallback, detail.Title)
+	}
+
+	const curatedTitle = "Kanonenschuss Director's Cut"
+	if _, err := repo.db.Exec(ctx, `
+		UPDATE release_versions
+		SET title = $1
+		WHERE id = $2
+	`, curatedTitle, releaseVersionID); err != nil {
+		t.Fatalf("failed to update release title: %v", err)
+	}
+
+	data, _, err = groupRepo.GetGroupReleases(ctx, animeID, group.ID, models.GroupReleasesFilter{Page: 1, PerPage: 20})
+	if err != nil {
+		t.Fatalf("GetGroupReleases with curated title failed: %v", err)
+	}
+	if data.Episodes[0].Title == nil || *data.Episodes[0].Title != curatedTitle {
+		t.Fatalf("expected curated release title %q to remain unchanged, got %#v", curatedTitle, data.Episodes[0].Title)
+	}
+}
+
+func TestReleaseDetailPublicTitleFallbackSource(t *testing.T) {
+	helperContent := readRepositorySource(t, "group_repository.go")
+	for _, fragment := range []string{
+		"func publicReleaseTitleSQL(",
+		"Version 1",
+		"mkv|mp4|avi|m2ts|ass",
+		"POSITION('/'",
+	} {
+		if !strings.Contains(helperContent, fragment) {
+			t.Fatalf("expected public release title helper to contain %q", fragment)
+		}
+	}
+
+	for fileName, content := range map[string]string{
+		"group_repository.go":                 helperContent,
+		"group_repository_cursor.go":          readRepositorySource(t, "group_repository_cursor.go"),
+		"release_detail_public_repository.go": readRepositorySource(t, "release_detail_public_repository.go"),
+	} {
+		for _, fragment := range []string{
+			"publicReleaseTitleSQL(",
+			"fansub_groups fg",
+		} {
+			if !strings.Contains(content, fragment) {
+				t.Fatalf("expected %s to use public release title fallback fragment %q", fileName, fragment)
+			}
+		}
+	}
+}
+
 // TestGetGroupStats_MemberCountMatchesCountVisibleTeamMembers pins the AO4-01
 // counting semantics at the source level (no DB harness available here — see
 // setupTestRepo). getGroupStats must sum active fansub_group_members (no

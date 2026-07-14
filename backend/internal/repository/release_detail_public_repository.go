@@ -147,21 +147,22 @@ func (r *ReleaseDetailPublicRepository) loadReleaseHeader(
 	releaseVersionID int64,
 ) (*releaseDetailHeader, error) {
 	var header releaseDetailHeader
-	err := r.db.QueryRow(ctx, `
+	err := r.db.QueryRow(ctx, fmt.Sprintf(`
 		SELECT
 			rv.id,
 			COALESCE(e.episode_number, ''),
-			COALESCE(NULLIF(rv.title, ''), e.title) AS title,
+			%s AS title,
 			COALESCE(rv.release_date, fr.release_date) AS release_date
 		FROM release_versions rv
 		JOIN fansub_releases fr ON fr.id = rv.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		WHERE rv.id = $1
 		  AND e.anime_id = $2
 		  AND rvg.fansub_group_id = $3
 		LIMIT 1
-	`, releaseVersionID, animeID, groupID).Scan(
+	`, publicReleaseTitleSQL("rv", "e", "fg")), releaseVersionID, animeID, groupID).Scan(
 		&header.ReleaseVersionID,
 		&header.EpisodeNumber,
 		&header.Title,

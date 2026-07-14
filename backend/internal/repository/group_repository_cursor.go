@@ -52,7 +52,7 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			rev.id,
 			e.id AS episode_id,
 			CAST(e.episode_number AS INTEGER) AS episode_number,
-			COALESCE(rev.title, e.title) AS title,
+			%s AS title,
 			NULLIF(BTRIM(rev.version), '') AS version_label,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
 			0::BIGINT AS screenshot_count,
@@ -88,10 +88,11 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		JOIN fansub_releases fr ON fr.id = rev.release_id
 		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
 		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
+		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		%s
 		ORDER BY CAST(e.episode_number AS INTEGER) ASC, rev.id ASC
 		LIMIT $%d
-	`, whereSQL, limitPos)
+	`, publicReleaseTitleSQL("rev", "e", "fg"), whereSQL, limitPos)
 
 	rows, err := r.db.Query(ctx, listQuery, append(args, limit+1)...)
 	if err != nil {
