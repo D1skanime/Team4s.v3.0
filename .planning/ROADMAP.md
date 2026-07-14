@@ -1743,14 +1743,14 @@ Plans:
 **Requirements**: Phase 102 Context D-01 bis D-07
 **Depends on:** Phase 101
 **Status:** Planned 2026-07-13
-**Plans:** 4/8 plans executed
+**Plans:** 5/8 plans executed
 
 Plans:
 - [x] `102-00-PLAN.md` - Kontrollplan: Fansubprojekt-UI als sequenzielle Diskussions-/Implementierungs-/UAT-Schritte
 - [x] `102-01-PLAN.md` - Shared public Fansub project page loader/composition extraction
 - [x] `102-02-PLAN.md` - Additive pretty route, `anime_slug` contract, public profile links, canonical metadata
 - [x] `102-03-PLAN.md` - Same-Fansub project navigation and hero `Coop mit ...` links
-- [ ] `102-04-PLAN.md` - `Geschichte des Fansub-Projekts` story block and project member row cleanup
+- [x] `102-04-PLAN.md` - `Geschichte des Fansub-Projekts` story block and project member row cleanup
 - [ ] `102-05-PLAN.md` - Public release title safety and `Releases zum Fansub` conservative section
 - [ ] `102-06-PLAN.md` - Remove section nav, global empty summary, standalone OP/ED/Middle, standalone Medien
 - [ ] `102-07-PLAN.md` - Entry-link, pretty route, technical route, release-title, and responsive UAT
