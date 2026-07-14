@@ -108,7 +108,7 @@ Additional visual tokens:
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | `Projekt öffnen` |
+| Primary CTA | `Fansub-Projekt öffnen` |
 | Empty state heading | `Noch kein öffentlicher Inhalt` |
 | Empty state body | `Dieser Bereich wird angezeigt, sobald öffentliche Inhalte für dieses Fansub-Projekt vorliegen.` |
 | Error state | `Fansub-Projekt konnte nicht geladen werden. Bitte später erneut versuchen oder zur Fansub-Seite zurückkehren.` |
@@ -219,4 +219,3 @@ Registry contract:
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
-
