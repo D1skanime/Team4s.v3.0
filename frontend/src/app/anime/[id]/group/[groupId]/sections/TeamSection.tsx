@@ -10,14 +10,16 @@ interface TeamSectionProps {
 }
 
 export function TeamSection({ teamMembers, externalContributors }: TeamSectionProps) {
-  if (teamMembers.length === 0 && externalContributors.length === 0) {
-    return null
-  }
+  const hasMembers = teamMembers.length > 0 || externalContributors.length > 0
 
   return (
     <div id="team" className={styles.teamSection}>
       <SectionHeader title="Mitwirkende am Fansub-Projekt" />
-      <ProjectMemberRows teamMembers={teamMembers} externalContributors={externalContributors} />
+      {hasMembers ? (
+        <ProjectMemberRows teamMembers={teamMembers} externalContributors={externalContributors} />
+      ) : (
+        <p className={styles.sectionEmptyState}>Noch keine öffentlichen Projektrollen hinterlegt.</p>
+      )}
     </div>
   )
 }

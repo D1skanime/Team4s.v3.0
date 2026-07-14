@@ -19,10 +19,6 @@ export function StorySection({ story, projectNotesHtml }: StorySectionProps) {
   const bodyText = story?.trim() ?? ''
   const [isExpanded, setIsExpanded] = useState(false)
 
-  if (!bodyHtml && !bodyText) {
-    return null
-  }
-
   const measureText = bodyHtml.replace(/<[^>]*>/g, ' ') || bodyText
   const isCollapsible = measureText.length > COLLAPSE_THRESHOLD
   const contentClassName = isExpanded ? styles.projectStoryContentExpanded : styles.projectStoryContentClamped
@@ -31,9 +27,13 @@ export function StorySection({ story, projectNotesHtml }: StorySectionProps) {
     <div id="story" className={styles.storySection}>
       <SectionHeader title="Geschichte des Fansub-Projekts" />
       <article className={styles.projectStoryArticle}>
-        <div className={isCollapsible ? contentClassName : styles.projectStoryContent}>
-          {bodyHtml ? <RichTextRenderer bodyHtml={bodyHtml} /> : <p>{bodyText}</p>}
-        </div>
+        {bodyHtml || bodyText ? (
+          <div className={isCollapsible ? contentClassName : styles.projectStoryContent}>
+            {bodyHtml ? <RichTextRenderer bodyHtml={bodyHtml} /> : <p>{bodyText}</p>}
+          </div>
+        ) : (
+          <p className={styles.sectionEmptyState}>Noch kein öffentlicher Projekttext hinterlegt.</p>
+        )}
         {isCollapsible ? (
           <Button
             type="button"

@@ -34,15 +34,11 @@ export function ProjectPage({ data }: ProjectPageProps) {
         groupAssetsResponse={data.groupAssetsResponse}
         releaseEpisodes={data.releaseEpisodes}
       />
-      {data.hasTeamContent ? (
-        <TeamSection
-          teamMembers={data.contributorsData.team_members}
-          externalContributors={data.contributorsData.external_contributors}
-        />
-      ) : null}
-      {data.storyAvailable ? (
-        <StorySection story={data.group.story} projectNotesHtml={data.projectNotesHtml} />
-      ) : null}
+      <StorySection story={data.group.story} projectNotesHtml={data.projectNotesHtml} />
+      <TeamSection
+        teamMembers={data.contributorsData.team_members}
+        externalContributors={data.contributorsData.external_contributors}
+      />
       {data.hasReleases ? (
         <ReleasesSection
           episodes={data.releaseEpisodes}

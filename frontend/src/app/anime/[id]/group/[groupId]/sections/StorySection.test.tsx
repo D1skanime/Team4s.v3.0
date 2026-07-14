@@ -18,7 +18,7 @@ describe('StorySection', () => {
     expect(html).not.toContain('Anime-Ausblicke')
   })
 
-  it('renders exactly one story block and omits the section when no public story exists', () => {
+  it('renders exactly one story block and keeps a scoped empty state when no public story exists', () => {
     const html = renderToStaticMarkup(
       <StorySection
         story="Kurzer Projekttext"
@@ -27,7 +27,10 @@ describe('StorySection', () => {
     )
 
     expect(html.match(/<article/g)).toHaveLength(1)
-    expect(renderToStaticMarkup(<StorySection story="" projectNotesHtml="" />)).toBe('')
+    const emptyHtml = renderToStaticMarkup(<StorySection story="" projectNotesHtml="" />)
+    expect(emptyHtml).toContain('Geschichte des Fansub-Projekts')
+    expect(emptyHtml).toContain('Noch kein öffentlicher Projekttext hinterlegt.')
+    expect(emptyHtml).not.toContain('Weitere Bereiche sind noch nicht')
   })
 
   it('uses the locked collapse labels for long project text', () => {

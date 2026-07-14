@@ -51,6 +51,12 @@ automated pre-UAT gates.
 - **Fix:** Clipped the backdrop inside the hero shell and constrained the desktop full-bleed width in the app shell context.
 - **Files modified:** `frontend/src/app/anime/[id]/group/[groupId]/page.module.css`.
 
+**5. [Rule 1 - Bug] Story and member sections disappeared when public data was empty**
+- **Found during:** Human visual acceptance.
+- **Issue:** The user accepted route/link, compatibility, responsive, and removed-section checks, but reported that all data for the locked visible labels was missing. The checked seed routes rendered `Releases zum Fansub`, but omitted `Geschichte des Fansub-Projekts` and `Mitwirkende am Fansub-Projekt` entirely when public story/project-role data was empty.
+- **Fix:** Story and member sections now remain visible and show scoped empty states (`Noch kein öffentlicher Projekttext hinterlegt.`, `Noch keine öffentlichen Projektrollen hinterlegt.`) instead of disappearing. This keeps the agreed page structure visible without reintroducing the removed global empty summary or exposing hidden/non-public contributor data.
+- **Files modified:** `frontend/src/app/anime/[id]/group/[groupId]/ProjectPage.tsx`, `frontend/src/app/anime/[id]/group/[groupId]/sections/StorySection.tsx`, `frontend/src/app/anime/[id]/group/[groupId]/sections/TeamSection.tsx`, `frontend/src/app/anime/[id]/group/[groupId]/page.module.css`, `StorySection.test.tsx`, `TeamSection.test.tsx`.
+
 ## Post-Fix Automated Gates
 
 | Command | Result | Notes |
@@ -102,8 +108,8 @@ Supporting browser automation: `npx --yes -p playwright@1.51.1 node -` with inst
 | Check | Result |
 | --- | --- |
 | `Releases zum Fansub` | PASS: visible on checked project routes. |
-| `Geschichte des Fansub-Projekts` | Not visible in the checked seeded routes because no public story content rendered for those projects. |
-| `Mitwirkende am Fansub-Projekt` | Not visible in the checked seeded routes because no public member section rendered for those projects. |
+| `Geschichte des Fansub-Projekts` | PASS after human-reported gap fix: visible on `/fansubs/c-subs/fansubprojekt/vipers-creed` and `/anime/13/group/1`; empty public story data renders `Noch kein öffentlicher Projekttext hinterlegt.` |
+| `Mitwirkende am Fansub-Projekt` | PASS after human-reported gap fix: visible on `/fansubs/c-subs/fansubprojekt/vipers-creed` and `/anime/13/group/1`; empty public project-role data renders `Noch keine öffentlichen Projektrollen hinterlegt.` |
 | `Neuestes Release` | PASS: absent. |
 | `Weitere Releases` | PASS: absent. |
 | Global empty summary `Weitere Bereiche sind noch nicht ...` | PASS: absent. |
@@ -113,5 +119,14 @@ Supporting browser automation: `npx --yes -p playwright@1.51.1 node -` with inst
 
 ## Human Visual Acceptance
 
-Pending. Do not mark approved before explicit user acceptance after reviewing
-the evidence and live routes.
+Partial human result recorded 2026-07-14:
+
+| Item | Result |
+| --- | --- |
+| 1. `/fansubs/c-subs` -> Viper's Creed pretty route | approved |
+| 2. `/anime/13/group/1` compatibility route | approved |
+| 3. Desktop/tablet/mobile responsive behavior | approved |
+| 4. Exact visible section labels | initially failed: "alle daten fehlen"; fixed with scoped empty-state section rendering and ready for recheck |
+| 5. Removed sections/copy | approved |
+
+Pending: user recheck/approval for item 4 after the scoped empty-state fix.

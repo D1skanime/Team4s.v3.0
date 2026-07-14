@@ -47,9 +47,11 @@ describe('TeamSection', () => {
     expect(html).not.toContain('Externe Mitwirkende')
   })
 
-  it('omits the section when no project contributors exist', () => {
+  it('keeps the section title with a scoped empty state when no project contributors exist', () => {
     const html = renderToStaticMarkup(<TeamSection teamMembers={[]} externalContributors={[]} />)
 
-    expect(html).toBe('')
+    expect(html).toContain('Mitwirkende am Fansub-Projekt')
+    expect(html).toContain('Noch keine öffentlichen Projektrollen hinterlegt.')
+    expect(html).not.toContain('Weitere Bereiche sind noch nicht')
   })
 })
