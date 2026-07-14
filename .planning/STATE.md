@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
 stopped_at: Completed 102-04-PLAN.md
-last_updated: "2026-07-14T15:59:39.199Z"
+last_updated: "2026-07-14T16:13:34.390Z"
 last_activity: 2026-07-14
 progress:
   total_phases: 93
   completed_phases: 77
   total_plans: 411
-  completed_plans: 381
-  percent: 93
+  completed_plans: 382
+  percent: 83
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 102 (fansubprojekte-ui-schrittweise-verbessern) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 
 ## Accumulated Context
 
@@ -303,6 +303,8 @@ Recent durable decisions:
 - [Phase 102-04]: Task 2 story live acceptance is deferred to final Phase 102 UAT by explicit user direction, not approved.
 - [Phase 102-04]: Project member rows use current safe /members/[slug] links only; no project-scoped member route was introduced.
 - [Phase 102-04]: Task 4 member live acceptance is deferred to final Phase 102 UAT by explicit user direction, not approved.
+- [Phase 102-05]: Task 3 release-section live acceptance is deferred to final Phase 102 UAT by explicit user direction, not approved.
+- [Phase 102-05]: Public release title safety must include the cursor release-list query because the visible release section consumes GetGroupReleasesCursor.
 
 ### Pending Todos
 
@@ -545,6 +547,7 @@ Recent durable decisions:
 | Phase 102 P02 | 14min | 3 tasks | 15 files |
 | Phase 102 P03 | 8min | 3 tasks | 8 files |
 | Phase 102 P04 | 8min | 4 tasks | 8 files |
+| Phase 102 P05 | 9min | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -618,7 +621,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-14T15:59:38.491Z
-Stopped at: Completed 102-04-PLAN.md
+Last session: 2026-07-14T16:13:30.000Z
+Stopped at: Completed 102-05-PLAN.md
 Last activity: 2026-07-14
 Resume file: None
