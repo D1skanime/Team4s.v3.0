@@ -3,7 +3,6 @@ import Link from 'next/link'
 import type { EpisodeReleaseSummary } from '@/types/group'
 
 import styles from '../page.module.css'
-import { LatestReleaseSection } from './LatestReleaseSection'
 import { OlderReleasesList } from './OlderReleasesList'
 
 interface ReleasesSectionProps {
@@ -22,15 +21,9 @@ interface ReleasesSectionProps {
 export function ReleasesSection({ episodes, animeID, groupID }: ReleasesSectionProps) {
   if (episodes.length === 0) return null
 
-  const latest = episodes[episodes.length - 1]
-  const hasOlderReleases = episodes.length > 1
-
   return (
     <>
-      <LatestReleaseSection animeID={animeID} groupID={groupID} releaseVersionID={latest.id} />
-      {hasOlderReleases ? (
-        <OlderReleasesList animeID={animeID} groupID={groupID} excludeReleaseVersionId={latest.id} />
-      ) : null}
+      <OlderReleasesList animeID={animeID} groupID={groupID} />
       <div className={styles.releasesCta}>
         <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>
           Alle Releases ansehen

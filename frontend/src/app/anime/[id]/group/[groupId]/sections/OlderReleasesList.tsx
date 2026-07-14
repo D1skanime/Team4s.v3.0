@@ -15,7 +15,7 @@ interface OlderReleasesListProps {
   animeID: number
   groupID: number
   /** release_version_id des bereits eingebetteten neuesten Release (AO4-11) — wird hier ausgeblendet. */
-  excludeReleaseVersionId: number
+  excludeReleaseVersionId?: number
 }
 
 const PAGE_LIMIT = 10
@@ -136,7 +136,7 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }:
         setCursor(page.next_cursor)
         setHasMore(page.has_more)
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Weitere Releases konnten nicht geladen werden.')
+        setError(err instanceof ApiError ? err.message : 'Releases konnten nicht geladen werden.')
       } finally {
         setLoading(false)
       }
@@ -165,12 +165,13 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }:
     return () => observerRef.current?.disconnect()
   }, [cursor, hasMore, loading, loadPage])
 
-  const visibleItems = items.filter((item) => item.id !== excludeReleaseVersionId)
+  const visibleItems =
+    excludeReleaseVersionId == null ? items : items.filter((item) => item.id !== excludeReleaseVersionId)
   const showSkeleton = loading && items.length === 0
 
   return (
     <div id="weitere-releases" className={styles.section}>
-      <SectionHeader title="Weitere Releases" />
+      <SectionHeader title="Releases zum Fansub" />
 
       {error ? <p className={styles.error}>{error}</p> : null}
 
