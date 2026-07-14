@@ -14,6 +14,10 @@ import {
   getPublicFansubProfileBySlug,
 } from "@/lib/api";
 import { buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
+import {
+  buildFansubProjectNavigation,
+  type FansubProjectNavigation,
+} from "@/lib/fansubProjectNavigation";
 import { buildGroupNavigationGroups } from "@/lib/groupNavigation";
 import { resolvePublicApiUrl } from "@/lib/publicApiUrl";
 import type { AnimeDetail } from "@/types/anime";
@@ -52,6 +56,7 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   hasMedia: boolean;
   emptyAreaLabels: string[];
   navigationGroups: FansubGroupSummary[];
+  fansubProjectNavigation: FansubProjectNavigation;
   breadcrumbItems: { label: string; href?: string }[];
   heroBackdropUrl: string | null;
   infoPanelBackgroundUrl: string | null;
@@ -200,6 +205,7 @@ export async function loadPublicFansubProjectPageData({
   let themesData: GroupThemesResponse = { themes: [] };
   let releaseMediaData: GroupReleaseMediaResponse = { items: [] };
   let projectNotesHtml: string | null = null;
+  let fansubProjectNavigation: FansubProjectNavigation = { previous: null, next: null };
 
   try {
     contributorsData = await getGroupContributors(animeID, groupID);
@@ -221,6 +227,23 @@ export async function loadPublicFansubProjectPageData({
     projectNotesHtml = projectNoteResponse.data?.body_html?.trim() || null;
   } catch {
     /* EmptyState */
+  }
+
+  try {
+    const fansubSlug = group.fansub.slug?.trim();
+    if (fansubSlug) {
+      const publicProfileResponse = await getPublicFansubProfileBySlug(fansubSlug);
+      const currentProject = publicProfileResponse.data.projects.find((project) => project.id === animeID);
+      fansubProjectNavigation = buildFansubProjectNavigation({
+        currentAnimeID: animeID,
+        currentAnimeSlug: currentProject?.anime_slug ?? null,
+        currentFansubGroupID: groupID,
+        currentFansubSlug: fansubSlug,
+        projects: publicProfileResponse.data.projects,
+      });
+    }
+  } catch {
+    /* Navigation degrades when the public profile project list is unavailable. */
   }
 
   const hasTeamContent =
@@ -312,6 +335,7 @@ export async function loadPublicFansubProjectPageData({
       hasMedia,
       emptyAreaLabels,
       navigationGroups,
+      fansubProjectNavigation,
       breadcrumbItems,
       heroBackdropUrl,
       infoPanelBackgroundUrl,
