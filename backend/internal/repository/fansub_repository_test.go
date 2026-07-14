@@ -57,6 +57,8 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 		"status = 'published'",
 		"deleted_at IS NULL",
 		"FROM anime_fansub_groups afg",
+		"a.slug",
+		"&project.AnimeSlug",
 		"FROM fansub_group_history",
 		"status = 'confirmed'",
 		"FROM fansub_group_media fgm",
