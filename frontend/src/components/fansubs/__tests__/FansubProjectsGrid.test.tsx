@@ -42,7 +42,7 @@ function makeItems(count: number) {
 
 describe('FansubProjectsGrid', () => {
   it('zeigt bei 20 oder weniger Projekten alle ohne Zaehler-Card', () => {
-    render(<FansubProjectsGrid items={makeItems(3)} groupId={5} />)
+    render(<FansubProjectsGrid items={makeItems(3)} groupId={5} groupSlug="c-subs" />)
 
     expect(screen.getByText('Projekt 1')).toBeTruthy()
     expect(screen.getByText('Projekt 3')).toBeTruthy()
@@ -50,7 +50,7 @@ describe('FansubProjectsGrid', () => {
   })
 
   it('zeigt bei mehr als 20 Projekten die ersten 20 + Zaehler-Card und klappt beim Klick alle aus', () => {
-    render(<FansubProjectsGrid items={makeItems(25)} groupId={5} />)
+    render(<FansubProjectsGrid items={makeItems(25)} groupId={5} groupSlug="c-subs" />)
 
     // Vorschau: erste 20, Rest verborgen
     expect(screen.getByText('Projekt 20')).toBeTruthy()

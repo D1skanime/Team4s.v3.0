@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { ProjectPage } from './ProjectPage'
 import {
+  buildPublicFansubProjectPath,
   buildEmptyAreaLabels,
   hasStoryContent,
   loadPublicFansubProjectPageData,
@@ -42,6 +43,14 @@ describe('shared extraction exports (102-01)', () => {
   it('Test 9: exposes the shared project loader and render composition', () => {
     expect(loadPublicFansubProjectPageData.name).toContain('loadPublicFansubProjectPageData')
     expect(ProjectPage).toBeTypeOf('function')
+  })
+})
+
+describe('buildPublicFansubProjectPath (102-02)', () => {
+  it('Test 10: builds the Fansub-owned canonical project path from slugs', () => {
+    expect(buildPublicFansubProjectPath('c-subs', 'vipers-creed')).toBe(
+      '/fansubs/c-subs/fansubprojekt/vipers-creed',
+    )
   })
 })
 

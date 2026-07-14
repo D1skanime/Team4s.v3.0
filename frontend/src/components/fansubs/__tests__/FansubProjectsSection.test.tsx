@@ -43,8 +43,9 @@ describe('FansubProjectBannerCard', () => {
   it('rendert das lazy Banner-Bild und die Status-Pill wenn banner_url gesetzt ist', () => {
     const { container } = render(
       <FansubProjectBannerCard
-        project={project({ banner_url: '/api/media/banner.jpg' })}
+        project={project({ anime_slug: 'vipers-creed', banner_url: '/api/media/banner.jpg' })}
         groupId={77}
+        fansubSlug="c-subs"
         statusLabel="Laufend"
       />,
     )
@@ -54,7 +55,7 @@ describe('FansubProjectBannerCard', () => {
     expect(img?.getAttribute('loading')).toBe('lazy')
     expect(img?.getAttribute('sizes')).toBeTruthy()
     expect(screen.getByText('Laufend')).toBeTruthy()
-    expect(screen.getByRole('link').getAttribute('href')).toBe('/anime/123/group/77')
+    expect(screen.getByRole('link').getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed')
   })
 
   it('faellt auf cover_image zurueck wenn kein banner_url gesetzt ist', () => {
@@ -62,6 +63,7 @@ describe('FansubProjectBannerCard', () => {
       <FansubProjectBannerCard
         project={project({ banner_url: null, cover_image: '/api/media/cover.jpg' })}
         groupId={77}
+        fansubSlug="c-subs"
         statusLabel="Abgeschlossen"
       />,
     )
@@ -75,6 +77,7 @@ describe('FansubProjectBannerCard', () => {
       <FansubProjectBannerCard
         project={project({ banner_url: null, cover_image: null })}
         groupId={77}
+        fansubSlug="c-subs"
         statusLabel="Archiviert"
       />,
     )
@@ -86,7 +89,7 @@ describe('FansubProjectBannerCard', () => {
 
 describe('FansubProjectsSection', () => {
   it('rendert keinen Abschnitt wenn keine Projekte geliefert werden', () => {
-    const { container } = render(<FansubProjectsSection projects={[]} groupId={77} />)
+    const { container } = render(<FansubProjectsSection projects={[]} groupId={77} groupSlug="c-subs" />)
 
     expect(container.innerHTML).toBe('')
   })
@@ -100,6 +103,7 @@ describe('FansubProjectsSection', () => {
           project({ id: 3, title: 'Archiviertes Projekt', status: 'cancelled' }),
         ]}
         groupId={77}
+        groupSlug="c-subs"
       />,
     )
     await act(async () => {
