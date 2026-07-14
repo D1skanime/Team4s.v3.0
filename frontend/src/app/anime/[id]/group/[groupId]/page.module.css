@@ -42,6 +42,7 @@
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   border-top: 3px solid var(--accent-deep);
+  overflow: hidden;
 }
 
 /* Full-Bleed unscharfer Banner/Backdrop -> banner-eigene Farben, unten in die Canvas auslaufend */
@@ -63,6 +64,12 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(15, 12, 25, 0.24) 0%, rgba(15, 12, 25, 0.4) 52%, var(--bg-primary) 100%);
+}
+
+@media (min-width: 1200px) {
+  .heroShell {
+    width: calc(100vw - 8px);
+  }
 }
 
 .heroFg {

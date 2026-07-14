@@ -325,10 +325,10 @@ func (r *FansubRepository) listPublicFansubStories(ctx context.Context, groupID 
 }
 
 func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID int64) ([]models.PublicFansubProject, error) {
-	rows, err := r.db.Query(ctx, `
+	rows, err := r.db.Query(ctx, fmt.Sprintf(`
 		SELECT
 			a.id,
-			a.slug,
+			%s AS anime_slug,
 			a.title,
 			a.type::text,
 			a.status::text,
@@ -372,7 +372,7 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 		WHERE afg.fansub_group_id = $1
 		  AND a.status <> 'disabled'
 		ORDER BY a.title ASC, a.id ASC
-	`, groupID)
+	`, publicAnimeSlugSQL("a")), groupID)
 	if err != nil {
 		return nil, fmt.Errorf("list public fansub projects for group %d: %w", groupID, err)
 	}
@@ -404,6 +404,14 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 		return nil, fmt.Errorf("iterate public fansub projects for group %d: %w", groupID, err)
 	}
 	return projects, nil
+}
+
+func publicAnimeSlugSQL(animeAlias string) string {
+	return fmt.Sprintf(`COALESCE(
+		NULLIF(BTRIM(%[1]s.slug), ''),
+		NULLIF(LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(REGEXP_REPLACE(BTRIM(%[1]s.title), '''', '', 'g'), '[^[:alnum:]]+', '-', 'g'))), ''),
+		CONCAT('anime-', %[1]s.id::text)
+	)`, animeAlias)
 }
 
 func (r *FansubRepository) listPublicFansubHistory(ctx context.Context, groupID int64) ([]models.PublicFansubHistory, error) {

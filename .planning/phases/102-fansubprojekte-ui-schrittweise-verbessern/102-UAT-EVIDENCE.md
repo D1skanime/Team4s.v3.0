@@ -25,9 +25,91 @@ the shared browser flow.
 Classification: no phase-blocking or unrelated existing failures found in the
 automated pre-UAT gates.
 
+## Auto-Fixed Issues During UAT
+
+**1. [Rule 1 - Bug] Public profile cards fell back to the technical route**
+- **Found during:** Task 2 route evidence.
+- **Issue:** `/fansubs/c-subs` still rendered Viper's Creed as `/anime/1/group/1` because the local public profile payload exposed blank `anime_slug` values.
+- **Fix:** `listPublicFansubProjects` now emits a server-side fallback slug from the Anime title when the stored slug is blank, while still preferring the stored `anime.slug`.
+- **Files modified:** `backend/internal/repository/fansub_repository.go`, `backend/internal/repository/fansub_repository_test.go`.
+
+**2. [Rule 1 - Bug] Pretty route was unavailable in Next dev routing**
+- **Found during:** Task 2 route evidence.
+- **Issue:** `/fansubs/c-subs/fansubprojekt/vipers-creed` returned 404 and Next logged `You cannot use different slug names for the same dynamic path ('slug' !== 'fansubSlug')`.
+- **Fix:** Moved the pretty route under the existing `/fansubs/[slug]` segment and adjusted the page params.
+- **Files modified:** `frontend/src/app/fansubs/[slug]/fansubprojekt/[animeSlug]/page.tsx`.
+
+**3. [Rule 1 - Bug] Profile project link lacked the locked link pattern**
+- **Found during:** Task 2 route evidence.
+- **Issue:** The card had the correct title but no `Fansub-Projekt oeffnen` link name.
+- **Fix:** Added an accessible `aria-label` to the existing project card link.
+- **Files modified:** `frontend/src/components/fansubs/FansubProjectBannerCard.tsx`, `frontend/src/components/fansubs/__tests__/FansubProjectsSection.test.tsx`.
+
+**4. [Rule 1 - Bug] Hero backdrop caused horizontal overflow**
+- **Found during:** Task 2 viewport evidence.
+- **Issue:** The scaled blurred hero backdrop and desktop full-bleed shell produced horizontal overflow in browser measurement.
+- **Fix:** Clipped the backdrop inside the hero shell and constrained the desktop full-bleed width in the app shell context.
+- **Files modified:** `frontend/src/app/anime/[id]/group/[groupId]/page.module.css`.
+
+## Post-Fix Automated Gates
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `npm --prefix frontend run typecheck` | PASS | Re-run after route/UI/backend-fix integration. |
+| `npm --prefix frontend run test -- src/app/anime/[id]/group/[groupId] src/components/fansubs src/lib/fansubProjectNavigation.test.ts` | PASS | 21 test files passed, 84 tests passed. |
+| `cd backend; go test ./internal/repository -run "Test.*Public.*Release.*Title|TestFansubRepository_PublicProfileSourceInvariants"` | PASS | Required release-title/public-profile tests passed. The new slug fallback source guard also passed in the focused backend re-run. |
+| `git diff --check` | PASS | No whitespace/conflict-marker issues; Git reported LF-to-CRLF warnings only. |
+
 ## Route And Viewport Evidence
 
-Pending Task 2 live/local browser evidence.
+Local app: `http://127.0.0.1:3000` via existing Docker dev stack. Backend was rebuilt once with `docker compose up -d --build team4sv30-backend`; frontend was restarted after route/CSS changes.
+
+Supporting browser automation: `npx --yes -p playwright@1.51.1 node -` with installed Chrome. This is supporting evidence only; final visual acceptance remains manual.
+
+### Entry Route
+
+| Check | Result |
+| --- | --- |
+| `/fansubs/c-subs` Viper's Creed card `href` | PASS: `/fansubs/c-subs/fansubprojekt/vipers-creed` |
+| Link pattern | PASS: `aria-label="Fansub-Projekt oeffnen: Viper's Creed"` |
+| Click target | PASS: browser click landed on `/fansubs/c-subs/fansubprojekt/vipers-creed` |
+| Sample pretty links | `/fansubs/c-subs/fansubprojekt/vipers-creed`, `/fansubs/c-subs/fansubprojekt/15-bishoujo-hyouryuuki`, `/fansubs/c-subs/fansubprojekt/aki-sora` |
+
+### Route Identity
+
+| Route | Result |
+| --- | --- |
+| `/fansubs/c-subs/fansubprojekt/vipers-creed` | PASS: HTTP 200; renders Viper's Creed project page. |
+| `/anime/13/group/1` | PASS: HTTP 200 compatibility route; canonical metadata points to `/fansubs/c-subs/fansubprojekt/arata-the-legend`. Local data maps Anime ID 13 to Arata the Legend, not Viper's Creed. |
+| `/fansubs/c-subs/fansubprojekt/arata-the-legend` | PASS: HTTP 200; same public project identity as `/anime/13/group/1`. |
+
+### Responsive Evidence
+
+| Route | Viewport | Width metric | Horizontal overflow | Notes |
+| --- | --- | --- | --- | --- |
+| `/fansubs/c-subs/fansubprojekt/vipers-creed` | desktop 1366x900 | `1366/1366` | PASS | Same-Fansub nav present: `Vorheriges Fansub-Projekt -> /fansubs/c-subs/fansubprojekt/tristia-of-the-deep-blue-sea`; `Coop mit` link present: `Honto -> /fansubs/honto`. |
+| `/fansubs/c-subs/fansubprojekt/vipers-creed` | tablet portrait 768x1024 | `768/768` | PASS | Same nav and coop link remain present. |
+| `/fansubs/c-subs/fansubprojekt/vipers-creed` | mobile 390x844 | `390/390` | PASS | No horizontal overflow measured. |
+| `/anime/13/group/1` | desktop 1366x900 | `1366/1366` | PASS | Canonical to `/fansubs/c-subs/fansubprojekt/arata-the-legend`; same-Fansub prev/next links stay within C-Subs. |
+| `/anime/13/group/1` | tablet portrait 768x1024 | `768/768` | PASS | No horizontal overflow measured. |
+| `/anime/13/group/1` | mobile 390x844 | `390/390` | PASS | No horizontal overflow measured. |
+| `/fansubs/c-subs/fansubprojekt/arata-the-legend` | desktop 1366x900 | `1366/1366` | PASS | Pretty route equivalent for the technical `/anime/13/group/1` identity. |
+| `/fansubs/c-subs/fansubprojekt/arata-the-legend` | tablet portrait 768x1024 | `768/768` | PASS | No horizontal overflow measured. |
+| `/fansubs/c-subs/fansubprojekt/arata-the-legend` | mobile 390x844 | `390/390` | PASS | No horizontal overflow measured. |
+
+### Labels, Removed Sections, Release Title Safety
+
+| Check | Result |
+| --- | --- |
+| `Releases zum Fansub` | PASS: visible on checked project routes. |
+| `Geschichte des Fansub-Projekts` | Not visible in the checked seeded routes because no public story content rendered for those projects. |
+| `Mitwirkende am Fansub-Projekt` | Not visible in the checked seeded routes because no public member section rendered for those projects. |
+| `Neuestes Release` | PASS: absent. |
+| `Weitere Releases` | PASS: absent. |
+| Global empty summary `Weitere Bereiche sind noch nicht ...` | PASS: absent. |
+| Standalone `OP/ED/Middle` | PASS: absent. |
+| Standalone `Medien` | PASS: absent. |
+| Release title unsafe strings | PASS: no `.mkv`, `.mp4`, `.avi`, `.m2ts`, Windows paths, or UNC path markers detected in the release section text of the checked routes. |
 
 ## Human Visual Acceptance
 

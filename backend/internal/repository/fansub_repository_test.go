@@ -57,7 +57,7 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 		"status = 'published'",
 		"deleted_at IS NULL",
 		"FROM anime_fansub_groups afg",
-		"a.slug",
+		"publicAnimeSlugSQL(\"a\")",
 		"&project.AnimeSlug",
 		"FROM fansub_group_history",
 		"status = 'confirmed'",
@@ -87,6 +87,21 @@ func TestFansubRepository_PublicProfileSourceInvariants(t *testing.T) {
 
 	if strings.Contains(content, "getAnimeList") {
 		t.Fatalf("public fansub profile must not depend on anime list fansub_id filtering")
+	}
+}
+
+func TestPublicAnimeSlugSQL_FallsBackWhenStoredSlugIsBlank(t *testing.T) {
+	expr := publicAnimeSlugSQL("a")
+
+	for _, fragment := range []string{
+		"NULLIF(BTRIM(a.slug), '')",
+		"REGEXP_REPLACE(BTRIM(a.title)",
+		"[^[:alnum:]]+",
+		"CONCAT('anime-', a.id::text)",
+	} {
+		if !strings.Contains(expr, fragment) {
+			t.Fatalf("expected public anime slug expression to contain %q, got %q", fragment, expr)
+		}
 	}
 }
 

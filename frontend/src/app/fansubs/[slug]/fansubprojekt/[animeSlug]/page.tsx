@@ -8,13 +8,13 @@ import { ApiError, getPublicFansubProfileBySlug } from "@/lib/api";
 
 interface PrettyFansubProjectPageProps {
   params:
-    | { fansubSlug: string; animeSlug: string }
-    | Promise<{ fansubSlug: string; animeSlug: string }>;
+    | { slug: string; animeSlug: string }
+    | Promise<{ slug: string; animeSlug: string }>;
 }
 
 export default async function PrettyFansubProjectPage({ params }: PrettyFansubProjectPageProps) {
   const resolvedParams = await params;
-  const fansubSlug = resolvedParams.fansubSlug?.trim();
+  const fansubSlug = resolvedParams.slug?.trim();
   const animeSlug = resolvedParams.animeSlug?.trim();
 
   if (!fansubSlug || !animeSlug) return notFound();

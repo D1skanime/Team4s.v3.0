@@ -35,7 +35,11 @@ export function FansubProjectBannerCard({
   const href = buildPublicFansubProjectHref({ project, groupId, fansubSlug })
 
   return (
-    <Link href={href} className={styles.bannerCard}>
+    <Link
+      href={href}
+      className={styles.bannerCard}
+      aria-label={`Fansub-Projekt öffnen: ${project.title}`}
+    >
       <div className={styles.bannerFrame}>
         {resolvedImageUrl ? (
           <Image

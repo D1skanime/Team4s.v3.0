@@ -133,8 +133,7 @@ describe('FansubProjectsSection', () => {
       />,
     )
 
-    expect(screen.getByRole('link', { name: /Viper's Creed/ }).getAttribute('href')).toBe(
-      '/fansubs/c-subs/fansubprojekt/vipers-creed',
-    )
+    const link = screen.getByRole('link', { name: /Fansub-Projekt öffnen: Viper's Creed/ })
+    expect(link.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed')
   })
 })
