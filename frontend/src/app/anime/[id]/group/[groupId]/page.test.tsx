@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { forwardRef, type ImgHTMLAttributes } from 'react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -8,11 +10,13 @@ import { ProjectPage } from './ProjectPage'
 import { HeroSection } from './sections/HeroSection'
 import {
   buildPublicFansubProjectPath,
-  buildEmptyAreaLabels,
   hasStoryContent,
   loadPublicFansubProjectPageData,
   parsePublicFansubProjectRouteParams,
 } from './projectPageData'
+
+const projectPageSource = () =>
+  readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/ProjectPage.tsx'), 'utf8')
 
 vi.mock('next/image', () => {
   const MockNextImage = forwardRef<
@@ -78,26 +82,31 @@ describe('buildPublicFansubProjectPath (102-02)', () => {
   })
 })
 
-describe('buildEmptyAreaLabels (AO4-07)', () => {
-  it('Test 4: returns no labels when every area has content', () => {
-    const labels = buildEmptyAreaLabels({
-      hasTeamContent: true, hasStory: true, hasReleases: true, hasThemes: true, hasMedia: true,
-    })
-    expect(labels).toEqual([])
+describe('ProjectPage removed section surfaces (102-06)', () => {
+  it('Test 4: does not import or render the old section jump list', () => {
+    const source = projectPageSource()
+
+    expect(source).not.toContain('GroupSectionsNav')
+    expect(source).not.toContain('id="themes"')
+    expect(source).not.toContain('id="medien"')
   })
 
-  it('Test 5: collects a label per empty area, in the declared order', () => {
-    const labels = buildEmptyAreaLabels({
-      hasTeamContent: false, hasStory: false, hasReleases: false, hasThemes: false, hasMedia: false,
-    })
-    expect(labels).toEqual(['Beteiligte am Projekt', 'Geschichte', 'Releases', 'OP/ED/Middle', 'Release-Einblicke'])
+  it('Test 5: does not render standalone theme or media sections', () => {
+    const source = projectPageSource()
+
+    expect(source).not.toContain('ThemesSection')
+    expect(source).not.toContain('MediaSection')
+    expect(source).not.toContain('OP/ED/Middle')
+    expect(source).not.toContain('Medien')
   })
 
-  it('Test 6: only the genuinely empty areas are collected', () => {
-    const labels = buildEmptyAreaLabels({
-      hasTeamContent: true, hasStory: false, hasReleases: true, hasThemes: false, hasMedia: true,
-    })
-    expect(labels).toEqual(['Geschichte', 'OP/ED/Middle'])
+  it('Test 6: does not render the old global empty-area summary', () => {
+    const source = projectPageSource()
+
+    expect(source).not.toContain('emptySummary')
+    expect(source).not.toContain('buildEmptyAreaLabels')
+    expect(source).not.toContain('Weitere Bereiche sind noch nicht')
+    expect(source).not.toContain('noch nicht öffentlich befüllt')
   })
 })
 
