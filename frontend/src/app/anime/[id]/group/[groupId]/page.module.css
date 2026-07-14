@@ -75,6 +75,7 @@
 
 /* Glas-Panel: Banner + Inhalt wie auf der Public-Fansubgruppe */
 .heroCard {
+  position: relative;
   display: grid;
   margin-top: 18px;
   border-radius: 18px;
@@ -184,6 +185,80 @@
   font-size: 26px;
   font-weight: 700;
   line-height: 1;
+}
+
+.coopLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.coopLabel {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.coopItem {
+  display: inline-flex;
+}
+
+.coopLink {
+  color: var(--accent-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.coopLink:hover {
+  text-decoration: underline;
+}
+
+.projectHeroNavigation {
+  position: absolute;
+  inset: 50% 12px auto 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.projectHeroNavLink {
+  display: inline-flex;
+  min-height: 44px;
+  max-width: min(260px, 34%);
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(95, 132, 221, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--accent-deep);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(18, 35, 64, 0.18);
+  pointer-events: auto;
+}
+
+.projectHeroNavLink span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectHeroNavLink:hover {
+  background: var(--surface-card);
+  color: var(--accent-primary);
+}
+
+.projectHeroNavNext {
+  margin-left: auto;
+  text-align: right;
 }
 
 .story {
@@ -372,6 +447,26 @@
 
   .stats {
     justify-content: flex-start;
+  }
+
+  .projectHeroNavigation {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0 18px 18px;
+    transform: none;
+  }
+
+  .projectHeroNavLink {
+    width: 100%;
+    max-width: none;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .projectHeroNavPrevious:only-child,
+  .projectHeroNavNext:only-child {
+    grid-column: 1 / -1;
   }
 
   .actions {

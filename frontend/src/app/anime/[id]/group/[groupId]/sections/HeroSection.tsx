@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
-import { GroupEdgeNavigation } from "@/components/groups/GroupEdgeNavigation";
+import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
 import type { FansubGroupSummary } from "@/types/fansub";
 import type { GroupDetail, EpisodeReleaseSummary } from "@/types/group";
 import type { GroupAssetsResponse } from "@/types/groupAsset";
@@ -25,7 +26,8 @@ interface HeroSectionProps {
   heroStyle: CSSProperties | undefined;
   infoPanelStyle: CSSProperties | undefined;
   breadcrumbItems: { label: string; href?: string }[];
-  navigationGroups: FansubGroupSummary[];
+  cooperationGroups: FansubGroupSummary[];
+  fansubProjectNavigation: FansubProjectNavigation;
   groupAssetsResponse: GroupAssetsResponse | null;
   releaseEpisodes: EpisodeReleaseSummary[];
 }
@@ -43,7 +45,8 @@ export function HeroSection({
   heroStyle,
   infoPanelStyle,
   breadcrumbItems,
-  navigationGroups,
+  cooperationGroups,
+  fansubProjectNavigation,
   groupAssetsResponse,
   releaseEpisodes,
 }: HeroSectionProps) {
@@ -55,6 +58,12 @@ export function HeroSection({
   const projectContributorCount = group.stats.project_contributor_count;
   // Album-Art-Backdrop: Anime-Backdrop bevorzugt, sonst Banner, sonst Poster
   const backdropUrl = heroBackdropUrl ?? infoPanelBackgroundUrl ?? posterImage;
+  const coopGroups = cooperationGroups.filter(
+    (coopGroup) => coopGroup.id !== groupID && Boolean(coopGroup.slug?.trim()),
+  );
+  const hasProjectNavigation = Boolean(
+    fansubProjectNavigation.previous || fansubProjectNavigation.next,
+  );
 
   return (
     <>
@@ -121,20 +130,47 @@ export function HeroSection({
                     <dd>{releaseEpisodes.length}</dd>
                   </div>
                 </dl>
+                {coopGroups.length > 0 ? (
+                  <p className={styles.coopLine}>
+                    <span className={styles.coopLabel}>Coop mit</span>{" "}
+                    {coopGroups.map((coopGroup, index) => (
+                      <span key={coopGroup.id} className={styles.coopItem}>
+                        {index > 0 ? <span aria-hidden="true">, </span> : null}
+                        <Link href={`/fansubs/${coopGroup.slug}`} className={styles.coopLink}>
+                          {coopGroup.name}
+                        </Link>
+                      </span>
+                    ))}
+                  </p>
+                ) : null}
               </div>
             </div>
+            {hasProjectNavigation ? (
+              <nav className={styles.projectHeroNavigation} aria-label="Weitere Projekte">
+                {fansubProjectNavigation.previous ? (
+                  <Link
+                    href={fansubProjectNavigation.previous.href}
+                    className={`${styles.projectHeroNavLink} ${styles.projectHeroNavPrevious}`}
+                    aria-label="Vorheriges Fansub-Projekt"
+                  >
+                    <ChevronLeft size={19} aria-hidden="true" />
+                    <span>{fansubProjectNavigation.previous.title}</span>
+                  </Link>
+                ) : null}
+                {fansubProjectNavigation.next ? (
+                  <Link
+                    href={fansubProjectNavigation.next.href}
+                    className={`${styles.projectHeroNavLink} ${styles.projectHeroNavNext}`}
+                    aria-label="Nächstes Fansub-Projekt"
+                  >
+                    <span>{fansubProjectNavigation.next.title}</span>
+                    <ChevronRight size={19} aria-hidden="true" />
+                  </Link>
+                ) : null}
+              </nav>
+            ) : null}
           </div>
         </div>
-        {navigationGroups.length > 1 ? (
-          <GroupEdgeNavigation
-            currentGroupId={groupID}
-            animeId={animeID}
-            animeTitle={anime.title}
-            otherGroups={navigationGroups}
-            mode="story"
-            currentGroupName={group.fansub.name}
-          />
-        ) : null}
       </section>
 
       {hasGroupFolder && hasEpisodeAssets ? (

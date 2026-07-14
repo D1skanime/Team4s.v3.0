@@ -32,7 +32,8 @@ export function ProjectPage({ data }: ProjectPageProps) {
         heroStyle={data.heroStyle}
         infoPanelStyle={data.infoPanelStyle}
         breadcrumbItems={data.breadcrumbItems}
-        navigationGroups={data.navigationGroups}
+        cooperationGroups={data.navigationGroups.filter((group) => group.id !== data.groupID)}
+        fansubProjectNavigation={data.fansubProjectNavigation}
         groupAssetsResponse={data.groupAssetsResponse}
         releaseEpisodes={data.releaseEpisodes}
       />

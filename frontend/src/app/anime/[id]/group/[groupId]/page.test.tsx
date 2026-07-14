@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
+
+import { forwardRef, type ImgHTMLAttributes } from 'react'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ProjectPage } from './ProjectPage'
+import { HeroSection } from './sections/HeroSection'
 import {
   buildPublicFansubProjectPath,
   buildEmptyAreaLabels,
@@ -8,6 +13,25 @@ import {
   loadPublicFansubProjectPageData,
   parsePublicFansubProjectRouteParams,
 } from './projectPageData'
+
+vi.mock('next/image', () => {
+  const MockNextImage = forwardRef<
+    HTMLImageElement,
+    ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean; priority?: boolean; fill?: boolean }
+  >(({ alt, unoptimized, priority, fill, ...props }, ref) => {
+    void unoptimized
+    void priority
+    void fill
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img ref={ref} alt={alt} {...props} />
+  })
+  MockNextImage.displayName = 'MockNextImage'
+  return { default: MockNextImage }
+})
+
+afterEach(() => {
+  cleanup()
+})
 
 describe('hasStoryContent (AO4-13)', () => {
   it('Test 1: returns false when both story and projectNotesHtml are empty/null', () => {
@@ -74,5 +98,83 @@ describe('buildEmptyAreaLabels (AO4-07)', () => {
       hasTeamContent: true, hasStory: false, hasReleases: true, hasThemes: false, hasMedia: true,
     })
     expect(labels).toEqual(['Geschichte', 'OP/ED/Middle'])
+  })
+})
+
+describe('HeroSection navigation (102-03)', () => {
+  const group = {
+    fansub: { id: 1, slug: 'c-subs', name: 'C-Subs', logo_url: null },
+    stats: { project_contributor_count: 4 },
+    story: null,
+  } as never
+  const anime = { id: 13, title: "Viper's Creed" } as never
+
+  it('rendert same-Fansub-Controls mit den exakten Accessible Labels', () => {
+    render(
+      <HeroSection
+        group={group}
+        anime={anime}
+        groupID={1}
+        animeID={13}
+        heroBackdropUrl={null}
+        infoPanelBackgroundUrl={null}
+        heroImageUrl={null}
+        heroImageIsBanner={false}
+        posterImage={null}
+        heroStyle={undefined}
+        infoPanelStyle={undefined}
+        breadcrumbItems={[]}
+        cooperationGroups={[]}
+        fansubProjectNavigation={{
+          previous: {
+            id: 7,
+            title: 'Another',
+            animeSlug: 'another',
+            href: '/fansubs/c-subs/fansubprojekt/another',
+          },
+          next: {
+            id: 9,
+            title: 'Zeta',
+            animeSlug: 'zeta',
+            href: '/fansubs/c-subs/fansubprojekt/zeta',
+          },
+        }}
+        groupAssetsResponse={null}
+        releaseEpisodes={[]}
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: 'Vorheriges Fansub-Projekt' }).getAttribute('href')).toBe(
+      '/fansubs/c-subs/fansubprojekt/another',
+    )
+    expect(screen.getByRole('link', { name: 'Nächstes Fansub-Projekt' }).getAttribute('href')).toBe(
+      '/fansubs/c-subs/fansubprojekt/zeta',
+    )
+  })
+
+  it('rendert Kooperation nur als Coop-mit-Link zur anderen Fansubgruppe', () => {
+    render(
+      <HeroSection
+        group={group}
+        anime={anime}
+        groupID={1}
+        animeID={13}
+        heroBackdropUrl={null}
+        infoPanelBackgroundUrl={null}
+        heroImageUrl={null}
+        heroImageIsBanner={false}
+        posterImage={null}
+        heroStyle={undefined}
+        infoPanelStyle={undefined}
+        breadcrumbItems={[]}
+        cooperationGroups={[{ id: 2, slug: 'honto', name: 'Honto', logo_url: null }]}
+        fansubProjectNavigation={{ previous: null, next: null }}
+        groupAssetsResponse={null}
+        releaseEpisodes={[]}
+      />,
+    )
+
+    expect(screen.getByText('Coop mit')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Honto' }).getAttribute('href')).toBe('/fansubs/honto')
   })
 })
