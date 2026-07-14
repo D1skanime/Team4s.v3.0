@@ -121,4 +121,20 @@ describe('FansubProjectsSection', () => {
     expect(screen.getByText('Abgeschlossenes Projekt')).toBeTruthy()
     expect(screen.getByText('Archiviertes Projekt')).toBeTruthy()
   })
+
+  it('verdrahtet Profil-Projekte mit group.slug und anime_slug auf die Pretty-Route', () => {
+    render(
+      <FansubProjectsSection
+        projects={[
+          project({ id: 13, title: "Viper's Creed", anime_slug: 'vipers-creed' }),
+        ]}
+        groupId={1}
+        groupSlug="c-subs"
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: /Viper's Creed/ }).getAttribute('href')).toBe(
+      '/fansubs/c-subs/fansubprojekt/vipers-creed',
+    )
+  })
 })

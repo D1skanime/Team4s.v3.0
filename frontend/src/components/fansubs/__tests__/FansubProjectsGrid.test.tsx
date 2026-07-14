@@ -46,6 +46,9 @@ describe('FansubProjectsGrid', () => {
 
     expect(screen.getByText('Projekt 1')).toBeTruthy()
     expect(screen.getByText('Projekt 3')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Projekt 1/ }).getAttribute('href')).toBe(
+      '/fansubs/c-subs/fansubprojekt/projekt-1',
+    )
     expect(screen.queryByRole('button', { name: /Projekte anzeigen/ })).toBeNull()
   })
 

@@ -28,7 +28,7 @@ export default async function PrettyFansubProjectPage({ params }: PrettyFansubPr
   }
 
   const profile = profileResponse.data;
-  const project = profile.projects.find((item) => item.anime_slug === animeSlug);
+  const project = profile.projects.find((item) => item.anime_slug?.trim() === animeSlug);
   if (!project) return notFound();
 
   const result = await loadPublicFansubProjectPageData({
