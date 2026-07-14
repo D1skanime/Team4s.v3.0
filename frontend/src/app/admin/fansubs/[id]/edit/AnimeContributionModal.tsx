@@ -200,13 +200,16 @@ export default function AnimeContributionModal({
       const rowsToWrite = rowsForSave.filter(
         (row) =>
           row.isNew ||
-          !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []),
+          !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []) ||
+          originalById.get(row.contribution_id)?.is_public_on_anime_page !== true ||
+          originalById.get(row.contribution_id)?.is_public_on_member_profile !== true ||
+          originalById.get(row.contribution_id)?.status !== 'confirmed',
       )
 
       await Promise.all(
         rowsToWrite.map((row) => {
           const original = originalById.get(row.contribution_id)
-          const status = original?.status ?? 'confirmed'
+          const status = 'confirmed'
           const defaultPublic = status === 'confirmed'
           return upsertAnimeContribution(fansubId, animeId, {
             member_id: row.member_id,
@@ -215,8 +218,8 @@ export default function AnimeContributionModal({
             started_year: original?.started_year ?? null,
             ended_year: original?.ended_year ?? null,
             note: original?.note ?? null,
-            is_public_on_anime_page: original?.is_public_on_anime_page ?? defaultPublic,
-            is_public_on_member_profile: original?.is_public_on_member_profile ?? defaultPublic,
+            is_public_on_anime_page: defaultPublic,
+            is_public_on_member_profile: defaultPublic,
             status,
           })
         }),

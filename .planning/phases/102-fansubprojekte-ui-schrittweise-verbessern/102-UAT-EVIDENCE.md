@@ -64,6 +64,13 @@ automated pre-UAT gates.
 - **Local UAT data correction:** The existing Viper Creed row (`anime_id=1`, `fansub_group_id=1`) was updated from `internal/draft` to `public/published` after the code fix because it had been saved through the broken hidden-default path. The second local draft row remained untouched.
 - **Files modified:** `frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectNoteWorkspace.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectNoteWorkspace.test.tsx`.
 
+**7. [Rule 1 - Bug] Cockpit project team members were hidden on the public project page**
+- **Found during:** Human visual acceptance recheck after item 6.
+- **Issue:** The user reported that Viper Creed has project members, but the public page rendered `Noch keine öffentlichen Projektrollen hinterlegt.` Investigation showed three confirmed `anime_contributions` rows for the project. They were hidden because older cockpit saves had `is_public_on_anime_page=false`, and the public project contributors query still required `fansub_group_member_id` even though current rows are anchored by `member_id`.
+- **Fix:** The public project contributors query now reads member-anchored `anime_contributions`, keeps the public visibility gate (`is_public_on_anime_page=true`, `COALESCE(visibility, public)=public`), and uses historical group-member visibility only when such a historical row exists. The cockpit contribution modal now saves project-team rows as `confirmed` and public because that UI has no status/visibility controls, and rewrites old hidden rows on save.
+- **Local UAT data correction:** The three confirmed Viper Creed contribution rows (`anime_id=1`, `fansub_group_id=1`) were updated to `is_public_on_anime_page=true` and `is_public_on_member_profile=true` after the code fix because they had been saved through the hidden-default path.
+- **Files modified:** `backend/internal/repository/group_contributors_repository.go`, `backend/internal/repository/group_contributors_repository_test.go`, `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/AnimeContributionModal.test.tsx`.
+
 ## Post-Fix Automated Gates
 
 | Command | Result | Notes |
@@ -72,6 +79,8 @@ automated pre-UAT gates.
 | `npm --prefix frontend run test -- src/app/anime/[id]/group/[groupId] src/components/fansubs src/lib/fansubProjectNavigation.test.ts` | PASS | 21 test files passed, 84 tests passed. |
 | `cd backend; go test ./internal/repository -run "Test.*Public.*Release.*Title|TestFansubRepository_PublicProfileSourceInvariants"` | PASS | Required release-title/public-profile tests passed. The new slug fallback source guard also passed in the focused backend re-run. |
 | `npm --prefix frontend run test -- src/app/admin/fansubs/[id]/edit/AnimeProjectNoteWorkspace.test.tsx` | PASS | 4 tests passed, including the hidden-default regression for `public/published` cockpit saves. |
+| `npm --prefix frontend run test -- src/app/admin/fansubs/[id]/edit/AnimeContributionModal.test.tsx` | PASS | 5 tests passed, including hidden project-team rows being saved as public/confirmed. |
+| `cd backend; go test ./internal/repository -run "TestGroupContributorsRepository|TestGetProjectContributors"` | PASS | Public contributors query keeps member_id-anchored project-team rows visible behind the public gates. |
 | `git diff --check` | PASS | No whitespace/conflict-marker issues; Git reported LF-to-CRLF warnings only. |
 
 ## Route And Viewport Evidence

@@ -58,23 +58,27 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 
 	// Query A: Externe Mitwirkende aus anime_contributions gescoped auf Gruppe+Anime.
 	// Nur is_public_on_anime_page=true, visibility='public', release_version_id IS NULL.
+	// Aktuelle Projektteam-Zeilen sind member_id-anchored; historische Gruppenmember
+	// bleiben optional als zusaetzliches Sichtbarkeits-Gate erhalten.
 	externalQuery := `
 		SELECT
 			` + displayCol + ` AS member_display_name,
 			` + slugCol + ` AS member_slug,
 			(ac.status = 'confirmed') AS is_verified,
-			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, acr.role_code)) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels
+			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code)) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels
 		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		JOIN members m ON m.id = hfgm.member_id
+		JOIN members m ON m.id = ac.member_id
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		LEFT JOIN visibilities v ON v.id = ac.visibility_id
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 		WHERE ac.anime_id = $1
 		  AND ac.fansub_group_id = $2
 		  AND ac.is_public_on_anime_page = true
-		  AND hfgm.visibility = 'public'
+		  AND COALESCE(v.name, 'public') = 'public'
+		  AND (ac.fansub_group_member_id IS NULL OR hfgm.visibility = 'public')
 		  AND ac.release_version_id IS NULL
-		GROUP BY m.display_name, m.nickname, ac.status
+		GROUP BY m.id, m.display_name, m.nickname, ac.status
 		ORDER BY member_display_name
 	`
 

@@ -159,3 +159,16 @@ func TestGroupPublicMediaRepositoriesGatePublicApprovedReadyMedia(t *testing.T) 
 		assert.Contains(t, normalized, "mf_thumb.status = 'ready'", "%s must exclude failed thumbnails", name)
 	}
 }
+
+func TestGroupContributorsRepositoryUsesMemberAnchoredPublicProjectContributions(t *testing.T) {
+	contentBytes, err := os.ReadFile("group_contributors_repository.go")
+	require.NoError(t, err)
+	content := strings.ToLower(string(contentBytes))
+
+	assert.Contains(t, content, "join members m on m.id = ac.member_id")
+	assert.Contains(t, content, "left join hist_fansub_group_members hfgm on hfgm.id = ac.fansub_group_member_id")
+	assert.Contains(t, content, "left join visibilities v on v.id = ac.visibility_id")
+	assert.Contains(t, content, "coalesce(v.name, 'public') = 'public'")
+	assert.Contains(t, content, "ac.is_public_on_anime_page = true")
+	assert.NotContains(t, content, "join hist_fansub_group_members hfgm on hfgm.id = ac.fansub_group_member_id\n\t\tjoin members m on m.id = hfgm.member_id")
+}

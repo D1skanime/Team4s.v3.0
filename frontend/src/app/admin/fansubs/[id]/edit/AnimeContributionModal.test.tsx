@@ -152,6 +152,38 @@ describe('AnimeContributionModal', () => {
         member_id: 12,
         role_codes: ['translator', 'timer'],
         release_version_id: null,
+        status: 'confirmed',
+        is_public_on_anime_page: true,
+        is_public_on_member_profile: true,
+      }))
+    })
+  })
+
+  it('veröffentlicht bestehende versteckte Projekt-Mitwirkende beim Speichern', async () => {
+    upsertAnimeContributionMock.mockResolvedValue({ data: {} })
+
+    render(
+      <AnimeContributionModal
+        fansubId={1}
+        animeId={13}
+        animeTitle="Naruto"
+        members={TEST_MEMBERS}
+        existingContributions={[EXISTING_TRANSLATOR_CONTRIBUTION]}
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => {
+      expect(upsertAnimeContributionMock).toHaveBeenCalledWith(1, 13, expect.objectContaining({
+        member_id: 12,
+        role_codes: ['translator'],
+        release_version_id: null,
+        status: 'confirmed',
+        is_public_on_anime_page: true,
+        is_public_on_member_profile: true,
       }))
     })
   })
