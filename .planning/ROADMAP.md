@@ -1743,10 +1743,10 @@ Plans:
 **Requirements**: Phase 102 Context D-01 bis D-07
 **Depends on:** Phase 101
 **Status:** Planned 2026-07-13
-**Plans:** 8 plans
+**Plans:** 1/8 plans executed
 
 Plans:
-- [ ] `102-00-PLAN.md` - Kontrollplan: Fansubprojekt-UI als sequenzielle Diskussions-/Implementierungs-/UAT-Schritte
+- [x] `102-00-PLAN.md` - Kontrollplan: Fansubprojekt-UI als sequenzielle Diskussions-/Implementierungs-/UAT-Schritte
 - [ ] `102-01-PLAN.md` - Shared public Fansub project page loader/composition extraction
 - [ ] `102-02-PLAN.md` - Additive pretty route, `anime_slug` contract, public profile links, canonical metadata
 - [ ] `102-03-PLAN.md` - Same-Fansub project navigation and hero `Coop mit ...` links
