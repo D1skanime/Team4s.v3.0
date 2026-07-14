@@ -1,11 +1,8 @@
-import { GroupSectionsNav } from "./GroupSectionsNav";
 import { BacklinksSection } from "./sections/BacklinksSection";
 import { HeroSection } from "./sections/HeroSection";
-import { MediaSection } from "./sections/MediaSection";
 import { ReleasesSection } from "./sections/ReleasesSection";
 import { StorySection } from "./sections/StorySection";
 import { TeamSection } from "./sections/TeamSection";
-import { ThemesSection } from "./sections/ThemesSection";
 import styles from "./page.module.css";
 import type { PublicFansubProjectPageData } from "./projectPageData";
 
@@ -37,7 +34,6 @@ export function ProjectPage({ data }: ProjectPageProps) {
         groupAssetsResponse={data.groupAssetsResponse}
         releaseEpisodes={data.releaseEpisodes}
       />
-      <GroupSectionsNav />
       {data.hasTeamContent ? (
         <TeamSection
           teamMembers={data.contributorsData.team_members}
@@ -53,16 +49,6 @@ export function ProjectPage({ data }: ProjectPageProps) {
           animeID={data.animeID}
           groupID={data.groupID}
         />
-      ) : null}
-      {data.hasThemes ? <ThemesSection themes={data.themesData.themes} /> : null}
-      {data.hasMedia ? <MediaSection items={data.releaseMediaData.items} /> : null}
-      {data.emptyAreaLabels.length > 0 ? (
-        <aside className={styles.emptySummary} aria-label="Noch offene Projektbereiche">
-          <p>
-            Weitere Bereiche sind noch nicht öffentlich befüllt:{" "}
-            {data.emptyAreaLabels.join(", ")}.
-          </p>
-        </aside>
       ) : null}
       <BacklinksSection fansubSlug={data.group.fansub.slug} animeID={data.animeID} />
     </main>

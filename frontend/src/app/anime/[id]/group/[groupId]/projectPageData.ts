@@ -54,7 +54,6 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   hasReleases: boolean;
   hasThemes: boolean;
   hasMedia: boolean;
-  emptyAreaLabels: string[];
   navigationGroups: FansubGroupSummary[];
   fansubProjectNavigation: FansubProjectNavigation;
   breadcrumbItems: { label: string; href?: string }[];
@@ -79,23 +78,6 @@ export function hasStoryContent(
   projectNotesHtml: string | null | undefined,
 ): boolean {
   return Boolean((projectNotesHtml ?? story)?.trim());
-}
-
-/** AO4-07: ein einziger Sammel-Hinweis fuer tatsaechlich leere Bereiche statt Einzel-Rendern. */
-export function buildEmptyAreaLabels(params: {
-  hasTeamContent: boolean;
-  hasStory: boolean;
-  hasReleases: boolean;
-  hasThemes: boolean;
-  hasMedia: boolean;
-}): string[] {
-  const labels: string[] = [];
-  if (!params.hasTeamContent) labels.push("Beteiligte am Projekt");
-  if (!params.hasStory) labels.push("Geschichte");
-  if (!params.hasReleases) labels.push("Releases");
-  if (!params.hasThemes) labels.push("OP/ED/Middle");
-  if (!params.hasMedia) labels.push("Release-Einblicke");
-  return labels;
 }
 
 export function parsePublicFansubProjectRouteParams(
@@ -253,13 +235,6 @@ export async function loadPublicFansubProjectPageData({
   const hasReleases = releaseEpisodes.length > 0;
   const hasThemes = themesData.themes.length > 0;
   const hasMedia = releaseMediaData.items.length > 0;
-  const emptyAreaLabels = buildEmptyAreaLabels({
-    hasTeamContent,
-    hasStory: storyAvailable,
-    hasReleases,
-    hasThemes,
-    hasMedia,
-  });
 
   const navigationGroups = buildGroupNavigationGroups({
     currentGroup: group.fansub,
@@ -333,7 +308,6 @@ export async function loadPublicFansubProjectPageData({
       hasReleases,
       hasThemes,
       hasMedia,
-      emptyAreaLabels,
       navigationGroups,
       fansubProjectNavigation,
       breadcrumbItems,
