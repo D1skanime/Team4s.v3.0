@@ -1,76 +1,55 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import type { GroupTeamMember, GroupExternalContributor } from '@/types/groupContributors'
+import type { GroupExternalContributor, GroupTeamMember } from '@/types/groupContributors'
 import { TeamSection } from './TeamSection'
 
 const makeTeamMember = (overrides: Partial<GroupTeamMember> = {}): GroupTeamMember => ({
   member_id: 1,
   member_display_name: 'Testnutzer',
-  member_slug: null,
-  role_labels: [],
+  member_slug: 'example-slug',
+  role_labels: ['Übersetzung'],
   ...overrides,
 })
 
 const makeExternal = (overrides: Partial<GroupExternalContributor> = {}): GroupExternalContributor => ({
   member_display_name: 'Externer',
   member_slug: null,
-  role_labels: [],
+  role_labels: ['Timing'],
   is_verified: false,
   ...overrides,
 })
 
 describe('TeamSection', () => {
-  it('Test 1: renders two distinct blocks — Team-Beteiligte and Externe Mitwirkende headings', () => {
-    const markup = renderToStaticMarkup(
+  it('renders the locked Fansub project member title', () => {
+    const html = renderToStaticMarkup(
       <TeamSection teamMembers={[makeTeamMember()]} externalContributors={[makeExternal()]} />,
     )
-    expect(markup).toContain('Team-Beteiligte')
-    expect(markup).toContain('Externe Mitwirkende')
-    // Both headings must appear as separate elements
-    const teamIdx = markup.indexOf('Team-Beteiligte')
-    const externalIdx = markup.indexOf('Externe Mitwirkende')
-    expect(teamIdx).toBeGreaterThanOrEqual(0)
-    expect(externalIdx).toBeGreaterThanOrEqual(0)
-    expect(teamIdx).not.toBe(externalIdx)
+
+    expect(html).toContain('Mitwirkende am Fansub-Projekt')
+    expect(html).not.toContain('Beteiligte am Projekt')
   })
 
-  it('Test 2: member with slug renders as <a href="/members/test-slug">; member without slug renders as <span>', () => {
-    const markup = renderToStaticMarkup(
+  it('delegates to project member rows and keeps safe member links', () => {
+    const html = renderToStaticMarkup(
       <TeamSection
-        teamMembers={[
-          makeTeamMember({ member_slug: 'test-slug', member_display_name: 'Geclaimt' }),
-          makeTeamMember({ member_slug: null, member_display_name: 'Ungeclaimt', member_id: 2 }),
-        ]}
-        externalContributors={[]}
+        teamMembers={[makeTeamMember({ member_display_name: 'Geclaimt' })]}
+        externalContributors={[makeExternal({ member_slug: 'external-slug' })]}
       />,
     )
-    expect(markup).toContain('href="/members/test-slug"')
-    expect(markup).toContain('Geclaimt')
-    // Ungeclaimt member should not have a link
-    expect(markup).not.toContain('href="/members/null"')
-    expect(markup).toContain('Ungeclaimt')
+
+    expect(html).toContain('Geclaimt')
+    expect(html).toContain('Übersetzung')
+    expect(html).toContain('Timing')
+    expect(html).toContain('href="/members/example-slug"')
+    expect(html).toContain('href="/members/external-slug"')
+    expect(html).not.toContain('Team-Beteiligte')
+    expect(html).not.toContain('Externe Mitwirkende')
   })
 
-  it('Test 3: empty teamMembers shows empty-state text (case-insensitive "noch keine team-mitglieder"); section still rendered', () => {
-    const markup = renderToStaticMarkup(
-      <TeamSection teamMembers={[]} externalContributors={[]} />,
-    )
-    expect(markup.toLowerCase()).toContain('noch keine team-mitglieder')
-    // Section heading still present
-    expect(markup).toContain('Beteiligte am Projekt')
-  })
+  it('omits the section when no project contributors exist', () => {
+    const html = renderToStaticMarkup(<TeamSection teamMembers={[]} externalContributors={[]} />)
 
-  it('Test 4: external contributor with role_labels shows role in external block', () => {
-    const markup = renderToStaticMarkup(
-      <TeamSection
-        teamMembers={[]}
-        externalContributors={[
-          makeExternal({ member_display_name: 'Timer-Person', role_labels: ['Timer'] }),
-        ]}
-      />,
-    )
-    expect(markup).toContain('Timer')
-    expect(markup).toContain('Externe Mitwirkende')
+    expect(html).toBe('')
   })
 })
