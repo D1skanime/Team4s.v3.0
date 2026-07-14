@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { Badge } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
+import { buildPublicFansubProjectHref } from '@/lib/fansubProjectRoutes'
 import type { PublicFansubProject } from '@/types/fansub'
 
 import styles from './FansubProjectsSection.module.css'
@@ -10,6 +11,7 @@ import styles from './FansubProjectsSection.module.css'
 interface FansubProjectBannerCardProps {
   project: PublicFansubProject
   groupId: number
+  fansubSlug?: string | null
   statusLabel: string
   statusVariant?: 'warning' | 'success' | 'danger' | 'neutral'
 }
@@ -21,12 +23,19 @@ const BANNER_IMAGE_SIZES = '(max-width: 640px) 100vw, 480px'
  * Bildquelle: banner_url (Anime-Banner) mit Fallback auf cover_image (Poster);
  * ohne beides Skeleton-Platzhalter derselben Flaeche (kein Layout-Sprung).
  */
-export function FansubProjectBannerCard({ project, groupId, statusLabel, statusVariant = 'neutral' }: FansubProjectBannerCardProps) {
+export function FansubProjectBannerCard({
+  project,
+  groupId,
+  fansubSlug,
+  statusLabel,
+  statusVariant = 'neutral',
+}: FansubProjectBannerCardProps) {
   const source = project.banner_url || project.cover_image || ''
   const resolvedImageUrl = source ? resolveApiUrl(source) : ''
+  const href = buildPublicFansubProjectHref({ project, groupId, fansubSlug })
 
   return (
-    <Link href={`/anime/${project.id}/group/${groupId}`} className={styles.bannerCard}>
+    <Link href={href} className={styles.bannerCard}>
       <div className={styles.bannerFrame}>
         {resolvedImageUrl ? (
           <Image

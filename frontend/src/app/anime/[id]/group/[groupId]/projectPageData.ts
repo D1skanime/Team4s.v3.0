@@ -11,7 +11,9 @@ import {
   getGroupReleaseMedia,
   getGroupReleases,
   getGroupThemes,
+  getPublicFansubProfileBySlug,
 } from "@/lib/api";
+import { buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
 import { buildGroupNavigationGroups } from "@/lib/groupNavigation";
 import { resolvePublicApiUrl } from "@/lib/publicApiUrl";
 import type { AnimeDetail } from "@/types/anime";
@@ -105,6 +107,29 @@ export function parsePublicFansubProjectRouteParams(
     return null;
   }
   return { animeID, groupID };
+}
+
+export { buildPublicFansubProjectPath };
+
+export async function resolvePublicFansubProjectCanonicalPath({
+  animeID,
+  groupID,
+}: PublicFansubProjectIDs): Promise<string | null> {
+  try {
+    const groupResponse = await getGroupDetail(animeID, groupID);
+    const fansubSlug = groupResponse.data.fansub.slug?.trim();
+    if (!fansubSlug) return null;
+
+    const profileResponse = await getPublicFansubProfileBySlug(fansubSlug);
+    const project = profileResponse.data.projects.find(
+      (item) => item.id === animeID && Boolean(item.anime_slug?.trim()),
+    );
+    if (!project) return null;
+
+    return buildPublicFansubProjectPath(fansubSlug, project.anime_slug);
+  } catch {
+    return null;
+  }
 }
 
 export async function loadPublicFansubProjectPageData({

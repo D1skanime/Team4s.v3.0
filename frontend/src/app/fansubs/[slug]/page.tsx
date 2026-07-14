@@ -110,7 +110,7 @@ export default async function FansubProfilePage({ params }: FansubProfilePagePro
             />
           ) : null}
           <div className={styles.gridSection}>
-            <FansubProjectsSection projects={profile.projects} groupId={group.id} />
+            <FansubProjectsSection projects={profile.projects} groupId={group.id} groupSlug={group.slug} />
           </div>
         </div>
       ) : null}

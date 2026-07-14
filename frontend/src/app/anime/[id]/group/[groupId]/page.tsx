@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ProjectPage } from "./ProjectPage";
@@ -6,10 +7,26 @@ import styles from "./page.module.css";
 import {
   loadPublicFansubProjectPageData,
   parsePublicFansubProjectRouteParams,
+  resolvePublicFansubProjectCanonicalPath,
 } from "./projectPageData";
 
 interface GroupStoryPageProps {
   params: { id: string; groupId: string } | Promise<{ id: string; groupId: string }>;
+}
+
+export async function generateMetadata({ params }: GroupStoryPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const ids = parsePublicFansubProjectRouteParams(resolvedParams);
+  if (!ids) return {};
+
+  const canonicalPath = await resolvePublicFansubProjectCanonicalPath(ids);
+  if (!canonicalPath) return {};
+
+  return {
+    alternates: {
+      canonical: canonicalPath,
+    },
+  };
 }
 
 export default async function GroupStoryPage({ params }: GroupStoryPageProps) {

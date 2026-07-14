@@ -6,6 +6,7 @@ import { FansubProjectsGrid } from './FansubProjectsGrid'
 interface FansubProjectsSectionProps {
   projects: PublicFansubProject[]
   groupId: number
+  groupSlug?: string | null
 }
 
 type ProjectBucketKey = 'ongoing' | 'completed' | 'archived'
@@ -55,7 +56,7 @@ function groupProjects(projects: PublicFansubProject[]): Record<ProjectBucketKey
  * bricht per Breakpoint um und blendet den Rest ueber "X weitere anzeigen" inline
  * ein - kein horizontales Karussell, keine ueberbreite Einzelkarte, ein Header.
  */
-export function FansubProjectsSection({ projects, groupId }: FansubProjectsSectionProps) {
+export function FansubProjectsSection({ projects, groupId, groupSlug }: FansubProjectsSectionProps) {
   if (projects.length === 0) {
     return null
   }
@@ -72,7 +73,7 @@ export function FansubProjectsSection({ projects, groupId }: FansubProjectsSecti
   return (
     <section id="projekte">
       <SectionHeader title="Projekte" underline />
-      <FansubProjectsGrid items={items} groupId={groupId} />
+      <FansubProjectsGrid items={items} groupId={groupId} groupSlug={groupSlug} />
     </section>
   )
 }

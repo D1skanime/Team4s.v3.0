@@ -18,6 +18,7 @@ interface FansubProjectsGridItem {
 interface FansubProjectsGridProps {
   items: FansubProjectsGridItem[]
   groupId: number
+  groupSlug?: string | null
 }
 
 const PREVIEW_COUNT = 20
@@ -32,7 +33,7 @@ const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2
  * und Tastatur durchscrollbar und rasten weich auf die naechste Karte ein. Am Ende eine
  * Zaehler-Card ("+X weitere"), die alle Projekte inline als responsives Grid ausklappt.
  */
-export function FansubProjectsGrid({ items, groupId }: FansubProjectsGridProps) {
+export function FansubProjectsGrid({ items, groupId, groupSlug }: FansubProjectsGridProps) {
   const trackRef = useRef<HTMLDivElement | null>(null)
   const animRef = useRef<number | null>(null)
   const drag = useRef({ active: false, startScroll: 0, lastX: 0, lastT: 0, vel: 0, moved: false, pointerId: -1, captured: false })
@@ -54,6 +55,7 @@ export function FansubProjectsGrid({ items, groupId }: FansubProjectsGridProps) 
               key={project.id}
               project={project}
               groupId={groupId}
+              fansubSlug={groupSlug}
               statusLabel={statusLabel}
               statusVariant={statusVariant}
             />
@@ -230,6 +232,7 @@ export function FansubProjectsGrid({ items, groupId }: FansubProjectsGridProps) 
               <FansubProjectBannerCard
                 project={project}
                 groupId={groupId}
+                fansubSlug={groupSlug}
                 statusLabel={statusLabel}
                 statusVariant={statusVariant}
               />
