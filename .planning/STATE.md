@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: in_progress
-stopped_at: Completed 102-01-PLAN.md
-last_updated: "2026-07-14T15:15:02.758Z"
+stopped_at: Completed 102-02-PLAN.md
+last_updated: "2026-07-14T15:37:21.143Z"
 last_activity: 2026-07-14
 progress:
   total_phases: 93
   completed_phases: 77
   total_plans: 411
-  completed_plans: 378
+  completed_plans: 379
   percent: 92
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 102 (fansubprojekte-ui-schrittweise-verbessern) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 
 ## Accumulated Context
 
@@ -294,6 +294,9 @@ Recent durable decisions:
 - [Phase 102-00]: Plan 102-00 wird als zero-task Kontrollplan geschlossen; Implementierung beginnt erst in späteren Phase-102-Plänen.
 - [Phase 102-01]: Plan 102-01 bleibt eine verhaltenserhaltende Extraktion: technische Route /anime/[id]/group/[groupId], gemeinsamer Loader/ProjectPage, keine neue Pretty Route.
 - [Phase 102-01]: Task-3-Human-Checkpoint fuer die technische Fansubprojekt-Route wurde am 2026-07-14 mit 'approved / passt' akzeptiert.
+- [Phase 102-02]: Profile project-card links are sourced from backend DTO anime_slug and profile group.slug; no client-side title slugification is used.
+- [Phase 102-02]: Task-3 live acceptance is not approved; after user rejection it is deferred to final Phase 102 UAT by explicit user instruction after code completion.
+- [Phase 102-02]: Public Fansub project identity now prefers /fansubs/[fansubSlug]/fansubprojekt/[animeSlug]; /anime/[id]/group/[groupId] remains compatible with canonical metadata.
 
 ### Pending Todos
 
@@ -533,6 +536,7 @@ Recent durable decisions:
 | Phase 101 P02 | 5min | 4 tasks | 4 files |
 | Phase 102 P00 | 3min | 0 tasks | 1 files |
 | Phase 102 P01 | 1h21min | 3 tasks | 5 files |
+| Phase 102 P02 | 14min | 3 tasks | 15 files |
 
 ### Quick Tasks Completed
 
@@ -606,7 +610,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-14T15:14:35.941Z
-Stopped at: Completed 102-01-PLAN.md
+Last session: 2026-07-14T15:37:21.082Z
+Stopped at: Completed 102-02-PLAN.md
 Last activity: 2026-07-14
 Resume file: None
