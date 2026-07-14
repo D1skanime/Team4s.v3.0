@@ -1737,6 +1737,41 @@ Plans:
   4. Der YearPicker erlaubt keine Jahre vor `founded_year` und keine Jahre nach dem aktuellen Kalenderjahr.
   5. Backend-Create und Backend-Update für `fansub_group_history` lehnen direkte API-Schreibzugriffe mit `year < founded_year` oder `year > current year` ab.
 
+### Phase 102: Fansubprojekte UI schrittweise verbessern
+
+**Goal:** Die öffentliche Fansubprojekt-Detailseite `/anime/[id]/group/[groupId]` wird Schritt für Schritt verbessert. Der Einstieg von der Fansub-Profilseite bleibt nur der Absprung zur Projektseite; die Phase arbeitet primär an Hero, Navigation und Detailsektionen dieser Projekt-Public-Seite. Die Phase bleibt UI-fokussiert und nutzt bestehende Public-APIs, Banner-/Medien-Seams und Komponenten statt neue Datenmodelle zu bauen.
+**Requirements**: Phase 102 Context D-01 bis D-07
+**Depends on:** Phase 101
+**Status:** Planned 2026-07-13
+**Plans:** 8 plans
+
+Plans:
+- [ ] `102-00-PLAN.md` - Kontrollplan: Fansubprojekt-UI als sequenzielle Diskussions-/Implementierungs-/UAT-Schritte
+- [ ] `102-01-PLAN.md` - Shared public Fansub project page loader/composition extraction
+- [ ] `102-02-PLAN.md` - Additive pretty route, `anime_slug` contract, public profile links, canonical metadata
+- [ ] `102-03-PLAN.md` - Same-Fansub project navigation and hero `Coop mit ...` links
+- [ ] `102-04-PLAN.md` - `Geschichte des Fansub-Projekts` story block and project member row cleanup
+- [ ] `102-05-PLAN.md` - Public release title safety and `Releases zum Fansub` conservative section
+- [ ] `102-06-PLAN.md` - Remove section nav, global empty summary, standalone OP/ED/Middle, standalone Medien
+- [ ] `102-07-PLAN.md` - Entry-link, pretty route, technical route, release-title, and responsive UAT
+
+**Success Criteria** (what must be TRUE):
+
+  1. Die Fansubprojekt-Detailseite `/anime/[id]/group/[groupId]` orientiert sich visuell am öffentlichen Fansubgruppen-Hero, bleibt aber fachlich ein Anime/Fansub-Projekt.
+  2. Hero und Inhaltssektionen (`Fansub-Projekttext`, `Fansub-Projektmitglieder`, `Release-Versionen`, `OP/ED/Middle`, `Medien`) werden nicht gleichzeitig umgebaut; jede Sektion wird einzeln diskutiert, umgesetzt und getestet.
+  3. Öffentliche Begriffe sind fachlich klar: Projektzählungen und Releasezählungen werden bei Bedarf als Fansub-Kontext benannt, ohne Backend-Felder umzubenennen.
+  4. Die primäre Public-URL folgt `/fansubs/[fansubSlug]/fansubprojekt/[animeSlug]`; technische ID-Routen bleiben höchstens Kompatibilitäts-/Weiterleitungsrouten.
+  5. `Weitere Projekte von [Fansub]` navigiert zu weiteren Projekten derselben Fansubgruppe oder wird ersetzt/ausgeblendet; es springt nicht zu anderen Gruppenvarianten desselben Anime.
+  6. Der Fansub-Projekttext ersetzt die falsche `Anime-Ausblicke`-Sprache durch `Geschichte des Fansub-Projekts` und nutzt einen einzelnen kollabierbaren Textblock wie die Fansub-Geschichte, ohne Archiv/Mehrfachseiten.
+  7. Fansub-Projektmitglieder werden im Stil der öffentlichen Fansub-Memberdarstellung gezeigt; der finale Link-Zieltyp wird separat entschieden.
+  8. Die bisherige Abschnitts-/Tabliste (`Geschichte`, `Beteiligte`, `Releases`, `OP/ED/Middle`, `Medien`) wird entfernt; die Seite folgt dem Fluss der öffentlichen Fansubseite.
+  9. Der separate `Neuestes Release`-Highlightblock wird entfernt; Release-Versionen werden später als normaler Abschnitt diskutiert.
+  10. Der Release-Abschnitt heißt `Releases zum Fansub`; `Weitere Releases` wird nicht weiterverwendet.
+  11. Der globale Hinweis `Weitere Bereiche sind noch nicht öffentlich befüllt: ...` wird entfernt.
+  12. Mobile/Tablet/Desktop-Verhalten wird pro Schritt live auf `http://127.0.0.1:3000/anime/13/group/1` und später auf der schönen URL verifiziert.
+  13. Der Absprung von `/fansubs/[slug]` zur Projektseite bleibt funktionsfähig, ist aber nicht der primäre Design-Gegenstand dieser Phase.
+  14. Keine neuen Upload-, Medien- oder Public-API-Seams entstehen; vorhandene DTOs und Komponenten werden wiederverwendet oder gezielt erweitert.
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie

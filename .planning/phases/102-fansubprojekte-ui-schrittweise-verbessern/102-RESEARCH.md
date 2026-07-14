@@ -338,22 +338,22 @@ The rendered roles must be the project-specific roles from `getGroupContributors
 
 All claims in this research were verified or cited; no `[ASSUMED]` claims are intentionally used. [VERIFIED: research audit]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **What is the canonical base URL for metadata?**
    - What we know: Next metadata can expose `alternates.canonical`. [CITED: Context7 /vercel/next.js/v16.1.6]
-   - What's unclear: The production/public base URL env var is not visible in the inspected code. [VERIFIED: codebase grep]
-   - Recommendation: Plan canonical as a path or use an existing base URL config if present; otherwise add a small documented env/config decision before absolute canonical URLs. [VERIFIED: docs/api/api-contracts.md]
+   - Resolution: Not a Phase 102 blocker. Plans use the relative pretty route path as the canonical value unless an existing public base URL config is discovered during execution. Executors must not invent a new base URL env var in this UI cleanup phase. [VERIFIED: 102-02-PLAN.md]
+   - Planning disposition: Closed by Plan 102-02 route/canonical task.
 
 2. **Does `rev.title` ever contain raw imported filenames in current data?**
    - What we know: Current public release queries use release title before episode title. [VERIFIED: backend/internal/repository/group_repository.go]
-   - What's unclear: Runtime data quality for Viper's Creed releases was not queried during research. [VERIFIED: research audit]
-   - Recommendation: Include a UAT/data check for `.mkv`/raw import strings before accepting the release section slice. [VERIFIED: .planning/phases/102-fansubprojekte-ui-schrittweise-verbessern/102-CONTEXT.md]
+   - Resolution: Runtime data quality remains an execution/UAT check, not an unresolved planning question. Plan 102-05 now requires backend tests for raw-title fallback behavior plus live inspection of visible release labels before the release slice is accepted. [VERIFIED: 102-05-PLAN.md]
+   - Planning disposition: Closed by Plan 102-05 release-title fallback tests and blocking live acceptance checkpoint.
 
 3. **Should missing same-Fansub next/previous show nothing or a back-to-overview link?**
    - What we know: D-23 says hide navigation when no further project exists; D-09 allows hide or back-overview wording. [VERIFIED: .planning/phases/102-fansubprojekte-ui-schrittweise-verbessern/102-CONTEXT.md]
-   - What's unclear: The final user-preferred empty replacement has not been accepted. [VERIFIED: .planning/phases/102-fansubprojekte-ui-schrittweise-verbessern/102-00-PLAN.md]
-   - Recommendation: Default to hiding controls; discuss back-link only if UAT feels like a dead end. [VERIFIED: .planning/phases/102-fansubprojekte-ui-schrittweise-verbessern/102-CONTEXT.md]
+   - Resolution: D-23 is the controlling decision for Phase 102: hide previous/next controls when there are no same-Fansub neighbor projects. A back-to-overview replacement is not planned in this phase. [VERIFIED: 102-CONTEXT.md]
+   - Planning disposition: Closed by Plan 102-03 navigation helper and hero checkpoint.
 
 ## Environment Availability
 
