@@ -57,6 +57,13 @@ automated pre-UAT gates.
 - **Fix:** Story and member sections now remain visible and show scoped empty states (`Noch kein öffentlicher Projekttext hinterlegt.`, `Noch keine öffentlichen Projektrollen hinterlegt.`) instead of disappearing. This keeps the agreed page structure visible without reintroducing the removed global empty summary or exposing hidden/non-public contributor data.
 - **Files modified:** `frontend/src/app/anime/[id]/group/[groupId]/ProjectPage.tsx`, `frontend/src/app/anime/[id]/group/[groupId]/sections/StorySection.tsx`, `frontend/src/app/anime/[id]/group/[groupId]/sections/TeamSection.tsx`, `frontend/src/app/anime/[id]/group/[groupId]/page.module.css`, `StorySection.test.tsx`, `TeamSection.test.tsx`.
 
+**6. [Rule 1 - Bug] Cockpit Projekt-Einblick saved hidden public-page data**
+- **Found during:** Human visual acceptance recheck after item 4.
+- **Issue:** The user reported that Viper Creed has a `Projekt-Einblick` in the admin cockpit, but the public project page still rendered `Noch kein öffentlicher Projekttext hinterlegt.` Investigation showed the public endpoint correctly filters to `visibility='public'` and `status='published'`, while the cockpit editor shown to users had no status/visibility controls and silently saved `internal/draft`.
+- **Fix:** The embedded cockpit `Projekt-Einblick` editor now saves new and edited entries as `public/published`, including previously hidden `internal/draft` rows when the user edits and saves them through that control. The public endpoint remains restricted to public/published content.
+- **Local UAT data correction:** The existing Viper Creed row (`anime_id=1`, `fansub_group_id=1`) was updated from `internal/draft` to `public/published` after the code fix because it had been saved through the broken hidden-default path. The second local draft row remained untouched.
+- **Files modified:** `frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectNoteWorkspace.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/AnimeProjectNoteWorkspace.test.tsx`.
+
 ## Post-Fix Automated Gates
 
 | Command | Result | Notes |
@@ -64,6 +71,7 @@ automated pre-UAT gates.
 | `npm --prefix frontend run typecheck` | PASS | Re-run after route/UI/backend-fix integration. |
 | `npm --prefix frontend run test -- src/app/anime/[id]/group/[groupId] src/components/fansubs src/lib/fansubProjectNavigation.test.ts` | PASS | 21 test files passed, 84 tests passed. |
 | `cd backend; go test ./internal/repository -run "Test.*Public.*Release.*Title|TestFansubRepository_PublicProfileSourceInvariants"` | PASS | Required release-title/public-profile tests passed. The new slug fallback source guard also passed in the focused backend re-run. |
+| `npm --prefix frontend run test -- src/app/admin/fansubs/[id]/edit/AnimeProjectNoteWorkspace.test.tsx` | PASS | 4 tests passed, including the hidden-default regression for `public/published` cockpit saves. |
 | `git diff --check` | PASS | No whitespace/conflict-marker issues; Git reported LF-to-CRLF warnings only. |
 
 ## Route And Viewport Evidence

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 const getAnimeFansubProjectNoteMock = vi.fn()
 const upsertAnimeFansubProjectNoteMock = vi.fn()
@@ -70,5 +70,46 @@ describe('AnimeProjectNoteWorkspace', () => {
 
     expect(await screen.findByText('Projekt-Einblick fehlt')).not.toBeNull()
     expect(screen.queryByRole('button', { name: 'Einblick hinzufügen' })).toBeNull()
+  })
+
+  it('speichert den Cockpit-Einblick als öffentlich und veröffentlicht', async () => {
+    const existingNote = {
+      id: 7,
+      animeId: 13,
+      fansubGroupId: 1,
+      title: '',
+      bodyJson: { type: 'doc', content: [{ type: 'paragraph' }] },
+      bodyHtml: '<p>Projekttext sichtbar</p>',
+      bodyText: 'Projekttext sichtbar',
+      editorType: 'tiptap',
+      contentSchemaVersion: 1,
+      visibility: 'internal',
+      status: 'draft',
+      sortOrder: 0,
+      createdBy: null,
+      updatedBy: null,
+      createdAt: '2026-06-29T00:00:00Z',
+      updatedAt: '2026-06-29T00:00:00Z',
+    }
+
+    getAnimeFansubProjectNoteMock.mockResolvedValue(existingNote)
+    upsertAnimeFansubProjectNoteMock.mockResolvedValue({
+      ...existingNote,
+      visibility: 'public',
+      status: 'published',
+    })
+
+    render(<AnimeProjectNoteWorkspace fansubId={1} animeId={13} expanded canEdit />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Einblick bearbeiten' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Einblick speichern' }))
+
+    await waitFor(() => {
+      expect(upsertAnimeFansubProjectNoteMock).toHaveBeenCalledWith(1, 13, {
+        bodyJson: existingNote.bodyJson,
+        visibility: 'public',
+        status: 'published',
+      })
+    })
   })
 })

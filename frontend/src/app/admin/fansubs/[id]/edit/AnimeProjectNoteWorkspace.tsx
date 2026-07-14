@@ -26,17 +26,20 @@ interface NoteFormState {
   status: NoteStatus
 }
 
+const PUBLIC_PROJECT_NOTE_VISIBILITY: NoteVisibility = 'public'
+const PUBLIC_PROJECT_NOTE_STATUS: NoteStatus = 'published'
+
 const emptyForm = (): NoteFormState => ({
   bodyJson: null,
-  visibility: 'internal',
-  status: 'draft',
+  visibility: PUBLIC_PROJECT_NOTE_VISIBILITY,
+  status: PUBLIC_PROJECT_NOTE_STATUS,
 })
 
 function noteToForm(note: AnimeFansubProjectNote): NoteFormState {
   return {
     bodyJson: note.bodyJson ?? null,
-    visibility: note.visibility,
-    status: note.status,
+    visibility: PUBLIC_PROJECT_NOTE_VISIBILITY,
+    status: PUBLIC_PROJECT_NOTE_STATUS,
   }
 }
 
