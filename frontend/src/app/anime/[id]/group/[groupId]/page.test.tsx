@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildEmptyAreaLabels, hasStoryContent } from './page'
+import { ProjectPage } from './ProjectPage'
+import {
+  buildEmptyAreaLabels,
+  hasStoryContent,
+  loadPublicFansubProjectPageData,
+  parsePublicFansubProjectRouteParams,
+} from './projectPageData'
 
 describe('hasStoryContent (AO4-13)', () => {
   it('Test 1: returns false when both story and projectNotesHtml are empty/null', () => {
@@ -15,6 +21,27 @@ describe('hasStoryContent (AO4-13)', () => {
 
   it('Test 3: falls back to story when projectNotesHtml is null', () => {
     expect(hasStoryContent('Legacy-Story', null)).toBe(true)
+  })
+})
+
+describe('parsePublicFansubProjectRouteParams (102-01)', () => {
+  it('Test 7: accepts positive numeric technical route params', () => {
+    expect(parsePublicFansubProjectRouteParams({ id: '13', groupId: '1' })).toEqual({
+      animeID: 13,
+      groupID: 1,
+    })
+  })
+
+  it('Test 8: rejects invalid technical route params', () => {
+    expect(parsePublicFansubProjectRouteParams({ id: 'abc', groupId: '1' })).toBeNull()
+    expect(parsePublicFansubProjectRouteParams({ id: '13', groupId: '0' })).toBeNull()
+  })
+})
+
+describe('shared extraction exports (102-01)', () => {
+  it('Test 9: exposes the shared project loader and render composition', () => {
+    expect(loadPublicFansubProjectPageData.name).toContain('loadPublicFansubProjectPageData')
+    expect(ProjectPage).toBeTypeOf('function')
   })
 })
 
