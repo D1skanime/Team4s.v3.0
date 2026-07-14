@@ -30,6 +30,7 @@ function makeItems(count: number) {
   return Array.from({ length: count }, (_, index) => {
     const project: PublicFansubProject = {
       id: index + 1,
+      anime_slug: `projekt-${index + 1}`,
       title: `Projekt ${index + 1}`,
       type: 'TV',
       status: 'done',

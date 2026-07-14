@@ -30,6 +30,7 @@ afterEach(() => {
 function project(overrides: Partial<PublicFansubProject> = {}): PublicFansubProject {
   return {
     id: 123,
+    anime_slug: 'projekt-anime',
     title: 'Projekt Anime',
     type: 'TV',
     status: 'ongoing',

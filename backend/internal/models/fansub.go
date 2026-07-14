@@ -83,6 +83,7 @@ type PublicFansubStory struct {
 // PublicFansubProject is an anime_fansub_groups-backed public project card.
 type PublicFansubProject struct {
 	ID          int64   `json:"id"`
+	AnimeSlug   string  `json:"anime_slug"`
 	Title       string  `json:"title"`
 	Type        string  `json:"type"`
 	Status      string  `json:"status"`

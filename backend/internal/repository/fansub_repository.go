@@ -328,6 +328,7 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			a.id,
+			a.slug,
 			a.title,
 			a.type::text,
 			a.status::text,
@@ -383,6 +384,7 @@ func (r *FansubRepository) listPublicFansubProjects(ctx context.Context, groupID
 		var bannerPath *string
 		if err := rows.Scan(
 			&project.ID,
+			&project.AnimeSlug,
 			&project.Title,
 			&project.Type,
 			&project.Status,

@@ -10303,11 +10303,13 @@ components:
           type: string
     PublicFansubProject:
       type: object
-      required: [id, title, type, status]
+      required: [id, anime_slug, title, type, status]
       properties:
         id:
           type: integer
           format: int64
+        anime_slug:
+          type: string
         title:
           type: string
         type:

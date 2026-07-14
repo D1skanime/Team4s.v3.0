@@ -151,6 +151,7 @@ export interface PublicFansubStory {
 
 export interface PublicFansubProject {
   id: number;
+  anime_slug: string;
   title: string;
   type: string;
   status: string;
