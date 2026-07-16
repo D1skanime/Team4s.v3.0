@@ -50,6 +50,18 @@ describe('ReleaseGallery', () => {
     expect(screen.getByRole('button', { name: 'Weitere 4 Bilder anzeigen' })).toBeTruthy()
   })
 
+  it('reveals aggregate images immediately without an unnecessary cursor request', () => {
+    const loadImages = vi.spyOn(api, 'getGroupReleaseImages')
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6,7,8].map(id => image(id))} categoryTotals={{ screenshot: 8, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+
+    expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere 2 Bilder anzeigen' }))
+
+    expect(screen.getByTestId('release-image-grid').children).toHaveLength(8)
+    expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
+    expect(loadImages).not.toHaveBeenCalled()
+  })
+
   it('loads every category cursor, deduplicates, and opens the original with full caption', async () => {
     vi.spyOn(api, 'getGroupReleaseImages').mockImplementation(async (_anime, _group, _release, options) => {
       if (options?.category === 'screenshot') return { category: 'screenshot', total: 7, returned_count: 2, items: [image(1), image(7)], next_cursor: null, has_more: false }

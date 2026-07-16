@@ -6324,7 +6324,7 @@ export async function getGroupReleaseImages(
   const API_BASE_URL = getApiBaseUrl();
   const query = buildCursorQuery(opts);
   const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}/images${query ? `?${query}` : ""}`;
-  const response = await authorizedFetch(url, { cache: "no-store" });
+  const response = await fetch(url, { cache: "no-store" });
 
   if (!response.ok) {
     const message = await parseApiError(

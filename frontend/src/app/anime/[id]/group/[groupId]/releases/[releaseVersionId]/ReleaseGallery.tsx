@@ -54,11 +54,17 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
 
   async function revealAll() {
     if (loading) return
+    // Reveal images already delivered by the aggregate immediately. Cursor
+    // requests only fill category gaps and must not block the local reveal.
+    expand()
+    if (items.length >= total) return
+
     setLoading(true)
     setError(null)
     try {
       const loadedByCategory = await Promise.all(RELEASE_VERSION_MEDIA_CATEGORIES.map(async category => {
-        if (!categoryTotals[category]) return []
+        const loadedCount = items.filter(item => item.category === category).length
+        if (!categoryTotals[category] || loadedCount >= categoryTotals[category]) return []
         const loaded: PublicReleaseImage[] = []
         let cursor: string | undefined
         do {
@@ -69,7 +75,6 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         return loaded
       }))
       setItems(previous => mergeImages(previous, loadedByCategory.flat()))
-      expand()
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : 'Weitere Bilder konnten nicht geladen werden.')
     } finally {
