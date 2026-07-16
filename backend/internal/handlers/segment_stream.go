@@ -81,7 +81,7 @@ func (h *AdminContentHandler) authorizeSegmentManage(
 }
 
 func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
-	identity, actor, ok := permissionActorFromContext(c)
+	identity, _, ok := permissionActorFromContext(c)
 	if !ok {
 		return
 	}
@@ -93,6 +93,11 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 	segmentID, err := parsePositiveIDParam(c.Param("id"))
 	if err != nil {
 		badRequest(c, "ungültige segment id")
+		return
+	}
+	releaseVersionID, err := parsePositiveIDParam(c.Query("release_version_id"))
+	if err != nil {
+		badRequest(c, "ungültige release version id")
 		return
 	}
 
@@ -107,7 +112,12 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 		return
 	}
 
-	if !h.authorizeSegmentManage(c, identity, actor, source, segmentID, "segment_stream.grant.denied") {
+	// Public playback is intentionally independent from segment management. The
+	// authenticated route establishes the app session; this ownership check binds
+	// the public release projection to the persisted source instead of trusting a
+	// client-selected episode or time window.
+	if source.ReleaseVersionID == nil || *source.ReleaseVersionID != releaseVersionID {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
 	}
 
@@ -119,8 +129,17 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 	cacheKey := ""
 	if cache, err := themeRepo.GetReadyThemeSegmentRenderCache(c.Request.Context(), segmentID); err == nil {
 		cacheKey = cache.CacheKey
-	} else if err != nil && !errors.Is(err, repository.ErrNotFound) {
+	} else if errors.Is(err, repository.ErrNotFound) {
+		// Uploaded fallbacks are curated, already-cut sources and therefore do not
+		// need a derived render cache. Every other source must be ready first.
+		if source.SourceKind != "uploaded_asset" || source.MediaAssetPath == nil || strings.TrimSpace(*source.MediaAssetPath) == "" {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment ist noch nicht abspielbar", "code": "segment_unavailable"}})
+			return
+		}
+	} else {
 		log.Printf("segment stream grant: ready cache lookup failed (segment_id=%d, user_id=%d): %v", segmentID, identity.UserID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
+		return
 	}
 
 	grantToken, expiresAt, err := auth.CreateSegmentStreamGrant(segmentID, identity.UserID, cacheKey, h.segmentGrantSecret, time.Now(), h.segmentGrantTTL)

@@ -20,7 +20,8 @@ import (
 type fakeSegmentStreamThemeRepo struct {
 	adminThemeRepository
 
-	source *models.ThemeSegmentRenderSource
+	source     *models.ThemeSegmentRenderSource
+	readyCache *models.ThemeSegmentRenderCache
 
 	upsertCalled bool
 	upsertResult *models.ThemeSegmentRenderCache
@@ -41,6 +42,9 @@ func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderCacheByKey(ctx context
 }
 
 func (f *fakeSegmentStreamThemeRepo) GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error) {
+	if f.readyCache != nil {
+		return f.readyCache, nil
+	}
 	return nil, repository.ErrNotFound
 }
 

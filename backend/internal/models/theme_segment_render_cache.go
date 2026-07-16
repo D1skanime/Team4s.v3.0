@@ -65,6 +65,7 @@ type ThemeSegmentRenderSource struct {
 	PlaybackSourceID    int64   `json:"playback_source_id"`
 	SourceKind          string  `json:"source_kind"`
 	ReleaseVariantID    *int64  `json:"release_variant_id,omitempty"`
+	ReleaseVersionID    *int64  `json:"release_version_id,omitempty"`
 	JellyfinItemID      *string `json:"jellyfin_item_id,omitempty"`
 	MediaAssetID        *int64  `json:"media_asset_id,omitempty"`
 	MediaAssetPath      *string `json:"media_asset_path,omitempty"`

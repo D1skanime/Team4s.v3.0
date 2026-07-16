@@ -6223,12 +6223,21 @@ paths:
         Issues a grant for a canonical theme segment id. The stream endpoint does
         not accept free-form start/end/duration offsets; segment timing is resolved
         from persisted theme segment data and server-side render cache state.
+        Any authenticated app session may request playback, but the required
+        release_version_id must match the segment's persisted release source.
       operationId: createSegmentStreamGrant
       security:
         - bearerAuth: []
       parameters:
         - name: id
           in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: release_version_id
+          in: query
           required: true
           schema:
             type: integer
@@ -6254,12 +6263,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Authentication required
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Segment management permission required for this release-version context
           content:
             application/json:
               schema:

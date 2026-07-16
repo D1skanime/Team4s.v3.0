@@ -201,19 +201,21 @@ endpoints:
         format: Bearer <signed token>
       notes:
         - Grants are issued for a theme segment id, not for arbitrary start/end query parameters.
-        - Non-admin users need release_version.segments.manage for the segment release-version context.
+        - Any authenticated app session may request an eligible public, ready segment.
+        - The requested release_version_id must match the segment's persisted release-version source.
       unauthenticated_status: 401
       unauthenticated_response:
         error:
           message: "anmeldung erforderlich"
-      forbidden_status: 403
-      forbidden_response:
-        error:
-          message: "keine berechtigung"
     path_params:
       - name: id
         type: int64
         minimum: 1
+    query_params:
+      - name: release_version_id
+        type: int64
+        minimum: 1
+        required: true
     response:
       status: 201
       type: SegmentStreamGrantResponse
