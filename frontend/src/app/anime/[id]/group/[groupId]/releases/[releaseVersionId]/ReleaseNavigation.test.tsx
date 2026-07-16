@@ -1,0 +1,3 @@
+// @vitest-environment jsdom
+import { cleanup,render,screen } from '@testing-library/react'; import { afterEach,describe,expect,it } from 'vitest'; import { ReleaseNavigation } from './ReleaseNavigation'; afterEach(cleanup)
+describe('ReleaseNavigation',()=>{it('preserves the route group and omits a missing edge',()=>{render(<ReleaseNavigation animeID={9} groupID={4} previous={null} next={{release_version_id:88,episode_number:'8',episode_title:null,version:'2',group_id:99}}/>); const link=screen.getByRole('link',{name:/Nächster Release/}); expect(link.getAttribute('href')).toBe('/anime/9/group/4/releases/88'); expect(screen.queryByText(/Vorheriger Release/)).toBeNull()})})
