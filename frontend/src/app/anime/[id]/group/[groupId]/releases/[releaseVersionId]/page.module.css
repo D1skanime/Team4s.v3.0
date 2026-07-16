@@ -1,9 +1,34 @@
 .page {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 20px 64px;
   display: grid;
-  gap: 28px;
+  gap: 32px;
+  position: relative;
+  isolation: isolate;
+}
+
+.pageWithBackdrop::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  height: min(620px, 78vh);
+  background:
+    linear-gradient(180deg, rgba(16, 23, 45, 0.18) 0%, rgba(16, 23, 45, 0.36) 58%, var(--surface-canvas) 100%),
+    var(--release-page-backdrop) center / cover no-repeat;
+  filter: saturate(1.16);
+}
+
+.page > section:not(.hero) {
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 32px rgba(20, 31, 56, 0.1);
+  backdrop-filter: blur(14px) saturate(1.25);
 }
 
 .backLink {
@@ -31,24 +56,32 @@
 /* ── Hero (AO4-16/AO4-23) ── */
 .hero {
   display: grid;
-  gap: 20px;
+  gap: clamp(22px, 3vw, 36px);
   grid-template-columns: minmax(0, 1fr);
+  padding: clamp(20px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  border-top: 3px solid var(--accent-primary);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 16px 46px rgba(20, 15, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(20px) saturate(1.45);
 }
 
 @media (min-width: 768px) {
   .hero {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+    align-items: center;
   }
 }
 
 .heroImageShell {
   position: relative;
   aspect-ratio: 16 / 9;
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   overflow: hidden;
   background: var(--surface-card-muted);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  box-shadow: 0 10px 30px rgba(18, 27, 52, 0.24);
 }
 
 .heroImage {
@@ -63,13 +96,16 @@
   gap: 12px;
   align-content: start;
 }
+.heroHeading { display:grid; gap:6px; padding-bottom:12px; border-bottom:2px solid rgba(47,95,227,.72); }
+.heroEyebrow { margin:0; color:var(--accent-deep); font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
+.heroTitle { margin:0; color:var(--text-primary); font-size:clamp(28px,4vw,46px); line-height:1.08; letter-spacing:-.025em; }
 .heroTextOnly { grid-template-columns: minmax(0, 1fr); }
 .groupRow,.subtitleList { display:flex; flex-wrap:wrap; gap:8px; }
 .technicalGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:0; }
-.technicalGrid div { padding:10px 12px; border-left:2px solid var(--color-primary); background:var(--surface-card-muted); }
+.technicalGrid div { padding:11px 13px; border-left:2px solid var(--accent-primary); border-radius:0 10px 10px 0; background:rgba(248,250,255,.72); }
 .technicalGrid dt { color:var(--color-text-secondary); font-size:12px; }
 .technicalGrid dd { margin:3px 0 0; color:var(--color-text-primary); font-weight:600; }
-.subtitleBlock { display:grid; gap:10px; padding:14px; }
+.subtitleBlock { display:grid; gap:10px; padding:14px; border-radius:12px; background:rgba(245,248,255,.62); }
 
 .releaseDate {
   margin: 0;
@@ -82,7 +118,7 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-.statsRow span { font-size:13px; color:var(--color-text-secondary); background:var(--surface-card-muted); border:1px solid var(--border-subtle); border-radius:999px; padding:6px 12px; }
+.statsRow span { font-size:13px; color:var(--accent-deep); font-weight:650; background:rgba(246,249,255,.74); border:1px solid rgba(95,132,221,.28); border-radius:999px; padding:7px 13px; }
 
 .statItem {
   font-size: 13px;
@@ -139,7 +175,7 @@
   font-weight: 600;
   object-fit: cover;
 }
-@media(max-width:600px){.technicalGrid{grid-template-columns:1fr}.page{padding:14px}.contributorsGrid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.technicalGrid{grid-template-columns:1fr}.page{padding:16px 14px 48px;gap:22px}.page>section:not(.hero){padding:20px;border-radius:14px}.hero{padding:18px;border-radius:16px}.contributorsGrid{grid-template-columns:1fr 1fr}}
 
 .contributorMeta {
   display: grid;

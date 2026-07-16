@@ -1,4 +1,4 @@
-import { Badge, Card, SectionHeader } from '@/components/ui'
+import { Badge, Card } from '@/components/ui'
 import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
 import styles from './page.module.css'
@@ -32,13 +32,16 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
     ['Audio', [props.audio_language, props.audio_codec].filter(Boolean).join(' · ') || null],
   ].filter((entry): entry is [string, string] => Boolean(entry[1]))
 
-  return <section className={`${styles.hero} ${imageSrc ? '' : styles.heroTextOnly}`}>
+  return <section className={`${styles.hero} ${imageSrc ? '' : styles.heroTextOnly}`} data-release-hero="independent">
     {imageSrc ? <div className={styles.heroImageShell}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={imageSrc} alt={image?.caption ?? props.title} className={styles.heroImage} loading="eager" />
     </div> : null}
     <div className={styles.heroContent}>
-      <SectionHeader eyebrow={`Episode ${props.episode_number}${props.episode_title ? ` · ${props.episode_title}` : ''}`} title={props.title} underline />
+      <header className={styles.heroHeading}>
+        <p className={styles.heroEyebrow}>{`Episode ${props.episode_number}${props.episode_title ? ` · ${props.episode_title}` : ''}`}</p>
+        <h1 className={styles.heroTitle}>{props.title}</h1>
+      </header>
       <div className={styles.groupRow}>{props.groups.map(group => <Badge key={group.id} variant="muted">{group.name}</Badge>)}</div>
       <dl className={styles.technicalGrid}>{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
       {props.subtitle_tracks.length ? <Card variant="nestedFlat" className={styles.subtitleBlock}>

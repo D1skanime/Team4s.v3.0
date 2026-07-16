@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { CSSProperties } from 'react'
 
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
-import { ApiError, getAnimeByID, getGroupDetail, getGroupReleaseDetail } from '@/lib/api'
+import { ApiError, getAnimeBackdrops, getAnimeByID, getGroupDetail, getGroupReleaseDetail } from '@/lib/api'
+import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
 import { ContributorsRow } from './ContributorsRow'
 import { ReleaseDetailHero } from './ReleaseDetailHero'
@@ -33,11 +35,18 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
   let animeTitle: string | null = null
   let groupName: string | null = null
   let animePoster: string | null = null
+  let atmosphereUrl: string | null = null
   try {
-    const [animeResponse, groupResponse] = await Promise.all([getAnimeByID(animeID), getGroupDetail(animeID, groupID)])
+    const [animeResponse, groupResponse, backdropResponse] = await Promise.all([
+      getAnimeByID(animeID),
+      getGroupDetail(animeID, groupID),
+      getAnimeBackdrops(animeID).catch(() => null),
+    ])
     animeTitle = animeResponse.data.title
     animePoster = animeResponse.data.cover_image ?? null
     groupName = groupResponse.data.fansub.name
+    const atmosphereCandidate = backdropResponse?.data.banner_url ?? backdropResponse?.data.backdrops[0] ?? animeResponse.data.banner_url
+    atmosphereUrl = atmosphereCandidate ? resolvePublicApiUrl(atmosphereCandidate) : null
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return notFound()
   }
@@ -58,7 +67,8 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
     { label: `Episode ${detail.episode_number}` },
   ]
 
-  return <main className={styles.page}>
+  const pageStyle = atmosphereUrl ? ({ '--release-page-backdrop': `url("${atmosphereUrl}")` } as CSSProperties) : undefined
+  return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
     <Breadcrumbs items={breadcrumbItems} />
     <p className={styles.backLink}><Link href={projectHref}>Zurück zum Projekt</Link></p>
     <ReleaseDetailHero {...detail} fallbackPosterUrl={animePoster} />
