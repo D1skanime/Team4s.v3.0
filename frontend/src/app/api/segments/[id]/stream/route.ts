@@ -39,6 +39,11 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
     return NextResponse.json({ error: { message: 'ungültige segment id' } }, { status: 400 })
   }
 
+  const releaseVersionID = Number.parseInt((request.nextUrl.searchParams.get('release_version_id') || '').trim(), 10)
+  if (!Number.isFinite(releaseVersionID) || releaseVersionID <= 0) {
+    return NextResponse.json({ error: { message: 'ungültige release version id' } }, { status: 400 })
+  }
+
   for (const key of ['start', 'end', 'duration', 'startTimeTicks', 'StartTimeTicks', 'endTimeTicks', 'EndTimeTicks']) {
     if ((request.nextUrl.searchParams.get(key) || '').trim()) {
       return NextResponse.json(
@@ -64,7 +69,7 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
   let relayTarget = await resolveStreamRelayTarget({
     apiBaseURL,
     streamPath,
-    grantPath: `/api/v1/segments/${segmentID}/grant`,
+    grantPath: `/api/v1/segments/${segmentID}/grant?release_version_id=${releaseVersionID}`,
     providedGrant,
     accessToken: tokenFromCookie,
     fallbackAccessToken: AUTH_BEARER_TOKEN,
@@ -93,7 +98,7 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
     const recoveryTarget = await resolveStreamRelayTarget({
       apiBaseURL,
       streamPath,
-      grantPath: `/api/v1/segments/${segmentID}/grant`,
+      grantPath: `/api/v1/segments/${segmentID}/grant?release_version_id=${releaseVersionID}`,
       providedGrant: '',
       accessToken: relayTarget.authorizationToken && refreshTokenFromCookie ? '' : tokenFromCookie,
       fallbackAccessToken: relayTarget.authorizationToken && refreshTokenFromCookie ? '' : AUTH_BEARER_TOKEN,
