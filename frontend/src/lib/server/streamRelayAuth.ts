@@ -209,6 +209,18 @@ async function refreshSession(
   }
 }
 
+export async function resolveAuthenticatedRelaySession(args: {
+  apiBaseURL: string
+  accessToken: string
+  refreshToken: string
+  fetchImpl?: FetchLike
+}): Promise<{ accessToken: string; refreshedSession: RefreshedAuthSession | null }> {
+  const accessToken = args.accessToken.trim()
+  if (accessToken) return { accessToken, refreshedSession: null }
+  const refreshedSession = await refreshSession(args.apiBaseURL, args.refreshToken.trim(), args.fetchImpl || fetch)
+  return { accessToken: refreshedSession?.accessToken || '', refreshedSession }
+}
+
 /**
  * Baut die Stream-Ziel-URL mit einem angehängten Grant-Token auf.
  * Gibt die Stream-URL unverändert zurück, wenn kein Grant-Token vorhanden ist.

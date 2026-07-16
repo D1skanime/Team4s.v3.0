@@ -2,12 +2,13 @@ import { Badge, Card, SectionHeader } from '@/components/ui'
 import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
 import styles from './page.module.css'
+import { ReleaseEpisodePlayer } from './ReleaseEpisodePlayer'
 
 type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
   'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' | 'release_date' |
   'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
   'audio_language' | 'subtitle_tracks' | 'preview_image' | 'images_count' | 'notes_count' |
-  'contributors_count'> & { fallbackPosterUrl: string | null }
+  'contributors_count'> & { fallbackPosterUrl: string | null; release_version_id?: number }
 
 function formatDate(value: string | null) {
   if (!value) return null
@@ -47,6 +48,7 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
         </Badge>)}</div>
       </Card> : null}
       <div className={styles.statsRow}><span>{props.images_count} Bilder</span><span>{props.notes_count} Texte</span><span>{props.contributors_count} Fansubber</span></div>
+      {props.release_version_id ? <ReleaseEpisodePlayer releaseVersionID={props.release_version_id} title={props.title} /> : null}
     </div>
   </section>
 }

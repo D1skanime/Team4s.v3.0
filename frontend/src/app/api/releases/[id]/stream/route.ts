@@ -75,6 +75,8 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
 
   if (relayTarget.authorizationToken) {
     headers.set('Authorization', `Bearer ${relayTarget.authorizationToken}`)
+  } else if (relayTarget.refreshedSession?.accessToken || tokenFromCookie) {
+    headers.set('Authorization', `Bearer ${relayTarget.refreshedSession?.accessToken || tokenFromCookie}`)
   } else {
     headers.delete('Authorization')
   }
