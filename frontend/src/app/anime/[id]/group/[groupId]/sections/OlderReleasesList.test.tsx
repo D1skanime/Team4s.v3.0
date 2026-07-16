@@ -68,11 +68,11 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
-    await waitFor(() => expect(screen.getByText('Episode 1')).not.toBeNull())
+    await waitFor(() => expect(screen.getByText('Folge 1')).not.toBeNull())
     expect(screen.getByRole('button', { name: 'Mehr laden' })).not.toBeNull()
     expect(screen.getByText('2 Bilder')).not.toBeNull()
     expect(screen.getByText('1 Texte')).not.toBeNull()
-    expect(screen.getByText('Hauptinhalt')).not.toBeNull()
+    expect(screen.queryByText('Hauptinhalt')).toBeNull()
     expect(screen.getByRole('link', { name: 'Ansicht' })).not.toBeNull()
   })
 
@@ -108,10 +108,10 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
     await waitFor(() => expect(screen.getByText('Episode 1')).not.toBeNull())
-    expect(screen.getByText('OP')).not.toBeNull()
-    expect(screen.getByText('ED')).not.toBeNull()
-    expect(screen.getByText('00:00:00 - 00:00:45')).not.toBeNull()
-    expect(screen.getByText('00:21:45 - 00:23:12')).not.toBeNull()
+    expect(screen.getByText('Viper OP')).not.toBeNull()
+    expect(screen.getByText('Viper ED')).not.toBeNull()
+    expect(screen.queryByText('00:00:00 - 00:00:45')).toBeNull()
+    expect(screen.queryByText('00:21:45 - 00:23:12')).toBeNull()
   })
 
   it('Test 2: clicking "Mehr laden" fetches the next cursor page and appends items', async () => {

@@ -2,7 +2,8 @@
 phase: 102-fansubprojekte-ui-schrittweise-verbessern
 plan: "07"
 created_utc: 2026-07-14T16:26:44Z
-status: checkpoint_pending_human_visual_acceptance
+status: complete
+completed: 2026-07-16
 ---
 
 # Phase 102 Plan 07 UAT Evidence
@@ -153,4 +154,50 @@ Partial human result recorded 2026-07-14:
 | 4. Exact visible section labels | initially failed: "alle daten fehlen"; fixed with scoped empty-state section rendering and ready for recheck |
 | 5. Removed sections/copy | approved |
 
-Pending: user recheck/approval for item 4 after the scoped empty-state fix.
+Final result: all Phase 102 public-project UAT blockers were fixed and accepted through the live correction loop. The remaining release-segment work was clarified as the public Fansub project release segment, implemented through the shared `PublicReleaseBlock`, and verified in Docker.
+
+## Final Closure Addendum - 2026-07-16
+
+### Public Release Segment Acceptance
+
+| Check | Result |
+| --- | --- |
+| Segment target | PASS: applies to the public Fansub project page under `Releases zum Fansub`, not the internal edit/workspace release component. |
+| Heading copy | PASS: `Neuestes Fansub-Release` is used for the featured public release. |
+| Redundant badges | PASS: image card does not repeat a Folge badge; time badges and the `00:00` start label were removed from the compact project-page timeline. |
+| Count labels | PASS: uses `Bilder`, `Texte`, and neutral `Fansubber`. |
+| Mobile shape | PASS: public release block has a mobile-specific stacked shape and a `Karas` heading above the Kara timeline. |
+| Timeline design | PASS: project-page segment uses a slim, glassy timeline with rectangular Kara elements and subtle track color pull; richer single-release timeline remains deferred for release detail page design. |
+
+### Activity-Based Newest Release
+
+| Check | Result |
+| --- | --- |
+| Backend API | PASS: `release-list?sort=activity` is additive and keeps default ordering unchanged when omitted. |
+| Activity source | PASS: latest public/published release notes and approved public release media drive `last_activity_at`. |
+| Project page integration | PASS: the public project page requests `sort=activity` for the release preview list and displays the first item as newest. |
+| Direct API verification | PASS: `http://127.0.0.1:18092/api/v1/anime/1/group/1/release-list?limit=3&sort=activity` returned items sorted by `last_activity_at`. |
+
+### Final Docker Verification
+
+| Command / Route | Result | Notes |
+| --- | --- | --- |
+| `docker compose build team4sv30-backend` | PASS | Backend image rebuilt with activity sort changes. |
+| `docker compose up -d --no-deps --force-recreate team4sv30-backend` | PASS | Backend container recreated. |
+| `docker compose restart team4sv30-frontend` | PASS | Frontend dev container restarted after UI changes. |
+| `http://127.0.0.1:3000/fansubs/c-subs/fansubprojekt/vipers-creed?codexRefresh=4` | PASS | HTTP 200; HTML contained `PublicReleaseBlock`, `Neuestes Fansub-Release`, and the activity-selected public release. |
+
+### Final Automated Gates
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `npm test -- "src/app/anime/[id]/group/[groupId]/sections/ReleasesSection.test.tsx" "src/components/fansubs/__tests__/PublicReleaseBlock.test.tsx" "src/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.test.tsx" "src/app/anime/[id]/group/[groupId]/page.test.tsx"` | PASS | 4 files passed, 22 tests passed. |
+| `npm run typecheck` | PASS | Frontend TypeScript check passed. |
+| `npx eslint -- "src/app/anime/[id]/group/[groupId]/projectPageData.ts" "src/app/anime/[id]/group/[groupId]/ProjectPage.tsx" "src/app/anime/[id]/group/[groupId]/sections/ReleasesSection.tsx" "src/app/anime/[id]/group/[groupId]/sections/ReleasesSection.test.tsx" "src/components/fansubs/PublicReleaseBlock.tsx"` | PASS | Focused lint for final closure files passed. |
+| `go test ./internal/repository ./internal/handlers` | PASS | Backend repository/handler tests passed. |
+| `git diff --check` | PASS | No whitespace/conflict-marker issues; LF-to-CRLF warnings only. |
+
+### Residual Notes
+
+- A broad accidental frontend test command also included unrelated admin anime tests; those failed on existing auth/permission loading behavior outside the final Phase 102 release/public-project slice. The exact relevant Phase 102 tests passed.
+- Docker frontend logs still showed Watchpack `ENOMEM` scan warnings, but the checked public route served successfully.

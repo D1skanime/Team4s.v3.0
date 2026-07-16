@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  buildAniSearchAnimeURL,
   formatEpisodeStatusLabel,
   normalizeGenreToken,
   normalizeOptionalString,
   parsePositiveInt,
+  resolveAniSearchID,
   resolveCoverUrl,
   resolveAnimeStatusClass,
   resolveEpisodeStatusClass,
@@ -142,6 +144,27 @@ describe('resolveCoverUrl', () => {
 
   it('trims whitespace before processing', () => {
     expect(resolveCoverUrl('  cover.jpg  ')).toBe('/covers/cover.jpg')
+  })
+})
+
+describe('resolveAniSearchID', () => {
+  it('prefers the explicit AniSearch ID from the API', () => {
+    expect(resolveAniSearchID('anisearch:111', ['anisearch:222'], '333')).toBe('333')
+  })
+
+  it('reads AniSearch IDs from source and source links', () => {
+    expect(resolveAniSearchID('anisearch:12345', null, null)).toBe('12345')
+    expect(resolveAniSearchID('jellyfin:series-42', ['anisearch:67890'], '')).toBe('67890')
+  })
+
+  it('returns an empty string when no AniSearch source exists', () => {
+    expect(resolveAniSearchID('jellyfin:series-42', ['tmdb:1'], null)).toBe('')
+  })
+})
+
+describe('buildAniSearchAnimeURL', () => {
+  it('builds the canonical AniSearch anime URL', () => {
+    expect(buildAniSearchAnimeURL(' 12345 ')).toBe('https://www.anisearch.de/anime/12345')
   })
 })
 

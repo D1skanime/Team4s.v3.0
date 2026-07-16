@@ -52,6 +52,7 @@ func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter,
 	offsetPos := len(args) + 2
 	offset := (filter.Page - 1) * filter.PerPage
 	displayTitleExpr := primaryNormalizedTitleSQL("anime.id", "anime.slug")
+	coverImageSelect := animeCoverImageSelectSQL("anime")
 
 	listQuery := fmt.Sprintf(`
 		SELECT
@@ -60,7 +61,7 @@ func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter,
 			at.name,
 			%s AS status,
 			anime.year,
-			poster.file_path,
+			%s AS cover_image,
 			%s AS max_episodes,
 			%s AS content_type
 		FROM anime
@@ -78,7 +79,7 @@ func (r *AnimeRepository) listV2(ctx context.Context, filter models.AnimeFilter,
 		%s
 		ORDER BY display_title ASC
 		LIMIT $%d OFFSET $%d
-	`, displayTitleExpr, statusSelect, maxEpisodesSelect, contentTypeSelect, whereSQL, limitPos, offsetPos)
+	`, displayTitleExpr, statusSelect, coverImageSelect, maxEpisodesSelect, contentTypeSelect, whereSQL, limitPos, offsetPos)
 
 	rows, err := r.db.Query(ctx, listQuery, append(args, filter.PerPage, offset)...)
 	if err != nil {
@@ -137,6 +138,7 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 		aniSearchIDSelect = `anime.anisearch_id::text`
 	}
 
+	coverImageSelect := animeCoverImageSelectSQL("anime")
 	query := `
 		SELECT
 			anime.id,
@@ -171,7 +173,7 @@ func (r *AnimeRepository) getByIDV2(ctx context.Context, id int64, includeDisabl
 			anime.year,
 			` + maxEpisodesSelect + ` AS max_episodes,
 			anime.description,
-			poster.file_path,
+			` + coverImageSelect + ` AS cover_image,
 			COALESCE(
 				banner.path,
 				NULLIF(BTRIM(anime.banner_resolved_url), '')
@@ -362,18 +364,7 @@ func buildAnimeListWhereV2WithSchema(filter models.AnimeFilter, schema animeV2Sc
 	displayTitleExpr := primaryNormalizedTitleSQL("anime.id", "anime.slug")
 
 	if filter.HasCover != nil {
-		coverExistsSQL := `
-			EXISTS (
-				SELECT 1
-				FROM anime_media am
-				JOIN media_assets ma ON ma.id = am.media_id
-				JOIN media_types mt ON mt.id = ma.media_type_id
-				WHERE am.anime_id = anime.id
-				  AND mt.name = 'poster'
-				  AND ma.file_path IS NOT NULL
-				  AND btrim(ma.file_path) <> ''
-			)
-		`
+		coverExistsSQL := animeCoverAvailableSQL("anime")
 		if *filter.HasCover {
 			conditions = append(conditions, coverExistsSQL)
 		} else {
@@ -419,6 +410,39 @@ func buildAnimeListWhereV2WithSchema(filter models.AnimeFilter, schema animeV2Sc
 	}
 
 	return " WHERE " + strings.Join(conditions, " AND "), args
+}
+
+func animeCoverImageSelectSQL(animeAlias string) string {
+	return fmt.Sprintf(`
+		COALESCE(
+			NULLIF(BTRIM(%s.cover_resolved_url), ''),
+			NULLIF(BTRIM(%s.cover_image), ''),
+			poster.file_path,
+			CASE
+				WHEN %s.source LIKE 'jellyfin:%%' AND BTRIM(REPLACE(%s.source, 'jellyfin:', '')) <> ''
+				THEN '/api/v1/media/image?item_id=' || BTRIM(REPLACE(%s.source, 'jellyfin:', '')) || '&kind=primary&provider=jellyfin'
+				ELSE NULL
+			END
+		)
+	`, animeAlias, animeAlias, animeAlias, animeAlias, animeAlias)
+}
+
+func animeCoverAvailableSQL(animeAlias string) string {
+	return fmt.Sprintf(`(
+		EXISTS (
+			SELECT 1
+			FROM anime_media am
+			JOIN media_assets ma ON ma.id = am.media_id
+			JOIN media_types mt ON mt.id = ma.media_type_id
+			WHERE am.anime_id = %s.id
+			  AND mt.name = 'poster'
+			  AND ma.file_path IS NOT NULL
+			  AND btrim(ma.file_path) <> ''
+		)
+		OR NULLIF(BTRIM(%s.cover_resolved_url), '') IS NOT NULL
+		OR NULLIF(BTRIM(%s.cover_image), '') IS NOT NULL
+		OR (%s.source LIKE 'jellyfin:%%' AND BTRIM(REPLACE(%s.source, 'jellyfin:', '')) <> '')
+	)`, animeAlias, animeAlias, animeAlias, animeAlias, animeAlias)
 }
 
 func mapAnimeTypeNameToAPI(name *string) string {

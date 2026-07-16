@@ -37,6 +37,7 @@ export interface EpisodeReleaseSummary {
   episode_number: number
   title?: string | null
   version_label?: string | null
+  last_activity_at?: string | null
   has_op: boolean
   has_ed: boolean
   karaoke_count: number
@@ -50,6 +51,8 @@ export interface EpisodeReleaseSummary {
   images_count?: number
   /** AO4-11/AO4-12: nur vom Cursor-Endpunkt (getGroupReleaseListCursor) populiert. */
   notes_count?: number
+  /** Öffentliche Beteiligte am Release, analog Release-Detail. */
+  contributors_count?: number
 }
 
 export interface ReleaseTimelineSegment {

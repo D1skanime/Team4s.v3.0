@@ -61,7 +61,7 @@ interface CompositionShowcaseProps {
 export function CompositionShowcase({ page, onPageChange, onOpenDrawer }: CompositionShowcaseProps) {
   return (
     <Card variant="section">
-      <SectionHeader eyebrow="09" title="Kompositionsbeispiele" description="Nicht nur Einzelteile, sondern typische Admin-Layer mit Mockdaten und ohne Fachlogik." />
+      <SectionHeader eyebrow="11" title="Kompositionsbeispiele" description="Nicht nur Einzelteile, sondern typische Admin-Layer mit Mockdaten und ohne Fachlogik." />
       <div className={styles.compositionGrid}>
         <Card variant="section" title="Komposition 1 – Admin List Layout" description="PageHeader, Toolbar, Tabelle, Pagination und Row Actions.">
           <Toolbar

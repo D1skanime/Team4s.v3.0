@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CreateAssetSearchDialog } from "./CreateAssetSearchDialog";
@@ -24,6 +25,10 @@ import {
 } from "../hooks/useManualAnimeDraft";
 import { splitTagTokens } from "../utils/anime-helpers";
 import type { AdminAnimeCreateAniSearchSummary } from "@/types/admin";
+
+vi.mock("@/components/auth/PlatformAdminGate", () => ({
+  PlatformAdminGate: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
 
 describe("AdminAnimeCreatePage", () => {
   beforeEach(() => {

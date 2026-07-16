@@ -76,6 +76,7 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
         id: 42,
         anime_id: 10,
         episode_number: 1,
+        title: 'Der Anfang',
         release_version: 'v1',
         media_provider: '',
         media_item_id: '',
@@ -121,7 +122,7 @@ describe('MeReleaseWorkspacePage', () => {
 
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Naruto' })).toBeTruthy())
     expect(getEpisodeVersionEditorContextMock).toHaveBeenCalledWith(42)
-    expect(screen.getByText('Episode 01 · Team 4S · v1')).toBeTruthy()
+    expect(screen.getByText('Der Anfang · Team 4S · v1')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Zurück zum Projekt' }).getAttribute('href')).toBe('/me/projects/10/group/1')
     expect(screen.getByTestId('media-section').textContent).toContain('Media 42')
   })

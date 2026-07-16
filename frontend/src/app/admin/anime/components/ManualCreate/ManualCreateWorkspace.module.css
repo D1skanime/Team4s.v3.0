@@ -79,6 +79,18 @@
   color: #b42318;
 }
 
+.sourceLinkControl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.sourceLinkControl input {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
 .titleActionRow {
   display: flex;
   flex-wrap: wrap;

@@ -63,6 +63,7 @@ describe('FansubProjectsGrid', () => {
     // Zaehler-Card mit Rest-Anzahl (+5) und aria-label
     const countCard = screen.getByRole('button', { name: 'Alle 25 Projekte anzeigen' })
     expect(countCard.textContent).toContain('+5')
+    expect(countCard.textContent).toContain('Alle anzeigen')
 
     fireEvent.click(countCard)
 

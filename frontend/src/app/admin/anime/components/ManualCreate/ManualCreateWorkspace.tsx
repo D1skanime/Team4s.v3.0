@@ -4,6 +4,8 @@ import type { FormEvent, ReactNode, RefObject } from "react";
 
 import { AnimeStatus, ContentType } from "@/types/anime";
 import { AnimeType, GenreToken, TagToken } from "@/types/admin";
+import { FormField } from "@/components/ui/FormField";
+import { Textarea } from "@/components/ui/Textarea";
 
 import styles from "../../../admin.module.css";
 import workspaceStyles from "./ManualCreateWorkspace.module.css";
@@ -354,11 +356,12 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                   onResetLimit={props.onResetTagLimit}
                 />
 
-                <div
-                  className={`${styles.field} ${workspaceStyles.descriptionField}`}
+                <FormField
+                  label="Beschreibung"
+                  htmlFor="create-description"
+                  hint="Kurz, eindeutig und ohne Prozess-Text."
                 >
-                  <label htmlFor="create-description">Beschreibung</label>
-                  <textarea
+                  <Textarea
                     id="create-description"
                     className={workspaceStyles.descriptionArea}
                     value={props.description}
@@ -367,10 +370,7 @@ export function ManualCreateWorkspace(props: ManualCreateWorkspaceProps) {
                     }
                     disabled={props.isSubmitting}
                   />
-                  <p className={workspaceStyles.fieldNote}>
-                    Kurz, eindeutig und ohne Prozess-Text.
-                  </p>
-                </div>
+                </FormField>
               </div>
             </section>
           </form>

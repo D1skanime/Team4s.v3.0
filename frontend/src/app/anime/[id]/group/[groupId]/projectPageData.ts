@@ -8,6 +8,8 @@ import {
   getGroupContributors,
   getGroupDetail,
   getGroupProjectNote,
+  getGroupReleaseDetail,
+  getGroupReleaseListCursor,
   getGroupReleaseMedia,
   getGroupReleases,
   getGroupThemes,
@@ -20,6 +22,7 @@ import {
 } from "@/lib/fansubProjectNavigation";
 import { buildGroupNavigationGroups } from "@/lib/groupNavigation";
 import { resolvePublicApiUrl } from "@/lib/publicApiUrl";
+import type { PublicReleasePreview, PublicReleaseTimelineSegment } from "@/components/fansubs/PublicReleaseBlock";
 import type { AnimeDetail } from "@/types/anime";
 import type { FansubGroupSummary } from "@/types/fansub";
 import type { EpisodeReleaseSummary, GroupDetail } from "@/types/group";
@@ -29,6 +32,7 @@ import type {
   GroupReleaseMediaResponse,
   GroupThemesResponse,
 } from "@/types/groupContributors";
+import { CATEGORY_LABELS, type ReleaseVersionMediaCategory } from "@/types/releaseVersionMedia";
 
 export interface PublicFansubProjectRouteParams {
   id: string;
@@ -45,6 +49,7 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   anime: AnimeDetail;
   groupAssetsResponse: GroupAssetsResponse | null;
   releaseEpisodes: EpisodeReleaseSummary[];
+  publicReleasePreviews: PublicReleasePreview[];
   contributorsData: GroupContributorsResponse;
   themesData: GroupThemesResponse;
   releaseMediaData: GroupReleaseMediaResponse;
@@ -97,6 +102,115 @@ export function parsePublicFansubProjectRouteParams(
 }
 
 export { buildPublicFansubProjectPath };
+
+const RELEASE_PREVIEW_LIMIT = 6;
+const NOTE_EXCERPT_LENGTH = 150;
+
+function stripHtmlExcerpt(bodyHtml: string): string {
+  const plain = bodyHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return plain.length > NOTE_EXCERPT_LENGTH ? `${plain.slice(0, NOTE_EXCERPT_LENGTH)}...` : plain;
+}
+
+function formatDuration(seconds?: number | null): string {
+  if (!seconds || seconds < 0) return "00:00:00";
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const rest = Math.floor(seconds % 60);
+  return [hours, minutes, rest].map((part) => String(part).padStart(2, "0")).join(":");
+}
+
+function parseTimelineTime(value?: string | null): number | null {
+  if (!value) return null;
+  const parts = value.split(":").map(Number);
+  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) return null;
+  return Math.max(0, parts[0] * 3600 + parts[1] * 60 + parts[2]);
+}
+
+function buildTimelineSegment(
+  segment: NonNullable<EpisodeReleaseSummary["timeline_segments"]>[number],
+  durationSeconds: number | null | undefined,
+  href: string,
+): PublicReleaseTimelineSegment {
+  const start = parseTimelineTime(segment.start_time) ?? 0;
+  const end = parseTimelineTime(segment.end_time);
+  const duration = Math.max(durationSeconds ?? 0, end ?? 0, start + 1);
+  const rawWidth = end != null ? (Math.max(end - start, 1) / duration) * 100 : 14;
+  const widthPercent = Math.min(Math.max(rawWidth, 4), 34);
+  const leftPercent = Math.min(Math.max((start / duration) * 100, 0), 100 - widthPercent);
+  const rawType = segment.type.toUpperCase();
+  const type: PublicReleaseTimelineSegment["type"] =
+    rawType === "OP" || rawType === "ED" || rawType === "KARA"
+      ? rawType
+      : rawType === "INSERT"
+        ? "IN"
+        : "OTHER";
+
+  return {
+    id: segment.id,
+    type,
+    label: segment.title || segment.type,
+    leftPercent,
+    widthPercent,
+    href,
+  };
+}
+
+function buildPublicReleasePreview({
+  animeID,
+  groupID,
+  release,
+  detail,
+}: {
+  animeID: number;
+  groupID: number;
+  release: EpisodeReleaseSummary;
+  detail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null;
+}): PublicReleasePreview {
+  const href = `/anime/${animeID}/group/${groupID}/releases/${release.id}`;
+  const detailImages = detail?.images ?? [];
+  const imagePreviews = detailImages
+    .slice(0, 4)
+    .map((image) => {
+      const src = image.thumbnail_url ?? image.original_url;
+      if (!src) return null;
+      const categoryLabel = CATEGORY_LABELS[image.category as ReleaseVersionMediaCategory] ?? "Bild";
+      return {
+        id: image.id,
+        src: resolvePublicApiUrl(src),
+        label: image.caption?.trim() || categoryLabel,
+        alt: image.caption?.trim() || categoryLabel,
+      };
+    })
+    .filter((image): image is NonNullable<typeof image> => Boolean(image));
+
+  return {
+    id: release.id,
+    href,
+    episodeLabel: `Folge ${release.episode_number}`,
+    title: detail?.title ?? release.title ?? "",
+    versionLabel: release.version_label ?? undefined,
+    releasedAtLabel: release.released_at ?? undefined,
+    durationLabel: formatDuration(release.duration_seconds),
+    imageCount: detail?.images_count ?? release.images_count ?? 0,
+    noteCount: detail?.notes_count ?? release.notes_count ?? 0,
+    contributorCount: detail?.contributors_count ?? release.contributors_count ?? 0,
+    heroImage: imagePreviews[0],
+    imagePreviews,
+    notePreviews: (detail?.notes ?? []).slice(0, 2).map((note) => ({
+      id: note.id,
+      author: note.member_name,
+      excerpt: stripHtmlExcerpt(note.body_html),
+    })),
+    contributors: (detail?.contributors ?? []).slice(0, 6).map((contributor) => ({
+      id: contributor.member_id,
+      name: contributor.name,
+      roleLabel: contributor.role_label,
+    })),
+    timelineSegments: (release.timeline_segments ?? []).map((segment) =>
+      buildTimelineSegment(segment, release.duration_seconds, href),
+    ),
+  };
+}
 
 export async function resolvePublicFansubProjectCanonicalPath({
   animeID,
@@ -160,6 +274,7 @@ export async function loadPublicFansubProjectPageData({
 
   let otherGroups: Awaited<ReturnType<typeof getGroupReleases>>["data"]["other_groups"] = [];
   let releaseEpisodes: Awaited<ReturnType<typeof getGroupReleases>>["data"]["episodes"] = [];
+  let publicReleasePreviews: PublicReleasePreview[] = [];
   let animeFansubRelations: Awaited<ReturnType<typeof getAnimeFansubs>>["data"] | null = null;
 
   try {
@@ -178,6 +293,32 @@ export async function loadPublicFansubProjectPageData({
     } catch {
       /* Continue without navigation data. */
     }
+  }
+
+  try {
+    const activityPage = await getGroupReleaseListCursor(animeID, groupID, {
+      limit: RELEASE_PREVIEW_LIMIT,
+      sort: "activity",
+    });
+    const latestRelease = activityPage.items[0] ?? null;
+    let latestDetail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null = null;
+    if (latestRelease) {
+      try {
+        latestDetail = await getGroupReleaseDetail(animeID, groupID, latestRelease.id);
+      } catch {
+        latestDetail = null;
+      }
+    }
+    publicReleasePreviews = activityPage.items.map((release, index) =>
+      buildPublicReleasePreview({
+        animeID,
+        groupID,
+        release,
+        detail: index === 0 ? latestDetail : null,
+      }),
+    );
+  } catch {
+    /* Public release block degrades independently from the project shell. */
   }
 
   let contributorsData: GroupContributorsResponse = {
@@ -299,6 +440,7 @@ export async function loadPublicFansubProjectPageData({
       anime,
       groupAssetsResponse,
       releaseEpisodes,
+      publicReleasePreviews,
       contributorsData,
       themesData,
       releaseMediaData,

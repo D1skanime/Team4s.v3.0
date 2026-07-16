@@ -7,12 +7,14 @@ import styles from './FansubEdit.module.css'
 
 interface ReleaseVersionMediaDrawerSummaryProps {
   versionId: number
+  episodeLabel: string
   fansubName: string
   releaseVersionLabel: string
 }
 
 export function ReleaseVersionMediaDrawerSummary({
   versionId,
+  episodeLabel,
   fansubName,
   releaseVersionLabel,
 }: ReleaseVersionMediaDrawerSummaryProps) {
@@ -36,7 +38,9 @@ export function ReleaseVersionMediaDrawerSummary({
   return (
     <div className={styles.fansubEditReleaseDrawerMediaSummary}>
       <div className={styles.fansubEditReleaseDrawerMediaIntro}>
-        <span className={styles.fansubEditReleaseDrawerMediaEyebrow}>{fansubName} · {releaseVersionLabel}</span>
+        <span className={styles.fansubEditReleaseDrawerMediaEyebrow}>
+          {episodeLabel} · {fansubName} · {releaseVersionLabel}
+        </span>
         <h3>Release-Medien im Überblick</h3>
         <p>Screenshots, Typesetting-Beispiele und weitere Assets auf einen Blick, bevor du in die volle Medienverwaltung springst.</p>
       </div>

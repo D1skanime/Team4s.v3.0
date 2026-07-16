@@ -43,6 +43,7 @@ type EpisodeReleaseSummary struct {
 	EpisodeNumber    int32                    `json:"episode_number"`
 	Title            *string                  `json:"title,omitempty"`
 	VersionLabel     *string                  `json:"version_label,omitempty"`
+	LastActivityAt   *time.Time               `json:"last_activity_at,omitempty"`
 	HasOP            bool                     `json:"has_op"`
 	HasED            bool                     `json:"has_ed"`
 	KaraokeCount     int32                    `json:"karaoke_count"`
@@ -56,8 +57,9 @@ type EpisodeReleaseSummary struct {
 	// release_version_id. Nur von GetGroupReleasesCursor populiert (Weitere-
 	// Releases-Liste); die Offset-Variante GetGroupReleases laesst sie auf 0,
 	// da die alte /releases-Seite diese Felder nicht rendert.
-	ImagesCount int32 `json:"images_count"`
-	NotesCount  int32 `json:"notes_count"`
+	ImagesCount       int32 `json:"images_count"`
+	NotesCount        int32 `json:"notes_count"`
+	ContributorsCount int32 `json:"contributors_count"`
 }
 
 // ReleaseTimelineSegment is a compact public OP/ED/Insert/Kara timing preview
@@ -85,4 +87,5 @@ type GroupReleasesFilter struct {
 	HasED      *bool
 	HasKaraoke *bool
 	Q          string
+	Sort       string
 }

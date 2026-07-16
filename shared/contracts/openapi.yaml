@@ -2702,6 +2702,15 @@ paths:
           required: false
           schema:
             type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [activity]
+          description: >-
+            Optionaler Sortiermodus. activity sortiert nach letzter öffentlicher
+            Text- oder Bild-Aktivität einer Release-Version, absteigend.
             maxLength: 120
         - name: status
           in: query
@@ -11934,6 +11943,13 @@ components:
         version_label:
           type: string
           nullable: true
+        last_activity_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            Letzte öffentliche Text- oder Bild-Aktivität der Release-Version.
+            Nur vom Cursor-Endpunkt /release-list mit sort=activity relevant.
         has_op:
           type: boolean
           description: Episode has opening
@@ -11981,6 +11997,12 @@ components:
           description: >-
             Anzahl oeffentlich sichtbarer Release-Texte (AO4-11/AO4-12). Nur vom
             Cursor-Endpunkt /release-list populiert, bei /releases (Offset) 0.
+        contributors_count:
+          type: integer
+          format: int32
+          description: >-
+            Anzahl öffentlich sichtbarer Fansubber-Beiträge zu dieser Release-Version,
+            analog Release-Detail.
     ReleaseTimelineSegment:
       type: object
       required: [id, type, title]

@@ -1519,35 +1519,28 @@ func ensureProviderAnimeMediaV2(ctx context.Context, tx pgx.Tx, mediaType string
 	}
 
 	var mediaID int64
+	format, mimeType := providerAnimeMediaMetadata(mediaType, input.URL)
 	if err := tx.QueryRow(ctx, `
 		SELECT media_id
 		FROM media_external
 		WHERE provider = $1 AND external_id = $2 AND external_type = $3
 		LIMIT 1
 	`, external.Provider, external.ExternalID, external.ExternalType).Scan(&mediaID); errors.Is(err, pgx.ErrNoRows) {
-		format := "image"
-		if mediaType == "video" {
-			format = "video"
-		}
 		if err := tx.QueryRow(ctx, `
-			INSERT INTO media_assets (media_type_id, file_path, format)
-			VALUES ($1, $2, $3)
+			INSERT INTO media_assets (media_type_id, file_path, mime_type, format)
+			VALUES ($1, $2, $3, $4)
 			RETURNING id
-		`, mediaTypeID, strings.TrimSpace(input.URL), format).Scan(&mediaID); err != nil {
+		`, mediaTypeID, strings.TrimSpace(input.URL), mimeType, format).Scan(&mediaID); err != nil {
 			return 0, fmt.Errorf("create provider anime %s media: %w", mediaType, err)
 		}
 	} else if err != nil {
 		return 0, fmt.Errorf("load provider anime %s media: %w", mediaType, err)
 	} else {
-		format := "image"
-		if mediaType == "video" {
-			format = "video"
-		}
 		if _, err := tx.Exec(ctx, `
 			UPDATE media_assets
-			SET media_type_id = $2, file_path = $3, format = $4, modified_at = NOW()
+			SET media_type_id = $2, file_path = $3, mime_type = $4, format = $5, modified_at = NOW()
 			WHERE id = $1
-		`, mediaID, mediaTypeID, strings.TrimSpace(input.URL), format); err != nil {
+		`, mediaID, mediaTypeID, strings.TrimSpace(input.URL), mimeType, format); err != nil {
 			return 0, fmt.Errorf("update provider anime %s media %d: %w", mediaType, mediaID, err)
 		}
 	}
@@ -1562,6 +1555,14 @@ func ensureProviderAnimeMediaV2(ctx context.Context, tx pgx.Tx, mediaType string
 	}
 
 	return mediaID, nil
+}
+
+func providerAnimeMediaMetadata(mediaType string, rawURL string) (format string, mimeType string) {
+	if mediaType == "video" {
+		return "video", "video/mp4"
+	}
+	mimeType, imageFormat := inferImageMetadata(rawURL)
+	return imageFormat, mimeType
 }
 
 func loadAnimeMediaTypeID(ctx context.Context, tx pgx.Tx, mediaType string) (int64, error) {

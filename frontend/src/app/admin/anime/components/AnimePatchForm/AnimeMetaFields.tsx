@@ -1,5 +1,7 @@
 import { KeyboardEvent } from 'react'
 
+import { FormField } from '@/components/ui/FormField'
+import { Textarea } from '@/components/ui/Textarea'
 import { AnimePatchClearFlags, AnimePatchValues } from '../../types/admin-anime'
 import styles from '../../../admin.module.css'
 
@@ -162,13 +164,14 @@ export function AnimeMetaFields({
         <p className={styles.hint}>Aktuell: {values.genreTokens.join(', ') || '(leer)'}</p>
       </div>
       <div className={styles.field}>
-        <label htmlFor="update-description">Description</label>
-        <textarea
-          id="update-description"
-          value={values.description}
-          onChange={(event) => onFieldChange('description', event.target.value)}
-          disabled={isSubmitting || clearFlags.description}
-        />
+        <FormField label="Beschreibung" htmlFor="update-description">
+          <Textarea
+            id="update-description"
+            value={values.description}
+            onChange={(event) => onFieldChange('description', event.target.value)}
+            disabled={isSubmitting || clearFlags.description}
+          />
+        </FormField>
         <label className={styles.nullToggle}>
           <input
             type="checkbox"

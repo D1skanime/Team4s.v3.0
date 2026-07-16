@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
+import { AdjacentNavigation } from "@/components/ui";
 import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
 import type { FansubGroupSummary } from "@/types/fansub";
 import type { GroupDetail, EpisodeReleaseSummary } from "@/types/group";
@@ -146,28 +146,20 @@ export function HeroSection({
               </div>
             </div>
             {hasProjectNavigation ? (
-              <nav className={styles.projectHeroNavigation} aria-label="Weitere Projekte">
-                {fansubProjectNavigation.previous ? (
-                  <Link
-                    href={fansubProjectNavigation.previous.href}
-                    className={`${styles.projectHeroNavLink} ${styles.projectHeroNavPrevious}`}
-                    aria-label="Vorheriges Fansub-Projekt"
-                  >
-                    <ChevronLeft size={19} aria-hidden="true" />
-                    <span>{fansubProjectNavigation.previous.title}</span>
-                  </Link>
-                ) : null}
-                {fansubProjectNavigation.next ? (
-                  <Link
-                    href={fansubProjectNavigation.next.href}
-                    className={`${styles.projectHeroNavLink} ${styles.projectHeroNavNext}`}
-                    aria-label="Nächstes Fansub-Projekt"
-                  >
-                    <span>{fansubProjectNavigation.next.title}</span>
-                    <ChevronRight size={19} aria-hidden="true" />
-                  </Link>
-                ) : null}
-              </nav>
+              <AdjacentNavigation
+                variant="floating"
+                ariaLabel="Weitere Projekte"
+                previous={fansubProjectNavigation.previous ? {
+                  href: fansubProjectNavigation.previous.href,
+                  label: fansubProjectNavigation.previous.title,
+                  ariaLabel: "Vorheriges Fansub-Projekt",
+                } : null}
+                next={fansubProjectNavigation.next ? {
+                  href: fansubProjectNavigation.next.href,
+                  label: fansubProjectNavigation.next.title,
+                  ariaLabel: "Nächstes Fansub-Projekt",
+                } : null}
+              />
             ) : null}
           </div>
         </div>

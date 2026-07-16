@@ -16,7 +16,7 @@ export function ContributorsRow({ contributors }: ContributorsRowProps) {
 
   return (
     <section id="beteiligte" className={styles.contributorsSection}>
-      <h2 className={styles.sectionTitle}>Beteiligte</h2>
+      <h2 className={styles.sectionTitle}>Fansubber</h2>
       <div className={styles.contributorsScroller}>
         {contributors.map((contributor) => (
           <div key={contributor.member_id} className={styles.contributorItem}>

@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 
 import { PlatformAdminGate } from "@/components/auth/PlatformAdminGate";
+import { FormField } from "@/components/ui/FormField";
+import { Textarea } from "@/components/ui/Textarea";
 import styles from "../../admin.module.css";
 import createStyles from "./page.module.css";
 import workspaceStyles from "../components/ManualCreate/ManualCreateWorkspace.module.css";
@@ -388,20 +390,18 @@ function AdminAnimeCreateContent() {
             onResetLimit={handlers.resetTagLimit}
           />
 
-          <div
-            className={`${styles.field} ${workspaceStyles.descriptionField}`}
+          <FormField
+            label="Beschreibung"
+            htmlFor="create-description"
+            hint="Kurz, eindeutig und ohne Prozess-Text."
           >
-            <label htmlFor="create-description">Beschreibung</label>
-            <textarea
+            <Textarea
               id="create-description"
               className={workspaceStyles.descriptionArea}
               value={manualDraft.values.description}
               onChange={(event) => handlers.setDescription(event.target.value)}
             />
-            <p className={workspaceStyles.fieldNote}>
-              Kurz, eindeutig und ohne Prozess-Text.
-            </p>
-          </div>
+          </FormField>
         </div>
       </section>
     </div>

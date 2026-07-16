@@ -37,10 +37,12 @@ function getProfileReturnPath(raw: string | null): string | null {
   return raw === '/me/profile' ? raw : null
 }
 
-function releaseLabel(release: MeProjectReleaseVersion): string {
-  const episode = release.episode_number.trim() ? `Folge ${release.episode_number}` : 'Folge'
+function releaseLabel(release: MeProjectReleaseVersion, groupName: string): string {
+  const episode = release.episode_title?.trim()
+    || (release.episode_number.trim() ? `Folge ${release.episode_number}` : 'Folge')
+  const group = groupName.trim() || 'Fansubgruppe'
   const version = release.version.trim() || `Version #${release.release_version_id}`
-  return `${episode} · ${version}`
+  return `${episode} · ${group} · ${version}`
 }
 
 function isDone(release: MeProjectReleaseVersion): boolean {
@@ -303,8 +305,7 @@ export function MyProjectDetailPage() {
             return (
               <li key={release.release_version_id} className={styles.releaseRow}>
                 <div className={styles.releaseMain}>
-                  <strong>{releaseLabel(release)}</strong>
-                  {release.episode_title ? <span>{release.episode_title}</span> : null}
+                  <strong>{releaseLabel(release, project.fansub_group_name)}</strong>
                   <Badge variant={releaseDone ? 'success' : 'warning'}>
                     {releaseDone ? 'Erledigt' : 'Offen'}
                   </Badge>

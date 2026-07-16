@@ -38,38 +38,28 @@
   isolation: isolate;
   display: grid;
   gap: 16px;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
   border-top: 3px solid var(--accent-deep);
-  overflow: hidden;
 }
 
-/* Full-Bleed unscharfer Banner/Backdrop -> banner-eigene Farben, unten in die Canvas auslaufend */
+/* Gleiche Backdrop-Mechanik wie die Public-Fansubseite: Full-Bleed, weich auslaufend, nicht geclippt. */
 .heroBackdrop {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: calc(50% - 50vw);
+  width: 100vw;
   z-index: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(38px) brightness(0.78) saturate(1.25);
-  transform: scale(1.12);
+  filter: blur(34px) brightness(0.72) saturate(1.25);
+  transform: scale(1.15);
 }
 
 .heroBackdrop::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 12, 25, 0.24) 0%, rgba(15, 12, 25, 0.4) 52%, var(--bg-primary) 100%);
-}
-
-@media (min-width: 1200px) {
-  .heroShell {
-    width: calc(100vw - 8px);
-  }
+  background: linear-gradient(180deg, rgba(15, 12, 25, 0.28) 0%, rgba(15, 12, 25, 0.42) 55%, var(--surface-canvas) 100%);
 }
 
 .heroFg {
@@ -221,51 +211,6 @@
 
 .coopLink:hover {
   text-decoration: underline;
-}
-
-.projectHeroNavigation {
-  position: absolute;
-  inset: 50% 12px auto 12px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  pointer-events: none;
-  transform: translateY(-50%);
-}
-
-.projectHeroNavLink {
-  display: inline-flex;
-  min-height: 44px;
-  max-width: min(260px, 34%);
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid rgba(95, 132, 221, 0.32);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  color: var(--accent-deep);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-decoration: none;
-  box-shadow: 0 8px 22px rgba(18, 35, 64, 0.18);
-  pointer-events: auto;
-}
-
-.projectHeroNavLink span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.projectHeroNavLink:hover {
-  background: var(--surface-card);
-  color: var(--accent-primary);
-}
-
-.projectHeroNavNext {
-  margin-left: auto;
-  text-align: right;
 }
 
 .story {
@@ -487,26 +432,6 @@
 
   .stats {
     justify-content: flex-start;
-  }
-
-  .projectHeroNavigation {
-    position: static;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: 0 18px 18px;
-    transform: none;
-  }
-
-  .projectHeroNavLink {
-    width: 100%;
-    max-width: none;
-    justify-content: center;
-    border-radius: 12px;
-  }
-
-  .projectHeroNavPrevious:only-child,
-  .projectHeroNavNext:only-child {
-    grid-column: 1 / -1;
   }
 
   .actions {

@@ -60,6 +60,18 @@ func TestResolveAnimeAssetURL_PrefersLocalMediaPath(t *testing.T) {
 	}
 }
 
+func TestProviderAnimeMediaMetadata_NeverReturnsEmptyMimeType(t *testing.T) {
+	format, mimeType := providerAnimeMediaMetadata("banner", "/api/v1/media/image?provider=jellyfin&item_id=abc&kind=banner")
+	if format == "" || mimeType == "" {
+		t.Fatalf("expected non-empty provider image metadata, got format=%q mime=%q", format, mimeType)
+	}
+
+	videoFormat, videoMimeType := providerAnimeMediaMetadata("video", "/api/v1/media/video?provider=jellyfin&item_id=abc")
+	if videoFormat != "video" || videoMimeType != "video/mp4" {
+		t.Fatalf("expected video metadata fallback, got format=%q mime=%q", videoFormat, videoMimeType)
+	}
+}
+
 func TestApplyProviderBackgroundsV2LocksOnlyNonNullableRows(t *testing.T) {
 	content := readRepositorySource(t, "anime_assets.go")
 	normalized := strings.ToLower(content)

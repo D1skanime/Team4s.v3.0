@@ -125,8 +125,22 @@ describe('MyProjectDetailPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alle' }))
     fireEvent.change(screen.getByLabelText('Folgen-Nummer suchen'), { target: { value: '03' } })
 
-    expect(screen.queryByText('Folge 03 · v1')).toBeNull()
+    expect(screen.queryByText('Folge 03 · AnimeOwnage · v1')).toBeNull()
     expect(screen.queryByRole('link', { name: /Notizen & Medien/i })).toBeNull()
+  })
+
+  it('uses the episode title before group and version in release labels', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: makeProject([
+        makeRelease({ release_version_id: 41, episode_number: '01', episode_title: 'Der Anfang' }),
+      ]),
+    })
+
+    render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    expect(screen.getByText('Der Anfang · AnimeOwnage · v1')).toBeTruthy()
+    expect(screen.queryByText('Der Anfang')).toBeNull()
   })
 
   it('excludes releases without has_own_contribution in every mode (all/open/done)', async () => {
@@ -140,13 +154,13 @@ describe('MyProjectDetailPage', () => {
     render(<MyProjectDetailPage />)
 
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
-    expect(screen.queryByText('Folge 02 · v1')).toBeNull()
+    expect(screen.queryByText('Folge 02 · AnimeOwnage · v1')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
-    expect(screen.queryByText('Folge 02 · v1')).toBeNull()
+    expect(screen.queryByText('Folge 02 · AnimeOwnage · v1')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
-    expect(screen.queryByText('Folge 02 · v1')).toBeNull()
+    expect(screen.queryByText('Folge 02 · AnimeOwnage · v1')).toBeNull()
   })
 
   it('shows only open (not-done) assigned releases in open mode', async () => {
@@ -162,8 +176,8 @@ describe('MyProjectDetailPage', () => {
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
     fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
 
-    expect(screen.getByText('Folge 01 · v1')).toBeTruthy()
-    expect(screen.queryByText('Folge 04 · v1')).toBeNull()
+    expect(screen.getByText('Folge 01 · AnimeOwnage · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 04 · AnimeOwnage · v1')).toBeNull()
   })
 
   it('shows only done assigned releases in done mode', async () => {
@@ -179,8 +193,8 @@ describe('MyProjectDetailPage', () => {
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
     fireEvent.click(screen.getByRole('button', { name: 'Erledigt' }))
 
-    expect(screen.getByText('Folge 04 · v1')).toBeTruthy()
-    expect(screen.queryByText('Folge 01 · v1')).toBeNull()
+    expect(screen.getByText('Folge 04 · AnimeOwnage · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 01 · AnimeOwnage · v1')).toBeNull()
   })
 
   it('shows open releases before done releases in all mode, preserving order within each group', async () => {
@@ -196,8 +210,13 @@ describe('MyProjectDetailPage', () => {
     render(<MyProjectDetailPage />)
 
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
-    const labels = screen.getAllByText(/^Folge \d{2} · v1$/).map((node) => node.textContent)
-    expect(labels).toEqual(['Folge 02 · v1', 'Folge 04 · v1', 'Folge 01 · v1', 'Folge 03 · v1'])
+    const labels = screen.getAllByText(/^Folge \d{2} · AnimeOwnage · v1$/).map((node) => node.textContent)
+    expect(labels).toEqual([
+      'Folge 02 · AnimeOwnage · v1',
+      'Folge 04 · AnimeOwnage · v1',
+      'Folge 01 · AnimeOwnage · v1',
+      'Folge 03 · AnimeOwnage · v1',
+    ])
   })
 
   it('filters by episode number search in open and done modes too', async () => {
@@ -214,8 +233,8 @@ describe('MyProjectDetailPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Offen' }))
     fireEvent.change(screen.getByLabelText('Folgen-Nummer suchen'), { target: { value: '02' } })
 
-    expect(screen.queryByText('Folge 01 · v1')).toBeNull()
-    expect(screen.getByText('Folge 02 · v1')).toBeTruthy()
+    expect(screen.queryByText('Folge 01 · AnimeOwnage · v1')).toBeNull()
+    expect(screen.getByText('Folge 02 · AnimeOwnage · v1')).toBeTruthy()
   })
 
   it('loads all release versions in 20 item steps', async () => {
@@ -229,11 +248,11 @@ describe('MyProjectDetailPage', () => {
     render(<MyProjectDetailPage />)
 
     await screen.findByRole('heading', { name: 'Naruto', level: 1 })
-    expect(screen.queryByText('Folge 25 · v1')).toBeNull()
+    expect(screen.queryByText('Folge 25 · AnimeOwnage · v1')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Weitere laden' }))
 
-    expect(screen.getByText('Folge 25 · v1')).toBeTruthy()
+    expect(screen.getByText('Folge 25 · AnimeOwnage · v1')).toBeTruthy()
   })
 
   it('shows a status badge (Offen/Erledigt) per visible release row', async () => {

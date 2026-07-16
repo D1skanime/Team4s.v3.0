@@ -112,6 +112,9 @@ func TestBuildAnimeListWhereV2_UsesPersistedFieldsAndFilters(t *testing.T) {
 		"anime.status = $2",
 		"NOT",
 		"btrim(ma.file_path) <> ''",
+		"anime.cover_resolved_url",
+		"anime.cover_image",
+		"anime.source LIKE 'jellyfin:%'",
 		"anime.slug",
 		"at.title ILIKE $3",
 		"UPPER(LEFT(",
@@ -125,6 +128,23 @@ func TestBuildAnimeListWhereV2_UsesPersistedFieldsAndFilters(t *testing.T) {
 	wantArgs := []any{"movie", "done", "%eva%", "E"}
 	if !reflect.DeepEqual(args, wantArgs) {
 		t.Fatalf("expected args %#v, got %#v", wantArgs, args)
+	}
+}
+
+func TestAnimeCoverImageSelectSQL_UsesProviderFallbacks(t *testing.T) {
+	selectSQL := animeCoverImageSelectSQL("anime")
+	required := []string{
+		"NULLIF(BTRIM(anime.cover_resolved_url), '')",
+		"NULLIF(BTRIM(anime.cover_image), '')",
+		"poster.file_path",
+		"anime.source LIKE 'jellyfin:%'",
+		"'/api/v1/media/image?item_id='",
+		"'&kind=primary&provider=jellyfin'",
+	}
+	for _, fragment := range required {
+		if !strings.Contains(selectSQL, fragment) {
+			t.Fatalf("expected cover select to contain %q, got %q", fragment, selectSQL)
+		}
 	}
 }
 

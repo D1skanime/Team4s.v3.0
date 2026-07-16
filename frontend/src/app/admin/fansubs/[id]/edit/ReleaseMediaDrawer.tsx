@@ -82,6 +82,10 @@ export function ReleaseMediaDrawer({
   const drawerFansubName = drawerRelease
     ? releaseFansubDisplayName(drawerRelease)
     : "";
+  const drawerEpisodeLabel = drawerRelease
+    ? (drawerRelease.episode_title || "").trim() ||
+      `Episode ${drawerRelease.episode_number || "?"}`
+    : "";
   const releaseDrawerTabs = drawerRelease
     ? [
         ...(canUseAdminReleaseDetails
@@ -239,6 +243,7 @@ export function ReleaseMediaDrawer({
                     <>
                       <ReleaseVersionMediaDrawerSummary
                         versionId={drawerRelease.release_version_id}
+                        episodeLabel={drawerEpisodeLabel}
                         fansubName={drawerFansubName}
                         releaseVersionLabel={`Release-Version ${drawerRelease.release_version_id}`}
                       />

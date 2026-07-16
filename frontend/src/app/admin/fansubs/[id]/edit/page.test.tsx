@@ -253,6 +253,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
     render(
       <ReleaseVersionMediaDrawerSummary
         versionId={1}
+        episodeLabel="Erste Folge"
         fansubName="SubGroup"
         releaseVersionLabel="v1"
       />,
@@ -260,6 +261,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
 
     const link = screen.getByRole('link', { name: 'Media verwalten' })
     expect(link.getAttribute('href')).toContain('/admin/episode-versions/1/edit')
+    expect(screen.getByText('Erste Folge · SubGroup · v1')).not.toBeNull()
   })
 
   it('does not render upload controls inside the drawer summary', () => {
@@ -268,6 +270,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
     const { container } = render(
       <ReleaseVersionMediaDrawerSummary
         versionId={1}
+        episodeLabel="Erste Folge"
         fansubName="SubGroup"
         releaseVersionLabel="v1"
       />,
@@ -286,6 +289,7 @@ describe('ReleaseVersionMediaDrawerSummary', () => {
     render(
       <ReleaseVersionMediaDrawerSummary
         versionId={41}
+        episodeLabel="Erste Folge"
         fansubName="SubGroup"
         releaseVersionLabel="v1"
       />,

@@ -17,6 +17,7 @@ type CommonButtonProps = {
   leftIcon?: ReactNode
   rightIcon?: ReactNode
   className?: string
+  disabled?: boolean
   children?: ReactNode
 }
 
@@ -39,6 +40,7 @@ export function Button(props: ButtonProps) {
     loading = false,
     fullWidth = false,
     iconOnly = false,
+    disabled = false,
     leftIcon,
     rightIcon,
     className,
@@ -58,7 +60,7 @@ export function Button(props: ButtonProps) {
     size === 'lg' && styles.buttonLarge,
     fullWidth && styles.buttonBlock,
     iconOnly && styles.buttonIcon,
-    ('disabled' in props && props.disabled) || loading ? styles.buttonDisabled : '',
+    disabled || loading ? styles.buttonDisabled : '',
     className,
   )
 
@@ -72,7 +74,7 @@ export function Button(props: ButtonProps) {
 
   if ('href' in domProps && typeof domProps.href === 'string') {
     const { href, onClick, target, rel, ...anchorProps } = domProps
-    const isDisabled = Boolean(('disabled' in props && props.disabled) || loading)
+    const isDisabled = Boolean(disabled || loading)
     const handleAnchorClick =
       isDisabled || onClick
         ? (event: MouseEvent<HTMLAnchorElement>) => {
@@ -99,7 +101,7 @@ export function Button(props: ButtonProps) {
     )
   }
 
-  const { type = 'button', disabled, ...buttonProps } = domProps
+  const { type = 'button', ...buttonProps } = domProps
 
   return (
     <button

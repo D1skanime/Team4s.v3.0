@@ -6261,12 +6261,14 @@ export async function getGroupReleaseDetail(
 interface CursorQueryOpts {
   cursor?: string;
   limit?: number;
+  sort?: "activity";
 }
 
 function buildCursorQuery(opts: CursorQueryOpts): string {
   const query = new URLSearchParams();
   if (opts.cursor) query.set("cursor", opts.cursor);
   if (opts.limit) query.set("limit", String(opts.limit));
+  if (opts.sort) query.set("sort", opts.sort);
   return query.toString();
 }
 

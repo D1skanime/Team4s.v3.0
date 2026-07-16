@@ -39,6 +39,10 @@ function formatEpisodeNumber(value?: number | null): string {
   return `Episode ${String(value).padStart(2, '0')}`
 }
 
+function formatEpisodeLabel(value?: number | null, title?: string | null): string {
+  return title?.trim() || formatEpisodeNumber(value)
+}
+
 function getProjectReturnPath(raw: string | null, animeId: number, fansubGroupId?: number | null): string | null {
   if (!raw || !fansubGroupId) return null
   const expected = `/me/projects/${animeId}/group/${fansubGroupId}`
@@ -132,7 +136,8 @@ export function MeReleaseWorkspacePage() {
   const groupName = selectedGroup?.name ?? 'Fansubgruppe'
   const projectReturnHref = getProjectReturnPath(searchParams.get('return_to'), version.anime_id, selectedGroup?.id)
   const releaseVersionLabel = version.release_version?.trim() || `Version #${version.id}`
-  const episodeLabel = formatEpisodeNumber(version.episode_number)
+  const episodeLabel = formatEpisodeLabel(version.episode_number, version.title)
+  const episodeNumberLabel = formatEpisodeNumber(version.episode_number)
   const canUseMedia = capabilities.can_view_media
   const canUseNotes = capabilities.can_edit_notes && memberId != null
   const hasAnyWorkspaceAccess = canUseMedia || capabilities.can_edit_notes
@@ -176,7 +181,7 @@ export function MeReleaseWorkspacePage() {
               <span>/</span>
               {projectReturnHref ? <Link href={projectReturnHref}>{context.anime_title}</Link> : <span>{context.anime_title}</span>}
               <span>/</span>
-              <span>{episodeLabel}</span>
+              <span>{episodeNumberLabel}</span>
             </nav>
           }
           eyebrow="Release-Projektbereich"

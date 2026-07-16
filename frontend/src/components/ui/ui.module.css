@@ -1461,6 +1461,133 @@
 
 /* ─── Switch ──────────────────────────────────────────────────────────────── */
 
+.adjacentNav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+
+.adjacentNavInline {
+  justify-content: space-between;
+}
+
+.adjacentNavFloating {
+  position: absolute;
+  inset: 50% 12px auto;
+  justify-content: space-between;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.adjacentNavItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  max-width: min(320px, 100%);
+  padding: 10px 12px;
+  border: 1px solid rgba(95, 132, 221, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--accent-deep);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(18, 35, 64, 0.18);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.adjacentNavFloating .adjacentNavItem {
+  max-width: min(260px, 34%);
+  pointer-events: auto;
+}
+
+.adjacentNavItem:hover {
+  background: var(--surface-card);
+  color: var(--accent-primary);
+  box-shadow: 0 10px 24px rgba(18, 35, 64, 0.2);
+  transform: translateY(-1px);
+}
+
+.adjacentNavItem:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--focus-ring),
+    0 8px 22px rgba(18, 35, 64, 0.18);
+}
+
+.adjacentNavLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adjacentNavNext {
+  margin-left: auto;
+}
+
+.adjacentNavNext {
+  text-align: right;
+}
+
+.disclosureIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: var(--ui-arrow);
+  line-height: 1;
+}
+
+.disclosureIndicatorSm {
+  width: 24px;
+  height: 24px;
+}
+
+.disclosureIndicatorLg {
+  width: 42px;
+  height: 42px;
+}
+
+.disclosureIndicatorButton {
+  border: 1px solid color-mix(in srgb, var(--ui-line) 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ui-line) 8%, white);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 4px 12px -12px rgba(58, 14, 35, 0.4);
+}
+
+.accentRule {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--ui-line);
+}
+
+.accentRuleHairline {
+  height: 1px;
+}
+
+.accentRuleMedium {
+  height: 3px;
+}
+
+.accentRuleStrong {
+  height: 4px;
+}
+
 .switchRoot {
   display: inline-flex;
   align-items: center;
@@ -1606,6 +1733,35 @@
 }
 
 @media (max-width: 767px) {
+  .adjacentNavFloating {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0 18px 18px;
+    transform: none;
+  }
+
+  .adjacentNavInline {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .adjacentNavItem {
+    width: 100%;
+    max-width: none;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .adjacentNavFloating .adjacentNavItem {
+    max-width: none;
+  }
+
+  .adjacentNavPrevious:only-child,
+  .adjacentNavNext:only-child {
+    grid-column: 1 / -1;
+  }
+
   .pageHeader,
   .sectionHeader,
   .toolbar,

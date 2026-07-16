@@ -21,7 +21,7 @@ function formatReleaseDate(releaseDate: string | null): string | null {
   return parsed.toLocaleDateString("de-DE", { year: "numeric", month: "long", day: "numeric" });
 }
 
-/** AO4-16: Hero mit Kennzahlen (Bilder/Texte/Beteiligte) + Veroeffentlichungsdatum. */
+/** AO4-16: Hero mit Kennzahlen (Bilder/Texte/Fansubber) + Veroeffentlichungsdatum. */
 export function ReleaseDetailHero({
   episodeNumber,
   title,
@@ -67,7 +67,7 @@ export function ReleaseDetailHero({
         <div className={styles.statsRow}>
           <span className={styles.statItem}>{imagesCount} Bilder</span>
           <span className={styles.statItem}>{notesCount} Texte</span>
-          <span className={styles.statItem}>{contributorsCount} Beteiligte</span>
+          <span className={styles.statItem}>{contributorsCount} Fansubber</span>
         </div>
       </div>
     </section>

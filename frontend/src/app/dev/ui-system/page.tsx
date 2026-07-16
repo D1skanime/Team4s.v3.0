@@ -4,9 +4,12 @@ import { useState } from 'react'
 import { ArrowRight, Filter, MoreHorizontal, PanelRight, Pencil } from 'lucide-react'
 
 import {
+  AccentRule,
+  AdjacentNavigation,
   Badge,
   Button,
   Card,
+  DisclosureIndicator,
   EmptyState,
   ErrorState,
   FormField,
@@ -30,6 +33,8 @@ import {
 import { AccordionShowcase } from './showcase/AccordionShowcase'
 import { CompositionShowcase } from './showcase/CompositionShowcase'
 import { DrawerShowcase } from './showcase/DrawerShowcase'
+import { PublicFansubSurfacesShowcase } from './showcase/PublicFansubSurfacesShowcase'
+import { PublicReleaseSurfacesShowcase } from './showcase/PublicReleaseSurfacesShowcase'
 import { SwitchShowcase } from './showcase/SwitchShowcase'
 import { AppShellDrawerDemoSection } from './AppShellDrawerDemoSection'
 import styles from './page.module.css'
@@ -251,6 +256,34 @@ export default function UISystemPlaygroundPage() {
               <Button size="sm">Small</Button>
               <Button size="lg">Large</Button>
             </div>
+            <div className={styles.interactionPrimitiveGrid}>
+              <div className={styles.interactionPrimitivePanel}>
+                <strong>Öffner-Symbol</strong>
+                <div className={styles.disclosurePreviewRow}>
+                  <span className={styles.disclosurePreviewItem}>
+                    <DisclosureIndicator size="sm" />
+                    geschlossen
+                  </span>
+                  <span className={styles.disclosurePreviewItem}>
+                    <DisclosureIndicator open />
+                    geöffnet
+                  </span>
+                  <span className={styles.disclosurePreviewItem}>
+                    <DisclosureIndicator open size="lg" variant="button" />
+                    prominent
+                  </span>
+                </div>
+              </div>
+              <div className={styles.interactionPrimitivePanel}>
+                <strong>Wine-Linie</strong>
+                <div className={styles.accentRulePreviewStack}>
+                  <span><AccentRule thickness="hairline" />1px</span>
+                  <span><AccentRule />2px</span>
+                  <span><AccentRule thickness="medium" />3px</span>
+                  <span><AccentRule thickness="strong" />4px</span>
+                </div>
+              </div>
+            </div>
           </Card>
 
           <Card variant="section">
@@ -368,6 +401,27 @@ export default function UISystemPlaygroundPage() {
               <Pagination currentPage={page} totalPages={8} onPageChange={setPage} />
             </Card>
             <Card variant="flat">
+              <SectionHeader
+                title="Adjacent Navigation"
+                description="Globale Vor-/Weiter-Pills für Projekte, Releases und interne Sequenzen."
+              />
+              <div className={styles.adjacentNavDemoStack}>
+                <AdjacentNavigation
+                  ariaLabel="Projekt-Navigation"
+                  previous={{ href: '#', label: 'Tristia of the Deep Blue Sea' }}
+                  next={{ href: '#', label: 'Viper Creed' }}
+                />
+                <div className={styles.adjacentNavFloatingDemo}>
+                  <AdjacentNavigation
+                    variant="floating"
+                    ariaLabel="Hero-Projekt-Navigation"
+                    previous={{ href: '#', label: 'C-Subs Projekt' }}
+                    next={{ href: '#', label: 'Nächstes Release' }}
+                  />
+                </div>
+              </div>
+            </Card>
+            <Card variant="flat">
               <Toolbar
                 leading={(
                   <>
@@ -392,6 +446,9 @@ export default function UISystemPlaygroundPage() {
             <AccordionShowcase />
           </div>
         </Card>
+
+        <PublicFansubSurfacesShowcase />
+        <PublicReleaseSurfacesShowcase />
 
         <CompositionShowcase page={page} onPageChange={setPage} onOpenDrawer={() => setDrawerOpen(true)} />
       </div>

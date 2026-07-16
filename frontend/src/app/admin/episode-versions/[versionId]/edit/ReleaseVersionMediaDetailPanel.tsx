@@ -8,6 +8,8 @@ import {
   ReleaseVersionMediaItem,
   ReleaseVersionMediaPatchRequest,
 } from '@/types/releaseVersionMedia'
+import { FormField } from '@/components/ui/FormField'
+import { Textarea } from '@/components/ui/Textarea'
 
 import styles from './ReleaseVersionMediaSection.module.css'
 
@@ -41,6 +43,7 @@ export function ReleaseVersionMediaDetailPanel({
   const [localError, setLocalError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const captionFieldId = `release-media-caption-${item.id}`
 
   useEffect(() => {
     setCaption(item.caption ?? '')
@@ -112,15 +115,14 @@ export function ReleaseVersionMediaDetailPanel({
         )}
       </div>
 
-      <label className={styles.field}>
-        <span>Beschreibung</span>
-        <textarea
-          className={styles.input}
+      <FormField label="Beschreibung" htmlFor={captionFieldId}>
+        <Textarea
+          id={captionFieldId}
           value={caption}
           onChange={(event) => setCaption(event.target.value)}
           disabled={!canEdit}
         />
-      </label>
+      </FormField>
       <div className={styles.buttonRow}>
         <button
           type="button"

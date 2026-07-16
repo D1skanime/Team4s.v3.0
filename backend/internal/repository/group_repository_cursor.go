@@ -11,6 +11,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 )
@@ -25,9 +26,9 @@ type GroupReleasesCursorPage struct {
 }
 
 // GetGroupReleasesCursor liefert eine Seek-paginierte (Cursor-)Seite der
-// vollstaendigen Release-Liste, additiv neben GetGroupReleases. Sortierschluessel
-// identisch zur Offset-Variante: (episode_number, rev.id), damit beide Modi
-// konsistent sortieren (group_repository.go Zeile ~172/188).
+// vollstaendigen Release-Liste, additiv neben GetGroupReleases. Standard-
+// Sortierschluessel identisch zur Offset-Variante: (episode_number, rev.id).
+// Optional sort=activity sortiert nach letzter oeffentlicher Text-/Bild-Aktivitaet.
 func (r *GroupRepository) GetGroupReleasesCursor(
 	ctx context.Context,
 	animeID int64,
@@ -39,8 +40,31 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 	limit = clampCursorLimit(limit)
 
 	whereSQL, args := r.buildReleasesWhere(animeID, groupID, filter)
+	orderSQL := "CAST(e.episode_number AS INTEGER) ASC, rev.id ASC"
+	cursorFn := func(ep models.EpisodeReleaseSummary) string {
+		return encodeInt32Int64Cursor(ep.EpisodeNumber, ep.ID)
+	}
 
-	if epNum, revID, ok := decodeInt32Int64Cursor(cursor); ok {
+	if filter.Sort == "activity" {
+		orderSQL = "COALESCE(release_activity.last_activity_at, '0001-01-01 00:00:00+00'::timestamptz) DESC, rev.id DESC"
+		if activityAt, revID, ok := decodeTimeInt64Cursor(cursor); ok {
+			seekPos := len(args) + 1
+			whereSQL = fmt.Sprintf(
+				"%s AND (COALESCE(release_activity.last_activity_at, '0001-01-01 00:00:00+00'::timestamptz), rev.id) < ($%d, $%d)",
+				whereSQL,
+				seekPos,
+				seekPos+1,
+			)
+			args = append(args, activityAt, revID)
+		}
+		cursorFn = func(ep models.EpisodeReleaseSummary) string {
+			activityAt := time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
+			if ep.LastActivityAt != nil {
+				activityAt = *ep.LastActivityAt
+			}
+			return encodeTimeInt64Cursor(activityAt, ep.ID)
+		}
+	} else if epNum, revID, ok := decodeInt32Int64Cursor(cursor); ok {
 		seekPos := len(args) + 1
 		whereSQL = fmt.Sprintf("%s AND (CAST(e.episode_number AS INTEGER), rev.id) > ($%d, $%d)", whereSQL, seekPos, seekPos+1)
 		args = append(args, epNum, revID)
@@ -64,35 +88,56 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 				ORDER BY rv.duration_seconds IS NOT NULL DESC, rv.id ASC
 				LIMIT 1
 			) AS duration_seconds,
-			(
-				SELECT COUNT(*)
-				FROM release_version_media rvm
-				JOIN media_assets ma ON ma.id = rvm.media_asset_id
-				JOIN visibilities v_img ON v_img.id = ma.visibility_id
-				JOIN review_statuses rs_img ON rs_img.id = ma.review_status_id
-				WHERE rvm.release_version_id = rev.id
-				  AND rvm.deleted_at IS NULL
-				  AND ma.status = 'ready'
-				  AND v_img.name = 'public'
-				  AND rs_img.code = 'approved'
-			) AS images_count,
-			(
-				SELECT COUNT(*)
-				FROM release_version_notes rvn
-				WHERE rvn.release_version_id = rev.id
-				  AND rvn.deleted_at IS NULL
-				  AND rvn.visibility = 'public'
-				  AND rvn.status = 'published'
-			) AS notes_count
+			COALESCE(release_images.images_count, 0)::BIGINT AS images_count,
+			COALESCE(release_notes.notes_count, 0)::BIGINT AS notes_count,
+			COALESCE(release_contributors.contributors_count, 0)::BIGINT AS contributors_count,
+			release_activity.last_activity_at
 		FROM release_versions rev
 		JOIN fansub_releases fr ON fr.id = rev.release_id
 		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
 		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
 		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
+		LEFT JOIN LATERAL (
+			SELECT COUNT(*) AS images_count, MAX(COALESCE(rvm.updated_at, rvm.created_at)) AS latest_at
+			FROM release_version_media rvm
+			JOIN media_assets ma ON ma.id = rvm.media_asset_id
+			JOIN visibilities v_img ON v_img.id = ma.visibility_id
+			JOIN review_statuses rs_img ON rs_img.id = ma.review_status_id
+			WHERE rvm.release_version_id = rev.id
+			  AND rvm.deleted_at IS NULL
+			  AND ma.status = 'ready'
+			  AND v_img.name = 'public'
+			  AND rs_img.code = 'approved'
+		) release_images ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT COUNT(*) AS notes_count, MAX(COALESCE(rvn.updated_at, rvn.created_at)) AS latest_at
+			FROM release_version_notes rvn
+			WHERE rvn.release_version_id = rev.id
+			  AND rvn.deleted_at IS NULL
+			  AND rvn.visibility = 'public'
+			  AND rvn.status = 'published'
+		) release_notes ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT COUNT(DISTINCT ac.member_id) AS contributors_count
+			FROM anime_contributions ac
+			LEFT JOIN visibilities v_contrib ON v_contrib.id = ac.visibility_id
+			WHERE ac.release_version_id = rev.id
+			  AND ac.is_public_on_anime_page = true
+			  AND COALESCE(v_contrib.name, 'public') = 'public'
+		) release_contributors ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT CASE
+				WHEN release_images.latest_at IS NULL AND release_notes.latest_at IS NULL THEN NULL
+				ELSE GREATEST(
+					COALESCE(release_images.latest_at, release_notes.latest_at),
+					COALESCE(release_notes.latest_at, release_images.latest_at)
+				)
+			END AS last_activity_at
+		) release_activity ON TRUE
 		%s
-		ORDER BY CAST(e.episode_number AS INTEGER) ASC, rev.id ASC
+		ORDER BY %s
 		LIMIT $%d
-	`, publicReleaseTitleSQL("rev", "e", "fg"), whereSQL, limitPos)
+	`, publicReleaseTitleSQL("rev", "e", "fg"), whereSQL, orderSQL, limitPos)
 
 	rows, err := r.db.Query(ctx, listQuery, append(args, limit+1)...)
 	if err != nil {
@@ -108,6 +153,8 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		var durationSeconds sql.NullInt64
 		var imagesCount int64
 		var notesCount int64
+		var contributorsCount int64
+		var lastActivityAt sql.NullTime
 		if err := rows.Scan(
 			&ep.ID,
 			&episodeID,
@@ -120,6 +167,8 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			&durationSeconds,
 			&imagesCount,
 			&notesCount,
+			&contributorsCount,
+			&lastActivityAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan cursor episode release row: %w", err)
 		}
@@ -139,6 +188,11 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		ep.TimelineSegments = make([]models.ReleaseTimelineSegment, 0)
 		ep.ImagesCount = int32(imagesCount)
 		ep.NotesCount = int32(notesCount)
+		ep.ContributorsCount = int32(contributorsCount)
+		if lastActivityAt.Valid {
+			value := lastActivityAt.Time
+			ep.LastActivityAt = &value
+		}
 		episodes = append(episodes, ep)
 	}
 	if err := rows.Err(); err != nil {
@@ -149,9 +203,7 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		return nil, err
 	}
 
-	page, nextCursor, hasMore := trimCursorPage(episodes, limit, func(ep models.EpisodeReleaseSummary) string {
-		return encodeInt32Int64Cursor(ep.EpisodeNumber, ep.ID)
-	})
+	page, nextCursor, hasMore := trimCursorPage(episodes, limit, cursorFn)
 
 	return &GroupReleasesCursorPage{
 		Items:      page,

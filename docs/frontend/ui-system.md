@@ -77,12 +77,15 @@ Aktuell vorbereitet:
 - `Textarea`
 - `Toolbar`
 - `ActionBar`
+- `AccentRule`
+- `DisclosureIndicator`
 - `EmptyState`
 - `LoadingState`
 - `ErrorState`
 - `SectionHeader`
 - `PageHeader`
 - `Pagination`
+- `AdjacentNavigation`
 
 ## Unterstützte Varianten
 
@@ -97,6 +100,13 @@ Aktuell vorbereitet:
 - Größen `sm`, `md`, `lg`
 - `loading`
 - `iconOnly`
+
+### Interaction Primitives
+
+- `DisclosureIndicator` ist das globale Öffner-Symbol für aufklappbare Zeilen, Listen und Karten
+- `plain` ist die normale Inline-Variante, `button` ist die prominentere runde Variante
+- `AccentRule` ist die globale Wine-Linie für Tabellenköpfe, Abschnittstrenner und ähnliche Akzentlinien
+- erlaubte Linienstärken sind `hairline`, `thin`, `medium` und `strong`
 
 ### Card
 
@@ -202,6 +212,26 @@ Sie ist ausdrücklich nicht:
 
 - `PageHeader` ist klar stärker als `SectionHeader`
 - `SectionHeader` bleibt kompakter und sachlicher
+
+### Adjacent Navigation
+
+- `AdjacentNavigation` ist der globale Standard für vorherige/nächste Inhalte in einer fachlichen Reihenfolge
+- sie ist für Projekt-, Release- und interne Sequenznavigation gedacht, nicht für Seitennummern
+- `inline` liegt im normalen Seitenfluss, `floating` positioniert die Pills über Hero- oder Medienflächen
+- Labels bleiben fachlich in der Domain-Komponente; die UI-Komponente kennt nur `previous`, `next`, `href` und `label`
+
+### Public Release Surfaces
+
+- öffentliche Fansub-Projektseiten nutzen `PublicReleaseBlock` als definierbare Release-Referenzfläche
+- einzelne Public-Release-Objekte führen mit der Folge, darunter stehen Folgentitel, Gruppe/Version und Veröffentlichungsdatum
+- Public-Timeline-Segmente zeigen primär den Theme-/Kara-Titel; `OP`, `ED`, `IN` und `KARA` bleiben Typen für Farbe und Fallback
+- die Segmentzeit steht unter dem Segmenttitel im Segment selbst
+- `Hauptinhalt` ist auf Public-Flächen nur die visuelle Grundspur und kein sichtbarer Text
+- die Public-Timeline repräsentiert die komplette Episodenlänge von `00:00:00` bis zur Laufzeit und nutzt Zeit-Chips, Tick-Marker und eine farbige Grundspur, damit Kara-/Theme-Segmente als Positionen auf dieser Dauer lesbar sind
+- Kara-/Theme-Segmente nutzen eine eigene Medienpalette und dürfen nicht wie Status-Badges, Fehler-Rot oder Ansichts-/Aktionsbuttons wirken
+- beteiligte Personen werden auf Public-Release-Flächen als `Fansubber` bezeichnet
+- Mobile Public-Release-Timelines verwenden keine horizontale Scrollspur; sie wechseln auf eine vertikale Segmentliste mit Mini-Spur und typfarbiger Markierung je Segment
+- die mobile Segmentliste erhält den Abschnittstitel `Karas` direkt über den Segmentblöcken
 
 ### Drawer
 

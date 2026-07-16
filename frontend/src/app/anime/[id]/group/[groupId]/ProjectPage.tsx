@@ -42,6 +42,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
       {data.hasReleases ? (
         <ReleasesSection
           episodes={data.releaseEpisodes}
+          publicReleasePreviews={data.publicReleasePreviews}
           animeID={data.animeID}
           groupID={data.groupID}
         />

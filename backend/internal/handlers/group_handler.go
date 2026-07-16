@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -142,6 +142,12 @@ func parseGroupReleasesFilter(c *gin.Context) (models.GroupReleasesFilter, error
 	}
 
 	filter.Q = c.Query("q")
+	if sort := c.Query("sort"); sort != "" {
+		if sort != "activity" {
+			return filter, errors.New("invalid sort")
+		}
+		filter.Sort = sort
+	}
 
 	return filter, nil
 }

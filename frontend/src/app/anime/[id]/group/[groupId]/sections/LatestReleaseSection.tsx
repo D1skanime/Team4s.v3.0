@@ -62,7 +62,7 @@ export async function LatestReleaseSection({ animeID, groupID, releaseVersionID 
         <div className={styles.stats}>
           <span className={styles.statItem}>{detail.images_count} Bilder</span>
           <span className={styles.statItem}>{detail.notes_count} Texte</span>
-          <span className={styles.statItem}>{detail.contributors_count} Beteiligte</span>
+          <span className={styles.statItem}>{detail.contributors_count} Fansubber</span>
         </div>
 
         {previewImages.length > 0 ? (

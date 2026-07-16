@@ -248,6 +248,7 @@ export function FansubProjectsGrid({ items, groupId, groupSlug }: FansubProjects
             >
               <span className={styles.projectCountValue}>+{remaining}</span>
               <span className={styles.projectCountLabel}>weitere Projekte</span>
+              <span className={styles.projectCountAction}>Alle anzeigen</span>
             </Button>
           ) : null}
         </div>

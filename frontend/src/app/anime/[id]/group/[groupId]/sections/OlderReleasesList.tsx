@@ -14,14 +14,23 @@ import styles from './OlderReleasesList.module.css'
 interface OlderReleasesListProps {
   animeID: number
   groupID: number
-  /** release_version_id des bereits eingebetteten neuesten Release (AO4-11) — wird hier ausgeblendet. */
+  /** release_version_id des bereits eingebetteten neuesten Release (AO4-11) wird hier ausgeblendet. */
   excludeReleaseVersionId?: number
 }
 
 const PAGE_LIMIT = 10
 
-function releaseLabel(episode: EpisodeReleaseSummary): string {
-  return episode.title?.trim() || `Episode ${episode.episode_number}`
+function episodeLabel(episode: EpisodeReleaseSummary): string {
+  return `Folge ${episode.episode_number}`
+}
+
+function versionOnlyLabel(label?: string | null): string {
+  const version = label?.match(/\bv(?:ersion)?\.?\s*\d+[a-z0-9._-]*/i)?.[0]
+  return version ?? ''
+}
+
+function releaseContextLabel(episode: EpisodeReleaseSummary): string {
+  return episode.title?.trim() ?? ''
 }
 
 function parseTimeToSeconds(value?: string | null): number | null {
@@ -29,19 +38,6 @@ function parseTimeToSeconds(value?: string | null): number | null {
   const parts = value.split(':').map((part) => Number.parseFloat(part))
   if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) return null
   return Math.max(0, Math.round(parts[0] * 3600 + parts[1] * 60 + parts[2]))
-}
-
-function formatSeconds(totalSeconds?: number | null): string {
-  if (!totalSeconds || totalSeconds < 0) return '00:00:00'
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = Math.floor(totalSeconds % 60)
-  return [hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':')
-}
-
-function formatTimeRange(segment: ReleaseTimelineSegment): string | null {
-  if (segment.start_time && segment.end_time) return `${segment.start_time} - ${segment.end_time}`
-  return segment.start_time ?? segment.end_time ?? null
 }
 
 function segmentClassName(segmentType: string): string {
@@ -53,7 +49,15 @@ function segmentClassName(segmentType: string): string {
   return styles.segmentPill
 }
 
-function segmentPositionStyle(segment: ReleaseTimelineSegment, durationSeconds?: number | null): CSSProperties {
+function segmentLineColor(segmentType: string): string {
+  const type = segmentType.toUpperCase()
+  if (type === 'OP') return 'rgba(68, 255, 164, 0.72)'
+  if (type === 'ED') return 'rgba(44, 205, 255, 0.72)'
+  if (type === 'INSERT' || type === 'KARA') return 'rgba(188, 92, 255, 0.74)'
+  return 'rgba(83, 102, 136, 0.44)'
+}
+
+function segmentMetrics(segment: ReleaseTimelineSegment, durationSeconds?: number | null): { left: number; width: number } {
   const start = parseTimeToSeconds(segment.start_time) ?? 0
   const end = parseTimeToSeconds(segment.end_time)
   const inferredDuration = Math.max(durationSeconds ?? 0, end ?? 0, start + 1)
@@ -61,10 +65,32 @@ function segmentPositionStyle(segment: ReleaseTimelineSegment, durationSeconds?:
   const width = Math.min(Math.max(rawWidth, 14), 34)
   const left = Math.min(Math.max((start / inferredDuration) * 100, 0), 100 - width)
 
+  return { left, width }
+}
+
+function segmentPositionStyle(segment: ReleaseTimelineSegment, durationSeconds?: number | null): CSSProperties {
+  const { left, width } = segmentMetrics(segment, durationSeconds)
   return {
     '--segment-left': `${left}%`,
     '--segment-width': `${width}%`,
   } as CSSProperties
+}
+
+function timelineTrackStyle(segments: ReleaseTimelineSegment[], durationSeconds?: number | null): CSSProperties {
+  const metrics = segments
+    .map((segment) => ({ segment, ...segmentMetrics(segment, durationSeconds) }))
+    .sort((left, right) => left.left - right.left)
+  const stops = ['rgba(68, 255, 164, 0.2) 0%']
+
+  metrics.forEach(({ segment, left, width }) => {
+    const color = segmentLineColor(segment.type)
+    const start = Math.max(0, Math.min(left - 1.5, 100))
+    const end = Math.max(0, Math.min(left + width + 1.5, 100))
+    stops.push(`${color} ${start}%`, `${color} ${end}%`)
+  })
+
+  stops.push('rgba(44, 205, 255, 0.2) 100%')
+  return { '--timeline-gradient': `linear-gradient(90deg, ${stops.join(', ')})` } as CSSProperties
 }
 
 function ReleaseTimelinePreview({
@@ -81,14 +107,8 @@ function ReleaseTimelinePreview({
 
   return (
     <div className={styles.timelinePreview}>
-      <div className={styles.timelineTimes} aria-hidden="true">
-        <span>00:00:00</span>
-        <span>{formatSeconds(episode.duration_seconds)}</span>
-      </div>
-      <div className={styles.timelineTrack}>
-        <span className={styles.mainContentLabel}>Hauptinhalt</span>
+      <div className={styles.timelineTrack} style={timelineTrackStyle(segments, episode.duration_seconds)}>
         {segments.map((segment) => {
-          const range = formatTimeRange(segment)
           return (
             <Link
               key={segment.id}
@@ -97,8 +117,7 @@ function ReleaseTimelinePreview({
               style={segmentPositionStyle(segment, episode.duration_seconds)}
               aria-label={`${segment.title} in der Release-Ansicht öffnen`}
             >
-              <span className={styles.segmentType}>{segment.type}</span>
-              {range ? <span className={styles.segmentTime}>{range}</span> : null}
+              <span className={styles.segmentType}>{segment.title}</span>
             </Link>
           )
         })}
@@ -108,10 +127,10 @@ function ReleaseTimelinePreview({
 }
 
 /**
- * AO4-12: kompakte Liste aelterer Releases (alle ausser dem eingebetteten neuesten),
- * nachgeladen ueber Seek-Cursor-Pagination (AO4-03/AO4-24). Automatisches Nachladen
+ * AO4-12: kompakte Liste älterer Releases (alle außer dem eingebetteten neuesten),
+ * nachgeladen über Seek-Cursor-Pagination (AO4-03/AO4-24). Automatisches Nachladen
  * per IntersectionObserver UND manueller "Mehr laden"-Button als Fallback (AO4-25).
- * Kein Bilder-/Text-Overload pro Eintrag — nur Name/Episode, Bild-/Text-Anzahl, Link.
+ * Kein Bilder-/Text-Overload pro Eintrag, nur Name/Episode, Bild-/Text-Anzahl, Link.
  */
 export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }: OlderReleasesListProps) {
   const [items, setItems] = useState<EpisodeReleaseSummary[]>([])
@@ -144,13 +163,11 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }:
     [animeID, groupID],
   )
 
-  // Initial load (AO4-12: erste Seite via initialem Cursor-Aufruf).
   useEffect(() => {
     loadPage(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animeID, groupID])
 
-  // Automatisches Nachladen (AO4-21: Infinite Scroll ausschliesslich hier).
   useEffect(() => {
     if (!hasMore || loading || !cursor) return
 
@@ -185,24 +202,40 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }:
         <div className={styles.list}>
           {visibleItems.map((episode) => {
             const detailHref = `/anime/${animeID}/group/${groupID}/releases/${episode.id}`
+            const contextLabel = releaseContextLabel(episode)
+            const versionLabel = versionOnlyLabel(episode.version_label)
             return (
               <Card key={episode.id} variant="flat" className={styles.row}>
                 <div className={styles.rowHeader}>
                   <div className={styles.rowMain}>
-                    <Link href={detailHref} className={styles.rowTitle}>
-                      {releaseLabel(episode)}
-                    </Link>
-                    {episode.version_label ? <span className={styles.rowMeta}>{episode.version_label}</span> : null}
+                    <div className={styles.rowTitleLine}>
+                      <Link href={detailHref} className={styles.rowTitle}>
+                        {episodeLabel(episode)}
+                      </Link>
+                      <span className={styles.rowTitleDivider} aria-hidden="true">
+                        |
+                      </span>
+                      <span className={styles.rowVersion}>{versionLabel}</span>
+                      <span className={styles.rowTitleDivider} aria-hidden="true">
+                        |
+                      </span>
+                      <span className={styles.rowMeta}>{contextLabel}</span>
+                    </div>
+                    <div className={styles.rowCountGroup}>
+                      <span className={styles.rowCount}>
+                        <ImageIcon size={14} aria-hidden="true" />
+                        {episode.images_count ?? 0} Bilder
+                      </span>
+                      <span className={styles.rowTitleDivider} aria-hidden="true">
+                        |
+                      </span>
+                      <span className={styles.rowCount}>
+                        <FileText size={14} aria-hidden="true" />
+                        {episode.notes_count ?? 0} Texte
+                      </span>
+                    </div>
                   </div>
                   <div className={styles.rowActions}>
-                    <span className={styles.rowCount}>
-                      <ImageIcon size={14} aria-hidden="true" />
-                      {episode.images_count ?? 0} Bilder
-                    </span>
-                    <span className={styles.rowCount}>
-                      <FileText size={14} aria-hidden="true" />
-                      {episode.notes_count ?? 0} Texte
-                    </span>
                     <Button
                       href={detailHref}
                       variant="subtle"

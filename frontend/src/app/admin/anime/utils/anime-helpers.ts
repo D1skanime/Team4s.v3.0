@@ -53,6 +53,25 @@ export function splitTagTokens(raw: string): string[] {
   return result
 }
 
+export function resolveAniSearchID(source?: string | null, sourceLinks?: string[] | null, explicitID?: string | null): string {
+  const explicit = (explicitID || '').trim()
+  if (explicit) return explicit
+
+  const values = [source, ...(sourceLinks ?? [])]
+  for (const value of values) {
+    const trimmed = (value || '').trim()
+    if (trimmed.toLowerCase().startsWith('anisearch:')) {
+      return trimmed.slice('anisearch:'.length).trim()
+    }
+  }
+
+  return ''
+}
+
+export function buildAniSearchAnimeURL(anisearchID: string): string {
+  return `https://www.anisearch.de/anime/${encodeURIComponent(anisearchID.trim())}`
+}
+
 /**
  * Resolves anime cover image URLs to their canonical format.
  *

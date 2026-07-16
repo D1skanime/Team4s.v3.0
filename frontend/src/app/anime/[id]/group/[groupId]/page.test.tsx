@@ -17,6 +17,8 @@ import {
 
 const projectPageSource = () =>
   readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/ProjectPage.tsx'), 'utf8')
+const projectPageStyles = () =>
+  readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/page.module.css'), 'utf8')
 
 vi.mock('next/image', () => {
   const MockNextImage = forwardRef<
@@ -107,6 +109,21 @@ describe('ProjectPage removed section surfaces (102-06)', () => {
     expect(source).not.toContain('buildEmptyAreaLabels')
     expect(source).not.toContain('Weitere Bereiche sind noch nicht')
     expect(source).not.toContain('noch nicht öffentlich befüllt')
+  })
+})
+
+describe('ProjectPage public hero styling', () => {
+  it('keeps the project backdrop soft like the public fansub hero instead of clipping the blur edge', () => {
+    const css = projectPageStyles()
+    const heroShellBlock = css.match(/\.heroShell\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const heroBackdropBlock = css.match(/\.heroBackdrop\s*\{[\s\S]*?\}/)?.[0] ?? ''
+
+    expect(heroShellBlock).not.toContain('overflow: hidden')
+    expect(heroShellBlock).not.toContain('width: 100vw')
+    expect(heroShellBlock).not.toContain('margin-left: calc(50% - 50vw)')
+    expect(heroBackdropBlock).toContain('left: calc(50% - 50vw)')
+    expect(heroBackdropBlock).toContain('width: 100vw')
+    expect(heroBackdropBlock).toContain('filter: blur(34px) brightness(0.72) saturate(1.25)')
   })
 })
 

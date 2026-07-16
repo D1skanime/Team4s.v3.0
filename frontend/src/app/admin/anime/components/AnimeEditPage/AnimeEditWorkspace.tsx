@@ -11,12 +11,14 @@ import {
   deleteAdminAnimeLogoAsset,
   getAdminAnimeJellyfinContext,
 } from '@/lib/api'
+import { Button, Input } from '@/components/ui'
+import { FormField } from '@/components/ui/FormField'
+import { Textarea } from '@/components/ui/Textarea'
 import { searchAdminAnimeCreateAssetCandidates } from '@/lib/api/admin-anime-intake'
 import type {
   AdminAnimeAssetKind,
   AdminAnimeJellyfinContext,
   AdminAnimePersistedAssets,
-  AdminAnimePersistedBackgroundState,
   AnimeType,
 } from '@/types/admin'
 import type { AnimeDetail, AnimeStatus, ContentType } from '@/types/anime'
@@ -39,6 +41,7 @@ import {
   removeJellyfinDraftAsset,
   type JellyfinDraftAssetTarget,
 } from '../../hooks/useManualAnimeDraft'
+import { buildAniSearchAnimeURL, resolveAniSearchID } from '../../utils/anime-helpers'
 import { formatAdminError } from '../../utils/studio-helpers'
 import { AnimeEditAssetSection } from './AnimeEditAssetSection'
 import { SharedAnimeEditorWorkspace } from './SharedAnimeEditorWorkspace'
@@ -412,6 +415,8 @@ export function AnimeEditWorkspace({
     anime.anisearch_id ||
       hasProviderSource('anisearch:', effectiveSource, anime.source_links),
   )
+  const effectiveAniSearchID = resolveAniSearchID(effectiveSource, anime.source_links, anime.anisearch_id)
+  const aniSearchURL = effectiveAniSearchID ? buildAniSearchAnimeURL(effectiveAniSearchID) : ''
   const hasJellyfinSource = Boolean(
     effectiveJellyfinSeriesID ||
       hasProviderSource('jellyfin:', effectiveSource, anime.source_links),
@@ -498,6 +503,27 @@ export function AnimeEditWorkspace({
           <div className={styles.field}>
             <label htmlFor="edit-source-kind">Quelltyp</label>
             <input id="edit-source-kind" value={effectiveSourceKind} readOnly />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="edit-anisearch-id">AniSearch ID</label>
+            <div className={workspaceStyles.sourceLinkControl}>
+              <Input
+                id="edit-anisearch-id"
+                value={effectiveAniSearchID}
+                placeholder="Keine AniSearch-ID verknüpft"
+                readOnly
+              />
+              <Button
+                href={aniSearchURL || '#'}
+                target="_blank"
+                rel="noreferrer"
+                variant="secondary"
+                size="sm"
+                disabled={!aniSearchURL}
+              >
+                AniSearch öffnen
+              </Button>
+            </div>
           </div>
           <div className={styles.field}>
             <label htmlFor="edit-link-status">Jellyfin-Link</label>
@@ -764,18 +790,18 @@ export function AnimeEditWorkspace({
             onResetLimit={() => patch.setTagSuggestionLimit(40)}
           />
 
-          <div className={`${styles.field} ${workspaceStyles.descriptionField}`}>
-            <label htmlFor="edit-description">Beschreibung</label>
-            <textarea
+          <FormField
+            label="Beschreibung"
+            htmlFor="edit-description"
+            hint="Kurz, eindeutig und ohne Prozess-Text."
+          >
+            <Textarea
               id="edit-description"
               className={workspaceStyles.descriptionArea}
               value={patch.values.description}
               onChange={(event) => patch.setField('description', event.target.value)}
             />
-            <p className={workspaceStyles.fieldNote}>
-              Kurz, eindeutig und ohne Prozess-Text.
-            </p>
-          </div>
+          </FormField>
         </div>
       </section>
     </div>
