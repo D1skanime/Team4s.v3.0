@@ -227,6 +227,12 @@
 | P68-SC1 | Phase 68 | Complete |
 | P68-SC2 | Phase 68 | Complete |
 | P68-SC3 | Phase 68 | Complete |
+| P103-SC1 | Phase 103 | Planned |
+| P103-SC2 | Phase 103 | Planned |
+| P103-SC3 | Phase 103 | Planned |
+| P103-SC4 | Phase 103 | Planned |
+| P103-SC5 | Phase 103 | Planned |
+| P103-SC6 | Phase 103 | Planned |
 
 **Coverage:**
 - v1 requirements: 28 total

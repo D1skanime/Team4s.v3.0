@@ -1774,13 +1774,26 @@ Plans:
 
 ### Phase 103: Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Die öffentliche Detailseite einer konkreten Release-Version als umfassende Fansub-Story mit technischen Daten, exakt Release-gebundenen Beteiligten, skalierbaren Bild-/Textkapiteln, begrenztem Kara-Playback und zentral berechtigtem optionalem Vollfolgen-Playback bereitstellen.
+**Requirements**: P103-SC1, P103-SC2, P103-SC3, P103-SC4, P103-SC5, P103-SC6
 **Depends on:** Phase 102
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 103 to break down)
+- [ ] 103-01-PLAN.md — Public Aggregate, Vertrag, Preview, Techniktracks und gruppentreue Navigation
+- [ ] 103-02-PLAN.md — Persistierte Vollfolgen-Entitlements und zentraler Most-specific-wins-Resolver
+- [ ] 103-03-PLAN.md — Responsive Release-Story-UI mit Bildkapiteln und rollenbasierten Texten
+- [ ] 103-04-PLAN.md — Öffentliche Kara-Timeline und Phase-98-gebundenes Segment-Playback
+- [ ] 103-05-PLAN.md — Geschütztes Vollfolgen-Playback, Dialog und vollständige Live-UAT
+
+**Success Criteria** (what must be TRUE):
+
+1. Der Public-Read bildet exakt eine `release_version_id` mit Preview, Techniktracks, Kooperation, Urheberschaft, Segmenten und gruppentreuer Navigation vertragskonform ab.
+2. Bilder erscheinen in vier responsiv aufklappbaren In-Page-Kapiteln und Texte nach Rolle; leere Bereiche verschwinden, Text-only-Releases bleiben vollständig nutzbar.
+3. Gäste sehen Kara-Informationen ohne Abspielaktion; aktive Sessions spielen nur öffentliche, bereite, serverseitig begrenzte Segmente über kurze Grants ab.
+4. Vollfolgenrechte folgen global → Gruppe → Projekt → Release mit spezifischster Regel; Button, Grant und Stream verwenden denselben zentralen Resolver.
+5. Der Vollfolgenplayer bleibt eine nur bei positiver Berechtigung und Streambereitschaft sichtbare sekundäre Dialogaktion.
+6. Responsive Live-UAT und die Refresh-Session-Regression bestehen über den realen Einstieg von der Public-Fansub-/Projektseite.
 
 ---
 
