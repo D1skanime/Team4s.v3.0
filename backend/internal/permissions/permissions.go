@@ -9,7 +9,10 @@ import (
 )
 
 const (
-	ScopeTypeGroup = "group"
+	ScopeTypeGlobal  = "global"
+	ScopeTypeGroup   = "group"
+	ScopeTypeProject = "project"
+	ScopeTypeRelease = "release"
 )
 
 type Action string
@@ -239,7 +242,22 @@ type Actor struct {
 type Context struct {
 	ScopeType      string
 	FansubGroupIDs []int64
+	AnimeID        *int64
 	OwnerAppUserID *int64
+}
+
+// ReleasePlaybackEntitlementDecision is the server-side result of the central
+// content-scope resolver. WinningScope is diagnostic metadata and must not be
+// exposed as a public authorization contract.
+type ReleasePlaybackEntitlementDecision struct {
+	Allowed       bool
+	WinningScope  string
+	WinningEffect string
+	SubjectType   string
+}
+
+type ReleasePlaybackEntitlementResolver interface {
+	ResolveReleasePlaybackEntitlement(ctx context.Context, actor Actor, releaseVersionID int64) (ReleasePlaybackEntitlementDecision, error)
 }
 
 type Result struct {

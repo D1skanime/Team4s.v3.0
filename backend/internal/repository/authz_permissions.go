@@ -73,10 +73,13 @@ func (r *AuthzRepository) ResolveReleaseVersion(ctx context.Context, releaseVers
 	}
 
 	rows, err := r.db.Query(ctx, `
-		SELECT DISTINCT fansub_group_id
-		FROM release_version_groups
-		WHERE release_version_id = $1
-		ORDER BY fansub_group_id
+		SELECT DISTINCT rvg.fansub_group_id, e.anime_id
+		FROM release_version_groups rvg
+		JOIN release_versions rv ON rv.id = rvg.release_version_id
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		WHERE rvg.release_version_id = $1
+		ORDER BY rvg.fansub_group_id
 	`, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("resolve release version %d: %w", releaseVersionID, err)
@@ -84,9 +87,10 @@ func (r *AuthzRepository) ResolveReleaseVersion(ctx context.Context, releaseVers
 	defer rows.Close()
 
 	groupIDs := make([]int64, 0)
+	var animeID int64
 	for rows.Next() {
 		var groupID int64
-		if err := rows.Scan(&groupID); err != nil {
+		if err := rows.Scan(&groupID, &animeID); err != nil {
 			return nil, fmt.Errorf("resolve release version %d: scan: %w", releaseVersionID, err)
 		}
 		groupIDs = append(groupIDs, groupID)
@@ -101,6 +105,7 @@ func (r *AuthzRepository) ResolveReleaseVersion(ctx context.Context, releaseVers
 	return &permissions.Context{
 		ScopeType:      permissions.ScopeTypeGroup,
 		FansubGroupIDs: groupIDs,
+		AnimeID:        &animeID,
 	}, nil
 }
 
