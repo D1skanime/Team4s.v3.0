@@ -1,7 +1,7 @@
 'use client'
 
 import { ChangeEvent, DragEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { ImageIcon, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { ImageIcon, RefreshCw, Star, Trash2, Upload } from 'lucide-react'
 
 import {
   CATEGORY_ALLOWS_PREVIEW,
@@ -133,6 +133,7 @@ export function ReleaseVersionMediaSection({
   const [editStatus, setEditStatus] = useState<AssetStatusValue>('in_pruefung')
   const [editPreviewCandidate, setEditPreviewCandidate] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
+  const [previewSavingId, setPreviewSavingId] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -308,7 +309,6 @@ export function ReleaseVersionMediaSection({
 
     const patch: ReleaseVersionMediaPatchRequest = {
       caption: editCaption.trim() === '' ? null : editCaption.trim(),
-      is_preview_candidate: canEditPreviewCandidate ? editPreviewCandidate : false,
       ...statusPatch(editStatus),
     }
 
@@ -319,6 +319,21 @@ export function ReleaseVersionMediaSection({
       showToast('Änderungen gespeichert.')
     } catch (error) {
       setEditError(error instanceof Error ? error.message : 'Speichern fehlgeschlagen.')
+    }
+  }
+
+  async function handlePreviewChange(item: ReleaseVersionMediaItem, nextValue: boolean) {
+    if (!(item.can_update ?? canUpdateMedia) || !CATEGORY_ALLOWS_PREVIEW[item.category]) return
+    setPreviewSavingId(item.id)
+    setEditError(null)
+    try {
+      await media.patchItem(item.id, { is_preview_candidate: nextValue })
+      if (selectedItemId === item.id) setEditPreviewCandidate(nextValue)
+      showToast(nextValue ? 'Vorschaubild festgelegt.' : 'Vorschaubild entfernt.')
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : 'Vorschaubild konnte nicht gespeichert werden.')
+    } finally {
+      setPreviewSavingId(null)
     }
   }
 
@@ -401,13 +416,8 @@ export function ReleaseVersionMediaSection({
           {activeItems.map((item) => {
             const badge = statusBadge(item)
             return (
-              <button
-                key={item.id}
-                type="button"
-                className={styles.mediaCard}
-                onClick={() => openEditSheet(item)}
-                aria-label={`${getAssetName(item)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}`}
-              >
+              <div key={item.id} className={styles.mediaCard}>
+                <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={`${getAssetName(item)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}`}>
                 <span className={styles.mediaThumb}>
                   {item.thumbnail_url || item.original_url ? (
                     <img src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
@@ -419,7 +429,13 @@ export function ReleaseVersionMediaSection({
                   <span className={styles.mediaName}>{getAssetName(item)}</span>
                   <Badge variant={badge.variant} className={badge.className}>{badge.label}</Badge>
                 </span>
-              </button>
+                </button>
+                {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
+                  <Button type="button" variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
+                    {item.is_preview_candidate ? 'Vorschaubild' : 'Als Vorschau wählen'}
+                  </Button>
+                ) : null}
+              </div>
             )
           })}
         </div>
@@ -655,7 +671,7 @@ export function ReleaseVersionMediaSection({
                 <input
                   type="checkbox"
                   checked={editPreviewCandidate}
-                  onChange={(event) => setEditPreviewCandidate(event.target.checked)}
+                  onChange={(event) => void handlePreviewChange(selectedItem, event.target.checked)}
                   disabled={!canEditSelectedItem}
                 />
                 <span>Als Vorschau markieren</span>

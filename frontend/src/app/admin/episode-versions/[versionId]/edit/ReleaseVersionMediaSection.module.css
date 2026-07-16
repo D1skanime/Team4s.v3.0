@@ -142,8 +142,7 @@
   background: color-mix(in srgb, var(--bg-card) 98%, white);
   color: inherit;
   text-align: left;
-  cursor: pointer;
-  display: grid;
+    display: grid;
   min-width: 0;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 48%, transparent),
@@ -469,6 +468,19 @@
   .headerRow {
     display: grid;
   }
+
+.mediaCardOpen {
+  display: grid;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mediaCard > :global(button:last-child) { margin: 0 0.75rem 0.75rem; justify-self: start; }
 
   .segmentedControl {
     grid-template-columns: repeat(2, minmax(0, 1fr));

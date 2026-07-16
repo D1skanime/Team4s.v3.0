@@ -196,12 +196,31 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     await waitFor(() => {
       expect(patchItem).toHaveBeenCalledWith(31, {
         caption: 'Neue Beschreibung',
-        is_preview_candidate: false,
         visibility: 'oeffentlich',
         review_status: 'freigegeben',
       })
     })
     expect((await screen.findByRole('status')).textContent).toContain('Änderungen gespeichert.')
+  })
+
+  it('offers a narrow preview action for owned eligible media', async () => {
+    const patchItem = vi.fn().mockResolvedValue(undefined)
+    renderSection(makeMediaState({ items: [makeItem({ id: 71, can_update: true })], patchItem }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Als Vorschau wählen' }))
+
+    await waitFor(() => expect(patchItem).toHaveBeenCalledWith(71, { is_preview_candidate: true }))
+  })
+
+  it('hides preview selection for ineligible and readonly media', () => {
+    renderSection(makeMediaState({
+      items: [
+        makeItem({ id: 72, category: 'fun_outtake', can_update: true }),
+        makeItem({ id: 73, category: 'screenshot', can_update: false }),
+      ],
+      capabilities: { ...makeMediaState().capabilities!, can_update_media: false },
+    }))
+    expect(screen.queryByRole('button', { name: 'Als Vorschau wählen' })).toBeNull()
   })
 
   it('uses own-delete capability for the delete action without requiring all-delete', async () => {

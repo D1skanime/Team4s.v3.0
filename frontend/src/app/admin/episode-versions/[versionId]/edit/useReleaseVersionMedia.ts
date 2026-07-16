@@ -323,7 +323,11 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
       try {
         const updated = await patchReleaseVersionMediaItem(versionId, mediaId, patch)
         setItems((current) => {
-          const next = current.map((item) => (item.id === mediaId ? updated : item))
+          const next = current.map((item) => {
+            if (item.id === mediaId) return updated
+            if (patch.is_preview_candidate === true) return { ...item, is_preview_candidate: false }
+            return item
+          })
           // Re-sort immediately when sort_order was part of the patch so the
           // in-memory list reflects the new order without a full reload.
           if (patch.sort_order !== undefined) {
