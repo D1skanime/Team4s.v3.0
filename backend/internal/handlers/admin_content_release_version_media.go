@@ -680,9 +680,21 @@ func (h *AdminContentHandler) ListReleaseVersionMedia(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
-func (h *AdminContentHandler) loadReleaseVersionMediaResponseItem(ctx *gin.Context, versionID, relationID int64) (repository.ReleaseVersionMediaItem, error) {
+func (h *AdminContentHandler) loadReleaseVersionMediaResponseItem(
+	ctx *gin.Context,
+	actor permissions.Actor,
+	currentLegacyUserID int64,
+	versionID, relationID int64,
+) (repository.ReleaseVersionMediaItem, error) {
 	items, err := h.mediaRepo.ListReleaseVersionMedia(ctx.Request.Context(), versionID)
 	if err != nil {
+		return repository.ReleaseVersionMediaItem{}, err
+	}
+	updateResult, err := h.permissionSvc.CanForReleaseVersion(ctx.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, versionID)
+	if err != nil {
+		return repository.ReleaseVersionMediaItem{}, err
+	}
+	if err := h.annotateReleaseVersionMediaItemPermissions(ctx, actor, currentLegacyUserID, items, updateResult); err != nil {
 		return repository.ReleaseVersionMediaItem{}, err
 	}
 
@@ -889,7 +901,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	item, err := h.loadReleaseVersionMediaResponseItem(c, versionID, relationID)
+	item, err := h.loadReleaseVersionMediaResponseItem(c, actor, identity.UserID, versionID, relationID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
 		return

@@ -106,6 +106,15 @@ func TestUploadReleaseVersionMediaHandlerExists(t *testing.T) {
 		"handler must NOT reference adminContentRepo — use h.mediaRepo.ReleaseVersionExistsForRVM")
 }
 
+func TestPatchReleaseVersionMediaResponseKeepsActorPermissions(t *testing.T) {
+	src, err := os.ReadFile("admin_content_release_version_media.go")
+	require.NoError(t, err)
+	content := string(src)
+	assert.Contains(t, content, "loadReleaseVersionMediaResponseItem(c, actor, identity.UserID, versionID, relationID)")
+	assert.Contains(t, content, "annotateReleaseVersionMediaItemPermissions(ctx, actor, currentLegacyUserID, items, updateResult)")
+	assert.Contains(t, content, "CanForReleaseVersion(ctx.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, versionID)")
+}
+
 // ---------------------------------------------------------------------------
 // TestGenerateRVMThumbnail — pure-function thumbnail tests
 // ---------------------------------------------------------------------------
