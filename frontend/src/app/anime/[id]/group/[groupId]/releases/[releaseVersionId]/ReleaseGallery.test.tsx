@@ -1,4 +1,69 @@
 // @vitest-environment jsdom
-import { cleanup,fireEvent,render,screen,waitFor } from '@testing-library/react'; import { afterEach,describe,expect,it,vi } from 'vitest'; import { ReleaseGallery } from './ReleaseGallery'; import * as api from '@/lib/api'; afterEach(()=>{cleanup();vi.restoreAllMocks()})
-const image=(id:number,category:'screenshot'|'typesetting_karaoke'='screenshot')=>({id,category,thumbnail_url:`/${id}.jpg`,original_url:null,caption:`Bild ${id}`,author_name:'Mika',is_preview_candidate:false})
-describe('ReleaseGallery',()=>{it('keeps category chapters separate and merges loaded images without duplicates',async()=>{vi.spyOn(api,'getGroupReleaseImages').mockResolvedValue({category:'screenshot',total:7,returned_count:2,items:[image(1),image(7)],next_cursor:null,has_more:false}); render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[image(1),image(2,'typesetting_karaoke')]} categoryTotals={{screenshot:7,typesetting_karaoke:1,fun_outtake:0,other:0}}/>); expect(screen.getByText('Release-Screenshot')).toBeTruthy(); expect(screen.getByText('Typesetting-/Karaoke-Beispiel')).toBeTruthy(); fireEvent.click(screen.getByRole('button',{name:/Weitere 6 Bilder/})); await waitFor(()=>expect(screen.getByAltText('Bild 7')).toBeTruthy()); expect(screen.getAllByAltText('Bild 1')).toHaveLength(1); expect(api.getGroupReleaseImages).toHaveBeenCalledWith(1,2,3,expect.objectContaining({category:'screenshot'}))})})
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import * as api from '@/lib/api'
+import type { PublicReleaseImage } from '@/types/releaseDetail'
+
+import { ReleaseGallery } from './ReleaseGallery'
+
+vi.mock('next/image', () => ({ default: (props: Record<string, unknown>) => {
+  const imageProps = { ...props }
+  delete imageProps.fill
+  delete imageProps.unoptimized
+  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+  return <img {...imageProps} />
+} }))
+
+let viewport: 'desktop' | 'tablet' | 'mobile' = 'desktop'
+const listeners = new Set<() => void>()
+function installMatchMedia() {
+  Object.defineProperty(window, 'matchMedia', { configurable: true, value: (query: string) => ({
+    get matches() { return query.includes('600') ? viewport === 'mobile' : viewport !== 'desktop' },
+    media: query,
+    addEventListener: (_event: string, listener: () => void) => listeners.add(listener),
+    removeEventListener: (_event: string, listener: () => void) => listeners.delete(listener),
+  }) })
+}
+
+function image(id: number, category: PublicReleaseImage['category'] = 'screenshot'): PublicReleaseImage {
+  return { id, category, thumbnail_url: `/thumb-${id}.jpg`, original_url: `/original-${id}.jpg`, caption: `Vollständige Beschreibung ${id}`, author_name: `Uploader ${id}`, is_preview_candidate: false }
+}
+
+const totals = { screenshot: 7, typesetting_karaoke: 1, fun_outtake: 1, other: 0 }
+
+describe('ReleaseGallery', () => {
+  beforeEach(() => { viewport = 'desktop'; listeners.clear(); installMatchMedia(); vi.restoreAllMocks() })
+
+  it('renders one six-item desktop grid with metadata and no zero reveal', () => {
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+    expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
+    expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
+    expect(screen.getAllByText('Release-Screenshot')).toHaveLength(6)
+    expect(screen.getByText('Hochgeladen von Uploader 1')).toBeTruthy()
+  })
+
+  it('uses the responsive source for mobile two-item reveal and remaining label', async () => {
+    viewport = 'mobile'
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+    await waitFor(() => expect(screen.getByTestId('release-image-grid').children).toHaveLength(2))
+    expect(screen.getByRole('button', { name: 'Weitere 4 Bilder anzeigen' })).toBeTruthy()
+  })
+
+  it('loads every category cursor, deduplicates, and opens the original with full caption', async () => {
+    vi.spyOn(api, 'getGroupReleaseImages').mockImplementation(async (_anime, _group, _release, options) => {
+      if (options?.category === 'screenshot') return { category: 'screenshot', total: 7, returned_count: 2, items: [image(1), image(7)], next_cursor: null, has_more: false }
+      if (options?.category === 'typesetting_karaoke') return { category: 'typesetting_karaoke', total: 1, returned_count: 1, items: [image(8, 'typesetting_karaoke')], next_cursor: null, has_more: false }
+      return { category: 'fun_outtake', total: 1, returned_count: 1, items: [image(9, 'fun_outtake')], next_cursor: null, has_more: false }
+    })
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={totals} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere 3 Bilder anzeigen' }))
+    await waitFor(() => expect(screen.getByTestId('release-image-grid').children).toHaveLength(9))
+    expect(api.getGroupReleaseImages).toHaveBeenCalledTimes(3)
+    expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 8 öffnen' }))
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(screen.getAllByText('Vollständige Beschreibung 8').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByAltText('Vollständige Beschreibung 8').some(node => node.getAttribute('src')?.includes('/original-8.jpg'))).toBe(true)
+  })
+})
