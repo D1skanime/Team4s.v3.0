@@ -6,12 +6,19 @@ import { useEffect } from 'react'
 
 import { Button, Modal } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
-import type { PublicFansubMediaItem } from '@/types/fansub'
-
 import styles from './FansubMediaLightbox.module.css'
 
+export interface PublicImageLightboxItem {
+  id: number
+  title?: string | null
+  caption?: string | null
+  description?: string | null
+  media_type: string
+  original_url?: string | null
+}
+
 interface FansubMediaLightboxProps {
-  media: PublicFansubMediaItem[]
+  media: PublicImageLightboxItem[]
   index: number | null
   onClose: () => void
   onNavigate: (index: number) => void
