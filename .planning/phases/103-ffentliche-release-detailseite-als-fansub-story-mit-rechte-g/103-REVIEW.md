@@ -2,9 +2,9 @@
 phase: 103
 reviewed: 2026-07-16
 status: clean
-base: 20589c80
-head: 59aea147
-files_reviewed: 4
+scope: live-uat-fixes
+commits: [0610ae63, 9f34f887]
+files_reviewed: 5
 findings:
   critical: 0
   warning: 0
@@ -12,34 +12,43 @@ findings:
   total: 0
 ---
 
-# Phase 103 Warning-Fix Re-Review
+# Phase 103 Final Live-UAT Fix Review
 
 ## Result
 
-Both prior warnings are resolved. No new actionable defect was found in `git diff 20589c80..HEAD`.
+The targeted live-UAT fixes are clean. No actionable security, ownership, cache, hydration, API-contract, or interaction regression was found.
 
-## Verified fixes
+## UTC release-note date
 
-### Desktop media-card opener
+- `formatReleaseNoteDate` parses the documented ISO timestamp and formats its calendar date explicitly in `UTC`.
+- This is semantically appropriate for persisted `created_at`: it displays the canonical creation date rather than allowing the server or browser timezone to shift a near-midnight timestamp into another day.
+- Invalid timestamps retain the original value instead of producing an invalid localized string.
+- Server and browser execute the same timezone-explicit formatter, so the rendered text is hydration-stable.
+- The regression uses `renderToString` followed by `hydrateRoot` with a timezone-sensitive timestamp and different server/client timezone settings; it asserts `6. Juli 2026` and no hydration diagnostic.
 
-- `ReleaseVersionMediaSection.module.css` now defines `.mediaCardOpen` and the preview-action margin before `@media (max-width: 760px)`.
-- The opener has a complete desktop reset and fill contract: `display: grid`, `width: 100%`, zero border/background/padding, inherited font/color, left alignment, and pointer cursor.
-- The mobile query now contains only responsive overrides.
-- `ReleaseVersionMediaSection.test.tsx` reads the actual CSS and asserts both rules occur before the mobile query, including the full-width and inherited-font properties.
+## Immediate gallery expansion
 
-### Hydration-stable responsive reveal
+- `revealAll` calls the existing expand state before network work, so images already supplied by the public aggregate become visible immediately.
+- When `items.length >= total`, it returns without setting loading state or issuing a cursor request.
+- Otherwise it computes loaded counts per canonical category and fetches only categories whose loaded count is below the server-projected category total.
+- Incomplete categories still use the existing category-scoped cursor endpoint, follow `has_more/next_cursor`, and merge through the existing ID deduplication seam.
+- Expansion remains active if a gap fetch fails; the local error is displayed and the still-visible remaining action permits a retry.
+- Focused coverage asserts the complete aggregate case expands from six to eight synchronously and makes no API call, while existing tests retain incomplete-category fanout, deduplication, responsive limits and lightbox behavior.
 
-- `responsiveGalleryReveal.ts` now uses `useSyncExternalStore` with an explicit desktop server snapshot of `6`.
-- The first hydration snapshot is therefore identical to server HTML, while the subscribed browser snapshot updates to tablet `4` or mobile `2` after hydration.
-- Existing breakpoint, resize, and expanded-state behavior remains intact.
-- The new `renderToString` + `hydrateRoot` parameterized test covers both tablet and mobile, verifies server output starts at `6`, reaches `4`/`2`, and produces no hydration mismatch warning.
+## Public cursor fetch boundary
 
-## Checks
+- `getGroupReleaseImages` now uses a token-free `fetch(..., {cache: 'no-store'})`, matching the already-public release aggregate and the requirement that gallery availability not depend on login state.
+- URL, query serialization, response DTO, non-2xx parsing, and `ApiError` behavior are unchanged.
+- Backend ownership and visibility remain authoritative: the endpoint still validates the concrete anime/group/release-version combination and returns only public, approved, ready `release_version_media` rows.
+- Removing auth preflight does not broaden backend data visibility and avoids sending credentials to a public read. `no-store` prevents shared or browser cache reuse of cursor responses.
+- No upload, mutation, episode-media, release-level legacy media, entitlement, or stream seam changed.
 
-- Focused Vitest: 2 files, 16 tests passed.
-- Scoped TypeScript ESLint: no TS/TSX findings. CSS is not covered by the repository ESLint configuration; the direct CSS contract test passed.
-- No media ownership, API contract, auth, routing, or responsive-state seam was changed outside these targeted fixes.
+## Evidence
+
+- Commits reviewed: `0610ae63`, `9f34f887`.
+- Changed source/tests reviewed: `ReleaseNotesList.tsx`, `ReleaseNotesList.test.tsx`, `ReleaseGallery.tsx`, `ReleaseGallery.test.tsx`, `frontend/src/lib/api.ts`.
+- Current focused tests and build are reported passing; existing hydration, 6/4/2 resize/expanded, cursor dedupe, lightbox and public ownership coverage remains intact.
 
 ## Review conclusion
 
-`clean` — the two previous warnings are closed with executable regression coverage.
+`clean` — both live-UAT fixes implement the intended contract without introducing a new defect.

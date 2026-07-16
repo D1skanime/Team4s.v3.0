@@ -10,6 +10,7 @@ uat_gaps:
   technically_closed: 9
   remaining_code_gaps: 0
 review: clean
+live_uat: partial_pass
 ---
 
 # Phase 103 Final Verification
@@ -18,7 +19,7 @@ review: clean
 
 Phase 103 is technically complete against the current code, contracts, focused tests, gap plans 103-06 through 103-10, and the clean post-fix code review. All nine diagnosed HUMAN-UAT gaps have code-level closure and regression evidence.
 
-The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requires responsive live UAT through the real public Fansub/project entry. The original live run found the nine issues; no in-app-browser rerun of the corrected implementation is recorded. Automated refresh-only and responsive/hydration coverage passes, but it does not replace final shared-flow visual and media playback acceptance.
+The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requires responsive and authenticated live UAT. A post-fix in-app-browser rerun now passes the public Pretty route, Pretty previous/next navigation, guest Karaoke visibility, Anime-logo fallback, shared lightbox and immediate 6-to-8 gallery reveal without hydration errors. Signed-in Sheppert/Admin playback and full desktop/tablet/mobile variant coverage still require human acceptance.
 
 ## Success criteria
 
@@ -60,7 +61,9 @@ The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requ
 ### P103-SC6 — Human verification needed
 
 - Automated refresh-session, responsive layout, SSR hydration, route, player and relay regressions pass.
-- A live rerun from the real Pretty public project route has not been recorded after the fixes. Visual/product fit, actual browser autoplay behavior, deployed cookie transport and real media sources require final human verification.
+- Post-fix live browser smoke passed on `/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1`: the route returned 200 after a controlled dev-server restart, the public release rendered with the Anime logo and atmospheric release surface, guest Karaoke remained visible, the lightbox opened, `Weitere 2 Bilder anzeigen` expanded six to eight images and disappeared, and no hydration error remained.
+- Live previous/next navigation stayed in the Pretty namespace from Release 1 to Release 2 and back-links remained slug-based.
+- Actual authenticated Sheppert/Admin permission, refresh-cookie transport, Karaoke/full-episode playback, autoplay behavior and explicit desktop/tablet/mobile visual variants remain human checks.
 
 ## Nine diagnosed UAT gaps
 
@@ -88,6 +91,7 @@ The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requ
 - Backend handler/repository suites: passed.
 - Frontend focused Phase-103 suite: 14 files, 58 tests passed.
 - Additional review-fix verification: 2 files, 16 tests passed.
+- Post-live-fix regression: 3 files, 10 tests passed; UTC note-date hydration and immediate gallery reveal are covered.
 - `npm run typecheck`: passed.
 - `npm run build`: passed; both Pretty and numeric compatibility release routes are emitted.
 - Schema drift: `false`.
@@ -97,20 +101,20 @@ The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requ
 
 ## Exact live human checks required
 
-Use the real public entry and remain in the Pretty namespace:
+Use the real public entry and remain in the Pretty namespace. Items 1 and the public portions of 2, 4 and 7 already passed a smoke rerun; complete the remaining variants below:
 
 `/fansubs/c-subs/fansubprojekt/vipers-creed` -> `/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1`
 
-1. **Route/navigation:** open a release from the project, then previous/next; confirm the URL never falls back to `/anime/{id}/group/{groupId}` and cooperation stays in the entry group context.
+1. **Route/navigation:** passed for Release 1 -> Release 2 in live smoke. Retest the same-version preference and public-default fallback once suitable multi-version data exists; cooperation must stay in the entry group context.
 2. **Visual composition:** compare desktop, tablet and mobile with the accepted public Fansub/project reference. Confirm atmospheric backdrop/glass language and an independent release hero, not a copied project banner.
 3. **Fallbacks:** verify one approved preview release, one logo-only release and one preview/logo-free text-only release.
-4. **Gallery:** at explicit desktop/tablet/mobile widths confirm 6/4/2 collapsed items and correct remaining number; resize while collapsed, expand, resize again, and confirm it stays expanded. Open multiple categories in the shared lightbox; verify original, full description, category/uploader metadata, arrows, Escape and focus return.
+4. **Gallery:** live smoke passed immediate 6-to-8 expansion, disappearing reveal button and shared lightbox opening. At explicit desktop/tablet/mobile widths confirm 6/4/2, resize persistence, original/full description, arrows, Escape and focus return.
 5. **Texts/people:** confirm exact release contributors and authors/uploaders. Desktop role blocks use two columns with full-width cards; tablet/mobile use one.
 6. **Admin media:** as Sheppert publish an owned image, close/reopen, edit its description, select/switch an eligible preview and confirm only one remains selected and the public hero updates after approval.
-7. **Kara:** as guest confirm information remains visible with no action. Log in/restore a refresh-only Sheppert session and confirm the same section remains, ready segments play, unavailable segments stay informational, and switching stops the old stream.
+7. **Kara:** guest visibility with disabled actions passed live smoke. Log in/restore a refresh-only Sheppert session and confirm the same section remains, ready segments play, unavailable segments stay informational, and switching stops the old stream.
 8. **Full episode:** as entitled Platform Admin with a ready source confirm the secondary action appears, opens the dialog, streams, and releases the source on close. Confirm denied/unready users see no action.
 9. **Network/auth:** during refresh-only Karaoke and full-episode checks verify refresh rotation succeeds, the private backend access resolver is reached, and stream requests continue through the retained relays without shared caching.
 
 ## Final assessment
 
-`human_needed` — no known technical gap remains, but the explicit Phase-103 live responsive/shared-flow acceptance criterion has not yet been rerun after the gap fixes.
+`human_needed` — no known technical gap remains and the public guest Pretty-route smoke now passes. Final acceptance still needs signed-in Sheppert/Admin media/playback checks plus explicit desktop/tablet/mobile visual variants and multi-version navigation data.
