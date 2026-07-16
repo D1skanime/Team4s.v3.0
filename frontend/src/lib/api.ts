@@ -239,7 +239,6 @@ import type {
   ReleaseDetailResponse,
   CursorPage,
   ReleaseImagesCursorPage,
-  PublicReleaseImage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
 import type { RoleCapabilityMatrix, RoleDefinitionOption } from "@/types/admin-capability";

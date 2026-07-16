@@ -8,6 +8,7 @@ import { ContributorsRow } from "./ContributorsRow";
 import { ReleaseDetailHero } from "./ReleaseDetailHero";
 import { ReleaseGallery } from "./ReleaseGallery";
 import { ReleaseNotesList } from "./ReleaseNotesList";
+import { ReleaseNavigation } from "./ReleaseNavigation";
 import { ThemeTimeline } from "./ThemeTimeline";
 import styles from "./page.module.css";
 
@@ -77,8 +78,6 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
     { label: `Episode ${detail.episode_number}` },
   ];
 
-  const heroImage = detail.images.find((image) => image.thumbnail_url || image.original_url) ?? null;
-
   return (
     <main className={styles.page}>
       <Breadcrumbs items={breadcrumbItems} />
@@ -87,13 +86,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
       </p>
 
       <ReleaseDetailHero
-        episodeNumber={detail.episode_number}
-        title={detail.title}
-        releaseDate={detail.release_date}
-        imagesCount={detail.images_count}
-        notesCount={detail.notes_count}
-        contributorsCount={detail.contributors_count}
-        heroImage={heroImage}
+        {...detail}
         fallbackPosterUrl={animePoster}
       />
 
@@ -104,7 +97,7 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
         groupID={groupID}
         releaseVersionID={releaseVersionID}
         initialImages={detail.images}
-        totalCount={detail.images_count}
+        categoryTotals={detail.image_category_totals}
       />
 
       <ReleaseNotesList
@@ -115,7 +108,12 @@ export default async function ReleaseDetailPage({ params }: ReleaseDetailPagePro
         totalCount={detail.notes_count}
       />
 
-      <ThemeTimeline animeID={animeID} groupID={groupID} />
+      <ThemeTimeline
+        releaseVersionID={releaseVersionID}
+        episodeDurationSeconds={detail.duration_seconds}
+        segments={detail.segments}
+      />
+      <ReleaseNavigation animeID={animeID} groupID={groupID} previous={detail.previous} next={detail.next} />
     </main>
   );
 }
