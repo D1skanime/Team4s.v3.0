@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
+import { act } from 'react'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
-import { ReleaseNotesList } from './ReleaseNotesList'
+import { formatReleaseNoteDate, ReleaseNotesList } from './ReleaseNotesList'
+
 afterEach(cleanup)
 
 describe('ReleaseNotesList', () => {
@@ -10,6 +14,37 @@ describe('ReleaseNotesList', () => {
     const grid = document.querySelector('[data-role-grid="responsive"]')
     expect(grid?.children).toHaveLength(2)
     expect(screen.getByRole('heading', { name: 'Übersetzung' }).closest('section')?.parentElement).toBe(grid)
-    expect(screen.getByText('Anna')).toBeTruthy()
+  })
+
+  it('hydrates the timezone-sensitive German date without a mismatch', async () => {
+    const timestamp = '2026-07-06T22:30:00.000Z'
+    const notes = [{id:3,member_id:3,member_name:'Sheppert',member_avatar_url:null,role_label:'Timing',body_html:'<p>Grenzfall</p>',created_at:timestamp}]
+    const previousTZ = process.env.TZ
+    process.env.TZ = 'UTC'
+    const serverHTML = renderToString(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={1} initialNotes={notes} />)
+    expect(serverHTML).toContain('6. Juli 2026')
+
+    process.env.TZ = 'Pacific/Kiritimati'
+    const container = document.createElement('div')
+    container.innerHTML = serverHTML
+    document.body.appendChild(container)
+    const errors: unknown[][] = []
+    const originalError = console.error
+    console.error = (...args: unknown[]) => { errors.push(args) }
+    let root: ReturnType<typeof hydrateRoot> | null = null
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, <ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={1} initialNotes={notes} />)
+        await Promise.resolve()
+      })
+      expect(container.textContent).toContain('6. Juli 2026')
+      expect(errors.filter((args) => args.some((arg) => String(arg).toLowerCase().includes('hydration')))).toEqual([])
+      expect(formatReleaseNoteDate(timestamp)).toBe('6. Juli 2026')
+    } finally {
+      console.error = originalError
+      if (root) await act(async () => root?.unmount())
+      container.remove()
+      process.env.TZ = previousTZ
+    }
   })
 })

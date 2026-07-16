@@ -9,7 +9,12 @@ import type { PublicReleaseNote } from '@/types/releaseDetail'
 import styles from './ReleaseNotesList.module.css'
 
 interface Props { animeID: number; groupID: number; releaseVersionID: number; initialNotes: PublicReleaseNote[]; totalCount: number }
-function formatDate(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }) }
+export function formatReleaseNoteDate(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+}
 
 export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNotes, totalCount }: Props) {
   const [items, setItems] = useState(initialNotes), [cursor, setCursor] = useState<string | null>(null)
@@ -26,7 +31,7 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
         <div className={styles.list}>{items.filter(note => (note.role_label || 'Weitere Beiträge') === role).map(note => <Card key={note.id} variant="flat" className={styles.card}>
           <header className={styles.cardHeader}>
             {note.member_avatar_url ? <Image className={styles.avatar} src={resolveApiUrl(note.member_avatar_url)} alt="" width={42} height={42} unoptimized /> : <span className={styles.avatar} aria-hidden="true">{note.member_name.charAt(0).toUpperCase()}</span>}
-            <div><strong>{note.member_name}</strong><p>{role} · {formatDate(note.created_at)}</p></div>
+            <div><strong>{note.member_name}</strong><p>{role} · {formatReleaseNoteDate(note.created_at)}</p></div>
           </header>
           <div className={styles.cardBody}><RichTextRenderer bodyHtml={note.body_html} editorType="tiptap" contentSchemaVersion={1} /></div>
         </Card>)}</div>
