@@ -14,7 +14,7 @@ export function ReleaseEpisodePlayer({ releaseVersionID, title }: { releaseVersi
   const hasSession = session.hasAccessToken || session.hasRefreshToken
 
   useEffect(() => {
-    if (!session.isClientInitialized || !hasSession) { setAvailable(false); return }
+    if (!session.isClientInitialized || !hasSession) return
     const controller = new AbortController()
     void fetch(`/api/releases/${releaseVersionID}/playback-access`, { cache: 'no-store', signal: controller.signal })
       .then(async response => response.ok ? response.json() as Promise<{ data?: { can_play?: boolean; stream_ready?: boolean } }> : null)
@@ -29,7 +29,7 @@ export function ReleaseEpisodePlayer({ releaseVersionID, title }: { releaseVersi
     setOpen(false); setFailed(false)
   }
 
-  if (!available) return null
+  if (!session.isClientInitialized || !hasSession || !available) return null
   return <>
     <Button variant="secondary" onClick={() => setOpen(true)}>Episode abspielen</Button>
     <Modal open={open} onClose={close} title={title} description="Vollständige Episode" size="lg">
