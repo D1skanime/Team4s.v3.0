@@ -245,14 +245,16 @@ func (h *GroupPublicHandler) GetGroupReleaseListCursor(c *gin.Context) {
 // GET /api/v1/anime/:id/group/:groupId/releases/:releaseVersionId/images
 // Liefert eine Seek-paginierte (Cursor-)Seite der vollstaendigen Bildergalerie
 // einer Release-Version (AO4-03/AO4-18/AO4-24), additiv neben dem vollstaendig
-// ladenden GetGroupReleaseDetail. Kein zusaetzlicher Ownership-Check gegen
-// animeID/groupID hier — die initiale volle Detailseite validiert das bereits.
+// ladenden GetGroupReleaseDetail. Ownership wird fuer jedes Nachladen erneut
+// gegen animeID/groupID/releaseVersionID geprueft.
 func (h *GroupPublicHandler) GetGroupReleaseImages(c *gin.Context) {
-	if _, err := parseAnimeID(c.Param("id")); err != nil {
+	animeID, err := parseAnimeID(c.Param("id"))
+	if err != nil {
 		badRequest(c, "ungültige anime-id")
 		return
 	}
-	if _, err := parseGroupID(c.Param("groupId")); err != nil {
+	groupID, err := parseGroupID(c.Param("groupId"))
+	if err != nil {
 		badRequest(c, "ungültige group-id")
 		return
 	}
@@ -269,8 +271,17 @@ func (h *GroupPublicHandler) GetGroupReleaseImages(c *gin.Context) {
 
 	cursor := c.Query("cursor")
 	limit := parseCursorLimitQuery(c)
+	category := c.Query("category")
 
-	page, err := h.releaseDetailRepo.ListReleaseVersionImagesCursor(c.Request.Context(), releaseVersionID, cursor, limit)
+	page, err := h.releaseDetailRepo.ListReleaseVersionImagesCursor(c.Request.Context(), animeID, groupID, releaseVersionID, category, cursor, limit)
+	if errors.Is(err, repository.ErrValidation) {
+		badRequest(c, "ungültige bildkategorie")
+		return
+	}
+	if errors.Is(err, repository.ErrNotFound) {
+		notFound(c, "release nicht gefunden")
+		return
+	}
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return

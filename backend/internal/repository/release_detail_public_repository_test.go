@@ -95,10 +95,46 @@ func TestGetPublicReleaseDetail_ResponseFieldsPresent(t *testing.T) {
 		"images",
 		"notes",
 		"category",
+		"episode_title",
+		"subtitle_tracks",
+		"preview_image",
+		"image_category_totals",
+		"segments",
+		"previous",
+		"next",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(content, fragment) {
 			t.Fatalf("expected PublicReleaseDetail DTO to expose %q", fragment)
+		}
+	}
+}
+
+func TestGetPublicReleaseDetail_UsesSelectedPreviewAndExactReleaseScope(t *testing.T) {
+	content := strings.ToLower(readRepositorySource(t, "release_detail_public_repository.go"))
+	helpers := strings.ToLower(readRepositorySource(t, "release_detail_public_repository_helpers.go"))
+	for _, fragment := range []string{"if images[i].ispreviewcandidate", "rvm.is_preview_candidate", "ac.release_version_id = $1", "rv.release_version_id=$1", "release_version_groups rvg"} {
+		if !strings.Contains(content+helpers, fragment) {
+			t.Fatalf("missing release projection guard %q", fragment)
+		}
+	}
+}
+
+func TestReleaseImageCategoriesAreIndependentAndValidated(t *testing.T) {
+	content := strings.ToLower(readRepositorySource(t, "release_detail_public_repository.go"))
+	helpers := strings.ToLower(readRepositorySource(t, "release_detail_public_repository_helpers.go"))
+	for _, fragment := range []string{"ispublicreleaseimagecategory(category)", "rvm.category = $2", "count(*) filter(where rvm.category='screenshot')", "count(*) filter(where rvm.category='typesetting_karaoke')", "returnedcount"} {
+		if !strings.Contains(content+helpers, fragment) {
+			t.Fatalf("missing category cursor behavior %q", fragment)
+		}
+	}
+}
+
+func TestReleaseNavigationKeepsGroupAndPrefersVersion(t *testing.T) {
+	helpers := strings.ToLower(readRepositorySource(t, "release_detail_public_repository_helpers.go"))
+	for _, fragment := range []string{"rvg.fansub_group_id=$3", "case when rv.version=$4 then 0 else 1", "groupid"} {
+		if !strings.Contains(helpers, fragment) {
+			t.Fatalf("missing same-group navigation behavior %q", fragment)
 		}
 	}
 }
