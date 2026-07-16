@@ -41,4 +41,16 @@ describe('ThemeTimeline', () => {
     const video = document.querySelector('video')
     expect(video?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
   })
+
+  it('keeps public segment titles across guest, access-token and refresh-only rerenders', () => {
+    const view = render(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
+    expect(screen.getByText('Moonlight OP')).not.toBeNull()
+    session.value = { hasAccessToken: true, hasRefreshToken: false, isClientInitialized: true }
+    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
+    expect(screen.getByText('Moonlight OP')).not.toBeNull()
+    session.value = { hasAccessToken: false, hasRefreshToken: true, isClientInitialized: true }
+    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
+    expect(screen.getByText('Moonlight OP')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Abspielen' })).not.toBeNull()
+  })
 })

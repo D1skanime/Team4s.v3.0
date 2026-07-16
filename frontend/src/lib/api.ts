@@ -6238,7 +6238,8 @@ export async function getGroupReleaseDetail(
   releaseVersionID: number,
 ): Promise<ReleaseDetailResponse> {
   const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
+  // Public release story and Karaoke data must not depend on auth preflight.
+  const response = await fetch(
     `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}`,
     { cache: "no-store" },
   );
