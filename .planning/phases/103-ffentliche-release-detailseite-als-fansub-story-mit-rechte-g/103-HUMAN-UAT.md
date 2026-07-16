@@ -32,9 +32,10 @@ severity: cosmetic
 
 ### 4. Kara als Gast und mit Refresh-only-Session
 expected: Gäste sehen Timeline und Informationen ohne Abspielaktion. Eine eingeloggte Refresh-only-Session wird zentral erneuert und kann verfügbare Segmente starten; Segmentwechsel stoppt den vorherigen Stream. Falls Autoplay blockiert wird, bleibt eine nutzbare Play-Steuerung sichtbar.
-result: issue
-reported: "Als nicht eingeloggter Nutzer wird der Kara-Bereich korrekt angezeigt und ist nicht anklickbar. Als eingeloggter Fansubber Sheppert verschwindet der gesamte Kara-Teil, sodass auch kein Segment angeklickt oder abgespielt werden kann."
-severity: major
+result: pass
+retested: "Als eingeloggter Fansubber Sheppert bleibt der Kara-Bereich sichtbar und ein Kara-Segment kann erfolgreich abgespielt werden."
+previous_reported: "Als nicht eingeloggter Nutzer wird der Kara-Bereich korrekt angezeigt und ist nicht anklickbar. Als eingeloggter Fansubber Sheppert verschwindet der gesamte Kara-Teil, sodass auch kein Segment angeklickt oder abgespielt werden kann."
+previous_severity: major
 
 ### 5. Vollfolge mit und ohne Entitlement
 expected: Nur berechtigte Nutzer mit bereitem Stream sehen die sekundäre Aktion. Der Dialog spielt ab und räumt beim Schließen die Quelle auf. Gäste, abgelehnte Nutzer und nicht bereite Streams sehen keine Aktion.
@@ -75,8 +76,8 @@ severity: minor
 ## Summary
 
 total: 10
-passed: 1
-issues: 8
+passed: 2
+issues: 7
 pending: 0
 skipped: 1
 blocked: 0
@@ -139,7 +140,8 @@ blocked: 0
   debug_session: ".planning/debug/103-full-episode-admin-action.md"
 
 - truth: "Der Kara-Bereich bleibt für Gäste und eingeloggte Nutzer sichtbar; eine aktive oder per Refresh wiederhergestellte Session ergänzt bei verfügbaren Segmenten nur die Abspielaktion und blendet den öffentlichen Abschnitt niemals aus."
-  status: failed
+  status: resolved
+  resolved_by_uat: "Sheppert-Live-Test: Kara-Bereich sichtbar und Kara-Segment erfolgreich abgespielt."
   reason: "User reported: Als Gast ist Kara sichtbar, als eingeloggter Fansubber Sheppert verschwindet der gesamte Kara-Bereich."
   severity: major
   test: 4

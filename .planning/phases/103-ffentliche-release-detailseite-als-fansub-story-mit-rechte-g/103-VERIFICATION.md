@@ -19,7 +19,7 @@ live_uat: partial_pass
 
 Phase 103 is technically complete against the current code, contracts, focused tests, gap plans 103-06 through 103-10, and the clean post-fix code review. All nine diagnosed HUMAN-UAT gaps have code-level closure and regression evidence.
 
-The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requires responsive and authenticated live UAT. A post-fix in-app-browser rerun now passes the public Pretty route, Pretty previous/next navigation, guest Karaoke visibility, Anime-logo fallback, shared lightbox and immediate 6-to-8 gallery reveal without hydration errors. The entitled Platform-Admin full-episode action and stream also passed live UAT. Signed-in Sheppert Karaoke playback and full desktop/tablet/mobile variant coverage still require human acceptance.
+The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requires responsive and authenticated live UAT. A post-fix in-app-browser rerun now passes the public Pretty route, Pretty previous/next navigation, guest Karaoke visibility, Anime-logo fallback, shared lightbox and immediate 6-to-8 gallery reveal without hydration errors. Entitled Platform-Admin full-episode streaming and signed-in Sheppert Kara playback also passed live UAT. Full desktop/tablet/mobile variant coverage still requires human acceptance.
 
 ## Success criteria
 
@@ -63,7 +63,7 @@ The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requ
 - Automated refresh-session, responsive layout, SSR hydration, route, player and relay regressions pass.
 - Post-fix live browser smoke passed on `/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1`: the route returned 200 after a controlled dev-server restart, the public release rendered with the Anime logo and atmospheric release surface, guest Karaoke remained visible, the lightbox opened, `Weitere 2 Bilder anzeigen` expanded six to eight images and disappeared, and no hydration error remained.
 - Live previous/next navigation stayed in the Pretty namespace from Release 1 to Release 2 and back-links remained slug-based.
-- Actual authenticated Platform-Admin full-episode playback passed live UAT: the action was visible and the episode streamed successfully. Signed-in Sheppert Karaoke permission, refresh-cookie transport, autoplay behavior, denied/unready full-episode variants and explicit desktop/tablet/mobile visual variants remain human checks.
+- Actual authenticated Platform-Admin full-episode playback passed live UAT: the action was visible and the episode streamed successfully. Signed-in Sheppert Kara playback also passed: the section remained visible and a segment played successfully. Refresh-only rotation, segment-switch cleanup, autoplay behavior, denied/unready full-episode variants and explicit desktop/tablet/mobile visual variants remain human checks.
 
 ## Nine diagnosed UAT gaps
 
@@ -111,10 +111,10 @@ Use the real public entry and remain in the Pretty namespace. Items 1 and the pu
 4. **Gallery:** live smoke passed immediate 6-to-8 expansion, disappearing reveal button and shared lightbox opening. At explicit desktop/tablet/mobile widths confirm 6/4/2, resize persistence, original/full description, arrows, Escape and focus return.
 5. **Texts/people:** confirm exact release contributors and authors/uploaders. Desktop role blocks use two columns with full-width cards; tablet/mobile use one.
 6. **Admin media:** as Sheppert publish an owned image, close/reopen, edit its description, select/switch an eligible preview and confirm only one remains selected and the public hero updates after approval.
-7. **Kara:** guest visibility with disabled actions passed live smoke. Log in/restore a refresh-only Sheppert session and confirm the same section remains, ready segments play, unavailable segments stay informational, and switching stops the old stream.
+7. **Kara:** guest visibility with disabled actions and signed-in Sheppert playback passed live UAT. Still confirm refresh-only restoration, unavailable segments staying informational and segment switching stopping the old stream.
 8. **Full episode:** entitled Platform-Admin action visibility and successful streaming passed live UAT. Still confirm source cleanup on close and that denied/unready users see no action.
 9. **Network/auth:** during refresh-only Karaoke and full-episode checks verify refresh rotation succeeds, the private backend access resolver is reached, and stream requests continue through the retained relays without shared caching.
 
 ## Final assessment
 
-`human_needed` — no known technical gap remains; the public guest Pretty-route smoke and entitled Platform-Admin full-episode streaming now pass. Final acceptance still needs signed-in Sheppert Karaoke/media checks, denied/unready playback variants, explicit desktop/tablet/mobile visual variants and multi-version navigation data.
+`human_needed` — no known technical gap remains; the public guest Pretty-route smoke, entitled Platform-Admin full-episode streaming and signed-in Sheppert Kara playback now pass. Final acceptance still needs the remaining Sheppert media and playback edge checks, denied/unready playback variants, explicit desktop/tablet/mobile visual variants and multi-version navigation data.
