@@ -1,80 +1,8 @@
-.section {
-  padding: 24px 0;
-  border-top: 1px solid var(--border-subtle);
-  display: grid;
-  gap: 16px;
-}
-
-.error {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-error);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-}
-
-.card {
-  margin: 0;
-  display: grid;
-  gap: 6px;
-}
-
-.imageShell {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--surface-card-muted);
-  border: 1px solid var(--border-subtle);
-}
-
-.image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.imagePlaceholder {
-  width: 100%;
-  height: 100%;
-  background: var(--surface-sunken);
-}
-
-.typeTag {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-}
-
-.authorChip {
-  margin: 0;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  text-align: center;
-}
-
-/* Feste Groesse gegen Layout-Sprung waehrend des Nachladens (AO4-22). */
-.skeletonCard {
-  aspect-ratio: 4 / 3;
-  border-radius: var(--radius-md);
-  background: var(--surface-card-muted);
-  border: 1px solid var(--border-subtle);
-}
-
-.loadMoreRow {
-  margin-top: 4px;
-  display: flex;
-  justify-content: center;
-  position: relative;
-}
-
-.loadTrigger {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-}
+.section,.chapter{display:grid;gap:var(--space-4,16px)}.section{padding-top:var(--space-6,24px);border-top:1px solid var(--border-subtle)}
+.chapter{padding:var(--space-5,20px) 0}.chapter+.chapter{border-top:1px solid var(--border-subtle)}
+.chapterHeader{display:flex;align-items:center;justify-content:space-between;gap:12px}.chapterHeader h3{margin:0;font-size:1.05rem}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{margin:0;display:grid;gap:8px}.card:nth-child(n+7){display:none}.gridExpanded .card{display:grid}
+.imageShell{aspect-ratio:16/10;overflow:hidden;border-radius:var(--radius-md);background:var(--surface-card-muted);border:1px solid var(--border-subtle)}.image{width:100%;height:100%;object-fit:cover}.imagePlaceholder{height:100%;background:var(--surface-sunken)}
+.card figcaption{display:grid;gap:2px}.caption{font-size:14px;color:var(--color-text-primary)}.authorChip{font-size:12px;color:var(--color-text-secondary)}.loadMoreRow{display:flex;justify-content:center}.error{color:var(--color-error);margin:0}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card:nth-child(n+5){display:none}.gridExpanded .card{display:grid}}
+@media(max-width:600px){.card:nth-child(n+3){display:none}.gridExpanded .card{display:grid}}

@@ -238,6 +238,7 @@ import type {
 import type {
   ReleaseDetailResponse,
   CursorPage,
+  ReleaseImagesCursorPage,
   PublicReleaseImage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
@@ -6262,6 +6263,7 @@ interface CursorQueryOpts {
   cursor?: string;
   limit?: number;
   sort?: "activity";
+  category?: ReleaseVersionMediaCategory;
 }
 
 function buildCursorQuery(opts: CursorQueryOpts): string {
@@ -6269,6 +6271,7 @@ function buildCursorQuery(opts: CursorQueryOpts): string {
   if (opts.cursor) query.set("cursor", opts.cursor);
   if (opts.limit) query.set("limit", String(opts.limit));
   if (opts.sort) query.set("sort", opts.sort);
+  if (opts.category) query.set("category", opts.category);
   return query.toString();
 }
 
@@ -6300,7 +6303,7 @@ export async function getGroupReleaseImages(
   groupID: number,
   releaseVersionID: number,
   opts: CursorQueryOpts = {},
-): Promise<CursorPage<PublicReleaseImage>> {
+): Promise<ReleaseImagesCursorPage> {
   const API_BASE_URL = getApiBaseUrl();
   const query = buildCursorQuery(opts);
   const url = `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}/images${query ? `?${query}` : ""}`;
@@ -6314,7 +6317,7 @@ export async function getGroupReleaseImages(
     throw new ApiError(response.status, message);
   }
 
-  return response.json() as Promise<CursorPage<PublicReleaseImage>>;
+  return response.json() as Promise<ReleaseImagesCursorPage>;
 }
 
 export async function getGroupReleaseNotes(
