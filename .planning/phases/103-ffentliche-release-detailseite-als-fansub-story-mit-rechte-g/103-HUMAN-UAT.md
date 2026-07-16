@@ -38,9 +38,10 @@ severity: major
 
 ### 5. Vollfolge mit und ohne Entitlement
 expected: Nur berechtigte Nutzer mit bereitem Stream sehen die sekundäre Aktion. Der Dialog spielt ab und räumt beim Schließen die Quelle auf. Gäste, abgelehnte Nutzer und nicht bereite Streams sehen keine Aktion.
-result: issue
-reported: "Als eingeloggter Platform Admin ist bei Release-Version 1 kein Stream-/Episode-abspielen-Button sichtbar, obwohl die Datenbank für diese Version eine konkrete Jellyfin-Streamquelle besitzt."
-severity: major
+result: pass
+retested: "Als eingeloggter Platform Admin ist die Abspielaktion sichtbar und die Folge kann erfolgreich gestreamt werden."
+previous_reported: "Als eingeloggter Platform Admin ist bei Release-Version 1 kein Stream-/Episode-abspielen-Button sichtbar, obwohl die Datenbank für diese Version eine konkrete Jellyfin-Streamquelle besitzt."
+previous_severity: major
 
 ### 6. Kooperation und Release-Navigation
 expected: Kooperationsgruppen werden korrekt angezeigt. Vorher/Weiter bleibt in der aktuellen Fansubgruppe, bevorzugt dieselbe Versionsnummer und fällt andernfalls auf die öffentliche Standardversion zurück.
@@ -74,8 +75,8 @@ severity: minor
 ## Summary
 
 total: 10
-passed: 0
-issues: 9
+passed: 1
+issues: 8
 pending: 0
 skipped: 1
 blocked: 0
@@ -118,7 +119,8 @@ blocked: 0
   debug_session: ".planning/debug/103-release-preview-selection.md"
 
 - truth: "Ein eingeloggter Platform Admin sieht bei einer Release-Version mit bereiter Streamquelle die sekundäre Aktion 'Episode abspielen'; Access-Projektion und Relay erkennen die aktive beziehungsweise refreshbare Admin-Session."
-  status: failed
+  status: resolved
+  resolved_by_uat: "Platform-Admin-Live-Test: Abspielaktion sichtbar und Folge erfolgreich gestreamt."
   reason: "User reported: Als eingeloggter Platform Admin fehlt der Streambutton bei Release-Version 1, obwohl release_streams/stream_sources eine Jellyfin-Quelle enthalten."
   severity: major
   test: 5
