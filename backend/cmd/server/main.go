@@ -276,7 +276,9 @@ func main() {
 			ReleaseGrantSecret:     resolveReleaseGrantSecret(cfg),
 			ReleaseGrantTTLSeconds: cfg.ReleaseStreamGrantTTLSeconds,
 		},
-	).WithMedia(mediaRepo, mediaService).WithPermissionDeps(permissionSvc, auditLogRepo)
+	).WithMedia(mediaRepo, mediaService).
+		WithPermissionDeps(permissionSvc, auditLogRepo).
+		WithReleasePlaybackEntitlements(repository.NewReleasePlaybackEntitlementRepository(dbPool, authzRepo))
 	groupRepo := repository.NewGroupRepository(dbPool)
 	groupHandler := handlers.NewGroupHandler(groupRepo)
 	groupContributorsRepo := repository.NewGroupContributorsRepository(dbPool)
@@ -366,6 +368,11 @@ func main() {
 		authMiddleware,
 		middleware.CommentCreateRateLimitMiddleware(commentCreateLimiter),
 		commentHandler.CreateByAnimeID,
+	)
+	v1.GET(
+		"/release-versions/:id/playback-access",
+		authMiddleware,
+		fansubHandler.GetReleasePlaybackAccess,
 	)
 	v1.GET("/watchlist", authMiddleware, watchlistHandler.ListByUser)
 	v1.POST("/watchlist", authMiddleware, watchlistHandler.CreateByUser)

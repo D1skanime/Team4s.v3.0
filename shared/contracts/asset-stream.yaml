@@ -138,6 +138,8 @@ security_schemes:
       Format: "Bearer <token>"
 
 notes:
+  - Full-release playback availability is authenticated, user-specific, and always private, no-store
+  - Full-release streams require a short-lived release-version grant and recheck central entitlement on use
   - The backend never exposes Jellyfin API keys to the client
   - Range requests (HTTP Range header) are forwarded to Jellyfin for video seeking
   - Response headers from Jellyfin (Content-Type, Content-Range, etc.) are forwarded to client

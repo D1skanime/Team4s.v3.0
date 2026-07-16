@@ -34,23 +34,29 @@ var allowedFansubLinkTypes = map[string]struct{}{
 
 // FansubHandler bündelt alle Handler-Methoden für Fansub-Gruppen, Episodenversionen und Medienproxy-Endpunkte.
 type FansubHandler struct {
-	fansubRepo         *repository.FansubRepository
-	episodeVersionRepo *repository.EpisodeVersionRepository
-	authzRepo          *repository.AuthzRepository
-	mediaRepo          *repository.MediaRepository
-	mediaService       *services.MediaService
-	adminRoleName      string
-	embyAPIKey         string
-	embyBaseURL        string
-	embyStreamPath     string
-	jellyfinAPIKey     string
-	jellyfinBaseURL    string
-	jellyfinStreamPath string
-	releaseGrantSecret string
-	releaseGrantTTL    time.Duration
-	httpClient         *http.Client
-	permissionSvc      *permissions.Service
-	auditLogRepo       *repository.AuditLogRepository
+	fansubRepo                  *repository.FansubRepository
+	episodeVersionRepo          *repository.EpisodeVersionRepository
+	authzRepo                   *repository.AuthzRepository
+	mediaRepo                   *repository.MediaRepository
+	mediaService                *services.MediaService
+	adminRoleName               string
+	embyAPIKey                  string
+	embyBaseURL                 string
+	embyStreamPath              string
+	jellyfinAPIKey              string
+	jellyfinBaseURL             string
+	jellyfinStreamPath          string
+	releaseGrantSecret          string
+	releaseGrantTTL             time.Duration
+	httpClient                  *http.Client
+	permissionSvc               *permissions.Service
+	auditLogRepo                *repository.AuditLogRepository
+	releasePlaybackEntitlements permissions.ReleasePlaybackEntitlementResolver
+}
+
+func (h *FansubHandler) WithReleasePlaybackEntitlements(resolver permissions.ReleasePlaybackEntitlementResolver) *FansubHandler {
+	h.releasePlaybackEntitlements = resolver
+	return h
 }
 
 // FansubProxyConfig enthält die Konfigurationswerte für den Emby- und Jellyfin-Medienproxy sowie das Stream-Grant-System.

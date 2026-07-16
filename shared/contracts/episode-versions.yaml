@@ -153,6 +153,16 @@ endpoints:
       type: none
 
   - name: release-stream-proxy
+    method: GET
+    path: /api/v1/release-versions/:id/playback-access
+    auth:
+      required: true
+    cache_control: private, no-store
+    response:
+      status: 200
+      type: ReleasePlaybackAccessResponse
+
+  - name: release-stream-proxy
     method: POST
     path: /api/v1/releases/:id/grant
     auth:
@@ -186,7 +196,7 @@ endpoints:
     query_params:
       - name: grant
         type: string
-        description: Optional short-lived signed stream grant token (required when Authorization header is not provided).
+        description: Required short-lived signed stream grant token; entitlement is rechecked on use.
     response:
       status: 200
       type: binary-stream
@@ -302,6 +312,10 @@ endpoints:
       type: binary-stream
 
 types:
+  ReleasePlaybackAccessResponse:
+    data:
+      can_play: bool
+      stream_ready: bool
   SubtitleType:
     enum: [hardsub, softsub]
   GroupedEpisodesResponse:

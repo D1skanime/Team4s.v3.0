@@ -6103,6 +6103,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/release-versions/{id}/playback-access:
+    get:
+      tags: [Releases]
+      summary: Resolve private full-episode playback availability
+      operationId: getReleasePlaybackAccess
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64, minimum: 1 }
+      responses:
+        "200":
+          description: User-specific entitlement and source readiness
+          headers:
+            Cache-Control: { schema: { type: string }, description: private, no-store }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [can_play, stream_ready]
+                    properties:
+                      can_play: { type: boolean }
+                      stream_ready: { type: boolean }
+        "401": { description: Authentication required }
   /api/v1/releases/{id}/grant:
     post:
       tags: [Releases]
@@ -6142,6 +6172,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Effective release playback entitlement denied
         "404":
           description: Release not found
           content:
@@ -6178,7 +6210,7 @@ paths:
           required: false
           schema:
             type: string
-          description: Optional short-lived grant token; required when no bearer token is provided.
+          description: Required short-lived release-version-bound grant token.
       responses:
         "200":
           description: Stream payload
