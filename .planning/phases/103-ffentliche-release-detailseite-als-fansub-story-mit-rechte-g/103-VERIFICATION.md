@@ -6,90 +6,111 @@ score: 5/6
 requirements:
   passed: [P103-SC1, P103-SC2, P103-SC3, P103-SC4, P103-SC5]
   human_needed: [P103-SC6]
+uat_gaps:
+  technically_closed: 9
+  remaining_code_gaps: 0
+review: clean
 ---
 
-# Phase 103 Verification
+# Phase 103 Final Verification
 
 ## Outcome
 
-The implementation satisfies the code-, contract-, migration-, and automated-test portions of Phase 103. The phase remains `human_needed` because the required responsive live browser UAT from the real public Fansub/project entry path could not be executed: the frontend and backend services were not available during execution. This is a human/runtime verification item, not evidence of a production-code gap.
+Phase 103 is technically complete against the current code, contracts, focused tests, gap plans 103-06 through 103-10, and the clean post-fix code review. All nine diagnosed HUMAN-UAT gaps have code-level closure and regression evidence.
+
+The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requires responsive live UAT through the real public Fansub/project entry. The original live run found the nine issues; no in-app-browser rerun of the corrected implementation is recorded. Automated refresh-only and responsive/hydration coverage passes, but it does not replace final shared-flow visual and media playback acceptance.
 
 ## Success criteria
 
 ### P103-SC1 — Passed
 
-- `GetPublicReleaseDetail(animeID, groupID, releaseVersionID)` verifies the concrete version through `release_versions -> fansub_releases -> episodes` and canonical `release_version_groups.fansub_group_id` ownership.
-- Public media remains release-version-owned through `release_version_media`; no episode-attached media seam was added.
-- `shared/contracts/openapi.yaml`, the Go DTOs, and `frontend/src/types/releaseDetail.ts` expose selected public preview, release identity, cooperation groups, technical fields, subtitle tracks, exact release contributors/authors/uploaders, category totals, release-bound segments, and previous/next targets.
-- Preview selection uses `is_preview_candidate` only after the existing public/approved/ready gates. The frontend uses the selected preview and otherwise remains poster/text safe; it does not promote an arbitrary first gallery image.
-- Image cursor requests require a canonical category and ownership check. Navigation stays in the route group, prefers the same version, and falls back deterministically on the adjacent episode.
-- Focused repository and handler tests pass.
+- The canonical aggregate remains keyed by `animeID + fansubGroupID + releaseVersionID` and verifies ownership through `release_versions`, `fansub_releases`, neutral `episodes`, and canonical `release_version_groups.fansub_group_id`.
+- OpenAPI, backend DTOs, and `frontend/src/types/releaseDetail.ts` cover selected public preview, technical and subtitle tracks, cooperation groups, exact contributors/authors/uploaders, release-bound segments, and adjacent navigation.
+- Public visibility/approval/readiness gates remain server enforced.
+- The Pretty route resolves slugs to numeric project context and then reuses the same aggregate, so slug presentation does not weaken release-version ownership.
 
-### P103-SC2 — Passed
+### P103-SC2 — Passed against accepted UAT revision
 
-- The public route composes a text-safe release hero, exact release contributors, four canonical in-page image chapters, role-grouped notes, Kara timeline, and adjacent navigation.
-- Empty components return `null`; text-only release coverage is present in `ReleaseDetailHero.test.tsx`.
-- Gallery CSS implements the requested visible reveal thresholds: six desktop, four tablet, and two mobile; expansion remains on the same page.
-- Image cards identify uploader/category/caption, and note cards identify author/role/date.
-- Minor presentation observation: the collapsed button label calculates its remaining count from six on every breakpoint, so mobile/tablet can display a numerically conservative `Weitere X Bilder` label even though CSS initially reveals two/four. This does not prevent responsive reveal or in-page expansion but should be checked during UAT.
+- The original roadmap wording described four category chapters. HUMAN-UAT test 2 explicitly superseded that presentation with one common responsive grid while retaining category identity, uploader attribution, full descriptions, and release-version category pagination.
+- `ReleaseGallery` now renders one deduplicated grid, uses semantic image buttons, shows category badges/uploader metadata, opens originals in the generalized existing `FansubMediaLightbox`, and exposes full captions there.
+- `responsiveGalleryReveal` is the single 6/4/2 source. It uses `useSyncExternalStore` with a stable server snapshot, preserves expanded state on resize, and has real `renderToString`/`hydrateRoot` mobile and tablet coverage.
+- Role groups, not their individual cards, form the desktop two-column text grid; tablet/mobile are one column. Empty sections and text-only hero behavior remain covered.
 
 ### P103-SC3 — Passed
 
-- Guests receive all public segment information but `ThemeTimeline` renders no play action without `hasAccessToken || hasRefreshToken`.
-- Ordinary authenticated sessions can request a grant without `release_version.segments.manage`; render/source administration still uses that capability.
-- Grant issuance binds the requested `release_version_id` to the segment's persisted `ReleaseVersionID`, requires a ready render cache or curated uploaded fallback, and issues a short-lived segment/cache-bound token.
-- Streaming rejects free start/end/duration parameters and validates the segment id plus ready cache key. The player uses only `/api/segments/{id}/stream?release_version_id=...` and cleans up the prior source before switching.
-- Handler/auth and focused relay/timeline tests pass, including guest/authenticated visibility and stream binding.
+- The public release aggregate now uses a session-neutral read, so Karaoke titles and metadata cannot disappear because auth preflight failed.
+- Guest/access-token/refresh-only rerender tests preserve identical segment titles; guests get no playback action or login prompt.
+- Authenticated public playback remains separate from segment management. Grant issuance binds the real release version, persisted segment and ready cache/uploaded fallback; stream grants remain short-lived and cache-bound.
+- Free-form start/end/duration parameters remain rejected, and switching players stops the previous source.
 
 ### P103-SC4 — Passed
 
-- Migration `0129_release_playback_entitlements` defines direct-user or role subjects and exactly one global/group/project/release scope; it contains no neutral episode scope and has a reversible down migration.
-- `ReleasePlaybackEntitlementRepository.ResolveReleasePlaybackEntitlement` is the single resolver. It derives group/project context from the concrete release version and applies global -> group -> project -> release specificity. At equal specificity, direct-user rules outrank role rules and deny wins within the same subject priority.
-- Platform-admin access still flows through this resolver entry point.
-- Capability projection, grant issuance, and stream authorization all invoke the same resolver. The stream re-evaluates entitlement after validating its short-lived grant, so revoked entitlements cannot continue solely because a grant exists.
-- The personalized access endpoint and Next relay use `private, no-store` (relay also uses `Vary: Cookie`); the public aggregate remains non-personalized. Refresh-only sessions use the central relay refresh seam.
-- Repository/handler matrix tests pass for specificity, direct/role decisions, denial, grant tampering, revocation, and cache headers.
+- Migration `0129_release_playback_entitlements` constrains one global/group/project/release scope and contains no episode scope.
+- The central resolver implements most-specific-wins for role and direct-user subjects. Capability projection, release grant issuance, and protected stream authorization reuse that resolver; stream authorization re-evaluates effective entitlement.
+- Personalized playback access is `private, no-store`; the public aggregate remains session-neutral and cache-safe.
+- The obsolete JSON Next relay was intentionally deleted. Protected JSON access now uses the documented central browser `apiClientFetch` refresh seam. The release and segment byte-stream relays remain present for grant/stream cookie handoff and server enforcement.
 
 ### P103-SC5 — Passed
 
-- `ReleaseEpisodePlayer` fetches the private access projection and renders the secondary action only when both `can_play` and `stream_ready` are true.
-- Guests, denied users, unavailable sources, and failed access checks see no action.
-- Playback opens in the shared `Modal`; close pauses the video, removes its source, reloads the element, and resets local failure state.
-- Grant and protected stream remain the security boundary; hiding the button is not relied upon.
-- Focused player/access tests pass.
+- `ReleaseEpisodePlayer` calls the typed private access helper only after client auth initialization and active access-or-refresh session detection.
+- The secondary action renders only for `can_play && stream_ready`; guests, denial, unavailable source and access failures do not expose it.
+- The shared Modal player pauses, removes and reloads the source on close.
+- Refresh-only tests cover one central refresh/retry, rotated-session persistence, backend reachability and non-retried denial.
 
 ### P103-SC6 — Human verification needed
 
-Automated refresh-session relay coverage, typecheck, focused tests, and production build pass. Live desktop/mobile UAT from `/fansubs/[slug]` through the public project page into the release detail was not possible because neither application service was reachable. Human UAT must still cover:
+- Automated refresh-session, responsive layout, SSR hydration, route, player and relay regressions pass.
+- A live rerun from the real Pretty public project route has not been recorded after the fixes. Visual/product fit, actual browser autoplay behavior, deployed cookie transport and real media sources require final human verification.
 
-1. text-only and selected-preview releases;
-2. four image categories with many images at desktop/tablet/mobile widths;
-3. many role-grouped texts and exact author/uploader/member labels;
-4. guest Kara (information, no action), refresh-only authenticated Kara, autoplay fallback, and segment switching;
-5. entitled full episode, unavailable/unauthorized hidden action, dialog close cleanup;
-6. cooperation display and same-group previous/next navigation with same-version fallback.
+## Nine diagnosed UAT gaps
 
-## Must-have traceability
+1. **Pretty public release route — technically closed.** Nested `/fansubs/[fansubSlug]/fansubprojekt/[animeSlug]/releases/[releaseVersionId]` route exists; shared route builders cover project previews, timeline/detail links and adjacent navigation. Numeric route is a compatibility adapter to shared composition.
+2. **Published image caption edit — technically closed.** PATCH reload now passes through the same actor-specific `can_update`/`can_delete` annotation as list reads; hook/UI regressions cover publish, reopen and edit.
+3. **Preview selection/max-one — technically closed.** Eligible image cards expose a narrow preview-only PATCH action; unchanged review fields are not resent; local siblings reconcile false while the backend retains its atomic same-release max-one transaction.
+4. **Karaoke disappearing after login — technically closed.** Public aggregate is session-neutral and timeline visibility derives only from public segments.
+5. **Platform-admin episode action/refresh-only — technically closed.** Typed playback access uses central `apiClientFetch`; allow+ready, refresh-only retry/rotation and denial are tested. The backend central resolver/readiness contract is unchanged.
+6. **Public visual composition — technically closed.** Shared release surface now uses the public Fansub/project atmosphere, glass/editorial surfaces and blue accents while retaining an independent release hero rather than copying the project banner.
+7. **Role text density — technically closed.** Whole role groups are desktop grid siblings with full-width cards; tablet/mobile collapse to one column.
+8. **Anime logo fallback — technically closed.** Fallback order is approved release preview -> Anime logo -> text-only. Logo comes from the Anime backdrop manifest for rendering only; it is never linked to release media.
+9. **Unified gallery/lightbox — technically closed.** One grid, category/uploader metadata, full original/lightbox text, cursor fanout/deduplication, no zero action, exact hydration-safe 6/4/2 reveal and focus/keyboard behavior are covered.
 
-- 103-01 aggregate/ownership/contract truth: verified in repository queries, OpenAPI/frontend DTOs, and focused tests.
-- 103-02 entitlement specificity/no episode scope truth: verified in migration constraints, central resolver, and table-driven tests.
-- 103-03 release-story/text-only/large-content truth: verified in route/components, responsive CSS, and focused component tests; visual product fit remains part of live UAT.
-- 103-04 guest/authenticated bounded Kara truth: verified across UI, grant handler, grant claims/cache binding, relay, and tests.
-- 103-05 hidden secondary full-player/central enforcement truth: verified across private projection, grant, stream, modal cleanup, and tests; live end-to-end playback remains UAT.
+## Ownership, auth and contract audit
 
-## Checks executed
+- Release images still use `release_version_media` with `media_assets`/`media_files` and a real `release_version_id`; no episode-attached or parallel media seam was introduced.
+- Anime logo remains Anime-owned presentation data.
+- Public segment and contributor projections remain release-version-bound.
+- No new endpoint/schema drift was introduced by gap closure; schema-drift check reports `false`.
+- The playback-access JSON relay deletion is intentional and callers were removed; `/api/releases/[id]/stream` and `/api/segments/[id]/stream` relays remain.
+- Post-gap code review is `clean`: 0 critical, 0 warning, 0 info findings. Its two earlier warnings were closed with desktop CSS and real hydration regressions.
 
-- `go test ./internal/repository ./internal/handlers ./internal/auth ./internal/permissions ./internal/migrations` — passed.
-- Focused frontend Vitest release-detail/player/relay suite — 9 files, 15 tests passed.
-- `npm run typecheck` — passed.
-- `npm run build` — passed.
-- `npm run lint` — failed only on the documented pre-existing `react-hooks/set-state-in-effect` error in `frontend/src/components/fansubs/FansubStorySection.tsx:49`; 328 existing warnings. No Phase-103 blocking lint failure was identified.
-- Migration structure/resolver tests — passed. The execution summaries additionally record an isolated PostgreSQL up/down run, mixed-scope rejection, and successful table removal; this verification did not repeat the external database run.
-- `git diff --check` — passed (only existing line-ending notices for unrelated dirty planning files).
+## Automated evidence
 
-## Remaining risks
+- Backend handler/repository suites: passed.
+- Frontend focused Phase-103 suite: 14 files, 58 tests passed.
+- Additional review-fix verification: 2 files, 16 tests passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed; both Pretty and numeric compatibility release routes are emitted.
+- Schema drift: `false`.
+- Focused lint for Phase-103 files: passed.
+- Full `npm run lint`: fails only on the pre-existing `react-hooks/set-state-in-effect` error in `frontend/src/components/fansubs/FansubStorySection.tsx:49`; it is outside this phase diff.
+- `git diff --check`: passed in executor summaries.
 
-- Live visual/responsive/product-flow UAT is outstanding.
-- Browser autoplay with audio may be blocked; the selected native-controls player must remain usable when that occurs.
-- Rights-management UI/bulk tooling is intentionally deferred; Phase 103 supplies persistence and evaluation only.
-- The workspace already contained unrelated dirty planning/config/generated-image files; this verification did not modify them.
+## Exact live human checks required
+
+Use the real public entry and remain in the Pretty namespace:
+
+`/fansubs/c-subs/fansubprojekt/vipers-creed` -> `/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1`
+
+1. **Route/navigation:** open a release from the project, then previous/next; confirm the URL never falls back to `/anime/{id}/group/{groupId}` and cooperation stays in the entry group context.
+2. **Visual composition:** compare desktop, tablet and mobile with the accepted public Fansub/project reference. Confirm atmospheric backdrop/glass language and an independent release hero, not a copied project banner.
+3. **Fallbacks:** verify one approved preview release, one logo-only release and one preview/logo-free text-only release.
+4. **Gallery:** at explicit desktop/tablet/mobile widths confirm 6/4/2 collapsed items and correct remaining number; resize while collapsed, expand, resize again, and confirm it stays expanded. Open multiple categories in the shared lightbox; verify original, full description, category/uploader metadata, arrows, Escape and focus return.
+5. **Texts/people:** confirm exact release contributors and authors/uploaders. Desktop role blocks use two columns with full-width cards; tablet/mobile use one.
+6. **Admin media:** as Sheppert publish an owned image, close/reopen, edit its description, select/switch an eligible preview and confirm only one remains selected and the public hero updates after approval.
+7. **Kara:** as guest confirm information remains visible with no action. Log in/restore a refresh-only Sheppert session and confirm the same section remains, ready segments play, unavailable segments stay informational, and switching stops the old stream.
+8. **Full episode:** as entitled Platform Admin with a ready source confirm the secondary action appears, opens the dialog, streams, and releases the source on close. Confirm denied/unready users see no action.
+9. **Network/auth:** during refresh-only Karaoke and full-episode checks verify refresh rotation succeeds, the private backend access resolver is reached, and stream requests continue through the retained relays without shared caching.
+
+## Final assessment
+
+`human_needed` — no known technical gap remains, but the explicit Phase-103 live responsive/shared-flow acceptance criterion has not yet been rerun after the gap fixes.
