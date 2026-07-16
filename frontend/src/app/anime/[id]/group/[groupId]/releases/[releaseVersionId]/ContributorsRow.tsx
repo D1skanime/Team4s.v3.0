@@ -1,35 +1,15 @@
-import type { PublicReleaseContributor } from "@/types/releaseDetail";
+import { SectionHeader } from '@/components/ui'
+import { resolveApiUrl } from '@/lib/api'
+import type { PublicReleaseContributor } from '@/types/releaseDetail'
+import styles from './page.module.css'
 
-import styles from "./page.module.css";
-
-interface ContributorsRowProps {
-  contributors: PublicReleaseContributor[];
-}
-
-/**
- * AO4-17: Beteiligte als horizontale, mobil-scrollbare Avatar-Reihe mit Name +
- * Rolle. Das aggregierende Payload (AO4-02) liefert kein Avatarbild — deshalb
- * ausschliesslich Initiale-Placeholder (analog LatestReleaseSection, 99-11).
- */
-export function ContributorsRow({ contributors }: ContributorsRowProps) {
-  if (contributors.length === 0) return null;
-
-  return (
-    <section id="beteiligte" className={styles.contributorsSection}>
-      <h2 className={styles.sectionTitle}>Fansubber</h2>
-      <div className={styles.contributorsScroller}>
-        {contributors.map((contributor) => (
-          <div key={contributor.member_id} className={styles.contributorItem}>
-            <div className={styles.contributorAvatar} aria-hidden="true">
-              {contributor.name.charAt(0).toUpperCase()}
-            </div>
-            <div className={styles.contributorMeta}>
-              <span className={styles.contributorName}>{contributor.name}</span>
-              <span className={styles.contributorRole}>{contributor.role_label}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+export function ContributorsRow({ contributors }: { contributors: PublicReleaseContributor[] }) {
+  if (!contributors.length) return null
+  return <section id="beteiligte" className={styles.contributorsSection}>
+    <SectionHeader title="An diesem Release beteiligt" description={`${contributors.length} Fansubber`} underline />
+    <div className={styles.contributorsGrid}>{contributors.map(person => <article key={`${person.member_id}-${person.role_label}`} className={styles.contributorItem}>
+      {person.avatar_url ? /* eslint-disable-next-line @next/next/no-img-element */ <img className={styles.contributorAvatar} src={resolveApiUrl(person.avatar_url)} alt="" /> : <span className={styles.contributorAvatar} aria-hidden="true">{person.name.charAt(0).toUpperCase()}</span>}
+      <div className={styles.contributorMeta}><strong>{person.name}</strong><span>{person.role_label}</span></div>
+    </article>)}</div>
+  </section>
 }

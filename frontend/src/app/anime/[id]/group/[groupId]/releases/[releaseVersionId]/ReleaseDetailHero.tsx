@@ -1,75 +1,52 @@
-import { SectionHeader } from "@/components/ui";
-import type { PublicReleaseImage } from "@/types/releaseDetail";
+import { Badge, Card, SectionHeader } from '@/components/ui'
+import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
-import styles from "./page.module.css";
+import styles from './page.module.css'
 
-interface ReleaseDetailHeroProps {
-  episodeNumber: string;
-  title: string;
-  releaseDate: string | null;
-  imagesCount: number;
-  notesCount: number;
-  contributorsCount: number;
-  heroImage: PublicReleaseImage | null;
-  fallbackPosterUrl: string | null;
+type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
+  'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' | 'release_date' |
+  'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
+  'audio_language' | 'subtitle_tracks' | 'preview_image' | 'images_count' | 'notes_count' |
+  'contributors_count'> & { fallbackPosterUrl: string | null }
+
+function formatDate(value: string | null) {
+  if (!value) return null
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function formatReleaseDate(releaseDate: string | null): string | null {
-  if (!releaseDate) return null;
-  const parsed = new Date(releaseDate);
-  if (Number.isNaN(parsed.getTime())) return releaseDate;
-  return parsed.toLocaleDateString("de-DE", { year: "numeric", month: "long", day: "numeric" });
+function formatDuration(seconds: number | null) {
+  if (seconds == null) return null
+  const minutes = Math.floor(seconds / 60)
+  const rest = Math.floor(seconds % 60)
+  return `${minutes}:${String(rest).padStart(2, '0')} Min.`
 }
 
-/** AO4-16: Hero mit Kennzahlen (Bilder/Texte/Fansubber) + Veroeffentlichungsdatum. */
-export function ReleaseDetailHero({
-  episodeNumber,
-  title,
-  releaseDate,
-  imagesCount,
-  notesCount,
-  contributorsCount,
-  heroImage,
-  fallbackPosterUrl,
-}: ReleaseDetailHeroProps) {
-  const releaseDateLabel = formatReleaseDate(releaseDate);
-  const thumbnailUrl = heroImage?.thumbnail_url ?? null;
-  const originalUrl = heroImage?.original_url ?? null;
-  const imageSrc = thumbnailUrl ?? originalUrl ?? fallbackPosterUrl;
-  // AO4-23: srcset/sizes nur, wenn zwei unterschiedliche Aufloesungen vorliegen.
-  const srcSet =
-    thumbnailUrl && originalUrl && thumbnailUrl !== originalUrl
-      ? `${thumbnailUrl} 480w, ${originalUrl} 1280w`
-      : undefined;
+export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
+  const image = props.preview_image
+  const imageSrc = image?.thumbnail_url ?? image?.original_url ?? props.fallbackPosterUrl
+  const facts = [
+    ['Version', props.version], ['Veröffentlicht', formatDate(props.release_date)], ['Dauer', formatDuration(props.duration_seconds)],
+    ['Auflösung', props.resolution], ['Container', props.container], ['Video', props.video_codec],
+    ['Audio', [props.audio_language, props.audio_codec].filter(Boolean).join(' · ') || null],
+  ].filter((entry): entry is [string, string] => Boolean(entry[1]))
 
-  return (
-    <section className={styles.hero}>
-      {imageSrc ? (
-        <div className={styles.heroImageShell}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrc}
-            srcSet={srcSet}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 960px"
-            alt={heroImage?.caption ?? title}
-            className={styles.heroImage}
-            loading="eager"
-          />
-        </div>
-      ) : null}
-
-      <div className={styles.heroContent}>
-        <SectionHeader eyebrow={`Episode ${episodeNumber}`} title={title} />
-        {releaseDateLabel ? (
-          <p className={styles.releaseDate}>Veröffentlicht am {releaseDateLabel}</p>
-        ) : null}
-
-        <div className={styles.statsRow}>
-          <span className={styles.statItem}>{imagesCount} Bilder</span>
-          <span className={styles.statItem}>{notesCount} Texte</span>
-          <span className={styles.statItem}>{contributorsCount} Fansubber</span>
-        </div>
-      </div>
-    </section>
-  );
+  return <section className={`${styles.hero} ${imageSrc ? '' : styles.heroTextOnly}`}>
+    {imageSrc ? <div className={styles.heroImageShell}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imageSrc} alt={image?.caption ?? props.title} className={styles.heroImage} loading="eager" />
+    </div> : null}
+    <div className={styles.heroContent}>
+      <SectionHeader eyebrow={`Episode ${props.episode_number}${props.episode_title ? ` · ${props.episode_title}` : ''}`} title={props.title} underline />
+      <div className={styles.groupRow}>{props.groups.map(group => <Badge key={group.id} variant="muted">{group.name}</Badge>)}</div>
+      <dl className={styles.technicalGrid}>{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+      {props.subtitle_tracks.length ? <Card variant="nestedFlat" className={styles.subtitleBlock}>
+        <strong>Untertitelspuren</strong>
+        <div className={styles.subtitleList}>{props.subtitle_tracks.map((track, index) => <Badge key={`${track.label}-${index}`} variant="neutral">
+          {[track.language, track.label, track.format, track.forced ? 'Forced' : null, track.default ? 'Standard' : null].filter(Boolean).join(' · ')}
+        </Badge>)}</div>
+      </Card> : null}
+      <div className={styles.statsRow}><span>{props.images_count} Bilder</span><span>{props.notes_count} Texte</span><span>{props.contributors_count} Fansubber</span></div>
+    </div>
+  </section>
 }

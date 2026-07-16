@@ -1,0 +1,3 @@
+// @vitest-environment jsdom
+import { cleanup, render, screen } from '@testing-library/react'; import { afterEach,describe,expect,it } from 'vitest'; import { ContributorsRow } from './ContributorsRow'; afterEach(cleanup)
+describe('ContributorsRow',()=>{it('shows only supplied release contributors and omits an empty section',()=>{const {rerender}=render(<ContributorsRow contributors={[{member_id:1,name:'Mika',role_label:'Karaoke',avatar_url:null}]}/>); expect(screen.getByText('Mika')).toBeTruthy(); rerender(<ContributorsRow contributors={[]}/>); expect(screen.queryByText('Fansubber')).toBeNull()})})
