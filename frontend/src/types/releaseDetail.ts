@@ -7,6 +7,7 @@ export interface PublicReleaseContributor {
   member_id: number;
   name: string;
   role_label: string;
+  avatar_url: string | null;
 }
 
 export interface PublicReleaseImage {
@@ -17,21 +18,74 @@ export interface PublicReleaseImage {
   caption: string | null;
   /** Anzeigename des Hochladers, null wenn kein Hochlader hinterlegt/aufloesbar (AO4-18 Autor-Chip). */
   author_name: string | null;
+  is_preview_candidate: boolean;
 }
 
 export interface PublicReleaseNote {
   id: number;
   member_name: string;
+  member_id: number;
+  member_avatar_url: string | null;
   role_label: string;
   body_html: string;
   created_at: string;
 }
 
+export interface PublicReleaseGroup {
+  id: number;
+  slug: string;
+  name: string;
+  logo_url: string | null;
+}
+
+export interface PublicReleaseSubtitleTrack {
+  language: string | null;
+  label: string;
+  format: string | null;
+  forced: boolean;
+  default: boolean;
+}
+
+export interface PublicReleaseSegment {
+  theme_segment_id: number;
+  name: string;
+  type: string;
+  start_seconds: number | null;
+  end_seconds: number | null;
+  duration_seconds: number | null;
+  readiness: "ready" | "unavailable";
+  participants: PublicReleaseContributor[];
+  preview_url: string | null;
+}
+
+export interface PublicReleaseNavigationTarget {
+  release_version_id: number;
+  episode_number: string;
+  episode_title: string | null;
+  version: string;
+  group_id: number;
+}
+
 export interface ReleaseDetailResponse {
   release_version_id: number;
   episode_number: string;
+  episode_title: string | null;
   title: string;
+  version: string;
+  groups: PublicReleaseGroup[];
   release_date: string | null;
+  duration_seconds: number | null;
+  resolution: string | null;
+  container: string | null;
+  video_codec: string | null;
+  audio_codec: string | null;
+  audio_language: string | null;
+  subtitle_tracks: PublicReleaseSubtitleTrack[];
+  preview_image: PublicReleaseImage | null;
+  image_category_totals: Record<ReleaseVersionMediaCategory, number>;
+  segments: PublicReleaseSegment[];
+  previous: PublicReleaseNavigationTarget | null;
+  next: PublicReleaseNavigationTarget | null;
   images_count: number;
   notes_count: number;
   contributors_count: number;
@@ -48,4 +102,10 @@ export interface CursorPage<T> {
   items: T[];
   next_cursor: string | null;
   has_more: boolean;
+}
+
+export interface ReleaseImagesCursorPage extends CursorPage<PublicReleaseImage> {
+  category: ReleaseVersionMediaCategory;
+  total: number;
+  returned_count: number;
 }

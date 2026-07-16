@@ -5050,6 +5050,13 @@ paths:
             default: 24
             minimum: 1
             maximum: 100
+        - name: category
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [screenshot, typesetting_karaoke, fun_outtake, other]
+          description: Canonical release-version media category; cursors never cross categories.
       responses:
         "200":
           description: Cursor-Seite der Bildergalerie
@@ -12160,7 +12167,7 @@ components:
             $ref: "#/components/schemas/PublicReleaseMediaItem"
     PublicReleaseContributor:
       type: object
-      required: [member_id, name, role_label]
+      required: [member_id, name, role_label, avatar_url]
       properties:
         member_id:
           type: integer
@@ -12170,9 +12177,12 @@ components:
         role_label:
           type: string
           description: Kommagetrennte deutsche Rollen-Labels des Beteiligten
+        avatar_url:
+          type: string
+          nullable: true
     PublicReleaseImage:
       type: object
-      required: [id, category]
+      required: [id, category, is_preview_candidate]
       properties:
         id:
           type: integer
@@ -12194,15 +12204,24 @@ components:
           type: string
           nullable: true
           description: Anzeigename des Hochladers, null wenn nicht ermittelbar (AO4-18 Autor-Chip)
+        is_preview_candidate:
+          type: boolean
+          description: True only for the selected, public and approved release-version preview.
     PublicReleaseNote:
       type: object
-      required: [id, member_name, role_label, body_html, created_at]
+      required: [id, member_id, member_name, member_avatar_url, role_label, body_html, created_at]
       properties:
         id:
           type: integer
           format: int64
         member_name:
           type: string
+        member_id:
+          type: integer
+          format: int64
+        member_avatar_url:
+          type: string
+          nullable: true
         role_label:
           type: string
         body_html:
@@ -12215,7 +12234,13 @@ components:
       required:
         - release_version_id
         - episode_number
+        - episode_title
         - title
+        - version
+        - groups
+        - subtitle_tracks
+        - image_category_totals
+        - segments
         - images_count
         - notes_count
         - contributors_count
@@ -12228,6 +12253,9 @@ components:
           format: int64
         episode_number:
           type: string
+        episode_title:
+          type: string
+          nullable: true
         title:
           type: string
           description: >-
@@ -12236,9 +12264,56 @@ components:
             unsafe and are replaced by a neutral fallback built from episode
             title, fansub group name, and release version.
           example: Kanonenschuss (Honto) Version 1
+        version:
+          type: string
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseGroup"
         release_date:
           type: string
           format: date-time
+          nullable: true
+        duration_seconds:
+          type: integer
+          format: int32
+          nullable: true
+        resolution:
+          type: string
+          nullable: true
+        container:
+          type: string
+          nullable: true
+        video_codec:
+          type: string
+          nullable: true
+        audio_codec:
+          type: string
+          nullable: true
+        audio_language:
+          type: string
+          nullable: true
+        subtitle_tracks:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseSubtitleTrack"
+        preview_image:
+          allOf:
+            - $ref: "#/components/schemas/PublicReleaseImage"
+          nullable: true
+        image_category_totals:
+          $ref: "#/components/schemas/PublicReleaseImageCategoryTotals"
+        segments:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicReleaseSegment"
+        previous:
+          allOf:
+            - $ref: "#/components/schemas/PublicReleaseNavigationTarget"
+          nullable: true
+        next:
+          allOf:
+            - $ref: "#/components/schemas/PublicReleaseNavigationTarget"
           nullable: true
         images_count:
           type: integer
@@ -12278,8 +12353,17 @@ components:
     ReleaseImagesCursorResponse:
       type: object
       description: Seek-Cursor-Seite der vollstaendigen Bildergalerie einer Release-Version (AO4-03/AO4-24)
-      required: [items, next_cursor, has_more]
+      required: [category, total, returned_count, items, next_cursor, has_more]
       properties:
+        category:
+          type: string
+          enum: [screenshot, typesetting_karaoke, fun_outtake, other]
+        total:
+          type: integer
+          format: int64
+        returned_count:
+          type: integer
+          format: int32
         items:
           type: array
           items:
@@ -12289,6 +12373,55 @@ components:
           nullable: true
         has_more:
           type: boolean
+    PublicReleaseGroup:
+      type: object
+      required: [id, slug, name, logo_url]
+      properties:
+        id: {type: integer, format: int64}
+        slug: {type: string}
+        name: {type: string}
+        logo_url: {type: string, nullable: true}
+    PublicReleaseSubtitleTrack:
+      type: object
+      required: [language, label, format, forced, default]
+      properties:
+        language: {type: string, nullable: true}
+        label: {type: string}
+        format: {type: string, nullable: true}
+        forced: {type: boolean}
+        default: {type: boolean}
+    PublicReleaseImageCategoryTotals:
+      type: object
+      required: [screenshot, typesetting_karaoke, fun_outtake, other]
+      properties:
+        screenshot: {type: integer, format: int64}
+        typesetting_karaoke: {type: integer, format: int64}
+        fun_outtake: {type: integer, format: int64}
+        other: {type: integer, format: int64}
+    PublicReleaseSegment:
+      type: object
+      required: [theme_segment_id, name, type, readiness, participants]
+      properties:
+        theme_segment_id: {type: integer, format: int64}
+        name: {type: string}
+        type: {type: string}
+        start_seconds: {type: integer, format: int32, nullable: true}
+        end_seconds: {type: integer, format: int32, nullable: true}
+        duration_seconds: {type: integer, format: int32, nullable: true}
+        readiness: {type: string, enum: [ready, unavailable]}
+        participants:
+          type: array
+          items: {$ref: "#/components/schemas/PublicReleaseContributor"}
+        preview_url: {type: string, nullable: true}
+    PublicReleaseNavigationTarget:
+      type: object
+      required: [release_version_id, episode_number, episode_title, version, group_id]
+      properties:
+        release_version_id: {type: integer, format: int64}
+        episode_number: {type: string}
+        episode_title: {type: string, nullable: true}
+        version: {type: string}
+        group_id: {type: integer, format: int64}
     ReleaseNotesCursorResponse:
       type: object
       description: Seek-Cursor-Seite der vollstaendigen Textliste einer Release-Version (AO4-03/AO4-24)

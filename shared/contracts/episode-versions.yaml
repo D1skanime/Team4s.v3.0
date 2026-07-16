@@ -305,6 +305,45 @@ types:
   GroupedEpisodesResponse:
     anime_id: int64
     episodes: GroupedEpisode[]
+  PublicReleaseDetail:
+    release_version_id: int64
+    episode_number: string
+    episode_title: string | null
+    title: string
+    version: string
+    groups: PublicReleaseGroup[]
+    release_date: datetime | null
+    duration_seconds: int32 | null
+    resolution: string | null
+    container: string | null
+    video_codec: string | null
+    audio_codec: string | null
+    audio_language: string | null
+    subtitle_tracks: PublicReleaseSubtitleTrack[]
+    preview_image: PublicReleaseImage | null
+    image_category_totals: PublicReleaseImageCategoryTotals
+    contributors: PublicReleaseContributor[]
+    images: PublicReleaseImage[]
+    notes: PublicReleaseNote[]
+    segments: PublicReleaseSegment[]
+    previous: PublicReleaseNavigationTarget | null
+    next: PublicReleaseNavigationTarget | null
+  PublicReleaseGroup:
+    id: int64
+    slug: string
+    name: string
+    logo_url: string | null
+  PublicReleaseSubtitleTrack:
+    language: string | null
+    label: string
+    format: string | null
+    forced: bool
+    default: bool
+  PublicReleaseImageCategoryTotals:
+    screenshot: int64
+    typesetting_karaoke: int64
+    fun_outtake: int64
+    other: int64
   EpisodeVersionResponse:
     data: EpisodeVersion
   EpisodeVersionEditorContextResponse:
