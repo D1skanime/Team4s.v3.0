@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Button, Modal } from '@/components/ui'
+import { getReleasePlaybackAccess } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 
 export function ReleaseEpisodePlayer({ releaseVersionID, title }: { releaseVersionID: number; title: string }) {
@@ -10,17 +11,17 @@ export function ReleaseEpisodePlayer({ releaseVersionID, title }: { releaseVersi
   const [available, setAvailable] = useState(false)
   const [open, setOpen] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [accessFailed, setAccessFailed] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasSession = session.hasAccessToken || session.hasRefreshToken
 
   useEffect(() => {
     if (!session.isClientInitialized || !hasSession) return
-    const controller = new AbortController()
-    void fetch(`/api/releases/${releaseVersionID}/playback-access`, { cache: 'no-store', signal: controller.signal })
-      .then(async response => response.ok ? response.json() as Promise<{ data?: { can_play?: boolean; stream_ready?: boolean } }> : null)
-      .then(payload => setAvailable(Boolean(payload?.data?.can_play && payload.data.stream_ready)))
-      .catch(() => { if (!controller.signal.aborted) setAvailable(false) })
-    return () => controller.abort()
+    let cancelled = false
+    void getReleasePlaybackAccess(releaseVersionID)
+      .then(access => { if (!cancelled) { setAccessFailed(false); setAvailable(access.can_play && access.stream_ready) } })
+      .catch(() => { if (!cancelled) { setAvailable(false); setAccessFailed(true) } })
+    return () => { cancelled = true }
   }, [hasSession, releaseVersionID, session.isClientInitialized])
 
   function close() {
@@ -29,7 +30,7 @@ export function ReleaseEpisodePlayer({ releaseVersionID, title }: { releaseVersi
     setOpen(false); setFailed(false)
   }
 
-  if (!session.isClientInitialized || !hasSession || !available) return null
+  if (!session.isClientInitialized || !hasSession || !available) return accessFailed ? <span hidden data-playback-access-error="true" /> : null
   return <>
     <Button variant="secondary" onClick={() => setOpen(true)}>Episode abspielen</Button>
     <Modal open={open} onClose={close} title={title} description="Vollständige Episode" size="lg">

@@ -6266,6 +6266,23 @@ interface CursorQueryOpts {
   category?: ReleaseVersionMediaCategory;
 }
 
+export interface ReleasePlaybackAccess {
+  can_play: boolean;
+  stream_ready: boolean;
+}
+
+export async function getReleasePlaybackAccess(releaseVersionID: number): Promise<ReleasePlaybackAccess> {
+  const response = await apiClientFetch(`/api/v1/release-versions/${releaseVersionID}/playback-access`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, message);
+  }
+  const payload = await response.json() as { data: ReleasePlaybackAccess };
+  return payload.data;
+}
+
 function buildCursorQuery(opts: CursorQueryOpts): string {
   const query = new URLSearchParams();
   if (opts.cursor) query.set("cursor", opts.cursor);

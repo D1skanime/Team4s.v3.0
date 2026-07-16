@@ -21,6 +21,7 @@ import {
   getEpisodeImportContext,
   getAuthSessionSnapshot,
   getReleaseVersionMedia,
+  getReleasePlaybackAccess,
   logoutActiveAuthSession,
   persistAuthSession,
   uploadAdminAnimeMedia,
@@ -335,6 +336,32 @@ describe('authorized auth refresh flow', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(window.localStorage.getItem('team4s.auth.access_token')).toBeNull()
     expect(window.localStorage.getItem('team4s.auth.refresh_token')).toBeNull()
+  })
+
+  it('refreshes once and retries the private release playback access read', async () => {
+    refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(makeResponse({ error: { message: 'ungueltiges zugriffstoken' } }, { ok: false, status: 401 }))
+      .mockResolvedValueOnce(makeCurrentUserResponse())
+      .mockResolvedValueOnce(makeResponse({ data: { can_play: true, stream_ready: true } }, { ok: true, status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getReleasePlaybackAccess(12)).resolves.toEqual({ can_play: true, stream_ready: true })
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock.mock.calls[2]?.[0]).toContain('/api/v1/release-versions/12/playback-access')
+    expect(fetchMock.mock.calls[2]?.[1]).toEqual(expect.objectContaining({
+      cache: 'no-store', headers: expect.objectContaining({ Authorization: 'Bearer new-access-token' }),
+    }))
+    expect(readCookie(AUTH_REFRESH_COOKIE_NAME)).toBe('fresh-refresh-token')
+  })
+
+  it('keeps a playback entitlement denial as denial without refresh retry', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(makeResponse({ error: { message: 'keine berechtigung' } }, { ok: false, status: 403 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(getReleasePlaybackAccess(12)).rejects.toMatchObject({ status: 403 })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(refreshKeycloakTokenMock).not.toHaveBeenCalled()
   })
 
   it('clears the local session before remote Keycloak logout settles', async () => {
