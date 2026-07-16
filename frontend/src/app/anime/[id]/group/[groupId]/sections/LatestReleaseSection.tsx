@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Badge, Card, SectionHeader } from "@/components/ui";
 import { getGroupReleaseDetail } from "@/lib/api";
+import { buildFansubReleaseHref } from "@/lib/fansubProjectRoutes";
 import { CATEGORY_LABELS } from "@/types/releaseVersionMedia";
 
 import styles from "./LatestReleaseSection.module.css";
@@ -10,6 +11,7 @@ interface LatestReleaseSectionProps {
   animeID: number;
   groupID: number;
   releaseVersionID: number;
+  canonicalProjectPath?: string | null;
 }
 
 const MAX_IMAGE_PREVIEWS = 4;
@@ -35,7 +37,7 @@ function formatReleaseDate(releaseDate: string | null): string | null {
  * KEIN Infinite Scroll hier (AO4-21) — vollstaendige Galerie/Textliste liegt
  * auf der Release-Detailseite (99-12+).
  */
-export async function LatestReleaseSection({ animeID, groupID, releaseVersionID }: LatestReleaseSectionProps) {
+export async function LatestReleaseSection({ animeID, groupID, releaseVersionID, canonicalProjectPath }: LatestReleaseSectionProps) {
   let detail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null = null;
   try {
     detail = await getGroupReleaseDetail(animeID, groupID, releaseVersionID);
@@ -48,7 +50,7 @@ export async function LatestReleaseSection({ animeID, groupID, releaseVersionID 
   const remainingImages = Math.max(detail.images_count - previewImages.length, 0);
   const previewNotes = detail.notes.slice(0, MAX_TEXT_PREVIEWS);
   const releaseDateLabel = formatReleaseDate(detail.release_date);
-  const detailHref = `/anime/${animeID}/group/${groupID}/releases/${releaseVersionID}`;
+  const detailHref = buildFansubReleaseHref({ animeID, groupID, releaseVersionID, canonicalProjectPath });
 
   return (
     <div id="neuestes-release" className={styles.section}>

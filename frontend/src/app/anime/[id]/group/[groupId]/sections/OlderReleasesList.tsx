@@ -7,6 +7,7 @@ import { Eye, FileText, Image as ImageIcon } from 'lucide-react'
 
 import { Button, Card, SectionHeader } from '@/components/ui'
 import { ApiError, getGroupReleaseListCursor } from '@/lib/api'
+import { buildFansubReleaseHref } from '@/lib/fansubProjectRoutes'
 import type { EpisodeReleaseSummary, ReleaseTimelineSegment } from '@/types/group'
 
 import styles from './OlderReleasesList.module.css'
@@ -16,6 +17,7 @@ interface OlderReleasesListProps {
   groupID: number
   /** release_version_id des bereits eingebetteten neuesten Release (AO4-11) wird hier ausgeblendet. */
   excludeReleaseVersionId?: number
+  canonicalProjectPath?: string | null
 }
 
 const PAGE_LIMIT = 10
@@ -97,13 +99,15 @@ function ReleaseTimelinePreview({
   animeID,
   groupID,
   episode,
+  canonicalProjectPath,
 }: {
   animeID: number
   groupID: number
   episode: EpisodeReleaseSummary
+  canonicalProjectPath?: string | null
 }) {
   const segments = episode.timeline_segments ?? []
-  const detailHref = `/anime/${animeID}/group/${groupID}/releases/${episode.id}`
+  const detailHref = buildFansubReleaseHref({ animeID, groupID, releaseVersionID: episode.id, canonicalProjectPath })
 
   return (
     <div className={styles.timelinePreview}>
@@ -132,7 +136,7 @@ function ReleaseTimelinePreview({
  * per IntersectionObserver UND manueller "Mehr laden"-Button als Fallback (AO4-25).
  * Kein Bilder-/Text-Overload pro Eintrag, nur Name/Episode, Bild-/Text-Anzahl, Link.
  */
-export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }: OlderReleasesListProps) {
+export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, canonicalProjectPath }: OlderReleasesListProps) {
   const [items, setItems] = useState<EpisodeReleaseSummary[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -201,7 +205,7 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }:
       ) : (
         <div className={styles.list}>
           {visibleItems.map((episode) => {
-            const detailHref = `/anime/${animeID}/group/${groupID}/releases/${episode.id}`
+            const detailHref = buildFansubReleaseHref({ animeID, groupID, releaseVersionID: episode.id, canonicalProjectPath })
             const contextLabel = releaseContextLabel(episode)
             const versionLabel = versionOnlyLabel(episode.version_label)
             return (
@@ -246,7 +250,7 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId }:
                     </Button>
                   </div>
                 </div>
-                <ReleaseTimelinePreview animeID={animeID} groupID={groupID} episode={episode} />
+                <ReleaseTimelinePreview animeID={animeID} groupID={groupID} episode={episode} canonicalProjectPath={canonicalProjectPath} />
               </Card>
             )
           })}

@@ -15,7 +15,7 @@ import {
   getGroupThemes,
   getPublicFansubProfileBySlug,
 } from "@/lib/api";
-import { buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
+import { buildFansubReleaseHref, buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
 import {
   buildFansubProjectNavigation,
   type FansubProjectNavigation,
@@ -70,6 +70,7 @@ export interface PublicFansubProjectPageData extends PublicFansubProjectIDs {
   heroStyle: CSSProperties | undefined;
   infoPanelStyle: CSSProperties | undefined;
   pageStyle: CSSProperties | undefined;
+  canonicalProjectPath: string | null;
 }
 
 export type LoadPublicFansubProjectPageDataResult =
@@ -160,13 +161,15 @@ function buildPublicReleasePreview({
   groupID,
   release,
   detail,
+  canonicalProjectPath,
 }: {
   animeID: number;
   groupID: number;
   release: EpisodeReleaseSummary;
   detail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null;
+  canonicalProjectPath: string | null;
 }): PublicReleasePreview {
-  const href = `/anime/${animeID}/group/${groupID}/releases/${release.id}`;
+  const href = buildFansubReleaseHref({ animeID, groupID, releaseVersionID: release.id, canonicalProjectPath });
   const detailImages = detail?.images ?? [];
   const imagePreviews = detailImages
     .slice(0, 4)
@@ -265,6 +268,17 @@ export async function loadPublicFansubProjectPageData({
 
   const group = groupResponse.data;
   const anime = animeResponse.data;
+  let canonicalProjectPath: string | null = null;
+  const canonicalFansubSlug = group.fansub.slug?.trim();
+  if (canonicalFansubSlug) {
+    try {
+      const profile = await getPublicFansubProfileBySlug(canonicalFansubSlug);
+      const project = profile.data.projects.find((item) => item.id === animeID && item.anime_slug?.trim());
+      if (project?.anime_slug) canonicalProjectPath = buildPublicFansubProjectPath(canonicalFansubSlug, project.anime_slug);
+    } catch {
+      canonicalProjectPath = null;
+    }
+  }
 
   try {
     groupAssetsResponse = await getGroupAssets(animeID, groupID);
@@ -315,6 +329,7 @@ export async function loadPublicFansubProjectPageData({
         groupID,
         release,
         detail: index === 0 ? latestDetail : null,
+        canonicalProjectPath,
       }),
     );
   } catch {
@@ -461,6 +476,7 @@ export async function loadPublicFansubProjectPageData({
       heroStyle,
       infoPanelStyle,
       pageStyle,
+      canonicalProjectPath,
     },
   };
 }

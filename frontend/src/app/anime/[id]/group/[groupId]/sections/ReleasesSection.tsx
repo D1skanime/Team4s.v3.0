@@ -11,6 +11,7 @@ interface ReleasesSectionProps {
   publicReleasePreviews: PublicReleasePreview[]
   animeID: number
   groupID: number
+  canonicalProjectPath?: string | null
 }
 
 /**
@@ -20,7 +21,7 @@ interface ReleasesSectionProps {
  * Wird von der Seite nur gerendert, wenn `episodes.length > 0` ist — der
  * Leerfall laeuft ueber den gemeinsamen Sammel-Hinweis (AO4-07).
  */
-export function ReleasesSection({ episodes, publicReleasePreviews, animeID, groupID }: ReleasesSectionProps) {
+export function ReleasesSection({ episodes, publicReleasePreviews, animeID, groupID, canonicalProjectPath }: ReleasesSectionProps) {
   if (episodes.length === 0) return null
   const [latestRelease, ...otherReleases] = publicReleasePreviews
 
@@ -29,7 +30,7 @@ export function ReleasesSection({ episodes, publicReleasePreviews, animeID, grou
       {latestRelease ? (
         <PublicReleaseBlock latestRelease={latestRelease} releases={otherReleases} />
       ) : (
-        <OlderReleasesList animeID={animeID} groupID={groupID} />
+        <OlderReleasesList animeID={animeID} groupID={groupID} canonicalProjectPath={canonicalProjectPath} />
       )}
       <div className={styles.releasesCta}>
         <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>

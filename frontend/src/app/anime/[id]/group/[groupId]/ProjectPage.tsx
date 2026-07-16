@@ -45,6 +45,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
           publicReleasePreviews={data.publicReleasePreviews}
           animeID={data.animeID}
           groupID={data.groupID}
+          canonicalProjectPath={data.canonicalProjectPath}
         />
       ) : null}
       <BacklinksSection fansubSlug={data.group.fansub.slug} animeID={data.animeID} />
