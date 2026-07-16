@@ -90,6 +90,8 @@
   object-fit: cover;
   display: block;
 }
+.heroLogoFallback { display:grid; place-items:center; padding:clamp(24px,5vw,64px); background:linear-gradient(145deg,rgba(236,242,255,.82),rgba(255,255,255,.56)); }
+.heroLogoFallback .heroImage { object-fit:contain; filter:drop-shadow(0 8px 14px rgba(28,45,88,.2)); }
 
 .heroContent {
   display: grid;

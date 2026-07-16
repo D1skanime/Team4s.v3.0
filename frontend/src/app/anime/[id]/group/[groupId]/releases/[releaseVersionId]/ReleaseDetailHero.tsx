@@ -8,7 +8,7 @@ type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
   'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' | 'release_date' |
   'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
   'audio_language' | 'subtitle_tracks' | 'preview_image' | 'images_count' | 'notes_count' |
-  'contributors_count'> & { fallbackPosterUrl: string | null; release_version_id?: number }
+  'contributors_count'> & { animeLogoFallbackUrl: string | null; release_version_id?: number }
 
 function formatDate(value: string | null) {
   if (!value) return null
@@ -25,7 +25,8 @@ function formatDuration(seconds: number | null) {
 
 export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
   const image = props.preview_image
-  const imageSrc = image?.thumbnail_url ?? image?.original_url ?? props.fallbackPosterUrl
+  const imageSrc = image?.thumbnail_url ?? image?.original_url ?? props.animeLogoFallbackUrl
+  const isAnimeLogoFallback = !image && Boolean(props.animeLogoFallbackUrl)
   const facts = [
     ['Version', props.version], ['Veröffentlicht', formatDate(props.release_date)], ['Dauer', formatDuration(props.duration_seconds)],
     ['Auflösung', props.resolution], ['Container', props.container], ['Video', props.video_codec],
@@ -33,9 +34,9 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
   ].filter((entry): entry is [string, string] => Boolean(entry[1]))
 
   return <section className={`${styles.hero} ${imageSrc ? '' : styles.heroTextOnly}`} data-release-hero="independent">
-    {imageSrc ? <div className={styles.heroImageShell}>
+    {imageSrc ? <div className={`${styles.heroImageShell} ${isAnimeLogoFallback ? styles.heroLogoFallback : ''}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={imageSrc} alt={image?.caption ?? props.title} className={styles.heroImage} loading="eager" />
+      <img src={imageSrc} alt={image?.caption ?? (isAnimeLogoFallback ? `Anime-Logo zu ${props.title}` : props.title)} className={styles.heroImage} loading="eager" />
     </div> : null}
     <div className={styles.heroContent}>
       <header className={styles.heroHeading}>

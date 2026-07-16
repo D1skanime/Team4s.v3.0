@@ -34,7 +34,7 @@ export function parseReleaseDetailIDs(params: { id: string; groupId: string; rel
 export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersionID, canonicalProjectPath }: ReleaseDetailPageContext) {
   let animeTitle: string | null = null
   let groupName: string | null = null
-  let animePoster: string | null = null
+  let animeLogoFallbackUrl: string | null = null
   let atmosphereUrl: string | null = null
   try {
     const [animeResponse, groupResponse, backdropResponse] = await Promise.all([
@@ -43,8 +43,8 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       getAnimeBackdrops(animeID).catch(() => null),
     ])
     animeTitle = animeResponse.data.title
-    animePoster = animeResponse.data.cover_image ?? null
     groupName = groupResponse.data.fansub.name
+    animeLogoFallbackUrl = backdropResponse?.data.logo_url ? resolvePublicApiUrl(backdropResponse.data.logo_url) : null
     const atmosphereCandidate = backdropResponse?.data.banner_url ?? backdropResponse?.data.backdrops[0] ?? animeResponse.data.banner_url
     atmosphereUrl = atmosphereCandidate ? resolvePublicApiUrl(atmosphereCandidate) : null
   } catch (error) {
@@ -71,7 +71,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
   return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
     <Breadcrumbs items={breadcrumbItems} />
     <p className={styles.backLink}><Link href={projectHref}>Zurück zum Projekt</Link></p>
-    <ReleaseDetailHero {...detail} fallbackPosterUrl={animePoster} />
+    <ReleaseDetailHero {...detail} animeLogoFallbackUrl={animeLogoFallbackUrl} />
     <ContributorsRow contributors={detail.contributors} />
     <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} />
     <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} />
