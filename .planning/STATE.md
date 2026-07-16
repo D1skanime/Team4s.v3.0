@@ -318,6 +318,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 103 added: Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback.
 - Phase 102 added and planned: Fansubprojekte UI schrittweise verbessern - primäre Arbeitsfläche ist die öffentliche Fansubprojekt-Detailseite `/anime/[id]/group/[groupId]`, der Absprung von `/fansubs/[slug]` wird nur als Navigation geprüft; Kontext in `.planning/phases/102-fansubprojekte-ui-schrittweise-verbessern/102-CONTEXT.md`, Kontrollplan `102-00-PLAN.md`.
 - Phase 101 added and planned: Meilensteine Zeitmanagement und Anzeige der Meilensteine verbessern - globale Progressions- und Jahresregeln für die Fansub-Meilenstein-Auswahl; Kontext in `.planning/phases/101-meilensteine-zeitmanagement-und-anzeige-der-meilensteine-ver/101-CONTEXT.md`, Pläne `101-01-PLAN.md` und `101-02-PLAN.md`.
 - Phase 100 added and planned: Fansub Erfolge Freischaltlogik und Meilenstein-Katalog - die Erfolge werden als sequenzielle Diskussions-/Implementierungsqueue geführt; `100-CONTEXT.md` und `100-00-PLAN.md` listen alle 23 aktuellen Erfolgscodes, starten mit `founding` / `Gründung` und erzwingen "diskutieren -> umsetzen -> testen -> nächster Erfolg".

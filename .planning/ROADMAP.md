@@ -1772,6 +1772,16 @@ Plans:
   13. Der Absprung von `/fansubs/[slug]` zur Projektseite bleibt funktionsfähig, ist aber nicht der primäre Design-Gegenstand dieser Phase.
   14. Keine neuen Upload-, Medien- oder Public-API-Seams entstehen; vorhandene DTOs und Komponenten werden wiederverwendet oder gezielt erweitert.
 
+### Phase 103: Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 102
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 103 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
