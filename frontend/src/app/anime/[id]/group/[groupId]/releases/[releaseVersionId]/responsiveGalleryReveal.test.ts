@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
-import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { createElement } from 'react'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { galleryLimitForMatches, useResponsiveGalleryReveal } from './responsiveGalleryReveal'
 
@@ -40,5 +43,26 @@ describe('responsiveGalleryReveal', () => {
     resize('desktop')
     expect(result.current.expanded).toBe(true)
     expect(result.current.collapsedLimit).toBe(6)
+  })
+
+  it.each(['mobile', 'tablet'] as const)('hydrates a desktop server snapshot before subscribing to %s', async target => {
+    function Harness() {
+      const { collapsedLimit } = useResponsiveGalleryReveal()
+      return createElement('output', { 'data-limit': collapsedLimit }, String(collapsedLimit))
+    }
+    viewport = target
+    const html = renderToString(createElement(Harness))
+    expect(html).toContain('data-limit="6"')
+    const container = document.createElement('div')
+    container.innerHTML = html
+    document.body.appendChild(container)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    let root!: ReturnType<typeof hydrateRoot>
+    await act(async () => { root = hydrateRoot(container, createElement(Harness)) })
+    await waitFor(() => expect(container.querySelector('output')?.getAttribute('data-limit')).toBe(target === 'mobile' ? '2' : '4'))
+    expect(consoleError.mock.calls.flat().join(' ')).not.toMatch(/hydration|did not match/i)
+    await act(async () => root.unmount())
+    container.remove()
+    consoleError.mockRestore()
   })
 })

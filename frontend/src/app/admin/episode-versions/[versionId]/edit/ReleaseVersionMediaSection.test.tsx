@@ -2,6 +2,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 import type {
   ReleaseVersionCapabilities,
@@ -10,6 +12,8 @@ import type {
 
 import { ReleaseVersionMediaSection } from './ReleaseVersionMediaSection'
 import type { UploadQueueItem, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
+
+const mediaSectionCSS = readFileSync(resolve(process.cwd(), 'src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection.module.css'), 'utf8')
 
 afterEach(() => {
   cleanup()
@@ -106,6 +110,15 @@ function openUploadSheet() {
 }
 
 describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
+  it('keeps the media-card opener reset and preview spacing outside the mobile query', () => {
+    const css = mediaSectionCSS
+    const mobileQuery = css.indexOf('@media (max-width: 760px)')
+    expect(css.indexOf('.mediaCardOpen')).toBeGreaterThan(-1)
+    expect(css.indexOf('.mediaCardOpen')).toBeLessThan(mobileQuery)
+    expect(css.indexOf('.mediaCard > :global(button:last-child)')).toBeLessThan(mobileQuery)
+    expect(css).toContain('width: 100%')
+    expect(css).toContain('font: inherit')
+  })
   it('renders one segmented category control and no category dropdown', () => {
     renderSection(makeMediaState())
 

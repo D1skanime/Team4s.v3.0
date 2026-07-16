@@ -188,6 +188,24 @@
   padding: 0.75rem;
 }
 
+.mediaCardOpen {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mediaCard > :global(button:last-child) {
+  margin: 0 0.75rem 0.75rem;
+  justify-self: start;
+}
+
 .mediaName {
   color: var(--text-primary);
   font-size: 0.88rem;
@@ -468,19 +486,6 @@
   .headerRow {
     display: grid;
   }
-
-.mediaCardOpen {
-  display: grid;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mediaCard > :global(button:last-child) { margin: 0 0.75rem 0.75rem; justify-self: start; }
 
   .segmentedControl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
