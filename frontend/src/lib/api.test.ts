@@ -7,7 +7,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // Import schlägt fehl bis Plan 02 die Funktion in api.ts ergänzt
-import { getGroupReleaseListCursor, rejectAnimeContributionWithReason, resolveApiUrl } from './api'
+import {
+  ApiError,
+  getGroupReleaseListCursor,
+  getMyAnimeContributions,
+  getOwnProfile,
+  rejectAnimeContributionWithReason,
+  resolveApiUrl,
+} from './api'
 
 describe('resolveApiUrl', () => {
   it('normalisiert alte lokale API-Media-URLs auf den aktuellen Browser-Pfad', () => {
@@ -44,6 +51,84 @@ describe('getGroupReleaseListCursor', () => {
     expect(calledUrl).toContain('limit=5')
     expect(calledUrl).toContain('sort=release_date')
     expect(calledUrl).toContain('exclude_release_version_id=42')
+  })
+})
+
+describe('getMyAnimeContributions MEMBER_PROFILE_REQUIRED classification (Phase 104-04, Task 2)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('klassifiziert eine 403-MEMBER_PROFILE_REQUIRED-Antwort exakt über ApiError.code', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { message: 'kein verifizierter Member-Account verknüpft', code: 'MEMBER_PROFILE_REQUIRED' } }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getMyAnimeContributions()).rejects.toMatchObject({
+      status: 403,
+      code: 'MEMBER_PROFILE_REQUIRED',
+    })
+  })
+
+  it('lässt eine unverwandte 403-Antwort ohne MEMBER_PROFILE_REQUIRED-Code unklassifiziert und sichtbar', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { message: 'keine Berechtigung' } }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getMyAnimeContributions()).rejects.toMatchObject({
+      status: 403,
+      code: null,
+    })
+  })
+
+  it('lässt einen echten 500-Serverfehler unklassifiziert und retry-fähig sichtbar', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { message: 'interner serverfehler' } }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    let caught: unknown
+    try {
+      await getMyAnimeContributions()
+    } catch (error) {
+      caught = error
+    }
+
+    expect(caught).toBeInstanceOf(ApiError)
+    expect((caught as ApiError).status).toBe(500)
+    expect((caught as ApiError).code).toBeNull()
+  })
+})
+
+describe('getOwnProfile MEMBER_PROFILE_REQUIRED code passthrough', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('reicht den MEMBER_PROFILE_REQUIRED-Code aus der Fehler-Envelope unverändert durch', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: { message: 'kein verifizierter Member-Account verknüpft', code: 'MEMBER_PROFILE_REQUIRED' } }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getOwnProfile()).rejects.toMatchObject({
+      status: 403,
+      code: 'MEMBER_PROFILE_REQUIRED',
+    })
   })
 })
 

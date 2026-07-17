@@ -24,6 +24,22 @@ type ContributionsMeHandler struct {
 
 var errContributionVisibilityForbidden = errors.New("contribution visibility forbidden")
 
+// memberProfileRequiredErrorCode is the stable machine-readable error code for a missing
+// verified Member link on /me/* contribution endpoints (Phase 104-04, D-06/D-09). Backend
+// auth/Member gates stay authoritative; this code lets callers reliably classify "needs a
+// verified Member" without parsing localized text, while unrelated 403/network/5xx errors
+// remain distinguishable.
+const memberProfileRequiredErrorCode = "MEMBER_PROFILE_REQUIRED"
+
+// respondMemberProfileRequired writes the standardized 403 + MEMBER_PROFILE_REQUIRED
+// response for /me/* contribution endpoints when the caller has no verified Member link.
+func respondMemberProfileRequired(c *gin.Context) {
+	c.JSON(http.StatusForbidden, gin.H{"error": gin.H{
+		"message": "kein verifizierter Member-Account verknüpft",
+		"code":    memberProfileRequiredErrorCode,
+	}})
+}
+
 // NewContributionsMeHandler erstellt einen neuen ContributionsMeHandler.
 func NewContributionsMeHandler(
 	contributionsRepo *repository.AnimeContributionsRepository,
@@ -91,7 +107,7 @@ func (h *ContributionsMeHandler) ListMyAnimeContributions(c *gin.Context) {
 
 	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		respondMemberProfileRequired(c)
 		return
 	}
 	if err != nil {
@@ -117,7 +133,7 @@ func (h *ContributionsMeHandler) ListMyGroupContributions(c *gin.Context) {
 
 	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		respondMemberProfileRequired(c)
 		return
 	}
 	if err != nil {
@@ -186,7 +202,7 @@ func (h *ContributionsMeHandler) UpdateMyAnimeContributionVisibility(c *gin.Cont
 
 	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		respondMemberProfileRequired(c)
 		return
 	}
 	if err != nil {
@@ -446,7 +462,7 @@ func (h *ContributionsMeHandler) RejectMyAnimeContributionWithReason(c *gin.Cont
 
 	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		respondMemberProfileRequired(c)
 		return
 	}
 	if err != nil {
@@ -488,7 +504,7 @@ func (h *ContributionsMeHandler) updateMyAnimeContributionStatus(c *gin.Context,
 
 	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		respondMemberProfileRequired(c)
 		return
 	}
 	if err != nil {
@@ -563,7 +579,7 @@ func (h *ContributionsMeHandler) UpdateMyGroupContributionVisibility(c *gin.Cont
 
 	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "kein verifizierter Member-Account verknüpft"}})
+		respondMemberProfileRequired(c)
 		return
 	}
 	if err != nil {

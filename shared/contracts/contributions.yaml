@@ -134,8 +134,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Kein verifizierter Member-Account verknüpft
+        "403":
+          description: >-
+            Kein verifizierter Member-Account verknüpft (stable code MEMBER_PROFILE_REQUIRED).
+            Backend Member-Gates bleiben autoritativ; dieser Code klassifiziert die Antwort
+            ohne lokalisierten Text zu parsen und ändert nichts am eigentlichen Redirect-Verhalten.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                memberProfileRequired:
+                  value:
+                    error:
+                      message: "kein verifizierter Member-Account verknüpft"
+                      code: "MEMBER_PROFILE_REQUIRED"
 
   /api/v1/me/anime-contributions/{contributionId}/visibility:
     patch:
@@ -485,6 +498,11 @@ components:
           properties:
             message:
               type: string
+            code:
+              type: string
+              description: >-
+                Optional stable machine-readable error code (e.g. MEMBER_PROFILE_REQUIRED)
+                for lane-specific client handling without parsing localized text.
 
     MembershipEntry:
       type: object

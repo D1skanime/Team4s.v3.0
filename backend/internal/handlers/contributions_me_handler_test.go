@@ -7,6 +7,7 @@ package handlers
 // Plan 02 implementiert die Body-Validierung.
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,6 +18,40 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
+
+// TestRespondMemberProfileRequiredUsesStandardizedEnvelope locks the Phase 104-04 (D-06/D-09,
+// Task 2) contract: a missing verified Member on /me/* contribution endpoints must return
+// HTTP 403 with a stable machine-readable "MEMBER_PROFILE_REQUIRED" code in the existing
+// error envelope, so frontend callers can classify it without parsing localized text while
+// unrelated 403/network/5xx errors remain distinguishable.
+func TestRespondMemberProfileRequiredUsesStandardizedEnvelope(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/me/anime-contributions", nil)
+
+	respondMemberProfileRequired(c)
+
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+	errBody, ok := body["error"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected error envelope, got %#v", body)
+	}
+	if errBody["code"] != "MEMBER_PROFILE_REQUIRED" {
+		t.Fatalf("expected stable code MEMBER_PROFILE_REQUIRED, got %#v", errBody["code"])
+	}
+	if _, hasMessage := errBody["message"]; !hasMessage {
+		t.Fatalf("expected a human-readable message alongside the code, got %#v", errBody)
+	}
+}
 
 // TestRejectContributionRequiresReason prüft, dass der Reject-Endpoint ohne member_reason
 // eine 422-Response zurückgibt (D-09: Pflicht-Begründung).
