@@ -1,0 +1,42 @@
+/*
+ * Team4s minimal brand overlay for the Keycloak 26 built-in login theme
+ * (keycloak.v2 / patternfly-v5). Intentionally thin: brand color, header
+ * text weight, and one structural rule are adjusted so login/registration/
+ * reset are recognizably Team4s (D-21).
+ *
+ * NOTE: theme.properties `styles=` fully replaces (does not merge with) the
+ * parent theme's own `styles=` value - verified live against Keycloak 26,
+ * see 104-01-SUMMARY.md. keycloak.v2's own resources/css/styles.css sets
+ * `.pf-v5-c-login__container { grid-template-columns: 34rem; ... }`; that
+ * one layout-critical rule is reproduced below so the login card keeps a
+ * sensible width instead of falling back to an unstyled browser default.
+ * The rest of that parent file (Keycloak's own background image/logo
+ * assets) is intentionally NOT copied - Team4s does not want Keycloak's
+ * default branding assets.
+ */
+
+.pf-v5-c-login__container {
+  grid-template-columns: 34rem;
+  grid-template-areas: 'header' 'main';
+}
+
+:root {
+  --team4s-brand-color: #5f84dd;
+  --team4s-brand-color-hover: #4d70c9;
+}
+
+#kc-header-wrapper.pf-v5-c-brand {
+  color: var(--team4s-brand-color);
+  font-weight: 700;
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--team4s-brand-color);
+  border-color: var(--team4s-brand-color);
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus {
+  background-color: var(--team4s-brand-color-hover);
+  border-color: var(--team4s-brand-color-hover);
+}

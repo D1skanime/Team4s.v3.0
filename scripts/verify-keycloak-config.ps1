@@ -195,6 +195,20 @@ try {
   $accountClientDeclared = $realmConfig.clients | Where-Object { $_.clientId -eq "account" -or $_.clientId -eq "account-console" }
   Add-Check -Name "Built-in 'account'/'account-console' clients are NOT redeclared in realm JSON" -Passed ($null -eq $accountClientDeclared) -Details "Redeclaring them was proven (live fresh-import test) to suppress Keycloak's own bootstrap of the account client's view-profile/manage-account roles and default-roles-$Realm composite."
 
+  Add-Check -Name "displayName is Team4s-branded (D-21)" -Passed ($realmConfig.displayName -eq "Team4s")
+  Add-Check -Name "loginTheme is 'team4s' (D-21)" -Passed ($realmConfig.loginTheme -eq "team4s")
+  Add-Check -Name "internationalizationEnabled is true with German default locale (D-21)" -Passed (
+    ($realmConfig.internationalizationEnabled -eq $true) -and (@($realmConfig.supportedLocales) -contains "de") -and ($realmConfig.defaultLocale -eq "de")
+  )
+
+  $themePropertiesPath = "infra/keycloak/themes/team4s/login/theme.properties"
+  Add-Check -Name "Team4s login theme.properties exists" -Passed (Test-Path $themePropertiesPath)
+  if (Test-Path $themePropertiesPath) {
+    $themeProps = Get-Content -Raw -Path $themePropertiesPath
+    Add-Check -Name "theme.properties declares parent=keycloak.v2 (thin overlay, no full theme copy)" -Passed ($themeProps -match "(?m)^parent=keycloak\.v2\s*$")
+    Add-Check -Name "theme.properties wires registration-validation.js" -Passed ($themeProps -match "registration-validation\.js")
+  }
+
   # ---------------------------------------------------------------------
   # 2. docker-compose.yml sanity (rendered config must be parseable).
   # ---------------------------------------------------------------------
@@ -289,6 +303,35 @@ try {
   Add-Check -Name "default-roles-$Realm includes 'view-profile' and 'manage-account' (Keycloak's own account bootstrap)" -Passed (
     ($compositeNames -contains "view-profile") -and ($compositeNames -contains "manage-account")
   ) -Details "composites=$($compositeNames -join ', ')"
+
+  # ---------------------------------------------------------------------
+  # 3b. German Team4s branding/theme/locale on the live realm (D-21). A
+  #     realm import is skipped once the realm already exists (see log line
+  #     "Realm 'team4s' already exists. Import skipped"), so this one-time
+  #     settings update is applied the same way for a fresh import and an
+  #     existing local volume.
+  # ---------------------------------------------------------------------
+  $liveRealmResp = Invoke-JsonRequest -Method "GET" -Uri "$KeycloakBaseUrl/admin/realms/$Realm" -Headers $adminHeaders
+  Add-Check -Name "Fetched live realm representation" -Passed ($liveRealmResp.StatusCode -eq 200)
+  $liveRealm = $liveRealmResp.Json
+
+  $brandingCorrect = ($liveRealm.displayName -eq "Team4s") -and ($liveRealm.loginTheme -eq "team4s") -and
+    ($liveRealm.internationalizationEnabled -eq $true) -and (@($liveRealm.supportedLocales) -contains "de") -and ($liveRealm.defaultLocale -eq "de")
+
+  if (-not $brandingCorrect -and -not $SkipApply) {
+    Write-Host "Applying Team4s branding/theme/locale to live realm (idempotent apply)..."
+    $realmUpdateBody = @{
+      displayName                 = "Team4s"
+      loginTheme                  = "team4s"
+      internationalizationEnabled = $true
+      supportedLocales            = @("de")
+      defaultLocale                = "de"
+    } | ConvertTo-Json
+    $realmUpdateResp = Invoke-JsonRequest -Method "PUT" -Uri "$KeycloakBaseUrl/admin/realms/$Realm" -Headers $adminHeaders -Body $realmUpdateBody
+    Add-Check -Name "Applied Team4s branding/theme/locale to live realm" -Passed (@(200, 204) -contains $realmUpdateResp.StatusCode) -Details "status=$($realmUpdateResp.StatusCode)"
+  } else {
+    Add-Check -Name "Live realm already has Team4s branding/theme/locale" -Passed $brandingCorrect
+  }
 
   # ---------------------------------------------------------------------
   # 4. Live no-403 proof: full PKCE login against account-console, then

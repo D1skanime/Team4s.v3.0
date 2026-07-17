@@ -69,6 +69,10 @@ services:
       - "${KEYCLOAK_PORT:-8081}:8080"
     volumes:
       - ./infra/keycloak:/opt/keycloak/data/import:ro
+      # Minimal German Team4s login theme (Phase 104, D-21). start-dev
+      # disables theme caching so edits under infra/keycloak/themes/team4s
+      # are picked up without a container rebuild.
+      - ./infra/keycloak/themes/team4s:/opt/keycloak/themes/team4s:ro
     depends_on:
       keycloak-db:
         condition: service_healthy

@@ -1,7 +1,11 @@
 {
   "realm": "team4s",
   "enabled": true,
-  "displayName": "Team4s Local",
+  "displayName": "Team4s",
+  "loginTheme": "team4s",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["de"],
+  "defaultLocale": "de",
   "registrationAllowed": true,
   "resetPasswordAllowed": true,
   "smtpServer": {

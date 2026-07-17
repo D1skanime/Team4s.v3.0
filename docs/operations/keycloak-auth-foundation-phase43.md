@@ -246,6 +246,69 @@ powershell -ExecutionPolicy Bypass -File scripts/verify-keycloak-config.ps1
 Zusätzlich manuell: Auf `/me/profile` „Accountdaten verwalten“ in einem neuen Tab
 öffnen, Name/E-Mail/Passwort verwalten, ohne 403.
 
+## Phase 104: Minimales deutsches Team4s-Theme und Stale-Validation-Fix
+
+### Theme
+- `infra/keycloak/themes/team4s/login/theme.properties` ist ein dünnes
+  Keycloak-26-Kindtheme (`parent=keycloak.v2`) — keine kopierten FTL-Templates.
+- Gemountet via `docker-compose.yml`:
+  `./infra/keycloak/themes/team4s:/opt/keycloak/themes/team4s:ro`. `start-dev`
+  deaktiviert Theme-Caching, Änderungen greifen ohne Rebuild.
+- Realm-Branding/Locale (`displayName=Team4s`, `loginTheme=team4s`,
+  `internationalizationEnabled=true`, `supportedLocales=["de"]`,
+  `defaultLocale=de`) sind in `infra/keycloak/realm-team4s.json` versioniert
+  und werden für ein bereits bestehendes Volume vom selben
+  `scripts/verify-keycloak-config.ps1` idempotent nachgezogen wie der
+  Account-Console-Fix oben (Realm-Import wird bei existierendem Realm
+  übersprungen).
+- Keycloak liefert bereits eine vollständige, geprüfte deutsche Übersetzung
+  für Login/Registrierung/Reset (`theme/base/login/messages/messages_de.properties`,
+  über `parent=keycloak.v2` geerbt). `infra/keycloak/themes/team4s/login/
+  messages/messages_de.properties` überschreibt bewusst nur `registerTitle`
+  (Stock-Keycloak brandet nur `loginTitle="Anmeldung bei {0}"`, nicht die
+  Registrierungsseite) — keine Duplizierung bereits korrekter deutscher Texte.
+- `infra/keycloak/themes/team4s/login/resources/css/login.css` ist eine
+  dünne Marken-Ergänzung (Team4s-Akzentfarbe, Header-Schriftgewicht) plus
+  einer bewusst reproduzierten Layout-Regel
+  (`.pf-v5-c-login__container { grid-template-columns: 34rem; ... }`) aus
+  `keycloak.v2`s eigenem `styles.css`. **Wichtig:** `theme.properties`
+  `styles=` ersetzt den geerbten Wert vollständig (kein automatisches Merge,
+  live gegen Keycloak 26 verifiziert) — deshalb steht diese eine
+  layout-relevante Regel direkt in `login.css`. Keycloaks eigene
+  Hintergrund-/Logo-Bilder werden absichtlich nicht mitkopiert.
+- `internationalizationEnabled=true` genügt bereits, damit auch die externe
+  Account Console (`keycloak.v3`-Stocktheme) deutsch rendert
+  (`<html lang="de">`, live verifiziert) — kein eigenes `account`-Theme nötig.
+
+### Stale-Field-Validation-Fix (D-22)
+- Root-Ursache: Keycloaks eigenes `register.ftl` (`keycloak.v2`) räumt nur
+  den `password`-Serverfehler bei `change` selbst auf (inline-Skript); die
+  fünf anderen Felder (`username`, `password-confirm`, `email`, `firstName`,
+  `lastName`) behalten ihren Serverfehler sichtbar, bis die ganze Seite neu
+  lädt.
+- Fix: `infra/keycloak/themes/team4s/login/resources/js/registration-validation.js`,
+  gewired über `theme.properties` `scripts=`. Bei `input` auf einem Feld wird
+  ausschließlich dessen eigener `#input-error-<feldId>`-Block und
+  `aria-invalid` entfernt (bei Passwortfeldern zusätzlich `pf-m-error` und
+  das Fehler-Icon) — andere Felder und der nächste echte Server-Response
+  bleiben unangetastet (D-22). Kein Fallback-`register.ftl` nötig; das reale
+  DOM (live gegen Keycloak 26 inspiziert) erlaubt die Reparatur vollständig
+  über ein Resource-Skript.
+- Automatisierter Test: `frontend/src/lib/keycloakRegistrationValidation.test.ts`
+  führt die echte Skriptdatei per jsdom aus (`cd frontend && npx vitest run
+  src/lib/keycloakRegistrationValidation.test.ts`).
+
+### Verifikation
+```powershell
+docker compose config
+powershell -ExecutionPolicy Bypass -File scripts/verify-keycloak-config.ps1
+```
+```bash
+cd frontend && npx vitest run src/lib/keycloakRegistrationValidation.test.ts
+```
+Zusätzlich manuell: `/realms/team4s/protocol/openid-connect/registrations`
+öffnen, leer absenden, ein Feld korrigieren — nur dessen Fehler verschwindet.
+
 ## SMTP und Mailversand (lokal und Produktion)
 
 ### Lokale Entwicklung: Mailpit
