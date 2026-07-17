@@ -108,3 +108,8 @@ None - no external service configuration required. Phase 104-01 already enabled 
 ---
 *Phase: 104-registrierungs-login-und-account-onboarding-hardening*
 *Completed: 2026-07-17*
+
+## Self-Check: PASSED
+
+All 7 created/modified files verified present on disk; all 3 commit hashes
+(`87e5b157`, `285fb735`, `1a4d57a7`) verified present in `git log --oneline --all`.
