@@ -60,7 +60,7 @@ afterEach(() => {
 })
 
 describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
-  it('rendert initial fünf geschlossene Zeilen und den manuellen Nachladeweg', async () => {
+  it('rendert ein Release ohne Karas direkt mit Ansicht statt als leeres Accordion', async () => {
     getGroupReleaseListCursor.mockResolvedValueOnce({
       items: [makeEpisode({ id: 10, episode_number: 1, title: 'Episode 1' })],
       next_cursor: 'cursor-1',
@@ -69,12 +69,15 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
+    await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     expect(screen.getByRole('button', { name: 'Weitere Releases laden' })).not.toBeNull()
     expect(screen.getAllByText('2 Bilder').length).toBeGreaterThan(0)
     expect(screen.getAllByText('1 Texte').length).toBeGreaterThan(0)
     expect(screen.queryByText('Hauptinhalt')).toBeNull()
-    expect(screen.getByRole('button', { name: /Folge 1/i }).getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByRole('button', { name: /Folge 1/i })).toBeNull()
+    expect(screen.getAllByRole('link', { name: 'Ansicht' }).length).toBeGreaterThan(0)
+    expect(screen.queryByText('Für dieses Release sind keine Karas hinterlegt.')).toBeNull()
+    expect(screen.queryByText('0 Karas')).toBeNull()
     expect(getGroupReleaseListCursor).toHaveBeenCalledWith(1, 2, {
       cursor: undefined,
       limit: 5,
@@ -113,7 +116,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
+    await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     fireEvent.click(screen.getByRole('button', { name: /Folge 1/i }))
     const region = screen.getByRole('region', { name: /Folge 1/i })
     expect(within(region).getByText('Viper OP')).not.toBeNull()
@@ -139,11 +142,11 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
+    await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
 
     fireEvent.click(screen.getByRole('button', { name: 'Weitere Releases laden' }))
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 2/i })).not.toBeNull())
+    await waitFor(() => expect(screen.getAllByText('Folge 2').length).toBeGreaterThan(0))
     expect(getGroupReleaseListCursor).toHaveBeenLastCalledWith(1, 2, {
       cursor: 'cursor-1',
       limit: 10,
@@ -165,7 +168,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={20} />)
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
+    await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     expect(screen.queryByText('Neuestes Release')).toBeNull()
   })
 

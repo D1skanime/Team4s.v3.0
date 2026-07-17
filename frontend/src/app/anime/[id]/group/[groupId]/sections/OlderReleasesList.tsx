@@ -240,6 +240,65 @@ function ReleaseDetails({
   )
 }
 
+function MobileReleaseHeader({ episode, showKaraCount }: { episode: EpisodeReleaseSummary; showKaraCount: boolean }) {
+  const contextLabel = episode.title?.trim() ?? ''
+  const versionLabel = versionOnlyLabel(episode.version_label)
+
+  return (
+    <div className={styles.rowHeader}>
+      <div className={styles.rowMain}>
+        <div className={styles.rowTitleLine}>
+          <strong className={styles.rowTitle}>{episodeLabel(episode)}</strong>
+          <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
+          <span className={styles.rowVersion}>{versionLabel}</span>
+          <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
+          <span className={styles.rowMeta}>{contextLabel}</span>
+        </div>
+        <div className={styles.rowCountGroup}>
+          <span className={styles.rowCount}><ImageIcon size={14} aria-hidden="true" />{episode.images_count ?? 0} Bilder</span>
+          <span className={styles.rowCount}><FileText size={14} aria-hidden="true" />{episode.notes_count ?? 0} Texte</span>
+          <span className={styles.rowCount}><Users size={14} aria-hidden="true" />{episode.contributors_count ?? 0} Fansubber</span>
+        </div>
+      </div>
+      {showKaraCount ? <Badge variant="muted">{episode.timeline_segments?.length ?? 0} Karas</Badge> : null}
+    </div>
+  )
+}
+
+function MobileDirectReleaseRow({
+  animeID,
+  groupID,
+  episode,
+  canonicalProjectPath,
+}: {
+  animeID: number
+  groupID: number
+  episode: EpisodeReleaseSummary
+  canonicalProjectPath?: string | null
+}) {
+  const detailHref = buildFansubReleaseHref({
+    animeID,
+    groupID,
+    releaseVersionID: episode.id,
+    canonicalProjectPath,
+  })
+
+  return (
+    <Card variant="flat" className={`${styles.row} ${styles.mobileDirectRow}`}>
+      <MobileReleaseHeader episode={episode} showKaraCount={false} />
+      <Button
+        href={detailHref}
+        variant="subtle"
+        size="sm"
+        leftIcon={<Eye size={15} aria-hidden="true" />}
+        className={styles.mobileDirectAction}
+      >
+        Ansicht
+      </Button>
+    </Card>
+  )
+}
+
 export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, canonicalProjectPath }: OlderReleasesListProps) {
   const [items, setItems] = useState<EpisodeReleaseSummary[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
@@ -285,41 +344,6 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, c
   const visibleItems = excludeReleaseVersionId == null
     ? items
     : items.filter((episode) => episode.id !== excludeReleaseVersionId)
-  const accordionItems = visibleItems.map((episode) => {
-    const contextLabel = episode.title?.trim() ?? ''
-    const versionLabel = versionOnlyLabel(episode.version_label)
-    return {
-      id: String(episode.id),
-      title: (
-        <div className={styles.rowHeader}>
-          <div className={styles.rowMain}>
-            <div className={styles.rowTitleLine}>
-              <strong className={styles.rowTitle}>{episodeLabel(episode)}</strong>
-              <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
-              <span className={styles.rowVersion}>{versionLabel}</span>
-              <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
-              <span className={styles.rowMeta}>{contextLabel}</span>
-            </div>
-            <div className={styles.rowCountGroup}>
-              <span className={styles.rowCount}><ImageIcon size={14} aria-hidden="true" />{episode.images_count ?? 0} Bilder</span>
-              <span className={styles.rowCount}><FileText size={14} aria-hidden="true" />{episode.notes_count ?? 0} Texte</span>
-              <span className={styles.rowCount}><Users size={14} aria-hidden="true" />{episode.contributors_count ?? 0} Fansubber</span>
-            </div>
-          </div>
-          <Badge variant="muted">{episode.timeline_segments?.length ?? 0} Karas</Badge>
-        </div>
-      ),
-      children: (
-        <ReleaseDetails
-          animeID={animeID}
-          groupID={groupID}
-          episode={episode}
-          canonicalProjectPath={canonicalProjectPath}
-        />
-      ),
-    }
-  })
-
   return (
     <div id="weitere-releases" className={styles.section}>
       <SectionHeader title="Releases zum Fansub" underline />
@@ -344,7 +368,38 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, c
             ))}
           </div>
           <div className={styles.rowActions}>
-            <Accordion items={accordionItems} />
+            {visibleItems.map((episode) => {
+              const hasKaras = (episode.timeline_segments?.length ?? 0) > 0
+              if (!hasKaras) {
+                return (
+                  <MobileDirectReleaseRow
+                    key={episode.id}
+                    animeID={animeID}
+                    groupID={groupID}
+                    episode={episode}
+                    canonicalProjectPath={canonicalProjectPath}
+                  />
+                )
+              }
+
+              return (
+                <Accordion
+                  key={episode.id}
+                  items={[{
+                    id: String(episode.id),
+                    title: <MobileReleaseHeader episode={episode} showKaraCount />,
+                    children: (
+                      <ReleaseDetails
+                        animeID={animeID}
+                        groupID={groupID}
+                        episode={episode}
+                        canonicalProjectPath={canonicalProjectPath}
+                      />
+                    ),
+                  }]}
+                />
+              )
+            })}
           </div>
         </Card>
       )}

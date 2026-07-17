@@ -334,6 +334,11 @@
   display: none;
 }
 
+.mobileDirectAction {
+  justify-content: center;
+  width: 100%;
+}
+
 @media (max-width: 768px) {
 /* Mobile Release-Accordions: bestehende Timeline-Selektoren als kompakte Kara-Zeilen. */
 .list > .timelinePreview {
@@ -341,8 +346,13 @@
 }
 
 .list > .rowActions {
-  display: block;
+  display: grid;
+  gap: 0;
   width: auto;
+}
+
+.mobileDirectRow {
+  border-radius: 0;
 }
 
 .timelinePreview {
