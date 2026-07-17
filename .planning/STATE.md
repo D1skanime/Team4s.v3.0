@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 104 context gathered
-last_updated: "2026-07-17T15:45:02.658Z"
-last_activity: "2026-07-17 - Completed quick task 260717-lqt: Gemeinsame Desktop-Maximalbreite für Fansub-, Projekt- und Release-Seite"
+stopped_at: Completed 104-01-PLAN.md
+last_updated: "2026-07-17T17:20:30.205Z"
+last_activity: 2026-07-17
 progress:
   total_phases: 96
   completed_phases: 79
   total_plans: 427
-  completed_plans: 394
+  completed_plans: 395
   percent: 82
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 103 — Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback
+**Current focus:** Phase 104 — registrierungs-login-und-account-onboarding-hardening
 
 ## Current Position
 
-Phase: 103 (Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback) — EXECUTING
-Plan: 1 of 5
+Phase: 104 (registrierungs-login-und-account-onboarding-hardening) — EXECUTING
+Plan: 2 of 6
 
 ## Accumulated Context
 
@@ -308,6 +308,9 @@ Recent durable decisions:
 - [Phase 102-06]: Task 3 live page-flow acceptance is deferred to final Phase 102 UAT by explicit user direction, not approved.
 - [Phase 102-06]: Theme/media components and API helpers remain intact; only their standalone project-page composition was removed.
 - [Phase 102-06]: The old empty-area label builder was removed from project page data because the global summary surface no longer exists.
+- [Phase 104-01]: Root cause of Account Console 403: custom clientScopes list in realm-team4s.json makes Keycloak skip creating the built-in roles scope; account/account-console clients stay undeclared in JSON since redeclaring them was proven to suppress Keycloak's own account-role bootstrap.
+- [Phase 104-01]: One idempotent scripts/verify-keycloak-config.ps1 covers both fresh-import and existing-volume update for the roles-scope default-assignment fix and the German branding/locale settings.
+- [Phase 104-01]: theme.properties styles= fully replaces (not merges with) the parent theme's styles on Keycloak 26; the one layout-critical rule this drops from keycloak.v2 is reproduced directly in Team4s's own login.css.
 
 ### Pending Todos
 
@@ -554,6 +557,7 @@ Recent durable decisions:
 | Phase 102 P04 | 8min | 4 tasks | 8 files |
 | Phase 102 P05 | 9min | 2 tasks | 8 files |
 | Phase 102 P06 | 7min | 2 tasks (Task 3 pending final live UAT) | 4 files |
+| Phase 104 P01 | 55min | 2 tasks | 10 files |
 
 ### Quick Tasks Completed
 
@@ -630,7 +634,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-17T15:45:02.576Z
-Stopped at: Phase 104 context gathered
-Last activity: 2026-07-17 - Completed quick task 260717-lqt: Gemeinsame Desktop-Maximalbreite für Fansub-, Projekt- und Release-Seite
-Resume file: .planning/phases/104-registrierungs-login-und-account-onboarding-hardening/104-CONTEXT.md
+Last session: 2026-07-17T17:20:30.134Z
+Stopped at: Completed 104-01-PLAN.md
+Last activity: 2026-07-17
+Resume file: None
