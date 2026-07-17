@@ -19,8 +19,16 @@ const (
 	// (oder einen ungueltigen) limit-Parameter setzt.
 	DefaultCursorPageLimit = 24
 	// MaxCursorPageLimit deckelt limit gegen Missbrauch (grosse Payloads/DoS).
-	MaxCursorPageLimit = 100
+	MaxCursorPageLimit        = 100
+	mixedReleaseCursorVersion = "release-v2"
 )
+
+type mixedReleaseCursor struct {
+	Kind             int
+	EpisodeNumber    int32
+	ReleaseDate      time.Time
+	ReleaseVersionID int64
+}
 
 // clampCursorLimit erzwingt 0 < limit <= MaxCursorPageLimit; Werte <= 0 fallen auf
 // DefaultCursorPageLimit zurueck.
@@ -123,4 +131,54 @@ func decodeTimeInt64Cursor(cursor string) (t time.Time, second int64, ok bool) {
 		return time.Time{}, 0, false
 	}
 	return parsed, s, true
+}
+
+// encodeMixedReleaseCursor versioniert den gemischten Release-Sortierschluessel.
+// Kind 0 bezeichnet numerische Episoden, Kind 1 Specials/OVAs. Die explizite
+// Versionskennung sorgt dafuer, dass alte Cursor sicher als Seitenstart gelten.
+func encodeMixedReleaseCursor(value mixedReleaseCursor) string {
+	raw := strings.Join([]string{
+		mixedReleaseCursorVersion,
+		strconv.Itoa(value.Kind),
+		strconv.FormatInt(int64(value.EpisodeNumber), 10),
+		value.ReleaseDate.Format(time.RFC3339Nano),
+		strconv.FormatInt(value.ReleaseVersionID, 10),
+	}, "|")
+	return base64.URLEncoding.EncodeToString([]byte(raw))
+}
+
+func decodeMixedReleaseCursor(cursor string) (mixedReleaseCursor, bool) {
+	if cursor == "" {
+		return mixedReleaseCursor{}, false
+	}
+	raw, err := base64.URLEncoding.DecodeString(cursor)
+	if err != nil {
+		return mixedReleaseCursor{}, false
+	}
+	parts := strings.Split(string(raw), "|")
+	if len(parts) != 5 || parts[0] != mixedReleaseCursorVersion {
+		return mixedReleaseCursor{}, false
+	}
+	kind, err := strconv.Atoi(parts[1])
+	if err != nil || (kind != 0 && kind != 1) {
+		return mixedReleaseCursor{}, false
+	}
+	episodeNumber, err := strconv.ParseInt(parts[2], 10, 32)
+	if err != nil || (kind == 0 && episodeNumber < 1) {
+		return mixedReleaseCursor{}, false
+	}
+	releaseDate, err := time.Parse(time.RFC3339Nano, parts[3])
+	if err != nil {
+		return mixedReleaseCursor{}, false
+	}
+	releaseVersionID, err := strconv.ParseInt(parts[4], 10, 64)
+	if err != nil || releaseVersionID < 1 {
+		return mixedReleaseCursor{}, false
+	}
+	return mixedReleaseCursor{
+		Kind:             kind,
+		EpisodeNumber:    int32(episodeNumber),
+		ReleaseDate:      releaseDate,
+		ReleaseVersionID: releaseVersionID,
+	}, true
 }

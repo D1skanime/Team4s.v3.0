@@ -13,6 +13,41 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func TestParseGroupReleasesFilter_CursorContract(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("release date sort and featured exclusion", func(t *testing.T) {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		c.Request = httptest.NewRequest(http.MethodGet, "/?sort=release_date&exclude_release_version_id=42", nil)
+
+		filter, err := parseGroupReleasesFilter(c)
+		if err != nil {
+			t.Fatalf("expected valid cursor filter, got %v", err)
+		}
+		if filter.Sort != "release_date" {
+			t.Fatalf("expected release_date sort, got %q", filter.Sort)
+		}
+		if filter.ExcludeReleaseVersionID == nil || *filter.ExcludeReleaseVersionID != 42 {
+			t.Fatalf("expected excluded release version 42, got %#v", filter.ExcludeReleaseVersionID)
+		}
+	})
+
+	for _, query := range []string{
+		"/?sort=newest",
+		"/?exclude_release_version_id=0",
+		"/?exclude_release_version_id=-1",
+		"/?exclude_release_version_id=not-a-number",
+	} {
+		t.Run(query, func(t *testing.T) {
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			c.Request = httptest.NewRequest(http.MethodGet, query, nil)
+			if _, err := parseGroupReleasesFilter(c); err == nil {
+				t.Fatalf("expected query %q to be rejected", query)
+			}
+		})
+	}
+}
+
 func TestGroupHandler_GetGroupDetail(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := setupTestDB(t)

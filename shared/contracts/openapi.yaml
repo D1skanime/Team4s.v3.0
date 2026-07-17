@@ -4929,8 +4929,9 @@ paths:
       summary: Get a cursor-paginated page of the full release list (AO4-03/AO4-24)
       description: >-
         Additive Seek-Cursor-Pagination fuer die vollstaendige Release-Liste, fuer
-        Infinite Scroll/"Mehr laden" (AO4-11/AO4-12/AO4-21/AO4-25). Sortierschluessel
-        identisch zur Offset-Route (episode_number, rev.id). Die bestehende
+        Infinite Scroll/"Mehr laden" (AO4-11/AO4-12/AO4-21/AO4-25). Der Default
+        sortiert numerische Episoden aufsteigend und anschliessend Specials/OVAs
+        nach Veroeffentlichungsdatum. Die bestehende
         Offset-Route GET .../releases bleibt unveraendert und wird von dieser Route
         nicht ersetzt.
       operationId: getAnimeGroupReleaseListCursor
@@ -4984,6 +4985,21 @@ paths:
           required: false
           schema:
             type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [activity, release_date]
+          description: Optionale absteigende Sortierung nach letzter Aktivitaet oder Veroeffentlichungsdatum.
+        - name: exclude_release_version_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: Schliesst eine bereits separat dargestellte Release-Version serverseitig aus.
       responses:
         "200":
           description: Cursor-Seite der Release-Liste
@@ -11957,6 +11973,7 @@ components:
       required:
         - id
         - episode_number
+        - episode_number_label
         - has_op
         - has_ed
         - karaoke_count
@@ -11973,6 +11990,10 @@ components:
         episode_number:
           type: integer
           format: int32
+          description: Numerische Episodennummer; fuer nichtnumerische Labels 0.
+        episode_number_label:
+          type: string
+          description: Originales Episodenlabel, z. B. 12, OVA oder SP1.
         title:
           type: string
           nullable: true
@@ -12063,6 +12084,10 @@ components:
         end_time:
           type: string
           nullable: true
+        version:
+          type: string
+          nullable: true
+          description: Optionale Version des Theme-Segments.
     GroupReleasesData:
       type: object
       required: [group, episodes, other_groups]

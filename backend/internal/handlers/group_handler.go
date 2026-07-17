@@ -143,10 +143,18 @@ func parseGroupReleasesFilter(c *gin.Context) (models.GroupReleasesFilter, error
 
 	filter.Q = c.Query("q")
 	if sort := c.Query("sort"); sort != "" {
-		if sort != "activity" {
+		if sort != "activity" && sort != "release_date" {
 			return filter, errors.New("invalid sort")
 		}
 		filter.Sort = sort
+	}
+
+	if excludeIDRaw := c.Query("exclude_release_version_id"); excludeIDRaw != "" {
+		excludeID, err := strconv.ParseInt(excludeIDRaw, 10, 64)
+		if err != nil || excludeID < 1 {
+			return filter, errors.New("invalid exclude_release_version_id")
+		}
+		filter.ExcludeReleaseVersionID = &excludeID
 	}
 
 	return filter, nil

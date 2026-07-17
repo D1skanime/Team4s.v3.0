@@ -9,10 +9,38 @@ package repository
 
 import (
 	"encoding/base64"
+	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
+
+func TestGroupReleaseCursorSourceSupportsMixedEpisodesAndSegmentVersions(t *testing.T) {
+	raw, err := os.ReadFile("group_repository_cursor.go")
+	if err != nil {
+		t.Fatalf("read group release cursor source: %v", err)
+	}
+	content := string(raw)
+	for _, fragment := range []string{
+		"e.episode_number AS episode_number_label",
+		"numericEpisodeSQL = \"e.episode_number ~ '^[0-9]+$'\"",
+		"CASE WHEN %[1]s THEN 0 ELSE 1 END ASC",
+		"filter.Sort == \"release_date\"",
+		"decodeMixedReleaseCursor(cursor)",
+		"e.episode_number !~ '^[0-9]+$'",
+		"ts.start_episode IS NULL",
+		"ts.end_episode IS NULL",
+		"&segment.Version",
+	} {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected mixed release cursor source to contain %q", fragment)
+		}
+	}
+	if strings.Contains(content, "JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'") {
+		t.Fatal("cursor release query must not filter out Specials/OVAs")
+	}
+}
 
 func TestTrimCursorPage_HasMoreWhenOverfetched(t *testing.T) {
 	// limit=2, 3 Elemente geliefert (limit+1 Overfetch) -> has_more=true,
@@ -106,6 +134,41 @@ func TestTimeInt64Cursor_RoundTrip(t *testing.T) {
 	}
 }
 
+func TestMixedReleaseCursor_RoundTrip(t *testing.T) {
+	original := mixedReleaseCursor{
+		Kind:             1,
+		EpisodeNumber:    0,
+		ReleaseDate:      time.Date(2026, 7, 17, 8, 15, 0, 123456789, time.UTC),
+		ReleaseVersionID: 77,
+	}
+
+	decoded, ok := decodeMixedReleaseCursor(encodeMixedReleaseCursor(original))
+	if !ok {
+		t.Fatal("expected mixed release cursor round-trip to succeed")
+	}
+	if decoded.Kind != original.Kind || decoded.EpisodeNumber != original.EpisodeNumber || decoded.ReleaseVersionID != original.ReleaseVersionID || !decoded.ReleaseDate.Equal(original.ReleaseDate) {
+		t.Fatalf("unexpected decoded mixed release cursor: %+v", decoded)
+	}
+}
+
+func TestMixedReleaseCursor_RejectsLegacyAndInvalidValues(t *testing.T) {
+	legacy := encodeInt32Int64Cursor(3, 44)
+	if _, ok := decodeMixedReleaseCursor(legacy); ok {
+		t.Fatal("expected legacy release cursor to restart from the first page")
+	}
+
+	invalidCases := []mixedReleaseCursor{
+		{Kind: 2, ReleaseDate: time.Unix(0, 0).UTC(), ReleaseVersionID: 1},
+		{Kind: 0, EpisodeNumber: 0, ReleaseDate: time.Unix(0, 0).UTC(), ReleaseVersionID: 1},
+		{Kind: 1, ReleaseDate: time.Unix(0, 0).UTC(), ReleaseVersionID: 0},
+	}
+	for _, invalid := range invalidCases {
+		if _, ok := decodeMixedReleaseCursor(encodeMixedReleaseCursor(invalid)); ok {
+			t.Fatalf("expected invalid mixed cursor to be rejected: %+v", invalid)
+		}
+	}
+}
+
 func TestDecodeCursorPair_InvalidOrEmptyStartsAtFirstPage(t *testing.T) {
 	// Leerer Cursor -> ok=false (erste Seite).
 	if _, _, ok := decodeCursorPair(""); ok {
@@ -128,5 +191,8 @@ func TestDecodeCursorPair_InvalidOrEmptyStartsAtFirstPage(t *testing.T) {
 	}
 	if _, _, ok := decodeTimeInt64Cursor("not valid base64!!"); ok {
 		t.Fatalf("expected decodeTimeInt64Cursor ok=false for invalid cursor")
+	}
+	if _, ok := decodeMixedReleaseCursor("not valid base64!!"); ok {
+		t.Fatalf("expected decodeMixedReleaseCursor ok=false for invalid cursor")
 	}
 }

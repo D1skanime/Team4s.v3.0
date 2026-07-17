@@ -38,21 +38,22 @@ type GroupStats struct {
 
 // EpisodeReleaseSummary represents a summary of an episode release
 type EpisodeReleaseSummary struct {
-	ID               int64                    `json:"id"`
-	EpisodeID        *int64                   `json:"episode_id,omitempty"`
-	EpisodeNumber    int32                    `json:"episode_number"`
-	Title            *string                  `json:"title,omitempty"`
-	VersionLabel     *string                  `json:"version_label,omitempty"`
-	LastActivityAt   *time.Time               `json:"last_activity_at,omitempty"`
-	HasOP            bool                     `json:"has_op"`
-	HasED            bool                     `json:"has_ed"`
-	KaraokeCount     int32                    `json:"karaoke_count"`
-	InsertCount      int32                    `json:"insert_count"`
-	ScreenshotCount  int32                    `json:"screenshot_count"`
-	ThumbnailURL     *string                  `json:"thumbnail_url,omitempty"`
-	ReleasedAt       *time.Time               `json:"released_at,omitempty"`
-	DurationSeconds  *int32                   `json:"duration_seconds,omitempty"`
-	TimelineSegments []ReleaseTimelineSegment `json:"timeline_segments,omitempty"`
+	ID                 int64                    `json:"id"`
+	EpisodeID          *int64                   `json:"episode_id,omitempty"`
+	EpisodeNumber      int32                    `json:"episode_number"`
+	EpisodeNumberLabel string                   `json:"episode_number_label"`
+	Title              *string                  `json:"title,omitempty"`
+	VersionLabel       *string                  `json:"version_label,omitempty"`
+	LastActivityAt     *time.Time               `json:"last_activity_at,omitempty"`
+	HasOP              bool                     `json:"has_op"`
+	HasED              bool                     `json:"has_ed"`
+	KaraokeCount       int32                    `json:"karaoke_count"`
+	InsertCount        int32                    `json:"insert_count"`
+	ScreenshotCount    int32                    `json:"screenshot_count"`
+	ThumbnailURL       *string                  `json:"thumbnail_url,omitempty"`
+	ReleasedAt         *time.Time               `json:"released_at,omitempty"`
+	DurationSeconds    *int32                   `json:"duration_seconds,omitempty"`
+	TimelineSegments   []ReleaseTimelineSegment `json:"timeline_segments,omitempty"`
 	// ImagesCount/NotesCount (AO4-11/AO4-12): oeffentlich sichtbare Zaehler je
 	// release_version_id. Nur von GetGroupReleasesCursor populiert (Weitere-
 	// Releases-Liste); die Offset-Variante GetGroupReleases laesst sie auf 0,
@@ -70,6 +71,7 @@ type ReleaseTimelineSegment struct {
 	Title     string  `json:"title"`
 	StartTime *string `json:"start_time"`
 	EndTime   *string `json:"end_time"`
+	Version   *string `json:"version,omitempty"`
 }
 
 // GroupReleasesData contains group detail and episode releases
@@ -81,11 +83,12 @@ type GroupReleasesData struct {
 
 // GroupReleasesFilter contains filter parameters for releases query
 type GroupReleasesFilter struct {
-	Page       int
-	PerPage    int
-	HasOP      *bool
-	HasED      *bool
-	HasKaraoke *bool
-	Q          string
-	Sort       string
+	Page                    int
+	PerPage                 int
+	HasOP                   *bool
+	HasED                   *bool
+	HasKaraoke              *bool
+	Q                       string
+	Sort                    string
+	ExcludeReleaseVersionID *int64
 }

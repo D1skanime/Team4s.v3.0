@@ -35,6 +35,8 @@ export interface EpisodeReleaseSummary {
   id: number
   episode_id?: number | null
   episode_number: number
+  /** Originales Episodenlabel, z. B. "12", "OVA" oder "SP1". */
+  episode_number_label: string
   title?: string | null
   version_label?: string | null
   last_activity_at?: string | null
@@ -61,6 +63,7 @@ export interface ReleaseTimelineSegment {
   title: string
   start_time?: string | null
   end_time?: string | null
+  version?: string | null
 }
 
 export interface GroupReleasesData {

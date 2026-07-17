@@ -3,8 +3,8 @@ package repository
 // GetGroupReleasesCursor (AO4-03/AO4-24) ist die additive Seek-Cursor-Variante der
 // vollstaendigen Release-Liste, ausgelagert aus group_repository.go wegen des
 // 450-Zeilen-Limits. Die Offset-Methode GetGroupReleases in group_repository.go
-// bleibt unveraendert — beide Modi teilen sich buildReleasesWhere und den
-// identischen Sortierschluessel (episode_number, rev.id).
+// bleibt unveraendert — beide Modi teilen sich buildReleasesWhere; der Cursor
+// verwendet einen stabilen, gemischten Sortierschluessel.
 
 import (
 	"context"
@@ -26,9 +26,10 @@ type GroupReleasesCursorPage struct {
 }
 
 // GetGroupReleasesCursor liefert eine Seek-paginierte (Cursor-)Seite der
-// vollstaendigen Release-Liste, additiv neben GetGroupReleases. Standard-
-// Sortierschluessel identisch zur Offset-Variante: (episode_number, rev.id).
-// Optional sort=activity sortiert nach letzter oeffentlicher Text-/Bild-Aktivitaet.
+// vollstaendigen Release-Liste, additiv neben GetGroupReleases. Der Default
+// sortiert numerische Episoden aufsteigend und danach Specials/OVAs
+// nach Veroeffentlichungsdatum absteigend. Optional sind Aktivitaet und
+// Veroeffentlichungsdatum als rein absteigende Sortierungen verfuegbar.
 func (r *GroupRepository) GetGroupReleasesCursor(
 	ctx context.Context,
 	animeID int64,
@@ -40,9 +41,32 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 	limit = clampCursorLimit(limit)
 
 	whereSQL, args := r.buildReleasesWhere(animeID, groupID, filter)
-	orderSQL := "CAST(e.episode_number AS INTEGER) ASC, rev.id ASC"
+	const (
+		numericEpisodeSQL = "e.episode_number ~ '^[0-9]+$'"
+		releaseDateSQL    = "COALESCE(rev.release_date, fr.release_date, '1970-01-01 00:00:00+00'::timestamptz)"
+	)
+	orderSQL := fmt.Sprintf(`
+		CASE WHEN %[1]s THEN 0 ELSE 1 END ASC,
+		CASE WHEN %[1]s THEN e.episode_number::BIGINT END ASC NULLS LAST,
+		CASE WHEN NOT (%[1]s) THEN %[2]s END DESC NULLS LAST,
+		CASE WHEN %[1]s THEN rev.id END ASC NULLS LAST,
+		CASE WHEN NOT (%[1]s) THEN rev.id END DESC NULLS LAST
+	`, numericEpisodeSQL, releaseDateSQL)
 	cursorFn := func(ep models.EpisodeReleaseSummary) string {
-		return encodeInt32Int64Cursor(ep.EpisodeNumber, ep.ID)
+		releasedAt := time.Unix(0, 0).UTC()
+		if ep.ReleasedAt != nil {
+			releasedAt = *ep.ReleasedAt
+		}
+		kind := 1
+		if ep.EpisodeNumber > 0 {
+			kind = 0
+		}
+		return encodeMixedReleaseCursor(mixedReleaseCursor{
+			Kind:             kind,
+			EpisodeNumber:    ep.EpisodeNumber,
+			ReleaseDate:      releasedAt,
+			ReleaseVersionID: ep.ID,
+		})
 	}
 
 	if filter.Sort == "activity" {
@@ -64,10 +88,39 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			}
 			return encodeTimeInt64Cursor(activityAt, ep.ID)
 		}
-	} else if epNum, revID, ok := decodeInt32Int64Cursor(cursor); ok {
+	} else if filter.Sort == "release_date" {
+		orderSQL = releaseDateSQL + " DESC, rev.id DESC"
+		if releasedAt, revID, ok := decodeTimeInt64Cursor(cursor); ok {
+			seekPos := len(args) + 1
+			whereSQL = fmt.Sprintf("%s AND (%s, rev.id) < ($%d, $%d)", whereSQL, releaseDateSQL, seekPos, seekPos+1)
+			args = append(args, releasedAt, revID)
+		}
+		cursorFn = func(ep models.EpisodeReleaseSummary) string {
+			releasedAt := time.Unix(0, 0).UTC()
+			if ep.ReleasedAt != nil {
+				releasedAt = *ep.ReleasedAt
+			}
+			return encodeTimeInt64Cursor(releasedAt, ep.ID)
+		}
+	} else if position, ok := decodeMixedReleaseCursor(cursor); ok {
 		seekPos := len(args) + 1
-		whereSQL = fmt.Sprintf("%s AND (CAST(e.episode_number AS INTEGER), rev.id) > ($%d, $%d)", whereSQL, seekPos, seekPos+1)
-		args = append(args, epNum, revID)
+		if position.Kind == 0 {
+			whereSQL = fmt.Sprintf(`%s AND (
+				(%s AND (e.episode_number::BIGINT, rev.id) > ($%d, $%d))
+				OR NOT (%s)
+			)`, whereSQL, numericEpisodeSQL, seekPos, seekPos+1, numericEpisodeSQL)
+			args = append(args, position.EpisodeNumber, position.ReleaseVersionID)
+		} else {
+			whereSQL = fmt.Sprintf(
+				"%s AND NOT (%s) AND (%s, rev.id) < ($%d, $%d)",
+				whereSQL,
+				numericEpisodeSQL,
+				releaseDateSQL,
+				seekPos,
+				seekPos+1,
+			)
+			args = append(args, position.ReleaseDate, position.ReleaseVersionID)
+		}
 	}
 
 	limitPos := len(args) + 1
@@ -75,7 +128,8 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 		SELECT
 			rev.id,
 			e.id AS episode_id,
-			CAST(e.episode_number AS INTEGER) AS episode_number,
+			COALESCE(CASE WHEN e.episode_number ~ '^[0-9]+$' THEN e.episode_number::INTEGER END, 0) AS episode_number,
+			e.episode_number AS episode_number_label,
 			%s AS title,
 			NULLIF(BTRIM(rev.version), '') AS version_label,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
@@ -94,7 +148,7 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			release_activity.last_activity_at
 		FROM release_versions rev
 		JOIN fansub_releases fr ON fr.id = rev.release_id
-		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
+		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rev.id
 		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		LEFT JOIN LATERAL (
@@ -159,6 +213,7 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			&ep.ID,
 			&episodeID,
 			&ep.EpisodeNumber,
+			&ep.EpisodeNumberLabel,
 			&ep.Title,
 			&ep.VersionLabel,
 			&ep.ReleasedAt,
@@ -243,17 +298,25 @@ func (r *GroupRepository) attachReleaseTimelineSegments(
 			COALESCE(NULLIF(BTRIM(t.title), ''), tt.name) AS title,
 			ts.start_time::text AS start_time,
 			ts.end_time::text AS end_time,
+			NULLIF(BTRIM(ts.version), '') AS version,
 			LOWER(tt.name) LIKE '%kara%' AS is_karaoke
 		FROM release_versions rev
 		JOIN fansub_releases fr ON fr.id = rev.release_id
-		JOIN episodes e ON e.id = fr.episode_id AND e.episode_number ~ '^[0-9]+$'
+		JOIN episodes e ON e.id = fr.episode_id
 		JOIN theme_segments ts ON ts.fansub_group_id = $2
 		JOIN themes t ON t.id = ts.theme_id AND t.anime_id = $1
 		JOIN theme_types tt ON tt.id = t.theme_type_id
 		WHERE rev.id = ANY($3::bigint[])
 		  AND COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1')
-		  AND (ts.start_episode IS NULL OR ts.start_episode <= e.episode_number::int)
-		  AND (ts.end_episode IS NULL OR ts.end_episode >= e.episode_number::int)
+		  AND (
+			(e.episode_number ~ '^[0-9]+$'
+			  AND (ts.start_episode IS NULL OR ts.start_episode <= e.episode_number::int)
+			  AND (ts.end_episode IS NULL OR ts.end_episode >= e.episode_number::int))
+			OR
+			(e.episode_number !~ '^[0-9]+$'
+			  AND ts.start_episode IS NULL
+			  AND ts.end_episode IS NULL)
+		  )
 		ORDER BY rev.id, ts.start_time NULLS LAST, ts.id
 	`, animeID, groupID, releaseIDs)
 	if err != nil {
@@ -274,6 +337,7 @@ func (r *GroupRepository) attachReleaseTimelineSegments(
 			&segment.Title,
 			&segment.StartTime,
 			&segment.EndTime,
+			&segment.Version,
 			&isKaraoke,
 		); err != nil {
 			return fmt.Errorf("scan release timeline segment: %w", err)

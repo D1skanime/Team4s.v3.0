@@ -7,7 +7,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // Import schlägt fehl bis Plan 02 die Funktion in api.ts ergänzt
-import { rejectAnimeContributionWithReason, resolveApiUrl } from './api'
+import { getGroupReleaseListCursor, rejectAnimeContributionWithReason, resolveApiUrl } from './api'
 
 describe('resolveApiUrl', () => {
   it('normalisiert alte lokale API-Media-URLs auf den aktuellen Browser-Pfad', () => {
@@ -17,6 +17,33 @@ describe('resolveApiUrl', () => {
 
   it('lässt externe absolute URLs unverändert', () => {
     expect(resolveApiUrl('https://cdn.example/logo.png')).toBe('https://cdn.example/logo.png')
+  })
+})
+
+describe('getGroupReleaseListCursor', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('sendet Release-Datum-Sortierung und Featured-Ausschluss', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      items: [],
+      next_cursor: null,
+      has_more: false,
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await getGroupReleaseListCursor(1, 2, {
+      limit: 5,
+      sort: 'release_date',
+      exclude_release_version_id: 42,
+    })
+
+    const [calledUrl] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(calledUrl).toContain('/api/v1/anime/1/group/2/release-list?')
+    expect(calledUrl).toContain('limit=5')
+    expect(calledUrl).toContain('sort=release_date')
+    expect(calledUrl).toContain('exclude_release_version_id=42')
   })
 })
 

@@ -6262,7 +6262,8 @@ export async function getGroupReleaseDetail(
 interface CursorQueryOpts {
   cursor?: string;
   limit?: number;
-  sort?: "activity";
+  sort?: "activity" | "release_date";
+  exclude_release_version_id?: number;
   category?: ReleaseVersionMediaCategory;
 }
 
@@ -6288,6 +6289,7 @@ function buildCursorQuery(opts: CursorQueryOpts): string {
   if (opts.cursor) query.set("cursor", opts.cursor);
   if (opts.limit) query.set("limit", String(opts.limit));
   if (opts.sort) query.set("sort", opts.sort);
+  if (opts.exclude_release_version_id) query.set("exclude_release_version_id", String(opts.exclude_release_version_id));
   if (opts.category) query.set("category", opts.category);
   return query.toString();
 }

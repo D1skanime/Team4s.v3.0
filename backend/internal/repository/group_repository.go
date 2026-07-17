@@ -187,6 +187,7 @@ func (r *GroupRepository) GetGroupReleases(
 			rev.id,
 			e.id AS episode_id,
 			CAST(e.episode_number AS INTEGER) AS episode_number,
+			e.episode_number AS episode_number_label,
 			%s AS title,
 			NULLIF(BTRIM(rev.version), '') AS version_label,
 			COALESCE(rev.release_date, fr.release_date) AS release_date,
@@ -220,6 +221,7 @@ func (r *GroupRepository) GetGroupReleases(
 			&ep.ID,
 			&episodeID,
 			&ep.EpisodeNumber,
+			&ep.EpisodeNumberLabel,
 			&ep.Title,
 			&ep.VersionLabel,
 			&ep.ReleasedAt,
@@ -284,7 +286,7 @@ func (r *GroupRepository) buildReleasesWhere(
 			argPos++
 
 			if episodeNumber, err := strconv.Atoi(trimmedQuery); err == nil && episodeNumber > 0 {
-				searchConditions = append(searchConditions, fmt.Sprintf("CAST(e.episode_number AS INTEGER) = $%d", argPos))
+				searchConditions = append(searchConditions, fmt.Sprintf("CASE WHEN e.episode_number ~ '^[0-9]+$' THEN e.episode_number::INTEGER END = $%d", argPos))
 				args = append(args, episodeNumber)
 				argPos++
 			}
@@ -309,6 +311,11 @@ func (r *GroupRepository) buildReleasesWhere(
 		conditions = append(conditions, buildRegexFilterCondition("COALESCE("+publicReleaseTitleSQL("rev", "e", "fg")+", '')", karaokeTitleRegex, argPos, *filter.HasKaraoke))
 		args = append(args, karaokeTitleRegex)
 		argPos++
+	}
+
+	if filter.ExcludeReleaseVersionID != nil {
+		conditions = append(conditions, fmt.Sprintf("rev.id <> $%d", argPos))
+		args = append(args, *filter.ExcludeReleaseVersionID)
 	}
 
 	whereSQL := "WHERE " + strings.Join(conditions, " AND ")
