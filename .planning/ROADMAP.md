@@ -1795,6 +1795,45 @@ Plans:
 5. Der Vollfolgenplayer bleibt eine nur bei positiver Berechtigung und Streambereitschaft sichtbare sekundäre Dialogaktion.
 6. Responsive Live-UAT und die Refresh-Session-Regression bestehen über den realen Einstieg von der Public-Fansub-/Projektseite.
 
+### Phase 104: Registrierungs-, Login- und Account-Onboarding-Hardening
+
+**Goal:** Den sichtbaren Registrierungs-, Login- und Account-Onboarding-Flow gemäß den bindenden Entscheidungen D-01 bis D-24 in `104-CONTEXT.md` reparieren: normale Accounts bleiben fachlich neutral, Projektflächen setzen eine echte Contribution-/Projektzuordnung voraus, und die bewusst permissive lokale Keycloak-Testkonfiguration bleibt erhalten.
+**Requirements**: P104-REG-1, P104-REG-2, P104-AUTH-1, P104-AUTH-2, P104-ACCOUNT-1, P104-ACCOUNT-2, P104-NAV-1, P104-UAT-1
+**Depends on:** Phase 43 (Keycloak + app_user Foundation), Phase 49 (zentraler Auth/API-Client), Phase 52 (Account-Console Return-Refresh), Phase 72 (Member-/Account-Projektionen), Phase 76 (`/me/contributions`), Phase 80 (globale Rollen-/User-Semantik)
+**Plans:** 6 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 104-01-PLAN.md — Account-Console-403, deutsche Team4s-Keycloak-Oberflächen und stale Feldvalidierung reparieren; lokale Passwort-/Direct-Grant-/E-Mail-Testhaltung unverändert lassen
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 104-02-PLAN.md — Direkte deutsche Registrierungs-/Login-CTAs über globalen Button und bestehenden PKCE-Seam sowie vertrauenswürdigen One-shot-Handoff ergänzen
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 104-03-PLAN.md — Zentrale Auth-Cookies protokollabhängig mit Secure härten sowie Auth-/Profil-Hydration, neutrale Accountseite, einmalige Bestätigung und freiwillige Fansubber-Verknüpfung konsistent machen
+
+**Wave 4** *(blocked on Wave 3)*
+- [ ] 104-04-PLAN.md — Autoritative Projektberechtigung aus echter Zuordnung ergänzen, Navigation gaten und nicht berechtigte Direktaufrufe zu Mein Account umleiten
+
+**Wave 5** *(blocked on Wave 4)*
+- [ ] 104-05-PLAN.md — Doppelte Accountnavigation entfernen und mobilen Drawer/Logout deterministisch machen
+
+**Wave 6** *(blocked on Wave 5)*
+- [ ] 104-06-PLAN.md — Integrierte Live-UAT ab der öffentlichen Startseite auf sichtbare Folgen begrenzen und DB-/Refresh-Invarianten mit obligatorischer automatisierter Evidenz dokumentieren
+
+**Success Criteria** (what must be TRUE):
+
+1. Gemäß D-01 bis D-04 ist Registrierung von `http://127.0.0.1:3000/` sichtbar erreichbar, meldet automatisch an, landet auf `/me/profile` und zeigt die neutrale, vertrauenswürdig ausgelöste Bestätigung einmalig bis Schließen oder Seitenwechsel.
+2. Gemäß D-10 bis D-15 erzeugt Registrierung ausschließlich einen aktiven `app_user`: keine automatische Team4s-DB-Rolle, keinen Member, keine Mitgliedschaft, Contribution oder Projekt. Lokal bleibt `123` gültig, Lockout aus, Direct Grants an und E-Mail-Verifikation aus; Produktionshärtung bleibt Phase 999.2/Folgeauftrag.
+3. Fehlendes/abgelaufenes Access-Token bei gültigem Refresh-Token bleibt in Shell, Profil und Contributions eine aktive Session und wird ausschließlich über den zentralen API-Client erneuert; keine falschen Login- oder leeren Zwischenzustände entstehen.
+4. Gemäß D-06, D-08 und D-09 sehen nur verifizierte Member mit mindestens einer echten Projekt-/Contribution-Zuordnung „Meine Projekte“. Angemeldete Nichtberechtigte werden beim direkten `/me/contributions`-Aufruf zu `/me/profile` umgeleitet; anonyme Aufrufe bleiben login-gated.
+5. „Accountdaten verwalten“ öffnet mit derselben Realm-Session die Keycloak Account Console ohne HTTP 403; die Ursache und Lösung sind in versionierten Realm-/Compose-/Bootstrap-Artefakten reproduzierbar und der Phase-52 Return-Refresh bleibt funktionsfähig.
+6. Mobile Drawer-Navigation reagiert beim ersten Tap, schließt bei Link-/Routewechsel zuverlässig und Logout läuft genau einmal mit verständlichem Übergang; die doppelte Navigation auf dasselbe Accountziel ist entfernt.
+7. Login, Registrierung, Reset und Account Console sind deutsch und Team4s-gebrandet; stale Feldfehler werden isoliert aktualisiert. Der automatisierte Theme-Script-Test ist unter `frontend/src/lib/keycloakRegistrationValidation.test.ts` ausführbar; `infra/keycloak/themes/team4s/login/register.ftl` bleibt ohne belegte DOM-Notwendigkeit abwesend/unverändert.
+8. Gemäß D-17 bis D-20 und D-24 gibt es nur „Mein Account“, einen neutralen Auth-/Profil-Ladezustand, Retry+Logout statt falschem Login bei aktiver Session, zentralen Refresh-only-Schutz sowie deterministische Mobile-First-Tap-/Logout-Zustände.
+9. Automatisierte Auth-, Contract-, Backend- und UI-Regressionen sowie abschließende Live-UAT sichtbarer Folgen ab Homepage bestehen; DB-Invarianten und künstlich nicht per UI herstellbare Refresh-Zustände werden ehrlich durch obligatorische automatisierte Evidenz belegt. Nur `/me/contributions` darf für den expliziten Direktzugriffstest über die Adresszeile geöffnet werden.
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
@@ -2276,6 +2315,15 @@ Plans:
   6. Backend- und Frontend-Tests decken Enforcement (gated/ungated), die UI-Mutation (vergeben/entziehen) und die Cache-Reload-Wirkung ab.
 
 ## Backlog
+
+### Phase 999.2: E-Mail-Verifikations-Policy und eindeutige App-User-E-Mail (BACKLOG)
+
+**Goal:** Nach einer Produkt-/Security-Entscheidung E-Mail-Verifikation und E-Mail-Eindeutigkeit gemeinsam und datenverträglich durchsetzen. Phase 104 grenzt dies bewusst aus, weil der UI-Test weder einen Verifikationsfehler reproduziert hat noch eine Mailzustellungs-/Pending-Account-Policy existiert und ein Unique-Constraint ohne Bestandsdatenprüfung persistierte Accounts gefährden kann.
+**Requirements:** Vor Umsetzung festlegen: Verifikationspflicht und Mailzustellung, Verhalten/Rechte für `pending` Accounts und Enforcement-Ort; vorhandene `app_users.email`-Duplikate und Null-/Case-Normalisierung auditieren; erst danach einen reversiblen Unique-Index samt Up/Down- und Konflikttests planen. Registrierungscopy darf bis dahin keine verifizierte E-Mail behaupten.
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
 
 ### Phase 999.1: Querverlinkung role-capabilities <-> users (Impact-Count + Rollen-Detail-Link) (BACKLOG)
 
