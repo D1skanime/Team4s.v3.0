@@ -69,8 +69,13 @@ type MemberProfileRecentContribution struct {
 }
 
 type MemberProfile struct {
-	MemberID                        int64                             `json:"member_id"`
-	HasMemberProfile                bool                              `json:"has_member_profile"`
+	MemberID         int64 `json:"member_id"`
+	HasMemberProfile bool  `json:"has_member_profile"`
+	// HasProjectAssignments is the authoritative project-eligibility signal (D-06/D-09).
+	// True only when HasMemberProfile is true AND at least one real confirmed anime/group
+	// contribution or historical release credit exists for the member. Never inferable
+	// from HasMemberProfile alone.
+	HasProjectAssignments           bool                              `json:"has_project_assignments"`
 	AppUserID                       int64                             `json:"app_user_id"`
 	LegacyUserID                    *int64                            `json:"legacy_user_id,omitempty"`
 	DisplayName                     string                            `json:"display_name"`

@@ -62,6 +62,13 @@ export interface MemberProfileRecentContribution {
 export interface MemberProfileData {
   member_id: number
   has_member_profile: boolean
+  /**
+   * Authoritative project-eligibility signal (D-06/D-09). True only when the account has a
+   * verified member profile AND at least one real confirmed anime/group contribution or
+   * historical release credit. Never inferable from has_member_profile alone — gates the
+   * "Meine Projekte" navigation entry and direct /me/contributions access.
+   */
+  has_project_assignments: boolean
   app_user_id: number
   legacy_user_id?: number | null
   display_name: string

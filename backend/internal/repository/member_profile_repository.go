@@ -69,6 +69,7 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 		base.HistoricalCredits = []models.MemberProfileCredit{}
 		base.RecentMedia = []models.MemberProfileRecentMedia{}
 		base.RecentContributions = []models.MemberProfileRecentContribution{}
+		base.HasProjectAssignments = false
 		return base, nil
 	}
 
@@ -84,8 +85,37 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 	if err != nil {
 		return nil, err
 	}
+	base.HasProjectAssignments, err = r.hasProjectAssignments(ctx, base.MemberID)
+	if err != nil {
+		return nil, err
+	}
 
 	return base, nil
+}
+
+// hasProjectAssignments is the sole source of truth for D-06/D-09 project eligibility.
+// It is only ever invoked for a member with a verified profile (base.HasMemberProfile
+// already required a verified member_claims row via ensureProfileBaseTx). It deliberately
+// checks real, existing assignment rows via EXISTS — never global/realm role, membership
+// alone, or member_id > 0 — so has_member_profile can never be mistaken for eligibility.
+func (r *MemberProfileRepository) hasProjectAssignments(ctx context.Context, memberID int64) (bool, error) {
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM anime_contributions ac
+			LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+			WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+			  AND ac.status = 'confirmed'
+		) OR EXISTS(
+			SELECT 1
+			FROM release_member_roles rmr
+			WHERE rmr.member_id = $1
+		)
+	`, memberID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("check project assignments for member %d: %w", memberID, err)
+	}
+	return exists, nil
 }
 
 func (r *MemberProfileRepository) UpdateOwnProfile(

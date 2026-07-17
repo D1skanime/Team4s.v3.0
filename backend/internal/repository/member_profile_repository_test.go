@@ -146,6 +146,38 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"loadRecentContributions scan must bind TotalReleaseVersionCount then WorkedReleaseVersionCount after EpisodeCount")
 }
 
+func TestHasProjectAssignmentsSourceInvariants(t *testing.T) {
+	repoSrc, err := os.ReadFile("member_profile_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.True(t, strings.Contains(content, "func (r *MemberProfileRepository) hasProjectAssignments(ctx context.Context, memberID int64) (bool, error)"),
+		"has_project_assignments must be computed by a dedicated repository method, not inline in GetOwnProfile")
+	assert.True(t, strings.Contains(content, "base.HasProjectAssignments, err = r.hasProjectAssignments(ctx, base.MemberID)"),
+		"own profile reads must populate HasProjectAssignments from the dedicated EXISTS-backed method")
+	assert.True(t, strings.Contains(content, "base.HasProjectAssignments = false") &&
+		strings.Contains(content, "if !base.HasMemberProfile {"),
+		"account-only own profile reads must short-circuit has_project_assignments to false without querying assignment tables")
+
+	hasProjectAssignmentsStart := strings.Index(content, "func (r *MemberProfileRepository) hasProjectAssignments(")
+	require.GreaterOrEqual(t, hasProjectAssignmentsStart, 0)
+	hasProjectAssignmentsBody := content[hasProjectAssignmentsStart:]
+	if end := strings.Index(hasProjectAssignmentsBody[1:], "\nfunc "); end >= 0 {
+		hasProjectAssignmentsBody = hasProjectAssignmentsBody[:end+1]
+	}
+
+	assert.True(t, strings.Contains(hasProjectAssignmentsBody, "SELECT EXISTS("),
+		"has_project_assignments must use an EXISTS query, not a row count or member_id > 0 check")
+	assert.True(t, strings.Contains(hasProjectAssignmentsBody, "ac.status = 'confirmed'"),
+		"has_project_assignments must only count confirmed anime_contributions rows")
+	assert.True(t, strings.Contains(hasProjectAssignmentsBody, "COALESCE(ac.member_id, hfgm.member_id) = $1"),
+		"has_project_assignments must resolve both direct member_id and historical hist_fansub_group_members linkage")
+	assert.True(t, strings.Contains(hasProjectAssignmentsBody, "FROM release_member_roles rmr"),
+		"has_project_assignments must also recognize real historical release_member_roles credits")
+	assert.False(t, strings.Contains(hasProjectAssignmentsBody, "member_id > 0"),
+		"has_project_assignments must never fall back to a bare member_id > 0 check")
+}
+
 func TestMemberProfileRepositoryPublicURLForPathNormalizesStoragePaths(t *testing.T) {
 	repo := NewMemberProfileRepository(nil, "http://localhost:8092")
 

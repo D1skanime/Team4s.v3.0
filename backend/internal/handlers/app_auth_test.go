@@ -474,6 +474,136 @@ func TestGetOwnProfileWithoutMemberProfileReturnsAccountOnlyCapabilities(t *test
 	}
 }
 
+// TestGetOwnProfileAccountOnlyReturnsNoProjectAssignments verifies D-06/D-09: a plain
+// account without any member profile can never surface has_project_assignments=true.
+func TestGetOwnProfileAccountOnlyReturnsNoProjectAssignments(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:              0,
+			HasMemberProfile:      false,
+			HasProjectAssignments: false,
+			AppUserID:             11,
+			Email:                 "account-only@example.com",
+			KeycloakSubject:       "kc-11",
+			ProfileVisibility:     models.ProfileVisibilityMembersOnly,
+			AccountStatus:         models.AppUserStatusActive,
+			AccountDisplayName:    "Account Only",
+		},
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/me/profile", nil, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Account Only",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.GetOwnProfile(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	if data["has_member_profile"] != false {
+		t.Fatalf("expected has_member_profile false, got %#v", data["has_member_profile"])
+	}
+	if data["has_project_assignments"] != false {
+		t.Fatalf("expected has_project_assignments false for an account-only profile, got %#v", data["has_project_assignments"])
+	}
+}
+
+// TestGetOwnProfileVerifiedMemberWithoutAssignmentReturnsFalse verifies D-06/D-09: a
+// verified Member link alone (has_member_profile=true) is insufficient — without a real
+// project/contribution assignment, has_project_assignments must stay false.
+func TestGetOwnProfileVerifiedMemberWithoutAssignmentReturnsFalse(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:              44,
+			HasMemberProfile:      true,
+			HasProjectAssignments: false,
+			AppUserID:             11,
+			DisplayName:           "Mika",
+			FansubName:            "MikaFX",
+			Email:                 "mika@example.com",
+			KeycloakSubject:       "kc-11",
+			IsVerified:            true,
+			ProfileVisibility:     models.ProfileVisibilityMembersOnly,
+			AccountStatus:         models.AppUserStatusActive,
+			AccountDisplayName:    "Mika",
+		},
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/me/profile", nil, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.GetOwnProfile(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	if data["has_member_profile"] != true {
+		t.Fatalf("expected has_member_profile true, got %#v", data["has_member_profile"])
+	}
+	if data["has_project_assignments"] != false {
+		t.Fatalf("expected has_project_assignments false for a verified Member without any assignment, got %#v", data["has_project_assignments"])
+	}
+}
+
+// TestGetOwnProfileVerifiedMemberWithAssignmentReturnsTrue verifies D-06/D-09: a verified
+// Member with at least one real assignment surfaces has_project_assignments=true.
+func TestGetOwnProfileVerifiedMemberWithAssignmentReturnsTrue(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	profileRepo := &profileRepoStub{
+		getResp: &models.MemberProfile{
+			MemberID:              44,
+			HasMemberProfile:      true,
+			HasProjectAssignments: true,
+			AppUserID:             11,
+			DisplayName:           "Mika",
+			FansubName:            "MikaFX",
+			Email:                 "mika@example.com",
+			KeycloakSubject:       "kc-11",
+			IsVerified:            true,
+			ProfileVisibility:     models.ProfileVisibilityMembersOnly,
+			AccountStatus:         models.AppUserStatusActive,
+			AccountDisplayName:    "Mika",
+		},
+	}
+	handler := &AppAuthHandler{profileRepo: profileRepo}
+
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/me/profile", nil, middleware.AuthIdentity{
+		UserID:        101,
+		AppUserID:     11,
+		DisplayName:   "Mika",
+		AppUserStatus: models.AppUserStatusActive,
+	})
+
+	handler.GetOwnProfile(c)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	if data["has_project_assignments"] != true {
+		t.Fatalf("expected has_project_assignments true for a verified Member with a real assignment, got %#v", data["has_project_assignments"])
+	}
+}
+
 func TestUpdateOwnProfileRejectsMissingMemberProfile(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

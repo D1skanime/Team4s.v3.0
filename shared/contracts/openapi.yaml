@@ -9787,6 +9787,7 @@ components:
       required:
         - member_id
         - has_member_profile
+        - has_project_assignments
         - app_user_id
         - display_name
         - fansub_name
@@ -9811,6 +9812,14 @@ components:
         has_member_profile:
           type: boolean
           description: True only when the account is linked to a verified member profile.
+        has_project_assignments:
+          type: boolean
+          description: >-
+            Authoritative project-eligibility signal (D-06/D-09). True only when the account
+            has a verified member profile AND at least one real confirmed anime/group
+            contribution or historical release credit. Never inferable from has_member_profile
+            alone; used to gate the "Meine Projekte" navigation entry and direct
+            /me/contributions access.
         app_user_id:
           type: integer
           format: int64
