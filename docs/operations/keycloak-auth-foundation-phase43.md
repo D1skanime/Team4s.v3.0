@@ -163,6 +163,89 @@ Wenn der Volume-Name lokal anders lautet, zuerst prüfen:
 docker volume ls
 ```
 
+## Phase 104: Account Console 403 – Ursache und Fix
+
+### Reproduktion
+Der externe Keycloak Account Console Link (`/realms/team4s/account`, geöffnet aus
+`AccountSecurityCard.tsx` in einem neuen Tab) lud die Seite selbst mit HTTP 200,
+aber die Account-REST-API, die die Account-Console-SPA beim Rendern intern aufruft
+(`GET /realms/team4s/account`, `GET /realms/team4s/account/credentials`, ...),
+antwortete für jeden echten Login mit HTTP 403. Reproduzierbar mit einem echten
+Authorization-Code-/PKCE-Login gegen den Client `account-console` und einem
+anschließenden `GET .../account` mit `Accept: application/json` und dem erhaltenen
+Bearer-Token.
+
+### Ursache (evidenzbasiert)
+`infra/keycloak/realm-team4s.json` deklariert eine eigene `clientScopes`-Liste
+(`profile`, `email`, `team4s-api`). Keycloaks Realm-Import behandelt eine
+mitgelieferte `clientScopes`-Liste als abschließend und legt dadurch **nicht**
+automatisch den eingebauten `roles`-Scope an. Ohne diesen Scope trägt kein Token in
+diesem Realm jemals `realm_access`/`resource_access`-Claims. Die eingebauten
+Clients `account`/`account-console` (von Keycloak selbst gebootstrapt, weil sie in
+der JSON absichtlich **nicht** redeklariert werden – siehe nächster Absatz) bekamen
+dadurch nie `roles` in ihre `defaultClientScopes`. Ihre Access-Tokens enthielten
+deshalb kein `resource_access.account.roles`, obwohl der einloggende Nutzer über
+`default-roles-team4s` durchaus die Client-Rollen `view-profile`/`manage-account`
+auf dem `account`-Client besitzt. Die eingebaute Account-REST-API von Keycloak
+prüft exakt dieses Claim und antwortete deshalb konsequent mit 403.
+
+Wichtiger Nebenbefund: Eine explizite Redeklaration der Clients `account` und
+`account-console` in der Realm-JSON (naheliegender erster Fixversuch, um ihnen
+`defaultClientScopes: ["roles"]` mitzugeben) wurde live gegen eine frische
+Keycloak-26-Instanz getestet und unterdrückt dabei Keycloaks eigenes Bootstrapping
+der Standard-Rollen (`view-profile`, `manage-account`, `manage-account-links`,
+`delete-account`) und der `default-roles-team4s`-Composite-Zuordnung auf dem
+`account`-Client. Deshalb bleiben `account`/`account-console` in der Realm-JSON
+absichtlich undeklariert.
+
+### Fix
+1. `infra/keycloak/realm-team4s.json` deklariert jetzt zusätzlich den
+   Standard-`roles`-Scope (mit den drei Standard-Protocol-Mappern `audience
+   resolve`, `realm roles`, `client roles`). Das stellt sicher, dass ein frischer
+   Import den Scope kennt und Keycloaks eigenes Bootstrapping die
+   `default-roles-team4s`-Composites korrekt auf `view-profile`/`manage-account`
+   des `account`-Clients setzt.
+2. Weil eine eigene `clientScopes`-Liste auch verhindert, dass Keycloak `roles`
+   automatisch als *Default*-Scope auf die eingebauten Clients `account` und
+   `account-console` anwendet, übernimmt `scripts/verify-keycloak-config.ps1`
+   diesen einen verbleibenden Schritt idempotent über die Admin-REST-API. Dieses
+   Skript ist für **beide** Szenarien identisch:
+   - **Frischer Import:** `docker compose up -d keycloak-db keycloak` (importiert
+     die aktualisierte `realm-team4s.json` inklusive `roles`-Scope), danach einmal
+     `powershell -ExecutionPolicy Bypass -File scripts/verify-keycloak-config.ps1`
+     ausführen. Das Skript legt den Scope an, falls er fehlt, weist ihn `account`
+     und `account-console` als Default-Scope zu und beweist per echtem PKCE-Login,
+     dass `/realms/team4s/account` keinen 403 mehr liefert.
+   - **Bestehendes Volume (nicht-destruktiv):** Realm-Import wird von Keycloak bei
+     bereits vorhandenem Realm übersprungen. Denselben Befehl
+     (`powershell -ExecutionPolicy Bypass -File scripts/verify-keycloak-config.ps1`)
+     gegen das laufende `team4sv30-keycloak` ausführen; er erkennt den fehlenden
+     `roles`-Scope bzw. die fehlende Default-Scope-Zuordnung und ergänzt sie
+     idempotent, ohne bestehende Nutzer, Realm-Rollen oder andere Clients
+     anzufassen.
+3. Das Skript unterstützt `-SkipApply` (nur prüfen, nichts ändern – z. B. für
+   CI/Read-only-Kontexte) und `-SkipLiveCheck` (nur die statische Realm-JSON und
+   die Live-Scope-Zuordnung prüfen, ohne einen echten Login durchzuführen).
+
+### Was bewusst unverändert bleibt
+- Keine Passwort-Policy, kein Brute-Force-/Lockout-Schutz, keine
+  E-Mail-Verifikationspflicht (D-11/D-12/D-14) – das Skript prüft das explizit mit.
+- `team4s-frontend.directAccessGrantsEnabled` bleibt `true` als dokumentierte
+  lokale Testkonfiguration (D-13).
+- Die Realm-Rolle `user` bleibt eine reine lokale lose Login-Rolle; sie wird nicht
+  automatisch zu einer Team4s-Berechtigung (D-15). Der `roles`-Scope-Fix betrifft
+  ausschließlich Keycloaks eigene Account-Console-Autorisierung, nicht
+  Team4s-Autorisierung – das Team4s-Backend liest `realm_access`/`resource_access`
+  ohnehin nicht aus (siehe „Team4s besitzt“ oben).
+
+### Verifikation
+```powershell
+docker compose config
+powershell -ExecutionPolicy Bypass -File scripts/verify-keycloak-config.ps1
+```
+Zusätzlich manuell: Auf `/me/profile` „Accountdaten verwalten“ in einem neuen Tab
+öffnen, Name/E-Mail/Passwort verwalten, ohne 403.
+
 ## SMTP und Mailversand (lokal und Produktion)
 
 ### Lokale Entwicklung: Mailpit
