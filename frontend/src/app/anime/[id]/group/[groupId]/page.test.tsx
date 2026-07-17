@@ -208,6 +208,32 @@ describe('HeroSection navigation (102-03)', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 
+  it('rendert bei einem Banner nur eine Identität außerhalb des Bannerbilds', () => {
+    render(
+      <HeroSection
+        group={group}
+        anime={anime}
+        groupID={1}
+        animeID={13}
+        heroBackdropUrl={null}
+        infoPanelBackgroundUrl={null}
+        heroImageUrl="/media/vipers-creed-banner.png"
+        heroImageIsBanner
+        posterImage={null}
+        heroStyle={undefined}
+        infoPanelStyle={undefined}
+        breadcrumbItems={[]}
+        cooperationGroups={[]}
+        fansubProjectNavigation={{ previous: null, next: null }}
+        groupAssetsResponse={null}
+        releaseEpisodes={[]}
+      />,
+    )
+
+    expect(screen.getAllByRole('heading', { name: "Viper's Creed" })).toHaveLength(1)
+    expect(screen.getByRole('img', { name: "Viper's Creed Banner" })).toBeTruthy()
+  })
+
   it('rendert auch drei Coop-Gruppen ohne aufklappbares Statistik-Panel', () => {
     render(
       <HeroSection

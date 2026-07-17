@@ -100,10 +100,6 @@
   padding: 16px 16px 0;
 }
 
-.heroBannerWrap > .heroInfo {
-  display: none;
-}
-
 .heroBannerImg {
   width: auto;
   height: auto;
@@ -423,17 +419,11 @@
   }
 
   .heroBannerWrap {
-    position: relative;
-    padding: 0;
+    padding: 12px 12px 0;
   }
 
   .heroBannerImg {
-    width: 100%;
-    height: 200px;
-    max-height: none;
-    border-radius: 0;
-    object-fit: cover;
-    box-shadow: none;
+    max-height: 120px;
   }
 
   .heroBody {
@@ -465,7 +455,6 @@
     gap: 4px;
   }
 
-  .heroBannerWrap > .heroInfo,
   .heroBody > .heroInfo {
     position: absolute;
     inset: auto 12px 12px;
@@ -477,7 +466,25 @@
   }
 
   .heroBannerWrap + .heroBody > .heroInfo {
-    display: none;
+    position: static;
+    inset: auto;
+    display: grid;
+    width: 100%;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .heroBannerWrap + .heroBody {
+    padding: 14px 16px 16px;
+  }
+
+  .heroBannerWrap + .heroBody .eyebrow {
+    color: var(--accent-deep);
+  }
+
+  .heroBannerWrap + .heroBody .title {
+    color: var(--text-primary);
   }
 
   .heroInfo .eyebrow,
@@ -488,6 +495,11 @@
   .heroInfo > .stats,
   .heroInfo > .coopLine {
     display: none;
+  }
+
+  .heroBannerWrap + .heroBody > .heroInfo > .stats,
+  .heroBannerWrap + .heroBody > .heroInfo > .coopLine {
+    display: flex;
   }
 
   .stats {

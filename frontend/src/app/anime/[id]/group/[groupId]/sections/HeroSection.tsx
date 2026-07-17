@@ -124,7 +124,6 @@ export function HeroSection({
                   unoptimized={heroImageUrl.includes("/api/")}
                   priority
                 />
-                <div className={styles.heroInfo}>{identity}</div>
               </div>
             ) : null}
 
