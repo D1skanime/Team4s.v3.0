@@ -202,5 +202,38 @@ describe('HeroSection navigation (102-03)', () => {
 
     expect(screen.getByText('Coop mit')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Honto' }).getAttribute('href')).toBe('/fansubs/honto')
+    expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('rendert auch drei Coop-Gruppen ohne aufklappbares Statistik-Panel', () => {
+    render(
+      <HeroSection
+        group={group}
+        anime={anime}
+        groupID={1}
+        animeID={13}
+        heroBackdropUrl={null}
+        infoPanelBackgroundUrl={null}
+        heroImageUrl={null}
+        heroImageIsBanner={false}
+        posterImage={null}
+        heroStyle={undefined}
+        infoPanelStyle={undefined}
+        breadcrumbItems={[]}
+        cooperationGroups={[
+          { id: 2, slug: 'honto', name: 'Honto', logo_url: null },
+          { id: 3, slug: 'akropolus', name: 'Akropolus', logo_url: null },
+          { id: 4, slug: 'moonlight', name: 'Moonlight', logo_url: null },
+        ]}
+        fansubProjectNavigation={{ previous: null, next: null }}
+        groupAssetsResponse={null}
+        releaseEpisodes={[]}
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: 'Honto' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Akropolus' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Moonlight' })).toBeTruthy()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 })

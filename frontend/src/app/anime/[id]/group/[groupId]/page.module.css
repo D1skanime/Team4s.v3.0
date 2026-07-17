@@ -90,8 +90,7 @@
   padding: 16px 16px 0;
 }
 
-.heroBannerWrap > .heroInfo,
-.heroCard > :global(.accordionRoot) {
+.heroBannerWrap > .heroInfo {
   display: none;
 }
 
@@ -471,39 +470,6 @@
   .heroInfo > .stats,
   .heroInfo > .coopLine {
     display: none;
-  }
-
-  .heroCard > :global(.accordionRoot) {
-    display: grid;
-    border-top: 2px solid var(--ui-line);
-    background: var(--surface-card);
-  }
-
-  .heroCard > :global(.accordionRoot) .stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-2);
-    width: 100%;
-    margin: 0;
-  }
-
-  .heroCard > :global(.accordionRoot) .statItem {
-    align-content: center;
-  }
-
-  .heroCard > :global(.accordionRoot) .statItem dt {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .heroCard > :global(.accordionRoot) .statItem dd {
-    font-size: 20px;
-  }
-
-  .heroCard > :global(.accordionRoot) .coopLine {
-    margin: 0;
-    gap: var(--space-2);
   }
 
   .stats {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
-import { Accordion, AdjacentNavigation, AvatarStack, Badge, Card } from "@/components/ui";
+import { AdjacentNavigation, AvatarStack } from "@/components/ui";
 import { resolveApiUrl } from "@/lib/api";
 import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
 import type { FansubGroupSummary } from "@/types/fansub";
@@ -166,29 +166,6 @@ export function HeroSection({
                 ) : null}
               </div>
             </div>
-            <Accordion
-              mode="single"
-              items={[{
-                id: "project-stats",
-                title: projectStats,
-                children: (
-                  <Card variant="nestedFlat">
-                    {coopGroups.length > 0 ? (
-                      <p className={styles.coopLine}>
-                        <span className={styles.coopLabel}>Kooperationspartner</span>
-                        {coopGroups.map((coopGroup) => (
-                          <Link key={coopGroup.id} href={`/fansubs/${coopGroup.slug}`} className={styles.coopLink}>
-                            <Badge variant="info">{coopGroup.name}</Badge>
-                          </Link>
-                        ))}
-                      </p>
-                    ) : (
-                      <p className={styles.coopLine}>Keine Kooperationspartner eingetragen.</p>
-                    )}
-                  </Card>
-                ),
-              }]}
-            />
             {hasProjectNavigation ? (
               <AdjacentNavigation
                 variant="floating"

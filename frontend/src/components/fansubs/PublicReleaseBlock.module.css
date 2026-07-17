@@ -502,7 +502,7 @@
 }
 
 .sectionMobile .previewGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: none;
 }
 
 .sectionMobile .releaseStatRow {
@@ -638,7 +638,7 @@
   }
 
   .previewGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: none;
   }
 
   .releaseStatRow {
