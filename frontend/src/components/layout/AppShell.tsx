@@ -258,6 +258,7 @@ function DrawerUserFooter({
         type="button"
         className={styles.logoutButton}
         disabled={isLoggingOut}
+        aria-busy={isLoggingOut}
         onClick={onLogout}
       >
         <LogOut size={16} aria-hidden="true" />
@@ -283,6 +284,9 @@ export function AppShell({
   const router = useRouter()
   const drawerRef = useRef<HTMLElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  // D-24: ref-based guard blocks a second logout activation even within the
+  // same synchronous tick, before isLoggingOut state visibly updates.
+  const loggingOutRef = useRef(false)
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
 
@@ -330,12 +334,19 @@ export function AppShell({
   }, [drawerOpen])
 
   function handleLogout() {
-    if (isLoggingOut) return
+    // Single-shot (D-24): the ref flips synchronously so a second click
+    // before re-render is still blocked.
+    if (loggingOutRef.current) return
+    loggingOutRef.current = true
     setIsLoggingOut(true)
     setDrawerOpen(false)
+    // logoutAuthSession() clears the local session synchronously before its
+    // first await, so navigating right away stays consistent with that
+    // cleanup and the best-effort async Keycloak logout initiation.
     void logoutAuthSession()
       .catch(() => undefined)
       .finally(() => {
+        loggingOutRef.current = false
         setIsLoggingOut(false)
       })
     router.replace('/login')

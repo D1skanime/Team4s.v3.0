@@ -419,6 +419,89 @@ describe('AppShell drawer behavior', () => {
     })
   })
 
+  it('invokes logout exactly once and closes the drawer immediately on rapid double activation (D-24)', async () => {
+    let resolveLogout!: () => void
+    logoutAuthSessionMock.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLogout = resolve
+      }),
+    )
+
+    render(
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+
+    const logoutButton = screen.getByRole('button', { name: /Abmelden/i })
+    fireEvent.click(logoutButton)
+    fireEvent.click(logoutButton)
+    fireEvent.click(logoutButton)
+
+    expect(logoutAuthSessionMock).toHaveBeenCalledTimes(1)
+    expect(routerReplaceMock).toHaveBeenCalledTimes(1)
+    expect(navButton.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.getByText('Melde ab...')).not.toBeNull()
+
+    await act(async () => {
+      resolveLogout()
+    })
+  })
+
+  it('shows the German logging-out transition state and disables the button while pending', async () => {
+    let resolveLogout!: () => void
+    logoutAuthSessionMock.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLogout = resolve
+      }),
+    )
+
+    render(
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+    const logoutButton = screen.getByRole('button', { name: /Abmelden/i })
+    fireEvent.click(logoutButton)
+
+    expect(screen.getByText('Melde ab...')).not.toBeNull()
+    expect(logoutButton.hasAttribute('disabled')).toBe(true)
+    expect(logoutButton.getAttribute('aria-busy')).toBe('true')
+
+    await act(async () => {
+      resolveLogout()
+    })
+  })
+
+  it('still navigates and safely resets pending state when logout rejects (safe cleanup/error semantics)', async () => {
+    logoutAuthSessionMock.mockRejectedValue(new Error('network fail'))
+
+    render(
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Abmelden/i }))
+
+    expect(routerReplaceMock).toHaveBeenCalledWith('/login')
+
+    await waitFor(() => {
+      expect(logoutAuthSessionMock).toHaveBeenCalledTimes(1)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^Abmelden$/i }).hasAttribute('disabled')).toBe(false)
+    })
+  })
+
   it('hides the admin link when the caller lacks the capability', () => {
     render(
       <AppShell currentPath="/me/profile" canAccessAdmin={false}>
