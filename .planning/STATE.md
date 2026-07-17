@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 104-04-PLAN.md
-last_updated: "2026-07-17T18:34:49.395Z"
+stopped_at: Completed 104-05-PLAN.md
+last_updated: "2026-07-17T18:51:36.971Z"
 last_activity: 2026-07-17
 progress:
   total_phases: 96
   completed_phases: 79
   total_plans: 427
-  completed_plans: 398
+  completed_plans: 399
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 104 (registrierungs-login-und-account-onboarding-hardening) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 
 ## Accumulated Context
 
@@ -320,6 +320,8 @@ Recent durable decisions:
 - [Phase ?]: [Phase 104-04]: has_project_assignments EXISTS query checks both confirmed anime_contributions (COALESCE member_id/hist_fansub_group_members) and historical release_member_roles - has_member_profile alone never implies eligibility (D-06/D-09).
 - [Phase ?]: [Phase 104-04]: Standardized missing-Member response on /me/* contribution endpoints to HTTP 403 + stable MEMBER_PROFILE_REQUIRED code (respondMemberProfileRequired helper), replacing 6 duplicated inline 404s.
 - [Phase ?]: [Phase 104-04]: Meine Projekte nav entry and /me/contributions direct access both gate on hasMemberProfile AND hasProjectAssignments via the own-profile aggregate; non-entitled authenticated accounts redirect to /me/profile with no claim/error intermediate (D-08).
+- [Phase 104-05]: AppShell dedupes Account nav (D-17) and closes drawer via one shared onNavigate seam plus a render-time currentPath-change adjustment (not a useEffect, per this repo's react-hooks/set-state-in-effect lint rule).
+- [Phase 104-05]: Logout single-shot guard uses a synchronous loggingOutRef alongside isLoggingOut state; navigation to /login fires right after invoking (not awaiting) logoutAuthSession(), since its local cleanup runs synchronously before its first await (D-24).
 
 ### Pending Todos
 
@@ -570,6 +572,7 @@ Recent durable decisions:
 | Phase 104 P02 | 35min | 2 tasks | 8 files |
 | Phase 104 P03 | 35min | 3 tasks | 15 files |
 | Phase 104 P4 | 55min | 3 tasks | 19 files |
+| Phase 104 P05 | 35min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -646,7 +649,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-17T18:34:49.357Z
-Stopped at: Completed 104-04-PLAN.md
+Last session: 2026-07-17T18:51:36.900Z
+Stopped at: Completed 104-05-PLAN.md
 Last activity: 2026-07-17
 Resume file: None

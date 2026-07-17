@@ -90,3 +90,22 @@ Splitting either was judged out of scope for this narrow, behavior-focused plan 
 consistent with the existing project convention of tracking oversized files as
 deferred follow-up (see the `page.tsx` / `AnimeJellyfinAssetUploadControls.tsx`
 entries above) rather than restructuring mid-feature-plan.
+
+## From Plan 104-05
+
+### Pre-existing baseline re-confirmed, not fixed (out of scope)
+
+Re-verified rather than newly discovered: `frontend/src/lib/api.no-token-boundary.test.ts`
+still shows the same 2 pre-existing failures already logged under Plan 104-02
+(`GroupHistorySection.tsx`'s `authToken` prop, `ProfileBackgroundCard.tsx`'s direct
+`fetch`) — neither file is touched by this plan. The wider `~7 failed test files / 14
+failed tests` baseline in the `anime/[id]/group/[groupId]` / `fansubprojekt` area
+(concurrent session's project-page/hero/AvatarStack work, commit `0986ba6b`, already
+logged under Plan 104-01) is also unrelated to this plan's `AppShell.tsx`/
+`AppShell.test.tsx` scope. This plan's own touched tests
+(`AppShell.test.tsx`, `AppShellClientWrapper.test.tsx`) are 44/44 green.
+
+No new CLAUDE.md 450-line violation: `AppShell.tsx` grew from 409 to 444 lines
+across both tasks (Task 1's nav-consolidation seam + Task 2's logout ref-guard),
+kept under the 450-line limit by trimming comment verbosity rather than deferring
+a split.
