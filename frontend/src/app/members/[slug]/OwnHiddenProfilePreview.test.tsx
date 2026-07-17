@@ -62,6 +62,7 @@ function makeOwnProfileResponse(overrides: Partial<MemberProfileResponse['data']
     data: {
       member_id: 3,
       has_member_profile: true,
+      has_project_assignments: false,
       app_user_id: 42,
       display_name: 'AOEditor',
       fansub_name: 'Subaru',

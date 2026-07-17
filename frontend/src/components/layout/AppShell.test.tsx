@@ -87,15 +87,45 @@ describe('AppShell', () => {
     expect(screen.queryByText('Meine Gruppen')).toBeNull()
   })
 
-  it('links signed-in members to their project workspace', () => {
+  it('links eligible members (verified Member + real project assignment) to their project workspace', () => {
     render(
-      <AppShell currentPath="/me/profile">
+      <AppShell currentPath="/me/profile" hasMemberProfile hasProjectAssignments>
         <main>Profilinhalt</main>
       </AppShell>,
     )
 
     const contributionsLink = screen.getByRole('link', { name: /Meine Projekte/i })
     expect(contributionsLink.getAttribute('href')).toBe('/me/contributions')
+  })
+
+  it('hides Meine Projekte for a plain account without a member profile (D-06/D-09)', () => {
+    render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    expect(screen.queryByRole('link', { name: /Meine Projekte/i })).toBeNull()
+  })
+
+  it('hides Meine Projekte for a verified Member without any real project assignment (D-06/D-09)', () => {
+    render(
+      <AppShell currentPath="/me/profile" hasMemberProfile>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    expect(screen.queryByRole('link', { name: /Meine Projekte/i })).toBeNull()
+  })
+
+  it('hides Meine Projekte when only hasProjectAssignments is true without a verified member profile', () => {
+    render(
+      <AppShell currentPath="/me/profile" hasProjectAssignments>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    expect(screen.queryByRole('link', { name: /Meine Projekte/i })).toBeNull()
   })
 
   it('renders member group memberships as fansub edit links', () => {

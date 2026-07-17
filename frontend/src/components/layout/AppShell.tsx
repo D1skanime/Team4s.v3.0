@@ -53,6 +53,12 @@ export interface AppShellProps {
   memberships?: AppShellMembership[]
   canAccessAdmin?: boolean
   hasMemberProfile?: boolean
+  /**
+   * Authoritative project-eligibility signal (D-06/D-09), sourced from the own-profile
+   * aggregate's has_project_assignments. "Meine Projekte" only appears when this AND
+   * hasMemberProfile are both true — has_member_profile alone is never sufficient.
+   */
+  hasProjectAssignments?: boolean
   children: ReactNode
 }
 
@@ -93,11 +99,13 @@ function AppShellNavGroups({
   memberships = [],
   canAccessAdmin,
   hasMemberProfile,
+  hasProjectAssignments,
 }: {
   currentPath?: string
   memberships?: AppShellMembership[]
   canAccessAdmin: boolean
   hasMemberProfile: boolean
+  hasProjectAssignments: boolean
 }) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
@@ -108,8 +116,12 @@ function AppShellNavGroups({
     : []
   const fixedMyItems: AppShellNavItem[] = [
     { label: hasMemberProfile ? 'Mein Profil' : 'Mein Account', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
-    { label: 'Meine Projekte', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') },
   ]
+  // D-06/D-09: "Meine Projekte" requires a verified Member AND at least one real
+  // project/contribution assignment — has_member_profile alone must never surface it.
+  if (hasMemberProfile && hasProjectAssignments) {
+    fixedMyItems.push({ label: 'Meine Projekte', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') })
+  }
   const myItems: AppShellNavItem[] = fixedMyItems
   const settingsItems: AppShellNavItem[] = [
     { label: 'Account & Sicherheit', href: '/me/profile', icon: <Settings size={17} />, current: isCurrent(currentPath, '/me/profile') },
@@ -250,6 +262,7 @@ export function AppShell({
   memberships = [],
   canAccessAdmin = false,
   hasMemberProfile = false,
+  hasProjectAssignments = false,
   children,
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -370,7 +383,13 @@ export function AppShell({
 
         <nav className={styles.nav} aria-label={drawerOpen ? 'Hauptnavigation mobil' : 'Hauptnavigation'}>
           {mode === 'authenticated' ? (
-            <AppShellNavGroups currentPath={currentPath} memberships={memberships} canAccessAdmin={canAccessAdmin} hasMemberProfile={hasMemberProfile} />
+            <AppShellNavGroups
+              currentPath={currentPath}
+              memberships={memberships}
+              canAccessAdmin={canAccessAdmin}
+              hasMemberProfile={hasMemberProfile}
+              hasProjectAssignments={hasProjectAssignments}
+            />
           ) : (
             <AppShellAnonNavGroups currentPath={currentPath} />
           )}

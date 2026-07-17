@@ -45,6 +45,7 @@ vi.mock('./AppShell', () => ({
     memberships,
     canAccessAdmin,
     hasMemberProfile,
+    hasProjectAssignments,
     children,
   }: {
     mode: 'authenticated' | 'anonymous'
@@ -57,9 +58,10 @@ vi.mock('./AppShell', () => ({
     }>
     canAccessAdmin?: boolean
     hasMemberProfile?: boolean
+    hasProjectAssignments?: boolean
     children: ReactNode
   }) => {
-    appShellRenderMock({ mode, currentPath, user, memberships, canAccessAdmin, hasMemberProfile })
+    appShellRenderMock({ mode, currentPath, user, memberships, canAccessAdmin, hasMemberProfile, hasProjectAssignments })
 
     return (
       <div
@@ -72,6 +74,7 @@ vi.mock('./AppShell', () => ({
         data-avatar-url={user?.avatarUrl || ''}
         data-membership-count={String(memberships?.length ?? 0)}
         data-has-member-profile={String(Boolean(hasMemberProfile))}
+        data-has-project-assignments={String(Boolean(hasProjectAssignments))}
       >
         {children}
       </div>
@@ -196,6 +199,38 @@ describe('AppShellClientWrapper', () => {
     expect(screen.getByTestId('app-shell').getAttribute('data-has-member-profile')).toBe('false')
     expect(screen.getByTestId('app-shell').getAttribute('data-membership-count')).toBe('0')
     expect(appShellRenderMock).toHaveBeenLastCalledWith(expect.objectContaining({ hasMemberProfile: false }))
+  })
+
+  it('passes has_project_assignments from getOwnProfile through to AppShell (D-06/D-09)', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({ has_project_assignments: true }))
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('app-shell').getAttribute('data-has-project-assignments')).toBe('true')
+    })
+
+    expect(appShellRenderMock).toHaveBeenLastCalledWith(expect.objectContaining({ hasProjectAssignments: true }))
+  })
+
+  it('defaults has_project_assignments to false when the profile aggregate omits it', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({ has_member_profile: true }))
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('app-shell').getAttribute('data-has-member-profile')).toBe('true')
+    })
+
+    expect(screen.getByTestId('app-shell').getAttribute('data-has-project-assignments')).toBe('false')
   })
 
   it('passes memberships from getOwnProfile to AppShell without another request', async () => {

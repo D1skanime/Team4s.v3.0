@@ -17,6 +17,7 @@ interface WrapperProfile {
   email?: string
   avatarUrl?: string
   hasMemberProfile?: boolean
+  hasProjectAssignments?: boolean
   memberships?: Array<{
     fansub_group_id: number
     fansub_group_name: string
@@ -115,6 +116,7 @@ export function AppShellClientWrapper({ children }: { children: ReactNode }) {
           email: d.email || undefined,
           avatarUrl: resolveApiUrl(d.avatar?.public_url || '') || undefined,
           hasMemberProfile: d.has_member_profile || d.member_id > 0,
+          hasProjectAssignments: Boolean(d.has_project_assignments),
           memberships: d.memberships ?? [],
           canAdmin: d.account_global_roles.includes('platform_admin') || d.account_global_roles.includes('admin'),
         })
@@ -168,6 +170,7 @@ export function AppShellClientWrapper({ children }: { children: ReactNode }) {
       memberships={activeProfile?.memberships ?? []}
       canAccessAdmin={activeProfile?.canAdmin ?? false}
       hasMemberProfile={activeProfile?.hasMemberProfile ?? false}
+      hasProjectAssignments={activeProfile?.hasProjectAssignments ?? false}
     >
       {isProfileError && profileError ? (
         <ProfileLoadErrorBanner

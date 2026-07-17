@@ -165,6 +165,7 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
     data: {
       member_id: 4,
       has_member_profile: true,
+      has_project_assignments: false,
       app_user_id: 11,
       legacy_user_id: 8,
       display_name: 'Mika',
