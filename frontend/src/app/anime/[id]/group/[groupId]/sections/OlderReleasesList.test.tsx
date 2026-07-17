@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -27,7 +27,7 @@ import { OlderReleasesList } from './OlderReleasesList'
 
 // jsdom has no IntersectionObserver — stub it so the auto-load effect (AO4-21)
 // doesn't throw. The stub never fires, so these tests exercise only the manual
-// "Mehr laden" fallback (AO4-25), which is sufficient for this component's own
+// "Weitere Releases laden" fallback (AO4-25), which is sufficient for this component's own
 // unit coverage.
 class IntersectionObserverStub {
   observe() {}
@@ -40,6 +40,7 @@ class IntersectionObserverStub {
 const makeEpisode = (overrides: Partial<EpisodeReleaseSummary> = {}): EpisodeReleaseSummary => ({
   id: 1,
   episode_number: 1,
+  episode_number_label: 'Folge 1',
   title: 'Episode 1',
   has_op: false,
   has_ed: false,
@@ -59,7 +60,7 @@ afterEach(() => {
 })
 
 describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
-  it('Test 1: renders the initial cursor page and shows "Mehr laden" when has_more is true', async () => {
+  it('rendert initial fünf geschlossene Zeilen und den manuellen Nachladeweg', async () => {
     getGroupReleaseListCursor.mockResolvedValueOnce({
       items: [makeEpisode({ id: 10, episode_number: 1, title: 'Episode 1' })],
       next_cursor: 'cursor-1',
@@ -68,12 +69,17 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
-    await waitFor(() => expect(screen.getByText('Folge 1')).not.toBeNull())
-    expect(screen.getByRole('button', { name: 'Mehr laden' })).not.toBeNull()
-    expect(screen.getByText('2 Bilder')).not.toBeNull()
-    expect(screen.getByText('1 Texte')).not.toBeNull()
+    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
+    expect(screen.getByRole('button', { name: 'Weitere Releases laden' })).not.toBeNull()
+    expect(screen.getAllByText('2 Bilder').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('1 Texte').length).toBeGreaterThan(0)
     expect(screen.queryByText('Hauptinhalt')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Ansicht' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: /Folge 1/i }).getAttribute('aria-expanded')).toBe('false')
+    expect(getGroupReleaseListCursor).toHaveBeenCalledWith(1, 2, {
+      cursor: undefined,
+      limit: 5,
+      exclude_release_version_id: 999,
+    })
   })
 
   it('Test 1b: rendert OP/ED-Segmente als Timeline-Kaesten', async () => {
@@ -107,14 +113,18 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
-    await waitFor(() => expect(screen.getByText('Episode 1')).not.toBeNull())
-    expect(screen.getByText('Viper OP')).not.toBeNull()
-    expect(screen.getByText('Viper ED')).not.toBeNull()
+    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
+    fireEvent.click(screen.getByRole('button', { name: /Folge 1/i }))
+    const region = screen.getByRole('region', { name: /Folge 1/i })
+    expect(within(region).getByText('Viper OP')).not.toBeNull()
+    expect(within(region).getByText('Viper ED')).not.toBeNull()
+    expect(within(region).getByRole('link', { name: 'Viper OP' }).getAttribute('href'))
+      .toBe('/anime/1/group/2/releases/10?kara=1&autoplay=1#op-ed-middle')
     expect(screen.queryByText('00:00:00 - 00:00:45')).toBeNull()
     expect(screen.queryByText('00:21:45 - 00:23:12')).toBeNull()
   })
 
-  it('Test 2: clicking "Mehr laden" fetches the next cursor page and appends items', async () => {
+  it('lädt nach dem Initiallimit weitere zehn Releases nach', async () => {
     getGroupReleaseListCursor
       .mockResolvedValueOnce({
         items: [makeEpisode({ id: 10, episode_number: 1, title: 'Episode 1' })],
@@ -122,21 +132,25 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
         has_more: true,
       })
       .mockResolvedValueOnce({
-        items: [makeEpisode({ id: 11, episode_number: 2, title: 'Episode 2' })],
+        items: [makeEpisode({ id: 11, episode_number: 2, episode_number_label: 'Folge 2', title: 'Episode 2' })],
         next_cursor: null,
         has_more: false,
       })
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
 
-    await waitFor(() => expect(screen.getByText('Episode 1')).not.toBeNull())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mehr laden' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere Releases laden' }))
 
-    await waitFor(() => expect(screen.getByText('Episode 2')).not.toBeNull())
-    expect(getGroupReleaseListCursor).toHaveBeenLastCalledWith(1, 2, { cursor: 'cursor-1', limit: 10 })
+    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 2/i })).not.toBeNull())
+    expect(getGroupReleaseListCursor).toHaveBeenLastCalledWith(1, 2, {
+      cursor: 'cursor-1',
+      limit: 10,
+      exclude_release_version_id: 999,
+    })
     // has_more is now false — the fallback button disappears.
-    expect(screen.queryByRole('button', { name: 'Mehr laden' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Releases laden' })).toBeNull()
   })
 
   it('Test 3: the embedded latest release (excludeReleaseVersionId) is filtered out of the list', async () => {
@@ -151,7 +165,32 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={20} />)
 
-    await waitFor(() => expect(screen.getByText('Episode 1')).not.toBeNull())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
     expect(screen.queryByText('Neuestes Release')).toBeNull()
+  })
+
+  it('zeigt pro Kara-Gruppe zunächst drei Einträge und klappt weitere auf', async () => {
+    getGroupReleaseListCursor.mockResolvedValueOnce({
+      items: [makeEpisode({
+        id: 10,
+        timeline_segments: [1, 2, 3, 4].map((id) => ({
+          id,
+          type: 'OP',
+          title: `Opening ${id}`,
+          version: id === 4 ? 'Alternative Version' : null,
+        })),
+      })],
+      next_cursor: null,
+      has_more: false,
+    })
+
+    render(<OlderReleasesList animeID={1} groupID={2} />)
+    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
+    fireEvent.click(screen.getByRole('button', { name: /Folge 1/i }))
+    const region = screen.getByRole('region', { name: /Folge 1/i })
+    expect(within(region).queryByText('Opening 4')).toBeNull()
+    fireEvent.click(within(region).getByRole('button', { name: '1 weitere anzeigen' }))
+    expect(within(region).getByText('Opening 4')).not.toBeNull()
+    expect(within(region).getByText('Alternative Version')).not.toBeNull()
   })
 })

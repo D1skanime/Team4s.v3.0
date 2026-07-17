@@ -9,6 +9,7 @@ import { ReleasesSection } from './ReleasesSection'
 const makeEpisode = (overrides: Partial<EpisodeReleaseSummary> = {}): EpisodeReleaseSummary => ({
   id: 1,
   episode_number: 1,
+  episode_number_label: 'Folge 1',
   has_op: false,
   has_ed: false,
   karaoke_count: 0,

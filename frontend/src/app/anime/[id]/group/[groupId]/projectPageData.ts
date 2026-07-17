@@ -104,7 +104,7 @@ export function parsePublicFansubProjectRouteParams(
 
 export { buildPublicFansubProjectPath };
 
-const RELEASE_PREVIEW_LIMIT = 6;
+const RELEASE_PREVIEW_LIMIT = 1;
 const NOTE_EXCERPT_LENGTH = 150;
 
 function stripHtmlExcerpt(bodyHtml: string): string {
@@ -152,7 +152,8 @@ function buildTimelineSegment(
     label: segment.title || segment.type,
     leftPercent,
     widthPercent,
-    href,
+    href: `${href}?kara=${segment.id}&autoplay=1#op-ed-middle`,
+    versionLabel: segment.version?.trim() || undefined,
   };
 }
 
@@ -189,7 +190,7 @@ function buildPublicReleasePreview({
   return {
     id: release.id,
     href,
-    episodeLabel: `Folge ${release.episode_number}`,
+    episodeLabel: release.episode_number_label?.trim() || `Folge ${release.episode_number}`,
     title: detail?.title ?? release.title ?? "",
     versionLabel: release.version_label ?? undefined,
     releasedAtLabel: release.released_at ?? undefined,
@@ -312,7 +313,7 @@ export async function loadPublicFansubProjectPageData({
   try {
     const activityPage = await getGroupReleaseListCursor(animeID, groupID, {
       limit: RELEASE_PREVIEW_LIMIT,
-      sort: "activity",
+      sort: "release_date",
     });
     const latestRelease = activityPage.items[0] ?? null;
     let latestDetail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null = null;
@@ -388,7 +389,7 @@ export async function loadPublicFansubProjectPageData({
     contributorsData.team_members.length > 0 ||
     contributorsData.external_contributors.length > 0;
   const storyAvailable = hasStoryContent(group.story, projectNotesHtml);
-  const hasReleases = releaseEpisodes.length > 0;
+  const hasReleases = releaseEpisodes.length > 0 || publicReleasePreviews.length > 0;
   const hasThemes = themesData.themes.length > 0;
   const hasMedia = releaseMediaData.items.length > 0;
 

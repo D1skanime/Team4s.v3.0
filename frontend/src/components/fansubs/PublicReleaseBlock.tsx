@@ -35,6 +35,7 @@ export interface PublicReleaseTimelineSegment {
   leftPercent: number
   widthPercent: number
   href: string
+  versionLabel?: string
 }
 
 export interface PublicReleasePreview {
@@ -169,7 +170,7 @@ function Timeline({ release }: { release: PublicReleasePreview }) {
 }
 
 function FeaturedRelease({ release }: { release: PublicReleasePreview }) {
-  const previewImages = release.imagePreviews ?? []
+  const previewImages = (release.imagePreviews ?? []).filter((image) => image.id !== release.heroImage?.id)
   const previewNotes = release.notePreviews ?? []
   const contributors = release.contributors ?? []
   const releaseVersion = versionOnlyLabel(release.versionLabel)

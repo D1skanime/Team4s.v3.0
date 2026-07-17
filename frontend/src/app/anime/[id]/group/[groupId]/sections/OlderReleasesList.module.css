@@ -329,3 +329,115 @@
   width: 1px;
   height: 1px;
 }
+
+.list > .rowActions {
+  display: none;
+}
+
+@media (max-width: 768px) {
+/* Mobile Release-Accordions: bestehende Timeline-Selektoren als kompakte Kara-Zeilen. */
+.list > .timelinePreview {
+  display: none;
+}
+
+.list > .rowActions {
+  display: block;
+  width: auto;
+}
+
+.timelinePreview {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.timelineTrack {
+  position: static;
+  display: grid;
+  gap: var(--space-2);
+  height: auto;
+  padding: var(--space-3);
+  overflow: visible;
+  background: transparent;
+}
+
+.timelineTrack::before {
+  content: none;
+}
+
+.timelineTimes {
+  justify-content: flex-start;
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.segmentPill,
+.segmentPill:hover,
+.segmentPill:focus-visible {
+  position: static;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: none;
+  min-height: var(--control-height-md);
+  height: auto;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card-muted);
+  color: var(--text-body);
+  text-decoration: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.segmentPill:hover,
+.segmentPill:focus-visible {
+  border-color: var(--border-strong);
+  background: var(--surface-sunken);
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.segmentType,
+.segmentTime {
+  position: static;
+  max-width: none;
+  overflow: hidden;
+  transform: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.segmentType {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.segmentTime {
+  color: var(--text-soft);
+  font-size: 0.75rem;
+}
+
+  .rowHeader {
+    align-items: flex-start;
+  }
+
+  .rowTitleLine {
+    grid-template-columns: auto auto auto;
+  }
+
+  .rowTitleLine .rowMeta {
+    grid-column: 1 / -1;
+  }
+
+  .rowCountGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+}

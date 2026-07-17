@@ -23,15 +23,19 @@ interface ReleasesSectionProps {
  */
 export function ReleasesSection({ episodes, publicReleasePreviews, animeID, groupID, canonicalProjectPath }: ReleasesSectionProps) {
   if (episodes.length === 0) return null
-  const [latestRelease, ...otherReleases] = publicReleasePreviews
+  const [latestRelease] = publicReleasePreviews
 
   return (
     <>
       {latestRelease ? (
-        <PublicReleaseBlock latestRelease={latestRelease} releases={otherReleases} />
-      ) : (
-        <OlderReleasesList animeID={animeID} groupID={groupID} canonicalProjectPath={canonicalProjectPath} />
-      )}
+        <PublicReleaseBlock latestRelease={latestRelease} releases={[]} />
+      ) : null}
+      <OlderReleasesList
+        animeID={animeID}
+        groupID={groupID}
+        canonicalProjectPath={canonicalProjectPath}
+        excludeReleaseVersionId={latestRelease?.id}
+      />
       <div className={styles.releasesCta}>
         <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>
           Alle Releases ansehen
