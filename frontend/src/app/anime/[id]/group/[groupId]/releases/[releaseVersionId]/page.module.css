@@ -1,11 +1,17 @@
 .page {
-  max-width: 1180px;
   margin: 0 auto;
   padding: 24px 20px 64px;
   display: grid;
   gap: 32px;
   position: relative;
   isolation: isolate;
+}
+
+@media (min-width: 769px) {
+  .page {
+    width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
+    padding-inline: calc(var(--public-page-gutter) / 2);
+  }
 }
 
 .pageWithBackdrop::before {

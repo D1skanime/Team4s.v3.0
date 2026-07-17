@@ -1,0 +1,45 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { describe, expect, it } from 'vitest'
+
+const readSource = (path: string) => readFileSync(join(process.cwd(), path), 'utf8')
+
+const globalStyles = readSource('src/styles/globals.css')
+const fansubStyles = readSource('src/app/fansubs/[slug]/page.module.css')
+const projectStyles = readSource('src/app/anime/[id]/group/[groupId]/page.module.css')
+const releaseStyles = readSource(
+  'src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/page.module.css',
+)
+
+const basePageRule = (styles: string) => styles.match(/^\.page\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
+
+describe('public page desktop width contract', () => {
+  it('defines the shared default and wide-desktop dimensions globally', () => {
+    expect(globalStyles).toContain('--public-page-max-width: 1360px')
+    expect(globalStyles).toContain('--public-page-gutter: 48px')
+    expect(globalStyles).toMatch(
+      /@media \(min-width: 1600px\)[\s\S]*--public-page-max-width: 1480px;[\s\S]*--public-page-gutter: 64px;/,
+    )
+  })
+
+  it('keeps the fansub page as the canonical consumer without local desktop literals', () => {
+    expect(fansubStyles.match(/var\(--public-page-max-width\)/g)).toHaveLength(4)
+    expect(fansubStyles.match(/var\(--public-page-gutter\)/g)).toHaveLength(3)
+    expect(fansubStyles).not.toContain('@media (min-width: 1600px)')
+  })
+
+  it('applies the same width to project and release pages only above mobile', () => {
+    for (const styles of [projectStyles, releaseStyles]) {
+      expect(styles).toContain('@media (min-width: 769px)')
+      expect(styles).toContain(
+        'width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)))',
+      )
+      expect(styles).toContain('padding-inline: calc(var(--public-page-gutter) / 2)')
+    }
+
+    expect(basePageRule(projectStyles)).not.toContain('max-width: 1200px')
+    expect(basePageRule(releaseStyles)).not.toContain('max-width: 1180px')
+    expect(projectStyles).toMatch(/@media \(min-width: 769px\)[\s\S]*?\.heroFg\s*\{\s*width: 100%;/)
+  })
+})

@@ -1,5 +1,4 @@
 .page {
-  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   display: grid;
@@ -68,6 +67,17 @@
   width: min(1200px, 100% - 40px);
   margin: 0 auto;
   padding: 26px 0 10px;
+}
+
+@media (min-width: 769px) {
+  .page {
+    width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
+    padding-inline: calc(var(--public-page-gutter) / 2);
+  }
+
+  .heroFg {
+    width: 100%;
+  }
 }
 
 /* Glas-Panel: Banner + Inhalt wie auf der Public-Fansubgruppe */

@@ -156,6 +156,17 @@
   --z-drawer: 80;
   --z-modal: 90;
   --z-toast: 100;
+
+  /* Gemeinsamer Breitenvertrag fuer oeffentliche Fansub-Oberflaechen. */
+  --public-page-max-width: 1360px;
+  --public-page-gutter: 48px;
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --public-page-max-width: 1480px;
+    --public-page-gutter: 64px;
+  }
 }
 
 *,

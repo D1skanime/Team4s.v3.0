@@ -1,13 +1,7 @@
 .page {
-  width: min(1360px, 100% - 48px);
+  width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
   margin: 0 auto;
   padding: 0 0 64px;
-}
-
-@media (min-width: 1600px) {
-  .page {
-    width: min(1480px, 100% - 64px);
-  }
 }
 
 .backLink {
@@ -68,15 +62,9 @@
 .heroFg {
   position: relative;
   z-index: 1;
-  width: min(1360px, 100% - 48px);
+  width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
   margin: 0 auto;
   padding-bottom: 20px;
-}
-
-@media (min-width: 1600px) {
-  .heroFg {
-    width: min(1480px, 100% - 64px);
-  }
 }
 
 /* Banner + Inhalt als EIN durchscheinender Glas-Block (Variante B) */
@@ -305,14 +293,8 @@
 }
 
 .gridSection {
-  width: min(1360px, 100% - 48px);
+  width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
   margin: 40px auto 0;
-}
-
-@media (min-width: 1600px) {
-  .gridSection {
-    width: min(1480px, 100% - 64px);
-  }
 }
 
 /* Section-Band: sanfter, unscharfer Banner-Backdrop hinter einer Sektion */
@@ -341,7 +323,7 @@
 
 @media (max-width: 767px) {
   .page {
-    width: min(100% - 24px, 1360px);
+    width: min(calc(100% - 24px), var(--public-page-max-width));
     padding-top: 0;
   }
 
