@@ -3,8 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
-import { AdjacentNavigation, AvatarStack } from "@/components/ui";
-import { resolveApiUrl } from "@/lib/api";
+import { AdjacentNavigation } from "@/components/ui";
 import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
 import type { FansubGroupSummary } from "@/types/fansub";
 import type { GroupDetail, EpisodeReleaseSummary } from "@/types/group";
@@ -13,6 +12,7 @@ import type { AnimeDetail } from "@/types/anime";
 
 import { GroupAssetShowcase } from "../GroupAssetShowcase";
 import styles from "../page.module.css";
+import { ProjectStats } from "./ProjectStats";
 
 interface HeroSectionProps {
   group: GroupDetail;
@@ -56,7 +56,6 @@ export function HeroSection({
   void heroStyle;
   void infoPanelStyle;
 
-  const projectContributorCount = group.stats.project_contributor_count;
   // Album-Art-Backdrop: Anime-Backdrop bevorzugt, sonst Banner, sonst Poster
   const backdropUrl = heroBackdropUrl ?? infoPanelBackgroundUrl ?? posterImage;
   const coopGroups = cooperationGroups.filter(
@@ -65,36 +64,12 @@ export function HeroSection({
   const hasProjectNavigation = Boolean(
     fansubProjectNavigation.previous || fansubProjectNavigation.next,
   );
-  const coopAvatars = coopGroups.map((coopGroup) => ({
-    id: coopGroup.id,
-    label: coopGroup.name,
-    imageUrl: coopGroup.logo_url ? resolveApiUrl(coopGroup.logo_url) : null,
-  }));
   const identity = (
     <>
       <p className={styles.eyebrow}>{group.fansub.name}</p>
       <h1 className={styles.title}>{anime.title}</h1>
     </>
   );
-  const projectStats = (
-    <dl className={styles.stats}>
-      <div className={styles.statItem}>
-        <dt>Projektmitwirkende</dt>
-        <dd>{projectContributorCount}</dd>
-      </div>
-      <div className={styles.statItem}>
-        <dt>Releases</dt>
-        <dd>{releaseEpisodes.length}</dd>
-      </div>
-      {coopGroups.length > 0 ? (
-        <div className={styles.statItem}>
-          <dt>Coop</dt>
-          <dd><AvatarStack items={coopAvatars} maxVisible={3} /></dd>
-        </div>
-      ) : null}
-    </dl>
-  );
-
   return (
     <>
       <Breadcrumbs items={breadcrumbItems} />
@@ -149,20 +124,11 @@ export function HeroSection({
 
               <div className={styles.heroInfo}>
                 {identity}
-                {projectStats}
-                {coopGroups.length > 0 ? (
-                  <p className={styles.coopLine}>
-                    <span className={styles.coopLabel}>Coop mit</span>{" "}
-                    {coopGroups.map((coopGroup, index) => (
-                      <span key={coopGroup.id} className={styles.coopItem}>
-                        {index > 0 ? <span aria-hidden="true">, </span> : null}
-                        <Link href={`/fansubs/${coopGroup.slug}`} className={styles.coopLink}>
-                          {coopGroup.name}
-                        </Link>
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
+                <ProjectStats
+                  contributorCount={group.stats.project_contributor_count}
+                  releaseCount={releaseEpisodes.length}
+                  coopGroups={coopGroups}
+                />
               </div>
             </div>
             {hasProjectNavigation ? (

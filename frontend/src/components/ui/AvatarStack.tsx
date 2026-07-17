@@ -13,6 +13,11 @@ export interface AvatarStackProps {
   items: AvatarStackItem[]
   maxVisible?: number
   className?: string
+  ariaLabel?: string
+  onOverflowClick?: () => void
+  overflowExpanded?: boolean
+  overflowControls?: string
+  overflowAriaLabel?: string
 }
 
 function initials(label: string) {
@@ -24,12 +29,21 @@ function initials(label: string) {
     .join('') || '?'
 }
 
-export function AvatarStack({ items, maxVisible = 3, className }: AvatarStackProps) {
+export function AvatarStack({
+  items,
+  maxVisible = 3,
+  className,
+  ariaLabel,
+  onOverflowClick,
+  overflowExpanded,
+  overflowControls,
+  overflowAriaLabel,
+}: AvatarStackProps) {
   const visibleItems = items.slice(0, Math.max(0, maxVisible))
   const overflow = Math.max(0, items.length - visibleItems.length)
 
   return (
-    <span className={classNames(styles.avatarStack, className)} aria-label={`${items.length} Einträge`}>
+    <span className={classNames(styles.avatarStack, className)} aria-label={ariaLabel ?? `${items.length} Einträge`}>
       {visibleItems.map((item) => (
         <span key={item.id} className={styles.avatarStackItem} title={item.label}>
           {item.imageUrl ? (
@@ -47,7 +61,18 @@ export function AvatarStack({ items, maxVisible = 3, className }: AvatarStackPro
           <span className={styles.visuallyHidden}>{item.label}</span>
         </span>
       ))}
-      {overflow > 0 ? (
+      {overflow > 0 ? onOverflowClick ? (
+        <button
+          type="button"
+          className={classNames(styles.avatarStackOverflow, styles.avatarStackOverflowButton)}
+          aria-label={overflowAriaLabel ?? `${overflow} weitere anzeigen`}
+          aria-expanded={overflowExpanded}
+          aria-controls={overflowControls}
+          onClick={onOverflowClick}
+        >
+          +{overflow}
+        </button>
+      ) : (
         <span className={styles.avatarStackOverflow} aria-label={`${overflow} weitere`}>
           +{overflow}
         </span>

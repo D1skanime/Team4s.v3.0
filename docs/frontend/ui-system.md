@@ -110,6 +110,12 @@ Aktuell vorbereitet:
 - `AccentRule` ist die globale Wine-Linie für Tabellenköpfe, Abschnittstrenner und ähnliche Akzentlinien
 - erlaubte Linienstärken sind `hairline`, `thin`, `medium` und `strong`
 
+### AvatarStack
+
+- `AvatarStack` zeigt kompakte, überlappende Identitäten bis `maxVisible` und fasst den Rest als `+N` zusammen.
+- Ohne Interaktion bleibt `+N` eine reine Anzeige. Mit `onOverflowClick` wird derselbe Overflow zu einem zugänglichen Button mit `aria-expanded` und `aria-controls`.
+- Die fachliche Detaildarstellung hinter dem Overflow bleibt in der Domain-Komponente; der globale Stack kennt keine Fansub-, Projekt- oder Mitgliederlogik.
+
 ### Card
 
 - `default`

@@ -181,7 +181,7 @@ describe('HeroSection navigation (102-03)', () => {
     )
   })
 
-  it('rendert Kooperation nur als Coop-mit-Link zur anderen Fansubgruppe', () => {
+  it('rendert Kooperation nur einmal als Coop-Partner-Statistik', () => {
     render(
       <HeroSection
         group={group}
@@ -203,8 +203,9 @@ describe('HeroSection navigation (102-03)', () => {
       />,
     )
 
-    expect(screen.getByText('Coop mit')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Honto' }).getAttribute('href')).toBe('/fansubs/honto')
+    expect(screen.getByText('Coop-Partner')).toBeTruthy()
+    expect(screen.getByLabelText('1 Coop-Partner')).toBeTruthy()
+    expect(screen.queryByText('Coop mit')).toBeNull()
     expect(screen.queryByRole('button')).toBeNull()
   })
 
@@ -234,7 +235,7 @@ describe('HeroSection navigation (102-03)', () => {
     expect(screen.getByRole('img', { name: "Viper's Creed Banner" })).toBeTruthy()
   })
 
-  it('rendert auch drei Coop-Gruppen ohne aufklappbares Statistik-Panel', () => {
+  it('rendert auch drei Coop-Gruppen ohne unnötigen Aufklappbutton', () => {
     render(
       <HeroSection
         group={group}
@@ -260,9 +261,9 @@ describe('HeroSection navigation (102-03)', () => {
       />,
     )
 
-    expect(screen.getByRole('link', { name: 'Honto' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Akropolus' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Moonlight' })).toBeTruthy()
+    expect(screen.getByTitle('Honto')).toBeTruthy()
+    expect(screen.getByTitle('Akropolus')).toBeTruthy()
+    expect(screen.getByTitle('Moonlight')).toBeTruthy()
     expect(screen.queryByRole('button')).toBeNull()
   })
 })
