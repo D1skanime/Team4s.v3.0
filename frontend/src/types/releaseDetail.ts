@@ -4,6 +4,7 @@
 import type { ReleaseVersionMediaCategory } from "@/types/releaseVersionMedia";
 
 export interface PublicReleaseContributor {
+  fansub_group_id?: number;
   member_id: number;
   name: string;
   role_label: string;
@@ -12,6 +13,7 @@ export interface PublicReleaseContributor {
 
 export interface PublicReleaseImage {
   id: number;
+  fansub_group_id?: number | null;
   category: ReleaseVersionMediaCategory;
   thumbnail_url: string | null;
   original_url: string | null;
@@ -23,6 +25,7 @@ export interface PublicReleaseImage {
 
 export interface PublicReleaseNote {
   id: number;
+  fansub_group_id?: number | null;
   member_name: string;
   member_id: number;
   member_avatar_url: string | null;
@@ -81,6 +84,7 @@ export interface ReleaseDetailResponse {
   audio_codec: string | null;
   audio_language: string | null;
   subtitle_tracks: PublicReleaseSubtitleTrack[];
+  subtitle_type?: string | null;
   preview_image: PublicReleaseImage | null;
   image_category_totals: Record<ReleaseVersionMediaCategory, number>;
   segments: PublicReleaseSegment[];

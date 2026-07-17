@@ -5883,6 +5883,11 @@ paths:
               properties:
                 category:
                   $ref: "#/components/schemas/ReleaseVersionMediaCategory"
+                fansub_group_id:
+                  type: integer
+                  format: int64
+                  minimum: 1
+                  description: Real participating source group; required when more than one group is possible.
                 caption:
                   type: string
                   nullable: true
@@ -6333,6 +6338,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/segments/{id}/grant:
+    post:
+      tags: [Releases]
+      summary: Issue an anonymous short-lived grant for one ready karaoke segment
+      description: |
+        Public and session-independent. The signed grant is bound to the persisted
+        segment id, release_version_id and current cache context. It cannot be used
+        by full-release playback endpoints and accepts no free-form time offsets.
+      operationId: createPublicSegmentStreamGrant
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: release_version_id
+          in: query
+          required: true
+          schema: { type: integer, format: int64, minimum: 1 }
+      responses:
+        "201":
+          description: Public segment grant created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicSegmentStreamGrantResponse"
+        "400":
+          description: Invalid segment or release-version id
+          content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        "404":
+          description: Segment or bound release source not found
+          content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        "409":
+          description: Segment has no ready curated playback source
+          content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
+        "503":
+          description: Grant service unavailable
+          content: { application/json: { schema: { $ref: "#/components/schemas/ErrorResponse" } } }
   /api/v1/segments/{id}/render:
     post:
       tags: [Releases]
@@ -11429,6 +11472,11 @@ components:
           type: integer
           format: int64
           description: Canonical release-version scope for this media relation.
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Persisted real source group; null only for legacy gaps.
         media_asset_id:
           type: integer
           format: int64
@@ -11653,6 +11701,23 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/SegmentStreamGrant"
+    PublicSegmentStreamGrant:
+      type: object
+      required: [theme_segment_id, release_version_id, grant_token, expires_at, ttl_seconds]
+      properties:
+        theme_segment_id: { type: integer, format: int64 }
+        release_version_id: { type: integer, format: int64 }
+        grant_token:
+          type: string
+          description: Audience-separated signed grant; contains no user identity.
+        expires_at: { type: integer, format: int64 }
+        ttl_seconds: { type: integer, format: int64 }
+    PublicSegmentStreamGrantResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/PublicSegmentStreamGrant"
     SegmentRenderCache:
       type: object
       required:
@@ -12227,8 +12292,11 @@ components:
             $ref: "#/components/schemas/PublicReleaseMediaItem"
     PublicReleaseContributor:
       type: object
-      required: [member_id, name, role_label, avatar_url]
+      required: [fansub_group_id, member_id, name, role_label, avatar_url]
       properties:
+        fansub_group_id:
+          type: integer
+          format: int64
         member_id:
           type: integer
           format: int64
@@ -12247,6 +12315,10 @@ components:
         id:
           type: integer
           format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
         category:
           type: string
           enum: [screenshot, typesetting_karaoke, fun_outtake, other]
@@ -12274,6 +12346,10 @@ components:
         id:
           type: integer
           format: int64
+        fansub_group_id:
+          type: integer
+          format: int64
+          nullable: true
         member_name:
           type: string
         member_id:
@@ -12357,6 +12433,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicReleaseSubtitleTrack"
+        subtitle_type:
+          type: string
+          nullable: true
+          description: Canonical release-variant subtitle type, for example softsub or hardsub.
         preview_image:
           allOf:
             - $ref: "#/components/schemas/PublicReleaseImage"

@@ -297,11 +297,13 @@ func (h *GroupPublicHandler) GetGroupReleaseImages(c *gin.Context) {
 // GetGroupReleaseDetail. Kein zusaetzlicher Ownership-Check gegen animeID/groupID
 // hier — die initiale volle Detailseite validiert das bereits.
 func (h *GroupPublicHandler) GetGroupReleaseNotes(c *gin.Context) {
-	if _, err := parseAnimeID(c.Param("id")); err != nil {
+	animeID, err := parseAnimeID(c.Param("id"))
+	if err != nil {
 		badRequest(c, "ungültige anime-id")
 		return
 	}
-	if _, err := parseGroupID(c.Param("groupId")); err != nil {
+	groupID, err := parseGroupID(c.Param("groupId"))
+	if err != nil {
 		badRequest(c, "ungültige group-id")
 		return
 	}
@@ -319,8 +321,12 @@ func (h *GroupPublicHandler) GetGroupReleaseNotes(c *gin.Context) {
 	cursor := c.Query("cursor")
 	limit := parseCursorLimitQuery(c)
 
-	page, err := h.releaseDetailRepo.ListReleaseVersionNotesCursor(c.Request.Context(), releaseVersionID, cursor, limit)
+	page, err := h.releaseDetailRepo.ListReleaseVersionNotesCursor(c.Request.Context(), animeID, groupID, releaseVersionID, cursor, limit)
 	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "release nicht gefunden"}})
+			return
+		}
 		internalError(c, "interner serverfehler")
 		return
 	}

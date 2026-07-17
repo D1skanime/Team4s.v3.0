@@ -32,19 +32,21 @@ func NewReleaseDetailPublicRepository(db *pgxpool.Pool, mediaStorageDir string) 
 
 // PublicReleaseContributor ist ein oeffentlich sichtbarer Beteiligter einer Release-Version.
 type PublicReleaseContributor struct {
-	MemberID  int64   `json:"member_id"`
-	Name      string  `json:"name"`
-	RoleLabel string  `json:"role_label"`
-	AvatarURL *string `json:"avatar_url"`
+	FansubGroupID int64   `json:"fansub_group_id"`
+	MemberID      int64   `json:"member_id"`
+	Name          string  `json:"name"`
+	RoleLabel     string  `json:"role_label"`
+	AvatarURL     *string `json:"avatar_url"`
 }
 
 // PublicReleaseImage ist ein oeffentlich sichtbares Bild einer Release-Version.
 type PublicReleaseImage struct {
-	ID           int64   `json:"id"`
-	Category     string  `json:"category"`
-	ThumbnailURL *string `json:"thumbnail_url"`
-	OriginalURL  *string `json:"original_url"`
-	Caption      *string `json:"caption"`
+	ID            int64   `json:"id"`
+	FansubGroupID *int64  `json:"fansub_group_id"`
+	Category      string  `json:"category"`
+	ThumbnailURL  *string `json:"thumbnail_url"`
+	OriginalURL   *string `json:"original_url"`
+	Caption       *string `json:"caption"`
 	// AuthorName ist der aufgeloeste Anzeigename des Hochladers (release_version_media.uploaded_by_user_id),
 	// nil wenn kein Hochlader hinterlegt oder kein Anzeigename ermittelbar ist (AO4-18 Autor-Chip).
 	AuthorName         *string `json:"author_name"`
@@ -54,6 +56,7 @@ type PublicReleaseImage struct {
 // PublicReleaseNote ist ein oeffentlich sichtbarer Textbeitrag einer Release-Version.
 type PublicReleaseNote struct {
 	ID              int64     `json:"id"`
+	FansubGroupID   *int64    `json:"fansub_group_id"`
 	MemberID        int64     `json:"member_id"`
 	MemberName      string    `json:"member_name"`
 	MemberAvatarURL *string   `json:"member_avatar_url"`
@@ -118,6 +121,7 @@ type PublicReleaseDetail struct {
 	AudioCodec          *string                          `json:"audio_codec"`
 	AudioLanguage       *string                          `json:"audio_language"`
 	SubtitleTracks      []PublicReleaseSubtitleTrack     `json:"subtitle_tracks"`
+	SubtitleType        *string                          `json:"subtitle_type"`
 	PreviewImage        *PublicReleaseImage              `json:"preview_image"`
 	ImageCategoryTotals PublicReleaseImageCategoryTotals `json:"image_category_totals"`
 	Segments            []PublicReleaseSegment           `json:"segments"`
@@ -222,7 +226,7 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 		ReleaseDate:      header.ReleaseDate,
 		DurationSeconds:  technical.DurationSeconds, Resolution: technical.Resolution, Container: technical.Container,
 		VideoCodec: technical.VideoCodec, AudioCodec: technical.AudioCodec, AudioLanguage: technical.AudioLanguage,
-		SubtitleTracks: tracks, PreviewImage: preview, ImageCategoryTotals: categoryTotals, Segments: segments,
+		SubtitleTracks: tracks, SubtitleType: technical.SubtitleType, PreviewImage: preview, ImageCategoryTotals: categoryTotals, Segments: segments,
 		Previous: previous, Next: next,
 		ImagesCount:       imagesCount,
 		NotesCount:        notesCount,
@@ -344,6 +348,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 	query := fmt.Sprintf(`
 		SELECT
 			rvm.id,
+			rvm.fansub_group_id,
 			rvm.category,
 			rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
@@ -386,7 +391,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&row.image.ID, &row.image.Category, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate); err != nil {
+		if err := rows.Scan(&row.image.ID, &row.image.FansubGroupID, &row.image.Category, &row.image.Caption, &thumbnailPath, &originalPath, &row.sortOrder, &row.image.AuthorName, &row.image.IsPreviewCandidate); err != nil {
 			return nil, fmt.Errorf("release detail: scan image cursor row: %w", err)
 		}
 		if thumbnailPath != nil {
@@ -426,11 +431,16 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionImagesCursor(
 // beide Paare explizit).
 func (r *ReleaseDetailPublicRepository) ListReleaseVersionNotesCursor(
 	ctx context.Context,
+	animeID int64,
+	groupID int64,
 	releaseVersionID int64,
 	cursor string,
 	limit int,
 ) (*ReleaseNotesCursorPage, error) {
 	limit = clampCursorLimit(limit)
+	if _, err := r.loadReleaseHeader(ctx, animeID, groupID, releaseVersionID); err != nil {
+		return nil, err
+	}
 
 	args := []any{releaseVersionID}
 	seekSQL := ""
@@ -442,6 +452,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionNotesCursor(
 	query := fmt.Sprintf(`
 		SELECT
 			rvn.id,
+			rvn.fansub_group_id,
 			rvn.member_id,
 			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), 'Mitglied') AS member_name,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
@@ -470,7 +481,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionNotesCursor(
 	items := make([]PublicReleaseNote, 0, limit+1)
 	for rows.Next() {
 		var item PublicReleaseNote
-		if err := rows.Scan(&item.ID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.BodyHTML, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.BodyHTML, &item.CreatedAt); err != nil {
 			return nil, fmt.Errorf("release detail: scan note cursor row: %w", err)
 		}
 		items = append(items, item)

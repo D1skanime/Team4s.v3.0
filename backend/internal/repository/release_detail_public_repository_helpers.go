@@ -32,6 +32,7 @@ func isPublicReleaseImageCategory(category string) bool {
 type publicReleaseTechnical struct {
 	DurationSeconds                                              *int32
 	Resolution, Container, VideoCodec, AudioCodec, AudioLanguage *string
+	SubtitleType                                                 *string
 }
 
 func (r *ReleaseDetailPublicRepository) loadReleaseGroups(ctx context.Context, releaseVersionID int64) ([]PublicReleaseGroup, error) {
@@ -53,7 +54,7 @@ func (r *ReleaseDetailPublicRepository) loadReleaseGroups(ctx context.Context, r
 
 func (r *ReleaseDetailPublicRepository) loadReleaseTechnical(ctx context.Context, releaseVersionID int64) (publicReleaseTechnical, []PublicReleaseSubtitleTrack, error) {
 	var out publicReleaseTechnical
-	err := r.db.QueryRow(ctx, `SELECT rv.duration_seconds, NULLIF(TRIM(COALESCE(rv.resolution, rv.video_quality)),''), NULLIF(TRIM(rv.container),''), NULLIF(TRIM(rv.video_codec),''), NULLIF(TRIM(rv.audio_codec),''), NULLIF(TRIM(al.code),'') FROM release_variants rv LEFT JOIN release_streams ars ON ars.variant_id=rv.id AND ars.audio_language_id IS NOT NULL LEFT JOIN languages al ON al.id=ars.audio_language_id WHERE rv.release_version_id=$1 ORDER BY rv.id LIMIT 1`, releaseVersionID).Scan(&out.DurationSeconds, &out.Resolution, &out.Container, &out.VideoCodec, &out.AudioCodec, &out.AudioLanguage)
+	err := r.db.QueryRow(ctx, `SELECT rv.duration_seconds, NULLIF(TRIM(COALESCE(rv.resolution, rv.video_quality)),''), NULLIF(TRIM(rv.container),''), NULLIF(TRIM(rv.video_codec),''), NULLIF(TRIM(rv.audio_codec),''), NULLIF(TRIM(al.code),''), NULLIF(TRIM(rv.subtitle_type),'') FROM release_variants rv LEFT JOIN release_streams ars ON ars.variant_id=rv.id AND ars.audio_language_id IS NOT NULL LEFT JOIN languages al ON al.id=ars.audio_language_id WHERE rv.release_version_id=$1 ORDER BY rv.id LIMIT 1`, releaseVersionID).Scan(&out.DurationSeconds, &out.Resolution, &out.Container, &out.VideoCodec, &out.AudioCodec, &out.AudioLanguage, &out.SubtitleType)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return out, nil, fmt.Errorf("release detail: load technical data: %w", err)
 	}
@@ -163,6 +164,7 @@ const uploaderAuthorNameJoin = `
 func (r *ReleaseDetailPublicRepository) loadContributors(ctx context.Context, releaseVersionID int64) ([]PublicReleaseContributor, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
+			ac.fansub_group_id,
 			ac.member_id,
 			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), 'Mitglied') AS member_name,
 			NULLIF(TRIM(member_avatar.file_path), '') AS avatar_url,
@@ -179,7 +181,7 @@ func (r *ReleaseDetailPublicRepository) loadContributors(ctx context.Context, re
 		WHERE ac.release_version_id = $1
 		  AND ac.is_public_on_anime_page = true
 		  AND COALESCE(v.name, 'public') = 'public'
-		GROUP BY ac.id, ac.member_id, m.nickname, m.display_name, member_avatar.file_path
+		GROUP BY ac.id, ac.fansub_group_id, ac.member_id, m.nickname, m.display_name, member_avatar.file_path
 		ORDER BY member_name ASC
 	`, releaseVersionID)
 	if err != nil {
@@ -190,7 +192,7 @@ func (r *ReleaseDetailPublicRepository) loadContributors(ctx context.Context, re
 	items := make([]PublicReleaseContributor, 0)
 	for rows.Next() {
 		var item PublicReleaseContributor
-		if err := rows.Scan(&item.MemberID, &item.Name, &item.AvatarURL, &item.RoleLabel); err != nil {
+		if err := rows.Scan(&item.FansubGroupID, &item.MemberID, &item.Name, &item.AvatarURL, &item.RoleLabel); err != nil {
 			return nil, fmt.Errorf("release detail: scan contributor row: %w", err)
 		}
 		items = append(items, item)
@@ -206,7 +208,7 @@ func (r *ReleaseDetailPublicRepository) loadContributors(ctx context.Context, re
 func (r *ReleaseDetailPublicRepository) countContributors(ctx context.Context, releaseVersionID int64) (int64, error) {
 	var count int64
 	err := r.db.QueryRow(ctx, `
-		SELECT COUNT(DISTINCT ac.member_id)
+		SELECT COUNT(DISTINCT (ac.fansub_group_id, ac.member_id))
 		FROM anime_contributions ac
 		LEFT JOIN visibilities v ON v.id = ac.visibility_id
 		WHERE ac.release_version_id = $1
@@ -235,7 +237,7 @@ func (r *ReleaseDetailPublicRepository) loadImages(ctx context.Context, releaseV
 			thumbnailPath *string
 			originalPath  *string
 		)
-		if err := rows.Scan(&item.ID, &item.Category, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName, &item.IsPreviewCandidate); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.Category, &item.Caption, &thumbnailPath, &originalPath, &item.AuthorName, &item.IsPreviewCandidate); err != nil {
 			return nil, fmt.Errorf("release detail: scan image row: %w", err)
 		}
 		if thumbnailPath != nil {
@@ -280,6 +282,7 @@ func (r *ReleaseDetailPublicRepository) imagesQuery() string {
 	return fmt.Sprintf(`
 		SELECT
 			rvm.id,
+			rvm.fansub_group_id,
 			rvm.category,
 			rvm.caption,
 			COALESCE(mf_thumb.path, '') AS thumbnail_path,
@@ -308,6 +311,7 @@ func (r *ReleaseDetailPublicRepository) loadNotes(ctx context.Context, releaseVe
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			rvn.id,
+			rvn.fansub_group_id,
 			rvn.member_id,
 			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), 'Mitglied') AS member_name,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
@@ -332,7 +336,7 @@ func (r *ReleaseDetailPublicRepository) loadNotes(ctx context.Context, releaseVe
 	items := make([]PublicReleaseNote, 0)
 	for rows.Next() {
 		var item PublicReleaseNote
-		if err := rows.Scan(&item.ID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.BodyHTML, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.BodyHTML, &item.CreatedAt); err != nil {
 			return nil, fmt.Errorf("release detail: scan note row: %w", err)
 		}
 		items = append(items, item)
