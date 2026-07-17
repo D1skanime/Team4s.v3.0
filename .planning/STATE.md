@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
 stopped_at: Phase 103 implementation complete; live UAT pending
-last_updated: "2026-07-16T11:45:08.009Z"
-last_activity: 2026-07-16
+last_updated: "2026-07-17T14:02:00.000Z"
+last_activity: 2026-07-17
 progress:
   total_phases: 94
   completed_phases: 79
@@ -558,6 +558,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260717-lqt | Desktop-Maximalbreite der öffentlichen Fansub-, Projekt- und Release-Seite auf gemeinsamen 1360/1480-px-Vertrag ausrichten | 2026-07-17 | e5d8f7ae | [260717-lqt-desktop-maximalbreite-von-fansub-projekt](./quick/260717-lqt-desktop-maximalbreite-von-fansub-projekt/) |
 | 260717-erh | Public Release-Detailseite: mobiles Hero-Accordion, Quellgruppen für Bilder/Texte und öffentliche Kara-Segmente | 2026-07-17 | 02db4bf5 | [260717-erh-public-fansub-projektseite-mobile-redesi](./quick/260717-erh-public-fansub-projektseite-mobile-redesi/) |
 | 260717-d7i | Public Fansub-Projektseite: Mobile Identity-Card, Coop-Stack, Release-Accordions und Kara-Deep-Links | 2026-07-17 | 65eb8985 | [260717-d7i-public-fansub-projektseite-mobile-redesi](./quick/260717-d7i-public-fansub-projektseite-mobile-redesi/) |
 | 260713-history-timeline-pair-alignment | Public Fansub-Historie: Badge und Infokarte als stabiles Timeline-Paar ausrichten | 2026-07-13 | this commit | [260713-history-timeline-pair-alignment](./quick/260713-history-timeline-pair-alignment/) |
@@ -630,5 +631,5 @@ Recent durable decisions:
 
 Last session: 2026-07-16T11:45:07.960Z
 Stopped at: Phase 103 implementation complete; live UAT pending
-Last activity: 2026-07-17 - Completed quick task 260717-erh: Public Release-Detailseite Mobile Redesign Add-on
+Last activity: 2026-07-17 - Completed quick task 260717-lqt: Gemeinsame Desktop-Maximalbreite für Fansub-, Projekt- und Release-Seite
 Resume file: .planning/phases/103-ffentliche-release-detailseite-als-fansub-story-mit-rechte-g/103-HUMAN-UAT.md
