@@ -73,6 +73,12 @@ function segmentStyle(segment: PublicReleaseTimelineSegment): CSSProperties {
   } as CSSProperties
 }
 
+function segmentLabelAlignment(segment: PublicReleaseTimelineSegment): 'start' | 'center' | 'end' {
+  if (segment.leftPercent < 20) return 'start'
+  if (segment.leftPercent + segment.widthPercent > 80) return 'end'
+  return 'center'
+}
+
 function timelineLineColor(type: PublicReleaseTimelineSegment['type']): string {
   if (type === 'OP') return 'rgba(68, 255, 164, 0.72)'
   if (type === 'ED') return 'rgba(44, 205, 255, 0.72)'
@@ -161,7 +167,12 @@ function Timeline({ release }: { release: PublicReleasePreview }) {
             style={segmentStyle(segment)}
             aria-label={`${segment.label} öffnen`}
           >
-            <span className={styles.timelineSegmentLabel}>{segment.label}</span>
+            <span
+              className={styles.timelineSegmentLabel}
+              data-alignment={segmentLabelAlignment(segment)}
+            >
+              {segment.label}
+            </span>
           </a>
         ))}
       </div>

@@ -63,6 +63,7 @@ const release: PublicReleasePreview = {
   ],
   timelineSegments: [
     { id: 1, type: 'OP', label: 'Regenzeichen', timeLabel: '00:01:42', leftPercent: 8, widthPercent: 16, href: '#op' },
+    { id: 2, type: 'ED', label: 'Abspannlied', timeLabel: '00:21:42', leftPercent: 92, widthPercent: 6, href: '#ed' },
   ],
 }
 
@@ -79,6 +80,8 @@ describe('PublicReleaseBlock', () => {
     expect(screen.getAllByText('3 Fansubber').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Karas').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Regenzeichen').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Regenzeichen').every((label) => label.getAttribute('data-alignment') === 'start')).toBe(true)
+    expect(screen.getAllByText('Abspannlied').every((label) => label.getAttribute('data-alignment') === 'end')).toBe(true)
     expect(screen.queryByText('00:23:41')).toBeNull()
     expect(screen.queryByText('00:01:42')).toBeNull()
     expect(screen.queryByText('Hauptinhalt')).toBeNull()

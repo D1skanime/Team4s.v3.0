@@ -392,6 +392,20 @@
   font-size: 0.78rem;
 }
 
+.timelineSegmentLabel[data-alignment="start"] {
+  left: 0;
+  right: auto;
+  text-align: left;
+  transform: none;
+}
+
+.timelineSegmentLabel[data-alignment="end"] {
+  right: 0;
+  left: auto;
+  text-align: right;
+  transform: none;
+}
+
 .timelineSegmentOp {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.18) 42%, rgba(255, 255, 255, 0.03) 43%),
@@ -605,12 +619,13 @@
   transform: none;
 }
 
-.sectionMobile .timelineSegmentLabel {
+.sectionMobile .timelineSegmentLabel[data-alignment] {
   position: static;
   transform: none;
   grid-column: 2;
   max-width: 100%;
   font-size: 0.82rem;
+  text-align: left;
   white-space: normal;
 }
 
@@ -740,12 +755,13 @@
     transform: none;
   }
 
-  .timelineSegmentLabel {
+  .timelineSegmentLabel[data-alignment] {
     position: static;
     transform: none;
     grid-column: 2;
     max-width: 100%;
     font-size: 0.82rem;
+    text-align: left;
     white-space: normal;
   }
 
