@@ -22,6 +22,15 @@ Normal UI code owns only:
 - current-user and capability data returned by the backend
 - local loading, error, and disabled states
 
+## Cookie Security (Protocol-Aware `Secure`)
+
+`api.ts`'s single `writeBrowserCookie` helper is the only place that ever writes or deletes a browser auth cookie (access token, refresh token, display name) — normal writes via `persistAuthSession` and deletions via `clearAuthSession` (`Max-Age=0`) both funnel through it. It decides the `Secure` attribute at write time based on the real browser context, not a build-time flag:
+
+- `window.location.protocol === 'https:'` → every auth-cookie write appends `; Secure`, including deletions.
+- Any plain `http:` context, including local development on `http://127.0.0.1`, omits `Secure` so the cookie remains readable/writable and local auth keeps working.
+
+`Path=/`, `Max-Age=<seconds>`, and `SameSite=Lax` are unaffected by this decision and remain on every write. This is a protocol-aware `Secure` attribute on an existing browser-readable cookie, not an `httpOnly` cookie and not a BFF/proxy redesign — no cookie ownership moves out of `api.ts`. `frontend/src/lib/api.auth-cookie.test.ts` covers HTTPS, local HTTP, normal writes, and clear/logout writes deterministically via a jsdom `document.cookie` capture.
+
 ## Token-Free UI Usage
 
 Use `useAuthSession()` for UI gating:

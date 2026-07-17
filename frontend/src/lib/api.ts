@@ -544,9 +544,28 @@ function readBrowserCookie(name: string): string {
 }
 
 /**
+ * Ermittelt, ob der aktuelle Browser-Kontext über HTTPS läuft. Nur dann darf
+ * ein Cookie das `Secure`-Attribut tragen — sonst funktioniert lokale
+ * Entwicklung über `http://127.0.0.1` nicht mehr, da Browser `Secure`-Cookies
+ * über Klartext-HTTP verwerfen.
+ */
+function isSecureBrowserContext(): boolean {
+  if (typeof window === "undefined" || !window.location) {
+    return false;
+  }
+
+  return window.location.protocol === "https:";
+}
+
+/**
  * Schreibt einen Cookie mit SameSite=Lax und konfigurierbarer Lebensdauer.
  * Wird für Auth-Tokens genutzt damit der Token beim Seitenaufruf direkt
- * verfügbar ist — ohne Roundtrip über localStorage.
+ * verfügbar ist — ohne Roundtrip über localStorage. Das `Secure`-Attribut
+ * wird protokoll-abhängig angehängt: HTTPS-Kontexte erhalten es immer,
+ * Klartext-HTTP (inkl. `http://127.0.0.1` für lokale Entwicklung) nie.
+ * Dies ist die einzige Stelle, die Browser-Auth-Cookies schreibt oder löscht
+ * (auch Löschungen via Max-Age=0 laufen hier durch) — Seiten/Komponenten
+ * greifen nie direkt auf document.cookie zu.
  */
 function writeBrowserCookie(
   name: string,
@@ -562,7 +581,8 @@ function writeBrowserCookie(
       ? Math.floor(maxAgeSeconds)
       : 0;
   const encodedValue = encodeURIComponent(value);
-  document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
+  const secureSuffix = isSecureBrowserContext() ? "; Secure" : "";
+  document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secureSuffix}`;
 }
 
 /**
