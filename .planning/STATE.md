@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 104-02-PLAN.md
-last_updated: "2026-07-17T17:34:20.760Z"
+stopped_at: Completed 104-03-PLAN.md
+last_updated: "2026-07-17T18:10:37.085Z"
 last_activity: 2026-07-17
 progress:
   total_phases: 96
   completed_phases: 79
   total_plans: 427
-  completed_plans: 396
+  completed_plans: 397
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 104 (registrierungs-login-und-account-onboarding-hardening) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Accumulated Context
 
@@ -312,6 +312,11 @@ Recent durable decisions:
 - [Phase 104-01]: One idempotent scripts/verify-keycloak-config.ps1 covers both fresh-import and existing-volume update for the roles-scope default-assignment fix and the German branding/locale settings.
 - [Phase 104-01]: theme.properties styles= fully replaces (not merges with) the parent theme's styles on Keycloak 26; the one layout-critical rule this drops from keycloak.v2 is reproduced directly in Team4s's own login.css.
 - [Phase 104-02]: Registration reuses the exact same PKCE state/verifier/challenge transaction as login (intent: 'login'|'register'), only swapping the Keycloak endpoint path to /protocol/openid-connect/registrations; only a validated registration callback (state matched, exchange succeeded) may create the one-shot registrationCompletion marker, never an arbitrary query value.
+- [Phase 104-03]: writeBrowserCookie in api.ts appends Secure only when window.location.protocol is https:, so local http://127.0.0.1 auth keeps working while HTTPS auth cookies (access/refresh/display-name, including logout deletions) all get Secure through the single existing cookie seam.
+- [Phase 104-03]: AppShell gained an additive third mode ('loading', alongside existing authenticated/anonymous) with a neutral drawer footer so session init/refresh/profile-loading never shows a premature Anmelden CTA or a finished account nav at the same time (D-18), without hiding page content site-wide.
+- [Phase 104-03]: A raw 401 that survives the central api.ts refresh-and-retry seam still shows Zur Anmeldung; every other active-session profile load failure shows German Erneut versuchen + Abmelden instead, matching D-19 exactly.
+- [Phase 104-03]: /me/profile consumes the one-shot registrationCompletion marker only inside its own successful-hydration branch (never on mount, never during the Keycloak-return refresh path), so a spoofed/absent marker never creates the confirmation and Keycloak-return refresh never re-triggers it.
+- [Phase 104-03]: Account-only /me/profile view moved from a two-column grid to one stacked column: Mein Account (neutral copy) followed by an unobtrusive Warst du als Fansubber aktiv? claim section.
 
 ### Pending Todos
 
@@ -560,6 +565,7 @@ Recent durable decisions:
 | Phase 102 P06 | 7min | 2 tasks (Task 3 pending final live UAT) | 4 files |
 | Phase 104 P01 | 55min | 2 tasks | 10 files |
 | Phase 104 P02 | 35min | 2 tasks | 8 files |
+| Phase 104 P03 | 35min | 3 tasks | 15 files |
 
 ### Quick Tasks Completed
 
@@ -636,7 +642,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-17T17:34:20.719Z
-Stopped at: Completed 104-02-PLAN.md
+Last session: 2026-07-17T18:10:37.034Z
+Stopped at: Completed 104-03-PLAN.md
 Last activity: 2026-07-17
 Resume file: None

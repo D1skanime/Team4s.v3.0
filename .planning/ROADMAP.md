@@ -1800,7 +1800,7 @@ Plans:
 **Goal:** Den sichtbaren Registrierungs-, Login- und Account-Onboarding-Flow gemäß den bindenden Entscheidungen D-01 bis D-24 in `104-CONTEXT.md` reparieren: normale Accounts bleiben fachlich neutral, Projektflächen setzen eine echte Contribution-/Projektzuordnung voraus, und die bewusst permissive lokale Keycloak-Testkonfiguration bleibt erhalten.
 **Requirements**: P104-REG-1, P104-REG-2, P104-AUTH-1, P104-AUTH-2, P104-ACCOUNT-1, P104-ACCOUNT-2, P104-NAV-1, P104-UAT-1
 **Depends on:** Phase 43 (Keycloak + app_user Foundation), Phase 49 (zentraler Auth/API-Client), Phase 52 (Account-Console Return-Refresh), Phase 72 (Member-/Account-Projektionen), Phase 76 (`/me/contributions`), Phase 80 (globale Rollen-/User-Semantik)
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 
@@ -1811,7 +1811,7 @@ Plans:
 - [x] 104-02-PLAN.md — Direkte deutsche Registrierungs-/Login-CTAs über globalen Button und bestehenden PKCE-Seam sowie vertrauenswürdigen One-shot-Handoff ergänzen
 
 **Wave 3** *(blocked on Wave 2)*
-- [ ] 104-03-PLAN.md — Zentrale Auth-Cookies protokollabhängig mit Secure härten sowie Auth-/Profil-Hydration, neutrale Accountseite, einmalige Bestätigung und freiwillige Fansubber-Verknüpfung konsistent machen
+- [x] 104-03-PLAN.md — Zentrale Auth-Cookies protokollabhängig mit Secure härten sowie Auth-/Profil-Hydration, neutrale Accountseite, einmalige Bestätigung und freiwillige Fansubber-Verknüpfung konsistent machen
 
 **Wave 4** *(blocked on Wave 3)*
 - [ ] 104-04-PLAN.md — Autoritative Projektberechtigung aus echter Zuordnung ergänzen, Navigation gaten und nicht berechtigte Direktaufrufe zu Mein Account umleiten
