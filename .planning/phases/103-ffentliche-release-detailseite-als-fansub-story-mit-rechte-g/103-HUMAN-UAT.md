@@ -3,7 +3,7 @@ status: diagnosed
 phase: 103-ffentliche-release-detailseite-als-fansub-story-mit-rechte-g
 source: [103-01-SUMMARY.md, 103-02-SUMMARY.md, 103-03-SUMMARY.md, 103-04-SUMMARY.md, 103-05-SUMMARY.md]
 started: 2026-07-16
-updated: 2026-07-16
+updated: 2026-07-17
 ---
 
 ## Current Test
@@ -20,15 +20,18 @@ severity: major
 
 ### 2. Vier Bildkapitel auf Desktop, Tablet und Mobil
 expected: Je Kategorie sind initial 6/4/2 Bilder sichtbar; weitere Bilder werden im selben Kapitel aufgeklappt. Uploader, Kategorie und Beschreibung sind korrekt. Die Restanzahl im Button ist pro Breakpoint verständlich.
-result: issue
+result: pass
 reported: "Weitere Bilder anzeigen funktioniert nicht und zeigt 'Weitere 0 Bilder anzeigen'. Bilder sind nicht anklickbar und öffnen nicht das Original wie auf der Fansubseite. Statt separater Kategorien sollen alle Release-Bilder in einem gemeinsamen responsiven Grid stehen. Karten zeigen nur einen gekürzten Text; Klick öffnet die bestehende Lightbox mit Original und vollständigem Text. Kategorie und Uploader müssen als Badge/Metadaten am Bild erkennbar sein."
-severity: major
+retested: "Galerie, Aufklappen und Lightbox funktionieren. Der anschließend gemeldete doppelte Bildtext wurde korrigiert und live geprüft: Die Kategorie steht als Titel, die vollständige Beschreibung erscheint genau einmal."
+previous_retest_issue: "In der Lightbox wurde die Bildbeschreibung doppelt angezeigt: einmal als fetter Titel und einmal als Beschreibung."
+previous_severity: major
 
 ### 3. Rollenbasierte Texte und exakte Beteiligte
 expected: Texte sind nach Release-Rolle gruppiert und zeigen Autor, Rolle und Datum; die Beteiligtenliste enthält nur Personen dieser Release-Version.
-result: issue
+result: skipped
+reason: "Beteiligten-Zuordnung wird auf Wunsch vorerst nicht weiter geprüft."
 reported: "Inhalte, Rollengruppierung und Beteiligte passen, aber auf Desktop bleibt sehr viel weiße Fläche rechts neben den schmalen Rollen-/Textkarten. Die Rollenblöcke sollen auf breiten Ansichten als responsives Zwei-Spalten-Grid den verfügbaren Raum nutzen; Tablet und Mobil bleiben einspaltig."
-severity: cosmetic
+previous_severity: cosmetic
 
 ### 4. Kara als Gast und mit Refresh-only-Session
 expected: Gäste sehen Timeline und Informationen ohne Abspielaktion. Eine eingeloggte Refresh-only-Session wird zentral erneuert und kann verfügbare Segmente starten; Segmentwechsel stoppt den vorherigen Stream. Falls Autoplay blockiert wird, bleibt eine nutzbare Play-Steuerung sichtbar.
@@ -69,23 +72,25 @@ severity: major
 
 ### 10. Anime-Logo als Release-Hero-Fallback
 expected: Ohne freigegebenes Release-Preview verwendet der Hero das vorhandene Anime-Logo auf der atmosphärischen Fläche; fehlt auch das Logo, bleibt der Hero textbasiert. Das Anime-Logo wird nur dargestellt und nicht als Release-Media gespeichert.
-result: issue
-reported: "Verbesserungsvorschlag: Wenn der Release kein Bild hat, soll das Logo des Anime als Fallback verwendet werden."
-severity: minor
+result: pass
+retested: "Ohne Release-Preview wird das vorhandene Anime-Logo im Hero angezeigt."
+previous_reported: "Verbesserungsvorschlag: Wenn der Release kein Bild hat, soll das Logo des Anime als Fallback verwendet werden."
+previous_severity: minor
 
 ## Summary
 
 total: 10
-passed: 2
-issues: 7
+passed: 4
+issues: 4
 pending: 0
-skipped: 1
+skipped: 2
 blocked: 0
 
 ## Gaps
 
 - truth: "Ohne freigegebenes Release-Preview zeigt der Hero das vorhandene Anime-Logo als reinen Darstellungsfallback; ohne Logo bleibt er textbasiert und hängt kein Anime-Medium an die Release-Version."
-  status: failed
+  status: resolved
+  resolved_by_uat: "Live-Test: Ohne Release-Preview ist das vorhandene Anime-Logo im Hero sichtbar."
   reason: "User requested: Bildlose Releases sollen das Anime-Logo statt des identischen Anime-Poster-Fallbacks verwenden."
   severity: minor
   test: 10
@@ -158,7 +163,8 @@ blocked: 0
   debug_session: ".planning/debug/103-karaoke-auth-visibility.md"
 
 - truth: "Rollenbasierte Release-Texte nutzen auf Desktop ein responsives Zwei-Spalten-Grid mit spaltenfüllenden Karten; Tablet und Mobil bleiben gut lesbar einspaltig."
-  status: failed
+  status: deferred
+  deferred_by_uat: "Die Beteiligten-Zuordnung und dieser kombinierte Test werden auf Nutzerwunsch vorerst nicht weiter geprüft."
   reason: "User reported: Die fachliche Darstellung passt, aber auf Desktop bleibt neben den schmalen Textkarten sehr viel ungenutzte weiße Fläche."
   severity: cosmetic
   test: 3
@@ -174,8 +180,12 @@ blocked: 0
   debug_session: ".planning/debug/103-release-text-grid.md"
 
 - truth: "Alle Release-Bilder erscheinen in einem gemeinsamen responsiven Grid, sind über die bestehende Public-Fansub-Lightbox anklickbar, laden das Original mit vollständiger Beschreibung und zeigen Kategorie sowie Uploader; die Kartenbeschreibung ist gekürzt und es erscheint kein wirkungsloser 'Weitere 0 Bilder anzeigen'-Button."
-  status: failed
+  status: resolved
+  resolved_by_live_uat: "Galerie, Aufklappen und Lightbox funktionieren; nach Frontend-Neustart zeigt die Lightbox die Kategorie als Titel und die lange Beschreibung genau einmal."
   reason: "User reported: Der Mehr-anzeigen-Button funktioniert nicht, Bilder sind nicht anklickbar und die Kategorie-Kapitel entsprechen nicht mehr der gewünschten gemeinsamen Grid-Darstellung."
+  latest_retest: "Galerie, Aufklappen und Lightbox funktionieren; die Bildbeschreibung erschien in der Lightbox doppelt als Titel und Beschreibung."
+  latest_root_cause: "ReleaseGallery übergab image.caption gleichzeitig als Lightbox-Titel und Lightbox-Beschreibung."
+  latest_fix: "Der Lightbox-Titel verwendet nun die Kategorie; die vollständige Beschreibung erscheint einmal und wird bei Gleichheit mit dem Kategorietitel dedupliziert. Fokussierte Galerie-Tests und der Live-Browser-Test nach Frontend-Neustart sind grün."
   severity: major
   test: 2
   root_cause: "ReleaseGallery codiert vier Kategorie-Kapitel und eine zu breite Button-Bedingung fest, berechnet den Rest immer gegen Desktop-Limit 6 und rendert reine figure-Elemente ohne Auswahl-/Lightbox-Zustand; die vorhandene FansubMediaLightbox wurde nicht wiederverwendet."

@@ -30,11 +30,13 @@ function mergeImages(previous: PublicReleaseImage[], incoming: PublicReleaseImag
 }
 
 function toLightboxItem(image: PublicReleaseImage): PublicImageLightboxItem {
+  const categoryLabel = CATEGORY_LABELS[image.category]
+  const description = image.caption?.trim()
   return {
     id: image.id,
-    title: image.caption?.trim() || CATEGORY_LABELS[image.category],
-    description: image.caption,
-    media_type: CATEGORY_LABELS[image.category],
+    title: categoryLabel,
+    description: description && description !== categoryLabel ? description : null,
+    media_type: categoryLabel,
     original_url: image.original_url ?? image.thumbnail_url,
   }
 }

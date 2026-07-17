@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from '@/lib/api'
@@ -62,6 +62,17 @@ describe('ReleaseGallery', () => {
     expect(loadImages).not.toHaveBeenCalled()
   })
 
+  it('does not repeat a caption that is identical to the category title in the lightbox', () => {
+    const categoryCaption = image(1, 'typesetting_karaoke')
+    categoryCaption.caption = 'Typesetting-/Karaoke-Beispiel'
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[categoryCaption]} categoryTotals={{ screenshot: 0, typesetting_karaoke: 1, fun_outtake: 0, other: 0 }} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Typesetting-/Karaoke-Beispiel öffnen' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getAllByText('Typesetting-/Karaoke-Beispiel')).toHaveLength(1)
+  })
+
   it('loads every category cursor, deduplicates, and opens the original with full caption', async () => {
     vi.spyOn(api, 'getGroupReleaseImages').mockImplementation(async (_anime, _group, _release, options) => {
       if (options?.category === 'screenshot') return { category: 'screenshot', total: 7, returned_count: 2, items: [image(1), image(7)], next_cursor: null, has_more: false }
@@ -74,8 +85,9 @@ describe('ReleaseGallery', () => {
     expect(api.getGroupReleaseImages).toHaveBeenCalledTimes(3)
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 8 öffnen' }))
-    expect(screen.getByRole('dialog')).toBeTruthy()
-    expect(screen.getAllByText('Vollständige Beschreibung 8').length).toBeGreaterThanOrEqual(2)
-    expect(screen.getAllByAltText('Vollständige Beschreibung 8').some(node => node.getAttribute('src')?.includes('/original-8.jpg'))).toBe(true)
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('heading', { name: 'Typesetting-/Karaoke-Beispiel' })).toBeTruthy()
+    expect(within(dialog).getAllByText('Vollständige Beschreibung 8')).toHaveLength(1)
+    expect(within(dialog).getByAltText('Typesetting-/Karaoke-Beispiel').getAttribute('src')).toContain('/original-8.jpg')
   })
 })

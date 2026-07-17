@@ -1,6 +1,6 @@
 ---
 phase: 103
-verified: 2026-07-16
+verified: 2026-07-17
 status: human_needed
 score: 5/6
 requirements:
@@ -33,7 +33,7 @@ The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requ
 ### P103-SC2 — Passed against accepted UAT revision
 
 - The original roadmap wording described four category chapters. HUMAN-UAT test 2 explicitly superseded that presentation with one common responsive grid while retaining category identity, uploader attribution, full descriptions, and release-version category pagination.
-- `ReleaseGallery` now renders one deduplicated grid, uses semantic image buttons, shows category badges/uploader metadata, opens originals in the generalized existing `FansubMediaLightbox`, and exposes full captions there.
+- `ReleaseGallery` now renders one deduplicated grid, uses semantic image buttons, shows category badges/uploader metadata, opens originals in the generalized existing `FansubMediaLightbox`, and exposes full captions there. The category is the Lightbox title; the description appears exactly once, including when caption and category label are identical.
 - `responsiveGalleryReveal` is the single 6/4/2 source. It uses `useSyncExternalStore` with a stable server snapshot, preserves expanded state on resize, and has real `renderToString`/`hydrateRoot` mobile and tablet coverage.
 - Role groups, not their individual cards, form the desktop two-column text grid; tablet/mobile are one column. Empty sections and text-only hero behavior remain covered.
 
@@ -61,7 +61,7 @@ The phase remains `human_needed`, not `passed`, because P103-SC6 explicitly requ
 ### P103-SC6 — Human verification needed
 
 - Automated refresh-session, responsive layout, SSR hydration, route, player and relay regressions pass.
-- Post-fix live browser smoke passed on `/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1`: the route returned 200 after a controlled dev-server restart, the public release rendered with the Anime logo and atmospheric release surface, guest Karaoke remained visible, the lightbox opened, `Weitere 2 Bilder anzeigen` expanded six to eight images and disappeared, and no hydration error remained.
+- Post-fix live browser smoke passed on `/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1`: the route returned 200 after a controlled dev-server restart, the public release rendered with the Anime logo and atmospheric release surface, guest Karaoke remained visible, the lightbox opened, `Weitere 2 Bilder anzeigen` expanded six to eight images and disappeared, and no hydration error remained. User UAT confirmed the Anime-logo fallback. A follow-up live check confirmed both the same-caption case and a long description: category title and description are no longer duplicated.
 - Live previous/next navigation stayed in the Pretty namespace from Release 1 to Release 2 and back-links remained slug-based.
 - Actual authenticated Platform-Admin full-episode playback passed live UAT: the action was visible and the episode streamed successfully. Signed-in Sheppert Kara playback also passed: the section remained visible and a segment played successfully. Refresh-only rotation, segment-switch cleanup, autoplay behavior, denied/unready full-episode variants and explicit desktop/tablet/mobile visual variants remain human checks.
 
@@ -107,9 +107,9 @@ Use the real public entry and remain in the Pretty namespace. Items 1 and the pu
 
 1. **Route/navigation:** passed for Release 1 -> Release 2 in live smoke. Retest the same-version preference and public-default fallback once suitable multi-version data exists; cooperation must stay in the entry group context.
 2. **Visual composition:** compare desktop, tablet and mobile with the accepted public Fansub/project reference. Confirm atmospheric backdrop/glass language and an independent release hero, not a copied project banner.
-3. **Fallbacks:** verify one approved preview release, one logo-only release and one preview/logo-free text-only release.
-4. **Gallery:** live smoke passed immediate 6-to-8 expansion, disappearing reveal button and shared lightbox opening. At explicit desktop/tablet/mobile widths confirm 6/4/2, resize persistence, original/full description, arrows, Escape and focus return.
-5. **Texts/people:** confirm exact release contributors and authors/uploaders. Desktop role blocks use two columns with full-width cards; tablet/mobile use one.
+3. **Fallbacks:** the logo-only Release passed user UAT. Still verify one approved-preview Release and one preview/logo-free text-only Release.
+4. **Gallery:** live smoke passed immediate 6-to-8 expansion, disappearing reveal button and shared lightbox opening. Duplicate title/description rendering was corrected; same-caption and long-description cases passed live. Explicit desktop/tablet/mobile confirmation of 6/4/2, resize persistence, arrows, Escape and focus return remains optional follow-up coverage.
+5. **Texts/people:** deferred by user for now. Exact release contributors, including the unresolved Akropolis assignment, remain outside current acceptance.
 6. **Admin media:** as Sheppert publish an owned image, close/reopen, edit its description, select/switch an eligible preview and confirm only one remains selected and the public hero updates after approval.
 7. **Kara:** guest visibility with disabled actions and signed-in Sheppert playback passed live UAT. Still confirm refresh-only restoration, unavailable segments staying informational and segment switching stopping the old stream.
 8. **Full episode:** entitled Platform-Admin action visibility and successful streaming passed live UAT. Still confirm source cleanup on close and that denied/unready users see no action.
