@@ -19,6 +19,17 @@ export interface ReleaseDetailPageContext {
   groupID: number
   releaseVersionID: number
   canonicalProjectPath?: string | null
+  initialKaraSegmentID?: number | null
+  autoplayInitialKara?: boolean
+}
+
+export function parseReleaseDetailSearchParams(params: Record<string, string | string[] | undefined>): Pick<ReleaseDetailPageContext, 'initialKaraSegmentID' | 'autoplayInitialKara'> {
+  const karaValue = Array.isArray(params.kara) ? params.kara[0] : params.kara
+  const parsedKara = karaValue && /^\d+$/.test(karaValue) ? Number.parseInt(karaValue, 10) : 0
+  return {
+    initialKaraSegmentID: parsedKara > 0 ? parsedKara : null,
+    autoplayInitialKara: params.autoplay === '1',
+  }
 }
 
 export function parseReleaseDetailIDs(params: { id: string; groupId: string; releaseVersionId: string }): ReleaseDetailPageContext | null {
@@ -31,7 +42,7 @@ export function parseReleaseDetailIDs(params: { id: string; groupId: string; rel
     : null
 }
 
-export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersionID, canonicalProjectPath }: ReleaseDetailPageContext) {
+export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersionID, canonicalProjectPath, initialKaraSegmentID, autoplayInitialKara }: ReleaseDetailPageContext) {
   let animeTitle: string | null = null
   let groupName: string | null = null
   let animeLogoFallbackUrl: string | null = null
@@ -75,7 +86,13 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
     <ContributorsRow contributors={detail.contributors} />
     <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} />
     <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} />
-    <ThemeTimeline releaseVersionID={releaseVersionID} episodeDurationSeconds={detail.duration_seconds} segments={detail.segments} />
+    <ThemeTimeline
+      releaseVersionID={releaseVersionID}
+      episodeDurationSeconds={detail.duration_seconds}
+      segments={detail.segments}
+      initialSegmentID={initialKaraSegmentID}
+      autoPlayInitial={autoplayInitialKara}
+    />
     <ReleaseNavigation animeID={animeID} groupID={groupID} canonicalProjectPath={canonicalProjectPath} previous={detail.previous} next={detail.next} />
   </main>
 }

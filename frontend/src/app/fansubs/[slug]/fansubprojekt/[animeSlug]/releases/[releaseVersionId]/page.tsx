@@ -1,12 +1,15 @@
 import { notFound } from 'next/navigation'
 
-import { ReleaseDetailPageContent } from '@/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/releaseDetailPageData'
+import { parseReleaseDetailSearchParams, ReleaseDetailPageContent } from '@/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/releaseDetailPageData'
 import { ApiError, getPublicFansubProfileBySlug } from '@/lib/api'
 import { buildPublicFansubProjectPath } from '@/lib/fansubProjectRoutes'
 
-interface Props { params: { slug: string; animeSlug: string; releaseVersionId: string } | Promise<{ slug: string; animeSlug: string; releaseVersionId: string }> }
+interface Props {
+  params: { slug: string; animeSlug: string; releaseVersionId: string } | Promise<{ slug: string; animeSlug: string; releaseVersionId: string }>
+  searchParams?: Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined>>
+}
 
-export default async function PrettyReleaseDetailPage({ params }: Props) {
+export default async function PrettyReleaseDetailPage({ params, searchParams }: Props) {
   const { slug, animeSlug, releaseVersionId } = await params
   if (!slug?.trim() || !animeSlug?.trim() || !/^\d+$/.test(releaseVersionId)) return notFound()
   const releaseVersionID = Number.parseInt(releaseVersionId, 10)
@@ -21,10 +24,12 @@ export default async function PrettyReleaseDetailPage({ params }: Props) {
   }
   const project = profile.data.projects.find((item) => item.anime_slug?.trim() === animeSlug.trim())
   if (!project) return notFound()
+  const deepLink = parseReleaseDetailSearchParams(await searchParams ?? {})
   return <ReleaseDetailPageContent
     animeID={project.id}
     groupID={profile.data.group.id}
     releaseVersionID={releaseVersionID}
     canonicalProjectPath={buildPublicFansubProjectPath(profile.data.group.slug, project.anime_slug)}
+    {...deepLink}
   />
 }

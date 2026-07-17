@@ -12,6 +12,8 @@ interface ThemeTimelineProps {
   releaseVersionID: number;
   episodeDurationSeconds: number | null;
   segments: PublicReleaseSegment[];
+  initialSegmentID?: number | null;
+  autoPlayInitial?: boolean;
 }
 
 const TYPE_LABELS: Record<string, string> = { OP: "Opening", ED: "Ending", MIDDLE: "Middle", IN: "Insert", KARA: "Karaoke" };
@@ -23,11 +25,22 @@ function clock(seconds: number | null): string | null {
   return `${minutes}:${rest.toString().padStart(2, "0")}`;
 }
 
-export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segments }: ThemeTimelineProps) {
+export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segments, initialSegmentID, autoPlayInitial = false }: ThemeTimelineProps) {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession();
   const hasSession = isClientInitialized && (hasAccessToken || hasRefreshToken);
   const [selected, setSelected] = useState<PublicReleaseSegment | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const initialSelectionHandled = useRef(false);
+
+  useEffect(() => {
+    if (initialSelectionHandled.current || !isClientInitialized || !initialSegmentID || !autoPlayInitial) return;
+    if (!hasSession) return;
+    const segment = segments.find((item) => item.theme_segment_id === initialSegmentID && item.readiness === "ready");
+    initialSelectionHandled.current = true;
+    if (!segment) return;
+    const timeout = window.setTimeout(() => setSelected(segment), 0);
+    return () => window.clearTimeout(timeout);
+  }, [autoPlayInitial, hasSession, initialSegmentID, isClientInitialized, segments]);
 
   useEffect(() => () => {
     videoRef.current?.pause();
