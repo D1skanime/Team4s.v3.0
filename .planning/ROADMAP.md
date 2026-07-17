@@ -1800,7 +1800,8 @@ Plans:
 **Goal:** Den sichtbaren Registrierungs-, Login- und Account-Onboarding-Flow gemäß den bindenden Entscheidungen D-01 bis D-24 in `104-CONTEXT.md` reparieren: normale Accounts bleiben fachlich neutral, Projektflächen setzen eine echte Contribution-/Projektzuordnung voraus, und die bewusst permissive lokale Keycloak-Testkonfiguration bleibt erhalten.
 **Requirements**: P104-REG-1, P104-REG-2, P104-AUTH-1, P104-AUTH-2, P104-ACCOUNT-1, P104-ACCOUNT-2, P104-NAV-1, P104-UAT-1
 **Depends on:** Phase 43 (Keycloak + app_user Foundation), Phase 49 (zentraler Auth/API-Client), Phase 52 (Account-Console Return-Refresh), Phase 72 (Member-/Account-Projektionen), Phase 76 (`/me/contributions`), Phase 80 (globale Rollen-/User-Semantik)
-**Plans:** 5/6 plans executed
+**Status:** Complete 2026-07-17
+**Plans:** 6/6 plans complete
 
 Plans:
 
@@ -1820,7 +1821,7 @@ Plans:
 - [x] 104-05-PLAN.md — Doppelte Accountnavigation entfernen und mobilen Drawer/Logout deterministisch machen
 
 **Wave 6** *(blocked on Wave 5)*
-- [ ] 104-06-PLAN.md — Integrierte Live-UAT ab der öffentlichen Startseite auf sichtbare Folgen begrenzen und DB-/Refresh-Invarianten mit obligatorischer automatisierter Evidenz dokumentieren
+- [x] 104-06-PLAN.md — Integrierte Live-UAT ab der öffentlichen Startseite auf sichtbare Folgen begrenzen und DB-/Refresh-Invarianten mit obligatorischer automatisierter Evidenz dokumentieren
 
 **Success Criteria** (what must be TRUE):
 
