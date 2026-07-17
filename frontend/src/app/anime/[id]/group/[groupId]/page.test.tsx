@@ -176,6 +176,9 @@ describe('HeroSection navigation (102-03)', () => {
     expect(screen.getByRole('link', { name: 'Nächstes Fansub-Projekt' }).getAttribute('href')).toBe(
       '/fansubs/c-subs/fansubprojekt/zeta',
     )
+    expect(screen.getByRole('navigation', { name: 'Weitere Projekte' }).className).toContain(
+      'adjacentNavInline',
+    )
   })
 
   it('rendert Kooperation nur als Coop-mit-Link zur anderen Fansubgruppe', () => {

@@ -168,7 +168,8 @@ export function HeroSection({
             </div>
             {hasProjectNavigation ? (
               <AdjacentNavigation
-                variant="floating"
+                variant="inline"
+                className={styles.projectNavigation}
                 ariaLabel="Weitere Projekte"
                 previous={fansubProjectNavigation.previous ? {
                   href: fansubProjectNavigation.previous.href,

@@ -121,6 +121,10 @@
   padding: 16px 24px 24px;
 }
 
+.projectNavigation {
+  padding: 0 24px 24px;
+}
+
 .poster {
   width: 200px;
   height: 288px;
@@ -438,6 +442,10 @@
     gap: 0;
     align-items: flex-start;
     padding: 0;
+  }
+
+  .projectNavigation {
+    padding: 0 18px 18px;
   }
 
   .poster,
