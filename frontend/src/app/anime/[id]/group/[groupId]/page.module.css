@@ -396,6 +396,10 @@
 .deepLink:hover { text-decoration: underline; }
 
 @media (max-width: 768px) {
+  .heroShell {
+    overflow: clip;
+  }
+
   .heroFg {
     width: min(100% - 24px, 1200px);
   }

@@ -51,7 +51,7 @@ export function Accordion({ items, mode = 'multi', className, openIds: controlle
   }
 
   return (
-    <div className={classNames(styles.accordionRoot, className)}>
+    <div className={classNames(styles.accordionRoot, 'accordionRoot', className)}>
       {items.map((item) => {
         const isOpen = openIds.has(item.id)
         const headerId = `${baseId}-${item.id}-header`
