@@ -81,3 +81,55 @@ func TestSegmentStreamGrant_RejectsInvalidPayload(t *testing.T) {
 		})
 	}
 }
+
+func TestPublicSegmentStreamGrant_CreateAndVerifyBoundClaims(t *testing.T) {
+	now := time.Unix(1700000000, 0).UTC()
+	token, _, err := CreatePublicSegmentStreamGrant(123, 17, "render-cache-key", "secret", now, time.Minute)
+	if err != nil {
+		t.Fatalf("create public grant: %v", err)
+	}
+
+	claims, err := ParseAndVerifyPublicSegmentStreamGrant(token, "secret", now.Add(10*time.Second))
+	if err != nil {
+		t.Fatalf("verify public grant: %v", err)
+	}
+	if claims.SegmentID != 123 || claims.ReleaseVersionID != 17 || claims.CacheKey != "render-cache-key" {
+		t.Fatalf("unexpected public claims: %+v", claims)
+	}
+}
+
+func TestPublicSegmentStreamGrant_IsRejectedByLegacyAndReleaseParsers(t *testing.T) {
+	now := time.Unix(1700000000, 0).UTC()
+	publicToken, _, err := CreatePublicSegmentStreamGrant(123, 17, "", "secret", now, time.Minute)
+	if err != nil {
+		t.Fatalf("create public grant: %v", err)
+	}
+	if _, err := ParseAndVerifySegmentStreamGrant(publicToken, "secret", now); err != ErrSegmentGrantPayload {
+		t.Fatalf("legacy segment parser accepted public token: %v", err)
+	}
+	if _, err := ParseAndVerifyReleaseStreamGrant(publicToken, "secret", now); err != ErrReleaseGrantPayload {
+		t.Fatalf("release parser accepted public token: %v", err)
+	}
+
+	legacyToken, _, err := CreateSegmentStreamGrant(123, 7, "", "secret", now, time.Minute)
+	if err != nil {
+		t.Fatalf("create legacy grant: %v", err)
+	}
+	if _, err := ParseAndVerifyPublicSegmentStreamGrant(legacyToken, "secret", now); err != ErrSegmentGrantPayload {
+		t.Fatalf("public parser accepted legacy token: %v", err)
+	}
+}
+
+func TestPublicSegmentStreamGrant_RejectsExpiryAndInvalidBinding(t *testing.T) {
+	now := time.Unix(1700000000, 0).UTC()
+	if _, _, err := CreatePublicSegmentStreamGrant(123, 0, "", "secret", now, time.Minute); err != ErrSegmentGrantPayload {
+		t.Fatalf("expected invalid release binding, got %v", err)
+	}
+	token, _, err := CreatePublicSegmentStreamGrant(123, 17, "", "secret", now, time.Second)
+	if err != nil {
+		t.Fatalf("create public grant: %v", err)
+	}
+	if _, err := ParseAndVerifyPublicSegmentStreamGrant(token, "secret", now.Add(2*time.Second)); err != ErrSegmentGrantExpired {
+		t.Fatalf("expected expired public grant, got %v", err)
+	}
+}

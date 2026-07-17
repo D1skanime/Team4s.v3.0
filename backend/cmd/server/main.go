@@ -431,6 +431,10 @@ func main() {
 		adminContentHandler.CreateSegmentStreamGrant,
 	)
 	v1.POST(
+		"/public/segments/:id/grant",
+		adminContentHandler.CreatePublicSegmentStreamGrant,
+	)
+	v1.POST(
 		"/segments/:id/render",
 		authMiddleware,
 		adminContentHandler.RenderSegment,

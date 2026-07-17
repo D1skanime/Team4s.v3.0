@@ -1,6 +1,39 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveStreamRelayTarget } from './streamRelayAuth'
+import { resolvePublicSegmentRelayTarget, resolveStreamRelayTarget } from './streamRelayAuth'
+
+describe('resolvePublicSegmentRelayTarget', () => {
+  it('requests an anonymous release-bound grant without auth headers', async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = []
+    const result = await resolvePublicSegmentRelayTarget({
+      apiBaseURL: 'http://localhost:8092',
+      segmentID: 42,
+      releaseVersionID: 17,
+      fetchImpl: async (url, init) => {
+        calls.push({ url, init })
+        return new Response(JSON.stringify({ data: { grant_token: 'public-grant' } }), { status: 201 })
+      },
+    })
+
+    expect(result).toEqual({
+      targetURL: 'http://localhost:8092/api/v1/segments/42/stream?grant=public-grant',
+      grantErrorStatus: null,
+    })
+    expect(calls).toEqual([{
+      url: 'http://localhost:8092/api/v1/public/segments/42/grant?release_version_id=17',
+      init: { method: 'POST', cache: 'no-store' },
+    }])
+    expect(new Headers(calls[0]?.init?.headers).has('Authorization')).toBe(false)
+  })
+
+  it('reports public grant failures without falling back to bearer auth', async () => {
+    const unavailable = await resolvePublicSegmentRelayTarget({
+      apiBaseURL: 'http://localhost:8092', segmentID: 42, releaseVersionID: 17,
+      fetchImpl: async () => new Response(null, { status: 409 }),
+    })
+    expect(unavailable.grantErrorStatus).toBe(409)
+  })
+})
 
 describe('resolveStreamRelayTarget', () => {
   it('uses a provided grant token directly', async () => {

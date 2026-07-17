@@ -3,8 +3,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const session = vi.hoisted(() => ({ value: { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true } }))
-vi.mock('@/lib/useAuthSession', () => ({ useAuthSession: () => session.value }))
 vi.mock('@/components/ui', () => ({
   Badge: ({ children }: { children: unknown }) => <span>{children as string}</span>,
   SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
@@ -20,45 +18,25 @@ const segments = [{
   duration_seconds: 90, readiness: 'unavailable' as const, participants: [], preview_url: null,
 }]
 
-afterEach(() => { cleanup(); session.value = { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true } })
+afterEach(() => { cleanup() })
 
 describe('ThemeTimeline', () => {
-  it('shows Kara information to guests without playback or login prompt', () => {
+  it('offers bounded Kara playback to guests without a login prompt', () => {
     render(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
-    expect(screen.getByText('Moonlight OP')).not.toBeNull()
-    expect(screen.queryByRole('button', { name: 'Abspielen' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Abspielen' }))
+    expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
     expect(screen.queryByText(/anmeld/i)).toBeNull()
     expect(screen.getByText('Noch nicht abspielbar')).not.toBeNull()
   })
 
-  it.each([
-    { hasAccessToken: true, hasRefreshToken: false, isClientInitialized: true },
-    { hasAccessToken: false, hasRefreshToken: true, isClientInitialized: true },
-  ])('plays through the bounded relay for an active session', activeSession => {
-    session.value = activeSession
+  it('keeps unavailable segments disabled', () => {
     render(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Abspielen' }))
-    const video = document.querySelector('video')
-    expect(video?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
+    const endingMark = screen.getByRole('button', { name: /Ending/ })
+    expect(endingMark).toHaveProperty('disabled', true)
+    expect(screen.getAllByRole('button', { name: 'Abspielen' })).toHaveLength(1)
   })
 
-  it('keeps public segment titles across guest, access-token and refresh-only rerenders', () => {
-    const view = render(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
-    expect(screen.getByText('Moonlight OP')).not.toBeNull()
-    session.value = { hasAccessToken: true, hasRefreshToken: false, isClientInitialized: true }
-    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
-    expect(screen.getByText('Moonlight OP')).not.toBeNull()
-    session.value = { hasAccessToken: false, hasRefreshToken: true, isClientInitialized: true }
-    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
-    expect(screen.getByText('Moonlight OP')).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Abspielen' })).not.toBeNull()
-  })
-
-  it.each([
-    { hasAccessToken: true, hasRefreshToken: false, isClientInitialized: true },
-    { hasAccessToken: false, hasRefreshToken: true, isClientInitialized: true },
-  ])('startet den gültigen Deep-Link für eine aktive Session automatisch', async activeSession => {
-    session.value = activeSession
+  it('starts a valid public Deep-Link automatically', async () => {
     render(
       <ThemeTimeline
         releaseVersionID={12}
@@ -73,13 +51,13 @@ describe('ThemeTimeline', () => {
     })
   })
 
-  it('startet Deep-Links für Gäste oder unfertige Segmente nicht', () => {
+  it.each([8, 999])('does not start unavailable or foreign Deep-Link %s', initialSegmentID => {
     render(
       <ThemeTimeline
         releaseVersionID={12}
         episodeDurationSeconds={1400}
         segments={segments}
-        initialSegmentID={8}
+        initialSegmentID={initialSegmentID}
         autoPlayInitial
       />,
     )

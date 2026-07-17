@@ -9,14 +9,17 @@ describe('bounded segment relay contract', () => {
       expect(source).toContain(`'${key}'`)
     }
     expect(source).toContain("searchParams.get('release_version_id')")
-    expect(source).toContain('grant?release_version_id=${releaseVersionID}')
+    expect(source).toContain('releaseVersionID,')
   })
 
-  it('keeps range forwarding and central refresh-cookie handoff', () => {
+  it('keeps range forwarding and uses only the anonymous public grant seam', () => {
     expect(source).toContain("request.headers.get('range')")
     expect(source).toContain("headers.set('Range', range)")
-    expect(source).toContain('resolveStreamRelayTarget')
-    expect(source).toContain('applyRefreshedAuthCookies(response, refreshedSession)')
+    expect(source).toContain('resolvePublicSegmentRelayTarget')
+    expect(source).not.toContain('cookies()')
+    expect(source).not.toContain('AUTH_TOKEN_COOKIE_NAME')
+    expect(source).not.toContain("headers.set('Authorization'")
+    expect(source).not.toContain("searchParams.get('grant')")
   })
 
   it('contains upstream failures without exposing backend details', () => {

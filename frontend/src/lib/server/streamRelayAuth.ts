@@ -71,6 +71,11 @@ export interface ResolveStreamRelayTargetResult {
   refreshedSession: RefreshedAuthSession | null
 }
 
+export interface ResolvePublicSegmentRelayTargetResult {
+  targetURL: string
+  grantErrorStatus: number | null
+}
+
 /**
  * Normalisiert einen numerischen Wert zu einer positiven ganzen Zahl.
  * Gibt 0 zurück, wenn der Wert nicht endlich oder nicht positiv ist.
@@ -238,6 +243,40 @@ function buildGrantTarget(streamURL: string, grantToken: string): string {
   } catch {
     const separator = streamURL.includes('?') ? '&' : '?'
     return `${streamURL}${separator}grant=${encodeURIComponent(grantToken)}`
+  }
+}
+
+/**
+ * Resolves a public karaoke relay target without reading or forwarding an auth
+ * session. The backend-issued token remains bound to the segment and release.
+ */
+export async function resolvePublicSegmentRelayTarget(args: {
+  apiBaseURL: string
+  segmentID: number
+  releaseVersionID: number
+  fetchImpl?: FetchLike
+}): Promise<ResolvePublicSegmentRelayTargetResult> {
+  const streamURL = `${args.apiBaseURL}/api/v1/segments/${args.segmentID}/stream`
+  let response: Response
+  try {
+    response = await (args.fetchImpl || fetch)(
+      `${args.apiBaseURL}/api/v1/public/segments/${args.segmentID}/grant?release_version_id=${args.releaseVersionID}`,
+      { method: 'POST', cache: 'no-store' },
+    )
+  } catch {
+    return { targetURL: streamURL, grantErrorStatus: 502 }
+  }
+  if (!response.ok) {
+    return { targetURL: streamURL, grantErrorStatus: response.status }
+  }
+
+  try {
+    const body = (await response.json()) as { data?: { grant_token?: string } }
+    const grantToken = (body.data?.grant_token || '').trim()
+    if (!grantToken) return { targetURL: streamURL, grantErrorStatus: 502 }
+    return { targetURL: buildGrantTarget(streamURL, grantToken), grantErrorStatus: null }
+  } catch {
+    return { targetURL: streamURL, grantErrorStatus: 502 }
   }
 }
 

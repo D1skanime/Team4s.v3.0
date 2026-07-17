@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Badge, SectionHeader } from "@/components/ui";
-import { useAuthSession } from "@/lib/useAuthSession";
 import type { PublicReleaseSegment } from "@/types/releaseDetail";
 
 import styles from "./page.module.css";
@@ -26,21 +25,18 @@ function clock(seconds: number | null): string | null {
 }
 
 export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segments, initialSegmentID, autoPlayInitial = false }: ThemeTimelineProps) {
-  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession();
-  const hasSession = isClientInitialized && (hasAccessToken || hasRefreshToken);
   const [selected, setSelected] = useState<PublicReleaseSegment | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const initialSelectionHandled = useRef(false);
 
   useEffect(() => {
-    if (initialSelectionHandled.current || !isClientInitialized || !initialSegmentID || !autoPlayInitial) return;
-    if (!hasSession) return;
+    if (initialSelectionHandled.current || !initialSegmentID || !autoPlayInitial) return;
     const segment = segments.find((item) => item.theme_segment_id === initialSegmentID && item.readiness === "ready");
     initialSelectionHandled.current = true;
     if (!segment) return;
     const timeout = window.setTimeout(() => setSelected(segment), 0);
     return () => window.clearTimeout(timeout);
-  }, [autoPlayInitial, hasSession, initialSegmentID, isClientInitialized, segments]);
+  }, [autoPlayInitial, initialSegmentID, segments]);
 
   useEffect(() => () => {
     videoRef.current?.pause();
@@ -54,7 +50,7 @@ export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segmen
     : Math.max(...segments.map((item) => item.end_seconds ?? 0), 1);
 
   const select = (segment: PublicReleaseSegment) => {
-    if (!hasSession || segment.readiness !== "ready") return;
+    if (segment.readiness !== "ready") return;
     const player = videoRef.current;
     if (player) {
       player.pause();
@@ -73,7 +69,7 @@ export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segmen
           const end = segment.end_seconds ?? start;
           const left = Math.min(100, Math.max(0, start / duration * 100));
           const width = Math.max(2, Math.min(100 - left, (end - start) / duration * 100));
-          const playable = hasSession && segment.readiness === "ready";
+          const playable = segment.readiness === "ready";
           return (
             <button
               key={segment.theme_segment_id}
@@ -102,7 +98,7 @@ export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segmen
               </div>
               {segment.participants.length > 0 ? <span className={styles.timelineTime}>{segment.participants.map((p) => `${p.name} · ${p.role_label}`).join(", ")}</span> : null}
               {segment.readiness !== "ready" ? <span className={styles.timelineUnavailable}>Noch nicht abspielbar</span> : null}
-              {hasSession && segment.readiness === "ready" ? <button type="button" className={styles.timelinePlay} onClick={() => select(segment)}>Abspielen</button> : null}
+              {segment.readiness === "ready" ? <button type="button" className={styles.timelinePlay} onClick={() => select(segment)}>Abspielen</button> : null}
             </div>
           </article>
         ))}

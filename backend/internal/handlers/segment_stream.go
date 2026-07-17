@@ -85,6 +85,16 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 	if !ok {
 		return
 	}
+	h.createSegmentStreamGrant(c, &identity.UserID)
+}
+
+// CreatePublicSegmentStreamGrant issues an anonymous grant that remains bound
+// to one segment, one release version and, where applicable, one render cache.
+func (h *AdminContentHandler) CreatePublicSegmentStreamGrant(c *gin.Context) {
+	h.createSegmentStreamGrant(c, nil)
+}
+
+func (h *AdminContentHandler) createSegmentStreamGrant(c *gin.Context, userID *int64) {
 	themeRepo, ok := h.segmentStreamThemeRepo(c)
 	if !ok {
 		return
@@ -107,7 +117,7 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		log.Printf("segment render: source lookup failed (segment_id=%d, user_id=%d): %v", segmentID, identity.UserID, err)
+		log.Printf("segment stream grant: source lookup failed (segment_id=%d, public=%t): %v", segmentID, userID == nil, err)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Quelle konnte nicht geladen werden.")
 		return
 	}
@@ -137,27 +147,36 @@ func (h *AdminContentHandler) CreateSegmentStreamGrant(c *gin.Context) {
 			return
 		}
 	} else {
-		log.Printf("segment stream grant: ready cache lookup failed (segment_id=%d, user_id=%d): %v", segmentID, identity.UserID, err)
+		log.Printf("segment stream grant: ready cache lookup failed (segment_id=%d, public=%t): %v", segmentID, userID == nil, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
 		return
 	}
 
-	grantToken, expiresAt, err := auth.CreateSegmentStreamGrant(segmentID, identity.UserID, cacheKey, h.segmentGrantSecret, time.Now(), h.segmentGrantTTL)
+	var grantToken string
+	var expiresAt int64
+	if userID == nil {
+		grantToken, expiresAt, err = auth.CreatePublicSegmentStreamGrant(segmentID, releaseVersionID, cacheKey, h.segmentGrantSecret, time.Now(), h.segmentGrantTTL)
+	} else {
+		grantToken, expiresAt, err = auth.CreateSegmentStreamGrant(segmentID, *userID, cacheKey, h.segmentGrantSecret, time.Now(), h.segmentGrantTTL)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
 		return
 	}
 
 	c.Header("Cache-Control", "no-store")
-	c.JSON(http.StatusCreated, gin.H{
-		"data": gin.H{
-			"theme_segment_id": segmentID,
-			"grant_token":      grantToken,
-			"expires_at":       expiresAt,
-			"ttl_seconds":      int64(h.segmentGrantTTL / time.Second),
-			"issued_for":       identity.UserID,
-		},
-	})
+	data := gin.H{
+		"theme_segment_id": segmentID,
+		"grant_token":      grantToken,
+		"expires_at":       expiresAt,
+		"ttl_seconds":      int64(h.segmentGrantTTL / time.Second),
+	}
+	if userID == nil {
+		data["release_version_id"] = releaseVersionID
+	} else {
+		data["issued_for"] = *userID
+	}
+	c.JSON(http.StatusCreated, gin.H{"data": data})
 }
 
 // RenderSegment ist enqueue-only: nach Berechtigungs- und Quellenpruefung wird der Cache-Eintrag
@@ -283,6 +302,10 @@ func (h *AdminContentHandler) StreamSegment(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Quelle konnte nicht geladen werden.")
 		return
 	}
+	if claims.ReleaseVersionID != nil && (source.ReleaseVersionID == nil || *source.ReleaseVersionID != *claims.ReleaseVersionID) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "ungültiger segmentstream grant"}})
+		return
+	}
 
 	if source.SourceKind == "uploaded_asset" {
 		if source.MediaAssetPath == nil {
@@ -333,22 +356,32 @@ func (h *AdminContentHandler) segmentStreamThemeRepo(c *gin.Context) (segmentStr
 	return repo, true
 }
 
-func (h *AdminContentHandler) authorizeSegmentStreamGrant(c *gin.Context, segmentID int64) (auth.SegmentStreamGrantClaims, bool) {
+type authorizedSegmentStreamGrant struct {
+	CacheKey         string
+	ReleaseVersionID *int64
+}
+
+func (h *AdminContentHandler) authorizeSegmentStreamGrant(c *gin.Context, segmentID int64) (authorizedSegmentStreamGrant, bool) {
 	grantToken := strings.TrimSpace(c.Query("grant"))
 	if grantToken == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "anmeldung erforderlich"}})
-		return auth.SegmentStreamGrantClaims{}, false
+		return authorizedSegmentStreamGrant{}, false
 	}
 	if strings.TrimSpace(h.segmentGrantSecret) == "" {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "segmentstream grant vorübergehend nicht verfügbar"}})
-		return auth.SegmentStreamGrantClaims{}, false
+		return authorizedSegmentStreamGrant{}, false
+	}
+	publicClaims, publicErr := auth.ParseAndVerifyPublicSegmentStreamGrant(grantToken, h.segmentGrantSecret, time.Now())
+	if publicErr == nil && publicClaims.SegmentID == segmentID {
+		releaseVersionID := publicClaims.ReleaseVersionID
+		return authorizedSegmentStreamGrant{CacheKey: publicClaims.CacheKey, ReleaseVersionID: &releaseVersionID}, true
 	}
 	claims, err := auth.ParseAndVerifySegmentStreamGrant(grantToken, h.segmentGrantSecret, time.Now())
 	if err != nil || claims.SegmentID != segmentID {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": gin.H{"message": "ungültiger segmentstream grant"}})
-		return auth.SegmentStreamGrantClaims{}, false
+		return authorizedSegmentStreamGrant{}, false
 	}
-	return claims, true
+	return authorizedSegmentStreamGrant{CacheKey: claims.CacheKey}, true
 }
 
 func (h *AdminContentHandler) serveSegmentFile(c *gin.Context, root string, rawPath string, contentType string) {

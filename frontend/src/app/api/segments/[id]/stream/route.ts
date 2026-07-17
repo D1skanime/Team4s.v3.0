@@ -1,8 +1,6 @@
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { AUTH_BEARER_TOKEN, AUTH_REFRESH_COOKIE_NAME, AUTH_TOKEN_COOKIE_NAME } from '@/lib/api'
-import { applyRefreshedAuthCookies, resolveStreamRelayTarget } from '@/lib/server/streamRelayAuth'
+import { resolvePublicSegmentRelayTarget } from '@/lib/server/streamRelayAuth'
 
 interface RouteContext {
   params:
@@ -53,10 +51,6 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
     }
   }
 
-  const cookieStore = await cookies()
-  const tokenFromCookie = (cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value || '').trim()
-  const refreshTokenFromCookie = (cookieStore.get(AUTH_REFRESH_COOKIE_NAME)?.value || '').trim()
-
   const headers = new Headers()
   const range = request.headers.get('range')
   const userAgent = request.headers.get('user-agent')
@@ -64,22 +58,16 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
   if (userAgent) headers.set('User-Agent', userAgent)
 
   const apiBaseURL = getApiBaseURL()
-  const providedGrant = (request.nextUrl.searchParams.get('grant') || '').trim()
-  const streamPath = `/api/v1/segments/${segmentID}/stream`
-  let relayTarget = await resolveStreamRelayTarget({
+  const relayTarget = await resolvePublicSegmentRelayTarget({
     apiBaseURL,
-    streamPath,
-    grantPath: `/api/v1/segments/${segmentID}/grant?release_version_id=${releaseVersionID}`,
-    providedGrant,
-    accessToken: tokenFromCookie,
-    fallbackAccessToken: AUTH_BEARER_TOKEN,
-    refreshToken: refreshTokenFromCookie,
+    segmentID,
+    releaseVersionID,
   })
-
-  if (relayTarget.authorizationToken) {
-    headers.set('Authorization', `Bearer ${relayTarget.authorizationToken}`)
-  } else {
-    headers.delete('Authorization')
+  if (relayTarget.grantErrorStatus !== null) {
+    return NextResponse.json(
+      { error: { message: relayTarget.grantErrorStatus === 502 ? 'stream nicht erreichbar' : 'segment ist nicht abspielbar' } },
+      { status: relayTarget.grantErrorStatus },
+    )
   }
 
   let upstream: Response
@@ -93,22 +81,18 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
     return NextResponse.json({ error: { message: 'stream nicht erreichbar' } }, { status: 502 })
   }
 
-  let refreshedSession = relayTarget.refreshedSession
   if (upstream.status === 401) {
-    const recoveryTarget = await resolveStreamRelayTarget({
+    const recoveryTarget = await resolvePublicSegmentRelayTarget({
       apiBaseURL,
-      streamPath,
-      grantPath: `/api/v1/segments/${segmentID}/grant?release_version_id=${releaseVersionID}`,
-      providedGrant: '',
-      accessToken: relayTarget.authorizationToken && refreshTokenFromCookie ? '' : tokenFromCookie,
-      fallbackAccessToken: relayTarget.authorizationToken && refreshTokenFromCookie ? '' : AUTH_BEARER_TOKEN,
-      refreshToken: refreshTokenFromCookie,
+      segmentID,
+      releaseVersionID,
     })
 
-    if (recoveryTarget.authorizationToken) {
-      headers.set('Authorization', `Bearer ${recoveryTarget.authorizationToken}`)
-    } else {
-      headers.delete('Authorization')
+    if (recoveryTarget.grantErrorStatus !== null) {
+      return NextResponse.json(
+        { error: { message: recoveryTarget.grantErrorStatus === 502 ? 'stream nicht erreichbar' : 'segment ist nicht abspielbar' } },
+        { status: recoveryTarget.grantErrorStatus },
+      )
     }
 
     try {
@@ -117,8 +101,6 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
         headers,
         cache: 'no-store',
       })
-      relayTarget = recoveryTarget
-      if (recoveryTarget.refreshedSession) refreshedSession = recoveryTarget.refreshedSession
     } catch {
       return NextResponse.json({ error: { message: 'stream nicht erreichbar' } }, { status: 502 })
     }
@@ -140,10 +122,8 @@ export async function GET(request: NextRequest, context: RouteContext): Promise<
   responseHeaders.set('pragma', 'no-cache')
   responseHeaders.set('expires', '0')
 
-  const response = new NextResponse(upstream.body, {
+  return new NextResponse(upstream.body, {
     status: upstream.status,
     headers: responseHeaders,
   })
-  applyRefreshedAuthCookies(response, refreshedSession)
-  return response
 }
