@@ -40,7 +40,7 @@ class IntersectionObserverStub {
 const makeEpisode = (overrides: Partial<EpisodeReleaseSummary> = {}): EpisodeReleaseSummary => ({
   id: 1,
   episode_number: 1,
-  episode_number_label: 'Folge 1',
+  episode_number_label: '1',
   title: 'Episode 1',
   has_op: false,
   has_ed: false,
@@ -132,7 +132,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
         has_more: true,
       })
       .mockResolvedValueOnce({
-        items: [makeEpisode({ id: 11, episode_number: 2, episode_number_label: 'Folge 2', title: 'Episode 2' })],
+        items: [makeEpisode({ id: 11, episode_number: 2, episode_number_label: '2', title: 'Episode 2' })],
         next_cursor: null,
         has_more: false,
       })

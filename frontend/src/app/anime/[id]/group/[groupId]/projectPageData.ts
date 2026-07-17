@@ -120,6 +120,12 @@ function formatDuration(seconds?: number | null): string {
   return [hours, minutes, rest].map((part) => String(part).padStart(2, "0")).join(":");
 }
 
+function formatEpisodeLabel(release: EpisodeReleaseSummary): string {
+  const label = release.episode_number_label?.trim();
+  if (!label) return `Folge ${release.episode_number}`;
+  return /^\d+$/.test(label) ? `Folge ${label}` : label;
+}
+
 function parseTimelineTime(value?: string | null): number | null {
   if (!value) return null;
   const parts = value.split(":").map(Number);
@@ -190,7 +196,7 @@ function buildPublicReleasePreview({
   return {
     id: release.id,
     href,
-    episodeLabel: release.episode_number_label?.trim() || `Folge ${release.episode_number}`,
+    episodeLabel: formatEpisodeLabel(release),
     title: detail?.title ?? release.title ?? "",
     versionLabel: release.version_label ?? undefined,
     releasedAtLabel: release.released_at ?? undefined,

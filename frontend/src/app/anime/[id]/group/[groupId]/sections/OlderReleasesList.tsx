@@ -26,7 +26,9 @@ const PAGE_LIMIT = 10
 const KARA_GROUP_LIMIT = 3
 
 function episodeLabel(episode: EpisodeReleaseSummary): string {
-  return episode.episode_number_label?.trim() || `Folge ${episode.episode_number}`
+  const label = episode.episode_number_label?.trim()
+  if (!label) return `Folge ${episode.episode_number}`
+  return /^\d+$/.test(label) ? `Folge ${label}` : label
 }
 
 function versionOnlyLabel(label?: string | null): string {
