@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Phase 103 implementation complete; live UAT pending
-last_updated: "2026-07-17T14:02:00.000Z"
-last_activity: 2026-07-17
+stopped_at: Phase 104 context gathered
+last_updated: "2026-07-17T15:45:02.658Z"
+last_activity: "2026-07-17 - Completed quick task 260717-lqt: Gemeinsame Desktop-Maximalbreite für Fansub-, Projekt- und Release-Seite"
 progress:
-  total_phases: 94
+  total_phases: 96
   completed_phases: 79
-  total_plans: 416
-  completed_plans: 389
-  percent: 84
+  total_plans: 427
+  completed_plans: 394
+  percent: 82
 ---
 
 # Project State
@@ -318,6 +318,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 104 added: Registrierungs-, Login- und Account-Onboarding-Hardening.
 - Phase 103 added: Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback.
 - Phase 102 added and planned: Fansubprojekte UI schrittweise verbessern - primäre Arbeitsfläche ist die öffentliche Fansubprojekt-Detailseite `/anime/[id]/group/[groupId]`, der Absprung von `/fansubs/[slug]` wird nur als Navigation geprüft; Kontext in `.planning/phases/102-fansubprojekte-ui-schrittweise-verbessern/102-CONTEXT.md`, Kontrollplan `102-00-PLAN.md`.
 - Phase 101 added and planned: Meilensteine Zeitmanagement und Anzeige der Meilensteine verbessern - globale Progressions- und Jahresregeln für die Fansub-Meilenstein-Auswahl; Kontext in `.planning/phases/101-meilensteine-zeitmanagement-und-anzeige-der-meilensteine-ver/101-CONTEXT.md`, Pläne `101-01-PLAN.md` und `101-02-PLAN.md`.
@@ -629,7 +630,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-16T11:45:07.960Z
-Stopped at: Phase 103 implementation complete; live UAT pending
+Last session: 2026-07-17T15:45:02.576Z
+Stopped at: Phase 104 context gathered
 Last activity: 2026-07-17 - Completed quick task 260717-lqt: Gemeinsame Desktop-Maximalbreite für Fansub-, Projekt- und Release-Seite
-Resume file: .planning/phases/103-ffentliche-release-detailseite-als-fansub-story-mit-rechte-g/103-HUMAN-UAT.md
+Resume file: .planning/phases/104-registrierungs-login-und-account-onboarding-hardening/104-CONTEXT.md
