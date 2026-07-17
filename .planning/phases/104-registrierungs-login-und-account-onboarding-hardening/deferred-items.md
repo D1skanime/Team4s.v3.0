@@ -26,3 +26,27 @@ documented concurrent-GSD-writer posture. Plan 104-01 only touches
 this failure area. Per the executor scope boundary ("only auto-fix issues
 directly caused by the current task's changes"), these are logged here and left
 unfixed for the owning phase/session to address.
+
+## From Plan 104-02
+
+### Pre-existing `api.no-token-boundary.test.ts` violations (not fixed, out of scope)
+
+Running `cd frontend && npm test -- src/lib/api.no-token-boundary.test.ts` shows 2
+pre-existing failures unrelated to the login/registration work in 104-02:
+
+- `keeps normal browser app and component surfaces free of token props, params, and
+  locals` fails because `src/components/groups/GroupHistorySection.tsx` accepts and
+  threads an `authToken?: string` prop (lines 121, 290, 322, 329, 468, 476, 488, 500,
+  509).
+- `keeps direct fetch outside the central client limited to auth entrypoint,
+  Keycloak, server routes, and public no-auth fetches` fails because
+  `src/app/me/profile/components/ProfileBackgroundCard.tsx:67` calls `fetch(...)`
+  directly outside the central client/allowlist.
+
+Neither file is in 104-02's `files_modified` list, and `git diff --stat` for both
+files is empty (they were not touched by this session). Both were last modified by
+Phase 101 commits (`b7b35d99`, `ea20c750`, `30193ce5`), well before Phase 104. Left
+unfixed per the executor scope boundary; the owning phase/session (likely a Phase 49
+follow-up cleanup) should migrate `GroupHistorySection.tsx` off the `authToken` prop
+and route `ProfileBackgroundCard.tsx`'s fetch through the central client or the
+public no-auth-fetch allowlist.
