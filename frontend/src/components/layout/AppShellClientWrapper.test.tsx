@@ -1,26 +1,40 @@
 // @vitest-environment jsdom
 
 import type { ReactNode } from 'react'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getOwnProfileMock = vi.hoisted(() => vi.fn())
 const resolveApiUrlMock = vi.hoisted(() => vi.fn((value: string) => (value ? `resolved:${value}` : '')))
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
+const useLogoutAuthSessionMock = vi.hoisted(() => vi.fn())
+const logoutActiveSessionMock = vi.hoisted(() => vi.fn())
 const usePathnameMock = vi.hoisted(() => vi.fn())
 const appShellRenderMock = vi.hoisted(() => vi.fn())
+
+const MockApiError = vi.hoisted(() => {
+  return class MockApiError extends Error {
+    status: number
+    constructor(status: number, message: string) {
+      super(message)
+      this.status = status
+    }
+  }
+})
 
 vi.mock('next/navigation', () => ({
   usePathname: () => usePathnameMock(),
 }))
 
 vi.mock('@/lib/api', () => ({
+  ApiError: MockApiError,
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
   resolveApiUrl: (...args: [string]) => resolveApiUrlMock(...args),
 }))
 
 vi.mock('@/lib/useAuthSession', () => ({
   useAuthSession: () => useAuthSessionMock(),
+  useLogoutAuthSession: () => useLogoutAuthSessionMock(),
 }))
 
 vi.mock('./AppShell', () => ({
@@ -107,6 +121,8 @@ beforeEach(() => {
   usePathnameMock.mockReturnValue('/me/profile')
   mockAuthSession()
   getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+  logoutActiveSessionMock.mockReset().mockResolvedValue(undefined)
+  useLogoutAuthSessionMock.mockReturnValue(logoutActiveSessionMock)
 })
 
 afterEach(() => {
@@ -232,5 +248,88 @@ describe('AppShellClientWrapper', () => {
     expect(screen.getByTestId('app-shell').getAttribute('data-can-access-admin')).toBe('false')
     expect(screen.getByTestId('app-shell').getAttribute('data-display-name')).toBe('')
     expect(getOwnProfileMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders the neutral loading shell before the client session is initialized, never anonymous login UI', () => {
+    mockAuthSession({ initialized: false, access: false, refresh: false })
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    expect(screen.getByTestId('app-shell').getAttribute('data-mode')).toBe('loading')
+    expect(getOwnProfileMock).not.toHaveBeenCalled()
+  })
+
+  it('renders the neutral loading shell while an active session waits for the profile aggregate, never anonymous login UI', async () => {
+    let resolveProfile!: (value: ReturnType<typeof makeProfileResponse>) => void
+    getOwnProfileMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveProfile = resolve
+      }),
+    )
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    expect(screen.getByTestId('app-shell').getAttribute('data-mode')).toBe('loading')
+
+    resolveProfile(makeProfileResponse())
+
+    await waitFor(() => {
+      expect(screen.getByTestId('app-shell').getAttribute('data-mode')).toBe('authenticated')
+    })
+  })
+
+  it('exposes a German retry action for an active-session profile error, never login, and recovers on success', async () => {
+    getOwnProfileMock.mockRejectedValueOnce(new Error('Netzwerkfehler beim Laden.'))
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).not.toBeNull()
+    })
+
+    expect(screen.getByTestId('app-shell').getAttribute('data-mode')).toBe('authenticated')
+    expect(screen.queryByRole('link', { name: /Anmelden/i })).toBeNull()
+
+    const retryButton = screen.getByRole('button', { name: /Erneut versuchen/i })
+    expect(retryButton).not.toBeNull()
+    expect(screen.getByRole('button', { name: /Abmelden/i })).not.toBeNull()
+
+    getOwnProfileMock.mockResolvedValueOnce(makeProfileResponse())
+    fireEvent.click(retryButton)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).toBeNull()
+    })
+    expect(screen.getByTestId('app-shell').getAttribute('data-display-name')).toBe('Mika Member')
+    expect(getOwnProfileMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('exposes the existing centralized logout action inside the active-session profile error banner', async () => {
+    getOwnProfileMock.mockRejectedValue(new Error('Netzwerkfehler beim Laden.'))
+
+    render(
+      <AppShellClientWrapper>
+        <main>Content</main>
+      </AppShellClientWrapper>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).not.toBeNull()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Abmelden/i }))
+    expect(logoutActiveSessionMock).toHaveBeenCalledTimes(1)
   })
 })

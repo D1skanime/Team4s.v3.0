@@ -23,7 +23,7 @@ import { useLogoutAuthSession } from '@/lib/useAuthSession'
 
 import styles from './AppShell.module.css'
 
-type AppShellMode = 'authenticated' | 'anonymous'
+type AppShellMode = 'authenticated' | 'anonymous' | 'loading'
 
 type AppShellUser = {
   displayName?: string | null
@@ -177,6 +177,21 @@ function DrawerAnonymousFooter() {
       <Link href="/login" className={styles.btnPrimary}>
         Anmelden
       </Link>
+    </footer>
+  )
+}
+
+/**
+ * Neutraler Ladezustand für die Navigation: weder Login-Aufruf noch fertige
+ * Konto-Identität. Wird gerendert solange Session-Initialisierung, -Refresh
+ * oder Account-/Profil-Laden noch nicht abgeschlossen sind (D-18) — verhindert,
+ * dass Login-Formular und fertige Accountnavigation widersprüchlich gleichzeitig
+ * erscheinen.
+ */
+function DrawerLoadingFooter() {
+  return (
+    <footer className={styles.anonFooter} aria-live="polite">
+      <span className={styles.loadingFooterText}>Anmeldung wird geprüft…</span>
     </footer>
   )
 }
@@ -354,17 +369,19 @@ export function AppShell({
         </div>
 
         <nav className={styles.nav} aria-label={drawerOpen ? 'Hauptnavigation mobil' : 'Hauptnavigation'}>
-          {mode === 'anonymous' ? (
-            <AppShellAnonNavGroups currentPath={currentPath} />
-          ) : (
+          {mode === 'authenticated' ? (
             <AppShellNavGroups currentPath={currentPath} memberships={memberships} canAccessAdmin={canAccessAdmin} hasMemberProfile={hasMemberProfile} />
+          ) : (
+            <AppShellAnonNavGroups currentPath={currentPath} />
           )}
         </nav>
 
-        {mode === 'anonymous' ? (
-          <DrawerAnonymousFooter />
-        ) : (
+        {mode === 'authenticated' ? (
           <DrawerUserFooter user={user} isLoggingOut={isLoggingOut} onLogout={handleLogout} />
+        ) : mode === 'loading' ? (
+          <DrawerLoadingFooter />
+        ) : (
+          <DrawerAnonymousFooter />
         )}
       </aside>
       <div className={styles.content}>{children}</div>

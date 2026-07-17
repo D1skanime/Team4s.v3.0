@@ -53,6 +53,43 @@ function seedRuntimeSession(): void {
   })
 }
 
+function seedRuntimeSessionMissingAccessToken(): void {
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  persistAuthSession({
+    token_type: 'Bearer',
+    access_token: '',
+    access_token_expires_at: 0,
+    access_token_expires_in: 0,
+    refresh_token: 'refresh-token-1',
+    refresh_token_expires_at: nowSeconds + 7200,
+    refresh_token_expires_in: 7200,
+    user_id: 7,
+    app_user_id: 11,
+    display_name: 'Phase Admin',
+    session_id: 'session-11',
+  })
+}
+
+function seedRuntimeSessionExpiredAccessToken(): void {
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  persistAuthSession({
+    token_type: 'Bearer',
+    access_token: 'expired-access-token',
+    // access_token_expires_at is already in the past even though the cookie's
+    // own Max-Age keeps it briefly readable — shouldRefreshRuntimeSession must
+    // decide on the recorded expiry, not on whether the cookie is still present.
+    access_token_expires_at: nowSeconds - 120,
+    access_token_expires_in: 300,
+    refresh_token: 'refresh-token-1',
+    refresh_token_expires_at: nowSeconds + 7200,
+    refresh_token_expires_in: 7200,
+    user_id: 7,
+    app_user_id: 11,
+    display_name: 'Phase Admin',
+    session_id: 'session-11',
+  })
+}
+
 function seedRuntimeSessionExpiringSoon(): void {
   const nowSeconds = Math.floor(Date.now() / 1000)
   persistAuthSession({
@@ -186,6 +223,70 @@ describe('authorized auth refresh flow', () => {
 
     expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
     expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[1]?.[1]).toEqual(
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-access-token',
+        }),
+      }),
+    )
+  })
+
+  it('D-20: keeps a missing access token with a valid refresh token an active session that refreshes only through api.ts', async () => {
+    seedRuntimeSessionMissingAccessToken()
+
+    // Missing access token alone must not be read as "logged out": the refresh
+    // token is what keeps the session active per D-20.
+    const preRefreshSnapshot = getAuthSessionSnapshot()
+    expect(preRefreshSnapshot.hasAccessToken).toBe(false)
+    expect(preRefreshSnapshot.hasRefreshToken).toBe(true)
+
+    refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(makeCurrentUserResponse())
+      .mockResolvedValueOnce(
+        makeResponse({ data: { anisearch_id: '1078', jellyfin_series_id: 'bleach' } }, { ok: true, status: 200 }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getEpisodeImportContext(15)).resolves.toEqual({
+      data: { anisearch_id: '1078', jellyfin_series_id: 'bleach' },
+    })
+
+    // Proactive refresh only — no 401 round-trip was needed since the missing
+    // token was caught before the request was ever sent.
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledWith('refresh-token-1')
+    expect(fetchMock.mock.calls[1]?.[1]).toEqual(
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-access-token',
+        }),
+      }),
+    )
+    expect(getAuthSessionSnapshot()).toMatchObject({ hasAccessToken: true, hasRefreshToken: true })
+  })
+
+  it('D-20: keeps an already-expired access token with a valid refresh token an active session that refreshes only through api.ts', async () => {
+    seedRuntimeSessionExpiredAccessToken()
+    refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(makeCurrentUserResponse())
+      .mockResolvedValueOnce(
+        makeResponse({ data: { anisearch_id: '1078', jellyfin_series_id: 'bleach' } }, { ok: true, status: 200 }),
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getEpisodeImportContext(15)).resolves.toEqual({
+      data: { anisearch_id: '1078', jellyfin_series_id: 'bleach' },
+    })
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledWith('refresh-token-1')
     expect(fetchMock.mock.calls[1]?.[1]).toEqual(
       expect.objectContaining({
         headers: expect.objectContaining({
