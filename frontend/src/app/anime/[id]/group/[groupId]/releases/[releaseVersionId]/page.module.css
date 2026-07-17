@@ -55,7 +55,7 @@
 
 /* ── Hero (AO4-16/AO4-23) ── */
 .hero {
-  display: grid;
+  display: block;
   gap: clamp(22px, 3vw, 36px);
   grid-template-columns: minmax(0, 1fr);
   padding: clamp(20px, 3vw, 34px);
@@ -67,12 +67,15 @@
   backdrop-filter: blur(20px) saturate(1.45);
 }
 
-@media (min-width: 768px) {
-  .hero {
-    grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
-    align-items: center;
-  }
-}
+.hero :global(.accordionRoot) { border: 0; background: transparent; }
+.hero :global(.accordionRoot) > div { border: 0; background: transparent; }
+.heroSummary { width: 100%; display: grid; grid-template-columns: minmax(220px, .9fr) minmax(0, 1.1fr); gap: clamp(18px, 3vw, 34px); align-items: center; text-align: left; }
+.heroPanel { display: grid; gap: 20px; }
+.heroGroupLine { margin: 0; color: var(--color-text-secondary); font-size: 14px; }
+.heroReleaseTitle { margin: 0; color: var(--color-text-primary); font-weight: 650; }
+.heroDetailsLabel { color: var(--color-primary); font-size: 13px; font-weight: 700; }
+.releaseAnchors { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.releaseAnchors a,.releaseAnchors button { border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--surface-card); color: var(--color-text-primary); padding: 8px 14px; font: inherit; text-decoration: none; cursor: pointer; }
 
 .heroImageShell {
   position: relative;
@@ -90,15 +93,17 @@
   object-fit: cover;
   display: block;
 }
-.heroLogoFallback { display:grid; place-items:center; padding:clamp(24px,5vw,64px); background:linear-gradient(145deg,rgba(236,242,255,.82),rgba(255,255,255,.56)); }
+.heroLogoFallback { display:grid; place-items:center; padding:clamp(24px,5vw,64px); background-position:center; background-size:cover; }
+.heroLogoFallback::before { content:""; position:absolute; inset:-18px; background:inherit; filter:blur(14px); transform:scale(1.08); }
 .heroLogoFallback .heroImage { object-fit:contain; filter:drop-shadow(0 8px 14px rgba(28,45,88,.2)); }
+.heroLogoFallback .heroImage { position: relative; z-index: 1; }
 
 .heroContent {
   display: grid;
   gap: 12px;
   align-content: start;
 }
-.heroHeading { display:grid; gap:6px; padding-bottom:12px; border-bottom:2px solid rgba(47,95,227,.72); }
+.heroHeading { display:grid; gap:6px; padding-bottom:12px; border-bottom:2px solid var(--ui-line); }
 .heroEyebrow { margin:0; color:var(--accent-deep); font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
 .heroTitle { margin:0; color:var(--text-primary); font-size:clamp(28px,4vw,46px); line-height:1.08; letter-spacing:-.025em; }
 .heroTextOnly { grid-template-columns: minmax(0, 1fr); }
@@ -155,6 +160,7 @@
   -webkit-overflow-scrolling: touch;
 }
 .contributorsGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; }
+.contributorGroup { display: grid; gap: 14px; }
 
 .contributorItem {
   display: flex;
@@ -177,7 +183,7 @@
   font-weight: 600;
   object-fit: cover;
 }
-@media(max-width:600px){.technicalGrid{grid-template-columns:1fr}.page{padding:16px 14px 48px;gap:22px}.page>section:not(.hero){padding:20px;border-radius:14px}.hero{padding:18px;border-radius:16px}.contributorsGrid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.technicalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.page{padding:16px 14px 48px;gap:22px}.page>section:not(.hero){padding:20px;border-radius:14px}.hero{padding:12px;border-radius:16px}.heroSummary{grid-template-columns:1fr;gap:14px}.heroTitle{font-size:clamp(24px,8vw,34px)}.contributorsGrid{grid-template-columns:1fr 1fr}.heroImageShell{aspect-ratio:16/9}}
 
 .contributorMeta {
   display: grid;

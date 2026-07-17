@@ -4,11 +4,20 @@ import { act } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
-import { formatReleaseNoteDate, ReleaseNotesList } from './ReleaseNotesList'
+import { formatReleaseNoteDate, ReleaseNotesList, selectInitialReleaseNotes } from './ReleaseNotesList'
 
 afterEach(cleanup)
 
 describe('ReleaseNotesList', () => {
+  it('shows one initial note per source group before filling to three', () => {
+    const notes = [
+      {id:1,fansub_group_id:1,member_id:1,member_name:'A',member_avatar_url:null,role_label:'Timing',body_html:'<p>A</p>',created_at:'2026-01-01'},
+      {id:2,fansub_group_id:1,member_id:2,member_name:'B',member_avatar_url:null,role_label:'Timing',body_html:'<p>B</p>',created_at:'2026-01-02'},
+      {id:3,fansub_group_id:2,member_id:3,member_name:'C',member_avatar_url:null,role_label:'Karaoke',body_html:'<p>C</p>',created_at:'2026-01-03'},
+      {id:4,fansub_group_id:null,member_id:4,member_name:'D',member_avatar_url:null,role_label:'Editing',body_html:'<p>D</p>',created_at:'2026-01-04'},
+    ]
+    expect(selectInitialReleaseNotes(notes).map(note => note.id)).toEqual([1, 3, 4])
+  })
   it('groups whole role blocks in the responsive role grid', () => {
     render(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={2} initialNotes={[{id:1,member_id:1,member_name:'Anna',member_avatar_url:null,role_label:'Übersetzung',body_html:'<p>Text A</p>',created_at:'2026-01-02'},{id:2,member_id:2,member_name:'Mika',member_avatar_url:null,role_label:'Karaoke',body_html:'<p>Text B</p>',created_at:'2026-01-03'}]} />)
     const grid = document.querySelector('[data-role-grid="responsive"]')

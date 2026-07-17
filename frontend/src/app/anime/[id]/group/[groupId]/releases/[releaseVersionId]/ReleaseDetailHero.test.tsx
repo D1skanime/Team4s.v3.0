@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ReleaseDetailHero } from './ReleaseDetailHero'
 
@@ -22,5 +22,15 @@ describe('ReleaseDetailHero', () => {
     render(<ReleaseDetailHero {...base} animeLogoFallbackUrl="/anime-logo.png" preview_image={{id:1,category:'screenshot',thumbnail_url:'/preview.jpg',original_url:null,caption:'Preview',author_name:'Mia',is_preview_candidate:true}} />)
     expect(screen.getByAltText('Preview').getAttribute('src')).toBe('/preview.jpg')
     expect(screen.queryByAltText('Anime-Logo zu Winter-Release')).toBeNull()
+  })
+
+  it('starts collapsed and opens technical facts plus grouped contributors', () => {
+    render(<ReleaseDetailHero {...base} subtitle_type="softsub" contributors={[{ fansub_group_id: 2, member_id: 9, name: 'Mia', role_label: 'Timing', avatar_url: null }]} />)
+    const details = screen.getByRole('button', { name: /Details/ })
+    expect(details.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText('Video-Codec')).toBeNull()
+    fireEvent.click(details)
+    expect(screen.getByText('Video-Codec')).toBeTruthy()
+    expect(screen.getByText('Mia')).toBeTruthy()
   })
 })
