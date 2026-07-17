@@ -35,22 +35,6 @@
   align-items: center;
 }
 
-.button {
-  border: 0;
-  border-radius: 6px;
-  padding: 0.7rem 1rem;
-  background: var(--color-primary, #3057d5);
-  color: #fff;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.button:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
 .link {
   color: var(--color-primary, #3057d5);
   font-weight: 700;

@@ -13,6 +13,7 @@ const authMocks = vi.hoisted(() => ({
   getAuthSessionSnapshotMock: vi.fn(),
   logoutActiveAuthSessionMock: vi.fn(),
   isKeycloakEnabledMock: vi.fn(() => true),
+  hasPendingRegistrationCompletionMock: vi.fn(() => false),
   ApiError: class ApiError extends Error {
     status: number
 
@@ -41,6 +42,10 @@ vi.mock('@/lib/keycloakAuth', () => ({
   isKeycloakEnabled: authMocks.isKeycloakEnabledMock,
 }))
 
+vi.mock('@/lib/registrationCompletion', () => ({
+  hasPendingRegistrationCompletion: authMocks.hasPendingRegistrationCompletionMock,
+}))
+
 import LoginPage from './page'
 
 describe('LoginPage', () => {
@@ -55,6 +60,7 @@ describe('LoginPage', () => {
     authMocks.getAuthSessionSnapshotMock.mockReset()
     authMocks.logoutActiveAuthSessionMock.mockReset()
     authMocks.isKeycloakEnabledMock.mockReset()
+    authMocks.hasPendingRegistrationCompletionMock.mockReset()
     window.history.replaceState({}, '', '/login')
     authMocks.getAuthSessionSnapshotMock.mockReturnValue({
       hasAccessToken: false,
@@ -64,6 +70,7 @@ describe('LoginPage', () => {
     authMocks.isKeycloakEnabledMock.mockReturnValue(true)
     authMocks.beginKeycloakLoginMock.mockResolvedValue(undefined)
     authMocks.logoutActiveAuthSessionMock.mockResolvedValue(undefined)
+    authMocks.hasPendingRegistrationCompletionMock.mockReturnValue(false)
     authMocks.completeKeycloakAuthCallbackMock.mockResolvedValue({
       data: {
         app_user_id: 1,
@@ -75,11 +82,37 @@ describe('LoginPage', () => {
   it('starts Keycloak login from the member-facing login action', async () => {
     render(<LoginPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mit Keycloak anmelden' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }))
 
     await waitFor(() => {
       expect(authMocks.beginKeycloakLoginMock).toHaveBeenCalledTimes(1)
+      expect(authMocks.beginKeycloakLoginMock).toHaveBeenCalledWith()
     })
+  })
+
+  it('starts Keycloak registration with the register intent through the same global Button seam', async () => {
+    render(<LoginPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Registrieren' }))
+
+    await waitFor(() => {
+      expect(authMocks.beginKeycloakLoginMock).toHaveBeenCalledWith({ intent: 'register' })
+    })
+  })
+
+  it('hides the Registrieren CTA while an active session is already present', async () => {
+    authMocks.getAuthSessionSnapshotMock.mockReturnValue({
+      hasAccessToken: true,
+      hasRefreshToken: true,
+      displayName: 'Phase Admin',
+    })
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Erneut anmelden' })).toBeTruthy()
+    })
+    expect(screen.queryByRole('button', { name: 'Registrieren' })).toBeNull()
   })
 
   it('clears the active session and forces the identity prompt for relogin', async () => {
@@ -117,6 +150,31 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(routerMocks.replaceMock).toHaveBeenCalledWith('/admin')
+    })
+  })
+
+  it('rejects an external next value and falls back to the profile', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/login?code=abc&state=state-1&next=' + encodeURIComponent('https://evil.example/phish'),
+    )
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(routerMocks.replaceMock).toHaveBeenCalledWith('/me/profile')
+    })
+  })
+
+  it('sends a completed registration to the profile even when an arbitrary next value is present', async () => {
+    authMocks.hasPendingRegistrationCompletionMock.mockReturnValue(true)
+    window.history.replaceState({}, '', '/login?code=abc&state=state-1&next=/admin')
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(routerMocks.replaceMock).toHaveBeenCalledWith('/me/profile')
     })
   })
 

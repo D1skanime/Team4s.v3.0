@@ -10,10 +10,12 @@ import {
   getAuthSessionSnapshot,
   logoutActiveAuthSession,
 } from '@/lib/api'
+import { Button } from '@/components/ui'
 import {
   beginKeycloakLogin,
   isKeycloakEnabled,
 } from '@/lib/keycloakAuth'
+import { hasPendingRegistrationCompletion } from '@/lib/registrationCompletion'
 
 import styles from './page.module.css'
 
@@ -72,7 +74,12 @@ export default function LoginPage() {
         setErrorMessage(null)
         callbackCompletionRef.current ??= completeKeycloakAuthCallback(code, state).then(() => undefined)
         await callbackCompletionRef.current
-        if (!cancelled) router.replace(nextPath)
+        if (!cancelled) {
+          // A freshly completed registration always lands on "Mein Account", even if an
+          // arbitrary/foreign `next` query value was present on the callback URL.
+          const destination = hasPendingRegistrationCompletion() ? '/me/profile' : nextPath
+          router.replace(destination)
+        }
       } catch (error) {
         if (!cancelled) {
           setErrorMessage(readErrorMessage(error, 'Anmeldung konnte nicht abgeschlossen werden.'))
@@ -112,20 +119,55 @@ export default function LoginPage() {
     }
   }, [isAlreadySignedIn, keycloakEnabled])
 
+  const handleRegister = useCallback(async () => {
+    if (!keycloakEnabled) {
+      setErrorMessage('Keycloak ist lokal nicht aktiv. Starte Keycloak, um dich zu registrieren.')
+      return
+    }
+
+    try {
+      setIsBusy(true)
+      setErrorMessage(null)
+      if (isAlreadySignedIn) {
+        await logoutActiveAuthSession()
+        setIsAlreadySignedIn(false)
+      }
+      await beginKeycloakLogin({ intent: 'register' })
+    } catch (error) {
+      setErrorMessage(readErrorMessage(error, 'Registrierung konnte nicht gestartet werden.'))
+      setIsBusy(false)
+    }
+  }, [isAlreadySignedIn, keycloakEnabled])
+
   return (
     <main className={styles.page}>
       <section className={styles.panel}>
         <h1 className={styles.title}>Anmelden</h1>
         <p className={styles.text}>
-          Melde dich mit deinem Team4s-Account an. Profil, Gruppen und Berechtigungen werden danach automatisch geladen.
+          Melde dich mit deinem Team4s-Account an oder registriere dich neu. Profil, Gruppen und Berechtigungen werden danach automatisch geladen.
         </p>
 
         {errorMessage ? <div className={styles.error}>{errorMessage}</div> : null}
 
         <div className={styles.actions}>
-          <button type="button" className={styles.button} onClick={() => void handleLogin()} disabled={isBusy || !keycloakEnabled}>
-            {isBusy ? 'Bitte warten...' : isAlreadySignedIn ? 'Erneut anmelden' : 'Mit Keycloak anmelden'}
-          </button>
+          <Button
+            type="button"
+            onClick={() => void handleLogin()}
+            disabled={isBusy || !keycloakEnabled}
+            loading={isBusy}
+          >
+            {isAlreadySignedIn ? 'Erneut anmelden' : 'Anmelden'}
+          </Button>
+          {!isAlreadySignedIn ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void handleRegister()}
+              disabled={isBusy || !keycloakEnabled}
+            >
+              Registrieren
+            </Button>
+          ) : null}
           {isAlreadySignedIn ? (
             <Link className={styles.link} href={nextPath}>
               Weiter zum Profil
