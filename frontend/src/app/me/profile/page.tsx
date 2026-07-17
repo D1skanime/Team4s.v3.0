@@ -3,15 +3,16 @@
 import Image from 'next/image'
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { ChevronDown, Eye, Pencil, Save } from 'lucide-react'
+import { ChevronDown, Eye, Pencil, RotateCw, Save } from 'lucide-react'
 
 import { RecentContributionsSection } from '@/components/profile/RecentContributionsSection'
 import { RecentMediaSection } from '@/components/profile/RecentMediaSection'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { Button, Card, ErrorState, FormField, LoadingState, SectionHeader, Textarea } from '@/components/ui'
 import { ApiError, getMyBadges, getMyMemberClaim, getOwnProfile, patchMyBadgeVisibility, patchNoindex, refreshActiveAuthSession, resolveApiUrl, updateOwnProfile, uploadOwnProfileAvatar, uploadOwnProfileBackground, uploadOwnProfileStoryImage } from '@/lib/api'
+import { consumeRegistrationCompletion } from '@/lib/registrationCompletion'
 import { uploadPendingStoryImages } from '@/lib/storyImageUpload'
-import { useAuthSession } from '@/lib/useAuthSession'
+import { useAuthSession, useLogoutAuthSession } from '@/lib/useAuthSession'
 import type { MemberBadge } from '@/types/contributions'
 import type { MemberClaimRow, MemberProfileData } from '@/types/profile'
 
@@ -23,6 +24,7 @@ import { MemberAvatarCard } from './components/MemberAvatarCard'
 import { ProfileBackgroundCard } from './components/ProfileBackgroundCard'
 import { ProfileBasicsForm } from './components/ProfileBasicsForm'
 import { ProfileStoryCard } from './components/ProfileStoryCard'
+import { REGISTRATION_COMPLETION_MESSAGE, RegistrationCompletionBanner } from './components/RegistrationCompletionBanner'
 import { VisibilityCard } from './components/VisibilityCard'
 import {
   AUTH_REQUIRED_MESSAGE,
@@ -175,14 +177,18 @@ export default function MyProfilePage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [pendingImages] = useState(() => new Map<string, File>())
   const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map())
+  const [registrationCompletionMessage, setRegistrationCompletionMessage] = useState<string | null>(null)
+  const [reloadToken, setReloadToken] = useState(0)
   const accountSnapshotRef = useRef<string | null>(null)
   const hasOpenedKeycloakAccountRef = useRef(false)
   const isFormDirtyRef = useRef(false)
   const isRefreshingAccountRef = useRef(false)
+  const hasConsumedRegistrationCompletionRef = useRef(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const backgroundInputRef = useRef<HTMLInputElement>(null)
   const [activeTab, setActiveTab] = useState<ProfileTab>('profile')
   const hasAuthSession = hasAccessToken || hasRefreshToken
+  const logoutActiveSession = useLogoutAuthSession()
 
   const applyProfile = useCallback((nextProfile: MemberProfileData, options: { syncForm: boolean; resetDirty?: boolean }) => {
     setProfile(nextProfile)
@@ -257,6 +263,15 @@ export default function MyProfilePage() {
           setMyClaim(claim)
           setBadges(badgesResponse.badges ?? [])
           applyProfile(response.data, { syncForm: true, resetDirty: true })
+          // D-03/D-04: consume the one-shot registration marker only after this
+          // page's own profile hydration succeeded, and only once per mount —
+          // a retry or Keycloak-return refresh must never recreate the banner.
+          if (!hasConsumedRegistrationCompletionRef.current) {
+            hasConsumedRegistrationCompletionRef.current = true
+            if (consumeRegistrationCompletion()) {
+              setRegistrationCompletionMessage(REGISTRATION_COMPLETION_MESSAGE)
+            }
+          }
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -271,7 +286,19 @@ export default function MyProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [applyProfile, hasAuthSession, isClientInitialized])
+  }, [applyProfile, hasAuthSession, isClientInitialized, reloadToken])
+
+  const handleRetryProfileLoad = useCallback(() => {
+    setReloadToken((current) => current + 1)
+  }, [])
+
+  const handleLogoutFromError = useCallback(() => {
+    void logoutActiveSession().catch(() => undefined)
+  }, [logoutActiveSession])
+
+  const handleDismissRegistrationCompletion = useCallback(() => {
+    setRegistrationCompletionMessage(null)
+  }, [])
 
   useEffect(() => {
     function handleFocus() {
@@ -467,58 +494,71 @@ export default function MyProfilePage() {
   return (
     <main className={styles.page}>
       {!isClientInitialized ? (
-        <ErrorState
-          title="Anmeldung wird geprüft"
-          description="Die Profilseite wartet auf deine Browser-Session. Falls die Seite hier stehen bleibt, melde dich bitte erneut an."
-          action={<Button href="/login" variant="secondary">Zur Anmeldung</Button>}
-        />
+        <LoadingState title="Anmeldung wird geprüft" description="Team4s prüft deine Browser-Session." />
       ) : isLoading ? (
         <LoadingState title="Profil wird geladen" description="Team4s lädt dein Profil." />
       ) : null}
 
       {isClientInitialized && !isLoading && error && !profile ? (
-        <ErrorState
-          title={!hasAuthSession || error === AUTH_REQUIRED_MESSAGE ? 'Anmeldung erforderlich' : 'Profil konnte nicht geladen werden'}
-          description={error}
-          action={<Button href="/login" variant="secondary">Zur Anmeldung</Button>}
-        />
+        !hasAuthSession || error === AUTH_REQUIRED_MESSAGE ? (
+          <ErrorState
+            title="Anmeldung erforderlich"
+            description={error}
+            action={<Button href="/login" variant="secondary">Zur Anmeldung</Button>}
+          />
+        ) : (
+          // D-19: an active session whose Team4s account data failed to load
+          // never offers a login call — only retry and the existing centralized
+          // logout action.
+          <ErrorState
+            title="Profil konnte nicht geladen werden"
+            description={error}
+            action={
+              <div className={styles.errorStateActions}>
+                <Button type="button" variant="secondary" loading={isLoading} leftIcon={<RotateCw size={16} aria-hidden="true" />} onClick={handleRetryProfileLoad}>
+                  Erneut versuchen
+                </Button>
+                <Button type="button" variant="ghost" onClick={handleLogoutFromError}>
+                  Abmelden
+                </Button>
+              </div>
+            }
+          />
+        )
       ) : null}
 
       {isClientInitialized && !isLoading && profile && !hasMemberProfile ? (
-        <>
+        <div className={styles.mainColumn}>
+          {registrationCompletionMessage ? (
+            <RegistrationCompletionBanner message={registrationCompletionMessage} onDismiss={handleDismissRegistrationCompletion} />
+          ) : null}
           {error ? <div className={styles.errorBox}>{error}</div> : null}
           {success ? <div className={styles.successBox}>{success}</div> : null}
 
-          <div className={styles.layoutGrid}>
-            <div className={styles.mainColumn}>
-              <Card variant="section">
-                <SectionHeader
-                  title="Mein Account"
-                  description="Dieser Login ist noch keinem verifizierten Member-Eintrag zugeordnet."
-                />
-                <AccountSecurityCard
-                  profile={profile}
-                  hasOpenedKeycloakAccount={hasOpenedKeycloakAccount}
-                  isRefreshingAccount={isRefreshingAccount}
-                  onKeycloakAccountClick={handleKeycloakAccountClick}
-                />
-              </Card>
-            </div>
+          <Card variant="section">
+            <SectionHeader title="Mein Account" description="Deine Accountdaten und Kontoeinstellungen." />
+            <AccountSecurityCard
+              profile={profile}
+              hasOpenedKeycloakAccount={hasOpenedKeycloakAccount}
+              isRefreshingAccount={isRefreshingAccount}
+              onKeycloakAccountClick={handleKeycloakAccountClick}
+            />
+          </Card>
 
-            <aside className={styles.sideColumn}>
-              <Card variant="section" title="Member-Eintrag">
-                <p className={styles.mutedText}>
-                  Ein normales Konto ist noch kein öffentliches Member-Profil. Suche deinen historischen Nick oder beantrage einen neuen Member-Eintrag.
-                </p>
-                <MemberClaimSection currentClaim={myClaim} disabled={isSaving} />
-              </Card>
-            </aside>
-          </div>
-        </>
+          <Card variant="section" title="Warst du als Fansubber aktiv?">
+            <p className={styles.mutedText}>
+              Wenn du früher oder aktuell in einer Fansub-Gruppe aktiv warst, kannst du deinen historischen Nick suchen oder einen neuen Member-Eintrag beantragen.
+            </p>
+            <MemberClaimSection currentClaim={myClaim} disabled={isSaving} />
+          </Card>
+        </div>
       ) : null}
 
       {isClientInitialized && !isLoading && profile && hasMemberProfile ? (
         <>
+          {registrationCompletionMessage ? (
+            <RegistrationCompletionBanner message={registrationCompletionMessage} onDismiss={handleDismissRegistrationCompletion} />
+          ) : null}
           <div className={styles.profileWorkspace}>
             <EditableProfileHeader
               profile={profile}

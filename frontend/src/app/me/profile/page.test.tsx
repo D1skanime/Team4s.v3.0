@@ -17,6 +17,8 @@ const uploadOwnProfileAvatarMock = vi.fn()
 const uploadOwnProfileBackgroundMock = vi.fn()
 const uploadOwnProfileStoryImageMock = vi.fn()
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
+const logoutActiveSessionMock = vi.hoisted(() => vi.fn())
+const consumeRegistrationCompletionMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode; [key: string]: unknown }) => <a href={href} {...props}>{children}</a>,
@@ -101,6 +103,11 @@ vi.mock('@/components/media/crop/Team4sCropper', () => ({
 
 vi.mock('@/lib/useAuthSession', () => ({
   useAuthSession: () => useAuthSessionMock(),
+  useLogoutAuthSession: () => logoutActiveSessionMock,
+}))
+
+vi.mock('@/lib/registrationCompletion', () => ({
+  consumeRegistrationCompletion: (...args: unknown[]) => consumeRegistrationCompletionMock(...args),
 }))
 
 vi.mock('@/lib/api', () => ({
@@ -142,6 +149,8 @@ beforeEach(() => {
   getMyBadgesMock.mockResolvedValue({ badges: [] })
   patchNoindexMock.mockResolvedValue(undefined)
   patchMyBadgeVisibilityMock.mockResolvedValue({ badges: [] })
+  logoutActiveSessionMock.mockReset().mockResolvedValue(undefined)
+  consumeRegistrationCompletionMock.mockReset().mockReturnValue(false)
 })
 
 afterEach(() => {
@@ -288,7 +297,9 @@ describe('MyProfilePage', () => {
     render(<MyProfilePage />)
 
     expect(await screen.findByRole('heading', { name: 'Mein Account' })).not.toBeNull()
-    expect(screen.getByText('Ein normales Konto ist noch kein öffentliches Member-Profil. Suche deinen historischen Nick oder beantrage einen neuen Member-Eintrag.')).not.toBeNull()
+    expect(screen.getByText('Deine Accountdaten und Kontoeinstellungen.')).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Warst du als Fansubber aktiv?' })).not.toBeNull()
+    expect(screen.getByText('Wenn du früher oder aktuell in einer Fansub-Gruppe aktiv warst, kannst du deinen historischen Nick suchen oder einen neuen Member-Eintrag beantragen.')).not.toBeNull()
     expect(screen.getByLabelText('Historischen Nick suchen')).not.toBeNull()
     expect(screen.getAllByText('Phase Admin').length).toBeGreaterThan(0)
     expect(screen.queryByRole('heading', { name: 'Mein Profil' })).toBeNull()
@@ -296,6 +307,10 @@ describe('MyProfilePage', () => {
     expect(screen.queryByText('Meine Fansub-Geschichte')).toBeNull()
     expect(screen.queryByText('Avatar-Bild')).toBeNull()
     expect(screen.queryByRole('link', { name: /Profil ansehen/i })).toBeNull()
+
+    const accountConsoleLink = screen.getByRole('link', { name: 'Accountdaten verwalten' })
+    expect(accountConsoleLink.getAttribute('target')).toBe('_blank')
+    expect(accountConsoleLink.getAttribute('rel')).toBe('noreferrer')
   })
 
   it('links from the own profile hub to the public member profile', async () => {
@@ -359,6 +374,38 @@ describe('MyProfilePage', () => {
     expect(await screen.findByText('Anmeldung erforderlich')).not.toBeNull()
     expect(screen.getByText('Anmeldung erforderlich. Bitte melde dich erneut an.')).not.toBeNull()
     expect(screen.getByRole('link', { name: 'Zur Anmeldung' }).getAttribute('href')).toBe('/login')
+    expect(screen.queryByRole('button', { name: /Erneut versuchen/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Abmelden/i })).toBeNull()
+  })
+
+  it('D-19: offers German retry and the existing centralized logout action for an active-session profile error, never login', async () => {
+    getOwnProfileMock.mockRejectedValueOnce(new Error('Profil-Backend nicht erreichbar.'))
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByText('Profil konnte nicht geladen werden')).not.toBeNull()
+    expect(screen.getByText('Profil-Backend nicht erreichbar.')).not.toBeNull()
+    expect(screen.queryByRole('link', { name: 'Zur Anmeldung' })).toBeNull()
+
+    const retryButton = screen.getByRole('button', { name: /Erneut versuchen/i })
+    const logoutButton = screen.getByRole('button', { name: /Abmelden/i })
+    expect(retryButton).not.toBeNull()
+    expect(logoutButton).not.toBeNull()
+
+    getOwnProfileMock.mockResolvedValueOnce(makeProfileResponse())
+    fireEvent.click(retryButton)
+
+    expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
+    expect(getOwnProfileMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('D-19: exposes the existing centralized logout action from the active-session profile error banner', async () => {
+    getOwnProfileMock.mockRejectedValue(new Error('Profil-Backend nicht erreichbar.'))
+
+    render(<MyProfilePage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Abmelden/i }))
+    expect(logoutActiveSessionMock).toHaveBeenCalledTimes(1)
   })
 
   it('does not keep the profile loader forever when the request stalls', async () => {
@@ -375,6 +422,9 @@ describe('MyProfilePage', () => {
 
     expect(screen.getByText('Profil konnte nicht geladen werden')).not.toBeNull()
     expect(screen.getByText('Profil konnte nicht rechtzeitig geladen werden. Bitte melde dich erneut an.')).not.toBeNull()
+    expect(screen.queryByRole('link', { name: 'Zur Anmeldung' })).toBeNull()
+    expect(screen.getByRole('button', { name: /Erneut versuchen/i })).not.toBeNull()
+    expect(screen.getByRole('button', { name: /Abmelden/i })).not.toBeNull()
   })
 
   it('keeps the account display name out of editable profile fields until Team4s data changes', async () => {
@@ -884,5 +934,73 @@ describe('MyProfilePage', () => {
     await openProfileTab('Sichtbarkeit')
     expect((await screen.findAllByAltText('MikaFX Avatar')).length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: 'Ausschnitt bearbeiten' })).toBeNull()
+  })
+})
+
+describe('MyProfilePage registration completion notice (D-03/D-04)', () => {
+  it('shows the exact one-shot confirmation only when the trusted marker was consumed', async () => {
+    consumeRegistrationCompletionMock.mockReturnValue(true)
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByTestId('registration-completion-banner')).not.toBeNull()
+    expect(screen.getByText('Dein Team4s-Konto wurde erstellt. Du bist jetzt angemeldet.')).not.toBeNull()
+    expect(consumeRegistrationCompletionMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('never shows the confirmation when the marker was not present (spoof-proof, no query-driven creation)', async () => {
+    consumeRegistrationCompletionMock.mockReturnValue(false)
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
+    expect(screen.queryByTestId('registration-completion-banner')).toBeNull()
+    expect(screen.queryByText('Dein Team4s-Konto wurde erstellt. Du bist jetzt angemeldet.')).toBeNull()
+  })
+
+  it('dismisses the confirmation on demand and keeps it hidden for the rest of the page visit', async () => {
+    consumeRegistrationCompletionMock.mockReturnValue(true)
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    await screen.findByTestId('registration-completion-banner')
+    fireEvent.click(screen.getByRole('button', { name: 'Meldung schließen' }))
+
+    expect(screen.queryByTestId('registration-completion-banner')).toBeNull()
+    expect(screen.queryByText('Dein Team4s-Konto wurde erstellt. Du bist jetzt angemeldet.')).toBeNull()
+  })
+
+  it('never recreates the confirmation on remount once the one-shot marker is already consumed', async () => {
+    consumeRegistrationCompletionMock.mockReturnValue(true)
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    const { unmount } = render(<MyProfilePage />)
+    await screen.findByTestId('registration-completion-banner')
+    unmount()
+
+    // A real remount/reload finds the sessionStorage marker already removed by
+    // the first consume — the mock mirrors that real one-shot behavior here.
+    consumeRegistrationCompletionMock.mockReturnValue(false)
+    render(<MyProfilePage />)
+
+    expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
+    expect(screen.queryByTestId('registration-completion-banner')).toBeNull()
+  })
+
+  it('renders the account-only view with the confirmation banner above account data', async () => {
+    consumeRegistrationCompletionMock.mockReturnValue(true)
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      member_id: 0,
+      has_member_profile: false,
+      account_display_name: 'Neuer Nutzer',
+    }))
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByTestId('registration-completion-banner')).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Mein Account' })).not.toBeNull()
   })
 })

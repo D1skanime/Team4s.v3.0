@@ -50,3 +50,21 @@ unfixed per the executor scope boundary; the owning phase/session (likely a Phas
 follow-up cleanup) should migrate `GroupHistorySection.tsx` off the `authToken` prop
 and route `ProfileBackgroundCard.tsx`'s fetch through the central client or the
 public no-auth-fetch allowlist.
+
+## From Plan 104-03
+
+### Pre-existing CLAUDE.md 450-line violation on `frontend/src/app/me/profile/page.tsx`
+
+`page.tsx` was already 712 lines before Plan 104-03 (pre-existing, not introduced by
+this plan). Task 2's required additions (registration-completion one-shot banner,
+D-19 retry/logout error branch, restructured account-only layout) necessarily grew it
+further; `RegistrationCompletionBanner` was extracted to its own component file to
+partially offset the growth, landing the file at 751 lines. A full decomposition of
+`page.tsx` (e.g. splitting the account-only view, the full-member workspace, and the
+top-level load/error state machine into separate files) was judged out of scope for
+this behavior-focused plan given the regression risk against ~36 existing/updated
+tests in `page.test.tsx`. Matches the existing project convention of tracking
+oversized files as deferred follow-up (see STATE.md: `AnimeJellyfinAssetUploadControls.tsx`
+662 lines, "Split als Follow-up-Quick-Task deferred"). A dedicated quick task should
+split `page.tsx` into `page.tsx` (state/data) + separate view components for the
+account-only and full-member branches.
