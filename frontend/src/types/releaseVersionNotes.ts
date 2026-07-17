@@ -1,6 +1,7 @@
 export interface ReleaseVersionNote {
   id: number;
   releaseVersionId: number;
+  fansubGroupId?: number | null;
   memberId: number;
   roleId: number;
   title: string | null;
@@ -35,6 +36,7 @@ export interface BulkNoteInput {
   memberId: number;
   roleId: number;
   roleCode: string;
+  fansubGroupId?: number | null;
   title?: string | null;
   bodyJson: unknown | null;
   visibility: 'public' | 'internal';

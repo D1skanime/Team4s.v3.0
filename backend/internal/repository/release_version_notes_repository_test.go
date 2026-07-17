@@ -28,7 +28,7 @@ func TestReleaseVersionNotesRepository_ContributorGuardSourceInvariants(t *testi
 		"update path must validate that the stored note matches the submitted member/role pair")
 	assert.True(t, strings.Contains(content, "storedMemberID != memberID || storedRoleID != roleID"),
 		"repository must reject mismatched update payloads instead of silently ignoring member/role changes")
-	assert.True(t, strings.Contains(content, "VALUES ($1, $2, $3, $4, $5, $6, $7, 'tiptap', $8, $9, $10, $11, $12, NOW())"),
+	assert.True(t, strings.Contains(content, "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'tiptap', $9, $10, $11, $12, $13, NOW())"),
 		"insert path must provide a value for created_by_user_id before created_at")
 }
 

@@ -22,15 +22,16 @@ type releaseVersionNoteAccess struct {
 }
 
 type bulkNoteItemRequest struct {
-	ID         int64           `json:"id"`
-	MemberID   int64           `json:"member_id" binding:"required"`
-	RoleCode   string          `json:"role_code" binding:"required"`
-	RoleID     int64           `json:"role_id"`
-	Title      *string         `json:"title"`
-	BodyJSON   json.RawMessage `json:"body_json"`
-	Visibility string          `json:"visibility" binding:"required,oneof=public internal"`
-	Status     string          `json:"status" binding:"required,oneof=draft published archived deleted"`
-	SortOrder  int             `json:"sort_order"`
+	ID            int64           `json:"id"`
+	MemberID      int64           `json:"member_id" binding:"required"`
+	RoleCode      string          `json:"role_code" binding:"required"`
+	RoleID        int64           `json:"role_id"`
+	FansubGroupID *int64          `json:"fansub_group_id"`
+	Title         *string         `json:"title"`
+	BodyJSON      json.RawMessage `json:"body_json"`
+	Visibility    string          `json:"visibility" binding:"required,oneof=public internal"`
+	Status        string          `json:"status" binding:"required,oneof=draft published archived deleted"`
+	SortOrder     int             `json:"sort_order"`
 }
 
 type bulkUpsertReleaseVersionNotesRequest struct {
@@ -230,6 +231,32 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 			})
 			return
 		}
+		groupIDs, err := h.releaseVersionNotesRepo.ListReleaseVersionMemberRoleGroupIDs(c.Request.Context(), access.versionID, note.MemberID, note.RoleCode)
+		if err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Herkunftsgruppe konnte nicht geprüft werden.")
+			return
+		}
+		selectedGroupID := note.FansubGroupID
+		if selectedGroupID == nil {
+			if len(groupIDs) != 1 {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Bitte eine eindeutige beteiligte Herkunftsgruppe wählen.", "error_code": "SOURCE_GROUP_REQUIRED"}})
+				return
+			}
+			value := groupIDs[0]
+			selectedGroupID = &value
+		} else {
+			allowed := false
+			for _, groupID := range groupIDs {
+				if groupID == *selectedGroupID {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Die Herkunftsgruppe ist für diese Notiz nicht zulässig.", "error_code": "INVALID_SOURCE_GROUP"}})
+				return
+			}
+		}
 
 		bodyJSONStr := string(note.BodyJSON)
 		if err := h.tiptapSvc.ValidateJSON(bodyJSONStr); err != nil {
@@ -243,17 +270,18 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 		}
 		bodyText, _ := h.tiptapSvc.ExtractText(bodyJSONStr)
 		inputs = append(inputs, repository.BulkNoteInput{
-			ID:         note.ID,
-			MemberID:   note.MemberID,
-			RoleCode:   note.RoleCode,
-			RoleID:     note.RoleID,
-			Title:      note.Title,
-			BodyJSON:   []byte(note.BodyJSON),
-			BodyHTML:   bodyHTML,
-			BodyText:   bodyText,
-			Visibility: note.Visibility,
-			Status:     note.Status,
-			SortOrder:  note.SortOrder,
+			ID:            note.ID,
+			MemberID:      note.MemberID,
+			RoleCode:      note.RoleCode,
+			RoleID:        note.RoleID,
+			FansubGroupID: selectedGroupID,
+			Title:         note.Title,
+			BodyJSON:      []byte(note.BodyJSON),
+			BodyHTML:      bodyHTML,
+			BodyText:      bodyText,
+			Visibility:    note.Visibility,
+			Status:        note.Status,
+			SortOrder:     note.SortOrder,
 		})
 	}
 

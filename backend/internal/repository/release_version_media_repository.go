@@ -19,6 +19,7 @@ var ErrOwnershipMismatch = errors.New("ownership mismatch")
 // ReleaseVersionMediaCreateInput holds the data required to create a release_version_media row.
 type ReleaseVersionMediaCreateInput struct {
 	ReleaseVersionID   int64
+	FansubGroupID      *int64
 	MediaAssetID       int64
 	Category           string
 	Caption            *string
@@ -52,6 +53,7 @@ type ReleaseVersionMediaReorderItem struct {
 type ReleaseVersionMediaItem struct {
 	ID                 int64      `json:"id"`
 	ReleaseVersionID   int64      `json:"release_version_id"`
+	FansubGroupID      *int64     `json:"fansub_group_id"`
 	MediaAssetID       int64      `json:"media_asset_id"`
 	Category           string     `json:"category"`
 	Caption            *string    `json:"caption"`
@@ -107,11 +109,11 @@ func (r *MediaRepository) CreateReleaseVersionMediaAsset(
 	var id int64
 	err := tx.QueryRow(ctx, `
 		INSERT INTO release_version_media
-			(release_version_id, media_asset_id, category, caption, sort_order,
+			(release_version_id, fansub_group_id, media_asset_id, category, caption, sort_order,
 			 is_preview_candidate, uploaded_by_user_id, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, (SELECT id FROM users WHERE id = $7), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM users WHERE id = $8), NOW())
 		RETURNING id
-	`, input.ReleaseVersionID, input.MediaAssetID, input.Category, input.Caption,
+	`, input.ReleaseVersionID, input.FansubGroupID, input.MediaAssetID, input.Category, input.Caption,
 		input.SortOrder, input.IsPreviewCandidate, uploadedByUserID,
 	).Scan(&id)
 	if err != nil {
@@ -205,6 +207,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 		SELECT
 			rvm.id,
 			rvm.release_version_id,
+			rvm.fansub_group_id,
 			rvm.media_asset_id,
 			rvm.category,
 			rvm.caption,
@@ -238,7 +241,7 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 		var visibilityName *string
 		var reviewStatusCode *string
 		if err := rows.Scan(
-			&item.ID, &item.ReleaseVersionID, &item.MediaAssetID,
+			&item.ID, &item.ReleaseVersionID, &item.FansubGroupID, &item.MediaAssetID,
 			&item.Category, &item.Caption, &item.SortOrder,
 			&item.IsPreviewCandidate, &item.UploadedByUserID,
 			&visibilityName, &reviewStatusCode,
@@ -531,6 +534,58 @@ func (r *MediaRepository) ListReleaseVersionMediaContributorGroupIDs(ctx context
 		return nil, fmt.Errorf("iterate rvm contributor groups for relation %d: %w", relationID, err)
 	}
 	return groupIDs, nil
+}
+
+// ListReleaseVersionGroupIDs returns the canonical groups attached to a release version.
+func (r *MediaRepository) ListReleaseVersionGroupIDs(ctx context.Context, releaseVersionID int64) ([]int64, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT fansub_group_id FROM release_version_groups
+		WHERE release_version_id = $1 ORDER BY fansub_group_id
+	`, releaseVersionID)
+	if err != nil {
+		return nil, fmt.Errorf("list release-version groups %d: %w", releaseVersionID, err)
+	}
+	defer rows.Close()
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+// ListReleaseVersionMediaContributorGroupIDsForUser resolves real source groups
+// for an uploader before a new relation exists.
+func (r *MediaRepository) ListReleaseVersionMediaContributorGroupIDsForUser(ctx context.Context, releaseVersionID, legacyUserID int64) ([]int64, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ac.fansub_group_id
+		FROM app_users au
+		JOIN member_claims mc ON mc.app_user_id = au.id AND mc.claim_status = 'verified'
+		JOIN release_versions rv ON rv.id = $1
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes ep ON ep.id = fr.episode_id
+		JOIN anime_contributions ac ON ac.member_id = mc.member_id
+		JOIN release_version_groups rvg ON rvg.release_version_id = $1 AND rvg.fansub_group_id = ac.fansub_group_id
+		WHERE au.legacy_user_id = $2
+		  AND (ac.release_version_id = $1 OR (ac.release_version_id IS NULL AND ac.anime_id = ep.anime_id))
+		ORDER BY ac.fansub_group_id
+	`, releaseVersionID, legacyUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list uploader source groups: %w", err)
+	}
+	defer rows.Close()
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
 }
 
 // ValidateReleaseVersionMediaOwnership ensures all provided relation IDs belong to the routed release version

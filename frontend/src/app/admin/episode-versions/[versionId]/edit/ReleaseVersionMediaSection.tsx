@@ -33,6 +33,7 @@ interface ReleaseVersionMediaSectionProps {
   fansubGroupName: string
   releaseVersionLabel: string
   mediaState?: UseReleaseVersionMediaResult
+  sourceGroups?: Array<{ id: number; name: string }>
 }
 
 type AssetStatusValue = 'in_pruefung' | 'oeffentlich' | 'intern' | 'abgelehnt' | 'archiviert' | 'entfernt'
@@ -116,12 +117,14 @@ export function ReleaseVersionMediaSection({
   fansubGroupName,
   releaseVersionLabel,
   mediaState,
+  sourceGroups = [],
 }: ReleaseVersionMediaSectionProps) {
   const internalMedia = useReleaseVersionMedia(versionId)
   const media = mediaState ?? internalMedia
   const persistedItems = Array.isArray(media.items) ? media.items : []
 
   const [selectedCategory, setSelectedCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
+  const [sourceGroupId, setSourceGroupId] = useState<number | null>(sourceGroups.length === 1 ? sourceGroups[0].id : null)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [defaultCaption, setDefaultCaption] = useState('')
   const [isPreviewCandidate, setIsPreviewCandidate] = useState(false)
@@ -200,7 +203,7 @@ export function ReleaseVersionMediaSection({
   const canDeleteOwnMedia = media.capabilities?.can_delete_own_media ?? false
   const canShowPreviewToggle = CATEGORY_ALLOWS_PREVIEW[selectedCategory]
   const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy
-  const canUpload = canChooseFiles && selectedFiles.length > 0
+  const canUpload = canChooseFiles && selectedFiles.length > 0 && (sourceGroups.length === 0 || sourceGroupId != null)
   const canEditPreviewCandidate = selectedItem ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] : false
   const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
   const canDeleteSelectedItem = Boolean(selectedItem && (selectedItem.can_delete ?? (canDeleteMedia || canDeleteOwnMedia)))
@@ -286,14 +289,11 @@ export function ReleaseVersionMediaSection({
 
     setUploadError(null)
     try {
-      await media.startUpload(
-        selectedCategory,
-        selectedFiles,
-        defaultCaption,
-        canShowPreviewToggle ? isPreviewCandidate : false,
-        undefined,
-        undefined,
-      )
+      if (sourceGroupId != null) {
+        await media.startUpload(selectedCategory, selectedFiles, defaultCaption, canShowPreviewToggle ? isPreviewCandidate : false, undefined, undefined, sourceGroupId)
+      } else {
+        await media.startUpload(selectedCategory, selectedFiles, defaultCaption, canShowPreviewToggle ? isPreviewCandidate : false, undefined, undefined)
+      }
       setSelectedFiles([])
       setDefaultCaption('')
       setIsPreviewCandidate(false)
@@ -507,6 +507,13 @@ export function ReleaseVersionMediaSection({
               rows={3}
             />
           </FormField>
+
+          {sourceGroups.length > 0 ? <FormField label="Herkunftsgruppe" hint="Die Gruppe, aus deren Release-Arbeit dieses Bild stammt.">
+            <Select value={sourceGroupId ?? ''} onChange={(event) => setSourceGroupId(Number(event.target.value) || null)} required>
+              {sourceGroups.length > 1 ? <option value="">Gruppe wählen</option> : null}
+              {sourceGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+            </Select>
+          </FormField> : null}
 
           {canShowPreviewToggle ? (
             <label className={styles.checkboxRow}>

@@ -214,6 +214,47 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
+	var sourceGroupID int64
+	if raw := strings.TrimSpace(c.PostForm("fansub_group_id")); raw != "" {
+		sourceGroupID, err = strconv.ParseInt(raw, 10, 64)
+		if err != nil || sourceGroupID <= 0 {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Ungültige Herkunftsgruppe.", "error_code": "INVALID_SOURCE_GROUP"}})
+			return
+		}
+	}
+	participatingGroups, err := h.mediaRepo.ListReleaseVersionGroupIDs(c.Request.Context(), versionID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Herkunftsgruppen konnten nicht geladen werden.")
+		return
+	}
+	actorGroups, err := h.mediaRepo.ListReleaseVersionMediaContributorGroupIDsForUser(c.Request.Context(), versionID, identity.UserID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Herkunftsgruppe konnte nicht geprüft werden.")
+		return
+	}
+	allowedGroups := actorGroups
+	if actor.IsPlatformAdmin {
+		allowedGroups = participatingGroups
+	}
+	containsGroup := func(ids []int64, wanted int64) bool {
+		for _, id := range ids {
+			if id == wanted {
+				return true
+			}
+		}
+		return false
+	}
+	if sourceGroupID == 0 {
+		if len(allowedGroups) != 1 {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Bitte eine eindeutige beteiligte Herkunftsgruppe wählen.", "error_code": "SOURCE_GROUP_REQUIRED"}})
+			return
+		}
+		sourceGroupID = allowedGroups[0]
+	} else if !containsGroup(participatingGroups, sourceGroupID) || !containsGroup(allowedGroups, sourceGroupID) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Die Herkunftsgruppe ist für dieses Release nicht zulässig.", "error_code": "INVALID_SOURCE_GROUP"}})
+		return
+	}
+
 	// visibility_code und review_status_code aus FormData lesen (optionale Felder, Lock K)
 	rvmVisibilityCode := strings.TrimSpace(c.PostForm("visibility_code"))
 	rvmReviewStatusCode := strings.TrimSpace(c.PostForm("review_status_code"))
@@ -263,7 +304,7 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 
 	for i, fileHeader := range files {
 		sortOrder := maxSortOrder + (i+1)*10
-		result := h.processOneRVMFile(c, fileHeader, versionID, category, sortOrder, uploadedByUserID, rvmVisibilityCode, rvmReviewStatusCode)
+		result := h.processOneRVMFile(c, fileHeader, versionID, sourceGroupID, category, sortOrder, uploadedByUserID, rvmVisibilityCode, rvmReviewStatusCode)
 		results = append(results, result)
 		if result.Status == "ready" && result.ReleaseVersionMediaID != nil {
 			_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
@@ -288,6 +329,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	c *gin.Context,
 	fileHeader *multipart.FileHeader,
 	versionID int64,
+	sourceGroupID int64,
 	category string,
 	sortOrder int,
 	uploadedByUserID int64,
@@ -444,6 +486,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	uploadedBy := uploadedByUserID
 	relationID, err := h.mediaRepo.CreateReleaseVersionMediaAsset(ctx, tx, repository.ReleaseVersionMediaCreateInput{
 		ReleaseVersionID:   versionID,
+		FansubGroupID:      &sourceGroupID,
 		MediaAssetID:       mediaAsset.ID,
 		Category:           category,
 		Caption:            nil,

@@ -14,6 +14,7 @@ import (
 type ReleaseVersionNote struct {
 	ID                   int64
 	ReleaseVersionID     int64
+	FansubGroupID        *int64
 	MemberID             int64
 	RoleID               int64
 	Title                *string
@@ -49,17 +50,18 @@ type MemberRoleForVersion struct {
 // RoleCode ist der kanonische Schlüssel für die Contributor-Validierung (D-13).
 // RoleID wird für die DB-Persistenz in release_version_notes.role_id benötigt (Legacy-Feld).
 type BulkNoteInput struct {
-	ID         int64 // 0 = create new
-	MemberID   int64
-	RoleCode   string // für Validierung gegen anime_contributions (D-13)
-	RoleID     int64  // für INSERT in release_version_notes.role_id (Legacy-DB-Feld)
-	Title      *string
-	BodyJSON   []byte
-	BodyHTML   string
-	BodyText   string
-	Visibility string
-	Status     string
-	SortOrder  int
+	ID            int64 // 0 = create new
+	MemberID      int64
+	RoleCode      string // für Validierung gegen anime_contributions (D-13)
+	RoleID        int64  // für INSERT in release_version_notes.role_id (Legacy-DB-Feld)
+	FansubGroupID *int64
+	Title         *string
+	BodyJSON      []byte
+	BodyHTML      string
+	BodyText      string
+	Visibility    string
+	Status        string
+	SortOrder     int
 }
 
 // ReleaseVersionNotesRepository provides CRUD and bulk-upsert operations for release_version_notes.
@@ -79,7 +81,7 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 	releaseVersionID int64,
 ) ([]ReleaseVersionNote, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, release_version_id, member_id, role_id,
+		SELECT id, release_version_id, fansub_group_id, member_id, role_id,
 		       title, body_markdown, body_html, body_json, body_text,
 		       editor_type, content_schema_version,
 		       visibility, status, sort_order,
@@ -99,7 +101,7 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 	for rows.Next() {
 		var n ReleaseVersionNote
 		if err := rows.Scan(
-			&n.ID, &n.ReleaseVersionID, &n.MemberID, &n.RoleID,
+			&n.ID, &n.ReleaseVersionID, &n.FansubGroupID, &n.MemberID, &n.RoleID,
 			&n.Title, &n.BodyMarkdown, &n.BodyHTML, &n.BodyJSON, &n.BodyText,
 			&n.EditorType, &n.ContentSchemaVersion,
 			&n.Visibility, &n.Status, &n.SortOrder,
@@ -122,7 +124,7 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotesForMember(
 	memberID int64,
 ) ([]ReleaseVersionNote, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, release_version_id, member_id, role_id,
+		SELECT id, release_version_id, fansub_group_id, member_id, role_id,
 		       title, body_markdown, body_html, body_json, body_text,
 		       editor_type, content_schema_version,
 		       visibility, status, sort_order,
@@ -143,7 +145,7 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotesForMember(
 	for rows.Next() {
 		var n ReleaseVersionNote
 		if err := rows.Scan(
-			&n.ID, &n.ReleaseVersionID, &n.MemberID, &n.RoleID,
+			&n.ID, &n.ReleaseVersionID, &n.FansubGroupID, &n.MemberID, &n.RoleID,
 			&n.Title, &n.BodyMarkdown, &n.BodyHTML, &n.BodyJSON, &n.BodyText,
 			&n.EditorType, &n.ContentSchemaVersion,
 			&n.Visibility, &n.Status, &n.SortOrder,
@@ -503,12 +505,12 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 			var newID int64
 			err := tx.QueryRow(ctx, `
 				INSERT INTO release_version_notes
-					(release_version_id, member_id, role_id, title,
+					(release_version_id, fansub_group_id, member_id, role_id, title,
 					 body_json, body_html, body_text, editor_type, content_schema_version,
 					 visibility, status, sort_order, created_by_user_id, created_at)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, 'tiptap', $8, $9, $10, $11, $12, NOW())
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'tiptap', $9, $10, $11, $12, $13, NOW())
 				RETURNING id
-			`, releaseVersionID, note.MemberID, note.RoleID, note.Title,
+			`, releaseVersionID, note.FansubGroupID, note.MemberID, note.RoleID, note.Title,
 				note.BodyJSON, note.BodyHTML, note.BodyText, 1,
 				note.Visibility, note.Status, note.SortOrder, resolvedUserID,
 			).Scan(&newID)
@@ -539,13 +541,14 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 					status             = $8,
 					sort_order         = $9,
 					updated_by_user_id = $10,
+					fansub_group_id     = COALESCE(fansub_group_id, $11),
 					updated_at         = NOW()
 				WHERE id = $1
 				  AND release_version_id = $2
 				  AND deleted_at IS NULL
 			`, note.ID, releaseVersionID,
 				note.Title, note.BodyJSON, note.BodyHTML, note.BodyText,
-				note.Visibility, note.Status, note.SortOrder, resolvedUserID,
+				note.Visibility, note.Status, note.SortOrder, resolvedUserID, note.FansubGroupID,
 			)
 			if isUniqueViolation(err) {
 				return nil, ErrConflict

@@ -26,6 +26,7 @@ interface ReleaseVersionNotesTabProps {
   versionId: number
   memberIdFilter?: number | null
   showAllMembers?: boolean
+  sourceGroups?: Array<{ id: number; name: string }>
 }
 
 const ROLE_HELP_TEXTS: Record<string, { label: string; placeholder: string }> = {
@@ -175,7 +176,8 @@ function getInitials(name: string): string {
   return parts.slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')
 }
 
-export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showAllMembers = true }: ReleaseVersionNotesTabProps) {
+export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showAllMembers = true, sourceGroups = [] }: ReleaseVersionNotesTabProps) {
+  const [sourceGroupId, setSourceGroupId] = useState<number | null>(sourceGroups.length === 1 ? sourceGroups[0].id : null)
   const [memberRoles, setMemberRoles] = useState<MemberRoleForVersion[]>([])
   const [noteStates, setNoteStates] = useState<Record<string, NoteFormState>>({})
   const [initialNoteStates, setInitialNoteStates] = useState<Record<string, NoteFormState>>({})
@@ -314,6 +316,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
           memberId: memberRole.memberId,
           roleId: memberRole.roleId,
           roleCode: memberRole.roleCode,
+          ...(sourceGroupId != null ? { fansubGroupId: sourceGroupId } : {}),
           title: state.title.trim() || null,
           bodyJson: ensureRichTextValue(state.bodyJson),
           visibility: state.visibility,
@@ -381,6 +384,14 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
 
   return (
     <section className={styles.notesTab}>
+      {sourceGroups.length > 0 ? (
+        <FormField label="Herkunftsgruppe" hint="Gilt für neu gespeicherte Texte in dieser Ansicht.">
+          <Select value={sourceGroupId ?? ''} onChange={(event) => setSourceGroupId(Number(event.target.value) || null)} required>
+            {sourceGroups.length > 1 ? <option value="">Gruppe wählen</option> : null}
+            {sourceGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+          </Select>
+        </FormField>
+      ) : null}
       <div
         className={styles.infoDetails}
         role="button"

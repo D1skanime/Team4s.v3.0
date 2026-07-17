@@ -923,6 +923,7 @@ types:
   ReleaseVersionMediaItem:
     id: int64
     release_version_id: int64
+    fansub_group_id: int64 | null
     media_asset_id: int64
     category: ReleaseVersionMediaCategory
     caption: string | null

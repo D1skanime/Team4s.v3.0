@@ -6870,6 +6870,7 @@ export interface UploadReleaseVersionMediaOptions {
   authToken?: string;
   visibilityCode?: string;
   reviewStatusCode?: string;
+  fansubGroupId?: number;
 }
 
 export async function uploadReleaseVersionMedia(
@@ -6890,6 +6891,7 @@ export async function uploadReleaseVersionMedia(
     buildBody: () => {
       const body = new FormData();
       body.set("category", options.category);
+      if (options.fansubGroupId) body.set("fansub_group_id", String(options.fansubGroupId));
       for (const file of options.files) {
         body.append("files[]", file);
       }
@@ -7613,6 +7615,7 @@ export async function deleteAnimeFansubProjectNote(
 type RawReleaseVersionNote = {
   ID: number;
   ReleaseVersionID: number;
+  FansubGroupID: number | null;
   MemberID: number;
   RoleID: number;
   Title: string | null;
@@ -7672,6 +7675,7 @@ function mapReleaseVersionNote(raw: RawReleaseVersionNote): ReleaseVersionNote {
   return {
     id: raw.ID,
     releaseVersionId: raw.ReleaseVersionID,
+    fansubGroupId: raw.FansubGroupID,
     memberId: raw.MemberID,
     roleId: raw.RoleID,
     title: raw.Title,
@@ -7778,6 +7782,7 @@ export async function bulkUpsertReleaseVersionNotes(
       member_id: note.memberId,
       role_id: note.roleId,
       role_code: note.roleCode,
+      fansub_group_id: note.fansubGroupId ?? null,
       title: note.title ?? null,
       body_json: note.bodyJson,
       visibility: note.visibility,

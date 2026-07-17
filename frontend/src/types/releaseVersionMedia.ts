@@ -29,6 +29,7 @@ export const CATEGORY_ALLOWS_PREVIEW: Record<ReleaseVersionMediaCategory, boolea
 export interface ReleaseVersionMediaItem {
   id: number
   release_version_id: number
+  fansub_group_id?: number | null
   media_asset_id: number
   category: ReleaseVersionMediaCategory
   caption: string | null
