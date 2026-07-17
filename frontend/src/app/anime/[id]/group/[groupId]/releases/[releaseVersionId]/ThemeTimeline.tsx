@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 import { Badge, SectionHeader } from "@/components/ui";
 import type { PublicReleaseSegment } from "@/types/releaseDetail";
@@ -88,7 +89,7 @@ export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segmen
       <div className={styles.timelineCards}>
         {segments.map((segment) => (
           <article key={segment.theme_segment_id} className={styles.timelineItem}>
-            {segment.preview_url ? <img className={styles.timelineThumb} src={segment.preview_url} alt="" /> : null}
+            {segment.preview_url ? <Image className={styles.timelineThumb} src={segment.preview_url} alt="" width={640} height={360} unoptimized /> : null}
             <div className={styles.timelineMeta}>
               <strong>{segment.name}</strong>
               <div className={styles.timelineTags}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Maximize2 } from 'lucide-react'
+import Image from 'next/image'
 import { useState } from 'react'
 
 import { Badge, Button, SectionHeader } from '@/components/ui'
@@ -96,7 +97,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     return <article key={image.id} className={styles.card}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveIndex(items.findIndex(item => item.id === image.id))}>
         <span className={styles.imageShell}>
-          {src ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={src} alt={title} className={styles.image} loading="lazy" /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
+          {src ? <Image src={src} alt={title} className={styles.image} fill sizes="(max-width: 600px) 45vw, (max-width: 900px) 40vw, 28vw" unoptimized /> : <span className={styles.imagePlaceholder} aria-hidden="true" />}
           <span className={styles.maximize} aria-hidden="true"><Maximize2 size={16} /></span>
         </span>
       </Button>

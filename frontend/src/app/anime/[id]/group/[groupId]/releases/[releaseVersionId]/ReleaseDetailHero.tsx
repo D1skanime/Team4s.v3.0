@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { Accordion, Badge, Card } from '@/components/ui'
+import { Accordion, Card } from '@/components/ui'
 import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
 import { ContributorsRow } from './ContributorsRow'
