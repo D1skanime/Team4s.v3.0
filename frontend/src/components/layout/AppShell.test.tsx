@@ -64,6 +64,19 @@ describe('AppShell', () => {
     expect(screen.queryByText('Member Hub')).toBeNull()
   })
 
+  it('renders exactly one Account navigation entry and no duplicate Account & Sicherheit link (D-17)', () => {
+    render(
+      <AppShell currentPath="/me/profile" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    expect(screen.getAllByRole('link', { name: /Mein Profil/i })).toHaveLength(1)
+    expect(screen.queryByRole('link', { name: /Account & Sicherheit/i })).toBeNull()
+    expect(screen.queryByText('Account & Sicherheit')).toBeNull()
+    expect(screen.queryByText('Einstellungen')).toBeNull()
+  })
+
   it('hides capability-gated admin navigation for normal members', () => {
     render(
       <AppShell currentPath="/me/profile" canAccessAdmin={false}>
@@ -232,6 +245,79 @@ describe('AppShell drawer behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: /Drawer schließen/i }))
 
     expect(navButton.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('closes the drawer on the first activation of a nav link (D-24)', () => {
+    render(
+      <AppShell currentPath="/me/profile" hasMemberProfile memberships={[{ fansub_group_id: 1, fansub_group_name: 'Moon Subs', fansub_group_slug: 'moon-subs' }]}>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+    expect(navButton.getAttribute('aria-expanded')).toBe('true')
+
+    const groupLink = screen.getByRole('link', { name: /Moon Subs/i })
+    fireEvent.click(groupLink)
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('closes the drawer on the first activation of the fixed Account link (D-24)', () => {
+    render(
+      <AppShell currentPath="/anime" hasMemberProfile>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+
+    const accountLink = screen.getByRole('link', { name: /Mein Profil/i })
+    fireEvent.click(accountLink)
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('closes the drawer when currentPath changes, even without a click inside the drawer (D-24)', () => {
+    const { rerender } = render(
+      <AppShell currentPath="/me/profile">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+    expect(navButton.getAttribute('aria-expanded')).toBe('true')
+
+    rerender(
+      <AppShell currentPath="/anime">
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('keeps the drawer open across a re-render that does not change currentPath', () => {
+    const { rerender } = render(
+      <AppShell currentPath="/me/profile" hasMemberProfile>
+        <main>Profilinhalt</main>
+      </AppShell>,
+    )
+
+    const navButton = screen.getByRole('button', { name: /Navigation/i })
+    fireEvent.click(navButton)
+    expect(navButton.getAttribute('aria-expanded')).toBe('true')
+
+    rerender(
+      <AppShell currentPath="/me/profile" hasMemberProfile>
+        <main>Aktualisierter Profilinhalt</main>
+      </AppShell>,
+    )
+
+    expect(navButton.getAttribute('aria-expanded')).toBe('true')
   })
 
   it('shows the login action in anonymous mode', () => {

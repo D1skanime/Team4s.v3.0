@@ -4,13 +4,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Compass,
   LayoutDashboard,
   LogOut,
   Menu,
-  Settings,
   ShieldCheck,
   UserCircle,
   Users,
@@ -66,7 +65,14 @@ function isCurrent(currentPath: string | undefined, href: string): boolean {
   return currentPath === href || Boolean(currentPath?.startsWith(`${href}/`))
 }
 
-function AppShellNavItemView({ item }: { item: AppShellNavItem }) {
+function AppShellNavItemView({
+  item,
+  onActivate,
+}: {
+  item: AppShellNavItem
+  /** Shared drawer-close seam (D-24): closes on first-tap activation. */
+  onActivate?: () => void
+}) {
   const content = (
     <>
       <span className={styles.navIcon} aria-hidden="true">{item.icon}</span>
@@ -88,6 +94,7 @@ function AppShellNavItemView({ item }: { item: AppShellNavItem }) {
       href={item.href}
       className={`${styles.navItem} ${item.current ? styles.navItemCurrent : ''}`}
       aria-current={item.current ? 'page' : undefined}
+      onClick={onActivate}
     >
       {content}
     </Link>
@@ -100,12 +107,14 @@ function AppShellNavGroups({
   canAccessAdmin,
   hasMemberProfile,
   hasProjectAssignments,
+  onNavigate,
 }: {
   currentPath?: string
   memberships?: AppShellMembership[]
   canAccessAdmin: boolean
   hasMemberProfile: boolean
   hasProjectAssignments: boolean
+  onNavigate?: () => void
 }) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
@@ -114,6 +123,9 @@ function AppShellNavGroups({
   const adminItems: AppShellNavItem[] = canAccessAdmin
     ? [{ label: 'Verwaltung', href: '/admin', icon: <ShieldCheck size={17} />, current: isCurrent(currentPath, '/admin') }]
     : []
+  // D-17: "Mein Account"/"Mein Profil" is the one canonical Account destination —
+  // the former duplicate "Account & Sicherheit" settings entry (same /me/profile
+  // href) has been removed rather than kept as a second link to the same route.
   const fixedMyItems: AppShellNavItem[] = [
     { label: hasMemberProfile ? 'Mein Profil' : 'Mein Account', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
   ]
@@ -123,9 +135,6 @@ function AppShellNavGroups({
     fixedMyItems.push({ label: 'Meine Projekte', href: '/me/contributions', icon: <Compass size={17} />, current: isCurrent(currentPath, '/me/contributions') })
   }
   const myItems: AppShellNavItem[] = fixedMyItems
-  const settingsItems: AppShellNavItem[] = [
-    { label: 'Account & Sicherheit', href: '/me/profile', icon: <Settings size={17} />, current: isCurrent(currentPath, '/me/profile') },
-  ]
   const groups = [
     { label: 'Public-Bereich', items: publicItems },
     { label: 'Verwaltung', items: adminItems },
@@ -137,7 +146,7 @@ function AppShellNavGroups({
       {groups.map((group) => (
         <div key={group.label} className={styles.navGroup}>
           <p className={styles.navGroupLabel}>{group.label}</p>
-          {group.items.map((item) => <AppShellNavItemView key={item.label} item={item} />)}
+          {group.items.map((item) => <AppShellNavItemView key={item.label} item={item} onActivate={onNavigate} />)}
         </div>
       ))}
       {memberships.length > 0 ? (
@@ -152,6 +161,7 @@ function AppShellNavGroups({
                 href={href}
                 className={`${styles.navItem} ${isCurrent(currentPath, href) ? styles.navItemCurrent : ''}`}
                 aria-current={isCurrent(currentPath, href) ? 'page' : undefined}
+                onClick={onNavigate}
               >
                 <span className={styles.navIcon} aria-hidden="true"><Users size={17} /></span>
                 <span>{membership.fansub_group_name}</span>
@@ -160,15 +170,17 @@ function AppShellNavGroups({
           })}
         </div>
       ) : null}
-      <div className={styles.navGroup}>
-        <p className={styles.navGroupLabel}>Einstellungen</p>
-        {settingsItems.map((item) => <AppShellNavItemView key={item.label} item={item} />)}
-      </div>
     </>
   )
 }
 
-function AppShellAnonNavGroups({ currentPath }: { currentPath?: string }) {
+function AppShellAnonNavGroups({
+  currentPath,
+  onNavigate,
+}: {
+  currentPath?: string
+  onNavigate?: () => void
+}) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
     { label: 'Fansub-Gruppen', icon: <Users size={17} />, disabled: true, badge: 'bald' },
@@ -178,7 +190,7 @@ function AppShellAnonNavGroups({ currentPath }: { currentPath?: string }) {
   return (
     <div className={styles.navGroup}>
       <p className={styles.navGroupLabel}>Entdecken</p>
-      {publicItems.map((item) => <AppShellNavItemView key={item.label} item={item} />)}
+      {publicItems.map((item) => <AppShellNavItemView key={item.label} item={item} onActivate={onNavigate} />)}
     </div>
   )
 }
@@ -271,6 +283,17 @@ export function AppShell({
   const router = useRouter()
   const drawerRef = useRef<HTMLElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+
+  const closeDrawer = useCallback(() => setDrawerOpen(false), [])
+
+  // D-24: close a stale open drawer on any route change (incl. browser
+  // back/forward). Adjusted during render per React's "adjusting state when
+  // a prop changes" pattern instead of an effect, avoiding a cascading render.
+  const [renderedPath, setRenderedPath] = useState(currentPath)
+  if (currentPath !== renderedPath) {
+    setRenderedPath(currentPath)
+    if (drawerOpen) setDrawerOpen(false)
+  }
 
   useEffect(() => {
     if (!drawerOpen) return
@@ -389,9 +412,10 @@ export function AppShell({
               canAccessAdmin={canAccessAdmin}
               hasMemberProfile={hasMemberProfile}
               hasProjectAssignments={hasProjectAssignments}
+              onNavigate={closeDrawer}
             />
           ) : (
-            <AppShellAnonNavGroups currentPath={currentPath} />
+            <AppShellAnonNavGroups currentPath={currentPath} onNavigate={closeDrawer} />
           )}
         </nav>
 
