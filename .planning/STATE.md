@@ -558,6 +558,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260717-d7i | Public Fansub-Projektseite: Mobile Identity-Card, Coop-Stack, Release-Accordions und Kara-Deep-Links | 2026-07-17 | 65eb8985 | [260717-d7i-public-fansub-projektseite-mobile-redesi](./quick/260717-d7i-public-fansub-projektseite-mobile-redesi/) |
 | 260713-history-timeline-pair-alignment | Public Fansub-Historie: Badge und Infokarte als stabiles Timeline-Paar ausrichten | 2026-07-13 | this commit | [260713-history-timeline-pair-alignment](./quick/260713-history-timeline-pair-alignment/) |
 | 260712-release-notes-view-mode-after-save | Release-Version-Notizen: gespeicherte Rollen starten nach Speichern/Tabwechsel als Ansicht und wechseln erst per Bearbeiten in den Editor | 2026-07-12 | this commit | [260712-release-notes-view-mode-after-save](./quick/260712-release-notes-view-mode-after-save/) |
 | 260712-release-version-coop-edit-scope | Release-Version-Editbereich: Coop-Beitraege gruppenuebergreifend sichtbar, aber Media/Notizen nur fuer die eigene Fansubgruppe editierbar/loeschbar | 2026-07-12 | this commit | [260712-release-version-coop-edit-scope](./quick/260712-release-version-coop-edit-scope/) |
@@ -628,5 +629,5 @@ Recent durable decisions:
 
 Last session: 2026-07-16T11:45:07.960Z
 Stopped at: Phase 103 implementation complete; live UAT pending
-Last activity: 2026-07-16
+Last activity: 2026-07-17 - Completed quick task 260717-d7i: Public Fansub-Projektseite Mobile Redesign
 Resume file: .planning/phases/103-ffentliche-release-detailseite-als-fansub-story-mit-rechte-g/103-HUMAN-UAT.md
