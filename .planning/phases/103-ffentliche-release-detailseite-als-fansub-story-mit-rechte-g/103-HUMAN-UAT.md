@@ -66,9 +66,11 @@ severity: major
 
 ### 9. Preview-Bild als Fansubber festlegen
 expected: Ein Fansubber mit Update-Berechtigung kann bei einer Release-Version ohne Preview ein zulässiges Release-Bild als Preview markieren. Beim Wechsel bleibt höchstens ein Preview-Kandidat aktiv und die öffentliche Seite verwendet ihn nach Freigabe.
-result: issue
-reported: "Sheppert konnte kein Bild als Preview markieren, obwohl für Release 1 noch kein Preview-Kandidat vorhanden ist. Dadurch zeigen die Releases weiterhin denselben Anime-Poster-Fallback."
-severity: major
+result: pass
+retested: "Sheppert kann ein Bild als Preview festlegen. Der ausgewählte Zustand war anschließend noch nicht deutlich genug erkennbar."
+follow_up: "Die ausgewählte Karte wird nun grün hervorgehoben, trägt das Badge 'Aktuelles Vorschaubild' und bietet die Aktion 'Vorschau entfernen'. Erneute visuelle Nutzerprüfung steht aus."
+previous_reported: "Sheppert konnte kein Bild als Preview markieren, obwohl für Release 1 noch kein Preview-Kandidat vorhanden ist. Dadurch zeigen die Releases weiterhin denselben Anime-Poster-Fallback."
+previous_severity: major
 
 ### 10. Anime-Logo als Release-Hero-Fallback
 expected: Ohne freigegebenes Release-Preview verwendet der Hero das vorhandene Anime-Logo auf der atmosphärischen Fläche; fehlt auch das Logo, bleibt der Hero textbasiert. Das Anime-Logo wird nur dargestellt und nicht als Release-Media gespeichert.
@@ -80,8 +82,8 @@ previous_severity: minor
 ## Summary
 
 total: 10
-passed: 4
-issues: 4
+passed: 5
+issues: 3
 pending: 0
 skipped: 2
 blocked: 0
@@ -106,7 +108,9 @@ blocked: 0
   debug_session: ".planning/debug/103-release-anime-logo-fallback.md"
 
 - truth: "Ein Fansubber mit Release-Version-Media-Update-Berechtigung kann bei fehlendem Preview einen zulässigen Screenshot oder ein Typesetting-/Karaoke-Bild als Preview markieren; der Max-one-Preview-Vertrag bleibt atomar erhalten."
-  status: failed
+  status: resolved
+  resolved_by_uat: "Sheppert konnte ein zulässiges Bild erfolgreich als Preview festlegen."
+  follow_up: "Zur besseren Zustandsklarheit zeigt die ausgewählte Karte nun eine grüne Hervorhebung, das Badge 'Aktuelles Vorschaubild' und die Aktion 'Vorschau entfernen'."
   reason: "User reported: Sheppert kann bei Release 1 kein Preview festlegen, obwohl die Datenbank keinen vorhandenen Preview-Kandidaten zeigt."
   severity: major
   test: 9

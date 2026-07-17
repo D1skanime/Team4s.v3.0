@@ -416,23 +416,29 @@ export function ReleaseVersionMediaSection({
           {activeItems.map((item) => {
             const badge = statusBadge(item)
             return (
-              <div key={item.id} className={styles.mediaCard}>
-                <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={`${getAssetName(item)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}`}>
-                <span className={styles.mediaThumb}>
-                  {item.thumbnail_url || item.original_url ? (
-                    <img src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
-                  ) : (
-                    <ImageIcon size={22} aria-hidden="true" />
-                  )}
-                </span>
-                <span className={styles.mediaCardBody}>
-                  <span className={styles.mediaName}>{getAssetName(item)}</span>
-                  <Badge variant={badge.variant} className={badge.className}>{badge.label}</Badge>
-                </span>
+              <div key={item.id} className={`${styles.mediaCard} ${item.is_preview_candidate ? styles.mediaCardPreview : ''}`}>
+                <button type="button" className={styles.mediaCardOpen} onClick={() => openEditSheet(item)} aria-label={`${getAssetName(item)} ${(item.can_update ?? canUpdateMedia) ? 'bearbeiten' : 'ansehen'}${item.is_preview_candidate ? ', aktuelles Vorschaubild' : ''}`}>
+                  <span className={styles.mediaThumb}>
+                    {item.thumbnail_url || item.original_url ? (
+                      <img src={item.thumbnail_url ?? item.original_url ?? ''} alt="" />
+                    ) : (
+                      <ImageIcon size={22} aria-hidden="true" />
+                    )}
+                    {item.is_preview_candidate ? (
+                      <Badge variant="success" className={styles.previewBadge}>
+                        <Star size={13} aria-hidden="true" />
+                        Aktuelles Vorschaubild
+                      </Badge>
+                    ) : null}
+                  </span>
+                  <span className={styles.mediaCardBody}>
+                    <span className={styles.mediaName}>{getAssetName(item)}</span>
+                    <Badge variant={badge.variant} className={badge.className}>{badge.label}</Badge>
+                  </span>
                 </button>
                 {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
-                  <Button type="button" variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
-                    {item.is_preview_candidate ? 'Vorschaubild' : 'Als Vorschau wählen'}
+                  <Button type="button" variant={item.is_preview_candidate ? 'success' : 'subtle'} size="sm" leftIcon={<Star size={14} aria-hidden="true" />} loading={previewSavingId === item.id} aria-pressed={item.is_preview_candidate} onClick={() => void handlePreviewChange(item, !item.is_preview_candidate)}>
+                    {item.is_preview_candidate ? 'Vorschau entfernen' : 'Als Vorschau wählen'}
                   </Button>
                 ) : null}
               </div>

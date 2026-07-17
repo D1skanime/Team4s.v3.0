@@ -153,6 +153,14 @@
     box-shadow 140ms ease;
 }
 
+.mediaCardPreview {
+  border-color: color-mix(in srgb, var(--color-success, #16a34a) 58%, transparent);
+  background: color-mix(in srgb, var(--color-success, #16a34a) 7%, var(--bg-card));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 52%, transparent),
+    0 18px 34px -26px color-mix(in srgb, var(--color-success, #16a34a) 58%, transparent);
+}
+
 .mediaCard:hover,
 .mediaCard:focus-visible {
   transform: translateY(-1px);
@@ -164,12 +172,24 @@
 }
 
 .mediaThumb {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   display: grid;
   place-items: center;
   background: color-mix(in srgb, var(--bg-secondary) 82%, white);
   color: var(--text-muted);
+}
+
+.previewBadge {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: calc(100% - 1.1rem);
+  box-shadow: 0 8px 22px -14px rgba(22, 101, 52, 0.7);
 }
 
 .mediaThumb img {

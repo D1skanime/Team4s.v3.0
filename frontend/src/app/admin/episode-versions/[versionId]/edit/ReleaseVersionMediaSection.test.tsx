@@ -225,6 +225,14 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     await waitFor(() => expect(patchItem).toHaveBeenCalledWith(71, { is_preview_candidate: true }))
   })
 
+  it('marks the current preview persistently on its card and exposes the removal action', () => {
+    renderSection(makeMediaState({ items: [makeItem({ id: 74, is_preview_candidate: true })] }))
+
+    expect(screen.getByText('Aktuelles Vorschaubild')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /Scene A bearbeiten, aktuelles Vorschaubild/i })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Vorschau entfernen' }).getAttribute('aria-pressed')).toBe('true')
+  })
+
   it('hides preview selection for ineligible and readonly media', () => {
     renderSection(makeMediaState({
       items: [
