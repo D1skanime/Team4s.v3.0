@@ -1,4 +1,5 @@
 export * from './Accordion'
+export * from './AvatarStack'
 export * from './ActionBar'
 export * from './AccentRule'
 export * from './AdjacentNavigation'

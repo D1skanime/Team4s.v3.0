@@ -62,6 +62,20 @@ describe('Accordion', () => {
     expect(firstHeader.className).toMatch(/accordionHeader/)
   })
 
+  it('rendert strukturierte Rich-Header', () => {
+    render(
+      <Accordion
+        items={[{
+          id: 'rich',
+          title: <span><strong>Folge 1</strong><small> Version 2</small></span>,
+          children: <p>Release-Details</p>,
+        }]}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /Folge 1 Version 2/i })).toBeTruthy()
+  })
+
   it('Controlled-Modus: openIds + onOpenChange steuern den Open-Zustand vom Parent', () => {
     const onOpenChange = vi.fn()
     render(

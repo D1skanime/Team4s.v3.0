@@ -1,6 +1,6 @@
 'use client'
 
-import { Accordion, Badge, Card } from '@/components/ui'
+import { Accordion, AvatarStack, Badge, Card } from '@/components/ui'
 
 import styles from '../page.module.css'
 
@@ -39,6 +39,14 @@ export function AccordionShowcase() {
               </div>
             ),
           },
+        ]}
+      />
+      <AvatarStack
+        items={[
+          { id: 1, label: 'C-Subs' },
+          { id: 2, label: 'Honto' },
+          { id: 3, label: 'Anime no Fansub' },
+          { id: 4, label: 'Fansub 4' },
         ]}
       />
     </Card>

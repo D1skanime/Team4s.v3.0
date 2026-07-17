@@ -8,7 +8,7 @@ import styles from './ui.module.css'
 
 export interface AccordionItemDef {
   id: string
-  title: string
+  title: ReactNode
   children: ReactNode
 }
 
@@ -70,7 +70,7 @@ export function Accordion({ items, mode = 'multi', className, openIds: controlle
               aria-controls={panelId}
               onClick={() => toggle(item.id)}
             >
-              <span>{item.title}</span>
+              <div className={styles.accordionTitle}>{item.title}</div>
               <span
                 className={classNames(
                   styles.accordionChevron,

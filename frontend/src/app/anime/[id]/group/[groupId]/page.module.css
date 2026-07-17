@@ -90,6 +90,11 @@
   padding: 16px 16px 0;
 }
 
+.heroBannerWrap > .heroInfo,
+.heroCard > :global(.accordionRoot) {
+  display: none;
+}
+
 .heroBannerImg {
   width: auto;
   height: auto;
@@ -397,28 +402,37 @@
 
   .heroCard {
     text-align: left;
+    margin-top: 8px;
   }
 
   .heroBannerWrap {
-    padding: 12px 12px 0;
+    position: relative;
+    padding: 0;
   }
 
   .heroBannerImg {
-    max-height: 160px;
+    width: 100%;
+    height: 200px;
+    max-height: none;
+    border-radius: 0;
+    object-fit: cover;
+    box-shadow: none;
   }
 
   .heroBody {
+    position: relative;
     flex-direction: column;
-    gap: 18px;
+    gap: 0;
     align-items: flex-start;
-    padding: 14px 18px 20px;
+    padding: 0;
   }
 
   .poster,
   .posterPlaceholder {
-    width: 170px;
-    height: 244px;
-    flex: 0 0 244px;
+    width: 100%;
+    height: 220px;
+    flex: 0 0 220px;
+    border-radius: 0;
   }
 
   .posterInitial {
@@ -427,7 +441,65 @@
 
   .heroInfo {
     justify-items: start;
+    gap: 4px;
+  }
+
+  .heroBannerWrap > .heroInfo,
+  .heroBody > .heroInfo {
+    position: absolute;
+    inset: auto 12px 12px;
+    display: grid;
+    width: auto;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--scrim-strong);
+  }
+
+  .heroBannerWrap + .heroBody > .heroInfo {
+    display: none;
+  }
+
+  .heroInfo .eyebrow,
+  .heroInfo .title {
+    color: var(--color-white);
+  }
+
+  .heroInfo > .stats,
+  .heroInfo > .coopLine {
+    display: none;
+  }
+
+  .heroCard > :global(.accordionRoot) {
+    display: grid;
+    border-top: 2px solid var(--ui-line);
+    background: var(--surface-card);
+  }
+
+  .heroCard > :global(.accordionRoot) .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
     width: 100%;
+    margin: 0;
+  }
+
+  .heroCard > :global(.accordionRoot) .statItem {
+    align-content: center;
+  }
+
+  .heroCard > :global(.accordionRoot) .statItem dt {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .heroCard > :global(.accordionRoot) .statItem dd {
+    font-size: 20px;
+  }
+
+  .heroCard > :global(.accordionRoot) .coopLine {
+    margin: 0;
+    gap: var(--space-2);
   }
 
   .stats {

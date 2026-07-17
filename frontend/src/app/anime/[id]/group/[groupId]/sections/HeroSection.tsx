@@ -3,7 +3,8 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
-import { AdjacentNavigation } from "@/components/ui";
+import { Accordion, AdjacentNavigation, AvatarStack, Badge, Card } from "@/components/ui";
+import { resolveApiUrl } from "@/lib/api";
 import type { FansubProjectNavigation } from "@/lib/fansubProjectNavigation";
 import type { FansubGroupSummary } from "@/types/fansub";
 import type { GroupDetail, EpisodeReleaseSummary } from "@/types/group";
@@ -64,6 +65,35 @@ export function HeroSection({
   const hasProjectNavigation = Boolean(
     fansubProjectNavigation.previous || fansubProjectNavigation.next,
   );
+  const coopAvatars = coopGroups.map((coopGroup) => ({
+    id: coopGroup.id,
+    label: coopGroup.name,
+    imageUrl: coopGroup.logo_url ? resolveApiUrl(coopGroup.logo_url) : null,
+  }));
+  const identity = (
+    <>
+      <p className={styles.eyebrow}>{group.fansub.name}</p>
+      <h1 className={styles.title}>{anime.title}</h1>
+    </>
+  );
+  const projectStats = (
+    <dl className={styles.stats}>
+      <div className={styles.statItem}>
+        <dt>Projektmitwirkende</dt>
+        <dd>{projectContributorCount}</dd>
+      </div>
+      <div className={styles.statItem}>
+        <dt>Releases</dt>
+        <dd>{releaseEpisodes.length}</dd>
+      </div>
+      {coopGroups.length > 0 ? (
+        <div className={styles.statItem}>
+          <dt>Coop</dt>
+          <dd><AvatarStack items={coopAvatars} maxVisible={3} /></dd>
+        </div>
+      ) : null}
+    </dl>
+  );
 
   return (
     <>
@@ -94,6 +124,7 @@ export function HeroSection({
                   unoptimized={heroImageUrl.includes("/api/")}
                   priority
                 />
+                <div className={styles.heroInfo}>{identity}</div>
               </div>
             ) : null}
 
@@ -118,18 +149,8 @@ export function HeroSection({
               ) : null}
 
               <div className={styles.heroInfo}>
-                <p className={styles.eyebrow}>{group.fansub.name}</p>
-                <h1 className={styles.title}>{anime.title}</h1>
-                <dl className={styles.stats}>
-                  <div className={styles.statItem}>
-                    <dt>Projektmitwirkende</dt>
-                    <dd>{projectContributorCount}</dd>
-                  </div>
-                  <div className={styles.statItem}>
-                    <dt>Releases</dt>
-                    <dd>{releaseEpisodes.length}</dd>
-                  </div>
-                </dl>
+                {identity}
+                {projectStats}
                 {coopGroups.length > 0 ? (
                   <p className={styles.coopLine}>
                     <span className={styles.coopLabel}>Coop mit</span>{" "}
@@ -145,6 +166,29 @@ export function HeroSection({
                 ) : null}
               </div>
             </div>
+            <Accordion
+              mode="single"
+              items={[{
+                id: "project-stats",
+                title: projectStats,
+                children: (
+                  <Card variant="nestedFlat">
+                    {coopGroups.length > 0 ? (
+                      <p className={styles.coopLine}>
+                        <span className={styles.coopLabel}>Kooperationspartner</span>
+                        {coopGroups.map((coopGroup) => (
+                          <Link key={coopGroup.id} href={`/fansubs/${coopGroup.slug}`} className={styles.coopLink}>
+                            <Badge variant="info">{coopGroup.name}</Badge>
+                          </Link>
+                        ))}
+                      </p>
+                    ) : (
+                      <p className={styles.coopLine}>Keine Kooperationspartner eingetragen.</p>
+                    )}
+                  </Card>
+                ),
+              }]}
+            />
             {hasProjectNavigation ? (
               <AdjacentNavigation
                 variant="floating"

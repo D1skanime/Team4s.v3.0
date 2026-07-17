@@ -86,6 +86,8 @@ Aktuell vorbereitet:
 - `PageHeader`
 - `Pagination`
 - `AdjacentNavigation`
+- `Accordion` mit Text- oder Rich-Header
+- `AvatarStack` für kompakte, überlappende Identitäten mit berechnetem Overflow
 
 ## Unterstützte Varianten
 
