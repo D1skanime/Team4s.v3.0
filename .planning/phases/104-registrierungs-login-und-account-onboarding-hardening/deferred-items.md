@@ -68,3 +68,25 @@ oversized files as deferred follow-up (see STATE.md: `AnimeJellyfinAssetUploadCo
 662 lines, "Split als Follow-up-Quick-Task deferred"). A dedicated quick task should
 split `page.tsx` into `page.tsx` (state/data) + separate view components for the
 account-only and full-member branches.
+
+## From Plan 104-04
+
+### Pre-existing CLAUDE.md 450-line violations touched by this plan (not split, out of scope)
+
+Two backend files this plan had to edit were already over the 450-line limit before
+this plan's changes:
+
+- `backend/internal/handlers/contributions_me_handler.go` — 605 lines before this
+  plan (now 620; added a shared `respondMemberProfileRequired` helper + const to
+  replace six duplicated inline 404 responses, a net line-count reduction relative
+  to leaving the duplication in place).
+- `backend/internal/repository/member_profile_repository.go` — 1794 lines before
+  this plan (now 1823; added the `hasProjectAssignments` EXISTS-query method
+  required by D-06/D-09).
+
+Both are large, pre-existing, feature-dense files (matches STATE.md's documented
+observed tradeoff: "the backend handler package is large and highly feature-dense").
+Splitting either was judged out of scope for this narrow, behavior-focused plan —
+consistent with the existing project convention of tracking oversized files as
+deferred follow-up (see the `page.tsx` / `AnimeJellyfinAssetUploadControls.tsx`
+entries above) rather than restructuring mid-feature-plan.

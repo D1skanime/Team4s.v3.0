@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: ready_to_plan
-stopped_at: Completed 104-03-PLAN.md
-last_updated: "2026-07-17T18:10:37.085Z"
+stopped_at: Completed 104-04-PLAN.md
+last_updated: "2026-07-17T18:34:49.395Z"
 last_activity: 2026-07-17
 progress:
   total_phases: 96
   completed_phases: 79
   total_plans: 427
-  completed_plans: 397
+  completed_plans: 398
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 104 (registrierungs-login-und-account-onboarding-hardening) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 
 ## Accumulated Context
 
@@ -317,6 +317,9 @@ Recent durable decisions:
 - [Phase 104-03]: A raw 401 that survives the central api.ts refresh-and-retry seam still shows Zur Anmeldung; every other active-session profile load failure shows German Erneut versuchen + Abmelden instead, matching D-19 exactly.
 - [Phase 104-03]: /me/profile consumes the one-shot registrationCompletion marker only inside its own successful-hydration branch (never on mount, never during the Keycloak-return refresh path), so a spoofed/absent marker never creates the confirmation and Keycloak-return refresh never re-triggers it.
 - [Phase 104-03]: Account-only /me/profile view moved from a two-column grid to one stacked column: Mein Account (neutral copy) followed by an unobtrusive Warst du als Fansubber aktiv? claim section.
+- [Phase ?]: [Phase 104-04]: has_project_assignments EXISTS query checks both confirmed anime_contributions (COALESCE member_id/hist_fansub_group_members) and historical release_member_roles - has_member_profile alone never implies eligibility (D-06/D-09).
+- [Phase ?]: [Phase 104-04]: Standardized missing-Member response on /me/* contribution endpoints to HTTP 403 + stable MEMBER_PROFILE_REQUIRED code (respondMemberProfileRequired helper), replacing 6 duplicated inline 404s.
+- [Phase ?]: [Phase 104-04]: Meine Projekte nav entry and /me/contributions direct access both gate on hasMemberProfile AND hasProjectAssignments via the own-profile aggregate; non-entitled authenticated accounts redirect to /me/profile with no claim/error intermediate (D-08).
 
 ### Pending Todos
 
@@ -566,6 +569,7 @@ Recent durable decisions:
 | Phase 104 P01 | 55min | 2 tasks | 10 files |
 | Phase 104 P02 | 35min | 2 tasks | 8 files |
 | Phase 104 P03 | 35min | 3 tasks | 15 files |
+| Phase 104 P4 | 55min | 3 tasks | 19 files |
 
 ### Quick Tasks Completed
 
@@ -642,7 +646,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-17T18:10:37.034Z
-Stopped at: Completed 104-03-PLAN.md
+Last session: 2026-07-17T18:34:49.357Z
+Stopped at: Completed 104-04-PLAN.md
 Last activity: 2026-07-17
 Resume file: None
