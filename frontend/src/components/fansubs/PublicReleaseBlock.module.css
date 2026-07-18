@@ -532,7 +532,7 @@
   display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1180px) {
   .previewGrid {
     display: none;
   }
@@ -693,7 +693,7 @@
   display: none;
 }
 
-@container (max-width: 900px) {
+@container (max-width: 820px) {
   .featuredGrid,
   .releaseRowHeader {
     grid-template-columns: minmax(0, 1fr);

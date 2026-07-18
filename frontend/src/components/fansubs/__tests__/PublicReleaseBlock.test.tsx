@@ -75,13 +75,34 @@ const release: PublicReleasePreview = {
 describe('PublicReleaseBlock', () => {
   it('blendet unlesbar kleine Bildvorschauen in kompakten Ansichten aus', () => {
     const css = publicReleaseStyles()
-    const compactMediaBlock = css.match(/@media \(max-width: 900px\)\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
+    const compactMediaBlock = css.match(/@media \(max-width: 1180px\)\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
 
     expect(compactMediaBlock).toContain('.previewGrid')
     expect(compactMediaBlock).toContain('display: none')
     expect(css).toContain('aspect-ratio: 16 / 9')
-    expect(css).toMatch(/@container \(max-width: 900px\)[\s\S]*?\.featuredGrid[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/)
-    expect(css).toMatch(/@container \(max-width: 900px\)[\s\S]*?\.featuredCta[\s\S]*?width: 100%/)
+    expect(css).toMatch(/@container \(max-width: 820px\)[\s\S]*?\.featuredGrid[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/)
+    expect(css).toMatch(/@container \(max-width: 820px\)[\s\S]*?\.featuredCta[\s\S]*?width: 100%/)
+  })
+
+  it('zeigt nur kurze Kategorie-Labels auf Bildvorschauen', () => {
+    const releaseWithLongImageLabel = {
+      ...release,
+      imagePreviews: [
+        ...(release.imagePreviews ?? []),
+        {
+          id: 3,
+          src: '/covers/placeholder.jpg',
+          label: 'Diese lange Bildbeschreibung gehört auf die Detailseite und nicht über das Vorschaubild.',
+          alt: 'Weitere Release-Vorschau',
+        },
+      ],
+    }
+
+    render(<PublicReleaseBlock latestRelease={releaseWithLongImageLabel} releases={[]} />)
+
+    expect(screen.getByText('Karaoke')).toBeTruthy()
+    expect(screen.queryByText(/Diese lange Bildbeschreibung/)).toBeNull()
+    expect(screen.getByAltText('Weitere Release-Vorschau')).toBeTruthy()
   })
 
   it('rendert neuestes Release, Timeline, Medien, Texte und Fansubber', () => {

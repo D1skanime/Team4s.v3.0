@@ -235,21 +235,28 @@ function FeaturedRelease({ release }: { release: PublicReleasePreview }) {
           </Button>
           {previewImages.length > 0 ? (
             <div className={styles.previewGrid}>
-              {previewImages.map((image) => (
-                <div key={image.id} className={styles.previewTile}>
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    sizes="140px"
-                    className={styles.previewImage}
-                    unoptimized
-                  />
-                  <Badge variant="muted" className={styles.previewLabel}>
-                    {image.label}
-                  </Badge>
-                </div>
-              ))}
+              {previewImages.map((image) => {
+                const compactLabel = image.label.trim()
+                const showCompactLabel = compactLabel.length > 0 && compactLabel.length <= 40
+
+                return (
+                  <div key={image.id} className={styles.previewTile}>
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      sizes="140px"
+                      className={styles.previewImage}
+                      unoptimized
+                    />
+                    {showCompactLabel ? (
+                      <Badge variant="muted" className={styles.previewLabel}>
+                        {compactLabel}
+                      </Badge>
+                    ) : null}
+                  </div>
+                )
+              })}
             </div>
           ) : null}
           {previewNotes.length > 0 ? (
