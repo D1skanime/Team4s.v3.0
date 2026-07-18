@@ -6,6 +6,7 @@ import { Download, ExternalLink, Eye, Play } from 'lucide-react'
 import { AnimeBackdropRotator } from '@/components/anime/AnimeBackdropRotator'
 import { AnimeContributionsSection } from '@/components/anime/AnimeContributionsSection'
 import { AnimeEdgeNavigation } from '@/components/anime/AnimeEdgeNavigation'
+import { AnimeInfoBanner, AnimeMediaProvider, AnimeTitleLogo } from '@/components/anime/AnimeMediaProvider'
 import { AnimeRelations } from '@/components/anime/AnimeRelations'
 import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { FansubVersionBrowser } from '@/components/fansubs/FansubVersionBrowser'
@@ -18,14 +19,12 @@ import {
   AUTH_BEARER_TOKEN,
   AUTH_TOKEN_COOKIE_NAME,
   getAnimeByID,
-  getAnimeBackdrops,
   getAnimeComments,
   getAnimeRelations,
   getAnimeFansubs,
   getGroupedEpisodes,
   getWatchlistEntry,
 } from '@/lib/api'
-import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import { normalizeGridQuery } from '@/lib/animeGridContext'
 import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
@@ -54,32 +53,9 @@ interface AnimeDetailPageProps {
 }
 
 /**
- * Fuehrt ein Promise mit einem Zeitlimit aus.
- * Wirft einen Fehler, wenn das Promise nicht innerhalb von {@link timeoutMs} Millisekunden aufgeloest wird.
- * @param promise - Das auszufuehrende Promise
- * @param timeoutMs - Zeitlimit in Millisekunden
- */
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return await new Promise<T>((resolve, reject) => {
-    const timeoutID = setTimeout(() => {
-      reject(new Error('request timeout'))
-    }, timeoutMs)
-
-    promise
-      .then((value) => {
-        clearTimeout(timeoutID)
-        resolve(value)
-      })
-      .catch((error) => {
-        clearTimeout(timeoutID)
-        reject(error)
-      })
-  })
-}
-
-/**
  * Anime-Detailseite.
- * Laedt Anime-Daten, Fansubs, Episoden, Kommentare, Watchlist-Status, Backdrops und Relationen parallel.
+ * Laedt Anime-Daten sowie die textuellen Detailbereiche serverseitig. Backdrops und Theme-Videos
+ * werden nach dem ersten Render clientseitig geladen, damit das Cover sofort sichtbar ist.
  * Zeigt Poster, Beschreibung, Episodenliste mit Fansub-Filter sowie einen Kommentarbereich.
  */
 export default async function AnimeDetailPage({ params, searchParams }: AnimeDetailPageProps) {
@@ -140,13 +116,12 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const gridQuery = normalizeGridQuery(rawGridQuery)
 
   const embySeriesUrl = getEmbySeriesUrlForAnime(anime.id)
-  const [animeFansubsResult, groupedEpisodesResult, commentsResult, watchlistResult, backdropResult, relationsResult] =
+  const [animeFansubsResult, groupedEpisodesResult, commentsResult, watchlistResult, relationsResult] =
     await Promise.allSettled([
       getAnimeFansubs(anime.id),
       getGroupedEpisodes(anime.id),
       getAnimeComments(animeID, { page: 1, per_page: 10 }),
       authToken ? getWatchlistEntry(animeID, authToken) : Promise.resolve(null),
-      withTimeout(getAnimeBackdrops(anime.id), 4000),
       getAnimeRelations(anime.id),
     ])
 
@@ -158,10 +133,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const commentsResponse = commentsResult.status === 'fulfilled' ? commentsResult.value : null
   const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null
   const inWatchlist = watchlistResult.status === 'fulfilled' && Boolean(watchlistResult.value)
-  const backdropManifest = backdropResult.status === 'fulfilled' ? backdropResult.value.data : null
   const relationsResponse = relationsResult.status === 'fulfilled' ? relationsResult.value : null
-  const infoBannerURL = resolveInfoBannerURL(backdropManifest)
-  const infoLogoURL = resolveInfoLogoURL(backdropManifest)
   const episodeCount = groupedEpisodesResponse?.data.episodes.length ?? anime.episodes.length
 
   // Get cover image for banner background
@@ -169,13 +141,10 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const coverNeedsUnoptimized = shouldUseUnoptimizedImage(coverUrl)
 
   return (
-    <main className={styles.page}>
+    <AnimeMediaProvider key={anime.id} animeID={anime.id}>
+      <main className={styles.page}>
       {/* Backdrop Rotator (Videos & Images from Jellyfin) */}
-      <AnimeBackdropRotator
-        animeID={anime.id}
-        coverImage={anime.cover_image}
-        initialManifest={backdropManifest}
-      />
+      <AnimeBackdropRotator coverImage={anime.cover_image} />
 
       {/* Banner with blurred background (fallback) */}
       <div className={styles.heroBanner}>
@@ -251,16 +220,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
             {/* Title + Logo Row */}
             <div className={styles.titleRow}>
               <h1 className={styles.title}>{anime.title}</h1>
-              {infoLogoURL && (
-                <Image
-                  src={infoLogoURL}
-                  alt={`${anime.title} Logo`}
-                  width={120}
-                  height={48}
-                  className={styles.titleLogo}
-                  unoptimized
-                />
-              )}
+              <AnimeTitleLogo title={anime.title} className={styles.titleLogo} />
             </div>
 
             {/* Badges */}
@@ -296,19 +256,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
             </div>
 
             {/* Info Banner from Jellyfin */}
-            {infoBannerURL && (
-              <>
-                <hr className={styles.divider} />
-                <Image
-                  src={infoBannerURL}
-                  alt=""
-                  className={styles.infoBanner}
-                  width={600}
-                  height={180}
-                  unoptimized
-                />
-              </>
-            )}
+            <AnimeInfoBanner className={styles.infoBanner} dividerClassName={styles.divider} />
 
             {/* Related Animes Section - inside infoCard */}
             {relationsResponse && relationsResponse.data.length > 0 && (
@@ -403,6 +351,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
           initialError={commentsError}
         />
       </div>
-    </main>
+      </main>
+    </AnimeMediaProvider>
   )
 }

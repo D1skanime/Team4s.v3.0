@@ -3,30 +3,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import type { AnimeBackdropManifest } from '@/types/anime'
-import { getAnimeBackdrops } from '@/lib/api'
 import { normalizeBackdropImageURLs, normalizeThemeVideoURLs } from '@/lib/animeBackdrops'
 import { getCoverUrl } from '@/lib/utils'
+import { useAnimeMediaManifest } from './AnimeMediaProvider'
 import { shouldRenderEnableAudioButton } from './themeVideoAudio'
 
 import styles from './AnimeBackdropRotator.module.css'
 
 interface AnimeBackdropRotatorProps {
-  animeID: number
   coverImage?: string
-  initialManifest?: AnimeBackdropManifest | null
 }
 
 const ROTATION_INTERVAL_MS = 9000
 
-export function AnimeBackdropRotator({ animeID, coverImage, initialManifest = null }: AnimeBackdropRotatorProps) {
-  const [backdropUrls, setBackdropUrls] = useState<string[]>(() => normalizeBackdropImageURLs(initialManifest))
+export function AnimeBackdropRotator({ coverImage }: AnimeBackdropRotatorProps) {
+  const manifest = useAnimeMediaManifest()
+  const [backdropUrls, setBackdropUrls] = useState<string[]>([])
   const [activeIndex, setActiveIndex] = useState(0)
-  const [activeThemeVideoUrl, setActiveThemeVideoURL] = useState<string | null>(() => {
-    const themeVideos = normalizeThemeVideoURLs(initialManifest)
-    return themeVideos[0] ?? null
-  })
-  const [showThemeVideo, setShowThemeVideo] = useState(() => normalizeThemeVideoURLs(initialManifest).length > 0)
+  const [activeThemeVideoUrl, setActiveThemeVideoURL] = useState<string | null>(null)
+  const [showThemeVideo, setShowThemeVideo] = useState(false)
   const [isThemeVideoMuted, setThemeVideoMuted] = useState(true)
   const [audioToggleError, setAudioToggleError] = useState<string | null>(null)
   const themeVideoRef = useRef<HTMLVideoElement | null>(null)
@@ -55,68 +50,24 @@ export function AnimeBackdropRotator({ animeID, coverImage, initialManifest = nu
   }, [])
 
   useEffect(() => {
-    const initialBackdrops = normalizeBackdropImageURLs(initialManifest)
-    const initialThemeVideos = normalizeThemeVideoURLs(initialManifest)
-    if (initialBackdrops.length > 0 || initialThemeVideos.length > 0) {
-      const timeout = window.setTimeout(() => {
-        setBackdropUrls(shuffle(initialBackdrops))
-        setActiveIndex(initialBackdrops.length > 0 ? Math.floor(Math.random() * initialBackdrops.length) : 0)
-        setActiveThemeVideoURL(initialThemeVideos[0] ?? null)
-        setThemeVideoMuted(true)
-        setAudioToggleError(null)
-        setShowThemeVideo(initialThemeVideos.length > 0)
-      }, 0)
-      return () => window.clearTimeout(timeout)
-    }
+    if (!manifest) return undefined
 
-    let isCancelled = false
+    const normalizedBackdrops = normalizeBackdropImageURLs(manifest)
+    const normalizedThemeVideos = normalizeThemeVideoURLs(manifest)
+    const timeout = window.setTimeout(() => {
+      const shuffledBackdrops = shuffle(normalizedBackdrops)
+      const shuffledThemeVideos = shuffle(normalizedThemeVideos)
 
-    async function loadBackdrops() {
-      try {
-        const response = await getAnimeBackdrops(animeID)
-        const normalizedBackdrops = normalizeBackdropImageURLs(response.data)
-        const normalizedThemeVideos = normalizeThemeVideoURLs(response.data)
+      setBackdropUrls(shuffledBackdrops)
+      setActiveIndex(shuffledBackdrops.length > 0 ? Math.floor(Math.random() * shuffledBackdrops.length) : 0)
+      setActiveThemeVideoURL(shuffledThemeVideos[0] ?? null)
+      setThemeVideoMuted(true)
+      setAudioToggleError(null)
+      setShowThemeVideo(shuffledThemeVideos.length > 0)
+    }, 0)
 
-        if (isCancelled) return
-
-        const shuffledBackdrops = shuffle(normalizedBackdrops)
-        setBackdropUrls(shuffledBackdrops)
-        if (shuffledBackdrops.length > 0) {
-          setActiveIndex(Math.floor(Math.random() * shuffledBackdrops.length))
-        } else {
-          setActiveIndex(0)
-        }
-
-        const shuffledThemeVideos = shuffle(normalizedThemeVideos)
-        if (shuffledThemeVideos.length > 0) {
-          setActiveThemeVideoURL(shuffledThemeVideos[0])
-          setThemeVideoMuted(true)
-          setAudioToggleError(null)
-          setShowThemeVideo(true)
-        } else {
-          setActiveThemeVideoURL(null)
-          setThemeVideoMuted(true)
-          setAudioToggleError(null)
-          setShowThemeVideo(false)
-        }
-
-      } catch {
-        // Keep cover fallback when no backdrop candidates are available.
-        if (isCancelled) return
-        setBackdropUrls([])
-        setActiveIndex(0)
-        setActiveThemeVideoURL(null)
-        setThemeVideoMuted(true)
-        setAudioToggleError(null)
-        setShowThemeVideo(false)
-      }
-    }
-
-    void loadBackdrops()
-    return () => {
-      isCancelled = true
-    }
-  }, [animeID, initialManifest])
+    return () => window.clearTimeout(timeout)
+  }, [manifest])
 
   useEffect(() => {
     if (showThemeVideo || backdropUrls.length < 2) return undefined

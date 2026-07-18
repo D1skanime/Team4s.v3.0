@@ -26,7 +26,7 @@ export function AnimeCard({ anime, gridQuery }: AnimeCardProps) {
 
   return (
     <article className={styles.card}>
-      <Link href={detailHref} className={styles.link} onClick={handleOpenDetail}>
+      <Link href={detailHref} prefetch={false} className={styles.link} onClick={handleOpenDetail}>
         <div className={styles.coverWrap}>
           <Image
             src={coverUrl}
