@@ -1180,7 +1180,7 @@ func (r *FansubRepository) ListAnimeFansubs(
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			afg.anime_id, afg.fansub_group_id, afg.is_primary, afg.notes, afg.created_at,
-			fg.id, fg.slug, fg.name, fg.logo_url
+			fg.id, fg.slug, fg.name, fg.logo_url, fg.founded_year, fg.dissolved_year, fg.country, fg.status
 		FROM anime_fansub_groups afg
 		JOIN fansub_groups fg ON fg.id = afg.fansub_group_id
 		WHERE afg.anime_id = $1
@@ -1205,6 +1205,10 @@ func (r *FansubRepository) ListAnimeFansubs(
 			&group.Slug,
 			&group.Name,
 			&group.LogoURL,
+			&group.FoundedYear,
+			&group.DissolvedYear,
+			&group.Country,
+			&group.Status,
 		); err != nil {
 			return nil, fmt.Errorf("scan anime fansub row: %w", err)
 		}

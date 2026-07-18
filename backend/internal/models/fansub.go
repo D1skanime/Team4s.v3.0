@@ -118,10 +118,14 @@ type PublicFansubMediaItem struct {
 
 // FansubGroupSummary ist eine kompakte Kurzform einer Fansub-Gruppe.
 type FansubGroupSummary struct {
-	ID      int64   `json:"id"`
-	Slug    string  `json:"slug"`
-	Name    string  `json:"name"`
-	LogoURL *string `json:"logo_url,omitempty"`
+	ID            int64   `json:"id"`
+	Slug          string  `json:"slug"`
+	Name          string  `json:"name"`
+	LogoURL       *string `json:"logo_url,omitempty"`
+	FoundedYear   *int32  `json:"founded_year,omitempty"`
+	DissolvedYear *int32  `json:"dissolved_year,omitempty"`
+	Country       *string `json:"country,omitempty"`
+	Status        string  `json:"status,omitempty"`
 }
 
 // FansubMember repraesentiert ein Mitglied einer Fansub-Gruppe mit Rolle und Zeitraum.

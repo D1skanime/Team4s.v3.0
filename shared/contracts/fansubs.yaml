@@ -591,6 +591,10 @@ types:
     slug: string
     name: string
     logo_url: string | null
+    founded_year: int32 | null
+    dissolved_year: int32 | null
+    country: string | null
+    status: string
   FansubMember:
     id: int64
     fansub_group_id: int64

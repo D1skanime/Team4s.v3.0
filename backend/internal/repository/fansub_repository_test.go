@@ -178,6 +178,41 @@ func TestFansubRepository_DeleteGroupCleansRestrictedChildrenFirst(t *testing.T)
 	}
 }
 
+// TestListAnimeFansubs_SummaryIncludesFansubStoryFacts pins that
+// ListAnimeFansubs selects and scans founded_year/dissolved_year/country/status
+// alongside the existing FansubGroupSummary columns, so the anime detail page
+// can build its Fansub-Story preview from this one response without a
+// per-slug getFansubBySlug fanout.
+func TestListAnimeFansubs_SummaryIncludesFansubStoryFacts(t *testing.T) {
+	src, err := os.ReadFile("fansub_repository.go")
+	if err != nil {
+		t.Fatalf("read fansub repository: %v", err)
+	}
+	content := string(src)
+
+	start := strings.Index(content, "func (r *FansubRepository) ListAnimeFansubs(")
+	if start < 0 {
+		t.Fatalf("ListAnimeFansubs function not found")
+	}
+	end := strings.Index(content, "func (r *FansubRepository) AttachAnimeFansub(")
+	if end < 0 || end < start {
+		t.Fatalf("could not bound ListAnimeFansubs function body")
+	}
+	body := content[start:end]
+
+	for _, fragment := range []string{
+		"fg.founded_year, fg.dissolved_year, fg.country, fg.status",
+		"&group.FoundedYear",
+		"&group.DissolvedYear",
+		"&group.Country",
+		"&group.Status",
+	} {
+		if !strings.Contains(body, fragment) {
+			t.Fatalf("expected ListAnimeFansubs to contain %q", fragment)
+		}
+	}
+}
+
 func strPtr(value string) *string {
 	return &value
 }
