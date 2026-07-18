@@ -34,7 +34,6 @@ export function ReleasesSection({ episodes, publicReleasePreviews, animeID, grou
         animeID={animeID}
         groupID={groupID}
         canonicalProjectPath={canonicalProjectPath}
-        excludeReleaseVersionId={latestRelease?.id}
       />
       <div className={styles.releasesCta}>
         <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>

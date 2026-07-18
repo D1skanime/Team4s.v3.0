@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { ChevronRight, Eye, FileText, Image as ImageIcon, Play, Users } from 'lucide-react'
 
@@ -12,12 +12,12 @@ import { buildFansubReleaseHref } from '@/lib/fansubProjectRoutes'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 import type { EpisodeReleaseSummary, ReleaseTimelineSegment } from '@/types/group'
 
+import { sortReleasesByEpisodeNumberAscending } from './OlderReleasesList.helpers'
 import styles from './OlderReleasesList.module.css'
 
 interface OlderReleasesListProps {
   animeID: number
   groupID: number
-  excludeReleaseVersionId?: number
   canonicalProjectPath?: string | null
 }
 
@@ -299,7 +299,7 @@ function MobileDirectReleaseRow({
   )
 }
 
-export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, canonicalProjectPath }: OlderReleasesListProps) {
+export function OlderReleasesList({ animeID, groupID, canonicalProjectPath }: OlderReleasesListProps) {
   const [items, setItems] = useState<EpisodeReleaseSummary[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -315,7 +315,6 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, c
       const page = await getGroupReleaseListCursor(animeID, groupID, {
         cursor: nextCursor ?? undefined,
         limit: nextCursor ? PAGE_LIMIT : INITIAL_LIMIT,
-        exclude_release_version_id: excludeReleaseVersionId,
       })
       setItems((previous) => nextCursor ? [...previous, ...page.items] : page.items)
       setCursor(page.next_cursor)
@@ -325,7 +324,7 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, c
     } finally {
       setLoading(false)
     }
-  }, [animeID, groupID, excludeReleaseVersionId])
+  }, [animeID, groupID])
 
   useEffect(() => {
     void loadPage(null)
@@ -341,9 +340,7 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, c
     return () => observerRef.current?.disconnect()
   }, [cursor, hasMore, loading, loadPage])
 
-  const visibleItems = excludeReleaseVersionId == null
-    ? items
-    : items.filter((episode) => episode.id !== excludeReleaseVersionId)
+  const sortedItems = useMemo(() => sortReleasesByEpisodeNumberAscending(items), [items])
   return (
     <div id="weitere-releases" className={styles.section}>
       <SectionHeader title="Releases zum Fansub" underline />
@@ -357,7 +354,7 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, c
       ) : (
         <Card variant="flat" className={styles.list}>
           <div className={styles.timelinePreview}>
-            {visibleItems.map((episode) => (
+            {sortedItems.map((episode) => (
               <DesktopReleaseRow
                 key={episode.id}
                 animeID={animeID}
@@ -368,7 +365,7 @@ export function OlderReleasesList({ animeID, groupID, excludeReleaseVersionId, c
             ))}
           </div>
           <div className={styles.rowActions}>
-            {visibleItems.map((episode) => {
+            {sortedItems.map((episode) => {
               const hasKaras = (episode.timeline_segments?.length ?? 0) > 0
               if (!hasKaras) {
                 return (

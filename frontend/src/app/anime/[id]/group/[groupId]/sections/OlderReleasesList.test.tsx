@@ -67,7 +67,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
       has_more: true,
     })
 
-    render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
+    render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     expect(screen.getByRole('button', { name: 'Weitere Releases laden' })).not.toBeNull()
@@ -81,7 +81,6 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     expect(getGroupReleaseListCursor).toHaveBeenCalledWith(1, 2, {
       cursor: undefined,
       limit: 5,
-      exclude_release_version_id: 999,
     })
   })
 
@@ -114,7 +113,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
       has_more: false,
     })
 
-    render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
+    render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     fireEvent.click(screen.getByRole('button', { name: /Folge 1/i }))
@@ -140,7 +139,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
         has_more: false,
       })
 
-    render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={999} />)
+    render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
 
@@ -150,26 +149,27 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     expect(getGroupReleaseListCursor).toHaveBeenLastCalledWith(1, 2, {
       cursor: 'cursor-1',
       limit: 10,
-      exclude_release_version_id: 999,
     })
     // has_more is now false — the fallback button disappears.
     expect(screen.queryByRole('button', { name: 'Weitere Releases laden' })).toBeNull()
   })
 
-  it('Test 3: the embedded latest release (excludeReleaseVersionId) is filtered out of the list', async () => {
+  it('sortiert die Liste strikt aufsteigend nach episode_number, unabhaengig von der API-Reihenfolge', async () => {
     getGroupReleaseListCursor.mockResolvedValueOnce({
       items: [
-        makeEpisode({ id: 10, episode_number: 1, title: 'Episode 1' }),
-        makeEpisode({ id: 20, episode_number: 2, title: 'Neuestes Release' }),
+        makeEpisode({ id: 30, episode_number: 3, episode_number_label: '3', title: 'Episode 3' }),
+        makeEpisode({ id: 10, episode_number: 1, episode_number_label: '1', title: 'Episode 1' }),
+        makeEpisode({ id: 20, episode_number: 2, episode_number_label: '2', title: 'Episode 2' }),
       ],
       next_cursor: null,
       has_more: false,
     })
 
-    render(<OlderReleasesList animeID={1} groupID={2} excludeReleaseVersionId={20} />)
+    render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
-    expect(screen.queryByText('Neuestes Release')).toBeNull()
+    const links = screen.getAllByRole('link', { name: /^Folge \d+$/ })
+    expect(links.map((el) => el.textContent)).toEqual(['Folge 1', 'Folge 2', 'Folge 3'])
   })
 
   it('zeigt pro Kara-Gruppe zunächst drei Einträge und klappt weitere auf', async () => {
