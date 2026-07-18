@@ -64,7 +64,7 @@ export function OlderReleasesList({ animeID, groupID, canonicalProjectPath }: Ol
   const sortedItems = useMemo(() => sortReleasesByEpisodeNumberAscending(items), [items])
   return (
     <div id="weitere-releases" className={styles.section}>
-      <SectionHeader title="Releases zum Fansub" underline />
+      <SectionHeader title="Alle Releases" underline />
       {error ? <p className={styles.error}>{error}</p> : null}
       {loading && items.length === 0 ? (
         <div className={styles.list}>

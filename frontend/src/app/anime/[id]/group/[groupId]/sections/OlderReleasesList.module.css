@@ -332,7 +332,7 @@
 
 .mobileList {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -344,6 +344,9 @@
 @media (max-width: 768px) {
 /* Mobile Release-Accordions: bestehende Timeline-Selektoren als kompakte Kara-Zeilen. */
 .mobileDirectRow {
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px 12px;
   border-radius: 0;
 }
 
@@ -427,19 +430,23 @@
 
   .rowHeader {
     align-items: flex-start;
+    min-width: 0;
   }
 
   .rowTitleLine {
-    grid-template-columns: auto auto auto;
+    grid-template-columns: minmax(0, auto) auto minmax(0, 1fr);
+    width: 100%;
   }
 
   .rowTitleLine .rowMeta {
     grid-column: 1 / -1;
+    overflow-wrap: anywhere;
   }
 
   .rowCountGroup {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: 6px 12px;
+    width: 100%;
   }
 }

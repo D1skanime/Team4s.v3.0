@@ -70,7 +70,7 @@ describe('ReleasesSection (Phase 102-05)', () => {
       />,
     )
 
-    expect(markup).toContain('Releases zum Fansub')
+    expect(markup).toContain('Alle Releases')
     expect(markup).not.toContain('Neuestes Fansub-Release')
   })
 })

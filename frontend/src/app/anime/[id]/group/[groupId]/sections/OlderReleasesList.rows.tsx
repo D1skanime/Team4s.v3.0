@@ -6,7 +6,7 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { ChevronRight, Eye, FileText, Image as ImageIcon, Play, Users } from 'lucide-react'
 
-import { Accordion, AccentRule, Badge, Button, Card } from '@/components/ui'
+import { Accordion, AccentRule, Button, Card } from '@/components/ui'
 import { buildFansubReleaseHref } from '@/lib/fansubProjectRoutes'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 import type { EpisodeReleaseSummary, ReleaseTimelineSegment } from '@/types/group'
@@ -214,7 +214,7 @@ function ReleaseDetails({ animeID, groupID, episode, canonicalProjectPath }: Row
   )
 }
 
-function MobileReleaseHeader({ episode, showKaraCount }: { episode: EpisodeReleaseSummary; showKaraCount: boolean }) {
+function MobileReleaseHeader({ episode }: { episode: EpisodeReleaseSummary }) {
   const contextLabel = episode.title?.trim() ?? ''
   const versionLabel = versionOnlyLabel(episode.version_label)
 
@@ -234,7 +234,6 @@ function MobileReleaseHeader({ episode, showKaraCount }: { episode: EpisodeRelea
           <span className={styles.rowCount}><Users size={14} aria-hidden="true" />{episode.contributors_count ?? 0} Fansubber</span>
         </div>
       </div>
-      {showKaraCount ? <Badge variant="muted">{episode.timeline_segments?.length ?? 0} Karas</Badge> : null}
     </div>
   )
 }
@@ -249,7 +248,7 @@ export function MobileDirectReleaseRow({ animeID, groupID, episode, canonicalPro
 
   return (
     <Card variant="flat" className={`${styles.row} ${styles.mobileDirectRow}`}>
-      <MobileReleaseHeader episode={episode} showKaraCount={false} />
+      <MobileReleaseHeader episode={episode} />
       <Button
         href={detailHref}
         variant="subtle"
@@ -276,10 +275,12 @@ export function MobileKaraReleaseRow({ animeID, groupID, episode, canonicalProje
     releaseVersionID: episode.id,
     canonicalProjectPath,
   })
+  const karaCount = episode.timeline_segments?.length ?? 0
+  const karaDisclosureTitle = karaCount === 1 ? '1 Kara anzeigen' : `${karaCount} Karas anzeigen`
 
   return (
     <Card variant="flat" className={`${styles.row} ${styles.mobileDirectRow}`}>
-      <MobileReleaseHeader episode={episode} showKaraCount />
+      <MobileReleaseHeader episode={episode} />
       <Button
         href={detailHref}
         variant="subtle"
@@ -292,7 +293,7 @@ export function MobileKaraReleaseRow({ animeID, groupID, episode, canonicalProje
       <Accordion
         items={[{
           id: String(episode.id),
-          title: 'Karas anzeigen',
+          title: karaDisclosureTitle,
           children: (
             <ReleaseDetails
               animeID={animeID}

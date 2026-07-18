@@ -83,6 +83,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
+    expect(screen.getByRole('heading', { name: 'Alle Releases' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Weitere Releases laden' })).not.toBeNull()
     expect(screen.getAllByText('2 Bilder').length).toBeGreaterThan(0)
     expect(screen.getAllByText('1 Texte').length).toBeGreaterThan(0)
@@ -129,8 +130,12 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
-    fireEvent.click(screen.getByRole('button', { name: 'Karas anzeigen' }))
-    const region = screen.getByRole('region', { name: 'Karas anzeigen' })
+    const disclosure = screen.getByRole('button', { name: '2 Karas anzeigen' })
+    const directAction = screen.getByRole('link', { name: 'Ansicht' })
+    expect(directAction.compareDocumentPosition(disclosure) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByText('2 Karas', { exact: true })).toBeNull()
+    fireEvent.click(disclosure)
+    const region = screen.getByRole('region', { name: '2 Karas anzeigen' })
     expect(within(region).getByText('Viper OP')).not.toBeNull()
     expect(within(region).getByText('Viper ED')).not.toBeNull()
     expect(within(region).getByRole('link', { name: 'Viper OP' }).getAttribute('href'))
@@ -201,9 +206,9 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     })
 
     render(<OlderReleasesList animeID={1} groupID={2} />)
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Karas anzeigen' })).not.toBeNull())
-    fireEvent.click(screen.getByRole('button', { name: 'Karas anzeigen' }))
-    const region = screen.getByRole('region', { name: 'Karas anzeigen' })
+    await waitFor(() => expect(screen.getByRole('button', { name: '4 Karas anzeigen' })).not.toBeNull())
+    fireEvent.click(screen.getByRole('button', { name: '4 Karas anzeigen' }))
+    const region = screen.getByRole('region', { name: '4 Karas anzeigen' })
     expect(within(region).queryByText('Opening 4')).toBeNull()
     fireEvent.click(within(region).getByRole('button', { name: '1 weitere anzeigen' }))
     expect(within(region).getByText('Opening 4')).not.toBeNull()
@@ -228,10 +233,11 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     // Ansicht-Button und Accordion-Header sind sofort da — ohne jeden Klick.
     expect(screen.getByRole('link', { name: 'Ansicht' })).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Karas anzeigen' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: '1 Kara anzeigen' })).not.toBeNull()
+    expect(screen.queryByText('1 Karas', { exact: true })).toBeNull()
     // Die einzelnen Kara-Segmenttitel sind erst nach dem Aufklappen sichtbar.
     expect(screen.queryByText('Viper OP')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Karas anzeigen' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 Kara anzeigen' }))
     expect(screen.getByText('Viper OP')).not.toBeNull()
   })
 
@@ -261,6 +267,6 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     // Desktop-Zweig: Titel ist ein Link, Timeline-Segment direkt sichtbar, kein Accordion-Toggle.
     expect(screen.getByRole('link', { name: 'Folge 1' })).not.toBeNull()
     expect(screen.getByText('Viper OP')).not.toBeNull()
-    expect(screen.queryByRole('button', { name: 'Karas anzeigen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Karas? anzeigen/ })).toBeNull()
   })
 })
