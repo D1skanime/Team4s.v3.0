@@ -186,7 +186,8 @@
 
 .statItem {
   display: grid;
-  gap: 2px;
+  grid-template-rows: 30px auto;
+  gap: 4px;
   min-width: 104px;
   padding: 0 24px;
   justify-items: center;
@@ -206,15 +207,48 @@
   color: rgba(28, 24, 38, 0.64);
   font-size: 12px;
   font-weight: 600;
+  line-height: 1.25;
 }
 
 .statItem dd {
   grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
   margin: 0;
   color: var(--accent-deep);
   font-size: 26px;
   font-weight: 700;
   line-height: 1;
+}
+
+.singleCoopPartner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 170px;
+  color: var(--accent-deep);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+}
+
+.singleCoopPartner:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.singleCoopPartner:focus-visible {
+  border-radius: 4px;
+  outline: none;
+  box-shadow: var(--focus-ring);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .coopPartnerDetails {

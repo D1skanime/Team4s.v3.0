@@ -46,4 +46,18 @@ describe('ProjectStats', () => {
     expect(screen.getByRole('link', { name: 'Gruppe 20' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Weniger anzeigen' })).toBeTruthy()
   })
+
+  it('schreibt einen einzelnen Coop-Partner aus und verlinkt sein Fansub-Profil', () => {
+    render(
+      <ProjectStats
+        contributorCount={3}
+        releaseCount={12}
+        coopGroups={[{ id: 2, slug: 'honto', name: 'Honto', logo_url: '/logo.png' }]}
+      />,
+    )
+
+    const partnerLink = screen.getByRole('link', { name: 'Honto' })
+    expect(partnerLink.getAttribute('href')).toBe('/fansubs/honto')
+    expect(screen.queryByLabelText('1 Coop-Partner')).toBeNull()
+  })
 })

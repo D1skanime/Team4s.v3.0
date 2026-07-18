@@ -125,6 +125,17 @@ describe('ProjectPage public hero styling', () => {
     expect(heroBackdropBlock).toContain('width: 100vw')
     expect(heroBackdropBlock).toContain('filter: blur(34px) brightness(0.72) saturate(1.25)')
   })
+
+  it('richtet alle Statistikwerte und Beschriftungen auf gemeinsamen Zeilen aus', () => {
+    const css = projectPageStyles()
+    const statItemBlock = css.match(/\.statItem\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const statValueBlock = css.match(/\.statItem dd\s*\{[\s\S]*?\}/)?.[0] ?? ''
+
+    expect(statItemBlock).toContain('grid-template-rows: 30px auto')
+    expect(statItemBlock).toContain('gap: 4px')
+    expect(statValueBlock).toContain('align-items: center')
+    expect(statValueBlock).toContain('min-height: 30px')
+  })
 })
 
 describe('HeroSection navigation (102-03)', () => {
@@ -204,7 +215,7 @@ describe('HeroSection navigation (102-03)', () => {
     )
 
     expect(screen.getByText('Coop-Partner')).toBeTruthy()
-    expect(screen.getByLabelText('1 Coop-Partner')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Honto' }).getAttribute('href')).toBe('/fansubs/honto')
     expect(screen.queryByText('Coop mit')).toBeNull()
     expect(screen.queryByRole('button')).toBeNull()
   })

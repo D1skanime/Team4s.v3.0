@@ -53,6 +53,7 @@ export function ProjectStats({ contributorCount, releaseCount, coopGroups }: Pro
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const detailsId = useId()
+  const singleCoopGroup = coopGroups.length === 1 ? coopGroups[0] : null
   const hasOverflow = coopGroups.length > visibleLimit
   const visibleDetails = showAll ? coopGroups : coopGroups.slice(0, DETAIL_INITIAL_LIMIT)
   const remainingDetails = Math.max(0, coopGroups.length - visibleDetails.length)
@@ -82,15 +83,25 @@ export function ProjectStats({ contributorCount, releaseCount, coopGroups }: Pro
           <div className={styles.statItem}>
             <dt>Coop-Partner</dt>
             <dd>
-              <AvatarStack
-                items={avatarItems}
-                maxVisible={visibleLimit}
-                ariaLabel={`${coopGroups.length} Coop-Partner`}
-                onOverflowClick={hasOverflow ? toggleDetails : undefined}
-                overflowExpanded={detailsOpen}
-                overflowControls={detailsId}
-                overflowAriaLabel={detailsOpen ? 'Coop-Partner ausblenden' : `${coopGroups.length - visibleLimit} weitere Coop-Partner anzeigen`}
-              />
+              {singleCoopGroup ? (
+                <Link
+                  href={`/fansubs/${singleCoopGroup.slug}`}
+                  prefetch={false}
+                  className={styles.singleCoopPartner}
+                >
+                  {singleCoopGroup.name}
+                </Link>
+              ) : (
+                <AvatarStack
+                  items={avatarItems}
+                  maxVisible={visibleLimit}
+                  ariaLabel={`${coopGroups.length} Coop-Partner`}
+                  onOverflowClick={hasOverflow ? toggleDetails : undefined}
+                  overflowExpanded={detailsOpen}
+                  overflowControls={detailsId}
+                  overflowAriaLabel={detailsOpen ? 'Coop-Partner ausblenden' : `${coopGroups.length - visibleLimit} weitere Coop-Partner anzeigen`}
+                />
+              )}
             </dd>
           </div>
         ) : null}

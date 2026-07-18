@@ -1,11 +1,16 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { forwardRef, type ImgHTMLAttributes } from 'react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { PublicReleaseBlock } from '../PublicReleaseBlock'
 import type { PublicReleasePreview } from '../PublicReleaseBlock'
+
+const publicReleaseStyles = () =>
+  readFileSync(join(process.cwd(), 'src/components/fansubs/PublicReleaseBlock.module.css'), 'utf8')
 
 vi.mock('next/image', () => {
   const MockNextImage = forwardRef<
@@ -68,6 +73,14 @@ const release: PublicReleasePreview = {
 }
 
 describe('PublicReleaseBlock', () => {
+  it('blendet unlesbar kleine Bildvorschauen in kompakten Ansichten aus', () => {
+    const css = publicReleaseStyles()
+    const compactMediaBlock = css.match(/@media \(max-width: 900px\)\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
+
+    expect(compactMediaBlock).toContain('.previewGrid')
+    expect(compactMediaBlock).toContain('display: none')
+  })
+
   it('rendert neuestes Release, Timeline, Medien, Texte und Fansubber', () => {
     render(<PublicReleaseBlock latestRelease={release} releases={[release]} />)
 
