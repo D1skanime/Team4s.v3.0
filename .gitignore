@@ -25,6 +25,7 @@ media/
 .claude/
 /node_modules/
 /test-results/
+tmp/
 tmp-*
 *.log
 *.tmp
