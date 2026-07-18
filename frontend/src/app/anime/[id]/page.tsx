@@ -13,7 +13,6 @@ import { ActiveFansubStory } from '@/components/fansubs/ActiveFansubStory'
 import { StatusBadge } from '@/components/anime/StatusBadge'
 import { CommentSection } from '@/components/comments/CommentSection'
 import { WatchlistAddButton } from '@/components/watchlist/WatchlistAddButton'
-import type { FansubGroup } from '@/types/fansub'
 import {
   ApiError,
   AUTH_BEARER_TOKEN,
@@ -22,13 +21,13 @@ import {
   getAnimeBackdrops,
   getAnimeComments,
   getAnimeRelations,
-  getFansubBySlug,
   getAnimeFansubs,
   getGroupedEpisodes,
   getWatchlistEntry,
 } from '@/lib/api'
 import { resolveInfoBannerURL, resolveInfoLogoURL } from '@/lib/animeBackdrops'
 import { normalizeGridQuery } from '@/lib/animeGridContext'
+import { buildFansubStoryGroups } from '@/lib/fansub-summary'
 import { getEmbySeriesUrlForAnime } from '@/lib/emby'
 import { getCoverUrl, shouldUseUnoptimizedImage } from '@/lib/utils'
 
@@ -154,34 +153,7 @@ export default async function AnimeDetailPage({ params, searchParams }: AnimeDet
   const animeFansubsResponse = animeFansubsResult.status === 'fulfilled' ? animeFansubsResult.value : null
   const groupedEpisodesResponse = groupedEpisodesResult.status === 'fulfilled' ? groupedEpisodesResult.value : null
 
-  const fansubDetailsBySlug = new Map<string, FansubGroup>()
-  if (animeFansubsResponse && animeFansubsResponse.data.length > 0) {
-    const slugs = Array.from(
-      new Set(
-        animeFansubsResponse.data
-          .map((relation) => relation.fansub_group?.slug?.trim() || '')
-          .filter((slug) => slug.length > 0),
-      ),
-    )
-    const detailResults = await Promise.allSettled(slugs.map((slug) => getFansubBySlug(slug)))
-    for (const result of detailResults) {
-      if (result.status !== 'fulfilled') continue
-      fansubDetailsBySlug.set(result.value.data.slug, result.value.data)
-    }
-  }
-
-  const fansubStoryGroups: FansubGroup[] = []
-  if (animeFansubsResponse) {
-    const seen = new Set<number>()
-    for (const relation of animeFansubsResponse.data) {
-      const slug = relation.fansub_group?.slug || ''
-      const detail = fansubDetailsBySlug.get(slug)
-      if (!detail) continue
-      if (seen.has(detail.id)) continue
-      seen.add(detail.id)
-      fansubStoryGroups.push(detail)
-    }
-  }
+  const fansubStoryGroups = buildFansubStoryGroups(animeFansubsResponse?.data ?? [])
 
   const commentsResponse = commentsResult.status === 'fulfilled' ? commentsResult.value : null
   const commentsError = commentsResult.status === 'rejected' ? 'Kommentare konnten nicht geladen werden.' : null

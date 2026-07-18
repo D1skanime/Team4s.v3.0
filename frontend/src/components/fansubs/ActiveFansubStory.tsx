@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-import { FansubGroup, AnimeFansubRelation } from '@/types/fansub'
+import { FansubGroupSummary, AnimeFansubRelation } from '@/types/fansub'
 import { buildFansubStoryPreview } from '@/lib/fansub-summary'
 
 import styles from './ActiveFansubStory.module.css'
 
 interface ActiveFansubStoryProps {
   animeID: number
-  fansubGroups: FansubGroup[]
+  fansubGroups: FansubGroupSummary[]
   animeFansubs: AnimeFansubRelation[]
 }
 

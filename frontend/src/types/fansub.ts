@@ -50,6 +50,10 @@ export interface FansubGroupSummary {
   slug: string;
   name: string;
   logo_url?: string | null;
+  founded_year?: number | null;
+  dissolved_year?: number | null;
+  country?: string | null;
+  status?: FansubStatus;
 }
 
 export interface FansubMember {
