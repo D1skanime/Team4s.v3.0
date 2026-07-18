@@ -578,6 +578,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260718-e6z | Anime-Detailseite Request-Fanout eliminiert: getAnimeFansubs-Summary um founded_year/dissolved_year/country/status erweitert, getFansubBySlug-N+1 entfernt (fansubStoryGroups direkt aus Relation) | 2026-07-18 | 925a446e | [260718-e6z-anime-detailseite-request-fanout-reduzie](./quick/260718-e6z-anime-detailseite-request-fanout-reduzie/) |
 | 260718-2w4 | Fansub-Projektseite „Releases zum Fansub": Liste strikt nach episode_number 1..N (Folge 1 nie ausgeblendet), Mobile-Einzel-Branch statt leerer Spalte, Kara-Dropdown, Ansicht-Button immer sichtbar+rechts | 2026-07-18 | d6097b3a | [260718-2w4-fansub-projektseite-releases-liste-fixen](./quick/260718-2w4-fansub-projektseite-releases-liste-fixen/) |
 | 260717-lqt | Desktop-Maximalbreite der öffentlichen Fansub-, Projekt- und Release-Seite auf gemeinsamen 1360/1480-px-Vertrag ausrichten | 2026-07-17 | e5d8f7ae | [260717-lqt-desktop-maximalbreite-von-fansub-projekt](./quick/260717-lqt-desktop-maximalbreite-von-fansub-projekt/) |
 | 260717-erh | Public Release-Detailseite: mobiles Hero-Accordion, Quellgruppen für Bilder/Texte und öffentliche Kara-Segmente | 2026-07-17 | 02db4bf5 | [260717-erh-public-fansub-projektseite-mobile-redesi](./quick/260717-erh-public-fansub-projektseite-mobile-redesi/) |
