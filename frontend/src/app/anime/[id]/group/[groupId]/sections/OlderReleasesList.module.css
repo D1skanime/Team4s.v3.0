@@ -330,8 +330,10 @@
   height: 1px;
 }
 
-.list > .rowActions {
-  display: none;
+.mobileList {
+  display: grid;
+  gap: 10px;
+  width: 100%;
 }
 
 .mobileDirectAction {
@@ -341,16 +343,6 @@
 
 @media (max-width: 768px) {
 /* Mobile Release-Accordions: bestehende Timeline-Selektoren als kompakte Kara-Zeilen. */
-.list > .timelinePreview {
-  display: none;
-}
-
-.list > .rowActions {
-  display: grid;
-  gap: 0;
-  width: auto;
-}
-
 .mobileDirectRow {
   border-radius: 0;
 }

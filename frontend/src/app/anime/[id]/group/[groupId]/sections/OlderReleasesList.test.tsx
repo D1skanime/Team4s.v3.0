@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { EpisodeReleaseSummary } from '@/types/group'
 
@@ -52,6 +52,19 @@ const makeEpisode = (overrides: Partial<EpisodeReleaseSummary> = {}): EpisodeRel
   images_count: 2,
   notes_count: 1,
   ...overrides,
+})
+
+beforeEach(() => {
+  // Mobile als Testdefault (analog ProjectStats.test.tsx) — die meisten
+  // bestehenden Tests pruefen inhaltlich Mobile-Verhalten (Accordion,
+  // Badges, Ansicht-Button). Der Desktop-Zweig wird in einem eigenen Test
+  // lokal auf matches: false umgestellt.
+  vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+    matches: query === '(max-width: 768px)',
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  })))
 })
 
 afterEach(() => {
@@ -116,8 +129,8 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
-    fireEvent.click(screen.getByRole('button', { name: /Folge 1/i }))
-    const region = screen.getByRole('region', { name: /Folge 1/i })
+    fireEvent.click(screen.getByRole('button', { name: 'Karas anzeigen' }))
+    const region = screen.getByRole('region', { name: 'Karas anzeigen' })
     expect(within(region).getByText('Viper OP')).not.toBeNull()
     expect(within(region).getByText('Viper ED')).not.toBeNull()
     expect(within(region).getByRole('link', { name: 'Viper OP' }).getAttribute('href'))
@@ -168,8 +181,8 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
-    const links = screen.getAllByRole('link', { name: /^Folge \d+$/ })
-    expect(links.map((el) => el.textContent)).toEqual(['Folge 1', 'Folge 2', 'Folge 3'])
+    const titles = screen.getAllByText(/^Folge \d+$/)
+    expect(titles.map((el) => el.textContent)).toEqual(['Folge 1', 'Folge 2', 'Folge 3'])
   })
 
   it('zeigt pro Kara-Gruppe zunächst drei Einträge und klappt weitere auf', async () => {
@@ -188,12 +201,66 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     })
 
     render(<OlderReleasesList animeID={1} groupID={2} />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /Folge 1/i })).not.toBeNull())
-    fireEvent.click(screen.getByRole('button', { name: /Folge 1/i }))
-    const region = screen.getByRole('region', { name: /Folge 1/i })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Karas anzeigen' })).not.toBeNull())
+    fireEvent.click(screen.getByRole('button', { name: 'Karas anzeigen' }))
+    const region = screen.getByRole('region', { name: 'Karas anzeigen' })
     expect(within(region).queryByText('Opening 4')).toBeNull()
     fireEvent.click(within(region).getByRole('button', { name: '1 weitere anzeigen' }))
     expect(within(region).getByText('Opening 4')).not.toBeNull()
     expect(within(region).getByText('Alternative Version')).not.toBeNull()
+  })
+
+  it('zeigt "Ansicht" bei Kara-Folgen sofort, ohne das Accordion aufzuklappen', async () => {
+    getGroupReleaseListCursor.mockResolvedValueOnce({
+      items: [makeEpisode({
+        id: 10,
+        episode_number: 1,
+        timeline_segments: [
+          { id: 1, type: 'OP', title: 'Viper OP', start_time: '00:00:00', end_time: '00:00:45' },
+        ],
+      })],
+      next_cursor: null,
+      has_more: false,
+    })
+
+    render(<OlderReleasesList animeID={1} groupID={2} />)
+
+    await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
+    // Ansicht-Button und Accordion-Header sind sofort da — ohne jeden Klick.
+    expect(screen.getByRole('link', { name: 'Ansicht' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Karas anzeigen' })).not.toBeNull()
+    // Die einzelnen Kara-Segmenttitel sind erst nach dem Aufklappen sichtbar.
+    expect(screen.queryByText('Viper OP')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Karas anzeigen' }))
+    expect(screen.getByText('Viper OP')).not.toBeNull()
+  })
+
+  it('rendert auf Desktop (matches:false) DesktopReleaseRow statt der Mobile-Struktur', async () => {
+    vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })))
+
+    getGroupReleaseListCursor.mockResolvedValueOnce({
+      items: [makeEpisode({
+        id: 10,
+        episode_number: 1,
+        timeline_segments: [
+          { id: 1, type: 'OP', title: 'Viper OP', start_time: '00:00:00', end_time: '00:00:45' },
+        ],
+      })],
+      next_cursor: null,
+      has_more: false,
+    })
+
+    render(<OlderReleasesList animeID={1} groupID={2} />)
+
+    await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
+    // Desktop-Zweig: Titel ist ein Link, Timeline-Segment direkt sichtbar, kein Accordion-Toggle.
+    expect(screen.getByRole('link', { name: 'Folge 1' })).not.toBeNull()
+    expect(screen.getByText('Viper OP')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Karas anzeigen' })).toBeNull()
   })
 })
