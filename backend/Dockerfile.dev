@@ -1,0 +1,19 @@
+FROM golang:1.25-alpine
+
+ARG AIR_VERSION=v1.65.3
+
+# The backend image pipeline uses pure-Go imaging. FFmpeg/FFprobe remain
+# available so prepared segment flows behave like the production runtime.
+RUN apk add --no-cache ffmpeg \
+    && go install github.com/air-verse/air@${AIR_VERSION}
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Compose Watch synchronizes later edits into this native Linux filesystem.
+# Keeping the source in the image avoids slow Go builds across a Windows bind mount.
+COPY . .
+
+CMD ["air", "-c", ".air.toml"]

@@ -9,10 +9,40 @@ docker compose up -d
 ```
 
 Services:
-- Frontend: `http://localhost:3002`
+- Frontend: `http://localhost:3000`
 - Backend API: `http://localhost:8092`
 - Postgres: `localhost:5433` (override via `POSTGRES_PORT`)
 - Redis: internal compose service (`team4sv30-redis:6379`)
+
+### Local development with hot reload
+
+The default local Compose override runs both application services in development mode:
+
+- Next.js reloads frontend changes from the `frontend/` bind mount.
+- Compose Watch synchronizes backend files into the container; Air rebuilds `cmd/server` and restarts only the backend process.
+- The existing migration runner applies pending migrations once when the backend container starts. It does not rerun migrations after every source change.
+
+Start the local stack with Compose Watch and keep the terminal open:
+
+```powershell
+docker compose up --build --watch
+```
+
+For detached services with watch output in a separate terminal, use:
+
+```powershell
+docker compose up -d
+docker compose watch team4sv30-backend
+```
+
+Compose Watch keeps backend source files on the container's native Linux filesystem. This avoids slow Go builds directly across a Windows bind mount. After the initial image build, normal `.go`, `.ts`, `.tsx`, and `.css` edits do not require another image build or deployment while the watcher is running. If only a new SQL migration was added, apply it explicitly without rebuilding:
+
+```powershell
+docker compose exec team4sv30-backend go run ./cmd/migrate status -dir /app/database/migrations
+docker compose exec team4sv30-backend go run ./cmd/migrate up -dir /app/database/migrations
+```
+
+Changes to Dockerfiles, Go module dependencies, Node dependencies, or Compose environment variables still require rebuilding or recreating the affected local service.
 
 Optional local auth token for comments/watchlist UI:
 - Set `AUTH_TOKEN_SECRET` in your shell or `.env` before `docker compose up -d`.
@@ -272,5 +302,3 @@ docker compose exec team4sv30-backend ./migrate status
 docker compose exec team4sv30-backend ./migrate up
 docker compose exec team4sv30-backend ./migrate down -steps 1
 ```
-
-

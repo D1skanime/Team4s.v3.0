@@ -1,0 +1,26 @@
+root = "."
+tmp_dir = "tmp/air"
+
+[build]
+cmd = "CGO_ENABLED=0 go build -buildvcs=false -o ./tmp/air/server ./cmd/server"
+entrypoint = ["./tmp/air/server"]
+include_ext = ["go"]
+exclude_dir = ["tmp", "vendor", "database", "media", "storage"]
+exclude_regex = ["_test\\.go"]
+exclude_unchanged = true
+poll = false
+poll_interval = 500
+delay = 300
+stop_on_error = true
+send_interrupt = true
+kill_delay = 500
+
+[log]
+time = true
+
+[misc]
+clean_on_exit = true
+
+[screen]
+clear_on_rebuild = false
+keep_scroll = true

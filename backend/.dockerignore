@@ -1,3 +1,10 @@
 .env
 bin
+tmp
+database
+docs
+media
+storage
+*.exe
 *.log
+tmp*.go
