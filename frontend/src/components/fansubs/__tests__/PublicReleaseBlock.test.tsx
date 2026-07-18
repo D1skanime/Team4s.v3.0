@@ -79,12 +79,16 @@ describe('PublicReleaseBlock', () => {
 
     expect(compactMediaBlock).toContain('.previewGrid')
     expect(compactMediaBlock).toContain('display: none')
+    expect(css).toContain('aspect-ratio: 16 / 9')
+    expect(css).toMatch(/@container \(max-width: 900px\)[\s\S]*?\.featuredGrid[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/)
+    expect(css).toMatch(/@container \(max-width: 900px\)[\s\S]*?\.featuredCta[\s\S]*?width: 100%/)
   })
 
   it('rendert neuestes Release, Timeline, Medien, Texte und Fansubber', () => {
     render(<PublicReleaseBlock latestRelease={release} releases={[release]} />)
 
-    expect(screen.getByRole('heading', { name: 'Releases zum Fansub' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Neuestes Release' })).toBeTruthy()
+    expect(screen.queryByText(/Release-Übersicht mit neuestem Release/)).toBeNull()
     expect(screen.getByText('Neuestes Fansub-Release')).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Folge 12' })).toBeTruthy()
     expect(screen.getAllByText(/Entscheidung am Himmel/).length).toBeGreaterThan(0)
@@ -99,6 +103,11 @@ describe('PublicReleaseBlock', () => {
     expect(screen.queryByText('00:01:42')).toBeNull()
     expect(screen.queryByText('Hauptinhalt')).toBeNull()
     expect(screen.getByText('Kurzer öffentlicher Release-Einblick.')).toBeTruthy()
+    const cta = screen.getByRole('link', { name: /Vollständiges Release ansehen/ })
+    const note = screen.getByText('Kurzer öffentlicher Release-Einblick.')
+    expect(cta.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getAllByRole('link', { name: /Regenzeichen öffnen/ }).every((link) => link.getAttribute('href') === '#op')).toBe(true)
+    expect(screen.getAllByRole('link', { name: /Abspannlied öffnen/ }).every((link) => link.getAttribute('href') === '#ed')).toBe(true)
   })
 
   it('rendert den öffentlichen Leerzustand ohne Releases', () => {

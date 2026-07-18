@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Eye, FileText, Image as ImageIcon, Users } from 'lucide-react'
+import { Eye, FileText, Image as ImageIcon, Play, Users } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
 import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
@@ -167,6 +167,7 @@ function Timeline({ release }: { release: PublicReleasePreview }) {
             style={segmentStyle(segment)}
             aria-label={`${segment.label} öffnen`}
           >
+            <Play size={15} className={styles.timelineSegmentPlay} aria-hidden="true" />
             <span
               className={styles.timelineSegmentLabel}
               data-alignment={segmentLabelAlignment(segment)}
@@ -223,6 +224,15 @@ function FeaturedRelease({ release }: { release: PublicReleasePreview }) {
           </div>
           <ReleaseStats release={release} />
           <Timeline release={release} />
+          <Button
+            href={release.href}
+            variant="secondary"
+            size="sm"
+            leftIcon={<Eye size={15} aria-hidden="true" />}
+            className={styles.featuredCta}
+          >
+            Vollständiges Release ansehen
+          </Button>
           {previewImages.length > 0 ? (
             <div className={styles.previewGrid}>
               {previewImages.map((image) => (
@@ -265,9 +275,6 @@ function FeaturedRelease({ release }: { release: PublicReleasePreview }) {
               ))}
             </div>
           ) : null}
-          <Button href={release.href} variant="secondary" size="sm" leftIcon={<Eye size={15} aria-hidden="true" />}>
-            Vollständiges Release ansehen
-          </Button>
         </div>
       </div>
     </Card>
@@ -309,8 +316,8 @@ function ReleaseRow({ release }: { release: PublicReleasePreview }) {
 }
 
 export function PublicReleaseBlock({
-  title = 'Releases zum Fansub',
-  description = 'Öffentliche Release-Übersicht mit neuestem Release, Vorschauen, Rollenbeiträgen und Timeline.',
+  title = 'Neuestes Release',
+  description,
   latestRelease,
   releases,
   layout = 'auto',

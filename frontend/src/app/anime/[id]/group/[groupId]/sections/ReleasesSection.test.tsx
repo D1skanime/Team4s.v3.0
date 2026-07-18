@@ -50,7 +50,7 @@ describe('ReleasesSection (Phase 102-05)', () => {
       />,
     )
 
-    expect(markup).toContain('Releases zum Fansub')
+    expect(markup).toContain('Neuestes Release')
     expect(markup).toContain('Neuestes Fansub-Release')
     expect(markup).toContain('Signal im Regen')
     expect(markup).toContain('href="/anime/1/group/2/releases"')

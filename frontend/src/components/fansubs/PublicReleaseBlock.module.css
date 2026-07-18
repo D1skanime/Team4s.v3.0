@@ -23,13 +23,15 @@
   display: grid;
   grid-template-columns: minmax(220px, 0.82fr) minmax(0, 1.18fr);
   gap: 18px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .featuredImageFrame {
   position: relative;
   min-width: 0;
-  min-height: 220px;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  align-self: start;
   overflow: hidden;
   border: 1px solid rgba(92, 105, 131, 0.14);
   border-radius: 8px;
@@ -162,6 +164,13 @@
   display: inline-flex;
   width: fit-content;
   max-width: calc(100% - 12px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.featuredCta {
+  width: fit-content;
 }
 
 .noteGrid {
@@ -374,6 +383,10 @@
   content: none;
 }
 
+.timelineSegmentPlay {
+  display: none;
+}
+
 .timelineSegmentLabel,
 .timelineSegmentTime {
   position: absolute;
@@ -512,7 +525,7 @@
 }
 
 .sectionMobile .featuredImageFrame {
-  min-height: 180px;
+  min-height: 0;
 }
 
 .sectionMobile .previewGrid {
@@ -525,10 +538,26 @@
   }
 }
 
+.sectionMobile .releaseTitleLine {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.sectionMobile .releaseTitle,
+.sectionMobile .releaseVersionLine,
+.sectionMobile .releaseContextLine {
+  grid-column: 1 / -1;
+}
+
+.sectionMobile .releaseTitleDivider {
+  display: none;
+}
+
 .sectionMobile .releaseStatRow {
   display: flex;
-  gap: 0;
-  width: auto;
+  gap: 8px 14px;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 .sectionMobile .releaseStat {
@@ -538,6 +567,17 @@
 
 .sectionMobile .releaseStat:last-child {
   grid-column: auto;
+}
+
+.sectionMobile .featuredCta {
+  width: 100%;
+}
+
+.sectionMobile .noteExcerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .sectionMobile .releaseRowActions {
@@ -591,7 +631,7 @@
   top: auto;
   left: auto;
   display: grid;
-  grid-template-columns: 4px minmax(0, 1fr) auto;
+  grid-template-columns: 4px auto minmax(0, 1fr) auto;
   column-gap: 10px;
   row-gap: 2px;
   width: 100%;
@@ -628,11 +668,16 @@
 .sectionMobile .timelineSegmentLabel[data-alignment] {
   position: static;
   transform: none;
-  grid-column: 2;
+  grid-column: 3;
   max-width: 100%;
   font-size: 0.82rem;
   text-align: left;
   white-space: normal;
+}
+
+.sectionMobile .timelineSegmentPlay {
+  display: block;
+  grid-column: 2;
 }
 
 .sectionMobile .timelineSegmentTime {
@@ -648,24 +693,40 @@
   display: none;
 }
 
-@container (max-width: 520px) {
+@container (max-width: 900px) {
   .featuredGrid,
   .releaseRowHeader {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .featuredImageFrame {
-    min-height: 180px;
+    min-height: 0;
   }
 
   .previewGrid {
     display: none;
   }
 
+  .releaseTitleLine {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .releaseTitle,
+  .releaseVersionLine,
+  .releaseContextLine {
+    grid-column: 1 / -1;
+  }
+
+  .releaseTitleDivider {
+    display: none;
+  }
+
   .releaseStatRow {
     display: flex;
-    gap: 0;
-    width: auto;
+    gap: 8px 14px;
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .releaseStat {
@@ -674,6 +735,17 @@
 
   .releaseStat:last-child {
     grid-column: auto;
+  }
+
+  .featuredCta {
+    width: 100%;
+  }
+
+  .noteExcerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 
   .releaseRowActions {
@@ -727,7 +799,7 @@
     top: auto;
     left: auto;
     display: grid;
-    grid-template-columns: 4px minmax(0, 1fr) auto;
+    grid-template-columns: 4px auto minmax(0, 1fr) auto;
     column-gap: 10px;
     row-gap: 2px;
     width: 100%;
@@ -764,11 +836,16 @@
   .timelineSegmentLabel[data-alignment] {
     position: static;
     transform: none;
-    grid-column: 2;
+    grid-column: 3;
     max-width: 100%;
     font-size: 0.82rem;
     text-align: left;
     white-space: normal;
+  }
+
+  .timelineSegmentPlay {
+    display: block;
+    grid-column: 2;
   }
 
   .timelineSegmentTime {
