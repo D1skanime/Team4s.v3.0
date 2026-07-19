@@ -1,66 +1,223 @@
 // @vitest-environment jsdom
 
+import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const session = vi.hoisted(() => ({
+  value: { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true },
+}))
+
+vi.mock('@/lib/useAuthSession', () => ({ useAuthSession: () => session.value }))
 vi.mock('@/components/ui', () => ({
-  Badge: ({ children }: { children: unknown }) => <span>{children as string}</span>,
+  Badge: ({ children }: { children: ReactNode }) => <span>{children}</span>,
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props}>{children}</button>,
+  Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
 }))
 
 import { ThemeTimeline } from './ThemeTimeline'
 
 const segments = [{
-  theme_segment_id: 7, name: 'Moonlight OP', type: 'OP', start_seconds: 30, end_seconds: 120,
-  duration_seconds: 90, readiness: 'ready' as const, participants: [], preview_url: null,
+  theme_segment_id: 7,
+  name: 'Moonlight OP',
+  type: 'OP',
+  start_seconds: 30,
+  end_seconds: 120,
+  duration_seconds: 90,
+  readiness: 'ready' as const,
+  participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke' }],
+  preview_url: null,
 }, {
-  theme_segment_id: 8, name: 'Ending', type: 'ED', start_seconds: 1200, end_seconds: 1290,
-  duration_seconds: 90, readiness: 'unavailable' as const, participants: [], preview_url: null,
+  theme_segment_id: 8,
+  name: 'Starlight ED',
+  type: 'ED',
+  start_seconds: 1_200,
+  end_seconds: 1_290,
+  duration_seconds: 90,
+  readiness: 'ready' as const,
+  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting' }],
+  preview_url: null,
+}, {
+  theme_segment_id: 9,
+  name: 'Silent Insert',
+  type: 'IN',
+  start_seconds: 600,
+  end_seconds: 630,
+  duration_seconds: 30,
+  readiness: 'unavailable' as const,
+  participants: [],
+  preview_url: null,
 }]
 
-afterEach(() => { cleanup() })
+function setSession(hasAccessToken: boolean, hasRefreshToken: boolean, isClientInitialized = true) {
+  session.value = { hasAccessToken, hasRefreshToken, isClientInitialized }
+}
 
-describe('ThemeTimeline', () => {
-  it('offers bounded Kara playback to guests without a login prompt', () => {
-    render(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Abspielen' }))
-    expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
+function renderTimeline(overrides: Partial<ComponentProps<typeof ThemeTimeline>> = {}) {
+  return render(
+    <ThemeTimeline
+      releaseVersionID={12}
+      episodeDurationSeconds={1_400}
+      segments={segments}
+      {...overrides}
+    />,
+  )
+}
+
+function playbackActions() {
+  return screen.getAllByRole('button', { name: /^(?:Kara )?abspielen$/i })
+}
+
+beforeEach(() => {
+  setSession(false, false)
+})
+
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
+
+describe('ThemeTimeline Phase 105 session matrix', () => {
+  it('shows public Kara information to guests without playback, unavailable copy, login copy, or autoplay', async () => {
+    renderTimeline({ initialSegmentID: 7, autoPlayInitial: true })
+
+    expect(screen.getAllByText('Moonlight OP').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Opening').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/0:30/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Mia.*Karaoke/)).not.toBeNull()
+    expect(screen.queryByRole('button', { name: /Kara abspielen/i })).toBeNull()
+    expect(screen.queryAllByRole('button', { name: /^Abspielen$/i })).toHaveLength(0)
+    expect(screen.queryByText('Noch nicht abspielbar')).toBeNull()
     expect(screen.queryByText(/anmeld/i)).toBeNull()
+    await waitFor(() => expect(document.querySelector('video')).toBeNull())
+  })
+
+  it('offers ready Kara playback to an access-token session', () => {
+    setSession(true, false)
+    renderTimeline()
+    expect(screen.getAllByRole('button', { name: 'Kara abspielen' })).toHaveLength(2)
+  })
+
+  it('offers ready Kara playback to a refresh-only session', () => {
+    setSession(false, true)
+    renderTimeline()
+    expect(screen.getAllByRole('button', { name: 'Kara abspielen' })).toHaveLength(2)
+  })
+
+  it('shows an unavailable segment as static session copy without a disabled button', () => {
+    setSession(true, false)
+    renderTimeline()
     expect(screen.getByText('Noch nicht abspielbar')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: /Silent Insert/ })).toBeNull()
   })
+})
 
-  it('keeps unavailable segments disabled', () => {
-    render(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1400} segments={segments} />)
-    const endingMark = screen.getByRole('button', { name: /Ending/ })
-    expect(endingMark).toHaveProperty('disabled', true)
-    expect(screen.getAllByRole('button', { name: 'Abspielen' })).toHaveLength(1)
-  })
-
-  it('starts a valid public Deep-Link automatically', async () => {
-    render(
-      <ThemeTimeline
-        releaseVersionID={12}
-        episodeDurationSeconds={1400}
-        segments={segments}
-        initialSegmentID={7}
-        autoPlayInitial
-      />,
-    )
-    await waitFor(() => {
-      expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
+describe('ThemeTimeline Phase 105 geometry and selection', () => {
+  it('uses exact proportional segment geometry without a visible minimum width', () => {
+    renderTimeline({
+      segments: [{ ...segments[0], theme_segment_id: 17, start_seconds: 1, end_seconds: 2, duration_seconds: 1 }],
     })
+
+    const geometry = screen.getByTestId('kara-segment-geometry-17')
+    expect(geometry).toHaveStyle({ left: `${1 / 1_400 * 100}%`, width: `${1 / 1_400 * 100}%` })
   })
 
-  it.each([8, 999])('does not start unavailable or foreign Deep-Link %s', initialSegmentID => {
-    render(
-      <ThemeTimeline
-        releaseVersionID={12}
-        episodeDurationSeconds={1400}
-        segments={segments}
-        initialSegmentID={initialSegmentID}
-        autoPlayInitial
-      />,
-    )
+  it('keeps the 44 by 44 hit target structurally separate from visible geometry', () => {
+    renderTimeline()
+    const geometry = screen.getByTestId('kara-segment-geometry-7')
+    const hitTarget = screen.getByTestId('kara-hit-target-7')
+    expect(hitTarget).not.toBe(geometry)
+    expect(hitTarget).toHaveStyle({ minWidth: '44px', minHeight: '44px' })
+  })
+
+  it('renders the five episode ticks at 0, 25, 50, 75, and 100 percent', () => {
+    renderTimeline()
+    expect(screen.getAllByTestId('kara-timeline-tick').map((tick) => tick.getAttribute('data-percent'))).toEqual([
+      '0', '25', '50', '75', '100',
+    ])
+  })
+
+  it('keeps exactly one selected segment and announces it politely', () => {
+    setSession(true, false)
+    renderTimeline()
+    fireEvent.click(playbackActions()[0])
+
+    expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1)
+    expect(screen.getByText('Kara Moonlight OP ausgewählt')).toHaveAttribute('aria-live', 'polite')
+  })
+
+  it('highlights a Deep-Link independently from autoplay', async () => {
+    setSession(true, false)
+    renderTimeline({ initialSegmentID: 7, autoPlayInitial: false })
+
+    await waitFor(() => expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1))
     expect(document.querySelector('video')).toBeNull()
+  })
+})
+
+describe('ThemeTimeline Phase 105 streaming and cleanup', () => {
+  it('uses the server-bound segment and release URL without browser supplied bounds', () => {
+    setSession(true, false)
+    renderTimeline()
+    fireEvent.click(playbackActions()[0])
+    expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
+  })
+
+  it('shows a local playback error and allows retrying the same segment', () => {
+    setSession(true, false)
+    renderTimeline()
+    fireEvent.click(playbackActions()[0])
+    fireEvent.error(document.querySelector('video') as HTMLVideoElement)
+
+    expect(screen.getByText('Kara konnte nicht abgespielt werden.')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
+    expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
+  })
+
+  it('pauses, clears, and reloads the old source before a quick segment switch', () => {
+    setSession(true, false)
+    const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
+    const removeAttribute = vi.spyOn(HTMLMediaElement.prototype, 'removeAttribute')
+    const load = vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => undefined)
+    renderTimeline()
+
+    const actions = playbackActions()
+    fireEvent.click(actions[0])
+    fireEvent.click(actions[1])
+
+    expect(pause).toHaveBeenCalled()
+    expect(removeAttribute).toHaveBeenCalledWith('src')
+    expect(load).toHaveBeenCalled()
+    expect(pause.mock.invocationCallOrder.at(-1)).toBeLessThan(removeAttribute.mock.invocationCallOrder.at(-1) as number)
+    expect(removeAttribute.mock.invocationCallOrder.at(-1)).toBeLessThan(load.mock.invocationCallOrder.at(-1) as number)
+    expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/8/stream?release_version_id=12')
+  })
+
+  it('cleans up playback when the session disappears and again on unmount', () => {
+    setSession(true, false)
+    const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
+    const removeAttribute = vi.spyOn(HTMLMediaElement.prototype, 'removeAttribute')
+    const load = vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => undefined)
+    const view = renderTimeline()
+    fireEvent.click(playbackActions()[0])
+
+    setSession(false, false)
+    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1_400} segments={segments} />)
+    expect(document.querySelector('video')).toBeNull()
+    expect(pause).toHaveBeenCalled()
+    expect(removeAttribute).toHaveBeenCalledWith('src')
+    expect(load).toHaveBeenCalled()
+
+    setSession(true, false)
+    view.rerender(<ThemeTimeline releaseVersionID={12} episodeDurationSeconds={1_400} segments={segments} />)
+    fireEvent.click(playbackActions()[0])
+    pause.mockClear()
+    removeAttribute.mockClear()
+    load.mockClear()
+    view.unmount()
+    expect(pause).toHaveBeenCalled()
+    expect(removeAttribute).toHaveBeenCalledWith('src')
+    expect(load).toHaveBeenCalled()
   })
 })
