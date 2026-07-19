@@ -1835,6 +1835,25 @@ Plans:
 8. Gemäß D-17 bis D-20 und D-24 gibt es nur „Mein Account“, einen neutralen Auth-/Profil-Ladezustand, Retry+Logout statt falschem Login bei aktiver Session, zentralen Refresh-only-Schutz sowie deterministische Mobile-First-Tap-/Logout-Zustände.
 9. Automatisierte Auth-, Contract-, Backend- und UI-Regressionen sowie abschließende Live-UAT sichtbarer Folgen ab Homepage bestehen; DB-Invarianten und künstlich nicht per UI herstellbare Refresh-Zustände werden ehrlich durch obligatorische automatisierte Evidenz belegt. Nur `/me/contributions` darf für den expliziten Direktzugriffstest über die Adresszeile geöffnet werden.
 
+### Phase 105: Responsive Release-Detailseite und Kara-Timeline-Redesign
+
+**Goal:** Die bestehende öffentliche Release-Detailseite wird für Desktop, Tablet und Mobile neu geordnet und visuell vereinheitlicht: Die Kara-Sektion folgt unmittelbar auf den Hero, nutzt auf Desktop/Tablet eine echte episodenweite Timeline mit klaren Segmentkarten und auf Mobile eine touchfreundliche vertikale Kara-Liste. Bilder, Teamtexte, Beteiligte, optionales Episoden-Playback und Release-Navigation bleiben auf derselben Seite, verwenden die bestehende öffentliche Team4s-/Fansub-UI-Sprache und bewahren die in Phase 103 verifizierten Daten-, Auth- und Playback-Verträge.
+**Requirements**: Folgearbeit aus Phase 103, insbesondere D-01, D-06, D-15 bis D-22 und D-33 bis D-36; responsive Public-UI-Konventionen aus Phase 102.
+**Depends on:** Phase 103
+
+**Success Criteria** (what must be TRUE):
+
+  1. Die sichtbare Inhaltsreihenfolge lautet Hero → Karas → Bilder → Teamtexte → Release-Beteiligte → berechtigungsabhängige vollständige Episode → vorheriger/nächster Release; keine Sprungnavigation trennt Hero und Kara-Sektion.
+  2. Desktop zeigt eine vollbreite, auf die Episodendauer bezogene Kara-Timeline mit Zeitmarken, unterscheidbaren OP-/ED-/IN-/Middle-/Kara-Segmenten, klarer Auswahl und polierten Segmentkarten; der gewählte Player erscheint direkt im Kara-Bereich.
+  3. Tablet behält die horizontale Timeline mit reduzierten Zeitmarken und wechselt die Segmentkarten ohne Überlauf oder ungenutzte Halbseitenflächen zwischen Zwei- und Einspaltenlayout.
+  4. Mobile zeigt keine zusammengedrückte horizontale Timeline, sondern die Sektion `Karas` als vertikale Karten mit Typ-Farbleiste, Name, Zeiten, Beteiligten und mindestens 48 px hoher Abspielaktion; kleine unlesbare Segmentbilder entfallen.
+  5. Hero, Bilderraster, Teamtexte, Beteiligte und Release-Navigation nutzen über alle Breakpoints konsistente Breiten, Abstände, Karten, Buttons und deutsche UI-Texte; lange Texte erzeugen auf Desktop keine große ungenutzte rechte Fläche und die Navigation liegt im normalen Seitenfluss.
+  6. Gäste sehen Kara-Informationen ohne Abspielaktion oder Login-Hinweis; eingeloggte Nutzer können technisch bereite Karas wie in Phase 103 abspielen, Segmentwechsel stoppen den vorherigen Stream, und bestehende Release-/Auth-/Playback-Tests plus Live-UAT bei Desktop, Tablet und Mobile bleiben grün.
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 105 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie

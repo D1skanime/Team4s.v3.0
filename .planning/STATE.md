@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: phase_complete
-stopped_at: Completed 104-06-PLAN.md (Phase 104 UAT passed)
-last_updated: "2026-07-17T22:59:00.000Z"
-last_activity: 2026-07-17
+stopped_at: Completed 104-05-PLAN.md
+last_updated: "2026-07-19T10:02:20.513Z"
+last_activity: "2026-07-18 - Completed quick task 260718-vei: Responsiver Releasebereich der öffentlichen Fansub-Projektseite"
 progress:
-  total_phases: 96
+  total_phases: 97
   completed_phases: 80
   total_plans: 427
   completed_plans: 400
@@ -391,6 +391,8 @@ Recent durable decisions:
 - Phase 28 added: Segment Playback Sources From Jellyfin Runtime â€” Segmente sollen standardmaessig Episode-Version/Jellyfin-Stream als Playback-Quelle mit realer release_variants.duration_seconds-Grenze nutzen; Upload bleibt optionaler Fallback.
 - Phase 58 added: Profil-Hub Content, Membership Cards & Activity Preparation
 - Phase 59 added: Öffentliches Fansub-Member-Profil
+- Phase 105 added: Responsive Release-Detailseite und Kara-Timeline-Redesign
+- Phase 105 edited: edited fields: goal, requirements, depends_on, success_criteria
 
 ### Blockers/Concerns
 
