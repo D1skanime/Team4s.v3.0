@@ -103,6 +103,7 @@ Alle sichtbaren deutschen Strings verwenden korrekte Umlaute.
 | Element | Verbindliche Copy |
 |---------|-------------------|
 | Primäre CTA | `Kara abspielen` |
+| Gast-CTA für bereites Kara | Schloss-Icon und `Anmelden zum Abspielen` als Link nach `/login` |
 | Kara-Abschnitt | `Karas` |
 | Nicht bereit | `Noch nicht abspielbar` |
 | Hero-Disclosure | `Details` / `Details schließen` als zugänglicher Zustandstext |
@@ -120,7 +121,7 @@ Alle sichtbaren deutschen Strings verwenden korrekte Umlaute.
 | Nachladefehler Texte | `Weitere Texte konnten nicht geladen werden. Bitte versuche es erneut.` |
 | Destruktive Bestätigung | Nicht vorhanden; Phase 105 enthält keine destruktiven Aktionen |
 
-Gäste erhalten weder `Kara abspielen` noch einen Login-Hinweis, Sperrtext oder werbenden Disabled-Button. Technische Render-, Grant- oder Streamdiagnosen erscheinen nicht auf der öffentlichen Seite.
+**UAT-Supersession 2026-07-20:** Die frühere Vorgabe „kein Login-Hinweis“ ist aufgehoben. Gäste erhalten bei bereiten Karas den klaren Link `Anmelden zum Abspielen` mit Schloss-Icon. Er startet keinen Stream und enthält weder Autoplay noch Browser-Bounds. Technische Render-, Grant- oder Streamdiagnosen erscheinen weiterhin nicht auf der öffentlichen Seite.
 
 ---
 
@@ -148,9 +149,9 @@ Alle Sektionen nutzen dieselbe öffentliche Breite: `--public-page-max-width: 13
 | Viewport | Seitenlayout | Karas | Weitere Inhalte |
 |----------|--------------|-------|-----------------|
 | Mobile `≤ 639px` | 16px Seitengutter; eine Hauptspalte | Keine horizontale Spur; vertikale Kara-Karten, eine Spalte | Bilder exakt 2 Spalten; Teamtexte und Beteiligte 1 Spalte; Navigation gestapelt und vollbreit |
-| Tablet Portrait `640–900px` | Öffentliches Gutter, eine fließende Inhaltsbreite | Horizontale Timeline mit 3 Zeitmarken; Segmentkarten 1 Spalte | Bilder 2 Spalten; Teamtexte 1 Spalte; Beteiligte 2 Spalten |
-| Tablet/Laptop `901–1199px` | Volle öffentliche Breite | Horizontale Timeline mit 3 Zeitmarken; Segmentkarten 2 Spalten | Bilder 3 Spalten; Teamtexte 2 Rollen-Spalten, falls beide mindestens 320px breit bleiben; Beteiligte mindestens 2 Spalten |
-| Desktop `≥ 1200px` | Volle öffentliche Breite bis zum globalen Maximum | Horizontale Timeline mit 5 Zeitmarken; Segmentkarten 2 Spalten | Bilder 4 Spalten; Teamtexte 2 Rollen-Spalten; Beteiligte `auto-fit` ab 220px |
+| Tablet Portrait `640–900px` | Öffentliches Gutter, eine fließende Inhaltsbreite | Horizontale Timeline mit Start-/Endanker; Segmentkarten 1 Spalte | Bilder 2 Spalten; Teamtexte 1 Spalte; Beteiligte 2 Spalten |
+| Tablet/Laptop `901–1199px` | Volle öffentliche Breite | Horizontale Timeline mit Start-/Endanker; Segmentkarten 2 Spalten | Bilder 3 Spalten; Teamtexte 2 Rollen-Spalten, falls beide mindestens 320px breit bleiben; Beteiligte mindestens 2 Spalten |
+| Desktop `≥ 1200px` | Volle öffentliche Breite bis zum globalen Maximum | Horizontale Timeline mit Start-/Endanker; Segmentkarten 2 Spalten | Bilder 3 Spalten; Teamtexte 2 Rollen-Spalten; Beteiligte `auto-fit` ab 220px |
 
 Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gibt es horizontales Scrollen, abgeschnittene Fokusrahmen oder überlagernde Navigation. Layoutentscheidungen folgen CSS-Breakpoints beziehungsweise Containerbreite, nicht JavaScript-Viewport-Abfragen.
 
@@ -160,8 +161,9 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 
 - Der Hero bleibt eine eigenständige, leicht erhöhte öffentliche Fläche mit 20px Radius, Akzentlinie oben und vorhandener Backdrop-Atmosphäre. Er ist kein Fullscreen-Player-Hero.
 - Desktop/Tablet zeigen Preview beziehungsweise Anime-Logo-Fallback links und Inhalt rechts. Mobile stapelt Bild vor Text. Ohne Preview und ohne Logo bleibt ein absichtlich komponierter Text-Hero; keine leere Medienbox rendern.
-- Sofort sichtbar: Episode, Episodentitel, kuratierter Release-Titel sofern abweichend, Fansubgruppe(n), Version, Release-Datum, Dauer und Auflösung.
-- Unter `Details`: Video-Codec, Untertiteltyp und einzelne Untertitelspuren. Das Disclosure ist ein echtes `Accordion`, hat `aria-expanded`, einen sichtbaren Fokuszustand und behält seinen Zustand lokal.
+- Sofort sichtbar: Episode, Episodentitel, kuratierter Release-Titel sofern abweichend, `Fansubgruppe: {Name}` beziehungsweise `Fansub-Coop: {Name} × {Name}`, Version, Release-Datum, Dauer und Auflösung.
+- Unter `Details`: Container, Video-Codec, Audio-Codec, Audio-Sprache, Untertiteltyp und Untertitelspuren. Null-/Leerwerte aus der bestehenden API werden als `Nicht hinterlegt` dargestellt. Das Disclosure ist ein echtes `Accordion`, hat `aria-expanded`, einen sichtbaren Fokuszustand und behält seinen Zustand lokal.
+- Nach dem Details-Accordion steht, falls vorhanden, die nächste Release-Kante über dieselbe `ReleaseNavigation`/`AdjacentNavigation inline`-Seam. Sie liegt im normalen Hero-Footer-Fluss und ergänzt die vollständige Navigation am Seitenende.
 - Hero-Statistiken zeigen ausschließlich vorhandene Zählwerte für Bilder, Texte und Fansubber; sie sind Metadaten, keine Navigations-Pills.
 - Die vollständige Beteiligtenliste gehört nicht mehr in das Hero-Disclosure, sondern in die eigene Sektion nach den Teamtexten.
 
@@ -172,10 +174,10 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 ### Desktop und Tablet
 
 - Die Timeline nimmt 100 % der verfügbaren Abschnittsbreite ein und bildet `00:00` bis zur aufgelösten Episodendauer ab. Fallback ist weiterhin das größte Segmentende; dies ändert keine API- oder Ownership-Seam.
-- Desktop zeigt 5 Marken bei 0 %, 25 %, 50 %, 75 % und 100 %. Tablet zeigt 3 Marken bei 0 %, 50 % und 100 %. Erste und letzte Marke sind `00:00` und die formatierte Episodendauer.
+- **UAT-Supersession 2026-07-20:** Desktop und Tablet zeigen keine generierten Viertel-/Mittel-Ticks mehr. Die Spur hat nur die bedeutungsvollen Anker `Start 00:00` und `Ende {Episodendauer}`. Jedes Segmentlabel zeigt Typ sowie die echte Start–Ende-Zeit.
 - Die ruhige Grundspur ist 12px hoch. Segmente liegen proportional auf derselben Achse; `left = start / duration`, `width = (end - start) / duration`. Eine visuelle Mindestbreite darf diese Fachproportion nicht verfälschen.
 - Der interaktive Hit-Bereich eines spielbaren Segments ist mindestens 44×44px und kann die schmale sichtbare Linie transparent erweitern. Kleine oder eng benachbarte Segmente erhalten ihr Typ-/Namenslabel außerhalb der Spur; das Label darf die Segmentbreite nicht künstlich vergrößern.
-- Außenlabels werden am linken beziehungsweise rechten Rand ausgerichtet, wenn eine zentrierte Position überlaufen würde. Bei Kollisionen wird das spätere Label in eine zweite Labelzeile versetzt; Labels werden nicht abgeschnitten und die Seite wird nicht horizontal breiter.
+- Außenlabels werden am linken beziehungsweise rechten Rand ausgerichtet, wenn eine zentrierte Position überlaufen würde. Bei Kollisionen werden zusätzliche stabile Label-Lanes angelegt; auch vier nahe Segmente überlappen nicht, werden nicht abgeschnitten und verbreitern die Seite nicht horizontal.
 - Unter der Spur stehen Segmentkarten: ab 901px zwei Spalten mit `minmax(0, 1fr)`, darunter eine Spalte. Karten zeigen Typ-Badge/-linie, Name, Start–Ende, Dauer, Beteiligte mit konkreten Rollen und Zustands-/Abspielaktion.
 - Segmentkarten verwenden `Card variant="flat"`; die Abspielaktion verwendet den globalen `Button` mit Lucide-`Play`, nicht einen nativen lokal gestylten Button.
 
@@ -185,7 +187,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 - Jede Karte besitzt links eine 4px breite Typ-Linie, 16px Innenabstand, mindestens 12px Abstand zwischen Karten und eine sichtbare Struktur: Typ → Name → Start–Ende und Dauer → Beteiligte → Aktion/Status.
 - Kleine Segment-Vorschaubilder werden nicht gerendert. Ein Bild darf nur in der großen Playerfläche im 16:9-Format erscheinen.
 - Für aktive Sessions und bereite Segmente ist der gesamte nicht-interaktive Karteninhalt eine zusammenhängende Auswahlfläche; die sichtbare globale CTA `Kara abspielen` liegt separat darunter, ist vollbreit und mindestens 48px hoch. Es entstehen keine verschachtelten Buttons.
-- Gäste erhalten statische Informationskarten. Nicht bereite Segmente erhalten für eingeloggte Nutzer eine statische Karte mit `Noch nicht abspielbar`; nicht ausführbare Karten werden nicht als disabled Button oder falsches Fokusziel gerendert.
+- Gäste erhalten statische Informationskarten. Bereite Segmente erhalten darunter einen globalen sekundären Linkbutton mit Schloss und `Anmelden zum Abspielen` nach `/login`. Nicht bereite Segmente erhalten unabhängig vom Loginzustand eine statische Karte mit `Noch nicht abspielbar`; nicht ausführbare Karten werden nicht als disabled Button oder falsches Fokusziel gerendert.
 
 ### Auswahl und Player
 
@@ -194,7 +196,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 - Der große Player erscheint direkt unter Timeline und Karten innerhalb derselben Kara-Sektion. Er ist 100 % breit, 16:9, maximal 70vh hoch, schwarz hinterlegt und mit 12px Radius versehen. Sein zugänglicher Name lautet `Kara: {Segmentname}`.
 - Der Playerzustand ist lokal: Laden, Wiedergabefehler und Segmentwechsel dürfen Gallery, Texte oder Vollfolgenplayer nicht blockieren. Beim Unmount wird der Stream ebenfalls beendet.
 - Auswahlübergänge dauern 120–160ms und verändern nur Border, Hintergrund und Opazität; kein Layoutsprung und kein Zoom. Unter `prefers-reduced-motion: reduce` entfallen Übergänge und Smooth-Scroll.
-- Ein Kara-Deep-Link darf öffentliche Segmentinformationen hervorheben. Autoplay findet nur bei aktiver Session und technisch bereitem Segment statt; für Gäste erzeugt derselbe Link weder Streamversuch noch Login-Hinweis.
+- Ein Kara-Deep-Link darf öffentliche Segmentinformationen hervorheben. Autoplay findet nur bei aktiver Session und technisch bereitem Segment statt; für Gäste erzeugt derselbe Link keinen Streamversuch. Der statische Login-Link bleibt derselbe wie ohne Deep-Link.
 
 ---
 
@@ -205,7 +207,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 - Alle Bilder stehen in einem gemeinsamen Raster; keine Kategorie- oder Herkunftsgruppen-Kapitel. Kategorie und Uploader/Autor stehen als Badge beziehungsweise Metazeile in jeder Karte.
 - Die ganze 16:9-Bildfläche ist ein `Button variant="ghost"` und öffnet die vorhandene Originalansicht/Lightbox. Alt-Text verwendet Caption, sonst das Kategorienlabel; der Maximize-Icon ist dekorativ.
 - Bildbeschreibung ist auf 2 Zeilen gekürzt. Metadaten umbrechen innerhalb der Karte und dürfen die Rasterspalte nicht verbreitern.
-- Spalten: 2 bei ≤900px, 3 bei 901–1199px, 4 ab 1200px. Mobile bleibt trotz kleiner Breite bei genau 2 erkennbaren Bildern pro Zeile.
+- Spalten: 2 bei ≤900px und 3 ab 901px, einschließlich Large Desktop. Mobile bleibt trotz kleiner Breite bei genau 2 erkennbaren Bildern pro Zeile.
 - Nachladen bleibt In-Page, erhält einen lokalen Loadingzustand und einen lokalen Fehler. Bereits sichtbare Bilder bleiben bei Fehler erhalten.
 
 ### Teamtexte
@@ -213,7 +215,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 - Gruppierung erfolgt nach konkreter Release-Rolle, nicht als Ersatz nach gesamter Fansubgruppe. Herkunftsgruppe, Membername, Avatar/Fallback, Rolle und Datum bleiben Metadaten der jeweiligen Textkarte.
 - Desktop nutzt zwei Rollen-Spalten, sofern jede mindestens 320px breit ist. Tablet/Mobile nutzt eine Spalte. Textkörper bleiben auf maximal 68ch begrenzt; freie Restbreite darf ergänzende Metadaten tragen, aber keine leere rechte Halbseite erzeugen.
 - Lange Texte sind initial auf 6 Zeilen gekürzt. `Weiterlesen` öffnet genau diese Karte am selben Ort, `Weniger anzeigen` schließt sie wieder. Das Element ist ein globaler `Button variant="ghost"`; keine Text-Unterseite und kein Modal.
-- Zusätzliche Texte werden innerhalb derselben Sektion geladen. Loading/Error bleibt lokal, bereits geöffnete Karten behalten ihren Zustand anhand stabiler Note-ID.
+- Zusätzliche Texte werden innerhalb derselben Sektion geladen. Bei acht vorhandenen Einträgen erscheinen initial höchstens drei vollständige Karten; der vorhandene Reveal-/Cursor-Seam legt die übrigen frei. Loading/Error bleibt lokal, bereits geöffnete Karten behalten ihren Zustand anhand stabiler Note-ID.
 
 ### Release-Beteiligte
 
@@ -228,7 +230,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 
 ### Release-Navigation
 
-- Verwendet `AdjacentNavigation variant="inline"` als letzten Seitenblock im normalen Dokumentfluss. Niemals `floating`, `position: absolute` oder Überlagerung von Medien/Karten.
+- Verwendet `AdjacentNavigation variant="inline"` als letzten Seitenblock im normalen Dokumentfluss. Eine zusätzliche Next-only-Instanz steht im Hero-Footer nach den Details. Beide nutzen dieselbe Route-Seam; niemals `floating`, `position: absolute` oder Überlagerung von Medien/Karten.
 - Desktop/Tablet zeigt vorherigen Release links und nächsten rechts. Mobile stapelt beide als mindestens 48px hohe, vollbreite Ziele; vorheriger Release zuerst, nächster danach.
 - Fehlende Richtung wird vollständig ausgelassen. Labels bleiben `Episode {n} · Version {v}` und die auf Phase 103 festgelegte gruppentreue Zielauflösung bleibt unangetastet.
 
@@ -238,7 +240,8 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 
 | Zustand | Segmentinfo | Kara-Aktion | Segmentstatus | Vollfolge |
 |---------|-------------|-------------|---------------|-----------|
-| Gast | Vollständig sichtbar | Nicht gerendert; kein Login-Hinweis | Keine technische Diagnose | Nicht gerendert |
+| Gast + Segment bereit | Vollständig sichtbar | Schloss + `Anmelden zum Abspielen` → `/login`; kein Stream/Autoplay | Keine technische Diagnose | Nicht gerendert |
+| Gast + Segment nicht bereit | Vollständig sichtbar | Nicht gerendert | `Noch nicht abspielbar` | Nicht gerendert |
 | Aktive Session + Segment bereit | Vollständig sichtbar | `Kara abspielen` | Auswahl/Player lokal | Nur bei positivem Vollfolgenrecht und bereitem Stream |
 | Aktive Session + Segment nicht bereit | Vollständig sichtbar | Nicht gerendert | `Noch nicht abspielbar` | Unabhängig zentral auflösen |
 | Refresh-Session ohne Access-Token | Wie aktive Session; zentraler API-Client erneuert | Keine falsche Gast-/Login-Darstellung während Refresh | Lokal zur Karte | Zentraler Resolver nach Refresh |
@@ -251,7 +254,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 ## Accessibility and Interaction Quality
 
 - DOM-Reihenfolge entspricht der sichtbaren Reihenfolge und bleibt bei allen Breakpoints gleich.
-- Alle spielbaren Segmentmarken/-flächen sind native Buttons oder globale `Button`-Primitives. Enter und Leertaste funktionieren; Gäste und nicht bereite Segmente erzeugen keine bedeutungslosen Tabstopps.
+- Alle spielbaren Segmentmarken/-flächen sind native Buttons oder globale `Button`-Primitives. Enter und Leertaste funktionieren; der Gast-Login-Link ist ein sinnvolles Fokusziel, nicht bereite Segmente erzeugen keine bedeutungslosen Tabstopps.
 - Timeline-Controls erhalten einen zugänglichen Namen mit Typ, Segmentname, Start–Ende und Dauer. Auswahl wird zusätzlich mit `aria-pressed` und sichtbarem Rahmen kommuniziert.
 - Typen sind immer als Text sichtbar; Information hängt nie allein von Grün/Blau/Violett/Gold/Pink ab.
 - Fokus nutzt den globalen 2px-Outline plus Offset und wird in Cards, Timeline und Navigation nicht abgeschnitten. Kontrastziel ist WCAG AA: 4.5:1 für normalen Text und 3:1 für große Texte/Bediengrenzen.

@@ -5,6 +5,7 @@ status: approved
 nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-19
+updated: 2026-07-20
 ---
 
 # Phase 105 — Validation Strategy
@@ -54,6 +55,10 @@ created: 2026-07-19
 | 105-05-01 | 05 | 4 | D-01–D-30; alle inherited IDs | T-105-01–T-105-04 | Vollsuite, Authgrenzen, Lint, Build und Diff sind ausnahmslos PASS | full suite/security | Plan 05 Task 1 PowerShell-5.1-fail-fast `<verify>` | ✅ existing | ⬜ pending |
 | 105-05-02 | 05 | 4 | D-29–D-30; alle inherited IDs | T-105-01–T-105-04 | Vier Viewports, vier Sessions, Kara/Content/Navigation und Produktpfad besitzen PASS-Live-Evidenz | live browser/UAT | Plan 05 Task 2 `<verify>`: vollständige `105-UAT.md` ohne BLOCKED/PENDING/TODO | ❌ generated | ⬜ pending |
 | 105-05-03 | 05 | 4 | Visuelle Freigabe | — | Nutzerfreigabe folgt erst nach allen PASS-Pflichtzeilen | human checkpoint | Plan 05 Task 3 `<verify>`: keine offenen UAT-Zeilen + ausdrückliche Freigabe | ❌ generated | ⬜ pending |
+| 105-UAT-GAP-01 | UAT | closure | D-24/D-26 superseded | — | Semantische Coop-/Gruppenzeile, vollständige Technik-Platzhalter und Next-only-Hero-Navigation nutzen bestehende Seams | component/SSR | `ReleaseDetailHero.test.tsx` + `releaseDetailPageData.composition.test.tsx` | ✅ extend | ✅ green 2026-07-20 |
+| 105-UAT-GAP-02 | UAT | closure | D-06/D-10/D-14/D-16 superseded | T-105-01–T-105-03 | Start-/Endanker, vier Kollisions-Lanes, sichere Gast-Anmeldung und unveränderte aktive Session | component/auth | `ThemeTimeline.test.tsx` | ✅ extend | ✅ green 2026-07-20 |
+| 105-UAT-GAP-03 | UAT | closure | D-20 superseded | — | Gallery bleibt bei 2 Tablet-/Mobile- und maximal 3 Desktopspalten | component/CSS source | `ReleaseGallery.test.tsx` | ✅ extend | ✅ green 2026-07-20 |
+| 105-UAT-GAP-04 | UAT | closure | D-22 clarified | — | Acht Texte rendern initial drei Karten und nutzen danach den bestehenden Reveal-Seam | component | `ReleaseNotesList.test.tsx` | ✅ extend | ✅ green 2026-07-20 |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -64,7 +69,7 @@ created: 2026-07-19
 | Ref | Threat | Required mitigation |
 |-----|--------|---------------------|
 | T-105-01 | Refresh-only-Session wird als Gast behandelt und legitime Playback-Aktion verschwindet | Auf `hasAccessToken || hasRefreshToken` gaten und ausschließlich den zentralen API-Refresh-Seam verwenden. |
-| T-105-02 | Gast erhält durch UI oder Deep-Link versehentlich Playback-CTA beziehungsweise Autoplay | Segmentinformationen sichtbar lassen, aber Aktion und Autoplay ohne aktive Session unterdrücken. |
+| T-105-02 | Gast erhält durch UI oder Deep-Link versehentlich Playback beziehungsweise Autoplay | Segmentinformationen sichtbar lassen; nur den tokenfreien `/login`-Link `Anmelden zum Abspielen` rendern und Stream/Autoplay ohne aktive Session unterdrücken. |
 | T-105-03 | Vergrößerte visuelle Hit-Zone verfälscht Segmentdauer oder erweitert Streamgrenzen | Visuelle Hit-Zone getrennt von proportionaler Geometrie halten; Stream bleibt an `theme_segment_id` und serverseitige Grenzen gebunden. |
 | T-105-04 | Vollständige Episode erscheint ohne zentral aufgelöstes Recht | Heading und CTA ausschließlich bei aktiver Session plus `can_play && stream_ready`; denied, unready, Gast und Accessfehler rendern null. |
 
@@ -89,9 +94,9 @@ created: 2026-07-19
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Responsive Geometrie | D-05–D-13, D-18–D-29 | jsdom berechnet keine echte CSS-Geometrie | Pretty-Route bei 390, 768, 1024 und 1440 px prüfen; `scrollWidth <= clientWidth`, Fokus, Kartenanzahl, Timeline-/Listenwechsel und Navigation dokumentieren. |
+| Responsive Geometrie | D-05–D-13, D-18–D-29 plus UAT-Supersession 2026-07-20 | jsdom berechnet keine echte CSS-Geometrie | Pretty-Route bei 390, 768, 1024 und 1440 px prüfen; `scrollWidth <= clientWidth`, Start-/Endanker, vier nahe Segmente ohne Labelüberlappung, Gallery 2/2/3/3, Fokus und Navigation dokumentieren. |
 | Resize-Stabilität | D-29 | Zustand über echte Viewportwechsel ist browserabhängig | Bei ausgewähltem Segment 1024 → 390 → 1440 px wechseln; Auswahl, Playerzustand und Seitenfluss prüfen. |
-| Visuelle Public-UI-Konsistenz | D-24–D-28 | Abstände, Hierarchie und wahrgenommene Breite benötigen Sichtprüfung | Release-Seite parallel zur Fansub- und Fansub-Projektseite prüfen; Maximalbreite, Karten, Buttons, Typografie und Schatten vergleichen. |
+| Visuelle Public-UI-Konsistenz | D-24–D-28 plus UAT-Supersession 2026-07-20 | Abstände, Hierarchie und wahrgenommene Breite benötigen Sichtprüfung | Release-Seite parallel zur Fansub- und Fansub-Projektseite prüfen; Coop-/Gruppenlabel, vollständige Technikmatrix, Next im Hero, Gallery-Kartengröße, Karten, Buttons, Typografie und Schatten vergleichen. |
 | Tastatur und Reduced Motion | D-28 | Fokusreihenfolge und Browserbewegung sind nur begrenzt in jsdom abbildbar | Timeline/Karten vollständig per Tab, Enter und Leertaste bedienen; Fokus sichtbar; Reduced Motion aktivieren; Modal/Lightbox mit Escape schließen. |
 
 ---
@@ -102,9 +107,9 @@ created: 2026-07-19
 |-----------|----------------|
 | Viewports | 390, 768, 1024, 1440 px; zusätzlich Resize 1024 → 390 → 1440. |
 | Session | Gast; eingeloggter Fansubber; Refresh-only ohne Access-Token; Vollfolgen-berechtigter Nutzer. |
-| Kara | ready/unavailable; OP/ED/IN/Middle/unknown; kurze/kollidierende Labels; Deep-Link; schneller Wechsel; Fehler; Tastatur. |
-| Content | Preview, Logo-Fallback, text-only Hero; keine Karas/Bilder/Texte; viele Bilder; langer Text; mehrere Gruppen; doppelte Contributorrollen. |
-| Navigation | beide, eine oder keine Kante; Pretty-Href bleibt im Fansub-Projekt; Mobile gestapelt. |
+| Kara | ready/unavailable; Gast-Schloss + `/login`; OP/ED/IN/Middle/unknown; vier kurze/kollidierende Labels; Start-/Endanker; Deep-Link; schneller Wechsel; Fehler; Tastatur. |
+| Content | Preview, Logo-Fallback, text-only Hero; Coop-/Gruppenlabel; vollständige Technikmatrix mit `Nicht hinterlegt`; keine Karas/Bilder/Texte; Gallery max. 3; acht Texte initial progressiv; doppelte Contributorrollen. |
+| Navigation | Next-only nach Hero-Details plus beide/eine/keine Kante am Seitenende; Pretty-Href bleibt im Fansub-Projekt; Mobile gestapelt. |
 
 ---
 

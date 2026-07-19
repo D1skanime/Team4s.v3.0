@@ -1,6 +1,7 @@
 # Phase 105: Responsive Release-Detailseite und Kara-Timeline-Redesign - Context
 
 **Gathered:** 2026-07-19
+**UAT feedback incorporated:** 2026-07-20
 **Status:** Ready for planning
 
 <domain>
@@ -23,35 +24,35 @@ Die in Phase 103 umgesetzten Public-Daten-, Auth-, Segment-Grant- und Stream-Ver
 
 ### Desktop-Kara-Timeline
 - **D-05:** Auf Desktop füllt der Kara-Bereich die verfügbare Inhaltsbreite. Die heutige schmale linke Inhaltsspalte mit großer leerer rechter Fläche entfällt.
-- **D-06:** Eine echte horizontale Timeline bildet `00:00` bis zur Episodendauer ab. Sie zeigt eine ruhige Grundspur, lesbare Zeitmarken und farblich unterscheidbare Segmente für OP, ED, IN, Middle und sonstige Kara-Typen.
+- **D-06 (superseded 2026-07-20):** Eine echte horizontale Timeline bildet `00:00` bis zur Episodendauer ab. Statt generierter Viertel-Ticks zeigt sie nur die verständlichen Anker `Start 00:00` und `Ende {Episodendauer}`; Segmentlabels tragen Typ und echte Start–Ende-Zeit. Damit entfallen verwirrende Werte wie `05:56`, `11:52` und `17:48`.
 - **D-07:** Segmentposition und -dauer bleiben fachlich proportional. Kleine Segmente erhalten außerhalb der eigentlichen Spur eine lesbare Typ-/Auswahlbeschriftung, statt als winzige runde Pillen oder irreführend breite Zeitblöcke dargestellt zu werden.
 - **D-08:** Unter der Timeline stehen bei ausreichender Breite zwei polierte Segmentkarten nebeneinander. Jede Karte zeigt Typ, Segmentname, Start–Ende, Dauer, beteiligte Personen und eine Team4s-Abspielaktion.
 - **D-09:** Auswahl auf Timeline oder Karte hebt genau ein Segment deutlich hervor. Der große Player erscheint unmittelbar im Kara-Bereich unter Timeline/Auswahl; beim Segmentwechsel stoppt der bisherige Stream.
 
 ### Tablet- und Mobile-Darstellung
-- **D-10:** Tablet behält ab dem geeigneten bestehenden Breakpoint die horizontale Timeline, verwendet aber weniger Zeitmarken. Segmentkarten stehen bei ungefähr 1024 px zweispaltig und bei schmalem Tablet einspaltig, ohne horizontalen Überlauf.
+- **D-10 (superseded 2026-07-20):** Tablet behält ab dem geeigneten bestehenden Breakpoint die horizontale Timeline mit denselben Start-/Endankern. Segmentkarten stehen bei ungefähr 1024 px zweispaltig und bei schmalem Tablet einspaltig, ohne horizontalen Überlauf.
 - **D-11:** Mobile zeigt keine zusammengedrückte horizontale Episodenleiste. Der Abschnitt heißt kurz `Karas` und verwendet eine vertikale Liste vollständig anklickbarer Segmentkarten.
 - **D-12:** Mobile Karten zeigen eine farbige Typ-Seitenlinie, Typ, Name, Start–Ende, Dauer und Beteiligte. Die Abspielaktion ist mindestens 48 px hoch und nutzt den globalen Button mit Play-Icon.
 - **D-13:** Kleine Segment-Vorschaubilder werden auf Mobile nicht gezeigt. Ein Medienbild ist nur zulässig, wenn es als ausreichend große, tatsächlich erkennbare Vorschau in die Player-/Detailfläche integriert wird.
 
 ### Wiedergabe- und Zustandsdarstellung
-- **D-14:** Gäste sehen Timeline beziehungsweise mobile Segmentkarten und alle öffentlichen Segmentinformationen, aber keine Abspielaktion und keinen Login-Hinweis. Phase 105 führt keinen gesperrten Werbe-Button ein.
+- **D-14 (superseded by user UAT 2026-07-20):** Gäste sehen Timeline beziehungsweise mobile Segmentkarten und alle öffentlichen Segmentinformationen. Bereite Segmente zeigen sichtbar ein Schloss und den vorhandenen `/login`-Navigationspfad `Anmelden zum Abspielen`, aber keinen Stream, kein Autoplay und keine frei vom Browser gelieferten Segmentgrenzen.
 - **D-15:** Jeder eingeloggte Nutzer kann technisch bereite Kara-Segmente über den bestehenden Phase-103-Stream-Seam abspielen. Die UI bildet diese Berechtigung nicht lokal neu nach.
-- **D-16:** Noch nicht bereite Segmente bleiben sichtbar. Eingeloggte Nutzer sehen den ruhigen Text `Noch nicht abspielbar`; technische Diagnosen bleiben außerhalb der Public-Seite.
+- **D-16 (superseded by user UAT 2026-07-20):** Noch nicht bereite Segmente bleiben für Gäste und aktive Sessions sichtbar und zeigen den ruhigen Text `Noch nicht abspielbar`; technische Diagnosen bleiben außerhalb der Public-Seite.
 - **D-17:** Das vollständige Episoden-Playback bleibt nur bei positiv aufgelöstem Recht sichtbar und wird nach den zentralen Inhaltssektionen platziert. Sein Verhalten und seine Rechte werden in dieser Phase nicht neu entworfen.
 
 ### Bilder, Texte und Release-Beteiligte
 - **D-18:** Bilder bleiben in einem gemeinsamen responsiven Raster auf derselben Seite. Es werden keine vier getrennten Kategorie-Kapitel und keine Bilder-Unterseite wiedereingeführt.
 - **D-19:** Jedes Bild bleibt als Ganzes anklickbar und öffnet die vorhandene Originalansicht. Kategorie und Uploader/Autor sind als erkennbare Badges beziehungsweise Metadaten sichtbar; lange Beschreibungen werden in der Rasterkarte gekürzt.
-- **D-20:** Das Bilderraster nutzt die Breite sinnvoll: auf Desktop drei bis vier Spalten je nach verfügbarer Kartenbreite, auf Tablet zwei bis drei und auf Mobile zwei. Die exakte Spaltenzahl folgt vorhandenen Breakpoints und einer ausreichend erkennbaren Bildgröße.
+- **D-20 (superseded by user UAT 2026-07-20):** Das Bilderraster nutzt wegen der sonst zu kleinen Desktopbilder höchstens drei Spalten: auf Desktop/Large Desktop exakt drei, auf Tablet zwei bis drei und auf Mobile zwei.
 - **D-21:** Teamtexte bleiben nach Rolle gegliedert und vollständig auf derselben Seite. Desktop nutzt ein echtes responsives Rollenraster beziehungsweise ergänzende Metaflächen, damit lesbare Zeilenlänge nicht als große ungenutzte rechte Halbseite erscheint. Tablet und Mobile wechseln auf eine Spalte.
-- **D-22:** Lange Texte dürfen in der Karte zunächst gekürzt sein und werden mit `Weiterlesen`/`Weniger anzeigen` am selben Ort vollständig geöffnet; es entsteht keine Text-Unterseite.
+- **D-22 (clarified by user UAT 2026-07-20):** Lange Texte dürfen in der Karte zunächst gekürzt sein und werden mit `Weiterlesen`/`Weniger anzeigen` am selben Ort vollständig geöffnet; es entsteht keine Text-Unterseite. Auch bei acht vorhandenen Einträgen werden initial höchstens drei vollständige Karten gerendert und die übrigen über den vorhandenen Reveal-Seam nachgezogen.
 - **D-23:** Release-Beteiligte bleiben eine eigene Sektion und zeigen ausschließlich die Personen dieser Release-Version mit ihren konkreten Rollen. Projektweite oder gruppenweite Mitglieder dürfen nicht als Ersatz erscheinen.
 
 ### Hero, Navigation und visuelle Sprache
-- **D-24:** Der Hero behält Preview-Bild beziehungsweise Anime-Logo-Fallback, Release-Titel, Episode, Gruppe(n) und die wichtigsten Release-Fakten. Primäre Fakten bleiben sofort sichtbar; umfangreiche sekundäre Technikdetails dürfen in einem klar beschrifteten `Details`-Bereich liegen.
+- **D-24 (clarified by user UAT 2026-07-20):** Der Hero behält Preview-Bild beziehungsweise Anime-Logo-Fallback, Release-Titel, Episode, Gruppe(n) und die wichtigsten Release-Fakten. Die Gruppenzeile lautet bei einer Gruppe `Fansubgruppe: {Name}` und bei mehreren `Fansub-Coop: {Name} × {Name}`. Primäre Fakten bleiben sofort sichtbar. `Details` zeigt stets Container, Video-Codec, Audio-Codec, Audio-Sprache, Untertiteltyp und Untertitelspuren; fehlende API-Werte heißen ehrlich `Nicht hinterlegt`.
 - **D-25:** Release-Seite und ihre Inhaltssektionen verwenden dieselbe öffentliche Maximalbreite wie Fansub- und Fansub-Projektseite. Verschachtelte Karten erzeugen keine abweichende schmale Desktop-Spalte.
-- **D-26:** Vorheriger/nächster Release liegt auf allen Breakpoints im normalen Seitenfluss am Seitenende. Die Navigation darf nicht über Karten schweben, Inhalte überdecken oder wie ein losgelöstes Floating-Element wirken.
+- **D-26 (extended by user UAT 2026-07-20):** Vorheriger/nächster Release bleibt auf allen Breakpoints im normalen Seitenfluss am Seitenende. Zusätzlich steht der nächste Release direkt im Hero-Footer nach den technischen Details. Beide Positionen verwenden dieselbe `ReleaseNavigation`/`AdjacentNavigation`- und Pfadbau-Seam; nichts schwebt oder überlagert Inhalte.
 - **D-27:** Buttons, Karten, Badges, SectionHeader und AdjacentNavigation verwenden vorhandene `@/components/ui`-Primitives beziehungsweise erweitern deren bestehenden Seam. Native Standardbuttons wie der aktuelle `Abspielen`-Button sind nicht das Zielbild.
 - **D-28:** Deutsche UI-Texte verwenden korrekte Umlaute. Fokuszustände, Tastaturbedienung, Kontrast und Touch-Ziele werden für Timeline, Karten, Player und Navigation mitgeprüft.
 
