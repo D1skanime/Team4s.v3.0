@@ -147,7 +147,7 @@ Alle Sektionen nutzen dieselbe öffentliche Breite: `--public-page-max-width: 13
 
 | Viewport | Seitenlayout | Karas | Weitere Inhalte |
 |----------|--------------|-------|-----------------|
-| Mobile `≤ 639px` | 14–16px Seitengutter; eine Hauptspalte | Keine horizontale Spur; vertikale Kara-Karten, eine Spalte | Bilder exakt 2 Spalten; Teamtexte und Beteiligte 1 Spalte; Navigation gestapelt und vollbreit |
+| Mobile `≤ 639px` | 16px Seitengutter; eine Hauptspalte | Keine horizontale Spur; vertikale Kara-Karten, eine Spalte | Bilder exakt 2 Spalten; Teamtexte und Beteiligte 1 Spalte; Navigation gestapelt und vollbreit |
 | Tablet Portrait `640–900px` | Öffentliches Gutter, eine fließende Inhaltsbreite | Horizontale Timeline mit 3 Zeitmarken; Segmentkarten 1 Spalte | Bilder 2 Spalten; Teamtexte 1 Spalte; Beteiligte 2 Spalten |
 | Tablet/Laptop `901–1199px` | Volle öffentliche Breite | Horizontale Timeline mit 3 Zeitmarken; Segmentkarten 2 Spalten | Bilder 3 Spalten; Teamtexte 2 Rollen-Spalten, falls beide mindestens 320px breit bleiben; Beteiligte mindestens 2 Spalten |
 | Desktop `≥ 1200px` | Volle öffentliche Breite bis zum globalen Maximum | Horizontale Timeline mit 5 Zeitmarken; Segmentkarten 2 Spalten | Bilder 4 Spalten; Teamtexte 2 Rollen-Spalten; Beteiligte `auto-fit` ab 220px |
