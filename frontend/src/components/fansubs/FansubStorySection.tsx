@@ -44,12 +44,6 @@ export function FansubStorySection({ group, stories }: FansubStorySectionProps) 
   const isArchiveMobile = useIsArchiveMobile()
   const publishedStories = stories.filter(hasStoryContent)
 
-  useEffect(() => {
-    if (!isArchiveMobile) {
-      setIsMobileStoryOpen(false)
-    }
-  }, [isArchiveMobile])
-
   if (publishedStories.length === 0) {
     return null
   }
