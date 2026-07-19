@@ -164,10 +164,7 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 	if err != nil {
 		return nil, err
 	}
-	contributorsCount, err := r.countContributors(ctx, releaseVersionID)
-	if err != nil {
-		return nil, err
-	}
+	contributorsCount := int64(len(contributors))
 
 	images, err := r.loadImages(ctx, releaseVersionID)
 	if err != nil {

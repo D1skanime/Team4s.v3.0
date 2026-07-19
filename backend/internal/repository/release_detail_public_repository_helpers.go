@@ -8,8 +8,9 @@ package repository
 //     — identisch zu group_release_media_repository.go.
 //   - Texte (release_version_notes): visibility='public', status='published', deleted_at IS NULL
 //     — Literale aus Migration 0064 (chk_release_version_notes_visibility/_status).
-//   - Beteiligte (anime_contributions): is_public_on_anime_page=true, visibility_id -> 'public'
-//     — identisch zum Ebene-2-Gate in anime_contributions_public_versions_repository.go.
+//   - Beteiligte: gemeinsamer Effective-Contributor-Resolver in
+//     public_effective_contributors.go (gruppenlokaler Override, sonst Anime-Default)
+//     mit is_public_on_anime_page=true und visibility_id -> 'public'.
 
 import (
 	"context"
@@ -162,63 +163,15 @@ const uploaderAuthorNameJoin = `
 // Release-Version, sortiert nach Name. Mehrere Rollen eines Mitglieds werden zu
 // einem kommagetrennten role_label zusammengefasst.
 func (r *ReleaseDetailPublicRepository) loadContributors(ctx context.Context, releaseVersionID int64) ([]PublicReleaseContributor, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT
-			ac.fansub_group_id,
-			ac.member_id,
-			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), 'Mitglied') AS member_name,
-			NULLIF(TRIM(member_avatar.file_path), '') AS avatar_url,
-			COALESCE(
-				STRING_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code), ', ' ORDER BY COALESCE(rd.label_de, acr.role_code)),
-				''
-			) AS role_label
-		FROM anime_contributions ac
-		JOIN members m ON m.id = ac.member_id
-		LEFT JOIN media_assets member_avatar ON member_avatar.id = m.avatar_media_id
-		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
-		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
-		LEFT JOIN visibilities v ON v.id = ac.visibility_id
-		WHERE ac.release_version_id = $1
-		  AND ac.is_public_on_anime_page = true
-		  AND COALESCE(v.name, 'public') = 'public'
-		GROUP BY ac.id, ac.fansub_group_id, ac.member_id, m.nickname, m.display_name, member_avatar.file_path
-		ORDER BY member_name ASC
-	`, releaseVersionID)
+	contributorsByRelease, err := loadPublicEffectiveContributors(ctx, r.db, []int64{releaseVersionID})
 	if err != nil {
 		return nil, fmt.Errorf("release detail: load contributors for version %d: %w", releaseVersionID, err)
 	}
-	defer rows.Close()
-
-	items := make([]PublicReleaseContributor, 0)
-	for rows.Next() {
-		var item PublicReleaseContributor
-		if err := rows.Scan(&item.FansubGroupID, &item.MemberID, &item.Name, &item.AvatarURL, &item.RoleLabel); err != nil {
-			return nil, fmt.Errorf("release detail: scan contributor row: %w", err)
-		}
-		items = append(items, item)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("release detail: iterate contributor rows: %w", err)
+	items := contributorsByRelease[releaseVersionID]
+	if items == nil {
+		items = make([]PublicReleaseContributor, 0)
 	}
 	return items, nil
-}
-
-// countContributors zaehlt die oeffentlich sichtbaren Beteiligten unabhaengig von
-// einer eventuell spaeter eingefuehrten Pagination (AO4-03).
-func (r *ReleaseDetailPublicRepository) countContributors(ctx context.Context, releaseVersionID int64) (int64, error) {
-	var count int64
-	err := r.db.QueryRow(ctx, `
-		SELECT COUNT(DISTINCT (ac.fansub_group_id, ac.member_id))
-		FROM anime_contributions ac
-		LEFT JOIN visibilities v ON v.id = ac.visibility_id
-		WHERE ac.release_version_id = $1
-		  AND ac.is_public_on_anime_page = true
-		  AND COALESCE(v.name, 'public') = 'public'
-	`, releaseVersionID).Scan(&count)
-	if err != nil {
-		return 0, fmt.Errorf("release detail: count contributors for version %d: %w", releaseVersionID, err)
-	}
-	return count, nil
 }
 
 // loadImages liefert oeffentlich sichtbare release_version_media, inkl. category,

@@ -44,7 +44,10 @@ func TestGetPublicReleaseDetail_NotFoundPathChecksErrNoRowsBeforeUse(t *testing.
 }
 
 func TestGetPublicReleaseDetail_VisibilityGatesMatchAO4_02(t *testing.T) {
-	helpersContent := strings.ToLower(readRepositorySource(t, "release_detail_public_repository_helpers.go"))
+	helpersContent := strings.ToLower(
+		readRepositorySource(t, "release_detail_public_repository_helpers.go") +
+			readRepositorySource(t, "public_effective_contributors.go"),
+	)
 
 	imageGate := []string{
 		"from release_version_media rvm",
@@ -72,7 +75,7 @@ func TestGetPublicReleaseDetail_VisibilityGatesMatchAO4_02(t *testing.T) {
 	}
 
 	contributorGate := []string{
-		"from anime_contributions ac",
+		"join anime_contributions ac",
 		"ac.is_public_on_anime_page = true",
 		"coalesce(v.name, 'public') = 'public'",
 	}
@@ -110,10 +113,20 @@ func TestGetPublicReleaseDetail_ResponseFieldsPresent(t *testing.T) {
 	}
 }
 
-func TestGetPublicReleaseDetail_UsesSelectedPreviewAndExactReleaseScope(t *testing.T) {
+func TestGetPublicReleaseDetail_UsesSelectedPreviewAndEffectiveReleaseScope(t *testing.T) {
 	content := strings.ToLower(readRepositorySource(t, "release_detail_public_repository.go"))
-	helpers := strings.ToLower(readRepositorySource(t, "release_detail_public_repository_helpers.go"))
-	for _, fragment := range []string{"if images[i].ispreviewcandidate", "rvm.is_preview_candidate", "ac.release_version_id = $1", "rv.release_version_id=$1", "release_version_groups rvg"} {
+	helpers := strings.ToLower(
+		readRepositorySource(t, "release_detail_public_repository_helpers.go") +
+			readRepositorySource(t, "public_effective_contributors.go"),
+	)
+	for _, fragment := range []string{
+		"if images[i].ispreviewcandidate",
+		"rvm.is_preview_candidate",
+		"coalesce(ac.release_version_id = rc.release_version_id, false) as is_override",
+		"ac.release_version_id = rc.release_version_id",
+		"ac.release_version_id is null",
+		"rvg.release_version_id = rc.release_version_id",
+	} {
 		if !strings.Contains(content+helpers, fragment) {
 			t.Fatalf("missing release projection guard %q", fragment)
 		}

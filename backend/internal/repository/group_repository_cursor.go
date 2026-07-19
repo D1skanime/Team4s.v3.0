@@ -144,7 +144,7 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			) AS duration_seconds,
 			COALESCE(release_images.images_count, 0)::BIGINT AS images_count,
 			COALESCE(release_notes.notes_count, 0)::BIGINT AS notes_count,
-			COALESCE(release_contributors.contributors_count, 0)::BIGINT AS contributors_count,
+			0::BIGINT AS contributors_count,
 			release_activity.last_activity_at
 		FROM release_versions rev
 		JOIN fansub_releases fr ON fr.id = rev.release_id
@@ -171,14 +171,6 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 			  AND rvn.visibility = 'public'
 			  AND rvn.status = 'published'
 		) release_notes ON TRUE
-		LEFT JOIN LATERAL (
-			SELECT COUNT(DISTINCT ac.member_id) AS contributors_count
-			FROM anime_contributions ac
-			LEFT JOIN visibilities v_contrib ON v_contrib.id = ac.visibility_id
-			WHERE ac.release_version_id = rev.id
-			  AND ac.is_public_on_anime_page = true
-			  AND COALESCE(v_contrib.name, 'public') = 'public'
-		) release_contributors ON TRUE
 		LEFT JOIN LATERAL (
 			SELECT CASE
 				WHEN release_images.latest_at IS NULL AND release_notes.latest_at IS NULL THEN NULL
@@ -252,6 +244,19 @@ func (r *GroupRepository) GetGroupReleasesCursor(
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate cursor group release rows: %w", err)
+	}
+	rows.Close()
+
+	releaseVersionIDs := make([]int64, 0, len(episodes))
+	for _, episode := range episodes {
+		releaseVersionIDs = append(releaseVersionIDs, episode.ID)
+	}
+	contributorsByRelease, err := loadPublicEffectiveContributors(ctx, r.db, releaseVersionIDs)
+	if err != nil {
+		return nil, fmt.Errorf("load cursor release contributors (%d,%d): %w", animeID, groupID, err)
+	}
+	for index := range episodes {
+		episodes[index].ContributorsCount = int32(len(contributorsByRelease[episodes[index].ID]))
 	}
 
 	if err := r.attachReleaseTimelineSegments(ctx, animeID, groupID, episodes); err != nil {
