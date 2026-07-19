@@ -118,7 +118,6 @@ interface GroupHistorySectionProps {
   hasCompletedProject?: boolean
   hasCollaboration?: boolean
   completedProjectCount?: number
-  authToken?: string
   /**
    * Nur-Anzeige-Modus: blendet alle Bearbeiten-Steuerelemente aus (kein
    * Hinzufügen/Bearbeiten/Löschen). Für künftige öffentliche Flächen, auf
@@ -287,7 +286,7 @@ function getGroupHistoryEventOptions(): HistoryEventOptionState[] {
 // Komponente
 // ---------------------------------------------------------------------------
 
-export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, qualifiedReleaseCount = 0, hasCompletedProject = false, hasCollaboration = false, completedProjectCount = 0, authToken, readOnly = false }: GroupHistorySectionProps) {
+export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, qualifiedReleaseCount = 0, hasCompletedProject = false, hasCollaboration = false, completedProjectCount = 0, readOnly = false }: GroupHistorySectionProps) {
   const [entries, setEntries] = useState<GroupHistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -319,14 +318,14 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     setIsLoading(true)
     setLoadError(null)
     try {
-      const data = await listGroupHistory(fansubGroupId, authToken)
+      const data = await listGroupHistory(fansubGroupId)
       setEntries(sortEntries(data))
     } catch {
       setLoadError('Meilensteine konnten nicht geladen werden.')
     } finally {
       setIsLoading(false)
     }
-  }, [fansubGroupId, authToken])
+  }, [fansubGroupId])
 
   useEffect(() => {
     void loadEntries()
@@ -465,7 +464,6 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
             fansubGroupId,
             editTarget.id,
             { title: form.title.trim(), event_type: form.eventType, year: yearValue, note: form.note.trim() || null },
-            authToken,
           )
           setEntries((prev) => sortEntries(prev.map((e) => (e.id === updated.id ? updated : e))))
           showSuccess('Meilenstein aktualisiert.')
@@ -473,7 +471,6 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
           const created = await createGroupHistory(
             fansubGroupId,
             { title: form.title.trim(), event_type: form.eventType, year: yearValue, note: form.note.trim() || null },
-            authToken,
           )
           setEntries((prev) => sortEntries([...prev, created]))
           showSuccess('Meilenstein hinzugefügt.')
@@ -485,7 +482,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         setIsSaving(false)
       }
     },
-    [form, editTarget, entries, eventOptions, fansubGroupId, foundedYear, authToken, hasWebsiteLink, hasFirstProject, hasFirstRelease, qualifiedReleaseCount, hasCompletedProject, hasCollaboration, completedProjectCount, closeForm, showSuccess],
+    [form, editTarget, entries, eventOptions, fansubGroupId, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, qualifiedReleaseCount, hasCompletedProject, hasCollaboration, completedProjectCount, closeForm, showSuccess],
   )
 
   // ---------------------------------------------------------------------------
@@ -497,7 +494,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     setIsDeleting(true)
     setDeleteError(null)
     try {
-      await deleteGroupHistory(fansubGroupId, deleteTarget.id, authToken)
+      await deleteGroupHistory(fansubGroupId, deleteTarget.id)
       setEntries((prev) => prev.filter((e) => e.id !== deleteTarget.id))
       setDeleteTarget(null)
       showSuccess('Meilenstein gelöscht.')
@@ -506,7 +503,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     } finally {
       setIsDeleting(false)
     }
-  }, [deleteTarget, fansubGroupId, authToken, showSuccess])
+  }, [deleteTarget, fansubGroupId, showSuccess])
 
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
   const historyMinYear = foundedYear ?? 1990

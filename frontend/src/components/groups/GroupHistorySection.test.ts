@@ -73,6 +73,16 @@ describe('buildInitialHistoryFormState', () => {
 })
 
 describe('GroupHistorySection', () => {
+  it('loads history through the token-free central API seam', async () => {
+    listGroupHistoryMock.mockResolvedValue([])
+
+    render(createElement(GroupHistorySection, { fansubGroupId: 88, foundedYear: null }))
+
+    await waitFor(() => {
+      expect(listGroupHistoryMock).toHaveBeenCalledWith(88)
+    })
+  })
+
   it('does not submit the hidden legacy milestone default before a founding year exists', async () => {
     listGroupHistoryMock.mockResolvedValue([])
     createGroupHistoryMock.mockResolvedValue(historyRow({ id: 99 }))

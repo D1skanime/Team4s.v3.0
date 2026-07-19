@@ -7,6 +7,7 @@ import { Crop, ImageUp } from 'lucide-react'
 
 import { Team4sCropper } from '@/components/media/crop/Team4sCropper'
 import { Button } from '@/components/ui'
+import { apiClientFetch } from '@/lib/api'
 import type { MemberProfileData } from '@/types/profile'
 
 import styles from '../page.module.css'
@@ -64,7 +65,7 @@ export function ProfileBackgroundCard({
     try {
       setLocalError(null)
       setIsPreparingExistingBackground(true)
-      const response = await fetch(sourceBackgroundURL)
+      const response = await apiClientFetch(sourceBackgroundURL)
       if (!response.ok) throw new Error('Hintergrundbild konnte nicht geladen werden.')
       const blob = await response.blob()
       setSelectedFile(new File(
