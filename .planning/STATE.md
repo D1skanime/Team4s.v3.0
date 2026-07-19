@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: Executing Phase 105
-stopped_at: Completed 105-02-PLAN.md
-last_updated: "2026-07-19T12:59:51.552Z"
+stopped_at: Completed 105-04-PLAN.md
+last_updated: "2026-07-19T13:14:29.582Z"
 last_activity: 2026-07-19
 progress:
   total_phases: 97
   completed_phases: 80
   total_plans: 432
-  completed_plans: 402
+  completed_plans: 403
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 105 (responsive-release-detailseite-und-kara-timeline-redesign) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Accumulated Context
 
@@ -327,6 +327,8 @@ Recent durable decisions:
 - [Phase 105-02]: Beteiligte werden ausschließlich top-level aus detail.contributors nach fansub_group_id/member_id aggregiert; der Hero bleibt entkoppelt. — Release-Version-Ownership und keine projektweiten Mitglieder als Fallback.
 - [Phase 105-02]: Refresh-only gilt beim Vollfolgen-Playback als aktive Session; Sichtbarkeit entsteht ausschließlich aus can_play und stream_ready. — Der zentrale API-Client und Playback-Resolver bleiben autoritativ.
 - [Phase 105-02]: Releasewechsel bleiben über buildFansubReleaseHref im öffnenden Gruppenkontext und als AdjacentNavigation inline im Seitenfluss. — Coop-Releases wechseln die Fansubgruppe nicht still.
+- [Phase 105]: Fansub groups remain optional card metadata; they never select the Gallery or Notes primary layout axis. — Preserves release-version ownership while keeping source identity visible.
+- [Phase 105]: Long release notes expand by stable note ID while RichTextRenderer remains the only body_html renderer. — Cursor merges must not replace interaction state or create a second HTML rendering seam.
 
 ### Pending Todos
 
@@ -583,6 +585,7 @@ Recent durable decisions:
 | Phase 104 P05 | 35min | 2 tasks | 3 files |
 | Phase 105 P01 | 11min | 3 tasks | 9 files |
 | Phase 105 P02 | 17min | 3 tasks | 8 files |
+| Phase 105 P04 | 10min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -662,7 +665,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-19T12:59:51.297Z
-Stopped at: Completed 105-02-PLAN.md
+Last session: 2026-07-19T13:14:29.457Z
+Stopped at: Completed 105-04-PLAN.md
 Last activity: 2026-07-19
 Resume file: None
