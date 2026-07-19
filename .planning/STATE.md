@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: Executing Phase 105
-stopped_at: Completed 105-01-PLAN.md
-last_updated: "2026-07-19T12:33:45.019Z"
+stopped_at: Completed 105-02-PLAN.md
+last_updated: "2026-07-19T12:59:51.552Z"
 last_activity: 2026-07-19
 progress:
   total_phases: 97
   completed_phases: 80
   total_plans: 432
-  completed_plans: 401
+  completed_plans: 402
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 105 (responsive-release-detailseite-und-kara-timeline-redesign) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Accumulated Context
 
@@ -324,6 +324,9 @@ Recent durable decisions:
 - [Phase 104-05]: Logout single-shot guard uses a synchronous loggingOutRef alongside isLoggingOut state; navigation to /login fires right after invoking (not awaiting) logoutAuthSession(), since its local cleanup runs synchronously before its first await (D-24).
 - [Phase 105]: Wave 0 bleibt test-only: Phase-105-Verträge sind bis zu den Plänen 02 bis 04 gezielt RED, während Harness, Typecheck und Lint grün bleiben. — Plan 01 fixiert Regressionen vor Produktionsänderungen.
 - [Phase 105]: Playback-Tests behandeln hasAccessToken || hasRefreshToken als aktive Session; Gäste erhalten weder Kara-CTA noch Autoplay. — Bewahrt die zentrale Refresh-Session- und Auth-Grenze.
+- [Phase 105-02]: Beteiligte werden ausschließlich top-level aus detail.contributors nach fansub_group_id/member_id aggregiert; der Hero bleibt entkoppelt. — Release-Version-Ownership und keine projektweiten Mitglieder als Fallback.
+- [Phase 105-02]: Refresh-only gilt beim Vollfolgen-Playback als aktive Session; Sichtbarkeit entsteht ausschließlich aus can_play und stream_ready. — Der zentrale API-Client und Playback-Resolver bleiben autoritativ.
+- [Phase 105-02]: Releasewechsel bleiben über buildFansubReleaseHref im öffnenden Gruppenkontext und als AdjacentNavigation inline im Seitenfluss. — Coop-Releases wechseln die Fansubgruppe nicht still.
 
 ### Pending Todos
 
@@ -579,6 +582,7 @@ Recent durable decisions:
 | Phase 104 P4 | 55min | 3 tasks | 19 files |
 | Phase 104 P05 | 35min | 2 tasks | 3 files |
 | Phase 105 P01 | 11min | 3 tasks | 9 files |
+| Phase 105 P02 | 17min | 3 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -658,7 +662,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-19T12:33:44.661Z
-Stopped at: Completed 105-01-PLAN.md
+Last session: 2026-07-19T12:59:51.297Z
+Stopped at: Completed 105-02-PLAN.md
 Last activity: 2026-07-19
 Resume file: None
