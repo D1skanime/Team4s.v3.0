@@ -77,9 +77,11 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 - [x] **Phase 72: Domänen-Projektionen & Status-Fundament** - Backend/Contract-Fundament, das Mitglied vs. Mitwirkender vs. historische Nennung in DTOs/Projektionen sauber trennt und die phasenübergreifend nötigen Statusfelder einführt (`memorial`-Profilstatus, Contribution-Status/-Sichtbarkeit, Media owner/visibility/review-Metadaten), damit 73–80 ohne doppelte DTO-Arbeit darauf aufsetzen.
 - [x] **Phase 73: Public Fansub Page `/fansubs/[slug]` erweitern** - Bestehende Public-Fansub-Seite kuratiert ausbauen (Hero, Story/Timeline, Highlights, Mitglieder vs. Mitwirkende, Medien nach Ownership, Projektkarten) durch Reuse von `FansubProfileTabs`, `GroupLeaderTimeline` und public contribution helpers.
  (completed 2026-06-07)
+
 - [x] **Phase 74: Public Member Profile `/members/[slug]` + Memorial** - Member-Profil als dreistufige Public-Seite erweitern (Hero+Status, Geschichte/Gruppenbezug, filterbare Contributions) inkl. Gedenkprofil-Darstellung und kuratierter Badge-Anzeige; Reuse Member API, Public Member Components, `RichTextRenderer`, Badge-Service.
 - [x] **Phase 75: Anime-Gruppen-Deep-Dive `/anime/[id]/group/[groupId]`** - Gruppenspezifischen Anime-Projektkontext stärken (Projektstory, Releases/Versionen, OP/ED/Middle, Mitwirkende, Release-Version-Medien) ohne gruppenspezifische Daten auf die neutrale Anime-Ebene zu schreiben; Reuse `GroupAssetShowcase`, `CollapsibleStory`, group/release/theme APIs.
  (completed 2026-06-05)
+
 - [x] **Phase 76: `/me/contributions` Dashboard + registrierte-User-Vorschläge** - Eigene Beitragsseite zum Klärungsdashboard ausbauen (Summary, „Das war ich"/„war ich nicht", Sichtbarkeit, Filter) und registrierte-User-Beteiligungsflows (Fehler/Story/Medien/Contribution melden, Claim-Einstieg) review-gebunden integrieren; Reuse `getMyAnimeContributions`, Proposal-/Review-Strukturen. (completed 2026-06-06)
 - [ ] **Phase 77: Leader Workspace – Public Preview & Readiness** - In `/admin/fansubs/[id]/edit` Public-Preview, Public-Readiness-Check und die Pflege von Story-/Projekt-/Release-Kontext ergänzen (capability-gated), ohne `/admin/my-groups/[id]` zu duplizieren.
   **Plans:** 3 plans
@@ -100,6 +102,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
   - [ ] `78-05-PLAN.md` — Release-Version-Media-Review: release_version_media PATCH-Erweiterung + ReleaseVersionMediaReviewSection im Release-Drawer (D-06 zweite Owner-Fläche, Lock K/G/I)
 - [x] **Phase 79: Medien-Ownership in UI durchsetzen** - Upload-/Zuweisungsflows über alle Surfaces zwingen Owner-Typ, Owner-ID, Medienkategorie, Sichtbarkeit und Reviewstatus sichtbar zu machen und die Media-Ownership-Matrix einzuhalten; Reuse bestehender Upload-Helfer/Transport (`authorizedUploadXhr`).
  (completed 2026-06-06)
+
 - [x] **Phase 80:  + User Detail Drawer (scoped Rechte)** - Globale User-/Rechteübersicht starten (Userliste + Detail-Drawer mit globalen Rollen, Member-Link, Gruppenmitgliedschaften, Claims, Contributions, Medien, Audit), Rechte strikt scoped, ohne Rechte aus Contributions abzuleiten. (completed 2026-06-15)
   **Plans:** 5 plans
   Plans:
@@ -114,6 +117,7 @@ v1.1 focuses on the anime manual-create and upload path first: V2-first media li
 
 - [x] **Phase 81: Release-Version Mehrfach-Fansubgruppen ohne Kombigruppe** - Mehrere Fansub-Gruppen an einer Release-Version werden als N gleichberechtigte Zeilen in `release_version_groups` geführt statt als synthetische `group_type='collaboration'`-Gruppe „A & B". Kehrt P21-SC3 bewusst um; entfernt die Kollaborations-Entität, stellt Schreib-/Lesepfade auf Mehrfachzuordnung um, migriert Bestandsdaten und zeigt Kooperationen sauber auf Release- und Gruppenebene.
  (completed 2026-06-09)
+
 - [x] **Phase 86: Daten-getriebene Capability-Registry** - Rechte zentral als Daten (action_definitions + role_capabilities) statt pro .go/SQL-Stelle hartkodiert; neues Recht = Daten-Eintraege, kein Code-Edit. Go (Cache) und SQL (Join) lesen dieselbe Quelle der Wahrheit; behavior-preserving aus der heutigen roleMatrix migriert. (completed 2026-06-18)
 - [x] **Phase 87: Sichtbarkeits-Steuerung per Rolle + Capability-Pflege-UI** - View-Checks an ausgewaehlten Lese-Pfaden + Admin-UI zum Pflegen von role_capabilities (Rechte pro Rolle vergeben/entziehen ohne Deploy). Baut auf Phase 86 auf; steuert daten-getrieben wer was sehen darf. (completed 2026-06-19)
   **Plans:** 3 plans
@@ -1491,13 +1495,16 @@ Plans:
 Plans:
 
 **Wave 1**
+
 - [x] `71-01-PLAN.md` - Cross-phase consolidation for already-satisfied admin/cockpit scope and durable permission-bridge documentation. (completed 2026-06-22)
 
 **Wave 2 *(blocked on Wave 1 completion)***
+
 - [x] `71-02-PLAN.md` - Badge display/edit separation and shared icon/color badge presentation. (completed 2026-06-22)
 - [x] `71-03-PLAN.md` - Public member-profile copy, empty timeline behavior, recent media aspect verification, and `/admin/my-groups/[id]` params fix. (completed 2026-06-22)
 
 **Wave 3 *(blocked on Wave 2 completion)***
+
 - [x] `71-04-PLAN.md` - Focused Phase 71 verification, final summary, and deferred-scope handoff. (completed 2026-06-22)
 
 **Cross-cutting constraints:**
@@ -1565,6 +1572,7 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - [x] 88-01 Copy/auth normalization for member contribution and group surfaces
 - [x] 88-02 Profile hub identity-link copy and global UI cleanup
 - [x] 88-03 Release workspace polish and focused UAT handoff
@@ -1578,6 +1586,7 @@ Plans:
 **Plans:** 1 plan implemented
 
 Plans:
+
 - [x] `93-01-PLAN.md` - Projektrollen-Karte, segmentierte Sichtbarkeit und Hinweis-Formular-Breadcrumb ohne irreführenden Bilder-/Notizen-Hilfetext.
 
 ### Phase 94: Rollen-/Capability-UX fachlich entwirren und mobil nutzbar machen
@@ -1588,6 +1597,7 @@ Plans:
 **Plans:** 8/8 plans complete
 
 Plans:
+
 - [x] `94-01-PLAN.md` — Wave-0 Go-Tests (Assignable-Guard 422, Matrix-assignable, group_history-Read)
 - [x] `94-02-PLAN.md` — Backend Assignable-Guard (Grant/Revoke 422) + Matrix-Anreicherung (assignable/contexts)
 - [x] `94-03-PLAN.md` — Backend group_history Read-Endpunkt (kuratierte Whitelist) + Route
@@ -1607,12 +1617,14 @@ Plans:
 **Plans:** 6/6 plans complete
 
 Plans:
+
 - [ ] `95-01-PLAN.md` — Migration 0112 + Go-Backend-SQL-Sync (D-04/D-05/D-06/D-07/D-08)
 - [ ] `95-02-PLAN.md` — Data-driven Catalog: LoadFansubGroupRoles + GET /admin/fansub-group-roles (D-12)
 - [ ] `95-03-PLAN.md` — Security-Fixes CR-01/WR-02 + Auto-Archivierung D-10 (D-13/D-14)
 - [ ] `95-04-PLAN.md` — Interface-Refaktorierung AdminCapabilityHandler + Stub-Entfernung (D-15)
 - [ ] `95-05-PLAN.md` — Frontend: Typen/API + Member-Add-Consumer-Verdrahtung + contributionRoles + RoleCapabilityDetail D-17 (D-04/D-05/D-12/D-17)
 - [ ] `95-06-PLAN.md` — Datei-Splits D-16 + Backend-Rebuild + Human-Verify (D-16)
+
 ---
 
 <!-- Phase 96 ist parallel in Arbeit (responsive/mobile Member-Management-UI) und wird von ihrem eigenen Lauf registriert — Nummer bewusst freigehalten. -->
@@ -1626,6 +1638,7 @@ Plans:
 **Plans:** 6/6 plans complete
 
 Plans:
+
 - [x] `97-00-PLAN.md` -- Wave 0: RED-Test-Gerueste (D-02/D-03/D-04/D-05)
 - [x] `97-01-PLAN.md` -- Wave 1: DB-Migrationen 0114/0115 (INT->DATE) + D-10-Auto-Archiv-Fix (atomar)
 - [x] `97-02-PLAN.md` -- Wave 2: Backend-Structs + Handler-DTOs auf DATE-Typen umstellen
@@ -1643,6 +1656,7 @@ Plans:
 **Plans:** 5/6 plans executed
 
 Plans:
+
 - [x] 98-00-PLAN.md - Tests und Contract-Flaeche zuerst
 - [x] 98-01-PLAN.md - Schema, Runtime und Derived-Cache
 - [x] 98-02-PLAN.md - Render-Service und Jellyfin-Probing
@@ -1659,6 +1673,7 @@ Plans:
 **Plans:** 26/27 plans executed
 
 Plans:
+
 - [ ] `99-00-PLAN.md` - Wave 0: RED-Tests und Contract-Gates für Profilstruktur, Datenfilter, Media-Ownership, Badges, Story und frühere Mitwirkungen
 - [ ] `99-01-PLAN.md` - Wave 1: Backend/Public-Profile-DTO, Projektionen und OpenAPI/TypeScript-Contract
 - [ ] `99-02-PLAN.md` - Wave 2: Public-Profil Top-Sections Hero, Gruppenzugehörigkeit, aktuelle Projekte und Auszeichnungen
@@ -1707,6 +1722,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
+
 - [ ] `100-00-PLAN.md` - Wave 0: Diskussionsqueue und Umsetzungsprotokoll für alle 23 Fansub-Erfolge; erster Slice `founding` / `Gründung`
 
 **Success Criteria** (what must be TRUE):
@@ -1726,6 +1742,7 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
+
 - [ ] `101-01-PLAN.md` - Wave 0: Frontend-Regelfundament und Tests für stufenweise Meilenstein-Sichtbarkeit sowie YearPicker-Grenzen
 - [ ] `101-02-PLAN.md` - Wave 1: Save-Validierung im Frontend, Backend-Jahresguard und Live-UAT auf `:3000`
 
@@ -1746,6 +1763,7 @@ Plans:
 **Plans:** 8/8 plans complete
 
 Plans:
+
 - [x] `102-00-PLAN.md` - Kontrollplan: Fansubprojekt-UI als sequenzielle Diskussions-/Implementierungs-/UAT-Schritte
 - [x] `102-01-PLAN.md` - Shared public Fansub project page loader/composition extraction
 - [x] `102-02-PLAN.md` - Additive pretty route, `anime_slug` contract, public profile links, canonical metadata
@@ -1780,6 +1798,7 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
+
 - [ ] 103-01-PLAN.md — Public Aggregate, Vertrag, Preview, Techniktracks und gruppentreue Navigation
 - [ ] 103-02-PLAN.md — Persistierte Vollfolgen-Entitlements und zentraler Most-specific-wins-Resolver
 - [ ] 103-03-PLAN.md — Responsive Release-Story-UI mit Bildkapiteln und rollenbasierten Texten
@@ -1806,21 +1825,27 @@ Plans:
 Plans:
 
 **Wave 1**
+
 - [x] 104-01-PLAN.md — Account-Console-403, deutsche Team4s-Keycloak-Oberflächen und stale Feldvalidierung reparieren; lokale Passwort-/Direct-Grant-/E-Mail-Testhaltung unverändert lassen
 
 **Wave 2** *(blocked on Wave 1)*
+
 - [x] 104-02-PLAN.md — Direkte deutsche Registrierungs-/Login-CTAs über globalen Button und bestehenden PKCE-Seam sowie vertrauenswürdigen One-shot-Handoff ergänzen
 
 **Wave 3** *(blocked on Wave 2)*
+
 - [x] 104-03-PLAN.md — Zentrale Auth-Cookies protokollabhängig mit Secure härten sowie Auth-/Profil-Hydration, neutrale Accountseite, einmalige Bestätigung und freiwillige Fansubber-Verknüpfung konsistent machen
 
 **Wave 4** *(blocked on Wave 3)*
+
 - [x] 104-04-PLAN.md — Autoritative Projektberechtigung aus echter Zuordnung ergänzen, Navigation gaten und nicht berechtigte Direktaufrufe zu Mein Account umleiten
 
 **Wave 5** *(blocked on Wave 4)*
+
 - [x] 104-05-PLAN.md — Doppelte Accountnavigation entfernen und mobilen Drawer/Logout deterministisch machen
 
 **Wave 6** *(blocked on Wave 5)*
+
 - [x] 104-06-PLAN.md — Integrierte Live-UAT ab der öffentlichen Startseite auf sichtbare Folgen begrenzen und DB-/Refresh-Invarianten mit obligatorischer automatisierter Evidenz dokumentieren
 
 **Success Criteria** (what must be TRUE):
@@ -1849,13 +1874,25 @@ Plans:
   4. Mobile zeigt keine zusammengedrückte horizontale Timeline, sondern die Sektion `Karas` als vertikale Karten mit Typ-Farbleiste, Name, Zeiten, Beteiligten und mindestens 48 px hoher Abspielaktion; kleine unlesbare Segmentbilder entfallen.
   5. Hero, Bilderraster, Teamtexte, Beteiligte und Release-Navigation nutzen über alle Breakpoints konsistente Breiten, Abstände, Karten, Buttons und deutsche UI-Texte; lange Texte erzeugen auf Desktop keine große ungenutzte rechte Fläche und die Navigation liegt im normalen Seitenfluss.
   6. Gäste sehen Kara-Informationen ohne Abspielaktion oder Login-Hinweis; eingeloggte Nutzer können technisch bereite Karas wie in Phase 103 abspielen, Segmentwechsel stoppen den vorherigen Stream, und bestehende Release-/Auth-/Playback-Tests plus Live-UAT bei Desktop, Tablet und Mobile bleiben grün.
+
 **Plans:** 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 105-01-PLAN.md — Wave-0-Regressionsverträge für Komposition, Pretty-Route, Kara-Sicherheit und Content-Seams
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 105-02-PLAN.md — Serverkomposition, Hero, Release-Beteiligte, sekundäre Vollfolge und Inline-Navigation
-- [ ] 105-03-PLAN.md — Vollbreite Kara-Timeline, mobile Karas-Liste und sessiongebundener Playerzustand
 - [ ] 105-04-PLAN.md — Gemeinsames responsives Bilderraster und rollenbasierte aufklappbare Teamtexte
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 105-03-PLAN.md — Vollbreite Kara-Timeline, mobile Karas-Liste und sessiongebundener Playerzustand
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 105-05-PLAN.md — Vollständige automatisierte Gates sowie Pretty-Route-Live-UAT bei 390/768/1024/1440 px
 
 ---
@@ -2347,6 +2384,7 @@ Plans:
 **Plans:** 0 plans
 
 Plans:
+
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
 ### Phase 999.1: Querverlinkung role-capabilities <-> users (Impact-Count + Rollen-Detail-Link) (BACKLOG)
@@ -2356,4 +2394,5 @@ Plans:
 **Plans:** 0 plans
 
 Plans:
+
 - [ ] TBD (promote with /gsd:review-backlog when ready)
