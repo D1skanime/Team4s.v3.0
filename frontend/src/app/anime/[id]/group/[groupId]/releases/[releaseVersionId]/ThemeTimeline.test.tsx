@@ -12,7 +12,12 @@ const session = vi.hoisted(() => ({
 vi.mock('@/lib/useAuthSession', () => ({ useAuthSession: () => session.value }))
 vi.mock('@/components/ui', () => ({
   Badge: ({ children }: { children: ReactNode }) => <span>{children}</span>,
-  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { fullWidth?: boolean; leftIcon?: ReactNode }) => {
+    const { fullWidth, leftIcon, ...buttonProps } = props
+    void fullWidth
+    void leftIcon
+    return <button {...buttonProps}>{children}</button>
+  },
   Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
 }))
@@ -72,6 +77,8 @@ function playbackActions() {
 
 beforeEach(() => {
   setSession(false, false)
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
+  vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => undefined)
 })
 
 afterEach(() => {

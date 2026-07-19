@@ -1,0 +1,379 @@
+.timelineSection {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+
+.desktopTimeline {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 4px;
+}
+
+.tickRow {
+  position: relative;
+  height: 24px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tick {
+  position: absolute;
+  left: var(--tick-position);
+  top: 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  transform: translateX(-50%);
+}
+
+.tick:first-child {
+  justify-items: start;
+  transform: none;
+}
+
+.tick:last-child {
+  justify-items: end;
+  transform: translateX(-100%);
+}
+
+.tick > span {
+  width: 1px;
+  height: 4px;
+  background: var(--border-default);
+}
+
+.trackStage {
+  position: relative;
+  height: 112px;
+  min-width: 0;
+}
+
+.track {
+  position: absolute;
+  inset: 48px 0 auto;
+  width: 100%;
+  height: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-card-muted);
+}
+
+.segmentLayer {
+  position: static;
+}
+
+.segmentGeometry {
+  position: absolute;
+  top: 48px;
+  left: var(--segment-left);
+  width: var(--segment-width);
+  height: 12px;
+  min-width: 0;
+  border-radius: 999px;
+  background: var(--segment-color);
+  opacity: 0.88;
+}
+
+.hitTarget {
+  position: absolute;
+  top: 32px;
+  left: calc(var(--segment-center) - 22px);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 1;
+  transition: border-color 140ms ease, background-color 140ms ease, opacity 140ms ease;
+}
+
+.hitTarget:hover,
+.hitTarget:focus-visible,
+.hitTargetSelected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.hitTarget:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.outsideLabel {
+  position: absolute;
+  left: var(--segment-center);
+  top: 0;
+  display: grid;
+  gap: 4px;
+  width: min(18%, 176px);
+  min-width: 0;
+  color: var(--segment-color);
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.outsideLabel[data-lane="1"] {
+  top: 72px;
+}
+
+.outsideLabel[data-alignment="start"] {
+  left: 0;
+  text-align: left;
+  transform: none;
+}
+
+.outsideLabel[data-alignment="end"] {
+  right: 0;
+  left: auto;
+  text-align: right;
+  transform: none;
+}
+
+.outsideLabel strong,
+.outsideLabel span {
+  overflow-wrap: anywhere;
+}
+
+.outsideLabel strong {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.outsideLabel span {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.segmentCards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+
+.segmentCards > * {
+  min-width: 0;
+}
+
+.segmentCard {
+  --segment-color: #536688;
+  --segment-wash: rgba(83, 102, 136, 0.14);
+
+  position: relative;
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--segment-color) 32%, transparent);
+  border-left: 4px solid var(--segment-color);
+  background: var(--segment-wash);
+  transition: border-color 140ms ease, background-color 140ms ease, opacity 140ms ease;
+}
+
+.segmentCardSelected {
+  border: 2px solid var(--color-primary);
+  border-left: 4px solid var(--segment-color);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--segment-wash));
+}
+
+.cardSelection {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cardSelection:focus-visible {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 4px;
+}
+
+.staticCardContent {
+  min-width: 0;
+}
+
+.segmentDetails {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.typeBadge {
+  width: fit-content;
+  color: var(--segment-color);
+  border-color: color-mix(in srgb, var(--segment-color) 32%, transparent);
+}
+
+.segmentName {
+  color: var(--color-text-primary);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.timeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.participants,
+.unavailable {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.unavailable {
+  font-weight: 700;
+}
+
+.playButton {
+  min-height: 48px;
+}
+
+.liveRegion {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.playerRegion {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.player {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: #000;
+}
+
+.playerError {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.playerError p {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.typeOp {
+  --segment-color: #15955A;
+  --segment-wash: rgba(21, 149, 90, 0.14);
+}
+
+.typeEd {
+  --segment-color: #1685BF;
+  --segment-wash: rgba(22, 133, 191, 0.14);
+}
+
+.typeIn {
+  --segment-color: #8442C7;
+  --segment-wash: rgba(132, 66, 199, 0.14);
+}
+
+.typeMiddle {
+  --segment-color: #C98A12;
+  --segment-wash: rgba(201, 138, 18, 0.14);
+}
+
+.typeKara {
+  --segment-color: #993556;
+  --segment-wash: rgba(153, 53, 86, 0.14);
+}
+
+.typeOther {
+  --segment-color: #536688;
+  --segment-wash: rgba(83, 102, 136, 0.14);
+}
+
+@media (max-width: 639px) {
+  .timelineSection {
+    gap: 16px;
+  }
+
+  .desktopTimeline {
+    display: none;
+  }
+
+  .segmentCards {
+    gap: 12px;
+  }
+
+  .segmentCard {
+    padding: 16px;
+  }
+
+  .playButton {
+    min-height: 48px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 900px) {
+  .segmentCards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1199px) {
+  .tick[data-percent="25"],
+  .tick[data-percent="75"] {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1199px) {
+  .segmentCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .segmentCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hitTarget,
+  .segmentCard {
+    transition: none;
+  }
+}

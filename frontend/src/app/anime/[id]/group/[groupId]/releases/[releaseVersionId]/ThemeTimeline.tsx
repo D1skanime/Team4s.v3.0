@@ -1,123 +1,369 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { Play } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Badge, SectionHeader } from "@/components/ui";
-import type { PublicReleaseSegment } from "@/types/releaseDetail";
+import { Badge, Button, Card, SectionHeader } from '@/components/ui'
+import { useAuthSession } from '@/lib/useAuthSession'
+import type { PublicReleaseSegment } from '@/types/releaseDetail'
 
-import styles from "./page.module.css";
+import styles from './ThemeTimeline.module.css'
 
 interface ThemeTimelineProps {
-  releaseVersionID: number;
-  episodeDurationSeconds: number | null;
-  segments: PublicReleaseSegment[];
-  initialSegmentID?: number | null;
-  autoPlayInitial?: boolean;
+  releaseVersionID: number
+  episodeDurationSeconds: number | null
+  segments: PublicReleaseSegment[]
+  initialSegmentID?: number | null
+  autoPlayInitial?: boolean
 }
 
-const TYPE_LABELS: Record<string, string> = { OP: "Opening", ED: "Ending", MIDDLE: "Middle", IN: "Insert", KARA: "Karaoke" };
-
-function clock(seconds: number | null): string | null {
-  if (seconds === null) return null;
-  const minutes = Math.floor(seconds / 60);
-  const rest = Math.floor(seconds % 60);
-  return `${minutes}:${rest.toString().padStart(2, "0")}`;
+type SegmentGeometry = {
+  segment: PublicReleaseSegment
+  leftPercent: number
+  widthPercent: number
+  centerPercent: number
+  labelLane: 0 | 1
+  labelAlignment: 'start' | 'center' | 'end'
 }
 
-export function ThemeTimeline({ releaseVersionID, episodeDurationSeconds, segments, initialSegmentID, autoPlayInitial = false }: ThemeTimelineProps) {
-  const [selected, setSelected] = useState<PublicReleaseSegment | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const initialSelectionHandled = useRef(false);
+const TYPE_LABELS: Record<string, string> = {
+  OP: 'Opening',
+  ED: 'Ending',
+  IN: 'Insert',
+  MIDDLE: 'Middle',
+  KARA: 'Karaoke',
+  OTHER: 'Other',
+}
+
+const TIMELINE_TICKS = [0, 25, 50, 75, 100] as const
+const LABEL_HALF_WIDTH_PERCENT = 9
+const LABEL_GAP_PERCENT = 1
+
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value))
+}
+
+function clock(seconds: number | null): string {
+  const safeSeconds = Math.max(0, Math.floor(seconds ?? 0))
+  const minutes = Math.floor(safeSeconds / 60)
+  const rest = safeSeconds % 60
+  return `${minutes.toString().padStart(2, '0')}:${rest.toString().padStart(2, '0')}`
+}
+
+function typeKey(type: string): keyof typeof styles {
+  const normalized = type.toUpperCase()
+  if (normalized === 'OP') return 'typeOp'
+  if (normalized === 'ED') return 'typeEd'
+  if (normalized === 'IN') return 'typeIn'
+  if (normalized === 'MIDDLE') return 'typeMiddle'
+  if (normalized === 'KARA') return 'typeKara'
+  return 'typeOther'
+}
+
+function segmentTypeLabel(type: string): string {
+  return TYPE_LABELS[type.toUpperCase()] ?? type
+}
+
+function resolveDuration(episodeDurationSeconds: number | null, segments: PublicReleaseSegment[]): number {
+  if (episodeDurationSeconds !== null && episodeDurationSeconds > 0) return episodeDurationSeconds
+  return Math.max(1, ...segments.map((segment) => segment.end_seconds ?? 0))
+}
+
+function allocateGeometry(segments: PublicReleaseSegment[], duration: number): SegmentGeometry[] {
+  const raw = segments.map((segment, index) => {
+    const start = segment.start_seconds ?? 0
+    const end = segment.end_seconds ?? start
+    const leftPercent = clamp(start / duration * 100, 0, 100)
+    const widthPercent = clamp((end - start) / duration * 100, 0, 100 - leftPercent)
+    const centerPercent = leftPercent + widthPercent / 2
+    const labelAlignment = centerPercent < LABEL_HALF_WIDTH_PERCENT
+      ? 'start' as const
+      : centerPercent > 100 - LABEL_HALF_WIDTH_PERCENT
+        ? 'end' as const
+        : 'center' as const
+    const labelStart = labelAlignment === 'start'
+      ? 0
+      : labelAlignment === 'end'
+        ? 100 - LABEL_HALF_WIDTH_PERCENT * 2
+        : centerPercent - LABEL_HALF_WIDTH_PERCENT
+    return { segment, index, leftPercent, widthPercent, centerPercent, labelAlignment, labelStart }
+  })
+
+  const laneEnds = [-Infinity, -Infinity]
+  const lanes = new Map<number, 0 | 1>()
+  ;[...raw]
+    .sort((left, right) => left.labelStart - right.labelStart || left.index - right.index)
+    .forEach((item) => {
+      const firstLaneAvailable = item.labelStart >= laneEnds[0] + LABEL_GAP_PERCENT
+      const labelLane: 0 | 1 = firstLaneAvailable ? 0 : 1
+      laneEnds[labelLane] = item.labelStart + LABEL_HALF_WIDTH_PERCENT * 2
+      lanes.set(item.index, labelLane)
+    })
+
+  return raw.map((item) => ({
+    segment: item.segment,
+    leftPercent: item.leftPercent,
+    widthPercent: item.widthPercent,
+    centerPercent: item.centerPercent,
+    labelAlignment: item.labelAlignment,
+    labelLane: lanes.get(item.index) ?? 0,
+  }))
+}
+
+function geometryStyle(geometry: SegmentGeometry): CSSProperties {
+  return {
+    '--segment-left': `${geometry.leftPercent}%`,
+    '--segment-width': `${geometry.widthPercent}%`,
+    '--segment-center': `${geometry.centerPercent}%`,
+  } as CSSProperties
+}
+
+function segmentClassName(segment: PublicReleaseSegment, baseClass: string): string {
+  return `${baseClass} ${styles[typeKey(segment.type)]}`
+}
+
+function SegmentDetails({ segment }: { segment: PublicReleaseSegment }) {
+  const start = segment.start_seconds ?? 0
+  const end = segment.end_seconds ?? start
+  const duration = segment.duration_seconds ?? Math.max(0, end - start)
+
+  return (
+    <div className={styles.segmentDetails}>
+      <Badge variant="muted" className={styles.typeBadge}>{segmentTypeLabel(segment.type)}</Badge>
+      <strong className={styles.segmentName}>{segment.name}</strong>
+      <div className={styles.timeRow}>
+        <span>{clock(start)}–{clock(end)}</span>
+        <span>Dauer {clock(duration)}</span>
+      </div>
+      {segment.participants.length > 0 ? (
+        <span className={styles.participants}>
+          {segment.participants.map((participant) => `${participant.name} · ${participant.role_label}`).join(', ')}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+function SelectionSurface({
+  segment,
+  selected,
+  playable,
+  onSelect,
+}: {
+  segment: PublicReleaseSegment
+  selected: boolean
+  playable: boolean
+  onSelect: () => void
+}) {
+  const content: ReactNode = <SegmentDetails segment={segment} />
+  if (!playable) return <div className={styles.staticCardContent}>{content}</div>
+
+  return (
+    <button
+      type="button"
+      className={styles.cardSelection}
+      aria-label={`${segmentTypeLabel(segment.type)} ${segment.name} auswählen`}
+      aria-pressed={selected}
+      onClick={onSelect}
+    >
+      {content}
+    </button>
+  )
+}
+
+export function ThemeTimeline({
+  releaseVersionID,
+  episodeDurationSeconds,
+  segments,
+  initialSegmentID = null,
+  autoPlayInitial = false,
+}: ThemeTimelineProps) {
+  const session = useAuthSession()
+  const hasSession = session.isClientInitialized && (session.hasAccessToken || session.hasRefreshToken)
+  const validInitialSegmentID = segments.some((segment) => segment.theme_segment_id === initialSegmentID)
+    ? initialSegmentID
+    : null
+  const [selectedSegmentID, setSelectedSegmentID] = useState<number | null>(validInitialSegmentID)
+  const [streamSegmentID, setStreamSegmentID] = useState<number | null>(null)
+  const [streamAttempt, setStreamAttempt] = useState(0)
+  const [playbackError, setPlaybackError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const lastVideoRef = useRef<HTMLVideoElement | null>(null)
+  const initialPlaybackHandled = useRef(false)
+  const duration = resolveDuration(episodeDurationSeconds, segments)
+  const geometries = useMemo(() => allocateGeometry(segments, duration), [duration, segments])
+  const selectedSegment = segments.find((segment) => segment.theme_segment_id === selectedSegmentID) ?? null
+  const activeStreamSegment = hasSession
+    ? segments.find((segment) => segment.theme_segment_id === streamSegmentID && segment.readiness === 'ready') ?? null
+    : null
+
+  const stopCurrentStream = useCallback(() => {
+    const player = videoRef.current ?? lastVideoRef.current
+    if (!player) return
+    player.pause()
+    player.removeAttribute('src')
+    player.load()
+  }, [])
+
+  const playSegment = useCallback((segment: PublicReleaseSegment) => {
+    if (!hasSession || segment.readiness !== 'ready') return
+    stopCurrentStream()
+    setPlaybackError(false)
+    setSelectedSegmentID(segment.theme_segment_id)
+    setStreamSegmentID(segment.theme_segment_id)
+    setStreamAttempt((attempt) => attempt + 1)
+  }, [hasSession, stopCurrentStream])
+
+  const selectSegment = (segment: PublicReleaseSegment) => {
+    if (!hasSession || segment.readiness !== 'ready') return
+    setSelectedSegmentID(segment.theme_segment_id)
+  }
 
   useEffect(() => {
-    if (initialSelectionHandled.current || !initialSegmentID || !autoPlayInitial) return;
-    const segment = segments.find((item) => item.theme_segment_id === initialSegmentID && item.readiness === "ready");
-    initialSelectionHandled.current = true;
-    if (!segment) return;
-    const timeout = window.setTimeout(() => setSelected(segment), 0);
-    return () => window.clearTimeout(timeout);
-  }, [autoPlayInitial, initialSegmentID, segments]);
+    if (initialPlaybackHandled.current || !autoPlayInitial || !validInitialSegmentID) return
+    initialPlaybackHandled.current = true
+    const initialSegment = segments.find((segment) => segment.theme_segment_id === validInitialSegmentID)
+    if (!hasSession || initialSegment?.readiness !== 'ready') return
+    const timeout = window.setTimeout(() => playSegment(initialSegment), 0)
+    return () => window.clearTimeout(timeout)
+  }, [autoPlayInitial, hasSession, playSegment, segments, validInitialSegmentID])
 
-  useEffect(() => () => {
-    videoRef.current?.pause();
-    videoRef.current?.removeAttribute("src");
-    videoRef.current?.load();
-  }, []);
+  useEffect(() => {
+    if (hasSession || streamSegmentID === null) return
+    stopCurrentStream()
+    const timeout = window.setTimeout(() => setStreamSegmentID(null), 0)
+    return () => window.clearTimeout(timeout)
+  }, [hasSession, stopCurrentStream, streamSegmentID])
 
-  if (segments.length === 0) return null;
-  const duration = episodeDurationSeconds && episodeDurationSeconds > 0
-    ? episodeDurationSeconds
-    : Math.max(...segments.map((item) => item.end_seconds ?? 0), 1);
+  useEffect(() => () => stopCurrentStream(), [stopCurrentStream])
 
-  const select = (segment: PublicReleaseSegment) => {
-    if (segment.readiness !== "ready") return;
-    const player = videoRef.current;
-    if (player) {
-      player.pause();
-      player.removeAttribute("src");
-      player.load();
-    }
-    setSelected(segment);
-  };
+  if (segments.length === 0) return null
 
   return (
     <section id="op-ed-middle" className={styles.timelineSection}>
-      <SectionHeader title="Karaoke-Segmente" />
-      <div className={styles.episodeTimeline} aria-label="Karaoke-Zeitleiste der Episode">
-        {segments.map((segment) => {
-          const start = segment.start_seconds ?? 0;
-          const end = segment.end_seconds ?? start;
-          const left = Math.min(100, Math.max(0, start / duration * 100));
-          const width = Math.max(2, Math.min(100 - left, (end - start) / duration * 100));
-          const playable = segment.readiness === "ready";
-          return (
-            <button
-              key={segment.theme_segment_id}
-              type="button"
-              className={styles.timelineMark}
-              style={{ left: `${left}%`, width: `${width}%` }}
-              onClick={() => select(segment)}
-              disabled={!playable}
-              aria-label={`${segment.name}, ${clock(segment.start_seconds) ?? "Start unbekannt"} bis ${clock(segment.end_seconds) ?? "Ende unbekannt"}`}
+      <SectionHeader title="Karas" underline />
+
+      <div className={styles.desktopTimeline} aria-label="Kara-Zeitleiste der Episode">
+        <div className={styles.tickRow}>
+          {TIMELINE_TICKS.map((percent) => (
+            <span
+              key={percent}
+              className={styles.tick}
+              data-percent={percent}
+              data-testid="kara-timeline-tick"
+              style={{ '--tick-position': `${percent}%` } as CSSProperties}
             >
-              {segment.type}
-            </button>
-          );
+              <span aria-hidden="true" />
+              <time>{clock(duration * percent / 100)}</time>
+            </span>
+          ))}
+        </div>
+
+        <div className={styles.trackStage}>
+          <div className={styles.track} aria-hidden="true" />
+          {geometries.map((geometry) => {
+            const { segment } = geometry
+            const playable = hasSession && segment.readiness === 'ready'
+            const selected = selectedSegmentID === segment.theme_segment_id
+            const style = geometryStyle(geometry)
+            return (
+              <div key={segment.theme_segment_id} className={styles.segmentLayer} style={style}>
+                <span
+                  className={segmentClassName(segment, styles.segmentGeometry)}
+                  data-testid={`kara-segment-geometry-${segment.theme_segment_id}`}
+                  style={{ left: `${geometry.leftPercent}%`, width: `${geometry.widthPercent}%` }}
+                  aria-hidden="true"
+                />
+                {playable ? (
+                  <button
+                    type="button"
+                    className={`${styles.hitTarget} ${selected ? styles.hitTargetSelected : ''}`}
+                    data-testid={`kara-hit-target-${segment.theme_segment_id}`}
+                    style={{ minWidth: '44px', minHeight: '44px' }}
+                    aria-label={`${segmentTypeLabel(segment.type)} ${segment.name}, ${clock(segment.start_seconds)} bis ${clock(segment.end_seconds)}, Dauer ${clock(segment.duration_seconds)}`}
+                    aria-current={selected ? 'true' : undefined}
+                    onClick={() => playSegment(segment)}
+                  />
+                ) : null}
+                <span
+                  className={segmentClassName(segment, styles.outsideLabel)}
+                  data-testid={`kara-outside-label-${segment.theme_segment_id}`}
+                  data-lane={geometry.labelLane}
+                  data-alignment={geometry.labelAlignment}
+                >
+                  <strong>{segment.name}</strong>
+                  <span>{segmentTypeLabel(segment.type)} · {clock(segment.start_seconds)}</span>
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className={styles.segmentCards}>
+        {segments.map((segment) => {
+          const playable = hasSession && segment.readiness === 'ready'
+          const selected = selectedSegmentID === segment.theme_segment_id
+          return (
+            <Card
+              key={segment.theme_segment_id}
+              variant="flat"
+              className={segmentClassName(segment, `${styles.segmentCard} ${selected ? styles.segmentCardSelected : ''}`)}
+            >
+              <SelectionSurface
+                segment={segment}
+                selected={selected}
+                playable={playable}
+                onSelect={() => selectSegment(segment)}
+              />
+              {playable ? (
+                <Button
+                  fullWidth
+                  leftIcon={<Play size={16} aria-hidden="true" />}
+                  className={styles.playButton}
+                  onClick={() => playSegment(segment)}
+                >
+                  Kara abspielen
+                </Button>
+              ) : null}
+              {hasSession && segment.readiness !== 'ready' ? (
+                <span className={styles.unavailable}>Noch nicht abspielbar</span>
+              ) : null}
+            </Card>
+          )
         })}
       </div>
-      <div className={styles.timelineCards}>
-        {segments.map((segment) => (
-          <article key={segment.theme_segment_id} className={styles.timelineItem}>
-            {segment.preview_url ? <Image className={styles.timelineThumb} src={segment.preview_url} alt="" width={640} height={360} unoptimized /> : null}
-            <div className={styles.timelineMeta}>
-              <strong>{segment.name}</strong>
-              <div className={styles.timelineTags}>
-                <Badge variant="muted">{TYPE_LABELS[segment.type.toUpperCase()] ?? segment.type}</Badge>
-                <span className={styles.timelineTime}>{clock(segment.start_seconds)} – {clock(segment.end_seconds)}</span>
-                {segment.duration_seconds !== null ? <span className={styles.timelineTime}>{clock(segment.duration_seconds)} Min.</span> : null}
-              </div>
-              {segment.participants.length > 0 ? <span className={styles.timelineTime}>{segment.participants.map((p) => `${p.name} · ${p.role_label}`).join(", ")}</span> : null}
-              {segment.readiness !== "ready" ? <span className={styles.timelineUnavailable}>Noch nicht abspielbar</span> : null}
-              {segment.readiness === "ready" ? <button type="button" className={styles.timelinePlay} onClick={() => select(segment)}>Abspielen</button> : null}
-            </div>
-          </article>
-        ))}
-      </div>
-      {selected ? (
-        <div className={styles.timelinePlayer}>
-          <h3>{selected.name}</h3>
+
+      <span className={styles.liveRegion} aria-live="polite">
+        {selectedSegment ? `Kara ${selectedSegment.name} ausgewählt` : ''}
+      </span>
+
+      {activeStreamSegment ? (
+        <div className={styles.playerRegion}>
           <video
-            key={selected.theme_segment_id}
-            ref={videoRef}
-            src={`/api/segments/${selected.theme_segment_id}/stream?release_version_id=${releaseVersionID}`}
+            key={`${activeStreamSegment.theme_segment_id}-${streamAttempt}`}
+            ref={(node) => {
+              videoRef.current = node
+              if (node) lastVideoRef.current = node
+            }}
+            className={styles.player}
+            src={`/api/segments/${activeStreamSegment.theme_segment_id}/stream?release_version_id=${releaseVersionID}`}
             controls
             autoPlay
             playsInline
-            onLoadedData={(event) => { void event.currentTarget.play().catch(() => undefined); }}
+            aria-label={`Kara: ${activeStreamSegment.name}`}
+            onLoadedData={(event) => { void event.currentTarget.play().catch(() => undefined) }}
+            onError={() => setPlaybackError(true)}
           />
+          {playbackError ? (
+            <div className={styles.playerError}>
+              <p>Kara konnte nicht abgespielt werden.</p>
+              <Button variant="secondary" onClick={() => playSegment(activeStreamSegment)}>Erneut versuchen</Button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>
-  );
+  )
 }
