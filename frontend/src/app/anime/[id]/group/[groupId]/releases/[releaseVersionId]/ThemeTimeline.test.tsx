@@ -3,6 +3,7 @@
 import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { PublicReleaseSegment } from '@/types/releaseDetail'
 
 const session = vi.hoisted(() => ({
   value: { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true },
@@ -18,7 +19,7 @@ vi.mock('@/components/ui', () => ({
 
 import { ThemeTimeline } from './ThemeTimeline'
 
-const segments = [{
+const segments: PublicReleaseSegment[] = [{
   theme_segment_id: 7,
   name: 'Moonlight OP',
   type: 'OP',
@@ -26,7 +27,7 @@ const segments = [{
   end_seconds: 120,
   duration_seconds: 90,
   readiness: 'ready' as const,
-  participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke' }],
+  participants: [{ member_id: 41, name: 'Mia', role_label: 'Karaoke', avatar_url: null }],
   preview_url: null,
 }, {
   theme_segment_id: 8,
@@ -36,7 +37,7 @@ const segments = [{
   end_seconds: 1_290,
   duration_seconds: 90,
   readiness: 'ready' as const,
-  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting' }],
+  participants: [{ member_id: 42, name: 'Noah', role_label: 'Typesetting', avatar_url: null }],
   preview_url: null,
 }, {
   theme_segment_id: 9,
@@ -120,7 +121,8 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     })
 
     const geometry = screen.getByTestId('kara-segment-geometry-17')
-    expect(geometry).toHaveStyle({ left: `${1 / 1_400 * 100}%`, width: `${1 / 1_400 * 100}%` })
+    expect(geometry.style.left).toBe(`${1 / 1_400 * 100}%`)
+    expect(geometry.style.width).toBe(`${1 / 1_400 * 100}%`)
   })
 
   it('keeps the 44 by 44 hit target structurally separate from visible geometry', () => {
@@ -128,7 +130,8 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     const geometry = screen.getByTestId('kara-segment-geometry-7')
     const hitTarget = screen.getByTestId('kara-hit-target-7')
     expect(hitTarget).not.toBe(geometry)
-    expect(hitTarget).toHaveStyle({ minWidth: '44px', minHeight: '44px' })
+    expect(hitTarget.style.minWidth).toBe('44px')
+    expect(hitTarget.style.minHeight).toBe('44px')
   })
 
   it('renders the five episode ticks at 0, 25, 50, 75, and 100 percent', () => {
@@ -144,7 +147,7 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     fireEvent.click(playbackActions()[0])
 
     expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1)
-    expect(screen.getByText('Kara Moonlight OP ausgewählt')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.getByText('Kara Moonlight OP ausgewählt').getAttribute('aria-live')).toBe('polite')
   })
 
   it('highlights a Deep-Link independently from autoplay', async () => {

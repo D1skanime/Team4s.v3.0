@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   getProfile: vi.fn(),
   notFound: vi.fn(() => { throw new Error('NOT_FOUND') }),
-  parseSearchParams: vi.fn(() => ({ initialKaraSegmentID: null, autoplayInitialKara: false })),
+  parseSearchParams: vi.fn((_params?: Record<string, string | string[] | undefined>): { initialKaraSegmentID: number | null; autoplayInitialKara: boolean } => ({ initialKaraSegmentID: null, autoplayInitialKara: false })),
 }))
 vi.mock('next/navigation', () => ({ notFound: mocks.notFound }))
 vi.mock('@/lib/api', () => ({
