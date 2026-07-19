@@ -61,6 +61,8 @@ describe('ReleaseGallery', () => {
     expect(screen.getByTestId('release-image-grid').children).toHaveLength(2)
     expect(screen.queryByTestId('release-image-groups')).toBeNull()
     expect(screen.queryByText('Herkunftsgruppe')).toBeNull()
+    expect(screen.getByText('C-Subs')).toBeTruthy()
+    expect(screen.getByText('D-Subs')).toBeTruthy()
   })
 
   it('uses the responsive source for mobile two-item reveal and remaining label', async () => {
@@ -109,5 +111,17 @@ describe('ReleaseGallery', () => {
     expect(within(dialog).getByRole('heading', { name: 'Typesetting-/Karaoke-Beispiel' })).toBeTruthy()
     expect(within(dialog).getAllByText('Vollständige Beschreibung 8')).toHaveLength(1)
     expect(within(dialog).getByAltText('Typesetting-/Karaoke-Beispiel').getAttribute('src')).toContain('/original-8.jpg')
+  })
+
+  it('keeps visible cards and lightbox originals when loading more fails', async () => {
+    vi.spyOn(api, 'getGroupReleaseImages').mockRejectedValue(new Error('network down'))
+    render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 7, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere 1 Bilder anzeigen' }))
+
+    expect(await screen.findByText('Weitere Bilder konnten nicht geladen werden. Bitte versuche es erneut.')).toBeTruthy()
+    expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
+    fireEvent.click(screen.getByRole('button', { name: 'Vollständige Beschreibung 1 öffnen' }))
+    expect(within(screen.getByRole('dialog')).getByAltText('Release-Screenshot').getAttribute('src')).toContain('/original-1.jpg')
   })
 })

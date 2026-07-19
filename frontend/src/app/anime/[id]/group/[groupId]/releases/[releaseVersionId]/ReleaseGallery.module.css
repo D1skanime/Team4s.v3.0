@@ -1,7 +1,6 @@
 .section { display: grid; gap: var(--space-4, 16px); padding-top: var(--space-6, 24px); border-top: 1px solid var(--border-subtle); }
-.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.groupList,.groupSection { display: grid; gap: 16px; }
-.card { min-width: 0; display: grid; gap: 10px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4, 16px); }
+.card { min-width: 0; display: grid; gap: var(--space-2, 8px); }
 .imageButton { width: 100%; min-height: 0; padding: 0; overflow: hidden; border-radius: var(--radius-md); }
 .imageShell { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: var(--surface-sunken); }
 .image { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 180ms ease; }
@@ -13,5 +12,6 @@
 .metaRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--color-text-secondary); font-size: 12px; }
 .loadMoreRow { display: flex; justify-content: center; }
 .error { color: var(--color-error); margin: 0; }
-@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 600px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .metaRow { align-items: flex-start; } }
+@media (min-width: 901px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-5, 24px); } }
+@media (max-width: 600px) { .grid { gap: var(--space-2, 8px); } .metaRow { align-items: flex-start; } }

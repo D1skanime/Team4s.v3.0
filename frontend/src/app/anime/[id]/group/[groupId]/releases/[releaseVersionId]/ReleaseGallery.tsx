@@ -6,7 +6,7 @@ import { useState } from 'react'
 
 import { Badge, Button, SectionHeader } from '@/components/ui'
 import { FansubMediaLightbox, type PublicImageLightboxItem } from '@/components/fansubs/FansubMediaLightbox'
-import { ApiError, getGroupReleaseImages } from '@/lib/api'
+import { getGroupReleaseImages } from '@/lib/api'
 import type { PublicReleaseGroup, PublicReleaseImage } from '@/types/releaseDetail'
 import { CATEGORY_LABELS, RELEASE_VERSION_MEDIA_CATEGORIES, type ReleaseVersionMediaCategory } from '@/types/releaseVersionMedia'
 
@@ -54,10 +54,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
 
   const visibleCount = expanded ? items.length : Math.min(collapsedLimit, items.length)
   const visibleItems = items.slice(0, visibleCount)
-  const buckets = [
-    ...groups.map(group => ({ key: String(group.id), label: group.name, items: visibleItems.filter(image => image.fansub_group_id === group.id) })),
-    { key: 'unassigned', label: 'Nicht eindeutig zugeordnet', items: visibleItems.filter(image => image.fansub_group_id == null) },
-  ].filter(bucket => bucket.items.length > 0)
+  const groupNamesByID = new Map(groups.map(group => [group.id, group.name]))
   const remaining = Math.max(0, total - visibleCount)
 
   async function revealAll() {
@@ -83,8 +80,8 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
         return loaded
       }))
       setItems(previous => mergeImages(previous, loadedByCategory.flat()))
-    } catch (reason) {
-      setError(reason instanceof ApiError ? reason.message : 'Weitere Bilder konnten nicht geladen werden.')
+    } catch {
+      setError('Weitere Bilder konnten nicht geladen werden. Bitte versuche es erneut.')
     } finally {
       setLoading(false)
     }
@@ -94,6 +91,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   const renderImage = (image: PublicReleaseImage) => {
     const src = image.thumbnail_url ?? image.original_url
     const title = image.caption?.trim() || CATEGORY_LABELS[image.category]
+    const sourceGroupName = image.fansub_group_id ? groupNamesByID.get(image.fansub_group_id) : null
     return <article key={image.id} className={styles.card}>
       <Button type="button" variant="ghost" className={styles.imageButton} aria-label={`${title} öffnen`} onClick={() => setActiveIndex(items.findIndex(item => item.id === image.id))}>
         <span className={styles.imageShell}>
@@ -103,7 +101,11 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
       </Button>
       <div className={styles.meta}>
         <p className={styles.caption}>{title}</p>
-        <div className={styles.metaRow}><Badge variant="muted">{CATEGORY_LABELS[image.category]}</Badge><span>Hochgeladen von {image.author_name ?? 'Unbekannt'}</span></div>
+        <div className={styles.metaRow}>
+          <Badge variant="muted">{CATEGORY_LABELS[image.category]}</Badge>
+          <span>Hochgeladen von {image.author_name ?? 'Unbekannt'}</span>
+          {sourceGroupName ? <span>{sourceGroupName}</span> : null}
+        </div>
       </div>
     </article>
   }
@@ -111,11 +113,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
   return <section id="galerie" className={styles.section}>
     <SectionHeader title="Bilder aus dem Release" description={`${total} Bilder`} underline />
     {error ? <p className={styles.error}>{error}</p> : null}
-    {groups.length === 0 ? <div className={styles.grid} data-testid="release-image-grid">{visibleItems.map(renderImage)}</div> : <div className={styles.groupList} data-testid="release-image-groups">
-      {buckets.map(bucket => <section key={bucket.key} className={styles.groupSection}>
-      <SectionHeader eyebrow="Herkunftsgruppe" title={bucket.label} underline />
-      <div className={styles.grid}>{bucket.items.map(renderImage)}</div></section>)}
-    </div>}
+    <div className={styles.grid} data-testid="release-image-grid">{visibleItems.map(renderImage)}</div>
     {remaining > 0 ? <div className={styles.loadMoreRow}><Button variant="secondary" size="sm" loading={loading} onClick={revealAll}>Weitere {remaining} Bilder anzeigen</Button></div> : null}
     <FansubMediaLightbox media={lightboxItems} index={activeIndex} onClose={() => setActiveIndex(null)} onNavigate={setActiveIndex} />
   </section>
