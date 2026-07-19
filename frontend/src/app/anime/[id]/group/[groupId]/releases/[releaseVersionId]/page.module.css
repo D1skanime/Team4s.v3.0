@@ -144,10 +144,9 @@
 
 /* ── Beteiligte (AO4-17) ── */
 .contributorsSection {
-  padding: 24px 0;
-  border-top: 1px solid var(--border-subtle);
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
 
 .sectionTitle {
@@ -157,22 +156,21 @@
   color: var(--color-text-primary);
 }
 
-.contributorsScroller {
-  display: flex;
-  flex-wrap: nowrap;
+.contributorsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
+  min-width: 0;
 }
-.contributorsGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; }
-.contributorGroup { display: grid; gap: 14px; }
+
+.contributorsGrid > * { min-width: 0; }
 
 .contributorItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
 }
 
 .contributorAvatar {
@@ -185,16 +183,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   object-fit: cover;
 }
-@media(max-width:600px){.technicalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.page{padding:16px 14px 48px;gap:22px}.page>section:not(.hero){padding:20px;border-radius:14px}.hero{padding:12px;border-radius:16px}.heroSummary{grid-template-columns:1fr;gap:14px}.heroTitle{font-size:clamp(24px,8vw,34px)}.contributorsGrid{grid-template-columns:1fr 1fr}.heroImageShell{aspect-ratio:16/9}}
 
 .contributorMeta {
   display: grid;
-  gap: 2px;
-  white-space: nowrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.contributorRoles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.episodePlayerSection {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  .technicalGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page { padding: 16px 14px 48px; gap: 22px; }
+  .page > section:not(.hero) { padding: 20px; border-radius: 14px; }
+  .hero { padding: 12px; border-radius: 16px; }
+  .heroSummary { grid-template-columns: 1fr; gap: 14px; }
+  .heroTitle { font-size: clamp(24px, 8vw, 34px); }
+  .heroImageShell { aspect-ratio: 16 / 9; }
+  .contributorsGrid { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 640px) and (max-width: 900px) {
+  .contributorsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .contributorName {

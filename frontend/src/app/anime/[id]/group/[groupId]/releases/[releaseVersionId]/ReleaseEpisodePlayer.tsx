@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { Button, Modal } from '@/components/ui'
+import { Button, Modal, SectionHeader } from '@/components/ui'
 import { getReleasePlaybackAccess } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
+
+import styles from './page.module.css'
 
 export function ReleaseEpisodePlayer({ releaseVersionID, title }: { releaseVersionID: number; title: string }) {
   const session = useAuthSession()
@@ -32,7 +34,10 @@ export function ReleaseEpisodePlayer({ releaseVersionID, title }: { releaseVersi
 
   if (!session.isClientInitialized || !hasSession || !available) return accessFailed ? <span hidden data-playback-access-error="true" /> : null
   return <>
-    <Button variant="secondary" onClick={() => setOpen(true)}>Episode abspielen</Button>
+    <section className={styles.episodePlayerSection}>
+      <SectionHeader title="Vollständige Episode" />
+      <Button variant="secondary" onClick={() => setOpen(true)}>Episode abspielen</Button>
+    </section>
     <Modal open={open} onClose={close} title={title} description="Vollständige Episode" size="lg">
       {failed ? <p role="alert">Die Episode konnte nicht abgespielt werden.</p> : <video ref={videoRef} src={`/api/releases/${releaseVersionID}/stream`} controls autoPlay onError={() => setFailed(true)} style={{ width: '100%', maxHeight: '70vh', background: '#000' }} />}
     </Modal>
