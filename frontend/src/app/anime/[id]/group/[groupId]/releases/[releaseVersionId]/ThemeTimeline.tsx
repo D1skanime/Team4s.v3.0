@@ -358,7 +358,7 @@ export function ThemeTimeline({
           />
           {playbackError ? (
             <div className={styles.playerError}>
-              <p>Kara konnte nicht abgespielt werden.</p>
+              <p>Dieses Kara-Segment konnte nicht abgespielt werden. Bitte versuche es erneut.</p>
               <Button variant="secondary" onClick={() => playSegment(activeStreamSegment)}>Erneut versuchen</Button>
             </div>
           ) : null}

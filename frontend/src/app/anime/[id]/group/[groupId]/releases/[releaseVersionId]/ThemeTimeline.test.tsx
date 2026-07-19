@@ -12,10 +12,11 @@ const session = vi.hoisted(() => ({
 vi.mock('@/lib/useAuthSession', () => ({ useAuthSession: () => session.value }))
 vi.mock('@/components/ui', () => ({
   Badge: ({ children }: { children: ReactNode }) => <span>{children}</span>,
-  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { fullWidth?: boolean; leftIcon?: ReactNode }) => {
-    const { fullWidth, leftIcon, ...buttonProps } = props
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { fullWidth?: boolean; leftIcon?: ReactNode; variant?: string }) => {
+    const { fullWidth, leftIcon, variant, ...buttonProps } = props
     void fullWidth
     void leftIcon
+    void variant
     return <button {...buttonProps}>{children}</button>
   },
   Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
