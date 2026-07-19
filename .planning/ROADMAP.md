@@ -1849,10 +1849,14 @@ Plans:
   4. Mobile zeigt keine zusammengedrückte horizontale Timeline, sondern die Sektion `Karas` als vertikale Karten mit Typ-Farbleiste, Name, Zeiten, Beteiligten und mindestens 48 px hoher Abspielaktion; kleine unlesbare Segmentbilder entfallen.
   5. Hero, Bilderraster, Teamtexte, Beteiligte und Release-Navigation nutzen über alle Breakpoints konsistente Breiten, Abstände, Karten, Buttons und deutsche UI-Texte; lange Texte erzeugen auf Desktop keine große ungenutzte rechte Fläche und die Navigation liegt im normalen Seitenfluss.
   6. Gäste sehen Kara-Informationen ohne Abspielaktion oder Login-Hinweis; eingeloggte Nutzer können technisch bereite Karas wie in Phase 103 abspielen, Segmentwechsel stoppen den vorherigen Stream, und bestehende Release-/Auth-/Playback-Tests plus Live-UAT bei Desktop, Tablet und Mobile bleiben grün.
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 105 to break down)
+- [ ] 105-01-PLAN.md — Wave-0-Regressionsverträge für Komposition, Pretty-Route, Kara-Sicherheit und Content-Seams
+- [ ] 105-02-PLAN.md — Serverkomposition, Hero, Release-Beteiligte, sekundäre Vollfolge und Inline-Navigation
+- [ ] 105-03-PLAN.md — Vollbreite Kara-Timeline, mobile Karas-Liste und sessiongebundener Playerzustand
+- [ ] 105-04-PLAN.md — Gemeinsames responsives Bilderraster und rollenbasierte aufklappbare Teamtexte
+- [ ] 105-05-PLAN.md — Vollständige automatisierte Gates sowie Pretty-Route-Live-UAT bei 390/768/1024/1440 px
 
 ---
 
