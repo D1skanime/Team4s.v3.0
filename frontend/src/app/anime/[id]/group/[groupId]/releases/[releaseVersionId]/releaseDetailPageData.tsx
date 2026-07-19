@@ -6,6 +6,7 @@ import { Breadcrumbs } from '@/components/navigation/Breadcrumbs'
 import { ApiError, getAnimeBackdrops, getAnimeByID, getGroupDetail, getGroupReleaseDetail } from '@/lib/api'
 import { resolvePublicApiUrl } from '@/lib/publicApiUrl'
 
+import { ContributorsRow } from './ContributorsRow'
 import { ReleaseDetailHero } from './ReleaseDetailHero'
 import { ReleaseEpisodePlayer } from './ReleaseEpisodePlayer'
 import { ReleaseGallery } from './ReleaseGallery'
@@ -67,7 +68,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
     detail = await getGroupReleaseDetail(animeID, groupID, releaseVersionID)
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return notFound()
-    return <main className={styles.page}><p className={styles.backLink}><Link href={canonicalProjectPath ?? `/anime/${animeID}/group/${groupID}`}>Zurück zum Projekt</Link></p><div className={styles.errorBox}>Release konnte nicht geladen werden.</div></main>
+    return <main className={styles.page}><p className={styles.backLink}><Link href={canonicalProjectPath ?? `/anime/${animeID}/group/${groupID}`}>Zurück zum Fansub-Projekt</Link></p><div className={styles.errorBox}>Release konnte nicht geladen werden. Bitte versuche es erneut oder kehre zum Fansub-Projekt zurück.</div></main>
   }
 
   const projectHref = canonicalProjectPath ?? `/anime/${animeID}/group/${groupID}`
@@ -81,10 +82,8 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
   const pageStyle = atmosphereUrl ? ({ '--release-page-backdrop': `url("${atmosphereUrl}")` } as CSSProperties) : undefined
   return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
     <Breadcrumbs items={breadcrumbItems} />
-    <p className={styles.backLink}><Link href={projectHref}>Zurück zum Projekt</Link></p>
+    <p className={styles.backLink}><Link href={projectHref}>Zurück zum Fansub-Projekt</Link></p>
     <ReleaseDetailHero {...detail} animeLogoFallbackUrl={animeLogoFallbackUrl} atmosphereUrl={atmosphereUrl} />
-    <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} groups={detail.groups} />
-    <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} groups={detail.groups} />
     <ThemeTimeline
       releaseVersionID={releaseVersionID}
       episodeDurationSeconds={detail.duration_seconds}
@@ -92,6 +91,9 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       initialSegmentID={initialKaraSegmentID}
       autoPlayInitial={autoplayInitialKara}
     />
+    <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} groups={detail.groups} />
+    <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} groups={detail.groups} />
+    <ContributorsRow contributors={detail.contributors} groups={detail.groups} />
     <ReleaseEpisodePlayer releaseVersionID={releaseVersionID} title={detail.title} />
     <ReleaseNavigation animeID={animeID} groupID={groupID} canonicalProjectPath={canonicalProjectPath} previous={detail.previous} next={detail.next} />
   </main>

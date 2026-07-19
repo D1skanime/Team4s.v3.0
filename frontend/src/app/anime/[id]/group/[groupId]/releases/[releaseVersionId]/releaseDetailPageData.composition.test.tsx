@@ -42,6 +42,11 @@ vi.mock('./ReleaseNotesList', () => ({
     ? <section data-testid="release-notes"><h2>Stimmen aus dem Team</h2></section>
     : null,
 }))
+vi.mock('./ContributorsRow', () => ({
+  ContributorsRow: ({ contributors }: { contributors: unknown[] }) => contributors.length > 0
+    ? <section data-testid="release-contributors"><h2>An diesem Release beteiligt</h2></section>
+    : null,
+}))
 vi.mock('./ReleaseEpisodePlayer', () => ({
   ReleaseEpisodePlayer: ({ releaseVersionID }: { releaseVersionID: number }) => releaseVersionID > 0
     ? <section data-testid="release-episode"><h2>Vollständige Episode</h2></section>
