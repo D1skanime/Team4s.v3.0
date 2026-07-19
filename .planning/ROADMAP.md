@@ -1875,12 +1875,12 @@ Plans:
   5. Hero, Bilderraster, Teamtexte, Beteiligte und Release-Navigation nutzen über alle Breakpoints konsistente Breiten, Abstände, Karten, Buttons und deutsche UI-Texte; lange Texte erzeugen auf Desktop keine große ungenutzte rechte Fläche und die Navigation liegt im normalen Seitenfluss.
   6. Gäste sehen Kara-Informationen ohne Abspielaktion oder Login-Hinweis; eingeloggte Nutzer können technisch bereite Karas wie in Phase 103 abspielen, Segmentwechsel stoppen den vorherigen Stream, und bestehende Release-/Auth-/Playback-Tests plus Live-UAT bei Desktop, Tablet und Mobile bleiben grün.
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 105-01-PLAN.md — Wave-0-Regressionsverträge für Komposition, Pretty-Route, Kara-Sicherheit und Content-Seams
+- [x] 105-01-PLAN.md — Wave-0-Regressionsverträge für Komposition, Pretty-Route, Kara-Sicherheit und Content-Seams
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

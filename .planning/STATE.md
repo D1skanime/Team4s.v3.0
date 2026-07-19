@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: Asset Lifecycle Hardening
-status: phase_complete
-stopped_at: Phase 105 UI-SPEC approved
-last_updated: "2026-07-19T12:10:44.657Z"
+milestone_name: – Public Experience, Historie & Scoped Rights
+status: Executing Phase 105
+stopped_at: Completed 105-01-PLAN.md
+last_updated: "2026-07-19T12:33:45.019Z"
 last_activity: 2026-07-19
 progress:
   total_phases: 97
   completed_phases: 80
   total_plans: 432
-  completed_plans: 400
+  completed_plans: 401
   percent: 82
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 104 — registrierungs-login-und-account-onboarding-hardening
+**Current focus:** Phase 105 — responsive-release-detailseite-und-kara-timeline-redesign
 
 ## Current Position
 
-Phase: 104 (registrierungs-login-und-account-onboarding-hardening) — COMPLETE (UAT passed 2026-07-17)
-Plan: 6 of 6 complete
+Phase: 105 (responsive-release-detailseite-und-kara-timeline-redesign) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -322,6 +322,8 @@ Recent durable decisions:
 - [Phase ?]: [Phase 104-04]: Meine Projekte nav entry and /me/contributions direct access both gate on hasMemberProfile AND hasProjectAssignments via the own-profile aggregate; non-entitled authenticated accounts redirect to /me/profile with no claim/error intermediate (D-08).
 - [Phase 104-05]: AppShell dedupes Account nav (D-17) and closes drawer via one shared onNavigate seam plus a render-time currentPath-change adjustment (not a useEffect, per this repo's react-hooks/set-state-in-effect lint rule).
 - [Phase 104-05]: Logout single-shot guard uses a synchronous loggingOutRef alongside isLoggingOut state; navigation to /login fires right after invoking (not awaiting) logoutAuthSession(), since its local cleanup runs synchronously before its first await (D-24).
+- [Phase 105]: Wave 0 bleibt test-only: Phase-105-Verträge sind bis zu den Plänen 02 bis 04 gezielt RED, während Harness, Typecheck und Lint grün bleiben. — Plan 01 fixiert Regressionen vor Produktionsänderungen.
+- [Phase 105]: Playback-Tests behandeln hasAccessToken || hasRefreshToken als aktive Session; Gäste erhalten weder Kara-CTA noch Autoplay. — Bewahrt die zentrale Refresh-Session- und Auth-Grenze.
 
 ### Pending Todos
 
@@ -576,6 +578,7 @@ Recent durable decisions:
 | Phase 104 P03 | 35min | 3 tasks | 15 files |
 | Phase 104 P4 | 55min | 3 tasks | 19 files |
 | Phase 104 P05 | 35min | 2 tasks | 3 files |
+| Phase 105 P01 | 11min | 3 tasks | 9 files |
 
 ### Quick Tasks Completed
 
@@ -655,7 +658,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-19T10:21:59.745Z
-Stopped at: Phase 105 UI-SPEC approved
+Last session: 2026-07-19T12:33:44.661Z
+Stopped at: Completed 105-01-PLAN.md
 Last activity: 2026-07-19
-Resume file: .planning/phases/105-responsive-release-detailseite-und-kara-timeline-redesign/105-UI-SPEC.md
+Resume file: None
