@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: Executing Phase 105
-stopped_at: Completed 105-04-PLAN.md
-last_updated: "2026-07-19T13:14:29.582Z"
+stopped_at: Completed 105-03-PLAN.md
+last_updated: "2026-07-19T13:39:58.129Z"
 last_activity: 2026-07-19
 progress:
   total_phases: 97
   completed_phases: 80
   total_plans: 432
-  completed_plans: 403
+  completed_plans: 404
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 105 (responsive-release-detailseite-und-kara-timeline-redesign) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Accumulated Context
 
@@ -329,6 +329,8 @@ Recent durable decisions:
 - [Phase 105-02]: Releasewechsel bleiben über buildFansubReleaseHref im öffnenden Gruppenkontext und als AdjacentNavigation inline im Seitenfluss. — Coop-Releases wechseln die Fansubgruppe nicht still.
 - [Phase 105]: Fansub groups remain optional card metadata; they never select the Gallery or Notes primary layout axis. — Preserves release-version ownership while keeping source identity visible.
 - [Phase 105]: Long release notes expand by stable note ID while RichTextRenderer remains the only body_html renderer. — Cursor merges must not replace interaction state or create a second HTML rendering seam.
+- [Phase 105]: Sichtbare Kara-Segmentgeometrie bleibt exakt proportional; die 44x44-Hit-Zone ist ein getrenntes transparentes Element. — Exakte Fachproportion und barrierefreie Interaktion dürfen sich nicht geometrisch verzerren.
+- [Phase 105]: Öffentliche Kara-Auswahl und sessiongebundener Streamzustand bleiben getrennt; aktive Session ist isClientInitialized && (hasAccessToken || hasRefreshToken). — Gäste behalten Metadaten ohne Playback; Refresh-Sessions laufen weiter ausschließlich über den zentralen API-Client.
 
 ### Pending Todos
 
@@ -586,6 +588,7 @@ Recent durable decisions:
 | Phase 105 P01 | 11min | 3 tasks | 9 files |
 | Phase 105 P02 | 17min | 3 tasks | 8 files |
 | Phase 105 P04 | 10min | 2 tasks | 6 files |
+| Phase 105 P03 | 15min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -665,7 +668,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-19T13:14:29.457Z
-Stopped at: Completed 105-04-PLAN.md
+Last session: 2026-07-19T13:39:57.894Z
+Stopped at: Completed 105-03-PLAN.md
 Last activity: 2026-07-19
 Resume file: None
