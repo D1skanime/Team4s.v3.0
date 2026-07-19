@@ -126,6 +126,7 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
   })
 
   it('keeps the 44 by 44 hit target structurally separate from visible geometry', () => {
+    setSession(true, false)
     renderTimeline()
     const geometry = screen.getByTestId('kara-segment-geometry-7')
     const hitTarget = screen.getByTestId('kara-hit-target-7')
@@ -139,6 +140,26 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     expect(screen.getAllByTestId('kara-timeline-tick').map((tick) => tick.getAttribute('data-percent'))).toEqual([
       '0', '25', '50', '75', '100',
     ])
+  })
+
+  it('allocates colliding outside labels stably across two lanes and aligns edge labels inward', () => {
+    renderTimeline({
+      segments: [
+        { ...segments[0], theme_segment_id: 20, start_seconds: 0, end_seconds: 20 },
+        { ...segments[1], theme_segment_id: 21, start_seconds: 10, end_seconds: 30 },
+        { ...segments[2], theme_segment_id: 22, start_seconds: 1_380, end_seconds: 1_400 },
+      ],
+    })
+
+    expect(screen.getByTestId('kara-outside-label-20').getAttribute('data-lane')).toBe('0')
+    expect(screen.getByTestId('kara-outside-label-21').getAttribute('data-lane')).toBe('1')
+    expect(screen.getByTestId('kara-outside-label-20').getAttribute('data-alignment')).toBe('start')
+    expect(screen.getByTestId('kara-outside-label-22').getAttribute('data-alignment')).toBe('end')
+  })
+
+  it('does not render segment preview images into either responsive Kara representation', () => {
+    renderTimeline({ segments: [{ ...segments[0], preview_url: '/preview.jpg' }] })
+    expect(document.querySelector('img')).toBeNull()
   })
 
   it('keeps exactly one selected segment and announces it politely', () => {
