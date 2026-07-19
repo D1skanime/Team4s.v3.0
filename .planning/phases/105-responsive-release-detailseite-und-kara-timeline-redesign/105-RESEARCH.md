@@ -556,22 +556,16 @@ const roleBuckets = [...new Set(notes.map(note => note.role_label || 'Weitere Be
 
 All claims in this research were verified against locked planning documents, current code, local tool output, registry data or official documentation; no `[ASSUMED]` claim is used. [VERIFIED: research source audit]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **UI-SPEC-Metadaten widersprechen dem Workflowstatus.**
-   - What we know: `.planning/STATE.md` und der Research-Auftrag bezeichnen die UI-SPEC als approved; die Datei selbst trägt `status: draft`, `Approval: pending` und leere Checker-Checkboxen. [VERIFIED: `STATE.md`, task input, `105-UI-SPEC.md`]
-   - What's unclear: Ob nur die Frontmatter/Sign-off-Markierung veraltet ist oder ein separater Checker-Artefakt fehlt. [VERIFIED: planning artifact inspection]
-   - Recommendation: Für die Planung den Inhalt als verbindlich behandeln, weil Auftrag und STATE ihn explizit freigeben; vor Execution die Metadaten durch den Orchestrator normalisieren, ohne das Design neu zu diskutieren. [VERIFIED: task authority precedence]
+1. **UI-SPEC-Status ist vollständig freigegeben.**
+   - Resolution: `105-UI-SPEC.md` ist jetzt durch den UI-Checker mit 6/6 bestanden und trägt im Frontmatter `status: approved`; es verbleibt kein ausstehender UI-Status für Planung oder Ausführung. [VERIFIED: `105-UI-SPEC.md` frontmatter and UI-checker result]
 
-2. **Der bestehende Segment-Relay stellt serverseitig einen anonymen Public-Grant aus.**
-   - What we know: Der aktuelle Next-Relay verwendet `resolvePublicSegmentRelayTarget`, liest keine Auth-Cookies und der Backend-Handler besitzt `CreatePublicSegmentStreamGrant`; Phase 105 verlangt zugleich, dass Gäste keine UI-Abspielaktion sehen. [VERIFIED: relay route/tests, backend handler, `105-CONTEXT.md` D-14]
-   - What's unclear: Nichts für diesen UI-Plan; unklar wäre nur eine künftig strengere serverseitige Login-Pflicht.
-   - Recommendation: Phase 105 ändert den Relay nicht und stellt nur die gelockte Sessiondarstellung wieder her. Falls direkte anonyme Relay-Aufrufe künftig verboten werden sollen, braucht das eine eigene Security-/Contract-Entscheidung statt einen versteckten UI-Redesign-Nebeneffekt. [VERIFIED: locked no-new-API boundary]
+2. **Die bestehende Segment-Relay-/Grant-Grenze bleibt unverändert.**
+   - Resolution: Phase 105 blendet für Gäste ausschließlich die Abspielaktion in der UI aus und baut weder Relay noch Authentifizierung oder Grant-Erzeugung um. Eine strengere serverseitige Login-Pflicht wäre eine separate Security-/Contract-Entscheidung außerhalb dieser Phase. [VERIFIED: locked no-new-API boundary, `105-CONTEXT.md` D-14, `docs/frontend/auth-api-client.md`]
 
-3. **Außenlabel-Kollisionen brauchen eine konkrete lokale Strategie.**
-   - What we know: Die UI-SPEC fordert Rand-Clamping und eine zweite Labelzeile bei Kollision; aktuelle Komponenten besitzen dafür keinen Helper. [VERIFIED: `105-UI-SPEC.md`, code inspection]
-   - What's unclear: Die exakte Heuristik liegt im Agenten-Ermessen und hängt von realen Namen/Breiten ab. [VERIFIED: discretion in `105-CONTEXT.md`]
-   - Recommendation: Im Kara-Plan einen kleinen, in `ThemeTimeline.tsx` testbaren Zwei-Lane-Greedy-Allocator vorsehen und ihn mit kurzen/langen Labels an 768/1024/1440 px live prüfen; keine globale Utility oder Library anlegen. [VERIFIED: UI contract and reuse rules]
+3. **Außenlabel-Kollisionen verwenden einen lokalen Zwei-Lane-Allocator.**
+   - Resolution: Bei Kollisionen verteilt ein kleiner, lokal in `ThemeTimeline.tsx` testbarer Zwei-Lane-Label-Allocator die Außenlabels; die proportionale Geometrie der Timeline-Segmente bleibt dabei unverfälscht und wahrheitsgetreu. Es entsteht weder eine globale Utility noch eine neue Library. [VERIFIED: `105-UI-SPEC.md`, `105-CONTEXT.md` discretion, implementation-contract reuse boundary]
 
 ## Environment Availability
 
