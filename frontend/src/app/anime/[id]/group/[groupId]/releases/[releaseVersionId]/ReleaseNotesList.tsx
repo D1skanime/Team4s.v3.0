@@ -5,7 +5,7 @@ import { useState } from 'react'
 
 import { RichTextRenderer } from '@/components/editor'
 import { Button, Card, SectionHeader } from '@/components/ui'
-import { ApiError, getGroupReleaseNotes, resolveApiUrl } from '@/lib/api'
+import { getGroupReleaseNotes, resolveApiUrl } from '@/lib/api'
 import type { PublicReleaseGroup, PublicReleaseNote } from '@/types/releaseDetail'
 
 import styles from './ReleaseNotesList.module.css'
@@ -34,6 +34,10 @@ export function selectInitialReleaseNotes(notes: PublicReleaseNote[], target = 3
   return selected
 }
 
+function hasClampedNoteContent(bodyHtml: string) {
+  return bodyHtml.replace(/<[^>]*>/g, '').trim().length > 320
+}
+
 export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNotes, totalCount, groups = [] }: Props) {
   const [items, setItems] = useState(initialNotes)
   const [revealed, setRevealed] = useState(false)
@@ -41,14 +45,23 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
   const [hasMore, setHasMore] = useState(initialNotes.length < totalCount)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [expandedNoteIDs, setExpandedNoteIDs] = useState<Set<number>>(() => new Set())
   if (!totalCount) return null
 
   const visibleItems = revealed ? items : selectInitialReleaseNotes(items)
-  const buckets = groups.length ? [
-    ...groups.map(group => ({ key: String(group.id), label: group.name, items: visibleItems.filter(note => note.fansub_group_id === group.id) })),
-    { key: 'unassigned', label: 'Nicht eindeutig zugeordnet', items: visibleItems.filter(note => note.fansub_group_id == null) },
-  ].filter(bucket => bucket.items.length > 0) : [...new Set(visibleItems.map(note => note.role_label || 'Weitere Beiträge'))].map(role => ({ key: role, label: role, items: visibleItems.filter(note => (note.role_label || 'Weitere Beiträge') === role) }))
+  const groupNamesByID = new Map(groups.map(group => [group.id, group.name]))
+  const buckets = [...new Set(visibleItems.map(note => note.role_label || 'Weitere Beiträge'))]
+    .map(role => ({ key: role, label: role, items: visibleItems.filter(note => (note.role_label || 'Weitere Beiträge') === role) }))
   const remaining = Math.max(0, totalCount - visibleItems.length)
+
+  function toggleNote(noteID: number) {
+    setExpandedNoteIDs(previous => {
+      const next = new Set(previous)
+      if (next.has(noteID)) next.delete(noteID)
+      else next.add(noteID)
+      return next
+    })
+  }
 
   async function loadMore() {
     if (!revealed) { setRevealed(true); if (items.length >= totalCount) return }
@@ -57,25 +70,32 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
       const page = await getGroupReleaseNotes(animeID, groupID, releaseVersionID, { cursor: cursor ?? undefined, limit: 20 })
       setItems(previous => { const seen = new Set(previous.map(note => note.id)); return [...previous, ...page.items.filter(note => !seen.has(note.id))] })
       setCursor(page.next_cursor); setHasMore(page.has_more)
-    } catch (reason) { setError(reason instanceof ApiError ? reason.message : 'Weitere Beiträge konnten nicht geladen werden.') }
+    } catch { setError('Weitere Texte konnten nicht geladen werden. Bitte versuche es erneut.') }
     finally { setLoading(false) }
   }
 
   return <section id="textbeitraege" className={styles.section}>
-    <SectionHeader title="Stimmen aus dem Team" description={`${totalCount} Texte, nach Herkunftsgruppe geordnet`} underline />
+    <SectionHeader title="Stimmen aus dem Team" description={`${totalCount} Texte, nach Rollen geordnet`} underline />
     {error ? <p className={styles.error}>{error}</p> : null}
     <div className={styles.roleGrid} data-role-grid="responsive">
       {buckets.map(bucket => <section key={bucket.key} className={styles.roleGroup}>
-        <SectionHeader eyebrow="Herkunftsgruppe" title={bucket.label} underline />
-        <div className={styles.list}>{bucket.items.map(note => <Card key={note.id} variant="flat" className={styles.card}>
-          <header className={styles.cardHeader}>
-            {note.member_avatar_url ? <Image className={styles.avatar} src={resolveApiUrl(note.member_avatar_url)} alt="" width={42} height={42} unoptimized /> : <span className={styles.avatar} aria-hidden="true">{note.member_name.charAt(0).toUpperCase()}</span>}
-            <div><strong>{note.member_name}</strong><p>{note.role_label || 'Beitrag'} · {formatReleaseNoteDate(note.created_at)}</p></div>
-          </header>
-          <div className={styles.cardBody}><RichTextRenderer bodyHtml={note.body_html} editorType="tiptap" contentSchemaVersion={1} /></div>
-        </Card>)}</div>
+        <SectionHeader eyebrow="Release-Rolle" title={bucket.label} underline />
+        <div className={styles.list}>{bucket.items.map(note => {
+          const expanded = expandedNoteIDs.has(note.id)
+          const bodyID = `release-note-body-${note.id}`
+          const sourceGroupName = note.fansub_group_id ? groupNamesByID.get(note.fansub_group_id) : null
+          const expandable = hasClampedNoteContent(note.body_html)
+          return <Card key={note.id} variant="flat" className={styles.card}>
+            <header className={styles.cardHeader}>
+              {note.member_avatar_url ? <Image className={styles.avatar} src={resolveApiUrl(note.member_avatar_url)} alt="" width={42} height={42} unoptimized /> : <span className={styles.avatar} aria-hidden="true">{note.member_name.charAt(0).toUpperCase()}</span>}
+              <div><strong>{note.member_name}</strong><p>{note.role_label || 'Beitrag'}{sourceGroupName ? ` · ${sourceGroupName}` : ''} · {formatReleaseNoteDate(note.created_at)}</p></div>
+            </header>
+            <div id={bodyID} className={`${styles.cardBody}${expanded ? ` ${styles.cardBodyExpanded}` : ''}`}><RichTextRenderer bodyHtml={note.body_html} editorType="tiptap" contentSchemaVersion={1} /></div>
+            {expandable ? <Button type="button" variant="ghost" className={styles.expandButton} aria-expanded={expanded} aria-controls={bodyID} onClick={() => toggleNote(note.id)}>{expanded ? 'Weniger anzeigen' : 'Weiterlesen'}</Button> : null}
+          </Card>
+        })}</div>
       </section>)}
     </div>
-    {remaining > 0 || hasMore ? <div className={styles.loadMoreRow}><Button variant="secondary" size="sm" loading={loading} onClick={loadMore}>Weitere {remaining || ''} Texte anzeigen</Button></div> : null}
+    {remaining > 0 && (!revealed || hasMore) ? <div className={styles.loadMoreRow}><Button variant="secondary" size="sm" loading={loading} onClick={loadMore}>Weitere {remaining} Texte anzeigen</Button></div> : null}
   </section>
 }

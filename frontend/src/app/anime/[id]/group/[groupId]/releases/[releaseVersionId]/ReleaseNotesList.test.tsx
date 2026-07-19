@@ -44,6 +44,8 @@ describe('ReleaseNotesList', () => {
     expect(screen.queryByRole('heading', { name: 'C-Subs' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'D-Subs' })).toBeNull()
     expect(screen.queryByText('Herkunftsgruppe')).toBeNull()
+    expect(screen.getByText(/C-Subs/)).toBeTruthy()
+    expect(screen.getByText(/D-Subs/)).toBeTruthy()
   })
 
   it('expands only the selected stable note ID and preserves it across a cursor merge', async () => {
@@ -67,8 +69,11 @@ describe('ReleaseNotesList', () => {
 
     const annaCard = screen.getByText(/Annas langer Text/).closest('section') as HTMLElement
     const mikaCard = screen.getByText(/Mikas langer Text/).closest('section') as HTMLElement
-    fireEvent.click(within(annaCard).getByRole('button', { name: 'Weiterlesen' }))
-    expect(within(annaCard).getByRole('button', { name: 'Weniger anzeigen' })).toBeTruthy()
+    const annaToggle = within(annaCard).getByRole('button', { name: 'Weiterlesen' })
+    expect(annaToggle.getAttribute('aria-expanded')).toBe('false')
+    expect(annaToggle.getAttribute('aria-controls')).toBe('release-note-body-21')
+    fireEvent.click(annaToggle)
+    expect(within(annaCard).getByRole('button', { name: 'Weniger anzeigen' }).getAttribute('aria-expanded')).toBe('true')
     expect(within(mikaCard).getByRole('button', { name: 'Weiterlesen' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: /Weitere 1 Texte anzeigen/ }))
@@ -88,7 +93,7 @@ describe('ReleaseNotesList', () => {
     />)
 
     fireEvent.click(screen.getByRole('button', { name: /Weitere 1 Texte anzeigen/ }))
-    await waitFor(() => expect(screen.getByText('Weitere Beiträge konnten nicht geladen werden.')).toBeTruthy())
+    await waitFor(() => expect(screen.getByText('Weitere Texte konnten nicht geladen werden. Bitte versuche es erneut.')).toBeTruthy())
     expect(screen.getByText('Bestehender Text')).toBeTruthy()
   })
 
