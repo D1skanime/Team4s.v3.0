@@ -36,6 +36,27 @@ const TYPE_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
+const TYPE_STYLE_KEYS: Record<string, keyof typeof styles> = {
+  OP: 'typeOp',
+  'OP KARA': 'typeOp',
+  OPENING: 'typeOp',
+  'OPENING KARA': 'typeOp',
+  ED: 'typeEd',
+  'ED KARA': 'typeEd',
+  ENDING: 'typeEd',
+  'ENDING KARA': 'typeEd',
+  IN: 'typeIn',
+  'IN KARA': 'typeIn',
+  INSERT: 'typeIn',
+  'INSERT KARA': 'typeIn',
+  MIDDLE: 'typeMiddle',
+  'MIDDLE KARA': 'typeMiddle',
+  KARA: 'typeKara',
+  KARAOKE: 'typeKara',
+  OTHER: 'typeOther',
+  'OTHER KARA': 'typeOther',
+}
+
 const TIMELINE_TICKS = [0, 25, 50, 75, 100] as const
 const LABEL_HALF_WIDTH_PERCENT = 9
 const LABEL_GAP_PERCENT = 1
@@ -52,13 +73,8 @@ function clock(seconds: number | null): string {
 }
 
 function typeKey(type: string): keyof typeof styles {
-  const normalized = type.toUpperCase()
-  if (normalized === 'OP') return 'typeOp'
-  if (normalized === 'ED') return 'typeEd'
-  if (normalized === 'IN') return 'typeIn'
-  if (normalized === 'MIDDLE') return 'typeMiddle'
-  if (normalized === 'KARA') return 'typeKara'
-  return 'typeOther'
+  const normalized = type.trim().toUpperCase().replace(/[\s_-]+/g, ' ')
+  return TYPE_STYLE_KEYS[normalized] ?? 'typeOther'
 }
 
 function segmentTypeLabel(type: string): string {

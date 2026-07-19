@@ -5,6 +5,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PublicReleaseSegment } from '@/types/releaseDetail'
 
+import styles from './ThemeTimeline.module.css'
+
 const session = vi.hoisted(() => ({
   value: { hasAccessToken: false, hasRefreshToken: false, isClientInitialized: true },
 }))
@@ -19,7 +21,7 @@ vi.mock('@/components/ui', () => ({
     void variant
     return <button {...buttonProps}>{children}</button>
   },
-  Card: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Card: ({ children, className }: { children: ReactNode; className?: string }) => <div className={className}>{children}</div>,
   SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
 }))
 
@@ -140,6 +142,23 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     const geometry = screen.getByTestId('kara-segment-geometry-17')
     expect(geometry.style.left).toBe(`${1 / 1_400 * 100}%`)
     expect(geometry.style.width).toBe(`${1 / 1_400 * 100}%`)
+  })
+
+  it('maps live OP Kara and ED Kara variants to distinct card and geometry colors', () => {
+    renderTimeline({
+      segments: [
+        { ...segments[0], type: 'OP Kara' },
+        { ...segments[1], type: 'ED Kara' },
+        { ...segments[2], type: 'Fansub Special' },
+      ],
+    })
+
+    expect(screen.getByTestId('kara-segment-geometry-7').classList.contains(styles.typeOp)).toBe(true)
+    expect(screen.getByTestId('kara-segment-geometry-8').classList.contains(styles.typeEd)).toBe(true)
+    expect(screen.getByTestId('kara-segment-geometry-9').classList.contains(styles.typeOther)).toBe(true)
+    expect(document.querySelectorAll(`.${styles.segmentCard}.${styles.typeOp}`)).toHaveLength(1)
+    expect(document.querySelectorAll(`.${styles.segmentCard}.${styles.typeEd}`)).toHaveLength(1)
+    expect(document.querySelectorAll(`.${styles.segmentCard}.${styles.typeOther}`)).toHaveLength(1)
   })
 
   it('keeps the 44 by 44 hit target structurally separate from visible geometry', () => {
