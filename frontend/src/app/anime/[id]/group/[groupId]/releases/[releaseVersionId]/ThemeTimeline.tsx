@@ -1,6 +1,6 @@
 'use client'
 
-import { Play } from 'lucide-react'
+import { Lock, Play } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -23,7 +23,7 @@ type SegmentGeometry = {
   leftPercent: number
   widthPercent: number
   centerPercent: number
-  labelLane: 0 | 1
+  labelLane: number
   labelAlignment: 'start' | 'center' | 'end'
 }
 
@@ -57,7 +57,6 @@ const TYPE_STYLE_KEYS: Record<string, keyof typeof styles> = {
   'OTHER KARA': 'typeOther',
 }
 
-const TIMELINE_TICKS = [0, 25, 50, 75, 100] as const
 const LABEL_HALF_WIDTH_PERCENT = 9
 const LABEL_GAP_PERCENT = 1
 
@@ -106,13 +105,13 @@ function allocateGeometry(segments: PublicReleaseSegment[], duration: number): S
     return { segment, index, leftPercent, widthPercent, centerPercent, labelAlignment, labelStart }
   })
 
-  const laneEnds = [-Infinity, -Infinity]
-  const lanes = new Map<number, 0 | 1>()
+  const laneEnds: number[] = []
+  const lanes = new Map<number, number>()
   ;[...raw]
     .sort((left, right) => left.labelStart - right.labelStart || left.index - right.index)
     .forEach((item) => {
-      const firstLaneAvailable = item.labelStart >= laneEnds[0] + LABEL_GAP_PERCENT
-      const labelLane: 0 | 1 = firstLaneAvailable ? 0 : 1
+      const availableLane = laneEnds.findIndex(laneEnd => item.labelStart >= laneEnd + LABEL_GAP_PERCENT)
+      const labelLane = availableLane >= 0 ? availableLane : laneEnds.length
       laneEnds[labelLane] = item.labelStart + LABEL_HALF_WIDTH_PERCENT * 2
       lanes.set(item.index, labelLane)
     })
@@ -132,6 +131,7 @@ function geometryStyle(geometry: SegmentGeometry): CSSProperties {
     '--segment-left': `${geometry.leftPercent}%`,
     '--segment-width': `${geometry.widthPercent}%`,
     '--segment-center': `${geometry.centerPercent}%`,
+    '--segment-label-lane': geometry.labelLane,
   } as CSSProperties
 }
 
@@ -209,6 +209,7 @@ export function ThemeTimeline({
   const initialPlaybackHandled = useRef(false)
   const duration = resolveDuration(episodeDurationSeconds, segments)
   const geometries = useMemo(() => allocateGeometry(segments, duration), [duration, segments])
+  const labelLaneCount = Math.max(1, ...geometries.map(geometry => geometry.labelLane + 1))
   const selectedSegment = segments.find((segment) => segment.theme_segment_id === selectedSegmentID) ?? null
   const activeStreamSegment = hasSession
     ? segments.find((segment) => segment.theme_segment_id === streamSegmentID && segment.readiness === 'ready') ?? null
@@ -261,22 +262,13 @@ export function ThemeTimeline({
       <SectionHeader title="Karas" underline />
 
       <div className={styles.desktopTimeline} aria-label="Kara-Zeitleiste der Episode">
-        <div className={styles.tickRow}>
-          {TIMELINE_TICKS.map((percent) => (
-            <span
-              key={percent}
-              className={styles.tick}
-              data-percent={percent}
-              data-testid="kara-timeline-tick"
-              style={{ '--tick-position': `${percent}%` } as CSSProperties}
-            >
-              <span aria-hidden="true" />
-              <time>{clock(duration * percent / 100)}</time>
-            </span>
-          ))}
+        <div className={styles.timelineAnchors} aria-label="Gesamte Episodendauer">
+          <time data-testid="kara-timeline-anchor" data-edge="start"><span>Start</span>{clock(0)}</time>
+          <span>Gesamte Episode</span>
+          <time data-testid="kara-timeline-anchor" data-edge="end"><span>Ende</span>{clock(duration)}</time>
         </div>
 
-        <div className={styles.trackStage}>
+        <div className={styles.trackStage} style={{ '--label-lane-count': labelLaneCount } as CSSProperties}>
           <div className={styles.track} aria-hidden="true" />
           {geometries.map((geometry) => {
             const { segment } = geometry
@@ -309,7 +301,7 @@ export function ThemeTimeline({
                   data-alignment={geometry.labelAlignment}
                 >
                   <strong>{segment.name}</strong>
-                  <span>{segmentTypeLabel(segment.type)} · {clock(segment.start_seconds)}</span>
+                  <span>{segmentTypeLabel(segment.type)} · {clock(segment.start_seconds)}–{clock(segment.end_seconds)}</span>
                 </span>
               </div>
             )
@@ -343,7 +335,18 @@ export function ThemeTimeline({
                   Kara abspielen
                 </Button>
               ) : null}
-              {hasSession && segment.readiness !== 'ready' ? (
+              {session.isClientInitialized && !hasSession && segment.readiness === 'ready' ? (
+                <Button
+                  href="/login"
+                  variant="secondary"
+                  fullWidth
+                  leftIcon={<Lock size={16} aria-hidden="true" data-testid={`kara-login-lock-${segment.theme_segment_id}`} />}
+                  className={styles.playButton}
+                >
+                  Anmelden zum Abspielen
+                </Button>
+              ) : null}
+              {segment.readiness !== 'ready' ? (
                 <span className={styles.unavailable}>Noch nicht abspielbar</span>
               ) : null}
             </Card>

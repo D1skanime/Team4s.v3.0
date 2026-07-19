@@ -13,5 +13,5 @@
 .loadMoreRow { display: flex; justify-content: center; }
 .error { color: var(--color-error); margin: 0; }
 @media (min-width: 901px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1200px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-5, 24px); } }
+@media (min-width: 1200px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5, 24px); } }
 @media (max-width: 600px) { .grid { gap: var(--space-2, 8px); } .metaRow { align-items: flex-start; } }

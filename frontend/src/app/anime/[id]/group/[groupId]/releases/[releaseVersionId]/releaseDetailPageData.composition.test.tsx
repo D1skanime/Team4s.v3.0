@@ -26,7 +26,22 @@ vi.mock('@/lib/api', () => ({
   getGroupDetail: mocks.getGroupDetail,
   getGroupReleaseDetail: mocks.getGroupReleaseDetail,
 }))
-vi.mock('./ReleaseDetailHero', () => ({ ReleaseDetailHero: () => <section data-testid="release-hero">Hero</section> }))
+vi.mock('./ReleaseDetailHero', () => ({
+  ReleaseDetailHero: ({ next, animeID, groupID, canonicalProjectPath }: {
+    next: { release_version_id: number } | null
+    animeID: number
+    groupID: number
+    canonicalProjectPath?: string | null
+  }) => (
+    <section
+      data-testid="release-hero"
+      data-next-release-id={next?.release_version_id ?? ''}
+      data-anime-id={animeID}
+      data-group-id={groupID}
+      data-canonical-project-path={canonicalProjectPath ?? ''}
+    >Hero</section>
+  ),
+}))
 vi.mock('./ThemeTimeline', () => ({
   ThemeTimeline: ({ segments }: { segments: unknown[] }) => segments.length > 0
     ? <section data-testid="release-karas"><h2>Karas</h2></section>
@@ -116,6 +131,10 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
 
     expect(screen.queryByRole('navigation', { name: 'Release-Inhalte' })).toBeNull()
     expect(screen.queryByTestId('release-anchors')).toBeNull()
+    expect(screen.getByTestId('release-hero').getAttribute('data-next-release-id')).toBe('13')
+    expect(screen.getByTestId('release-hero').getAttribute('data-anime-id')).toBe('9')
+    expect(screen.getByTestId('release-hero').getAttribute('data-group-id')).toBe('4')
+    expect(screen.getByTestId('release-hero').getAttribute('data-canonical-project-path')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed')
   })
 
   it('omits empty child sections completely without headings, dividers, or reserved sections', async () => {

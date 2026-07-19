@@ -3,15 +3,19 @@
 import { Accordion, Card } from '@/components/ui'
 import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
+import { ReleaseNavigation } from './ReleaseNavigation'
 import styles from './page.module.css'
 
 type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
   'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' | 'release_date' |
-  'duration_seconds' | 'resolution' | 'video_codec' | 'subtitle_tracks' |
-  'preview_image' | 'images_count' | 'notes_count' | 'contributors_count'> & {
+  'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
+  'audio_language' | 'subtitle_tracks' | 'subtitle_type' | 'preview_image' | 'next' |
+  'images_count' | 'notes_count' | 'contributors_count'> & {
+    animeID: number
+    groupID: number
+    canonicalProjectPath?: string | null
     animeLogoFallbackUrl: string | null
     atmosphereUrl?: string | null
-    subtitle_type?: string | null
   }
 
 function formatDate(value: string | null) {
@@ -28,7 +32,26 @@ function formatDuration(seconds: number | null) {
 }
 
 function subtitleType(type: string | null | undefined) {
-  return type?.toLowerCase() === 'hard' || type?.toLowerCase() === 'hardsub' ? 'Hardsub' : 'Softsub'
+  const normalized = type?.trim().toLowerCase()
+  if (!normalized) return 'Nicht hinterlegt'
+  if (normalized === 'hard' || normalized === 'hardsub') return 'Hardsub'
+  if (normalized === 'soft' || normalized === 'softsub') return 'Softsub'
+  return type?.trim() || 'Nicht hinterlegt'
+}
+
+function displayValue(value: string | null | undefined) {
+  return value?.trim() || 'Nicht hinterlegt'
+}
+
+function formatSubtitleTracks(props: ReleaseDetailHeroProps) {
+  if (props.subtitle_tracks.length === 0) return 'Nicht hinterlegt'
+  return props.subtitle_tracks.map((track, index) => {
+    const details = [track.label, track.language, track.format]
+      .map(value => value?.trim())
+      .filter((value): value is string => Boolean(value))
+      .filter((value, valueIndex, values) => values.indexOf(value) === valueIndex)
+    return `Spur ${index + 1}: ${details.length > 0 ? details.join(' · ') : 'Nicht hinterlegt'}`
+  }).join('; ')
 }
 
 export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
@@ -36,21 +59,23 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
   const imageSrc = image?.thumbnail_url ?? image?.original_url ?? props.animeLogoFallbackUrl
   const isLogoFallback = !image && Boolean(props.animeLogoFallbackUrl)
   const primaryFacts = [
-    ['Version', props.version],
-    ['Veröffentlicht', formatDate(props.release_date)],
-    ['Dauer', formatDuration(props.duration_seconds)],
-    ['Auflösung', props.resolution],
-  ].filter((entry): entry is [string, string] => Boolean(entry[1]))
-  const subType = subtitleType(props.subtitle_type)
-  const groupLine = props.groups.map(group => group.name).join(' · ')
+    ['Version', displayValue(props.version)],
+    ['Veröffentlicht', displayValue(formatDate(props.release_date))],
+    ['Dauer', displayValue(formatDuration(props.duration_seconds))],
+    ['Auflösung', displayValue(props.resolution)],
+  ]
+  const groupNames = props.groups.map(group => group.name.trim()).filter(Boolean)
+  const groupLine = groupNames.length > 1
+    ? `Fansub-Coop: ${groupNames.join(' × ')}`
+    : `Fansubgruppe: ${groupNames[0] ?? 'Nicht hinterlegt'}`
   const technicalFacts = [
-    ['Video-Codec', props.video_codec],
-    ['Untertiteltyp', subType],
-    ...props.subtitle_tracks.map((track, index) => [
-      `Untertitelspur ${index + 1}`,
-      [track.label || track.language, track.language, track.format].filter(Boolean).filter((value, valueIndex, values) => values.indexOf(value) === valueIndex).join(' · '),
-    ]),
-  ].filter((entry): entry is [string, string] => Boolean(entry[1]))
+    ['Container', displayValue(props.container)],
+    ['Video-Codec', displayValue(props.video_codec)],
+    ['Audio-Codec', displayValue(props.audio_codec)],
+    ['Audio-Sprache', displayValue(props.audio_language)],
+    ['Untertiteltyp', subtitleType(props.subtitle_type)],
+    ['Untertitelspuren', formatSubtitleTracks(props)],
+  ]
 
   return <section className={`${styles.hero} ${imageSrc ? '' : styles.heroTextOnly}`} data-release-hero="independent" data-release-accordion="true">
     <div className={styles.heroSummary}>
@@ -76,5 +101,16 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
           </Card>
         </div>,
       }]} />
+    {props.next ? (
+      <div className={styles.heroNavigation}>
+        <ReleaseNavigation
+          animeID={props.animeID}
+          groupID={props.groupID}
+          canonicalProjectPath={props.canonicalProjectPath}
+          previous={null}
+          next={props.next}
+        />
+      </div>
+    ) : null}
   </section>
 }

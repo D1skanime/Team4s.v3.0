@@ -72,6 +72,7 @@
 .heroSummary { width: 100%; display: grid; grid-template-columns: minmax(220px, .9fr) minmax(0, 1.1fr); gap: clamp(18px, 3vw, 34px); align-items: center; text-align: left; }
 .heroTextOnly .heroSummary { grid-template-columns: minmax(0, 1fr); }
 .heroPanel { display: grid; gap: 20px; }
+.heroNavigation { padding-top: 4px; border-top: 1px solid var(--border-subtle); }
 .heroGroupLine { margin: 0; color: var(--color-text-secondary); font-size: 16px; font-weight: 400; }
 .heroReleaseTitle { margin: 0; color: var(--color-text-primary); font-size: 16px; font-weight: 700; }
 .heroDetailsLabel { color: var(--color-primary); font-size: 12px; font-weight: 700; }

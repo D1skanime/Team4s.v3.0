@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -41,6 +43,17 @@ describe('ReleaseGallery', () => {
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     expect(screen.getAllByText('Release-Screenshot')).toHaveLength(6)
     expect(screen.getByText('Hochgeladen von Uploader 1')).toBeTruthy()
+  })
+
+  it('keeps the viewport contract at two tablet columns and at most three desktop columns', () => {
+    const source = readFileSync(resolve(
+      process.cwd(),
+      'src/app/anime/[id]/group/[groupId]/releases/[releaseVersionId]/ReleaseGallery.module.css',
+    ), 'utf8')
+    expect(source).toMatch(/\.grid\s*\{[^}]*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s)
+    expect(source).toMatch(/@media\s*\(min-width:\s*901px\)[^{]*\{\s*\.grid\s*\{[^}]*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s)
+    expect(source).toMatch(/@media\s*\(min-width:\s*1200px\)[^{]*\{\s*\.grid\s*\{[^}]*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s)
+    expect(source).not.toMatch(/\.grid\s*\{[^}]*repeat\(4,\s*minmax\(0,\s*1fr\)\)/s)
   })
 
   it('keeps images from multiple source groups in exactly one release grid', () => {

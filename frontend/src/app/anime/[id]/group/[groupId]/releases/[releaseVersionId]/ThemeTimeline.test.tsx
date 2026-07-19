@@ -14,12 +14,13 @@ const session = vi.hoisted(() => ({
 vi.mock('@/lib/useAuthSession', () => ({ useAuthSession: () => session.value }))
 vi.mock('@/components/ui', () => ({
   Badge: ({ children }: { children: ReactNode }) => <span>{children}</span>,
-  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { fullWidth?: boolean; leftIcon?: ReactNode; variant?: string }) => {
-    const { fullWidth, leftIcon, variant, ...buttonProps } = props
+  Button: ({ children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { href?: string; fullWidth?: boolean; leftIcon?: ReactNode; variant?: string }) => {
+    const { href, fullWidth, leftIcon, variant, ...buttonProps } = props
     void fullWidth
-    void leftIcon
     void variant
-    return <button {...buttonProps}>{children}</button>
+    return href
+      ? <a href={href}>{leftIcon}{children}</a>
+      : <button {...buttonProps}>{leftIcon}{children}</button>
   },
   Card: ({ children, className }: { children: ReactNode; className?: string }) => <div className={className}>{children}</div>,
   SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
@@ -90,7 +91,7 @@ afterEach(() => {
 })
 
 describe('ThemeTimeline Phase 105 session matrix', () => {
-  it('shows public Kara information to guests without playback, unavailable copy, login copy, or autoplay', async () => {
+  it('shows public Kara information plus a locked login path to guests without playback or autoplay', async () => {
     renderTimeline({ initialSegmentID: 7, autoPlayInitial: true })
 
     expect(screen.getAllByText('Moonlight OP').length).toBeGreaterThan(0)
@@ -99,8 +100,11 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
     expect(screen.getByText(/Mia.*Karaoke/)).not.toBeNull()
     expect(screen.queryByRole('button', { name: /Kara abspielen/i })).toBeNull()
     expect(screen.queryAllByRole('button', { name: /^Abspielen$/i })).toHaveLength(0)
-    expect(screen.queryByText('Noch nicht abspielbar')).toBeNull()
-    expect(screen.queryByText(/anmeld/i)).toBeNull()
+    expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' })).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'Anmelden zum Abspielen' }).every(link => link.getAttribute('href') === '/login')).toBe(true)
+    expect(screen.getByTestId('kara-login-lock-7')).toBeTruthy()
+    expect(screen.getByTestId('kara-login-lock-8')).toBeTruthy()
+    expect(screen.getByText('Noch nicht abspielbar')).toBeTruthy()
     await waitFor(() => expect(document.querySelector('video')).toBeNull())
   })
 
@@ -122,6 +126,7 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
     setSession(true, true, false)
     renderTimeline()
     expect(screen.queryByRole('button', { name: 'Kara abspielen' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Anmelden zum Abspielen' })).toBeNull()
     expect(document.querySelector('video')).toBeNull()
   })
 
@@ -171,26 +176,34 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     expect(hitTarget.style.minHeight).toBe('44px')
   })
 
-  it('renders the five episode ticks at 0, 25, 50, 75, and 100 percent', () => {
+  it('anchors the complete episode track with meaningful start and end times only', () => {
     renderTimeline()
-    expect(screen.getAllByTestId('kara-timeline-tick').map((tick) => tick.getAttribute('data-percent'))).toEqual([
-      '0', '25', '50', '75', '100',
-    ])
+    const anchors = screen.getAllByTestId('kara-timeline-anchor')
+    expect(anchors.map(anchor => anchor.getAttribute('data-edge'))).toEqual(['start', 'end'])
+    expect(anchors[0].textContent).toContain('Start00:00')
+    expect(anchors[1].textContent).toContain('Ende23:20')
+    expect(screen.queryByText('05:50')).toBeNull()
   })
 
-  it('allocates colliding outside labels stably across two lanes and aligns edge labels inward', () => {
+  it('allocates four close segment labels to separate lanes and keeps their time ranges visible', () => {
     renderTimeline({
       segments: [
-        { ...segments[0], theme_segment_id: 20, start_seconds: 0, end_seconds: 20 },
-        { ...segments[1], theme_segment_id: 21, start_seconds: 10, end_seconds: 30 },
-        { ...segments[2], theme_segment_id: 22, start_seconds: 1_380, end_seconds: 1_400 },
+        { ...segments[0], theme_segment_id: 20, type: 'OP', start_seconds: 10, end_seconds: 20 },
+        { ...segments[1], theme_segment_id: 21, type: 'ED', start_seconds: 21, end_seconds: 30 },
+        { ...segments[2], theme_segment_id: 22, type: 'IN', start_seconds: 31, end_seconds: 40 },
+        { ...segments[0], theme_segment_id: 23, type: 'KARA', start_seconds: 41, end_seconds: 50 },
       ],
     })
 
-    expect(screen.getByTestId('kara-outside-label-20').getAttribute('data-lane')).toBe('0')
-    expect(screen.getByTestId('kara-outside-label-21').getAttribute('data-lane')).toBe('1')
-    expect(screen.getByTestId('kara-outside-label-20').getAttribute('data-alignment')).toBe('start')
-    expect(screen.getByTestId('kara-outside-label-22').getAttribute('data-alignment')).toBe('end')
+    const labels = [20, 21, 22, 23].map(id => screen.getByTestId(`kara-outside-label-${id}`))
+    expect(labels.map(label => label.getAttribute('data-lane'))).toEqual(['0', '1', '2', '3'])
+    expect(labels.map(label => label.textContent)).toEqual(expect.arrayContaining([
+      expect.stringContaining('Opening · 00:10–00:20'),
+      expect.stringContaining('Ending · 00:21–00:30'),
+      expect.stringContaining('Insert · 00:31–00:40'),
+      expect.stringContaining('Karaoke · 00:41–00:50'),
+    ]))
+    expect(document.querySelectorAll(`.${styles.segmentCard}`)).toHaveLength(4)
   })
 
   it('does not render segment preview images into either responsive Kara representation', () => {

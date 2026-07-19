@@ -19,6 +19,30 @@ describe('ReleaseNotesList', () => {
     ]
     expect(selectInitialReleaseNotes(notes).map(note => note.id)).toEqual([1, 3, 4])
   })
+
+  it('progressively discloses eight texts instead of rendering eight full cards initially', () => {
+    const loadNotes = vi.spyOn(api, 'getGroupReleaseNotes')
+    const notes = Array.from({ length: 8 }, (_, index) => ({
+      id: index + 1,
+      fansub_group_id: 2,
+      member_id: index + 1,
+      member_name: `Mitglied ${index + 1}`,
+      member_avatar_url: null,
+      role_label: 'Timing',
+      body_html: `<p>Teamtext ${index + 1}</p>`,
+      created_at: '2026-01-01',
+    }))
+
+    render(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={8} initialNotes={notes} />)
+
+    expect(screen.getAllByText(/Teamtext \d/)).toHaveLength(3)
+    expect(screen.queryByText('Teamtext 4')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Weitere 5 Texte anzeigen' }))
+    expect(screen.getAllByText(/Teamtext \d/)).toHaveLength(8)
+    expect(loadNotes).not.toHaveBeenCalled()
+    loadNotes.mockRestore()
+  })
+
   it('groups whole role blocks in the responsive role grid', () => {
     render(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={2} initialNotes={[{id:1,member_id:1,member_name:'Anna',member_avatar_url:null,role_label:'Übersetzung',body_html:'<p>Text A</p>',created_at:'2026-01-02'},{id:2,member_id:2,member_name:'Mika',member_avatar_url:null,role_label:'Karaoke',body_html:'<p>Text B</p>',created_at:'2026-01-03'}]} />)
     const grid = document.querySelector('[data-role-grid="responsive"]')

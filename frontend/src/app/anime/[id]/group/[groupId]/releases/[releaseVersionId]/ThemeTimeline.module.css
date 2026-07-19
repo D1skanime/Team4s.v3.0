@@ -11,52 +11,48 @@
   padding: 0 4px;
 }
 
-.tickRow {
-  position: relative;
-  height: 24px;
-  min-width: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.tick {
-  position: absolute;
-  left: var(--tick-position);
-  top: 0;
+.timelineAnchors {
   display: grid;
-  justify-items: center;
-  gap: 4px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.25;
-  transform: translateX(-50%);
 }
 
-.tick:first-child {
-  justify-items: start;
-  transform: none;
+.timelineAnchors > span {
+  color: var(--color-text-primary);
+  text-align: center;
 }
 
-.tick:last-child {
+.timelineAnchors time {
+  display: grid;
+  gap: 2px;
+}
+
+.timelineAnchors time:last-child {
   justify-items: end;
-  transform: translateX(-100%);
+  text-align: right;
 }
 
-.tick > span {
-  width: 1px;
-  height: 4px;
-  background: var(--border-default);
+.timelineAnchors time span {
+  font-weight: 400;
 }
 
 .trackStage {
+  --track-top: calc(var(--label-lane-count) * 44px + 8px);
+
   position: relative;
-  height: 112px;
+  height: calc(var(--track-top) + 28px);
   min-width: 0;
 }
 
 .track {
   position: absolute;
-  inset: 48px 0 auto;
+  inset: var(--track-top) 0 auto;
   width: 100%;
   height: 12px;
   border: 1px solid var(--border-default);
@@ -70,7 +66,7 @@
 
 .segmentGeometry {
   position: absolute;
-  top: 48px;
+  top: var(--track-top);
   left: var(--segment-left);
   width: var(--segment-width);
   height: 12px;
@@ -82,7 +78,7 @@
 
 .hitTarget {
   position: absolute;
-  top: 32px;
+  top: calc(var(--track-top) - 16px);
   left: calc(var(--segment-center) - 22px);
   width: 44px;
   height: 44px;
@@ -110,7 +106,7 @@
 .outsideLabel {
   position: absolute;
   left: var(--segment-center);
-  top: 0;
+  top: calc(var(--segment-label-lane) * 44px);
   display: grid;
   gap: 4px;
   width: min(18%, 176px);
@@ -120,10 +116,6 @@
   line-height: 1.25;
   text-align: center;
   transform: translateX(-50%);
-}
-
-.outsideLabel[data-lane="1"] {
-  top: 72px;
 }
 
 .outsideLabel[data-alignment="start"] {
@@ -349,13 +341,6 @@
 @media (min-width: 640px) and (max-width: 900px) {
   .segmentCards {
     grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (min-width: 640px) and (max-width: 1199px) {
-  .tick[data-percent="25"],
-  .tick[data-percent="75"] {
-    display: none;
   }
 }
 

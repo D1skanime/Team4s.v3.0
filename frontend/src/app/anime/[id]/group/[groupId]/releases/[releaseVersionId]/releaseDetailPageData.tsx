@@ -83,7 +83,14 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
   return <main className={`${styles.page} ${atmosphereUrl ? styles.pageWithBackdrop : ''}`} style={pageStyle}>
     <Breadcrumbs items={breadcrumbItems} />
     <p className={styles.backLink}><Link href={projectHref}>Zurück zum Fansub-Projekt</Link></p>
-    <ReleaseDetailHero {...detail} animeLogoFallbackUrl={animeLogoFallbackUrl} atmosphereUrl={atmosphereUrl} />
+    <ReleaseDetailHero
+      {...detail}
+      animeID={animeID}
+      groupID={groupID}
+      canonicalProjectPath={canonicalProjectPath}
+      animeLogoFallbackUrl={animeLogoFallbackUrl}
+      atmosphereUrl={atmosphereUrl}
+    />
     <ThemeTimeline
       releaseVersionID={releaseVersionID}
       episodeDurationSeconds={detail.duration_seconds}
