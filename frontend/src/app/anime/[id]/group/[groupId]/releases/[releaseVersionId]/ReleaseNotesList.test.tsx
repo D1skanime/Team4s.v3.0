@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { act } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import * as api from '@/lib/api'
 import { formatReleaseNoteDate, ReleaseNotesList, selectInitialReleaseNotes } from './ReleaseNotesList'
 
 afterEach(cleanup)
@@ -23,6 +24,72 @@ describe('ReleaseNotesList', () => {
     const grid = document.querySelector('[data-role-grid="responsive"]')
     expect(grid?.children).toHaveLength(2)
     expect(screen.getByRole('heading', { name: 'Übersetzung' }).closest('section')?.parentElement).toBe(grid)
+  })
+
+  it('keeps non-empty source groups bucketed by release role', () => {
+    render(<ReleaseNotesList
+      animeID={1}
+      groupID={2}
+      releaseVersionID={3}
+      totalCount={2}
+      groups={[{ id: 2, slug: 'c-subs', name: 'C-Subs', logo_url: null }, { id: 3, slug: 'd-subs', name: 'D-Subs', logo_url: null }]}
+      initialNotes={[
+        { id: 11, fansub_group_id: 2, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label: 'Übersetzung', body_html: '<p>Text A</p>', created_at: '2026-01-02' },
+        { id: 12, fansub_group_id: 3, member_id: 2, member_name: 'Mika', member_avatar_url: null, role_label: 'Karaoke', body_html: '<p>Text B</p>', created_at: '2026-01-03' },
+      ]}
+    />)
+
+    expect(screen.getByRole('heading', { name: 'Übersetzung' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Karaoke' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'C-Subs' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'D-Subs' })).toBeNull()
+    expect(screen.queryByText('Herkunftsgruppe')).toBeNull()
+  })
+
+  it('expands only the selected stable note ID and preserves it across a cursor merge', async () => {
+    const longAnnaText = `Annas langer Text ${'mit weiteren Details '.repeat(24)}`
+    const longMikaText = `Mikas langer Text ${'mit weiteren Details '.repeat(24)}`
+    vi.spyOn(api, 'getGroupReleaseNotes').mockResolvedValue({
+      items: [{ id: 23, fansub_group_id: 2, member_id: 3, member_name: 'Noah', member_avatar_url: null, role_label: 'Timing', body_html: '<p>Cursor-Text</p>', created_at: '2026-01-04' }],
+      next_cursor: null,
+      has_more: false,
+    })
+    render(<ReleaseNotesList
+      animeID={1}
+      groupID={2}
+      releaseVersionID={3}
+      totalCount={3}
+      initialNotes={[
+        { id: 21, fansub_group_id: 2, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label: 'Übersetzung', body_html: `<p>${longAnnaText}</p>`, created_at: '2026-01-02' },
+        { id: 22, fansub_group_id: 2, member_id: 2, member_name: 'Mika', member_avatar_url: null, role_label: 'Karaoke', body_html: `<p>${longMikaText}</p>`, created_at: '2026-01-03' },
+      ]}
+    />)
+
+    const annaCard = screen.getByText(/Annas langer Text/).closest('section') as HTMLElement
+    const mikaCard = screen.getByText(/Mikas langer Text/).closest('section') as HTMLElement
+    fireEvent.click(within(annaCard).getByRole('button', { name: 'Weiterlesen' }))
+    expect(within(annaCard).getByRole('button', { name: 'Weniger anzeigen' })).toBeTruthy()
+    expect(within(mikaCard).getByRole('button', { name: 'Weiterlesen' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: /Weitere 1 Texte anzeigen/ }))
+    await waitFor(() => expect(screen.getByText('Cursor-Text')).toBeTruthy())
+    expect(within(screen.getByText(/Annas langer Text/).closest('section') as HTMLElement).getByRole('button', { name: 'Weniger anzeigen' })).toBeTruthy()
+    expect(api.getGroupReleaseNotes).toHaveBeenCalledWith(1, 2, 3, { cursor: undefined, limit: 20 })
+  })
+
+  it('keeps existing notes visible when cursor loading fails', async () => {
+    vi.spyOn(api, 'getGroupReleaseNotes').mockRejectedValue(new Error('offline'))
+    render(<ReleaseNotesList
+      animeID={1}
+      groupID={2}
+      releaseVersionID={3}
+      totalCount={2}
+      initialNotes={[{ id: 31, member_id: 1, member_name: 'Anna', member_avatar_url: null, role_label: 'Übersetzung', body_html: '<p>Bestehender Text</p>', created_at: '2026-01-02' }]}
+    />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Weitere 1 Texte anzeigen/ }))
+    await waitFor(() => expect(screen.getByText('Weitere Beiträge konnten nicht geladen werden.')).toBeTruthy())
+    expect(screen.getByText('Bestehender Text')).toBeTruthy()
   })
 
   it('hydrates the timezone-sensitive German date without a mismatch', async () => {

@@ -43,6 +43,26 @@ describe('ReleaseGallery', () => {
     expect(screen.getByText('Hochgeladen von Uploader 1')).toBeTruthy()
   })
 
+  it('keeps images from multiple source groups in exactly one release grid', () => {
+    const first = { ...image(1), fansub_group_id: 4 }
+    const second = { ...image(2), fansub_group_id: 5 }
+    render(
+      <ReleaseGallery
+        animeID={1}
+        groupID={4}
+        releaseVersionID={3}
+        initialImages={[first, second]}
+        categoryTotals={{ screenshot: 2, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }}
+        groups={[{ id: 4, slug: 'c-subs', name: 'C-Subs', logo_url: null }, { id: 5, slug: 'd-subs', name: 'D-Subs', logo_url: null }]}
+      />,
+    )
+
+    expect(screen.getAllByTestId('release-image-grid')).toHaveLength(1)
+    expect(screen.getByTestId('release-image-grid').children).toHaveLength(2)
+    expect(screen.queryByTestId('release-image-groups')).toBeNull()
+    expect(screen.queryByText('Herkunftsgruppe')).toBeNull()
+  })
+
   it('uses the responsive source for mobile two-item reveal and remaining label', async () => {
     viewport = 'mobile'
     render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
