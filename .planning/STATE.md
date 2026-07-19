@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: Asset Lifecycle Hardening
 status: phase_complete
 stopped_at: Phase 105 UI-SPEC approved
-last_updated: "2026-07-19T10:21:59.852Z"
+last_updated: "2026-07-19T11:33:04.423Z"
 last_activity: "2026-07-18 - Completed quick task 260718-vei: Responsiver Releasebereich der öffentlichen Fansub-Projektseite"
 progress:
   total_phases: 97
   completed_phases: 80
-  total_plans: 427
+  total_plans: 432
   completed_plans: 400
   percent: 82
 ---
@@ -393,6 +393,7 @@ Recent durable decisions:
 - Phase 59 added: Öffentliches Fansub-Member-Profil
 - Phase 105 added: Responsive Release-Detailseite und Kara-Timeline-Redesign
 - Phase 105 edited: edited fields: goal, requirements, depends_on, success_criteria
+- Phase 105 edited: namespaced Phase-102/103 requirement IDs for deterministic plan traceability
 
 ### Blockers/Concerns
 

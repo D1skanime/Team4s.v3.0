@@ -1838,7 +1838,7 @@ Plans:
 ### Phase 105: Responsive Release-Detailseite und Kara-Timeline-Redesign
 
 **Goal:** Die bestehende öffentliche Release-Detailseite wird für Desktop, Tablet und Mobile neu geordnet und visuell vereinheitlicht: Die Kara-Sektion folgt unmittelbar auf den Hero, nutzt auf Desktop/Tablet eine echte episodenweite Timeline mit klaren Segmentkarten und auf Mobile eine touchfreundliche vertikale Kara-Liste. Bilder, Teamtexte, Beteiligte, optionales Episoden-Playback und Release-Navigation bleiben auf derselben Seite, verwenden die bestehende öffentliche Team4s-/Fansub-UI-Sprache und bewahren die in Phase 103 verifizierten Daten-, Auth- und Playback-Verträge.
-**Requirements**: Folgearbeit aus Phase 103, insbesondere D-01, D-06, D-15 bis D-22 und D-33 bis D-36; responsive Public-UI-Konventionen aus Phase 102.
+**Requirements**: P103-D-01, P103-D-06, P103-D-15, P103-D-16, P103-D-17, P103-D-18, P103-D-19, P103-D-20, P103-D-21, P103-D-22, P103-D-33, P103-D-34, P103-D-35, P103-D-36; P102-D-03, P102-D-04, P102-D-07.
 **Depends on:** Phase 103
 
 **Success Criteria** (what must be TRUE):
