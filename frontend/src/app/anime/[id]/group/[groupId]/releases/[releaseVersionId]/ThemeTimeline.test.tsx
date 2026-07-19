@@ -111,6 +111,15 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
     setSession(false, true)
     renderTimeline()
     expect(screen.getAllByRole('button', { name: 'Kara abspielen' })).toHaveLength(2)
+    fireEvent.click(playbackActions()[0])
+    expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
+  })
+
+  it('does not expose playback before the client session snapshot is initialized', () => {
+    setSession(true, true, false)
+    renderTimeline()
+    expect(screen.queryByRole('button', { name: 'Kara abspielen' })).toBeNull()
+    expect(document.querySelector('video')).toBeNull()
   })
 
   it('shows an unavailable segment as static session copy without a disabled button', () => {
@@ -201,7 +210,7 @@ describe('ThemeTimeline Phase 105 streaming and cleanup', () => {
     fireEvent.click(playbackActions()[0])
     fireEvent.error(document.querySelector('video') as HTMLVideoElement)
 
-    expect(screen.getByText('Kara konnte nicht abgespielt werden.')).not.toBeNull()
+    expect(screen.getByText('Dieses Kara-Segment konnte nicht abgespielt werden. Bitte versuche es erneut.')).not.toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Erneut versuchen' }))
     expect(document.querySelector('video')?.getAttribute('src')).toBe('/api/segments/7/stream?release_version_id=12')
   })
