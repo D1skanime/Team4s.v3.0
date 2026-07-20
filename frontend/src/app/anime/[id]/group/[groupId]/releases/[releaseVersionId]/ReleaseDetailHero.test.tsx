@@ -24,16 +24,18 @@ describe('ReleaseDetailHero', () => {
     expect(screen.queryByAltText('Anime-Logo zu Winter-Release')).toBeNull()
   })
 
-  it('shows primary release facts before opening technical details and never renders contributors', () => {
+  it('shows the project-style duration, codec and version facts before technical details', () => {
     render(<ReleaseDetailHero {...base} subtitle_type="softsub" />)
     const details = screen.getByRole('button', { name: /Details/ })
     expect(details.getAttribute('aria-expanded')).toBe('false')
     expect(screen.getByText('Version')).toBeTruthy()
-    expect(screen.getByText('Veröffentlicht')).toBeTruthy()
     expect(screen.getByText('Dauer')).toBeTruthy()
-    expect(screen.getByText('Auflösung')).toBeTruthy()
-    expect(screen.getByText('2. Januar 2026')).toBeTruthy()
+    expect(screen.getByText('Codec')).toBeTruthy()
     expect(screen.getByText('24:00 Min.')).toBeTruthy()
+    expect(screen.getByText('AV1')).toBeTruthy()
+    expect(screen.queryByText('Veröffentlicht')).toBeNull()
+    expect(screen.queryByText('Auflösung')).toBeNull()
+    expect(screen.queryByText('2. Januar 2026')).toBeNull()
     expect(screen.queryByText('Video-Codec')).toBeNull()
     expect(screen.queryByText('0 Bilder')).toBeNull()
     expect(screen.queryByText('2 Texte')).toBeNull()
@@ -42,8 +44,11 @@ describe('ReleaseDetailHero', () => {
     fireEvent.click(details)
     expect(screen.getByText('Container')).toBeTruthy()
     expect(screen.getByText('MKV')).toBeTruthy()
+    expect(screen.getByText('Veröffentlicht')).toBeTruthy()
+    expect(screen.getByText('Auflösung')).toBeTruthy()
+    expect(screen.getByText('2. Januar 2026')).toBeTruthy()
     expect(screen.getByText('Video-Codec')).toBeTruthy()
-    expect(screen.getByText('AV1')).toBeTruthy()
+    expect(screen.getAllByText('AV1')).toHaveLength(2)
     expect(screen.getByText('Audio-Codec')).toBeTruthy()
     expect(screen.getByText('AAC')).toBeTruthy()
     expect(screen.getByText('Audio-Sprache')).toBeTruthy()
@@ -59,7 +64,7 @@ describe('ReleaseDetailHero', () => {
 
     expect(screen.getByText('Fansub-Coop: C-Subs × Honto')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /Details/ }))
-    expect(screen.getAllByText('Nicht hinterlegt')).toHaveLength(6)
+    expect(screen.getAllByText('Nicht hinterlegt')).toHaveLength(7)
   })
 
   it('labels a single owner as Fansubgruppe and reuses canonical next-release navigation below details', () => {

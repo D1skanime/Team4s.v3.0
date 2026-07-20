@@ -39,6 +39,7 @@ describe('ReleaseGallery', () => {
 
   it('renders one six-item desktop grid with metadata and no zero reveal', () => {
     render(<ReleaseGallery animeID={1} groupID={2} releaseVersionID={3} initialImages={[1,2,3,4,5,6].map(id => image(id))} categoryTotals={{ screenshot: 6, typesetting_karaoke: 0, fun_outtake: 0, other: 0 }} />)
+    expect(document.querySelector('#galerie')?.getAttribute('data-release-atmosphere-band')).toBe('true')
     expect(screen.getByTestId('release-image-grid').children).toHaveLength(6)
     expect(screen.queryByRole('button', { name: /Weitere/ })).toBeNull()
     expect(screen.getAllByText('Release-Screenshot')).toHaveLength(6)

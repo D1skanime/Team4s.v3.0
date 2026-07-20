@@ -1,6 +1,4 @@
 .section { display: grid; gap: var(--space-4, 16px); min-width: 0; }
-.sectionWithBackdrop { position: relative; isolation: isolate; overflow: clip; }
-.sectionWithBackdrop::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: var(--release-gallery-backdrop) center / 112% auto no-repeat; filter: blur(48px) saturate(1.25); opacity: 0.28; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4, 16px); }
 .card { min-width: 0; display: grid; gap: var(--space-2, 8px); }
 .imageButton { width: 100%; min-height: 0; padding: 0; overflow: hidden; border-radius: var(--radius-md); }
@@ -17,4 +15,3 @@
 @media (min-width: 901px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1200px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5, 24px); } }
 @media (max-width: 600px) { .grid { gap: var(--space-2, 8px); } .metaRow { align-items: flex-start; } }
-@media (max-width: 600px) { .sectionWithBackdrop::before { inset-block: -16px; background-size: auto 108%; filter: blur(30px) saturate(1.15); opacity: 0.22; } }

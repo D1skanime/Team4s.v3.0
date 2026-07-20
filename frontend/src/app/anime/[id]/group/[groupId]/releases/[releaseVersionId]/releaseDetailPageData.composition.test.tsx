@@ -28,12 +28,11 @@ vi.mock('@/lib/api', () => ({
   getGroupReleaseDetail: mocks.getGroupReleaseDetail,
 }))
 vi.mock('./ReleaseDetailHero', () => ({
-  ReleaseDetailHero: ({ next, animeID, groupID, canonicalProjectPath, atmosphereUrl }: {
+  ReleaseDetailHero: ({ next, animeID, groupID, canonicalProjectPath }: {
     next: { release_version_id: number } | null
     animeID: number
     groupID: number
     canonicalProjectPath?: string | null
-    atmosphereUrl?: string | null
   }) => (
     <section
       data-testid="release-hero"
@@ -41,7 +40,6 @@ vi.mock('./ReleaseDetailHero', () => ({
       data-anime-id={animeID}
       data-group-id={groupID}
       data-canonical-project-path={canonicalProjectPath ?? ''}
-      data-atmosphere-url={atmosphereUrl ?? ''}
     >Hero</section>
   ),
 }))
@@ -51,8 +49,8 @@ vi.mock('./ThemeTimeline', () => ({
     : null,
 }))
 vi.mock('./ReleaseGallery', () => ({
-  ReleaseGallery: ({ initialImages, atmosphereUrl }: { initialImages: unknown[]; atmosphereUrl?: string | null }) => initialImages.length > 0
-    ? <section data-testid="release-images" data-atmosphere-url={atmosphereUrl ?? ''}><h2>Bilder aus dem Release</h2></section>
+  ReleaseGallery: ({ initialImages }: { initialImages: unknown[] }) => initialImages.length > 0
+    ? <section data-testid="release-images"><h2>Bilder aus dem Release</h2></section>
     : null,
 }))
 vi.mock('./ReleaseNotesList', () => ({
@@ -139,8 +137,7 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
     expect(screen.getByTestId('release-hero').getAttribute('data-anime-id')).toBe('9')
     expect(screen.getByTestId('release-hero').getAttribute('data-group-id')).toBe('4')
     expect(screen.getByTestId('release-hero').getAttribute('data-canonical-project-path')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed')
-    expect(screen.getByTestId('release-hero').getAttribute('data-atmosphere-url')).toBe('/release-preview-thumb.jpg')
-    expect(screen.getByTestId('release-images').getAttribute('data-atmosphere-url')).toBe('/release-preview-thumb.jpg')
+    expect(document.querySelector('main')?.style.getPropertyValue('--release-page-backdrop')).toBe('url("/release-preview-thumb.jpg")')
   })
 
   it('uses the Anime logo as atmosphere only when no release preview exists', async () => {
@@ -149,8 +146,7 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
 
     await renderComposer()
 
-    expect(screen.getByTestId('release-hero').getAttribute('data-atmosphere-url')).toBe('/anime-logo.png')
-    expect(screen.getByTestId('release-images').getAttribute('data-atmosphere-url')).toBe('/anime-logo.png')
+    expect(document.querySelector('main')?.style.getPropertyValue('--release-page-backdrop')).toBe('url("/anime-logo.png")')
   })
 
   it('omits empty child sections completely without headings, dividers, or reserved sections', async () => {

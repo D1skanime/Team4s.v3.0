@@ -14,7 +14,6 @@ type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
     groupID: number
     canonicalProjectPath?: string | null
     animeLogoFallbackUrl: string | null
-    atmosphereUrl?: string | null
   }
 
 function formatDate(value: string | null) {
@@ -56,18 +55,18 @@ function formatSubtitleTracks(props: ReleaseDetailHeroProps) {
 export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
   const image = props.preview_image
   const imageSrc = image?.thumbnail_url ?? image?.original_url ?? props.animeLogoFallbackUrl
-  const isLogoFallback = !image && Boolean(props.animeLogoFallbackUrl)
-  const primaryFacts = [
-    ['Version', displayValue(props.version)],
-    ['Veröffentlicht', displayValue(formatDate(props.release_date))],
+  const heroFacts = [
     ['Dauer', displayValue(formatDuration(props.duration_seconds))],
-    ['Auflösung', displayValue(props.resolution)],
+    ['Codec', displayValue(props.video_codec)],
+    ['Version', displayValue(props.version)],
   ]
   const groupNames = props.groups.map(group => group.name.trim()).filter(Boolean)
   const groupLine = groupNames.length > 1
     ? `Fansub-Coop: ${groupNames.join(' × ')}`
     : `Fansubgruppe: ${groupNames[0] ?? 'Nicht hinterlegt'}`
   const technicalFacts = [
+    ['Veröffentlicht', displayValue(formatDate(props.release_date))],
+    ['Auflösung', displayValue(props.resolution)],
     ['Container', displayValue(props.container)],
     ['Video-Codec', displayValue(props.video_codec)],
     ['Audio-Codec', displayValue(props.audio_codec)],
@@ -76,9 +75,9 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
     ['Untertitelspuren', formatSubtitleTracks(props)],
   ]
 
-  return <section className={`${styles.hero} ${imageSrc ? '' : styles.heroTextOnly}`} data-release-hero="independent" data-release-accordion="true">
+  return <section className={styles.hero} data-release-hero="independent" data-release-accordion="true">
     <div className={styles.heroSummary}>
-    {imageSrc ? <div className={`${styles.heroImageShell} ${isLogoFallback ? styles.heroLogoFallback : ''}`} style={isLogoFallback && props.atmosphereUrl ? { backgroundImage: `url("${props.atmosphereUrl}")` } : undefined}>
+    {imageSrc ? <div className={styles.heroImageShell}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={imageSrc} alt={image?.caption ?? `Anime-Logo zu ${props.title}`} className={styles.heroImage} loading="eager" />
     </div> : null}
@@ -87,7 +86,7 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
       <h1 className={styles.heroTitle}>{props.episode_title ?? props.title}</h1>
       {props.episode_title && props.title !== props.episode_title ? <p className={styles.heroReleaseTitle}>{props.title}</p> : null}
       <p className={styles.heroGroupLine}>{groupLine}</p>
-      <dl className={styles.technicalGrid}>{primaryFacts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+      <dl className={styles.heroStats}>{heroFacts.map(([label, value]) => <div key={label} className={styles.heroStatItem}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
     </div>
     </div>
     <Accordion mode="single" items={[{

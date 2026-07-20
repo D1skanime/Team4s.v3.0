@@ -258,7 +258,7 @@ export function ThemeTimeline({
   if (segments.length === 0) return null
 
   return (
-    <section id="op-ed-middle" className={styles.timelineSection}>
+    <section id="op-ed-middle" className={styles.timelineSection} data-release-atmosphere-band="true">
       <SectionHeader title="Karas" underline />
 
       <div className={styles.desktopTimeline} aria-label="Kara-Zeitleiste der Episode">

@@ -2,7 +2,6 @@
 
 import { Maximize2 } from 'lucide-react'
 import Image from 'next/image'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 
 import { Badge, Button, SectionHeader } from '@/components/ui'
@@ -21,7 +20,6 @@ interface Props {
   initialImages: PublicReleaseImage[]
   categoryTotals: Record<ReleaseVersionMediaCategory, number>
   groups?: PublicReleaseGroup[]
-  atmosphereUrl?: string | null
 }
 
 function mergeImages(previous: PublicReleaseImage[], incoming: PublicReleaseImage[]): PublicReleaseImage[] {
@@ -45,7 +43,7 @@ function toLightboxItem(image: PublicReleaseImage): PublicImageLightboxItem {
   }
 }
 
-export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImages, categoryTotals, groups = [], atmosphereUrl = null }: Props) {
+export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImages, categoryTotals, groups = [] }: Props) {
   const [items, setItems] = useState(() => mergeImages([], initialImages))
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -112,11 +110,7 @@ export function ReleaseGallery({ animeID, groupID, releaseVersionID, initialImag
     </article>
   }
 
-  const sectionStyle = atmosphereUrl
-    ? ({ '--release-gallery-backdrop': `url("${atmosphereUrl}")` } as CSSProperties)
-    : undefined
-
-  return <section id="galerie" className={`${styles.section} ${atmosphereUrl ? styles.sectionWithBackdrop : ''}`} style={sectionStyle}>
+  return <section id="galerie" className={styles.section} data-release-atmosphere-band="true">
     <SectionHeader title="Bilder aus dem Release" description={`${total} Bilder`} underline />
     {error ? <p className={styles.error}>{error}</p> : null}
     <div className={styles.grid} data-testid="release-image-grid">{visibleItems.map(renderImage)}</div>

@@ -125,7 +125,7 @@ Alle sichtbaren deutschen Strings verwenden korrekte Umlaute.
 
 **Kompositions-Supersession 2026-07-20:** Die Teamtexte folgen direkt auf den Release-Hero. Damit übernimmt die Release-Seite den redaktionellen Aufbau der öffentlichen Fansub- und Fansub-Projektseite; Karas und Bilder folgen danach als Medieninhalte.
 
-**Atmosphäre-/Metadaten-Supersession 2026-07-20:** Eine ausdrücklich markierte öffentliche Release-Preview steuert das scharfe Hero-Bild und die weich geblurte Atmosphäre hinter Hero und Bildersektion. Fehlt sie, übernimmt das Anime-Logo beide Rollen; fehlt auch das Logo, bleibt der Hero textbasiert. Die kompakte Thumbnail-Datei wird für die Hintergrundebene wiederverwendet. Die Zähler für Bilder, Texte und Fansubber entfallen im Hero, weil ihre Abschnitte dieselben Informationen im Seitenfluss zeigen. `Stimmen aus dem Team` erhält keine redundante Zähl-/Sortierbeschreibung.
+**Atmosphäre-/Metadaten-Supersession 2026-07-20:** Eine ausdrücklich markierte öffentliche Release-Preview steuert das scharfe Hero-Bild und die weich geblurte Atmosphäre hinter Hero sowie erneut ab der Kara-Sektion und hinter der Bildersektion. Fehlt sie, übernimmt das Anime-Logo diese Rollen; fehlt auch das Logo, bleibt der Hero textbasiert. Die kompakte Thumbnail-Datei wird für alle Hintergrundebenen wiederverwendet. Die Zähler für Bilder, Texte und Fansubber entfallen im Hero, weil ihre Abschnitte dieselben Informationen im Seitenfluss zeigen. `Stimmen aus dem Team` erhält keine redundante Zähl-/Sortierbeschreibung.
 
 ---
 
@@ -164,9 +164,9 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 ## Hero Contract
 
 - Der Hero bleibt eine eigenständige, leicht erhöhte öffentliche Fläche mit 20px Radius, Akzentlinie oben und vorhandener Backdrop-Atmosphäre. Er ist kein Fullscreen-Player-Hero.
-- Desktop/Tablet zeigen Preview beziehungsweise Anime-Logo-Fallback links und Inhalt rechts. Mobile stapelt Bild vor Text. Ohne Preview und ohne Logo bleibt ein absichtlich komponierter Text-Hero; keine leere Medienbox rendern.
-- Sofort sichtbar: Episode, Episodentitel, kuratierter Release-Titel sofern abweichend, `Fansubgruppe: {Name}` beziehungsweise `Fansub-Coop: {Name} × {Name}`, Version, Release-Datum, Dauer und Auflösung.
-- Unter `Details`: Container, Video-Codec, Audio-Codec, Audio-Sprache, Untertiteltyp und Untertitelspuren. Null-/Leerwerte aus der bestehenden API werden als `Nicht hinterlegt` dargestellt. Das Disclosure ist ein echtes `Accordion`, hat `aria-expanded`, einen sichtbaren Fokuszustand und behält seinen Zustand lokal.
+- Der Hero übernimmt die Banner-Komposition der Fansub-Projektseite: Preview beziehungsweise Anime-Logo-Fallback steht oben mittig mit denselben 16px/12px Medienabständen, derselben Höhenbegrenzung und demselben Radius/Schatten; Identität und Fakten folgen darunter. Ohne Preview und ohne Logo bleibt ein absichtlich komponierter Text-Hero ohne leere Medienbox.
+- Sofort sichtbar: Episode, Episodentitel, kuratierter Release-Titel sofern abweichend und `Fansubgruppe: {Name}` beziehungsweise `Fansub-Coop: {Name} × {Name}`. Darunter steht die Projektseiten-Dreierzeile mit blauen Werten und kleinen Labels: `Dauer`, `Codec` (Video-Codec) und `Version`.
+- Unter `Details`: Veröffentlichungsdatum, Auflösung, Container, Video-Codec, Audio-Codec, Audio-Sprache, Untertiteltyp und Untertitelspuren. Null-/Leerwerte aus der bestehenden API werden als `Nicht hinterlegt` dargestellt. Das Disclosure ist ein echtes `Accordion`, hat `aria-expanded`, einen sichtbaren Fokuszustand und behält seinen Zustand lokal.
 - Nach dem Details-Accordion steht, falls vorhanden, die nächste Release-Kante über dieselbe `ReleaseNavigation`/`AdjacentNavigation inline`-Seam. Sie liegt im normalen Hero-Footer-Fluss und ergänzt die vollständige Navigation am Seitenende.
 - Bilder-, Text- und Fansubber-Zähler erscheinen nicht im Hero. Sie stehen ausschließlich an den zugehörigen Inhaltsabschnitten beziehungsweise in der Beteiligtensektion.
 - Die vollständige Beteiligtenliste gehört nicht mehr in das Hero-Disclosure, sondern in die eigene Sektion nach den Teamtexten.

@@ -94,6 +94,7 @@ describe('ThemeTimeline Phase 105 session matrix', () => {
   it('shows public Kara information plus a locked login path to guests without playback or autoplay', async () => {
     renderTimeline({ initialSegmentID: 7, autoPlayInitial: true })
 
+    expect(document.querySelector('#op-ed-middle')?.getAttribute('data-release-atmosphere-band')).toBe('true')
     expect(screen.getAllByText('Moonlight OP').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Opening').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/0:30/).length).toBeGreaterThan(0)
