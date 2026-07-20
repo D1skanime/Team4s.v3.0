@@ -7,7 +7,7 @@
 <domain>
 ## Phase Boundary
 
-Phase 105 ordnet und gestaltet die bestehende öffentliche Detailseite einer konkreten `release_version_id` responsiv neu. Die Kara-Sektion wird zum ersten Inhaltsblock direkt nach dem Hero und erhält für Desktop, Tablet und Mobile jeweils eine passende Darstellung. Die Phase verbessert außerdem die responsive Nutzung von Hero, Bilderraster, Teamtexten, Release-Beteiligten und Release-Navigation, ohne eine neue Release-Seite, neue Unterseiten, neue Medienzuordnung, neue Rechteverwaltung oder einen parallelen Player zu bauen.
+Phase 105 ordnet und gestaltet die bestehende öffentliche Detailseite einer konkreten `release_version_id` responsiv neu. Seit der Kompositions-Supersession vom 2026-07-20 folgen die Teamtexte direkt auf den Hero; danach erhält die Kara-Sektion für Desktop, Tablet und Mobile jeweils eine passende Darstellung. Die Phase verbessert außerdem die responsive Nutzung von Hero, Bilderraster, Teamtexten, Release-Beteiligten und Release-Navigation, ohne eine neue Release-Seite, neue Unterseiten, neue Medienzuordnung, neue Rechteverwaltung oder einen parallelen Player zu bauen.
 
 Die in Phase 103 umgesetzten Public-Daten-, Auth-, Segment-Grant- und Stream-Verträge bleiben fachlich maßgeblich. Phase 105 ist ein UI-/Kompositions-Redesign auf diesen bestehenden Seams.
 
@@ -17,7 +17,7 @@ Die in Phase 103 umgesetzten Public-Daten-, Auth-, Segment-Grant- und Stream-Ver
 ## Implementation Decisions
 
 ### Seitendramaturgie und Hierarchie
-- **D-01:** Die sichtbare Reihenfolge lautet Hero → Karas → Bilder → Teamtexte → exakt diesem Release zugeordnete Fansubber → optionales vollständiges Episoden-Playback → vorheriger/nächster Release.
+- **D-01 (superseded 2026-07-20):** Die sichtbare Reihenfolge lautet Hero → Teamtexte → Karas → Bilder → exakt diesem Release zugeordnete Fansubber → optionales vollständiges Episoden-Playback → vorheriger/nächster Release. Die redaktionellen Stimmen stehen damit wie auf Fansub- und Fansub-Projektseiten unmittelbar beim eröffnenden Kontext.
 - **D-02:** Zwischen Hero und Kara-Sektion steht keine separate Sprungnavigation. Falls die bestehende Navigation `Bilder`, `Texte`, `Fansubber` erhalten bleibt, wird sie in den Hero-Footer integriert oder erst nach der Kara-Sektion gezeigt.
 - **D-03:** Leere Bereiche bleiben wie in Phase 103 vollständig ausgelassen; das Verschieben der Karas erzwingt keinen leeren Platzhalter.
 - **D-04:** Die Seite bleibt eine redaktionelle Fansub-Release-Dokumentation. Die vollständige Episode bleibt eine selten sichtbare, untergeordnete Zusatzfunktion.

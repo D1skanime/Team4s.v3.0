@@ -123,6 +123,8 @@ Alle sichtbaren deutschen Strings verwenden korrekte Umlaute.
 
 **UAT-Supersession 2026-07-20:** Die frühere Vorgabe „kein Login-Hinweis“ ist aufgehoben. Gäste erhalten bei bereiten Karas den klaren Link `Anmelden zum Abspielen` mit Schloss-Icon. Er startet keinen Stream und enthält weder Autoplay noch Browser-Bounds. Technische Render-, Grant- oder Streamdiagnosen erscheinen weiterhin nicht auf der öffentlichen Seite.
 
+**Kompositions-Supersession 2026-07-20:** Die Teamtexte folgen direkt auf den Release-Hero. Damit übernimmt die Release-Seite den redaktionellen Aufbau der öffentlichen Fansub- und Fansub-Projektseite; Karas und Bilder folgen danach als Medieninhalte.
+
 ---
 
 ## Seitenkomposition
@@ -131,9 +133,9 @@ Die DOM- und visuelle Reihenfolge ist identisch:
 
 1. Breadcrumbs und `Zurück zum Fansub-Projekt`
 2. Release-Hero
-3. `Karas`, falls Segmente vorhanden sind
-4. `Bilder aus dem Release`, falls Bilder vorhanden sind
-5. `Stimmen aus dem Team`, falls Texte vorhanden sind
+3. `Stimmen aus dem Team`, falls Texte vorhanden sind
+4. `Karas`, falls Segmente vorhanden sind
+5. `Bilder aus dem Release`, falls Bilder vorhanden sind
 6. `An diesem Release beteiligt`, falls release-version-spezifische Personen vorhanden sind
 7. `Vollständige Episode`, ausschließlich bei positiv aufgelöstem Recht und bereitem Stream
 8. Inline-`AdjacentNavigation` für vorherigen/nächsten Release, falls vorhanden

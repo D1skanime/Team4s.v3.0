@@ -92,6 +92,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       animeLogoFallbackUrl={animeLogoFallbackUrl}
       atmosphereUrl={atmosphereUrl}
     />
+    <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} groups={detail.groups} />
     <ThemeTimeline
       releaseVersionID={releaseVersionID}
       episodeDurationSeconds={detail.duration_seconds}
@@ -100,7 +101,6 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       autoPlayInitial={autoplayInitialKara}
     />
     <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} groups={detail.groups} />
-    <ReleaseNotesList animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialNotes={detail.notes} totalCount={detail.notes_count} groups={detail.groups} />
     <ContributorsRow contributors={detail.contributors} groups={detail.groups} />
     <ReleaseEpisodePlayer releaseVersionID={releaseVersionID} title={detail.title} />
     <ReleaseNavigation animeID={animeID} groupID={groupID} canonicalProjectPath={canonicalProjectPath} previous={detail.previous} next={detail.next} />

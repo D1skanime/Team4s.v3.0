@@ -110,14 +110,14 @@ async function renderComposer() {
 }
 
 describe('ReleaseDetailPageContent Phase 105 composition', () => {
-  it('renders the release story in the locked document order without jump navigation', async () => {
+  it('renders the release story in the current editorial order without jump navigation', async () => {
     await renderComposer()
 
     const orderedSections = [
       screen.getByTestId('release-hero'),
+      screen.getByTestId('release-notes'),
       screen.getByTestId('release-karas'),
       screen.getByTestId('release-images'),
-      screen.getByTestId('release-notes'),
       screen.getByTestId('release-contributors'),
       screen.getByTestId('release-episode'),
       screen.getByTestId('release-navigation'),
