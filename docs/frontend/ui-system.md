@@ -231,6 +231,10 @@ Sie ist ausdrücklich nicht:
 ### Public Release Surfaces
 
 - öffentliche Fansub-Projektseiten nutzen `PublicReleaseBlock` als definierbare Release-Referenzfläche
+- die kanonische Release-Listenkarte der Projektseite wird im UI-Playground mit der produktiven `DesktopReleaseRow`-Komposition dokumentiert; sie bleibt eine Fansub-/Release-Domain-Komposition und ist kein fachlogikfreies Primitive unter `src/components/ui`
+- die Kopfzeile der Release-Listenkarte ordnet Folge, Version, Folgentitel, Bilder und Texte auf einer gemeinsamen Informationslinie an
+- Kara-Timeline und `Release öffnen` liegen auf einer gemeinsamen Aktionslinie; der Kara-Titel steht direkt im farbigen Segment
+- eine Release-Listenkarte ohne Karas bleibt direkt navigierbar und erzeugt kein Dropdown nur für die einzelne Aktion
 - einzelne Public-Release-Objekte führen mit der Folge, darunter stehen Folgentitel, Gruppe/Version und Veröffentlichungsdatum
 - Public-Timeline-Segmente zeigen primär den Theme-/Kara-Titel; `OP`, `ED`, `IN` und `KARA` bleiben Typen für Farbe und Fallback
 - die Segmentzeit steht unter dem Segmenttitel im Segment selbst
