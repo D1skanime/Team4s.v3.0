@@ -4,6 +4,9 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
+  ApiError: class ApiError extends Error {
+    constructor(public status: number) { super('api') }
+  },
   getAnimeByID: vi.fn(),
   getAnimeBackdrops: vi.fn(),
   getGroupDetail: vi.fn(),
@@ -18,9 +21,7 @@ vi.mock('next/link', () => ({
 vi.mock('@/components/navigation/Breadcrumbs', () => ({ Breadcrumbs: () => null }))
 vi.mock('@/lib/publicApiUrl', () => ({ resolvePublicApiUrl: (value: string) => value }))
 vi.mock('@/lib/api', () => ({
-  ApiError: class ApiError extends Error {
-    constructor(public status: number) { super('api') }
-  },
+  ApiError: mocks.ApiError,
   getAnimeByID: mocks.getAnimeByID,
   getAnimeBackdrops: mocks.getAnimeBackdrops,
   getGroupDetail: mocks.getGroupDetail,
@@ -161,5 +162,25 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
     expect(screen.queryByTestId('release-notes')).toBeNull()
     expect(screen.queryByTestId('release-contributors')).toBeNull()
     expect(screen.queryByTestId('release-navigation')).toBeNull()
+  })
+
+  it('keeps an existing release reachable when optional project metadata is unavailable', async () => {
+    mocks.getGroupDetail.mockRejectedValue(new mocks.ApiError(404))
+
+    await renderComposer()
+
+    expect(mocks.getGroupReleaseDetail).toHaveBeenCalledWith(9, 4, 12)
+    expect(mocks.notFound).not.toHaveBeenCalled()
+    expect(screen.getByTestId('release-hero')).toBeTruthy()
+  })
+
+  it('uses the canonical release detail as the not-found authority', async () => {
+    mocks.getGroupReleaseDetail.mockRejectedValue(new mocks.ApiError(404))
+
+    await ReleaseDetailPageContent({ animeID: 9, groupID: 4, releaseVersionID: 999 })
+
+    expect(mocks.notFound).toHaveBeenCalledOnce()
+    expect(mocks.getAnimeByID).not.toHaveBeenCalled()
+    expect(mocks.getGroupDetail).not.toHaveBeenCalled()
   })
 })

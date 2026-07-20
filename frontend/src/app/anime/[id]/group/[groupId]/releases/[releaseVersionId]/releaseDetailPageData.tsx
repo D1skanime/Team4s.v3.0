@@ -44,6 +44,14 @@ export function parseReleaseDetailIDs(params: { id: string; groupId: string; rel
 }
 
 export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersionID, canonicalProjectPath, initialKaraSegmentID, autoplayInitialKara }: ReleaseDetailPageContext) {
+  let detail: Awaited<ReturnType<typeof getGroupReleaseDetail>>
+  try {
+    detail = await getGroupReleaseDetail(animeID, groupID, releaseVersionID)
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return notFound()
+    return <main className={styles.page}><p className={styles.backLink}><Link href={canonicalProjectPath ?? `/anime/${animeID}/group/${groupID}`}>Zurück zum Fansub-Projekt</Link></p><div className={styles.errorBox}>Release konnte nicht geladen werden. Bitte versuche es erneut oder kehre zum Fansub-Projekt zurück.</div></main>
+  }
+
   let animeTitle: string | null = null
   let groupName: string | null = null
   let animeLogoFallbackUrl: string | null = null
@@ -59,16 +67,9 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
     animeLogoFallbackUrl = backdropResponse?.data.logo_url ? resolvePublicApiUrl(backdropResponse.data.logo_url) : null
     const atmosphereCandidate = backdropResponse?.data.backdrops[0] ?? backdropResponse?.data.banner_url ?? animeResponse.data.banner_url
     atmosphereUrl = atmosphereCandidate ? resolvePublicApiUrl(atmosphereCandidate) : null
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) return notFound()
-  }
-
-  let detail: Awaited<ReturnType<typeof getGroupReleaseDetail>>
-  try {
-    detail = await getGroupReleaseDetail(animeID, groupID, releaseVersionID)
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) return notFound()
-    return <main className={styles.page}><p className={styles.backLink}><Link href={canonicalProjectPath ?? `/anime/${animeID}/group/${groupID}`}>Zurück zum Fansub-Projekt</Link></p><div className={styles.errorBox}>Release konnte nicht geladen werden. Bitte versuche es erneut oder kehre zum Fansub-Projekt zurück.</div></main>
+  } catch {
+    // Release-Metadaten sind ergänzend. Ein vorhandenes Release bleibt auch
+    // ohne Anime-/Gruppenlabels oder Backdrop öffentlich erreichbar.
   }
 
   const projectHref = canonicalProjectPath ?? `/anime/${animeID}/group/${groupID}`
