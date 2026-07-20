@@ -14,35 +14,62 @@ Services:
 - Postgres: `localhost:5433` (override via `POSTGRES_PORT`)
 - Redis: internal compose service (`team4sv30-redis:6379`)
 
-### Local development with hot reload
+### Schnelle UI-Entwicklung und lokaler UAT
 
-The default local Compose override runs both application services in development mode:
+Der Standardaufruf lädt automatisch `docker-compose.override.yml`. Dadurch laufen beide Anwendungsdienste im Entwicklungsmodus:
 
-- Next.js reloads frontend changes from the `frontend/` bind mount.
-- Compose Watch synchronizes backend files into the container; Air rebuilds `cmd/server` and restarts only the backend process.
-- The existing migration runner applies pending migrations once when the backend container starts. It does not rerun migrations after every source change.
+- Next.js übernimmt Frontend-Änderungen aus dem `frontend/`-Bind-Mount per Fast Refresh.
+- Compose Watch synchronisiert Backend-Dateien in den Container; Air baut nur `cmd/server` neu und startet nur den Backend-Prozess.
+- Der bestehende Migration-Runner wendet ausstehende Migrationen einmal beim Backend-Start an. Er läuft nicht nach jeder Quellcodeänderung erneut.
 
-Start the local stack with Compose Watch and keep the terminal open:
+Den lokalen Stack mit Compose Watch starten und das Terminal geöffnet lassen:
 
 ```powershell
 docker compose up --build --watch
 ```
 
-For detached services with watch output in a separate terminal, use:
+Für getrennte Dienste mit Watch-Ausgabe in einem zweiten Terminal:
 
 ```powershell
 docker compose up -d
 docker compose watch team4sv30-backend
 ```
 
-Compose Watch keeps backend source files on the container's native Linux filesystem. This avoids slow Go builds directly across a Windows bind mount. After the initial image build, normal `.go`, `.ts`, `.tsx`, and `.css` edits do not require another image build or deployment while the watcher is running. If only a new SQL migration was added, apply it explicitly without rebuilding:
+#### Frontend-Änderungen und UAT-Routen
+
+`next dev` kompiliert eine Route beim ersten Aufruf. Auf Windows/Docker kann dieser erste Aufruf deutlich länger dauern; ein Server-Neustart wärmt die Routen nicht zuverlässig vor. Vor einem lokalen UAT deshalb die tatsächlich benötigten Routen in zwei Durchläufen abrufen:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\warm-frontend-dev.ps1
+```
+
+Dynamische Projekt-, Fansub- oder Release-Routen explizit ergänzen:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\warm-frontend-dev.ps1 `
+  -Routes '/,/anime,/fansubs/gruppen-slug,/fansubs/gruppen-slug/fansubprojekt/anime-slug/releases/56'
+```
+
+Der erste Durchlauf bezahlt und zeigt die Dev-Kompilierung, der zweite misst den warmen Pfad. Das Skript führt ausschließlich HTTP-GETs gegen das Frontend aus: Es baut und startet weder Backend noch Datenbank neu. Nach `.ts`-, `.tsx`- oder `.css`-Änderungen bleibt Fast Refresh der schnelle Feedback-Pfad; nur ungültig gewordene Routen werden erneut kompiliert.
+
+#### Backend-Änderungen
+
+Compose Watch hält den Backend-Quellcode auf dem nativen Linux-Dateisystem des Containers. Dadurch werden langsame Go-Builds direkt über einen Windows-Bind-Mount vermieden. Normale `.go`-Änderungen benötigen nach dem initialen Image-Build keinen Frontend-Neubau und kein Deployment:
+
+```powershell
+docker compose watch team4sv30-backend
+```
+
+#### Datenbankänderungen
+
+Eine neue SQL-Migration explizit prüfen und anwenden. Dafür ist weder ein Frontend- noch ein Backend-Image-Build erforderlich:
 
 ```powershell
 docker compose exec team4sv30-backend go run ./cmd/migrate status -dir /app/database/migrations
 docker compose exec team4sv30-backend go run ./cmd/migrate up -dir /app/database/migrations
 ```
 
-Changes to Dockerfiles, Go module dependencies, Node dependencies, or Compose environment variables still require rebuilding or recreating the affected local service.
+Nur Änderungen an Dockerfiles, Go-/Node-Abhängigkeiten oder Compose-Umgebungsvariablen erfordern einen Neubau beziehungsweise das Neuerstellen des jeweils betroffenen Dienstes.
 
 Optional local auth token for comments/watchlist UI:
 - Set `AUTH_TOKEN_SECRET` in your shell or `.env` before `docker compose up -d`.

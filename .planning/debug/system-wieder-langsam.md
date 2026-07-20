@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: awaiting_human_verify
 trigger: "Weiss du warum das System schon wieder so langsam ist? Ich hab erst kürzlich Server-Restart gemacht, aber jetzt ist es schon wieder so lahm."
 created: 2026-07-20
-updated: 2026-07-20T10:57:00+02:00
-scope: diagnosis_only
+updated: 2026-07-20T15:24:00+02:00
+scope: find_and_fix
 ---
 
 # System wieder langsam
@@ -18,11 +18,19 @@ scope: diagnosis_only
 
 ## Current Focus
 
-- hypothesis: CONFIRMED — Next.js 16 runs in development mode and compiles routes on demand; cold route compilation over the Windows bind-mounted source tree is the dominant 10–50 second latency mechanism. Project-page request fan-out is a secondary amplifier.
-- test: Completed controlled cold/warm route counterfactual, layer-isolated API timings, backend-log correlation, resource measurements, PostgreSQL lock/activity checks, and project loader trace.
-- expecting: Confirmed observations are 17.002 s first hit versus 0.562 s second hit with route artifacts created on first hit, while matching backend work is measured in milliseconds.
-- next_action: Return diagnose-only ROOT CAUSE FOUND report; do not change code, configuration, containers, or services.
+- hypothesis: CONFIRMED — route-selectable warm-up makes the existing Compose `next dev` workflow predictable for local UI/UAT without coupling frontend preparation to backend or database lifecycle.
+- test: Completed two-pass representative warm-up, full default-route pass, PowerShell parse, container-identity comparison, backend health check, and `git diff --check`.
+- expecting: Verified: all requested/default routes returned 200, warm `/archiv` was 0.443 s after a 1.520 s first pass, backend/database identities stayed unchanged, and all static checks passed.
+- next_action: Human verifies the exact project/release routes used in the real UAT flow via `-Routes`, then confirms fixed or reports the remaining slow route.
 - reasoning_checkpoint:
+    hypothesis: "Next development mode causes interactive UAT delays because each unvisited route is compiled on demand; warming the exact UAT routes first shifts that known one-time work before the user flow and exposes the measured cold/warm distinction."
+    confirming_evidence:
+      - "Controlled `/archiv` measurement was 17.002 s cold and 0.562 s warm, with route artifacts appearing only after the first request."
+      - "The matching backend calls totaled about 42 ms and PostgreSQL had no waits, blockers, or saturation."
+      - "After controlled WSL/Docker recovery, backend health returned in 0.137 s while the first frontend root request took 4.198 s."
+    falsification_test: "The hypothesis is wrong as a practical mitigation if two scripted passes do not both return 200, the second pass is not materially faster, or the script changes backend/database container identity."
+    fix_rationale: "The fix targets the confirmed on-demand compilation mechanism without replacing the HMR development seam or coupling frontend preparation to backend/database rebuilds."
+    blind_spots: "Dynamic routes must be supplied explicitly by the tester; warm-up is not a production-performance substitute and does not remove compilation after source changes invalidate a route."
 - tdd_checkpoint:
 
 ## Evidence
@@ -67,7 +75,55 @@ scope: diagnosis_only
   found: During the 17.002 s cold `/archiv` request, backend `/api/v1/archiv` took 31.8 ms and `/api/v1/fansubs` 9.8 ms; they arrived near the end of the frontend wait. On the warm 0.562 s request they took 1.8 ms and 8.6 ms. The project-page render path can issue about 15 backend calls including metadata, with several sequential groups and duplicate group/profile fetches; logged individual calls are generally 1–200 ms, worst observed about 500 ms, and a fully warm batch completed in roughly 0.23 s.
   implication: Backend/database work cannot account for the 17-second cold wait. Project request fan-out is real and can add warm-path latency or amplify frontend stalls, but it is not the primary system-wide 10–50 second cause.
 
+- timestamp: 2026-07-20T14:38:00+02:00
+  checked: Counterfactual native Windows `next dev` process on port 3001, using the same Next 16.1.6 dependencies and the already-running backend.
+  found: `/anime` took 22.472 s cold and 3.921 s warm; `/watchlist` took 21.516 s cold and 6.052 s warm.
+  implication: Removing only the Docker bind mount does not make cold development navigation fast enough. Local development remains useful for HMR, but UAT navigation needs a precompiled production frontend mode.
+
+- timestamp: 2026-07-20T14:45:00+02:00
+  checked: Host-facing port configuration versus `scripts/start-frontend-dev.ps1`.
+  found: `.env` publishes the backend as `BACKEND_PORT=18092`, port 18092 is listening, and port 8092 is not listening. The frontend starter nevertheless hardcodes both browser and server-side API URLs to `http://localhost:8092`.
+  implication: The first native timing test mixed compilation with backend connection failures/timeouts. The existing development seam must resolve the configured host port before it can provide reliable fast feedback.
+
+- timestamp: 2026-07-20T15:02:00+02:00
+  checked: Existing production frontend Dockerfile as a potential precompiled UAT mode.
+  found: `docker compose -f docker-compose.yml build team4sv30-frontend` did not complete after about six minutes, emitted no usable BuildKit stage output through the runner, and left Docker/WSL temporarily unresponsive; the frontend image timestamp remained unchanged.
+  implication: A production rebuild is not a verified fast local feedback loop on this workstation and must not be presented as the concrete fix.
+
+- timestamp: 2026-07-20T15:07:00+02:00
+  checked: Controlled recovery after terminating the stuck build.
+  found: `wsl --list --verbose` initially hung. `wsl.exe --shutdown` completed without deleting volumes; Docker Engine 29.6.1 then recovered. `docker compose up -d --no-build` restarted the existing stack, backend `/health` returned 200 in 0.137 s, and the first frontend root request returned 200 in 4.198 s.
+  implication: Service health is restored. The safe next change is lightweight frontend-only preparation, not another build or infrastructure mutation.
+
+- timestamp: 2026-07-20T15:15:00+02:00
+  checked: First execution of the new warm-up script through `powershell -File`.
+  found: Passing `-Routes '/', '/archiv'` bound `/archiv` to the following positional parameter, changing `FrontendBaseUrl` and producing an invalid URI before any warm-up request. Backend and database IDs nevertheless remained unchanged and backend health stayed 200.
+  implication: The array-valued command-line interface is ambiguous under Windows PowerShell. Use one comma-separated route string and split it inside the script.
+
+- timestamp: 2026-07-20T15:18:00+02:00
+  checked: Corrected two-pass warm-up for `/` and `/archiv`, plus backend/database identity and backend health.
+  found: Both routes returned 200. `/` was 0.176 s then 0.171 s; `/archiv` was 1.520 s then 0.443 s. Backend and database container IDs were unchanged and backend health remained 200.
+  implication: The script successfully prepares frontend dev routes and demonstrates the warm-path improvement without coupling UAT preparation to backend or database lifecycle.
+
+- timestamp: 2026-07-20T15:20:00+02:00
+  checked: PowerShell parse and full default-route pass.
+  found: The script parsed with zero errors, but `/fansubs` returned 404 because the app router only defines `/fansubs/[slug]`, not a fansub list page.
+  implication: Defaults must include only real static routes; fansub/project/release pages remain explicit caller-supplied dynamic paths.
+
+- timestamp: 2026-07-20T15:24:00+02:00
+  checked: Final default-route warm-up, PowerShell parser, scoped self-review, and whitespace validation.
+  found: PowerShell parser reported zero errors; `/`, `/anime`, and `/archiv` returned 200 in 0.223 s, 0.342 s, and 0.384 s. `git diff --check` passed. The script contains no Docker/Compose or process lifecycle command.
+  implication: The minimal frontend-only warm-up and workflow documentation are ready for real-flow human verification.
+
 ## Eliminated
+
+- hypothesis: Rebuilding and running the base production frontend image is a sufficiently fast local UAT feedback workflow on this workstation.
+  evidence: The frontend-only build failed to complete after roughly six minutes and left Docker/WSL temporarily unresponsive until a controlled WSL shutdown and no-build stack restart.
+  timestamp: 2026-07-20T15:02:00+02:00
+
+- hypothesis: Running `next dev` natively on Windows is by itself enough to remove the cold-route delay.
+  evidence: Native Next 16.1.6 on port 3001 returned `/anime` in 22.472 s cold and 3.921 s warm, and `/watchlist` in 21.516 s cold and 6.052 s warm. This is not materially better than the containerized 17.002 s cold `/archiv` result.
+  timestamp: 2026-07-20T14:38:00+02:00
 
 - hypothesis: H1 — Current global WSL/Docker CPU, memory, swap, or disk pressure causes the system-wide latency.
   evidence: Five sustained samples showed low CPU, 3.46 GiB available VM memory, completely unused swap, zero current memory/I/O pressure, ample disk space, and stable block-I/O counters.
@@ -84,6 +140,8 @@ scope: diagnosis_only
 ## Resolution
 
 - root_cause: The local frontend is intentionally running `next dev` (Next.js 16.1.6) from `docker-compose.override.yml`, with the full frontend source bind-mounted from Windows and Watchpack/Chokidar polling enabled. Next compiles an unvisited route on demand; that cold compilation/file-scanning path is taking 10–20+ seconds (and can be amplified on larger project/release routes), while the same route is sub-second after compilation. A recent frontend/container restart does not provide a durable cure because the new dev-server process must establish route compilation state again. The public project loader's sequential/duplicate API fan-out is a secondary latency amplifier, not the root cause.
-- fix:
-- verification: Diagnosis-only verification: direct backend anime API 0.030 s; Next proxy first 9.35 s then warm 0.310 s; `/anime` first 11.79 s then warm 0.880 s; previously uncompiled `/archiv` first 17.002 s then 0.562 s, with `.next/dev/server/app/archiv` artifacts appearing only after the first request. PostgreSQL had no blockers/lock waits and ample connections; Docker/WSL had no CPU, memory, swap, disk, or I/O-pressure saturation.
+- fix: Added `scripts/warm-frontend-dev.ps1` to precompile and time caller-selected UAT routes in bounded passes using frontend-only GET requests. Updated README development guidance to separate frontend Fast Refresh/UAT warm-up, backend Compose Watch, and explicit database migration workflows. A production-build preview was tested but deliberately not adopted because it was too heavy and destabilized the local engine.
+- verification: Root cause evidence remains direct backend 0.030 s versus cold Next routes up to 17.002 s and warm sub-second responses. Fix verification: `/` 0.176/0.171 s and `/archiv` 1.520/0.443 s over two passes; default `/`, `/anime`, `/archiv` all returned 200 in 0.223–0.384 s; backend/database container IDs stayed unchanged; backend health returned 200; PowerShell parser reported zero errors; `git diff --check` passed.
 - files_changed:
+  - scripts/warm-frontend-dev.ps1
+  - README.md
