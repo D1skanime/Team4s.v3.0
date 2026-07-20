@@ -168,14 +168,17 @@
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--segment-color) 32%, transparent);
   border-left: 4px solid var(--segment-color);
-  background: var(--segment-wash);
+  background: color-mix(in srgb, var(--segment-wash) 68%, rgba(255, 255, 255, 0.44));
+  box-shadow: 0 8px 24px rgba(20, 31, 56, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
   transition: border-color 140ms ease, background-color 140ms ease, opacity 140ms ease;
 }
 
 .segmentCardSelected {
   border: 2px solid var(--color-primary);
   border-left: 4px solid var(--segment-color);
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--segment-wash));
+  background: color-mix(in srgb, var(--color-primary) 10%, rgba(255, 255, 255, 0.48));
 }
 
 .cardSelection {

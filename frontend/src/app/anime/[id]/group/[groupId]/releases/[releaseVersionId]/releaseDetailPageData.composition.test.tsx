@@ -28,11 +28,12 @@ vi.mock('@/lib/api', () => ({
   getGroupReleaseDetail: mocks.getGroupReleaseDetail,
 }))
 vi.mock('./ReleaseDetailHero', () => ({
-  ReleaseDetailHero: ({ next, animeID, groupID, canonicalProjectPath }: {
+  ReleaseDetailHero: ({ next, animeID, groupID, canonicalProjectPath, atmosphereUrl }: {
     next: { release_version_id: number } | null
     animeID: number
     groupID: number
     canonicalProjectPath?: string | null
+    atmosphereUrl?: string | null
   }) => (
     <section
       data-testid="release-hero"
@@ -40,6 +41,7 @@ vi.mock('./ReleaseDetailHero', () => ({
       data-anime-id={animeID}
       data-group-id={groupID}
       data-canonical-project-path={canonicalProjectPath ?? ''}
+      data-atmosphere-url={atmosphereUrl ?? ''}
     >Hero</section>
   ),
 }))
@@ -49,8 +51,8 @@ vi.mock('./ThemeTimeline', () => ({
     : null,
 }))
 vi.mock('./ReleaseGallery', () => ({
-  ReleaseGallery: ({ initialImages }: { initialImages: unknown[] }) => initialImages.length > 0
-    ? <section data-testid="release-images"><h2>Bilder aus dem Release</h2></section>
+  ReleaseGallery: ({ initialImages, atmosphereUrl }: { initialImages: unknown[]; atmosphereUrl?: string | null }) => initialImages.length > 0
+    ? <section data-testid="release-images" data-atmosphere-url={atmosphereUrl ?? ''}><h2>Bilder aus dem Release</h2></section>
     : null,
 }))
 vi.mock('./ReleaseNotesList', () => ({
@@ -87,6 +89,7 @@ const fullDetail = {
   notes_count: 1,
   segments: [{ theme_segment_id: 7 }],
   contributors: [{ fansub_group_id: 4, member_id: 9, name: 'Mia', role_label: 'Karaoke' }],
+  preview_image: { id: 1, thumbnail_url: '/release-preview-thumb.jpg', original_url: '/release-preview.jpg' },
   previous: { release_version_id: 11 },
   next: { release_version_id: 13 },
 }
@@ -136,6 +139,18 @@ describe('ReleaseDetailPageContent Phase 105 composition', () => {
     expect(screen.getByTestId('release-hero').getAttribute('data-anime-id')).toBe('9')
     expect(screen.getByTestId('release-hero').getAttribute('data-group-id')).toBe('4')
     expect(screen.getByTestId('release-hero').getAttribute('data-canonical-project-path')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed')
+    expect(screen.getByTestId('release-hero').getAttribute('data-atmosphere-url')).toBe('/release-preview-thumb.jpg')
+    expect(screen.getByTestId('release-images').getAttribute('data-atmosphere-url')).toBe('/release-preview-thumb.jpg')
+  })
+
+  it('uses the Anime logo as atmosphere only when no release preview exists', async () => {
+    mocks.getGroupReleaseDetail.mockResolvedValue({ ...fullDetail, preview_image: null })
+    mocks.getAnimeBackdrops.mockResolvedValue({ data: { logo_url: '/anime-logo.png', backdrops: ['/anime-backdrop.jpg'], banner_url: '/anime-banner.jpg' } })
+
+    await renderComposer()
+
+    expect(screen.getByTestId('release-hero').getAttribute('data-atmosphere-url')).toBe('/anime-logo.png')
+    expect(screen.getByTestId('release-images').getAttribute('data-atmosphere-url')).toBe('/anime-logo.png')
   })
 
   it('omits empty child sections completely without headings, dividers, or reserved sections', async () => {

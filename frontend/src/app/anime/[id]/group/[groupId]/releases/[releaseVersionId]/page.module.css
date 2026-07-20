@@ -8,27 +8,44 @@
   isolation: isolate;
 }
 
+.pageWithBackdrop {
+  overflow-x: clip;
+  overflow-clip-margin: 50vw;
+}
+
 .pageWithBackdrop::before {
   content: "";
   position: absolute;
-  z-index: -1;
-  top: 0;
+  z-index: -2;
+  top: -28px;
   left: calc(50% - 50vw);
   width: 100vw;
-  height: min(620px, 78vh);
-  background:
-    linear-gradient(180deg, rgba(16, 23, 45, 0.18) 0%, rgba(16, 23, 45, 0.36) 58%, var(--surface-canvas) 100%),
-    var(--release-page-backdrop) center / cover no-repeat;
-  filter: saturate(1.16);
+  height: min(700px, 82vh);
+  background: var(--release-page-backdrop) center / 112% auto no-repeat;
+  filter: blur(34px) brightness(0.76) saturate(1.25);
+  clip-path: inset(0);
+  contain: paint;
+}
+
+.pageWithBackdrop::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -28px;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  height: min(700px, 82vh);
+  background: linear-gradient(180deg, rgba(15, 12, 25, 0.2) 0%, rgba(15, 12, 25, 0.38) 56%, var(--surface-canvas) 100%);
 }
 
 .page > section:not(.hero) {
   padding: 28px;
   border: 1px solid rgba(255, 255, 255, 0.52);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 10px 32px rgba(20, 31, 56, 0.1);
-  backdrop-filter: blur(14px) saturate(1.25);
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 38px rgba(20, 15, 30, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
 }
 
 .backLink {
@@ -120,13 +137,6 @@
   color: var(--color-text-secondary);
 }
 
-.statsRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.statsRow span { font-size:12px; color:var(--accent-deep); font-weight:700; }
-
 .statItem {
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -216,6 +226,7 @@
   .hero { padding: 16px; }
   .heroSummary { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .heroImageShell { aspect-ratio: 16 / 9; }
+  .pageWithBackdrop::before { background-size: auto 108%; filter: blur(24px) brightness(0.78) saturate(1.15); }
   .technicalGrid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .contributorsGrid { grid-template-columns: 1fr; }
   .releaseNavigation { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }

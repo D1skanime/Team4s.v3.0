@@ -75,7 +75,7 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
   }
 
   return <section id="textbeitraege" className={styles.section}>
-    <SectionHeader title="Stimmen aus dem Team" description={`${totalCount} Texte, nach Rollen geordnet`} underline />
+    <SectionHeader title="Stimmen aus dem Team" underline />
     {error ? <p className={styles.error}>{error}</p> : null}
     <div className={styles.roleGrid} data-role-grid="responsive">
       {buckets.map(bucket => <section key={bucket.key} className={styles.roleGroup}>

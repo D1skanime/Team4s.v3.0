@@ -55,7 +55,8 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
   let animeTitle: string | null = null
   let groupName: string | null = null
   let animeLogoFallbackUrl: string | null = null
-  let atmosphereUrl: string | null = null
+  const releasePreviewAtmosphere = detail.preview_image?.thumbnail_url ?? detail.preview_image?.original_url
+  let atmosphereUrl = releasePreviewAtmosphere ? resolvePublicApiUrl(releasePreviewAtmosphere) : null
   try {
     const [animeResponse, groupResponse, backdropResponse] = await Promise.all([
       getAnimeByID(animeID),
@@ -65,8 +66,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
     animeTitle = animeResponse.data.title
     groupName = groupResponse.data.fansub.name
     animeLogoFallbackUrl = backdropResponse?.data.logo_url ? resolvePublicApiUrl(backdropResponse.data.logo_url) : null
-    const atmosphereCandidate = backdropResponse?.data.backdrops[0] ?? backdropResponse?.data.banner_url ?? animeResponse.data.banner_url
-    atmosphereUrl = atmosphereCandidate ? resolvePublicApiUrl(atmosphereCandidate) : null
+    atmosphereUrl = atmosphereUrl ?? animeLogoFallbackUrl
   } catch {
     // Release-Metadaten sind ergänzend. Ein vorhandenes Release bleibt auch
     // ohne Anime-/Gruppenlabels oder Backdrop öffentlich erreichbar.
@@ -100,7 +100,7 @@ export async function ReleaseDetailPageContent({ animeID, groupID, releaseVersio
       initialSegmentID={initialKaraSegmentID}
       autoPlayInitial={autoplayInitialKara}
     />
-    <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} groups={detail.groups} />
+    <ReleaseGallery animeID={animeID} groupID={groupID} releaseVersionID={releaseVersionID} initialImages={detail.images} categoryTotals={detail.image_category_totals} groups={detail.groups} atmosphereUrl={atmosphereUrl} />
     <ContributorsRow contributors={detail.contributors} groups={detail.groups} />
     <ReleaseEpisodePlayer releaseVersionID={releaseVersionID} title={detail.title} />
     <ReleaseNavigation animeID={animeID} groupID={groupID} canonicalProjectPath={canonicalProjectPath} previous={detail.previous} next={detail.next} />

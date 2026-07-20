@@ -35,6 +35,8 @@ describe('ReleaseNotesList', () => {
 
     render(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={8} initialNotes={notes} />)
 
+    expect(screen.getByRole('heading', { name: 'Stimmen aus dem Team' })).toBeTruthy()
+    expect(screen.queryByText('8 Texte, nach Rollen geordnet')).toBeNull()
     expect(screen.getAllByText(/Teamtext \d/)).toHaveLength(3)
     expect(screen.queryByText('Teamtext 4')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Weitere 5 Texte anzeigen' }))

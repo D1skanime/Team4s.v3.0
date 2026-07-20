@@ -125,6 +125,8 @@ Alle sichtbaren deutschen Strings verwenden korrekte Umlaute.
 
 **Kompositions-Supersession 2026-07-20:** Die Teamtexte folgen direkt auf den Release-Hero. Damit übernimmt die Release-Seite den redaktionellen Aufbau der öffentlichen Fansub- und Fansub-Projektseite; Karas und Bilder folgen danach als Medieninhalte.
 
+**Atmosphäre-/Metadaten-Supersession 2026-07-20:** Eine ausdrücklich markierte öffentliche Release-Preview steuert das scharfe Hero-Bild und die weich geblurte Atmosphäre hinter Hero und Bildersektion. Fehlt sie, übernimmt das Anime-Logo beide Rollen; fehlt auch das Logo, bleibt der Hero textbasiert. Die kompakte Thumbnail-Datei wird für die Hintergrundebene wiederverwendet. Die Zähler für Bilder, Texte und Fansubber entfallen im Hero, weil ihre Abschnitte dieselben Informationen im Seitenfluss zeigen. `Stimmen aus dem Team` erhält keine redundante Zähl-/Sortierbeschreibung.
+
 ---
 
 ## Seitenkomposition
@@ -142,7 +144,7 @@ Die DOM- und visuelle Reihenfolge ist identisch:
 
 Die bisherige separate Sprungnavigation `Bilder · Texte · Fansubber` entfällt vollständig. Dies erfüllt D-02 und folgt der bereits etablierten fließenden Public-Seite aus Phase 102. Leere Abschnitte hinterlassen weder Platzhalter noch zusätzliche Trennlinie oder Abschnittsabstand.
 
-Alle Sektionen nutzen dieselbe öffentliche Breite: `--public-page-max-width: 1360px`, ab 1600 px `1480px`, mit `--public-page-gutter: 48px` beziehungsweise `64px`. Kein innerer Wrapper verengt Timeline, Gallery, Teamtexte oder Beteiligte auf eine Halbspalte. Hauptsektionen dürfen die vorhandene helle Glass-/Card-Fläche verwenden; darin liegende Karten verwenden `flat` oder `nestedFlat`, damit keine schwere Card-in-Card-Hierarchie entsteht.
+Alle Sektionen nutzen dieselbe öffentliche Breite: `--public-page-max-width: 1360px`, ab 1600 px `1480px`, mit `--public-page-gutter: 48px` beziehungsweise `64px`. Kein innerer Wrapper verengt Timeline, Gallery, Teamtexte oder Beteiligte auf eine Halbspalte. Hauptsektionen verwenden dieselbe helle, durchscheinende Glass-Fläche wie die Public-Fansub- und Projektseite; Kara- und Teamtextkarten bleiben als getönte `flat`-Glasflächen leichter als ihre Sektion. Dadurch bleibt die Release-Atmosphäre sichtbar, ohne eine schwere Card-in-Card-Hierarchie zu erzeugen.
 
 ---
 
@@ -166,7 +168,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 - Sofort sichtbar: Episode, Episodentitel, kuratierter Release-Titel sofern abweichend, `Fansubgruppe: {Name}` beziehungsweise `Fansub-Coop: {Name} × {Name}`, Version, Release-Datum, Dauer und Auflösung.
 - Unter `Details`: Container, Video-Codec, Audio-Codec, Audio-Sprache, Untertiteltyp und Untertitelspuren. Null-/Leerwerte aus der bestehenden API werden als `Nicht hinterlegt` dargestellt. Das Disclosure ist ein echtes `Accordion`, hat `aria-expanded`, einen sichtbaren Fokuszustand und behält seinen Zustand lokal.
 - Nach dem Details-Accordion steht, falls vorhanden, die nächste Release-Kante über dieselbe `ReleaseNavigation`/`AdjacentNavigation inline`-Seam. Sie liegt im normalen Hero-Footer-Fluss und ergänzt die vollständige Navigation am Seitenende.
-- Hero-Statistiken zeigen ausschließlich vorhandene Zählwerte für Bilder, Texte und Fansubber; sie sind Metadaten, keine Navigations-Pills.
+- Bilder-, Text- und Fansubber-Zähler erscheinen nicht im Hero. Sie stehen ausschließlich an den zugehörigen Inhaltsabschnitten beziehungsweise in der Beteiligtensektion.
 - Die vollständige Beteiligtenliste gehört nicht mehr in das Hero-Disclosure, sondern in die eigene Sektion nach den Teamtexten.
 
 ---
@@ -206,6 +208,7 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 
 ### Bilder
 
+- Die markierte Release-Preview beziehungsweise der Anime-Logo-Fallback erscheint als stark vergrößerte, weich geblurte Farbatmosphäre hinter der durchscheinenden Bildersektion. Die Ebene verwendet dieselbe bereits geladene Thumbnail-/Logo-URL und erzeugt keinen zweiten Server-Render.
 - Alle Bilder stehen in einem gemeinsamen Raster; keine Kategorie- oder Herkunftsgruppen-Kapitel. Kategorie und Uploader/Autor stehen als Badge beziehungsweise Metazeile in jeder Karte.
 - Die ganze 16:9-Bildfläche ist ein `Button variant="ghost"` und öffnet die vorhandene Originalansicht/Lightbox. Alt-Text verwendet Caption, sonst das Kategorienlabel; der Maximize-Icon ist dekorativ.
 - Bildbeschreibung ist auf 2 Zeilen gekürzt. Metadaten umbrechen innerhalb der Karte und dürfen die Rasterspalte nicht verbreitern.
@@ -214,6 +217,8 @@ Verbindliche UAT-Viewports sind 390, 768, 1024 und 1440 px. Bei keinem davon gib
 
 ### Teamtexte
 
+- Die Sektion trägt ausschließlich den Titel `Stimmen aus dem Team`; eine zusätzliche Zeile wie `{n} Texte, nach Rollen geordnet` entfällt.
+- Sektion und Textkarten verwenden die abgestufte Public-Glass-Sprache, sodass keine deckend weiße Innenkarte die Release-Atmosphäre abschneidet.
 - Gruppierung erfolgt nach konkreter Release-Rolle, nicht als Ersatz nach gesamter Fansubgruppe. Herkunftsgruppe, Membername, Avatar/Fallback, Rolle und Datum bleiben Metadaten der jeweiligen Textkarte.
 - Desktop nutzt zwei Rollen-Spalten, sofern jede mindestens 320px breit ist. Tablet/Mobile nutzt eine Spalte. Textkörper bleiben auf maximal 68ch begrenzt; freie Restbreite darf ergänzende Metadaten tragen, aber keine leere rechte Halbseite erzeugen.
 - Lange Texte sind initial auf 6 Zeilen gekürzt. `Weiterlesen` öffnet genau diese Karte am selben Ort, `Weniger anzeigen` schließt sie wieder. Das Element ist ein globaler `Button variant="ghost"`; keine Text-Unterseite und kein Modal.

@@ -7,8 +7,7 @@
 }
 
 .section {
-  padding-top: var(--space-6, 24px);
-  border-top: 1px solid var(--border-subtle);
+  min-width: 0;
 }
 
 .roleGrid,
@@ -35,6 +34,11 @@
   display: grid;
   gap: var(--space-4, 16px);
   border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  background: rgba(255, 255, 255, 0.44);
+  box-shadow: 0 8px 24px rgba(20, 31, 56, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
 }
 
 .cardHeader {

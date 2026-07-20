@@ -9,8 +9,7 @@ import styles from './page.module.css'
 type ReleaseDetailHeroProps = Pick<ReleaseDetailResponse,
   'episode_number' | 'episode_title' | 'title' | 'version' | 'groups' | 'release_date' |
   'duration_seconds' | 'resolution' | 'container' | 'video_codec' | 'audio_codec' |
-  'audio_language' | 'subtitle_tracks' | 'subtitle_type' | 'preview_image' | 'next' |
-  'images_count' | 'notes_count' | 'contributors_count'> & {
+  'audio_language' | 'subtitle_tracks' | 'subtitle_type' | 'preview_image' | 'next'> & {
     animeID: number
     groupID: number
     canonicalProjectPath?: string | null
@@ -89,7 +88,6 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
       {props.episode_title && props.title !== props.episode_title ? <p className={styles.heroReleaseTitle}>{props.title}</p> : null}
       <p className={styles.heroGroupLine}>{groupLine}</p>
       <dl className={styles.technicalGrid}>{primaryFacts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-      <div className={styles.statsRow}><span>{props.images_count} Bilder</span><span>{props.notes_count} Texte</span><span>{props.contributors_count} Fansubber</span></div>
     </div>
     </div>
     <Accordion mode="single" items={[{
