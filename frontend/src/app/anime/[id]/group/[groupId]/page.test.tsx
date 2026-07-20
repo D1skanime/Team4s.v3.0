@@ -17,6 +17,8 @@ import {
 
 const projectPageSource = () =>
   readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/ProjectPage.tsx'), 'utf8')
+const releasesSectionSource = () =>
+  readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/sections/ReleasesSection.tsx'), 'utf8')
 const projectPageStyles = () =>
   readFileSync(join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/page.module.css'), 'utf8')
 
@@ -126,12 +128,22 @@ describe('ProjectPage public hero styling', () => {
     expect(heroBackdropBlock).toContain('filter: blur(34px) brightness(0.72) saturate(1.25)')
   })
 
-  it('reuses the public fansub section band for the release backdrop instead of duplicating its blur settings', () => {
-    const source = projectPageSource()
+  it('starts the reused fansub section band only at Alle Releases', () => {
+    const pageSource = projectPageSource()
+    const sectionSource = releasesSectionSource()
+    const css = projectPageStyles()
+    const releaseBackdropBlock = css.match(/\.releaseBandBackdrop\.releaseBandBackdrop\s*\{[\s\S]*?\}/)?.[0] ?? ''
 
-    expect(source).toContain('fansubSurfaceStyles.sectionBand')
-    expect(source).toContain('fansubSurfaceStyles.sectionBandBackdrop')
-    expect(source).toContain('style={{ backgroundImage: `url("${data.heroBackdropUrl}")` }}')
+    expect(pageSource).not.toContain('fansubSurfaceStyles.sectionBand')
+    expect(pageSource).toContain('releaseBackdropUrl={data.heroBackdropUrl}')
+    expect(sectionSource).toContain('fansubSurfaceStyles.sectionBand')
+    expect(sectionSource).toContain('fansubSurfaceStyles.sectionBandBackdrop')
+    expect(sectionSource).toContain('styles.releaseBandBackdrop')
+    expect(sectionSource).toContain('style={{ backgroundImage: `url("${releaseBackdropUrl}")` }}')
+    expect(sectionSource.indexOf('<PublicReleaseBlock')).toBeLessThan(sectionSource.indexOf('data-project-release-band'))
+    expect(releaseBackdropBlock).toContain('background-repeat: repeat-y')
+    expect(releaseBackdropBlock).toContain('background-size: 200% 560px')
+    expect(releaseBackdropBlock).toContain('filter: blur(72px)')
   })
 
   it('richtet alle Statistikwerte und Beschriftungen auf gemeinsamen Zeilen aus', () => {

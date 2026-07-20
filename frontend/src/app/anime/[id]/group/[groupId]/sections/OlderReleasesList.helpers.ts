@@ -31,10 +31,9 @@ function subscribeToMobileReleasesListBreakpoint(onStoreChange: () => void) {
 }
 
 /**
- * AO4-Bugfix (260718-2w4): Ersetzt die fehleranfaellige CSS-Kaskade
- * (`.list > .rowActions` vs. `.rowActions` in DesktopReleaseRow) durch
- * einen einzigen Render-Zweig: nur EIN Wrapper (mobil ODER desktop)
- * befindet sich zu jedem Zeitpunkt im DOM. Folgt exakt dem
+ * AO4-Bugfix (260718-2w4): Verwendet einen einzigen responsiven Render-Zweig:
+ * Nur EIN Wrapper (mobil ODER Desktop) befindet sich zu jedem Zeitpunkt
+ * im DOM. Folgt exakt dem
  * useSyncExternalStore+matchMedia-Muster aus ProjectStats.tsx.
  */
 export function useIsMobileReleasesList(): boolean {

@@ -416,6 +416,26 @@
   z-index: 1;
 }
 
+/*
+ * Lange Release-Listen verwenden weiterhin das Fansub-Section-Band, aber
+ * nicht dessen motivlesbare Cover-Darstellung. Die starke Vergrößerung,
+ * Aufhellung und Wiederholung pro visueller Höhe erzeugt nur einen ruhigen
+ * Farbverlauf und skaliert unabhängig von der Anzahl oder Höhe der Releases.
+ */
+.releaseBandBackdrop.releaseBandBackdrop {
+  top: -88px;
+  bottom: -88px;
+  background-color: rgba(18, 24, 40, 0.1);
+  background-position: center top;
+  background-repeat: repeat-y;
+  background-size: 200% 560px;
+  background-blend-mode: normal;
+  filter: blur(72px) saturate(1.35) contrast(0.9) brightness(0.92);
+  opacity: 0.34;
+  transform: scaleX(1.04);
+  transform-origin: center top;
+}
+
 /* ── Shared section wrapper (Team, Releases, Themes, Media, Backlinks) ── */
 .teamSection,
 .releasesSection,
@@ -475,6 +495,12 @@
 .deepLink:hover { text-decoration: underline; }
 
 @media (max-width: 768px) {
+  .releaseBandBackdrop.releaseBandBackdrop {
+    background-size: 300% 700px;
+    filter: blur(68px) saturate(1.3) contrast(0.88) brightness(0.94);
+    opacity: 0.31;
+  }
+
   .heroShell {
     overflow: clip;
   }

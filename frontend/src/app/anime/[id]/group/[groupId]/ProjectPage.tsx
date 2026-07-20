@@ -3,7 +3,6 @@ import { HeroSection } from "./sections/HeroSection";
 import { ReleasesSection } from "./sections/ReleasesSection";
 import { StorySection } from "./sections/StorySection";
 import { TeamSection } from "./sections/TeamSection";
-import fansubSurfaceStyles from "@/app/fansubs/[slug]/page.module.css";
 import styles from "./page.module.css";
 import type { PublicFansubProjectPageData } from "./projectPageData";
 
@@ -41,24 +40,14 @@ export function ProjectPage({ data }: ProjectPageProps) {
         externalContributors={data.contributorsData.external_contributors}
       />
       {data.hasReleases ? (
-        <div className={fansubSurfaceStyles.sectionBand} data-project-release-band>
-          {data.heroBackdropUrl ? (
-            <div
-              className={fansubSurfaceStyles.sectionBandBackdrop}
-              style={{ backgroundImage: `url("${data.heroBackdropUrl}")` }}
-              aria-hidden="true"
-            />
-          ) : null}
-          <div className={styles.releaseBandContent}>
-            <ReleasesSection
-              episodes={data.releaseEpisodes}
-              publicReleasePreviews={data.publicReleasePreviews}
-              animeID={data.animeID}
-              groupID={data.groupID}
-              canonicalProjectPath={data.canonicalProjectPath}
-            />
-          </div>
-        </div>
+        <ReleasesSection
+          episodes={data.releaseEpisodes}
+          publicReleasePreviews={data.publicReleasePreviews}
+          animeID={data.animeID}
+          groupID={data.groupID}
+          canonicalProjectPath={data.canonicalProjectPath}
+          releaseBackdropUrl={data.heroBackdropUrl}
+        />
       ) : null}
       <BacklinksSection fansubSlug={data.group.fansub.slug} animeID={data.animeID} />
     </main>

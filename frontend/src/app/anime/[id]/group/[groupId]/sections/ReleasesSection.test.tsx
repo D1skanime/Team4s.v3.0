@@ -47,6 +47,7 @@ describe('ReleasesSection (Phase 102-05)', () => {
         publicReleasePreviews={[makePreview()]}
         animeID={1}
         groupID={2}
+        releaseBackdropUrl="/media/vipers-creed-banner.jpg"
       />,
     )
 
@@ -55,6 +56,9 @@ describe('ReleasesSection (Phase 102-05)', () => {
     expect(markup).toContain('Signal im Regen')
     expect(markup).toContain('href="/anime/1/group/2/releases"')
     expect(markup).toContain('Alle Releases ansehen')
+    expect(markup).toContain('data-project-release-band="true"')
+    expect(markup).toContain('background-image:url(&quot;/media/vipers-creed-banner.jpg&quot;)')
+    expect(markup.indexOf('Neuestes Fansub-Release')).toBeLessThan(markup.indexOf('data-project-release-band="true"'))
   })
 
   it('falls back to the conservative release list without activity previews', () => {

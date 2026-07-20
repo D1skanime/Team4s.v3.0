@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import fansubSurfaceStyles from '@/app/fansubs/[slug]/page.module.css'
 import { PublicReleaseBlock, type PublicReleasePreview } from '@/components/fansubs/PublicReleaseBlock'
 import type { EpisodeReleaseSummary } from '@/types/group'
 
@@ -12,6 +13,7 @@ interface ReleasesSectionProps {
   animeID: number
   groupID: number
   canonicalProjectPath?: string | null
+  releaseBackdropUrl?: string | null
 }
 
 /**
@@ -21,7 +23,14 @@ interface ReleasesSectionProps {
  * Wird von der Seite nur gerendert, wenn `episodes.length > 0` ist — der
  * Leerfall laeuft ueber den gemeinsamen Sammel-Hinweis (AO4-07).
  */
-export function ReleasesSection({ episodes, publicReleasePreviews, animeID, groupID, canonicalProjectPath }: ReleasesSectionProps) {
+export function ReleasesSection({
+  episodes,
+  publicReleasePreviews,
+  animeID,
+  groupID,
+  canonicalProjectPath,
+  releaseBackdropUrl,
+}: ReleasesSectionProps) {
   if (episodes.length === 0) return null
   const [latestRelease] = publicReleasePreviews
 
@@ -30,15 +39,26 @@ export function ReleasesSection({ episodes, publicReleasePreviews, animeID, grou
       {latestRelease ? (
         <PublicReleaseBlock latestRelease={latestRelease} releases={[]} />
       ) : null}
-      <OlderReleasesList
-        animeID={animeID}
-        groupID={groupID}
-        canonicalProjectPath={canonicalProjectPath}
-      />
-      <div className={styles.releasesCta}>
-        <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>
-          Alle Releases ansehen
-        </Link>
+      <div className={fansubSurfaceStyles.sectionBand} data-project-release-band>
+        {releaseBackdropUrl ? (
+          <div
+            className={`${fansubSurfaceStyles.sectionBandBackdrop} ${styles.releaseBandBackdrop}`}
+            style={{ backgroundImage: `url("${releaseBackdropUrl}")` }}
+            aria-hidden="true"
+          />
+        ) : null}
+        <div className={styles.releaseBandContent}>
+          <OlderReleasesList
+            animeID={animeID}
+            groupID={groupID}
+            canonicalProjectPath={canonicalProjectPath}
+          />
+          <div className={styles.releasesCta}>
+            <Link href={`/anime/${animeID}/group/${groupID}/releases`} className={styles.releasesButton}>
+              Alle Releases ansehen
+            </Link>
+          </div>
+        </div>
       </div>
     </>
   )

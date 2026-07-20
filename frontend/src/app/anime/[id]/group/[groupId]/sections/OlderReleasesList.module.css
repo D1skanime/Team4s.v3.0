@@ -49,6 +49,7 @@
 .rowMain {
   display: grid;
   gap: 4px;
+  width: 100%;
   min-width: 0;
 }
 
@@ -59,7 +60,10 @@
     var(--release-divider-col)
     minmax(0, var(--release-second-col))
     var(--release-divider-col)
-    minmax(0, 1fr);
+    minmax(0, 1fr)
+    max-content
+    var(--release-divider-col)
+    max-content;
   align-items: baseline;
   column-gap: 8px;
   row-gap: 2px;
@@ -87,9 +91,13 @@
 }
 
 .rowMeta {
+  min-width: 0;
+  overflow: hidden;
   font-size: 12px;
   line-height: 1.25;
   color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rowVersion {
@@ -97,13 +105,6 @@
   font-weight: 700;
   line-height: 1.25;
   color: var(--color-text-secondary);
-}
-
-.rowActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
 }
 
 .rowCountGroup {
@@ -142,6 +143,18 @@
 .timelinePreview {
   display: grid;
   gap: 0;
+  min-width: 0;
+}
+
+.timelineActionRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.releaseOpenAction {
+  white-space: nowrap;
 }
 
 .timelineTimes {
@@ -200,7 +213,7 @@
   left: var(--segment-left);
   top: 50%;
   width: var(--segment-width);
-  height: 18px;
+  height: 24px;
   min-width: 0;
   max-width: 180px;
   display: block;
@@ -270,10 +283,11 @@
 .segmentType {
   position: absolute;
   left: 50%;
-  bottom: 21px;
-  max-width: 100%;
+  top: 50%;
+  width: calc(100% - 10px);
+  max-width: none;
   overflow: hidden;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   text-overflow: ellipsis;
   font-size: 12px;
   font-weight: 700;
@@ -296,11 +310,6 @@
 }
 
 @media (max-width: 640px) {
-  .rowActions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
   .timelineTrack {
     height: 50px;
   }
@@ -449,7 +458,10 @@
 
   .rowTitleLine .rowMeta {
     grid-column: 1 / -1;
+    overflow: visible;
     overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .rowCountGroup {

@@ -108,31 +108,37 @@ export function DesktopReleaseRow({ animeID, groupID, episode, canonicalProjectP
             <span className={styles.rowVersion}>{versionOnlyLabel(episode.version_label)}</span>
             <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
             <span className={styles.rowMeta}>{episode.title?.trim() ?? ''}</span>
-          </div>
-          <div className={styles.rowCountGroup}>
             <span className={styles.rowCount}><ImageIcon size={14} aria-hidden="true" />{episode.images_count ?? 0} Bilder</span>
             <span className={styles.rowTitleDivider} aria-hidden="true">|</span>
             <span className={styles.rowCount}><FileText size={14} aria-hidden="true" />{episode.notes_count ?? 0} Texte</span>
           </div>
         </div>
-        <div className={styles.rowActions}>
-          <Button href={detailHref} variant="subtle" size="sm" leftIcon={<Eye size={15} aria-hidden="true" />}>Ansicht</Button>
-        </div>
       </div>
-      <div className={styles.timelinePreview}>
-        <div className={styles.timelineTrack} style={timelineTrackStyle(episode.timeline_segments ?? [], episode.duration_seconds)}>
-          {(episode.timeline_segments ?? []).map((segment) => (
-            <Link
-              key={segment.id}
-              href={buildKaraHref(detailHref, segment.id)}
-              className={segmentClassName(segment.type)}
-              style={segmentPositionStyle(segment, episode.duration_seconds)}
-              aria-label={`${segment.title} auf der Release-Seite abspielen`}
-            >
-              <span className={styles.segmentType}>{segment.title}</span>
-            </Link>
-          ))}
+      <div className={styles.timelineActionRow}>
+        <div className={styles.timelinePreview}>
+          <div className={styles.timelineTrack} style={timelineTrackStyle(episode.timeline_segments ?? [], episode.duration_seconds)}>
+            {(episode.timeline_segments ?? []).map((segment) => (
+              <Link
+                key={segment.id}
+                href={buildKaraHref(detailHref, segment.id)}
+                className={segmentClassName(segment.type)}
+                style={segmentPositionStyle(segment, episode.duration_seconds)}
+                aria-label={`${segment.title} auf der Release-Seite abspielen`}
+              >
+                <span className={styles.segmentType}>{segment.title}</span>
+              </Link>
+            ))}
+          </div>
         </div>
+        <Button
+          href={detailHref}
+          variant="subtle"
+          size="sm"
+          leftIcon={<Eye size={15} aria-hidden="true" />}
+          className={styles.releaseOpenAction}
+        >
+          Release öffnen
+        </Button>
       </div>
     </Card>
   )
@@ -256,15 +262,15 @@ export function MobileDirectReleaseRow({ animeID, groupID, episode, canonicalPro
         leftIcon={<Eye size={15} aria-hidden="true" />}
         className={styles.mobileDirectAction}
       >
-        Ansicht
+        Release öffnen
       </Button>
     </Card>
   )
 }
 
 /**
- * AO4-Bugfix (260718-2w4): "Ansicht" muss bei Kara-Folgen ohne Aufklappen
- * sichtbar sein. Header + Ansicht-Button liegen deshalb strukturell
+ * AO4-Bugfix (260718-2w4): "Release öffnen" muss bei Kara-Folgen ohne Aufklappen
+ * sichtbar sein. Header + Release-Link liegen deshalb strukturell
  * AUSSERHALB des Accordion-Toggle-Buttons; nur die Kara-Segmentliste
  * (ReleaseDetails) steckt im aufklappbaren Bereich.
  */
@@ -288,7 +294,7 @@ export function MobileKaraReleaseRow({ animeID, groupID, episode, canonicalProje
         leftIcon={<Eye size={15} aria-hidden="true" />}
         className={styles.mobileDirectAction}
       >
-        Ansicht
+        Release öffnen
       </Button>
       <Accordion
         items={[{

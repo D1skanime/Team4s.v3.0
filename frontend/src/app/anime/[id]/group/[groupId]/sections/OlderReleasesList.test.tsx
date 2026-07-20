@@ -64,7 +64,7 @@ const makeEpisode = (overrides: Partial<EpisodeReleaseSummary> = {}): EpisodeRel
 beforeEach(() => {
   // Mobile als Testdefault (analog ProjectStats.test.tsx) — die meisten
   // bestehenden Tests pruefen inhaltlich Mobile-Verhalten (Accordion,
-  // Badges, Ansicht-Button). Der Desktop-Zweig wird in einem eigenen Test
+  // Badges, Release-Link). Der Desktop-Zweig wird in einem eigenen Test
   // lokal auf matches: false umgestellt.
   vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
     matches: query === '(max-width: 768px)',
@@ -83,15 +83,24 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
   it('hält einzelne Release-Zeilen transparent und zieht die Wine-Linie näher an die Timeline', () => {
     const css = olderReleasesStyles()
     const rowBlock = css.match(/\.row\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const rowTitleLineBlock = css.match(/\.rowTitleLine\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const timelineActionRowBlock = css.match(/\.timelineActionRow\s*\{[\s\S]*?\}/)?.[0] ?? ''
     const timelineTrackBlock = css.match(/\.timelineTrack\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const segmentPillBlock = css.match(/\.segmentPill\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const segmentTypeBlock = css.match(/\.segmentType\s*\{[\s\S]*?\}/)?.[0] ?? ''
 
     expect(rowBlock).toContain('padding: 12px 16px 4px')
     expect(rowBlock).toContain('background: transparent')
     expect(rowBlock).toContain('box-shadow: none')
+    expect(rowTitleLineBlock.match(/max-content/g)).toHaveLength(2)
+    expect(timelineActionRowBlock).toContain('grid-template-columns: minmax(0, 1fr) auto')
     expect(timelineTrackBlock).toContain('height: 32px')
+    expect(segmentPillBlock).toContain('height: 24px')
+    expect(segmentTypeBlock).toContain('top: 50%')
+    expect(segmentTypeBlock).not.toContain('bottom:')
   })
 
-  it('rendert ein Release ohne Karas direkt mit Ansicht statt als leeres Accordion', async () => {
+  it('rendert ein Release ohne Karas direkt mit Release öffnen statt als leeres Accordion', async () => {
     getGroupReleaseListCursor.mockResolvedValueOnce({
       items: [makeEpisode({ id: 10, episode_number: 1, title: 'Episode 1' })],
       next_cursor: 'cursor-1',
@@ -107,7 +116,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     expect(screen.getAllByText('1 Texte').length).toBeGreaterThan(0)
     expect(screen.queryByText('Hauptinhalt')).toBeNull()
     expect(screen.queryByRole('button', { name: /Folge 1/i })).toBeNull()
-    expect(screen.getAllByRole('link', { name: 'Ansicht' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: 'Release öffnen' }).length).toBeGreaterThan(0)
     expect(screen.queryByText('Für dieses Release sind keine Karas hinterlegt.')).toBeNull()
     expect(screen.queryByText('0 Karas')).toBeNull()
     expect(getGroupReleaseListCursor).toHaveBeenCalledWith(1, 2, {
@@ -149,7 +158,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     const disclosure = screen.getByRole('button', { name: '2 Karas anzeigen' })
-    const directAction = screen.getByRole('link', { name: 'Ansicht' })
+    const directAction = screen.getByRole('link', { name: 'Release öffnen' })
     expect(directAction.compareDocumentPosition(disclosure) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.queryByText('2 Karas', { exact: true })).toBeNull()
     fireEvent.click(disclosure)
@@ -233,7 +242,7 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     expect(within(region).getByText('Alternative Version')).not.toBeNull()
   })
 
-  it('zeigt "Ansicht" bei Kara-Folgen sofort, ohne das Accordion aufzuklappen', async () => {
+  it('zeigt "Release öffnen" bei Kara-Folgen sofort, ohne das Accordion aufzuklappen', async () => {
     getGroupReleaseListCursor.mockResolvedValueOnce({
       items: [makeEpisode({
         id: 10,
@@ -249,14 +258,15 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     render(<OlderReleasesList animeID={1} groupID={2} />)
 
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
-    // Ansicht-Button und Accordion-Header sind sofort da — ohne jeden Klick.
-    expect(screen.getByRole('link', { name: 'Ansicht' })).not.toBeNull()
+    // Release-Link und Accordion-Header sind sofort da — ohne jeden Klick.
+    expect(screen.getByRole('link', { name: 'Release öffnen' })).not.toBeNull()
     expect(screen.getByRole('button', { name: '1 Kara anzeigen' })).not.toBeNull()
     expect(screen.queryByText('1 Karas', { exact: true })).toBeNull()
     // Die einzelnen Kara-Segmenttitel sind erst nach dem Aufklappen sichtbar.
     expect(screen.queryByText('Viper OP')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '1 Kara anzeigen' }))
-    expect(screen.getByText('Viper OP')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Viper OP' })).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Release öffnen' })).not.toBeNull()
   })
 
   it('rendert auf Desktop (matches:false) DesktopReleaseRow statt der Mobile-Struktur', async () => {
@@ -284,7 +294,9 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     await waitFor(() => expect(screen.getAllByText('Folge 1').length).toBeGreaterThan(0))
     // Desktop-Zweig: Titel ist ein Link, Timeline-Segment direkt sichtbar, kein Accordion-Toggle.
     expect(screen.getByRole('link', { name: 'Folge 1' })).not.toBeNull()
-    expect(screen.getByText('Viper OP')).not.toBeNull()
+    const karaLink = screen.getByRole('link', { name: 'Viper OP' })
+    expect(within(karaLink).getByText('Viper OP')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Release öffnen' })).not.toBeNull()
     expect(screen.queryByRole('button', { name: /Karas? anzeigen/ })).toBeNull()
     expect(screen.getByTestId('release-list-glass-card').className).toContain('heroCard')
     expect(screen.getByTestId('release-list-glass-card').className).toContain('releaseGlassCard')
