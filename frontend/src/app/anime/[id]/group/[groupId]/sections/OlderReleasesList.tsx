@@ -75,7 +75,7 @@ export function OlderReleasesList({ animeID, groupID, canonicalProjectPath }: Ol
         </div>
       ) : (
         <section
-          className={`${styles.list} ${fansubSurfaceStyles.heroCard}`}
+          className={`${styles.list} ${fansubSurfaceStyles.heroCard} ${styles.releaseGlassCard}`}
           data-testid="release-list-glass-card"
         >
           {isMobile ? (

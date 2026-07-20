@@ -18,6 +18,11 @@
   margin-top: 24px;
 }
 
+/* Der Banner-Backdrop bleibt die sichtbare Fläche; heroCard liefert weiterhin Blur, Rahmen und Radius. */
+.releaseGlassCard {
+  background: transparent;
+}
+
 .row {
   padding: 12px 16px 14px;
   display: grid;
