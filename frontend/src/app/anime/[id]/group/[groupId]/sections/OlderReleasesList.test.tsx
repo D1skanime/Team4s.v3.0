@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -24,6 +26,11 @@ vi.mock('@/lib/api', async () => {
 })
 
 import { OlderReleasesList } from './OlderReleasesList'
+
+const olderReleasesStyles = () => readFileSync(
+  join(process.cwd(), 'src/app/anime/[id]/group/[groupId]/sections/OlderReleasesList.module.css'),
+  'utf8',
+)
 
 // jsdom has no IntersectionObserver — stub it so the auto-load effect (AO4-21)
 // doesn't throw. The stub never fires, so these tests exercise only the manual
@@ -73,6 +80,17 @@ afterEach(() => {
 })
 
 describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
+  it('hält einzelne Release-Zeilen transparent und zieht die Wine-Linie näher an die Timeline', () => {
+    const css = olderReleasesStyles()
+    const rowBlock = css.match(/\.row\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const timelineTrackBlock = css.match(/\.timelineTrack\s*\{[\s\S]*?\}/)?.[0] ?? ''
+
+    expect(rowBlock).toContain('padding: 12px 16px 4px')
+    expect(rowBlock).toContain('background: transparent')
+    expect(rowBlock).toContain('box-shadow: none')
+    expect(timelineTrackBlock).toContain('height: 32px')
+  })
+
   it('rendert ein Release ohne Karas direkt mit Ansicht statt als leeres Accordion', async () => {
     getGroupReleaseListCursor.mockResolvedValueOnce({
       items: [makeEpisode({ id: 10, episode_number: 1, title: 'Episode 1' })],
