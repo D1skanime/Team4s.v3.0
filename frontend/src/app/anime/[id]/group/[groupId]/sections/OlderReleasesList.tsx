@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Button, Card, SectionHeader } from '@/components/ui'
+import fansubSurfaceStyles from '@/app/fansubs/[slug]/page.module.css'
+import { Button, SectionHeader } from '@/components/ui'
 import { ApiError, getGroupReleaseListCursor } from '@/lib/api'
 import type { EpisodeReleaseSummary } from '@/types/group'
 
@@ -73,7 +74,10 @@ export function OlderReleasesList({ animeID, groupID, canonicalProjectPath }: Ol
           ))}
         </div>
       ) : (
-        <Card variant="flat" className={styles.list}>
+        <section
+          className={`${styles.list} ${fansubSurfaceStyles.heroCard}`}
+          data-testid="release-list-glass-card"
+        >
           {isMobile ? (
             <div className={styles.mobileList}>
               {sortedItems.map((episode) => {
@@ -110,7 +114,7 @@ export function OlderReleasesList({ animeID, groupID, canonicalProjectPath }: Ol
               ))}
             </div>
           )}
-        </Card>
+        </section>
       )}
       {hasMore ? (
         <div className={styles.loadMoreRow}>

@@ -411,6 +411,11 @@
   border-top: 1px solid var(--border-subtle);
 }
 
+.releaseBandContent {
+  position: relative;
+  z-index: 1;
+}
+
 /* ── Shared section wrapper (Team, Releases, Themes, Media, Backlinks) ── */
 .teamSection,
 .releasesSection,

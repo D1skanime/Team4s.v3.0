@@ -126,6 +126,14 @@ describe('ProjectPage public hero styling', () => {
     expect(heroBackdropBlock).toContain('filter: blur(34px) brightness(0.72) saturate(1.25)')
   })
 
+  it('reuses the public fansub section band for the release backdrop instead of duplicating its blur settings', () => {
+    const source = projectPageSource()
+
+    expect(source).toContain('fansubSurfaceStyles.sectionBand')
+    expect(source).toContain('fansubSurfaceStyles.sectionBandBackdrop')
+    expect(source).toContain('style={{ backgroundImage: `url("${data.heroBackdropUrl}")` }}')
+  })
+
   it('richtet alle Statistikwerte und Beschriftungen auf gemeinsamen Zeilen aus', () => {
     const css = projectPageStyles()
     const statItemBlock = css.match(/\.statItem\s*\{[\s\S]*?\}/)?.[0] ?? ''

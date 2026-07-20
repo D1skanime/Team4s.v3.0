@@ -268,5 +268,6 @@ describe('OlderReleasesList (AO4-12/AO4-21/AO4-25)', () => {
     expect(screen.getByRole('link', { name: 'Folge 1' })).not.toBeNull()
     expect(screen.getByText('Viper OP')).not.toBeNull()
     expect(screen.queryByRole('button', { name: /Karas? anzeigen/ })).toBeNull()
+    expect(screen.getByTestId('release-list-glass-card').className).toContain('heroCard')
   })
 })
