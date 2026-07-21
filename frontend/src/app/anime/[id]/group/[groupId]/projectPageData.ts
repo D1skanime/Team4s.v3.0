@@ -2,18 +2,13 @@ import type { CSSProperties } from "react";
 
 import {
   ApiError,
-  getAnimeByID,
-  getAnimeFansubs,
   getGroupAssets,
-  getGroupContributors,
   getGroupDetail,
-  getGroupProjectNote,
   getGroupReleaseDetail,
   getGroupReleaseListCursor,
-  getGroupReleaseMedia,
   getGroupReleases,
-  getGroupThemes,
   getPublicFansubProfileBySlug,
+  getPublicFansubProjectPage,
 } from "@/lib/api";
 import { buildFansubReleaseHref, buildPublicFansubProjectPath } from "@/lib/fansubProjectRoutes";
 import {
@@ -24,7 +19,7 @@ import { buildGroupNavigationGroups } from "@/lib/groupNavigation";
 import { resolvePublicApiUrl } from "@/lib/publicApiUrl";
 import type { PublicReleasePreview, PublicReleaseTimelineSegment } from "@/components/fansubs/PublicReleaseBlock";
 import type { AnimeDetail } from "@/types/anime";
-import type { FansubGroupSummary } from "@/types/fansub";
+import type { FansubGroupSummary, PublicFansubProfile } from "@/types/fansub";
 import type { EpisodeReleaseSummary, GroupDetail } from "@/types/group";
 import type { GroupAssetsResponse } from "@/types/groupAsset";
 import type {
@@ -252,16 +247,21 @@ async function withFallback<T>(fetcher: () => Promise<T>, fallback: T): Promise<
   }
 }
 
-/** Leitet den canonicalProjectPath aus EINEM (bereits gestarteten) Profil-Promise ab. */
+/**
+ * Leitet den canonicalProjectPath aus EINEM (bereits gestarteten) Profil-Promise ab.
+ * Das Promise liefert entweder das vorab durchgereichte Profil (pretty-Route) oder das
+ * einmalig selbst geladene Profil (ID-Route) — in beiden Faellen die Profil-DATEN.
+ */
 async function resolveCanonicalProjectPath(
-  profilePromise: ReturnType<typeof getPublicFansubProfileBySlug> | null,
+  profileDataPromise: Promise<PublicFansubProfile | null>,
   fansubSlug: string | undefined,
   animeID: number,
 ): Promise<string | null> {
-  if (!profilePromise || !fansubSlug) return null;
+  if (!fansubSlug) return null;
   try {
-    const profile = await profilePromise;
-    const project = profile.data.projects.find((item) => item.id === animeID && item.anime_slug?.trim());
+    const profile = await profileDataPromise;
+    if (!profile) return null;
+    const project = profile.projects.find((item) => item.id === animeID && item.anime_slug?.trim());
     return project?.anime_slug ? buildPublicFansubProjectPath(fansubSlug, project.anime_slug) : null;
   } catch {
     return null;
@@ -271,24 +271,29 @@ async function resolveCanonicalProjectPath(
 export async function loadPublicFansubProjectPageData({
   animeID,
   groupID,
-}: PublicFansubProjectIDs): Promise<LoadPublicFansubProjectPageDataResult> {
-  let groupResponse: Awaited<ReturnType<typeof getGroupDetail>> | null = null;
-  let animeResponse: Awaited<ReturnType<typeof getAnimeByID>> | null = null;
+  preloadedProfile,
+}: PublicFansubProjectIDs & {
+  /**
+   * Bereits geladenes Fansub-Profil (pretty-Route). Wenn gesetzt, wird KEIN zweiter
+   * Profil-Fetch ausgeloest; die ID-Route laesst dies weg und holt das Profil einmalig selbst.
+   */
+  preloadedProfile?: PublicFansubProfile;
+}): Promise<LoadPublicFansubProjectPageDataResult> {
+  let bundleResponse: Awaited<ReturnType<typeof getPublicFansubProjectPage>> | null = null;
   let errorMessage: string | null = null;
 
+  // Phase-A-Gate liegt jetzt auf dem Bundle-Call: group und anime kommen aus dem Bundle.
+  // Bundle-404 -> not-found, jeder andere Fehler -> error (spiegelt die bisherigen Gates).
   try {
-    [groupResponse, animeResponse] = await Promise.all([
-      getGroupDetail(animeID, groupID),
-      getAnimeByID(animeID),
-    ]);
+    bundleResponse = await getPublicFansubProjectPage(animeID, groupID);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       return { status: "not-found" };
     }
-    errorMessage = "Gruppendetails konnten nicht geladen werden.";
+    errorMessage = "Projektdaten konnten nicht geladen werden.";
   }
 
-  if (!groupResponse || !animeResponse) {
+  if (!bundleResponse || !bundleResponse.data.group || !bundleResponse.data.anime) {
     return {
       status: "error",
       animeID,
@@ -297,59 +302,60 @@ export async function loadPublicFansubProjectPageData({
     };
   }
 
-  const group = groupResponse.data;
-  const anime = animeResponse.data;
-  // Ein einziger Profil-Fetch versorgt sowohl canonicalProjectPath als auch die
-  // Projekt-Navigation (identischer Slug, dasselbe aufgeloeste Profil).
+  const bundle = bundleResponse.data;
+  const group = bundle.group;
+  const anime = bundle.anime;
+
+  // Die 5 optionalen Sektionen liefert das Bundle bereits mit; nil -> Fallback wie bisher.
+  const contributorsData: GroupContributorsResponse =
+    bundle.contributors ?? { team_members: [], external_contributors: [] };
+  const themesData: GroupThemesResponse = bundle.themes ?? { themes: [] };
+  const releaseMediaData: GroupReleaseMediaResponse = bundle.release_media ?? { items: [] };
+  const projectNotesHtml: string | null = bundle.project_note?.body_html?.trim() || null;
+  const animeFansubRelations = bundle.anime_fansubs ?? null;
+
+  // Profil versorgt canonicalProjectPath UND die Projekt-Navigation aus EINER Quelle:
+  // pretty-Route reicht es durch (kein Fetch), ID-Route holt es genau EINMAL selbst
+  // (separat, darf parallel zu den restlichen Phase-B-Fetches laufen).
   const canonicalFansubSlug = group.fansub.slug?.trim();
-  const profilePromise = canonicalFansubSlug ? getPublicFansubProfileBySlug(canonicalFansubSlug) : null;
+  const profileDataPromise: Promise<PublicFansubProfile | null> = preloadedProfile
+    ? Promise.resolve(preloadedProfile)
+    : canonicalFansubSlug
+      ? getPublicFansubProfileBySlug(canonicalFansubSlug)
+          .then((response) => response.data)
+          .catch(() => null)
+      : Promise.resolve(null);
 
   // Unabhaengige Phase-B-Fetches laufen nebenlaeufig; jede Branch kapselt ihren eigenen
   // Fallback, damit ein Fehler keine andere Branch mitreisst (Promise.all darf nicht rejecten).
-  const [
-    groupAssetsResponse,
-    releasesBranch,
-    profileDerived,
-    publicReleasePreviews,
-    contributorsData,
-    themesData,
-    releaseMediaData,
-    projectNotesHtml,
-  ] = await Promise.all([
+  // assets und die Release-Vorschau-Kette bleiben bewusst separate, parallele Fetches.
+  const [groupAssetsResponse, releasesBranch, profileDerived, publicReleasePreviews] = await Promise.all([
     withFallback<Awaited<ReturnType<typeof getGroupAssets>> | null>(() => getGroupAssets(animeID, groupID), null),
     (async () => {
       let releaseEpisodes: Awaited<ReturnType<typeof getGroupReleases>>["data"]["episodes"] = [];
       let otherGroups: Awaited<ReturnType<typeof getGroupReleases>>["data"]["other_groups"] = [];
-      let animeFansubRelations: Awaited<ReturnType<typeof getAnimeFansubs>>["data"] | null = null;
       try {
-        const [releasesData, fansubsData] = await Promise.all([getGroupReleases(animeID, groupID, { per_page: 100 }), getAnimeFansubs(animeID)]);
+        const releasesData = await getGroupReleases(animeID, groupID, { per_page: 100 });
         releaseEpisodes = releasesData.data.episodes;
         otherGroups = releasesData.data.other_groups;
-        animeFansubRelations = fansubsData.data;
       } catch {
-        try {
-          const releasesData = await getGroupReleases(animeID, groupID, { per_page: 100 });
-          releaseEpisodes = releasesData.data.episodes;
-          otherGroups = releasesData.data.other_groups;
-        } catch {
-          /* Continue without navigation data. */
-        }
+        /* Continue without navigation data. */
       }
-      return { releaseEpisodes, otherGroups, animeFansubRelations };
+      return { releaseEpisodes, otherGroups };
     })(),
     (async () => {
-      const canonicalProjectPath = await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
+      const canonicalProjectPath = await resolveCanonicalProjectPath(profileDataPromise, canonicalFansubSlug, animeID);
       let fansubProjectNavigation: FansubProjectNavigation = { previous: null, next: null };
       try {
-        const profile = profilePromise ? await profilePromise : null;
+        const profile = await profileDataPromise;
         if (profile && canonicalFansubSlug) {
-          const currentProject = profile.data.projects.find((project) => project.id === animeID);
+          const currentProject = profile.projects.find((project) => project.id === animeID);
           fansubProjectNavigation = buildFansubProjectNavigation({
             currentAnimeID: animeID,
             currentAnimeSlug: currentProject?.anime_slug ?? null,
             currentFansubGroupID: groupID,
             currentFansubSlug: canonicalFansubSlug,
-            projects: profile.data.projects,
+            projects: profile.projects,
           });
         }
       } catch {
@@ -359,7 +365,7 @@ export async function loadPublicFansubProjectPageData({
     })(),
     (async (): Promise<PublicReleasePreview[]> => {
       // Selber canonicalProjectPath (selbes Profil-Promise), aber getrennt vom Release-Liste-try/catch.
-      const canonicalProjectPath = await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
+      const canonicalProjectPath = await resolveCanonicalProjectPath(profileDataPromise, canonicalFansubSlug, animeID);
       try {
         const activityPage = await getGroupReleaseListCursor(animeID, groupID, { limit: RELEASE_PREVIEW_LIMIT, sort: "release_date" });
         const latestRelease = activityPage.items[0] ?? null;
@@ -380,13 +386,9 @@ export async function loadPublicFansubProjectPageData({
         return [];
       }
     })(),
-    withFallback<GroupContributorsResponse>(() => getGroupContributors(animeID, groupID), { team_members: [], external_contributors: [] }),
-    withFallback<GroupThemesResponse>(() => getGroupThemes(animeID, groupID), { themes: [] }),
-    withFallback<GroupReleaseMediaResponse>(() => getGroupReleaseMedia(animeID, groupID), { items: [] }),
-    withFallback<string | null>(async () => (await getGroupProjectNote(animeID, groupID)).data?.body_html?.trim() || null, null),
   ]);
 
-  const { releaseEpisodes, otherGroups, animeFansubRelations } = releasesBranch;
+  const { releaseEpisodes, otherGroups } = releasesBranch;
   const { canonicalProjectPath, fansubProjectNavigation } = profileDerived;
 
   const hasTeamContent =

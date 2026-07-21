@@ -175,6 +175,7 @@ import {
   EpisodeReleaseSummary,
 } from "@/types/group";
 import { GroupAssetsResponse } from "@/types/groupAsset";
+import { ProjectPageBundleResponse } from "@/types/projectPageBundle";
 import { ReleaseAssetsResponse } from "@/types/mediaAsset";
 import {
   FansubGroupNote,
@@ -6124,6 +6125,33 @@ export async function getGroupDetail(
   }
 
   return response.json() as Promise<GroupDetailResponse>;
+}
+
+// Aggregierte Leicht-Shell der oeffentlichen Fansub-Projektseite (group, anime,
+// contributors, themes, release_media, project_note, anime_fansubs) in EINEM
+// Round-Trip. assets, public_profile und die Release-Vorschau-Kette bleiben
+// bewusst separate Fetches. Muster wie getGroupDetail (404 -> ApiError status=404).
+export async function getPublicFansubProjectPage(
+  animeID: number,
+  groupID: number,
+): Promise<ProjectPageBundleResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/anime/${animeID}/group/${groupID}/project-page`,
+    {
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const message = await parseApiError(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<ProjectPageBundleResponse>;
 }
 
 function buildGroupReleasesQuery(params: GroupReleasesParams): string {
