@@ -7,7 +7,6 @@
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
 - [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
 - [ ] **v1.2 Public Experience, Historie & Scoped Rights** - Phasen 72–80: bestehende Public Pages (`/fansubs/[slug]`, `/members/[slug]`, `/anime/[id]/group/[groupId]`), `/me/contributions`, Leader-Workspace und Rechteverwaltung werden gezielt erweitert, ohne Parallelmodelle. Kanonische Diskussion/Entscheidungen (LOCKED): [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
-- [ ] **Medienmodell-Neubau (Bilder & Medien)** - Phasen 106–110: fragmentiertes Medienmodell wird durch ein sauberes Zielmodell ersetzt (globales `media` + `media_variant`, getrennte Verwendungsrelationen [Variante B], singuläre Kernmedien als FK-Slots [Variante 2], eine Upload-Pipeline). Testdaten-Reset, keine Rückwärtskompatibilität. Verbindlicher Architekturentscheid (LOCKED): [260721-medienmodell-neubau-architektur-DECISION.md](/C:/Users/admin/Documents/Team4s/.planning/notes/260721-medienmodell-neubau-architektur-DECISION.md)
 
 ## Current Direction
 
@@ -2376,9 +2375,9 @@ Plans:
   5. Contract-Disziplin: neue Endpunkte über `shared/contracts/*` (OpenAPI) → Backend → `frontend/src/lib/api.ts` → Frontend-Types; <=450 Zeilen pro Datei.
   6. Backend- und Frontend-Tests decken Enforcement (gated/ungated), die UI-Mutation (vergeben/entziehen) und die Cache-Reload-Wirkung ab.
 
-## Milestone: Medienmodell-Neubau (Bilder & Medien)
+## Arbeitspaket: Medienmodell-Neubau (Bilder & Medien)
 
-> Additiv angehängt am 2026-07-21 (fortlaufende Nummerierung ab 106, kein STATE-Reset). Verbindlicher Architekturentscheid (LOCKED): `.planning/notes/260721-medienmodell-neubau-architektur-DECISION.md`. Testdaten werden zurückgesetzt — keine Datenmigration/Rückwärtskompatibilität. Reihenfolge: 106 → 107 → 108 → 109 → 110.
+> **Geplantes Arbeitspaket — kein Milestone/Reifegrad-Marker.** Additiv angehängt am 2026-07-21 (fortlaufende Nummerierung ab 106, kein STATE-Reset). Wird eingeplant, wenn Priorität und Reife es zulassen — bis dahin registrierte, aber nicht aktive Phasen. Verbindlicher Architekturentscheid (LOCKED): `.planning/notes/260721-medienmodell-neubau-architektur-DECISION.md`. Testdaten werden zurückgesetzt — keine Datenmigration/Rückwärtskompatibilität. Reihenfolge: 106 → 107 → 108 → 109 → 110.
 
 ### Phase 106: Medienkern-Schema & Legacy-Abbau
 

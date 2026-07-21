@@ -1,7 +1,7 @@
 # Medienmodell-Neubau — Verbindlicher Architekturentscheid (LOCKED)
 
 **Datum:** 2026-07-21
-**Status:** LOCKED — Grundlage für Milestone „Medienmodell-Neubau" (Phasen 106–110)
+**Status:** LOCKED — Grundlage für das Arbeitspaket „Medienmodell-Neubau" (Phasen 106–110; kein Milestone/Reifegrad-Marker)
 **Kontext:** Testdaten werden vor der E2E-Testphase zurückgesetzt → keine Datenmigration, keine Rückwärtskompatibilität nötig. Aufwand: grundlegend (eigener Milestone).
 
 Dieser Entscheid ersetzt den polymorphen `media_usage`-Vorschlag der vorangegangenen Deep-Analyse.
