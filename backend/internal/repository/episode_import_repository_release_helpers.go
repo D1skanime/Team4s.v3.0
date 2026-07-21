@@ -67,11 +67,13 @@ func upsertImportReleaseGraph(
 			SET filename = COALESCE(NULLIF($1, ''), filename),
 			    resolution = COALESCE($2, resolution),
 			    video_quality = COALESCE($2, video_quality),
-			    duration_seconds = COALESCE($4, duration_seconds),
+			    video_codec = COALESCE($4, video_codec),
+			    audio_codec = COALESCE($5, audio_codec),
+			    duration_seconds = COALESCE($6, duration_seconds),
 			    updated_at = NOW(),
 			    modified_at = NOW()
 			WHERE id = $3
-		`, episodeImportFilename(media), media.VideoQuality, variantID, media.DurationSeconds); err != nil {
+		`, episodeImportFilename(media), media.VideoQuality, variantID, media.VideoCodec, media.AudioCodec, media.DurationSeconds); err != nil {
 			return false, fmt.Errorf("update release variant=%d: %w", variantID, err)
 		}
 	}
@@ -126,10 +128,10 @@ func createReleaseVariant(ctx context.Context, tx pgx.Tx, releaseVersionID int64
 	container := strings.TrimPrefix(strings.ToLower(filepath.Ext(filename)), ".")
 	var id int64
 	if err := tx.QueryRow(ctx, `
-		INSERT INTO release_variants (release_version_id, container, resolution, video_quality, filename, duration_seconds, modified_at)
-		VALUES ($1, NULLIF($2, ''), $3, $3, NULLIF($4, ''), $5, NOW())
+		INSERT INTO release_variants (release_version_id, container, resolution, video_quality, video_codec, audio_codec, filename, duration_seconds, modified_at)
+		VALUES ($1, NULLIF($2, ''), $3, $3, $4, $5, NULLIF($6, ''), $7, NOW())
 		RETURNING id
-	`, releaseVersionID, container, media.VideoQuality, filename, media.DurationSeconds).Scan(&id); err != nil {
+	`, releaseVersionID, container, media.VideoQuality, media.VideoCodec, media.AudioCodec, filename, media.DurationSeconds).Scan(&id); err != nil {
 		return 0, fmt.Errorf("create release variant version=%d: %w", releaseVersionID, err)
 	}
 	return id, nil

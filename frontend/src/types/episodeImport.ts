@@ -22,6 +22,9 @@ export interface EpisodeImportMediaCandidate {
   jellyfin_episode_number?: number | null
   stream_url?: string | null
   video_quality?: string | null
+  video_codec?: string | null
+  audio_codec?: string | null
+  duration_seconds?: number | null
 }
 
 export interface EpisodeImportSelectedFansubGroup {

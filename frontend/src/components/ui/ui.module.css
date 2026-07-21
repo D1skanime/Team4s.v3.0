@@ -237,6 +237,48 @@
   box-shadow: none;
 }
 
+.heroMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 26px;
+  margin: 0;
+}
+
+.heroMetricItem {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.heroMetricItem dt {
+  color: rgba(28, 24, 38, 0.64);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.heroMetricItem dd {
+  margin: 2px 0 0;
+  color: var(--accent-deep);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@media (max-width: 767px) {
+  .heroMetrics {
+    gap: 16px 22px;
+  }
+
+  .heroMetricItem dt {
+    font-size: 11px;
+  }
+
+  .heroMetricItem dd {
+    font-size: 20px;
+  }
+}
+
 .cardHeader,
 .cardFooter {
   display: flex;

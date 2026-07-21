@@ -89,6 +89,8 @@ Aktuell vorbereitet:
 - `Accordion` mit Text- oder Rich-Header
 - `AvatarStack` für kompakte, überlappende Identitäten mit berechnetem Overflow
 
+- `HeroMetrics` für wiederkehrende Hero-Kennzahlen mit dunkler Bezeichnung und großem blauem Wert
+
 ## Unterstützte Varianten
 
 ### Button
@@ -115,6 +117,13 @@ Aktuell vorbereitet:
 - `AvatarStack` zeigt kompakte, überlappende Identitäten bis `maxVisible` und fasst den Rest als `+N` zusammen.
 - Ohne Interaktion bleibt `+N` eine reine Anzeige. Mit `onOverflowClick` wird derselbe Overflow zu einem zugänglichen Button mit `aria-expanded` und `aria-controls`.
 - Die fachliche Detaildarstellung hinter dem Overflow bleibt in der Domain-Komponente; der globale Stack kennt keine Fansub-, Projekt- oder Mitgliederlogik.
+
+### HeroMetrics
+
+- `HeroMetrics` vereinheitlicht Kennzahlen in Fansub-, Projekt- und Release-Heroes.
+- Die Bezeichnung steht oben in dunkler Sekundärfarbe, der hervorgehobene Wert darunter in Blau.
+- Auf Desktop liegt die Kennzahlengruppe rechts neben der Identität; auf kleinen Viewports bricht sie unter die Identität um.
+- Die Komponente kennt keine Fachlogik und akzeptiert Werte als generischen React-Inhalt.
 
 ### Card
 

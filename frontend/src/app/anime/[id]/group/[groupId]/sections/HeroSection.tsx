@@ -123,12 +123,14 @@ export function HeroSection({
               ) : null}
 
               <div className={styles.heroInfo}>
-                {identity}
-                <ProjectStats
-                  contributorCount={group.stats.project_contributor_count}
-                  releaseCount={releaseEpisodes.length}
-                  coopGroups={coopGroups}
-                />
+                <div className={styles.heroHeader}>
+                  <div className={styles.heroIdentity}>{identity}</div>
+                  <ProjectStats
+                    contributorCount={group.stats.project_contributor_count}
+                    releaseCount={releaseEpisodes.length}
+                    coopGroups={coopGroups}
+                  />
+                </div>
               </div>
             </div>
             {hasProjectNavigation ? (

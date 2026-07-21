@@ -365,6 +365,8 @@ func (h *AdminContentHandler) loadEpisodeImportMediaCandidates(
 			JellyfinEpisodeNumber: &episodeNumber,
 			StreamURL:             h.buildJellyfinEditorStreamURL(itemID),
 			VideoQuality:          jellyfinVideoQuality(item.MediaStreams),
+			VideoCodec:            jellyfinStreamCodec(item.MediaStreams, "Video"),
+			AudioCodec:            jellyfinStreamCodec(item.MediaStreams, "Audio"),
 			DurationSeconds:       durationSecondsFromTicks(item.RunTimeTicks),
 		}
 		candidates = append(candidates, candidate)

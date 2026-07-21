@@ -155,6 +155,20 @@
   gap: 14px;
 }
 
+.heroHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+.heroIdentity {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
 .eyebrow {
   margin: 0;
   font-size: 14px;
@@ -173,54 +187,7 @@
 .projectStats {
   display: grid;
   gap: 12px;
-  width: 100%;
-}
-
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  margin: 6px 0 0;
-  align-items: flex-start;
-}
-
-.statItem {
-  display: grid;
-  grid-template-rows: 30px auto;
-  gap: 4px;
-  min-width: 104px;
-  padding: 0 24px;
-  justify-items: center;
-  text-align: center;
-}
-
-.statItem:first-child {
-  padding-inline-start: 0;
-}
-
-.statItem + .statItem {
-  border-inline-start: 1px solid var(--border-subtle);
-}
-
-.statItem dt {
-  grid-row: 2;
-  color: rgba(28, 24, 38, 0.64);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.statItem dd {
-  grid-row: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 30px;
-  margin: 0;
-  color: var(--accent-deep);
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
+  flex: 0 1 auto;
 }
 
 .singleCoopPartner {
@@ -229,9 +196,7 @@
   justify-content: center;
   max-width: 170px;
   color: var(--accent-deep);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1;
+  font: inherit;
   text-align: center;
   text-decoration: none;
 }
@@ -551,6 +516,13 @@
     gap: 4px;
   }
 
+  .heroHeader {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
   .heroBody > .heroInfo {
     position: absolute;
     inset: auto 12px 12px;
@@ -588,32 +560,13 @@
     color: var(--color-white);
   }
 
-  .heroInfo > .projectStats {
+  .heroInfo .projectStats {
     display: none;
   }
 
-  .heroBannerWrap + .heroBody > .heroInfo > .projectStats {
+  .heroBannerWrap + .heroBody > .heroInfo .projectStats {
     display: grid;
-  }
-
-  .heroBannerWrap + .heroBody .stats {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
     width: 100%;
-  }
-
-  .heroBannerWrap + .heroBody .statItem {
-    min-width: 0;
-    padding-inline: 10px;
-  }
-
-  .heroBannerWrap + .heroBody .statItem:first-child {
-    padding-inline-start: 0;
-  }
-
-  .heroBannerWrap + .heroBody .statItem:last-child {
-    padding-inline-end: 0;
   }
 
   .actions {

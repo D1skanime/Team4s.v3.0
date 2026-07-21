@@ -59,6 +59,15 @@ describe('ReleaseDetailHero', () => {
     expect(document.querySelector('#beteiligte')).toBeNull()
   })
 
+  it('formats Jellyfin codec identifiers for the public hero', () => {
+    render(<ReleaseDetailHero {...base} video_codec="h264" audio_codec="aac" />)
+
+    expect(screen.getByText('H.264')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }))
+    expect(screen.getAllByText('H.264')).toHaveLength(2)
+    expect(screen.getByText('AAC')).toBeTruthy()
+  })
+
   it('labels a collaboration semantically and keeps unknown technical values honest', () => {
     render(<ReleaseDetailHero {...base} container={null} video_codec={null} audio_codec="" audio_language={null} subtitle_tracks={[]} subtitle_type={null} />)
 

@@ -1114,6 +1114,17 @@ types:
     title: string | null
     premiere_date: timestamp | null
     video_quality: string | null
+  EpisodeImportMediaCandidate:
+    media_item_id: string
+    file_name: string
+    path: string
+    jellyfin_season_number: int32 | null
+    jellyfin_episode_number: int32 | null
+    stream_url: string | null
+    video_quality: string | null
+    video_codec: string | null
+    audio_codec: string | null
+    duration_seconds: int32 | null
   AdminAnimeJellyfinSyncResult:
     anime_id: int64
     jellyfin_series_id: string

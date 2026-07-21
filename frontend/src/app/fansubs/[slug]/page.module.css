@@ -213,33 +213,6 @@
 }
 
 /* Inline rechts neben der Identität (fuellt die Kopfzeile, keine tote Flaeche) */
-.heroStats {
-  display: flex;
-  gap: 26px;
-  margin: 0;
-  align-items: flex-start;
-}
-
-.heroStatItem {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.heroStatItem dt {
-  color: rgba(28, 24, 38, 0.64);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.heroStatItem dd {
-  margin: 2px 0 0;
-  color: var(--accent-deep);
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1;
-}
-
 .collaborationPanel {
   display: grid;
   gap: 8px;
@@ -346,16 +319,4 @@
     gap: 14px;
   }
 
-  .heroStats {
-    flex-wrap: wrap;
-    gap: 16px 22px;
-  }
-
-  .heroStatItem dt {
-    font-size: 11px;
-  }
-
-  .heroStatItem dd {
-    font-size: 20px;
-  }
 }

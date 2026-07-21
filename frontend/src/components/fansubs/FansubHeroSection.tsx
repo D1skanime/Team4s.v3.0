@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { Badge } from '@/components/ui'
+import { Badge, HeroMetrics } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import { getFansubLinkTypeLabel } from '@/lib/fansub-labels'
 import { buildFansubFactSummary } from '@/lib/fansub-summary'
@@ -139,16 +139,7 @@ export function FansubHeroSection({
                 </div>
               </div>
 
-              {heroStats.length > 0 ? (
-                <dl className={styles.heroStats} aria-label="Gruppenkennzahlen">
-                  {heroStats.map((stat) => (
-                    <div key={stat.label} className={styles.heroStatItem}>
-                      <dt>{stat.label}</dt>
-                      <dd>{stat.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : null}
+              <HeroMetrics items={heroStats} ariaLabel="Gruppenkennzahlen" />
             </div>
 
             {heroLinks.length > 0 ? (

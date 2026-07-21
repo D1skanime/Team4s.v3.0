@@ -129,7 +129,8 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
 }
 
-.heroHeading { display:grid; gap:8px; padding:16px 24px 24px; }
+.heroHeading { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:16px 24px 24px; }
+.heroIdentity { display:grid; gap:8px; min-width:0; }
 .heroEyebrow { margin:0; color:var(--accent-deep); font-size:12px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
 .heroTitle { margin:0; color:var(--text-primary); font-size:32px; font-weight:700; line-height:1.2; letter-spacing:-.025em; }
 .groupRow,.subtitleList { display:flex; flex-wrap:wrap; gap:8px; }
@@ -138,30 +139,6 @@
 .technicalGrid dt { color:var(--color-text-secondary); font-size:12px; }
 .technicalGrid dd { margin:3px 0 0; color:var(--color-text-primary); font-weight:700; }
 .subtitleBlock { display:grid; gap:10px; padding:14px; border-radius:12px; background:rgba(245,248,255,.62); }
-
-.heroStats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  width: 100%;
-  margin: 8px 0 0;
-  align-items: flex-start;
-}
-
-.heroStatItem {
-  display: grid;
-  grid-template-rows: 30px auto;
-  gap: 4px;
-  min-width: 124px;
-  padding: 0 24px;
-  justify-items: center;
-  text-align: center;
-}
-
-.heroStatItem:first-child { padding-inline-start: 0; }
-.heroStatItem + .heroStatItem { border-inline-start: 1px solid var(--border-subtle); }
-.heroStatItem dt { grid-row: 2; color: rgba(28, 24, 38, 0.64); font-size: 12px; font-weight: 600; line-height: 1.25; }
-.heroStatItem dd { grid-row: 1; display: flex; align-items: center; justify-content: center; min-height: 30px; margin: 0; color: var(--accent-deep); font-size: 24px; font-weight: 700; line-height: 1; }
 
 .releaseDate {
   margin: 0;
@@ -248,14 +225,9 @@
   .page > section:not(.hero) { padding: 16px; border-radius: 16px; }
   .heroImageShell { padding: 12px 12px 0; }
   .heroImage { max-height: 120px; }
-  .heroHeading { padding: 14px 16px 16px; }
+  .heroHeading { flex-direction: column; align-items: flex-start; gap: 14px; padding: 14px 16px 16px; }
   .hero :global(.accordionRoot) { margin: 0 16px 16px; }
   .heroNavigation { margin: 0 16px; padding-bottom: 16px; }
-  .heroStats { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-  .heroStatItem { min-width: 0; padding-inline: 10px; }
-  .heroStatItem:first-child { padding-inline-start: 0; }
-  .heroStatItem:last-child { padding-inline-end: 0; }
-  .heroStatItem dd { font-size: 20px; }
   .pageWithBackdrop::before { background-size: auto 108%; filter: blur(24px) brightness(0.78) saturate(1.15); }
   .pageWithBackdrop > [data-release-atmosphere-band="true"]::before { background-size: auto 108%; filter: blur(30px) saturate(1.15); opacity: 0.22; }
   .technicalGrid { grid-template-columns: minmax(0, 1fr); gap: 8px; }

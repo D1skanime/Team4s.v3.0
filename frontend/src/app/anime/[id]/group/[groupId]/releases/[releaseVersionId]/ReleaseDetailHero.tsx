@@ -1,6 +1,6 @@
 'use client'
 
-import { Accordion, Card } from '@/components/ui'
+import { Accordion, Card, HeroMetrics } from '@/components/ui'
 import type { ReleaseDetailResponse } from '@/types/releaseDetail'
 
 import { ReleaseNavigation } from './ReleaseNavigation'
@@ -41,6 +41,15 @@ function displayValue(value: string | null | undefined) {
   return value?.trim() || 'Nicht hinterlegt'
 }
 
+function formatCodec(value: string | null | undefined) {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+  const normalized = trimmed.toLowerCase()
+  if (normalized === 'h264' || normalized === 'avc') return 'H.264'
+  if (normalized === 'h265' || normalized === 'hevc') return 'H.265 / HEVC'
+  return trimmed.toUpperCase()
+}
+
 function formatSubtitleTracks(props: ReleaseDetailHeroProps) {
   if (props.subtitle_tracks.length === 0) return 'Nicht hinterlegt'
   return props.subtitle_tracks.map((track, index) => {
@@ -57,7 +66,7 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
   const imageSrc = image?.thumbnail_url ?? image?.original_url ?? props.animeLogoFallbackUrl
   const heroFacts = [
     ['Dauer', displayValue(formatDuration(props.duration_seconds))],
-    ['Codec', displayValue(props.video_codec)],
+    ['Codec', displayValue(formatCodec(props.video_codec))],
     ['Version', displayValue(props.version)],
   ]
   const groupNames = props.groups.map(group => group.name.trim()).filter(Boolean)
@@ -68,8 +77,8 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
     ['Veröffentlicht', displayValue(formatDate(props.release_date))],
     ['Auflösung', displayValue(props.resolution)],
     ['Container', displayValue(props.container)],
-    ['Video-Codec', displayValue(props.video_codec)],
-    ['Audio-Codec', displayValue(props.audio_codec)],
+    ['Video-Codec', displayValue(formatCodec(props.video_codec))],
+    ['Audio-Codec', displayValue(formatCodec(props.audio_codec))],
     ['Audio-Sprache', displayValue(props.audio_language)],
     ['Untertiteltyp', subtitleType(props.subtitle_type)],
     ['Untertitelspuren', formatSubtitleTracks(props)],
@@ -82,11 +91,13 @@ export function ReleaseDetailHero(props: ReleaseDetailHeroProps) {
       <img src={imageSrc} alt={image?.caption ?? `Anime-Logo zu ${props.title}`} className={styles.heroImage} loading="eager" />
     </div> : null}
     <div className={styles.heroHeading}>
-      <p className={styles.heroEyebrow}>Episode {props.episode_number}</p>
-      <h1 className={styles.heroTitle}>{props.episode_title ?? props.title}</h1>
-      {props.episode_title && props.title !== props.episode_title ? <p className={styles.heroReleaseTitle}>{props.title}</p> : null}
-      <p className={styles.heroGroupLine}>{groupLine}</p>
-      <dl className={styles.heroStats}>{heroFacts.map(([label, value]) => <div key={label} className={styles.heroStatItem}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+      <div className={styles.heroIdentity}>
+        <p className={styles.heroEyebrow}>Episode {props.episode_number}</p>
+        <h1 className={styles.heroTitle}>{props.episode_title ?? props.title}</h1>
+        {props.episode_title && props.title !== props.episode_title ? <p className={styles.heroReleaseTitle}>{props.title}</p> : null}
+        <p className={styles.heroGroupLine}>{groupLine}</p>
+      </div>
+      <HeroMetrics items={heroFacts.map(([label, value]) => ({ label, value }))} ariaLabel="Release-Kennzahlen" />
     </div>
     </div>
     <Accordion mode="single" items={[{

@@ -78,6 +78,30 @@ func jellyfinVideoQuality(streams []jellyfinMediaStream) *string {
 	return &label
 }
 
+// jellyfinStreamCodec returns the default stream codec for a media type, or
+// the first matching codec when Jellyfin does not mark a stream as default.
+func jellyfinStreamCodec(streams []jellyfinMediaStream, streamType string) *string {
+	var firstMatch *string
+	for _, stream := range streams {
+		if !strings.EqualFold(strings.TrimSpace(stream.Type), streamType) {
+			continue
+		}
+		codec := strings.TrimSpace(stream.Codec)
+		if codec == "" {
+			continue
+		}
+		if firstMatch == nil {
+			value := codec
+			firstMatch = &value
+		}
+		if stream.IsDefault {
+			value := codec
+			return &value
+		}
+	}
+	return firstMatch
+}
+
 // normalizeJellyfinPath normalizes a file path for comparison.
 func normalizeJellyfinPath(raw *string) string {
 	if raw == nil {

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useId, useState, useSyncExternalStore } from 'react'
 
-import { AvatarStack, Button } from '@/components/ui'
+import { AvatarStack, Button, HeroMetrics } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import type { FansubGroupSummary } from '@/types/fansub'
 
@@ -70,42 +70,35 @@ export function ProjectStats({ contributorCount, releaseCount, coopGroups }: Pro
 
   return (
     <div className={styles.projectStats}>
-      <dl className={styles.stats}>
-        <div className={styles.statItem}>
-          <dt>Mitwirkende</dt>
-          <dd>{contributorCount}</dd>
-        </div>
-        <div className={styles.statItem}>
-          <dt>Releases</dt>
-          <dd>{releaseCount}</dd>
-        </div>
-        {coopGroups.length > 0 ? (
-          <div className={styles.statItem}>
-            <dt>Coop-Partner</dt>
-            <dd>
-              {singleCoopGroup ? (
-                <Link
-                  href={`/fansubs/${singleCoopGroup.slug}`}
-                  prefetch={false}
-                  className={styles.singleCoopPartner}
-                >
-                  {singleCoopGroup.name}
-                </Link>
-              ) : (
-                <AvatarStack
-                  items={avatarItems}
-                  maxVisible={visibleLimit}
-                  ariaLabel={`${coopGroups.length} Coop-Partner`}
-                  onOverflowClick={hasOverflow ? toggleDetails : undefined}
-                  overflowExpanded={detailsOpen}
-                  overflowControls={detailsId}
-                  overflowAriaLabel={detailsOpen ? 'Coop-Partner ausblenden' : `${coopGroups.length - visibleLimit} weitere Coop-Partner anzeigen`}
-                />
-              )}
-            </dd>
-          </div>
-        ) : null}
-      </dl>
+      <HeroMetrics
+        ariaLabel="Projektkennzahlen"
+        items={[
+          { label: 'Mitwirkende', value: contributorCount },
+          { label: 'Releases', value: releaseCount },
+          ...(coopGroups.length > 0 ? [{
+            label: 'Coop-Partner',
+            value: singleCoopGroup ? (
+              <Link
+                href={`/fansubs/${singleCoopGroup.slug}`}
+                prefetch={false}
+                className={styles.singleCoopPartner}
+              >
+                {singleCoopGroup.name}
+              </Link>
+            ) : (
+              <AvatarStack
+                items={avatarItems}
+                maxVisible={visibleLimit}
+                ariaLabel={`${coopGroups.length} Coop-Partner`}
+                onOverflowClick={hasOverflow ? toggleDetails : undefined}
+                overflowExpanded={detailsOpen}
+                overflowControls={detailsId}
+                overflowAriaLabel={detailsOpen ? 'Coop-Partner ausblenden' : `${coopGroups.length - visibleLimit} weitere Coop-Partner anzeigen`}
+              />
+            ),
+          }] : []),
+        ]}
+      />
 
       {detailsOpen && hasOverflow ? (
         <div id={detailsId} className={styles.coopPartnerDetails}>

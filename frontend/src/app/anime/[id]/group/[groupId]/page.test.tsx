@@ -146,15 +146,13 @@ describe('ProjectPage public hero styling', () => {
     expect(releaseBackdropBlock).toContain('filter: blur(72px)')
   })
 
-  it('richtet alle Statistikwerte und Beschriftungen auf gemeinsamen Zeilen aus', () => {
+  it('ordnet Projektidentität und globale Kennzahlen auf Desktop nebeneinander an', () => {
     const css = projectPageStyles()
-    const statItemBlock = css.match(/\.statItem\s*\{[\s\S]*?\}/)?.[0] ?? ''
-    const statValueBlock = css.match(/\.statItem dd\s*\{[\s\S]*?\}/)?.[0] ?? ''
+    const heroHeaderBlock = css.match(/\.heroHeader\s*\{[\s\S]*?\}/)?.[0] ?? ''
 
-    expect(statItemBlock).toContain('grid-template-rows: 30px auto')
-    expect(statItemBlock).toContain('gap: 4px')
-    expect(statValueBlock).toContain('align-items: center')
-    expect(statValueBlock).toContain('min-height: 30px')
+    expect(heroHeaderBlock).toContain('display: flex')
+    expect(heroHeaderBlock).toContain('justify-content: space-between')
+    expect(heroHeaderBlock).toContain('align-items: center')
   })
 })
 

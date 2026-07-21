@@ -13,6 +13,7 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  HeroMetrics,
   Input,
   LoadingState,
   Modal,
@@ -306,6 +307,14 @@ export default function UISystemPlaygroundPage() {
               <Badge variant="info">Info</Badge>
               <Badge variant="muted">Muted</Badge>
             </div>
+            <HeroMetrics
+              ariaLabel="Beispiel-Kennzahlen"
+              items={[
+                { label: 'Anime-Projekte', value: 20 },
+                { label: 'Release-Versionen', value: 59 },
+                { label: 'Mitglieder', value: 4 },
+              ]}
+            />
           </Card>
 
           <Card variant="section">

@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"context"
@@ -639,6 +639,30 @@ func TestJellyfinVideoQuality(t *testing.T) {
 	}
 	if *quality != "1080p" {
 		t.Fatalf("expected quality 1080p, got %q", *quality)
+	}
+}
+
+func TestJellyfinStreamCodecPrefersDefaultStream(t *testing.T) {
+	codec := jellyfinStreamCodec([]jellyfinMediaStream{
+		{Type: "Audio", Codec: "aac"},
+		{Type: "Video", Codec: "h264"},
+		{Type: "Video", Codec: "av1", IsDefault: true},
+	}, "Video")
+	if codec == nil {
+		t.Fatalf("expected codec to be resolved")
+	}
+	if *codec != "av1" {
+		t.Fatalf("expected default codec av1, got %q", *codec)
+	}
+}
+
+func TestJellyfinStreamCodecFallsBackToFirstMatchingStream(t *testing.T) {
+	codec := jellyfinStreamCodec([]jellyfinMediaStream{
+		{Type: "Audio", Codec: "aac"},
+		{Type: "Video", Codec: " h264 "},
+	}, "video")
+	if codec == nil || *codec != "h264" {
+		t.Fatalf("expected first matching codec h264, got %v", codec)
 	}
 }
 
