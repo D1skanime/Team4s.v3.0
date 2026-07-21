@@ -594,6 +594,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260721-eo4 | SSR-Fetch-Parallelisierung der Public-Projektseite (loadPublicFansubProjectPageData): unabhängige Phase-B-Fetches per Promise.all nebenläufig, doppelter Profil-Fetch zu einem zusammengeführt; verhaltenserhaltend (17/17 Tests). Gemessen: TTFB 319→221 ms (min, −31%), Volldokument 616→371 ms (−40%) | 2026-07-21 | 73a0e2f4 | [260721-eo4-ssr-fetch-parallelisierung-projectpageda](./quick/260721-eo4-ssr-fetch-parallelisierung-projectpageda/) |
 | 260721-dbz | Fund 1+2 N+1-Fix Release-Version-Media-Handler: Reorder-Pfad bündelt Relation-Metas (statt per-Bild GetReleaseVersionMediaRelation) und löst Fansub-Gruppen-Permission pro eindeutiger Gruppe einmal auf; Reorder-Handler ausgelagert; Verhalten bit-identisch | 2026-07-21 | e71966cf | [260721-dbz-fund-1-2-n-1-fix-release-version-media-h](./quick/260721-dbz-fund-1-2-n-1-fix-release-version-media-h/) |
 | 260718-vei | Responsiven Releasebereich der öffentlichen Fansub-Projektseite für Mobile, Tablet und Desktop verbessern: klare Abschnittshierarchie, lesbare Metadaten, kompakte Releaseliste, saubere Bildvorschauen und eindeutige Kara-Aktionen | 2026-07-18 | a6eeb37c | [260718-vei-responsive-releasebereich-der-ffentliche](./quick/260718-vei-responsive-releasebereich-der-ffentliche/) |
 | 260718-e6z | Anime-Detailseite Request-Fanout eliminiert: getAnimeFansubs-Summary um founded_year/dissolved_year/country/status erweitert, getFansubBySlug-N+1 entfernt (fansubStoryGroups direkt aus Relation) | 2026-07-18 | 925a446e | [260718-e6z-anime-detailseite-request-fanout-reduzie](./quick/260718-e6z-anime-detailseite-request-fanout-reduzie/) |
@@ -671,5 +672,5 @@ Recent durable decisions:
 
 Last session: 2026-07-19T13:39:57.894Z
 Stopped at: Completed 105-03-PLAN.md
-Last activity: 2026-07-21 - Completed quick task 260721-dbz: Fund 1+2 N+1-Fix Release-Version-Media-Handler
+Last activity: 2026-07-21 - Completed quick task 260721-eo4: SSR-Fetch-Parallelisierung Public-Projektseite (TTFB −31%)
 Resume file: None
