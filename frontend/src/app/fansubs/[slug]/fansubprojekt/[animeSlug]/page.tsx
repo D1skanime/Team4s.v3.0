@@ -31,12 +31,9 @@ export default async function PrettyFansubProjectPage({ params }: PrettyFansubPr
   const project = profile.projects.find((item) => item.anime_slug?.trim() === animeSlug);
   if (!project) return notFound();
 
-  // Das Profil ist auf diesem kanonischen Pfad bereits geladen -> durchreichen, damit der
-  // Loader KEINEN zweiten Profil-Fetch ausloest (das Bundle enthaelt kein public_profile).
   const result = await loadPublicFansubProjectPageData({
     animeID: project.id,
     groupID: profile.group.id,
-    preloadedProfile: profile,
   });
   if (result.status === "not-found") return notFound();
 
