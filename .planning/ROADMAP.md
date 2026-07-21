@@ -2394,13 +2394,27 @@ Plans:
 **Plans:** 8 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 106-01-PLAN.md — Migration 0131 (media/media_variant additiv anlegen + release_media/anime.cover_image droppen) + Content-Test
 - [ ] 106-02-PLAN.md — Contract-Check-Skript + SC4-grep-Suite (Gate-Tooling)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 106-03-PLAN.md — Legacy-Loeschungen: totes 001-UUID-Schema, episode_version_images + Route, migrate-covers/Ops-Skripte
-- [ ] 106-04-PLAN.md — Upload-Dualpfad (Cluster B) + release_media-Junction-Writes entfernen
 - [ ] 106-05-PLAN.md — release_media-Lese-Callsites + Test-Guard + anime.cover_image-Spalten-Abbau
-- [ ] 106-06-PLAN.md — asset_lifecycle-Cluster entfernen, MediaUploadHandler entkoppeln
 - [ ] 106-07-PLAN.md — Frontend /covers + upload-cover Route-Handler + api.ts-Client (build-breaking, D-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 106-04-PLAN.md — Upload-Dualpfad (Cluster B) + release_media-Junction-Writes entfernen
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 106-06-PLAN.md — asset_lifecycle-Cluster entfernen, MediaUploadHandler entkoppeln
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 106-08-PLAN.md — Phasen-Gate: Kette 1→n auf leerer DB + Contract-Check + grep-Suite + Live-Verify
 
 ### Phase 107: Vereinheitlichte Upload-Pipeline (MediaFileService)

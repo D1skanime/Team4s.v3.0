@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: Executing Phase 105
 stopped_at: Phase 106 context gathered
-last_updated: "2026-07-21T15:21:33.558Z"
-last_activity: "2026-07-21 - Completed quick task 260721-eo4: SSR-Fetch-Parallelisierung Public-Projektseite (TTFB −31%)"
+last_updated: "2026-07-21T17:26:10.104Z"
+last_activity: 2026-07-21
 progress:
   total_phases: 102
   completed_phases: 80
-  total_plans: 432
+  total_plans: 440
   completed_plans: 404
   percent: 78
 ---
@@ -672,5 +672,5 @@ Recent durable decisions:
 
 Last session: 2026-07-21T15:21:33.502Z
 Stopped at: Phase 106 context gathered
-Last activity: 2026-07-21 - Completed quick task 260721-eo4: SSR-Fetch-Parallelisierung Public-Projektseite (TTFB −31%)
+Last activity: 2026-07-21
 Resume file: .planning/phases/106-medienkern-schema-legacy-abbau/106-CONTEXT.md
