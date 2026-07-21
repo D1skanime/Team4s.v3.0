@@ -588,6 +588,48 @@ func releaseVersionMediaCanDeleteOwn(results ...permissions.Result) bool {
 	return false
 }
 
+// evaluateReleaseVersionMediaRelationMutation is the pure (DB-free) decision core shared by the
+// per-item annotate/PATCH/DELETE path and the batched reorder path. It contains the exact four
+// branches of the original canMutateReleaseVersionMediaRelation body:
+//  1. platform_admin (actor flag or ReasonPlatformAdmin) -> allowed.
+//  2. any contributor group allowed for the action (anyGroupAllowed) -> allowed.
+//  3. uploaded-by-current-user with the action-specific RoleAllowsAction fallback -> allowed.
+//  4. otherwise -> denied.
+//
+// anyGroupAllowed is the OR over the caller-resolved CanForFansubGroup results for this relation,
+// so both call sites reach an identical authorization decision.
+func evaluateReleaseVersionMediaRelationMutation(
+	actor permissions.Actor,
+	baseResult permissions.Result,
+	uploadedByUserID *int64,
+	currentLegacyUserID int64,
+	action permissions.Action,
+	anyGroupAllowed bool,
+) bool {
+	if actor.IsPlatformAdmin || baseResult.ReasonCode == permissions.ReasonPlatformAdmin {
+		return true
+	}
+
+	if anyGroupAllowed {
+		return true
+	}
+
+	if releaseVersionMediaUploadedByCurrentUser(uploadedByUserID, currentLegacyUserID) {
+		if action == permissions.ActionReleaseVersionMediaDelete &&
+			(permissions.RoleAllowsAction(baseResult.MatchedRole, permissions.ActionReleaseVersionMediaDeleteOwn) ||
+				permissions.RoleAllowsAction(baseResult.MatchedRole, permissions.ActionReleaseVersionMediaDelete)) {
+			return true
+		}
+		if action == permissions.ActionReleaseVersionMediaUpdate &&
+			baseResult.Allowed &&
+			permissions.RoleAllowsAction(baseResult.MatchedRole, permissions.ActionReleaseVersionMediaUpdate) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (h *AdminContentHandler) canMutateReleaseVersionMediaRelation(
 	c *gin.Context,
 	actor permissions.Actor,
@@ -605,30 +647,21 @@ func (h *AdminContentHandler) canMutateReleaseVersionMediaRelation(
 	if err != nil {
 		return false, err
 	}
+	anyGroupAllowed := false
 	for _, groupID := range groupIDs {
 		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, action, groupID)
 		if err != nil {
 			return false, err
 		}
 		if result.Allowed {
-			return true, nil
+			anyGroupAllowed = true
+			break
 		}
 	}
 
-	if releaseVersionMediaUploadedByCurrentUser(uploadedByUserID, currentLegacyUserID) {
-		if action == permissions.ActionReleaseVersionMediaDelete &&
-			(permissions.RoleAllowsAction(baseResult.MatchedRole, permissions.ActionReleaseVersionMediaDeleteOwn) ||
-				permissions.RoleAllowsAction(baseResult.MatchedRole, permissions.ActionReleaseVersionMediaDelete)) {
-			return true, nil
-		}
-		if action == permissions.ActionReleaseVersionMediaUpdate &&
-			baseResult.Allowed &&
-			permissions.RoleAllowsAction(baseResult.MatchedRole, permissions.ActionReleaseVersionMediaUpdate) {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return evaluateReleaseVersionMediaRelationMutation(
+		actor, baseResult, uploadedByUserID, currentLegacyUserID, action, anyGroupAllowed,
+	), nil
 }
 
 func (h *AdminContentHandler) annotateReleaseVersionMediaItemPermissions(
@@ -1057,15 +1090,6 @@ func (h *AdminContentHandler) DeleteReleaseVersionMedia(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "deleted"})
 }
 
-type rvmReorderItem struct {
-	ID        int64 `json:"id"`
-	SortOrder int   `json:"sort_order"`
-}
-
-type rvmReorderBody struct {
-	Items []rvmReorderItem `json:"items"`
-}
-
 type releaseVersionCapabilitiesResponse struct {
 	CanViewMedia      bool `json:"can_view_media"`
 	CanUploadMedia    bool `json:"can_upload_media"`
@@ -1074,115 +1098,6 @@ type releaseVersionCapabilitiesResponse struct {
 	CanDeleteOwnMedia bool `json:"can_delete_own_media"`
 	CanEditNotes      bool `json:"can_edit_notes"`
 	CanManageSegments bool `json:"can_manage_segments"`
-}
-
-// ReorderReleaseVersionMedia handles POST /api/v1/admin/release-versions/:versionId/media/reorder.
-func (h *AdminContentHandler) ReorderReleaseVersionMedia(c *gin.Context) {
-	identity, actor, ok := permissionActorFromContext(c)
-	if !ok {
-		return
-	}
-	if h.mediaRepo == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "media repository nicht verfügbar"}})
-		return
-	}
-
-	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
-	if err != nil || versionID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "ungültige version id"}})
-		return
-	}
-
-	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionMediaUpdate, versionID)
-	if err != nil {
-		writePermissionInternalError(c, err, "Media-Berechtigung konnte nicht geprüft werden.")
-		return
-	}
-	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaUpdate, result)
-		writePermissionDenied(c, result)
-		return
-	}
-
-	var body rvmReorderBody
-	if err := c.ShouldBindJSON(&body); err != nil || len(body.Items) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"message": "items array fehlt oder leer"}})
-		return
-	}
-
-	reorderItems := make([]repository.ReleaseVersionMediaReorderItem, len(body.Items))
-	relationIDs := make([]int64, len(body.Items))
-	for i, item := range body.Items {
-		reorderItems[i] = repository.ReleaseVersionMediaReorderItem{
-			RelationID: item.ID,
-			SortOrder:  item.SortOrder,
-		}
-		relationIDs[i] = item.ID
-	}
-
-	if err := h.mediaRepo.ValidateReleaseVersionMediaOwnership(c.Request.Context(), versionID, relationIDs); err != nil {
-		if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrOwnershipMismatch) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere relationen gehoeren nicht zu dieser release version"}})
-			return
-		}
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
-		return
-	}
-	for _, relationID := range relationIDs {
-		relationMeta, err := h.mediaRepo.GetReleaseVersionMediaRelation(c.Request.Context(), relationID)
-		if errors.Is(err, repository.ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "eine oder mehrere relationen gehoeren nicht zu dieser release version"}})
-			return
-		}
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
-			return
-		}
-		canMutate, err := h.canMutateReleaseVersionMediaRelation(
-			c, actor, relationID, relationMeta.UploadedByUserID, identity.UserID,
-			permissions.ActionReleaseVersionMediaUpdate, result,
-		)
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Relationen konnten nicht validiert werden.")
-			return
-		}
-		if !canMutate {
-			ownerResult := releaseVersionMediaOwnerMismatchResult()
-			auditPermissionDenied(c, h.auditLogRepo, identity, "release_version_media.reorder.denied", nil, "release_version", &versionID, permissions.ActionReleaseVersionMediaUpdate, ownerResult)
-			writePermissionDenied(c, ownerResult)
-			return
-		}
-	}
-
-	tx, err := h.mediaRepo.BeginTx(c.Request.Context())
-	if err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Transaktion konnte nicht gestartet werden.")
-		return
-	}
-	defer tx.Rollback(c.Request.Context()) //nolint:errcheck
-
-	if err := h.mediaRepo.ReorderReleaseVersionMedia(c.Request.Context(), tx, reorderItems); err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Reorder fehlgeschlagen.")
-		return
-	}
-
-	if err := tx.Commit(c.Request.Context()); err != nil {
-		writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
-		return
-	}
-
-	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID:    &identity.AppUserID,
-		ActorLegacyUserID: &identity.UserID,
-		EventType:         "release_version_media.reordered",
-		TargetType:        "release_version",
-		TargetID:          &versionID,
-		Action:            string(permissions.ActionReleaseVersionMediaUpdate),
-		Outcome:           "allowed",
-		Payload:           map[string]any{"items": len(body.Items)},
-	})
-
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func (h *AdminContentHandler) GetReleaseVersionCapabilities(c *gin.Context) {

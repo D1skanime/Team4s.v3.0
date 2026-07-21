@@ -460,7 +460,7 @@ func TestReleaseVersionMedia_SoftDeleteExcludesFromList(t *testing.T) {
 // TestReleaseVersionMedia_ReorderRequiresVersionOwnership verifies the reorder
 // handler validates that all relation IDs belong to the target release version.
 func TestReleaseVersionMedia_ReorderRequiresVersionOwnership(t *testing.T) {
-	src, err := os.ReadFile("admin_content_release_version_media.go")
+	src, err := os.ReadFile("admin_content_release_version_media_reorder.go")
 	require.NoError(t, err)
 	assert.True(t, strings.Contains(string(src), "ValidateReleaseVersionMediaOwnership"),
 		"reorder handler must call ValidateReleaseVersionMediaOwnership before updating sort_order")
