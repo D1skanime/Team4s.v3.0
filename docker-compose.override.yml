@@ -31,7 +31,11 @@ services:
           path: ./backend/Dockerfile.dev
 
   team4sv30-frontend:
-    command: npm run dev
+    # Turbopack accumulated almost 3 GB of heap and terminated the local
+    # frontend after longer test sessions. Webpack is slower on the first
+    # compile, but keeps the Docker development server stable.
+    command: npm run dev -- --webpack
+    restart: unless-stopped
     environment:
       CHOKIDAR_USEPOLLING: "true"
       NODE_ENV: development
