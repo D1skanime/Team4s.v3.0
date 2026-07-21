@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: Executing Phase 105
-stopped_at: Phase 106 context gathered
-last_updated: "2026-07-21T17:26:10.104Z"
+stopped_at: Phase 107 context gathered
+last_updated: "2026-07-21T20:27:28.394Z"
 last_activity: 2026-07-21
 progress:
   total_phases: 102
@@ -670,7 +670,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-21T15:21:33.502Z
-Stopped at: Phase 106 context gathered
+Last session: 2026-07-21T20:27:28.254Z
+Stopped at: Phase 107 context gathered
 Last activity: 2026-07-21
-Resume file: .planning/phases/106-medienkern-schema-legacy-abbau/106-CONTEXT.md
+Resume file: .planning/phases/107-vereinheitlichte-upload-pipeline-mediafileservice/107-CONTEXT.md
