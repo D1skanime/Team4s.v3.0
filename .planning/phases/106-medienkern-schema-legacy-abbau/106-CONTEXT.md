@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Reines Schema-/Legacy-Fundament des Arbeitspakets „Medienmodell-Neubau" (Phasen 106–110). Zwei neue Tabellen — `media` (globales physisches Medium) und `media_variant` (technische Ableitungen) — ersetzen `media_assets`/`media_files`. Alle toten und uneinheitlichen Legacy-Medienstrukturen werden per Zielmigration ersatzlos entfernt, sodass die Migrationskette 1→n auf leerer DB konsistent durchläuft.
+Reines Schema-/Legacy-Fundament des Arbeitspakets „Medienmodell-Neubau" (Phasen 106–110). Zwei neue Tabellen — `media` (globales physisches Medium) und `media_variant` (technische Ableitungen) — werden **additiv** angelegt; sie sind das langfristige Zielmodell, das `media_assets`/`media_files` über das gesamte Arbeitspaket 106–110 ersetzt. **Korrektur nach Research (106-RESEARCH.md, Grenzbefund A1):** `media_assets`/`media_files` werden in Phase 106 **NICHT** gedroppt — sie bleiben aktiv referenziert (`anime.cover_asset_id`, `release_version_media.media_asset_id`, generischer V2-Upload, `anime_media`/`episode_media`-Junctions, `release_theme_assets`); ihr Drop erfolgt erst in Phase 108/110. Entfernt werden in 106 ausschließlich die toten/uneinheitlichen Legacy-Strukturen der §6-Liste (siehe D-04) — `media_assets`/`media_files` stehen NICHT auf dieser Liste. Danach läuft die Migrationskette 1→n auf leerer DB konsistent durch.
 
 **Explizit NICHT in dieser Phase:** kein Verhaltensumbau an Upload oder Frontend (Upload-Vereinheitlichung = Phase 107, Relationstabellen/FK-Slots/Permissions = Phase 108, Frontend-Umstellung = Phase 109, Reset/Seeds/E2E = Phase 110). Testdaten werden vor der E2E-Phase zurückgesetzt → **keine Datenmigration, keine Rückwärtskompatibilität**.
 
