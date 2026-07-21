@@ -2391,6 +2391,18 @@ Plans:
   3. Die vollständige Migrationskette (1 bis neueste) läuft auf einer leeren DB fehlerfrei durch; ein Schema-Contract-Check (analog `scripts/schema-v2-contract-check.ps1`) belegt, dass keine Legacy-Medientabelle/-spalte mehr existiert.
   4. `go build` + `go vet` sind grün; grep belegt keine verbleibenden Referenzen auf entfernte Symbole/Routen.
 
+**Plans:** 8 plans
+
+Plans:
+- [ ] 106-01-PLAN.md — Migration 0131 (media/media_variant additiv anlegen + release_media/anime.cover_image droppen) + Content-Test
+- [ ] 106-02-PLAN.md — Contract-Check-Skript + SC4-grep-Suite (Gate-Tooling)
+- [ ] 106-03-PLAN.md — Legacy-Loeschungen: totes 001-UUID-Schema, episode_version_images + Route, migrate-covers/Ops-Skripte
+- [ ] 106-04-PLAN.md — Upload-Dualpfad (Cluster B) + release_media-Junction-Writes entfernen
+- [ ] 106-05-PLAN.md — release_media-Lese-Callsites + Test-Guard + anime.cover_image-Spalten-Abbau
+- [ ] 106-06-PLAN.md — asset_lifecycle-Cluster entfernen, MediaUploadHandler entkoppeln
+- [ ] 106-07-PLAN.md — Frontend /covers + upload-cover Route-Handler + api.ts-Client (build-breaking, D-03)
+- [ ] 106-08-PLAN.md — Phasen-Gate: Kette 1→n auf leerer DB + Contract-Check + grep-Suite + Live-Verify
+
 ### Phase 107: Vereinheitlichte Upload-Pipeline (MediaFileService)
 
 **Goal:** Die sechs heute duplizierten Upload-Pipelines werden auf EINEN technischen Kern `MediaFileService` zurückgeführt (SHA-256-Hash, hash-basierter `storage_key`, MIME/Magic-Byte, Größen-/Dimensions-/Dekompressionsbomben-Guard, Thumbnail/Preview, Audit, einheitliche Fehlerbehandlung, technische Metadaten) — entkoppelt vom Relationsmodell. Dünne Kontext-Fachservices setzen nur Kontext/Slot.
