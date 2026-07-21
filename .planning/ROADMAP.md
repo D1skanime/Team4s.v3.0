@@ -7,6 +7,7 @@
 - [x] **v1.0 Admin Anime Intake** - Phases 1, 2, 3, 4.1, 4, and 5 shipped on 2026-04-01. Details: [v1.0-ROADMAP.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.0-ROADMAP.md)
 - [x] **v1.1 Asset Lifecycle Hardening** - Phases 6 through 16 are complete or verified, and Phase 17 is the current next slice for the `/admin/anime/create` UX/UI follow-through. (completed 2026-04-17)
 - [ ] **v1.2 Public Experience, Historie & Scoped Rights** - Phasen 72–80: bestehende Public Pages (`/fansubs/[slug]`, `/members/[slug]`, `/anime/[id]/group/[groupId]`), `/me/contributions`, Leader-Workspace und Rechteverwaltung werden gezielt erweitert, ohne Parallelmodelle. Kanonische Diskussion/Entscheidungen (LOCKED): [v1.2-DISCUSSION.md](/C:/Users/admin/Documents/Team4s/.planning/milestones/v1.2-DISCUSSION.md)
+- [ ] **Medienmodell-Neubau (Bilder & Medien)** - Phasen 106–110: fragmentiertes Medienmodell wird durch ein sauberes Zielmodell ersetzt (globales `media` + `media_variant`, getrennte Verwendungsrelationen [Variante B], singuläre Kernmedien als FK-Slots [Variante 2], eine Upload-Pipeline). Testdaten-Reset, keine Rückwärtskompatibilität. Verbindlicher Architekturentscheid (LOCKED): [260721-medienmodell-neubau-architektur-DECISION.md](/C:/Users/admin/Documents/Team4s/.planning/notes/260721-medienmodell-neubau-architektur-DECISION.md)
 
 ## Current Direction
 
@@ -2374,6 +2375,75 @@ Plans:
   4. `platform_admin`-Bypass bleibt; ein Last-Admin/Lockout-Schutz verhindert, dass kritische Sichtbarkeit/Admin-Fähigkeit versehentlich global entzogen wird.
   5. Contract-Disziplin: neue Endpunkte über `shared/contracts/*` (OpenAPI) → Backend → `frontend/src/lib/api.ts` → Frontend-Types; <=450 Zeilen pro Datei.
   6. Backend- und Frontend-Tests decken Enforcement (gated/ungated), die UI-Mutation (vergeben/entziehen) und die Cache-Reload-Wirkung ab.
+
+## Milestone: Medienmodell-Neubau (Bilder & Medien)
+
+> Additiv angehängt am 2026-07-21 (fortlaufende Nummerierung ab 106, kein STATE-Reset). Verbindlicher Architekturentscheid (LOCKED): `.planning/notes/260721-medienmodell-neubau-architektur-DECISION.md`. Testdaten werden zurückgesetzt — keine Datenmigration/Rückwärtskompatibilität. Reihenfolge: 106 → 107 → 108 → 109 → 110.
+
+### Phase 106: Medienkern-Schema & Legacy-Abbau
+
+**Goal:** Ein zentrales globales Medium (`media`) plus technische Ableitungen (`media_variant`) ersetzen `media_assets`/`media_files`; alle toten und uneinheitlichen Legacy-Medienstrukturen werden per Zielmigrationen entfernt, sodass die Migrationskette 1→n auf leerer DB konsistent durchläuft. Noch keine Verhaltensänderung an Upload/Frontend — reines Schema-/Legacy-Fundament.
+**Requirements:** Architekturentscheid `.planning/notes/260721-medienmodell-neubau-architektur-DECISION.md` (Ebene 1+2, §6 Legacy-Abbau).
+**Depends on:** — (Fundament des Milestones)
+**Success Criteria** (what must be TRUE):
+
+  1. Tabellen `media` (id, kind, storage_key, original_filename, mime_type, byte_size, width, height, duration_seconds, content_hash, source, source_ref, credit, rights_note, owner_user_id, owner_member_id, processing_status, created_at) und `media_variant` (media_id FK ON DELETE CASCADE, variant, storage_key, width, height, byte_size, mime_type, status) existieren per Migration; `caption`, `visibility_id`, `review_status_id` liegen NICHT am Medium.
+  2. Legacy ist ersatzlos entfernt: totes UUID-Schema `backend/database/migrations/001_*` + `models/media_upload.go`-Upload-DTOs; `episode_version_images`-Reste (Repo-Stub, Model, Handler, Route `/releases/:id/images`); `release_media`-Junction; `anime.cover_image` + `/covers/`-Serving + `/api/admin/upload-cover` + `cmd/migrate-covers`; `asset_lifecycle_service`-Ordnerprovisionierung; Dual-Upload-Legacy-Pfad (`SupportsLegacyUploadSchema`).
+  3. Die vollständige Migrationskette (1 bis neueste) läuft auf einer leeren DB fehlerfrei durch; ein Schema-Contract-Check (analog `scripts/schema-v2-contract-check.ps1`) belegt, dass keine Legacy-Medientabelle/-spalte mehr existiert.
+  4. `go build` + `go vet` sind grün; grep belegt keine verbleibenden Referenzen auf entfernte Symbole/Routen.
+
+### Phase 107: Vereinheitlichte Upload-Pipeline (MediaFileService)
+
+**Goal:** Die sechs heute duplizierten Upload-Pipelines werden auf EINEN technischen Kern `MediaFileService` zurückgeführt (SHA-256-Hash, hash-basierter `storage_key`, MIME/Magic-Byte, Größen-/Dimensions-/Dekompressionsbomben-Guard, Thumbnail/Preview, Audit, einheitliche Fehlerbehandlung, technische Metadaten) — entkoppelt vom Relationsmodell. Dünne Kontext-Fachservices setzen nur Kontext/Slot.
+**Requirements:** Architekturentscheid (Ebene 0 technischer Kern, §1 Upload-Vereinheitlichung).
+**Depends on:** Phase 106 (media/media_variant)
+**Success Criteria** (what must be TRUE):
+
+  1. Ein `MediaFileService` kapselt Datei-Validierung + Persistenz; alle Upload-Einstiege (Release-Version-Media, Fansub-Galerie, Theme-Asset, generischer Upload, Avatar/Background, Story-Bild) rufen ihn — keine Fläche dupliziert die Validierungs-/Varianten-Mechanik mehr.
+  2. Jeder Upload erzeugt genau eine `media`-Zeile mit `content_hash` (SHA-256), technischer Größe/Dimension und hash-basiertem `storage_key`, plus `media_variant`-Zeilen (original/thumbnail/preview).
+  3. Die härteste heute existierende Regelmenge (aus `processOneRVMFile`: MIME-Whitelist, Größenlimit, ≤8000²-Dimension, ≤40-MP-Bombenschutz, GIF-Frames ≤300) gilt einheitlich für alle Upload-Flächen.
+  4. Backend-Tests decken Hash-Berechnung, Bomben-/Dimensions-/MIME-Abweisung und Varianten-Erzeugung ab; `go build` und Tests sind grün.
+
+### Phase 108: Verwendungsrelationen, Kernmedien-FKs & Berechtigungen (Backend)
+
+**Goal:** Verwendungsspezifische Metadaten liegen an getrennten Relationstabellen (Variante B) mit gemeinsamem Feld-Contract, echten FKs/Cascade/Soft-Delete; singuläre Kernmedien hängen an direkten FK-Slots (Variante 2, ohne Review, sofort approved). Berechtigungen bleiben kontextspezifisch; neue `*.reorder`/`*.review`-Keys; die zwei ungeschützten Endpunkte werden abgesichert; Public-/Admin-Reads leiten Sichtbarkeit/Review nativ aus der Verwendung ab.
+**Requirements:** Architekturentscheid (Ebene 3a+3b, §3 Capabilities, §4 Gamification-Grundlage).
+**Depends on:** Phase 106, Phase 107
+**Success Criteria** (what must be TRUE):
+
+  1. Relationstabellen `fansub_group_media`, `release_version_media`, `member_story_media`, `anime_background_media`, `release_theme_media` tragen den gemeinsamen Contract (media_id FK, parent FK ON DELETE CASCADE, slot, title, description, alt_text, sort_order, visibility, review_status, reviewed_at, reviewed_by, is_preview, historical_context, event_date, added_by_user_id, created/updated/deleted_at, deleted_by); `caption` existiert nirgends.
+  2. Singuläre Kernmedien hängen an direkten FK-Spalten `anime.cover_media_id/banner_media_id/background_video_media_id`, `fansub_groups.logo_media_id/banner_media_id`, `members.avatar_media_id/background_media_id` — ohne visibility/review, effektiv sofort `approved`.
+  3. Jeder Kontext kann Upload/List/Patch/Delete/Reorder/Review über den gemeinsamen Kern; das Löschen einer Elternzeile räumt Verwendungen per Cascade ab; verwaiste Verwendungen sind per FK strukturell unmöglich.
+  4. Berechtigungen bleiben kontextspezifisch aufgelöst (`CanForFansubGroup`, `CanForReleaseVersion` inkl. Contribution-Rollen, …); neue Action-Keys `*.reorder` und `*.review` existieren in der Capability-Registry; `POST /admin/upload` und `DELETE /admin/media/:id` sind capability-/admin-gegated.
+  5. Public-Reads liefern nur `processing_status='ready'` + Verwendung `visibility=public` + `review_status=approved`; Admin-Reads liefern alle Zeilen plus Statusfelder; die Ownership-Projektion bleibt als UNION über die Relationstabellen korrekt.
+  6. Gamification-Grundlage ist strukturell gegeben: Uploader an `media.owner_user_id` (Dedup an `media.id`, Mehrfachverwendung zählt einmal), Kontext-Beitrag an `<relation>.added_by_user_id`, Bestätigung an `<relation>.review_status/reviewed_at/reviewed_by`.
+  7. Backend-Tests decken Cascade/Soft-Delete, per-Kontext-Permission (inkl. der zwei neu gegateten Endpunkte), Public/Admin-Read-Gates und N+1-freien Reorder ab.
+
+### Phase 109: Frontend-Umstellung aufs gemeinsame Medienmodell
+
+**Goal:** Das Frontend nutzt EIN gemeinsames Medienmodell (Typ `Media` + `MediaUsage`-Contract), EINEN api.ts-Medien-Client und EIN Metadaten-Formular; Upload erfasst Metadaten sofort; Galerien/Lightbox/Karten rendern echten `alt_text`; tote Komponenten/Typen entfernt; alle `@/components/ui`-Verstöße in Medien-Formularen behoben.
+**Requirements:** Architekturentscheid (§8 Konventionen, Frontend-Umbau); CLAUDE.md (globale UI-Primitives, Umlaute).
+**Depends on:** Phase 108
+**Success Criteria** (what must be TRUE):
+
+  1. Ein gemeinsamer Typ-Contract (`Media` global + `MediaUsage`-Felder) ersetzt `mediaAsset.ts`/`releaseVersionMedia.ts`/`media-ownership.ts`/`screenshotImage.ts` und die inline-`api.ts`-Medientypen; die doppelten `GroupAssets`-Typen und alle `caption`-only-Strukturen sind entfernt.
+  2. Ein `api.ts`-Medien-Client (upload/list/patch/delete/reorder/review) ersetzt die ~25 Einzelfunktionen; Upload-Aufrufe erfassen Titel/Beschreibung/Alt-Text sofort statt per Nachpatch.
+  3. Ein wiederverwendbares Metadaten-Formular (auf Basis von `GroupMediaReviewSection`) wird in Gruppe/Release/Story genutzt; ausschließlich `@/components/ui`-Primitives; die heutigen nativen `<button>`/`<input type=checkbox>`-Verstöße (ReleaseVersionMediaDetailPanel/Section, AnimeJellyfinAssetUploadControls, ManualCreateAssetUploadPanel) sind beseitigt.
+  4. Galerien/Lightbox/Karten binden echten `alt_text` (kein `alt=""` bei vorhandenem Alt-Text); Avatare/Branding bleiben korrekt dekorativ; `ScreenshotGallery` und tote Upload-Komponenten sind entfernt.
+  5. Deutscher UI-Text mit korrekten Umlauten; `npm run typecheck` und Vitest sind grün.
+
+### Phase 110: Reset, Seeds & E2E-Abnahme
+
+**Goal:** Test-/Seed-Daten und Reset-Skripte werden auf das Zielmodell umgestellt, Legacy-Skripte entfernt, die DB vollständig zurückgesetzt und die Migrationskette 1→n auf leerer DB ausgeführt; neue Testdaten entstehen ausschließlich über die echten Admin-/User-Upload-Abläufe; E2E belegt, dass keine Legacy-Felder/-Endpunkte mehr nötig sind.
+**Requirements:** Architekturentscheid (Reset-/Teststrategie); STATE/Reset-Skripte.
+**Depends on:** Phase 106, 107, 108, 109
+**Success Criteria** (what must be TRUE):
+
+  1. `scripts/reset-local-schema-cutover-data.ps1` (TRUNCATE-Liste), Seeds/media_types-Abgleich und die v2-Anime-TSV-Cover-Zuordnung sind auf das Zielmodell aktualisiert; Legacy-Skripte (`report-cover-image-state`, `remediate-cover-image`, `migrate-covers`) sind entfernt.
+  2. Nach vollständigem DB-Reset läuft die Migrationskette 1→n fehlerfrei; die Anwendung startet gegen die leere Zielstruktur.
+  3. Neue Testdaten (mindestens je ein Anime-Cover, Release-Screenshot, Gruppen-Galeriebild, Profil-Avatar, Story-Bild) werden ausschließlich über die produktiven Upload-Abläufe erzeugt — kein direkter SQL-Seed für Medienverwendungen.
+  4. E2E-Gate: grep belegt keine Referenz mehr auf `caption`, `cover_image`, `/covers/`, `episode_version_images` oder Legacy-Upload-Endpunkte; je Kontext ist ein Live-Klickpfad (Upload → Anzeige mit Alt-Text → Reorder → Review → Delete) am Dev-Server `:3000`/Backend erfolgreich.
+  5. Die ~35 medienberührenden Backend-/Frontend-Tests sind auf das Zielmodell portiert und grün; Provider-/Playback-/Crop-Tests bleiben unberührt.
 
 ## Backlog
 
