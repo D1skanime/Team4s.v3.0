@@ -243,13 +243,37 @@ export async function resolvePublicFansubProjectCanonicalPath({
   }
 }
 
+/** Führt einen SSR-Fetch aus und liefert bei Fehler exakt den bisherigen Fallback-Wert. */
+async function withFallback<T>(fetcher: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fetcher();
+  } catch {
+    return fallback;
+  }
+}
+
+/** Leitet den canonicalProjectPath aus EINEM (bereits gestarteten) Profil-Promise ab. */
+async function resolveCanonicalProjectPath(
+  profilePromise: ReturnType<typeof getPublicFansubProfileBySlug> | null,
+  fansubSlug: string | undefined,
+  animeID: number,
+): Promise<string | null> {
+  if (!profilePromise || !fansubSlug) return null;
+  try {
+    const profile = await profilePromise;
+    const project = profile.data.projects.find((item) => item.id === animeID && item.anime_slug?.trim());
+    return project?.anime_slug ? buildPublicFansubProjectPath(fansubSlug, project.anime_slug) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function loadPublicFansubProjectPageData({
   animeID,
   groupID,
 }: PublicFansubProjectIDs): Promise<LoadPublicFansubProjectPageDataResult> {
   let groupResponse: Awaited<ReturnType<typeof getGroupDetail>> | null = null;
   let animeResponse: Awaited<ReturnType<typeof getAnimeByID>> | null = null;
-  let groupAssetsResponse: Awaited<ReturnType<typeof getGroupAssets>> | null = null;
   let errorMessage: string | null = null;
 
   try {
@@ -275,121 +299,95 @@ export async function loadPublicFansubProjectPageData({
 
   const group = groupResponse.data;
   const anime = animeResponse.data;
-  let canonicalProjectPath: string | null = null;
+  // Ein einziger Profil-Fetch versorgt sowohl canonicalProjectPath als auch die
+  // Projekt-Navigation (identischer Slug, dasselbe aufgeloeste Profil).
   const canonicalFansubSlug = group.fansub.slug?.trim();
-  if (canonicalFansubSlug) {
-    try {
-      const profile = await getPublicFansubProfileBySlug(canonicalFansubSlug);
-      const project = profile.data.projects.find((item) => item.id === animeID && item.anime_slug?.trim());
-      if (project?.anime_slug) canonicalProjectPath = buildPublicFansubProjectPath(canonicalFansubSlug, project.anime_slug);
-    } catch {
-      canonicalProjectPath = null;
-    }
-  }
+  const profilePromise = canonicalFansubSlug ? getPublicFansubProfileBySlug(canonicalFansubSlug) : null;
 
-  try {
-    groupAssetsResponse = await getGroupAssets(animeID, groupID);
-  } catch (error) {
-    void error;
-  }
-
-  let otherGroups: Awaited<ReturnType<typeof getGroupReleases>>["data"]["other_groups"] = [];
-  let releaseEpisodes: Awaited<ReturnType<typeof getGroupReleases>>["data"]["episodes"] = [];
-  let publicReleasePreviews: PublicReleasePreview[] = [];
-  let animeFansubRelations: Awaited<ReturnType<typeof getAnimeFansubs>>["data"] | null = null;
-
-  try {
-    const [releasesData, fansubsData] = await Promise.all([
-      getGroupReleases(animeID, groupID, { per_page: 100 }),
-      getAnimeFansubs(animeID),
-    ]);
-    releaseEpisodes = releasesData.data.episodes;
-    otherGroups = releasesData.data.other_groups;
-    animeFansubRelations = fansubsData.data;
-  } catch {
-    try {
-      const releasesData = await getGroupReleases(animeID, groupID, { per_page: 100 });
-      releaseEpisodes = releasesData.data.episodes;
-      otherGroups = releasesData.data.other_groups;
-    } catch {
-      /* Continue without navigation data. */
-    }
-  }
-
-  try {
-    const activityPage = await getGroupReleaseListCursor(animeID, groupID, {
-      limit: RELEASE_PREVIEW_LIMIT,
-      sort: "release_date",
-    });
-    const latestRelease = activityPage.items[0] ?? null;
-    let latestDetail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null = null;
-    if (latestRelease) {
+  // Unabhaengige Phase-B-Fetches laufen nebenlaeufig; jede Branch kapselt ihren eigenen
+  // Fallback, damit ein Fehler keine andere Branch mitreisst (Promise.all darf nicht rejecten).
+  const [
+    groupAssetsResponse,
+    releasesBranch,
+    profileDerived,
+    publicReleasePreviews,
+    contributorsData,
+    themesData,
+    releaseMediaData,
+    projectNotesHtml,
+  ] = await Promise.all([
+    withFallback<Awaited<ReturnType<typeof getGroupAssets>> | null>(() => getGroupAssets(animeID, groupID), null),
+    (async () => {
+      let releaseEpisodes: Awaited<ReturnType<typeof getGroupReleases>>["data"]["episodes"] = [];
+      let otherGroups: Awaited<ReturnType<typeof getGroupReleases>>["data"]["other_groups"] = [];
+      let animeFansubRelations: Awaited<ReturnType<typeof getAnimeFansubs>>["data"] | null = null;
       try {
-        latestDetail = await getGroupReleaseDetail(animeID, groupID, latestRelease.id);
+        const [releasesData, fansubsData] = await Promise.all([getGroupReleases(animeID, groupID, { per_page: 100 }), getAnimeFansubs(animeID)]);
+        releaseEpisodes = releasesData.data.episodes;
+        otherGroups = releasesData.data.other_groups;
+        animeFansubRelations = fansubsData.data;
       } catch {
-        latestDetail = null;
+        try {
+          const releasesData = await getGroupReleases(animeID, groupID, { per_page: 100 });
+          releaseEpisodes = releasesData.data.episodes;
+          otherGroups = releasesData.data.other_groups;
+        } catch {
+          /* Continue without navigation data. */
+        }
       }
-    }
-    publicReleasePreviews = activityPage.items.map((release, index) =>
-      buildPublicReleasePreview({
-        animeID,
-        groupID,
-        release,
-        detail: index === 0 ? latestDetail : null,
-        canonicalProjectPath,
-      }),
-    );
-  } catch {
-    /* Public release block degrades independently from the project shell. */
-  }
+      return { releaseEpisodes, otherGroups, animeFansubRelations };
+    })(),
+    (async () => {
+      const canonicalProjectPath = await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
+      let fansubProjectNavigation: FansubProjectNavigation = { previous: null, next: null };
+      try {
+        const profile = profilePromise ? await profilePromise : null;
+        if (profile && canonicalFansubSlug) {
+          const currentProject = profile.data.projects.find((project) => project.id === animeID);
+          fansubProjectNavigation = buildFansubProjectNavigation({
+            currentAnimeID: animeID,
+            currentAnimeSlug: currentProject?.anime_slug ?? null,
+            currentFansubGroupID: groupID,
+            currentFansubSlug: canonicalFansubSlug,
+            projects: profile.data.projects,
+          });
+        }
+      } catch {
+        fansubProjectNavigation = { previous: null, next: null };
+      }
+      return { canonicalProjectPath, fansubProjectNavigation };
+    })(),
+    (async (): Promise<PublicReleasePreview[]> => {
+      // Selber canonicalProjectPath (selbes Profil-Promise), aber getrennt vom Release-Liste-try/catch.
+      const canonicalProjectPath = await resolveCanonicalProjectPath(profilePromise, canonicalFansubSlug, animeID);
+      try {
+        const activityPage = await getGroupReleaseListCursor(animeID, groupID, { limit: RELEASE_PREVIEW_LIMIT, sort: "release_date" });
+        const latestRelease = activityPage.items[0] ?? null;
+        let latestDetail: Awaited<ReturnType<typeof getGroupReleaseDetail>> | null = null;
+        if (latestRelease) {
+          // Detail braucht die Release-ID der Liste -> intern seriell.
+          try {
+            latestDetail = await getGroupReleaseDetail(animeID, groupID, latestRelease.id);
+          } catch {
+            latestDetail = null;
+          }
+        }
+        return activityPage.items.map((release, index) =>
+          buildPublicReleasePreview({ animeID, groupID, release, detail: index === 0 ? latestDetail : null, canonicalProjectPath }),
+        );
+      } catch {
+        /* Public release block degrades independently from the project shell. */
+        return [];
+      }
+    })(),
+    withFallback<GroupContributorsResponse>(() => getGroupContributors(animeID, groupID), { team_members: [], external_contributors: [] }),
+    withFallback<GroupThemesResponse>(() => getGroupThemes(animeID, groupID), { themes: [] }),
+    withFallback<GroupReleaseMediaResponse>(() => getGroupReleaseMedia(animeID, groupID), { items: [] }),
+    withFallback<string | null>(async () => (await getGroupProjectNote(animeID, groupID)).data?.body_html?.trim() || null, null),
+  ]);
 
-  let contributorsData: GroupContributorsResponse = {
-    team_members: [],
-    external_contributors: [],
-  };
-  let themesData: GroupThemesResponse = { themes: [] };
-  let releaseMediaData: GroupReleaseMediaResponse = { items: [] };
-  let projectNotesHtml: string | null = null;
-  let fansubProjectNavigation: FansubProjectNavigation = { previous: null, next: null };
-
-  try {
-    contributorsData = await getGroupContributors(animeID, groupID);
-  } catch {
-    /* EmptyState */
-  }
-  try {
-    themesData = await getGroupThemes(animeID, groupID);
-  } catch {
-    /* EmptyState */
-  }
-  try {
-    releaseMediaData = await getGroupReleaseMedia(animeID, groupID);
-  } catch {
-    /* EmptyState */
-  }
-  try {
-    const projectNoteResponse = await getGroupProjectNote(animeID, groupID);
-    projectNotesHtml = projectNoteResponse.data?.body_html?.trim() || null;
-  } catch {
-    /* EmptyState */
-  }
-
-  try {
-    const fansubSlug = group.fansub.slug?.trim();
-    if (fansubSlug) {
-      const publicProfileResponse = await getPublicFansubProfileBySlug(fansubSlug);
-      const currentProject = publicProfileResponse.data.projects.find((project) => project.id === animeID);
-      fansubProjectNavigation = buildFansubProjectNavigation({
-        currentAnimeID: animeID,
-        currentAnimeSlug: currentProject?.anime_slug ?? null,
-        currentFansubGroupID: groupID,
-        currentFansubSlug: fansubSlug,
-        projects: publicProfileResponse.data.projects,
-      });
-    }
-  } catch {
-    /* Navigation degrades when the public profile project list is unavailable. */
-  }
+  const { releaseEpisodes, otherGroups, animeFansubRelations } = releasesBranch;
+  const { canonicalProjectPath, fansubProjectNavigation } = profileDerived;
 
   const hasTeamContent =
     contributorsData.team_members.length > 0 ||
