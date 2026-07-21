@@ -5371,6 +5371,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/anime/{animeId}/group/{groupId}/project-page:
+    get:
+      tags: [Fansubs]
+      summary: Get the aggregated lightweight project-page shell for an anime+group (public)
+      description: >-
+        Bündelt die leichten Sektionen der öffentlichen Fansub-Projektseite (group, anime,
+        contributors, themes, release_media, project_note, anime_fansubs) in EINEM HTTP-Round-Trip.
+        Die beiden Gate-Sektionen (group, anime) sind im Erfolgsfall stets gesetzt; die fünf
+        optionalen Sektionen serialisieren bei partiellem Fehlschlag als null. Bewusst NICHT
+        enthalten: assets (Jellyfin + bis zu 500 Releases), public_profile und die
+        Release-Vorschau-Kette — diese bleiben separate, parallel geladene Requests.
+      operationId: getAnimeGroupProjectPage
+      parameters:
+        - name: animeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Aggregierte Leicht-Shell der Projektseite
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectPageBundleResponse"
+        "400":
+          description: Invalid anime-id or group-id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Gruppe oder Anime nicht gefunden (Gate)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error (harter Fehler in einer Gate-Sektion)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime/{animeId}/episodes:
     get:
       tags: [Episodes]
@@ -12609,6 +12661,45 @@ components:
           nullable: true
           oneOf:
             - $ref: "#/components/schemas/PublicAnimeFansubProjectNote"
+    ProjectPageBundle:
+      type: object
+      required: [group, anime, contributors, themes, release_media, project_note, anime_fansubs]
+      description: >-
+        Leicht-Shell der öffentlichen Fansub-Projektseite. Die Gate-Sektionen group und anime
+        sind im Erfolgsfall gesetzt; die fünf optionalen Sektionen sind nullable und werden bei
+        partiellem Fehlschlag als null ausgeliefert (Backend: Pointer ohne omitempty).
+      properties:
+        group:
+          $ref: "#/components/schemas/GroupDetail"
+        anime:
+          $ref: "#/components/schemas/AnimeDetail"
+        contributors:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/GroupContributorsResponse"
+        themes:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/GroupThemesResponse"
+        release_media:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/GroupReleaseMediaResponse"
+        project_note:
+          nullable: true
+          oneOf:
+            - $ref: "#/components/schemas/PublicAnimeFansubProjectNote"
+        anime_fansubs:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/AnimeFansubRelation"
+    ProjectPageBundleResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/ProjectPageBundle"
     EpisodeVersionImage:
       type: object
       required:
