@@ -13,7 +13,7 @@ revision: 3
 
 > Per-phase validation contract for feedback sampling during execution.
 
-**Revision 2026-07-22 (3. Lauf — PO-Review, 7 Blocker + 1 Extra; LOCKED D-08 + D-09):** Der Plan-Satz umfasst jetzt **9 Pläne mit 21 Tasks**. Wesentliche Änderungen:
+**Revision 2026-07-22 (3. Lauf — PO-Review, 7 Blocker + 1 Extra; LOCKED D-08 + D-09):** Der Plan-Satz umfasst jetzt **9 Pläne mit 20 Tasks**. Wesentliche Änderungen:
 
 | Änderung | Inhalt |
 |----------|--------|
@@ -145,7 +145,7 @@ Keine Zyklen, keine Vorwärtsreferenzen; innerhalb jeder Welle keine `files_modi
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
-*Abdeckung: **21 Tasks über 9 Pläne** (01:2, 02:2, **03:3**, 04:2, 05:2, **07:2**, 08:2, 09:3, 10:2) — Stand nach dem PO-Review 2026-07-22 (3. Lauf): −3 Tasks durch die Löschung von 106-06 (D-08), +1 Task in 106-07 für die AGENTS.md-pflichtige Upload-Auth-Regression. Die Plan-ID `106-06` ist retired; es wird nicht umnummeriert. Genau ein Task ohne `<automated>`: der unvermeidbare Live-Checkpoint 106-08-02.*
+*Abdeckung: **20 Tasks über 9 Pläne** (01:2, 02:2, **03:3**, 04:2, 05:2, **07:2**, 08:2, 09:3, 10:2) — Stand nach dem PO-Review 2026-07-22 (3. Lauf): −3 Tasks durch die Löschung von 106-06 (D-08), +1 Task in 106-07 für die AGENTS.md-pflichtige Upload-Auth-Regression. Die Plan-ID `106-06` ist retired; es wird nicht umnummeriert. Genau ein Task ohne `<automated>`: der unvermeidbare Live-Checkpoint 106-08-02.*
 
 ---
 
@@ -191,7 +191,7 @@ Keine Zyklen, keine Vorwärtsreferenzen; innerhalb jeder Welle keine `files_modi
 - [x] No watch-mode flags
 - [x] Feedback latency < 60s
 - [x] `nyquist_compliant: true` set in frontmatter
-- [x] Map deckt alle **21 Tasks** der **9 Pläne** ab (Stand nach PO-Review-Revision 2026-07-22, 3. Lauf)
+- [x] Map deckt alle **20 Tasks** der **9 Pläne** ab (Stand nach PO-Review-Revision 2026-07-22, 3. Lauf)
 - [x] Kein `auto`-Task mit leerem `<files>` (Blocker 7): 106-05-02 und 106-08-01 führen ihre Ziele explizit; der `checkpoint:human-verify` 106-08-02 behält legitim ein leeres `<files>`
 - [x] Alle acht `anime.cover_image`-Rohspalten-Lesestellen sind einem Plan zugeordnet (106-09), alle dauerhaft toten Legacy-Zweige ebenfalls (106-10)
 - [x] Kein Gate verwendet mehr negiertes `grep` auf einen möglicherweise fehlenden Glob (FALSE-PASS-Muster beseitigt)
@@ -210,4 +210,4 @@ Keine Zyklen, keine Vorwärtsreferenzen; innerhalb jeder Welle keine `files_modi
 - [x] P-8: Kein Gate stützt sich mehr auf einen Live-Check, der in beiden Zuständen dasselbe Ergebnis liefern kann
 - [x] A4: Die letzte offene Annahme (`anime.slug` existiert live) ist als Pflichtschritt im 106-08-Checkpoint geschlossen
 
-**Approval:** map covers all 9 plans (106-01 … 106-05, 106-07 … 106-10; `106-06` retired per D-08) mit 21 Tasks; pending execution.
+**Approval:** map covers all 9 plans (106-01 … 106-05, 106-07 … 106-10; `106-06` retired per D-08) mit 20 Tasks; pending execution.

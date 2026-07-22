@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: Executing Phase 105
 stopped_at: Phase 107 context gathered
-last_updated: "2026-07-22T09:39:33.438Z"
+last_updated: "2026-07-22T11:33:43.015Z"
 last_activity: 2026-07-22
 progress:
   total_phases: 102
   completed_phases: 80
-  total_plans: 460
+  total_plans: 459
   completed_plans: 404
   percent: 78
 ---
