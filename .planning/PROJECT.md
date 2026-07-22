@@ -23,6 +23,7 @@ Admins can reliably create and maintain correct anime records without losing con
 - [x] Admin actions remain attributable to the acting user and operator-facing failures are surfaced clearly - v1.0
 - [x] Production workflow code touched by the milestone remains modularized rather than collapsing into oversized files - v1.0
 - [x] Phase 72 provides the v1.2 backend/contract foundation for status axes, domain projections, and media ownership read DTOs - validated 2026-06-05
+- [x] Phase 106 provides the auditierbare, idempotente Gamification-Grundlage mit stabilem Member-Bezug, versioniertem Punktekatalog und append-only Punktebuch - validated 2026-07-22
 
 ### Active
 
@@ -58,6 +59,8 @@ The next product thread is no longer intake correctness itself; it is the generi
 Phase 54 completed on 2026-05-28: the global AppShell now provides the release-independent nav drawer through the root layout, with `/me/profile` no longer nesting its own shell.
 
 Phase 72 completed on 2026-06-05: migration 0097, GET-only domain/media ownership projections, OpenAPI schemas, TypeScript DTOs, and central `api.ts` helpers now provide the status/projection foundation for Phases 73-80.
+
+Phase 106 completed on 2026-07-22: migration 0131, exakte versionierte Punktregeln, ein append-only/idempotentes Member-Punktebuch sowie transaktionsgebundene Repository- und Service-Pfade bilden das verifizierte Gamification-Fundament.
 
 ## Current Milestone: v1.1 Asset Lifecycle Hardening
 
@@ -95,4 +98,4 @@ Phase 72 completed on 2026-06-05: migration 0097, GET-only domain/media ownershi
 | Make asset lifecycle behavior generic before adding more upload surfaces | Prevents banner/logo/background/video work from becoming a pile of slot-specific exceptions | Pending |
 
 ---
-*Last updated: 2026-06-05 after Phase 72 status/projection foundation completion*
+*Last updated: 2026-07-22 after Phase 106 member gamification foundation completion*
