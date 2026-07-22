@@ -16,12 +16,15 @@ import (
 )
 
 const (
-	phase106MigrationName = "0131_member_point_foundation"
-	phase106UpFile        = phase106MigrationName + ".up.sql"
-	phase106DownFile      = phase106MigrationName + ".down.sql"
-	phase106HardeningName = "0132_member_point_foundation_review_hardening"
-	phase106HardeningUp   = phase106HardeningName + ".up.sql"
-	phase106HardeningDown = phase106HardeningName + ".down.sql"
+	phase106MigrationName  = "0131_member_point_foundation"
+	phase106UpFile         = phase106MigrationName + ".up.sql"
+	phase106DownFile       = phase106MigrationName + ".down.sql"
+	phase106HardeningName  = "0132_member_point_foundation_review_hardening"
+	phase106HardeningUp    = phase106HardeningName + ".up.sql"
+	phase106HardeningDown  = phase106HardeningName + ".down.sql"
+	phase106WhitespaceName = "0133_member_point_whitespace_hardening"
+	phase106WhitespaceUp   = phase106WhitespaceName + ".up.sql"
+	phase106WhitespaceDown = phase106WhitespaceName + ".down.sql"
 )
 
 func TestPhase106MigrationUpContract(t *testing.T) {
@@ -40,7 +43,11 @@ func TestPhase106MigrationUpContract(t *testing.T) {
 		"entry_kind in ('award', 'reversal')", "reversal_of_entry_id", "reversal_reason",
 		"create function", "before insert", "before update or delete", "pg_trigger_depth() > 1",
 		"before truncate on point_rules", "before truncate on point_ledger_entries",
-		"rule_code <> ''", "rule_code = btrim(rule_code)", "reversal_reason is not null",
+		"rule_code ~ '[^[:space:]]'", "rule_code !~ '^[[:space:]]|[[:space:]]$'",
+		"source_type ~ '[^[:space:]]'", "source_type !~ '^[[:space:]]|[[:space:]]$'",
+		"source_key ~ '[^[:space:]]'", "source_key !~ '^[[:space:]]|[[:space:]]$'",
+		"idempotency_key ~ '[^[:space:]]'", "idempotency_key !~ '^[[:space:]]|[[:space:]]$'",
+		"reversal_reason is not null", "reversal_reason ~ '[^[:space:]]'",
 		"not exists (select 1 from app_users where id = old.actor_app_user_id)",
 		"not exists (select 1 from fansub_groups where id = old.fansub_group_id)",
 		"not exists (select 1 from release_versions where id = old.release_version_id)",
@@ -88,8 +95,11 @@ func TestPhase106ReviewHardeningLiveUpDownUp(t *testing.T) {
 	pool := testsupport.OpenPhase106Postgres(t)
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106WhitespaceUp))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106WhitespaceDown))
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningDown))
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106WhitespaceUp))
 	seedPhase106Ledger(t, pool)
 	_, err := pool.Exec(context.Background(), `TRUNCATE point_ledger_entries`)
 	require.ErrorContains(t, err, "point ledger is append-only")
@@ -178,10 +188,36 @@ func TestPhase106ReversalCrossRowInvariants(t *testing.T) {
 	} {
 		t.Run("award_"+name, func(t *testing.T) { assertAwardMutationRejected(t, pool, mutation) })
 	}
-	for name, code := range map[string]string{"blank_rule_code": "", "padded_rule_code": " release_work "} {
+	for name, code := range map[string]string{
+		"blank_rule_code":          "",
+		"space_padded_rule_code":   " release_work ",
+		"tab_only_rule_code":       "\t",
+		"newline_only_rule_code":   "\n",
+		"tab_padded_rule_code":     "\trelease_work",
+		"newline_padded_rule_code": "release_work\n",
+	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := pool.Exec(context.Background(), `INSERT INTO point_rules(rule_code, rule_version, category, point_value) VALUES ($1, 2, 'fansub_work', 10)`, code)
 			require.Error(t, err)
+		})
+	}
+	for name, tc := range map[string]struct {
+		sourceType, sourceKey, idempotencyKey, constraint string
+	}{
+		"tab_only_source_type":       {"\t", "valid", "invalid-source-type", "chk_point_ledger_source_type_canonical"},
+		"newline_padded_source_type": {"release\n", "valid", "invalid-source-type-padding", "chk_point_ledger_source_type_canonical"},
+		"newline_only_source_key":    {"manual", "\n", "invalid-source-key", "chk_point_ledger_source_key_canonical"},
+		"tab_padded_source_key":      {"manual", "\tvalid", "invalid-source-key-padding", "chk_point_ledger_source_key_canonical"},
+		"tab_only_idempotency_key":   {"manual", "valid", "\t", "chk_point_ledger_idempotency_key_canonical"},
+		"newline_padded_idempotency": {"manual", "valid", "invalid\n", "chk_point_ledger_idempotency_key_canonical"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
+(member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key)
+VALUES (1, $1, $2, 101, 'release_work', 1, 'fansub_work', 10, 10, 'award', NOW(), $3)`, tc.sourceType, tc.sourceKey, tc.idempotencyKey)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.constraint)
 		})
 	}
 
@@ -197,6 +233,13 @@ FROM point_ledger_entries WHERE id = 201`
 	_, err := pool.Exec(context.Background(), nullReasonReversal)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "chk_point_ledger_entry_shape")
+	for index, reasonLiteral := range []string{`E'\t'`, `E'\n'`, `E'\r\n'`, `E' \t\n '`} {
+		whitespaceReasonReversal := strings.ReplaceAll(validReversal, "202", fmt.Sprint(212+index))
+		whitespaceReasonReversal = strings.ReplaceAll(whitespaceReasonReversal, "'Testkorrektur'", reasonLiteral)
+		_, err := pool.Exec(context.Background(), whitespaceReasonReversal)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "chk_point_ledger_entry_shape")
+	}
 
 	_, err = pool.Exec(context.Background(), validReversal)
 	require.NoError(t, err)
@@ -221,6 +264,8 @@ func TestPhase106MigrationBoundary(t *testing.T) {
 		phase106MigrationPath(t, phase106DownFile),
 		phase106MigrationPath(t, phase106HardeningUp),
 		phase106MigrationPath(t, phase106HardeningDown),
+		phase106MigrationPath(t, phase106WhitespaceUp),
+		phase106MigrationPath(t, phase106WhitespaceDown),
 		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres.go"),
 		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres_test.go"),
 	}

@@ -1,14 +1,19 @@
 ---
 phase: 106-member-gamification-punktefundament
 reviewed: 2026-07-22T21:53:54Z
+resolved: 2026-07-22T22:04:29Z
 depth: standard
-files_reviewed: 14
+files_reviewed: 18
 files_reviewed_list:
   - backend/internal/testsupport/phase106_postgres.go
   - backend/internal/testsupport/phase106_postgres_test.go
   - backend/internal/migrations/phase106_member_points_test.go
   - database/migrations/0131_member_point_foundation.up.sql
   - database/migrations/0131_member_point_foundation.down.sql
+  - database/migrations/0132_member_point_foundation_review_hardening.up.sql
+  - database/migrations/0132_member_point_foundation_review_hardening.down.sql
+  - database/migrations/0133_member_point_whitespace_hardening.up.sql
+  - database/migrations/0133_member_point_whitespace_hardening.down.sql
   - backend/internal/repository/point_rules_repository.go
   - backend/internal/repository/point_rules_repository_test.go
   - backend/internal/repository/point_ledger_repository.go
@@ -19,23 +24,24 @@ files_reviewed_list:
   - backend/internal/services/point_service_reverse_test.go
   - backend/internal/services/point_service_boundary_test.go
 findings:
-  critical: 1
+  critical: 0
   warning: 0
   info: 0
-  total: 1
-status: issues_found
+  resolved: 1
+  total: 0
+status: passed
 ---
 
 # Phase 106: Code Review Report
 
 **Reviewed:** 2026-07-22T21:53:54Z
 **Depth:** standard
-**Files Reviewed:** 14
-**Status:** issues_found
+**Files Reviewed:** 18
+**Status:** passed after remediation
 
 ## Summary
 
-The fix commit genuinely resolves prior findings CR-01, CR-02, CR-03, WR-01, WR-02, and WR-03 with focused regression coverage. WR-04 is only partially resolved: the database rejects empty and space-padded rule codes, but PostgreSQL's one-argument `btrim` does not remove tabs or newlines. The same incomplete whitespace check is used for reversal reasons and permanent ledger identifiers. A disposable PostgreSQL 16 probe confirmed that both a tab-only immutable rule code and a tab-only reversal reason are accepted.
+The final whitespace finding is resolved. Rule codes and permanent ledger identifiers now require at least one non-whitespace character and reject leading or trailing POSIX whitespace; reversal reasons require at least one non-whitespace character. Migration 0133 upgrades databases that already executed 0131/0132. Live PostgreSQL 16 tests reject TAB, LF and CRLF variants for rule codes, reversal reasons, source fields and idempotency keys.
 
 The remaining Phase-106 behavior passed focused unit/static tests and the live PostgreSQL suite, including Up/Down/Up, TRUNCATE rejection, snapshot validation, FK-context nulling, award/reversal retry, concurrency, rollback, and caller-owned transaction atomicity.
 
@@ -79,7 +85,14 @@ Apply the same canonical/nonblank policy to `source_type`, `source_key`, and `id
 - Disposable PostgreSQL 16: `go test ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services -run 'TestPhase106|TestPoint' -count=1 -v` — passed; disposable database removed.
 - `go vet ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services` — passed.
 - `git diff --check` — passed before writing this report.
-- Disposable PostgreSQL whitespace probe — reproduced the active finding (`tab_rule_count=1`, `tab_reason_count=1`); disposable database removed.
+- Disposable PostgreSQL whitespace probe — reproduced the original finding (`tab_rule_count=1`, `tab_reason_count=1`); disposable database removed.
+
+## Resolution Verification
+
+- `0131_member_point_foundation.up.sql` and the 0132 hardening path use POSIX whitespace predicates consistently.
+- `0133_member_point_whitespace_hardening` provides reversible upgrade coverage for already-migrated databases.
+- Valid SQL regression cases cover empty, TAB-only, LF-only, CRLF-only and padded rule codes/reversal reasons, plus `source_type`, `source_key` and `idempotency_key`.
+- PostgreSQL 16: 0131 → 0132 → 0133 with Down/Up passed in `team4s_phase106_test_whitespace`; the disposable database was removed afterward.
 
 ---
 

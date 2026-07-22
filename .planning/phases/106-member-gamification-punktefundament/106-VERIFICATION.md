@@ -1,6 +1,6 @@
 ---
 phase: 106-member-gamification-punktefundament
-verified: 2026-07-22T21:42:37Z
+verified: 2026-07-22T22:04:29Z
 status: passed
 score: 5/5 must-haves verified
 overrides_applied: 0
@@ -14,6 +14,8 @@ overrides_applied: 0
 **Re-verification:** No — initial verification
 
 **Post-review re-verification:** 2026-07-22T21:42:37Z — all seven findings from `106-REVIEW.md` resolved; PostgreSQL 16 migration/invariant tests, full Go tests, Vet, and diff checks passed.
+
+**Whitespace hardening re-verification:** 2026-07-22T22:04:29Z — POSIX-whitespace constraints and migration 0133 reject TAB/LF/CRLF-only or padded rule codes, reversal reasons and ledger identifiers; PostgreSQL 16 Down/Up passed.
 
 ## Goal Achievement
 

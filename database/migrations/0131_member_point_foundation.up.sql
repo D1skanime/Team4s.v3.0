@@ -2,7 +2,7 @@ BEGIN;
 
 CREATE TABLE point_rules (
     id BIGSERIAL PRIMARY KEY,
-    rule_code TEXT NOT NULL CONSTRAINT chk_point_rules_rule_code_canonical CHECK (rule_code <> '' AND rule_code = btrim(rule_code)),
+    rule_code TEXT NOT NULL CONSTRAINT chk_point_rules_rule_code_canonical CHECK (rule_code ~ '[^[:space:]]' AND rule_code !~ '^[[:space:]]|[[:space:]]$'),
     rule_version INTEGER NOT NULL CHECK (rule_version > 0),
     category TEXT NOT NULL CHECK (category IN ('fansub_work', 'platform_contribution')),
     point_value INTEGER NOT NULL CHECK (point_value > 0),
@@ -31,8 +31,8 @@ CREATE TABLE point_ledger_entries (
     actor_app_user_id BIGINT NULL REFERENCES app_users(id) ON DELETE SET NULL,
     fansub_group_id BIGINT NULL REFERENCES fansub_groups(id) ON DELETE SET NULL,
     release_version_id BIGINT NULL REFERENCES release_versions(id) ON DELETE SET NULL,
-    source_type TEXT NOT NULL CHECK (btrim(source_type) <> ''),
-    source_key TEXT NOT NULL CHECK (btrim(source_key) <> ''),
+    source_type TEXT NOT NULL CONSTRAINT chk_point_ledger_source_type_canonical CHECK (source_type ~ '[^[:space:]]' AND source_type !~ '^[[:space:]]|[[:space:]]$'),
+    source_key TEXT NOT NULL CONSTRAINT chk_point_ledger_source_key_canonical CHECK (source_key ~ '[^[:space:]]' AND source_key !~ '^[[:space:]]|[[:space:]]$'),
     rule_id BIGINT NOT NULL REFERENCES point_rules(id),
     rule_code_snapshot TEXT NOT NULL,
     rule_version_snapshot INTEGER NOT NULL CHECK (rule_version_snapshot > 0),
@@ -44,12 +44,12 @@ CREATE TABLE point_ledger_entries (
     reversal_reason TEXT NULL,
     effective_at TIMESTAMPTZ NOT NULL,
     recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    idempotency_key TEXT NOT NULL CHECK (btrim(idempotency_key) <> ''),
+    idempotency_key TEXT NOT NULL CONSTRAINT chk_point_ledger_idempotency_key_canonical CHECK (idempotency_key ~ '[^[:space:]]' AND idempotency_key !~ '^[[:space:]]|[[:space:]]$'),
     UNIQUE (idempotency_key),
     CONSTRAINT chk_point_ledger_entry_shape CHECK (
         (entry_kind = 'award' AND reversal_of_entry_id IS NULL AND reversal_reason IS NULL AND point_value > 0)
         OR
-        (entry_kind = 'reversal' AND reversal_of_entry_id IS NOT NULL AND reversal_reason IS NOT NULL AND btrim(reversal_reason) <> '' AND point_value < 0)
+        (entry_kind = 'reversal' AND reversal_of_entry_id IS NOT NULL AND reversal_reason IS NOT NULL AND reversal_reason ~ '[^[:space:]]' AND point_value < 0)
     ),
     CONSTRAINT chk_point_ledger_no_self_reversal CHECK (reversal_of_entry_id IS NULL OR reversal_of_entry_id <> id)
 );
