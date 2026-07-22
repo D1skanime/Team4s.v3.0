@@ -2468,22 +2468,23 @@ Plans:
   5. E2E/UAT deckt historische Rückrechnung, aktuellen Beitrag, Fremdbestätigung, abgelehnten und erneut eingereichten Beitrag, automatische Bereinigung, Claim-Verknüpfung, globale sowie Gruppenrangliste ab.
   6. Security-/Abuse-Tests belegen: keine Selbstbestätigung, kein doppeltes Buchen, keine Scope-Überschreitung, keine höheren Prüfpunkte durch Ablehnung und keine Punkte durch bloße Profiländerungen.
 
+### Phase 111: User-Verwaltungsseite ohne Drawer und RBAC-Querverlinkung
+
+**Goal:** Die User-Verwaltung auf `/admin/users` ohne User-Detail-Drawer neu strukturieren. Benutzerdetails, globale Rollen, Member-/Claim-Kontext, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien und Audit werden passend und progressiv offengelegt auf der eigentlichen Seite dargestellt, statt in einen Drawer mit vielen Tabs ausgelagert zu werden. Die fachliche Trennung zu `/admin/role-capabilities` bleibt bestehen: Von den auf der User-Seite angezeigten Rollen führt ein verständlicher Link zur jeweiligen Rollen-/Capability-Detailansicht ("Was darf diese Rolle?"); `/admin/role-capabilities` zeigt pro Rolle einen Impact-Count ("N-mal vergeben") mit Sprung zur passend gefilterten User-Ansicht. Ziel ist eine übersichtliche, direkt navigierbare Benutzerverwaltung ohne überladenen Drawer und ohne die RBAC-Regelverwaltung mit der Personenverwaltung zu verschmelzen. Eigenes UX-Anliegen, nicht Phase 94.
+**Requirements:** TBD
+**Depends on:** Bestehende `/admin/users`- und `/admin/role-capabilities`-Oberflächen
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD
+
 ## Backlog
 
 ### Phase 999.2: E-Mail-Verifikations-Policy und eindeutige App-User-E-Mail (BACKLOG)
 
 **Goal:** Nach einer Produkt-/Security-Entscheidung E-Mail-Verifikation und E-Mail-Eindeutigkeit gemeinsam und datenverträglich durchsetzen. Phase 104 grenzt dies bewusst aus, weil der UI-Test weder einen Verifikationsfehler reproduziert hat noch eine Mailzustellungs-/Pending-Account-Policy existiert und ein Unique-Constraint ohne Bestandsdatenprüfung persistierte Accounts gefährden kann.
 **Requirements:** Vor Umsetzung festlegen: Verifikationspflicht und Mailzustellung, Verhalten/Rechte für `pending` Accounts und Enforcement-Ort; vorhandene `app_users.email`-Duplikate und Null-/Case-Normalisierung auditieren; erst danach einen reversiblen Unique-Index samt Up/Down- und Konflikttests planen. Registrierungscopy darf bis dahin keine verifizierte E-Mail behaupten.
-**Plans:** 0 plans
-
-Plans:
-
-- [ ] TBD (promote with /gsd:review-backlog when ready)
-
-### Phase 999.1: User-Verwaltungsseite ohne Drawer und RBAC-Querverlinkung (BACKLOG)
-
-**Goal:** Die User-Verwaltung auf `/admin/users` ohne User-Detail-Drawer neu strukturieren. Benutzerdetails, globale Rollen, Member-/Claim-Kontext, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien und Audit werden passend und progressiv offengelegt auf der eigentlichen Seite dargestellt, statt in einen Drawer mit vielen Tabs ausgelagert zu werden. Die fachliche Trennung zu `/admin/role-capabilities` bleibt bestehen: Von den auf der User-Seite angezeigten Rollen führt ein verständlicher Link zur jeweiligen Rollen-/Capability-Detailansicht ("Was darf diese Rolle?"); `/admin/role-capabilities` zeigt pro Rolle einen Impact-Count ("N-mal vergeben") mit Sprung zur passend gefilterten User-Ansicht. Ziel ist eine übersichtliche, direkt navigierbare Benutzerverwaltung ohne überladenen Drawer und ohne die RBAC-Regelverwaltung mit der Personenverwaltung zu verschmelzen. Eigenes UX-Anliegen, nicht Phase 94.
-**Requirements:** TBD
 **Plans:** 0 plans
 
 Plans:
