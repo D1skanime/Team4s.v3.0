@@ -2480,9 +2480,9 @@ Plans:
 
 - [ ] TBD (promote with /gsd:review-backlog when ready)
 
-### Phase 999.1: Querverlinkung role-capabilities <-> users (Impact-Count + Rollen-Detail-Link) (BACKLOG)
+### Phase 999.1: User-Verwaltungsseite ohne Drawer und RBAC-Querverlinkung (BACKLOG)
 
-**Goal:** Querverlinkung zwischen /admin/role-capabilities und /admin/users, OHNE die Seiten zu verschmelzen (Separation of Concerns bleibt; getrennte Seiten = bewusst gut, Standard-RBAC-Muster). (1) Im User-Drawer-Tab "Gruppenrechte" pro Rolle ein Link zur role-capabilities-Detailansicht ("Was darf diese Rolle?"). (2) Auf /admin/role-capabilities pro Rolle ein Impact-Count ("N-mal vergeben") mit Sprung zu den betroffenen Usern. Ziel: gedankliche Luecke Regel (Rolle->Rechte) und Person (User->Rolle) schliessen. Eigenes UX-Anliegen, NICHT Phase 94.
+**Goal:** Die User-Verwaltung auf `/admin/users` ohne User-Detail-Drawer neu strukturieren. Benutzerdetails, globale Rollen, Member-/Claim-Kontext, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien und Audit werden passend und progressiv offengelegt auf der eigentlichen Seite dargestellt, statt in einen Drawer mit vielen Tabs ausgelagert zu werden. Die fachliche Trennung zu `/admin/role-capabilities` bleibt bestehen: Von den auf der User-Seite angezeigten Rollen führt ein verständlicher Link zur jeweiligen Rollen-/Capability-Detailansicht ("Was darf diese Rolle?"); `/admin/role-capabilities` zeigt pro Rolle einen Impact-Count ("N-mal vergeben") mit Sprung zur passend gefilterten User-Ansicht. Ziel ist eine übersichtliche, direkt navigierbare Benutzerverwaltung ohne überladenen Drawer und ohne die RBAC-Regelverwaltung mit der Personenverwaltung zu verschmelzen. Eigenes UX-Anliegen, nicht Phase 94.
 **Requirements:** TBD
 **Plans:** 0 plans
 

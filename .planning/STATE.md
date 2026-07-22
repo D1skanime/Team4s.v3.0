@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
-status: ready_to_plan
-stopped_at: Phase 106 complete (4/4) — ready to discuss Phase 999.1
+status: ready_to_discuss
+stopped_at: Phase 106 complete (4/4) — ready to discuss Phase 107
 last_updated: 2026-07-22T20:21:29.610Z
 last_activity: 2026-07-22
 progress:
@@ -21,11 +21,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 999.1 — querverlinkung role capabilities und users impact count roll
+**Current focus:** Phase 107 — Bestätigung, Delegation und Ablehnungslebenszyklus
 
 ## Current Position
 
-Phase: 999.1
+Phase: 107
 Plan: Not started
 
 ## Accumulated Context

@@ -712,3 +712,24 @@ Naruto-scale projects can have many releases. Deriving defaults avoids unnecessa
 - Define the exact override representation for "not dabei" and role replacement.
 - Make permission checks resolve project default plus release override consistently.
 - Keep leader moderation/admin rights separate from contribution-derived contributor rights.
+
+## 2026-07-22 - Admin User Details Belong On The Page, Not In A Drawer
+
+### Decision
+`/admin/users` soll keinen User-Detail-Drawer mehr verwenden. Benutzerbezogene Informationen und Verwaltungsbereiche werden passend und mit progressiver Offenlegung auf der eigentlichen User-Seite dargestellt.
+
+### Context
+Der bestehende Drawer bündelt Übersicht, Rollen, Claims, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien und Audit in vielen Tabs. Phase 999.1 war zunächst nur als Querverlinkung aus diesem Drawer zur Rollenverwaltung beschrieben; damit würde das überladene Grundmuster bestehen bleiben.
+
+### Why This Won
+Die umfangreichen Benutzerinformationen brauchen eine stabile, direkt navigierbare Seitenfläche. Ein Drawer eignet sich nicht als vollständige Verwaltungsoberfläche mit zahlreichen fachlichen Bereichen.
+
+### Consequences
+- Der User-Detail-Drawer wird in Phase 999.1 entfernt statt erweitert.
+- Benutzerdetails und Gruppenrechte erscheinen auf der eigentlichen `/admin/users`-Oberfläche mit passender Seitenstruktur und progressiver Offenlegung.
+- `/admin/users` und `/admin/role-capabilities` bleiben getrennte Fachflächen.
+- Rollen auf der User-Seite verlinken zur Capability-Erklärung; Rollenverwaltung zeigt Impact-Counts mit Sprung zu passend gefilterten Usern.
+
+### Follow-ups Required
+- Vor der Umsetzung die genaue Seiten-, Routing- und Responsive-Struktur in einer UI-Spezifikation festlegen.
+- Bestehende Drawer-Deep-Links, Fokusführung und Tests auf die neue Seitenstruktur migrieren.
