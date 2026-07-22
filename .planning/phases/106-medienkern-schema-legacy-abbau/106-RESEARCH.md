@@ -1,6 +1,7 @@
 # Phase 106: Medienkern-Schema & Legacy-Abbau — Research (Refresh)
 
 **Researched:** 2026-07-22 (Refresh; ersetzt die Fassung vom 2026-07-21)
+**Revidiert:** 2026-07-22, 2. Durchgang — nach den PO-Entscheiden **D-08** (`asset_lifecycle` → Phase 107, Plan 106-06 ersatzlos entfallen) und **D-09** (`media_assets`/`media_files`/`release_media`/`release_version_media` sind aktive Infrastruktur). Betroffen: §1 Item G, §2 P-5, §3 (Plan-Zahl/Wellen), §3.5, §9, §10, §14 A5 und §15 (vollständig aufgelöst, keine offene Frage mehr).
 **Domain:** PostgreSQL-Schema-Migration + Go/Next.js-Legacy-Abbau (Brownfield)
 **Confidence:** HIGH für alle Codebase-Befunde (jede Aussage per grep/Datei-Read gegen den realen Baum verifiziert), MEDIUM für Laufzeit-Aussagen, die eine laufende DB/Docker-Instanz erfordern (Bash-Sandbox erreicht keine Host-Ports).
 
@@ -15,9 +16,9 @@ Dies ist ein **Korrektur- und Validierungslauf**, kein Neuentwurf. Auftrag war d
 3. **`shared/contracts/openapi.yaml` trägt `operationId: listReleaseImages` (:6526)** plus den Pfad `/api/v1/releases/{releaseId}/images` (:6522) und die Schemas `EpisodeVersionImage`/`EpisodeVersionImagesResponse` (:12612/:12655). `shared/contracts` ist SC4-Scan-Wurzel, `ListReleaseImages` ist Suchbegriff, PowerShell `Select-String` ist per Default case-insensitiv → **SC4 Exit 0 ist unerreichbar**, weil kein 106-Plan die Contract-Datei an dieser Stelle anfasst.
 4. **Der SC4-Suchbegriff `episode_version_image` hat innerhalb der vier Quell-Wurzeln NULL Content-Treffer** (Go/TS verwenden CamelCase `EpisodeVersionImage`; snake_case existiert nur in Dateinamen und Altmigrationen). Der Term beweist nichts; die Legacy-Freiheit der Strecke wird durch ihn nicht belegt.
 
-Ergänzend: `asset_lifecycle` ist **live verdrahtet** (`main.go:309-310 WithLifecycleService`) und leistet mehr als Ordnerprovisionierung — es prüft die Existenz der Ziel-Entity und schreibt Audit-Zeilen nach `admin_anime_mutation_audit`. Beides fällt in 106-06 ersatzlos weg, was der Plan nicht als Verhaltensänderung führt. Und `ScreenshotGallery.tsx` ist eine **live gemountete** FE-Komponente, die den in 106-03 entfernten Endpoint aufruft (Verhalten bleibt zufällig äquivalent, weil das Backend-Repo bereits ein immer-fehlschlagender Stub ist — aber die Pläne kennen diesen Consumer nicht).
+Ergänzend: `asset_lifecycle` ist **live verdrahtet** (`main.go:309-310 WithLifecycleService`) und leistet mehr als Ordnerprovisionierung — es prüft die Existenz der Ziel-Entity und schreibt Audit-Zeilen nach `admin_anime_mutation_audit`. **AUFLÖSUNG (PO-Entscheid 2026-07-22, D-08):** Der Cluster wird in Phase 106 **gar nicht** angefasst; die Entfernung wandert nach **Phase 107**, wo die von §6 als Begründung angeführte hash-basierte Ablage erst entsteht. Plan `106-06` ist ersatzlos entfallen, Befund P-5 ist damit für 106 gegenstandslos und als Vorgabe an Phase 107 übergeben (siehe §15 Q2). Und `ScreenshotGallery.tsx` ist eine **live gemountete** FE-Komponente, die den in 106-03 entfernten Endpoint aufruft (Verhalten bleibt zufällig äquivalent, weil das Backend-Repo bereits ein immer-fehlschlagender Stub ist — aber die Pläne kennen diesen Consumer nicht).
 
-**Primary recommendation:** Vor Ausführung 106-04, 106-05, 106-02/106-03/106-08 und 106-06 nach den Punkten P-1 bis P-5 unter „Planungsrelevante Befunde" korrigieren. Der übrige Plan-Satz (Wellen, Dateipfade, Zeilenreferenzen, Zielschema, Migrationsnummer) ist gegen den realen Baum korrekt.
+**Primary recommendation:** Vor Ausführung 106-04, 106-05 und 106-02/106-03/106-08 nach den Punkten P-1 bis P-4 unter „Planungsrelevante Befunde" korrigieren (erledigt). P-5 ist durch D-08 gegenstandslos geworden: Plan `106-06` existiert nicht mehr, `asset_lifecycle` bleibt in 106 unverändert produktiv. Der übrige Plan-Satz (Wellen, Dateipfade, Zeilenreferenzen, Zielschema, Migrationsnummer) ist gegen den realen Baum korrekt.
 
 ---
 
@@ -35,7 +36,7 @@ Ergänzend: `asset_lifecycle` ist **live verdrahtet** (`main.go:309-310 WithLife
 | D | `anime.cover_image`-Spalte | „ersatzlos entfernen" | Bereits im Vorlauf korrigiert. Re-verifiziert: **33 Rohspalten-Signaturtreffer** in `backend/internal` + `backend/cmd`, davon acht ungated lebende Leser (`watchlist.go:41/:147`, `anime_relations.go:26/:35`, `anime_relations_admin.go:59/:127`, `fansub_repository.go:336`, `member_profile_repository.go:1106/:1160`, `admin_content_anisearch.go:147`, `admin_content_anime_themes.go:1891`) — jeder Treffer ist einem Plan zugeordnet (siehe §3.3). | Watchlist, Anime-Relationen, Gruppenprojekte, Member-Profil, Admin-Suche | **LEBEND — bereits korrekt erfasst (106-05/09/10).** ✔ |
 | E | `/api/admin/upload-cover` (FE-Route-Handler) | „entfernen" | Datei existiert (`frontend/src/app/api/admin/upload-cover/route.ts`, 3494 B). Einziger Client-Aufrufer ist `api.ts:5936 deleteUploadedCoverFile` (DELETE). **Eine POST-Upload-Clientfunktion existiert NICHT** — `grep -n "upload-cover" frontend/src/lib/api.ts` liefert genau einen Treffer (:5937). | `AdminAnimeOverviewClient.tsx` (2 Treffer: Import + Aufruf) | **TOT-ABER-REFERENZIERT.** 106-07 weist an, eine nicht existierende POST-Funktion zu entfernen → Befund P-7 (Präzision) |
 | F | `/covers/[file]/route.ts` (FE-Serve-Route) | „entfernen" | Handler liest `public/covers/<file>`. **`frontend/public/covers/` existiert mit 4 Dateien inkl. `placeholder.jpg`.** Next.js serviert `public/` statisch am Root — nach Löschen des Handlers bleibt `/covers/placeholder.jpg` mit hoher Wahrscheinlichkeit **200**. Zudem gibt es weit mehr `/covers/`-URL-Konsumenten als D-03 nennt: `anime-helpers.ts:91/:103/:113` (`resolveCoverUrl`), `AnimeRow.tsx:53`, `AnimeContextCard.tsx:123`, `admin/episodes/page.tsx:65`, `fansubEditFormatters.ts:75/:79`, `FansubVersionBrowser.tsx:68` + 4 Testdateien. | Admin-Anime-Browser, Admin-Episoden, Fansub-Edit, Fansub-Browser | **TOT-ABER-REFERENZIERT (Handler) / LEBEND (URL-Schema).** Der 106-08-Live-Check „`/covers/` liefert 404" ist kein verlässliches Signal → Befund P-8 |
-| G | `asset_lifecycle_service.go` (+ Errors, Audit-Repo, Subjects, `models.ProvisioningResult`, `provisioning.RootPath`, API-Fehlercodes, OpenAPI) | „durch hash-basierte Ablage überflüssig" | **Prämisse zeitlich falsch:** die hash-basierte Ablage kommt erst in **Phase 107**. Der Service ist heute **live verdrahtet** (`main.go:306-307` Konstruktion, `:309-310 .WithLifecycleService(...)`). Er leistet drei Dinge, nicht eines: (a) `os.MkdirAll` des kanonischen Ordnerlayouts (`asset_lifecycle_service.go:190/:213`) — **unkritisch**, weil `media_upload.go:164` ohnehin `MkdirAll(storagePath)` macht; (b) **Existenzprüfung der Ziel-Entity** via `LookupAssetLifecycleSubject` → `SELECT id FROM anime WHERE id=$1` → 400 `asset_lifecycle.invalid_entity_id`; (c) **Audit-Schreibung** nach `admin_anime_mutation_audit` (`asset_lifecycle_audit.go:52`, `mutation_kind = anime.asset_lifecycle.provision`). | `POST /api/admin/upload` (authentifiziert via `CommentAuthIdentityFromContext`, aber ohne Capability-Gate — §3 des Entscheids); OpenAPI :1475/:1481/:9058; `frontend/src/types/admin.ts:691` (optional) | **LEBEND — §6-Prämisse teilweise FALSCH.** Entfernung verliert Entity-Validierung + Audit → Befund P-5 |
+| G | `asset_lifecycle_service.go` (+ Errors, Audit-Repo, Subjects, `models.ProvisioningResult`, `provisioning.RootPath`, API-Fehlercodes, OpenAPI) | „durch hash-basierte Ablage überflüssig" | **Prämisse zeitlich falsch:** die hash-basierte Ablage kommt erst in **Phase 107**. Der Service ist heute **live verdrahtet** (`main.go:306-307` Konstruktion, `:309-310 .WithLifecycleService(...)`). Er leistet drei Dinge, nicht eines: (a) `os.MkdirAll` des kanonischen Ordnerlayouts (`asset_lifecycle_service.go:190/:213`) — **unkritisch**, weil `media_upload.go:164` ohnehin `MkdirAll(storagePath)` macht; (b) **Existenzprüfung der Ziel-Entity** via `LookupAssetLifecycleSubject` → `SELECT id FROM anime WHERE id=$1` → 400 `asset_lifecycle.invalid_entity_id`; (c) **Audit-Schreibung** nach `admin_anime_mutation_audit` (`asset_lifecycle_audit.go:52`, `mutation_kind = anime.asset_lifecycle.provision`). | `POST /api/admin/upload` (authentifiziert via `CommentAuthIdentityFromContext`, aber ohne Capability-Gate — §3 des Entscheids); OpenAPI :1475/:1481/:9058; `frontend/src/types/admin.ts:691` (optional) | **LEBEND — §6-Prämisse FALSCH (zeitlich UND inhaltlich). ENTSCHEIDUNG D-08 (2026-07-22): bleibt in Phase 106 vollständig unangetastet, Entfernung → Phase 107.** Plan `106-06` ersatzlos entfallen; in 106 ist der Cluster ein **Drop-Guard** (106-08 Task 1 Schritt 9 belegt seine Anwesenheit), kein Abbauziel. Befund P-5 → Vorgabe an Phase 107 (§15 Q2) |
 | H | `HasSlug`/`useV2Schema`-Legacy-Zweige (`anime.go:50/:100/:364/:366`, `admin_content_sync.go:27`, `admin_content_anime_create_v2.go:36/:41`, `admin_content_anime_metadata.go:395/:410`, `admin_content_anime_delete.go:96/:353`, `createAnimeLegacy`, `buildAnimeListWhere`) | (aus D-04 abgeleitet) | Alle Zeilenreferenzen exakt bestätigt. `HasSlug` als **Feld** bleibt zwingend erhalten — es gated lebende Ausdrücke in `admin_content_anisearch.go:32/:76/:129`, `admin_content_jellyfin_intake.go:31`, `admin_content_anime_update_v2.go:125`, `admin_content_anime_metadata.go:318`, `anime.go:253`. `HasCoverImage` dagegen nur `anime_assets.go:516/:573` + `anime_schema.go:21/:63`. `buildAnimeListWhere` (`anime.go:361-367`, `cover_image IS NOT NULL`-Zweige) hat außer den zwei Tests keinen weiteren Aufrufer. | Keine (Live-DB hat `slug`, siehe A4) | **TOT — §6/D-04-Prämisse ✔.** 106-10-Umfang korrekt |
 | I | `cmd/migrate-covers` + `report-/remediate-cover-image.ps1` | „entfernen" | `backend/cmd/migrate-covers/` enthält 4 Dateien (`main.go`, `README.md`, `INVENTORY.md`, `test-migration.sh`) — 106-03 löscht das Verzeichnis, deckt also auch die im Plan nicht einzeln gelisteten `.sh`/`.md` ab. Kein Import aus dem Server-Binary. `scripts/report-cover-image-state.ps1` + `remediate-cover-image.ps1` sind isoliert. | Keine | **TOT — §6-Prämisse ✔** |
 | J | `media_assets` / `media_files` (Grenzbefund A1 — MÜSSEN bleiben) | (nicht in §6) | Re-bestätigt: `media_assets` in **50 Go-Dateien**, **109** produktive SQL-Referenzen (`FROM/INTO/JOIN`); `media_files` **71** SQL-Referenzen. Zusätzlich harte FK-Bindung `members.avatar_media_id BIGINT REFERENCES media_assets(id)` (`0044:134`). | Voll lebend | **LEBEND — Drop in 106 wäre katastrophal. A1 bleibt gültig.** ✔ |
@@ -103,7 +104,7 @@ func TestAnimeAssetCompatibilityUsesV2CoverHelpersWhenLegacySlotsAreGone(t *test
 
 **Korrektur (zwei Optionen, A empfohlen):**
 - **A (konsistent):** 106-03 erweitert `files_modified` um `shared/contracts/openapi.yaml` und entfernt den Pfad `/api/v1/releases/{releaseId}/images` sowie die beiden Schemas `EpisodeVersionImage`/`EpisodeVersionImagesResponse`. Sachlich ohnehin richtig — der Contract beschreibt sonst einen Endpoint, den es nicht mehr gibt. Bonus: das dort geführte Feld `caption` verschwindet mit, was §8 („`caption` ersatzlos gestrichen") stützt.
-- **B (Scope-Verengung):** `shared/contracts` als Scan-Wurzel streichen. **Nicht empfohlen** — dann verliert SC4 auch die `asset_lifecycle`-Contract-Prüfung von 106-06.
+- **B (Scope-Verengung):** `shared/contracts` als Scan-Wurzel streichen. **Nicht empfohlen** — dann verliert SC4 jeden Contract-Drift-Nachweis. *(Nachtrag D-08: die früher hier zusätzlich angeführte `asset_lifecycle`-Contract-Prüfung von 106-06 ist gegenstandslos — 106-06 ist entfallen, `asset_lifecycle` bleibt im Contract stehen und wird stattdessen als PRESENT geguardet.)*
 
 ### P-4 (BLOCKER-nah, Plan 106-02) — Suchbegriff `episode_version_image` ist wirkungslos
 
@@ -116,18 +117,20 @@ Der snake_case-Term existiert im Produktivcode **nicht** — Go/TS verwenden `Ep
 
 **Korrektur:** Suchbegriffsliste um `EpisodeVersionImage` (CamelCase) ergänzen **und** im Skript explizit festlegen, ob Datei-**Pfade** mitgescannt werden. Wenn ja, bleibt die Ausschlussbegründung für `database/migrations/**` gültig (dort matchen beide Schreibweisen); wenn nein, ist `episode_version_image` als Term ersatzlos durch `EpisodeVersionImage` zu ersetzen. Zusätzlich empfohlen: Datei-Abwesenheitsprüfung analog zur `/covers/`-Route-Regel (die drei Go-Dateien dürfen nicht mehr existieren).
 
-### P-5 (Korrektur, Plan 106-06) — asset_lifecycle-Entfernung verliert Entity-Validierung und Audit
+### P-5 (AUFGELÖST 2026-07-22 durch D-08 — für Phase 106 gegenstandslos, Vorgabe für Phase 107)
 
-106-06 spezifiziert die Fehlercode-Migration und den Speicherpfad sauber, führt aber zwei reale Verhaltensverluste nicht auf:
+> **Status:** Der Befund war korrekt und hat zum PO-Entscheid **D-08** geführt: `asset_lifecycle` wird in Phase 106 **nicht** entfernt, Plan `106-06` ist **ersatzlos entfallen**, die Entfernung wandert nach **Phase 107** (ROADMAP 107-SC5). Damit tritt in Phase 106 **keiner** der unten beschriebenen Verluste ein — Existenzprüfung, Audit-Schreibung, Fehlercodes und `provisioning`-Feld bleiben unverändert produktiv und werden von 106-08 Task 1 Schritt 9 als Drop-Guard positiv belegt. Die folgende Verlustanalyse bleibt als **verbindliche Vorgabe für Phase 107** stehen.
 
-| Verlust | Heute | Nach 106-06 |
+Die (nach 107 verschobene) Entfernung träfe zwei reale Verhaltensverluste, die im ursprünglichen Plan nicht aufgeführt waren:
+
+| Verlust | Heute (und unverändert nach Phase 106) | Bei naiver Entfernung (in Phase 107 zu vermeiden) |
 |---------|-------|-------------|
 | Existenzprüfung der Ziel-Entity (`LookupAssetLifecycleSubject` → `SELECT id FROM anime WHERE id=$1`) → HTTP 400 `asset_lifecycle.invalid_entity_id` | Upload auf nicht existierende `entity_id` wird abgewiesen | Upload läuft durch, legt `<media_root>/anime/<beliebige id>/…` an und schreibt DB-Zeilen |
 | Audit-Zeile in `admin_anime_mutation_audit` (`mutation_kind = anime.asset_lifecycle.provision`, `asset_lifecycle_audit.go:52`) | Provisionierung ist auditiert | Keine Audit-Spur |
 
 Der Plan sagt zu (a) nur: „`asset_lifecycle.invalid_entity_id` … entfällt ersatzlos, weil die einzigen Erzeuger im gelöschten Service lagen" — das beschreibt die Ursache, nicht die Konsequenz. Relevanz erhöht sich dadurch, dass `POST /admin/upload` laut §3 des Architekturentscheids **kein Capability-Gate** hat (nur Authentifizierung via `CommentAuthIdentityFromContext`); Härtung ist erst Phase 108. CLAUDE.md führt außerdem als Constraint: „Admin-Aktionen brauchen Audit-Attribution nach User-ID".
 
-**Empfehlung:** Entweder (i) eine schlanke Existenzprüfung im Handler behalten (`SELECT 1 FROM anime WHERE id=$1`) mit Code `media_upload.invalid_entity_id`, oder (ii) den Verlust explizit als bewusst akzeptiertes Risiko in `must_haves.truths` und im STRIDE-Register von 106-06 aufnehmen und an Phase 108 (Endpoint-Härtung) übergeben. **(i) ist billiger als die spätere Fehlersuche** und hält den API-Contract stabil. Der Audit-Verlust gehört in jedem Fall dokumentiert und wegen der CLAUDE.md-Zeile idealerweise per PO-Entscheid bestätigt.
+**Entscheid (PO, 2026-07-22):** Variante (i) — die Fähigkeiten werden **migriert statt entfernt** — jedoch erst in **Phase 107**, gemeinsam mit dem Abbau selbst. ROADMAP 107-SC5 führt das verbindlich: Existenzprüfung (Upload auf unbekannte `entity_id` weiterhin HTTP 400) und Audit-Schreibung nach `admin_anime_mutation_audit` mit `actor_user_id` bleiben erhalten; das `provisioning`-Feld wird über alle drei Schichten gemeinsam geändert. Der im entfallenen Plan 106-06 ausgearbeitete Migrationsentwurf (`repository/media_upload_subjects.go` → `LookupUploadSubject`, `repository/media_upload_audit.go` → `RecordMediaUploadEvent`, `models/media_upload_audit.go`, fünf `media_upload.*`-Fehlercodes, `mutation_kind = anime.media_upload.provision`) ist als **fertige Vorlage für Phase 107** zu verwenden. **Für Phase 106 gilt: nichts davon wird gebaut, nichts davon wird abgebaut.**
 **Unkritisch (verifiziert):** Der Wegfall von `EnsureCanonicalLayout` bricht KEINE Verzeichniserstellung — `media_upload.go:164 os.MkdirAll(storagePath, 0755)` existiert bereits unabhängig.
 
 ### P-6 (Korrektur, Plan 106-03) — unbekannter FE-Consumer `ScreenshotGallery`
@@ -152,7 +155,9 @@ Der Plan sagt zu (a) nur: „`asset_lifecycle.invalid_entity_id` … entfällt e
 
 ---
 
-## 3. Plan-Set-Validierung (10 Pläne, Wellen W1{01,02} W2{03,04,05,07} W3{06,09} W4{10} W5{08})
+## 3. Plan-Set-Validierung (9 Pläne, Wellen W1{01,02} W2{03,04,05,07} W3{09} W4{10} W5{08})
+
+> **REVISION 2026-07-22 (D-08):** Der Satz umfasst nach dem Wegfall von `106-06` noch **9 Pläne**. Der Wellen-Graph bleibt in Form und Reihenfolge identisch, Welle 3 enthält nur noch `106-09`; keine Welle wird leer, keine Plan-Datei wird umnummeriert (die ID `106-06` bleibt **retired**). Die Zeile zu 106-06 in §3.1 ist unten als historisch markiert.
 
 ### 3.1 Dateipfad- und Zeilenreferenz-Audit
 
@@ -165,7 +170,7 @@ Alle in `files_modified` genannten Pfade wurden auf Existenz geprüft. **Ergebni
 | 106-03 | ⛔ P-3, ⚠ P-6. Zeilenrefs bestätigt: `main.go:87` Repo-Konstruktion + `:88` Handler-Konstruktion (Plan nennt nur :88), `main.go:448` Route, `main.go:358` Schutzobjekt. `backend/cmd/migrate-covers/` enthält 4 Dateien — durch Verzeichnis-Delete gedeckt. |
 | 106-04 | ⛔ P-1 (`UploadMediaAsset.ID`). Zeilenrefs sonst bestätigt: `media_upload.go:45/:47/:62/:107/:139/:170/:180/:243`, `media_upload_image.go:91`, `media_upload_test.go:45`. D-07-Marken bestätigt: Interface `:24`, Impl `:290`, `INSERT :292`, joinTables `:373`, Caller `media_upload_storage.go:53` (Plan sagt :54 — Off-by-one, unkritisch), Mock `:84`. |
 | 106-05 | ⛔ P-2 (`runtime_authority_test.go:120`). Call-Site-Liste sonst exakt: `anime_v2.go:419/:443` (Format-String `%s.cover_image`), `anime_assets.go:349/:386/:519/:599/:966/:981` (Plan nennt „:516-524" für den `HasCoverImage`-Block — realer `SET` bei :519 ✔; „:566-599" für die Funktion — realer `SET` bei :599 ✔), `:428` Aufrufer ✔, `anime_schema.go:21/:63` ✔, `anime_test.go:116/:138` ✔, `anime_assets.go:539` release_media-UNION ✔. |
-| 106-06 | ⚠ P-5. Alle 7 zu löschenden Dateien existieren. `main.go:306/:307` Konstruktion ✔, `:309-310 WithLifecycleService` ✔ (Plan erwähnt die Injektionszeile nur indirekt — sie muss mit fallen). Fehlercode-Call-Sites `media_upload.go:108/:114/:211-219/:262` ✔. `ProvisioningResult`-Kopplung `models/media_upload.go:43`, `media_upload.go:66/:194/:196`, `_image.go:39/:102/:154`, `_video.go:30/:138` ✔. OpenAPI `asset_lifecycle` 2 Treffer ✔. |
+| ~~106-06~~ **ENTFALLEN (D-08)** | *Historisch — der Plan existiert nicht mehr; die Befunde sind ab sofort Phase-107-Input.* ⚠ P-5. Alle 7 (jetzt: zu ERHALTENDEN) Dateien existieren. `main.go:306/:307` Konstruktion ✔, `:309-310 WithLifecycleService` ✔ (in Phase 106 bleibt die Injektion bestehen und dient als Drop-Guard). Fehlercode-Call-Sites `media_upload.go:108/:114/:211-219/:262` ✔. `ProvisioningResult`-Kopplung `models/media_upload.go:43`, `media_upload.go:66/:194/:196`, `_image.go:39/:102/:154`, `_video.go:30/:138` ✔. OpenAPI `asset_lifecycle` 2 Treffer ✔. |
 | 106-07 | ⚠ P-7. Beide Route-Dateien existieren ✔. `api.ts:5936` ✔, `AdminAnimeOverviewClient.tsx` 2 Treffer ✔. |
 | 106-08 | ⛔ P-3 (Gate unerreichbar), ⚠ P-8 (404-Check). Glob-Auflösung `*_media_core_schema.up.sql` statt harter Nummer ist korrekt und robust (FALSE-PASS-Muster vermieden). |
 | 106-09 | ✔ Alle 8 Call-Sites + Zeilennummern exakt bestätigt. `member_profile_repository.go:1160` GROUP-BY-Liste enthält tatsächlich `a.cover_image` ✔. `anime_relations.go:26` trägt den komma-präfixierten blanken Ausgabenamen ✔ (Blocker-1-Fix `cover_url` ist notwendig und korrekt). `member_profile_repository_test.go:295` enthält nur eine `FROM release_media`-Negativassertion (kein `cover_image`-SQL-Fragment) → **keine Testanpassung nötig**, entgegen der vorsichtigen `read_first`-Notiz. `anime_relations_admin_test.go:70` trägt `a.cover_image` ✔. |
@@ -219,7 +224,7 @@ Scan-Scope A: `backend/internal`, `backend/cmd`, `frontend/src`, `shared/contrac
 | `useLegacyUploadSchema` | `repository/media_upload.go`(4) | ✔ 106-04 |
 | `legacyUploadSchemaDetector` | `handlers/media_upload_v2_compat.go`(1) | ✔ 106-04 |
 | `shouldUseAnimePosterPathFallback` | `handlers/media_upload_image.go`(1), `media_upload_v2_compat.go`(1) | ✔ 106-04 |
-| `asset_lifecycle` | `repository/asset_lifecycle_audit.go`(2), `services/asset_lifecycle_errors.go`(6), **`shared/contracts/openapi.yaml`(2)** | ✔ 106-06 (inkl. Contract) |
+| ~~`asset_lifecycle`~~ **KEIN SUCHBEGRIFF MEHR (D-08)** | `repository/asset_lifecycle_audit.go`(2), `services/asset_lifecycle_errors.go`(6), **`shared/contracts/openapi.yaml`(2)** | ⛔ **Ersatzlos aus der Term-Liste gestrichen** — alle Treffer bleiben in Phase 106 bewusst bestehen (Entfernung → Phase 107). Eine Suche danach wäre ein garantierter False-Fail, exakt wie zuvor bei `release_media` (D-07). Stattdessen: Drop-Guard im Contract-Check (106-02 Task 1) + Anwesenheits-Assertionen in 106-08 Task 1 Schritt 9 |
 | `episode_version_image` | **0 Treffer** | ⛔ **P-4 — Term wirkungslos** |
 | `ListReleaseImages` | `cmd/server/main.go`(1), `handlers/episode_version_images_handler.go`(2), **`shared/contracts/openapi.yaml`(1 — `operationId: listReleaseImages`)** | ⛔ **P-3 — Contract-Treffer keinem Plan zugeordnet** |
 | `/releases/:id/images` | `cmd/server/main.go`(1) | ✔ 106-03 |
@@ -231,7 +236,7 @@ Scan-Scope A: `backend/internal`, `backend/cmd`, `frontend/src`, `shared/contrac
 | `createAnimeLegacy` | `admin_content_anime_create_v2.go`(1), `admin_content_anime_metadata.go`(1) | ✔ 106-10 |
 | `buildAnimeListWhere(` | `anime.go` + `anime_test.go` (Abgrenzung gegen `buildAnimeListWhereV2(` durch das literale `(` korrekt) | ✔ 106-10 |
 
-**Fazit:** Nach Behebung von P-2, P-3 und P-4 ist Exit 0 erreichbar. Vorher nicht.
+**Fazit:** Nach Behebung von P-2, P-3 und P-4 **und** nach Streichung des `asset_lifecycle`-Terms (D-08) ist Exit 0 erreichbar. Vorher nicht.
 
 **Ausschluss-Begründungen re-verifiziert:** `database/migrations/0018_episode_version_images.*` und `0046_drop_legacy_episode_versions.*` tragen `episode_version_image` dauerhaft ✔; `scripts/schema-v2-audit.ps1` und `scripts/reset-local-schema-cutover-data.ps1` ebenfalls ✔; `scripts/remediate-cover-image.ps1` trägt `SET cover_image` ✔ (wird von 106-03 gelöscht, liegt aber ohnehin außerhalb). Der Root-Scan-Ausschluss ist damit sachlich richtig begründet.
 
@@ -364,7 +369,7 @@ Der `poster`-Alias stammt aus einem `LEFT JOIN LATERAL (… anime_media am JOIN 
 | Cover-URL-Ableitung | Neue COALESCE-Variante je Query | `animeCoverImageSelectSQLWithPoster` + `animeCoverPosterLateralSQL` (106-09) | Genau eine Quelle der Wahrheit; verhindert Divergenz zwischen den 8 Call-Sites |
 | Enum-Repräsentation | Native `CREATE TYPE` | TEXT + benanntes CHECK (D-06) | Additive Werterweiterung ohne `ALTER TYPE`-Schmerz; Projektdominanz ≈50:2 |
 | Upload-Verzeichniserstellung nach asset_lifecycle-Wegfall | Neue Provisionierungslogik | `os.MkdirAll(storagePath, 0755)` existiert bereits (`media_upload.go:164`) | Kein Ersatz nötig — siehe P-5 |
-| Pfad-Traversal-Schutz | Neuen Guard schreiben | `resolveUploadStoragePath` + `isUploadPathWithinBase` unverändert übernehmen, nur den Fehlertyp tauschen | 106-06 sichert das bereits per grep-Acceptance ab |
+| Pfad-Traversal-Schutz | Neuen Guard schreiben | `resolveUploadStoragePath` + `isUploadPathWithinBase` **wörtlich unverändert lassen** | In Phase 106 fasst kein Plan diese Funktionen an (D-08: der Upload-/Provisionierungs-Umbau wandert nach Phase 107, wo der Guard wörtlich zu übernehmen ist) |
 
 ---
 
@@ -412,10 +417,10 @@ Ein entfernter Endpoint, dessen OpenAPI-Beschreibung stehen bleibt, ist ein Defe
 | **Gespeicherte Daten** | `anime.cover_image`-Spaltenwerte gehen mit 0131 verloren. Datenverlust ist per Architekturentscheid akzeptiert (Testdaten-Reset). `.down.sql` rekonstruiert nur die Struktur, nicht die Werte. | Keine Datenmigration — im 106-01-SUMMARY dokumentieren |
 | **Live-Service-Config** | **Keine** — kein n8n/Datadog/Tailscale/Cloudflare-Bezug in diesem Scope (verifiziert per Scope-Analyse: nur Go-Backend, Next-Frontend, Postgres, alle Config in Git bzw. `.env`). | Keine |
 | **OS-registrierte States** | **Keine** — kein Task-Scheduler-/pm2-/systemd-/launchd-Bezug (verifiziert: einziger Prozess-Orchestrator ist Docker Compose). | Keine |
-| **Secrets / Env-Vars** | `MEDIA_STORAGE_DIR` (`cfg.MediaStorageDir`) und `MEDIA_PUBLIC_BASE_URL` bleiben unverändert — die kanonische Root-Pfad-Formel in 106-06 nutzt exakt dieselbe Variable wie der bisherige nil-Fallback. **Kein Env-Rename, kein Secret betroffen.** | Keine |
+| **Secrets / Env-Vars** | `MEDIA_STORAGE_DIR` (`cfg.MediaStorageDir`) und `MEDIA_PUBLIC_BASE_URL` bleiben unverändert; Phase 106 fasst die Speicherpfad-Logik nach D-08 gar nicht an. **Kein Env-Rename, kein Secret betroffen.** | Keine |
 | **Build-Artefakte / installierte Pakete** | Docker-Image `team4sv30-backend` muss nach der Phase neu gebaut werden (Pitfall 6). **Keine** Go-Modul-/npm-Änderung (keine Installs in dieser Phase). | `docker compose up -d --build team4sv30-backend` im 106-08-Checkpoint — bereits im Plan |
-| **Dateisystem** | `<MEDIA_STORAGE_DIR>/anime/<id>/{cover,banner,logo,background,background_video}/` — die von `asset_lifecycle` vorab angelegten Ordner bleiben als leere Verzeichnisse zurück (harmlos). `frontend/public/covers/` (4 Dateien) bleibt bestehen. | Keine in 106; `public/covers/` für Phase 110 vormerken |
-| **DB-Objekte ohne Code** | `admin_anime_mutation_audit`-Zeilen mit `mutation_kind = 'anime.asset_lifecycle.provision'` bleiben nach dem Code-Delete als historische Einträge liegen (Tabelle wird nicht gedroppt). Harmlos, aber der Wert wird nie mehr erzeugt. | Keine — im 106-06-SUMMARY erwähnen |
+| **Dateisystem** | `<MEDIA_STORAGE_DIR>/anime/<id>/{cover,banner,logo,background,background_video}/` — **unverändert:** `asset_lifecycle` legt diese Ordner in Phase 106 weiterhin an (D-08). `frontend/public/covers/` (4 Dateien) bleibt bestehen. | Keine in 106; `public/covers/` für Phase 110 vormerken |
+| **DB-Objekte ohne Code** | **Entfällt für Phase 106 (D-08):** Der `asset_lifecycle`-Code wird in 106 nicht gelöscht, also entstehen weiterhin `admin_anime_mutation_audit`-Zeilen mit `mutation_kind = 'anime.asset_lifecycle.provision'`. Der Umgang mit historischen Werten nach einem Namensraumwechsel ist **Phase-107**-Thema. | Keine in 106 |
 
 ---
 
@@ -438,7 +443,8 @@ Ein entfernter Endpoint, dessen OpenAPI-Beschreibung stehen bleibt, ist ein Defe
 | SC1 | `media`/`media_variant` mit exaktem Spaltensatz, verbotene Spalten abwesend, `content_hash` ohne UNIQUE | migration-content | `cd backend && go test ./internal/migrations/... -run MediaCore` | ❌ Wave 0 (106-01) |
 | SC1 (live) | Zielschema in frischer DB vorhanden | contract-check | `powershell -File scripts/media-core-contract-check.ps1 -FailOnContractGaps` | ❌ Wave 0 (106-02) |
 | SC2 | Legacy-Go-Symbole entfernt, Build grün | build/vet | `cd backend && go build ./... && go vet ./...` | ✔ |
-| SC2 | Upload-Pfad intakt nach Cluster-B/G-Abbau | unit | `cd backend && go test ./internal/handlers/... -run MediaUpload` | ✔ `media_upload_test.go` (⚠ P-1: Struct-Literal :206 anpassen) |
+| SC2 | Upload-Pfad intakt nach Cluster-B-Abbau (Cluster G entfällt in 106, D-08) | unit | `cd backend && go test ./internal/handlers/... -run MediaUpload` | ✔ `media_upload_test.go` (⚠ P-1: Struct-Literal :206 anpassen) |
+| SC2 (Auth, AGENTS.md Z. 89/90) | Fehlendes/abgelaufenes Access-Token + gültiger Refresh-Token → Upload läuft über die zentrale Refresh-Naht, keine Logged-out-UI | regression | `cd frontend && npx vitest run src/lib/api.auth-refresh.test.ts` | ⚠ Datei vorhanden, **Fall fehlt** → 106-07 Task 2 |
 | SC2 | Cover-Leser umgestellt, Repository-Queries konsistent | unit | `cd backend && go test ./internal/repository/... -run Anime` | ✔ `anime_test.go`, `anime_relations_admin_test.go`, `runtime_authority_test.go` (⛔ P-2) |
 | SC2 (D-07) | `release_media`-Lese-/Schreibpfad unverändert | regression | `cd backend && go test ./internal/repository/... -run RuntimeAuthority && go test ./internal/handlers/... -run ReleaseAssets` | ✔ |
 | SC2 (FE) | Kein verwaister Import nach Route-Delete | typecheck | `cd frontend && npm run typecheck` | ✔ |
@@ -459,7 +465,8 @@ Ein entfernter Endpoint, dessen OpenAPI-Beschreibung stehen bleibt, ist ein Defe
 - [ ] `scripts/media-core-contract-check.ps1` — SC3 (106-02)
 - [ ] `scripts/media-core-legacy-grep.ps1` — SC4 (106-02), **nach P-3/P-4 korrigiert**
 - [ ] `backend/internal/repository/anime_cover_sql.go` — SC2 (106-09)
-- [ ] `backend/internal/handlers/media_upload_errors.go` — SC2 (106-06)
+- [x] ~~`backend/internal/handlers/media_upload_errors.go` — SC2 (106-06)~~ **GESTRICHEN (D-08):** Plan 106-06 ist entfallen; die Datei wird in Phase 106 nicht angelegt. Der Fehlertyp-/Fehlercode-Entwurf wandert nach Phase 107.
+- [ ] `frontend/src/lib/api.auth-refresh.test.ts` — **AGENTS.md „Auth Session Rules" Z. 89/90** (106-07 Task 2): Erweiterung der bestehenden Suite um „Upload mit fehlendem bzw. abgelaufenem Access-Token + gültigem Refresh-Token läuft über die zentrale Refresh-Naht durch". Datei existiert, der Fall fehlt (vgl. `107-RESEARCH.md:90` = BLOCKED).
 
 Kein Test-Framework-Install nötig (Go-Toolchain + testify + Vitest vorhanden).
 
@@ -476,13 +483,13 @@ Kein Test-Framework-Install nötig (Go-Toolchain + testify + Vitest vorhanden).
 | V4 Access Control | **teilweise** | §3 des Entscheids: `POST /admin/upload` und `DELETE /admin/media/:id` haben **kein Capability-Gate** — Härtung ist Phase-108-Scope. **106 darf die Lage nicht verschlechtern** → P-5 (Wegfall der Entity-Existenzprüfung) ist hier einzuordnen |
 | V5 Input Validation | ja | `entity_type`/`asset_type`-Normalisierung bleibt im Handler (`media_upload.go:105-116`, unabhängig vom gelöschten Service ✔); MIME-/Größen-Validierung `validateFile` unberührt |
 | V6 Cryptography | nein | SHA-256/`content_hash` wird erst in Phase 107 berechnet; 106 legt nur die nullable Spalte an |
-| V12 File Upload | ja | Pfad-Traversal-Schutz `resolveUploadStoragePath` + `isUploadPathWithinBase` bleibt wörtlich erhalten (106-06 sichert das per grep-Acceptance ✔) |
+| V12 File Upload | ja | Pfad-Traversal-Schutz `resolveUploadStoragePath` + `isUploadPathWithinBase` bleibt wörtlich erhalten — in Phase 106 fasst ihn kein Plan an (D-08) ✔ |
 
 ### Bekannte Threat-Patterns (Go/Gin + Postgres + Next.js)
 
 | Pattern | STRIDE | Standard-Mitigation | Status in 106 |
 |---------|--------|---------------------|---------------|
-| Pfad-Traversal beim Upload | Elevation of Privilege | `filepath.Rel`-basierter Base-Guard | ✔ erhalten (106-06) |
+| Pfad-Traversal beim Upload | Elevation of Privilege | `filepath.Rel`-basierter Base-Guard | ✔ erhalten — von keinem 106-Plan berührt (D-08) |
 | Ungeprüfte Entity-Referenz beim Upload | Tampering / Resource Abuse | Existenzprüfung der Ziel-ID vor dem Write | ⚠ **fällt weg** → P-5 |
 | Fehlender Audit-Trail für Admin-Mutationen | Repudiation | Audit-Seam pro Mutation (CLAUDE.md-Constraint) | ⚠ **fällt weg** → P-5 |
 | Löschen noch referenzierter `media_assets` | Tampering / Data Loss | `NOT EXISTS`-Referenzguards vor `DELETE` | ✔ erhalten (D-07 schützt die `release_media`-Guards; 106-05/106-10 mit expliziten grep-Assertions) |
@@ -522,29 +529,86 @@ Kein Test-Framework-Install nötig (Go-Toolchain + testify + Vitest vorhanden).
 | A2 | Next.js serviert `frontend/public/covers/*` weiterhin statisch, nachdem der Route-Handler `app/covers/[file]/route.ts` gelöscht wurde | §2 P-8 | Falls Next die URL nach Handler-Delete gar nicht mehr bedient, liefert der 404-Check doch ein Signal. Betroffen ist nur die **Aussagekraft** des Live-Checks, kein Code-Risiko. Im Checkpoint klärbar. [ASSUMED] |
 | A3 | `ScreenshotGallery` rendert bei 404 denselben Fehlerzustand wie heute bei 500 | §2 P-6 | Falls die Komponente unterschiedlich reagiert, wäre es eine sichtbare FE-Änderung in einer Phase, die „kein Verhaltensumbau am Frontend" zusichert. Im 106-08-Checkpoint mit einem Blick verifizierbar. [ASSUMED] |
 | A4 | Die Live-DB hat `anime.slug` (→ `HasSlug=true`, Legacy-Zweige unerreichbar) | §1 Item H | Falls nicht, würde 106-10 lebende Pfade entfernen. Indizien dafür, dass es stimmt: `0044_add_db_schema_v2_target_tables` ist längst angewendet und `admin_content_anisearch.go` nutzt `a.slug` ungated. **Im 106-08-Live-Gate per `\d anime` gegenprüfen.** [ASSUMED] |
-| A5 | Der Verlust der `asset_lifecycle`-Audit-Zeilen ist fachlich akzeptabel | §2 P-5 | CLAUDE.md führt „Admin-Aktionen brauchen Audit-Attribution nach User-ID" als Constraint — das spricht eher **gegen** den ersatzlosen Wegfall. **PO-Entscheid einholen.** [ASSUMED] |
+| A5 | ~~Der Verlust der `asset_lifecycle`-Audit-Zeilen ist fachlich akzeptabel~~ | §2 P-5 | **GESCHLOSSEN 2026-07-22 (D-08).** PO-Entscheid liegt vor: Es gibt in Phase 106 **keinen** Audit-Verlust, weil der Cluster gar nicht entfernt wird. Der CLAUDE.md-Constraint „Admin-Aktionen brauchen Audit-Attribution nach User-ID" bleibt in 106 vollständig erfüllt; für Phase 107 ist der Erhalt in ROADMAP 107-SC5 verbindlich festgeschrieben. [RESOLVED] |
+| A7 | Der Upload-Flow läuft bei fehlendem/abgelaufenem Access-Token mit gültigem Refresh-Token bereits heute korrekt über die zentrale Refresh-Naht | §15 Q5 | Falls **nicht**, ist es ein echter Auth-Defekt an einer geschützten Admin-Aktion. 106-07 Task 2 macht ihn sichtbar (Test rot); der Plan verbietet ausdrücklich, ihn durch Anpassen von `api.ts` zu „reparieren" — Produktivänderung an der Auth-Naht ist nicht Scope dieser Schema-/Legacy-Phase und wäre zurückzumelden. [ASSUMED] |
 | A6 | Die `anime.cover_image`-Spalte existiert in der Live-DB tatsächlich noch (sonst wäre der DROP ein No-Op und die 8 Leser bereits heute defekt) | §1 Item D | Falls die Spalte fehlt, wären Watchlist/Relationen/Gruppenprojekte/Member-Profil **heute schon** kaputt — extrem unwahrscheinlich, da es sich um Live-Oberflächen handelt. `DROP COLUMN IF EXISTS` ist ohnehin tolerant. [ASSUMED] |
 
 ---
 
 ## 15. Open Questions
 
-1. **P-3-Lösungsweg: OpenAPI-Contract in 106 mitziehen oder `shared/contracts` aus dem SC4-Scope nehmen?**
-   - Bekannt: Das Gate ist in beiden Fällen erreichbar.
-   - Unklar: ob 106 als „reines Schema-/Legacy-Fundament" den Contract anfassen soll. Die Phasengrenze sagt „kein Verhaltensumbau" — das Entfernen einer Contract-Beschreibung für einen entfernten Endpoint ist kein Verhaltensumbau, sondern Konsistenz.
-   - **Empfehlung: Option A** (Contract in 106-03 mitziehen). Ein Contract, der einen nicht existierenden Endpoint beschreibt, ist ein Drift-Defekt und würde in Phase 109 (FE-Contract-Disziplin) erneut auffallen.
+> **REVISION 2026-07-22 (Plan-Checker-Blocker 4).** Dieser Abschnitt enthielt zuletzt vier
+> unbeantwortete Fragen, während der Plan-Satz kurz vor der Ausführung stand. Das ist unzulässig:
+> Ein ausführungsreifer Plan-Satz darf keine offene Frage tragen. Alle vier Einträge sind unten
+> gegen die inzwischen **gesperrten** Entscheide (D-07 `release_media` → Phase 108,
+> D-08 `asset_lifecycle` → Phase 107, `anime.cover_image` bleibt im 106-Scope, D-09 aktive
+> Infrastruktur) und gegen den realen Code aufgelöst. **Offene Fragen: 0.**
 
-2. **P-5: Entity-Existenzprüfung ersetzen oder Verlust akzeptieren?**
-   - Bekannt: Der Handler validiert `entity_type`/`asset_type` selbst; nur die ID-Existenzprüfung und der Audit-Eintrag fallen weg.
-   - Unklar: ob der CLAUDE.md-Constraint „Admin-Aktionen brauchen Audit-Attribution" die ersatzlose Entfernung der Audit-Schreibung verbietet.
-   - **Empfehlung:** PO-Entscheid. Billigste Variante: eine kurze Existenzprüfung im Handler mit Code `media_upload.invalid_entity_id` behalten, Audit-Verlust dokumentiert an Phase 108 übergeben.
+### Q1 — P-3: OpenAPI-Contract in 106 mitziehen oder `shared/contracts` aus dem SC4-Scope nehmen?
+**RESOLVED (PO-Entscheid „Option A", umgesetzt).** Der Contract wird in Phase 106 mitgezogen.
+`shared/contracts` **bleibt** SC4-Scan-Wurzel; Plan **106-03 Task 3** entfernt den Pfad
+`/api/v1/releases/{releaseId}/images` (:6522, `operationId: listReleaseImages` :6526) und die
+zwei ausschließlich dort referenzierten Schemas `EpisodeVersionImage` (:12612) /
+`EpisodeVersionImagesResponse` (:12655), mit vorgeschaltetem Referenz-Guard (erwartete
+Trefferzahl 6) und YAML-Parse-Gate.
+*Begründung:* Ein Contract, der einen entfernten Endpoint beschreibt, ist ein Drift-Defekt
+(Pitfall 8) und kein Verhaltensumbau — die Phasengrenze ist gewahrt. Ohne den Task wäre SC4
+Exit 0 strukturell unerreichbar.
+*Nachtrag D-08:* Die frühere Zusatzbegründung „sonst geht auch die `asset_lifecycle`-Contract-
+Prüfung von 106-06 verloren" ist **gegenstandslos** — 106-06 ist entfallen, `asset_lifecycle`
+bleibt im Contract stehen und wird stattdessen als PRESENT geguardet (106-02 Task 1,
+106-08 Task 1 Schritt 9). Die Entscheidung selbst bleibt davon unberührt.
 
-3. **A4: Live-Schema-Bestätigung für `anime.slug`.**
-   - **Empfehlung:** Als expliziten Schritt in den 106-08-Checkpoint aufnehmen (`docker compose exec -T team4sv30-db psql … -c "\d anime"` — `slug` vorhanden, `cover_image` nach 0131 abwesend). Kostet nichts und schließt das letzte Legacy-Zweig-Risiko.
+### Q2 — P-5: Entity-Existenzprüfung und Audit ersetzen oder Verlust akzeptieren?
+**RECLASSIFIED — OUT OF SCOPE FÜR PHASE 106; Owner: Phase 107 (D-08).** Die Frage stellt sich in
+106 nicht mehr: Der `asset_lifecycle`-Cluster wird in Phase 106 **gar nicht** entfernt, also geht
+weder die Existenzprüfung (`LookupAssetLifecycleSubject` → HTTP 400
+`asset_lifecycle.invalid_entity_id`) noch die Audit-Schreibung nach `admin_anime_mutation_audit`
+(`mutation_kind = anime.asset_lifecycle.provision`) verloren. Beides bleibt in 106 unverändert
+produktiv und wird von 106-08 Task 1 Schritt 9 als **Drop-Guard** positiv belegt.
+*Warum verschoben:* §6 begründet die Entfernung wörtlich mit „durch hash-basierte Ablage
+überflüssig" — diese Ablage (`MediaFileService`, hash-basierter `storage_key`) entsteht erst in
+**Phase 107**. In 106 ist die Ordnerprovisionierung also nachweislich noch nicht überflüssig.
+*Verbindlich für Phase 107* (ROADMAP 107-SC5): Beim dortigen Abbau bleiben Existenzprüfung und
+Audit-Attribution **erhalten** (CLAUDE.md: „Admin-Aktionen brauchen Audit-Attribution nach
+User-ID"; ASVS V4 — der Endpoint hat bis Phase 108 kein Capability-Gate), und das
+`provisioning`-Feld wird über **alle drei Schichten gemeinsam** geändert
+(`backend/internal/models/media_upload.go:43` → `shared/contracts/openapi.yaml:9058` →
+`frontend/src/types/admin.ts:691`), nie einzeln. Der frühere Plan 106-06 ist ersatzlos entfallen;
+sein P-5-Migrationsentwurf (`LookupUploadSubject`, `RecordMediaUploadEvent`,
+`media_upload.*`-Fehlercodes) ist als **Vorlage für Phase 107** aufgehoben, nicht als 106-Arbeit.
 
-4. **Reihenfolge-Frage nach der P-2-Korrektur:** Soll 106-05 die Fragment-Entfernung in `runtime_authority_test.go` selbst vornehmen (Welle 2) oder soll die Assertion-Pflege gebündelt in 106-10 (Welle 4) landen?
-   - Bekannt: 106-05 braucht die Änderung **sofort**, weil sein eigenes Verify-Kommando (`-run Anime`) den Test trifft. Ein Aufschub bis Welle 4 ist nicht möglich.
-   - **Empfehlung:** 106-05 zieht das `syncLegacyAnimeCoverImageV2`-Fragment; 106-10 zieht wie geplant nur die beiden `cover_image`-Query-Fragmente (:18/:21). Zwei Pläne, dieselbe Datei, verschiedene Wellen — sauber.
+### Q3 — A4: Live-Schema-Bestätigung für `anime.slug`
+**RESOLVED (umgesetzt).** Die Bestätigung ist als Pflichtschritt **4b** im 106-08-Live-Checkpoint
+verankert: `docker compose exec -T team4sv30-db psql -U team4s -d team4s_v2 -c "\d anime"` —
+erwartet wird `slug` **vorhanden** (nur dann waren die von 106-10 entfernten
+`HasSlug=false`-Legacy-Zweige tatsächlich tot) und `cover_image` nach 0131 **abwesend**. Fehlt
+`slug`, ist das Gate ROT und 106-10 wird zurückgemeldet. Kosten: ein psql-Aufruf. Damit ist die
+letzte Legacy-Zweig-Annahme geschlossen.
+
+### Q4 — Reihenfolge nach der P-2-Korrektur: wer zieht welches Fragment in `runtime_authority_test.go`?
+**RESOLVED (umgesetzt).** **106-05 (Welle 2)** entfernt GENAU den einen Slice-Eintrag
+`"synclegacyanimecoverimagev2(ctx, tx, animeid, mediaid, schema)"` (:120) — es geht nicht anders,
+weil sein eigener Verify-Befehl (`go test ./internal/repository/... -run Anime`) genau diesen Test
+trifft. **106-10 (Welle 4)** zieht wie geplant nur die beiden `cover_image`-Query-Fragmente
+(:18/:21). Zwei Pläne, dieselbe Datei, **verschiedene Wellen** — in `106-VALIDATION.md` unter
+„Wellenübergreifend geteilte Dateien" dokumentiert. Die `release_media`-Assertionen (:156-167)
+bleiben in **beiden** Plänen wörtlich unverändert (D-07) und werden positiv gegrept.
+
+### Q5 (NEU, aus Blocker 3) — Trägt Phase 106 die AGENTS.md-pflichtige Auth-Regression?
+**RESOLVED (umgesetzt in dieser Revision).** AGENTS.md „Auth Session Rules" Z. 89 verlangt für
+jede Phase, die geschützte UI, **Upload-Flows** oder Auth-State berührt, eine Regressions-/
+Sicherheitsprüfung für „Access-Token abgelaufen oder fehlt, Refresh-Token gültig → geschützte
+Aktion läuft über die zentrale Refresh-Naht durch, ohne Logged-out-UI". Phase 106 berührt
+Upload-Flows (106-04 DTO-Shrink, 106-03 upload-naher Contract, 106-07 Admin-Upload-Client), trug
+diese Prüfung aber nicht. `frontend/src/lib/api.auth-refresh.test.ts` deckt heute near-expiry-
+Preflight, Refresh-Fehlschlag, Progress-Erhalt und „kein Replay nach Upload-401" ab — **nicht**
+den Upload mit fehlendem/abgelaufenem Access-Token (so auch `107-RESEARCH.md:90`: BLOCKED).
+*Auflösung:* **106-07 Task 2** erweitert die bestehende Suite um genau diese zwei Fälle (missing
+und expired Access-Token, gültiger Refresh-Token), auf Basis der vorhandenen Helfer
+(`seedRuntimeSessionMissingAccessToken`, `seedRuntimeSessionExpiredAccessToken`, `MockUploadXhr`)
+— kein neues Harness, kein Produktivcode. Der Fall ist zusätzlich im Threat Model von 106-07
+(T-106-07-02/-03) und in 106-08 Task 1 Schritt 10 als Phasen-Gate geführt (AGENTS.md Z. 90).
 
 ---
 

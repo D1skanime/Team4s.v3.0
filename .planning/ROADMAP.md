@@ -2391,7 +2391,7 @@ Plans:
   3. Die vollständige Migrationskette (1 bis neueste) läuft auf einer leeren DB fehlerfrei durch; ein Schema-Contract-Check (analog `scripts/schema-v2-contract-check.ps1`) belegt, dass keine Legacy-Medientabelle/-spalte mehr existiert.
   4. `go build` + `go vet` sind grün; grep belegt keine verbleibenden Referenzen auf entfernte Symbole/Routen.
 
-**Plans:** 10 plans
+**Plans:** 9 plans
 
 Plans:
 **Wave 1**
@@ -2404,11 +2404,10 @@ Plans:
 - [ ] 106-03-PLAN.md — Legacy-Loeschungen: totes 001-UUID-Schema, episode_version_images + Route, migrate-covers/Ops-Skripte
 - [ ] 106-04-PLAN.md — Upload-Dualpfad (Cluster B) entfernen; release_media-Write-Path bleibt (D-07)
 - [ ] 106-05-PLAN.md — anime.cover_image-Spalten-Abbau (anime_v2/anime_assets/anime_schema) + D-07-Regressionsnachweis
-- [ ] 106-07-PLAN.md — Frontend /covers + upload-cover Route-Handler + api.ts-Client (build-breaking, D-03)
+- [ ] 106-07-PLAN.md — Frontend /covers + upload-cover Route-Handler + api.ts-Client (build-breaking, D-03) + AGENTS.md-Upload-Auth-Regression (Access-Token fehlt/abgelaufen, Refresh gültig)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 106-06-PLAN.md — asset_lifecycle-Cluster entfernen, MediaUploadHandler entkoppeln (Fehlercodes → media_upload.*)
 - [ ] 106-09-PLAN.md — Die 8 live gelesenen anime.cover_image-Rohspalten-Queries auf die kanonische COALESCE-Quelle umstellen (Watchlist, Relationen, Gruppenprojekte, Member-Profil, Admin)
 
 **Wave 4** *(blocked on Wave 3 completion)*

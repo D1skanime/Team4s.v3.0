@@ -1,5 +1,28 @@
 # Phase 106: Medienkern-Schema & Legacy-Abbau - Pattern Map
 
+> **REVISION 2026-07-22 (Plan-Checker-Blocker 5 — bitte zuerst lesen).**
+> Diese Datei entstand am 2026-07-21, also **vor** den PO-Entscheiden D-07 (2026-07-21),
+> D-08 und D-09 (beide 2026-07-22). Sie führte deshalb an mehreren Stellen `release_media`
+> und `asset_lifecycle` als in Phase 106 zu entfernendes Legacy — beides ist **falsch** und
+> war für jeden Executor, der diese Datei als Vorlage liest, aktiv irreführend. Korrigiert
+> wurden: der DROP-Anhang der UP-Migration (:84), die `.down.sql`-Rekonstruktionsspezifikation
+> (:107), die Migrations-Test-Needles (:162/:165), die MUSS-abwesend-Liste des Contract-Checks
+> (:218/:221) und die Cluster-D/G-Zeilen der Build-Break-Tabelle. Analog dazu ist Cluster G
+> (`asset_lifecycle`) als **nicht-106**-Scope markiert.
+>
+> **Was gilt jetzt:**
+> - **`release_media` ist aktive Infrastruktur** (D-07/D-09) und wird in Phase 106 **nicht**
+>   angefasst — weder Tabelle noch Lese-/Schreibpfad noch Endpoint. Entfernung → **Phase 108**.
+> - **`asset_lifecycle` bleibt in Phase 106 vollständig produktiv** (D-08). §6 begründet die
+>   Entfernung mit „durch hash-basierte Ablage überflüssig" — genau diese Ablage entsteht erst
+>   in Phase 107. Entfernung → **Phase 107**. Plan `106-06` ist ersatzlos entfallen.
+> - **`media_assets`, `media_files`, `release_media`, `release_version_media` sind aktive
+>   Infrastruktur** (D-09). Keiner dieser Pfade darf ohne fertigen, verifizierten,
+>   verhaltenserhaltenden Ersatz entfernt, geleert oder still umgebogen werden.
+> - Die **Analog-/Muster-Inhalte dieser Datei bleiben gültig** (Migrationsanaloga 0129/0130,
+>   das Migrations-Content-Test-Muster, `schema-v2-audit.ps1` als Contract-Check-Vorlage) —
+>   nur die Legacy-Zuordnungen oben waren falsch.
+
 **Mapped:** 2026-07-21
 **Files to CREATE analyzed:** 3 (Migration up/down als Paar, Migrations-Test, Contract-Check)
 **Files to MODIFY/DELETE analyzed:** §6-Legacy-Inventar (Cluster A–G)
@@ -81,12 +104,19 @@ CREATE INDEX idx_release_playback_entitlement_release
 
 **DROP-Anhang (UP)** — nach den beiden CREATE TABLE (Reihenfolge aus RESEARCH §DROP):
 ```sql
-DROP TABLE IF EXISTS release_media CASCADE;
 ALTER TABLE anime DROP COLUMN IF EXISTS cover_image;
 ```
+> **KORREKTUR 2026-07-22 (D-07/D-09):** Die frühere Fassung führte hier zusätzlich
+> `DROP TABLE IF EXISTS release_media CASCADE;`. Das ist **verboten**. `release_media` ist
+> aktive Infrastruktur (lebender Lesepfad `ListReleaseAssets` → `GET /releases/:id/assets`,
+> lebender Schreibpfad `CreateReleaseMedia`, Referenzguards in `admin_content_anime_delete.go`
+> und `anime_assets.go`). Die Migration 0131 enthält **kein** `DROP TABLE release_media`;
+> Entfernung ist Phase-108-Scope. Der 106-01-Migrations-Content-Test führt `release_media`
+> sogar als **Negativ**-Needle (UP und DOWN dürfen den Namen nicht enthalten).
 > Verbotene Spalten an `media` (SC1 / §1): `caption`, `visibility`/`visibility_id`,
 > `review_status`/`review_status_id`, `category`, `sort_order` — dürfen NICHT im UP stehen.
-> `media_assets`/`media_files` NIEMALS droppen (Grenzbefund A1).
+> `media_assets`/`media_files`/`release_media`/`release_version_media` NIEMALS droppen
+> (Grenzbefund A1 + D-09).
 
 ---
 
@@ -104,10 +134,13 @@ ALTER TABLE release_version_media DROP COLUMN IF EXISTS fansub_group_id;
 ```
 Für 0131 down (exakte Umkehr, RESEARCH §DOWN-Reihenfolge):
 1. `ALTER TABLE anime ADD COLUMN IF NOT EXISTS cover_image TEXT;`
-2. `release_media` neu anlegen (Def. aus 0026: `release_id`, `media_id → media_assets
-   ON DELETE CASCADE`, `sort_order INTEGER DEFAULT 0`, `created_at`, PK(release_id, media_id)).
-3. `DROP TABLE IF EXISTS media_variant;` (FK-Kind zuerst)
-4. `DROP TABLE IF EXISTS media;`
+2. `DROP TABLE IF EXISTS media_variant;` (FK-Kind zuerst)
+3. `DROP TABLE IF EXISTS media;`
+> **KORREKTUR 2026-07-22 (D-07/D-09):** Die frühere Fassung verlangte hier als Schritt 2 eine
+> **Rekonstruktion von `release_media`** (Def. aus 0026). Das ist gegenstandslos und falsch:
+> Da die UP-Migration `release_media` gar nicht droppt, darf und muss die DOWN-Migration sie
+> auch nicht wiederherstellen — eine Rekonstruktion würde die lebende Tabelle überschreiben.
+> `release_media` kommt in 0131 **weder im UP noch im DOWN** vor.
 > Nur strukturell reversibel — kein Datenerhalt (Testdaten-Reset vor Phase 110).
 
 ---
@@ -159,11 +192,15 @@ func TestReleaseContentSourceGroupsMigrationIsSafeAndReversible(t *testing.T) {
 negative Needles — deckt Wave-0-Gap):
 - UP-positiv: `CREATE TABLE media`, `content_hash`, jede der 5
   `CHECK (... IN (...))`-Klauseln, `media_variant`, `REFERENCES media(id) ON DELETE CASCADE`,
-  `DROP TABLE IF EXISTS release_media`, `DROP COLUMN IF EXISTS cover_image`.
-- UP-negativ (SC1): darf NICHT enthalten `caption`, `visibility`, `review_status`,
-  `category`, `sort_order` am `media`-Block; darf NICHT `DROP TABLE ... media_assets`.
-- DOWN-positiv: `ADD COLUMN IF NOT EXISTS cover_image`, `release_media`-Rekonstruktion,
-  `DROP TABLE IF EXISTS media`.
+  `DROP COLUMN IF EXISTS cover_image`.
+- UP-negativ (SC1 + D-07/D-09): darf NICHT enthalten `caption`, `visibility`, `review_status`,
+  `category`, `sort_order` am `media`-Block; darf NICHT `DROP TABLE ... media_assets`,
+  `... media_files`, `... release_media` oder `... release_version_media`.
+- DOWN-positiv: `ADD COLUMN IF NOT EXISTS cover_image`, `DROP TABLE IF EXISTS media`.
+- DOWN-negativ (D-07): darf `release_media` NICHT enthalten — weder Drop noch Rekonstruktion.
+> **KORREKTUR 2026-07-22:** Die frühere Fassung führte `DROP TABLE IF EXISTS release_media` als
+> UP-**positiv**- und die `release_media`-Rekonstruktion als DOWN-**positiv**-Needle. Beide sind
+> unter D-07 in **Negativ**-Needles umgekehrt worden.
 
 Nachbar-Analog mit stärkeren Negativ-Assertions:
 `backend/internal/migrations/phase103_release_playback_entitlements_test.go` (falls
@@ -215,11 +252,22 @@ if ($FailOnContractGaps -and -not $contractPassed) { throw "…contract check fa
 - **Neue Negativ-Assertion nötig** (das v2-Audit hat keine "verbotene Spalte"-Prüfung):
   `media` darf `caption`/`visibility_id`/`review_status_id`/`category`/`sort_order` NICHT
   haben → Fail wenn `$columns["media"].ContainsKey($verboten)`.
-- **MUSS-abwesend:** Tabelle `release_media`, Spalte `anime.cover_image`.
-- `media_assets`/`media_files` bleiben als "present" erwartet (nicht als legacy listen!).
-- Warum neues Skript statt v2-Audit umbauen: dessen `$targetTables` (Z. 107) listet
-  `release_media` als **erwartet** — würde den 106-Drop als "missing" fälschlich failen.
-  D-Discretion erlaubt neues, analoges Skript. `-FailOnContractGaps`-Switch beibehalten.
+- **MUSS-abwesend (genau EIN Eintrag):** Spalte `anime.cover_image`.
+- **ERWARTET-VORHANDEN (Drop-Guard, D-07/D-09):** `media_assets`, `media_files`, `release_media`
+  und `release_version_media` — alle vier sind aktive Infrastruktur und gehören in die
+  **Present**-Liste, niemals in die Legacy-Liste.
+- **ZUSÄTZLICHER Drop-Guard (D-08):** `asset_lifecycle` bleibt in Phase 106 produktiv — der
+  Contract-Check belegt, dass `shared/contracts/openapi.yaml` weiterhin genau zwei
+  `asset_lifecycle`-Treffer trägt und `services/asset_lifecycle_service.go` existiert.
+- Warum neues Skript statt v2-Audit umbauen: das v2-Audit deckt das neue `media`/`media_variant`-
+  Zielschema und die Verboten-Spalten-Negativprüfung nicht ab. Sein `$targetTables` (Z. 107)
+  listet `release_media` als **erwartet** — das ist unter D-07 **korrekt** und darf 1:1
+  übernommen werden. D-Discretion erlaubt ein neues, analoges Skript.
+  `-FailOnContractGaps`-Switch beibehalten.
+> **KORREKTUR 2026-07-22 (D-07/D-08/D-09):** Die frühere Fassung führte „MUSS-abwesend: Tabelle
+> `release_media`" und begründete das neue Skript damit, dass das v2-Audit den „106-Drop" von
+> `release_media` fälschlich als missing melden würde. Beides war falsch — in Phase 106 gibt es
+> keinen `release_media`-Drop.
 > 450-Zeilen-Limit: Analog ist 304 Z.; media-core-Variante deutlich kürzer (kleinere Listen).
 
 ---
@@ -238,24 +286,31 @@ Datei, kein Aufrufer · `test-guard` = Test asserted auf das Symbol, muss mit an
 | B – Legacy-DTO-Felder | `UploadMediaAsset{ID string,EntityType,EntityID,AssetType}` | `backend/internal/models/media_upload.go` | **compile (teilweise)** | Nur Legacy-Felder abspecken, DTO für V2 behalten (A3/Open Q1) |
 | C – episode_version_images | Handler / Repo-Stub / Model | `backend/internal/handlers/episode_version_images_handler.go`, `backend/internal/repository/episode_version_image_repository.go`, `backend/internal/models/episode_version_image.go` | **compile** | `main.go:88` (Konstruktion) + `main.go:448` (Route) gemeinsam |
 | C – Route-Wiring | `NewEpisodeVersionImagesHandler` / `GET /releases/:id/images` | `backend/cmd/server/main.go:88`, `:448` | **compile** | Cluster-C gemeinsam |
-| D – release_media junction | `CreateReleaseMedia` + `DeleteMediaAsset`-Join-Liste | `backend/internal/repository/media_upload.go:24/290/373`, `media_upload_storage.go:54` | **compile** (Interface+Impl+Aufruf) | Interface `media_upload.go:24` + `media_upload_test.go:84` (Mock/test-guard) |
-| D – release_media SQL-Reads | **siehe Enrichment unten** | mehrere Repos | **runtime-SQL** | Planner-Untersuchung nötig |
+| ~~D – release_media junction~~ **NICHT IN PHASE 106 (D-07/D-09)** | `CreateReleaseMedia` + `DeleteMediaAsset`-Join-Liste | `backend/internal/repository/media_upload.go:24/290/373`, `media_upload_storage.go:54` | — (bleibt unverändert) | **Phase 108.** Aktive Infrastruktur: lebender Schreibpfad, den `GET /releases/:id/assets` liest. Kein 106-Plan fasst ihn an. |
+| ~~D – release_media SQL-Reads~~ **NICHT IN PHASE 106 (D-07/D-09)** | `ListReleaseAssets`, Referenzguards in `admin_content_anime_delete.go:247/:280`, `anime_assets.go:539` | mehrere Repos | — (bleibt unverändert) | **Phase 108.** Die Guards sind weiterhin semantisch notwendig, solange die Junction lebt und beschrieben wird. |
 | E – anime.cover_image (Spalte) | `animeCoverImageSelectSQL`, `syncLegacyAnimeCoverImageV2`, `HasCoverImage`-Guard/Detektion | `backend/internal/repository/anime_v2.go:419/443`, `anime_assets.go:349/386/428/516-599`, `anime_schema.go:21/62-63` | **compile** (Schema-Feld) + runtime-SQL | Alle Cover-Legacy-Zweige; `cover_asset_id`/`cover_resolved_url` bleiben |
 | E – migrate-covers CLI | ganzes Verzeichnis | `backend/cmd/migrate-covers/` | isolated (eigenes `main`) | — |
 | E – Ops-Skripte | report-/remediate-cover-image | `scripts/report-cover-image-state.ps1`, `scripts/remediate-cover-image.ps1` | isolated | — |
 | F – /covers + upload-cover FE | Route-Handler + `deleteUploadedCoverFile` | `frontend/src/app/covers/[file]/route.ts`, `frontend/src/app/api/admin/upload-cover/route.ts`, `frontend/src/lib/api.ts:5936` | **typecheck** (Aufrufer) | `AdminAnimeOverviewClient.tsx`-Aufrufer bereinigen (D-03) |
-| G – asset_lifecycle | Service + Errors + Model + Repo (+Tests) | `backend/internal/services/asset_lifecycle_service.go`(+`_errors.go`,`_test.go`), `models/asset_lifecycle.go`, `repository/asset_lifecycle_audit.go`,`_subjects.go`,`_repository_test.go` | **compile** (großer verzahnter Cluster) | `main.go:306-307` (Konstruktion) + `handlers/media_upload.go` (Feld/Nutzung) + `media_upload_test.go` |
+| ~~G – asset_lifecycle~~ **NICHT IN PHASE 106 (D-08)** | Service + Errors + Model + Repo (+Tests) | `backend/internal/services/asset_lifecycle_service.go`(+`_errors.go`,`_test.go`), `models/asset_lifecycle.go`, `repository/asset_lifecycle_audit.go`,`_subjects.go`,`_repository_test.go` | — (bleibt unverändert) | **Phase 107.** §6 begründet die Entfernung mit der hash-basierten Ablage, die erst in 107 entsteht. Live verdrahtet über `main.go:306-307` + `:309-310 WithLifecycleService`; leistet zusätzlich Entity-Existenzprüfung und Audit-Attribution. Plan `106-06` ist ersatzlos entfallen. |
 
-**Cluster G Wiring (verifiziert):** `main.go:306` `NewAssetLifecycleRepository`, `:307`
-`NewAssetLifecycleService`. Handler `media_upload.go` hält Service-Feld → nach Entkopplung
-muss der generische V2-Upload weiter kompilieren (Pitfall 5). `go build ./...` nach jedem Schritt.
+**Cluster G Wiring (verifiziert, bleibt in 106 UNVERÄNDERT — D-08):** `main.go:306`
+`NewAssetLifecycleRepository`, `:307` `NewAssetLifecycleService`, `:309-310`
+`.WithLifecycleService(...)`. Der Handler `media_upload.go` hält das Service-Feld weiterhin.
+Diese Verdrahtung ist in Phase 106 ein **Drop-Guard** (sie MUSS am Phasenende noch existieren,
+siehe 106-08 Task 1 Schritt 9), nicht ein Abbauziel. Die Entkopplung samt Pitfall-5-Prüfung
+(„V2-Upload muss weiter kompilieren") ist auf **Phase 107** verschoben.
 
 **NICHT anfassen (Verwechslungsgefahr, verifiziert):**
 - `GetGroupReleaseImages` (`group_contributors_handler.go:250`, Route `main.go:358`) —
   lebender Public-Pfad über `release_version_media`, NICHT `episode_version_images`.
 - `cover_asset_id`/`cover_source`/`cover_resolved_url`/`cover_provider_key` — aktueller
   Cover-Mechanismus, bleibt bis Phase 108.
-- `media_assets`/`media_files` — bleiben in 106 (Grenzbefund A1).
+- `media_assets`/`media_files`/`release_media`/`release_version_media` — aktive Infrastruktur,
+  bleiben in 106 vollständig unangetastet (Grenzbefund A1 + D-07 + D-09).
+- Der gesamte `asset_lifecycle`-Cluster inkl. `provisioning`-Feld über alle drei Schichten
+  (`models/media_upload.go:43` → `openapi.yaml:9058` → `frontend/src/types/admin.ts:691`) —
+  bleibt in 106 unverändert produktiv (D-08, Entfernung → Phase 107).
 
 ---
 
@@ -285,13 +340,15 @@ die SQL-Strings entfernt werden, und müssen bewusst mit angepasst werden:
   `backend/internal/handlers/segment_validation_test.go:187` — referenzieren `release_media`
   als String/Forbidden-Liste.
 
-> **Planner-Handlungsbedarf:** RESEARCH behauptet "release_media ... Drop unproblematisch".
-> Das stimmt für die reine FK-Topologie, aber es gibt **lesende Live-Call-Sites +
-> mindestens einen Test, der den Lesepfad erzwingt** (`runtime_authority_test.go`). Vor dem
-> `DROP TABLE release_media` müssen diese Lese-Call-Sites und ihre Test-Guards mit-bereinigt
-> werden — sonst grüner `go build`, aber roter `go test` / Laufzeit-SQL-Fehler. Cluster D ist
-> größer als das §6-Wortlaut-Inventar suggeriert. (Ob der Read-Helper-Pfad selbst tot ist
-> oder mit-entfernt werden muss, ist ein offener Planungspunkt.)
+> **AUFGELÖST 2026-07-22 durch D-07 + D-09 (PO-Entscheid).** Dieser Befund war der Auslöser:
+> `release_media` hat lesende Live-Call-Sites und einen Test, der den Lesepfad **positiv**
+> erzwingt. Konsequenz ist **nicht** „vor dem DROP mitbereinigen", sondern: **es gibt in
+> Phase 106 keinen DROP.** `release_media` ist als aktive Infrastruktur eingestuft; Tabelle,
+> Lese- und Schreibpfad, Endpoint, Referenzguards und Test-Assertionen bleiben in 106
+> **wörtlich unverändert**. Entfernung/Umstellung → **Phase 108** (ROADMAP 108-SC 3b).
+> Die oben gelisteten Call-Sites und Test-Guards sind damit keine Abbau-Ziele mehr, sondern
+> **Drop-Guards**: 106-05 Task 2 und 106-08 Task 1 belegen positiv, dass sie noch da sind.
+> Kein offener Planungspunkt mehr.
 
 **3. `cover_image` in ~30 Go-Dateien** (grep bestätigt) — die überwältigende Mehrheit ist
 das **abgeleitete DTO-Feld** `cover_image` (JSON, COALESCE-Quelle), das bleibt (Pitfall 3).
