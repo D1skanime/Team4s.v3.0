@@ -27,6 +27,13 @@ type pointTestTx struct {
 	commitErr          error
 }
 
+func (t *pointTestTx) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
+	return t.pointTestDB.Exec(ctx, sql, args...)
+}
+func (t *pointTestTx) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+	return t.pointTestDB.QueryRow(ctx, sql, args...)
+}
+
 func (t *pointTestTx) Commit(context.Context) error   { t.commits++; return t.commitErr }
 func (t *pointTestTx) Rollback(context.Context) error { t.rollbacks++; return nil }
 
