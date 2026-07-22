@@ -1,7 +1,6 @@
 ---
 phase: 106-member-gamification-punktefundament
-reviewed: 2026-07-22T21:53:54Z
-resolved: 2026-07-22T22:04:29Z
+reviewed: 2026-07-22T22:34:44Z
 depth: standard
 files_reviewed: 18
 files_reviewed_list:
@@ -24,78 +23,80 @@ files_reviewed_list:
   - backend/internal/services/point_service_reverse_test.go
   - backend/internal/services/point_service_boundary_test.go
 findings:
-  critical: 0
-  warning: 0
+  critical: 2
+  warning: 1
   info: 0
-  resolved: 1
-  total: 0
-status: passed
+  total: 3
+status: issues_found
 ---
 
 # Phase 106: Code Review Report
 
-**Reviewed:** 2026-07-22T21:53:54Z
+**Reviewed:** 2026-07-22T22:34:44Z
 **Depth:** standard
 **Files Reviewed:** 18
-**Status:** passed after remediation
+**Status:** issues_found
 
 ## Summary
 
-The final whitespace finding is resolved. Rule codes and permanent ledger identifiers now require at least one non-whitespace character and reject leading or trailing POSIX whitespace; reversal reasons require at least one non-whitespace character. Migration 0133 upgrades databases that already executed 0131/0132. Live PostgreSQL 16 tests reject TAB, LF and CRLF variants for rule codes, reversal reasons, source fields and idempotency keys.
+Commit `7eb975cf` fixes the reported ASCII whitespace cases: disposable PostgreSQL 16 tests rejected TAB-, LF- and CRLF-only or padded `rule_code`, `source_type`, `source_key`, `idempotency_key`, and `reversal_reason` values. A clean database that had already applied the historical 0131/0132 migrations also accepted 0133 and enforced those checks.
 
-The remaining Phase-106 behavior passed focused unit/static tests and the live PostgreSQL suite, including Up/Down/Up, TRUNCATE rejection, snapshot validation, FK-context nulling, award/reversal retry, concurrency, rollback, and caller-owned transaction atomicity.
+The hardening is not complete, however. PostgreSQL 16 under the image's `C.UTF-8` locale does not classify U+00A0 NO-BREAK SPACE as `[[:space:]]`, so the final constraints still accept whitespace-only immutable identifiers and reversal reasons that Go rejects with `strings.TrimSpace`. In addition, 0133 cannot upgrade an allowed historical database state containing one of the values the old constraints admitted, and the edited historical migrations no longer form a consistent down-migration lineage.
 
 ## Prior Finding Re-verification
 
 | Prior finding | Result | Evidence |
 |---|---|---|
-| CR-01 — TRUNCATE bypass | Resolved | Statement-level guards exist for both tables; live `ledger_truncate` and `rule_truncate` tests assert the append-only errors. |
-| CR-02 — NULL reversal reason | Resolved for NULL | The shape constraint explicitly requires `reversal_reason IS NOT NULL`; the live NULL-reason test asserts `chk_point_ledger_entry_shape`. The separate whitespace-only bypass is reported below. |
-| CR-03 — PostgreSQL timestamp precision | Resolved | Award and reversal inputs canonicalize to UTC microseconds; unit and live retry/concurrency tests use sub-microsecond timestamps. |
-| WR-01 — invalid snapshot-test SQL | Resolved | Snapshot cases now bind valid INSERT values and assert `award snapshot does not match point rule`. |
-| WR-02 — incomplete public-schema guard | Resolved | Guard and tests cover quoted `"public".` targets and CREATE/ALTER/DROP SCHEMA forms. |
-| WR-03 — late fixture cleanup | Resolved | Idempotent cleanup is registered before schema verification and prerequisite creation. |
-| WR-04 — canonical rule codes | Incomplete | Space-only cases are covered, but tab/newline-only and tab/newline-padded codes still pass the database constraint. |
+| CR-01 — ordinary-space-only constraints admitted TAB/LF/CRLF | Resolved for the reported ASCII cases | The focused PostgreSQL 16 suite passed every new TAB/LF/CRLF-only and padded case for all five fields. |
+| CR-01 — database and Go whitespace contracts agree | Still incomplete | A direct PostgreSQL 16 insert probe against the current 0131 constraints returned `nbsp_accepted|1|1|1` for a U+00A0-only rule, award identifiers, and reversal reason. |
+| 0133 clean historical upgrade | Pass | Historical pre-fix 0131 + 0132 followed by current 0133 rejected TAB/LF values in a disposable PostgreSQL 16 schema. |
+| 0133 historical upgrade with formerly permitted data | Fail | Adding `chk_point_rules_rule_code_canonical` failed because a pre-0133 TAB-only rule violated the new validated constraint. |
 
 ## Critical Issues
 
-### CR-01: Whitespace-only audit reasons and immutable identifiers still pass PostgreSQL constraints
+### CR-01: Unicode whitespace-only values still bypass the database constraints
 
-**File:** `database/migrations/0131_member_point_foundation.up.sql:5,34-35,47,52`
+**Classification:** BLOCKER
+**File:** `C:\Users\admin\Documents\Team4s\database\migrations\0133_member_point_whitespace_hardening.up.sql:6,17-19,27`
+**Also affected:** `database/migrations/0131_member_point_foundation.up.sql:5,34-35,47,52`; `database/migrations/0132_member_point_foundation_review_hardening.up.sql:7,17-19,27`
 
-**Issue:** The constraints use one-argument `btrim`, which removes ordinary space characters but not tabs or newlines. Consequently, direct SQL can insert an immutable rule with `rule_code = E'\t'`, and can append a reversal with `reversal_reason = E'\t'`; whitespace-only source and idempotency fields are accepted for the same reason. Go rejects these values with `strings.TrimSpace`, so the database and application canonicalization contracts diverge. The rule becomes permanently unreachable through `GetByRef`, while the reversal has no meaningful audit reason despite the database being the final repudiation guard. The current regression cases cover `''`, `'   '`, and space-padded codes only. A PostgreSQL 16 probe against the current 0131 migration returned `1|1` for accepted tab-only rule and reversal rows.
+**Issue:** The fix assumes PostgreSQL's POSIX `[[:space:]]` class matches Go's `strings.TrimSpace`. It does not under PostgreSQL 16's `C.UTF-8` locale: `U&'\00A0' ~ '[[:space:]]'` returned `false`. Direct inserts using only U+00A0 NO-BREAK SPACE therefore succeeded for `rule_code`, all three permanent ledger identifiers, and `reversal_reason` (`nbsp_accepted|1|1|1`). Go rejects the same value. This recreates the original integrity defect: an immutable rule can be unreachable through the application, idempotency/source identifiers can be meaningless, and a reversal can have no meaningful audit reason.
 
-**Fix:** Use a whitespace-aware predicate consistently in 0131 and the 0132 hardening migration, then add live tests for tab/newline-only and padded values. For example:
+**Fix:** Define one explicit PostgreSQL whitespace set that matches Go's Unicode White Space handling and use it for both canonical and nonblank checks. For example, centralize the character set and require `value = btrim(value, <unicode-whitespace-set>) AND value <> ''` for canonical identifiers and `btrim(reversal_reason, <unicode-whitespace-set>) <> ''` for the reason. Include U+0085, U+00A0, U+1680, U+2000–U+200A, U+2028/U+2029, U+202F, U+205F, and U+3000 in addition to ASCII whitespace. Add live U+00A0-only and padded regression cases for all five fields.
 
-```sql
-CHECK (
-    rule_code ~ '[^[:space:]]'
-    AND rule_code !~ '^[[:space:]]|[[:space:]]$'
-)
+### CR-02: 0133 cannot upgrade every schema state allowed by historical 0131/0132
 
--- For fields that need only be nonblank, including reversal_reason:
-CHECK (reversal_reason IS NOT NULL AND reversal_reason ~ '[^[:space:]]')
-```
+**Classification:** BLOCKER
+**File:** `C:\Users\admin\Documents\Team4s\database\migrations\0133_member_point_whitespace_hardening.up.sql:3-28`
 
-Apply the same canonical/nonblank policy to `source_type`, `source_key`, and `idempotency_key`, matching the Go boundary. Regression tests should execute syntactically valid inserts with `E'\t'`, `E'\n'`, and padded variants and assert the intended constraint name.
+**Issue:** Historical 0131/0132 allowed TAB/LF-only identifiers and reasons. 0133 immediately adds validated constraints, which scan existing rows. A disposable PostgreSQL 16 database built from the actual pre-fix migrations accepted a TAB-only immutable rule, then failed 0133 with `check constraint "chk_point_rules_rule_code_canonical" ... is violated by some row`. Thus an already-migrated database that exercised the defect cannot deploy the fix. The migration is transactional and fails closed, but it provides neither an explicit compatibility precondition nor an approved remediation path; immutable rule and ledger triggers also prevent ordinary correction of those rows.
+
+**Fix:** Add a precondition that detects every incompatible row before replacing constraints and raises a precise error naming table, field, and remediation requirement. Then implement or document an approved data-remediation migration that preserves ledger semantics; do not silently trim or invent identifiers. Add two live upgrade fixtures using the historical migration text: one clean database that succeeds and one formerly valid dirty database that proves the chosen fail/repair contract.
+
+## Warnings
+
+### WR-01: Editing 0131/0132 makes the migration lineage inconsistent with 0133 down
+
+**Classification:** WARNING
+**File:** `C:\Users\admin\Documents\Team4s\database\migrations\0133_member_point_whitespace_hardening.down.sql:3-25`
+**Also affected:** `database/migrations/0131_member_point_foundation.up.sql:5,34-35,47,52`; `database/migrations/0132_member_point_foundation_review_hardening.up.sql:3-28`; `database/migrations/0132_member_point_foundation_review_hardening.down.sql:7-22`
+
+**Issue:** Project rules prohibit editing historical migrations. The commit nevertheless rewrites 0131/0132 to the strict predicates while 0133 down restores their old `btrim` predicates. Consequently, rolling a fresh install from version 133 back to version 132 does not produce the schema declared by the current 0132 up file. A live probe confirmed the strict predicates before 0133 down and then accepted a TAB-only rule, a TAB/LF-only source/idempotency tuple, and a CRLF-only reason afterward (`fresh_after_0133_down_accepts|1|1|1`). The existing Up/Down/Up test misses this because it asserts only the final re-up state.
+
+**Fix:** Restore 0131 and 0132 to their committed historical contents and keep the whitespace correction solely in 0133. Then assert the exact constraint definitions after each migration boundary, not only after the final Up, so fresh installs and already-applied databases follow the same versioned lineage.
 
 ## Checks Executed
 
-- `go test ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services -count=1` — passed (DB tests skipped without opt-in DSN).
-- Disposable PostgreSQL 16: `go test ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services -run 'TestPhase106|TestPoint' -count=1 -v` — passed; disposable database removed.
+- Disposable PostgreSQL 16: `go test ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services -run 'TestPhase106|TestPoint' -count=1 -v` — passed; container removed.
+- Historical clean upgrade probe: pre-fix 0131 → pre-fix 0132 → current 0133 — passed and rejected TAB/LF test values; container removed.
+- Historical dirty upgrade probe: pre-fix 0131/0132 with a TAB-only rule → current 0133 — failed on the new validated rule-code constraint; container removed.
+- Fresh migration-boundary probe: current 0131 → 0132 → 0133 → 0133 down — constraint definitions regressed and TAB/LF/CRLF-only rows were accepted; container removed.
+- Unicode whitespace probe: current 0131 accepted U+00A0-only rule/source/key/idempotency/reason values (`nbsp_accepted|1|1|1`); container removed.
 - `go vet ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services` — passed.
-- `git diff --check` — passed before writing this report.
-- Disposable PostgreSQL whitespace probe — reproduced the original finding (`tab_rule_count=1`, `tab_reason_count=1`); disposable database removed.
-
-## Resolution Verification
-
-- `0131_member_point_foundation.up.sql` and the 0132 hardening path use POSIX whitespace predicates consistently.
-- `0133_member_point_whitespace_hardening` provides reversible upgrade coverage for already-migrated databases.
-- Valid SQL regression cases cover empty, TAB-only, LF-only, CRLF-only and padded rule codes/reversal reasons, plus `source_type`, `source_key` and `idempotency_key`.
-- PostgreSQL 16: 0131 → 0132 → 0133 with Down/Up passed in `team4s_phase106_test_whitespace`; the disposable database was removed afterward.
+- `git diff --check 54b02e5518a2fd7bc0cfee368116ede00a7d313a..HEAD` for all 18 scoped files — passed.
 
 ---
 
-_Reviewed: 2026-07-22T21:53:54Z_
+_Reviewed: 2026-07-22T22:34:44Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
