@@ -91,9 +91,10 @@ func TestPointLedgerSQLContract(t *testing.T) {
 }
 
 func TestPointLedgerRetryComparison(t *testing.T) {
-	effective := time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC)
+	effective := time.Date(2026, 7, 22, 12, 0, 0, 123456789, time.FixedZone("CEST", 2*60*60))
+	storedEffective := postgresTimestamp(effective)
 	input := PointAwardInput{MemberID: 1, ActorAppUserID: pointInt64Ptr(9), SourceType: "contribution", SourceKey: "7", RuleID: 2, RuleCode: "subtitle", RuleVersion: 1, RuleCategory: "fansub_work", RulePointValue: 10, EffectiveAt: effective, IdempotencyKey: "award:7"}
-	existing := PointLedgerEntry{ID: 5, MemberID: 1, ActorAppUserID: pointInt64Ptr(9), SourceType: "contribution", SourceKey: "7", RuleID: 2, RuleCodeSnapshot: "subtitle", RuleVersionSnapshot: 1, RuleCategorySnapshot: "fansub_work", RulePointValueSnapshot: 10, PointValue: 10, EntryKind: "award", EffectiveAt: effective, RecordedAt: effective.Add(time.Second), IdempotencyKey: "award:7"}
+	existing := PointLedgerEntry{ID: 5, MemberID: 1, ActorAppUserID: pointInt64Ptr(9), SourceType: "contribution", SourceKey: "7", RuleID: 2, RuleCodeSnapshot: "subtitle", RuleVersionSnapshot: 1, RuleCategorySnapshot: "fansub_work", RulePointValueSnapshot: 10, PointValue: 10, EntryKind: "award", EffectiveAt: storedEffective, RecordedAt: storedEffective.Add(time.Second), IdempotencyKey: "award:7"}
 	db := &ledgerFakeDB{rows: []pgx.Row{ledgerRowFunc(func(...any) error { return pgx.ErrNoRows }), ledgerEntryRow(existing)}}
 	got, err := NewPointLedgerRepository(db).InsertAward(context.Background(), input)
 	if err != nil {
@@ -205,7 +206,7 @@ func TestPointLedgerPostgresReversalRetryConcurrentAndLostResponse(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	in := PointReversalInput{OriginalEntryID: original.ID, ActorAppUserID: 10, IdempotencyKey: "reverse:retry", EffectiveAt: time.Date(2026, 7, 22, 13, 0, 0, 0, time.UTC), Reason: "duplicate"}
+	in := PointReversalInput{OriginalEntryID: original.ID, ActorAppUserID: 10, IdempotencyKey: "reverse:retry", EffectiveAt: time.Date(2026, 7, 22, 13, 0, 0, 987654321, time.UTC), Reason: "duplicate"}
 	start := make(chan struct{})
 	results := make(chan *PointLedgerEntry, 2)
 	errs := make(chan error, 2)
@@ -274,5 +275,5 @@ func openPointLedgerPostgres(t *testing.T) *pgxpool.Pool {
 }
 
 func postgresAwardInput(key string) PointAwardInput {
-	return PointAwardInput{MemberID: 1, ActorAppUserID: pointInt64Ptr(10), FansubGroupID: pointInt64Ptr(20), ReleaseVersionID: pointInt64Ptr(30), SourceType: "release_version", SourceKey: "30", RuleID: 101, RuleCode: "release_work", RuleVersion: 1, RuleCategory: "fansub_work", RulePointValue: 10, EffectiveAt: time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC), IdempotencyKey: key}
+	return PointAwardInput{MemberID: 1, ActorAppUserID: pointInt64Ptr(10), FansubGroupID: pointInt64Ptr(20), ReleaseVersionID: pointInt64Ptr(30), SourceType: "release_version", SourceKey: "30", RuleID: 101, RuleCode: "release_work", RuleVersion: 1, RuleCategory: "fansub_work", RulePointValue: 10, EffectiveAt: time.Date(2026, 7, 22, 12, 0, 0, 123456789, time.UTC), IdempotencyKey: key}
 }

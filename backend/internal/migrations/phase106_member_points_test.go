@@ -19,6 +19,9 @@ const (
 	phase106MigrationName = "0131_member_point_foundation"
 	phase106UpFile        = phase106MigrationName + ".up.sql"
 	phase106DownFile      = phase106MigrationName + ".down.sql"
+	phase106HardeningName = "0132_member_point_foundation_review_hardening"
+	phase106HardeningUp   = phase106HardeningName + ".up.sql"
+	phase106HardeningDown = phase106HardeningName + ".down.sql"
 )
 
 func TestPhase106MigrationUpContract(t *testing.T) {
@@ -36,6 +39,8 @@ func TestPhase106MigrationUpContract(t *testing.T) {
 		"effective_at", "recorded_at", "idempotency_key", "unique (idempotency_key)",
 		"entry_kind in ('award', 'reversal')", "reversal_of_entry_id", "reversal_reason",
 		"create function", "before insert", "before update or delete", "pg_trigger_depth() > 1",
+		"before truncate on point_rules", "before truncate on point_ledger_entries",
+		"rule_code <> ''", "rule_code = btrim(rule_code)", "reversal_reason is not null",
 		"not exists (select 1 from app_users where id = old.actor_app_user_id)",
 		"not exists (select 1 from fansub_groups where id = old.fansub_group_id)",
 		"not exists (select 1 from release_versions where id = old.release_version_id)",
@@ -79,6 +84,17 @@ func TestPhase106MigrationLiveUpDownUp(t *testing.T) {
 	assertPhase106TableExists(t, pool, "point_ledger_entries")
 }
 
+func TestPhase106ReviewHardeningLiveUpDownUp(t *testing.T) {
+	pool := testsupport.OpenPhase106Postgres(t)
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningDown))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	seedPhase106Ledger(t, pool)
+	_, err := pool.Exec(context.Background(), `TRUNCATE point_ledger_entries`)
+	require.ErrorContains(t, err, "point ledger is append-only")
+}
+
 func TestPhase106LedgerAppendOnly(t *testing.T) {
 	pool := openPhase106MigratedPool(t)
 	seedPhase106Ledger(t, pool)
@@ -87,6 +103,20 @@ func TestPhase106LedgerAppendOnly(t *testing.T) {
 	assertExecRejected(t, pool, `UPDATE point_ledger_entries SET source_key = 'changed' WHERE id = 201`)
 	assertExecRejected(t, pool, `UPDATE point_ledger_entries SET fansub_group_id = NULL WHERE id = 201`)
 	assertExecRejected(t, pool, `DELETE FROM point_ledger_entries WHERE id = 201`)
+
+	t.Run("ledger_truncate", func(t *testing.T) {
+		pool := openPhase106MigratedPool(t)
+		_, err := pool.Exec(context.Background(), `TRUNCATE point_ledger_entries`)
+		require.ErrorContains(t, err, "point ledger is append-only")
+	})
+
+	t.Run("rule_truncate", func(t *testing.T) {
+		pool := openPhase106MigratedPool(t)
+		_, err := pool.Exec(context.Background(), `DROP TABLE point_ledger_entries`)
+		require.NoError(t, err)
+		_, err = pool.Exec(context.Background(), `TRUNCATE point_rules`)
+		require.ErrorContains(t, err, "point rules are append-only")
+	})
 
 	t.Run("nested_context_null_with_live_parent", func(t *testing.T) {
 		const functionName = "phase106_test_nested_live_parent"
@@ -140,12 +170,19 @@ func TestPhase106ReversalCrossRowInvariants(t *testing.T) {
 	seedPhase106Ledger(t, pool)
 
 	for name, mutation := range map[string]string{
-		"wrong_rule_code": "rule_code_snapshot = 'wrong'",
-		"wrong_version":   "rule_version_snapshot = 2",
-		"wrong_category":  "rule_category_snapshot = 'platform_contribution'",
-		"wrong_value":     "point_value = 9",
+		"wrong_rule_code":  "rule_code_snapshot = 'wrong'",
+		"wrong_version":    "rule_version_snapshot = 2",
+		"wrong_category":   "rule_category_snapshot = 'platform_contribution'",
+		"wrong_rule_value": "rule_point_value_snapshot = 9",
+		"wrong_value":      "point_value = 9",
 	} {
 		t.Run("award_"+name, func(t *testing.T) { assertAwardMutationRejected(t, pool, mutation) })
+	}
+	for name, code := range map[string]string{"blank_rule_code": "", "padded_rule_code": " release_work "} {
+		t.Run(name, func(t *testing.T) {
+			_, err := pool.Exec(context.Background(), `INSERT INTO point_rules(rule_code, rule_version, category, point_value) VALUES ($1, 2, 'fansub_work', 10)`, code)
+			require.Error(t, err)
+		})
 	}
 
 	validReversal := `INSERT INTO point_ledger_entries
@@ -156,7 +193,12 @@ SELECT 202, member_id, actor_app_user_id, fansub_group_id, release_version_id, s
  rule_id, rule_code_snapshot, rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
  -point_value, 'reversal', id, 'Testkorrektur', effective_at, 'phase106-reversal-202'
 FROM point_ledger_entries WHERE id = 201`
-	_, err := pool.Exec(context.Background(), validReversal)
+	nullReasonReversal := strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "211"), "'Testkorrektur'", "NULL")
+	_, err := pool.Exec(context.Background(), nullReasonReversal)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "chk_point_ledger_entry_shape")
+
+	_, err = pool.Exec(context.Background(), validReversal)
 	require.NoError(t, err)
 
 	for name, sql := range map[string]string{
@@ -177,6 +219,8 @@ func TestPhase106MigrationBoundary(t *testing.T) {
 	files := []string{
 		phase106MigrationPath(t, phase106UpFile),
 		phase106MigrationPath(t, phase106DownFile),
+		phase106MigrationPath(t, phase106HardeningUp),
+		phase106MigrationPath(t, phase106HardeningDown),
 		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres.go"),
 		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres_test.go"),
 	}
@@ -262,12 +306,28 @@ func assertExecRejected(t testing.TB, pool *pgxpool.Pool, sql string) {
 
 func assertAwardMutationRejected(t testing.TB, pool *pgxpool.Pool, mutation string) {
 	t.Helper()
-	sql := fmt.Sprintf(`INSERT INTO point_ledger_entries
+	ruleCode, ruleVersion, category, ruleValue, pointValue := "release_work", 1, "fansub_work", 10, 10
+	switch mutation {
+	case "rule_code_snapshot = 'wrong'":
+		ruleCode = "wrong"
+	case "rule_version_snapshot = 2":
+		ruleVersion = 2
+	case "rule_category_snapshot = 'platform_contribution'":
+		category = "platform_contribution"
+	case "rule_point_value_snapshot = 9":
+		ruleValue = 9
+	case "point_value = 9":
+		pointValue = 9
+	default:
+		t.Fatalf("unsupported award mutation %q", mutation)
+	}
+	_, err := pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
 (member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
  rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key)
-VALUES (1, 'manual', 'invalid', 101, 'release_work', 1, 'fansub_work', 10, 10, 'award', NOW(), 'invalid-%s')`, strings.ReplaceAll(mutation, " ", "-"))
-	sql = strings.Replace(sql, "point_value, entry_kind", mutation+", entry_kind", 1)
-	assertExecRejected(t, pool, sql)
+VALUES (1, 'manual', 'invalid', 101, $1, $2, $3, $4, $5, 'award', NOW(), $6)`,
+		ruleCode, ruleVersion, category, ruleValue, pointValue, "invalid-"+strings.NewReplacer(" ", "-", "'", "", "=", "-").Replace(mutation))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "award snapshot does not match point rule")
 }
 
 func assertNestedLedgerMutationRejected(t testing.TB, pool *pgxpool.Pool, setClause string) {

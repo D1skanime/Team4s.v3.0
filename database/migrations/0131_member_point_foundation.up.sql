@@ -2,7 +2,7 @@ BEGIN;
 
 CREATE TABLE point_rules (
     id BIGSERIAL PRIMARY KEY,
-    rule_code TEXT NOT NULL,
+    rule_code TEXT NOT NULL CONSTRAINT chk_point_rules_rule_code_canonical CHECK (rule_code <> '' AND rule_code = btrim(rule_code)),
     rule_version INTEGER NOT NULL CHECK (rule_version > 0),
     category TEXT NOT NULL CHECK (category IN ('fansub_work', 'platform_contribution')),
     point_value INTEGER NOT NULL CHECK (point_value > 0),
@@ -20,6 +20,10 @@ $$;
 CREATE TRIGGER point_rules_immutable
 BEFORE UPDATE OR DELETE ON point_rules
 FOR EACH ROW EXECUTE FUNCTION reject_point_rule_mutation();
+
+CREATE TRIGGER point_rules_reject_truncate
+BEFORE TRUNCATE ON point_rules
+FOR EACH STATEMENT EXECUTE FUNCTION reject_point_rule_mutation();
 
 CREATE TABLE point_ledger_entries (
     id BIGSERIAL PRIMARY KEY,
@@ -45,7 +49,7 @@ CREATE TABLE point_ledger_entries (
     CONSTRAINT chk_point_ledger_entry_shape CHECK (
         (entry_kind = 'award' AND reversal_of_entry_id IS NULL AND reversal_reason IS NULL AND point_value > 0)
         OR
-        (entry_kind = 'reversal' AND reversal_of_entry_id IS NOT NULL AND btrim(reversal_reason) <> '' AND point_value < 0)
+        (entry_kind = 'reversal' AND reversal_of_entry_id IS NOT NULL AND reversal_reason IS NOT NULL AND btrim(reversal_reason) <> '' AND point_value < 0)
     ),
     CONSTRAINT chk_point_ledger_no_self_reversal CHECK (reversal_of_entry_id IS NULL OR reversal_of_entry_id <> id)
 );
@@ -114,7 +118,7 @@ DECLARE
     group_nulled BOOLEAN;
     version_nulled BOOLEAN;
 BEGIN
-    IF TG_OP = 'DELETE' THEN
+    IF TG_OP IN ('DELETE', 'TRUNCATE') THEN
         RAISE EXCEPTION 'point ledger is append-only';
     END IF;
 
@@ -156,5 +160,9 @@ $$;
 CREATE TRIGGER point_ledger_guard_mutation
 BEFORE UPDATE OR DELETE ON point_ledger_entries
 FOR EACH ROW EXECUTE FUNCTION guard_point_ledger_mutation();
+
+CREATE TRIGGER point_ledger_reject_truncate
+BEFORE TRUNCATE ON point_ledger_entries
+FOR EACH STATEMENT EXECUTE FUNCTION guard_point_ledger_mutation();
 
 COMMIT;

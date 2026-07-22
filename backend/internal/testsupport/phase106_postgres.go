@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -19,7 +20,8 @@ const phase106DSNEnv = "TEAM4S_PHASE106_TEST_DSN"
 var (
 	phase106DatabasePattern = regexp.MustCompile(`^team4s_phase106_test_[a-z0-9]+$`)
 	phase106SchemaPattern   = regexp.MustCompile(`^phase106_[a-z0-9_]+$`)
-	publicTargetPattern     = regexp.MustCompile(`(?im)\b(?:alter|create|delete\s+from|drop|insert\s+into|truncate|update)\s+(?:table\s+|function\s+|index\s+|trigger\s+|type\s+)?(?:if\s+(?:not\s+)?exists\s+)?public\.`)
+	publicTargetPattern     = regexp.MustCompile(`(?im)\b(?:alter|create|delete\s+from|drop|insert\s+into|truncate|update)\s+(?:table\s+|function\s+|index\s+|trigger\s+|type\s+)?(?:if\s+(?:not\s+)?exists\s+)?(?:public|"public")\s*\.`)
+	publicSchemaDDLPattern  = regexp.MustCompile(`(?im)\b(?:alter|create|drop)\s+schema\s+(?:if\s+(?:not\s+)?exists\s+)?(?:public|"public")(?:\s|;|$)`)
 )
 
 // OpenPhase106Postgres opens an explicitly opted-in, schema-isolated PostgreSQL
@@ -75,34 +77,32 @@ func OpenPhase106Postgres(t *testing.T) *pgxpool.Pool {
 		adminPool.Close()
 		t.Fatalf("open schema-scoped PostgreSQL pool: %v", err)
 	}
+	var cleanupOnce sync.Once
+	cleanup := func() {
+		cleanupOnce.Do(func() {
+			scopedPool.Close()
+			if !phase106SchemaPattern.MatchString(schema) {
+				t.Errorf("refusing cleanup for unsafe schema %q", schema)
+				adminPool.Close()
+				return
+			}
+			if _, err := adminPool.Exec(context.Background(), "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" CASCADE"); err != nil {
+				t.Errorf("drop isolated schema %q: %v", schema, err)
+			}
+			adminPool.Close()
+		})
+	}
+	t.Cleanup(cleanup)
 
 	var schemas []string
 	if err := scopedPool.QueryRow(context.Background(), `SELECT current_schemas(false)`).Scan(&schemas); err != nil {
-		scopedPool.Close()
-		_, _ = adminPool.Exec(context.Background(), "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
-		adminPool.Close()
 		t.Fatalf("read effective schemas: %v", err)
 	}
 	if len(schemas) != 1 || schemas[0] != schema || containsString(schemas, "public") {
-		scopedPool.Close()
-		_, _ = adminPool.Exec(context.Background(), "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" CASCADE")
-		adminPool.Close()
 		t.Fatalf("unsafe search_path schemas: %v", schemas)
 	}
 
 	createPhase106Prerequisites(t, scopedPool)
-	t.Cleanup(func() {
-		scopedPool.Close()
-		if !phase106SchemaPattern.MatchString(schema) {
-			t.Errorf("refusing cleanup for unsafe schema %q", schema)
-			adminPool.Close()
-			return
-		}
-		if _, err := adminPool.Exec(context.Background(), "DROP SCHEMA "+pgx.Identifier{schema}.Sanitize()+" CASCADE"); err != nil {
-			t.Errorf("drop isolated schema %q: %v", schema, err)
-		}
-		adminPool.Close()
-	})
 
 	return scopedPool
 }
@@ -138,7 +138,7 @@ func validatePhase106SchemaName(name string) error {
 }
 
 func validatePhase106SQL(sql string) error {
-	if publicTargetPattern.MatchString(sql) {
+	if publicTargetPattern.MatchString(sql) || publicSchemaDDLPattern.MatchString(sql) {
 		return fmt.Errorf("executable public-qualified target is forbidden")
 	}
 	return nil

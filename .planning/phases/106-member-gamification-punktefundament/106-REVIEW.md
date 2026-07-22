@@ -1,6 +1,7 @@
 ---
 phase: 106-member-gamification-punktefundament
 reviewed: 2026-07-22T21:22:37Z
+resolved: 2026-07-22T21:42:37Z
 depth: standard
 files_reviewed: 14
 files_reviewed_list:
@@ -19,11 +20,12 @@ files_reviewed_list:
   - backend/internal/services/point_service_reverse_test.go
   - backend/internal/services/point_service_boundary_test.go
 findings:
-  critical: 3
-  warning: 4
+  critical: 0
+  warning: 0
   info: 0
-  total: 7
-status: issues_found
+  resolved: 7
+  total: 0
+status: passed
 ---
 
 # Phase 106: Code Review Report
@@ -31,11 +33,11 @@ status: issues_found
 **Reviewed:** 2026-07-22T21:22:37Z
 **Depth:** standard
 **Files Reviewed:** 14
-**Status:** issues_found
+**Status:** passed after remediation
 
 ## Summary
 
-The Phase 106 foundation has three release-blocking correctness gaps in its core guarantees: `TRUNCATE` bypasses both append-only protections, direct SQL can persist a reversal without a reason, and retries with valid sub-microsecond timestamps are falsely rejected after PostgreSQL normalizes the persisted timestamp. The review also found unreliable migration tests and weaknesses in the disposable-database safety guard and immutable rule validation.
+All seven original findings were remediated on 2026-07-22. The append-only database contract now blocks `TRUNCATE`, reversals require a non-null reason, retry timestamps are canonicalized to PostgreSQL precision, migration tests execute valid mutations, the disposable-database guard covers schema and quoted-public DDL, cleanup is registered before fatal setup, and rule codes are canonical at the database boundary. Migration 0132 applies the hardening to databases that already executed 0131.
 
 ## Critical Issues
 
@@ -119,6 +121,25 @@ rule_code TEXT NOT NULL
 ```
 
 Add migration and repository tests covering blank and surrounding-whitespace rule codes.
+
+## Remediation Verification
+
+| Finding | Resolution | Evidence |
+|---------|------------|----------|
+| CR-01 | Statement-level `BEFORE TRUNCATE` guards protect both rule and ledger tables. | Separate live PostgreSQL rejection tests for both tables; 0132 installs the guards on existing schemas. |
+| CR-02 | The reversal shape constraint explicitly requires `reversal_reason IS NOT NULL`. | Direct SQL NULL-reason regression test asserts the shape constraint. |
+| CR-03 | Award and reversal inputs canonicalize `effective_at` to UTC microsecond precision. | Unit and live lost-response/retry tests use sub-microsecond timestamps. |
+| WR-01 | Snapshot mutations now alter bound VALUES in syntactically valid INSERTs and assert the trigger message. | Wrong code, version, category, rule value, and awarded value cases pass only through the snapshot trigger. |
+| WR-02 | Public-schema guard rejects quoted qualification plus CREATE/ALTER/DROP SCHEMA forms. | Focused guard tests cover all reported executable forms. |
+| WR-03 | Idempotent cleanup is registered immediately after the scoped pool is created. | Every later fatal setup path now runs pool/schema cleanup. |
+| WR-04 | PostgreSQL enforces nonblank, trim-canonical `rule_code`. | Live inserts of blank and padded codes are rejected; 0132 applies the constraint to existing schemas. |
+
+### Checks rerun
+
+- PostgreSQL 16: 0131 plus 0132 Up → Down → Up, append-only, snapshot, reversal, concurrency and retry suites passed in `team4s_phase106_test_review7`; the disposable database was removed afterward.
+- `go test ./...` passed.
+- `go vet ./...` passed.
+- `git diff --check` passed.
 
 ---
 

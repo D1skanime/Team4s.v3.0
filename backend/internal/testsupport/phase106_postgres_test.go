@@ -45,6 +45,11 @@ func TestPhase106PublicTargetGuard(t *testing.T) {
 		"DELETE FROM public.point_rules",
 		"DROP TABLE IF EXISTS public.point_rules",
 		"TRUNCATE public.point_rules",
+		`CREATE TABLE "public".point_rules (id bigint)`,
+		`ALTER TABLE "public".point_rules ADD COLUMN value bigint`,
+		"DROP SCHEMA public CASCADE",
+		"ALTER SCHEMA public RENAME TO unsafe_public",
+		`DROP SCHEMA "public" CASCADE`,
 	} {
 		require.Error(t, validatePhase106SQL(sql), sql)
 	}

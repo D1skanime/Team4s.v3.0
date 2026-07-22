@@ -129,6 +129,7 @@ func (r *PointLedgerRepository) GetForUpdate(ctx context.Context, entryID int64)
 
 func (r *PointLedgerRepository) InsertReversal(ctx context.Context, input PointReversalInput) (*PointLedgerEntry, error) {
 	input.IdempotencyKey, input.Reason = strings.TrimSpace(input.IdempotencyKey), strings.TrimSpace(input.Reason)
+	input.EffectiveAt = postgresTimestamp(input.EffectiveAt)
 	if r == nil || r.db == nil || input.OriginalEntryID <= 0 || input.ActorAppUserID <= 0 || input.IdempotencyKey == "" || input.EffectiveAt.IsZero() || input.Reason == "" {
 		return nil, fmt.Errorf("insert point reversal: %w", ErrValidation)
 	}
@@ -201,6 +202,14 @@ func normalizeAwardInput(input *PointAwardInput) {
 	input.SourceType, input.SourceKey = strings.TrimSpace(input.SourceType), strings.TrimSpace(input.SourceKey)
 	input.RuleCode, input.RuleCategory = strings.TrimSpace(input.RuleCode), strings.TrimSpace(input.RuleCategory)
 	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
+	input.EffectiveAt = postgresTimestamp(input.EffectiveAt)
+}
+
+func postgresTimestamp(value time.Time) time.Time {
+	if value.IsZero() {
+		return value
+	}
+	return time.UnixMicro(value.UnixMicro()).UTC()
 }
 
 func validateAwardInput(r *PointLedgerRepository, input PointAwardInput) error {
