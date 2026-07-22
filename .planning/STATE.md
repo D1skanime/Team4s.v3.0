@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: Executing Phase 105
 stopped_at: Phase 107 context gathered
-last_updated: "2026-07-21T20:27:28.394Z"
-last_activity: 2026-07-21
+last_updated: "2026-07-22T05:46:23.730Z"
+last_activity: 2026-07-22
 progress:
   total_phases: 102
   completed_phases: 80
-  total_plans: 440
+  total_plans: 442
   completed_plans: 404
   percent: 78
 ---
@@ -672,5 +672,5 @@ Recent durable decisions:
 
 Last session: 2026-07-21T20:27:28.254Z
 Stopped at: Phase 107 context gathered
-Last activity: 2026-07-21
+Last activity: 2026-07-22
 Resume file: .planning/phases/107-vereinheitlichte-upload-pipeline-mediafileservice/107-CONTEXT.md
