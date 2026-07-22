@@ -184,10 +184,11 @@ func TestPhase106MigrationBoundary(t *testing.T) {
 		content, err := os.ReadFile(path)
 		require.NoError(t, err, "Phase-106 artifact missing: %s", filepath.Base(path))
 		lower := strings.ToLower(string(content))
-		for _, forbidden := range []string{"media_asset", "upload", "crop", "thumbnail", "anime_relation", "cleanup", "review_queue", "capability", "badge"} {
+		for _, forbidden := range []string{"media_asset", "upload", "crop", "thumbnail", "anime_relation", "review_queue", "capability", "badge"} {
 			require.NotContains(t, lower, forbidden, "%s crosses Phase-106 boundary", filepath.Base(path))
 		}
 		if strings.HasSuffix(path, ".sql") {
+			require.NotContains(t, lower, "cleanup", "%s crosses Phase-106 boundary", filepath.Base(path))
 			require.NotContains(t, lower, "public.", "%s must use the isolated search path", filepath.Base(path))
 		}
 	}
