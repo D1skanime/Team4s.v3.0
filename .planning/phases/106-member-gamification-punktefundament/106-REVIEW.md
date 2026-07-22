@@ -1,7 +1,6 @@
 ---
 phase: 106-member-gamification-punktefundament
-reviewed: 2026-07-22T21:22:37Z
-resolved: 2026-07-22T21:42:37Z
+reviewed: 2026-07-22T21:53:54Z
 depth: standard
 files_reviewed: 14
 files_reviewed_list:
@@ -20,129 +19,70 @@ files_reviewed_list:
   - backend/internal/services/point_service_reverse_test.go
   - backend/internal/services/point_service_boundary_test.go
 findings:
-  critical: 0
+  critical: 1
   warning: 0
   info: 0
-  resolved: 7
-  total: 0
-status: passed
+  total: 1
+status: issues_found
 ---
 
 # Phase 106: Code Review Report
 
-**Reviewed:** 2026-07-22T21:22:37Z
+**Reviewed:** 2026-07-22T21:53:54Z
 **Depth:** standard
 **Files Reviewed:** 14
-**Status:** passed after remediation
+**Status:** issues_found
 
 ## Summary
 
-All seven original findings were remediated on 2026-07-22. The append-only database contract now blocks `TRUNCATE`, reversals require a non-null reason, retry timestamps are canonicalized to PostgreSQL precision, migration tests execute valid mutations, the disposable-database guard covers schema and quoted-public DDL, cleanup is registered before fatal setup, and rule codes are canonical at the database boundary. Migration 0132 applies the hardening to databases that already executed 0131.
+The fix commit genuinely resolves prior findings CR-01, CR-02, CR-03, WR-01, WR-02, and WR-03 with focused regression coverage. WR-04 is only partially resolved: the database rejects empty and space-padded rule codes, but PostgreSQL's one-argument `btrim` does not remove tabs or newlines. The same incomplete whitespace check is used for reversal reasons and permanent ledger identifiers. A disposable PostgreSQL 16 probe confirmed that both a tab-only immutable rule code and a tab-only reversal reason are accepted.
+
+The remaining Phase-106 behavior passed focused unit/static tests and the live PostgreSQL suite, including Up/Down/Up, TRUNCATE rejection, snapshot validation, FK-context nulling, award/reversal retry, concurrency, rollback, and caller-owned transaction atomicity.
+
+## Prior Finding Re-verification
+
+| Prior finding | Result | Evidence |
+|---|---|---|
+| CR-01 — TRUNCATE bypass | Resolved | Statement-level guards exist for both tables; live `ledger_truncate` and `rule_truncate` tests assert the append-only errors. |
+| CR-02 — NULL reversal reason | Resolved for NULL | The shape constraint explicitly requires `reversal_reason IS NOT NULL`; the live NULL-reason test asserts `chk_point_ledger_entry_shape`. The separate whitespace-only bypass is reported below. |
+| CR-03 — PostgreSQL timestamp precision | Resolved | Award and reversal inputs canonicalize to UTC microseconds; unit and live retry/concurrency tests use sub-microsecond timestamps. |
+| WR-01 — invalid snapshot-test SQL | Resolved | Snapshot cases now bind valid INSERT values and assert `award snapshot does not match point rule`. |
+| WR-02 — incomplete public-schema guard | Resolved | Guard and tests cover quoted `"public".` targets and CREATE/ALTER/DROP SCHEMA forms. |
+| WR-03 — late fixture cleanup | Resolved | Idempotent cleanup is registered before schema verification and prerequisite creation. |
+| WR-04 — canonical rule codes | Incomplete | Space-only cases are covered, but tab/newline-only and tab/newline-padded codes still pass the database constraint. |
 
 ## Critical Issues
 
-### CR-01: Append-only triggers allow complete ledger and rule deletion with TRUNCATE
+### CR-01: Whitespace-only audit reasons and immutable identifiers still pass PostgreSQL constraints
 
-**File:** `database/migrations/0131_member_point_foundation.up.sql:20-22,156-158`
-**Issue:** Both immutability triggers cover only row-level `UPDATE OR DELETE`. PostgreSQL does not fire row-level DELETE triggers for `TRUNCATE`, so a role with table ownership or `TRUNCATE` privilege can execute `TRUNCATE point_ledger_entries, point_rules` and erase the entire audit history. This is a direct data-loss path through the database layer that is supposed to be the final append-only arbiter. The live tests exercise UPDATE and DELETE but never TRUNCATE.
-**Fix:** Add statement-level `BEFORE TRUNCATE` triggers for both tables (or revoke `TRUNCATE` from every runtime role and test that privilege contract), and add a PostgreSQL test proving truncation is rejected.
+**File:** `database/migrations/0131_member_point_foundation.up.sql:5,34-35,47,52`
 
-```sql
-CREATE TRIGGER point_rules_reject_truncate
-BEFORE TRUNCATE ON point_rules
-FOR EACH STATEMENT EXECUTE FUNCTION reject_point_rule_mutation();
+**Issue:** The constraints use one-argument `btrim`, which removes ordinary space characters but not tabs or newlines. Consequently, direct SQL can insert an immutable rule with `rule_code = E'\t'`, and can append a reversal with `reversal_reason = E'\t'`; whitespace-only source and idempotency fields are accepted for the same reason. Go rejects these values with `strings.TrimSpace`, so the database and application canonicalization contracts diverge. The rule becomes permanently unreachable through `GetByRef`, while the reversal has no meaningful audit reason despite the database being the final repudiation guard. The current regression cases cover `''`, `'   '`, and space-padded codes only. A PostgreSQL 16 probe against the current 0131 migration returned `1|1` for accepted tab-only rule and reversal rows.
 
-CREATE TRIGGER point_ledger_reject_truncate
-BEFORE TRUNCATE ON point_ledger_entries
-FOR EACH STATEMENT EXECUTE FUNCTION guard_point_ledger_mutation();
-```
-
-The trigger functions must handle `TG_OP = 'TRUNCATE'`, and the Down migration must remove the new triggers.
-
-### CR-02: A reversal with NULL reason passes the database constraint
-
-**File:** `database/migrations/0131_member_point_foundation.up.sql:45-49`
-**Issue:** `reversal_reason` is nullable, and the reversal branch checks only `btrim(reversal_reason) <> ''`. For NULL, that expression evaluates to NULL; PostgreSQL CHECK constraints accept both TRUE and NULL. The BEFORE INSERT trigger does not separately require a reason. Direct SQL can therefore append an otherwise valid reversal with `reversal_reason = NULL`, violating the mandatory audit-reason and repudiation contract. The live test covers whitespace but not NULL.
-**Fix:** Make non-nullness explicit in the reversal branch and add a direct PostgreSQL regression test.
+**Fix:** Use a whitespace-aware predicate consistently in 0131 and the 0132 hardening migration, then add live tests for tab/newline-only and padded values. For example:
 
 ```sql
-(entry_kind = 'reversal'
- AND reversal_of_entry_id IS NOT NULL
- AND reversal_reason IS NOT NULL
- AND btrim(reversal_reason) <> ''
- AND point_value < 0)
+CHECK (
+    rule_code ~ '[^[:space:]]'
+    AND rule_code !~ '^[[:space:]]|[[:space:]]$'
+)
+
+-- For fields that need only be nonblank, including reversal_reason:
+CHECK (reversal_reason IS NOT NULL AND reversal_reason ~ '[^[:space:]]')
 ```
 
-### CR-03: Identical retries fail for timestamps finer than PostgreSQL precision
+Apply the same canonical/nonblank policy to `source_type`, `source_key`, and `idempotency_key`, matching the Go boundary. Regression tests should execute syntactically valid inserts with `E'\t'`, `E'\n'`, and padded variants and assert the intended constraint name.
 
-**File:** `backend/internal/repository/point_ledger_repository.go:222-239`
-**Issue:** Award and reversal retry comparisons use exact `time.Time.Equal` against the caller's original `EffectiveAt`. PostgreSQL stores `timestamptz` at microsecond precision, while Go accepts nanosecond precision. A first insert with, for example, non-zero sub-microsecond nanoseconds succeeds and returns the database-normalized timestamp; replaying the identical command then reaches the conflict path and compares that persisted value to the unnormalized input, producing `ErrConflict`. This breaks the promised identical-retry and lost-response behavior for valid Go timestamps. All current tests use timestamps with zero nanoseconds, so they cannot detect it.
-**Fix:** Canonicalize `EffectiveAt` to PostgreSQL precision before both insertion and comparison, and test award and reversal retries with a timestamp containing sub-microsecond nanoseconds.
+## Checks Executed
 
-```go
-func postgresTime(t time.Time) time.Time {
-	return time.UnixMicro(t.UnixMicro()).UTC()
-}
-
-input.EffectiveAt = postgresTime(input.EffectiveAt)
-```
-
-Apply the same canonicalization consistently to `PointAwardInput` and `PointReversalInput`.
-
-## Warnings
-
-### WR-01: Award snapshot tests reject invalid SQL instead of exercising the trigger
-
-**File:** `backend/internal/migrations/phase106_member_points_test.go:263-270`
-**Issue:** `assertAwardMutationRejected` replaces the column name `point_value` with fragments such as `rule_code_snapshot = 'wrong'`. The resulting INSERT column list is syntactically invalid, so every case passes merely because PostgreSQL reports a syntax error. These tests do not prove that the rule-snapshot trigger rejects a valid INSERT with a wrong code, version, category, or value.
-**Fix:** Build syntactically valid INSERT statements and mutate the corresponding VALUES expressions. Assert the expected trigger error/message or SQLSTATE so unrelated syntax/FK failures cannot satisfy the contract.
-
-### WR-02: The public-schema guard misses destructive executable forms
-
-**File:** `backend/internal/testsupport/phase106_postgres.go:19-22,140-143`
-**Issue:** `publicTargetPattern` does not recognize schema operations or quoted identifiers. Inputs such as `DROP SCHEMA public CASCADE`, `ALTER SCHEMA public ...`, and `CREATE TABLE "public".x (...)` pass validation and are then executed by `ApplySQLFile`. The dedicated database limits blast radius, but the helper's claimed hard guard can still destroy or mutate its public schema.
-**Fix:** Reject schema DDL and quoted public qualification explicitly, with tests for DROP/ALTER SCHEMA and `"public".` forms. Prefer a strict allowlist of the known Phase-106 object names over an incomplete denylist.
-
-### WR-03: Fixture cleanup is registered after a fatal setup step
-
-**File:** `backend/internal/testsupport/phase106_postgres.go:93-105`
-**Issue:** `createPhase106Prerequisites` can call `t.Fatalf` before `t.Cleanup` is registered. Any setup failure at that point leaks both pools and the randomly created schema, making subsequent database tests less isolated and leaving disposable state behind.
-**Fix:** Register cleanup immediately after the schema and scoped pool are successfully created, before running schema checks or prerequisite creation. Keep cleanup idempotent so early manual cleanup remains safe.
-
-### WR-04: Immutable rule rows can be permanently unusable
-
-**File:** `database/migrations/0131_member_point_foundation.up.sql:3-10`
-**Issue:** `rule_code` is only `NOT NULL`; blank and surrounding-whitespace codes are accepted. The Go lookup trims the requested code and rejects blanks, while the database then forbids updating or deleting the inserted row. Direct catalog insertion can therefore create an unreachable permanent rule version such as `' work '` or `''`.
-**Fix:** Enforce the same canonical rule-code contract in PostgreSQL.
-
-```sql
-rule_code TEXT NOT NULL
-  CHECK (rule_code <> '' AND rule_code = btrim(rule_code))
-```
-
-Add migration and repository tests covering blank and surrounding-whitespace rule codes.
-
-## Remediation Verification
-
-| Finding | Resolution | Evidence |
-|---------|------------|----------|
-| CR-01 | Statement-level `BEFORE TRUNCATE` guards protect both rule and ledger tables. | Separate live PostgreSQL rejection tests for both tables; 0132 installs the guards on existing schemas. |
-| CR-02 | The reversal shape constraint explicitly requires `reversal_reason IS NOT NULL`. | Direct SQL NULL-reason regression test asserts the shape constraint. |
-| CR-03 | Award and reversal inputs canonicalize `effective_at` to UTC microsecond precision. | Unit and live lost-response/retry tests use sub-microsecond timestamps. |
-| WR-01 | Snapshot mutations now alter bound VALUES in syntactically valid INSERTs and assert the trigger message. | Wrong code, version, category, rule value, and awarded value cases pass only through the snapshot trigger. |
-| WR-02 | Public-schema guard rejects quoted qualification plus CREATE/ALTER/DROP SCHEMA forms. | Focused guard tests cover all reported executable forms. |
-| WR-03 | Idempotent cleanup is registered immediately after the scoped pool is created. | Every later fatal setup path now runs pool/schema cleanup. |
-| WR-04 | PostgreSQL enforces nonblank, trim-canonical `rule_code`. | Live inserts of blank and padded codes are rejected; 0132 applies the constraint to existing schemas. |
-
-### Checks rerun
-
-- PostgreSQL 16: 0131 plus 0132 Up → Down → Up, append-only, snapshot, reversal, concurrency and retry suites passed in `team4s_phase106_test_review7`; the disposable database was removed afterward.
-- `go test ./...` passed.
-- `go vet ./...` passed.
-- `git diff --check` passed.
+- `go test ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services -count=1` — passed (DB tests skipped without opt-in DSN).
+- Disposable PostgreSQL 16: `go test ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services -run 'TestPhase106|TestPoint' -count=1 -v` — passed; disposable database removed.
+- `go vet ./internal/testsupport ./internal/migrations ./internal/repository ./internal/services` — passed.
+- `git diff --check` — passed before writing this report.
+- Disposable PostgreSQL whitespace probe — reproduced the active finding (`tab_rule_count=1`, `tab_reason_count=1`); disposable database removed.
 
 ---
 
-_Reviewed: 2026-07-22T21:22:37Z_
+_Reviewed: 2026-07-22T21:53:54Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
