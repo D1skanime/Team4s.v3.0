@@ -1,0 +1,326 @@
+package migrations
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"testing"
+
+	"team4s.v3/backend/internal/testsupport"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/require"
+)
+
+const (
+	phase106MigrationName = "0131_member_point_foundation"
+	phase106UpFile        = phase106MigrationName + ".up.sql"
+	phase106DownFile      = phase106MigrationName + ".down.sql"
+)
+
+func TestPhase106MigrationUpContract(t *testing.T) {
+	up := readPhase106Migration(t, phase106UpFile)
+	requireOrder(t, up, "create table point_rules", "create table point_ledger_entries")
+	requireSQLContains(t, up,
+		"unique (rule_code, rule_version)",
+		"check (rule_version > 0)", "check (point_value > 0)",
+		"check (category in ('fansub_work', 'platform_contribution'))",
+		"member_id bigint not null references members(id)",
+		"actor_app_user_id bigint null references app_users(id) on delete set null",
+		"fansub_group_id bigint null references fansub_groups(id) on delete set null",
+		"release_version_id bigint null references release_versions(id) on delete set null",
+		"rule_id", "rule_code_snapshot", "rule_version_snapshot", "rule_category_snapshot", "rule_point_value_snapshot",
+		"effective_at", "recorded_at", "idempotency_key", "unique (idempotency_key)",
+		"entry_kind in ('award', 'reversal')", "reversal_of_entry_id", "reversal_reason",
+		"create function", "before insert", "before update or delete", "pg_trigger_depth() > 1",
+		"not exists (select 1 from app_users where id = old.actor_app_user_id)",
+		"not exists (select 1 from fansub_groups where id = old.fansub_group_id)",
+		"not exists (select 1 from release_versions where id = old.release_version_id)",
+		"is not distinct from old", "raise exception",
+		"create unique index", "where reversal_of_entry_id is not null",
+	)
+	for _, immutable := range []string{"member_id", "source_type", "source_key", "rule_id", "rule_code_snapshot", "rule_version_snapshot", "rule_category_snapshot", "rule_point_value_snapshot", "point_value", "entry_kind", "reversal_of_entry_id", "reversal_reason", "effective_at", "recorded_at", "idempotency_key"} {
+		require.Contains(t, up, immutable+" is not distinct from old."+immutable, "UPDATE guard must preserve %s", immutable)
+	}
+	require.NotContains(t, up, "insert into point_rules", "migration must not seed productive point rules")
+	require.NotContains(t, up, "on delete cascade", "member, rule and reversal identity must not cascade")
+
+	// Cross-row insertion validation must bind requests to versioned rule and award snapshots.
+	requireSQLContains(t, up,
+		"new.entry_kind = 'award'", "new.entry_kind = 'reversal'",
+		"new.rule_id", "new.rule_code_snapshot", "new.rule_version_snapshot",
+		"new.rule_category_snapshot", "new.rule_point_value_snapshot", "new.point_value",
+		"pr.rule_code", "pr.rule_version", "pr.category", "pr.point_value",
+		"new.reversal_of_entry_id <> new.id", "original.entry_kind = 'award'",
+		"new.point_value = -original.point_value",
+	)
+}
+
+func TestPhase106MigrationDownContract(t *testing.T) {
+	down := readPhase106Migration(t, phase106DownFile)
+	requireSQLContains(t, down, "drop trigger", "drop function", "drop index", "drop table if exists point_ledger_entries", "drop table if exists point_rules")
+	requireOrder(t, down, "drop trigger", "drop table if exists point_ledger_entries")
+	requireOrder(t, down, "drop function", "drop table if exists point_ledger_entries")
+	requireOrder(t, down, "drop table if exists point_ledger_entries", "drop table if exists point_rules")
+	for _, unrelated := range []string{"media_assets", "media_files", "release_version_media", "badges", "capabilities", "reviews"} {
+		require.NotContains(t, down, unrelated)
+	}
+}
+
+func TestPhase106MigrationLiveUpDownUp(t *testing.T) {
+	pool := testsupport.OpenPhase106Postgres(t)
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106DownFile))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
+	assertPhase106TableExists(t, pool, "point_rules")
+	assertPhase106TableExists(t, pool, "point_ledger_entries")
+}
+
+func TestPhase106LedgerAppendOnly(t *testing.T) {
+	pool := openPhase106MigratedPool(t)
+	seedPhase106Ledger(t, pool)
+	assertExecRejected(t, pool, `UPDATE point_rules SET point_value = 11 WHERE id = 101`)
+	assertExecRejected(t, pool, `DELETE FROM point_rules WHERE id = 101`)
+	assertExecRejected(t, pool, `UPDATE point_ledger_entries SET source_key = 'changed' WHERE id = 201`)
+	assertExecRejected(t, pool, `UPDATE point_ledger_entries SET fansub_group_id = NULL WHERE id = 201`)
+	assertExecRejected(t, pool, `DELETE FROM point_ledger_entries WHERE id = 201`)
+
+	t.Run("nested_context_null_with_live_parent", func(t *testing.T) {
+		const functionName = "phase106_test_nested_live_parent"
+		const triggerName = "phase106_test_nested_live_parent_trigger"
+		cleanup := func() {
+			_, _ = pool.Exec(context.Background(), "DROP TRIGGER IF EXISTS "+triggerName+" ON members")
+			_, _ = pool.Exec(context.Background(), "DROP FUNCTION IF EXISTS "+functionName+"()")
+		}
+		cleanup()
+		t.Cleanup(cleanup)
+		_, err := pool.Exec(context.Background(), fmt.Sprintf(`
+CREATE FUNCTION %s() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE point_ledger_entries SET fansub_group_id = NULL WHERE id = 201;
+  RETURN NEW;
+END $$;
+CREATE TRIGGER %s AFTER UPDATE ON members FOR EACH ROW EXECUTE FUNCTION %s();`, functionName, triggerName, functionName))
+		require.NoError(t, err)
+		assertExecRejected(t, pool, `UPDATE members SET id = id WHERE id = 1`)
+	})
+
+	t.Run("nested_immutable_and_mixed_changes", func(t *testing.T) {
+		assertNestedLedgerMutationRejected(t, pool, "source_key = 'nested'")
+		assertNestedLedgerMutationRejected(t, pool, "fansub_group_id = NULL, source_key = 'mixed'")
+	})
+
+	t.Run("real_fk_context_nulling", func(t *testing.T) {
+		for _, tc := range []struct {
+			parent, column string
+			parentID       int
+		}{
+			{"app_users", "actor_app_user_id", 10},
+			{"fansub_groups", "fansub_group_id", 20},
+			{"release_versions", "release_version_id", 30},
+		} {
+			t.Run(tc.column, func(t *testing.T) {
+				pool := openPhase106MigratedPool(t)
+				seedPhase106Ledger(t, pool)
+				before := readLedgerSnapshot(t, pool, 201)
+				_, err := pool.Exec(context.Background(), fmt.Sprintf("DELETE FROM %s WHERE id = $1", tc.parent), tc.parentID)
+				require.NoError(t, err)
+				after := readLedgerSnapshot(t, pool, 201)
+				require.Equal(t, before.withNull(tc.column), after)
+			})
+		}
+	})
+}
+
+func TestPhase106ReversalCrossRowInvariants(t *testing.T) {
+	pool := openPhase106MigratedPool(t)
+	seedPhase106Ledger(t, pool)
+
+	for name, mutation := range map[string]string{
+		"wrong_rule_code": "rule_code_snapshot = 'wrong'",
+		"wrong_version":   "rule_version_snapshot = 2",
+		"wrong_category":  "rule_category_snapshot = 'platform_contribution'",
+		"wrong_value":     "point_value = 9",
+	} {
+		t.Run("award_"+name, func(t *testing.T) { assertAwardMutationRejected(t, pool, mutation) })
+	}
+
+	validReversal := `INSERT INTO point_ledger_entries
+(id, member_id, actor_app_user_id, fansub_group_id, release_version_id, source_type, source_key,
+ rule_id, rule_code_snapshot, rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
+ point_value, entry_kind, reversal_of_entry_id, reversal_reason, effective_at, idempotency_key)
+SELECT 202, member_id, actor_app_user_id, fansub_group_id, release_version_id, source_type, source_key,
+ rule_id, rule_code_snapshot, rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
+ -point_value, 'reversal', id, 'Testkorrektur', effective_at, 'phase106-reversal-202'
+FROM point_ledger_entries WHERE id = 201`
+	_, err := pool.Exec(context.Background(), validReversal)
+	require.NoError(t, err)
+
+	for name, sql := range map[string]string{
+		"duplicate_direct":     strings.ReplaceAll(validReversal, "202", "203"),
+		"reversal_of_reversal": strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "204"), "WHERE id = 201", "WHERE id = 202"),
+		"blank_reason":         strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "205"), "'Testkorrektur'", "'   '"),
+		"wrong_sign":           strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "206"), "-point_value", "point_value"),
+		"wrong_member":         strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "207"), "member_id, actor_app_user_id", "999, actor_app_user_id"),
+		"wrong_source":         strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "208"), "source_type, source_key", "source_type, 'wrong'"),
+		"wrong_rule":           strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "209"), "rule_id, rule_code_snapshot", "999, rule_code_snapshot"),
+		"wrong_context":        strings.ReplaceAll(strings.ReplaceAll(validReversal, "202", "210"), "fansub_group_id, release_version_id", "NULL, release_version_id"),
+	} {
+		t.Run(name, func(t *testing.T) { assertExecRejected(t, pool, sql) })
+	}
+}
+
+func TestPhase106MigrationBoundary(t *testing.T) {
+	files := []string{
+		phase106MigrationPath(t, phase106UpFile),
+		phase106MigrationPath(t, phase106DownFile),
+		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres.go"),
+		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres_test.go"),
+	}
+	for _, path := range files {
+		content, err := os.ReadFile(path)
+		require.NoError(t, err, "Phase-106 artifact missing: %s", filepath.Base(path))
+		lower := strings.ToLower(string(content))
+		for _, forbidden := range []string{"media_asset", "upload", "crop", "thumbnail", "anime_relation", "cleanup", "review_queue", "capability", "badge"} {
+			require.NotContains(t, lower, forbidden, "%s crosses Phase-106 boundary", filepath.Base(path))
+		}
+		if strings.HasSuffix(path, ".sql") {
+			require.NotContains(t, lower, "public.", "%s must use the isolated search path", filepath.Base(path))
+		}
+	}
+}
+
+func readPhase106Migration(t testing.TB, name string) string {
+	t.Helper()
+	content, err := os.ReadFile(phase106MigrationPath(t, name))
+	require.NoError(t, err, "read %s", name)
+	return normalizePhase106SQL(string(content))
+}
+
+func phase106MigrationPath(t testing.TB, name string) string {
+	t.Helper()
+	return filepath.Join(phase106RepoRoot(t), "database", "migrations", name)
+}
+
+func phase106RepoRoot(t testing.TB) string {
+	t.Helper()
+	_, filename, _, ok := runtime.Caller(0)
+	require.True(t, ok)
+	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", ".."))
+}
+
+func normalizePhase106SQL(sql string) string {
+	return strings.Join(strings.Fields(strings.ToLower(sql)), " ")
+}
+
+func requireSQLContains(t testing.TB, sql string, needles ...string) {
+	t.Helper()
+	for _, needle := range needles {
+		require.Contains(t, sql, normalizePhase106SQL(needle), "migration missing contract fragment %q", needle)
+	}
+}
+
+func requireOrder(t testing.TB, sql, first, second string) {
+	t.Helper()
+	firstAt, secondAt := strings.Index(sql, first), strings.Index(sql, second)
+	require.GreaterOrEqual(t, firstAt, 0, "missing %q", first)
+	require.Greater(t, secondAt, firstAt, "%q must occur before %q", first, second)
+}
+
+func openPhase106MigratedPool(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase106Postgres(t)
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
+	return pool
+}
+
+func seedPhase106Ledger(t testing.TB, pool *pgxpool.Pool) {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), `
+INSERT INTO members(id) VALUES (1), (999);
+INSERT INTO app_users(id) VALUES (10);
+INSERT INTO fansub_groups(id) VALUES (20);
+INSERT INTO release_versions(id) VALUES (30);
+INSERT INTO point_rules(id, rule_code, rule_version, category, point_value) VALUES (101, 'release_work', 1, 'fansub_work', 10);
+INSERT INTO point_ledger_entries
+(id, member_id, actor_app_user_id, fansub_group_id, release_version_id, source_type, source_key,
+ rule_id, rule_code_snapshot, rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
+ point_value, entry_kind, effective_at, idempotency_key)
+VALUES (201, 1, 10, 20, 30, 'release_version', '30', 101, 'release_work', 1, 'fansub_work', 10, 10, 'award', NOW(), 'phase106-award-201')`)
+	require.NoError(t, err)
+}
+
+func assertExecRejected(t testing.TB, pool *pgxpool.Pool, sql string) {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), sql)
+	require.Error(t, err)
+}
+
+func assertAwardMutationRejected(t testing.TB, pool *pgxpool.Pool, mutation string) {
+	t.Helper()
+	sql := fmt.Sprintf(`INSERT INTO point_ledger_entries
+(member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key)
+VALUES (1, 'manual', 'invalid', 101, 'release_work', 1, 'fansub_work', 10, 10, 'award', NOW(), 'invalid-%s')`, strings.ReplaceAll(mutation, " ", "-"))
+	sql = strings.Replace(sql, "point_value, entry_kind", mutation+", entry_kind", 1)
+	assertExecRejected(t, pool, sql)
+}
+
+func assertNestedLedgerMutationRejected(t testing.TB, pool *pgxpool.Pool, setClause string) {
+	t.Helper()
+	name := strings.NewReplacer(" ", "_", "=", "", "'", "", ",", "_").Replace(setClause)
+	functionName := "phase106_nested_" + fmt.Sprint(len(name))
+	triggerName := functionName + "_trigger"
+	_, err := pool.Exec(context.Background(), fmt.Sprintf(`
+CREATE FUNCTION %s() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+ UPDATE point_ledger_entries SET %s WHERE id = 201; RETURN NEW; END $$;
+CREATE TRIGGER %s AFTER UPDATE ON members FOR EACH ROW EXECUTE FUNCTION %s();`, functionName, setClause, triggerName, functionName))
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, _ = pool.Exec(context.Background(), "DROP TRIGGER IF EXISTS "+triggerName+" ON members")
+		_, _ = pool.Exec(context.Background(), "DROP FUNCTION IF EXISTS "+functionName+"()")
+	})
+	assertExecRejected(t, pool, `UPDATE members SET id = id WHERE id = 1`)
+}
+
+type phase106LedgerSnapshot struct {
+	MemberID, RuleID                                                     int64
+	ActorID, GroupID, ReleaseVersionID                                   *int64
+	SourceType, SourceKey, RuleCode, Category, EntryKind, IdempotencyKey string
+	RuleVersion, RuleValue, PointValue                                   int
+}
+
+func readLedgerSnapshot(t testing.TB, pool *pgxpool.Pool, id int64) phase106LedgerSnapshot {
+	t.Helper()
+	var value phase106LedgerSnapshot
+	err := pool.QueryRow(context.Background(), `SELECT member_id, actor_app_user_id, fansub_group_id, release_version_id,
+source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot, rule_category_snapshot,
+rule_point_value_snapshot, point_value, entry_kind, idempotency_key FROM point_ledger_entries WHERE id=$1`, id).Scan(
+		&value.MemberID, &value.ActorID, &value.GroupID, &value.ReleaseVersionID, &value.SourceType, &value.SourceKey,
+		&value.RuleID, &value.RuleCode, &value.RuleVersion, &value.Category, &value.RuleValue, &value.PointValue,
+		&value.EntryKind, &value.IdempotencyKey)
+	require.NoError(t, err)
+	return value
+}
+
+func (value phase106LedgerSnapshot) withNull(column string) phase106LedgerSnapshot {
+	switch column {
+	case "actor_app_user_id":
+		value.ActorID = nil
+	case "fansub_group_id":
+		value.GroupID = nil
+	case "release_version_id":
+		value.ReleaseVersionID = nil
+	}
+	return value
+}
+
+func assertPhase106TableExists(t testing.TB, pool *pgxpool.Pool, table string) {
+	t.Helper()
+	var exists bool
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT to_regclass($1) IS NOT NULL`, table).Scan(&exists))
+	require.True(t, exists, table)
+}
