@@ -4,12 +4,18 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	"team4s.v3/backend/internal/testsupport"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ledgerRowFunc func(...any) error
@@ -137,4 +143,136 @@ func ledgerEntryRow(entry PointLedgerEntry) pgx.Row {
 		}
 		return nil
 	})
+}
+
+func TestPointLedgerPostgresAwardRetryAndLostResponse(t *testing.T) {
+	pool := openPointLedgerPostgres(t)
+	r := NewPointLedgerRepository(pool)
+	in := postgresAwardInput("award:retry")
+	first, err := r.InsertAward(context.Background(), in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := r.InsertAward(context.Background(), in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.ID != second.ID {
+		t.Fatalf("retry IDs differ: %d != %d", first.ID, second.ID)
+	}
+	in.SourceKey = "changed"
+	if _, err := r.InsertAward(context.Background(), in); !errors.Is(err, ErrConflict) {
+		t.Fatalf("mismatch error = %v", err)
+	}
+}
+
+func TestPointLedgerPostgresConcurrentAward(t *testing.T) {
+	pool := openPointLedgerPostgres(t)
+	r := NewPointLedgerRepository(pool)
+	in := postgresAwardInput("award:concurrent")
+	start := make(chan struct{})
+	results := make(chan *PointLedgerEntry, 2)
+	errs := make(chan error, 2)
+	var ready sync.WaitGroup
+	ready.Add(2)
+	for range 2 {
+		go func() {
+			ready.Done()
+			<-start
+			got, err := r.InsertAward(context.Background(), in)
+			results <- got
+			errs <- err
+		}()
+	}
+	ready.Wait()
+	close(start)
+	a, b := <-results, <-results
+	if err := <-errs; err != nil {
+		t.Fatal(err)
+	}
+	if err := <-errs; err != nil {
+		t.Fatal(err)
+	}
+	if a.ID != b.ID {
+		t.Fatalf("concurrent IDs differ: %d != %d", a.ID, b.ID)
+	}
+}
+
+func TestPointLedgerPostgresReversalRetryConcurrentAndLostResponse(t *testing.T) {
+	pool := openPointLedgerPostgres(t)
+	r := NewPointLedgerRepository(pool)
+	original, err := r.InsertAward(context.Background(), postgresAwardInput("award:reverse"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := PointReversalInput{OriginalEntryID: original.ID, ActorAppUserID: 10, IdempotencyKey: "reverse:retry", EffectiveAt: time.Date(2026, 7, 22, 13, 0, 0, 0, time.UTC), Reason: "duplicate"}
+	start := make(chan struct{})
+	results := make(chan *PointLedgerEntry, 2)
+	errs := make(chan error, 2)
+	var ready sync.WaitGroup
+	ready.Add(2)
+	for range 2 {
+		go func() {
+			ready.Done()
+			<-start
+			got, err := r.InsertReversal(context.Background(), in)
+			results <- got
+			errs <- err
+		}()
+	}
+	ready.Wait()
+	close(start)
+	a, b := <-results, <-results
+	if err := <-errs; err != nil {
+		t.Fatal(err)
+	}
+	if err := <-errs; err != nil {
+		t.Fatal(err)
+	}
+	if a.ID != b.ID {
+		t.Fatalf("reversal IDs differ: %d != %d", a.ID, b.ID)
+	}
+	in.Reason = "different"
+	if _, err := r.InsertReversal(context.Background(), in); !errors.Is(err, ErrConflict) {
+		t.Fatalf("mismatch error = %v", err)
+	}
+	if _, err := r.InsertReversal(context.Background(), PointReversalInput{OriginalEntryID: a.ID, ActorAppUserID: 10, IdempotencyKey: "reverse:again", EffectiveAt: in.EffectiveAt, Reason: "invalid"}); !errors.Is(err, ErrValidation) {
+		t.Fatalf("reversal-of-reversal error = %v", err)
+	}
+}
+
+func TestPointLedgerPostgresRollback(t *testing.T) {
+	pool := openPointLedgerPostgres(t)
+	tx, err := pool.Begin(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewPointLedgerRepository(tx).InsertAward(context.Background(), postgresAwardInput("award:rollback")); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Rollback(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	var count int
+	if err := pool.QueryRow(context.Background(), `SELECT count(*) FROM point_ledger_entries WHERE idempotency_key='award:rollback'`).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 0 {
+		t.Fatalf("rollback left %d rows", count)
+	}
+}
+
+func openPointLedgerPostgres(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase106Postgres(t)
+	_, file, _, _ := runtime.Caller(0)
+	testsupport.ApplySQLFile(t, pool, filepath.Join(filepath.Dir(file), "..", "..", "..", "database", "migrations", "0131_member_point_foundation.up.sql"))
+	if _, err := pool.Exec(context.Background(), `INSERT INTO members(id) VALUES (1); INSERT INTO app_users(id) VALUES (10); INSERT INTO fansub_groups(id) VALUES (20); INSERT INTO release_versions(id) VALUES (30); INSERT INTO point_rules(id, rule_code, rule_version, category, point_value) VALUES (101, 'release_work', 1, 'fansub_work', 10)`); err != nil {
+		t.Fatal(err)
+	}
+	return pool
+}
+
+func postgresAwardInput(key string) PointAwardInput {
+	return PointAwardInput{MemberID: 1, ActorAppUserID: pointInt64Ptr(10), FansubGroupID: pointInt64Ptr(20), ReleaseVersionID: pointInt64Ptr(30), SourceType: "release_version", SourceKey: "30", RuleID: 101, RuleCode: "release_work", RuleVersion: 1, RuleCategory: "fansub_work", RulePointValue: 10, EffectiveAt: time.Date(2026, 7, 22, 12, 0, 0, 0, time.UTC), IdempotencyKey: key}
 }
