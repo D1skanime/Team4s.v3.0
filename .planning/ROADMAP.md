@@ -2387,11 +2387,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Tabellen `media` (id, kind, storage_key, original_filename, mime_type, byte_size, width, height, duration_seconds, content_hash, source, source_ref, credit, rights_note, owner_user_id, owner_member_id, processing_status, created_at) und `media_variant` (media_id FK ON DELETE CASCADE, variant, storage_key, width, height, byte_size, mime_type, status) existieren per Migration; `caption`, `visibility_id`, `review_status_id` liegen NICHT am Medium.
-  2. Legacy ist ersatzlos entfernt: totes UUID-Schema `backend/database/migrations/001_*` + `models/media_upload.go`-Upload-DTOs; `episode_version_images`-Reste (Repo-Stub, Model, Handler, Route `/releases/:id/images`); `anime.cover_image` + `/covers/`-Serving + `/api/admin/upload-cover` + `cmd/migrate-covers`; `asset_lifecycle_service`-Ordnerprovisionierung; Dual-Upload-Legacy-Pfad (`SupportsLegacyUploadSchema`). — **Hinweis (PO-Entscheid 2026-07-21, „Option A"):** Die `release_media`-Junction ist aus diesem SC **herausgenommen** und wandert nach Phase 108; sie backt mit `GET /releases/:id/assets` ein lebendes FE-Feature, dessen Entfernung die 106-Grenze „kein Verhaltensumbau an Upload/Frontend" verletzen würde. Siehe `106-CONTEXT.md` D-07.
+  2. Legacy ist ersatzlos entfernt: totes UUID-Schema `backend/database/migrations/001_*` + `models/media_upload.go`-Upload-DTOs; `episode_version_images`-Reste (Repo-Stub, Model, Handler, Route `/releases/:id/images`); `anime.cover_image` (inkl. aller lesenden SQL-Call-Sites und der dadurch dauerhaft toten HasSlug/useV2Schema-Legacy-Zweige — PO-Entscheid 2026-07-22: bleibt im 106-Scope, weil der Drop-in-Ersatz `animeCoverImageSelectSQL` bereits produktiv existiert und die Umstellung damit mechanisch/verhaltenserhaltend ist) + `/covers/`-Serving + `/api/admin/upload-cover` + `cmd/migrate-covers`; `asset_lifecycle_service`-Ordnerprovisionierung; Dual-Upload-Legacy-Pfad (`SupportsLegacyUploadSchema`). — **Hinweis (PO-Entscheid 2026-07-21, „Option A"):** Die `release_media`-Junction ist aus diesem SC **herausgenommen** und wandert nach Phase 108; sie backt mit `GET /releases/:id/assets` ein lebendes FE-Feature, dessen Entfernung die 106-Grenze „kein Verhaltensumbau an Upload/Frontend" verletzen würde. Siehe `106-CONTEXT.md` D-07.
   3. Die vollständige Migrationskette (1 bis neueste) läuft auf einer leeren DB fehlerfrei durch; ein Schema-Contract-Check (analog `scripts/schema-v2-contract-check.ps1`) belegt, dass keine Legacy-Medientabelle/-spalte mehr existiert.
   4. `go build` + `go vet` sind grün; grep belegt keine verbleibenden Referenzen auf entfernte Symbole/Routen.
 
-**Plans:** 8 plans
+**Plans:** 10 plans
 
 Plans:
 **Wave 1**
@@ -2403,16 +2403,21 @@ Plans:
 
 - [ ] 106-03-PLAN.md — Legacy-Loeschungen: totes 001-UUID-Schema, episode_version_images + Route, migrate-covers/Ops-Skripte
 - [ ] 106-04-PLAN.md — Upload-Dualpfad (Cluster B) entfernen; release_media-Write-Path bleibt (D-07)
-- [ ] 106-05-PLAN.md — anime.cover_image-Spalten-Abbau + D-07-Regressionsnachweis (release_media unberuehrt)
+- [ ] 106-05-PLAN.md — anime.cover_image-Spalten-Abbau (anime_v2/anime_assets/anime_schema) + D-07-Regressionsnachweis
 - [ ] 106-07-PLAN.md — Frontend /covers + upload-cover Route-Handler + api.ts-Client (build-breaking, D-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 106-06-PLAN.md — asset_lifecycle-Cluster entfernen, MediaUploadHandler entkoppeln
+- [ ] 106-06-PLAN.md — asset_lifecycle-Cluster entfernen, MediaUploadHandler entkoppeln (Fehlercodes → media_upload.*)
+- [ ] 106-09-PLAN.md — Die 8 live gelesenen anime.cover_image-Rohspalten-Queries auf die kanonische COALESCE-Quelle umstellen (Watchlist, Relationen, Gruppenprojekte, Member-Profil, Admin)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 106-08-PLAN.md — Phasen-Gate: Kette 1→n auf leerer DB + Contract-Check + grep-Suite + Live-Verify
+- [ ] 106-10-PLAN.md — Dauerhaft tote HasSlug/useV2Schema-Legacy-Zweige mit cover_image-Bezug entfernen + Test-Assertionen ziehen
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 106-08-PLAN.md — Phasen-Gate: Kette 1→n auf leerer DB + Contract-Check + grep-Suite + Live-Verify (inkl. 4 oeffentliche Cover-Oberflaechen)
 
 ### Phase 107: Vereinheitlichte Upload-Pipeline (MediaFileService)
 
