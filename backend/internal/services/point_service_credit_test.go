@@ -3,12 +3,15 @@ package services
 import (
 	"context"
 	"errors"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/testsupport"
 )
 
 type pointTestRow struct{ scan func(...any) error }
@@ -189,4 +192,54 @@ func TestPointServiceCreditStandaloneLifecycle(t *testing.T) {
 			t.Fatal("expected error")
 		}
 	})
+}
+
+func TestPointServiceCreditInTxPostgresBoundary(t *testing.T) {
+	pool := testsupport.OpenPhase106Postgres(t)
+	_, file, _, _ := runtime.Caller(0)
+	testsupport.ApplySQLFile(t, pool, filepath.Join(filepath.Dir(file), "..", "..", "..", "database", "migrations", "0131_member_point_foundation.up.sql"))
+	ctx := context.Background()
+	if _, err := pool.Exec(ctx, `CREATE TABLE point_service_markers(id bigint PRIMARY KEY); INSERT INTO members(id) VALUES (42); INSERT INTO point_rules(id,rule_code,rule_version,category,point_value) VALUES(3,'timing',1,'fansub_work',7)`); err != nil {
+		t.Fatal(err)
+	}
+	cmd := validCredit()
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = tx.Exec(ctx, `INSERT INTO point_service_markers(id) VALUES(1)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = NewPointService(nil).CreditInTx(ctx, tx, cmd); err != nil {
+		t.Fatal(err)
+	}
+	if err = tx.Rollback(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var markers, awards int
+	if err = pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM point_service_markers),(SELECT count(*) FROM point_ledger_entries)`).Scan(&markers, &awards); err != nil {
+		t.Fatal(err)
+	}
+	if markers != 0 || awards != 0 {
+		t.Fatalf("rollback left marker=%d award=%d", markers, awards)
+	}
+	tx, err = pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = tx.Exec(ctx, `INSERT INTO point_service_markers(id) VALUES(2)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = NewPointService(nil).CreditInTx(ctx, tx, cmd); err != nil {
+		t.Fatal(err)
+	}
+	if err = tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err = pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM point_service_markers),(SELECT count(*) FROM point_ledger_entries)`).Scan(&markers, &awards); err != nil {
+		t.Fatal(err)
+	}
+	if markers != 1 || awards != 1 {
+		t.Fatalf("commit marker=%d award=%d", markers, awards)
+	}
 }
