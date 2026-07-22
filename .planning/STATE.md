@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
-status: Ready to execute Phase 106
-stopped_at: Phase 106 geplant und durch den Plan-Checker verifiziert; bereit für execute-phase
-last_updated: "2026-07-22T17:13:41.516Z"
+status: ready_to_plan
+stopped_at: Phase 106 complete (4/4) — ready to discuss Phase 999.1
+last_updated: 2026-07-22T20:21:29.610Z
 last_activity: 2026-07-22
 progress:
   total_phases: 102
-  completed_phases: 80
-  total_plans: 440
-  completed_plans: 404
-  percent: 78
+  completed_phases: 1
+  total_plans: 436
+  completed_plans: 431
+  percent: 1
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 106 — Beitrags- und Punktefundament
+**Current focus:** Phase 999.1 — querverlinkung role capabilities und users impact count roll
 
 ## Current Position
 
-Phase: 106 (member-gamification-punktefundament) — READY TO EXECUTE
-Plan: 0 of 4
+Phase: 999.1
+Plan: Not started
 
 ## Accumulated Context
 

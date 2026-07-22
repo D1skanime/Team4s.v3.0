@@ -2393,24 +2393,24 @@ Plans:
   4. Profilpflege erzeugt keine Punkte. Profil-Meilensteine werden später ausschließlich als automatisch berechnete Badges behandelt.
   5. Die Phase verändert weder `media_assets`/`media_files` noch bestehende Upload-, Crop-, Thumbnail-, Relations- oder Cleanup-Flows. Neue Strukturen werden nur für Gamification ergänzt und sind durch Migrations-, Repository- und Contract-Tests abgesichert.
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 106-01-PLAN.md — Sicherer Testdatenbank-Guard und kompilierbare Migrations-/Append-only-/Stornoverträge
+- [x] 106-01-PLAN.md — Sicherer Testdatenbank-Guard und kompilierbare Migrations-/Append-only-/Stornoverträge
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 106-02-PLAN.md — DB-erzwungen unveränderlicher Regelkatalog und append-only Ledger mit Cross-Row-Stornoprüfung
+- [x] 106-02-PLAN.md — DB-erzwungen unveränderlicher Regelkatalog und append-only Ledger mit Cross-Row-Stornoprüfung
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 106-03-PLAN.md — Expliziter RuleRef sowie idempotente Award-/Reversal-Repositorys mit Lost-Response-Retry
+- [x] 106-03-PLAN.md — Expliziter RuleRef sowie idempotente Award-/Reversal-Repositorys mit Lost-Response-Retry
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 106-04-PLAN.md — Tx-gebundener und standalone PointService für Credit/Storno ohne Consumer-Wiring
+- [x] 106-04-PLAN.md — Tx-gebundener und standalone PointService für Credit/Storno ohne Consumer-Wiring
 
 ### Phase 107: Bestätigung, Delegation und Ablehnungslebenszyklus
 
