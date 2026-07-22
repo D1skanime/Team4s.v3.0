@@ -42,12 +42,8 @@ func TestPhase106MigrationUpContract(t *testing.T) {
 		"effective_at", "recorded_at", "idempotency_key", "unique (idempotency_key)",
 		"entry_kind in ('award', 'reversal')", "reversal_of_entry_id", "reversal_reason",
 		"create function", "before insert", "before update or delete", "pg_trigger_depth() > 1",
-		"before truncate on point_rules", "before truncate on point_ledger_entries",
-		"rule_code ~ '[^[:space:]]'", "rule_code !~ '^[[:space:]]|[[:space:]]$'",
-		"source_type ~ '[^[:space:]]'", "source_type !~ '^[[:space:]]|[[:space:]]$'",
-		"source_key ~ '[^[:space:]]'", "source_key !~ '^[[:space:]]|[[:space:]]$'",
-		"idempotency_key ~ '[^[:space:]]'", "idempotency_key !~ '^[[:space:]]|[[:space:]]$'",
-		"reversal_reason is not null", "reversal_reason ~ '[^[:space:]]'",
+		"btrim(source_type) <> ''", "btrim(source_key) <> ''", "btrim(idempotency_key) <> ''",
+		"btrim(reversal_reason) <> ''",
 		"not exists (select 1 from app_users where id = old.actor_app_user_id)",
 		"not exists (select 1 from fansub_groups where id = old.fansub_group_id)",
 		"not exists (select 1 from release_versions where id = old.release_version_id)",
@@ -71,6 +67,38 @@ func TestPhase106MigrationUpContract(t *testing.T) {
 	)
 }
 
+func TestPhase106ReviewHardeningContract(t *testing.T) {
+	up := readPhase106Migration(t, phase106HardeningUp)
+	requireSQLContains(t, up,
+		"rule_code <> ''", "rule_code = btrim(rule_code)",
+		"reversal_reason is not null", "btrim(reversal_reason) <> ''",
+		"before truncate on point_rules", "before truncate on point_ledger_entries",
+	)
+}
+
+func TestPhase106WhitespaceHardeningContract(t *testing.T) {
+	up := readPhase106Migration(t, phase106WhitespaceUp)
+	requireSQLContains(t, up,
+		"create function phase106_trim_unicode_whitespace",
+		`u&'\0009\000a\000b\000c\000d\0020\0085\00a0\1680\2000\2001\2002\2003\2004\2005\2006\2007\2008\2009\200a\2028\2029\202f\205f\3000'`,
+		"point_rules.rule_code", "point_ledger_entries.source_type", "point_ledger_entries.source_key",
+		"point_ledger_entries.idempotency_key", "point_ledger_entries.reversal_reason",
+		"approved data migration", "do not silently trim or invent identifiers or reversal reasons",
+		"rule_code = phase106_trim_unicode_whitespace(rule_code)",
+		"source_type = phase106_trim_unicode_whitespace(source_type)",
+		"source_key = phase106_trim_unicode_whitespace(source_key)",
+		"idempotency_key = phase106_trim_unicode_whitespace(idempotency_key)",
+		"phase106_trim_unicode_whitespace(reversal_reason) <> ''",
+	)
+
+	down := readPhase106Migration(t, phase106WhitespaceDown)
+	requireSQLContains(t, down,
+		"btrim(source_type) <> ''", "btrim(source_key) <> ''", "btrim(idempotency_key) <> ''",
+		"btrim(reversal_reason) <> ''", "rule_code = btrim(rule_code)",
+		"drop function if exists phase106_trim_unicode_whitespace(text)",
+	)
+}
+
 func TestPhase106MigrationDownContract(t *testing.T) {
 	down := readPhase106Migration(t, phase106DownFile)
 	requireSQLContains(t, down, "drop trigger", "drop function", "drop index", "drop table if exists point_ledger_entries", "drop table if exists point_rules")
@@ -91,18 +119,138 @@ func TestPhase106MigrationLiveUpDownUp(t *testing.T) {
 	assertPhase106TableExists(t, pool, "point_ledger_entries")
 }
 
-func TestPhase106ReviewHardeningLiveUpDownUp(t *testing.T) {
+func TestPhase106WhitespaceHardeningLiveUpDownUp(t *testing.T) {
 	pool := testsupport.OpenPhase106Postgres(t)
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	historicalDefinitions := readPhase106WhitespaceConstraintDefinitions(t, pool)
+	require.Contains(t, historicalDefinitions, "point_ledger_entries_source_type_check")
+	require.Contains(t, historicalDefinitions, "point_ledger_entries_source_key_check")
+	require.Contains(t, historicalDefinitions, "point_ledger_entries_idempotency_key_check")
+
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106WhitespaceUp))
+	hardenedDefinitions := readPhase106WhitespaceConstraintDefinitions(t, pool)
+	require.Contains(t, hardenedDefinitions, "chk_point_ledger_source_type_canonical")
+	require.Contains(t, hardenedDefinitions, "chk_point_ledger_source_key_canonical")
+	require.Contains(t, hardenedDefinitions, "chk_point_ledger_idempotency_key_canonical")
+	require.NotEqual(t, historicalDefinitions, hardenedDefinitions)
+
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106WhitespaceDown))
-	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningDown))
-	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	require.Equal(t, historicalDefinitions, readPhase106WhitespaceConstraintDefinitions(t, pool), "0133 down must reproduce the exact 0132 constraint definitions")
+	assertPhase106FunctionExists(t, pool, "phase106_trim_unicode_whitespace(text)", false)
+
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106WhitespaceUp))
+	require.Equal(t, hardenedDefinitions, readPhase106WhitespaceConstraintDefinitions(t, pool), "0133 re-up must reproduce the exact hardened definitions")
 	seedPhase106Ledger(t, pool)
 	_, err := pool.Exec(context.Background(), `TRUNCATE point_ledger_entries`)
 	require.ErrorContains(t, err, "point ledger is append-only")
+}
+
+func TestPhase106WhitespaceHistoricalDirtyUpgradeFailsClosed(t *testing.T) {
+	pool := testsupport.OpenPhase106Postgres(t)
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	historicalDefinitions := readPhase106WhitespaceConstraintDefinitions(t, pool)
+
+	_, err := pool.Exec(context.Background(), `INSERT INTO members(id) VALUES (1)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `INSERT INTO point_rules(id, rule_code, rule_version, category, point_value)
+VALUES (101, $1, 1, 'fansub_work', 10)`, "\u00a0")
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
+(id, member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key)
+VALUES (201, 1, $1, $2, 101, $3, 1, 'fansub_work', 10, 10, 'award', NOW(), $4)`, "\u0085", "\t", "\u00a0", "\u3000")
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
+(id, member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, reversal_of_entry_id,
+ reversal_reason, effective_at, idempotency_key)
+SELECT 202, member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, -point_value, 'reversal', id, $1, effective_at, 'historical-reversal'
+FROM point_ledger_entries WHERE id = 201`, "\u2028")
+	require.NoError(t, err, "historical 0131/0132 must admit the dirty upgrade fixture")
+
+	content, err := os.ReadFile(phase106MigrationPath(t, phase106WhitespaceUp))
+	require.NoError(t, err)
+	conn, err := pool.Acquire(context.Background())
+	require.NoError(t, err)
+	_, migrationErr := conn.Exec(context.Background(), string(content))
+	require.Error(t, migrationErr)
+	_, rollbackErr := conn.Exec(context.Background(), "ROLLBACK")
+	require.NoError(t, rollbackErr)
+	conn.Release()
+
+	for _, field := range []string{
+		"point_rules.rule_code",
+		"point_ledger_entries.source_type",
+		"point_ledger_entries.source_key",
+		"point_ledger_entries.idempotency_key",
+		"point_ledger_entries.reversal_reason",
+	} {
+		require.Contains(t, migrationErr.Error(), field)
+	}
+	require.Contains(t, migrationErr.Error(), "approved remediation is required")
+	require.Contains(t, migrationErr.Error(), "do not silently trim or invent identifiers or reversal reasons")
+	require.Equal(t, historicalDefinitions, readPhase106WhitespaceConstraintDefinitions(t, pool), "failed upgrade must leave the historical schema intact")
+	assertPhase106FunctionExists(t, pool, "phase106_trim_unicode_whitespace(text)", false)
+
+	var entries int
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM point_ledger_entries`).Scan(&entries))
+	require.Equal(t, 2, entries, "failed upgrade must not mutate historical rows")
+}
+
+func TestPhase106UnicodeWhitespaceContract(t *testing.T) {
+	pool := openPhase106MigratedPool(t)
+	seedPhase106Ledger(t, pool)
+	spaces := []rune{
+		'\t', '\n', '\v', '\f', '\r', ' ', '\u0085', '\u00a0', '\u1680',
+		'\u2000', '\u2001', '\u2002', '\u2003', '\u2004', '\u2005', '\u2006',
+		'\u2007', '\u2008', '\u2009', '\u200a', '\u2028', '\u2029', '\u202f',
+		'\u205f', '\u3000',
+	}
+	identifierFields := []string{"rule_code", "source_type", "source_key", "idempotency_key"}
+
+	for index, space := range spaces {
+		space := space
+		index := index
+		t.Run(fmt.Sprintf("U+%04X", space), func(t *testing.T) {
+			whitespace := string(space)
+			for variantIndex, value := range []string{whitespace, whitespace + "canonical", "canonical" + whitespace} {
+				for _, field := range identifierFields {
+					assertPhase106CanonicalValueRejected(t, pool, field, value, fmt.Sprintf("%04x-%d-%s", space, variantIndex, field))
+				}
+			}
+
+			_, err := pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
+(id, member_id, actor_app_user_id, fansub_group_id, release_version_id, source_type, source_key,
+ rule_id, rule_code_snapshot, rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
+ point_value, entry_kind, reversal_of_entry_id, reversal_reason, effective_at, idempotency_key)
+SELECT $1, member_id, actor_app_user_id, fansub_group_id, release_version_id, source_type, source_key,
+ rule_id, rule_code_snapshot, rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
+ -point_value, 'reversal', id, $2, effective_at, $3
+FROM point_ledger_entries WHERE id = 201`, int64(4000+index), whitespace, fmt.Sprintf("unicode-only-reason-%04x", space))
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "chk_point_ledger_entry_shape")
+
+			awardID := int64(5000 + index)
+			_, err = pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
+(id, member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key)
+VALUES ($1, 1, 'unicode_reason', $2, 101, 'release_work', 1, 'fansub_work', 10, 10, 'award', NOW(), $3)`,
+				awardID, fmt.Sprintf("reason-%04x", space), fmt.Sprintf("unicode-reason-award-%04x", space))
+			require.NoError(t, err)
+			_, err = pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
+(id, member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, reversal_of_entry_id,
+ reversal_reason, effective_at, idempotency_key)
+SELECT $1, member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, -point_value, 'reversal', id, $2, effective_at, $3
+FROM point_ledger_entries WHERE id = $4`, int64(6000+index), whitespace+"meaningful"+whitespace,
+				fmt.Sprintf("unicode-padded-reason-%04x", space), awardID)
+			require.NoError(t, err, "reversal_reason requires meaningful content but is not a canonical identifier")
+		})
+	}
 }
 
 func TestPhase106LedgerAppendOnly(t *testing.T) {
@@ -324,7 +472,85 @@ func openPhase106MigratedPool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	pool := testsupport.OpenPhase106Postgres(t)
 	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106UpFile))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106HardeningUp))
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase106WhitespaceUp))
 	return pool
+}
+
+func readPhase106WhitespaceConstraintDefinitions(t testing.TB, pool *pgxpool.Pool) map[string]string {
+	t.Helper()
+	rows, err := pool.Query(context.Background(), `
+SELECT conname, pg_get_constraintdef(oid, true)
+FROM pg_constraint
+WHERE conrelid IN ('point_rules'::regclass, 'point_ledger_entries'::regclass)
+  AND conname IN (
+    'chk_point_rules_rule_code_canonical',
+    'point_ledger_entries_source_type_check',
+    'point_ledger_entries_source_key_check',
+    'point_ledger_entries_idempotency_key_check',
+    'chk_point_ledger_source_type_canonical',
+    'chk_point_ledger_source_key_canonical',
+    'chk_point_ledger_idempotency_key_canonical',
+    'chk_point_ledger_entry_shape'
+  )
+ORDER BY conname`)
+	require.NoError(t, err)
+	defer rows.Close()
+
+	definitions := make(map[string]string)
+	for rows.Next() {
+		var name, definition string
+		require.NoError(t, rows.Scan(&name, &definition))
+		definitions[name] = definition
+	}
+	require.NoError(t, rows.Err())
+	require.Len(t, definitions, 5)
+	return definitions
+}
+
+func assertPhase106FunctionExists(t testing.TB, pool *pgxpool.Pool, signature string, expected bool) {
+	t.Helper()
+	var exists bool
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT to_regprocedure($1) IS NOT NULL`, signature).Scan(&exists))
+	require.Equal(t, expected, exists, signature)
+}
+
+func assertPhase106CanonicalValueRejected(t testing.TB, pool *pgxpool.Pool, field, value, suffix string) {
+	t.Helper()
+	constraint := map[string]string{
+		"rule_code":       "chk_point_rules_rule_code_canonical",
+		"source_type":     "chk_point_ledger_source_type_canonical",
+		"source_key":      "chk_point_ledger_source_key_canonical",
+		"idempotency_key": "chk_point_ledger_idempotency_key_canonical",
+	}[field]
+	require.NotEmpty(t, constraint, field)
+
+	if field == "rule_code" {
+		_, err := pool.Exec(context.Background(), `INSERT INTO point_rules(rule_code, rule_version, category, point_value)
+VALUES ($1, 99, 'fansub_work', 10)`, value)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), constraint)
+		return
+	}
+
+	sourceType, sourceKey, idempotencyKey := "canonical", "canonical", "unicode-canonical-"+suffix
+	switch field {
+	case "source_type":
+		sourceType = value
+	case "source_key":
+		sourceKey = value
+	case "idempotency_key":
+		idempotencyKey = value
+	default:
+		t.Fatalf("unsupported canonical field %q", field)
+	}
+	_, err := pool.Exec(context.Background(), `INSERT INTO point_ledger_entries
+(member_id, source_type, source_key, rule_id, rule_code_snapshot, rule_version_snapshot,
+ rule_category_snapshot, rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key)
+VALUES (1, $1, $2, 101, 'release_work', 1, 'fansub_work', 10, 10, 'award', NOW(), $3)`,
+		sourceType, sourceKey, idempotencyKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), constraint)
 }
 
 func seedPhase106Ledger(t testing.TB, pool *pgxpool.Pool) {

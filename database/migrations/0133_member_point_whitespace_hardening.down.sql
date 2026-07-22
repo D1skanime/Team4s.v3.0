@@ -24,4 +24,6 @@ ALTER TABLE point_rules
     ADD CONSTRAINT chk_point_rules_rule_code_canonical
     CHECK (rule_code <> '' AND rule_code = btrim(rule_code));
 
+DROP FUNCTION IF EXISTS phase106_trim_unicode_whitespace(TEXT);
+
 COMMIT;

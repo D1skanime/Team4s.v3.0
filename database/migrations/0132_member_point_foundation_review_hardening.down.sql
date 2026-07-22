@@ -6,18 +6,6 @@ DROP FUNCTION IF EXISTS reject_point_ledger_truncate();
 DROP TRIGGER IF EXISTS point_rules_reject_truncate ON point_rules;
 
 ALTER TABLE point_ledger_entries
-    DROP CONSTRAINT IF EXISTS point_ledger_entries_source_type_check,
-    DROP CONSTRAINT IF EXISTS point_ledger_entries_source_key_check,
-    DROP CONSTRAINT IF EXISTS point_ledger_entries_idempotency_key_check,
-    DROP CONSTRAINT IF EXISTS chk_point_ledger_source_type_canonical,
-    DROP CONSTRAINT IF EXISTS chk_point_ledger_source_key_canonical,
-    DROP CONSTRAINT IF EXISTS chk_point_ledger_idempotency_key_canonical;
-ALTER TABLE point_ledger_entries
-    ADD CONSTRAINT point_ledger_entries_source_type_check CHECK (btrim(source_type) <> ''),
-    ADD CONSTRAINT point_ledger_entries_source_key_check CHECK (btrim(source_key) <> ''),
-    ADD CONSTRAINT point_ledger_entries_idempotency_key_check CHECK (btrim(idempotency_key) <> '');
-
-ALTER TABLE point_ledger_entries
     DROP CONSTRAINT IF EXISTS chk_point_ledger_entry_shape;
 ALTER TABLE point_ledger_entries
     ADD CONSTRAINT chk_point_ledger_entry_shape CHECK (
