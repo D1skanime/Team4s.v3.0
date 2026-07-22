@@ -68,6 +68,14 @@
 
 ### Auth/API Lifecycle
 
+#### Member-Gamification-Fundament
+
+- **GAM-01**: Punkte gehören zwingend zu einer stabilen `members`-Identität; ein `app_user` ist nur ein optionaler handelnder Akteur, sodass historische Mitglieder ohne Account Punkte besitzen können.
+- **GAM-02**: Ein append-only Punktebuch speichert fachliche Quelle, Beitragstyp, Member, optionalen Gruppen-/Release-Kontext, angewandte Regelversion und Wert, Wirksamkeits- und Buchungszeit sowie referenzierende Stornobuchungen; derselbe semantische Quellen-/Regelschlüssel kann auch bei parallelen Retries nicht doppelt belohnt werden.
+- **GAM-03**: Ein zentraler, unveränderlicher und versionierter Punktekatalog liefert feste serverseitige Werte; Aufrufer und spätere Prüfer können weder Punktwert noch Idempotenzschlüssel frei setzen, und neue Regelversionen verändern bestehende Buchungen nicht.
+- **GAM-04**: Historische Fansub-Leistung und bestätigte Plattformbeiträge bleiben über stabile Kategorien unterscheidbar; Profilpflege erzeugt keine Punkte und vorhandene `member_badges` bleiben eine getrennte, abgeleitete Projektion.
+- **GAM-05**: Das Punktefundament ist rein additiv und verändert keine bestehenden Medien-, Upload-, Crop-, Thumbnail-, Relations-, Cleanup-, Review- oder Capability-Flows; Migration, Repository und Service sind durch Up/Down-, Idempotenz-, Storno- und Parallelitätstests abgesichert.
+
 - **TIPTAP-EDITOR-01**: Team4s text surfaces use a shared TipTap-based rich-text foundation with JSON storage, server-side rendering/sanitizing, plaintext extraction, and reusable editor/renderer components.
 - **TIPTAP-COLLAB-01**: Official fansub group notes support a future narrow real-time collaboration mode without introducing a competing note store or changing release/anime ownership rules.
 - **AUTH-FOUNDATION-01**: Keycloak owns login/session/token lifecycle while Team4s owns app users, global app roles, fansub memberships, and fansub-specific roles in the application database.
@@ -233,6 +241,11 @@
 | P103-SC4 | Phase 103 | Planned |
 | P103-SC5 | Phase 103 | Planned |
 | P103-SC6 | Phase 103 | Planned |
+| GAM-01 | Phase 106 | Planned |
+| GAM-02 | Phase 106 | Planned |
+| GAM-03 | Phase 106 | Planned |
+| GAM-04 | Phase 106 | Planned |
+| GAM-05 | Phase 106 | Planned |
 
 **Coverage:**
 - v1 requirements: 28 total

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
-status: Executing Phase 105
-stopped_at: Phase 107 context gathered
-last_updated: "2026-07-22T11:33:43.015Z"
+status: Ready to execute Phase 106
+stopped_at: Phase 106 geplant und durch den Plan-Checker verifiziert; bereit für execute-phase
+last_updated: "2026-07-22T17:13:41.516Z"
 last_activity: 2026-07-22
 progress:
   total_phases: 102
   completed_phases: 80
-  total_plans: 459
+  total_plans: 440
   completed_plans: 404
   percent: 78
 ---
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 105 — responsive-release-detailseite-und-kara-timeline-redesign
+**Current focus:** Phase 106 — Beitrags- und Punktefundament
 
 ## Current Position
 
-Phase: 105 (responsive-release-detailseite-und-kara-timeline-redesign) — EXECUTING
-Plan: 5 of 5
+Phase: 106 (member-gamification-punktefundament) — READY TO EXECUTE
+Plan: 0 of 4
 
 ## Accumulated Context
 
@@ -671,6 +671,6 @@ Recent durable decisions:
 ## Session Continuity
 
 Last session: 2026-07-21T20:27:28.254Z
-Stopped at: Phase 107 context gathered
+Stopped at: Phase 106 geplant und durch den Plan-Checker verifiziert; bereit für execute-phase
 Last activity: 2026-07-22
-Resume file: .planning/phases/107-vereinheitlichte-upload-pipeline-mediafileservice/107-CONTEXT.md
+Resume file: .planning/phases/106-member-gamification-punktefundament/106-CONTEXT.md
