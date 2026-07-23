@@ -43,9 +43,9 @@ Diese Phase führt den verbindlichen Vier-Augen-Lebenszyklus für bewertete Einr
 
 ### Prüfer ohne bestätigte Member-Zuordnung
 - **D-21:** Eine aktive, bestätigte Mitgliedschaft in der Fansub-Gruppe ist Voraussetzung für jede neue gruppenbezogene Review-Delegation.
-- **D-22:** Endet die Mitgliedschaft, sind neue Reviews und Zuweisungen sofort gesperrt. Eine bereits während der gültigen Mitgliedschaft konkret zugewiesene Prüfung darf noch abgeschlossen werden.
-- **D-23:** Für eine solche bestehende Zuweisung gilt keine zusätzliche Abschlussfrist, solange die Zuweisung offen bleibt.
-- **D-24:** Der Abschluss dieser zuvor autorisierten Zuweisung erhält weiterhin die normalen festen Prüfpunkte.
+- **D-22:** Inaktivität oder ausbleibende Logins verändern die bestätigte historische Gruppenmitgliedschaft nicht und entziehen weder Delegation noch offene Zuweisungen, Entscheidungen oder Punkte automatisch.
+- **D-23:** Phase 107 führt keinen Mitgliedschaftsende-/Entfernungslebenszyklus und keine Autorisierungs-Snapshot-Ausnahme für ehemalige Mitglieder ein. Bestätigte Gruppenmitgliedschaft bleibt historisch bestehen.
+- **D-24:** Nur der ausdrückliche Entzug einer Review-Delegation beendet die delegierte Review-Berechtigung. Der Entzug gibt alle offenen Zuweisungen dieser Delegation atomar an die allgemeine Gruppenwarteschlange zurück und verhindert ihren Abschluss durch den früheren Delegierten; abgeschlossene Entscheidungen und bereits verdiente Prüfpunkte bleiben unverändert, für zurückgegebene unfertige Arbeit entstehen keine Prüfpunkte.
 
 ### Agent's Discretion
 - Genaue Namen der Capabilities, Tabellen und API-Felder, sofern sie klar typisiert sind und die vorhandene Permission Engine wiederverwenden.

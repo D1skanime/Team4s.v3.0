@@ -2426,6 +2426,17 @@ Plans:
   5. Abgelehnte Inhalte werden konfigurierbar automatisch bereinigt: Produktion 90 Tage, lokale Testumgebung 5 Stunden; automatisierte Tests verwenden kontrollierte Zeit. Ein minimaler Audit-Tombstone bleibt ohne vollständigen Text oder Datei erhalten.
   6. Cleanup, erneute Einreichung, Stornierung und wiederholte Jobs sind idempotent und durch Berechtigungs-, Missbrauchs- und Lifecycle-Tests belegt.
 
+**Plans:** 6 plans
+
+Plans:
+
+- [ ] `107-01-PLAN.md` — Wave-0-Verträge für Berechtigung, Lifecycle, Punkte, Cleanup und Parallelität
+- [ ] `107-02-PLAN.md` — Reversibles Lifecycle-Schema mit DB-erzwungener Idempotenz und Privacy
+- [ ] `107-03-PLAN.md` — Typisierte Delegationen, beständige historische Membership und atomarer Widerruf offener Assignments
+- [ ] `107-04-PLAN.md` — Atomare Decisions, Exactly-once-Punkte, Reject/Resubmit und vollständige Backend-Routenverdrahtung (Wave 3; nach 107-03 und wegen gemeinsamem `main.go` nach 107-05)
+- [ ] `107-05-PLAN.md` — Retention, minimaler Tombstone und ownership-sicherer Datei-Retry (Wave 2; parallel zu 107-03, direkt nach Schema 107-02)
+- [ ] `107-06-PLAN.md` — Synchrone API-Verträge, kanonisch eingebundene Admin-UI und Live-UAT (Wave 4)
+
 ### Phase 108: Bestehende Beitragsquellen anbinden
 
 **Goal:** Bestehende Domänendaten über schmale, kontextspezifische Adapter als bestätigte Gamification-Quellen nutzbar machen, ohne Domain-Ownership oder Uploadsysteme zu vereinheitlichen.

@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_discuss
 stopped_at: Phase 107 context gathered
-last_updated: "2026-07-22T23:15:06.776Z"
-last_activity: 2026-07-22
+last_updated: "2026-07-23T07:45:25.006Z"
+last_activity: 2026-07-23
 progress:
   total_phases: 102
   completed_phases: 81
-  total_plans: 436
+  total_plans: 442
   completed_plans: 408
   percent: 79
 ---
@@ -672,5 +672,5 @@ Recent durable decisions:
 
 Last session: 2026-07-22T23:15:06.699Z
 Stopped at: Phase 107 context gathered
-Last activity: 2026-07-22
+Last activity: 2026-07-23
 Resume file: .planning/phases/107-best-tigung-delegation-und-ablehnungslebenszyklus/107-CONTEXT.md

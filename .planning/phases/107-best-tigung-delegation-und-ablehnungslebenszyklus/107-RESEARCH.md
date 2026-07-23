@@ -31,9 +31,9 @@
 - **D-19:** Schlägt das physische Löschen einer Mediendatei fehl, darf der Tombstone trotzdem erzeugt werden. Der Dateifehler wird protokolliert und bleibt als separat idempotent wiederholbarer Cleanup-Auftrag erhalten.
 - **D-20:** Cleanup, Tombstone-Erstellung, Dateinachlauf, erneute Einreichung, Punktevergabe und Punkterücknahme müssen bei Wiederholung und Parallelzugriffen idempotent bleiben.
 - **D-21:** Eine aktive, bestätigte Mitgliedschaft in der Fansub-Gruppe ist Voraussetzung für jede neue gruppenbezogene Review-Delegation.
-- **D-22:** Endet die Mitgliedschaft, sind neue Reviews und Zuweisungen sofort gesperrt. Eine bereits während der gültigen Mitgliedschaft konkret zugewiesene Prüfung darf noch abgeschlossen werden.
-- **D-23:** Für eine solche bestehende Zuweisung gilt keine zusätzliche Abschlussfrist, solange die Zuweisung offen bleibt.
-- **D-24:** Der Abschluss dieser zuvor autorisierten Zuweisung erhält weiterhin die normalen festen Prüfpunkte.
+- **D-22:** Inaktivität oder ausbleibende Logins verändern historische Mitgliedschaft, Delegation, Zuweisungen, Entscheidungen oder Punkte nicht automatisch.
+- **D-23:** Phase 107 führt weder einen Mitgliedschaftsende-/Entfernungslebenszyklus noch eine Autorisierungs-Snapshot-Ausnahme für ehemalige Mitglieder ein.
+- **D-24:** Nur ausdrücklicher Delegationsentzug beendet delegierte Review-Autorität; er gibt offene Zuweisungen atomar an die Gruppenqueue zurück, verhindert den Abschluss durch den früheren Delegierten, bewahrt abgeschlossene Entscheidungen/verdiente Punkte und vergibt nichts für unfertige zurückgegebene Arbeit.
 
 ### Agent's Discretion
 - Genaue Namen der Capabilities, Tabellen und API-Felder, sofern sie klar typisiert sind und die vorhandene Permission Engine wiederverwenden.
@@ -50,7 +50,7 @@
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| P107-SC1 | Globale, gruppenbezogene und delegierte Review-Berechtigung | Capability-Registry plus scope-gebundene Delegationen und Membership-Snapshot |
+| P107-SC1 | Globale, gruppenbezogene und delegierte Review-Berechtigung | Capability-Registry, scope-gebundene Delegationen und atomarer Widerruf |
 | P107-SC2 | Vier-Augen-Regel und auditierter Plattform-Admin-Override | atomare Review-Decision mit Self-Review-Guard und Pflichtgrund |
 | P107-SC3 | Beitragspunkte und feste Prüfpunkte exakt einmal | Phase-106-PointService in derselben DB-Transaktion |
 | P107-SC4 | Private Ablehnung und Überarbeitung von Release-Text/-Media | gemeinsamer Lifecycle-Vertrag, aber domain-spezifische Adapter |
@@ -64,7 +64,7 @@ Phase 107 sollte als neuer, schmaler Lifecycle-Kern geplant werden, der Statusen
 
 Phase 106 stellt bereits die entscheidende Exactly-once-Seam bereit: `PointService.CreditInTx` und `ReverseInTx`, ein eindeutiger `idempotency_key`, `ON CONFLICT ... DO NOTHING` mit Payload-Abgleich, `FOR UPDATE` beim Storno und ein DB-seitig append-only geschütztes Ledger. Diese Seam soll direkt aus einer transaktionalen Review-Service-/Repository-Operation aufgerufen werden; weder Handler noch Domain-Adapter dürfen Punktwerte oder Idempotenzschlüssel frei bestimmen. [VERIFIED: `backend/internal/services/point_service.go`, `backend/internal/repository/point_ledger_repository.go`, `database/migrations/0131_member_point_foundation.up.sql`]
 
-Delegationen und offene Zuweisungen benötigen persistierte, getrennte Datensätze. Die Autorisierung einer neuen freien Review-Aktion wird gegen aktuelle Capability plus aktive bestätigte Gruppenmitgliedschaft geprüft; eine bereits konkret zugewiesene Prüfung speichert dagegen den bei Zuweisung legitimen Reviewer-/Membership-Bezug, damit D-22 nach Membership-Ende erfüllbar bleibt. Cleanup muss DB-Inhalte/Tombstone unabhängig vom physischen Dateilöschen abschließen und Dateifehler in einer persistenten Retry-Queue halten. [VERIFIED: `.planning/phases/107-best-tigung-delegation-und-ablehnungslebenszyklus/107-CONTEXT.md`]
+Delegationen und offene Zuweisungen benötigen persistierte, getrennte Datensätze. Beim Grant wird die bestätigte Gruppenmitgliedschaft geprüft; Inaktivität und fehlende Logins lösen danach keine automatische Zustandsänderung aus. Nur ausdrücklicher Delegationsentzug sperrt die Delegation und gibt ihre offenen Zuweisungen in derselben Transaktion an die Gruppenqueue zurück. Assignment-Felder dienen Audit und Ownership, nicht einer Membership-Lifetime-Ausnahme. Cleanup muss DB-Inhalte/Tombstone unabhängig vom physischen Dateilöschen abschließen und Dateifehler in einer persistenten Retry-Queue halten. [VERIFIED: `.planning/phases/107-best-tigung-delegation-und-ablehnungslebenszyklus/107-CONTEXT.md`]
 
 **Primary recommendation:** Einen zentralen `ReviewLifecycleService` mit domain-spezifischen Adaptern, DB-erzwungener Zustandsmaschine, atomarer Decision-/Points-Transaktion und separatem idempotentem Cleanup-Worker planen. [VERIFIED: bestehende Code-Seams und Phase-107-Entscheidungen]
 
@@ -73,7 +73,7 @@ Delegationen und offene Zuweisungen benötigen persistierte, getrennte Datensät
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |------------|-------------|----------------|-----------|
 | Review-Autorisierung und Vier-Augen-Regel | API / Backend | Database / Storage | Backend ermittelt Actor/Scope; DB sperrt Zielzeile und erzwingt konkurenzsichere Mutation. [VERIFIED: Permission-Service- und Repository-Muster] |
-| Delegation und Zuweisung | API / Backend | Database / Storage | Permission Engine entscheidet; persistierte Grants/Assignments bewahren Lifetime-Semantik. [VERIFIED: Phase-107 D-01–D-04, D-21–D-24] |
+| Delegation und Zuweisung | API / Backend | Database / Storage | Permission Engine entscheidet; persistierte Grants/Assignments ermöglichen Audit, Ownership und atomare Queue-Rückgabe bei explizitem Widerruf. [VERIFIED: Phase-107 D-01–D-04, D-21–D-24] |
 | Exactly-once Punkte | Database / Storage | API / Backend | Unique Keys und Ledger-Trigger sind letzte Integritätsgrenze; Service baut kanonische Commands. [VERIFIED: Migration 0131 und PointService] |
 | Ablehnen/Überarbeiten/Neueinreichen | API / Backend | Database / Storage | Domain-Adapter ändern Inhalte; Lifecycle-Kern kontrolliert Transition und Aktivitätszeit. [VERIFIED: Phase-107 D-10–D-15] |
 | Content-/Datei-Cleanup | API / Backend Worker | Database / Storage | Worker claimt fällige Zeilen; DB-Tombstone und Datei-Outbox werden atomar persistiert. [CITED: https://www.postgresql.org/docs/current/sql-select.html] |
@@ -186,10 +186,10 @@ _, err = points.CreditInTx(ctx, tx, workCommand)
 err = tx.Commit(ctx)
 ```
 
-### Pattern 2: Assignment as authorization snapshot
+### Pattern 2: Assignment als widerrufbarer Audit- und Ownership-Anker
 
-**What:** Eine offene konkrete Zuweisung speichert `submission_id`, `reviewer_app_user_id`, den bestätigten `member_id`/Membership-Bezug, Scope, Typ, `assigned_at`, `assigned_by`, Zustand und eindeutigen Open-Assignment-Key. [VERIFIED: D-21–D-24]  
-**When to use:** Nur wenn ein Review konkret zugewiesen wird; freie Queue-Aktionen prüfen aktuelle Membership/Delegation. [VERIFIED: D-22]
+**What:** Eine offene konkrete Zuweisung speichert `submission_id`, `reviewer_app_user_id`, Delegationsbezug, Scope, Typ, `assigned_at`, `assigned_by`, Zustand und eindeutigen Open-Assignment-Key. Der Delegationsbezug erlaubt dem Widerruf, alle offenen Assignments atomar zu finden und zurückzugeben; es werden keine Membership-Lifetime-Snapshot-Spalten nur für eine Abschlussausnahme angelegt. [VERIFIED: D-21–D-24]
+**When to use:** Nur wenn ein Review konkret zugewiesen wird; Abschluss verlangt eine weiterhin aktive Delegation beziehungsweise einen anderen regulären Autorisierungsweg. Inaktivität oder fehlender Login verändern diese Zustände nicht. [VERIFIED: D-22–D-24]
 
 ### Pattern 3: DB-Outbox für Dateinachlauf
 
@@ -200,7 +200,7 @@ err = tx.Commit(ctx)
 
 - **Audit nach Commit als best effort:** Decision-Audit muss in derselben Transaktion persistieren; das heutige Handler-Muster reicht nicht. [VERIFIED: `contribution_review_handler.go`]
 - **Check-then-update ohne Lock:** Zwei Reviewer können sonst beide einen zunächst offenen Zustand sehen. [CITED: https://www.postgresql.org/docs/current/explicit-locking.html]
-- **Review-Capability = Assignment:** Delegation erlaubt Queue-Zugriff; Assignment bewahrt D-22-Autorisierung nach Membership-Ende. [VERIFIED: D-22]
+- **Assignment ohne Delegationsbezug:** Ohne referenzierbaren Grant kann Revoke offene Arbeit nicht sicher und atomar zurückgeben. Assignment speichert deshalb Audit-/Ownership-Bezug, aber keinen Mitgliedschafts-Lifetime-Snapshot. [VERIFIED: D-23,D-24]
 - **`updated_at` allein als Retention-Uhr:** Unverwandte technische Updates könnten Cleanup verschieben; eine explizite `last_activity_at` ist stabiler. [ASSUMED]
 - **Hard-delete vor Tombstone/Outbox:** Verliert Audit oder retrybare Dateireferenz. [VERIFIED: D-18–D-20]
 - **Punkte im Handler:** Verhindert atomare Wiederverwendung über spätere Phase-108-Adapter. [VERIFIED: Phase-106 PointService-Seam]
@@ -228,9 +228,9 @@ err = tx.Commit(ctx)
 **What goes wrong:** Self-review wird nur gegen `created_by` geprüft, obwohl fachlicher Urheber/Member separat sein kann. [VERIFIED: bestehendes Modell trennt `member_id` und `created_by`]  
 **How to avoid:** Pro Source-Adapter explizit `submitter_app_user_id`, `beneficiary_member_id` und Reviewer auflösen; Vier-Augen-Policy gegen alle vom Produkt definierten Eigenbezüge testen. [ASSUMED: genaue Eigenbezugsmenge muss im Plan festgelegt werden]
 
-### Pitfall 3: Capability-Entzug zerstört Assignment-Ausnahme
-**What goes wrong:** D-22 kann nicht erfüllt werden, wenn Abschluss immer nur aktuelle Membership prüft. [VERIFIED: D-22]  
-**How to avoid:** Abschluss akzeptiert entweder aktuelle Autorisierung oder eine noch offene, damals autorisierte konkrete Assignment-Zeile; keine neue Zuweisung nach Ende. [VERIFIED: D-21–D-24]
+### Pitfall 3: Widerruf lässt offene Assignments abschließbar
+**What goes wrong:** Wird nur der Grant deaktiviert, kann ein früherer Delegierter ein bereits geladenes offenes Assignment noch abschließen oder unfertige Arbeit fälschlich vergütet werden. [VERIFIED: D-24]
+**How to avoid:** Delegation, zugehörige offene Assignments und Submission-Zustand in deterministischer Lock-Reihenfolge sperren; Revoke gibt offene Assignments atomar an die Gruppenqueue zurück. Revoke-vs-Completion hat genau einen gültigen Gewinner: erfolgreicher Abschluss mit normalem Punkt vor dem Widerruf oder erfolgreiche Rückgabe ohne Punkt, danach kein Abschluss durch den früheren Delegierten. [VERIFIED: D-04,D-24]
 
 ### Pitfall 4: Cleanup-Rennen mit Resubmit
 **What goes wrong:** Worker scrubbt Inhalt, während der Einreicher neu einreicht. [VERIFIED: D-15, D-20 erfordern Parallelitätssicherheit]  
@@ -308,21 +308,16 @@ _, err := pointService.CreditInTx(ctx, tx, services.CreditCommand{
 | A4 | Decision-Cycle/Source-Key nutzt Decision-ID. | Pitfall 5 / Code | Idempotenz-Key-Vertrag |
 | A5 | Empfohlene Tabellen-/Spaltennamen. | Code Examples | Migration-Naming |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Welche bestehenden Beitragstypen werden in Phase 107 bereits vollständig verdrahtet?**
-   - What we know: D-01 fordert getrennte Capabilities für Beiträge, Release-Texte und Medien. [VERIFIED: Context]
-   - What's unclear: Phase 108 bindet eigentliche Quellenadapter an; ein zu breites Phase-107-Wiring würde Phase 108 vorwegnehmen. [VERIFIED: ROADMAP]
-   - Recommendation: Phase 107 implementiert generischen Lifecycle plus den bestehenden `anime_contributions`-Vertikalschnitt und adapterfähige Verträge; Release-Text/Media nur soweit für Ablehnung/Cleanup bereits reale Review-Seams existieren. [ASSUMED]
+   - **RESOLVED:** Phase 107 verdrahtet den bestehenden `anime_contributions`-Vertikalschnitt vollständig und definiert typisierte Lifecycle-/Delegationsverträge für `contribution`, `release_text` und `media`. Für Release-Text und Media entstehen ausschließlich ownership-korrekte Adapter an real vorhandenen Seams und Tabellen; es wird weder generische Medien-Ownership erfunden noch die Quellenattribution aus Phase 108 vorweggenommen.
 
 2. **Was zählt exakt als „eigener Beitrag“?**
-   - What we know: Einreicher, Urheber/Member und Reviewer sind getrennte Identitäten. [VERIFIED: ROADMAP Phase 108]
-   - What's unclear: Ob Self-review nur `created_by` oder auch beneficiary-/author-linked Accounts umfasst. [VERIFIED: Modell-Gap]
-   - Recommendation: Vor Plan-Lock eine Policy-Matrix festhalten; sicherer Default ist Verbot, wenn Reviewer Einreicher oder bestätigter Account des begünstigten Members ist. [ASSUMED]
+   - **RESOLVED:** Self-Review ist verboten, wenn der authentifizierte Reviewer dem Submission-Creator entspricht oder seine verifizierte App-User-Identität mit dem begünstigten beziehungsweise als Autor geführten Member verknüpft ist. Ein begründeter Plattform-Admin-Override ist die einzige Ausnahme.
 
 3. **Welche festen Review-Punkte und Kategorien werden geseedet?**
-   - What we know: Wert klein, Annahme/Ablehnung gleich, Override null. [VERIFIED: D-06, D-09]
-   - Recommendation: eine unveränderliche neue Rule-Version und stabile Codes wie `quality`, `ownership`, `duplicate`, `scope`, `other`; deutsche Labels nur im DTO/UI. [ASSUMED]
+   - **RESOLVED:** Annahme und Ablehnung vergeben jeweils exakt `1` festen Reviewer-Punkt; Self-Override vergibt `0`. Die stabilen DB-Codes lauten exakt `quality`, `ownership`, `duplicate`, `scope`, `other`; deutsche Bezeichnungen leben ausschließlich in DTO/UI und nicht in den DB-Codes.
 
 ## Environment Availability
 
@@ -367,7 +362,7 @@ _, err := pointService.CreditInTx(ctx, tx, services.CreditCommand{
 - Cleanup gegen Edit/Resubmit: Lock-Reihenfolge verhindert Scrub eines reaktivierten Datensatzes. [VERIFIED: D-15, D-20]
 - Zwei Cleanup-Worker: jeder fällige Datensatz wird exklusiv geclaimt; Job-Wiederholung bleibt No-op/Resolution. [CITED: https://www.postgresql.org/docs/current/sql-select.html]
 - Override-Invalidierung doppelt: genau eine Reversal-Zeile durch `uq_point_ledger_direct_reversal`. [VERIFIED: Migration 0131]
-- Delegationsentzug gegen neue Zuweisung: nach Entzug keine neue Assignment-Zeile; bestehende Assignment bleibt abschließbar. [VERIFIED: D-04, D-22]
+- Delegationsentzug gegen Abschluss: identische Lock-Reihenfolge; genau ein gültiges Ergebnis — bereits abgeschlossene Decision/Punkt bleiben bestehen oder das noch offene Assignment wird ohne Punkt zurückgegeben und ist für den früheren Delegierten nicht mehr abschließbar. [VERIFIED: D-04,D-24]
 
 ### Sampling Rate
 
@@ -404,7 +399,7 @@ _, err := pointService.CreditInTx(ctx, tx, services.CreditCommand{
 | Cross-group IDOR | Elevation | gelockte Submission gegen Route-Scope prüfen. [VERIFIED: aktueller Signatur-Gap] |
 | Double award via retry | Tampering | stabile Decision-ID + Ledger Unique Constraint. [VERIFIED: Phase-106] |
 | Race confirm/reject | Tampering | `FOR UPDATE`, Transition-Matrix und Unique Effective Decision. [CITED: https://www.postgresql.org/docs/current/explicit-locking.html] |
-| Delegation after membership end | Elevation | DB-gebundene aktive bestätigte Membership beim Grant/Assignment; Abschlussausnahme nur für bestehende Assignment. [VERIFIED: D-21–D-24] |
+| Stale delegate after explicit revoke | Elevation | Grant/Assignments gemeinsam sperren, offene Assignments atomar zurückgeben und Completion gegen aktiven Grant plus Assignment-Zustand prüfen; Inaktivität/Loginstatus sind keine Lifecycle-Signale. [VERIFIED: D-21–D-24] |
 | Audit-text retention | Information Disclosure | Cleanup scrubbt Freitexte/Dateien, Tombstone hält nur D-18-Minimum. [VERIFIED: D-18] |
 | Cleanup path confusion | Tampering | serverseitige Media-Ownership-Auflösung; keine Clientpfade. [VERIFIED: AGENTS Media Rules] |
 

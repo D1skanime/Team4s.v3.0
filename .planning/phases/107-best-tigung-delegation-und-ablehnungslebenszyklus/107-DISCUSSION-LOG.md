@@ -67,6 +67,8 @@
 
 ## Prüfer ohne bestätigte Member-Zuordnung
 
+> **Entwicklerkorrektur nach Klarstellung (2026-07-23):** Die nachstehende ursprüngliche Auswahl bleibt ausschließlich als Audit-Historie erhalten und ist fachlich überholt. Verbindlich ist CONTEXT.md D-21 bis D-24: bestätigte Mitgliedschaft bleibt historisch bestehen; Inaktivität oder fehlende Logins ändern nichts automatisch; Phase 107 kennt kein Mitgliedschaftsende und keine Snapshot-Ausnahme; ausschließlich ausdrücklicher Delegationsentzug gibt offene Zuweisungen atomar an die Gruppenqueue zurück, sperrt den früheren Delegierten, bewahrt abgeschlossene Entscheidungen/verdiente Punkte und vergibt nichts für unfertige zurückgegebene Arbeit.
+
 | Entscheidung | Optionen | Auswahl |
 |---|---|---|
 | Delegation ohne Mitgliedschaft | Nie / bei Admin-Delegation / nur Plattform-Admins | Nie |
@@ -75,7 +77,7 @@
 | Prüfpunkte | Normal / keine / erst nach Admin-Bestätigung | Normal |
 
 **User's choice:** Optionen 1, 3, 2 und 1.
-**Notes:** Die konkrete Zuweisung muss während der bestätigten Mitgliedschaft erfolgt sein; neue Reviews sind danach gesperrt.
+**Notes (historisch, überholt):** Die damalige Antwort nahm fälschlich ein Mitgliedschaftsende an. Sie darf nicht als Planungs- oder Implementierungsgrundlage verwendet werden.
 
 ## Agent's Discretion
 

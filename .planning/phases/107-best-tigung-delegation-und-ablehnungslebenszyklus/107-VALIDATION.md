@@ -38,12 +38,12 @@ created: 2026-07-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 107-W0-01 | TBD | 0 | P107-SC1 | T-107-01, T-107-02 | Typed delegation is group-scoped, requires confirmed membership and cannot be re-delegated | service/DB | `cd backend && go test ./internal/services ./internal/repository -run 'ReviewDelegation|ReviewPermission'` | ❌ W0 | ⬜ pending |
+| 107-W0-01 | TBD | 0 | P107-SC1 | T-107-01, T-107-02 | Typed delegation is group-scoped, requires confirmed membership at grant, is unaffected by inactivity/login absence, and explicit revoke atomically returns open assignments | service/DB | `cd backend && go test ./internal/services ./internal/repository -run 'ReviewDelegation|ReviewPermission|Revoke|Inactivity|NoLogin'` | ❌ W0 | ⬜ pending |
 | 107-W0-02 | TBD | 0 | P107-SC2 | T-107-01 | Self-review fails; only a platform admin can override with a non-whitespace reason | service/handler | `cd backend && go test ./internal/services ./internal/handlers -run 'SelfReview|Override'` | ❌ W0 | ⬜ pending |
 | 107-W0-03 | TBD | 0 | P107-SC3 | T-107-03, T-107-04 | Parallel/retried decisions create one effective decision and at most one work/review credit | PostgreSQL integration | `cd backend && go test ./internal/repository ./internal/services -run 'Review.*(Concurrent|Idempotent|Points)' -count=10` | ❌ W0 | ⬜ pending |
 | 107-W0-04 | TBD | 0 | P107-SC4 | T-107-05 | Rejection stays private, records category plus reason, permits edit/resubmit and awards no work credit | repository/handler | `cd backend && go test ./internal/repository ./internal/handlers -run 'Reject|Resubmit'` | ⚠ partial | ⬜ pending |
 | 107-W0-05 | TBD | 0 | P107-SC5 | T-107-06, T-107-07 | Injected clock enforces 90-day/5-hour retention; tombstone excludes texts/files and file failures remain retryable | service/DB | `cd backend && go test ./internal/services ./internal/repository -run 'ReviewCleanup|Tombstone'` | ❌ W0 | ⬜ pending |
-| 107-W0-06 | TBD | 0 | P107-SC6 | T-107-03, T-107-04, T-107-06 | Confirm/reject, cleanup/resubmit, reversal and repeated-worker races resolve deterministically | PostgreSQL concurrency | `cd backend && go test ./internal/repository ./internal/services -run 'Review.*Race|Review.*Retry' -count=10` | ❌ W0 | ⬜ pending |
+| 107-W0-06 | TBD | 0 | P107-SC6 | T-107-03, T-107-04, T-107-06 | Confirm/reject, revoke/completion, cleanup/resubmit, reversal and repeated-worker races resolve deterministically; revoke/completion permits exactly one valid outcome | PostgreSQL concurrency | `cd backend && go test ./internal/repository ./internal/services -run 'Review.*Race|Review.*Retry|Revoke.*Completion' -count=10` | ❌ W0 | ⬜ pending |
 | 107-W0-07 | TBD | 0 | AUTH | T-107-08 | A valid refresh session can load and execute protected review actions without a current access token | frontend | `cd frontend && npm test -- --run api.auth-refresh.test.ts ContributionsReviewSection.test.tsx` | ⚠ partial | ⬜ pending |
 | 107-W0-08 | TBD | 0 | CONTRACT | T-107-02 | OpenAPI, backend DTOs, frontend types and API helper expose identical typed lifecycle fields and status handling | contract | `cd backend && go test ./internal/handlers -run 'Review.*Contract' && cd ../frontend && npm test -- --run api.test.ts` | ⚠ partial | ⬜ pending |
 
@@ -63,7 +63,7 @@ created: 2026-07-23
 ## Wave 0 Requirements
 
 - [ ] `backend/internal/repository/review_lifecycle_repository_test.go` — PostgreSQL migration, transition, idempotency and concurrency coverage.
-- [ ] `backend/internal/services/review_lifecycle_service_test.go` — permission, self-review, override, points and membership-lifetime policy matrix.
+- [ ] `backend/internal/services/review_lifecycle_service_test.go` — permission, self-review, override, points, inactivity/no-login invariance and explicit-revoke policy matrix.
 - [ ] `backend/internal/services/review_cleanup_test.go` — injected clock, retention, tombstone and retry-outbox behavior.
 - [ ] `backend/internal/handlers/contribution_review_handler_test.go` — typed payloads and deterministic `400/403/404/409` contracts.
 - [ ] Focused frontend tests for delegation, override warning, rejection/resubmit, scoped loading/errors and refresh-only authentication.
