@@ -2412,39 +2412,50 @@ Plans:
 
 - [x] 106-04-PLAN.md — Tx-gebundener und standalone PointService für Credit/Storno ohne Consumer-Wiring
 
-### Phase 107: Bestätigung, Delegation und Ablehnungslebenszyklus
+### Phase 107: Prüf- und Delegationsfundament
 
-**Goal:** Punkte ausschließlich nach einer berechtigten Vier-Augen-Bestätigung vergeben und Ablehnung, Überarbeitung, erneute Einreichung sowie automatische Bereinigung sicher abbilden.
-**Requirements:** Phase 106; bestehende Permission Engine und kontextspezifische Review-Seams.
+**Goal:** Eine wiederverwendbare, domänenneutrale Grundlage für berechtigte Vier-Augen-Entscheidungen, typisierte Review-Delegationen, atomare First-Decision-Wins-Semantik, Audit und genau begrenzte Prüfpunkte schaffen, ohne bereits Release-Texte, Release-Medien oder eine Prüfoberfläche anzubinden.
+**Requirements:** P107-SC1, P107-SC2, P107-SC3, P107-SC4, P107-SC5, P107-SC6
 **Depends on:** Phase 106
 **Success Criteria** (what must be TRUE):
 
-  1. Bestätigen dürfen Plattform-Admins global, Fansub-Admins in ihrer Gruppe und ausdrücklich delegierte Mitglieder innerhalb ihres Scopes über die bestehende Permission Engine.
-  2. Niemand darf eigene Beiträge bestätigen; nur ein Plattform-Admin darf in begründeten Ausnahmefällen übersteuern. Jede Entscheidung ist auditierbar.
-  3. Beitragspunkte entstehen genau einmal nach Bestätigung. Prüfpunkte sind klein, fest und für Bestätigung sowie Ablehnung identisch; sie entstehen ebenfalls höchstens einmal pro legitimer Prüfung.
-  4. Abgelehnte Release-Texte und -Medien bleiben privat mit Begründung überarbeitbar und erhalten keine Beitragspunkte. Erneute Einreichung startet den Lebenszyklus neu.
-  5. Abgelehnte Inhalte werden konfigurierbar automatisch bereinigt: Produktion 90 Tage, lokale Testumgebung 5 Stunden; automatisierte Tests verwenden kontrollierte Zeit. Ein minimaler Audit-Tombstone bleibt ohne vollständigen Text oder Datei erhalten.
-  6. Cleanup, erneute Einreichung, Stornierung und wiederholte Jobs sind idempotent und durch Berechtigungs-, Missbrauchs- und Lifecycle-Tests belegt.
+  1. Review-Rechte werden je Beitragstyp über die bestehende Permission Engine delegiert. Fansub-Admins delegieren nur in ihrer Gruppe, Plattform-Admins global; Delegierte dürfen nicht weiterdelegieren.
+  2. Es gibt keine Reservierungen, Übernahmen oder Zuweisungen. Alle passend Berechtigten können dieselbe offene Prüfung sehen; genau die erste atomar erfolgreiche Entscheidung gewinnt, parallele Verlierer erhalten einen stabilen Konflikt.
+  3. Eigene Beiträge dürfen nicht regulär geprüft werden. Nur Plattform-Admins dürfen mit Pflichtbegründung übersteuern; Plattform-Admins erhalten niemals Punkte, Badges oder Auszeichnungen.
+  4. Jede Zustandsänderung wird mit Akteur und Zeitpunkt auditiert. Reine Lesezugriffe werden nicht protokolliert; freier Begründungstext bleibt später datenschutzkonform löschbar, während strukturierte Audit-Metadaten erhalten bleiben.
+  5. Prüfpunkte werden über den PointService aus Phase 106 gebucht: je konkretem Beitrag höchstens einmal für eine Ablehnung und einmal für eine spätere Bestätigung, niemals für denselben Entscheidungsschritt doppelt und niemals für Plattform-Admin-Overrides.
+  6. Der Kern stellt schmale Domain-Adapter-Verträge für spätere Quellen bereit und beweist Autorisierung, Self-Review-Schutz, Parallelität, Idempotenz und Punktelimits automatisiert; Release-Quellen und UI bleiben Phase 107.1.
 
-**Plans:** 6 plans
+**Plans:** 0 plans
 
 Plans:
 
-- [ ] `107-01-PLAN.md` — Wave-0-Verträge für Berechtigung, Lifecycle, Punkte, Cleanup und Parallelität
-- [ ] `107-02-PLAN.md` — Reversibles Lifecycle-Schema mit DB-erzwungener Idempotenz und Privacy
-- [ ] `107-03-PLAN.md` — Typisierte Delegationen, beständige historische Membership und atomarer Widerruf offener Assignments
-- [ ] `107-04-PLAN.md` — Atomare Decisions, Exactly-once-Punkte, Reject/Resubmit und vollständige Backend-Routenverdrahtung (Wave 3; nach 107-03 und wegen gemeinsamem `main.go` nach 107-05)
-- [ ] `107-05-PLAN.md` — Retention, minimaler Tombstone und ownership-sicherer Datei-Retry (Wave 2; parallel zu 107-03, direkt nach Schema 107-02)
-- [ ] `107-06-PLAN.md` — Synchrone API-Verträge, kanonisch eingebundene Admin-UI und Live-UAT (Wave 4)
+- [ ] TBD (run `/gsd-plan-phase 107 --research` to regenerate)
+
+### Phase 107.1: Release-Prüfworkspace und Release-Beitragslebenszyklus (INSERTED)
+
+**Goal:** Release-Version-Texte und Release-Version-Medien ohne paralleles Upload- oder Datenmodell durch den Prüflebenszyklus führen und dafür eine skalierbare, read-only Prüfoberfläche für Tablet und Desktop bereitstellen.
+**Requirements:** P1071-SC1, P1071-SC2, P1071-SC3, P1071-SC4, P1071-SC5, P1071-SC6
+**Depends on:** Phase 107
+**Plans:** 7 plans
+
+Plans:
+- [ ] 107.1-01-PLAN.md — Phase-107 readiness gate, interface inventory, and lifecycle schema
+- [ ] 107.1-02-PLAN.md — Canonical note/media submission adapters and same-ID resubmission
+- [ ] 107.1-03-PLAN.md — Authorized cursor queue/detail API and synchronized contracts
+- [ ] 107.1-04-PLAN.md — Atomic decision, conflict, audit, and points orchestration
+- [ ] 107.1-05-PLAN.md — Retention scrub and reference-safe physical deletion retry
+- [ ] 107.1-06-PLAN.md — Typed review client, group queue, and read-only detail UI
+- [ ] 107.1-07-PLAN.md — Submitter lifecycle UI tests/implementation and live UAT
 
 ### Phase 108: Bestehende Beitragsquellen anbinden
 
 **Goal:** Bestehende Domänendaten über schmale, kontextspezifische Adapter als bestätigte Gamification-Quellen nutzbar machen, ohne Domain-Ownership oder Uploadsysteme zu vereinheitlichen.
-**Requirements:** Phasen 106–107; kanonische Fansub-/Release-Domain.
-**Depends on:** Phase 106, Phase 107
+**Requirements:** Phasen 106–107.1; kanonische Fansub-/Release-Domain.
+**Depends on:** Phase 106, Phase 107, Phase 107.1
 **Success Criteria** (what must be TRUE):
 
-  1. Tatsächliche Fansub-Leistung wird aus bestätigten Release-/Anime-Mitwirkungen und Rollen gewonnen; Plattformarbeit wird getrennt nach bestätigten Texten, Notizen, Medien und Release-/Metadatenpflege kategorisiert.
+  1. Tatsächliche Fansub-Leistung wird aus bestätigten Release-/Anime-Mitwirkungen und Rollen gewonnen; weitere Plattformarbeit wird getrennt nach Projekt-/Zusatznotizen und Metadatenpflege kategorisiert. Die bereits in Phase 107.1 angebundenen Release-Texte und Release-Version-Medien werden nicht erneut verdrahtet.
   2. Für jede Quelle ist definiert: Member-Zuordnung, Gruppen-/Release-Kontext, Bestätigungsstatus, Deduplizierungsschlüssel, Wirksamkeitszeit, Stornierungsverhalten und Herkunft der Reviewer-Entscheidung.
   3. Einreicher, ursprünglicher Urheber/Fansubber und Prüfer bleiben getrennte Identitäten. Punkte werden dem fachlich berechtigten Member gutgeschrieben, nicht automatisch dem hochladenden Account.
   4. Textlänge, Copy-and-paste-Erkennung und Datei-Hash-Deduplizierung sind keine Voraussetzung für Punkte. Qualität entsteht durch Review; Doppelpunkte verhindert das Punktebuch auf fachlicher Quellenebene.
@@ -2455,7 +2466,7 @@ Plans:
 
 **Goal:** Bestätigte historische Leistung vollständig und fair rückwirkend anerkennen und daraus performante globale, gruppenbezogene und kategoriale Ranglisten ableiten.
 **Requirements:** Phasen 106–108; bestätigte historische Membership-/Contribution-Daten.
-**Depends on:** Phase 106, Phase 107, Phase 108
+**Depends on:** Phase 106, Phase 107, Phase 107.1, Phase 108
 **Success Criteria** (what must be TRUE):
 
   1. Bestehende bestätigte Release-/Projekt-Mitwirkungen werden einmalig und idempotent mit denselben Regelwerten wie neue gleichartige Beiträge importiert; ungeklärte oder unbestätigte Angaben bleiben punktelos.
@@ -2469,7 +2480,7 @@ Plans:
 
 **Goal:** Verdienste, Fortschritt und Wettbewerb verständlich, anime-/fansubtypisch und responsiv darstellen und das Gesamtsystem gegen Punkte-Farming, Rechtefehler und Datenverlust verifizieren.
 **Requirements:** Phasen 106–109; bestehendes UI-System und vorhandene Badge-/Achievement-Muster.
-**Depends on:** Phase 106, Phase 107, Phase 108, Phase 109
+**Depends on:** Phase 106, Phase 107, Phase 107.1, Phase 108, Phase 109
 **Success Criteria** (what must be TRUE):
 
   1. Globale und gruppenbezogene Ranglisten zeigen aktive und historische Mitglieder klar unterscheidbar; Account-Mitglieder können auf vorhandene öffentliche Profile verlinken, historische Einträge ohne Profil nicht.

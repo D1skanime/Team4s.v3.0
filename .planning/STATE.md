@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_discuss
 stopped_at: Phase 107 context gathered
-last_updated: "2026-07-23T07:45:25.006Z"
+last_updated: "2026-07-23T12:41:18.678Z"
 last_activity: 2026-07-23
 progress:
-  total_phases: 102
+  total_phases: 103
   completed_phases: 81
-  total_plans: 442
+  total_plans: 449
   completed_plans: 408
   percent: 79
 ---
@@ -403,6 +403,7 @@ Recent durable decisions:
 - Phase 105 added: Responsive Release-Detailseite und Kara-Timeline-Redesign
 - Phase 105 edited: edited fields: goal, requirements, depends_on, success_criteria
 - Phase 105 edited: namespaced Phase-102/103 requirement IDs for deterministic plan traceability
+- Phase 107.1 inserted after Phase 107: Release-Prüfworkspace und Release-Beitragslebenszyklus aus Phase 107 herausgelöst: 107 liefert nur das wiederverwendbare Prüf-Fundament; 107.1 bindet Release-Texte und Release-Version-Medien samt UI und Cleanup an. (URGENT)
 
 ### Blockers/Concerns
 
