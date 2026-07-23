@@ -8,12 +8,16 @@ BEGIN
        OR EXISTS (SELECT 1 FROM review_reason_texts)
        OR EXISTS (SELECT 1 FROM review_credit_slots)
        OR EXISTS (
-           SELECT 1
-           FROM point_ledger_entries ple
-           JOIN point_rules pr ON pr.id = ple.rule_id
-           WHERE pr.rule_code = 'review.decision'
+            SELECT 1
+            FROM review_foundation_seed_ownership owned
+            JOIN point_rules pr
+              ON pr.rule_code = 'review.decision'
              AND pr.rule_version = 1
-       ) THEN
+            JOIN point_ledger_entries ple ON ple.rule_id = pr.id
+            WHERE owned.seed_kind = 'point_rule'
+              AND owned.seed_key = 'review.decision|1'
+              AND owned.created_by_migration
+        ) THEN
         RAISE EXCEPTION '0134 review foundation contains history and cannot be removed';
     END IF;
 

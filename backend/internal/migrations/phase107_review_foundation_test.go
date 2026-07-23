@@ -214,6 +214,113 @@ WHERE rule_code = 'review.decision'
 		require.Equal(t, 3, capabilities)
 		require.Equal(t, 1, rules)
 	})
+
+	t.Run("externally-owned-rule-history-survives-down", func(t *testing.T) {
+		pool := testsupport.OpenPhase107Postgres(t)
+		_, err := pool.Exec(context.Background(), `
+INSERT INTO members (id) VALUES (7001);
+INSERT INTO point_rules (
+    id, rule_code, rule_version, category, point_value
+) VALUES (
+    7002, 'review.decision', 1, 'platform_contribution', 1
+);
+INSERT INTO point_ledger_entries (
+    id, member_id, source_type, source_key, rule_id,
+    rule_code_snapshot, rule_version_snapshot, rule_category_snapshot,
+    rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key
+) VALUES (
+    7003, 7001, 'external_review', 'external-history', 7002,
+    'review.decision', 1, 'platform_contribution',
+    1, 1, 'award', NOW(), 'external-review-history'
+);`)
+		require.NoError(t, err)
+
+		testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase107UpFile))
+
+		var externallyOwned bool
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT NOT created_by_migration
+FROM review_foundation_seed_ownership
+WHERE seed_kind = 'point_rule'
+  AND seed_key = 'review.decision|1'`).Scan(&externallyOwned))
+		require.True(t, externallyOwned)
+
+		testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase107DownFile))
+
+		for _, table := range phase107FoundationTables {
+			var exists bool
+			require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT to_regclass($1) IS NOT NULL`, table).Scan(&exists))
+			require.False(t, exists, "%s must be removed by a safe rollback", table)
+		}
+
+		var rules, ledgerEntries int
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM point_rules
+WHERE id = 7002
+  AND rule_code = 'review.decision'
+  AND rule_version = 1
+  AND category = 'platform_contribution'
+  AND point_value = 1`).Scan(&rules))
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM point_ledger_entries
+WHERE id = 7003
+  AND member_id = 7001
+  AND rule_id = 7002
+  AND idempotency_key = 'external-review-history'`).Scan(&ledgerEntries))
+		require.Equal(t, 1, rules)
+		require.Equal(t, 1, ledgerEntries)
+	})
+
+	t.Run("migration-owned-rule-history-blocks-down", func(t *testing.T) {
+		pool := openPhase107MigratedPool(t)
+		_, err := pool.Exec(context.Background(), `
+INSERT INTO members (id) VALUES (7101);
+INSERT INTO point_ledger_entries (
+    id, member_id, source_type, source_key, rule_id,
+    rule_code_snapshot, rule_version_snapshot, rule_category_snapshot,
+    rule_point_value_snapshot, point_value, entry_kind, effective_at, idempotency_key
+)
+SELECT
+    7103, 7101, 'review_decision', 'owned-history', id,
+    rule_code, rule_version, category,
+    point_value, point_value, 'award', NOW(), 'owned-review-history'
+FROM point_rules
+WHERE rule_code = 'review.decision'
+  AND rule_version = 1;`)
+		require.NoError(t, err)
+
+		content, err := os.ReadFile(phase106MigrationPath(t, phase107DownFile))
+		require.NoError(t, err)
+		_, err = pool.Exec(context.Background(), string(content))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "contains history and cannot be removed")
+
+		for _, table := range phase107FoundationTables {
+			assertPhase106TableExists(t, pool, table)
+		}
+
+		var ownedRules, ledgerEntries int
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM point_rules pr
+JOIN review_foundation_seed_ownership owned
+  ON owned.seed_kind = 'point_rule'
+ AND owned.seed_key = 'review.decision|1'
+ AND owned.created_by_migration
+WHERE pr.rule_code = 'review.decision'
+  AND pr.rule_version = 1`).Scan(&ownedRules))
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM point_ledger_entries
+WHERE id = 7103
+  AND member_id = 7101
+  AND idempotency_key = 'owned-review-history'`).Scan(&ledgerEntries))
+		require.Equal(t, 1, ownedRules)
+		require.Equal(t, 1, ledgerEntries)
+	})
 }
 
 func TestPhase107ImmutableDecisionAuditCreditSlot(t *testing.T) {
