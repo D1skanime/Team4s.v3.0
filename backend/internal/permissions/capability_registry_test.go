@@ -60,6 +60,9 @@ var allActionCodesWave0 = []string{
 	"release_version_media.delete_own",
 	"release_version.notes.write",
 	"release_version.segments.manage",
+	"review.text.decide",
+	"review.image.decide",
+	"review.contribution.decide",
 }
 
 // roleMatrixStubData gibt die vollständige roleMatrix als map zurück (Seed-Quelle R-02).
@@ -91,6 +94,9 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionMediaDelete,
 			ActionReleaseVersionNotesWrite,
 			ActionReleaseVersionSegmentsManage,
+			ActionReviewTextDecide,
+			ActionReviewImageDecide,
+			ActionReviewContributionDecide,
 		},
 		RoleProjectLead: {
 			ActionFansubGroupEdit,
@@ -254,4 +260,26 @@ func TestStartupConsistencyCheck(t *testing.T) {
 
 	errIncomplete := svc.LoadCache(ctx, incompleteStub)
 	assert.Error(t, errIncomplete, "LoadCache muss einen Fehler zurückgeben wenn ein Action-Code in keiner Rolle vertreten ist (D-10)")
+}
+
+func TestPhase107PermissionCatalogRequiresEveryReviewAction(t *testing.T) {
+	for _, missing := range []Action{
+		ActionReviewTextDecide,
+		ActionReviewImageDecide,
+		ActionReviewContributionDecide,
+	} {
+		t.Run(string(missing), func(t *testing.T) {
+			data := roleMatrixStubData()
+			for role, actions := range data {
+				data[role] = slices.DeleteFunc(actions, func(action Action) bool {
+					return action == missing
+				})
+			}
+
+			err := NewService(nil).LoadCache(context.Background(), stubCacheLoader{data: data})
+
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), string(missing))
+		})
+	}
 }

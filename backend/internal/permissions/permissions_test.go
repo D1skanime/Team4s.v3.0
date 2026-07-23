@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type resolverStub struct {
@@ -34,6 +35,150 @@ func (s resolverStub) ListActorGroupRoles(_ context.Context, _ int64, fansubGrou
 
 func (s resolverStub) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
 	return nil, nil
+}
+
+type phase107ReviewResolverStub struct {
+	resolverStub
+	reviewContext      *ReviewGrantContext
+	reviewContextCalls int
+}
+
+func (s *phase107ReviewResolverStub) ResolveActorReviewGrantContext(
+	_ context.Context,
+	appUserID int64,
+	fansubGroupID int64,
+) (*ReviewGrantContext, error) {
+	s.reviewContextCalls++
+	if s.reviewContext == nil ||
+		s.reviewContext.AppUserID != appUserID ||
+		s.reviewContext.FansubGroupID != fansubGroupID {
+		return nil, nil
+	}
+	return s.reviewContext, nil
+}
+
+func TestPhase107ReviewActionsAreIndependentForFansubLead(t *testing.T) {
+	for _, action := range []Action{
+		ActionReviewTextDecide,
+		ActionReviewImageDecide,
+		ActionReviewContributionDecide,
+	} {
+		t.Run(string(action), func(t *testing.T) {
+			resolver := &phase107ReviewResolverStub{
+				resolverStub: resolverStub{
+					context: &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+					roles:   map[int64][]string{88: {RoleFansubLead}},
+				},
+				reviewContext: &ReviewGrantContext{
+					MembershipID:  700,
+					AppUserID:     10,
+					MemberID:      701,
+					FansubGroupID: 88,
+				},
+			}
+			service := NewService(resolver)
+
+			result, err := service.CanReviewForFansubGroup(
+				context.Background(),
+				Actor{AppUserID: 10, Status: "active"},
+				action,
+				88,
+			)
+
+			require.NoError(t, err)
+			assert.True(t, result.Allowed)
+			assert.Equal(t, RoleFansubLead, result.MatchedRole)
+			assert.EqualValues(t, 700, result.MembershipID)
+			assert.EqualValues(t, 701, result.MemberID)
+			assert.Equal(t, 1, resolver.reviewContextCalls)
+		})
+	}
+}
+
+func TestPhase107DirectGrantAllowsOnlyExactReviewAction(t *testing.T) {
+	resolver := &phase107ReviewResolverStub{
+		resolverStub: resolverStub{
+			context: &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {}},
+		},
+		reviewContext: &ReviewGrantContext{
+			MembershipID:  700,
+			AppUserID:     10,
+			MemberID:      701,
+			FansubGroupID: 88,
+			GrantedActions: []Action{
+				ActionReviewTextDecide,
+			},
+		},
+	}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	textResult, err := service.CanForFansubGroup(context.Background(), actor, ActionReviewTextDecide, 88)
+	require.NoError(t, err)
+	assert.True(t, textResult.Allowed)
+
+	for _, action := range []Action{
+		ActionReviewImageDecide,
+		ActionReviewContributionDecide,
+	} {
+		result, err := service.CanForFansubGroup(context.Background(), actor, action, 88)
+		require.NoError(t, err)
+		assert.False(t, result.Allowed, "%s must require its own direct grant", action)
+	}
+
+	manageResult, err := service.CanForFansubGroup(
+		context.Background(),
+		actor,
+		ActionFansubGroupMembersManage,
+		88,
+	)
+	require.NoError(t, err)
+	assert.False(t, manageResult.Allowed, "review grants must never imply delegation rights")
+}
+
+func TestPhase107PlatformAdminReviewActionsNeedNoMemberContext(t *testing.T) {
+	service := NewService(resolverStub{})
+	actor := Actor{AppUserID: 10, Status: "active", IsPlatformAdmin: true}
+
+	for _, action := range []Action{
+		ActionReviewTextDecide,
+		ActionReviewImageDecide,
+		ActionReviewContributionDecide,
+	} {
+		result, err := service.CanReviewForFansubGroup(context.Background(), actor, action, 88)
+		require.NoError(t, err)
+		assert.True(t, result.Allowed)
+		assert.Equal(t, ReasonPlatformAdmin, result.ReasonCode)
+		assert.Zero(t, result.MembershipID)
+		assert.Zero(t, result.MemberID)
+	}
+}
+
+func TestPhase107ResolverCompatibilityForNonReviewActions(t *testing.T) {
+	var unchanged Resolver = resolverStub{
+		context: &Context{ScopeType: ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+		roles:   map[int64][]string{88: {RoleFansubLead}},
+	}
+	service := NewService(unchanged)
+
+	result, err := service.CanForFansubGroup(
+		context.Background(),
+		Actor{AppUserID: 10, Status: "active"},
+		ActionFansubGroupMembersManage,
+		88,
+	)
+	require.NoError(t, err)
+	assert.True(t, result.Allowed)
+
+	reviewResult, err := service.CanForFansubGroup(
+		context.Background(),
+		Actor{AppUserID: 10, Status: "active"},
+		ActionReviewTextDecide,
+		88,
+	)
+	require.NoError(t, err)
+	assert.False(t, reviewResult.Allowed, "review actions fail closed without ReviewContextResolver")
 }
 
 func TestCanForFansubGroupAllowsFansubLead(t *testing.T) {
