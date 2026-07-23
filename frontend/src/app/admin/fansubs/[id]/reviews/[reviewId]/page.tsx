@@ -55,8 +55,8 @@ type DecisionState =
   | { kind: 'error' }
 
 export default function ReleaseReviewPage() {
-  const params = useParams<{ groupId: string; reviewId: string }>()
-  const fansubId = Number(params.groupId)
+  const params = useParams<{ id: string; reviewId: string }>()
+  const fansubId = Number(params.id)
   const reviewId = params.reviewId
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasActiveSession = hasAccessToken || hasRefreshToken

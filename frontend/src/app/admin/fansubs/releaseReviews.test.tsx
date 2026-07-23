@@ -13,7 +13,7 @@ const api = vi.hoisted(() => ({
 }))
 
 const navigation = vi.hoisted(() => ({
-  params: { groupId: '88', reviewId: 'review-image' },
+  params: { id: '88', reviewId: 'review-image' },
   push: vi.fn(),
   replace: vi.fn(),
   refresh: vi.fn(),
@@ -62,7 +62,7 @@ vi.mock('next/link', () => ({
 }))
 
 import { ReleaseReviewsSection } from './[id]/edit/ReleaseReviewsSection'
-import ReleaseReviewPage from './[groupId]/reviews/[reviewId]/page'
+import ReleaseReviewPage from './[id]/reviews/[reviewId]/page'
 import { MAIN_TABS, parseMainTab } from './[id]/edit/mainTabRouting'
 
 const item = {
