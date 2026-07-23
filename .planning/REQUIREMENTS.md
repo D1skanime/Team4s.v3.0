@@ -76,6 +76,24 @@
 - **GAM-04**: Historische Fansub-Leistung und bestätigte Plattformbeiträge bleiben über stabile Kategorien unterscheidbar; Profilpflege erzeugt keine Punkte und vorhandene `member_badges` bleiben eine getrennte, abgeleitete Projektion.
 - **GAM-05**: Das Punktefundament ist rein additiv und verändert keine bestehenden Medien-, Upload-, Crop-, Thumbnail-, Relations-, Cleanup-, Review- oder Capability-Flows; Migration, Repository und Service sind durch Up/Down-, Idempotenz-, Storno- und Parallelitätstests abgesichert.
 
+#### Prüf- und Delegationsfundament
+
+- **P107-SC1**: Review-Rechte sind typisierte, gruppenbezogene Capabilities der bestehenden Permission Engine; Fansub-Admins delegieren nur in ihrer Gruppe, Plattform-Admins global, Delegierte niemals weiter.
+- **P107-SC2**: Offene Prüfungen werden weder reserviert noch Personen zugewiesen. Alle passend Berechtigten dürfen entscheiden; eine atomare First-Decision-Wins-Operation lässt genau eine Entscheidung gewinnen und liefert allen parallelen Verlierern einen stabilen Konflikt.
+- **P107-SC3**: Reguläres Self-Review ist verboten. Nur Plattform-Admins dürfen mit Pflichtbegründung übersteuern; Plattform-Admins erhalten für keine Prüf-, Delegations- oder Override-Aktion Punkte, Badges oder Auszeichnungen.
+- **P107-SC4**: Jede zustandsändernde Review- und Delegationsaktion wird mit Akteur und Zeitpunkt auditiert, reine Lesezugriffe nicht. Strukturierte Audit-Metadaten bleiben unveränderlich, während Freitextgründe für spätere datenschutzkonforme Bereinigung getrennt löschbar sind.
+- **P107-SC5**: Prüfpunkte verwenden ausschließlich den PointService aus Phase 106 und dessen regelversionsstabile Idempotenz. Je konkretem Beitrag gibt es höchstens einen Ablehnungs- und einen späteren Bestätigungscredit; Retries, Parallelität und erneute Entscheidung desselben Prüfers erzeugen keine Duplikate.
+- **P107-SC6**: Das Fundament definiert schmale Adapterverträge für spätere Beitragsdomänen und ist durch Berechtigungs-, Self-Review-, Plattform-Admin-, Parallelitäts-, Audit- und Punkte-Limit-Tests abgesichert, ohne Release-Quellen oder UI vorwegzunehmen.
+
+#### Release-Prüfworkspace und Release-Beitragslebenszyklus
+
+- **P1071-SC1**: Gespeicherte Release-Version-Texte und Release-Version-Medien werden serverseitig automatisch privat in Prüfung gestellt; Einreicher können keinen Review-/Publikationsstatus wählen oder umgehen. Medien behalten die kanonische Ownership über `release_version_media`, `media_assets` und `media_files`.
+- **P1071-SC2**: Nur passende Review-Berechtigte sehen fremde offene Einreichungen. Die Gruppenprüfung bietet auf Tablet und Desktop eine skalierbare, filterbare, cursor-paginierte Liste nach Typ; Smartphones erhalten bewusst einen Hinweis statt einer zusammengedrückten Arbeitsoberfläche.
+- **P1071-SC3**: Die read-only Prüfroute zeigt exakt einen Text oder ein Bild mit Kontext, Audit-relevanten Angaben sowie Bestätigen/Ablehnen, ohne einen zweiten Editor oder breite Release-Edit-Rechte zu erfinden. Der frühere Query-Tab `vorschlaege` wird kompatibel auf `pruefungen` weitergeleitet.
+- **P1071-SC4**: Bestätigung publiziert den Beitrag, bucht Beitragspunkte und optional zulässige Prüfpunkte und entfernt den Eintrag atomar aus der offenen Liste. Ablehnung verlangt Kategorie plus Freitext; Bearbeitung und Neueinreichung verwenden dieselbe Beitrags-ID und erzeugen keinen neuen Farming-Schlüssel.
+- **P1071-SC5**: Abgelehnte Release-Inhalte werden ab der letzten Aktivität nach 90 Tagen in Produktion beziehungsweise 5 Stunden lokal bereinigt. Der Tombstone enthält keine Inhalte, Freitextgründe oder Dateien; physische Medienlöschung ist referenzsicher, pfadgeschützt und bei Fehlern separat idempotent wiederholbar.
+- **P1071-SC6**: OpenAPI, Backend, Frontend-Typen und zentraler Auth-API-Client bleiben synchron. Automatisierte und Live-UAT-Prüfungen decken Text, alle vier Bildkategorien, Self-Review, Plattform-Admin ohne Member, Refresh-Session, Parallelentscheidung, Reject/Edit/Resubmit, Cleanup und Queue-Skalierung ab.
+
 - **TIPTAP-EDITOR-01**: Team4s text surfaces use a shared TipTap-based rich-text foundation with JSON storage, server-side rendering/sanitizing, plaintext extraction, and reusable editor/renderer components.
 - **TIPTAP-COLLAB-01**: Official fansub group notes support a future narrow real-time collaboration mode without introducing a competing note store or changing release/anime ownership rules.
 - **AUTH-FOUNDATION-01**: Keycloak owns login/session/token lifecycle while Team4s owns app users, global app roles, fansub memberships, and fansub-specific roles in the application database.
@@ -246,6 +264,18 @@
 | GAM-03 | Phase 106 | Planned |
 | GAM-04 | Phase 106 | Planned |
 | GAM-05 | Phase 106 | Planned |
+| P107-SC1 | Phase 107 | Planned |
+| P107-SC2 | Phase 107 | Planned |
+| P107-SC3 | Phase 107 | Planned |
+| P107-SC4 | Phase 107 | Planned |
+| P107-SC5 | Phase 107 | Planned |
+| P107-SC6 | Phase 107 | Planned |
+| P1071-SC1 | Phase 107.1 | Planned |
+| P1071-SC2 | Phase 107.1 | Planned |
+| P1071-SC3 | Phase 107.1 | Planned |
+| P1071-SC4 | Phase 107.1 | Planned |
+| P1071-SC5 | Phase 107.1 | Planned |
+| P1071-SC6 | Phase 107.1 | Planned |
 
 **Coverage:**
 - v1 requirements: 28 total

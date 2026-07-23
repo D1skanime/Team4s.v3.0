@@ -1,4 +1,4 @@
-# Phase 107: Bestätigung, Delegation und Ablehnungslebenszyklus - Context
+# Phase 107: Prüf- und Delegationsfundament - Context
 
 **Gathered:** 2026-07-23
 **Status:** Ready for planning
@@ -6,73 +6,74 @@
 <domain>
 ## Phase Boundary
 
-Diese Phase führt den verbindlichen Vier-Augen-Lebenszyklus für bewertete Einreichungen ein: berechtigte Prüfung und Delegation, auditierten Plattform-Admin-Override, exakt einmalige Beitrags- und Prüfpunkte, private Überarbeitung abgelehnter Inhalte, erneute Einreichung sowie zeitgesteuerten und idempotenten Cleanup. Bestehende Domain- und Mediengrenzen bleiben unverändert; insbesondere darf Release-Version-Media nicht an Episoden oder falsche Release-Ebenen gehängt werden.
+Phase 107 baut ausschließlich die wiederverwendbare Prüfgrundlage: typisierte gruppenbezogene Review-Rechte, atomare Entscheidungen ohne Reservierung, Self-Review-Schutz, Audit und begrenzte Prüfpunkte über den PointService aus Phase 106. Sie bindet noch keine Release-Texte, Release-Version-Medien, `anime_contributions`, Upload-Flows, Cleanup-Jobs oder Prüfoberfläche an. Diese Release-Vertikale folgt in Phase 107.1; weitere Beitragsquellen folgen in Phase 108.
 
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
-### Delegierte Review-Rechte
-- **D-01:** Review-Rechte werden als getrennte Capabilities je Beitragstyp modelliert, beispielsweise für Beiträge, Release-Texte und Medien. Es gibt keine pauschale Review-Capability für alles.
-- **D-02:** Fansub-Admins dürfen innerhalb ihrer eigenen Gruppe delegieren; Plattform-Admins dürfen global delegieren. Delegierte Mitglieder dürfen ihre Rechte nicht weiterdelegieren.
-- **D-03:** Eine Delegation gilt ohne Ablaufdatum bis zum ausdrücklichen Entzug.
-- **D-04:** Ein Entzug sperrt nur zukünftige Aktionen. Historische Entscheidungen und bereits verdiente Prüfpunkte bleiben bestehen; offene, noch nicht geprüfte Zuweisungen gehen zurück in die allgemeine Gruppenwarteschlange.
+### Review-Rechte und Delegation
+- **D-01:** Review-Rechte werden als getrennte Capabilities je Beitragstyp modelliert. Für Phase 107.1 sind mindestens Texte, Bilder und Mitwirkungen unterscheidbar; eine einzige pauschale Review-Capability ist verboten.
+- **D-02:** Fansub-Admins dürfen Review-Rechte nur an aktive bestätigte Mitglieder ihrer eigenen Gruppe delegieren. Plattform-Admins dürfen global delegieren. Delegierte Mitglieder dürfen nicht weiterdelegieren.
+- **D-03:** Eine Delegation gilt ohne Ablaufdatum bis zum ausdrücklichen Entzug. Fehlende Logins oder Inaktivität entziehen sie nicht automatisch; Phase 107 führt keinen neuen Membership-Ende-Lebenszyklus ein.
+- **D-04:** Delegationsverwaltung erweitert den bestehenden Mitglieder-Editor des kanonischen Gruppen-Workspaces. Es entsteht keine zweite Mitgliederverwaltung.
 
-### Selbstreview-Override und Prüfpunkte
-- **D-05:** Selbstbestätigung bleibt grundsätzlich verboten. Ein Plattform-Admin darf sie nur als ausdrücklich gekennzeichnete Ausnahme mit Pflichtbegründung und deutlicher UI-Warnung überschreiben.
-- **D-06:** Für einen Selbstreview-Override werden keine Prüfpunkte vergeben.
-- **D-07:** Die Override-Begründung ist für alle Gruppenmitglieder mit Review-Recht sichtbar.
-- **D-08:** Wird ein Override später als unberechtigt eingestuft, wird die Einreichung direkt abgelehnt, die Beitragspunkte werden exakt einmal zurückgenommen und eine Neueinreichung ist erforderlich.
-- **D-09:** Normale Prüfpunkte sind klein, fest und für Annahme und Ablehnung gleich. Sie werden pro wirksamer Review-Entscheidung höchstens einmal vergeben.
+### Keine Reservierung, erster Abschluss gewinnt
+- **D-05:** Es gibt keine Reservierung, Übernahme, persönliche Zuweisung, Assignment-Tabelle oder den Status „in Prüfung durch Person X“.
+- **D-06:** Alle passend berechtigten Prüfer dürfen denselben offenen Eintrag lesen und entscheiden. Genau die erste atomar erfolgreiche Confirm-/Reject-Transaktion gewinnt; parallele Verlierer erhalten einen stabilen Already-decided-/Conflict-Fehler und keine Punkte.
+- **D-07:** Ein Delegationsentzug sperrt nur zukünftige Entscheidungen. Historische Entscheidungen und bereits verdiente Punkte bleiben bestehen; weil keine Assignments existieren, muss nichts zurückgegeben oder umgehängt werden.
 
-### Ablehnung und erneute Einreichung
-- **D-10:** Nach einer Ablehnung bleibt dieselbe Einreichung privat und vollständig bearbeitbar; Texte und zugehörige Medien bleiben bis zum Cleanup erhalten.
-- **D-11:** Eine Ablehnung verlangt mindestens eine strukturierte Kategorie und einen Pflichtfreitext.
-- **D-12:** Bei der Überarbeitung wird derselbe Datensatz inhaltlich überschrieben. Nur der letzte Arbeitsstand ist sichtbar; der Audit-Verlauf der Statusaktionen bleibt erhalten.
-- **D-13:** Derselbe Prüfer darf eine überarbeitete Einreichung erneut prüfen, sofern es nicht seine eigene Einreichung ist.
-- **D-14:** Abgelehnte Einreichungen erhalten keine Beitragspunkte. Erst eine wirksame Bestätigung erzeugt diese exakt einmal.
+### Self-Review und Plattform-Admins
+- **D-08:** Reguläres Self-Review ist verboten. Nur ein Plattform-Admin darf als deutlich gekennzeichnete Ausnahme mit Pflichtbegründung übersteuern.
+- **D-09:** Plattform-Admins dürfen sämtliche Review- und Delegationsaktionen global ausführen, benötigen dafür keine `members`-Identität und erhalten niemals Punkte, Badges oder Auszeichnungen. Eine Bestätigung darf trotzdem die Arbeitspunkte des Einreichers auslösen.
+- **D-10:** Ein Plattform-Admin-Override erzeugt keine Prüfpunkte. Wird er später fachlich aufgehoben, werden bereits erzeugte Beitragspunkte über den PointService exakt einmal storniert.
 
-### Cleanup und Audit-Tombstone
-- **D-15:** Die Aufbewahrungsfrist beginnt mit der letzten Aktivität. Bearbeitung oder erneute Einreichung setzt sie zurück.
-- **D-16:** Die Frist beträgt in Produktion 90 Tage und lokal 5 Stunden. Tests müssen die Zeit kontrolliert vorgeben können.
-- **D-17:** Es gibt keine zusätzliche automatische Vorwarnung vor dem Cleanup; die feste Frist wird im Produkt verständlich ausgewiesen.
-- **D-18:** Der Tombstone bewahrt IDs, Beitragstyp, Beteiligte, Zeitpunkte, Statusfolge, Ablehnungskategorie und Prüferentscheidung. Inhalte, Begründungsfreitexte und Dateien werden nicht dauerhaft aufbewahrt.
-- **D-19:** Schlägt das physische Löschen einer Mediendatei fehl, darf der Tombstone trotzdem erzeugt werden. Der Dateifehler wird protokolliert und bleibt als separat idempotent wiederholbarer Cleanup-Auftrag erhalten.
-- **D-20:** Cleanup, Tombstone-Erstellung, Dateinachlauf, erneute Einreichung, Punktevergabe und Punkterücknahme müssen bei Wiederholung und Parallelzugriffen idempotent bleiben.
+### Audit und Datenschutz
+- **D-11:** Jede Zustandsänderung wird mit Akteur und Zeitpunkt gespeichert: Delegation erteilen/entziehen, Einreichen, Bearbeiten nach Ablehnung, erneut einreichen, bestätigen, ablehnen, veröffentlichen, Override, Punkte/Storno sowie spätere Cleanup-Ergebnisse. Reine Lesezugriffe werden nicht protokolliert.
+- **D-12:** Strukturierte Entscheidungsmetadaten bleiben unveränderlich nachvollziehbar. Jede Ablehnung verlangt eine strukturierte Ablehnungskategorie und einen nichtleeren Freitextgrund; ein Plattform-Self-Review-Override verlangt unabhängig von der Entscheidung ebenfalls einen nichtleeren Freitextgrund. Freie Ablehnungs- und Override-Begründungen werden getrennt nach Zweck gespeichert, damit eine spätere Retention sie entfernen kann, ohne Kategorie oder Audit-Spur zu verfälschen.
+- **D-13:** Systemaktionen erhalten einen eindeutig erkennbaren Systemakteur; es wird kein künstliches Member oder Profil erfunden.
 
-### Prüfer ohne bestätigte Member-Zuordnung
-- **D-21:** Eine aktive, bestätigte Mitgliedschaft in der Fansub-Gruppe ist Voraussetzung für jede neue gruppenbezogene Review-Delegation.
-- **D-22:** Inaktivität oder ausbleibende Logins verändern die bestätigte historische Gruppenmitgliedschaft nicht und entziehen weder Delegation noch offene Zuweisungen, Entscheidungen oder Punkte automatisch.
-- **D-23:** Phase 107 führt keinen Mitgliedschaftsende-/Entfernungslebenszyklus und keine Autorisierungs-Snapshot-Ausnahme für ehemalige Mitglieder ein. Bestätigte Gruppenmitgliedschaft bleibt historisch bestehen.
-- **D-24:** Nur der ausdrückliche Entzug einer Review-Delegation beendet die delegierte Review-Berechtigung. Der Entzug gibt alle offenen Zuweisungen dieser Delegation atomar an die allgemeine Gruppenwarteschlange zurück und verhindert ihren Abschluss durch den früheren Delegierten; abgeschlossene Entscheidungen und bereits verdiente Prüfpunkte bleiben unverändert, für zurückgegebene unfertige Arbeit entstehen keine Prüfpunkte.
+### Prüfpunkte und Farming-Schutz
+- **D-14:** Normale Annahme und Ablehnung verwenden denselben kleinen festen Review-Punktwert. Aufrufer übergeben weder Punktwert noch eigenen Idempotenzschlüssel; der PointService aus Phase 106 erzeugt den regelversionsstabilen Schlüssel aus `RuleRef` und `SourceRef`.
+- **D-15:** Jeder konkrete neue Beitrag besitzt eine stabile Quellenidentität. Je Quellenidentität existiert höchstens ein Ablehnungs-Credit-Slot und höchstens ein späterer Bestätigungs-Credit-Slot; Retries oder wiederholte Entscheidungen erzeugen keine weiteren Credits.
+- **D-16:** Mehrere tatsächlich unterschiedliche Bilder oder Texte desselben Releases dürfen jeweils eigene Beitrags- und Review-Credits erzeugen. Bearbeiten und Neueinreichen eines abgelehnten Datensatzes behalten dagegen dieselbe Quellenidentität.
+- **D-17:** Review-Credit gehört dem prüfenden `member`, nicht dem Einreicher. Fehlt beim berechtigten Plattform-Admin eine Member-Zuordnung, bleibt die Entscheidung gültig, aber es wird kein Review-Credit erzeugt.
 
-### Agent's Discretion
-- Genaue Namen der Capabilities, Tabellen und API-Felder, sofern sie klar typisiert sind und die vorhandene Permission Engine wiederverwenden.
-- Auswahl der strukturierten Ablehnungskategorien und deren deutsche UI-Bezeichnungen; sie müssen stabil, testbar und später erweiterbar sein.
-- Technische Form der offenen Review-Zuweisung und des separat wiederholbaren Datei-Cleanup-Auftrags.
-- Konkrete Höhe der kleinen festen Prüfpunkte, solange Annahme und Ablehnung gleich bewertet werden und Self-Overrides null Punkte erhalten.
+### the agent's Discretion
+- Genaue Namen der neuen Capabilities, Tabellen, Go-Typen und stabilen Fehlercodes, sofern die bestehende Permission Engine und Phase-106-PointService-Seams direkt wiederverwendet werden.
+- Die konkrete kleine Punktzahl und Rule-Codes, solange Annahme und Ablehnung gleich gewichtet und Overrides/Plattform-Admins immer punktelos bleiben.
+- Ob die domänenneutrale Entscheidungslogik als Service mit Adapter-Interface oder eng äquivalentes vorhandenes Pattern umgesetzt wird; ein Universal-Datenmodell, das Domain-Ownership verschluckt, ist nicht erlaubt.
 
 </decisions>
+
+<specifics>
+## Specific Ideas
+
+- Das Modell soll bewusst wie eine offene Arbeitsliste funktionieren: Berechtigte sehen Arbeit und die erste tatsächlich abgeschlossene Prüfung gewinnt.
+- „Übernommen von …“ oder persönliche Arbeitsreservierungen sind ausdrücklich unerwünscht.
+- Plattform-Admins sind Sicherheits- und Supportinstanz, keine Teilnehmer der Gamification.
+
+</specifics>
 
 <canonical_refs>
 ## Canonical References
 
 **Downstream agents MUST read these before planning or implementing.**
 
-### Produkt- und Phasenentscheidungen
-- `.planning/ROADMAP.md` — Ziel und Erfolgskriterien von Phase 107.
-- `.planning/REQUIREMENTS.md` — Milestone-Anforderungen und Zuordnung zur Phase.
-- `.planning/notes/260722-member-gamification-DECISION.md` — verbindliche Produktentscheidungen zur Gamification und Review-Logik.
-- `.planning/phases/106-member-gamification-punktefundament/106-CONTEXT.md` — Punktefundament, Idempotenz und Grenzen der vorausgehenden Phase.
+### Produkt und Voraussetzungen
+- `.planning/ROADMAP.md` — Phase-107-Grenze, Anforderungen und Abhängigkeit zu Phase 107.1.
+- `.planning/REQUIREMENTS.md` — `P107-SC1` bis `P107-SC6`.
+- `.planning/notes/260722-member-gamification-DECISION.md` — verbindliche Produktbasis für Punkte, Identität und Vier-Augen-Prinzip.
+- `.planning/phases/106-member-gamification-punktefundament/106-CONTEXT.md` — unveränderliche Grenzen des Punktefundaments.
+- `.planning/phases/106-member-gamification-punktefundament/106-RESEARCH.md` — konkrete PointService-, RuleRef-, SourceRef- und Ledger-Seams.
 
-### Domain, Implementierung und Verträge
-- `docs/architecture/db-schema-fansub-domain.md` — kanonische Fansub-, Release-Version- und Medienzuordnung.
-- `docs/engineering/implementation-contract.md` — Wiederverwendungs- und Implementierungsregeln.
-- `docs/api/api-contracts.md` — API-Vertragsworkflow; Vertragsdateien müssen mit Runtime und Frontend synchron bleiben.
-- `docs/frontend/auth-api-client.md` — zentrale Auth- und Refresh-Session-Grenze für geschützte Review-Aktionen.
-- `docs/frontend/ui-system.md` — semantische UI-Komponenten und bestehende Designkonventionen.
-- `docs/agent-guidelines-ui.md` — lokale UI-Leitlinien für Admin-Oberflächen.
+### Architektur, Verträge und Sicherheit
+- `docs/architecture/db-schema-fansub-domain.md` — kanonische Fansub-, Release- und Medien-Ownership.
+- `docs/engineering/implementation-contract.md` — Reuse-first- und Dateigrenzen.
+- `docs/api/api-contracts.md` — Vertragsworkflow für spätere HTTP-Anbindung.
+- `docs/frontend/auth-api-client.md` — Auth-/Refresh-Session-Grenze.
+- `AGENTS.md` — Projekt-, Domain-, Upload-, Auth- und Migrationsregeln.
 
 </canonical_refs>
 
@@ -80,44 +81,34 @@ Diese Phase führt den verbindlichen Vier-Augen-Lebenszyklus für bewertete Einr
 ## Existing Code Insights
 
 ### Reusable Assets
-- `backend/internal/handlers/contribution_review_handler.go`: bestehender HTTP-Einstieg für Bestätigung und Ablehnung; hier AuthZ und stabile Fehlerverträge erweitern.
-- `backend/internal/repository/anime_contributions_proposal_repository.go`: bestehende Statusmutationen für Confirm, Reject und SelfPublish; in transaktionale, idempotente Lebenszyklusoperationen überführen.
-- `backend/internal/permissions/permissions.go` und `backend/internal/repository/authz_permissions.go`: vorhandene DB-gestützte Capability- und Rollenlogik für Delegationen wiederverwenden.
-- `backend/internal/repository/media_repository.go`: vorhandene Media-Review-Statusseams beachten, ohne die Eigentumsgrenzen der Medientypen zusammenzuführen.
-- `backend/internal/repository/release_version_media_cleanup.go` und `backend/internal/services/release_version_media_cleanup.go`: etablierte Muster für periodischen, wiederholbaren Medien-Cleanup als Analog verwenden.
+- `backend/internal/permissions/permissions.go` und `backend/internal/repository/authz_permissions.go`: bestehende Capability-Auflösung; keine parallele Rollenlogik.
+- `backend/internal/services/point_service.go`: alleinige Buchungsseam, die den Idempotenzschlüssel aus RuleRef/SourceRef bildet.
+- `backend/internal/repository/point_ledger_repository.go` und `backend/internal/repository/point_rules_repository.go`: bestehendes `point_ledger_entries`- und Regelmodell aus Phase 106.
+- `backend/internal/handlers/contribution_review_handler.go`: vorhandene Confirm-/Reject-Semantik als Analog, aber `anime_contributions` wird in Phase 107 nicht vollständig angebunden.
 
 ### Established Patterns
-- Punkteänderungen aus Phase 106 sind transaktional, idempotent und über stabile Regelcodes adressiert; Review-Aktionen müssen dieselbe Seam verwenden.
-- Berechtigungen werden über vorhandene Rollen und Capabilities geprüft, nicht über neue ad-hoc Rollenlogik.
-- Geschützte Browseraktionen laufen über den zentralen API-Client und müssen mit gültiger Refresh-Session auch ohne aktuellen Access Token funktionieren.
-- Gruppeninterne Review-UI gehört in den kanonischen Workspace `/admin/fansubs/[id]/edit`.
+- Neue Migrationen sind additiv; historische Migrationen bleiben unangetastet.
+- Transaktionale Consumer verwenden den tx-gebundenen PointService-Pfad, damit Entscheidung, Audit und Buchung gemeinsam committen oder gemeinsam scheitern.
+- Domain-Adapter liefern stabile Quellenidentität, Autor und Kontext, ohne ihre Fachtabellen in eine Universal-Tabelle zu kopieren.
 
 ### Integration Points
-- Confirm/Reject/Override verbinden Proposal-Status, Audit-Ereignis und Punktebuchung in einer atomaren Transaktion.
-- Delegationsverwaltung verbindet Gruppenmitgliedschaft mit typbezogenen Capabilities und offenen Zuweisungen.
-- Cleanup-Job verbindet abgelehnte Inhalte, domainrichtig zugeordnete Medien, Tombstone und einen separat wiederholbaren Dateinachlauf.
-- API-Veränderungen müssen `shared/contracts/openapi.yaml`, gegebenenfalls `shared/contracts/admin-content.yaml`, Frontend-Typen und `frontend/src/lib/api.ts` gemeinsam berücksichtigen.
+- Phase 107.1 implementiert Adapter für `release_version_notes` und `release_version_media`.
+- Phase 108 bindet `anime_contributions` und weitere bestätigte Quellen an.
+- Delegations- und Review-HTTP/UI-Verträge werden erst mit einem konkreten Consumer in Phase 107.1 vervollständigt.
 
 </code_context>
-
-<specifics>
-## Specific Ideas
-
-- Der normale Review-Prozess soll konsequent als Vier-Augen-Prinzip erscheinen; der Self-Override ist visuell eine seltene, begründungspflichtige Ausnahme.
-- Überarbeitungen sollen für den Einreicher einfach wirken: derselbe private Arbeitsstand wird korrigiert und erneut eingereicht, ohne sichtbare Inhaltsversionen anzusammeln.
-- Der Tombstone dient ausschließlich Nachvollziehbarkeit und Missbrauchsschutz, nicht als verstecktes Archiv gelöschter Inhalte.
-
-</specifics>
 
 <deferred>
 ## Deferred Ideas
 
-### Reviewed Todos (not folded)
-- `.planning/todos/pending/2026-06-03-credits-ui-konsolidierung-und-permission-bruecke.md` — die generische Credit-zu-Permission-Brücke und Konsolidierung der Credits-UI bleiben außerhalb von Phase 107; diese Phase nutzt die bestehende Permission Engine nur für Review-Delegationen.
+- Release-Prüfliste, Detailroute, automatische Einreichung, Veröffentlichung, Ablehnungsüberarbeitung und Cleanup — Phase 107.1.
+- Historische/aktuelle Mitwirkungen, Projekt-/Zusatznotizen und Metadatenpflege — Phase 108.
+- Ranglisten — Phase 109; Badges und öffentliche UI — Phase 110.
+- Generische Credit-zu-Permission-Brücke aus `.planning/todos/pending/2026-06-03-credits-ui-konsolidierung-und-permission-bruecke.md`.
 
 </deferred>
 
 ---
 
-*Phase: 107-Bestätigung, Delegation und Ablehnungslebenszyklus*
+*Phase: 107-pruef-und-delegationsfundament*
 *Context gathered: 2026-07-23*

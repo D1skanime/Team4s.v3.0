@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_discuss
 stopped_at: Phase 107 context gathered
-last_updated: "2026-07-23T12:41:18.678Z"
+last_updated: "2026-07-23T13:28:41.610Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
