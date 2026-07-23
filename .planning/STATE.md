@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 107.1-03-PLAN.md
-last_updated: "2026-07-23T19:49:22.279Z"
+stopped_at: Completed 107.1-04-PLAN.md
+last_updated: "2026-07-23T20:09:45.467Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 82
   total_plans: 449
-  completed_plans: 417
+  completed_plans: 418
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 
 ## Accumulated Context
 
@@ -357,6 +357,9 @@ Recent durable decisions:
 - [Phase 107.1]: Review-Zugriff verwendet CanReviewForFansubGroup mit exakten Text-/Bild-Actions; can_edit_release wird separat für die konkrete release_version_id ermittelt.
 - [Phase 107.1]: Opake Review-IDs und Cursor sind strikt dekodiert und an Gruppe, Ansicht, Filter sowie submitted_at/source_type/source_id gebunden.
 - [Phase 107.1]: Decision-Mutationen delegieren ausschließlich an den gelandeten Phase-107-ReviewService; der Handler vergibt keine Beneficiary-, Punkte-, Status- oder Sichtbarkeitswerte.
+- [Phase 107.1]: Release-Bestätigungen verwenden release.contribution Version 1 mit einem festen Plattformbeitragspunkt; Werte und Idempotenz bleiben serverseitig. — Die bisherige Review-Regel ist semantisch nur für Reviewer-Credits bestimmt.
+- [Phase 107.1]: Der Phase-107-Decision-Insert arbitriert parallele Release-Entscheidungen vor der bedingten Source-Mutation. — So sehen beide Prozesse dieselbe Revision und nur der unveränderliche DB-Arbiter gewinnt.
+- [Phase 107.1]: Plattformadmins setzen SelfReviewOverride nur bei einem tatsächlichen begründeten Self-Override und erhalten nie Review-Credit. — Fremde Quellen bleiben für Admins prüfbar, ohne die gelandete Self-Review-Policy zu verletzen.
 
 ### Pending Todos
 
@@ -625,6 +628,7 @@ Recent durable decisions:
 | Phase 107.1 P01 | 11min | 3 tasks | 4 files |
 | Phase 107.1 P02 | 27min | 2 tasks | 10 files |
 | Phase 107.1 P03 | 29min | 2 tasks | 9 files |
+| Phase 107.1 P04 | 15min | 2 tasks | 10 files |
 
 ### Quick Tasks Completed
 
@@ -706,7 +710,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T19:49:22.189Z
-Stopped at: Completed 107.1-03-PLAN.md
+Last session: 2026-07-23T20:09:45.353Z
+Stopped at: Completed 107.1-04-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
