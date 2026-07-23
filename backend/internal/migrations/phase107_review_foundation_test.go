@@ -21,6 +21,7 @@ const (
 )
 
 var phase107FoundationTables = []string{
+	"review_foundation_seed_ownership",
 	"fansub_group_member_review_capabilities",
 	"review_decisions",
 	"review_audit_events",
@@ -33,6 +34,7 @@ func TestPhase107MigrationUpContract(t *testing.T) {
 
 	require.Equal(t, phase107FoundationTables, phase107CreatedTables(up))
 	requireSQLContains(t, up,
+		"create table review_foundation_seed_ownership",
 		"create table fansub_group_member_review_capabilities",
 		"create table review_decisions",
 		"create table review_audit_events",
@@ -55,6 +57,11 @@ func TestPhase107MigrationUpContract(t *testing.T) {
 		"references point_ledger_entries(id)",
 		"review.decision",
 		"platform_contribution",
+	)
+	requireSQLContains(t, up,
+		"created_by_migration",
+		"review_foundation_seed_ownership_guard_mutation",
+		"review_foundation_seed_ownership_reject_truncate",
 	)
 	require.Contains(t, up, "raise exception", "conflicting review.decision seed must fail closed")
 	require.Contains(t, up, "point_value", "review.decision v1 must pin its value")
@@ -101,6 +108,7 @@ func TestPhase107MigrationDownContract(t *testing.T) {
 		"drop table if exists review_decisions",
 		"drop table if exists review_credit_slots",
 		"drop table if exists fansub_group_member_review_capabilities",
+		"drop table if exists review_foundation_seed_ownership",
 		"delete from role_capabilities",
 		"delete from action_definitions",
 		"delete from point_rules",
@@ -140,6 +148,62 @@ SELECT count(*) FROM action_definitions WHERE code LIKE 'review.%.decide'`).Scan
 		for _, table := range phase107FoundationTables {
 			assertPhase106TableExists(t, pool, table)
 		}
+	})
+
+	t.Run("compatible-preexisting-seeds-survive-up-down", func(t *testing.T) {
+		pool := testsupport.OpenPhase107Postgres(t)
+		_, err := pool.Exec(context.Background(), `
+INSERT INTO action_definitions (code, label_de, category, sort_order) VALUES
+    ('review.text.decide', 'Texte prüfen', 'review', 90),
+    ('review.image.decide', 'Bilder prüfen', 'review', 91),
+    ('review.contribution.decide', 'Mitwirkungen prüfen', 'review', 92);
+INSERT INTO role_capabilities (role_code, action_code) VALUES
+    ('fansub_lead', 'review.text.decide'),
+    ('fansub_lead', 'review.image.decide'),
+    ('fansub_lead', 'review.contribution.decide');
+INSERT INTO point_rules (rule_code, rule_version, category, point_value)
+VALUES ('review.decision', 1, 'platform_contribution', 1);`)
+		require.NoError(t, err)
+
+		testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase107UpFile))
+
+		var externalSeeds int
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM review_foundation_seed_ownership
+WHERE NOT created_by_migration`).Scan(&externalSeeds))
+		require.Equal(t, 7, externalSeeds)
+
+		testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase107DownFile))
+
+		var actions, capabilities, rules int
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM action_definitions
+WHERE (code, label_de, category, sort_order) IN (
+    ('review.text.decide', 'Texte prüfen', 'review', 90),
+    ('review.image.decide', 'Bilder prüfen', 'review', 91),
+    ('review.contribution.decide', 'Mitwirkungen prüfen', 'review', 92)
+)`).Scan(&actions))
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM role_capabilities
+WHERE role_code = 'fansub_lead'
+  AND action_code IN (
+      'review.text.decide',
+      'review.image.decide',
+      'review.contribution.decide'
+  )`).Scan(&capabilities))
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*)
+FROM point_rules
+WHERE rule_code = 'review.decision'
+  AND rule_version = 1
+  AND category = 'platform_contribution'
+  AND point_value = 1`).Scan(&rules))
+		require.Equal(t, 3, actions)
+		require.Equal(t, 3, capabilities)
+		require.Equal(t, 1, rules)
 	})
 }
 

@@ -1,13 +1,95 @@
 BEGIN;
 
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM action_definitions actual
+        JOIN (
+            VALUES
+                ('review.text.decide', 'Texte prüfen', 'review', 90),
+                ('review.image.decide', 'Bilder prüfen', 'review', 91),
+                ('review.contribution.decide', 'Mitwirkungen prüfen', 'review', 92)
+        ) AS expected(code, label_de, category, sort_order)
+          ON expected.code = actual.code
+        WHERE actual.label_de IS DISTINCT FROM expected.label_de
+           OR actual.category IS DISTINCT FROM expected.category
+           OR actual.sort_order IS DISTINCT FROM expected.sort_order
+    ) THEN
+        RAISE EXCEPTION '0134 review action namespace contains incompatible definitions';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM point_rules
+        WHERE rule_code = 'review.decision'
+          AND rule_version = 1
+          AND (
+              category <> 'platform_contribution'
+              OR point_value <> 1
+          )
+    ) THEN
+        RAISE EXCEPTION 'review.decision version 1 conflicts with the required platform_contribution point value 1';
+    END IF;
+END;
+$$;
+
+CREATE TABLE review_foundation_seed_ownership (
+    seed_kind TEXT NOT NULL CHECK (
+        seed_kind IN ('action_definition', 'role_capability', 'point_rule')
+    ),
+    seed_key TEXT NOT NULL CHECK (
+        seed_key <> ''
+        AND seed_key = phase106_trim_unicode_whitespace(seed_key)
+    ),
+    created_by_migration BOOLEAN NOT NULL,
+    PRIMARY KEY (seed_kind, seed_key)
+);
+
+INSERT INTO review_foundation_seed_ownership (
+    seed_kind,
+    seed_key,
+    created_by_migration
+)
+SELECT
+    'action_definition',
+    seed.code,
+    NOT EXISTS (
+        SELECT 1 FROM action_definitions existing WHERE existing.code = seed.code
+    )
+FROM (
+    VALUES
+        ('review.text.decide'),
+        ('review.image.decide'),
+        ('review.contribution.decide')
+) AS seed(code);
+
 INSERT INTO action_definitions (code, label_de, category, sort_order) VALUES
     ('review.text.decide', 'Texte prüfen', 'review', 90),
     ('review.image.decide', 'Bilder prüfen', 'review', 91),
     ('review.contribution.decide', 'Mitwirkungen prüfen', 'review', 92)
-ON CONFLICT (code) DO UPDATE SET
-    label_de = EXCLUDED.label_de,
-    category = EXCLUDED.category,
-    sort_order = EXCLUDED.sort_order;
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO review_foundation_seed_ownership (
+    seed_kind,
+    seed_key,
+    created_by_migration
+)
+SELECT
+    'role_capability',
+    'fansub_lead|' || seed.action_code,
+    NOT EXISTS (
+        SELECT 1
+        FROM role_capabilities existing
+        WHERE existing.role_code = 'fansub_lead'
+          AND existing.action_code = seed.action_code
+    )
+FROM (
+    VALUES
+        ('review.text.decide'),
+        ('review.image.decide'),
+        ('review.contribution.decide')
+) AS seed(action_code);
 
 INSERT INTO role_capabilities (role_code, action_code) VALUES
     ('fansub_lead', 'review.text.decide'),
@@ -201,30 +283,32 @@ CREATE TRIGGER review_reason_texts_reject_truncate
 BEFORE TRUNCATE ON review_reason_texts
 FOR EACH STATEMENT EXECUTE FUNCTION reject_review_reason_truncate();
 
-DO $$
-BEGIN
-    IF EXISTS (
+CREATE TRIGGER review_foundation_seed_ownership_guard_mutation
+BEFORE UPDATE OR DELETE ON review_foundation_seed_ownership
+FOR EACH ROW EXECUTE FUNCTION reject_review_append_only_mutation();
+
+CREATE TRIGGER review_foundation_seed_ownership_reject_truncate
+BEFORE TRUNCATE ON review_foundation_seed_ownership
+FOR EACH STATEMENT EXECUTE FUNCTION reject_review_append_only_truncate();
+
+INSERT INTO review_foundation_seed_ownership (
+    seed_kind,
+    seed_key,
+    created_by_migration
+)
+VALUES (
+    'point_rule',
+    'review.decision|1',
+    NOT EXISTS (
         SELECT 1
         FROM point_rules
         WHERE rule_code = 'review.decision'
           AND rule_version = 1
-          AND (
-              category <> 'platform_contribution'
-              OR point_value <> 1
-          )
-    ) THEN
-        RAISE EXCEPTION 'review.decision version 1 conflicts with the required platform_contribution point value 1';
-    END IF;
-END;
-$$;
+    )
+);
 
 INSERT INTO point_rules (rule_code, rule_version, category, point_value)
-SELECT 'review.decision', 1, 'platform_contribution', 1
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM point_rules
-    WHERE rule_code = 'review.decision'
-      AND rule_version = 1
-);
+VALUES ('review.decision', 1, 'platform_contribution', 1)
+ON CONFLICT (rule_code, rule_version) DO NOTHING;
 
 COMMIT;
