@@ -359,7 +359,7 @@ CREATE FUNCTION validate_review_credit_slot_contract() RETURNS trigger
 LANGUAGE plpgsql AS $$
 DECLARE
     linked_decision review_decisions%ROWTYPE;
-    linked_ledger point_ledger_entries%ROWTYPE;
+    linked_award point_ledger_entries%ROWTYPE;
     linked_rule point_rules%ROWTYPE;
     expected_source_key TEXT;
     expected_idempotency_key TEXT;
@@ -380,14 +380,14 @@ BEGIN
     END IF;
 
     SELECT *
-    INTO linked_ledger
+    INTO linked_award
     FROM point_ledger_entries
     WHERE id = NEW.point_ledger_entry_id;
 
     SELECT *
     INTO linked_rule
     FROM point_rules
-    WHERE id = linked_ledger.rule_id;
+    WHERE id = linked_award.rule_id;
 
     expected_source_key :=
         'source:' || octet_length(linked_decision.source_type) || ':' ||
@@ -399,22 +399,22 @@ BEGIN
         '|beneficiary:' || NEW.reviewer_member_id ||
         '|slot:' || NEW.credit_slot;
 
-    IF linked_ledger.id IS NULL
+    IF linked_award.id IS NULL
        OR linked_rule.id IS NULL
-       OR linked_ledger.entry_kind <> 'award'
-       OR linked_ledger.member_id <> NEW.reviewer_member_id
-       OR linked_ledger.actor_app_user_id IS DISTINCT FROM linked_decision.reviewer_app_user_id
-       OR linked_ledger.fansub_group_id IS DISTINCT FROM linked_decision.fansub_group_id
-       OR linked_ledger.source_type <> 'review_decision'
-       OR linked_ledger.source_key <> expected_source_key
-       OR linked_ledger.idempotency_key <> expected_idempotency_key
+       OR linked_award.entry_kind <> 'award'
+       OR linked_award.member_id <> NEW.reviewer_member_id
+       OR linked_award.actor_app_user_id IS DISTINCT FROM linked_decision.reviewer_app_user_id
+       OR linked_award.fansub_group_id IS DISTINCT FROM linked_decision.fansub_group_id
+       OR linked_award.source_type <> 'review_decision'
+       OR linked_award.source_key <> expected_source_key
+       OR linked_award.idempotency_key <> expected_idempotency_key
        OR linked_rule.rule_code <> 'review.decision'
        OR linked_rule.rule_version <> 1
-       OR linked_ledger.rule_code_snapshot <> 'review.decision'
-       OR linked_ledger.rule_version_snapshot <> 1
-       OR linked_ledger.rule_category_snapshot <> 'platform_contribution'
-       OR linked_ledger.rule_point_value_snapshot <> 1
-       OR linked_ledger.point_value <> 1 THEN
+       OR linked_award.rule_code_snapshot <> 'review.decision'
+       OR linked_award.rule_version_snapshot <> 1
+       OR linked_award.rule_category_snapshot <> 'platform_contribution'
+       OR linked_award.rule_point_value_snapshot <> 1
+       OR linked_award.point_value <> 1 THEN
         RAISE EXCEPTION 'review credit slot does not reference its PointService award';
     END IF;
 
