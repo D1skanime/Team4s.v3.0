@@ -502,17 +502,47 @@ func TestPhase107ReviewServicePlatformAdminOverrideAndWorkCredits(t *testing.T) 
 	}); err != nil {
 		t.Fatal(err)
 	}
+
+	foreignRef := ReviewTargetRef{SourceType: "fixture", StableKey: "platform-foreign"}
+	adapter.setTarget(reviewFixtureTarget(foreignRef, 1, reviewID(12), &beneficiary))
+	if _, err := service.Decide(ctx, ReviewDecisionCommand{
+		Actor: platform, Target: foreignRef, Decision: ReviewDecisionConfirm,
+	}); err != nil {
+		t.Fatalf("memberless platform review of foreign target: %v", err)
+	}
+
+	memberSelfRef := ReviewTargetRef{SourceType: "fixture", StableKey: "platform-member-self"}
+	adapter.setTarget(reviewFixtureTarget(memberSelfRef, 1, reviewID(12), reviewID(103)))
+	platformWithVerifiedMember := permissions.Actor{
+		AppUserID: 13, Status: "active", IsPlatformAdmin: true,
+	}
+	if _, err := service.Decide(ctx, ReviewDecisionCommand{
+		Actor: platformWithVerifiedMember, Target: memberSelfRef, Decision: ReviewDecisionReject,
+		RejectionCategory: "quality", RejectReason: "Fachlicher Ablehnungsgrund",
+	}); !errors.Is(err, ErrReviewSelfReviewForbidden) {
+		t.Fatalf("platform verified-member self without override: %v", err)
+	}
+	if _, err := service.Decide(ctx, ReviewDecisionCommand{
+		Actor: platformWithVerifiedMember, Target: memberSelfRef, Decision: ReviewDecisionReject,
+		RejectionCategory: "quality", RejectReason: "Fachlicher Ablehnungsgrund",
+		SelfReviewOverride: true, OverrideReason: "Dokumentierte Support-Ausnahme",
+	}); err != nil {
+		t.Fatalf("platform verified-member override: %v", err)
+	}
 	if got := fx.count(t, `SELECT COUNT(*) FROM review_credit_slots`); got != 0 {
 		t.Fatalf("platform review slots=%d", got)
 	}
 	if got := fx.count(t, `SELECT COUNT(*) FROM point_ledger_entries WHERE source_type='review_decision'`); got != 0 {
 		t.Fatalf("platform review credits=%d", got)
 	}
-	if got := fx.count(t, `SELECT COUNT(*) FROM point_ledger_entries WHERE source_type='fixture_work'`); got != 1 {
+	if got := fx.count(t, `SELECT COUNT(*) FROM point_ledger_entries WHERE source_type='fixture_work'`); got != 3 {
 		t.Fatalf("adapter-owned work credits=%d", got)
 	}
-	if got := fx.count(t, `SELECT COUNT(*) FROM review_reason_texts WHERE reason_kind='override'`); got != 1 {
+	if got := fx.count(t, `SELECT COUNT(*) FROM review_reason_texts WHERE reason_kind='override'`); got != 2 {
 		t.Fatalf("override reasons=%d", got)
+	}
+	if got := fx.count(t, `SELECT COUNT(*) FROM review_reason_texts WHERE reason_kind='reject'`); got != 1 {
+		t.Fatalf("reject reasons=%d", got)
 	}
 }
 
@@ -571,6 +601,102 @@ func TestPhase107ReviewServiceFirstDecisionWinsConcurrent(t *testing.T) {
 	if got := fx.count(t, `SELECT COUNT(*) FROM phase107_review_target_mutations`); got != 1 {
 		t.Fatalf("adapter mutations=%d", got)
 	}
+	if got := fx.count(t, `SELECT COUNT(*) FROM review_audit_events`); got != 2 {
+		t.Fatalf("winner-only audit rows=%d", got)
+	}
+	if got := fx.count(t, `SELECT COUNT(*) FROM review_credit_slots`); got != 1 {
+		t.Fatalf("winner-only credit slots=%d", got)
+	}
+	if got := fx.count(t, `SELECT COUNT(*) FROM point_ledger_entries`); got != 1 {
+		t.Fatalf("winner-only ledger rows=%d", got)
+	}
+}
+
+func TestPhase107ReviewServiceAdapterRegistryIsCopiedAndUnknownFailsBeforeBegin(t *testing.T) {
+	starter := &pointTestStarter{}
+	adapter := &reviewFixtureAdapter{targets: make(map[string]ReviewTarget)}
+	registry := map[string]ReviewTargetAdapter{"fixture": adapter}
+	service := NewReviewService(starter, registry)
+	delete(registry, "fixture")
+	if got, _, err := service.resolveAdapter(ReviewTargetRef{
+		SourceType: "fixture", StableKey: "kept",
+	}); err != nil || got != adapter {
+		t.Fatalf("constructor did not preserve copied registry: adapter=%T err=%v", got, err)
+	}
+	if _, err := service.Decide(context.Background(), ReviewDecisionCommand{
+		Actor:    permissions.Actor{AppUserID: 11, Status: "active"},
+		Target:   ReviewTargetRef{SourceType: "unknown", StableKey: "opaque"},
+		Decision: ReviewDecisionConfirm,
+	}); !errors.Is(err, ErrReviewTargetNotFound) {
+		t.Fatalf("unknown source error=%v", err)
+	}
+	if starter.begins != 0 {
+		t.Fatalf("unknown source began %d transactions", starter.begins)
+	}
+}
+
+func TestPhase107ReviewServiceGrantRevokeDecisionLockOrder(t *testing.T) {
+	fx := openPhase107ReviewServicePostgres(t)
+	ctx := context.Background()
+	submitter := int64(12)
+	beneficiary := int64(102)
+	ref := ReviewTargetRef{SourceType: "fixture", StableKey: "delegation-lock-order"}
+	adapter := &reviewFixtureAdapter{targets: map[string]ReviewTarget{
+		ref.StableKey: reviewFixtureTarget(ref, 1, &submitter, &beneficiary),
+	}}
+	service := NewReviewService(fx.pool, map[string]ReviewTargetAdapter{"fixture": adapter})
+	lead := permissions.Actor{AppUserID: 11, Status: "active"}
+	delegate := permissions.Actor{AppUserID: 14, Status: "active"}
+	delegation := ReviewDelegationCommand{
+		Actor: lead, TargetMembershipID: 34, Action: permissions.ActionReviewTextDecide,
+	}
+	if err := service.GrantDelegation(ctx, delegation); err != nil {
+		t.Fatal(err)
+	}
+
+	start := make(chan struct{})
+	var ready sync.WaitGroup
+	ready.Add(2)
+	decisionResult := make(chan error, 1)
+	revokeResult := make(chan error, 1)
+	go func() {
+		ready.Done()
+		<-start
+		_, err := service.Decide(context.Background(), ReviewDecisionCommand{
+			Actor: delegate, Target: ref, Decision: ReviewDecisionConfirm,
+		})
+		decisionResult <- err
+	}()
+	go func() {
+		ready.Done()
+		<-start
+		revokeResult <- service.RevokeDelegation(context.Background(), delegation)
+	}()
+	ready.Wait()
+	close(start)
+	decisionErr := <-decisionResult
+	if decisionErr != nil && !errors.Is(decisionErr, ErrReviewCapabilityDenied) {
+		t.Fatalf("decision lock-order result=%v", decisionErr)
+	}
+	if err := <-revokeResult; err != nil {
+		t.Fatalf("revoke lock-order result=%v", err)
+	}
+	if got := fx.count(t, `
+		SELECT COUNT(*) FROM fansub_group_member_review_capabilities
+		WHERE fansub_group_member_id=34 AND action_code='review.text.decide'
+	`); got != 0 {
+		t.Fatalf("revoked grant rows=%d", got)
+	}
+
+	adapter.setTarget(reviewFixtureTarget(ref, 2, &submitter, &beneficiary))
+	if _, err := service.Decide(ctx, ReviewDecisionCommand{
+		Actor: delegate, Target: ref, Decision: ReviewDecisionConfirm,
+	}); !errors.Is(err, ErrReviewCapabilityDenied) {
+		t.Fatalf("future decision after revoke=%v", err)
+	}
+	if got := fx.count(t, `SELECT COUNT(*) FROM review_decisions`); got > 1 {
+		t.Fatalf("historical decisions=%d", got)
+	}
 }
 
 func TestPhase107ReviewServiceCreditSlotsAcrossRevisionsAndIndependentSources(t *testing.T) {
@@ -612,6 +738,17 @@ func TestPhase107ReviewServiceCreditSlotsAcrossRevisionsAndIndependentSources(t 
 	}
 	if got := fx.count(t, `SELECT COUNT(*) FROM point_ledger_entries WHERE source_type='review_decision'`); got != 3 {
 		t.Fatalf("review awards=%d", got)
+	}
+	if got := fx.count(t, `
+		SELECT COUNT(*) FROM point_ledger_entries
+		WHERE source_type='review_decision'
+		  AND member_id=101
+		  AND rule_code_snapshot='review.decision'
+		  AND rule_version_snapshot=1
+		  AND rule_point_value_snapshot=1
+		  AND point_value=1
+	`); got != 3 {
+		t.Fatalf("fixed-rule reviewer-member awards=%d", got)
 	}
 }
 
