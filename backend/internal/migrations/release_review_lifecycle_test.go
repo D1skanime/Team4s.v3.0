@@ -55,11 +55,11 @@ func TestReleaseReviewLifecycleMigrationContract(t *testing.T) {
 		"unique (media_file_id)",
 		"create index idx_release_note_review_queue",
 		"on release_version_note_review_lifecycle (review_state, submitted_at, id)",
-		"create index idx_release_media_review_queue",
+		"create index idx_release_rvm_review_queue",
 		"on release_version_media_review_lifecycle (review_state, submitted_at, id)",
 		"create index idx_release_note_review_cleanup",
 		"on release_version_note_review_lifecycle (review_state, cleanup_due_at, id)",
-		"create index idx_release_media_review_cleanup",
+		"create index idx_release_rvm_review_cleanup",
 		"on release_version_media_review_lifecycle (review_state, cleanup_due_at, id)",
 	)
 
@@ -242,7 +242,9 @@ INSERT INTO release_version_note_review_lifecycle (
 ) VALUES (1001, 1, 'pending', 11, 21, NOW(), NOW())`)
 		require.NoError(t, err)
 
-		_, err = pool.Exec(context.Background(), readReleaseReviewLifecycleMigration(t, releaseReviewLifecycleDown))
+		down, err := os.ReadFile(releaseReviewLifecycleMigrationPath(t, releaseReviewLifecycleDown))
+		require.NoError(t, err)
+		_, err = pool.Exec(context.Background(), string(down))
 		require.Error(t, err)
 		for _, table := range releaseReviewLifecycleTables {
 			assertPhase106TableExists(t, pool, table)
