@@ -365,3 +365,17 @@ func TestReleaseReviewCleanupFinalReferenceAndCanonicalPathGuards(t *testing.T) 
 	`).Scan(&sharedStatus))
 	assert.Equal(t, "ready", sharedStatus)
 }
+
+func TestReleaseReviewCleanupProductionStorageSeamProtectsBadgeAssets(t *testing.T) {
+	storageRoot := t.TempDir()
+	storage := NewRVMCleanupService(nil, storageRoot)
+
+	resolved, ok := storage.ResolveManagedPath("release-review/canonical.png")
+	require.True(t, ok)
+	assert.Equal(t, filepath.Join(storageRoot, "release-review", "canonical.png"), resolved)
+
+	_, ok = storage.ResolveManagedPath(
+		"history-event-badges-transparent/production-badge.png",
+	)
+	assert.False(t, ok, "tracked production milestone badges are never cleanup targets")
+}

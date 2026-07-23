@@ -312,13 +312,22 @@ func main() {
 	// Periodic release-version-media cleanup job (stale processing, missing files, soft-delete).
 	// Runs every 10 minutes in a background goroutine; best-effort, never stops the server.
 	rvmCleanupSvc := services.NewRVMCleanupService(mediaRepo, cfg.MediaStorageDir)
+	releaseReviewCleanupSvc := services.NewReleaseReviewCleanupService(
+		repository.NewReleaseReviewCleanupRepository(dbPool),
+		rvmCleanupSvc,
+		services.ReleaseReviewCleanupRetentionForProfile(cfg.RuntimeProfile),
+		func() time.Time { return time.Now().UTC() },
+	)
 	go func() {
-		ticker := time.NewTicker(services.RVMCleanupInterval)
+		ticker := time.NewTicker(services.ReleaseReviewCleanupInterval)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
 				rvmCleanupSvc.RunOnce(context.Background())
+				if err := releaseReviewCleanupSvc.RunOnce(context.Background()); err != nil {
+					log.Printf("release review cleanup failed: %v", err)
+				}
 			}
 		}
 	}()

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -53,6 +54,29 @@ func NewRVMCleanupService(store RVMCleanupStore, storageDir string) *RVMCleanupS
 		dir = "./storage/media"
 	}
 	return &RVMCleanupService{store: store, storageDir: dir}
+}
+
+// ResolveManagedPath exposes the existing canonical storage-root guard to
+// cleanup workers that keep their own durable state machines.
+func (s *RVMCleanupService) ResolveManagedPath(raw string) (string, bool) {
+	managedPath, ok := s.managedStoragePath(raw)
+	if !ok || isProtectedMilestoneBadgePath(managedPath) {
+		return "", false
+	}
+	return managedPath, true
+}
+
+// RemoveResolvedManagedFile removes only a path that resolves back to the
+// configured media root. Missing files are an idempotent success.
+func (s *RVMCleanupService) RemoveResolvedManagedFile(resolvedPath string) error {
+	managedPath, ok := s.ResolveManagedPath(resolvedPath)
+	if !ok || filepath.Clean(managedPath) != filepath.Clean(resolvedPath) {
+		return fmt.Errorf("refusing to remove unmanaged media path")
+	}
+	if err := os.Remove(managedPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove managed media file: %w", err)
+	}
+	return nil
 }
 
 // RunOnce executes one full cleanup cycle (all three passes).
@@ -180,12 +204,12 @@ func (s *RVMCleanupService) removeManagedFileQuietly(rawPath string) bool {
 	if trimmed == "" {
 		return true
 	}
-	managedPath, ok := s.managedStoragePath(trimmed)
+	managedPath, ok := s.ResolveManagedPath(trimmed)
 	if !ok {
 		log.Printf("rvm cleanup: refusing to remove unmanaged media path %s", trimmed)
 		return false
 	}
-	if err := os.Remove(managedPath); err != nil && !os.IsNotExist(err) {
+	if err := s.RemoveResolvedManagedFile(managedPath); err != nil {
 		log.Printf("rvm cleanup: remove file %s: %v", managedPath, err)
 		return false
 	}
@@ -260,6 +284,15 @@ func isAbsoluteLikeSlashPath(slashPath string) bool {
 		return true
 	}
 	return len(slashPath) > 2 && slashPath[1] == ':' && slashPath[2] == '/'
+}
+
+func isProtectedMilestoneBadgePath(rawPath string) bool {
+	for _, segment := range strings.Split(filepath.ToSlash(rawPath), "/") {
+		if segment == "history-event-badges-transparent" {
+			return true
+		}
+	}
+	return false
 }
 
 // removeFileQuietly deletes a single file, logging but not propagating errors.
