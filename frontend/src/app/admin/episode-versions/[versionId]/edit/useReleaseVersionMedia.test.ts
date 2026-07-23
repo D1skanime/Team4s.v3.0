@@ -19,6 +19,7 @@ const item = (id: number, preview: boolean) => ({
 
 describe('useReleaseVersionMedia preview reconciliation', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     api.getReleaseVersionMedia.mockResolvedValue({ data: [item(1, true), item(2, false)] })
     api.getReleaseVersionCapabilities.mockResolvedValue({ data: { can_view_media: true, can_upload_media: true, can_update_media: true, can_delete_media: false, can_edit_notes: false, can_manage_segments: false } })
   })
@@ -29,5 +30,62 @@ describe('useReleaseVersionMedia preview reconciliation', () => {
     await waitFor(() => expect(result.current.items).toHaveLength(2))
     await act(async () => result.current.patchItem(2, { is_preview_candidate: true }))
     expect(result.current.items.filter(media => media.is_preview_candidate).map(media => media.id)).toEqual([2])
+  })
+
+  it.each(['screenshot', 'typesetting_karaoke', 'fun_outtake', 'other'] as const)(
+    'lädt %s über den zentralen Wrapper mit echter Release-Version und ohne Status-/Token-Felder hoch',
+    async (category) => {
+      api.uploadReleaseVersionMedia.mockResolvedValue({
+        results: [{ client_file_name: 'asset.png', status: 'ready', release_version_media_id: 81 }],
+      })
+      const { result } = renderHook(() => useReleaseVersionMedia(42))
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const file = new File(['asset'], 'asset.png', { type: 'image/png' })
+
+      await act(async () => result.current.startUpload(category, [file]))
+
+      const options = api.uploadReleaseVersionMedia.mock.calls.at(-1)?.[0]
+      expect(options).toMatchObject({ versionId: 42, category, files: [file] })
+      expect(options).not.toHaveProperty('authToken')
+      expect(options).not.toHaveProperty('visibilityCode')
+      expect(options).not.toHaveProperty('reviewStatusCode')
+      expect(options).not.toHaveProperty('fansubGroupId')
+    },
+  )
+
+  it('sendet bei abgelehnten Medien die erwartete Revision und übernimmt die autoritative Antwort', async () => {
+    const rejected = {
+      ...item(9, false),
+      review_state: 'rejected' as const,
+      source_revision: 2,
+      last_activity_at: '2026-07-23T18:00:00Z',
+      rejection_category: 'quality.insufficient' as const,
+      rejection_reason: 'Bitte die Bildqualität verbessern.',
+    }
+    const pending = {
+      ...rejected,
+      review_state: 'pending' as const,
+      source_revision: 3,
+      last_activity_at: '2026-07-23T18:15:00Z',
+      rejection_category: null,
+      rejection_reason: null,
+    }
+    api.getReleaseVersionMedia.mockResolvedValue({ data: [rejected] })
+    api.patchReleaseVersionMediaItem.mockResolvedValue(pending)
+    const { result } = renderHook(() => useReleaseVersionMedia(42))
+    await waitFor(() => expect(result.current.items).toHaveLength(1))
+
+    await act(async () => result.current.patchItem(9, { caption: 'Korrigiert' }))
+
+    expect(api.patchReleaseVersionMediaItem).toHaveBeenCalledWith(42, 9, {
+      caption: 'Korrigiert',
+      source_revision: 2,
+    })
+    expect(result.current.items[0]).toMatchObject({
+      id: 9,
+      review_state: 'pending',
+      source_revision: 3,
+      last_activity_at: '2026-07-23T18:15:00Z',
+    })
   })
 })

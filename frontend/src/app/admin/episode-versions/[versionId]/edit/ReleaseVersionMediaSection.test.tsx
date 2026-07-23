@@ -190,7 +190,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     expect(screen.getByText('Öffentlich')).not.toBeNull()
   })
 
-  it('opens edit sheet and maps visible Öffentlich status to the existing API fields', async () => {
+  it('öffnet den Editor ohne Review- oder Publikationsauswahl und speichert nur fachliche Felder', async () => {
     const patchItem = vi.fn().mockResolvedValue(undefined)
     renderSection(
       makeMediaState({
@@ -203,17 +203,95 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
 
     fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Neue Beschreibung' } })
-    fireEvent.change(within(dialog).getByRole('combobox'), { target: { value: 'oeffentlich' } })
+    expect(within(dialog).queryByRole('combobox')).toBeNull()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Speichern' }))
 
     await waitFor(() => {
       expect(patchItem).toHaveBeenCalledWith(31, {
         caption: 'Neue Beschreibung',
-        visibility: 'oeffentlich',
-        review_status: 'freigegeben',
       })
     })
     expect((await screen.findByRole('status')).textContent).toContain('Änderungen gespeichert.')
+  })
+
+  it('zeigt Pending und letzte Aktivität aus dem eigenen Lifecycle', () => {
+    renderSection(makeMediaState({
+      items: [makeItem({
+        id: 61,
+        review_state: 'pending',
+        source_revision: 1,
+        last_activity_at: '2026-07-23T18:30:00Z',
+      }),
+    }))
+
+    expect(screen.getByText('In Prüfung')).not.toBeNull()
+    expect(screen.getByText(/letzte aktivität/i)).not.toBeNull()
+  })
+
+  it('zeigt Ablehnungsdetails und reicht dieselbe Medien-ID mit Revision erneut ein', async () => {
+    const patchItem = vi.fn().mockResolvedValue(undefined)
+    renderSection(makeMediaState({
+      items: [makeItem({
+        id: 62,
+        caption: 'Bitte korrigieren',
+        review_state: 'rejected',
+        source_revision: 2,
+        last_activity_at: '2026-07-23T18:45:00Z',
+        rejection_category: 'release_context.wrong',
+        rejection_reason: 'Dieses Bild gehört zu einer anderen Release-Version.',
+      })],
+      patchItem,
+    }))
+
+    expect(screen.getByText('Abgelehnt')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Bitte korrigieren bearbeiten/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Medium bearbeiten' })
+    expect(within(dialog).getByText('Falscher Release-Kontext')).not.toBeNull()
+    expect(within(dialog).getByText(/anderen Release-Version/i)).not.toBeNull()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Erneut einreichen' }))
+
+    await waitFor(() => {
+      expect(patchItem).toHaveBeenCalledWith(62, {
+        caption: 'Bitte korrigieren',
+        source_revision: 2,
+      })
+    })
+  })
+
+  it('zeigt bestätigte Medien öffentlich und ohne Review-Aktion', async () => {
+    renderSection(makeMediaState({
+      items: [makeItem({
+        id: 63,
+        review_state: 'confirmed',
+        source_revision: 1,
+        last_activity_at: '2026-07-23T19:00:00Z',
+        visibility: 'oeffentlich',
+        review_status: 'freigegeben',
+      })],
+    }))
+
+    expect(screen.getByText('Bestätigt')).not.toBeNull()
+    expect(screen.getByText('Öffentlich')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Scene A bearbeiten/i }))
+    expect(within(await screen.findByRole('dialog')).queryByRole('button', { name: 'Erneut einreichen' })).toBeNull()
+  })
+
+  it('blendet fremde offene Medien ohne passende Fähigkeit aus', () => {
+    renderSection(makeMediaState({
+      items: [makeItem({
+        id: 64,
+        caption: 'Fremdes Pending',
+        review_state: 'pending',
+        source_revision: 1,
+        last_activity_at: '2026-07-23T19:15:00Z',
+        can_update: false,
+        can_delete: false,
+      })],
+      capabilities: { ...makeMediaState().capabilities!, can_update_media: false },
+    }))
+
+    expect(screen.queryByText('Fremdes Pending')).toBeNull()
   })
 
   it('offers a narrow preview action for owned eligible media', async () => {
@@ -277,7 +355,15 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
 
     renderSection(
       makeMediaState({
-        items: [makeItem({ id: 51, caption: 'CSubs upload', can_update: false, can_delete: false })],
+        items: [makeItem({
+          id: 51,
+          caption: 'CSubs upload',
+          can_update: false,
+          can_delete: false,
+          review_state: 'confirmed',
+          source_revision: 1,
+          last_activity_at: '2026-07-23T18:00:00Z',
+        })],
         patchItem,
         deleteItem,
       }),

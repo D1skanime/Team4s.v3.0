@@ -173,13 +173,9 @@ describe('ReleaseVersionNotesTab', () => {
       notes: [
         {
           id: 0,
-          memberId: 10,
-          roleId: 1,
           roleCode: 'translator',
           title: null,
           bodyJson: makeBody('Neue Übersetzungsnotiz'),
-          visibility: 'internal',
-          status: 'draft',
           sortOrder: 0,
         },
       ],
@@ -277,6 +273,131 @@ describe('ReleaseVersionNotesTab', () => {
     })
     expect(await screen.findByText(/aktualisierter text/i)).not.toBeNull()
     expect(screen.queryByRole('textbox')).toBeNull()
+  })
+
+  it('zeigt den eigenen Pending-Lifecycle mit letzter Aktivität ohne Review- oder Publikationsauswahl', async () => {
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 401,
+        memberId: 10,
+        roleId: 1,
+        reviewState: 'pending',
+        sourceRevision: 1,
+        lastActivityAt: '2026-07-23T18:30:00Z',
+      }),
+    ])
+
+    render(<ReleaseVersionNotesTab versionId={7} />)
+
+    expect(await screen.findByText('In Prüfung')).not.toBeNull()
+    expect(screen.getByText(/letzte aktivität/i)).not.toBeNull()
+    expect(screen.queryByLabelText('Sichtbarkeit')).toBeNull()
+    expect(screen.queryByLabelText('Status')).toBeNull()
+  })
+
+  it('zeigt eine eigene Ablehnung strukturiert und reicht dieselbe Notiz-ID mit Revision erneut ein', async () => {
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 402,
+        memberId: 10,
+        roleId: 1,
+        reviewState: 'rejected',
+        sourceRevision: 2,
+        lastActivityAt: '2026-07-23T19:00:00Z',
+        rejectionCategory: 'quality.insufficient',
+        rejectionReason: 'Bitte die Terminologie noch einmal vollständig prüfen.',
+      }),
+    ])
+    bulkUpsertReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 402,
+        memberId: 10,
+        roleId: 1,
+        reviewState: 'pending',
+        sourceRevision: 3,
+        lastActivityAt: '2026-07-23T19:10:00Z',
+        rejectionCategory: null,
+        rejectionReason: null,
+      }),
+    ])
+
+    render(<ReleaseVersionNotesTab versionId={7} />)
+
+    expect(await screen.findByText('Abgelehnt')).not.toBeNull()
+    expect(screen.getByText('Qualität unzureichend')).not.toBeNull()
+    expect(screen.getByText(/terminologie noch einmal vollständig prüfen/i)).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Bearbeiten' })).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Erneut einreichen' }))
+
+    await waitFor(() => expect(bulkUpsertReleaseVersionNotesMock).toHaveBeenCalledTimes(1))
+    expect(bulkUpsertReleaseVersionNotesMock).toHaveBeenCalledWith(7, {
+      notes: [{
+        id: 402,
+        sourceRevision: 2,
+        roleCode: 'translator',
+        title: 'Bestehende Notiz',
+        bodyJson: makeBody('Schon gespeichert'),
+        sortOrder: 0,
+      }],
+    })
+    expect(await screen.findByText('In Prüfung')).not.toBeNull()
+  })
+
+  it('zeigt bestätigte eigene Notizen öffentlich und ohne Review-Aktion', async () => {
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ roleId: 1, roleName: 'translator', roleLabel: 'Übersetzung' }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 403,
+        memberId: 10,
+        roleId: 1,
+        visibility: 'public',
+        status: 'published',
+        reviewState: 'confirmed',
+        sourceRevision: 1,
+        lastActivityAt: '2026-07-23T19:30:00Z',
+      }),
+    ])
+
+    render(<ReleaseVersionNotesTab versionId={7} />)
+
+    expect(await screen.findByText('Bestätigt')).not.toBeNull()
+    expect(screen.getByText('Öffentlich')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Erneut einreichen' })).toBeNull()
+  })
+
+  it('blendet fremde offene Notizen ohne passende Bearbeitungsfähigkeit aus', async () => {
+    getOwnProfileMock.mockResolvedValue({ data: { member_id: 10 } })
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ memberId: 10, roleId: 1, canEdit: true }),
+      makeRole({ memberId: 11, memberName: 'Taro', roleId: 2, roleCode: 'editor', roleName: 'editor', canEdit: false }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([
+      makeNote({
+        id: 404,
+        memberId: 11,
+        roleId: 2,
+        bodyJson: makeBody('Noch nicht freigegeben'),
+        bodyText: 'Noch nicht freigegeben',
+        reviewState: 'pending',
+        sourceRevision: 1,
+        lastActivityAt: '2026-07-23T20:00:00Z',
+      }),
+    ])
+
+    render(<ReleaseVersionNotesTab versionId={7} />)
+    fireEvent.click(await screen.findByRole('tab', { name: /alle mitglieder/i }))
+    fireEvent.click(screen.getByRole('button', { name: /taro/i }))
+
+    expect(screen.queryByText('Noch nicht freigegeben')).toBeNull()
   })
 
   it('zeigt Konflikt- und Längenhinweise verständlich an', async () => {
