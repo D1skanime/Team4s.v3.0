@@ -94,7 +94,9 @@ func TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase(t *testin
 	`)
 	require.NoError(t, err)
 
-	repo := NewAuthzRepository(pool)
+	tx, err := pool.Begin(context.Background())
+	require.NoError(t, err)
+	repo := NewAuthzRepository(pool).WithDB(tx)
 	capabilities, err := repo.LoadRoleCapabilities(context.Background())
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []permissions.Action{
@@ -135,6 +137,8 @@ func TestPhase107AuthzRepositoryReviewCapabilityResolutionFromDatabase(t *testin
 	)
 	require.NoError(t, err)
 	assert.False(t, notGranted.Allowed)
+	require.NoError(t, tx.Rollback(context.Background()))
+	require.NoError(t, pool.Ping(context.Background()), "WithDB must not own the pool lifecycle")
 }
 
 func TestPhase107AuthzRepositoryVerifiedActorMemberIdentityWithoutMembership(t *testing.T) {

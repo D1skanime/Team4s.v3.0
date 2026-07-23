@@ -5,15 +5,26 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type AuthzRepository struct {
-	db *pgxpool.Pool
+type AuthzDBTX interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 
-func NewAuthzRepository(db *pgxpool.Pool) *AuthzRepository {
+type AuthzRepository struct {
+	db AuthzDBTX
+}
+
+func NewAuthzRepository(db AuthzDBTX) *AuthzRepository {
 	return &AuthzRepository{db: db}
+}
+
+func (r *AuthzRepository) WithDB(db AuthzDBTX) *AuthzRepository {
+	return NewAuthzRepository(db)
 }
 
 func (r *AuthzRepository) UserHasRole(ctx context.Context, userID int64, roleName string) (bool, error) {

@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"team4s.v3/backend/internal/permissions"
 )
 
@@ -191,6 +193,124 @@ func (r *AuthzRepository) ListActorGroupRoles(ctx context.Context, appUserID int
 
 	return roles, nil
 }
+
+func (r *AuthzRepository) ResolveActorReviewGrantContext(
+	ctx context.Context,
+	appUserID int64,
+	fansubGroupID int64,
+) (*permissions.ReviewGrantContext, error) {
+	if r == nil || r.db == nil || appUserID <= 0 || fansubGroupID <= 0 {
+		return nil, nil
+	}
+
+	var resolved permissions.ReviewGrantContext
+	var grantedActionCodes []string
+	err := r.db.QueryRow(ctx, `
+		WITH locked_membership AS MATERIALIZED (
+			SELECT
+				fgm.id AS membership_id,
+				fgm.app_user_id,
+				fgm.member_id,
+				fgm.fansub_group_id
+			FROM fansub_group_members fgm
+			JOIN app_users au
+			  ON au.id = fgm.app_user_id
+			 AND au.status = 'active'
+			JOIN member_claims mc
+			  ON mc.app_user_id = fgm.app_user_id
+			 AND mc.member_id = fgm.member_id
+			 AND mc.claim_status = 'verified'
+			WHERE fgm.app_user_id = $1
+			  AND fgm.fansub_group_id = $2
+			  AND fgm.status = 'active'
+			  AND fgm.member_id > 0
+			FOR SHARE OF fgm
+		)
+		SELECT
+			lm.membership_id,
+			lm.app_user_id,
+			lm.member_id,
+			lm.fansub_group_id,
+			COALESCE(
+				ARRAY_AGG(cap.action_code ORDER BY cap.action_code)
+					FILTER (WHERE cap.action_code IS NOT NULL),
+				ARRAY[]::TEXT[]
+			)
+		FROM locked_membership lm
+		LEFT JOIN fansub_group_member_review_capabilities cap
+		  ON cap.fansub_group_member_id = lm.membership_id
+		 AND cap.action_code IN (
+			'review.text.decide',
+			'review.image.decide',
+			'review.contribution.decide'
+		 )
+		GROUP BY
+			lm.membership_id,
+			lm.app_user_id,
+			lm.member_id,
+			lm.fansub_group_id
+	`, appUserID, fansubGroupID).Scan(
+		&resolved.MembershipID,
+		&resolved.AppUserID,
+		&resolved.MemberID,
+		&resolved.FansubGroupID,
+		&grantedActionCodes,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf(
+			"resolve actor review grant context app_user=%d fansub_group=%d: %w",
+			appUserID,
+			fansubGroupID,
+			err,
+		)
+	}
+
+	resolved.GrantedActions = make([]permissions.Action, 0, len(grantedActionCodes))
+	for _, actionCode := range grantedActionCodes {
+		resolved.GrantedActions = append(resolved.GrantedActions, permissions.Action(strings.TrimSpace(actionCode)))
+	}
+	return &resolved, nil
+}
+
+func (r *AuthzRepository) ResolveVerifiedActorMemberIDs(
+	ctx context.Context,
+	appUserID int64,
+) ([]int64, error) {
+	if r == nil || r.db == nil || appUserID <= 0 {
+		return []int64{}, nil
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT member_id
+		FROM member_claims
+		WHERE app_user_id = $1
+		  AND claim_status = 'verified'
+		  AND member_id > 0
+		ORDER BY member_id
+	`, appUserID)
+	if err != nil {
+		return nil, fmt.Errorf("resolve verified actor member ids app_user=%d: %w", appUserID, err)
+	}
+	defer rows.Close()
+
+	memberIDs := make([]int64, 0)
+	for rows.Next() {
+		var memberID int64
+		if err := rows.Scan(&memberID); err != nil {
+			return nil, fmt.Errorf("resolve verified actor member ids app_user=%d: scan: %w", appUserID, err)
+		}
+		memberIDs = append(memberIDs, memberID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("resolve verified actor member ids app_user=%d: iterate: %w", appUserID, err)
+	}
+	return memberIDs, nil
+}
+
+var _ permissions.ReviewContextResolver = (*AuthzRepository)(nil)
 
 // ListActorContributionRolesForVersion gibt die role_codes zurück, die dem Actor
 // für eine Release-Version zustehen.
