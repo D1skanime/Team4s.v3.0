@@ -30,6 +30,8 @@ type adminRouteHandlers struct {
 	adminCapabilityHandler *handlers.AdminCapabilityHandler
 	// Phase 95-02: Assignable Gruppenrollen aus role_definitions (D-12)
 	adminGroupRolesHandler *handlers.AdminGroupRolesHandler
+	// Phase 107.1: gruppengebundene Release-Prüfqueue und schmale Detailansicht
+	releaseReviewHandler *handlers.ReleaseReviewHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -240,5 +242,12 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	// Phase 95-02: Assignable Gruppenrollen-Liste (requirePlatformAdminIdentity im Handler — D-12)
 	if deps.adminGroupRolesHandler != nil {
 		v1.GET("/admin/fansub-group-roles", auth, deps.adminGroupRolesHandler.ListFansubGroupRoles)
+	}
+	if deps.releaseReviewHandler != nil {
+		v1.GET("/admin/fansubs/:id/release-reviews", auth, deps.releaseReviewHandler.List)
+		v1.GET("/admin/fansubs/:id/release-reviews/counts", auth, deps.releaseReviewHandler.Counts)
+		v1.GET("/admin/fansubs/:id/release-reviews/:reviewId", auth, deps.releaseReviewHandler.Detail)
+		v1.GET("/admin/fansubs/:id/release-reviews/:reviewId/next", auth, deps.releaseReviewHandler.Next)
+		v1.POST("/admin/fansubs/:id/release-reviews/:reviewId/decision", auth, deps.releaseReviewHandler.Decide)
 	}
 }

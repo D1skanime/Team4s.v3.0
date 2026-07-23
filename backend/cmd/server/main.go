@@ -476,6 +476,13 @@ func main() {
 	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, authzRepo, permissionSvc, auditLogRepo)
 	// Phase 95-02: Assignable Gruppenrollen-Liste (D-12)
 	adminGroupRolesHandler := handlers.NewAdminGroupRolesHandler(authzRepo)
+	releaseReviewQueryRepo := repository.NewReleaseReviewQueryRepository(dbPool)
+	releaseReviewService := services.NewReviewService(dbPool, services.ReleaseReviewAdapters())
+	releaseReviewHandler := handlers.NewReleaseReviewHandler(
+		releaseReviewQueryRepo,
+		permissionSvc,
+		releaseReviewService,
+	)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -495,6 +502,7 @@ func main() {
 		adminUsersHandler:             adminUsersHandler,
 		adminCapabilityHandler:        adminCapabilityHandler,
 		adminGroupRolesHandler:        adminGroupRolesHandler,
+		releaseReviewHandler:          releaseReviewHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

@@ -7515,6 +7515,170 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/admin/fansubs/{id}/release-reviews:
+    get:
+      tags: [Admin]
+      summary: List the authorized release-review queue for one fansub group
+      operationId: listReleaseReviews
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ReleaseReviewFansubGroupID"
+        - $ref: "#/components/parameters/ReleaseReviewView"
+        - name: anime_id
+          in: query
+          schema: {type: integer, format: int64, minimum: 1}
+        - name: release_version_id
+          in: query
+          schema: {type: integer, format: int64, minimum: 1}
+        - name: type
+          in: query
+          schema: {type: string, enum: [text, image]}
+        - name: category
+          in: query
+          schema:
+            $ref: "#/components/schemas/ReleaseReviewImageCategory"
+        - name: search
+          in: query
+          schema: {type: string, maxLength: 200}
+        - name: cursor
+          in: query
+          description: Opaque cursor bound to the complete group, filter and oldest-first sort tuple.
+          schema: {type: string}
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 50, default: 50}
+      responses:
+        "200":
+          description: Bounded oldest-first queue page. Bodies and media paths are excluded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseReviewQueueResponse"
+        "400": {$ref: "#/components/responses/ReleaseReviewBadRequest"}
+        "401": {$ref: "#/components/responses/ReleaseReviewUnauthorized"}
+        "403": {$ref: "#/components/responses/ReleaseReviewForbidden"}
+        "404": {$ref: "#/components/responses/ReleaseReviewNotFound"}
+
+  /api/v1/admin/fansubs/{id}/release-reviews/counts:
+    get:
+      tags: [Admin]
+      summary: Count authorized release reviews using the queue scope
+      operationId: countReleaseReviews
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ReleaseReviewFansubGroupID"
+        - $ref: "#/components/parameters/ReleaseReviewView"
+        - name: anime_id
+          in: query
+          schema: {type: integer, format: int64, minimum: 1}
+        - name: release_version_id
+          in: query
+          schema: {type: integer, format: int64, minimum: 1}
+        - name: search
+          in: query
+          schema: {type: string, maxLength: 200}
+      responses:
+        "200":
+          description: Authorized text, image, reserved contribution and image-category counters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseReviewCountsResponse"
+        "400": {$ref: "#/components/responses/ReleaseReviewBadRequest"}
+        "401": {$ref: "#/components/responses/ReleaseReviewUnauthorized"}
+        "403": {$ref: "#/components/responses/ReleaseReviewForbidden"}
+        "404": {$ref: "#/components/responses/ReleaseReviewNotFound"}
+
+  /api/v1/admin/fansubs/{id}/release-reviews/{reviewId}:
+    get:
+      tags: [Admin]
+      summary: Get one narrowly authorized release review
+      operationId: getReleaseReview
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ReleaseReviewFansubGroupID"
+        - $ref: "#/components/parameters/ReleaseReviewID"
+      responses:
+        "200":
+          description: Exactly one text or image source with release and submitter context.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseReviewDetailResponse"
+        "400": {$ref: "#/components/responses/ReleaseReviewBadRequest"}
+        "401": {$ref: "#/components/responses/ReleaseReviewUnauthorized"}
+        "403": {$ref: "#/components/responses/ReleaseReviewForbidden"}
+        "404": {$ref: "#/components/responses/ReleaseReviewNotFound"}
+
+  /api/v1/admin/fansubs/{id}/release-reviews/{reviewId}/next:
+    get:
+      tags: [Admin]
+      summary: Get the next authorized open release review
+      operationId: getNextReleaseReview
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ReleaseReviewFansubGroupID"
+        - $ref: "#/components/parameters/ReleaseReviewID"
+      responses:
+        "200":
+          description: Next oldest open review, or null when the queue is exhausted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseReviewNextResponse"
+        "400": {$ref: "#/components/responses/ReleaseReviewBadRequest"}
+        "401": {$ref: "#/components/responses/ReleaseReviewUnauthorized"}
+        "403": {$ref: "#/components/responses/ReleaseReviewForbidden"}
+        "404": {$ref: "#/components/responses/ReleaseReviewNotFound"}
+
+  /api/v1/admin/fansubs/{id}/release-reviews/{reviewId}/decision:
+    post:
+      tags: [Admin]
+      summary: Decide one release review through the Phase-107 application service
+      operationId: decideReleaseReview
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ReleaseReviewFansubGroupID"
+        - $ref: "#/components/parameters/ReleaseReviewID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReleaseReviewDecisionRequest"
+      responses:
+        "200":
+          description: Atomic decision result without beneficiary or point-recipient fields.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseReviewDecisionResponse"
+        "400": {$ref: "#/components/responses/ReleaseReviewBadRequest"}
+        "401": {$ref: "#/components/responses/ReleaseReviewUnauthorized"}
+        "403": {$ref: "#/components/responses/ReleaseReviewForbidden"}
+        "404": {$ref: "#/components/responses/ReleaseReviewNotFound"}
+        "409":
+          description: Stable first-decision-wins or stale-revision conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: REVIEW_ALREADY_DECIDED
+                  message: Diese Prüfung wurde bereits von einer anderen Person entschieden.
+        "422":
+          description: Strict decision, rejection or override validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/admin/fansubs/{fansubId}/contribution-proposals/{cid}/confirm:
     post:
       tags: [Admin]
@@ -7744,12 +7908,48 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
 components:
+  responses:
+    ReleaseReviewBadRequest:
+      description: Malformed ID, filter, cursor or page request.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    ReleaseReviewUnauthorized:
+      description: Active authenticated session required.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    ReleaseReviewForbidden:
+      description: Exact typed review capability is absent.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    ReleaseReviewNotFound:
+      description: Scoped group or review target not found.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: SignedToken
   parameters:
+    ReleaseReviewFansubGroupID:
+      name: id
+      in: path
+      required: true
+      schema: {type: integer, format: int64, minimum: 1}
+    ReleaseReviewID:
+      name: reviewId
+      in: path
+      required: true
+      description: Opaque stable release-review identifier.
+      schema: {type: string, minLength: 1}
+    ReleaseReviewView:
+      name: view
+      in: query
+      schema: {type: string, enum: [open, history], default: open}
     AdminAnimeId:
       name: id
       in: path
@@ -7759,6 +7959,154 @@ components:
         format: int64
         minimum: 1
   schemas:
+    ReleaseReviewImageCategory:
+      type: string
+      enum: [screenshot, typesetting_karaoke, fun_outtake, other]
+    ReleaseReviewQueueItem:
+      type: object
+      required:
+        - id
+        - source_revision
+        - type
+        - status
+        - fansub_group_id
+        - anime_id
+        - anime_title
+        - episode_id
+        - episode_number
+        - release_id
+        - release_version_id
+        - release_version
+        - submitter_app_user_id
+        - submitter_member_id
+        - submitter_display_name
+        - submitted_at
+        - last_activity_at
+      properties:
+        id: {type: string, description: Opaque review identifier.}
+        source_revision: {type: integer, format: int64, minimum: 1}
+        type: {type: string, enum: [text, image]}
+        category:
+          allOf:
+            - $ref: "#/components/schemas/ReleaseReviewImageCategory"
+        status: {type: string, enum: [pending, confirmed, rejected, tombstoned]}
+        fansub_group_id: {type: integer, format: int64}
+        anime_id: {type: integer, format: int64}
+        anime_title: {type: string}
+        episode_id: {type: integer, format: int64}
+        episode_number: {type: string}
+        release_id: {type: integer, format: int64}
+        release_version_id: {type: integer, format: int64}
+        release_version: {type: string}
+        submitter_app_user_id: {type: integer, format: int64}
+        submitter_member_id: {type: integer, format: int64}
+        submitter_display_name: {type: string}
+        submitted_at: {type: string, format: date-time}
+        last_activity_at: {type: string, format: date-time}
+        decided_at: {type: string, format: date-time, nullable: true}
+    ReleaseReviewQueueResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              maxItems: 50
+              items: {$ref: "#/components/schemas/ReleaseReviewQueueItem"}
+            next_cursor: {type: string}
+    ReleaseReviewCounts:
+      type: object
+      required: [text, image, contribution, image_categories]
+      properties:
+        text: {type: integer, format: int64, minimum: 0}
+        image: {type: integer, format: int64, minimum: 0}
+        contribution: {type: integer, format: int64, minimum: 0, description: Reserved Phase-108 counter; zero in Phase 107.1.}
+        image_categories:
+          type: object
+          required: [screenshot, typesetting_karaoke, fun_outtake, other]
+          properties:
+            screenshot: {type: integer, format: int64, minimum: 0}
+            typesetting_karaoke: {type: integer, format: int64, minimum: 0}
+            fun_outtake: {type: integer, format: int64, minimum: 0}
+            other: {type: integer, format: int64, minimum: 0}
+    ReleaseReviewCountsResponse:
+      type: object
+      required: [data]
+      properties:
+        data: {$ref: "#/components/schemas/ReleaseReviewCounts"}
+    ReleaseReviewTextContent:
+      type: object
+      required: [body_html]
+      properties:
+        title: {type: string}
+        body_html: {type: string}
+    ReleaseReviewImageContent:
+      type: object
+      required: [original_url]
+      properties:
+        caption: {type: string}
+        thumbnail_url: {type: string}
+        original_url: {type: string}
+    ReleaseReviewDetail:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseReviewQueueItem"
+        - type: object
+          required: [can_edit_release]
+          properties:
+            text:
+              allOf:
+                - $ref: "#/components/schemas/ReleaseReviewTextContent"
+            image:
+              allOf:
+                - $ref: "#/components/schemas/ReleaseReviewImageContent"
+            can_edit_release: {type: boolean}
+    ReleaseReviewDetailResponse:
+      type: object
+      required: [data]
+      properties:
+        data: {$ref: "#/components/schemas/ReleaseReviewDetail"}
+    ReleaseReviewNextResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ReleaseReviewQueueItem"
+    ReleaseReviewRejectionCategory:
+      type: string
+      enum: [content.incorrect, release_context.wrong, quality.insufficient, rights.unclear, other]
+    ReleaseReviewDecisionRequest:
+      type: object
+      additionalProperties: false
+      required: [decision, expected_revision]
+      properties:
+        decision: {type: string, enum: [confirm, reject]}
+        rejection_category:
+          allOf:
+            - $ref: "#/components/schemas/ReleaseReviewRejectionCategory"
+        rejection_reason: {type: string, minLength: 10, maxLength: 1000}
+        override_reason: {type: string, minLength: 10, maxLength: 1000}
+        expected_revision: {type: integer, format: int64, minimum: 1}
+    ReleaseReviewDecisionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [review_id, decision]
+          properties:
+            review_id: {type: string}
+            decision: {type: string, enum: [confirm, reject]}
+            next:
+              type: object
+              nullable: true
+              allOf:
+                - $ref: "#/components/schemas/ReleaseReviewQueueItem"
     # ─── Phase 76: Member Suggestions + Reject-Reason ──────────────────────────
     SubmitSuggestionRequest:
       type: object

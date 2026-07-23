@@ -874,7 +874,172 @@ endpoints:
       - contribution_id ist in jedem Row enthalten, damit das Frontend beim Speichern exakt die richtigen IDs löscht (Pitfall 4).
       - IDOR-Mitigation (T-83-IDOR) CanForReleaseVersion(ActionReleaseVersionView) wird vor Datenrückgabe geprüft.
 
+  - name: admin-release-review-list
+    method: GET
+    path: /api/v1/admin/fansubs/:id/release-reviews
+    auth:
+      required: true
+      capability_by_type:
+        text: review.text.decide
+        image: review.image.decide
+      scope: exact fansub group
+    query:
+      view: string (enum open|history, default open)
+      anime_id: int64 | null
+      release_version_id: int64 | null
+      type: string | null (enum text|image)
+      category: string | null (enum screenshot|typesetting_karaoke|fun_outtake|other)
+      search: string | null (trimmed, max 200)
+      cursor: string | null (opaque, bound to group+filters+full sort tuple)
+      limit: int (1..50, default/max 50)
+    response:
+      status: 200
+      type: ReleaseReviewQueueResponse
+      status_400: REVIEW_BAD_REQUEST
+      status_401: Anmeldung erforderlich
+      status_403: Exakte typisierte Review-Capability fehlt
+      status_404: Gruppenkontext nicht gefunden
+    description: >
+      Read-only und ohne Audit-Event. Enthält keine Text-Bodies, Medienpfade oder
+      sichtbaren Punkteempfänger. Sortierung ist submitted_at, source_type, source_id ASC.
+
+  - name: admin-release-review-counts
+    method: GET
+    path: /api/v1/admin/fansubs/:id/release-reviews/counts
+    auth:
+      required: true
+      capability_by_type:
+        text: review.text.decide
+        image: review.image.decide
+      scope: exact fansub group
+    response:
+      status: 200
+      type: ReleaseReviewCountsResponse
+    description: >
+      Verwendet dieselben Gruppen-, Capability-, View-, Projekt-, Release- und Suchprädikate
+      wie die Queue; der reservierte contribution-Zähler ist in Phase 107.1 immer 0.
+
+  - name: admin-release-review-detail
+    method: GET
+    path: /api/v1/admin/fansubs/:id/release-reviews/:reviewId
+    auth:
+      required: true
+      capability_by_type:
+        text: review.text.decide
+        image: review.image.decide
+      scope: exact review object and fansub group
+    response:
+      status: 200
+      type: ReleaseReviewDetailResponse
+      status_400: REVIEW_BAD_REQUEST
+      status_403: REVIEW_FORBIDDEN
+      status_404: REVIEW_NOT_FOUND
+    description: >
+      Liefert genau eine kanonische Text- oder Bildquelle. can_edit_release wird separat
+      aus echter Release-Edit-Capability berechnet; Öffnen erzeugt kein Audit-Event.
+
+  - name: admin-release-review-next
+    method: GET
+    path: /api/v1/admin/fansubs/:id/release-reviews/:reviewId/next
+    auth:
+      required: true
+      capability_by_type:
+        text: review.text.decide
+        image: review.image.decide
+      scope: exact fansub group
+    response:
+      status: 200
+      type: ReleaseReviewNextResponse
+
+  - name: admin-release-review-decision
+    method: POST
+    path: /api/v1/admin/fansubs/:id/release-reviews/:reviewId/decision
+    auth:
+      required: true
+      capability_by_type:
+        text: review.text.decide
+        image: review.image.decide
+      scope: exact review object and fansub group
+    request_body:
+      required: true
+      type: ReleaseReviewDecisionRequest
+      strict: true
+    response:
+      status: 200
+      type: ReleaseReviewDecisionResponse
+      status_400: REVIEW_BAD_REQUEST
+      status_403: REVIEW_FORBIDDEN
+      status_404: REVIEW_NOT_FOUND
+      status_409: REVIEW_ALREADY_DECIDED
+      status_422: REVIEW_VALIDATION_FAILED
+    description: >
+      Ruft ausschließlich den Phase-107 ReviewService auf. Response und Request enthalten
+      keine Gruppen-, Submitter-, Beneficiary-, Punkte-, Regel-, Status- oder Sichtbarkeitszuweisung.
+
 types:
+  ReleaseReviewQueueItem:
+    id: string (opaque)
+    source_revision: int64
+    type: string (enum text|image)
+    category: string | null (enum screenshot|typesetting_karaoke|fun_outtake|other)
+    status: string (enum pending|confirmed|rejected|tombstoned)
+    fansub_group_id: int64
+    anime_id: int64
+    anime_title: string
+    episode_id: int64
+    episode_number: string
+    release_id: int64
+    release_version_id: int64
+    release_version: string
+    submitter_app_user_id: int64
+    submitter_member_id: int64
+    submitter_display_name: string
+    submitted_at: datetime
+    last_activity_at: datetime
+    decided_at: datetime | null
+  ReleaseReviewQueueResponse:
+    data:
+      items: ReleaseReviewQueueItem[] (max 50)
+      next_cursor: string | null
+  ReleaseReviewCountsResponse:
+    data:
+      text: int64
+      image: int64
+      contribution: int64 (reserved, zero in Phase 107.1)
+      image_categories:
+        screenshot: int64
+        typesetting_karaoke: int64
+        fun_outtake: int64
+        other: int64
+  ReleaseReviewDetailResponse:
+    data:
+      all_of:
+        - ReleaseReviewQueueItem
+        - ReleaseReviewDetailContent
+  ReleaseReviewDetailContent:
+    fields:
+      text:
+        title: string
+        body_html: string
+      image:
+        caption: string
+        thumbnail_url: string
+        original_url: string
+      can_edit_release: boolean
+    invariant: exactly one of text or image is present
+  ReleaseReviewNextResponse:
+    data: ReleaseReviewQueueItem | null
+  ReleaseReviewDecisionRequest:
+    decision: string (required, enum confirm|reject)
+    rejection_category: string | null (enum content.incorrect|release_context.wrong|quality.insufficient|rights.unclear|other)
+    rejection_reason: string | null (trimmed, 10..1000, required for reject)
+    override_reason: string | null (trimmed, 10..1000, required for platform-admin override)
+    expected_revision: int64 (required, minimum 1)
+  ReleaseReviewDecisionResponse:
+    data:
+      review_id: string
+      decision: string (enum confirm|reject)
+      next: ReleaseReviewQueueItem | null
   PaginationMeta:
     total: int64
     page: int32
