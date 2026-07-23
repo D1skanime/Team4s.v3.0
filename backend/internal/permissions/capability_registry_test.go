@@ -283,3 +283,16 @@ func TestPhase107PermissionCatalogRequiresEveryReviewAction(t *testing.T) {
 		})
 	}
 }
+
+func TestPhase107PermissionCatalogHasNoPlatformAdminRoleCapability(t *testing.T) {
+	data := roleMatrixStubData()
+
+	assert.NotContains(t, data, RolePlatformAdmin)
+	for _, action := range []Action{
+		ActionReviewTextDecide,
+		ActionReviewImageDecide,
+		ActionReviewContributionDecide,
+	} {
+		assert.Contains(t, data[RoleFansubLead], action)
+	}
+}

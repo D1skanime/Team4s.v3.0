@@ -44,6 +44,9 @@ const (
 	ActionReleaseVersionMediaDeleteOwn       Action = "release_version_media.delete_own"
 	ActionReleaseVersionNotesWrite           Action = "release_version.notes.write"
 	ActionReleaseVersionSegmentsManage       Action = "release_version.segments.manage"
+	ActionReviewTextDecide                   Action = "review.text.decide"
+	ActionReviewImageDecide                  Action = "review.image.decide"
+	ActionReviewContributionDecide           Action = "review.contribution.decide"
 )
 
 const (
@@ -104,6 +107,9 @@ var roleMatrix = map[string][]Action{
 		ActionReleaseVersionMediaDelete,
 		ActionReleaseVersionNotesWrite,
 		ActionReleaseVersionSegmentsManage,
+		ActionReviewTextDecide,
+		ActionReviewImageDecide,
+		ActionReviewContributionDecide,
 	},
 	RoleProjectLead: {
 		ActionFansubGroupEdit,
@@ -213,6 +219,9 @@ var allKnownActions = []Action{
 	ActionReleaseVersionMediaDeleteOwn,
 	ActionReleaseVersionNotesWrite,
 	ActionReleaseVersionSegmentsManage,
+	ActionReviewTextDecide,
+	ActionReviewImageDecide,
+	ActionReviewContributionDecide,
 }
 
 // standaloneActions sind Actions, die in action_definitions existieren,
@@ -266,6 +275,28 @@ type Result struct {
 	Reason       string `json:"reason"`
 	MatchedRole  string `json:"matched_role,omitempty"`
 	MatchedScope string `json:"matched_scope,omitempty"`
+}
+
+// ReviewGrantContext is the verified, currently usable reviewer identity for one
+// concrete group. GrantedActions contains only persisted direct review grants.
+type ReviewGrantContext struct {
+	MembershipID   int64
+	AppUserID      int64
+	MemberID       int64
+	FansubGroupID  int64
+	GrantedActions []Action
+}
+
+// ReviewContextResolver is deliberately separate from Resolver so established
+// handlers and tests do not need a Phase-107-only method.
+type ReviewContextResolver interface {
+	ResolveActorReviewGrantContext(ctx context.Context, appUserID int64, fansubGroupID int64) (*ReviewGrantContext, error)
+}
+
+type ReviewAuthorizationResult struct {
+	Result
+	MembershipID int64
+	MemberID     int64
 }
 
 type Resolver interface {
@@ -387,9 +418,100 @@ func RoleAllowsAction(role string, action Action) bool {
 }
 
 func (s *Service) CanForFansubGroup(ctx context.Context, actor Actor, action Action, fansubGroupID int64) (Result, error) {
+	if isReviewAction(action) {
+		result, err := s.CanReviewForFansubGroup(ctx, actor, action, fansubGroupID)
+		return result.Result, err
+	}
 	return s.canForContext(ctx, actor, []Action{action}, func(ctx context.Context) (*Context, error) {
 		return s.resolver.ResolveFansubGroup(ctx, fansubGroupID)
 	})
+}
+
+func (s *Service) CanReviewForFansubGroup(
+	ctx context.Context,
+	actor Actor,
+	action Action,
+	fansubGroupID int64,
+) (ReviewAuthorizationResult, error) {
+	if s == nil || s.resolver == nil {
+		return reviewDenied(ReasonUnauthorized, "permission service nicht verfügbar"), nil
+	}
+	if actor.AppUserID <= 0 {
+		return reviewDenied(ReasonUnauthorized, "aktueller app-user fehlt"), nil
+	}
+	if strings.TrimSpace(actor.Status) == "disabled" {
+		return reviewDenied(ReasonDisabledUser, "deaktivierter benutzer"), nil
+	}
+	if !isReviewAction(action) || fansubGroupID <= 0 {
+		return reviewDenied(ReasonNoSupportedContext, "keine unterstützte review-aktion oder gruppe"), nil
+	}
+	if actor.IsPlatformAdmin {
+		return ReviewAuthorizationResult{Result: Result{
+			Allowed:      true,
+			ReasonCode:   ReasonPlatformAdmin,
+			Reason:       "platform_admin darf diese aktion ausführen",
+			MatchedRole:  RolePlatformAdmin,
+			MatchedScope: ScopeTypeGlobal,
+		}}, nil
+	}
+
+	resourceContext, err := s.resolver.ResolveFansubGroup(ctx, fansubGroupID)
+	if err != nil {
+		return ReviewAuthorizationResult{}, err
+	}
+	if resourceContext == nil || !slices.Contains(resourceContext.FansubGroupIDs, fansubGroupID) {
+		return reviewDenied(ReasonResourceNotFound, "ressource nicht gefunden"), nil
+	}
+
+	reviewResolver, ok := s.resolver.(ReviewContextResolver)
+	if !ok {
+		return reviewDenied(ReasonNoMembership, "review-kontext nicht verfügbar"), nil
+	}
+	reviewContext, err := reviewResolver.ResolveActorReviewGrantContext(ctx, actor.AppUserID, fansubGroupID)
+	if err != nil {
+		return ReviewAuthorizationResult{}, err
+	}
+	if reviewContext == nil ||
+		reviewContext.MembershipID <= 0 ||
+		reviewContext.AppUserID != actor.AppUserID ||
+		reviewContext.MemberID <= 0 ||
+		reviewContext.FansubGroupID != fansubGroupID {
+		return reviewDenied(ReasonNoMembership, "keine aktive bestätigte gruppenmitgliedschaft"), nil
+	}
+
+	roles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
+	if err != nil {
+		return ReviewAuthorizationResult{}, err
+	}
+	for _, role := range roles {
+		if strings.TrimSpace(role) == RoleFansubLead && roleAllows(RoleFansubLead, action) {
+			return ReviewAuthorizationResult{
+				Result: Result{
+					Allowed:      true,
+					ReasonCode:   ReasonAllowed,
+					Reason:       "berechtigung über gruppenrolle bestätigt",
+					MatchedRole:  RoleFansubLead,
+					MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
+				},
+				MembershipID: reviewContext.MembershipID,
+				MemberID:     reviewContext.MemberID,
+			}, nil
+		}
+	}
+	if slices.Contains(reviewContext.GrantedActions, action) {
+		return ReviewAuthorizationResult{
+			Result: Result{
+				Allowed:      true,
+				ReasonCode:   ReasonAllowed,
+				Reason:       "berechtigung über direkten review-grant bestätigt",
+				MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
+			},
+			MembershipID: reviewContext.MembershipID,
+			MemberID:     reviewContext.MemberID,
+		}, nil
+	}
+
+	return reviewDenied(ReasonInsufficientRole, "gruppenmitgliedschaft vorhanden, aber review-recht fehlt"), nil
 }
 
 func (s *Service) CanAcceptInvitation(actor Actor) Result {
@@ -624,4 +746,14 @@ func denied(code string, reason string) Result {
 		ReasonCode: code,
 		Reason:     reason,
 	}
+}
+
+func reviewDenied(code string, reason string) ReviewAuthorizationResult {
+	return ReviewAuthorizationResult{Result: denied(code, reason)}
+}
+
+func isReviewAction(action Action) bool {
+	return action == ActionReviewTextDecide ||
+		action == ActionReviewImageDecide ||
+		action == ActionReviewContributionDecide
 }
