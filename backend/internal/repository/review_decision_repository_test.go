@@ -44,16 +44,18 @@ func TestPhase107ReviewDecisionConcurrent(t *testing.T) {
 	reject := phase107DecisionInput("release-image:52", 3, ReviewDecisionReject, &category)
 
 	start := make(chan struct{})
-	results := make(chan *ReviewDecisionRow, 2)
-	errs := make(chan error, 2)
+	type concurrentResult struct {
+		row *ReviewDecisionRow
+		err error
+	}
+	results := make(chan concurrentResult, 2)
 	var ready sync.WaitGroup
 	ready.Add(2)
 	for _, input := range []ReviewDecisionInput{confirm, reject} {
 		go func(input ReviewDecisionInput) {
 			tx, err := pool.Begin(ctx)
 			if err != nil {
-				results <- nil
-				errs <- err
+				results <- concurrentResult{err: err}
 				return
 			}
 			defer tx.Rollback(ctx)
@@ -63,26 +65,24 @@ func TestPhase107ReviewDecisionConcurrent(t *testing.T) {
 			if insertErr == nil {
 				insertErr = tx.Commit(ctx)
 			}
-			results <- row
-			errs <- insertErr
+			results <- concurrentResult{row: row, err: insertErr}
 		}(input)
 	}
 	ready.Wait()
 	close(start)
 
-	rows := []*ReviewDecisionRow{<-results, <-results}
-	gotErrs := []error{<-errs, <-errs}
+	gotResults := []concurrentResult{<-results, <-results}
 	var winners, conflicts int
-	for index, err := range gotErrs {
+	for _, result := range gotResults {
 		switch {
-		case err == nil:
+		case result.err == nil:
 			winners++
-			require.NotNil(t, rows[index])
-		case errors.Is(err, ErrConflict):
+			require.NotNil(t, result.row)
+		case errors.Is(result.err, ErrConflict):
 			conflicts++
-			assert.Nil(t, rows[index])
+			assert.Nil(t, result.row)
 		default:
-			t.Fatalf("unexpected concurrent decision error: %v", err)
+			t.Fatalf("unexpected concurrent decision error: %v", result.err)
 		}
 	}
 	assert.Equal(t, 1, winners)
