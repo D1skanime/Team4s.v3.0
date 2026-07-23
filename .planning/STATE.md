@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 107.1-04-PLAN.md
-last_updated: "2026-07-23T20:09:45.467Z"
+stopped_at: Completed 107.1-05-PLAN.md
+last_updated: "2026-07-23T20:35:36.917Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 82
   total_plans: 449
-  completed_plans: 418
+  completed_plans: 419
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 
 ## Accumulated Context
 
@@ -360,6 +360,9 @@ Recent durable decisions:
 - [Phase 107.1]: Release-Bestätigungen verwenden release.contribution Version 1 mit einem festen Plattformbeitragspunkt; Werte und Idempotenz bleiben serverseitig. — Die bisherige Review-Regel ist semantisch nur für Reviewer-Credits bestimmt.
 - [Phase 107.1]: Der Phase-107-Decision-Insert arbitriert parallele Release-Entscheidungen vor der bedingten Source-Mutation. — So sehen beide Prozesse dieselbe Revision und nur der unveränderliche DB-Arbiter gewinnt.
 - [Phase 107.1]: Plattformadmins setzen SelfReviewOverride nur bei einem tatsächlichen begründeten Self-Override und erhalten nie Review-Credit. — Fremde Quellen bleiben für Admins prüfbar, ohne die gelandete Self-Review-Policy zu verletzen.
+- [Phase 107.1]: Logischer Tombstone und Content-/Reason-Scrub committen vor jeder Dateisystemarbeit; physische Fehler verbleiben als idempotente Retry-Jobs. — Datenschutz-Cleanup darf nicht durch Storage-Ausfälle zurückgerollt oder nach einem Prozessabbruch verloren werden.
+- [Phase 107.1]: Finale Medienreferenzen werden vor jedem Löschversuch aus allen tatsächlichen Fremdschlüsseln auf media_assets ermittelt. — Die Prüfung bleibt vollständig, ohne release_media oder eine andere Domain-Seam als Ersatz zu verwenden.
+- [Phase 107.1]: Release-Review-Cleanup verwendet die bestehende Managed-Storage-Seam und sperrt Produktions-Badge-Pfade explizit. — Pfadvalidierung bleibt zentral und getrackte Badge-Assets können nicht als Upload-Daten entfernt werden.
 
 ### Pending Todos
 
@@ -629,6 +632,7 @@ Recent durable decisions:
 | Phase 107.1 P02 | 27min | 2 tasks | 10 files |
 | Phase 107.1 P03 | 29min | 2 tasks | 9 files |
 | Phase 107.1 P04 | 15min | 2 tasks | 10 files |
+| Phase 107.1 P05 | 18min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -710,7 +714,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T20:09:45.353Z
-Stopped at: Completed 107.1-04-PLAN.md
+Last session: 2026-07-23T20:35:36.868Z
+Stopped at: Completed 107.1-05-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
