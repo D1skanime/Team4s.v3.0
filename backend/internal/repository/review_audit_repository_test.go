@@ -49,6 +49,7 @@ func TestPhase107ReviewAuditEventAppUser(t *testing.T) {
 	eventID := int64(77)
 	actorAppUserID := int64(11)
 	actorMemberID := int64(101)
+	decisionID := int64(70)
 	decision := "reject"
 	occurredAt := time.Date(2026, 7, 23, 12, 0, 0, 987654321, time.UTC)
 	db := &phase107AuditDB{
@@ -63,6 +64,7 @@ func TestPhase107ReviewAuditEventAppUser(t *testing.T) {
 
 	got, err := repo.InsertEvent(context.Background(), ReviewAuditEventInput{
 		EventCode:          ReviewAuditEventReviewRejected,
+		ReviewDecisionID:   &decisionID,
 		ActorKind:          ReviewAuditActorAppUser,
 		ActorAppUserID:     &actorAppUserID,
 		ActorMemberID:      &actorMemberID,
@@ -87,6 +89,8 @@ func TestPhase107ReviewAuditEventAppUser(t *testing.T) {
 }
 
 func TestPhase107ReviewAuditSystemActorEvent(t *testing.T) {
+	decisionID := int64(70)
+	decision := "reject"
 	db := &phase107AuditDB{
 		queryRows: []pgx.Row{
 			phase107AuditRow(func(dest ...any) error {
@@ -97,19 +101,94 @@ func TestPhase107ReviewAuditSystemActorEvent(t *testing.T) {
 	}
 
 	eventID, err := NewReviewAuditRepository(db).InsertEvent(context.Background(), ReviewAuditEventInput{
-		EventCode:      ReviewAuditEventReviewCreditReversed,
-		ActorKind:      ReviewAuditActorSystem,
-		FansubGroupID:  21,
-		SourceType:     "fixture",
-		SourceKey:      "source-a",
-		SourceRevision: 1,
-		OccurredAt:     time.Now(),
+		EventCode:        ReviewAuditEventReviewCreditReversed,
+		ReviewDecisionID: &decisionID,
+		ActorKind:        ReviewAuditActorSystem,
+		FansubGroupID:    21,
+		SourceType:       "fixture",
+		SourceKey:        "source-a",
+		SourceRevision:   1,
+		Decision:         &decision,
+		OccurredAt:       time.Now(),
 	})
 
 	require.NoError(t, err)
 	assert.EqualValues(t, 88, eventID)
 	assert.Nil(t, db.queryArgs[0][3])
 	assert.Nil(t, db.queryArgs[0][4])
+}
+
+func TestPhase107ReviewAuditEventShapeValidation(t *testing.T) {
+	appUserID := int64(11)
+	decisionID := int64(70)
+	confirm := "confirm"
+	reject := "reject"
+	base := ReviewAuditEventInput{
+		ActorKind:      ReviewAuditActorAppUser,
+		ActorAppUserID: &appUserID,
+		FansubGroupID:  21,
+		SourceType:     "fixture",
+		SourceKey:      "source-a",
+		SourceRevision: 1,
+		OccurredAt:     time.Now(),
+	}
+
+	cases := map[string]ReviewAuditEventInput{
+		"delegation with decision": func() ReviewAuditEventInput {
+			input := base
+			input.EventCode = ReviewAuditEventDelegationGranted
+			input.ReviewDecisionID = &decisionID
+			input.Decision = &confirm
+			return input
+		}(),
+		"confirmed with reject decision": func() ReviewAuditEventInput {
+			input := base
+			input.EventCode = ReviewAuditEventReviewConfirmed
+			input.ReviewDecisionID = &decisionID
+			input.Decision = &reject
+			return input
+		}(),
+		"rejected without decision link": func() ReviewAuditEventInput {
+			input := base
+			input.EventCode = ReviewAuditEventReviewRejected
+			input.Decision = &reject
+			input.HasReason = true
+			return input
+		}(),
+		"rejected without reason marker": func() ReviewAuditEventInput {
+			input := base
+			input.EventCode = ReviewAuditEventReviewRejected
+			input.ReviewDecisionID = &decisionID
+			input.Decision = &reject
+			return input
+		}(),
+		"override without override flag": func() ReviewAuditEventInput {
+			input := base
+			input.EventCode = ReviewAuditEventReviewOverride
+			input.ReviewDecisionID = &decisionID
+			input.Decision = &confirm
+			input.HasReason = true
+			return input
+		}(),
+		"credit with reason": func() ReviewAuditEventInput {
+			input := base
+			input.EventCode = ReviewAuditEventReviewCreditAwarded
+			input.ReviewDecisionID = &decisionID
+			input.Decision = &confirm
+			input.HasReason = true
+			return input
+		}(),
+	}
+
+	for name, input := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := normalizeAndValidateReviewAuditEvent(
+				NewReviewAuditRepository(&phase107AuditDB{}),
+				&input,
+			)
+			assert.ErrorIs(t, err, ErrValidation)
+		})
+	}
 }
 
 func TestPhase107ReviewAuditEventValidation(t *testing.T) {
@@ -214,35 +293,68 @@ func TestPhase107ReviewAuditEventReasonImmutableReadBoundary(t *testing.T) {
 		INSERT INTO members(id) VALUES (101);
 		INSERT INTO app_users(id, status) VALUES (11, 'active');
 		INSERT INTO fansub_groups(id) VALUES (21);
+		INSERT INTO review_decisions (
+			id, source_type, source_key, source_revision, review_kind, decision,
+			rejection_category, fansub_group_id, reviewer_app_user_id,
+			reviewer_member_id, is_platform_override
+		) VALUES (
+			70, 'fixture', 'source-a', 1, 'text', 'reject',
+			'quality', 21, 11, 101, true
+		);
 	`)
 	require.NoError(t, err)
 	appUserID := int64(11)
 	memberID := int64(101)
+	decisionID := int64(70)
 	decision := "reject"
-	repo := NewReviewAuditRepository(pool)
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	defer tx.Rollback(ctx)
+	repo := NewReviewAuditRepository(tx)
 
 	eventID, err := repo.InsertEvent(ctx, ReviewAuditEventInput{
-		EventCode:      ReviewAuditEventReviewRejected,
-		ActorKind:      ReviewAuditActorAppUser,
-		ActorAppUserID: &appUserID,
-		ActorMemberID:  &memberID,
-		FansubGroupID:  21,
-		SourceType:     "fixture",
-		SourceKey:      "source-a",
-		SourceRevision: 1,
-		Decision:       &decision,
-		HasReason:      true,
-		OccurredAt:     time.Now(),
+		EventCode:          ReviewAuditEventReviewRejected,
+		ReviewDecisionID:   &decisionID,
+		ActorKind:          ReviewAuditActorAppUser,
+		ActorAppUserID:     &appUserID,
+		ActorMemberID:      &memberID,
+		FansubGroupID:      21,
+		SourceType:         "fixture",
+		SourceKey:          "source-a",
+		SourceRevision:     1,
+		Decision:           &decision,
+		IsPlatformOverride: true,
+		HasReason:          true,
+		OccurredAt:         time.Now(),
 	})
 	require.NoError(t, err)
 	require.NoError(t, repo.InsertReason(ctx, eventID, ReviewReasonKindReject, "Ablehnungsgrund"))
-	require.NoError(t, repo.InsertReason(ctx, eventID, ReviewReasonKindOverride, "Override-Grund"))
+
+	overrideEventID, err := repo.InsertEvent(ctx, ReviewAuditEventInput{
+		EventCode:          ReviewAuditEventReviewOverride,
+		ReviewDecisionID:   &decisionID,
+		ActorKind:          ReviewAuditActorAppUser,
+		ActorAppUserID:     &appUserID,
+		ActorMemberID:      &memberID,
+		FansubGroupID:      21,
+		SourceType:         "fixture",
+		SourceKey:          "source-a",
+		SourceRevision:     1,
+		Decision:           &decision,
+		IsPlatformOverride: true,
+		HasReason:          true,
+		OccurredAt:         time.Now(),
+	})
+	require.NoError(t, err)
+	require.NoError(t, repo.InsertReason(ctx, overrideEventID, ReviewReasonKindOverride, "Override-Grund"))
+	require.NoError(t, tx.Commit(ctx))
+	repo = NewReviewAuditRepository(pool)
 
 	before, err := repo.GetEvent(ctx, eventID)
 	require.NoError(t, err)
 	afterReadCount := 0
 	require.NoError(t, pool.QueryRow(ctx, `SELECT COUNT(*) FROM review_audit_events`).Scan(&afterReadCount))
-	assert.Equal(t, 1, afterReadCount, "reads must not create audit events")
+	assert.Equal(t, 2, afterReadCount, "reads must not create audit events")
 	assert.Equal(t, ReviewAuditEventReviewRejected, before.EventCode)
 
 	_, err = pool.Exec(ctx, `UPDATE review_audit_events SET event_code = 'review.confirmed' WHERE id = $1`, eventID)
@@ -261,6 +373,6 @@ func TestPhase107ReviewAuditEventReasonImmutableReadBoundary(t *testing.T) {
 	var reasonCount int
 	require.NoError(t, pool.QueryRow(ctx, `
 		SELECT COUNT(*) FROM review_reason_texts WHERE audit_event_id = $1
-	`, eventID).Scan(&reasonCount))
+	`, overrideEventID).Scan(&reasonCount))
 	assert.Equal(t, 1, reasonCount, "override reason remains independently addressable")
 }

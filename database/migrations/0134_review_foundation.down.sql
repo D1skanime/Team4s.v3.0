@@ -72,6 +72,8 @@ $$;
 
 DROP TRIGGER IF EXISTS review_reason_texts_guard_update ON review_reason_texts;
 DROP TRIGGER IF EXISTS review_reason_texts_reject_truncate ON review_reason_texts;
+DROP TRIGGER IF EXISTS review_reason_texts_validate_contract ON review_reason_texts;
+DROP TRIGGER IF EXISTS review_audit_events_validate_contract ON review_audit_events;
 DROP TRIGGER IF EXISTS review_audit_events_guard_mutation ON review_audit_events;
 DROP TRIGGER IF EXISTS review_audit_events_reject_truncate ON review_audit_events;
 DROP TRIGGER IF EXISTS review_credit_slots_validate_contract ON review_credit_slots;
@@ -84,6 +86,8 @@ DROP TRIGGER IF EXISTS review_foundation_seed_ownership_reject_truncate ON revie
 
 DROP FUNCTION IF EXISTS reject_review_reason_update();
 DROP FUNCTION IF EXISTS reject_review_reason_truncate();
+DROP FUNCTION IF EXISTS validate_review_reason_contract();
+DROP FUNCTION IF EXISTS validate_review_audit_event_contract();
 DROP FUNCTION IF EXISTS validate_review_credit_slot_contract();
 DROP FUNCTION IF EXISTS reject_review_append_only_mutation();
 DROP FUNCTION IF EXISTS reject_review_append_only_truncate();

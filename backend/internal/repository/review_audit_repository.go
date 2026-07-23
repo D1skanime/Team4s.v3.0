@@ -240,6 +240,9 @@ func normalizeAndValidateReviewAuditEvent(
 	if input.Decision != nil && *input.Decision != "confirm" && *input.Decision != "reject" {
 		return fmt.Errorf("insert review audit event decision: %w", ErrValidation)
 	}
+	if err := validateReviewAuditEventShape(input); err != nil {
+		return err
+	}
 	if input.ActorKind == ReviewAuditActorAppUser {
 		if input.ActorAppUserID == nil || *input.ActorAppUserID <= 0 {
 			return fmt.Errorf("insert review audit event actor: %w", ErrValidation)
@@ -251,6 +254,36 @@ func normalizeAndValidateReviewAuditEvent(
 	}
 	if input.ActorAppUserID != nil || input.ActorMemberID != nil {
 		return fmt.Errorf("insert review audit system actor: %w", ErrValidation)
+	}
+	return nil
+}
+
+func validateReviewAuditEventShape(input *ReviewAuditEventInput) error {
+	hasDecision := input.ReviewDecisionID != nil
+	hasDecisionValue := input.Decision != nil
+	switch input.EventCode {
+	case ReviewAuditEventDelegationGranted, ReviewAuditEventDelegationRevoked:
+		if hasDecision || hasDecisionValue || input.IsPlatformOverride || input.HasReason {
+			return fmt.Errorf("insert delegation audit event shape: %w", ErrValidation)
+		}
+	case ReviewAuditEventReviewConfirmed:
+		if !hasDecision || !hasDecisionValue || *input.Decision != "confirm" || input.HasReason {
+			return fmt.Errorf("insert confirmed review audit event shape: %w", ErrValidation)
+		}
+	case ReviewAuditEventReviewRejected:
+		if !hasDecision || !hasDecisionValue || *input.Decision != "reject" || !input.HasReason {
+			return fmt.Errorf("insert rejected review audit event shape: %w", ErrValidation)
+		}
+	case ReviewAuditEventReviewOverride:
+		if !hasDecision || !hasDecisionValue || !input.IsPlatformOverride || !input.HasReason {
+			return fmt.Errorf("insert override review audit event shape: %w", ErrValidation)
+		}
+	case ReviewAuditEventReviewCreditAwarded, ReviewAuditEventReviewCreditReversed:
+		if !hasDecision || !hasDecisionValue || input.IsPlatformOverride || input.HasReason {
+			return fmt.Errorf("insert review credit audit event shape: %w", ErrValidation)
+		}
+	default:
+		return fmt.Errorf("insert review audit event shape: %w", ErrValidation)
 	}
 	return nil
 }

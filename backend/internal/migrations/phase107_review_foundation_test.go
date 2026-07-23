@@ -60,6 +60,10 @@ func TestPhase107MigrationUpContract(t *testing.T) {
 		"references point_ledger_entries(id)",
 		"create constraint trigger review_credit_slots_validate_contract",
 		"validate_review_credit_slot_contract",
+		"create constraint trigger review_audit_events_validate_contract",
+		"create constraint trigger review_reason_texts_validate_contract",
+		"validate_review_audit_event_contract",
+		"validate_review_reason_contract",
 		"review.decision",
 		"platform_contribution",
 	)
@@ -296,6 +300,134 @@ DELETE FROM review_reason_texts WHERE audit_event_id = 1002 AND reason_kind = 'r
 	require.Zero(t, reasons)
 	require.Equal(t, 1, decisions)
 	require.Equal(t, 1, audits)
+}
+
+func TestPhase107AuditEventContract(t *testing.T) {
+	pool := openPhase107MigratedPool(t)
+	seedPhase107ReviewFoundation(t, pool)
+	ctx := context.Background()
+
+	_, err := pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    event_code, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    'review.rejected', 'app_user', 10, 1,
+    20, 'fixture', 'source-missing-decision', 1,
+    'reject', false, false
+)`)
+	require.Error(t, err, "rejected audit requires a decision and reject reason")
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    'review.confirmed', 1001, 'app_user', 10, 1,
+    20, 'fixture', 'source-a', 1,
+    'confirm', false, false
+)`)
+	require.Error(t, err, "confirmed audit cannot link a reject decision")
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    'review.confirmed', 1005, 'app_user', 11, 2,
+    20, 'fixture', 'source-a', 2,
+    NULL, false, false
+)`)
+	require.Error(t, err, "confirmed audit requires its structured decision value")
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_decisions (
+    id, source_type, source_key, source_revision, review_kind, decision,
+    rejection_category, fansub_group_id, reviewer_app_user_id,
+    reviewer_member_id, is_platform_override
+) VALUES (
+    1006, 'fixture', 'source-override', 1, 'text', 'confirm',
+    NULL, 20, 10, 1, true
+)`)
+	require.NoError(t, err)
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    id, event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    1007, 'review.override', 1006, 'app_user', 10, 1,
+    20, 'fixture', 'source-override', 1,
+    'confirm', true, true
+)`)
+	require.Error(t, err, "override audit requires its override reason in the same transaction")
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    id, event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    1008, 'review.override', 1006, 'app_user', 10, 1,
+    20, 'fixture', 'source-override', 1,
+    'confirm', true, true
+);
+INSERT INTO review_reason_texts (audit_event_id, reason_kind, reason_text)
+VALUES (1008, 'reject', 'Falscher Zweck');`)
+	require.Error(t, err, "override audit cannot carry a reject reason")
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    id, event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    1009, 'review.override', 1006, 'app_user', 10, 1,
+    20, 'fixture', 'source-override', 1,
+    'confirm', true, true
+);
+INSERT INTO review_reason_texts (audit_event_id, reason_kind, reason_text)
+VALUES (1009, 'override', 'Dokumentierte Ausnahme');`)
+	require.NoError(t, err, "matching override event and reason must commit")
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    id, event_code, review_decision_id, actor_kind,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    1010, 'review_credit.reversed', 1005, 'system',
+    20, 'fixture', 'source-a', 2,
+    'confirm', false, false
+)`)
+	require.NoError(t, err, "system credit-reversal audit remains supported")
+
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_audit_events (
+    id, event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision,
+    decision, is_platform_override, has_reason
+) VALUES (
+    1011, 'review.confirmed', 1005, 'app_user', 11, 2,
+    20, 'fixture', 'source-a', 2,
+    'confirm', false, false
+)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `
+INSERT INTO review_reason_texts (audit_event_id, reason_kind, reason_text)
+VALUES (1011, 'override', 'Nicht erlaubt')`)
+	require.Error(t, err, "reason text cannot be attached to a no-reason event")
+
+	var invalidRows int
+	require.NoError(t, pool.QueryRow(ctx, `
+SELECT count(*)
+FROM review_audit_events
+WHERE id IN (1007, 1008)`).Scan(&invalidRows))
+	require.Zero(t, invalidRows, "rejected immutable event shapes must not become permanent")
 }
 
 func TestPhase107SourceGlobalCreditSlot(t *testing.T) {

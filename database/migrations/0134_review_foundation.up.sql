@@ -202,6 +202,138 @@ CREATE TABLE review_reason_texts (
     PRIMARY KEY (audit_event_id, reason_kind)
 );
 
+CREATE FUNCTION validate_review_audit_event_contract() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+    linked_decision review_decisions%ROWTYPE;
+    reason_count INTEGER;
+    reject_reason_count INTEGER;
+    override_reason_count INTEGER;
+BEGIN
+    SELECT
+        count(*),
+        count(*) FILTER (WHERE reason_kind = 'reject'),
+        count(*) FILTER (WHERE reason_kind = 'override')
+    INTO reason_count, reject_reason_count, override_reason_count
+    FROM review_reason_texts
+    WHERE audit_event_id = NEW.id;
+
+    CASE NEW.event_code
+        WHEN 'delegation.granted', 'delegation.revoked',
+             'source.submitted', 'source.edited_after_reject',
+             'source.resubmitted', 'source.published', 'reason.scrubbed' THEN
+            IF NEW.review_decision_id IS NOT NULL
+               OR NEW.decision IS NOT NULL
+               OR NEW.is_platform_override
+               OR NEW.has_reason
+               OR reason_count <> 0 THEN
+                RAISE EXCEPTION 'review audit event % has contradictory fields', NEW.event_code;
+            END IF;
+        WHEN 'review.confirmed' THEN
+            IF NEW.review_decision_id IS NULL
+               OR NEW.decision IS NULL
+               OR NEW.decision <> 'confirm'
+               OR NEW.has_reason
+               OR reason_count <> 0 THEN
+                RAISE EXCEPTION 'confirmed review audit event has contradictory fields';
+            END IF;
+        WHEN 'review.rejected' THEN
+            IF NEW.review_decision_id IS NULL
+               OR NEW.decision IS NULL
+               OR NEW.decision <> 'reject'
+               OR NOT NEW.has_reason
+               OR reason_count <> 1
+               OR reject_reason_count <> 1
+               OR override_reason_count <> 0 THEN
+                RAISE EXCEPTION 'rejected review audit event requires exactly one reject reason';
+            END IF;
+        WHEN 'review.override' THEN
+            IF NEW.review_decision_id IS NULL
+               OR NEW.decision IS NULL
+               OR NOT NEW.is_platform_override
+               OR NOT NEW.has_reason
+               OR reason_count <> 1
+               OR override_reason_count <> 1
+               OR reject_reason_count <> 0 THEN
+                RAISE EXCEPTION 'override review audit event requires exactly one override reason';
+            END IF;
+        WHEN 'review_credit.awarded', 'review_credit.reversed' THEN
+            IF NEW.review_decision_id IS NULL
+               OR NEW.decision IS NULL
+               OR NEW.is_platform_override
+               OR NEW.has_reason
+               OR reason_count <> 0 THEN
+                RAISE EXCEPTION 'review credit audit event has contradictory fields';
+            END IF;
+        ELSE
+            RAISE EXCEPTION 'unknown review audit event code %', NEW.event_code;
+    END CASE;
+
+    IF NEW.review_decision_id IS NOT NULL THEN
+        SELECT *
+        INTO linked_decision
+        FROM review_decisions
+        WHERE id = NEW.review_decision_id;
+
+        IF NOT FOUND
+           OR NEW.fansub_group_id <> linked_decision.fansub_group_id
+           OR NEW.source_type <> linked_decision.source_type
+           OR NEW.source_key <> linked_decision.source_key
+           OR NEW.source_revision <> linked_decision.source_revision
+           OR NEW.decision <> linked_decision.decision
+           OR NEW.is_platform_override <> linked_decision.is_platform_override THEN
+            RAISE EXCEPTION 'review audit event does not match its review decision';
+        END IF;
+    END IF;
+
+    IF NEW.event_code IN (
+        'review.confirmed',
+        'review.rejected',
+        'review.override',
+        'review_credit.awarded'
+    ) AND (
+        NEW.actor_kind <> 'app_user'
+        OR NEW.actor_app_user_id IS DISTINCT FROM linked_decision.reviewer_app_user_id
+        OR NEW.actor_member_id IS DISTINCT FROM linked_decision.reviewer_member_id
+    ) THEN
+        RAISE EXCEPTION 'review audit actor does not match its review decision';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE FUNCTION validate_review_reason_contract() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+    parent_event review_audit_events%ROWTYPE;
+BEGIN
+    SELECT *
+    INTO parent_event
+    FROM review_audit_events
+    WHERE id = NEW.audit_event_id;
+
+    IF NOT FOUND
+       OR NOT parent_event.has_reason
+       OR (NEW.reason_kind = 'reject' AND parent_event.event_code <> 'review.rejected')
+       OR (NEW.reason_kind = 'override' AND parent_event.event_code <> 'review.override') THEN
+        RAISE EXCEPTION 'review reason kind does not match its audit event';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER review_audit_events_validate_contract
+AFTER INSERT ON review_audit_events
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION validate_review_audit_event_contract();
+
+CREATE CONSTRAINT TRIGGER review_reason_texts_validate_contract
+AFTER INSERT ON review_reason_texts
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION validate_review_reason_contract();
+
 CREATE TABLE review_credit_slots (
     id BIGSERIAL PRIMARY KEY,
     source_type TEXT NOT NULL,
