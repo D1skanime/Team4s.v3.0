@@ -165,11 +165,18 @@ func TestPhase107ReviewDecisionValidation(t *testing.T) {
 	}
 	for name, mutate := range cases {
 		t.Run(name, func(t *testing.T) {
+			db := &phase107DelegationDB{
+				row: phase107DelegationRow(func(...any) error {
+					return errors.New("unexpected database call during validation")
+				}),
+			}
 			input := valid
 			mutate(&input)
-			row, err := NewReviewDecisionRepository(nil).InsertDecision(context.Background(), input)
+			row, err := NewReviewDecisionRepository(db).InsertDecision(context.Background(), input)
 			assert.Nil(t, row)
 			assert.ErrorIs(t, err, ErrValidation)
+			assert.Empty(t, db.query, "invalid decision must not query the database")
+			assert.Empty(t, db.execQueries, "invalid decision must not execute database statements")
 		})
 	}
 }

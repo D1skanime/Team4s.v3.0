@@ -17,6 +17,7 @@ import (
 	"team4s.v3/backend/internal/testsupport"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -184,6 +185,27 @@ func TestPhase107ReviewCreditNoLedgerInsert(t *testing.T) {
 	assert.Contains(t, source, "HASSLOT")
 }
 
+type phase107CreditValidationRow struct{}
+
+func (phase107CreditValidationRow) Scan(...any) error {
+	return fmt.Errorf("unexpected database row scan during validation")
+}
+
+type phase107CreditValidationDB struct {
+	execCalls  int
+	queryCalls int
+}
+
+func (db *phase107CreditValidationDB) Exec(context.Context, string, ...any) (pgconn.CommandTag, error) {
+	db.execCalls++
+	return pgconn.CommandTag{}, fmt.Errorf("unexpected database exec during validation")
+}
+
+func (db *phase107CreditValidationDB) QueryRow(context.Context, string, ...any) pgx.Row {
+	db.queryCalls++
+	return phase107CreditValidationRow{}
+}
+
 func TestPhase107ReviewCreditValidation(t *testing.T) {
 	valid := repository.ReviewCreditSlotKey{
 		SourceType: "release_version_note",
@@ -196,10 +218,13 @@ func TestPhase107ReviewCreditValidation(t *testing.T) {
 		"slot":   func(key *repository.ReviewCreditSlotKey) { key.Slot = "retry" },
 	} {
 		t.Run(name, func(t *testing.T) {
+			db := &phase107CreditValidationDB{}
 			key := valid
 			mutate(&key)
-			err := repository.NewReviewCreditRepository(nil).LockSlot(context.Background(), key)
+			err := repository.NewReviewCreditRepository(db).LockSlot(context.Background(), key)
 			assert.ErrorIs(t, err, repository.ErrValidation)
+			assert.Zero(t, db.execCalls, "invalid credit key must not execute database statements")
+			assert.Zero(t, db.queryCalls, "invalid credit key must not query the database")
 		})
 	}
 }
