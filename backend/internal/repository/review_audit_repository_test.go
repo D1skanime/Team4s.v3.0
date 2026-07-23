@@ -81,9 +81,9 @@ func TestPhase107ReviewAuditEventAppUser(t *testing.T) {
 	require.Len(t, db.queries, 1)
 	assert.Contains(t, strings.ToUpper(db.queries[0]), "INSERT INTO REVIEW_AUDIT_EVENTS")
 	assert.NotContains(t, strings.ToUpper(db.queries[0]), "JSON")
-	assert.Equal(t, "fixture", db.queryArgs[0][7])
-	assert.Equal(t, "source-a", db.queryArgs[0][8])
-	assert.Equal(t, postgresTimestamp(occurredAt), db.queryArgs[0][13])
+	assert.Equal(t, "fixture", db.queryArgs[0][6])
+	assert.Equal(t, "source-a", db.queryArgs[0][7])
+	assert.Equal(t, postgresTimestamp(occurredAt), db.queryArgs[0][12])
 }
 
 func TestPhase107ReviewAuditSystemActorEvent(t *testing.T) {
