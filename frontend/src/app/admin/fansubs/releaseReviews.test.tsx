@@ -1,0 +1,273 @@
+// @vitest-environment jsdom
+
+import React from 'react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const api = vi.hoisted(() => ({
+  listReleaseReviews: vi.fn(),
+  getReleaseReviewCounts: vi.fn(),
+  getReleaseReview: vi.fn(),
+  decideReleaseReview: vi.fn(),
+  getCurrentUser: vi.fn(),
+}))
+
+const navigation = vi.hoisted(() => ({
+  params: { groupId: '88', reviewId: 'review-image' },
+  push: vi.fn(),
+  replace: vi.fn(),
+  refresh: vi.fn(),
+}))
+
+vi.mock('@/lib/api', () => ({
+  ...api,
+  ApiError: class ApiError extends Error {
+    status: number
+    code: string | null
+
+    constructor(status: number, message: string, _retry: null = null, code: string | null = null) {
+      super(message)
+      this.status = status
+      this.code = code
+    }
+  },
+}))
+
+vi.mock('@/lib/useAuthSession', () => ({
+  useAuthSession: () => ({
+    hasAccessToken: false,
+    hasRefreshToken: true,
+    isClientInitialized: true,
+    displayName: 'Review Lead',
+    authToken: '',
+  }),
+}))
+
+vi.mock('next/navigation', () => ({
+  useParams: () => navigation.params,
+  usePathname: () => '/admin/fansubs/88/edit',
+  useRouter: () => ({
+    push: navigation.push,
+    replace: navigation.replace,
+    refresh: navigation.refresh,
+  }),
+  useSearchParams: () => new URLSearchParams(window.location.search),
+}))
+
+vi.mock('next/link', () => ({
+  default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={String(href)} {...props}>{children}</a>
+  ),
+}))
+
+import { ReleaseReviewsSection } from './[id]/edit/ReleaseReviewsSection'
+import ReleaseReviewPage from './[groupId]/reviews/[reviewId]/page'
+import { MAIN_TABS, parseMainTab } from './[id]/edit/mainTabRouting'
+
+const item = {
+  id: 'review-image',
+  source_revision: 2,
+  type: 'image' as const,
+  category: 'typesetting_karaoke' as const,
+  status: 'pending' as const,
+  fansub_group_id: 88,
+  anime_id: 42,
+  anime_title: 'Frieren',
+  episode_id: 7,
+  episode_number: '1',
+  release_id: 5,
+  release_version_id: 62,
+  release_version: 'v1',
+  submitter_app_user_id: 11,
+  submitter_member_id: 12,
+  submitter_display_name: 'Akari',
+  submitted_at: '2026-07-23T12:00:00Z',
+  last_activity_at: '2026-07-23T12:05:00Z',
+  decided_at: null,
+}
+
+const counts = {
+  data: {
+    text: 1,
+    image: 4,
+    contribution: 0,
+    image_categories: {
+      screenshot: 1,
+      typesetting_karaoke: 1,
+      fun_outtake: 1,
+      other: 1,
+    },
+  },
+}
+
+function setViewport(width: number) {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
+  vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+    matches: query.includes('max-width: 767px') ? width < 768 : false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })))
+}
+
+beforeEach(() => {
+  setViewport(1200)
+  window.history.replaceState({}, '', '/admin/fansubs/88/edit?tab=pruefungen')
+  api.listReleaseReviews.mockResolvedValue({ data: { items: [item], next_cursor: null } })
+  api.getReleaseReviewCounts.mockResolvedValue(counts)
+  api.getReleaseReview.mockResolvedValue({
+    data: {
+      ...item,
+      image: {
+        caption: 'Karaoke-Vorschau',
+        thumbnail_url: '/media/thumb.webp',
+        original_url: '/media/original.png',
+      },
+      can_edit_release: false,
+    },
+  })
+  api.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+})
+
+afterEach(() => {
+  cleanup()
+  vi.clearAllMocks()
+  vi.useRealTimers()
+  vi.unstubAllGlobals()
+})
+
+describe('canonical release review routing and queue', () => {
+  it('normalizes the legacy proposals tab into one Prüfungen tab', () => {
+    expect(parseMainTab('vorschlaege')).toBe('pruefungen')
+    expect(parseMainTab('pruefungen')).toBe('pruefungen')
+    expect(MAIN_TABS.filter((tab) => tab.key === 'pruefungen')).toHaveLength(1)
+    expect(MAIN_TABS.some((tab) => tab.key === 'vorschlaege')).toBe(false)
+  })
+
+  it('renders counters, every image category and the bounded accessible queue', async () => {
+    render(<ReleaseReviewsSection fansubId={88} />)
+
+    expect(await screen.findByRole('heading', { name: 'Prüfungen' })).toBeTruthy()
+    expect(screen.getByText('Texte 1')).toBeTruthy()
+    expect(screen.getByText('Bilder 4')).toBeTruthy()
+    expect(screen.getByText('Mitwirkungen 0')).toBeTruthy()
+    expect(screen.getByRole('table', { name: 'Offene Prüfungen der Fansubgruppe' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'Screenshot' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'Typesetting / Karaoke' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'Fun / Outtake' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'Sonstiges' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Öffnen' }).getAttribute('href')).toContain(
+      '/admin/fansubs/88/reviews/review-image',
+    )
+  })
+
+  it('backs view/filter/search state by URL and debounces search for 300ms', async () => {
+    vi.useFakeTimers()
+    render(<ReleaseReviewsSection fansubId={88} />)
+    await act(async () => { await Promise.resolve() })
+
+    fireEvent.change(screen.getByLabelText('Suche'), { target: { value: '  Akari  ' } })
+    expect(api.listReleaseReviews).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      vi.advanceTimersByTime(300)
+      await Promise.resolve()
+    })
+
+    expect(navigation.replace).toHaveBeenCalledWith(expect.stringContaining('search=Akari'), { scroll: false })
+    expect(api.listReleaseReviews).toHaveBeenLastCalledWith(88, expect.objectContaining({
+      search: 'Akari',
+      limit: 50,
+    }))
+  })
+
+  it('deduplicates cursor pages and never restores a stale page', async () => {
+    api.listReleaseReviews
+      .mockResolvedValueOnce({ data: { items: [item], next_cursor: 'next' } })
+      .mockResolvedValueOnce({ data: { items: [item, { ...item, id: 'review-2' }], next_cursor: null } })
+    render(<ReleaseReviewsSection fansubId={88} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Weitere Prüfungen laden' }))
+    await waitFor(() => expect(screen.getAllByRole('link', { name: 'Öffnen' })).toHaveLength(2))
+  })
+
+  it('shows only the larger-workspace message below 768px', async () => {
+    setViewport(767)
+    render(<ReleaseReviewsSection fansubId={88} />)
+
+    expect(screen.getByRole('heading', { name: 'Prüfungen benötigen mehr Platz' })).toBeTruthy()
+    expect(screen.getByText('Öffne diesen Bereich auf einem Tablet oder Computer, um Beiträge sicher zu prüfen.')).toBeTruthy()
+    expect(screen.queryByRole('table')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Bestätigen|Ablehnen/ })).toBeNull()
+    expect(api.listReleaseReviews).not.toHaveBeenCalled()
+  })
+})
+
+describe('read-only release review detail and decisions', () => {
+  it('renders the original media view without editor, upload, bulk action or beneficiary', async () => {
+    render(<ReleaseReviewPage />)
+
+    expect(await screen.findByRole('heading', { name: 'Prüfung' })).toBeTruthy()
+    expect(screen.getByAltText('Bildbeitrag für Frieren, Episode 1')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Original öffnen/ }).getAttribute('target')).toBe('_blank')
+    expect(screen.queryByText(/Punkteempfänger/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /Hochladen|Bearbeiten|Alle bestätigen/i })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Release bearbeiten/i })).toBeNull()
+  })
+
+  it('validates rejection, announces the error and sends the exact structured reason', async () => {
+    api.decideReleaseReview.mockResolvedValue({
+      data: { review_id: item.id, decision: 'reject', next: null },
+    })
+    render(<ReleaseReviewPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Ablehnen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Beitrag ablehnen' }))
+
+    expect(screen.getByRole('alert').textContent).toContain('mindestens 10 Zeichen')
+
+    fireEvent.change(screen.getByLabelText('Ablehnungsgrund'), {
+      target: { value: 'quality.insufficient' },
+    })
+    fireEvent.change(screen.getByLabelText('Begründung'), {
+      target: { value: 'Das Bild ist deutlich zu unscharf.' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Beitrag ablehnen' }))
+
+    await waitFor(() => expect(api.decideReleaseReview).toHaveBeenCalledWith(88, item.id, {
+      decision: 'reject',
+      expected_revision: 2,
+      rejection_category: 'quality.insufficient',
+      rejection_reason: 'Das Bild ist deutlich zu unscharf.',
+    }))
+    expect(await screen.findByText('Beitrag abgelehnt. Der Einreicher kann ihn bearbeiten und erneut einreichen.')).toBeTruthy()
+  })
+
+  it('replaces mutation controls with the stable concurrent-decision state', async () => {
+    const error = Object.assign(new Error('conflict'), {
+      status: 409,
+      code: 'REVIEW_ALREADY_DECIDED',
+    })
+    api.decideReleaseReview.mockRejectedValue(error)
+    render(<ReleaseReviewPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Bestätigen und veröffentlichen' }))
+
+    expect(await screen.findByText('Diese Prüfung wurde bereits von einer anderen Person entschieden.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Aktuellen Stand laden' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Bestätigen und veröffentlichen' })).toBeNull()
+  })
+
+  it('requires an admin override reason and never shows review credit language as a benefit', async () => {
+    api.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: true } })
+    render(<ReleaseReviewPage />)
+
+    expect(await screen.findByText(/Du entscheidest als Plattform-Admin/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Bestätigen und veröffentlichen' }))
+    expect(screen.getByRole('alert').textContent).toContain('Override-Grund')
+    expect(screen.queryByText(/Prüfpunkt vergeben$/)).toBeNull()
+  })
+})
