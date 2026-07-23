@@ -208,7 +208,7 @@ func TestPhase107ReviewAuditEventValidation(t *testing.T) {
 	}
 
 	for name, mutate := range map[string]func(*ReviewAuditEventInput){
-		"unknown event":        func(input *ReviewAuditEventInput) { input.EventCode = "source.submitted" },
+		"unknown event":        func(input *ReviewAuditEventInput) { input.EventCode = "source.unknown" },
 		"unknown actor":        func(input *ReviewAuditEventInput) { input.ActorKind = "robot" },
 		"app user missing id":  func(input *ReviewAuditEventInput) { input.ActorAppUserID = nil },
 		"app user invalid id":  func(input *ReviewAuditEventInput) { zero := int64(0); input.ActorAppUserID = &zero },

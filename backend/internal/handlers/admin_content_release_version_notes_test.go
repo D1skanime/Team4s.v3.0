@@ -20,8 +20,8 @@ func TestAdminContentReleaseVersionNotes_ContributorGuardSourceInvariants(t *tes
 		"handler must return a clear German 4xx message for invalid member/role pairs")
 	assert.True(t, strings.Contains(content, "http.StatusBadRequest"),
 		"invalid release-version contributor context must not fall through as a 500")
-	assert.True(t, strings.Contains(content, "Für dieses Mitglied und diese Rolle existiert bereits eine Notiz"),
-		"duplicate-note conflicts must remain distinguishable from invalid contributor context")
+	assert.True(t, strings.Contains(content, "Die Notiz wurde zwischenzeitlich geändert oder existiert bereits."),
+		"duplicate and stale-revision conflicts must remain distinguishable from invalid contributor context")
 }
 
 func TestAdminContentReleaseVersionNotes_GroupScopedEditGuardSourceInvariants(t *testing.T) {

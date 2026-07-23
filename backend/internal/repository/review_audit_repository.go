@@ -20,6 +20,11 @@ const (
 	ReviewAuditEventReviewOverride       ReviewAuditEventCode = "review.override"
 	ReviewAuditEventReviewCreditAwarded  ReviewAuditEventCode = "review_credit.awarded"
 	ReviewAuditEventReviewCreditReversed ReviewAuditEventCode = "review_credit.reversed"
+	ReviewAuditEventSourceSubmitted      ReviewAuditEventCode = "source.submitted"
+	ReviewAuditEventSourceEdited         ReviewAuditEventCode = "source.edited_after_reject"
+	ReviewAuditEventSourceResubmitted    ReviewAuditEventCode = "source.resubmitted"
+	ReviewAuditEventSourcePublished      ReviewAuditEventCode = "source.published"
+	ReviewAuditEventReasonScrubbed       ReviewAuditEventCode = "reason.scrubbed"
 )
 
 type ReviewAuditActorKind string
@@ -266,6 +271,14 @@ func validateReviewAuditEventShape(input *ReviewAuditEventInput) error {
 		if hasDecision || hasDecisionValue || input.IsPlatformOverride || input.HasReason {
 			return fmt.Errorf("insert delegation audit event shape: %w", ErrValidation)
 		}
+	case ReviewAuditEventSourceSubmitted,
+		ReviewAuditEventSourceEdited,
+		ReviewAuditEventSourceResubmitted,
+		ReviewAuditEventSourcePublished,
+		ReviewAuditEventReasonScrubbed:
+		if hasDecision || hasDecisionValue || input.IsPlatformOverride || input.HasReason {
+			return fmt.Errorf("insert source audit event shape: %w", ErrValidation)
+		}
 	case ReviewAuditEventReviewConfirmed:
 		if !hasDecision || !hasDecisionValue || *input.Decision != "confirm" || input.HasReason {
 			return fmt.Errorf("insert confirmed review audit event shape: %w", ErrValidation)
@@ -296,7 +309,12 @@ func isKnownReviewAuditEventCode(code ReviewAuditEventCode) bool {
 		ReviewAuditEventReviewRejected,
 		ReviewAuditEventReviewOverride,
 		ReviewAuditEventReviewCreditAwarded,
-		ReviewAuditEventReviewCreditReversed:
+		ReviewAuditEventReviewCreditReversed,
+		ReviewAuditEventSourceSubmitted,
+		ReviewAuditEventSourceEdited,
+		ReviewAuditEventSourceResubmitted,
+		ReviewAuditEventSourcePublished,
+		ReviewAuditEventReasonScrubbed:
 		return true
 	default:
 		return false

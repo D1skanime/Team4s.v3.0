@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
@@ -214,14 +215,6 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	var sourceGroupID int64
-	if raw := strings.TrimSpace(c.PostForm("fansub_group_id")); raw != "" {
-		sourceGroupID, err = strconv.ParseInt(raw, 10, 64)
-		if err != nil || sourceGroupID <= 0 {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Ungültige Herkunftsgruppe.", "error_code": "INVALID_SOURCE_GROUP"}})
-			return
-		}
-	}
 	participatingGroups, err := h.mediaRepo.ListReleaseVersionGroupIDs(c.Request.Context(), versionID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Herkunftsgruppen konnten nicht geladen werden.")
@@ -236,45 +229,29 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 	if actor.IsPlatformAdmin {
 		allowedGroups = participatingGroups
 	}
-	containsGroup := func(ids []int64, wanted int64) bool {
-		for _, id := range ids {
-			if id == wanted {
-				return true
-			}
-		}
-		return false
+	if len(allowedGroups) != 1 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+			"message":    "Die Herkunftsgruppe konnte nicht eindeutig serverseitig bestimmt werden.",
+			"error_code": "SOURCE_GROUP_UNRESOLVED",
+		}})
+		return
 	}
-	if sourceGroupID == 0 {
-		if len(allowedGroups) != 1 {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Bitte eine eindeutige beteiligte Herkunftsgruppe wählen.", "error_code": "SOURCE_GROUP_REQUIRED"}})
+	sourceGroupID := allowedGroups[0]
+	if actor.IsPlatformAdmin {
+		memberGroups, memberErr := h.mediaRepo.ListReleaseVersionMediaContributorGroupIDsForUser(
+			c.Request.Context(), versionID, identity.UserID,
+		)
+		if memberErr != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", memberErr, "Herkunftsgruppe konnte nicht geprüft werden.")
 			return
 		}
-		sourceGroupID = allowedGroups[0]
-	} else if !containsGroup(participatingGroups, sourceGroupID) || !containsGroup(allowedGroups, sourceGroupID) {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Die Herkunftsgruppe ist für dieses Release nicht zulässig.", "error_code": "INVALID_SOURCE_GROUP"}})
-		return
-	}
-
-	// visibility_code und review_status_code aus FormData lesen (optionale Felder, Lock K)
-	rvmVisibilityCode := strings.TrimSpace(c.PostForm("visibility_code"))
-	rvmReviewStatusCode := strings.TrimSpace(c.PostForm("review_status_code"))
-
-	// Whitelist-Validierung (T-79-02-01)
-	if rvmVisibilityCode != "" && !validVisibilityCodes[rvmVisibilityCode] {
-		badRequest(c, "ungültiger visibility_code")
-		return
-	}
-	if rvmReviewStatusCode != "" && !validReviewStatusCodes[rvmReviewStatusCode] {
-		badRequest(c, "ungültiger review_status_code")
-		return
-	}
-
-	// D-03 Prozessmedien-Default: Prozessmedien sind standardmäßig nicht öffentlich
-	if rvmVisibilityCode == "" {
-		rvmVisibilityCode = "private"
-	}
-	if rvmReviewStatusCode == "" {
-		rvmReviewStatusCode = "in_review"
+		if len(memberGroups) != 1 || memberGroups[0] != sourceGroupID {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+				"message":    "Für die Einreichung fehlt eine eindeutige reale Member-Zuordnung.",
+				"error_code": "SOURCE_ATTRIBUTION_REQUIRED",
+			}})
+			return
+		}
 	}
 
 	files := form.File["files[]"]
@@ -304,7 +281,10 @@ func (h *AdminContentHandler) UploadReleaseVersionMedia(c *gin.Context) {
 
 	for i, fileHeader := range files {
 		sortOrder := maxSortOrder + (i+1)*10
-		result := h.processOneRVMFile(c, fileHeader, versionID, sourceGroupID, category, sortOrder, uploadedByUserID, rvmVisibilityCode, rvmReviewStatusCode)
+		result := h.processOneRVMFile(
+			c, fileHeader, versionID, sourceGroupID, category, sortOrder,
+			uploadedByUserID, identity.AppUserID,
+		)
 		results = append(results, result)
 		if result.Status == "ready" && result.ReleaseVersionMediaID != nil {
 			_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
@@ -333,8 +313,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 	category string,
 	sortOrder int,
 	uploadedByUserID int64,
-	visibilityCode string,
-	reviewStatusCode string,
+	actorAppUserID int64,
 ) rvmFileResult {
 	clientName := fileHeader.Filename
 
@@ -451,6 +430,8 @@ func (h *AdminContentHandler) processOneRVMFile(
 		_ = tx.Rollback(ctx)
 	}()
 
+	privateVisibility := "private"
+	pendingReviewStatus := "in_review"
 	createInput := models.MediaAssetCreateInput{
 		Kind:             models.MediaKindImage,
 		MimeType:         mimeType,
@@ -459,8 +440,8 @@ func (h *AdminContentHandler) processOneRVMFile(
 		SizeBytes:        int64(len(data)),
 		Width:            &meta.Width,
 		Height:           &meta.Height,
-		VisibilityCode:   &visibilityCode,
-		ReviewStatusCode: &reviewStatusCode,
+		VisibilityCode:   &privateVisibility,
+		ReviewStatusCode: &pendingReviewStatus,
 	}
 	mediaAsset, err := h.mediaRepo.CreateMediaAssetWithStatusTx(ctx, tx, createInput, "processing")
 	if err != nil {
@@ -469,7 +450,6 @@ func (h *AdminContentHandler) processOneRVMFile(
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "media asset konnte nicht erstellt werden"}
 	}
-
 	if err := h.mediaRepo.InsertMediaFileWithStatus(ctx, tx, mediaAsset.ID, "original", originalPath, meta.Width, meta.Height, int64(len(data)), "processing"); err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
@@ -499,6 +479,19 @@ func (h *AdminContentHandler) processOneRVMFile(
 		_ = removeFileQuietly(thumbPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "release version media konnte nicht erstellt werden"}
+	}
+	if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
+		ctx,
+		repository.ReleaseReviewSubmissionInput{
+			SourceID:       relationID,
+			ActorAppUserID: actorAppUserID,
+			LastActivityAt: time.Now().UTC(),
+		},
+	); err != nil {
+		_ = removeFileQuietly(originalPath)
+		_ = removeFileQuietly(thumbPath)
+		return rvmFileResult{ClientFileName: clientName, Status: "failed",
+			ErrorCode: "DB_FAILED", Message: "Review-Lifecycle konnte nicht erstellt werden"}
 	}
 
 	if err := h.mediaRepo.UpdateMediaAssetStatusRVMTx(ctx, tx, mediaAsset.ID, "ready"); err != nil {
@@ -875,44 +868,18 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		}
 	}
 
-	// Additiv: Sichtbarkeit und Prüfstatus parsen (Phase 78, D-05/Lock G).
-	// Nur setzen wenn Key im Request vorhanden — keine Wertänderung wenn Key fehlt.
-	var visibility *string
-	if v, ok := rawBody["visibility"]; ok {
-		if s, ok := v.(string); ok {
-			visibility = &s
-		}
-	}
-	var reviewStatus *string
-	if v, ok := rawBody["review_status"]; ok {
-		if s, ok := v.(string); ok {
-			reviewStatus = &s
-		}
-	}
-
-	// Enum-Validierung (V5): ungültige Werte → 400, keine Mutation.
-	validVisibility := map[string]bool{"intern": true, "oeffentlich": true}
-	validReviewStatus := map[string]bool{
-		"in_pruefung": true, "freigegeben": true, "abgelehnt": true,
-		"archiviert": true, "entfernt": true,
-	}
-	if visibility != nil {
-		if !validVisibility[*visibility] {
+	var expectedRevision *int64
+	if rawRevision, ok := rawBody["source_revision"]; ok {
+		number, numberOK := rawRevision.(float64)
+		revision := int64(number)
+		if !numberOK || number != float64(revision) || revision <= 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
-				"message":    "ungültiger Sichtbarkeitswert",
-				"error_code": "INVALID_VISIBILITY",
+				"message":    "Ungültige Source-Revision.",
+				"error_code": "INVALID_SOURCE_REVISION",
 			}})
 			return
 		}
-	}
-	if reviewStatus != nil {
-		if !validReviewStatus[*reviewStatus] {
-			c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{
-				"message":    "ungültiger Prüfstatus",
-				"error_code": "INVALID_REVIEW_STATUS",
-			}})
-			return
-		}
+		expectedRevision = &revision
 	}
 
 	if isPreviewCandidate != nil && *isPreviewCandidate {
@@ -929,13 +896,7 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		Caption:            caption,
 		CaptionSet:         captionSet,
 		IsPreviewCandidate: isPreviewCandidate,
-		Visibility:         visibility,
-		ReviewStatus:       reviewStatus,
 	}
-
-	// CR-01: Alle Schreibvorgänge (optionales Preview-Clear, RVM-Patch, Review-Update)
-	// laufen in EINER Transaktion — atomar, kein Teil-Commit bei Fehler.
-	reviewChanged := visibility != nil || reviewStatus != nil
 
 	tx, err := h.mediaRepo.BeginTx(c.Request.Context())
 	if err != nil {
@@ -958,19 +919,31 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Patch fehlgeschlagen.")
 		return
 	}
-	if reviewChanged {
-		reviewPatch := repository.FansubMediaReviewPatch{
-			Visibility:   visibility,
-			ReviewStatus: reviewStatus,
-		}
-		if err := h.mediaRepo.UpdateReleaseVersionMediaReview(c.Request.Context(), tx, relationID, reviewPatch); err != nil {
-			if errors.Is(err, repository.ErrNotFound) {
-				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "relation nicht gefunden"}})
-				return
-			}
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Sichtbarkeit/Prüfstatus konnte nicht gespeichert werden.")
+	if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
+		c.Request.Context(),
+		repository.ReleaseReviewSubmissionInput{
+			SourceID:         relationID,
+			ActorAppUserID:   identity.AppUserID,
+			ExpectedRevision: expectedRevision,
+			LastActivityAt:   time.Now().UTC(),
+		},
+	); err != nil {
+		if errors.Is(err, repository.ErrConflict) {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{
+				"message":    "Das Medium wurde zwischenzeitlich geändert.",
+				"error_code": "SOURCE_REVISION_CONFLICT",
+			}})
 			return
 		}
+		if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrValidation) {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+				"message":    "Die Einreicher-Zuordnung ist nicht mehr eindeutig.",
+				"error_code": "SOURCE_ATTRIBUTION_INVALID",
+			}})
+			return
+		}
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Review-Lifecycle konnte nicht aktualisiert werden.")
+		return
 	}
 	if err := tx.Commit(c.Request.Context()); err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Commit fehlgeschlagen.")
@@ -987,15 +960,10 @@ func (h *AdminContentHandler) PatchReleaseVersionMedia(c *gin.Context) {
 		return
 	}
 
-	// Audit: separater Event-Typ wenn Review-Felder geändert wurden (D-09).
-	auditEventType := "release_version_media.updated"
-	if reviewChanged {
-		auditEventType = "release_version_media.visibility_updated"
-	}
 	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
 		ActorAppUserID:    &identity.AppUserID,
 		ActorLegacyUserID: &identity.UserID,
-		EventType:         auditEventType,
+		EventType:         "release_version_media.updated",
 		TargetType:        "release_version_media",
 		TargetID:          &relationID,
 		Action:            string(permissions.ActionReleaseVersionMediaUpdate),

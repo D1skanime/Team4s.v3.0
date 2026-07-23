@@ -28,8 +28,10 @@ func TestReleaseVersionNotesRepository_ContributorGuardSourceInvariants(t *testi
 		"update path must validate that the stored note matches the submitted member/role pair")
 	assert.True(t, strings.Contains(content, "storedMemberID != memberID || storedRoleID != roleID"),
 		"repository must reject mismatched update payloads instead of silently ignoring member/role changes")
-	assert.True(t, strings.Contains(content, "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'tiptap', $9, $10, $11, $12, $13, NOW())"),
-		"insert path must provide a value for created_by_user_id before created_at")
+	assert.True(t, strings.Contains(content, "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'tiptap', $9, 'internal', 'draft', $10, $11, NOW())"),
+		"insert path must force private draft state and provide created_by_user_id before created_at")
+	assert.Contains(t, content, "NewReleaseReviewLifecycleRepository(tx).SubmitNote",
+		"source and pending lifecycle must be persisted in the caller-owned transaction")
 }
 
 // TestGetMemberRolesForVersion ist ein TDD-Test (Plan 83-03) für D-13.

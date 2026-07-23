@@ -22,16 +22,12 @@ type releaseVersionNoteAccess struct {
 }
 
 type bulkNoteItemRequest struct {
-	ID            int64           `json:"id"`
-	MemberID      int64           `json:"member_id" binding:"required"`
-	RoleCode      string          `json:"role_code" binding:"required"`
-	RoleID        int64           `json:"role_id"`
-	FansubGroupID *int64          `json:"fansub_group_id"`
-	Title         *string         `json:"title"`
-	BodyJSON      json.RawMessage `json:"body_json"`
-	Visibility    string          `json:"visibility" binding:"required,oneof=public internal"`
-	Status        string          `json:"status" binding:"required,oneof=draft published archived deleted"`
-	SortOrder     int             `json:"sort_order"`
+	ID             int64           `json:"id"`
+	SourceRevision *int64          `json:"source_revision"`
+	RoleCode       string          `json:"role_code" binding:"required"`
+	Title          *string         `json:"title"`
+	BodyJSON       json.RawMessage `json:"body_json"`
+	SortOrder      int             `json:"sort_order"`
 }
 
 type bulkUpsertReleaseVersionNotesRequest struct {
@@ -220,7 +216,30 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 
 	inputs := make([]repository.BulkNoteInput, 0, len(req.Notes))
 	for _, note := range req.Notes {
-		canEdit, err := h.canEditReleaseVersionMemberRole(c, access, note.MemberID, note.RoleCode)
+		memberID := access.memberID
+		roleCode := note.RoleCode
+		var err error
+		if note.ID > 0 {
+			memberID, roleCode, err = h.releaseVersionNotesRepo.GetReleaseVersionNoteMemberRole(
+				c.Request.Context(), note.ID, access.versionID,
+			)
+			if errors.Is(err, repository.ErrNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "Notiz nicht gefunden."}})
+				return
+			}
+			if err != nil {
+				writeInternalErrorResponse(c, "interner serverfehler", err, "Release-Version-Notiz konnte nicht geladen werden.")
+				return
+			}
+		}
+		if access.memberID <= 0 || access.memberID != memberID {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": gin.H{"message": "Du darfst nur deine eigenen Notizen einreichen."},
+			})
+			return
+		}
+
+		canEdit, err := h.canEditReleaseVersionMemberRole(c, access, memberID, roleCode)
 		if err != nil {
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Notiz-Rechte konnten nicht geladen werden.")
 			return
@@ -231,31 +250,25 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 			})
 			return
 		}
-		groupIDs, err := h.releaseVersionNotesRepo.ListReleaseVersionMemberRoleGroupIDs(c.Request.Context(), access.versionID, note.MemberID, note.RoleCode)
+		groupIDs, err := h.releaseVersionNotesRepo.ListReleaseVersionMemberRoleGroupIDs(
+			c.Request.Context(), access.versionID, memberID, roleCode,
+		)
 		if err != nil {
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Herkunftsgruppe konnte nicht geprüft werden.")
 			return
 		}
-		selectedGroupID := note.FansubGroupID
-		if selectedGroupID == nil {
-			if len(groupIDs) != 1 {
-				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Bitte eine eindeutige beteiligte Herkunftsgruppe wählen.", "error_code": "SOURCE_GROUP_REQUIRED"}})
-				return
-			}
-			value := groupIDs[0]
-			selectedGroupID = &value
-		} else {
-			allowed := false
-			for _, groupID := range groupIDs {
-				if groupID == *selectedGroupID {
-					allowed = true
-					break
-				}
-			}
-			if !allowed {
-				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Die Herkunftsgruppe ist für diese Notiz nicht zulässig.", "error_code": "INVALID_SOURCE_GROUP"}})
-				return
-			}
+		if len(groupIDs) != 1 {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{
+				"message":    "Die Herkunftsgruppe konnte nicht eindeutig serverseitig bestimmt werden.",
+				"error_code": "SOURCE_GROUP_UNRESOLVED",
+			}})
+			return
+		}
+		selectedGroupID := groupIDs[0]
+		roleID, err := h.releaseVersionNotesRepo.ResolveContributorRoleID(c.Request.Context(), roleCode)
+		if err != nil {
+			writeInternalErrorResponse(c, "interner serverfehler", err, "Rolle konnte nicht serverseitig aufgelöst werden.")
+			return
 		}
 
 		bodyJSONStr := string(note.BodyJSON)
@@ -270,27 +283,26 @@ func (h *AdminContentHandler) BulkUpsertReleaseVersionNotes(c *gin.Context) {
 		}
 		bodyText, _ := h.tiptapSvc.ExtractText(bodyJSONStr)
 		inputs = append(inputs, repository.BulkNoteInput{
-			ID:            note.ID,
-			MemberID:      note.MemberID,
-			RoleCode:      note.RoleCode,
-			RoleID:        note.RoleID,
-			FansubGroupID: selectedGroupID,
-			Title:         note.Title,
-			BodyJSON:      []byte(note.BodyJSON),
-			BodyHTML:      bodyHTML,
-			BodyText:      bodyText,
-			Visibility:    note.Visibility,
-			Status:        note.Status,
-			SortOrder:     note.SortOrder,
+			ID:               note.ID,
+			MemberID:         memberID,
+			RoleCode:         roleCode,
+			RoleID:           roleID,
+			FansubGroupID:    &selectedGroupID,
+			ExpectedRevision: note.SourceRevision,
+			Title:            note.Title,
+			BodyJSON:         []byte(note.BodyJSON),
+			BodyHTML:         bodyHTML,
+			BodyText:         bodyText,
+			SortOrder:        note.SortOrder,
 		})
 	}
 
 	updatedNotes, err := h.releaseVersionNotesRepo.BulkUpsertReleaseVersionNotes(
-		c.Request.Context(), access.versionID, access.identity.UserID, inputs,
+		c.Request.Context(), access.versionID, access.identity.UserID, access.identity.AppUserID, inputs,
 	)
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{
-			"error": gin.H{"message": "Für dieses Mitglied und diese Rolle existiert bereits eine Notiz"},
+			"error": gin.H{"message": "Die Notiz wurde zwischenzeitlich geändert oder existiert bereits."},
 		})
 		return
 	}

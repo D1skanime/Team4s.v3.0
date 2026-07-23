@@ -50,18 +50,17 @@ type MemberRoleForVersion struct {
 // RoleCode ist der kanonische Schlüssel für die Contributor-Validierung (D-13).
 // RoleID wird für die DB-Persistenz in release_version_notes.role_id benötigt (Legacy-Feld).
 type BulkNoteInput struct {
-	ID            int64 // 0 = create new
-	MemberID      int64
-	RoleCode      string // für Validierung gegen anime_contributions (D-13)
-	RoleID        int64  // für INSERT in release_version_notes.role_id (Legacy-DB-Feld)
-	FansubGroupID *int64
-	Title         *string
-	BodyJSON      []byte
-	BodyHTML      string
-	BodyText      string
-	Visibility    string
-	Status        string
-	SortOrder     int
+	ID               int64 // 0 = create new
+	MemberID         int64
+	RoleCode         string // für Validierung gegen anime_contributions (D-13)
+	RoleID           int64  // für INSERT in release_version_notes.role_id (Legacy-DB-Feld)
+	FansubGroupID    *int64
+	ExpectedRevision *int64
+	Title            *string
+	BodyJSON         []byte
+	BodyHTML         string
+	BodyText         string
+	SortOrder        int
 }
 
 // ReleaseVersionNotesRepository provides CRUD and bulk-upsert operations for release_version_notes.
@@ -183,6 +182,25 @@ func (r *ReleaseVersionNotesRepository) ResolveMemberIDForAppUser(
 		return 0, false, fmt.Errorf("resolve member id for app_user %d: %w", appUserID, err)
 	}
 	return memberID, true, nil
+}
+
+func (r *ReleaseVersionNotesRepository) ResolveContributorRoleID(
+	ctx context.Context,
+	roleCode string,
+) (int64, error) {
+	var roleID int64
+	err := r.db.QueryRow(ctx, `
+		SELECT id
+		FROM contributor_roles
+		WHERE name = $1
+	`, roleCode).Scan(&roleID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, ErrNotFound
+	}
+	if err != nil {
+		return 0, fmt.Errorf("resolve contributor role %q: %w", roleCode, err)
+	}
+	return roleID, nil
 }
 
 // GetMemberRolesForVersion returns the member+role pairs for a release version via
@@ -477,7 +495,8 @@ func (r *ReleaseVersionNotesRepository) validateExistingReleaseVersionNoteContri
 func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 	ctx context.Context,
 	releaseVersionID int64,
-	userID int64,
+	legacyUserID int64,
+	actorAppUserID int64,
 	notes []BulkNoteInput,
 ) ([]ReleaseVersionNote, error) {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
@@ -486,7 +505,7 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
 
-	resolvedUserID, err := resolveOptionalExistingUserID(ctx, tx, userID)
+	resolvedUserID, err := resolveOptionalExistingUserID(ctx, tx, legacyUserID)
 	if err != nil {
 		return nil, fmt.Errorf("bulk_upsert_release_version_notes for version %d: %w", releaseVersionID, err)
 	}
@@ -508,11 +527,11 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 					(release_version_id, fansub_group_id, member_id, role_id, title,
 					 body_json, body_html, body_text, editor_type, content_schema_version,
 					 visibility, status, sort_order, created_by_user_id, created_at)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'tiptap', $9, $10, $11, $12, $13, NOW())
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'tiptap', $9, 'internal', 'draft', $10, $11, NOW())
 				RETURNING id
 			`, releaseVersionID, note.FansubGroupID, note.MemberID, note.RoleID, note.Title,
 				note.BodyJSON, note.BodyHTML, note.BodyText, 1,
-				note.Visibility, note.Status, note.SortOrder, resolvedUserID,
+				note.SortOrder, resolvedUserID,
 			).Scan(&newID)
 			if isUniqueViolation(err) {
 				return nil, ErrConflict
@@ -520,6 +539,16 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 			if err != nil {
 				return nil, fmt.Errorf("bulk_upsert: insert note (member %d, role %d): %w",
 					note.MemberID, note.RoleID, err)
+			}
+			if _, err := NewReleaseReviewLifecycleRepository(tx).SubmitNote(
+				ctx,
+				ReleaseReviewSubmissionInput{
+					SourceID:       newID,
+					ActorAppUserID: actorAppUserID,
+					LastActivityAt: time.Now().UTC(),
+				},
+			); err != nil {
+				return nil, fmt.Errorf("submit release-version note %d: %w", newID, err)
 			}
 		} else {
 			if err := r.validateExistingReleaseVersionNoteContributor(
@@ -537,18 +566,18 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 					body_text          = $6,
 					editor_type        = 'tiptap',
 					content_schema_version = 1,
-					visibility         = $7,
-					status             = $8,
-					sort_order         = $9,
-					updated_by_user_id = $10,
-					fansub_group_id     = COALESCE(fansub_group_id, $11),
+					visibility         = 'internal',
+					status             = 'draft',
+					sort_order         = $7,
+					updated_by_user_id = $8,
+					fansub_group_id     = COALESCE(fansub_group_id, $9),
 					updated_at         = NOW()
 				WHERE id = $1
 				  AND release_version_id = $2
 				  AND deleted_at IS NULL
 			`, note.ID, releaseVersionID,
 				note.Title, note.BodyJSON, note.BodyHTML, note.BodyText,
-				note.Visibility, note.Status, note.SortOrder, resolvedUserID, note.FansubGroupID,
+				note.SortOrder, resolvedUserID, note.FansubGroupID,
 			)
 			if isUniqueViolation(err) {
 				return nil, ErrConflict
@@ -559,6 +588,17 @@ func (r *ReleaseVersionNotesRepository) BulkUpsertReleaseVersionNotes(
 			if tag.RowsAffected() == 0 {
 				return nil, fmt.Errorf("bulk_upsert: note %d not found or already deleted: %w",
 					note.ID, ErrNotFound)
+			}
+			if _, err := NewReleaseReviewLifecycleRepository(tx).SubmitNote(
+				ctx,
+				ReleaseReviewSubmissionInput{
+					SourceID:         note.ID,
+					ActorAppUserID:   actorAppUserID,
+					ExpectedRevision: note.ExpectedRevision,
+					LastActivityAt:   time.Now().UTC(),
+				},
+			); err != nil {
+				return nil, fmt.Errorf("resubmit release-version note %d: %w", note.ID, err)
 			}
 		}
 	}

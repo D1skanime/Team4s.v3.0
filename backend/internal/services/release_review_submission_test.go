@@ -100,7 +100,7 @@ func openReleaseReviewSubmissionFixture(t *testing.T) *releaseReviewSubmissionFi
 			(31, 21, 11, 101, 'active'),
 			(32, 21, 12, 102, 'active');
 		INSERT INTO fansub_group_member_roles(fansub_group_member_id, role)
-		VALUES (32, 'fansub_lead');
+		VALUES (31, 'fansub_lead'), (32, 'fansub_lead');
 
 		INSERT INTO release_version_notes(
 			id, release_version_id, fansub_group_id, member_id, role_id, visibility, status
@@ -192,7 +192,7 @@ func TestReleaseSourceSubmitPrivatePendingAndCategoryIdentity(t *testing.T) {
 	assert.EqualValues(t, 41, note.ReleaseVersionID)
 	assert.EqualValues(t, 11, note.SubmitterAppUserID)
 	assert.EqualValues(t, 101, note.SubmitterMemberID)
-	assert.Equal(t, startedAt, note.LastActivityAt)
+	assert.True(t, note.LastActivityAt.Equal(startedAt))
 
 	var visibility, status string
 	require.NoError(t, fx.pool.QueryRow(context.Background(), `
@@ -248,7 +248,7 @@ func TestReleaseSourceSubmitRejectEditResubmitKeepsIdentity(t *testing.T) {
 	assert.Equal(t, first.StableKey, second.StableKey)
 	assert.EqualValues(t, 2, second.SourceRevision)
 	assert.Equal(t, repository.ReleaseReviewStatePending, second.ReviewState)
-	assert.Equal(t, resubmittedAt, second.LastActivityAt)
+	assert.True(t, second.LastActivityAt.Equal(resubmittedAt))
 
 	ctx := context.Background()
 	tx, err := fx.pool.Begin(ctx)
@@ -273,7 +273,7 @@ func TestReleaseSourceSubmitRejectEditResubmitKeepsIdentity(t *testing.T) {
 		WHERE release_version_note_id = 501
 	`).Scan(&revision, &lastActivity))
 	assert.EqualValues(t, 2, revision)
-	assert.Equal(t, resubmittedAt, lastActivity)
+	assert.True(t, lastActivity.Equal(resubmittedAt))
 }
 
 func TestReleaseReviewOwnershipFailsClosed(t *testing.T) {
@@ -324,6 +324,67 @@ func TestReleaseReviewOwnershipFailsClosed(t *testing.T) {
 	assert.ErrorIs(t, err, ErrReviewTargetNotFound)
 }
 
+func TestReleaseReviewOwnershipAdaptersApplyAtomicDecisions(t *testing.T) {
+	fx := openReleaseReviewSubmissionFixture(t)
+	startedAt := time.Date(2026, 7, 23, 14, 30, 0, 0, time.UTC)
+	note := fx.submitNote(t, 501, 11, nil, startedAt)
+	media := fx.submitMedia(t, 601, 11, nil, startedAt)
+	service := NewReviewService(fx.pool, ReleaseReviewAdapters())
+	reviewer := permissions.Actor{AppUserID: 12, Status: "active"}
+
+	_, err := service.Decide(context.Background(), ReviewDecisionCommand{
+		Actor: reviewer,
+		Target: ReviewTargetRef{
+			SourceType: ReleaseVersionNoteReviewSourceType,
+			StableKey:  note.StableKey,
+		},
+		Decision: ReviewDecisionConfirm,
+	})
+	require.NoError(t, err)
+
+	var noteState, visibility, status string
+	require.NoError(t, fx.pool.QueryRow(context.Background(), `
+		SELECT lifecycle.review_state, note.visibility, note.status
+		FROM release_version_note_review_lifecycle lifecycle
+		JOIN release_version_notes note
+		  ON note.id = lifecycle.release_version_note_id
+		WHERE note.id = 501
+	`).Scan(&noteState, &visibility, &status))
+	assert.Equal(t, string(repository.ReleaseReviewStateConfirmed), noteState)
+	assert.Equal(t, "public", visibility)
+	assert.Equal(t, "published", status)
+
+	_, err = service.Decide(context.Background(), ReviewDecisionCommand{
+		Actor: reviewer,
+		Target: ReviewTargetRef{
+			SourceType: ReleaseVersionMediaReviewSourceType,
+			StableKey:  media.StableKey,
+		},
+		Decision:          ReviewDecisionReject,
+		RejectionCategory: repository.ReviewRejectionCategory("quality.mismatch"),
+		RejectReason:      "Das Bild braucht eine nachvollziehbare Korrektur.",
+	})
+	require.NoError(t, err)
+
+	var mediaState string
+	require.NoError(t, fx.pool.QueryRow(context.Background(), `
+		SELECT review_state
+		FROM release_version_media_review_lifecycle
+		WHERE release_version_media_id = 601
+	`).Scan(&mediaState))
+	assert.Equal(t, string(repository.ReleaseReviewStateRejected), mediaState)
+
+	var publishedEvents int
+	require.NoError(t, fx.pool.QueryRow(context.Background(), `
+		SELECT COUNT(*)
+		FROM review_audit_events
+		WHERE source_type = $1
+		  AND source_key = $2
+		  AND event_code = 'source.published'
+	`, ReleaseVersionNoteReviewSourceType, note.StableKey).Scan(&publishedEvents))
+	assert.Equal(t, 1, publishedEvents)
+}
+
 func TestReleaseSourceSubmitRequestSurfacesDoNotOwnReviewState(t *testing.T) {
 	_, file, _, ok := runtime.Caller(0)
 	require.True(t, ok)
@@ -333,15 +394,20 @@ func TestReleaseSourceSubmitRequestSurfacesDoNotOwnReviewState(t *testing.T) {
 	require.NoError(t, err)
 	noteRequest := string(noteSource)
 	requestStart := strings.Index(noteRequest, "type bulkNoteItemRequest struct")
-	requestEnd := strings.Index(noteRequest[requestStart:], "\n}")
 	require.Greater(t, requestStart, -1)
+	requestEnd := strings.Index(noteRequest[requestStart:], "\n}")
 	require.Greater(t, requestEnd, -1)
-	noteRequest = noteRequest[requestStart : requestStart+requestEnd]
+	noteRequest = noteRequest[requestStart : requestStart+requestEnd+len("\n}")]
 	for _, forbidden := range []string{
 		`json:"member_id"`,
+		`json:"role_id"`,
 		`json:"fansub_group_id"`,
 		`json:"visibility"`,
 		`json:"status"`,
+		`json:"review_status"`,
+		`json:"points"`,
+		`json:"rule"`,
+		`json:"idempotency_key"`,
 	} {
 		assert.NotContains(t, noteRequest, forbidden)
 	}
@@ -352,6 +418,8 @@ func TestReleaseSourceSubmitRequestSurfacesDoNotOwnReviewState(t *testing.T) {
 		`c.PostForm("visibility_code")`,
 		`c.PostForm("review_status_code")`,
 		`c.PostForm("fansub_group_id")`,
+		`rawBody["visibility"]`,
+		`rawBody["review_status"]`,
 	} {
 		assert.NotContains(t, string(mediaSource), forbidden)
 	}
