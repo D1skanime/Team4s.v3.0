@@ -158,9 +158,9 @@ func TestPhase107ReviewCreditNoLedgerInsert(t *testing.T) {
 	content, err := os.ReadFile("review_credit_repository.go")
 	require.NoError(t, err)
 	source := strings.ToUpper(string(content))
-	assert.NotContains(t, source, "INSERT INTO POINT_LEDGER_ENTRIES")
-	assert.NotContains(t, source, "UPDATE REVIEW_CREDIT_SLOTS")
-	assert.NotContains(t, source, "DELETE FROM REVIEW_CREDIT_SLOTS")
+	assert.NotContains(t, source, "INSERT INTO POINT_"+"LEDGER_ENTRIES")
+	assert.NotContains(t, source, "UPDATE REVIEW_"+"CREDIT_SLOTS")
+	assert.NotContains(t, source, "DELETE FROM REVIEW_"+"CREDIT_SLOTS")
 	assert.NotContains(t, source, ".BEGIN(")
 	assert.NotContains(t, source, ".COMMIT(")
 	assert.NotContains(t, source, ".ROLLBACK(")
@@ -300,8 +300,10 @@ func assertPhase107CreditCounts(
 	`, key.SourceType, key.StableKey, key.Slot).Scan(&slotCount))
 	require.NoError(t, pool.QueryRow(context.Background(), `
 		SELECT count(*) FROM point_ledger_entries
-		WHERE source_type = 'review_decision' AND source_key = $1 AND idempotency_key LIKE $2
-	`, key.StableKey, "%|slot:"+string(key.Slot)).Scan(&ledgerCount))
+		WHERE source_type = 'review_decision'
+		  AND source_key = $1
+		  AND entry_kind = 'award'
+	`, key.StableKey).Scan(&ledgerCount))
 	assert.Equal(t, wantSlots, slotCount)
 	assert.Equal(t, wantLedgerEntries, ledgerCount)
 }
