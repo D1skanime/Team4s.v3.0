@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 107.1-01-PLAN.md
-last_updated: "2026-07-23T18:44:08.143Z"
+stopped_at: Completed 107.1-02-PLAN.md
+last_updated: "2026-07-23T19:16:04.007Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 82
   total_plans: 449
-  completed_plans: 415
+  completed_plans: 416
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 
 ## Accumulated Context
 
@@ -351,6 +351,8 @@ Recent durable decisions:
 - [Phase 107.1]: Migration 0135 ergänzt getrennte 1:1-Lifecycle-Tabellen und verwendet die gelandete Phase-107-Foundation unverändert.
 - [Phase 107.1]: Der Media-Lifecycle bleibt an release_version_media.id; wegen mehrfacher media_assets-Referenzklassen wird kein globaler Asset-Reviewstatus gespiegelt.
 - [Phase 107.1]: Datei-Löschjobs speichern nur strukturierte Relation-/Asset-/File-IDs und Retry-Metadaten, damit logischer Cleanup und physische Wiederholung unabhängig bleiben.
+- [Phase 107.1]: Release-Version-Notizen und -Medien werden atomar privat/pending eingereicht; Gruppe, Member und Reviewzustand werden serverseitig aufgelöst.
+- [Phase 107.1]: Release-Version-Medien verwenden release_version_media.id als Review-Identität und spiegeln keinen globalen media_assets-Reviewstatus.
 
 ### Pending Todos
 
@@ -617,6 +619,7 @@ Recent durable decisions:
 | Phase 107 P05 | 12min | 2 tasks | 4 files |
 | Phase 107 P06 | 25min | 2 tasks | 3 files |
 | Phase 107.1 P01 | 11min | 3 tasks | 4 files |
+| Phase 107.1 P02 | 27min | 2 tasks | 10 files |
 
 ### Quick Tasks Completed
 
@@ -698,7 +701,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T18:44:08.073Z
-Stopped at: Completed 107.1-01-PLAN.md
+Last session: 2026-07-23T19:16:03.959Z
+Stopped at: Completed 107.1-02-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
