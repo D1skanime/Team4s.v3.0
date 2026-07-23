@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_discuss
-stopped_at: Completed 107-01-PLAN.md
-last_updated: "2026-07-23T13:40:41.620Z"
+stopped_at: Completed 107-02-PLAN.md
+last_updated: "2026-07-23T13:53:29.144Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 81
   total_plans: 449
-  completed_plans: 409
+  completed_plans: 410
   percent: 79
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 107 (Prüf- und Delegationsfundament) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 
 ## Accumulated Context
 
@@ -333,6 +333,9 @@ Recent durable decisions:
 - [Phase 105]: Öffentliche Kara-Auswahl und sessiongebundener Streamzustand bleiben getrennt; aktive Session ist isClientInitialized && (hasAccessToken || hasRefreshToken). — Gäste behalten Metadaten ohne Playback; Refresh-Sessions laufen weiter ausschließlich über den zentralen API-Client.
 - [Phase 107-01]: Phase 106 und 107 verwenden genau einen privaten PostgreSQL-Öffnungskern; nur Konfiguration und Prerequisite-Callback sind phasenspezifisch. — Bewahrt die bestehende Phase-106-Sicherheit ohne duplizierten Guard.
 - [Phase 107-01]: Wave 1 enthält keine Produktionsmigration oder Produktionstypen; der Vertrag bleibt ausschließlich wegen 0134_review_foundation erwartungsgemäß rot. — Fixiert die Nyquist-Grenze vor der Produktion in Plan 107-02.
+- [Phase 107]: Review-Credit-Slots werden source-global begrenzt und verweisen ausschließlich auf point_ledger_entries. — Die Phase-106-Idempotenz enthält den begünstigten Member und reicht reviewerübergreifend allein nicht aus.
+- [Phase 107]: Decision, Audit und Credit-Slot bleiben DB-seitig append-only; Reason-Texte sind getrennte löschbare Kinder. — Datenschutz-Scrubbing darf Freitext entfernen, ohne strukturierte Entscheidungs- und Audit-Metadaten zu verändern.
+- [Phase 107]: Der Down-Pfad ist vor jeder Mutation fail-closed und nur für eine leere Review-Foundation zulässig. — Bestehende Grants, Entscheidungen, Audit, Gründe, Slots oder Review-Ledgerzeilen dürfen durch Rollback nicht verloren gehen.
 
 ### Pending Todos
 
@@ -593,6 +596,7 @@ Recent durable decisions:
 | Phase 105 P04 | 10min | 2 tasks | 6 files |
 | Phase 105 P03 | 15min | 2 tasks | 3 files |
 | Phase 107 P01 | 8min | 2 tasks | 4 files |
+| Phase 107 P02 | 8min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -674,7 +678,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T13:40:41.467Z
-Stopped at: Completed 107-01-PLAN.md
+Last session: 2026-07-23T13:53:29.098Z
+Stopped at: Completed 107-02-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
