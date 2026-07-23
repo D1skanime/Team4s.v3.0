@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_discuss
-stopped_at: Completed 107-04-PLAN.md
-last_updated: "2026-07-23T14:23:40.394Z"
+stopped_at: Completed 107-05-PLAN.md
+last_updated: "2026-07-23T14:39:35.645Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 81
   total_plans: 449
-  completed_plans: 412
+  completed_plans: 413
   percent: 79
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 107 (Prüf- und Delegationsfundament) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 
 ## Accumulated Context
 
@@ -342,6 +342,9 @@ Recent durable decisions:
 - [Phase 107]: Aktive Review-Grants verwenden den kanonischen created_at-Zeitpunkt; Actor-Attribution liegt verpflichtend im immutable Audit desselben Caller-Tx. — Migration 0134 bleibt unverändert und es entsteht keine doppelte Grant-Autorität.
 - [Phase 107]: ReviewAuditRepository exponiert nur die sieben Foundation-Eventcodes; spätere Source- und Cleanup-Codes bleiben außerhalb Phase 107. — Der Repository-Vertrag bleibt eng und nimmt keinen späteren Lifecycle vorweg.
 - [Phase 107]: System-Auditakteure besitzen weder App-User- noch Member-ID; App-User-Akteure benötigen eine positive App-User-ID. — Systemhandlungen benötigen kein künstliches Member und Actor-Spoofing schlägt fail-closed fehl.
+- [Phase 107-05]: Jeder Decision-Verlierer einschließlich Same-Actor-Retry erhält ErrConflict; vorhandene Decisions werden nie als Erfolg zurückgeladen. — Die erste atomar erfolgreiche Source+Key+Revision-Insertion ist der einzige Decision-Arbiter.
+- [Phase 107-05]: Source-globale Review-Credits verwenden intern versionierte Advisory-Locks; vollständige Source+Slot-Textspalten bleiben die Business-Identität. — Hashkollisionen dürfen nur zusätzlich serialisieren und niemals fachliche Identität entscheiden.
+- [Phase 107-05]: ReviewCreditRepository besitzt nur Lock/Read/Insert; PointService.CreditInTx bleibt alleiniger Award-Schreiber ohne Caller-Idempotenzschlüssel. — Phase 106 bleibt die einzige Autorität für regelversionsstabile Ledger-Awards.
 
 ### Pending Todos
 
@@ -605,6 +608,7 @@ Recent durable decisions:
 | Phase 107 P02 | 8min | 2 tasks | 3 files |
 | Phase 107 P03 | 12min | 2 tasks | 7 files |
 | Phase 107 P04 | 9min | 2 tasks | 4 files |
+| Phase 107 P05 | 12min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -686,7 +690,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T14:23:40.339Z
-Stopped at: Completed 107-04-PLAN.md
+Last session: 2026-07-23T14:39:35.490Z
+Stopped at: Completed 107-05-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
