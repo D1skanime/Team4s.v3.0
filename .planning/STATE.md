@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_discuss
-stopped_at: Completed 107-02-PLAN.md
-last_updated: "2026-07-23T13:53:29.144Z"
+stopped_at: Completed 107-03-PLAN.md
+last_updated: "2026-07-23T14:10:14.482Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 81
   total_plans: 449
-  completed_plans: 410
+  completed_plans: 411
   percent: 79
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 107 (Prüf- und Delegationsfundament) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Accumulated Context
 
@@ -336,6 +336,9 @@ Recent durable decisions:
 - [Phase 107]: Review-Credit-Slots werden source-global begrenzt und verweisen ausschließlich auf point_ledger_entries. — Die Phase-106-Idempotenz enthält den begünstigten Member und reicht reviewerübergreifend allein nicht aus.
 - [Phase 107]: Decision, Audit und Credit-Slot bleiben DB-seitig append-only; Reason-Texte sind getrennte löschbare Kinder. — Datenschutz-Scrubbing darf Freitext entfernen, ohne strukturierte Entscheidungs- und Audit-Metadaten zu verändern.
 - [Phase 107]: Der Down-Pfad ist vor jeder Mutation fail-closed und nur für eine leere Review-Foundation zulässig. — Bestehende Grants, Entscheidungen, Audit, Gründe, Slots oder Review-Ledgerzeilen dürfen durch Rollback nicht verloren gehen.
+- [Phase 107-03]: permissions.Resolver bleibt unverändert; Review-Actions verwenden das separate ReviewContextResolver-Zusatzinterface.
+- [Phase 107-03]: Nicht-Plattform-Reviewer einschließlich fansub_lead erhalten Autorisierung und Credit-Identität aus demselben aktiven verified Membership-Kontext.
+- [Phase 107-03]: Self-Review-Identität wird für jeden Actor membership-unabhängig aus verified member_claims aufgelöst.
 
 ### Pending Todos
 
@@ -597,6 +600,7 @@ Recent durable decisions:
 | Phase 105 P03 | 15min | 2 tasks | 3 files |
 | Phase 107 P01 | 8min | 2 tasks | 4 files |
 | Phase 107 P02 | 8min | 2 tasks | 3 files |
+| Phase 107 P03 | 12min | 2 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -678,7 +682,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T13:53:29.098Z
-Stopped at: Completed 107-02-PLAN.md
+Last session: 2026-07-23T14:10:14.430Z
+Stopped at: Completed 107-03-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
