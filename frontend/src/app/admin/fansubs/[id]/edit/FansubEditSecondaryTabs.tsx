@@ -1,10 +1,10 @@
 "use client";
 
-import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
+import type { FansubGroup } from "@/types/fansub";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReadinessTab } from "./ReadinessTab";
-import { ContributionsReviewSection } from "./ContributionsReviewSection";
+import { ReleaseReviewsSection } from "./ReleaseReviewsSection";
 import type { MainTab } from "./fansubEditTypes";
 import {
   countQualifiedCompletedProjects,
@@ -29,7 +29,6 @@ type FansubEditSecondaryTabsProps = {
   activeMainTab: MainTab;
   fansubID: number;
   group: FansubGroup | null;
-  capabilities: FansubGroupCapabilities | null;
   releaseData: FansubReleaseData;
 };
 
@@ -37,7 +36,6 @@ export function FansubEditSecondaryTabs({
   activeMainTab,
   fansubID,
   group,
-  capabilities,
   releaseData,
 }: FansubEditSecondaryTabsProps) {
   return (
@@ -58,11 +56,8 @@ export function FansubEditSecondaryTabs({
           />
         </>
       ) : null}
-      {activeMainTab === "vorschlaege" && capabilities ? (
-        <ContributionsReviewSection
-          fansubId={fansubID}
-          capabilities={capabilities}
-        />
+      {activeMainTab === "pruefungen" ? (
+        <ReleaseReviewsSection fansubId={fansubID} />
       ) : null}
       {activeMainTab === "readiness" && group ? (
         <ReadinessTab fansubId={fansubID} group={group} />

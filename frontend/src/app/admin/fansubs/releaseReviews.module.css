@@ -1,0 +1,246 @@
+.workspace {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-4);
+}
+
+.headerStack {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.counters,
+.viewSwitch,
+.decisionActions,
+.successActions,
+.contextInline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(148px, 1fr));
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.filterActions {
+  display: flex;
+  align-items: end;
+}
+
+.tableRegion {
+  max-height: min(64vh, 720px);
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.tableRegion thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-card-muted);
+}
+
+.contextCell {
+  min-width: 220px;
+}
+
+.contextPrimary,
+.contextSecondary {
+  display: block;
+}
+
+.contextSecondary,
+.metaText,
+.hint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.typeStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.loadFooter {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.inlineError,
+.warningPanel,
+.statusPanel {
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.inlineError {
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  background: var(--surface-card);
+}
+
+.warningPanel {
+  border: 1px solid var(--color-warning);
+  background: var(--surface-card-muted);
+}
+
+.statusPanel {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card-muted);
+}
+
+.mobileGate {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.mobileGate h2,
+.mobileGate p {
+  margin: 0;
+}
+
+.detailPage {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+  display: grid;
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+
+.detailHeader {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.titleLine {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.titleLine h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.contextGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card-muted);
+}
+
+.contextGrid div {
+  min-width: 0;
+}
+
+.contextGrid dt {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.contextGrid dd {
+  margin: var(--space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.contentPanel,
+.decisionPanel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.contentPanel h2,
+.decisionPanel h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.mediaFigure {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.mediaImage {
+  display: block;
+  width: 100%;
+  max-height: 680px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: var(--surface-card-muted);
+}
+
+.modalFields {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.fieldError {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.875rem;
+}
+
+.characterCount {
+  margin: 0;
+  color: var(--text-muted);
+  text-align: right;
+  font-size: 0.875rem;
+}
+
+.tabletOnly {
+  display: none;
+}
+
+@media (max-width: 1199px) {
+  .filterGrid {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+
+  .desktopOnly {
+    display: none;
+  }
+
+  .tabletOnly {
+    display: table-cell;
+  }
+
+  .contextGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .workspace,
+  .detailPage {
+    padding: var(--space-4);
+  }
+}

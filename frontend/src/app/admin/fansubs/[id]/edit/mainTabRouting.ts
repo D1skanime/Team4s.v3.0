@@ -15,6 +15,7 @@ export type MainTab =
   | 'mitglieder'
   | 'claims'
   | 'vorschlaege'
+  | 'pruefungen'
   | 'readiness'
 
 export const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
@@ -22,7 +23,7 @@ export const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: 'notes', label: 'Gruppengeschichte' },
   { key: 'media', label: 'Medien' },
   { key: 'collaboration', label: 'Fansub Members' },
-  { key: 'vorschlaege', label: 'Vorschläge' },
+  { key: 'pruefungen', label: 'Prüfungen' },
   { key: 'releases', label: 'Anime & Veröffentlichungen' },
 ]
 
@@ -36,5 +37,6 @@ export const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
 export function parseMainTab(value: string | null): MainTab {
   if (value === 'rollen' || value === 'mitglieder' || value === 'claims') return 'collaboration'
   if (value === 'anime-projekte') return 'releases'
+  if (value === 'vorschlaege') return 'pruefungen'
   return MAIN_TABS.some((tab) => tab.key === value) ? (value as MainTab) : 'basic'
 }

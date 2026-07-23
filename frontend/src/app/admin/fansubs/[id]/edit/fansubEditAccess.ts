@@ -40,6 +40,7 @@ export function canUseMainTab(
         capabilities.can_cancel_invitation
       );
     case "vorschlaege":
+    case "pruefungen":
       return capabilities.can_manage_members;
     case "releases":
       return Boolean(capabilities.can_view_releases);

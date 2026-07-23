@@ -14,6 +14,7 @@ const DEFAULT_OPEN_SECTIONS: Record<SectionKey, boolean> = {
   mitglieder: true,
   claims: true,
   vorschlaege: true,
+  pruefungen: true,
   readiness: true,
 };
 

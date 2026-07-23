@@ -27,6 +27,7 @@ vi.mock('@/lib/api', () => ({
 
     constructor(status: number, message: string, _retry: null = null, code: string | null = null) {
       super(message)
+      void _retry
       this.status = status
       this.code = code
     }
@@ -225,13 +226,13 @@ describe('read-only release review detail and decisions', () => {
     })
     render(<ReleaseReviewPage />)
     fireEvent.click(await screen.findByRole('button', { name: 'Ablehnen' }))
+    fireEvent.change(screen.getByLabelText('Ablehnungsgrund'), {
+      target: { value: 'quality.insufficient' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Beitrag ablehnen' }))
 
     expect(screen.getByRole('alert').textContent).toContain('mindestens 10 Zeichen')
 
-    fireEvent.change(screen.getByLabelText('Ablehnungsgrund'), {
-      target: { value: 'quality.insufficient' },
-    })
     fireEvent.change(screen.getByLabelText('Begründung'), {
       target: { value: 'Das Bild ist deutlich zu unscharf.' },
     })

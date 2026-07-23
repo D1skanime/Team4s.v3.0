@@ -106,6 +106,7 @@ export function FansubEditWorkspaceSection({
       {activeMainTab !== "releases" &&
       activeMainTab !== "notes" &&
       activeMainTab !== "vorschlaege" &&
+      activeMainTab !== "pruefungen" &&
       activeMainTab !== "readiness" ? (
         <FansubDetailsTab
           styles={styles}
@@ -148,7 +149,6 @@ export function FansubEditWorkspaceSection({
         activeMainTab={activeMainTab}
         fansubID={fansubID}
         group={group}
-        capabilities={capabilities}
         releaseData={releaseData}
       />
     </section>

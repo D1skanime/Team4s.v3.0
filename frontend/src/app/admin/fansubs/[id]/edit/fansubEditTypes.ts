@@ -28,6 +28,7 @@ export type SectionKey =
   | "mitglieder"
   | "claims"
   | "vorschlaege"
+  | "pruefungen"
   | "readiness";
 // MainTab aus mainTabRouting.ts — enthält dieselben Schlüssel wie SectionKey
 export type MainTab = MainTabType;
