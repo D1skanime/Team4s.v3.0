@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_discuss
-stopped_at: Completed 107-05-PLAN.md
-last_updated: "2026-07-23T14:39:35.645Z"
+stopped_at: Completed 107-06-PLAN.md
+last_updated: "2026-07-23T15:08:40.180Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
-  completed_phases: 81
+  completed_phases: 82
   total_plans: 449
-  completed_plans: 413
-  percent: 79
+  completed_plans: 414
+  percent: 80
 ---
 
 # Project State
@@ -345,6 +345,9 @@ Recent durable decisions:
 - [Phase 107-05]: Jeder Decision-Verlierer einschließlich Same-Actor-Retry erhält ErrConflict; vorhandene Decisions werden nie als Erfolg zurückgeladen. — Die erste atomar erfolgreiche Source+Key+Revision-Insertion ist der einzige Decision-Arbiter.
 - [Phase 107-05]: Source-globale Review-Credits verwenden intern versionierte Advisory-Locks; vollständige Source+Slot-Textspalten bleiben die Business-Identität. — Hashkollisionen dürfen nur zusätzlich serialisieren und niemals fachliche Identität entscheiden.
 - [Phase 107-05]: ReviewCreditRepository besitzt nur Lock/Read/Insert; PointService.CreditInTx bleibt alleiniger Award-Schreiber ohne Caller-Idempotenzschlüssel. — Phase 106 bleibt die einzige Autorität für regelversionsstabile Ledger-Awards.
+- [Phase 107-06]: Review-Sources verwenden eine beim Servicebau kopierte Adapter-Registry; unbekannte Sources scheitern vor dem Tx-Start. — Die Foundation bleibt domain-neutral und Callers können die Registry nach Konstruktion nicht mutieren.
+- [Phase 107-06]: Positive adapter-authoritative Submitter- und Beneficiary-Attribution ist auch für platform_admin vor allen Writes verpflichtend. — Plattform-Authority darf fehlende oder ungültige Ownership-Attribution nicht umgehen.
+- [Phase 107-06]: Plattform-Entscheidungen überspringen Review-Slot und Review-Credit; Self-Review benötigt einen separaten Unicode-nonblank Override-Grund. — Administrative Overrides bleiben nachvollziehbar und erzeugen keine Gamification-Vorteile.
 
 ### Pending Todos
 
@@ -609,6 +612,7 @@ Recent durable decisions:
 | Phase 107 P03 | 12min | 2 tasks | 7 files |
 | Phase 107 P04 | 9min | 2 tasks | 4 files |
 | Phase 107 P05 | 12min | 2 tasks | 4 files |
+| Phase 107 P06 | 25min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -690,7 +694,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T14:39:35.490Z
-Stopped at: Completed 107-05-PLAN.md
+Last session: 2026-07-23T15:08:40.115Z
+Stopped at: Completed 107-06-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
