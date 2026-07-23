@@ -33,7 +33,8 @@ func openPhase107ReviewServicePostgres(t *testing.T) *reviewServicePostgresFixtu
 		);
 		INSERT INTO members(id) VALUES (101), (102), (103), (104), (105);
 		INSERT INTO app_users(id, status) VALUES
-			(11, 'active'), (12, 'active'), (13, 'active'), (14, 'active'), (15, 'active');
+			(11, 'active'), (12, 'active'), (13, 'active'), (14, 'active'), (15, 'active'),
+			(16, 'active');
 		INSERT INTO fansub_groups(id) VALUES (21), (22);
 		INSERT INTO fansub_group_members(id, fansub_group_id, app_user_id, member_id, status) VALUES
 			(31, 21, 11, 101, 'active'),
@@ -141,7 +142,7 @@ func TestPhase107ReviewServicePlatformAdminDelegationAndInactiveTarget(t *testin
 	fx := openPhase107ReviewServicePostgres(t)
 	ctx := context.Background()
 	service := NewReviewService(fx.pool, nil)
-	platform := permissions.Actor{AppUserID: 13, Status: "active", IsPlatformAdmin: true}
+	platform := permissions.Actor{AppUserID: 16, Status: "active", IsPlatformAdmin: true}
 
 	if err := service.GrantDelegation(ctx, ReviewDelegationCommand{
 		Actor:              platform,
