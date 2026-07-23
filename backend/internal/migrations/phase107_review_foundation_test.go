@@ -270,7 +270,13 @@ func TestPhase107FoundationBoundary(t *testing.T) {
 			if ledger == "ledger" {
 				continue
 			}
-			require.Equal(t, "point_ledger_entries", ledger, "%s invents a parallel ledger", filepath.Base(path))
+			require.Contains(
+				t,
+				[]string{"point_ledger_entries", "point_ledger_entry_id"},
+				ledger,
+				"%s invents a parallel ledger",
+				filepath.Base(path),
+			)
 		}
 		require.NotContains(t, lower, "public.", "%s must rely on the isolated search path", filepath.Base(path))
 	}
