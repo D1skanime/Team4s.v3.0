@@ -106,25 +106,32 @@ func (f *releaseReviewCleanupFixture) rejectMedia(
 	lastActivity time.Time,
 ) {
 	t.Helper()
-	_, err := f.pool.Exec(context.Background(), `
+	ctx := context.Background()
+	_, err := f.pool.Exec(ctx, `
 		UPDATE media_assets
 		SET file_path = $2, mime_type = 'image/png', status = 'ready'
 		WHERE id = (
 			SELECT media_asset_id FROM release_version_media WHERE id = $1
-		);
+		)
+	`, relationID, path)
+	require.NoError(t, err)
+	_, err = f.pool.Exec(ctx, `
 		INSERT INTO media_files(id, media_id, variant, path, status)
 		SELECT $3, media_asset_id, 'original', $2, 'ready'
 		FROM release_version_media
-		WHERE id = $1;
+		WHERE id = $1
+	`, relationID, path, fileID)
+	require.NoError(t, err)
+	_, err = f.pool.Exec(ctx, `
 		UPDATE release_version_media
 		SET caption = 'privat', is_preview_candidate = true
-		WHERE id = $1;
-	`, relationID, path, fileID)
+		WHERE id = $1
+	`, relationID)
 	require.NoError(t, err)
 
 	source := f.submitMedia(t, relationID, 11, nil, lastActivity)
 	_, err = NewReviewService(f.pool, ReleaseReviewAdapters()).Decide(
-		context.Background(),
+		ctx,
 		ReviewDecisionCommand{
 			Actor: permissions.Actor{AppUserID: 12, Status: "active"},
 			Target: ReviewTargetRef{
@@ -137,7 +144,7 @@ func (f *releaseReviewCleanupFixture) rejectMedia(
 		},
 	)
 	require.NoError(t, err)
-	_, err = f.pool.Exec(context.Background(), `
+	_, err = f.pool.Exec(ctx, `
 		UPDATE release_version_media_review_lifecycle
 		SET last_activity_at = $2,
 		    cleanup_due_at = $2
