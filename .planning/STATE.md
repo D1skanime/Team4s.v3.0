@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 107-06-PLAN.md
-last_updated: "2026-07-23T16:29:22.754Z"
+stopped_at: Completed 107.1-01-PLAN.md
+last_updated: "2026-07-23T18:44:08.143Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 82
   total_plans: 449
-  completed_plans: 414
+  completed_plans: 415
   percent: 80
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 107.1 — release pr fworkspace und release beitragslebenszyklus
+**Current focus:** Phase 107.1 — release-pr-fworkspace-und-release-beitragslebenszyklus
 
 ## Current Position
 
-Phase: 107.1
-Plan: Not started
+Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — EXECUTING
+Plan: 2 of 7
 
 ## Accumulated Context
 
@@ -348,6 +348,9 @@ Recent durable decisions:
 - [Phase 107-06]: Review-Sources verwenden eine beim Servicebau kopierte Adapter-Registry; unbekannte Sources scheitern vor dem Tx-Start. — Die Foundation bleibt domain-neutral und Callers können die Registry nach Konstruktion nicht mutieren.
 - [Phase 107-06]: Positive adapter-authoritative Submitter- und Beneficiary-Attribution ist auch für platform_admin vor allen Writes verpflichtend. — Plattform-Authority darf fehlende oder ungültige Ownership-Attribution nicht umgehen.
 - [Phase 107-06]: Plattform-Entscheidungen überspringen Review-Slot und Review-Credit; Self-Review benötigt einen separaten Unicode-nonblank Override-Grund. — Administrative Overrides bleiben nachvollziehbar und erzeugen keine Gamification-Vorteile.
+- [Phase 107.1]: Migration 0135 ergänzt getrennte 1:1-Lifecycle-Tabellen und verwendet die gelandete Phase-107-Foundation unverändert.
+- [Phase 107.1]: Der Media-Lifecycle bleibt an release_version_media.id; wegen mehrfacher media_assets-Referenzklassen wird kein globaler Asset-Reviewstatus gespiegelt.
+- [Phase 107.1]: Datei-Löschjobs speichern nur strukturierte Relation-/Asset-/File-IDs und Retry-Metadaten, damit logischer Cleanup und physische Wiederholung unabhängig bleiben.
 
 ### Pending Todos
 
@@ -613,6 +616,7 @@ Recent durable decisions:
 | Phase 107 P04 | 9min | 2 tasks | 4 files |
 | Phase 107 P05 | 12min | 2 tasks | 4 files |
 | Phase 107 P06 | 25min | 2 tasks | 3 files |
+| Phase 107.1 P01 | 11min | 3 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -694,7 +698,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T15:08:40.115Z
-Stopped at: Completed 107-06-PLAN.md
+Last session: 2026-07-23T18:44:08.073Z
+Stopped at: Completed 107.1-01-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
