@@ -1,0 +1,371 @@
+package migrations
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"testing"
+
+	"team4s.v3/backend/internal/testsupport"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/require"
+)
+
+const (
+	phase107MigrationName = "0134_review_foundation"
+	phase107UpFile        = phase107MigrationName + ".up.sql"
+	phase107DownFile      = phase107MigrationName + ".down.sql"
+)
+
+var phase107FoundationTables = []string{
+	"fansub_group_member_review_capabilities",
+	"review_decisions",
+	"review_audit_events",
+	"review_reason_texts",
+	"review_credit_slots",
+}
+
+func TestPhase107MigrationUpContract(t *testing.T) {
+	up := readPhase107Migration(t, phase107UpFile)
+
+	require.Equal(t, phase107FoundationTables, phase107CreatedTables(up))
+	requireSQLContains(t, up,
+		"create table fansub_group_member_review_capabilities",
+		"create table review_decisions",
+		"create table review_audit_events",
+		"create table review_reason_texts",
+		"create table review_credit_slots",
+		"review.text.decide",
+		"review.image.decide",
+		"review.contribution.decide",
+		"('fansub_lead', 'review.text.decide')",
+		"('fansub_lead', 'review.image.decide')",
+		"('fansub_lead', 'review.contribution.decide')",
+		"unique (source_type, source_key, source_revision)",
+		"unique (source_type, source_key, credit_slot)",
+		"credit_slot in ('reject', 'confirm')",
+		"reason_kind in ('reject', 'override')",
+		"decision in ('confirm', 'reject')",
+		"phase106_trim_unicode_whitespace(rejection_category) <> ''",
+		"reviewer_member_id",
+		"point_ledger_entry_id",
+		"references point_ledger_entries(id)",
+		"review.decision",
+		"platform_contribution",
+	)
+	require.Contains(t, up, "raise exception", "conflicting review.decision seed must fail closed")
+	require.Contains(t, up, "point_value", "review.decision v1 must pin its value")
+	require.Regexp(t, regexp.MustCompile(`(?s)review\.decision.+(?:rule_version|,\s*1).+platform_contribution.+(?:point_value|,\s*1)`), up)
+
+	for _, table := range []string{"review_decisions", "review_audit_events", "review_credit_slots"} {
+		requireSQLContains(t, up,
+			"before update or delete on "+table,
+			"before truncate on "+table,
+		)
+	}
+	requireSQLContains(t, up,
+		"before update on review_reason_texts",
+		"before truncate on review_reason_texts",
+	)
+	require.NotContains(t, phase107CreateTableStatement(up, "review_decisions"), "reason_text")
+	require.NotContains(t, phase107CreateTableStatement(up, "review_decisions"), "reason_body")
+	require.NotContains(t, phase107CreateTableStatement(up, "review_audit_events"), "reason_text")
+	require.NotContains(t, phase107CreateTableStatement(up, "review_audit_events"), "reason_body")
+
+	reviewRoleSeeds := regexp.MustCompile(`\('([^']+)',\s*'(review\.(?:text|image|contribution)\.decide)'\)`).FindAllStringSubmatch(up, -1)
+	require.Len(t, reviewRoleSeeds, 3)
+	for _, seed := range reviewRoleSeeds {
+		require.Equal(t, "fansub_lead", seed[1], "only fansub_lead receives seeded review capabilities")
+	}
+}
+
+func TestPhase107MigrationDownContract(t *testing.T) {
+	down := readPhase107Migration(t, phase107DownFile)
+
+	requireSQLContains(t, down,
+		"raise exception",
+		"fansub_group_member_review_capabilities",
+		"review_decisions",
+		"review_audit_events",
+		"review_reason_texts",
+		"review_credit_slots",
+		"point_ledger_entries",
+		"review.decision",
+		"drop trigger",
+		"drop function",
+		"drop table if exists review_reason_texts",
+		"drop table if exists review_audit_events",
+		"drop table if exists review_decisions",
+		"drop table if exists review_credit_slots",
+		"drop table if exists fansub_group_member_review_capabilities",
+		"delete from role_capabilities",
+		"delete from action_definitions",
+		"delete from point_rules",
+	)
+	requireOrder(t, down, "raise exception", "drop trigger")
+	requireOrder(t, down, "drop trigger", "drop table if exists review_credit_slots")
+	requireOrder(t, down, "drop trigger", "drop table if exists review_decisions")
+	requireOrder(t, down, "drop table if exists review_reason_texts", "drop table if exists review_audit_events")
+	requireOrder(t, down, "drop table if exists review_audit_events", "drop table if exists review_decisions")
+	require.NotContains(t, down, "drop table point_ledger_entries")
+	require.NotContains(t, down, "drop table point_rules")
+	require.NotContains(t, down, "cascade")
+}
+
+func TestPhase107MigrationLiveUpDownUp(t *testing.T) {
+	t.Run("populated-down-fails-before-drop", func(t *testing.T) {
+		pool := openPhase107MigratedPool(t)
+		seedPhase107ReviewFoundation(t, pool)
+
+		content, err := os.ReadFile(phase106MigrationPath(t, phase107DownFile))
+		require.NoError(t, err)
+		_, err = pool.Exec(context.Background(), string(content))
+		require.Error(t, err)
+		for _, table := range phase107FoundationTables {
+			assertPhase106TableExists(t, pool, table)
+		}
+		var actionCount int
+		require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*) FROM action_definitions WHERE code LIKE 'review.%.decide'`).Scan(&actionCount))
+		require.Equal(t, 3, actionCount)
+	})
+
+	t.Run("empty-up-down-up", func(t *testing.T) {
+		pool := openPhase107MigratedPool(t)
+		testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase107DownFile))
+		testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase107UpFile))
+		for _, table := range phase107FoundationTables {
+			assertPhase106TableExists(t, pool, table)
+		}
+	})
+}
+
+func TestPhase107ImmutableDecisionAuditCreditSlot(t *testing.T) {
+	pool := openPhase107MigratedPool(t)
+	fixture := seedPhase107ReviewFoundation(t, pool)
+
+	for _, target := range []struct {
+		name   string
+		update string
+		delete string
+		clear  string
+	}{
+		{
+			name:   "decision",
+			update: `UPDATE review_decisions SET source_key = 'changed' WHERE id = 1001`,
+			delete: `DELETE FROM review_decisions WHERE id = 1001`,
+			clear:  `TRUNCATE review_decisions CASCADE`,
+		},
+		{
+			name:   "audit",
+			update: `UPDATE review_audit_events SET event_code = 'changed' WHERE id = 1002`,
+			delete: `DELETE FROM review_audit_events WHERE id = 1002`,
+			clear:  `TRUNCATE review_audit_events CASCADE`,
+		},
+		{
+			name:   "credit-slot",
+			update: `UPDATE review_credit_slots SET credit_slot = 'confirm' WHERE point_ledger_entry_id = 1003`,
+			delete: `DELETE FROM review_credit_slots WHERE point_ledger_entry_id = 1003`,
+			clear:  `TRUNCATE review_credit_slots`,
+		},
+	} {
+		t.Run(target.name, func(t *testing.T) {
+			assertExecRejected(t, pool, target.update)
+			assertExecRejected(t, pool, target.delete)
+			assertExecRejected(t, pool, target.clear)
+		})
+	}
+
+	_, err := pool.Exec(context.Background(), `
+INSERT INTO review_decisions (
+    source_type, source_key, source_revision, review_kind, decision, rejection_category,
+    fansub_group_id, reviewer_app_user_id, reviewer_member_id, is_platform_override
+) VALUES ('fixture', 'blank-category', 1, 'text', 'reject', $1, 20, 10, 1, false)`, "\u00a0")
+	require.Error(t, err, "Reject requires a Unicode-nonblank rejection category")
+
+	_, err = pool.Exec(context.Background(), `
+INSERT INTO review_decisions (
+    source_type, source_key, source_revision, review_kind, decision, rejection_category,
+    fansub_group_id, reviewer_app_user_id, reviewer_member_id, is_platform_override
+) VALUES ('fixture', 'confirm-with-category', 1, 'text', 'confirm', 'wrong', 20, 10, 1, false)`)
+	require.Error(t, err, "Confirm forbids a rejection category")
+
+	var decisionCount, auditCount int
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM review_decisions WHERE id = $1`, fixture.decisionID).Scan(&decisionCount))
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM review_audit_events WHERE id = $1`, fixture.auditID).Scan(&auditCount))
+	require.Equal(t, 1, decisionCount)
+	require.Equal(t, 1, auditCount)
+}
+
+func TestPhase107ReasonScrubBoundary(t *testing.T) {
+	pool := openPhase107MigratedPool(t)
+	fixture := seedPhase107ReviewFoundation(t, pool)
+
+	assertExecRejected(t, pool, `UPDATE review_reason_texts SET reason_text = 'changed' WHERE audit_event_id = 1002 AND reason_kind = 'reject'`)
+	assertExecRejected(t, pool, `TRUNCATE review_reason_texts`)
+
+	_, err := pool.Exec(context.Background(), `
+INSERT INTO review_reason_texts (audit_event_id, reason_kind, reason_text)
+VALUES (1002, 'reject', $1)`, "\u2028")
+	require.Error(t, err, "Reject reason must contain non-whitespace Unicode text")
+	_, err = pool.Exec(context.Background(), `
+INSERT INTO review_reason_texts (audit_event_id, reason_kind, reason_text)
+VALUES (1002, 'other', 'nicht erlaubt')`)
+	require.Error(t, err)
+
+	_, err = pool.Exec(context.Background(), `
+DELETE FROM review_reason_texts WHERE audit_event_id = 1002 AND reason_kind = 'reject'`)
+	require.NoError(t, err)
+
+	var reasons, decisions, audits int
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM review_reason_texts WHERE audit_event_id = $1`, fixture.auditID).Scan(&reasons))
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM review_decisions WHERE id = $1`, fixture.decisionID).Scan(&decisions))
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM review_audit_events WHERE id = $1`, fixture.auditID).Scan(&audits))
+	require.Zero(t, reasons)
+	require.Equal(t, 1, decisions)
+	require.Equal(t, 1, audits)
+}
+
+func TestPhase107SourceGlobalCreditSlot(t *testing.T) {
+	pool := openPhase107MigratedPool(t)
+	seedPhase107ReviewFoundation(t, pool)
+	seedPhase107LedgerAward(t, pool, 1004, 2, "second-reviewer-award")
+
+	_, err := pool.Exec(context.Background(), `
+INSERT INTO review_credit_slots (
+    source_type, source_key, credit_slot, reviewer_member_id, point_ledger_entry_id
+) VALUES ('fixture', 'source-a', 'reject', 2, 1004)`)
+	require.Error(t, err, "same source and slot must be globally unique across reviewers")
+
+	_, err = pool.Exec(context.Background(), `
+INSERT INTO review_credit_slots (
+    source_type, source_key, credit_slot, reviewer_member_id, point_ledger_entry_id
+) VALUES ('fixture', 'source-a', 'confirm', 2, 1004)`)
+	require.NoError(t, err, "reject and confirm are independent source-global slots")
+
+	var count int
+	require.NoError(t, pool.QueryRow(context.Background(), `
+SELECT count(*) FROM review_credit_slots WHERE source_type = 'fixture' AND source_key = 'source-a'`).Scan(&count))
+	require.Equal(t, 2, count)
+}
+
+func TestPhase107FoundationBoundary(t *testing.T) {
+	for _, name := range []string{phase107UpFile, phase107DownFile} {
+		path := phase106MigrationPath(t, name)
+		content, err := os.ReadFile(path)
+		require.NoError(t, err, "Phase-107 artifact missing: %s", filepath.Base(path))
+		lower := strings.ToLower(string(content))
+
+		for _, forbidden := range []string{
+			"review_assignment", "assignment", "reservation", "takeover", "claim",
+			"handler", "frontend", "release_version_media", "anime_contribution",
+			"upload", "cleanup",
+		} {
+			require.NotContains(t, lower, forbidden, "%s crosses the Phase-107 foundation boundary", filepath.Base(path))
+		}
+		for _, ledger := range regexp.MustCompile(`\b[a-z0-9_]*ledger[a-z0-9_]*\b`).FindAllString(lower, -1) {
+			if ledger == "ledger" {
+				continue
+			}
+			require.Equal(t, "point_ledger_entries", ledger, "%s invents a parallel ledger", filepath.Base(path))
+		}
+		require.NotContains(t, lower, "public.", "%s must rely on the isolated search path", filepath.Base(path))
+	}
+}
+
+type phase107Fixture struct {
+	decisionID int64
+	auditID    int64
+}
+
+func openPhase107MigratedPool(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	pool := testsupport.OpenPhase107Postgres(t)
+	testsupport.ApplySQLFile(t, pool, phase106MigrationPath(t, phase107UpFile))
+	return pool
+}
+
+func seedPhase107ReviewFoundation(t testing.TB, pool *pgxpool.Pool) phase107Fixture {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), `
+INSERT INTO members(id) VALUES (1), (2);
+INSERT INTO app_users(id, status) VALUES (10, 'active');
+INSERT INTO fansub_groups(id) VALUES (20);
+INSERT INTO fansub_group_members(id, fansub_group_id, app_user_id, member_id, status)
+VALUES (30, 20, 10, 1, 'active');
+INSERT INTO member_claims(id, member_id, app_user_id, claim_status, verified_at)
+VALUES (40, 1, 10, 'verified', NOW());
+INSERT INTO review_decisions (
+    id, source_type, source_key, source_revision, review_kind, decision, rejection_category,
+    fansub_group_id, reviewer_app_user_id, reviewer_member_id, is_platform_override
+) VALUES (1001, 'fixture', 'source-a', 1, 'text', 'reject', 'inhalt', 20, 10, 1, false);
+INSERT INTO review_audit_events (
+    id, event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
+    fansub_group_id, source_type, source_key, source_revision, decision,
+    is_platform_override, has_reason
+) VALUES (
+    1002, 'review.rejected', 1001, 'app_user', 10, 1,
+    20, 'fixture', 'source-a', 1, 'reject', false, true
+);
+INSERT INTO review_reason_texts (audit_event_id, reason_kind, reason_text)
+VALUES (1002, 'reject', 'Inhaltlich nicht ausreichend');`)
+	require.NoError(t, err)
+	seedPhase107LedgerAward(t, pool, 1003, 1, "first-reviewer-award")
+	_, err = pool.Exec(context.Background(), `
+INSERT INTO review_credit_slots (
+    source_type, source_key, credit_slot, reviewer_member_id, point_ledger_entry_id
+) VALUES ('fixture', 'source-a', 'reject', 1, 1003)`)
+	require.NoError(t, err)
+	return phase107Fixture{decisionID: 1001, auditID: 1002}
+}
+
+func seedPhase107LedgerAward(t testing.TB, pool *pgxpool.Pool, id, memberID int64, idempotencyKey string) {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), `
+INSERT INTO point_ledger_entries (
+    id, member_id, source_type, source_key, rule_id, rule_code_snapshot,
+    rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
+    point_value, entry_kind, effective_at, idempotency_key
+)
+SELECT $1, $2, 'review', $3, id, rule_code, rule_version, category, point_value,
+       point_value, 'award', NOW(), $3
+FROM point_rules
+WHERE rule_code = 'review.decision' AND rule_version = 1`,
+		id, memberID, idempotencyKey)
+	require.NoError(t, err)
+}
+
+func readPhase107Migration(t testing.TB, name string) string {
+	t.Helper()
+	path := phase106MigrationPath(t, name)
+	content, err := os.ReadFile(path)
+	require.NoError(t, err, "Phase-107 artifact missing: %s", filepath.Base(path))
+	return normalizePhase106SQL(string(content))
+}
+
+func phase107CreatedTables(sql string) []string {
+	matches := regexp.MustCompile(`\bcreate table (?:if not exists )?([a-z0-9_]+)`).FindAllStringSubmatch(sql, -1)
+	tables := make([]string, 0, len(matches))
+	for _, match := range matches {
+		tables = append(tables, match[1])
+	}
+	return tables
+}
+
+func phase107CreateTableStatement(sql, table string) string {
+	start := strings.Index(sql, "create table "+table)
+	if start < 0 {
+		return ""
+	}
+	remaining := sql[start+len("create table "+table):]
+	end := len(remaining)
+	for _, marker := range []string{" create table ", " create function ", " insert into "} {
+		if candidate := strings.Index(remaining, marker); candidate >= 0 && candidate < end {
+			end = candidate
+		}
+	}
+	return remaining[:end]
+}
