@@ -208,7 +208,7 @@ CREATE TABLE review_credit_slots (
     source_key TEXT NOT NULL,
     credit_slot TEXT NOT NULL CHECK (credit_slot IN ('reject', 'confirm')),
     reviewer_member_id BIGINT NOT NULL REFERENCES members(id),
-    review_decision_id BIGINT NULL REFERENCES review_decisions(id),
+    review_decision_id BIGINT NOT NULL REFERENCES review_decisions(id),
     point_ledger_entry_id BIGINT NOT NULL REFERENCES point_ledger_entries(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_review_credit_source_type_canonical CHECK (
@@ -222,6 +222,78 @@ CREATE TABLE review_credit_slots (
     UNIQUE (source_type, source_key, credit_slot),
     UNIQUE (point_ledger_entry_id)
 );
+
+CREATE FUNCTION validate_review_credit_slot_contract() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE
+    linked_decision review_decisions%ROWTYPE;
+    linked_ledger point_ledger_entries%ROWTYPE;
+    linked_rule point_rules%ROWTYPE;
+    expected_source_key TEXT;
+    expected_idempotency_key TEXT;
+BEGIN
+    SELECT *
+    INTO linked_decision
+    FROM review_decisions
+    WHERE id = NEW.review_decision_id;
+
+    IF NOT FOUND
+       OR NEW.source_type <> linked_decision.source_type
+       OR NEW.source_key <> linked_decision.source_key
+       OR NEW.credit_slot <> linked_decision.decision
+       OR linked_decision.reviewer_member_id IS NULL
+       OR NEW.reviewer_member_id <> linked_decision.reviewer_member_id
+       OR linked_decision.is_platform_override THEN
+        RAISE EXCEPTION 'review credit slot does not match its review decision';
+    END IF;
+
+    SELECT *
+    INTO linked_ledger
+    FROM point_ledger_entries
+    WHERE id = NEW.point_ledger_entry_id;
+
+    SELECT *
+    INTO linked_rule
+    FROM point_rules
+    WHERE id = linked_ledger.rule_id;
+
+    expected_source_key :=
+        'source:' || octet_length(linked_decision.source_type) || ':' ||
+        encode(convert_to(linked_decision.source_type, 'UTF8'), 'hex') ||
+        ':key:' || octet_length(linked_decision.source_key) || ':' ||
+        encode(convert_to(linked_decision.source_key, 'UTF8'), 'hex');
+    expected_idempotency_key :=
+        'v1|review|review_decision|' || expected_source_key ||
+        '|beneficiary:' || NEW.reviewer_member_id ||
+        '|slot:' || NEW.credit_slot;
+
+    IF linked_ledger.id IS NULL
+       OR linked_rule.id IS NULL
+       OR linked_ledger.entry_kind <> 'award'
+       OR linked_ledger.member_id <> NEW.reviewer_member_id
+       OR linked_ledger.actor_app_user_id IS DISTINCT FROM linked_decision.reviewer_app_user_id
+       OR linked_ledger.fansub_group_id IS DISTINCT FROM linked_decision.fansub_group_id
+       OR linked_ledger.source_type <> 'review_decision'
+       OR linked_ledger.source_key <> expected_source_key
+       OR linked_ledger.idempotency_key <> expected_idempotency_key
+       OR linked_rule.rule_code <> 'review.decision'
+       OR linked_rule.rule_version <> 1
+       OR linked_ledger.rule_code_snapshot <> 'review.decision'
+       OR linked_ledger.rule_version_snapshot <> 1
+       OR linked_ledger.rule_category_snapshot <> 'platform_contribution'
+       OR linked_ledger.rule_point_value_snapshot <> 1
+       OR linked_ledger.point_value <> 1 THEN
+        RAISE EXCEPTION 'review credit slot does not reference its PointService award';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER review_credit_slots_validate_contract
+AFTER INSERT ON review_credit_slots
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION validate_review_credit_slot_contract();
 
 CREATE FUNCTION reject_review_append_only_mutation() RETURNS trigger
 LANGUAGE plpgsql AS $$

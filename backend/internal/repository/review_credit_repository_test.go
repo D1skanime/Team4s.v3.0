@@ -2,6 +2,8 @@ package repository_test
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -25,7 +27,14 @@ func TestPhase107ReviewCreditConcurrent(t *testing.T) {
 	seedPhase107CreditFixture(t, pool)
 	ctx := context.Background()
 	stableKey := "release:41:note:7"
-	decisionID := insertPhase107CreditDecision(t, pool, stableKey, 1, repository.ReviewDecisionReject)
+	reviewers := []phase107CreditReviewer{
+		{appUserID: 11, memberID: 101},
+		{appUserID: 12, memberID: 102},
+	}
+	decisionIDs := []int64{
+		insertPhase107CreditDecision(t, pool, "release_version_note", stableKey, 1, repository.ReviewDecisionReject, reviewers[0]),
+		insertPhase107CreditDecision(t, pool, "release_version_note", stableKey, 2, repository.ReviewDecisionReject, reviewers[1]),
+	}
 	slotKey := repository.ReviewCreditSlotKey{
 		SourceType: "release_version_note",
 		StableKey:  stableKey,
@@ -46,11 +55,8 @@ func TestPhase107ReviewCreditConcurrent(t *testing.T) {
 	start := make(chan struct{})
 	var ready sync.WaitGroup
 	ready.Add(2)
-	for index, reviewer := range []phase107CreditReviewer{
-		{appUserID: 11, memberID: 101},
-		{appUserID: 12, memberID: 102},
-	} {
-		go func(tx pgx.Tx, reviewer phase107CreditReviewer) {
+	for index, reviewer := range reviewers {
+		go func(tx pgx.Tx, decisionID int64, reviewer phase107CreditReviewer) {
 			defer tx.Rollback(ctx)
 			ready.Done()
 			<-start
@@ -59,7 +65,7 @@ func TestPhase107ReviewCreditConcurrent(t *testing.T) {
 				err = tx.Commit(ctx)
 			}
 			results <- concurrentResult{awarded: awarded, err: err}
-		}(txs[index], reviewer)
+		}(txs[index], decisionIDs[index], reviewer)
 	}
 	ready.Wait()
 	close(start)
@@ -81,9 +87,13 @@ func TestPhase107ReviewCreditRejectConfirm(t *testing.T) {
 	seedPhase107CreditFixture(t, pool)
 	ctx := context.Background()
 	stableKey := "release:42:image:8"
-	rejectID := insertPhase107CreditDecision(t, pool, stableKey, 1, repository.ReviewDecisionReject)
-	confirmID := insertPhase107CreditDecision(t, pool, stableKey, 2, repository.ReviewDecisionConfirm)
 	reviewer := phase107CreditReviewer{appUserID: 11, memberID: 101}
+	rejectID := insertPhase107CreditDecision(
+		t, pool, "release_version_image", stableKey, 1, repository.ReviewDecisionReject, reviewer,
+	)
+	confirmID := insertPhase107CreditDecision(
+		t, pool, "release_version_image", stableKey, 2, repository.ReviewDecisionConfirm, reviewer,
+	)
 
 	for _, testCase := range []struct {
 		slot       repository.ReviewCreditSlot
@@ -109,7 +119,7 @@ func TestPhase107ReviewCreditRejectConfirm(t *testing.T) {
 	require.NoError(t, pool.QueryRow(ctx, `
 		SELECT count(*) FROM point_ledger_entries
 		WHERE source_type = 'review_decision' AND source_key = $1
-	`, stableKey).Scan(&ledgerCount))
+	`, phase107ReviewPointSourceKey("release_version_image", stableKey)).Scan(&ledgerCount))
 	assert.Equal(t, 2, slotCount)
 	assert.Equal(t, 2, ledgerCount)
 }
@@ -118,8 +128,14 @@ func TestPhase107ReviewCreditAcrossRevisions(t *testing.T) {
 	pool := openPhase107CreditPool(t)
 	seedPhase107CreditFixture(t, pool)
 	stableKey := "release:43:note:9"
-	firstDecisionID := insertPhase107CreditDecision(t, pool, stableKey, 1, repository.ReviewDecisionReject)
-	secondDecisionID := insertPhase107CreditDecision(t, pool, stableKey, 2, repository.ReviewDecisionReject)
+	firstReviewer := phase107CreditReviewer{appUserID: 11, memberID: 101}
+	secondReviewer := phase107CreditReviewer{appUserID: 12, memberID: 102}
+	firstDecisionID := insertPhase107CreditDecision(
+		t, pool, "release_version_note", stableKey, 1, repository.ReviewDecisionReject, firstReviewer,
+	)
+	secondDecisionID := insertPhase107CreditDecision(
+		t, pool, "release_version_note", stableKey, 2, repository.ReviewDecisionReject, secondReviewer,
+	)
 	slotKey := repository.ReviewCreditSlotKey{
 		SourceType: "release_version_note",
 		StableKey:  stableKey,
@@ -127,10 +143,10 @@ func TestPhase107ReviewCreditAcrossRevisions(t *testing.T) {
 	}
 
 	assert.True(t, runPhase107ReviewCreditTx(
-		t, pool, slotKey, firstDecisionID, phase107CreditReviewer{appUserID: 11, memberID: 101},
+		t, pool, slotKey, firstDecisionID, firstReviewer,
 	))
 	assert.False(t, runPhase107ReviewCreditTx(
-		t, pool, slotKey, secondDecisionID, phase107CreditReviewer{appUserID: 12, memberID: 102},
+		t, pool, slotKey, secondDecisionID, secondReviewer,
 	))
 	assertPhase107CreditCounts(t, pool, slotKey, 1, 1)
 }
@@ -142,7 +158,7 @@ func TestPhase107ReviewCreditIndependent(t *testing.T) {
 
 	for index, stableKey := range []string{"release:44:image:10", "release:44:image:11"} {
 		decisionID := insertPhase107CreditDecision(
-			t, pool, stableKey, int64(index+1), repository.ReviewDecisionReject,
+			t, pool, "release_version_image", stableKey, int64(index+1), repository.ReviewDecisionReject, reviewer,
 		)
 		slotKey := repository.ReviewCreditSlotKey{
 			SourceType: "release_version_image",
@@ -188,6 +204,131 @@ func TestPhase107ReviewCreditValidation(t *testing.T) {
 	}
 }
 
+func TestPhase107ReviewCreditRelationalContract(t *testing.T) {
+	pool := openPhase107CreditPool(t)
+	seedPhase107CreditFixture(t, pool)
+	ctx := context.Background()
+
+	type linkedFixture struct {
+		sourceType string
+		stableKey  string
+		slot       repository.ReviewCreditSlot
+		decisionID int64
+		ledgerID   int64
+		reviewer   phase107CreditReviewer
+	}
+	createLinkedFixture := func(
+		stableKey string,
+		decision repository.ReviewDecision,
+		reviewer phase107CreditReviewer,
+	) linkedFixture {
+		t.Helper()
+		slot := repository.ReviewCreditSlotConfirm
+		if decision == repository.ReviewDecisionReject {
+			slot = repository.ReviewCreditSlotReject
+		}
+		decisionID := insertPhase107CreditDecision(
+			t, pool, "release_version_note", stableKey, 1, decision, reviewer,
+		)
+		entry, err := services.NewPointService(nil).CreditInTx(ctx, pool, services.CreditCommand{
+			MemberID:       reviewer.memberID,
+			ActorAppUserID: phase107CreditInt64Ptr(reviewer.appUserID),
+			FansubGroupID:  phase107CreditInt64Ptr(21),
+			Source: services.SourceRef{
+				RewardKind: services.RewardKindReview,
+				Type:       "review_decision",
+				Key:        phase107ReviewPointSourceKey("release_version_note", stableKey),
+				Slot:       string(slot),
+			},
+			Rule:        services.RuleRef{Code: "review.decision", Version: 1},
+			EffectiveAt: time.Date(2026, 7, 23, 15, 0, 0, 0, time.UTC),
+		})
+		require.NoError(t, err)
+		return linkedFixture{
+			sourceType: "release_version_note",
+			stableKey:  stableKey,
+			slot:       slot,
+			decisionID: decisionID,
+			ledgerID:   entry.ID,
+			reviewer:   reviewer,
+		}
+	}
+	insertSlot := func(
+		fixture linkedFixture,
+		sourceType, stableKey string,
+		slot repository.ReviewCreditSlot,
+		reviewerMemberID int64,
+		decisionID *int64,
+		ledgerID int64,
+	) error {
+		t.Helper()
+		_, err := pool.Exec(ctx, `
+INSERT INTO review_credit_slots (
+    source_type, source_key, credit_slot, reviewer_member_id,
+    review_decision_id, point_ledger_entry_id
+) VALUES ($1, $2, $3, $4, $5, $6)`,
+			sourceType, stableKey, slot, reviewerMemberID, decisionID, ledgerID)
+		return err
+	}
+
+	reject := createLinkedFixture(
+		"release:46:note:13",
+		repository.ReviewDecisionReject,
+		phase107CreditReviewer{appUserID: 11, memberID: 101},
+	)
+	confirm := createLinkedFixture(
+		"release:47:note:14",
+		repository.ReviewDecisionConfirm,
+		phase107CreditReviewer{appUserID: 11, memberID: 101},
+	)
+	otherReviewer := createLinkedFixture(
+		"release:48:note:15",
+		repository.ReviewDecisionReject,
+		phase107CreditReviewer{appUserID: 12, memberID: 102},
+	)
+
+	t.Run("null decision", func(t *testing.T) {
+		require.Error(t, insertSlot(
+			reject, reject.sourceType, reject.stableKey, reject.slot,
+			reject.reviewer.memberID, nil, reject.ledgerID,
+		))
+	})
+	t.Run("cross source", func(t *testing.T) {
+		require.Error(t, insertSlot(
+			reject, reject.sourceType, reject.stableKey+"-other", reject.slot,
+			reject.reviewer.memberID, &reject.decisionID, reject.ledgerID,
+		))
+	})
+	t.Run("wrong decision kind", func(t *testing.T) {
+		require.Error(t, insertSlot(
+			confirm, confirm.sourceType, confirm.stableKey, repository.ReviewCreditSlotReject,
+			confirm.reviewer.memberID, &confirm.decisionID, confirm.ledgerID,
+		))
+	})
+	t.Run("wrong reviewer", func(t *testing.T) {
+		require.Error(t, insertSlot(
+			otherReviewer, otherReviewer.sourceType, otherReviewer.stableKey, otherReviewer.slot,
+			101, &otherReviewer.decisionID, otherReviewer.ledgerID,
+		))
+	})
+	t.Run("unrelated ledger", func(t *testing.T) {
+		require.Error(t, insertSlot(
+			reject, reject.sourceType, reject.stableKey, reject.slot,
+			reject.reviewer.memberID, &reject.decisionID, confirm.ledgerID,
+		))
+	})
+	t.Run("matching decision and PointService award", func(t *testing.T) {
+		require.NoError(t, insertSlot(
+			reject, reject.sourceType, reject.stableKey, reject.slot,
+			reject.reviewer.memberID, &reject.decisionID, reject.ledgerID,
+		))
+	})
+
+	var slots int
+	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM review_credit_slots`).Scan(&slots))
+	require.Equal(t, 1, slots, "rejected malformed links must not consume append-only slots")
+}
+
 type phase107CreditReviewer struct {
 	appUserID int64
 	memberID  int64
@@ -216,7 +357,7 @@ func createPhase107ReviewCredit(
 		Source: services.SourceRef{
 			RewardKind: services.RewardKindReview,
 			Type:       "review_decision",
-			Key:        key.StableKey,
+			Key:        phase107ReviewPointSourceKey(key.SourceType, key.StableKey),
 			Slot:       string(key.Slot),
 		},
 		Rule:        services.RuleRef{Code: "review.decision", Version: 1},
@@ -256,9 +397,11 @@ func runPhase107ReviewCreditTx(
 func insertPhase107CreditDecision(
 	t *testing.T,
 	pool *pgxpool.Pool,
+	sourceType string,
 	stableKey string,
 	revision int64,
 	decision repository.ReviewDecision,
+	reviewer phase107CreditReviewer,
 ) int64 {
 	t.Helper()
 	var category *repository.ReviewRejectionCategory
@@ -269,15 +412,15 @@ func insertPhase107CreditDecision(
 	row, err := repository.NewReviewDecisionRepository(pool).InsertDecision(
 		context.Background(),
 		repository.ReviewDecisionInput{
-			SourceType:        "release_version_note",
+			SourceType:        sourceType,
 			StableKey:         stableKey,
 			SourceRevision:    revision,
 			ReviewKind:        repository.ReviewKindText,
 			Decision:          decision,
 			RejectionCategory: category,
 			FansubGroupID:     21,
-			ReviewerAppUserID: 11,
-			ReviewerMemberID:  phase107CreditInt64Ptr(101),
+			ReviewerAppUserID: reviewer.appUserID,
+			ReviewerMemberID:  phase107CreditInt64Ptr(reviewer.memberID),
 			DecidedAt:         time.Date(2026, 7, 23, 14, 44, 0, 123456789, time.UTC),
 		},
 	)
@@ -303,7 +446,7 @@ func assertPhase107CreditCounts(
 		WHERE source_type = 'review_decision'
 		  AND source_key = $1
 		  AND entry_kind = 'award'
-	`, key.StableKey).Scan(&ledgerCount))
+	`, phase107ReviewPointSourceKey(key.SourceType, key.StableKey)).Scan(&ledgerCount))
 	assert.Equal(t, wantSlots, slotCount)
 	assert.Equal(t, wantLedgerEntries, ledgerCount)
 }
@@ -333,4 +476,10 @@ func openPhase107CreditPool(t *testing.T) *pgxpool.Pool {
 
 func phase107CreditInt64Ptr(value int64) *int64 {
 	return &value
+}
+
+func phase107ReviewPointSourceKey(sourceType, stableKey string) string {
+	return "source:" + fmt.Sprint(len([]byte(sourceType))) + ":" +
+		hex.EncodeToString([]byte(sourceType)) + ":key:" +
+		fmt.Sprint(len([]byte(stableKey))) + ":" + hex.EncodeToString([]byte(stableKey))
 }

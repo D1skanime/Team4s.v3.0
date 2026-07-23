@@ -2,6 +2,8 @@ package migrations
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -53,8 +55,11 @@ func TestPhase107MigrationUpContract(t *testing.T) {
 		"decision in ('confirm', 'reject')",
 		"phase106_trim_unicode_whitespace(rejection_category) <> ''",
 		"reviewer_member_id",
+		"review_decision_id bigint not null",
 		"point_ledger_entry_id",
 		"references point_ledger_entries(id)",
+		"create constraint trigger review_credit_slots_validate_contract",
+		"validate_review_credit_slot_contract",
 		"review.decision",
 		"platform_contribution",
 	)
@@ -296,18 +301,20 @@ DELETE FROM review_reason_texts WHERE audit_event_id = 1002 AND reason_kind = 'r
 func TestPhase107SourceGlobalCreditSlot(t *testing.T) {
 	pool := openPhase107MigratedPool(t)
 	seedPhase107ReviewFoundation(t, pool)
-	seedPhase107LedgerAward(t, pool, 1004, 2, "second-reviewer-award")
+	seedPhase107LedgerAward(t, pool, 1004, 2, 11, "fixture", "source-a", "confirm")
 
 	_, err := pool.Exec(context.Background(), `
 INSERT INTO review_credit_slots (
-    source_type, source_key, credit_slot, reviewer_member_id, point_ledger_entry_id
-) VALUES ('fixture', 'source-a', 'reject', 2, 1004)`)
+    source_type, source_key, credit_slot, reviewer_member_id,
+    review_decision_id, point_ledger_entry_id
+) VALUES ('fixture', 'source-a', 'reject', 2, 1005, 1004)`)
 	require.Error(t, err, "same source and slot must be globally unique across reviewers")
 
 	_, err = pool.Exec(context.Background(), `
 INSERT INTO review_credit_slots (
-    source_type, source_key, credit_slot, reviewer_member_id, point_ledger_entry_id
-) VALUES ('fixture', 'source-a', 'confirm', 2, 1004)`)
+    source_type, source_key, credit_slot, reviewer_member_id,
+    review_decision_id, point_ledger_entry_id
+) VALUES ('fixture', 'source-a', 'confirm', 2, 1005, 1004)`)
 	require.NoError(t, err, "reject and confirm are independent source-global slots")
 
 	var count int
@@ -362,7 +369,7 @@ func seedPhase107ReviewFoundation(t testing.TB, pool *pgxpool.Pool) phase107Fixt
 	t.Helper()
 	_, err := pool.Exec(context.Background(), `
 INSERT INTO members(id) VALUES (1), (2);
-INSERT INTO app_users(id, status) VALUES (10, 'active');
+INSERT INTO app_users(id, status) VALUES (10, 'active'), (11, 'active');
 INSERT INTO fansub_groups(id) VALUES (20);
 INSERT INTO fansub_group_members(id, fansub_group_id, app_user_id, member_id, status)
 VALUES (30, 20, 10, 1, 'active');
@@ -372,6 +379,10 @@ INSERT INTO review_decisions (
     id, source_type, source_key, source_revision, review_kind, decision, rejection_category,
     fansub_group_id, reviewer_app_user_id, reviewer_member_id, is_platform_override
 ) VALUES (1001, 'fixture', 'source-a', 1, 'text', 'reject', 'inhalt', 20, 10, 1, false);
+INSERT INTO review_decisions (
+    id, source_type, source_key, source_revision, review_kind, decision, rejection_category,
+    fansub_group_id, reviewer_app_user_id, reviewer_member_id, is_platform_override
+) VALUES (1005, 'fixture', 'source-a', 2, 'text', 'confirm', NULL, 20, 11, 2, false);
 INSERT INTO review_audit_events (
     id, event_code, review_decision_id, actor_kind, actor_app_user_id, actor_member_id,
     fansub_group_id, source_type, source_key, source_revision, decision,
@@ -383,28 +394,40 @@ INSERT INTO review_audit_events (
 INSERT INTO review_reason_texts (audit_event_id, reason_kind, reason_text)
 VALUES (1002, 'reject', 'Inhaltlich nicht ausreichend');`)
 	require.NoError(t, err)
-	seedPhase107LedgerAward(t, pool, 1003, 1, "first-reviewer-award")
+	seedPhase107LedgerAward(t, pool, 1003, 1, 10, "fixture", "source-a", "reject")
 	_, err = pool.Exec(context.Background(), `
 INSERT INTO review_credit_slots (
-    source_type, source_key, credit_slot, reviewer_member_id, point_ledger_entry_id
-) VALUES ('fixture', 'source-a', 'reject', 1, 1003)`)
+    source_type, source_key, credit_slot, reviewer_member_id,
+    review_decision_id, point_ledger_entry_id
+) VALUES ('fixture', 'source-a', 'reject', 1, 1001, 1003)`)
 	require.NoError(t, err)
 	return phase107Fixture{decisionID: 1001, auditID: 1002}
 }
 
-func seedPhase107LedgerAward(t testing.TB, pool *pgxpool.Pool, id, memberID int64, idempotencyKey string) {
+func seedPhase107LedgerAward(
+	t testing.TB,
+	pool *pgxpool.Pool,
+	id, memberID, actorAppUserID int64,
+	sourceType, stableKey, slot string,
+) {
 	t.Helper()
+	pointSourceKey := "source:" + fmt.Sprint(len([]byte(sourceType))) + ":" +
+		hex.EncodeToString([]byte(sourceType)) + ":key:" +
+		fmt.Sprint(len([]byte(stableKey))) + ":" + hex.EncodeToString([]byte(stableKey))
+	idempotencyKey := "v1|review|review_decision|" + pointSourceKey +
+		"|beneficiary:" + fmt.Sprint(memberID) + "|slot:" + slot
 	_, err := pool.Exec(context.Background(), `
 INSERT INTO point_ledger_entries (
-    id, member_id, source_type, source_key, rule_id, rule_code_snapshot,
+    id, member_id, actor_app_user_id, fansub_group_id,
+    source_type, source_key, rule_id, rule_code_snapshot,
     rule_version_snapshot, rule_category_snapshot, rule_point_value_snapshot,
     point_value, entry_kind, effective_at, idempotency_key
 )
-SELECT $1, $2, 'review', $3, id, rule_code, rule_version, category, point_value,
-       point_value, 'award', NOW(), $3
+SELECT $1, $2, $3, 20, 'review_decision', $4, id, rule_code,
+       rule_version, category, point_value, point_value, 'award', NOW(), $5
 FROM point_rules
 WHERE rule_code = 'review.decision' AND rule_version = 1`,
-		id, memberID, idempotencyKey)
+		id, memberID, actorAppUserID, pointSourceKey, idempotencyKey)
 	require.NoError(t, err)
 }
 
