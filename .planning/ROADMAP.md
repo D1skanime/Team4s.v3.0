@@ -2430,7 +2430,23 @@ Plans:
 
 Plans:
 
-- [x] TBD (run `/gsd-plan-phase 107 --research` to regenerate) (completed 2026-07-23)
+**Wave 1**
+
+- [x] 107-01-PLAN.md — Disposable PostgreSQL-Testharness und fail-first Sicherheitsverträge
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 107-02-PLAN.md — Additive Migration 0134 für Delegation, Entscheidungen, Audit und globale Review-Credit-Slots
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 107-03-PLAN.md — Typisierte Review-Capabilities und tx-gebundene Authz-Auflösung
+- [x] 107-04-PLAN.md — Tx-gebundene Delegations- und Audit-Repositories
+- [x] 107-05-PLAN.md — Atomare First-Decision-Wins- und quellenweite Review-Credit-Repositories
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 107-06-PLAN.md — Atomarer, domänenneutraler ReviewService mit Self-Review- und Punkte-Schutz
 
 ### Phase 107.1: Release-Prüfworkspace und Release-Beitragslebenszyklus (INSERTED)
 

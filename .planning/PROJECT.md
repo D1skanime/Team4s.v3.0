@@ -62,6 +62,8 @@ Phase 72 completed on 2026-06-05: migration 0097, GET-only domain/media ownershi
 
 Phase 106 completed on 2026-07-22: migration 0131, exakte versionierte Punktregeln, ein append-only/idempotentes Member-Punktebuch sowie transaktionsgebundene Repository- und Service-Pfade bilden das verifizierte Gamification-Fundament.
 
+Phase 107 completed on 2026-07-23: typisierte Review-Delegationen, atomare First-Decision-Wins-Entscheidungen, unveränderliches Audit mit separat bereinigbaren Begründungen, Self-Review-Schutz und quellenweit begrenzte Review-Credits bilden das verifizierte domänenneutrale Prüffundament. Konkrete Release-Texte, Release-Version-Medien und die Prüfoberfläche folgen in Phase 107.1.
+
 ## Current Milestone: v1.1 Asset Lifecycle Hardening
 
 **Goal:** Make admin-managed media lifecycle behavior generic, idempotent, and operator-safe instead of relying on cover-specific seams.
@@ -98,4 +100,4 @@ Phase 106 completed on 2026-07-22: migration 0131, exakte versionierte Punktrege
 | Make asset lifecycle behavior generic before adding more upload surfaces | Prevents banner/logo/background/video work from becoming a pile of slot-specific exceptions | Pending |
 
 ---
-*Last updated: 2026-07-22 after Phase 106 member gamification foundation completion*
+*Last updated: 2026-07-23 after Phase 107 review and delegation foundation completion*
