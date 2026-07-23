@@ -1,7 +1,7 @@
 # Phase 107: Bestätigung, Delegation und Ablehnungslebenszyklus – Pattern Map
 
-**Mapped:** 2026-07-23  
-**Files analyzed:** 22 wahrscheinliche neue/geänderte Dateien  
+**Mapped:** 2026-07-23
+**Files analyzed:** 22 wahrscheinliche neue/geänderte Dateien
 **Analogs found:** 22 / 22
 
 ## Scope-Hinweis
@@ -444,6 +444,6 @@ Keine Datei ist völlig ohne Analog. Es gibt jedoch **kein** bestehendes korrekt
 
 ## Metadata
 
-**Analog search scope:** `backend/internal/{handlers,services,repository,permissions}`, `database/migrations`, `frontend/src/app/admin/fansubs/[id]/edit`, `frontend/src/lib`, `frontend/src/types`, `shared/contracts`  
-**Starke Analoga vollständig/gezielt gelesen:** 8 Dateien plus bestehende Tests und Vertrags-/Projektregeln  
+**Analog search scope:** `backend/internal/{handlers,services,repository,permissions}`, `database/migrations`, `frontend/src/app/admin/fansubs/[id]/edit`, `frontend/src/lib`, `frontend/src/types`, `shared/contracts`
+**Starke Analoga vollständig/gezielt gelesen:** 8 Dateien plus bestehende Tests und Vertrags-/Projektregeln
 **Pattern extraction date:** 2026-07-23
