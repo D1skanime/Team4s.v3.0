@@ -2426,7 +2426,7 @@ Plans:
   5. Prüfpunkte werden über den PointService aus Phase 106 gebucht: je konkretem Beitrag höchstens einmal für eine Ablehnung und einmal für eine spätere Bestätigung, niemals für denselben Entscheidungsschritt doppelt und niemals für Plattform-Admin-Overrides.
   6. Der Kern stellt schmale Domain-Adapter-Verträge für spätere Quellen bereit und beweist Autorisierung, Self-Review-Schutz, Parallelität, Idempotenz und Punktelimits automatisiert; Release-Quellen und UI bleiben Phase 107.1.
 
-**Plans:** 0 plans
+**Plans:** 1/6 plans executed
 
 Plans:
 
