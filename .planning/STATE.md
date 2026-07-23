@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 107.1-05-PLAN.md
-last_updated: "2026-07-23T20:35:36.917Z"
+stopped_at: Completed 107.1-06-PLAN.md
+last_updated: "2026-07-23T21:07:52.030Z"
 last_activity: 2026-07-23
 progress:
   total_phases: 103
   completed_phases: 82
   total_plans: 449
-  completed_plans: 419
+  completed_plans: 420
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 
 ## Accumulated Context
 
@@ -363,6 +363,9 @@ Recent durable decisions:
 - [Phase 107.1]: Logischer Tombstone und Content-/Reason-Scrub committen vor jeder Dateisystemarbeit; physische Fehler verbleiben als idempotente Retry-Jobs. — Datenschutz-Cleanup darf nicht durch Storage-Ausfälle zurückgerollt oder nach einem Prozessabbruch verloren werden.
 - [Phase 107.1]: Finale Medienreferenzen werden vor jedem Löschversuch aus allen tatsächlichen Fremdschlüsseln auf media_assets ermittelt. — Die Prüfung bleibt vollständig, ohne release_media oder eine andere Domain-Seam als Ersatz zu verwenden.
 - [Phase 107.1]: Release-Review-Cleanup verwendet die bestehende Managed-Storage-Seam und sperrt Produktions-Badge-Pfade explizit. — Pfadvalidierung bleibt zentral und getrackte Badge-Assets können nicht als Upload-Daten entfernt werden.
+- [Phase 107.1]: Der frühere URL-Wert vorschlaege wird ausschließlich auf den einzigen sichtbaren Tab pruefungen normalisiert; es entsteht keine zweite Leader-Route.
+- [Phase 107.1]: Queue- und Detail-Requests werden abgebrochen und zusätzlich über eine Sequenz geschützt, damit Filterwechsel niemals alte Daten anhängen.
+- [Phase 107.1]: Dynamische Review-Medien verwenden einen protokoll- und pfadvalidierten nativen Bild-/Origin-Link, weil ihre Laufzeit-URLs nicht in eine statische Next-Image-Allowlist passen.
 
 ### Pending Todos
 
@@ -633,6 +636,7 @@ Recent durable decisions:
 | Phase 107.1 P03 | 29min | 2 tasks | 9 files |
 | Phase 107.1 P04 | 15min | 2 tasks | 10 files |
 | Phase 107.1 P05 | 18min | 2 tasks | 6 files |
+| Phase 107.1 P06 | 25min | 2 tasks | 16 files |
 
 ### Quick Tasks Completed
 
@@ -714,7 +718,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T20:35:36.868Z
-Stopped at: Completed 107.1-05-PLAN.md
+Last session: 2026-07-23T21:07:51.961Z
+Stopped at: Completed 107.1-06-PLAN.md
 Last activity: 2026-07-23
 Resume file: None
