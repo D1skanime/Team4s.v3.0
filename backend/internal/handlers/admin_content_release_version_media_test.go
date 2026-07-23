@@ -699,3 +699,14 @@ func TestReleaseVersionMedia_HandlerUsesContributorGroupMutationGuard(t *testing
 	assert.Contains(t, content, "items[i].CanUpdate = canUpdate")
 	assert.Contains(t, content, "items[i].CanDelete = canDelete")
 }
+
+func TestReleaseVersionMedia_UploadReturnsAuthoritativeSourceRevision(t *testing.T) {
+	src, err := os.ReadFile("admin_content_release_version_media.go")
+	require.NoError(t, err)
+	content := string(src)
+
+	assert.Contains(t, content, "SourceRevision        *int64")
+	assert.Contains(t, content, `json:"source_revision,omitempty"`)
+	assert.Contains(t, content, "lifecycle, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia")
+	assert.Contains(t, content, "SourceRevision:        &lifecycle.SourceRevision")
+}

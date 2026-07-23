@@ -59,6 +59,19 @@ func TestReleaseVersionMediaTypes(t *testing.T) {
 	assert.Equal(t, "/media/release-version/2/uuid/thumb.jpg", item.ThumbnailURL)
 }
 
+func TestReleaseVersionMedia_ListIncludesOwnReviewLifecycle(t *testing.T) {
+	repoSrc, err := os.ReadFile("release_version_media_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.Contains(t, content, "release_version_media_review_lifecycle")
+	assert.Contains(t, content, "lifecycle.source_revision")
+	assert.Contains(t, content, "lifecycle.review_state")
+	assert.Contains(t, content, "lifecycle.last_activity_at")
+	assert.Contains(t, content, "decision.source_revision = lifecycle.source_revision")
+	assert.Contains(t, content, "reason.reason_kind = 'reject'")
+}
+
 // TestMediaRepositoryMethodSignatures verifies that all required methods
 // exist on *MediaRepository with the expected receiver.
 // If any method is missing, this test will fail to compile.

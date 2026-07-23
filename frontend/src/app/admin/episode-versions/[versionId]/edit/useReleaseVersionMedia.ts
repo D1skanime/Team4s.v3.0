@@ -30,9 +30,6 @@ interface UploadConfig {
   category: ReleaseVersionMediaCategory
   defaultCaption?: string
   isPreviewCandidate?: boolean
-  visibilityCode?: string
-  reviewStatusCode?: string
-  fansubGroupId?: number
 }
 
 export interface UseReleaseVersionMediaResult {
@@ -46,9 +43,6 @@ export interface UseReleaseVersionMediaResult {
     files: File[],
     defaultCaption?: string,
     isPreviewCandidate?: boolean,
-    visibilityCode?: string,
-    reviewStatusCode?: string,
-    fansubGroupId?: number,
   ) => Promise<void>
   retryUpload: (fileIndex: number) => Promise<void>
   clearUploadQueue: () => void
@@ -113,7 +107,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
   }, [])
 
   const patchUploadedItem = useCallback(
-    async (mediaId: number, config: UploadConfig) => {
+    async (mediaId: number, sourceRevision: number | undefined, config: UploadConfig) => {
       const patch: ReleaseVersionMediaPatchRequest = {}
       const trimmedCaption = config.defaultCaption?.trim()
 
@@ -123,7 +117,10 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
       if (config.isPreviewCandidate) {
         patch.is_preview_candidate = true
       }
-      if (Object.keys(patch).length === 0 || versionId === null) {
+      if (sourceRevision != null) {
+        patch.source_revision = sourceRevision
+      }
+      if (Object.keys(patch).every((key) => key === 'source_revision') || versionId === null) {
         return
       }
 
@@ -159,9 +156,6 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
           versionId,
           category: config.category,
           files,
-          visibilityCode: config.visibilityCode,
-          reviewStatusCode: config.reviewStatusCode,
-          fansubGroupId: config.fansubGroupId,
           onProgress: (_fileIndex, percent) => {
             setUploadItems((current) =>
               current.map((item, index) =>
@@ -192,7 +186,7 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
 
           if (result.status === 'ready' && typeof result.release_version_media_id === 'number') {
             try {
-              await patchUploadedItem(result.release_version_media_id, config)
+              await patchUploadedItem(result.release_version_media_id, result.source_revision, config)
               shouldReload = true
               setUploadItems((current) =>
                 current.map((item, index) =>
@@ -273,15 +267,12 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
       files: File[],
       defaultCaption?: string,
       isPreviewCandidate?: boolean,
-      visibilityCode?: string,
-      reviewStatusCode?: string,
-      fansubGroupId?: number,
     ) => {
       if (files.length === 0) {
         return
       }
 
-      const config: UploadConfig = { category, defaultCaption, isPreviewCandidate, visibilityCode, reviewStatusCode, fansubGroupId }
+      const config: UploadConfig = { category, defaultCaption, isPreviewCandidate }
       const initialQueue = files.map<UploadQueueItem>((file) => ({
         file,
         status: 'idle',
@@ -325,7 +316,11 @@ export function useReleaseVersionMedia(versionId: number | null): UseReleaseVers
 
       setPatchError(null)
       try {
-        const updated = await patchReleaseVersionMediaItem(versionId, mediaId, patch)
+        const currentItem = itemsRef.current.find((item) => item.id === mediaId)
+        const revisionBoundPatch = currentItem?.source_revision != null
+          ? { ...patch, source_revision: currentItem.source_revision }
+          : patch
+        const updated = await patchReleaseVersionMediaItem(versionId, mediaId, revisionBoundPatch)
         setItems((current) => {
           const next = current.map((item) => {
             if (item.id === mediaId) return updated

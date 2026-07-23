@@ -110,3 +110,16 @@ func TestReleaseVersionNotesRepository_GroupScopedEditResolversExist(t *testing.
 	assert.Contains(t, content, "JOIN anime_contribution_roles acr")
 	assert.Contains(t, content, "SELECT fansub_group_id FROM release_version_groups")
 }
+
+func TestReleaseVersionNotesRepository_ListIncludesOwnReviewLifecycle(t *testing.T) {
+	repoSrc, err := os.ReadFile("release_version_notes_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.Contains(t, content, "release_version_note_review_lifecycle")
+	assert.Contains(t, content, "lifecycle.source_revision")
+	assert.Contains(t, content, "lifecycle.review_state")
+	assert.Contains(t, content, "lifecycle.last_activity_at")
+	assert.Contains(t, content, "decision.source_revision = lifecycle.source_revision")
+	assert.Contains(t, content, "reason.reason_kind = 'reject'")
+}

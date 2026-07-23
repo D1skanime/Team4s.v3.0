@@ -6897,10 +6897,6 @@ export interface UploadReleaseVersionMediaOptions {
   category: ReleaseVersionMediaCategory;
   files: File[];
   onProgress?: (fileIndex: number, percent: number) => void;
-  authToken?: string;
-  visibilityCode?: string;
-  reviewStatusCode?: string;
-  fansubGroupId?: number;
 }
 
 export async function uploadReleaseVersionMedia(
@@ -6921,12 +6917,9 @@ export async function uploadReleaseVersionMedia(
     buildBody: () => {
       const body = new FormData();
       body.set("category", options.category);
-      if (options.fansubGroupId) body.set("fansub_group_id", String(options.fansubGroupId));
       for (const file of options.files) {
         body.append("files[]", file);
       }
-      if (options.visibilityCode) body.set("visibility_code", options.visibilityCode);
-      if (options.reviewStatusCode) body.set("review_status_code", options.reviewStatusCode);
       return body;
     },
   });
@@ -7663,6 +7656,11 @@ type RawReleaseVersionNote = {
   CreatedAt: string;
   UpdatedAt: string | null;
   DeletedAt: string | null;
+  SourceRevision?: number | null;
+  ReviewState?: "pending" | "confirmed" | "rejected" | "tombstoned" | null;
+  LastActivityAt?: string | null;
+  RejectionCategory?: ReleaseVersionNote["rejectionCategory"];
+  RejectionReason?: string | null;
 };
 
 type RawMemberRoleForVersion = {
@@ -7723,6 +7721,11 @@ function mapReleaseVersionNote(raw: RawReleaseVersionNote): ReleaseVersionNote {
     createdAt: raw.CreatedAt,
     updatedAt: raw.UpdatedAt,
     deletedAt: raw.DeletedAt,
+    sourceRevision: raw.SourceRevision ?? null,
+    reviewState: raw.ReviewState ?? null,
+    lastActivityAt: raw.LastActivityAt ?? null,
+    rejectionCategory: raw.RejectionCategory ?? null,
+    rejectionReason: raw.RejectionReason ?? null,
   };
 }
 
@@ -7809,14 +7812,12 @@ export async function bulkUpsertReleaseVersionNotes(
   const payload = {
     notes: data.notes.map((note) => ({
       id: note.id,
-      member_id: note.memberId,
-      role_id: note.roleId,
+      ...(note.sourceRevision != null
+        ? { source_revision: note.sourceRevision }
+        : {}),
       role_code: note.roleCode,
-      fansub_group_id: note.fansubGroupId ?? null,
       title: note.title ?? null,
       body_json: note.bodyJson,
-      visibility: note.visibility,
-      status: note.status,
       sort_order: note.sortOrder ?? 0,
     })),
   };

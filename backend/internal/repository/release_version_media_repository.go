@@ -66,6 +66,11 @@ type ReleaseVersionMediaItem struct {
 	CanDelete          bool       `json:"can_delete"`
 	CreatedAt          time.Time  `json:"created_at"`
 	UpdatedAt          *time.Time `json:"updated_at,omitempty"`
+	SourceRevision     *int64     `json:"source_revision,omitempty"`
+	ReviewState        *string    `json:"review_state,omitempty"`
+	LastActivityAt     *time.Time `json:"last_activity_at,omitempty"`
+	RejectionCategory  *string    `json:"rejection_category,omitempty"`
+	RejectionReason    *string    `json:"rejection_reason,omitempty"`
 	OriginalFilePath   string     `json:"-"` // storage path of the original file (from media_files JOIN)
 	ThumbFilePath      string     `json:"-"` // storage path of the thumb file (from media_files JOIN)
 	// Populated by handler from OriginalFilePath / ThumbFilePath:
@@ -218,12 +223,36 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			rs.code,
 			rvm.created_at,
 			rvm.updated_at,
+			lifecycle.source_revision,
+			lifecycle.review_state,
+			lifecycle.last_activity_at,
+			rejection.rejection_category,
+			rejection.rejection_reason,
 			COALESCE(mf_orig.path, ''),
 			COALESCE(mf_thumb.path, '')
 		FROM release_version_media rvm
 		LEFT JOIN media_assets ma ON ma.id = rvm.media_asset_id
 		LEFT JOIN visibilities v ON v.id = ma.visibility_id
 		LEFT JOIN review_statuses rs ON rs.id = ma.review_status_id
+		LEFT JOIN release_version_media_review_lifecycle lifecycle
+		  ON lifecycle.release_version_media_id = rvm.id
+		LEFT JOIN LATERAL (
+			SELECT decision.rejection_category,
+			       reason.reason_text AS rejection_reason
+			FROM review_decisions decision
+			LEFT JOIN review_audit_events audit
+			  ON audit.review_decision_id = decision.id
+			 AND audit.event_code = 'review.rejected'
+			LEFT JOIN review_reason_texts reason
+			  ON reason.audit_event_id = audit.id
+			 AND reason.reason_kind = 'reject'
+			WHERE decision.source_type = 'release_version_media'
+			  AND decision.source_key = rvm.id::text
+			  AND decision.source_revision = lifecycle.source_revision
+			  AND decision.decision = 'reject'
+			ORDER BY decision.id DESC
+			LIMIT 1
+		) rejection ON true
 		LEFT JOIN media_files mf_orig  ON mf_orig.media_id  = rvm.media_asset_id AND mf_orig.variant  = 'original'
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb'
 		WHERE rvm.release_version_id = $1
@@ -246,6 +275,8 @@ func (r *MediaRepository) ListReleaseVersionMedia(
 			&item.IsPreviewCandidate, &item.UploadedByUserID,
 			&visibilityName, &reviewStatusCode,
 			&item.CreatedAt, &item.UpdatedAt,
+			&item.SourceRevision, &item.ReviewState, &item.LastActivityAt,
+			&item.RejectionCategory, &item.RejectionReason,
 			&item.OriginalFilePath, &item.ThumbFilePath,
 		); err != nil {
 			return nil, fmt.Errorf("scan release_version_media row: %w", err)

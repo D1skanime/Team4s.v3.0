@@ -68,6 +68,7 @@ type rvmFileResult struct {
 	Status                string `json:"status"` // "ready" or "failed"
 	MediaAssetID          *int64 `json:"media_asset_id,omitempty"`
 	ReleaseVersionMediaID *int64 `json:"release_version_media_id,omitempty"`
+	SourceRevision        *int64 `json:"source_revision,omitempty"`
 	ThumbnailURL          string `json:"thumbnail_url,omitempty"`
 	ErrorCode             string `json:"error_code,omitempty"`
 	Message               string `json:"message,omitempty"`
@@ -480,14 +481,15 @@ func (h *AdminContentHandler) processOneRVMFile(
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
 			ErrorCode: "DB_FAILED", Message: "release version media konnte nicht erstellt werden"}
 	}
-	if _, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
+	lifecycle, err := repository.NewReleaseReviewLifecycleRepository(tx).SubmitMedia(
 		ctx,
 		repository.ReleaseReviewSubmissionInput{
 			SourceID:       relationID,
 			ActorAppUserID: actorAppUserID,
 			LastActivityAt: time.Now().UTC(),
 		},
-	); err != nil {
+	)
+	if err != nil {
 		_ = removeFileQuietly(originalPath)
 		_ = removeFileQuietly(thumbPath)
 		return rvmFileResult{ClientFileName: clientName, Status: "failed",
@@ -522,6 +524,7 @@ func (h *AdminContentHandler) processOneRVMFile(
 		Status:                "ready",
 		MediaAssetID:          &mediaAsset.ID,
 		ReleaseVersionMediaID: &relationID,
+		SourceRevision:        &lifecycle.SourceRevision,
 		ThumbnailURL:          thumbURL,
 	}
 }

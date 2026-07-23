@@ -423,6 +423,60 @@ endpoints:
       status: 200
       type: AdminReleaseResponse
 
+  - name: admin-release-version-notes-list
+    method: GET
+    path: /api/v1/admin/release-versions/:versionId/notes
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: ReleaseVersionNoteListResponse
+
+  - name: admin-release-version-notes-upsert
+    method: POST
+    path: /api/v1/admin/release-versions/:versionId/notes
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: BulkUpsertReleaseVersionNotesRequest
+    response:
+      status: 200
+      type: ReleaseVersionNoteListResponse
+
+  - name: admin-release-version-notes-delete
+    method: DELETE
+    path: /api/v1/admin/release-versions/:versionId/notes/:noteId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+      - name: noteId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: StatusResponse
+
   - name: admin-release-version-media-list
     method: GET
     path: /api/v1/admin/release-versions/:versionId/media
@@ -1083,6 +1137,43 @@ types:
   EffectiveContributionsResponse:
     data: EffectiveContributionRow[]
     meta: EffectiveContributionsMeta
+  ReleaseVersionNote:
+    ID: int64
+    ReleaseVersionID: int64
+    FansubGroupID: int64 | null
+    MemberID: int64
+    RoleID: int64
+    Title: string | null
+    BodyMarkdown: string | null
+    BodyHTML: string
+    BodyJSON: object | string | null
+    BodyText: string
+    EditorType: string
+    ContentSchemaVersion: int32
+    Visibility: public | internal
+    Status: draft | published | archived | deleted
+    SortOrder: int32
+    CreatedByUserID: int64 | null
+    UpdatedByUserID: int64 | null
+    CreatedAt: timestamp
+    UpdatedAt: timestamp | null
+    DeletedAt: timestamp | null
+    SourceRevision: int64 | null
+    ReviewState: pending | confirmed | rejected | tombstoned | null
+    LastActivityAt: timestamp | null
+    RejectionCategory: content.incorrect | release_context.wrong | quality.insufficient | rights.unclear | other | null
+    RejectionReason: string | null
+  ReleaseVersionNoteListResponse:
+    data: ReleaseVersionNote[]
+  BulkReleaseVersionNoteInput:
+    id: "int64 (minimum: 0; 0 creates, positive resubmits the same ID)"
+    source_revision: "int64 (optional, minimum: 1)"
+    role_code: string
+    title: string | null
+    body_json: object | null
+    sort_order: int32 (optional)
+  BulkUpsertReleaseVersionNotesRequest:
+    notes: BulkReleaseVersionNoteInput[]
   ReleaseVersionMediaCategory:
     enum: screenshot | typesetting_karaoke | fun_outtake | other
   ReleaseVersionMediaItem:
@@ -1094,8 +1185,13 @@ types:
     caption: string | null
     sort_order: int32
     is_preview_candidate: boolean
-    visibility: string | null (optional, enum: intern | oeffentlich)
-    review_status: string | null (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)
+    visibility: "string | null (optional, enum: intern | oeffentlich)"
+    review_status: "string | null (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)"
+    source_revision: int64 | null
+    review_state: "string | null (enum: pending | confirmed | rejected | tombstoned)"
+    last_activity_at: timestamp | null
+    rejection_category: "string | null (enum: content.incorrect | release_context.wrong | quality.insufficient | rights.unclear | other)"
+    rejection_reason: string | null
     uploaded_by_user_id: int64 | null
     can_update: boolean
     can_delete: boolean
@@ -1112,14 +1208,16 @@ types:
     status: ready | failed
     media_asset_id: int64 (optional)
     release_version_media_id: int64 (optional)
+    source_revision: "int64 (optional, minimum: 1)"
     thumbnail_url: string (optional)
     error_code: string (optional)
     message: string (optional)
   ReleaseVersionMediaPatchRequest:
     caption: string | null
     is_preview_candidate: boolean (optional)
-    visibility: string (optional, enum: intern | oeffentlich)
-    review_status: string (optional, enum: in_pruefung | freigegeben | abgelehnt | archiviert | entfernt)
+    source_revision: "int64 (optional, minimum: 1)"
+    visibility: string (deprecated, leader-only; submitter flows must not send)
+    review_status: string (deprecated, leader-only; submitter flows must not send)
   StatusResponse:
     status: string
   AnimeContribution:

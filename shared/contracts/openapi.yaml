@@ -5810,6 +5810,138 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/notes:
+    get:
+      tags: [Admin]
+      summary: List release-version notes visible to the current contributor capability
+      operationId: listReleaseVersionNotes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Server-filtered release-version note lifecycle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseVersionNoteListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Release-version note permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Admin]
+      summary: Create or resubmit own release-version notes
+      operationId: bulkUpsertReleaseVersionNotes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUpsertReleaseVersionNotesRequest"
+      responses:
+        "200":
+          description: Authoritative own note lifecycle after submission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseVersionNoteListResponse"
+        "400":
+          description: Invalid note content or contributor context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Contributor permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The supplied source revision is stale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/notes/{noteId}:
+    delete:
+      tags: [Admin]
+      summary: Delete an own release-version note
+      operationId: deleteReleaseVersionNote
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Note deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Contributor permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Note not found in this release version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/release-versions/{versionId}/media:
     get:
       tags: [Admin]
@@ -5883,11 +6015,6 @@ paths:
               properties:
                 category:
                   $ref: "#/components/schemas/ReleaseVersionMediaCategory"
-                fansub_group_id:
-                  type: integer
-                  format: int64
-                  minimum: 1
-                  description: Real participating source group; required when more than one group is possible.
                 caption:
                   type: string
                   nullable: true
@@ -5901,14 +6028,6 @@ paths:
                   items:
                     type: string
                     format: binary
-                visibility_code:
-                  type: string
-                  nullable: true
-                  description: "Sichtbarkeits-Code (z.B. 'public', 'private'). Backend setzt Default 'private' wenn leer."
-                review_status_code:
-                  type: string
-                  nullable: true
-                  description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default 'in_review' wenn leer."
             encoding:
               files:
                 contentType: image/jpeg, image/png, image/webp, image/gif
@@ -11802,6 +11921,144 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/AdminFansubReleaseSummary"
+    ReleaseVersionNote:
+      type: object
+      required:
+        - ID
+        - ReleaseVersionID
+        - MemberID
+        - RoleID
+        - BodyHTML
+        - BodyJSON
+        - BodyText
+        - EditorType
+        - ContentSchemaVersion
+        - Visibility
+        - Status
+        - SortOrder
+        - CreatedAt
+      properties:
+        ID:
+          type: integer
+          format: int64
+        ReleaseVersionID:
+          type: integer
+          format: int64
+        FansubGroupID:
+          type: integer
+          format: int64
+          nullable: true
+          description: Server-resolved source group.
+        MemberID:
+          type: integer
+          format: int64
+        RoleID:
+          type: integer
+          format: int64
+        Title:
+          type: string
+          nullable: true
+        BodyMarkdown:
+          type: string
+          nullable: true
+        BodyHTML:
+          type: string
+        BodyJSON:
+          nullable: true
+        BodyText:
+          type: string
+        EditorType:
+          type: string
+        ContentSchemaVersion:
+          type: integer
+        Visibility:
+          type: string
+          enum: [public, internal]
+        Status:
+          type: string
+          enum: [draft, published, archived, deleted]
+        SortOrder:
+          type: integer
+        CreatedByUserID:
+          type: integer
+          format: int64
+          nullable: true
+        UpdatedByUserID:
+          type: integer
+          format: int64
+          nullable: true
+        CreatedAt:
+          type: string
+          format: date-time
+        UpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        DeletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        SourceRevision:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        ReviewState:
+          type: string
+          nullable: true
+          enum: [pending, confirmed, rejected, tombstoned]
+        LastActivityAt:
+          type: string
+          format: date-time
+          nullable: true
+        RejectionCategory:
+          type: string
+          nullable: true
+          enum: [content.incorrect, release_context.wrong, quality.insufficient, rights.unclear, other]
+        RejectionReason:
+          type: string
+          nullable: true
+    ReleaseVersionNoteListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReleaseVersionNote"
+    BulkReleaseVersionNoteInput:
+      type: object
+      required: [id, role_code, body_json]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Zero creates a note; a positive ID resubmits the same note identity.
+        source_revision:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Expected current server revision when resubmitting an existing note.
+        role_code:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          nullable: true
+        body_json:
+          nullable: true
+        sort_order:
+          type: integer
+          default: 0
+    BulkUpsertReleaseVersionNotesRequest:
+      type: object
+      required: [notes]
+      properties:
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkReleaseVersionNoteInput"
     ReleaseVersionMediaCategory:
       type: string
       enum: [screenshot, typesetting_karaoke, fun_outtake, other]
@@ -11855,6 +12112,27 @@ components:
           type: string
           nullable: true
           enum: [in_pruefung, freigegeben, abgelehnt, archiviert, entfernt]
+        source_revision:
+          type: integer
+          format: int64
+          nullable: true
+          minimum: 1
+          description: Current server-owned review revision for same-ID resubmission.
+        review_state:
+          type: string
+          nullable: true
+          enum: [pending, confirmed, rejected, tombstoned]
+        last_activity_at:
+          type: string
+          format: date-time
+          nullable: true
+        rejection_category:
+          type: string
+          nullable: true
+          enum: [content.incorrect, release_context.wrong, quality.insufficient, rights.unclear, other]
+        rejection_reason:
+          type: string
+          nullable: true
         uploaded_by_user_id:
           type: integer
           format: int64
@@ -11907,6 +12185,10 @@ components:
         release_version_media_id:
           type: integer
           format: int64
+        source_revision:
+          type: integer
+          format: int64
+          minimum: 1
         thumbnail_url:
           type: string
         error_code:
@@ -11930,12 +12212,21 @@ components:
           nullable: true
         is_preview_candidate:
           type: boolean
+        source_revision:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Expected current revision for optimistic same-ID resubmission.
         visibility:
           type: string
+          deprecated: true
           enum: [intern, oeffentlich]
+          description: Legacy leader-only media metadata; submitter flows must not send it.
         review_status:
           type: string
+          deprecated: true
           enum: [in_pruefung, freigegeben, abgelehnt, archiviert, entfernt]
+          description: Legacy leader-only media metadata; submitter flows must not send it.
     ReleaseVersionMediaReorderItem:
       type: object
       required: [id, sort_order]

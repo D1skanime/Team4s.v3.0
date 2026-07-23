@@ -43,8 +43,23 @@ export interface ReleaseVersionMediaItem {
   can_update?: boolean
   can_delete?: boolean
   created_at: string
+  updated_at?: string | null
   deleted_at: string | null
+  source_revision?: number | null
+  review_state?: ReleaseVersionReviewState | null
+  last_activity_at?: string | null
+  rejection_category?: ReleaseReviewRejectionCategory | null
+  rejection_reason?: string | null
 }
+
+export type ReleaseVersionReviewState = 'pending' | 'confirmed' | 'rejected' | 'tombstoned'
+
+export type ReleaseReviewRejectionCategory =
+  | 'content.incorrect'
+  | 'release_context.wrong'
+  | 'quality.insufficient'
+  | 'rights.unclear'
+  | 'other'
 
 export interface ReleaseVersionMediaListResponse {
   data: ReleaseVersionMediaItem[]
@@ -56,6 +71,7 @@ export interface ReleaseVersionMediaUploadResult {
   status: 'ready' | 'processing' | 'failed'
   media_asset_id?: number
   release_version_media_id?: number
+  source_revision?: number
   thumbnail_url?: string | null
   error_code?: string
 }
@@ -77,9 +93,11 @@ export interface ReleaseVersionMediaPatchRequest {
   caption?: string | null
   sort_order?: number
   is_preview_candidate?: boolean
-  /** Optionale Sichtbarkeit (Phase 78, D-05/Lock K). Nur senden wenn explizit geändert. */
+  /** Erwartete Lifecycle-Revision für revisionssichere Änderungen/Neueinreichungen. */
+  source_revision?: number
+  /** @deprecated Nur für den bestehenden Leader-Metadatenpfad; Submitter senden dieses Feld nicht. */
   visibility?: ReleaseVersionMediaVisibility
-  /** Optionaler Prüfstatus (Phase 78, D-05/Lock K). Nur senden wenn explizit geändert. */
+  /** @deprecated Nur für den bestehenden Leader-Metadatenpfad; Submitter senden dieses Feld nicht. */
   review_status?: ReleaseVersionMediaReviewStatus
 }
 

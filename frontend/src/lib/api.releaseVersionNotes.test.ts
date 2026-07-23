@@ -38,6 +38,7 @@ describe('release version notes api mapping', () => {
         roleCode: 'editor',
         roleName: 'editor',
         roleLabel: 'Editing',
+        canEdit: true,
       },
     ])
   })
@@ -67,14 +68,23 @@ describe('release version notes api mapping', () => {
           CreatedAt: '2026-05-12T00:00:00Z',
           UpdatedAt: null,
           DeletedAt: null,
+          SourceRevision: 2,
+          ReviewState: 'rejected',
+          LastActivityAt: '2026-07-23T18:00:00Z',
+          RejectionCategory: 'quality.insufficient',
+          RejectionReason: 'Bitte die Terminologie prüfen.',
         },
       ],
     }
 
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify(payload), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }))
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      void input
+      void init
+      return new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(listReleaseVersionNotes(62)).resolves.toMatchObject([
@@ -86,19 +96,18 @@ describe('release version notes api mapping', () => {
         bodyJson: tiptapDoc,
         bodyHtml: '<p>Hallo</p>',
         bodyText: 'Hallo',
+        sourceRevision: 2,
+        reviewState: 'rejected',
+        rejectionCategory: 'quality.insufficient',
       },
     ])
 
     await expect(bulkUpsertReleaseVersionNotes(62, {
       notes: [{
         id: 0,
-        memberId: 1,
-        roleId: 8,
         roleCode: 'editor',
         title: null,
         bodyJson: { type: 'doc', content: [{ type: 'paragraph' }] },
-        visibility: 'internal',
-        status: 'draft',
         sortOrder: 0,
       }],
     })).resolves.toMatchObject([
@@ -112,5 +121,14 @@ describe('release version notes api mapping', () => {
     ])
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
+      notes: [{
+        id: 0,
+        role_code: 'editor',
+        title: null,
+        body_json: { type: 'doc', content: [{ type: 'paragraph' }] },
+        sort_order: 0,
+      }],
+    })
   })
 })

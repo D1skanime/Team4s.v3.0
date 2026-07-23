@@ -169,7 +169,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Upload starten' }))
 
     await waitFor(() => {
-      expect(startUpload).toHaveBeenCalledWith('screenshot', [file], '', false, undefined, undefined)
+      expect(startUpload).toHaveBeenCalledWith('screenshot', [file], '', false)
     })
     expect((await screen.findByRole('status')).textContent).toContain('Upload abgeschlossen.')
   })
@@ -221,7 +221,7 @@ describe('ReleaseVersionMediaSection Phase 90 upload redesign', () => {
         review_state: 'pending',
         source_revision: 1,
         last_activity_at: '2026-07-23T18:30:00Z',
-      }),
+      })],
     }))
 
     expect(screen.getByText('In Prüfung')).not.toBeNull()

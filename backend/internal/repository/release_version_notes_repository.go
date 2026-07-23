@@ -32,6 +32,11 @@ type ReleaseVersionNote struct {
 	CreatedAt            time.Time
 	UpdatedAt            *time.Time
 	DeletedAt            *time.Time
+	SourceRevision       *int64
+	ReviewState          *string
+	LastActivityAt       *time.Time
+	RejectionCategory    *string
+	RejectionReason      *string
 }
 
 // MemberRoleForVersion holds a member+role pair associated with a release version,
@@ -80,16 +85,37 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 	releaseVersionID int64,
 ) ([]ReleaseVersionNote, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, release_version_id, fansub_group_id, member_id, role_id,
-		       title, body_markdown, body_html, body_json, body_text,
-		       editor_type, content_schema_version,
-		       visibility, status, sort_order,
-		       created_by_user_id, updated_by_user_id,
-		       created_at, updated_at, deleted_at
-		FROM release_version_notes
-		WHERE release_version_id = $1
-		  AND deleted_at IS NULL
-		ORDER BY sort_order ASC, member_id ASC, role_id ASC
+		SELECT rvn.id, rvn.release_version_id, rvn.fansub_group_id, rvn.member_id, rvn.role_id,
+		       rvn.title, rvn.body_markdown, rvn.body_html, rvn.body_json, rvn.body_text,
+		       rvn.editor_type, rvn.content_schema_version,
+		       rvn.visibility, rvn.status, rvn.sort_order,
+		       rvn.created_by_user_id, rvn.updated_by_user_id,
+		       rvn.created_at, rvn.updated_at, rvn.deleted_at,
+		       lifecycle.source_revision, lifecycle.review_state, lifecycle.last_activity_at,
+		       rejection.rejection_category, rejection.rejection_reason
+		FROM release_version_notes rvn
+		LEFT JOIN release_version_note_review_lifecycle lifecycle
+		  ON lifecycle.release_version_note_id = rvn.id
+		LEFT JOIN LATERAL (
+			SELECT decision.rejection_category,
+			       reason.reason_text AS rejection_reason
+			FROM review_decisions decision
+			LEFT JOIN review_audit_events audit
+			  ON audit.review_decision_id = decision.id
+			 AND audit.event_code = 'review.rejected'
+			LEFT JOIN review_reason_texts reason
+			  ON reason.audit_event_id = audit.id
+			 AND reason.reason_kind = 'reject'
+			WHERE decision.source_type = 'release_version_note'
+			  AND decision.source_key = rvn.id::text
+			  AND decision.source_revision = lifecycle.source_revision
+			  AND decision.decision = 'reject'
+			ORDER BY decision.id DESC
+			LIMIT 1
+		) rejection ON true
+		WHERE rvn.release_version_id = $1
+		  AND rvn.deleted_at IS NULL
+		ORDER BY rvn.sort_order ASC, rvn.member_id ASC, rvn.role_id ASC
 	`, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("list release_version_notes for version %d: %w", releaseVersionID, err)
@@ -106,6 +132,8 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotes(
 			&n.Visibility, &n.Status, &n.SortOrder,
 			&n.CreatedByUserID, &n.UpdatedByUserID,
 			&n.CreatedAt, &n.UpdatedAt, &n.DeletedAt,
+			&n.SourceRevision, &n.ReviewState, &n.LastActivityAt,
+			&n.RejectionCategory, &n.RejectionReason,
 		); err != nil {
 			return nil, fmt.Errorf("scan release_version_notes row: %w", err)
 		}
@@ -123,17 +151,38 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotesForMember(
 	memberID int64,
 ) ([]ReleaseVersionNote, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT id, release_version_id, fansub_group_id, member_id, role_id,
-		       title, body_markdown, body_html, body_json, body_text,
-		       editor_type, content_schema_version,
-		       visibility, status, sort_order,
-		       created_by_user_id, updated_by_user_id,
-		       created_at, updated_at, deleted_at
-		FROM release_version_notes
-		WHERE release_version_id = $1
-		  AND member_id = $2
-		  AND deleted_at IS NULL
-		ORDER BY sort_order ASC, member_id ASC, role_id ASC
+		SELECT rvn.id, rvn.release_version_id, rvn.fansub_group_id, rvn.member_id, rvn.role_id,
+		       rvn.title, rvn.body_markdown, rvn.body_html, rvn.body_json, rvn.body_text,
+		       rvn.editor_type, rvn.content_schema_version,
+		       rvn.visibility, rvn.status, rvn.sort_order,
+		       rvn.created_by_user_id, rvn.updated_by_user_id,
+		       rvn.created_at, rvn.updated_at, rvn.deleted_at,
+		       lifecycle.source_revision, lifecycle.review_state, lifecycle.last_activity_at,
+		       rejection.rejection_category, rejection.rejection_reason
+		FROM release_version_notes rvn
+		LEFT JOIN release_version_note_review_lifecycle lifecycle
+		  ON lifecycle.release_version_note_id = rvn.id
+		LEFT JOIN LATERAL (
+			SELECT decision.rejection_category,
+			       reason.reason_text AS rejection_reason
+			FROM review_decisions decision
+			LEFT JOIN review_audit_events audit
+			  ON audit.review_decision_id = decision.id
+			 AND audit.event_code = 'review.rejected'
+			LEFT JOIN review_reason_texts reason
+			  ON reason.audit_event_id = audit.id
+			 AND reason.reason_kind = 'reject'
+			WHERE decision.source_type = 'release_version_note'
+			  AND decision.source_key = rvn.id::text
+			  AND decision.source_revision = lifecycle.source_revision
+			  AND decision.decision = 'reject'
+			ORDER BY decision.id DESC
+			LIMIT 1
+		) rejection ON true
+		WHERE rvn.release_version_id = $1
+		  AND rvn.member_id = $2
+		  AND rvn.deleted_at IS NULL
+		ORDER BY rvn.sort_order ASC, rvn.member_id ASC, rvn.role_id ASC
 	`, releaseVersionID, memberID)
 	if err != nil {
 		return nil, fmt.Errorf("list release_version_notes for version %d member %d: %w", releaseVersionID, memberID, err)
@@ -150,6 +199,8 @@ func (r *ReleaseVersionNotesRepository) ListReleaseVersionNotesForMember(
 			&n.Visibility, &n.Status, &n.SortOrder,
 			&n.CreatedByUserID, &n.UpdatedByUserID,
 			&n.CreatedAt, &n.UpdatedAt, &n.DeletedAt,
+			&n.SourceRevision, &n.ReviewState, &n.LastActivityAt,
+			&n.RejectionCategory, &n.RejectionReason,
 		); err != nil {
 			return nil, fmt.Errorf("scan release_version_notes member row: %w", err)
 		}

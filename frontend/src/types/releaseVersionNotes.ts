@@ -19,7 +19,19 @@ export interface ReleaseVersionNote {
   createdAt: string;
   updatedAt: string | null;
   deletedAt: string | null;
+  sourceRevision?: number | null;
+  reviewState?: 'pending' | 'confirmed' | 'rejected' | 'tombstoned' | null;
+  lastActivityAt?: string | null;
+  rejectionCategory?: ReleaseReviewRejectionCategory | null;
+  rejectionReason?: string | null;
 }
+
+export type ReleaseReviewRejectionCategory =
+  | 'content.incorrect'
+  | 'release_context.wrong'
+  | 'quality.insufficient'
+  | 'rights.unclear'
+  | 'other';
 
 export interface MemberRoleForVersion {
   memberId: number;
@@ -33,14 +45,10 @@ export interface MemberRoleForVersion {
 
 export interface BulkNoteInput {
   id: number;
-  memberId: number;
-  roleId: number;
+  sourceRevision?: number;
   roleCode: string;
-  fansubGroupId?: number | null;
   title?: string | null;
   bodyJson: unknown | null;
-  visibility: 'public' | 'internal';
-  status: 'draft' | 'published' | 'archived' | 'deleted';
   sortOrder?: number;
 }
 

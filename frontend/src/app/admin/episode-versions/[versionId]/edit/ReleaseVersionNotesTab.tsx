@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, Info, Pencil } from 'lucide-react'
 
 import { RichTextEditor } from '@/components/editor'
-import { Badge, Button, EmptyState, ErrorState, FormField, Input, LoadingState, Select } from '@/components/ui'
+import { Badge, Button, EmptyState, ErrorState, FormField, Input, LoadingState } from '@/components/ui'
 import {
   bulkUpsertReleaseVersionNotes,
   getMemberRolesForVersion,
@@ -26,7 +26,6 @@ interface ReleaseVersionNotesTabProps {
   versionId: number
   memberIdFilter?: number | null
   showAllMembers?: boolean
-  sourceGroups?: Array<{ id: number; name: string }>
 }
 
 const ROLE_HELP_TEXTS: Record<string, { label: string; placeholder: string }> = {
@@ -83,6 +82,11 @@ type NoteFormState = {
   visibility: 'public' | 'internal'
   status: 'draft' | 'published' | 'archived' | 'deleted'
   sortOrder: number
+  sourceRevision: number | null
+  reviewState: ReleaseVersionNote['reviewState']
+  lastActivityAt: string | null
+  rejectionCategory: ReleaseVersionNote['rejectionCategory']
+  rejectionReason: string | null
   isDirty: boolean
 }
 
@@ -136,7 +140,11 @@ function buildInitialState(
 
   for (const mr of memberRoles) {
     const key = buildKey(mr.memberId, mr.roleId)
-    const existing = notes.find((note) => note.memberId === mr.memberId && note.roleId === mr.roleId)
+    const existing = notes.find((note) => (
+      note.memberId === mr.memberId &&
+      note.roleId === mr.roleId &&
+      (canEditMemberRole(mr) || note.reviewState !== 'pending')
+    ))
     state[key] = {
       id: existing?.id ?? 0,
       bodyJson: existing?.bodyJson ?? null,
@@ -144,6 +152,11 @@ function buildInitialState(
       visibility: existing?.visibility ?? 'internal',
       status: existing?.status ?? 'draft',
       sortOrder: existing?.sortOrder ?? 0,
+      sourceRevision: existing?.sourceRevision ?? null,
+      reviewState: existing?.reviewState ?? null,
+      lastActivityAt: existing?.lastActivityAt ?? null,
+      rejectionCategory: existing?.rejectionCategory ?? null,
+      rejectionReason: existing?.rejectionReason ?? null,
       isDirty: false,
     }
   }
@@ -176,8 +189,25 @@ function getInitials(name: string): string {
   return parts.slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')
 }
 
-export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showAllMembers = true, sourceGroups = [] }: ReleaseVersionNotesTabProps) {
-  const [sourceGroupId, setSourceGroupId] = useState<number | null>(sourceGroups.length === 1 ? sourceGroups[0].id : null)
+const REJECTION_CATEGORY_LABELS: Record<string, string> = {
+  'content.incorrect': 'Inhaltlich falsch',
+  'release_context.wrong': 'Falscher Release-Kontext',
+  'quality.insufficient': 'Qualität unzureichend',
+  'rights.unclear': 'Quelle oder Rechte unklar',
+  other: 'Sonstiger Grund',
+}
+
+function formatLastActivity(value: string | null): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return new Intl.DateTimeFormat('de-DE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}
+
+export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showAllMembers = true }: ReleaseVersionNotesTabProps) {
   const [memberRoles, setMemberRoles] = useState<MemberRoleForVersion[]>([])
   const [noteStates, setNoteStates] = useState<Record<string, NoteFormState>>({})
   const [initialNoteStates, setInitialNoteStates] = useState<Record<string, NoteFormState>>({})
@@ -313,14 +343,10 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
       ? []
       : [{
           id: state.id,
-          memberId: memberRole.memberId,
-          roleId: memberRole.roleId,
+          ...(state.sourceRevision != null ? { sourceRevision: state.sourceRevision } : {}),
           roleCode: memberRole.roleCode,
-          ...(sourceGroupId != null ? { fansubGroupId: sourceGroupId } : {}),
           title: state.title.trim() || null,
           bodyJson: ensureRichTextValue(state.bodyJson),
-          visibility: state.visibility,
-          status: state.status,
           sortOrder: state.sortOrder,
         }]
 
@@ -334,6 +360,13 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
             ...state,
             id: matchingSaved.id,
             bodyJson: matchingSaved.bodyJson,
+            visibility: matchingSaved.visibility,
+            status: matchingSaved.status,
+            sourceRevision: matchingSaved.sourceRevision ?? null,
+            reviewState: matchingSaved.reviewState ?? null,
+            lastActivityAt: matchingSaved.lastActivityAt ?? null,
+            rejectionCategory: matchingSaved.rejectionCategory ?? null,
+            rejectionReason: matchingSaved.rejectionReason ?? null,
             isDirty: false,
           }
         : {
@@ -384,14 +417,6 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
 
   return (
     <section className={styles.notesTab}>
-      {sourceGroups.length > 0 ? (
-        <FormField label="Herkunftsgruppe" hint="Gilt für neu gespeicherte Texte in dieser Ansicht.">
-          <Select value={sourceGroupId ?? ''} onChange={(event) => setSourceGroupId(Number(event.target.value) || null)} required>
-            {sourceGroups.length > 1 ? <option value="">Gruppe wählen</option> : null}
-            {sourceGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-          </Select>
-        </FormField>
-      ) : null}
       <div
         className={styles.infoDetails}
         role="button"
@@ -623,6 +648,7 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
   const plainText = collectPlainText(state?.bodyJson ?? null).trim()
   const shouldShowViewMode = hasSavedNote && !isEditing
   const shouldShowReadonlyEmpty = !canEdit && !hasSavedNote
+  const lifecycleActivity = formatLastActivity(state?.lastActivityAt ?? null)
 
   return (
     <div className={styles.roleCard}>
@@ -643,12 +669,33 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
             </p>
             {hasSavedNote ? (
               <div className={styles.notePreviewMeta}>
-                <Badge variant={state?.visibility === 'public' ? 'info' : 'muted'}>
-                  {state?.visibility === 'public' ? 'öffentlich' : 'intern'}
+                {state?.reviewState === 'pending' ? <Badge variant="warning">In Prüfung</Badge> : null}
+                {state?.reviewState === 'rejected' ? <Badge variant="danger">Abgelehnt</Badge> : null}
+                {state?.reviewState === 'confirmed' ? <Badge variant="success">Bestätigt</Badge> : null}
+                {state?.reviewState === 'confirmed' && state.visibility === 'public' ? (
+                  <Badge variant="success">Öffentlich</Badge>
+                ) : null}
+                {!state?.reviewState ? (
+                  <>
+                    <Badge variant={state?.visibility === 'public' ? 'info' : 'muted'}>
+                      {state?.visibility === 'public' ? 'öffentlich' : 'intern'}
+                    </Badge>
+                    <Badge variant={state?.status === 'published' ? 'success' : 'neutral'}>
+                      {state?.status === 'published' ? 'Veröffentlicht' : state?.status === 'archived' ? 'Archiviert' : state?.status === 'deleted' ? 'Gelöscht' : 'Entwurf'}
+                    </Badge>
+                  </>
+                ) : null}
+              </div>
+            ) : null}
+            {lifecycleActivity ? (
+              <p className={styles.notePreviewEmpty}>Letzte Aktivität: {lifecycleActivity}</p>
+            ) : null}
+            {state?.reviewState === 'rejected' ? (
+              <div className={styles.notePreviewMeta} role="status">
+                <Badge variant="danger">
+                  {REJECTION_CATEGORY_LABELS[state.rejectionCategory ?? 'other'] ?? 'Sonstiger Grund'}
                 </Badge>
-                <Badge variant={state?.status === 'published' ? 'success' : 'neutral'}>
-                  {state?.status === 'published' ? 'Veröffentlicht' : state?.status === 'archived' ? 'Archiviert' : state?.status === 'deleted' ? 'Gelöscht' : 'Entwurf'}
-                </Badge>
+                {state.rejectionReason ? <p className={styles.notePreviewText}>{state.rejectionReason}</p> : null}
               </div>
             ) : null}
           </div>
@@ -657,6 +704,11 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
               <Button variant="secondary" type="button" onClick={onStartEdit}>
                 <Pencil size={15} aria-hidden="true" />
                 Bearbeiten
+              </Button>
+            ) : null}
+            {canEdit && state?.reviewState === 'rejected' ? (
+              <Button variant="success" type="button" loading={isSaving} onClick={onSave}>
+                Erneut einreichen
               </Button>
             ) : null}
           </div>
@@ -694,31 +746,6 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
             />
           </FormField>
 
-          <div className={styles.advancedGrid}>
-            <FormField label="Sichtbarkeit">
-              <Select
-                value={state?.visibility ?? 'internal'}
-                onChange={(e) => onUpdate(key, 'visibility', e.target.value as 'public' | 'internal')}
-                disabled={!canEdit}
-              >
-                <option value="internal">intern</option>
-                <option value="public">öffentlich</option>
-              </Select>
-            </FormField>
-
-            <FormField label="Status">
-              <Select
-                value={state?.status ?? 'draft'}
-                onChange={(e) => onUpdate(key, 'status', e.target.value as NoteFormState['status'])}
-                disabled={!canEdit}
-              >
-                <option value="draft">Entwurf</option>
-                <option value="published">Veröffentlicht</option>
-                <option value="archived">Archiviert</option>
-                <option value="deleted">Gelöscht</option>
-              </Select>
-            </FormField>
-          </div>
         </div>
       </details>
 
@@ -727,7 +754,7 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
           Abbrechen
         </Button>
         <Button variant="success" type="button" loading={isSaving} onClick={onSave} disabled={!canEdit}>
-          {isRecentlySaved ? 'Gespeichert ✓' : isSaving ? 'Speichert...' : 'Speichern'}
+          {isRecentlySaved ? 'Gespeichert ✓' : isSaving ? 'Speichert...' : state?.reviewState === 'rejected' ? 'Erneut einreichen' : 'Speichern'}
         </Button>
       </div>
         </>

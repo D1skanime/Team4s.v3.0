@@ -864,7 +864,6 @@ export function EpisodeVersionEditorPage() {
                   versionId={version.id}
                   fansubGroupName={groupName ?? "–"}
                   releaseVersionLabel={segmentVersion ?? "–"}
-                  sourceGroups={selectedGroups.map((group) => ({ id: group.id, name: group.name }))}
                 />
               </section>
             ) : null}
@@ -901,7 +900,7 @@ export function EpisodeVersionEditorPage() {
                     </p>
                   </div>
                 </div>
-                <ReleaseVersionNotesTab versionId={version.id} sourceGroups={selectedGroups.map((group) => ({ id: group.id, name: group.name }))} />
+                <ReleaseVersionNotesTab versionId={version.id} />
               </section>
             ) : null}
 

@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/Button'
 import { Drawer } from '@/components/ui/Drawer'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { FormField } from '@/components/ui/FormField'
-import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { UploadQueueItem, useReleaseVersionMedia, UseReleaseVersionMediaResult } from './useReleaseVersionMedia'
 import {
@@ -33,19 +32,7 @@ interface ReleaseVersionMediaSectionProps {
   fansubGroupName: string
   releaseVersionLabel: string
   mediaState?: UseReleaseVersionMediaResult
-  sourceGroups?: Array<{ id: number; name: string }>
 }
-
-type AssetStatusValue = 'in_pruefung' | 'oeffentlich' | 'intern' | 'abgelehnt' | 'archiviert' | 'entfernt'
-
-const assetStatusOptions: Array<{ value: AssetStatusValue; label: string }> = [
-  { value: 'in_pruefung', label: 'In Prüfung' },
-  { value: 'oeffentlich', label: 'Öffentlich' },
-  { value: 'intern', label: 'Intern' },
-  { value: 'abgelehnt', label: 'Abgelehnt' },
-  { value: 'archiviert', label: 'Archiviert' },
-  { value: 'entfernt', label: 'Entfernt' },
-]
 
 function categoryLabel(category: ReleaseVersionMediaCategory): string {
   return CATEGORY_OPTIONS.find((option) => option.value === category)?.label ?? category
@@ -57,59 +44,47 @@ function getAssetName(item: ReleaseVersionMediaItem): string {
   return `Asset #${item.media_asset_id}`
 }
 
-function getAssetStatusValue(item: ReleaseVersionMediaItem | null): AssetStatusValue {
-  if (!item) return 'in_pruefung'
-
-  switch (item.review_status) {
-    case 'freigegeben':
-      return item.visibility === 'oeffentlich' ? 'oeffentlich' : 'intern'
-    case 'abgelehnt':
-      return 'abgelehnt'
-    case 'archiviert':
-      return 'archiviert'
-    case 'entfernt':
-      return 'entfernt'
-    case 'in_pruefung':
-    default:
-      return 'in_pruefung'
-  }
-}
-
-function statusPatch(value: AssetStatusValue): Pick<ReleaseVersionMediaPatchRequest, 'visibility' | 'review_status'> {
-  switch (value) {
-    case 'oeffentlich':
-      return { visibility: 'oeffentlich', review_status: 'freigegeben' }
-    case 'intern':
-      return { visibility: 'intern', review_status: 'freigegeben' }
-    case 'abgelehnt':
-      return { visibility: 'intern', review_status: 'abgelehnt' }
-    case 'archiviert':
-      return { visibility: 'intern', review_status: 'archiviert' }
-    case 'entfernt':
-      return { visibility: 'intern', review_status: 'entfernt' }
-    case 'in_pruefung':
-    default:
-      return { visibility: 'intern', review_status: 'in_pruefung' }
-  }
-}
-
 function statusBadge(item: ReleaseVersionMediaItem): { label: string; className: string; variant: 'success' | 'warning' | 'danger' | 'muted' } {
-  const value = getAssetStatusValue(item)
-  switch (value) {
-    case 'oeffentlich':
-      return { label: 'Öffentlich', className: styles.assetStatusPublic, variant: 'success' }
-    case 'intern':
-      return { label: 'Intern', className: styles.assetStatusMuted, variant: 'muted' }
-    case 'abgelehnt':
+  switch (item.review_state) {
+    case 'confirmed':
+      return { label: 'Bestätigt', className: styles.assetStatusPublic, variant: 'success' }
+    case 'rejected':
       return { label: 'Abgelehnt', className: styles.assetStatusRejected, variant: 'danger' }
-    case 'archiviert':
-      return { label: 'Archiviert', className: styles.assetStatusMuted, variant: 'muted' }
-    case 'entfernt':
+    case 'tombstoned':
       return { label: 'Entfernt', className: styles.assetStatusMuted, variant: 'muted' }
-    case 'in_pruefung':
+    case 'pending':
+      return { label: 'In Prüfung', className: styles.assetStatusReview, variant: 'warning' }
     default:
+      if (item.review_status === 'freigegeben') {
+        return {
+          label: item.visibility === 'oeffentlich' ? 'Öffentlich' : 'Intern',
+          className: item.visibility === 'oeffentlich' ? styles.assetStatusPublic : styles.assetStatusMuted,
+          variant: item.visibility === 'oeffentlich' ? 'success' : 'muted',
+        }
+      }
+      if (item.review_status === 'abgelehnt') {
+        return { label: 'Abgelehnt', className: styles.assetStatusRejected, variant: 'danger' }
+      }
       return { label: 'In Prüfung', className: styles.assetStatusReview, variant: 'warning' }
   }
+}
+
+const REJECTION_CATEGORY_LABELS: Record<string, string> = {
+  'content.incorrect': 'Inhaltlich falsch',
+  'release_context.wrong': 'Falscher Release-Kontext',
+  'quality.insufficient': 'Qualität unzureichend',
+  'rights.unclear': 'Quelle oder Rechte unklar',
+  other: 'Sonstiger Grund',
+}
+
+function formatLastActivity(value?: string | null): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return new Intl.DateTimeFormat('de-DE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 export function ReleaseVersionMediaSection({
@@ -117,14 +92,12 @@ export function ReleaseVersionMediaSection({
   fansubGroupName,
   releaseVersionLabel,
   mediaState,
-  sourceGroups = [],
 }: ReleaseVersionMediaSectionProps) {
   const internalMedia = useReleaseVersionMedia(versionId)
   const media = mediaState ?? internalMedia
   const persistedItems = Array.isArray(media.items) ? media.items : []
 
   const [selectedCategory, setSelectedCategory] = useState<ReleaseVersionMediaCategory>('screenshot')
-  const [sourceGroupId, setSourceGroupId] = useState<number | null>(sourceGroups.length === 1 ? sourceGroups[0].id : null)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [defaultCaption, setDefaultCaption] = useState('')
   const [isPreviewCandidate, setIsPreviewCandidate] = useState(false)
@@ -133,7 +106,6 @@ export function ReleaseVersionMediaSection({
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [editCaption, setEditCaption] = useState('')
-  const [editStatus, setEditStatus] = useState<AssetStatusValue>('in_pruefung')
   const [editPreviewCandidate, setEditPreviewCandidate] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [previewSavingId, setPreviewSavingId] = useState<number | null>(null)
@@ -167,7 +139,10 @@ export function ReleaseVersionMediaSection({
   }, [persistedItems])
 
   const activeItems = useMemo(
-    () => persistedItems.filter((item) => item.category === selectedCategory),
+    () => persistedItems.filter((item) => (
+      item.category === selectedCategory &&
+      !(item.review_state === 'pending' && item.can_update === false)
+    )),
     [persistedItems, selectedCategory],
   )
 
@@ -203,7 +178,7 @@ export function ReleaseVersionMediaSection({
   const canDeleteOwnMedia = media.capabilities?.can_delete_own_media ?? false
   const canShowPreviewToggle = CATEGORY_ALLOWS_PREVIEW[selectedCategory]
   const canChooseFiles = canUploadMedia && versionId > 0 && !isBusy
-  const canUpload = canChooseFiles && selectedFiles.length > 0 && (sourceGroups.length === 0 || sourceGroupId != null)
+  const canUpload = canChooseFiles && selectedFiles.length > 0
   const canEditPreviewCandidate = selectedItem ? CATEGORY_ALLOWS_PREVIEW[selectedItem.category] : false
   const canEditSelectedItem = Boolean(selectedItem && (selectedItem.can_update ?? canUpdateMedia))
   const canDeleteSelectedItem = Boolean(selectedItem && (selectedItem.can_delete ?? (canDeleteMedia || canDeleteOwnMedia)))
@@ -217,7 +192,6 @@ export function ReleaseVersionMediaSection({
 
   function openEditSheet(item: ReleaseVersionMediaItem) {
     setEditCaption(item.caption ?? '')
-    setEditStatus(getAssetStatusValue(item))
     setEditPreviewCandidate(item.is_preview_candidate)
     setEditError(null)
     setSelectedItemId(item.id)
@@ -289,11 +263,12 @@ export function ReleaseVersionMediaSection({
 
     setUploadError(null)
     try {
-      if (sourceGroupId != null) {
-        await media.startUpload(selectedCategory, selectedFiles, defaultCaption, canShowPreviewToggle ? isPreviewCandidate : false, undefined, undefined, sourceGroupId)
-      } else {
-        await media.startUpload(selectedCategory, selectedFiles, defaultCaption, canShowPreviewToggle ? isPreviewCandidate : false, undefined, undefined)
-      }
+      await media.startUpload(
+        selectedCategory,
+        selectedFiles,
+        defaultCaption,
+        canShowPreviewToggle ? isPreviewCandidate : false,
+      )
       setSelectedFiles([])
       setDefaultCaption('')
       setIsPreviewCandidate(false)
@@ -309,7 +284,9 @@ export function ReleaseVersionMediaSection({
 
     const patch: ReleaseVersionMediaPatchRequest = {
       caption: editCaption.trim() === '' ? null : editCaption.trim(),
-      ...statusPatch(editStatus),
+      ...(selectedItem.source_revision != null
+        ? { source_revision: selectedItem.source_revision }
+        : {}),
     }
 
     setEditError(null)
@@ -434,6 +411,14 @@ export function ReleaseVersionMediaSection({
                   <span className={styles.mediaCardBody}>
                     <span className={styles.mediaName}>{getAssetName(item)}</span>
                     <Badge variant={badge.variant} className={badge.className}>{badge.label}</Badge>
+                    {item.review_state === 'confirmed' && item.visibility === 'oeffentlich' ? (
+                      <Badge variant="success">Öffentlich</Badge>
+                    ) : null}
+                    {formatLastActivity(item.last_activity_at) ? (
+                      <span className={styles.helper}>
+                        Letzte Aktivität: {formatLastActivity(item.last_activity_at)}
+                      </span>
+                    ) : null}
                   </span>
                 </button>
                 {CATEGORY_ALLOWS_PREVIEW[item.category] && (item.can_update ?? canUpdateMedia) ? (
@@ -507,13 +492,6 @@ export function ReleaseVersionMediaSection({
               rows={3}
             />
           </FormField>
-
-          {sourceGroups.length > 0 ? <FormField label="Herkunftsgruppe" hint="Die Gruppe, aus deren Release-Arbeit dieses Bild stammt.">
-            <Select value={sourceGroupId ?? ''} onChange={(event) => setSourceGroupId(Number(event.target.value) || null)} required>
-              {sourceGroups.length > 1 ? <option value="">Gruppe wählen</option> : null}
-              {sourceGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
-            </Select>
-          </FormField> : null}
 
           {canShowPreviewToggle ? (
             <label className={styles.checkboxRow}>
@@ -642,7 +620,7 @@ export function ReleaseVersionMediaSection({
               onClick={() => void handleSaveSelectedItem()}
               disabled={!canEditSelectedItem}
             >
-              Speichern
+              {selectedItem?.review_state === 'rejected' ? 'Erneut einreichen' : 'Speichern'}
             </Button>
           </>
         }
@@ -657,6 +635,14 @@ export function ReleaseVersionMediaSection({
               )}
             </div>
             {editError ? <div className={styles.errorBox}>{editError}</div> : null}
+            {selectedItem.review_state === 'rejected' ? (
+              <div className={styles.statusHint} role="status">
+                <strong>
+                  {REJECTION_CATEGORY_LABELS[selectedItem.rejection_category ?? 'other'] ?? 'Sonstiger Grund'}
+                </strong>
+                {selectedItem.rejection_reason ? <p>{selectedItem.rejection_reason}</p> : null}
+              </div>
+            ) : null}
             <FormField label="Beschreibung">
               <Textarea
                 value={editCaption}
@@ -665,19 +651,6 @@ export function ReleaseVersionMediaSection({
                 rows={4}
                 disabled={!canEditSelectedItem}
               />
-            </FormField>
-            <FormField label="Status">
-              <Select
-                value={editStatus}
-                onChange={(event) => setEditStatus(event.target.value as AssetStatusValue)}
-                disabled={!canEditSelectedItem}
-              >
-                {assetStatusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
             </FormField>
             {canEditPreviewCandidate ? (
               <label className={styles.checkboxRow}>
