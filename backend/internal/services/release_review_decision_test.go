@@ -16,17 +16,6 @@ import (
 	"team4s.v3/backend/internal/repository"
 )
 
-const releaseReviewContributionRuleCode = "release.contribution"
-
-func seedReleaseReviewContributionRule(t *testing.T, fx *releaseReviewSubmissionFixture) {
-	t.Helper()
-	_, err := fx.pool.Exec(context.Background(), `
-		INSERT INTO point_rules(rule_code, rule_version, category, point_value)
-		VALUES ($1, 1, 'platform_contribution', 2)
-	`, releaseReviewContributionRuleCode)
-	require.NoError(t, err)
-}
-
 func countReleaseReviewRows(
 	t *testing.T,
 	fx *releaseReviewSubmissionFixture,
@@ -41,7 +30,6 @@ func countReleaseReviewRows(
 
 func TestReleaseReviewAtomicDecisionSourceMatrix(t *testing.T) {
 	fx := openReleaseReviewSubmissionFixture(t)
-	seedReleaseReviewContributionRule(t, fx)
 	at := time.Date(2026, 7, 23, 16, 0, 0, 0, time.UTC)
 	sources := []repository.ReleaseReviewLifecycle{
 		fx.submitNote(t, 501, 11, nil, at),
@@ -87,8 +75,8 @@ func TestReleaseReviewAtomicDecisionSourceMatrix(t *testing.T) {
 		  AND rule_code_snapshot = $1
 		  AND rule_version_snapshot = 1
 		  AND rule_category_snapshot = 'platform_contribution'
-		  AND rule_point_value_snapshot = 2
-		  AND point_value = 2
+		  AND rule_point_value_snapshot = 1
+		  AND point_value = 1
 	`, releaseReviewContributionRuleCode))
 	assert.Equal(t, 5, countReleaseReviewRows(t, fx, `
 		SELECT COUNT(*) FROM point_ledger_entries
@@ -102,7 +90,6 @@ func TestReleaseReviewAtomicDecisionSourceMatrix(t *testing.T) {
 func TestReleaseReviewAtomicPlatformAdminIdentityMatrix(t *testing.T) {
 	t.Run("memberless admin reviews a foreign source without review credit", func(t *testing.T) {
 		fx := openReleaseReviewSubmissionFixture(t)
-		seedReleaseReviewContributionRule(t, fx)
 		_, err := fx.pool.Exec(context.Background(), `
 			INSERT INTO app_users(id, status) VALUES (99, 'active')
 		`)
@@ -139,7 +126,6 @@ func TestReleaseReviewAtomicPlatformAdminIdentityMatrix(t *testing.T) {
 
 	t.Run("admin self review needs a unicode-nonblank reason and earns no review credit", func(t *testing.T) {
 		fx := openReleaseReviewSubmissionFixture(t)
-		seedReleaseReviewContributionRule(t, fx)
 		source := fx.submitMedia(
 			t, 601, 11, nil, time.Date(2026, 7, 23, 16, 20, 0, 0, time.UTC),
 		)
@@ -176,7 +162,6 @@ func TestReleaseReviewAtomicPlatformAdminIdentityMatrix(t *testing.T) {
 
 func TestReleaseReviewResubmitKeepsStableContributionAndReviewLimits(t *testing.T) {
 	fx := openReleaseReviewSubmissionFixture(t)
-	seedReleaseReviewContributionRule(t, fx)
 	first := fx.submitNote(
 		t, 501, 11, nil, time.Date(2026, 7, 23, 17, 0, 0, 0, time.UTC),
 	)
@@ -363,7 +348,6 @@ func TestReleaseReviewAtomicRollbackFailureMatrix(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			fx := openReleaseReviewSubmissionFixture(t)
-			seedReleaseReviewContributionRule(t, fx)
 			source := fx.submitNote(
 				t, 501, 11, nil, time.Date(2026, 7, 23, 20, 0, 0, 0, time.UTC),
 			)

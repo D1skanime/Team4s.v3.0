@@ -156,7 +156,7 @@ type releaseReviewDecisionRequest struct {
 }
 
 func (h *ReleaseReviewHandler) Decide(c *gin.Context) {
-	identity, actor, groupID, ok := h.requestContext(c)
+	_, actor, groupID, ok := h.requestContext(c)
 	if !ok {
 		return
 	}
@@ -206,7 +206,7 @@ func (h *ReleaseReviewHandler) Decide(c *gin.Context) {
 		Decision:           decision,
 		RejectionCategory:  repository.ReviewRejectionCategory(request.RejectionCategory),
 		RejectReason:       strings.TrimSpace(request.RejectionReason),
-		SelfReviewOverride: identity.IsPlatformAdmin,
+		SelfReviewOverride: strings.TrimSpace(request.OverrideReason) != "",
 		OverrideReason:     strings.TrimSpace(request.OverrideReason),
 	})
 	if err != nil {
@@ -411,7 +411,7 @@ func validateReleaseReviewDecisionRequest(request releaseReviewDecisionRequest, 
 	default:
 		return errors.New("Die Entscheidung muss confirm oder reject sein.")
 	}
-	if platformAdmin {
+	if platformAdmin && overrideReason != "" {
 		if len([]rune(overrideReason)) < 10 || len([]rune(overrideReason)) > 1000 {
 			return errors.New("Der Override-Grund muss zwischen 10 und 1000 Zeichen lang sein.")
 		}

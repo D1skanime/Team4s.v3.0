@@ -79,16 +79,18 @@ type releaseReviewPermissionStub struct {
 }
 
 type releaseReviewDecisionStub struct {
-	result *repository.ReviewDecisionRow
-	err    error
-	calls  int
+	result  *repository.ReviewDecisionRow
+	err     error
+	calls   int
+	command services.ReviewDecisionCommand
 }
 
 func (s *releaseReviewDecisionStub) Decide(
 	_ context.Context,
-	_ services.ReviewDecisionCommand,
+	command services.ReviewDecisionCommand,
 ) (*repository.ReviewDecisionRow, error) {
 	s.calls++
+	s.command = command
 	return s.result, s.err
 }
 
@@ -353,6 +355,65 @@ func TestReleaseReviewDecisionMapsStableConflictWithoutRetry(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, rec.Code)
 	assert.Contains(t, rec.Body.String(), "REVIEW_ALREADY_DECIDED")
 	assert.Equal(t, 1, decision.calls, "conflicts must never retry automatically")
+}
+
+func TestReleaseReviewDecisionPlatformAdminUsesOverrideOnlyWhenReasonProvided(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	reviewID, err := repository.EncodeReleaseReviewID(repository.ReleaseVersionNoteReviewSourceType, 501)
+	require.NoError(t, err)
+	repo := &releaseReviewQueryStub{detail: &repository.ReleaseReviewDetail{
+		ReleaseReviewQueueItem: repository.ReleaseReviewQueueItem{
+			ID: reviewID, SourceRevision: 3, ReviewKind: repository.ReviewKindText,
+			FansubGroupID: 21, ReleaseVersionID: 41,
+		},
+	}}
+	permission := &releaseReviewPermissionStub{allowed: map[permissions.Action]bool{
+		permissions.ActionReviewTextDecide: true,
+	}}
+	decision := &releaseReviewDecisionStub{result: &repository.ReviewDecisionRow{
+		Decision: repository.ReviewDecisionConfirm,
+	}}
+	handler := NewReleaseReviewHandler(repo, permission, decision)
+	c, rec := releaseReviewTestContext(
+		http.MethodPost,
+		"/api/v1/admin/fansubs/21/release-reviews/"+reviewID+"/decision",
+		"21",
+	)
+	c.Request = httptest.NewRequest(
+		http.MethodPost,
+		c.Request.URL.String(),
+		strings.NewReader(`{"decision":"confirm","expected_revision":3}`),
+	)
+	c.Params = gin.Params{{Key: "id", Value: "21"}, {Key: "reviewId", Value: reviewID}}
+	identity, _ := c.Get("auth_identity")
+	admin := identity.(middleware.AuthIdentity)
+	admin.IsPlatformAdmin = true
+	c.Set("auth_identity", admin)
+
+	handler.Decide(c)
+
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	assert.False(t, decision.command.SelfReviewOverride)
+	assert.Empty(t, decision.command.OverrideReason)
+}
+
+func TestReleaseReviewDecisionOverrideReasonValidation(t *testing.T) {
+	assert.NoError(t, validateReleaseReviewDecisionRequest(
+		releaseReviewDecisionRequest{Decision: "confirm", ExpectedRevision: 1},
+		true,
+	))
+	assert.Error(t, validateReleaseReviewDecisionRequest(
+		releaseReviewDecisionRequest{
+			Decision: "confirm", ExpectedRevision: 1, OverrideReason: "zu kurz",
+		},
+		true,
+	))
+	assert.NoError(t, validateReleaseReviewDecisionRequest(
+		releaseReviewDecisionRequest{
+			Decision: "confirm", ExpectedRevision: 1, OverrideReason: "Zehn Zeichen",
+		},
+		true,
+	))
 }
 
 func TestReleaseReviewDecisionDecoderRejectsUnknownFieldsAndTrailingJSON(t *testing.T) {

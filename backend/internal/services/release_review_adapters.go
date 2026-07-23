@@ -62,7 +62,6 @@ func (a *releaseVersionNoteReviewAdapter) LoadForDecision(
 		 AND claim.member_id = lifecycle.submitter_member_id
 		 AND claim.claim_status = 'verified'
 		WHERE lifecycle.release_version_note_id = $1
-		FOR UPDATE OF lifecycle
 	`, sourceID).Scan(
 		&target.Revision,
 		&target.FansubGroupID,
@@ -124,6 +123,9 @@ func (a *releaseVersionNoteReviewAdapter) ApplyDecision(
 		return repository.ErrConflict
 	}
 	if decision == ReviewDecisionConfirm {
+		if err := creditReleaseReviewContribution(ctx, db, target, decidedAt); err != nil {
+			return err
+		}
 		return auditReleaseReviewPublished(ctx, db, target, decidedAt)
 	}
 	return nil
@@ -161,7 +163,6 @@ func (a *releaseVersionMediaReviewAdapter) LoadForDecision(
 		 AND claim.member_id = lifecycle.submitter_member_id
 		 AND claim.claim_status = 'verified'
 		WHERE lifecycle.release_version_media_id = $1
-		FOR UPDATE OF lifecycle
 	`, sourceID).Scan(
 		&target.Revision,
 		&target.FansubGroupID,
@@ -205,6 +206,9 @@ func (a *releaseVersionMediaReviewAdapter) ApplyDecision(
 		return err
 	}
 	if decision == ReviewDecisionConfirm {
+		if err := creditReleaseReviewContribution(ctx, db, target, decidedAt); err != nil {
+			return err
+		}
 		return auditReleaseReviewPublished(ctx, db, target, decidedAt)
 	}
 	return nil

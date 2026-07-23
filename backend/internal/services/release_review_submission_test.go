@@ -120,6 +120,7 @@ func openReleaseReviewSubmissionFixture(t *testing.T) *releaseReviewSubmissionFi
 	`)
 	require.NoError(t, err)
 	testsupport.ApplySQLFile(t, pool, filepath.Join(migrations, "0135_release_review_lifecycle.up.sql"))
+	testsupport.ApplySQLFile(t, pool, filepath.Join(migrations, "0136_release_review_contribution_rule.up.sql"))
 
 	return &releaseReviewSubmissionFixture{pool: pool}
 }

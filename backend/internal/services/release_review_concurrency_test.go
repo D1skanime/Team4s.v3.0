@@ -48,9 +48,8 @@ func (a *releaseReviewBarrierAdapter) ApplyDecision(
 
 func TestReleaseReviewConcurrentFirstDecisionWins(t *testing.T) {
 	fx := openReleaseReviewSubmissionFixture(t)
-	seedReleaseReviewContributionRule(t, fx)
 	source := fx.submitNote(
-		t, 501, 11, nil, time.Date(2026, 7, 23, 21, 0, 0, 0, time.UTC),
+		t, 501, 11, nil, time.Date(2026, 7, 23, 12, 0, 0, 0, time.UTC),
 	)
 	registry := ReleaseReviewAdapters()
 	loaded := make(chan struct{}, 2)
