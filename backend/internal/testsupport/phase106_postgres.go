@@ -28,18 +28,37 @@ var (
 // fixture. It deliberately never consults DATABASE_URL or application config.
 func OpenPhase106Postgres(t *testing.T) *pgxpool.Pool {
 	t.Helper()
-	dsn := os.Getenv(phase106DSNEnv)
+	return openPhasePostgres(
+		t,
+		phase106DSNEnv,
+		phase106DatabasePattern,
+		"phase106_",
+		phase106SchemaPattern,
+		createPhase106Prerequisites,
+	)
+}
+
+func openPhasePostgres(
+	t *testing.T,
+	dsnEnv string,
+	databasePattern *regexp.Regexp,
+	schemaPrefix string,
+	schemaPattern *regexp.Regexp,
+	createPrerequisites func(testing.TB, *pgxpool.Pool),
+) *pgxpool.Pool {
+	t.Helper()
+	dsn := os.Getenv(dsnEnv)
 	if strings.TrimSpace(dsn) == "" {
-		t.Skipf("%s is not set; skipping PostgreSQL integration test", phase106DSNEnv)
+		t.Skipf("%s is not set; skipping PostgreSQL integration test", dsnEnv)
 	}
 
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		t.Fatalf("parse %s: %v", phase106DSNEnv, err)
+		t.Fatalf("parse %s: %v", dsnEnv, err)
 	}
 	databaseName := config.ConnConfig.Database
-	if err := validatePhase106DatabaseName(databaseName); err != nil {
-		t.Fatalf("unsafe %s: %v", phase106DSNEnv, err)
+	if !databasePattern.MatchString(databaseName) {
+		t.Fatalf("unsafe %s: database name %q must match %s", dsnEnv, databaseName, databasePattern)
 	}
 
 	adminPool, err := pgxpool.NewWithConfig(context.Background(), config)
@@ -56,7 +75,7 @@ func OpenPhase106Postgres(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("runtime database %q differs from guarded DSN database %q", runtimeDatabase, databaseName)
 	}
 
-	schema := newPhase106SchemaName(t)
+	schema := newPhasePostgresSchemaName(t, schemaPrefix, schemaPattern)
 	if _, err := adminPool.Exec(context.Background(), "CREATE SCHEMA "+pgx.Identifier{schema}.Sanitize()); err != nil {
 		adminPool.Close()
 		t.Fatalf("create isolated schema: %v", err)
@@ -81,7 +100,7 @@ func OpenPhase106Postgres(t *testing.T) *pgxpool.Pool {
 	cleanup := func() {
 		cleanupOnce.Do(func() {
 			scopedPool.Close()
-			if !phase106SchemaPattern.MatchString(schema) {
+			if !schemaPattern.MatchString(schema) {
 				t.Errorf("refusing cleanup for unsafe schema %q", schema)
 				adminPool.Close()
 				return
@@ -102,7 +121,7 @@ func OpenPhase106Postgres(t *testing.T) *pgxpool.Pool {
 		t.Fatalf("unsafe search_path schemas: %v", schemas)
 	}
 
-	createPhase106Prerequisites(t, scopedPool)
+	createPrerequisites(t, scopedPool)
 
 	return scopedPool
 }
@@ -146,13 +165,18 @@ func validatePhase106SQL(sql string) error {
 
 func newPhase106SchemaName(t testing.TB) string {
 	t.Helper()
+	return newPhasePostgresSchemaName(t, "phase106_", phase106SchemaPattern)
+}
+
+func newPhasePostgresSchemaName(t testing.TB, prefix string, pattern *regexp.Regexp) string {
+	t.Helper()
 	random := make([]byte, 8)
 	if _, err := rand.Read(random); err != nil {
 		t.Fatalf("create random schema suffix: %v", err)
 	}
-	name := "phase106_" + hex.EncodeToString(random)
-	if err := validatePhase106SchemaName(name); err != nil {
-		t.Fatal(err)
+	name := prefix + hex.EncodeToString(random)
+	if !pattern.MatchString(name) {
+		t.Fatalf("schema name %q must match %s", name, pattern)
 	}
 	return name
 }
