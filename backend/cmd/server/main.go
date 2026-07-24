@@ -83,7 +83,9 @@ func main() {
 	fansubRepo := repository.NewFansubRepository(dbPool, cfg.MediaStorageDir)
 	mediaRepo := repository.NewMediaRepository(dbPool, cfg.MediaPublicBaseURL, cfg.MediaStorageDir)
 	mediaService := services.NewMediaService(cfg.MediaStorageDir, cfg.MediaPublicBaseURL)
-	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool)
+	pointService := services.NewPointService(dbPool)
+	releaseCrewService := services.NewReleaseCrewService(dbPool, pointService)
+	episodeVersionRepo := repository.NewEpisodeVersionRepository(dbPool, releaseCrewService)
 	episodeVersionImageRepo := repository.NewEpisodeVersionImageRepository(dbPool)
 	episodeVersionImagesHandler := handlers.NewEpisodeVersionImagesHandler(episodeVersionImageRepo)
 	releaseAssetsHandler := handlers.NewReleaseAssetsHandler(episodeVersionRepo)
@@ -127,7 +129,7 @@ func main() {
 			log.Printf("Segment-Render-Recovery: %d unterbrochene Render-Jobs erneut eingereiht", reset)
 		}
 	}
-	episodeImportRepo := repository.NewEpisodeImportRepository(dbPool)
+	episodeImportRepo := repository.NewEpisodeImportRepository(dbPool, releaseCrewService)
 	authzRepo := repository.NewAuthzRepository(dbPool)
 	permissionSvc := permissions.NewService(authzRepo)
 	if err := permissionSvc.LoadCache(ctx, authzRepo); err != nil {
@@ -230,8 +232,6 @@ func main() {
 		},
 	)
 	fansubNotesRepo := repository.NewFansubNotesRepository(dbPool)
-	pointService := services.NewPointService(dbPool)
-	releaseCrewService := services.NewReleaseCrewService(dbPool, pointService)
 	adminContentHandler.WithMediaDeps(mediaRepo, mediaService).
 		WithNoteDeps(fansubNotesRepo, services.NewMarkdownService()).
 		WithProjectNoteCreditDeps(services.NewProjectNoteCreditService(dbPool, fansubNotesRepo)).
@@ -475,7 +475,10 @@ func main() {
 	animeCoverageRepo := repository.NewAnimeCoverageRepository(dbPool)
 	animeContributionsHandler := handlers.NewFansubAnimeContributionsHandler(
 		animeContributionsRepo, histGroupMemberRolesRepo, permissionSvc, auditLogRepo,
-	).WithBadgeService(badgeService).WithHistMembersRepo(histGroupMembersRepo).WithCoverageRepo(animeCoverageRepo)
+	).WithBadgeService(badgeService).
+		WithHistMembersRepo(histGroupMembersRepo).
+		WithCoverageRepo(animeCoverageRepo).
+		WithReleaseCrewService(releaseCrewService)
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo).
 		WithPermissionSvc(permissionSvc)
 	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo).WithReleaseCrewService(releaseCrewService)
