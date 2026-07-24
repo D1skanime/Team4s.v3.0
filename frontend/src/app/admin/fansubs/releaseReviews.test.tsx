@@ -131,7 +131,9 @@ beforeEach(() => {
       can_edit_release: false,
     },
   })
-  api.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+  api.getCurrentUser.mockResolvedValue({
+    data: { app_user_id: 99, is_platform_admin: false },
+  })
 })
 
 afterEach(() => {
@@ -262,8 +264,23 @@ describe('read-only release review detail and decisions', () => {
     expect(screen.queryByRole('button', { name: 'Bestätigen und veröffentlichen' })).toBeNull()
   })
 
+  it('explains that another authorized person must review an own pending contribution', async () => {
+    api.getCurrentUser.mockResolvedValue({
+      data: { app_user_id: item.submitter_app_user_id, is_platform_admin: false },
+    })
+    render(<ReleaseReviewPage />)
+
+    expect(await screen.findByText(
+      'Das ist dein eigener Beitrag. Eine andere berechtigte Person muss ihn prüfen.',
+    )).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Bestätigen und veröffentlichen' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Ablehnen' })).toBeNull()
+  })
+
   it('requires an admin override reason and never shows review credit language as a benefit', async () => {
-    api.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: true } })
+    api.getCurrentUser.mockResolvedValue({
+      data: { app_user_id: 99, is_platform_admin: true },
+    })
     render(<ReleaseReviewPage />)
 
     expect(await screen.findByText(/Du entscheidest als Plattform-Admin/)).toBeTruthy()

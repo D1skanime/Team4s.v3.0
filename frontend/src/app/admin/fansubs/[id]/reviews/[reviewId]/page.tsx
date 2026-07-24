@@ -62,6 +62,7 @@ export default function ReleaseReviewPage() {
   const hasActiveSession = hasAccessToken || hasRefreshToken
   const isMobile = useReleaseReviewMobileGate()
   const [detail, setDetail] = useState<ReleaseReviewDetail | null>(null)
+  const [currentAppUserId, setCurrentAppUserId] = useState<number | null>(null)
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -96,6 +97,7 @@ export default function ReleaseReviewPage() {
       ])
       if (controller.signal.aborted) return
       setDetail(detailResponse.data)
+      setCurrentAppUserId(userResponse.data.app_user_id)
       setIsPlatformAdmin(Boolean(userResponse.data.is_platform_admin))
       setDecisionState({ kind: 'idle' })
     } catch {
@@ -213,8 +215,10 @@ export default function ReleaseReviewPage() {
   }
 
   const status = releaseReviewDetailStatus(detail.status)
+  const isOwnSubmission = currentAppUserId === detail.submitter_app_user_id
   const showDecisionActions =
     detail.status === 'pending' &&
+    (!isOwnSubmission || isPlatformAdmin) &&
     (decisionState.kind === 'idle' || decisionState.kind === 'pending')
   const isPending = decisionState.kind === 'pending'
   const decisionMessage = decisionState.kind === 'success'
@@ -274,6 +278,13 @@ export default function ReleaseReviewPage() {
 
       <section className={styles.decisionPanel}>
         <h2>Entscheidung</h2>
+        {detail.status === 'pending' && isOwnSubmission && !isPlatformAdmin ? (
+          <div className={styles.warningPanel}>
+            <p>
+              Das ist dein eigener Beitrag. Eine andere berechtigte Person muss ihn prüfen.
+            </p>
+          </div>
+        ) : null}
         {isPlatformAdmin && decisionState.kind !== 'success' && decisionState.kind !== 'conflict' ? (
           <div className={styles.warningPanel}>
             <p>
