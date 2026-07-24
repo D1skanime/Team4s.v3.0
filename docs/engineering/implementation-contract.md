@@ -10,6 +10,16 @@ This document prevents three recurring drift problems:
 
 Use this document before planning or coding implementation work.
 
+## Disposable Test Data Contract
+
+Team4s currently operates with disposable test data. Existing database rows have no preservation requirement.
+
+- Do not add plans or implementation work for data migration, backfill, reconciliation, compatibility, or carry-forward unless the user explicitly requests that work for the current task.
+- New schema migrations remain the standard mechanism for schema changes; this rule does not prohibit migrations that create or alter the schema.
+- Prefer resetting and reseeding the test database over preserving old row data or adding transitional compatibility code.
+- Historical people, memberships, releases, and contributions are entered through the current canonical product flow. Their real-world history does not make pre-existing test rows durable.
+- Roadmap language such as "historical import", "backfill", or "existing data" does not override this contract. Confirm with the user before treating persisted data as production-like or durable.
+
 ## Mandatory Search-First Gate
 
 Before adding new implementation code, search for existing equivalents:

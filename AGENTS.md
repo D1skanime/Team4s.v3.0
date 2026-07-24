@@ -90,6 +90,11 @@ Use `docs/frontend/auth-api-client.md` as the source of truth for browser auth/A
 - GSD plans for auth-adjacent work must include this case in the threat model or verification/UAT criteria so `$gsd-secure-phase` and `$gsd-verify-work` can catch regressions.
 
 ## Database And Migration Rules
+- Team4s currently uses disposable test data. Agents must not plan or implement preservation, migration, backfill, reconciliation, compatibility handling, or carry-forward of existing database contents unless the user explicitly requests it for the current task.
+- Schema migrations required to introduce the new schema or behavior are still allowed. The disposable-data rule concerns existing row data, not the schema migration mechanism.
+- Prefer resetting and reseeding test data over adding data-compatibility code.
+- Historical domain facts may still be entered through the current canonical product flow. "Historical" describes the real-world fact; it does not imply that old test rows need to be imported or retained.
+- Do not infer production-data requirements from roadmap terms such as "historical import", "backfill", or "existing data". Ask the user before treating any persisted data as durable.
 - Never edit old historical migrations unless explicitly instructed.
 - Add new migrations for schema changes.
 - Keep migration numbering consistent and check for untracked migration files.
