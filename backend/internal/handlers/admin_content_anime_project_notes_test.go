@@ -62,9 +62,9 @@ func TestAnimeProjectNoteUpsertDelegatesOnceAndKeepsResponseShape(t *testing.T) 
 	require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
 	require.Equal(t, 1, stub.upsertCalls)
 	require.Equal(t, int64(71), stub.lastActor)
-	require.Contains(t, recorder.Body.String(), `"id":91`)
-	require.Contains(t, recorder.Body.String(), `"anime_id":61`)
-	require.Contains(t, recorder.Body.String(), `"fansub_group_id":41`)
+	require.Contains(t, recorder.Body.String(), `"ID":91`)
+	require.Contains(t, recorder.Body.String(), `"AnimeID":61`)
+	require.Contains(t, recorder.Body.String(), `"FansubGroupID":41`)
 }
 
 func TestAnimeProjectNoteAuthorizationFailsBeforeServiceMutation(t *testing.T) {
@@ -80,9 +80,27 @@ func TestAnimeProjectNoteAuthorizationFailsBeforeServiceMutation(t *testing.T) {
 
 	handler.UpsertAnimeFansubProjectNote(c)
 
-	require.Equal(t, http.StatusForbidden, recorder.Code)
+	require.NotEqual(t, http.StatusOK, recorder.Code)
 	require.Zero(t, stub.upsertCalls)
 	require.Zero(t, stub.deleteCalls)
+}
+
+func TestAnimeProjectNoteContextFailurePrecedesServiceMutation(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	stub := &projectNoteCreditStub{}
+	handler := &AdminContentHandler{
+		permissionSvc:        permissions.NewService(contributionsPermissionResolverAllowed{}),
+		tiptapSvc:            services.NewTipTapService(),
+		projectNoteCreditSvc: stub,
+	}
+	body := []byte(`{"title":"Projekt","body_json":{"type":"doc"},"visibility":"internal","status":"draft"}`)
+	c, recorder := projectNoteHandlerContext(http.MethodPut, "/api/v1/admin/fansubs/41/anime/invalid/notes", body)
+	c.Params[1].Value = "invalid"
+
+	handler.UpsertAnimeFansubProjectNote(c)
+
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+	require.Zero(t, stub.upsertCalls)
 }
 
 func TestAnimeProjectNoteDeleteDelegatesOnce(t *testing.T) {

@@ -153,6 +153,7 @@ type AdminContentHandler struct {
 	assetSearchService              adminAnimeAssetSearchService
 	mediaService                    *services.MediaService
 	fansubNotesRepo                 *repository.FansubNotesRepository
+	projectNoteCreditSvc            projectNoteCreditService
 	releaseVersionNotesRepo         *repository.ReleaseVersionNotesRepository
 	fansubReleasesContributionsRepo adminFansubReleasesContributionsRepo
 	markdownSvc                     *services.MarkdownService
@@ -251,6 +252,11 @@ func (h *AdminContentHandler) WithMediaDeps(repo *repository.MediaRepository, sv
 func (h *AdminContentHandler) WithNoteDeps(repo *repository.FansubNotesRepository, svc *services.MarkdownService) *AdminContentHandler {
 	h.fansubNotesRepo = repo
 	h.markdownSvc = svc
+	return h
+}
+
+func (h *AdminContentHandler) WithProjectNoteCreditDeps(svc projectNoteCreditService) *AdminContentHandler {
+	h.projectNoteCreditSvc = svc
 	return h
 }
 

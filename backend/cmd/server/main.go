@@ -229,8 +229,10 @@ func main() {
 			FanartAPIKey: cfg.FanartAPIKey,
 		},
 	)
+	fansubNotesRepo := repository.NewFansubNotesRepository(dbPool)
 	adminContentHandler.WithMediaDeps(mediaRepo, mediaService).
-		WithNoteDeps(repository.NewFansubNotesRepository(dbPool), services.NewMarkdownService()).
+		WithNoteDeps(fansubNotesRepo, services.NewMarkdownService()).
+		WithProjectNoteCreditDeps(services.NewProjectNoteCreditService(dbPool, fansubNotesRepo)).
 		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool)).
 		WithFansubReleasesContributionsDeps(repository.NewFansubReleasesContributionsRepository(dbPool)).
 		WithTipTapDeps(tiptapSvc).

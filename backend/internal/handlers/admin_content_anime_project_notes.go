@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -9,9 +10,23 @@ import (
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
+
+type projectNoteCreditService interface {
+	Upsert(
+		context.Context,
+		int64,
+		int64,
+		int64,
+		repository.UpsertAnimeFansubProjectNoteRequest,
+	) (*repository.AnimeFansubProjectNote, error)
+	Delete(context.Context, int64, int64, int64, int64) error
+}
+
+var _ projectNoteCreditService = (*services.ProjectNoteCreditService)(nil)
 
 // ---- Request-Structs: anime_fansub_project_notes ----
 type upsertAnimeFansubProjectNoteRequest struct {
@@ -119,11 +134,11 @@ func (h *AdminContentHandler) UpsertAnimeFansubProjectNote(c *gin.Context) {
 	}
 	bodyText, _ := h.tiptapSvc.ExtractText(bodyJSONStr)
 
-	note, err := h.fansubNotesRepo.UpsertAnimeFansubProjectNote(
+	note, err := h.projectNoteCreditSvc.Upsert(
 		c.Request.Context(),
 		animeID,
 		fansubID,
-		identity.UserID,
+		identity.AppUserID,
 		repository.UpsertAnimeFansubProjectNoteRequest{
 			Title:                req.Title,
 			BodyJSON:             []byte(req.BodyJSON),
@@ -176,7 +191,7 @@ func (h *AdminContentHandler) DeleteAnimeFansubProjectNote(c *gin.Context) {
 		return
 	}
 
-	err = h.fansubNotesRepo.DeleteAnimeFansubProjectNote(c.Request.Context(), noteID, animeID, fansubID, identity.UserID)
+	err = h.projectNoteCreditSvc.Delete(c.Request.Context(), noteID, animeID, fansubID, identity.AppUserID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "projektnotiz nicht gefunden"}})
 		return
