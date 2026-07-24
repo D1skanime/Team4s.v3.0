@@ -5,6 +5,28 @@
 **Scope:** Phase 108 only  
 **Primary gate:** Every source mutation, snapshot transition, award, reversal, and restoration is proven at the owning backend transaction boundary before UI UAT.
 
+## Multi-Source Coverage Audit
+
+| SOURCE | ID | Feature / Requirement | Plan | Status |
+|---|---|---|---|---|
+| GOAL | — | Existing release-role and project-text sources produce correct member-owned points without Phase-107.1 double wiring | 01–07 | COVERED |
+| REQ | GAM-01 | Stable member beneficiary; app_user only actor | 03, 04, 07 | COVERED |
+| REQ | GAM-02 | Append-only ledger, reversal/restoration, concurrency/idempotency | 01, 03, 04, 07 | COVERED |
+| REQ | GAM-03 | Immutable rules and server-owned values | 01, 03, 04 | COVERED |
+| REQ | GAM-04 | Fansub work and platform contribution remain distinct; metadata is point-neutral | 03–06 | COVERED |
+| REQ | GAM-05 | Additive integration with migration, contract, and regression proof | 01–07 | COVERED |
+| RESEARCH | R-C1 | Leader/member confirmation is scoped, status-bounded, and atomic | 03, 07 | COVERED |
+| RESEARCH | R-C2 | Generic routes are project-only; Replace is the sole release writer | 05, 07 | COVERED |
+| RESEARCH | R-C3 | Confirmed-only effective truth; proposals coexist | 02, 03, 07 | COVERED |
+| RESEARCH | R-C4 | Complete production constructors, dependencies, and routes | 07 | COVERED |
+| RESEARCH | R-C5 | Unlinked first writer consumes the project-text author slot | 01, 04, 06 | COVERED |
+| RESEARCH | R-C6 | Refresh-session protected actions | 05, 06 | COVERED |
+| RESEARCH | R-C7 | No backfill/import/carry-forward of existing content data | 01, 04, 06 | COVERED |
+| CONTEXT | D-01–D-09 | Work/author beneficiary and point boundaries | 03, 04 | COVERED |
+| CONTEXT | D-10–D-18 | Full snapshots, inheritance, independence, and atomic diffs | 02, 03, 07 | COVERED |
+| CONTEXT | D-19 / D-19a | Project-text recreation and role restoration | 03, 04 | COVERED |
+| CONTEXT | D-20–D-22 | Disposable data; schema allowed, no data carry-forward | 01, 06 | COVERED |
+
 ## Validation Objective
 
 Phase 108 is valid only when the existing release-crew and anime/fansub-project-note flows produce correct member-owned credits without creating a parallel contribution, identity, review, text, media, or upload domain. Automated tests own all persistence, transaction, idempotency, source-key, and points assertions. Manual UAT is limited to discoverability, complete-set editing, visible state, and protected-session behavior that cannot be established adequately from repository tests.
@@ -49,6 +71,7 @@ These files are the implementation-ready owners. If implementation chooses mater
 | D-06 | `TestReleaseCrewCreditsWorkerNotActor` | Award `member_id` equals the selected worker; `actor_app_user_id` equals the leader/admin and receives no beneficiary award. | None. |
 | D-07 | `TestReleaseCrewCreditsAccountlessHistoricalMember` | A `members`/historical group member with no `app_user` can be assigned and receives normal role awards. | Create/select a historical person through the canonical product flow and confirm the person is selectable without login. |
 | D-08 | `TestProjectTextCreditsFirstAuthorMemberOnly`, `TestProjectTextWithoutLinkedMemberSkipsCredit` | First writer’s linked member gets the award; later editor gets none; writer without member link saves text but creates no ledger row. | Verify text remains saved for a leader without member link and no misleading “points awarded” UI appears. |
+| D-08a | `TestUnlinkedFirstAuthorConsumesSlotPermanently` | Unlinked first writer consumes generation 1 as `skipped_no_member`; later linked editor or later linkage never awards it; delete adds no reversal; recreation evaluates generation 2. | Save first text unlinked, edit later linked, and confirm no misleading award message. |
 | D-09 | `TestCrewMutationsCreateNoAdminOrReviewCredits` | Create, confirm, replace, remove, and correct create only work-unit awards/reversals; no review/admin rule code is used. | None. |
 | D-10 | `release_crew_snapshot_repository_test.go::TestEveryReleaseReadsCompleteStoredSnapshot` | Reader never falls back based on “any release row”; returned rows are the complete stored snapshot, including an explicitly empty independent set. | Open several releases and verify each drawer reflects its own complete saved set. |
 | D-11 | `TestReleaseCreationSeedsFullCurrentProjectCrew` and import helper test | After release/version/group creation, all current project members and every role are persisted before commit; editor API reads exactly that set. | Create/import one release through the user-visible canonical flow and open its drawer. |
@@ -104,6 +127,20 @@ Required tests must assert:
 | Commit/lost-response retry | New state exactly once | One semantic result, no duplicate |
 | Two identical concurrent replaces | One complete new set | One award/reversal/restoration per semantic unit |
 | Concurrent project sync vs first manual edit | Serialized outcome: manual edit wins permanent independence or sync completes before edit; never partial/merged | Ledger matches final serialized snapshot |
+| Leader/member confirm after scoped row lock | Previous proposal status after rollback | No snapshot or ledger change |
+
+## Corrective Runtime Boundary Matrix
+
+| Boundary | Required automated proof |
+|---|---|
+| Leader confirm | Route group and contribution group must match; only eligible proposed state transitions; confirmation metadata, confirmed-only snapshot diff, ledger, and status commit in one transaction. |
+| Member self-confirm | Existing verified-claim/member ownership gate and self-created proposal prohibition remain; only eligible source status transitions; disputed/hidden/already-confirmed cannot be promoted. |
+| Generic POST | Non-NULL `release_version_id` is rejected without row, snapshot, or ledger writes. |
+| Generic PATCH | Any payload containing `release_version_id` is rejected; any already release-specific target is rejected even when the field is omitted; review-status promotion is rejected. |
+| Generic DELETE | Any already release-specific target is rejected; release crew deletion occurs only through empty Complete-Set/Replace. |
+| Effective truth | Only `status='confirmed'` participates in defaults, snapshots, points, and release creation; proposed/draft/disputed/hidden remain review/history rows. |
+| Proposal coexistence | Open proposal listing retains the proposal while effective reads use confirmed rows only; edit/reject/delete of the proposal leaves confirmed snapshots and ledger unchanged. |
+| Runtime wiring | Production `main.go`, `admin_routes.go`, and `admin_content_handler.go` construct/inject/register the same services for Replace, notes, generic routes, leader confirm, member confirm, and both release creators. |
 
 Run concurrency-sensitive cases with:
 
@@ -126,6 +163,17 @@ go test ./internal/migrations -run 'Phase106|Phase107|ReleaseReview|Phase108' -c
 cd ../frontend
 npm test -- ReleaseContributionDrawer api.auth-refresh
 npm run typecheck
+```
+
+Additional corrective regressions:
+
+```bash
+cd backend
+go test ./internal/services ./internal/handlers -run 'ContributionConfirm|ConfirmProposal|ConfirmMyAnimeContribution|ConfirmedOnly|ProposalCoexist' -count=20
+go test ./cmd/server ./internal/handlers ./internal/repository -run 'Phase108RuntimeWiring|ReleaseCrewRoute|ProjectOnly|ReleaseSpecificRejected' -count=1
+
+cd ../frontend
+npm test -- api.auth-refresh
 ```
 
 Additional static boundary checks:
@@ -219,6 +267,11 @@ Those are automated or code-review gates. Manual UAT certifies only route reacha
 - [ ] D-19a restoration creates exactly one new append-only effective credit.
 - [ ] First non-empty project text awards 5 to the first author member; delete reverses; recreate awards the new lifecycle once.
 - [ ] A leader without member link can save text but receives no credit.
+- [ ] The unlinked first writer consumes the generation slot permanently; later linking/editor gets no retro-credit, and deletion creates no reversal.
+- [ ] Leader and member confirmation are group-scoped, status-bounded, confirmed-only, and atomic with snapshot/ledger effects.
+- [ ] Generic POST/PATCH/DELETE mutate only project rows; all release-specific targets and ownership moves are rejected.
+- [ ] Proposed/draft/disputed/hidden never become effective work, seed releases, or alter confirmed snapshots/points.
+- [ ] Production constructors and routes wire one shared service graph through every live mutation and both release creators.
 - [ ] An accountless historical member can receive release-role credits.
 - [ ] No assignment/admin/review/metadata/anime-media credit is introduced.
 - [ ] Release-version notes and media retain Phase-107.1 ownership and are not double wired.
@@ -238,4 +291,3 @@ Executors/verifiers should append results to the phase verification artifact, no
 | Frontend | focused Vitest + typecheck | PASS/FAIL | output |
 | Full regression | full phase gate | PASS/FAIL | output |
 | Live UAT | `/admin/fansubs/[id]/edit` → release drawer/project text | PASS/FAIL | tested IDs and observations |
-
