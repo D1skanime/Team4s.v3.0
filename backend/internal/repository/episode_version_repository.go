@@ -13,11 +13,16 @@ import (
 )
 
 type EpisodeVersionRepository struct {
-	db *pgxpool.Pool
+	db         *pgxpool.Pool
+	crewSeeder ReleaseCreationCrewSeeder
 }
 
-func NewEpisodeVersionRepository(db *pgxpool.Pool) *EpisodeVersionRepository {
-	return &EpisodeVersionRepository{db: db}
+func NewEpisodeVersionRepository(db *pgxpool.Pool, crewSeeders ...ReleaseCreationCrewSeeder) *EpisodeVersionRepository {
+	var crewSeeder ReleaseCreationCrewSeeder
+	if len(crewSeeders) > 0 {
+		crewSeeder = crewSeeders[0]
+	}
+	return &EpisodeVersionRepository{db: db, crewSeeder: crewSeeder}
 }
 
 func (r *EpisodeVersionRepository) ListGroupedByAnimeID(
@@ -220,6 +225,11 @@ func (r *EpisodeVersionRepository) Create(
 	}
 	if err := syncEpisodeVersionSelectedGroups(ctx, tx, releaseVersionID, input.AnimeID, input.FansubGroups, input.FansubGroupID, true); err != nil {
 		return nil, err
+	}
+	if r.crewSeeder != nil {
+		if err := seedCreatedReleaseCrews(ctx, tx, r.crewSeeder, releaseVersionID); err != nil {
+			return nil, err
+		}
 	}
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO release_variant_episodes (release_variant_id, episode_id, position)

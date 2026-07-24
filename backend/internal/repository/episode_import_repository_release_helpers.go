@@ -16,9 +16,14 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+type ReleaseCreationCrewSeeder interface {
+	SeedCreatedReleaseInTx(context.Context, pgx.Tx, int64, int64) error
+}
+
 func upsertImportReleaseGraph(
 	ctx context.Context,
 	tx pgx.Tx,
+	crewSeeder ReleaseCreationCrewSeeder,
 	ids episodeImportReleaseIDs,
 	mapping models.EpisodeImportMappingRow,
 	media models.EpisodeImportMediaCandidate,
@@ -81,6 +86,11 @@ func upsertImportReleaseGraph(
 	if err := upsertReleaseVersionGroup(ctx, tx, releaseVersionID, mapping, media); err != nil {
 		return false, err
 	}
+	if created && crewSeeder != nil {
+		if err := seedCreatedReleaseCrews(ctx, tx, crewSeeder, releaseVersionID); err != nil {
+			return false, err
+		}
+	}
 	for index, episodeNumber := range mapping.TargetEpisodeNumbers {
 		episodeID := episodeIDsByNumber[episodeNumber]
 		if _, err := tx.Exec(ctx, `
@@ -93,6 +103,42 @@ func upsertImportReleaseGraph(
 		}
 	}
 	return created, nil
+}
+
+func seedCreatedReleaseCrews(
+	ctx context.Context,
+	tx pgx.Tx,
+	crewSeeder ReleaseCreationCrewSeeder,
+	releaseVersionID int64,
+) error {
+	rows, err := tx.Query(ctx, `
+		SELECT fansub_group_id
+		FROM release_version_groups
+		WHERE release_version_id = $1
+		ORDER BY fansub_group_id
+	`, releaseVersionID)
+	if err != nil {
+		return fmt.Errorf("query release creation groups version=%d: %w", releaseVersionID, err)
+	}
+	defer rows.Close()
+
+	var fansubGroupIDs []int64
+	for rows.Next() {
+		var fansubGroupID int64
+		if err := rows.Scan(&fansubGroupID); err != nil {
+			return fmt.Errorf("scan release creation group version=%d: %w", releaseVersionID, err)
+		}
+		fansubGroupIDs = append(fansubGroupIDs, fansubGroupID)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate release creation groups version=%d: %w", releaseVersionID, err)
+	}
+	for _, fansubGroupID := range fansubGroupIDs {
+		if err := crewSeeder.SeedCreatedReleaseInTx(ctx, tx, releaseVersionID, fansubGroupID); err != nil {
+			return fmt.Errorf("seed release crew version=%d group=%d: %w", releaseVersionID, fansubGroupID, err)
+		}
+	}
+	return nil
 }
 
 func createFansubRelease(ctx context.Context, tx pgx.Tx, episodeID int64, sourceID int64) (int64, error) {

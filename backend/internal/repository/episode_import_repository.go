@@ -12,11 +12,16 @@ import (
 )
 
 type EpisodeImportRepository struct {
-	db *pgxpool.Pool
+	db         *pgxpool.Pool
+	crewSeeder ReleaseCreationCrewSeeder
 }
 
-func NewEpisodeImportRepository(db *pgxpool.Pool) *EpisodeImportRepository {
-	return &EpisodeImportRepository{db: db}
+func NewEpisodeImportRepository(db *pgxpool.Pool, crewSeeders ...ReleaseCreationCrewSeeder) *EpisodeImportRepository {
+	var crewSeeder ReleaseCreationCrewSeeder
+	if len(crewSeeders) > 0 {
+		crewSeeder = crewSeeders[0]
+	}
+	return &EpisodeImportRepository{db: db, crewSeeder: crewSeeder}
 }
 
 func (r *EpisodeImportRepository) Apply(

@@ -73,7 +73,7 @@ func (r *EpisodeImportRepository) applyReleaseNative(
 			ReleaseSourceID:  releaseSourceID,
 			StreamTypeID:     streamTypeID,
 		}
-		created, err := upsertImportReleaseGraph(ctx, tx, releaseIDs, mapping, media, episodeIDsByNumber)
+		created, err := upsertImportReleaseGraph(ctx, tx, r.crewSeeder, releaseIDs, mapping, media, episodeIDsByNumber)
 		if err != nil {
 			return nil, err
 		}
