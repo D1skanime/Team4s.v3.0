@@ -308,19 +308,18 @@ _, err := points.CreditInTx(ctx, tx, services.CreditCommand{
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | A removed and later re-added identical role unit should earn again through a persisted generation. | Architecture Pattern 3 | Could over- or under-credit corrections; user must lock semantics. |
+| — | No unresolved Phase-108 implementation assumption remains. D-19a fixes restoration semantics, and live code inspection fixes both creation and project-roster mutation boundaries. | Architecture Pattern 3; Open Questions (RESOLVED) | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does re-adding the exact same Member×Release×Role after reversal create a fresh effective point?**
-   - What we know: The ledger permanently reserves the original award key and permits only one direct reversal. [VERIFIED: migration 0131]
-   - What's unclear: D-17/D-18 define removal and additions in a correction but not a later re-add of the same tuple.
-   - Recommendation: Lock “new generation earns again” and persist the generation on the adapter source; otherwise explicitly define re-add as restoration without another award. [ASSUMED]
+   - Resolution: D-19a requires a new append-only restoration booking that restores exactly one effective point. Persist a source generation and increment it only when a reversed identical tuple becomes valid again; retries and unchanged saves remain idempotent. [VERIFIED: D-19a]
 
-2. **What is the canonical release-creation surface besides Jellyfin import?**
-   - What we know: Live grep found `fansub_releases`/`release_versions` creation in `episode_import_repository_release_helpers.go`. [VERIFIED: codebase grep]
-   - What's unclear: Future/manual creation may be added elsewhere.
-   - Recommendation: Put seeding in a reusable release-crew service and call it from every creation seam found during implementation, with a test guarding the import path.
+2. **What are the canonical release-creation surfaces?**
+   - Resolution: Live grep found exactly two runtime callers of the shared `createFansubRelease`/`createReleaseVersion` helpers: Jellyfin/import creation in `upsertImportReleaseGraph` (`backend/internal/repository/episode_import_repository_release_helpers.go`) and manual/admin creation in `EpisodeVersionRepository.Create` (`backend/internal/repository/episode_version_repository.go`). Both establish ownership through `upsertReleaseVersionGroup` or `syncEpisodeVersionSelectedGroups` before commit. Both must invoke the reusable ReleaseCrewService inside their existing `pgx.Tx` after `release_version_groups` exists, so snapshot seeding and one award per Member×Release×Role are atomic with creation. [VERIFIED: live `rg` and both transaction bodies, 2026-07-24]
+
+3. **Which project-roster mutations must synchronize inherited release snapshots?**
+   - Resolution: The canonical admin create and update boundaries are `FansubAnimeContributionsHandler.CreateAnimeContribution` and `.UpdateAnimeContribution` in `backend/internal/handlers/fansub_anime_contributions_handler.go`; delete is `DeleteAnimeContribution` in `backend/internal/handlers/fansub_anime_contributions_delete_handler.go`. They currently call transaction-owning `AnimeContributionsRepository.CreateOrUpdate`, `.Update`, and `.Delete`. Phase 108 must route successful anime-level (`release_version_id IS NULL`) add/change/remove mutations through one ReleaseCrewService transaction command using DBTX repository variants, synchronize and point-diff inherited snapshots only, and leave independent snapshots byte-for-byte unchanged. Release-version-specific contribution mutations are handled by the release complete-set command and must not be treated as project-roster changes. [VERIFIED: live handlers/repositories, 2026-07-24]
 
 ## Environment Availability
 
