@@ -2469,6 +2469,17 @@ Plans:
 **Goal:** Bestehende Domänendaten über schmale, kontextspezifische Adapter als bestätigte Gamification-Quellen nutzbar machen, ohne Domain-Ownership oder Uploadsysteme zu vereinheitlichen.
 **Requirements:** Phasen 106–107.1; kanonische Fansub-/Release-Domain.
 **Depends on:** Phase 106, Phase 107, Phase 107.1
+**Plans:** 6 plans
+
+Plans:
+
+- [ ] 108-01-PLAN.md — Canonical snapshot and credit-lifecycle schema with no-backfill migration tests
+- [ ] 108-02-PLAN.md — Complete stored snapshots, inherited synchronization, and release-creation seeding
+- [ ] 108-03-PLAN.md — Atomic release-crew Set-Diff, points, reversal, restoration, and replace endpoint
+- [ ] 108-04-PLAN.md — Atomic project-text first-author, delete, and recreate credit lifecycle
+- [ ] 108-05-PLAN.md — Typed OpenAPI/frontend replace contract and central-auth drawer integration
+- [ ] 108-06-PLAN.md — Cross-boundary regression gate and bounded live UAT
+
 **Success Criteria** (what must be TRUE):
 
   1. Tatsächliche Fansub-Leistung wird aus bestätigten Release-/Anime-Mitwirkungen und Rollen gewonnen; weitere Plattformarbeit wird getrennt nach Projekt-/Zusatznotizen und Metadatenpflege kategorisiert. Die bereits in Phase 107.1 angebundenen Release-Texte und Release-Version-Medien werden nicht erneut verdrahtet.
