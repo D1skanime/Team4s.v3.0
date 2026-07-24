@@ -17,6 +17,8 @@ import {
   AUTH_REFRESH_COOKIE_NAME,
   AUTH_TOKEN_COOKIE_NAME,
   clearAuthSession,
+  confirmAnimeContribution,
+  confirmProposal,
   createFansubGroup,
   getEpisodeImportContext,
   getAuthSessionSnapshot,
@@ -24,6 +26,8 @@ import {
   getReleasePlaybackAccess,
   logoutActiveAuthSession,
   persistAuthSession,
+  replaceReleaseCrew,
+  upsertAnimeFansubProjectNote,
   uploadAdminAnimeMedia,
 } from './api'
 
@@ -294,6 +298,72 @@ describe('authorized auth refresh flow', () => {
         }),
       }),
     )
+  })
+
+  it.each([
+    {
+      name: 'release crew replace',
+      invoke: () => replaceReleaseCrew(176, 9, { rows: [{ member_id: 4, role_codes: ['qc'] }] }),
+      response: { data: [{ member_id: 4, role_codes: ['qc'] }], meta: { snapshot_mode: 'independent' } },
+      path: '/api/v1/admin/release-versions/176/contributions/effective?fansub_group_id=9',
+    },
+    {
+      name: 'project-note save',
+      invoke: () => upsertAnimeFansubProjectNote(9, 22, {
+        title: 'Projekt',
+        bodyJson: { type: 'doc', content: [] },
+        visibility: 'internal',
+        status: 'draft',
+        sortOrder: 0,
+      }),
+      response: {
+        data: {
+          id: 5,
+          fansub_group_id: 9,
+          anime_id: 22,
+          title: 'Projekt',
+          body_json: { type: 'doc', content: [] },
+          body_plaintext: '',
+          visibility: 'internal',
+          status: 'draft',
+          sort_order: 0,
+          created_by: null,
+          modified_by: null,
+          created_at: '2026-07-24T00:00:00Z',
+          updated_at: '2026-07-24T00:00:00Z',
+        },
+      },
+      path: '/api/v1/admin/fansubs/9/anime/22/notes',
+    },
+    {
+      name: 'leader confirmation',
+      invoke: () => confirmProposal(9, 41),
+      response: {},
+      path: '/api/v1/admin/fansubs/9/contribution-proposals/41/confirm',
+    },
+    {
+      name: 'member self-confirmation',
+      invoke: () => confirmAnimeContribution(42),
+      response: {},
+      path: '/api/v1/me/anime-contributions/42/confirm',
+    },
+  ])('refreshes a missing access token for protected $name through the central seam', async ({ invoke, response, path }) => {
+    clearAuthSession()
+    seedRuntimeSessionMissingAccessToken()
+    refreshKeycloakTokenMock.mockResolvedValue(freshKeycloakBundle())
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(makeCurrentUserResponse())
+      .mockResolvedValueOnce(makeResponse(response, { ok: true, status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(invoke()).resolves.not.toThrow()
+
+    expect(refreshKeycloakTokenMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[1]?.[0]).toContain(path)
+    expect(fetchMock.mock.calls[1]?.[1]).toEqual(expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: 'Bearer new-access-token' }),
+    }))
   })
 
   it('shares one proactive refresh across concurrent protected requests', async () => {
