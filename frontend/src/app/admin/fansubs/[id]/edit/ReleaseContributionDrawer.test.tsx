@@ -7,331 +7,186 @@ import type { EffectiveContributionRow, UnifiedGroupMember } from '@/types/fansu
 
 const mockListEffectiveContributionsForVersion = vi.fn()
 const mockListUnifiedGroupMembers = vi.fn()
+const mockReplaceReleaseCrew = vi.fn()
 const mockUpsertAnimeContribution = vi.fn()
 const mockDeleteAnimeContribution = vi.fn()
 
 vi.mock('@/lib/api', () => ({
   listEffectiveContributionsForVersion: (...args: unknown[]) =>
     mockListEffectiveContributionsForVersion(...args),
-  listUnifiedGroupMembers: (...args: unknown[]) =>
-    mockListUnifiedGroupMembers(...args),
-  upsertAnimeContribution: (...args: unknown[]) =>
-    mockUpsertAnimeContribution(...args),
-  deleteAnimeContribution: (...args: unknown[]) =>
-    mockDeleteAnimeContribution(...args),
-  ApiError: class ApiError extends Error {
-    status: number
-    constructor(status: number, message: string) {
-      super(message)
-      this.status = status
-    }
-  },
+  listUnifiedGroupMembers: (...args: unknown[]) => mockListUnifiedGroupMembers(...args),
+  replaceReleaseCrew: (...args: unknown[]) => mockReplaceReleaseCrew(...args),
+  upsertAnimeContribution: (...args: unknown[]) => mockUpsertAnimeContribution(...args),
+  deleteAnimeContribution: (...args: unknown[]) => mockDeleteAnimeContribution(...args),
 }))
 
 const sampleMembers: UnifiedGroupMember[] = [
-  { member_id: 1, display_name: 'Alice Müller', source: 'hist', has_app_account: false, group_roles: [] },
-  { member_id: 2, display_name: 'Bob Schmidt', source: 'app', has_app_account: true, group_roles: [] },
+  { member_id: 1, display_name: 'Gon Müller', source: 'hist', has_app_account: false, group_roles: [] },
+  { member_id: 2, display_name: 'Mia Schmidt', source: 'app', has_app_account: true, group_roles: [] },
+  { member_id: 3, display_name: 'Anton Weber', source: 'hist', has_app_account: false, group_roles: [] },
 ]
 
 const sampleContributions: EffectiveContributionRow[] = [
-  { contribution_id: 10, member_id: 1, member_display_name: 'Alice Müller', member_avatar_url: null, role_codes: ['translator'] },
-  { contribution_id: 11, member_id: 2, member_display_name: 'Bob Schmidt', member_avatar_url: null, role_codes: ['editor'] },
+  { contribution_id: 10, member_id: 1, member_display_name: 'Gon Müller', member_avatar_url: null, role_codes: ['translator'] },
+  { contribution_id: 11, member_id: 2, member_display_name: 'Mia Schmidt', member_avatar_url: null, role_codes: ['qc'] },
+  { contribution_id: 12, member_id: 3, member_display_name: 'Anton Weber', member_avatar_url: null, role_codes: ['editor'] },
 ]
 
-// Lazy import so mocks are in place before module loads
 async function importDrawer() {
   const mod = await import('./ReleaseContributionDrawer')
   return mod.ReleaseContributionDrawer
 }
 
-describe('ReleaseContributionDrawer', () => {
+async function renderDrawer() {
+  const ReleaseContributionDrawer = await importDrawer()
+  const onClose = vi.fn()
+  const onSaved = vi.fn()
+  render(
+    <ReleaseContributionDrawer
+      open
+      fansubId={9}
+      animeId={22}
+      releaseVersionId={176}
+      releaseTitle="Folge 176"
+      onClose={onClose}
+      onSaved={onSaved}
+    />,
+  )
+  await waitFor(() => expect(screen.getByText('Gon Müller')).toBeDefined())
+  return { onClose, onSaved }
+}
+
+describe('ReleaseContributionDrawer complete-set editor', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockListUnifiedGroupMembers.mockResolvedValue(sampleMembers)
     mockListEffectiveContributionsForVersion.mockResolvedValue({
       data: sampleContributions,
-      meta: { is_override: false, source: 'anime_default' },
+      meta: { snapshot_mode: 'inherited' },
     })
-    mockUpsertAnimeContribution.mockResolvedValue({ data: {} })
-    mockDeleteAnimeContribution.mockResolvedValue(undefined)
+    mockReplaceReleaseCrew.mockResolvedValue({
+      data: sampleContributions,
+      meta: { snapshot_mode: 'independent' },
+    })
   })
 
-  afterEach(() => {
-    cleanup()
+  afterEach(cleanup)
+
+  it('shows inherited status and no reset-to-project action', async () => {
+    await renderDrawer()
+    expect(screen.getByText('Projektbesetzung geerbt')).toBeDefined()
+    expect(screen.queryByText('Projektbesetzung neu übernehmen')).toBeNull()
   })
 
-  it('rendert nichts wenn open=false', async () => {
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={false}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
+  it('sends exactly one normalized complete set and never uses row-level mutations', async () => {
+    const { onClose, onSaved } = await renderDrawer()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rollen für Gon Müller ändern' }))
+    fireEvent.click(
+      within(screen.getByLabelText('Rollen für Gon Müller')).getByRole('button', { name: 'Qualitätskontrolle' }),
     )
-    expect(screen.queryByText('Besetzung: Naruto Staffel 1')).toBeNull()
-    expect(mockListEffectiveContributionsForVersion).not.toHaveBeenCalled()
-  })
+    fireEvent.click(screen.getByLabelText('Mia Schmidt entfernen'))
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
-  it('rendert Sheet-Titel wenn open=true', async () => {
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
-    )
     await waitFor(() => {
-      expect(screen.getByText('Besetzung: Naruto Staffel 1')).toBeDefined()
-      expect(screen.getByText(/gilt nur für diese Version/)).toBeDefined()
+      expect(mockReplaceReleaseCrew).toHaveBeenCalledWith(176, 9, {
+        rows: [
+          { member_id: 1, role_codes: ['translator', 'qc'] },
+          { member_id: 3, role_codes: ['editor'] },
+        ],
+      })
+    })
+    expect(mockReplaceReleaseCrew).toHaveBeenCalledTimes(1)
+    expect(mockUpsertAnimeContribution).not.toHaveBeenCalled()
+    expect(mockDeleteAnimeContribution).not.toHaveBeenCalled()
+    expect(onSaved).toHaveBeenCalledTimes(1)
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('preserves Anton while moving QC from Mia to Gon', async () => {
+    await renderDrawer()
+    fireEvent.click(screen.getByRole('button', { name: 'Rollen für Gon Müller ändern' }))
+    fireEvent.click(
+      within(screen.getByLabelText('Rollen für Gon Müller')).getByRole('button', { name: 'Qualitätskontrolle' }),
+    )
+    fireEvent.click(screen.getByLabelText('Mia Schmidt entfernen'))
+
+    expect(screen.getByText('Anton Weber')).toBeDefined()
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await waitFor(() => expect(mockReplaceReleaseCrew).toHaveBeenCalledTimes(1))
+    expect(mockReplaceReleaseCrew.mock.calls[0]?.[2].rows).toContainEqual({
+      member_id: 3,
+      role_codes: ['editor'],
     })
   })
 
-  it('zeigt EmptyState wenn keine Rollen vergeben sind', async () => {
+  it('accepts and reloads an empty independent crew without fallback', async () => {
     mockListEffectiveContributionsForVersion.mockResolvedValue({
       data: [],
-      meta: { is_override: false, source: 'anime_default' },
+      meta: { snapshot_mode: 'independent' },
     })
     const ReleaseContributionDrawer = await importDrawer()
     render(
       <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
+        open
+        fansubId={9}
+        animeId={22}
+        releaseVersionId={176}
+        releaseTitle="Folge 176"
         onClose={vi.fn()}
         onSaved={vi.fn()}
       />,
     )
-    await waitFor(() => {
-      expect(screen.getByText('Noch keine Rollen vergeben')).toBeDefined()
-    })
+    await waitFor(() => expect(screen.getByText('Eigene Release-Besetzung')).toBeDefined())
+    expect(screen.getByText('Noch keine Rollen vergeben')).toBeDefined()
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await waitFor(() => expect(mockReplaceReleaseCrew).toHaveBeenCalledWith(176, 9, { rows: [] }))
   })
 
-  it('rendert Member-Namen aus Contributions-Liste', async () => {
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
-    )
-    await waitFor(() => {
-      expect(screen.getByText('Alice Müller')).toBeDefined()
-      expect(screen.getByText('Bob Schmidt')).toBeDefined()
-    })
-    expect(screen.getByText('Übersetzung')).toBeDefined()
-    expect(screen.getByText('Editing')).toBeDefined()
-    expect(screen.queryByLabelText('Rollen für Alice Müller')).toBeNull()
-  })
+  it('keeps the drawer open and shows a scoped error when replacement fails', async () => {
+    mockReplaceReleaseCrew.mockRejectedValue(new Error('Speichern nicht möglich.'))
+    const { onClose, onSaved } = await renderDrawer()
 
-  it('zeigt Rollenauswahl erst nach Klick auf Rollen ändern', async () => {
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
-    )
-    await waitFor(() => {
-      expect(screen.getByText('Alice Müller')).toBeDefined()
-    })
-
-    expect(screen.queryByLabelText('Rollen für Alice Müller')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Rollen für Alice Müller ändern' }))
-    expect(screen.getByLabelText('Rollen für Alice Müller')).toBeDefined()
-  })
-
-  it('Entfernen-Button entfernt Zeile aus staged-Liste ohne API-Call', async () => {
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
-    )
-    // Warte bis die Liste geladen ist
-    await waitFor(() => {
-      expect(screen.getByText('Alice Müller')).toBeDefined()
-    })
-
-    // Klicke den Entfernen-Button der ersten Zeile
-    const removeButtons = screen.getAllByLabelText('Alice Müller entfernen')
-    expect(removeButtons.length).toBeGreaterThan(0)
-    fireEvent.click(removeButtons[0])
-
-    // Alice sollte nicht mehr sichtbar sein (staged, kein API-Call)
-    await waitFor(() => {
-      expect(screen.queryByText('Alice Müller')).toBeNull()
-    })
-    // Kein API-Call durch Entfernen
-    expect(mockDeleteAnimeContribution).not.toHaveBeenCalled()
-  })
-
-  it('speichert geerbtes Projektteam als Release-Besetzung ohne globale Löschung', async () => {
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
-    )
-    await waitFor(() => {
-      expect(screen.getByText('Alice Müller')).toBeDefined()
-      expect(screen.getByText('Bob Schmidt')).toBeDefined()
-    })
-
-    fireEvent.click(screen.getByLabelText('Alice Müller entfernen'))
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
 
-    await waitFor(() => {
-      expect(mockUpsertAnimeContribution).toHaveBeenCalledWith(
-        1,
-        2,
-        expect.objectContaining({
-          member_id: 2,
-          release_version_id: 3,
-          role_codes: ['editor'],
-        }),
-      )
-    })
-    expect(mockDeleteAnimeContribution).not.toHaveBeenCalled()
+    await waitFor(() => expect(screen.getByText('Speichern nicht möglich.')).toBeDefined())
+    expect(onSaved).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByText('Besetzung: Folge 176')).toBeDefined()
   })
 
-  it('blockiert komplett leere Release-Besetzung bei geerbtem Projektteam', async () => {
-    mockListEffectiveContributionsForVersion.mockResolvedValue({
-      data: [sampleContributions[0]],
-      meta: { is_override: false, source: 'anime_default' },
-    })
-
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
-    )
-    await waitFor(() => {
-      expect(screen.getByText('Alice Müller')).toBeDefined()
-    })
-
-    fireEvent.click(screen.getByLabelText('Alice Müller entfernen'))
-    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('Eine komplett leere Release-Besetzung kann aktuell nicht gespeichert werden.'),
-      ).toBeDefined()
-    })
-    expect(mockUpsertAnimeContribution).not.toHaveBeenCalled()
-    expect(mockDeleteAnimeContribution).not.toHaveBeenCalled()
-  })
-
-  it('fügt Personen staged hinzu und persistiert erst beim Speichern', async () => {
-    mockListEffectiveContributionsForVersion.mockResolvedValue({
-      data: [sampleContributions[0]],
-      meta: { is_override: false, source: 'anime_default' },
-    })
-
-    const ReleaseContributionDrawer = await importDrawer()
-    render(
-      <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={vi.fn()}
-        onSaved={vi.fn()}
-      />,
-    )
-    await waitFor(() => {
-      expect(screen.getByText('Alice Müller')).toBeDefined()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
-    fireEvent.change(screen.getByLabelText('Person'), { target: { value: '2' } })
-    fireEvent.click(
-      within(screen.getByLabelText('Rollen für neue Person')).getByRole('button', {
-        name: 'Timing',
+  it('keeps request cancellation guards when closing during load', async () => {
+    let resolveCrew!: (value: unknown) => void
+    mockListEffectiveContributionsForVersion.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCrew = resolve
       }),
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }))
-
-    expect(screen.getByText('Bob Schmidt')).toBeDefined()
-    expect(mockUpsertAnimeContribution).not.toHaveBeenCalled()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
-
-    await waitFor(() => {
-      expect(mockUpsertAnimeContribution).toHaveBeenCalledWith(
-        1,
-        2,
-        expect.objectContaining({
-          member_id: 2,
-          release_version_id: 3,
-          role_codes: ['timer'],
-          is_public_on_anime_page: true,
-          is_public_on_member_profile: true,
-        }),
-      )
-    })
-  })
-
-  it('Abbrechen-Button ruft onClose auf', async () => {
-    const onClose = vi.fn()
     const ReleaseContributionDrawer = await importDrawer()
-    render(
+    const view = render(
       <ReleaseContributionDrawer
-        open={true}
-        fansubId={1}
-        animeId={2}
-        releaseVersionId={3}
-        releaseTitle="Naruto Staffel 1"
-        onClose={onClose}
+        open
+        fansubId={9}
+        animeId={22}
+        releaseVersionId={176}
+        releaseTitle="Folge 176"
+        onClose={vi.fn()}
         onSaved={vi.fn()}
       />,
     )
-    await waitFor(() => {
-      expect(screen.getByText('Besetzung: Naruto Staffel 1')).toBeDefined()
-    })
-    const cancelButton = screen.getByText('Abbrechen')
-    fireEvent.click(cancelButton)
-    expect(onClose).toHaveBeenCalled()
+    view.rerender(
+      <ReleaseContributionDrawer
+        open={false}
+        fansubId={9}
+        animeId={22}
+        releaseVersionId={176}
+        releaseTitle="Folge 176"
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    )
+    resolveCrew({ data: sampleContributions, meta: { snapshot_mode: 'inherited' } })
+    await Promise.resolve()
+    expect(screen.queryByText('Gon Müller')).toBeNull()
   })
 })
