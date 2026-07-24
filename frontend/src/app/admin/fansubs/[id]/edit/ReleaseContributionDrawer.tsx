@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pencil, Plus, Trash2, Users } from 'lucide-react'
 
 import {
@@ -14,19 +14,21 @@ import {
   Select,
 } from '@/components/ui'
 import {
-  deleteAnimeContribution,
   listEffectiveContributionsForVersion,
   listUnifiedGroupMembers,
-  upsertAnimeContribution,
+  replaceReleaseCrew,
 } from '@/lib/api'
-import type { EffectiveContributionRow, UnifiedGroupMember } from '@/types/fansub'
+import type {
+  EffectiveContributionRow,
+  ReleaseCrewSnapshotMode,
+  UnifiedGroupMember,
+} from '@/types/fansub'
 
 import { ContributorAvatar } from './ContributorAvatar'
-import { normalizeRoleCodes, roleLabels, sameRoleCodes } from './contributionRoles'
+import { normalizeRoleCodes, roleLabels } from './contributionRoles'
 import { RoleToggleGroup } from './RoleToggleGroup'
 import styles from './FansubEdit.module.css'
 
-type ContributionSource = 'release_version' | 'anime_default'
 type EditableContributionRow = EffectiveContributionRow & { isNew?: boolean }
 
 interface ReleaseContributionDrawerProps {
@@ -42,18 +44,14 @@ interface ReleaseContributionDrawerProps {
 export function ReleaseContributionDrawer({
   open,
   fansubId,
-  animeId,
   releaseVersionId,
   releaseTitle,
   onClose,
   onSaved,
 }: ReleaseContributionDrawerProps) {
   const [stagedRows, setStagedRows] = useState<EditableContributionRow[]>([])
-  const [originalRolesById, setOriginalRolesById] = useState<Record<number, string[]>>({})
-  const [removedIds, setRemovedIds] = useState<number[]>([])
   const [members, setMembers] = useState<UnifiedGroupMember[]>([])
-  const [source, setSource] = useState<ContributionSource>('anime_default')
-  const [isOverride, setIsOverride] = useState(false)
+  const [snapshotMode, setSnapshotMode] = useState<ReleaseCrewSnapshotMode>('inherited')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -69,20 +67,19 @@ export function ReleaseContributionDrawer({
     setLoading(true)
     setError(null)
     setStagedRows([])
-    setOriginalRolesById({})
-    setRemovedIds([])
     setAddingRow(false)
     setNewMemberId(null)
     setNewRoleCodes([])
     setEditingRoleIds(new Set())
-    setSource('anime_default')
-    setIsOverride(false)
+    setSnapshotMode('inherited')
 
-    Promise.all([
-      listUnifiedGroupMembers(fansubId),
-      listEffectiveContributionsForVersion(releaseVersionId, fansubId),
-    ])
-      .then(([membersResult, contributionsResult]) => {
+    void (async () => {
+      try {
+        const membersResult = await listUnifiedGroupMembers(fansubId)
+        const contributionsResult = await listEffectiveContributionsForVersion(
+          releaseVersionId,
+          fansubId,
+        )
         if (cancelled) return
         const rows = (contributionsResult.data ?? []).map((row) => ({
           ...row,
@@ -91,19 +88,14 @@ export function ReleaseContributionDrawer({
 
         setMembers(membersResult ?? [])
         setStagedRows(rows)
-        setOriginalRolesById(
-          Object.fromEntries(rows.map((row) => [row.contribution_id, row.role_codes])),
-        )
-        setSource('release_version')
-        setIsOverride(contributionsResult.meta.snapshot_mode === 'independent')
-      })
-      .catch((err: unknown) => {
+        setSnapshotMode(contributionsResult.meta.snapshot_mode)
+      } catch (err: unknown) {
         if (cancelled) return
         setError(err instanceof Error ? err.message : 'Laden fehlgeschlagen.')
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false)
-      })
+      }
+    })()
 
     return () => {
       cancelled = true
@@ -112,9 +104,6 @@ export function ReleaseContributionDrawer({
 
   function handleRemove(row: EditableContributionRow) {
     setStagedRows((prev) => prev.filter((r) => r.contribution_id !== row.contribution_id))
-    if (!row.isNew && source === 'release_version') {
-      setRemovedIds((prev) => [...prev, row.contribution_id])
-    }
   }
 
   function handleRoleToggle(contributionId: number, roleCode: string) {
@@ -187,52 +176,14 @@ export function ReleaseContributionDrawer({
         return
       }
 
-      const originalRowCount = Object.keys(originalRolesById).length
-      if (source === 'anime_default' && originalRowCount > 0 && stagedRows.length === 0) {
-        setError('Eine komplett leere Release-Besetzung kann aktuell nicht gespeichert werden.')
-        return
-      }
-
-      const hasRowSetChange = stagedRows.length !== originalRowCount
-      const hasPendingChanges =
-        hasRowSetChange ||
-        removedIds.length > 0 ||
-        stagedRows.some(
-          (row) =>
-            row.isNew ||
-            !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []),
-        )
-
-      if (hasPendingChanges) {
-        if (source === 'release_version') {
-          await Promise.all(removedIds.map((id) => deleteAnimeContribution(fansubId, animeId, id)))
-        }
-
-        const rowsToWrite =
-          source === 'anime_default'
-            ? stagedRows
-            : stagedRows.filter(
-                (row) =>
-                  row.isNew ||
-                  !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []),
-              )
-
-        await Promise.all(
-          rowsToWrite.map((row) =>
-            upsertAnimeContribution(fansubId, animeId, {
-              member_id: row.member_id,
-              role_codes: normalizeRoleCodes(row.role_codes),
-              release_version_id: releaseVersionId,
-              started_year: null,
-              ended_year: null,
-              note: null,
-              is_public_on_anime_page: true,
-              is_public_on_member_profile: true,
-              status: 'confirmed',
-            }),
-          ),
-        )
-      }
+      await replaceReleaseCrew(releaseVersionId, fansubId, {
+        rows: stagedRows
+          .map((row) => ({
+            member_id: row.member_id,
+            role_codes: normalizeRoleCodes(row.role_codes),
+          }))
+          .sort((left, right) => left.member_id - right.member_id),
+      })
 
       onSaved()
       onClose()
@@ -251,18 +202,12 @@ export function ReleaseContributionDrawer({
   const availableMembers = members.filter((m) => !assignedMemberIds.has(m.member_id))
   const hasRowsWithoutRoles = stagedRows.some((row) => row.role_codes.length === 0)
   const canAddRow = newMemberId != null && newRoleCodes.length > 0
-  const statusLabel = isOverride ? 'Eigene Release-Besetzung' : 'Projektteam geerbt'
-  const statusVariant = isOverride ? 'info' : 'muted'
-
-  const changeHint = useMemo(() => {
-    if (source === 'anime_default') {
-      return 'Beim Speichern wird aus dem Projektteam eine eigene Besetzung nur für diese Folge.'
-    }
-    if (stagedRows.length === 0) {
-      return 'Ohne eigene Zeilen fällt diese Folge wieder auf das Projektteam zurück.'
-    }
-    return 'Änderungen gelten nur für diese Release-Version.'
-  }, [source, stagedRows.length])
+  const isIndependent = snapshotMode === 'independent'
+  const statusLabel = isIndependent ? 'Eigene Release-Besetzung' : 'Projektbesetzung geerbt'
+  const statusVariant = isIndependent ? 'info' : 'muted'
+  const changeHint = isIndependent
+    ? 'Diese Besetzung bleibt unabhängig von späteren Änderungen am Projektteam.'
+    : 'Beim ersten Speichern wird diese vollständige Besetzung dauerhaft unabhängig.'
 
   const footer = (
     <>
@@ -285,7 +230,7 @@ export function ReleaseContributionDrawer({
       open={open}
       onClose={onClose}
       title={`Besetzung: ${releaseTitle}`}
-      description={`Eigene Release-Besetzung · ${stagedRows.length} Person${stagedRows.length === 1 ? '' : 'en'} — gilt nur für diese Version`}
+      description={`${stagedRows.length} Person${stagedRows.length === 1 ? '' : 'en'} — vollständige Besetzung dieser Version`}
       footer={footer}
       variant="responsiveSheet"
     >

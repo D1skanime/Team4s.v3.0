@@ -83,7 +83,7 @@ describe('ReleaseContributionDrawer complete-set editor', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Rollen für Gon Müller ändern' }))
     fireEvent.click(
-      within(screen.getByLabelText('Rollen für Gon Müller')).getByRole('button', { name: 'Qualitätskontrolle' }),
+      within(screen.getByLabelText('Rollen für Gon Müller')).getByRole('button', { name: 'Qualitätsprüfung' }),
     )
     fireEvent.click(screen.getByLabelText('Mia Schmidt entfernen'))
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
@@ -91,7 +91,7 @@ describe('ReleaseContributionDrawer complete-set editor', () => {
     await waitFor(() => {
       expect(mockReplaceReleaseCrew).toHaveBeenCalledWith(176, 9, {
         rows: [
-          { member_id: 1, role_codes: ['translator', 'qc'] },
+          { member_id: 1, role_codes: ['translator', 'quality_checker'] },
           { member_id: 3, role_codes: ['editor'] },
         ],
       })
@@ -107,7 +107,7 @@ describe('ReleaseContributionDrawer complete-set editor', () => {
     await renderDrawer()
     fireEvent.click(screen.getByRole('button', { name: 'Rollen für Gon Müller ändern' }))
     fireEvent.click(
-      within(screen.getByLabelText('Rollen für Gon Müller')).getByRole('button', { name: 'Qualitätskontrolle' }),
+      within(screen.getByLabelText('Rollen für Gon Müller')).getByRole('button', { name: 'Qualitätsprüfung' }),
     )
     fireEvent.click(screen.getByLabelText('Mia Schmidt entfernen'))
 
