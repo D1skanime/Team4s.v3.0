@@ -2,8 +2,39 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
 )
+
+func deleteProjectRosterInTx(ctx context.Context, tx pgx.Tx, fansubGroupID, animeID, id int64) (*ProjectRosterMutationResult, error) {
+	var memberID int64
+	var status string
+	var releaseVersionID *int64
+	err := tx.QueryRow(ctx, `
+		SELECT member_id,status,release_version_id
+		FROM anime_contributions
+		WHERE id=$1 AND fansub_group_id=$2 AND anime_id=$3
+		FOR UPDATE
+	`, id, fansubGroupID, animeID).Scan(&memberID, &status, &releaseVersionID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("delete project roster load: %w", err)
+	}
+	if releaseVersionID != nil {
+		return nil, ErrValidation
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM anime_contributions WHERE id=$1 AND fansub_group_id=$2 AND anime_id=$3 AND release_version_id IS NULL`, id, fansubGroupID, animeID); err != nil {
+		return nil, fmt.Errorf("delete project roster: %w", err)
+	}
+	return &ProjectRosterMutationResult{
+		ContributionID: id, MemberID: memberID,
+		WasConfirmed: status == "confirmed", IsConfirmed: false,
+	}, nil
+}
 
 // ListByMemberID returns anime contributions for the given member (used by Me-routes).
 // Ausgelagert aus anime_contributions_repository.go fuer das 450-Zeilen-Limit.

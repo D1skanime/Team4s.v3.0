@@ -29,6 +29,11 @@ type ConfirmContributionCommand struct {
 	ForbidSelfCreated                             bool
 }
 
+type ProjectRosterMutationCommand struct {
+	FansubGroupID, AnimeID, ActorAppUserID int64
+	Mutation                               repository.ProjectRosterMutation
+}
+
 type ReleaseCrewService struct {
 	starter PointTxStarter
 	points  *PointService
@@ -140,6 +145,30 @@ func (s *ReleaseCrewService) SyncProjectInTx(ctx context.Context, tx pgx.Tx, ani
 		}
 	}
 	return nil
+}
+
+func (s *ReleaseCrewService) ApplyProjectRosterMutation(ctx context.Context, cmd ProjectRosterMutationCommand) (*repository.ProjectRosterMutationResult, error) {
+	if s == nil || s.starter == nil || cmd.FansubGroupID <= 0 || cmd.AnimeID <= 0 || cmd.ActorAppUserID <= 0 {
+		return nil, repository.ErrValidation
+	}
+	tx, err := s.starter.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("project roster mutation: begin: %w", err)
+	}
+	defer tx.Rollback(ctx)
+	result, err := repository.ApplyProjectRosterMutationInTx(ctx, tx, cmd.FansubGroupID, cmd.AnimeID, cmd.Mutation)
+	if err != nil {
+		return nil, err
+	}
+	if result.WasConfirmed || result.IsConfirmed {
+		if err := s.SyncProjectInTx(ctx, tx, cmd.AnimeID, cmd.FansubGroupID, cmd.ActorAppUserID); err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("project roster mutation: commit: %w", err)
+	}
+	return result, nil
 }
 
 func (s *ReleaseCrewService) ConfirmContribution(ctx context.Context, cmd ConfirmContributionCommand) error {

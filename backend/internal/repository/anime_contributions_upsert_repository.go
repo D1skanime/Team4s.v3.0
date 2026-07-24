@@ -4,9 +4,32 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
+
+type ProjectRosterMutationKind string
+
+const (
+	ProjectRosterMutationUpsert ProjectRosterMutationKind = "upsert"
+	ProjectRosterMutationPatch  ProjectRosterMutationKind = "patch"
+	ProjectRosterMutationDelete ProjectRosterMutationKind = "delete"
+)
+
+type ProjectRosterMutation struct {
+	Kind           ProjectRosterMutationKind
+	ContributionID int64
+	Input          AnimeContributionInput
+	Patch          AnimeContributionPatchInput
+}
+
+type ProjectRosterMutationResult struct {
+	ContributionID int64
+	MemberID       int64
+	WasConfirmed   bool
+	IsConfirmed    bool
+}
 
 // GetMemberIDForContribution ermittelt die member_id zu einer anime_contribution-ID.
 // Gibt ErrNotFound zurück, wenn keine Zeile existiert.
@@ -219,4 +242,156 @@ func (r *AnimeContributionsRepository) CreateOrUpdate(
 	}
 
 	return r.GetByIDWithDisplay(ctx, newID)
+}
+
+func ApplyProjectRosterMutationInTx(
+	ctx context.Context,
+	tx pgx.Tx,
+	fansubGroupID, animeID int64,
+	mutation ProjectRosterMutation,
+) (*ProjectRosterMutationResult, error) {
+	switch mutation.Kind {
+	case ProjectRosterMutationUpsert:
+		return upsertProjectRosterInTx(ctx, tx, fansubGroupID, animeID, mutation.Input)
+	case ProjectRosterMutationPatch:
+		return patchProjectRosterInTx(ctx, tx, fansubGroupID, animeID, mutation.ContributionID, mutation.Patch)
+	case ProjectRosterMutationDelete:
+		return deleteProjectRosterInTx(ctx, tx, fansubGroupID, animeID, mutation.ContributionID)
+	default:
+		return nil, ErrValidation
+	}
+}
+
+func upsertProjectRosterInTx(ctx context.Context, tx pgx.Tx, fansubGroupID, animeID int64, input AnimeContributionInput) (*ProjectRosterMutationResult, error) {
+	if input.ReleaseVersionID != nil || input.MemberID <= 0 {
+		return nil, ErrValidation
+	}
+	if input.Status == "" {
+		input.Status = "draft"
+	}
+	if err := lockContributionMemberContext(ctx, tx, fansubGroupID, animeID, input.MemberID, nil); err != nil {
+		return nil, err
+	}
+	targetID, found, err := findAdminContributionUpdateTarget(ctx, tx, fansubGroupID, animeID, input)
+	if err != nil {
+		return nil, err
+	}
+	result := &ProjectRosterMutationResult{ContributionID: targetID, MemberID: input.MemberID}
+	if found {
+		var beforeStatus string
+		if err := tx.QueryRow(ctx, `SELECT status FROM anime_contributions WHERE id=$1 FOR UPDATE`, targetID).Scan(&beforeStatus); err != nil {
+			return nil, err
+		}
+		result.WasConfirmed = beforeStatus == "confirmed"
+		tag, err := tx.Exec(ctx, `
+			UPDATE anime_contributions
+			SET status=$4,note=$5,started_year=$6,ended_year=$7,
+			    is_public_on_anime_page=$8,is_public_on_member_profile=$9,
+			    updated_by=$10,updated_at=NOW()
+			WHERE id=$1 AND fansub_group_id=$2 AND anime_id=$3 AND release_version_id IS NULL
+		`, targetID, fansubGroupID, animeID, input.Status, input.Note, input.StartedYear, input.EndedYear,
+			input.IsPublicOnAnimePage, input.IsPublicOnMemberProfile, input.CreatedBy)
+		if err != nil {
+			return nil, fmt.Errorf("project roster upsert update: %w", err)
+		}
+		if tag.RowsAffected() == 0 {
+			return nil, ErrNotFound
+		}
+	} else {
+		if err := tx.QueryRow(ctx, `
+			INSERT INTO anime_contributions
+			  (fansub_group_id,anime_id,member_id,status,note,started_year,ended_year,
+			   is_public_on_anime_page,is_public_on_member_profile,created_by,updated_by,created_at,updated_at)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,NOW(),NOW())
+			RETURNING id
+		`, fansubGroupID, animeID, input.MemberID, input.Status, input.Note, input.StartedYear, input.EndedYear,
+			input.IsPublicOnAnimePage, input.IsPublicOnMemberProfile, input.CreatedBy).Scan(&result.ContributionID); err != nil {
+			if isForeignKeyViolation(err) {
+				return nil, ErrNotFound
+			}
+			return nil, fmt.Errorf("project roster upsert insert: %w", err)
+		}
+	}
+	if err := replaceProjectRosterRoles(ctx, tx, result.ContributionID, input.RoleCodes); err != nil {
+		return nil, err
+	}
+	result.IsConfirmed = input.Status == "confirmed"
+	return result, nil
+}
+
+func patchProjectRosterInTx(ctx context.Context, tx pgx.Tx, fansubGroupID, animeID, id int64, input AnimeContributionPatchInput) (*ProjectRosterMutationResult, error) {
+	if input.ReleaseVersionID != nil || input.Status != nil {
+		return nil, ErrValidation
+	}
+	var memberID int64
+	var status string
+	var releaseVersionID *int64
+	err := tx.QueryRow(ctx, `
+		SELECT member_id,status,release_version_id
+		FROM anime_contributions
+		WHERE id=$1 AND fansub_group_id=$2 AND anime_id=$3
+		FOR UPDATE
+	`, id, fansubGroupID, animeID).Scan(&memberID, &status, &releaseVersionID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	if releaseVersionID != nil {
+		return nil, ErrValidation
+	}
+	sets, args := []string{}, []any{id, fansubGroupID, animeID}
+	add := func(column string, value any) {
+		args = append(args, value)
+		sets = append(sets, fmt.Sprintf("%s=$%d", column, len(args)))
+	}
+	if input.Note != nil {
+		add("note", *input.Note)
+	}
+	if input.StartedYear != nil {
+		add("started_year", *input.StartedYear)
+	}
+	if input.EndedYear != nil {
+		add("ended_year", *input.EndedYear)
+	}
+	if input.IsPublicOnAnimePage != nil {
+		add("is_public_on_anime_page", *input.IsPublicOnAnimePage)
+	}
+	if input.IsPublicOnMemberProfile != nil {
+		add("is_public_on_member_profile", *input.IsPublicOnMemberProfile)
+	}
+	if input.UpdatedBy != nil {
+		add("updated_by", input.UpdatedBy)
+	}
+	if len(sets) > 0 {
+		sets = append(sets, "updated_at=NOW()")
+		if _, err := tx.Exec(ctx, "UPDATE anime_contributions SET "+strings.Join(sets, ",")+" WHERE id=$1 AND fansub_group_id=$2 AND anime_id=$3 AND release_version_id IS NULL", args...); err != nil {
+			return nil, fmt.Errorf("project roster patch: %w", err)
+		}
+	}
+	if input.RoleCodes != nil {
+		if err := replaceProjectRosterRoles(ctx, tx, id, *input.RoleCodes); err != nil {
+			return nil, err
+		}
+	}
+	return &ProjectRosterMutationResult{ContributionID: id, MemberID: memberID, WasConfirmed: status == "confirmed", IsConfirmed: status == "confirmed"}, nil
+}
+
+func replaceProjectRosterRoles(ctx context.Context, tx pgx.Tx, id int64, roleCodes []string) error {
+	if _, err := tx.Exec(ctx, `DELETE FROM anime_contribution_roles WHERE anime_contribution_id=$1`, id); err != nil {
+		return fmt.Errorf("project roster replace roles: %w", err)
+	}
+	for _, code := range roleCodes {
+		if _, err := tx.Exec(ctx, `INSERT INTO anime_contribution_roles (anime_contribution_id,role_code) VALUES ($1,$2)`, id, code); err != nil {
+			if isForeignKeyViolation(err) {
+				return ErrNotFound
+			}
+			if isUniqueViolation(err) {
+				return ErrConflict
+			}
+			return fmt.Errorf("project roster insert role: %w", err)
+		}
+	}
+	return nil
 }

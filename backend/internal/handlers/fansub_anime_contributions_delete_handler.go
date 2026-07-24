@@ -11,6 +11,7 @@ import (
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -52,17 +53,30 @@ func (h *FansubAnimeContributionsHandler) DeleteAnimeContribution(c *gin.Context
 		return
 	}
 
-	// member_id VOR dem Delete sichern (Pitfall 2 aus RESEARCH.md).
-	var memberIDForBadge int64
-	if h.badgeService != nil {
-		if mid, err := h.contributionsRepo.GetMemberIDForContribution(c.Request.Context(), contributionID); err == nil {
-			memberIDForBadge = mid
-		} else if !errors.Is(err, repository.ErrNotFound) {
-			log.Printf("anime contributions delete: badge resolve pre-delete (contribution_id=%d): %v", contributionID, err)
-		}
+	target, err := h.contributionsRepo.GetByIDForFansubAnime(c.Request.Context(), fansubID, animeID, contributionID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "beitragseintrag nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if target.ReleaseVersionID != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Release-Besetzungen können nur vollständig gespeichert werden."}})
+		return
+	}
+	memberIDForBadge := target.MemberID
+	if h.releaseCrewService == nil {
+		internalError(c, "interner serverfehler")
+		return
 	}
 
-	if err := h.contributionsRepo.Delete(c.Request.Context(), fansubID, animeID, contributionID); errors.Is(err, repository.ErrNotFound) {
+	_, err = h.releaseCrewService.ApplyProjectRosterMutation(c.Request.Context(), services.ProjectRosterMutationCommand{
+		FansubGroupID: fansubID, AnimeID: animeID, ActorAppUserID: identity.AppUserID,
+		Mutation: repository.ProjectRosterMutation{Kind: repository.ProjectRosterMutationDelete, ContributionID: contributionID},
+	})
+	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
 				"message": "beitragseintrag nicht gefunden",

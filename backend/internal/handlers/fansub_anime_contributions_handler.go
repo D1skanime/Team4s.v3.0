@@ -16,13 +16,19 @@ import (
 
 // FansubAnimeContributionsHandler verwaltet Admin-Endpunkte für anime_contributions.
 type FansubAnimeContributionsHandler struct {
-	contributionsRepo *repository.AnimeContributionsRepository
-	rolesRepo         *repository.HistGroupMemberRolesRepository
-	histMembersRepo   *repository.HistGroupMembersRepository // für ListUnifiedGroupMembers (D-02)
-	coverageRepo      *repository.AnimeCoverageRepository    // für GetAnimeCoverage (Gap-82-07)
-	permissionSvc     *permissions.Service
-	auditLogRepo      *repository.AuditLogRepository
-	badgeService      *services.BadgeService // Phase 68: Badge-Recompute
+	contributionsRepo  *repository.AnimeContributionsRepository
+	rolesRepo          *repository.HistGroupMemberRolesRepository
+	histMembersRepo    *repository.HistGroupMembersRepository // für ListUnifiedGroupMembers (D-02)
+	coverageRepo       *repository.AnimeCoverageRepository    // für GetAnimeCoverage (Gap-82-07)
+	permissionSvc      *permissions.Service
+	auditLogRepo       *repository.AuditLogRepository
+	badgeService       *services.BadgeService // Phase 68: Badge-Recompute
+	releaseCrewService *services.ReleaseCrewService
+}
+
+func (h *FansubAnimeContributionsHandler) WithReleaseCrewService(svc *services.ReleaseCrewService) *FansubAnimeContributionsHandler {
+	h.releaseCrewService = svc
+	return h
 }
 
 // NewFansubAnimeContributionsHandler erstellt einen neuen FansubAnimeContributionsHandler.
@@ -180,6 +186,10 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		badRequest(c, "member_id ist erforderlich")
 		return
 	}
+	if req.ReleaseVersionID != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Release-Besetzungen können nur vollständig gespeichert werden."}})
+		return
+	}
 
 	// Cross-Group-Guard: Mitglied (App ODER historisch) muss zur Fansub-Gruppe gehören (T-82-02-02/03).
 	belongs, err := h.contributionsRepo.MemberBelongsToFansub(c.Request.Context(), req.MemberID, fansubID)
@@ -198,10 +208,6 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 	}
 
 	// Versions-Beteiligungs-Check (D-03): nur bei gesetztem release_version_id.
-	if !h.validateReleaseVersionParticipation(c, fansubID, req.ReleaseVersionID) {
-		return
-	}
-
 	// Status-Enum-Validierung: nur erlaubte Werte zulassen.
 	status := req.Status
 	if status != "" {
@@ -254,7 +260,15 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 		ReleaseVersionID:        req.ReleaseVersionID,
 	}
 
-	item, err := h.contributionsRepo.CreateOrUpdate(c.Request.Context(), fansubID, animeID, input)
+	if h.releaseCrewService == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+	input.CreatedBy = &identity.AppUserID
+	mutationResult, err := h.releaseCrewService.ApplyProjectRosterMutation(c.Request.Context(), services.ProjectRosterMutationCommand{
+		FansubGroupID: fansubID, AnimeID: animeID, ActorAppUserID: identity.AppUserID,
+		Mutation: repository.ProjectRosterMutation{Kind: repository.ProjectRosterMutationUpsert, Input: input},
+	})
 	if errors.Is(err, repository.ErrConflict) {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": gin.H{
@@ -273,6 +287,12 @@ func (h *FansubAnimeContributionsHandler) CreateAnimeContribution(c *gin.Context
 	}
 	if err != nil {
 		log.Printf("anime contributions create: repo error (fansub_id=%d, anime_id=%d): %v", fansubID, animeID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+	item, err := h.contributionsRepo.GetByIDWithDisplay(c.Request.Context(), mutationResult.ContributionID)
+	if err != nil {
+		log.Printf("anime contributions create: post-commit load error (contribution_id=%d): %v", mutationResult.ContributionID, err)
 		internalError(c, "interner serverfehler")
 		return
 	}
@@ -359,23 +379,26 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		}
 	}
 	if req.Status != nil {
-		if _, ok := validContributionStatuses[*req.Status]; !ok {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": gin.H{
-					"message": "ungültiger status-wert",
-				},
-			})
-			return
-		}
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Der review-status darf nur über die Bestätigungsaktionen geändert werden."}})
+		return
 	}
 
-	// Versions-Beteiligungs-Check (D-03): nur wenn der Patch eine konkrete
-	// release_version_id setzt (Doppelpointer non-nil mit non-nil Zielwert).
-	// Auf NULL setzen (*req.ReleaseVersionID == nil) braucht keinen Check.
-	if req.ReleaseVersionID != nil && *req.ReleaseVersionID != nil {
-		if !h.validateReleaseVersionParticipation(c, fansubID, *req.ReleaseVersionID) {
-			return
-		}
+	if req.ReleaseVersionID != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "release_version_id darf in diesem Endpunkt nicht geändert werden."}})
+		return
+	}
+	target, err := h.contributionsRepo.GetByIDForFansubAnime(c.Request.Context(), fansubID, animeID, contributionID)
+	if errors.Is(err, repository.ErrNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "beitragseintrag nicht gefunden"}})
+		return
+	}
+	if err != nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+	if target.ReleaseVersionID != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "Release-Besetzungen können nur vollständig gespeichert werden."}})
+		return
 	}
 
 	input := repository.AnimeContributionPatchInput{
@@ -387,9 +410,17 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 		IsPublicOnMemberProfile: req.IsPublicOnMemberProfile,
 		ReleaseVersionID:        req.ReleaseVersionID,
 		Status:                  req.Status,
+		UpdatedBy:               &identity.AppUserID,
 	}
 
-	item, err := h.contributionsRepo.Update(c.Request.Context(), fansubID, animeID, contributionID, input)
+	if h.releaseCrewService == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+	mutationResult, err := h.releaseCrewService.ApplyProjectRosterMutation(c.Request.Context(), services.ProjectRosterMutationCommand{
+		FansubGroupID: fansubID, AnimeID: animeID, ActorAppUserID: identity.AppUserID,
+		Mutation: repository.ProjectRosterMutation{Kind: repository.ProjectRosterMutationPatch, ContributionID: contributionID, Patch: input},
+	})
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": gin.H{
@@ -400,6 +431,11 @@ func (h *FansubAnimeContributionsHandler) UpdateAnimeContribution(c *gin.Context
 	}
 	if err != nil {
 		log.Printf("anime contributions update: repo error (fansub_id=%d, anime_id=%d, contribution_id=%d): %v", fansubID, animeID, contributionID, err)
+		internalError(c, "interner serverfehler")
+		return
+	}
+	item, err := h.contributionsRepo.GetByIDWithDisplay(c.Request.Context(), mutationResult.ContributionID)
+	if err != nil {
 		internalError(c, "interner serverfehler")
 		return
 	}

@@ -45,19 +45,15 @@ func TestReleaseVersionValidation_RequestStructsCarryField(t *testing.T) {
 	}
 }
 
-// TestReleaseVersionValidation_BothPathsCallParticipation verifiziert, dass der
-// Beteiligungs-Check GroupParticipatesInReleaseVersion in Create UND Update aufgerufen wird.
-func TestReleaseVersionValidation_BothPathsCallParticipation(t *testing.T) {
+// TestReleaseVersionValidation_GenericMutationsAreProjectOnly verifiziert, dass
+// die generischen Schreibpfade keine Release-Zuordnung mehr akzeptieren.
+func TestReleaseVersionValidation_GenericMutationsAreProjectOnly(t *testing.T) {
 	handler := strings.ToLower(readContributionsHandlerSource(t, "fansub_anime_contributions_handler.go"))
-	validation := strings.ToLower(readContributionsHandlerSource(t, "fansub_contributions_validation.go"))
-	combined := handler + "\n" + validation
-
-	if !strings.Contains(combined, "groupparticipatesinreleaseversion") {
-		t.Fatalf("erwarteter Aufruf von GroupParticipatesInReleaseVersion")
+	if strings.Contains(handler, "validatereleaseversionparticipation(c, fansubid") {
+		t.Fatal("generische Create-/Update-Pfade dürfen keine Release-Beteiligung validieren, sondern müssen release_version_id ablehnen")
 	}
-	// Beide Handler-Pfade muessen den gemeinsamen Validierungs-Helper aufrufen.
-	if strings.Count(handler, "validatereleaseversionparticipation") < 2 {
-		t.Fatalf("erwartete Aufrufe des Validierungs-Helpers in BEIDEN Schreibpfaden (Create + Update)")
+	if strings.Count(handler, "req.releaseversionid != nil") < 2 {
+		t.Fatal("Create und Update müssen jedes mitgeführte release_version_id-Feld ablehnen")
 	}
 }
 
