@@ -2456,6 +2456,7 @@ Plans:
 **Plans:** 7/7 plans executed
 
 Plans:
+
 - [x] 107.1-01-PLAN.md — Phase-107 readiness gate, interface inventory, and lifecycle schema
 - [x] 107.1-02-PLAN.md — Canonical note/media submission adapters and same-ID resubmission
 - [x] 107.1-03-PLAN.md — Authorized cursor queue/detail API and synchronized contracts
@@ -2473,13 +2474,27 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 108-01-PLAN.md — Canonical snapshot and credit-lifecycle schema with no-backfill migration tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 108-02-PLAN.md — Complete stored snapshots and stored-only effective-contributions reads
-- [ ] 108-03-PLAN.md — Atomic release-crew Set-Diff, points, reversal, restoration, and replace endpoint
 - [ ] 108-04-PLAN.md — Atomic project-text first-author, delete, and recreate credit lifecycle
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 108-03-PLAN.md — Atomic release-crew Set-Diff, points, reversal, restoration, and replace endpoint
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 108-05-PLAN.md — Typed OpenAPI/frontend replace contract and central-auth drawer integration
-- [ ] 108-06-PLAN.md — Cross-boundary regression gate and bounded live UAT
 - [ ] 108-07-PLAN.md — Atomic release-creation seeding and inherited project-roster synchronization
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 108-06-PLAN.md — Cross-boundary regression gate and bounded live UAT
 
 **Success Criteria** (what must be TRUE):
 
