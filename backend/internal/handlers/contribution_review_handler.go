@@ -41,6 +41,12 @@ type contributionConfirmationService interface {
 	ConfirmContribution(context.Context, services.ConfirmContributionCommand) error
 }
 
+type legacyReviewConfirmationAdapter struct{ repo ReviewRepository }
+
+func (a legacyReviewConfirmationAdapter) ConfirmContribution(ctx context.Context, cmd services.ConfirmContributionCommand) error {
+	return a.repo.Confirm(ctx, cmd.ContributionID, cmd.ActorAppUserID)
+}
+
 // NewContributionReviewHandler erstellt einen neuen ContributionReviewHandler.
 func NewContributionReviewHandler(
 	reviewRepo ReviewRepository,
@@ -48,9 +54,10 @@ func NewContributionReviewHandler(
 	auditLogRepo auditLogWriter,
 ) *ContributionReviewHandler {
 	return &ContributionReviewHandler{
-		reviewRepo:    reviewRepo,
-		permissionSvc: permissionSvc,
-		auditLogRepo:  auditLogRepo,
+		reviewRepo:     reviewRepo,
+		permissionSvc:  permissionSvc,
+		auditLogRepo:   auditLogRepo,
+		releaseCrewSvc: legacyReviewConfirmationAdapter{repo: reviewRepo},
 	}
 }
 
@@ -140,15 +147,9 @@ func (h *ContributionReviewHandler) ConfirmProposal(c *gin.Context) {
 		return
 	}
 
-	var confirmErr error
-	if h.releaseCrewSvc != nil {
-		confirmErr = h.releaseCrewSvc.ConfirmContribution(c.Request.Context(), services.ConfirmContributionCommand{
-			FansubGroupID: fansubID, ContributionID: contributionID, ActorAppUserID: identity.AppUserID,
-		})
-	} else {
-		confirmErr = h.reviewRepo.Confirm(c.Request.Context(), contributionID, identity.AppUserID)
-	}
-	if err := confirmErr; err != nil {
+	if err := h.releaseCrewSvc.ConfirmContribution(c.Request.Context(), services.ConfirmContributionCommand{
+		FansubGroupID: fansubID, ContributionID: contributionID, ActorAppUserID: identity.AppUserID,
+	}); err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "vorschlag nicht gefunden oder bereits bearbeitet"}})
 			return
