@@ -2470,13 +2470,13 @@ Plans:
 **Goal:** Bestehende Domänendaten über schmale, kontextspezifische Adapter als bestätigte Gamification-Quellen nutzbar machen, ohne Domain-Ownership oder Uploadsysteme zu vereinheitlichen.
 **Requirements:** Phasen 106–107.1; kanonische Fansub-/Release-Domain.
 **Depends on:** Phase 106, Phase 107, Phase 107.1
-**Plans:** 8 plans
+**Plans:** 1/8 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 108-01-PLAN.md — Canonical snapshot and credit-lifecycle schema with no-backfill migration tests
+- [x] 108-01-PLAN.md — Canonical snapshot and credit-lifecycle schema with no-backfill migration tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

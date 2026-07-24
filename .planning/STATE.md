@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 108 context gathered
-last_updated: "2026-07-24T12:58:41.654Z"
+stopped_at: Completed 108-01-PLAN.md
+last_updated: "2026-07-24T15:01:46.557Z"
 last_activity: 2026-07-24
 progress:
   total_phases: 103
   completed_phases: 83
-  total_plans: 456
-  completed_plans: 421
+  total_plans: 457
+  completed_plans: 422
   percent: 81
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 108 — Bestehende Beitragsquellen anbinden
+**Current focus:** Phase 108 — bestehende-beitragsquellen-anbinden
 
 ## Current Position
 
-Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — COMPLETE
-Plan: 7 of 7
+Phase: 108 (bestehende-beitragsquellen-anbinden) — EXECUTING
+Plan: 2 of 8
 
 ## Accumulated Context
 
@@ -367,6 +367,9 @@ Recent durable decisions:
 - [Phase 107.1]: Queue- und Detail-Requests werden abgebrochen und zusätzlich über eine Sequenz geschützt, damit Filterwechsel niemals alte Daten anhängen.
 - [Phase 107.1]: Dynamische Review-Medien verwenden einen protokoll- und pfadvalidierten nativen Bild-/Origin-Link, weil ihre Laufzeit-URLs nicht in eine statische Next-Image-Allowlist passen.
 - [Phase 107.1]: Eigene offene Beiträge zeigen keine Confirm-/Reject-Aktionen; eine andere berechtigte Person muss prüfen. Plattform-Admin-Override bleibt nur mit Begründung möglich.
+- [Phase 108]: Freeze rule codes as release_role_work v1 and project_text_first_author v1. — Later services require stable semantic rule identities.
+- [Phase 108]: Represent empty independent crews with standalone context snapshot rows. — Independent empty state must never fall back or expose a reset seam.
+- [Phase 108]: Use a new append-only generation when a release-role credit is restored. — Award and reversal ledger identities remain permanently consumed.
 
 ### Pending Todos
 
@@ -639,6 +642,7 @@ Recent durable decisions:
 | Phase 107.1 P05 | 18min | 2 tasks | 6 files |
 | Phase 107.1 P06 | 25min | 2 tasks | 16 files |
 | Phase 107.1 P07 | 2h20min active | 2 tasks | 8 files |
+| Phase 108 P01 | 8 min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -720,7 +724,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-24T11:39:58.884Z
-Stopped at: Phase 108 context gathered
+Last session: 2026-07-24T15:01:46.406Z
+Stopped at: Completed 108-01-PLAN.md
 Last activity: 2026-07-24
-Resume file: .planning/phases/108-bestehende-beitragsquellen-anbinden/108-CONTEXT.md
+Resume file: None
