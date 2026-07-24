@@ -2453,7 +2453,7 @@ Plans:
 **Goal:** Release-Version-Texte und Release-Version-Medien ohne paralleles Upload- oder Datenmodell durch den Prüflebenszyklus führen und dafür eine skalierbare, read-only Prüfoberfläche für Tablet und Desktop bereitstellen.
 **Requirements:** P1071-SC1, P1071-SC2, P1071-SC3, P1071-SC4, P1071-SC5, P1071-SC6
 **Depends on:** Phase 107
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans executed
 
 Plans:
 - [x] 107.1-01-PLAN.md — Phase-107 readiness gate, interface inventory, and lifecycle schema
@@ -2462,7 +2462,7 @@ Plans:
 - [x] 107.1-04-PLAN.md — Atomic decision, conflict, audit, and points orchestration
 - [x] 107.1-05-PLAN.md — Retention scrub and reference-safe physical deletion retry
 - [x] 107.1-06-PLAN.md — Typed review client, group queue, and read-only detail UI
-- [ ] 107.1-07-PLAN.md — Submitter lifecycle UI tests/implementation and live UAT
+- [x] 107.1-07-PLAN.md — Submitter lifecycle UI tests/implementation and live UAT
 
 ### Phase 108: Bestehende Beitragsquellen anbinden
 

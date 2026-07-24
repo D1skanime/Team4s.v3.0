@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 107.1-06-PLAN.md
-last_updated: "2026-07-23T21:07:52.030Z"
-last_activity: 2026-07-23
+stopped_at: Completed 107.1-07-PLAN.md
+last_updated: "2026-07-24T08:43:00.000Z"
+last_activity: 2026-07-24
 progress:
   total_phases: 103
-  completed_phases: 82
+  completed_phases: 83
   total_plans: 449
-  completed_plans: 420
-  percent: 80
+  completed_plans: 421
+  percent: 81
 ---
 
 # Project State
@@ -21,11 +21,11 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 107.1 — release-pr-fworkspace-und-release-beitragslebenszyklus
+**Current focus:** Phase 108 — Bestehende Beitragsquellen anbinden
 
 ## Current Position
 
-Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — EXECUTING
+Phase: 107.1 (release-pr-fworkspace-und-release-beitragslebenszyklus) — COMPLETE
 Plan: 7 of 7
 
 ## Accumulated Context
@@ -366,6 +366,7 @@ Recent durable decisions:
 - [Phase 107.1]: Der frühere URL-Wert vorschlaege wird ausschließlich auf den einzigen sichtbaren Tab pruefungen normalisiert; es entsteht keine zweite Leader-Route.
 - [Phase 107.1]: Queue- und Detail-Requests werden abgebrochen und zusätzlich über eine Sequenz geschützt, damit Filterwechsel niemals alte Daten anhängen.
 - [Phase 107.1]: Dynamische Review-Medien verwenden einen protokoll- und pfadvalidierten nativen Bild-/Origin-Link, weil ihre Laufzeit-URLs nicht in eine statische Next-Image-Allowlist passen.
+- [Phase 107.1]: Eigene offene Beiträge zeigen keine Confirm-/Reject-Aktionen; eine andere berechtigte Person muss prüfen. Plattform-Admin-Override bleibt nur mit Begründung möglich.
 
 ### Pending Todos
 
@@ -637,6 +638,7 @@ Recent durable decisions:
 | Phase 107.1 P04 | 15min | 2 tasks | 10 files |
 | Phase 107.1 P05 | 18min | 2 tasks | 6 files |
 | Phase 107.1 P06 | 25min | 2 tasks | 16 files |
+| Phase 107.1 P07 | 2h20min active | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -718,7 +720,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-23T21:07:51.961Z
-Stopped at: Completed 107.1-06-PLAN.md
-Last activity: 2026-07-23
+Last session: 2026-07-24T08:43:00.000Z
+Stopped at: Completed 107.1-07-PLAN.md
+Last activity: 2026-07-24
 Resume file: None
