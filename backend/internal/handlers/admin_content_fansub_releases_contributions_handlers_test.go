@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
@@ -157,4 +158,21 @@ func TestGetEffectiveContributionsForVersion(t *testing.T) {
 			t.Fatalf("expected exact empty independent response, got %s", recorder.Body.String())
 		}
 	})
+}
+
+func TestReleaseCrewReplaceContractRejectsCallerOwnedLedgerFields(t *testing.T) {
+	for _, body := range []string{
+		`{"rows":[],"actor_app_user_id":9}`,
+		`{"rows":[],"point_value":99}`,
+		`{"rows":[],"reviewer_id":4}`,
+		`{"rows":[],"idempotency_key":"chosen"}`,
+		`{"rows":[],"status":"confirmed"}`,
+	} {
+		decoder := json.NewDecoder(strings.NewReader(body))
+		decoder.DisallowUnknownFields()
+		var request replaceReleaseCrewRequest
+		if err := decoder.Decode(&request); err == nil {
+			t.Fatalf("accepted caller-owned field: %s", body)
+		}
+	}
 }
