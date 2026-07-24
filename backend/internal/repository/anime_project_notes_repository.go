@@ -14,8 +14,17 @@ func (r *FansubNotesRepository) ensureAnimeFansubProjectContextExists(
 	animeID int64,
 	fansubGroupID int64,
 ) error {
+	return ensureAnimeFansubProjectContextExistsInDB(ctx, r.db, animeID, fansubGroupID)
+}
+
+func ensureAnimeFansubProjectContextExistsInDB(
+	ctx context.Context,
+	db DBTX,
+	animeID int64,
+	fansubGroupID int64,
+) error {
 	var exists bool
-	err := r.db.QueryRow(ctx, `
+	err := db.QueryRow(ctx, `
 		SELECT EXISTS (
 			SELECT 1
 			FROM anime_fansub_groups
@@ -169,17 +178,30 @@ func (r *FansubNotesRepository) UpsertAnimeFansubProjectNote(
 	userID int64,
 	req UpsertAnimeFansubProjectNoteRequest,
 ) (*AnimeFansubProjectNote, error) {
-	if err := r.ensureAnimeFansubProjectContextExists(ctx, animeID, fansubGroupID); err != nil {
+	return r.UpsertAnimeFansubProjectNoteInTx(ctx, r.db, animeID, fansubGroupID, userID, req)
+}
+
+// UpsertAnimeFansubProjectNoteInTx mutates canonical project-note content through
+// a caller-owned transaction.
+func (r *FansubNotesRepository) UpsertAnimeFansubProjectNoteInTx(
+	ctx context.Context,
+	db DBTX,
+	animeID int64,
+	fansubGroupID int64,
+	userID int64,
+	req UpsertAnimeFansubProjectNoteRequest,
+) (*AnimeFansubProjectNote, error) {
+	if err := ensureAnimeFansubProjectContextExistsInDB(ctx, db, animeID, fansubGroupID); err != nil {
 		return nil, err
 	}
 
-	resolvedUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	resolvedUserID, err := resolveOptionalExistingUserID(ctx, db, userID)
 	if err != nil {
 		return nil, fmt.Errorf("upsert anime_fansub_project_note (anime %d, group %d): %w", animeID, fansubGroupID, err)
 	}
 
 	var n AnimeFansubProjectNote
-	err = r.db.QueryRow(ctx, `
+	err = db.QueryRow(ctx, `
 		INSERT INTO anime_fansub_project_notes
 			(anime_id, fansub_group_id, title, body_markdown, body_html,
 			 body_json, body_text, editor_type, content_schema_version,
@@ -236,7 +258,20 @@ func (r *FansubNotesRepository) DeleteAnimeFansubProjectNote(
 	fansubGroupID int64,
 	userID int64,
 ) error {
-	resolvedDeletedByUserID, err := resolveOptionalExistingUserID(ctx, r.db, userID)
+	return r.DeleteAnimeFansubProjectNoteInTx(ctx, r.db, noteID, animeID, fansubGroupID, userID)
+}
+
+// DeleteAnimeFansubProjectNoteInTx soft-deletes canonical project-note content
+// through a caller-owned transaction.
+func (r *FansubNotesRepository) DeleteAnimeFansubProjectNoteInTx(
+	ctx context.Context,
+	db DBTX,
+	noteID int64,
+	animeID int64,
+	fansubGroupID int64,
+	userID int64,
+) error {
+	resolvedDeletedByUserID, err := resolveOptionalExistingUserID(ctx, db, userID)
 	if err != nil {
 		return fmt.Errorf(
 			"delete anime_fansub_project_note %d in anime %d / group %d: %w",
@@ -244,7 +279,7 @@ func (r *FansubNotesRepository) DeleteAnimeFansubProjectNote(
 		)
 	}
 
-	tag, err := r.db.Exec(ctx, `
+	tag, err := db.Exec(ctx, `
 		UPDATE anime_fansub_project_notes
 		SET deleted_at = NOW(), deleted_by_user_id = $4
 		WHERE id = $1
