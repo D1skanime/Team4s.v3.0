@@ -68,6 +68,7 @@ completed: 2026-07-24
 2. **Task 1 GREEN: Atomic crew and point lifecycle** - `41248eae`
 3. **Task 2 RED: Strict replace DTO contract** - `cf6c9731`
 4. **Task 2 GREEN: Replace API and confirmation bindings** - `7852e6dc`
+5. **Task 2 boundary follow-up: Service-only leader handler** - `f513d715`
 
 ## Deviations from Plan
 
@@ -82,6 +83,8 @@ completed: 2026-07-24
 - **Commit:** `7852e6dc`
 
 **Total deviations:** 1 missing critical correctness fix.
+
+The leader handler's legacy unit-test seam was also wrapped behind the confirmation service interface so the handler itself has no repository-owned confirmation branch; production remains bound to `ReleaseCrewService`.
 
 ## Known Stubs
 
@@ -106,7 +109,7 @@ None.
 ## Self-Check: PASSED
 
 - All key files exist.
-- Commits `7dda3917`, `41248eae`, `cf6c9731`, and `7852e6dc` exist.
+- Commits `7dda3917`, `41248eae`, `cf6c9731`, `7852e6dc`, and `f513d715` exist.
 - All plan verification commands and acceptance scans pass.
 
 ---
