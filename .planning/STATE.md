@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 108-02-PLAN.md
-last_updated: "2026-07-24T15:11:41.439Z"
+stopped_at: Completed 108-04-PLAN.md
+last_updated: "2026-07-24T15:24:48.228Z"
 last_activity: 2026-07-24
 progress:
   total_phases: 103
   completed_phases: 83
   total_plans: 457
-  completed_plans: 423
+  completed_plans: 424
   percent: 81
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 108 (bestehende-beitragsquellen-anbinden) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 
 ## Accumulated Context
 
@@ -372,6 +372,8 @@ Recent durable decisions:
 - [Phase 108]: Use a new append-only generation when a release-role credit is restored. — Award and reversal ledger identities remain permanently consumed.
 - [Phase 108]: Effective release crew reads require a stored snapshot context and never synthesize project defaults. — An empty snapshot is valid only when its inherited or independent context row exists.
 - [Phase 108]: Project synchronization rechecks inherited mode under the release/group lock before replacement. — This serializes synchronization with the first manual edit and preserves permanent independence.
+- [Phase 108]: Der erste authentifizierte Projektnotiz-Autor bleibt die dauerhafte Lifecycle-Identitaet; fehlende Member-Verknuepfung verbraucht die Generation ohne Punkte.
+- [Phase 108]: Projektnotiz-Punkte werden atomar ueber den bestehenden PointService vergeben und bei Loeschung reversiert; Rekreation beginnt eine neue Generation.
 
 ### Pending Todos
 
@@ -646,6 +648,7 @@ Recent durable decisions:
 | Phase 107.1 P07 | 2h20min active | 2 tasks | 8 files |
 | Phase 108 P01 | 8 min | 2 tasks | 3 files |
 | Phase 108 P02 | 10 min | 2 tasks | 6 files |
+| Phase 108 P04 | 25 min | 2 tasks | 12 files |
 
 ### Quick Tasks Completed
 
@@ -727,7 +730,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-24T15:11:41.391Z
-Stopped at: Completed 108-02-PLAN.md
+Last session: 2026-07-24T15:24:48.170Z
+Stopped at: Completed 108-04-PLAN.md
 Last activity: 2026-07-24
 Resume file: None
