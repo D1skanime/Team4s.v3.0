@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 108-05-PLAN.md
-last_updated: "2026-07-24T15:49:38.416Z"
+stopped_at: Completed 108-08-PLAN.md
+last_updated: "2026-07-24T16:04:06.921Z"
 last_activity: 2026-07-24
 progress:
   total_phases: 103
   completed_phases: 83
   total_plans: 457
-  completed_plans: 426
+  completed_plans: 428
   percent: 81
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 108 (bestehende-beitragsquellen-anbinden) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 
 ## Accumulated Context
 
@@ -377,6 +377,9 @@ Recent durable decisions:
 - [Phase 108]: Release crew saves always submit the full normalized member-role set, including a valid empty set.
 - [Phase 108]: Protected browser mutations accept a refresh-only session and delegate token refresh to apiClientFetch.
 - [Phase 108]: The replace response reuses the effective contribution row DTO and exposes only snapshot_mode metadata.
+- [Phase 108]: Generic contribution POST/PATCH/DELETE are project-only; complete-set PUT is the sole release crew mutation. — Prevents release ownership moves through generic project endpoints.
+- [Phase 108]: Only confirmed-before or confirmed-after project mutations synchronize inherited snapshots and point diffs. — Non-confirmed rows are review state, not effective crew truth.
+- [Phase 108]: One PointService-backed ReleaseCrewService instance is shared by all Phase-108 handlers and both release creators. — Eliminates runtime bypasses and duplicate transaction policy.
 
 ### Pending Todos
 
@@ -653,6 +656,7 @@ Recent durable decisions:
 | Phase 108 P02 | 10 min | 2 tasks | 6 files |
 | Phase 108 P04 | 25 min | 2 tasks | 12 files |
 | Phase 108 P05 | 12 min | 2 tasks | 11 files |
+| Phase 108 P08 | 7 min | 2 tasks | 9 files |
 
 ### Quick Tasks Completed
 
@@ -734,7 +738,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-24T15:49:30.511Z
-Stopped at: Completed 108-05-PLAN.md
+Last session: 2026-07-24T16:04:06.871Z
+Stopped at: Completed 108-08-PLAN.md
 Last activity: 2026-07-24
 Resume file: None
