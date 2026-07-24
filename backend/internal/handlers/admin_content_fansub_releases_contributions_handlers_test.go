@@ -119,9 +119,8 @@ func TestGetEffectiveContributionsForVersion(t *testing.T) {
 		// Resolver mit fansub_lead-Rolle → Zugriff erlaubt; Repo gibt leeres Ergebnis zurück
 		stub := &contributionsRepoStub{
 			result: &repository.EffectiveContributionsResult{
-				Rows:       []repository.EffectiveContributionRow{},
-				IsOverride: false,
-				Source:     "anime_default",
+				Rows:         []repository.EffectiveContributionRow{},
+				SnapshotMode: repository.SnapshotModeIndependent,
 			},
 		}
 		handler := &AdminContentHandler{
@@ -145,18 +144,17 @@ func TestGetEffectiveContributionsForVersion(t *testing.T) {
 		var resp struct {
 			Data []repository.EffectiveContributionRow `json:"data"`
 			Meta struct {
-				IsOverride bool   `json:"is_override"`
-				Source     string `json:"source"`
+				SnapshotMode string `json:"snapshot_mode"`
 			} `json:"meta"`
 		}
 		if err := json.Unmarshal(recorder.Body.Bytes(), &resp); err != nil {
 			t.Fatalf("decode response: %v", err)
 		}
-		if resp.Meta.IsOverride != false {
-			t.Fatalf("expected is_override=false, got %v", resp.Meta.IsOverride)
+		if resp.Meta.SnapshotMode != repository.SnapshotModeIndependent {
+			t.Fatalf("expected independent snapshot, got %q", resp.Meta.SnapshotMode)
 		}
-		if resp.Meta.Source != "anime_default" {
-			t.Fatalf("expected source=anime_default, got %q", resp.Meta.Source)
+		if string(recorder.Body.Bytes()) != `{"data":[],"meta":{"snapshot_mode":"independent"}}` {
+			t.Fatalf("expected exact empty independent response, got %s", recorder.Body.String())
 		}
 	})
 }
