@@ -922,10 +922,8 @@ endpoints:
       status: 200
       type: EffectiveContributionsResponse
     notes:
-      - Liefert den aufgelösten Mitwirkenden-Satz (Override oder Projekt-Default, D-02).
-      - meta.is_override=true wenn versions-spezifische Contributions existieren.
-      - meta.source entweder "release_version" oder "anime_default".
-      - contribution_id ist in jedem Row enthalten, damit das Frontend beim Speichern exakt die richtigen IDs löscht (Pitfall 4).
+      - Liefert den vollständig gespeicherten Mitwirkenden-Satz dieser Release-Version und Gruppe.
+      - meta.snapshot_mode ist entweder "inherited" oder "independent".
       - IDOR-Mitigation (T-83-IDOR) CanForReleaseVersion(ActionReleaseVersionView) wird vor Datenrückgabe geprüft.
 
   - name: admin-release-version-contributions-replace
@@ -944,16 +942,7 @@ endpoints:
         required: true
         minimum: 1
     request:
-      type: object
-      required: [rows]
-      additionalProperties: false
-      properties:
-        rows:
-          type: array
-          items:
-            type: object
-            required: [member_id, role_codes]
-            additionalProperties: false
+      type: ReplaceReleaseCrewRequest
     response:
       status: 200
       type: EffectiveContributionsResponse
@@ -1166,11 +1155,15 @@ types:
     member_avatar_url: string | null
     role_codes: string[]
   EffectiveContributionsMeta:
-    is_override: "boolean (description: true wenn versions-spezifische Contributions existieren, D-02)"
-    source: "string (description: 'release_version' oder 'anime_default', D-02)"
+    snapshot_mode: "string (enum: inherited|independent)"
   EffectiveContributionsResponse:
     data: EffectiveContributionRow[]
     meta: EffectiveContributionsMeta
+  ReplaceReleaseCrewRow:
+    member_id: int64
+    role_codes: string[]
+  ReplaceReleaseCrewRequest:
+    rows: ReplaceReleaseCrewRow[]
   ReleaseVersionNote:
     ID: int64
     ReleaseVersionID: int64

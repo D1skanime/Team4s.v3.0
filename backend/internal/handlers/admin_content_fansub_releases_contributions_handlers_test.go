@@ -176,3 +176,24 @@ func TestReleaseCrewReplaceContractRejectsCallerOwnedLedgerFields(t *testing.T) 
 		}
 	}
 }
+
+func TestReleaseCrewReplaceResponseUsesTheEffectiveContributionContract(t *testing.T) {
+	rows := releaseCrewResponseRows([]repository.ReleaseCrewRow{{
+		ContributionID: 71,
+		MemberID:       8,
+		MemberName:     "Gon",
+		RoleCodes:      []string{"translator", "qc"},
+	}})
+
+	encoded, err := json.Marshal(gin.H{
+		"data": rows,
+		"meta": gin.H{"snapshot_mode": repository.SnapshotModeIndependent},
+	})
+	if err != nil {
+		t.Fatalf("marshal response: %v", err)
+	}
+	const expected = `{"data":[{"contribution_id":71,"member_id":8,"member_display_name":"Gon","role_codes":["translator","qc"]}],"meta":{"snapshot_mode":"independent"}}`
+	if string(encoded) != expected {
+		t.Fatalf("unexpected response contract: %s", encoded)
+	}
+}

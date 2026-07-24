@@ -153,6 +153,8 @@ import {
   UnifiedGroupMember,
   DefaultCrewEntry,
   EffectiveContributionsResponse,
+  ReplaceReleaseCrewRequest,
+  ReplaceReleaseCrewResponse,
   FansubGroupRoleItem,
 } from "@/types/fansub";
 import {
@@ -7563,9 +7565,7 @@ export async function upsertAnimeFansubProjectNote(
   fansubId: number,
   animeId: number,
   data: UpsertAnimeFansubProjectNoteRequest,
-  authToken?: string,
 ): Promise<AnimeFansubProjectNote> {
-  const API_BASE_URL = getApiBaseUrl();
   const payload = {
     title: data.title,
     body_json: data.bodyJson,
@@ -7573,14 +7573,11 @@ export async function upsertAnimeFansubProjectNote(
     status: data.status,
     sort_order: data.sortOrder ?? 0,
   };
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`,
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubId}/anime/${animeId}/notes`,
     {
       method: "PUT",
-      headers: withAuthHeader(
-        { "Content-Type": "application/json" },
-        authToken,
-      ),
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     },
   );
@@ -8527,6 +8524,37 @@ export async function listEffectiveContributionsForVersion(
   return response.json() as Promise<EffectiveContributionsResponse>;
 }
 
+export async function replaceReleaseCrew(
+  releaseVersionId: number,
+  fansubGroupId: number,
+  body: ReplaceReleaseCrewRequest,
+): Promise<ReplaceReleaseCrewResponse> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/release-versions/${releaseVersionId}/contributions/effective?fansub_group_id=${fansubGroupId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<ReplaceReleaseCrewResponse>;
+}
+
 // ─── Me-Contributions ─────────────────────────────────────────────────────────
 
 export async function getMyAnimeContributions(): Promise<MeAnimeContributionsResponse> {
@@ -8620,9 +8648,8 @@ export async function confirmAnimeContribution(
 ): Promise<void> {
   // Bestätigen setzt den Status der Contribution auf 'confirmed' (Backend aktiviert
   // zusätzlich die Profil-Sichtbarkeit).
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/me/anime-contributions/${contributionId}/confirm`,
+  const response = await apiClientFetch(
+    `/api/v1/me/anime-contributions/${contributionId}/confirm`,
     { method: "POST" },
   );
 
@@ -8910,12 +8937,10 @@ export async function listGroupProposals(
 export async function confirmProposal(
   fansubId: number,
   cid: number,
-  authToken?: string,
 ): Promise<void> {
-  const API_BASE_URL = getApiBaseUrl();
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/contribution-proposals/${cid}/confirm`,
-    { method: "POST", authToken },
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubId}/contribution-proposals/${cid}/confirm`,
+    { method: "POST" },
   );
 
   if (!response.ok) {

@@ -92,7 +92,7 @@ describe('Phase 108 release crew client contract', () => {
       ),
     )
 
-    await expect(replaceReleaseCrew(176, 9, { rows: [] })).rejects.toMatchObject<Partial<ApiError>>({
+    await expect(replaceReleaseCrew(176, 9, { rows: [] })).rejects.toMatchObject({
       status: 404,
       message: 'Release-Besetzung nicht gefunden',
       code: 'not_found',

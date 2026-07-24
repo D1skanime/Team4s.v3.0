@@ -82,7 +82,7 @@ function ContributionsReviewSectionInner({ fansubId }: { fansubId: number }) {
   async function handleConfirm(id: number) {
     setCardErrors((prev) => ({ ...prev, [id]: '' }))
     try {
-      await confirmProposal(fansubId, id, undefined)
+      await confirmProposal(fansubId, id)
       setProposals((prev) => prev.filter((p) => p.id !== id))
     } catch (err) {
       setCardErrors((prev) => ({

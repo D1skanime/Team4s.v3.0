@@ -94,8 +94,8 @@ export function ReleaseContributionDrawer({
         setOriginalRolesById(
           Object.fromEntries(rows.map((row) => [row.contribution_id, row.role_codes])),
         )
-        setSource(contributionsResult.meta.source)
-        setIsOverride(contributionsResult.meta.is_override)
+        setSource('release_version')
+        setIsOverride(contributionsResult.meta.snapshot_mode === 'independent')
       })
       .catch((err: unknown) => {
         if (cancelled) return

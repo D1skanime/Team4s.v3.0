@@ -22,6 +22,20 @@ type replaceReleaseCrewRow struct {
 	RoleCodes []string `json:"role_codes"`
 }
 
+func releaseCrewResponseRows(rows []repository.ReleaseCrewRow) []repository.EffectiveContributionRow {
+	result := make([]repository.EffectiveContributionRow, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, repository.EffectiveContributionRow{
+			ContributionID:  row.ContributionID,
+			MemberID:        row.MemberID,
+			MemberName:      row.MemberName,
+			MemberAvatarURL: row.MemberAvatarURL,
+			RoleCodes:       row.RoleCodes,
+		})
+	}
+	return result
+}
+
 // requireReleaseVersionViewAccess kapselt die Berechtigungsprüfung für Release-Version-Lesezugriff.
 // Gibt die versionID zurück wenn die Prüfung erfolgreich ist, sonst schreibt es die Fehlerantwort.
 func (h *AdminContentHandler) requireReleaseVersionViewAccess(c *gin.Context) (int64, bool) {
@@ -104,7 +118,10 @@ func (h *AdminContentHandler) ReplaceEffectiveContributionsForVersion(c *gin.Con
 		internalError(c, "interner Serverfehler")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": snapshot.Rows, "meta": gin.H{"snapshot_mode": snapshot.Mode}})
+	c.JSON(http.StatusOK, gin.H{
+		"data": releaseCrewResponseRows(snapshot.Rows),
+		"meta": gin.H{"snapshot_mode": snapshot.Mode},
+	})
 }
 
 // GetEffectiveContributionsForVersion verarbeitet

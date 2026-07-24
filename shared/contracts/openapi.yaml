@@ -5764,6 +5764,123 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/release-versions/{versionId}/contributions/effective:
+    get:
+      tags: [Admin]
+      summary: Load the complete stored release crew
+      operationId: getEffectiveReleaseContributions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: fansub_group_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Complete stored release crew and inheritance status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EffectiveContributionsResponse"
+        "400":
+          description: Invalid release version or fansub group id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Release-version view permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [Admin]
+      summary: Replace the complete stored release crew
+      operationId: replaceReleaseCrew
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: fansub_group_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplaceReleaseCrewRequest"
+      responses:
+        "200":
+          description: Complete independent release crew after atomic replacement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EffectiveContributionsResponse"
+        "400":
+          description: Invalid or unknown request fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Release-version write permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Release crew context or submitted member/role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/release-versions/{versionId}/capabilities:
     get:
       tags: [Admin]
@@ -8700,6 +8817,65 @@ components:
           nullable: true
         mime_type:
           type: string
+    EffectiveContributionRow:
+      type: object
+      required: [contribution_id, member_id, member_display_name, role_codes]
+      properties:
+        contribution_id:
+          type: integer
+          format: int64
+        member_id:
+          type: integer
+          format: int64
+        member_display_name:
+          type: string
+        member_avatar_url:
+          type: string
+          nullable: true
+        role_codes:
+          type: array
+          items:
+            type: string
+    ReleaseCrewSnapshotMode:
+      type: string
+      enum: [inherited, independent]
+    EffectiveContributionsResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/EffectiveContributionRow"
+        meta:
+          type: object
+          required: [snapshot_mode]
+          properties:
+            snapshot_mode:
+              $ref: "#/components/schemas/ReleaseCrewSnapshotMode"
+    ReplaceReleaseCrewRow:
+      type: object
+      additionalProperties: false
+      required: [member_id, role_codes]
+      properties:
+        member_id:
+          type: integer
+          format: int64
+          minimum: 1
+        role_codes:
+          type: array
+          minItems: 1
+          items:
+            type: string
+    ReplaceReleaseCrewRequest:
+      type: object
+      additionalProperties: false
+      required: [rows]
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReplaceReleaseCrewRow"
     HealthResponse:
       type: object
       required: [status]

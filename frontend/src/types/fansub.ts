@@ -736,7 +736,19 @@ export interface EffectiveContributionRow {
 export interface EffectiveContributionsResponse {
   data: EffectiveContributionRow[];
   meta: {
-    is_override: boolean;
-    source: 'release_version' | 'anime_default';
+    snapshot_mode: ReleaseCrewSnapshotMode;
   };
 }
+
+export type ReleaseCrewSnapshotMode = 'inherited' | 'independent';
+
+export interface ReplaceReleaseCrewRow {
+  member_id: number;
+  role_codes: string[];
+}
+
+export interface ReplaceReleaseCrewRequest {
+  rows: ReplaceReleaseCrewRow[];
+}
+
+export type ReplaceReleaseCrewResponse = EffectiveContributionsResponse;
