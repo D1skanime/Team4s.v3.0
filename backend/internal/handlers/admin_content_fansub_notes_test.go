@@ -22,8 +22,8 @@ func TestAdminContentFansubNotes_ProjectNoteSourceInvariants(t *testing.T) {
 		"project note read access must follow release.view")
 	assert.True(t, strings.Contains(content, "Anime-Fansub-Zuordnung nicht gefunden"),
 		"handler must return a clear German 4xx message for invalid anime/fansub context")
-	assert.True(t, strings.Contains(content, "DeleteAnimeFansubProjectNote(c.Request.Context(), noteID, animeID, fansubID, identity.UserID)"),
-		"delete handler must pass note id plus route context into the repository")
+	assert.True(t, strings.Contains(content, "projectNoteCreditSvc.Delete(c.Request.Context(), noteID, animeID, fansubID, identity.AppUserID)"),
+		"delete handler must pass note id, route context, and authenticated app-user actor into the lifecycle service")
 	assert.True(t, strings.Contains(content, "parseFansubRouteID(c)"),
 		"project note handlers must evaluate the fansub route context")
 	assert.True(t, strings.Contains(content, `strconv.ParseInt(c.Param("animeId"), 10, 64)`),
