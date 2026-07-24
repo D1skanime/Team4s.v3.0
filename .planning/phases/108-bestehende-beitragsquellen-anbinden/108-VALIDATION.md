@@ -9,21 +9,21 @@
 
 | SOURCE | ID | Feature / Requirement | Plan | Status |
 |---|---|---|---|---|
-| GOAL | — | Existing release-role and project-text sources produce correct member-owned points without Phase-107.1 double wiring | 01–07 | COVERED |
-| REQ | GAM-01 | Stable member beneficiary; app_user only actor | 03, 04, 07 | COVERED |
-| REQ | GAM-02 | Append-only ledger, reversal/restoration, concurrency/idempotency | 01, 03, 04, 07 | COVERED |
+| GOAL | — | Existing release-role and project-text sources produce correct member-owned points without Phase-107.1 double wiring | 01–08 | COVERED |
+| REQ | GAM-01 | Stable member beneficiary; app_user only actor | 03, 04, 07, 08 | COVERED |
+| REQ | GAM-02 | Append-only ledger, reversal/restoration, concurrency/idempotency | 01, 03, 04, 07, 08 | COVERED |
 | REQ | GAM-03 | Immutable rules and server-owned values | 01, 03, 04 | COVERED |
 | REQ | GAM-04 | Fansub work and platform contribution remain distinct; metadata is point-neutral | 03–06 | COVERED |
-| REQ | GAM-05 | Additive integration with migration, contract, and regression proof | 01–07 | COVERED |
-| RESEARCH | R-C1 | Leader/member confirmation is scoped, status-bounded, and atomic | 03, 07 | COVERED |
-| RESEARCH | R-C2 | Generic routes are project-only; Replace is the sole release writer | 05, 07 | COVERED |
-| RESEARCH | R-C3 | Confirmed-only effective truth; proposals coexist | 02, 03, 07 | COVERED |
-| RESEARCH | R-C4 | Complete production constructors, dependencies, and routes | 07 | COVERED |
+| REQ | GAM-05 | Additive integration with migration, contract, and regression proof | 01–08 | COVERED |
+| RESEARCH | R-C1 | Leader/member confirmation is scoped, status-bounded, and atomic | 03, 08 | COVERED |
+| RESEARCH | R-C2 | Generic routes are project-only; Replace is the sole release writer | 05, 08 | COVERED |
+| RESEARCH | R-C3 | Confirmed-only effective truth; proposals coexist | 02, 03, 08 | COVERED |
+| RESEARCH | R-C4 | Complete production constructors, dependencies, and routes | 08 | COVERED |
 | RESEARCH | R-C5 | Unlinked first writer consumes the project-text author slot | 01, 04, 06 | COVERED |
 | RESEARCH | R-C6 | Refresh-session protected actions | 05, 06 | COVERED |
 | RESEARCH | R-C7 | No backfill/import/carry-forward of existing content data | 01, 04, 06 | COVERED |
 | CONTEXT | D-01–D-09 | Work/author beneficiary and point boundaries | 03, 04 | COVERED |
-| CONTEXT | D-10–D-18 | Full snapshots, inheritance, independence, and atomic diffs | 02, 03, 07 | COVERED |
+| CONTEXT | D-10–D-18 | Full snapshots, inheritance, independence, and atomic diffs | 02, 03, 07, 08 | COVERED |
 | CONTEXT | D-19 / D-19a | Project-text recreation and role restoration | 03, 04 | COVERED |
 | CONTEXT | D-20–D-22 | Disposable data; schema allowed, no data carry-forward | 01, 06 | COVERED |
 
@@ -55,6 +55,9 @@ These files are the implementation-ready owners. If implementation chooses mater
 | `backend/internal/handlers/admin_content_fansub_releases_contributions_handlers_test.go` | Complete-set replace API, validation, response metadata, auth/context failures |
 | `backend/internal/handlers/admin_content_anime_project_notes_test.go` | Note mutation remains contract-compatible and delegates transactional credit lifecycle |
 | `backend/internal/repository/episode_import_repository_release_helpers_test.go` | New release snapshot is seeded after canonical group linkage |
+| `backend/internal/repository/episode_version_repository_test.go` | Manual/admin release creation seeds after selected-group canonical linkage |
+| `backend/internal/handlers/fansub_anime_contributions_handler_test.go` | Generic project-only mutation rejection and inherited-snapshot synchronization |
+| `backend/cmd/server/phase108_runtime_wiring_test.go` | Complete production service graph, route registration, and both release-creation hook bindings |
 | `frontend/src/lib/api.phase108.test.ts` | Typed replace request/response and error handling through central client |
 | `frontend/src/app/admin/fansubs/[id]/edit/ReleaseContributionDrawer.test.tsx` | One complete-set save, status display, no multiple row mutations |
 | `frontend/src/lib/api.auth-refresh.test.ts` | Missing/expired access token plus valid refresh session still performs protected save |
@@ -248,7 +251,13 @@ Those are automated or code-review gates. Manual UAT certifies only route reacha
 - Run focused frontend tests, typecheck, lint, and auth-refresh regression.
 - Gate: protected drawer/text actions work with refresh-only session; no reset-to-project action.
 
-### Wave 5 — Cross-boundary regression and live UAT
+### Wave 5 — Generic mutation hardening and production wiring
+
+- Prove project-only POST/PATCH/DELETE restrictions, confirmed-only inherited fan-out, independent-snapshot isolation, and full runtime service construction.
+- Run project-roster rollback/concurrency tests plus production route/constructor and both creation-hook wiring tests.
+- Gate: no generic release-specific write remains, all inherited fan-out is exact-once, and every live mutation/creation owner uses the shared service graph.
+
+### Wave 6 — Cross-boundary regression and live UAT
 
 - Run all commands in the regression suite and full phase gate.
 - Inspect shared contract/backend/frontend DTO alignment.
