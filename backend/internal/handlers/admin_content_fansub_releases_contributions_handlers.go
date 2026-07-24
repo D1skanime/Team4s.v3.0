@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -63,10 +64,12 @@ func (h *AdminContentHandler) GetEffectiveContributionsForVersion(c *gin.Context
 
 	// nil-Ergebnis: leere Antwort mit Defaults zurückgeben
 	if result == nil {
-		c.JSON(http.StatusOK, gin.H{
-			"data": []repository.EffectiveContributionRow{},
-			"meta": gin.H{"is_override": false, "source": "anime_default"},
-		})
+		writeInternalErrorResponse(
+			c,
+			"interner serverfehler",
+			errors.New("stored release crew snapshot result is nil"),
+			"Mitwirkende konnten nicht geladen werden.",
+		)
 		return
 	}
 
@@ -77,6 +80,6 @@ func (h *AdminContentHandler) GetEffectiveContributionsForVersion(c *gin.Context
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": rows,
-		"meta": gin.H{"is_override": result.IsOverride, "source": result.Source},
+		"meta": gin.H{"snapshot_mode": result.SnapshotMode},
 	})
 }
