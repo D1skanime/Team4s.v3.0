@@ -365,6 +365,24 @@ func (r *ReleaseCrewSnapshotRepository) SyncInheritedForProjectInTx(
 
 	changes := make([]ReleaseCrewSnapshotChange, 0, len(versionIDs))
 	for _, releaseVersionID := range versionIDs {
+		if err := lockReleaseCrewContext(ctx, tx, releaseVersionID, fansubGroupID); err != nil {
+			return nil, err
+		}
+		var currentMode string
+		if err := tx.QueryRow(ctx, `
+			SELECT snapshot_mode
+			FROM release_crew_snapshots
+			WHERE release_version_id = $1 AND fansub_group_id = $2
+			FOR UPDATE
+		`, releaseVersionID, fansubGroupID).Scan(&currentMode); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
+			return nil, fmt.Errorf("lock inherited release crew snapshot: %w", err)
+		}
+		if currentMode != SnapshotModeInherited {
+			continue
+		}
 		change, err := replaceReleaseCrewInTx(
 			ctx, tx, releaseVersionID, fansubGroupID, SnapshotModeInherited, projectRows,
 		)
