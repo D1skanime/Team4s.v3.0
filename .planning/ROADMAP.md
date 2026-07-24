@@ -2470,7 +2470,7 @@ Plans:
 **Goal:** Bestehende Domänendaten über schmale, kontextspezifische Adapter als bestätigte Gamification-Quellen nutzbar machen, ohne Domain-Ownership oder Uploadsysteme zu vereinheitlichen.
 **Requirements:** Phasen 106–107.1; kanonische Fansub-/Release-Domain.
 **Depends on:** Phase 106, Phase 107, Phase 107.1
-**Plans:** 3/8 plans executed
+**Plans:** 5/8 plans executed
 
 Plans:
 
@@ -2485,11 +2485,11 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 108-03-PLAN.md — Atomic release-crew Set-Diff, points, reversal, restoration, and replace endpoint
+- [x] 108-03-PLAN.md — Atomic release-crew Set-Diff, points, reversal, restoration, and replace endpoint
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 108-05-PLAN.md — Typed OpenAPI/frontend replace contract and central-auth drawer integration
+- [x] 108-05-PLAN.md — Typed OpenAPI/frontend replace contract and central-auth drawer integration
 - [ ] 108-07-PLAN.md — Atomic release-creation seeding at both canonical creation boundaries
 
 **Wave 5** *(blocked on Wave 4 completion)*
