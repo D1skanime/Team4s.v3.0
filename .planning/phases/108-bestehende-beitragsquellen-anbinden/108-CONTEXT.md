@@ -41,6 +41,7 @@ Release-Version-Texte und Release-Version-Medien sind bereits durch Phase 107.1 
 - **D-17:** Falsch dokumentierte oder später entfernte Leistungen werden nicht aus dem append-only Punktebuch gelöscht. Ihre ursprünglichen Buchungen bleiben erhalten und werden genau einmal durch nachvollziehbare Gegenbuchungen storniert.
 - **D-18:** Wird eine Besetzung korrigiert, werden alle wegfallenden Einheiten storniert und alle neu hinzukommenden Einheiten in derselben fachlichen Aktion gebucht.
 - **D-19:** Wird der Projekttext vollständig gelöscht, werden seine 5 Punkte storniert. Ein später neu angelegter Projekttext kann einmalig 5 Punkte für seinen dann ersten Autor erzeugen.
+- **D-19a:** Wird eine zuvor stornierte identische `Member × Release × Rolle`-Leistung später wieder fachlich gültig und erneut hinzugefügt, stellt eine neue append-only Wiederherstellungsbuchung ihren wirksamen Punkt genau einmal wieder her. Wiederholte Requests oder unverändertes Speichern erzeugen keine weiteren Punkte.
 
 ### Disponible Testdaten
 - **D-20:** Team4s verwendet disponible Testdaten. Phase 108 plant und implementiert keine Bestandsdatenmigration, historische Nachbuchung, keinen Backfill und keine Übergangskompatibilität für bestehende Rows.
