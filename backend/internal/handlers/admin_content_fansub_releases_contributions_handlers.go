@@ -1,15 +1,26 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
+
+type replaceReleaseCrewRequest struct {
+	Rows []replaceReleaseCrewRow `json:"rows"`
+}
+
+type replaceReleaseCrewRow struct {
+	MemberID  int64    `json:"member_id"`
+	RoleCodes []string `json:"role_codes"`
+}
 
 // requireReleaseVersionViewAccess kapselt die Berechtigungsprüfung für Release-Version-Lesezugriff.
 // Gibt die versionID zurück wenn die Prüfung erfolgreich ist, sonst schreibt es die Fehlerantwort.
@@ -36,6 +47,64 @@ func (h *AdminContentHandler) requireReleaseVersionViewAccess(c *gin.Context) (i
 	}
 
 	return versionID, true
+}
+
+func (h *AdminContentHandler) ReplaceEffectiveContributionsForVersion(c *gin.Context) {
+	identity, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return
+	}
+	versionID, err := strconv.ParseInt(c.Param("versionId"), 10, 64)
+	if err != nil || versionID <= 0 {
+		badRequest(c, "ungültige Versions-ID")
+		return
+	}
+	result, err := h.permissionSvc.CanForReleaseVersion(c.Request.Context(), actor, permissions.ActionReleaseVersionNotesWrite, versionID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
+		return
+	}
+	fansubGroupID, err := strconv.ParseInt(c.Query("fansub_group_id"), 10, 64)
+	if err != nil || fansubGroupID <= 0 {
+		badRequest(c, "fansub_group_id fehlt oder ist ungültig")
+		return
+	}
+	var req replaceReleaseCrewRequest
+	decoder := json.NewDecoder(c.Request.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&req); err != nil || req.Rows == nil {
+		badRequest(c, "ungültiger Request-Body")
+		return
+	}
+	rows := make([]repository.ReleaseCrewRow, 0, len(req.Rows))
+	for _, row := range req.Rows {
+		if row.MemberID <= 0 || len(row.RoleCodes) == 0 {
+			badRequest(c, "Mitglied und mindestens eine Rolle sind erforderlich")
+			return
+		}
+		rows = append(rows, repository.ReleaseCrewRow{MemberID: row.MemberID, RoleCodes: row.RoleCodes})
+	}
+	if h.releaseCrewSvc == nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+	snapshot, err := h.releaseCrewSvc.Replace(c.Request.Context(), services.ReleaseCrewReplaceCommand{
+		ReleaseVersionID: versionID, FansubGroupID: fansubGroupID,
+		ActorAppUserID: identity.AppUserID, Rows: rows,
+	})
+	if errors.Is(err, repository.ErrNotFound) || errors.Is(err, repository.ErrValidation) {
+		notFound(c, "Release-Besetzung nicht gefunden")
+		return
+	}
+	if err != nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": snapshot.Rows, "meta": gin.H{"snapshot_mode": snapshot.Mode}})
 }
 
 // GetEffectiveContributionsForVersion verarbeitet

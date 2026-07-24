@@ -928,6 +928,40 @@ endpoints:
       - contribution_id ist in jedem Row enthalten, damit das Frontend beim Speichern exakt die richtigen IDs löscht (Pitfall 4).
       - IDOR-Mitigation (T-83-IDOR) CanForReleaseVersion(ActionReleaseVersionView) wird vor Datenrückgabe geprüft.
 
+  - name: admin-release-version-contributions-replace
+    method: PUT
+    path: /api/v1/admin/release-versions/:versionId/contributions/effective
+    auth:
+      required: true
+      permission: release_version.notes.write for the addressed release version
+    path_params:
+      - name: versionId
+        type: int64
+        minimum: 1
+    query_params:
+      - name: fansub_group_id
+        type: int64
+        required: true
+        minimum: 1
+    request:
+      type: object
+      required: [rows]
+      additionalProperties: false
+      properties:
+        rows:
+          type: array
+          items:
+            type: object
+            required: [member_id, role_codes]
+            additionalProperties: false
+    response:
+      status: 200
+      type: EffectiveContributionsResponse
+    notes:
+      - Replaces the complete confirmed set atomically and permanently sets snapshot_mode to independent.
+      - An empty rows array is a valid empty independent snapshot.
+      - Actor, reviewer, point value, rule version, idempotency key, status, and effective time are server-owned.
+
   - name: admin-release-review-list
     method: GET
     path: /api/v1/admin/fansubs/:id/release-reviews

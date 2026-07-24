@@ -23,6 +23,12 @@ type ReleaseCrewReplaceCommand struct {
 	Rows             []repository.ReleaseCrewRow
 }
 
+type ConfirmContributionCommand struct {
+	FansubGroupID, ContributionID, ActorAppUserID int64
+	MemberID                                      *int64
+	ForbidSelfCreated                             bool
+}
+
 type ReleaseCrewService struct {
 	starter PointTxStarter
 	points  *PointService
@@ -121,6 +127,98 @@ func (s *ReleaseCrewService) SeedCreatedReleaseInTx(ctx context.Context, tx pgx.
 		return err
 	}
 	return s.applyDiff(ctx, tx, releaseVersionID, fansubGroupID, 0, change)
+}
+
+func (s *ReleaseCrewService) SyncProjectInTx(ctx context.Context, tx pgx.Tx, animeID, fansubGroupID, actorID int64) error {
+	changes, err := repository.NewReleaseCrewSnapshotRepository(tx).SyncInheritedForProjectInTx(ctx, tx, animeID, fansubGroupID)
+	if err != nil {
+		return err
+	}
+	for i := range changes {
+		if err := s.applyDiff(ctx, tx, changes[i].ReleaseVersionID, changes[i].FansubGroupID, actorID, &changes[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *ReleaseCrewService) ConfirmContribution(ctx context.Context, cmd ConfirmContributionCommand) error {
+	if s == nil || s.starter == nil || cmd.FansubGroupID <= 0 || cmd.ContributionID <= 0 || cmd.ActorAppUserID <= 0 {
+		return repository.ErrValidation
+	}
+	tx, err := s.starter.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	var animeID, memberID, createdBy int64
+	var releaseVersionID *int64
+	var status string
+	err = tx.QueryRow(ctx, `
+		SELECT anime_id, member_id, release_version_id, status, COALESCE(created_by,0)
+		FROM anime_contributions
+		WHERE id=$1 AND fansub_group_id=$2
+		FOR UPDATE
+	`, cmd.ContributionID, cmd.FansubGroupID).Scan(&animeID, &memberID, &releaseVersionID, &status, &createdBy)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return repository.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	if status != "proposed" || (cmd.MemberID != nil && memberID != *cmd.MemberID) ||
+		(cmd.ForbidSelfCreated && createdBy == cmd.ActorAppUserID) {
+		return repository.ErrConflict
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE anime_contributions
+		SET status='confirmed', confirmed_by=$2, confirmed_at=NOW(),
+		    is_public_on_anime_page=true, is_public_on_member_profile=true, updated_at=NOW()
+		WHERE id=$1
+	`, cmd.ContributionID, cmd.ActorAppUserID); err != nil {
+		return err
+	}
+	if releaseVersionID == nil {
+		if err := s.SyncProjectInTx(ctx, tx, animeID, cmd.FansubGroupID, cmd.ActorAppUserID); err != nil {
+			return err
+		}
+	} else {
+		rows, err := loadConfirmedCrewForService(ctx, tx, *releaseVersionID, cmd.FansubGroupID)
+		if err != nil {
+			return err
+		}
+		change, err := repository.NewReleaseCrewSnapshotRepository(tx).ReplaceInTx(ctx, tx, *releaseVersionID, cmd.FansubGroupID, rows)
+		if err != nil {
+			return err
+		}
+		if err := s.applyDiff(ctx, tx, *releaseVersionID, cmd.FansubGroupID, cmd.ActorAppUserID, change); err != nil {
+			return err
+		}
+	}
+	return tx.Commit(ctx)
+}
+
+func loadConfirmedCrewForService(ctx context.Context, tx pgx.Tx, releaseVersionID, fansubGroupID int64) ([]repository.ReleaseCrewRow, error) {
+	rows, err := tx.Query(ctx, `
+		SELECT ac.member_id, ARRAY_AGG(acr.role_code ORDER BY acr.role_code)
+		FROM anime_contributions ac
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id=ac.id
+		WHERE ac.release_version_id=$1 AND ac.fansub_group_id=$2 AND ac.status='confirmed'
+		GROUP BY ac.member_id ORDER BY ac.member_id
+	`, releaseVersionID, fansubGroupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var result []repository.ReleaseCrewRow
+	for rows.Next() {
+		var row repository.ReleaseCrewRow
+		if err := rows.Scan(&row.MemberID, &row.RoleCodes); err != nil {
+			return nil, err
+		}
+		result = append(result, row)
+	}
+	return result, rows.Err()
 }
 
 func (s *ReleaseCrewService) applyDiff(ctx context.Context, tx pgx.Tx, releaseVersionID, fansubGroupID, actorID int64, change *repository.ReleaseCrewSnapshotChange) error {

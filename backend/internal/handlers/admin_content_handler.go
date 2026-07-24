@@ -128,6 +128,10 @@ type adminFansubReleasesContributionsRepo interface {
 	ListEffectiveContributionsForVersion(ctx context.Context, releaseVersionID int64, fansubGroupID int64) (*repository.EffectiveContributionsResult, error)
 }
 
+type releaseCrewCommandService interface {
+	Replace(context.Context, services.ReleaseCrewReplaceCommand) (*repository.ReleaseCrewSnapshot, error)
+}
+
 // AdminContentHandler ist der zentrale Handler für alle Admin-Content-Operationen:
 // Anime anlegen/bearbeiten/löschen, Episoden, Assets, Relationen und Jellyfin-Integration.
 type AdminContentHandler struct {
@@ -156,6 +160,7 @@ type AdminContentHandler struct {
 	projectNoteCreditSvc            projectNoteCreditService
 	releaseVersionNotesRepo         *repository.ReleaseVersionNotesRepository
 	fansubReleasesContributionsRepo adminFansubReleasesContributionsRepo
+	releaseCrewSvc                  releaseCrewCommandService
 	markdownSvc                     *services.MarkdownService
 	tiptapSvc                       *services.TipTapService
 	permissionSvc                   *permissions.Service
@@ -271,6 +276,11 @@ func (h *AdminContentHandler) WithReleaseVersionNoteDeps(repo *repository.Releas
 // damit GetEffectiveContributionsForVersion auf den aufgelösten Mitwirkenden-Satz zugreifen kann.
 func (h *AdminContentHandler) WithFansubReleasesContributionsDeps(repo *repository.FansubReleasesContributionsRepository) *AdminContentHandler {
 	h.fansubReleasesContributionsRepo = repo
+	return h
+}
+
+func (h *AdminContentHandler) WithReleaseCrewDeps(svc releaseCrewCommandService) *AdminContentHandler {
+	h.releaseCrewSvc = svc
 	return h
 }
 

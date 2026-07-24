@@ -11,6 +11,7 @@ import (
 
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,9 +31,14 @@ type reviewPermissionChecker interface {
 
 // ContributionReviewHandler liefert die Leader/Admin-Review-Endpunkte für Vorschläge.
 type ContributionReviewHandler struct {
-	reviewRepo    ReviewRepository
-	permissionSvc reviewPermissionChecker
-	auditLogRepo  auditLogWriter
+	reviewRepo     ReviewRepository
+	permissionSvc  reviewPermissionChecker
+	auditLogRepo   auditLogWriter
+	releaseCrewSvc contributionConfirmationService
+}
+
+type contributionConfirmationService interface {
+	ConfirmContribution(context.Context, services.ConfirmContributionCommand) error
 }
 
 // NewContributionReviewHandler erstellt einen neuen ContributionReviewHandler.
@@ -46,6 +52,11 @@ func NewContributionReviewHandler(
 		permissionSvc: permissionSvc,
 		auditLogRepo:  auditLogRepo,
 	}
+}
+
+func (h *ContributionReviewHandler) WithReleaseCrewService(svc contributionConfirmationService) *ContributionReviewHandler {
+	h.releaseCrewSvc = svc
+	return h
 }
 
 // rejectRequest enthält den optionalen Ablehnungsgrund.
@@ -129,7 +140,15 @@ func (h *ContributionReviewHandler) ConfirmProposal(c *gin.Context) {
 		return
 	}
 
-	if err := h.reviewRepo.Confirm(c.Request.Context(), contributionID, identity.AppUserID); err != nil {
+	var confirmErr error
+	if h.releaseCrewSvc != nil {
+		confirmErr = h.releaseCrewSvc.ConfirmContribution(c.Request.Context(), services.ConfirmContributionCommand{
+			FansubGroupID: fansubID, ContributionID: contributionID, ActorAppUserID: identity.AppUserID,
+		})
+	} else {
+		confirmErr = h.reviewRepo.Confirm(c.Request.Context(), contributionID, identity.AppUserID)
+	}
+	if err := confirmErr; err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "vorschlag nicht gefunden oder bereits bearbeitet"}})
 			return

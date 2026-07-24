@@ -138,6 +138,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.GET("/admin/release-versions/:versionId/capabilities", auth, deps.adminContentHandler.GetReleaseVersionCapabilities)
 	// Phase 83-04: Aufgelöster Mitwirkenden-Satz für Override-Drawer (D-02, D-08, D-10)
 	v1.GET("/admin/release-versions/:versionId/contributions/effective", auth, deps.adminContentHandler.GetEffectiveContributionsForVersion)
+	v1.PUT("/admin/release-versions/:versionId/contributions/effective", auth, deps.adminContentHandler.ReplaceEffectiveContributionsForVersion)
 	v1.GET("/admin/release-versions/:versionId/media", auth, deps.adminContentHandler.ListReleaseVersionMedia)
 	v1.POST("/admin/release-versions/:versionId/media/reorder", auth, deps.adminContentHandler.ReorderReleaseVersionMedia)
 	v1.PATCH("/admin/release-versions/:versionId/media/:relationId", auth, deps.adminContentHandler.PatchReleaseVersionMedia)

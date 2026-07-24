@@ -9,6 +9,7 @@ import (
 
 	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/repository"
+	"team4s.v3/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
@@ -20,6 +21,12 @@ type ContributionsMeHandler struct {
 	contributionsRepo *repository.AnimeContributionsRepository
 	groupRolesRepo    *repository.HistGroupMemberRolesRepository
 	db                *pgxpool.Pool
+	releaseCrewSvc    contributionConfirmationService
+}
+
+func (h *ContributionsMeHandler) WithReleaseCrewService(svc contributionConfirmationService) *ContributionsMeHandler {
+	h.releaseCrewSvc = svc
+	return h
 }
 
 var errContributionVisibilityForbidden = errors.New("contribution visibility forbidden")
@@ -429,7 +436,50 @@ func (h *ContributionsMeHandler) updateAnimeContributionVisibility(
 // Der Member bestätigt eine über ihn erfasste Contribution: status → 'confirmed' und
 // Sichtbarkeit auf dem eigenen Profil wird aktiviert.
 func (h *ContributionsMeHandler) ConfirmMyAnimeContribution(c *gin.Context) {
-	h.updateMyAnimeContributionStatus(c, "confirmed", true)
+	contributionID, err := strconv.ParseInt(c.Param("contributionId"), 10, 64)
+	if err != nil || contributionID <= 0 {
+		badRequest(c, "ungültige Contribution-ID")
+		return
+	}
+	identity, ok := requireMeIdentity(c)
+	if !ok {
+		return
+	}
+	memberID, err := h.resolveVerifiedMemberID(c.Request.Context(), identity.AppUserID)
+	if errors.Is(err, repository.ErrNotFound) {
+		respondMemberProfileRequired(c)
+		return
+	}
+	if err != nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+	var fansubGroupID int64
+	if err := h.db.QueryRow(c.Request.Context(), `SELECT fansub_group_id FROM anime_contributions WHERE id=$1 AND member_id=$2`, contributionID, memberID).Scan(&fansubGroupID); err != nil {
+		notFound(c, "Contribution nicht gefunden")
+		return
+	}
+	if h.releaseCrewSvc == nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+	err = h.releaseCrewSvc.ConfirmContribution(c.Request.Context(), services.ConfirmContributionCommand{
+		FansubGroupID: fansubGroupID, ContributionID: contributionID, ActorAppUserID: identity.AppUserID,
+		MemberID: &memberID, ForbidSelfCreated: true,
+	})
+	if errors.Is(err, repository.ErrConflict) {
+		c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "Eigene Vorschläge müssen von einem Gruppenleader geprüft werden."}})
+		return
+	}
+	if errors.Is(err, repository.ErrNotFound) {
+		notFound(c, "Contribution nicht gefunden")
+		return
+	}
+	if err != nil {
+		internalError(c, "interner Serverfehler")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Status aktualisiert"})
 }
 
 // RejectMyAnimeContribution handles POST /api/v1/me/anime-contributions/:contributionId/reject

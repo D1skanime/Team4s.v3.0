@@ -230,11 +230,14 @@ func main() {
 		},
 	)
 	fansubNotesRepo := repository.NewFansubNotesRepository(dbPool)
+	pointService := services.NewPointService(dbPool)
+	releaseCrewService := services.NewReleaseCrewService(dbPool, pointService)
 	adminContentHandler.WithMediaDeps(mediaRepo, mediaService).
 		WithNoteDeps(fansubNotesRepo, services.NewMarkdownService()).
 		WithProjectNoteCreditDeps(services.NewProjectNoteCreditService(dbPool, fansubNotesRepo)).
 		WithReleaseVersionNoteDeps(repository.NewReleaseVersionNotesRepository(dbPool)).
 		WithFansubReleasesContributionsDeps(repository.NewFansubReleasesContributionsRepository(dbPool)).
+		WithReleaseCrewDeps(releaseCrewService).
 		WithTipTapDeps(tiptapSvc).
 		WithPermissionDeps(permissionSvc, auditLogRepo).
 		WithSegmentStreamDeps(
@@ -475,7 +478,7 @@ func main() {
 	).WithBadgeService(badgeService).WithHistMembersRepo(histGroupMembersRepo).WithCoverageRepo(animeCoverageRepo)
 	groupHistoryHandler := handlers.NewFansubGroupHistoryHandler(fansubGroupHistoryRepo).
 		WithPermissionSvc(permissionSvc)
-	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo)
+	reviewHandler := handlers.NewContributionReviewHandler(animeContributionsRepo, permissionSvc, auditLogRepo).WithReleaseCrewService(releaseCrewService)
 	defaultCrewRepo := repository.NewFansubDefaultCrewRepository(dbPool)
 	defaultCrewHandler := handlers.NewFansubDefaultCrewHandler(defaultCrewRepo, animeContributionsRepo, permissionSvc, auditLogRepo)
 	// Phase 78: Gruppenmedien-Review — GET-Liste + PATCH Sichtbarkeit/Reviewstatus (Lock K/G/D-08/D-09)
@@ -523,7 +526,7 @@ func main() {
 	mediaOwnershipProjectionRepo := repository.NewMediaOwnershipProjectionRepository(dbPool)
 	mediaOwnershipProjectionHandler := handlers.NewMediaOwnershipProjectionHandler(mediaOwnershipProjectionRepo)
 	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
-	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool)
+	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool).WithReleaseCrewService(releaseCrewService)
 	memberSuggestionsRepo := repository.NewMemberSuggestionsRepository(dbPool)
 	suggestionsMeHandler := handlers.NewSuggestionsMeHandler(memberSuggestionsRepo, auditLogRepo)
 	// Archiv-Suche: oeffentliche Route ohne Auth-Gate (Pitfall 6 aus RESEARCH.md)

@@ -34,8 +34,10 @@ type ReleaseCrewSnapshot struct {
 }
 
 type ReleaseCrewSnapshotChange struct {
-	Before []ReleaseCrewRow
-	After  []ReleaseCrewRow
+	ReleaseVersionID int64
+	FansubGroupID    int64
+	Before           []ReleaseCrewRow
+	After            []ReleaseCrewRow
 }
 
 type ReleaseCrewSnapshotRepository struct {
@@ -257,7 +259,12 @@ func replaceReleaseCrewInTx(
 			}
 		}
 	}
-	return &ReleaseCrewSnapshotChange{Before: normalizeReleaseCrewRows(before), After: after}, nil
+	return &ReleaseCrewSnapshotChange{
+		ReleaseVersionID: releaseVersionID,
+		FansubGroupID:    fansubGroupID,
+		Before:           normalizeReleaseCrewRows(before),
+		After:            after,
+	}, nil
 }
 
 // ReplaceInTx stores a complete manually edited snapshot and permanently marks it independent.
