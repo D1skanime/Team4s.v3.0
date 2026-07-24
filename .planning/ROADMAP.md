@@ -2470,7 +2470,7 @@ Plans:
 **Goal:** Bestehende Domänendaten über schmale, kontextspezifische Adapter als bestätigte Gamification-Quellen nutzbar machen, ohne Domain-Ownership oder Uploadsysteme zu vereinheitlichen.
 **Requirements:** Phasen 106–107.1; kanonische Fansub-/Release-Domain.
 **Depends on:** Phase 106, Phase 107, Phase 107.1
-**Plans:** 1/8 plans executed
+**Plans:** 2/8 plans executed
 
 Plans:
 
@@ -2480,7 +2480,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 108-02-PLAN.md — Complete stored snapshots and stored-only effective-contributions reads
+- [x] 108-02-PLAN.md — Complete stored snapshots and stored-only effective-contributions reads
 - [ ] 108-04-PLAN.md — Atomic project-text first-author, delete, and recreate credit lifecycle
 
 **Wave 3** *(blocked on Wave 2 completion)*
