@@ -152,7 +152,7 @@ describe('ContributionsReviewSection — SC1/Lock H: nur Proposals, keine Claims
     fireEvent.click(await screen.findByRole('button', { name: /Vorschlag bestätigen/ }))
 
     await waitFor(() => {
-      expect(confirmProposal).toHaveBeenCalledWith(88, 1, undefined)
+      expect(confirmProposal).toHaveBeenCalledWith(88, 1)
     })
   })
 })
