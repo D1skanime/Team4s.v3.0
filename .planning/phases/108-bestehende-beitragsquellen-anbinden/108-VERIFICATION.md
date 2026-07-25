@@ -1,7 +1,7 @@
 # Phase 108 Verification
 
 **Automated gate:** 2026-07-24  
-**Human UAT:** Pending at the Plan 108-06 blocking checkpoint  
+**Human UAT:** Completed 2026-07-25 — see `108-UAT.md`
 **Scope:** Existing release-crew and project-text contribution sources only
 
 ## Automated Gate
@@ -30,7 +30,7 @@
 | SC-3 Server-owned immutable rules | PASS | Migration rule tests and PointService suites passed; browser contracts do not accept points, rule version, source identity, actor, beneficiary, or ledger fields. |
 | SC-4 Fansub work and platform contribution remain distinct | PASS | Release crew uses fansub-work rules; first project text uses platform-contribution; review decisions, metadata, notes/media ownership, and admin actions add no Phase-108 points. |
 | SC-5 Additive production integration | PASS | `TestPhase108RuntimeWiringUsesOneSharedServiceGraph` and `TestPhase108RuntimeWiringRegistersEveryMutationOwner` passed; one shared service owns generic project writes, complete-set replacement, confirmations, and both release creators. |
-| SC-6 Canonical visible workflow | AUTOMATED PASS / HUMAN PENDING | Drawer and central-auth tests pass. Normal-navigation reachability and live interaction remain bounded human UAT below. |
+| SC-6 Canonical visible workflow | LIVE PASS / REFRESH AUTOMATED PASS | Normal navigation, release drawers, project-note lifecycle, explicit empty snapshots, and one platform review decision passed live. Forced refresh-only browser states remain covered by the central auth-refresh suite; see `108-UAT.md`. |
 
 ## Locked Decision Evidence (D-01–D-22 and D-19a)
 
@@ -75,7 +75,7 @@ The full frontend run found a Phase-108-adjacent regression assertion in `Contri
 
 The other 12 full-suite failures are outside Phase 108 and were not modified.
 
-## Human Verification — Pending
+## Human Verification — Completed
 
 Manual UAT must record only route/action observations. It must not claim to prove ledger values, beneficiary identity, cardinality, rollback, or concurrency.
 
@@ -89,4 +89,4 @@ Use the normal app navigation to open `/admin/fansubs/[id]/edit`, then verify:
 6. With an absent/expired access token and valid refresh session, protected drawer/note save completes without logged-out UI.
 7. Under the same refresh-only condition, one leader confirmation and one eligible member self-confirmation complete without logged-out UI.
 
-**Human result:** PENDING — no live outcome has been fabricated.
+**Human result:** PASS WITH BOUNDED GAP — core visible workflows passed live after the defects recorded in `108-UAT.md` were fixed. Forced refresh-only Leader-/Member-Confirmation was not fabricated and remains explicitly recorded as automated-only coverage.
