@@ -125,7 +125,22 @@ export function uniqueContributionPeople(contributionRows: AnimeContribution[]) 
 
 export function uniqueProjectContributionPeople(contributionRows: AnimeContribution[]) {
   return uniqueContributionPeople(
-    contributionRows.filter((row) => row.release_version_id == null),
+    contributionRows.filter(
+      (row) => row.release_version_id == null && row.status === "confirmed",
+    ),
+  );
+}
+
+export function uniqueReleaseContributionPeople(
+  contributionRows: AnimeContribution[],
+  releaseVersionID: number,
+) {
+  return uniqueContributionPeople(
+    contributionRows.filter(
+      (row) =>
+        row.release_version_id === releaseVersionID &&
+        row.status === "confirmed",
+    ),
   );
 }
 

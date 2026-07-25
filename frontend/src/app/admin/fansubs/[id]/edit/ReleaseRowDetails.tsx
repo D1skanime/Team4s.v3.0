@@ -16,6 +16,7 @@ import type {
   ReleaseSegmentCard,
   SelectedReleaseSegment,
 } from "./fansubEditTypes";
+import { uniqueReleaseContributionPeople } from "./fansubEditReleaseHelpers";
 
 type ReleaseRowDetailsProps = {
   styles: Record<string, string>;
@@ -54,15 +55,6 @@ type ReleaseRowDetailsProps = {
   onLoadMore: () => void;
 };
 
-function uniqueContributionPeople(contributionRows: AnimeContribution[]) {
-  const seen = new Set<number>();
-  return contributionRows.filter((row) => {
-    if (seen.has(row.member_id)) return false;
-    seen.add(row.member_id);
-    return true;
-  });
-}
-
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
@@ -94,13 +86,15 @@ export function ReleaseRowDetails({
   onOpenThemeDrawer,
   onLoadMore,
 }: ReleaseRowDetailsProps) {
-  const people = uniqueContributionPeople(contributionRows);
-  const peopleCount = people.length;
-
   return (
     <div className={styles.fansubEditReleaseRows}>
       <div className={styles.fansubEditReleaseCardList}>
         {releases.map((release, releaseIndex) => {
+          const people = uniqueReleaseContributionPeople(
+            contributionRows,
+            release.release_version_id,
+          );
+          const peopleCount = people.length;
           const expanded = expandedReleaseIds.has(release.release_id);
           const releaseVersionTools = releaseVersionToolsTarget(
             release.release_version_id,
@@ -181,9 +175,7 @@ export function ReleaseRowDetails({
                       <span>
                         {people.length > 0
                           ? people.map((person) => person.member_display_name).join(", ")
-                          : release.has_override
-                            ? "Eigene Besetzung noch nicht geladen"
-                            : "Projektteam noch nicht gepflegt"}
+                          : "Keine Personen zugeordnet"}
                       </span>
                     </div>
                   </div>

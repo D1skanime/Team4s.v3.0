@@ -12,6 +12,7 @@ import {
   releaseAssetUploadLockedBySegment,
   uniqueContributionPeople,
   uniqueProjectContributionPeople,
+  uniqueReleaseContributionPeople,
 } from './fansubEditReleaseHelpers'
 
 function contribution(
@@ -107,14 +108,33 @@ describe('fansubEditReleaseHelpers', () => {
   })
 
   it('zählt für das Projektteam nur anime-weite Mitwirkende', () => {
+    const draft = contribution(5, 15, null)
+    draft.status = 'draft'
     const rows = [
       contribution(1, 12, null),
       contribution(2, 12, 6201),
       contribution(3, 13, 6201),
       contribution(4, 14, null),
+      draft,
     ]
 
     expect(uniqueProjectContributionPeople(rows).map((row) => row.member_id)).toEqual([12, 14])
+  })
+
+  it('zeigt pro Release nur dessen bestätigte gespeicherte Besetzung', () => {
+    const draft = contribution(5, 15, 6201)
+    draft.status = 'draft'
+    const rows = [
+      contribution(1, 12, null),
+      contribution(2, 12, 6201),
+      contribution(3, 13, 6201),
+      contribution(4, 14, 6202),
+      draft,
+    ]
+
+    expect(
+      uniqueReleaseContributionPeople(rows, 6201).map((row) => row.member_id),
+    ).toEqual([12, 13])
   })
 
   it('sperrt release_asset-Uploads in einem Episodenbereich nach dem Segmentstart', () => {

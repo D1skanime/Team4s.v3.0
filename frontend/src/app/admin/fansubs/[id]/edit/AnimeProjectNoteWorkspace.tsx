@@ -6,6 +6,7 @@ import { RichTextEditor, RichTextRenderer } from '@/components/editor'
 import { Button, EmptyState, ErrorState, SectionHeader } from '@/components/ui'
 import {
   ApiError,
+  deleteAnimeFansubProjectNote,
   getAnimeFansubProjectNote,
   upsertAnimeFansubProjectNote,
 } from '@/lib/api'
@@ -55,6 +56,7 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
   const [note, setNote] = useState<AnimeFansubProjectNote | null>(null)
   const [form, setForm] = useState<NoteFormState>(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   // Lazy-Load-Effect: lädt erst wenn aufgeklappt (D-12)
@@ -108,6 +110,22 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
   function handleCancel() {
     setSaveError(null)
     setNoteState(note ? 'present' : 'missing')
+  }
+
+  async function handleDelete() {
+    if (!note) return
+    setDeleting(true)
+    setSaveError(null)
+    try {
+      await deleteAnimeFansubProjectNote(fansubId, animeId, note.id)
+      setNote(null)
+      setForm(emptyForm())
+      setNoteState('missing')
+    } catch (err: unknown) {
+      setSaveError(err instanceof ApiError ? err.message : 'Fehler beim Löschen des Einblicks.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   // Nicht geladen / Lädt
@@ -166,12 +184,23 @@ export function AnimeProjectNoteWorkspace({ fansubId, animeId, expanded, canEdit
           title="Projekt-Einblick"
           actions={
             canEdit ? (
-              <Button variant="ghost" size="sm" onClick={handleEdit}>
-                Einblick bearbeiten
-              </Button>
+              <>
+                <Button variant="ghost" size="sm" onClick={handleEdit} disabled={deleting}>
+                  Einblick bearbeiten
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => void handleDelete()}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Löschen…' : 'Einblick löschen'}
+                </Button>
+              </>
             ) : undefined
           }
         />
+        {saveError ? <p style={{ color: 'var(--color-error)', marginTop: '0.5rem' }}>{saveError}</p> : null}
         <RichTextRenderer bodyHtml={note.bodyHtml} />
       </div>
     )

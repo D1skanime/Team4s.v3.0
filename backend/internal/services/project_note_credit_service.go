@@ -218,7 +218,7 @@ func lockProjectNoteCreditContext(
 ) error {
 	if _, err := tx.Exec(ctx, `
 SELECT pg_advisory_xact_lock(hashtextextended(
-    'project-note:' || $1::text || ':' || $2::text, 0
+    'project-note:' || $1::bigint::text || ':' || $2::bigint::text, 0
 ))`, animeID, fansubGroupID); err != nil {
 		return fmt.Errorf("lock project note credit context: %w", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -160,6 +161,13 @@ func (h *AdminContentHandler) UpsertAnimeFansubProjectNote(c *gin.Context) {
 		return
 	}
 	if err != nil {
+		log.Printf(
+			"admin_content upsert_project_note: service error (app_user_id=%d, anime_id=%d, fansub_group_id=%d): %v",
+			identity.AppUserID,
+			animeID,
+			fansubID,
+			err,
+		)
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Anime-Fansub-Projektnotiz konnte nicht gespeichert werden.")
 		return
 	}

@@ -27,3 +27,23 @@ func TestAnimeContributionDisplayRowsExposeMemberAvatarURL(t *testing.T) {
 		}
 	}
 }
+
+func TestAnimeContributionDisplayRowsPreserveReleaseVersionScope(t *testing.T) {
+	contentBytes, err := os.ReadFile("anime_contributions_repository.go")
+	if err != nil {
+		t.Fatalf("read anime contributions repository: %v", err)
+	}
+	content := strings.ToLower(string(contentBytes))
+
+	requiredFragments := []string{
+		"releaseversionid        *int64",
+		"json:\"release_version_id\"",
+		"ac.release_version_id",
+		"&r.animeid, &r.releaseversionid",
+	}
+	for _, fragment := range requiredFragments {
+		if !strings.Contains(content, fragment) {
+			t.Fatalf("expected release-scoped display fragment %q", fragment)
+		}
+	}
+}

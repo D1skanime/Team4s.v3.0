@@ -21,6 +21,7 @@ type AnimeContributionDisplayRow struct {
 	MemberDisplayName       string    `json:"member_display_name"`
 	MemberAvatarURL         *string   `json:"member_avatar_url,omitempty"`
 	AnimeID                 int64     `json:"anime_id"`
+	ReleaseVersionID        *int64    `json:"release_version_id"`
 	RoleCodes               []string  `json:"role_codes"`
 	StartedYear             *int      `json:"started_year"`
 	EndedYear               *int      `json:"ended_year"`
@@ -74,6 +75,7 @@ const animeContributionDisplayCols = `
 	m.nickname AS member_display_name,
 	COALESCE(member_avatar.file_path, '') AS member_avatar_path,
 	ac.anime_id,
+	ac.release_version_id,
 	ac.started_year,
 	ac.ended_year,
 	ac.note,
@@ -89,7 +91,7 @@ func scanAnimeContributionDisplayRow(row pgx.Row) (*AnimeContributionDisplayRow,
 	if err := row.Scan(
 		&r.ID, &r.MemberID, &r.MemberDisplayName,
 		&r.memberAvatarPath,
-		&r.AnimeID, &r.StartedYear, &r.EndedYear, &r.Note,
+		&r.AnimeID, &r.ReleaseVersionID, &r.StartedYear, &r.EndedYear, &r.Note,
 		&r.IsPublicOnAnimePage, &r.IsPublicOnMemberProfile,
 		&r.Status, &r.CreatedAt, &r.RoleCodes,
 	); err != nil {

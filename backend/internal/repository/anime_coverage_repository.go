@@ -287,7 +287,8 @@ func (r *AnimeCoverageRepository) CoverageByFansub(ctx context.Context, fansubGr
 		LEFT JOIN anime_contributions ac
 			ON ac.anime_id = afg.anime_id
 			AND ac.fansub_group_id = afg.fansub_group_id
-			AND ac.status <> 'rejected'
+			AND ac.release_version_id IS NULL
+			AND ac.status = 'confirmed'
 		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		WHERE afg.fansub_group_id = $1
 		GROUP BY afg.anime_id, afg.fansub_group_id
