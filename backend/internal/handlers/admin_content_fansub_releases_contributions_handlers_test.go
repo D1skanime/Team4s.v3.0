@@ -158,6 +158,57 @@ func TestGetEffectiveContributionsForVersion(t *testing.T) {
 			t.Fatalf("expected exact empty independent response, got %s", recorder.Body.String())
 		}
 	})
+
+	t.Run("allowed uninitialized legacy release", func(t *testing.T) {
+		stub := &contributionsRepoStub{
+			result: &repository.EffectiveContributionsResult{
+				Rows:         []repository.EffectiveContributionRow{},
+				SnapshotMode: repository.SnapshotModeUninitialized,
+			},
+		}
+		handler := &AdminContentHandler{
+			permissionSvc:                   permissions.NewService(contributionsPermissionResolverAllowed{}),
+			fansubReleasesContributionsRepo: stub,
+		}
+
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request = httptest.NewRequest(http.MethodGet,
+			"/api/v1/admin/release-versions/42/contributions/effective?fansub_group_id=5", nil)
+		c.Params = gin.Params{{Key: "versionId", Value: "42"}}
+		c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, DisplayName: "Lead"})
+
+		handler.GetEffectiveContributionsForVersion(c)
+
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d body=%s", recorder.Code, recorder.Body.String())
+		}
+		if recorder.Body.String() != `{"data":[],"meta":{"snapshot_mode":"uninitialized"}}` {
+			t.Fatalf("expected exact uninitialized response, got %s", recorder.Body.String())
+		}
+	})
+
+	t.Run("missing release group context", func(t *testing.T) {
+		handler := &AdminContentHandler{
+			permissionSvc: permissions.NewService(contributionsPermissionResolverAllowed{}),
+			fansubReleasesContributionsRepo: &contributionsRepoStub{
+				err: repository.ErrNotFound,
+			},
+		}
+
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request = httptest.NewRequest(http.MethodGet,
+			"/api/v1/admin/release-versions/42/contributions/effective?fansub_group_id=5", nil)
+		c.Params = gin.Params{{Key: "versionId", Value: "42"}}
+		c.Set("auth_identity", middleware.AuthIdentity{UserID: 1, AppUserID: 1, DisplayName: "Lead"})
+
+		handler.GetEffectiveContributionsForVersion(c)
+
+		if recorder.Code != http.StatusNotFound {
+			t.Fatalf("expected 404, got %d body=%s", recorder.Code, recorder.Body.String())
+		}
+	})
 }
 
 func TestReleaseCrewReplaceContractRejectsCallerOwnedLedgerFields(t *testing.T) {

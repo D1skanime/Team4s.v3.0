@@ -921,9 +921,11 @@ endpoints:
     response:
       status: 200
       type: EffectiveContributionsResponse
+      status_404: Release-Version und Fansubgruppe sind nicht miteinander verknüpft.
     notes:
       - Liefert den vollständig gespeicherten Mitwirkenden-Satz dieser Release-Version und Gruppe.
-      - meta.snapshot_mode ist entweder "inherited" oder "independent".
+      - meta.snapshot_mode ist "inherited", "independent" oder "uninitialized".
+      - "uninitialized" liefert eine leere Datenliste nur für eine kanonisch verknüpfte Release-Version/Gruppe und fällt nie auf das Projektteam zurück.
       - IDOR-Mitigation (T-83-IDOR) CanForReleaseVersion(ActionReleaseVersionView) wird vor Datenrückgabe geprüft.
 
   - name: admin-release-version-contributions-replace
@@ -1155,7 +1157,7 @@ types:
     member_avatar_url: string | null
     role_codes: string[]
   EffectiveContributionsMeta:
-    snapshot_mode: "string (enum: inherited|independent)"
+    snapshot_mode: "string (enum: inherited|independent|uninitialized)"
   EffectiveContributionsResponse:
     data: EffectiveContributionRow[]
     meta: EffectiveContributionsMeta

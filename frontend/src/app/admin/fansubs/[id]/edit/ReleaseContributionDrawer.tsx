@@ -203,11 +203,18 @@ export function ReleaseContributionDrawer({
   const hasRowsWithoutRoles = stagedRows.some((row) => row.role_codes.length === 0)
   const canAddRow = newMemberId != null && newRoleCodes.length > 0
   const isIndependent = snapshotMode === 'independent'
-  const statusLabel = isIndependent ? 'Eigene Release-Besetzung' : 'Projektbesetzung geerbt'
+  const isUninitialized = snapshotMode === 'uninitialized'
+  const statusLabel = isUninitialized
+    ? 'Besetzung noch nicht initialisiert'
+    : isIndependent
+      ? 'Eigene Release-Besetzung'
+      : 'Projektbesetzung geerbt'
   const statusVariant = isIndependent ? 'info' : 'muted'
-  const changeHint = isIndependent
-    ? 'Diese Besetzung bleibt unabhängig von späteren Änderungen am Projektteam.'
-    : 'Beim ersten Speichern wird diese vollständige Besetzung dauerhaft unabhängig.'
+  const changeHint = isUninitialized
+    ? 'Diese ältere Release-Version besitzt noch keine gespeicherte Besetzung. Beim Speichern wird die sichtbare Auswahl als eigene Release-Besetzung angelegt.'
+    : isIndependent
+      ? 'Diese Besetzung bleibt unabhängig von späteren Änderungen am Projektteam.'
+      : 'Beim ersten Speichern wird diese vollständige Besetzung dauerhaft unabhängig.'
 
   const footer = (
     <>
@@ -301,8 +308,12 @@ export function ReleaseContributionDrawer({
 
           {stagedRows.length === 0 && !addingRow ? (
             <EmptyState
-              title="Noch keine Rollen vergeben"
-              description="Füge Personen aus dieser Fansubgruppe hinzu und wähle ihre Rollen für diese Folge."
+              title={isUninitialized ? 'Besetzung noch nicht initialisiert' : 'Noch keine Rollen vergeben'}
+              description={
+                isUninitialized
+                  ? 'Füge die bestätigten Personen und Rollen dieser älteren Release-Version bewusst hinzu oder speichere eine leere eigene Besetzung.'
+                  : 'Füge Personen aus dieser Fansubgruppe hinzu und wähle ihre Rollen für diese Folge.'
+              }
             />
           ) : (
             <div className={styles.contributionRows} role="list" aria-label="Besetzung dieser Folge">

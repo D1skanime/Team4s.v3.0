@@ -5811,6 +5811,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Release version and fansub group are not associated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
           content:
@@ -8838,7 +8844,7 @@ components:
             type: string
     ReleaseCrewSnapshotMode:
       type: string
-      enum: [inherited, independent]
+      enum: [inherited, independent, uninitialized]
     EffectiveContributionsResponse:
       type: object
       required: [data, meta]

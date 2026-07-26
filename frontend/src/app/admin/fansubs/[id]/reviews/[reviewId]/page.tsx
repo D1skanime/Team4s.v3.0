@@ -119,8 +119,10 @@ export default function ReleaseReviewPage() {
   async function submitDecision(decision: 'confirm' | 'reject') {
     if (!detail || decisionState.kind === 'pending') return
 
+    const requiresAdminOverride =
+      isPlatformAdmin && currentAppUserId === detail.submitter_app_user_id
     const trimmedOverride = overrideReason.trim()
-    if (isPlatformAdmin && (trimmedOverride.length < 10 || trimmedOverride.length > 1000)) {
+    if (requiresAdminOverride && (trimmedOverride.length < 10 || trimmedOverride.length > 1000)) {
       setValidationError('Der Override-Grund muss zwischen 10 und 1000 Zeichen lang sein.')
       overrideReasonRef.current?.focus()
       return
@@ -152,7 +154,7 @@ export default function ReleaseReviewPage() {
               rejection_reason: trimmedReason,
             }
           : {}),
-        ...(isPlatformAdmin ? { override_reason: trimmedOverride } : {}),
+        ...(requiresAdminOverride ? { override_reason: trimmedOverride } : {}),
       })
       setRejectOpen(false)
       setDecisionState({ kind: 'success', response })
@@ -216,6 +218,7 @@ export default function ReleaseReviewPage() {
 
   const status = releaseReviewDetailStatus(detail.status)
   const isOwnSubmission = currentAppUserId === detail.submitter_app_user_id
+  const requiresAdminOverride = isOwnSubmission && isPlatformAdmin
   const showDecisionActions =
     detail.status === 'pending' &&
     (!isOwnSubmission || isPlatformAdmin) &&
@@ -285,7 +288,7 @@ export default function ReleaseReviewPage() {
             </p>
           </div>
         ) : null}
-        {isPlatformAdmin && decisionState.kind !== 'success' && decisionState.kind !== 'conflict' ? (
+        {requiresAdminOverride && decisionState.kind !== 'success' && decisionState.kind !== 'conflict' ? (
           <div className={styles.warningPanel}>
             <p>
               Du entscheidest als Plattform-Admin außerhalb der regulären Gruppenprüfung.

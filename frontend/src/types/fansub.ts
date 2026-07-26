@@ -740,7 +740,7 @@ export interface EffectiveContributionsResponse {
   };
 }
 
-export type ReleaseCrewSnapshotMode = 'inherited' | 'independent';
+export type ReleaseCrewSnapshotMode = 'inherited' | 'independent' | 'uninitialized';
 
 export interface ReplaceReleaseCrewRow {
   member_id: number;

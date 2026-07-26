@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	SnapshotModeInherited   = "inherited"
-	SnapshotModeIndependent = "independent"
+	SnapshotModeInherited     = "inherited"
+	SnapshotModeIndependent   = "independent"
+	SnapshotModeUninitialized = "uninitialized"
 )
 
 type releaseCrewDBTX interface {
@@ -151,6 +152,29 @@ func (r *ReleaseCrewSnapshotRepository) LoadComplete(
 		return nil, fmt.Errorf("load release crew snapshot rows: iterate: %w", err)
 	}
 	return result, nil
+}
+
+// ReleaseContextExists distinguishes a missing snapshot from an invalid
+// release-version/group pair without substituting project-level contributions.
+func (r *ReleaseCrewSnapshotRepository) ReleaseContextExists(
+	ctx context.Context,
+	releaseVersionID, fansubGroupID int64,
+) (bool, error) {
+	if r == nil || r.db == nil || releaseVersionID <= 0 || fansubGroupID <= 0 {
+		return false, nil
+	}
+	var exists bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM release_version_groups
+			WHERE release_version_id = $1
+			  AND fansub_group_id = $2
+		)
+	`, releaseVersionID, fansubGroupID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("validate release crew context: %w", err)
+	}
+	return exists, nil
 }
 
 func loadReleaseCrewUnitsInTx(ctx context.Context, tx releaseCrewDBTX, releaseVersionID, fansubGroupID int64) ([]ReleaseCrewRow, error) {

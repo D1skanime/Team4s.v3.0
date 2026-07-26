@@ -1,7 +1,7 @@
 # Phase 108 Verification
 
 **Automated gate:** 2026-07-24  
-**Human UAT:** Completed 2026-07-25 — see `108-UAT.md`
+**Human UAT:** Browser-only rerun completed 2026-07-26 with open findings — see `108-UAT.md`
 **Scope:** Existing release-crew and project-text contribution sources only
 
 ## Automated Gate
@@ -30,7 +30,7 @@
 | SC-3 Server-owned immutable rules | PASS | Migration rule tests and PointService suites passed; browser contracts do not accept points, rule version, source identity, actor, beneficiary, or ledger fields. |
 | SC-4 Fansub work and platform contribution remain distinct | PASS | Release crew uses fansub-work rules; first project text uses platform-contribution; review decisions, metadata, notes/media ownership, and admin actions add no Phase-108 points. |
 | SC-5 Additive production integration | PASS | `TestPhase108RuntimeWiringUsesOneSharedServiceGraph` and `TestPhase108RuntimeWiringRegistersEveryMutationOwner` passed; one shared service owns generic project writes, complete-set replacement, confirmations, and both release creators. |
-| SC-6 Canonical visible workflow | LIVE PASS / REFRESH AUTOMATED PASS | Normal navigation, release drawers, project-note lifecycle, explicit empty snapshots, and one platform review decision passed live. Forced refresh-only browser states remain covered by the central auth-refresh suite; see `108-UAT.md`. |
+| SC-6 Canonical visible workflow | LIVE PARTIAL / LEGACY FIX AUTOMATED | Normal navigation, complete release-crew roundtrip, explicit empty snapshots, project-note lifecycle, member submission, leader decision, queue removal, and history passed through visible browser clicks. The legacy missing-snapshot 500 was fixed with an explicit validated `uninitialized` state and focused tests; its final browser retest and the fresh-version inheritance case were blocked by the local browser/dev environment. Forced refresh-only state was not fabricated; see `108-UAT.md`. |
 
 ## Locked Decision Evidence (D-01–D-22 and D-19a)
 
@@ -89,4 +89,4 @@ Use the normal app navigation to open `/admin/fansubs/[id]/edit`, then verify:
 6. With an absent/expired access token and valid refresh session, protected drawer/note save completes without logged-out UI.
 7. Under the same refresh-only condition, one leader confirmation and one eligible member self-confirmation complete without logged-out UI.
 
-**Human result:** PASS WITH BOUNDED GAP — core visible workflows passed live after the defects recorded in `108-UAT.md` were fixed. Forced refresh-only Leader-/Member-Confirmation was not fabricated and remains explicitly recorded as automated-only coverage.
+**Human result:** PARTIAL WITH RETEST BLOCKED — the core contribution and review workflow passed in a complete browser-only rerun after two UI defects were fixed. The legacy release without a Phase-108 snapshot now has a contract-backed `uninitialized` fix with focused automated coverage, but its final browser retest and the fresh-version inheritance case were blocked by the local browser/dev environment. Refresh-only state was not fabricated.

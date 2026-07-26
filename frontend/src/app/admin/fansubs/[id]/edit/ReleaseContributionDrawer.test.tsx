@@ -143,6 +143,33 @@ describe('ReleaseContributionDrawer complete-set editor', () => {
     await waitFor(() => expect(mockReplaceReleaseCrew).toHaveBeenCalledWith(176, 9, { rows: [] }))
   })
 
+  it('shows an uninitialized legacy release without falling back to the project crew', async () => {
+    mockListEffectiveContributionsForVersion.mockResolvedValue({
+      data: [],
+      meta: { snapshot_mode: 'uninitialized' },
+    })
+    const ReleaseContributionDrawer = await importDrawer()
+    render(
+      <ReleaseContributionDrawer
+        open
+        fansubId={9}
+        animeId={22}
+        releaseVersionId={176}
+        releaseTitle="Folge 176"
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    )
+
+    await waitFor(() =>
+      expect(screen.getAllByText('Besetzung noch nicht initialisiert')).toHaveLength(2),
+    )
+    expect(screen.getByText(/besitzt noch keine gespeicherte Besetzung/)).toBeDefined()
+    expect(screen.queryByText('Projektbesetzung geerbt')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+    await waitFor(() => expect(mockReplaceReleaseCrew).toHaveBeenCalledWith(176, 9, { rows: [] }))
+  })
+
   it('keeps the drawer open and shows a scoped error when replacement fails', async () => {
     mockReplaceReleaseCrew.mockRejectedValue(new Error('Speichern nicht möglich.'))
     const { onClose, onSaved } = await renderDrawer()

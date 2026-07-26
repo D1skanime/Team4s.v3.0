@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -41,6 +42,19 @@ func (r *FansubReleasesContributionsRepository) ListEffectiveContributionsForVer
 		return nil, ErrNotFound
 	}
 	snapshot, err := r.snapshots.LoadComplete(ctx, releaseVersionID, fansubGroupID)
+	if errors.Is(err, ErrNotFound) {
+		exists, contextErr := r.snapshots.ReleaseContextExists(ctx, releaseVersionID, fansubGroupID)
+		if contextErr != nil {
+			return nil, contextErr
+		}
+		if !exists {
+			return nil, ErrNotFound
+		}
+		return &EffectiveContributionsResult{
+			Rows:         []EffectiveContributionRow{},
+			SnapshotMode: SnapshotModeUninitialized,
+		}, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf(
 			"list effective contributions version=%d group=%d: %w",

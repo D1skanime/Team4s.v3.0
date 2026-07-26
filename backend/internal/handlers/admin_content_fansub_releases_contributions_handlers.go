@@ -126,7 +126,8 @@ func (h *AdminContentHandler) ReplaceEffectiveContributionsForVersion(c *gin.Con
 
 // GetEffectiveContributionsForVersion verarbeitet
 // GET /api/v1/admin/release-versions/:versionId/contributions/effective?fansub_group_id=N
-// Gibt den aufgelösten Mitwirkenden-Satz zurück (versions-spezifischer Override oder Projekt-Default).
+// Gibt ausschließlich den gespeicherten Release-Snapshot oder den expliziten
+// Zustand "uninitialized" zurück. Ein Projektteam-Fallback findet nicht statt.
 func (h *AdminContentHandler) GetEffectiveContributionsForVersion(c *gin.Context) {
 	// IDOR-Mitigation (T-83-IDOR): Berechtigung VOR Datenabfrage prüfen
 	versionID, ok := h.requireReleaseVersionViewAccess(c)
@@ -143,6 +144,10 @@ func (h *AdminContentHandler) GetEffectiveContributionsForVersion(c *gin.Context
 	result, err := h.fansubReleasesContributionsRepo.ListEffectiveContributionsForVersion(
 		c.Request.Context(), versionID, fansubGroupID,
 	)
+	if errors.Is(err, repository.ErrNotFound) {
+		notFound(c, "Release-Besetzung nicht gefunden")
+		return
+	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Mitwirkende konnten nicht geladen werden.")
 		return

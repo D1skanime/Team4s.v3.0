@@ -8494,7 +8494,7 @@ export async function deleteAnimeContribution(
   }
 }
 
-/** Aufgelöster Mitwirkenden-Satz für eine Release-Version (Override oder Projekt-Default, D-02).
+/** Vollständiger gespeicherter Mitwirkenden-Satz einer Release-Version ohne Projektteam-Fallback.
  * Endpoint: GET /api/v1/admin/release-versions/:versionId/contributions/effective */
 export async function listEffectiveContributionsForVersion(
   releaseVersionId: number,

@@ -55,6 +55,20 @@ func TestEveryReleaseReadsCompleteStoredSnapshot(t *testing.T) {
 	}
 }
 
+func TestMissingSnapshotValidatesCanonicalReleaseGroupContext(t *testing.T) {
+	source := readReleaseCrewSnapshotSource(t)
+	for _, fragment := range []string{
+		"func (r *releasecrewsnapshotrepository) releasecontextexists(",
+		"from release_version_groups",
+		"release_version_id = $1",
+		"fansub_group_id = $2",
+	} {
+		if !strings.Contains(source, fragment) {
+			t.Fatalf("missing canonical missing-snapshot context check %q", fragment)
+		}
+	}
+}
+
 func TestProjectCrewChangeSyncsInheritedSnapshotsOnly(t *testing.T) {
 	source := readReleaseCrewSnapshotSource(t)
 	for _, fragment := range []string{

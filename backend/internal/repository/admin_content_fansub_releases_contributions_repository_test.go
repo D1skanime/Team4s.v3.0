@@ -21,13 +21,21 @@ func TestEffectiveContributionsRepositoryReadsStoredConfirmedSnapshot(t *testing
 	for _, fragment := range []string{
 		"newreleasecrewsnapshotrepository",
 		".loadcomplete(",
+		".releasecontextexists(",
+		"snapshotmodeuninitialized",
 		"snapshotmode",
 	} {
 		if !strings.Contains(source, fragment) {
 			t.Fatalf("missing stored-snapshot read path %q", fragment)
 		}
 	}
-	for _, forbidden := range []string{"anime_default", "isoverride", "fallbackrows", "step=2"} {
+	for _, forbidden := range []string{
+		"anime_default",
+		"isoverride",
+		"fallbackrows",
+		"step=2",
+		"loadconfirmedprojectcrew",
+	} {
 		if strings.Contains(source, forbidden) {
 			t.Fatalf("legacy fallback fragment remains: %q", forbidden)
 		}

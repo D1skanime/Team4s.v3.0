@@ -277,9 +277,28 @@ describe('read-only release review detail and decisions', () => {
     expect(screen.queryByRole('button', { name: 'Ablehnen' })).toBeNull()
   })
 
-  it('requires an admin override reason and never shows review credit language as a benefit', async () => {
+  it('lets a platform admin review another users contribution without a self-review override', async () => {
     api.getCurrentUser.mockResolvedValue({
       data: { app_user_id: 99, is_platform_admin: true },
+    })
+    api.decideReleaseReview.mockResolvedValue({
+      data: { review_id: item.id, decision: 'confirm', next: null },
+    })
+    render(<ReleaseReviewPage />)
+
+    expect(await screen.findByRole('button', { name: 'Bestätigen und veröffentlichen' })).toBeTruthy()
+    expect(screen.queryByText(/Du entscheidest als Plattform-Admin/)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Bestätigen und veröffentlichen' }))
+
+    await waitFor(() => expect(api.decideReleaseReview).toHaveBeenCalledWith(88, item.id, {
+      decision: 'confirm',
+      expected_revision: 2,
+    }))
+  })
+
+  it('requires a platform-admin override reason for an own contribution', async () => {
+    api.getCurrentUser.mockResolvedValue({
+      data: { app_user_id: item.submitter_app_user_id, is_platform_admin: true },
     })
     render(<ReleaseReviewPage />)
 
