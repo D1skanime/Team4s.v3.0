@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 108-08-PLAN.md
-last_updated: "2026-07-24T16:04:06.921Z"
+stopped_at: Phase 109 context gathered
+last_updated: "2026-07-26T17:13:57.755Z"
 last_activity: 2026-07-24
 progress:
   total_phases: 103
@@ -453,6 +453,7 @@ Recent durable decisions:
 - Phase 105 edited: edited fields: goal, requirements, depends_on, success_criteria
 - Phase 105 edited: namespaced Phase-102/103 requirement IDs for deterministic plan traceability
 - Phase 107.1 inserted after Phase 107: Release-Prüfworkspace und Release-Beitragslebenszyklus aus Phase 107 herausgelöst: 107 liefert nur das wiederverwendbare Prüf-Fundament; 107.1 bindet Release-Texte und Release-Version-Medien samt UI und Cleanup an. (URGENT)
+- Phase 109 edited: Titel, Ziel, Requirements und Erfolgskriterien korrigiert: keine Import-, Backfill- oder Bestandsdatenlogik; Phase 109 fokussiert Ranglisten und Punkteprojektionen.
 
 ### Blockers/Concerns
 
@@ -738,7 +739,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-24T16:04:06.871Z
-Stopped at: Completed 108-08-PLAN.md
+Last session: 2026-07-26T17:13:57.725Z
+Stopped at: Phase 109 context gathered
 Last activity: 2026-07-24
-Resume file: None
+Resume file: .planning/phases/109-ranglisten-und-punkteprojektionen/109-CONTEXT.md
