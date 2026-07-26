@@ -28,19 +28,21 @@ Rohdaten stehen im Ledger und können bei Bedarf später aus der DB gezogen werd
 | Option | Description | Selected |
 |--------|-------------|----------|
 | Live aus dem Ledger | SUM(point_value) GROUP BY member je Anfrage. | |
-| Inkrementelles Aggregat | Gepflegte Summentabelle, transaktional bei Buchung/Storno. | |
+| Inkrementelles Aggregat | Persistierte Summe pro Member, transaktional bei Buchung/Storno fortgeschrieben; Anzeige liest nur den gespeicherten Betrag. | ✓ |
 | Materialized View | Periodischer Refresh, eventual consistency. | |
 
-**User's choice:** An Claude delegiert („das nehme ich dir ab — reine Bauentscheidung").
-**Notes:** Nutzer betrachtet die Berechnungsart als Implementierungsdetail, nicht als
-Vision-Entscheidung. Wird beim Planen/Implementieren festgelegt.
+**User's choice:** Persistierte, mitgeführte Summe (inkrementelles Aggregat).
+**Notes:** „wichtig ist das die gesamt summe pro user in die db geschrieben werden muss und
+updatet wird. nicht so das es bei der anzeige das berechnet sondern nur direkt den betrag
+aus der db verwenden kann." → D-05/D-06 in CONTEXT.md. Überstimmt die zuvor an Claude
+delegierte Wahl. Mechanik (Trigger vs. gleiche Transaktion) bleibt Bauentscheidung.
 
 ---
 
 ## Claude's Discretion
 
-- Berechnungsart der Punktsumme (live/Aggregat/View).
-- Endpunkt-/DTO-Benennung und Repository-Aufteilung.
+- Fortschreibungs-Mechanik der persistierten Summe (DB-Trigger vs. service-seitig in der Buchungstransaktion).
+- Tabellen-/Spalten- sowie Endpunkt-/DTO-Benennung und Repository-Aufteilung.
 - Query so bauen, dass spätere Filter ohne Umbau ergänzt werden können (Bauhygiene, kein Feature).
 
 ## Deferred Ideas

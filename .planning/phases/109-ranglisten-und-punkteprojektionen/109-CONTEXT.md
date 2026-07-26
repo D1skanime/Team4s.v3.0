@@ -6,13 +6,15 @@
 <domain>
 ## Phase Boundary
 
-Phase 109 leitet aus dem bestehenden append-only Punktebuch (`point_ledger_entries`)
-**ausschließlich die Netto-Gesamtpunktzahl pro Member** ab und stellt sie serverseitig
-bereit — eine Zahl pro `members`-Identität, absteigend sortierbar. Das ist das gesamte
+Phase 109 hält aus dem bestehenden append-only Punktebuch (`point_ledger_entries`)
+**ausschließlich die Netto-Gesamtpunktzahl pro Member persistent in der DB** vor — eine
+gespeicherte Zahl pro `members`-Identität, absteigend sortierbar. Das ist das gesamte
 Backend-Fundament für die spätere Ranglisten-UI und die Badges.
 
-Phase 109 **bucht nichts**. Die Punkte liegen bereits als Ledger-Zeilen vor (geschrieben
-im Bestätigungspfad der Phasen 106–108). Diese Phase liest nur und summiert.
+Phase 109 bucht **keine neuen Punkte**. Die Punkte liegen bereits als Ledger-Zeilen vor
+(geschrieben im Bestätigungspfad der Phasen 106–108). Diese Phase fügt aber eine
+**persistierte Summen-Struktur** hinzu und schreibt sie fort: Die Anzeige liest nur den
+gespeicherten Betrag, sie berechnet nichts zur Laufzeit.
 
 **Bewusst NICHT in dieser Phase** (per Nutzerentscheidung, siehe D-03/D-04):
 - keine Gruppen-, Kategorie- oder Zeitraum-Ranglisten
@@ -29,8 +31,19 @@ im Bestätigungspfad der Phasen 106–108). Diese Phase liest nur und summiert.
   absteigend sortiert.** Netto heißt: Summe über `point_value` inklusive der negativen
   Reversal-Buchungen (append-only, nichts wird gelöscht). Empfänger ist immer die
   `members`-ID, nie der bestätigende Akteur/`app_user`.
-- **D-02:** Es entsteht keine neue Schreib-Logik im Buchungspfad. Phase 109 ist rein
-  ableitend/lesend über dem vorhandenen Ledger.
+- **D-02:** Es entstehen keine neuen Punkt-Buchungen. Phase 109 leitet die Summe aus dem
+  vorhandenen Ledger ab.
+
+### Persistierte, mitgeführte Summe (Nutzerentscheidung, hart)
+- **D-05:** Die Netto-Gesamtsumme pro Member wird **persistent in der DB gespeichert und
+  bei jeder Buchung fortgeschrieben** — nicht zur Anzeigezeit berechnet. Die Ranglisten-/
+  Anzeige-Abfrage liest **ausschließlich den gespeicherten Betrag** direkt aus der DB.
+  Ausdrücklicher Wunsch des Nutzers, überstimmt die vorher an den Builder delegierte
+  „live vs. Aggregat"-Wahl.
+- **D-06:** Die gespeicherte Summe muss **konsistent zum append-only Ledger** bleiben:
+  Sie wird genau dann aktualisiert, wenn eine Award- **oder** Reversal-Zeile geschrieben
+  wird (Reversal = negativer `point_value`, senkt die Summe). Die Fortschreibung passiert
+  transaktional gemeinsam mit dem Ledger-Write, damit Summe und Ledger nie auseinanderlaufen.
 
 ### Bewusste Scope-Reduktion (Nutzerentscheidung)
 - **D-03:** Für Phase 109 wird **nur das globale Allzeit-Total** gebaut. Gruppen-,
@@ -49,10 +62,10 @@ im Bestätigungspfad der Phasen 106–108). Diese Phase liest nur und summiert.
 > Allzeit-Total. Die Roadmap sollte entsprechend nachgezogen werden (offener Punkt).
 
 ### Claude's Discretion
-- **Berechnungsart:** Ob die Summe je Anfrage live aus dem Ledger gerechnet
-  (`SUM(point_value) GROUP BY member_id`) oder als vorgehaltene Summe bereitgestellt wird,
-  ist reine Bauentscheidung und wird beim Planen/Implementieren festgelegt. Vom Nutzer
-  ausdrücklich an den Builder delegiert.
+- **Fortschreibungs-Mechanik:** Ob die gespeicherte Summe per DB-Trigger auf
+  `point_ledger_entries` oder service-seitig in derselben Buchungstransaktion aktualisiert
+  wird, ist Bauentscheidung — solange D-05/D-06 (persistent, transaktional konsistent)
+  gewahrt bleiben. Ebenso Tabellen-/Spaltenbenennung der Summen-Struktur.
 - **Bauhygiene:** Die Ableitung so schreiben, dass spätere Filter (Gruppe/Kategorie/Zeit)
   ohne Umbau ergänzt werden können — kostet nichts extra, ist aber kein Feature dieser Phase.
 - Exakte Endpunkt-/DTO-Benennung und Repository-Aufteilung, solange kein zweites
