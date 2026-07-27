@@ -88,6 +88,21 @@ describe('MemberRankingPage (D-01)', () => {
     expect(screen.getByText('Rangliste konnte nicht geladen werden')).not.toBeNull()
   })
 
+  it('derives rank numbers from the backend-clamped result.page, not the unclamped URL param (CR-01)', async () => {
+    // URL asks for an out-of-range page; backend clamps to 1000 and returns that in result.page.
+    getMemberPointRankingMock.mockResolvedValue({
+      data: [{ member_id: 7, display_name: 'Geklammert', slug: 'geklammert', total_points: 5 }],
+      total: 50_050,
+      page: 1000,
+    })
+
+    await renderRankingPage({ page: '99999' })
+
+    // Rank must be (1000 - 1) * 50 + 1 = 49951, NOT (99999 - 1) * 50 + 1.
+    expect(screen.getByText('49951')).not.toBeNull()
+    expect(screen.queryByText('4999901')).toBeNull()
+  })
+
   it('calls getMemberPointRanking exactly once per render (no per-row API fan-out, SC-4)', async () => {
     getMemberPointRankingMock.mockResolvedValue({
       data: [

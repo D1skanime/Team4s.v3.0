@@ -24,19 +24,22 @@ interface ResolvedRankingSearchParams {
 /**
  * Öffentliche Rangliste (D-01): Member -> Netto-Gesamtpunkte, absteigend sortiert.
  * Konsumiert die bereits paginierte Phase-109-Projektion getMemberPointRanking()
- * ohne Pro-Zeile-API-Fächer (SC-4). Der `page`-Parameter ist nur ein UI-Default —
- * die verbindliche Begrenzung (<1->1, >1000->1000, nicht-numerisch->1) lebt
- * serverseitig in MemberPointRankingHandler.GetMemberPointRanking (T-110-01).
+ * ohne Pro-Zeile-API-Fächer (SC-4). Der `page`-Parameter aus der URL ist nur der
+ * angeforderte Wert; die verbindliche Begrenzung (<1->1, >1000->1000,
+ * nicht-numerisch->1) lebt serverseitig in
+ * MemberPointRankingHandler.GetMemberPointRanking (T-110-01). Für Rang-Nummern und
+ * Pagination wird daher der vom Backend zurückgegebene, geklammerte `result.page`
+ * verwendet — niemals der ungeklammerte URL-Wert (CR-01).
  */
 export default async function MemberRankingPage({ searchParams }: RankingPageProps) {
   const resolved = ((await searchParams) ?? {}) as ResolvedRankingSearchParams
-  const page = toNumber(resolved.page, 1)
+  const requestedPage = toNumber(resolved.page, 1)
 
   let result: Awaited<ReturnType<typeof getMemberPointRanking>> | null = null
   let fetchError: unknown = null
 
   try {
-    result = await getMemberPointRanking(page)
+    result = await getMemberPointRanking(requestedPage)
   } catch (error) {
     fetchError = error
   }
@@ -70,7 +73,7 @@ export default async function MemberRankingPage({ searchParams }: RankingPagePro
             <TableBody>
               {result.data.map((row, index) => (
                 <TableRow key={row.member_id}>
-                  <TableCell>{(page - 1) * RANKING_PAGE_SIZE + index + 1}</TableCell>
+                  <TableCell>{(result.page - 1) * RANKING_PAGE_SIZE + index + 1}</TableCell>
                   <TableCell>
                     {row.slug !== null ? (
                       <Link href={`/members/${row.slug}`}>{row.display_name}</Link>
@@ -83,7 +86,7 @@ export default async function MemberRankingPage({ searchParams }: RankingPagePro
               ))}
             </TableBody>
           </Table>
-          <RankingPaginationNav currentPage={page} totalPages={Math.ceil(result.total / RANKING_PAGE_SIZE)} />
+          <RankingPaginationNav currentPage={result.page} totalPages={Math.ceil(result.total / RANKING_PAGE_SIZE)} />
         </>
       ) : null}
     </main>
