@@ -2555,6 +2555,17 @@ Plans:
 
 - [ ] TBD
 
+### Phase 112: Member-Punkt-Meilenstein-Badges
+
+**Goal:** Auf Basis der persistierten Gesamtpunktzahl aus Phase 109 automatische Punkt-Meilenstein-Badges anzeigen, deren Punktschwellen selbst die Stufen sind (1 / 50 / 200 / 500 / 1 000 / 2 500) — kein zusätzliches Bronze/Silber/Gold. Rein abgeleitete Live-Projektion: keine Punkte fürs Badge, Rückstufung bei Storno. Die Badges reihen sich in die bestehende Profil-Badge-Anzeige (Phase 110, `MemberBadgeChain`) ein. Nur Punkt-Meilensteine (Typ 2); die rollenbezogenen Einstiegs-Badges (Typ 1) bleiben Phase 110.
+**Requirements:** Phase 109 (persistierte Punktsumme `member_point_totals`), Phase 110 (Profil-Badge-Sektion). Badge-Bilder liefert der Nutzer später; vorerst Platzhalter.
+**Depends on:** Phase 109, Phase 110
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD
+
 ## Backlog
 
 ### Phase 999.2: E-Mail-Verifikations-Policy und eindeutige App-User-E-Mail (BACKLOG)
