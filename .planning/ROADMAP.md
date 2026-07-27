@@ -2535,6 +2535,14 @@ Plans:
 **Goal:** Verdienste, Fortschritt und Wettbewerb verständlich, anime-/fansubtypisch und responsiv darstellen und das Gesamtsystem gegen Punkte-Farming, Rechtefehler und Datenverlust verifizieren.
 **Requirements:** Phasen 106–109; bestehendes UI-System und vorhandene Badge-/Achievement-Muster.
 **Depends on:** Phase 106, Phase 107, Phase 107.1, Phase 108, Phase 109
+**Status**: Per 110-CONTEXT.md (2026-07-27, User-Entscheidung) auf drei UI-Ideen reduziert — globale Allzeit-Rangliste + Nav-Einstieg (D-01), Punktzahl im Member-Profil-Hero (D-02), rollenbezogene einmalige Einstiegs-Badges (D-03). Keine Gruppen-/Kategorie-Ranglisten, keine volle E2E/UAT-Suite, keine Security-/Abuse-Testsuite in dieser Iteration; die Success Criteria unten spiegeln den ursprünglichen breiteren Roadmap-Rahmen, 110-CONTEXT.md ist für die Planung maßgeblich.
+**Plans:** 3 plans
+Plans:
+
+- [ ] `110-01-PLAN.md` — Ranglisten-Seite `/members/ranking` (SSR, Table/Pagination/Empty/ErrorState) + Rangliste-Nav-Eintrag in AppShell (D-01)
+- [ ] `110-02-PLAN.md` — Backend-Projektion erweitern: total_points (Go/Repo/OpenAPI) + live-abgeleitete Rollen-Einstiegs-Badges aus release_role_credit_lifecycles (D-02/D-03 Datenschicht)
+- [ ] `110-03-PLAN.md` — Frontend-Anzeige: Punktzahl im MemberProfileHero + 8 Rollen-Einstiegs-Badges im bestehenden MemberBadgeChain-Katalog (D-02/D-03 UI)
+
 **Success Criteria** (what must be TRUE):
 
   1. Globale und gruppenbezogene Ranglisten zeigen aktive und historische Mitglieder klar unterscheidbar; Account-Mitglieder können auf vorhandene öffentliche Profile verlinken, historische Einträge ohne Profil nicht.
