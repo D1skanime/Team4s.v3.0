@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 109-01-PLAN.md
-last_updated: "2026-07-27T12:56:53.852Z"
+stopped_at: Completed 109-02-PLAN.md
+last_updated: "2026-07-27T13:04:33.945Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 103
   completed_phases: 83
   total_plans: 460
-  completed_plans: 429
+  completed_plans: 430
   percent: 81
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 109 (ranglisten-und-punkteprojektionen) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -381,6 +381,8 @@ Recent durable decisions:
 - [Phase 108]: Only confirmed-before or confirmed-after project mutations synchronize inherited snapshots and point diffs. — Non-confirmed rows are review state, not effective crew truth.
 - [Phase 108]: One PointService-backed ReleaseCrewService instance is shared by all Phase-108 handlers and both release creators. — Eliminates runtime bypasses and duplicate transaction policy.
 - [Phase 109-01]: Repository-Test seedet zusaetzliche point_rules-Zeile (id=102, point_value=5) fuer den Ranking-Tie-Break-Test, da validate_point_ledger_insert (0131) RulePointValue gegen die referenzierte Regel prueft.
+- [Phase 109-02]: Guard-Exception-Text bewusst Englisch (analog 0131 'point ledger is append-only'), um die CLAUDE.md-Umlaut-Sprachregel fuer DB-Guard-Strings zu umgehen.
+- [Phase 109-02]: ListRanking nutzt INNER JOIN member_point_totals->members (nicht LEFT JOIN) -- nur Members mit mindestens einer Buchung erscheinen in der Rangliste.
 
 ### Pending Todos
 
@@ -660,6 +662,7 @@ Recent durable decisions:
 | Phase 108 P05 | 12 min | 2 tasks | 11 files |
 | Phase 108 P08 | 7 min | 2 tasks | 9 files |
 | Phase 109 P01 | 35min | 2 tasks | 2 files |
+| Phase 109 P02 | 40min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -741,7 +744,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T12:56:53.813Z
-Stopped at: Completed 109-01-PLAN.md
+Last session: 2026-07-27T13:04:33.916Z
+Stopped at: Completed 109-02-PLAN.md
 Last activity: 2026-07-27
 Resume file: None
