@@ -2557,8 +2557,8 @@ Plans:
 
 ### Phase 112: Member-Punkt-Meilenstein-Badges
 
-**Goal:** Auf Basis der persistierten Gesamtpunktzahl aus Phase 109 automatische Punkt-Meilenstein-Badges anzeigen, deren Punktschwellen selbst die Stufen sind (1 / 50 / 200 / 500 / 1 000 / 2 500) — kein zusätzliches Bronze/Silber/Gold. Rein abgeleitete Live-Projektion: keine Punkte fürs Badge, Rückstufung bei Storno. Die Badges reihen sich in die bestehende Profil-Badge-Anzeige (Phase 110, `MemberBadgeChain`) ein. Nur Punkt-Meilensteine (Typ 2); die rollenbezogenen Einstiegs-Badges (Typ 1) bleiben Phase 110.
-**Requirements:** Phase 109 (persistierte Punktsumme `member_point_totals`), Phase 110 (Profil-Badge-Sektion). Badge-Bilder liefert der Nutzer später; vorerst Platzhalter.
+**Goal:** Zwei abgeleitete Badge-Familien in die Profil-„Auszeichnungen"-Sektion (Phase 110) einhängen. Typ 2 (Punkt-Meilensteine): Stufen aus der Gesamtpunktzahl (1 / 50 / 200 / 500 / 1 000 / 2 500), nur der höchste erreichte Rang wird gezeigt. Typ 3 (Rollen-Volumen): Bronze/Silber/Gold/Platin pro Rolle nach Anzahl der Release-Version-Credits in dieser Rolle (12 / 108 / 320 / 510), reiht sich neben den Typ-1-Einstieg in die „Rollen"-Gruppe. Beide rein abgeleitete Live-Projektionen (Rückstufung bei Storno), keine Punkte fürs Badge, kein neuer Buchungspfad — dieselben `release_role_work`-Buchungen, für Typ 2 summiert, für Typ 3 pro Rolle gezählt. Typ 1 (Rollen-Einstiege) bleibt Phase 110.
+**Requirements:** Phase 109 (persistierte Punktsumme `member_point_totals`, `release_role_work`-Ledger), Phase 110 (erweiterbare Profil-Badge-Sektion). Badge-Bilder liefert der Nutzer später; vorerst Platzhalter.
 **Depends on:** Phase 109, Phase 110
 **Plans:** 0 plans
 

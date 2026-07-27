@@ -73,6 +73,18 @@ final abgesteckt — siehe Divergenz-Hinweis.
   eigene Gruppe in die vorhandene Chain ein. Eine Highlight-Reihe unter dem Hero
   (`MemberBadgeHighlights`) wird bewusst weggelassen (Nutzerwunsch „klein bleiben").
 
+### D-04 „Auszeichnungen"-Sektion als erweiterbarer, kategorie-gruppierter Container
+- Die „Auszeichnungen"-Sektion wird so gebaut, dass sie **beliebig viele Badge-Familien als
+  beschriftete Kategorie-Gruppen** aufnimmt (z. B. „Rollen", „Fortschritt", „Mitgliedschaft",
+  „Besondere Auszeichnungen", „Events" …). **Jede neue Familie = eine weitere Gruppe** nach
+  demselben Muster; **leere Kategorien werden ausgeblendet**. Kein Umbau bei neuen Badge-Typen.
+- **Rollen-Gruppe** führt pro Rolle die rollenbezogenen Badges zusammen: Einstieg (Typ 1) und
+  später die Volumen-Stufe (Typ 3, Phase 112) in **einer** Zeile je Rolle.
+- Phase 110 baut diesen Container + die erste Gruppe „Rollen" (Typ 1) und sortiert die bereits
+  vorhandenen Katalog-Badges (`Gründungsmitglied`, `5+ Jahre Mitglied`, `Historische Leitung`,
+  `Allrounder`, `Verifiziert` …) in passende Gruppen ein. Spätere Typen (Phase 112 ff.) hängen
+  nur weitere Gruppen an.
+
 ### Claude's Discretion
 - Exakte Badge-Codes/Labels/Icons/Palette je Rolle (im Stil des vorhandenen Katalogs).
 - Ob die Rolle je Ledger-Eintrag aus `source_key`/`source_type` rekonstruiert oder über einen
