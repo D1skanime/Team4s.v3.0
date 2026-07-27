@@ -222,6 +222,8 @@ export interface PublicMemberProfileData {
   memberships: MemberProfileMembership[]
   /** Eingebettete öffentliche Badges des angezeigten Members (Badges-13). Nur visibility='public' AND status='active'. */
   public_badges: PublicMemberBadge[]
+  /** Gesamtpunktzahl aus member_point_totals, nie im Frontend neu aggregiert (D-02/Phase 110-02). */
+  total_points: number
   recent_media: MemberProfileRecentMedia[]
   recent_contributions: MemberProfileRecentContribution[]
   current_projects?: PublicMemberCurrentProject[]

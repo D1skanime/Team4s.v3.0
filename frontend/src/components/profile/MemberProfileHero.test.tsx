@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 
 import type { ImgHTMLAttributes } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { PublicMemberProfileData } from '@/types/profile'
+import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile'
 
 import { MemberProfileHero } from './MemberProfileHero'
 
@@ -31,8 +31,50 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
     background_image: null,
     memberships: [],
     public_badges: [],
+    total_points: 0,
     recent_media: [],
     recent_contributions: [],
+    ...overrides,
+  }
+}
+
+function makePrivateProfile(overrides: Partial<MemberProfileData> = {}): MemberProfileData {
+  return {
+    member_id: 3,
+    has_member_profile: true,
+    has_project_assignments: false,
+    app_user_id: 10,
+    display_name: 'Ballelboy',
+    fansub_name: 'Ballelboy',
+    slug: 'ballelboy',
+    email: 'ballelboy@example.test',
+    keycloak_subject: 'kc-3',
+    bio: null,
+    active_from_date: null,
+    active_until_date: null,
+    is_currently_active: true,
+    noindex: false,
+    is_verified: false,
+    profile_visibility: 'public',
+    avatar: null,
+    background_image: null,
+    capabilities: {
+      can_view_own_profile: true,
+      can_edit_own_profile: true,
+      can_upload_own_avatar: true,
+      can_open_keycloak_account: true,
+      can_view_memberships: true,
+      can_view_historical_credits: true,
+    },
+    memberships: [],
+    historical_credits: [],
+    recent_media: [],
+    recent_contributions: [],
+    created_at: '2020-01-01T00:00:00Z',
+    updated_at: '2020-01-01T00:00:00Z',
+    account_status: 'active',
+    account_display_name: 'Ballelboy',
+    account_global_roles: [],
     ...overrides,
   }
 }
@@ -101,5 +143,43 @@ describe('MemberProfileHero', () => {
     const avatar = screen.getByRole('img', { name: 'Ballelboy Avatar' })
     expect(avatar.getAttribute('src')).toBe('/media/profile/3/avatar/current/original.gif')
     expect(avatar.getAttribute('data-unoptimized')).toBe('true')
+  })
+
+  it('shows the total points hero metric for a public profile with real points (D-02)', () => {
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({ total_points: 220 })}
+        isPublicView={true}
+      />,
+    )
+
+    const metric = screen.getByLabelText('Mitglied-Punktzahl')
+    expect(within(metric).getByText('Punkte')).not.toBeNull()
+    expect(within(metric).getByText('220')).not.toBeNull()
+    expect(screen.queryByText(/Platz \d/)).toBeNull()
+  })
+
+  it('still shows the honest zero total points hero metric, never hidden (D-02)', () => {
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({ total_points: 0 })}
+        isPublicView={true}
+      />,
+    )
+
+    const metric = screen.getByLabelText('Mitglied-Punktzahl')
+    expect(within(metric).getByText('Punkte')).not.toBeNull()
+    expect(within(metric).getByText('0')).not.toBeNull()
+  })
+
+  it('never renders the total points hero metric on the own-profile edit view', () => {
+    render(
+      <MemberProfileHero
+        profile={makePrivateProfile()}
+        isPublicView={false}
+      />,
+    )
+
+    expect(screen.queryByLabelText('Mitglied-Punktzahl')).toBeNull()
   })
 })
