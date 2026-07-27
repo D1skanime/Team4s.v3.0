@@ -63,13 +63,16 @@ FOR EACH ROW EXECUTE FUNCTION apply_point_ledger_entry_to_member_total();
 ```
 
 **Guard-Trigger-Stil zu übernehmen** (analog `guard_point_ledger_mutation`, `0131` Zeilen 110–158;
-`pg_trigger_depth()`-Idiom bereits im Projekt etabliert):
+`pg_trigger_depth()`-Idiom bereits im Projekt etabliert; Exception-Text bewusst Englisch, analog
+zum bestehenden `guard_point_ledger_mutation`-Text `'point ledger is append-only'` — kein deutscher
+Text mit ASCII-Ersetzung wie "ausschliesslich" verwenden, das verstößt gegen die
+CLAUDE.md-Sprachregel):
 ```sql
 CREATE FUNCTION guard_member_point_totals_mutation() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
     IF pg_trigger_depth() = 0 THEN
-        RAISE EXCEPTION 'member_point_totals wird ausschliesslich durch den point_ledger_entries-Trigger gepflegt';
+        RAISE EXCEPTION 'member_point_totals is maintained exclusively by the point_ledger_entries trigger';
     END IF;
     RETURN COALESCE(NEW, OLD);
 END;
@@ -166,6 +169,22 @@ func NewMemberArchiveRepository(db *pgxpool.Pool) *MemberArchiveRepository {
 }
 ```
 
+**Struct-Definition mit expliziten JSON-Tags (Pflicht, nicht optional):** `MemberPointRankingRow`
+MUSS snake_case JSON-Struct-Tags tragen, analog `ArchiveMemberRow`
+(`backend/internal/repository/member_archive_repository.go`, z. B. `json:"display_name"`,
+`json:"slug"`) und den Struct-Tags in `anime_contributions_public_repository.go`:
+```go
+type MemberPointRankingRow struct {
+    MemberID    int64   `json:"member_id"`
+    DisplayName string  `json:"display_name"`
+    Slug        *string `json:"slug"`
+    TotalPoints int64   `json:"total_points"`
+}
+```
+Ohne diese Tags würde `encoding/json` beim `c.JSON`-Aufruf im Handler (Plan 109-03) PascalCase-
+Feldnamen (`MemberID`, `DisplayName`, ...) erzeugen und den snake_case-Contract aus OpenAPI und
+Frontend brechen — verifiziert durch `TestMemberPointRankingRowJSONFieldNames` (Plan 109-01).
+
 **Query-Template für `ListRanking`** (bereits vollständig in RESEARCH.md Pattern 3 ausformuliert,
 Stil aus `member_archive_repository.go` übernommen, Tie-Break gemäß Pitfall 5):
 ```go
@@ -197,10 +216,10 @@ func (r *MemberPointTotalsRepository) ListRanking(ctx context.Context, page int)
     // ... rows.Close(), scan analog member_archive_repository.go Zeilen 196–216
 }
 ```
-**Offene Entscheidung (Open Question 1 aus RESEARCH.md, Planner-Diskretion):** `INNER JOIN` liefert
-nur Members mit mindestens einer Buchung (empfohlen als Start). `LEFT JOIN ... COALESCE(total_points, 0)`
-wäre die Alternative, falls Phase 110 eine vollständige 0-Punkte-Liste braucht — schemakompatibel,
-keine Migration nötig, falls später gewechselt wird.
+**Offene Entscheidung (Open Question 1 aus RESEARCH.md — RESOLVED in Plan 109-02):** `INNER JOIN`
+liefert nur Members mit mindestens einer Buchung (gewählt, umgesetzt in Plan 109-02 Task 2).
+`LEFT JOIN ... COALESCE(total_points, 0)` wäre die Alternative, falls Phase 110 eine vollständige
+0-Punkte-Liste braucht — schemakompatibel, keine Migration nötig, falls später gewechselt wird.
 
 **Fehlerbehandlungsstil** (durchgängig `fmt.Errorf("<bereich>: <schritt>: %w", err)`, siehe
 `member_archive_repository.go` Zeilen 143, 189, 206, 214, 238, 247, 254, 270, 279, 286) — exakt
@@ -262,6 +281,12 @@ func TestMemberPointTotalsPostgresConcurrentAwardsSumCorrectly(t *testing.T) {
 identischem `total_points`-Wert, wiederholte `ListRanking`-Aufrufe müssen dieselbe Reihenfolge
 liefern (`ORDER BY total_points DESC, member_id ASC`).
 
+**Zusätzlich abzudecken (JSON-Contract, Checker-Fix):** `TestMemberPointRankingRowJSONFieldNames` —
+`json.Marshal(MemberPointRankingRow{...})` und Assertion, dass die Keys snake_case sind
+(`member_id`, `display_name`, `slug`, `total_points`) und NICHT PascalCase (`MemberID`, ...). Reine
+Go-Feldnamen-Prüfung reicht nicht aus, weil `encoding/json` ohne Struct-Tags PascalCase erzeugen
+würde.
+
 ---
 
 ### `backend/internal/handlers/member_point_totals_handler.go` (controller, request-response)
@@ -311,8 +336,9 @@ func (h *ContributionsPublicHandler) GetMemberContributions(c *gin.Context) {
     c.JSON(http.StatusOK, response)
 }
 ```
-Für die Rangliste (kein Slug-Parameter, stattdessen `page`-Query, aus RESEARCH.md Code-Examples
-bereits vollständig ausformuliert):
+Für die Rangliste (kein Slug-Parameter, stattdessen `page`-Query; Response-Envelope ist im Planner
+final auf `{"data": rows, "total": total, "page": page}` festgelegt worden — konsistent mit
+`SearchArchive`, nicht mit der abweichenden `{"members": ...}`-Form unten):
 ```go
 func (h *MemberPointRankingHandler) GetMemberPointRanking(c *gin.Context) {
     page := parsePageParam(c.Query("page")) // Default 1, Bounds-Check analog member_archive_repository.go
@@ -523,17 +549,18 @@ und `ApiError`-Muster.
 **Frontend-Typ — Analog:** `ArchiveMemberRow`/`ArchiveSearchResponse` (`frontend/src/lib/api.ts`
 Zeilen 9318–9333, direkt neben der zugehörigen API-Funktion definiert statt in `types/`) sowie
 `PublicAnimeContribution` (`frontend/src/types/contributions.ts` Zeilen 3–11, snake_case JSON-Tags
-spiegeln Backend-Response 1:1). Neuer Typ z. B.:
+spiegeln Backend-Response 1:1). Neuer Typ, final in Plan 109-03 auf `member_id` (nicht `id`)
+festgelegt, um exakt mit dem Backend-Response-Feldnamen aus `MemberPointRankingRow` übereinzustimmen:
 ```typescript
 export interface MemberPointRankingRow {
-  id: number
+  member_id: number
   display_name: string
   slug: string | null
   total_points: number
 }
 
 export interface MemberPointRankingResponse {
-  members: MemberPointRankingRow[]
+  data: MemberPointRankingRow[]
   total: number
   page: number
 }
@@ -578,6 +605,12 @@ Die geschützten Dateien (**byte-identisch lassen**): `point_service.go`, `point
 **Quelle:** `backend/internal/repository/member_archive_repository.go` Zeilen 60–67
 **Apply to:** `member_point_totals_repository.go` (`ListRanking`) und `member_point_totals_handler.go`
 (`page`-Query-Parsing) — `page < 1 → 1`, `page > 1000 → 1000`, feste Seitengröße als Package-Konstante.
+
+### JSON-Struct-Tags (snake_case)
+**Quelle:** `member_archive_repository.go` (`ArchiveMemberRow`), `anime_contributions_public_repository.go`
+**Apply to:** `MemberPointRankingRow` — explizite `json:"member_id"`/`json:"display_name"`/
+`json:"slug"`/`json:"total_points"`-Tags sind Pflicht, damit `encoding/json` snake_case statt
+PascalCase serialisiert (Checker-Fix; verifiziert durch `TestMemberPointRankingRowJSONFieldNames`).
 
 ### Fehlerformat (Handler)
 **Quelle:** `backend/internal/handlers/contributions_public_handler.go` (`badRequest`/`internalError`

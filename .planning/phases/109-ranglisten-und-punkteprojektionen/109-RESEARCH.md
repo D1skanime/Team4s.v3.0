@@ -203,13 +203,17 @@ Ledger-Triggers) ablehnt.
 dasselbe `pg_trigger_depth()`-Muster in `0131_member_point_foundation.up.sql`) und verhindert,
 dass ein späterer Admin-Fix oder ein Bugfix versehentlich die Summe direkt schreibt und dadurch
 von D-06 abweicht.
-**Beispiel:**
+**Beispiel (Exception-Text bewusst Englisch, analog zum bestehenden
+`guard_point_ledger_mutation`-Text `'point ledger is append-only'` aus 0131 — DB-Guard-Meldungen in
+diesem Projekt sind konsequent Englisch gehalten, was die CLAUDE.md-Umlaut-Pflicht für deutsche
+user-facing Strings sauber umgeht; kein deutscher Text mit ASCII-Ersetzung wie "ausschliesslich"
+verwenden):**
 ```sql
 CREATE FUNCTION guard_member_point_totals_mutation() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
     IF pg_trigger_depth() = 0 THEN
-        RAISE EXCEPTION 'member_point_totals wird ausschliesslich durch den point_ledger_entries-Trigger gepflegt';
+        RAISE EXCEPTION 'member_point_totals is maintained exclusively by the point_ledger_entries trigger';
     END IF;
     RETURN COALESCE(NEW, OLD);
 END;
@@ -256,6 +260,12 @@ func (r *MemberPointTotalsRepository) ListRanking(ctx context.Context, page int)
 (`backend/internal/repository/anime_contributions_public_repository.go:14,18`) und werden von
 sechs bestehenden Repositories wiederverwendet — für die Rangliste dieselben nutzen statt eine
 neue Display-Name-Ableitung zu erfinden.
+
+`MemberPointRankingRow` selbst braucht explizite, snake_case JSON-Struct-Tags (`json:"member_id"`,
+`json:"display_name"`, `json:"slug"`, `json:"total_points"`), analog `ArchiveMemberRow` in
+`member_archive_repository.go` und den Struct-Tags in `anime_contributions_public_repository.go` —
+ohne diese Tags würde `encoding/json` beim späteren `c.JSON`-Aufruf im Handler (Plan 109-03)
+PascalCase-Feldnamen erzeugen und den snake_case-Contract aus OpenAPI/Frontend brechen.
 
 ### Anti-Patterns to Avoid
 - **Laufzeit-`SUM(point_value) GROUP BY member_id` bei jeder Ranglisten-Abfrage:** Explizit durch
@@ -439,34 +449,36 @@ ersetzen.
 | A3 | Exakter Tabellen-/Spaltenname `member_point_totals(member_id, total_points, updated_at)` ist nur Vorschlag, keine harte Vorgabe (CONTEXT.md erlaubt hier Bau-Diskretion) | Architecture Patterns | Kein Risiko — CONTEXT.md erlaubt ausdrücklich freie Benennung, solange D-05/D-06 gewahrt bleiben |
 | A4 | Nächste freie Migrationsnummer ist `0139` (Stand dieser Recherche, höchste vorhandene: `0138_project_note_first_author_lifecycle`) | Common Pitfalls (Pitfall 4) | Bei parallelem GSD-Lauf könnte die Nummer bereits belegt sein — unmittelbar vor Planungs-/Implementierungsbeginn erneut prüfen |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Sollen Members ohne jemals gebuchte Punkte in der Rangliste erscheinen (mit 0 Punkten)?**
+1. **Sollen Members ohne jemals gebuchte Punkte in der Rangliste erscheinen (mit 0 Punkten)? (RESOLVED)**
    - Was wir wissen: D-01 definiert die Rangliste als "Netto-Punktsumme pro Member, absteigend
      sortiert"; das mentale Modell des Nutzers ("am Ende muss doch einfach das Total an Punkten
      angezeigt werden") deutet eher auf eine kompakte Liste tatsächlicher Verdiener hin.
-   - Was unklar ist: Ob Phase 110 (Ranglisten-UI) eine vollständige Mitgliederliste inkl.
+   - Was unklar war: Ob Phase 110 (Ranglisten-UI) eine vollständige Mitgliederliste inkl.
      0-Punkte-Zeilen braucht, oder ob eine Liste nur der Mitglieder mit `member_point_totals`-Zeile
      ausreicht.
-   - Empfehlung: Mit `INNER JOIN` (nur Mitglieder mit mindestens einer Buchung) starten — das ist
-     die einfachere, kleinere Liste und lässt sich später verlustfrei zu `LEFT JOIN +
-     COALESCE(..., 0)` erweitern, ohne das Schema zu ändern.
+   - **RESOLVED in Plan 109-02 (Task 2):** `INNER JOIN member_point_totals mpt JOIN members m` —
+     nur Mitglieder mit mindestens einer Buchung erscheinen in der Rangliste. Schemakompatibel
+     verlustfrei zu `LEFT JOIN + COALESCE(total_points, 0)` erweiterbar, falls Phase 110 später eine
+     vollständige 0-Punkte-Liste braucht.
 
-2. **Braucht der neue Endpunkt Authentifizierung?**
+2. **Braucht der neue Endpunkt Authentifizierung? (RESOLVED)**
    - Was wir wissen: Vergleichbare bestehende Lese-Endpunkte (`GET /members/:slug/contributions`,
      `GET /anime/:id/contributions`) sind unauthentifiziert öffentlich; Member-Anzeigenamen sind
      bereits über diese Endpunkte öffentlich einsehbar.
-   - Was unklar ist: Ob Punktesummen (potenziell sensibler als reine Rollen-Contributions) bewusst
+   - Was unklar war: Ob Punktesummen (potenziell sensibler als reine Rollen-Contributions) bewusst
      hinter Login gehalten werden sollen, bis Phase 110 eine echte UI-Entscheidung trifft.
-   - Empfehlung: Analog zu bestehenden Contribution-Endpunkten öffentlich lesbar machen (siehe
-     Assumption A1); Phase 110 kann bei Bedarf eine Sichtbarkeitsschranke nachziehen.
+   - **RESOLVED in Plan 109-03 (Task 1):** Endpunkt ist unauthentifiziert (kein `authMiddleware`),
+     analog zu `/archiv` und `/members/:slug/contributions`. Phase 110 kann bei Bedarf eine
+     Sichtbarkeitsschranke nachziehen.
 
-3. **Exakter Routenname/Pfad des neuen Endpunkts?**
+3. **Exakter Routenname/Pfad des neuen Endpunkts? (RESOLVED)**
    - Was wir wissen: CONTEXT.md gibt hier explizit Bau-Diskretion frei ("Exakte
      Endpunkt-/DTO-Benennung ... solange kein zweites Punktebuch ... entsteht").
-   - Was unklar ist: Der endgültige Name (z. B. `member-point-ranking` vs. `leaderboard`).
-   - Empfehlung: Pitfall 3 beachten (kein Unterpfad von `/members/:slug`); Planner legt den
-     endgültigen Namen fest.
+   - Was unklar war: Der endgültige Name (z. B. `member-point-ranking` vs. `leaderboard`).
+   - **RESOLVED in Plan 109-03 (Task 1):** Route `/api/v1/member-point-ranking`, registriert in
+     `backend/cmd/server/main.go` (Pitfall 3 beachtet — kein Unterpfad von `/members/:slug`).
 
 ## Environment Availability
 
@@ -511,7 +523,7 @@ String-/Contract-Tests trotzdem; nur die Live-Up/Down/Concurrency-Tests werden �
 
 ### Wave 0 Gaps
 - [ ] `backend/internal/migrations/phase109_member_point_totals_test.go` — deckt D-05/D-06 Migrations-Contract
-- [ ] `backend/internal/repository/member_point_totals_repository_test.go` — deckt Concurrency (Pitfall 2) und Ranking-Sortierung (Pitfall 5)
+- [ ] `backend/internal/repository/member_point_totals_repository_test.go` — deckt Concurrency (Pitfall 2), Ranking-Sortierung (Pitfall 5) und den snake_case JSON-Feldnamen-Contract (TestMemberPointRankingRowJSONFieldNames)
 - [ ] Kein neues Test-Framework nötig — bestehendes `testsupport`-Paket direkt wiederverwendbar
 
 *(Framework bereits vollständig vorhanden — keine Installation nötig)*
