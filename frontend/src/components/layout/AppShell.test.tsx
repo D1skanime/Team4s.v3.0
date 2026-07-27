@@ -552,4 +552,28 @@ describe('Gruppen-Drawer-Links', () => {
     const groupEditLink = screen.getByRole('link', { name: /Test Sub/i })
     expect(groupEditLink.getAttribute('href')).toBe('/admin/fansubs/42/edit')
   })
+
+  it('shows the Rangliste nav entry next to Anime entdecken for signed-in members (D-01)', () => {
+    render(
+      <AppShell currentPath="/anime">
+        <main>Inhalt</main>
+      </AppShell>,
+    )
+
+    const link = screen.getByRole('link', { name: /Rangliste/i })
+    expect(link.getAttribute('href')).toBe('/members/ranking')
+  })
+
+  it('shows the Rangliste nav entry next to Anime entdecken for anonymous visitors (D-01, Pitfall 4)', () => {
+    render(
+      <AppShell mode="anonymous" currentPath="/anime">
+        <main>Inhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+
+    const link = screen.getByRole('link', { name: /Rangliste/i })
+    expect(link.getAttribute('href')).toBe('/members/ranking')
+  })
 })
