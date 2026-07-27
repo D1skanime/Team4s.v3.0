@@ -4,8 +4,12 @@ import { Card, SectionHeader } from '@/components/ui'
 import type { PublicMemberBadge } from '@/types/profile'
 
 import {
+  MEMBER_BADGE_GROUP_LABELS,
+  MEMBER_BADGE_GROUP_ORDER,
   PUBLIC_MEMBER_BADGE_CATALOG,
   getMemberBadgePresentation,
+  type MemberBadgeGroup,
+  type MemberBadgePresentation,
   type PublicMemberBadgeCatalogItem,
 } from './memberBadgeLabels'
 import styles from './MemberBadgeChain.module.css'
@@ -13,6 +17,20 @@ import styles from './MemberBadgeChain.module.css'
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
   catalog?: PublicMemberBadgeCatalogItem[]
+}
+
+// D-04: eine Zeile innerhalb einer Kategorie-Gruppe -- normalerweise ein Badge, aber die
+// Rollen-Gruppe fasst alle Badges mit demselben roleCode zu einer Zeile zusammen (Phase 112
+// Typ 3 dockt hier ohne Umbau an).
+type MemberBadgeGroupRow = {
+  key: string
+  items: PublicMemberBadgeCatalogItem[]
+}
+
+type MemberBadgeGroupResult = {
+  key: MemberBadgeGroup
+  label: string
+  rows: MemberBadgeGroupRow[]
 }
 
 function catalogWithEarnedBadges(
@@ -35,6 +53,37 @@ function catalogWithEarnedBadges(
   return [...catalog, ...additions]
 }
 
+// D-04: baut die erweiterbare, kategorie-gruppierte Struktur der "Auszeichnungen"-Sektion.
+// Pure Funktion, injectable Presentation-Lookup -- so bleibt die Gruppierung ohne Rendering
+// unit-testbar. Leere Kategorien werden nicht zurueckgegeben (kein Umbau bei neuen Badge-Typen).
+export function buildMemberBadgeGroups(
+  visibleCatalog: PublicMemberBadgeCatalogItem[],
+  getPresentation: (badgeCode: string) => MemberBadgePresentation = getMemberBadgePresentation,
+): MemberBadgeGroupResult[] {
+  return MEMBER_BADGE_GROUP_ORDER.map((groupKey) => {
+    const itemsInGroup = visibleCatalog.filter((item) => getPresentation(item.badge_code).group === groupKey)
+
+    let rows: MemberBadgeGroupRow[]
+    if (groupKey === 'roles') {
+      const rowsByKey = new Map<string, MemberBadgeGroupRow>()
+      for (const item of itemsInGroup) {
+        const rowKey = getPresentation(item.badge_code).roleCode ?? item.badge_code
+        const existingRow = rowsByKey.get(rowKey)
+        if (existingRow) {
+          existingRow.items.push(item)
+        } else {
+          rowsByKey.set(rowKey, { key: rowKey, items: [item] })
+        }
+      }
+      rows = Array.from(rowsByKey.values())
+    } else {
+      rows = itemsInGroup.map((item) => ({ key: item.badge_code, items: [item] }))
+    }
+
+    return { key: groupKey, label: MEMBER_BADGE_GROUP_LABELS[groupKey], rows }
+  }).filter((group) => group.rows.length > 0)
+}
+
 export function MemberBadgeChain({
   earnedBadges,
   catalog = PUBLIC_MEMBER_BADGE_CATALOG,
@@ -45,6 +94,7 @@ export function MemberBadgeChain({
   const progressPercent = visibleCatalog.length > 0
     ? Math.round((earnedCount / visibleCatalog.length) * 100)
     : 0
+  const groups = buildMemberBadgeGroups(visibleCatalog)
 
   return (
     <section className={styles.section}>
@@ -60,29 +110,40 @@ export function MemberBadgeChain({
           </div>
         </div>
 
-        <ul className={styles.chain} aria-label="Auszeichnungen" data-orientation="horizontal">
-          {visibleCatalog.map((item) => {
-            const isEarned = earnedCodes.has(item.badge_code)
-            const presentation = getMemberBadgePresentation(item.badge_code)
-            const Icon = presentation.Icon
+        <div className={styles.groupList}>
+          {groups.map((group) => (
+            <div key={group.key} className={styles.group}>
+              <h3 className={styles.groupTitle}>{group.label}</h3>
+              <ul className={styles.chain} aria-label={group.label} data-orientation="horizontal">
+                {group.rows.map((row) => (
+                  <li key={row.key} className={styles.badgeRow}>
+                    {row.items.map((item) => {
+                      const isEarned = earnedCodes.has(item.badge_code)
+                      const presentation = getMemberBadgePresentation(item.badge_code)
+                      const Icon = presentation.Icon
 
-            return (
-              <li
-                key={item.badge_code}
-                className={isEarned ? styles.badgeStep : styles.badgeStepLocked}
-                data-palette={presentation.palette}
-                data-earned={isEarned ? 'true' : 'false'}
-              >
-                <span className={styles.badgeItem}>
-                  <span className={styles.badgeIcon} aria-label={isEarned ? undefined : `${item.label} gesperrt`}>
-                    {isEarned ? <Icon size={16} aria-hidden="true" /> : <Lock size={16} aria-hidden="true" />}
-                  </span>
-                  <span>{item.label}</span>
-                </span>
-              </li>
-            )
-          })}
-        </ul>
+                      return (
+                        <span
+                          key={item.badge_code}
+                          className={isEarned ? styles.badgeStep : styles.badgeStepLocked}
+                          data-palette={presentation.palette}
+                          data-earned={isEarned ? 'true' : 'false'}
+                        >
+                          <span className={styles.badgeItem}>
+                            <span className={styles.badgeIcon} aria-label={isEarned ? undefined : `${item.label} gesperrt`}>
+                              {isEarned ? <Icon size={16} aria-hidden="true" /> : <Lock size={16} aria-hidden="true" />}
+                            </span>
+                            <span>{item.label}</span>
+                          </span>
+                        </span>
+                      )
+                    })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </Card>
     </section>
   )

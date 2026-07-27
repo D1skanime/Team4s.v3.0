@@ -47,11 +47,38 @@
   scroll-snap-type: x proximity;
 }
 
+.groupList {
+  display: grid;
+  gap: 24px; /* --space-5, Section padding / hero metrics gap */
+}
+
+.group {
+  display: grid;
+  gap: 8px; /* --space-2, matches .progressBlock */
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badgeRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* --space-2 */
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
 .badgeStep,
 .badgeStepLocked {
   --badge-accent: var(--text-secondary);
-  flex: 0 0 auto;
-  scroll-snap-align: start;
+  display: inline-flex;
 }
 
 .badgeStep[data-palette="gold"],
