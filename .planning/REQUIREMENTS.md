@@ -259,11 +259,11 @@
 | P103-SC4 | Phase 103 | Planned |
 | P103-SC5 | Phase 103 | Planned |
 | P103-SC6 | Phase 103 | Planned |
-| GAM-01 | Phase 106 | Planned |
+| GAM-01 | Phase 106 | Complete |
 | GAM-02 | Phase 106 | Planned |
 | GAM-03 | Phase 106 | Planned |
-| GAM-04 | Phase 106 | Planned |
-| GAM-05 | Phase 106 | Planned |
+| GAM-04 | Phase 106 | Complete |
+| GAM-05 | Phase 106 | Complete |
 | P107-SC1 | Phase 107 | Complete |
 | P107-SC2 | Phase 107 | Complete |
 | P107-SC3 | Phase 107 | Complete |

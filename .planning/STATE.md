@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 109-02-PLAN.md
-last_updated: "2026-07-27T13:04:33.945Z"
+stopped_at: Completed 109-03-PLAN.md
+last_updated: "2026-07-27T13:13:51.066Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 103
-  completed_phases: 83
+  completed_phases: 84
   total_plans: 460
-  completed_plans: 430
-  percent: 81
+  completed_plans: 431
+  percent: 82
 ---
 
 # Project State
@@ -383,6 +383,8 @@ Recent durable decisions:
 - [Phase 109-01]: Repository-Test seedet zusaetzliche point_rules-Zeile (id=102, point_value=5) fuer den Ranking-Tie-Break-Test, da validate_point_ledger_insert (0131) RulePointValue gegen die referenzierte Regel prueft.
 - [Phase 109-02]: Guard-Exception-Text bewusst Englisch (analog 0131 'point ledger is append-only'), um die CLAUDE.md-Umlaut-Sprachregel fuer DB-Guard-Strings zu umgehen.
 - [Phase 109-02]: ListRanking nutzt INNER JOIN member_point_totals->members (nicht LEFT JOIN) -- nur Members mit mindestens einer Buchung erscheinen in der Rangliste.
+- [Phase ?]: [Phase 109-03]: Response-Envelope {data, total, page} (analog SearchArchive) statt {members, total, page} - final festgelegt fuer Konsistenz mit dem einzigen bestehenden paginierten Public-Endpunkt.
+- [Phase ?]: [Phase 109-03]: GET /api/v1/member-point-ranking als eigener Top-Level-Pfad registriert, kein Unterpfad von /members/:slug - vermeidet Gin-Routenkollision (Pitfall 3).
 
 ### Pending Todos
 
@@ -663,6 +665,7 @@ Recent durable decisions:
 | Phase 108 P08 | 7 min | 2 tasks | 9 files |
 | Phase 109 P01 | 35min | 2 tasks | 2 files |
 | Phase 109 P02 | 40min | 2 tasks | 3 files |
+| Phase 109 P03 | 25min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -744,7 +747,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T13:04:33.916Z
-Stopped at: Completed 109-02-PLAN.md
+Last session: 2026-07-27T13:13:51.035Z
+Stopped at: Completed 109-03-PLAN.md
 Last activity: 2026-07-27
 Resume file: None

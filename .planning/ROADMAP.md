@@ -2515,7 +2515,7 @@ Plans:
 **Requirements:** Phasen 106–108; kanonisches Punktebuch sowie bestehende Member- und Claim-Strukturen; keine Import-, Backfill- oder Bestandsdatenlogik.
 **Depends on:** Phase 106, Phase 107, Phase 107.1, Phase 108
 **Status**: Per 109-CONTEXT.md (2026-07-26, User-Entscheidung D-03/D-04) auf das globale Allzeit-Total reduziert — keine Gruppen-/Kategorie-/Zeitraum-Ranglisten, keine Aufschlüsselung, keine UI/Badges in dieser Phase; diese bleiben für Phase 110 zurückgestellt. Die Success Criteria unten spiegeln den ursprünglichen breiteren Roadmap-Rahmen; 109-CONTEXT.md ist für die Planung maßgeblich.
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 
 - [ ] `109-01-PLAN.md` — Wave-0-Testgerüst (RED): Migrations-Contract-Test für 0139 + Repository-Concurrency-/Reversal-/Ranking-Test
