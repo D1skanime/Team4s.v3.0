@@ -1895,6 +1895,24 @@ Plans:
 
 - [ ] 105-05-PLAN.md — Vollständige automatisierte Gates sowie Pretty-Route-Live-UAT bei 390/768/1024/1440 px
 
+### Phase 113: Wiederholbare Leistungs-Badges (Bronze/Silber/Gold)
+
+**Goal:** Drei weitere abgeleitete Badge-Familien nach dem Prinzip „Bronze/Silber/Gold = Stufen derselben zählbaren, wiederholbaren Leistung" in die erweiterbare „Auszeichnungen"-Sektion (Phase 110) einhängen. Rein abgeleitete Live-Projektionen (Rückstufung bei Storno), kein neuer Buchungspfad, Badge-Bilder vorerst Platzhalter — analog Typ 2/3 aus Phase 112. Familien:
+
+  | Familie | Bronze | Silber | Gold | Zähl-Basis |
+  |---|---|---|---|---|
+  | Vollständig dokumentierte Projekte | 1 | 5 | 15 | Anzahl „vollständig dokumentierter" Projekte |
+  | Chronist (Notizen) | 10 | 50 | 150 | akzeptierte Notiz-/Text-Beiträge |
+  | Bildarchivar | 10 | 50 | 150 | Release-Versionen mit eigenem Bildbeitrag |
+
+**Offene Datenquellen (in discuss/research zu klären):** (1) Definition „vollständig dokumentiert" — Flag/Status oder abgeleitete Bedingung, und wessen Projekt-Scope; (2) exakte Quelle „akzeptierte Beiträge" (review-akzeptierte Contributions/Proposals vs. alle); (3) Autor-/Ownership-Seam für Bildbeitrag pro distinct Release-Version.
+**Requirements**: GAM-04 (Badges als getrennte, abgeleitete Projektion; keine Punkte für Selbstpflege)
+**Depends on:** Phase 110, Phase 112
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 113 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
