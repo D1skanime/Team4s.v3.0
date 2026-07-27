@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 110 UI-SPEC approved
-last_updated: "2026-07-27T16:21:56.931Z"
+stopped_at: Completed 110-01-PLAN.md
+last_updated: "2026-07-27T17:52:09.823Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 105
   completed_phases: 84
   total_plans: 464
-  completed_plans: 431
+  completed_plans: 432
   percent: 80
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 109 — ranglisten-und-punkteprojektionen
+**Current focus:** Phase 110 — Member-Badges, Ranglisten-UI und E2E-Abnahme
 
 ## Current Position
 
-Phase: 109 (ranglisten-und-punkteprojektionen) — EXECUTING
-Plan: 3 of 3
+Phase: 110 (Member-Badges, Ranglisten-UI und E2E-Abnahme) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -385,6 +385,7 @@ Recent durable decisions:
 - [Phase 109-02]: ListRanking nutzt INNER JOIN member_point_totals->members (nicht LEFT JOIN) -- nur Members mit mindestens einer Buchung erscheinen in der Rangliste.
 - [Phase ?]: [Phase 109-03]: Response-Envelope {data, total, page} (analog SearchArchive) statt {members, total, page} - final festgelegt fuer Konsistenz mit dem einzigen bestehenden paginierten Public-Endpunkt.
 - [Phase ?]: [Phase 109-03]: GET /api/v1/member-point-ranking als eigener Top-Level-Pfad registriert, kein Unterpfad von /members/:slug - vermeidet Gin-Routenkollision (Pitfall 3).
+- [Phase 110-01]: toNumber(input, fallback) reused for ranking page-Parameter statt neuem Parser (UI-Default only, Server-Clamp bleibt autoritativ)
 
 ### Pending Todos
 
@@ -666,6 +667,7 @@ Recent durable decisions:
 | Phase 109 P01 | 35min | 2 tasks | 2 files |
 | Phase 109 P02 | 40min | 2 tasks | 3 files |
 | Phase 109 P03 | 25min | 2 tasks | 4 files |
+| Phase 110 P01 | 15min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -747,7 +749,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T15:23:47.294Z
-Stopped at: Phase 110 UI-SPEC approved
+Last session: 2026-07-27T17:52:09.783Z
+Stopped at: Completed 110-01-PLAN.md
 Last activity: 2026-07-27
-Resume file: .planning/phases/110-member-badges-ranglisten-ui-und-e2e-abnahme/110-UI-SPEC.md
+Resume file: None
