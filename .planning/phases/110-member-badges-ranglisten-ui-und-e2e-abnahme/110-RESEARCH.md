@@ -389,7 +389,7 @@ system with no external library churn to track. The one relevant internal preced
 code/schema, not external/training-data claims, but are logged per protocol as reasoning that
 depends on invariants rather than directly-observed facts.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the hero point count render for `isPublicView === false` (own-profile edit view)?**
    - What we know: UI-SPEC explicitly scopes D-02 to the public profile hero only
