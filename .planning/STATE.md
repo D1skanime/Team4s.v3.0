@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 110-03-PLAN.md
-last_updated: "2026-07-27T18:19:07.435Z"
+stopped_at: Completed 110-04-PLAN.md
+last_updated: "2026-07-27T18:33:03.501Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 105
-  completed_phases: 84
+  completed_phases: 85
   total_plans: 464
-  completed_plans: 434
-  percent: 80
+  completed_plans: 435
+  percent: 81
 ---
 
 # Project State
@@ -389,6 +389,7 @@ Recent durable decisions:
 - [Phase 110]: Phase 110-02: Role-entry Badges werden bei jedem GetPublicMemberProfile-Read live aus release_role_credit_lifecycles.lifecycle_status='awarded' berechnet und nie in member_badges geschrieben (D-03 Live-Projektion). — total_points liest COALESCE(member_point_totals.total_points,0); eine fehlende Zeile bedeutet 0 Punkte statt Fehler.
 - [Phase 110-03]: getTotalPoints gibt number|null zurueck (kein Default 0), damit die Own-Profile-Edit-Ansicht die Metrik nie rendert
 - [Phase 110-03]: OwnHiddenProfilePreview.toPublicProfile defaultet total_points auf 0, analog zum bestehenden public_badges-Fallback (Own-Profile-DTO hat kein total_points-Feld)
+- [Phase 110-04]: buildMemberBadgeGroups() ist eine reine, injectable Grouping/Row-Merge-Hilfsfunktion; Rollen-Gruppe merged Badges generisch per roleCode, damit Phase 112 Typ-3 Volumen-Badges ohne Component-Umbau andocken
 
 ### Pending Todos
 
@@ -673,6 +674,7 @@ Recent durable decisions:
 | Phase 110 P01 | 15min | 2 tasks | 6 files |
 | Phase 110 P02 | 25min | 2 tasks | 4 files |
 | Phase 110 P03 | 35min | 2 tasks | 7 files |
+| Phase 110 P04 | 25min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -754,7 +756,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T18:19:07.364Z
-Stopped at: Completed 110-03-PLAN.md
+Last session: 2026-07-27T18:33:03.415Z
+Stopped at: Completed 110-04-PLAN.md
 Last activity: 2026-07-27
 Resume file: None

@@ -2554,7 +2554,7 @@ Plans:
 **Requirements:** Phasen 106–109; bestehendes UI-System und vorhandene Badge-/Achievement-Muster.
 **Depends on:** Phase 106, Phase 107, Phase 107.1, Phase 108, Phase 109
 **Status**: Per 110-CONTEXT.md (2026-07-27, User-Entscheidung) auf drei UI-Ideen plus deren erweiterbaren Container reduziert — globale Allzeit-Rangliste + Nav-Einstieg (D-01), Punktzahl im Member-Profil-Hero (D-02), rollenbezogene einmalige Einstiegs-Badges (D-03), kategorie-gruppierter „Auszeichnungen"-Container mit erster Gruppe „Rollen" (D-04, Grundlage für Phase 112). Keine Gruppen-/Kategorie-Ranglisten, keine volle E2E/UAT-Suite, keine Security-/Abuse-Testsuite in dieser Iteration; die Success Criteria unten spiegeln den ursprünglichen breiteren Roadmap-Rahmen, 110-CONTEXT.md ist für die Planung maßgeblich.
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 
 - [ ] `110-01-PLAN.md` — Ranglisten-Seite `/members/ranking` (SSR, Table/Pagination/Empty/ErrorState) + Rangliste-Nav-Eintrag in AppShell (D-01)
