@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 109-03-PLAN.md
-last_updated: "2026-07-27T13:13:51.066Z"
+stopped_at: Phase 110 context gathered
+last_updated: "2026-07-27T15:14:35.870Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 103
@@ -747,7 +747,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T13:13:51.035Z
-Stopped at: Completed 109-03-PLAN.md
+Last session: 2026-07-27T15:14:35.823Z
+Stopped at: Phase 110 context gathered
 Last activity: 2026-07-27
-Resume file: None
+Resume file: .planning/phases/110-member-badges-ranglisten-ui-und-e2e-abnahme/110-CONTEXT.md
