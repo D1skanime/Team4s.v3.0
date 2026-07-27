@@ -12,11 +12,37 @@ type MemberBadgeCatalogItem = {
   badge_category: string
 }
 
+type FakePresentation = {
+  label: string
+  variant: string
+  Icon: unknown
+  palette: string
+  group: string
+  roleCode?: string
+}
+
+function fakePresentation(overrides: Partial<FakePresentation> & { group: string; roleCode?: string }): FakePresentation {
+  return {
+    label: 'Fake',
+    variant: 'neutral',
+    Icon: null,
+    palette: 'mint',
+    ...overrides,
+  }
+}
+
+type MemberBadgeGroupRow = { key: string; items: MemberBadgeCatalogItem[] }
+type MemberBadgeGroupResult = { key: string; label: string; rows: MemberBadgeGroupRow[] }
+
 async function loadMemberBadgeChain(): Promise<{
   MemberBadgeChain: ComponentType<{
     earnedBadges: PublicMemberBadge[]
-    catalog: MemberBadgeCatalogItem[]
+    catalog?: MemberBadgeCatalogItem[]
   }>
+  buildMemberBadgeGroups: (
+    visibleCatalog: MemberBadgeCatalogItem[],
+    getPresentation?: (badgeCode: string) => FakePresentation,
+  ) => MemberBadgeGroupResult[]
 }> {
   try {
     const modulePath = './MemberBadgeChain'
@@ -64,7 +90,10 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    const chain = screen.getByRole('list', { name: 'Auszeichnungen' })
+    // All three local fixture badge_codes ('founder', 'translator', 'quality_checker') miss the
+    // real MEMBER_BADGE_PRESENTATIONS keys and therefore all land in the fallback 'special' group
+    // (Besondere Auszeichnungen) after the D-04 grouping refactor.
+    const chain = screen.getByRole('list', { name: 'Besondere Auszeichnungen' })
     expect(within(chain).queryByText(/Bronze|Silber|Gold/i)).toBeNull()
   })
 
@@ -99,6 +128,17 @@ describe('MemberBadgeChain', () => {
     expect(screen.queryByLabelText('Erste Übersetzung gesperrt')).toBeNull()
     expect(screen.getByText('Erste Übersetzung')).not.toBeNull()
   })
+
+  it('renders four labeled group headings (Rollen, Fortschritt, Mitgliedschaft, Besondere Auszeichnungen) with the default catalog (D-04)', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    render(<MemberBadgeChain earnedBadges={[]} />)
+
+    for (const label of ['Rollen', 'Fortschritt', 'Mitgliedschaft', 'Besondere Auszeichnungen']) {
+      expect(screen.getByText(label)).not.toBeNull()
+      expect(screen.getByRole('list', { name: label })).not.toBeNull()
+    }
+  })
 })
 
 describe('PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03)', () => {
@@ -127,6 +167,105 @@ describe('PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03)', () => {
       expect(presentation.label).toBe(label)
       expect(presentation.variant).toBe('info')
       expect(presentation.palette).toBe('indigo')
+    }
+  })
+})
+
+describe('buildMemberBadgeGroups (D-04)', () => {
+  it('returns exactly 4 groups in the fixed roles/progress/membership/special order when all groups are populated', async () => {
+    const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
+    const groupCatalog: MemberBadgeCatalogItem[] = [
+      { badge_code: 'a', label: 'A', badge_category: 'x' },
+      { badge_code: 'b', label: 'B', badge_category: 'x' },
+      { badge_code: 'c', label: 'C', badge_category: 'x' },
+      { badge_code: 'd', label: 'D', badge_category: 'x' },
+    ]
+    const groupByCode: Record<string, string> = { a: 'roles', b: 'progress', c: 'membership', d: 'special' }
+    const getPresentation = (badgeCode: string) => fakePresentation({ group: groupByCode[badgeCode] })
+
+    const groups = buildMemberBadgeGroups(groupCatalog, getPresentation)
+
+    expect(groups.map((group) => group.key)).toEqual(['roles', 'progress', 'membership', 'special'])
+  })
+
+  it('hides groups with zero visible badges entirely instead of returning them empty', async () => {
+    const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
+    const groupCatalog: MemberBadgeCatalogItem[] = [
+      { badge_code: 'a', label: 'A', badge_category: 'x' },
+      { badge_code: 'b', label: 'B', badge_category: 'x' },
+    ]
+    const groupByCode: Record<string, string> = { a: 'membership', b: 'roles' }
+    const getPresentation = (badgeCode: string) => fakePresentation({ group: groupByCode[badgeCode] })
+
+    const groups = buildMemberBadgeGroups(groupCatalog, getPresentation)
+
+    expect(groups.map((group) => group.key)).toEqual(['roles', 'membership'])
+    expect(groups.find((group) => group.key === 'progress')).toBeUndefined()
+    expect(groups.find((group) => group.key === 'special')).toBeUndefined()
+  })
+
+  it('merges two synthetic same-roleCode badges into a single Rollen row (Phase 112 compatibility)', async () => {
+    const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
+    const groupCatalog: MemberBadgeCatalogItem[] = [
+      { badge_code: 'role_entry_translator', label: 'Erste Übersetzung', badge_category: 'role_entry' },
+      { badge_code: 'role_volume_translator', label: 'Übersetzungs-Volumen', badge_category: 'role_volume' },
+    ]
+    const getPresentation = () => fakePresentation({ group: 'roles', roleCode: 'translator' })
+
+    const groups = buildMemberBadgeGroups(groupCatalog, getPresentation)
+
+    const rolesGroup = groups.find((group) => group.key === 'roles')
+    expect(rolesGroup).not.toBeUndefined()
+    expect(rolesGroup?.rows).toHaveLength(1)
+    expect(rolesGroup?.rows[0]?.items.map((item) => item.badge_code)).toEqual([
+      'role_entry_translator',
+      'role_volume_translator',
+    ])
+  })
+
+  it('sorts every real catalog badge into the correct group using the real presentation map', async () => {
+    const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
+    const { PUBLIC_MEMBER_BADGE_CATALOG, getMemberBadgePresentation } = await import('./memberBadgeLabels')
+
+    const groups = buildMemberBadgeGroups(
+      PUBLIC_MEMBER_BADGE_CATALOG,
+      getMemberBadgePresentation as unknown as (badgeCode: string) => FakePresentation,
+    )
+    const byKey = Object.fromEntries(groups.map((group) => [group.key, group]))
+
+    const codesInGroup = (key: string) =>
+      (byKey[key]?.rows ?? []).flatMap((row) => row.items.map((item) => item.badge_code))
+
+    expect(codesInGroup('membership')).toEqual(
+      expect.arrayContaining(['founding_member', 'long_term_member']),
+    )
+    expect(codesInGroup('special')).toEqual(
+      expect.arrayContaining(['historical_leader', 'all_rounder', 'verified']),
+    )
+    expect(codesInGroup('progress')).toEqual(
+      expect.arrayContaining([
+        'first_contribution',
+        'productive_bronze',
+        'productive_silver',
+        'productive_gold',
+      ]),
+    )
+
+    const roleCodes = [
+      'role_entry_translator',
+      'role_entry_timer',
+      'role_entry_encoder',
+      'role_entry_typesetter',
+      'role_entry_quality_checker',
+      'role_entry_project_lead',
+      'role_entry_editor',
+      'role_entry_raw_provider',
+    ]
+    expect(codesInGroup('roles')).toEqual(expect.arrayContaining(roleCodes))
+    const rolesGroup = byKey.roles
+    expect(rolesGroup?.rows).toHaveLength(roleCodes.length)
+    for (const row of rolesGroup?.rows ?? []) {
+      expect(row.items).toHaveLength(1)
     }
   })
 })
