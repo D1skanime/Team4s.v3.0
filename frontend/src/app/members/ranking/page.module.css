@@ -1,0 +1,10 @@
+.page {
+  width: min(1280px, 100% - 48px);
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.pointsCell {
+  text-align: right;
+  font-weight: 700;
+}
