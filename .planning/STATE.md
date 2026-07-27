@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 110 context gathered
-last_updated: "2026-07-27T15:14:35.870Z"
+stopped_at: Phase 110 UI-SPEC approved
+last_updated: "2026-07-27T16:21:56.931Z"
 last_activity: 2026-07-27
 progress:
-  total_phases: 103
+  total_phases: 105
   completed_phases: 84
-  total_plans: 460
+  total_plans: 464
   completed_plans: 431
-  percent: 82
+  percent: 80
 ---
 
 # Project State
@@ -747,7 +747,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T15:14:35.823Z
-Stopped at: Phase 110 context gathered
+Last session: 2026-07-27T15:23:47.294Z
+Stopped at: Phase 110 UI-SPEC approved
 Last activity: 2026-07-27
-Resume file: .planning/phases/110-member-badges-ranglisten-ui-und-e2e-abnahme/110-CONTEXT.md
+Resume file: .planning/phases/110-member-badges-ranglisten-ui-und-e2e-abnahme/110-UI-SPEC.md
