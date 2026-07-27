@@ -9373,6 +9373,44 @@ export async function getFansubs(): Promise<FansubGroupListResponse> {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 109 — Punkte-Rangliste (member-point-ranking)
+// ---------------------------------------------------------------------------
+
+export interface MemberPointRankingRow {
+  member_id: number
+  display_name: string
+  slug: string | null
+  total_points: number
+}
+
+export interface MemberPointRankingResponse {
+  data: MemberPointRankingRow[]
+  total: number
+  page: number
+}
+
+/**
+ * Liest die persistierte Punkte-Rangliste (Member -> Netto-Gesamtpunkte,
+ * absteigend sortiert, seitenweise). Keine Auth erforderlich — oeffentlicher
+ * Endpunkt (analog searchArchive/getMemberContributions). Kein UI-Konsument in
+ * Phase 109 (D-03/D-04, deferred nach Phase 110).
+ */
+export async function getMemberPointRanking(page?: number): Promise<MemberPointRankingResponse> {
+  const API_BASE_URL = getApiBaseUrl()
+  const query = new URLSearchParams()
+  if (page && page > 1) query.set('page', String(page))
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/member-point-ranking${query.toString() ? `?${query.toString()}` : ''}`,
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  return response.json() as Promise<MemberPointRankingResponse>
+}
+
+// ---------------------------------------------------------------------------
 // Story-Bild-Upload (Phase 70 — D-01..D-23)
 // ---------------------------------------------------------------------------
 

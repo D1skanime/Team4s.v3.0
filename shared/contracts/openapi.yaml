@@ -8149,6 +8149,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/member-point-ranking:
+    get:
+      tags: [Ranking]
+      summary: Get member point ranking
+      description: >
+        Returns members ordered by persisted net total points, descending. Reads
+        only the materialized member_point_totals table (no runtime aggregation).
+        Unauthenticated public read endpoint.
+      operationId: getMemberPointRanking
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        "200":
+          description: Paginated member point ranking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberPointRankingResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   responses:
     ReleaseReviewBadRequest:
@@ -8201,6 +8231,33 @@ components:
         format: int64
         minimum: 1
   schemas:
+    MemberPointRankingRow:
+      type: object
+      required: [member_id, display_name, slug, total_points]
+      properties:
+        member_id:
+          type: integer
+          format: int64
+        display_name:
+          type: string
+        slug:
+          type: string
+          nullable: true
+        total_points:
+          type: integer
+          format: int64
+    MemberPointRankingResponse:
+      type: object
+      required: [data, total, page]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberPointRankingRow"
+        total:
+          type: integer
+        page:
+          type: integer
     ReleaseReviewImageCategory:
       type: string
       enum: [screenshot, typesetting_karaoke, fun_outtake, other]
