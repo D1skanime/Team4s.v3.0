@@ -110,3 +110,12 @@ None - keine externe Service-Konfiguration noetig. Live-Postgres-Tests (`TestPha
 ---
 *Phase: 109-ranglisten-und-punkteprojektionen*
 *Completed: 2026-07-27*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/migrations/phase109_member_point_totals_test.go
+- FOUND: backend/internal/repository/member_point_totals_repository_test.go
+- FOUND: .planning/phases/109-ranglisten-und-punkteprojektionen/109-01-SUMMARY.md
+- FOUND commit: a0da8419 (Task 1)
+- FOUND commit: 3d67250a (Task 2)
+- FOUND commit: 5008290e (Summary)
