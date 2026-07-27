@@ -203,6 +203,15 @@ Fälle:
   zusammengesetzt; das bestehende horizontale Scroll-Verhalten der Gruppe (`.chain{overflow-x:auto}`)
   bleibt unverändert, keine neue Wrap-/Grid-Logik nötig.
 
+**Visueller Fokus der Zeile (löst Checker-FLAG Dim. 2):** Innerhalb der zusammengeführten Rollen-Zeile
+trägt der **Typ-3-Tier-Chip** (die aktuell höchste erreichte Volumenstufe, z. B. `[Gold · 320+]`) den
+visuellen Fokus — er nutzt die metallische Tier-Palette (Bronze/Silber/Gold/Platin) und ist damit der
+farbstärkste, blickführende Anteil der Zeile. Der **Rollenname-Präfix** (`Übersetzung:`) bleibt bewusst
+sekundär/gedämpft (`--text-secondary`, kein Akzent), und der **Typ-1-Einstiegs-Chip** (`[Erste
+Übersetzung]`) behält seine unveränderte Phase-110-Darstellung als neutraler Einstiegsmarker. Blickführung
+also: Tier-Chip (primär) → Typ-1-Chip (sekundär) → Präfix (Kontext-Label). Fehlt der Typ-3-Anteil (unter
+12 Credits), trägt der Typ-1-Chip den Fokus der Zeile.
+
 ---
 
 ## Registry Safety
