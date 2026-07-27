@@ -532,6 +532,10 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	profile.TotalPoints, loadErr = r.loadTotalPoints(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
 	if appUserID > 0 {
 		profile.RecentMedia, loadErr = r.loadRecentMedia(ctx, appUserID)
 		if loadErr != nil {
@@ -584,7 +588,55 @@ func (r *MemberProfileRepository) loadPublicBadges(ctx context.Context, memberID
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate public badges for member %d: %w", memberID, err)
 	}
+
+	// D-03 (Live-Projektion): role-entry Badges werden NIE in member_badges geschrieben
+	// (kein UpsertMemberBadge-Aufruf) -- sie werden bei jedem Read live aus
+	// release_role_credit_lifecycles neu berechnet, sodass ein reversed Punkt die Badge
+	// sofort auf dem naechsten Read verschwinden laesst. ID bleibt 0, da nichts
+	// downstream Eindeutigkeit dieses Felds fuer diese synthetischen Zeilen voraussetzt.
+	roleRows, err := r.db.Query(ctx, `
+		SELECT DISTINCT role_code
+		FROM release_role_credit_lifecycles
+		WHERE member_id = $1 AND lifecycle_status = 'awarded'
+		ORDER BY role_code
+	`, memberID)
+	if err != nil {
+		return items, fmt.Errorf("load role-entry badges for member %d: %w", memberID, err)
+	}
+	defer roleRows.Close()
+	for roleRows.Next() {
+		var roleCode string
+		if err := roleRows.Scan(&roleCode); err != nil {
+			return nil, fmt.Errorf("scan role-entry badge row for member %d: %w", memberID, err)
+		}
+		items = append(items, models.PublicMemberBadge{ID: 0, BadgeCode: "role_entry_" + roleCode, BadgeCategory: "role_entry"})
+	}
+	if err := roleRows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate role-entry badges for member %d: %w", memberID, err)
+	}
+
 	return items, nil
+}
+
+// loadTotalPoints laedt total_points aus member_point_totals (trigger-maintained, siehe
+// Migration 0139) -- reines SELECT, niemals eine Aggregation ueber point_ledger_entries
+// zur Anfragezeit (D-02, matching des bestehenden Read-only-Konventions). Ein Member ohne
+// jede Ledger-Zeile hat keine member_point_totals-Zeile; in diesem Fall wird 0 statt eines
+// Fehlers zurueckgegeben.
+func (r *MemberProfileRepository) loadTotalPoints(ctx context.Context, memberID int64) (int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx, `
+		SELECT COALESCE(total_points, 0)
+		FROM member_point_totals
+		WHERE member_id = $1
+	`, memberID).Scan(&total)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, fmt.Errorf("load total points for member %d: %w", memberID, err)
+	}
+	return total, nil
 }
 
 func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx context.Context, normalizedSlug string) (*publicMemberProfileBaseRow, error) {

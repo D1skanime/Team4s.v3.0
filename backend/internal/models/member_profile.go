@@ -257,6 +257,7 @@ type PublicMemberProfile struct {
 	BackgroundImage            *MemberProfileBgImage              `json:"background_image,omitempty"`
 	Memberships                []MemberProfileMembership          `json:"memberships"`
 	PublicBadges               []PublicMemberBadge                `json:"public_badges"`
+	TotalPoints                int64                              `json:"total_points"`
 	RecentMedia                []MemberProfileRecentMedia         `json:"recent_media"`
 	RecentContributions        []MemberProfileRecentContribution  `json:"recent_contributions"`
 	CurrentProjects            []PublicMemberCurrentProject       `json:"current_projects"`

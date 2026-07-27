@@ -10911,6 +10911,7 @@ components:
         - profile_visibility
         - memberships
         - public_badges
+        - total_points
         - recent_media
         - recent_contributions
         - current_projects
@@ -10970,6 +10971,12 @@ components:
             Nur visibility='public' AND status='active'. Kein separater Endpoint.
           items:
             $ref: "#/components/schemas/PublicMemberBadge"
+        total_points:
+          type: integer
+          format: int64
+          description: >
+            Aggregierter Punktestand aus member_point_totals (trigger-maintained,
+            Phase 109/D-02). Nie zur Anfragezeit aus point_ledger_entries neu aggregiert.
         recent_media:
           type: array
           items:
