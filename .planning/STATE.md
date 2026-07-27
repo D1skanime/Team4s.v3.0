@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 110-01-PLAN.md
-last_updated: "2026-07-27T17:52:09.823Z"
+stopped_at: Phase 113 context gathered
+last_updated: "2026-07-27T18:00:05.238Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 105
@@ -749,7 +749,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T17:52:09.783Z
-Stopped at: Completed 110-01-PLAN.md
+Last session: 2026-07-27T18:00:05.062Z
+Stopped at: Phase 113 context gathered
 Last activity: 2026-07-27
-Resume file: None
+Resume file: .planning/phases/113-wiederholbare-leistungs-badges-bronze-silber-gold/113-CONTEXT.md
