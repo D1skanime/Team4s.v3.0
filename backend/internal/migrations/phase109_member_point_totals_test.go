@@ -34,7 +34,7 @@ func TestPhase109MigrationUpContract(t *testing.T) {
 		"on conflict (member_id) do update",
 		"total_points = member_point_totals.total_points + new.point_value",
 		"before insert or update or delete on member_point_totals",
-		"pg_trigger_depth() = 0",
+		"pg_trigger_depth() <= 1",
 		"raise exception",
 	)
 

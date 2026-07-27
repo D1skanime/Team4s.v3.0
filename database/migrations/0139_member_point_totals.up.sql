@@ -25,7 +25,7 @@ FOR EACH ROW EXECUTE FUNCTION apply_point_ledger_entry_to_member_total();
 CREATE FUNCTION guard_member_point_totals_mutation() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
-    IF pg_trigger_depth() = 0 THEN
+    IF pg_trigger_depth() <= 1 THEN
         RAISE EXCEPTION 'member_point_totals is maintained exclusively by the point_ledger_entries trigger';
     END IF;
     RETURN COALESCE(NEW, OLD);
