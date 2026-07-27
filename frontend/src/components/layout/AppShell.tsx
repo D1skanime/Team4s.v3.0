@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  Trophy,
   UserCircle,
   Users,
   X,
@@ -118,6 +119,7 @@ function AppShellNavGroups({
 }) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
+    { label: 'Rangliste', href: '/members/ranking', icon: <Trophy size={17} />, current: isCurrent(currentPath, '/members/ranking') },
     { label: 'Dashboard', icon: <LayoutDashboard size={17} />, disabled: true, badge: 'bald' },
   ]
   const adminItems: AppShellNavItem[] = canAccessAdmin
@@ -183,6 +185,7 @@ function AppShellAnonNavGroups({
 }) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
+    { label: 'Rangliste', href: '/members/ranking', icon: <Trophy size={17} />, current: isCurrent(currentPath, '/members/ranking') },
     { label: 'Fansub-Gruppen', icon: <Users size={17} />, disabled: true, badge: 'bald' },
     { label: 'Suche', icon: <Compass size={17} />, disabled: true, badge: 'bald' },
   ]
