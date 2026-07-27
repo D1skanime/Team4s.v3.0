@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Phase 109 context gathered
-last_updated: "2026-07-26T17:13:57.755Z"
-last_activity: 2026-07-24
+last_updated: "2026-07-27T12:11:25.050Z"
+last_activity: 2026-07-27
 progress:
   total_phases: 103
   completed_phases: 83
-  total_plans: 457
+  total_plans: 460
   completed_plans: 428
   percent: 81
 ---
@@ -741,5 +741,5 @@ Recent durable decisions:
 
 Last session: 2026-07-26T17:13:57.725Z
 Stopped at: Phase 109 context gathered
-Last activity: 2026-07-24
+Last activity: 2026-07-27
 Resume file: .planning/phases/109-ranglisten-und-punkteprojektionen/109-CONTEXT.md
