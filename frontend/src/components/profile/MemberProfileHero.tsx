@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { CalendarDays, Eye, Save } from 'lucide-react'
 
-import { Button, PageHeader } from '@/components/ui'
+import { Button, HeroMetrics, PageHeader } from '@/components/ui'
 import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile'
 
 import { VerifiedBadge } from './VerifiedBadge'
@@ -54,6 +54,10 @@ function getProfileStatus(
   return null
 }
 
+function getTotalPoints(profile: MemberProfileData | PublicMemberProfileData): number | null {
+  return 'total_points' in profile ? profile.total_points : null
+}
+
 function deriveKnownForFromPublicProfile(profile: MemberProfileData | PublicMemberProfileData): KnownForResult {
   if (!('current_projects' in profile)) return { activeYears: '', topRoles: [], knownGroups: [] }
 
@@ -90,6 +94,7 @@ export function MemberProfileHero({
   const publicActivityLabel = isPublicView ? formatPublicActivity(profile) : ''
   const profileStatus = getProfileStatus(profile)
   const knownFor = deriveKnownForFromPublicProfile(profile)
+  const totalPoints = getTotalPoints(profile)
 
   if (isPublicView && profileStatus === 'memorial' && 'profile_status' in profile) {
     return (
@@ -168,6 +173,9 @@ export function MemberProfileHero({
               <MemberStatusPill status={profileStatus} />
             ) : null}
           </h2>
+          {isPublicView && totalPoints !== null ? (
+            <HeroMetrics items={[{ label: 'Punkte', value: totalPoints }]} ariaLabel="Mitglied-Punktzahl" />
+          ) : null}
           {profile.bio ? (
             <p>{profile.bio}</p>
           ) : !isPublicView ? (

@@ -56,6 +56,9 @@ function toPublicProfile(profile: MemberProfileData): PublicMemberProfileData {
     memberships: profile.memberships ?? [],
     // Badges werden im Own-Profile-Vorschau-Kontext nicht benoetigt (kein public_badges im own-profile DTO)
     public_badges: [],
+    // total_points ist nicht Teil des own-profile DTOs (MemberProfileData); 0 als sicherer Vorschau-Fallback,
+    // analog zum public_badges-Fallback oben (Plan 110-03, D-02).
+    total_points: 0,
     recent_media: profile.recent_media ?? [],
     recent_contributions: profile.recent_contributions ?? [],
   }

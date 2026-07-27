@@ -98,6 +98,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
     public_badges: [
       { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
     ],
+    total_points: 0,
     recent_media: [],
     recent_contributions: [],
     current_projects: [
