@@ -109,3 +109,10 @@ None for the code itself. To fully live-verify these four Postgres-backed tests 
 ---
 *Phase: 110-member-badges-ranglisten-ui-und-e2e-abnahme*
 *Completed: 2026-07-27*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/repository/member_profile_repository_postgres_test.go
+- FOUND: .planning/phases/110-member-badges-ranglisten-ui-und-e2e-abnahme/110-02-SUMMARY.md
+- FOUND commit: 9d08a840 (test)
+- FOUND commit: eb6bc980 (feat)
