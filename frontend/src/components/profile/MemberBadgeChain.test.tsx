@@ -67,4 +67,66 @@ describe('MemberBadgeChain', () => {
     const chain = screen.getByRole('list', { name: 'Auszeichnungen' })
     expect(within(chain).queryByText(/Bronze|Silber|Gold/i)).toBeNull()
   })
+
+  it('renders a role-entry badge in locked state by default (D-03)', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const roleEntryCatalog: MemberBadgeCatalogItem[] = [
+      ...catalog,
+      { badge_code: 'role_entry_translator', label: 'Erste Übersetzung', badge_category: 'role_entry' },
+    ]
+
+    render(
+      <MemberBadgeChain earnedBadges={[]} catalog={roleEntryCatalog} />,
+    )
+
+    expect(screen.getByLabelText('Erste Übersetzung gesperrt')).not.toBeNull()
+  })
+
+  it('renders a role-entry badge in earned state the moment it is in earnedBadges (D-03)', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const roleEntryCatalog: MemberBadgeCatalogItem[] = [
+      ...catalog,
+      { badge_code: 'role_entry_translator', label: 'Erste Übersetzung', badge_category: 'role_entry' },
+    ]
+
+    render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 0, badge_code: 'role_entry_translator', badge_category: 'role_entry' }]}
+        catalog={roleEntryCatalog}
+      />,
+    )
+
+    expect(screen.queryByLabelText('Erste Übersetzung gesperrt')).toBeNull()
+    expect(screen.getByText('Erste Übersetzung')).not.toBeNull()
+  })
+})
+
+describe('PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03)', () => {
+  it('contains all 8 locked role_entry_* codes with correct German labels', async () => {
+    const { PUBLIC_MEMBER_BADGE_CATALOG, MEMBER_BADGE_PRESENTATIONS } = await import('./memberBadgeLabels')
+
+    const expected: Record<string, string> = {
+      role_entry_translator: 'Erste Übersetzung',
+      role_entry_timer: 'Erstes Timing',
+      role_entry_encoder: 'Erster Encode',
+      role_entry_typesetter: 'Erstes Typesetting',
+      role_entry_quality_checker: 'Erste Qualitätsprüfung',
+      role_entry_project_lead: 'Erste Dokumentation als Projektleitung',
+      role_entry_editor: 'Erstes Editing',
+      role_entry_raw_provider: 'Erste Raw-Bereitstellung',
+    }
+
+    for (const [badgeCode, label] of Object.entries(expected)) {
+      const catalogEntry = PUBLIC_MEMBER_BADGE_CATALOG.find((item) => item.badge_code === badgeCode)
+      expect(catalogEntry).not.toBeUndefined()
+      expect(catalogEntry?.label).toBe(label)
+      expect(catalogEntry?.badge_category).toBe('role_entry')
+
+      const presentation = MEMBER_BADGE_PRESENTATIONS[badgeCode]
+      expect(presentation).not.toBeUndefined()
+      expect(presentation.label).toBe(label)
+      expect(presentation.variant).toBe('info')
+      expect(presentation.palette).toBe('indigo')
+    }
+  })
 })
