@@ -2509,19 +2509,26 @@ Plans:
   5. Anime-Stammdatenmedien bleiben reine Plattform-Administration ohne Member-Punkte. Bestehende Medien- und Textflüsse werden wiederverwendet und nicht in ein Universalmodell gezwungen.
   6. Quellenadapter besitzen fokussierte Contract-/Repository-Tests und verändern bestehende öffentliche oder administrative Darstellung nicht unbeabsichtigt.
 
-### Phase 109: Historischer Import und Ranglisten
+### Phase 109: Ranglisten und Punkteprojektionen
 
-**Goal:** Bestätigte historische Leistung vollständig und fair rückwirkend anerkennen und daraus performante globale, gruppenbezogene und kategoriale Ranglisten ableiten.
-**Requirements:** Phasen 106–108; bestätigte historische Membership-/Contribution-Daten.
+**Goal:** Aus dem bestehenden Punktebuch performante globale, gruppenbezogene, kategoriale und zeitbezogene Ranglisten ableiten, historische Mitglieder ohne Account gleichwertig berücksichtigen und spätere Claims identitätsstabil abbilden, ohne Import, Backfill oder Erhalt bestehender Testdaten.
+**Requirements:** Phasen 106–108; kanonisches Punktebuch sowie bestehende Member- und Claim-Strukturen; keine Import-, Backfill- oder Bestandsdatenlogik.
 **Depends on:** Phase 106, Phase 107, Phase 107.1, Phase 108
+**Status**: Per 109-CONTEXT.md (2026-07-26, User-Entscheidung D-03/D-04) auf das globale Allzeit-Total reduziert — keine Gruppen-/Kategorie-/Zeitraum-Ranglisten, keine Aufschlüsselung, keine UI/Badges in dieser Phase; diese bleiben für Phase 110 zurückgestellt. Die Success Criteria unten spiegeln den ursprünglichen breiteren Roadmap-Rahmen; 109-CONTEXT.md ist für die Planung maßgeblich.
+**Plans:** 3 plans
+Plans:
+
+- [ ] `109-01-PLAN.md` — Wave-0-Testgerüst (RED): Migrations-Contract-Test für 0139 + Repository-Concurrency-/Reversal-/Ranking-Test
+- [ ] `109-02-PLAN.md` — Migration 0139 (Tabelle + AFTER-INSERT-Fortschreibungs-Trigger + Guard-Trigger) + MemberPointTotalsRepository.ListRanking (GREEN)
+- [ ] `109-03-PLAN.md` — Handler + Routenregistrierung (`/api/v1/member-point-ranking`) + OpenAPI-Contract + Frontend-Typen/API-Helper
+
 **Success Criteria** (what must be TRUE):
 
-  1. Bestehende bestätigte Release-/Projekt-Mitwirkungen werden einmalig und idempotent mit denselben Regelwerten wie neue gleichartige Beiträge importiert; ungeklärte oder unbestätigte Angaben bleiben punktelos.
-  2. Historische Members ohne Account erscheinen mit Name, Punkten, Rollen, Gruppenbezug und Badges in Ranglisten, jedoch ohne erfundenen Profil-Link.
-  3. Ein später bestätigter Claim verbindet den Account mit derselben Member-Identität; Punkte, Badges und Ranglistenverlauf bleiben erhalten und werden weder kopiert noch neu erzeugt.
-  4. Es gibt globale und gruppenbezogene Ranglisten sowie Allzeit-, Kategorie- und aktuelle Zeitraumansichten. Historische Imports dürfen aktuelle Monats-/Jahresaktivität nicht künstlich dominieren.
-  5. Ranglisten werden aus dem Punktebuch reproduzierbar abgeleitet oder kontrolliert voraggregiert; Pagination, stabile Sortierung und Lasttests verhindern teure Vollberechnungen pro Request.
-  6. Beispielszenarien belegen Fairness: langjährige historische Release-Arbeit kann mehr Gesamtpunkte ergeben als wenige aktuelle Release-Mitwirkungen plus einzelne bestätigte Pflegebeiträge.
+  1. Ranglisten basieren ausschließlich auf wirksamen Buchungen des kanonischen Punktebuchs; es entsteht keine Import-, Backfill- oder Bestandsdatenlogik.
+  2. Historische Members ohne Account erscheinen über ihre stabile Member-Identität mit Name, Punkten sowie Gruppen- und Rollenkontext, jedoch ohne erfundenen Profil-Link.
+  3. Ein später bestätigter Claim verbindet den Account mit derselben Member-Identität; Punkte und Ranglistenverlauf bleiben erhalten und werden weder kopiert noch neu erzeugt.
+  4. Globale, gruppenbezogene und kategoriale Ranglisten unterstützen Allzeit und aktuelle Zeiträume; heute erfasste historische Arbeit wird nicht fälschlich als heutige Aktivität gewertet.
+  5. Stabile Sortierung, Pagination, kontrollierte Voraggregation und Lasttests verhindern teure Vollberechnungen sowie API-Fan-out pro Ranglistenzeile.
 
 ### Phase 110: Member-Badges, Ranglisten-UI und E2E-Abnahme
 
