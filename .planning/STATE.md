@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 109 context gathered
-last_updated: "2026-07-27T12:11:25.050Z"
+stopped_at: Completed 109-01-PLAN.md
+last_updated: "2026-07-27T12:56:53.852Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 103
   completed_phases: 83
   total_plans: 460
-  completed_plans: 428
+  completed_plans: 429
   percent: 81
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 108 — bestehende-beitragsquellen-anbinden
+**Current focus:** Phase 109 — ranglisten-und-punkteprojektionen
 
 ## Current Position
 
-Phase: 108 (bestehende-beitragsquellen-anbinden) — EXECUTING
-Plan: 6 of 8
+Phase: 109 (ranglisten-und-punkteprojektionen) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -380,6 +380,7 @@ Recent durable decisions:
 - [Phase 108]: Generic contribution POST/PATCH/DELETE are project-only; complete-set PUT is the sole release crew mutation. — Prevents release ownership moves through generic project endpoints.
 - [Phase 108]: Only confirmed-before or confirmed-after project mutations synchronize inherited snapshots and point diffs. — Non-confirmed rows are review state, not effective crew truth.
 - [Phase 108]: One PointService-backed ReleaseCrewService instance is shared by all Phase-108 handlers and both release creators. — Eliminates runtime bypasses and duplicate transaction policy.
+- [Phase 109-01]: Repository-Test seedet zusaetzliche point_rules-Zeile (id=102, point_value=5) fuer den Ranking-Tie-Break-Test, da validate_point_ledger_insert (0131) RulePointValue gegen die referenzierte Regel prueft.
 
 ### Pending Todos
 
@@ -658,6 +659,7 @@ Recent durable decisions:
 | Phase 108 P04 | 25 min | 2 tasks | 12 files |
 | Phase 108 P05 | 12 min | 2 tasks | 11 files |
 | Phase 108 P08 | 7 min | 2 tasks | 9 files |
+| Phase 109 P01 | 35min | 2 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -739,7 +741,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-26T17:13:57.725Z
-Stopped at: Phase 109 context gathered
+Last session: 2026-07-27T12:56:53.813Z
+Stopped at: Completed 109-01-PLAN.md
 Last activity: 2026-07-27
-Resume file: .planning/phases/109-ranglisten-und-punkteprojektionen/109-CONTEXT.md
+Resume file: None
