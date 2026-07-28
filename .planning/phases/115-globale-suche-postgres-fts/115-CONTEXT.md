@@ -101,6 +101,38 @@ konkrete Umsetzung geplant/begonnen.
   (Suchlatenz, #Dokumente, Tippfehlerqualität, Facetten-Kosten, PG-Ressourcen, Ranking-Aufwand,
   gewünschte Search-as-you-type-Qualität).
 
+### D-11 Analyse-Korrekturen + Nutzerentscheidungen (MASSGEBLICH — echter Code schlägt Auftrags-Annahmen)
+
+> Grundsatz des Nutzers: Das ursprüngliche Konzept ist ein Auftrag aus einer Diskussion, der den
+> echten Code/die echten Tabellen nicht kannte. Wo die Analyse (115-RESEARCH.md) Annahmen des
+> Konzepts korrigiert, gilt die **Realität im Code**, nicht die angenommene Bezeichnung.
+
+- **Korrektur „zwei Suche-Nav-Punkte":** Es gibt real nur **einen** toten „Suche"-Eintrag, und
+  nur im **anonymen** Drawer (`AppShell.tsx:190`); der eingeloggte Drawer hat **keinen**. AppShell
+  ist eine responsive Komponente (kein separates Desktop/Mobile). → Die Phase muss „Suche" in
+  **beiden** Shell-Varianten (anonym + eingeloggt) bereitstellen.
+- **Genre = „der zweite Begriff neben Tag"** (Migrationskommentar „Tags … analogous to genres").
+  **`themes`** ist eine **andere** Domäne (OP/ED-Videosegmente) und darf NICHT mit Genre/Tag
+  vermischt werden.
+- **Extensions:** Nur **`pg_trgm`** aktiv; **`unaccent` ist NICHT aktiviert** → muss für Akzent-
+  Normalisierung neu aktiviert werden. Keine FTS-/Trigram-Indizes auf Suchfeldern vorhanden.
+- **Bestehende Basis-Suche:** Auf `GET /api/v1/anime` und `/api/v1/fansubs` existiert bereits
+  eine (unindexierte) Teiltreffer-Suche (`anime.go:370-377`, `fansub_repository.go:1338-1362`),
+  bisher nur intern genutzt — als Pattern-Vorlage, aber genau die `LIKE`-Art, die abgelöst wird.
+
+**Nutzerentscheidungen zu den drei offenen Fragen:**
+- **(1) Aufgelöste Gruppen (`dissolved`) ERSCHEINEN** in der Suche.
+- **(2) Suche arbeitet auf dem REALEN DB-Bestand, keine angenommene Struktur:** Haupttitel aus
+  **`anime.title`** (dort verlässlich), Sprachtitel `de`/`en` aus `anime_titles` (dort korrekt
+  gepflegt). Der Romaji-Haupttitel-Schreibpfad ist defekt (`admin_content_anime_metadata.go:51`);
+  das ist ein **separates, bekanntes Problem** — **nicht Teil** dieser Suchphase und kein Verlass
+  auf den kaputten Pfad. Nichts über Tabellennamen/-inhalte annehmen, was nicht verifiziert ist.
+- **(3) Fansub-„Kürzel"/alternative/frühere Namen = das Alias-System** (`fansub_group_aliases`,
+  in der Edit-UI als **„Tag"** beschriftet, via `getFansubAliases`/`createFansubAlias`). Es gibt
+  **keine** separate „Kürzel"-Spalte und es wird **keine erfunden**. D-05-Ranking „exaktes Kürzel"
+  → exakter Treffer auf `fansub_group_aliases.normalized_alias`; „alternativer/früherer Name" →
+  ebenfalls Aliase.
+
 ### Claude's Discretion
 - Konkrete API-/DTO-/Interface-Form nach bestehenden Konventionen; Ob/Wie die `SearchProvider`-
   Abstraktion eingeführt wird (nur wenn pattern-konform, kein Overengineering).
