@@ -345,11 +345,11 @@ WHERE member_id = $1
 | A5 | „Release" == `release_version` (Ledger-Granularität), nicht `fansub_release`/Episode | Familie-1-Query | MITTEL — CONTEXT D-02 nennt das ausdrücklich als offene Research-Frage; Ledger keyt auf release_version_id, daher naheliegend. |
 | A6 | Familie-3-Count ignoriert review_status/visibility (nur deleted_at) | Code Examples / Anti-Patterns | NIEDRIG — D-04 ist hier explizit. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Familie-1 Release-Mengen-Definition (A1).** Siehe Pitfall 1. Empfehlung: Definition (1) (ledger-verankert). Für `discuss-phase`/Planner zur Bestätigung.
-2. **Chronist-Tabellenmenge (A2/A3).** Nur `release_version_notes` oder zusätzlich die zwei Seam-Tabellen? Und zählen interne (`visibility='internal'`) veröffentlichte Notizen? Empfehlung: `release_version_notes` als Pflicht-Kern; Seam-Tabellen additiv, visibility-unabhängig.
-3. **Anzeigeort im /me-Profil.** D-05 verortet die Gruppe in der öffentlichen `MemberBadgeChain`. Offen (klein): Soll das eigene `/me/profile` ebenfalls eine (read-only, ungetoggelte) Vorschau dieser Gruppe zeigen? Aktuell zeigt `/me` nur die toggle-basierte `AchievementBadgesCard` (persistierte Badges). Empfehlung: außerhalb Scope belassen, sofern nicht ausdrücklich gewünscht.
+1. **Familie-1 Release-Mengen-Definition (A1).** → **RESOLVED durch CONTEXT D-02:** „Release-Menge des Projekts" = nur die **ledger-erfassten** `release_versions` (≥1 awarded Credit von irgendwem), NICHT literal jede `release_version`. Siehe Pitfall 1. Von Planner 113-01 Task 2 umgesetzt.
+2. **Chronist-Tabellenmenge (A2/A3).** → **RESOLVED durch CONTEXT D-03:** alle drei Tabellen — `release_version_notes` (Pflicht-Kern via `member_id`) + additiv `anime_fansub_project_notes` + `fansub_group_notes` via Seam; Gate `status='published' AND deleted_at IS NULL`, **visibility-unabhängig**. Member-Story zählt nicht.
+3. **Anzeigeort im /me-Profil.** → **RESOLVED durch CONTEXT D-05:** Gruppe „Beiträge" erscheint ausschließlich in der öffentlichen `MemberBadgeChain`; eine `/me`-Vorschau bleibt außerhalb Scope (die Toggle-Fläche `AchievementBadgesCard` zeigt sie bewusst NICHT).
 
 ## Environment Availability
 
