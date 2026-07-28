@@ -26,6 +26,7 @@ type stubCapabilityAuthzRepo struct {
 	grantErr              error
 	revokeErr             error
 	matrixRoles           []repository.CapabilityMatrixRoleEntry
+	globalRoleCounts      map[string]int
 }
 
 func (s *stubCapabilityAuthzRepo) AppUserHasGlobalRole(_ context.Context, _ int64, _ string) (bool, error) {
@@ -61,6 +62,10 @@ func (s *stubCapabilityAuthzRepo) CountRolesWithAction(_ context.Context, _ stri
 
 func (s *stubCapabilityAuthzRepo) LoadRoleCapabilities(_ context.Context) (map[string][]permissions.Action, error) {
 	return nil, nil
+}
+
+func (s *stubCapabilityAuthzRepo) CountGlobalRoleAssignments(_ context.Context) (map[string]int, error) {
+	return s.globalRoleCounts, nil
 }
 
 // stubCapabilityPermissionSvc ist ein minimaler PermissionSvc-Stub für Tests.
@@ -399,8 +404,10 @@ func TestListCapabilityMatrixAssignableEnrichment(t *testing.T) {
 		t.Fatalf("response body parsen fehlgeschlagen: %v\nbody: %s", err, rec.Body.String())
 	}
 
-	if len(response.Roles) != 2 {
-		t.Fatalf("erwartet 2 Rollen im Response, erhalten %d", len(response.Roles))
+	// 2 Stub-Rollen + 3 synthetische globale App-Rollen-Zeilen (platform_admin/content_admin/user),
+	// die ListCapabilityMatrix seit D-05 (111-01) unconditionally voranstellt.
+	if len(response.Roles) != 5 {
+		t.Fatalf("erwartet 5 Rollen im Response (2 Stub + 3 synthetisch), erhalten %d", len(response.Roles))
 	}
 
 	for _, role := range response.Roles {
@@ -412,6 +419,97 @@ func TestListCapabilityMatrixAssignableEnrichment(t *testing.T) {
 		if *role.Assignable != expectedAssignable {
 			t.Fatalf("Rolle %q: erwartet assignable=%v (laut permissions.IsKnownFansubGroupRole), erhalten %v",
 				role.RoleCode, expectedAssignable, *role.Assignable)
+		}
+	}
+}
+
+// TestListCapabilityMatrixIncludesSyntheticGlobalRoleEntries prüft, dass ListCapabilityMatrix
+// zusätzlich zu den role_definitions-Zeilen drei synthetische globale App-Rollen-Zeilen
+// (platform_admin/content_admin/user) mit role_kind="global_app_role" und dem korrekten
+// global_assignment_count aus CountGlobalRoleAssignments liefert (D-05, 111-RESEARCH.md
+// Pitfall 1). Eine bestehende role_definitions-Zeile (fansub_lead) darf dabei ihr
+// role_kind="" und global_assignment_count=null (abwesend) behalten.
+func TestListCapabilityMatrixIncludesSyntheticGlobalRoleEntries(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	stubRoles := []repository.CapabilityMatrixRoleEntry{
+		{RoleCode: "fansub_lead", LabelDE: "Fansub-Leitung", Actions: []repository.CapabilityMatrixActionState{}},
+	}
+
+	c, rec := makeCapabilityTestContext(http.MethodGet, "/admin/role-capabilities",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+
+	authzStub := &stubCapabilityAuthzRepo{
+		isPlatformAdmin: true,
+		matrixRoles:     stubRoles,
+		// Bewusst ohne "user"-Eintrag, um den Default-0-Fall zu prüfen.
+		globalRoleCounts: map[string]int{"platform_admin": 3, "content_admin": 0},
+	}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+	h.ListCapabilityMatrix(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet 200, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+	}
+
+	var response struct {
+		Roles []struct {
+			RoleCode              string `json:"role_code"`
+			RoleKind              string `json:"role_kind"`
+			GlobalAssignmentCount *int   `json:"global_assignment_count"`
+		} `json:"roles"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+		t.Fatalf("response body parsen fehlgeschlagen: %v\nbody: %s", err, rec.Body.String())
+	}
+
+	if len(response.Roles) != 4 {
+		t.Fatalf("erwartet 4 Rollen (1 role_definitions + 3 synthetisch), erhalten %d", len(response.Roles))
+	}
+
+	expectedCounts := map[string]int{"platform_admin": 3, "content_admin": 0, "user": 0}
+	syntheticSeen := map[string]bool{}
+
+	for _, role := range response.Roles {
+		if role.RoleCode == "fansub_lead" {
+			if role.RoleKind != "" {
+				t.Fatalf("fansub_lead: erwartet role_kind='', erhalten %q", role.RoleKind)
+			}
+			if role.GlobalAssignmentCount != nil {
+				t.Fatalf("fansub_lead: erwartet global_assignment_count=null, erhalten %v", *role.GlobalAssignmentCount)
+			}
+			continue
+		}
+
+		expectedCount, isSynthetic := expectedCounts[role.RoleCode]
+		if !isSynthetic {
+			t.Fatalf("unerwarteter role_code %q in Response", role.RoleCode)
+		}
+		syntheticSeen[role.RoleCode] = true
+
+		if role.RoleKind != "global_app_role" {
+			t.Fatalf("Rolle %q: erwartet role_kind='global_app_role', erhalten %q", role.RoleCode, role.RoleKind)
+		}
+		if role.GlobalAssignmentCount == nil {
+			t.Fatalf("Rolle %q: erwartet global_assignment_count gesetzt, erhalten nil", role.RoleCode)
+		}
+		if *role.GlobalAssignmentCount != expectedCount {
+			t.Fatalf("Rolle %q: erwartet global_assignment_count=%d, erhalten %d", role.RoleCode, expectedCount, *role.GlobalAssignmentCount)
+		}
+	}
+
+	for roleCode := range expectedCounts {
+		if !syntheticSeen[roleCode] {
+			t.Fatalf("erwartete synthetische Rolle %q fehlt in Response", roleCode)
 		}
 	}
 }
