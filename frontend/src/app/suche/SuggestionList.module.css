@@ -1,0 +1,57 @@
+.dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: var(--space-2);
+  box-shadow: var(--shadow-md);
+}
+
+.listbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--surface-card-muted);
+}
+
+/* Accent (--color-primary) markiert ausschließlich die per Tastatur aktive Option. */
+.rowActive {
+  background: var(--surface-card-muted);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.rowTitle {
+  color: var(--text-body);
+  font-weight: 600;
+}
+
+.rowMeta {
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.allRow {
+  justify-content: flex-start;
+  margin-top: var(--space-1);
+}
