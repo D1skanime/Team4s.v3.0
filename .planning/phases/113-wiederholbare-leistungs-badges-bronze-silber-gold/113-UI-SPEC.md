@@ -1,10 +1,11 @@
 ---
 phase: 113
 slug: wiederholbare-leistungs-badges-bronze-silber-gold
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-28
+reviewed_at: 2026-07-28
 ---
 
 # Phase 113 — UI Design Contract
