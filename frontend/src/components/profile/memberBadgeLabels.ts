@@ -1,22 +1,30 @@
 import {
+  Award,
   BadgeCheck,
   CalendarClock,
   ClipboardList,
   Clock3,
   Cpu,
   Crown,
+  Flag,
+  Flame,
+  Gem,
   HardDrive,
   Hexagon,
   Languages,
   Layers,
+  Medal,
   Scissors,
   Shield,
   ShieldCheck,
   Sparkles,
   Star,
+  Trophy,
   Type,
   type LucideIcon,
 } from 'lucide-react'
+
+import type { PublicMemberBadge } from '@/types/profile'
 
 export type MemberBadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted'
 export type MemberBadgePalette = 'gold' | 'indigo' | 'orange' | 'mint' | 'red'
@@ -60,6 +68,15 @@ export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation>
   role_entry_project_lead: { label: 'Erste Dokumentation als Projektleitung', variant: 'info', Icon: ClipboardList, palette: 'indigo', group: 'roles', roleCode: 'project_lead' },
   role_entry_editor: { label: 'Erstes Editing', variant: 'info', Icon: Scissors, palette: 'indigo', group: 'roles', roleCode: 'editor' },
   role_entry_raw_provider: { label: 'Erste Raw-Bereitstellung', variant: 'info', Icon: HardDrive, palette: 'indigo', group: 'roles', roleCode: 'raw_provider' },
+  // D-01/D-03: Punkt-Meilensteine — nur die statische Map, bewusst NICHT im PUBLIC_MEMBER_BADGE_CATALOG
+  // (kein Locked-Zustand fuer Typ 2; der erreichte Meilenstein fliesst zur Laufzeit ueber den
+  // earned-but-not-in-catalog-Fallback ein, siehe deriveMilestoneBadge).
+  point_milestone_first: { label: 'Erster Beitrag', variant: 'muted', Icon: Flag, palette: 'mint', group: 'progress' },
+  point_milestone_active: { label: 'Aktiver Mitwirkender', variant: 'neutral', Icon: Flame, palette: 'mint', group: 'progress' },
+  point_milestone_experienced: { label: 'Erfahrener Mitwirkender', variant: 'success', Icon: Award, palette: 'orange', group: 'progress' },
+  point_milestone_engaged: { label: 'Engagierter Mitwirkender', variant: 'success', Icon: Medal, palette: 'orange', group: 'progress' },
+  point_milestone_veteran: { label: 'Veteran', variant: 'warning', Icon: Trophy, palette: 'gold', group: 'progress' },
+  point_milestone_legend: { label: 'Archiv-Legende', variant: 'warning', Icon: Gem, palette: 'gold', group: 'progress' },
 }
 
 // D-04: deutsche Gruppen-Labels und feste Anzeigereihenfolge (Rollen zuerst, siehe 110-CONTEXT.md).
@@ -106,4 +123,23 @@ export function getMemberBadgePresentation(badgeCode: string): MemberBadgePresen
       group: 'special',
     }
   )
+}
+
+// D-01: die 6 Punktschwellen sind selbst die Meilenstein-Stufen, absteigend sortiert fuer
+// die "hoechste erreichte Stufe"-Ableitung (identischer Vergleichsstil wie der Go-Pendant
+// highestRoleVolumeTier, siehe RESEARCH Don't-Hand-Roll).
+const POINT_MILESTONES: Array<{ threshold: number; badge_code: string }> = [
+  { threshold: 2500, badge_code: 'point_milestone_legend' },
+  { threshold: 1000, badge_code: 'point_milestone_veteran' },
+  { threshold: 500, badge_code: 'point_milestone_engaged' },
+  { threshold: 200, badge_code: 'point_milestone_experienced' },
+  { threshold: 50, badge_code: 'point_milestone_active' },
+  { threshold: 1, badge_code: 'point_milestone_first' },
+]
+
+// D-01/D-03: liefert NUR den hoechsten erreichten Meilenstein (Einzahl) und null unter 1
+// Punkt — keine Kette. Reine Read-time-Projektion ohne Persistenz/Punktvergabe (GAM-04).
+export function deriveMilestoneBadge(totalPoints: number): PublicMemberBadge | null {
+  const hit = POINT_MILESTONES.find((m) => totalPoints >= m.threshold)
+  return hit ? { id: 0, badge_code: hit.badge_code, badge_category: 'progress' } : null
 }
