@@ -2579,7 +2579,7 @@ Plans:
 **Goal:** Die User-Verwaltung auf `/admin/users` ohne User-Detail-Drawer neu strukturieren. Benutzerdetails, globale Rollen, Member-/Claim-Kontext, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien und Audit werden passend und progressiv offengelegt auf der eigentlichen Seite dargestellt, statt in einen Drawer mit vielen Tabs ausgelagert zu werden. Die fachliche Trennung zu `/admin/role-capabilities` bleibt bestehen: Von den auf der User-Seite angezeigten Rollen führt ein verständlicher Link zur jeweiligen Rollen-/Capability-Detailansicht ("Was darf diese Rolle?"); `/admin/role-capabilities` zeigt pro Rolle einen Impact-Count ("N-mal vergeben") mit Sprung zur passend gefilterten User-Ansicht. Ziel ist eine übersichtliche, direkt navigierbare Benutzerverwaltung ohne überladenen Drawer und ohne die RBAC-Regelverwaltung mit der Personenverwaltung zu verschmelzen. Eigenes UX-Anliegen, nicht Phase 94.
 **Requirements:** Keine REQ-IDs (kein Phase-111-Mapping in REQUIREMENTS.md) — Coverage-Einheit sind die Kontext-Entscheidungen D-01…D-06 aus `111-CONTEXT.md`.
 **Depends on:** Bestehende `/admin/users`- und `/admin/role-capabilities`-Oberflächen
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 
