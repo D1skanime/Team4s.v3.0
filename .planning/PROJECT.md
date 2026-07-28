@@ -64,6 +64,8 @@ Phase 106 completed on 2026-07-22: migration 0131, exakte versionierte Punktrege
 
 Phase 107 completed on 2026-07-23: typisierte Review-Delegationen, atomare First-Decision-Wins-Entscheidungen, unveränderliches Audit mit separat bereinigbaren Begründungen, Self-Review-Schutz und quellenweit begrenzte Review-Credits bilden das verifizierte domänenneutrale Prüffundament. Konkrete Release-Texte, Release-Version-Medien und die Prüfoberfläche folgen in Phase 107.1.
 
+Phase 110 completed on 2026-07-28: die read-seitige Gamification-Oberfläche steht — öffentliche Ranglisten-Seite (`/members/ranking`) über die Phase-109-Projektion (kein Pro-Zeile-API-Fächer), eine prominente Gesamtpunktzahl im Profil-Hero, 8 live-berechnete Rollen-Einstiegs-Badges (Projektion aus `release_role_credit_lifecycles`, nie in `member_badges` persistiert) und eine erweiterbare, kategorie-gruppierte „Auszeichnungen"-Sektion (D-04, Phase-112-vorbereitet). Automatisiert verifiziert; Live-Docker-UAT und die Postgres-Lifecycle-Tests bleiben als Human-UAT offen.
+
 ## Current Milestone: v1.1 Asset Lifecycle Hardening
 
 **Goal:** Make admin-managed media lifecycle behavior generic, idempotent, and operator-safe instead of relying on cover-specific seams.
@@ -100,4 +102,4 @@ Phase 107 completed on 2026-07-23: typisierte Review-Delegationen, atomare First
 | Make asset lifecycle behavior generic before adding more upload surfaces | Prevents banner/logo/background/video work from becoming a pile of slot-specific exceptions | Pending |
 
 ---
-*Last updated: 2026-07-23 after Phase 107 review and delegation foundation completion*
+*Last updated: 2026-07-28 after Phase 110 member-badges & ranking UI completion*
