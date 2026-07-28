@@ -9,6 +9,7 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 
 // --- next/navigation: pro Testfall überschreibbare Mocks ---
@@ -54,57 +55,80 @@ const loadCounters = vi.hoisted(() => ({
   streaming: vi.fn(),
 }) as Record<string, ReturnType<typeof vi.fn>>)
 
+// Lade-Zähler feuern via useEffect (mount-only, leeres Deps-Array) statt im
+// Render-Body — genau wie die echten Tab-Komponenten ihren Datenabruf per
+// useEffect auf Mount auslösen. Ein reiner Render-Body-Call würde auch bei
+// zusätzlichen Re-Renders (ohne echtes Unmount/Remount) mitzählen und einen
+// falschen Re-Fetch vortäuschen (siehe 111-02-SUMMARY.md Deviation).
 vi.mock('../tabs/UserOverviewTab', () => ({
   UserOverviewTab: () => {
-    loadCounters.overview()
+    useEffect(() => {
+      loadCounters.overview()
+    }, [])
     return <div data-testid="tab-overview">overview</div>
   },
 }))
 vi.mock('../tabs/UserGlobalRolesTab', () => ({
   UserGlobalRolesTab: () => {
-    loadCounters.roles()
+    useEffect(() => {
+      loadCounters.roles()
+    }, [])
     return <div data-testid="tab-roles">roles</div>
   },
 }))
 vi.mock('../tabs/UserGroupMembershipsTab', () => ({
   UserGroupMembershipsTab: () => {
-    loadCounters.memberships()
+    useEffect(() => {
+      loadCounters.memberships()
+    }, [])
     return <div data-testid="tab-memberships">memberships</div>
   },
 }))
 vi.mock('../tabs/UserGroupRightsTab', () => ({
   UserGroupRightsTab: () => {
-    loadCounters['group-rights']()
+    useEffect(() => {
+      loadCounters['group-rights']()
+    }, [])
     return <div data-testid="tab-group-rights">group-rights</div>
   },
 }))
 vi.mock('../tabs/UserClaimsTab', () => ({
   UserClaimsTab: () => {
-    loadCounters.claims()
+    useEffect(() => {
+      loadCounters.claims()
+    }, [])
     return <div data-testid="tab-claims">claims</div>
   },
 }))
 vi.mock('../tabs/UserContributionsTab', () => ({
   UserContributionsTab: () => {
-    loadCounters.contributions()
+    useEffect(() => {
+      loadCounters.contributions()
+    }, [])
     return <div data-testid="tab-contributions">contributions</div>
   },
 }))
 vi.mock('../tabs/UserMediaTab', () => ({
   UserMediaTab: () => {
-    loadCounters.media()
+    useEffect(() => {
+      loadCounters.media()
+    }, [])
     return <div data-testid="tab-media">media</div>
   },
 }))
 vi.mock('../tabs/UserAuditTab', () => ({
   UserAuditTab: () => {
-    loadCounters.audit()
+    useEffect(() => {
+      loadCounters.audit()
+    }, [])
     return <div data-testid="tab-audit">audit</div>
   },
 }))
 vi.mock('../tabs/UserStreamingGrantsTab', () => ({
   UserStreamingGrantsTab: () => {
-    loadCounters.streaming()
+    useEffect(() => {
+      loadCounters.streaming()
+    }, [])
     return <div data-testid="tab-streaming">streaming</div>
   },
 }))
@@ -221,15 +245,20 @@ describe('UserDetailPageClient', () => {
 
     const claimsHeader = screen.getByRole('button', { name: 'Member-Profil & Claims' })
 
+    // 1. Öffnen: Sektion wird erstmals geladen (gemountet)
     fireEvent.click(claimsHeader)
-    await waitFor(() => expect(screen.getByTestId('tab-claims')).not.toBeNull())
+    await waitFor(() => expect(claimsHeader.getAttribute('aria-expanded')).toBe('true'))
+    expect(screen.getByTestId('tab-claims')).not.toBeNull()
     expect(loadCounters.claims).toHaveBeenCalledTimes(1)
 
+    // 2. Schließen: Panel bleibt (via keepMountedIds) im DOM, nur visuell
+    //    versteckt — kein Unmount, daher auch kein erneuter Ladeaufruf möglich.
     fireEvent.click(claimsHeader)
-    await waitFor(() => expect(screen.queryByTestId('tab-claims')).toBeNull())
+    await waitFor(() => expect(claimsHeader.getAttribute('aria-expanded')).toBe('false'))
 
+    // 3. Wiederöffnen: kein zweiter Ladeaufruf (Pitfall 3)
     fireEvent.click(claimsHeader)
-    await waitFor(() => expect(screen.getByTestId('tab-claims')).not.toBeNull())
+    await waitFor(() => expect(claimsHeader.getAttribute('aria-expanded')).toBe('true'))
     expect(loadCounters.claims).toHaveBeenCalledTimes(1)
   })
 })

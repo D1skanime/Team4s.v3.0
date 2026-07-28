@@ -25,9 +25,23 @@ export interface AccordionProps {
   openIds?: Set<string>
   /** Controlled-Modus: Callback bei Toggle; erhält die neue Menge offener IDs. */
   onOpenChange?: (next: Set<string>) => void
+  /**
+   * Optional: IDs, deren Panel-Inhalt auch im geschlossenen Zustand im DOM
+   * gemountet bleibt (nur visuell via `hidden` versteckt statt unmounted).
+   * Nützlich für lazy-geladene Inhalte, die beim Wiederöffnen nicht erneut
+   * fetchen sollen (z.B. einmal aktivierte Tab-Komponenten).
+   */
+  keepMountedIds?: Set<string>
 }
 
-export function Accordion({ items, mode = 'multi', className, openIds: controlledOpenIds, onOpenChange }: AccordionProps) {
+export function Accordion({
+  items,
+  mode = 'multi',
+  className,
+  openIds: controlledOpenIds,
+  onOpenChange,
+  keepMountedIds,
+}: AccordionProps) {
   const baseId = useId()
   const isControlled = controlledOpenIds !== undefined
   const [internalOpenIds, setInternalOpenIds] = useState<Set<string>>(new Set())
@@ -54,6 +68,7 @@ export function Accordion({ items, mode = 'multi', className, openIds: controlle
     <div className={classNames(styles.accordionRoot, 'accordionRoot', className)}>
       {items.map((item) => {
         const isOpen = openIds.has(item.id)
+        const isMounted = isOpen || keepMountedIds?.has(item.id) === true
         const headerId = `${baseId}-${item.id}-header`
         const panelId = `${baseId}-${item.id}-panel`
 
@@ -82,12 +97,13 @@ export function Accordion({ items, mode = 'multi', className, openIds: controlle
               </span>
             </button>
 
-            {isOpen ? (
+            {isMounted ? (
               <div
                 id={panelId}
                 role="region"
                 aria-labelledby={headerId}
                 className={styles.accordionPanel}
+                hidden={!isOpen}
               >
                 {item.children}
               </div>
