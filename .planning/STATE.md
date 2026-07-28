@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 110-04-PLAN.md
-last_updated: "2026-07-28T05:52:21.238Z"
+stopped_at: Completed 112-01-PLAN.md
+last_updated: "2026-07-28T06:09:01.409Z"
 last_activity: 2026-07-28
 progress:
-  total_phases: 106
+  total_phases: 107
   completed_phases: 85
   total_plans: 467
-  completed_plans: 435
-  percent: 80
+  completed_plans: 436
+  percent: 79
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 110 — Member-Badges, Ranglisten-UI und E2E-Abnahme
+**Current focus:** Phase 112 — member-punkt-meilenstein-badges
 
 ## Current Position
 
-Phase: 110 (Member-Badges, Ranglisten-UI und E2E-Abnahme) — EXECUTING
-Plan: 4 of 4
+Phase: 112 (member-punkt-meilenstein-badges) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -390,6 +390,7 @@ Recent durable decisions:
 - [Phase 110-03]: getTotalPoints gibt number|null zurueck (kein Default 0), damit die Own-Profile-Edit-Ansicht die Metrik nie rendert
 - [Phase 110-03]: OwnHiddenProfilePreview.toPublicProfile defaultet total_points auf 0, analog zum bestehenden public_badges-Fallback (Own-Profile-DTO hat kein total_points-Feld)
 - [Phase 110-04]: buildMemberBadgeGroups() ist eine reine, injectable Grouping/Row-Merge-Hilfsfunktion; Rollen-Gruppe merged Badges generisch per roleCode, damit Phase 112 Typ-3 Volumen-Badges ohne Component-Umbau andocken
+- [Phase 112-01]: Split-File member_profile_role_volume_repository.go statt Erweiterung der 1875-Zeilen-Datei; Tier-Tokens intern-englisch (bronze/silver/gold/platinum), Label-Aufloesung folgt clientseitig in 112-02
 
 ### Pending Todos
 
@@ -675,6 +676,7 @@ Recent durable decisions:
 | Phase 110 P02 | 25min | 2 tasks | 4 files |
 | Phase 110 P03 | 35min | 2 tasks | 7 files |
 | Phase 110 P04 | 25min | 2 tasks | 4 files |
+| Phase 112 P01 | 9min | 2 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -756,7 +758,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-27T18:33:03.415Z
-Stopped at: Completed 110-04-PLAN.md
+Last session: 2026-07-28T06:09:01.369Z
+Stopped at: Completed 112-01-PLAN.md
 Last activity: 2026-07-28
 Resume file: None
