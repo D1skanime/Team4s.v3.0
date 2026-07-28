@@ -1,0 +1,29 @@
+.page {
+  width: min(1280px, 100% - 48px);
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.logoCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.logoImage {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.logoInitials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-card);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}

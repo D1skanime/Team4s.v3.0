@@ -20,7 +20,7 @@ export interface AvatarStackProps {
   overflowAriaLabel?: string
 }
 
-function initials(label: string) {
+export function initials(label: string) {
   return label
     .trim()
     .split(/\s+/)
