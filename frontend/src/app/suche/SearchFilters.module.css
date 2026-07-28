@@ -1,0 +1,44 @@
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Aktiver Filter-Chip: Accent-Kante (--color-primary) gemäß UI-SPEC Color. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline-end: var(--space-1);
+  border: 1px solid var(--color-primary);
+  color: var(--text-body);
+}
+
+.chipText {
+  line-height: 1.2;
+}
+
+.chipRemove {
+  min-width: auto;
+  padding: 2px;
+}
+
+.reset {
+  align-self: flex-start;
+}
+
+.drawerTrigger {
+  display: inline-flex;
+}
