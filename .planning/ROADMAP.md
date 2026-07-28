@@ -2560,7 +2560,7 @@ Plans:
 - [ ] `110-01-PLAN.md` — Ranglisten-Seite `/members/ranking` (SSR, Table/Pagination/Empty/ErrorState) + Rangliste-Nav-Eintrag in AppShell (D-01)
 - [ ] `110-02-PLAN.md` — Backend-Projektion erweitern: total_points (Go/Repo/OpenAPI) + live-abgeleitete Rollen-Einstiegs-Badges aus release_role_credit_lifecycles (D-02/D-03 Datenschicht)
 - [ ] `110-03-PLAN.md` — Frontend-Anzeige: Punktzahl im MemberProfileHero + 8 Rollen-Einstiegs-Badges im bestehenden MemberBadgeChain-Katalog (D-02/D-03 UI)
-- [ ] `110-04-PLAN.md` — „Auszeichnungen"-Sektion zu kategorie-gruppiertem Container umbauen (Rollen/Fortschritt/Mitgliedschaft/Besondere Auszeichnungen), bestehende + neue Badges einsortieren, generischer Rollen-Zeilen-Merge für Phase 112 (D-04)
+- [x] `110-04-PLAN.md` — „Auszeichnungen"-Sektion zu kategorie-gruppiertem Container umbauen (Rollen/Fortschritt/Mitgliedschaft/Besondere Auszeichnungen), bestehende + neue Badges einsortieren, generischer Rollen-Zeilen-Merge für Phase 112 (D-04) (completed 2026-07-28)
 
 **Success Criteria** (what must be TRUE):
 
@@ -2587,7 +2587,7 @@ Plans:
 **Goal:** Zwei abgeleitete Badge-Familien in die Profil-„Auszeichnungen"-Sektion (Phase 110) einhängen. Typ 2 (Punkt-Meilensteine): Stufen aus der Gesamtpunktzahl (1 / 50 / 200 / 500 / 1 000 / 2 500), nur der höchste erreichte Rang wird gezeigt. Typ 3 (Rollen-Volumen): Bronze/Silber/Gold/Platin pro Rolle nach Anzahl der Release-Version-Credits in dieser Rolle (12 / 108 / 320 / 510), reiht sich neben den Typ-1-Einstieg in die „Rollen"-Gruppe. Beide rein abgeleitete Live-Projektionen (Rückstufung bei Storno), keine Punkte fürs Badge, kein neuer Buchungspfad — dieselben `release_role_work`-Buchungen, für Typ 2 summiert, für Typ 3 pro Rolle gezählt. Typ 1 (Rollen-Einstiege) bleibt Phase 110.
 **Requirements:** Phase 109 (persistierte Punktsumme `member_point_totals`, `release_role_work`-Ledger), Phase 110 (erweiterbare Profil-Badge-Sektion). Badge-Bilder liefert der Nutzer später; vorerst Platzhalter.
 **Depends on:** Phase 109, Phase 110
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 

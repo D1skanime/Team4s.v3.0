@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 113 UI-SPEC approved
-last_updated: "2026-07-28T06:46:34.102Z"
+stopped_at: Completed 112-03-PLAN.md
+last_updated: "2026-07-28T06:47:44.286Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 107
@@ -393,6 +393,7 @@ Recent durable decisions:
 - [Phase 112-01]: Split-File member_profile_role_volume_repository.go statt Erweiterung der 1875-Zeilen-Datei; Tier-Tokens intern-englisch (bronze/silver/gold/platinum), Label-Aufloesung folgt clientseitig in 112-02
 - [Phase ?]: [Phase 112-02]: point_milestone_* Presentations liegen ausschliesslich in der statischen Map, nie im PUBLIC_MEMBER_BADGE_CATALOG (D-03, kein Locked-Zustand).
 - [Phase ?]: [Phase 112-02]: resolveRoleVolumePresentation gibt nur den geparsten roleCode zurueck; die deutsche Rollenname-Aufloesung via FANSUB_GROUP_ROLE_OPTIONS erfolgt erst im Zeilen-Render von Plan 112-03 (MemberBadgeChain.tsx).
+- [Phase ?]: [Phase 112-03]: Rollenname-Praefix als eigener resolveRoleLabel-Helper in MemberBadgeChain.tsx (nicht in memberBadgeLabels.ts) -- 112-02 hatte den Lookup bewusst hierhin verschoben; Praefix rendert einheitlich fuer jede Rollen-Zeile, auch ohne Typ-3-Merge.
 
 ### Pending Todos
 
@@ -680,6 +681,7 @@ Recent durable decisions:
 | Phase 110 P04 | 25min | 2 tasks | 4 files |
 | Phase 112 P01 | 9min | 2 tasks | 3 files |
 | Phase 112 P02 | 6min | 2 tasks | 2 files |
+| Phase 112 P03 | 17min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -761,8 +763,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T06:46:34.039Z
-Stopped at: Phase 113 UI-SPEC approved
+Last session: 2026-07-28T06:47:44.244Z
+Stopped at: Completed 112-03-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
-.planning/phases/113-wiederholbare-leistungs-badges-bronze-silber-gold/113-UI-SPEC.md
+None
