@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 114-03-PLAN.md
-last_updated: "2026-07-28T12:15:57.509Z"
+stopped_at: Completed 111-01-PLAN.md
+last_updated: "2026-07-28T13:49:18.048Z"
 last_activity: 2026-07-28
 progress:
-  total_phases: 108
+  total_phases: 109
   completed_phases: 86
   total_plans: 487
-  completed_plans: 443
-  percent: 80
+  completed_plans: 444
+  percent: 79
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 114 — oeffentliche-fansub-gruppen-uebersicht
+**Current focus:** Phase 111 — user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung
 
 ## Current Position
 
-Phase: 114 (oeffentliche-fansub-gruppen-uebersicht) — EXECUTING
-Plan: 4 of 4
+Phase: 111 (user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -402,6 +402,8 @@ Recent durable decisions:
 - [Phase 114-03]: initials() als benannter Export aus AvatarStack.tsx statt Duplikation in page.tsx
 - [Phase 114-03]: Sortierung client-seitig nach einem einzelnen per_page=500-Fetch (release_versions_count desc, name asc, locale de) statt Server-Pagination
 - [Phase 114-03]: Logo-Fallback-Initialen ueber eigenen .logoInitials-Span statt AvatarStack-Komponente, da AvatarStack fuer ueberlappende Mehrfach-Avatare gedacht ist
+- [Phase 111-01]: Impact-Count (D-05) zaehlt ausschliesslich globale Rollenzuweisungen aus app_user_global_roles (GROUP BY role) -- NICHT ueber RoleEntry.assignable gefiltert (111-RESEARCH.md Pitfall 1).
+- [Phase 111-01]: Die drei synthetischen globalen App-Rollen-Zeilen (platform_admin/content_admin/user, role_kind=global_app_role) werden matrix.Roles vorangestellt (RESEARCH Open Question 2, RESOLVED).
 
 ### Pending Todos
 
@@ -695,6 +697,7 @@ Recent durable decisions:
 | Phase 114 P01 | 35min | 2 tasks | 8 files |
 | Phase 114 P02 | 4min | 2 tasks | 2 files |
 | Phase 114 P03 | 20min | 2 tasks | 4 files |
+| Phase 111 P01 | 25min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -776,8 +779,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T12:15:57.368Z
-Stopped at: Completed 114-03-PLAN.md
+Last session: 2026-07-28T13:49:17.895Z
+Stopped at: Completed 111-01-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
 None
