@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Phase 117 UI-SPEC approved
-last_updated: "2026-07-28T21:25:20.911Z"
+last_updated: "2026-07-28T21:47:35.819Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 109
   completed_phases: 87
   total_plans: 493
-  completed_plans: 451
+  completed_plans: 452
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 115 (globale-suche-postgres-fts) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 
 ## Accumulated Context
 
@@ -411,6 +411,7 @@ Recent durable decisions:
 - [Phase 111-05]: Impact-Count-Link und Rollen-Auswahl-Button liegen als Geschwister-Elemente derselben Card-Row statt verschachtelt (verhindert ungueltiges HTML/Event-Bubbling).
 - [Phase 111-05]: ?role=-Vorauswahl auf /admin/role-capabilities greift per useRef-Guard nur einmalig beim ersten Matrix-Load, nicht bei jedem Refresh nach Grant/Revoke.
 - [Phase ?]: 115-01: Anime-Haupttitel als (ja,main) statt ungueltigem LanguageCode romaji; Romaji/Japanisch als (ja,romaji)/(ja,japanese) — D-12 Write-Path-Fix
+- [Phase ?]: [Phase 115-04]: GET /api/v1/search liefert strukturiertes data {anime,fansub} statt flacher Liste (Repository paginiert je Entitaet unabhaengig); top-level {data,meta}+PaginationMeta wiederverwendet, kein neuer Envelope. sort-Whitelist in v1 nur 'relevance', invalider sort->400.
 
 ### Pending Todos
 
@@ -710,6 +711,7 @@ Recent durable decisions:
 | Phase 111 P04 | 25min | 2 tasks | 4 files |
 | Phase 111 P05 | 35min | 2 tasks | 5 files |
 | Phase 115 P01 | 18 | 2 tasks | 8 files |
+| Phase 115 P04 | ~40 min | 3 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -791,7 +793,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T21:25:20.741Z
+Last session: 2026-07-28T21:46:10.232Z
 Stopped at: Phase 117 UI-SPEC approved
 Last activity: 2026-07-28
 Resume file: 
