@@ -15,7 +15,7 @@ import { MemberBadgeChain } from '@/components/profile/MemberBadgeChain'
 import { LatestContributionsSection } from '@/components/profile/LatestContributionsSection'
 import { MemberStorySection } from '@/components/profile/MemberStorySection'
 import { PreviousContributionsSection } from '@/components/profile/PreviousContributionsSection'
-import { PUBLIC_MEMBER_BADGE_CATALOG } from '@/components/profile/memberBadgeLabels'
+import { PUBLIC_MEMBER_BADGE_CATALOG, deriveMilestoneBadge } from '@/components/profile/memberBadgeLabels'
 import type { PublicMemberProfileData } from '@/types/profile'
 
 import { CorrectionReportModal } from '@/components/profile/CorrectionReportModal'
@@ -88,6 +88,11 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
   const publicBadges = profile.public_badges ?? []
+  // Phase 112 D-01/D-02/D-03: hoechster erreichter Punkt-Meilenstein wird bei jedem SSR-Render
+  // frisch aus total_points abgeleitet (Live-Rueckstufung ohne Persistenz, GAM-04) und additiv
+  // in earnedBadges gemischt; MemberBadgeChain selbst bleibt ohne total_points-Kenntnis.
+  const milestoneBadge = deriveMilestoneBadge(profile.total_points ?? 0)
+  const earnedBadges = milestoneBadge ? [...publicBadges, milestoneBadge] : publicBadges
   const currentProjects = profile.current_projects ?? []
   const latestContributions = profile.latest_contributions ?? []
   const previousContributions = profile.previous_contributions ?? []
@@ -136,7 +141,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
 
       <section className={styles.section} aria-label="Auszeichnungen">
         <MemberBadgeChain
-          earnedBadges={publicBadges}
+          earnedBadges={earnedBadges}
           catalog={PUBLIC_MEMBER_BADGE_CATALOG}
         />
       </section>

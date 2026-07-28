@@ -50,9 +50,12 @@ NICHT Teil der neuen „Beiträge"-Gruppe.
   Story + Release + Medien" wurde verworfen: Story-/Medien-Existenz ist Projekt- statt
   Memberleistung; die durchgängige Beteiligung trägt die Aussage „ich habe dieses Projekt
   komplett mitgetragen" allein.
-- Offen (Research): Granularität „Release" vs. „Release-Version" und wie „alle Releases eines
-  Projekts" aus `release_role_work` + Projekt-/Release-Zuordnung (anime × group) exakt
-  hergeleitet wird.
+- **Release-Menge (bestätigt nach Research A1):** „jedes Release des Projekts" = nur die
+  **ledger-erfassten** `release_versions` des (anime × group), also die mit ≥ 1 awarded
+  `release_role_work`-Credit. Der Member zählt das Projekt, wenn er auf **jeder** dieser
+  Releases einen netto-Credit hat. **Nicht** literal jede `release_version` (Alt-Releases ohne
+  Ledger-Credits würden die Familie sonst praktisch unerreichbar machen). Projekt mit 0
+  ledger-erfassten Releases zählt nicht.
 
 ### D-03 Familie 2 — „Chronist" (10 / 50 / 150)
 - **Zählbasis: alle eigenen Notiz-/Text-Beiträge des Members, veröffentlicht/aktiv.**
@@ -61,11 +64,13 @@ NICHT Teil der neuen „Beiträge"-Gruppe.
   zählt nicht).
 - **Bewusst breiter** als der bestehende `project_text_first_author`-Punkt-Credit: nicht nur
   Erstautor-Projekt-Texte, sondern alle Notiz-/Text-Flächen.
-- Offen (Research): welche Notiz-/Text-Tabellen genau zählen (Kandidaten:
-  `anime_fansub_project_notes`/Projekt-Texte, `release_version_notes`, `fansub_group_notes`)
-  und wie die Autor→Member-Zuordnung erfolgt (analog Phase-99-Autor-Seam:
-  `…uploaded/created_by_user_id → users → app_users → verified member_claims → members`).
-  Member-Story (eigenes Profil) ist KEIN „Beitrag".
+- **Gezählte Notiz-Flächen (bestätigt nach Research A2/A3):** alle drei —
+  `release_version_notes` (saubere direkte `member_id`-Zuordnung), `anime_fansub_project_notes`
+  (Projekt-Texte) und `fansub_group_notes` (beide nur via `created_by_user_id → users →
+  app_users → verified member_claims → members`, Phase-99-Seam). **Akzeptierte Einschränkung:**
+  rein historische Member ohne App-User-Link zählen bei den letzten beiden nicht mit.
+- **„aktiv/veröffentlicht" pro Tabelle:** `status = 'published' AND deleted_at IS NULL` (netto).
+- Member-Story (eigenes Profil) ist KEIN „Beitrag".
 
 ### D-04 Familie 3 — „Bildarchivar" (10 / 50 / 150)
 - **Zählbasis: Anzahl beigetragener Bilder GESAMT** (jede vom Member hochgeladene
