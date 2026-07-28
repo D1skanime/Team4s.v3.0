@@ -2632,7 +2632,7 @@ Plans:
 - [ ] `115-05-PLAN.md` — Frontend-Datenschicht: api.ts-Helfer, Typen, useDebouncedSearch-Hook, AppShell-Nav (beide Shells) [Wave 4]
 - [x] `115-06-PLAN.md` — /suche-Sucheingabefläche: Page-Shell, SearchField (Combobox), gruppierte SuggestionList [Wave 5]
 - [x] `115-07-PLAN.md` — Ergebnisfläche: URL-gebundene Tabs, Filter + Chips, mobiler Drawer, Pagination, Zustände [Wave 6]
-- [ ] `115-08-PLAN.md` — Absicherung: EXPLAIN-Baseline, D-12 Re-Import, Live-Smoke-UAT, Meilisearch-Andockpunkt-Doku (D-10) [Wave 7]
+- [ ] `115-08-PLAN.md` — Absicherung: EXPLAIN-Baseline, D-12 Re-Import, Live-Smoke-UAT, Meilisearch-Andockpunkt-Doku (D-10) [Wave 7] — Task 1 (D-10-Doku) ABGESCHLOSSEN; Task 2 CHECKPOINT: konsolidierter Live-UAT ausstehend (docs/search/phase-115-live-uat.md), Docker down zum Code-Zeitpunkt
 
 ### Phase 116: Personalisiertes Dashboard (eingeloggter Landing-Hub)
 
