@@ -2630,7 +2630,7 @@ Plans:
 - [ ] `115-03-PLAN.md` — Such-Repository: Modelle + Anime-/Fansub-Matching, D-05-Ranking, Sichtbarkeit, schmales SearchProvider-Interface [Wave 2]
 - [ ] `115-04-PLAN.md` — GET /api/v1/search (+ /suggestions): Handler, Route, OpenAPI-Kontrakt, smoke-search.ps1 [Wave 3]
 - [ ] `115-05-PLAN.md` — Frontend-Datenschicht: api.ts-Helfer, Typen, useDebouncedSearch-Hook, AppShell-Nav (beide Shells) [Wave 4]
-- [ ] `115-06-PLAN.md` — /suche-Sucheingabefläche: Page-Shell, SearchField (Combobox), gruppierte SuggestionList [Wave 5]
+- [x] `115-06-PLAN.md` — /suche-Sucheingabefläche: Page-Shell, SearchField (Combobox), gruppierte SuggestionList [Wave 5]
 - [ ] `115-07-PLAN.md` — Ergebnisfläche: URL-gebundene Tabs, Filter + Chips, mobiler Drawer, Pagination, Zustände [Wave 6]
 - [ ] `115-08-PLAN.md` — Absicherung: EXPLAIN-Baseline, D-12 Re-Import, Live-Smoke-UAT, Meilisearch-Andockpunkt-Doku (D-10) [Wave 7]
 

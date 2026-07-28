@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 117 UI-SPEC approved
-last_updated: "2026-07-28T22:10:17.483Z"
-last_activity: 2026-07-28
+stopped_at: Phase 115 Plan 06 (Sucheingabefläche /suche) abgeschlossen
+last_updated: "2026-07-29T00:30:00.000Z"
+last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 87
   total_plans: 493
-  completed_plans: 453
+  completed_plans: 454
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 115 (globale-suche-postgres-fts) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 
 ## Accumulated Context
 
@@ -36,6 +36,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 115-06]: /suche ist eine schlanke Server-Shell (force-dynamic); SearchField komponiert SuggestionList als Kind und haelt den useDebouncedSearch-Zustand (keine 4. Wrapper-Datei). Combobox: Input role=combobox + aria-activedescendant, Vorschlagszeilen als div role=option, 'Alle Treffer'-Aktion als Button-Primitiv role=option — Grep/ESLint-Gate fuer native <input>/<button>/<select> bleibt bei 0. Esc schliesst mit Fokusrueckgabe via suppressFocusOpenRef (verhindert onFocus-Re-Open). Ergebnis-/Filterbereich folgt in 115-07.
 - [Phase 113-02]: Contribution-Badges bleiben earned-only: neun statische Präsentationen ohne PUBLIC_MEMBER_BADGE_CATALOG-Eintrag, roleCode oder Visibility-Toggle.
 - [Phase 71 complete 2026-06-22]: Phase 71 wurde abgeschlossen. Admin-/Cockpit-Anteile waren durch spätere Phasen bereits erfüllt und wurden dokumentiert; umgesetzt wurden Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, `/admin/my-groups/[id]` params-Korrektur und finale UAT-/Acceptance-Scans. Deferred bleiben Permission-Bridge-Implementierung, Custom-Badge-Artwork und projektweite Native-Primitive-Migration.
 - [Phase 71 planning 2026-06-22]: Phase 71 wurde gegen den aktuellen Stand nach Phasen 82/83/88 neu analysiert und in vier Pläne geschnitten. Bereits erledigte Admin-/Cockpit-Anteile werden nur verifiziert/dokumentiert; echte Restarbeit liegt bei Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, params-Korrektur und finaler UAT.
