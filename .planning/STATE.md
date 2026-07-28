@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 111-05-PLAN.md
-last_updated: "2026-07-28T16:49:36.847Z"
+stopped_at: Completed 115-01-PLAN.md
+last_updated: "2026-07-28T20:52:43.936Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 109
   completed_phases: 87
   total_plans: 493
-  completed_plans: 448
+  completed_plans: 449
   percent: 80
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 111 — user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung
+**Current focus:** Phase 115 — globale-suche-postgres-fts
 
 ## Current Position
 
-Phase: 111 (user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung) — EXECUTING
-Plan: 5 of 5
+Phase: 115 (globale-suche-postgres-fts) — EXECUTING
+Plan: 2 of 8
 
 ## Accumulated Context
 
@@ -410,6 +410,7 @@ Recent durable decisions:
 - [Phase 111-04]: UserGlobalRolesTab bleibt bewusst unveraendert (Pitfall 1): globale App-Rollen sind strukturell nie in listRoleCapabilities() auflösbar; Regressionstest sichert das ab statt totem Matching-Code.
 - [Phase 111-05]: Impact-Count-Link und Rollen-Auswahl-Button liegen als Geschwister-Elemente derselben Card-Row statt verschachtelt (verhindert ungueltiges HTML/Event-Bubbling).
 - [Phase 111-05]: ?role=-Vorauswahl auf /admin/role-capabilities greift per useRef-Guard nur einmalig beim ersten Matrix-Load, nicht bei jedem Refresh nach Grant/Revoke.
+- [Phase ?]: 115-01: Anime-Haupttitel als (ja,main) statt ungueltigem LanguageCode romaji; Romaji/Japanisch als (ja,romaji)/(ja,japanese) — D-12 Write-Path-Fix
 
 ### Pending Todos
 
@@ -708,6 +709,7 @@ Recent durable decisions:
 | Phase 111 P02 | 50min | 2 tasks | 8 files |
 | Phase 111 P04 | 25min | 2 tasks | 4 files |
 | Phase 111 P05 | 35min | 2 tasks | 5 files |
+| Phase 115 P01 | 18 | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -789,8 +791,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T16:49:36.503Z
-Stopped at: Completed 111-05-PLAN.md
+Last session: 2026-07-28T20:52:43.814Z
+Stopped at: Completed 115-01-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
 None
