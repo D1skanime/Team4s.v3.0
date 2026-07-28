@@ -129,7 +129,7 @@ None — no external service configuration required.
 
 ## Self-Check: PASSED
 
-All created/modified files and referenced commits verified present in the working tree and git log (see Self-Check section below for the exact commands run).
+All 6 created/modified files (`MemberBadgeChain.tsx`, `MemberBadgeChain.module.css`, `MemberBadgeChain.test.tsx`, `members/[slug]/page.tsx`, `112-03-SUMMARY.md`, `deferred-items.md`) confirmed present on disk, and all 4 referenced commits (`fed12e76`, `9670850f`, `a03bbcce`, `afeaf53d`) confirmed present in `git log --oneline --all`.
 
 ---
 *Phase: 112-member-punkt-meilenstein-badges*
