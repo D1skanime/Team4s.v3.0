@@ -121,7 +121,10 @@
 
 .badgeStep[data-palette="silver"],
 .badgeStepLocked[data-palette="silver"] {
-  --badge-accent: var(--text-secondary);
+  /* WR-02 (112-REVIEW): eigener, von --text-secondary unterscheidbarer Stahlton statt
+     identischem Basiswert, damit Silber sich sichtbar von der Default-/Fallback-Farbe
+     abhebt (Bronze -> Gold -> Platin bekommen bereits je einen eigenen color-mix-Ton). */
+  --badge-accent: color-mix(in srgb, var(--text-secondary) 70%, white 30%);
 }
 
 .badgeStep[data-palette="platinum"],
