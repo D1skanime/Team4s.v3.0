@@ -27,7 +27,7 @@ import {
 import type { PublicMemberBadge } from '@/types/profile'
 
 export type MemberBadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted'
-export type MemberBadgePalette = 'gold' | 'indigo' | 'orange' | 'mint' | 'red'
+export type MemberBadgePalette = 'gold' | 'indigo' | 'orange' | 'mint' | 'red' | 'bronze' | 'silver' | 'platinum'
 
 // D-04: fester Satz beschrifteter Kategorie-Gruppen fuer die "Auszeichnungen"-Sektion.
 // Jede neue Badge-Familie erhaelt hier einen weiteren Wert nach demselben Muster.
@@ -113,7 +113,74 @@ export function formatMemberBadgeLabel(badgeCode: string): string {
   return MEMBER_BADGE_PRESENTATIONS[badgeCode]?.label ?? badgeCode
 }
 
+// D-04: Tier-Suffixe fuer role_volume_<roleCode>_<tier>-Codes. Bekannte Suffixe werden vom
+// Ende abgeschnitten (nicht per naivem split('_')), damit Rollencodes mit eigenen
+// Unterstrichen (quality_checker, raw_provider, project_lead) korrekt erhalten bleiben.
+const ROLE_VOLUME_TIERS = ['bronze', 'silver', 'gold', 'platinum'] as const
+type RoleVolumeTier = (typeof ROLE_VOLUME_TIERS)[number]
+
+const ROLE_VOLUME_TIER_LABELS: Record<RoleVolumeTier, string> = {
+  bronze: 'Bronze',
+  silver: 'Silber',
+  gold: 'Gold',
+  platinum: 'Platin',
+}
+
+const ROLE_VOLUME_TIER_THRESHOLDS: Record<RoleVolumeTier, number> = {
+  bronze: 12,
+  silver: 108,
+  gold: 320,
+  platinum: 510,
+}
+
+const ROLE_VOLUME_TIER_VARIANTS: Record<RoleVolumeTier, MemberBadgeVariant> = {
+  bronze: 'muted',
+  silver: 'neutral',
+  gold: 'warning',
+  platinum: 'info',
+}
+
+const ROLE_VOLUME_TIER_ICONS: Record<RoleVolumeTier, LucideIcon> = {
+  bronze: Medal,
+  silver: Medal,
+  gold: Medal,
+  platinum: Gem,
+}
+
+// D-04: dynamischer Resolver fuer role_volume_<roleCode>_<tier>-Codes — loest keine
+// hartcodierte Rollenliste auf. Liefert den geparsten Rollencode als Merge-Schluessel fuer
+// buildMemberBadgeGroups (Plan 112-03); die Aufloesung des deutschen Rollennamens fuer das
+// Zeilen-Praefix passiert dort ueber FANSUB_GROUP_ROLE_OPTIONS (Single Source of Truth,
+// @/types/fansub), damit dieselbe Rollenliste nicht doppelt importiert/gepflegt wird.
+export function resolveRoleVolumePresentation(badgeCode: string): MemberBadgePresentation {
+  const withoutPrefix = badgeCode.slice('role_volume_'.length)
+  const tier = ROLE_VOLUME_TIERS.find((candidate) => withoutPrefix.endsWith(`_${candidate}`))
+
+  if (!tier) {
+    // Defensiv: unbekanntes/unerwartetes Tier-Suffix faellt auf den generischen Fallback
+    // zurueck statt zu werfen (mirror des bestehenden getMemberBadgePresentation-Fallbacks).
+    return { label: badgeCode, variant: 'neutral', Icon: Sparkles, palette: 'mint', group: 'special' }
+  }
+
+  // roleCode ist der Merge-Schluessel (Plan 112-03 buildMemberBadgeGroups); der aufgeloeste
+  // deutsche Rollenname selbst wird erst beim Zeilen-Render (Plan 112-03, .roleLabel-Praefix)
+  // ueber denselben FANSUB_GROUP_ROLE_OPTIONS-Lookup gebraucht, hier reicht der Code.
+  const roleCode = withoutPrefix.slice(0, -(tier.length + 1))
+
+  return {
+    label: `${ROLE_VOLUME_TIER_LABELS[tier]} · ${ROLE_VOLUME_TIER_THRESHOLDS[tier]}+`,
+    variant: ROLE_VOLUME_TIER_VARIANTS[tier],
+    Icon: ROLE_VOLUME_TIER_ICONS[tier],
+    palette: tier,
+    group: 'roles',
+    roleCode,
+  }
+}
+
 export function getMemberBadgePresentation(badgeCode: string): MemberBadgePresentation {
+  if (badgeCode.startsWith('role_volume_')) {
+    return resolveRoleVolumePresentation(badgeCode)
+  }
   return (
     MEMBER_BADGE_PRESENTATIONS[badgeCode] ?? {
       label: badgeCode,
