@@ -21,8 +21,33 @@
   margin: var(--space-6) auto var(--space-2);
 }
 
-.resultsSlot {
+/* Ergebnis-/Filterfläche: volle Breite unter dem Suchanker. */
+.resultsRegion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
   width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
+}
+
+.filterBar {
+  width: 100%;
+}
+
+/* Desktop: Filter-Controls dauerhaft sichtbar; Mobile: nur der Drawer-Trigger. */
+.filterDesktop {
+  display: block;
+}
+
+.filterMobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .filterDesktop {
+    display: none;
+  }
+
+  .filterMobile {
+    display: block;
+  }
 }

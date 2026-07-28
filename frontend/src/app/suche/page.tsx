@@ -1,38 +1,27 @@
-import { EmptyState, PageHeader } from '@/components/ui'
+import { PageHeader } from '@/components/ui'
 
 import { SearchField } from './SearchField'
+import { SearchFilterDrawer } from './SearchFilterDrawer'
+import { SearchFilters } from './SearchFilters'
+import { SearchResults } from './SearchResults'
 import styles from './page.module.css'
 
-// Die Suche haengt vollstaendig von Query-Parametern ab (q/type/Filter/page).
-// Daher wird Next.js gezwungen, die Seite nicht statisch vorzurendern.
+// Die Suche haengt vollstaendig von Query-Parametern ab (q/type/Filter/page). Zusammen mit
+// den client-seitigen useSearchParams-Instanzen erzwingt das dynamisches Rendering.
 export const dynamic = 'force-dynamic'
 
-/** Roh-Suchparameter der Route (Next.js liefert sie als Promise-fähigen Wert). */
-type RawSearchParams = Record<string, string | string[] | undefined>
-
-/** Props der Suchseite mit optionalen, Promise-fähigen URL-Suchparametern. */
-interface SearchPageProps {
-  searchParams: Promise<RawSearchParams> | RawSearchParams | undefined
-}
-
-/** Liefert den ersten String-Wert eines evtl. mehrwertigen Query-Parameters. */
-function firstValue(value: string | string[] | undefined): string {
-  if (Array.isArray(value)) return value[0] ?? ''
-  return value ?? ''
-}
-
 /**
- * Globale Suchseite `/suche` — schlanke Route-Shell.
+ * Globale Suchseite `/suche` — Route-Shell + Komposition der Such-Oberfläche.
  *
- * Bootstrappt den URL-Suchzustand (q/type/Filter/page) als Initialwert und bettet das
- * interaktive Suchfeld (visueller Anker der Seite) samt gruppierter Vorschlagsliste ein.
- * Der Ergebnis-/Filterbereich wird in Plan 115-07 ergänzt — hier steht bewusst nur der
- * Initial-Leerzustand als Slot (kein toter Markup).
+ * Oben der visuelle Anker (`SearchField` mit Vorschlägen), darunter die Ergebnis- und
+ * Filterfläche: Desktop-Filter (`SearchFilters`) bzw. mobiler `SearchFilterDrawer` über den
+ * URL-gebundenen Ergebnis-Tabs (`SearchResults`). Alle Teilkomponenten teilen sich den
+ * Suchzustand (q/type/Filter/page) über die URL (`useDebouncedSearch`), sind also per Link
+ * teilbar und reload-fest. Die Unterscheidung Initial-Leerzustand vs. „keine Treffer" liegt
+ * in `SearchResults` (abhängig von der Suchbegriff-Länge) — die Filterleiste bleibt dabei
+ * flächenstabil (kein Layout-Shift zwischen Lade- und Ergebniszustand).
  */
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const resolved = ((await searchParams) ?? {}) as RawSearchParams
-  const initialQuery = firstValue(resolved.q).trim()
-
+export default function SearchPage() {
   return (
     <main className={styles.page}>
       <PageHeader
@@ -44,15 +33,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <SearchField />
       </section>
 
-      {/* Ergebnis-/Filterbereich folgt in Plan 115-07 (erweitert diese Seite). */}
-      {initialQuery.length === 0 ? (
-        <div className={styles.resultsSlot}>
-          <EmptyState
-            title="Wonach suchst du?"
-            description="Gib einen Anime-Titel oder eine Fansubgruppe ein, um loszulegen."
-          />
+      <section className={styles.resultsRegion} aria-label="Suchergebnisse">
+        <div className={styles.filterBar}>
+          <div className={styles.filterDesktop}>
+            <SearchFilters />
+          </div>
+          <div className={styles.filterMobile}>
+            <SearchFilterDrawer />
+          </div>
         </div>
-      ) : null}
+
+        <SearchResults />
+      </section>
     </main>
   )
 }
