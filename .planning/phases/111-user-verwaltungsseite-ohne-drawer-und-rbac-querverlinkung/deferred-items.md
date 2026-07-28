@@ -42,3 +42,18 @@ der gezielte Lauf `npx vitest run src/app/admin/users --reporter=dot` war durchg
 **Empfehlung:** Eine eigene Quick-Task (analog zu bestehenden `remediate-*`-Mustern)
 könnte die 11 Fehlschläge in den 5 oben gelisteten Dateien beheben, sobald die
 Fansub-Verwaltungsseiten-Phase 111 abgeschlossen ist.
+
+## Plan 111-05 (2026-07-28) — `npx vitest run` Vollsuite-Lauf, Bestätigung
+
+Vollständiger Volltest-Lauf (213 Testdateien, 1395 Tests) nach Task 2 (GREEN) zeigt exakt
+dieselbe Fehlermenge wie oben dokumentiert: **5 Testdateien fehlgeschlagen**, 207 bestanden,
+1 übersprungen; **11 Tests fehlgeschlagen**, 1381 bestanden, 3 todo. Stichprobenprüfung der
+Fehlerdetails (Crop-Dialog-Test in `me/profile/page.test.tsx`, absolute-vs-relative-URL-Test
+in `useAdminAnimeCreateController.test.ts`) bestätigt identische Symptome zum 111-03-Eintrag.
+
+Der gezielte Lauf `npx vitest run src/app/admin/role-capabilities --reporter=dot` war
+durchgehend 28/28 grün — die 5 Plan-111-05-Zieldateien
+(`RoleMasterList.tsx`, `RoleMasterList.test.tsx`, `RoleCapabilityClient.tsx`,
+`RoleCapabilityClient.test.tsx`, `page.tsx`) sind nicht Teil der 5 fehlgeschlagenen Dateien.
+**Keine Code-Änderung vorgenommen** — bestätigt reine Pre-existing-Fehlermenge, unverändert
+seit Plan 111-03.

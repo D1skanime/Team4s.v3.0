@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 import { ApiError, listRoleCapabilities, grantRoleCapability, revokeRoleCapability } from '@/lib/api'
 import type { RoleCapabilityMatrix, RoleEntry } from '@/types/admin-capability'
@@ -61,9 +62,14 @@ export default function RoleCapabilityClient({
   const [error, setError] = useState<string | null>(null)
 
   const isMobile = useIsMobile()
+  const searchParams = useSearchParams()
 
   const [selectedRoleCode, setSelectedRoleCode] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  // Verhindert, dass die ?role=-Vorauswahl (D-06) nach jedem Matrix-Refresh (z.B. nach
+  // Grant/Revoke) erneut greift und eine zwischenzeitlich manuell gewählte andere Rolle
+  // überschreibt — die URL-Vorauswahl gilt nur für den initialen Load.
+  const appliedUrlRoleRef = useRef(false)
 
   // Controlled Accordion-Open-Zustand — überlebt Switch-Toggle + Daten-Refresh,
   // sodass eine aufgeklappte Kategorie nach einer Mutation offen bleibt.
@@ -123,6 +129,21 @@ export default function RoleCapabilityClient({
       setIsSheetOpen(true)
     }
   }
+
+  // D-06: ?role={code} wählt beim ersten erfolgreichen Matrix-Load die passende Rolle
+  // automatisch aus — identisch zum manuellen Klick-Pfad (Desktop Inline-Panel bzw. Mobile
+  // Drawer). Stale/Typo-Codes bleiben bewusst still (kein Error-State, T-111-08).
+  useEffect(() => {
+    if (!matrix || appliedUrlRoleRef.current) return
+    appliedUrlRoleRef.current = true
+    const roleParam = searchParams.get('role')
+    if (!roleParam) return
+    const exists = matrix.roles.some((r) => r.role_code === roleParam)
+    if (exists) {
+      handleSelectRole(roleParam)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matrix, searchParams])
 
   async function handleGrant(roleCode: string, actionCode: string) {
     if (isMutating) return

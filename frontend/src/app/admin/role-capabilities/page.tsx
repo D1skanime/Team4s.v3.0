@@ -3,6 +3,8 @@ import { PlatformAdminGate } from '@/components/auth/PlatformAdminGate'
 import RoleCapabilityClient from './RoleCapabilityClient'
 import styles from './roleCapabilities.module.css'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Admin-Seite: Capability-Verwaltung (Platform-Admin only).
  * Zeigt die Rollen×Actions-Matrix mit Vergabe/Entzugs-Funktionalität.
