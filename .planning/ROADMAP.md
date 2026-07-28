@@ -2621,7 +2621,7 @@ Plans:
 **Goal:** Die toten „Suche"-Navigationspunkte zu einer modernen, umfassenden und performanten globalen Suche ausbauen — ausdrücklich **keine** simple `LIKE`/`ILIKE`-Namenssuche. Fundament: **PostgreSQL Full-Text Search + `pg_trgm`** (Ähnlichkeit/Tippfehlertoleranz), ggf. `unaccent`, geeignete **GIN/GiST-Indizes**, **gewichtetes Relevanz-Ranking**. **Kein** OpenSearch/Elasticsearch. Backend/API so **entkoppelt** (abstraktes `SearchProvider`-Interface, erste Impl. = Postgres-Provider), dass später ein externer Provider (Meilisearch) ergänzt werden könnte; **PostgreSQL bleibt fachliche Source of Truth**. Sucht mind. über **Anime** (Haupt-/de-/en-/jp-/Romaji-Titel, Aliase, Slug, Jahr, Typ, Genre, Tags/Themen, ggf. Beschreibung) und **Fansubgruppen** (Name, Kürzel, Slug, alternative/frühere Namen, ggf. Beschreibung); Member/Releases/Projekte als **geprüfte spätere Erweiterung**. **Zwingend: zuerst Code-Analyse-Report (13 Punkte), keine Datenmodelle/Begriffe raten, nichts ohne vorherige Analyse bauen.**
 **Requirements:** Bestehendes Anime-/Fansub-Datenmodell und -Begriffe (nicht raten), bereits aktivierte PostgreSQL-Extensions/Indizes, vorhandene Listen-/Filter-/Pagination-/Query-Patterns, globales UI-System. Kein Elasticsearch/OpenSearch.
 **Depends on:** Bestehende Anime- und Fansub-Domäne
-**Plans:** 5/8 plans executed
+**Plans:** 7/8 plans executed
 
 Plans:
 
@@ -2631,7 +2631,7 @@ Plans:
 - [ ] `115-04-PLAN.md` — GET /api/v1/search (+ /suggestions): Handler, Route, OpenAPI-Kontrakt, smoke-search.ps1 [Wave 3]
 - [ ] `115-05-PLAN.md` — Frontend-Datenschicht: api.ts-Helfer, Typen, useDebouncedSearch-Hook, AppShell-Nav (beide Shells) [Wave 4]
 - [x] `115-06-PLAN.md` — /suche-Sucheingabefläche: Page-Shell, SearchField (Combobox), gruppierte SuggestionList [Wave 5]
-- [ ] `115-07-PLAN.md` — Ergebnisfläche: URL-gebundene Tabs, Filter + Chips, mobiler Drawer, Pagination, Zustände [Wave 6]
+- [x] `115-07-PLAN.md` — Ergebnisfläche: URL-gebundene Tabs, Filter + Chips, mobiler Drawer, Pagination, Zustände [Wave 6]
 - [ ] `115-08-PLAN.md` — Absicherung: EXPLAIN-Baseline, D-12 Re-Import, Live-Smoke-UAT, Meilisearch-Andockpunkt-Doku (D-10) [Wave 7]
 
 ### Phase 116: Personalisiertes Dashboard (eingeloggter Landing-Hub)

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 115 Plan 06 (Sucheingabefläche /suche) abgeschlossen
-last_updated: "2026-07-29T00:30:00.000Z"
-last_activity: 2026-07-29
+stopped_at: Phase 117 UI-SPEC approved
+last_updated: "2026-07-28T23:06:58.541Z"
+last_activity: 2026-07-28
 progress:
   total_phases: 109
   completed_phases: 87
   total_plans: 493
-  completed_plans: 454
+  completed_plans: 455
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 115 (globale-suche-postgres-fts) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 
 ## Accumulated Context
 
@@ -36,6 +36,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 115-07]: Ergebnisfläche steht. Unkontrollierte @/components/ui Tabs-Primitive URL-gebunden via key-Remount + defaultTabId aus URL-type; nur das aktive Panel wird gemountet und schreibt type via Mount-Effekt (nur bei echtem Wechsel) zurück in die URL — keine Primitive-Änderung, kein natives Markup. useDebouncedSearch bekam role-Scoping (input=nur Vorschläge / results=nur Suche / controls=kein Fetch / full=Default) + URL-Render-Reconcile (React 'adjust state while rendering', kein setState-in-Effect), damit getrennte Hook-Instanzen (SearchField/SearchResults/SearchFilters) den Zustand über die URL teilen ohne Desync/Doppel-Fetch. D-06-Filter ohne Options-Endpunkt: Genre/Tag/Typ-Format als Input, Status als Select (AnimeStatus), Jahr als YearPicker, Fansubgruppe als ID-Input; Chips als Badge+Ghost-Button (aria-label 'Filter {name} entfernen'); mobiler SearchFilterDrawer. Live-UAT (Drawer/Fokus/Touch/Reload) → Plan 115-08.
 - [Phase 115-06]: /suche ist eine schlanke Server-Shell (force-dynamic); SearchField komponiert SuggestionList als Kind und haelt den useDebouncedSearch-Zustand (keine 4. Wrapper-Datei). Combobox: Input role=combobox + aria-activedescendant, Vorschlagszeilen als div role=option, 'Alle Treffer'-Aktion als Button-Primitiv role=option — Grep/ESLint-Gate fuer native <input>/<button>/<select> bleibt bei 0. Esc schliesst mit Fokusrueckgabe via suppressFocusOpenRef (verhindert onFocus-Re-Open). Ergebnis-/Filterbereich folgt in 115-07.
 - [Phase 113-02]: Contribution-Badges bleiben earned-only: neun statische Präsentationen ohne PUBLIC_MEMBER_BADGE_CATALOG-Eintrag, roleCode oder Visibility-Toggle.
 - [Phase 71 complete 2026-06-22]: Phase 71 wurde abgeschlossen. Admin-/Cockpit-Anteile waren durch spätere Phasen bereits erfüllt und wurden dokumentiert; umgesetzt wurden Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, `/admin/my-groups/[id]` params-Korrektur und finale UAT-/Acceptance-Scans. Deferred bleiben Permission-Bridge-Implementierung, Custom-Badge-Artwork und projektweite Native-Primitive-Migration.
@@ -798,7 +799,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T22:09:00.501Z
+Last session: 2026-07-28T23:06:58.250Z
 Stopped at: Phase 117 UI-SPEC approved
 Last activity: 2026-07-28
 Resume file: 
