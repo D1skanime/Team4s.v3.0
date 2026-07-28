@@ -104,3 +104,13 @@ None - no external service configuration required.
 ---
 *Phase: 113-wiederholbare-leistungs-badges-bronze-silber-gold*
 *Completed: 2026-07-28*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/repository/member_profile_contribution_badges_repository.go
+- FOUND: backend/internal/repository/member_profile_contribution_badges_repository_test.go
+- FOUND: .planning/phases/113-wiederholbare-leistungs-badges-bronze-silber-gold/113-01-SUMMARY.md
+- FOUND commit: ba51fdfd (Task 1)
+- FOUND commit: 3b5a9750 (Task 2)
+- FOUND commit: 58773a51 (Task 3)
+- FOUND commit: 481c06b1 (docs: SUMMARY)
