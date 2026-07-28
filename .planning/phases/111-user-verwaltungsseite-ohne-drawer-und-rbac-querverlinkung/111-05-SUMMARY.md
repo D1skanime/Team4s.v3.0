@@ -116,3 +116,13 @@ None - keine externe Service-Konfiguration erforderlich.
 ---
 *Phase: 111-user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung*
 *Completed: 2026-07-28*
+
+## Self-Check: PASSED
+
+- FOUND: `frontend/src/app/admin/role-capabilities/RoleMasterList.tsx`
+- FOUND: `frontend/src/app/admin/role-capabilities/RoleCapabilityClient.tsx`
+- FOUND: `frontend/src/app/admin/role-capabilities/page.tsx`
+- FOUND: `.planning/phases/111-user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung/111-05-SUMMARY.md`
+- FOUND: Commit `342d5846` (test: RED)
+- FOUND: Commit `b4f54d4d` (feat: GREEN)
+- FOUND: Commit `b730faa3` (docs: SUMMARY)
