@@ -2587,7 +2587,7 @@ Plans:
 **Goal:** Zwei abgeleitete Badge-Familien in die Profil-„Auszeichnungen"-Sektion (Phase 110) einhängen. Typ 2 (Punkt-Meilensteine): Stufen aus der Gesamtpunktzahl (1 / 50 / 200 / 500 / 1 000 / 2 500), nur der höchste erreichte Rang wird gezeigt. Typ 3 (Rollen-Volumen): Bronze/Silber/Gold/Platin pro Rolle nach Anzahl der Release-Version-Credits in dieser Rolle (12 / 108 / 320 / 510), reiht sich neben den Typ-1-Einstieg in die „Rollen"-Gruppe. Beide rein abgeleitete Live-Projektionen (Rückstufung bei Storno), keine Punkte fürs Badge, kein neuer Buchungspfad — dieselben `release_role_work`-Buchungen, für Typ 2 summiert, für Typ 3 pro Rolle gezählt. Typ 1 (Rollen-Einstiege) bleibt Phase 110.
 **Requirements:** Phase 109 (persistierte Punktsumme `member_point_totals`, `release_role_work`-Ledger), Phase 110 (erweiterbare Profil-Badge-Sektion). Badge-Bilder liefert der Nutzer später; vorerst Platzhalter.
 **Depends on:** Phase 109, Phase 110
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 
@@ -2600,6 +2600,17 @@ Plans:
 **Goal:** Den bislang toten Navigationseintrag „Fansub-Gruppen" mit einer öffentlichen Übersichts-/Landing-Seite unter `/fansubs` beleben: ein Gruppen-Directory, das alle Fansub-Gruppen mit Name, Kennzahlen (Anime-Projekte, Release-Versionen, Mitglieder) und Aktivität listet und je Zeile auf die bestehende Gruppen-Detailseite `/fansubs/[slug]` verlinkt. Nutzt die vorhandene `getFansubList()`-API und die schon berechneten Gruppen-Kennzahlen sowie das globale UI-System. Bewusst schlank: keine gruppenbezogene Punkte-/Rangliste (bleibt deferred), keine Suche/Filter über die Liste hinaus.
 **Requirements:** Bestehende `getFansubList()`-API und Gruppen-Kennzahlen; globales UI-System (`@/components/ui`); AppShell-Navigation.
 **Depends on:** Bestehende `/fansubs/[slug]`-Detailseite und Fansub-Listing-API
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD
+
+### Phase 115: Globale Suche (PostgreSQL FTS + Trigram)
+
+**Goal:** Die toten „Suche"-Navigationspunkte zu einer modernen, umfassenden und performanten globalen Suche ausbauen — ausdrücklich **keine** simple `LIKE`/`ILIKE`-Namenssuche. Fundament: **PostgreSQL Full-Text Search + `pg_trgm`** (Ähnlichkeit/Tippfehlertoleranz), ggf. `unaccent`, geeignete **GIN/GiST-Indizes**, **gewichtetes Relevanz-Ranking**. **Kein** OpenSearch/Elasticsearch. Backend/API so **entkoppelt** (abstraktes `SearchProvider`-Interface, erste Impl. = Postgres-Provider), dass später ein externer Provider (Meilisearch) ergänzt werden könnte; **PostgreSQL bleibt fachliche Source of Truth**. Sucht mind. über **Anime** (Haupt-/de-/en-/jp-/Romaji-Titel, Aliase, Slug, Jahr, Typ, Genre, Tags/Themen, ggf. Beschreibung) und **Fansubgruppen** (Name, Kürzel, Slug, alternative/frühere Namen, ggf. Beschreibung); Member/Releases/Projekte als **geprüfte spätere Erweiterung**. **Zwingend: zuerst Code-Analyse-Report (13 Punkte), keine Datenmodelle/Begriffe raten, nichts ohne vorherige Analyse bauen.**
+**Requirements:** Bestehendes Anime-/Fansub-Datenmodell und -Begriffe (nicht raten), bereits aktivierte PostgreSQL-Extensions/Indizes, vorhandene Listen-/Filter-/Pagination-/Query-Patterns, globales UI-System. Kein Elasticsearch/OpenSearch.
+**Depends on:** Bestehende Anime- und Fansub-Domäne
 **Plans:** 0 plans
 
 Plans:
