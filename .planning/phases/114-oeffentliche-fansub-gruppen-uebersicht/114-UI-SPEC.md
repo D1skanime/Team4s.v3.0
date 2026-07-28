@@ -1,10 +1,11 @@
 ---
 phase: 114
 slug: oeffentliche-fansub-gruppen-uebersicht
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-28
+reviewed_at: 2026-07-28
 ---
 
 # Phase 114 — UI Design Contract
