@@ -66,6 +66,8 @@ Phase 107 completed on 2026-07-23: typisierte Review-Delegationen, atomare First
 
 Phase 110 completed on 2026-07-28: die read-seitige Gamification-Oberfläche steht — öffentliche Ranglisten-Seite (`/members/ranking`) über die Phase-109-Projektion (kein Pro-Zeile-API-Fächer), eine prominente Gesamtpunktzahl im Profil-Hero, 8 live-berechnete Rollen-Einstiegs-Badges (Projektion aus `release_role_credit_lifecycles`, nie in `member_badges` persistiert) und eine erweiterbare, kategorie-gruppierte „Auszeichnungen"-Sektion (D-04, Phase-112-vorbereitet). Automatisiert verifiziert; Live-Docker-UAT und die Postgres-Lifecycle-Tests bleiben als Human-UAT offen.
 
+Phase 112 completed on 2026-07-28: zwei weitere rein abgeleitete Badge-Familien hängen in der „Auszeichnungen"-Sektion — Typ 2 (Punkt-Meilensteine 1/50/200/500/1000/2500, nur höchster Rang) und Typ 3 (Rollen-Volumen Bronze/Silber/Gold/Platin bei 12/108/320/510 Netto-Credits pro Rolle, neben dem Typ-1-Einstieg in der „Rollen"-Gruppe). Live-Projektion mit Rückstufung bei Storno, kein neuer Buchungspfad; Backend-Zählung dynamisch über `release_role_credit_lifecycles`, Ableitung/Resolver in `memberBadgeLabels.ts`, SSR-Verdrahtung in `members/[slug]/page.tsx`. 9/9 Verifikations-Must-haves, 29/29 Frontend-Tests grün. Offen: optionaler Live-UAT der Gold/Platin-Sichtbarkeit sowie ein Code-Review-Critical (Typ-1-Rollen-Katalog hardcodet nur 8 statt 12 gültiger `anime_contribution`-Rollen).
+
 ## Current Milestone: v1.1 Asset Lifecycle Hardening
 
 **Goal:** Make admin-managed media lifecycle behavior generic, idempotent, and operator-safe instead of relying on cover-specific seams.
