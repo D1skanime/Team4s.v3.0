@@ -2645,6 +2645,17 @@ Plans:
 
 - [ ] TBD
 
+### Phase 117: Kara-Segment — Zeit-Override je Folge + entdoppelte Anzeige
+
+**Goal:** Zwei Verbesserungen am bestehenden Kara-/Segment-Subsystem, **ohne Re-Encode**: (1) Für ein über eine Episoden-Spanne **geteiltes** Kara-Segment die Startzeit einer **einzelnen** Folge als **Offset/Override** korrigieren können — rein als Metadaten, **ohne** Neu-Encodieren des Videos und **ohne** dass daraus ein eigenes/neues Segment wird (bleibt „dasselbe Segment, nur für diese Folge verschoben"). (2) Die **UI-Anzeige entdoppeln**: ein Segment nur **einmal am Spann-Beginn** zeigen und erst bei einem **echten Segment-Wechsel** erneut — ein reiner **Zeit-Offset** erzeugt **keinen** neuen Eintrag. **ZWINGEND analyse-first:** das bestehende Segment-/Timing-/Render-Cache-Modell und die Herkunft der „für jede Folge"-Anzeige zuerst gegen den echten Code analysieren; nichts raten, nichts vorschnell bauen.
+**Requirements:** Bestehendes Kara-/Segment-Subsystem (Editor `admin/episode-versions/[versionId]/edit/`, `useReleaseSegments`, `theme_segment_render_cache`, `/api/segments`), Release-/Episoden-/Projekt-Struktur. Kein Re-Encode.
+**Depends on:** Bestehendes Segment-Subsystem (Kara-Playback/Timeline aus Phasen 103/105)
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD
+
 ## Backlog
 
 ### Phase 999.2: E-Mail-Verifikations-Policy und eindeutige App-User-E-Mail (BACKLOG)
