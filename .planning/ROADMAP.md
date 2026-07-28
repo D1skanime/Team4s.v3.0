@@ -2587,11 +2587,13 @@ Plans:
 **Goal:** Zwei abgeleitete Badge-Familien in die Profil-„Auszeichnungen"-Sektion (Phase 110) einhängen. Typ 2 (Punkt-Meilensteine): Stufen aus der Gesamtpunktzahl (1 / 50 / 200 / 500 / 1 000 / 2 500), nur der höchste erreichte Rang wird gezeigt. Typ 3 (Rollen-Volumen): Bronze/Silber/Gold/Platin pro Rolle nach Anzahl der Release-Version-Credits in dieser Rolle (12 / 108 / 320 / 510), reiht sich neben den Typ-1-Einstieg in die „Rollen"-Gruppe. Beide rein abgeleitete Live-Projektionen (Rückstufung bei Storno), keine Punkte fürs Badge, kein neuer Buchungspfad — dieselben `release_role_work`-Buchungen, für Typ 2 summiert, für Typ 3 pro Rolle gezählt. Typ 1 (Rollen-Einstiege) bleibt Phase 110.
 **Requirements:** Phase 109 (persistierte Punktsumme `member_point_totals`, `release_role_work`-Ledger), Phase 110 (erweiterbare Profil-Badge-Sektion). Badge-Bilder liefert der Nutzer später; vorerst Platzhalter.
 **Depends on:** Phase 109, Phase 110
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] TBD
+- [ ] `112-01-PLAN.md` — Backend Typ-3-Datenschicht: rollen-gefilterte Netto-Zählung der release_role_credit_lifecycles → Volumenstufen-Badges (Bronze/Silber/Gold/Platin), neues Split-File + Live-Projektions-Test (GAM-04, D-02/D-04)
+- [ ] `112-02-PLAN.md` — Frontend-Katalog/Ableitung: 6 Punkt-Meilenstein-Presentations + deriveMilestoneBadge (Typ 2) und dynamischer role_volume_-Resolver + Palette (Typ 3) in memberBadgeLabels.ts (D-01/D-03/D-04)
+- [ ] `112-03-PLAN.md` — Frontend-Rendering & SSR-Verdrahtung: Rollenname-Zeilen-Präfix + Tier-Paletten-CSS in MemberBadgeChain, Meilenstein-Merge in members/[slug]/page.tsx (D-01…D-04)
 
 ### Phase 114: Öffentliche Fansub-Gruppen-Übersicht
 
