@@ -8,15 +8,18 @@ import {
   Crown,
   Flag,
   Flame,
+  FolderCheck,
   Gem,
   HardDrive,
   Hexagon,
+  Images,
   Languages,
   Layers,
   Medal,
   Palette,
   Puzzle,
   Scissors,
+  ScrollText,
   Settings,
   Shield,
   ShieldCheck,
@@ -34,7 +37,7 @@ export type MemberBadgePalette = 'gold' | 'indigo' | 'orange' | 'mint' | 'red' |
 
 // D-04: fester Satz beschrifteter Kategorie-Gruppen fuer die "Auszeichnungen"-Sektion.
 // Jede neue Badge-Familie erhaelt hier einen weiteren Wert nach demselben Muster.
-export type MemberBadgeGroup = 'roles' | 'progress' | 'membership' | 'special'
+export type MemberBadgeGroup = 'roles' | 'progress' | 'contributions' | 'membership' | 'special'
 
 export type MemberBadgePresentation = {
   label: string
@@ -89,17 +92,27 @@ export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation>
   point_milestone_engaged: { label: 'Engagierter Mitwirkender', variant: 'success', Icon: Medal, palette: 'orange', group: 'progress' },
   point_milestone_veteran: { label: 'Veteran', variant: 'warning', Icon: Trophy, palette: 'gold', group: 'progress' },
   point_milestone_legend: { label: 'Archiv-Legende', variant: 'warning', Icon: Gem, palette: 'gold', group: 'progress' },
+  contribution_projects_bronze: { label: 'Mitgetragene Projekte · Bronze', variant: 'muted', Icon: FolderCheck, palette: 'bronze', group: 'contributions' },
+  contribution_projects_silver: { label: 'Mitgetragene Projekte · Silber', variant: 'neutral', Icon: FolderCheck, palette: 'silver', group: 'contributions' },
+  contribution_projects_gold: { label: 'Mitgetragene Projekte · Gold', variant: 'warning', Icon: FolderCheck, palette: 'gold', group: 'contributions' },
+  contribution_chronicle_bronze: { label: 'Chronist · Bronze', variant: 'muted', Icon: ScrollText, palette: 'bronze', group: 'contributions' },
+  contribution_chronicle_silver: { label: 'Chronist · Silber', variant: 'neutral', Icon: ScrollText, palette: 'silver', group: 'contributions' },
+  contribution_chronicle_gold: { label: 'Chronist · Gold', variant: 'warning', Icon: ScrollText, palette: 'gold', group: 'contributions' },
+  contribution_archivist_bronze: { label: 'Bildarchivar · Bronze', variant: 'muted', Icon: Images, palette: 'bronze', group: 'contributions' },
+  contribution_archivist_silver: { label: 'Bildarchivar · Silber', variant: 'neutral', Icon: Images, palette: 'silver', group: 'contributions' },
+  contribution_archivist_gold: { label: 'Bildarchivar · Gold', variant: 'warning', Icon: Images, palette: 'gold', group: 'contributions' },
 }
 
 // D-04: deutsche Gruppen-Labels und feste Anzeigereihenfolge (Rollen zuerst, siehe 110-CONTEXT.md).
 export const MEMBER_BADGE_GROUP_LABELS: Record<MemberBadgeGroup, string> = {
   roles: 'Rollen',
   progress: 'Fortschritt',
+  contributions: 'Beiträge',
   membership: 'Mitgliedschaft',
   special: 'Besondere Auszeichnungen',
 }
 
-export const MEMBER_BADGE_GROUP_ORDER: MemberBadgeGroup[] = ['roles', 'progress', 'membership', 'special']
+export const MEMBER_BADGE_GROUP_ORDER: MemberBadgeGroup[] = ['roles', 'progress', 'contributions', 'membership', 'special']
 
 export const PUBLIC_MEMBER_BADGE_CATALOG: PublicMemberBadgeCatalogItem[] = [
   { badge_code: 'founding_member', label: MEMBER_BADGE_PRESENTATIONS.founding_member.label, badge_category: 'historical_achievement' },
