@@ -36,9 +36,29 @@ Vermutungen ersetzen.
 - Ein reiner **Zeit-Unterschied/Offset** erzeugt **keinen** neuen Anzeige-Eintrag — nur ein
   **echter Segment-Wechsel** tut das.
 
+### D-03 Geklärtes Zielmodell + Terminologie (Nutzer-Präzisierung 2026-07-28)
+- **Terminologie (am Code verifiziert):** „1 bis 12" meint die **`release_versions`** (pro
+  Episode-Nr. eine Release einer Gruppe), **nicht** `release_variants` — Letztere sind laut
+  Code-Kommentar **„Technical variant (resolution, codec)"** (720p/1080p). `theme_segments` hat
+  zudem ein eigenes `version`-Feld (Abfrage filtert `group_id` + `version`).
+- **Zielmodell:** Ein Kara gehört fachlich zu **(Gruppe + Projekt + OP/ED)** und ist
+  **standardmäßig geteilt** über die Episoden-Release-Versionen (1–12).
+  - **Nur andere Zeit** → **dasselbe Kara** + **Per-Version-Offset** (D-01).
+  - **In v2 überarbeitet** → **eigenes Kara**, das dem betreffenden Release **zugewiesen** wird.
+  - Kern-Mechanismus: **ein zuweisbares, geteiltes Kara** + optionaler Offset pro Release —
+    **kein Duplizieren pro Datensatz** (die heutige Duplizierung ist der Mismatch).
+- **Richtung = Option B** (geteiltes, zuweisbares Kara). Laut Analyse der größere Umbau, weil die
+  heutige Bindung `theme_segment_playback_sources → genau eine release_variant` (ohne Episoden-
+  Filter, `admin_content_anime_themes.go:1366`) auf „ein geteiltes Kara, pro Release-Version
+  aufgelöst/zugewiesen" umgebaut werden muss.
+- **OFFEN (Nutzer zu bestätigen):** 117 gleich als **vollständiges B** — oder **A als
+  Zwischenschritt** (Offset + Entdopplung um die heutige Duplizierung herum) und **B als eigene
+  Folgephase**.
+
 ### Claude's Discretion (erst NACH Analyse)
-- Konkrete Umsetzung von Offset-Override (neue Spalte/Override-Tabelle vs. vorhandenes Feld) und
-  entdoppelter Anzeige — an bestehenden Segment-/Timing-Strukturen orientiert, ohne Re-Encode.
+- Konkrete Umsetzung von Offset-Override (neue Spalte/Override-Tabelle vs. vorhandenes Feld),
+  geteilter-Kara-Bindung und entdoppelter Anzeige — an bestehenden Segment-/Timing-Strukturen
+  orientiert, ohne Re-Encode.
 
 </decisions>
 
