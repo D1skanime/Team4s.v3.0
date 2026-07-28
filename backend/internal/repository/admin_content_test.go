@@ -164,6 +164,83 @@ func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_OnlyTouches
 	}
 }
 
+func assertAltTitleSlotPresent(t *testing.T, slots []authoritativeAnimeTitleSlotWrite, language, titleType, title string) {
+	t.Helper()
+	for _, slot := range slots {
+		if slot.LanguageCode != language || slot.TitleType != titleType {
+			continue
+		}
+		if slot.Title == nil || *slot.Title != title {
+			t.Fatalf("expected slot (%s,%s) title %q, got %#v", language, titleType, title, slot.Title)
+		}
+		return
+	}
+	t.Fatalf("expected a slot (%s,%s) with title %q, got %#v", language, titleType, title, slots)
+}
+
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_AppendsAltTitleSlots(t *testing.T) {
+	jaLang := "ja"
+	romajiKind := "romaji"
+	japaneseKind := "japanese"
+
+	write := buildAuthoritativeAnimeMetadataCreate(models.AdminAnimeCreateInput{
+		Title: "Koe no Katachi",
+		AltTitles: []models.AdminAnimeAltTitle{
+			{Language: &jaLang, Kind: &romajiKind, Title: "Koe no Katachi"},
+			{Language: &jaLang, Kind: &japaneseKind, Title: "聲の形"},
+		},
+	})
+
+	// 3 Basis-Slots (main/de/en) + 2 Alt-Titel-Slots
+	if len(write.TitleSlots) != 5 {
+		t.Fatalf("expected 5 title slots, got %d (%#v)", len(write.TitleSlots), write.TitleSlots)
+	}
+	assertAltTitleSlotPresent(t, write.TitleSlots, "ja", "romaji", "Koe no Katachi")
+	assertAltTitleSlotPresent(t, write.TitleSlots, "ja", "japanese", "聲の形")
+}
+
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_WithoutAltTitlesKeepsBaseSlots(t *testing.T) {
+	write := buildAuthoritativeAnimeMetadataCreate(models.AdminAnimeCreateInput{Title: "Solo Title"})
+
+	if len(write.TitleSlots) != 3 {
+		t.Fatalf("expected 3 base title slots without alt titles, got %d", len(write.TitleSlots))
+	}
+}
+
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_AppendsAltTitleSlots(t *testing.T) {
+	jaLang := "ja"
+	romajiKind := "romaji"
+
+	write := buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+		AltTitles: []models.AdminAnimeAltTitle{
+			{Language: &jaLang, Kind: &romajiKind, Title: "Sousou no Frieren"},
+		},
+	})
+
+	if len(write.TitleSlots) != 1 {
+		t.Fatalf("expected 1 alt title slot on patch, got %d", len(write.TitleSlots))
+	}
+	assertAltTitleSlotPresent(t, write.TitleSlots, "ja", "romaji", "Sousou no Frieren")
+}
+
+func TestAdminContentRepository_AppendAltTitleSlots_SkipsIncompleteEntries(t *testing.T) {
+	jaLang := "ja"
+	romajiKind := "romaji"
+	blank := "   "
+
+	slots := appendAltTitleSlots(nil, []models.AdminAnimeAltTitle{
+		{Language: nil, Kind: &romajiKind, Title: "kein Sprachcode"},
+		{Language: &jaLang, Kind: nil, Title: "kein Typ"},
+		{Language: &jaLang, Kind: &romajiKind, Title: blank},
+		{Language: &jaLang, Kind: &romajiKind, Title: "Gültig"},
+	})
+
+	if len(slots) != 1 {
+		t.Fatalf("expected only the complete alt title to yield a slot, got %d (%#v)", len(slots), slots)
+	}
+	assertAltTitleSlotPresent(t, slots, "ja", "romaji", "Gültig")
+}
+
 func TestAdminContentRepository_BuildAuthoritativeGenreTokensQuery_UsesNormalizedGenreStore(t *testing.T) {
 	query := buildAuthoritativeGenreTokensQuery()
 
