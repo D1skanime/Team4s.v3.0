@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 111 context gathered
-last_updated: "2026-07-28T07:44:56.235Z"
+stopped_at: Phase 113 Plan 02 executed
+last_updated: "2026-07-28T08:38:05.374Z"
 last_activity: 2026-07-28
 progress:
-  total_phases: 107
+  total_phases: 108
   completed_phases: 86
   total_plans: 474
-  completed_plans: 438
+  completed_plans: 439
   percent: 80
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 113 — wiederholbare leistungs badges bronze silber gold
+**Current focus:** Phase 113 — wiederholbare-leistungs-badges-bronze-silber-gold
 
 ## Current Position
 
-Phase: 113
-Plan: Not started
+Phase: 113 (wiederholbare-leistungs-badges-bronze-silber-gold) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -36,6 +36,7 @@ Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
 
+- [Phase 113-02]: Contribution-Badges bleiben earned-only: neun statische Präsentationen ohne PUBLIC_MEMBER_BADGE_CATALOG-Eintrag, roleCode oder Visibility-Toggle.
 - [Phase 71 complete 2026-06-22]: Phase 71 wurde abgeschlossen. Admin-/Cockpit-Anteile waren durch spätere Phasen bereits erfüllt und wurden dokumentiert; umgesetzt wurden Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, `/admin/my-groups/[id]` params-Korrektur und finale UAT-/Acceptance-Scans. Deferred bleiben Permission-Bridge-Implementierung, Custom-Badge-Artwork und projektweite Native-Primitive-Migration.
 - [Phase 71 planning 2026-06-22]: Phase 71 wurde gegen den aktuellen Stand nach Phasen 82/83/88 neu analysiert und in vier Pläne geschnitten. Bereits erledigte Admin-/Cockpit-Anteile werden nur verifiziert/dokumentiert; echte Restarbeit liegt bei Badge-Anzeige/Edit-Trennung, Member-Profil-Politur, params-Korrektur und finaler UAT.
 - [Phase 42 parking 2026-06-21]: TipTap-Realtime-Collaboration fuer `fansub_group_notes` bleibt ein deferred Feature-Gap. Der alte `42-01-PLAN.md` wurde administrativ geschlossen (`implemented: false`), damit er nicht als aktive Altphase blockiert; bei Reaktivierung ist eine neue Planung gegen aktuelle Auth/API/Permission-Seams erforderlich.
@@ -394,6 +395,8 @@ Recent durable decisions:
 - [Phase ?]: [Phase 112-02]: point_milestone_* Presentations liegen ausschliesslich in der statischen Map, nie im PUBLIC_MEMBER_BADGE_CATALOG (D-03, kein Locked-Zustand).
 - [Phase ?]: [Phase 112-02]: resolveRoleVolumePresentation gibt nur den geparsten roleCode zurueck; die deutsche Rollenname-Aufloesung via FANSUB_GROUP_ROLE_OPTIONS erfolgt erst im Zeilen-Render von Plan 112-03 (MemberBadgeChain.tsx).
 - [Phase ?]: [Phase 112-03]: Rollenname-Praefix als eigener resolveRoleLabel-Helper in MemberBadgeChain.tsx (nicht in memberBadgeLabels.ts) -- 112-02 hatte den Lookup bewusst hierhin verschoben; Praefix rendert einheitlich fuer jede Rollen-Zeile, auch ohne Typ-3-Merge.
+- [Phase 113-01]: Familie-1-Release-Menge eines Projekts = nur ledger-erfasste release_versions (>=1 awarded Credit von irgendwem), nicht literal jede existierende Version (A1/Pitfall 1)
+- [Phase 113-01]: Alle drei Contribution-Familien enden bei Gold, kein platinum-Tier (Abweichung vom Rollen-Volumen-Praezedenzfall aus Phase 112)
 
 ### Pending Todos
 
@@ -682,6 +685,7 @@ Recent durable decisions:
 | Phase 112 P01 | 9min | 2 tasks | 3 files |
 | Phase 112 P02 | 6min | 2 tasks | 2 files |
 | Phase 112 P03 | 17min | 2 tasks | 4 files |
+| Phase 113 P01 | 35min | 3 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -763,8 +767,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T07:28:43.477Z
-Stopped at: Phase 111 context gathered
+Last session: 2026-07-28T08:38:05.189Z
+Stopped at: Phase 113 Plan 02 executed
 Last activity: 2026-07-28
 Resume file: 
-.planning/phases/111-user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung/111-CONTEXT.md
+None

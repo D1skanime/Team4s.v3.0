@@ -1908,7 +1908,7 @@ Plans:
 **Offene Datenquellen (in discuss/research zu klären):** (1) Definition „vollständig dokumentiert" — Flag/Status oder abgeleitete Bedingung, und wessen Projekt-Scope; (2) exakte Quelle „akzeptierte Beiträge" (review-akzeptierte Contributions/Proposals vs. alle); (3) Autor-/Ownership-Seam für Bildbeitrag pro distinct Release-Version.
 **Requirements**: GAM-04 (Badges als getrennte, abgeleitete Projektion; keine Punkte für Selbstpflege)
 **Depends on:** Phase 110, Phase 112
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] `113-01-PLAN.md` — Backend read-time Datenschicht: 3 Schwellenfunktionen + loadContributionBadges (Familie 1 Coverage / Familie 2 Chronist / Familie 3 Bildarchivar) im Split-File, ID:0-Emission, <=5-Zeilen-Callsite, Unit-/Integrationstests (GAM-04, D-01..D-04)
