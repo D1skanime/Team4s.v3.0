@@ -1,12 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import {
   Badge,
   Button,
   EmptyState,
   ErrorState,
+  FormField,
   Input,
   LoadingState,
   Pagination,
@@ -19,11 +21,10 @@ import {
   TableRow,
 } from '@/components/ui'
 import { ApiError, listAdminUsersPage } from '@/lib/api'
-import type { AdminUserListItem, AdminUserListParams } from '@/types/admin-users'
+import type { AdminUserListItem } from '@/types/admin-users'
 
 import styles from './AdminUsers.module.css'
-import { UserDetailContent } from './UserDetailContent'
-import { UserDetailDrawer } from './UserDetailDrawer'
+import { useUserListFilters } from './useUserListFilters'
 
 function formatRelativeDate(isoDate: string | null): string {
   if (!isoDate) return '—'
@@ -56,42 +57,31 @@ function readErrorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
-function useDesktopUserDetails(): boolean {
-  const [isDesktop, setIsDesktop] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const query = window.matchMedia('(min-width: 1024px)')
-    const update = () => setIsDesktop(query.matches)
-    update()
-    query.addEventListener('change', update)
-    return () => query.removeEventListener('change', update)
-  }, [])
-
-  return isDesktop
-}
-
 export function AdminUsersClient() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [items, setItems] = useState<AdminUserListItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
-  const [params, setParams] = useState<AdminUserListParams>({
-    sort: 'last_activity_desc',
-    limit: 25,
-    offset: 0,
-  })
-  const [searchValue, setSearchValue] = useState('')
   const [hasConflictsOnly, setHasConflictsOnly] = useState(false)
-  const isDesktopUserDetails = useDesktopUserDetails()
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const {
+    params,
+    searchValue,
+    handleSearchChange,
+    handleStatusChange,
+    handleRoleChange,
+    handlePageChange,
+  } = useUserListFilters()
 
   const loadUsers = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const resp = await listAdminUsersPage(params)
+      const resp = await listAdminUsersPage({
+        ...params,
+        has_conflicts: hasConflictsOnly || undefined,
+      })
       setItems(resp.data)
       setTotal(resp.meta.total)
     } catch (err) {
@@ -99,44 +89,24 @@ export function AdminUsersClient() {
     } finally {
       setIsLoading(false)
     }
-  }, [params])
+  }, [hasConflictsOnly, params])
 
   useEffect(() => {
     void loadUsers()
   }, [loadUsers])
 
-  function handleSearchChange(value: string) {
-    setSearchValue(value)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setParams((prev) => ({ ...prev, q: value || undefined, offset: 0 }))
-    }, 300)
-  }
-
-  function handleStatusChange(value: string) {
-    setParams((prev) => ({ ...prev, status: value || undefined, offset: 0 }))
-  }
-
-  function handleRoleChange(value: string) {
-    setParams((prev) => ({ ...prev, global_role: value || undefined, offset: 0 }))
-  }
-
   function handleConflictsToggle() {
-    const next = !hasConflictsOnly
-    setHasConflictsOnly(next)
-    setParams((prev) => ({ ...prev, has_conflicts: next || undefined, offset: 0 }))
+    setHasConflictsOnly((prev) => !prev)
+  }
+
+  function handleRowNavigate(userId: number) {
+    const currentQuery = searchParams.toString()
+    router.push(`/admin/users/${userId}${currentQuery ? `?from=${encodeURIComponent(currentQuery)}` : ''}`)
   }
 
   const limit = params.limit ?? 25
   const currentPage = Math.floor((params.offset ?? 0) / limit) + 1
   const totalPages = Math.ceil(total / limit)
-  const selectedUser = selectedUserId != null
-    ? items.find((item) => item.id === selectedUserId) ?? null
-    : null
-
-  function handlePageChange(page: number) {
-    setParams((prev) => ({ ...prev, offset: (page - 1) * limit }))
-  }
 
   return (
     <div className={styles.page}>
@@ -166,10 +136,7 @@ export function AdminUsersClient() {
           </Select>
         </div>
 
-        <div>
-          <label htmlFor="role-filter" className={styles.roleFilterLabel}>
-            Globale Rolle
-          </label>
+        <FormField label="Globale Rolle" htmlFor="role-filter">
           <Select
             id="role-filter"
             value={params.global_role ?? ''}
@@ -180,7 +147,7 @@ export function AdminUsersClient() {
             <option value="content_admin">Content-Admin</option>
             <option value="user">Nutzer</option>
           </Select>
-        </div>
+        </FormField>
 
         <Button
           variant={hasConflictsOnly ? 'secondary' : 'ghost'}
@@ -191,26 +158,6 @@ export function AdminUsersClient() {
           Nur mit Konflikten
         </Button>
       </div>
-
-      {/* Tabelle — wird nicht gerendert wenn Drawer offen ist */}
-      {selectedUserId !== null && isDesktopUserDetails ? (
-        <section className={styles.desktopDetailPanel} aria-label="Benutzerdetails">
-          <div className={styles.desktopDetailHeader}>
-            <div>
-              <h2 className={styles.desktopDetailTitle}>
-                {selectedUser?.display_name ?? `Benutzer #${selectedUserId}`}
-              </h2>
-              {selectedUser?.email ? (
-                <p className={styles.desktopDetailMeta}>{selectedUser.email}</p>
-              ) : null}
-            </div>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedUserId(null)}>
-              Schließen
-            </Button>
-          </div>
-          <UserDetailContent userId={selectedUserId} />
-        </section>
-      ) : null}
 
       {/* Tabelle */}
       {isLoading ? (
@@ -246,8 +193,7 @@ export function AdminUsersClient() {
                 <AdminUserTableRow
                   key={item.id}
                   item={item}
-                  isSelected={item.id === selectedUserId}
-                  onClick={() => setSelectedUserId(item.id)}
+                  onClick={() => handleRowNavigate(item.id)}
                 />
               ))}
             </TableBody>
@@ -262,24 +208,16 @@ export function AdminUsersClient() {
           )}
         </>
       )}
-
-      {selectedUserId !== null && !isDesktopUserDetails && (
-        <UserDetailDrawer
-          userId={selectedUserId}
-          onClose={() => setSelectedUserId(null)}
-        />
-      )}
     </div>
   )
 }
 
 interface AdminUserTableRowProps {
   item: AdminUserListItem
-  isSelected: boolean
   onClick: () => void
 }
 
-function AdminUserTableRow({ item, isSelected, onClick }: AdminUserTableRowProps) {
+function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
   const initials = item.display_name
     .split(' ')
     .map((n) => n[0])
@@ -291,13 +229,7 @@ function AdminUserTableRow({ item, isSelected, onClick }: AdminUserTableRowProps
   const hiddenRoleCount = item.global_roles.length - visibleRoles.length
 
   return (
-    <TableRow
-      onClick={onClick}
-      className={isSelected ? styles.selectedRow : undefined}
-      style={{ cursor: 'pointer' }}
-      aria-selected={isSelected}
-      role="row"
-    >
+    <TableRow onClick={onClick} style={{ cursor: 'pointer' }} role="row">
       {/* Benutzer */}
       <TableCell>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
