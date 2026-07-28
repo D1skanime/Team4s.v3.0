@@ -93,8 +93,9 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
                   Elemente derselben Zeile — verschachtelte interaktive Elemente (Button/Link
                   im Button) sind ungültiges HTML und würden Klicks fehlerhaft bubbeln lassen. */}
               <div style={{ display: 'flex', alignItems: 'stretch', width: '100%' }}>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   aria-disabled={!isEditable || undefined}
                   aria-pressed={isSelected}
                   onClick={() => {
@@ -105,6 +106,8 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
                     gap: 'var(--space-1)',
                     flex: 1,
                     minWidth: 0,
@@ -113,7 +116,6 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
                     padding: 'var(--space-3)',
                     textAlign: 'left',
                     cursor: isEditable ? 'pointer' : 'not-allowed',
-                    opacity: isEditable ? 1 : 0.7,
                     minHeight: '44px',
                   }}
                 >
@@ -129,7 +131,7 @@ export function RoleMasterList({ roles, selectedRoleCode, onSelectRole }: RoleMa
                   <Badge variant={isEditable ? 'info' : 'muted'}>
                     {badgeLabel}
                   </Badge>
-                </button>
+                </Button>
                 <div
                   style={{
                     display: 'flex',
