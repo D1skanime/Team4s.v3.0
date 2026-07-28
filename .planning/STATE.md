@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 111-03-PLAN.md
-last_updated: "2026-07-28T14:43:55.095Z"
+stopped_at: Completed 111-02-PLAN.md
+last_updated: "2026-07-28T15:50:01.300Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 109
   completed_phases: 86
   total_plans: 487
-  completed_plans: 445
+  completed_plans: 446
   percent: 79
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 111 (user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Accumulated Context
 
@@ -406,6 +406,7 @@ Recent durable decisions:
 - [Phase 111-01]: Die drei synthetischen globalen App-Rollen-Zeilen (platform_admin/content_admin/user, role_kind=global_app_role) werden matrix.Roles vorangestellt (RESEARCH Open Question 2, RESOLVED).
 - [Phase 111-03]: params-Objekt in useUserListFilters ueber useMemo stabilisiert (Rule-1-Fix gegen Endlosschleife aus Render/useEffect)
 - [Phase 111-03]: AdminUsersClient.tsx verliert Drawer/Dual-Mode (D-01); Zeilen-Klick navigiert per router.push zu /admin/users/{id}?from={Listen-Query-String}
+- [Phase 111-02]: Accordion.tsx additiv um optionales keepMountedIds erweitert (non-breaking): geschlossene, bereits geladene Panels bleiben via hidden im DOM statt zu unmounten. — Ohne diese Erweiterung wuerde jedes Wiederoeffnen einer lazy-geladenen Akkordeon-Sektion die Tab-Komponente neu mounten und ihren internen Fetch erneut ausloesen (D-03-Verstoss).
 
 ### Pending Todos
 
@@ -701,6 +702,7 @@ Recent durable decisions:
 | Phase 114 P03 | 20min | 2 tasks | 4 files |
 | Phase 111 P01 | 25min | 2 tasks | 5 files |
 | Phase 111 P03 | 45min | 2 tasks | 5 files |
+| Phase 111 P02 | 50min | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -782,8 +784,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T14:43:54.726Z
-Stopped at: Completed 111-03-PLAN.md
+Last session: 2026-07-28T15:50:01.171Z
+Stopped at: Completed 111-02-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
 None
