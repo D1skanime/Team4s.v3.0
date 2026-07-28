@@ -1668,6 +1668,28 @@ func (r *FansubRepository) attachGroupCounts(ctx context.Context, items []models
 		return fmt.Errorf("load anime relation counts: %w", err)
 	}
 
+	// ProjectsCount mirrors listPublicFansubProjects's WHERE clause exactly
+	// (a.status <> 'disabled'), unlike AnimeRelationsCount above which counts
+	// all anime_fansub_groups rows with no anime.status filter at all. Keep
+	// this filter in sync with listPublicFansubProjects or the directory's
+	// "Anime-Projekte" figure will silently diverge from the detail page's.
+	if err := r.populateCountMap(
+		ctx,
+		`
+		SELECT afg.fansub_group_id AS group_id, COUNT(*)
+		FROM anime_fansub_groups afg
+		JOIN anime a ON a.id = afg.anime_id
+		WHERE afg.fansub_group_id = ANY($1)
+		  AND a.status <> 'disabled'
+		GROUP BY afg.fansub_group_id
+		`,
+		ids,
+		func(i int, count int) { items[i].ProjectsCount = count },
+		indexByID,
+	); err != nil {
+		return fmt.Errorf("load project counts: %w", err)
+	}
+
 	if err := r.populateCountMap(
 		ctx,
 		`
