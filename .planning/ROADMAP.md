@@ -2577,13 +2577,17 @@ Plans:
 ### Phase 111: User-Verwaltungsseite ohne Drawer und RBAC-Querverlinkung
 
 **Goal:** Die User-Verwaltung auf `/admin/users` ohne User-Detail-Drawer neu strukturieren. Benutzerdetails, globale Rollen, Member-/Claim-Kontext, Gruppenmitgliedschaften, Gruppenrechte, Contributions, Medien und Audit werden passend und progressiv offengelegt auf der eigentlichen Seite dargestellt, statt in einen Drawer mit vielen Tabs ausgelagert zu werden. Die fachliche Trennung zu `/admin/role-capabilities` bleibt bestehen: Von den auf der User-Seite angezeigten Rollen führt ein verständlicher Link zur jeweiligen Rollen-/Capability-Detailansicht ("Was darf diese Rolle?"); `/admin/role-capabilities` zeigt pro Rolle einen Impact-Count ("N-mal vergeben") mit Sprung zur passend gefilterten User-Ansicht. Ziel ist eine übersichtliche, direkt navigierbare Benutzerverwaltung ohne überladenen Drawer und ohne die RBAC-Regelverwaltung mit der Personenverwaltung zu verschmelzen. Eigenes UX-Anliegen, nicht Phase 94.
-**Requirements:** TBD
+**Requirements:** Keine REQ-IDs (kein Phase-111-Mapping in REQUIREMENTS.md) — Coverage-Einheit sind die Kontext-Entscheidungen D-01…D-06 aus `111-CONTEXT.md`.
 **Depends on:** Bestehende `/admin/users`- und `/admin/role-capabilities`-Oberflächen
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
 
-- [ ] TBD
+- [ ] `111-01-PLAN.md` — Backend RBAC-Impact-Count-Fundament: Go-Struct/OpenAPI/TS-Typ-Contracts + CountGlobalRoleAssignments + Handler-Merge synthetischer globaler Rollen-Zeilen (D-05)
+- [ ] `111-02-PLAN.md` — /admin/users/[id] Accordion-Detailseite: neue Route unter PlatformAdminGate, Accordion statt Tab-Leiste, Default-Open/Lazy-Cache, Zurück-Link, Drawer/UserDetailContent gelöscht (D-01/D-02/D-03/D-06)
+- [ ] `111-03-PLAN.md` — AdminUsersClient URL-Filter + Navigation statt Drawer: useUserListFilters-Hook, Zeilen-Navigation mit from-Parameter, FormField-Fix (D-01/D-06)
+- [ ] `111-04-PLAN.md` — RBAC-Link User→Rolle: resolveRoleLink-Utility, Link auf UserGroupRightsTab, Regressionsschutz auf UserGlobalRolesTab (D-04)
+- [ ] `111-05-PLAN.md` — RBAC-Link Rolle→User + URL-Vorauswahl: Impact-Count/Badge-Label auf RoleMasterList, ?role=-Vorauswahl auf RoleCapabilityClient (D-05/D-06)
 
 ### Phase 112: Member-Punkt-Meilenstein-Badges
 
