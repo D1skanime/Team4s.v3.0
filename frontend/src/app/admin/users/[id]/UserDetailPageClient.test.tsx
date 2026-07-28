@@ -154,11 +154,21 @@ const baseOverview = {
   updated_at: '2026-06-01T00:00:00Z',
 }
 
+// Baut das Mock wie eine echte, bereits prozentkodierte Browser-URL nach:
+// `from` wird hier als bereits kodierter Roh-Query-String übergeben (also so,
+// wie er tatsächlich hinter `?from=` in der Adressleiste steht) und via
+// `new URL(...)` geparst statt per `new URLSearchParams({ from })` aus einem
+// Objekt konstruiert. Ein Objekt-Konstruktor würde den Wert unverändert
+// übernehmen und damit die reale, von `useSearchParams()` selbst bereits
+// durchgeführte Dekodierstufe verschlucken (siehe CR-01/WR-03 in 111-REVIEW.md).
 function setNav({ id = '1', from }: { id?: string; from?: string } = {}) {
   mockUseParams.mockReturnValue({ id })
-  mockUseSearchParams.mockReturnValue(
-    new URLSearchParams(from !== undefined ? { from } : {}),
-  )
+  if (from === undefined) {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams())
+    return
+  }
+  const url = new URL(`http://localhost/admin/users/${id}?from=${from}`)
+  mockUseSearchParams.mockReturnValue(url.searchParams)
 }
 
 afterEach(() => {
@@ -177,6 +187,38 @@ describe('UserDetailPageClient', () => {
 
     const backLink = screen.getByRole('link', { name: /Zurück zur Liste/i })
     expect(backLink.getAttribute('href')).toBe('/admin/users?q=abc&status=active')
+  })
+
+  // --- back link roundtrips '+'/percent-encoded search values (D-06, CR-01) ---
+  it('back link roundtrips special characters in search query', async () => {
+    // Baut exakt den Produktionscodepfad nach (AdminUsersClient.tsx:103-104):
+    // 1. `originalQuery` ist der bereits von URLSearchParams selbst kodierte
+    //    Query-String der Liste (`+` in der Suche -> `%2B`, `@` -> `%40`).
+    // 2. `from` in der URL ist `encodeURIComponent(originalQuery)` (doppelt kodiert).
+    const originalQuery = new URLSearchParams({
+      q: 'user+test@test.com',
+      status: 'active',
+    }).toString()
+    expect(originalQuery).toBe('q=user%2Btest%40test.com&status=active')
+
+    setNav({ from: encodeURIComponent(originalQuery) })
+    mockGetAdminUserOverview.mockResolvedValue(baseOverview)
+
+    render(<UserDetailPageClient />)
+    await screen.findByTestId('tab-overview')
+
+    const backLink = screen.getByRole('link', { name: /Zurück zur Liste/i })
+    const backHref = backLink.getAttribute('href')
+
+    // Der Zurück-Link muss exakt den ursprünglichen, einmal kodierten
+    // Query-String wiederherstellen -- keine zusätzliche Dekodierstufe.
+    expect(backHref).toBe(`/admin/users?${originalQuery}`)
+
+    // Und beim erneuten Parsen auf /admin/users muss der Suchbegriff exakt
+    // (inkl. '+') erhalten bleiben, statt zu einem Leerzeichen korrumpiert zu
+    // werden (Kernregression aus CR-01).
+    const reparsed = new URLSearchParams(backHref!.split('?')[1])
+    expect(reparsed.get('q')).toBe('user+test@test.com')
   })
 
   // --- no from param fallback ---
