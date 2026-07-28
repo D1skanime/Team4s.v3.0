@@ -504,7 +504,12 @@ release (the old generation's row flips to `reversed`, a new generation's row be
 | A2 | Palette mapping for Bronze/Silver/Gold/Platin reuses the existing loose `MemberBadgePalette` enum rather than introducing true metal-toned palette values | Architecture Patterns, Palette note | Low-Medium — cosmetic only; if the user expects visually distinct bronze/silver/platinum colors (not just gold vs. everything-else), the UI-SPEC step should extend `MemberBadgePalette` and add corresponding CSS custom properties, which is a small, isolated change |
 | A3 | The row label composition for a merged Typ-1+Typ-3 role row (CONTEXT's own example: "Übersetzung: Erste Übersetzung · Gold · 320+") is achievable by rendering two separate badge-item chips inside one merged `<li>` row (per 110-04's generic merge, which merges *items*, not label *strings*) — whether a role-name prefix header is also needed on the row is left open | Architecture Patterns / Open Questions | Medium — if the UI-SPEC/planner decides the row needs an explicit "Übersetzung:" prefix label that 110-04's markup does not currently render anywhere, that is a small additive change to 110-04's row markup (not a Phase 112 blocker, but worth resolving explicitly in planning rather than being discovered during UI-SPEC review) |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **RESOLVED (2026-07-28):** Beide Fragen sind downstream entschieden und in die Pläne übernommen —
+> OQ1 durch die UI-SPEC-Entscheidung (jede Rollen-Zeile erhält ein `{Rollenname}:`-Präfix, umgesetzt
+> in 112-03 Task 1); OQ2 durch den Resolver-Fallback auf den rohen `role_code` (112-02 Task 2 +
+> PATTERNS.md). Keine offene Blockade für die Ausführung.
 
 1. **Does the merged Rollen-row need an explicit role-name prefix?**
    - What we know: 110-04's `buildMemberBadgeGroups` merges Typ-1 and Typ-3 badges for the same

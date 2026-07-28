@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Completed 110-04-PLAN.md
-last_updated: "2026-07-27T18:33:03.501Z"
-last_activity: 2026-07-27
+last_updated: "2026-07-28T05:52:21.238Z"
+last_activity: 2026-07-28
 progress:
-  total_phases: 105
+  total_phases: 106
   completed_phases: 85
-  total_plans: 464
+  total_plans: 467
   completed_plans: 435
-  percent: 81
+  percent: 80
 ---
 
 # Project State
@@ -758,5 +758,5 @@ Recent durable decisions:
 
 Last session: 2026-07-27T18:33:03.415Z
 Stopped at: Completed 110-04-PLAN.md
-Last activity: 2026-07-27
+Last activity: 2026-07-28
 Resume file: None
