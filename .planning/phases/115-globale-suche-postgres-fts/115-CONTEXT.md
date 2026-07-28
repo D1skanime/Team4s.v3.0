@@ -133,6 +133,35 @@ konkrete Umsetzung geplant/begonnen.
   → exakter Treffer auf `fansub_group_aliases.normalized_alias`; „alternativer/früherer Name" →
   ebenfalls Aliase.
 
+### D-12 Titel-Speicher-Fix ist VORAUSSETZUNG dieser Phase (Nutzerentscheidung)
+
+**Requirement:** Der japanische/Romaji-Titel muss durchsuchbar sein — Beispiel: Suche nach
+**„Eiga Koe no Katachi" / „Koe no Katachi" muss „A Silent Voice" finden.**
+
+**Befund (verifiziert):** Der Romaji-Titel wird beim Crawl korrekt **geholt**
+(`anime_create_enrichment.go:1085,1149` — anisearch/AniList `title.romaji`), aber beim
+**Speichern verworfen**: er wird als `("ja-Latn","romanized")` etikettiert — Codes, die in
+`languages`/`title_types` **nicht existieren**; der strenge Upsert-JOIN
+(`admin_content.go:97`, `SELECT ... FROM languages l JOIN title_types tt WHERE l.code=$2`)
+liefert 0 Zeilen → still verworfen. Gleiches beim manuellen Haupttitel (`"romaji"` im Sprach-
+Slot, `admin_content_anime_metadata.go:51`).
+
+**Entscheidung:** Der Fix gehört **in Phase 115 als Voraussetzung** (nicht separat/deferred),
+sonst ist das Kern-Requirement nicht erfüllbar. Umfang:
+- **Mapping korrigieren:** Romaji-Titel als **`(language="ja", type="romaji")`**, japanischer
+  Originaltitel als `(ja, "japanese"|"official")` — alle Codes existieren bereits, keine neuen
+  Referenzzeilen nötig. Betrifft anisearch-Enrichment (`buildAniSearchAltTitles`) und den
+  manuellen Haupttitel-Pfad.
+- **Kein Re-Crawl nötig** (Wert ist bereits vorhanden). Für schon importierte Anime, bei denen
+  Romaji nie gespeichert wurde: **Re-Import/Neu-Anreichern** (disponible Testdaten → einfach neu
+  einlesen), kein Bestandsdaten-Backfill-Zwang.
+- Danach durchsucht die FTS-/Trigram-Suche `anime_titles` über **alle** Titel-Typen (main, de,
+  en/official, japanese, **romaji**, synonym) plus `anime.title`.
+
+**Hinweis für Research/Planner:** Den exakten Alt-Titel-Schreibpfad (ob `alt_titles` durch
+`upsertAuthoritativeAnimeTitle` läuft) und alle betroffenen Write-Sites final verifizieren,
+bevor der Fix umgesetzt wird — nichts annehmen.
+
 ### Claude's Discretion
 - Konkrete API-/DTO-/Interface-Form nach bestehenden Konventionen; Ob/Wie die `SearchProvider`-
   Abstraktion eingeführt wird (nur wenn pattern-konform, kein Overengineering).
