@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Search,
   ShieldCheck,
   Trophy,
   UserCircle,
@@ -119,6 +120,7 @@ function AppShellNavGroups({
 }) {
   const publicItems: AppShellNavItem[] = [
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
+    { label: 'Suche', href: '/suche', icon: <Search size={17} />, current: isCurrent(currentPath, '/suche') },
     { label: 'Rangliste', href: '/members/ranking', icon: <Trophy size={17} />, current: isCurrent(currentPath, '/members/ranking') },
     { label: 'Fansub-Gruppen', href: '/fansubs', icon: <Users size={17} />, current: isCurrent(currentPath, '/fansubs') },
     { label: 'Dashboard', icon: <LayoutDashboard size={17} />, disabled: true, badge: 'bald' },
@@ -188,7 +190,7 @@ function AppShellAnonNavGroups({
     { label: 'Anime entdecken', href: '/anime', icon: <Compass size={17} />, current: isCurrent(currentPath, '/anime') },
     { label: 'Rangliste', href: '/members/ranking', icon: <Trophy size={17} />, current: isCurrent(currentPath, '/members/ranking') },
     { label: 'Fansub-Gruppen', href: '/fansubs', icon: <Users size={17} />, current: isCurrent(currentPath, '/fansubs') },
-    { label: 'Suche', icon: <Compass size={17} />, disabled: true, badge: 'bald' },
+    { label: 'Suche', href: '/suche', icon: <Search size={17} />, current: isCurrent(currentPath, '/suche') },
   ]
 
   return (
