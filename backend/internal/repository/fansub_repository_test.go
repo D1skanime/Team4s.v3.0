@@ -150,6 +150,40 @@ func TestAttachGroupCounts_MembersCountMatchesCountVisibleTeamMembers(t *testing
 	}
 }
 
+// TestAttachGroupCounts_ProjectsCountExcludesDisabledAnime pins the
+// ProjectsCount batch to mirror listPublicFansubProjects's WHERE clause
+// (a.status <> 'disabled'), so it never silently diverges from the detail
+// page's "Anime-Projekte" figure the way the pre-existing AnimeRelationsCount
+// batch does (that batch has no anime.status filter at all).
+func TestAttachGroupCounts_ProjectsCountExcludesDisabledAnime(t *testing.T) {
+	src, err := os.ReadFile("fansub_repository.go")
+	if err != nil {
+		t.Fatalf("read fansub repository: %v", err)
+	}
+	content := string(src)
+
+	start := strings.Index(content, "func (r *FansubRepository) attachGroupCounts(")
+	if start < 0 {
+		t.Fatalf("attachGroupCounts function not found")
+	}
+	end := strings.Index(content, "func (r *FansubRepository) attachGroupLinks(")
+	if end < 0 || end < start {
+		t.Fatalf("could not bound attachGroupCounts function body")
+	}
+	body := content[start:end]
+
+	for _, fragment := range []string{
+		"anime_fansub_groups afg",
+		"JOIN anime a",
+		"a.status <> 'disabled'",
+		"items[i].ProjectsCount = count",
+	} {
+		if !strings.Contains(body, fragment) {
+			t.Fatalf("expected ProjectsCount batch query to contain %q", fragment)
+		}
+	}
+}
+
 func TestFansubRepository_DeleteGroupCleansRestrictedChildrenFirst(t *testing.T) {
 	src, err := os.ReadFile("fansub_repository.go")
 	if err != nil {
