@@ -532,6 +532,11 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	volumeBadges, loadErr := r.loadRoleVolumeBadges(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	profile.PublicBadges = append(profile.PublicBadges, volumeBadges...)
 	profile.TotalPoints, loadErr = r.loadTotalPoints(ctx, row.memberID)
 	if loadErr != nil {
 		return nil, loadErr

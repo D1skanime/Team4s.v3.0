@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -173,6 +174,55 @@ func TestLoadPublicBadgesPostgresNonEligibleRoleNeverAppears(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, containsPublicBadge(badges, "role_entry_fansub_lead", "role_entry"),
 		"eine Rolle, die nie 'awarded' erreicht, darf nie eine role_entry Badge produzieren, ohne Go-seitige Sonderbehandlung")
+}
+
+// TestLoadPublicBadgesPostgresRoleVolume beweist den award -> sichtbar -> reversed ->
+// unsichtbar Lebenszyklus (D-02/GAM-04 Live-Projektion) fuer Typ-3-Rollen-Volumen-Badges.
+// Seedet 12 awarded Credits einer Rolle ueber distinkte generation-Werte (UNIQUE-Constraint
+// auf release_version_id, fansub_group_id, member_id, role_code, generation), storniert
+// danach eine Buchung und erwartet, dass das Bronze-Badge beim naechsten Read verschwindet.
+// Gold/Platin werden bewusst NICHT hier bewiesen (Pitfall 2 / VALIDATION Manual-Only) --
+// dafuer ist TestHighestRoleVolumeTier zustaendig.
+func TestLoadPublicBadgesPostgresRoleVolume(t *testing.T) {
+	pool := openMemberProfileBadgeLifecyclePostgres(t)
+	ledger := NewPointLedgerRepository(pool)
+	repo := NewMemberProfileRepository(pool, "")
+
+	var awardIDs []int64
+	var lifecycleIDs []int64
+	for i := 1; i <= 12; i++ {
+		award, err := ledger.InsertAward(context.Background(), postgresAwardInput(fmt.Sprintf("award:role-volume-translator-%d", i)))
+		require.NoError(t, err)
+		lifecycleID := insertRoleEntryLifecycleRow(t, pool, 1, "translator", i, "awarded", &award.ID, nil)
+		awardIDs = append(awardIDs, award.ID)
+		lifecycleIDs = append(lifecycleIDs, lifecycleID)
+	}
+
+	badgesAfterTwelve, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	require.NoError(t, err)
+	require.True(t, containsPublicBadge(badgesAfterTwelve, "role_volume_translator_bronze", "role_volume"),
+		"12 awarded Credits in einer Rolle muessen role_volume_translator_bronze produzieren")
+
+	reversal, err := ledger.InsertReversal(context.Background(), PointReversalInput{
+		OriginalEntryID: awardIDs[0],
+		ActorAppUserID:  10,
+		IdempotencyKey:  "reverse:role-volume-translator-1",
+		EffectiveAt:     time.Date(2026, 7, 27, 12, 0, 0, 0, time.UTC),
+		Reason:          "Testkorrektur",
+	})
+	require.NoError(t, err)
+
+	_, err = pool.Exec(context.Background(), `
+		UPDATE release_role_credit_lifecycles
+		SET lifecycle_status = 'reversed', reversal_entry_id = $1
+		WHERE id = $2
+	`, reversal.ID, lifecycleIDs[0])
+	require.NoError(t, err)
+
+	badgesAfterReversal, err := repo.loadRoleVolumeBadges(context.Background(), 1)
+	require.NoError(t, err)
+	require.False(t, containsPublicBadge(badgesAfterReversal, "role_volume_translator_bronze", "role_volume"),
+		"eine Netto-Zahl von 11 nach Storno darf role_volume_translator_bronze nicht mehr enthalten (frisch je Read, kein Cache)")
 }
 
 // TestHighestRoleVolumeTier deckt alle Grenzwerte der D-04-Schwellenlogik (Bronze 12 /
