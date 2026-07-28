@@ -56,7 +56,7 @@ export function UserDetailPageClient() {
   const userId = Number(params.id)
 
   const fromQuery = searchParams.get('from')
-  const backHref = fromQuery ? `/admin/users?${decodeURIComponent(fromQuery)}` : '/admin/users'
+  const backHref = fromQuery ? `/admin/users?${fromQuery}` : '/admin/users'
 
   // Eigener, von den Tab-Komponenten unabhängiger Fetch nur für Titel/Status
   // im PageHeader (die Übersicht-Sektion selbst lädt ihre Daten unabhängig
