@@ -1,0 +1,28 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--public-page-max-width, 1360px);
+  margin: 0 auto;
+  padding: var(--space-7) var(--public-page-gutter, var(--space-6)) var(--space-8);
+  background: var(--surface-canvas);
+}
+
+/*
+ * Das Suchfeld ist der primäre visuelle Anker (UI-SPEC Color): es dominiert das obere
+ * Drittel und wird zentriert/breit gesetzt, alles Weitere ordnet sich darunter unter.
+ */
+.searchAnchor {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 720px;
+  margin: var(--space-6) auto var(--space-2);
+}
+
+.resultsSlot {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
