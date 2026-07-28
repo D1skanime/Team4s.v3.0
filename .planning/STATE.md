@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Phase 113 Plan 02 executed
-last_updated: "2026-07-28T08:38:05.374Z"
+last_updated: "2026-07-28T11:41:05.921Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 108
   completed_phases: 86
-  total_plans: 474
-  completed_plans: 439
+  total_plans: 487
+  completed_plans: 440
   percent: 80
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 113 — wiederholbare-leistungs-badges-bronze-silber-gold
+**Current focus:** Phase 114 — oeffentliche-fansub-gruppen-uebersicht
 
 ## Current Position
 
-Phase: 113 (wiederholbare-leistungs-badges-bronze-silber-gold) — EXECUTING
-Plan: 2 of 3
+Phase: 114 (oeffentliche-fansub-gruppen-uebersicht) — EXECUTING
+Plan: 1 of 4
 
 ## Accumulated Context
 
