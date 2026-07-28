@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 112-03-PLAN.md
-last_updated: "2026-07-28T06:47:44.286Z"
+stopped_at: Phase 112 complete (3/3) — ready to discuss Phase 113
+last_updated: 2026-07-28T06:59:06.577Z
 last_activity: 2026-07-28
 progress:
   total_phases: 107
-  completed_phases: 86
+  completed_phases: 1
   total_plans: 471
-  completed_plans: 438
-  percent: 80
+  completed_plans: 461
+  percent: 1
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 112 — member punkt meilenstein badges
+**Current focus:** Phase 113 — wiederholbare leistungs badges bronze silber gold
 
 ## Current Position
 
-Phase: 112 (member-punkt-meilenstein-badges) — EXECUTING
-Plan: 3 of 3
+Phase: 113
+Plan: Not started
 
 ## Accumulated Context
 
