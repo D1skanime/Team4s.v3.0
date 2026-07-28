@@ -577,3 +577,34 @@ describe('Gruppen-Drawer-Links', () => {
     expect(link.getAttribute('href')).toBe('/members/ranking')
   })
 })
+
+describe('Fansub-Gruppen nav (D-01)', () => {
+  it('shows an enabled Fansub-Gruppen link to /fansubs for signed-in members', () => {
+    render(
+      <AppShell mode="authenticated" currentPath="/fansubs" user={{ displayName: 'Mika', email: 'mika@example.com' }}>
+        <main>Inhalt</main>
+      </AppShell>,
+    )
+
+    const link = screen.getByRole('link', { name: /Fansub-Gruppen/i })
+    expect(link.getAttribute('href')).toBe('/fansubs')
+  })
+
+  it('shows an enabled Fansub-Gruppen link to /fansubs for anonymous visitors, no longer disabled', () => {
+    render(
+      <AppShell mode="anonymous" currentPath="/fansubs">
+        <main>Inhalt</main>
+      </AppShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Navigation/i }))
+
+    const link = screen.getByRole('link', { name: /Fansub-Gruppen/i })
+    expect(link.getAttribute('href')).toBe('/fansubs')
+
+    const disabledEntries = screen
+      .queryAllByText('Fansub-Gruppen')
+      .filter((node) => node.closest('[aria-disabled="true"]'))
+    expect(disabledEntries).toHaveLength(0)
+  })
+})
