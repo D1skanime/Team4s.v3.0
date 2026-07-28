@@ -51,9 +51,16 @@ Vermutungen ersetzen.
   heutige Bindung `theme_segment_playback_sources → genau eine release_variant` (ohne Episoden-
   Filter, `admin_content_anime_themes.go:1366`) auf „ein geteiltes Kara, pro Release-Version
   aufgelöst/zugewiesen" umgebaut werden muss.
-- **OFFEN (Nutzer zu bestätigen):** 117 gleich als **vollständiges B** — oder **A als
-  Zwischenschritt** (Offset + Entdopplung um die heutige Duplizierung herum) und **B als eigene
-  Folgephase**.
+- **Scope-Entscheidung (Nutzer, gelockt): vollständiges Option B.** 117 baut das Zielmodell
+  gleich richtig — **ein geteiltes, pro Release-Version zuweisbares Kara** + **Per-Version-Zeit-
+  Offset** (ohne Re-Encode) + **entdoppelte Anzeige** (Admin **und** öffentliche Release-Detailseite).
+  Kein A-Zwischenschritt. Umfasst den Umbau der heutigen Per-Datensatz-Duplizierung und der
+  `theme_segment_playback_sources`-Bindung hin zu „ein Kara, pro Release-Version aufgelöst".
+  Reworked-in-v2 = eigenes Kara, dem betreffenden Release zugewiesen.
+- **Planungshinweis:** Größerer, mehrteiliger Umbau → beim Planen sinnvoll in Teilphasen schneiden
+  (Datenmodell/Migration für geteiltes+zuweisbares Kara → Backend-Auflösung/Offset ohne Re-Encode
+  → Admin-UI (Zuweisung/Offset/Entdopplung) → öffentliche Anzeige-Entdopplung). Die zwei
+  Umsetzungsoptionen und drei offenen Fragen aus 117-RESEARCH.md dabei auflösen.
 
 ### Claude's Discretion (erst NACH Analyse)
 - Konkrete Umsetzung von Offset-Override (neue Spalte/Override-Tabelle vs. vorhandenes Feld),
