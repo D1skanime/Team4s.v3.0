@@ -399,19 +399,22 @@ const backHref = fromQuery ? `/admin/users?${decodeURIComponent(fromQuery)}` : '
 
 **Falls diese Tabelle nach Planner-Review leer bleiben soll:** A1 sollte durch einen kurzen Blick in eine bestehende `[id]`/`[versionId]`-Route vor Implementierungsbeginn aufgelöst werden (kein Research-Blocker, da beide Next-Typmuster im selben Repo vorkommen könnten — einfache Vorlagen-Kopie löst es).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Soll der Impact-Count auch auf `RoleCapabilityDetail.tsx` (Detail-Panel) erscheinen, nicht nur auf `RoleMasterList.tsx`?**
    - What we know: UI-SPEC sagt „minimum bar is `RoleMasterList`", lässt aber offen, ob auch im Detail-Panel dupliziert wird.
    - What's unclear: Ob doppelte Anzeige (Master-Zeile + Detail-Panel-Header) gewünscht ist oder Redundanz vermieden werden soll.
    - Recommendation: Planner entscheidet — minimal ist nur `RoleMasterList`, das erfüllt D-05 vollständig.
+   - **RESOLVED (Plan 111-05):** Impact-Count erscheint ausschließlich in `RoleMasterList`, nicht dupliziert im Detail-Panel — die minimale, D-05-konforme Variante wurde umgesetzt.
 
 2. **Zeigt `RoleMasterList` die 3 synthetischen globalen Rollen VOR, NACH oder GRUPPIERT-GETRENNT von den bestehenden `role_definitions`-Rollen?**
    - What we know: UI-SPEC beschreibt keine explizite Sortierreihenfolge für die neuen Einträge; CONTEXT.md „Claude's Discretion" deckt „Sektions-Reihenfolge" nur für die User-Detailseite ab, nicht explizit für `RoleMasterList`.
    - What's unclear: Visuelle Gruppierung (z. B. eigene Badge-Beschriftung „Globale App-Rolle" vs. bestehende „Aktive App-Rolle"/„Projekt-/Release-Rolle"/„Historische Rolle") — siehe auch Pitfall 1s Hinweis auf ein mögliches neues `role_kind`-Feld.
    - Recommendation: Planner sollte eine eigene vierte Badge-Kategorie „Globale App-Rolle" definieren (nicht „Historische Rolle" wiederverwenden, da das inhaltlich falsch wäre — die 3 globalen Rollen sind aktiv genutzt, nur nicht capability-editierbar in diesem Bildschirm) und sort_order so wählen, dass die 3 globalen Rollen konsistent (z. B. am Anfang) erscheinen.
+   - **RESOLVED (Plan 111-01):** Die drei synthetischen globalen Rollen-Zeilen werden `matrix.Roles` vorangestellt (konsistent am Anfang der Liste), mit eigener `role_kind`-Kategorie statt Wiederverwendung von „Historische Rolle".
 
 3. **Next.js 16 `params`/`searchParams`-Typ-Konvention für die neue `[id]`-Route (sync vs. Promise)** — siehe Assumption A1. Sollte vor Task-Ausführung durch einen Blick in eine bestehende `[id]`/`[versionId]`-Route im Projekt geklärt werden.
+   - **RESOLVED (Plan 111-02 / PATTERNS.md):** Die Typkonvention wird umgangen, indem `page.tsx` keine `params`/`searchParams`-Props entgegennimmt — stattdessen liest `UserDetailPageClient` (der `'use client'`-Teil) `useParams()`/`useSearchParams()` selbst. Damit entfällt die sync-vs-Promise-Unterscheidung für diese Route vollständig.
 
 ## Environment Availability
 
