@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 110 complete (4/4) — ready to discuss Phase 112
-last_updated: 2026-07-28T06:12:04.325Z
+stopped_at: Completed 112-02-PLAN.md
+last_updated: "2026-07-28T06:23:18.435Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 107
-  completed_phases: 1
+  completed_phases: 85
   total_plans: 467
-  completed_plans: 459
-  percent: 1
+  completed_plans: 437
+  percent: 79
 ---
 
 # Project State
@@ -25,8 +25,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 112
-Plan: Not started
+Phase: 112 (member-punkt-meilenstein-badges) — EXECUTING
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -391,6 +391,8 @@ Recent durable decisions:
 - [Phase 110-03]: OwnHiddenProfilePreview.toPublicProfile defaultet total_points auf 0, analog zum bestehenden public_badges-Fallback (Own-Profile-DTO hat kein total_points-Feld)
 - [Phase 110-04]: buildMemberBadgeGroups() ist eine reine, injectable Grouping/Row-Merge-Hilfsfunktion; Rollen-Gruppe merged Badges generisch per roleCode, damit Phase 112 Typ-3 Volumen-Badges ohne Component-Umbau andocken
 - [Phase 112-01]: Split-File member_profile_role_volume_repository.go statt Erweiterung der 1875-Zeilen-Datei; Tier-Tokens intern-englisch (bronze/silver/gold/platinum), Label-Aufloesung folgt clientseitig in 112-02
+- [Phase ?]: [Phase 112-02]: point_milestone_* Presentations liegen ausschliesslich in der statischen Map, nie im PUBLIC_MEMBER_BADGE_CATALOG (D-03, kein Locked-Zustand).
+- [Phase ?]: [Phase 112-02]: resolveRoleVolumePresentation gibt nur den geparsten roleCode zurueck; die deutsche Rollenname-Aufloesung via FANSUB_GROUP_ROLE_OPTIONS erfolgt erst im Zeilen-Render von Plan 112-03 (MemberBadgeChain.tsx).
 
 ### Pending Todos
 
@@ -677,6 +679,7 @@ Recent durable decisions:
 | Phase 110 P03 | 35min | 2 tasks | 7 files |
 | Phase 110 P04 | 25min | 2 tasks | 4 files |
 | Phase 112 P01 | 9min | 2 tasks | 3 files |
+| Phase 112 P02 | 6min | 2 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -758,7 +761,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T06:09:01.369Z
-Stopped at: Completed 112-01-PLAN.md
+Last session: 2026-07-28T06:23:18.405Z
+Stopped at: Completed 112-02-PLAN.md
 Last activity: 2026-07-28
-Resume file: None
+Resume file: 
