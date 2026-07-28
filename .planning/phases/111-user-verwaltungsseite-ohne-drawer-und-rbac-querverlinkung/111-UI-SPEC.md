@@ -29,6 +29,18 @@ This phase is a **structural rework of an existing admin surface**, not a new vi
 
 ---
 
+## Primary Visual Anchor (per screen)
+
+Each screen needs one unambiguous focal point the eye lands on first. This is prescriptive, not optional — the executor must not invent a competing anchor (e.g. a large hero image or an oversized action button).
+
+| Screen | Primary visual anchor |
+|--------|------------------------|
+| `/admin/users` (list) | Der Fokuspunkt ist die erste Tabellenspalte „Benutzer" (Avatar-Initialen-Kreis + fettes `display_name`) der jeweils obersten sichtbaren Zeile — die Filterleiste bleibt bewusst zurückhaltend, damit die Nutzerliste selbst der erste Blickfang ist. |
+| `/admin/users/[id]` (detail page) | Der Fokuspunkt ist die `PageHeader`-Titelzeile mit `display_name` direkt neben dem Status-`Badge` (aktiv/ausstehend/deaktiviert) aus der stets offenen „Übersicht"-Sektion — Name und Kontostatus sind zusammen das Erste, was der Blick erfasst, noch vor den darunterliegenden Accordion-Sektionen. |
+| `/admin/role-capabilities` | Der Fokuspunkt ist der neue „N-mal vergeben"-Impact-Count-`Badge` der aktuell ausgewählten Rolle in der `RoleMasterList` bzw. im `RoleCapabilityDetail`-Panel — er verankert visuell die neue RBAC-Querverlinkung und sticht farblich (Akzentfarbe) gegenüber der neutralen Rollen- und Aktionsliste hervor. |
+
+---
+
 ## Spacing Scale
 
 Declared values (project's existing 4pt scale, `--space-1`…`--space-9`, `globals.css:116-124`). Must be multiples of 4:
