@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 114-02-PLAN.md
-last_updated: "2026-07-28T12:01:50.549Z"
+stopped_at: Completed 114-03-PLAN.md
+last_updated: "2026-07-28T12:15:57.509Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 108
   completed_phases: 86
   total_plans: 487
-  completed_plans: 442
+  completed_plans: 443
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 114 (oeffentliche-fansub-gruppen-uebersicht) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -399,6 +399,9 @@ Recent durable decisions:
 - [Phase 113-01]: Alle drei Contribution-Familien enden bei Gold, kein platinum-Tier (Abweichung vom Rollen-Volumen-Praezedenzfall aus Phase 112)
 - [Phase 114]: projects_count added as its own field (not reusing anime_relations_count) because anime_relations_count has no anime.status filter and would silently over-count vs. the detail page's Anime-Projekte figure; new SQL block mirrors listPublicFansubProjects's a.status <> 'disabled' filter exactly, pinned by a source-invariant regression test
 - [Phase 114-02]: AppShellNavGroups.publicItems (authenticated) required a newly inserted Fansub-Gruppen entry (none existed), while AppShellAnonNavGroups.publicItems (anonymous) required replacing an existing disabled placeholder -- both edits necessary to satisfy D-01.
+- [Phase 114-03]: initials() als benannter Export aus AvatarStack.tsx statt Duplikation in page.tsx
+- [Phase 114-03]: Sortierung client-seitig nach einem einzelnen per_page=500-Fetch (release_versions_count desc, name asc, locale de) statt Server-Pagination
+- [Phase 114-03]: Logo-Fallback-Initialen ueber eigenen .logoInitials-Span statt AvatarStack-Komponente, da AvatarStack fuer ueberlappende Mehrfach-Avatare gedacht ist
 
 ### Pending Todos
 
@@ -691,6 +694,7 @@ Recent durable decisions:
 | Phase 113 P01 | 35min | 3 tasks | 3 files |
 | Phase 114 P01 | 35min | 2 tasks | 8 files |
 | Phase 114 P02 | 4min | 2 tasks | 2 files |
+| Phase 114 P03 | 20min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -772,8 +776,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T12:01:50.454Z
-Stopped at: Completed 114-02-PLAN.md
+Last session: 2026-07-28T12:15:57.368Z
+Stopped at: Completed 114-03-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
 None
