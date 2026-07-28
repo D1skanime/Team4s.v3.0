@@ -1,10 +1,11 @@
 ---
 phase: 116
 slug: personalisiertes-dashboard
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-28
+approved: 2026-07-28
 ---
 
 # Phase 116 — Validation Strategy
@@ -87,4 +88,4 @@ created: 2026-07-28
 - [ ] Feedback latency < 60s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-28 (gsd-plan-checker: Dimension 8 PASS)

@@ -493,9 +493,13 @@ zwischen April und Juli 2026 gebaut).
 Fakten — die zugrunde liegenden Code-Befunde selbst (Feldnamen, Funktionsverhalten, Routen) sind
 alle `[VERIFIED: Codebase]` durch direktes Lesen der genannten Dateien.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Wird `/me/dashboard` oder `GetOwnProfile` erweitert (statt neuer Endpunkt)?**
+> **RESOLVED 2026-07-28** (in CONTEXT.md verankert, in Plänen umgesetzt):
+> - Frage 1 → **D-08**: dedizierter read-only Endpunkt `GET /api/v1/me/dashboard` (nicht `GetOwnProfile` erweitern). Umgesetzt in Plan 116-02.
+> - Frage 2 → **D-09**: kein Eligibility-Redirect; Dashboard für jeden eingeloggten User, graceful EmptyStates. Umgesetzt in 116-02 (Backend graceful empty) + 116-06 (Frontend, kein Redirect).
+
+1. **Wird `/me/dashboard` oder `GetOwnProfile` erweitert (statt neuer Endpunkt)?** — RESOLVED → D-08 (neuer Endpunkt)
    - Was wir wissen: Beide Ansätze sind technisch gleich einfach; `GetOwnProfile` wird aber auch
      von `/me/profile` und `AppShellClientWrapper` konsumiert — eine Erweiterung dort würde JEDE
      bestehende Konsumentenstelle mit zusätzlichen Feldern/Queries belasten, auch wenn nicht
@@ -507,7 +511,7 @@ alle `[VERIFIED: Codebase]` durch direktes Lesen der genannten Dateien.
      bei jedem Render unnötig mitzahlen würden, würden sie in `GetOwnProfile` selbst leben.
 
 2. **Soll die Dashboard-Route serverseitig eine Redirect-Regel wie `/me/contributions` bekommen
-   (Eligibility-Gate für Nutzer ohne Member-Profil)?**
+   (Eligibility-Gate für Nutzer ohne Member-Profil)?** — RESOLVED → D-09 (kein Redirect, EmptyStates)
    - Was wir wissen: `/me/contributions` leitet Nutzer ohne `has_member_profile &&
      has_project_assignments` sofort zu `/me/profile` um (`page.tsx:80-86`).
    - Was unklar ist: Ob das Dashboard für JEDEN eingeloggten User sichtbar sein soll (auch ohne

@@ -1,7 +1,8 @@
 ---
 phase: 116
 slug: personalisiertes-dashboard
-status: draft
+status: approved
+approved: 2026-07-28
 shadcn_initialized: false
 preset: none
 created: 2026-07-28

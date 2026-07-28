@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Completed 111-02-PLAN.md
-last_updated: "2026-07-28T15:50:01.300Z"
+last_updated: "2026-07-28T16:16:04.411Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 109
   completed_phases: 86
-  total_plans: 487
-  completed_plans: 446
+  total_plans: 493
+  completed_plans: 447
   percent: 79
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 111 (user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Accumulated Context
 
