@@ -171,6 +171,61 @@ describe('PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03)', () => {
   })
 })
 
+describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
+  it('renders the German role-name prefix before a merged Typ-1 + Typ-3 roles row', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
+          { id: 0, badge_code: 'role_volume_translator_gold', badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('Übersetzung:')).not.toBeNull()
+    expect(screen.getByText('Erste Übersetzung')).not.toBeNull()
+    expect(screen.getByText('Gold · 320+')).not.toBeNull()
+  })
+
+  it('renders the role-name prefix for a roles row with only the Typ-1 chip (under threshold, no volume merge)', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' }]}
+      />,
+    )
+
+    expect(screen.getByText('Übersetzung:')).not.toBeNull()
+    expect(screen.getByText('Erste Übersetzung')).not.toBeNull()
+    expect(screen.queryByText(/Gold ·/)).toBeNull()
+  })
+
+  it('renders the role-name prefix uniformly on every roles-group row, including untouched locked rows', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    render(<MemberBadgeChain earnedBadges={[]} />)
+
+    const rolesList = screen.getByRole('list', { name: 'Rollen' })
+    const rows = within(rolesList).getAllByRole('listitem')
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) {
+      expect(row.textContent).toMatch(/^[^:]+:/)
+    }
+  })
+
+  it('does not render a role-name prefix for non-roles groups (Fortschritt)', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    render(<MemberBadgeChain earnedBadges={[]} />)
+
+    const progressList = screen.getByRole('list', { name: 'Fortschritt' })
+    expect(progressList.textContent).not.toMatch(/:/)
+  })
+})
+
 describe('buildMemberBadgeGroups (D-04)', () => {
   it('returns exactly 4 groups in the fixed roles/progress/membership/special order when all groups are populated', async () => {
     const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
