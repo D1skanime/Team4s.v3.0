@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 111-04-PLAN.md
-last_updated: "2026-07-28T16:19:48.537Z"
+stopped_at: Completed 111-05-PLAN.md
+last_updated: "2026-07-28T16:49:36.847Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 109
-  completed_phases: 86
+  completed_phases: 87
   total_plans: 493
-  completed_plans: 447
-  percent: 79
+  completed_plans: 448
+  percent: 80
 ---
 
 # Project State
@@ -408,6 +408,8 @@ Recent durable decisions:
 - [Phase 111-03]: AdminUsersClient.tsx verliert Drawer/Dual-Mode (D-01); Zeilen-Klick navigiert per router.push zu /admin/users/{id}?from={Listen-Query-String}
 - [Phase 111-02]: Accordion.tsx additiv um optionales keepMountedIds erweitert (non-breaking): geschlossene, bereits geladene Panels bleiben via hidden im DOM statt zu unmounten. — Ohne diese Erweiterung wuerde jedes Wiederoeffnen einer lazy-geladenen Akkordeon-Sektion die Tab-Komponente neu mounten und ihren internen Fetch erneut ausloesen (D-03-Verstoss).
 - [Phase 111-04]: UserGlobalRolesTab bleibt bewusst unveraendert (Pitfall 1): globale App-Rollen sind strukturell nie in listRoleCapabilities() auflösbar; Regressionstest sichert das ab statt totem Matching-Code.
+- [Phase 111-05]: Impact-Count-Link und Rollen-Auswahl-Button liegen als Geschwister-Elemente derselben Card-Row statt verschachtelt (verhindert ungueltiges HTML/Event-Bubbling).
+- [Phase 111-05]: ?role=-Vorauswahl auf /admin/role-capabilities greift per useRef-Guard nur einmalig beim ersten Matrix-Load, nicht bei jedem Refresh nach Grant/Revoke.
 
 ### Pending Todos
 
@@ -705,6 +707,7 @@ Recent durable decisions:
 | Phase 111 P03 | 45min | 2 tasks | 5 files |
 | Phase 111 P02 | 50min | 2 tasks | 8 files |
 | Phase 111 P04 | 25min | 2 tasks | 4 files |
+| Phase 111 P05 | 35min | 2 tasks | 5 files |
 
 ### Quick Tasks Completed
 
@@ -786,8 +789,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T16:19:48.475Z
-Stopped at: Completed 111-04-PLAN.md
+Last session: 2026-07-28T16:49:36.503Z
+Stopped at: Completed 111-05-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
 None
