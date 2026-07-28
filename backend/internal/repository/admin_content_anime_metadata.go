@@ -44,31 +44,18 @@ func (m authoritativeAnimeMetadataWrite) normalizedTitleRecords() []normalizedAn
 }
 
 func buildAuthoritativeAnimeMetadataCreate(input models.AdminAnimeCreateInput) authoritativeAnimeMetadataWrite {
+	slots := []authoritativeAnimeTitleSlotWrite{
+		{Set: true, LanguageCode: "romaji", TitleType: "main", Title: trimOptionalStringPtr(&input.Title)},
+		{Set: true, LanguageCode: "de", TitleType: "main", Title: trimOptionalStringPtr(input.TitleDE)},
+		{Set: true, LanguageCode: "en", TitleType: "official", Title: trimOptionalStringPtr(input.TitleEN)},
+	}
+
 	return authoritativeAnimeMetadataWrite{
-		TitleSlots: []authoritativeAnimeTitleSlotWrite{
-			{
-				Set:          true,
-				LanguageCode: "romaji",
-				TitleType:    "main",
-				Title:        trimOptionalStringPtr(&input.Title),
-			},
-			{
-				Set:          true,
-				LanguageCode: "de",
-				TitleType:    "main",
-				Title:        trimOptionalStringPtr(input.TitleDE),
-			},
-			{
-				Set:          true,
-				LanguageCode: "en",
-				TitleType:    "official",
-				Title:        trimOptionalStringPtr(input.TitleEN),
-			},
-		},
-		GenresSet: true,
-		Genres:    normalizeGenreList(input.Genre),
-		TagsSet:   true,
-		Tags:      normalizeTagList(input.Tags),
+		TitleSlots: appendAltTitleSlots(slots, input.AltTitles),
+		GenresSet:  true,
+		Genres:     normalizeGenreList(input.Genre),
+		TagsSet:    true,
+		Tags:       normalizeTagList(input.Tags),
 	}
 }
 
@@ -101,6 +88,7 @@ func buildAuthoritativeAnimeMetadataPatch(input models.AdminAnimePatchInput) aut
 			Title:        trimOptionalStringPtr(input.TitleEN.Value),
 		})
 	}
+	write.TitleSlots = appendAltTitleSlots(write.TitleSlots, input.AltTitles)
 	if input.Genre.Set {
 		write.GenresSet = true
 		write.Genres = normalizeGenreList(input.Genre.Value)

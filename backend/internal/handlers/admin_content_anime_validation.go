@@ -72,17 +72,17 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 	}
 
 	return models.AdminAnimeCreateInput{
-		Title:       title,
-		TitleDE:     normalizeNullableString(req.TitleDE),
-		TitleEN:     normalizeNullableString(req.TitleEN),
-		Type:        animeType,
-		ContentType: contentType,
-		Status:      status,
-		Year:        req.Year,
-		MaxEpisodes: req.MaxEpisodes,
-		Genre:       normalizeNullableString(req.Genre),
-		Tags:        req.Tags,
-		Description: normalizeNullableString(req.Description),
+		Title:               title,
+		TitleDE:             normalizeNullableString(req.TitleDE),
+		TitleEN:             normalizeNullableString(req.TitleEN),
+		Type:                animeType,
+		ContentType:         contentType,
+		Status:              status,
+		Year:                req.Year,
+		MaxEpisodes:         req.MaxEpisodes,
+		Genre:               normalizeNullableString(req.Genre),
+		Tags:                req.Tags,
+		Description:         normalizeNullableString(req.Description),
 		CoverImage:          coverImage,
 		BannerImage:         bannerImage,
 		LogoImage:           logoImage,
@@ -90,7 +90,8 @@ func validateAdminAnimeCreateRequest(req adminAnimeCreateRequest) (models.AdminA
 		BackgroundImageURLs: backgroundImageURLs,
 		Source:              source,
 		SourceLinks:         sourceLinks,
-		FolderName:  folderName,
+		FolderName:          folderName,
+		AltTitles:           req.AltTitles,
 	}, ""
 }
 
@@ -193,7 +194,8 @@ func hasAnyAdminAnimePatchField(req models.AdminAnimePatchInput) bool {
 		req.Description.Set ||
 		req.CoverImage.Set ||
 		req.Source.Set ||
-		req.FolderName.Set
+		req.FolderName.Set ||
+		len(req.AltTitles) > 0
 }
 
 // normalizeAdminAnimeSource normalisiert und validiert einen Anime-Quellbezeichner im Format "jellyfin:<id>" oder "anisearch:<id>".

@@ -92,6 +92,7 @@ type AdminAnimeCreateInput struct {
 	SourceLinks         []string
 	FolderName          *string
 	Tags                []string
+	AltTitles           []AdminAnimeAltTitle
 }
 
 type AdminAnimeCreateDraftAssetSuggestions struct {
@@ -267,20 +268,21 @@ type AdminAnimeRelationTitleMatch struct {
 }
 
 type AdminAnimePatchInput struct {
-	Title       OptionalString      `json:"title"`
-	TitleDE     OptionalString      `json:"title_de"`
-	TitleEN     OptionalString      `json:"title_en"`
-	Type        OptionalString      `json:"type"`
-	ContentType OptionalString      `json:"content_type"`
-	Status      OptionalString      `json:"status"`
-	Year        OptionalInt16       `json:"year"`
-	MaxEpisodes OptionalInt16       `json:"max_episodes"`
-	Genre       OptionalString      `json:"genre"`
-	Tags        OptionalStringSlice `json:"tags"`
-	Description OptionalString      `json:"description"`
-	CoverImage  OptionalString      `json:"cover_image"`
-	Source      OptionalString      `json:"source"`
-	FolderName  OptionalString      `json:"folder_name"`
+	Title       OptionalString       `json:"title"`
+	TitleDE     OptionalString       `json:"title_de"`
+	TitleEN     OptionalString       `json:"title_en"`
+	Type        OptionalString       `json:"type"`
+	ContentType OptionalString       `json:"content_type"`
+	Status      OptionalString       `json:"status"`
+	Year        OptionalInt16        `json:"year"`
+	MaxEpisodes OptionalInt16        `json:"max_episodes"`
+	Genre       OptionalString       `json:"genre"`
+	Tags        OptionalStringSlice  `json:"tags"`
+	Description OptionalString       `json:"description"`
+	CoverImage  OptionalString       `json:"cover_image"`
+	Source      OptionalString       `json:"source"`
+	FolderName  OptionalString       `json:"folder_name"`
+	AltTitles   []AdminAnimeAltTitle `json:"alt_titles,omitempty"`
 }
 
 // AdminTagToken is a normalized tag value with its usage count across all anime.

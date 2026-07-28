@@ -72,6 +72,7 @@ func TestAdminContentRepository_Task1FilesStayWithinLineBudget(t *testing.T) {
 	files := []string{
 		"admin_content.go",
 		"admin_content_anime_metadata.go",
+		"admin_content_anime_alt_titles.go",
 		"admin_content_episode.go",
 		"admin_content_sync.go",
 		"admin_content_anime_audit.go",

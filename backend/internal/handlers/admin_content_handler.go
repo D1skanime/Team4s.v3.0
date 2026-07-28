@@ -33,6 +33,7 @@ type adminAnimeCreateRequest struct {
 	Source              *string                     `json:"source"`
 	SourceLinks         []string                    `json:"source_links"`
 	FolderName          *string                     `json:"folder_name"`
+	AltTitles           []models.AdminAnimeAltTitle `json:"alt_titles"`
 	Relations           []models.AdminAnimeRelation `json:"relations"`
 }
 
