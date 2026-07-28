@@ -174,3 +174,19 @@ func TestLoadPublicBadgesPostgresNonEligibleRoleNeverAppears(t *testing.T) {
 	require.False(t, containsPublicBadge(badges, "role_entry_fansub_lead", "role_entry"),
 		"eine Rolle, die nie 'awarded' erreicht, darf nie eine role_entry Badge produzieren, ohne Go-seitige Sonderbehandlung")
 }
+
+// TestHighestRoleVolumeTier deckt alle Grenzwerte der D-04-Schwellenlogik (Bronze 12 /
+// Silber 108 / Gold 320 / Platin 510) direkt ab, unabhaengig von Postgres/Seed-Daten
+// (VALIDATION 112-BE-01, Pitfall 2: Gold/Platin sind in Wegwerf-Testdaten ohne gezieltes
+// Seeding nicht natuerlich erreichbar).
+func TestHighestRoleVolumeTier(t *testing.T) {
+	require.Equal(t, "", highestRoleVolumeTier(0))
+	require.Equal(t, "", highestRoleVolumeTier(11))
+	require.Equal(t, "bronze", highestRoleVolumeTier(12))
+	require.Equal(t, "bronze", highestRoleVolumeTier(107))
+	require.Equal(t, "silver", highestRoleVolumeTier(108))
+	require.Equal(t, "silver", highestRoleVolumeTier(319))
+	require.Equal(t, "gold", highestRoleVolumeTier(320))
+	require.Equal(t, "gold", highestRoleVolumeTier(509))
+	require.Equal(t, "platinum", highestRoleVolumeTier(510))
+}
