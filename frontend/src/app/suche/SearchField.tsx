@@ -31,7 +31,8 @@ export function suggestionHref(item: SearchResultItem): string {
  */
 export function SearchField() {
   const router = useRouter()
-  const { q, suggestions, isLoading, setQuery } = useDebouncedSearch()
+  // Rolle „input": nur Vorschläge laden; die Ergebnissuche besitzt SearchResults.
+  const { q, suggestions, isLoading, setQuery } = useDebouncedSearch({ role: 'input' })
 
   const [isOpen, setIsOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
