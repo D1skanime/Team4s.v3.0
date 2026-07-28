@@ -262,6 +262,38 @@ describe('buildMemberBadgeGroups (D-04)', () => {
     expect(groups.find((group) => group.key === 'special')).toBeUndefined()
   })
 
+  it('bildet aus earned-only Contribution-Badges genau eine Zeile pro Familie', async () => {
+    const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
+    const { getMemberBadgePresentation } = await import('./memberBadgeLabels')
+    const earnedContributionCatalog: MemberBadgeCatalogItem[] = [
+      { badge_code: 'contribution_projects_gold', label: 'Mitgetragene Projekte · Gold', badge_category: 'contribution' },
+      { badge_code: 'contribution_chronicle_silver', label: 'Chronist · Silber', badge_category: 'contribution' },
+      { badge_code: 'contribution_archivist_bronze', label: 'Bildarchivar · Bronze', badge_category: 'contribution' },
+    ]
+
+    const groups = buildMemberBadgeGroups(
+      earnedContributionCatalog,
+      getMemberBadgePresentation as unknown as (badgeCode: string) => FakePresentation,
+    )
+    const contributions = groups.find((group) => group.key === 'contributions')
+
+    expect(contributions?.label).toBe('Beiträge')
+    expect(contributions?.rows).toHaveLength(3)
+    expect(contributions?.rows.map((row) => row.items.map((item) => item.badge_code))).toEqual([
+      ['contribution_projects_gold'],
+      ['contribution_chronicle_silver'],
+      ['contribution_archivist_bronze'],
+    ])
+  })
+
+  it('blendet Beiträge ohne earned Contribution-Badges vollständig aus', async () => {
+    const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
+
+    const groups = buildMemberBadgeGroups([], () => fakePresentation({ group: 'contributions' }))
+
+    expect(groups.find((group) => group.key === 'contributions')).toBeUndefined()
+  })
+
   it('merges two synthetic same-roleCode badges into a single Rollen row (Phase 112 compatibility)', async () => {
     const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
     const groupCatalog: MemberBadgeCatalogItem[] = [

@@ -1,8 +1,68 @@
 import { describe, expect, it } from 'vitest'
+import { FolderCheck, Images, ScrollText } from 'lucide-react'
 
 // deriveMilestoneBadge existiert noch nicht in memberBadgeLabels.ts — macht diesen Test
 // legitim RED (Task 1, Typ-2-Grenzwerte D-01/D-03).
-import { deriveMilestoneBadge, getMemberBadgePresentation } from './memberBadgeLabels'
+import {
+  deriveMilestoneBadge,
+  getMemberBadgePresentation,
+  MEMBER_BADGE_GROUP_LABELS,
+  MEMBER_BADGE_GROUP_ORDER,
+  MEMBER_BADGE_PRESENTATIONS,
+  PUBLIC_MEMBER_BADGE_CATALOG,
+} from './memberBadgeLabels'
+
+describe('Contribution-Badge-Präsentationen (D-05)', () => {
+  const families = [
+    { family: 'projects', label: 'Mitgetragene Projekte', Icon: FolderCheck },
+    { family: 'chronicle', label: 'Chronist', Icon: ScrollText },
+    { family: 'archivist', label: 'Bildarchivar', Icon: Images },
+  ] as const
+  const tiers = [
+    { tier: 'bronze', label: 'Bronze', variant: 'muted' },
+    { tier: 'silver', label: 'Silber', variant: 'neutral' },
+    { tier: 'gold', label: 'Gold', variant: 'warning' },
+  ] as const
+
+  it('ordnet alle neun Codes mit Label, Familien-Icon und Tier-Palette der Gruppe Beiträge zu', () => {
+    for (const family of families) {
+      for (const tier of tiers) {
+        const code = `contribution_${family.family}_${tier.tier}`
+        const presentation = MEMBER_BADGE_PRESENTATIONS[code]
+
+        expect(presentation).toMatchObject({
+          label: `${family.label} · ${tier.label}`,
+          Icon: family.Icon,
+          palette: tier.tier,
+          variant: tier.variant,
+          group: 'contributions',
+        })
+        expect(presentation.roleCode).toBeUndefined()
+      }
+    }
+  })
+
+  it('platziert Beiträge zwischen Fortschritt und Mitgliedschaft', () => {
+    expect(MEMBER_BADGE_GROUP_LABELS.contributions).toBe('Beiträge')
+    expect(MEMBER_BADGE_GROUP_ORDER).toEqual([
+      'roles',
+      'progress',
+      'contributions',
+      'membership',
+      'special',
+    ])
+  })
+
+  it('hält alle neun Codes aus dem Public-Katalog heraus (earned-only)', () => {
+    const catalogCodes = new Set(PUBLIC_MEMBER_BADGE_CATALOG.map((item) => item.badge_code))
+
+    for (const family of families) {
+      for (const tier of tiers) {
+        expect(catalogCodes.has(`contribution_${family.family}_${tier.tier}`)).toBe(false)
+      }
+    }
+  })
+})
 
 describe('deriveMilestoneBadge (D-01/D-03 — reine Read-time-Ableitung aus total_points)', () => {
   it('gibt null unter 1 Punkt zurück', () => {
