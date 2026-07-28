@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 112 complete (3/3) — ready to discuss Phase 113
-last_updated: 2026-07-28T06:59:06.577Z
+stopped_at: Phase 111 context gathered
+last_updated: "2026-07-28T07:28:43.671Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 107
-  completed_phases: 1
+  completed_phases: 86
   total_plans: 471
-  completed_plans: 461
-  percent: 1
+  completed_plans: 438
+  percent: 80
 ---
 
 # Project State
@@ -763,8 +763,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T06:47:44.244Z
-Stopped at: Completed 112-03-PLAN.md
+Last session: 2026-07-28T07:28:43.477Z
+Stopped at: Phase 111 context gathered
 Last activity: 2026-07-28
 Resume file: 
-None
+.planning/phases/111-user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung/111-CONTEXT.md
