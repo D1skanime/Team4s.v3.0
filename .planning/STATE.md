@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 111-02-PLAN.md
-last_updated: "2026-07-28T16:16:04.411Z"
+stopped_at: Completed 111-04-PLAN.md
+last_updated: "2026-07-28T16:19:48.537Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 109
@@ -407,6 +407,7 @@ Recent durable decisions:
 - [Phase 111-03]: params-Objekt in useUserListFilters ueber useMemo stabilisiert (Rule-1-Fix gegen Endlosschleife aus Render/useEffect)
 - [Phase 111-03]: AdminUsersClient.tsx verliert Drawer/Dual-Mode (D-01); Zeilen-Klick navigiert per router.push zu /admin/users/{id}?from={Listen-Query-String}
 - [Phase 111-02]: Accordion.tsx additiv um optionales keepMountedIds erweitert (non-breaking): geschlossene, bereits geladene Panels bleiben via hidden im DOM statt zu unmounten. — Ohne diese Erweiterung wuerde jedes Wiederoeffnen einer lazy-geladenen Akkordeon-Sektion die Tab-Komponente neu mounten und ihren internen Fetch erneut ausloesen (D-03-Verstoss).
+- [Phase 111-04]: UserGlobalRolesTab bleibt bewusst unveraendert (Pitfall 1): globale App-Rollen sind strukturell nie in listRoleCapabilities() auflösbar; Regressionstest sichert das ab statt totem Matching-Code.
 
 ### Pending Todos
 
@@ -703,6 +704,7 @@ Recent durable decisions:
 | Phase 111 P01 | 25min | 2 tasks | 5 files |
 | Phase 111 P03 | 45min | 2 tasks | 5 files |
 | Phase 111 P02 | 50min | 2 tasks | 8 files |
+| Phase 111 P04 | 25min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -784,8 +786,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T15:50:01.171Z
-Stopped at: Completed 111-02-PLAN.md
+Last session: 2026-07-28T16:19:48.475Z
+Stopped at: Completed 111-04-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
 None
