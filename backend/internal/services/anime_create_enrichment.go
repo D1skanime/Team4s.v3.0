@@ -1377,8 +1377,8 @@ func buildAniSearchAltTitles(anime AniSearchAnime) []models.AdminAnimeAltTitle {
 		})
 	}
 
-	appendIfPresent("ja", "official", anime.OriginalTitle)
-	appendIfPresent("ja-Latn", "romanized", anime.RomajiTitle)
+	appendIfPresent("ja", "japanese", anime.OriginalTitle)
+	appendIfPresent("ja", "romaji", anime.RomajiTitle)
 	appendIfPresent("en", "official", anime.EnglishTitle)
 	appendIfPresent("de", "official", anime.GermanTitle)
 	return result

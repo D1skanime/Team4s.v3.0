@@ -45,7 +45,7 @@ func (m authoritativeAnimeMetadataWrite) normalizedTitleRecords() []normalizedAn
 
 func buildAuthoritativeAnimeMetadataCreate(input models.AdminAnimeCreateInput) authoritativeAnimeMetadataWrite {
 	slots := []authoritativeAnimeTitleSlotWrite{
-		{Set: true, LanguageCode: "romaji", TitleType: "main", Title: trimOptionalStringPtr(&input.Title)},
+		{Set: true, LanguageCode: "ja", TitleType: "main", Title: trimOptionalStringPtr(&input.Title)},
 		{Set: true, LanguageCode: "de", TitleType: "main", Title: trimOptionalStringPtr(input.TitleDE)},
 		{Set: true, LanguageCode: "en", TitleType: "official", Title: trimOptionalStringPtr(input.TitleEN)},
 	}
@@ -67,7 +67,7 @@ func buildAuthoritativeAnimeMetadataPatch(input models.AdminAnimePatchInput) aut
 	if input.Title.Set {
 		write.TitleSlots = append(write.TitleSlots, authoritativeAnimeTitleSlotWrite{
 			Set:          true,
-			LanguageCode: "romaji",
+			LanguageCode: "ja",
 			TitleType:    "main",
 			Title:        trimOptionalStringPtr(input.Title.Value),
 		})
