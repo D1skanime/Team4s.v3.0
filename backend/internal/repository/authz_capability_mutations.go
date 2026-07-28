@@ -34,6 +34,19 @@ type CapabilityMatrixRoleEntry struct {
 	Assignable         bool                          `json:"assignable"`          // Im Gruppen-Add-Picker zuweisbar (permissions.IsKnownFansubGroupRole)
 	CapabilityEditable bool                          `json:"capability_editable"` // Capabilities editierbar (permissions.IsCapabilityBearingRole) — G4
 	Contexts           []string                      `json:"contexts,omitempty"`  // Aus role_definitions.contexts
+	// GlobalAssignmentCount zählt aktive Zuweisungen aus app_user_global_roles.
+	// NUR für die drei synthetischen globalen App-Rollen-Zeilen (platform_admin/content_admin/
+	// user) gesetzt — role_definitions-Zeilen bekommen dieses Feld NIE gesetzt (Pointer bleibt
+	// nil → JSON "null"/fehlend). Grund: diese drei Rollen existieren strukturell nicht in
+	// role_definitions (111-RESEARCH.md Pitfall 1). Gegenstücke, die synchron gehalten werden
+	// müssen: shared/contracts/admin-capabilities.yaml (RoleEntry.global_assignment_count) und
+	// frontend/src/types/admin-capability.ts (RoleEntry.global_assignment_count).
+	GlobalAssignmentCount *int `json:"global_assignment_count,omitempty"`
+	// RoleKind ist "global_app_role" nur für die drei synthetischen globalen App-Rollen-Zeilen
+	// (Handler-Merge in admin_capability_handler.go), sonst leer für alle bestehenden
+	// role_definitions-Zeilen. Gegenstücke: admin-capabilities.yaml RoleEntry.role_kind,
+	// frontend/src/types/admin-capability.ts RoleEntry.role_kind (111-RESEARCH.md Pitfall 1/2).
+	RoleKind string `json:"role_kind,omitempty"`
 }
 
 // CapabilityMatrixActionEntry ist eine Action-Definition (für all_actions-Liste).

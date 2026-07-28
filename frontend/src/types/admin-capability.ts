@@ -27,6 +27,19 @@ export interface RoleEntry {
   capability_editable?: boolean;
   /** role_definitions.contexts (für Kontext-Badges). */
   contexts?: string[];
+  /**
+   * Anzahl aktiver Zuweisungen aus app_user_global_roles — nur für die drei synthetischen
+   * globalen App-Rollen-Zeilen (platform_admin/content_admin/user) gesetzt; für alle
+   * role_definitions-Zeilen null/fehlend (111-RESEARCH.md Pitfall 1). Gegenstücke:
+   * backend/internal/repository/authz_capability_mutations.go CapabilityMatrixRoleEntry,
+   * shared/contracts/admin-capabilities.yaml RoleEntry.
+   */
+  global_assignment_count?: number | null;
+  /**
+   * "global_app_role" für die drei synthetischen globalen App-Rollen-Zeilen, sonst
+   * leer/fehlend für role_definitions-Zeilen (111-RESEARCH.md Pitfall 1/2).
+   */
+  role_kind?: 'global_app_role' | string;
 }
 
 /** Eine Rollendefinition aus dem role-definitions-Endpunkt. */

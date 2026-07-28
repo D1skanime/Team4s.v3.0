@@ -295,6 +295,18 @@ components:
           items:
             type: string
           description: "role_definitions.contexts (für Kontext-Badges)."
+        global_assignment_count:
+          type: integer
+          nullable: true
+          description: >
+            Anzahl aktiver Zuweisungen aus app_user_global_roles — nur für die drei
+            synthetischen globalen App-Rollen-Zeilen (platform_admin/content_admin/user)
+            gesetzt; für alle role_definitions-Zeilen null/fehlend (111-RESEARCH.md Pitfall 1).
+        role_kind:
+          type: string
+          description: >
+            "global_app_role" für die drei synthetischen globalen App-Rollen-Zeilen
+            (platform_admin/content_admin/user), sonst leer/fehlend für role_definitions-Zeilen.
     ActionEntry:
       type: object
       required: [code, label_de, category, sort_order]
