@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 
-import { Accordion, Badge, Button, PageHeader } from '@/components/ui'
+import { Accordion, Badge, Button, ErrorState, PageHeader } from '@/components/ui'
 import type { AccordionItemDef } from '@/components/ui'
 import { getAdminUserOverview } from '@/lib/api'
 import type { AdminUserOverviewResponse } from '@/types/admin-users'
@@ -54,6 +54,7 @@ export function UserDetailPageClient() {
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
   const userId = Number(params.id)
+  const isValidUserId = Number.isInteger(userId) && userId > 0
 
   const fromQuery = searchParams.get('from')
   const backHref = fromQuery ? `/admin/users?${fromQuery}` : '/admin/users'
@@ -64,6 +65,9 @@ export function UserDetailPageClient() {
   const [overview, setOverview] = useState<AdminUserOverviewResponse | null>(null)
 
   const loadOverview = useCallback(async () => {
+    if (!isValidUserId) {
+      return
+    }
     try {
       const resp = await getAdminUserOverview(userId)
       setOverview(resp)
@@ -71,7 +75,7 @@ export function UserDetailPageClient() {
       // Fehler wird bereits granular in der Übersicht-Sektion (UserOverviewTab)
       // angezeigt; der Header fällt auf den Nummern-Titel zurück.
     }
-  }, [userId])
+  }, [userId, isValidUserId])
 
   useEffect(() => {
     // Fetch-on-mount fuer den PageHeader-Titel/Status, unabhaengig vom
@@ -86,6 +90,15 @@ export function UserDetailPageClient() {
   function handleOpenChange(next: Set<string>) {
     setOpenIds(next)
     setLoadedIds((prev) => new Set([...prev, ...next]))
+  }
+
+  if (!isValidUserId) {
+    return (
+      <ErrorState
+        title="Ungültige Benutzer-ID"
+        description="Die aufgerufene URL enthält keine gültige Benutzer-ID."
+      />
+    )
   }
 
   const items: AccordionItemDef[] = [
