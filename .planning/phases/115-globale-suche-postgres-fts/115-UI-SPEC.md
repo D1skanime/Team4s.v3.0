@@ -1,10 +1,11 @@
 ---
 phase: 115
 slug: globale-suche-postgres-fts
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-28
+reviewed_at: 2026-07-28
 ---
 
 # Phase 115 — UI Design Contract: Globale Suche
@@ -103,6 +104,10 @@ Sekundärtext (Trefferzahlen, Meta, Jahr/Typ) nutzt `--text-soft`/`--text-faint`
 
 ## Color
 
+**Visueller Fokuspunkt:** Das zentrale Suchfeld ist der primäre visuelle Anker der Seite —
+Blickfang Nr. 1 oben, vor Tabs/Filtern/Ergebnissen. Executor darf die visuelle Priorität nicht
+raten: Suchfeld dominiert das obere Drittel, alles Weitere ordnet sich darunter unter.
+
 60/30/10-Aufteilung, ausschließlich vorhandene Tokens:
 
 | Role | Value | Usage |
@@ -146,6 +151,7 @@ Alle Strings Deutsch mit korrekten Umlauten (Constraint 2). `{query}` = eingegeb
 | Filter zurücksetzen | „Filter zurücksetzen" |
 | Filter anwenden (mobil) | „Filter anwenden" |
 | Filter öffnen (mobil) | „Filter" |
+| Filter-Chip entfernen (aria-label) | „Filter {name} entfernen" |
 | Empty — Initialzustand (Heading) | „Wonach suchst du?" |
 | Empty — Initialzustand (Body) | „Gib einen Anime-Titel oder eine Fansubgruppe ein, um loszulegen." |
 | Empty — keine Treffer (Heading) | „Keine Treffer für „{query}"" |
@@ -174,7 +180,7 @@ daher keine Bestätigungsdialoge.
 | Vorschlags-Dropdown | `Card` als Container + Liste | zwei Gruppen (`SectionHeader`/Label je Gruppe), Trefferzahl je Gruppe als `Badge variant="neutral"` |
 | Ergebnis-Tabs | `Tabs` (`TabItem[]`) | `id`=`alle`/`anime`/`fansub`, `label` gemäß Copy, `badge`=Trefferzahl (`Badge`) |
 | Ergebniskarte | `Card` | Titel (Body/600), Meta (Jahr/Typ bzw. Slug) in `--text-soft`; klickbar → Detailseite |
-| Filter-Chips | `Badge` (aktiv = accent) + `Button variant="ghost/secondary"` zum Entfernen | aktive Filter als entfernbare Chips über der Ergebnisliste |
+| Filter-Chips | `Badge` (aktiv = accent) + `Button variant="ghost/secondary"` zum Entfernen | aktive Filter als entfernbare Chips über der Ergebnisliste; icon-only Entfernen-Button trägt `aria-label` „Filter {name} entfernen" (siehe Copywriting) |
 | Filter-Steuerung | `Select`, `YearPicker`/`DatePicker`, `FormField` | Genre, Tag, Typ/Format, Jahr-von/-bis, Status, Fansubgruppe (Verfügbarkeit gegen Datenmodell, D-06) |
 | Mobile Filter | `Drawer` (`variant="side"` oder Bottom-Sheet) | Öffnen via `Button` „Filter"; Footer mit „Filter anwenden" + „Filter zurücksetzen" |
 | Paginierung | `Pagination` (`currentPage`, `totalPages`, `onPageChange`) | pro Tab; Seitenzustand in URL |
@@ -248,13 +254,14 @@ hauseigenen `@/components/ui`. Registry-Vetting-Gate entfällt.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Project-Gate: nur `@/components/ui`-Primitives (keine nativen `<input>/<button>/<select>`): PASS
-- [ ] Project-Gate: korrekte Umlaute in allen user-facing Strings: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS (2 FLAGs behoben — Fokuspunkt explizit, Chip-Entfernen `aria-label` ergänzt)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS (nicht anwendbar — keine Registry)
+- [x] Project-Gate: nur `@/components/ui`-Primitives (keine nativen `<input>/<button>/<select>`): PASS
+- [x] Project-Gate: korrekte Umlaute in allen user-facing Strings: PASS
+- [x] Project-Gate: 450-Zeilen-Limit (Aufteilung vorgeschrieben): PASS
 
-**Approval:** pending
+**Approval:** approved (gsd-ui-checker, 2026-07-28)
