@@ -25,6 +25,23 @@ type capabilityMutationRepo interface {
 	RevokeRoleCapability(ctx context.Context, roleCode, actionCode string) error
 	CountRolesWithAction(ctx context.Context, actionCode string) (int64, error)
 	LoadRoleCapabilities(ctx context.Context) (map[string][]permissions.Action, error)
+	// CountGlobalRoleAssignments aggregiert app_user_global_roles für die synthetischen
+	// globalen App-Rollen-Zeilen in ListCapabilityMatrix (D-05, 111-RESEARCH.md Pitfall 1).
+	CountGlobalRoleAssignments(ctx context.Context) (map[string]int, error)
+}
+
+// globalAppRoleCodes ist die feste Reihenfolge der drei globalen App-Rollen, die als
+// synthetische, nicht-editierbare Zeilen der Capability-Matrix vorangestellt werden.
+// Kanonische Quelle für diese drei Codes: admin_users_repository.go AssignableRoles (Zeile 192).
+var globalAppRoleCodes = []string{"platform_admin", "content_admin", "user"}
+
+// globalAppRoleLabels sind die deutschen Anzeigenamen der globalen App-Rollen. MUSS synchron
+// bleiben zu roleLabel() in frontend/src/app/admin/users/tabs/UserGlobalRolesTab.tsx (Pitfall 2,
+// 111-RESEARCH.md).
+var globalAppRoleLabels = map[string]string{
+	"platform_admin": "Plattform-Admin",
+	"content_admin":  "Content-Admin",
+	"user":           "Benutzer",
 }
 
 // capabilityPermissionSvc kapselt den Permission-Service für Cache-Reloads nach Mutationen.
@@ -85,6 +102,32 @@ func (h *AdminCapabilityHandler) ListCapabilityMatrix(c *gin.Context) {
 		matrix.Roles[i].Assignable = permissions.IsKnownFansubGroupRole(matrix.Roles[i].RoleCode)
 		matrix.Roles[i].CapabilityEditable = permissions.IsCapabilityBearingRole(matrix.Roles[i].RoleCode)
 	}
+
+	// D-05: Synthetische globale App-Rollen-Zeilen voranstellen (111-RESEARCH.md Pitfall 1).
+	// platform_admin/content_admin/user existieren strukturell nie in role_definitions — ohne
+	// diese Erweiterung könnte RoleMasterList (Plan 111-05) für sie keinen Impact-Count zeigen.
+	// Fail-open: Aggregat-Fehler wird nur geloggt, Zählwerte fallen auf 0 zurück (analog zum
+	// bestehenden ReloadCache-Fail-Safe-Muster).
+	counts, err := h.mutationRepo.CountGlobalRoleAssignments(c.Request.Context())
+	if err != nil {
+		log.Printf("capability matrix: CountGlobalRoleAssignments fehlgeschlagen: %v — Zählwerte fallen auf 0 zurück", err)
+		counts = map[string]int{}
+	}
+
+	syntheticRoles := make([]repository.CapabilityMatrixRoleEntry, 0, len(globalAppRoleCodes))
+	for _, roleCode := range globalAppRoleCodes {
+		count := counts[roleCode]
+		syntheticRoles = append(syntheticRoles, repository.CapabilityMatrixRoleEntry{
+			RoleCode:              roleCode,
+			LabelDE:               globalAppRoleLabels[roleCode],
+			Actions:               []repository.CapabilityMatrixActionState{},
+			Assignable:            false,
+			CapabilityEditable:    false,
+			RoleKind:              "global_app_role",
+			GlobalAssignmentCount: &count,
+		})
+	}
+	matrix.Roles = append(syntheticRoles, matrix.Roles...)
 
 	c.JSON(http.StatusOK, matrix)
 }

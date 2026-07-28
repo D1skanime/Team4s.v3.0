@@ -215,6 +215,38 @@ func (r *AuthzRepository) RevokeRoleCapability(ctx context.Context, roleCode, ac
 	return nil
 }
 
+// CountGlobalRoleAssignments aggregiert die aktiven Zuweisungen der drei globalen App-Rollen
+// (platform_admin/content_admin/user) aus app_user_global_roles. Wird vom Handler genutzt, um
+// den synthetischen globalen App-Rollen-Zeilen (D-05, 111-RESEARCH.md Pitfall 1) einen korrekten
+// global_assignment_count zuzuweisen. Rollen ohne Zuweisung fehlen im Ergebnis (Go-Zero-Value 0
+// im Handler beim Map-Zugriff).
+func (r *AuthzRepository) CountGlobalRoleAssignments(ctx context.Context) (map[string]int, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT role, COUNT(*) AS cnt
+		FROM app_user_global_roles
+		GROUP BY role
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("count global role assignments: query: %w", err)
+	}
+	defer rows.Close()
+
+	counts := make(map[string]int)
+	for rows.Next() {
+		var role string
+		var count int
+		if err := rows.Scan(&role, &count); err != nil {
+			return nil, fmt.Errorf("count global role assignments: scan: %w", err)
+		}
+		counts[role] = count
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("count global role assignments: iterate: %w", err)
+	}
+
+	return counts, nil
+}
+
 // CountRolesWithAction gibt die Anzahl der Rollen zurück, denen eine Action zugewiesen ist.
 // Wird vom Lockout-Guard vor DELETE genutzt.
 func (r *AuthzRepository) CountRolesWithAction(ctx context.Context, actionCode string) (int64, error) {
