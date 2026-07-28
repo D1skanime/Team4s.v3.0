@@ -2607,7 +2607,7 @@ Plans:
 **Goal:** Den bislang toten Navigationseintrag „Fansub-Gruppen" mit einer öffentlichen Übersichts-/Landing-Seite unter `/fansubs` beleben: ein Gruppen-Directory, das alle Fansub-Gruppen mit Name, Kennzahlen (Anime-Projekte, Release-Versionen, Mitglieder) und Aktivität listet und je Zeile auf die bestehende Gruppen-Detailseite `/fansubs/[slug]` verlinkt. Nutzt die vorhandene `getFansubList()`-API und die schon berechneten Gruppen-Kennzahlen sowie das globale UI-System. Bewusst schlank: keine gruppenbezogene Punkte-/Rangliste (bleibt deferred), keine Suche/Filter über die Liste hinaus.
 **Requirements:** Bestehende `getFansubList()`-API und Gruppen-Kennzahlen; globales UI-System (`@/components/ui`); AppShell-Navigation.
 **Depends on:** Bestehende `/fansubs/[slug]`-Detailseite und Fansub-Listing-API
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Phase 113 Plan 02 executed
-last_updated: "2026-07-28T11:46:00.976Z"
+stopped_at: Completed 114-01-PLAN.md (Tasks 1-2; Task 3 deferred - Docker unavailable)
+last_updated: "2026-07-28T11:51:23.039Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 108
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 114 (oeffentliche-fansub-gruppen-uebersicht) — EXECUTING
-Plan: 1 of 4
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -397,6 +397,7 @@ Recent durable decisions:
 - [Phase ?]: [Phase 112-03]: Rollenname-Praefix als eigener resolveRoleLabel-Helper in MemberBadgeChain.tsx (nicht in memberBadgeLabels.ts) -- 112-02 hatte den Lookup bewusst hierhin verschoben; Praefix rendert einheitlich fuer jede Rollen-Zeile, auch ohne Typ-3-Merge.
 - [Phase 113-01]: Familie-1-Release-Menge eines Projekts = nur ledger-erfasste release_versions (>=1 awarded Credit von irgendwem), nicht literal jede existierende Version (A1/Pitfall 1)
 - [Phase 113-01]: Alle drei Contribution-Familien enden bei Gold, kein platinum-Tier (Abweichung vom Rollen-Volumen-Praezedenzfall aus Phase 112)
+- [Phase 114]: projects_count added as its own field (not reusing anime_relations_count) because anime_relations_count has no anime.status filter and would silently over-count vs. the detail page's Anime-Projekte figure; new SQL block mirrors listPublicFansubProjects's a.status <> 'disabled' filter exactly, pinned by a source-invariant regression test
 
 ### Pending Todos
 
@@ -477,6 +478,7 @@ Recent durable decisions:
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
 - The old `streams` table remains an allowed compatibility divergence beside target `release_streams`; follow-up work must not treat it as authoritative.
 - The post-apply workbench state is still slightly misleading after idempotent success because the action surface remains live instead of clearly finished.
+- 114-01 Task 3 (Docker rebuild + live verify of projects_count) is unfinished: local docker-desktop WSL2 engine was down for the whole session (docker ps/version returned 500 errors; wsl -l -v showed docker-desktop Stopped). Rerun the commands documented in 114-01-SUMMARY.md's Issues Encountered section once Docker Desktop is healthy, or fold this verification into Plan 114-04's live UAT.
 
 ### Performance Metrics
 
@@ -686,6 +688,7 @@ Recent durable decisions:
 | Phase 112 P02 | 6min | 2 tasks | 2 files |
 | Phase 112 P03 | 17min | 2 tasks | 4 files |
 | Phase 113 P01 | 35min | 3 tasks | 3 files |
+| Phase 114 P01 | 35min | 2 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -767,8 +770,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T08:38:05.189Z
-Stopped at: Phase 113 Plan 02 executed
+Last session: 2026-07-28T11:51:22.962Z
+Stopped at: Completed 114-01-PLAN.md (Tasks 1-2; Task 3 deferred - Docker unavailable)
 Last activity: 2026-07-28
 Resume file: 
 None
