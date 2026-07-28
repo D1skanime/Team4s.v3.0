@@ -41,12 +41,21 @@ einfache Liste hinaus, kein Backend-Umbau — die Daten und die Detailseite exis
 - **Globales UI-System Pflicht** (`@/components/ui`: `Table`/`Card`/`PageHeader` …). Kein
   Eigen-Markup für Primitiv-Typen. Responsiv + barrierefrei.
 
-### Claude's Discretion / offen — kurz zu bestätigen
-- **Default-Sortierung:** Vorschlag **nach Release-Versionen absteigend** (Aktivität zuerst, wie
-  fansub.de), Gruppenname als Tie-Break. Alternative: alphabetisch. → bitte bestätigen.
-- **Darstellung:** Tabelle vs. Karten-Grid — im Rahmen des globalen UI-Systems, Bau-Detail.
-- Ob aktive/ruhende Gruppen getrennt gruppiert werden (wie fansub.de) — vorerst **nein** (eine
-  Liste), sofern nicht anders gewünscht.
+### D-05 Darstellung, Sortierung, Umfang, Gruppenbild (bestätigt)
+- **Darstellung: Tabelle** (globales `Table`-Primitive), nicht Karten-Grid — kompakt und gut
+  sortierbar bei vielen Gruppen.
+- **Default-Sortierung: nach Release-Versionen absteigend** (aktivste Gruppen zuerst, wie
+  fansub.de), **Gruppenname als Tie-Break**.
+- **Umfang: alle Gruppen in einer Liste.** Keine Trennung aktiv/ruhend/inaktiv (bewusst weg
+  gelassen — „klein bleiben").
+- **Gruppenbild in der Zeile: rundes Logo** (`logo_url`, ~32–40px), konsistent zu den runden
+  Member-Avataren; **Initialen-Platzhalter** als Fallback ohne Logo. Der **Banner** (`banner_url`)
+  bleibt der Gruppen-**Detailseite** vorbehalten (nicht Teil dieser Phase).
+
+### Claude's Discretion
+- Genaue Spaltenwahl/Reihenfolge der Tabelle und Responsive-Verhalten (im globalen UI-System).
+- Ob die Sortierung serverseitig über `getFansubList()`-Params oder clientseitig erfolgt —
+  Bau-Detail, solange die Default-Ordnung (Release-Versionen desc, Name-Tie-Break) stimmt.
 
 </decisions>
 
