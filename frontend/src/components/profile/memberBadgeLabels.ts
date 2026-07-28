@@ -14,7 +14,10 @@ import {
   Languages,
   Layers,
   Medal,
+  Palette,
+  Puzzle,
   Scissors,
+  Settings,
   Shield,
   ShieldCheck,
   Sparkles,
@@ -68,6 +71,15 @@ export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation>
   role_entry_project_lead: { label: 'Erste Dokumentation als Projektleitung', variant: 'info', Icon: ClipboardList, palette: 'indigo', group: 'roles', roleCode: 'project_lead' },
   role_entry_editor: { label: 'Erstes Editing', variant: 'info', Icon: Scissors, palette: 'indigo', group: 'roles', roleCode: 'editor' },
   role_entry_raw_provider: { label: 'Erste Raw-Bereitstellung', variant: 'info', Icon: HardDrive, palette: 'indigo', group: 'roles', roleCode: 'raw_provider' },
+  // CR-01 (112-REVIEW): role_entry_* fuer die restlichen anime_contribution-Rollencodes
+  // aus role_definitions (0085/0112), die bislang gefehlt haben. 'project_manager' ist
+  // NICHT enthalten — Migration 0112 hat den Code aus role_definitions geloescht und
+  // historische Eintraege auf 'project_lead' migriert; RoleCodeExistsForContext (live
+  // role_definitions-Query) laesst ihn seither als anime_contribution-Rollencode nicht
+  // mehr zu, daher ist er fuer neue role_entry_*-Badges kein erreichbarer Fall mehr.
+  role_entry_designer: { label: 'Erstes Design', variant: 'info', Icon: Palette, palette: 'indigo', group: 'roles', roleCode: 'designer' },
+  role_entry_admin: { label: 'Erste Administration', variant: 'info', Icon: Settings, palette: 'indigo', group: 'roles', roleCode: 'admin' },
+  role_entry_other: { label: 'Erste sonstige Mitwirkung', variant: 'info', Icon: Puzzle, palette: 'indigo', group: 'roles', roleCode: 'other' },
   // D-01/D-03: Punkt-Meilensteine — nur die statische Map, bewusst NICHT im PUBLIC_MEMBER_BADGE_CATALOG
   // (kein Locked-Zustand fuer Typ 2; der erreichte Meilenstein fliesst zur Laufzeit ueber den
   // earned-but-not-in-catalog-Fallback ein, siehe deriveMilestoneBadge).
@@ -107,6 +119,9 @@ export const PUBLIC_MEMBER_BADGE_CATALOG: PublicMemberBadgeCatalogItem[] = [
   { badge_code: 'role_entry_project_lead', label: MEMBER_BADGE_PRESENTATIONS.role_entry_project_lead.label, badge_category: 'role_entry' },
   { badge_code: 'role_entry_editor', label: MEMBER_BADGE_PRESENTATIONS.role_entry_editor.label, badge_category: 'role_entry' },
   { badge_code: 'role_entry_raw_provider', label: MEMBER_BADGE_PRESENTATIONS.role_entry_raw_provider.label, badge_category: 'role_entry' },
+  { badge_code: 'role_entry_designer', label: MEMBER_BADGE_PRESENTATIONS.role_entry_designer.label, badge_category: 'role_entry' },
+  { badge_code: 'role_entry_admin', label: MEMBER_BADGE_PRESENTATIONS.role_entry_admin.label, badge_category: 'role_entry' },
+  { badge_code: 'role_entry_other', label: MEMBER_BADGE_PRESENTATIONS.role_entry_other.label, badge_category: 'role_entry' },
 ]
 
 export function formatMemberBadgeLabel(badgeCode: string): string {

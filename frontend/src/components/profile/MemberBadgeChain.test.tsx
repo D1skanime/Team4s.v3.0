@@ -142,7 +142,7 @@ describe('MemberBadgeChain', () => {
 })
 
 describe('PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03)', () => {
-  it('contains all 8 locked role_entry_* codes with correct German labels', async () => {
+  it('contains all 11 locked role_entry_* codes with correct German labels (CR-01 112-REVIEW: full anime_contribution role_definitions coverage)', async () => {
     const { PUBLIC_MEMBER_BADGE_CATALOG, MEMBER_BADGE_PRESENTATIONS } = await import('./memberBadgeLabels')
 
     const expected: Record<string, string> = {
@@ -154,6 +154,9 @@ describe('PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03)', () => {
       role_entry_project_lead: 'Erste Dokumentation als Projektleitung',
       role_entry_editor: 'Erstes Editing',
       role_entry_raw_provider: 'Erste Raw-Bereitstellung',
+      role_entry_designer: 'Erstes Design',
+      role_entry_admin: 'Erste Administration',
+      role_entry_other: 'Erste sonstige Mitwirkung',
     }
 
     for (const [badgeCode, label] of Object.entries(expected)) {
@@ -315,6 +318,9 @@ describe('buildMemberBadgeGroups (D-04)', () => {
       'role_entry_project_lead',
       'role_entry_editor',
       'role_entry_raw_provider',
+      'role_entry_designer',
+      'role_entry_admin',
+      'role_entry_other',
     ]
     expect(codesInGroup('roles')).toEqual(expect.arrayContaining(roleCodes))
     const rolesGroup = byKey.roles
