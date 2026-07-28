@@ -17,17 +17,25 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@/components/ui'
-import { ApiError, getAdminUserGroupRights } from '@/lib/api'
+import { ApiError, getAdminUserGroupRights, listRoleCapabilities } from '@/lib/api'
 import type {
   AdminGroupRightsSummary,
   AdminUserGroupRightsResponse,
 } from '@/types/admin-users'
+import type { RoleCapabilityMatrix } from '@/types/admin-capability'
+import { resolveRoleLink } from '../resolveRoleLink'
 
 interface Props {
   userId: number
 }
 
-function RightsTable({ rights }: { rights: AdminGroupRightsSummary[] }) {
+function RightsTable({
+  rights,
+  matrix,
+}: {
+  rights: AdminGroupRightsSummary[]
+  matrix: RoleCapabilityMatrix | null
+}) {
   if (rights.length === 0) {
     return <EmptyState title="Keine scoped Gruppenrechte vorhanden." description="" />
   }
@@ -48,13 +56,31 @@ function RightsTable({ rights }: { rights: AdminGroupRightsSummary[] }) {
           <TableRow key={r.fansub_group_id}>
             <TableCell style={{ fontWeight: 600 }}>{r.fansub_group_name}</TableCell>
             <TableCell>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
                 {r.granted_roles.length === 0 ? (
                   <Badge variant="muted">–</Badge>
                 ) : (
-                  r.granted_roles.map((role) => (
-                    <Badge key={role} variant="info">{role}</Badge>
-                  ))
+                  r.granted_roles.map((role) => {
+                    const link = resolveRoleLink(role, matrix)
+                    return (
+                      <div
+                        key={role}
+                        style={{ display: 'flex', gap: 4, alignItems: 'center' }}
+                      >
+                        <Badge variant="info">{role}</Badge>
+                        {link && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            href={link}
+                            aria-label={`Rechte der Rolle ${role} ansehen`}
+                          >
+                            Was darf diese Rolle?
+                          </Button>
+                        )}
+                      </div>
+                    )
+                  })
                 )}
               </div>
             </TableCell>
@@ -95,6 +121,11 @@ export function UserGroupRightsTab({ userId }: Props) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // D-04: unabhaengiger, nicht-blockierender Fetch der Capability-Matrix fuer
+  // die "Was darf diese Rolle?"-Querverlinkung (resolveRoleLink.ts). Ein
+  // Fehler hier ist unkritisch — Rollen bleiben dann einfach unverlinkt.
+  const [matrix, setMatrix] = useState<RoleCapabilityMatrix | null>(null)
+
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -116,6 +147,20 @@ export function UserGroupRightsTab({ userId }: Props) {
     void loadData()
   }, [loadData])
 
+  useEffect(() => {
+    let cancelled = false
+    void listRoleCapabilities()
+      .then((resp) => {
+        if (!cancelled) setMatrix(resp)
+      })
+      .catch(() => {
+        // Kein Zusatzfehlerbanner — Rollen bleiben unverlinkt (nicht kritisch).
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   if (isLoading) return <LoadingState title="Wird geladen …" description="" />
   if (error) {
     return (
@@ -135,7 +180,7 @@ export function UserGroupRightsTab({ userId }: Props) {
           Gruppenrechte können in der jeweiligen Gruppenansicht bearbeitet werden.
         </p>
       </Card>
-      <RightsTable rights={data.group_rights} />
+      <RightsTable rights={data.group_rights} matrix={matrix} />
     </div>
   )
 }
