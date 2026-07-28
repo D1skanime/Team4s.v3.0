@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Phase 111 context gathered
-last_updated: "2026-07-28T07:28:43.671Z"
+last_updated: "2026-07-28T07:44:56.235Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 107
   completed_phases: 86
-  total_plans: 471
+  total_plans: 474
   completed_plans: 438
   percent: 80
 ---
