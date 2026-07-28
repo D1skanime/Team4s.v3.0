@@ -3,6 +3,12 @@
 // Wave-0 RED-Tests: AdminUsersClient und page.tsx existieren noch nicht.
 // Importfehler auf diese Komponenten sind das erwartete RED-Signal.
 // Diese Tests werden grün, wenn Plan 80-04 die Listenoberfläche implementiert.
+//
+// Plan 111-03: clicking_row_opens_drawer / clicking_row_keeps_table_visible_on_desktop
+// wurden entfernt (D-01 entfernt den Drawer-/Dual-Mode-Pfad vollständig) und durch
+// clicking_row_navigates_to_detail_route ersetzt. Diese Assertion prüft ausschließlich
+// den erzeugten Navigations-Aufruf, nicht die Existenz der (zu diesem Zeitpunkt noch
+// nicht existierenden) /admin/users/[id]-Route.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react'
@@ -16,11 +22,19 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+const mockPush = vi.hoisted(() => vi.fn())
+const mockReplace = vi.hoisted(() => vi.fn())
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  usePathname: () => '/admin/users',
+  useSearchParams: () => new URLSearchParams(),
+}))
+
 vi.mock('@/lib/useAuthSession', () => ({
   useAuthSession: () => ({ hasAccessToken: true, hasRefreshToken: true, isClientInitialized: true }),
 }))
 
-// RED: listAdminUsersPage existiert noch nicht in @/lib/api → Importfehler erwartet
 vi.mock('@/lib/api', () => ({
   listAdminUsersPage: vi.fn().mockResolvedValue({
     data: [
@@ -55,7 +69,6 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-// RED: AdminUsersClient existiert noch nicht → Importfehler erwartet
 import AdminUsersPage from './page'
 
 afterEach(() => {
@@ -65,7 +78,7 @@ afterEach(() => {
 })
 
 describe('AdminUsersPage (/admin/users)', () => {
-  // --- RED: renders_table_with_all_required_columns ---
+  // --- renders_table_with_all_required_columns ---
   //
   // Prüft, dass die Admin-Users-Tabelle alle Spaltenköpfe aus der UI-SPEC enthält.
   // Erwartete Spalten (D-05): Benutzer, Status, Globale Rollen, Member-Profil,
@@ -96,7 +109,7 @@ describe('AdminUsersPage (/admin/users)', () => {
     }
   })
 
-  // --- RED: renders_filter_elements ---
+  // --- renders_filter_elements ---
   //
   // Prüft, dass die Filteroberfläche die erforderlichen Elemente enthält:
   // - Select für Accountstatus (Alle Status / Aktiv / Deaktiviert)
@@ -119,11 +132,13 @@ describe('AdminUsersPage (/admin/users)', () => {
     })
   })
 
-  // --- RED: clicking_row_opens_drawer ---
+  // --- clicking_row_navigates_to_detail_route (ersetzt clicking_row_opens_drawer,
+  //     clicking_row_keeps_table_visible_on_desktop) ---
   //
-  // Prüft, dass ein Klick auf eine Tabellenzeile den Drawer-State setzt
-  // und den UserDetailDrawer öffnet.
-  it('clicking_row_opens_drawer', async () => {
+  // Prüft, dass ein Klick auf eine Tabellenzeile zur Detailroute navigiert
+  // (via router.push), statt lokalen Drawer-/Tab-State zu setzen. Kein
+  // Drawer-/Tab-Inhalt (Übersicht, role="tablist") erscheint zusätzlich zur Tabelle.
+  it('clicking_row_navigates_to_detail_route', async () => {
     render(<AdminUsersPage />)
 
     // Warte auf Laden der Benutzerliste
@@ -135,40 +150,13 @@ describe('AdminUsersPage (/admin/users)', () => {
     const row = screen.getByText('Aki').closest('tr') ?? screen.getByText('Aki')
     fireEvent.click(row)
 
-    // Nach dem Klick muss der Drawer-State gesetzt sein.
-    // Der geöffnete Drawer rendert die Tab-Leiste (mehrere Tab-Labels gleichzeitig),
-    // daher queryAllByText statt queryByText — Letzteres wirft bei Mehrfachtreffern.
-    // Tab-Labels sind nur sichtbar, wenn der Drawer offen ist.
+    // Navigation zur Detailroute wurde ausgelöst (leerer Such-String → kein from=)
     await waitFor(() => {
-      const drawerContent = screen.queryAllByText(/Übersicht|Globale Rollen/)
-      expect(drawerContent.length).toBeGreaterThan(0)
-    })
-  })
-
-  it('clicking_row_keeps_table_visible_on_desktop', async () => {
-    vi.stubGlobal('matchMedia', vi.fn().mockImplementation((query: string) => ({
-      matches: query === '(min-width: 1024px)',
-      media: query,
-      onchange: null,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })))
-
-    render(<AdminUsersPage />)
-
-    await waitFor(() => {
-      expect(screen.queryByText('Aki')).not.toBeNull()
+      expect(mockPush).toHaveBeenCalledWith('/admin/users/1')
     })
 
-    const row = screen.getByText('Aki').closest('tr') ?? screen.getByText('Aki')
-    fireEvent.click(row)
-
-    await waitFor(() => {
-      expect(screen.getByRole('table')).not.toBeNull()
-      expect(screen.getByRole('tab', { name: 'Globale Rollen' })).not.toBeNull()
-    })
+    // Kein Drawer-/Tab-Inhalt zusätzlich zur Tabelle
+    expect(screen.queryByRole('tablist')).toBeNull()
+    expect(screen.queryAllByText('Übersicht').length).toBe(0)
   })
 })
