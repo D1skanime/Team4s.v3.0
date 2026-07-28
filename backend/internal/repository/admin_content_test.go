@@ -154,8 +154,8 @@ func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_OnlyTouches
 		t.Fatalf("expected 1 explicit title slot, got %d", len(write.TitleSlots))
 	}
 	slot := write.TitleSlots[0]
-	if !slot.Set || slot.LanguageCode != "romaji" || slot.TitleType != "main" {
-		t.Fatalf("expected romaji/main slot, got %#v", slot)
+	if !slot.Set || slot.LanguageCode != "ja" || slot.TitleType != "main" {
+		t.Fatalf("expected ja/main slot, got %#v", slot)
 	}
 	if slot.Title == nil || *slot.Title != title {
 		t.Fatalf("expected title value %q, got %#v", title, slot.Title)
@@ -163,6 +163,44 @@ func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_OnlyTouches
 	if write.GenresSet {
 		t.Fatal("expected untouched genres to remain unset in patch")
 	}
+}
+
+func assertNoRomajiLanguageCode(t *testing.T, slots []authoritativeAnimeTitleSlotWrite) {
+	t.Helper()
+	for _, slot := range slots {
+		if slot.LanguageCode == "romaji" {
+			t.Fatalf("no slot may use the invalid language code \"romaji\", got %#v", slot)
+		}
+	}
+}
+
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataCreate_MainTitleUsesValidLanguageCode(t *testing.T) {
+	jaLang := "ja"
+	romajiKind := "romaji"
+
+	write := buildAuthoritativeAnimeMetadataCreate(models.AdminAnimeCreateInput{
+		Title: "Koe no Katachi",
+		AltTitles: []models.AdminAnimeAltTitle{
+			{Language: &jaLang, Kind: &romajiKind, Title: "Koe no Katachi"},
+		},
+	})
+
+	// Der Haupttitel-Slot nutzt einen gueltigen languages.code, nie "romaji".
+	assertNoRomajiLanguageCode(t, write.TitleSlots)
+	assertAltTitleSlotPresent(t, write.TitleSlots, "ja", "main", "Koe no Katachi")
+	// Ein Romaji-Alt-Titel erscheint als (ja, romaji).
+	assertAltTitleSlotPresent(t, write.TitleSlots, "ja", "romaji", "Koe no Katachi")
+}
+
+func TestAdminContentRepository_BuildAuthoritativeAnimeMetadataPatch_MainTitleUsesValidLanguageCode(t *testing.T) {
+	title := "Sousou no Frieren"
+
+	write := buildAuthoritativeAnimeMetadataPatch(models.AdminAnimePatchInput{
+		Title: models.OptionalString{Set: true, Value: &title},
+	})
+
+	assertNoRomajiLanguageCode(t, write.TitleSlots)
+	assertAltTitleSlotPresent(t, write.TitleSlots, "ja", "main", title)
 }
 
 func assertAltTitleSlotPresent(t *testing.T, slots []authoritativeAnimeTitleSlotWrite, language, titleType, title string) {

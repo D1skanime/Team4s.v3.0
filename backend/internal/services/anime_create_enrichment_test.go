@@ -623,3 +623,42 @@ func stringPtr(value string) *string {
 func int16Ptr(value int16) *int16 {
 	return &value
 }
+
+func TestBuildAniSearchAltTitles_MapsToValidLanguageAndTitleTypeCodes(t *testing.T) {
+	altTitles := buildAniSearchAltTitles(AniSearchAnime{
+		OriginalTitle: stringPtr("聲の形"),
+		RomajiTitle:   stringPtr("Koe no Katachi"),
+		EnglishTitle:  stringPtr("A Silent Voice"),
+		GermanTitle:   stringPtr("A Silent Voice"),
+	})
+
+	findKind := func(language, title string) string {
+		for _, alt := range altTitles {
+			if alt.Language == nil || alt.Kind == nil {
+				continue
+			}
+			if *alt.Language == language && alt.Title == title {
+				return *alt.Kind
+			}
+		}
+		t.Fatalf("expected an alt title (%s,%q) in %#v", language, title, altTitles)
+		return ""
+	}
+
+	// Kein Eintrag darf die ungueltigen Codes "ja-Latn"/"romanized" mehr tragen.
+	for _, alt := range altTitles {
+		if alt.Language != nil && *alt.Language == "ja-Latn" {
+			t.Fatalf("no alt title may use invalid language code \"ja-Latn\", got %#v", alt)
+		}
+		if alt.Kind != nil && *alt.Kind == "romanized" {
+			t.Fatalf("no alt title may use invalid title type \"romanized\", got %#v", alt)
+		}
+	}
+
+	if kind := findKind("ja", "Koe no Katachi"); kind != "romaji" {
+		t.Fatalf("expected Romaji title mapped to (ja,romaji), got kind %q", kind)
+	}
+	if kind := findKind("ja", "聲の形"); kind != "japanese" && kind != "official" {
+		t.Fatalf("expected original title mapped to (ja,japanese|official), got kind %q", kind)
+	}
+}
