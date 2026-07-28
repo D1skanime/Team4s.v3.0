@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 112-02-PLAN.md
-last_updated: "2026-07-28T06:43:00.825Z"
+stopped_at: Phase 113 UI-SPEC approved
+last_updated: "2026-07-28T06:46:34.102Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 107
-  completed_phases: 85
+  completed_phases: 86
   total_plans: 471
-  completed_plans: 437
-  percent: 79
+  completed_plans: 438
+  percent: 80
 ---
 
 # Project State
@@ -761,7 +761,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T06:23:18.405Z
-Stopped at: Completed 112-02-PLAN.md
+Last session: 2026-07-28T06:46:34.039Z
+Stopped at: Phase 113 UI-SPEC approved
 Last activity: 2026-07-28
 Resume file: 
+.planning/phases/113-wiederholbare-leistungs-badges-bronze-silber-gold/113-UI-SPEC.md
