@@ -100,3 +100,11 @@ None - keine externe Service-Konfiguration nötig.
 ---
 *Phase: 111-user-verwaltungsseite-ohne-drawer-und-rbac-querverlinkung*
 *Completed: 2026-07-28*
+
+## Self-Check: PASSED
+
+- FOUND: frontend/src/app/admin/users/resolveRoleLink.ts
+- FOUND: frontend/src/app/admin/users/tabs/UserGlobalRolesTab.test.tsx
+- FOUND: frontend/src/app/admin/users/tabs/UserGroupRightsTab.test.tsx
+- FOUND: commit 95ed75ad (test)
+- FOUND: commit f1a9ebeb (feat)
