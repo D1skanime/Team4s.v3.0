@@ -75,6 +75,14 @@
   scroll-snap-align: start;
 }
 
+.roleLabel {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 .badgeStep,
 .badgeStepLocked {
   --badge-accent: var(--text-secondary);
@@ -104,6 +112,21 @@
 .badgeStep[data-palette="red"],
 .badgeStepLocked[data-palette="red"] {
   --badge-accent: var(--button-danger-start, var(--color-error));
+}
+
+.badgeStep[data-palette="bronze"],
+.badgeStepLocked[data-palette="bronze"] {
+  --badge-accent: color-mix(in srgb, var(--color-warning) 55%, var(--text-secondary) 45%);
+}
+
+.badgeStep[data-palette="silver"],
+.badgeStepLocked[data-palette="silver"] {
+  --badge-accent: var(--text-secondary);
+}
+
+.badgeStep[data-palette="platinum"],
+.badgeStepLocked[data-palette="platinum"] {
+  --badge-accent: color-mix(in srgb, var(--color-primary) 45%, var(--text-secondary) 55%);
 }
 
 .badgeItem {

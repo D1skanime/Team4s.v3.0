@@ -1,6 +1,7 @@
 import { Lock } from 'lucide-react'
 
 import { Card, SectionHeader } from '@/components/ui'
+import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberBadge } from '@/types/profile'
 
 import {
@@ -31,6 +32,13 @@ type MemberBadgeGroupResult = {
   key: MemberBadgeGroup
   label: string
   rows: MemberBadgeGroupRow[]
+}
+
+// Phase 112 D-04: loest den deutschen Rollennamen fuer den Zeilen-Praefix ueber die
+// Single-Source-of-Truth-Rollenliste auf; Fallback auf den rohen Code (defensiv, gleiches
+// Muster wie getMemberBadgePresentation's bestehender Fallback).
+function resolveRoleLabel(roleCode: string): string {
+  return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === roleCode)?.label ?? roleCode
 }
 
 function catalogWithEarnedBadges(
@@ -117,6 +125,9 @@ export function MemberBadgeChain({
               <ul className={styles.chain} aria-label={group.label} data-orientation="horizontal">
                 {group.rows.map((row) => (
                   <li key={row.key} className={styles.badgeRow}>
+                    {group.key === 'roles' && (
+                      <span className={styles.roleLabel}>{resolveRoleLabel(row.key)}:</span>
+                    )}
                     {row.items.map((item) => {
                       const isEarned = earnedCodes.has(item.badge_code)
                       const presentation = getMemberBadgePresentation(item.badge_code)
