@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-import { Select } from '@/components/ui'
+import { EmptyState, Select } from '@/components/ui'
 import type { PublicMemberRoleEntry } from '@/types/contributions'
 
 import { MemberRoleTimeline } from './MemberRoleTimeline'
@@ -205,7 +205,15 @@ export function MemberContributionFilters({ roleTimeline }: MemberContributionFi
       </div>
 
       {/* GAP-2: gefilterte Liste rendert über MemberRoleTimeline (inkl. EntryDetail-Inline-Expand). */}
-      <MemberRoleTimeline entries={filtered} hasUnverified={hasUnverified} />
+      {filtered.length > 0 || roleTimeline.length === 0 ? (
+        <MemberRoleTimeline entries={filtered} hasUnverified={hasUnverified} />
+      ) : (
+        <EmptyState
+          title="Noch keine Rollen oder Beiträge"
+          description="Für die gewählten Filter sind keine Einträge vorhanden."
+          variant="compact"
+        />
+      )}
     </div>
   )
 }
