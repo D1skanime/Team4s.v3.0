@@ -2600,11 +2600,14 @@ Plans:
 **Goal:** Den bislang toten Navigationseintrag „Fansub-Gruppen" mit einer öffentlichen Übersichts-/Landing-Seite unter `/fansubs` beleben: ein Gruppen-Directory, das alle Fansub-Gruppen mit Name, Kennzahlen (Anime-Projekte, Release-Versionen, Mitglieder) und Aktivität listet und je Zeile auf die bestehende Gruppen-Detailseite `/fansubs/[slug]` verlinkt. Nutzt die vorhandene `getFansubList()`-API und die schon berechneten Gruppen-Kennzahlen sowie das globale UI-System. Bewusst schlank: keine gruppenbezogene Punkte-/Rangliste (bleibt deferred), keine Suche/Filter über die Liste hinaus.
 **Requirements:** Bestehende `getFansubList()`-API und Gruppen-Kennzahlen; globales UI-System (`@/components/ui`); AppShell-Navigation.
 **Depends on:** Bestehende `/fansubs/[slug]`-Detailseite und Fansub-Listing-API
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
 
-- [ ] TBD
+- [ ] `114-01-PLAN.md` — Backend: additives `projects_count`-Feld (Model/Repository/OpenAPI/TS-Typ) mit Regressionstest + Docker-Rebuild (D-03)
+- [ ] `114-02-PLAN.md` — AppShell-Navigation: „Fansub-Gruppen"-Eintrag in beiden Nav-Arrays (anonym + eingeloggt) aktivieren (D-01)
+- [ ] `114-03-PLAN.md` — Frontend: neue Index-Seite `/fansubs` (SSR-Directory, sortierbare Tabelle, rundes Logo/Initialen) (D-02/D-04/D-05)
+- [ ] `114-04-PLAN.md` — Live-Verifikation auf :3000 (Nav beide Zustände, Sortierung, Anime-Projekte-Parität)
 
 ### Phase 115: Globale Suche (PostgreSQL FTS + Trigram)
 
