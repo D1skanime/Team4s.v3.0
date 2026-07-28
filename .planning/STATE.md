@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 115-01-PLAN.md
-last_updated: "2026-07-28T20:52:43.936Z"
+stopped_at: Phase 117 UI-SPEC approved
+last_updated: "2026-07-28T21:25:20.911Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 109
   completed_phases: 87
   total_plans: 493
-  completed_plans: 449
+  completed_plans: 451
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 115 (globale-suche-postgres-fts) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 
 ## Accumulated Context
 
@@ -791,8 +791,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T20:52:43.814Z
-Stopped at: Completed 115-01-PLAN.md
+Last session: 2026-07-28T21:25:20.741Z
+Stopped at: Phase 117 UI-SPEC approved
 Last activity: 2026-07-28
 Resume file: 
 None
