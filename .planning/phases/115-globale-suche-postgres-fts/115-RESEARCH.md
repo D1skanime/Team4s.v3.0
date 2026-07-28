@@ -512,23 +512,35 @@ Harness — Live-DB-Verhalten braucht neuen Harness oder Smoke-Skript (siehe Val
 
 ## Open Questions
 
-1. **Live-DB-Validierung vs. Smoke-Skript**
+> **Status: RESOLVED (2026-07-28).** Alle offenen Fragen wurden in der Phasenplanung entschieden;
+> die auflösenden Pläne sind je Frage referenziert. Die verifizierten Findings oben bleiben unverändert.
+
+1. **Live-DB-Validierung vs. Smoke-Skript** — **RESOLVED → Plan 04 (Task 3) + Plan 08 (Task 2)**
    - Bekannt: Bestehendes Go-Harness ist pure-function/source-inspection; kein Live-DB-Test.
    - Unklar: Docker-Postgres-Integrationstest oder PowerShell-Smoke-Skript (analog `smoke-*`) für End-to-End (D-04/D-05/D-11/D-12).
    - Empfehlung: Smoke-Skript ist der kleinere, projektkonforme Weg; Ranking-Determinismus (D-05) zusätzlich als pure-function-Test der ORDER-BY-Komposition.
+   - **Entscheidung:** PowerShell Keycloak-Direct-Grant-Smoke `scripts/smoke-search.ps1` (Plan 115-04 Task 3 erstellt, Plan 115-08 Task 2 ausgeführt); ORDER-BY-/WHERE-Komposition zusätzlich pure-function in Plan 115-03 Task 3.
 
-2. **Umfang des Alt-Titel-Persistenzpfads (D-12)**
+2. **Umfang des Alt-Titel-Persistenzpfads (D-12)** — **RESOLVED → Plan 01 (Tasks 1-2)**
    - Bekannt: Draft-`AltTitles` werden nicht persistiert; nur 3 feste Slots.
    - Unklar: Nur Romaji/Japanisch (minimal) oder alle Draft-Alt-Titel (synonym etc.).
    - Empfehlung: Minimal Romaji + Japanisch für D-12; weitere Typen optional, aber am selben Pfad.
+   - **Entscheidung:** `AltTitles`-Persistenzpfad in Create-/Patch-Input + konsistentes `(ja,romaji)`/`(ja,japanese)`-Mapping (Plan 115-01 Task 1+2); weitere Typen am selben Pfad optional.
 
-3. **`tsvector`-Form: generierte Spalte vs. materialisierte Aggregat-Spalte**
+3. **`tsvector`-Form: generierte Spalte vs. materialisierte Aggregat-Spalte** — **RESOLVED → Plan 02 (Task 1)**
    - Bekannt: Kein `tsvector` im Schema; Gewichtung (D-05) braucht FTS-Ebene.
    - Empfehlung: Pro Entität eine generierte, gewichtete `tsvector`-Spalte + GIN-Index; Genre/Tag als eigene Trigram-Felder für Stufe 5.
+   - **Entscheidung:** Pro Entität eine generierte, gewichtete `tsvector`-Spalte über `f_unaccent(<col>)` + GIN-Index (Plan 115-02 Task 1); Genre/Tag als eigene Trigram-Felder (D-05-Stufe 5).
 
-4. **Fansub-Beschreibung als Suchfeld**
+4. **Fansub-Beschreibung als Suchfeld** — **RESOLVED → Plan 03 (Objective / Open-Question-4-Auflösung)**
    - Bekannt: `fansub_groups.description` in `0071` entfernt; Freitext in `fansub_group_notes` (`visibility`/`status`-gated).
    - Empfehlung: V1 weglassen oder nur `visibility='public' AND status='published'`-Notes; explizit entscheiden.
+   - **Entscheidung:** In v1 AUSGESCHLOSSEN (Fansub-Ranking-Stufe 6 entfällt); visibility-gated Notes lohnen den v1-Aufwand nicht (Plan 115-03 Objective, T-115-03-04).
+
+5. **`Tabs`-Primitive ist unkontrolliert (URL-gebundener Tab-Zustand, D-08)** — **RESOLVED → Plan 07 (Task 1)**
+   - Bekannt: `@/components/ui` `Tabs` (`Tabs.tsx:16-24`) exponiert nur `items`+`defaultTabId` (interner `useState`), kein `activeId`/`onChange`.
+   - Unklar: `key`-Remount + `defaultTabId` aus `searchParams` ODER Tabs-Primitive um kontrollierte Props erweitern.
+   - **Entscheidung:** `key`-Remount + `defaultTabId` aus `searchParams` (Plan 115-07 Task 1) — kein natives Markup, keine globale UI-Primitive-Änderung.
 
 ---
 
