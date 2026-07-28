@@ -66,6 +66,7 @@ function makeProfileResponse(): PublicFansubProfileResponse {
         closed_year: null,
         status: 'active',
         anime_relations_count: 1,
+        projects_count: 1,
         release_versions_count: 12,
         members_count: 4,
         aliases_count: 0,

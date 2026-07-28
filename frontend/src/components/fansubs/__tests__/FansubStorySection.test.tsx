@@ -11,6 +11,7 @@ const group = {
   status: 'active',
   group_type: 'group',
   anime_relations_count: 1,
+  projects_count: 1,
   release_versions_count: 0,
   members_count: 0,
   aliases_count: 0,

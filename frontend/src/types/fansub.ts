@@ -37,6 +37,7 @@ export interface FansubGroup {
   irc_url?: string | null;
   country?: string | null;
   anime_relations_count: number;
+  projects_count: number;
   release_versions_count: number;
   members_count: number;
   aliases_count: number;

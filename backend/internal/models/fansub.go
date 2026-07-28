@@ -53,6 +53,7 @@ type FansubGroup struct {
 	IrcURL                  *string           `json:"irc_url,omitempty"`
 	Country                 *string           `json:"country,omitempty"`
 	AnimeRelationsCount     int               `json:"anime_relations_count"`
+	ProjectsCount           int               `json:"projects_count"`
 	ReleaseVersionsCount    int               `json:"release_versions_count"`
 	MembersCount            int               `json:"members_count"`
 	AliasesCount            int               `json:"aliases_count"`

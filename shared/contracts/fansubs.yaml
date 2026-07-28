@@ -581,6 +581,7 @@ types:
     irc_url: string | null
     country: string | null
     anime_relations_count: int32
+    projects_count: int32
     release_versions_count: int32
     members_count: int32
     aliases_count: int32

@@ -39,6 +39,7 @@ const showcaseGroup: FansubGroup = {
   irc_url: null,
   country: 'Deutschland',
   anime_relations_count: 20,
+  projects_count: 20,
   release_versions_count: 59,
   members_count: 4,
   aliases_count: 0,
