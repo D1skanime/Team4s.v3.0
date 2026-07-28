@@ -71,6 +71,8 @@ Exceptions: keine. `--space-8` (64px)/`--space-9` (80px) werden auf dieser Seite
 
 Für diese Phase werden **keine** Rohwerte in JSX/CSS gesetzt — jede Typo kommt automatisch aus der Verwendung der o. g. Primitives (`PageHeader`, `SectionHeader`, `Card`, `HeroMetrics`, `Badge`, `Table`).
 
+> **Audit-Hinweis (Dimension 4):** **0 neue Typografie-Werte** in dieser Phase eingeführt. Die 8 Rollen / 5 Basisgrößen sind ausschließlich aus bereits freigegebenen, live genutzten Primitives geerbt (Komposition mehrerer Sektionen erhöht die Zeilenzahl, nicht die Typo-Skala). Kein Anlass für erneute Prüfung des Größen-Ceilings in Folge-Checker-Läufen.
+
 ---
 
 ## Color
