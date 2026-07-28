@@ -1908,10 +1908,12 @@ Plans:
 **Offene Datenquellen (in discuss/research zu klären):** (1) Definition „vollständig dokumentiert" — Flag/Status oder abgeleitete Bedingung, und wessen Projekt-Scope; (2) exakte Quelle „akzeptierte Beiträge" (review-akzeptierte Contributions/Proposals vs. alle); (3) Autor-/Ownership-Seam für Bildbeitrag pro distinct Release-Version.
 **Requirements**: GAM-04 (Badges als getrennte, abgeleitete Projektion; keine Punkte für Selbstpflege)
 **Depends on:** Phase 110, Phase 112
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 113 to break down)
+- [ ] `113-01-PLAN.md` — Backend read-time Datenschicht: 3 Schwellenfunktionen + loadContributionBadges (Familie 1 Coverage / Familie 2 Chronist / Familie 3 Bildarchivar) im Split-File, ID:0-Emission, <=5-Zeilen-Callsite, Unit-/Integrationstests (GAM-04, D-01..D-04)
+- [ ] `113-02-PLAN.md` — Frontend-Praesentation: Gruppe Beitraege + 9 earned-only Presentation-Eintraege in memberBadgeLabels.ts, Vitest-Erweiterungen (D-05, GAM-04)
+- [ ] `113-03-PLAN.md` — Live-Abnahme: volle Suiten + Container-Rebuild, Human-Verify der Beitraege-Gruppe, Live-Downgrade und Toggle-Trennung (D-01/D-05, GAM-04)
 
 ---
 
@@ -2560,7 +2562,8 @@ Plans:
 - [ ] `110-01-PLAN.md` — Ranglisten-Seite `/members/ranking` (SSR, Table/Pagination/Empty/ErrorState) + Rangliste-Nav-Eintrag in AppShell (D-01)
 - [ ] `110-02-PLAN.md` — Backend-Projektion erweitern: total_points (Go/Repo/OpenAPI) + live-abgeleitete Rollen-Einstiegs-Badges aus release_role_credit_lifecycles (D-02/D-03 Datenschicht)
 - [ ] `110-03-PLAN.md` — Frontend-Anzeige: Punktzahl im MemberProfileHero + 8 Rollen-Einstiegs-Badges im bestehenden MemberBadgeChain-Katalog (D-02/D-03 UI)
-- [x] `110-04-PLAN.md` — „Auszeichnungen"-Sektion zu kategorie-gruppiertem Container umbauen (Rollen/Fortschritt/Mitgliedschaft/Besondere Auszeichnungen), bestehende + neue Badges einsortieren, generischer Rollen-Zeilen-Merge für Phase 112 (D-04) (completed 2026-07-28)
+- [x] `110-04-PLAN.md` — „Auszeichnungen"-Sektion zu kategorie-gruppiertem Container umbauen (Rollen/Fortschritt/Mitgliedschaft/Besondere Auszeichnungen), bestehende + neue Badges einsortieren, generischer Rollen-Zeilen-Merge für Phase 112 (D-04)
+ (completed 2026-07-28)
 
 **Success Criteria** (what must be TRUE):
 
