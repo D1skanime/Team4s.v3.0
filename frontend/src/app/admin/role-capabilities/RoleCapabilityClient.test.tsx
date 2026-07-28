@@ -12,8 +12,15 @@
  */
 import { render, screen, act, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useSearchParams } from "next/navigation";
 import RoleCapabilityClient from "./RoleCapabilityClient";
 import type { RoleCapabilityMatrix } from "@/types/admin-capability";
+
+// useSearchParams-Mock für die ?role=-Vorauswahl (D-06, 111-05). Default: kein role-Param,
+// damit bestehende Tests unbeeinflusst bleiben; einzelne Tests überschreiben per Testfall.
+vi.mock("next/navigation", () => ({
+  useSearchParams: vi.fn(),
+}));
 
 /**
  * matchMedia-Mock für jsdom (jsdom implementiert window.matchMedia nicht).
@@ -105,6 +112,10 @@ describe("RoleCapabilityClient", () => {
     vi.restoreAllMocks();
     // Standard: Desktop-Ansicht (matchMedia gibt false zurück = kein Mobile)
     mockMatchMedia(false);
+    // Standard: kein ?role=-Query-Param (leere URLSearchParams)
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams() as ReturnType<typeof useSearchParams>
+    );
   });
 
   it("zeigt Ladezustand wenn isLoading=true übergeben wird", () => {
@@ -308,5 +319,21 @@ describe("RoleCapabilityClient", () => {
     expect(headerButton?.getAttribute("aria-expanded")).toBe("true");
     // Und die Switches sind weiterhin sichtbar (Panel nicht zugeklappt)
     expect(screen.getAllByRole("switch").length).toBeGreaterThan(0);
+  });
+
+  // D-06: ?role=-Query-Param wählt die passende Rolle beim Laden vor, identisch zum
+  // manuellen Klick-Pfad (Desktop Inline-Panel).
+  it("wählt Rolle aus ?role=-Query-Param beim Laden vor (Desktop Inline-Panel)", () => {
+    vi.mocked(useSearchParams).mockReturnValue(
+      new URLSearchParams("role=fansub_lead") as ReturnType<typeof useSearchParams>
+    );
+    mockMatchMedia(false); // Desktop
+
+    render(<RoleCapabilityClient matrix={sampleMatrix} isLoading={false} />);
+
+    // Inline-Panel für fansub_lead ist ohne Klick sichtbar
+    const headings = screen.queryAllByRole("heading", { level: 3 });
+    const detailHeading = headings.find((h) => h.textContent?.includes("Fansub-Lead"));
+    expect(detailHeading).toBeTruthy();
   });
 });

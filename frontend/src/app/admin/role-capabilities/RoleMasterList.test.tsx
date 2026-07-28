@@ -41,6 +41,30 @@ const contributionRole: RoleEntry = {
   actions: [],
 }
 
+// Synthetische globale App-Rolle (Plan 111-01) mit Zuweisungen — Impact-Count-Link (D-05).
+const globalAppRoleWithCount: RoleEntry = {
+  role_code: 'platform_admin',
+  label_de: 'Plattform-Admin',
+  assignable: false,
+  capability_editable: false,
+  role_kind: 'global_app_role',
+  global_assignment_count: 3,
+  contexts: [],
+  actions: [],
+}
+
+// Synthetische globale App-Rolle ohne Zuweisungen — "0× vergeben"-Badge, kein Link.
+const globalAppRoleZeroCount: RoleEntry = {
+  role_code: 'content_admin',
+  label_de: 'Content-Admin',
+  assignable: false,
+  capability_editable: false,
+  role_kind: 'global_app_role',
+  global_assignment_count: 0,
+  contexts: [],
+  actions: [],
+}
+
 describe('RoleMasterList', () => {
   it('zeigt Badge "Aktive App-Rolle" für assignable=true Rolle', () => {
     render(
@@ -104,5 +128,59 @@ describe('RoleMasterList', () => {
     const roleButton = screen.getByRole('button', { name: /Fansub-Lead/i })
     fireEvent.click(roleButton)
     expect(onSelectRole).toHaveBeenCalledWith('fansub_lead')
+  })
+
+  // D-05: Impact-Count-Querverlinkung (111-05) — global_assignment_count entscheidet,
+  // NICHT assignable (111-RESEARCH.md Pitfall 1).
+  it('zeigt anklickbaren Impact-Count-Link "N× vergeben" für globale App-Rolle mit Zuweisungen', () => {
+    render(
+      <RoleMasterList
+        roles={[globalAppRoleWithCount]}
+        selectedRoleCode={null}
+        onSelectRole={vi.fn()}
+      />
+    )
+    expect(screen.getByText('3× vergeben')).toBeTruthy()
+    const link = screen.getByRole('link', {
+      name: /3 Benutzer mit Rolle Plattform-Admin anzeigen/i,
+    })
+    expect(link.getAttribute('href')).toBe('/admin/users?role=platform_admin')
+  })
+
+  it('zeigt "0× vergeben" als nicht-klickbaren Badge für globale App-Rolle ohne Zuweisungen', () => {
+    render(
+      <RoleMasterList
+        roles={[globalAppRoleZeroCount]}
+        selectedRoleCode={null}
+        onSelectRole={vi.fn()}
+      />
+    )
+    const zeroBadge = screen.getByText('0× vergeben')
+    expect(zeroBadge.closest('a')).toBeNull()
+    expect(screen.queryByRole('link')).toBeNull()
+  })
+
+  it('zeigt "–" für nicht zählbare Rollen ohne global_assignment_count', () => {
+    render(
+      <RoleMasterList
+        roles={[assignableRole]}
+        selectedRoleCode={null}
+        onSelectRole={vi.fn()}
+      />
+    )
+    expect(screen.getByText('–')).toBeTruthy()
+    expect(screen.queryByRole('link')).toBeNull()
+  })
+
+  it('zeigt Badge-Label "Globale App-Rolle" statt "Historische Rolle" für role_kind=global_app_role', () => {
+    render(
+      <RoleMasterList
+        roles={[globalAppRoleWithCount]}
+        selectedRoleCode={null}
+        onSelectRole={vi.fn()}
+      />
+    )
+    expect(screen.getByText('Globale App-Rolle')).toBeTruthy()
+    expect(screen.queryByText('Historische Rolle')).toBeNull()
   })
 })
