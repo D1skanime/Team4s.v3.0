@@ -78,6 +78,8 @@ func main() {
 			JellyfinBaseURL: cfg.JellyfinBaseURL,
 		},
 	)
+	searchRepo := repository.NewSearchRepository(dbPool)
+	searchHandler := handlers.NewSearchHandler(searchRepo)
 	episodeRepo := repository.NewEpisodeRepository(dbPool)
 	episodeHandler := handlers.NewEpisodeHandler(episodeRepo)
 	fansubRepo := repository.NewFansubRepository(dbPool, cfg.MediaStorageDir)
@@ -358,6 +360,8 @@ func main() {
 	v1.POST("/me/members/:id/correction", authMiddleware, memberCorrectionHandler.SubmitCorrection)
 	v1.PATCH("/me/profile/noindex", authMiddleware, memberProfileNoindexHandler.PatchNoindex)
 	v1.POST("/claim-invitations/accept", authMiddleware, memberClaimInvitationsHandler.AcceptClaimInvitation)
+	v1.GET("/search", authOptionalMiddleware, searchHandler.Search)
+	v1.GET("/search/suggestions", authOptionalMiddleware, searchHandler.Suggestions)
 	v1.GET("/anime", animeHandler.List)
 	v1.GET("/anime/:id", animeHandler.GetByID)
 	v1.GET("/anime/:id/backdrops", animeHandler.ListBackdrops)

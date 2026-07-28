@@ -653,6 +653,172 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search:
+    get:
+      tags: [Search]
+      summary: Globale Suche über Anime und Fansubgruppen
+      description: >
+        Öffentliche globale Suche (PostgreSQL FTS + pg_trgm). Der Suchbegriff q ist
+        serverseitig mindestens 2 Zeichen lang und wird ausschließlich als
+        Bind-Parameter verarbeitet. disabled-Anime erscheinen nur mit
+        Plattform-Admin-Identität (include_disabled=true).
+      operationId: globalSearch
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Suchbegriff, mindestens 2 Zeichen.
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+            example: naruto
+        - name: type
+          in: query
+          description: Entitäts-Diskriminator. Standard "alle".
+          schema:
+            type: string
+            enum: [alle, anime, fansub]
+            default: alle
+        - name: year_from
+          in: query
+          description: Untere Jahresgrenze (Anime).
+          schema:
+            type: integer
+            format: int32
+        - name: year_to
+          in: query
+          description: Obere Jahresgrenze (Anime).
+          schema:
+            type: integer
+            format: int32
+        - name: genre
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - name: tag
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - name: format
+          in: query
+          description: Anime-Typ/Format bzw. Fansub-Gruppentyp.
+          schema:
+            type: string
+            maxLength: 100
+        - name: status
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - name: fansub_group
+          in: query
+          description: Optionaler Filter auf eine Fansubgruppen-ID (Anime).
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: sort
+          in: query
+          description: Sortierung. In v1 nur "relevance" (deterministisches D-05-Ranking).
+          schema:
+            type: string
+            enum: [relevance]
+            default: relevance
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 24
+        - name: include_disabled
+          in: query
+          description: disabled-Anime einbeziehen. Nur mit Plattform-Admin-Identität wirksam.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Gruppiertes Suchergebnis (Anime + Fansubgruppen) mit Pagination-Metadaten
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSearchResponse"
+        "400":
+          description: Ungültige Suchparameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                queryTooShort:
+                  value:
+                    error:
+                      message: der Suchbegriff muss mindestens 2 Zeichen lang sein
+                invalidType:
+                  value:
+                    error:
+                      message: ungültiger type parameter
+                invalidSort:
+                  value:
+                    error:
+                      message: ungültiger sort parameter
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search/suggestions:
+    get:
+      tags: [Search]
+      summary: Autocomplete-Vorschläge (gruppiert nach Anime/Fansubgruppen)
+      description: >
+        Liefert serverseitig je Gruppe begrenzte (max. 5) Vorschläge für
+        Search-as-you-type. Suchbegriff q ist mindestens 2 Zeichen lang.
+      operationId: searchSuggestions
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+            example: nar
+      responses:
+        "200":
+          description: Gruppierte, begrenzte Autocomplete-Vorschläge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchSuggestionsResponse"
+        "400":
+          description: Ungültiger Suchbegriff
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                queryTooShort:
+                  value:
+                    error:
+                      message: der Suchbegriff muss mindestens 2 Zeichen lang sein
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime/{id}:
     get:
       tags: [Anime]
@@ -9082,6 +9248,70 @@ components:
             $ref: "#/components/schemas/AnimeListItem"
         meta:
           $ref: "#/components/schemas/PaginationMeta"
+    SearchResultItem:
+      type: object
+      required: [type, id, slug, title]
+      properties:
+        type:
+          type: string
+          enum: [anime, fansub]
+        id:
+          type: integer
+          format: int64
+        slug:
+          type: string
+        title:
+          type: string
+        subtitle:
+          type: string
+          nullable: true
+        year:
+          type: integer
+          format: int32
+          nullable: true
+        format:
+          type: string
+          nullable: true
+          description: Anime-Typ bzw. Fansub-Gruppentyp.
+        status:
+          type: string
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+    SearchEntityResult:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResultItem"
+        total:
+          type: integer
+          format: int64
+    SearchResult:
+      type: object
+      required: [anime, fansub]
+      properties:
+        anime:
+          $ref: "#/components/schemas/SearchEntityResult"
+        fansub:
+          $ref: "#/components/schemas/SearchEntityResult"
+    PaginatedSearchResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/SearchResult"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    SearchSuggestionsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/SearchResult"
     EpisodeListItem:
       type: object
       required:
