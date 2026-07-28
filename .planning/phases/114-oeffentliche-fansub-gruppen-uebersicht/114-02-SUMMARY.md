@@ -92,3 +92,12 @@ Both nav arrays now expose a working `/fansubs` link (route itself does not exis
 ---
 *Phase: 114-oeffentliche-fansub-gruppen-uebersicht*
 *Completed: 2026-07-28*
+
+## Self-Check: PASSED
+
+- FOUND: frontend/src/components/layout/AppShell.tsx
+- FOUND: frontend/src/components/layout/AppShell.test.tsx
+- FOUND: .planning/phases/114-oeffentliche-fansub-gruppen-uebersicht/114-02-SUMMARY.md
+- FOUND: 298ea116 (test commit)
+- FOUND: 17896d05 (feat commit)
+- FOUND: 78229690 (docs commit)

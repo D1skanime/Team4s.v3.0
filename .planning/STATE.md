@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 114-01-PLAN.md (Tasks 1-2; Task 3 deferred - Docker unavailable)
-last_updated: "2026-07-28T11:51:23.039Z"
+stopped_at: Completed 114-02-PLAN.md
+last_updated: "2026-07-28T12:01:50.549Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 108
   completed_phases: 86
   total_plans: 487
-  completed_plans: 441
+  completed_plans: 442
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 114 (oeffentliche-fansub-gruppen-uebersicht) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -398,6 +398,7 @@ Recent durable decisions:
 - [Phase 113-01]: Familie-1-Release-Menge eines Projekts = nur ledger-erfasste release_versions (>=1 awarded Credit von irgendwem), nicht literal jede existierende Version (A1/Pitfall 1)
 - [Phase 113-01]: Alle drei Contribution-Familien enden bei Gold, kein platinum-Tier (Abweichung vom Rollen-Volumen-Praezedenzfall aus Phase 112)
 - [Phase 114]: projects_count added as its own field (not reusing anime_relations_count) because anime_relations_count has no anime.status filter and would silently over-count vs. the detail page's Anime-Projekte figure; new SQL block mirrors listPublicFansubProjects's a.status <> 'disabled' filter exactly, pinned by a source-invariant regression test
+- [Phase 114-02]: AppShellNavGroups.publicItems (authenticated) required a newly inserted Fansub-Gruppen entry (none existed), while AppShellAnonNavGroups.publicItems (anonymous) required replacing an existing disabled placeholder -- both edits necessary to satisfy D-01.
 
 ### Pending Todos
 
@@ -689,6 +690,7 @@ Recent durable decisions:
 | Phase 112 P03 | 17min | 2 tasks | 4 files |
 | Phase 113 P01 | 35min | 3 tasks | 3 files |
 | Phase 114 P01 | 35min | 2 tasks | 8 files |
+| Phase 114 P02 | 4min | 2 tasks | 2 files |
 
 ### Quick Tasks Completed
 
@@ -770,8 +772,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T11:51:22.962Z
-Stopped at: Completed 114-01-PLAN.md (Tasks 1-2; Task 3 deferred - Docker unavailable)
+Last session: 2026-07-28T12:01:50.454Z
+Stopped at: Completed 114-02-PLAN.md
 Last activity: 2026-07-28
 Resume file: 
 None
