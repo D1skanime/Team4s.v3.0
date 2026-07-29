@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 116-04-PLAN.md
-last_updated: "2026-07-29T08:00:48.631Z"
+stopped_at: Completed 116-05-PLAN.md
+last_updated: "2026-07-29T08:18:47.267Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 88
   total_plans: 502
-  completed_plans: 460
+  completed_plans: 461
   percent: 81
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 116 (personalisiertes-dashboard) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 
 ## Accumulated Context
 
@@ -422,6 +422,7 @@ Recent durable decisions:
 - [Phase 116-02]: D-08 Ownership-Gate ueber resolveVerifiedMemberIDForAppUser (paket-weiter Seam, ContributionsMeHandler delegiert); D-09 graceful 200 has_member_profile=false statt 403; Projekte(Anzahl) bewusst getrennt von Familie-1-Rohzahl (Pitfall 6)
 - [Phase 116-03]: getOwnDashboard() placed immediately after getMyAnimeContributions in api.ts; Dashboard nav entry moved unconditionally into fixedMyItems directly after Mein Profil/Mein Account (D-10).
 - [Phase 116-04]: AttentionSection/DashboardMetrics rein praesentational — Beide Sektionen konsumieren nur bereits gebaute 116-01-Contracts (attentionHelpers, OwnDashboardData); anime_title-Fallback und toLocaleString-Split wie im Plan vorgegeben, keine Architekturaenderung.
+- [Phase 116-05]: CategoryProgressTable/MyGroupsSection/QuickLinksSection built: client+server progress merge (D-04, no re-derived thresholds), D-09 EmptyState override for Meine Gruppen (D-05), live-verified static Suche-route gate (D-06, /suche already landed from Phase 115)
 
 ### Pending Todos
 
@@ -727,6 +728,7 @@ Recent durable decisions:
 | Phase 116 P02 | 55min | 3 tasks | 12 files |
 | Phase 116 P03 | 15min | 2 tasks | 4 files |
 | Phase 116 P04 | 4min | 2 tasks | 5 files |
+| Phase 116 P05 | 35min | 3 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -808,8 +810,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T08:00:48.553Z
-Stopped at: Completed 116-04-PLAN.md
+Last session: 2026-07-29T08:18:47.176Z
+Stopped at: Completed 116-05-PLAN.md
 Last activity: 2026-07-29
 Resume file: 
 None
