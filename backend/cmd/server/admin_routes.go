@@ -123,6 +123,12 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/anime/:id/segments/:segmentId/reuse", auth, deps.adminContentHandler.AttachSegmentLibraryAsset)
 	v1.POST("/admin/anime/:id/segments/:segmentId/asset", auth, deps.adminContentHandler.UploadSegmentAsset)
 	v1.DELETE("/admin/anime/:id/segments/:segmentId/asset", auth, deps.adminContentHandler.DeleteSegmentAsset)
+	// Phase 117: Zuweisung eines geteilten Kara-Segments zu einer weiteren Release-Version (D-03)
+	// und Per-Release-Version-Zeit-Override (D-01).
+	v1.POST("/admin/anime/:id/segments/:segmentId/assignments", auth, deps.adminContentHandler.AssignAnimeSegment)
+	v1.DELETE("/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId", auth, deps.adminContentHandler.UnassignAnimeSegment)
+	v1.PUT("/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override", auth, deps.adminContentHandler.UpsertAnimeSegmentEpisodeOverride)
+	v1.DELETE("/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override", auth, deps.adminContentHandler.DeleteAnimeSegmentEpisodeOverride)
 	v1.GET("/admin/fansubs/:id/anime", auth, deps.adminContentHandler.ListFansubAnime)
 	v1.GET("/admin/fansubs/:id/anime/:animeId/releases", auth, deps.adminContentHandler.ListFansubAnimeReleases)
 	v1.GET("/admin/fansubs/:id/anime/:animeId/releases/canonical", auth, deps.adminContentHandler.GetCanonicalFansubAnimeReleaseSummary)

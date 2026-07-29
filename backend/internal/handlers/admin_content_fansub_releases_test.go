@@ -111,6 +111,18 @@ func (s *fansubReleaseThemeRepoStub) ListThemeSegmentAssignments(ctx context.Con
 func (s *fansubReleaseThemeRepoStub) GetThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.AdminThemeSegmentEpisodeOverride, error) {
 	return nil, repository.ErrNotFound
 }
+func (s *fansubReleaseThemeRepoStub) AssignThemeSegmentToReleaseVersion(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.AdminThemeSegmentAssignment, error) {
+	return nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) UnassignThemeSegmentFromReleaseVersion(ctx context.Context, segmentID int64, releaseVersionID int64) error {
+	return nil
+}
+func (s *fansubReleaseThemeRepoStub) UpsertThemeSegmentEpisodeOverride(ctx context.Context, input models.AdminThemeSegmentEpisodeOverrideUpsertInput) (*models.AdminThemeSegmentEpisodeOverride, error) {
+	return nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) DeleteThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) error {
+	return nil
+}
 func (s *fansubReleaseThemeRepoStub) ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error) {
 	return nil, nil
 }

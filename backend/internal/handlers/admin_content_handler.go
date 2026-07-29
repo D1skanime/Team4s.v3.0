@@ -67,6 +67,14 @@ type adminThemeRepository interface {
 	// bzw. den Override-Ausschlussfilter (D-01/D-03).
 	ListThemeSegmentAssignments(ctx context.Context, segmentID int64) ([]int64, error)
 	GetThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.AdminThemeSegmentEpisodeOverride, error)
+	// AssignThemeSegmentToReleaseVersion/UnassignThemeSegmentFromReleaseVersion und
+	// UpsertThemeSegmentEpisodeOverride/DeleteThemeSegmentEpisodeOverride (Phase 117, Plan
+	// 117-02/117-05): die vier Admin-Schreibpfade fuer geteilte Kara-Zuweisung (D-03) und
+	// Per-Version-Zeit-Override (D-01).
+	AssignThemeSegmentToReleaseVersion(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.AdminThemeSegmentAssignment, error)
+	UnassignThemeSegmentFromReleaseVersion(ctx context.Context, segmentID int64, releaseVersionID int64) error
+	UpsertThemeSegmentEpisodeOverride(ctx context.Context, input models.AdminThemeSegmentEpisodeOverrideUpsertInput) (*models.AdminThemeSegmentEpisodeOverride, error)
+	DeleteThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) error
 	ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error)
 	BindUploadedSegmentAsset(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64, sourceRef string, sourceLabel *string) (*models.AdminThemeSegment, error)
 	AttachSegmentLibraryAsset(ctx context.Context, animeID int64, segmentID int64, input models.SegmentLibraryAttachInput) (*models.AdminThemeSegment, error)
