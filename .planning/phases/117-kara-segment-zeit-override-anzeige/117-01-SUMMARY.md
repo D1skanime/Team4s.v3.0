@@ -118,3 +118,7 @@ None - no external service configuration required. Verification ran directly aga
 ---
 *Phase: 117-kara-segment-zeit-override-anzeige*
 *Completed: 2026-07-29*
+
+## Self-Check: PASSED
+
+All 6 created migration files verified present on disk; task commits `2ca60ef5` and `0b39a773` verified present in `git log`.
