@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 117-08-PLAN.md
-last_updated: "2026-07-29T14:53:33.341Z"
+stopped_at: Completed 117-04-PLAN.md
+last_updated: "2026-07-29T15:46:46.112Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 89
   total_plans: 502
-  completed_plans: 466
+  completed_plans: 467
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 117 (kara-segment-zeit-override-anzeige) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 
 ## Accumulated Context
 
@@ -431,6 +431,8 @@ Recent durable decisions:
 - [Phase 117-02]: Integrationstest-Setup nutzt separate pool.Exec pro INSERT statt Multi-Statement mit Parametern (pgx lehnt mehrere Kommandos in parametrisiertem Statement ab)
 - [Phase ?]: Phase 117 Plan 03: release_version_id ist jetzt Pflichtparameter fuer alle Render-Cache-Lookups; RenderSegment/StreamSegment erhalten bis Plan 117-04/117-05 einen optionalen release_version_id Query-Parameter (Default 0).
 - [Phase 117-08]: loadReleaseSegments unterdrueckt Segmente ueber theme_segment_assignments + Vorfolgen-Diff via bestehender loadAdjacentReleases (D-02); Span-Start-Fallback ohne Sonderfall-Code bei fehlender Vorfolge; neuer episodeNumber-Prop auf ThemeTimeline fuer den Span-Badge
+- [Phase 117-04]: AttachSegmentLibraryAsset invalidiert ungefiltert ueber ALLE Zuweisungen (auch ueberschriebene), da ein Quellenwechsel die geteilte Wiedergabequelle betrifft, die ein Zeit-Override nicht ersetzt -- anders als UpdateAnimeSegment, das ueberschriebene Zuweisungen vom Fan-Out ausschliesst (D-01/D-03)
+- [Phase 117-04]: CreateAnimeSegment reicht releaseVariantID jetzt als currentReleaseVersionID durch (statt hartcodiert 0) -- ein neu angelegtes Segment wird sofort der aktuellen Editor-Release-Version zugewiesen
 
 ### Pending Todos
 
@@ -743,6 +745,7 @@ Recent durable decisions:
 | Phase 117 P02 | 12min | 3 tasks | 6 files |
 | Phase 117 P03 | 75min | - tasks | - files |
 | Phase 117 P08 | 55min | 3 tasks | 8 files |
+| Phase 117 P04 | 110min | 3 tasks | 10 files |
 
 ### Quick Tasks Completed
 
@@ -824,8 +827,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T14:53:33.236Z
-Stopped at: Completed 117-08-PLAN.md
+Last session: 2026-07-29T15:46:46.012Z
+Stopped at: Completed 117-04-PLAN.md
 Last activity: 2026-07-29
 Resume file: 
 None

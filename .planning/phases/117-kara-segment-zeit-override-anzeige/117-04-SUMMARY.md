@@ -146,3 +146,9 @@ None — alle Verifikationsschritte liefen gegen lokale Ressourcen (Docker-Postg
 ---
 *Phase: 117-kara-segment-zeit-override-anzeige*
 *Completed: 2026-07-29*
+
+## Self-Check: PASSED
+
+All created files verified present on disk (`segment_render_fanout.go`, `segment_render_fanout_test.go`,
+`admin_content_anime_theme_segments_hydration_integration_test.go`, `deferred-items.md`,
+`117-04-SUMMARY.md`). Commits `2f9753a6`, `16c0879f`, `b6b7b8a4` verified present in `git log`.
