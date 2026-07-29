@@ -538,26 +538,45 @@ reine Analysephase gibt es keinen Code-Angriffsvektor. Für eine künftige Umset
 | A2 | Ein additiver Per-Folge-Override (Option A) lässt sich ohne Umbau von `theme_segment_playback_sources` sauber umsetzen | Umsetzungsumfang, Option A | Falls sich beim Planen herausstellt, dass Override-Zeiten doch eine eigene Render-Cache-Identität pro Folge brauchen, wäre auch Option A umfangreicher als hier eingeschätzt |
 | A3 | Bestandsdaten (Produktions-DB) folgen überwiegend dem "ein Row pro Folge"-Muster, nicht dem theoretisch möglichen Bereichs-Muster | Umsetzungsumfang, Option B | Diese Analyse hat **keine** Produktionsdatenbank abgefragt (nur Code/Migrationen) — falls es doch nennenswerte bestehende Mehr-Folgen-Bereichs-Segmente gibt, müsste eine Migration deren Sonderfall behandeln |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Alle drei Fragen wurden in der Planungsphase (Phase 117 Plan-Set 117-01 bis 117-09) aufgelöst. Die
+> Resolution-Notizen unten dokumentieren WO/WIE, für die Nachvollziehbarkeit; die Fragen selbst
+> bleiben als Analyse-Kontext stehen.
 
 1. **Wie soll die Gruppierungs-Kennung für "dasselbe Segment" konkret aussehen (Option A)?**
    - Was wir wissen: `(theme_id, fansub_group_id, version)` ist die einzige heute verfügbare Näherung.
    - Was unklar ist: Ob das für den Nutzer ausreichend robust ist, oder ob eine explizite,
      admin-gesetzte Gruppierung (z. B. "gehört zu Serie X") gewünscht ist.
-   - Empfehlung: In der Planungsphase/Diskussion mit Nutzer klären, bevor Schema-Entscheidung fällt.
+   - **RESOLVED:** Die Frage ist durch den CONTEXT.md D-03 Option-B-Lock des Nutzers (2026-07-28,
+     "Scope-Entscheidung, gelockt: vollständiges Option B") gegenstandslos geworden — die Frage
+     betraf ausschließlich die additive, risikoärmere Option A ("ein Row pro Folge" beibehalten +
+     implizite Gruppierungs-Näherung). Da der Nutzer stattdessen den strukturellen Umbau auf ein
+     ECHTES, explizit zuweisbares Kara (`theme_segment_assignments`, Plan 117-01) gewählt hat, gibt
+     es keine implizite Gruppierungs-Näherung mehr zu klären — die Zuweisung ist eine explizite,
+     admin-gesteuerte Datenbank-Relation, kein Tripel-Vergleich.
 2. **Gibt es in der Produktionsdatenbank bereits echte Mehr-Folgen-Bereichs-Segmente
    (`start_episode < end_episode`)?**
    - Was wir wissen: Das Schema erlaubt es, der Standard-UI-Workflow erzeugt es aber nicht aktiv.
    - Was unklar ist: Ob vereinzelt manuell (z. B. direkt per API) solche Segmente bereits existieren,
      die von einer künftigen Migration/Logik nicht überrascht werden dürfen.
-   - Empfehlung: Vor Umsetzung eine schreibgeschützte Datenbank-Abfrage (`SELECT COUNT(*) FROM
-     theme_segments WHERE end_episode > start_episode`) durchführen — außerhalb des Rahmens dieser
-     Codebasis-Analyse.
+   - **RESOLVED:** Plan 117-01 Task 1 beantwortet diese Frage schreibgeschützt UND zur
+     Ausführungszeit (nicht nur spekulativ): die Migration 0141 enthält einen `DO $ ... $`-Block,
+     der `SELECT COUNT(*) FROM theme_segments WHERE end_episode > start_episode` auswertet und das
+     Ergebnis per `RAISE NOTICE` ausgibt, ohne die Migration bei einem beliebigen Ergebnis
+     fehlschlagen zu lassen — die reale Bestandsdatenlage wird damit bei jeder Migrations-Anwendung
+     sichtbar dokumentiert, statt vorab geraten zu werden.
 3. **Soll die Entdopplungs-Regel auch rückwärts (vorherige Folge fehlt/wurde gelöscht) robust sein?**
    - Was wir wissen: `loadAdjacentReleases` liefert `nil`, wenn keine Vorfolge existiert
      (`release_detail_public_repository_helpers.go:109-134`).
    - Was unklar ist: Gewünschtes Verhalten am Anime-Anfang oder bei Lücken in der Episodenfolge.
-   - Empfehlung: In der Planungsphase als expliziten Edge Case aufnehmen.
+   - **RESOLVED:** Plan 117-08 Task 1 (Surface 3, öffentliche Entdopplung) behandelt diesen Edge Case
+     explizit: wenn `loadAdjacentReleases` `prev == nil` liefert (keine Vorfolge oder Lücke in der
+     Episodennummerierung), gilt die aktuelle Folge automatisch als Span-Start, das Segment wird
+     angezeigt — ohne Sonderfall-Code über die bestehende nil-Behandlung hinaus (UI-SPEC Surface 3
+     "Edge Case", Plan 117-08 Task 3 deckt diesen Fall zusätzlich mit einem eigenen Integrationstest
+     ab: "A ist die erste Release-Version des Anime (keine Vorfolge) -> `loadReleaseSegments(A)`
+     liefert X trotzdem").
 
 ## Sources
 
