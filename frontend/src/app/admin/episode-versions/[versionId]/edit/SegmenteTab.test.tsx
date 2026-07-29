@@ -276,6 +276,83 @@ describe('SegmenteTab table', () => {
     expect((screen.getByLabelText('Ende') as HTMLInputElement).value).toBe('00:01:20')
     expect(screen.getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', false)
   })
+
+  it('zeigt Badges und Zuweisungs-Chips mit echter Episodennummer für ein geteiltes Segment (B3-Fix, UI-SPEC Surface 2)', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 33,
+          theme_title: 'Shared OP',
+          start_episode: 1,
+          end_episode: 12,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          source_type: 'none',
+          is_shared: true,
+          has_episode_override: true,
+          assigned_release_version_ids: [481, 482],
+          assigned_episodes: [
+            { release_version_id: 481, episode_number: '3' },
+            { release_version_id: 482, episode_number: '7' },
+          ],
+        }),
+      ],
+    })
+
+    render(
+      <SegmenteTab
+        animeId={1}
+        groupId={2}
+        version="v1"
+        episodeNumber={3}
+        releaseVariantId={481}
+      />,
+    )
+
+    const table = await screen.findByRole('table')
+    expect(within(table).getByText('Geteiltes Segment')).toBeTruthy()
+    expect(within(table).getByText('Zeit hier überschrieben')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
+
+    expect(await screen.findByText('Folge 3 · Zeit angepasst')).toBeTruthy()
+    expect(screen.getByText('Folge 7 · Zeit angepasst')).toBeTruthy()
+    // B3-Regression: Chips zeigen NIEMALS die interne release_version_id.
+    expect(screen.queryByText('Folge 481')).toBeNull()
+    expect(screen.queryByText('Folge 482')).toBeNull()
+  })
+
+  it('rendert kein Badge und keinen DisclosureIndicator für ein nicht geteiltes Segment (Standardfall unverändert)', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 34,
+          theme_title: 'Solo OP',
+          start_episode: 1,
+          end_episode: 1,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          source_type: 'none',
+        }),
+      ],
+    })
+
+    render(
+      <SegmenteTab
+        animeId={1}
+        groupId={2}
+        version="v1"
+        episodeNumber={1}
+        releaseVariantId={481}
+      />,
+    )
+
+    await screen.findByRole('table')
+    expect(screen.getByText('Solo OP')).toBeTruthy()
+    expect(screen.queryByText('Geteiltes Segment')).toBeNull()
+    expect(screen.queryByText('Zeit hier überschrieben')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' })).toBeNull()
+  })
 })
 
 describe('SegmentEditPanel validation', () => {
