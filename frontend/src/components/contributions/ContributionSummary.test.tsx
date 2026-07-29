@@ -29,6 +29,7 @@ function makeContribution(
     release_version_id: null,
     is_own_proposal: false,
     fansub_group_name: 'TestGruppe',
+    created_at: '2026-01-01T00:00:00Z',
     ...overrides,
   }
 }

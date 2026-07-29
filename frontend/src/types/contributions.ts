@@ -105,6 +105,13 @@ export interface MeAnimeContribution {
    */
   worked_release_version_count?: number
   total_release_version_count?: number
+  /**
+   * Phase 116 (D-02/Pattern 3): additiv, spiegelt AnimeContributionRow.CreatedAt/ConfirmedAt
+   * (backend/internal/repository/anime_contributions_inputs.go:27-25) — bereits im JSON
+   * vorhanden, hier nur nachträglich typisiert für isRecentlyAssigned (attentionHelpers.ts).
+   */
+  created_at: string
+  confirmed_at?: string | null
 }
 
 /** Phase 76: Einzelner Vorschlag des eingeloggten Members (Decision 6) */

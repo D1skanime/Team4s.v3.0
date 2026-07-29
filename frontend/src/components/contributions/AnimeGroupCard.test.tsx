@@ -25,6 +25,7 @@ function makeContribution(overrides: Partial<MeAnimeContribution> = {}): MeAnime
     release_version_id: null,
     is_own_proposal: false,
     fansub_group_name: 'AnimeOwnage',
+    created_at: '2026-01-01T00:00:00Z',
     ...overrides,
   }
 }

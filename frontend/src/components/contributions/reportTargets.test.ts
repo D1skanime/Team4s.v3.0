@@ -22,6 +22,7 @@ const CONTRIBUTIONS: MeAnimeContribution[] = [
     note: null,
     release_version_id: null,
     is_own_proposal: false,
+    created_at: '2026-01-01T00:00:00Z',
   },
   {
     id: 42,
@@ -40,6 +41,7 @@ const CONTRIBUTIONS: MeAnimeContribution[] = [
     note: null,
     release_version_id: null,
     is_own_proposal: true,
+    created_at: '2026-01-01T00:00:00Z',
   },
 ]
 
