@@ -105,7 +105,7 @@ Alle fünf Wave-0-Lücken sind auf mindestens einen Task in der obigen Verificat
 
 ## Validation Sign-Off
 
-- [x] All tasks have `<automated>` verify or Wave 0 dependencies (23 von 24 Tasks automatisiert; 117-09-02 ist laut VALIDATION.md explizit Manual-Only per `checkpoint:human-verify`/`<human-check>`, kein Nyquist-Verstoß)
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (22 von 23 Tasks automatisiert; 117-09-02 ist laut VALIDATION.md explizit Manual-Only per `checkpoint:human-verify`/`<human-check>`, kein Nyquist-Verstoß)
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify (einziger manueller Task ist 117-09-02, der letzte Task der gesamten Phase — keine 3 aufeinanderfolgenden manuellen Tasks)
 - [x] Wave 0 covers all MISSING references (alle fünf Wave-0-Lücken auf konkrete Tasks gemappt, siehe oben)
 - [x] No watch-mode flags (alle Automated-Commands sind Einzel-Läufe, kein `--watch`)
