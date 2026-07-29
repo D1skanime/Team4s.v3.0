@@ -57,7 +57,9 @@ CREATE TABLE episodes (
     id BIGINT PRIMARY KEY,
     anime_id BIGINT NOT NULL REFERENCES anime(id),
     sort_index INT,
-    episode_number TEXT
+    episode_number TEXT,
+    number_decimal DECIMAL(5,1),
+    title TEXT
 );
 CREATE TABLE fansub_groups (
     id BIGINT PRIMARY KEY

@@ -212,6 +212,19 @@ describe('ThemeTimeline Phase 105 geometry and selection', () => {
     expect(document.querySelector('img')).toBeNull()
   })
 
+  it('shows the span badge for a shared Kara with a real applies_through_episode range (UI-SPEC Surface 3)', () => {
+    renderTimeline({
+      episodeNumber: '1',
+      segments: [{ ...segments[0], applies_through_episode: '12' }],
+    })
+    expect(screen.getByText('Gilt auch für Folge 1–12')).toBeTruthy()
+  })
+
+  it('renders no span badge when the segment has no applies_through_episode value', () => {
+    renderTimeline({ episodeNumber: '1' })
+    expect(screen.queryByText(/Gilt auch für Folge/)).toBeNull()
+  })
+
   it('keeps exactly one selected segment and announces it politely', () => {
     setSession(true, false)
     renderTimeline()
