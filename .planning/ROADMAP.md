@@ -2639,7 +2639,7 @@ Plans:
 **Goal:** Den toten Nav-Eintrag „Dashboard" mit einer **read-only, personalisierten Startseite** für eingeloggte User beleben — ein Cockpit, das vorhandene Daten bündelt und verlinkt, **ohne eigene Datenhaltung** und **ohne Editier-Funktionen** (Bearbeiten bleibt `/me/profile`). Inhalte: (1) **„Braucht deine Aufmerksamkeit"** — kürzlich neu zugewiesene Projekte/Releases (**zeitbasiert, Variante A**, kein Backend-Zusatz) mit Direktlink zur Arbeitsfläche; (2) **5 Kennzahlen** (Punkte, Badges, Projekte, hochgeladene Bilder, geschriebene Beiträge); (3) **Fortschritt je Badge-Kategorie** („noch X bis nächste Stufe"); (4) **Meine Gruppen** mit Links; (5) **Schnellzugriffe** (Anime entdecken, Rangliste, Fansub-Gruppen, Suche, Mein Profil). Globales UI-System. Als Integrations-Hub kommt es **nach 109–115**.
 **Requirements:** Vorhandene Daten aus 109 (Punkte), 110/112/113 (Badges + Kategorie-Schwellen), 114 (Gruppen-Übersicht), 115 (Suche), sowie Member-/Contribution-/Media-/Gruppen-Daten; globales UI-System. Read-only, keine eigene Persistenz.
 **Depends on:** Phase 109, Phase 110, Phase 112, Phase 113, Phase 114, Phase 115
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 

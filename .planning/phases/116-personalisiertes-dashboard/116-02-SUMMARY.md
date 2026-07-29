@@ -158,3 +158,10 @@ None — no external service configuration required. This plan adds no new envir
 ---
 *Phase: 116-personalisiertes-dashboard*
 *Completed: 2026-07-29*
+
+## Self-Check: PASSED
+
+All created files verified present (`member_profile_dashboard_repository.go` + test,
+`member_profile_role_volume_repository_test.go`, `me_identity_helpers.go`,
+`dashboard_me_handler.go` + test, `deferred-items.md`, this SUMMARY) and all four task/plan
+commit hashes (`5fa8f8a9`, `57ce700d`, `ba24d8b8`, `029a458a`) verified present in `git log`.
