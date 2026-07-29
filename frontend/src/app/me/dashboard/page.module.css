@@ -1,0 +1,11 @@
+.page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px 28px 64px;
+}
+
+.sections {
+  display: grid;
+  gap: var(--space-6);
+  margin-top: var(--space-7);
+}
