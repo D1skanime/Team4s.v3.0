@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Phase 117 UI-SPEC approved
-last_updated: "2026-07-29T06:33:02.946Z"
+last_updated: "2026-07-29T07:26:08.408Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 88
   total_plans: 502
-  completed_plans: 456
+  completed_plans: 457
   percent: 81
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 115 — globale-suche-postgres-fts
+**Current focus:** Phase 116 — personalisiertes-dashboard
 
 ## Current Position
 
-Phase: 115 (globale-suche-postgres-fts) — EXECUTING
-Plan: 8 of 8 — CHECKPOINT (Live-UAT ausstehend, Phase NICHT verifiziert)
+Phase: 116 (personalisiertes-dashboard) — EXECUTING
+Plan: 2 of 6
 
 ## Accumulated Context
 
@@ -418,6 +418,7 @@ Recent durable decisions:
 - [Phase 115]: getSearch/getSearchSuggestions reichen ein AbortController-signal durch; buildSearchQuery haengt nur gesetzte Params an (URL = Source of Truth, D-08)
 - [Phase 115]: useDebouncedSearch kapselt 250ms Debounce + AbortController-Abbruch veralteter Requests + useSearchParams-Sync (q/type/Filter/page), Reload-fest
 - [Phase 115]: Suche-Nav-Eintrag in beiden AppShell-Gruppen aktiv (href /suche, Icon Search); Dashboard-badge bald bleibt vorbestehender Out-of-Scope-Platzhalter
+- [Phase 116-01]: category_progress in OwnDashboardData excludes point-milestone/role-volume rows (client-side derived in Plan 116-05 via memberBadgeLabels.ts helpers)
 
 ### Pending Todos
 
@@ -719,6 +720,7 @@ Recent durable decisions:
 | Phase 115 P01 | 18 | 2 tasks | 8 files |
 | Phase 115 P04 | ~40 min | 3 tasks | 6 files |
 | Phase 115 P05 | ~20 min | 3 tasks | 5 files |
+| Phase 116 P01 | 12min | 3 tasks | 11 files |
 
 ### Quick Tasks Completed
 
@@ -800,7 +802,7 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-28T23:06:58.250Z
+Last session: 2026-07-29T07:23:11.648Z
 Stopped at: Phase 117 UI-SPEC approved
 Last activity: 2026-07-29
 Resume file: 
