@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Clock, MoreHorizontal, RefreshCw } from 'lucide-react'
 
 import { useReleaseSegments } from './useReleaseSegments'
@@ -16,6 +16,8 @@ import {
   resolveSegmentProvenance,
   resolveSourceLabel,
   isSegmentActiveForEpisode,
+  findAssignedEpisodeNumber,
+  formatAssignmentChipLabel,
   SegmentTimeline,
 } from './SegmenteTab.helpers'
 import { SegmentEditPanel } from './SegmentEditPanel'
@@ -28,6 +30,8 @@ import {
   uploadSegmentAsset,
 } from '@/lib/api'
 import {
+  Badge,
+  DisclosureIndicator,
   Table,
   TableBody,
   TableCell,
@@ -151,6 +155,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   const [suggestions, setSuggestions] = useState<AdminThemeSegment[]>([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null)
+  const [openAssignmentsFor, setOpenAssignmentsFor] = useState<number | null>(null)
 
   const [panelOpen, setPanelOpen] = useState(false)
   const [editingSegment, setEditingSegment] = useState<AdminThemeSegment | null>(null)
@@ -572,9 +577,10 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
               ) : (
                 segments.map((segment) => {
                   const isActive = episodeNumber != null && isSegmentActiveForEpisode(segment, episodeNumber)
+                  const assignmentsOpen = segment.is_shared === true && openAssignmentsFor === segment.id
                   return (
+                    <Fragment key={segment.id}>
                     <TableRow
-                      key={segment.id}
                       className={`${styles.tableRow} ${isActive ? styles.tableRowActive : ''}`}
                     >
                       <TableCell>
@@ -586,7 +592,25 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                         {segment.theme_title?.trim() || '\u2014'}
                       </TableCell>
                       <TableCell>
-                        {formatEpisodeRange(segment.start_episode, segment.end_episode)}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          {segment.is_shared ? <Badge variant="info">Geteiltes Segment</Badge> : null}
+                          {segment.is_shared && segment.has_episode_override ? (
+                            <Badge variant="warning">Zeit hier überschrieben</Badge>
+                          ) : null}
+                          <span>{formatEpisodeRange(segment.start_episode, segment.end_episode)}</span>
+                          {segment.is_shared ? (
+                            <button
+                              type="button"
+                              className={styles.actionButton}
+                              aria-label="Zugewiesene Folgen anzeigen/ausblenden"
+                              onClick={() =>
+                                setOpenAssignmentsFor(openAssignmentsFor === segment.id ? null : segment.id)
+                              }
+                            >
+                              <DisclosureIndicator open={assignmentsOpen} variant="button" size="sm" />
+                            </button>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell style={{ fontFamily: 'monospace', fontSize: 12 }}>
                         {segment.start_time && segment.end_time
@@ -675,6 +699,31 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                         </div>
                       </TableCell>
                     </TableRow>
+                    {assignmentsOpen ? (
+                      <TableRow className={styles.tableRow}>
+                        <TableCell colSpan={6}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {(segment.assigned_release_version_ids ?? []).map((assignedReleaseVersionId) => {
+                              const assignedEpisodeNumber =
+                                findAssignedEpisodeNumber(segment, assignedReleaseVersionId) ??
+                                String(assignedReleaseVersionId)
+                              const isCurrent = assignedReleaseVersionId === releaseVariantId
+                              const chipVariant = isCurrent
+                                ? 'info'
+                                : segment.has_episode_override
+                                  ? 'warning'
+                                  : 'neutral'
+                              return (
+                                <Badge key={assignedReleaseVersionId} variant={chipVariant}>
+                                  {formatAssignmentChipLabel(assignedEpisodeNumber, segment.has_episode_override ?? false)}
+                                </Badge>
+                              )
+                            })}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                    </Fragment>
                   )
                 })
               )}
