@@ -69,7 +69,8 @@ CREATE TABLE fansub_releases (
 CREATE TABLE release_versions (
     id BIGINT PRIMARY KEY,
     release_id BIGINT NOT NULL REFERENCES fansub_releases(id),
-    version VARCHAR(20) NOT NULL DEFAULT 'v1'
+    version VARCHAR(20) NOT NULL DEFAULT 'v1',
+    title TEXT
 );
 CREATE TABLE release_version_groups (
     release_version_id BIGINT NOT NULL REFERENCES release_versions(id),
@@ -90,7 +91,8 @@ CREATE TABLE stream_sources (
 CREATE TABLE release_streams (
     id BIGINT PRIMARY KEY,
     variant_id BIGINT REFERENCES release_variants(id),
-    stream_source_id BIGINT REFERENCES stream_sources(id)
+    stream_source_id BIGINT REFERENCES stream_sources(id),
+    jellyfin_item_id VARCHAR(255)
 );
 CREATE TABLE media_assets (
     id BIGINT PRIMARY KEY,
@@ -128,6 +130,12 @@ CREATE TABLE theme_segments (
 		"0141_theme_segment_assignments.up.sql",
 		"0142_theme_segment_episode_overrides.up.sql",
 		"0143_theme_segment_render_cache_release_version.up.sql",
+		// 0144 (Plan 117-03): entfernt den alten 1:1-Legacy-Index auf
+		// theme_segment_playback_sources. Ohne diese Migration wuerde eine zweite
+		// theme_segment_playback_sources-Zeile fuer dasselbe Segment (zweite
+		// Release-Version-Zuweisung, D-03) am alten uq_theme_segment_playback_sources_segment
+		// scheitern -- genau das Szenario, das Plan 117-03 Task 3 testet.
+		"0144_drop_theme_segment_playback_sources_legacy_unique.up.sql",
 	} {
 		ApplySQLFile(t, pool, phase117MigrationPath(t, migration))
 	}
