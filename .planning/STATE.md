@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 117-05-PLAN.md
-last_updated: "2026-07-29T16:45:10.525Z"
+stopped_at: Completed 117-06-PLAN.md
+last_updated: "2026-07-29T17:18:41.892Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 89
   total_plans: 502
-  completed_plans: 469
+  completed_plans: 470
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 117 (kara-segment-zeit-override-anzeige) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9
 
 ## Accumulated Context
 
@@ -435,6 +435,7 @@ Recent durable decisions:
 - [Phase 117-04]: CreateAnimeSegment reicht releaseVariantID jetzt als currentReleaseVersionID durch (statt hartcodiert 0) -- ein neu angelegtes Segment wird sofort der aktuellen Editor-Release-Version zugewiesen
 - [Phase ?]: 117-07: AdminThemeSegment-Typerweiterung (assigned_release_version_ids/is_shared/has_episode_override/assigned_episodes) vorgezogen aus Plan 117-06, da 117-06 tatsaechlich von 117-07 abhaengt
 - [Phase 117-05]: Vier neue Admin-Endpunkte (Assign/Unassign/Override-Upsert/Override-Delete) fuer geteilte Kara-Segmente ergaenzt, alle capability-gated durch das bestehende requireSegmentManage und validateSegmentTimes; OpenAPI additiv in admin-content.yaml dokumentiert (Nyquist-Fix W3, nicht episode-versions.yaml).
+- [Phase 117-06]: currentEpisodeLabel wird per findAssignedEpisodeNumber statt neuem Prop berechnet (B3-Fix-Konsistenz); Switch-AUS entfernt Override sofort, expliziter Button bestaetigt per window.confirm; useSegmentOverrideHandlers-Hook nach SegmenteTab.helpers.tsx ausgelagert, um SegmenteTab.tsx-Zeilenwachstum zu begrenzen.
 
 ### Pending Todos
 
@@ -750,6 +751,7 @@ Recent durable decisions:
 | Phase 117 P04 | 110min | 3 tasks | 10 files |
 | Phase 117 P07 | 25min | 2 tasks | 4 files |
 | Phase 117 P05 | ~30min | 2 tasks | 6 files |
+| Phase 117 P06 | 35min | 3 tasks | 7 files |
 
 ### Quick Tasks Completed
 
@@ -831,8 +833,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T16:45:10.396Z
-Stopped at: Completed 117-05-PLAN.md
+Last session: 2026-07-29T17:18:41.349Z
+Stopped at: Completed 117-06-PLAN.md
 Last activity: 2026-07-29
 Resume file: 
 None
