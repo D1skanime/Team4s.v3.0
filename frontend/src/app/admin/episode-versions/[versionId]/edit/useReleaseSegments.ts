@@ -11,12 +11,17 @@ import {
   getAdminThemeTypes,
   createAdminAnimeTheme,
   renderAnimeSegment,
+  assignAnimeSegment,
+  unassignAnimeSegment,
+  upsertAnimeSegmentEpisodeOverride,
+  deleteAnimeSegmentEpisodeOverride,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import type {
   AdminThemeSegment,
   AdminThemeSegmentCreateRequest,
   AdminThemeSegmentPatchRequest,
+  AdminThemeSegmentOverrideRequest,
   AdminAnimeTheme,
   AdminThemeType,
 } from '@/types/admin'
@@ -201,6 +206,73 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
   }
 
   /**
+   * Weist ein geteiltes Kara-Segment einer weiteren Release-Version zu (D-03).
+   */
+  async function assignSegment(segmentId: number, releaseVersionId: number): Promise<AdminThemeSegment | null> {
+    if (!animeId || !hasAuthSession) return null
+    try {
+      const res = await assignAnimeSegment(animeId, segmentId, releaseVersionId)
+      await load()
+      return res.data
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Zuweisung konnte nicht gespeichert werden.')
+      return null
+    }
+  }
+
+  /**
+   * Entzieht einem geteilten Kara-Segment eine Release-Version-Zuweisung (D-03).
+   */
+  async function unassignSegment(segmentId: number, releaseVersionId: number): Promise<boolean> {
+    if (!animeId || !hasAuthSession) return false
+    try {
+      await unassignAnimeSegment(animeId, segmentId, releaseVersionId)
+      await load()
+      return true
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Zuweisung konnte nicht entfernt werden.')
+      return false
+    }
+  }
+
+  /**
+   * Setzt/aktualisiert einen Per-Release-Version-Zeit-Override fuer die aktuell zugewiesene
+   * Folge (D-01), ohne ein neues Segment anzulegen. Laedt die Segmentliste danach neu, damit
+   * `has_episode_override` aktualisiert wird.
+   */
+  async function setSegmentOverride(
+    segmentId: number,
+    releaseVersionId: number,
+    input: AdminThemeSegmentOverrideRequest,
+  ): Promise<AdminThemeSegment | null> {
+    if (!animeId || !hasAuthSession) return null
+    try {
+      const res = await upsertAnimeSegmentEpisodeOverride(animeId, segmentId, releaseVersionId, input)
+      await load()
+      return res.data
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Zeit-Override konnte nicht gespeichert werden. Bitte erneut versuchen.')
+      return null
+    }
+  }
+
+  /**
+   * Entfernt einen Per-Release-Version-Zeit-Override; die Basis-Zeit greift danach wieder
+   * fuer diese Folge (D-01).
+   */
+  async function removeSegmentOverride(segmentId: number, releaseVersionId: number): Promise<boolean> {
+    if (!animeId || !hasAuthSession) return false
+    try {
+      await deleteAnimeSegmentEpisodeOverride(animeId, segmentId, releaseVersionId)
+      await load()
+      return true
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Override konnte nicht entfernt werden.')
+      return false
+    }
+  }
+
+  /**
    * Fragt die Segmentliste ab und aktualisiert den State, ohne Themes/ThemeTypes neu zu laden
    * (die aendern sich waehrend eines Renders nicht). Wird vom Render-Polling wiederholt aufgerufen.
    */
@@ -271,6 +343,10 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
     update,
     remove,
     render,
+    assignSegment,
+    unassignSegment,
+    setSegmentOverride,
+    removeSegmentOverride,
     reload: load,
     ensureThemeFromSelection,
   }

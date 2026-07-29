@@ -958,6 +958,12 @@ export interface AdminThemeSegmentPatchRequest {
   source_label?: string | null
 }
 
+/** Request zum Setzen/Aktualisieren eines Per-Release-Version-Zeit-Overrides (D-01, Plan 117-06). */
+export interface AdminThemeSegmentOverrideRequest {
+  start_time: string
+  end_time: string
+}
+
 export interface AdminSegmentLibraryCandidate {
   definition_id: number
   asset_id: number

@@ -49,6 +49,7 @@ import {
   AdminThemeSegmentCreateRequest,
   AdminThemeSegmentRenderResponse,
   AdminThemeSegmentPatchRequest,
+  AdminThemeSegmentOverrideRequest,
 } from "@/types/admin";
 import {
   AnimeBackdropResponse,
@@ -6687,6 +6688,161 @@ export async function deleteAnimeSegment(
       parsed.details,
     );
   }
+}
+
+/**
+ * Weist ein (potenziell geteiltes) Kara-Segment einer weiteren Release-Version zu (D-03).
+ * POST /api/v1/admin/anime/:id/segments/:segmentId/assignments
+ */
+export async function assignAnimeSegment(
+  animeId: number,
+  segmentId: number,
+  releaseVersionId: number,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/assignments`,
+    {
+      method: "POST",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify({ release_version_id: releaseVersionId }),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
+}
+
+/**
+ * Entzieht einem geteilten Kara-Segment eine Release-Version-Zuweisung (D-03).
+ * DELETE /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId
+ */
+export async function unassignAnimeSegment(
+  animeId: number,
+  segmentId: number,
+  releaseVersionId: number,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/assignments/${releaseVersionId}`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
+}
+
+/**
+ * Legt einen Per-Release-Version-Zeit-Override an oder aktualisiert ihn (D-01), ohne ein
+ * neues Segment anzulegen.
+ * PUT /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override
+ */
+export async function upsertAnimeSegmentEpisodeOverride(
+  animeId: number,
+  segmentId: number,
+  releaseVersionId: number,
+  input: AdminThemeSegmentOverrideRequest,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/assignments/${releaseVersionId}/override`,
+    {
+      method: "PUT",
+      headers: withAuthHeader(
+        { "Content-Type": "application/json" },
+        authToken,
+      ),
+      body: JSON.stringify(input),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
+}
+
+/**
+ * Entfernt einen Per-Release-Version-Zeit-Override; die Basis-Zeit greift danach wieder
+ * fuer diese Folge (D-01).
+ * DELETE /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override
+ */
+export async function deleteAnimeSegmentEpisodeOverride(
+  animeId: number,
+  segmentId: number,
+  releaseVersionId: number,
+  authToken?: string,
+): Promise<{ data: AdminThemeSegment }> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/anime/${animeId}/segments/${segmentId}/assignments/${releaseVersionId}/override`,
+    {
+      method: "DELETE",
+      headers: withAuthHeader({}, authToken),
+    },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<{ data: AdminThemeSegment }>;
 }
 
 export async function renderAnimeSegment(
