@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
 stopped_at: Phase 117 UI-SPEC approved
-last_updated: "2026-07-28T23:06:58.541Z"
-last_activity: 2026-07-28
+last_updated: "2026-07-29T06:33:02.946Z"
+last_activity: 2026-07-29
 progress:
   total_phases: 109
-  completed_phases: 87
-  total_plans: 493
-  completed_plans: 455
-  percent: 80
+  completed_phases: 88
+  total_plans: 502
+  completed_plans: 456
+  percent: 81
 ---
 
 # Project State
@@ -802,6 +802,6 @@ Recent durable decisions:
 
 Last session: 2026-07-28T23:06:58.250Z
 Stopped at: Phase 117 UI-SPEC approved
-Last activity: 2026-07-28
+Last activity: 2026-07-29
 Resume file: 
 None
