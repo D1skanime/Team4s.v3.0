@@ -1,4 +1,5 @@
-import type { AdminSegmentLibraryCandidate, AdminThemeSegment } from '@/types/admin'
+import { useState } from 'react'
+import type { AdminSegmentLibraryCandidate, AdminThemeSegment, AdminThemeSegmentOverrideRequest } from '@/types/admin'
 import styles from './SegmenteTab.module.css'
 
 // --- Badge and display helpers ---
@@ -212,6 +213,65 @@ export function findAssignedEpisodeNumber(segment: AdminThemeSegment, releaseVer
  */
 export function formatAssignmentChipLabel(episodeNumber: string, hasOverride: boolean): string {
   return hasOverride ? `Folge ${episodeNumber} · Zeit angepasst` : `Folge ${episodeNumber}`
+}
+
+// --- Zeit-Override Speichern/Entfernen-Handler (Plan 117-06) ---
+
+interface UseSegmentOverrideHandlersOptions {
+  editingSegment: AdminThemeSegment | null
+  releaseVariantId: number | null
+  setSegmentOverride: (
+    segmentId: number,
+    releaseVersionId: number,
+    input: AdminThemeSegmentOverrideRequest,
+  ) => Promise<AdminThemeSegment | null>
+  removeSegmentOverride: (segmentId: number, releaseVersionId: number) => Promise<boolean>
+}
+
+/**
+ * Kapselt isSavingOverride/overrideError-State + Save-/Remove-Handler fuer den Per-Folge
+ * Zeit-Override-Block (UI-SPEC Surface 1) außerhalb von SegmenteTab.tsx, damit die
+ * Verdrahtung die Datei nicht ueber die 800-Zeilen-Toleranzgrenze wachsen laesst.
+ */
+export function useSegmentOverrideHandlers({
+  editingSegment,
+  releaseVariantId,
+  setSegmentOverride,
+  removeSegmentOverride,
+}: UseSegmentOverrideHandlersOptions) {
+  const [isSavingOverride, setIsSavingOverride] = useState(false)
+  const [overrideError, setOverrideError] = useState<string | null>(null)
+
+  async function handleSaveOverride(input: { startTime: string; endTime: string }) {
+    if (!editingSegment || releaseVariantId == null) return
+    setIsSavingOverride(true)
+    setOverrideError(null)
+    const result = await setSegmentOverride(editingSegment.id, releaseVariantId, {
+      start_time: input.startTime,
+      end_time: input.endTime,
+    })
+    if (!result) {
+      setOverrideError('Zeit-Override konnte nicht gespeichert werden. Bitte erneut versuchen.')
+    }
+    setIsSavingOverride(false)
+  }
+
+  async function handleRemoveOverride() {
+    if (!editingSegment || releaseVariantId == null) return
+    setIsSavingOverride(true)
+    setOverrideError(null)
+    const success = await removeSegmentOverride(editingSegment.id, releaseVariantId)
+    if (!success) {
+      setOverrideError('Override konnte nicht entfernt werden.')
+    }
+    setIsSavingOverride(false)
+  }
+
+  function resetOverrideError() {
+    setOverrideError(null)
+  }
+
+  return { isSavingOverride, overrideError, handleSaveOverride, handleRemoveOverride, resetOverrideError }
 }
 
 // --- Timeline sub-component ---

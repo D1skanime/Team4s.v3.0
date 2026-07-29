@@ -18,6 +18,7 @@ import {
   isSegmentActiveForEpisode,
   findAssignedEpisodeNumber,
   formatAssignmentChipLabel,
+  useSegmentOverrideHandlers,
   SegmentTimeline,
 } from './SegmenteTab.helpers'
 import { SegmentEditPanel } from './SegmentEditPanel'
@@ -143,6 +144,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     render,
     reload,
     ensureThemeFromSelection,
+    setSegmentOverride,
+    removeSegmentOverride,
   } = useReleaseSegments({
     animeId,
     groupId,
@@ -164,6 +167,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [renderingSegmentId, setRenderingSegmentId] = useState<number | null>(null)
+  const { isSavingOverride, overrideError, handleSaveOverride, handleRemoveOverride, resetOverrideError } =
+    useSegmentOverrideHandlers({ editingSegment, releaseVariantId: releaseVariantId ?? null, setSegmentOverride, removeSegmentOverride })
 
   // Asset upload state
   const [isUploading, setIsUploading] = useState(false)
@@ -219,6 +224,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setFormError(null)
     setReuseError(null)
     setPendingUploadFile(null)
+    resetOverrideError()
     setPanelOpen(true)
   }
 
@@ -231,6 +237,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     setReuseCandidates([])
     setReuseError(null)
     setPendingUploadFile(null)
+    resetOverrideError()
   }
 
   useEffect(() => {
@@ -773,6 +780,11 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           reuseCandidates={reuseCandidates}
           reuseError={reuseError}
           previewStreamHref={buildSegmentPreviewStreamHref(editingSegment)}
+          currentReleaseVersionId={releaseVariantId ?? null}
+          onSaveOverride={(input) => void handleSaveOverride(input)}
+          onRemoveOverride={() => void handleRemoveOverride()}
+          isSavingOverride={isSavingOverride}
+          overrideError={overrideError}
           onClose={closePanel}
           onFormChange={(patch) => {
             if (patch.sourceType && patch.sourceType !== 'release_asset') {

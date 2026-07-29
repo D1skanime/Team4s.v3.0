@@ -48,6 +48,10 @@ vi.mock('@/lib/api', () => ({
   getAdminAnimeThemes: vi.fn(),
   getAdminThemeTypes: vi.fn(),
   createAdminAnimeTheme: vi.fn(),
+  assignAnimeSegment: vi.fn(),
+  unassignAnimeSegment: vi.fn(),
+  upsertAnimeSegmentEpisodeOverride: vi.fn(),
+  deleteAnimeSegmentEpisodeOverride: vi.fn(),
 }))
 
 const mockedUseAuthSession = vi.mocked(useAuthSession)
@@ -353,6 +357,74 @@ describe('SegmenteTab table', () => {
     expect(screen.queryByText('Zeit hier überschrieben')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' })).toBeNull()
   })
+
+  it('zeigt den Override-Switch im Bearbeiten-Panel für ein geteiltes Segment (UI-SPEC Surface 1)', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 41,
+          theme_title: 'Shared OP',
+          start_episode: 1,
+          end_episode: 12,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          source_type: 'none',
+          is_shared: true,
+          assigned_release_version_ids: [481, 482],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '3' }],
+        }),
+      ],
+    })
+
+    render(
+      <SegmenteTab
+        animeId={1}
+        groupId={2}
+        version="v1"
+        episodeNumber={3}
+        releaseVariantId={481}
+      />,
+    )
+
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    expect(
+      await screen.findByRole('switch', { name: 'Zeit nur für diese Folge abweichend setzen' }),
+    ).toBeTruthy()
+  })
+
+  it('rendert keinen Override-Switch im Bearbeiten-Panel für ein nicht geteiltes Segment', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 42,
+          theme_title: 'Solo OP',
+          start_episode: 1,
+          end_episode: 1,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          source_type: 'none',
+        }),
+      ],
+    })
+
+    render(
+      <SegmenteTab
+        animeId={1}
+        groupId={2}
+        version="v1"
+        episodeNumber={1}
+        releaseVariantId={481}
+      />,
+    )
+
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    await screen.findByText('Segment bearbeiten')
+    expect(screen.queryByRole('switch', { name: 'Zeit nur für diese Folge abweichend setzen' })).toBeNull()
+  })
 })
 
 describe('SegmentEditPanel validation', () => {
@@ -384,6 +456,11 @@ describe('SegmentEditPanel validation', () => {
         reuseCandidates={[]}
         reuseError={null}
         previewStreamHref={null}
+        currentReleaseVersionId={null}
+        onSaveOverride={vi.fn()}
+        onRemoveOverride={vi.fn()}
+        isSavingOverride={false}
+        overrideError={null}
         onClose={vi.fn()}
         onFormChange={vi.fn()}
         onPendingUploadFileChange={vi.fn()}
@@ -427,6 +504,11 @@ describe('SegmentEditPanel validation', () => {
         reuseCandidates={[]}
         reuseError={null}
         previewStreamHref={null}
+        currentReleaseVersionId={null}
+        onSaveOverride={vi.fn()}
+        onRemoveOverride={vi.fn()}
+        isSavingOverride={false}
+        overrideError={null}
         onClose={vi.fn()}
         onFormChange={vi.fn()}
         onPendingUploadFileChange={vi.fn()}
