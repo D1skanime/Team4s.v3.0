@@ -259,6 +259,7 @@ import type {
   SearchResponse,
   SearchSuggestionsResponse,
 } from "@/types/search";
+import type { OwnDashboardResponse } from "@/types/dashboard";
 
 // Browser requests can use the same-origin /api/v1 proxy. This keeps Docker
 // live frontends from depending on a directly reachable host backend port.
@@ -8675,6 +8676,32 @@ export async function getMyAnimeContributions(): Promise<MeAnimeContributionsRes
   }
 
   return response.json() as Promise<MeAnimeContributionsResponse>;
+}
+
+export async function getOwnDashboard(
+  authToken?: string,
+): Promise<OwnDashboardResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/me/dashboard`,
+    { cache: "no-store", authToken },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    );
+  }
+
+  return response.json() as Promise<OwnDashboardResponse>;
 }
 
 export async function getMyProjectDetail(
