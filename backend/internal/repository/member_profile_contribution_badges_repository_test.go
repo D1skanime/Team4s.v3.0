@@ -267,3 +267,93 @@ func TestLoadContributionBadgesPostgres(t *testing.T) {
 	require.Equal(t, memberBadgeRowsBefore, memberBadgeRowsAfter,
 		"loadContributionBadges darf niemals eine member_badges-Zeile persistieren (GAM-04, read-time-only)")
 }
+
+// TestLoadContribProjectsCountPostgresMatchesRawValueAndBadgeDerivation ist die
+// Plan-116-02-Task-1-Regression fuer die Familie-1-Rohzahl-Extraktion: Vollabdeckung
+// beider ledger-erfassten Release-Versionen (30, 31) muss loadContribProjectsCount
+// exakt 1 liefern (ein vollstaendig mitgetragenes Projekt) UND
+// loadContributionBadges muss weiterhin genau das gleiche golden Bronze-Badge
+// emittieren wie vor der Extraktion (byte-identisches Verhalten).
+func TestLoadContribProjectsCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
+	pool := openContributionBadgesPostgres(t)
+	ledger := NewPointLedgerRepository(pool)
+	repo := NewMemberProfileRepository(pool, "")
+
+	awardV30, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(1, "award:contrib-count-fam1-v30"))
+	require.NoError(t, err)
+	insertContribLifecycleRow(t, pool, 30, 20, 1, "encode", 1, "awarded", &awardV30.ID, nil)
+
+	awardV31, err := ledger.InsertAward(context.Background(), postgresAwardInputForMember(1, "award:contrib-count-fam1-v31"))
+	require.NoError(t, err)
+	insertContribLifecycleRow(t, pool, 31, 20, 1, "typeset", 1, "awarded", &awardV31.ID, nil)
+
+	projectsCount, err := repo.loadContribProjectsCount(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), projectsCount,
+		"Member 1 deckt genau ein Projekt (anime_id 100, fansub_group_id 20) vollstaendig ab")
+	require.Equal(t, "bronze", highestContribProjectsTier(int(projectsCount)))
+
+	badges, err := repo.loadContributionBadges(context.Background(), 1)
+	require.NoError(t, err)
+	require.True(t, containsPublicBadge(badges, "contribution_projects_bronze", "contribution"),
+		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
+}
+
+// TestLoadContribChronicleCountPostgresMatchesRawValueAndBadgeDerivation ist die
+// Plan-116-02-Task-1-Regression fuer die Familie-2-Rohzahl-Extraktion.
+func TestLoadContribChronicleCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
+	pool := openContributionBadgesPostgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	for i := 0; i < 10; i++ {
+		_, err := pool.Exec(context.Background(), `
+			INSERT INTO release_version_notes (release_version_id, member_id, status, deleted_at)
+			VALUES (30, 1, 'published', NULL)
+		`)
+		require.NoError(t, err)
+	}
+
+	chronicleCount, err := repo.loadContribChronicleCount(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(10), chronicleCount,
+		"10 veroeffentlichte, nicht geloeschte release_version_notes muessen die Rohzahl 10 ergeben")
+	require.Equal(t, "bronze", highestContribChronicleTier(int(chronicleCount)))
+
+	badges, err := repo.loadContributionBadges(context.Background(), 1)
+	require.NoError(t, err)
+	require.True(t, containsPublicBadge(badges, "contribution_chronicle_bronze", "contribution"),
+		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
+}
+
+// TestLoadContribArchivistCountPostgresMatchesRawValueAndBadgeDerivation ist die
+// Plan-116-02-Task-1-Regression fuer die Familie-3-Rohzahl-Extraktion.
+func TestLoadContribArchivistCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
+	pool := openContributionBadgesPostgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	_, err := pool.Exec(context.Background(), `INSERT INTO app_users (id, legacy_user_id) VALUES (11, 555)`)
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO member_claims (member_id, app_user_id, claim_status) VALUES (1, 11, 'verified')
+	`)
+	require.NoError(t, err)
+
+	for i := 0; i < 10; i++ {
+		_, err := pool.Exec(context.Background(), `
+			INSERT INTO release_version_media (release_version_id, uploaded_by_user_id, deleted_at)
+			VALUES (30, 555, NULL)
+		`)
+		require.NoError(t, err)
+	}
+
+	archivistCount, err := repo.loadContribArchivistCount(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(10), archivistCount,
+		"10 nicht geloeschte release_version_media-Zeilen ueber den Autor-Seam muessen die Rohzahl 10 ergeben")
+	require.Equal(t, "bronze", highestContribArchivistTier(int(archivistCount)))
+
+	badges, err := repo.loadContributionBadges(context.Background(), 1)
+	require.NoError(t, err)
+	require.True(t, containsPublicBadge(badges, "contribution_archivist_bronze", "contribution"),
+		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
+}

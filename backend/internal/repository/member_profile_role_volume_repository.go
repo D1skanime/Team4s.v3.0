@@ -27,13 +27,20 @@ func highestRoleVolumeTier(count int) string {
 	}
 }
 
-// loadRoleVolumeBadges laedt eine rollen-gefilterte Netto-Zaehlung der
-// release_role_credit_lifecycles-Buchungen eines Members und emittiert pro Rolle nur die
-// hoechste erreichte Volumenstufe als synthetisches PublicMemberBadge (Typ 3, D-04). Storniert
-// (lifecycle_status != 'awarded') zaehlt nicht (D-02). Diese Badges werden NIE persistiert --
-// sie werden bei jedem Read live neu berechnet (GAM-04), analog zu den role_entry_*-Badges in
-// loadPublicBadges. ID bleibt 0.
-func (r *MemberProfileRepository) loadRoleVolumeBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
+// RoleVolumeCount ist die Rohzahl-Variante der pro-Rolle-Netto-Zaehlung, die
+// loadRoleVolumeBadges vor Plan 116-02 nach der Tier-Ableitung verwarf. Wird von
+// GetOwnDashboard (D-03/D-04) wiederverwendet, um sowohl die "Rollen-Volumen"-Tabelle
+// als auch das "noch X bis naechste Stufe" ohne zweite Query zu befuellen.
+type RoleVolumeCount struct {
+	RoleCode string
+	Count    int64
+}
+
+// loadRoleVolumeCounts laedt die rollen-gefilterte Netto-Zaehlung der
+// release_role_credit_lifecycles-Buchungen eines Members -- exakt dieselbe SQL, die
+// zuvor inline in loadRoleVolumeBadges lag (verhaltenserhaltende Extraktion, Plan
+// 116-02 Task 1).
+func (r *MemberProfileRepository) loadRoleVolumeCounts(ctx context.Context, memberID int64) ([]RoleVolumeCount, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT role_code, COUNT(*) AS credit_count
 		FROM release_role_credit_lifecycles
@@ -42,27 +49,47 @@ func (r *MemberProfileRepository) loadRoleVolumeBadges(ctx context.Context, memb
 		ORDER BY role_code
 	`, memberID)
 	if err != nil {
-		return nil, fmt.Errorf("load role-volume badges for member %d: %w", memberID, err)
+		return nil, fmt.Errorf("load role-volume counts for member %d: %w", memberID, err)
 	}
 	defer rows.Close()
 
-	items := make([]models.PublicMemberBadge, 0)
+	counts := make([]RoleVolumeCount, 0)
 	for rows.Next() {
-		var roleCode string
-		var count int
-		if err := rows.Scan(&roleCode, &count); err != nil {
-			return nil, fmt.Errorf("scan role-volume badge row for member %d: %w", memberID, err)
+		var entry RoleVolumeCount
+		if err := rows.Scan(&entry.RoleCode, &entry.Count); err != nil {
+			return nil, fmt.Errorf("scan role-volume count row for member %d: %w", memberID, err)
 		}
-		if tier := highestRoleVolumeTier(count); tier != "" {
+		counts = append(counts, entry)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate role-volume counts for member %d: %w", memberID, err)
+	}
+
+	return counts, nil
+}
+
+// loadRoleVolumeBadges laedt eine rollen-gefilterte Netto-Zaehlung der
+// release_role_credit_lifecycles-Buchungen eines Members und emittiert pro Rolle nur die
+// hoechste erreichte Volumenstufe als synthetisches PublicMemberBadge (Typ 3, D-04). Storniert
+// (lifecycle_status != 'awarded') zaehlt nicht (D-02). Diese Badges werden NIE persistiert --
+// sie werden bei jedem Read live neu berechnet (GAM-04), analog zu den role_entry_*-Badges in
+// loadPublicBadges. ID bleibt 0. Ab Plan 116-02 delegiert die Funktion die Zaehlung an
+// loadRoleVolumeCounts (verhaltenserhaltend, keine SQL-Aenderung).
+func (r *MemberProfileRepository) loadRoleVolumeBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
+	counts, err := r.loadRoleVolumeCounts(ctx, memberID)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]models.PublicMemberBadge, 0)
+	for _, entry := range counts {
+		if tier := highestRoleVolumeTier(int(entry.Count)); tier != "" {
 			items = append(items, models.PublicMemberBadge{
 				ID:            0,
-				BadgeCode:     "role_volume_" + roleCode + "_" + tier,
+				BadgeCode:     "role_volume_" + entry.RoleCode + "_" + tier,
 				BadgeCategory: "role_volume",
 			})
 		}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate role-volume badges for member %d: %w", memberID, err)
 	}
 
 	return items, nil

@@ -80,18 +80,12 @@ const authorMemberSeam = `
 	  AND au.legacy_user_id IS NOT NULL
 `
 
-// loadContributionBadges aggregiert die drei abgeleiteten Contribution-Familien
-// (Familie 1 Vollabdeckung, Familie 2 Chronist, Familie 3 Bildarchivar) fuer einen
-// Member und emittiert je Familie nur die hoechste erreichte Stufe als synthetisches
-// PublicMemberBadge (ID:0, nie persistiert -- GAM-04, D-01 Live-Projektion). Wird
-// ausschliesslich innerhalb von GetPublicMemberProfile aufgerufen, hinter dem
-// bestehenden members_only-Visibility-Gate (V4, T-113-03).
-func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
-	items := make([]models.PublicMemberBadge, 0)
-
-	// Familie 1 (D-02): Projekte (anime_id, fansub_group_id) zaehlen nur, wenn der
-	// Member auf JEDER ledger-erfassten release_version (>=1 awarded Credit von
-	// irgendwem, A1/Pitfall 1) einen eigenen netto-awarded Credit hat.
+// loadContribProjectsCount liefert die Rohzahl fuer Familie 1 (D-02, "vollstaendig
+// mitgetragene Projekte") -- exakt dieselbe SQL, die zuvor inline in
+// loadContributionBadges lag (116-02, Plan 116-02 Task 1: Rohzahl-Extraktion,
+// verhaltenserhaltend). Wird sowohl von loadContributionBadges (Tier-Ableitung) als
+// auch von GetOwnDashboard (D-04 "noch X bis naechste Stufe") wiederverwendet.
+func (r *MemberProfileRepository) loadContribProjectsCount(ctx context.Context, memberID int64) (int64, error) {
 	var projectsCount int64
 	if err := r.db.QueryRow(ctx, `
 		WITH project_versions AS (
@@ -125,20 +119,16 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 					))
 		) fully_carried
 	`, memberID).Scan(&projectsCount); err != nil {
-		return nil, fmt.Errorf("load contribution-projects coverage for member %d: %w", memberID, err)
+		return 0, fmt.Errorf("load contribution-projects coverage for member %d: %w", memberID, err)
 	}
-	if tier := highestContribProjectsTier(int(projectsCount)); tier != "" {
-		items = append(items, models.PublicMemberBadge{
-			ID:            0,
-			BadgeCode:     "contribution_projects_" + tier,
-			BadgeCategory: "contribution",
-		})
-	}
+	return projectsCount, nil
+}
 
-	// Familie 2 (D-03): Pflicht-Kern release_version_notes (member_id direkt) plus
-	// additiv anime_fansub_project_notes + fansub_group_notes ueber den
-	// created_by_user_id-Autor-Seam. Gate status='published' AND deleted_at IS NULL,
-	// visibility-unabhaengig. Member-Story zaehlt nicht.
+// loadContribChronicleCount liefert die Rohzahl fuer Familie 2 (D-03, "Chronist") --
+// exakt dieselbe SQL, die zuvor inline in loadContributionBadges lag. Diese Rohzahl
+// ist zugleich die D-03-Kennzahl "geschriebene Beitraege" (RESEARCH Pitfall 2: NICHT
+// previous_contributions_count).
+func (r *MemberProfileRepository) loadContribChronicleCount(ctx context.Context, memberID int64) (int64, error) {
 	var chronicleCount int64
 	if err := r.db.QueryRow(ctx, `
 		SELECT
@@ -153,7 +143,53 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 			 WHERE status = 'published' AND deleted_at IS NULL
 			   AND created_by_user_id IN (`+authorMemberSeam+`))
 	`, memberID).Scan(&chronicleCount); err != nil {
-		return nil, fmt.Errorf("load contribution-chronicle count for member %d: %w", memberID, err)
+		return 0, fmt.Errorf("load contribution-chronicle count for member %d: %w", memberID, err)
+	}
+	return chronicleCount, nil
+}
+
+// loadContribArchivistCount liefert die Rohzahl fuer Familie 3 (D-04, "Bildarchivar")
+// -- exakt dieselbe SQL, die zuvor inline in loadContributionBadges lag. Diese
+// Rohzahl ist zugleich die D-03-Kennzahl "hochgeladene Bilder".
+func (r *MemberProfileRepository) loadContribArchivistCount(ctx context.Context, memberID int64) (int64, error) {
+	var archivistCount int64
+	if err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM release_version_media rvm
+		WHERE rvm.deleted_at IS NULL
+		  AND rvm.uploaded_by_user_id IN (`+authorMemberSeam+`)
+	`, memberID).Scan(&archivistCount); err != nil {
+		return 0, fmt.Errorf("load contribution-archivist count for member %d: %w", memberID, err)
+	}
+	return archivistCount, nil
+}
+
+// loadContributionBadges aggregiert die drei abgeleiteten Contribution-Familien
+// (Familie 1 Vollabdeckung, Familie 2 Chronist, Familie 3 Bildarchivar) fuer einen
+// Member und emittiert je Familie nur die hoechste erreichte Stufe als synthetisches
+// PublicMemberBadge (ID:0, nie persistiert -- GAM-04, D-01 Live-Projektion). Wird
+// ausschliesslich innerhalb von GetPublicMemberProfile aufgerufen, hinter dem
+// bestehenden members_only-Visibility-Gate (V4, T-113-03). Ab Plan 116-02 delegiert
+// die Funktion die drei Zaehlungen an die extrahierten loadContribXCount-Methoden
+// (verhaltenserhaltend, keine SQL-Aenderung) statt sie inline zu berechnen.
+func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, memberID int64) ([]models.PublicMemberBadge, error) {
+	items := make([]models.PublicMemberBadge, 0)
+
+	projectsCount, err := r.loadContribProjectsCount(ctx, memberID)
+	if err != nil {
+		return nil, err
+	}
+	if tier := highestContribProjectsTier(int(projectsCount)); tier != "" {
+		items = append(items, models.PublicMemberBadge{
+			ID:            0,
+			BadgeCode:     "contribution_projects_" + tier,
+			BadgeCategory: "contribution",
+		})
+	}
+
+	chronicleCount, err := r.loadContribChronicleCount(ctx, memberID)
+	if err != nil {
+		return nil, err
 	}
 	if tier := highestContribChronicleTier(int(chronicleCount)); tier != "" {
 		items = append(items, models.PublicMemberBadge{
@@ -163,17 +199,9 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 		})
 	}
 
-	// Familie 3 (D-04): COUNT(*) ueber release_version_media (jede Zeile zaehlt,
-	// nicht distinct release_version_id) via Autor-Seam, nur deleted_at IS NULL --
-	// bewusst ohne Freigabe-/Sichtbarkeitsfilter (Anti-Pattern D-04).
-	var archivistCount int64
-	if err := r.db.QueryRow(ctx, `
-		SELECT COUNT(*)
-		FROM release_version_media rvm
-		WHERE rvm.deleted_at IS NULL
-		  AND rvm.uploaded_by_user_id IN (`+authorMemberSeam+`)
-	`, memberID).Scan(&archivistCount); err != nil {
-		return nil, fmt.Errorf("load contribution-archivist count for member %d: %w", memberID, err)
+	archivistCount, err := r.loadContribArchivistCount(ctx, memberID)
+	if err != nil {
+		return nil, err
 	}
 	if tier := highestContribArchivistTier(int(archivistCount)); tier != "" {
 		items = append(items, models.PublicMemberBadge{
