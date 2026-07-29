@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 116-05-PLAN.md
-last_updated: "2026-07-29T08:18:47.267Z"
+stopped_at: "116-06 Task 2 (blocking live-verify checkpoint) -- Docker rebuild/restart + Browser-UAT auf :3000 ausstehend, gebuendelt mit Phase 114-116"
+last_updated: "2026-07-29T08:41:38.584Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
-  completed_phases: 88
+  completed_phases: 89
   total_plans: 502
-  completed_plans: 461
-  percent: 81
+  completed_plans: 462
+  percent: 82
 ---
 
 # Project State
@@ -423,6 +423,7 @@ Recent durable decisions:
 - [Phase 116-03]: getOwnDashboard() placed immediately after getMyAnimeContributions in api.ts; Dashboard nav entry moved unconditionally into fixedMyItems directly after Mein Profil/Mein Account (D-10).
 - [Phase 116-04]: AttentionSection/DashboardMetrics rein praesentational — Beide Sektionen konsumieren nur bereits gebaute 116-01-Contracts (attentionHelpers, OwnDashboardData); anime_title-Fallback und toLocaleString-Split wie im Plan vorgegeben, keine Architekturaenderung.
 - [Phase 116-05]: CategoryProgressTable/MyGroupsSection/QuickLinksSection built: client+server progress merge (D-04, no re-derived thresholds), D-09 EmptyState override for Meine Gruppen (D-05), live-verified static Suche-route gate (D-06, /suche already landed from Phase 115)
+- [Phase 116-06]: page.tsx komponiert alle fuenf Dashboard-Sektionen hinter einem Promise.all, ganz ohne Eligibility-Redirect (kein useRouter-Import); ErrorState zeigt immer die fixe UI-SPEC-Copy statt der rohen Fehlermeldung. — D-01/D-09: jeder eingeloggte User muss /me/dashboard erreichen koennen, unabhaengig von has_member_profile/has_project_assignments; Live-Verify-Checkpoint (Task 2) bleibt offen und wird in die gebuendelte Phase-114-116-Live-UAT aufgenommen.
 
 ### Pending Todos
 
@@ -504,6 +505,7 @@ Recent durable decisions:
 - The old `streams` table remains an allowed compatibility divergence beside target `release_streams`; follow-up work must not treat it as authoritative.
 - The post-apply workbench state is still slightly misleading after idempotent success because the action surface remains live instead of clearly finished.
 - 114-01 Task 3 (Docker rebuild + live verify of projects_count) is unfinished: local docker-desktop WSL2 engine was down for the whole session (docker ps/version returned 500 errors; wsl -l -v showed docker-desktop Stopped). Rerun the commands documented in 114-01-SUMMARY.md's Issues Encountered section once Docker Desktop is healthy, or fold this verification into Plan 114-04's live UAT.
+- 116-06 Task 2 (blocking live-verify checkpoint fuer /me/dashboard) steht aus -- Docker-Rebuild (Backend) + Frontend-Restart + Browser-UAT auf :3000 noetig; wird gebuendelt mit der bereits geplanten Phase-114-116-Live-UAT durchgefuehrt.
 
 ### Performance Metrics
 
@@ -729,6 +731,7 @@ Recent durable decisions:
 | Phase 116 P03 | 15min | 2 tasks | 4 files |
 | Phase 116 P04 | 4min | 2 tasks | 5 files |
 | Phase 116 P05 | 35min | 3 tasks | 7 files |
+| Phase 116 P06 | 40min | 1 tasks | 3 files |
 
 ### Quick Tasks Completed
 
@@ -810,8 +813,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T08:18:47.176Z
-Stopped at: Completed 116-05-PLAN.md
+Last session: 2026-07-29T08:41:25.185Z
+Stopped at: 116-06 Task 2 (blocking live-verify checkpoint) -- Docker rebuild/restart + Browser-UAT auf :3000 ausstehend, gebuendelt mit Phase 114-116
 Last activity: 2026-07-29
 Resume file: 
-None
+.planning/phases/116-personalisiertes-dashboard/116-06-PLAN.md

@@ -2639,16 +2639,16 @@ Plans:
 **Goal:** Den toten Nav-Eintrag „Dashboard" mit einer **read-only, personalisierten Startseite** für eingeloggte User beleben — ein Cockpit, das vorhandene Daten bündelt und verlinkt, **ohne eigene Datenhaltung** und **ohne Editier-Funktionen** (Bearbeiten bleibt `/me/profile`). Inhalte: (1) **„Braucht deine Aufmerksamkeit"** — kürzlich neu zugewiesene Projekte/Releases (**zeitbasiert, Variante A**, kein Backend-Zusatz) mit Direktlink zur Arbeitsfläche; (2) **5 Kennzahlen** (Punkte, Badges, Projekte, hochgeladene Bilder, geschriebene Beiträge); (3) **Fortschritt je Badge-Kategorie** („noch X bis nächste Stufe"); (4) **Meine Gruppen** mit Links; (5) **Schnellzugriffe** (Anime entdecken, Rangliste, Fansub-Gruppen, Suche, Mein Profil). Globales UI-System. Als Integrations-Hub kommt es **nach 109–115**.
 **Requirements:** Vorhandene Daten aus 109 (Punkte), 110/112/113 (Badges + Kategorie-Schwellen), 114 (Gruppen-Übersicht), 115 (Suche), sowie Member-/Contribution-/Media-/Gruppen-Daten; globales UI-System. Read-only, keine eigene Persistenz.
 **Depends on:** Phase 109, Phase 110, Phase 112, Phase 113, Phase 114, Phase 115
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans code-complete; `116-06` Task 2 (blocking Live-Verify-Checkpoint fuer /me/dashboard auf :3000) steht aus -- gebuendelt mit der Phase-114-116-Live-UAT, Phase 116 daher noch NICHT als verifiziert abgeschlossen
 
 Plans:
 
-- [ ] `116-01-PLAN.md` — Shared TS-Kontrakte + reine Helper (dashboard.ts, additive MeAnimeContribution-Felder, memberBadgeLabels.ts next-threshold-Helper, attentionHelpers.ts) (D-02/D-04)
-- [ ] `116-02-PLAN.md` — Backend-Aggregation: Rohzahl-Extraktion aus Phase-112/113-Repos + GetOwnDashboard + dashboard_me_handler.go (Ownership-Gate) + Route + OpenAPI (D-03/D-04/D-08/D-09)
-- [ ] `116-03-PLAN.md` — Frontend-Datenschicht (getOwnDashboard in api.ts) + Nav-Aktivierung Dashboard-Eintrag in "Mein Bereich" (D-10)
-- [ ] `116-04-PLAN.md` — AttentionSection + DashboardMetrics Sektionskomponenten (D-02/D-03)
-- [ ] `116-05-PLAN.md` — CategoryProgressTable + MyGroupsSection + QuickLinksSection Sektionskomponenten (D-04/D-05/D-06)
-- [ ] `116-06-PLAN.md` — page.tsx-Komposition (Promise.all, kein Eligibility-Redirect) + Live-Verify auf :3000 (D-01/D-07/D-09)
+- [x] `116-01-PLAN.md` — Shared TS-Kontrakte + reine Helper (dashboard.ts, additive MeAnimeContribution-Felder, memberBadgeLabels.ts next-threshold-Helper, attentionHelpers.ts) (D-02/D-04)
+- [x] `116-02-PLAN.md` — Backend-Aggregation: Rohzahl-Extraktion aus Phase-112/113-Repos + GetOwnDashboard + dashboard_me_handler.go (Ownership-Gate) + Route + OpenAPI (D-03/D-04/D-08/D-09)
+- [x] `116-03-PLAN.md` — Frontend-Datenschicht (getOwnDashboard in api.ts) + Nav-Aktivierung Dashboard-Eintrag in "Mein Bereich" (D-10)
+- [x] `116-04-PLAN.md` — AttentionSection + DashboardMetrics Sektionskomponenten (D-02/D-03)
+- [x] `116-05-PLAN.md` — CategoryProgressTable + MyGroupsSection + QuickLinksSection Sektionskomponenten (D-04/D-05/D-06)
+- [ ] `116-06-PLAN.md` — page.tsx-Komposition (Promise.all, kein Eligibility-Redirect) + Live-Verify auf :3000 (D-01/D-07/D-09) — Task 1 (Code+Tests) ABGESCHLOSSEN; Task 2 CHECKPOINT: Live-Verify ausstehend, gebuendelt mit Phase-114-116-Live-UAT
 
 ### Phase 117: Kara-Segment — Zeit-Override je Folge + entdoppelte Anzeige
 
