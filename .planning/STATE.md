@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 117-02-PLAN.md
-last_updated: "2026-07-29T14:01:35.889Z"
+stopped_at: Completed 117-03-PLAN.md
+last_updated: "2026-07-29T14:33:32.779Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 89
   total_plans: 502
-  completed_plans: 464
+  completed_plans: 465
   percent: 82
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 117 (kara-segment-zeit-override-anzeige) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 
 ## Accumulated Context
 
@@ -429,6 +429,7 @@ Recent durable decisions:
 - [Phase 117-02]: media_assets-Stub-Tabelle in createPhase117Prerequisites noetig, da Migration 0054 eine nullable FK darauf deklariert (Rule 3)
 - [Phase 117-02]: AssignThemeSegmentToReleaseVersion nutzt ON CONFLICT DO UPDATE SET (Self-Update) statt DO NOTHING, damit RETURNING auch bei wiederholtem idempotentem Aufruf die Zeile liefert
 - [Phase 117-02]: Integrationstest-Setup nutzt separate pool.Exec pro INSERT statt Multi-Statement mit Parametern (pgx lehnt mehrere Kommandos in parametrisiertem Statement ab)
+- [Phase ?]: Phase 117 Plan 03: release_version_id ist jetzt Pflichtparameter fuer alle Render-Cache-Lookups; RenderSegment/StreamSegment erhalten bis Plan 117-04/117-05 einen optionalen release_version_id Query-Parameter (Default 0).
 
 ### Pending Todos
 
@@ -739,6 +740,7 @@ Recent durable decisions:
 | Phase 116 P06 | 40min | 1 tasks | 3 files |
 | Phase 117 P01 | 15min | 2 tasks | 6 files |
 | Phase 117 P02 | 12min | 3 tasks | 6 files |
+| Phase 117 P03 | 75min | - tasks | - files |
 
 ### Quick Tasks Completed
 
@@ -820,8 +822,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T14:01:35.850Z
-Stopped at: Completed 117-02-PLAN.md
+Last session: 2026-07-29T14:33:32.724Z
+Stopped at: Completed 117-03-PLAN.md
 Last activity: 2026-07-29
 Resume file: 
 None
