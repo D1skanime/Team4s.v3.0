@@ -578,6 +578,52 @@ describe('Gruppen-Drawer-Links', () => {
   })
 })
 
+describe('Dashboard nav (D-10)', () => {
+  it('shows an enabled Dashboard link at /me/dashboard inside "Mein Bereich" for signed-in members', () => {
+    render(
+      <AppShell mode="authenticated" currentPath="/me/dashboard" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
+        <main>Inhalt</main>
+      </AppShell>,
+    )
+
+    const link = screen.getByRole('link', { name: /Dashboard/i })
+    expect(link.getAttribute('href')).toBe('/me/dashboard')
+
+    const meinBereichGroup = screen.getByText('Mein Bereich').closest('div')
+    expect(meinBereichGroup?.contains(link)).toBe(true)
+
+    const publicBereichGroup = screen.getByText('Public-Bereich').closest('div')
+    expect(publicBereichGroup?.contains(link)).toBe(false)
+  })
+
+  it('keeps the enabled Fansub-Gruppen link in Public-Bereich unchanged by the Dashboard move (regression)', () => {
+    render(
+      <AppShell mode="authenticated" currentPath="/me/dashboard" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
+        <main>Inhalt</main>
+      </AppShell>,
+    )
+
+    const link = screen.getByRole('link', { name: /Fansub-Gruppen/i })
+    expect(link.getAttribute('href')).toBe('/fansubs')
+
+    const publicBereichGroup = screen.getByText('Public-Bereich').closest('div')
+    expect(publicBereichGroup?.contains(link)).toBe(true)
+  })
+
+  it('no longer renders a disabled Dashboard placeholder anywhere in the authenticated shell', () => {
+    render(
+      <AppShell mode="authenticated" currentPath="/me/dashboard" user={{ displayName: 'Mika', email: 'mika@example.com' }} hasMemberProfile>
+        <main>Inhalt</main>
+      </AppShell>,
+    )
+
+    const disabledDashboardEntries = screen
+      .queryAllByText('Dashboard')
+      .filter((node) => node.closest('[aria-disabled="true"]'))
+    expect(disabledDashboardEntries).toHaveLength(0)
+  })
+})
+
 describe('Fansub-Gruppen nav (D-01)', () => {
   it('shows an enabled Fansub-Gruppen link to /fansubs for signed-in members', () => {
     render(

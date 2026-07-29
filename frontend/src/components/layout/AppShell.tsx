@@ -123,7 +123,6 @@ function AppShellNavGroups({
     { label: 'Suche', href: '/suche', icon: <Search size={17} />, current: isCurrent(currentPath, '/suche') },
     { label: 'Rangliste', href: '/members/ranking', icon: <Trophy size={17} />, current: isCurrent(currentPath, '/members/ranking') },
     { label: 'Fansub-Gruppen', href: '/fansubs', icon: <Users size={17} />, current: isCurrent(currentPath, '/fansubs') },
-    { label: 'Dashboard', icon: <LayoutDashboard size={17} />, disabled: true, badge: 'bald' },
   ]
   const adminItems: AppShellNavItem[] = canAccessAdmin
     ? [{ label: 'Verwaltung', href: '/admin', icon: <ShieldCheck size={17} />, current: isCurrent(currentPath, '/admin') }]
@@ -133,6 +132,9 @@ function AppShellNavGroups({
   // href) has been removed rather than kept as a second link to the same route.
   const fixedMyItems: AppShellNavItem[] = [
     { label: hasMemberProfile ? 'Mein Profil' : 'Mein Account', href: '/me/profile', icon: <UserCircle size={17} />, current: isCurrent(currentPath, '/me/profile') },
+    // D-10: Dashboard is unconditional for every authenticated user, unlike
+    // "Meine Projekte" below which stays gated on hasMemberProfile/hasProjectAssignments.
+    { label: 'Dashboard', href: '/me/dashboard', icon: <LayoutDashboard size={17} />, current: isCurrent(currentPath, '/me/dashboard') },
   ]
   // D-06/D-09: "Meine Projekte" requires a verified Member AND at least one real
   // project/contribution assignment — has_member_profile alone must never surface it.
