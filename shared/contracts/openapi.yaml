@@ -7527,6 +7527,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/me/dashboard:
+    get:
+      tags: [Profile]
+      summary: Get own dashboard aggregation
+      description: >-
+        Returns the authenticated member's dashboard aggregation (D-03/D-04, Phase 116):
+        total points, badge count, projects count, images/contributions counts, per-role
+        volume raw counts, and per-family category progress. Resolves the acting member
+        exclusively through the verified member_claims ownership gate (never a
+        client-supplied member_id). Returns a graceful empty state
+        (has_member_profile=false) with HTTP 200 instead of 403 when the caller has no
+        verified member profile (D-09), since the dashboard must stay reachable for
+        every logged-in user.
+      operationId: getOwnDashboard
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Own dashboard aggregation (or graceful empty state, D-09)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnDashboardResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/v1/me/memberships:
     get:
       tags: [Profile]
@@ -10442,6 +10472,86 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MemberBadge"
+    OwnDashboardRoleVolumeEntry:
+      type: object
+      required:
+        - role_code
+        - count
+      properties:
+        role_code:
+          type: string
+        count:
+          type: integer
+          format: int64
+    OwnDashboardCategoryProgress:
+      type: object
+      required:
+        - family
+        - current_tier
+        - current_count
+        - next_threshold
+      properties:
+        family:
+          type: string
+          enum:
+            - contribution_projects
+            - contribution_chronicle
+            - contribution_archivist
+        current_tier:
+          type: string
+          description: Empty string if no tier has been reached yet.
+        current_count:
+          type: integer
+          format: int64
+        next_threshold:
+          type: integer
+          format: int64
+          nullable: true
+          description: Null once the highest (gold) tier has already been reached.
+    OwnDashboardData:
+      type: object
+      required:
+        - has_member_profile
+        - total_points
+        - badges_count
+        - projects_count
+        - images_count
+        - contributions_count
+        - role_volume
+        - category_progress
+      properties:
+        has_member_profile:
+          type: boolean
+          description: False for the D-09 graceful empty state (no verified member_claims row).
+        total_points:
+          type: integer
+          format: int64
+        badges_count:
+          type: integer
+        projects_count:
+          type: integer
+          format: int64
+        images_count:
+          type: integer
+          format: int64
+        contributions_count:
+          type: integer
+          format: int64
+        role_volume:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnDashboardRoleVolumeEntry"
+        category_progress:
+          type: array
+          items:
+            $ref: "#/components/schemas/OwnDashboardCategoryProgress"
+    OwnDashboardResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/OwnDashboardData"
     BadgeVisibilityPatchRequest:
       type: object
       required:

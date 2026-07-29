@@ -62,21 +62,12 @@ func NewContributionsMeHandler(
 
 // resolveVerifiedMemberID ermittelt die member_id des eingeloggten App-Users über member_claims.
 // Gibt ErrNotFound zurück, wenn kein verifizierter Claim vorhanden ist.
+//
+// Delegiert seit Plan 116-02 an die paket-weite resolveVerifiedMemberIDForAppUser
+// (me_identity_helpers.go) -- dieselbe SQL/Logik, jetzt als gemeinsamer Ownership-Gate-Seam
+// fuer alle /me/*-Handler (D-08), die einen verifizierten Member-Bezug brauchen.
 func (h *ContributionsMeHandler) resolveVerifiedMemberID(ctx context.Context, appUserID int64) (int64, error) {
-	var memberID int64
-	err := h.db.QueryRow(ctx, `
-		SELECT member_id FROM member_claims
-		WHERE app_user_id = $1 AND claim_status = 'verified'
-		ORDER BY verified_at DESC
-		LIMIT 1
-	`, appUserID).Scan(&memberID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, repository.ErrNotFound
-		}
-		return 0, err
-	}
-	return memberID, nil
+	return resolveVerifiedMemberIDForAppUser(ctx, h.db, appUserID)
 }
 
 // meContributionVisibilityPatchRequest ist der Request-Body für PATCH Visibility auf anime_contributions.

@@ -268,13 +268,13 @@ func TestLoadContributionBadgesPostgres(t *testing.T) {
 		"loadContributionBadges darf niemals eine member_badges-Zeile persistieren (GAM-04, read-time-only)")
 }
 
-// TestLoadContribProjectsCountPostgresMatchesRawValueAndBadgeDerivation ist die
+// TestLoadContributionBadgesProjectsCountPostgresMatchesRawValueAndBadgeDerivation ist die
 // Plan-116-02-Task-1-Regression fuer die Familie-1-Rohzahl-Extraktion: Vollabdeckung
 // beider ledger-erfassten Release-Versionen (30, 31) muss loadContribProjectsCount
 // exakt 1 liefern (ein vollstaendig mitgetragenes Projekt) UND
 // loadContributionBadges muss weiterhin genau das gleiche golden Bronze-Badge
 // emittieren wie vor der Extraktion (byte-identisches Verhalten).
-func TestLoadContribProjectsCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
+func TestLoadContributionBadgesProjectsCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
 	pool := openContributionBadgesPostgres(t)
 	ledger := NewPointLedgerRepository(pool)
 	repo := NewMemberProfileRepository(pool, "")
@@ -299,9 +299,9 @@ func TestLoadContribProjectsCountPostgresMatchesRawValueAndBadgeDerivation(t *te
 		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
 }
 
-// TestLoadContribChronicleCountPostgresMatchesRawValueAndBadgeDerivation ist die
+// TestLoadContributionBadgesChronicleCountPostgresMatchesRawValueAndBadgeDerivation ist die
 // Plan-116-02-Task-1-Regression fuer die Familie-2-Rohzahl-Extraktion.
-func TestLoadContribChronicleCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
+func TestLoadContributionBadgesChronicleCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
 	pool := openContributionBadgesPostgres(t)
 	repo := NewMemberProfileRepository(pool, "")
 
@@ -325,9 +325,9 @@ func TestLoadContribChronicleCountPostgresMatchesRawValueAndBadgeDerivation(t *t
 		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
 }
 
-// TestLoadContribArchivistCountPostgresMatchesRawValueAndBadgeDerivation ist die
+// TestLoadContributionBadgesArchivistCountPostgresMatchesRawValueAndBadgeDerivation ist die
 // Plan-116-02-Task-1-Regression fuer die Familie-3-Rohzahl-Extraktion.
-func TestLoadContribArchivistCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
+func TestLoadContributionBadgesArchivistCountPostgresMatchesRawValueAndBadgeDerivation(t *testing.T) {
 	pool := openContributionBadgesPostgres(t)
 	repo := NewMemberProfileRepository(pool, "")
 
