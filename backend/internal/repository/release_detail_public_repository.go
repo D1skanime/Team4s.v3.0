@@ -196,7 +196,7 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 	if err != nil {
 		return nil, err
 	}
-	segments, err := r.loadReleaseSegments(ctx, releaseVersionID, contributors)
+	segments, err := r.loadReleaseSegments(ctx, animeID, groupID, releaseVersionID, header.Version, contributors)
 	if err != nil {
 		return nil, err
 	}

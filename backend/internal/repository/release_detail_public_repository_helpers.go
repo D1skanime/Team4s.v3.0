@@ -81,8 +81,19 @@ func (r *ReleaseDetailPublicRepository) countImagesByCategory(ctx context.Contex
 	return out, err
 }
 
-func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context, releaseVersionID int64, contributors []PublicReleaseContributor) ([]PublicReleaseSegment, error) {
-	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END FROM theme_segment_playback_sources src JOIN release_variants rv ON rv.id=src.release_variant_id JOIN theme_segments ts ON ts.id=src.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE rv.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
+// loadReleaseSegments liefert die oeffentlich sichtbaren Kara-Segmente einer
+// Release-Version, ueber theme_segment_assignments statt (wie zuvor) direkt ueber
+// theme_segment_playback_sources — ein geteiltes Kara kann seit Plan 117-01 mehrere
+// Zuweisungen (eine je Release-Version) haben, die konkrete Playback-Quelle bleibt
+// ueber den zusaetzlichen LEFT JOIN auf theme_segment_playback_sources fuer das
+// Readiness-Feld erreichbar. Nach dem Laden unterdrueckt loadReleaseSegments
+// (D-02/UI-SPEC Surface 3) jedes Segment, dessen theme_segment_id bereits auf der
+// Vorfolge (loadAdjacentReleases) zugewiesen war — ein reiner Zeit-Offset (D-01)
+// ohne echten Segment-Wechsel erzeugt so keinen erneuten Timeline-Eintrag. Fehlt die
+// Vorfolge (Anime-Anfang, Luecke in der Episodennummerierung), gilt die aktuelle
+// Folge automatisch als Span-Start, es wird nicht gefiltert.
+func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context, animeID, groupID, releaseVersionID int64, version string, contributors []PublicReleaseContributor) ([]PublicReleaseSegment, error) {
+	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END FROM theme_segment_assignments tsa JOIN theme_segments ts ON ts.id=tsa.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN theme_segment_playback_sources src ON src.theme_segment_id=ts.id AND src.release_version_id=tsa.release_version_id LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE tsa.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("release detail: load segments: %w", err)
 	}
@@ -103,7 +114,62 @@ func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context,
 		item.Participants = karaParticipants
 		items = append(items, item)
 	}
-	return items, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	items, err = r.suppressSegmentsAlreadyVisibleOnPreviousEpisode(ctx, items, animeID, groupID, releaseVersionID, version)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+// suppressSegmentsAlreadyVisibleOnPreviousEpisode entfernt jedes Segment aus items,
+// dessen theme_segment_id bereits der direkten Vorfolge (loadAdjacentReleases)
+// zugewiesen war (D-02). Ist prev == nil (keine Vorfolge oder Luecke), wird nicht
+// gefiltert — die aktuelle Folge gilt automatisch als Span-Start.
+func (r *ReleaseDetailPublicRepository) suppressSegmentsAlreadyVisibleOnPreviousEpisode(ctx context.Context, items []PublicReleaseSegment, animeID, groupID, releaseVersionID int64, version string) ([]PublicReleaseSegment, error) {
+	if len(items) == 0 {
+		return items, nil
+	}
+	prev, _, err := r.loadAdjacentReleases(ctx, animeID, groupID, releaseVersionID, version)
+	if err != nil {
+		return nil, err
+	}
+	if prev == nil {
+		return items, nil
+	}
+
+	rows, err := r.db.Query(ctx, `SELECT theme_segment_id FROM theme_segment_assignments WHERE release_version_id=$1`, prev.ReleaseVersionID)
+	if err != nil {
+		return nil, fmt.Errorf("release detail: load previous episode segment assignments: %w", err)
+	}
+	defer rows.Close()
+	assignedOnPrevious := make(map[int64]bool)
+	for rows.Next() {
+		var themeSegmentID int64
+		if err := rows.Scan(&themeSegmentID); err != nil {
+			return nil, err
+		}
+		assignedOnPrevious[themeSegmentID] = true
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(assignedOnPrevious) == 0 {
+		return items, nil
+	}
+
+	filtered := make([]PublicReleaseSegment, 0, len(items))
+	for _, item := range items {
+		if assignedOnPrevious[item.ThemeSegmentID] {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	return filtered, nil
 }
 
 func (r *ReleaseDetailPublicRepository) loadAdjacentReleases(ctx context.Context, animeID, groupID, releaseVersionID int64, version string) (*PublicReleaseNavigationTarget, *PublicReleaseNavigationTarget, error) {
