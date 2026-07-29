@@ -59,6 +59,12 @@ export interface PublicReleaseSegment {
   readiness: "ready" | "unavailable";
   participants: PublicReleaseContributor[];
   preview_url: string | null;
+  /**
+   * Hoechste Episodennummer, fuer die dieses (geteilte) Segment ebenfalls
+   * zugewiesen ist -- fehlt/null, wenn das Segment nur dieser einen Folge
+   * zugeordnet ist (UI-SPEC Surface 3, "Gilt auch fuer Folge {von}-{bis}"-Badge, D-02).
+   */
+  applies_through_episode?: string | null;
 }
 
 export interface PublicReleaseNavigationTarget {

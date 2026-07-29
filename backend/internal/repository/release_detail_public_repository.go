@@ -94,6 +94,11 @@ type PublicReleaseSegment struct {
 	Readiness       string                     `json:"readiness"`
 	Participants    []PublicReleaseContributor `json:"participants"`
 	PreviewURL      *string                    `json:"preview_url"`
+	// AppliesThroughEpisode ist die hoechste Episodennummer, fuer die dieses
+	// (geteilte) Segment ebenfalls zugewiesen ist -- nil, wenn das Segment nur
+	// dieser einen Folge zugeordnet ist (UI-SPEC Surface 3, „Gilt auch fuer
+	// Folge {von}-{bis}"-Badge, D-02).
+	AppliesThroughEpisode *string `json:"applies_through_episode,omitempty"`
 }
 type PublicReleaseNavigationTarget struct {
 	ReleaseVersionID int64   `json:"release_version_id"`
@@ -196,7 +201,7 @@ func (r *ReleaseDetailPublicRepository) GetPublicReleaseDetail(
 	if err != nil {
 		return nil, err
 	}
-	segments, err := r.loadReleaseSegments(ctx, animeID, groupID, releaseVersionID, header.Version, contributors)
+	segments, err := r.loadReleaseSegments(ctx, animeID, groupID, releaseVersionID, header.Version, header.EpisodeNumber, contributors)
 	if err != nil {
 		return nil, err
 	}

@@ -92,7 +92,7 @@ func (r *ReleaseDetailPublicRepository) countImagesByCategory(ctx context.Contex
 // ohne echten Segment-Wechsel erzeugt so keinen erneuten Timeline-Eintrag. Fehlt die
 // Vorfolge (Anime-Anfang, Luecke in der Episodennummerierung), gilt die aktuelle
 // Folge automatisch als Span-Start, es wird nicht gefiltert.
-func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context, animeID, groupID, releaseVersionID int64, version string, contributors []PublicReleaseContributor) ([]PublicReleaseSegment, error) {
+func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context, animeID, groupID, releaseVersionID int64, version, episodeNumber string, contributors []PublicReleaseContributor) ([]PublicReleaseSegment, error) {
 	rows, err := r.db.Query(ctx, `SELECT ts.id, COALESCE(NULLIF(TRIM(t.title),''),tt.name), tt.name, EXTRACT(EPOCH FROM ts.start_time)::int, EXTRACT(EPOCH FROM ts.end_time)::int, CASE WHEN ts.start_time IS NOT NULL AND ts.end_time IS NOT NULL THEN EXTRACT(EPOCH FROM (ts.end_time-ts.start_time))::int END, CASE WHEN cache.status='ready' THEN 'ready' ELSE 'unavailable' END FROM theme_segment_assignments tsa JOIN theme_segments ts ON ts.id=tsa.theme_segment_id JOIN themes t ON t.id=ts.theme_id JOIN theme_types tt ON tt.id=t.theme_type_id LEFT JOIN theme_segment_playback_sources src ON src.theme_segment_id=ts.id AND src.release_version_id=tsa.release_version_id LEFT JOIN LATERAL (SELECT status FROM theme_segment_render_cache WHERE theme_segment_id=ts.id ORDER BY id DESC LIMIT 1) cache ON TRUE WHERE tsa.release_version_id=$1 ORDER BY ts.start_time NULLS LAST,ts.id`, releaseVersionID)
 	if err != nil {
 		return nil, fmt.Errorf("release detail: load segments: %w", err)
@@ -120,6 +120,10 @@ func (r *ReleaseDetailPublicRepository) loadReleaseSegments(ctx context.Context,
 
 	items, err = r.suppressSegmentsAlreadyVisibleOnPreviousEpisode(ctx, items, animeID, groupID, releaseVersionID, version)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := r.applyAppliesThroughEpisode(ctx, items, episodeNumber); err != nil {
 		return nil, err
 	}
 
@@ -170,6 +174,65 @@ func (r *ReleaseDetailPublicRepository) suppressSegmentsAlreadyVisibleOnPrevious
 		filtered = append(filtered, item)
 	}
 	return filtered, nil
+}
+
+// applyAppliesThroughEpisode befuellt AppliesThroughEpisode fuer jedes verbliebene
+// (also sichtbare, nicht unterdrueckte) Segment mit der hoechsten Episodennummer
+// aller seiner Zuweisungen (theme_segment_assignments) -- gleiches Join-Muster wie
+// hydrateSegmentAssignmentMetadataList (theme_segment_playback_resolution.go,
+// release_versions -> fansub_releases -> episodes) -- sofern es mehr als eine
+// Zuweisung hat und diese hoechste Episodennummer von der aktuellen Folge abweicht
+// (UI-SPEC Surface 3, „Gilt auch fuer Folge {von}-{bis}"-Badge). Reines
+// Anzeige-Feld, aendert die Entdopplungslogik selbst nicht.
+func (r *ReleaseDetailPublicRepository) applyAppliesThroughEpisode(ctx context.Context, items []PublicReleaseSegment, episodeNumber string) error {
+	if len(items) == 0 {
+		return nil
+	}
+	segmentIDs := make([]int64, len(items))
+	for i, item := range items {
+		segmentIDs[i] = item.ThemeSegmentID
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT tsa.theme_segment_id, COUNT(*), (ARRAY_AGG(e.episode_number ORDER BY COALESCE(e.sort_index, e.id) DESC))[1]
+		FROM theme_segment_assignments tsa
+		JOIN release_versions rv ON rv.id = tsa.release_version_id
+		JOIN fansub_releases fr ON fr.id = rv.release_id
+		JOIN episodes e ON e.id = fr.episode_id
+		WHERE tsa.theme_segment_id = ANY($1)
+		GROUP BY tsa.theme_segment_id
+	`, segmentIDs)
+	if err != nil {
+		return fmt.Errorf("release detail: load segment assignment span: %w", err)
+	}
+	defer rows.Close()
+
+	type span struct {
+		count            int
+		maxEpisodeNumber string
+	}
+	spanBySegmentID := make(map[int64]span)
+	for rows.Next() {
+		var themeSegmentID int64
+		var s span
+		if err := rows.Scan(&themeSegmentID, &s.count, &s.maxEpisodeNumber); err != nil {
+			return err
+		}
+		spanBySegmentID[themeSegmentID] = s
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	for i := range items {
+		s, ok := spanBySegmentID[items[i].ThemeSegmentID]
+		if !ok || s.count <= 1 || s.maxEpisodeNumber == episodeNumber {
+			continue
+		}
+		maxEpisodeNumber := s.maxEpisodeNumber
+		items[i].AppliesThroughEpisode = &maxEpisodeNumber
+	}
+	return nil
 }
 
 func (r *ReleaseDetailPublicRepository) loadAdjacentReleases(ctx context.Context, animeID, groupID, releaseVersionID int64, version string) (*PublicReleaseNavigationTarget, *PublicReleaseNavigationTarget, error) {

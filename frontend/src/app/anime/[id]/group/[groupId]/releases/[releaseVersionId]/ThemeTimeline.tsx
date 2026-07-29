@@ -16,6 +16,7 @@ interface ThemeTimelineProps {
   segments: PublicReleaseSegment[]
   initialSegmentID?: number | null
   autoPlayInitial?: boolean
+  episodeNumber?: string
 }
 
 type SegmentGeometry = {
@@ -139,7 +140,7 @@ function segmentClassName(segment: PublicReleaseSegment, baseClass: string): str
   return `${baseClass} ${styles[typeKey(segment.type)]}`
 }
 
-function SegmentDetails({ segment }: { segment: PublicReleaseSegment }) {
+function SegmentDetails({ segment, episodeNumber }: { segment: PublicReleaseSegment; episodeNumber?: string }) {
   const start = segment.start_seconds ?? 0
   const end = segment.end_seconds ?? start
   const duration = segment.duration_seconds ?? Math.max(0, end - start)
@@ -152,6 +153,9 @@ function SegmentDetails({ segment }: { segment: PublicReleaseSegment }) {
         <span>{clock(start)}–{clock(end)}</span>
         <span>Dauer {clock(duration)}</span>
       </div>
+      {segment.applies_through_episode ? (
+        <Badge variant="muted">Gilt auch für Folge {episodeNumber}–{segment.applies_through_episode}</Badge>
+      ) : null}
       {segment.participants.length > 0 ? (
         <span className={styles.participants}>
           {segment.participants.map((participant) => `${participant.name} · ${participant.role_label}`).join(', ')}
@@ -166,13 +170,15 @@ function SelectionSurface({
   selected,
   playable,
   onSelect,
+  episodeNumber,
 }: {
   segment: PublicReleaseSegment
   selected: boolean
   playable: boolean
   onSelect: () => void
+  episodeNumber?: string
 }) {
-  const content: ReactNode = <SegmentDetails segment={segment} />
+  const content: ReactNode = <SegmentDetails segment={segment} episodeNumber={episodeNumber} />
   if (!playable) return <div className={styles.staticCardContent}>{content}</div>
 
   return (
@@ -194,6 +200,7 @@ export function ThemeTimeline({
   segments,
   initialSegmentID = null,
   autoPlayInitial = false,
+  episodeNumber,
 }: ThemeTimelineProps) {
   const session = useAuthSession()
   const hasSession = session.isClientInitialized && (session.hasAccessToken || session.hasRefreshToken)
@@ -324,6 +331,7 @@ export function ThemeTimeline({
                 selected={selected}
                 playable={playable}
                 onSelect={() => selectSegment(segment)}
+                episodeNumber={episodeNumber}
               />
               {playable ? (
                 <Button
