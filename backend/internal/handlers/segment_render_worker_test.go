@@ -30,7 +30,7 @@ type fakeSegmentStreamThemeRepo struct {
 	claimCalled bool
 }
 
-func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderSource(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderSource, error) {
+func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderSource(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderSource, error) {
 	if f.source == nil {
 		return nil, repository.ErrNotFound
 	}
@@ -41,22 +41,22 @@ func (f *fakeSegmentStreamThemeRepo) GetThemeSegmentRenderCacheByKey(ctx context
 	return nil, repository.ErrNotFound
 }
 
-func (f *fakeSegmentStreamThemeRepo) GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error) {
+func (f *fakeSegmentStreamThemeRepo) GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderCache, error) {
 	if f.readyCache != nil {
 		return f.readyCache, nil
 	}
 	return nil, repository.ErrNotFound
 }
 
-func (f *fakeSegmentStreamThemeRepo) GetLatestThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error) {
+func (f *fakeSegmentStreamThemeRepo) GetLatestThemeSegmentRenderCache(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderCache, error) {
 	return nil, repository.ErrNotFound
 }
 
-func (f *fakeSegmentStreamThemeRepo) ListThemeSegmentRenderCaches(ctx context.Context, segmentID int64) ([]models.ThemeSegmentRenderCache, error) {
+func (f *fakeSegmentStreamThemeRepo) ListThemeSegmentRenderCaches(ctx context.Context, segmentID int64, releaseVersionID int64) ([]models.ThemeSegmentRenderCache, error) {
 	return nil, nil
 }
 
-func (f *fakeSegmentStreamThemeRepo) DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64) (int64, error) {
+func (f *fakeSegmentStreamThemeRepo) DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64, releaseVersionID int64) (int64, error) {
 	return 0, nil
 }
 

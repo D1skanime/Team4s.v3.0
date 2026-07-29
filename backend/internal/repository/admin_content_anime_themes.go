@@ -462,13 +462,24 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 	if err := r.hydrateSegmentLibraryMetadataList(ctx, segments); err != nil {
 		return nil, err
 	}
+	if err := r.hydrateSegmentAssignmentMetadataList(ctx, segments); err != nil {
+		return nil, err
+	}
 
 	return segments, nil
 }
 
 // CreateAnimeSegment legt ein neues Segment an.
-// Prueft ob das Theme zum animeID gehoert.
-func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput) (*models.AdminThemeSegment, error) {
+// Prueft ob das Theme zum animeID gehoert. currentReleaseVersionID legt -- sofern > 0 --
+// unmittelbar nach dem Insert innerhalb derselben Transaktion die Erstzuweisung
+// (theme_segment_assignments) an, BEVOR syncThemeSegmentPlaybackSourceTx laeuft
+// (Phase 117, D-03). currentReleaseVersionID <= 0 ueberspringt die Erstzuweisung
+// bewusst ohne Fehler -- die Handler-seitige Aufloesung der tatsaechlichen
+// release_version_id aus dem heute bereits vorhandenen releaseVariantID-Query-Parameter
+// (parseReleaseVariantIDQuery) landet in Plan 117-04/117-05; diese Repository-Methode
+// akzeptiert den Parameter bereits jetzt, damit dort nur noch der Call-Site angepasst
+// werden muss.
+func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
 	if animeID <= 0 {
 		return nil, ErrNotFound
 	}
@@ -509,6 +520,20 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 			}
 		}
 		return nil, fmt.Errorf("create anime segment anime=%d: %w", animeID, err)
+	}
+
+	if currentReleaseVersionID > 0 {
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO theme_segment_assignments (theme_segment_id, release_version_id)
+			VALUES ($1, $2)
+			ON CONFLICT (theme_segment_id, release_version_id) DO NOTHING
+		`, segID, currentReleaseVersionID); err != nil {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+				return nil, ErrConflict
+			}
+			return nil, fmt.Errorf("assign anime segment anime=%d segment=%d release_version=%d: %w", animeID, segID, currentReleaseVersionID, err)
+		}
 	}
 
 	if err := r.syncThemeSegmentPlaybackSourceTx(ctx, tx, segID); err != nil {
@@ -1069,6 +1094,12 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 		return nil
 	}
 
+	// ORDER BY release_version_id ASC LIMIT 1: seit Phase 117 (D-03) kann ein geteiltes
+	// Segment mehrere theme_segment_playback_sources-Zeilen haben (eine je zugewiesener
+	// Release-Version) -- ohne explizite Sortierung waere die single-row-Hydration hier
+	// nicht deterministisch. Diese Funktion liefert bewusst nur EINE repraesentative Zeile
+	// (die mit der kleinsten release_version_id); fuer die vollstaendige, release_version_id-
+	// scoped Auflösung siehe GetThemeSegmentRenderSource (theme_segment_render_cache.go).
 	if err := r.db.QueryRow(ctx, `
 		SELECT
 			id,
@@ -1082,6 +1113,8 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 			duration_seconds
 		FROM theme_segment_playback_sources
 		WHERE theme_segment_id = $1
+		ORDER BY release_version_id ASC NULLS LAST, id ASC
+		LIMIT 1
 	`, seg.ID).Scan(
 		&seg.PlaybackSourceID,
 		&seg.PlaybackSourceKind,
@@ -1220,6 +1253,14 @@ func (r *AdminContentRepository) hasTable(ctx context.Context, tableName string)
 	return exists, nil
 }
 
+// syncThemeSegmentPlaybackSourceTx synchronisiert theme_segment_playback_sources fuer
+// ALLE aktuell zugewiesenen Release-Versionen eines Segments (Phase 117, D-03) --
+// eine Zeile je (theme_segment_id, release_version_id) statt der frueheren einen
+// globalen Zeile pro Segment. Fuer jede Zuweisung wird der bestehende
+// Entscheidungsbaum (siehe syncThemeSegmentPlaybackSourceForReleaseVersionTx) gegen
+// den per Release-Version geladenen Snapshot ausgefuehrt. Existiert keine Zuweisung
+// mehr, werden verwaiste Zeilen geloescht (identisch zum fruehren sourceKind==nil-
+// Fallback-Verhalten).
 func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Context, tx pgx.Tx, segmentID int64) error {
 	ok, err := hasTableTx(ctx, tx, "theme_segment_playback_sources")
 	if err != nil {
@@ -1229,12 +1270,73 @@ func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Co
 		return nil
 	}
 
-	snapshot, err := loadThemeSegmentPlaybackSnapshotTx(ctx, tx, segmentID)
+	rows, err := tx.Query(ctx, `
+		SELECT release_version_id
+		FROM theme_segment_assignments
+		WHERE theme_segment_id = $1
+		ORDER BY release_version_id ASC
+	`, segmentID)
 	if err != nil {
-		return err
+		return fmt.Errorf("list theme segment assignments tx segment=%d: %w", segmentID, err)
+	}
+	releaseVersionIDs := make([]int64, 0)
+	for rows.Next() {
+		var releaseVersionID int64
+		if err := rows.Scan(&releaseVersionID); err != nil {
+			rows.Close()
+			return fmt.Errorf("scan theme segment assignment tx segment=%d: %w", segmentID, err)
+		}
+		releaseVersionIDs = append(releaseVersionIDs, releaseVersionID)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return fmt.Errorf("iterate theme segment assignments tx segment=%d: %w", segmentID, err)
+	}
+	rows.Close()
+
+	if len(releaseVersionIDs) == 0 {
+		if _, err := tx.Exec(ctx, `DELETE FROM theme_segment_playback_sources WHERE theme_segment_id = $1`, segmentID); err != nil {
+			return fmt.Errorf("delete orphaned theme segment playback sources segment=%d: %w", segmentID, err)
+		}
+		return nil
+	}
+
+	keptReleaseVersionIDs := make([]int64, 0, len(releaseVersionIDs))
+	for _, releaseVersionID := range releaseVersionIDs {
+		kept, err := r.syncThemeSegmentPlaybackSourceForReleaseVersionTx(ctx, tx, segmentID, releaseVersionID)
+		if err != nil {
+			return err
+		}
+		if kept {
+			keptReleaseVersionIDs = append(keptReleaseVersionIDs, releaseVersionID)
+		}
+	}
+
+	if _, err := tx.Exec(ctx, `
+		DELETE FROM theme_segment_playback_sources
+		WHERE theme_segment_id = $1
+		  AND NOT (release_version_id = ANY($2))
+	`, segmentID, keptReleaseVersionIDs); err != nil {
+		return fmt.Errorf("delete stale theme segment playback sources segment=%d: %w", segmentID, err)
+	}
+
+	return nil
+}
+
+// syncThemeSegmentPlaybackSourceForReleaseVersionTx fuehrt den Entscheidungsbaum
+// (unveraendert gegenueber der frueheren, ausschliesslich globalen Fassung) fuer
+// GENAU eine Zuweisung (segmentID, releaseVersionID) aus und schreibt bei einem
+// aufgeloesten sourceKind eine composite-ON-CONFLICT-Upsert-Zeile. Rueckgabe
+// kept=false bedeutet: fuer diese Release-Version konnte keine Playback-Quelle
+// aufgeloest werden -- die Zeile wird vom Aufrufer (syncThemeSegmentPlaybackSourceTx)
+// per abschliessendem DELETE ... NOT ANY(...) aufgeraeumt.
+func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceForReleaseVersionTx(ctx context.Context, tx pgx.Tx, segmentID int64, releaseVersionID int64) (bool, error) {
+	snapshot, err := loadThemeSegmentPlaybackSnapshotTx(ctx, tx, segmentID, releaseVersionID)
+	if err != nil {
+		return false, err
 	}
 	if snapshot == nil {
-		return ErrNotFound
+		return false, ErrNotFound
 	}
 
 	startSeconds := parseSegmentClockSeconds(snapshot.StartTime)
@@ -1251,7 +1353,8 @@ func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Co
 		sourceLabel    *string
 	)
 
-	// Explicit precedence table for playback resolution:
+	// Explicit precedence table for playback resolution (unveraendert gegenueber der
+	// vormals globalen Fassung, jetzt pro Release-Version ausgefuehrt):
 	//
 	// 1. release_asset source type with a concrete source_ref -> uploaded_asset
 	//    (operator explicitly selected an uploaded file as fallback/primary)
@@ -1261,7 +1364,7 @@ func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Co
 	//    (legacy/explicit Jellyfin theme selection)
 	// 4. uploaded asset discoverable via source_ref (no explicit variant) -> uploaded_asset
 	//    (fallback when no episode-version stream is available)
-	// 5. none -> delete the playback row
+	// 5. none -> keep no row for this release version
 
 	switch {
 	case trimmedType == themeSegmentSourceTypeReleaseAsset && trimmedRef != "":
@@ -1318,15 +1421,13 @@ func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Co
 	}
 
 	if sourceKind == nil {
-		if _, err := tx.Exec(ctx, `DELETE FROM theme_segment_playback_sources WHERE theme_segment_id = $1`, segmentID); err != nil {
-			return fmt.Errorf("delete theme segment playback source segment=%d: %w", segmentID, err)
-		}
-		return nil
+		return false, nil
 	}
 
 	_, err = tx.Exec(ctx, `
 		INSERT INTO theme_segment_playback_sources (
 			theme_segment_id,
+			release_version_id,
 			source_kind,
 			release_variant_id,
 			jellyfin_item_id,
@@ -1339,8 +1440,8 @@ func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Co
 			created_at,
 			updated_at
 		)
-		VALUES ($1, $2, $3, NULLIF($4, ''), $5, NULLIF($6, ''), $7, $8, $9, TRUE, NOW(), NOW())
-		ON CONFLICT (theme_segment_id)
+		VALUES ($1, $2, $3, $4, NULLIF($5, ''), $6, NULLIF($7, ''), $8, $9, $10, TRUE, NOW(), NOW())
+		ON CONFLICT (theme_segment_id, release_version_id)
 		DO UPDATE SET
 			source_kind = EXCLUDED.source_kind,
 			release_variant_id = EXCLUDED.release_variant_id,
@@ -1352,53 +1453,37 @@ func (r *AdminContentRepository) syncThemeSegmentPlaybackSourceTx(ctx context.Co
 			duration_seconds = EXCLUDED.duration_seconds,
 			is_primary = TRUE,
 			updated_at = NOW()
-	`, segmentID, *sourceKind, releaseVarID, jellyfinItemID, mediaAssetID, sourceLabel, startSeconds, endSeconds, snapshot.PlaybackDuration)
+	`, segmentID, releaseVersionID, *sourceKind, releaseVarID, jellyfinItemID, mediaAssetID, sourceLabel, startSeconds, endSeconds, snapshot.PlaybackDuration)
 	if err != nil {
-		return fmt.Errorf("upsert theme segment playback source segment=%d: %w", segmentID, err)
+		return false, fmt.Errorf("upsert theme segment playback source segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
 
-	return nil
+	return true, nil
 }
 
-func loadThemeSegmentPlaybackSnapshotTx(ctx context.Context, tx pgx.Tx, segmentID int64) (*themeSegmentPlaybackSnapshot, error) {
+// loadThemeSegmentPlaybackSnapshotTx laedt den Snapshot fuer GENAU eine Zuweisung
+// (segmentID, releaseVersionID). Die Playback-Variante wird ueber
+// resolveThemeSegmentReleaseVariantTx (theme_segment_playback_resolution.go,
+// Nyquist-Fix W-mod) direkt anhand der bekannten release_version_id aufgeloest --
+// keine Suche mehr ueber fansub_group_id/version quer ueber alle Episoden (RESEARCH.md
+// Risk 3). Die effektive Zeit bevorzugt einen vorhandenen Per-Version-Override
+// (theme_segment_episode_overrides) vor der Segment-Basis-Zeit (D-01).
+func loadThemeSegmentPlaybackSnapshotTx(ctx context.Context, tx pgx.Tx, segmentID int64, releaseVersionID int64) (*themeSegmentPlaybackSnapshot, error) {
+	resolved, err := resolveThemeSegmentReleaseVariantTx(ctx, tx, segmentID, releaseVersionID)
+	if err != nil {
+		return nil, err
+	}
+
 	var snapshot themeSegmentPlaybackSnapshot
 	if err := tx.QueryRow(ctx, `
-		WITH resolved_variant AS (
-			-- Resolve the current release variant for this segment's fansub_group+version+anime context.
-			-- Prefer variants with a Jellyfin-backed stream source, then fall back to any variant.
-			-- LIMIT 1 ensures deterministic results when multiple variants match.
-			SELECT
-				rv.id       AS variant_id,
-				rv.duration_seconds,
-				ss.external_id AS jellyfin_external_id,
-				ss.url         AS jellyfin_stream_url
-			FROM theme_segments ts
-			JOIN themes t ON t.id = ts.theme_id
-			JOIN release_version_groups rvg ON rvg.fansub_group_id = ts.fansub_group_id
-			JOIN release_versions rev ON rev.id = rvg.release_version_id
-				AND COALESCE(NULLIF(BTRIM(rev.version), ''), 'v1') = COALESCE(NULLIF(BTRIM(ts.version), ''), 'v1')
-			JOIN fansub_releases fr ON fr.id = rev.release_id
-			JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = t.anime_id
-			JOIN release_variants rv ON rv.release_version_id = rev.id
-			LEFT JOIN release_streams rs ON rs.variant_id = rv.id
-			LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id AND ss.provider_type = 'jellyfin'
-			WHERE ts.id = $1
-			  AND ts.fansub_group_id IS NOT NULL
-			ORDER BY
-				CASE WHEN ss.external_id IS NOT NULL THEN 0 ELSE 1 END,
-				rv.id ASC
-			LIMIT 1
-		)
 		SELECT
 			ts.id,
-			ts.start_time::text,
-			ts.end_time::text,
+			COALESCE(ov.start_time, ts.start_time)::text,
+			COALESCE(ov.end_time, ts.end_time)::text,
 			ts.source_jellyfin_item_id,
 			ts.source_type,
 			ts.source_ref,
 			ts.source_label,
-			rv_ctx.variant_id,
-			rv_ctx.duration_seconds,
 			(
 				SELECT ma.id
 				FROM media_assets ma
@@ -1409,14 +1494,12 @@ func loadThemeSegmentPlaybackSnapshotTx(ctx context.Context, tx pgx.Tx, segmentI
 				  )
 				ORDER BY ma.id DESC
 				LIMIT 1
-			) AS resolved_media_asset_id,
-			rv_ctx.jellyfin_external_id AS resolved_jellyfin_item_id,
-			NULL::TEXT AS resolved_playback_kind,
-			NULL::TEXT AS resolved_playback_label
+			) AS resolved_media_asset_id
 		FROM theme_segments ts
-		LEFT JOIN resolved_variant rv_ctx ON TRUE
+		LEFT JOIN theme_segment_episode_overrides ov
+			ON ov.theme_segment_id = ts.id AND ov.release_version_id = $2
 		WHERE ts.id = $1
-	`, segmentID).Scan(
+	`, segmentID, releaseVersionID).Scan(
 		&snapshot.SegmentID,
 		&snapshot.StartTime,
 		&snapshot.EndTime,
@@ -1424,18 +1507,21 @@ func loadThemeSegmentPlaybackSnapshotTx(ctx context.Context, tx pgx.Tx, segmentI
 		&snapshot.SourceType,
 		&snapshot.SourceRef,
 		&snapshot.SourceLabel,
-		&snapshot.PlaybackVariantID,
-		&snapshot.PlaybackDuration,
 		&snapshot.ResolvedMediaAssetID,
-		&snapshot.ResolvedJellyfinItem,
-		&snapshot.ResolvedPlaybackKind,
-		&snapshot.ResolvedPlaybackLabel,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("load theme segment playback snapshot segment=%d: %w", segmentID, err)
+		return nil, fmt.Errorf("load theme segment playback snapshot segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
+
+	if resolved != nil {
+		variantID := resolved.ReleaseVariantID
+		snapshot.PlaybackVariantID = &variantID
+		snapshot.PlaybackDuration = resolved.DurationSeconds
+		snapshot.ResolvedJellyfinItem = resolved.JellyfinExternalID
+	}
+
 	return &snapshot, nil
 }
 
@@ -1807,9 +1893,12 @@ func (r *AdminContentRepository) ListAnimeSegmentSuggestions(
 }
 
 // GetSegmentReleaseDuration liefert die bekannte Laufzeit (duration_seconds) der aktuellen
-// Release-Variante fuer die angegebene Anime/Fansub-Gruppe/Version-Kombination.
-// Gibt nil zurueck, wenn keine Variante gefunden wurde oder duration_seconds nicht gesetzt ist.
-func (r *AdminContentRepository) GetSegmentReleaseDuration(ctx context.Context, animeID int64, fansubGroupID int64, version string) (*int32, error) {
+// Release-Variante fuer die angegebene Anime/Fansub-Gruppe/Version-Kombination, optional
+// gefiltert auf einen Episoden-Bereich (startEpisode/endEpisode, 0 = kein Filter --
+// RESEARCH.md Risk 3: die vormals ungefilterte Auflösung konnte eine Variante ausserhalb
+// des tatsächlichen Segment-Bereichs liefern). Gibt nil zurueck, wenn keine (im Bereich
+// liegende) Variante gefunden wurde oder duration_seconds nicht gesetzt ist.
+func (r *AdminContentRepository) GetSegmentReleaseDuration(ctx context.Context, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) (*int32, error) {
 	if animeID <= 0 || fansubGroupID <= 0 {
 		return nil, nil
 	}
@@ -1829,9 +1918,11 @@ func (r *AdminContentRepository) GetSegmentReleaseDuration(ctx context.Context, 
 		JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = $1
 		JOIN release_variants rv ON rv.release_version_id = rev.id
 		WHERE rvg.fansub_group_id = $2
+		  AND ($4 = 0 OR COALESCE(ep.sort_index, CASE WHEN COALESCE(ep.episode_number, '') ~ '^[0-9]+$' THEN ep.episode_number::int ELSE NULL END) >= $4)
+		  AND ($5 = 0 OR COALESCE(ep.sort_index, CASE WHEN COALESCE(ep.episode_number, '') ~ '^[0-9]+$' THEN ep.episode_number::int ELSE NULL END) <= $5)
 		ORDER BY rv.duration_seconds IS NOT NULL DESC, rv.id ASC
 		LIMIT 1
-	`, animeID, fansubGroupID, normalizedVersion).Scan(&duration)
+	`, animeID, fansubGroupID, normalizedVersion, startEpisode, endEpisode).Scan(&duration)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}

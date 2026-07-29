@@ -90,7 +90,7 @@ func (s *fansubReleaseThemeRepoStub) ListAnimeSegmentSuggestions(ctx context.Con
 func (s *fansubReleaseThemeRepoStub) ListSegmentLibraryCandidates(ctx context.Context, animeID int64, fansubGroupID int64, segmentKind string, segmentName string) ([]models.SegmentLibraryCandidate, error) {
 	return nil, nil
 }
-func (s *fansubReleaseThemeRepoStub) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput) (*models.AdminThemeSegment, error) {
+func (s *fansubReleaseThemeRepoStub) CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error {
@@ -117,7 +117,7 @@ func (s *fansubReleaseThemeRepoStub) AttachSegmentLibraryAsset(ctx context.Conte
 func (s *fansubReleaseThemeRepoStub) IsReusableSegmentAsset(ctx context.Context, sourceRef string) (bool, error) {
 	return false, nil
 }
-func (s *fansubReleaseThemeRepoStub) GetSegmentReleaseDuration(ctx context.Context, animeID int64, fansubGroupID int64, version string) (*int32, error) {
+func (s *fansubReleaseThemeRepoStub) GetSegmentReleaseDuration(ctx context.Context, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) (*int32, error) {
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) GetCanonicalFansubAnimeRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error) {

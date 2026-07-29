@@ -23,16 +23,29 @@ import (
 )
 
 type segmentStreamThemeRepository interface {
-	GetThemeSegmentRenderSource(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderSource, error)
+	GetThemeSegmentRenderSource(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderSource, error)
 	GetThemeSegmentRenderCacheByKey(ctx context.Context, cacheKey string) (*models.ThemeSegmentRenderCache, error)
-	GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error)
-	GetLatestThemeSegmentRenderCache(ctx context.Context, segmentID int64) (*models.ThemeSegmentRenderCache, error)
-	ListThemeSegmentRenderCaches(ctx context.Context, segmentID int64) ([]models.ThemeSegmentRenderCache, error)
-	DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64) (int64, error)
+	GetReadyThemeSegmentRenderCache(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderCache, error)
+	GetLatestThemeSegmentRenderCache(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.ThemeSegmentRenderCache, error)
+	ListThemeSegmentRenderCaches(ctx context.Context, segmentID int64, releaseVersionID int64) ([]models.ThemeSegmentRenderCache, error)
+	DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64, releaseVersionID int64) (int64, error)
 	UpsertThemeSegmentRenderCacheQueued(ctx context.Context, input models.ThemeSegmentRenderCacheUpsertInput) (*models.ThemeSegmentRenderCache, error)
 	ClaimNextQueuedThemeSegmentRender(ctx context.Context) (*models.ThemeSegmentRenderCache, error)
 	MarkThemeSegmentRenderCacheReady(ctx context.Context, input models.ThemeSegmentRenderCacheReadyInput) error
 	MarkThemeSegmentRenderCacheFailed(ctx context.Context, cacheKey string, errorCode string, errorMessage string) error
+}
+
+// parseOptionalReleaseVersionIDQuery liest einen optionalen release_version_id
+// Query-Parameter. Leer/fehlend liefert 0 (kein Fehler) -- Plan 117-04/117-05
+// verdrahten die tatsaechliche Pro-Release-Version-Frontend-Uebergabe; bis dahin
+// bleibt der Parameter fuer bestehende Aufrufer ohne Kenntnis der Release-Version
+// abwaertskompatibel optional.
+func parseOptionalReleaseVersionIDQuery(c *gin.Context, key string) (int64, error) {
+	raw := strings.TrimSpace(c.Query(key))
+	if raw == "" {
+		return 0, nil
+	}
+	return parsePositiveIDParam(raw)
 }
 
 type segmentRenderPrepareError struct {
@@ -111,7 +124,7 @@ func (h *AdminContentHandler) createSegmentStreamGrant(c *gin.Context, userID *i
 		return
 	}
 
-	source, err := themeRepo.GetThemeSegmentRenderSource(c.Request.Context(), segmentID)
+	source, err := themeRepo.GetThemeSegmentRenderSource(c.Request.Context(), segmentID, releaseVersionID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
@@ -137,7 +150,7 @@ func (h *AdminContentHandler) createSegmentStreamGrant(c *gin.Context, userID *i
 	}
 
 	cacheKey := ""
-	if cache, err := themeRepo.GetReadyThemeSegmentRenderCache(c.Request.Context(), segmentID); err == nil {
+	if cache, err := themeRepo.GetReadyThemeSegmentRenderCache(c.Request.Context(), segmentID, releaseVersionID); err == nil {
 		cacheKey = cache.CacheKey
 	} else if errors.Is(err, repository.ErrNotFound) {
 		// Uploaded fallbacks are curated, already-cut sources and therefore do not
@@ -198,12 +211,20 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 		badRequest(c, "ungültige segment id")
 		return
 	}
+	// TODO(117-04/117-05): sobald der Admin-Editor pro Release-Version rendert, wird
+	// release_version_id hier ein Pflichtparameter statt optional (analog dem bereits
+	// heute erforderlichen Parameter in createSegmentStreamGrant).
+	releaseVersionID, err := parseOptionalReleaseVersionIDQuery(c, "release_version_id")
+	if err != nil {
+		badRequest(c, "ungültige release_version_id")
+		return
+	}
 	if !h.segmentRenderEnabled || strings.TrimSpace(h.segmentRenderDir) == "" {
 		c.JSON(http.StatusServiceUnavailable, gin.H{"error": gin.H{"message": "segment-rendering ist nicht verfügbar"}})
 		return
 	}
 
-	source, err := themeRepo.GetThemeSegmentRenderSource(c.Request.Context(), segmentID)
+	source, err := themeRepo.GetThemeSegmentRenderSource(c.Request.Context(), segmentID, releaseVersionID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
@@ -257,6 +278,7 @@ func (h *AdminContentHandler) RenderSegment(c *gin.Context) {
 	cache, err := themeRepo.UpsertThemeSegmentRenderCacheQueued(c.Request.Context(), models.ThemeSegmentRenderCacheUpsertInput{
 		ThemeSegmentID:    segmentID,
 		PlaybackSourceID:  &source.PlaybackSourceID,
+		ReleaseVersionID:  source.ReleaseVersionID,
 		CacheKey:          cacheKey,
 		SourceKind:        source.SourceKind,
 		SourceFingerprint: sourceFingerprint,
@@ -293,7 +315,23 @@ func (h *AdminContentHandler) StreamSegment(c *gin.Context) {
 		return
 	}
 
-	source, err := themeRepo.GetThemeSegmentRenderSource(c.Request.Context(), segmentID)
+	// Oeffentliche Grants tragen release_version_id bereits in den Claims (gebunden bei
+	// Grant-Erstellung). Fuer den aeltere, authentifizierte Grant-Pfad ohne eingebettete
+	// release_version_id faellt dieser Handler bis zur vollen Handler-Verdrahtung in
+	// Plan 117-04/117-05 auf einen optionalen Query-Parameter zurueck.
+	releaseVersionID := int64(0)
+	if claims.ReleaseVersionID != nil {
+		releaseVersionID = *claims.ReleaseVersionID
+	} else {
+		queryReleaseVersionID, err := parseOptionalReleaseVersionIDQuery(c, "release_version_id")
+		if err != nil {
+			badRequest(c, "ungültige release_version_id")
+			return
+		}
+		releaseVersionID = queryReleaseVersionID
+	}
+
+	source, err := themeRepo.GetThemeSegmentRenderSource(c.Request.Context(), segmentID, releaseVersionID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
@@ -316,9 +354,9 @@ func (h *AdminContentHandler) StreamSegment(c *gin.Context) {
 		return
 	}
 
-	cache, err := themeRepo.GetReadyThemeSegmentRenderCache(c.Request.Context(), segmentID)
+	cache, err := themeRepo.GetReadyThemeSegmentRenderCache(c.Request.Context(), segmentID, releaseVersionID)
 	if errors.Is(err, repository.ErrNotFound) {
-		latest, latestErr := themeRepo.GetLatestThemeSegmentRenderCache(c.Request.Context(), segmentID)
+		latest, latestErr := themeRepo.GetLatestThemeSegmentRenderCache(c.Request.Context(), segmentID, releaseVersionID)
 		if latestErr == nil {
 			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"message": "segment ist noch nicht bereit", "code": "segment_render_" + string(latest.Status), "status": latest.Status}})
 			return

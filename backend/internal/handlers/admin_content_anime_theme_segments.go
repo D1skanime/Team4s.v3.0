@@ -280,9 +280,12 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 	}
 
 	// Runtime-aware validation: look up duration_seconds for the current release variant context.
+	// TODO(117-05): startEpisode/endEpisode 0/0 heisst "kein Bereichsfilter"; Plan 117-05
+	// reicht req.StartEpisode/req.EndEpisode durch (RESEARCH.md Risk 3 fuer diesen
+	// Validierungspfad).
 	var releaseDuration *int32
 	if req.FansubGroupID != nil && *req.FansubGroupID > 0 {
-		dur, durErr := h.themeRepo.GetSegmentReleaseDuration(c.Request.Context(), animeID, *req.FansubGroupID, version)
+		dur, durErr := h.themeRepo.GetSegmentReleaseDuration(c.Request.Context(), animeID, *req.FansubGroupID, version, 0, 0)
 		if durErr != nil {
 			log.Printf("admin anime segment create: lookup release duration anime=%d group=%d: %v", animeID, *req.FansubGroupID, durErr)
 			// Non-fatal: continue without duration validation
@@ -295,6 +298,9 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		return
 	}
 
+	// TODO(117-04/117-05): currentReleaseVersionID auf die per releaseVariantID
+	// (parseReleaseVariantIDQuery) aufgeloeste release_version_id umstellen, sobald der
+	// Admin-Editor eine echte Erstzuweisung mitgibt (D-03 Handler-Wiring).
 	created, err := h.themeRepo.CreateAnimeSegment(c.Request.Context(), animeID, models.AdminThemeSegmentCreateInput{
 		ThemeID:              req.ThemeID,
 		FansubGroupID:        req.FansubGroupID,
@@ -307,7 +313,7 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		SourceType:           req.SourceType,
 		SourceRef:            req.SourceRef,
 		SourceLabel:          req.SourceLabel,
-	})
+	}, 0)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime oder theme nicht gefunden"}})
 		return
@@ -402,7 +408,9 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		effectiveVersion = *req.Version
 	}
 	if effectiveGroupID != nil && *effectiveGroupID > 0 {
-		dur, durErr := h.themeRepo.GetSegmentReleaseDuration(c.Request.Context(), animeID, *effectiveGroupID, effectiveVersion)
+		// TODO(117-05): 0/0 heisst "kein Bereichsfilter"; Plan 117-05 reicht
+		// req.StartEpisode/req.EndEpisode durch (RESEARCH.md Risk 3).
+		dur, durErr := h.themeRepo.GetSegmentReleaseDuration(c.Request.Context(), animeID, *effectiveGroupID, effectiveVersion, 0, 0)
 		if durErr != nil {
 			log.Printf("admin anime segment update: lookup release duration anime=%d group=%d: %v", animeID, *effectiveGroupID, durErr)
 		} else {
@@ -469,7 +477,10 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 	}
 
 	if segmentRenderInputsChanged(existingSegment, updatedSegment) {
-		if err := h.resetAndQueueSegmentRenderAfterChange(c.Request.Context(), segmentID); err != nil {
+		// TODO(117-04): Fan-Out ueber ALLE zugewiesenen Release-Versionen eines geteilten
+		// Segments (D-03) statt release_version_id=0; dieser Plan stellt nur die
+		// release_version_id-scoped Repository-Signaturen bereit.
+		if err := h.resetAndQueueSegmentRenderAfterChange(c.Request.Context(), segmentID, 0); err != nil {
 			log.Printf("admin anime segment update: refresh render cache segment_id=%d: %v", segmentID, err)
 			writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nach der Zeitänderung nicht neu vorbereitet werden.")
 			return

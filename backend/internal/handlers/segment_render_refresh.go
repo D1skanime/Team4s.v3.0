@@ -29,20 +29,25 @@ func segmentRenderInputsChanged(before *models.AdminThemeSegment, after *models.
 		int32PtrValue(before.PlaybackEndSeconds) != int32PtrValue(after.PlaybackEndSeconds)
 }
 
-func (h *AdminContentHandler) resetAndQueueSegmentRenderAfterChange(ctx context.Context, segmentID int64) error {
+// resetAndQueueSegmentRenderAfterChange invalidiert den Render-Cache fuer EINE
+// release_version_id nach einer Basis-Zeit-Aenderung. releaseVersionID=0 (heutiger
+// Aufrufer in admin_content_anime_theme_segments.go) trifft dabei bewusst noch keine
+// Zuweisung -- der Fan-Out ueber ALLE zugewiesenen Release-Versionen eines geteilten
+// Segments (D-03) ist Aufgabe von Plan 117-04, nicht dieses Plans.
+func (h *AdminContentHandler) resetAndQueueSegmentRenderAfterChange(ctx context.Context, segmentID int64, releaseVersionID int64) error {
 	themeRepo, ok := h.themeRepo.(segmentStreamThemeRepository)
 	if !ok {
 		return fmt.Errorf("segment render refresh: theme repo does not implement segment stream repository")
 	}
 
-	caches, err := themeRepo.ListThemeSegmentRenderCaches(ctx, segmentID)
+	caches, err := themeRepo.ListThemeSegmentRenderCaches(ctx, segmentID, releaseVersionID)
 	if err != nil {
 		return err
 	}
 	if err := h.removeSegmentRenderCacheFiles(caches); err != nil {
 		return err
 	}
-	if _, err := themeRepo.DeleteThemeSegmentRenderCaches(ctx, segmentID); err != nil {
+	if _, err := themeRepo.DeleteThemeSegmentRenderCaches(ctx, segmentID, releaseVersionID); err != nil {
 		return err
 	}
 
@@ -50,7 +55,7 @@ func (h *AdminContentHandler) resetAndQueueSegmentRenderAfterChange(ctx context.
 		return nil
 	}
 
-	source, err := themeRepo.GetThemeSegmentRenderSource(ctx, segmentID)
+	source, err := themeRepo.GetThemeSegmentRenderSource(ctx, segmentID, releaseVersionID)
 	if errorsIsNotFound(err) {
 		return nil
 	}
@@ -135,6 +140,7 @@ func (h *AdminContentHandler) buildQueuedSegmentRenderCache(
 	cache, err := themeRepo.UpsertThemeSegmentRenderCacheQueued(ctx, models.ThemeSegmentRenderCacheUpsertInput{
 		ThemeSegmentID:    segmentID,
 		PlaybackSourceID:  &source.PlaybackSourceID,
+		ReleaseVersionID:  source.ReleaseVersionID,
 		CacheKey:          cacheKey,
 		SourceKind:        source.SourceKind,
 		SourceFingerprint: sourceFingerprint,

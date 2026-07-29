@@ -76,9 +76,18 @@ type AdminThemeSegment struct {
 	CreatedAt            time.Time  `json:"created_at"`
 
 	// Zuweisungs-/Override-Uebersicht fuer geteilte Kara-Segmente (Phase 117, D-01/D-03).
-	AssignedReleaseVersionIDs []int64 `json:"assigned_release_version_ids,omitempty"`
-	IsShared                  bool    `json:"is_shared"`
-	HasEpisodeOverride        bool    `json:"has_episode_override"`
+	AssignedReleaseVersionIDs []int64                              `json:"assigned_release_version_ids,omitempty"`
+	IsShared                  bool                                 `json:"is_shared"`
+	HasEpisodeOverride        bool                                 `json:"has_episode_override"`
+	AssignedEpisodes          []AdminThemeSegmentAssignmentEpisode `json:"assigned_episodes,omitempty"`
+}
+
+// AdminThemeSegmentAssignmentEpisode traegt die ECHTE Episodennummer einer
+// Zuweisung (nicht die interne release_version_id) -- Grundlage fuer die
+// "Folge {N}"-Zuweisungs-Chips im Admin-UI (Phase 117, Plan 117-07, B3-Fix).
+type AdminThemeSegmentAssignmentEpisode struct {
+	ReleaseVersionID int64  `json:"release_version_id"`
+	EpisodeNumber    string `json:"episode_number"`
 }
 
 // AdminThemeSegmentCreateInput enthaelt die Felder zum Anlegen eines neuen Segments.

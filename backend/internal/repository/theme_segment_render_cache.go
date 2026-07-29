@@ -15,6 +15,7 @@ const themeSegmentRenderCacheColumns = `
 	id,
 	theme_segment_id,
 	playback_source_id,
+	release_version_id,
 	cache_key,
 	source_kind,
 	source_fingerprint,
@@ -50,6 +51,7 @@ func (r *AdminContentRepository) UpsertThemeSegmentRenderCacheQueued(
 		INSERT INTO theme_segment_render_cache (
 			theme_segment_id,
 			playback_source_id,
+			release_version_id,
 			cache_key,
 			source_kind,
 			source_fingerprint,
@@ -61,10 +63,11 @@ func (r *AdminContentRepository) UpsertThemeSegmentRenderCacheQueued(
 			invalidated_at,
 			updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, 'queued', NOW(), NULL, NULL, NULL, NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 'queued', NOW(), NULL, NULL, NULL, NOW())
 		ON CONFLICT (cache_key) DO UPDATE SET
 			theme_segment_id = EXCLUDED.theme_segment_id,
 			playback_source_id = EXCLUDED.playback_source_id,
+			release_version_id = EXCLUDED.release_version_id,
 			source_kind = EXCLUDED.source_kind,
 			source_fingerprint = EXCLUDED.source_fingerprint,
 			render_profile = EXCLUDED.render_profile,
@@ -86,6 +89,7 @@ func (r *AdminContentRepository) UpsertThemeSegmentRenderCacheQueued(
 		RETURNING `+themeSegmentRenderCacheColumns,
 		input.ThemeSegmentID,
 		input.PlaybackSourceID,
+		input.ReleaseVersionID,
 		strings.TrimSpace(input.CacheKey),
 		strings.TrimSpace(input.SourceKind),
 		strings.TrimSpace(input.SourceFingerprint),
@@ -106,9 +110,13 @@ func (r *AdminContentRepository) GetThemeSegmentRenderCacheByKey(
 	return scanThemeSegmentRenderCache(row)
 }
 
+// GetReadyThemeSegmentRenderCache ist release_version_id-scoped (Phase 117, Nyquist-Fix
+// W2/Risk 1): ein 'ready'-Cache-Eintrag fuer Folge 7 kollidiert nicht mehr mit Folge 1
+// desselben geteilten Segments.
 func (r *AdminContentRepository) GetReadyThemeSegmentRenderCache(
 	ctx context.Context,
 	segmentID int64,
+	releaseVersionID int64,
 ) (*models.ThemeSegmentRenderCache, error) {
 	if segmentID <= 0 {
 		return nil, ErrNotFound
@@ -118,17 +126,19 @@ func (r *AdminContentRepository) GetReadyThemeSegmentRenderCache(
 		SELECT `+themeSegmentRenderCacheColumns+`
 		FROM theme_segment_render_cache
 		WHERE theme_segment_id = $1
+		  AND release_version_id = $2
 		  AND status = 'ready'
 		  AND invalidated_at IS NULL
 		ORDER BY completed_at DESC NULLS LAST, id DESC
 		LIMIT 1
-	`, segmentID)
+	`, segmentID, releaseVersionID)
 	return scanThemeSegmentRenderCache(row)
 }
 
 func (r *AdminContentRepository) GetLatestThemeSegmentRenderCache(
 	ctx context.Context,
 	segmentID int64,
+	releaseVersionID int64,
 ) (*models.ThemeSegmentRenderCache, error) {
 	if segmentID <= 0 {
 		return nil, ErrNotFound
@@ -138,16 +148,18 @@ func (r *AdminContentRepository) GetLatestThemeSegmentRenderCache(
 		SELECT `+themeSegmentRenderCacheColumns+`
 		FROM theme_segment_render_cache
 		WHERE theme_segment_id = $1
+		  AND release_version_id = $2
 		  AND invalidated_at IS NULL
 		ORDER BY updated_at DESC, id DESC
 		LIMIT 1
-	`, segmentID)
+	`, segmentID, releaseVersionID)
 	return scanThemeSegmentRenderCache(row)
 }
 
 func (r *AdminContentRepository) ListThemeSegmentRenderCaches(
 	ctx context.Context,
 	segmentID int64,
+	releaseVersionID int64,
 ) ([]models.ThemeSegmentRenderCache, error) {
 	if segmentID <= 0 {
 		return nil, ErrNotFound
@@ -157,10 +169,11 @@ func (r *AdminContentRepository) ListThemeSegmentRenderCaches(
 		SELECT `+themeSegmentRenderCacheColumns+`
 		FROM theme_segment_render_cache
 		WHERE theme_segment_id = $1
+		  AND release_version_id = $2
 		ORDER BY updated_at DESC, id DESC
-	`, segmentID)
+	`, segmentID, releaseVersionID)
 	if err != nil {
-		return nil, fmt.Errorf("list theme segment render caches segment=%d: %w", segmentID, err)
+		return nil, fmt.Errorf("list theme segment render caches segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
 	defer rows.Close()
 
@@ -173,12 +186,14 @@ func (r *AdminContentRepository) ListThemeSegmentRenderCaches(
 		items = append(items, *item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("list theme segment render caches rows segment=%d: %w", segmentID, err)
+		return nil, fmt.Errorf("list theme segment render caches rows segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
 	return items, nil
 }
 
-func (r *AdminContentRepository) DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64) (int64, error) {
+// DeleteThemeSegmentRenderCaches ist release_version_id-scoped: ein Loeschen fuer
+// Folge 7 loescht NICHT den Cache von Folge 1 desselben geteilten Segments mit.
+func (r *AdminContentRepository) DeleteThemeSegmentRenderCaches(ctx context.Context, segmentID int64, releaseVersionID int64) (int64, error) {
 	if segmentID <= 0 {
 		return 0, ErrNotFound
 	}
@@ -186,16 +201,23 @@ func (r *AdminContentRepository) DeleteThemeSegmentRenderCaches(ctx context.Cont
 	tag, err := r.db.Exec(ctx, `
 		DELETE FROM theme_segment_render_cache
 		WHERE theme_segment_id = $1
-	`, segmentID)
+		  AND release_version_id = $2
+	`, segmentID, releaseVersionID)
 	if err != nil {
-		return 0, fmt.Errorf("delete theme segment render caches segment=%d: %w", segmentID, err)
+		return 0, fmt.Errorf("delete theme segment render caches segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
 	return tag.RowsAffected(), nil
 }
 
+// GetThemeSegmentRenderSource ist release_version_id-scoped (Phase 117, D-03): ein
+// geteiltes Kara-Segment kann mehrere theme_segment_playback_sources-Zeilen haben,
+// eine je zugewiesener Release-Version -- die WHERE-Klausel auf tps.release_version_id
+// waehlt deterministisch genau die angeforderte Zeile statt einer arbitraeren
+// LIMIT-1-Zeile ueber alle Zuweisungen hinweg.
 func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 	ctx context.Context,
 	segmentID int64,
+	releaseVersionID int64,
 ) (*models.ThemeSegmentRenderSource, error) {
 	if segmentID <= 0 {
 		return nil, ErrNotFound
@@ -209,7 +231,7 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 			tps.id,
 			tps.source_kind,
 			tps.release_variant_id,
-			rv.release_version_id,
+			tps.release_version_id,
 			tps.jellyfin_item_id,
 			tps.media_asset_id,
 			COALESCE(ma.file_path, NULLIF(ts.source_ref, '')),
@@ -230,11 +252,12 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 		LEFT JOIN stream_sources ss ON ss.id = rs.stream_source_id
 		LEFT JOIN media_assets ma ON ma.id = tps.media_asset_id
 		WHERE ts.id = $1
+		  AND tps.release_version_id = $2
 		ORDER BY
 			CASE WHEN ss.provider_type = 'jellyfin' THEN 0 ELSE 1 END,
 			rs.id ASC NULLS LAST
 		LIMIT 1
-	`, segmentID).Scan(
+	`, segmentID, releaseVersionID).Scan(
 		&item.SegmentID,
 		&item.AnimeID,
 		&item.PlaybackSourceID,
@@ -256,7 +279,7 @@ func (r *AdminContentRepository) GetThemeSegmentRenderSource(
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNotFound
 		}
-		return nil, fmt.Errorf("get theme segment render source segment=%d: %w", segmentID, err)
+		return nil, fmt.Errorf("get theme segment render source segment=%d release_version=%d: %w", segmentID, releaseVersionID, err)
 	}
 
 	return &item, nil
@@ -436,6 +459,7 @@ func scanThemeSegmentRenderCache(row pgx.Row) (*models.ThemeSegmentRenderCache, 
 		&item.ID,
 		&item.ThemeSegmentID,
 		&item.PlaybackSourceID,
+		&item.ReleaseVersionID,
 		&item.CacheKey,
 		&item.SourceKind,
 		&item.SourceFingerprint,

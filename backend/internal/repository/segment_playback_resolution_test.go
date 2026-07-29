@@ -70,9 +70,17 @@ func TestLoadThemeSegmentPlaybackSnapshotTx_NoNullDurationHardcode(t *testing.T)
 }
 
 // TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins verifies that
-// the snapshot query joins release_variants, release_streams, and stream_sources.
+// the playback resolution joins release_variants, release_streams, and stream_sources.
+//
+// Phase 117 Plan 117-03 (Nyquist-Fix W-mod) moved the actual release_variants/
+// release_streams/stream_sources JOIN out of admin_content_anime_themes.go into the
+// new, focused theme_segment_playback_resolution.go (resolveThemeSegmentReleaseVariantTx)
+// to keep admin_content_anime_themes.go from growing further past the CLAUDE.md
+// 450-line guideline. This test now reads BOTH files so it stays a correct proof of
+// "the resolution logic still joins these tables somewhere in the repository package",
+// independent of which specific file currently owns the query.
 func TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins(t *testing.T) {
-	content := readSegmentSourceFile(t, "admin_content_anime_themes.go")
+	content := readSegmentSourceFile(t, "admin_content_anime_themes.go") + "\n" + readSegmentSourceFile(t, "theme_segment_playback_resolution.go")
 
 	requiredPatterns := []string{
 		"release_variants",
@@ -82,7 +90,7 @@ func TestLoadThemeSegmentPlaybackSnapshotTx_ContainsReleaseVariantJoins(t *testi
 	}
 	for _, pattern := range requiredPatterns {
 		if !strings.Contains(content, pattern) {
-			t.Errorf("loadThemeSegmentPlaybackSnapshotTx: missing pattern %q in admin_content_anime_themes.go", pattern)
+			t.Errorf("theme segment playback resolution: missing pattern %q across admin_content_anime_themes.go + theme_segment_playback_resolution.go", pattern)
 		}
 	}
 }

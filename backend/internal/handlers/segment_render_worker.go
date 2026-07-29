@@ -92,7 +92,11 @@ func (h *AdminContentHandler) processNextQueuedSegmentRender(ctx context.Context
 		return false
 	}
 
-	source, err := themeRepo.GetThemeSegmentRenderSource(ctx, cache.ThemeSegmentID)
+	releaseVersionID := int64(0)
+	if cache.ReleaseVersionID != nil {
+		releaseVersionID = *cache.ReleaseVersionID
+	}
+	source, err := themeRepo.GetThemeSegmentRenderSource(ctx, cache.ThemeSegmentID, releaseVersionID)
 	if err != nil {
 		log.Printf("segment render worker: quelle konnte nicht geladen werden (segment_id=%d, cache_key=%s): %v", cache.ThemeSegmentID, cache.CacheKey, err)
 		if markErr := themeRepo.MarkThemeSegmentRenderCacheFailed(ctx, cache.CacheKey, "source_lookup_failed", "Segment-Quelle konnte nicht geladen werden."); markErr != nil {

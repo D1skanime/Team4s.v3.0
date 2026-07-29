@@ -16,6 +16,7 @@ type ThemeSegmentRenderCache struct {
 	ID                  int64                    `json:"id"`
 	ThemeSegmentID      int64                    `json:"theme_segment_id"`
 	PlaybackSourceID    *int64                   `json:"playback_source_id,omitempty"`
+	ReleaseVersionID    *int64                   `json:"release_version_id,omitempty"`
 	CacheKey            string                   `json:"cache_key"`
 	SourceKind          string                   `json:"source_kind"`
 	SourceFingerprint   string                   `json:"source_fingerprint"`
@@ -42,6 +43,7 @@ type ThemeSegmentRenderCache struct {
 type ThemeSegmentRenderCacheUpsertInput struct {
 	ThemeSegmentID    int64
 	PlaybackSourceID  *int64
+	ReleaseVersionID  *int64
 	CacheKey          string
 	SourceKind        string
 	SourceFingerprint string

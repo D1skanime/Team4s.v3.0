@@ -57,7 +57,7 @@ type adminThemeRepository interface {
 	ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string) ([]models.AdminThemeSegment, error)
 	ListAnimeSegmentSuggestions(ctx context.Context, animeID int64, episodeNumber int, excludeGroupID int64, excludeVersion string) ([]models.AdminThemeSegment, error)
 	ListSegmentLibraryCandidates(ctx context.Context, animeID int64, fansubGroupID int64, segmentKind string, segmentName string) ([]models.SegmentLibraryCandidate, error)
-	CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput) (*models.AdminThemeSegment, error)
+	CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, error)
 	UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error
 	DeleteAnimeSegment(ctx context.Context, segmentID int64) error
 	GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64) (*models.AdminThemeSegment, error)
@@ -66,7 +66,7 @@ type adminThemeRepository interface {
 	BindUploadedSegmentAsset(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64, sourceRef string, sourceLabel *string) (*models.AdminThemeSegment, error)
 	AttachSegmentLibraryAsset(ctx context.Context, animeID int64, segmentID int64, input models.SegmentLibraryAttachInput) (*models.AdminThemeSegment, error)
 	IsReusableSegmentAsset(ctx context.Context, sourceRef string) (bool, error)
-	GetSegmentReleaseDuration(ctx context.Context, animeID int64, fansubGroupID int64, version string) (*int32, error)
+	GetSegmentReleaseDuration(ctx context.Context, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) (*int32, error)
 	GetCanonicalFansubAnimeRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
 	GetFansubRelease(ctx context.Context, fansubGroupID int64, animeID int64) (*int64, error)
 	ListFansubAnime(ctx context.Context, fansubGroupID int64) ([]models.AdminFansubAnimeEntry, error)
