@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: "116-06 Task 2 (blocking live-verify checkpoint) -- Docker rebuild/restart + Browser-UAT auf :3000 ausstehend, gebuendelt mit Phase 114-116"
-last_updated: "2026-07-29T08:41:38.584Z"
+stopped_at: Completed 117-01-PLAN.md
+last_updated: "2026-07-29T13:48:25.550Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 89
   total_plans: 502
-  completed_plans: 462
+  completed_plans: 463
   percent: 82
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 116 — personalisiertes-dashboard
+**Current focus:** Phase 117 — kara-segment-zeit-override-anzeige
 
 ## Current Position
 
-Phase: 116 (personalisiertes-dashboard) — EXECUTING
-Plan: 6 of 6
+Phase: 117 (kara-segment-zeit-override-anzeige) — EXECUTING
+Plan: 2 of 9
 
 ## Accumulated Context
 
@@ -424,6 +424,8 @@ Recent durable decisions:
 - [Phase 116-04]: AttentionSection/DashboardMetrics rein praesentational — Beide Sektionen konsumieren nur bereits gebaute 116-01-Contracts (attentionHelpers, OwnDashboardData); anime_title-Fallback und toLocaleString-Split wie im Plan vorgegeben, keine Architekturaenderung.
 - [Phase 116-05]: CategoryProgressTable/MyGroupsSection/QuickLinksSection built: client+server progress merge (D-04, no re-derived thresholds), D-09 EmptyState override for Meine Gruppen (D-05), live-verified static Suche-route gate (D-06, /suche already landed from Phase 115)
 - [Phase 116-06]: page.tsx komponiert alle fuenf Dashboard-Sektionen hinter einem Promise.all, ganz ohne Eligibility-Redirect (kein useRouter-Import); ErrorState zeigt immer die fixe UI-SPEC-Copy statt der rohen Fehlermeldung. — D-01/D-09: jeder eingeloggte User muss /me/dashboard erreichen koennen, unabhaengig von has_member_profile/has_project_assignments; Live-Verify-Checkpoint (Task 2) bleibt offen und wird in die gebuendelte Phase-114-116-Live-UAT aufgenommen.
+- [Phase 117-01]: Legacy 1:1 UNIQUE-Index uq_theme_segment_playback_sources_segment bleibt bewusst bestehen (Nyquist-Fix W1) und koexistiert mit dem neuen composite UNIQUE bis Plan 117-03 den alten Index atomar mit der Code-Umstellung von syncThemeSegmentPlaybackSourceTx droppt.
+- [Phase 117-01]: Backfill der Migration 0141 filtert zusaetzlich auf den Episoden-Bereich (start_episode..end_episode), was RESEARCH.md Risk 3 bereits auf Backfill-Ebene behebt, obwohl die bestehende resolved_variant-CTE diese Filterung noch nicht hat.
 
 ### Pending Todos
 
@@ -732,6 +734,7 @@ Recent durable decisions:
 | Phase 116 P04 | 4min | 2 tasks | 5 files |
 | Phase 116 P05 | 35min | 3 tasks | 7 files |
 | Phase 116 P06 | 40min | 1 tasks | 3 files |
+| Phase 117 P01 | 15min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -813,8 +816,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T08:41:25.185Z
-Stopped at: 116-06 Task 2 (blocking live-verify checkpoint) -- Docker rebuild/restart + Browser-UAT auf :3000 ausstehend, gebuendelt mit Phase 114-116
+Last session: 2026-07-29T13:48:25.507Z
+Stopped at: Completed 117-01-PLAN.md
 Last activity: 2026-07-29
 Resume file: 
-.planning/phases/116-personalisiertes-dashboard/116-06-PLAN.md
+None
