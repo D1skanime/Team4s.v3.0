@@ -74,6 +74,11 @@ type AdminThemeSegment struct {
 	LibraryOwnership     *string    `json:"library_ownership_scope,omitempty"`
 	LibraryAttachSource  *string    `json:"library_attach_source,omitempty"`
 	CreatedAt            time.Time  `json:"created_at"`
+
+	// Zuweisungs-/Override-Uebersicht fuer geteilte Kara-Segmente (Phase 117, D-01/D-03).
+	AssignedReleaseVersionIDs []int64 `json:"assigned_release_version_ids,omitempty"`
+	IsShared                  bool    `json:"is_shared"`
+	HasEpisodeOverride        bool    `json:"has_episode_override"`
 }
 
 // AdminThemeSegmentCreateInput enthaelt die Felder zum Anlegen eines neuen Segments.
@@ -104,6 +109,38 @@ type AdminThemeSegmentPatchInput struct {
 	SourceType           *string `json:"source_type"`
 	SourceRef            *string `json:"source_ref"`
 	SourceLabel          *string `json:"source_label"`
+}
+
+// AdminThemeSegmentAssignment repraesentiert die Zuweisung eines geteilten
+// Kara-Segments zu einer konkreten Release-Version (Phase 117, D-03).
+type AdminThemeSegmentAssignment struct {
+	ID               int64     `json:"id"`
+	ThemeSegmentID   int64     `json:"theme_segment_id"`
+	ReleaseVersionID int64     `json:"release_version_id"`
+	CreatedAt        time.Time `json:"created_at"`
+}
+
+// AdminThemeSegmentEpisodeOverride repraesentiert einen optionalen
+// Per-Release-Version-Zeit-Override fuer ein zugewiesenes Kara-Segment
+// (Phase 117, D-01). StartTime/EndTime sind HH:MM:SS-Strings, exakt wie
+// AdminThemeSegment.StartTime/EndTime.
+type AdminThemeSegmentEpisodeOverride struct {
+	ID               int64     `json:"id"`
+	ThemeSegmentID   int64     `json:"theme_segment_id"`
+	ReleaseVersionID int64     `json:"release_version_id"`
+	StartTime        string    `json:"start_time"`
+	EndTime          string    `json:"end_time"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+// AdminThemeSegmentEpisodeOverrideUpsertInput enthaelt die Felder zum Anlegen
+// oder Aktualisieren eines Per-Release-Version-Zeit-Overrides.
+type AdminThemeSegmentEpisodeOverrideUpsertInput struct {
+	ThemeSegmentID   int64  `json:"theme_segment_id"`
+	ReleaseVersionID int64  `json:"release_version_id"`
+	StartTime        string `json:"start_time"`
+	EndTime          string `json:"end_time"`
 }
 
 type SegmentLibraryIdentityStatus string
