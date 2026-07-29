@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X, Upload, FileVideo, XCircle } from 'lucide-react'
 
+import { Switch, FormField, Input, Button } from '@/components/ui'
 import type { AdminThemeSegment, AdminSegmentSourceType, AdminSegmentLibraryCandidate } from '@/types/admin'
 import type { GenericSegmentThemeOption } from './useReleaseSegments'
 import {
@@ -12,6 +13,7 @@ import {
   resolveLibraryCandidateLabel,
   resolveSegmentProvenance,
   resolveSegmentProvenanceDetails,
+  findAssignedEpisodeNumber,
 } from './SegmenteTab.helpers'
 import styles from './SegmenteTab.module.css'
 
@@ -43,6 +45,11 @@ interface SegmentEditPanelProps {
   reuseCandidates: AdminSegmentLibraryCandidate[]
   reuseError: string | null
   previewStreamHref?: string | null
+  currentReleaseVersionId: number | null
+  onSaveOverride: (input: { startTime: string; endTime: string }) => void
+  onRemoveOverride: () => void
+  isSavingOverride: boolean
+  overrideError: string | null
   onClose: () => void
   onFormChange: (patch: Partial<FormState>) => void
   onPendingUploadFileChange: (file: File | null) => void
@@ -68,6 +75,11 @@ export function SegmentEditPanel({
   reuseCandidates,
   reuseError,
   previewStreamHref,
+  currentReleaseVersionId,
+  onSaveOverride,
+  onRemoveOverride,
+  isSavingOverride,
+  overrideError,
   onClose,
   onFormChange,
   onPendingUploadFileChange,
@@ -77,6 +89,18 @@ export function SegmentEditPanel({
   onAttachReuseCandidate,
 }: SegmentEditPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [overrideEnabled, setOverrideEnabled] = useState(editingSegment?.has_episode_override === true)
+  const [overrideStartTime, setOverrideStartTime] = useState(editingSegment?.start_time ?? '')
+  const [overrideEndTime, setOverrideEndTime] = useState(editingSegment?.end_time ?? '')
+
+  // Override-Zustand pro geoeffnetem Segment zuruecksetzen (Panel-Instanz bleibt beim
+  // Wechsel des editingSegment gemountet, siehe SegmenteTab.tsx openEditPanel/openAddPanel).
+  useEffect(() => {
+    setOverrideEnabled(editingSegment?.has_episode_override === true)
+    setOverrideStartTime(editingSegment?.start_time ?? '')
+    setOverrideEndTime(editingSegment?.end_time ?? '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingSegment?.id])
   const provenance = editingSegment ? resolveSegmentProvenance(editingSegment) : null
   const provenanceDetails = editingSegment ? resolveSegmentProvenanceDetails(editingSegment) : null
   const startEpisodeValue = formState.startEpisode.trim()
@@ -102,14 +126,69 @@ export function SegmentEditPanel({
   const hasInvalidTimeRange =
     (startSeconds != null && endSeconds != null && endSeconds <= startSeconds) ||
     exceedsMaxSegmentWindow
+
+  // --- Zeit-Override-Block (UI-SPEC Surface 1, nur bei geteilten Segmenten) ---
+  const isSharedSegment = editingSegment?.is_shared === true
+  const currentEpisodeLabel =
+    editingSegment && currentReleaseVersionId != null
+      ? (findAssignedEpisodeNumber(editingSegment, currentReleaseVersionId) ?? '?')
+      : '?'
+  const overrideStartSeconds = parseFlexibleTimeInput(overrideStartTime)
+  const overrideEndSeconds = parseFlexibleTimeInput(overrideEndTime)
+  const overrideMissingTimeRange = overrideEnabled && (overrideStartTime.trim() === '' || overrideEndTime.trim() === '')
+  const overrideHasInvalidTimeInput =
+    overrideEnabled &&
+    ((overrideStartTime.trim() !== '' && overrideStartSeconds == null) ||
+      (overrideEndTime.trim() !== '' && overrideEndSeconds == null))
+  const overrideExceedsMaxWindow =
+    overrideStartSeconds != null && overrideEndSeconds != null && overrideEndSeconds - overrideStartSeconds > 240
+  const overrideEndBeforeStart =
+    overrideStartSeconds != null && overrideEndSeconds != null && overrideEndSeconds <= overrideStartSeconds
+  const overrideHasInvalidTimeRange = overrideEnabled && (overrideEndBeforeStart || overrideExceedsMaxWindow)
+  const overrideLocalError = overrideMissingTimeRange
+    ? 'Bitte Start und Ende ausfüllen.'
+    : overrideHasInvalidTimeInput
+      ? 'Zeitangaben müssen z. B. 1:20, 00:01:20 oder Sekunden sein.'
+      : overrideExceedsMaxWindow
+        ? 'Segment-Zeitbereich darf maximal 4 Minuten lang sein.'
+        : overrideEndBeforeStart
+          ? 'Ende muss nach dem Start liegen.'
+          : null
+  const overrideDisplayError = overrideLocalError ?? overrideError
+
+  function handleOverrideToggle(next: boolean) {
+    if (!next) {
+      onRemoveOverride()
+    }
+    setOverrideEnabled(next)
+  }
+
+  function handleRemoveOverrideClick() {
+    const confirmed = window.confirm(
+      `Override entfernen? Folge ${currentEpisodeLabel} verwendet danach wieder die Basis-Zeit des geteilten Segments.`,
+    )
+    if (confirmed) onRemoveOverride()
+  }
+
+  function handleSaveClick() {
+    onSave()
+    if (isSharedSegment && overrideEnabled) {
+      onSaveOverride({ startTime: overrideStartTime, endTime: overrideEndTime })
+    }
+  }
+
   const saveDisabled =
     isSaving ||
+    isSavingOverride ||
     isMissingEpisodeRange ||
     hasInvalidEpisodeValue ||
     hasInvalidEpisodeRange ||
     isMissingTimeRange ||
     hasInvalidTimeInput ||
-    hasInvalidTimeRange
+    hasInvalidTimeRange ||
+    overrideMissingTimeRange ||
+    overrideHasInvalidTimeInput ||
+    overrideHasInvalidTimeRange
   const runtimeKnown = effectiveDuration != null
   const runtimeFromPlayback = editingSegment?.playback_duration_seconds != null
   const renderStatus =
@@ -219,7 +298,7 @@ export function SegmentEditPanel({
         ) : null}
 
         <div className={styles.panelField}>
-          <label>Zeitbereich im Video</label>
+          <label>{isSharedSegment ? 'Basis-Zeitbereich (gilt für alle zugewiesenen Folgen)' : 'Zeitbereich im Video'}</label>
           <span className={styles.sourceHelpText}>
             Eingabe einfach als `1:20`, `12:03` oder Sekunden.{' '}
             {runtimeKnown
@@ -291,6 +370,73 @@ export function SegmentEditPanel({
         {exceedsMaxSegmentWindow ? (
           <div className={styles.assetError}>
             Segment-Zeitbereich darf maximal 4 Minuten lang sein.
+          </div>
+        ) : null}
+
+        {/* Per-Folge Zeit-Override (UI-SPEC Surface 1) — nur bei geteilten Segmenten */}
+        {isSharedSegment ? (
+          <div className={styles.panelField}>
+            <Switch
+              checked={overrideEnabled}
+              onCheckedChange={handleOverrideToggle}
+              label="Zeit nur für diese Folge abweichend setzen"
+              disabled={isSavingOverride}
+            />
+            {overrideEnabled ? (
+              <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
+                  Zeit-Override für Folge {currentEpisodeLabel}
+                </h4>
+                <div className={styles.panelFieldRow}>
+                  <FormField
+                    label={`Start (Folge ${currentEpisodeLabel})`}
+                    htmlFor="segment-override-start"
+                    hint={`Diese Zeit gilt nur für Folge ${currentEpisodeLabel}. Das Kara selbst bleibt unverändert und wird nicht neu kodiert — nur die Vorschau wird neu vorbereitet.`}
+                  >
+                    <Input
+                      id="segment-override-start"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="z. B. 0:00"
+                      value={overrideStartTime}
+                      onChange={(e) => setOverrideStartTime(e.target.value)}
+                      onBlur={(e) => {
+                        const parsed = parseFlexibleTimeInput(e.target.value)
+                        if (parsed != null) setOverrideStartTime(formatTimeInput(parsed))
+                      }}
+                    />
+                  </FormField>
+                  <FormField
+                    label={`Ende (Folge ${currentEpisodeLabel})`}
+                    htmlFor="segment-override-end"
+                    error={overrideDisplayError ?? undefined}
+                  >
+                    <Input
+                      id="segment-override-end"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="z. B. 1:20"
+                      value={overrideEndTime}
+                      onChange={(e) => setOverrideEndTime(e.target.value)}
+                      onBlur={(e) => {
+                        const parsed = parseFlexibleTimeInput(e.target.value)
+                        if (parsed != null) setOverrideEndTime(formatTimeInput(parsed))
+                      }}
+                    />
+                  </FormField>
+                </div>
+                {editingSegment?.has_episode_override === true ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleRemoveOverrideClick}
+                    disabled={isSavingOverride}
+                  >
+                    Override entfernen
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -537,8 +683,8 @@ export function SegmentEditPanel({
           <button type="button" className={styles.panelCancelButton} onClick={onClose}>
             Abbrechen
           </button>
-          <button type="button" className={styles.panelSaveButton} onClick={onSave} disabled={saveDisabled}>
-            {isSaving ? 'Speichert...' : 'Speichern'}
+          <button type="button" className={styles.panelSaveButton} onClick={handleSaveClick} disabled={saveDisabled}>
+            {isSaving || isSavingOverride ? 'Speichert...' : 'Speichern'}
           </button>
         </div>
       </div>
