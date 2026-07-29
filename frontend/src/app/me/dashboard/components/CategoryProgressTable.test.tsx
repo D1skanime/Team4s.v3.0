@@ -74,8 +74,8 @@ describe('CategoryProgressTable (Phase 116, D-04)', () => {
         data={makeData({
           category_progress: [
             { family: 'contribution_archivist', current_tier: 'gold', current_count: 500, next_threshold: null },
-            { family: 'contribution_chronicle', current_tier: '', current_count: 0, next_threshold: null },
-            { family: 'contribution_projects', current_tier: '', current_count: 0, next_threshold: null },
+            { family: 'contribution_chronicle', current_tier: 'bronze', current_count: 12, next_threshold: 40 },
+            { family: 'contribution_projects', current_tier: '', current_count: 0, next_threshold: 5 },
           ],
         })}
       />,
