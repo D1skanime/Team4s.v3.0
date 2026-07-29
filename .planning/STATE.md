@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 116-02-PLAN.md
-last_updated: "2026-07-29T07:44:58.259Z"
+stopped_at: Completed 116-03-PLAN.md
+last_updated: "2026-07-29T07:53:08.183Z"
 last_activity: 2026-07-29
 progress:
   total_phases: 109
   completed_phases: 88
   total_plans: 502
-  completed_plans: 458
+  completed_plans: 459
   percent: 81
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 116 (personalisiertes-dashboard) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 ## Accumulated Context
 
@@ -420,6 +420,7 @@ Recent durable decisions:
 - [Phase 115]: Suche-Nav-Eintrag in beiden AppShell-Gruppen aktiv (href /suche, Icon Search); Dashboard-badge bald bleibt vorbestehender Out-of-Scope-Platzhalter
 - [Phase 116-01]: category_progress in OwnDashboardData excludes point-milestone/role-volume rows (client-side derived in Plan 116-05 via memberBadgeLabels.ts helpers)
 - [Phase 116-02]: D-08 Ownership-Gate ueber resolveVerifiedMemberIDForAppUser (paket-weiter Seam, ContributionsMeHandler delegiert); D-09 graceful 200 has_member_profile=false statt 403; Projekte(Anzahl) bewusst getrennt von Familie-1-Rohzahl (Pitfall 6)
+- [Phase 116-03]: getOwnDashboard() placed immediately after getMyAnimeContributions in api.ts; Dashboard nav entry moved unconditionally into fixedMyItems directly after Mein Profil/Mein Account (D-10).
 
 ### Pending Todos
 
@@ -723,6 +724,7 @@ Recent durable decisions:
 | Phase 115 P05 | ~20 min | 3 tasks | 5 files |
 | Phase 116 P01 | 12min | 3 tasks | 11 files |
 | Phase 116 P02 | 55min | 3 tasks | 12 files |
+| Phase 116 P03 | 15min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -804,8 +806,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T07:44:58.223Z
-Stopped at: Completed 116-02-PLAN.md
+Last session: 2026-07-29T07:53:08.143Z
+Stopped at: Completed 116-03-PLAN.md
 Last activity: 2026-07-29
 Resume file: 
 None
