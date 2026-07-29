@@ -2652,14 +2652,22 @@ Plans:
 
 ### Phase 117: Kara-Segment — Zeit-Override je Folge + entdoppelte Anzeige
 
-**Goal:** Zwei Verbesserungen am bestehenden Kara-/Segment-Subsystem, **ohne Re-Encode**: (1) Für ein über eine Episoden-Spanne **geteiltes** Kara-Segment die Startzeit einer **einzelnen** Folge als **Offset/Override** korrigieren können — rein als Metadaten, **ohne** Neu-Encodieren des Videos und **ohne** dass daraus ein eigenes/neues Segment wird (bleibt „dasselbe Segment, nur für diese Folge verschoben"). (2) Die **UI-Anzeige entdoppeln**: ein Segment nur **einmal am Spann-Beginn** zeigen und erst bei einem **echten Segment-Wechsel** erneut — ein reiner **Zeit-Offset** erzeugt **keinen** neuen Eintrag. **ZWINGEND analyse-first:** das bestehende Segment-/Timing-/Render-Cache-Modell und die Herkunft der „für jede Folge"-Anzeige zuerst gegen den echten Code analysieren; nichts raten, nichts vorschnell bauen.
-**Requirements:** Bestehendes Kara-/Segment-Subsystem (Editor `admin/episode-versions/[versionId]/edit/`, `useReleaseSegments`, `theme_segment_render_cache`, `/api/segments`), Release-/Episoden-/Projekt-Struktur. Kein Re-Encode.
+**Goal:** Zwei Verbesserungen am bestehenden Kara-/Segment-Subsystem, **ohne Re-Encode**: (1) Für ein über eine Episoden-Spanne **geteiltes** Kara-Segment die Startzeit einer **einzelnen** Folge als **Offset/Override** korrigieren können — rein als Metadaten, **ohne** Neu-Encodieren des Videos und **ohne** dass daraus ein eigenes/neues Segment wird (bleibt „dasselbe Segment, nur für diese Folge verschoben"). (2) Die **UI-Anzeige entdoppeln**: ein Segment nur **einmal am Spann-Beginn** zeigen und erst bei einem **echten Segment-Wechsel** erneut — ein reiner **Zeit-Offset** erzeugt **keinen** neuen Eintrag. **ZWINGEND analyse-first:** das bestehende Segment-/Timing-/Render-Cache-Modell und die Herkunft der „für jede Folge"-Anzeige zuerst gegen den echten Code analysieren; nichts raten, nichts vorschnell bauen. Umgesetzt als volles Option B (CONTEXT.md D-03, gelockt): ein geteiltes, pro Release-Version zuweisbares Kara ersetzt die heutige Per-Datensatz-Duplizierung und die 1:1-Playback-Bindung.
+**Requirements:** Bestehendes Kara-/Segment-Subsystem (Editor `admin/episode-versions/[versionId]/edit/`, `useReleaseSegments`, `theme_segment_render_cache`, `/api/segments`), Release-/Episoden-/Projekt-Struktur. Kein Re-Encode. Siehe D-01/D-02/D-03 in `117-CONTEXT.md`.
 **Depends on:** Bestehendes Segment-Subsystem (Kara-Playback/Timeline aus Phasen 103/105)
-**Plans:** 0 plans
+**Plans:** 9 plans
 
 Plans:
 
-- [ ] TBD
+- [ ] `117-01-PLAN.md` — Migrationen 0141-0143: theme_segment_assignments, theme_segment_episode_overrides, theme_segment_render_cache.release_version_id (Wave 1)
+- [ ] `117-02-PLAN.md` — Wave-0-DB-Testfixture (OpenPhase117Postgres) + Modelle + Repository-CRUD für Zuweisung/Override (Wave 2)
+- [ ] `117-03-PLAN.md` — Deterministische Pro-Release-Version-Playback-Auflösung + Override-aware Sync + release-version-scoped Render-Cache-Lookups (Wave 3)
+- [ ] `117-04-PLAN.md` — Release-version-scoped Render-Cache-Invalidierung + Fan-Out bei Basis-Zeit-Änderung + AttachSegmentLibraryAsset-Fix (Risk 5) (Wave 4)
+- [ ] `117-05-PLAN.md` — Neue Assignment-/Override-Endpunkte + OpenAPI-Contract (Wave 5)
+- [ ] `117-06-PLAN.md` — Admin-UI Surface 1: Per-Folge-Zeit-Override-Eingabe im SegmentEditPanel (Wave 6)
+- [ ] `117-07-PLAN.md` — Admin-UI Surface 2: "Geteiltes Segment"-/Override-Badges + Zuweisungsliste in SegmenteTab (Wave 4, parallel zu 117-04)
+- [ ] `117-08-PLAN.md` — Öffentliche Entdopplung: loadReleaseSegments + "Gilt auch für Folge X–Y"-Badge auf der Release-Detailseite (Wave 3, parallel zu 117-03)
+- [ ] `117-09-PLAN.md` — Regressionssuite + Live-UAT (Kein-Re-Encode-Beweis, Entdopplung, alle drei Surfaces) (Wave 7)
 
 ## Backlog
 
