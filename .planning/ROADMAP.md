@@ -2655,7 +2655,7 @@ Plans:
 **Goal:** Zwei Verbesserungen am bestehenden Kara-/Segment-Subsystem, **ohne Re-Encode**: (1) Für ein über eine Episoden-Spanne **geteiltes** Kara-Segment die Startzeit einer **einzelnen** Folge als **Offset/Override** korrigieren können — rein als Metadaten, **ohne** Neu-Encodieren des Videos und **ohne** dass daraus ein eigenes/neues Segment wird (bleibt „dasselbe Segment, nur für diese Folge verschoben"). (2) Die **UI-Anzeige entdoppeln**: ein Segment nur **einmal am Spann-Beginn** zeigen und erst bei einem **echten Segment-Wechsel** erneut — ein reiner **Zeit-Offset** erzeugt **keinen** neuen Eintrag. **ZWINGEND analyse-first:** das bestehende Segment-/Timing-/Render-Cache-Modell und die Herkunft der „für jede Folge"-Anzeige zuerst gegen den echten Code analysieren; nichts raten, nichts vorschnell bauen. Umgesetzt als volles Option B (CONTEXT.md D-03, gelockt): ein geteiltes, pro Release-Version zuweisbares Kara ersetzt die heutige Per-Datensatz-Duplizierung und die 1:1-Playback-Bindung.
 **Requirements:** Bestehendes Kara-/Segment-Subsystem (Editor `admin/episode-versions/[versionId]/edit/`, `useReleaseSegments`, `theme_segment_render_cache`, `/api/segments`), Release-/Episoden-/Projekt-Struktur. Kein Re-Encode. Siehe D-01/D-02/D-03 in `117-CONTEXT.md`.
 **Depends on:** Bestehendes Segment-Subsystem (Kara-Playback/Timeline aus Phasen 103/105)
-**Plans:** 5/9 plans executed
+**Plans:** 6/9 plans executed
 
 Plans:
 
