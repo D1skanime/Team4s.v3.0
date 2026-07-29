@@ -407,6 +407,110 @@ endpoints:
       status: 201
       type: AdminAnimeThemeCreateResponse
 
+  - name: admin-segment-assign
+    method: POST
+    path: /api/v1/admin/anime/:id/segments/:segmentId/assignments
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage for the given release_version_id (Phase 117, D-03).
+        - Assigns a shared Kara segment to an additional release version; idempotent on repeat calls.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: AdminThemeSegmentAssignmentRequest
+    response:
+      status: 201
+      type: AdminAnimeSegmentResponse
+
+  - name: admin-segment-unassign
+    method: DELETE
+    path: /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage for releaseVersionId (Phase 117, D-03).
+        - Removing the assignment cascades to any per-version time override for the same pair.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+      - name: releaseVersionId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AdminAnimeSegmentResponse
+
+  - name: admin-segment-episode-override-upsert
+    method: PUT
+    path: /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage for releaseVersionId (Phase 117, D-01).
+        - start_time/end_time are validated with the same rules as the base segment time (start before end, max 4-minute window, runtime bound).
+        - Returns 409 if releaseVersionId is not assigned to the segment.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+      - name: releaseVersionId
+        type: int64
+        minimum: 1
+    request_body:
+      required: true
+      type: AdminThemeSegmentEpisodeOverrideRequest
+    response:
+      status: 200
+      type: AdminAnimeSegmentResponse
+
+  - name: admin-segment-episode-override-delete
+    method: DELETE
+    path: /api/v1/admin/anime/:id/segments/:segmentId/assignments/:releaseVersionId/override
+    auth:
+      required: true
+      header:
+        name: Authorization
+        format: Bearer <signed token>
+      notes:
+        - Requires release_version.segments.manage for releaseVersionId (Phase 117, D-01).
+        - Removes the per-version time override; the segment's base time applies again for this release version.
+    path_params:
+      - name: id
+        type: int64
+        minimum: 1
+      - name: segmentId
+        type: int64
+        minimum: 1
+      - name: releaseVersionId
+        type: int64
+        minimum: 1
+    response:
+      status: 200
+      type: AdminAnimeSegmentResponse
+
   - name: admin-release-get
     method: GET
     path: /api/v1/admin/releases/:releaseId
@@ -1332,6 +1436,62 @@ types:
     title: string | null
   AdminAnimeThemeCreateResponse:
     data: AdminAnimeTheme
+  AdminThemeSegmentAssignmentRequest:
+    release_version_id: "int64 (required, minimum: 1)"
+  AdminThemeSegmentEpisodeOverrideRequest:
+    start_time: "string (required, format: HH:MM:SS or MM:SS)"
+    end_time: "string (required, format: HH:MM:SS or MM:SS)"
+  AdminAnimeSegmentResponse:
+    data: AdminThemeSegment
+  AdminThemeSegmentAssignmentEpisode:
+    release_version_id: int64
+    episode_number: string
+  AdminThemeSegment:
+    id: int64
+    theme_id: int64
+    anime_id: int64
+    theme_title: string | null
+    theme_type_name: string
+    fansub_group_id: int64 | null
+    version: string
+    start_episode: int32 | null
+    end_episode: int32 | null
+    start_time: string | null
+    end_time: string | null
+    source_jellyfin_item_id: string | null
+    source_type: string | null
+    source_ref: string | null
+    source_label: string | null
+    playback_source_id: int64 | null
+    playback_source_kind: string | null
+    playback_release_variant_id: int64 | null
+    playback_jellyfin_item_id: string | null
+    playback_media_asset_id: int64 | null
+    playback_source_label: string | null
+    playback_start_offset_seconds: int32 | null
+    playback_end_offset_seconds: int32 | null
+    playback_duration_seconds: int32 | null
+    render_cache_id: int64 | null
+    render_cache_key: string | null
+    render_status: string | null
+    render_error_message: string | null
+    render_duration_seconds: int32 | null
+    render_completed_at: datetime | null
+    can_retry_render: boolean
+    library_definition_id: int64 | null
+    library_asset_id: int64 | null
+    library_segment_kind: string | null
+    library_segment_name: string | null
+    library_anime_source_provider: string | null
+    library_anime_source_external_id: string | null
+    library_identity_status: string | null
+    library_ownership_scope: string | null
+    library_attach_source: string | null
+    created_at: datetime
+    assigned_release_version_ids: int64[] (optional)
+    is_shared: boolean
+    has_episode_override: boolean
+    assigned_episodes: AdminThemeSegmentAssignmentEpisode[] (optional)
   AdminAnimeTheme:
     id: int64
     anime_id: int64
