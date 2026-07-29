@@ -876,6 +876,14 @@ export interface AdminThemeSegment {
   library_identity_status?: string | null
   library_ownership_scope?: string | null
   library_attach_source?: string | null
+  /** Alle Release-Versionen, denen dieses (potenziell geteilte) Segment aktuell zugewiesen ist. */
+  assigned_release_version_ids?: number[]
+  /** true, wenn das Segment mehr als einer Release-Version zugewiesen ist (D-03). */
+  is_shared?: boolean
+  /** true, wenn mindestens eine zugewiesene Folge einen Zeit-Override hat (D-01/D-02). */
+  has_episode_override?: boolean
+  /** ECHTE Episodennummer je Zuweisung (Backend-Spiegel aus Plan 117-03 Task 2, B3-Fix). */
+  assigned_episodes?: { release_version_id: number; episode_number: string }[]
   created_at: string
 }
 

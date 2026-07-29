@@ -12,7 +12,13 @@ import {
   isSegmentActiveForEpisode,
 } from './segmenteTabUtils'
 
-import { parseFlexibleTimeInput, formatTimeInput } from './SegmenteTab.helpers'
+import {
+  parseFlexibleTimeInput,
+  formatTimeInput,
+  isCurrentEpisodeAssigned,
+  findAssignedEpisodeNumber,
+  formatAssignmentChipLabel,
+} from './SegmenteTab.helpers'
 import { useReleaseSegments } from './useReleaseSegments'
 import { SegmentEditPanel } from './SegmentEditPanel'
 import {
@@ -592,5 +598,72 @@ describe('formatTimeInput', () => {
 
   it('1529 Sekunden => "00:25:29"', () => {
     expect(formatTimeInput(1529)).toBe('00:25:29')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// isCurrentEpisodeAssigned / findAssignedEpisodeNumber / formatAssignmentChipLabel
+// (Plan 117-07 -- geteiltes Segment / Zuweisungs-Chips)
+// ---------------------------------------------------------------------------
+describe('isCurrentEpisodeAssigned', () => {
+  it('gibt true zurück, wenn die aktuelle Release-Version zugewiesen ist', () => {
+    const segment = makeSegment({ assigned_release_version_ids: [10, 20] })
+    expect(isCurrentEpisodeAssigned(segment, 20)).toBe(true)
+  })
+
+  it('gibt false zurück, wenn die aktuelle Release-Version NICHT zugewiesen ist', () => {
+    const segment = makeSegment({ assigned_release_version_ids: [10, 20] })
+    expect(isCurrentEpisodeAssigned(segment, 99)).toBe(false)
+  })
+
+  it('gibt false zurück, wenn currentReleaseVersionId null ist', () => {
+    const segment = makeSegment({ assigned_release_version_ids: [10, 20] })
+    expect(isCurrentEpisodeAssigned(segment, null)).toBe(false)
+  })
+
+  it('gibt false zurück, wenn assigned_release_version_ids fehlt', () => {
+    const segment = makeSegment({})
+    expect(isCurrentEpisodeAssigned(segment, 10)).toBe(false)
+  })
+})
+
+describe('findAssignedEpisodeNumber', () => {
+  it('liefert die ECHTE Episodennummer für eine bekannte release_version_id', () => {
+    const segment = makeSegment({
+      assigned_episodes: [
+        { release_version_id: 10, episode_number: '3' },
+        { release_version_id: 20, episode_number: '7' },
+      ],
+    })
+    expect(findAssignedEpisodeNumber(segment, 20)).toBe('7')
+  })
+
+  it('liefert null, wenn keine passende Zuweisung existiert', () => {
+    const segment = makeSegment({
+      assigned_episodes: [{ release_version_id: 10, episode_number: '3' }],
+    })
+    expect(findAssignedEpisodeNumber(segment, 999)).toBeNull()
+  })
+
+  it('liefert null, wenn assigned_episodes fehlt', () => {
+    const segment = makeSegment({})
+    expect(findAssignedEpisodeNumber(segment, 10)).toBeNull()
+  })
+})
+
+describe('formatAssignmentChipLabel', () => {
+  it('formatiert ohne Override als "Folge {N}"', () => {
+    expect(formatAssignmentChipLabel('7', false)).toBe('Folge 7')
+  })
+
+  it('formatiert mit Override als "Folge {N} · Zeit angepasst"', () => {
+    expect(formatAssignmentChipLabel('7', true)).toBe('Folge 7 · Zeit angepasst')
+  })
+
+  it('B3-Regression: nutzt die übergebene Episodennummer wortwörtlich, keine numerische release_version_id-Herleitung', () => {
+    // episodeNumber ist bewusst ein String, der sich von einer internen numerischen
+    // release_version_id unterscheiden würde (z. B. Episode "3" bei release_version_id 481).
+    expect(formatAssignmentChipLabel('3', false)).toBe('Folge 3')
+    expect(formatAssignmentChipLabel('3', false)).not.toBe('Folge 481')
   })
 })
