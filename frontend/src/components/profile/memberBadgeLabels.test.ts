@@ -10,6 +10,8 @@ import {
   MEMBER_BADGE_GROUP_ORDER,
   MEMBER_BADGE_PRESENTATIONS,
   PUBLIC_MEMBER_BADGE_CATALOG,
+  resolveNextPointMilestone,
+  resolveNextRoleVolumeThreshold,
 } from './memberBadgeLabels'
 
 describe('Contribution-Badge-Präsentationen (D-05)', () => {
@@ -141,5 +143,48 @@ describe('getMemberBadgePresentation — role_volume_-Resolver (D-04, Typ 3)', (
     const presentation = getMemberBadgePresentation('founding_member')
     expect(presentation.label).toBe('Gründungsmitglied')
     expect(presentation.group).toBe('membership')
+  })
+})
+
+describe('resolveNextPointMilestone (Phase 116 D-04 — naechste Punkt-Schwelle)', () => {
+  it('liefert kein aktuelles Badge und Schwelle 1 bei 0 Punkten', () => {
+    const result = resolveNextPointMilestone(0)
+    expect(result.currentBadge).toBeNull()
+    expect(result.nextThreshold).toBe(1)
+  })
+
+  it('liefert point_milestone_active und Schwelle 200 bei 50 Punkten', () => {
+    const result = resolveNextPointMilestone(50)
+    expect(result.currentBadge?.badge_code).toBe('point_milestone_active')
+    expect(result.nextThreshold).toBe(200)
+  })
+
+  it('liefert point_milestone_legend und keine weitere Schwelle bei 2500 Punkten', () => {
+    const result = resolveNextPointMilestone(2500)
+    expect(result.currentBadge?.badge_code).toBe('point_milestone_legend')
+    expect(result.nextThreshold).toBeNull()
+  })
+})
+
+describe('resolveNextRoleVolumeThreshold (Phase 116 D-04 — naechste Rollen-Volumen-Stufe)', () => {
+  it('liefert leere aktuelle Stufe und Schwelle 12/Bronze bei 0', () => {
+    const result = resolveNextRoleVolumeThreshold(0)
+    expect(result.currentTier).toBe('')
+    expect(result.nextThreshold).toBe(12)
+    expect(result.nextTierLabel).toBe('Bronze')
+  })
+
+  it('liefert bronze und Schwelle 108/Silber bei 12', () => {
+    const result = resolveNextRoleVolumeThreshold(12)
+    expect(result.currentTier).toBe('bronze')
+    expect(result.nextThreshold).toBe(108)
+    expect(result.nextTierLabel).toBe('Silber')
+  })
+
+  it('liefert platinum und keine weitere Schwelle bei 510', () => {
+    const result = resolveNextRoleVolumeThreshold(510)
+    expect(result.currentTier).toBe('platinum')
+    expect(result.nextThreshold).toBeNull()
+    expect(result.nextTierLabel).toBeNull()
   })
 })

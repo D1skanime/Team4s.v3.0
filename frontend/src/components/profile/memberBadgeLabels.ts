@@ -145,7 +145,7 @@ export function formatMemberBadgeLabel(badgeCode: string): string {
 // Ende abgeschnitten (nicht per naivem split('_')), damit Rollencodes mit eigenen
 // Unterstrichen (quality_checker, raw_provider, project_lead) korrekt erhalten bleiben.
 const ROLE_VOLUME_TIERS = ['bronze', 'silver', 'gold', 'platinum'] as const
-type RoleVolumeTier = (typeof ROLE_VOLUME_TIERS)[number]
+export type RoleVolumeTier = (typeof ROLE_VOLUME_TIERS)[number]
 
 const ROLE_VOLUME_TIER_LABELS: Record<RoleVolumeTier, string> = {
   bronze: 'Bronze',
@@ -154,7 +154,9 @@ const ROLE_VOLUME_TIER_LABELS: Record<RoleVolumeTier, string> = {
   platinum: 'Platin',
 }
 
-const ROLE_VOLUME_TIER_THRESHOLDS: Record<RoleVolumeTier, number> = {
+// Phase 116 (D-04): export only, keine Wertänderung — Single Source of Truth für
+// CategoryProgressTable.tsx (Plan 116-05), damit dort keine neuen Schwellenwerte entstehen.
+export const ROLE_VOLUME_TIER_THRESHOLDS: Record<RoleVolumeTier, number> = {
   bronze: 12,
   silver: 108,
   gold: 320,
@@ -223,7 +225,9 @@ export function getMemberBadgePresentation(badgeCode: string): MemberBadgePresen
 // D-01: die 6 Punktschwellen sind selbst die Meilenstein-Stufen, absteigend sortiert fuer
 // die "hoechste erreichte Stufe"-Ableitung (identischer Vergleichsstil wie der Go-Pendant
 // highestRoleVolumeTier, siehe RESEARCH Don't-Hand-Roll).
-const POINT_MILESTONES: Array<{ threshold: number; badge_code: string }> = [
+// Phase 116 (D-04): export only, keine Wertänderung — Single Source of Truth für
+// CategoryProgressTable.tsx (Plan 116-05), damit dort keine neuen Schwellenwerte entstehen.
+export const POINT_MILESTONES: Array<{ threshold: number; badge_code: string }> = [
   { threshold: 2500, badge_code: 'point_milestone_legend' },
   { threshold: 1000, badge_code: 'point_milestone_veteran' },
   { threshold: 500, badge_code: 'point_milestone_engaged' },
@@ -237,4 +241,46 @@ const POINT_MILESTONES: Array<{ threshold: number; badge_code: string }> = [
 export function deriveMilestoneBadge(totalPoints: number): PublicMemberBadge | null {
   const hit = POINT_MILESTONES.find((m) => totalPoints >= m.threshold)
   return hit ? { id: 0, badge_code: hit.badge_code, badge_category: 'progress' } : null
+}
+
+/**
+ * Phase 116 (D-04): liefert den aktuell gehaltenen Punkt-Meilenstein (via deriveMilestoneBadge,
+ * unverändert wiederverwendet) plus die nächsthöhere Schwelle. Existiert speziell, damit
+ * CategoryProgressTable.tsx (Plan 116-05) POINT_MILESTONES nie erneut sortiert oder dupliziert.
+ */
+export function resolveNextPointMilestone(
+  totalPoints: number,
+): { currentBadge: PublicMemberBadge | null; nextThreshold: number | null } {
+  const ascending = [...POINT_MILESTONES].sort((a, b) => a.threshold - b.threshold)
+  const next = ascending.find((milestone) => milestone.threshold > totalPoints)
+
+  return {
+    currentBadge: deriveMilestoneBadge(totalPoints),
+    nextThreshold: next ? next.threshold : null,
+  }
+}
+
+/**
+ * Phase 116 (D-04): liefert die aktuell gehaltene Rollen-Volumen-Stufe (leerer String unterhalb
+ * von Bronze) plus die nächsthöhere Schwelle/deutsches Label. Existiert speziell, damit
+ * CategoryProgressTable.tsx (Plan 116-05) ROLE_VOLUME_TIER_THRESHOLDS nie erneut dupliziert.
+ */
+export function resolveNextRoleVolumeThreshold(
+  count: number,
+): { currentTier: RoleVolumeTier | ''; nextThreshold: number | null; nextTierLabel: string | null } {
+  let currentTier: RoleVolumeTier | '' = ''
+  for (const tier of ROLE_VOLUME_TIERS) {
+    if (count >= ROLE_VOLUME_TIER_THRESHOLDS[tier]) {
+      currentTier = tier
+    }
+  }
+
+  const currentIndex = currentTier === '' ? -1 : ROLE_VOLUME_TIERS.indexOf(currentTier)
+  const nextTier = ROLE_VOLUME_TIERS[currentIndex + 1]
+
+  return {
+    currentTier,
+    nextThreshold: nextTier ? ROLE_VOLUME_TIER_THRESHOLDS[nextTier] : null,
+    nextTierLabel: nextTier ? ROLE_VOLUME_TIER_LABELS[nextTier] : null,
+  }
 }
