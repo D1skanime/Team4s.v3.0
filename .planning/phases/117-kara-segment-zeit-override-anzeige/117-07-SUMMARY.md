@@ -137,3 +137,7 @@ None - alle Verifikationsschritte liefen lokal (`npm run typecheck`, `npm test`)
 ---
 *Phase: 117-kara-segment-zeit-override-anzeige*
 *Completed: 2026-07-29*
+
+## Self-Check: PASSED
+
+Alle vier geänderten/erstellten Dateien auf Disk verifiziert (`117-07-SUMMARY.md`, `SegmenteTab.helpers.tsx`, `SegmenteTab.tsx`, `SegmenteTab.test.tsx`, `types/admin.ts`). Alle fünf Commits (`fa9e4348`, `fff15ac7`, `053c2f69`, `b9d1bf1e`, `f3888e06`) in `git log` bestätigt.
