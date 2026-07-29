@@ -14,19 +14,24 @@ import (
 	"team4s.v3/backend/internal/services"
 )
 
-func segmentRenderInputsChanged(before *models.AdminThemeSegment, after *models.AdminThemeSegment) bool {
-	if before == nil || after == nil {
+// segmentRenderInputsChanged vergleicht zwei release-version-scoped Render-Quellen (Phase 117,
+// Plan 117-04) statt zweier AdminThemeSegment-Snapshots -- ein geteiltes Segment kann seit Plan
+// 117-03 mehrere theme_segment_playback_sources-Zeilen haben, daher muss der Vergleich pro
+// (segmentID, releaseVersionID) erfolgen, nicht auf dem Segment als Ganzes. before/after == nil
+// bedeutet "keine Render-Quelle fuer diese Release-Version bekannt" (z. B. noch nicht
+// synchronisiert) -- taucht eine Quelle neu auf oder verschwindet sie, gilt das als Aenderung.
+func segmentRenderInputsChanged(before *models.ThemeSegmentRenderSource, after *models.ThemeSegmentRenderSource) bool {
+	if before == nil && after == nil {
 		return false
 	}
-	return stringPtrValue(before.StartTime) != stringPtrValue(after.StartTime) ||
-		stringPtrValue(before.EndTime) != stringPtrValue(after.EndTime) ||
-		stringPtrValue(before.PlaybackSourceKind) != stringPtrValue(after.PlaybackSourceKind) ||
-		int64PtrValue(before.PlaybackSourceID) != int64PtrValue(after.PlaybackSourceID) ||
-		int64PtrValue(before.PlaybackVariantID) != int64PtrValue(after.PlaybackVariantID) ||
-		int64PtrValue(before.PlaybackMediaAssetID) != int64PtrValue(after.PlaybackMediaAssetID) ||
-		stringPtrValue(before.PlaybackJellyfinID) != stringPtrValue(after.PlaybackJellyfinID) ||
-		int32PtrValue(before.PlaybackStartSeconds) != int32PtrValue(after.PlaybackStartSeconds) ||
-		int32PtrValue(before.PlaybackEndSeconds) != int32PtrValue(after.PlaybackEndSeconds)
+	if before == nil || after == nil {
+		return true
+	}
+	return stringPtrValue(before.StreamExternalID) != stringPtrValue(after.StreamExternalID) ||
+		int32PtrValue(before.StartOffsetSeconds) != int32PtrValue(after.StartOffsetSeconds) ||
+		int32PtrValue(before.EndOffsetSeconds) != int32PtrValue(after.EndOffsetSeconds) ||
+		before.SourceKind != after.SourceKind ||
+		int64PtrValue(before.MediaAssetID) != int64PtrValue(after.MediaAssetID)
 }
 
 // resetAndQueueSegmentRenderAfterChange invalidiert den Render-Cache fuer EINE

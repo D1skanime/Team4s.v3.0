@@ -225,7 +225,7 @@ func (h *AdminContentHandler) ListAnimeSegments(c *gin.Context) {
 
 	version := c.Query("version")
 
-	items, err := h.themeRepo.ListAnimeSegments(c.Request.Context(), animeID, groupID, version)
+	items, err := h.themeRepo.ListAnimeSegments(c.Request.Context(), animeID, groupID, version, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime nicht gefunden"}})
 		return
@@ -298,9 +298,10 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		return
 	}
 
-	// TODO(117-04/117-05): currentReleaseVersionID auf die per releaseVariantID
-	// (parseReleaseVariantIDQuery) aufgeloeste release_version_id umstellen, sobald der
-	// Admin-Editor eine echte Erstzuweisung mitgibt (D-03 Handler-Wiring).
+	// currentReleaseVersionID (Phase 117, D-03/Plan 117-04): der bereits ueber
+	// parseReleaseVariantIDQuery(c) aufgeloeste releaseVariantID-Wert ist semantisch
+	// release_versions.id -- ein neu angelegtes Segment wird damit sofort der aktuell im
+	// Editor geoeffneten Release-Version zugewiesen (0 bleibt "keine Erstzuweisung").
 	created, err := h.themeRepo.CreateAnimeSegment(c.Request.Context(), animeID, models.AdminThemeSegmentCreateInput{
 		ThemeID:              req.ThemeID,
 		FansubGroupID:        req.FansubGroupID,
@@ -313,7 +314,7 @@ func (h *AdminContentHandler) CreateAnimeSegment(c *gin.Context) {
 		SourceType:           req.SourceType,
 		SourceRef:            req.SourceRef,
 		SourceLabel:          req.SourceLabel,
-	}, 0)
+	}, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "anime oder theme nicht gefunden"}})
 		return
@@ -351,7 +352,18 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		return
 	}
 
-	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	// releaseVariantID (Phase 117, D-03/Plan 117-04) wird VOR dem Laden von existingSegment
+	// aufgeloest, damit GetAnimeSegmentByID die Playback-Hydration bereits auf die aktuell im
+	// Editor geoeffnete Release-Version scopen kann, statt eine arbitraere Zeile zu liefern
+	// (RESEARCH.md Risk 1-Folgefix). Ist im Query-Parameter noch nichts bekannt (0), faellt der
+	// Fallback weiterhin auf die (dann arbitraer hydrierte) segmentPlaybackVariantID zurueck.
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
@@ -361,11 +373,6 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		return
 	}
 
-	releaseVariantID := parseReleaseVariantIDQuery(c)
-	if releaseVariantID < 0 {
-		badRequest(c, "ungültige release_variant_id")
-		return
-	}
 	if releaseVariantID == 0 {
 		releaseVariantID = segmentPlaybackVariantID(existingSegment)
 	}
@@ -425,6 +432,22 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		return
 	}
 
+	// Fan-Out-Vorbereitung (Phase 117, D-01/D-03/Plan 117-04): eine Basis-Zeit-Aenderung muss den
+	// Render-Cache JEDER zugewiesenen Release-Version OHNE aktiven Override neu einreihen, darf
+	// aber ueberschriebene Release-Versionen NICHT anfassen (deren Zeit hat sich durch die
+	// Basis-Aenderung nicht geaendert). Die "vorher"-Render-Quellen werden VOR dem eigentlichen
+	// Update eingesammelt, damit der spaetere Vergleich echte Vor-/Nachher-Werte hat.
+	fanOutReleaseVersionIDs, err := nonOverriddenSegmentAssignments(c.Request.Context(), h.themeRepo, segmentID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Zuweisungen des Segments konnten nicht geladen werden.")
+		return
+	}
+	beforeRenderSources, err := h.captureSegmentRenderSources(c.Request.Context(), segmentID, fanOutReleaseVersionIDs)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Render-Quellen konnten vor der Aktualisierung nicht geladen werden.")
+		return
+	}
+
 	err = h.themeRepo.UpdateAnimeSegment(c.Request.Context(), segmentID, models.AdminThemeSegmentPatchInput{
 		ThemeID:              req.ThemeID,
 		FansubGroupID:        req.FansubGroupID,
@@ -452,7 +475,7 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		return
 	}
 
-	updatedSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	updatedSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nicht geladen werden.")
 		return
@@ -476,20 +499,19 @@ func (h *AdminContentHandler) UpdateAnimeSegment(c *gin.Context) {
 		}
 	}
 
-	if segmentRenderInputsChanged(existingSegment, updatedSegment) {
-		// TODO(117-04): Fan-Out ueber ALLE zugewiesenen Release-Versionen eines geteilten
-		// Segments (D-03) statt release_version_id=0; dieser Plan stellt nur die
-		// release_version_id-scoped Repository-Signaturen bereit.
-		if err := h.resetAndQueueSegmentRenderAfterChange(c.Request.Context(), segmentID, 0); err != nil {
-			log.Printf("admin anime segment update: refresh render cache segment_id=%d: %v", segmentID, err)
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nach der Zeitänderung nicht neu vorbereitet werden.")
-			return
-		}
-		updatedSegment, err = h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
-		if err != nil {
-			writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nach Render-Refresh nicht geladen werden.")
-			return
-		}
+	// Fan-Out ueber alle NICHT ueberschriebenen Zuweisungen (Phase 117, D-01/D-03): nur
+	// Release-Versionen, deren tatsaechliche Render-Quelle sich durch diese Aenderung geaendert
+	// hat, werden neu eingereiht -- eine ueberschriebene Release-Version wurde bereits durch
+	// nonOverriddenSegmentAssignments aus fanOutReleaseVersionIDs ausgeschlossen.
+	if err := h.resetAndQueueSegmentRenderForAssignments(c.Request.Context(), segmentID, fanOutReleaseVersionIDs, beforeRenderSources, true); err != nil {
+		log.Printf("admin anime segment update: refresh render cache segment_id=%d: %v", segmentID, err)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nach der Zeitänderung nicht neu vorbereitet werden.")
+		return
+	}
+	updatedSegment, err = h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nach Render-Refresh nicht geladen werden.")
+		return
 	}
 
 	// Return the fully hydrated segment so the frontend immediately receives updated playback_* fields.
@@ -515,18 +537,19 @@ func (h *AdminContentHandler) DeleteAnimeSegment(c *gin.Context) {
 		return
 	}
 
-	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
 	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
-		return
-	}
-	releaseVariantID := parseReleaseVariantIDQuery(c)
-	if releaseVariantID < 0 {
-		badRequest(c, "ungültige release_variant_id")
 		return
 	}
 	if releaseVariantID == 0 {
@@ -623,18 +646,19 @@ func (h *AdminContentHandler) AttachSegmentLibraryAsset(c *gin.Context) {
 		return
 	}
 
-	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
 	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
-		return
-	}
-	releaseVariantID := parseReleaseVariantIDQuery(c)
-	if releaseVariantID < 0 {
-		badRequest(c, "ungültige release_variant_id")
 		return
 	}
 	if releaseVariantID == 0 {
@@ -667,6 +691,28 @@ func (h *AdminContentHandler) AttachSegmentLibraryAsset(c *gin.Context) {
 		return
 	}
 
+	// RESEARCH.md Risk 5 / Plan 117-04 Task 2: AttachSegmentLibraryAsset aendert die gemeinsame
+	// Wiedergabequelle des Segments (syncThemeSegmentPlaybackSourceTx), loeste bisher aber KEINEN
+	// Render-Invalidierungslauf aus -- anders als UpdateAnimeSegment. Ein Quellenwechsel betrifft
+	// IMMER alle zugewiesenen Release-Versionen (auch ueberschriebene: der Override ersetzt nur
+	// die Zeit, nicht die Quelle), daher hier ungefiltert ueber ListThemeSegmentAssignments statt
+	// nonOverriddenSegmentAssignments.
+	assignedReleaseVersionIDs, err := h.themeRepo.ListThemeSegmentAssignments(c.Request.Context(), segmentID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Zuweisungen des Segments konnten nicht geladen werden.")
+		return
+	}
+	if err := h.resetAndQueueSegmentRenderForAssignments(c.Request.Context(), segmentID, assignedReleaseVersionIDs, nil, false); err != nil {
+		log.Printf("segment library attach: refresh render cache segment_id=%d: %v", segmentID, err)
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment-Render konnte nach dem Quellenwechsel nicht neu vorbereitet werden.")
+		return
+	}
+	updated, err = h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
+	if err != nil {
+		writeInternalErrorResponse(c, "interner serverfehler", err, "Aktualisiertes Segment konnte nach Render-Refresh nicht geladen werden.")
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": updated})
 }
 
@@ -690,19 +736,20 @@ func (h *AdminContentHandler) UploadSegmentAsset(c *gin.Context) {
 		return
 	}
 
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+
 	// Segment laden für Kontext (groupID, version, theme_type_name)
-	seg, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	seg, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
 	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
-		return
-	}
-	releaseVariantID := parseReleaseVariantIDQuery(c)
-	if releaseVariantID < 0 {
-		badRequest(c, "ungültige release_variant_id")
 		return
 	}
 	if releaseVariantID == 0 {
@@ -817,18 +864,19 @@ func (h *AdminContentHandler) DeleteSegmentAsset(c *gin.Context) {
 		return
 	}
 
-	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID)
+	releaseVariantID := parseReleaseVariantIDQuery(c)
+	if releaseVariantID < 0 {
+		badRequest(c, "ungültige release_variant_id")
+		return
+	}
+
+	existingSegment, err := h.themeRepo.GetAnimeSegmentByID(c.Request.Context(), animeID, segmentID, releaseVariantID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "segment nicht gefunden"}})
 		return
 	}
 	if err != nil {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Segment konnte nicht geladen werden.")
-		return
-	}
-	releaseVariantID := parseReleaseVariantIDQuery(c)
-	if releaseVariantID < 0 {
-		badRequest(c, "ungültige release_variant_id")
 		return
 	}
 	if releaseVariantID == 0 {

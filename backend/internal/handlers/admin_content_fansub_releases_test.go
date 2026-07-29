@@ -81,7 +81,7 @@ func (s *fansubReleaseThemeRepoStub) UpdateAdminAnimeTheme(ctx context.Context, 
 func (s *fansubReleaseThemeRepoStub) DeleteAdminAnimeTheme(ctx context.Context, themeID int64) error {
 	return nil
 }
-func (s *fansubReleaseThemeRepoStub) ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string) ([]models.AdminThemeSegment, error) {
+func (s *fansubReleaseThemeRepoStub) ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string, currentReleaseVersionID int64) ([]models.AdminThemeSegment, error) {
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) ListAnimeSegmentSuggestions(ctx context.Context, animeID int64, episodeNumber int, excludeGroupID int64, excludeVersion string) ([]models.AdminThemeSegment, error) {
@@ -99,11 +99,17 @@ func (s *fansubReleaseThemeRepoStub) UpdateAnimeSegment(ctx context.Context, seg
 func (s *fansubReleaseThemeRepoStub) DeleteAnimeSegment(ctx context.Context, segmentID int64) error {
 	return nil
 }
-func (s *fansubReleaseThemeRepoStub) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64) (*models.AdminThemeSegment, error) {
+func (s *fansubReleaseThemeRepoStub) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
 	return nil, nil
 }
 func (s *fansubReleaseThemeRepoStub) GetStableSegmentAnimeSource(ctx context.Context, animeID int64) (string, string, error) {
 	return "", "", nil
+}
+func (s *fansubReleaseThemeRepoStub) ListThemeSegmentAssignments(ctx context.Context, segmentID int64) ([]int64, error) {
+	return nil, nil
+}
+func (s *fansubReleaseThemeRepoStub) GetThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.AdminThemeSegmentEpisodeOverride, error) {
+	return nil, repository.ErrNotFound
 }
 func (s *fansubReleaseThemeRepoStub) ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error) {
 	return nil, nil

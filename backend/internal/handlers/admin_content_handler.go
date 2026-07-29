@@ -54,14 +54,19 @@ type adminThemeRepository interface {
 	ReleaseVariantBelongsToAnime(ctx context.Context, releaseVariantID int64, animeID int64) (bool, error)
 	UpdateAdminAnimeTheme(ctx context.Context, themeID int64, input models.AdminAnimeThemePatchInput) error
 	DeleteAdminAnimeTheme(ctx context.Context, themeID int64) error
-	ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string) ([]models.AdminThemeSegment, error)
+	ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string, currentReleaseVersionID int64) ([]models.AdminThemeSegment, error)
 	ListAnimeSegmentSuggestions(ctx context.Context, animeID int64, episodeNumber int, excludeGroupID int64, excludeVersion string) ([]models.AdminThemeSegment, error)
 	ListSegmentLibraryCandidates(ctx context.Context, animeID int64, fansubGroupID int64, segmentKind string, segmentName string) ([]models.SegmentLibraryCandidate, error)
 	CreateAnimeSegment(ctx context.Context, animeID int64, input models.AdminThemeSegmentCreateInput, currentReleaseVersionID int64) (*models.AdminThemeSegment, error)
 	UpdateAnimeSegment(ctx context.Context, segmentID int64, input models.AdminThemeSegmentPatchInput) error
 	DeleteAnimeSegment(ctx context.Context, segmentID int64) error
-	GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64) (*models.AdminThemeSegment, error)
+	GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64, currentReleaseVersionID int64) (*models.AdminThemeSegment, error)
 	GetStableSegmentAnimeSource(ctx context.Context, animeID int64) (string, string, error)
+	// ListThemeSegmentAssignments/GetThemeSegmentEpisodeOverride (Phase 117, Plan 117-02/117-04):
+	// tragen den Fan-Out ueber alle zugewiesenen Release-Versionen einer Basis-Zeit-Aenderung
+	// bzw. den Override-Ausschlussfilter (D-01/D-03).
+	ListThemeSegmentAssignments(ctx context.Context, segmentID int64) ([]int64, error)
+	GetThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.AdminThemeSegmentEpisodeOverride, error)
 	ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error)
 	BindUploadedSegmentAsset(ctx context.Context, animeID int64, segmentID int64, mediaAssetID int64, sourceRef string, sourceLabel *string) (*models.AdminThemeSegment, error)
 	AttachSegmentLibraryAsset(ctx context.Context, animeID int64, segmentID int64, input models.SegmentLibraryAttachInput) (*models.AdminThemeSegment, error)

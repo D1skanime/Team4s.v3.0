@@ -369,8 +369,11 @@ func (r *AdminContentRepository) DeleteAdminAnimeTheme(ctx context.Context, them
 }
 
 // ListAnimeSegments gibt alle Segmente eines Anime gefiltert nach group_id und version zurueck.
-// groupID=0 und version="" bedeutet: kein Filter (alle Segmente des Anime).
-func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string) ([]models.AdminThemeSegment, error) {
+// groupID=0 und version="" bedeutet: kein Filter (alle Segmente des Anime). currentReleaseVersionID
+// (Phase 117, D-03/Plan 117-04) steuert, welche theme_segment_playback_sources-Zeile eines geteilten
+// Segments in die Top-Level-Playback*-Felder hydriert wird -- 0 bedeutet "kein Editor-Kontext bekannt"
+// und behaelt das bisherige (arbitraere) Fallback-Verhalten bei.
+func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID int64, groupID int64, version string, currentReleaseVersionID int64) ([]models.AdminThemeSegment, error) {
 	if animeID <= 0 {
 		return nil, ErrNotFound
 	}
@@ -456,7 +459,7 @@ func (r *AdminContentRepository) ListAnimeSegments(ctx context.Context, animeID 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate anime segments anime=%d: %w", animeID, err)
 	}
-	if err := r.hydrateSegmentPlaybackMetadataList(ctx, segments); err != nil {
+	if err := r.hydrateSegmentPlaybackMetadataList(ctx, segments, currentReleaseVersionID); err != nil {
 		return nil, err
 	}
 	if err := r.hydrateSegmentLibraryMetadataList(ctx, segments); err != nil {
@@ -543,7 +546,7 @@ func (r *AdminContentRepository) CreateAnimeSegment(ctx context.Context, animeID
 		return nil, fmt.Errorf("commit create anime segment anime=%d segment=%d: %w", animeID, segID, err)
 	}
 
-	return loadSegmentByID(ctx, r, segID)
+	return loadSegmentByID(ctx, r, segID, currentReleaseVersionID)
 }
 
 // UpdateAnimeSegment aktualisiert ein Segment (partieller Patch).
@@ -845,7 +848,7 @@ func (r *AdminContentRepository) AttachSegmentLibraryAsset(
 		return nil, ErrNotFound
 	}
 
-	segment, err := r.GetAnimeSegmentByID(ctx, animeID, segmentID)
+	segment, err := r.GetAnimeSegmentByID(ctx, animeID, segmentID, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -962,7 +965,7 @@ func (r *AdminContentRepository) AttachSegmentLibraryAsset(
 		return nil, fmt.Errorf("commit attach segment library asset segment=%d asset=%d: %w", segmentID, input.AssetID, err)
 	}
 
-	return loadSegmentByID(ctx, r, segmentID)
+	return loadSegmentByID(ctx, r, segmentID, 0)
 }
 
 func (r *AdminContentRepository) IsReusableSegmentAsset(ctx context.Context, sourceRef string) (bool, error) {
@@ -991,8 +994,9 @@ func (r *AdminContentRepository) IsReusableSegmentAsset(ctx context.Context, sou
 	return exists, nil
 }
 
-// loadSegmentByID laedt ein vollstaendiges Segment per ID.
-func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64) (*models.AdminThemeSegment, error) {
+// loadSegmentByID laedt ein vollstaendiges Segment per ID. currentReleaseVersionID (Phase 117,
+// D-03/Plan 117-04) steuert die Playback-Hydration, s. hydrateSegmentPlaybackMetadata.
+func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
 	var seg models.AdminThemeSegment
 	if err := r.db.QueryRow(ctx, `
 		SELECT
@@ -1039,7 +1043,7 @@ func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64
 		}
 		return nil, fmt.Errorf("load segment by id=%d: %w", segID, err)
 	}
-	if err := r.hydrateSegmentPlaybackMetadata(ctx, &seg); err != nil {
+	if err := r.hydrateSegmentPlaybackMetadata(ctx, &seg, currentReleaseVersionID); err != nil {
 		return nil, err
 	}
 	if err := r.hydrateSegmentLibraryMetadata(ctx, &seg); err != nil {
@@ -1049,11 +1053,13 @@ func loadSegmentByID(ctx context.Context, r *AdminContentRepository, segID int64
 }
 
 // GetAnimeSegmentByID laedt ein Segment und prueft, dass es zum angegebenen Anime gehoert.
-func (r *AdminContentRepository) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64) (*models.AdminThemeSegment, error) {
+// currentReleaseVersionID (Phase 117, D-03/Plan 117-04) steuert die Playback-Hydration, s.
+// hydrateSegmentPlaybackMetadata; 0 behaelt das bisherige (arbitraere) Fallback-Verhalten bei.
+func (r *AdminContentRepository) GetAnimeSegmentByID(ctx context.Context, animeID int64, segmentID int64, currentReleaseVersionID int64) (*models.AdminThemeSegment, error) {
 	if animeID <= 0 || segmentID <= 0 {
 		return nil, ErrNotFound
 	}
-	seg, err := loadSegmentByID(ctx, r, segmentID)
+	seg, err := loadSegmentByID(ctx, r, segmentID, currentReleaseVersionID)
 	if err != nil {
 		return nil, err
 	}
@@ -1072,16 +1078,25 @@ func (r *AdminContentRepository) hydrateSegmentLibraryMetadataList(ctx context.C
 	return nil
 }
 
-func (r *AdminContentRepository) hydrateSegmentPlaybackMetadataList(ctx context.Context, segments []models.AdminThemeSegment) error {
+func (r *AdminContentRepository) hydrateSegmentPlaybackMetadataList(ctx context.Context, segments []models.AdminThemeSegment, currentReleaseVersionID int64) error {
 	for i := range segments {
-		if err := r.hydrateSegmentPlaybackMetadata(ctx, &segments[i]); err != nil {
+		if err := r.hydrateSegmentPlaybackMetadata(ctx, &segments[i], currentReleaseVersionID); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Context, seg *models.AdminThemeSegment) error {
+// hydrateSegmentPlaybackMetadata befuellt die Top-Level-Playback*-Felder eines Segments aus
+// theme_segment_playback_sources. Seit Phase 117 (D-03) kann ein geteiltes Segment mehrere
+// solcher Zeilen haben (eine je zugewiesener Release-Version) -- "irgendeine Zeile" ist damit
+// mehrdeutig. currentReleaseVersionID > 0 waehlt deterministisch genau die Zeile der aktuell im
+// Editor geoeffneten Release-Version (Plan 117-04, RESEARCH.md Risk 1-Folgefix); 0 (kein
+// bekannter Editor-Kontext) behaelt das bisherige Fallback-Verhalten bei (repraesentative Zeile
+// mit der kleinsten release_version_id). Fuer die vollstaendige, release_version_id-scoped
+// Auflösung ausserhalb der Editor-Hydration siehe GetThemeSegmentRenderSource
+// (theme_segment_render_cache.go).
+func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Context, seg *models.AdminThemeSegment, currentReleaseVersionID int64) error {
 	if seg == nil || seg.ID <= 0 {
 		return nil
 	}
@@ -1094,13 +1109,7 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 		return nil
 	}
 
-	// ORDER BY release_version_id ASC LIMIT 1: seit Phase 117 (D-03) kann ein geteiltes
-	// Segment mehrere theme_segment_playback_sources-Zeilen haben (eine je zugewiesener
-	// Release-Version) -- ohne explizite Sortierung waere die single-row-Hydration hier
-	// nicht deterministisch. Diese Funktion liefert bewusst nur EINE repraesentative Zeile
-	// (die mit der kleinsten release_version_id); fuer die vollstaendige, release_version_id-
-	// scoped Auflösung siehe GetThemeSegmentRenderSource (theme_segment_render_cache.go).
-	if err := r.db.QueryRow(ctx, `
+	query := `
 		SELECT
 			id,
 			source_kind,
@@ -1112,10 +1121,16 @@ func (r *AdminContentRepository) hydrateSegmentPlaybackMetadata(ctx context.Cont
 			end_offset_seconds,
 			duration_seconds
 		FROM theme_segment_playback_sources
-		WHERE theme_segment_id = $1
-		ORDER BY release_version_id ASC NULLS LAST, id ASC
-		LIMIT 1
-	`, seg.ID).Scan(
+		WHERE theme_segment_id = $1`
+	args := []interface{}{seg.ID}
+	if currentReleaseVersionID > 0 {
+		query += " AND release_version_id = $2 ORDER BY id ASC LIMIT 1"
+		args = append(args, currentReleaseVersionID)
+	} else {
+		query += " ORDER BY release_version_id ASC NULLS LAST, id ASC LIMIT 1"
+	}
+
+	if err := r.db.QueryRow(ctx, query, args...).Scan(
 		&seg.PlaybackSourceID,
 		&seg.PlaybackSourceKind,
 		&seg.PlaybackVariantID,
@@ -1604,7 +1619,7 @@ func (r *AdminContentRepository) BindUploadedSegmentAsset(
 		return nil, ErrNotFound
 	}
 
-	segment, err := r.GetAnimeSegmentByID(ctx, animeID, segmentID)
+	segment, err := r.GetAnimeSegmentByID(ctx, animeID, segmentID, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -1738,7 +1753,7 @@ func (r *AdminContentRepository) BindUploadedSegmentAsset(
 		return nil, fmt.Errorf("commit uploaded segment asset anime=%d segment=%d: %w", animeID, segmentID, err)
 	}
 
-	return loadSegmentByID(ctx, r, segmentID)
+	return loadSegmentByID(ctx, r, segmentID, 0)
 }
 
 // ClearSegmentAsset setzt source_type, source_ref und source_label auf NULL und
@@ -1749,7 +1764,7 @@ func (r *AdminContentRepository) ClearSegmentAsset(ctx context.Context, animeID 
 	}
 
 	// Sicherstellen, dass das Segment zum Anime gehoert, und alten source_ref lesen
-	seg, err := r.GetAnimeSegmentByID(ctx, animeID, segmentID)
+	seg, err := r.GetAnimeSegmentByID(ctx, animeID, segmentID, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -1885,7 +1900,7 @@ func (r *AdminContentRepository) ListAnimeSegmentSuggestions(
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate anime segment suggestions anime=%d episode=%d: %w", animeID, episodeNumber, err)
 	}
-	if err := r.hydrateSegmentPlaybackMetadataList(ctx, segments); err != nil {
+	if err := r.hydrateSegmentPlaybackMetadataList(ctx, segments, 0); err != nil {
 		return nil, err
 	}
 
