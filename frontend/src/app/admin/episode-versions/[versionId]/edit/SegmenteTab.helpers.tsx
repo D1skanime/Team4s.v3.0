@@ -180,6 +180,40 @@ export function isSegmentActiveForEpisode(segment: AdminThemeSegment, episodeNum
   return episodeNumber >= (start ?? 0) && episodeNumber <= (end ?? Infinity)
 }
 
+// --- Zuweisungs-/Freigabe-Helfer (geteilte Segmente, Plan 117-07) ---
+
+/**
+ * Prüft, ob die aktuell im Editor geöffnete Release-Version diesem (potenziell
+ * geteilten) Segment zugewiesen ist. Ergänzt `isSegmentActiveForEpisode` für den
+ * neuen, zuweisungsbasierten Fall (statt reiner Episoden-Bereichsprüfung).
+ */
+export function isCurrentEpisodeAssigned(
+  segment: AdminThemeSegment,
+  currentReleaseVersionId: number | null,
+): boolean {
+  if (currentReleaseVersionId == null) return false
+  return (segment.assigned_release_version_ids ?? []).includes(currentReleaseVersionId)
+}
+
+/**
+ * Reiner Lookup der ECHTEN, sichtbaren Episodennummer einer Zuweisung. Liefert
+ * `null`, wenn `assigned_episodes` fehlt oder kein Treffer existiert — keine
+ * Herleitung, keine Netzwerk-Anfrage.
+ */
+export function findAssignedEpisodeNumber(segment: AdminThemeSegment, releaseVersionId: number): string | null {
+  const entry = (segment.assigned_episodes ?? []).find((e) => e.release_version_id === releaseVersionId)
+  return entry?.episode_number ?? null
+}
+
+/**
+ * Formatiert das Zuweisungs-Chip-Label. `episodeNumber` MUSS die ECHTE,
+ * sichtbare Episodennummer sein (z. B. aus `findAssignedEpisodeNumber`),
+ * NIEMALS die interne `release_version_id` (B3-Fix).
+ */
+export function formatAssignmentChipLabel(episodeNumber: string, hasOverride: boolean): string {
+  return hasOverride ? `Folge ${episodeNumber} · Zeit angepasst` : `Folge ${episodeNumber}`
+}
+
 // --- Timeline sub-component ---
 
 interface SegmentTimelineProps {
