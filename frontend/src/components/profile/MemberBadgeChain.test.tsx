@@ -127,6 +127,10 @@ describe('MemberBadgeChain', () => {
     expect(
       container.querySelector('img[data-achievement-art="role_entry_translator"]')?.getAttribute('src'),
     ).toContain('role_entry_translator.png')
+    expect(container.querySelectorAll('img[src*="role_entry_translator.png"]')).toHaveLength(1)
+    expect(
+      container.querySelector('img[data-achievement-art="role_entry_translator"]')?.getAttribute('width'),
+    ).toBe('512')
     expect(container.querySelector('[data-role-volume="true"][data-palette="gold"]')).not.toBeNull()
   })
 

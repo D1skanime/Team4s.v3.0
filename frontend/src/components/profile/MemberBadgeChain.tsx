@@ -147,7 +147,7 @@ export function MemberBadgeChain({
 
         <div className={styles.groupList}>
           {groups.map((group) => (
-            <div key={group.key} className={styles.group}>
+            <div key={group.key} className={styles.group} data-badge-group={group.key}>
               <h3 className={styles.groupTitle}>{group.label}</h3>
               <FocalCarousel
                 items={group.rows}
@@ -164,19 +164,61 @@ export function MemberBadgeChain({
                 itemClassName={styles.badgeWindow}
                 activeItemClassName={styles.badgeWindowActive}
                 gridClassName={styles.badgeGrid}
-                renderItem={(row) => (
-                  <div
-                    className={
-                      row.items.some(
-                        (item) => earnedCodes.has(item.badge_code) && resolveBadgeArtwork(item.badge_code),
-                      )
+                renderItem={(row) => {
+                  const earnedArtworkItems = row.items.filter(
+                    (item) => earnedCodes.has(item.badge_code) && resolveBadgeArtwork(item.badge_code),
+                  )
+
+                  if (group.key === 'roles') {
+                    const artworkItem = earnedArtworkItems[0]
+                    const artworkSrc = artworkItem ? resolveBadgeArtwork(artworkItem.badge_code) : undefined
+
+                    return (
+                      <div className={artworkSrc ? styles.roleBadgeRow : styles.roleBadgeRowCompact}>
+                        <span className={styles.roleLabel}>{resolveRoleLabel(row.key)}:</span>
+                        {artworkItem && artworkSrc ? (
+                          <span className={styles.roleHeroArtwork}>
+                            <Image
+                              src={artworkSrc}
+                              alt=""
+                              width={512}
+                              height={512}
+                              sizes="(max-width: 520px) 156px, 240px"
+                              aria-hidden="true"
+                              data-achievement-art={artworkItem.badge_code}
+                            />
+                          </span>
+                        ) : null}
+                        <span className={styles.roleProgression} aria-label={`Fortschritt für ${resolveRoleLabel(row.key)}`}>
+                          {row.items.map((item) => {
+                            const isEarned = earnedCodes.has(item.badge_code)
+                            const presentation = getMemberBadgePresentation(item.badge_code)
+
+                            return (
+                              <span
+                                key={item.badge_code}
+                                className={isEarned ? styles.roleStageEarned : styles.roleStageLocked}
+                                data-palette={presentation.palette}
+                                data-earned={isEarned ? 'true' : 'false'}
+                                data-role-volume={item.badge_code.startsWith('role_volume_') ? 'true' : undefined}
+                                aria-label={!isEarned ? `${item.label} gesperrt` : undefined}
+                              >
+                                {!isEarned ? <Lock size={14} aria-hidden="true" /> : null}
+                                {item.label}
+                              </span>
+                            )
+                          })}
+                        </span>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div
+                      className={earnedArtworkItems.length > 0
                         ? styles.badgeRow
-                        : `${styles.badgeRow} ${styles.badgeRowCompact}`
-                    }
-                  >
-                    {group.key === 'roles' && (
-                      <span className={styles.roleLabel}>{resolveRoleLabel(row.key)}:</span>
-                    )}
+                        : `${styles.badgeRow} ${styles.badgeRowCompact}`}
+                    >
                     {row.items.map((item) => {
                       const isEarned = earnedCodes.has(item.badge_code)
                       const presentation = getMemberBadgePresentation(item.badge_code)
@@ -200,8 +242,9 @@ export function MemberBadgeChain({
                                 <Image
                                   src={imageSrc}
                                   alt=""
-                                  width={112}
-                                  height={112}
+                                  width={512}
+                                  height={512}
+                                  sizes="(max-width: 520px) 156px, 220px"
                                   aria-hidden="true"
                                   data-achievement-art={item.badge_code}
                                 />
@@ -217,7 +260,8 @@ export function MemberBadgeChain({
                       )
                     })}
                   </div>
-                )}
+                  )
+                }}
               />
             </div>
           ))}
