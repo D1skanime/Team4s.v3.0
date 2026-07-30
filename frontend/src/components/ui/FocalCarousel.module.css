@@ -92,14 +92,11 @@
 
 @media (min-width: 1100px) {
   .track {
-    padding-inline: 4px;
+    padding-inline: max(18px, calc((100% - min(60%, 720px)) / 2));
   }
 
   .itemWindow {
-    flex-basis: calc((100% - 28px) / 3);
-    opacity: 1;
-    transform: none;
-    filter: none;
+    flex-basis: min(60%, 720px);
   }
 }
 
