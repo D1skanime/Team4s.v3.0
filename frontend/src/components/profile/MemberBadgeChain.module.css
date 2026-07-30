@@ -62,35 +62,35 @@
 }
 
 .badgeRow {
-  display: flex;
-  min-height: 116px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  min-height: 250px;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px; /* --space-2 */
-  padding: 18px;
-  border: 1px solid color-mix(in srgb, var(--badge-accent, var(--color-primary)) 34%, var(--border-subtle));
-  border-radius: var(--radius-lg, 16px);
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--badge-accent, var(--color-primary)) 13%, var(--surface-card)), var(--surface-card-muted));
+  gap: 18px;
+  padding: 18px 12px;
+}
+
+.badgeRowCompact {
+  grid-template-columns: 1fr;
+  min-height: 96px;
 }
 
 .badgeWindow {
-  border: 1px solid transparent;
+  flex-basis: min(76%, 860px) !important;
 }
 
 .badgeWindowActive {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-primary) 38%, transparent),
-    0 14px 36px color-mix(in srgb, var(--color-primary) 22%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 28%, transparent);
+  box-shadow: none;
 }
 
 .badgeGrid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
 }
 
 .roleLabel {
+  grid-column: 1 / -1;
+  justify-self: center;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
@@ -101,7 +101,9 @@
 .badgeStep,
 .badgeStepLocked {
   --badge-accent: var(--text-secondary);
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
 }
 
 .badgeStep[data-palette="gold"],
@@ -165,12 +167,14 @@
 }
 
 .badgeItemWithImage {
-  width: min(100%, 300px);
-  min-height: 132px;
+  width: 100%;
+  min-height: 0;
   justify-content: center;
   flex-direction: column;
-  padding: 12px 18px;
-  border-radius: var(--radius-lg, 16px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   text-align: center;
   white-space: normal;
 }
@@ -188,29 +192,25 @@
 }
 
 .badgeArtwork {
-  width: 104px;
-  height: 104px;
-  box-sizing: border-box;
+  width: clamp(140px, 18vw, 220px);
+  height: clamp(140px, 18vw, 220px);
   display: inline-flex;
-  flex: 0 0 104px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  border: 1px solid color-mix(in srgb, var(--badge-accent) 55%, transparent);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 35% 20%, color-mix(in srgb, white 36%, transparent), transparent 42%),
-    color-mix(in srgb, var(--badge-accent) 18%, var(--surface-card));
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--badge-accent) 22%, transparent),
-    0 12px 28px color-mix(in srgb, var(--badge-accent) 26%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 34%, transparent);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  filter:
+    drop-shadow(0 0 12px color-mix(in srgb, var(--badge-accent) 34%, transparent))
+    drop-shadow(0 16px 22px color-mix(in srgb, var(--badge-accent) 20%, transparent));
 }
 
 .badgeStep[data-role-volume="true"] .badgeArtwork {
-  overflow: hidden;
-  border-width: 3px;
-  border-radius: 999px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
 }
 
 .badgeArtwork img {
@@ -227,7 +227,7 @@
 }
 
 .badgeWindowActive .badgeStep {
-  filter: drop-shadow(0 8px 16px color-mix(in srgb, var(--badge-accent) 30%, transparent));
+  filter: none;
 }
 
 .badgeStepLocked .badgeIcon {
@@ -242,13 +242,29 @@
   }
 
   .badgeRow {
-    min-height: 148px;
-    padding: 16px 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 210px;
+    gap: 10px;
+    padding: 14px 4px;
+  }
+
+  .badgeRowCompact {
+    grid-template-columns: 1fr;
+    min-height: 88px;
+  }
+
+  .badgeWindow {
+    flex-basis: 88% !important;
+  }
+
+  .badgeArtwork {
+    width: clamp(128px, 38vw, 156px);
+    height: clamp(128px, 38vw, 156px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .badgeWindowActive .badgeStep {
-    filter: none;
+  .badgeArtwork {
+    filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--badge-accent) 20%, transparent));
   }
 }

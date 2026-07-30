@@ -96,6 +96,23 @@ describe('MemberBadgeChain', () => {
     expect(artwork?.closest('[aria-label^="Auszeichnung"]')).not.toBeNull()
   })
 
+  it('renders the generated contribution artwork without a fallback icon', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 0, badge_code: 'contribution_projects_bronze', badge_category: 'contribution' },
+        ]}
+      />,
+    )
+
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_projects_bronze"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_projects_bronze.png')
+  })
+
   it('keeps the approved role artwork and metal-frame marker', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { container } = render(

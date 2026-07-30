@@ -165,7 +165,15 @@ export function MemberBadgeChain({
                 activeItemClassName={styles.badgeWindowActive}
                 gridClassName={styles.badgeGrid}
                 renderItem={(row) => (
-                  <div className={styles.badgeRow}>
+                  <div
+                    className={
+                      row.items.some(
+                        (item) => earnedCodes.has(item.badge_code) && resolveBadgeArtwork(item.badge_code),
+                      )
+                        ? styles.badgeRow
+                        : `${styles.badgeRow} ${styles.badgeRowCompact}`
+                    }
+                  >
                     {group.key === 'roles' && (
                       <span className={styles.roleLabel}>{resolveRoleLabel(row.key)}:</span>
                     )}
