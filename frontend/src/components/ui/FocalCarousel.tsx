@@ -21,10 +21,12 @@ export type FocalCarouselItemState = {
   expanded: boolean
   position: number
   total: number
+  showAll: () => void
 }
 
 type FocalCarouselProps<T> = {
   items: readonly T[]
+  carouselItems?: readonly T[]
   getItemKey: (item: T) => string | number
   renderItem: (item: T, state: FocalCarouselItemState) => ReactNode
   regionLabel: string
@@ -45,6 +47,7 @@ type FocalCarouselProps<T> = {
 
 export function FocalCarousel<T>({
   items,
+  carouselItems,
   getItemKey,
   renderItem,
   regionLabel,
@@ -69,7 +72,8 @@ export function FocalCarousel<T>({
   const suppressClickRef = useRef(false)
   const dragRef = useRef({ active: false, startX: 0, startScroll: 0, pointerId: -1, captured: false })
 
-  const lastIndex = Math.max(0, items.length - 1)
+  const visibleItems = carouselItems ?? items
+  const lastIndex = Math.max(0, visibleItems.length - 1)
   const safeIndex = Math.min(activeIndex, lastIndex)
 
   useEffect(() => {
@@ -174,7 +178,13 @@ export function FocalCarousel<T>({
         <ul className={classNames(styles.grid, gridClassName)} aria-label={`Alle ${itemPluralLabel}`}>
           {items.map((item, index) => (
             <li key={getItemKey(item)} className={itemClassName}>
-              {renderItem(item, { active: index === safeIndex, expanded: true, position: index + 1, total: items.length })}
+              {renderItem(item, {
+                active: index === safeIndex,
+                expanded: true,
+                position: index + 1,
+                total: items.length,
+                showAll: () => setExpanded(true),
+              })}
             </li>
           ))}
         </ul>
@@ -225,7 +235,7 @@ export function FocalCarousel<T>({
           onDragStart={(event) => event.preventDefault()}
         >
           <div className={styles.items} role={listLabel ? 'list' : undefined} aria-label={listLabel}>
-            {items.map((item, index) => (
+            {visibleItems.map((item, index) => (
               <div
                 key={getItemKey(item)}
                 data-focal-item
@@ -237,9 +247,15 @@ export function FocalCarousel<T>({
                   index === safeIndex && activeItemClassName,
                 )}
                 aria-current={index === safeIndex ? 'true' : undefined}
-                aria-label={`${itemSingularLabel} ${index + 1} von ${items.length}`}
+                aria-label={`${itemSingularLabel} ${index + 1} von ${visibleItems.length}`}
               >
-                {renderItem(item, { active: index === safeIndex, expanded: false, position: index + 1, total: items.length })}
+                {renderItem(item, {
+                  active: index === safeIndex,
+                  expanded: false,
+                  position: index + 1,
+                  total: visibleItems.length,
+                  showAll: () => setExpanded(true),
+                })}
               </div>
             ))}
           </div>

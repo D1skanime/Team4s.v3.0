@@ -72,4 +72,17 @@ describe('FansubProjectsGrid', () => {
     expect(screen.queryByRole('button', { name: 'Alle 25 Projekte anzeigen' })).toBeNull()
     expect(screen.getByText('Weniger anzeigen')).toBeTruthy()
   })
+
+  it('navigiert mit dem gemeinsamen FocalCarousel und kehrt nach dem Raster zur aktiven Karte zurück', () => {
+    render(<FansubProjectsGrid items={makeItems(25)} groupId={5} groupSlug="c-subs" />)
+
+    const region = screen.getByRole('region', { name: 'Projekt-Vorschau' })
+    expect(screen.getByLabelText('Projekt 1 von 21').getAttribute('aria-current')).toBe('true')
+    fireEvent.keyDown(region, { key: 'ArrowRight' })
+    expect(screen.getByLabelText('Projekt 2 von 21').getAttribute('aria-current')).toBe('true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle 25 Projekte anzeigen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+    expect(screen.getByLabelText('Projekt 2 von 21').getAttribute('aria-current')).toBe('true')
+  })
 })
