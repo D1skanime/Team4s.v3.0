@@ -80,6 +80,39 @@ describe('MemberBadgeChain', () => {
     expect(screen.getByLabelText('Auszeichnung 2 von 3').getAttribute('aria-current')).toBe('true')
   })
 
+  it('renders approved artwork inside the focal card for earned image badges', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'point_milestone_active', badge_category: 'progress' }]}
+      />,
+    )
+
+    const artwork = container.querySelector<HTMLImageElement>(
+      'img[data-achievement-art="point_milestone_active"]',
+    )
+    expect(artwork).not.toBeNull()
+    expect(artwork?.getAttribute('src')).toContain('point_milestone_active-v2.png')
+    expect(artwork?.closest('[aria-label^="Auszeichnung"]')).not.toBeNull()
+  })
+
+  it('keeps the approved role artwork and metal-frame marker', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_volume_translator_gold', badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="role_entry_translator"]')?.getAttribute('src'),
+    ).toContain('role_entry_translator.png')
+    expect(container.querySelector('[data-role-volume="true"][data-palette="gold"]')).not.toBeNull()
+  })
+
   it('renders a horizontal earned-and-locked badge chain with progress copy', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 

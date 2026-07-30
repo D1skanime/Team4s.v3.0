@@ -1,3 +1,6 @@
+'use client'
+
+import Image from 'next/image'
 import { Lock } from 'lucide-react'
 
 import { Card, FocalCarousel, SectionHeader } from '@/components/ui'
@@ -39,6 +42,30 @@ type MemberBadgeGroupResult = {
 // Muster wie getMemberBadgePresentation's bestehender Fallback).
 function resolveRoleLabel(roleCode: string): string {
   return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === roleCode)?.label ?? roleCode
+}
+
+const VERSIONED_POINT_ARTWORK = new Set([
+  'point_milestone_active',
+  'point_milestone_engaged',
+  'point_milestone_experienced',
+  'point_milestone_legend',
+  'point_milestone_veteran',
+])
+
+function resolveBadgeArtwork(badgeCode: string): string | undefined {
+  if (VERSIONED_POINT_ARTWORK.has(badgeCode)) {
+    return `/member-achievement-badges/${badgeCode}-v2.png`
+  }
+  if (badgeCode === 'point_milestone_first' || badgeCode.startsWith('contribution_')) {
+    return `/member-achievement-badges/${badgeCode}.png`
+  }
+  if (badgeCode.startsWith('role_entry_')) {
+    return `/member-achievement-badges/${badgeCode}.png`
+  }
+  const roleVolumeMatch = /^role_volume_(.+)_(?:bronze|silver|gold)$/.exec(badgeCode)
+  return roleVolumeMatch
+    ? `/member-achievement-badges/role_entry_${roleVolumeMatch[1]}.png`
+    : undefined
 }
 
 function catalogWithEarnedBadges(
@@ -146,6 +173,7 @@ export function MemberBadgeChain({
                       const isEarned = earnedCodes.has(item.badge_code)
                       const presentation = getMemberBadgePresentation(item.badge_code)
                       const Icon = presentation.Icon
+                      const imageSrc = resolveBadgeArtwork(item.badge_code)
 
                       return (
                         <span
@@ -153,10 +181,27 @@ export function MemberBadgeChain({
                           className={isEarned ? styles.badgeStep : styles.badgeStepLocked}
                           data-palette={presentation.palette}
                           data-earned={isEarned ? 'true' : 'false'}
+                          data-role-volume={item.badge_code.startsWith('role_volume_') ? 'true' : undefined}
                         >
-                          <span className={styles.badgeItem}>
-                            <span className={styles.badgeIcon} aria-label={isEarned ? undefined : `${item.label} gesperrt`}>
-                              {isEarned ? <Icon size={16} aria-hidden="true" /> : <Lock size={16} aria-hidden="true" />}
+                          <span className={imageSrc && isEarned ? styles.badgeItemWithImage : styles.badgeItem}>
+                            <span
+                              className={imageSrc && isEarned ? styles.badgeArtwork : styles.badgeIcon}
+                              aria-label={isEarned ? undefined : `${item.label} gesperrt`}
+                            >
+                              {isEarned && imageSrc ? (
+                                <Image
+                                  src={imageSrc}
+                                  alt=""
+                                  width={112}
+                                  height={112}
+                                  aria-hidden="true"
+                                  data-achievement-art={item.badge_code}
+                                />
+                              ) : isEarned ? (
+                                <Icon size={24} aria-hidden="true" />
+                              ) : (
+                                <Lock size={20} aria-hidden="true" />
+                              )}
                             </span>
                             <span>{item.label}</span>
                           </span>
