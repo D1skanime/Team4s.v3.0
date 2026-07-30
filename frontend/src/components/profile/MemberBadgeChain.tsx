@@ -1,6 +1,6 @@
 import { Lock } from 'lucide-react'
 
-import { Card, SectionHeader } from '@/components/ui'
+import { Card, FocalCarousel, SectionHeader } from '@/components/ui'
 import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberBadge } from '@/types/profile'
 
@@ -122,9 +122,23 @@ export function MemberBadgeChain({
           {groups.map((group) => (
             <div key={group.key} className={styles.group}>
               <h3 className={styles.groupTitle}>{group.label}</h3>
-              <ul className={styles.chain} aria-label={group.label} data-orientation="horizontal">
-                {group.rows.map((row) => (
-                  <li key={row.key} className={styles.badgeRow}>
+              <FocalCarousel
+                items={group.rows}
+                getItemKey={(row) => row.key}
+                regionLabel={`${group.label}-Karussell`}
+                itemSingularLabel="Auszeichnung"
+                itemPluralLabel="Auszeichnungen"
+                listLabel={group.label}
+                previousLabel={`Vorherige Auszeichnung in ${group.label}`}
+                nextLabel={`Nächste Auszeichnung in ${group.label}`}
+                showAllLabel={`Alle Auszeichnungen in ${group.label} anzeigen`}
+                showLessLabel="Weniger anzeigen"
+                carouselClassName={styles.chain}
+                itemClassName={styles.badgeWindow}
+                activeItemClassName={styles.badgeWindowActive}
+                gridClassName={styles.badgeGrid}
+                renderItem={(row) => (
+                  <div className={styles.badgeRow}>
                     {group.key === 'roles' && (
                       <span className={styles.roleLabel}>{resolveRoleLabel(row.key)}:</span>
                     )}
@@ -149,9 +163,9 @@ export function MemberBadgeChain({
                         </span>
                       )
                     })}
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                )}
+              />
             </div>
           ))}
         </div>

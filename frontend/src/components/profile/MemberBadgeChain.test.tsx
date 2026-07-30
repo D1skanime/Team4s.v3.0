@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { ComponentType } from 'react'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
@@ -63,6 +63,23 @@ const catalog: MemberBadgeCatalogItem[] = [
 ]
 
 describe('MemberBadgeChain', () => {
+  it('bietet pro Gruppe eine fokussierte Karussell- und Rasteransicht', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    render(<MemberBadgeChain earnedBadges={[]} catalog={catalog} />)
+
+    const carousel = screen.getByRole('region', { name: 'Besondere Auszeichnungen-Karussell' })
+    expect(carousel).not.toBeNull()
+    expect(screen.getByLabelText('Auszeichnung 1 von 3').getAttribute('aria-current')).toBe('true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Nächste Auszeichnung in Besondere Auszeichnungen' }))
+    expect(screen.getByLabelText('Auszeichnung 2 von 3').getAttribute('aria-current')).toBe('true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Besondere Auszeichnungen anzeigen' }))
+    expect(screen.getByRole('list', { name: 'Alle Auszeichnungen' })).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+    expect(screen.getByLabelText('Auszeichnung 2 von 3').getAttribute('aria-current')).toBe('true')
+  })
+
   it('renders a horizontal earned-and-locked badge chain with progress copy', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
