@@ -757,6 +757,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260730-jre | Material-3-inspiriertes Focal-Carousel für Profil-Badges und Fansub-Projekte: große aktive Karte, eingedrückte Randkarten, Metall-Glow und Alle-anzeigen-Raster | 2026-07-30 | 00bdb814 | [260730-jre-fokussiertes-material-3-inspiriertes-kar](./quick/260730-jre-fokussiertes-material-3-inspiriertes-kar/) |
 | 260721-eo4 | SSR-Fetch-Parallelisierung der Public-Projektseite (loadPublicFansubProjectPageData): unabhängige Phase-B-Fetches per Promise.all nebenläufig, doppelter Profil-Fetch zu einem zusammengeführt; verhaltenserhaltend (17/17 Tests). Gemessen: TTFB 319→221 ms (min, −31%), Volldokument 616→371 ms (−40%) | 2026-07-21 | 73a0e2f4 | [260721-eo4-ssr-fetch-parallelisierung-projectpageda](./quick/260721-eo4-ssr-fetch-parallelisierung-projectpageda/) |
 | 260721-dbz | Fund 1+2 N+1-Fix Release-Version-Media-Handler: Reorder-Pfad bündelt Relation-Metas (statt per-Bild GetReleaseVersionMediaRelation) und löst Fansub-Gruppen-Permission pro eindeutiger Gruppe einmal auf; Reorder-Handler ausgelagert; Verhalten bit-identisch | 2026-07-21 | e71966cf | [260721-dbz-fund-1-2-n-1-fix-release-version-media-h](./quick/260721-dbz-fund-1-2-n-1-fix-release-version-media-h/) |
 | 260718-vei | Responsiven Releasebereich der öffentlichen Fansub-Projektseite für Mobile, Tablet und Desktop verbessern: klare Abschnittshierarchie, lesbare Metadaten, kompakte Releaseliste, saubere Bildvorschauen und eindeutige Kara-Aktionen | 2026-07-18 | a6eeb37c | [260718-vei-responsive-releasebereich-der-ffentliche](./quick/260718-vei-responsive-releasebereich-der-ffentliche/) |
@@ -835,6 +836,6 @@ Recent durable decisions:
 
 Last session: 2026-07-29T17:18:41.349Z
 Stopped at: Completed 117-06-PLAN.md
-Last activity: 2026-07-29
+Last activity: 2026-07-30 - Completed quick task 260730-jre: Focal-Carousel für Profil-Badges und Fansub-Projekte
 Resume file: 
 None
