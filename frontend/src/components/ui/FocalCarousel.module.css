@@ -1,0 +1,114 @@
+.root {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.track {
+  flex: 1;
+  min-width: 0;
+  padding: 12px max(14px, calc((100% - min(72%, 720px)) / 2));
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+  cursor: grab;
+}
+
+.items {
+  display: flex;
+  gap: 14px;
+  min-width: 100%;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.track:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--accent-primary));
+  outline-offset: 2px;
+}
+
+.track a,
+.track img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.dragging {
+  cursor: grabbing;
+  user-select: none;
+  scroll-snap-type: none;
+}
+
+.itemWindow {
+  flex: 0 0 min(72%, 720px);
+  min-width: 0;
+  overflow: hidden;
+  scroll-snap-align: center;
+  border-radius: var(--radius-lg, 16px);
+  opacity: 0.58;
+  transform: scale(0.88);
+  transform-origin: center;
+  transition: opacity 180ms ease, transform 220ms ease, filter 220ms ease;
+  filter: saturate(0.7);
+}
+
+.itemWindowActive {
+  opacity: 1;
+  transform: scale(1);
+  filter: none;
+}
+
+.arrow {
+  flex: 0 0 auto;
+}
+
+.arrow svg {
+  color: var(--ui-arrow);
+}
+
+.toggle {
+  justify-self: start;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 1100px) {
+  .track {
+    padding-inline: 4px;
+  }
+
+  .itemWindow {
+    flex-basis: calc((100% - 28px) / 3);
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    scroll-behavior: auto;
+  }
+
+  .itemWindow {
+    transition: none;
+  }
+}

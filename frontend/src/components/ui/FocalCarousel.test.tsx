@@ -32,14 +32,14 @@ describe('FocalCarousel', () => {
     const previous = screen.getByRole('button', { name: 'Vorherige Karte' })
     const next = screen.getByRole('button', { name: 'Nächste Karte' })
 
-    expect(previous).toBeDisabled()
+    expect(previous.getAttribute('disabled')).not.toBeNull()
     expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
 
     fireEvent.keyDown(region, { key: 'ArrowRight' })
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
     fireEvent.click(next)
     expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
-    expect(next).toBeDisabled()
+    expect(next.getAttribute('disabled')).not.toBeNull()
 
     fireEvent.keyDown(region, { key: 'ArrowLeft' })
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
@@ -54,7 +54,7 @@ describe('FocalCarousel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
 
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
-    expect(screen.getByRole('region', { name: 'Beispiel-Karussell' })).toHaveFocus()
+    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Beispiel-Karussell' }))
   })
 
   it('unterdrückt den nach einem echten Pointer-Drag entstehenden Klick', () => {
