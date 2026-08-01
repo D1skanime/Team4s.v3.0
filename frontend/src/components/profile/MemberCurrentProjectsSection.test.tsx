@@ -64,6 +64,7 @@ describe('MemberCurrentProjectsSection', () => {
     expect(container.querySelector('img')?.getAttribute('src')).toBe('resolved:/api/v1/media/image?kind=primary')
     expect(container.querySelector('img')?.getAttribute('alt')).toBe("Viper's Creed Cover")
     expect(screen.getByText('Typesetting / FX')).not.toBeNull()
+    expect(screen.getByText('Typesetting / FX').getAttribute('data-role-code')).toBe('typesetter')
     expect(screen.queryByText('Projekt öffnen')).toBeNull()
     expect(container.querySelector('[class*="projectArrow"] svg')).not.toBeNull()
     expect(screen.queryByText('Episode 1')).toBeNull()

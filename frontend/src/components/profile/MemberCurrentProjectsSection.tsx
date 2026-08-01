@@ -7,6 +7,7 @@ import { useState } from 'react'
 
 import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
 import { getMemberProjects, resolveApiUrl } from '@/lib/api'
+import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberCurrentProject } from '@/types/profile'
 
 import styles from './MemberCurrentProjectsSection.module.css'
@@ -18,6 +19,16 @@ type MemberCurrentProjectsSectionProps = {
 }
 
 const PROJECT_PAGE_SIZE = 6
+const ROLE_CODE_BY_LABEL = new Map(
+  FANSUB_GROUP_ROLE_OPTIONS.map((option) => [option.label, option.code]),
+)
+
+function roleColorCode(roleLabel: string): string {
+  const roleCode = ROLE_CODE_BY_LABEL.get(roleLabel)
+  if (roleCode === 'techadmin') return 'admin'
+  if (roleCode === 'gfxler') return 'designer'
+  return roleCode ?? 'other'
+}
 
 function projectHref(project: PublicMemberCurrentProject): string {
   return `/anime/${project.anime_id}/group/${project.fansub_group_id}`
@@ -86,7 +97,14 @@ export function MemberCurrentProjectsSection({
 
                     <span className={styles.chipRow}>
                       {project.roles.map((role) => (
-                        <Badge key={role} variant="success">{role}</Badge>
+                        <Badge
+                          key={role}
+                          variant="neutral"
+                          className={styles.roleChip}
+                          data-role-code={roleColorCode(role)}
+                        >
+                          {role}
+                        </Badge>
                       ))}
                       {project.is_project_level ? (
                         <Badge variant="info">
