@@ -17,8 +17,8 @@ import {
 describe('Contribution-Badge-Präsentationen (D-05)', () => {
   const families = [
     { family: 'projects', label: 'Mitgetragene Projekte', Icon: FolderCheck },
-    { family: 'chronicle', label: 'Chronist', Icon: ScrollText },
-    { family: 'archivist', label: 'Bildarchivar', Icon: Images },
+    { family: 'chronicle', label: 'Chronikpflege', Icon: ScrollText },
+    { family: 'archivist', label: 'Bildarchivpflege', Icon: Images },
   ] as const
   const tiers = [
     { tier: 'bronze', label: 'Bronze', variant: 'muted' },
@@ -49,6 +49,7 @@ describe('Contribution-Badge-Präsentationen (D-05)', () => {
     expect(MEMBER_BADGE_GROUP_ORDER).toEqual([
       'roles',
       'progress',
+      'points',
       'contributions',
       'membership',
       'special',

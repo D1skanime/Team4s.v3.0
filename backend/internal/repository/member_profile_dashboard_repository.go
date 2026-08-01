@@ -28,7 +28,9 @@ type OwnDashboardCategoryProgress struct {
 	Family        string `json:"family"`
 	CurrentTier   string `json:"current_tier"`
 	CurrentCount  int64  `json:"current_count"`
-	NextThreshold *int64 `json:"next_threshold"`
+	NextThreshold  *int64  `json:"next_threshold"`
+	RemainingCount *int64  `json:"remaining_count"`
+	NextTier       *string `json:"next_tier"`
 }
 
 // OwnDashboardData ist der vollstaendige Response-Body fuer GET /api/v1/me/dashboard
@@ -72,10 +74,17 @@ var contribFamilyTierFuncs = map[string]func(int) string{
 func buildContribCategoryProgress(family string, count int64) OwnDashboardCategoryProgress {
 	tier := contribFamilyTierFuncs[family](int(count))
 	var nextThreshold *int64
-	for _, threshold := range contribFamilyAscendingThresholds[family] {
+	var remainingCount *int64
+	var nextTier *string
+	tierNames := []string{"bronze", "silver", "gold"}
+	for index, threshold := range contribFamilyAscendingThresholds[family] {
 		if count < threshold {
 			t := threshold
 			nextThreshold = &t
+			r := threshold - count
+			remainingCount = &r
+			n := tierNames[index]
+			nextTier = &n
 			break
 		}
 	}
@@ -83,7 +92,9 @@ func buildContribCategoryProgress(family string, count int64) OwnDashboardCatego
 		Family:        family,
 		CurrentTier:   tier,
 		CurrentCount:  count,
-		NextThreshold: nextThreshold,
+		NextThreshold:  nextThreshold,
+		RemainingCount: remainingCount,
+		NextTier:       nextTier,
 	}
 }
 

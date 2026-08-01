@@ -12,21 +12,30 @@
 }
 
 .track {
+  --focal-item-size: min(72%, 720px);
   flex: 1;
   min-width: 0;
-  padding: 12px max(14px, calc((100% - min(72%, 720px)) / 2));
+  padding-block: 12px;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   overscroll-behavior-inline: contain;
+  touch-action: pan-y;
   cursor: grab;
+  -webkit-overflow-scrolling: touch;
 }
 
 .items {
   display: flex;
   gap: 14px;
   min-width: 100%;
+}
+
+.items::before,
+.items::after {
+  content: '';
+  flex: 0 0 calc((100% - var(--focal-item-size)) / 2);
 }
 
 .track::-webkit-scrollbar {
@@ -48,13 +57,15 @@
   cursor: grabbing;
   user-select: none;
   scroll-snap-type: none;
+  scroll-behavior: auto;
 }
 
 .itemWindow {
-  flex: 0 0 min(72%, 720px);
+  flex: 0 0 var(--focal-item-size);
   min-width: 0;
   overflow: hidden;
   scroll-snap-align: center;
+  scroll-snap-stop: normal;
   border-radius: var(--radius-lg, 16px);
   opacity: 0.58;
   transform: scale(0.88);
@@ -92,11 +103,11 @@
 
 @media (min-width: 1100px) {
   .track {
-    padding-inline: max(18px, calc((100% - min(60%, 720px)) / 2));
+    --focal-item-size: min(60%, 720px);
   }
 
   .itemWindow {
-    flex-basis: min(60%, 720px);
+    flex-basis: var(--focal-item-size);
   }
 }
 

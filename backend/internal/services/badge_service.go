@@ -32,11 +32,38 @@ func (s *BadgeService) ComputeAndStoreBadges(ctx context.Context, memberID int64
 	s.computeFoundingMember(ctx, memberID)
 	s.computeHistoricalLeader(ctx, memberID)
 	s.computeLongTermMember(ctx, memberID)
+	s.computeMembershipMilestone(ctx, memberID, "membership_7_years", 7)
+	s.computeMembershipMilestone(ctx, memberID, "membership_10_years", 10)
 	s.computeFirstContribution(ctx, memberID)
 	s.computeProductiveTiers(ctx, memberID)
 	s.computeAllRounder(ctx, memberID)
 	s.computeVerified(ctx, memberID)
 	return nil
+}
+
+// computeMembershipMilestone vergibt eine Mitgliedschaftsstufe, sobald eine einzelne
+// historische Mitgliedschaft die geforderte Dauer erreicht hat.
+func (s *BadgeService) computeMembershipMilestone(ctx context.Context, memberID int64, badgeCode string, years int) {
+	var rowID int64
+	err := s.db.QueryRow(ctx, `
+		SELECT id
+		FROM hist_fansub_group_members
+		WHERE member_id = $1
+		  AND joined_date IS NOT NULL
+		  AND COALESCE(left_date, CURRENT_DATE) >= joined_date + make_interval(years => $2)
+		LIMIT 1
+	`, memberID, years).Scan(&rowID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		_ = s.repo.RevokeMemberBadge(ctx, memberID, badgeCode)
+		return
+	}
+	if err != nil {
+		log.Printf("badge_service: membership milestone query error (member_id=%d, badge_code=%s): %v", memberID, badgeCode, err)
+		return
+	}
+	if err := s.repo.UpsertMemberBadge(ctx, memberID, badgeCode, "historical_achievement", "hist_fansub_group_member", rowID); err != nil {
+		log.Printf("badge_service: upsert membership milestone error (member_id=%d, badge_code=%s): %v", memberID, badgeCode, err)
+	}
 }
 
 // ComputeAndStoreBadgesByMembership ermittelt die member_id zur gegebenen
@@ -140,8 +167,7 @@ func (s *BadgeService) computeFirstContribution(ctx context.Context, memberID in
 	err := s.db.QueryRow(ctx, `
 		SELECT ac.id
 		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		WHERE hfgm.member_id = $1
+		WHERE ac.member_id = $1
 		  AND ac.status = 'confirmed'
 		LIMIT 1
 	`, memberID).Scan(&rowID)
@@ -167,8 +193,7 @@ func (s *BadgeService) computeProductiveTiers(ctx context.Context, memberID int6
 	err := s.db.QueryRow(ctx, `
 		SELECT COUNT(DISTINCT ac.anime_id)
 		FROM anime_contributions ac
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		WHERE hfgm.member_id = $1
+		WHERE ac.member_id = $1
 		  AND ac.status = 'confirmed'
 	`, memberID).Scan(&animeCount)
 	if err != nil {
@@ -205,8 +230,7 @@ func (s *BadgeService) computeAllRounder(ctx context.Context, memberID int64) {
 		SELECT COUNT(DISTINCT acr.role_code)
 		FROM anime_contributions ac
 		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
-		JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		WHERE hfgm.member_id = $1
+		WHERE ac.member_id = $1
 		  AND ac.status = 'confirmed'
 	`, memberID).Scan(&roleCount)
 	if err != nil {

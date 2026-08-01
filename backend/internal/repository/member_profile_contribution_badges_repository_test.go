@@ -357,3 +357,24 @@ func TestLoadContributionBadgesArchivistCountPostgresMatchesRawValueAndBadgeDeri
 	require.True(t, containsPublicBadge(badges, "contribution_archivist_bronze", "contribution"),
 		"loadContributionBadges muss nach der Rohzahl-Extraktion dasselbe Badge wie vorher emittieren")
 }
+
+func TestBuildContribCategoryProgressIncludesPublicMetadata(t *testing.T) {
+	projects := buildContribCategoryProgress("contribution_projects", 3)
+	require.Equal(t, "bronze", projects.CurrentTier)
+	require.Equal(t, int64(3), projects.CurrentCount)
+	require.Equal(t, int64(5), *projects.NextThreshold)
+	require.Equal(t, int64(2), *projects.RemainingCount)
+	require.Equal(t, "silver", *projects.NextTier)
+
+	silver := buildContribCategoryProgress("contribution_chronicle", 50)
+	require.Equal(t, "silver", silver.CurrentTier)
+	require.Equal(t, int64(150), *silver.NextThreshold)
+	require.Equal(t, int64(100), *silver.RemainingCount)
+	require.Equal(t, "gold", *silver.NextTier)
+
+	gold := buildContribCategoryProgress("contribution_archivist", 150)
+	require.Equal(t, "gold", gold.CurrentTier)
+	require.Nil(t, gold.NextThreshold)
+	require.Nil(t, gold.RemainingCount)
+	require.Nil(t, gold.NextTier)
+}

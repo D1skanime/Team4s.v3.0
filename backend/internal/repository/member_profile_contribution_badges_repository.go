@@ -180,10 +180,16 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 		return nil, err
 	}
 	if tier := highestContribProjectsTier(int(projectsCount)); tier != "" {
+		progress := buildContribCategoryProgress("contribution_projects", projectsCount)
 		items = append(items, models.PublicMemberBadge{
 			ID:            0,
 			BadgeCode:     "contribution_projects_" + tier,
-			BadgeCategory: "contribution",
+			BadgeCategory:  "contribution",
+			CurrentCount:   &progress.CurrentCount,
+			CurrentTier:    &progress.CurrentTier,
+			NextThreshold:  progress.NextThreshold,
+			RemainingCount: progress.RemainingCount,
+			NextTier:       progress.NextTier,
 		})
 	}
 
@@ -192,10 +198,16 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 		return nil, err
 	}
 	if tier := highestContribChronicleTier(int(chronicleCount)); tier != "" {
+		progress := buildContribCategoryProgress("contribution_chronicle", chronicleCount)
 		items = append(items, models.PublicMemberBadge{
 			ID:            0,
 			BadgeCode:     "contribution_chronicle_" + tier,
-			BadgeCategory: "contribution",
+			BadgeCategory:  "contribution",
+			CurrentCount:   &progress.CurrentCount,
+			CurrentTier:    &progress.CurrentTier,
+			NextThreshold:  progress.NextThreshold,
+			RemainingCount: progress.RemainingCount,
+			NextTier:       progress.NextTier,
 		})
 	}
 
@@ -204,10 +216,16 @@ func (r *MemberProfileRepository) loadContributionBadges(ctx context.Context, me
 		return nil, err
 	}
 	if tier := highestContribArchivistTier(int(archivistCount)); tier != "" {
+		progress := buildContribCategoryProgress("contribution_archivist", archivistCount)
 		items = append(items, models.PublicMemberBadge{
 			ID:            0,
 			BadgeCode:     "contribution_archivist_" + tier,
-			BadgeCategory: "contribution",
+			BadgeCategory:  "contribution",
+			CurrentCount:   &progress.CurrentCount,
+			CurrentTier:    &progress.CurrentTier,
+			NextThreshold:  progress.NextThreshold,
+			RemainingCount: progress.RemainingCount,
+			NextTier:       progress.NextTier,
 		})
 	}
 

@@ -25,7 +25,7 @@ export interface CategoryProgressTableProps {
 
 // D-04: feste Anzeigereihenfolge der drei Contribution-Familien (Phase 113) -- die vom
 // Backend gelieferte category_progress-Array-Reihenfolge wird bewusst NICHT vertraut, sondern
-// hier deterministisch erzwungen (UI-SPEC Section 3: Bildarchivar, Chronist, dok. Projekte).
+// hier deterministisch erzwungen (UI-SPEC Section 3: Bildarchivpflege, Chronikpflege, dok. Projekte).
 const CATEGORY_FAMILY_ORDER: OwnDashboardCategoryProgress['family'][] = [
   'contribution_archivist',
   'contribution_chronicle',
@@ -37,8 +37,8 @@ const CATEGORY_FAMILY_ORDER: OwnDashboardCategoryProgress['family'][] = [
 // ROLE_VOLUME_TIER_LABELS-Konvention in memberBadgeLabels.ts. Alle Zahlen/Schwellen kommen
 // ausschliesslich aus data.category_progress (next_threshold) bzw. den 116-01-Helfern.
 const CATEGORY_FAMILY_LABELS: Record<OwnDashboardCategoryProgress['family'], string> = {
-  contribution_archivist: 'Bildarchivar',
-  contribution_chronicle: 'Chronist',
+  contribution_archivist: 'Bildarchivpflege',
+  contribution_chronicle: 'Chronikpflege',
   contribution_projects: 'Dokumentierte Projekte',
 }
 

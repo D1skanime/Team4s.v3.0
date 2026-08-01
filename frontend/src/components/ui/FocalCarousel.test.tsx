@@ -70,4 +70,25 @@ describe('FocalCarousel', () => {
 
     expect(onClick).not.toHaveBeenCalled()
   })
+
+  it('erzwingt während freiem Maus- oder Touch-Scrollen kein erneutes Zentrieren', () => {
+    vi.useFakeTimers()
+    const scrollIntoView = vi.fn()
+    const originalScrollIntoView = Element.prototype.scrollIntoView
+    Element.prototype.scrollIntoView = scrollIntoView
+
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' })
+
+      fireEvent.scroll(region)
+      expect(scrollIntoView).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(120)
+      expect(scrollIntoView).not.toHaveBeenCalled()
+    } finally {
+      Element.prototype.scrollIntoView = originalScrollIntoView
+      vi.useRealTimers()
+    }
+  })
 })

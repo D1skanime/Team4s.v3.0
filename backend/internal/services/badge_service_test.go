@@ -169,7 +169,7 @@ func TestRevokeBadge_RevokesOnlyActive(t *testing.T) {
 }
 
 // TestComputeAndStoreBadges_CallsAllFunctions verifiziert, dass ComputeAndStoreBadges
-// alle 7 compute-Funktionen aufruft (3 bestehende + 4 neue aus Phase 68).
+// alle Badge-Berechnungen inklusive der Mitgliedschafts-Meilensteine aufruft.
 func TestComputeAndStoreBadges_CallsAllFunctions(t *testing.T) {
 	content := readBadgeServiceSource(t, "badge_service.go")
 	normalized := strings.ToLower(content)
@@ -178,6 +178,8 @@ func TestComputeAndStoreBadges_CallsAllFunctions(t *testing.T) {
 		"s.computefoundingmember(",
 		"s.computehistoricalleader(",
 		"s.computelongtermmember(",
+		"s.computemembershipmilestone(ctx, memberid, \"membership_7_years\", 7)",
+		"s.computemembershipmilestone(ctx, memberid, \"membership_10_years\", 10)",
 		"s.computefirstcontribution(",
 		"s.computeproductivetiers(",
 		"s.computeallrounder(",

@@ -90,6 +90,22 @@
   --ach-muted-grad: linear-gradient(145deg, #b8b8bd, #6b6b70);
   --ach-muted-soft: #f0ece5;
 
+  /* Gemeinsame Rollenfarben für Mitgliederverwaltung, Credits und Auszeichnungen. */
+  --role-accent-base: #355481;
+  --role-accent-default: #43536e;
+  --role-accent-fansub-lead: #183b7c;
+  --role-accent-project-lead: #245c88;
+  --role-accent-editor: #6d3f83;
+  --role-accent-translator: #27664f;
+  --role-accent-timer: #c26a2e;
+  --role-accent-typesetter: #7b3c4e;
+  --role-accent-quality-checker: #6b7f2a;
+  --role-accent-encoder: #506b91;
+  --role-accent-raw-provider: #a04444;
+  --role-accent-designer: #b23a78;
+  --role-accent-admin: #2f6670;
+  --role-accent-other: #596176;
+
   --button-primary-start: #7aa0f0;
   --button-primary-mid: #5f84dd;
   --button-primary-end: #4363b4;

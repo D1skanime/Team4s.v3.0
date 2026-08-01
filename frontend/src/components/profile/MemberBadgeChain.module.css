@@ -39,6 +39,7 @@
 
 .chain {
   --focal-card-accent: var(--color-primary);
+  --focal-item-size: min(82%, 900px);
 }
 
 .groupList {
@@ -64,11 +65,13 @@
 .badgeRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  min-height: 250px;
+  min-height: 330px;
   align-items: center;
   justify-content: center;
   gap: 18px;
-  padding: 18px 12px;
+  padding: 24px 12px;
+  background:
+    radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--focal-card-accent) 10%, transparent), transparent 58%);
 }
 
 .badgeRowCompact {
@@ -77,15 +80,20 @@
 }
 
 .badgeWindow {
-  flex-basis: min(76%, 860px) !important;
+  flex-basis: var(--focal-item-size) !important;
+  overflow: visible !important;
 }
 
-.group[data-badge-group="roles"] .badgeWindow {
-  flex-basis: min(58%, 520px) !important;
+.group[data-badge-group="roles"] .chain {
+  --focal-item-size: min(68%, 680px);
+}
+
+.group[data-badge-group="roles"] .badgeWindowActive {
+  filter: none;
 }
 
 .badgeWindowActive {
-  box-shadow: none;
+  filter: drop-shadow(0 22px 34px color-mix(in srgb, var(--focal-card-accent) 13%, transparent));
 }
 
 .badgeGrid {
@@ -104,12 +112,176 @@
 
 .roleBadgeRow,
 .roleBadgeRowCompact {
-  min-height: 340px;
+  --role-accent: var(--role-accent-default);
+  position: relative;
+  isolation: isolate;
+  min-height: 420px;
   display: grid;
   place-items: center;
   align-content: center;
   gap: 10px;
-  padding: 16px 8px;
+  padding: 24px 8px;
+  background:
+    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--role-accent) 28%, transparent), transparent 39%),
+    radial-gradient(ellipse at 50% 64%, color-mix(in srgb, var(--role-accent) 14%, transparent), transparent 58%);
+}
+
+.roleBadgeRow[data-role-code="fansub_lead"],
+.roleBadgeRowCompact[data-role-code="fansub_lead"] {
+  --role-accent: var(--role-accent-fansub-lead);
+}
+
+.roleBadgeRow[data-role-code="project_lead"],
+.roleBadgeRowCompact[data-role-code="project_lead"] {
+  --role-accent: var(--role-accent-project-lead);
+}
+
+.roleBadgeRow[data-role-code="editor"],
+.roleBadgeRowCompact[data-role-code="editor"] {
+  --role-accent: var(--role-accent-editor);
+}
+
+.roleBadgeRow[data-role-code="translator"],
+.roleBadgeRowCompact[data-role-code="translator"] {
+  --role-accent: var(--role-accent-translator);
+}
+
+.roleBadgeRowLayered {
+  background: transparent;
+}
+
+.roleHeroArtworkLayered,
+.badgeArtworkLayered {
+  isolation: isolate;
+}
+
+.badgeArtworkLayered {
+  --role-accent: #17a7a5;
+  position: relative;
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMist,
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkBackdrop,
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMotif,
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkFrame {
+  position: absolute;
+  inset: 0;
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMist {
+  z-index: 0;
+  top: auto;
+  right: 8%;
+  bottom: -4%;
+  left: 8%;
+  height: 24%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    color-mix(in srgb, var(--role-accent) 48%, transparent) 0%,
+    color-mix(in srgb, var(--role-accent) 22%, transparent) 42%,
+    transparent 74%
+  );
+  filter: blur(10px);
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkBackdrop {
+  z-index: 1;
+  inset: 5%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 34%, color-mix(in srgb, white 18%, transparent), transparent 34%),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--role-accent) 88%, #16382d),
+      color-mix(in srgb, var(--role-accent) 68%, #0d261e)
+    );
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMotif {
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  clip-path: circle(36% at 50% 45%);
+}
+
+.badgeArtworkLayered .roleArtworkMotif {
+  clip-path: circle(40% at 50% 50%);
+}
+
+.roleBadgeRow:is(
+    [data-role-code="project_lead"],
+    [data-role-code="editor"],
+    [data-role-code="raw_provider"],
+    [data-role-code="designer"],
+    [data-role-code="admin"],
+    [data-role-code="other"]
+  )
+  .roleArtworkMotif,
+.roleBadgeRowCompact:is(
+    [data-role-code="project_lead"],
+    [data-role-code="editor"],
+    [data-role-code="raw_provider"],
+    [data-role-code="designer"],
+    [data-role-code="admin"],
+    [data-role-code="other"]
+  )
+  .roleArtworkMotif {
+  clip-path: circle(40% at 50% 47%);
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkFrame {
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.roleBadgeRow > *,
+.roleBadgeRowCompact > * {
+  position: relative;
+  z-index: 1;
+}
+
+.roleBadgeRow[data-role-code="timer"],
+.roleBadgeRowCompact[data-role-code="timer"] {
+  --role-accent: var(--role-accent-timer);
+}
+
+.roleBadgeRow[data-role-code="typesetter"],
+.roleBadgeRowCompact[data-role-code="typesetter"] {
+  --role-accent: var(--role-accent-typesetter);
+}
+
+.roleBadgeRow[data-role-code="quality_checker"],
+.roleBadgeRowCompact[data-role-code="quality_checker"] {
+  --role-accent: var(--role-accent-quality-checker);
+}
+
+.roleBadgeRow[data-role-code="encoder"],
+.roleBadgeRowCompact[data-role-code="encoder"] {
+  --role-accent: var(--role-accent-encoder);
+}
+
+.roleBadgeRow[data-role-code="raw_provider"],
+.roleBadgeRowCompact[data-role-code="raw_provider"] {
+  --role-accent: var(--role-accent-raw-provider);
+}
+
+.roleBadgeRow[data-role-code="designer"],
+.roleBadgeRowCompact[data-role-code="designer"] {
+  --role-accent: var(--role-accent-designer);
+}
+
+.roleBadgeRow[data-role-code="admin"],
+.roleBadgeRowCompact[data-role-code="admin"] {
+  --role-accent: var(--role-accent-admin);
+}
+
+.roleBadgeRow[data-role-code="other"],
+.roleBadgeRowCompact[data-role-code="other"] {
+  --role-accent: var(--role-accent-other);
 }
 
 .roleBadgeRowCompact {
@@ -117,12 +289,21 @@
 }
 
 .roleHeroArtwork {
-  width: clamp(184px, 22vw, 240px);
-  height: clamp(184px, 22vw, 240px);
+  width: clamp(220px, 25vw, 270px);
+  height: clamp(220px, 25vw, 270px);
   display: block;
   filter:
-    drop-shadow(0 0 14px color-mix(in srgb, var(--color-primary) 28%, transparent))
-    drop-shadow(0 18px 24px color-mix(in srgb, var(--color-primary) 18%, transparent));
+    drop-shadow(0 0 18px color-mix(in srgb, var(--role-accent) 40%, transparent))
+    drop-shadow(0 20px 30px color-mix(in srgb, var(--role-accent) 25%, transparent));
+  transition: width 220ms ease, height 220ms ease, filter 220ms ease;
+}
+
+.badgeWindowActive .roleHeroArtwork {
+  width: clamp(280px, 30vw, 328px);
+  height: clamp(280px, 30vw, 328px);
+  filter:
+    drop-shadow(0 0 28px color-mix(in srgb, var(--role-accent) 52%, transparent))
+    drop-shadow(0 24px 38px color-mix(in srgb, var(--role-accent) 32%, transparent));
 }
 
 .roleHeroArtwork img {
@@ -246,6 +427,20 @@
   white-space: normal;
 }
 
+.badgeText {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.2;
+}
+
+.badgeDetail {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .badgeIcon {
   width: 28px;
   height: 28px;
@@ -259,8 +454,8 @@
 }
 
 .badgeArtwork {
-  width: clamp(140px, 18vw, 220px);
-  height: clamp(140px, 18vw, 220px);
+  width: clamp(170px, 20vw, 220px);
+  height: clamp(170px, 20vw, 220px);
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -272,6 +467,15 @@
   filter:
     drop-shadow(0 0 12px color-mix(in srgb, var(--badge-accent) 34%, transparent))
     drop-shadow(0 16px 22px color-mix(in srgb, var(--badge-accent) 20%, transparent));
+  transition: width 220ms ease, height 220ms ease, filter 220ms ease;
+}
+
+.badgeWindowActive .badgeArtwork {
+  width: clamp(230px, 25vw, 280px);
+  height: clamp(230px, 25vw, 280px);
+  filter:
+    drop-shadow(0 0 24px color-mix(in srgb, var(--badge-accent) 44%, transparent))
+    drop-shadow(0 22px 34px color-mix(in srgb, var(--badge-accent) 26%, transparent));
 }
 
 .badgeStep[data-role-volume="true"] .badgeArtwork {
@@ -284,6 +488,61 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.group[data-badge-group="contributions"] .badgeRow {
+  min-height: 390px;
+  padding-block: 10px 16px;
+}
+
+.group[data-badge-group="contributions"] .badgeArtwork {
+  width: clamp(240px, 28vw, 310px);
+  height: clamp(240px, 28vw, 310px);
+}
+
+.group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork {
+  width: clamp(310px, 36vw, 380px);
+  height: clamp(310px, 36vw, 380px);
+}
+
+.group[data-badge-group="contributions"] .badgeArtwork img {
+  border-radius: 50%;
+  clip-path: circle(49% at 50% 50%);
+}
+
+.group[data-badge-group="membership"] .badgeRow {
+  min-height: 390px;
+  padding-block: 10px 16px;
+}
+
+.group[data-badge-group="membership"] .badgeArtwork {
+  width: clamp(240px, 28vw, 310px);
+  height: clamp(240px, 28vw, 310px);
+}
+
+.group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork {
+  width: clamp(310px, 36vw, 380px);
+  height: clamp(310px, 36vw, 380px);
+}
+
+.group[data-badge-group="special"] .badgeRow {
+  min-height: 280px;
+  padding-block: 8px 14px;
+}
+
+.group[data-badge-group="special"] .badgeArtwork {
+  width: clamp(130px, 15vw, 170px);
+  height: clamp(170px, 20vw, 220px);
+}
+
+.group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
+  width: clamp(165px, 19vw, 205px);
+  height: clamp(215px, 25vw, 265px);
+}
+
+.group[data-badge-group="special"] .badgeRowCompact {
+  min-height: 96px;
+  padding-block: 8px;
 }
 
 .badgeStepLocked .badgeItem,
@@ -305,12 +564,13 @@
 
 @media (max-width: 520px) {
   .chain {
+    --focal-item-size: 86%;
     margin-inline: -8px;
   }
 
   .badgeRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-height: 210px;
+    min-height: 280px;
     gap: 10px;
     padding: 14px 4px;
   }
@@ -321,21 +581,26 @@
   }
 
   .badgeWindow {
-    flex-basis: 88% !important;
+    flex-basis: var(--focal-item-size) !important;
   }
 
-  .group[data-badge-group="roles"] .badgeWindow {
-    flex-basis: 76% !important;
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: 84%;
   }
 
   .roleBadgeRow {
-    min-height: 276px;
+    min-height: 330px;
     padding-inline: 2px;
   }
 
   .roleHeroArtwork {
-    width: clamp(148px, 42vw, 176px);
-    height: clamp(148px, 42vw, 176px);
+    width: clamp(172px, 48vw, 194px);
+    height: clamp(172px, 48vw, 194px);
+  }
+
+  .badgeWindowActive .roleHeroArtwork {
+    width: clamp(204px, 58vw, 230px);
+    height: clamp(204px, 58vw, 230px);
   }
 
   .roleProgression {
@@ -350,13 +615,186 @@
   }
 
   .badgeArtwork {
-    width: clamp(128px, 38vw, 156px);
-    height: clamp(128px, 38vw, 156px);
+    width: clamp(142px, 42vw, 166px);
+    height: clamp(142px, 42vw, 166px);
+  }
+
+  .badgeWindowActive .badgeArtwork {
+    width: clamp(178px, 52vw, 205px);
+    height: clamp(178px, 52vw, 205px);
+  }
+
+  .group[data-badge-group="contributions"] .badgeRow {
+    min-height: 350px;
+    padding-block: 6px 12px;
+  }
+
+  .group[data-badge-group="contributions"] .badgeArtwork {
+    width: clamp(150px, 46vw, 180px);
+    height: clamp(150px, 46vw, 180px);
+  }
+
+  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork {
+    width: clamp(210px, 60vw, 240px);
+    height: clamp(210px, 60vw, 240px);
+  }
+
+  .group[data-badge-group="membership"] .badgeRow {
+    min-height: 350px;
+    padding-block: 6px 12px;
+  }
+
+  .group[data-badge-group="membership"] .badgeArtwork {
+    width: clamp(150px, 46vw, 180px);
+    height: clamp(150px, 46vw, 180px);
+  }
+
+  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork {
+    width: clamp(210px, 60vw, 240px);
+    height: clamp(210px, 60vw, 240px);
+  }
+
+  .group[data-badge-group="special"] .badgeRow {
+    min-height: 245px;
+  }
+
+  .group[data-badge-group="special"] .badgeArtwork {
+    width: 112px;
+    height: 150px;
+  }
+
+  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
+    width: 145px;
+    height: 195px;
+  }
+
+  .group[data-badge-group="special"] .badgeRowCompact {
+    min-height: 88px;
+  }
+}
+
+@media (min-width: 521px) and (max-width: 900px) {
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: min(74%, 600px);
+  }
+
+  .roleBadgeRow {
+    min-height: 380px;
+  }
+
+  .badgeWindowActive .roleHeroArtwork {
+    width: min(34vw, 280px);
+    height: min(34vw, 280px);
+  }
+
+  .badgeWindowActive .badgeArtwork {
+    width: min(29vw, 240px);
+    height: min(29vw, 240px);
+  }
+
+  .group[data-badge-group="contributions"] .badgeRow {
+    min-height: 380px;
+    padding-block: 8px 14px;
+  }
+
+  .group[data-badge-group="contributions"] .badgeArtwork {
+    width: min(38vw, 230px);
+    height: min(38vw, 230px);
+  }
+
+  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork {
+    width: min(54vw, 310px);
+    height: min(54vw, 310px);
+  }
+
+  .group[data-badge-group="membership"] .badgeRow {
+    min-height: 380px;
+    padding-block: 8px 14px;
+  }
+
+  .group[data-badge-group="membership"] .badgeArtwork {
+    width: min(38vw, 230px);
+    height: min(38vw, 230px);
+  }
+
+  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork {
+    width: min(54vw, 310px);
+    height: min(54vw, 310px);
+  }
+
+  .group[data-badge-group="special"] .badgeRow {
+    min-height: 260px;
+  }
+
+  .group[data-badge-group="special"] .badgeArtwork {
+    width: 125px;
+    height: 165px;
+  }
+
+  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
+    width: 155px;
+    height: 210px;
+  }
+
+  .group[data-badge-group="special"] .badgeRowCompact {
+    min-height: 96px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .badgeArtwork,
+  .roleHeroArtwork {
+    transition: none;
+  }
+
   .badgeArtwork {
     filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--badge-accent) 20%, transparent));
+  }
+}
+.contributionProgress,
+.contributionProgressTerminal {
+  width: min(100%, 320px);
+  display: grid;
+  gap: 7px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.contributionProgressCopy,
+.contributionProgressTerminal {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contributionProgressTrack {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--badge-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--badge-accent) 13%, var(--surface-card-muted));
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--text-primary) 9%, transparent);
+}
+
+.contributionProgressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--badge-accent) 70%, white), var(--badge-accent));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--badge-accent) 48%, transparent);
+}
+
+.badgeStep[data-contribution-tier="silver"] .contributionProgressTrack > span {
+  background: linear-gradient(90deg, #f6fbff 0%, #a7dbe8 48%, #c7ccd8 100%);
+  box-shadow: 0 0 12px color-mix(in srgb, #9fdceb 58%, transparent);
+}
+
+@media (max-width: 520px) {
+  .contributionProgressCopy,
+  .contributionProgressTerminal {
+    flex-direction: column;
+    gap: 3px;
+    text-align: center;
   }
 }

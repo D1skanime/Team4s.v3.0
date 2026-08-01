@@ -55,7 +55,9 @@ function makeProject(): PublicMemberCurrentProject {
 
 describe('MemberCurrentProjectsSection', () => {
   it('renders project summary with poster and does not expand release-version episodes', () => {
-    const { container } = render(<MemberCurrentProjectsSection projects={[makeProject()]} />)
+    const { container } = render(
+      <MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject()]} totalCount={1} />,
+    )
 
     expect(screen.getByRole('heading', { name: 'Aktuelle Projekte' })).not.toBeNull()
     expect(screen.getByRole('link', { name: /Viper's Creed/i }).getAttribute('href')).toBe('/anime/1/group/7')
@@ -66,5 +68,12 @@ describe('MemberCurrentProjectsSection', () => {
     expect(container.querySelector('[class*="projectArrow"] svg')).not.toBeNull()
     expect(screen.queryByText('Episode 1')).toBeNull()
     expect(screen.queryByText('Episode 12')).toBeNull()
+  })
+
+  it('zeigt nur die initial geladene Projektseite und weist auf weitere Projekte hin', () => {
+    render(<MemberCurrentProjectsSection memberSlug="subaru" projects={[makeProject()]} totalCount={12} />)
+
+    expect(screen.getByText('1 von 12 Projekten sichtbar')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Weitere Projekte laden' })).not.toBeNull()
   })
 })

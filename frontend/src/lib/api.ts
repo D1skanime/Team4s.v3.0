@@ -75,6 +75,7 @@ import {
   MemberRequestRow,
   MemberSearchResult,
   PublicMemberProfileResponse,
+  PublicMemberProjectsResponse,
   UpdateMemberProfileRequest,
 } from "@/types/profile";
 import {
@@ -3192,6 +3193,27 @@ export async function getMemberProfile(
   }
 
   return response.json() as Promise<PublicMemberProfileResponse>;
+}
+
+export async function getMemberProjects(
+  slug: string,
+  limit = 6,
+  offset = 0,
+): Promise<PublicMemberProjectsResponse> {
+  const API_BASE_URL = getApiBaseUrl();
+  const encodedSlug = encodeURIComponent(slug);
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/members/${encodedSlug}/projects?${params.toString()}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+
+  return response.json() as Promise<PublicMemberProjectsResponse>;
 }
 
 export async function getMyMemberClaim(

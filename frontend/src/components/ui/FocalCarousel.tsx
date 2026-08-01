@@ -70,15 +70,12 @@ export function FocalCarousel<T>({
   const trackRef = useRef<HTMLDivElement>(null)
   const restoreFocusRef = useRef(false)
   const suppressClickRef = useRef(false)
+  const scrollSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dragRef = useRef({ active: false, startX: 0, startScroll: 0, pointerId: -1, captured: false })
 
   const visibleItems = carouselItems ?? items
   const lastIndex = Math.max(0, visibleItems.length - 1)
   const safeIndex = Math.min(activeIndex, lastIndex)
-
-  useEffect(() => {
-    if (activeIndex > lastIndex) setActiveIndex(lastIndex)
-  }, [activeIndex, lastIndex])
 
   useEffect(() => {
     if (!expanded && restoreFocusRef.current) {
@@ -87,13 +84,17 @@ export function FocalCarousel<T>({
     }
   }, [expanded])
 
+  useEffect(() => () => {
+    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+  }, [])
+
   const itemElements = () =>
     Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
 
   const focusItem = (index: number, behavior: ScrollBehavior = 'smooth') => {
-    const nextIndex = Math.max(0, Math.min(index, lastIndex))
-    setActiveIndex(nextIndex)
-    const element = itemElements()[nextIndex]
+    const boundedIndex = Math.max(0, Math.min(index, lastIndex))
+    setActiveIndex(boundedIndex)
+    const element = itemElements()[boundedIndex]
     element?.scrollIntoView?.({ behavior, block: 'nearest', inline: 'center' })
   }
 
@@ -106,9 +107,9 @@ export function FocalCarousel<T>({
     }
   }
 
-  const settleNearest = () => {
+  const nearestItemIndex = () => {
     const track = trackRef.current
-    if (!track) return
+    if (!track) return safeIndex
     const center = track.getBoundingClientRect().left + track.clientWidth / 2
     const elements = itemElements()
     let nearest = safeIndex
@@ -121,7 +122,19 @@ export function FocalCarousel<T>({
         nearest = index
       }
     })
-    focusItem(nearest)
+    return nearest
+  }
+
+  const settleNearest = () => {
+    focusItem(nearestItemIndex())
+  }
+
+  const handleScroll = () => {
+    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+    scrollSettleTimerRef.current = setTimeout(() => {
+      scrollSettleTimerRef.current = null
+      setActiveIndex(nearestItemIndex())
+    }, 120)
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -144,6 +157,7 @@ export function FocalCarousel<T>({
     const delta = event.clientX - drag.startX
     if (Math.abs(delta) <= 4) return
     suppressClickRef.current = true
+    event.preventDefault()
     track.scrollLeft = drag.startScroll - delta
     if (!drag.captured) {
       drag.captured = true
@@ -160,6 +174,8 @@ export function FocalCarousel<T>({
     if (!dragRef.current.active) return
     dragRef.current.active = false
     trackRef.current?.classList.remove(styles.dragging)
+    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+    scrollSettleTimerRef.current = null
     settleNearest()
   }
 
@@ -226,7 +242,7 @@ export function FocalCarousel<T>({
           data-orientation="horizontal"
           tabIndex={0}
           onKeyDown={handleKeyDown}
-          onScroll={settleNearest}
+          onScroll={handleScroll}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerEnd}

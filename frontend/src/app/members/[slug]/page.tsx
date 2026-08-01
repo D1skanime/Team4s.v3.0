@@ -97,6 +97,11 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   const latestContributions = profile.latest_contributions ?? []
   const previousContributions = profile.previous_contributions ?? []
   const previousContributionsCount = profile.previous_contributions_count ?? previousContributions.length
+  const relevantRoleCodes = Array.from(new Set([
+    ...(profile.memberships ?? []).flatMap((membership) => membership.app_member_roles ?? []),
+    ...currentProjects.flatMap((project) => project.roles ?? []),
+    ...previousContributions.flatMap((contribution) => contribution.roles ?? []),
+  ]))
 
   return (
     <main className={styles.page}>
@@ -135,7 +140,9 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
 
       <section className={styles.section} aria-label="Aktuelle Projekte">
         <MemberCurrentProjectsSection
+          memberSlug={slug}
           projects={currentProjects}
+          totalCount={profile.current_projects_count ?? currentProjects.length}
         />
       </section>
 
@@ -143,6 +150,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         <MemberBadgeChain
           earnedBadges={earnedBadges}
           catalog={PUBLIC_MEMBER_BADGE_CATALOG}
+          relevantRoleCodes={relevantRoleCodes}
         />
       </section>
 

@@ -561,6 +561,55 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/members/{slug}/projects:
+    get:
+      tags: [Profile]
+      summary: List a public member's current projects incrementally
+      operationId: getMemberProjects
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 6
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Paginated current projects or visibility notice
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/PublicMemberProjectsEnvelope"
+                  - $ref: "#/components/schemas/MemberProfileHidden"
+        "404":
+          description: Member profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime:
     get:
       tags: [Anime]
@@ -11157,6 +11206,27 @@ components:
           type: string
         badge_category:
           type: string
+        current_count:
+          type: integer
+          format: int64
+          nullable: true
+          description: Exact count, exposed only for an already-visible contribution badge.
+        current_tier:
+          type: string
+          enum: [bronze, silver, gold]
+          nullable: true
+        next_threshold:
+          type: integer
+          format: int64
+          nullable: true
+        remaining_count:
+          type: integer
+          format: int64
+          nullable: true
+        next_tier:
+          type: string
+          enum: [bronze, silver, gold]
+          nullable: true
     MeProjectReleaseVersion:
       type: object
       required:
@@ -11255,6 +11325,7 @@ components:
         - recent_media
         - recent_contributions
         - current_projects
+        - current_projects_count
         - latest_contributions
         - previous_contributions
         - previous_contributions_count
@@ -11327,8 +11398,12 @@ components:
             $ref: "#/components/schemas/MemberProfileRecentContribution"
         current_projects:
           type: array
+          description: First page of current projects; use the projects endpoint for subsequent pages.
           items:
             $ref: "#/components/schemas/PublicMemberCurrentProject"
+        current_projects_count:
+          type: integer
+          format: int32
         latest_contributions:
           type: array
           description: Newest three public profile contribution items across published notes and approved release-version media.
@@ -11342,6 +11417,29 @@ components:
         previous_contributions_count:
           type: integer
           format: int32
+    PublicMemberProjectsPage:
+      type: object
+      required: [items, total, limit, offset]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicMemberCurrentProject"
+        total:
+          type: integer
+          format: int32
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+    PublicMemberProjectsEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/PublicMemberProjectsPage"
     FansubMediaUploadResponse:
       type: object
       required: [data]

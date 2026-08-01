@@ -37,10 +37,11 @@ export type MemberBadgePalette = 'gold' | 'indigo' | 'orange' | 'mint' | 'red' |
 
 // D-04: fester Satz beschrifteter Kategorie-Gruppen fuer die "Auszeichnungen"-Sektion.
 // Jede neue Badge-Familie erhaelt hier einen weiteren Wert nach demselben Muster.
-export type MemberBadgeGroup = 'roles' | 'progress' | 'contributions' | 'membership' | 'special'
+export type MemberBadgeGroup = 'roles' | 'progress' | 'points' | 'contributions' | 'membership' | 'special'
 
 export type MemberBadgePresentation = {
   label: string
+  detailLabel?: string
   variant: MemberBadgeVariant
   Icon: LucideIcon
   palette: MemberBadgePalette
@@ -60,10 +61,12 @@ export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation>
   founding_member: { label: 'Gründungsmitglied', variant: 'warning', Icon: Crown, palette: 'gold', group: 'membership' },
   historical_leader: { label: 'Historische Leitung', variant: 'info', Icon: Shield, palette: 'indigo', group: 'special' },
   long_term_member: { label: '5+ Jahre Mitglied', variant: 'success', Icon: CalendarClock, palette: 'orange', group: 'membership' },
+  membership_7_years: { label: '7+ Jahre Mitglied', variant: 'success', Icon: CalendarClock, palette: 'orange', group: 'membership' },
+  membership_10_years: { label: '10+ Jahre Mitglied', variant: 'info', Icon: CalendarClock, palette: 'indigo', group: 'membership' },
   first_contribution: { label: 'Erste Mitwirkung', variant: 'neutral', Icon: Sparkles, palette: 'mint', group: 'progress' },
-  productive_bronze: { label: 'Produktiv · 10+ Anime', variant: 'muted', Icon: Layers, palette: 'mint', group: 'progress' },
-  productive_silver: { label: 'Produktiv · 25+ Anime', variant: 'neutral', Icon: Layers, palette: 'mint', group: 'progress' },
-  productive_gold: { label: 'Produktiv · 50+ Anime', variant: 'warning', Icon: Star, palette: 'gold', group: 'progress' },
+  productive_bronze: { label: 'Projekt-Engagement · Bronze', detailLabel: '10 Anime-Projekte', variant: 'muted', Icon: Layers, palette: 'mint', group: 'progress' },
+  productive_silver: { label: 'Projekterfahrung · Silber', detailLabel: '25 Anime-Projekte', variant: 'neutral', Icon: Layers, palette: 'mint', group: 'progress' },
+  productive_gold: { label: 'Projekt-Veteranenstatus · Gold', detailLabel: '50 Anime-Projekte', variant: 'warning', Icon: Star, palette: 'gold', group: 'progress' },
   all_rounder: { label: 'Allrounder', variant: 'info', Icon: Hexagon, palette: 'red', group: 'special' },
   verified: { label: 'Verifiziert', variant: 'success', Icon: BadgeCheck, palette: 'red', group: 'special' },
   role_entry_translator: { label: 'Erste Übersetzung', variant: 'info', Icon: Languages, palette: 'indigo', group: 'roles', roleCode: 'translator' },
@@ -86,38 +89,41 @@ export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation>
   // D-01/D-03: Punkt-Meilensteine — nur die statische Map, bewusst NICHT im PUBLIC_MEMBER_BADGE_CATALOG
   // (kein Locked-Zustand fuer Typ 2; der erreichte Meilenstein fliesst zur Laufzeit ueber den
   // earned-but-not-in-catalog-Fallback ein, siehe deriveMilestoneBadge).
-  point_milestone_first: { label: 'Erster Beitrag', variant: 'muted', Icon: Flag, palette: 'mint', group: 'progress' },
-  point_milestone_active: { label: 'Aktiver Mitwirkender', variant: 'neutral', Icon: Flame, palette: 'mint', group: 'progress' },
-  point_milestone_experienced: { label: 'Erfahrener Mitwirkender', variant: 'success', Icon: Award, palette: 'orange', group: 'progress' },
-  point_milestone_engaged: { label: 'Engagierter Mitwirkender', variant: 'success', Icon: Medal, palette: 'orange', group: 'progress' },
-  point_milestone_veteran: { label: 'Veteran', variant: 'warning', Icon: Trophy, palette: 'gold', group: 'progress' },
-  point_milestone_legend: { label: 'Archiv-Legende', variant: 'warning', Icon: Gem, palette: 'gold', group: 'progress' },
+  point_milestone_first: { label: 'Erste Punkte', detailLabel: '1 Punkt', variant: 'muted', Icon: Flag, palette: 'mint', group: 'points' },
+  point_milestone_active: { label: 'Aktiv dabei', detailLabel: '50 Punkte', variant: 'neutral', Icon: Flame, palette: 'mint', group: 'points' },
+  point_milestone_experienced: { label: 'Erfahrungsstufe', detailLabel: '200 Punkte', variant: 'success', Icon: Award, palette: 'orange', group: 'points' },
+  point_milestone_engaged: { label: 'Stark engagiert', detailLabel: '500 Punkte', variant: 'success', Icon: Medal, palette: 'orange', group: 'points' },
+  point_milestone_veteran: { label: 'Veteranenstatus', detailLabel: '1000 Punkte', variant: 'warning', Icon: Trophy, palette: 'gold', group: 'points' },
+  point_milestone_legend: { label: 'Archiv-Legende', detailLabel: '2500 Punkte', variant: 'warning', Icon: Gem, palette: 'gold', group: 'points' },
   contribution_projects_bronze: { label: 'Mitgetragene Projekte · Bronze', variant: 'muted', Icon: FolderCheck, palette: 'bronze', group: 'contributions' },
   contribution_projects_silver: { label: 'Mitgetragene Projekte · Silber', variant: 'neutral', Icon: FolderCheck, palette: 'silver', group: 'contributions' },
   contribution_projects_gold: { label: 'Mitgetragene Projekte · Gold', variant: 'warning', Icon: FolderCheck, palette: 'gold', group: 'contributions' },
-  contribution_chronicle_bronze: { label: 'Chronist · Bronze', variant: 'muted', Icon: ScrollText, palette: 'bronze', group: 'contributions' },
-  contribution_chronicle_silver: { label: 'Chronist · Silber', variant: 'neutral', Icon: ScrollText, palette: 'silver', group: 'contributions' },
-  contribution_chronicle_gold: { label: 'Chronist · Gold', variant: 'warning', Icon: ScrollText, palette: 'gold', group: 'contributions' },
-  contribution_archivist_bronze: { label: 'Bildarchivar · Bronze', variant: 'muted', Icon: Images, palette: 'bronze', group: 'contributions' },
-  contribution_archivist_silver: { label: 'Bildarchivar · Silber', variant: 'neutral', Icon: Images, palette: 'silver', group: 'contributions' },
-  contribution_archivist_gold: { label: 'Bildarchivar · Gold', variant: 'warning', Icon: Images, palette: 'gold', group: 'contributions' },
+  contribution_chronicle_bronze: { label: 'Chronikpflege · Bronze', variant: 'muted', Icon: ScrollText, palette: 'bronze', group: 'contributions' },
+  contribution_chronicle_silver: { label: 'Chronikpflege · Silber', variant: 'neutral', Icon: ScrollText, palette: 'silver', group: 'contributions' },
+  contribution_chronicle_gold: { label: 'Chronikpflege · Gold', variant: 'warning', Icon: ScrollText, palette: 'gold', group: 'contributions' },
+  contribution_archivist_bronze: { label: 'Bildarchivpflege · Bronze', variant: 'muted', Icon: Images, palette: 'bronze', group: 'contributions' },
+  contribution_archivist_silver: { label: 'Bildarchivpflege · Silber', variant: 'neutral', Icon: Images, palette: 'silver', group: 'contributions' },
+  contribution_archivist_gold: { label: 'Bildarchivpflege · Gold', variant: 'warning', Icon: Images, palette: 'gold', group: 'contributions' },
 }
 
 // D-04: deutsche Gruppen-Labels und feste Anzeigereihenfolge (Rollen zuerst, siehe 110-CONTEXT.md).
 export const MEMBER_BADGE_GROUP_LABELS: Record<MemberBadgeGroup, string> = {
-  roles: 'Rollen',
+  roles: 'Fansubrollen',
   progress: 'Fortschritt',
+  points: 'Punkte-Meilensteine',
   contributions: 'Beiträge',
   membership: 'Mitgliedschaft',
   special: 'Besondere Auszeichnungen',
 }
 
-export const MEMBER_BADGE_GROUP_ORDER: MemberBadgeGroup[] = ['roles', 'progress', 'contributions', 'membership', 'special']
+export const MEMBER_BADGE_GROUP_ORDER: MemberBadgeGroup[] = ['roles', 'progress', 'points', 'contributions', 'membership', 'special']
 
 export const PUBLIC_MEMBER_BADGE_CATALOG: PublicMemberBadgeCatalogItem[] = [
   { badge_code: 'founding_member', label: MEMBER_BADGE_PRESENTATIONS.founding_member.label, badge_category: 'historical_achievement' },
   { badge_code: 'historical_leader', label: MEMBER_BADGE_PRESENTATIONS.historical_leader.label, badge_category: 'historical_achievement' },
   { badge_code: 'long_term_member', label: MEMBER_BADGE_PRESENTATIONS.long_term_member.label, badge_category: 'membership' },
+  { badge_code: 'membership_7_years', label: MEMBER_BADGE_PRESENTATIONS.membership_7_years.label, badge_category: 'membership' },
+  { badge_code: 'membership_10_years', label: MEMBER_BADGE_PRESENTATIONS.membership_10_years.label, badge_category: 'membership' },
   { badge_code: 'first_contribution', label: MEMBER_BADGE_PRESENTATIONS.first_contribution.label, badge_category: 'contribution' },
   { badge_code: 'productive_bronze', label: MEMBER_BADGE_PRESENTATIONS.productive_bronze.label, badge_category: 'quantity' },
   { badge_code: 'productive_silver', label: MEMBER_BADGE_PRESENTATIONS.productive_silver.label, badge_category: 'quantity' },

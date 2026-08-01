@@ -34,8 +34,8 @@ describe('CategoryProgressTable (Phase 116, D-04)', () => {
     render(<CategoryProgressTable data={makeData({ total_points: 62 })} />)
 
     expect(screen.getByText('Punkte-Meilenstein')).not.toBeNull()
-    expect(screen.getByText('Aktiver Mitwirkender')).not.toBeNull()
-    expect(screen.getByText('noch 138 bis Erfahrener Mitwirkender')).not.toBeNull()
+    expect(screen.getByText('Aktiv dabei')).not.toBeNull()
+    expect(screen.getByText('noch 138 bis Erfahrungsstufe')).not.toBeNull()
   })
 
   it('rendert eine Rollen-Volumen-Zeile je role_volume-Eintrag mit Rollen-Praefix', () => {
@@ -50,7 +50,7 @@ describe('CategoryProgressTable (Phase 116, D-04)', () => {
     expect(screen.getByText('noch 88 bis Silber')).not.toBeNull()
   })
 
-  it('rendert Bildarchivar-Zeile verbatim aus category_progress mit Familie+Tier-Badge', () => {
+  it('rendert Bildarchivpflege-Zeile verbatim aus category_progress mit Familie+Tier-Badge', () => {
     render(
       <CategoryProgressTable
         data={makeData({
@@ -63,8 +63,8 @@ describe('CategoryProgressTable (Phase 116, D-04)', () => {
       />,
     )
 
-    expect(screen.getByText('Bildarchivar')).not.toBeNull()
-    expect(screen.getByText('Bildarchivar · Silber')).not.toBeNull()
+    expect(screen.getByText('Bildarchivpflege')).not.toBeNull()
+    expect(screen.getByText('Bildarchivpflege · Silber')).not.toBeNull()
     expect(screen.getByText('noch 90 bis Gold')).not.toBeNull()
   })
 

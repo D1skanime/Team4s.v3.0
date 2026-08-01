@@ -556,7 +556,11 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	if loadErr != nil {
 		return nil, loadErr
 	}
-	profile.CurrentProjects, loadErr = r.loadCurrentProjects(ctx, row.memberID)
+	profile.CurrentProjects, loadErr = r.loadCurrentProjects(ctx, row.memberID, 6, 0)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	profile.CurrentProjectsCount, loadErr = r.countCurrentProjects(ctx, row.memberID)
 	if loadErr != nil {
 		return nil, loadErr
 	}
@@ -1159,7 +1163,7 @@ func (r *MemberProfileRepository) loadHistoricalCredits(ctx context.Context, mem
 	return items, nil
 }
 
-func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, memberID int64) ([]models.PublicMemberCurrentProject, error) {
+func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, memberID int64, limit int, offset int) ([]models.PublicMemberCurrentProject, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			a.id,
@@ -1221,7 +1225,8 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		  AND ac.ended_year IS NULL
 		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, cover_file.path, cover_asset.file_path, anime_poster.path, fg.id, fg.name
 		ORDER BY MAX(ac.updated_at) DESC, a.title ASC, fg.name ASC
-	`, memberID)
+		LIMIT $2 OFFSET $3
+	`, memberID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("load current projects for member %d: %w", memberID, err)
 	}
@@ -1261,6 +1266,42 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		return nil, fmt.Errorf("iterate current projects for member %d: %w", memberID, err)
 	}
 	return items, nil
+}
+
+func (r *MemberProfileRepository) countCurrentProjects(ctx context.Context, memberID int64) (int, error) {
+	var total int
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM (
+			SELECT ac.anime_id, ac.fansub_group_id
+			FROM anime_contributions ac
+			LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+			WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+			  AND ac.status = 'confirmed'
+			  AND ac.is_public_on_member_profile = true
+			  AND ac.ended_year IS NULL
+			GROUP BY ac.anime_id, ac.fansub_group_id
+		) projects
+	`, memberID).Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("count current projects for member %d: %w", memberID, err)
+	}
+	return total, nil
+}
+
+func (r *MemberProfileRepository) GetPublicMemberProjects(ctx context.Context, slug string, limit int, offset int) (*models.PublicMemberProjectsPage, error) {
+	profile, err := r.GetPublicMemberProfile(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+	items, err := r.loadCurrentProjects(ctx, profile.MemberID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	return &models.PublicMemberProjectsPage{
+		Items: items, Total: profile.CurrentProjectsCount, Limit: limit, Offset: offset,
+		AppUserID: profile.AppUserID, ProfileVisibility: profile.ProfileVisibility,
+	}, nil
 }
 
 func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(

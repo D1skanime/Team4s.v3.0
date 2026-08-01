@@ -145,6 +145,11 @@ export interface PublicMemberBadge {
   id: number
   badge_code: string
   badge_category: string
+  current_count?: number | null
+  current_tier?: 'bronze' | 'silver' | 'gold' | null
+  next_threshold?: number | null
+  remaining_count?: number | null
+  next_tier?: 'bronze' | 'silver' | 'gold' | null
 }
 
 export interface PublicMemberProjectReleaseVersion {
@@ -227,10 +232,22 @@ export interface PublicMemberProfileData {
   recent_media: MemberProfileRecentMedia[]
   recent_contributions: MemberProfileRecentContribution[]
   current_projects?: PublicMemberCurrentProject[]
+  current_projects_count?: number
   latest_contributions?: PublicMemberLatestContribution[]
   previous_contributions?: PublicMemberPreviousContribution[]
   previous_contributions_count?: number
 }
+
+export interface PublicMemberProjectsPage {
+  items: PublicMemberCurrentProject[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export type PublicMemberProjectsResponse =
+  | { data: PublicMemberProjectsPage }
+  | { visible: false; reason: string }
 
 export type PublicMemberProfileResponse =
   | { data: PublicMemberProfileData }

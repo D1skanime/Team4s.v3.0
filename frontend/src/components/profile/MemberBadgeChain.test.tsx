@@ -38,6 +38,7 @@ async function loadMemberBadgeChain(): Promise<{
   MemberBadgeChain: ComponentType<{
     earnedBadges: PublicMemberBadge[]
     catalog?: MemberBadgeCatalogItem[]
+    relevantRoleCodes?: string[]
   }>
   buildMemberBadgeGroups: (
     visibleCatalog: MemberBadgeCatalogItem[],
@@ -63,6 +64,24 @@ const catalog: MemberBadgeCatalogItem[] = [
 ]
 
 describe('MemberBadgeChain', () => {
+  it('renders exact accessible contribution progress without client thresholds', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    render(<MemberBadgeChain earnedBadges={[{ id: 0, badge_code: 'contribution_projects_bronze', badge_category: 'contribution', current_count: 3, current_tier: 'bronze', next_threshold: 5, remaining_count: 2, next_tier: 'silver' }]} />)
+    expect(screen.getByText('3 von 5')).not.toBeNull()
+    expect(screen.getByText('Noch 2 bis Silber')).not.toBeNull()
+    const bar = screen.getByRole('progressbar', { name: 'Fortschritt bis Silber' })
+    expect(bar.getAttribute('aria-valuemin')).toBe('0')
+    expect(bar.getAttribute('aria-valuenow')).toBe('3')
+    expect(bar.getAttribute('aria-valuemax')).toBe('5')
+  })
+
+  it('renders Gold as the terminal contribution tier', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    render(<MemberBadgeChain earnedBadges={[{ id: 0, badge_code: 'contribution_chronicle_gold', badge_category: 'contribution', current_count: 150, current_tier: 'gold' }]} />)
+    expect(screen.getByText('150')).not.toBeNull()
+    expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
+    expect(screen.queryByRole('progressbar')).toBeNull()
+  })
   it('bietet pro Gruppe eine fokussierte Karussell- und Rasteransicht', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     render(<MemberBadgeChain earnedBadges={[]} catalog={catalog} />)
@@ -93,7 +112,51 @@ describe('MemberBadgeChain', () => {
     )
     expect(artwork).not.toBeNull()
     expect(artwork?.getAttribute('src')).toContain('point_milestone_active-v2.png')
+    expect(screen.getByText('50 Punkte')).not.toBeNull()
     expect(artwork?.closest('[aria-label^="Auszeichnung"]')).not.toBeNull()
+    expect(screen.getByRole('list', { name: 'Punkte-Meilensteine' })).not.toBeNull()
+    expect(screen.getByRole('list', { name: 'Fortschritt' }).textContent).not.toContain('Aktiv dabei')
+  })
+
+  it('verwendet für Erste Punkte die neue Oldschool-Medaillenserie', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'point_milestone_first', badge_category: 'progress' }]}
+      />,
+    )
+
+    expect(container.querySelector('img[data-achievement-art="point_milestone_first"]')?.getAttribute('src')).toBe(
+      '/member-achievement-badges/point_milestone_first-v2.png',
+    )
+  })
+
+  it('composes Erste Mitwirkung from its motif and award frame', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'first_contribution', badge_category: 'contribution' }]}
+      />,
+    )
+
+    expect(container.querySelector('img[data-achievement-art="first_contribution"]')?.getAttribute('src')).toBe(
+      '/member-achievement-badges/progress-frame-first_contribution.png',
+    )
+    expect(container.querySelectorAll('img[src*="progress-first_contribution-motif.png"]')).toHaveLength(1)
+  })
+
+  it('composes the productive tier with its matching rank frame', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'productive_gold', badge_category: 'quantity' }]}
+      />,
+    )
+
+    expect(container.querySelector('img[data-achievement-art="productive_gold"]')?.getAttribute('src')).toBe(
+      '/member-achievement-badges/progress-frame-productive-gold.png',
+    )
+    expect(container.querySelectorAll('img[src*="progress-productive-motif.png"]')).toHaveLength(1)
   })
 
   it('renders the generated contribution artwork without a fallback icon', async () => {
@@ -102,6 +165,14 @@ describe('MemberBadgeChain', () => {
       <MemberBadgeChain
         earnedBadges={[
           { id: 0, badge_code: 'contribution_projects_bronze', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_projects_silver', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_projects_gold', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_chronicle_bronze', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_chronicle_silver', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_chronicle_gold', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_archivist_bronze', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_archivist_silver', badge_category: 'contribution' },
+          { id: 0, badge_code: 'contribution_archivist_gold', badge_category: 'contribution' },
         ]}
       />,
     )
@@ -110,10 +181,90 @@ describe('MemberBadgeChain', () => {
       container
         .querySelector('img[data-achievement-art="contribution_projects_bronze"]')
         ?.getAttribute('src'),
-    ).toContain('contribution_projects_bronze.png')
+    ).toContain('contribution_projects_bronze-v3.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_projects_silver"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_projects_silver-v2.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_projects_gold"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_projects_gold-v2.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_chronicle_silver"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_chronicle_silver-v2.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_chronicle_gold"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_chronicle_gold-v2.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_archivist_silver"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_archivist_silver-v2.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_archivist_gold"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_archivist_gold-v2.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_chronicle_bronze"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_chronicle_bronze-v4.png')
+    expect(
+      container
+        .querySelector('img[data-achievement-art="contribution_archivist_bronze"]')
+        ?.getAttribute('src'),
+    ).toContain('contribution_archivist_bronze-v2.png')
   })
 
-  it('keeps the approved role artwork and metal-frame marker', async () => {
+  it('renders the approved membership artwork without a fallback icon', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
+          { id: 2, badge_code: 'long_term_member', badge_category: 'membership' },
+          { id: 3, badge_code: 'membership_7_years', badge_category: 'membership' },
+          { id: 4, badge_code: 'membership_10_years', badge_category: 'membership' },
+        ]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="founding_member"]')?.getAttribute('src'),
+    ).toContain('membership-founding_member-v4.png')
+    expect(
+      container.querySelector('img[data-achievement-art="long_term_member"]')?.getAttribute('src'),
+    ).toContain('membership-long_term_member-v4.png')
+    expect(
+      container.querySelector('img[data-achievement-art="membership_7_years"]')?.getAttribute('src'),
+    ).toContain('membership-7_years-v4.png')
+    expect(
+      container.querySelector('img[data-achievement-art="membership_10_years"]')?.getAttribute('src'),
+    ).toContain('membership-10_years-v4.png')
+  })
+
+  it('renders the compact historical leadership seal', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' }]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="historical_leader"]')?.getAttribute('src'),
+    ).toContain('special-historical_leader-v1.png')
+  })
+
+  it('composes the translator artwork with the matching rank frame', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { container } = render(
       <MemberBadgeChain
@@ -125,13 +276,136 @@ describe('MemberBadgeChain', () => {
     )
 
     expect(
-      container.querySelector('img[data-achievement-art="role_entry_translator"]')?.getAttribute('src'),
-    ).toContain('role_entry_translator.png')
-    expect(container.querySelectorAll('img[src*="role_entry_translator.png"]')).toHaveLength(1)
+      container.querySelector('img[data-achievement-art="role_volume_translator_gold"]')?.getAttribute('src'),
+    ).toBe('/member-achievement-badges/rank-frame-translator-gold.png')
+    expect(container.querySelectorAll('img[src*="role-translator-motif.png"]')).toHaveLength(1)
     expect(
-      container.querySelector('img[data-achievement-art="role_entry_translator"]')?.getAttribute('width'),
-    ).toBe('512')
+      container.querySelector('img[data-achievement-art="role_volume_translator_gold"]')?.getAttribute('width'),
+    ).toBe('1254')
     expect(container.querySelector('[data-role-volume="true"][data-palette="gold"]')).not.toBeNull()
+  })
+
+  it('uses the dedicated silver timing artwork for the silver timing tier', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_timer', badge_category: 'role_entry' },
+          { id: 0, badge_code: 'role_volume_timer_silver', badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="role_volume_timer_silver"]')?.getAttribute('src'),
+    ).toBe('/member-achievement-badges/rank-frame-timer-silver.png')
+    expect(container.querySelectorAll('img[src*="role-timer-motif.png"]')).toHaveLength(1)
+  })
+
+  it('composes encoding with the matching layered rank artwork', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_encoder', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_volume_encoder_bronze', badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="role_volume_encoder_bronze"]')?.getAttribute('src'),
+    ).toBe('/member-achievement-badges/rank-frame-encoder-bronze.png')
+    expect(container.querySelectorAll('img[src*="role-encoder-motif.png"]')).toHaveLength(1)
+  })
+
+  it('composes typesetting with the matching layered rank artwork', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_typesetter', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_volume_typesetter_bronze', badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="role_volume_typesetter_bronze"]')?.getAttribute('src'),
+    ).toBe('/member-achievement-badges/rank-frame-typesetter-bronze.png')
+    expect(container.querySelectorAll('img[src*="role-typesetter-motif.png"]')).toHaveLength(1)
+  })
+
+  it('composes quality checking with the matching layered rank artwork', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_quality_checker', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_volume_quality_checker_bronze', badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="role_volume_quality_checker_bronze"]')?.getAttribute('src'),
+    ).toBe('/member-achievement-badges/rank-frame-quality_checker-bronze.png')
+    expect(container.querySelectorAll('img[src*="role-quality_checker-motif.png"]')).toHaveLength(1)
+  })
+
+  it('composes project leadership with the matching layered rank artwork', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_project_lead', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_volume_project_lead_bronze', badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(
+      container.querySelector('img[data-achievement-art="role_volume_project_lead_bronze"]')?.getAttribute('src'),
+    ).toBe('/member-achievement-badges/rank-frame-project_lead-bronze.png')
+    expect(container.querySelectorAll('img[src*="role-project_lead-motif.png"]')).toHaveLength(1)
+  })
+
+  it.each([
+    ['editor', 'role_entry_editor'],
+    ['raw_provider', 'role_entry_raw_provider'],
+    ['designer', 'role_entry_designer'],
+    ['admin', 'role_entry_admin'],
+    ['other', 'role_entry_other'],
+  ])('composes %s with the matching layered rank artwork', async (roleCode, entryCode) => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const volumeCode = `role_volume_${roleCode}_bronze`
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: entryCode, badge_category: 'role_entry' },
+          { id: 2, badge_code: volumeCode, badge_category: 'role_volume' },
+        ]}
+      />,
+    )
+
+    expect(container.querySelector(`img[data-achievement-art="${volumeCode}"]`)?.getAttribute('src')).toBe(
+      `/member-achievement-badges/rank-frame-${roleCode}-bronze.png`,
+    )
+    expect(container.querySelectorAll(`img[src*="role-${roleCode}-motif.png"]`)).toHaveLength(1)
+  })
+
+  it('labels the catch-all role as Andere instead of exposing the raw role code', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'role_entry_other', badge_category: 'role_entry' }]}
+      />,
+    )
+
+    expect(screen.getByText('Andere:')).not.toBeNull()
+    expect(screen.queryByText('other:')).toBeNull()
   })
 
   it('renders a horizontal earned-and-locked badge chain with progress copy', async () => {
@@ -168,7 +442,7 @@ describe('MemberBadgeChain', () => {
     expect(within(chain).queryByText(/Bronze|Silber|Gold/i)).toBeNull()
   })
 
-  it('renders a role-entry badge in locked state by default (D-03)', async () => {
+  it('renders a locked role-entry badge only for a role the member actually performs', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const roleEntryCatalog: MemberBadgeCatalogItem[] = [
       ...catalog,
@@ -176,10 +450,31 @@ describe('MemberBadgeChain', () => {
     ]
 
     render(
-      <MemberBadgeChain earnedBadges={[]} catalog={roleEntryCatalog} />,
+      <MemberBadgeChain
+        earnedBadges={[]}
+        catalog={roleEntryCatalog}
+        relevantRoleCodes={['translator']}
+      />,
     )
 
     expect(screen.getByLabelText('Erste Übersetzung gesperrt')).not.toBeNull()
+  })
+
+  it('hides locked badge rows for roles the member does not perform', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    render(
+      <MemberBadgeChain
+        earnedBadges={[]}
+        relevantRoleCodes={['timer']}
+      />,
+    )
+
+    expect(screen.getByText('Timing:')).not.toBeNull()
+    expect(screen.getByLabelText('Erstes Timing gesperrt')).not.toBeNull()
+    expect(document.querySelector('[data-role-code="timer"]')).not.toBeNull()
+    expect(screen.queryByText('Übersetzung:')).toBeNull()
+    expect(screen.queryByLabelText('Erste Übersetzung gesperrt')).toBeNull()
   })
 
   it('renders a role-entry badge in earned state the moment it is in earnedBadges (D-03)', async () => {
@@ -200,12 +495,12 @@ describe('MemberBadgeChain', () => {
     expect(screen.getByText('Erste Übersetzung')).not.toBeNull()
   })
 
-  it('renders four labeled group headings (Rollen, Fortschritt, Mitgliedschaft, Besondere Auszeichnungen) with the default catalog (D-04)', async () => {
+  it('renders four labeled group headings (Fansubrollen, Fortschritt, Mitgliedschaft, Besondere Auszeichnungen) with the default catalog (D-04)', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
-    render(<MemberBadgeChain earnedBadges={[]} />)
+    render(<MemberBadgeChain earnedBadges={[]} relevantRoleCodes={['translator']} />)
 
-    for (const label of ['Rollen', 'Fortschritt', 'Mitgliedschaft', 'Besondere Auszeichnungen']) {
+    for (const label of ['Fansubrollen', 'Fortschritt', 'Mitgliedschaft', 'Besondere Auszeichnungen']) {
       expect(screen.getByText(label)).not.toBeNull()
       expect(screen.getByRole('list', { name: label })).not.toBeNull()
     }
@@ -280,9 +575,9 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
   it('renders the role-name prefix uniformly on every roles-group row, including untouched locked rows', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
-    render(<MemberBadgeChain earnedBadges={[]} />)
+    render(<MemberBadgeChain earnedBadges={[]} relevantRoleCodes={['translator', 'timer']} />)
 
-    const rolesList = screen.getByRole('list', { name: 'Rollen' })
+    const rolesList = screen.getByRole('list', { name: 'Fansubrollen' })
     const rows = within(rolesList).getAllByRole('listitem')
     expect(rows.length).toBeGreaterThan(0)
     for (const row of rows) {
@@ -301,20 +596,39 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
 })
 
 describe('buildMemberBadgeGroups (D-04)', () => {
-  it('returns exactly 4 groups in the fixed roles/progress/membership/special order when all groups are populated', async () => {
+  it('returns groups in the fixed roles/progress/points/membership/special order when all groups are populated', async () => {
     const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
     const groupCatalog: MemberBadgeCatalogItem[] = [
       { badge_code: 'a', label: 'A', badge_category: 'x' },
       { badge_code: 'b', label: 'B', badge_category: 'x' },
       { badge_code: 'c', label: 'C', badge_category: 'x' },
       { badge_code: 'd', label: 'D', badge_category: 'x' },
+      { badge_code: 'e', label: 'E', badge_category: 'x' },
     ]
-    const groupByCode: Record<string, string> = { a: 'roles', b: 'progress', c: 'membership', d: 'special' }
+    const groupByCode: Record<string, string> = { a: 'roles', b: 'progress', c: 'points', d: 'membership', e: 'special' }
     const getPresentation = (badgeCode: string) => fakePresentation({ group: groupByCode[badgeCode] })
 
     const groups = buildMemberBadgeGroups(groupCatalog, getPresentation)
 
-    expect(groups.map((group) => group.key)).toEqual(['roles', 'progress', 'membership', 'special'])
+    expect(groups.map((group) => group.key)).toEqual(['roles', 'progress', 'points', 'membership', 'special'])
+  })
+
+  it('trennt Punkte-Meilensteine vom Projektfortschritt', async () => {
+    const { buildMemberBadgeGroups } = await loadMemberBadgeChain()
+    const { getMemberBadgePresentation } = await import('./memberBadgeLabels')
+    const catalog: MemberBadgeCatalogItem[] = [
+      { badge_code: 'productive_gold', label: 'Projekt-Veteranenstatus · Gold', badge_category: 'quantity' },
+      { badge_code: 'point_milestone_engaged', label: 'Stark engagiert', badge_category: 'progress' },
+    ]
+
+    const groups = buildMemberBadgeGroups(
+      catalog,
+      getMemberBadgePresentation as unknown as (badgeCode: string) => FakePresentation,
+    )
+
+    expect(groups.find((group) => group.key === 'progress')?.rows[0]?.key).toBe('productive_gold')
+    expect(groups.find((group) => group.key === 'points')?.rows[0]?.key).toBe('point_milestone_engaged')
+    expect(groups.find((group) => group.key === 'points')?.label).toBe('Punkte-Meilensteine')
   })
 
   it('hides groups with zero visible badges entirely instead of returning them empty', async () => {
@@ -338,8 +652,8 @@ describe('buildMemberBadgeGroups (D-04)', () => {
     const { getMemberBadgePresentation } = await import('./memberBadgeLabels')
     const earnedContributionCatalog: MemberBadgeCatalogItem[] = [
       { badge_code: 'contribution_projects_gold', label: 'Mitgetragene Projekte · Gold', badge_category: 'contribution' },
-      { badge_code: 'contribution_chronicle_silver', label: 'Chronist · Silber', badge_category: 'contribution' },
-      { badge_code: 'contribution_archivist_bronze', label: 'Bildarchivar · Bronze', badge_category: 'contribution' },
+      { badge_code: 'contribution_chronicle_silver', label: 'Chronikpflege · Silber', badge_category: 'contribution' },
+      { badge_code: 'contribution_archivist_bronze', label: 'Bildarchivpflege · Bronze', badge_category: 'contribution' },
     ]
 
     const groups = buildMemberBadgeGroups(
@@ -411,6 +725,7 @@ describe('buildMemberBadgeGroups (D-04)', () => {
         'productive_gold',
       ]),
     )
+    expect(codesInGroup('points')).toEqual([])
 
     const roleCodes = [
       'role_entry_translator',

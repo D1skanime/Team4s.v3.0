@@ -1,33 +1,62 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Layers } from 'lucide-react'
+import { useState } from 'react'
 
-import { Badge, Card, EmptyState, SectionHeader } from '@/components/ui'
-import { resolveApiUrl } from '@/lib/api'
+import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
+import { getMemberProjects, resolveApiUrl } from '@/lib/api'
 import type { PublicMemberCurrentProject } from '@/types/profile'
 
 import styles from './MemberCurrentProjectsSection.module.css'
 
 type MemberCurrentProjectsSectionProps = {
+  memberSlug: string
   projects: PublicMemberCurrentProject[]
+  totalCount: number
 }
+
+const PROJECT_PAGE_SIZE = 6
 
 function projectHref(project: PublicMemberCurrentProject): string {
   return `/anime/${project.anime_id}/group/${project.fansub_group_id}`
 }
 
 export function MemberCurrentProjectsSection({
+  memberSlug,
   projects,
+  totalCount,
 }: MemberCurrentProjectsSectionProps) {
+  const [visibleProjects, setVisibleProjects] = useState(projects)
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const hasMore = visibleProjects.length < totalCount
+
+  async function loadMoreProjects() {
+    if (isLoading || !hasMore) return
+    setIsLoading(true)
+    setLoadError('')
+    try {
+      const response = await getMemberProjects(memberSlug, PROJECT_PAGE_SIZE, visibleProjects.length)
+      if (!('data' in response)) throw new Error('Profil ist nicht sichtbar.')
+      setVisibleProjects((current) => [...current, ...response.data.items])
+    } catch {
+      setLoadError('Weitere Projekte konnten nicht geladen werden. Bitte versuche es erneut.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <section className={styles.section}>
       <SectionHeader title="Aktuelle Projekte" />
 
-      {projects.length === 0 ? (
+      {visibleProjects.length === 0 ? (
         <EmptyState title="Keine aktuellen Projekte sichtbar." />
       ) : (
         <ul className={styles.projectList} aria-label="Aktuelle Projekte">
-          {projects.map((project) => (
+          {visibleProjects.map((project) => (
             <li key={`${project.anime_id}:${project.fansub_group_id}`}>
               <Link
                 href={projectHref(project)}
@@ -77,6 +106,20 @@ export function MemberCurrentProjectsSection({
           ))}
         </ul>
       )}
+
+      {visibleProjects.length > 0 ? (
+        <div className={styles.projectFooter}>
+          <span aria-live="polite">
+            {visibleProjects.length} von {totalCount} Projekten sichtbar
+          </span>
+          {hasMore ? (
+            <Button variant="secondary" size="sm" loading={isLoading} onClick={loadMoreProjects}>
+              Weitere Projekte laden
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+      {loadError ? <p className={styles.loadError} role="alert">{loadError}</p> : null}
     </section>
   )
 }

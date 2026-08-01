@@ -37,6 +37,14 @@ type HistGroupMemberInput struct {
 	CreatedBy     *int64
 }
 
+func historicalConfirmationValues(status string, confirmedBy *int64) (*int64, *time.Time) {
+	if status != "confirmed" || confirmedBy == nil {
+		return nil, nil
+	}
+	confirmedAt := time.Now().UTC()
+	return confirmedBy, &confirmedAt
+}
+
 type HistGroupMemberPatchInput struct {
 	JoinedDate  **time.Time
 	LeftDate    **time.Time
@@ -208,14 +216,15 @@ func (r *HistGroupMembersRepository) GetByIDForFansub(ctx context.Context, fansu
 }
 
 func (r *HistGroupMembersRepository) Create(ctx context.Context, input HistGroupMemberInput) (*HistGroupMemberRow, error) {
+	confirmedBy, confirmedAt := historicalConfirmationValues(input.Status, input.ConfirmedBy)
 	var row HistGroupMemberRow
 	err := r.db.QueryRow(ctx, `
 		INSERT INTO hist_fansub_group_members
 			(fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by)
-		VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN $7 ELSE NULL END, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN NOW() ELSE NULL END, $8)
+		VALUES ($1::bigint, $2::bigint, $3::date, $4::date, $5::text, $6::text, $7::bigint, $8::timestamptz, $9::bigint)
 		RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by, created_at, updated_at
 	`, input.FansubGroupID, input.MemberID, input.JoinedDate, input.LeftDate,
-		input.Status, input.Visibility, input.ConfirmedBy, input.CreatedBy,
+		input.Status, input.Visibility, confirmedBy, confirmedAt, input.CreatedBy,
 	).Scan(
 		&row.ID, &row.FansubGroupID, &row.MemberID,
 		&row.JoinedDate, &row.LeftDate,
@@ -236,12 +245,31 @@ func (r *HistGroupMembersRepository) Create(ctx context.Context, input HistGroup
 }
 
 func (r *HistGroupMembersRepository) CreateForExistingMemberWithDisplay(ctx context.Context, input HistGroupMemberInput) (*HistGroupMemberDisplayRow, error) {
+	created, err := r.Create(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := r.ListByFansubGroupWithDisplay(ctx, input.FansubGroupID)
+	if err != nil {
+		return nil, fmt.Errorf("load created hist group member display row: %w", err)
+	}
+	for i := range items {
+		if items[i].ID == created.ID {
+			return &items[i], nil
+		}
+	}
+	return nil, ErrNotFound
+}
+
+func (r *HistGroupMembersRepository) createForExistingMemberWithDisplayLegacy(ctx context.Context, input HistGroupMemberInput) (*HistGroupMemberDisplayRow, error) {
+	confirmedBy, confirmedAt := historicalConfirmationValues(input.Status, input.ConfirmedBy)
 	var row HistGroupMemberDisplayRow
 	err := r.db.QueryRow(ctx, `
 		WITH inserted AS (
 			INSERT INTO hist_fansub_group_members
 				(fansub_group_id, member_id, joined_date, left_date, status, visibility, confirmed_by, confirmed_at, created_by)
-			VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN $7 ELSE NULL END, CASE WHEN $5 = 'confirmed' AND $7 IS NOT NULL THEN NOW() ELSE NULL END, $8)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			RETURNING id, fansub_group_id, member_id, joined_date, left_date, status, confirmed_by, confirmed_at, created_at
 		)
 		SELECT inserted.id,
@@ -275,7 +303,7 @@ func (r *HistGroupMembersRepository) CreateForExistingMemberWithDisplay(ctx cont
 		   AND active_group_member.status = 'active'
 		LEFT JOIN app_users confirmer ON confirmer.id = inserted.confirmed_by
 	`, input.FansubGroupID, input.MemberID, input.JoinedDate, input.LeftDate,
-		input.Status, input.Visibility, input.ConfirmedBy, input.CreatedBy,
+		input.Status, input.Visibility, confirmedBy, confirmedAt, input.CreatedBy,
 	).Scan(
 		&row.ID, &row.FansubGroupID, &row.MemberID,
 		&row.DisplayName, &row.AppUserID, &row.AppUsername,

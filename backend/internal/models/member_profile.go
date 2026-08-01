@@ -187,7 +187,12 @@ type StoryImageAssetRef struct {
 type PublicMemberBadge struct {
 	ID            int64  `json:"id"`
 	BadgeCode     string `json:"badge_code"`
-	BadgeCategory string `json:"badge_category"`
+	BadgeCategory  string  `json:"badge_category"`
+	CurrentCount   *int64  `json:"current_count,omitempty"`
+	CurrentTier    *string `json:"current_tier,omitempty"`
+	NextThreshold  *int64  `json:"next_threshold,omitempty"`
+	RemainingCount *int64  `json:"remaining_count,omitempty"`
+	NextTier       *string `json:"next_tier,omitempty"`
 }
 
 type PublicMemberProjectReleaseVersion struct {
@@ -212,6 +217,15 @@ type PublicMemberCurrentProject struct {
 	ContributionStatus string                              `json:"contribution_status"`
 	StartedYear        *int32                              `json:"started_year,omitempty"`
 	EndedYear          *int32                              `json:"ended_year,omitempty"`
+}
+
+type PublicMemberProjectsPage struct {
+	Items             []PublicMemberCurrentProject `json:"items"`
+	Total             int                          `json:"total"`
+	Limit             int                          `json:"limit"`
+	Offset            int                          `json:"offset"`
+	AppUserID         int64                        `json:"-"`
+	ProfileVisibility string                       `json:"-"`
 }
 
 type PublicMemberLatestContribution struct {
@@ -261,6 +275,7 @@ type PublicMemberProfile struct {
 	RecentMedia                []MemberProfileRecentMedia         `json:"recent_media"`
 	RecentContributions        []MemberProfileRecentContribution  `json:"recent_contributions"`
 	CurrentProjects            []PublicMemberCurrentProject       `json:"current_projects"`
+	CurrentProjectsCount       int                                `json:"current_projects_count"`
 	LatestContributions        []PublicMemberLatestContribution   `json:"latest_contributions"`
 	PreviousContributions      []PublicMemberPreviousContribution `json:"previous_contributions"`
 	PreviousContributionsCount int                                `json:"previous_contributions_count"`
