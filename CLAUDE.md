@@ -1,3 +1,15 @@
+<!-- Team4s canonical development environment -->
+## Canonical Development Environment
+
+- Work in `/home/d1sk/team4s` on `team4s-linux` (`192.168.235.196`).
+- Run all edits, Git commands, tests, builds, migrations, and Docker Compose operations on Linux.
+- Do not implement new work in `C:\Users\admin\Documents\Team4s`; that Windows checkout is retained only as a migration/reference copy.
+- Ubuntu hosts Docker Engine and Docker Compose only. All Team4s services run in containers.
+- Do not start Docker Desktop or WSL on Windows for Team4s development.
+- Preserve the Linux host's `.env`, `media/`, Docker volumes, and imported databases.
+- Use `http://127.0.0.1:3300` through the Windows SSH tunnel for browser login/UAT. The Linux frontend listens on `http://192.168.235.196:3000`.
+- At the start of work, connect with `ssh team4s-linux`, change to `/home/d1sk/team4s`, inspect `git status --short`, and run `docker compose ps`.
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 

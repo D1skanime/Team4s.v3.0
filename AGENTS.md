@@ -3,6 +3,18 @@
 ## Purpose
 Shared operating notes for human + AI agents working in `Team4sV3`.
 
+## Canonical Development Environment
+- The authoritative working tree is `/home/d1sk/team4s` on the SSH host `team4s-linux` (`192.168.235.196`).
+- All new coding, Git operations, dependency work, builds, tests, migrations, and Docker Compose commands must run from that Linux working tree unless the user explicitly requests another environment.
+- `C:\Users\admin\Documents\Team4s` is the retired Windows working copy. Treat it as a migration/reference copy only; do not implement new changes there.
+- Windows remains the Codex/browser control surface. Use `ssh team4s-linux` for shell access to the canonical repository.
+- The application runtime is Docker Compose on Linux. Do not install Frontend, Backend, PostgreSQL, Redis, Keycloak, the Keycloak database, or Mailpit directly on Ubuntu.
+- Run local GSD tooling through `./scripts/gsd-linux.sh`; do not install Node or GSD directly on Ubuntu. The wrapper intentionally masks `.env` and `media/` and has no Docker-socket access.
+- Docker Desktop and WSL on Windows are not part of the Team4s runtime and must not be started for Team4s development.
+- Before editing, run `cd /home/d1sk/team4s`, inspect `git status --short`, and confirm the relevant Compose services with `docker compose ps`.
+- The live `.env`, `media/`, Docker volumes, and database contents are host-local runtime data. Do not overwrite, reset, or regenerate them as part of ordinary coding work.
+- Windows browser testing currently uses an SSH tunnel at `http://127.0.0.1:3300`; the Linux frontend itself listens at `http://192.168.235.196:3000`.
+
 ## Current Workflow
 - Phase: `v1.1 asset lifecycle hardening`
 - Priority: extend the verified release-native fansub baseline without reintroducing legacy slot-specific behavior or attaching media to the wrong domain entity

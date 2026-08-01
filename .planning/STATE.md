@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed 117-06-PLAN.md
-last_updated: "2026-07-29T17:18:41.892Z"
-last_activity: 2026-07-29
+stopped_at: Completed quick task 260731-wh7
+last_updated: "2026-08-01T00:00:00+02:00"
+last_activity: 2026-08-01
 progress:
   total_phases: 109
   completed_phases: 89
@@ -757,6 +757,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260731-wh7 | Vollständige Badge-Präsentation im öffentlichen Memberprofil mit Artwork, Fortschritt und responsivem Focal Carousel | 2026-08-01 | 19621e8f | [260731-wh7-beitrags-badges-im-ffentlichen-memberpro](./quick/260731-wh7-beitrags-badges-im-ffentlichen-memberpro/) |
 | 260730-jre | Material-3-inspiriertes Focal-Carousel für Profil-Badges und Fansub-Projekte: große aktive Karte, eingedrückte Randkarten, Metall-Glow und Alle-anzeigen-Raster | 2026-07-30 | 00bdb814 | [260730-jre-fokussiertes-material-3-inspiriertes-kar](./quick/260730-jre-fokussiertes-material-3-inspiriertes-kar/) |
 | 260721-eo4 | SSR-Fetch-Parallelisierung der Public-Projektseite (loadPublicFansubProjectPageData): unabhängige Phase-B-Fetches per Promise.all nebenläufig, doppelter Profil-Fetch zu einem zusammengeführt; verhaltenserhaltend (17/17 Tests). Gemessen: TTFB 319→221 ms (min, −31%), Volldokument 616→371 ms (−40%) | 2026-07-21 | 73a0e2f4 | [260721-eo4-ssr-fetch-parallelisierung-projectpageda](./quick/260721-eo4-ssr-fetch-parallelisierung-projectpageda/) |
 | 260721-dbz | Fund 1+2 N+1-Fix Release-Version-Media-Handler: Reorder-Pfad bündelt Relation-Metas (statt per-Bild GetReleaseVersionMediaRelation) und löst Fansub-Gruppen-Permission pro eindeutiger Gruppe einmal auf; Reorder-Handler ausgelagert; Verhalten bit-identisch | 2026-07-21 | e71966cf | [260721-dbz-fund-1-2-n-1-fix-release-version-media-h](./quick/260721-dbz-fund-1-2-n-1-fix-release-version-media-h/) |

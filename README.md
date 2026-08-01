@@ -2,6 +2,45 @@
 
 Modernized Team4s stack with Go backend, Next.js frontend, PostgreSQL, and Redis.
 
+## Current Development Host
+
+The canonical repository and runtime are hosted on the Linux VM:
+
+```text
+SSH host: team4s-linux
+Repository: /home/d1sk/team4s
+Linux IP: 192.168.235.196
+```
+
+All coding, Git operations, builds, tests, migrations, and Docker Compose commands
+must run from `/home/d1sk/team4s`. The former Windows checkout at
+`C:\Users\admin\Documents\Team4s` is retained only as a migration/reference copy.
+
+Ubuntu runs Docker Engine and Docker Compose directly. Frontend, Backend,
+PostgreSQL, Redis, Keycloak, the Keycloak database, and Mailpit run exclusively
+as Compose services; do not install these runtimes directly on Ubuntu.
+
+For browser login and UAT from the Windows VM, use the SSH tunnel endpoint:
+
+```text
+http://127.0.0.1:3300
+```
+
+The Linux frontend itself is available at `http://192.168.235.196:3000`.
+
+### GSD on Linux
+
+GSD runs through an isolated, short-lived Node container. Node is not installed
+directly on Ubuntu:
+
+```bash
+./scripts/gsd-linux.sh docs-init --raw
+```
+
+The wrapper mounts the repository with the current Linux user, blocks network
+access, masks `.env` and `media/`, and does not expose the Docker socket or
+application volumes. The Node image can be overridden with `GSD_NODE_IMAGE`.
+
 ## Start
 
 ```bash

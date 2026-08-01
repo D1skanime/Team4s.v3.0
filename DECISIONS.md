@@ -1,5 +1,41 @@
 # DECISIONS
 
+## 2026-07-31 - Linux VM Is The Canonical Development And Runtime Host
+
+### Decision
+The authoritative Team4s working tree is `/home/d1sk/team4s` on the Linux VM
+available through the SSH host `team4s-linux` (`192.168.235.196`). New code,
+Git operations, builds, tests, migrations, and Docker Compose commands run there.
+
+The Windows checkout at `C:\Users\admin\Documents\Team4s` is retained only as a
+migration/reference copy. Windows remains the Codex and browser control surface,
+but Docker Desktop and WSL are not part of the Team4s runtime.
+
+Ubuntu directly hosts only Docker Engine and Docker Compose. Frontend, Backend,
+PostgreSQL, Redis, Keycloak, the Keycloak database, and Mailpit run exclusively
+inside the repository-owned Compose stack.
+
+### Why This Won
+- Docker Desktop, WSL, and Windows bind mounts caused severe CPU, RAM, and I/O
+  pressure on the Windows VM.
+- The Linux Compose stack provides stable native filesystem performance for Go,
+  Next.js, PostgreSQL, and media access.
+- Keeping one canonical working tree prevents code, planning artifacts, runtime
+  data, and migrations from drifting between Windows and Linux.
+
+### Consequences
+- Agents must connect with `ssh team4s-linux` and work from
+  `/home/d1sk/team4s`.
+- Do not implement new changes in the retired Windows checkout unless the user
+  explicitly requests it.
+- Preserve the Linux `.env`, `media/`, Docker volumes, and imported databases as
+  host-local runtime state.
+- Browser login/UAT from Windows currently uses the SSH tunnel endpoint
+  `http://127.0.0.1:3300`; the Linux frontend listens on
+  `http://192.168.235.196:3000`.
+- A future HTTPS/reverse-proxy setup may replace the temporary loopback tunnel,
+  but it does not change the canonical repository location.
+
 ## 2026-07-04 - Public Segment Playback Must Use Bounded Segment Streams Or Clips
 
 ### Decision
