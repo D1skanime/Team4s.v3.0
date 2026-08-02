@@ -14,3 +14,4 @@ Festliche, anime-inspirierte Rollen-Auszeichnungen mit großen unveränderten Me
 | # | Name | Design Question | Winner | Tags |
 |---|------|-----------------|--------|------|
 | 001 | Rollenfortschritt-Card | Wie bleiben alle erreichten Medaillen sichtbar, ohne dass die aktuelle Stufe verwirrend doppelt erscheint? | A · Vollständige Sammlung | badges, profile, progress, carousel |
+| 002 | Mehrere Rollen im Profil | Liegen Rollen als einzelne Cards in einem Karussell, untereinander oder in einem Raster? | A · Ein Rollen-Karussell | badges, profile, multi-role, carousel, responsive |
