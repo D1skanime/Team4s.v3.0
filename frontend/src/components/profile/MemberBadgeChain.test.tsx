@@ -38,7 +38,6 @@ async function loadMemberBadgeChain(): Promise<{
   MemberBadgeChain: ComponentType<{
     earnedBadges: PublicMemberBadge[]
     catalog?: MemberBadgeCatalogItem[]
-    relevantRoleCodes?: string[]
   }>
   buildMemberBadgeGroups: (
     visibleCatalog: MemberBadgeCatalogItem[],
@@ -61,6 +60,20 @@ const catalog: MemberBadgeCatalogItem[] = [
   { badge_code: 'founder', label: 'Gründungsmitglied', badge_category: 'historical_achievement' },
   { badge_code: 'translator', label: 'Übersetzung', badge_category: 'supporter' },
   { badge_code: 'quality_checker', label: 'Qualitätscheck', badge_category: 'supporter' },
+]
+
+const roleProgressCatalog: MemberBadgeCatalogItem[] = [
+  { badge_code: 'founding_member', label: 'Gründungsmitglied', badge_category: 'historical_achievement' },
+  { badge_code: 'role_entry_translator', label: 'Erste Übersetzung', badge_category: 'role_entry' },
+  { badge_code: 'role_volume_translator_bronze', label: 'Bronze · 12+', badge_category: 'role_volume' },
+  { badge_code: 'role_volume_translator_silver', label: 'Silber · 108+', badge_category: 'role_volume' },
+  { badge_code: 'role_volume_translator_gold', label: 'Gold · 320+', badge_category: 'role_volume' },
+  { badge_code: 'role_volume_translator_platinum', label: 'Platin · 510+', badge_category: 'role_volume' },
+  { badge_code: 'role_entry_timer', label: 'Erstes Timing', badge_category: 'role_entry' },
+  { badge_code: 'role_volume_timer_bronze', label: 'Bronze · 12+', badge_category: 'role_volume' },
+  { badge_code: 'role_volume_timer_silver', label: 'Silber · 108+', badge_category: 'role_volume' },
+  { badge_code: 'role_volume_timer_gold', label: 'Gold · 320+', badge_category: 'role_volume' },
+  { badge_code: 'role_volume_timer_platinum', label: 'Platin · 510+', badge_category: 'role_volume' },
 ]
 
 describe('MemberBadgeChain', () => {
@@ -442,39 +455,47 @@ describe('MemberBadgeChain', () => {
     expect(within(chain).queryByText(/Bronze|Silber|Gold/i)).toBeNull()
   })
 
-  it('renders a locked role-entry badge only for a role the member actually performs', async () => {
+  it('excludes role badges from the general progress numerator and denominator (D-01)', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
-    const roleEntryCatalog: MemberBadgeCatalogItem[] = [
-      ...catalog,
-      { badge_code: 'role_entry_translator', label: 'Erste Übersetzung', badge_category: 'role_entry' },
-    ]
 
     render(
       <MemberBadgeChain
-        earnedBadges={[]}
-        catalog={roleEntryCatalog}
-        relevantRoleCodes={['translator']}
+        earnedBadges={[
+          { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
+          { id: 2, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
+          { id: 3, badge_code: 'role_volume_translator_bronze', badge_category: 'role_volume' },
+        ]}
+        catalog={roleProgressCatalog}
       />,
     )
 
-    expect(screen.getByLabelText('Erste Übersetzung gesperrt')).not.toBeNull()
+    expect(screen.getByLabelText('1 von 1 allgemeine Auszeichnungen')).not.toBeNull()
   })
 
-  it('hides locked badge rows for roles the member does not perform', async () => {
+  it('hides a foreign catalog role completely while retaining all five stages of an earned role (D-02/D-03)', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
     render(
       <MemberBadgeChain
-        earnedBadges={[]}
-        relevantRoleCodes={['timer']}
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_volume_translator_bronze', badge_category: 'role_volume' },
+        ]}
+        catalog={roleProgressCatalog}
       />,
     )
 
-    expect(screen.getByText('Timing:')).not.toBeNull()
-    expect(screen.getByLabelText('Erstes Timing gesperrt')).not.toBeNull()
-    expect(document.querySelector('[data-role-code="timer"]')).not.toBeNull()
-    expect(screen.queryByText('Übersetzung:')).toBeNull()
-    expect(screen.queryByLabelText('Erste Übersetzung gesperrt')).toBeNull()
+    const rolesList = screen.getByRole('list', { name: 'Fansubrollen' })
+    expect(within(rolesList).getByText('Übersetzung:')).not.toBeNull()
+    expect(within(rolesList).getByText('Erste Übersetzung')).not.toBeNull()
+    expect(within(rolesList).getByText('Bronze · 12+')).not.toBeNull()
+    expect(within(rolesList).getByLabelText('Silber · 108+ gesperrt')).not.toBeNull()
+    expect(within(rolesList).getByLabelText('Gold · 320+ gesperrt')).not.toBeNull()
+    expect(within(rolesList).getByLabelText('Platin · 510+ gesperrt')).not.toBeNull()
+    expect(within(rolesList).queryByText('Timing:')).toBeNull()
+    expect(within(rolesList).queryByText('Erstes Timing')).toBeNull()
+    expect(within(rolesList).queryByLabelText('Erstes Timing gesperrt')).toBeNull()
+    expect(document.querySelector('[data-role-code="timer"]')).toBeNull()
   })
 
   it('renders a role-entry badge in earned state the moment it is in earnedBadges (D-03)', async () => {
@@ -495,15 +516,27 @@ describe('MemberBadgeChain', () => {
     expect(screen.getByText('Erste Übersetzung')).not.toBeNull()
   })
 
-  it('renders four labeled group headings (Fansubrollen, Fortschritt, Mitgliedschaft, Besondere Auszeichnungen) with the default catalog (D-04)', async () => {
+  it('uses the exact singular and plural copy for earned Fansubrollen (D-04)', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
-    render(<MemberBadgeChain earnedBadges={[]} relevantRoleCodes={['translator']} />)
+    const { rerender } = render(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' }]}
+        catalog={roleProgressCatalog}
+      />,
+    )
+    expect(screen.getByText('1 ausgeübte Fansubrolle')).not.toBeNull()
 
-    for (const label of ['Fansubrollen', 'Fortschritt', 'Mitgliedschaft', 'Besondere Auszeichnungen']) {
-      expect(screen.getByText(label)).not.toBeNull()
-      expect(screen.getByRole('list', { name: label })).not.toBeNull()
-    }
+    rerender(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry' },
+        ]}
+        catalog={roleProgressCatalog}
+      />,
+    )
+    expect(screen.getByText('2 ausgeübte Fansubrollen')).not.toBeNull()
   })
 })
 
@@ -572,10 +605,18 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
     expect(screen.queryByText(/Gold ·/)).toBeNull()
   })
 
-  it('renders the role-name prefix uniformly on every roles-group row, including untouched locked rows', async () => {
+  it('renders the role-name prefix uniformly on every earned roles-group row', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
-    render(<MemberBadgeChain earnedBadges={[]} relevantRoleCodes={['translator', 'timer']} />)
+    render(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry' },
+          { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry' },
+        ]}
+        catalog={roleProgressCatalog}
+      />,
+    )
 
     const rolesList = screen.getByRole('list', { name: 'Fansubrollen' })
     const rows = within(rolesList).getAllByRole('listitem')
