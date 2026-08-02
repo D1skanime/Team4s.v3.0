@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: – Public Experience, Historie & Scoped Rights
 status: ready_to_plan
-stopped_at: Completed quick task 260731-wh7
-last_updated: "2026-08-01T00:00:00+02:00"
-last_activity: 2026-08-01
+stopped_at: Completed quick task 260802-c5f
+last_updated: "2026-08-02T10:58:00+02:00"
+last_activity: 2026-08-02
 progress:
   total_phases: 109
   completed_phases: 89
