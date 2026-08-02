@@ -1915,6 +1915,16 @@ Plans:
 - [ ] `113-02-PLAN.md` — Frontend-Praesentation: Gruppe Beitraege + 9 earned-only Presentation-Eintraege in memberBadgeLabels.ts, Vitest-Erweiterungen (D-05, GAM-04)
 - [ ] `113-03-PLAN.md` — Live-Abnahme: volle Suiten + Container-Rebuild, Human-Verify der Beitraege-Gruppe, Live-Downgrade und Toggle-Trennung (D-01/D-05, GAM-04)
 
+### Phase 118: Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle: alle erreichten Medaillen sichtbar lassen, nächste Stufe gesperrt anzeigen, rollenspezifische Fortschrittsberechnung und responsive Karussell-Darstellung
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 117
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 118 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
