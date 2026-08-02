@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: – Public Experience, Historie & Scoped Rights
+milestone_name: milestone
 status: ready_to_plan
-stopped_at: Completed quick task 260802-c5f
-last_updated: "2026-08-02T10:58:00+02:00"
-last_activity: 2026-08-02
+stopped_at: Phase 118 context gathered
+last_updated: "2026-08-02T19:02:02.147Z"
+last_activity: "2026-07-30 - Completed quick task 260730-jre: Focal-Carousel für Profil-Badges und Fansub-Projekte"
 progress:
-  total_phases: 109
+  total_phases: 110
   completed_phases: 89
   total_plans: 502
   completed_plans: 470
-  percent: 82
+  percent: 94
 ---
 
 # Project State
@@ -835,8 +835,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-07-29T17:18:41.349Z
-Stopped at: Completed 117-06-PLAN.md
+Last session: 2026-08-02T19:02:02.136Z
+Stopped at: Phase 118 context gathered
 Last activity: 2026-07-30 - Completed quick task 260730-jre: Focal-Carousel für Profil-Badges und Fansub-Projekte
 Resume file: 
-None
+.planning/phases/118-rollenfortschritt-als-eigene-card-je-tats-chlich-ausge-bter-/118-CONTEXT.md
