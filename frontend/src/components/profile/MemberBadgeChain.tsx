@@ -21,7 +21,6 @@ import styles from './MemberBadgeChain.module.css'
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
   catalog?: PublicMemberBadgeCatalogItem[]
-  relevantRoleCodes?: string[]
 }
 
 // D-04: eine Zeile innerhalb einer Kategorie-Gruppe -- normalerweise ein Badge, aber die
@@ -214,32 +213,37 @@ export function buildMemberBadgeGroups(
 export function MemberBadgeChain({
   earnedBadges,
   catalog = PUBLIC_MEMBER_BADGE_CATALOG,
-  relevantRoleCodes,
 }: MemberBadgeChainProps) {
   const earnedCodes = new Set(earnedBadges.map((badge) => badge.badge_code))
-  const earnedRoleCodes = earnedBadges
-    .map((badge) => getMemberBadgePresentation(badge.badge_code).roleCode)
-    .filter((roleCode): roleCode is string => Boolean(roleCode))
-  const visibleRoleCodes = new Set([...(relevantRoleCodes ?? []), ...earnedRoleCodes])
-  const visibleCatalog = catalogWithEarnedBadges(catalog, earnedBadges).filter((item) => {
+  const earnedRoleCodes = new Set(earnedBadges
+    .map((badge) => getMemberBadgePresentation(badge.badge_code))
+    .filter((presentation) => presentation.group === 'roles')
+    .map((presentation) => presentation.roleCode)
+    .filter((roleCode): roleCode is string => Boolean(roleCode)))
+  const mergedCatalog = catalogWithEarnedBadges(catalog, earnedBadges)
+  const generalCatalog = mergedCatalog.filter(
+    (item) => getMemberBadgePresentation(item.badge_code).group !== 'roles',
+  )
+  const roleCatalog = mergedCatalog.filter((item) => {
     const presentation = getMemberBadgePresentation(item.badge_code)
-    return presentation.group !== 'roles'
-      || Boolean(presentation.roleCode && visibleRoleCodes.has(presentation.roleCode))
+    return presentation.group === 'roles'
+      && Boolean(presentation.roleCode && earnedRoleCodes.has(presentation.roleCode))
   })
-  const earnedCount = visibleCatalog.filter((item) => earnedCodes.has(item.badge_code)).length
-  const progressPercent = visibleCatalog.length > 0
-    ? Math.round((earnedCount / visibleCatalog.length) * 100)
+  const earnedCount = generalCatalog.filter((item) => earnedCodes.has(item.badge_code)).length
+  const progressPercent = generalCatalog.length > 0
+    ? Math.round((earnedCount / generalCatalog.length) * 100)
     : 0
-  const groups = buildMemberBadgeGroups(visibleCatalog)
+  const groups = buildMemberBadgeGroups([...generalCatalog, ...roleCatalog])
 
   return (
     <section className={styles.section}>
       <SectionHeader title="Auszeichnungen" />
 
       <Card variant="section" className={styles.chainCard}>
-        <div className={styles.progressBlock} aria-label={`${earnedCount} von ${visibleCatalog.length} Auszeichnungen`}>
+        <div className={styles.progressBlock} aria-label={`${earnedCount} von ${generalCatalog.length} allgemeine Auszeichnungen`}>
           <div className={styles.progressMeta}>
-            <span>{earnedCount} von {visibleCatalog.length}</span>
+            <span>Allgemeine Auszeichnungen</span>
+            <span>{earnedCount} von {generalCatalog.length}</span>
           </div>
           <div className={styles.progressTrack} aria-hidden="true">
             <span style={{ width: `${progressPercent}%` }} />
@@ -250,6 +254,15 @@ export function MemberBadgeChain({
           {groups.map((group) => (
             <div key={group.key} className={styles.group} data-badge-group={group.key}>
               <h3 className={styles.groupTitle}>{group.label}</h3>
+              {group.key === 'roles' ? (
+                <div className={styles.progressMeta}>
+                  <span>
+                    {earnedRoleCodes.size} {earnedRoleCodes.size === 1
+                      ? 'ausgeübte Fansubrolle'
+                      : 'ausgeübte Fansubrollen'}
+                  </span>
+                </div>
+              ) : null}
               <FocalCarousel
                 items={group.rows}
                 getItemKey={(row) => row.key}
