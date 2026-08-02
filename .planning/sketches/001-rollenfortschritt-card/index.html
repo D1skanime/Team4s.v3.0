@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team4s Rollenfortschritt-Card</title>
+  <link rel="stylesheet" href="../themes/default.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--color-text); font-family: var(--font-sans); background: radial-gradient(circle at 50% 15%, #fff 0, var(--color-bg) 62%); }
+    button, select { font: inherit; }
+    .variant-nav { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; justify-content: center; gap: 8px; padding: 10px; background: rgba(247,249,254,.94); border-bottom: 1px solid var(--color-border); backdrop-filter: blur(12px); }
+    .variant-tab { border: 1px solid var(--color-border); border-radius: 999px; background: white; color: #40506f; padding: 9px 15px; cursor: pointer; transition: .15s ease; }
+    .variant-tab:hover, .variant-tab.active { color: white; background: var(--color-primary); border-color: var(--color-primary); transform: translateY(-1px); }
+    .stage { min-height: 100vh; padding: 96px 24px 64px; display: grid; place-items: center; }
+    .variant { width: min(100%, 520px); }
+    .eyebrow { margin: 0 0 12px; text-align: center; color: #65708a; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .role-card { position: relative; overflow: hidden; padding: 26px 28px 28px; border: 1px solid rgba(101,131,188,.42); border-radius: 28px; background: linear-gradient(160deg, rgba(255,255,255,.96), rgba(242,247,255,.88)); box-shadow: var(--shadow-lg); }
+    .role-card::before { content: ''; position: absolute; inset: 48px 8% auto; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(68,155,108,.23), rgba(68,155,108,0) 68%); filter: blur(9px); pointer-events: none; }
+    .role-head { position: relative; text-align: center; }
+    .role-title { margin: 0; font-size: 22px; letter-spacing: .03em; text-transform: uppercase; }
+    .role-subtitle { margin: 6px 0 0; color: var(--color-text-muted); font-size: 14px; }
+    .hero-badge { position: relative; display: block; width: min(100%, 310px); height: 310px; object-fit: contain; margin: 8px auto 0; filter: drop-shadow(0 16px 18px rgba(31,56,70,.22)); }
+    .rank-pill { position: relative; width: max-content; margin: -10px auto 20px; padding: 7px 13px; border-radius: 999px; background: #fff8dc; border: 1px solid #e8c65d; font-size: 13px; font-weight: 800; color: #69500d; box-shadow: var(--shadow-sm); }
+    .collection { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0 0 22px; }
+    .medal { position: relative; min-width: 0; padding: 8px 3px 6px; text-align: center; border-radius: 14px; border: 1px solid transparent; transition: .15s ease; }
+    .medal img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 4px 5px rgba(20,28,45,.18)); }
+    .medal span { display: block; margin-top: 4px; font-size: 10px; font-weight: 750; }
+    .medal.earned { background: rgba(255,255,255,.74); }
+    .medal.current { border-color: #e5bc3c; background: #fff8d9; box-shadow: 0 0 0 3px rgba(236,197,72,.18), 0 8px 22px rgba(218,169,34,.2); }
+    .medal.current::after { content: 'AKTUELL'; position: absolute; top: -7px; left: 50%; transform: translateX(-50%); padding: 2px 5px; border-radius: 999px; color: white; background: #9c7412; font-size: 7px; font-weight: 900; letter-spacing: .06em; }
+    .medal.locked { opacity: .36; filter: grayscale(.75); }
+    .lock { position: absolute; inset: 24px auto auto 50%; transform: translateX(-50%); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: white; background: rgba(31,39,56,.76); font-size: 12px; }
+    .progress-copy { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 9px; font-size: 13px; font-weight: 800; }
+    .progress-copy span:last-child { color: var(--color-text-muted); font-weight: 650; }
+    .bar { overflow: hidden; height: 12px; border-radius: 999px; background: #dce4f1; box-shadow: inset 0 1px 3px rgba(38,56,87,.15); }
+    .bar > i { display: block; width: 62.7%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #d79e24, #f4cf58); box-shadow: 0 0 14px rgba(229,178,45,.55); }
+    .detail { margin: 10px 0 0; text-align: center; color: var(--color-text-muted); font-size: 13px; }
+    .stage-band { position: relative; display: flex; align-items: center; margin: 0 0 24px; padding: 12px 10px 9px; border: 1px solid var(--color-border); border-radius: 18px; background: rgba(255,255,255,.65); }
+    .stage-band::before { content: ''; position: absolute; left: 11%; right: 11%; top: 43px; height: 3px; background: linear-gradient(90deg,#68a77e 0 75%,#ccd4e0 75%); }
+    .stage-band .medal { flex: 1; z-index: 1; padding: 0 2px; background: none; border: 0; box-shadow: none; }
+    .stage-band .medal img { width: 58px; max-width: 100%; margin: auto; }
+    .stage-band .medal.current img { transform: scale(1.08); filter: drop-shadow(0 0 8px rgba(225,177,43,.55)); }
+    .stage-band .medal.current::after { top: -15px; }
+    .placeholder { display: grid; place-items: center; aspect-ratio: 1; width: 100%; border: 2px dashed #d5aa32; border-radius: 50%; color: #7b5b0c; background: #fff8d7; font-size: 9px; font-weight: 900; }
+    #sketch-tools { position:fixed; bottom:12px; right:12px; z-index:9999; display:flex; gap:6px; align-items:center; font:12px system-ui; background:rgba(0,0,0,.76); color:white; padding:8px 10px; border-radius:8px; opacity:.45; transition:.2s; }
+    #sketch-tools:hover { opacity: 1; }
+    #sketch-tools button { cursor:pointer; border:0; border-radius:5px; padding:4px 7px; }
+    @media (max-width: 560px) { .stage { padding-inline: 10px; } .role-card { padding: 22px 14px 24px; border-radius: 22px; } .hero-badge { height: 260px; } .collection { gap: 3px; } .medal { padding-inline: 1px; } .medal span { font-size: 8px; } .variant-tab { padding: 7px 9px; font-size: 11px; } }
+  </style>
+</head>
+<body>
+  <nav class="variant-nav" aria-label="Varianten">
+    <button class="variant-tab active" data-target="a">A: Sammlung ★ Ausgewählt</button>
+    <button class="variant-tab" data-target="b">B: Stufenband</button>
+    <button class="variant-tab" data-target="c">C: Ohne Dopplung</button>
+  </nav>
+  <main id="preview" class="stage">
+    <section id="variant-a" class="variant">
+      <p class="eyebrow">Variante A · vollständige Sammlung</p>
+      <article class="role-card">
+        <header class="role-head"><h1 class="role-title">Qualitätsprüfung</h1><p class="role-subtitle">Höchster erreichter Rang</p></header>
+        <img class="hero-badge" src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-gold.png" alt="Qualitätsprüfung Gold">
+        <div class="rank-pill">Gold · 320+</div>
+        <div class="collection" aria-label="Rangfolge">
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/role_entry_quality_checker.png" alt="Einstieg"><span>Einstieg</span></div>
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-bronze.png" alt="Bronze"><span>Bronze</span></div>
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-silver.png" alt="Silber"><span>Silber</span></div>
+          <div class="medal current"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-gold.png" alt="Gold"><span>Gold</span></div>
+          <div class="medal locked"><span class="lock">🔒</span><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-platinum.png" alt="Platin gesperrt"><span>Platin</span></div>
+        </div>
+        <div class="progress-copy"><span>320 von 510 Mitwirkungen</span><span>Noch 190 bis Platin</span></div><div class="bar"><i></i></div><p class="detail">Nächstes Ziel: Platin</p>
+      </article>
+    </section>
+    <section id="variant-b" class="variant" hidden>
+      <p class="eyebrow">Variante B · zusammenhängendes Stufenband</p>
+      <article class="role-card">
+        <header class="role-head"><h1 class="role-title">Qualitätsprüfung</h1><p class="role-subtitle">Höchster erreichter Rang</p></header>
+        <img class="hero-badge" src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-gold.png" alt="Qualitätsprüfung Gold"><div class="rank-pill">Gold · 320+</div>
+        <div class="stage-band" aria-label="Rangfolge">
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/role_entry_quality_checker.png" alt="Einstieg"><span>Einstieg</span></div>
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-bronze.png" alt="Bronze"><span>Bronze</span></div>
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-silver.png" alt="Silber"><span>Silber</span></div>
+          <div class="medal current"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-gold.png" alt="Gold"><span>Gold</span></div>
+          <div class="medal locked"><span class="lock">🔒</span><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-platinum.png" alt="Platin gesperrt"><span>Platin</span></div>
+        </div>
+        <div class="progress-copy"><span>320 von 510 Mitwirkungen</span><span>Noch 190 bis Platin</span></div><div class="bar"><i></i></div><p class="detail">Nächstes Ziel: Platin</p>
+      </article>
+    </section>
+    <section id="variant-c" class="variant" hidden>
+      <p class="eyebrow">Variante C · aktuelle Medaille nicht doppelt</p>
+      <article class="role-card">
+        <header class="role-head"><h1 class="role-title">Qualitätsprüfung</h1><p class="role-subtitle">Höchster erreichter Rang</p></header>
+        <img class="hero-badge" src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-gold.png" alt="Qualitätsprüfung Gold"><div class="rank-pill">Gold · 320+</div>
+        <div class="collection" aria-label="Rangfolge">
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/role_entry_quality_checker.png" alt="Einstieg"><span>Einstieg</span></div>
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-bronze.png" alt="Bronze"><span>Bronze</span></div>
+          <div class="medal earned"><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-silver.png" alt="Silber"><span>Silber</span></div>
+          <div class="medal current"><div class="placeholder">OBEN<br>AKTUELL</div><span>Gold</span></div>
+          <div class="medal locked"><span class="lock">🔒</span><img src="../../../frontend/public/member-achievement-badges/rank-frame-quality_checker-platinum.png" alt="Platin gesperrt"><span>Platin</span></div>
+        </div>
+        <div class="progress-copy"><span>320 von 510 Mitwirkungen</span><span>Noch 190 bis Platin</span></div><div class="bar"><i></i></div><p class="detail">Nächstes Ziel: Platin</p>
+      </article>
+    </section>
+  </main>
+  <div id="sketch-tools"><span>Ansicht</span><button data-width="375px">Mobil</button><button data-width="768px">Tablet</button><button data-width="100%">Desktop</button></div>
+  <script>
+    const tabs = document.querySelectorAll('.variant-tab');
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      tabs.forEach(item => item.classList.toggle('active', item === tab));
+      document.querySelectorAll('.variant').forEach(item => item.hidden = item.id !== `variant-${tab.dataset.target}`);
+    }));
+    document.querySelectorAll('#sketch-tools button').forEach(button => button.addEventListener('click', () => {
+      const preview = document.getElementById('preview');
+      preview.style.width = button.dataset.width;
+      preview.style.margin = '0 auto';
+      button.animate([{transform:'scale(.92)'},{transform:'scale(1)'}], {duration:180});
+    }));
+  </script>
+</body>
+</html>
