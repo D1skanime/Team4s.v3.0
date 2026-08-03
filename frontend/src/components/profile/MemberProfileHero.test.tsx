@@ -31,6 +31,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
     background_image: null,
     memberships: [],
     public_badges: [],
+    badge_progress: [],
     total_points: 0,
     recent_media: [],
     recent_contributions: [],

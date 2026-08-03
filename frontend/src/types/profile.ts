@@ -152,6 +152,15 @@ export interface PublicMemberBadge {
   next_tier?: 'bronze' | 'silver' | 'gold' | null
 }
 
+export interface PublicMemberBadgeProgress {
+  family: string
+  current_count: number
+  next_threshold: number | null
+  remaining_count: number | null
+  next_tier: string | null
+  complete: boolean
+}
+
 export interface PublicMemberProjectReleaseVersion {
   release_version_id: number
   release_version_label: string
@@ -227,6 +236,8 @@ export interface PublicMemberProfileData {
   memberships: MemberProfileMembership[]
   /** Eingebettete öffentliche Badges des angezeigten Members (Badges-13). Nur visibility='public' AND status='active'. */
   public_badges: PublicMemberBadge[]
+  /** Autoritative Rohwerte der sechs Badge-Familien; nur in sichtbaren Profilantworten. */
+  badge_progress: PublicMemberBadgeProgress[]
   /** Gesamtpunktzahl aus member_point_totals, nie im Frontend neu aggregiert (D-02/Phase 110-02). */
   total_points: number
   recent_media: MemberProfileRecentMedia[]

@@ -264,23 +264,25 @@ type PublicMemberPreviousContribution struct {
 }
 
 type PublicMemberProfile struct {
-	MemberID                   int64                              `json:"member_id"`
-	AppUserID                  int64                              `json:"-"`
-	FansubName                 string                             `json:"fansub_name"`
-	Bio                        *string                            `json:"bio,omitempty"`
-	MemberStoryHTML            *string                            `json:"member_story_html,omitempty"`
-	ActiveFromDate             *string                            `json:"active_from_date,omitempty"`
-	ActiveUntilDate            *string                            `json:"active_until_date,omitempty"`
-	IsCurrentlyActive          bool                               `json:"is_currently_active"`
-	Noindex                    bool                               `json:"noindex"`
-	IsVerified                 bool                               `json:"is_verified"`
-	ProfileStatus              string                             `json:"profile_status"`
-	ProfileVisibility          string                             `json:"profile_visibility"`
-	Avatar                     *MemberProfileAvatar               `json:"avatar,omitempty"`
-	BackgroundImage            *MemberProfileBgImage              `json:"background_image,omitempty"`
-	Memberships                []MemberProfileMembership          `json:"memberships"`
-	PublicBadges               []PublicMemberBadge                `json:"public_badges"`
-	BadgeProgress              []PublicMemberBadgeProgress        `json:"badge_progress"`
+	MemberID          int64                     `json:"member_id"`
+	AppUserID         int64                     `json:"-"`
+	FansubName        string                    `json:"fansub_name"`
+	Bio               *string                   `json:"bio,omitempty"`
+	MemberStoryHTML   *string                   `json:"member_story_html,omitempty"`
+	ActiveFromDate    *string                   `json:"active_from_date,omitempty"`
+	ActiveUntilDate   *string                   `json:"active_until_date,omitempty"`
+	IsCurrentlyActive bool                      `json:"is_currently_active"`
+	Noindex           bool                      `json:"noindex"`
+	IsVerified        bool                      `json:"is_verified"`
+	ProfileStatus     string                    `json:"profile_status"`
+	ProfileVisibility string                    `json:"profile_visibility"`
+	Avatar            *MemberProfileAvatar      `json:"avatar,omitempty"`
+	BackgroundImage   *MemberProfileBgImage     `json:"background_image,omitempty"`
+	Memberships       []MemberProfileMembership `json:"memberships"`
+	PublicBadges      []PublicMemberBadge       `json:"public_badges"`
+
+	BadgeProgress []PublicMemberBadgeProgress `json:"badge_progress"`
+
 	TotalPoints                int64                              `json:"total_points"`
 	RecentMedia                []MemberProfileRecentMedia         `json:"recent_media"`
 	RecentContributions        []MemberProfileRecentContribution  `json:"recent_contributions"`

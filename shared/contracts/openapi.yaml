@@ -11227,6 +11227,32 @@ components:
           type: string
           enum: [bronze, silver, gold]
           nullable: true
+    PublicMemberBadgeProgress:
+      type: object
+      description: Authoritative progress for one public badge family, emitted only inside a visible member profile.
+      required: [family, current_count, next_threshold, remaining_count, next_tier, complete]
+      properties:
+        family:
+          type: string
+          enum: [progress, points, contribution_projects, contribution_chronicle, contribution_archivist, membership]
+        current_count:
+          type: integer
+          format: int64
+          minimum: 0
+        next_threshold:
+          type: integer
+          nullable: true
+          format: int64
+        remaining_count:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        next_tier:
+          type: string
+          nullable: true
+        complete:
+          type: boolean
     MeProjectReleaseVersion:
       type: object
       required:
@@ -11321,6 +11347,7 @@ components:
         - profile_visibility
         - memberships
         - public_badges
+        - badge_progress
         - total_points
         - recent_media
         - recent_contributions
@@ -11382,6 +11409,11 @@ components:
             Nur visibility='public' AND status='active'. Kein separater Endpoint.
           items:
             $ref: "#/components/schemas/PublicMemberBadge"
+        badge_progress:
+          type: array
+          description: Exact server-derived progress metrics, included only after the existing public/owner visibility decision.
+          items:
+            $ref: "#/components/schemas/PublicMemberBadgeProgress"
         total_points:
           type: integer
           format: int64
