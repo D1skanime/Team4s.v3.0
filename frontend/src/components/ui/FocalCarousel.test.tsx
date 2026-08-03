@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { FocalCarousel } from './FocalCarousel'
 
 const items = ['Alpha', 'Beta', 'Gamma']
 
-function renderCarousel() {
+function renderCarousel(showCounter = false) {
   return render(
     <FocalCarousel
       items={items}
@@ -20,6 +20,7 @@ function renderCarousel() {
       nextLabel="Nächste Karte"
       showAllLabel="Alle Karten anzeigen"
       showLessLabel="Weniger anzeigen"
+      showCounter={showCounter}
     />,
   )
 }
@@ -90,5 +91,15 @@ describe('FocalCarousel', () => {
       Element.prototype.scrollIntoView = originalScrollIntoView
       vi.useRealTimers()
     }
+  })
+
+  it('supports Home, End and the optional position counter', () => {
+    renderCarousel(true)
+    const region = screen.getByRole('region', { name: 'Beispiel-Karussell' })
+    fireEvent.keyDown(region, { key: 'End' })
+    expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+    expect(screen.getByText('3 von 3 Karten')).toBeTruthy()
+    fireEvent.keyDown(region, { key: 'Home' })
+    expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
   })
 })
