@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Phase 119 context gathered
-last_updated: "2026-08-03T12:36:47.388Z"
+stopped_at: Completed 119-01-PLAN.md
+last_updated: "2026-08-03T13:06:58.966Z"
 last_activity: 2026-08-03
 progress:
   total_phases: 111
   completed_phases: 90
   total_plans: 511
-  completed_plans: 474
+  completed_plans: 475
   percent: 93
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 118 — Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle
+**Current focus:** Phase 119 — Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen
 
 ## Current Position
 
-Phase: 118 (Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle) — EXECUTING
-Plan: 4 of 4
+Phase: 119 (Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -440,6 +440,8 @@ Recent durable decisions:
 - [Phase 118]: Five-stage medals remain informative while FocalCarousel owns the sole interaction station.
 - [Phase 118]: Explicit carousel navigation targets remain authoritative until their unscaled target offset is reached.
 - [Phase 118]: Mobile carousel arrows use a separate controls row so the track receives the full available width.
+- [Phase 119]: Wave 0 bleibt strikt test-first; keine Produktionsimplementierung aus späteren Plänen.
+- [Phase 119]: badge_progress bleibt additiv und getrennt von earned-only public_badges.
 
 ### Pending Todos
 
@@ -759,6 +761,7 @@ Recent durable decisions:
 | Phase 117 P06 | 35min | 3 tasks | 7 files |
 | Phase 118 P03 | 20min | 2 tasks | 5 files |
 | Phase 118 P04 | 34min | 2 tasks | 6 files |
+| Phase 119 P01 | 16min | 3 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -843,8 +846,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-08-03T10:56:43.335Z
-Stopped at: Phase 119 context gathered
+Last session: 2026-08-03T13:06:58.955Z
+Stopped at: Completed 119-01-PLAN.md
 Last activity: 2026-08-03
 Resume file: 
 None

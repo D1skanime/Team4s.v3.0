@@ -1933,7 +1933,7 @@ Plans:
 **Goal:** Die übrigen Badge-Bereiche des öffentlichen Memberprofils — Fortschritt, Punkte-Meilensteine, Beiträge, Mitgliedschaft und besondere Auszeichnungen — nach dem in Phase 118 etablierten Sammlungskarten-Prinzip strukturieren, mit exakten serverseitigen Familienmetriken, earned-only Auszeichnungen und ausschließlich dem globalen FocalCarousel, ohne neue Buchungs-, Freischalt-, Persistenz- oder API-Seams.
 **Requirements:** Keine formalen REQ-IDs; Coverage-Einheit sind die gesperrten Entscheidungen D-01–D-16 aus `119-CONTEXT.md` und der genehmigte `119-UI-SPEC.md`.
 **Depends on:** Phase 118
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 - [ ] `119-01-PLAN.md` — Wave 1: test-first Familien-, Collection-Card-, Carousel-, Vertrags- und Sichtbarkeitsfundament (D-01–D-13, D-15–D-16)
