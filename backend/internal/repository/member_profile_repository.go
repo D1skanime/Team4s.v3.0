@@ -505,6 +505,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		ProfileVisibility:          strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityPublic)),
 		Memberships:                []models.MemberProfileMembership{},
 		PublicBadges:               []models.PublicMemberBadge{},
+		BadgeProgress:              []models.PublicMemberBadgeProgress{},
 		RecentMedia:                []models.MemberProfileRecentMedia{},
 		RecentContributions:        []models.MemberProfileRecentContribution{},
 		CurrentProjects:            []models.PublicMemberCurrentProject{},
@@ -543,6 +544,10 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	}
 	profile.PublicBadges = append(profile.PublicBadges, contributionBadges...)
 	profile.TotalPoints, loadErr = r.loadTotalPoints(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
+	profile.BadgeProgress, loadErr = r.loadBadgeProgress(ctx, row.memberID, profile.TotalPoints)
 	if loadErr != nil {
 		return nil, loadErr
 	}

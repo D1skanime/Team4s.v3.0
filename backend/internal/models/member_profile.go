@@ -185,14 +185,23 @@ type StoryImageAssetRef struct {
 // PublicMemberBadge ist ein schlankes Badge-DTO fuer oeffentlich sichtbare Badges
 // (visibility='public' AND status='active'). Eingebettet in PublicMemberProfile (D-11/Badges-13).
 type PublicMemberBadge struct {
-	ID            int64  `json:"id"`
-	BadgeCode     string `json:"badge_code"`
+	ID             int64   `json:"id"`
+	BadgeCode      string  `json:"badge_code"`
 	BadgeCategory  string  `json:"badge_category"`
 	CurrentCount   *int64  `json:"current_count,omitempty"`
 	CurrentTier    *string `json:"current_tier,omitempty"`
 	NextThreshold  *int64  `json:"next_threshold,omitempty"`
 	RemainingCount *int64  `json:"remaining_count,omitempty"`
 	NextTier       *string `json:"next_tier,omitempty"`
+}
+
+type PublicMemberBadgeProgress struct {
+	Family         string  `json:"family"`
+	CurrentCount   int64   `json:"current_count"`
+	NextThreshold  *int64  `json:"next_threshold"`
+	RemainingCount *int64  `json:"remaining_count"`
+	NextTier       *string `json:"next_tier"`
+	Complete       bool    `json:"complete"`
 }
 
 type PublicMemberProjectReleaseVersion struct {
@@ -271,6 +280,7 @@ type PublicMemberProfile struct {
 	BackgroundImage            *MemberProfileBgImage              `json:"background_image,omitempty"`
 	Memberships                []MemberProfileMembership          `json:"memberships"`
 	PublicBadges               []PublicMemberBadge                `json:"public_badges"`
+	BadgeProgress              []PublicMemberBadgeProgress        `json:"badge_progress"`
 	TotalPoints                int64                              `json:"total_points"`
 	RecentMedia                []MemberProfileRecentMedia         `json:"recent_media"`
 	RecentContributions        []MemberProfileRecentContribution  `json:"recent_contributions"`
@@ -279,4 +289,12 @@ type PublicMemberProfile struct {
 	LatestContributions        []PublicMemberLatestContribution   `json:"latest_contributions"`
 	PreviousContributions      []PublicMemberPreviousContribution `json:"previous_contributions"`
 	PreviousContributionsCount int                                `json:"previous_contributions_count"`
+}
+
+func (p PublicMemberProfile) MarshalJSON() ([]byte, error) {
+	type publicMemberProfileAlias PublicMemberProfile
+	if p.BadgeProgress == nil {
+		p.BadgeProgress = []PublicMemberBadgeProgress{}
+	}
+	return json.Marshal(publicMemberProfileAlias(p))
 }
