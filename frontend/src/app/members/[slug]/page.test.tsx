@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
 
 import type { ImgHTMLAttributes, ReactNode } from 'react'
+import { readFileSync } from 'node:fs'
 import { render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberProfileData } from '@/types/profile'
 
 import MemberProfilePage from './page'
+
+const memberPageStyles = readFileSync('src/app/members/[slug]/page.module.css', 'utf8')
 
 const { getMemberProfileMock, getMemberContributionsMock } = vi.hoisted(() => ({
   getMemberProfileMock: vi.fn(),
@@ -175,6 +178,12 @@ afterEach(() => {
 })
 
 describe('MemberProfilePage Phase 99 route composition', () => {
+  it('uses the shared 1480px public width contract and preserves reading sections', () => {
+    expect(memberPageStyles).toContain('width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));')
+    expect(memberPageStyles).not.toContain('min(1280px')
+    expect(memberPageStyles).toContain('max-width: 920px;')
+  })
+
   it('renders the full locked seven-section public profile order', async () => {
     await renderMemberPage(makePublicProfile())
 
