@@ -12,6 +12,7 @@ import {
   PUBLIC_MEMBER_BADGE_CATALOG,
   resolveNextPointMilestone,
   resolveNextRoleVolumeThreshold,
+  resolveRoleProgressPresentation,
 } from './memberBadgeLabels'
 
 describe('Contribution-Badge-Präsentationen (D-05)', () => {
@@ -187,5 +188,32 @@ describe('resolveNextRoleVolumeThreshold (Phase 116 D-04 — naechste Rollen-Vol
     expect(result.currentTier).toBe('platinum')
     expect(result.nextThreshold).toBeNull()
     expect(result.nextTierLabel).toBeNull()
+  })
+})
+describe('resolveRoleProgressPresentation (Phase 118 — Rollenfortschritt)', () => {
+  it.each([
+    [0, null, 12, 'Bronze'], [1, 'entry', 12, 'Bronze'], [11, 'entry', 12, 'Bronze'],
+    [12, 'bronze', 108, 'Silber'], [107, 'bronze', 108, 'Silber'],
+    [108, 'silver', 320, 'Gold'], [319, 'silver', 320, 'Gold'],
+    [320, 'gold', 510, 'Platin'], [509, 'gold', 510, 'Platin'],
+    [510, 'platinum', null, null],
+  ])('resolves %i Mitwirkungen at every boundary', (count, tier, nextThreshold, nextTierLabel) => {
+    expect(resolveRoleProgressPresentation(count)).toMatchObject({ tier, nextThreshold, nextTierLabel })
+  })
+
+  it('keeps exact rank and progress copy at entry, intermediate, and terminal states', () => {
+    expect(resolveRoleProgressPresentation(1)).toMatchObject({
+      rankLabel: 'Einstieg · 1+',
+      progressCopy: '1 von 12 Mitwirkungen · Noch 11 bis Bronze',
+    })
+    expect(resolveRoleProgressPresentation(108)).toMatchObject({
+      rankLabel: 'Silber · 108+',
+      progressCopy: '108 von 320 Mitwirkungen · Noch 212 bis Gold',
+    })
+    expect(resolveRoleProgressPresentation(777)).toMatchObject({
+      rankLabel: 'Platin · 510+',
+      progressCopy: '777 Mitwirkungen · Höchste Stufe erreicht',
+      progressValue: 510, progressMax: 510,
+    })
   })
 })

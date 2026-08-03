@@ -789,3 +789,56 @@ describe('buildMemberBadgeGroups (D-04)', () => {
     }
   })
 })
+describe('MemberBadgeChain Phase 118 role cards', () => {
+  const roleBadge = (role: 'translator' | 'timer', count: number): PublicMemberBadge => ({
+    id: count + 1,
+    badge_code: count >= 510 ? `role_volume_${role}_platinum`
+      : count >= 320 ? `role_volume_${role}_gold`
+        : count >= 108 ? `role_volume_${role}_silver`
+          : count >= 12 ? `role_volume_${role}_bronze` : `role_entry_${role}`,
+    badge_category: count >= 12 ? 'role_volume' : 'role_entry',
+    current_count: count,
+  })
+
+  it('renders exact earned-role cards through one carousel station', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]} catalog={roleProgressCatalog} />,
+    )
+    expect(screen.getByText('Rollenfortschritt')).not.toBeNull()
+    expect(screen.getByText('108 von 320 Mitwirkungen · Noch 212 bis Gold')).not.toBeNull()
+    expect(screen.getByText('Silber · 108+')).not.toBeNull()
+    expect(screen.getByText('2 von 2 Rollen')).not.toBeNull()
+    expect(screen.getAllByRole('region', { name: 'Rollenfortschritt-Karussell' })).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Vorherige Rolle' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Nächste Rolle' })).not.toBeNull()
+    expect(container.querySelectorAll('[data-role-stage]')).toHaveLength(10)
+    expect(container.querySelectorAll('[data-role-stage] img')).toHaveLength(10)
+    expect(container.querySelectorAll('[data-role-stage][tabindex]')).toHaveLength(0)
+    expect(screen.getAllByText('Aktuell')).toHaveLength(2)
+    expect(screen.getAllByText('Gesperrt').length).toBeGreaterThan(0)
+  })
+
+  it('hides zero and foreign roles and reverses rank state on rerender', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { rerender } = render(
+      <MemberBadgeChain earnedBadges={[roleBadge('translator', 510), { ...roleBadge('timer', 0), badge_code: 'role_volume_foreign_gold' }]} catalog={roleProgressCatalog} />,
+    )
+    expect(screen.getByText('510 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
+    expect(screen.queryByText('Timing')).toBeNull()
+    rerender(<MemberBadgeChain earnedBadges={[roleBadge('translator', 11)]} catalog={roleProgressCatalog} />)
+    expect(screen.getByText('Einstieg · 1+')).not.toBeNull()
+    expect(screen.getByText('11 von 12 Mitwirkungen · Noch 1 bis Bronze')).not.toBeNull()
+    rerender(<MemberBadgeChain earnedBadges={[]} catalog={roleProgressCatalog} />)
+    expect(screen.queryByText('Rollenfortschritt')).toBeNull()
+  })
+
+  it('clamps platinum progress aria while preserving the true visible count', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    render(<MemberBadgeChain earnedBadges={[roleBadge('translator', 777)]} catalog={roleProgressCatalog} />)
+    const progress = screen.getByRole('progressbar', { name: 'Fortschritt für Übersetzung' })
+    expect(progress.getAttribute('aria-valuenow')).toBe('510')
+    expect(progress.getAttribute('aria-valuemax')).toBe('510')
+    expect(screen.getByText('777 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
+  })
+})
