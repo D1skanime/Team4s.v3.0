@@ -173,3 +173,86 @@ describe('FocalCarousel', () => {
     }
   })
 })
+
+describe('FocalCarousel Phase 119 shared interaction contract', () => {
+  it('renders one item quietly without arrows, counter or disclosure controls', () => {
+    render(
+      <FocalCarousel
+        items={['Einzeln']}
+        getItemKey={(item) => item}
+        renderItem={(item) => <span>{item}</span>}
+        regionLabel="Einzel-Karussell"
+        itemSingularLabel="Karte"
+        itemPluralLabel="Karten"
+        previousLabel="Vorherige Karte"
+        nextLabel="Nächste Karte"
+        showAllLabel="Alle Karten anzeigen"
+        showCounter
+      />,
+    )
+    expect(screen.getByText('Einzeln')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Vorherige Karte' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Nächste Karte' })).toBeNull()
+    expect(screen.queryByText('1 von 1 Karte')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Alle Karten anzeigen' })).toBeNull()
+  })
+
+  it('keeps two expanded instances independent and restores focus to each own toggle', () => {
+    const instance = (label: string) => (
+      <FocalCarousel items={items} getItemKey={(item) => item}
+        renderItem={(item) => <span>{label} {item}</span>} regionLabel={`${label}-Karussell`}
+        itemSingularLabel="Karte" itemPluralLabel="Karten" previousLabel={`${label} zurück`}
+        nextLabel={`${label} weiter`} showAllLabel={`${label} alle anzeigen`} showLessLabel={`${label} weniger anzeigen`} />
+    )
+    render(<>{instance('Erste')}{instance('Zweite')}</>)
+    fireEvent.click(screen.getByRole('button', { name: 'Erste alle anzeigen' }))
+    expect(screen.getByRole('list', { name: 'Alle Karten' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Zweite-Karussell' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Erste weniger anzeigen' }))
+    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Erste-Karussell' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Zweite alle anzeigen' }))
+    expect(screen.getByRole('region', { name: 'Erste-Karussell' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Zweite weniger anzeigen' }))
+    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Zweite-Karussell' }))
+  })
+
+  it('does not steal Arrow, Home or End keys from a nested interactive child', () => {
+    renderCarousel()
+    const alpha = screen.getByRole('button', { name: 'Alpha' })
+    fireEvent.keyDown(alpha, { key: 'ArrowRight' })
+    fireEvent.keyDown(alpha, { key: 'End' })
+    expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
+  })
+
+  it('passes outward wheel deltas through at both endpoints', () => {
+    renderCarousel()
+    const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+    Object.defineProperties(region, {
+      clientWidth: { configurable: true, value: 300 },
+      scrollWidth: { configurable: true, value: 900 },
+      scrollLeft: { configurable: true, writable: true, value: 0 },
+    })
+    const atStart = new WheelEvent('wheel', { deltaY: -40, cancelable: true })
+    region.dispatchEvent(atStart)
+    expect(atStart.defaultPrevented).toBe(false)
+    region.scrollLeft = 600
+    const atEnd = new WheelEvent('wheel', { deltaY: 40, cancelable: true })
+    region.dispatchEvent(atEnd)
+    expect(atEnd.defaultPrevented).toBe(false)
+  })
+
+  it('cancels pointer state and removes Reduced Motion listeners on unmount', () => {
+    const removeEventListener = vi.fn()
+    const matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener })
+    vi.stubGlobal('matchMedia', matchMedia)
+    const rendered = renderCarousel()
+    const region = screen.getByRole('region', { name: 'Beispiel-Karussell' })
+    fireEvent.pointerDown(region, { pointerId: 7, pointerType: 'mouse', button: 0, clientX: 100 })
+    fireEvent.pointerMove(region, { pointerId: 7, pointerType: 'mouse', clientX: 80 })
+    fireEvent.pointerCancel(region, { pointerId: 7, pointerType: 'mouse' })
+    expect(region.className).not.toContain('dragging')
+    rendered.unmount()
+    expect(removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+    vi.unstubAllGlobals()
+  })
+})

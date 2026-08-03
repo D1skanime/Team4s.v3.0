@@ -86,3 +86,14 @@ describe('FansubProjectsGrid', () => {
     expect(screen.getByLabelText('Projekt 2 von 21').getAttribute('aria-current')).toBe('true')
   })
 })
+
+describe('FansubProjectsGrid Phase 119 carousel regression', () => {
+  it('preserves preview, show-all and project links without a carousel position counter', () => {
+    render(<FansubProjectsGrid items={makeItems(25)} groupId={5} groupSlug="c-subs" />)
+    expect(screen.queryByText(/\d+ von \d+ Projekte/)).toBeNull()
+    expect(screen.getByRole('link', { name: 'Fansub-Projekt öffnen: Projekt 1' }).getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/projekt-1')
+    fireEvent.click(screen.getByRole('button', { name: 'Alle 25 Projekte anzeigen' }))
+    expect(screen.getByRole('link', { name: 'Fansub-Projekt öffnen: Projekt 25' }).getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/projekt-25')
+    expect(screen.queryByText(/Badge|Auszeichnung/)).toBeNull()
+  })
+})

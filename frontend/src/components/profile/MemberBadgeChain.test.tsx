@@ -3,7 +3,7 @@
 import type { ComponentType } from 'react'
 import { readFileSync } from 'node:fs'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
 const memberBadgeChainCss = readFileSync('src/components/profile/MemberBadgeChain.module.css', 'utf8')
@@ -908,5 +908,29 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     rendered.rerender(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_silver', badge_category: 'quantity' }]} badgeProgress={badgeProgress.map((item) => item.family === 'progress' ? { ...item, current_count: 25, next_threshold: 50, remaining_count: 25, next_tier: '50 Projekte' } : item)} />)
     expect(screen.queryByText('Ausgewählt')).toBeNull()
     expect(screen.getByText('Aktuell')).not.toBeNull()
+  })
+})
+
+describe('MemberBadgeChain Phase 119 inner stage strip', () => {
+  it('centers the current stage only inside its strip and respects Reduced Motion', async () => {
+    const scrollIntoView = vi.fn()
+    const original = Element.prototype.scrollIntoView
+    Element.prototype.scrollIntoView = scrollIntoView
+
+    try {
+      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+      const { MemberBadgeChain } = await loadMemberBadgeChain()
+      const CollectionChain = MemberBadgeChain as ComponentType<{
+        earnedBadges: PublicMemberBadge[]
+        badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+      }>
+      render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+      expect(scrollIntoView).toHaveBeenCalledWith({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+      const calls = scrollIntoView.mock.instances
+      expect(calls.every((element) => element instanceof HTMLElement && element.closest('[data-badge-stage-strip]'))).toBe(true)
+    } finally {
+      Element.prototype.scrollIntoView = original
+      vi.unstubAllGlobals()
+    }
   })
 })
