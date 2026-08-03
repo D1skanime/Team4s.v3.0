@@ -5,14 +5,20 @@
 
 .projectList {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.projectList > li {
+  min-width: 0;
+}
+
 .projectLink {
   display: block;
+  min-width: 0;
   height: 100%;
   color: inherit;
   text-decoration: none;
@@ -20,11 +26,12 @@
 
 .projectCard {
   height: 100%;
+  min-width: 0;
+  min-height: 136px;
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) 38px;
+  grid-template-columns: 90px minmax(0, 1fr);
   align-items: stretch;
   gap: 0;
-  min-height: 144px;
   padding: 0;
   overflow: hidden;
 }
@@ -35,7 +42,7 @@
 }
 
 .cover {
-  width: 96px;
+  width: 90px;
   aspect-ratio: 2 / 3;
   display: inline-flex;
   align-items: stretch;
@@ -58,37 +65,37 @@
 .projectBody {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
+  align-content: center;
+  gap: 12px;
+  padding: 14px 16px;
 }
 
 .projectTitleRow {
   min-width: 0;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .projectTitleRow strong {
   color: var(--text-strong, #111827);
-  font-size: 1.06rem;
+  font-size: 1.02rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .projectGroup {
   color: var(--text-secondary, #64748b);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .chipRow {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
   align-items: center;
+  gap: 7px;
+  min-width: 0;
 }
 
 .chipRow span {
@@ -118,13 +125,6 @@
 .roleChip[data-role-code="admin"] { --project-role-accent: var(--role-accent-admin); }
 .roleChip[data-role-code="other"] { --project-role-accent: var(--role-accent-other); }
 
-.projectArrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-primary, #2f5fe3);
-}
-
 .projectFooter {
   display: flex;
   align-items: center;
@@ -141,13 +141,24 @@
   font-size: 0.875rem;
 }
 
+@media (max-width: 1100px) {
+  .projectList {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  }
+}
+
 @media (max-width: 720px) {
-	.projectFooter {
-		align-items: stretch;
-		flex-direction: column;
-	}
+  .projectList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .projectFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .projectCard {
-    grid-template-columns: 76px minmax(0, 1fr) 34px;
+    grid-template-columns: 76px minmax(0, 1fr);
     min-height: 114px;
   }
 
@@ -156,19 +167,7 @@
   }
 
   .projectBody {
-    grid-template-columns: 1fr;
-    align-content: center;
     gap: 8px;
     padding: 12px;
-  }
-
-  .chipRow {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 420px) {
-  .projectCard {
-    grid-template-columns: 76px minmax(0, 1fr) 30px;
   }
 }

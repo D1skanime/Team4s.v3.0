@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Layers } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { useState } from 'react'
 
 import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
@@ -107,16 +107,12 @@ export function MemberCurrentProjectsSection({
                         </Badge>
                       ))}
                       {project.is_project_level ? (
-                        <Badge variant="info">
+                        <Badge variant="neutral">
                           <Layers size={13} aria-hidden="true" />
                           Projektweit
                         </Badge>
                       ) : null}
                     </span>
-                  </span>
-
-                  <span className={styles.projectArrow} aria-hidden="true">
-                    <ArrowRight size={15} aria-hidden="true" />
                   </span>
                 </Card>
               </Link>
