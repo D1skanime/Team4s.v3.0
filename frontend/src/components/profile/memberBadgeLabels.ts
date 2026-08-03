@@ -30,7 +30,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import type { PublicMemberBadge } from '@/types/profile'
+import type { PublicMemberBadge, PublicMemberBadgeProgress } from '@/types/profile'
 
 export type MemberBadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'muted'
 export type MemberBadgePalette = 'gold' | 'indigo' | 'orange' | 'mint' | 'red' | 'bronze' | 'silver' | 'platinum'
@@ -55,6 +55,35 @@ export type PublicMemberBadgeCatalogItem = {
   badge_code: string
   label: string
   badge_category: string
+  family?: string
+  threshold?: number
+  order?: number
+  stageKind?: 'progress' | 'special' | 'role'
+}
+
+export type MemberBadgeFamilyStage = PublicMemberBadgeCatalogItem & {
+  family: string
+  threshold: number
+  order: number
+  stageKind: 'progress' | 'special'
+  earned: boolean
+  locked: boolean
+}
+
+export type MemberBadgeFamilyPresentation = {
+  key: string
+  group: Exclude<MemberBadgeGroup, 'roles'>
+  label: string
+  stages: MemberBadgeFamilyStage[]
+  currentStage: MemberBadgeFamilyStage | null
+  nextStage: MemberBadgeFamilyStage | null
+  heroStage: MemberBadgeFamilyStage
+  currentCount: number | null
+  nextThreshold: number | null
+  remainingCount: number | null
+  complete: boolean
+  unitSingular: string
+  unitPlural: string
 }
 
 export const MEMBER_BADGE_PRESENTATIONS: Record<string, MemberBadgePresentation> = {
@@ -334,4 +363,143 @@ export function resolveRoleProgressPresentation(count: number): RoleProgressPres
     progressMax,
     progressPercent: progressMax > 0 ? Math.max(0, Math.min(100, (progressValue / progressMax) * 100)) : 0,
   }
+}
+
+const FAMILY_ORDER = [
+  'progress',
+  'points',
+  'contribution_projects',
+  'contribution_chronicle',
+  'contribution_archivist',
+  'membership',
+] as const
+
+const FAMILY_DEFINITIONS: Record<(typeof FAMILY_ORDER)[number], {
+  group: MemberBadgeFamilyPresentation['group']
+  label: string
+  unitSingular: string
+  unitPlural: string
+  stages: Array<{ badge_code: string; threshold: number }>
+}> = {
+  progress: {
+    group: 'progress', label: 'Anime-Projekte', unitSingular: 'Anime-Projekt', unitPlural: 'Anime-Projekte',
+    stages: [
+      { badge_code: 'first_contribution', threshold: 1 },
+      { badge_code: 'productive_bronze', threshold: 10 },
+      { badge_code: 'productive_silver', threshold: 25 },
+      { badge_code: 'productive_gold', threshold: 50 },
+    ],
+  },
+  points: {
+    group: 'points', label: 'Punkte-Meilensteine', unitSingular: 'Punkt', unitPlural: 'Punkte',
+    stages: [...POINT_MILESTONES]
+      .sort((a, b) => a.threshold - b.threshold)
+      .map(({ badge_code, threshold }) => ({ badge_code, threshold })),
+  },
+  contribution_projects: {
+    group: 'contributions', label: 'Mitgetragene Projekte', unitSingular: 'mitgetragenes Projekt', unitPlural: 'mitgetragene Projekte',
+    stages: ['bronze', 'silver', 'gold'].map((tier, index) => ({ badge_code: `contribution_projects_${tier}`, threshold: [1, 5, 15][index] })),
+  },
+  contribution_chronicle: {
+    group: 'contributions', label: 'Chronikpflege', unitSingular: 'Chronikbeitrag', unitPlural: 'Chronikbeiträge',
+    stages: ['bronze', 'silver', 'gold'].map((tier, index) => ({ badge_code: `contribution_chronicle_${tier}`, threshold: [10, 50, 150][index] })),
+  },
+  contribution_archivist: {
+    group: 'contributions', label: 'Bildarchivpflege', unitSingular: 'Bildarchivbeitrag', unitPlural: 'Bildarchivbeiträge',
+    stages: ['bronze', 'silver', 'gold'].map((tier, index) => ({ badge_code: `contribution_archivist_${tier}`, threshold: [10, 50, 150][index] })),
+  },
+  membership: {
+    group: 'membership', label: 'Mitgliedschaft', unitSingular: 'Jahr Mitgliedschaft', unitPlural: 'Jahre Mitgliedschaft',
+    stages: [
+      { badge_code: 'founding_member', threshold: 0 },
+      { badge_code: 'long_term_member', threshold: 5 },
+      { badge_code: 'membership_7_years', threshold: 7 },
+      { badge_code: 'membership_10_years', threshold: 10 },
+    ],
+  },
+}
+
+function familyStage(
+  item: Pick<PublicMemberBadgeCatalogItem, 'badge_code' | 'label' | 'badge_category'> & Partial<PublicMemberBadgeCatalogItem>,
+  family: string,
+  threshold: number,
+  order: number,
+  earnedCodes: ReadonlySet<string>,
+): MemberBadgeFamilyStage {
+  const earned = earnedCodes.has(item.badge_code)
+  return { ...item, family, threshold, order, stageKind: 'progress', earned, locked: !earned }
+}
+
+export function resolveMemberBadgeFamilies(input: {
+  earned_codes: string[]
+  badge_progress: PublicMemberBadgeProgress[]
+  catalog?: Array<Pick<PublicMemberBadgeCatalogItem, 'badge_code' | 'label'> & Partial<PublicMemberBadgeCatalogItem>>
+}): MemberBadgeFamilyPresentation[] {
+  const earnedCodes = new Set(input.earned_codes)
+  const progressByFamily = new Map(input.badge_progress.map((progress) => [progress.family, progress]))
+  const ownedCodes = new Set<string>()
+  const customCatalog = input.catalog
+  const families: MemberBadgeFamilyPresentation[] = []
+
+  for (const key of FAMILY_ORDER) {
+    const definition = FAMILY_DEFINITIONS[key]
+    const progress = progressByFamily.get(key)
+    const sourceStages = customCatalog && key === 'progress'
+      ? customCatalog.map((item, index) => ({
+          badge_code: item.badge_code,
+          threshold: item.threshold ?? index,
+          label: item.label,
+          badge_category: item.badge_category ?? 'quantity',
+        }))
+      : definition.stages.map((stage) => ({
+          ...stage,
+          label: getMemberBadgePresentation(stage.badge_code).label,
+          badge_category: definition.group,
+        }))
+    const stages = sourceStages
+      .filter((stage) => !ownedCodes.has(stage.badge_code))
+      .sort((a, b) => a.threshold - b.threshold || a.badge_code.localeCompare(b.badge_code))
+      .map((stage, index) => {
+        ownedCodes.add(stage.badge_code)
+        const reachedByAuthoritativeProgress = progress != null
+          && !(key === 'membership' && stage.badge_code === 'founding_member')
+          && progress.current_count >= stage.threshold
+        const stageEarnedCodes = reachedByAuthoritativeProgress
+          ? new Set([...earnedCodes, stage.badge_code])
+          : earnedCodes
+        return familyStage(stage, key, stage.threshold, index, stageEarnedCodes)
+      })
+    const currentStage = [...stages].reverse().find((stage) => stage.earned) ?? null
+    const nextStage = key === 'membership' && !currentStage
+      ? stages.find((stage) => stage.badge_code !== 'founding_member') ?? null
+      : stages.find((stage) => !stage.earned && stage.threshold > (currentStage?.threshold ?? -1)) ?? null
+
+    if (!progress && !currentStage) continue
+    const heroStage = currentStage ?? nextStage ?? stages[0]
+    if (!heroStage) continue
+    families.push({
+      key, group: definition.group, label: definition.label, stages, currentStage, nextStage, heroStage,
+      currentCount: progress?.current_count ?? null,
+      nextThreshold: progress?.next_threshold ?? null,
+      remainingCount: progress?.remaining_count ?? null,
+      complete: progress?.complete ?? !nextStage,
+      unitSingular: definition.unitSingular,
+      unitPlural: definition.unitPlural,
+    })
+  }
+
+  for (const badgeCode of earnedCodes) {
+    if (ownedCodes.has(badgeCode) || getMemberBadgePresentation(badgeCode).group === 'roles') continue
+    const presentation = getMemberBadgePresentation(badgeCode)
+    const stage = familyStage({ badge_code: badgeCode, label: presentation.label, badge_category: 'special' }, `special:${badgeCode}`, 0, 0, earnedCodes)
+    stage.stageKind = 'special'
+    ownedCodes.add(badgeCode)
+    families.push({
+      key: 'special', group: 'special', label: presentation.label, stages: [stage], currentStage: stage,
+      nextStage: null, heroStage: stage, currentCount: null, nextThreshold: null, remainingCount: null,
+      complete: true, unitSingular: '', unitPlural: '',
+    })
+  }
+
+  return families
 }
