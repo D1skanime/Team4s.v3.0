@@ -1928,6 +1928,16 @@ Plans:
 - [ ] `118-03-PLAN.md` — Wave 2, abhängig von 118-01/118-02: Sketch-A-Rollen-Cards, Medaillensammlung, Copy und responsive Komposition (D-01–D-09, D-13, D-16–D-17, D-20–D-23)
 - [ ] `118-04-PLAN.md` — Wave 3, abhängig von 118-03: vollständige automatisierte Gates und blockierende Live-Codex-Browser-UAT (D-01–D-23)
 
+### Phase 119: Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 118
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 119 to break down)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie

@@ -450,6 +450,7 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 119 added: Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen
 - Phase 104 added: Registrierungs-, Login- und Account-Onboarding-Hardening.
 - Phase 103 added: Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback.
 - Phase 102 added and planned: Fansubprojekte UI schrittweise verbessern - primäre Arbeitsfläche ist die öffentliche Fansubprojekt-Detailseite `/anime/[id]/group/[groupId]`, der Absprung von `/fansubs/[slug]` wird nur als Navigation geprüft; Kontext in `.planning/phases/102-fansubprojekte-ui-schrittweise-verbessern/102-CONTEXT.md`, Kontrollplan `102-00-PLAN.md`.
