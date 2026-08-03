@@ -1930,13 +1930,16 @@ Plans:
 
 ### Phase 119: Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Die übrigen Badge-Bereiche des öffentlichen Memberprofils — Fortschritt, Punkte-Meilensteine, Beiträge, Mitgliedschaft und besondere Auszeichnungen — nach dem in Phase 118 etablierten Sammlungskarten-Prinzip strukturieren, mit exakten serverseitigen Familienmetriken, earned-only Auszeichnungen und ausschließlich dem globalen FocalCarousel, ohne neue Buchungs-, Freischalt-, Persistenz- oder API-Seams.
+**Requirements:** Keine formalen REQ-IDs; Coverage-Einheit sind die gesperrten Entscheidungen D-01–D-16 aus `119-CONTEXT.md` und der genehmigte `119-UI-SPEC.md`.
 **Depends on:** Phase 118
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 119 to break down)
+- [ ] `119-01-PLAN.md` — Wave 1: test-first Familien-, Collection-Card-, Carousel-, Vertrags- und Sichtbarkeitsfundament (D-01–D-13, D-15–D-16)
+- [ ] `119-02-PLAN.md` — Wave 2: additive exakte `badge_progress`-Projektion im bestehenden sichtbarkeitsgeprüften Public-Profile-DTO (D-01–D-04, D-06–D-08)
+- [ ] `119-03-PLAN.md` — Wave 3: kanonischer Familienresolver, responsive Sammlungskarten, globales FocalCarousel und `/members/[slug]`-Verdrahtung (D-01–D-16)
+- [ ] `119-04-PLAN.md` — Wave 4: vollständige automatisierte Gates und blockierende Live-In-App-Browser-UAT (D-01–D-16)
 
 ---
 
