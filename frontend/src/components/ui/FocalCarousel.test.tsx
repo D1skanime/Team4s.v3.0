@@ -135,8 +135,12 @@ describe('FocalCarousel', () => {
           offsetWidth: { configurable: true, value: 400 },
         })
       })
-      const scrollTo = vi.fn(({ left }: ScrollToOptions) => {
-        region.scrollLeft = Number(left)
+      const scrollTo = vi.fn(({ left, behavior }: ScrollToOptions) => {
+        // Real smooth scrolling can pause long enough at the penultimate
+        // center for the debounce to fire before reaching the requested target.
+        region.scrollLeft = behavior === 'smooth'
+          ? Number(left) - 200
+          : Number(left)
       })
       region.scrollTo = scrollTo as typeof region.scrollTo
 
@@ -144,6 +148,10 @@ describe('FocalCarousel', () => {
       expect(scrollTo).toHaveBeenCalledWith({ left: 2000, behavior: 'smooth' })
       fireEvent.scroll(region)
       act(() => vi.advanceTimersByTime(120))
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 2000, behavior: 'auto' })
+
+      fireEvent.scroll(region)
+      act(() => vi.advanceTimersByTime(950))
 
       expect(screen.getByText('11 von 11 Rollen')).toBeTruthy()
       expect(screen.getByRole('button', { name: 'N\u00e4chste Rolle' }).getAttribute('disabled')).not.toBeNull()

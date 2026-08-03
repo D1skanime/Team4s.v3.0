@@ -70,6 +70,7 @@ export function FocalCarousel<T>({
   formatCounter = (position, total, label) => `${position} von ${total} ${label}`,
 }: FocalCarouselProps<T>) {
   const [activeIndex, setActiveIndex] = useState(0)
+  const requestedScrollRef = useRef<{ index: number; left: number } | null>(null)
   const [expanded, setExpanded] = useState(false)
   const trackRef = useRef<HTMLDivElement>(null)
   const restoreFocusRef = useRef(false)
@@ -105,17 +106,17 @@ export function FocalCarousel<T>({
   const itemElements = () =>
     Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
 
-  const focusItem = (index: number, behavior: ScrollBehavior = 'smooth') => {
+  const focusItem = (index: number, behavior: ScrollBehavior = 'smooth', preserveTarget = true) => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
     setActiveIndex(boundedIndex)
     const track = trackRef.current
     const element = itemElements()[boundedIndex]
     if (track && element) {
       const left = Math.max(0, Math.min(element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2, track.scrollWidth - track.clientWidth))
+      if (preserveTarget) requestedScrollRef.current = { index: boundedIndex, left }
       track.scrollTo?.({ left, behavior })
     }
   }
-
 
   useEffect(() => {
     const track = trackRef.current
@@ -127,6 +128,7 @@ export function FocalCarousel<T>({
       const next = Math.max(0, Math.min(maxScroll, track.scrollLeft + delta))
       if (next === track.scrollLeft) return
       event.preventDefault()
+      requestedScrollRef.current = null
       track.scrollLeft = next
       const center = next + track.clientWidth / 2
       let nearest = 0
@@ -175,13 +177,24 @@ export function FocalCarousel<T>({
   }
 
   const settleNearest = () => {
-    focusItem(nearestItemIndex())
+    focusItem(nearestItemIndex(), 'smooth', false)
   }
 
   const handleScroll = () => {
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = setTimeout(() => {
       scrollSettleTimerRef.current = null
+      const requested = requestedScrollRef.current
+      const track = trackRef.current
+      if (requested && track) {
+        setActiveIndex(requested.index)
+        if (Math.abs(track.scrollLeft - requested.left) <= 1) {
+          requestedScrollRef.current = null
+        } else {
+          track.scrollTo?.({ left: requested.left, behavior: 'auto' })
+        }
+        return
+      }
       setActiveIndex(nearestItemIndex())
     }, 120)
   }
@@ -190,6 +203,7 @@ export function FocalCarousel<T>({
     if (event.pointerType === 'mouse' && event.button !== 0) return
     const track = trackRef.current
     if (!track) return
+    requestedScrollRef.current = null
     dragRef.current = {
       active: true,
       startX: event.clientX,
