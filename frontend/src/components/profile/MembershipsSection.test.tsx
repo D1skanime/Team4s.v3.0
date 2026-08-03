@@ -2,11 +2,14 @@
 
 import { cleanup, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { MemberProfileMembership } from '@/types/profile'
 
 import { MembershipsSection } from './MembershipsSection'
+
+const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
 
 vi.mock('next/link', () => ({
   default: ({ href, children, className }: { href: string; children: ReactNode; className?: string }) => (
@@ -49,6 +52,18 @@ function makeMembership(overrides: Partial<MemberProfileMembership> = {}): Membe
 }
 
 describe('MembershipsSection', () => {
+  it('keeps membership cards bounded in a responsive overflow-safe grid', () => {
+    const listRule = profileStyles.match(/\.membershipsList\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
+    const cardRule = profileStyles.match(/\.membershipCard\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
+
+    expect(listRule).toContain('repeat(auto-fit, minmax(min(100%, 280px), 360px))')
+    expect(listRule).toContain('justify-content: start;')
+    expect(cardRule).toContain('min-width: 0;')
+    expect(profileStyles).toMatch(
+      /@media \(max-width: 680px\)[\s\S]*?\.membershipsList\s*\{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/,
+    )
+  })
+
   it('renders each group as a real card link with logo, role, and group action', () => {
     const { container } = render(<MembershipsSection memberships={[makeMembership({ joined_year: 2014 })]} />)
 
@@ -60,7 +75,8 @@ describe('MembershipsSection', () => {
     expect(screen.getAllByText('Mitglied seit 2014')).toHaveLength(1)
     expect(screen.getByText('Zur Gruppe')).not.toBeNull()
     expect(screen.queryByText('fansub_lead')).toBeNull()
-    expect(container.querySelector('[class*="badge"]')).toBeNull()
+    expect(container.querySelector('[class*= badge]')).toBeNull()
+    expect(screen.getAllByRole('link')).toHaveLength(1)
   })
 
   it('shows confirmed historical memberships as group-confirmed context without a badge or raw status code', () => {
