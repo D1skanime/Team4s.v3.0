@@ -217,3 +217,57 @@ describe('resolveRoleProgressPresentation (Phase 118 — Rollenfortschritt)', ()
     })
   })
 })
+
+describe('Phase 119 canonical badge-family resolver contract', () => {
+  type Stage = { badge_code: string; threshold: number; label: string }
+  type Family = { key: string; stages: Stage[] }
+  type ResolveFamilies = (input: {
+    earned_codes: string[]
+    badge_progress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+    catalog?: Stage[]
+  }) => Family[]
+
+  async function resolver(): Promise<ResolveFamilies> {
+    const labels = await import('./memberBadgeLabels')
+    expect(labels).toHaveProperty('resolveMemberBadgeFamilies')
+    return (labels as unknown as { resolveMemberBadgeFamilies: ResolveFamilies }).resolveMemberBadgeFamilies
+  }
+
+  it('owns every known badge code exactly once and keeps stable family order', async () => {
+    const resolve = await resolver()
+    const families = resolve({
+      earned_codes: ['first_contribution', 'point_milestone_active', 'contribution_projects_bronze', 'founding_member'],
+      badge_progress: [
+        { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false },
+        { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false },
+        { family: 'contribution_projects', current_count: 3, next_threshold: 5, remaining_count: 2, next_tier: 'Silber', complete: false },
+        { family: 'membership', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: '5 Jahre', complete: false },
+      ],
+    })
+    expect(families.map((family) => family.key)).toEqual(['progress', 'points', 'contribution_projects', 'membership'])
+    const ownedCodes = families.flatMap((family) => family.stages.map((stage) => stage.badge_code))
+    expect(new Set(ownedCodes).size).toBe(ownedCodes.length)
+  })
+
+  it('sorts thresholds numerically and appends a synthetic catalog stage automatically', async () => {
+    const resolve = await resolver()
+    const families = resolve({
+      earned_codes: ['first_contribution'],
+      badge_progress: [{ family: 'progress', current_count: 1, next_threshold: 10, remaining_count: 9, next_tier: '10 Projekte', complete: false }],
+      catalog: [
+        { badge_code: 'productive_100', threshold: 100, label: '100 Projekte' },
+        { badge_code: 'first_contribution', threshold: 1, label: 'Erste Mitwirkung' },
+        { badge_code: 'productive_bronze', threshold: 10, label: '10 Projekte' },
+      ],
+    })
+    expect(families[0]?.stages.map((stage) => stage.threshold)).toEqual([1, 10, 100])
+  })
+
+  it('renders an unknown earned code once as a one-stage special without fabricating locked stages', async () => {
+    const resolve = await resolver()
+    const families = resolve({ earned_codes: ['future_special', 'future_special'], badge_progress: [] })
+    expect(families.find((family) => family.key === 'special')?.stages).toEqual([
+      expect.objectContaining({ badge_code: 'future_special' }),
+    ])
+  })
+})

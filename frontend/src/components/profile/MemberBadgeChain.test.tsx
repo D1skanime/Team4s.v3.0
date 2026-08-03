@@ -859,3 +859,54 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(screen.getByText('777 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
   })
 })
+
+describe('MemberBadgeChain Phase 119 collection cards', () => {
+  const badgeProgress = [
+    { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false },
+    { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false },
+    { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false },
+    { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false },
+    { family: 'contribution_archivist', current_count: 25, next_threshold: null, remaining_count: null, next_tier: null, complete: true },
+    { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false },
+  ]
+
+  async function renderCollections(earnedBadges: PublicMemberBadge[] = []) {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
+    return render(<CollectionChain earnedBadges={earnedBadges} badgeProgress={badgeProgress} />)
+  }
+
+  it('renders independent family cards with authoritative progressbar values and exact copy', async () => {
+    await renderCollections([
+      { id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' },
+      { id: 2, badge_code: 'point_milestone_active', badge_category: 'progress' },
+    ])
+    const projects = screen.getByRole('progressbar', { name: 'Fortschritt für Anime-Projekte' })
+    expect(projects).toHaveAttribute('aria-valuemin', '0')
+    expect(projects).toHaveAttribute('aria-valuenow', '10')
+    expect(projects).toHaveAttribute('aria-valuemax', '25')
+    expect(screen.getByText('10 von 25 Anime-Projekten · Noch 15 bis 25 Projekte')).not.toBeNull()
+    expect(screen.getByText('1 mitgetragenes Projekt · Noch 4 bis Silber')).not.toBeNull()
+    expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe erreicht')).not.toBeNull()
+  })
+
+  it('keeps current, selected and locked stages semantically distinct', async () => {
+    await renderCollections([{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }])
+    const older = screen.getByRole('button', { name: 'Erste Mitwirkung auswählen' })
+    fireEvent.keyDown(older, { key: 'Enter' })
+    expect(screen.getByText('Ausgewählt')).not.toBeNull()
+    expect(screen.getByText('Aktuell')).not.toBeNull()
+    expect(screen.getByLabelText('25 Anime-Projekte · Gesperrt').getAttribute('tabindex')).toBeNull()
+  })
+
+  it('resets temporary selection when family metrics change', async () => {
+    const rendered = await renderCollections([{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }])
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Erste Mitwirkung auswählen' }), { key: ' ' })
+    expect(screen.getByText('Ausgewählt')).not.toBeNull()
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
+    rendered.rerender(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_silver', badge_category: 'quantity' }]} badgeProgress={badgeProgress.map((item) => item.family === 'progress' ? { ...item, current_count: 25, next_threshold: 50, remaining_count: 25, next_tier: '50 Projekte' } : item)} />)
+    expect(screen.queryByText('Ausgewählt')).toBeNull()
+    expect(screen.getByText('Aktuell')).not.toBeNull()
+  })
+})
