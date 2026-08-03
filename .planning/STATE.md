@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 118-03-PLAN.md
-last_updated: "2026-08-03T05:56:44.953Z"
+status: Phase 118 complete
+stopped_at: Completed 118-04-PLAN.md
+last_updated: "2026-08-03T06:33:35.451Z"
 last_activity: 2026-08-03
 progress:
   total_phases: 110
-  completed_phases: 89
+  completed_phases: 90
   total_plans: 506
-  completed_plans: 473
-  percent: 93
+  completed_plans: 474
+  percent: 94
 ---
 
 # Project State
@@ -25,8 +25,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 118 (Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle) — EXECUTING
-Plan: 3 of 4
+Phase: 118 — COMPLETE
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -438,6 +438,8 @@ Recent durable decisions:
 - [Phase 117-06]: currentEpisodeLabel wird per findAssignedEpisodeNumber statt neuem Prop berechnet (B3-Fix-Konsistenz); Switch-AUS entfernt Override sofort, expliziter Button bestaetigt per window.confirm; useSegmentOverrideHandlers-Hook nach SegmenteTab.helpers.tsx ausgelagert, um SegmenteTab.tsx-Zeilenwachstum zu begrenzen.
 - [Phase 118]: Role cards use enriched DTO counts as authority and infer threshold counts only for legacy badges missing current_count.
 - [Phase 118]: Five-stage medals remain informative while FocalCarousel owns the sole interaction station.
+- [Phase 118]: Explicit carousel navigation targets remain authoritative until their unscaled target offset is reached.
+- [Phase 118]: Mobile carousel arrows use a separate controls row so the track receives the full available width.
 
 ### Pending Todos
 
@@ -755,6 +757,7 @@ Recent durable decisions:
 | Phase 117 P05 | ~30min | 2 tasks | 6 files |
 | Phase 117 P06 | 35min | 3 tasks | 7 files |
 | Phase 118 P03 | 20min | 2 tasks | 5 files |
+| Phase 118 P04 | 34min | 2 tasks | 6 files |
 
 ### Quick Tasks Completed
 
@@ -838,8 +841,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-08-03T05:56:44.941Z
-Stopped at: Completed 118-03-PLAN.md
+Last session: 2026-08-03T06:33:35.076Z
+Stopped at: Completed 118-04-PLAN.md
 Last activity: 2026-08-03
 Resume file: 
 None
