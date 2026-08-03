@@ -792,6 +792,14 @@ describe('buildMemberBadgeGroups (D-04)', () => {
   })
 })
 describe('MemberBadgeChain Phase 118 role cards', () => {
+  it('keeps approved role-art geometry for desktop, tablet, mobile and special roles', () => {
+    expect(memberBadgeChainCss).toContain('width: 320px;')
+    expect(memberBadgeChainCss).toContain('width: 280px;')
+    expect(memberBadgeChainCss).toContain('width: 248px;')
+    expect(memberBadgeChainCss).toContain('.roleArtworkBackdrop {\n  z-index: 1;\n  inset: 12%;')
+    expect(memberBadgeChainCss).toContain('clip-path: circle(34% at 50% 50%);')
+  })
+
   it('keeps all five mobile medals and progress copy inside the role card', () => {
     expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleBadgeRow\s*\{[^}]*padding:\s*20px 10px;/)
     expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleProgression\s*\{[^}]*gap:\s*4px;/)
