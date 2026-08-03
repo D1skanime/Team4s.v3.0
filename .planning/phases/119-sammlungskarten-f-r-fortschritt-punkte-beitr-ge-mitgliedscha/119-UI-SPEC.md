@@ -1,10 +1,11 @@
 ---
 phase: 119
 slug: sammlungskarten-f-r-fortschritt-punkte-beitr-ge-mitgliedscha
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-03
+reviewed_at: 2026-08-03
 sources: 119-CONTEXT.md, 118-UI-SPEC.md, existing Team4s UI system
 ---
 
