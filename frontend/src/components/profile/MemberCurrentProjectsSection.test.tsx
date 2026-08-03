@@ -56,7 +56,7 @@ function makeProject(index = 1, overrides: Partial<PublicMemberCurrentProject> =
 describe('MemberCurrentProjectsSection', () => {
   it('uses the responsive two-column project grid without overflow', () => {
     expect(projectStyles).toMatch(/\.projectList\s*\{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/)
-    expect(projectStyles).toMatch(/@media \(max-width: 1100px\)[\s\S]*?repeat\(auto-fit, minmax\(min\(100%, 340px\), 1fr\)\)/)
+    expect(projectStyles).toMatch(/@media \(max-width: 1100px\)[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/)
     expect(projectStyles).toMatch(/@media \(max-width: 720px\)[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/)
     expect(projectStyles).toMatch(/\.projectList > li\s*\{[\s\S]*?min-width: 0;/)
   })

@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Camera,
   FileText,
@@ -7,7 +9,9 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import { Badge, Card, SectionHeader } from '@/components/ui'
+import { useState } from 'react'
+
+import { Badge, Button, Card, SectionHeader } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import { CATEGORY_LABELS, type ReleaseVersionMediaCategory } from '@/types/releaseVersionMedia'
 import type { PublicMemberLatestContribution } from '@/types/profile'
@@ -102,12 +106,16 @@ function usableItems(items: PublicMemberLatestContribution[]): PublicMemberLates
       if (item.type === 'media') return mediaURL(item).length > 0
       return false
     })
-    .slice(0, 3)
 }
 
+const INITIAL_ITEM_COUNT = 3
+
 export function LatestContributionsSection({ items }: LatestContributionsSectionProps) {
-  const visibleItems = usableItems(items)
-  if (visibleItems.length === 0) return null
+  const [expanded, setExpanded] = useState(false)
+  const allUsableItems = usableItems(items)
+  const visibleItems = expanded ? allUsableItems : allUsableItems.slice(0, INITIAL_ITEM_COUNT)
+  const listId = 'latest-contributions-list'
+  if (allUsableItems.length === 0) return null
 
   return (
     <section className={styles.section}>
@@ -176,6 +184,11 @@ export function LatestContributionsSection({ items }: LatestContributionsSection
           )
         })}
       </ul>
+      {!expanded && allUsableItems.length > INITIAL_ITEM_COUNT ? (
+        <Button variant="secondary" size="sm" aria-expanded={false} aria-controls={listId} onClick={() => setExpanded(true)}>
+          Weitere Beiträge anzeigen
+        </Button>
+      ) : null}
     </section>
   )
 }

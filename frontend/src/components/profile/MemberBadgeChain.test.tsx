@@ -877,7 +877,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
   }
 
   it('renders independent family cards with authoritative progressbar values and exact copy', async () => {
-    await renderCollections([
+    const { container } = await renderCollections([
       { id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' },
       { id: 2, badge_code: 'point_milestone_active', badge_category: 'progress' },
     ])
@@ -888,13 +888,17 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     expect(screen.getByText('10 von 25 Anime-Projekten · Noch 15 bis 25 Projekte')).not.toBeNull()
     expect(screen.getByText('1 mitgetragenes Projekt · Noch 4 bis Silber')).not.toBeNull()
     expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe erreicht')).not.toBeNull()
+    const heroFrame = container.querySelector<HTMLImageElement>('img[data-achievement-art="productive_bronze"]')
+    expect(heroFrame?.parentElement?.className).toContain('badgeArtworkLayered')
+    const projectCard = container.querySelector('[data-family="progress"]')
+    expect(projectCard?.querySelectorAll('img[src*="progress-productive-motif.png"]')).toHaveLength(2)
   })
 
   it('keeps current, selected and locked stages semantically distinct', async () => {
     await renderCollections([{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }])
     const older = screen.getByRole('button', { name: 'Erste Mitwirkung auswählen' })
     fireEvent.keyDown(older, { key: 'Enter' })
-    expect(screen.getByText('Ausgewählt')).not.toBeNull()
+    expect(screen.getByText('Vorschau')).not.toBeNull()
     expect(screen.getAllByText('Aktuell').length).toBeGreaterThan(0)
     expect(screen.getByLabelText('25 Anime-Projekte · Gesperrt').getAttribute('tabindex')).toBeNull()
   })
@@ -902,11 +906,11 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
   it('resets temporary selection when family metrics change', async () => {
     const rendered = await renderCollections([{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }])
     fireEvent.keyDown(screen.getByRole('button', { name: 'Erste Mitwirkung auswählen' }), { key: ' ' })
-    expect(screen.getByText('Ausgewählt')).not.toBeNull()
+    expect(screen.getByText('Vorschau')).not.toBeNull()
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
     rendered.rerender(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_silver', badge_category: 'quantity' }]} badgeProgress={badgeProgress.map((item) => item.family === 'progress' ? { ...item, current_count: 25, next_threshold: 50, remaining_count: 25, next_tier: '50 Projekte' } : item)} />)
-    expect(screen.queryByText('Ausgewählt')).toBeNull()
+    expect(screen.queryByText('Vorschau')).toBeNull()
     expect(screen.getAllByText('Aktuell').length).toBeGreaterThan(0)
   })
 
@@ -925,6 +929,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     const specialGroup = specialHeading.closest('[data-badge-group="special"]')
     expect(specialGroup?.querySelector('[role="progressbar"]')).toBeNull()
     expect(specialGroup?.querySelector('[data-badge-stage-strip]')).toBeNull()
+    expect(specialGroup?.querySelectorAll('[data-special-award]')).toHaveLength(1)
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
     rendered.rerender(<CollectionChain earnedBadges={[]} badgeProgress={badgeProgress} />)
@@ -933,10 +938,22 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
 })
 
 describe('MemberBadgeChain Phase 119 inner stage strip', () => {
-  it('centers the current stage only inside its strip and respects Reduced Motion', async () => {
+  it('uses the approved scrollbar-free focus-snap rail on mobile', () => {
+    expect(memberBadgeChainCss).toContain('@media (max-width: 820px)')
+    expect(memberBadgeChainCss).toContain('padding-inline: calc(50% - 52px)')
+    expect(memberBadgeChainCss).toContain('scroll-snap-type: x mandatory')
+    expect(memberBadgeChainCss).toContain('scrollbar-width: none')
+    expect(memberBadgeChainCss).toContain('.familyStages::-webkit-scrollbar')
+    expect(memberBadgeChainCss).toContain('touch-action: pan-x pan-y')
+    expect(memberBadgeChainCss).toContain('flex: 0 0 104px')
+  })
+
+  it('centers the current stage through its own strip and never scrolls an ancestor', async () => {
     const scrollIntoView = vi.fn()
+    const scrollTo = vi.fn()
     const original = Element.prototype.scrollIntoView
     Element.prototype.scrollIntoView = scrollIntoView
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', { configurable: true, value: scrollTo })
 
     try {
       vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
@@ -946,12 +963,18 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
         badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
       }>
       render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
-      expect(scrollIntoView).toHaveBeenCalledWith({ inline: 'center', block: 'nearest', behavior: 'smooth' })
-      const calls = scrollIntoView.mock.instances
-      expect(calls.every((element) => element instanceof HTMLElement && element.closest('[data-badge-stage-strip]'))).toBe(true)
+      expect(scrollIntoView).not.toHaveBeenCalled()
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: expect.any(Number), behavior: 'smooth' }))
+      expect(scrollTo.mock.instances.every((element) => element instanceof HTMLElement && element.hasAttribute('data-badge-stage-strip'))).toBe(true)
     } finally {
       Element.prototype.scrollIntoView = original
+      delete (HTMLElement.prototype as { scrollTo?: unknown }).scrollTo
       vi.unstubAllGlobals()
     }
+  })
+
+  it('reduces collection heroes only at smartphone width', () => {
+    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: clamp\(172px, 51vw, 204px\)/)
+    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 1099px\)[\s\S]*?width: clamp\(224px, 29vw, 264px\)/)
   })
 })

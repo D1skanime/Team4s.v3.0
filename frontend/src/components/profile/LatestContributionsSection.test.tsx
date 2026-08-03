@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { ComponentType } from 'react'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { PublicMemberLatestContribution } from '@/types/profile'
