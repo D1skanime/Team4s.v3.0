@@ -67,11 +67,11 @@
   scroll-snap-align: center;
   scroll-snap-stop: normal;
   border-radius: var(--radius-lg, 16px);
-  opacity: 0.58;
-  transform: scale(0.88);
+  opacity: calc(0.58 + var(--focal-proximity, 0) * 0.42);
+  transform: scale(calc(0.88 + var(--focal-proximity, 0) * 0.12));
   transform-origin: center;
   transition: opacity 180ms ease, transform 220ms ease, filter 220ms ease;
-  filter: saturate(0.7);
+  filter: saturate(calc(0.7 + var(--focal-proximity, 0) * 0.3));
 }
 
 .itemWindowActive {
@@ -79,10 +79,19 @@
   transform: scale(1);
   filter: none;
 }
+.counter {
+  justify-self: center;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 
 .arrow {
   flex: 0 0 auto;
 }
+  min-width: 44px;
+  min-height: 44px;
 
 .arrow svg {
   color: var(--ui-arrow);
@@ -118,5 +127,8 @@
 
   .itemWindow {
     transition: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }

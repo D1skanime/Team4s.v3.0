@@ -43,6 +43,8 @@ type FocalCarouselProps<T> = {
   gridClassName?: string
   className?: string
   style?: CSSProperties
+  showCounter?: boolean
+  formatCounter?: (position: number, total: number, label: string) => ReactNode
 }
 
 export function FocalCarousel<T>({
@@ -64,6 +66,8 @@ export function FocalCarousel<T>({
   gridClassName,
   className,
   style,
+  showCounter = false,
+  formatCounter = (position, total, label) => `${position} von ${total} ${label}`,
 }: FocalCarouselProps<T>) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [expanded, setExpanded] = useState(false)
@@ -71,7 +75,8 @@ export function FocalCarousel<T>({
   const restoreFocusRef = useRef(false)
   const suppressClickRef = useRef(false)
   const scrollSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const dragRef = useRef({ active: false, startX: 0, startScroll: 0, pointerId: -1, captured: false })
+  const reducedMotionRef = useRef(false)
+  const dragRef = useRef({ active: false, startX: 0, startScroll: 0, pointerId: -1, captured: false, lastX: 0, lastTime: 0, velocity: 0 })
 
   const visibleItems = carouselItems ?? items
   const lastIndex = Math.max(0, visibleItems.length - 1)
@@ -88,35 +93,75 @@ export function FocalCarousel<T>({
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
   }, [])
 
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const update = () => { reducedMotionRef.current = media.matches }
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
   const itemElements = () =>
     Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
 
   const focusItem = (index: number, behavior: ScrollBehavior = 'smooth') => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
     setActiveIndex(boundedIndex)
+    const track = trackRef.current
     const element = itemElements()[boundedIndex]
-    element?.scrollIntoView?.({ behavior, block: 'nearest', inline: 'center' })
+    if (track && element) {
+      const left = Math.max(0, Math.min(element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2, track.scrollWidth - track.clientWidth))
+      track.scrollTo?.({ left, behavior })
+    }
   }
 
+
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track || expanded) return
+    const handleWheel = (event: WheelEvent) => {
+      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+      if (!delta) return
+      const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
+      const next = Math.max(0, Math.min(maxScroll, track.scrollLeft + delta))
+      if (next === track.scrollLeft) return
+      event.preventDefault()
+      track.scrollLeft = next
+      const center = next + track.clientWidth / 2
+      let nearest = 0
+      let distance = Number.POSITIVE_INFINITY
+      itemElements().forEach((element, index) => {
+        const current = Math.abs(element.offsetLeft + element.offsetWidth / 2 - center)
+        element.style.setProperty('--focal-proximity', String(Math.max(0, Math.min(1, 1 - current / Math.max(element.offsetWidth, 1)))))
+        if (current < distance) { distance = current; nearest = index }
+      })
+      setActiveIndex(nearest)
+    }
+    track.addEventListener('wheel', handleWheel, { passive: false })
+    return () => track.removeEventListener('wheel', handleWheel)
+  }, [expanded, visibleItems.length])
   const move = (delta: number) => focusItem(safeIndex + delta)
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
       move(event.key === 'ArrowRight' ? 1 : -1)
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      focusItem(event.key === 'Home' ? 0 : lastIndex)
     }
   }
 
   const nearestItemIndex = () => {
     const track = trackRef.current
     if (!track) return safeIndex
-    const center = track.getBoundingClientRect().left + track.clientWidth / 2
+    const center = track.scrollLeft + track.clientWidth / 2
     const elements = itemElements()
     let nearest = safeIndex
     let nearestDistance = Number.POSITIVE_INFINITY
     elements.forEach((element, index) => {
-      const rect = element.getBoundingClientRect()
-      const distance = Math.abs(rect.left + rect.width / 2 - center)
+      const distance = Math.abs(element.offsetLeft + element.offsetWidth / 2 - center)
       if (distance < nearestDistance) {
         nearestDistance = distance
         nearest = index
@@ -147,6 +192,9 @@ export function FocalCarousel<T>({
       startScroll: track.scrollLeft,
       pointerId: event.pointerId,
       captured: false,
+      lastX: event.clientX,
+      lastTime: event.timeStamp,
+      velocity: 0,
     }
   }
 
@@ -160,6 +208,12 @@ export function FocalCarousel<T>({
     event.preventDefault()
     track.scrollLeft = drag.startScroll - delta
     if (!drag.captured) {
+    const elapsed = event.timeStamp - drag.lastTime
+    if (elapsed > 0 && elapsed <= 120) {
+      drag.velocity = (event.clientX - drag.lastX) / elapsed
+      drag.lastX = event.clientX
+      drag.lastTime = event.timeStamp
+    }
       drag.captured = true
       track.classList.add(styles.dragging)
       try {
@@ -176,6 +230,11 @@ export function FocalCarousel<T>({
     trackRef.current?.classList.remove(styles.dragging)
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = null
+    const track = trackRef.current
+    if (track && !reducedMotionRef.current) {
+      const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
+      track.scrollLeft = Math.max(0, Math.min(maxScroll, track.scrollLeft - dragRef.current.velocity * 240))
+    }
     settleNearest()
   }
 
@@ -263,6 +322,7 @@ export function FocalCarousel<T>({
                   index === safeIndex && activeItemClassName,
                 )}
                 aria-current={index === safeIndex ? 'true' : undefined}
+                style={{ '--focal-proximity': index === safeIndex ? 1 : 0 } as CSSProperties}
                 aria-label={`${itemSingularLabel} ${index + 1} von ${visibleItems.length}`}
               >
                 {renderItem(item, {
@@ -288,6 +348,11 @@ export function FocalCarousel<T>({
           <ChevronRight size={18} aria-hidden="true" />
         </Button>
       </div>
+      {showCounter ? (
+        <output className={styles.counter} aria-live="polite">
+          {formatCounter(safeIndex + 1, visibleItems.length, visibleItems.length === 1 ? itemSingularLabel : itemPluralLabel)}
+        </output>
+      ) : null}
       {showAllLabel ? (
         <Button type="button" variant="subtle" size="sm" className={styles.toggle} onClick={() => setExpanded(true)}>
           {showAllLabel}
