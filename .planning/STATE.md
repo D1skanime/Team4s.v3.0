@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 118 complete
-stopped_at: Completed 118-04-PLAN.md
-last_updated: "2026-08-03T06:33:35.451Z"
+status: Phase 118 verification gaps found
+stopped_at: Phase 118 verification gaps found
+last_updated: "2026-08-03T06:45:54.811Z"
 last_activity: 2026-08-03
 progress:
   total_phases: 110
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 118 — COMPLETE
+Phase: 118 (Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle) — EXECUTING
 Plan: 4 of 4
 
 ## Accumulated Context
@@ -841,8 +841,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-08-03T06:33:35.076Z
-Stopped at: Completed 118-04-PLAN.md
+Last session: 2026-08-03T06:45:54.800Z
+Stopped at: Phase 118 verification gaps found
 Last activity: 2026-08-03
 Resume file: 
-None
+.planning/phases/118-rollenfortschritt-als-eigene-card-je-tats-chlich-ausge-bter-/118-VERIFICATION.md
