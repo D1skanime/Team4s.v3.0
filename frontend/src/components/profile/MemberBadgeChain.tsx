@@ -2,19 +2,22 @@
 
 import Image from 'next/image'
 import { Lock } from 'lucide-react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
 import { Badge, Card, FocalCarousel, SectionHeader } from '@/components/ui'
 import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
-import type { PublicMemberBadge } from '@/types/profile'
+import type { PublicMemberBadge, PublicMemberBadgeProgress } from '@/types/profile'
 
 import {
   MEMBER_BADGE_GROUP_LABELS,
   MEMBER_BADGE_GROUP_ORDER,
   PUBLIC_MEMBER_BADGE_CATALOG,
   getMemberBadgePresentation,
+  resolveMemberBadgeFamilies,
   resolveRoleProgressPresentation,
   ROLE_VOLUME_TIER_THRESHOLDS,
   type MemberBadgeGroup,
+  type MemberBadgeFamilyPresentation,
   type MemberBadgePresentation,
   type PublicMemberBadgeCatalogItem,
 } from './memberBadgeLabels'
@@ -22,6 +25,7 @@ import styles from './MemberBadgeChain.module.css'
 
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
+  badgeProgress?: PublicMemberBadgeProgress[]
   catalog?: PublicMemberBadgeCatalogItem[]
 }
 
@@ -212,8 +216,132 @@ export function buildMemberBadgeGroups(
   }).filter((group) => group.rows.length > 0)
 }
 
+function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentation }) {
+  const [selectedCode, setSelectedCode] = useState<string | null>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
+  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned)
+  const heroStage = selectedStage ?? family.heroStage
+  const currentCode = family.currentStage?.badge_code ?? null
+  const heroPresentation = getMemberBadgePresentation(heroStage.badge_code)
+  const HeroIcon = heroPresentation.Icon
+  const heroArtwork = resolveBadgeArtwork(heroStage.badge_code)
+  const layeredArtwork = resolveLayeredProgressArtwork(heroStage.badge_code)
+  const unit = family.currentCount === 1 ? family.unitSingular : family.unitPlural
+  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
+  const progressValue = Math.min(Math.max(family.currentCount ?? 0, 0), progressMax)
+  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
+  const nextLabel = family.group === 'contributions'
+    ? family.nextStage ? getMemberBadgePresentation(family.nextStage.badge_code).label.split(' · ').at(-1) : family.nextThreshold
+    : family.key === 'progress'
+      ? `${family.nextThreshold} Projekte`
+      : family.key === 'points'
+        ? `${family.nextThreshold} Punkte`
+        : family.key === 'membership'
+          ? `${family.nextThreshold} Jahre`
+          : family.nextStage?.label ?? family.nextThreshold
+  const progressCopy = family.complete
+    ? `${family.currentCount ?? 0} ${unit} · Höchste Stufe erreicht`
+    : family.group === 'contributions'
+      ? `${family.currentCount ?? 0} ${unit} · Noch ${family.remainingCount ?? 0} bis ${nextLabel}`
+      : `${family.currentCount ?? 0} von ${family.nextThreshold ?? 0} ${family.key === 'progress' ? 'Anime-Projekten' : unit} · Noch ${family.remainingCount ?? 0} bis ${nextLabel}`
+
+  useEffect(() => {
+    const current = stripRef.current?.querySelector<HTMLElement>('[data-current="true"]')
+    if (!current || typeof current.scrollIntoView !== 'function') return
+    const reduced = typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    current.scrollIntoView({ inline: 'center', block: 'nearest', behavior: reduced ? 'auto' : 'smooth' })
+  }, [family.key, family.currentCount, currentCode])
+
+  const chooseStage = (badgeCode: string) => setSelectedCode(badgeCode === currentCode ? null : badgeCode)
+  const handleStageKey = (event: KeyboardEvent<HTMLButtonElement>, badgeCode: string) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    chooseStage(badgeCode)
+  }
+
+  return (
+    <Card className={styles.familyCard} data-family={family.key}>
+      <span className={styles.familyEyebrow}>{family.label}</span>
+      <span className={`${styles.familyHero} ${!heroStage.earned ? styles.familyHeroLocked : ''}`}>
+        {layeredArtwork ? (
+          <>
+            <span className={styles.roleArtworkMist} aria-hidden="true" />
+            <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
+            <Image className={styles.roleArtworkMotif} src={layeredArtwork.motifSrc} alt="" width={1254} height={1254} unoptimized aria-hidden="true" />
+            <Image className={styles.roleArtworkFrame} src={layeredArtwork.frameSrc} alt={heroStage.label} width={1254} height={1254} unoptimized data-achievement-art={heroStage.badge_code} />
+          </>
+        ) : heroArtwork ? (
+          <Image src={heroArtwork} alt={heroStage.label} width={512} height={512} unoptimized data-achievement-art={heroStage.badge_code} />
+        ) : (
+          <HeroIcon size={96} aria-label={heroStage.label} />
+        )}
+        {!heroStage.earned ? <Lock size={24} aria-hidden="true" /> : null}
+      </span>
+      <div className={styles.familyStatus}>
+        <Badge variant={heroPresentation.variant}>{heroStage.label}</Badge>
+        {selectedStage ? <Badge variant="info">Ausgewählt</Badge> : null}
+      </div>
+      {heroStage.stageKind !== 'special' ? (
+        <div className={styles.familyProgressBlock}>
+          <div
+            role="progressbar"
+            aria-label={`Fortschritt für ${family.label}`}
+            aria-valuemin={0}
+            aria-valuenow={progressValue}
+            aria-valuemax={progressMax}
+            className={styles.familyProgressTrack}
+          >
+            <span style={{ width: `${family.complete ? 100 : progressPercent}%` }} />
+          </div>
+          <p className={styles.familyProgressCopy}>{progressCopy}</p>
+        </div>
+      ) : null}
+      {heroStage.stageKind !== 'special' ? (
+        <div ref={stripRef} className={styles.familyStages} role="list" aria-label={`Stufen für ${family.label}`} data-badge-stage-strip>
+          {family.stages.map((stage) => {
+            const current = stage.badge_code === currentCode
+            const selected = stage.badge_code === selectedCode
+            const presentation = getMemberBadgePresentation(stage.badge_code)
+            const StageIcon = presentation.Icon
+            const artwork = resolveBadgeArtwork(stage.badge_code)
+            const label = family.key === 'progress' && stage.badge_code !== 'first_contribution'
+              ? `${stage.threshold} Anime-Projekte`
+              : presentation.label.split(' · ').at(-1) ?? presentation.label
+            return stage.earned ? (
+              <button
+                key={stage.badge_code}
+                type="button"
+                className={styles.familyStageButton}
+                aria-label={`${label} auswählen${current ? ', Aktuell' : ''}${selected ? ', Ausgewählt' : ''}`}
+                aria-pressed={selected}
+                data-current={current ? 'true' : undefined}
+                onClick={() => chooseStage(stage.badge_code)}
+                onKeyDown={(event) => handleStageKey(event, stage.badge_code)}
+              >
+                <span className={styles.familyStageArtwork}>
+                  {artwork ? <Image src={artwork} alt="" width={72} height={72} unoptimized aria-hidden="true" /> : <StageIcon size={24} aria-hidden="true" />}
+                </span>
+                <span>{label}</span>
+                {current ? <span className={styles.currentChip}>Aktuell</span> : null}
+              </button>
+            ) : (
+              <span key={stage.badge_code} role="listitem" className={styles.familyStageLocked} aria-label={`${label} · Gesperrt`}>
+                <span className={styles.familyStageArtwork}><Lock size={16} aria-hidden="true" /></span>
+                <span>{label}</span>
+                <span className={styles.visuallyHidden}>Gesperrt</span>
+              </span>
+            )
+          })}
+        </div>
+      ) : null}
+    </Card>
+  )
+}
+
 export function MemberBadgeChain({
   earnedBadges,
+  badgeProgress,
   catalog = PUBLIC_MEMBER_BADGE_CATALOG,
 }: MemberBadgeChainProps) {
   const earnedCodes = new Set(earnedBadges.map((badge) => badge.badge_code))
@@ -253,7 +381,21 @@ export function MemberBadgeChain({
   const progressPercent = generalCatalog.length > 0
     ? Math.round((earnedCount / generalCatalog.length) * 100)
     : 0
+  const collectionEnabled = badgeProgress !== undefined
   const groups = buildMemberBadgeGroups([...generalCatalog, ...roleCatalog])
+    .filter((group) => !collectionEnabled || group.key === 'roles')
+  const families = resolveMemberBadgeFamilies({
+    earned_codes: [...earnedCodes],
+    badge_progress: badgeProgress ?? [],
+  })
+  const collectionGroups = (collectionEnabled ? MEMBER_BADGE_GROUP_ORDER : [])
+    .filter((group): group is Exclude<MemberBadgeGroup, 'roles'> => group !== 'roles')
+    .map((group) => ({
+      key: group,
+      label: MEMBER_BADGE_GROUP_LABELS[group],
+      families: families.filter((family) => family.group === group),
+    }))
+    .filter((group) => group.families.length > 0)
 
   return (
     <section className={styles.section}>
@@ -449,6 +591,27 @@ export function MemberBadgeChain({
                   </div>
                   )
                 }}
+              />
+            </div>
+          ))}
+          {collectionGroups.map((group) => (
+            <div key={group.key} className={styles.group} data-badge-group={group.key}>
+              <h3 className={styles.groupTitle}>{group.label}</h3>
+              <FocalCarousel
+                items={group.families}
+                getItemKey={(family) => `${family.key}:${family.heroStage.badge_code}`}
+                regionLabel={`${group.label}-Karussell`}
+                itemSingularLabel="Sammlung"
+                itemPluralLabel="Sammlungen"
+                listLabel={group.label}
+                previousLabel="Vorherige Sammlung"
+                nextLabel="Nächste Sammlung"
+                showCounter={group.families.length > 1}
+                formatCounter={(position, total) => `${position} von ${total} Sammlungen`}
+                carouselClassName={styles.chain}
+                itemClassName={styles.badgeWindow}
+                activeItemClassName={styles.badgeWindowActive}
+                renderItem={(family) => <FamilyCollectionCard key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />}
               />
             </div>
           ))}

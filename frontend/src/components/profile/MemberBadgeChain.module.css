@@ -3,6 +3,181 @@
   gap: 14px;
 }
 
+.familyCard {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 32px 24px;
+  overflow: hidden;
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.familyEyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.familyHero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(280px, 24vw, 328px);
+  aspect-ratio: 1;
+}
+
+.familyHero > img,
+.familyHero > svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.familyHero > svg:last-child:not(:first-child) {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+}
+
+.familyHeroLocked {
+  filter: grayscale(1);
+  opacity: 0.48;
+}
+
+.familyStatus {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.familyProgressBlock {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.familyProgressTrack {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-card-muted);
+}
+
+.familyProgressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.familyProgressCopy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.familyStages {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-inline: contain;
+}
+
+.familyStageButton,
+.familyStageLocked {
+  position: relative;
+  display: grid;
+  flex: 0 0 88px;
+  place-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 8px 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card-muted);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  scroll-snap-align: center;
+}
+
+.familyStageButton {
+  cursor: pointer;
+}
+
+.familyStageButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.familyStageLocked {
+  filter: grayscale(1);
+  opacity: 0.48;
+}
+
+.familyStageArtwork {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+}
+
+.familyStageArtwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.selectedChip {
+  color: var(--color-primary);
+}
+
+@media (max-width: 1099px) {
+  .familyHero {
+    width: clamp(240px, 32vw, 280px);
+  }
+}
+
+@media (max-width: 520px) {
+  .familyCard {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .familyHero {
+    width: clamp(204px, 62vw, 248px);
+  }
+
+  .group:not([data-badge-group="roles"]) .chain {
+    --focal-item-size: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .familyHero,
+  .familyStageButton,
+  .familyProgressTrack > span {
+    transition: none;
+  }
+}
+
 .chainCard {
   display: grid;
   gap: 14px;

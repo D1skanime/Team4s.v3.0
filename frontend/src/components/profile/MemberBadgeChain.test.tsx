@@ -882,9 +882,9 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
       { id: 2, badge_code: 'point_milestone_active', badge_category: 'progress' },
     ])
     const projects = screen.getByRole('progressbar', { name: 'Fortschritt für Anime-Projekte' })
-    expect(projects).toHaveAttribute('aria-valuemin', '0')
-    expect(projects).toHaveAttribute('aria-valuenow', '10')
-    expect(projects).toHaveAttribute('aria-valuemax', '25')
+    expect(projects.getAttribute('aria-valuemin')).toBe('0')
+    expect(projects.getAttribute('aria-valuenow')).toBe('10')
+    expect(projects.getAttribute('aria-valuemax')).toBe('25')
     expect(screen.getByText('10 von 25 Anime-Projekten · Noch 15 bis 25 Projekte')).not.toBeNull()
     expect(screen.getByText('1 mitgetragenes Projekt · Noch 4 bis Silber')).not.toBeNull()
     expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe erreicht')).not.toBeNull()
@@ -895,7 +895,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     const older = screen.getByRole('button', { name: 'Erste Mitwirkung auswählen' })
     fireEvent.keyDown(older, { key: 'Enter' })
     expect(screen.getByText('Ausgewählt')).not.toBeNull()
-    expect(screen.getByText('Aktuell')).not.toBeNull()
+    expect(screen.getAllByText('Aktuell').length).toBeGreaterThan(0)
     expect(screen.getByLabelText('25 Anime-Projekte · Gesperrt').getAttribute('tabindex')).toBeNull()
   })
 
@@ -907,7 +907,28 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
     rendered.rerender(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_silver', badge_category: 'quantity' }]} badgeProgress={badgeProgress.map((item) => item.family === 'progress' ? { ...item, current_count: 25, next_threshold: 50, remaining_count: 25, next_tier: '50 Projekte' } : item)} />)
     expect(screen.queryByText('Ausgewählt')).toBeNull()
-    expect(screen.getByText('Aktuell')).not.toBeNull()
+    expect(screen.getAllByText('Aktuell').length).toBeGreaterThan(0)
+  })
+
+  it('keeps category order, a non-founder founding stage locked and the next year target reachable', async () => {
+    await renderCollections()
+    const headings = screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
+    expect(headings).toEqual(['Fortschritt', 'Punkte-Meilensteine', 'Beiträge', 'Mitgliedschaft'])
+    expect(screen.getByLabelText('Gründungsmitglied · Gesperrt')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /7\+ Jahre Mitglied auswählen, Aktuell/ })).not.toBeNull()
+    expect(screen.getByLabelText('10+ Jahre Mitglied · Gesperrt')).not.toBeNull()
+  })
+
+  it('renders earned special awards as one-stage cards without artificial progress', async () => {
+    const rendered = await renderCollections([{ id: 9, badge_code: 'historical_leader', badge_category: 'historical_achievement' }])
+    const specialHeading = screen.getByRole('heading', { level: 3, name: 'Besondere Auszeichnungen' })
+    const specialGroup = specialHeading.closest('[data-badge-group="special"]')
+    expect(specialGroup?.querySelector('[role="progressbar"]')).toBeNull()
+    expect(specialGroup?.querySelector('[data-badge-stage-strip]')).toBeNull()
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
+    rendered.rerender(<CollectionChain earnedBadges={[]} badgeProgress={badgeProgress} />)
+    expect(screen.queryByRole('heading', { level: 3, name: 'Besondere Auszeichnungen' })).toBeNull()
   })
 })
 
