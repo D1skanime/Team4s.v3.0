@@ -74,9 +74,8 @@
 }
 
 .section {
-  max-width: 920px;
-  margin: 0 auto 28px;
   width: 100%;
+  margin: 0 auto 28px;
 }
 
 .sectionPlaceholder {
