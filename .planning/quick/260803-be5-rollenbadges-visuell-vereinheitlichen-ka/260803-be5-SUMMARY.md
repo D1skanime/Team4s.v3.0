@@ -35,6 +35,7 @@ status: complete
 - Preserved 320/280/248px role hero sizes while reducing the backdrop and motif circles for Design, Administration and Andere.
 - Centralized nearest-item and proximity calculation on offset geometry; real endpoints now override stale requested targets.
 - Switched the member shell to shared width tokens and contained fansub full-bleed decoration while track overflow-x remains auto.
+- UAT correction: removed the inherited 920px cap from every visible member profile section shell, so hero, projects, badges, and the other main cards consume the full public content width.
 
 ## Task Commits
 
@@ -43,10 +44,12 @@ status: complete
 3. Task 2 RED: 67d4592d
 4. Task 2 GREEN: ebc16567
 5. Rule 1 follow-up: 62718f09
+6. UAT width RED: 5f36fbcc
+7. UAT width GREEN: e3d611a5
 
 ## Automated Checks
 
-- PASS: MemberBadgeChain, FocalCarousel and FansubProjectsGrid, 55 tests.
+- PASS: MemberBadgeChain, FocalCarousel and FansubProjectsGrid, 55 tests; UAT width correction suite: 56 tests.
 - PASS: member width, fansub containment, and FocalCarousel task-owned assertions.
 - PASS: ESLint, zero errors; 329 existing warnings.
 - PASS: git diff --check.
@@ -66,10 +69,14 @@ None.
 
 None.
 
+## UAT Correction
+
+Desktop UAT found that the outer main reached 1480px while each visible section remained capped at 920px. Commits 5f36fbcc and e3d611a5 add the failing regression and remove that shell-level cap.
+
 ## Live UAT Remaining
 
 Root must complete Task 3 at desktop and 390px: badge sizing, End to 11 von 11, width comparison, document scroll-width equality, and internal carousel scrolling.
 
 ## Self-Check: PASSED
 
-All eight modified files exist and commits 52ec10ce, cad862c2, 67d4592d, ebc16567, and 62718f09 are present.
+All eight modified files exist and commits 52ec10ce, cad862c2, 67d4592d, ebc16567, and 62718f09, 5f36fbcc, and e3d611a5 are present.
