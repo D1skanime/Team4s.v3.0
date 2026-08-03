@@ -763,6 +763,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260803-be5 | Rollenbadges visuell vereinheitlichen, Karussell-Endposition korrigieren, Profilbreite auf 1480 Pixel setzen und horizontalen Seiten-Overflow der Fansubseite beheben | 2026-08-03 | 62718f09 | [260803-be5-rollenbadges-visuell-vereinheitlichen-ka](./quick/260803-be5-rollenbadges-visuell-vereinheitlichen-ka/) |
 | 260731-wh7 | Vollständige Badge-Präsentation im öffentlichen Memberprofil mit Artwork, Fortschritt und responsivem Focal Carousel | 2026-08-01 | 19621e8f | [260731-wh7-beitrags-badges-im-ffentlichen-memberpro](./quick/260731-wh7-beitrags-badges-im-ffentlichen-memberpro/) |
 | 260730-jre | Material-3-inspiriertes Focal-Carousel für Profil-Badges und Fansub-Projekte: große aktive Karte, eingedrückte Randkarten, Metall-Glow und Alle-anzeigen-Raster | 2026-07-30 | 00bdb814 | [260730-jre-fokussiertes-material-3-inspiriertes-kar](./quick/260730-jre-fokussiertes-material-3-inspiriertes-kar/) |
 | 260721-eo4 | SSR-Fetch-Parallelisierung der Public-Projektseite (loadPublicFansubProjectPageData): unabhängige Phase-B-Fetches per Promise.all nebenläufig, doppelter Profil-Fetch zu einem zusammengeführt; verhaltenserhaltend (17/17 Tests). Gemessen: TTFB 319→221 ms (min, −31%), Volldokument 616→371 ms (−40%) | 2026-07-21 | 73a0e2f4 | [260721-eo4-ssr-fetch-parallelisierung-projectpageda](./quick/260721-eo4-ssr-fetch-parallelisierung-projectpageda/) |
@@ -843,6 +844,6 @@ Recent durable decisions:
 
 Last session: 2026-08-03T06:45:54.800Z
 Stopped at: Phase 118 verification gaps found
-Last activity: 2026-08-03
+Last activity: 2026-08-03 - Completed quick task 260803-be5: Rollenbadges visuell vereinheitlichen, Karussell-Endposition korrigieren, Profilbreite auf 1480 Pixel setzen und horizontalen Seiten-Overflow der Fansubseite beheben
 Resume file: 
 .planning/phases/118-rollenfortschritt-als-eigene-card-je-tats-chlich-ausge-bter-/118-VERIFICATION.md
