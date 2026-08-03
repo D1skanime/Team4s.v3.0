@@ -295,22 +295,20 @@ profile.BadgeProgress, loadErr = r.loadBadgeFamilyProgress(ctx, row.memberID)
 
 | # | Claim | Section | Risk if Wrong |
 |---|---|---|---|
-| A1 | Nicht-Gründer überspringen Gründungsmitglied als zeitliches „nächstes Ziel“, während die Stufe sichtbar gesperrt bleibt. | Pitfall 4 | D-04/D-07 sind sonst semantisch widersprüchlich; Nutzerentscheidung kann nötig sein. |
-| A2 | Ein neues additives Feld `badge_progress` ist der sauberste DTO-Schnitt. | Pattern 2 / Code Example | Planner kann einen gleichwertigen expliziten bestehenden-DTO-Ausbau wählen, solange earned state nicht verfälscht wird. |
+| A1 | RESOLVED: Nicht-Gründer behalten Gründungsmitglied als sichtbar gesperrte, unerreichbare Startstufe; die zeitbasierte Progresscopy zielt auf den nächsten erreichbaren 5-/7-/10-Jahres-Meilenstein. | Pitfall 4 | Festgelegt durch die gesperrte D-04/D-07-Interpretation in 119-UI-SPEC und den Revisionsauftrag. |
+| A2 | RESOLVED: Das bestehende `PublicMemberProfile` erhält das additive Array `badge_progress`; der stabile technische Name gilt identisch in Go/JSON/OpenAPI/TypeScript. | Pattern 2 / Code Example | Festgelegt innerhalb der Agent-Discretion; kein neuer Endpoint und keine benannten Parallelfelder. |
 | A3 | Verschachtelte Stage-Buttons benötigen Event-Grenzen, damit Carousel-Pfeiltasten nicht ihre Interaktion übernehmen. | Anti-Patterns | Muss durch DOM-/Keyboard-Test bestätigt werden. |
 | A4 | `scrollIntoView` kann ohne enges Scoping vertikalen Dokument-Scroll verursachen. | Pitfall 8 | Live-Browser-UAT muss tatsächliches Browserverhalten prüfen. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Wie verhält sich „Gründungsmitglied“ für Nicht-Gründer im nächsten-Ziel-Text?**
    - What we know: Es ist laut D-04 die Startstufe; technisch wird es ausschließlich bei Beitritt im Gründungsjahr verliehen und kann durch Zeitablauf nicht erreicht werden. [VERIFIED: CONTEXT, `badge_service.go`]
-   - What's unclear: D-07 „erste Stufe als Ziel“ ist für Nicht-Gründer wörtlich nicht erfüllbar. [VERIFIED: CONTEXT]
-   - Recommendation: Stufe gesperrt sichtbar lassen, Progressziel aber auf 5 Jahre setzen; als Planannahme markieren und gezielt in UAT bestätigen. [ASSUMED]
+   - Resolution: `Gründungsmitglied` bleibt für Nicht-Gründer sichtbar gesperrt und unerreichbar. Der nächste-Ziel-Text überspringt diese Sonderstufe und nennt den nächsten erreichbaren zeitbasierten Meilenstein, zunächst 5 Jahre, danach 7 bzw. 10 Jahre. [RESOLVED: D-04/D-07, 119-UI-SPEC, revision decision]
 
 2. **Soll das additive Familienmetrik-Feld ein Array oder benannte Felder verwenden?**
    - What we know: D-06 verlangt erweiterbare Familien; ein Array mit stabilem Family-Code unterstützt neue Familien/Stufen besser. [VERIFIED: CONTEXT]
-   - What's unclear: Es existiert noch kein kanonischer Feldname. [VERIFIED: OpenAPI/Go/TS]
-   - Recommendation: `badge_progress[]` mit `family`, `current_count`, `next_threshold`, `remaining_count`; Schwellen-/earned state bleiben im Katalog/Badges. [ASSUMED]
+   - Resolution: Das bestehende `PublicMemberProfile` wird additiv um das Array `badge_progress` erweitert. Der Name `badge_progress` und die Elementfelder `family`, `current_count`, `next_threshold`, `remaining_count`, `next_tier`, `complete` sind in Go-JSON, OpenAPI und TypeScript identisch; `public_badges` bleibt die getrennte Wahrheit für verdiente Badges. Es entsteht kein neuer Endpoint. [RESOLVED: D-06, API contract discretion, revision decision]
 
 ## Environment Availability
 
@@ -415,7 +413,7 @@ Keine Datenbankschemaänderung und damit kein Schema-Push ist erforderlich. Eine
 **Confidence breakdown:**
 - Standard stack: HIGH — laufender Compose-Stack und Registry wurden geprüft. [VERIFIED: environment/npm]
 - Architecture: HIGH — reale Datenflüsse, Owner und Phase-118-Implementierung wurden gelesen. [VERIFIED: codebase grep]
-- Pitfalls: HIGH mit einer markierten Produktinterpretation — Datenlücken und Regressionen sind direkt belegt; Gründungsmitglied-Zielcopy braucht Bestätigung. [VERIFIED: codebase/planning]
+- Pitfalls: HIGH — Datenlücken und Regressionen sind direkt belegt; Gründungsmitglied-Zielcopy und `badge_progress`-Vertrag sind in „Open Questions (RESOLVED)“ dauerhaft festgelegt. [VERIFIED: codebase/planning/revision decision]
 
 **Research date:** 2026-08-03
 **Valid until:** 2026-09-02 (stabiler interner Stack; bei Änderungen an Phase 118, Profil-DTO oder Badge-Service früher neu prüfen). [ASSUMED]
