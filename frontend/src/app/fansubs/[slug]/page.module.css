@@ -1,5 +1,8 @@
 .page {
   width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
   margin: 0 auto;
   padding: 0 0 64px;
 }
@@ -274,6 +277,9 @@
 .sectionBand {
   position: relative;
   isolation: isolate;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .sectionBandBackdrop {

@@ -1,5 +1,5 @@
 .page {
-  width: min(1280px, 100% - 48px);
+  width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));
   margin: 0 auto;
   padding: 24px 0 48px;
 }
@@ -114,7 +114,7 @@
 
 @media (max-width: 760px) {
   .page {
-    width: min(100% - 24px, 1280px);
+    width: min(calc(100% - 24px), var(--public-page-max-width));
     padding-top: 16px;
   }
 
