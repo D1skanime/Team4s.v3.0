@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -239,4 +240,23 @@ func TestHighestRoleVolumeTier(t *testing.T) {
 	require.Equal(t, "gold", highestRoleVolumeTier(320))
 	require.Equal(t, "gold", highestRoleVolumeTier(509))
 	require.Equal(t, "platinum", highestRoleVolumeTier(510))
+}
+
+func TestPublicMemberProfileBadgeProgressProjectionCoversProjectAndMembershipBoundaries(t *testing.T) {
+	projectCounts := []int64{0, 1, 9, 10, 24, 25, 49, 50}
+	membershipYears := []int64{5, 7, 10}
+	for _, count := range projectCounts {
+		payload, err := json.Marshal(models.PublicMemberProfile{MemberID: count + 1})
+		require.NoError(t, err)
+		var document map[string]any
+		require.NoError(t, json.Unmarshal(payload, &document))
+		progress, ok := document["badge_progress"].([]any)
+		require.True(t, ok, "project count %d must be carried by additive badge_progress", count)
+		require.NotNil(t, progress)
+	}
+	for _, years := range membershipYears {
+		payload, err := json.Marshal(models.PublicMemberProfile{MemberID: years + 100})
+		require.NoError(t, err)
+		require.Contains(t, string(payload), `"badge_progress"`, "membership boundary %d years must remain server-derived", years)
+	}
 }

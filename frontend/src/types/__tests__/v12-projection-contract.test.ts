@@ -316,3 +316,23 @@ describe("v12 projection contract parity", () => {
     ]);
   });
 });
+
+describe("Phase 119 additive badge_progress contract", () => {
+  it("keeps Go, OpenAPI and TypeScript field names and nullability aligned", () => {
+    const profileTypes = readFileSync(new URL("../profile.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+    const goModels = readFileSync(new URL("../../../../backend/internal/models/member_profile.go", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+    const exactKeys = ["family", "current_count", "next_threshold", "remaining_count", "next_tier", "complete"];
+
+    expect(profileTypes).toContain("export interface PublicMemberBadgeProgress");
+    expect(profileTypes).toContain("badge_progress: PublicMemberBadgeProgress[]");
+    expect(goModels).toContain("type PublicMemberBadgeProgress struct");
+    expect(goModels).toContain('BadgeProgress []PublicMemberBadgeProgress `json:"badge_progress"`');
+
+    const block = getOpenApiBlock("    PublicMemberBadgeProgress:\n", /\n    [A-Za-z][A-Za-z0-9]+:\n/);
+    expect(block).toContain("required: [family, current_count, next_threshold, remaining_count, next_tier, complete]");
+    for (const key of exactKeys) expect(block).toContain(`${key}:`);
+    expect(block).toMatch(/next_threshold:\n\s+type: integer\n\s+nullable: true/);
+    expect(block).toMatch(/remaining_count:\n\s+type: integer\n\s+nullable: true/);
+    expect(block).toMatch(/next_tier:\n\s+type: string\n\s+nullable: true/);
+  });
+});

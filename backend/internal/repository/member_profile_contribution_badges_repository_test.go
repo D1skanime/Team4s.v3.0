@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -377,4 +378,27 @@ func TestBuildContribCategoryProgressIncludesPublicMetadata(t *testing.T) {
 	require.Nil(t, gold.NextThreshold)
 	require.Nil(t, gold.RemainingCount)
 	require.Nil(t, gold.NextTier)
+}
+
+func TestContributionProgressCarriesRawBelowExactAndTerminalValues(t *testing.T) {
+	cases := []struct {
+		family string
+		counts []int64
+	}{
+		{family: "contribution_projects", counts: []int64{0, 1, 5, 15}},
+		{family: "contribution_chronicle", counts: []int64{9, 10, 50, 150}},
+		{family: "contribution_archivist", counts: []int64{9, 10, 50, 150}},
+	}
+	for _, testCase := range cases {
+		for _, count := range testCase.counts {
+			encoded, err := json.Marshal(buildContribCategoryProgress(testCase.family, count))
+			require.NoError(t, err)
+			var progress map[string]any
+			require.NoError(t, json.Unmarshal(encoded, &progress))
+			require.Equal(t, testCase.family, progress["family"])
+			require.Equal(t, float64(count), progress["current_count"])
+			_, hasComplete := progress["complete"]
+			require.True(t, hasComplete, "%s at %d must explicitly carry terminal state", testCase.family, count)
+		}
+	}
 }
