@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
 func findPublicBadge(badges []models.PublicMemberBadge, badgeCode string) *models.PublicMemberBadge {
 	for i := range badges {
 		if badges[i].BadgeCode == badgeCode {
@@ -17,8 +18,6 @@ func findPublicBadge(badges []models.PublicMemberBadge, badgeCode string) *model
 	}
 	return nil
 }
-
-
 
 // Plan 116-02, Task 1: Regression fuer die verhaltenserhaltende Rohzahl-Extraktion aus
 // loadRoleVolumeBadges. loadRoleVolumeCounts muss die exakte Netto-Anzahl awarded
@@ -87,7 +86,7 @@ func TestLoadRoleVolumeBadgesPostgresProgressBoundaries(t *testing.T) {
 		{count: 319, badgeCode: "role_volume_translator_silver", currentTier: "silver", nextThreshold: 320, remaining: 1, nextTier: "gold"},
 		{count: 320, badgeCode: "role_volume_translator_gold", currentTier: "gold", nextThreshold: 510, remaining: 190, nextTier: "platinum"},
 		{count: 509, badgeCode: "role_volume_translator_gold", currentTier: "gold", nextThreshold: 510, remaining: 1, nextTier: "platinum"},
-		{count: 510, badgeCode: "role_volume_translator_platinum", currentTier: "platinum", nextThreshold: 510, remaining: 0, nextTier: "platinum"},
+		{count: 510, badgeCode: "role_volume_translator_platinum", currentTier: "platinum", nextThreshold: 510, remaining: 0},
 	}
 
 	for _, tc := range tests {
@@ -115,8 +114,12 @@ func TestLoadRoleVolumeBadgesPostgresProgressBoundaries(t *testing.T) {
 			require.Equal(t, tc.nextThreshold, *badge.NextThreshold)
 			require.NotNil(t, badge.RemainingCount)
 			require.Equal(t, tc.remaining, *badge.RemainingCount)
-			require.NotNil(t, badge.NextTier)
-			require.Equal(t, tc.nextTier, *badge.NextTier)
+			if tc.nextTier == "" {
+				require.Nil(t, badge.NextTier)
+			} else {
+				require.NotNil(t, badge.NextTier)
+				require.Equal(t, tc.nextTier, *badge.NextTier)
+			}
 		})
 	}
 }

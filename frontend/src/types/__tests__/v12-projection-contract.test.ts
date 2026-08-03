@@ -15,6 +15,7 @@ import type {
   MediaOwnershipOwnerType,
   MediaOwnershipRow,
 } from "@/types/media-ownership";
+import type { PublicMemberBadge } from "@/types/profile";
 
 type ExactUnion<Actual, Expected> =
   Exclude<Actual, Expected> extends never
@@ -103,6 +104,32 @@ const mediaOwnershipKeys = [
   "caption",
   "mime_type",
 ] as const;
+const roleProgressTiers = [
+  "entry",
+  "bronze",
+  "silver",
+  "gold",
+  "platinum",
+] as const;
+const publicMemberBadgeKeys = [
+  "id",
+  "badge_code",
+  "badge_category",
+  "current_count",
+  "current_tier",
+  "next_threshold",
+  "remaining_count",
+  "next_tier",
+] as const;
+const roleProgressTierExact: ExactUnion<
+  NonNullable<PublicMemberBadge["current_tier"]>,
+  (typeof roleProgressTiers)[number]
+> = true;
+const publicMemberBadgeKeysExact: ExactKeys<
+  PublicMemberBadge,
+  typeof publicMemberBadgeKeys
+> = true;
+
 
 const profileStatusExact: ExactUnion<
   DomainProjectionProfileStatus,
@@ -217,6 +244,35 @@ describe("v12 projection contract parity", () => {
       contributors: [],
     } satisfies DomainProjectionResponse;
     expect(Object.keys(response)).toEqual(["members", "historical", "contributors"]);
+
+  });
+  it("keeps PublicMemberBadge role-progress metadata aligned", () => {
+    expect(roleProgressTierExact).toBe(true);
+    expect(publicMemberBadgeKeysExact).toBe(true);
+    const badge = {
+      id: 0,
+      badge_code: "role_volume_translator_platinum",
+      badge_category: "role_volume",
+      current_count: 510,
+      current_tier: "platinum",
+      next_threshold: 510,
+      remaining_count: 0,
+      next_tier: null,
+    } satisfies PublicMemberBadge;
+    expect(Object.keys(badge)).toEqual([
+      "id",
+      "badge_code",
+      "badge_category",
+      "current_count",
+      "current_tier",
+      "next_threshold",
+      "remaining_count",
+      "next_tier",
+    ]);
+
+    const block = getOpenApiBlock("    PublicMemberBadge:\n", /\n    [A-Za-z][A-Za-z0-9]+:\n/);
+    expect(block).toContain("enum: [entry, bronze, silver, gold, platinum]");
+    expect(block).toContain("enum: [bronze, silver, gold]");
   });
 
   it("documents the pinned paths as direct no-envelope responses", () => {

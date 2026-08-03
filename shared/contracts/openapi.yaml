@@ -11213,7 +11213,7 @@ components:
           description: Exact count, exposed only for an already-visible contribution badge.
         current_tier:
           type: string
-          enum: [bronze, silver, gold]
+          enum: [entry, bronze, silver, gold, platinum]
           nullable: true
         next_threshold:
           type: integer

@@ -68,6 +68,58 @@ func (r *MemberProfileRepository) loadRoleVolumeCounts(ctx context.Context, memb
 	return counts, nil
 }
 
+func roleVolumeProgressBadge(roleCode string, count int64) *models.PublicMemberBadge {
+	if count <= 0 {
+		return nil
+	}
+
+	currentTier := "entry"
+	nextTier := "bronze"
+	nextThreshold := int64(12)
+	switch {
+	case count >= 510:
+		currentTier = "platinum"
+		nextTier = ""
+		nextThreshold = 510
+	case count >= 320:
+		currentTier = "gold"
+		nextTier = "platinum"
+		nextThreshold = 510
+	case count >= 108:
+		currentTier = "silver"
+		nextTier = "gold"
+		nextThreshold = 320
+	case count >= 12:
+		currentTier = "bronze"
+		nextTier = "silver"
+		nextThreshold = 108
+	}
+	remaining := nextThreshold - count
+	if remaining < 0 {
+		remaining = 0
+	}
+
+	badgeCode := "role_entry_" + roleCode
+	badgeCategory := "role_entry"
+	if currentTier != "entry" {
+		badgeCode = "role_volume_" + roleCode + "_" + currentTier
+		badgeCategory = "role_volume"
+	}
+	badge := &models.PublicMemberBadge{
+		ID:             0,
+		BadgeCode:      badgeCode,
+		BadgeCategory:  badgeCategory,
+		CurrentCount:   &count,
+		CurrentTier:    &currentTier,
+		NextThreshold:  &nextThreshold,
+		RemainingCount: &remaining,
+	}
+	if nextTier != "" {
+		badge.NextTier = &nextTier
+	}
+	return badge
+}
+
 // loadRoleVolumeBadges laedt eine rollen-gefilterte Netto-Zaehlung der
 // release_role_credit_lifecycles-Buchungen eines Members und emittiert pro Rolle nur die
 // hoechste erreichte Volumenstufe als synthetisches PublicMemberBadge (Typ 3, D-04). Storniert
@@ -83,13 +135,17 @@ func (r *MemberProfileRepository) loadRoleVolumeBadges(ctx context.Context, memb
 
 	items := make([]models.PublicMemberBadge, 0)
 	for _, entry := range counts {
-		if tier := highestRoleVolumeTier(int(entry.Count)); tier != "" {
-			items = append(items, models.PublicMemberBadge{
-				ID:            0,
-				BadgeCode:     "role_volume_" + entry.RoleCode + "_" + tier,
-				BadgeCategory: "role_volume",
-			})
+		progressBadge := roleVolumeProgressBadge(entry.RoleCode, entry.Count)
+		if progressBadge == nil {
+			continue
 		}
+		if *progressBadge.CurrentTier != "entry" {
+			entryBadge := *progressBadge
+			entryBadge.BadgeCode = "role_entry_" + entry.RoleCode
+			entryBadge.BadgeCategory = "role_entry"
+			items = append(items, entryBadge)
+		}
+		items = append(items, *progressBadge)
 	}
 
 	return items, nil

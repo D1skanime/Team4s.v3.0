@@ -146,7 +146,7 @@ export interface PublicMemberBadge {
   badge_code: string
   badge_category: string
   current_count?: number | null
-  current_tier?: 'bronze' | 'silver' | 'gold' | null
+  current_tier?: 'entry' | 'bronze' | 'silver' | 'gold' | 'platinum' | null
   next_threshold?: number | null
   remaining_count?: number | null
   next_tier?: 'bronze' | 'silver' | 'gold' | null
