@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { FocalCarousel } from './FocalCarousel'
@@ -101,5 +101,55 @@ describe('FocalCarousel', () => {
     expect(screen.getByText('3 von 3 Karten')).toBeTruthy()
     fireEvent.keyDown(region, { key: 'Home' })
     expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
+  })
+
+  it('keeps an 11-card End target on the final centered card after scroll settling', () => {
+    vi.useFakeTimers()
+    const elevenItems = Array.from({ length: 11 }, (_, index) => `Karte ${index + 1}`)
+
+    try {
+      render(
+        <FocalCarousel
+          items={elevenItems}
+          getItemKey={(item) => item}
+          renderItem={(item) => <span>{item}</span>}
+          regionLabel="Elf-Karten-Karussell"
+          itemSingularLabel="Rolle"
+          itemPluralLabel="Rollen"
+          previousLabel="Vorherige Rolle"
+          nextLabel={'N\u00e4chste Rolle'}
+          showCounter
+        />,
+      )
+
+      const region = screen.getByRole('region', { name: 'Elf-Karten-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      Object.defineProperties(region, {
+        clientWidth: { configurable: true, value: 600 },
+        scrollWidth: { configurable: true, value: 2600 },
+        scrollLeft: { configurable: true, writable: true, value: 0 },
+      })
+      cards.forEach((card, index) => {
+        Object.defineProperties(card, {
+          offsetLeft: { configurable: true, value: 200 + index * 200 },
+          offsetWidth: { configurable: true, value: 400 },
+        })
+      })
+      const scrollTo = vi.fn(({ left }: ScrollToOptions) => {
+        region.scrollLeft = Number(left)
+      })
+      region.scrollTo = scrollTo as typeof region.scrollTo
+
+      fireEvent.keyDown(region, { key: 'End' })
+      expect(scrollTo).toHaveBeenCalledWith({ left: 2000, behavior: 'smooth' })
+      fireEvent.scroll(region)
+      act(() => vi.advanceTimersByTime(120))
+
+      expect(screen.getByText('11 von 11 Rollen')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'N\u00e4chste Rolle' }).getAttribute('disabled')).not.toBeNull()
+      expect(screen.getByText('Karte 11').closest('[aria-current="true"]')).not.toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

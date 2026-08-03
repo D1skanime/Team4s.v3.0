@@ -156,6 +156,10 @@ export function FocalCarousel<T>({
   const nearestItemIndex = () => {
     const track = trackRef.current
     if (!track) return safeIndex
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
+    if (track.scrollLeft <= 1) return 0
+    if (track.scrollLeft >= maxScroll - 1) return lastIndex
+
     const center = track.scrollLeft + track.clientWidth / 2
     const elements = itemElements()
     let nearest = safeIndex
