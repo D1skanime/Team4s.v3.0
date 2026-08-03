@@ -89,9 +89,9 @@
 
 .arrow {
   flex: 0 0 auto;
-}
   min-width: 44px;
   min-height: 44px;
+}
 
 .arrow svg {
   color: var(--ui-arrow);
