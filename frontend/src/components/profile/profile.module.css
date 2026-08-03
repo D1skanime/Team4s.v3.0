@@ -254,7 +254,8 @@
 
 .membershipsList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 360px));
+  justify-content: start;
   gap: 12px;
   margin: 0;
   padding: 0;
@@ -262,6 +263,7 @@
 }
 
 .membershipCard {
+  min-width: 0;
   height: 100%;
   padding: 14px;
 }
@@ -332,6 +334,10 @@
 }
 
 @media (max-width: 680px) {
+  .membershipsList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .heroPanel,
   .recentMediaGrid {
     grid-template-columns: 1fr;
