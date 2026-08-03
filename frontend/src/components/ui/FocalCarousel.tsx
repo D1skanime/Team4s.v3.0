@@ -134,6 +134,8 @@ export function FocalCarousel<T>({
     }
     track.addEventListener('wheel', handleWheel, { passive: false })
     return () => track.removeEventListener('wheel', handleWheel)
+    // nearestItemIndex uses the same length-bound geometry captured by this listener.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded, visibleItems.length])
   const move = (delta: number) => focusItem(safeIndex + delta)
 
