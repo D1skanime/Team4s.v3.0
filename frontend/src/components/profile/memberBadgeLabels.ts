@@ -290,3 +290,48 @@ export function resolveNextRoleVolumeThreshold(
     nextTierLabel: nextTier ? ROLE_VOLUME_TIER_LABELS[nextTier] : null,
   }
 }
+export type RoleProgressTier = 'entry' | RoleVolumeTier
+
+export type RoleProgressPresentation = {
+  tier: RoleProgressTier | null
+  nextThreshold: number | null
+  nextTierLabel: string | null
+  rankLabel: string
+  progressCopy: string
+  progressValue: number
+  progressMax: number
+  progressPercent: number
+}
+
+const ROLE_PROGRESS_STAGES: Array<{ tier: RoleProgressTier; threshold: number; label: string }> = [
+  { tier: 'entry', threshold: 1, label: 'Einstieg' },
+  ...ROLE_VOLUME_TIERS.map((tier) => ({
+    tier,
+    threshold: ROLE_VOLUME_TIER_THRESHOLDS[tier],
+    label: ROLE_VOLUME_TIER_LABELS[tier],
+  })),
+]
+
+export function resolveRoleProgressPresentation(count: number): RoleProgressPresentation {
+  const safeCount = Math.max(0, count)
+  const current = [...ROLE_PROGRESS_STAGES].reverse().find((stage) => safeCount >= stage.threshold)
+  const currentIndex = current ? ROLE_PROGRESS_STAGES.indexOf(current) : -1
+  const next = safeCount === 0
+    ? ROLE_PROGRESS_STAGES[1]
+    : ROLE_PROGRESS_STAGES[currentIndex + 1] ?? null
+  const progressMax = next?.threshold ?? ROLE_VOLUME_TIER_THRESHOLDS.platinum
+  const progressValue = Math.min(safeCount, progressMax)
+
+  return {
+    tier: current?.tier ?? null,
+    nextThreshold: next?.threshold ?? null,
+    nextTierLabel: next?.label ?? null,
+    rankLabel: current ? `${current.label} · ${current.threshold}+` : '',
+    progressCopy: next
+      ? `${safeCount} von ${next.threshold} Mitwirkungen · Noch ${Math.max(0, next.threshold - safeCount)} bis ${next.label}`
+      : `${safeCount} Mitwirkungen · Höchste Stufe erreicht`,
+    progressValue,
+    progressMax,
+    progressPercent: progressMax > 0 ? Math.max(0, Math.min(100, (progressValue / progressMax) * 100)) : 0,
+  }
+}

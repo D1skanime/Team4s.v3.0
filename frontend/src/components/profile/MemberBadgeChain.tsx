@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { Lock } from 'lucide-react'
 
-import { Card, FocalCarousel, SectionHeader } from '@/components/ui'
+import { Badge, Card, FocalCarousel, SectionHeader } from '@/components/ui'
 import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberBadge } from '@/types/profile'
 
@@ -12,6 +12,8 @@ import {
   MEMBER_BADGE_GROUP_ORDER,
   PUBLIC_MEMBER_BADGE_CATALOG,
   getMemberBadgePresentation,
+  resolveRoleProgressPresentation,
+  ROLE_VOLUME_TIER_THRESHOLDS,
   type MemberBadgeGroup,
   type MemberBadgePresentation,
   type PublicMemberBadgeCatalogItem,
@@ -215,19 +217,37 @@ export function MemberBadgeChain({
   catalog = PUBLIC_MEMBER_BADGE_CATALOG,
 }: MemberBadgeChainProps) {
   const earnedCodes = new Set(earnedBadges.map((badge) => badge.badge_code))
-  const earnedRoleCodes = new Set(earnedBadges
-    .map((badge) => getMemberBadgePresentation(badge.badge_code))
-    .filter((presentation) => presentation.group === 'roles')
-    .map((presentation) => presentation.roleCode)
-    .filter((roleCode): roleCode is string => Boolean(roleCode)))
+  const roleCounts = new Map<string, number>()
+  for (const badge of earnedBadges) {
+    const presentation = getMemberBadgePresentation(badge.badge_code)
+    if (presentation.group !== 'roles' || !presentation.roleCode) continue
+    const knownRole = FANSUB_GROUP_ROLE_OPTIONS.some((option) => option.code === presentation.roleCode)
+    if (!knownRole && !['admin', 'other'].includes(presentation.roleCode)) continue
+    const tier = (['bronze', 'silver', 'gold', 'platinum'] as const)
+      .find((candidate) => badge.badge_code.endsWith(`_${candidate}`))
+    const fallbackCount = badge.badge_code.startsWith('role_entry_')
+      ? 1
+      : tier ? ROLE_VOLUME_TIER_THRESHOLDS[tier] : 0
+    const count = badge.current_count ?? fallbackCount
+    if (count < 1) continue
+    roleCounts.set(presentation.roleCode, Math.max(roleCounts.get(presentation.roleCode) ?? 0, count))
+  }
+  const orderedRoleCodes = [...FANSUB_GROUP_ROLE_OPTIONS.map((option) => option.code), 'admin', 'other']
+    .filter((roleCode) => roleCounts.has(roleCode))
+  const earnedRoleCodes = new Set(orderedRoleCodes)
   const mergedCatalog = catalogWithEarnedBadges(catalog, earnedBadges)
   const generalCatalog = mergedCatalog.filter(
     (item) => getMemberBadgePresentation(item.badge_code).group !== 'roles',
   )
-  const roleCatalog = mergedCatalog.filter((item) => {
-    const presentation = getMemberBadgePresentation(item.badge_code)
-    return presentation.group === 'roles'
-      && Boolean(presentation.roleCode && earnedRoleCodes.has(presentation.roleCode))
+  const roleCatalog = orderedRoleCodes.flatMap((roleCode) => {
+    const entryCode = `role_entry_${roleCode}`
+    return [
+      { badge_code: entryCode, badge_category: 'role_entry', label: getMemberBadgePresentation(entryCode).label },
+      ...(['bronze', 'silver', 'gold', 'platinum'] as const).map((tier) => {
+        const badgeCode = `role_volume_${roleCode}_${tier}`
+        return { badge_code: badgeCode, badge_category: 'role_volume', label: getMemberBadgePresentation(badgeCode).label }
+      }),
+    ]
   })
   const earnedCount = generalCatalog.filter((item) => earnedCodes.has(item.badge_code)).length
   const progressPercent = generalCatalog.length > 0
@@ -253,7 +273,7 @@ export function MemberBadgeChain({
         <div className={styles.groupList}>
           {groups.map((group) => (
             <div key={group.key} className={styles.group} data-badge-group={group.key}>
-              <h3 className={styles.groupTitle}>{group.label}</h3>
+              <h3 className={styles.groupTitle}>{group.key === 'roles' ? 'Rollenfortschritt' : group.label}</h3>
               {group.key === 'roles' ? (
                 <div className={styles.progressMeta}>
                   <span>
@@ -266,12 +286,13 @@ export function MemberBadgeChain({
               <FocalCarousel
                 items={group.rows}
                 getItemKey={(row) => row.key}
-                regionLabel={`${group.label}-Karussell`}
-                itemSingularLabel="Auszeichnung"
-                itemPluralLabel="Auszeichnungen"
+                regionLabel={group.key === 'roles' ? 'Rollenfortschritt-Karussell' : `${group.label}-Karussell`}
+                itemSingularLabel={group.key === 'roles' ? 'Rolle' : 'Auszeichnung'}
+                itemPluralLabel={group.key === 'roles' ? 'Rollen' : 'Auszeichnungen'}
                 listLabel={group.label}
-                previousLabel={`Vorherige Auszeichnung in ${group.label}`}
-                nextLabel={`Nächste Auszeichnung in ${group.label}`}
+                previousLabel={group.key === 'roles' ? 'Vorherige Rolle' : `Vorherige Auszeichnung in ${group.label}`}
+                nextLabel={group.key === 'roles' ? 'Nächste Rolle' : `Nächste Auszeichnung in ${group.label}`}
+                showCounter={group.key === 'roles'}
                 showAllLabel={`Alle Auszeichnungen in ${group.label} anzeigen`}
                 showLessLabel="Weniger anzeigen"
                 carouselClassName={styles.chain}
@@ -284,84 +305,60 @@ export function MemberBadgeChain({
                   )
 
                   if (group.key === 'roles') {
-                    const artworkItem = earnedArtworkItems.find((item) => item.badge_code.startsWith('role_volume_'))
-                      ?? earnedArtworkItems[0]
+                    const count = roleCounts.get(row.key) ?? 0
+                    const progress = resolveRoleProgressPresentation(count)
+                    const roleLabel = resolveRoleLabel(row.key)
+                    const currentIndex = ['entry', 'bronze', 'silver', 'gold', 'platinum'].indexOf(progress.tier ?? '')
+                    const artworkItem = row.items[currentIndex]
                     const artworkSrc = artworkItem ? resolveBadgeArtwork(artworkItem.badge_code) : undefined
-                    const layeredRoleArtwork = artworkItem
-                      ? resolveLayeredRoleArtwork(artworkItem.badge_code)
-                      : undefined
+                    const layeredRoleArtwork = artworkItem ? resolveLayeredRoleArtwork(artworkItem.badge_code) : undefined
+                    const heroAlt = `${progress.rankLabel.split(' · ')[0]}medaille für ${roleLabel}`
 
                     return (
-                      <div
-                        className={`${artworkSrc ? styles.roleBadgeRow : styles.roleBadgeRowCompact} ${layeredRoleArtwork ? styles.roleBadgeRowLayered : ''}`}
-                        data-role-code={row.key}
-                      >
-                        <span className={styles.roleLabel}>{resolveRoleLabel(row.key)}:</span>
+                      <Card className={styles.roleBadgeRow} data-role-code={row.key}>
+                        <span className={styles.roleLabel}>{roleLabel}:</span>
                         {artworkItem && artworkSrc ? (
-                          <span
-                            className={`${styles.roleHeroArtwork} ${layeredRoleArtwork ? styles.roleHeroArtworkLayered : ''}`}
-                          >
+                          <span className={`${styles.roleHeroArtwork} ${layeredRoleArtwork ? styles.roleHeroArtworkLayered : ''}`}>
                             {layeredRoleArtwork ? (
                               <>
                                 <span className={styles.roleArtworkMist} aria-hidden="true" />
                                 <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
-                                <Image
-                                  className={styles.roleArtworkMotif}
-                                  src={layeredRoleArtwork.motifSrc}
-                                  alt=""
-                                  width={1254}
-                                  height={1254}
-                                  sizes="(max-width: 520px) 230px, (max-width: 900px) 280px, 328px"
-                                  unoptimized
-                                  aria-hidden="true"
-                                />
-                                <Image
-                                  className={styles.roleArtworkFrame}
-                                  src={layeredRoleArtwork.frameSrc}
-                                  alt=""
-                                  width={1254}
-                                  height={1254}
-                                  sizes="(max-width: 520px) 230px, (max-width: 900px) 280px, 328px"
-                                  unoptimized
-                                  aria-hidden="true"
-                                  data-achievement-art={artworkItem.badge_code}
-                                />
+                                <Image className={styles.roleArtworkMotif} src={layeredRoleArtwork.motifSrc} alt="" width={1254} height={1254} sizes="(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px" unoptimized aria-hidden="true" />
+                                <Image className={styles.roleArtworkFrame} src={layeredRoleArtwork.frameSrc} alt={heroAlt} width={1254} height={1254} sizes="(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px" unoptimized data-achievement-art={artworkItem.badge_code} />
                               </>
                             ) : (
-                              <Image
-                                src={artworkSrc}
-                                alt=""
-                                width={512}
-                                height={512}
-                                sizes="(max-width: 520px) 230px, (max-width: 900px) 280px, 328px"
-                                unoptimized
-                                aria-hidden="true"
-                                data-achievement-art={artworkItem.badge_code}
-                              />
+                              <Image src={artworkSrc} alt={heroAlt} width={512} height={512} sizes="(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px" unoptimized data-achievement-art={artworkItem.badge_code} />
                             )}
                           </span>
                         ) : null}
-                        <span className={styles.roleProgression} aria-label={`Fortschritt für ${resolveRoleLabel(row.key)}`}>
-                          {row.items.map((item) => {
-                            const isEarned = earnedCodes.has(item.badge_code)
-                            const presentation = getMemberBadgePresentation(item.badge_code)
-
+                        <Badge variant={getMemberBadgePresentation(artworkItem?.badge_code ?? '').variant}>{progress.rankLabel}</Badge>
+                        <div className={styles.roleProgressBlock}>
+                          <div role="progressbar" aria-label={`Fortschritt für ${roleLabel}`} aria-valuemin={0} aria-valuenow={progress.progressValue} aria-valuemax={progress.progressMax} className={styles.roleProgressTrack}>
+                            <span style={{ width: `${progress.progressPercent}%` }} />
+                          </div>
+                          <p className={styles.roleProgressCopy}>{progress.progressCopy}</p>
+                        </div>
+                        <span className={styles.roleProgression} role="list" aria-label={`Medaillen für ${roleLabel}`}>
+                          {row.items.map((item, index) => {
+                            const reached = index <= currentIndex
+                            const current = index === currentIndex
+                            const stageArtwork = resolveLayeredRoleArtwork(item.badge_code)?.frameSrc ?? resolveBadgeArtwork(item.badge_code)
+                            const stageName = index === 0 ? 'Einstieg' : getMemberBadgePresentation(item.badge_code).label.split(' · ')[0]
                             return (
-                              <span
-                                key={item.badge_code}
-                                className={isEarned ? styles.roleStageEarned : styles.roleStageLocked}
-                                data-palette={presentation.palette}
-                                data-earned={isEarned ? 'true' : 'false'}
-                                data-role-volume={item.badge_code.startsWith('role_volume_') ? 'true' : undefined}
-                                aria-label={!isEarned ? `${item.label} gesperrt` : undefined}
-                              >
-                                {!isEarned ? <Lock size={14} aria-hidden="true" /> : null}
-                                {item.label}
+                              <span key={item.badge_code} role="listitem" className={reached ? styles.roleStageEarned : styles.roleStageLocked} data-role-stage={stageName.toLowerCase()} data-earned={reached ? 'true' : 'false'} data-palette={getMemberBadgePresentation(item.badge_code).palette} data-role-volume={item.badge_code.startsWith('role_volume_') ? 'true' : undefined} aria-label={!reached ? `${item.label} gesperrt` : stageName}>
+                                <span className={styles.roleStageArtwork}>
+                                  {stageArtwork ? <Image src={stageArtwork} alt="" width={96} height={96} unoptimized aria-hidden="true" /> : null}
+                                  {!reached ? <Lock size={14} aria-hidden="true" /> : null}
+                                  {current ? <span className={styles.currentChip}>Aktuell</span> : null}
+                                </span>
+                                <span>{stageName}</span>
+                                {index === 0 ? <span className={styles.visuallyHidden}>{item.label}</span> : null}
+                                {!reached ? <span className={styles.visuallyHidden}>Gesperrt</span> : null}
                               </span>
                             )
                           })}
                         </span>
-                      </div>
+                      </Card>
                     )
                   }
 

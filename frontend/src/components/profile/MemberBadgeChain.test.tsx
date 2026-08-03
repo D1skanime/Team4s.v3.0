@@ -619,7 +619,7 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
     )
 
     const rolesList = screen.getByRole('list', { name: 'Fansubrollen' })
-    const rows = within(rolesList).getAllByRole('listitem')
+    const rows = rolesList.querySelectorAll(':scope > [data-focal-item]')
     expect(rows.length).toBeGreaterThan(0)
     for (const row of rows) {
       expect(row.textContent).toMatch(/^[^:]+:/)
@@ -808,7 +808,7 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(screen.getByText('Rollenfortschritt')).not.toBeNull()
     expect(screen.getByText('108 von 320 Mitwirkungen · Noch 212 bis Gold')).not.toBeNull()
     expect(screen.getByText('Silber · 108+')).not.toBeNull()
-    expect(screen.getByText('2 von 2 Rollen')).not.toBeNull()
+    expect(screen.getByText('1 von 2 Rollen')).not.toBeNull()
     expect(screen.getAllByRole('region', { name: 'Rollenfortschritt-Karussell' })).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Vorherige Rolle' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Nächste Rolle' })).not.toBeNull()

@@ -798,3 +798,179 @@
     text-align: center;
   }
 }
+/* Phase 118: selected Sketch-A earned-role card composition. */
+.group[data-badge-group="roles"] .chain {
+  --focal-item-size: min(60%, 720px);
+}
+
+.group[data-badge-group="roles"] .badgeWindow {
+  min-width: 0;
+}
+
+.roleBadgeRow {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  gap: 16px;
+  padding: 32px 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--role-accent) 24%, transparent), transparent 34%),
+    var(--surface-card);
+}
+
+.roleLabel {
+  justify-self: start;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.roleHeroArtwork {
+  width: 320px;
+  height: 320px;
+}
+
+.roleProgressBlock {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+}
+
+.roleProgressTrack {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 16%, var(--surface-card-muted));
+}
+
+.roleProgressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--role-accent);
+}
+
+.roleProgressCopy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.roleProgression {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.roleStageEarned,
+.roleStageLocked {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.roleStageLocked {
+  opacity: 0.44;
+  filter: saturate(0.25);
+}
+
+.roleStageArtwork {
+  position: relative;
+  width: min(76px, 100%);
+  aspect-ratio: 1;
+}
+
+.roleStageArtwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.roleStageArtwork > svg {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 4px;
+  border-radius: 999px;
+  color: var(--text-primary);
+  background: var(--surface-card);
+}
+
+.currentChip {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 1;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+  transform: translate(-50%, 50%);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 1099px) {
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: 74%;
+  }
+
+  .roleBadgeRow {
+    padding: 24px;
+  }
+
+  .roleHeroArtwork {
+    width: 280px;
+    height: 280px;
+  }
+}
+
+@media (max-width: 520px) {
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: 88%;
+  }
+
+  .roleBadgeRow {
+    gap: 16px;
+    padding: 24px 16px;
+  }
+
+  .roleHeroArtwork {
+    width: 248px;
+    height: 248px;
+  }
+
+  .roleStageArtwork {
+    width: min(52px, 100%);
+  }
+}
