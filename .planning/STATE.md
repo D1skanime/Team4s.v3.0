@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
 stopped_at: Phase 118 UI-SPEC approved
-last_updated: "2026-08-03T05:05:05.341Z"
+last_updated: "2026-08-03T05:40:47.683Z"
 last_activity: 2026-08-03
 progress:
   total_phases: 110
   completed_phases: 89
   total_plans: 506
-  completed_plans: 470
+  completed_plans: 472
   percent: 93
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 117 — kara-segment-zeit-override-anzeige
+**Current focus:** Phase 118 — Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle
 
 ## Current Position
 
-Phase: 117 (kara-segment-zeit-override-anzeige) — EXECUTING
-Plan: 9 of 9
+Phase: 118 (Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -835,8 +835,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-08-02T20:29:48.343Z
+Last session: 2026-08-03T05:40:47.672Z
 Stopped at: Phase 118 UI-SPEC approved
 Last activity: 2026-08-03
 Resume file: 
-.planning/phases/118-rollenfortschritt-als-eigene-card-je-tats-chlich-ausge-bter-/118-UI-SPEC.md
+None

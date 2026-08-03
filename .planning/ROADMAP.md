@@ -1920,7 +1920,7 @@ Plans:
 **Goal:** Das öffentliche Memberprofil zeigt für jede tatsächlich ausgeübte, öffentlich verdiente Fansubrolle eine eigenständige responsive Fortschritts-Card mit exakter Live-Nettozahl, aktuell höchster Medaille, vollständiger Einstieg/Bronze/Silber/Gold/Platin-Sammlung und verständlichem Weg zur nächsten Stufe; mehrere Rollen nutzen das global konsolidierte, barrierefreie FocalCarousel ohne neue Daten-, API- oder Carousel-Seams.
 **Requirements:** Keine formalen REQ-IDs in REQUIREMENTS.md; verbindliche Phase-Akzeptanz sind D-01–D-23 aus `118-CONTEXT.md` sowie der freigegebene `118-UI-SPEC.md`-Vertrag.
 **Depends on:** Phase 117
-**Plans:** 4 plans
+**Plans:** 2/4 plans executed
 
 Plans:
 - [ ] `118-01-PLAN.md` — Wave 1: exakte Rollenfortschrittsprojektion und atomarer Go/OpenAPI/TypeScript-Vertrag (D-01–D-04, D-20–D-23)
