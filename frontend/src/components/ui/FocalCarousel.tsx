@@ -130,15 +130,7 @@ export function FocalCarousel<T>({
       event.preventDefault()
       requestedScrollRef.current = null
       track.scrollLeft = next
-      const center = next + track.clientWidth / 2
-      let nearest = 0
-      let distance = Number.POSITIVE_INFINITY
-      itemElements().forEach((element, index) => {
-        const current = Math.abs(element.offsetLeft + element.offsetWidth / 2 - center)
-        element.style.setProperty('--focal-proximity', String(Math.max(0, Math.min(1, 1 - current / Math.max(element.offsetWidth, 1)))))
-        if (current < distance) { distance = current; nearest = index }
-      })
-      setActiveIndex(nearest)
+      setActiveIndex(nearestItemIndex())
     }
     track.addEventListener('wheel', handleWheel, { passive: false })
     return () => track.removeEventListener('wheel', handleWheel)
@@ -155,22 +147,20 @@ export function FocalCarousel<T>({
     }
   }
 
-  const nearestItemIndex = () => {
+  function nearestItemIndex() {
     const track = trackRef.current
     if (!track) return safeIndex
     const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
-    if (track.scrollLeft <= 1) return 0
-    if (track.scrollLeft >= maxScroll - 1) return lastIndex
-
     const center = track.scrollLeft + track.clientWidth / 2
-    const elements = itemElements()
-    let nearest = safeIndex
+    let nearest = track.scrollLeft <= 1 ? 0 : track.scrollLeft >= maxScroll - 1 ? lastIndex : safeIndex
     let nearestDistance = Number.POSITIVE_INFINITY
-    elements.forEach((element, index) => {
+    itemElements().forEach((element, index) => {
       const distance = Math.abs(element.offsetLeft + element.offsetWidth / 2 - center)
+      const proximity = Math.max(0, Math.min(1, 1 - distance / Math.max(element.offsetWidth, 1)))
+      element.style.setProperty('--focal-proximity', String(proximity))
       if (distance < nearestDistance) {
         nearestDistance = distance
-        nearest = index
+        if (track.scrollLeft > 1 && track.scrollLeft < maxScroll - 1) nearest = index
       }
     })
     return nearest
@@ -181,6 +171,14 @@ export function FocalCarousel<T>({
   }
 
   const handleScroll = () => {
+    const physicalIndex = nearestItemIndex()
+    const track = trackRef.current
+    const maxScroll = track ? Math.max(0, track.scrollWidth - track.clientWidth) : 0
+    const atEndpoint = Boolean(track && (track.scrollLeft <= 1 || track.scrollLeft >= maxScroll - 1))
+    if (!requestedScrollRef.current || atEndpoint) {
+      requestedScrollRef.current = null
+      setActiveIndex(physicalIndex)
+    }
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = setTimeout(() => {
       scrollSettleTimerRef.current = null

@@ -211,6 +211,24 @@
 }
 
 .roleBadgeRow:is(
+    [data-role-code="designer"],
+    [data-role-code="admin"],
+    [data-role-code="other"]
+  )
+  .roleArtworkBackdrop {
+  inset: 12%;
+}
+
+.roleBadgeRow:is(
+    [data-role-code="designer"],
+    [data-role-code="admin"],
+    [data-role-code="other"]
+  )
+  .roleArtworkMotif {
+  clip-path: circle(34% at 50% 50%);
+}
+
+.roleBadgeRow:is(
     [data-role-code="project_lead"],
     [data-role-code="editor"],
     [data-role-code="raw_provider"],

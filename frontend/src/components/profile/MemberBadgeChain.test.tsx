@@ -796,7 +796,7 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(memberBadgeChainCss).toContain('width: 320px;')
     expect(memberBadgeChainCss).toContain('width: 280px;')
     expect(memberBadgeChainCss).toContain('width: 248px;')
-    expect(memberBadgeChainCss).toContain('.roleArtworkBackdrop {\n  z-index: 1;\n  inset: 12%;')
+    expect(memberBadgeChainCss).toContain('.roleArtworkBackdrop {\n  inset: 12%;')
     expect(memberBadgeChainCss).toContain('clip-path: circle(34% at 50% 50%);')
   })
 
