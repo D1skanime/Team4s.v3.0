@@ -239,10 +239,10 @@ track.addEventListener('wheel', onWheel, { passive: false })
 | A1 | Layout-metric targets are stable in all supported browsers. | Pitfalls | Requires live cross-input UAT. |
 | A2 | rAF momentum can coexist with temporarily disabled CSS snap. | Patterns | May require simplifying after browser testing. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Metadata carrier:** counts 1–11 have only entry badge; 12+ have entry and volume badge. [VERIFIED: codebase grep] Recommendation: enrich both synthetic role badges consistently and let the frontend select one per role. [ASSUMED]
-2. **Counter API:** roles require a counter while projects do not. [VERIFIED: codebase grep] Recommendation: optional counter label/render prop, enabled only for roles. [ASSUMED]
+1. **Metadata carrier — RESOLVED:** enrich both existing synthetic role badge carriers consistently from the same `RoleVolumeCount`; counts 1–11 use the entry carrier and 12+ keep entry plus volume carrier, while the frontend selects one role card per earned role. No new carrier, endpoint or query. [RESOLVED by 118-01]
+2. **Counter API — RESOLVED:** extend `FocalCarousel` with an optional generic counter formatter/slot that defaults off; enable it only for the role consumer, leaving `FansubProjectsGrid` unchanged. [RESOLVED by 118-02]
 
 ## Environment Availability
 

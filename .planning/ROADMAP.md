@@ -1917,13 +1917,16 @@ Plans:
 
 ### Phase 118: Rollenfortschritt als eigene Card je tatsächlich ausgeübter Fansubrolle: alle erreichten Medaillen sichtbar lassen, nächste Stufe gesperrt anzeigen, rollenspezifische Fortschrittsberechnung und responsive Karussell-Darstellung
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Das öffentliche Memberprofil zeigt für jede tatsächlich ausgeübte, öffentlich verdiente Fansubrolle eine eigenständige responsive Fortschritts-Card mit exakter Live-Nettozahl, aktuell höchster Medaille, vollständiger Einstieg/Bronze/Silber/Gold/Platin-Sammlung und verständlichem Weg zur nächsten Stufe; mehrere Rollen nutzen das global konsolidierte, barrierefreie FocalCarousel ohne neue Daten-, API- oder Carousel-Seams.
+**Requirements:** Keine formalen REQ-IDs in REQUIREMENTS.md; verbindliche Phase-Akzeptanz sind D-01–D-23 aus `118-CONTEXT.md` sowie der freigegebene `118-UI-SPEC.md`-Vertrag.
 **Depends on:** Phase 117
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 118 to break down)
+- [ ] `118-01-PLAN.md` — Wave 1: exakte Rollenfortschrittsprojektion und atomarer Go/OpenAPI/TypeScript-Vertrag (D-01–D-04, D-20–D-23)
+- [ ] `118-02-PLAN.md` — Wave 1 parallel: globale FocalCarousel-Geometrie, Input-Physik, Reduced Motion, Accessibility und FansubProjectsGrid-Regression (D-10–D-19)
+- [ ] `118-03-PLAN.md` — Wave 2, abhängig von 118-01/118-02: Sketch-A-Rollen-Cards, Medaillensammlung, Copy und responsive Komposition (D-01–D-09, D-13, D-16–D-17, D-20–D-23)
+- [ ] `118-04-PLAN.md` — Wave 3, abhängig von 118-03: vollständige automatisierte Gates und blockierende Live-Codex-Browser-UAT (D-01–D-23)
 
 ---
 
