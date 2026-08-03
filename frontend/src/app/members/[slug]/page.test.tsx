@@ -178,10 +178,12 @@ afterEach(() => {
 })
 
 describe('MemberProfilePage Phase 99 route composition', () => {
-  it('uses the shared 1480px public width contract and preserves reading sections', () => {
+  it('lets every visible profile section consume the shared 1480px shell', () => {
     expect(memberPageStyles).toContain('width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)));')
     expect(memberPageStyles).not.toContain('min(1280px')
-    expect(memberPageStyles).toContain('max-width: 920px;')
+    const sectionRule = memberPageStyles.match(/^\.section\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
+    expect(sectionRule).toContain('width: 100%;')
+    expect(sectionRule).not.toContain('max-width: 920px;')
   })
 
   it('renders the full locked seven-section public profile order', async () => {
