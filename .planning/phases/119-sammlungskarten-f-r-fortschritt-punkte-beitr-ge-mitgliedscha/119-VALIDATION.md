@@ -80,7 +80,7 @@ Plan 119-05 Task 2 is the sole blocking human gate and must use visible navigati
 - [x] Every final plan task has exactly one row with its real plan and frontmatter wave.
 - [x] D ownership mirrors the task action/behavior; 119-01-01 no longer claims D-14.
 - [x] Every referenced T-119 identifier is defined locally.
-- [x] Plan 119-05 remains strictly validation/UAT-only with `files_modified: []`.
+- [x] Plan 119-05 remains strictly validation/UAT-only; Task 1 owns only the executor evidence artifact `119-05-SUMMARY.md`, while Task 2 adds no file ownership.
 - [x] No watch-mode flags; every task command includes `git diff --check`.
 - [x] Sampling continuity and ASVS L1 blocking gates are explicit.
 
