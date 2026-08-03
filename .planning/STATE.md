@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 119-02-PLAN.md
-last_updated: "2026-08-03T13:23:29.130Z"
+stopped_at: Completed 119-03-PLAN.md
+last_updated: "2026-08-03T13:37:16.882Z"
 last_activity: 2026-08-03
 progress:
   total_phases: 111
   completed_phases: 90
   total_plans: 511
-  completed_plans: 476
+  completed_plans: 477
   percent: 93
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-01)
 ## Current Position
 
 Phase: 119 (Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Accumulated Context
 
@@ -444,6 +444,8 @@ Recent durable decisions:
 - [Phase 119]: badge_progress bleibt additiv und getrennt von earned-only public_badges.
 - [Phase 119]: badge_progress bleibt eine nicht persistierte additive Projektion im bestehenden öffentlichen Memberprofil. — Bestehender Endpoint und Sichtbarkeitsrand bleiben alleinige Transport-Seam.
 - [Phase 119]: Mitgliedschaftsfortschritt verwendet die längste einzelne historische Mitgliedschaft. — Mitgliedschaften werden nie summiert; Gründungsmitglied bleibt earned-only.
+- [Phase 119]: Badge-Familien konsumieren autoritative badge_progress-Metriken; Gründungsmitglied bleibt earned-only.
+- [Phase 119]: Temporäre Stufenauswahl bleibt domainlokal; der echte Rang behält Aktuell.
 
 ### Pending Todos
 
@@ -765,6 +767,7 @@ Recent durable decisions:
 | Phase 118 P04 | 34min | 2 tasks | 6 files |
 | Phase 119 P01 | 16min | 3 tasks | 8 files |
 | Phase 119 P02 | 15min | 2 tasks | 8 files |
+| Phase 119 P03 | 10min | 2 tasks | 4 files |
 
 ### Quick Tasks Completed
 
@@ -849,8 +852,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-08-03T13:23:29.119Z
-Stopped at: Completed 119-02-PLAN.md
+Last session: 2026-08-03T13:37:16.871Z
+Stopped at: Completed 119-03-PLAN.md
 Last activity: 2026-08-03
 Resume file: 
 None
