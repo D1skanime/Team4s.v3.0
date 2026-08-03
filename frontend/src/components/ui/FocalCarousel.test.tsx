@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { FocalCarousel } from './FocalCarousel'
+const focalCarouselCss = readFileSync('src/components/ui/FocalCarousel.module.css', 'utf8')
 
 const items = ['Alpha', 'Beta', 'Gamma']
 
@@ -26,6 +28,14 @@ function renderCarousel(showCounter = false) {
 }
 
 describe('FocalCarousel', () => {
+  it('gives the mobile track the full controls width and moves arrows below it', () => {
+    expect(focalCarouselCss).toContain('@media (max-width: 520px)')
+    expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*grid-column:\s*1 \/ -1;/s)
+    expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*grid-row:\s*1;/s)
+    expect(focalCarouselCss).toMatch(/\.arrow:first-child\s*\{[^}]*grid-column:\s*1;/s)
+    expect(focalCarouselCss).toMatch(/\.arrow:last-child\s*\{[^}]*grid-column:\s*3;/s)
+  })
+
   it('navigiert per Buttons und Tastatur, markiert das aktive Element und begrenzt die Enden', () => {
     renderCarousel()
 

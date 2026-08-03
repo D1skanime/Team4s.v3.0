@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 
 import type { ComponentType } from 'react'
+import { readFileSync } from 'node:fs'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
+const memberBadgeChainCss = readFileSync('src/components/profile/MemberBadgeChain.module.css', 'utf8')
 
 type MemberBadgeCatalogItem = {
   badge_code: string
@@ -790,6 +792,13 @@ describe('buildMemberBadgeGroups (D-04)', () => {
   })
 })
 describe('MemberBadgeChain Phase 118 role cards', () => {
+  it('keeps all five mobile medals and progress copy inside the role card', () => {
+    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleBadgeRow\s*\{[^}]*padding:\s*20px 10px;/)
+    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleProgression\s*\{[^}]*gap:\s*4px;/)
+    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(memberBadgeChainCss).toMatch(/\.roleProgressCopy\s*\{[^}]*white-space:\s*normal;/s)
+  })
+
   const roleBadge = (role: 'translator' | 'timer', count: number): PublicMemberBadge => ({
     id: count + 1,
     badge_code: count >= 510 ? `role_volume_${role}_platinum`

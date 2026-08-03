@@ -819,6 +819,11 @@
     var(--surface-card);
 }
 
+.roleBadgeRow > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .roleLabel {
   justify-self: start;
   font-size: 12px;
@@ -860,6 +865,7 @@
   font-weight: 400;
   line-height: 1.5;
   text-align: center;
+  white-space: normal;
   overflow-wrap: anywhere;
 }
 
@@ -961,8 +967,8 @@
   }
 
   .roleBadgeRow {
-    gap: 16px;
-    padding: 24px 16px;
+    gap: 14px;
+    padding: 20px 10px;
   }
 
   .roleHeroArtwork {
@@ -972,5 +978,9 @@
 
   .roleStageArtwork {
     width: min(52px, 100%);
+  }
+
+  .roleProgression {
+    gap: 4px;
   }
 }
