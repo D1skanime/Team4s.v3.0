@@ -220,6 +220,12 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(getMemberContributionsMock).not.toHaveBeenCalled()
   })
 
+  it('passes badge progress through the existing route', async () => {
+    await renderMemberPage(makePublicProfile({ badge_progress: [{ family: 'progress', current_count: 9, next_threshold: 10, remaining_count: 1, next_tier: '10 Projekte', complete: false }] }))
+    expect(screen.getByRole('heading', { name: 'Fortschritt' })).toBeTruthy()
+    expect(screen.getByText(/9 von 10 Anime-Projekten/)).toBeTruthy()
+  })
+
   it('keeps the hidden-profile owner preview path intact', async () => {
     await renderMemberPage({ visible: false, reason: 'members_only' })
 

@@ -2,7 +2,7 @@
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { FocalCarousel } from './FocalCarousel'
 const focalCarouselCss = readFileSync('src/components/ui/FocalCarousel.module.css', 'utf8')
@@ -65,7 +65,7 @@ describe('FocalCarousel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
 
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
-    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Beispiel-Karussell' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Alle Karten anzeigen' }))
   })
 
   it('unterdrückt den nach einem echten Pointer-Drag entstehenden Klick', () => {
@@ -209,11 +209,11 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     expect(screen.getByRole('list', { name: 'Alle Karten' })).toBeTruthy()
     expect(screen.getByRole('region', { name: 'Zweite-Karussell' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Erste weniger anzeigen' }))
-    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Erste-Karussell' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Erste alle anzeigen' }))
     fireEvent.click(screen.getByRole('button', { name: 'Zweite alle anzeigen' }))
     expect(screen.getByRole('region', { name: 'Erste-Karussell' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Zweite weniger anzeigen' }))
-    expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Zweite-Karussell' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Zweite alle anzeigen' }))
   })
 
   it('does not steal Arrow, Home or End keys from a nested interactive child', () => {

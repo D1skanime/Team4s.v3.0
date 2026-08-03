@@ -144,6 +144,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
       <section className={styles.section} aria-label="Auszeichnungen">
         <MemberBadgeChain
           earnedBadges={earnedBadges}
+          badgeProgress={profile.badge_progress}
           catalog={PUBLIC_MEMBER_BADGE_CATALOG}
         />
       </section>

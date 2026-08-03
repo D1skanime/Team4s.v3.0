@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type CSSProperties,
@@ -70,6 +71,8 @@ export function FocalCarousel<T>({
   formatCounter = (position, total, label) => `${position} von ${total} ${label}`,
 }: FocalCarouselProps<T>) {
   const [activeIndex, setActiveIndex] = useState(0)
+  const gridId = useId()
+  const toggleId = `${gridId}-toggle`
   const requestedScrollRef = useRef<{ index: number; left: number } | null>(null)
   const [expanded, setExpanded] = useState(false)
   const trackRef = useRef<HTMLDivElement>(null)
@@ -86,9 +89,11 @@ export function FocalCarousel<T>({
   useEffect(() => {
     if (!expanded && restoreFocusRef.current) {
       restoreFocusRef.current = false
-      trackRef.current?.focus()
+      const toggle = document.getElementById(toggleId)
+      if (toggle) toggle.focus()
+      else trackRef.current?.focus()
     }
-  }, [expanded])
+  }, [expanded, toggleId])
 
   useEffect(() => () => {
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
@@ -97,10 +102,16 @@ export function FocalCarousel<T>({
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => { reducedMotionRef.current = media.matches }
+    const update = () => {
+      reducedMotionRef.current = media.matches
+      requestedScrollRef.current = null
+      if (scrollSettleTimerRef.current) { clearTimeout(scrollSettleTimerRef.current); scrollSettleTimerRef.current = null }
+      if (media.matches) focusItem(nearestItemIndex(), 'auto', false)
+    }
     update()
     media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const itemElements = () =>
@@ -140,6 +151,7 @@ export function FocalCarousel<T>({
   const move = (delta: number) => focusItem(safeIndex + delta)
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
       move(event.key === 'ArrowRight' ? 1 : -1)
@@ -169,7 +181,7 @@ export function FocalCarousel<T>({
   }
 
   const settleNearest = () => {
-    focusItem(nearestItemIndex(), 'smooth', false)
+    focusItem(nearestItemIndex(), reducedMotionRef.current ? 'auto' : 'smooth', false)
   }
 
   const handleScroll = () => {
@@ -225,6 +237,7 @@ export function FocalCarousel<T>({
     suppressClickRef.current = true
     event.preventDefault()
     track.scrollLeft = drag.startScroll - delta
+    setActiveIndex(nearestItemIndex())
     if (!drag.captured) {
     const elapsed = event.timeStamp - drag.lastTime
     if (elapsed > 0 && elapsed <= 120) {
@@ -264,11 +277,12 @@ export function FocalCarousel<T>({
   }
 
   if (items.length === 0) return null
+  const quiet = visibleItems.length === 1
 
   if (expanded) {
     return (
       <div className={classNames(styles.root, className)} style={style}>
-        <ul className={classNames(styles.grid, gridClassName)} aria-label={`Alle ${itemPluralLabel}`}>
+        <ul id={gridId} className={classNames(styles.grid, gridClassName)} aria-label={`Alle ${itemPluralLabel}`}>
           {items.map((item, index) => (
             <li key={getItemKey(item)} className={itemClassName}>
               {renderItem(item, {
@@ -285,6 +299,8 @@ export function FocalCarousel<T>({
           type="button"
           variant="subtle"
           size="sm"
+          aria-expanded="true"
+          aria-controls={gridId}
           onClick={() => {
             restoreFocusRef.current = true
             setExpanded(false)
@@ -298,8 +314,8 @@ export function FocalCarousel<T>({
 
   return (
     <div className={classNames(styles.root, className)} style={style}>
-      <div className={styles.controls}>
-        <Button
+      <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>
+        {!quiet ? <Button
           type="button"
           variant="ghost"
           iconOnly
@@ -309,10 +325,10 @@ export function FocalCarousel<T>({
           onClick={() => move(-1)}
         >
           <ChevronLeft size={18} aria-hidden="true" />
-        </Button>
+        </Button> : null}
         <div
           ref={trackRef}
-          className={classNames(styles.track, carouselClassName)}
+          className={classNames(styles.track, quiet && styles.quietTrack, carouselClassName)}
           role="region"
           aria-roledescription="Karussell"
           aria-label={regionLabel}
@@ -354,7 +370,7 @@ export function FocalCarousel<T>({
             ))}
           </div>
         </div>
-        <Button
+        {!quiet ? <Button
           type="button"
           variant="ghost"
           iconOnly
@@ -364,15 +380,15 @@ export function FocalCarousel<T>({
           onClick={() => move(1)}
         >
           <ChevronRight size={18} aria-hidden="true" />
-        </Button>
+        </Button> : null}
       </div>
-      {showCounter ? (
+      {showCounter && !quiet ? (
         <output className={styles.counter} aria-live="polite">
           {formatCounter(safeIndex + 1, visibleItems.length, visibleItems.length === 1 ? itemSingularLabel : itemPluralLabel)}
         </output>
       ) : null}
-      {showAllLabel ? (
-        <Button type="button" variant="subtle" size="sm" className={styles.toggle} onClick={() => setExpanded(true)}>
+      {showAllLabel && !quiet ? (
+        <Button id={toggleId} type="button" variant="subtle" size="sm" className={styles.toggle} aria-expanded="false" aria-controls={gridId} onClick={() => setExpanded(true)}>
           {showAllLabel}
         </Button>
       ) : null}

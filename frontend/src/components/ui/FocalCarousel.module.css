@@ -11,6 +11,10 @@
   min-width: 0;
 }
 
+.controlsQuiet {
+  display: block;
+}
+
 .track {
   --focal-item-size: min(72%, 720px);
   flex: 1;
@@ -24,6 +28,19 @@
   touch-action: pan-y;
   cursor: grab;
   -webkit-overflow-scrolling: touch;
+}
+
+.quietTrack {
+  --focal-item-size: min(100%, 720px);
+  cursor: default;
+  overflow-x: hidden;
+  scroll-snap-type: none;
+}
+
+.quietTrack .itemWindow {
+  opacity: 1;
+  transform: none;
+  filter: none;
 }
 
 .items {
