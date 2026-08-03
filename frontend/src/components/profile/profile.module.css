@@ -254,7 +254,7 @@
 
 .membershipsList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 360px));
+  grid-template-columns: repeat(3, minmax(0, 360px));
   justify-content: start;
   gap: 12px;
   margin: 0;
@@ -265,10 +265,15 @@
 .membershipCard {
   min-width: 0;
   height: 100%;
-  padding: 14px;
+  padding: 0;
+  overflow: hidden;
 }
 
 .membershipLink {
+  min-width: 0;
+  height: 100%;
+  padding: 14px;
+  border-radius: inherit;
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) auto;
   gap: 14px;
@@ -281,6 +286,11 @@
 .membershipLink:focus-visible strong {
   text-decoration: underline;
 }
+.membershipLink:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--color-primary, #2f5fe3));
+  outline-offset: -3px;
+}
+
 
 .membershipLogo {
   width: 52px;
@@ -331,6 +341,12 @@
 .emptyText {
   margin: 0;
   color: var(--color-text-muted, #64748b);
+}
+
+@media (max-width: 1100px) {
+  .membershipsList {
+    grid-template-columns: repeat(2, minmax(0, 360px));
+  }
 }
 
 @media (max-width: 680px) {

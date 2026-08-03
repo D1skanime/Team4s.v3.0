@@ -56,12 +56,22 @@ describe('MembershipsSection', () => {
     const listRule = profileStyles.match(/\.membershipsList\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
     const cardRule = profileStyles.match(/\.membershipCard\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
 
-    expect(listRule).toContain('repeat(auto-fit, minmax(min(100%, 280px), 360px))')
+    expect(listRule).toContain('grid-template-columns: repeat(3, minmax(0, 360px));')
+    expect(listRule).not.toContain('auto-fit')
+    expect(profileStyles).toMatch(
+      /@media \(max-width: 1100px\)[\s\S]*?\.membershipsList\s*\{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 360px\)\);/,
+    )
     expect(listRule).toContain('justify-content: start;')
     expect(cardRule).toContain('min-width: 0;')
     expect(profileStyles).toMatch(
       /@media \(max-width: 680px\)[\s\S]*?\.membershipsList\s*\{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/,
     )
+    const linkRule = profileStyles.match(/\.membershipLink\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
+    expect(cardRule).toContain('padding: 0;')
+    expect(linkRule).toContain('height: 100%;')
+    expect(linkRule).toContain('padding: 14px;')
+    expect(linkRule).toContain('border-radius: inherit;')
+    expect(profileStyles).toMatch(/\.membershipLink:focus-visible\s*\{[\s\S]*?outline:/)
   })
 
   it('renders each group as a real card link with logo, role, and group action', () => {
