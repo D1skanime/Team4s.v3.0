@@ -1942,6 +1942,28 @@ Plans:
 - [ ] `119-04-PLAN.md` — Wave 4: globales FocalCarousel, `/members/[slug]`-Verdrahtung und FansubProjectsGrid-Regression (D-15–D-16; D-11 regressiv)
 - [ ] `119-05-PLAN.md` — Wave 5: vollständige automatisierte Gates und blockierende Live-In-App-Browser-UAT (D-01–D-16)
 
+### Phase 120: Öffentliches Memberprofil visuell harmonisieren und Ladeperformance optimieren: Profilkopf beruhigen, Desktop-Flächen besser nutzen, Abschnittsrhythmus vereinheitlichen, Überschriftenhierarchie korrigieren, Badge-Bereiche schneller erfassbar machen sowie Badge-Assets, responsive Bildgrößen, Lazy Rendering, Carousel-Mounting und doppelte Profilabfragen optimieren
+
+**Goal:** Das bestehende öffentliche Memberprofil folgt dem abgenommenen Hero-B-/Rhythmus-C-Zielbild, behält die Phase-118/119-Sammlungssemantik unverändert und liefert SSR-lesbare Inhalte, priorisierte Hero-/Avatarbilder, responsive gecachte WebP-Varianten sowie nahe am Viewport aktivierte Interaktion ohne Layoutverschiebung auf Mobile, Tablet oder Desktop.
+**Requirements:** Phase context D-01–D-22 aus `120-CONTEXT.md`; Phase-118/119-Verträge werden gemäß D-14 unverändert geerbt.
+**Depends on:** Phase 119
+**Plans:** 13 plans
+
+Plans:
+- [ ] `120-01-PLAN.md` — Wave 1: exakte Phase-119-Autorisierung plus unveränderliche SHA-256-Kette pro Overlap-Datei (D-14)
+- [ ] `120-02-PLAN.md` — Wave 2, nach 120-01: die exakt reproduzierten 119-05-Frontend-/Backend-/Build-Baselinefehler korrigieren oder als stale-grün belegen (D-14)
+- [ ] `120-03-PLAN.md` — Wave 3, nach 120-02: expected-red Verträge für auth-korrektes SSR, Hero B und responsive Bild-Fallbacks (D-01–D-05, D-15, D-17–D-22)
+- [ ] `120-04-PLAN.md` — Wave 3, nach 120-02: expected-red Verträge samt per-file Overlap-Manifests für Carousel, Badges und tiefe Profilsektionen (D-06–D-19)
+- [ ] `120-05-PLAN.md` — Wave 4, nach 120-03: auth-gebundene Request-Deduplizierung und isolierter Fünf-URL-Klassen-Next-WebP-Gate (D-15, D-18–D-22)
+- [ ] `120-06-PLAN.md` — Wave 4, nach 120-04: globale Near-Viewport-FocalCarousel-Seam mit fortgeschriebener per-file Manifestkette (D-15–D-18)
+- [ ] `120-07-PLAN.md` — Wave 5, nach 120-05: Hero B mit stabiler 100/120/140-px-Geometrie und priorisiertem Hero plus Avatar (D-01–D-05, D-17, D-19, D-22)
+- [ ] `120-08-PLAN.md` — Wave 6, nach 120-07: globale H2/H3-Semantik sowie Story-/Mitgliedschafts-Paar mit responsivem Gruppenlogo (D-06–D-09, D-17, D-19, D-22)
+- [ ] `120-09-PLAN.md` — Wave 5, nach 120-05/06: vollbreite Projekte mit stabilen SSR-Cards und responsiven Covers (D-06–D-09, D-15–D-17, D-19, D-22)
+- [ ] `120-10-PLAN.md` — Wave 5, nach 120-05/06: H3-Beitragspaar mit SSR-Zeilen, stabiler Geometrie und fortgeschriebener Overlap-Kette (D-06–D-09, D-15–D-19, D-22)
+- [ ] `120-11-PLAN.md` — Wave 7, nach 120-05/07/08/09/10/12: vollständige Hero-B-/Rhythmus-C-Routenkomposition und Overflow-Gates (D-04, D-06–D-10, D-15–D-18)
+- [ ] `120-12-PLAN.md` — Wave 5, nach 120-05/06: sechs unveränderte Badge-Kategorien mit WebP, globalem Carousel und zweistufiger Overlap-Kette (D-07, D-10–D-21)
+- [ ] `120-13-PLAN.md` — Wave 8, nach 120-11/12: alle aktuellen Overlap-Hashes, grüne Vollgates, Git-HEAD-gebundener Browser-Trace und blockierende Live-UAT (D-01–D-22)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie

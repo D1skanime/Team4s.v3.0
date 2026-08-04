@@ -181,13 +181,26 @@ The upload crop is already 1920×384 and retains a separate source original. [VE
 | A1 | 600px observer margin is suitable | tune via live trace |
 | A2 | symmetric mobile crop is acceptable | requires user visual check |
 | A3 | skeleton overlay can remain accessibility-clean | verify DOM/a11y |
-| A4 | Next optimizer accepts all representative profile URLs | Wave-0 probe required |
+| A4 | RESOLVED: local static and uploaded profile paths are accepted; absolute API media URLs require narrow configuration | Runtime probe completed 2026-08-04 |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. Which runtime profile URLs are relative versus absolute? Probe one of each asset type before removing `unoptimized`. [VERIFIED: resolveApiUrl/config]
-2. Is background, avatar or text the LCP per viewport? Measure; prioritize only actual image LCP. [ASSUMED]
-3. When is Phase 119 committed? Overlap work must begin from its final state. [VERIFIED: dirty worktree]
+1. **Runtime URL forms and optimizer inputs — RESOLVED.**
+   - The live public response for `/api/v1/members/sheppert` returns uploaded avatar/background URLs as same-origin-rooted `/media/profile/2/.../original.png|jpg`; the rendered page preserves those relative forms. [VERIFIED: live API and SSR HTML, 2026-08-04]
+   - Badge art is static same-origin `/member-achievement-badges/*.png`. Membership logos and Jellyfin covers enter as `/api/v1/media/...`, then `resolveApiUrl` renders them as absolute `http://192.168.235.196:18092/api/...` URLs. [VERIFIED: codebase and live API/SSR HTML]
+   - Next 16.1.6 runtime probes returned HTTP 200 and `Content-Type: image/webp` for a static badge and relative uploaded avatar through `/_next/image` with `Accept: image/webp`; the absolute API logo input returned HTTP 400 because `remotePatterns` is empty. [VERIFIED: live optimizer probes, 2026-08-04]
+   - **Planning resolution:** remove `unoptimized` only for proven local badge and `/media/profile/**` families, retaining original fallback. Before optimizing membership/project API media, normalize to a safe same-origin path or add a narrow exact host/path pattern and prove logo plus query-bearing Jellyfin cover requests. Never add a wildcard remote host. [VERIFIED: runtime/config; security prescription]
+
+2. **LCP ownership and D-19 priority contract — RESOLVED.**
+   - With a background present, it is the defensible primary image-LCP candidate: it fills the complete Hero (minimum 210px desktop; 16:9 mobile), while the avatar is 132×132px desktop or 104×104px mobile. [VERIFIED: `profile.module.css` and live SSR]
+   - Current SSR emits the background first without lazy loading, but the avatar has `loading="lazy"`; neither carries a high fetch-priority hint. [VERIFIED: live SSR HTML, 2026-08-04] Without a background, name/copy or the Hero surface can own LCP, but locked D-19 still prioritizes both images when present. [VERIFIED: conditional Hero; geometry inference]
+   - **Planning resolution:** preserve D-19 with differentiated priority: background = `fetchPriority="high"` plus eager discovery as primary image-LCP candidate; avatar = `loading="eager"`, reserved dimensions, default fetch priority as secondary critical identity image. If using Next 16 `preload`, preload only background and keep avatar eager. Projects/badges remain lazy. [VERIFIED: D-19/geometry; performance contract]
+   - Live Chrome at 390×844, 1024×768 and 1440×900 must record the waterfall and LCP entry for background-present and background-absent profiles; background starts with the Hero, avatar is not lazy, and neither shifts layout. [VERIFIED: inherited viewport contract; required gate]
+
+3. **Phase-119 availability/finality — RESOLVED as a blocking prerequisite.**
+   - Phase 119 is not approved/final: ROADMAP records 3/5 plans executed; `119-05-SUMMARY.md` is `status: blocked`, says Plan 119-05 is incomplete, and says blocking live UAT was not begun. [VERIFIED: ROADMAP and 119-05 summary]
+   - Uncommitted changes remain in `FocalCarousel.tsx/.module.css/.test.tsx`, `MemberBadgeChain.tsx/.module.css/.test.tsx`, `LatestContributionsSection.tsx/.test.tsx`, plus untracked Phase-119 evidence. [VERIFIED: git status, 2026-08-04]
+   - **Planning resolution:** Phase 120 starts with a blocking “accepted Phase-119 baseline” preflight before editing dependent seams. It requires owner/user acceptance or explicit authorization for the dirty snapshot, exact baseline commit/diff capture, focused Phase-119 tests green, and ownership handoff for every overlapping file. Until passed, Phase 120 must not edit those components, CSS, tests or assets. [VERIFIED: dependency/dirty state; required ownership gate]
 
 ## Environment Availability
 
