@@ -4,6 +4,18 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+function configuredApiMediaPatterns() {
+  const publicApiURL = (process.env.NEXT_PUBLIC_API_URL || '').trim()
+  if (!publicApiURL) return []
+
+  const mediaPattern = new URL(publicApiURL)
+  mediaPattern.pathname = '/api/v1/media/**'
+  mediaPattern.search = ''
+  mediaPattern.hash = ''
+
+  return [mediaPattern]
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -12,11 +24,14 @@ const nextConfig = {
     imageSizes: [64, 96, 128, 160, 192, 256, 512],
     localPatterns: [
       { pathname: '/__phase120-image-probe/alpha-badge.png', search: '' },
+      { pathname: '/member-achievement-badges/**', search: '' },
       { pathname: '/media/profile/**', search: '' },
+      { pathname: '/media/release-version/**', search: '' },
     ],
     remotePatterns: [
       new URL('http://127.0.0.1:3101/api/v1/media/phase120-project-cover.png'),
       new URL('http://127.0.0.1:3101/api/v1/media/phase120-group-logo.png'),
+      ...configuredApiMediaPatterns(),
     ],
     // The deterministic probe origin is loopback-only and still constrained
     // by the two exact URL patterns above.
