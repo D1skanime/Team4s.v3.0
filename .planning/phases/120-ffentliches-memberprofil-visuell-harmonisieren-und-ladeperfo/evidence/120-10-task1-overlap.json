@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "120-10:task1:b62edeab-88b6-4fff-9fc8-f697b331efc1",
+  "authorizationId": "phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+  "authorizationDigest": "f386081954a88a5a7b8e049a33f9c12acefafe636ca3fecc12211025dc676cd4",
+  "plan": "120-10",
+  "task": "task1",
+  "inputHead": "2585b8a00d10f0e1f8932c880a8ff00ccd4f707c",
+  "finishHead": "6ba255c0291388311a85c0cdab613d528df10ec5",
+  "entries": [
+    {
+      "path": "frontend/src/components/profile/LatestContributionsSection.test.tsx",
+      "predecessor": {
+        "manifestId": "120-04:task2:79b14c91-d7f2-4033-97a1-a0dc9a5549f9",
+        "manifestSha256": "00956c5bbdcbdee4be80d60b3d61422ff85bca37e03c9e14fb49485ab87e1ee0"
+      },
+      "beforeSha256": "33af2f06ea0e31b740ebb4dd5f1fc25e83d5d2ebcc7afd9bafff2bf3e9bb34d8",
+      "afterSha256": "ccdd893729a4109b979a264d57866116c14dd932d3fdf277a916910f32937d7d"
+    },
+    {
+      "path": "frontend/src/components/profile/LatestContributionsSection.tsx",
+      "predecessor": {
+        "manifestId": "initial:phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+        "manifestSha256": "145ec32292b5a98db7489bff2530f7b6247c6ece053a7fa667dcd5c0659c27af"
+      },
+      "beforeSha256": "c321e6d814f430723fb2ac357d4d51b7d4218580b76b05199b6cd20e7691cc13",
+      "afterSha256": "f8135a250720a3869cd163e97d2099e3676cf20aec7ac51fb1aa8ee7365b3025"
+    }
+  ],
+  "manifestDigest": "d681e02c3997debba0cb8d6bc917c621479ec8853b4bb1a5e9e65449a29198b4"
+}

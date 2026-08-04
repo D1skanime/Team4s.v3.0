@@ -9,9 +9,11 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import { Badge, Button, Card, SectionHeader } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
+import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
 import { resolveApiUrl } from '@/lib/api'
 import { CATEGORY_LABELS, type ReleaseVersionMediaCategory } from '@/types/releaseVersionMedia'
 import type { PublicMemberLatestContribution } from '@/types/profile'
@@ -20,6 +22,7 @@ import styles from './LatestContributionsSection.module.css'
 
 type LatestContributionsSectionProps = {
   items: PublicMemberLatestContribution[]
+  headingLevel?: 2 | 3
 }
 
 function textPreview(item: PublicMemberLatestContribution): string {
@@ -110,17 +113,65 @@ function usableItems(items: PublicMemberLatestContribution[]): PublicMemberLates
 
 const INITIAL_ITEM_COUNT = 3
 
-export function LatestContributionsSection({ items }: LatestContributionsSectionProps) {
+function ContributionSkeleton({ item }: { item: PublicMemberLatestContribution }) {
+  if (item.type === 'media') {
+    return (
+      <Card variant="flat" className={`${styles.mediaCard} ${styles.skeletonCard}`}>
+        <span className={`${styles.mediaPreview} ${styles.skeletonMedia}`} />
+        <span className={`${styles.mediaBody} ${styles.skeletonBody}`}>
+          <span className={styles.skeletonMeta} />
+          <span className={styles.skeletonBadge} />
+          <span className={styles.skeletonTitle} />
+          <span className={styles.skeletonCopy} />
+        </span>
+      </Card>
+    )
+  }
+
+  return (
+    <Card variant="flat" className={`${styles.textCard} ${styles.skeletonCard}`}>
+      <span className={`${styles.iconField} ${styles.skeletonIcon}`} />
+      <span className={`${styles.textBody} ${styles.skeletonBody}`}>
+        <span className={styles.skeletonMeta} />
+        <span className={styles.skeletonBadge} />
+        <span className={styles.skeletonTitle} />
+        <span className={styles.skeletonCopy} />
+      </span>
+    </Card>
+  )
+}
+
+export function LatestContributionsSection({
+  items,
+  headingLevel = 2,
+}: LatestContributionsSectionProps) {
   const [expanded, setExpanded] = useState(false)
+  const listId = useId()
+  const { targetRef, interactionEnabled } = useNearViewportActivation<HTMLElement>()
   const allUsableItems = usableItems(items)
   const visibleItems = expanded ? allUsableItems : allUsableItems.slice(0, INITIAL_ITEM_COUNT)
-  const listId = 'latest-contributions-list'
+  const initialVisibleItems = allUsableItems.slice(0, INITIAL_ITEM_COUNT)
   if (allUsableItems.length === 0) return null
 
   return (
-    <section className={styles.section}>
-      <SectionHeader title="Letzte Beiträge" />
-      <ul className={styles.list} aria-label="Letzte Beiträge">
+    <section ref={targetRef} className={styles.section}>
+      {headingLevel === 3
+        ? <h3 className={styles.cardHeading}>Letzte Beiträge</h3>
+        : <SectionHeader title="Letzte Beiträge" />}
+      <div
+        className={styles.skeletonLayer}
+        aria-hidden="true"
+        data-visible={interactionEnabled ? 'false' : 'true'}
+      >
+        <ul className={styles.list}>
+          {initialVisibleItems.map((item) => (
+            <li key={`skeleton:${item.type}:${item.id}`}>
+              <ContributionSkeleton item={item} />
+            </li>
+          ))}
+        </ul>
+      </div>
+      <ul id={listId} className={styles.list} aria-label="Letzte Beiträge">
         {visibleItems.map((item) => {
           if (item.type === 'media') {
             const previewURL = mediaURL(item)
@@ -136,10 +187,12 @@ export function LatestContributionsSection({ items }: LatestContributionsSection
                     data-testid="latest-contribution-media-preview"
                     style={{ aspectRatio: '16 / 9' }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <ResponsiveImage
                       src={previewURL}
                       alt={`Medienbeitrag zu ${item.anime_title}`}
+                      width={960}
+                      height={540}
+                      sizes="(max-width: 760px) calc(100vw - 56px), (max-width: 1099px) calc(50vw - 48px), 560px"
                       loading="lazy"
                       style={{ objectFit: 'cover' }}
                     />
@@ -185,7 +238,16 @@ export function LatestContributionsSection({ items }: LatestContributionsSection
         })}
       </ul>
       {!expanded && allUsableItems.length > INITIAL_ITEM_COUNT ? (
-        <Button variant="secondary" size="sm" aria-expanded={false} aria-controls={listId} onClick={() => setExpanded(true)}>
+        <Button
+          variant="secondary"
+          size="sm"
+          aria-expanded={false}
+          aria-controls={listId}
+          disabled={!interactionEnabled}
+          onClick={() => {
+            if (interactionEnabled) setExpanded(true)
+          }}
+        >
           Weitere Beiträge anzeigen
         </Button>
       ) : null}
