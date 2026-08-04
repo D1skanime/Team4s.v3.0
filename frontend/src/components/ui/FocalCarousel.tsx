@@ -78,6 +78,7 @@ export function FocalCarousel<T>({
   const [isNavigating, setIsNavigating] = useState(false)
   const gridId = useId()
   const toggleId = `${gridId}-toggle`
+  const pendingTargetIndexRef = useRef<number | null>(null)
   const [expanded, setExpanded] = useState(false)
   const { targetRef: activationRef, interactionEnabled } = useNearViewportActivation<HTMLDivElement>(
     deferInteractionUntilNearViewport,
@@ -92,6 +93,7 @@ export function FocalCarousel<T>({
   const visibleItems = carouselItems ?? items
   const lastIndex = Math.max(0, visibleItems.length - 1)
   const safeIndex = Math.min(activeIndex, lastIndex)
+  const navigationIndex = pendingTargetIndexRef.current ?? safeIndex
 
   useEffect(() => {
     if (!expanded && restoreFocusRef.current) {
@@ -130,10 +132,18 @@ export function FocalCarousel<T>({
     const element = itemElements()[boundedIndex]
     if (track && element) {
       const left = Math.max(0, Math.min(element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2, track.scrollWidth - track.clientWidth))
+      if (!reducedMotionRef.current && typeof track.scrollTo === 'function') {
+        pendingTargetIndexRef.current = boundedIndex
+        setIsNavigating(true)
+        track.scrollTo({ left, behavior: 'smooth' })
+        scheduleScrollSettle()
+        return
+      }
       track.scrollTo?.({ left, behavior: 'auto' })
     }
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = null
+    pendingTargetIndexRef.current = null
     setActiveIndex(boundedIndex)
     setIsNavigating(false)
   }
@@ -149,6 +159,7 @@ export function FocalCarousel<T>({
       const next = Math.max(0, Math.min(maxScroll, track.scrollLeft + delta))
       if (next === track.scrollLeft) return
       event.preventDefault()
+      pendingTargetIndexRef.current = null
       track.scrollLeft = next
       scheduleScrollSettle()
     }
@@ -159,7 +170,7 @@ export function FocalCarousel<T>({
   }, [expanded, interactionEnabled, visibleItems.length])
   const move = (delta: number) => {
     if (!interactionEnabled) return
-    focusItem(safeIndex + delta)
+    focusItem((pendingTargetIndexRef.current ?? safeIndex) + delta)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -196,7 +207,10 @@ export function FocalCarousel<T>({
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = setTimeout(() => {
       scrollSettleTimerRef.current = null
-      setActiveIndex(nearestItemIndex())
+      const physicalIndex = nearestItemIndex()
+      const pendingIndex = pendingTargetIndexRef.current
+      setActiveIndex(pendingIndex !== null && pendingIndex === physicalIndex ? pendingIndex : physicalIndex)
+      pendingTargetIndexRef.current = null
       setIsNavigating(false)
     }, 160)
   }
@@ -211,6 +225,7 @@ export function FocalCarousel<T>({
     if (event.pointerType === 'mouse' && event.button !== 0) return
     const track = trackRef.current
     if (!track) return
+    pendingTargetIndexRef.current = null
     dragRef.current = {
       active: true,
       intent: 'pending',
@@ -330,7 +345,7 @@ export function FocalCarousel<T>({
           iconOnly
           className={styles.arrow}
           aria-label={previousLabel}
-          disabled={safeIndex === 0}
+          disabled={navigationIndex === 0}
           onClick={() => move(-1)}
         >
           <ChevronLeft size={18} aria-hidden="true" />
@@ -394,7 +409,7 @@ export function FocalCarousel<T>({
           iconOnly
           className={styles.arrow}
           aria-label={nextLabel}
-          disabled={safeIndex === lastIndex}
+          disabled={navigationIndex === lastIndex}
           onClick={() => move(1)}
         >
           <ChevronRight size={18} aria-hidden="true" />

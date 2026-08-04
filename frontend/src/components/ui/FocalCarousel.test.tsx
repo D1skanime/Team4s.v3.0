@@ -146,28 +146,23 @@ describe('FocalCarousel', () => {
           offsetWidth: { configurable: true, value: 400 },
         })
       })
-      const scrollTo = vi.fn(({ left, behavior }: ScrollToOptions) => {
-        // Real smooth scrolling can pause long enough at the penultimate
-        // center for the debounce to fire before reaching the requested target.
-        region.scrollLeft = behavior === 'smooth'
-          ? Number(left) - 200
-          : Number(left)
+      const scrollTo = vi.fn(({ left }: ScrollToOptions) => {
+        region.scrollLeft = Number(left)
       })
       region.scrollTo = scrollTo as typeof region.scrollTo
 
       fireEvent.keyDown(region, { key: 'End' })
-      expect(scrollTo).toHaveBeenCalledWith({ left: 2000, behavior: 'auto' })
-      fireEvent.scroll(region)
+      expect(scrollTo).toHaveBeenCalledWith({ left: 2000, behavior: 'smooth' })
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      expect(region.querySelector('[aria-current="true"]')).toBeNull()
       act(() => vi.advanceTimersByTime(160))
+      expect(screen.getByText('Karte 11').closest('[aria-current="true"]')).not.toBeNull()
 
       fireEvent.keyDown(region, { key: 'ArrowLeft' })
-      region.scrollLeft = 2000
-      fireEvent.scroll(region)
       act(() => vi.advanceTimersByTime(160))
 
-      expect(screen.getByText('11 von 11 Rollen')).toBeTruthy()
-      expect(screen.getByRole('button', { name: 'N\u00e4chste Rolle' }).getAttribute('disabled')).not.toBeNull()
-      expect(screen.getByText('Karte 11').closest('[aria-current="true"]')).not.toBeNull()
+      expect(screen.getByText('10 von 11 Rollen')).toBeTruthy()
+      expect(screen.getByText('Karte 10').closest('[aria-current="true"]')).not.toBeNull()
     } finally {
       vi.useRealTimers()
     }
@@ -293,6 +288,75 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
     } finally {
       vi.useRealTimers()
+    }
+  })
+
+  it('moves arrow targets smoothly and keeps rapid clicks on the pending target', () => {
+    vi.useFakeTimers()
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      Object.defineProperties(region, {
+        clientWidth: { configurable: true, value: 300 },
+        scrollWidth: { configurable: true, value: 900 },
+        scrollLeft: { configurable: true, writable: true, value: 0 },
+      })
+      cards.forEach((card, index) => Object.defineProperties(card, {
+        offsetLeft: { configurable: true, value: index * 300 },
+        offsetWidth: { configurable: true, value: 300 },
+      }))
+      const scrollTo = vi.fn(({ left }: ScrollToOptions) => { region.scrollLeft = Number(left) })
+      region.scrollTo = scrollTo as typeof region.scrollTo
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 300, behavior: 'smooth' })
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      expect(region.querySelector('[aria-current="true"]')).toBeNull()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 600, behavior: 'smooth' })
+      expect(region.querySelector('[aria-current="true"]')).toBeNull()
+
+      act(() => vi.advanceTimersByTime(160))
+
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps programmatic navigation immediate for reduced motion', () => {
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      Object.defineProperties(region, {
+        clientWidth: { configurable: true, value: 300 },
+        scrollWidth: { configurable: true, value: 900 },
+        scrollLeft: { configurable: true, writable: true, value: 0 },
+      })
+      cards.forEach((card, index) => Object.defineProperties(card, {
+        offsetLeft: { configurable: true, value: index * 300 },
+        offsetWidth: { configurable: true, value: 300 },
+      }))
+      const scrollTo = vi.fn(({ left }: ScrollToOptions) => { region.scrollLeft = Number(left) })
+      region.scrollTo = scrollTo as typeof region.scrollTo
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 300, behavior: 'auto' })
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+    } finally {
+      vi.unstubAllGlobals()
     }
   })
 
