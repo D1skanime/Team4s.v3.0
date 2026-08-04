@@ -7,18 +7,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberProfileData } from '@/types/profile'
 
-import MemberProfilePage from './page'
+import MemberProfilePage, { generateMetadata } from './page'
 
 const memberPageStyles = readFileSync('src/app/members/[slug]/page.module.css', 'utf8')
 
-const { getMemberProfileMock, getMemberContributionsMock } = vi.hoisted(() => ({
+const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock } = vi.hoisted(() => ({
+  cookieGetMock: vi.fn(),
   getMemberProfileMock: vi.fn(),
   getMemberContributionsMock: vi.fn(),
 }))
 
 vi.mock('next/headers', () => ({
   cookies: vi.fn(() => ({
-    get: vi.fn(() => undefined),
+    get: cookieGetMock,
   })),
 }))
 
@@ -209,6 +210,70 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })).not.toBeNull()
   })
 
+  it('Phase 120 RED: deduplicates metadata and page reads for the same slug and viewer token', async () => {
+    cookieGetMock.mockImplementation((name: string) => (
+      name === 'team4s_access_token' ? { value: '  viewer-token  ' } : undefined
+    ))
+    getMemberProfileMock.mockResolvedValue({ data: makePublicProfile({ noindex: true }) })
+
+    const metadata = await generateMetadata({ params: { slug: 'ballelboy' } })
+    const page = await MemberProfilePage({ params: { slug: 'ballelboy' } })
+    render(page)
+
+    expect(metadata).toEqual({ robots: { index: false, follow: false } })
+    expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
+    expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy', 'viewer-token')
+    expect(screen.getAllByRole('heading', { name: 'Ballelboy' })[0]).toBeTruthy()
+  })
+
+  it('Phase 120 RED: isolates anonymous and owner-preview cache keys', async () => {
+    const ownerProfile = makePublicProfile({
+      noindex: true,
+      avatar: {
+        media_id: 901,
+        public_url: '/media/profile/41/avatar/display.png',
+        source_original_url: '/media/profile/41/avatar/source-original.png',
+      },
+      public_badges: [
+        { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
+      ],
+    })
+    getMemberProfileMock.mockImplementation((_slug: string, token?: string) => (
+      token === 'owner-token'
+        ? Promise.resolve({ data: ownerProfile })
+        : Promise.resolve({ visible: false, reason: 'members_only' })
+    ))
+
+    cookieGetMock.mockReturnValue(undefined)
+    const anonymousMetadata = await generateMetadata({ params: { slug: 'ballelboy' } })
+    const anonymousPage = await MemberProfilePage({ params: { slug: 'ballelboy' } })
+    const anonymousRender = render(anonymousPage)
+
+    expect(anonymousMetadata).toEqual({})
+    expect(screen.getByTestId('own-hidden-profile-preview').textContent).toBe(
+      'OwnHiddenProfilePreview:ballelboy',
+    )
+    expect(anonymousRender.container.textContent).not.toContain('Ballelboy')
+    expect(anonymousRender.container.textContent).not.toContain('Gründungsmitglied')
+    expect(anonymousRender.container.innerHTML).not.toContain('/media/profile/41/avatar/display.png')
+    expect(anonymousRender.container.innerHTML).not.toContain('source-original.png')
+    anonymousRender.unmount()
+
+    cookieGetMock.mockImplementation((name: string) => (
+      name === 'team4s_access_token' ? { value: '  owner-token  ' } : undefined
+    ))
+    const ownerMetadata = await generateMetadata({ params: { slug: 'ballelboy' } })
+    const ownerPage = await MemberProfilePage({ params: { slug: 'ballelboy' } })
+    render(ownerPage)
+
+    expect(ownerMetadata).toEqual({ robots: { index: false, follow: false } })
+    expect(screen.getAllByRole('heading', { name: 'Ballelboy' })[0]).toBeTruthy()
+    expect(getMemberProfileMock).toHaveBeenCalledTimes(2)
+    expect(getMemberProfileMock.mock.calls).toEqual([
+      ['ballelboy', undefined],
+      ['ballelboy', 'owner-token'],
+    ])
+  })
   it('does not render the old public tab navigation labels as section navigation or fetch the old timeline', async () => {
     await renderMemberPage(makePublicProfile())
 
