@@ -15,6 +15,7 @@ import { MemberCurrentProjectsSection } from '@/components/profile/MemberCurrent
 import { MemberBadgeChain } from '@/components/profile/MemberBadgeChain'
 import { LatestContributionsSection } from '@/components/profile/LatestContributionsSection'
 import { MemberStorySection } from '@/components/profile/MemberStorySection'
+import { SectionHeader } from '@/components/ui'
 import { PreviousContributionsSection } from '@/components/profile/PreviousContributionsSection'
 import { PUBLIC_MEMBER_BADGE_CATALOG, deriveMilestoneBadge } from '@/components/profile/memberBadgeLabels'
 import type { PublicMemberProfileData } from '@/types/profile'
@@ -107,6 +108,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   const latestContributions = profile.latest_contributions ?? []
   const previousContributions = profile.previous_contributions ?? []
   const previousContributionsCount = profile.previous_contributions_count ?? previousContributions.length
+  const hasContributions = latestContributions.length > 0 || previousContributionsCount > 0
 
   return (
     <main className={styles.page}>
@@ -132,18 +134,19 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         />
       </section>
 
-      <section className={styles.section} aria-label="Fansub-Geschichte">
-        <MemberStorySection storyHtml={profile.member_story_html} />
+      <section className={`${styles.section} ${styles.profileBand}`} aria-label="Profil und Mitgliedschaft">
+        <SectionHeader title="Profil und Mitgliedschaft" underline />
+        <div className={styles.sectionPair}>
+          <MemberStorySection storyHtml={profile.member_story_html} headingLevel={3} />
+          <MembershipsSection
+            memberships={profile.memberships ?? []}
+            title="Gruppenzugehörigkeit"
+            headingLevel={3}
+          />
+        </div>
       </section>
 
-      <section className={styles.section} aria-label="Gruppenzugehörigkeit">
-        <MembershipsSection
-          memberships={profile.memberships ?? []}
-          title="Gruppenzugehörigkeit"
-        />
-      </section>
-
-      <section className={styles.section} aria-label="Aktuelle Projekte">
+      <section className={`${styles.section} ${styles.projectsBand}`} aria-label="Aktuelle Projekte">
         <MemberCurrentProjectsSection
           memberSlug={slug}
           projects={currentProjects}
@@ -151,24 +154,27 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         />
       </section>
 
-      <section className={styles.section} aria-label="Auszeichnungen">
+      <div className={`${styles.section} ${styles.badgesBand}`}>
         <MemberBadgeChain
           earnedBadges={earnedBadges}
           badgeProgress={profile.badge_progress}
           catalog={PUBLIC_MEMBER_BADGE_CATALOG}
         />
-      </section>
+      </div>
 
-      <section className={styles.section} aria-label="Letzte Beiträge">
-        <LatestContributionsSection items={latestContributions} />
-      </section>
-
-      <section className={styles.section} aria-label="Frühere Mitwirkungen">
-        <PreviousContributionsSection
-          items={previousContributions}
-          totalCount={previousContributionsCount}
-        />
-      </section>
+      {hasContributions ? (
+        <section className={`${styles.section} ${styles.contributionsBand}`} aria-label="Beiträge">
+          <SectionHeader title="Beiträge" underline />
+          <div className={styles.sectionPair}>
+            <LatestContributionsSection items={latestContributions} headingLevel={3} />
+            <PreviousContributionsSection
+              items={previousContributions}
+              totalCount={previousContributionsCount}
+              headingLevel={3}
+            />
+          </div>
+        </section>
+      ) : null}
     </main>
   )
 }
