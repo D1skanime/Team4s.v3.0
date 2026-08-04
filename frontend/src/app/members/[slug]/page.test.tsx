@@ -207,27 +207,47 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(sectionRule).not.toContain('max-width: 920px;')
   })
 
-  it('renders the full locked seven-section public profile order', async () => {
+  it('renders the locked Hero B and Rhythm C heading hierarchy in DOM order', async () => {
     await renderMemberPage(makePublicProfile())
 
-    const orderedSections = [
-      screen.getAllByRole('heading', { name: 'Ballelboy' })[0],
-      screen.getByRole('heading', { name: 'Fansub-Geschichte' }),
-      screen.getByRole('heading', { name: 'Gruppenzugehörigkeit' }),
-      screen.getByRole('heading', { name: 'Aktuelle Projekte' }),
-      screen.getByRole('heading', { name: 'Auszeichnungen' }),
-      screen.getByRole('heading', { name: 'Letzte Beiträge' }),
-      screen.getByRole('heading', { name: 'Frühere Mitwirkungen' }),
-    ]
-
-    for (let index = 1; index < orderedSections.length; index += 1) {
-      const previous = orderedSections[index - 1]
-      const next = orderedSections[index]
-      expect(previous.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
-    }
+    expect(screen.getAllByRole('heading', { level: 1 }).map((heading) => heading.textContent)).toContain('Ballelboy')
+    expect(screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual([
+      'Profil und Mitgliedschaft',
+      'Aktuelle Projekte',
+      'Rollenfortschritt',
+      'Fortschritt',
+      'Punkte-Meilensteine',
+      'Beiträge',
+      'Mitgliedschaft',
+      'Besondere Auszeichnungen',
+      'Beiträge',
+    ])
+    expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(
+      expect.arrayContaining([
+        'Fansub-Geschichte',
+        'Gruppenzugehörigkeit',
+        'Letzte Beiträge',
+        'Frühere Mitwirkungen',
+      ]),
+    )
+    expect(screen.queryByRole('heading', { name: 'Auszeichnungen' })).toBeNull()
 
     expect(screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })).not.toBeNull()
   })
+  it('keeps empty earned-only and contribution sections out of the public outline', async () => {
+    await renderMemberPage(makePublicProfile({
+      public_badges: [],
+      latest_contributions: [],
+      previous_contributions: [],
+      previous_contributions_count: 0,
+    }))
+
+    expect(screen.queryByRole('heading', { name: 'Besondere Auszeichnungen' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Letzte Beiträge' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Frühere Mitwirkungen' })).toBeNull()
+    expect(screen.getAllByRole('heading', { name: 'Beiträge', level: 2 })).toHaveLength(1)
+  })
+
 
   it('Phase 120 RED: deduplicates metadata and page reads for the same slug and viewer token', async () => {
     cookieGetMock.mockImplementation((name: string) => (
