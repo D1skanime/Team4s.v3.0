@@ -57,6 +57,16 @@ describe('MemberStorySection', () => {
     expect(screen.queryByRole('button', { name: 'Mehr lesen' })).toBeNull()
   })
 
+  it('demotes persisted story headings below the profile section hierarchy', async () => {
+    const { MemberStorySection } = await loadMemberStorySection()
+
+    render(<MemberStorySection storyHtml="<h1>Meine Geschichte</h1><h2>Früher</h2><h3>Heute</h3>" headingLevel={3} />)
+
+    expect(screen.getByTestId('rich-text-renderer').textContent).toBe(
+      '<h4>Meine Geschichte</h4><h4>Früher</h4><h4>Heute</h4>',
+    )
+  })
+
   it('shows Mehr lesen only after measured overflow and toggles both ways', async () => {
     const { MemberStorySection } = await loadMemberStorySection()
 

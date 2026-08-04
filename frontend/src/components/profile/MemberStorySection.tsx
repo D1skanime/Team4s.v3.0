@@ -12,6 +12,12 @@ type MemberStorySectionProps = {
   headingLevel?: 2 | 3
 }
 
+function demoteStoryHeadings(storyHtml: string, sectionHeadingLevel: 2 | 3): string {
+  const contentHeadingLevel = sectionHeadingLevel + 1
+  const headingPattern = new RegExp(`<(\\/?)h[1-${sectionHeadingLevel}](\\s|>)`, 'gi')
+  return storyHtml.replace(headingPattern, `<$1h${contentHeadingLevel}$2`)
+}
+
 export function MemberStorySection({ storyHtml, headingLevel = 2 }: MemberStorySectionProps) {
   const trimmedStory = storyHtml?.trim() ?? ''
   const contentRef = useRef<HTMLDivElement>(null)
@@ -43,6 +49,7 @@ export function MemberStorySection({ storyHtml, headingLevel = 2 }: MemberStoryS
   if (!trimmedStory) return null
 
   const isClamped = !isExpanded
+  const normalizedStory = demoteStoryHeadings(trimmedStory, headingLevel)
 
   return (
     <section className={styles.section}>
@@ -53,7 +60,7 @@ export function MemberStorySection({ storyHtml, headingLevel = 2 }: MemberStoryS
             ref={contentRef}
             className={isClamped ? styles.storyContentClamped : styles.storyContentExpanded}
           >
-            <RichTextRenderer bodyHtml={trimmedStory} editorType="tiptap" contentSchemaVersion={1} />
+            <RichTextRenderer bodyHtml={normalizedStory} editorType="tiptap" contentSchemaVersion={1} />
           </div>
         </div>
         {isOverflowing ? (
