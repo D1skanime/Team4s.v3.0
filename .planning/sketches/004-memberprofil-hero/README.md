@@ -1,36 +1,36 @@
 ---
 sketch: 004
-name: beruhigter-memberprofil-hero
-question: "Wie soll der beruhigte öffentliche Memberprofil-Hero konkret aussehen?"
-winner: "B"
-tags: [profile, hero, responsive, hierarchy, phase-120]
+name: memberprofil-hero-und-abschnittsrhythmus
+question: "Wie wirken der gewählte Hero und die aktuelle Badge-Seite mit drei Abschnittsrhythmen?"
+winner: "C"
+tags: [profile, hero, sections, rhythm, ui-line, badges, responsive, phase-120]
 ---
 
-# Sketch 004: Beruhigter Memberprofil-Hero
+# Sketch 004: Memberprofil-Hero und Abschnittsrhythmus
 
-## Design Question
+## Design Questions
 
-Wie bleiben Hintergrundbild und persönliche Identität erhalten, während Name, Status und Punktzahl schneller erfassbar und die Werkzeugleiste zurückhaltender werden?
+1. Wie bleiben Member-Hintergrund und Profilinformationen gleichzeitig sichtbar?
+2. Welcher Abschnittsrhythmus nutzt breite Desktop-Flächen gut, bleibt auf Mobile klar und etabliert `--ui-line` als wiederkehrendes Team4s-Muster?
+
+## Locked Hero Direction
+
+Der zuvor gewählte Hero B bleibt in allen Varianten identisch: Das vom Member hochgeladene und zugeschnittene Bild füllt den Hero. Eine moderate, weich auslaufende Lesbarkeitszone liegt nur hinter den Informationen und funktioniert mit hellen wie dunklen Uploads. Mobile ist einspaltig und überlauffrei.
+
+## Rhythm Variants
+
+- **A: Großzügiger Rhythmus** — 46 px zwischen Hauptabschnitten, deutliche H2-Weinlinie.
+- **B: Kompakter Rhythmus** — 28 px Abstand, kleinere Überschriften und dichtere Cards.
+- **C: Hintergrundbänder** — mittlerer Abstand plus abwechselnd leicht abgesetzte Vollbreitenflächen.
+
+## Realistic Comparison
+
+Alle Varianten verwenden dieselben realistischen Profilinhalte und echte Badge-Assets der aktuellen Rollen-, Fortschritts-, Punkte-, Beitrags- und Mitgliedschaftssammlungen. Nur Rhythmus und Abschnittstrennung ändern sich.
 
 ## How to View
 
 Open `.planning/sketches/004-memberprofil-hero/index.html`.
 
-## Variants
-
-- **A: Sanfte Vollfläche** — gleichmäßiger Scrim über dem vollständig respektierten Member-Zuschnitt.
-- **B: Lokale Lesbarkeitszone** — Vollflächenbild mit zusätzlicher weicher Kontrastzone hinter den Informationen, ohne eine Motivseite vorauszusetzen.
-- **C: Kompakt editorial** — geringere Höhe und stärkerer gleichmäßiger Scrim für maximale Scanbarkeit.
-
-Jede Variante lässt sich mit einer eigens erzeugten hellen und dunklen Anime-Grafik prüfen. Beide Bilder simulieren echte, vom Member hochgeladene und zugeschnittene Hintergründe.
-
-## What to Look For
-
-- Welche Variante wirkt persönlich, ohne laut zu werden?
-- Bleibt der Name klar dominant und die Punktzahl kompakt?
-- Ist die Werkzeugleiste sichtbar, aber dem Profilkopf untergeordnet?
-- Funktioniert die gestapelte Mobile-Fassung mit 100-px-Avatar?
-
 ## Winner
 
-**B: Lokale Lesbarkeitszone.** Der vom Member hochgeladene und zugeschnittene Hintergrund bleibt vollflächig sichtbar. Eine moderate, weich auslaufende Kontrastzone liegt nur hinter den Informationen; Textschatten und kompakte Informationsflächen sichern helle wie dunkle Uploads ab, ohne das Bild durch eine starke Vollflächenabdunklung zu entwerten.
+**C: Hintergrundbänder.** Hauptabschnitte verwenden eine einheitliche H2-Hierarchie mit der globalen Weinlinie `--ui-line: #82122c`. Abwechselnd leicht abgesetzte Vollbreitenbänder schaffen einen ruhigen mittleren Rhythmus. Profilgeschichte und Gruppenzugehörigkeit sowie aktuelle und frühere Beiträge bilden auf Desktop Zweispalten-Paare; Projekte und Badge-Sammlungen bleiben vollbreit. Mobile fällt vollständig auf eine Spalte zurück.
