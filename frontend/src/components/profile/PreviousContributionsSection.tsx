@@ -13,6 +13,7 @@ type PreviousContributionsSectionProps = {
   items: PublicMemberPreviousContribution[]
   totalCount?: number
   headingLevel?: 2 | 3
+  showEmptyState?: boolean
 }
 
 function periodLabel(item: PublicMemberPreviousContribution): string | null {
@@ -29,6 +30,7 @@ export function PreviousContributionsSection({
   items,
   totalCount,
   headingLevel = 2,
+  showEmptyState = false,
 }: PreviousContributionsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { targetRef, interactionEnabled } = useNearViewportActivation<HTMLElement>()
@@ -38,7 +40,20 @@ export function PreviousContributionsSection({
   )
   const displayCount = typeof totalCount === 'number' ? totalCount : validItems.length
 
-  if (displayCount <= 0) return null
+  if (displayCount <= 0) {
+    if (!showEmptyState) return null
+
+    return (
+      <section className={styles.section}>
+        {headingLevel === 3
+          ? <h3 className={styles.cardHeading}>Frühere Mitwirkungen</h3>
+          : <SectionHeader title="Frühere Mitwirkungen" />}
+        <Card variant="section" className={styles.card}>
+          <p>Keine früheren Mitwirkungen sichtbar.</p>
+        </Card>
+      </section>
+    )
+  }
 
   return (
     <section ref={targetRef} className={styles.section}>

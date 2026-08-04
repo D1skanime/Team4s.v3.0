@@ -171,6 +171,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
               items={previousContributions}
               totalCount={previousContributionsCount}
               headingLevel={3}
+              showEmptyState
             />
           </div>
         </section>

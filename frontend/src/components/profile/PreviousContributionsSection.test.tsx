@@ -13,6 +13,7 @@ async function loadPreviousContributionsSection(): Promise<{
     items: PublicMemberPreviousContribution[]
     totalCount?: number
     headingLevel?: 2 | 3
+    showEmptyState?: boolean
   }>
 }> {
   try {
@@ -117,6 +118,23 @@ describe('PreviousContributionsSection', () => {
     expect(disconnect).toHaveBeenCalledTimes(1)
     fireEvent.click(toggle)
     expect(screen.getByRole('list', { name: 'Frühere Mitwirkungen' })).not.toBeNull()
+  })
+
+  it('keeps the paired card visible with a scoped empty state', async () => {
+    const { PreviousContributionsSection } = await loadPreviousContributionsSection()
+
+    render(
+      <PreviousContributionsSection
+        items={[]}
+        totalCount={0}
+        headingLevel={3}
+        showEmptyState
+      />,
+    )
+
+    expect(screen.getByRole('heading', { level: 3, name: 'Frühere Mitwirkungen' })).not.toBeNull()
+    expect(screen.getByText('Keine früheren Mitwirkungen sichtbar.')).not.toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 
 })
