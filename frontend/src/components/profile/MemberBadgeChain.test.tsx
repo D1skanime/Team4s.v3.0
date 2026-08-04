@@ -2,7 +2,7 @@
 
 import type { ComponentType } from 'react'
 import { readFileSync } from 'node:fs'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
@@ -951,21 +951,57 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
   it('centers the current stage through its own strip and never scrolls an ancestor', async () => {
     const scrollIntoView = vi.fn()
     const scrollTo = vi.fn()
+    const disconnect = vi.fn()
+    let resizeCallback: ResizeObserverCallback | null = null
+    let breakpointCallback: (() => void) | null = null
     const original = Element.prototype.scrollIntoView
     Element.prototype.scrollIntoView = scrollIntoView
     Object.defineProperty(HTMLElement.prototype, 'scrollTo', { configurable: true, value: scrollTo })
 
     try {
-      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+      vi.stubGlobal('ResizeObserver', class {
+        constructor(callback: ResizeObserverCallback) {
+          resizeCallback = callback
+        }
+        observe() {}
+        disconnect() { disconnect() }
+      })
+      vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+        matches: false,
+        addEventListener: (_event: string, callback: () => void) => {
+          if (query === '(max-width: 820px)') breakpointCallback = callback
+        },
+        removeEventListener: vi.fn(),
+      })))
       const { MemberBadgeChain } = await loadMemberBadgeChain()
       const CollectionChain = MemberBadgeChain as ComponentType<{
         earnedBadges: PublicMemberBadge[]
         badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
       }>
-      render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+      const rendered = render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+      const current = screen.getByRole('button', { name: /10 Anime-Projekte auswählen, Aktuell/ })
+      const strip = current.closest('[data-badge-stage-strip]') as HTMLElement
+      Object.defineProperties(strip, {
+        clientWidth: { configurable: true, value: 200 },
+        scrollWidth: { configurable: true, value: 600 },
+        scrollLeft: { configurable: true, writable: true, value: 20 },
+      })
+      vi.spyOn(strip, 'getBoundingClientRect').mockReturnValue({ left: 20, width: 200 } as DOMRect)
+      vi.spyOn(current, 'getBoundingClientRect').mockReturnValue({ left: 260, width: 100 } as DOMRect)
+      scrollTo.mockClear()
+
+      act(() => resizeCallback?.([], {} as ResizeObserver))
+
       expect(scrollIntoView).not.toHaveBeenCalled()
-      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: expect.any(Number), behavior: 'smooth' }))
+      expect(scrollTo).toHaveBeenCalledWith({ left: 210, behavior: 'smooth' })
       expect(scrollTo.mock.instances.every((element) => element instanceof HTMLElement && element.hasAttribute('data-badge-stage-strip'))).toBe(true)
+
+      scrollTo.mockClear()
+      act(() => breakpointCallback?.())
+      expect(scrollTo).toHaveBeenCalledWith({ left: 210, behavior: 'smooth' })
+
+      rendered.unmount()
+      expect(disconnect).toHaveBeenCalled()
     } finally {
       Element.prototype.scrollIntoView = original
       delete (HTMLElement.prototype as { scrollTo?: unknown }).scrollTo
@@ -973,8 +1009,94 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
     }
   })
 
+  it('exposes every earned and locked stage as a semantic list item', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const CollectionChain = MemberBadgeChain as ComponentType<{
+      earnedBadges: PublicMemberBadge[]
+      badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+    }>
+    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+    const progressHeading = screen.getByRole('heading', { level: 3, name: 'Fortschritt' })
+    const progressGroup = progressHeading.closest('[data-badge-group="progress"]') as HTMLElement
+    const stageList = within(progressGroup).getByRole('list', { name: /Stufen für Anime-Projekte/ })
+
+    expect(within(stageList).getAllByRole('listitem')).toHaveLength(4)
+    expect(within(stageList).getByRole('button', { name: /10 Anime-Projekte auswählen, Aktuell/ })).not.toBeNull()
+    expect(within(stageList).getByLabelText('25 Anime-Projekte · Gesperrt')).not.toBeNull()
+  })
+
   it('reduces collection heroes only at smartphone width', () => {
     expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: clamp\(172px, 51vw, 204px\)/)
     expect(memberBadgeChainCss).toMatch(/@media \(max-width: 1099px\)[\s\S]*?width: clamp\(224px, 29vw, 264px\)/)
   })
+})
+
+it('Phase 120 RED: keeps SSR carousel content while expensive listeners remain dormant', async () => {
+    const resizeObserve = vi.fn()
+    const mediaAdd = vi.fn()
+    vi.stubGlobal('IntersectionObserver', class {
+      observe = vi.fn()
+      disconnect = vi.fn()
+      unobserve = vi.fn()
+      takeRecords = vi.fn()
+      root = null
+      rootMargin = ''
+      thresholds = []
+    })
+    vi.stubGlobal('ResizeObserver', class {
+      observe = resizeObserve
+      disconnect = vi.fn()
+      unobserve = vi.fn()
+    })
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: mediaAdd,
+      removeEventListener: vi.fn(),
+    }))
+
+    try {
+      const { MemberBadgeChain } = await loadMemberBadgeChain()
+      const CollectionChain = MemberBadgeChain as ComponentType<{
+        earnedBadges: PublicMemberBadge[]
+        badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }>
+      }>
+      render(
+        <CollectionChain
+          earnedBadges={[
+            { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 12 },
+            { id: 2, badge_code: 'role_entry_timer', badge_category: 'role_entry', current_count: 1 },
+            { id: 3, badge_code: 'productive_bronze', badge_category: 'quantity' },
+            { id: 4, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
+          ]}
+          badgeProgress={[
+            { family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false },
+            { family: 'points', current_count: 50, next_threshold: 200, remaining_count: 150, next_tier: '200 Punkte', complete: false },
+            { family: 'contribution_projects', current_count: 1, next_threshold: 5, remaining_count: 4, next_tier: 'Silber', complete: false },
+            { family: 'contribution_chronicle', current_count: 5, next_threshold: 25, remaining_count: 20, next_tier: 'Silber', complete: false },
+            { family: 'contribution_archivist', current_count: 25, next_threshold: null, remaining_count: null, next_tier: null, complete: true },
+            { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false },
+          ]}
+        />,
+      )
+
+      expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual([
+        'Rollenfortschritt',
+        'Fortschritt',
+        'Punkte-Meilensteine',
+        'Beiträge',
+        'Mitgliedschaft',
+        'Besondere Auszeichnungen',
+      ])
+      expect(screen.getByText('1 von 2 Rollen')).not.toBeNull()
+      expect(screen.getByText('10 von 25 Anime-Projekten · Noch 15 bis 25 Projekte')).not.toBeNull()
+      expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe erreicht')).not.toBeNull()
+      expect(screen.queryByRole('tab')).toBeNull()
+      expect(screen.queryByRole('tablist')).toBeNull()
+      expect(resizeObserve).not.toHaveBeenCalled()
+      expect(mediaAdd).not.toHaveBeenCalled()
+      expect(memberBadgeChainCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;/s)
+      expect(memberBadgeChainCss).not.toMatch(/transition:[^;]*(?:width|height)/)
+    } finally {
+      vi.unstubAllGlobals()
+    }
 })

@@ -241,6 +241,25 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     expect(atEnd.defaultPrevented).toBe(false)
   })
 
+  it('leaves vertical page scrolling untouched while handling horizontal wheel gestures', () => {
+    renderCarousel()
+    const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+    Object.defineProperties(region, {
+      clientWidth: { configurable: true, value: 300 },
+      scrollWidth: { configurable: true, value: 900 },
+      scrollLeft: { configurable: true, writable: true, value: 200 },
+    })
+    const vertical = new WheelEvent('wheel', { deltaY: 60, cancelable: true })
+    region.dispatchEvent(vertical)
+    expect(vertical.defaultPrevented).toBe(false)
+    expect(region.scrollLeft).toBe(200)
+
+    const horizontal = new WheelEvent('wheel', { deltaX: 60, cancelable: true })
+    region.dispatchEvent(horizontal)
+    expect(horizontal.defaultPrevented).toBe(true)
+    expect(region.scrollLeft).toBe(260)
+  })
+
   it('cancels pointer state and removes Reduced Motion listeners on unmount', () => {
     const removeEventListener = vi.fn()
     const matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener })
@@ -255,4 +274,72 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     expect(removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
     vi.unstubAllGlobals()
   })
+})
+
+it('Phase 120 RED: activates once at 600px and immediately without IntersectionObserver', () => {
+    let observerCallback: IntersectionObserverCallback | null = null
+    const observe = vi.fn()
+    const disconnect = vi.fn()
+    const mediaAdd = vi.fn()
+    const mediaRemove = vi.fn()
+    const matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: mediaAdd,
+      removeEventListener: mediaRemove,
+    })
+    let observerOptions: IntersectionObserverInit | undefined
+
+    vi.stubGlobal('matchMedia', matchMedia)
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        observerCallback = callback
+        observerOptions = options
+      }
+      observe = observe
+      disconnect = disconnect
+      unobserve = vi.fn()
+      takeRecords = vi.fn()
+      root = null
+      rootMargin = ''
+      thresholds = []
+    })
+
+    const first = renderCarousel()
+    const firstRegion = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+    const firstWheelListener = vi.spyOn(firstRegion, 'addEventListener')
+
+    try {
+      expect(observerOptions?.rootMargin).toBe('600px 0px')
+      expect(observe).toHaveBeenCalledTimes(1)
+      expect(mediaAdd).not.toHaveBeenCalled()
+      expect(firstWheelListener).not.toHaveBeenCalledWith('wheel', expect.any(Function), expect.anything())
+
+      act(() => observerCallback?.([
+        { isIntersecting: true, target: firstRegion } as unknown as IntersectionObserverEntry,
+      ], {} as IntersectionObserver))
+
+      expect(disconnect).toHaveBeenCalledTimes(1)
+      expect(mediaAdd).toHaveBeenCalledTimes(1)
+      expect(firstWheelListener).toHaveBeenCalledWith('wheel', expect.any(Function), { passive: false })
+
+      act(() => observerCallback?.([
+        { isIntersecting: true, target: firstRegion } as unknown as IntersectionObserverEntry,
+      ], {} as IntersectionObserver))
+      expect(mediaAdd).toHaveBeenCalledTimes(1)
+
+      first.unmount()
+      vi.unstubAllGlobals()
+      vi.stubGlobal('matchMedia', matchMedia)
+      mediaAdd.mockClear()
+
+      const fallback = renderCarousel()
+      const fallbackRegion = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const fallbackWheelListener = vi.spyOn(fallbackRegion, 'addEventListener')
+      expect(mediaAdd).toHaveBeenCalledTimes(1)
+      expect(fallbackWheelListener).toHaveBeenCalledWith('wheel', expect.any(Function), { passive: false })
+      fallback.unmount()
+    } finally {
+      firstWheelListener.mockRestore()
+      vi.unstubAllGlobals()
+    }
 })

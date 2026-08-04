@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "120-04:task1:8c4eecee-ee3f-4ae3-869f-f498a9d0cb6c",
+  "authorizationId": "phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+  "authorizationDigest": "f386081954a88a5a7b8e049a33f9c12acefafe636ca3fecc12211025dc676cd4",
+  "plan": "120-04",
+  "task": "task1",
+  "inputHead": "0be6d601c6078921447d3a33b2566a7e9d000f9f",
+  "finishHead": "0be6d601c6078921447d3a33b2566a7e9d000f9f",
+  "entries": [
+    {
+      "path": "frontend/src/components/profile/MemberBadgeChain.test.tsx",
+      "predecessor": {
+        "manifestId": "initial:phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+        "manifestSha256": "145ec32292b5a98db7489bff2530f7b6247c6ece053a7fa667dcd5c0659c27af"
+      },
+      "beforeSha256": "cad16a18ba348e0a5eb8815a81bee739a822452696cf5f9dbc46196f17eee580",
+      "afterSha256": "021d4e653d40cf1a40e9ca18cc1698a9ffb596e2308badce94f18a2efad6d385"
+    },
+    {
+      "path": "frontend/src/components/ui/FocalCarousel.test.tsx",
+      "predecessor": {
+        "manifestId": "initial:phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+        "manifestSha256": "145ec32292b5a98db7489bff2530f7b6247c6ece053a7fa667dcd5c0659c27af"
+      },
+      "beforeSha256": "655f35f424595106f178436e6d923727376f7ea104be324a6f6489515b2ecc1e",
+      "afterSha256": "1b3bb996225fb019875d262eae8e831f1418b52baf6d2559040a180a3b391d63"
+    }
+  ],
+  "manifestDigest": "87ee21951a762797bbccbe78bfa11ac027c899ca649e3cb90c478dcdf8dee84c"
+}
