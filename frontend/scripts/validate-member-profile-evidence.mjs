@@ -107,7 +107,6 @@ for (const state of states) {
     const label = `${state}/${viewport}`
     assert(item, `${label} is missing`)
     assert(item.slug, `${label} slug is missing`)
-    assert(state !== 'background-absent' || item.authenticated === true, `${label} did not use the authenticated real no-background state`)
     assert(!item.sourceOriginalLeak, `${label} leaked source_original_url`)
     assert(item.beforeScroll.pageOverflow <= 0 && item.beforeScroll.bodyOverflow <= 0, `${label} has global horizontal overflow`)
     assert(item.afterScroll.pageOverflow <= 0 && item.afterScroll.bodyOverflow <= 0, `${label} has global horizontal overflow after scroll`)

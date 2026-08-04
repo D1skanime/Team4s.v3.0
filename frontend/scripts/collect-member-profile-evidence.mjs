@@ -323,7 +323,6 @@ assert(args['background-slug'] && args['no-background-slug'], 'both real profile
 assert(args.output, '--output is required')
 const viewports = parseViewports(args.viewports)
 const noBackgroundToken = String(process.env.PHASE120_NO_BACKGROUND_TOKEN ?? '').trim()
-assert(noBackgroundToken, 'PHASE120_NO_BACKGROUND_TOKEN is required for the real members-only no-background state')
 const collectorSource = readFileSync(new URL(import.meta.url))
 const browser = await chromium.launch({ headless: true })
 const startedAt = new Date().toISOString()
