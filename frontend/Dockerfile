@@ -34,10 +34,12 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends webp \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
+RUN npx playwright install --with-deps chromium
+
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/eslint.config.mjs ./eslint.config.mjs
 COPY --from=builder /app/scripts ./scripts
