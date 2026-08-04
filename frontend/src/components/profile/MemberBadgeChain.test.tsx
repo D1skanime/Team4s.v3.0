@@ -938,18 +938,31 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
 })
 
 describe('MemberBadgeChain Phase 119 inner stage strip', () => {
-  it('uses the approved scrollbar-free focus-snap rail on mobile', () => {
+  it('keeps a visible, touch-friendly horizontal scroll affordance without page overflow', () => {
     expect(memberBadgeChainCss).toContain('@media (max-width: 820px)')
     expect(memberBadgeChainCss).toContain('padding-inline: calc(50% - 52px)')
-    expect(memberBadgeChainCss).toContain('scroll-snap-type: x mandatory')
-    expect(memberBadgeChainCss).toContain('scrollbar-width: none')
+    expect(memberBadgeChainCss).toContain('scroll-snap-type: x proximity')
+    expect(memberBadgeChainCss).toContain('scrollbar-width: thin')
+    expect(memberBadgeChainCss).not.toContain('scrollbar-width: none')
     expect(memberBadgeChainCss).toContain('.familyStages::-webkit-scrollbar')
+    expect(memberBadgeChainCss).toMatch(/\.familyStages::\-webkit-scrollbar\s*\{[^}]*height:\s*8px;/s)
     expect(memberBadgeChainCss).toContain('touch-action: pan-x pan-y')
     expect(memberBadgeChainCss).toContain('flex: 0 0 104px')
+    expect(memberBadgeChainCss).toMatch(/\.section,\s*\.chainCard,\s*\.groupList,\s*\.group\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
   })
 
-  it('centers the current stage through its own strip and never scrolls an ancestor', async () => {
+  it('maps a mouse wheel to the inner horizontal strip without scrolling an ancestor', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }> }>
+    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
+    const strip = screen.getByRole('list', { name: 'Stufen für Anime-Projekte' }) as HTMLElement
+    Object.defineProperties(strip, { clientWidth: { configurable: true, value: 200 }, scrollWidth: { configurable: true, value: 600 }, scrollLeft: { configurable: true, writable: true, value: 20 } })
+    expect(fireEvent.wheel(strip, { deltaX: 0, deltaY: 80 })).toBe(false)
+    expect(strip.scrollLeft).toBe(100)
+  })
     const scrollIntoView = vi.fn()
+
+  it('centers the current stage through its own strip and never scrolls an ancestor', async () => {
     const scrollTo = vi.fn()
     const disconnect = vi.fn()
     let resizeCallback: ResizeObserverCallback | null = null
@@ -1031,7 +1044,29 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
   })
 })
 
-it.skip('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant', async () => {
+it('routes compact and active badge art through responsive optimized sizes', async () => {
+  const { MemberBadgeChain } = await loadMemberBadgeChain()
+  const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Array<{ family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }> }>
+  const { container } = render(
+    <CollectionChain
+      earnedBadges={[
+        { id: 1, badge_code: 'role_entry_translator', badge_category: 'role_entry', current_count: 12 },
+        { id: 2, badge_code: 'productive_bronze', badge_category: 'quantity' },
+      ]}
+      badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]}
+    />,
+  )
+
+  const compactImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-badge-stage-strip] img, [data-role-stage] img'))
+  expect(compactImages.length).toBeGreaterThan(0)
+  expect(compactImages.every((image) => image.getAttribute('sizes') === '(max-width: 520px) 72px, 96px')).toBe(true)
+  const activeImages = Array.from(container.querySelectorAll<HTMLImageElement>('[data-achievement-art]'))
+  expect(activeImages.length).toBeGreaterThan(0)
+  expect(activeImages.every((image) => image.getAttribute('sizes') === '(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px')).toBe(true)
+  expect(container.querySelectorAll('[data-badge-skeleton][aria-hidden="true"]')).toHaveLength(2)
+})
+
+it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant', async () => {
     const resizeObserve = vi.fn()
     const mediaAdd = vi.fn()
     vi.stubGlobal('IntersectionObserver', class {
