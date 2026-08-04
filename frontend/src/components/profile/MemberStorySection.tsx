@@ -9,9 +9,10 @@ import styles from './MemberStorySection.module.css'
 
 type MemberStorySectionProps = {
   storyHtml?: string | null
+  headingLevel?: 2 | 3
 }
 
-export function MemberStorySection({ storyHtml }: MemberStorySectionProps) {
+export function MemberStorySection({ storyHtml, headingLevel = 2 }: MemberStorySectionProps) {
   const trimmedStory = storyHtml?.trim() ?? ''
   const contentRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -45,7 +46,7 @@ export function MemberStorySection({ storyHtml }: MemberStorySectionProps) {
 
   return (
     <section className={styles.section}>
-      <SectionHeader title="Fansub-Geschichte" />
+      <SectionHeader title="Fansub-Geschichte" level={headingLevel} />
       <Card variant="section" className={styles.storyCard}>
         <div className={styles.storyFrame}>
           <div

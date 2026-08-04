@@ -1,11 +1,16 @@
 .section {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .storyCard {
   display: grid;
   gap: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .storyFrame {
@@ -15,7 +20,10 @@
 
 .storyContentClamped,
 .storyContentExpanded {
-  color: var(--text-primary, #111827);
+  color: var(--text-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .storyContentClamped {

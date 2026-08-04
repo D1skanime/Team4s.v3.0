@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, Users } from 'lucide-react'
 
 import { Card, SectionHeader } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import { formatGroupRoleLabel } from '@/lib/profileLabels'
 import type { MemberProfileMembership } from '@/types/profile'
@@ -12,6 +12,7 @@ import styles from './profile.module.css'
 type MembershipsSectionProps = {
   memberships: MemberProfileMembership[]
   title?: string
+  headingLevel?: 2 | 3
 }
 
 function membershipContextLabel(membership: MemberProfileMembership): string | null {
@@ -42,10 +43,11 @@ function membershipPeriodLabel(membership: MemberProfileMembership): string | nu
 export function MembershipsSection({
   memberships,
   title = 'Fansub-Gruppen',
+  headingLevel = 2,
 }: MembershipsSectionProps) {
   return (
     <section className={styles.membershipsSection}>
-      <SectionHeader title={title} />
+      <SectionHeader title={title} level={headingLevel} />
       {memberships.length === 0 ? (
         <p className={styles.emptyText}>Keine Gruppen eingetragen.</p>
       ) : (
@@ -60,12 +62,13 @@ export function MembershipsSection({
                   <Link className={styles.membershipLink} href={`/fansubs/${membership.fansub_group_slug}`}>
                     <span className={styles.membershipLogo}>
                       {membership.logo_url ? (
-                        <Image
+                        <ResponsiveImage
                           src={resolveApiUrl(membership.logo_url)}
                           alt={`${membership.fansub_group_name} Logo`}
                           width={52}
                           height={52}
-                          unoptimized
+                          sizes="52px"
+                          loading="lazy"
                         />
                       ) : (
                         <Users size={32} aria-hidden="true" />
