@@ -1,22 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const ACTIVATION_ROOT_MARGIN = '600px 0px'
 
 export function useNearViewportActivation<T extends HTMLElement>(deferActivation = true) {
-  const targetRef = useRef<T | null>(null)
+  const targetElementRef = useRef<T | null>(null)
   const activatedRef = useRef(!deferActivation)
   const [interactionEnabled, setInteractionEnabled] = useState(!deferActivation)
+  const targetRef = useCallback((target: T | null) => {
+    targetElementRef.current = target
+    if (!target || activatedRef.current || (deferActivation && typeof IntersectionObserver !== 'undefined')) return
+
+    activatedRef.current = true
+    setInteractionEnabled(true)
+  }, [deferActivation])
 
   useEffect(() => {
-    if (activatedRef.current) return
+    if (activatedRef.current || !deferActivation || typeof IntersectionObserver === 'undefined') return
 
-    if (!deferActivation || typeof IntersectionObserver === 'undefined') {
-      activatedRef.current = true
-      setInteractionEnabled(true)
-      return
-    }
-
-    const target = targetRef.current
+    const target = targetElementRef.current
     if (!target) return
 
     const observer = new IntersectionObserver((entries) => {
