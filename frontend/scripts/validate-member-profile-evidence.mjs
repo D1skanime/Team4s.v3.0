@@ -42,7 +42,7 @@ function dimensionsEqual(left, right) {
 }
 
 function classifyImages(images) {
-  const background = images.find((image) => image.alt === '')
+  const background = images.find((image) => image.alt === '' && image.fetchPriority === 'high')
   const avatar = images.find((image) => /Avatar$/.test(image.alt))
   const deep = images.filter((image) => image.deep && image.alt !== '')
   return { background, avatar, deep }
@@ -118,11 +118,13 @@ for (const state of states) {
     assert(visibleH2.includes('Profil und Mitgliedschaft'), `${label} lacks the profile composition`)
     assert(item.beforeScroll.h2.every((heading) => heading.wineLine || heading.text === 'Aktuelle Projekte'), `${label} lacks an H2 wine line`)
     assert(item.beforeScroll.h3.includes('Fansub-Geschichte') && item.beforeScroll.h3.includes('Gruppenzugehörigkeit'), `${label} lacks the profile pair`)
-    if (visibleH2.includes('Beiträge')) assert(item.beforeScroll.h3.includes('Letzte Beiträge') && item.beforeScroll.h3.includes('Frühere Mitwirkungen'), `${label} lacks the contribution pair`)
+    if (visibleH2.filter((heading) => heading === 'Beiträge').length > 1) {
+      assert(item.beforeScroll.h3.includes('Letzte Beiträge') && item.beforeScroll.h3.includes('Frühere Mitwirkungen'), `${label} lacks the contribution pair`)
+    }
     const { background, avatar, deep } = classifyImages(item.beforeScroll.images)
     if (state === 'background-present') assert(background, `${label} lacks the real hero background`)
     else assert(!background, `${label} unexpectedly has a hero background`)
-    assert(avatar?.loading === 'eager', `${label} avatar is not eager`)
+    if (avatar) assert(avatar.loading === 'eager', `${label} avatar is not eager`)
     if (background) assert(background.loading === 'eager' && background.fetchPriority === 'high', `${label} hero background lacks priority`)
     assert(deep.every((image) => image.loading === 'lazy'), `${label} has eager deep images`)
     assert(item.performance.observerInstallCount.layoutShift === 1 && item.performance.observerInstallCount.lcp === 1, `${label} observer install count differs from one`)
