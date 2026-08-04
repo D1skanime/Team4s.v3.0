@@ -137,7 +137,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
       <section className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`} aria-label="Profil und Mitgliedschaft">
         <SectionHeader title="Profil und Mitgliedschaft" underline />
         <div className={styles.sectionPair}>
-          <MemberStorySection storyHtml={profile.member_story_html} headingLevel={3} />
+          <MemberStorySection storyHtml={profile.member_story_html} headingLevel={3} showEmptyState />
           <MembershipsSection
             memberships={profile.memberships ?? []}
             title="Gruppenzugehörigkeit"

@@ -11,7 +11,7 @@ vi.mock('@/components/editor', () => ({
 }))
 
 async function loadMemberStorySection(): Promise<{
-  MemberStorySection: ComponentType<{ storyHtml?: string | null; headingLevel?: 2 | 3 }>
+  MemberStorySection: ComponentType<{ storyHtml?: string | null; headingLevel?: 2 | 3; showEmptyState?: boolean }>
 }> {
   try {
     const modulePath = './MemberStorySection'
@@ -34,6 +34,15 @@ describe('MemberStorySection', () => {
 
     expect(container.firstChild).toBeNull()
     expect(screen.queryByText('Noch keine Geschichte hinterlegt.')).toBeNull()
+  })
+
+  it('keeps the paired story card visible with a scoped empty state', async () => {
+    const { MemberStorySection } = await loadMemberStorySection()
+
+    render(<MemberStorySection storyHtml="" headingLevel={3} showEmptyState />)
+
+    expect(screen.getByRole('heading', { level: 3, name: 'Fansub-Geschichte' })).not.toBeNull()
+    expect(screen.getByText('Noch keine Geschichte hinterlegt.')).not.toBeNull()
   })
 
   it('keeps h2 as the standalone default and exposes h3 for the profile pair', async () => {

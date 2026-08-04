@@ -10,6 +10,7 @@ import styles from './MemberStorySection.module.css'
 type MemberStorySectionProps = {
   storyHtml?: string | null
   headingLevel?: 2 | 3
+  showEmptyState?: boolean
 }
 
 function demoteStoryHeadings(storyHtml: string, sectionHeadingLevel: 2 | 3): string {
@@ -18,7 +19,7 @@ function demoteStoryHeadings(storyHtml: string, sectionHeadingLevel: 2 | 3): str
   return storyHtml.replace(headingPattern, `<$1h${contentHeadingLevel}$2`)
 }
 
-export function MemberStorySection({ storyHtml, headingLevel = 2 }: MemberStorySectionProps) {
+export function MemberStorySection({ storyHtml, headingLevel = 2, showEmptyState = false }: MemberStorySectionProps) {
   const trimmedStory = storyHtml?.trim() ?? ''
   const contentRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -46,7 +47,18 @@ export function MemberStorySection({ storyHtml, headingLevel = 2 }: MemberStoryS
     }
   }, [measureOverflow, trimmedStory])
 
-  if (!trimmedStory) return null
+  if (!trimmedStory) {
+    if (!showEmptyState) return null
+
+    return (
+      <section className={styles.section}>
+        <SectionHeader title="Fansub-Geschichte" level={headingLevel} />
+        <Card variant="section" className={styles.storyCard}>
+          <p>Noch keine Geschichte hinterlegt.</p>
+        </Card>
+      </section>
+    )
+  }
 
   const isClamped = !isExpanded
   const normalizedStory = demoteStoryHeadings(trimmedStory, headingLevel)
