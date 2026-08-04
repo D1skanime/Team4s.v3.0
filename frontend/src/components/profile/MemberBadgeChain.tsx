@@ -248,18 +248,45 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
 
   useEffect(() => {
     const strip = stripRef.current
-    const current = strip?.querySelector<HTMLElement>('[data-current="true"]')
-    if (!strip || !current) return
-    if (strip.clientWidth > 0 && strip.scrollWidth <= strip.clientWidth + 1) return
-    const reduced = typeof window.matchMedia === 'function'
-      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const left = Math.max(0, Math.min(current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2, strip.scrollWidth - strip.clientWidth))
-    if (typeof strip.scrollTo === 'function') {
-      strip.scrollTo({ left, behavior: reduced ? 'auto' : 'smooth' })
-    } else {
-      strip.scrollLeft = left
+    if (!strip) return
+    const targetCode = selectedCode ?? currentCode
+    const target = targetCode
+      ? strip.querySelector<HTMLElement>(`[data-stage-code="${targetCode}"]`)
+      : null
+    if (!target) return
+
+    const centerTarget = () => {
+      if (strip.clientWidth > 0 && strip.scrollWidth <= strip.clientWidth + 1) return
+      const stripRect = strip.getBoundingClientRect()
+      const targetRect = target.getBoundingClientRect()
+      const desiredLeft = strip.scrollLeft
+        + targetRect.left + targetRect.width / 2
+        - stripRect.left - stripRect.width / 2
+      const left = Math.max(0, Math.min(desiredLeft, strip.scrollWidth - strip.clientWidth))
+      const reduced = typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (typeof strip.scrollTo === 'function') {
+        strip.scrollTo({ left, behavior: reduced ? 'auto' : 'smooth' })
+      } else {
+        strip.scrollLeft = left
+      }
     }
-  }, [family.key, family.currentCount, currentCode])
+
+    centerTarget()
+    const resizeObserver = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(centerTarget)
+      : null
+    resizeObserver?.observe(strip)
+    const mobile = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 820px)')
+      : null
+    mobile?.addEventListener('change', centerTarget)
+
+    return () => {
+      resizeObserver?.disconnect()
+      mobile?.removeEventListener('change', centerTarget)
+    }
+  }, [family.key, family.currentCount, currentCode, selectedCode])
 
   useEffect(() => {
     const strip = stripRef.current
@@ -297,30 +324,19 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
     }
   }, [currentCode, family.key])
 
-  const chooseStage = (badgeCode: string, stageElement?: HTMLElement) => {
+  const chooseStage = (badgeCode: string) => {
     setSelectedCode(badgeCode === currentCode ? null : badgeCode)
-    if (stageElement && typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 820px)').matches) {
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const strip = stripRef.current
-      if (strip) {
-        const left = Math.max(0, Math.min(stageElement.offsetLeft - (strip.clientWidth - stageElement.offsetWidth) / 2, strip.scrollWidth - strip.clientWidth))
-        if (typeof strip.scrollTo === 'function') {
-      strip.scrollTo({ left, behavior: reduced ? 'auto' : 'smooth' })
-    } else {
-      strip.scrollLeft = left
-    }
-      }
-    }
   }
   const handleStageKey = (event: KeyboardEvent<HTMLButtonElement>, badgeCode: string) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
     event.preventDefault()
-    chooseStage(badgeCode, event.currentTarget)
+    chooseStage(badgeCode)
   }
 
   if (family.group === 'special') {
     return (
       <Card className={styles.specialAwardCard} data-family={family.key} data-special-award>
+        <h3 className={styles.familyEyebrow}>{family.label}</h3>
         <span className={styles.specialAwardArtwork}>
           {heroArtwork ? (
             <Image src={heroArtwork} alt={heroStage.label} width={512} height={512} unoptimized data-achievement-art={heroStage.badge_code} />
@@ -335,7 +351,7 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
 
   return (
     <Card className={styles.familyCard} data-family={family.key}>
-      <span className={styles.familyEyebrow}>{family.label}</span>
+      <h3 className={styles.familyEyebrow}>{family.label}</h3>
       <span className={`${styles.familyHero} ${layeredArtwork ? styles.badgeArtworkLayered : ''} ${!heroStage.earned ? styles.familyHeroLocked : ''}`}>
         {layeredArtwork ? (
           <>
@@ -383,36 +399,39 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
             const label = family.key === 'progress' && stage.badge_code !== 'first_contribution'
               ? `${stage.threshold} Anime-Projekte`
               : presentation.label.split(' · ').at(-1) ?? presentation.label
-            return stage.earned ? (
-              <button
-                key={stage.badge_code}
-                type="button"
-                className={`${styles.familyStageButton} ${active ? styles.familyStageButtonActive : ''}`}
-                aria-label={`${label} auswählen${current ? ', Aktuell' : ''}`}
-                aria-pressed={selected}
-                data-current={current ? 'true' : undefined}
-                data-stage-code={stage.badge_code}
-                data-active={active ? 'true' : undefined}
-                onClick={(event) => chooseStage(stage.badge_code, event.currentTarget)}
-                onKeyDown={(event) => handleStageKey(event, stage.badge_code)}
-              >
-                <span className={`${styles.familyStageArtwork} ${layeredStageArtwork ? styles.badgeArtworkLayered : ''}`}>
-                  {layeredStageArtwork ? (
-                    <>
-                      <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
-                      <Image className={styles.roleArtworkMotif} src={layeredStageArtwork.motifSrc} alt="" width={72} height={72} unoptimized aria-hidden="true" />
-                      <Image className={styles.roleArtworkFrame} src={layeredStageArtwork.frameSrc} alt="" width={72} height={72} unoptimized aria-hidden="true" />
-                    </>
-                  ) : artwork ? <Image src={artwork} alt="" width={72} height={72} unoptimized aria-hidden="true" /> : <StageIcon size={24} aria-hidden="true" />}
-                </span>
-                <span>{label}</span>
-                {current ? <span className={styles.currentChip}>Aktuell</span> : null}
-              </button>
-            ) : (
-              <span key={stage.badge_code} role="listitem" className={styles.familyStageLocked} aria-label={`${label} · Gesperrt`}>
-                <span className={styles.familyStageArtwork}><Lock size={16} aria-hidden="true" /></span>
-                <span>{label}</span>
-                <span className={styles.visuallyHidden}>Gesperrt</span>
+            return (
+              <span key={stage.badge_code} role="listitem" className={styles.familyStageItem}>
+                {stage.earned ? (
+                  <button
+                    type="button"
+                    className={`${styles.familyStageButton} ${active ? styles.familyStageButtonActive : ''}`}
+                    aria-label={`${label} auswählen${current ? ', Aktuell' : ''}`}
+                    aria-pressed={selected}
+                    data-current={current ? 'true' : undefined}
+                    data-stage-code={stage.badge_code}
+                    data-active={active ? 'true' : undefined}
+                    onClick={() => chooseStage(stage.badge_code)}
+                    onKeyDown={(event) => handleStageKey(event, stage.badge_code)}
+                  >
+                    <span className={`${styles.familyStageArtwork} ${layeredStageArtwork ? styles.badgeArtworkLayered : ''}`}>
+                      {layeredStageArtwork ? (
+                        <>
+                          <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
+                          <Image className={styles.roleArtworkMotif} src={layeredStageArtwork.motifSrc} alt="" width={72} height={72} unoptimized aria-hidden="true" />
+                          <Image className={styles.roleArtworkFrame} src={layeredStageArtwork.frameSrc} alt="" width={72} height={72} unoptimized aria-hidden="true" />
+                        </>
+                      ) : artwork ? <Image src={artwork} alt="" width={72} height={72} unoptimized aria-hidden="true" /> : <StageIcon size={24} aria-hidden="true" />}
+                    </span>
+                    <span>{label}</span>
+                    {current ? <span className={styles.currentChip}>Aktuell</span> : null}
+                  </button>
+                ) : (
+                  <span className={styles.familyStageLocked} aria-label={`${label} · Gesperrt`}>
+                    <span className={styles.familyStageArtwork}><Lock size={16} aria-hidden="true" /></span>
+                    <span>{label}</span>
+                    <span className={styles.visuallyHidden}>Gesperrt</span>
+                  </span>
+                )}
               </span>
             )
           })}
@@ -482,8 +501,6 @@ export function MemberBadgeChain({
 
   return (
     <section className={styles.section}>
-      <SectionHeader title="Auszeichnungen" />
-
       <Card variant="section" className={styles.chainCard}>
         <div className={styles.progressBlock} aria-label={`${earnedCount} von ${generalCatalog.length} allgemeine Auszeichnungen`}>
           <div className={styles.progressMeta}>
@@ -498,7 +515,10 @@ export function MemberBadgeChain({
         <div className={styles.groupList}>
           {groups.map((group) => (
             <div key={group.key} className={styles.group} data-badge-group={group.key}>
-              <h3 className={styles.groupTitle}>{group.key === 'roles' ? 'Rollenfortschritt' : group.label}</h3>
+              <SectionHeader
+                title={group.key === 'roles' ? 'Rollenfortschritt' : group.label}
+                underline
+              />
               {group.key === 'roles' ? (
                 <div className={styles.progressMeta}>
                   <span>
@@ -524,6 +544,7 @@ export function MemberBadgeChain({
                 itemClassName={styles.badgeWindow}
                 activeItemClassName={styles.badgeWindowActive}
                 gridClassName={styles.badgeGrid}
+                deferInteractionUntilNearViewport
                 renderItem={(row) => {
                   const earnedArtworkItems = row.items.filter(
                     (item) => earnedCodes.has(item.badge_code) && resolveBadgeArtwork(item.badge_code),
@@ -541,7 +562,7 @@ export function MemberBadgeChain({
 
                     return (
                       <Card className={styles.roleBadgeRow} data-role-code={row.key}>
-                        <span className={styles.roleLabel}>{roleLabel}:</span>
+                        <h3 className={styles.roleLabel}>{roleLabel}:</h3>
                         {artworkItem && artworkSrc ? (
                           <span className={`${styles.roleHeroArtwork} ${layeredRoleArtwork ? styles.roleHeroArtworkLayered : ''}`}>
                             {layeredRoleArtwork ? (
@@ -679,7 +700,7 @@ export function MemberBadgeChain({
           ))}
           {collectionGroups.map((group) => (
             <div key={group.key} className={styles.group} data-badge-group={group.key}>
-              <h3 className={styles.groupTitle}>{group.label}</h3>
+              <SectionHeader title={group.label} underline />
               <FocalCarousel
                 items={group.families}
                 getItemKey={(family) => `${family.key}:${family.heroStage.badge_code}`}
@@ -694,6 +715,7 @@ export function MemberBadgeChain({
                 carouselClassName={`${styles.chain} ${group.key === 'special' ? styles.specialChain : ''}`}
                 itemClassName={styles.badgeWindow}
                 activeItemClassName={styles.badgeWindowActive}
+                deferInteractionUntilNearViewport
                 renderItem={(family) => <FamilyCollectionCard key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />}
               />
             </div>

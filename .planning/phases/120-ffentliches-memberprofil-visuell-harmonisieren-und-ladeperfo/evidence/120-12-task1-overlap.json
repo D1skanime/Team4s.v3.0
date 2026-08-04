@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "120-12:task1:e3cc2a5a-9742-4c89-bc8c-c0af322f47e6",
+  "authorizationId": "phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+  "authorizationDigest": "f386081954a88a5a7b8e049a33f9c12acefafe636ca3fecc12211025dc676cd4",
+  "plan": "120-12",
+  "task": "task1",
+  "inputHead": "9ddfde6f43c2fe1c8c9fb5bc7d3061a8312133d8",
+  "finishHead": "f62be9970294b89a27687e9fd68f390acb791848",
+  "entries": [
+    {
+      "path": "frontend/src/components/profile/MemberBadgeChain.test.tsx",
+      "predecessor": {
+        "manifestId": "120-04:task1:8c4eecee-ee3f-4ae3-869f-f498a9d0cb6c",
+        "manifestSha256": "a5f32e98103bf0f63c527c8d05e17d86102a579ebe57dcf27ac23ee5f15fc08e"
+      },
+      "beforeSha256": "021d4e653d40cf1a40e9ca18cc1698a9ffb596e2308badce94f18a2efad6d385",
+      "afterSha256": "bf98c098063b18054e3843c57288c6537b4395d0598c6062c329159ae3b41f97"
+    },
+    {
+      "path": "frontend/src/components/profile/MemberBadgeChain.tsx",
+      "predecessor": {
+        "manifestId": "initial:phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+        "manifestSha256": "145ec32292b5a98db7489bff2530f7b6247c6ece053a7fa667dcd5c0659c27af"
+      },
+      "beforeSha256": "287727221a7f66f39e84cadc4abdcfecd943a6418515c85c2fa45042fdbea0f5",
+      "afterSha256": "ffb8da2ef7d4aeeff95d3d58bde32fa9e99963867e04ba5d8c088b5a6b36c0ba"
+    }
+  ],
+  "manifestDigest": "2ec6d8960a0d1f4f363bc6bb8203167b1a17ca177b65c7ddd0036c022a7341e3"
+}
