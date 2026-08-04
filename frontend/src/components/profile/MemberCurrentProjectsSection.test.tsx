@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -39,6 +39,7 @@ afterEach(() => {
   cleanup()
   vi.clearAllMocks()
 })
+  vi.unstubAllGlobals()
 
 function makeProject(index = 1, overrides: Partial<PublicMemberCurrentProject> = {}): PublicMemberCurrentProject {
   return {
@@ -126,6 +127,47 @@ describe('MemberCurrentProjectsSection', () => {
     expect(getMemberProjectsMock).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps load-more dormant and the geometry shell visible until the section is near the viewport', () => {
+    let observerCallback: IntersectionObserverCallback | undefined
+    const disconnect = vi.fn()
+    const observe = vi.fn()
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: IntersectionObserverCallback) {
+        observerCallback = callback
+      }
+
+      observe = observe
+      disconnect = disconnect
+      unobserve = vi.fn()
+      takeRecords = vi.fn(() => [])
+      root = null
+      rootMargin = '600px 0px'
+      thresholds = [0]
+    })
+
+    const rendered = render(
+      <MemberCurrentProjectsSection
+        memberSlug="subaru"
+        projects={[makeProject(1)]}
+        totalCount={2}
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: 'Weitere Projekte laden' })
+    const shell = rendered.container.querySelector(':scope > section > [aria-hidden="true"]')
+    expect(observe).toHaveBeenCalledTimes(1)
+    expect(button.hasAttribute('disabled')).toBe(true)
+    expect(shell?.getAttribute('data-visible')).toBe('true')
+    expect(getMemberProjectsMock).not.toHaveBeenCalled()
+
+    act(() => {
+      observerCallback?.([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
+    })
+
+    expect(button.hasAttribute('disabled')).toBe(false)
+    expect(shell?.getAttribute('data-visible')).toBe('false')
+    expect(disconnect).toHaveBeenCalledTimes(1)
+  })
 })
 
 it('Phase 120 RED: reserves project geometry while SSR cards remain readable', () => {
