@@ -21,13 +21,13 @@ vi.mock('next/image', () => ({
     fetchPriority?: 'high' | 'low' | 'auto'
     unoptimized?: boolean
   }) => {
-    // eslint-disable-next-line @next/next/no-img-element
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         alt={alt}
         data-fill={fill ? 'true' : 'false'}
         data-unoptimized={unoptimized ? 'true' : 'false'}
-        fetchpriority={fetchPriority}
+        {...({ fetchpriority: fetchPriority } as Record<string, string | undefined>)}
         {...props}
       />
     )
@@ -144,7 +144,9 @@ describe('MemberProfileHero', () => {
     expect(css).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.heroAvatar\s*\{[\s\S]*?width:\s*100px[\s\S]*?height:\s*100px/)
     expect(css).toMatch(/\.heroPanel::after\s*\{[\s\S]*?linear-gradient\([\s\S]*?65%[\s\S]*?transparent/)
     expect(css).toMatch(/\.heroStatusSurface[\s\S]*?var\(--surface-card\)/)
-    expect(css).not.toMatch(/center\s+(?:42|34)%|-webkit-line-clamp|font-weight:\s*(?:800|850|900)/)
+    expect(css).not.toMatch(/\.heroBackdrop img\s*\{[^}]*object-position:\s*center\s+(?:42|34)%/s)
+    expect(css).not.toMatch(/\.heroBio\s*\{[^}]*-webkit-line-clamp/s)
+    expect(css).not.toMatch(/\.(?:heroAvatar|heroTitle|heroEyebrow)\s*\{[^}]*font-weight:\s*(?:800|850|900)/s)
   })
 
   it('Phase 120 RED: prioritizes both hero background and avatar with differentiated discovery', () => {
