@@ -1,8 +1,10 @@
 'use client'
 
+import { History } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { Badge, Button, Card, SectionHeader } from '@/components/ui'
+import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
 import type { PublicMemberPreviousContribution } from '@/types/profile'
 
 import styles from './PreviousContributionsSection.module.css'
@@ -10,6 +12,7 @@ import styles from './PreviousContributionsSection.module.css'
 type PreviousContributionsSectionProps = {
   items: PublicMemberPreviousContribution[]
   totalCount?: number
+  headingLevel?: 2 | 3
 }
 
 function periodLabel(item: PublicMemberPreviousContribution): string | null {
@@ -25,8 +28,10 @@ function displayRoles(item: PublicMemberPreviousContribution): string[] {
 export function PreviousContributionsSection({
   items,
   totalCount,
+  headingLevel = 2,
 }: PreviousContributionsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const { targetRef, interactionEnabled } = useNearViewportActivation<HTMLElement>()
   const validItems = useMemo(
     () => items.filter((item) => periodLabel(item) !== null),
     [items],
@@ -36,14 +41,35 @@ export function PreviousContributionsSection({
   if (displayCount <= 0) return null
 
   return (
-    <section className={styles.section}>
-      <SectionHeader title="Frühere Mitwirkungen" />
+    <section ref={targetRef} className={styles.section}>
+      {headingLevel === 3
+        ? <h3 className={styles.cardHeading}>Frühere Mitwirkungen</h3>
+        : <SectionHeader title="Frühere Mitwirkungen" />}
+      <div
+        className={styles.skeletonLayer}
+        aria-hidden="true"
+        data-visible={interactionEnabled ? 'false' : 'true'}
+      >
+        <Card variant="section" className={`${styles.card} ${styles.skeletonCard}`}>
+          <span className={styles.skeletonButton} />
+          <span className={styles.skeletonEntry}>
+            <span className={styles.skeletonIcon} />
+            <span className={styles.skeletonBody}>
+              <span />
+              <span />
+            </span>
+          </span>
+        </Card>
+      </div>
       <Card variant="section" className={styles.card}>
         <Button
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => setIsExpanded((current) => !current)}
+          disabled={!interactionEnabled}
+          onClick={() => {
+            if (interactionEnabled) setIsExpanded((current) => !current)
+          }}
         >
           {isExpanded
             ? 'Frühere Mitwirkungen ausblenden'
@@ -60,15 +86,20 @@ export function PreviousContributionsSection({
               return (
                 <li key={`${item.anime_id}:${item.fansub_group_id}:${label}`}>
                   <div className={styles.entry}>
-                    <div className={styles.entryHeader}>
-                      <strong>{item.anime_title}</strong>
-                      <span>{item.fansub_group_name}</span>
-                    </div>
-                    <div className={styles.metaRow}>
-                      <Badge variant="muted">{label}</Badge>
-                      {roles.map((role) => (
-                        <Badge key={role} variant="success">{role}</Badge>
-                      ))}
+                    <span className={styles.iconField} aria-hidden="true">
+                      <History size={18} />
+                    </span>
+                    <div className={styles.entryBody}>
+                      <div className={styles.entryHeader}>
+                        <strong>{item.anime_title}</strong>
+                        <span>{item.fansub_group_name}</span>
+                      </div>
+                      <div className={styles.metaRow}>
+                        <Badge variant="muted">{label}</Badge>
+                        {roles.map((role) => (
+                          <Badge key={role} variant="success">{role}</Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </li>
