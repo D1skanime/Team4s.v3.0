@@ -2,14 +2,17 @@
 
 import type { ComponentType } from 'react'
 import { readFileSync } from 'node:fs'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberLatestContribution } from '@/types/profile'
 const latestContributionStyles = readFileSync('src/components/profile/LatestContributionsSection.module.css', 'utf8')
 
 async function loadLatestContributionsSection(): Promise<{
-  LatestContributionsSection: ComponentType<{ items: PublicMemberLatestContribution[] }>
+  LatestContributionsSection: ComponentType<{
+    items: PublicMemberLatestContribution[]
+    headingLevel?: 2 | 3
+  }>
 }> {
   try {
     const modulePath = './LatestContributionsSection'
@@ -21,6 +24,7 @@ async function loadLatestContributionsSection(): Promise<{
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
 })
 
 function makeTextItem(id: number, text: string): PublicMemberLatestContribution {
@@ -111,11 +115,63 @@ describe('LatestContributionsSection', () => {
 
     expect(preview.style.aspectRatio).toBe('16 / 9')
     expect(image.style.objectFit).toBe('cover')
+    expect(image.getAttribute('loading')).toBe('lazy')
+    expect(image.getAttribute('sizes')).toBe('(max-width: 760px) calc(100vw - 56px), (max-width: 1099px) calc(50vw - 48px), 560px')
+    expect(image.getAttribute('width')).toBe('960')
+    expect(image.getAttribute('height')).toBe('540')
     expect(screen.getByText('Typesetting-/Karaoke-Beispiel')).not.toBeNull()
     expect(screen.getByText('Episode 03 - v1')).not.toBeNull()
     expect(screen.getByText('Timing-Vergleich aus der Release-Version.')).not.toBeNull()
     expect(container.querySelector('[class*="square"]')).toBeNull()
     expect(screen.queryByText(/S01E03|\.mkv|typesetting_karaoke/i)).toBeNull()
+  })
+
+  it('supports an H3 card title and activates only the disclosure control near view', async () => {
+    let observerCallback: IntersectionObserverCallback | undefined
+    const disconnect = vi.fn()
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: IntersectionObserverCallback) {
+        observerCallback = callback
+      }
+
+      observe = vi.fn()
+      disconnect = disconnect
+      unobserve = vi.fn()
+      takeRecords = vi.fn(() => [])
+      root = null
+      rootMargin = '600px 0px'
+      thresholds = [0]
+    })
+
+    const { LatestContributionsSection } = await loadLatestContributionsSection()
+    const rendered = render(
+      <LatestContributionsSection
+        headingLevel={3}
+        items={[
+          makeMediaItem(1),
+          makeTextItem(2, 'SSR eins.'),
+          makeTextItem(3, 'SSR zwei.'),
+          makeTextItem(4, 'Erst nach Aktivierung erweiterbar.'),
+        ]}
+      />,
+    )
+
+    expect(screen.getByRole('heading', { level: 3, name: 'Letzte Beiträge' })).not.toBeNull()
+    expect(screen.queryByRole('heading', { level: 2, name: 'Letzte Beiträge' })).toBeNull()
+    const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(3)
+    const button = screen.getByRole('button', { name: 'Weitere Beiträge anzeigen' })
+    expect(button.hasAttribute('disabled')).toBe(true)
+    expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')?.getAttribute('data-visible')).toBe('true')
+
+    act(() => {
+      observerCallback?.([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
+    })
+
+    expect(button.hasAttribute('disabled')).toBe(false)
+    expect(disconnect).toHaveBeenCalledTimes(1)
+    fireEvent.click(button)
+    expect(within(list).getAllByRole('listitem')).toHaveLength(4)
   })
 
 })
