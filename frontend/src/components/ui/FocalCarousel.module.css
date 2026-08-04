@@ -26,7 +26,6 @@
 }
 
 .trackInteractive {
-  scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   overscroll-behavior-inline: contain;
   touch-action: pan-y;
@@ -49,7 +48,6 @@
 
 .quietTrack .itemWindow {
   opacity: 1;
-  transform: none;
   filter: none;
 }
 
@@ -94,16 +92,13 @@
   scroll-snap-align: center;
   scroll-snap-stop: normal;
   border-radius: var(--radius-lg, 16px);
-  opacity: calc(0.58 + var(--focal-proximity, 0) * 0.42);
-  transform: scale(calc(0.88 + var(--focal-proximity, 0) * 0.12));
-  transform-origin: center;
-  transition: opacity 180ms ease, transform 220ms ease, filter 220ms ease;
-  filter: saturate(calc(0.7 + var(--focal-proximity, 0) * 0.3));
+  opacity: 0.72;
+  transition: opacity 160ms ease, filter 160ms ease;
+  filter: saturate(0.82);
 }
 
 .itemWindowActive {
   opacity: 1;
-  transform: scale(1);
   filter: none;
 }
 .counter {
@@ -180,7 +175,6 @@
   .itemWindow {
     transition: none;
     opacity: 1;
-    transform: none;
     filter: none;
   }
 }

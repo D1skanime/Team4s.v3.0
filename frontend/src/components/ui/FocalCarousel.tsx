@@ -75,9 +75,9 @@ export function FocalCarousel<T>({
   deferInteractionUntilNearViewport = false,
 }: FocalCarouselProps<T>) {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isNavigating, setIsNavigating] = useState(false)
   const gridId = useId()
   const toggleId = `${gridId}-toggle`
-  const requestedScrollRef = useRef<{ index: number; left: number } | null>(null)
   const [expanded, setExpanded] = useState(false)
   const { targetRef: activationRef, interactionEnabled } = useNearViewportActivation<HTMLDivElement>(
     deferInteractionUntilNearViewport,
@@ -87,7 +87,7 @@ export function FocalCarousel<T>({
   const suppressClickRef = useRef(false)
   const scrollSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reducedMotionRef = useRef(false)
-  const dragRef = useRef({ active: false, startX: 0, startScroll: 0, pointerId: -1, captured: false, lastX: 0, lastTime: 0, velocity: 0 })
+  const dragRef = useRef({ active: false, intent: 'pending', startX: 0, startY: 0, startScroll: 0, pointerId: -1, captured: false, lastX: 0, lastTime: 0, velocity: 0 })
 
   const visibleItems = carouselItems ?? items
   const lastIndex = Math.max(0, visibleItems.length - 1)
@@ -112,9 +112,8 @@ export function FocalCarousel<T>({
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     const update = () => {
       reducedMotionRef.current = media.matches
-      requestedScrollRef.current = null
       if (scrollSettleTimerRef.current) { clearTimeout(scrollSettleTimerRef.current); scrollSettleTimerRef.current = null }
-      if (media.matches) focusItem(nearestItemIndex(), 'auto', false)
+      if (media.matches) focusItem(nearestItemIndex())
     }
     update()
     media.addEventListener('change', update)
@@ -125,16 +124,18 @@ export function FocalCarousel<T>({
   const itemElements = () =>
     Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
 
-  const focusItem = (index: number, behavior: ScrollBehavior = 'smooth', preserveTarget = true) => {
+  const focusItem = (index: number) => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
-    setActiveIndex(boundedIndex)
     const track = trackRef.current
     const element = itemElements()[boundedIndex]
     if (track && element) {
       const left = Math.max(0, Math.min(element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2, track.scrollWidth - track.clientWidth))
-      if (preserveTarget) requestedScrollRef.current = { index: boundedIndex, left }
-      track.scrollTo?.({ left, behavior })
+      track.scrollTo?.({ left, behavior: 'auto' })
     }
+    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+    scrollSettleTimerRef.current = null
+    setActiveIndex(boundedIndex)
+    setIsNavigating(false)
   }
 
   useEffect(() => {
@@ -148,9 +149,8 @@ export function FocalCarousel<T>({
       const next = Math.max(0, Math.min(maxScroll, track.scrollLeft + delta))
       if (next === track.scrollLeft) return
       event.preventDefault()
-      requestedScrollRef.current = null
       track.scrollLeft = next
-      setActiveIndex(nearestItemIndex())
+      scheduleScrollSettle()
     }
     track.addEventListener('wheel', handleWheel, { passive: false })
     return () => track.removeEventListener('wheel', handleWheel)
@@ -183,8 +183,6 @@ export function FocalCarousel<T>({
     let nearestDistance = Number.POSITIVE_INFINITY
     itemElements().forEach((element, index) => {
       const distance = Math.abs(element.offsetLeft + element.offsetWidth / 2 - center)
-      const proximity = Math.max(0, Math.min(1, 1 - distance / Math.max(element.offsetWidth, 1)))
-      element.style.setProperty('--focal-proximity', String(proximity))
       if (distance < nearestDistance) {
         nearestDistance = distance
         if (track.scrollLeft > 1 && track.scrollLeft < maxScroll - 1) nearest = index
@@ -193,36 +191,19 @@ export function FocalCarousel<T>({
     return nearest
   }
 
-  const settleNearest = () => {
-    focusItem(nearestItemIndex(), reducedMotionRef.current ? 'auto' : 'smooth', false)
+  function scheduleScrollSettle() {
+    setIsNavigating(true)
+    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+    scrollSettleTimerRef.current = setTimeout(() => {
+      scrollSettleTimerRef.current = null
+      setActiveIndex(nearestItemIndex())
+      setIsNavigating(false)
+    }, 160)
   }
 
   const handleScroll = () => {
     if (!interactionEnabled) return
-    const physicalIndex = nearestItemIndex()
-    const track = trackRef.current
-    const maxScroll = track ? Math.max(0, track.scrollWidth - track.clientWidth) : 0
-    const atEndpoint = Boolean(track && (track.scrollLeft <= 1 || track.scrollLeft >= maxScroll - 1))
-    if (!requestedScrollRef.current || atEndpoint) {
-      requestedScrollRef.current = null
-      setActiveIndex(physicalIndex)
-    }
-    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
-    scrollSettleTimerRef.current = setTimeout(() => {
-      scrollSettleTimerRef.current = null
-      const requested = requestedScrollRef.current
-      const track = trackRef.current
-      if (requested && track) {
-        setActiveIndex(requested.index)
-        if (Math.abs(track.scrollLeft - requested.left) <= 1) {
-          requestedScrollRef.current = null
-        } else {
-          track.scrollTo?.({ left: requested.left, behavior: 'auto' })
-        }
-        return
-      }
-      setActiveIndex(nearestItemIndex())
-    }, 120)
+    scheduleScrollSettle()
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -230,10 +211,11 @@ export function FocalCarousel<T>({
     if (event.pointerType === 'mouse' && event.button !== 0) return
     const track = trackRef.current
     if (!track) return
-    requestedScrollRef.current = null
     dragRef.current = {
       active: true,
+      intent: 'pending',
       startX: event.clientX,
+      startY: event.clientY,
       startScroll: track.scrollLeft,
       pointerId: event.pointerId,
       captured: false,
@@ -248,12 +230,22 @@ export function FocalCarousel<T>({
     const drag = dragRef.current
     const track = trackRef.current
     if (!drag.active || !track) return
-    const delta = event.clientX - drag.startX
-    if (Math.abs(delta) <= 4) return
+    const deltaX = event.clientX - drag.startX
+    const deltaY = event.clientY - drag.startY
+    if (drag.intent === 'pending') {
+      if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) <= 6) return
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        drag.intent = 'vertical'
+        drag.active = false
+        return
+      }
+      drag.intent = 'horizontal'
+    }
+    if (drag.intent !== 'horizontal') return
     suppressClickRef.current = true
     event.preventDefault()
-    track.scrollLeft = drag.startScroll - delta
-    setActiveIndex(nearestItemIndex())
+    setIsNavigating(true)
+    track.scrollLeft = drag.startScroll - deltaX
     if (!drag.captured) {
     const elapsed = event.timeStamp - drag.lastTime
     if (elapsed > 0 && elapsed <= 120) {
@@ -283,7 +275,7 @@ export function FocalCarousel<T>({
       const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
       track.scrollLeft = Math.max(0, Math.min(maxScroll, track.scrollLeft - dragRef.current.velocity * 240))
     }
-    settleNearest()
+    scheduleScrollSettle()
   }
 
   const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
@@ -356,6 +348,7 @@ export function FocalCarousel<T>({
           aria-label={regionLabel}
           data-orientation="horizontal"
           data-interaction-enabled={interactionEnabled ? 'true' : 'false'}
+          data-navigation-state={isNavigating ? 'moving' : 'settled'}
           tabIndex={0}
           onKeyDown={interactionEnabled ? handleKeyDown : undefined}
           onScroll={interactionEnabled ? handleScroll : undefined}
@@ -367,30 +360,32 @@ export function FocalCarousel<T>({
           onDragStart={interactionEnabled ? (event) => event.preventDefault() : undefined}
         >
           <div className={styles.items} role={listLabel ? 'list' : undefined} aria-label={listLabel}>
-            {visibleItems.map((item, index) => (
-              <div
-                key={getItemKey(item)}
-                data-focal-item
-                role={listLabel ? 'listitem' : undefined}
-                className={classNames(
-                  styles.itemWindow,
-                  itemClassName,
-                  index === safeIndex && styles.itemWindowActive,
-                  index === safeIndex && activeItemClassName,
-                )}
-                aria-current={index === safeIndex ? 'true' : undefined}
-                style={{ '--focal-proximity': index === safeIndex ? 1 : 0 } as CSSProperties}
-                aria-label={`${itemSingularLabel} ${index + 1} von ${visibleItems.length}`}
-              >
-                {renderItem(item, {
-                  active: index === safeIndex,
-                  expanded: false,
-                  position: index + 1,
-                  total: visibleItems.length,
-                  showAll: () => setExpanded(true),
-                })}
-              </div>
-            ))}
+            {visibleItems.map((item, index) => {
+              const isSettledActive = !isNavigating && index === safeIndex
+              return (
+                <div
+                  key={getItemKey(item)}
+                  data-focal-item
+                  role={listLabel ? 'listitem' : undefined}
+                  className={classNames(
+                    styles.itemWindow,
+                    itemClassName,
+                    isSettledActive && styles.itemWindowActive,
+                    isSettledActive && activeItemClassName,
+                  )}
+                  aria-current={isSettledActive ? 'true' : undefined}
+                  aria-label={`${itemSingularLabel} ${index + 1} von ${visibleItems.length}`}
+                >
+                  {renderItem(item, {
+                    active: isSettledActive,
+                    expanded: false,
+                    position: index + 1,
+                    total: visibleItems.length,
+                    showAll: () => setExpanded(true),
+                  })}
+                </div>
+              )
+            })}
           </div>
         </div>
         {!quiet ? <Button

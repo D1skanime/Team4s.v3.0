@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -156,15 +156,14 @@ describe('FocalCarousel', () => {
       region.scrollTo = scrollTo as typeof region.scrollTo
 
       fireEvent.keyDown(region, { key: 'End' })
-      expect(scrollTo).toHaveBeenCalledWith({ left: 2000, behavior: 'smooth' })
+      expect(scrollTo).toHaveBeenCalledWith({ left: 2000, behavior: 'auto' })
       fireEvent.scroll(region)
-      act(() => vi.advanceTimersByTime(120))
-      expect(scrollTo).toHaveBeenLastCalledWith({ left: 2000, behavior: 'auto' })
+      act(() => vi.advanceTimersByTime(160))
 
       fireEvent.keyDown(region, { key: 'ArrowLeft' })
       region.scrollLeft = 2000
       fireEvent.scroll(region)
-      act(() => vi.advanceTimersByTime(120))
+      act(() => vi.advanceTimersByTime(160))
 
       expect(screen.getByText('11 von 11 Rollen')).toBeTruthy()
       expect(screen.getByRole('button', { name: 'N\u00e4chste Rolle' }).getAttribute('disabled')).not.toBeNull()
@@ -259,6 +258,69 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     region.dispatchEvent(horizontal)
     expect(horizontal.defaultPrevented).toBe(true)
     expect(region.scrollLeft).toBe(260)
+  })
+
+  it('keeps tablet card geometry stable and emphasizes only the settled item', () => {
+    expect(focalCarouselCss).not.toMatch(/\.itemWindow\s*\{[^}]*transform:\s*scale/s)
+    expect(focalCarouselCss).not.toContain('--focal-proximity')
+    expect(focalCarouselCss).not.toMatch(/\.trackInteractive\s*\{[^}]*scroll-behavior:\s*smooth/s)
+
+    vi.useFakeTimers()
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      Object.defineProperties(region, {
+        clientWidth: { configurable: true, value: 300 },
+        scrollWidth: { configurable: true, value: 900 },
+        scrollLeft: { configurable: true, writable: true, value: 0 },
+      })
+      cards.forEach((card, index) => Object.defineProperties(card, {
+        offsetLeft: { configurable: true, value: index * 300 },
+        offsetWidth: { configurable: true, value: 300 },
+      }))
+
+      const horizontal = new WheelEvent('wheel', { deltaX: 300, cancelable: true })
+      act(() => { region.dispatchEvent(horizontal) })
+
+      expect(horizontal.defaultPrevented).toBe(true)
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      expect(region.querySelector('[aria-current="true"]')).toBeNull()
+
+      act(() => vi.advanceTimersByTime(160))
+
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not capture a tablet pointer gesture with vertical intent', () => {
+    renderCarousel()
+    const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+    Object.defineProperties(region, {
+      clientWidth: { configurable: true, value: 300 },
+      scrollWidth: { configurable: true, value: 900 },
+      scrollLeft: { configurable: true, writable: true, value: 200 },
+    })
+
+    const pointerDown = createEvent.pointerDown(region, { pointerId: 9, pointerType: 'touch' })
+    Object.defineProperties(pointerDown, {
+      clientX: { value: 100 },
+      clientY: { value: 100 },
+    })
+    fireEvent(region, pointerDown)
+    const pointerMove = createEvent.pointerMove(region, { pointerId: 9, pointerType: 'touch' })
+    Object.defineProperties(pointerMove, {
+      clientX: { value: 90 },
+      clientY: { value: 180 },
+    })
+    const allowed = fireEvent(region, pointerMove)
+
+    expect(allowed).toBe(true)
+    expect(region.scrollLeft).toBe(200)
+    expect(region.className).not.toContain('dragging')
   })
 
   it('cancels pointer state and removes Reduced Motion listeners on unmount', () => {
