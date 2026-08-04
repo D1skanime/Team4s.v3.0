@@ -266,7 +266,7 @@ async function collectViewport(browser, baseURL, state, slug, viewport, token) {
   const fallback = state === 'background-present' && viewport.label === '1440x900' ? await exerciseFallback(page) : null
   const afterScroll = await snapshotDOM(page)
   const perf = await page.evaluate(() => window.__phase120Evidence)
-  const screenshot = await page.screenshot({ fullPage: true, animations: 'disabled' })
+  const screenshot = await page.screenshot({ fullPage: true, animations: 'disabled', timeout: 90_000 })
   await Promise.allSettled(responseReads)
   await coldSession.detach()
 
