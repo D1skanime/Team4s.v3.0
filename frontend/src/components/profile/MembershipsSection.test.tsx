@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -10,6 +10,10 @@ import type { MemberProfileMembership } from '@/types/profile'
 import { MembershipsSection } from './MembershipsSection'
 
 const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
+
+const { nextImageRenderMock } = vi.hoisted(() => ({
+  nextImageRenderMock: vi.fn(),
+}))
 
 vi.mock('next/link', () => ({
   default: ({ href, children, className }: { href: string; children: ReactNode; className?: string }) => (
@@ -20,8 +24,11 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  // eslint-disable-next-line @next/next/no-img-element
-  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+  default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+    nextImageRenderMock({ alt, unoptimized, ...props })
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img alt={alt} data-unoptimized={unoptimized ? 'true' : 'false'} {...props} />
+  },
 }))
 
 vi.mock('@/lib/api', async () => {
@@ -34,6 +41,7 @@ vi.mock('@/lib/api', async () => {
 
 afterEach(() => {
   cleanup()
+  vi.clearAllMocks()
 })
 
 function makeMembership(overrides: Partial<MemberProfileMembership> = {}): MemberProfileMembership {
@@ -74,6 +82,17 @@ describe('MembershipsSection', () => {
     expect(profileStyles).toMatch(/\.membershipLink:focus-visible\s*\{[\s\S]*?outline:/)
   })
 
+  it('keeps h2 as the standalone default and exposes h3 for the profile pair', () => {
+    const membership = makeMembership()
+    const { rerender } = render(<MembershipsSection memberships={[membership]} />)
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Fansub-Gruppen' })).toBeTruthy()
+    rerender(
+      <MembershipsSection memberships={[membership]} title="Gruppenzugehörigkeit" headingLevel={3} />,
+    )
+    expect(screen.getByRole('heading', { level: 3, name: 'Gruppenzugehörigkeit' })).toBeTruthy()
+  })
+
   it('renders each group as a real card link with logo, role, and group action', () => {
     const { container } = render(<MembershipsSection memberships={[makeMembership({ joined_year: 2014 })]} />)
 
@@ -81,6 +100,13 @@ describe('MembershipsSection', () => {
     expect(container.querySelector('section[class*="cardInteractive"]')).not.toBeNull()
     expect(container.querySelector('img')?.getAttribute('src')).toBe('resolved:/api/v1/media/files/logo.png')
     expect(container.querySelector('img')?.getAttribute('alt')).toBe('AnimeOwnage Logo')
+    expect(nextImageRenderMock).toHaveBeenCalledWith(expect.objectContaining({
+      width: 52,
+      height: 52,
+      sizes: '52px',
+      loading: 'lazy',
+      unoptimized: false,
+    }))
     expect(screen.getAllByText('Gruppenleitung')).toHaveLength(1)
     expect(screen.getAllByText('Mitglied seit 2014')).toHaveLength(1)
     expect(screen.getByText('Zur Gruppe')).not.toBeNull()

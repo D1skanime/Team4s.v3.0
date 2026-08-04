@@ -11,7 +11,7 @@ vi.mock('@/components/editor', () => ({
 }))
 
 async function loadMemberStorySection(): Promise<{
-  MemberStorySection: ComponentType<{ storyHtml?: string | null }>
+  MemberStorySection: ComponentType<{ storyHtml?: string | null; headingLevel?: 2 | 3 }>
 }> {
   try {
     const modulePath = './MemberStorySection'
@@ -34,6 +34,15 @@ describe('MemberStorySection', () => {
 
     expect(container.firstChild).toBeNull()
     expect(screen.queryByText('Noch keine Geschichte hinterlegt.')).toBeNull()
+  })
+
+  it('keeps h2 as the standalone default and exposes h3 for the profile pair', async () => {
+    const { MemberStorySection } = await loadMemberStorySection()
+    const { rerender } = render(<MemberStorySection storyHtml="<p>Geschichte.</p>" />)
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Fansub-Geschichte' })).toBeTruthy()
+    rerender(<MemberStorySection storyHtml="<p>Geschichte.</p>" headingLevel={3} />)
+    expect(screen.getByRole('heading', { level: 3, name: 'Fansub-Geschichte' })).toBeTruthy()
   })
 
   it('renders short story HTML through RichTextRenderer without a read-more toggle', async () => {
