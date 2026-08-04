@@ -9,9 +9,27 @@ import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile
 import { MemberProfileHero } from './MemberProfileHero'
 
 vi.mock('next/image', () => ({
-  default: ({ alt, unoptimized, ...props }: ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean }) => {
+  default: ({
+    alt,
+    fill,
+    fetchPriority,
+    unoptimized,
+    ...props
+  }: ImgHTMLAttributes<HTMLImageElement> & {
+    fill?: boolean
+    fetchPriority?: 'high' | 'low' | 'auto'
+    unoptimized?: boolean
+  }) => {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img alt={alt} data-unoptimized={unoptimized ? 'true' : 'false'} {...props} />
+    return (
+      <img
+        alt={alt}
+        data-fill={fill ? 'true' : 'false'}
+        data-unoptimized={unoptimized ? 'true' : 'false'}
+        fetchpriority={fetchPriority}
+        {...props}
+      />
+    )
   },
 }))
 

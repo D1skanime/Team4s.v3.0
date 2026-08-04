@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { CalendarDays, Eye, Save } from 'lucide-react'
 
 import { Button, HeroMetrics, PageHeader } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile'
 
 import { VerifiedBadge } from './VerifiedBadge'
@@ -95,6 +96,7 @@ export function MemberProfileHero({
   const profileStatus = getProfileStatus(profile)
   const knownFor = deriveKnownForFromPublicProfile(profile)
   const totalPoints = getTotalPoints(profile)
+  const isAnimatedAvatar = /\.gif(?:$|\?)/i.test(avatarURL)
 
   if (isPublicView && profileStatus === 'memorial' && 'profile_status' in profile) {
     return (
@@ -109,55 +111,71 @@ export function MemberProfileHero({
 
   return (
     <div className={styles.hero}>
-      <PageHeader
-        eyebrow={isPublicView ? 'Fansub-Member' : 'Mein Bereich'}
-        title={isPublicView ? displayName : 'Mein Profil'}
-        actions={
-          isPublicView
-            ? undefined
-            : (
-                <>
-                  <Button
-                    className={styles.heroActionButton}
-                    href={publicProfileHref}
-                    variant="secondary"
-                    leftIcon={<Eye size={16} />}
-                  >
-                    Öffentliches Profil ansehen
-                  </Button>
-                  <Button
-                    className={styles.heroActionButton}
-                    type="submit"
-                    variant="success"
-                    form="member-profile-form"
-                    loading={isSaving}
-                    disabled={!canSave}
-                    leftIcon={<Save size={16} />}
-                  >
-                    Profil speichern
-                  </Button>
-                </>
-              )
-        }
-      />
+      {!isPublicView ? (
+        <PageHeader
+          eyebrow="Mein Bereich"
+          title="Mein Profil"
+          actions={(
+            <>
+              <Button
+                className={styles.heroActionButton}
+                href={publicProfileHref}
+                variant="secondary"
+                leftIcon={<Eye size={16} />}
+              >
+                Öffentliches Profil ansehen
+              </Button>
+              <Button
+                className={styles.heroActionButton}
+                type="submit"
+                variant="success"
+                form="member-profile-form"
+                loading={isSaving}
+                disabled={!canSave}
+                leftIcon={<Save size={16} />}
+              >
+                Profil speichern
+              </Button>
+            </>
+          )}
+        />
+      ) : null}
 
       <div
         className={styles.heroPanel}
+        data-testid="member-profile-hero-panel"
       >
         {backgroundImageURL ? (
           <div className={styles.heroBackdrop} aria-hidden="true">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={backgroundImageURL} alt="" />
+            <ResponsiveImage
+              src={backgroundImageURL}
+              alt=""
+              fill
+              sizes="(max-width: 760px) calc(100vw - 24px), (max-width: 1099px) calc(100vw - 48px), 1360px"
+              loading="eager"
+              fetchPriority="high"
+            />
           </div>
         ) : null}
         <div className={styles.heroAvatar}>
-          {avatarURL ? (
+          {avatarURL && isAnimatedAvatar ? (
             <Image
               src={avatarURL}
               alt={`${avatarLabel} Avatar`}
-              width={132}
-              height={132}
+              width={140}
+              height={140}
+              sizes="(max-width: 760px) 100px, (max-width: 1099px) 120px, 140px"
+              loading="eager"
               unoptimized
+            />
+          ) : avatarURL ? (
+            <ResponsiveImage
+              src={avatarURL}
+              alt={`${avatarLabel} Avatar`}
+              width={140}
+              height={140}
+              sizes="(max-width: 760px) 100px, (max-width: 1099px) 120px, 140px"
+              loading="eager"
             />
           ) : (
             <span aria-hidden="true">
@@ -166,20 +184,31 @@ export function MemberProfileHero({
           )}
         </div>
         <div className={styles.heroCopy}>
-          <h2 className={styles.heroTitleRow}>
-            <span>{displayName}</span>
-            {isVerified ? <VerifiedBadge /> : null}
-            {isPublicView && profileStatus ? (
-              <MemberStatusPill status={profileStatus} />
+          {isPublicView ? <p className={styles.heroEyebrow}>Fansub-Member</p> : null}
+          <div className={styles.heroTitleRow}>
+            {isPublicView ? (
+              <h1 className={styles.heroTitle}>{displayName}</h1>
+            ) : (
+              <h2 className={styles.heroTitle}>{displayName}</h2>
+            )}
+            {isVerified ? (
+              <span className={styles.heroStatusSurface}><VerifiedBadge /></span>
             ) : null}
-          </h2>
+            {isPublicView && profileStatus ? (
+              <span className={styles.heroStatusSurface}><MemberStatusPill status={profileStatus} /></span>
+            ) : null}
+          </div>
           {isPublicView && totalPoints !== null ? (
-            <HeroMetrics items={[{ label: 'Punkte', value: totalPoints }]} ariaLabel="Mitglied-Punktzahl" />
+            <HeroMetrics
+              className={styles.heroPoints}
+              items={[{ label: 'Punkte', value: totalPoints }]}
+              ariaLabel="Mitglied-Punktzahl"
+            />
           ) : null}
           {profile.bio ? (
-            <p>{profile.bio}</p>
+            <p className={styles.heroBio}>{profile.bio}</p>
           ) : !isPublicView ? (
-            <p>Noch keine Kurzbeschreibung hinterlegt.</p>
+            <p className={styles.heroBio}>Noch keine Kurzbeschreibung hinterlegt.</p>
           ) : null}
           {publicActivityLabel ? (
             <span className={styles.heroMetaLine}>
