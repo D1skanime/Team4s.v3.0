@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 
 import type { ComponentType } from 'react'
+import { readFileSync } from 'node:fs'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { PublicMemberPreviousContribution } from '@/types/profile'
+const previousContributionStyles = readFileSync('src/components/profile/PreviousContributionsSection.module.css', 'utf8')
 
 async function loadPreviousContributionsSection(): Promise<{
   PreviousContributionsSection: ComponentType<{
@@ -72,4 +74,27 @@ describe('PreviousContributionsSection', () => {
     expect(screen.queryByText('ohne Jahr')).toBeNull()
     expect(screen.queryByRole('link', { name: /Archiv|Alle Mitwirkungen/i })).toBeNull()
   })
+
+})
+
+it('Phase 120 RED: keeps previous contributions accessible beneath an aria-hidden shell', async () => {
+    const { PreviousContributionsSection } = await loadPreviousContributionsSection()
+    const { container } = render(
+      <PreviousContributionsSection items={previousItems} totalCount={1} />,
+    )
+
+    expect(screen.getByRole('heading', { name: 'Frühere Mitwirkungen' })).not.toBeNull()
+    const toggle = screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })
+    expect(toggle).not.toBeNull()
+    const shell = container.querySelector(':scope > section > [aria-hidden="true"]')
+    expect(shell).not.toBeNull()
+    expect(shell?.querySelectorAll('[role], a, button')).toHaveLength(0)
+    expect(shell?.textContent).not.toContain('Archiv der Sterne')
+
+    fireEvent.click(toggle)
+    const list = screen.getByRole('list', { name: 'Frühere Mitwirkungen' })
+    expect(within(list).getByText('Archiv der Sterne')).not.toBeNull()
+    expect(previousContributionStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
+    expect(previousContributionStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
+    expect(previousContributionStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
 })

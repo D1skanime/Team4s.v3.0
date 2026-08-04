@@ -20,8 +20,10 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  // eslint-disable-next-line @next/next/no-img-element
-  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+  default: ({ src, alt, sizes, loading }: { src: string; alt: string; sizes?: string; loading?: 'eager' | 'lazy' }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} sizes={sizes} loading={loading} />
+  ),
 }))
 
 vi.mock('@/lib/api', async () => {
@@ -123,4 +125,39 @@ describe('MemberCurrentProjectsSection', () => {
     )
     expect(getMemberProjectsMock).toHaveBeenCalledTimes(1)
   })
+
+})
+
+it('Phase 120 RED: reserves project geometry while SSR cards remain readable', () => {
+    const rendered = render(
+      <MemberCurrentProjectsSection
+        memberSlug="subaru"
+        projects={[makeProject(1), makeProject(2)]}
+        totalCount={2}
+      />,
+    )
+
+    const list = screen.getByRole('list', { name: 'Aktuelle Projekte' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Projekt 1 öffnen' })).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Projekt 2 öffnen' })).not.toBeNull()
+    for (const image of screen.getAllByRole('img')) {
+      expect(image.getAttribute('sizes')).toBe('(max-width: 720px) 68px, 90px')
+      expect(image.getAttribute('loading')).toBe('lazy')
+    }
+
+    const shell = rendered.container.querySelector(':scope > section > [aria-hidden="true"]')
+    expect(shell).not.toBeNull()
+    expect(shell?.textContent).not.toContain('Projekt 1')
+    expect(projectStyles).toMatch(/\.cover\s*\{[^}]*width:\s*90px;[^}]*aspect-ratio:\s*2 \/ 3;/s)
+    expect(projectStyles).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.cover\s*\{[^}]*width:\s*68px;/)
+    expect(projectStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
+    expect(projectStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
+    expect(projectStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
+
+    rendered.rerender(
+      <MemberCurrentProjectsSection memberSlug="subaru" projects={[]} totalCount={0} />,
+    )
+    expect(screen.getByText('Keine aktuellen Projekte sichtbar.')).not.toBeNull()
+    expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')).toBeNull()
 })

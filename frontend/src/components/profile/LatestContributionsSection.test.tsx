@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 
 import type { ComponentType } from 'react'
+import { readFileSync } from 'node:fs'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { PublicMemberLatestContribution } from '@/types/profile'
+const latestContributionStyles = readFileSync('src/components/profile/LatestContributionsSection.module.css', 'utf8')
 
 async function loadLatestContributionsSection(): Promise<{
   LatestContributionsSection: ComponentType<{ items: PublicMemberLatestContribution[] }>
@@ -70,6 +72,17 @@ describe('LatestContributionsSection', () => {
     expect(within(list).getAllByRole('listitem')).toHaveLength(3)
     expect(screen.queryByText('Dieser vierte Beitrag gehört nicht mehr ins Fenster.')).toBeNull()
     expect(screen.queryByRole('link', { name: 'Alle Beiträge anzeigen' })).toBeNull()
+
+    const expandButton = screen.getByRole('button', { name: 'Weitere Beiträge anzeigen' })
+    const controlledListId = expandButton.getAttribute('aria-controls')
+    expect(controlledListId).toBeTruthy()
+    expect(document.getElementById(controlledListId!)).toBe(list)
+
+    fireEvent.click(expandButton)
+
+    expect(within(list).getAllByRole('listitem')).toHaveLength(4)
+    expect(screen.getByText('Dieser vierte Beitrag gehört nicht mehr ins Fenster.')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Weitere Beiträge anzeigen' })).toBeNull()
   })
 
   it('keeps type badge and contribution title separate for note items', async () => {
@@ -104,4 +117,24 @@ describe('LatestContributionsSection', () => {
     expect(container.querySelector('[class*="square"]')).toBeNull()
     expect(screen.queryByText(/S01E03|\.mkv|typesetting_karaoke/i)).toBeNull()
   })
+
+})
+
+it('Phase 120 RED: keeps latest contributions accessible beneath an aria-hidden shell', async () => {
+    const { LatestContributionsSection } = await loadLatestContributionsSection()
+    const { container } = render(
+      <LatestContributionsSection items={[makeMediaItem(1), makeTextItem(2, 'Lesbarer SSR-Beitrag.')]} />,
+    )
+
+    const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByText('Lesbarer SSR-Beitrag.')).not.toBeNull()
+    const shell = container.querySelector(':scope > section > [aria-hidden="true"]')
+    expect(shell).not.toBeNull()
+    expect(shell?.querySelectorAll('[role], a, button')).toHaveLength(0)
+    expect(shell?.textContent).not.toContain('Lesbarer SSR-Beitrag.')
+    expect(latestContributionStyles).toMatch(/\.iconField\s*\{[^}]*width:\s*48px;[^}]*height:\s*48px;/s)
+    expect(latestContributionStyles).toMatch(/opacity:\s*[01](?:\.\d+)?;/)
+    expect(latestContributionStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
+    expect(latestContributionStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
 })

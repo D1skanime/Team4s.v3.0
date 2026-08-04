@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "120-04:task2:79b14c91-d7f2-4033-97a1-a0dc9a5549f9",
+  "authorizationId": "phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+  "authorizationDigest": "f386081954a88a5a7b8e049a33f9c12acefafe636ca3fecc12211025dc676cd4",
+  "plan": "120-04",
+  "task": "task2",
+  "inputHead": "0be6d601c6078921447d3a33b2566a7e9d000f9f",
+  "finishHead": "e65211770bba5416ca3febf99069083273be4df6",
+  "entries": [
+    {
+      "path": "frontend/src/components/profile/LatestContributionsSection.test.tsx",
+      "predecessor": {
+        "manifestId": "initial:phase120-01-c1356826-76c3-4dbb-b447-556281c184bd",
+        "manifestSha256": "145ec32292b5a98db7489bff2530f7b6247c6ece053a7fa667dcd5c0659c27af"
+      },
+      "beforeSha256": "c98bdc46bb696607543ab016faabcb79a8f5f488300e94c0c7b4256c77142406",
+      "afterSha256": "33af2f06ea0e31b740ebb4dd5f1fc25e83d5d2ebcc7afd9bafff2bf3e9bb34d8"
+    }
+  ],
+  "manifestDigest": "427d92cb9d4c62005645182b8fb72f3a825ce5a2e1f867ff161f665fe50ab4cd"
+}
