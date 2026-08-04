@@ -916,7 +916,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
 
   it('keeps category order, a non-founder founding stage locked and the next year target reachable', async () => {
     await renderCollections()
-    const headings = screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
+    const headings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
     expect(headings).toEqual(['Fortschritt', 'Punkte-Meilensteine', 'Beiträge', 'Mitgliedschaft'])
     expect(screen.getByLabelText('Gründungsmitglied · Gesperrt')).not.toBeNull()
     expect(screen.getByRole('button', { name: /7\+ Jahre Mitglied auswählen, Aktuell/ })).not.toBeNull()
@@ -925,7 +925,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
 
   it('renders earned special awards as one-stage cards without artificial progress', async () => {
     const rendered = await renderCollections([{ id: 9, badge_code: 'historical_leader', badge_category: 'historical_achievement' }])
-    const specialHeading = screen.getByRole('heading', { level: 3, name: 'Besondere Auszeichnungen' })
+    const specialHeading = screen.getByRole('heading', { level: 2, name: 'Besondere Auszeichnungen' })
     const specialGroup = specialHeading.closest('[data-badge-group="special"]')
     expect(specialGroup?.querySelector('[role="progressbar"]')).toBeNull()
     expect(specialGroup?.querySelector('[data-badge-stage-strip]')).toBeNull()
@@ -933,7 +933,7 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
     rendered.rerender(<CollectionChain earnedBadges={[]} badgeProgress={badgeProgress} />)
-    expect(screen.queryByRole('heading', { level: 3, name: 'Besondere Auszeichnungen' })).toBeNull()
+    expect(screen.queryByRole('heading', { level: 2, name: 'Besondere Auszeichnungen' })).toBeNull()
   })
 })
 
@@ -1079,7 +1079,8 @@ it('Phase 120 RED: keeps SSR carousel content while expensive listeners remain d
         />,
       )
 
-      expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual([
+      expect(screen.queryByRole('heading', { level: 2, name: 'Auszeichnungen' })).toBeNull()
+      expect(screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual([
         'Rollenfortschritt',
         'Fortschritt',
         'Punkte-Meilensteine',
@@ -1087,6 +1088,13 @@ it('Phase 120 RED: keeps SSR carousel content while expensive listeners remain d
         'Mitgliedschaft',
         'Besondere Auszeichnungen',
       ])
+      expect(screen.getAllByRole('heading', { level: 2 }).every((heading) => (
+        heading.parentElement?.parentElement?.className.includes('sectionHeaderUnderline')
+      ))).toBe(true)
+      expect(screen.getByRole('heading', { level: 3, name: 'Übersetzung:' })).not.toBeNull()
+      expect(screen.getByRole('heading', { level: 3, name: 'Anime-Projekte' })).not.toBeNull()
+      expect(screen.getByRole('heading', { level: 3, name: 'Mitgetragene Projekte' })).not.toBeNull()
+      expect(screen.getByRole('heading', { level: 3, name: 'Historische Leitung' })).not.toBeNull()
       expect(screen.getByText('1 von 2 Rollen')).not.toBeNull()
       expect(screen.getByText('10 von 25 Anime-Projekten · Noch 15 bis 25 Projekte')).not.toBeNull()
       expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe erreicht')).not.toBeNull()
