@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
 import type { ImgHTMLAttributes } from 'react'
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -132,6 +133,20 @@ describe('MemberProfileHero — Memorial-Variante (Wave-0 RED, D-10)', () => {
 })
 
 describe('MemberProfileHero', () => {
+  it('locks the Hero B responsive geometry and local copy-zone treatment', () => {
+    const css = readFileSync('src/components/profile/profile.module.css', 'utf8')
+
+    expect(css).toMatch(/\.heroPanel\s*\{[\s\S]*?min-height:\s*230px[\s\S]*?grid-template-columns:\s*140px minmax\(0, 1fr\)[\s\S]*?gap:\s*24px[\s\S]*?padding:\s*32px/)
+    expect(css).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.heroPanel\s*\{[\s\S]*?min-height:\s*220px[\s\S]*?grid-template-columns:\s*120px minmax\(0, 1fr\)[\s\S]*?padding:\s*24px/)
+    expect(css).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.heroPanel\s*\{[\s\S]*?min-height:\s*0[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)[\s\S]*?padding:\s*16px/)
+    expect(css).toMatch(/\.heroAvatar\s*\{[\s\S]*?width:\s*140px[\s\S]*?height:\s*140px/)
+    expect(css).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.heroAvatar\s*\{[\s\S]*?width:\s*120px[\s\S]*?height:\s*120px/)
+    expect(css).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.heroAvatar\s*\{[\s\S]*?width:\s*100px[\s\S]*?height:\s*100px/)
+    expect(css).toMatch(/\.heroPanel::after\s*\{[\s\S]*?linear-gradient\([\s\S]*?65%[\s\S]*?transparent/)
+    expect(css).toMatch(/\.heroStatusSurface[\s\S]*?var\(--surface-card\)/)
+    expect(css).not.toMatch(/center\s+(?:42|34)%|-webkit-line-clamp|font-weight:\s*(?:800|850|900)/)
+  })
+
   it('Phase 120 RED: prioritizes both hero background and avatar with differentiated discovery', () => {
     const { container } = render(
       <MemberProfileHero
