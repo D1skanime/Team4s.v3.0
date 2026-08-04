@@ -7,7 +7,21 @@ const __dirname = path.dirname(__filename)
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [],
+    formats: ['image/webp'],
+    deviceSizes: [640, 1080, 1480, 1920],
+    imageSizes: [64, 96, 128, 160, 192, 256, 512],
+    localPatterns: [
+      { pathname: '/__phase120-image-probe/alpha-badge.png', search: '' },
+      { pathname: '/media/profile/phase120/avatar.png', search: '' },
+      { pathname: '/media/profile/phase120/hero.png', search: '' },
+    ],
+    remotePatterns: [
+      new URL('http://127.0.0.1:3101/api/v1/media/phase120-project-cover.png'),
+      new URL('http://127.0.0.1:3101/api/v1/media/phase120-group-logo.png'),
+    ],
+    // The deterministic probe origin is loopback-only and still constrained
+    // by the two exact URL patterns above.
+    dangerouslyAllowLocalIP: true,
   },
   turbopack: {
     root: path.resolve(__dirname),

@@ -30,6 +30,9 @@ RUN npm run build
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends webp \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
@@ -37,6 +40,12 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/eslint.config.mjs ./eslint.config.mjs
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/test/fixtures/phase120-image-probe ./test/fixtures/phase120-image-probe
+COPY --from=builder /app/src/components/ui/ResponsiveImage.tsx ./src/components/ui/ResponsiveImage.tsx
+COPY --from=builder /app/src/components/ui/ResponsiveImage.test.tsx ./src/components/ui/ResponsiveImage.test.tsx
+COPY --from=builder /app/vitest.config.ts ./vitest.config.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 EXPOSE 3000
 CMD ["npm", "run", "start"]
