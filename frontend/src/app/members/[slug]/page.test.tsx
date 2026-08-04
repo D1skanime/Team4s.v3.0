@@ -215,6 +215,19 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(sectionRule).not.toContain('max-width: 920px;')
   })
 
+  it('encodes Rhythm C geometry for 390, 768 and 1440 pixel layouts without overflow repairs', () => {
+    expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[\s\S]*?padding:\s*32px;/)
+    expect(memberPageStyles).toMatch(/\.sectionPair\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/)
+    expect(memberPageStyles).toContain('min-width: 0;')
+    expect(memberPageStyles).toContain('overflow-wrap: anywhere;')
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.sectionPair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/)
+    expect(memberPageStyles).not.toMatch(/100vw|margin-(?:left|right):\s*-/)
+    expect(memberPageStyles).not.toContain('overflow-x: hidden')
+    expect(memberPageStyles).not.toMatch(/font-weight:\s*(?:8|9)00/)
+  })
+
   it('renders the locked Hero B and Rhythm C heading hierarchy in DOM order', async () => {
     await renderMemberPage(makePublicProfile())
 
