@@ -134,7 +134,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         />
       </section>
 
-      <section className={`${styles.section} ${styles.profileBand}`} aria-label="Profil und Mitgliedschaft">
+      <section className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`} aria-label="Profil und Mitgliedschaft">
         <SectionHeader title="Profil und Mitgliedschaft" underline />
         <div className={styles.sectionPair}>
           <MemberStorySection storyHtml={profile.member_story_html} headingLevel={3} />
@@ -146,7 +146,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         </div>
       </section>
 
-      <section className={`${styles.section} ${styles.projectsBand}`} aria-label="Aktuelle Projekte">
+      <section className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`} aria-label="Aktuelle Projekte">
         <MemberCurrentProjectsSection
           memberSlug={slug}
           projects={currentProjects}
@@ -154,7 +154,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         />
       </section>
 
-      <div className={`${styles.section} ${styles.badgesBand}`}>
+      <div className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand}`}>
         <MemberBadgeChain
           earnedBadges={earnedBadges}
           badgeProgress={profile.badge_progress}
@@ -163,7 +163,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
       </div>
 
       {hasContributions ? (
-        <section className={`${styles.section} ${styles.contributionsBand}`} aria-label="Beiträge">
+        <section className={`${styles.section} ${styles.rhythmBand} ${styles.contributionsBand}`} aria-label="Beiträge">
           <SectionHeader title="Beiträge" underline />
           <div className={styles.sectionPair}>
             <LatestContributionsSection items={latestContributions} headingLevel={3} />

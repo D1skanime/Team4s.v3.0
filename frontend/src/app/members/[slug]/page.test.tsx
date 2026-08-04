@@ -222,6 +222,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(memberPageStyles).toContain('overflow-wrap: anywhere;')
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
+    expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.sectionPair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/)
     expect(memberPageStyles).not.toMatch(/100vw|margin-(?:left|right):\s*-/)
     expect(memberPageStyles).not.toContain('overflow-x: hidden')
