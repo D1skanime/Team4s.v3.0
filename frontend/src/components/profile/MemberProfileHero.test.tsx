@@ -175,6 +175,37 @@ describe('MemberProfileHero', () => {
     )
   })
 
+  it.each([
+    ['light', '/media/profile/3/background/current/light-artwork.jpg'],
+    ['dark', '/media/profile/3/background/current/dark-artwork.jpg'],
+  ])('keeps the same prioritized centered Hero B contract for %s artwork', (_tone, backgroundURL) => {
+    const { container } = render(
+      <MemberProfileHero
+        profile={makePublicProfile()}
+        backgroundImageURL={backgroundURL}
+        isPublicView={true}
+      />,
+    )
+
+    const background = container.querySelector('img[alt=""]')
+    expect(background?.getAttribute('src')).toBe(backgroundURL)
+    expect(background?.getAttribute('loading')).toBe('eager')
+    expect(background?.getAttribute('fetchpriority')).toBe('high')
+    expect(background?.getAttribute('sizes')).toContain('1360px')
+  })
+
+  it('keeps the complete Hero B fallback when member images are absent', () => {
+    const { container } = render(
+      <MemberProfileHero profile={makePublicProfile()} isPublicView={true} />,
+    )
+
+    const panel = screen.getByTestId('member-profile-hero-panel')
+    expect(container.querySelector('img[alt=""]')).toBeNull()
+    expect(within(panel).getByRole('heading', { level: 1, name: 'Ballelboy' })).not.toBeNull()
+    expect(within(panel).getByText('B')).not.toBeNull()
+    expect(within(panel).getByText('Aktuell aktiv seit 2016')).not.toBeNull()
+  })
+
   it('composes the public Hero B copy in the locked semantic order without leaking source originals', () => {
     const sourceOriginalURL = '/media/profile/3/background/source-original-secret.png'
 
