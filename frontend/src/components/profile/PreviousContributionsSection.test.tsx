@@ -2,8 +2,8 @@
 
 import type { ComponentType } from 'react'
 import { readFileSync } from 'node:fs'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberPreviousContribution } from '@/types/profile'
 const previousContributionStyles = readFileSync('src/components/profile/PreviousContributionsSection.module.css', 'utf8')
@@ -12,6 +12,7 @@ async function loadPreviousContributionsSection(): Promise<{
   PreviousContributionsSection: ComponentType<{
     items: PublicMemberPreviousContribution[]
     totalCount?: number
+    headingLevel?: 2 | 3
   }>
 }> {
   try {
@@ -24,6 +25,7 @@ async function loadPreviousContributionsSection(): Promise<{
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
 })
 
 const previousItems: PublicMemberPreviousContribution[] = [
@@ -73,6 +75,48 @@ describe('PreviousContributionsSection', () => {
     expect(screen.queryByText('Ohne Jahr darf nicht erscheinen')).toBeNull()
     expect(screen.queryByText('ohne Jahr')).toBeNull()
     expect(screen.queryByRole('link', { name: /Archiv|Alle Mitwirkungen/i })).toBeNull()
+  })
+
+  it('supports an H3 card title and keeps disclosure dormant until near view', async () => {
+    let observerCallback: IntersectionObserverCallback | undefined
+    const disconnect = vi.fn()
+    const observe = vi.fn()
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: IntersectionObserverCallback) {
+        observerCallback = callback
+      }
+
+      observe = observe
+      disconnect = disconnect
+      unobserve = vi.fn()
+      takeRecords = vi.fn(() => [])
+      root = null
+      rootMargin = '600px 0px'
+      thresholds = [0]
+    })
+
+    const { PreviousContributionsSection } = await loadPreviousContributionsSection()
+    const rendered = render(
+      <PreviousContributionsSection items={previousItems} totalCount={1} headingLevel={3} />,
+    )
+
+    expect(screen.getByRole('heading', { level: 3, name: 'Frühere Mitwirkungen' })).not.toBeNull()
+    expect(screen.queryByRole('heading', { level: 2, name: 'Frühere Mitwirkungen' })).toBeNull()
+    const toggle = screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })
+    expect(toggle.hasAttribute('disabled')).toBe(true)
+    expect(observe).toHaveBeenCalledTimes(1)
+    expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')?.getAttribute('data-visible')).toBe('true')
+    fireEvent.click(toggle)
+    expect(screen.queryByRole('list', { name: 'Frühere Mitwirkungen' })).toBeNull()
+
+    act(() => {
+      observerCallback?.([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
+    })
+
+    expect(toggle.hasAttribute('disabled')).toBe(false)
+    expect(disconnect).toHaveBeenCalledTimes(1)
+    fireEvent.click(toggle)
+    expect(screen.getByRole('list', { name: 'Frühere Mitwirkungen' })).not.toBeNull()
   })
 
 })
