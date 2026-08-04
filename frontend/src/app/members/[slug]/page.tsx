@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { cache } from 'react'
 import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
 
@@ -32,11 +33,24 @@ async function resolveSlug(params: MemberProfilePageProps['params']): Promise<st
   return (resolvedParams.slug || '').trim()
 }
 
+async function readViewerToken(): Promise<string> {
+  const cookieStore = await cookies()
+  return (
+    cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value ||
+    cookieStore.get('access_token')?.value || ''
+  ).trim()
+}
+
+const getMemberProfileForRequest = cache((slug: string, viewerToken: string) => (
+  getMemberProfile(slug, viewerToken || undefined)
+))
+
 export async function generateMetadata({ params }: MemberProfilePageProps): Promise<Metadata> {
   const slug = await resolveSlug(params)
   if (!slug) return {}
   try {
-    const response = await getMemberProfile(slug)
+    const viewerToken = await readViewerToken()
+    const response = await getMemberProfileForRequest(slug, viewerToken)
     if ('data' in response && response.data.noindex) return { robots: { index: false, follow: false } }
   } catch { return {} }
   return {}
@@ -55,18 +69,14 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   const slug = await resolveSlug(params)
   if (!slug) return renderNotice('Ungültiger Member-Slug.')
 
-  const cookieStore = await cookies()
-  const token = (
-    cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value ||
-    cookieStore.get('access_token')?.value || ''
-  ).trim()
+  const viewerToken = await readViewerToken()
 
   let profile: PublicMemberProfileData | null = null
   let isHidden = false
   let message: string | null = null
 
   try {
-    const response = await getMemberProfile(slug, token || undefined)
+    const response = await getMemberProfileForRequest(slug, viewerToken)
     if ('visible' in response && !response.visible) isHidden = true
     else if ('data' in response) profile = response.data
   } catch (error) {

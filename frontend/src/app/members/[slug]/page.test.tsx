@@ -11,11 +11,29 @@ import MemberProfilePage, { generateMetadata } from './page'
 
 const memberPageStyles = readFileSync('src/app/members/[slug]/page.module.css', 'utf8')
 
-const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock } = vi.hoisted(() => ({
+const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock, reactCacheEntries } = vi.hoisted(() => ({
   cookieGetMock: vi.fn(),
   getMemberProfileMock: vi.fn(),
   getMemberContributionsMock: vi.fn(),
+  reactCacheEntries: [] as Array<{ args: unknown[]; value: unknown }>,
 }))
+
+vi.mock('react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react')>()
+  return {
+    ...actual,
+    cache: <T extends (...args: never[]) => unknown>(fn: T): T => ((...args: Parameters<T>) => {
+      const cached = reactCacheEntries.find((entry) => (
+        entry.args.length === args.length && entry.args.every((value, index) => Object.is(value, args[index]))
+      ))
+      if (cached) return cached.value
+
+      const value = fn(...args)
+      reactCacheEntries.push({ args, value })
+      return value
+    }) as T,
+  }
+})
 
 vi.mock('next/headers', () => ({
   cookies: vi.fn(() => ({
@@ -169,6 +187,7 @@ async function renderMemberPage(profile: PublicMemberProfileData | { visible: fa
 
 beforeEach(() => {
   vi.clearAllMocks()
+  reactCacheEntries.splice(0)
   vi.stubGlobal('IntersectionObserver', class {
     observe = vi.fn()
     disconnect = vi.fn()
@@ -230,9 +249,11 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     const ownerProfile = makePublicProfile({
       noindex: true,
       avatar: {
-        media_id: 901,
         public_url: '/media/profile/41/avatar/display.png',
-        source_original_url: '/media/profile/41/avatar/source-original.png',
+      },
+      background_image: {
+        public_url: '/media/profile/41/background/display.png',
+        source_original_url: '/media/profile/41/background/source-original.png',
       },
       public_badges: [
         { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
