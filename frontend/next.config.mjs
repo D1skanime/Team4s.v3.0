@@ -12,8 +12,7 @@ const nextConfig = {
     imageSizes: [64, 96, 128, 160, 192, 256, 512],
     localPatterns: [
       { pathname: '/__phase120-image-probe/alpha-badge.png', search: '' },
-      { pathname: '/media/profile/phase120/avatar.png', search: '' },
-      { pathname: '/media/profile/phase120/hero.png', search: '' },
+      { pathname: '/media/profile/**', search: '' },
     ],
     remotePatterns: [
       new URL('http://127.0.0.1:3101/api/v1/media/phase120-project-cover.png'),
