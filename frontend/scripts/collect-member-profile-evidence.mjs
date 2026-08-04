@@ -261,6 +261,11 @@ async function collectViewport(browser, baseURL, state, slug, viewport, token) {
     await page.evaluate((nextY) => scrollTo(0, nextY), y)
     await page.waitForTimeout(120)
   }
+  const activationTargets = page.locator('[data-interaction-enabled]')
+  for (let index = 0; index < await activationTargets.count(); index += 1) {
+    await activationTargets.nth(index).scrollIntoViewIfNeeded()
+    await page.waitForTimeout(300)
+  }
   await page.waitForTimeout(400)
   const stripInput = await exerciseStrips(page)
   const fallback = state === 'background-present' && viewport.label === '1440x900' ? await exerciseFallback(page) : null
