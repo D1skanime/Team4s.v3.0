@@ -270,7 +270,20 @@ async function collectViewport(browser, baseURL, state, slug, viewport, token) {
   const stripInput = await exerciseStrips(page)
   const fallback = state === 'background-present' && viewport.label === '1440x900' ? await exerciseFallback(page) : null
   const afterScroll = await snapshotDOM(page)
-  const perf = await page.evaluate(() => window.__phase120Evidence)
+  const activationFinal = await activationTargets.evaluateAll((elements) => elements.map((element, index) => ({
+    identity: `${element.getAttribute('aria-label') || 'carousel'}#${index + 1}`,
+    value: element.getAttribute('data-interaction-enabled'),
+  })))
+  const perf = await page.evaluate((finalEntries) => {
+    const evidence = window.__phase120Evidence
+    for (const entry of finalEntries) {
+      const previous = evidence.activation.findLast((candidate) => candidate.identity === entry.identity)
+      if (!previous || previous.value !== entry.value) {
+        evidence.activation.push({ ...entry, at: performance.now(), source: 'terminal-dom-sample' })
+      }
+    }
+    return evidence
+  }, activationFinal)
   const screenshot = await page.screenshot({ fullPage: true, animations: 'disabled', timeout: 90_000 })
   await Promise.allSettled(responseReads)
   await coldSession.detach()
