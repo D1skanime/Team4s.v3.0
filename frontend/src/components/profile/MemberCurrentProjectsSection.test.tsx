@@ -38,8 +38,8 @@ vi.mock('@/lib/api', async () => {
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
-})
   vi.unstubAllGlobals()
+})
 
 function makeProject(index = 1, overrides: Partial<PublicMemberCurrentProject> = {}): PublicMemberCurrentProject {
   return {

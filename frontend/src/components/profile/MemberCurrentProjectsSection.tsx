@@ -1,12 +1,13 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { Layers } from 'lucide-react'
 import { useState } from 'react'
 
 import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
 import { getMemberProjects, resolveApiUrl } from '@/lib/api'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
+import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
 import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberCurrentProject } from '@/types/profile'
 
@@ -39,13 +40,20 @@ export function MemberCurrentProjectsSection({
   projects,
   totalCount,
 }: MemberCurrentProjectsSectionProps) {
+  const [sourceProjects, setSourceProjects] = useState(projects)
   const [visibleProjects, setVisibleProjects] = useState(projects)
+  const { targetRef, interactionEnabled } = useNearViewportActivation<HTMLElement>()
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
+
+  if (sourceProjects !== projects) {
+    setSourceProjects(projects)
+    setVisibleProjects(projects)
+  }
   const hasMore = visibleProjects.length < totalCount
 
   async function loadMoreProjects() {
-    if (isLoading || !hasMore) return
+    if (!interactionEnabled || isLoading || !hasMore) return
     setIsLoading(true)
     setLoadError('')
     try {
@@ -60,9 +68,29 @@ export function MemberCurrentProjectsSection({
   }
 
   return (
-    <section className={styles.section}>
+    <section ref={targetRef} className={styles.section}>
       <SectionHeader title="Aktuelle Projekte" />
 
+      {visibleProjects.length > 0 ? (
+        <ul
+          className={`${styles.projectList} ${styles.projectSkeleton}`}
+          aria-hidden="true"
+          data-visible={interactionEnabled ? 'false' : 'true'}
+        >
+          {visibleProjects.map((project) => (
+            <li key={`skeleton:${project.anime_id}:${project.fansub_group_id}`}>
+              <Card className={`${styles.projectCard} ${styles.skeletonCard}`}>
+                <span className={`${styles.cover} ${styles.skeletonCover}`} />
+                <span className={`${styles.projectBody} ${styles.skeletonBody}`}>
+                  <span className={styles.skeletonTitle} />
+                  <span className={styles.skeletonGroup} />
+                  <span className={styles.skeletonChips} />
+                </span>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {visibleProjects.length === 0 ? (
         <EmptyState title="Keine aktuellen Projekte sichtbar." />
       ) : (
@@ -77,12 +105,13 @@ export function MemberCurrentProjectsSection({
                 <Card variant="interactive" className={styles.projectCard}>
                   <span className={styles.cover} aria-hidden={!project.cover_url}>
                     {project.cover_url ? (
-                      <Image
+                      <ResponsiveImage
                         src={resolveApiUrl(project.cover_url)}
                         alt={`${project.anime_title} Cover`}
                         width={96}
                         height={136}
-                        unoptimized
+                        sizes="(max-width: 720px) 68px, 90px"
+                        loading="lazy"
                       />
                     ) : (
                       <span>{project.anime_title.slice(0, 2).toUpperCase()}</span>
@@ -127,7 +156,13 @@ export function MemberCurrentProjectsSection({
             {visibleProjects.length} von {totalCount} Projekten sichtbar
           </span>
           {hasMore ? (
-            <Button variant="secondary" size="sm" loading={isLoading} onClick={loadMoreProjects}>
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={isLoading}
+              disabled={!interactionEnabled}
+              onClick={loadMoreProjects}
+            >
               Weitere Projekte laden
             </Button>
           ) : null}
