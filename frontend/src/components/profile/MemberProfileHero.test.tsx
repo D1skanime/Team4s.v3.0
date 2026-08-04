@@ -139,6 +139,61 @@ describe('MemberProfileHero', () => {
       '(max-width: 760px) 100px, (max-width: 1099px) 120px, 140px',
     )
   })
+
+  it('composes the public Hero B copy in the locked semantic order without leaking source originals', () => {
+    const sourceOriginalURL = '/media/profile/3/background/source-original-secret.png'
+
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({
+          bio: 'Timing und Typesetting mit ruhigem Blick für lesbare Releases.',
+          is_verified: true,
+          total_points: 2840,
+          background_image: {
+            public_url: '/media/profile/3/background/current/display.jpg',
+            source_original_url: sourceOriginalURL,
+          },
+          current_projects: [
+            {
+              anime_id: 12,
+              anime_title: 'Frieren',
+              fansub_group_id: 7,
+              fansub_group_name: 'Tsuki no Fansubs',
+              roles: ['Timing', 'Typesetting'],
+              release_versions: [],
+              is_project_level: false,
+              contribution_status: 'confirmed',
+            },
+          ],
+        })}
+        backgroundImageURL="/media/profile/3/background/current/display.jpg"
+        avatarURL="/media/profile/3/avatar/current/display.png"
+        isPublicView={true}
+        isVerified={true}
+      />,
+    )
+
+    const panel = screen.getByTestId('member-profile-hero-panel')
+    const copy = panel.textContent ?? ''
+    const orderedCopy = [
+      'Fansub-Member',
+      'Ballelboy',
+      'Verifiziert',
+      'Aktiv',
+      'Punkte',
+      '2840',
+      'Timing und Typesetting mit ruhigem Blick für lesbare Releases.',
+      'Aktuell aktiv seit 2016',
+      'Schwerpunkte: Timing, Typesetting',
+    ]
+
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    for (let index = 1; index < orderedCopy.length; index += 1) {
+      expect(copy.indexOf(orderedCopy[index - 1])).toBeLessThan(copy.indexOf(orderedCopy[index]))
+    }
+    expect(document.body.innerHTML).not.toContain(sourceOriginalURL)
+  })
+
   it('shows the public fansub activity period without adding a separate card', () => {
     render(<MemberProfileHero profile={makePublicProfile()} isPublicView={true} />)
 
