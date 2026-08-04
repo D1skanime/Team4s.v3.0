@@ -13,6 +13,8 @@ import {
   type ReactNode,
 } from 'react'
 
+import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
+
 import { Button } from './Button'
 import { classNames } from './classNames'
 import styles from './FocalCarousel.module.css'
@@ -46,6 +48,7 @@ type FocalCarouselProps<T> = {
   style?: CSSProperties
   showCounter?: boolean
   formatCounter?: (position: number, total: number, label: string) => ReactNode
+  deferInteractionUntilNearViewport?: boolean
 }
 
 export function FocalCarousel<T>({
@@ -69,12 +72,16 @@ export function FocalCarousel<T>({
   style,
   showCounter = false,
   formatCounter = (position, total, label) => `${position} von ${total} ${label}`,
+  deferInteractionUntilNearViewport = false,
 }: FocalCarouselProps<T>) {
   const [activeIndex, setActiveIndex] = useState(0)
   const gridId = useId()
   const toggleId = `${gridId}-toggle`
   const requestedScrollRef = useRef<{ index: number; left: number } | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const { targetRef: activationRef, interactionEnabled } = useNearViewportActivation<HTMLDivElement>(
+    deferInteractionUntilNearViewport,
+  )
   const trackRef = useRef<HTMLDivElement>(null)
   const restoreFocusRef = useRef(false)
   const suppressClickRef = useRef(false)
@@ -100,6 +107,7 @@ export function FocalCarousel<T>({
   }, [])
 
   useEffect(() => {
+    if (!interactionEnabled) return
     if (typeof window.matchMedia !== 'function') return
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     const update = () => {
@@ -112,7 +120,7 @@ export function FocalCarousel<T>({
     media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [interactionEnabled])
 
   const itemElements = () =>
     Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
@@ -131,9 +139,10 @@ export function FocalCarousel<T>({
 
   useEffect(() => {
     const track = trackRef.current
-    if (!track || expanded) return
+    if (!interactionEnabled || !track || expanded) return
     const handleWheel = (event: WheelEvent) => {
-      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
+      const delta = event.deltaX
       if (!delta) return
       const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
       const next = Math.max(0, Math.min(maxScroll, track.scrollLeft + delta))
@@ -147,10 +156,14 @@ export function FocalCarousel<T>({
     return () => track.removeEventListener('wheel', handleWheel)
     // nearestItemIndex uses the same length-bound geometry captured by this listener.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expanded, visibleItems.length])
-  const move = (delta: number) => focusItem(safeIndex + delta)
+  }, [expanded, interactionEnabled, visibleItems.length])
+  const move = (delta: number) => {
+    if (!interactionEnabled) return
+    focusItem(safeIndex + delta)
+  }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!interactionEnabled) return
     if (event.target !== event.currentTarget) return
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
@@ -185,6 +198,7 @@ export function FocalCarousel<T>({
   }
 
   const handleScroll = () => {
+    if (!interactionEnabled) return
     const physicalIndex = nearestItemIndex()
     const track = trackRef.current
     const maxScroll = track ? Math.max(0, track.scrollWidth - track.clientWidth) : 0
@@ -212,6 +226,7 @@ export function FocalCarousel<T>({
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!interactionEnabled) return
     if (event.pointerType === 'mouse' && event.button !== 0) return
     const track = trackRef.current
     if (!track) return
@@ -229,6 +244,7 @@ export function FocalCarousel<T>({
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!interactionEnabled) return
     const drag = dragRef.current
     const track = trackRef.current
     if (!drag.active || !track) return
@@ -256,6 +272,7 @@ export function FocalCarousel<T>({
   }
 
   const handlePointerEnd = () => {
+    if (!interactionEnabled) return
     if (!dragRef.current.active) return
     dragRef.current.active = false
     trackRef.current?.classList.remove(styles.dragging)
@@ -281,7 +298,7 @@ export function FocalCarousel<T>({
 
   if (expanded) {
     return (
-      <div className={classNames(styles.root, className)} style={style}>
+      <div ref={activationRef} className={classNames(styles.root, className)} style={style}>
         <ul id={gridId} className={classNames(styles.grid, gridClassName)} aria-label={`Alle ${itemPluralLabel}`}>
           {items.map((item, index) => (
             <li key={getItemKey(item)} className={itemClassName}>
@@ -313,7 +330,7 @@ export function FocalCarousel<T>({
   }
 
   return (
-    <div className={classNames(styles.root, className)} style={style}>
+    <div ref={activationRef} className={classNames(styles.root, className)} style={style}>
       <div className={classNames(styles.controls, quiet && styles.controlsQuiet)}>
         {!quiet ? <Button
           type="button"
@@ -328,20 +345,26 @@ export function FocalCarousel<T>({
         </Button> : null}
         <div
           ref={trackRef}
-          className={classNames(styles.track, quiet && styles.quietTrack, carouselClassName)}
+          className={classNames(
+            styles.track,
+            interactionEnabled && styles.trackInteractive,
+            quiet && styles.quietTrack,
+            carouselClassName,
+          )}
           role="region"
           aria-roledescription="Karussell"
           aria-label={regionLabel}
           data-orientation="horizontal"
+          data-interaction-enabled={interactionEnabled ? 'true' : 'false'}
           tabIndex={0}
-          onKeyDown={handleKeyDown}
-          onScroll={handleScroll}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
-          onClickCapture={handleClickCapture}
-          onDragStart={(event) => event.preventDefault()}
+          onKeyDown={interactionEnabled ? handleKeyDown : undefined}
+          onScroll={interactionEnabled ? handleScroll : undefined}
+          onPointerDown={interactionEnabled ? handlePointerDown : undefined}
+          onPointerMove={interactionEnabled ? handlePointerMove : undefined}
+          onPointerUp={interactionEnabled ? handlePointerEnd : undefined}
+          onPointerCancel={interactionEnabled ? handlePointerEnd : undefined}
+          onClickCapture={interactionEnabled ? handleClickCapture : undefined}
+          onDragStart={interactionEnabled ? (event) => event.preventDefault() : undefined}
         >
           <div className={styles.items} role={listLabel ? 'list' : undefined} aria-label={listLabel}>
             {visibleItems.map((item, index) => (

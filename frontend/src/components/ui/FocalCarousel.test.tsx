@@ -23,6 +23,7 @@ function renderCarousel(showCounter = false) {
       showAllLabel="Alle Karten anzeigen"
       showLessLabel="Weniger anzeigen"
       showCounter={showCounter}
+      deferInteractionUntilNearViewport
     />,
   )
 }
@@ -304,13 +305,18 @@ it('Phase 120 RED: activates once at 600px and immediately without IntersectionO
       thresholds = []
     })
 
-    const first = renderCarousel()
+    const first = renderCarousel(true)
     const firstRegion = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
     const firstWheelListener = vi.spyOn(firstRegion, 'addEventListener')
 
     try {
       expect(observerOptions?.rootMargin).toBe('600px 0px')
       expect(observe).toHaveBeenCalledTimes(1)
+      expect(firstRegion.getAttribute('data-interaction-enabled')).toBe('false')
+      expect(screen.getByText('Alpha')).toBeTruthy()
+      expect(screen.getByText('Beta')).toBeTruthy()
+      expect(screen.getByText('Gamma')).toBeTruthy()
+      expect(screen.getByText('1 von 3 Karten')).toBeTruthy()
       expect(mediaAdd).not.toHaveBeenCalled()
       expect(firstWheelListener).not.toHaveBeenCalledWith('wheel', expect.any(Function), expect.anything())
 
@@ -319,6 +325,7 @@ it('Phase 120 RED: activates once at 600px and immediately without IntersectionO
       ], {} as IntersectionObserver))
 
       expect(disconnect).toHaveBeenCalledTimes(1)
+      expect(firstRegion.getAttribute('data-interaction-enabled')).toBe('true')
       expect(mediaAdd).toHaveBeenCalledTimes(1)
       expect(firstWheelListener).toHaveBeenCalledWith('wheel', expect.any(Function), { passive: false })
 
@@ -332,12 +339,14 @@ it('Phase 120 RED: activates once at 600px and immediately without IntersectionO
       vi.stubGlobal('matchMedia', matchMedia)
       mediaAdd.mockClear()
 
+      const fallbackWheelListener = vi.spyOn(HTMLDivElement.prototype, 'addEventListener')
       const fallback = renderCarousel()
       const fallbackRegion = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
-      const fallbackWheelListener = vi.spyOn(fallbackRegion, 'addEventListener')
+      expect(fallbackRegion.getAttribute('data-interaction-enabled')).toBe('true')
       expect(mediaAdd).toHaveBeenCalledTimes(1)
       expect(fallbackWheelListener).toHaveBeenCalledWith('wheel', expect.any(Function), { passive: false })
       fallback.unmount()
+      fallbackWheelListener.mockRestore()
     } finally {
       firstWheelListener.mockRestore()
       vi.unstubAllGlobals()

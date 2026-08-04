@@ -21,9 +21,13 @@
   min-width: 0;
   padding-block: 12px;
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.trackInteractive {
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  scrollbar-width: none;
   overscroll-behavior-inline: contain;
   touch-action: pan-y;
   cursor: grab;
@@ -32,6 +36,12 @@
 
 .quietTrack {
   --focal-item-size: min(100%, 720px);
+  cursor: default;
+  overflow-x: hidden;
+  scroll-snap-type: none;
+}
+
+.quietTrack.trackInteractive {
   cursor: default;
   overflow-x: hidden;
   scroll-snap-type: none;
