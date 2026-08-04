@@ -255,6 +255,7 @@ async function collectViewport(browser, baseURL, state, slug, viewport, token) {
   const navigation = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90_000 })
   assert(navigation?.ok(), `${state}/${viewport.label} navigation returned ${navigation?.status()}`)
   await page.waitForSelector('h1', { timeout: 30_000 })
+  await page.waitForLoadState('networkidle', { timeout: 90_000 })
   await page.waitForTimeout(1800)
   const beforeScroll = await snapshotDOM(page)
   for (let y = 0; y < await page.evaluate(() => document.documentElement.scrollHeight); y += Math.max(240, Math.floor(viewport.height * 0.7))) {
