@@ -1,10 +1,10 @@
 'use client'
 
-import Image from 'next/image'
 import { Lock } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
 import { Badge, Card, FocalCarousel, SectionHeader } from '@/components/ui'
+import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberBadge, PublicMemberBadgeProgress } from '@/types/profile'
 
@@ -52,6 +52,8 @@ function resolveRoleLabel(roleCode: string): string {
 }
 
 const CONTRIBUTION_TIER_LABELS = { bronze: 'Bronze', silver: 'Silber', gold: 'Gold' } as const
+const COMPACT_BADGE_SIZES = '(max-width: 520px) 72px, 96px'
+const ACTIVE_BADGE_SIZES = '(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px'
 
 function ContributionProgress({ badge }: { badge: PublicMemberBadge }) {
   if (badge.badge_category !== 'contribution' || badge.current_count == null || !badge.current_tier) return null
@@ -332,6 +334,26 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
     event.preventDefault()
     chooseStage(badgeCode)
   }
+  const handleStageWheel = (event: WheelEvent) => {
+    const strip = event.currentTarget as HTMLDivElement | null
+    if (!strip) return
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+    if (delta === 0) return
+    const maxScrollLeft = Math.max(0, strip.scrollWidth - strip.clientWidth)
+    const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, strip.scrollLeft + delta))
+    if (nextScrollLeft === strip.scrollLeft) return
+    event.preventDefault()
+    strip.scrollLeft = nextScrollLeft
+
+  }
+  useEffect(() => {
+    const strip = stripRef.current
+    if (!strip) return
+    strip.addEventListener('wheel', handleStageWheel, { passive: false })
+    return () => {
+      strip.removeEventListener('wheel', handleStageWheel)
+    }
+  }, [family.key])
 
   if (family.group === 'special') {
     return (
@@ -339,7 +361,7 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
         <h3 className={styles.familyEyebrow}>{family.label}</h3>
         <span className={styles.specialAwardArtwork}>
           {heroArtwork ? (
-            <Image src={heroArtwork} alt={heroStage.label} width={512} height={512} unoptimized data-achievement-art={heroStage.badge_code} />
+            <ResponsiveImage src={heroArtwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
           ) : (
             <HeroIcon size={88} aria-label={heroStage.label} />
           )}
@@ -357,11 +379,11 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
           <>
             <span className={styles.roleArtworkMist} aria-hidden="true" />
             <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
-            <Image className={styles.roleArtworkMotif} src={layeredArtwork.motifSrc} alt="" width={1254} height={1254} unoptimized aria-hidden="true" />
-            <Image className={styles.roleArtworkFrame} src={layeredArtwork.frameSrc} alt={heroStage.label} width={1254} height={1254} unoptimized data-achievement-art={heroStage.badge_code} />
+            <ResponsiveImage className={styles.roleArtworkMotif} src={layeredArtwork.motifSrc} alt="" width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} aria-hidden="true" />
+            <ResponsiveImage className={styles.roleArtworkFrame} src={layeredArtwork.frameSrc} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
           </>
         ) : heroArtwork ? (
-          <Image src={heroArtwork} alt={heroStage.label} width={512} height={512} unoptimized data-achievement-art={heroStage.badge_code} />
+          <ResponsiveImage src={heroArtwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
         ) : (
           <HeroIcon size={96} aria-label={heroStage.label} />
         )}
@@ -417,10 +439,10 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
                       {layeredStageArtwork ? (
                         <>
                           <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
-                          <Image className={styles.roleArtworkMotif} src={layeredStageArtwork.motifSrc} alt="" width={72} height={72} unoptimized aria-hidden="true" />
-                          <Image className={styles.roleArtworkFrame} src={layeredStageArtwork.frameSrc} alt="" width={72} height={72} unoptimized aria-hidden="true" />
+                          <ResponsiveImage className={styles.roleArtworkMotif} src={layeredStageArtwork.motifSrc} alt="" width={72} height={72} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" />
+                          <ResponsiveImage className={styles.roleArtworkFrame} src={layeredStageArtwork.frameSrc} alt="" width={72} height={72} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" />
                         </>
-                      ) : artwork ? <Image src={artwork} alt="" width={72} height={72} unoptimized aria-hidden="true" /> : <StageIcon size={24} aria-hidden="true" />}
+                      ) : artwork ? <ResponsiveImage src={artwork} alt="" width={72} height={72} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" /> : <StageIcon size={24} aria-hidden="true" />}
                     </span>
                     <span>{label}</span>
                     {current ? <span className={styles.currentChip}>Aktuell</span> : null}
@@ -528,7 +550,13 @@ export function MemberBadgeChain({
                   </span>
                 </div>
               ) : null}
-              <FocalCarousel
+              <div className={styles.carouselShell}>
+                <div className={styles.carouselSkeleton} aria-hidden="true" data-badge-skeleton>
+                  <span className={styles.skeletonControl} />
+                  <span className={styles.skeletonCard} />
+                  <span className={styles.skeletonControl} />
+                </div>
+                <FocalCarousel
                 items={group.rows}
                 getItemKey={(row) => row.key}
                 regionLabel={group.key === 'roles' ? 'Rollenfortschritt-Karussell' : `${group.label}-Karussell`}
@@ -569,11 +597,11 @@ export function MemberBadgeChain({
                               <>
                                 <span className={styles.roleArtworkMist} aria-hidden="true" />
                                 <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
-                                <Image className={styles.roleArtworkMotif} src={layeredRoleArtwork.motifSrc} alt="" width={1254} height={1254} sizes="(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px" unoptimized aria-hidden="true" />
-                                <Image className={styles.roleArtworkFrame} src={layeredRoleArtwork.frameSrc} alt={heroAlt} width={1254} height={1254} sizes="(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px" unoptimized data-achievement-art={artworkItem.badge_code} />
+                                <ResponsiveImage className={styles.roleArtworkMotif} src={layeredRoleArtwork.motifSrc} alt="" width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} aria-hidden="true" />
+                                <ResponsiveImage className={styles.roleArtworkFrame} src={layeredRoleArtwork.frameSrc} alt={heroAlt} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={artworkItem.badge_code} />
                               </>
                             ) : (
-                              <Image src={artworkSrc} alt={heroAlt} width={512} height={512} sizes="(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px" unoptimized data-achievement-art={artworkItem.badge_code} />
+                              <ResponsiveImage src={artworkSrc} alt={heroAlt} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={artworkItem.badge_code} />
                             )}
                           </span>
                         ) : null}
@@ -593,7 +621,7 @@ export function MemberBadgeChain({
                             return (
                               <span key={item.badge_code} role="listitem" className={reached ? styles.roleStageEarned : styles.roleStageLocked} data-role-stage={stageName.toLowerCase()} data-earned={reached ? 'true' : 'false'} data-palette={getMemberBadgePresentation(item.badge_code).palette} data-role-volume={item.badge_code.startsWith('role_volume_') ? 'true' : undefined} aria-label={!reached ? `${item.label} gesperrt` : stageName}>
                                 <span className={styles.roleStageArtwork}>
-                                  {stageArtwork ? <Image src={stageArtwork} alt="" width={96} height={96} unoptimized aria-hidden="true" /> : null}
+                                  {stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={96} height={96} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" /> : null}
                                   {!reached ? <Lock size={14} aria-hidden="true" /> : null}
                                   {current ? <span className={styles.currentChip}>Aktuell</span> : null}
                                 </span>
@@ -642,36 +670,33 @@ export function MemberBadgeChain({
                                 <>
                                   <span className={styles.roleArtworkMist} aria-hidden="true" />
                                   <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
-                                  <Image
+                                  <ResponsiveImage
                                     className={styles.roleArtworkMotif}
                                     src={layeredProgressArtwork.motifSrc}
                                     alt=""
                                     width={1254}
                                     height={1254}
-                                    sizes="(max-width: 520px) 205px, (max-width: 900px) 240px, 280px"
-                                    unoptimized
+                                    sizes={ACTIVE_BADGE_SIZES}
                                     aria-hidden="true"
                                   />
-                                  <Image
+                                  <ResponsiveImage
                                     className={styles.roleArtworkFrame}
                                     src={layeredProgressArtwork.frameSrc}
                                     alt=""
                                     width={1254}
                                     height={1254}
-                                    sizes="(max-width: 520px) 205px, (max-width: 900px) 240px, 280px"
-                                    unoptimized
+                                    sizes={ACTIVE_BADGE_SIZES}
                                     aria-hidden="true"
                                     data-achievement-art={item.badge_code}
                                   />
                                 </>
                               ) : isEarned && imageSrc ? (
-                                <Image
+                                <ResponsiveImage
                                   src={imageSrc}
                                   alt=""
                                   width={512}
                                   height={512}
-                                  sizes="(max-width: 520px) 205px, (max-width: 900px) 240px, 280px"
-                                  unoptimized
+                                  sizes={ACTIVE_BADGE_SIZES}
                                   aria-hidden="true"
                                   data-achievement-art={item.badge_code}
                                 />
@@ -695,13 +720,20 @@ export function MemberBadgeChain({
                   </div>
                   )
                 }}
-              />
+                />
+              </div>
             </div>
           ))}
           {collectionGroups.map((group) => (
             <div key={group.key} className={styles.group} data-badge-group={group.key}>
               <SectionHeader title={group.label} underline />
-              <FocalCarousel
+              <div className={styles.carouselShell}>
+                <div className={styles.carouselSkeleton} aria-hidden="true" data-badge-skeleton>
+                  <span className={styles.skeletonControl} />
+                  <span className={styles.skeletonCard} />
+                  <span className={styles.skeletonControl} />
+                </div>
+                <FocalCarousel
                 items={group.families}
                 getItemKey={(family) => `${family.key}:${family.heroStage.badge_code}`}
                 regionLabel={`${group.label}-Karussell`}
@@ -717,7 +749,8 @@ export function MemberBadgeChain({
                 activeItemClassName={styles.badgeWindowActive}
                 deferInteractionUntilNearViewport
                 renderItem={(family) => <FamilyCollectionCard key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />}
-              />
+                />
+              </div>
             </div>
           ))}
         </div>

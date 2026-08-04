@@ -8,6 +8,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PublicMemberBadge } from '@/types/profile'
 const memberBadgeChainCss = readFileSync('src/components/profile/MemberBadgeChain.module.css', 'utf8')
 
+function expectDisplayImageSource(image: Element | null, expectedSource: string) {
+  const src = image?.getAttribute('src')
+  expect(src).toBeTruthy()
+  const url = new URL(src ?? '', 'http://localhost')
+  expect(url.pathname === '/_next/image' ? url.searchParams.get('url') : src).toBe(expectedSource)
+}
+
 type MemberBadgeCatalogItem = {
   badge_code: string
   label: string
@@ -141,7 +148,8 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(container.querySelector('img[data-achievement-art="point_milestone_first"]')?.getAttribute('src')).toBe(
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="point_milestone_first"]'),
       '/member-achievement-badges/point_milestone_first-v2.png',
     )
   })
@@ -154,7 +162,8 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(container.querySelector('img[data-achievement-art="first_contribution"]')?.getAttribute('src')).toBe(
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="first_contribution"]'),
       '/member-achievement-badges/progress-frame-first_contribution.png',
     )
     expect(container.querySelectorAll('img[src*="progress-first_contribution-motif.png"]')).toHaveLength(1)
@@ -168,7 +177,8 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(container.querySelector('img[data-achievement-art="productive_gold"]')?.getAttribute('src')).toBe(
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="productive_gold"]'),
       '/member-achievement-badges/progress-frame-productive-gold.png',
     )
     expect(container.querySelectorAll('img[src*="progress-productive-motif.png"]')).toHaveLength(1)
@@ -290,9 +300,10 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(
-      container.querySelector('img[data-achievement-art="role_volume_translator_gold"]')?.getAttribute('src'),
-    ).toBe('/member-achievement-badges/rank-frame-translator-gold.png')
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="role_volume_translator_gold"]'),
+      '/member-achievement-badges/rank-frame-translator-gold.png',
+    )
     expect(container.querySelectorAll('img[src*="role-translator-motif.png"]')).toHaveLength(1)
     expect(
       container.querySelector('img[data-achievement-art="role_volume_translator_gold"]')?.getAttribute('width'),
@@ -312,9 +323,10 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(
-      container.querySelector('img[data-achievement-art="role_volume_timer_silver"]')?.getAttribute('src'),
-    ).toBe('/member-achievement-badges/rank-frame-timer-silver.png')
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="role_volume_timer_silver"]'),
+      '/member-achievement-badges/rank-frame-timer-silver.png',
+    )
     expect(container.querySelectorAll('img[src*="role-timer-motif.png"]')).toHaveLength(1)
   })
 
@@ -329,9 +341,10 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(
-      container.querySelector('img[data-achievement-art="role_volume_encoder_bronze"]')?.getAttribute('src'),
-    ).toBe('/member-achievement-badges/rank-frame-encoder-bronze.png')
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="role_volume_encoder_bronze"]'),
+      '/member-achievement-badges/rank-frame-encoder-bronze.png',
+    )
     expect(container.querySelectorAll('img[src*="role-encoder-motif.png"]')).toHaveLength(1)
   })
 
@@ -346,9 +359,10 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(
-      container.querySelector('img[data-achievement-art="role_volume_typesetter_bronze"]')?.getAttribute('src'),
-    ).toBe('/member-achievement-badges/rank-frame-typesetter-bronze.png')
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="role_volume_typesetter_bronze"]'),
+      '/member-achievement-badges/rank-frame-typesetter-bronze.png',
+    )
     expect(container.querySelectorAll('img[src*="role-typesetter-motif.png"]')).toHaveLength(1)
   })
 
@@ -363,9 +377,10 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(
-      container.querySelector('img[data-achievement-art="role_volume_quality_checker_bronze"]')?.getAttribute('src'),
-    ).toBe('/member-achievement-badges/rank-frame-quality_checker-bronze.png')
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="role_volume_quality_checker_bronze"]'),
+      '/member-achievement-badges/rank-frame-quality_checker-bronze.png',
+    )
     expect(container.querySelectorAll('img[src*="role-quality_checker-motif.png"]')).toHaveLength(1)
   })
 
@@ -380,9 +395,10 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(
-      container.querySelector('img[data-achievement-art="role_volume_project_lead_bronze"]')?.getAttribute('src'),
-    ).toBe('/member-achievement-badges/rank-frame-project_lead-bronze.png')
+    expectDisplayImageSource(
+      container.querySelector('img[data-achievement-art="role_volume_project_lead_bronze"]'),
+      '/member-achievement-badges/rank-frame-project_lead-bronze.png',
+    )
     expect(container.querySelectorAll('img[src*="role-project_lead-motif.png"]')).toHaveLength(1)
   })
 
@@ -404,7 +420,8 @@ describe('MemberBadgeChain', () => {
       />,
     )
 
-    expect(container.querySelector(`img[data-achievement-art="${volumeCode}"]`)?.getAttribute('src')).toBe(
+    expectDisplayImageSource(
+      container.querySelector(`img[data-achievement-art="${volumeCode}"]`),
       `/member-achievement-badges/rank-frame-${roleCode}-bronze.png`,
     )
     expect(container.querySelectorAll(`img[src*="role-${roleCode}-motif.png"]`)).toHaveLength(1)
@@ -957,7 +974,9 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
     render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_bronze', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 10, next_threshold: 25, remaining_count: 15, next_tier: '25 Projekte', complete: false }]} />)
     const strip = screen.getByRole('list', { name: 'Stufen für Anime-Projekte' }) as HTMLElement
     Object.defineProperties(strip, { clientWidth: { configurable: true, value: 200 }, scrollWidth: { configurable: true, value: 600 }, scrollLeft: { configurable: true, writable: true, value: 20 } })
-    expect(fireEvent.wheel(strip, { deltaX: 0, deltaY: 80 })).toBe(false)
+    const wheelEvent = new WheelEvent('wheel', { deltaX: 0, deltaY: 80, bubbles: true, cancelable: true })
+    strip.dispatchEvent(wheelEvent)
+    expect(wheelEvent.defaultPrevented).toBe(true)
     expect(strip.scrollLeft).toBe(100)
   })
     const scrollIntoView = vi.fn()
@@ -1038,9 +1057,9 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
     expect(within(stageList).getByLabelText('25 Anime-Projekte · Gesperrt')).not.toBeNull()
   })
 
-  it('reduces collection heroes only at smartphone width', () => {
-    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: clamp\(172px, 51vw, 204px\)/)
-    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 1099px\)[\s\S]*?width: clamp\(224px, 29vw, 264px\)/)
+  it('reserves fixed collection hero geometry at tablet and smartphone widths', () => {
+    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 248px/)
+    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 1099px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 280px/)
   })
 })
 

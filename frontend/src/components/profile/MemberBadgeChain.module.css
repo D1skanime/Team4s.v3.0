@@ -3,6 +3,54 @@
   gap: 14px;
 }
 
+.section,
+.chainCard,
+.groupList,
+.group {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.carouselShell {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.carouselSkeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.carouselShell:has([data-interaction-enabled="true"]) > .carouselSkeleton {
+  visibility: hidden;
+}
+
+.skeletonControl,
+.skeletonCard {
+  display: block;
+  background: color-mix(in srgb, var(--text-secondary) 10%, var(--surface-card-muted));
+}
+
+.skeletonControl {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+}
+
+.skeletonCard {
+  justify-self: center;
+  width: min(72%, 760px);
+  min-height: 320px;
+  border-radius: var(--radius-lg);
+}
+
 .familyCard {
   display: grid;
   justify-items: center;
@@ -15,6 +63,7 @@
 }
 
 .familyEyebrow {
+  margin: 0;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
@@ -26,7 +75,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: clamp(248px, 21vw, 292px);
+  width: 320px;
+  max-width: 100%;
   aspect-ratio: 1;
 }
 
@@ -92,10 +142,28 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 8px 0;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-secondary) 48%, transparent) transparent;
+  touch-action: pan-x pan-y;
+}
+
+.familyStages::-webkit-scrollbar {
+  height: 8px;
+}
+
+.familyStages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.familyStages::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 48%, transparent);
 }
 
 .specialAwardCard {
@@ -133,11 +201,18 @@
   --focal-item-size: min(42%, 420px);
 }
 
+.familyStageItem {
+  display: flex;
+  flex: 0 0 88px;
+  min-width: 0;
+  scroll-snap-align: center;
+}
+
 .familyStageButton,
 .familyStageLocked {
   position: relative;
   display: grid;
-  flex: 0 0 88px;
+  width: 100%;
   place-items: center;
   gap: 4px;
   min-height: 44px;
@@ -151,7 +226,6 @@
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
-  scroll-snap-align: center;
 }
 
 .familyStageButton {
@@ -203,7 +277,7 @@
 
 @media (max-width: 1099px) {
   .familyHero {
-    width: clamp(224px, 29vw, 264px);
+    width: 280px;
   }
 }
 
@@ -214,7 +288,7 @@
   }
 
   .familyHero {
-    width: clamp(172px, 51vw, 204px);
+    width: 248px;
   }
 
   .specialAwardCard {
@@ -240,33 +314,30 @@
     padding-inline: calc(50% - 52px);
     overflow-x: auto;
     scroll-padding-inline: calc(50% - 52px);
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
     touch-action: pan-x pan-y;
     -webkit-overflow-scrolling: touch;
   }
 
-  .familyStages::-webkit-scrollbar {
-    display: none;
+  .familyStageItem {
+    flex: 0 0 104px;
+    min-width: 0;
+    scroll-snap-align: center;
   }
 
   .familyStageButton,
   .familyStageLocked {
-    width: 104px;
+    width: 100%;
     min-width: 0;
-    flex: 0 0 104px;
-    scroll-snap-align: center;
     overflow-wrap: anywhere;
     opacity: 0.55;
-    transform: scale(0.88);
-    transition: opacity 180ms ease, transform 220ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    transition: opacity 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
   }
 
   .familyStageButtonActive {
     z-index: 1;
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -582,18 +653,18 @@
 }
 
 .roleHeroArtwork {
-  width: clamp(220px, 25vw, 270px);
-  height: clamp(220px, 25vw, 270px);
+  width: 320px;
+  height: 320px;
   display: block;
   filter:
     drop-shadow(0 0 18px color-mix(in srgb, var(--role-accent) 40%, transparent))
     drop-shadow(0 20px 30px color-mix(in srgb, var(--role-accent) 25%, transparent));
-  transition: width 220ms ease, height 220ms ease, filter 220ms ease;
+  transition: filter 220ms ease;
 }
 
 .badgeWindowActive .roleHeroArtwork {
-  width: clamp(280px, 30vw, 328px);
-  height: clamp(280px, 30vw, 328px);
+  width: 320px;
+  height: 320px;
   filter:
     drop-shadow(0 0 28px color-mix(in srgb, var(--role-accent) 52%, transparent))
     drop-shadow(0 24px 38px color-mix(in srgb, var(--role-accent) 32%, transparent));
@@ -747,8 +818,8 @@
 }
 
 .badgeArtwork {
-  width: clamp(170px, 20vw, 220px);
-  height: clamp(170px, 20vw, 220px);
+  width: 320px;
+  height: 320px;
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -760,12 +831,12 @@
   filter:
     drop-shadow(0 0 12px color-mix(in srgb, var(--badge-accent) 34%, transparent))
     drop-shadow(0 16px 22px color-mix(in srgb, var(--badge-accent) 20%, transparent));
-  transition: width 220ms ease, height 220ms ease, filter 220ms ease;
+  transition: filter 220ms ease;
 }
 
 .badgeWindowActive .badgeArtwork {
-  width: clamp(230px, 25vw, 280px);
-  height: clamp(230px, 25vw, 280px);
+  width: 320px;
+  height: 320px;
   filter:
     drop-shadow(0 0 24px color-mix(in srgb, var(--badge-accent) 44%, transparent))
     drop-shadow(0 22px 34px color-mix(in srgb, var(--badge-accent) 26%, transparent));
@@ -858,7 +929,7 @@
 @media (max-width: 520px) {
   .chain {
     --focal-item-size: 86%;
-    margin-inline: -8px;
+    margin-inline: 0;
   }
 
   .badgeRow {
@@ -1275,5 +1346,71 @@
 
   .roleProgression {
     gap: 4px;
+  }
+}
+
+/* Phase 120: reserve one artwork box per breakpoint so carousel focus never changes layout. */
+.roleHeroArtwork,
+.badgeWindowActive .roleHeroArtwork,
+.badgeArtwork,
+.badgeWindowActive .badgeArtwork,
+.group[data-badge-group="contributions"] .badgeArtwork,
+.group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork,
+.group[data-badge-group="membership"] .badgeArtwork,
+.group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork,
+.group[data-badge-group="special"] .badgeArtwork,
+.group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
+  width: 320px;
+  height: 320px;
+  max-width: 100%;
+}
+
+@media (max-width: 1099px) {
+  .roleHeroArtwork,
+  .badgeWindowActive .roleHeroArtwork,
+  .badgeArtwork,
+  .badgeWindowActive .badgeArtwork,
+  .group[data-badge-group="contributions"] .badgeArtwork,
+  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork,
+  .group[data-badge-group="membership"] .badgeArtwork,
+  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork,
+  .group[data-badge-group="special"] .badgeArtwork,
+  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
+    width: 280px;
+    height: 280px;
+  }
+
+  .skeletonCard {
+    width: 74%;
+  }
+}
+
+@media (max-width: 520px) {
+  .roleHeroArtwork,
+  .badgeWindowActive .roleHeroArtwork,
+  .badgeArtwork,
+  .badgeWindowActive .badgeArtwork,
+  .group[data-badge-group="contributions"] .badgeArtwork,
+  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork,
+  .group[data-badge-group="membership"] .badgeArtwork,
+  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork,
+  .group[data-badge-group="special"] .badgeArtwork,
+  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
+    width: 248px;
+    height: 248px;
+  }
+
+  .carouselSkeleton {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+  }
+
+  .skeletonControl {
+    width: 36px;
+    height: 36px;
+  }
+
+  .skeletonCard {
+    width: 88%;
+    min-height: 280px;
   }
 }
