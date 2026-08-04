@@ -414,8 +414,8 @@ func TestPhase106MigrationBoundary(t *testing.T) {
 		phase106MigrationPath(t, phase106HardeningDown),
 		phase106MigrationPath(t, phase106WhitespaceUp),
 		phase106MigrationPath(t, phase106WhitespaceDown),
-		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres.go"),
-		filepath.Join(phase106RepoRoot(t), "backend", "internal", "testsupport", "phase106_postgres_test.go"),
+		filepath.Join(phase106BackendRoot(t), "internal", "testsupport", "phase106_postgres.go"),
+		filepath.Join(phase106BackendRoot(t), "internal", "testsupport", "phase106_postgres_test.go"),
 	}
 	for _, path := range files {
 		content, err := os.ReadFile(path)
@@ -441,6 +441,13 @@ func readPhase106Migration(t testing.TB, name string) string {
 func phase106MigrationPath(t testing.TB, name string) string {
 	t.Helper()
 	return filepath.Join(phase106RepoRoot(t), "database", "migrations", name)
+}
+
+func phase106BackendRoot(t testing.TB) string {
+	t.Helper()
+	_, filename, _, ok := runtime.Caller(0)
+	require.True(t, ok)
+	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", ".."))
 }
 
 func phase106RepoRoot(t testing.TB) string {

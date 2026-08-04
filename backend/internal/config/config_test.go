@@ -93,6 +93,8 @@ func TestLoad_ParsesCanonicalSMTPEnv(t *testing.T) {
 // (SMTP_FROM_EMAIL / SMTP_USERNAME) weiterhin akzeptiert werden, wenn die
 // kanonischen Namen nicht gesetzt sind (Abwärtskompatibilität, CR-01).
 func TestLoad_FallsBackToLegacySMTPNames(t *testing.T) {
+	t.Setenv("SMTP_FROM", "")
+	t.Setenv("SMTP_USER", "")
 	t.Setenv("SMTP_FROM_EMAIL", "legacy@team4s.local")
 	t.Setenv("SMTP_USERNAME", "legacy-user")
 
