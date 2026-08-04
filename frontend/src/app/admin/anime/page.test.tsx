@@ -1,7 +1,22 @@
 import { renderToStaticMarkup } from 'react-dom/server'
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import type { AnimeListItem } from '@/types/anime'
 
+import { AdminAnimeOverviewClient } from './components/AdminAnimeOverviewClient'
 import AdminAnimePage from './page'
+
+const animeItems: AnimeListItem[] = [
+  {
+    id: 42,
+    title: 'Serial Experiments Lain',
+    type: 'tv',
+    status: 'ongoing',
+    year: 1998,
+    cover_image: 'lain.jpg',
+    max_episodes: 13,
+  },
+]
 
 vi.mock('@/lib/api', () => ({
   getAnimeList: vi.fn().mockResolvedValue({
@@ -29,6 +44,10 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+vi.mock('@/components/auth/PlatformAdminGate', () => ({
+  PlatformAdminGate: ({ children }: { children: ReactNode }) => <>{children}</>,
+}))
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     refresh: vi.fn(),
@@ -40,14 +59,20 @@ describe('AdminAnimePage', () => {
     const markup = renderToStaticMarkup(await AdminAnimePage())
 
     expect(markup).toContain('Anime erstellen')
+    expect(markup).toContain('Vorhandene Anime')
     expect(markup).toContain('href="/admin/anime/create"')
     expect(markup).toContain('Neue Einträge anlegen und bestehende Anime verwalten.')
   })
 
-  it('renders the anime overview list with edit and public actions', async () => {
-    const markup = renderToStaticMarkup(await AdminAnimePage())
+  it('renders the anime overview list with edit and public actions', () => {
+    const markup = renderToStaticMarkup(
+      <AdminAnimeOverviewClient
+        initialItems={animeItems}
+        initialError={null}
+        createdID={null}
+      />,
+    )
 
-    expect(markup).toContain('Vorhandene Anime')
     expect(markup).toContain('Serial Experiments Lain')
     expect(markup).toContain('href="/admin/anime/42/edit"')
     expect(markup).toContain('href="/anime/42"')
@@ -60,13 +85,13 @@ describe('AdminAnimePage', () => {
     expect(markup).not.toContain('Treffer suchen, dann Vorschau laden')
   })
 
-  it('renders an explicit success confirmation when returning from create', async () => {
+  it('renders an explicit success confirmation for the created anime', () => {
     const markup = renderToStaticMarkup(
-      await AdminAnimePage({
-        searchParams: Promise.resolve({
-          created: '42',
-        }),
-      }),
+      <AdminAnimeOverviewClient
+        initialItems={animeItems}
+        initialError={null}
+        createdID={42}
+      />,
     )
 
     expect(markup).toContain('Anime #042 Serial Experiments Lain wurde erstellt und ist jetzt in der Übersicht verankert.')

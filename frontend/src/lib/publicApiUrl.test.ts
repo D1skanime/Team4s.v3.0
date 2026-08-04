@@ -49,11 +49,15 @@ describe('publicApiUrl', () => {
   })
 
   it('uses same-origin paths when the configured browser API URL is empty', () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', '')
+
     expect(getBrowserApiBaseUrl('')).toBe('')
     expect(resolvePublicApiUrl('/api/v1/me')).toBe('/api/v1/me')
   })
 
   it('treats loopback API URLs as same-origin proxy candidates for Docker-live frontend use', () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:8092')
+
     expect(getBrowserApiBaseUrl('http://127.0.0.1:8092')).toBe('')
     expect(getBrowserApiBaseUrl('http://localhost:8092')).toBe('')
     expect(resolvePublicApiUrl('/media/anime/1/banner.jpg', { width: 1280 })).toBe('/media/anime/1/banner.jpg?width=1280')
