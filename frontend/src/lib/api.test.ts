@@ -6,6 +6,8 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { getBrowserApiBaseUrl } from './publicApiUrl'
+
 // Import schlägt fehl bis Plan 02 die Funktion in api.ts ergänzt
 import {
   ApiError,
@@ -18,8 +20,11 @@ import {
 
 describe('resolveApiUrl', () => {
   it('normalisiert alte lokale API-Media-URLs auf den aktuellen Browser-Pfad', () => {
-    expect(resolveApiUrl('http://localhost:8092/api/v1/media/files/logo.png')).toBe('/api/v1/media/files/logo.png')
-    expect(resolveApiUrl('http://127.0.0.1:8092/media/groups/88/logo.png')).toBe('/media/groups/88/logo.png')
+    const browserApiBaseUrl = getBrowserApiBaseUrl()
+    const expectedUrl = (path: string) => browserApiBaseUrl ? `${browserApiBaseUrl}${path}` : path
+
+    expect(resolveApiUrl('http://localhost:8092/api/v1/media/files/logo.png')).toBe(expectedUrl('/api/v1/media/files/logo.png'))
+    expect(resolveApiUrl('http://127.0.0.1:8092/media/groups/88/logo.png')).toBe(expectedUrl('/media/groups/88/logo.png'))
   })
 
   it('lässt externe absolute URLs unverändert', () => {

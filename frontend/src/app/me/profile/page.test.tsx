@@ -19,6 +19,7 @@ const uploadOwnProfileStoryImageMock = vi.fn()
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 const logoutActiveSessionMock = vi.hoisted(() => vi.fn())
 const consumeRegistrationCompletionMock = vi.hoisted(() => vi.fn())
+const resolveApiUrlMock = vi.hoisted(() => vi.fn((value: string) => value))
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode; [key: string]: unknown }) => <a href={href} {...props}>{children}</a>,
@@ -120,6 +121,7 @@ vi.mock('@/lib/api', () => ({
       this.status = status
     }
   },
+  apiClientFetch: (...args: Parameters<typeof fetch>) => fetch(...args),
   getAuthSessionSnapshot: () => ({ hasAccessToken: true, hasRefreshToken: true, displayName: 'Test User' }),
   getMyBadges: (...args: unknown[]) => getMyBadgesMock(...args),
   getMyMemberClaim: (...args: unknown[]) => getMyMemberClaimMock(...args),
@@ -131,7 +133,7 @@ vi.mock('@/lib/api', () => ({
   uploadOwnProfileAvatar: (...args: unknown[]) => uploadOwnProfileAvatarMock(...args),
   uploadOwnProfileBackground: (...args: unknown[]) => uploadOwnProfileBackgroundMock(...args),
   uploadOwnProfileStoryImage: (...args: unknown[]) => uploadOwnProfileStoryImageMock(...args),
-  resolveApiUrl: (value: string) => value,
+  resolveApiUrl: (value: string) => resolveApiUrlMock(value),
 }))
 
 import { ApiError } from '@/lib/api'
@@ -868,7 +870,8 @@ describe('MyProfilePage', () => {
 
     await openProfileTab('Sichtbarkeit')
     fireEvent.click(await screen.findByRole('button', { name: 'Ausschnitt bearbeiten' }))
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/media/profile/3/background/current/source_original.jpg'))
+    const retainedDisplayURL = resolveApiUrlMock('/media/profile/3/background/current/source_original.jpg')
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(retainedDisplayURL))
     const cropDialog = await screen.findByRole('dialog', { name: 'Hintergrundbild zuschneiden' })
     fireEvent.click(within(cropDialog).getByRole('button', { name: /Ausschnitt/ }))
 

@@ -38,14 +38,18 @@ describe('public page desktop width contract', () => {
     expect(focalCarouselStyles).toMatch(/\.track\s*\{[^}]*overflow-x:\s*auto;/s)
   })
 
-  it('applies the same width to project and release pages only above mobile', () => {
-    for (const styles of [projectStyles, releaseStyles]) {
-      expect(styles).toContain('@media (min-width: 769px)')
-      expect(styles).toContain(
-        'width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)))',
-      )
-      expect(styles).toContain('padding-inline: calc(var(--public-page-gutter) / 2)')
-    }
+  it('applies the shared width contract to project and release pages', () => {
+    expect(projectStyles).toContain('@media (min-width: 769px)')
+    expect(projectStyles).toContain(
+      'width: min(var(--public-page-max-width), calc(100% - var(--public-page-gutter)))',
+    )
+    expect(projectStyles).toContain('padding-inline: calc(var(--public-page-gutter) / 2)')
+    expect(basePageRule(releaseStyles)).toContain(
+      'width: min(100%, var(--public-page-max-width))',
+    )
+    expect(basePageRule(releaseStyles)).toContain(
+      'padding: 24px calc(var(--public-page-gutter) / 2) 64px',
+    )
 
     expect(basePageRule(projectStyles)).not.toContain('max-width: 1200px')
     expect(basePageRule(releaseStyles)).not.toContain('max-width: 1180px')

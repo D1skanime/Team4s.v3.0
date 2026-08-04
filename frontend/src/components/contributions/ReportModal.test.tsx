@@ -2,6 +2,7 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { MembershipEntry } from '@/types/contributions'
@@ -13,6 +14,21 @@ const apiMocks = vi.hoisted(() => ({
   createContributionProposal: vi.fn(),
   getAdminFansubAnime: vi.fn(),
 }))
+
+const portalHarness = vi.hoisted(() => ({ renderInline: false }))
+
+vi.mock('react-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-dom')>()
+
+  return {
+    ...actual,
+    createPortal: (children: ReactNode, container: Element | DocumentFragment, key?: string | null) => (
+      portalHarness.renderInline
+        ? children as ReturnType<typeof actual.createPortal>
+        : actual.createPortal(children, container, key)
+    ),
+  }
+})
 
 vi.mock('@/lib/api', () => ({
   ApiError: class ApiError extends Error {
@@ -44,15 +60,18 @@ const ROLE_DEFINITIONS = [
 ]
 
 function renderModal(prefillType: SuggestionType, targetOptions = TARGET_OPTIONS) {
-  return renderToStaticMarkup(
-    <ReportModal
-      open
-      onClose={vi.fn()}
-      onSuccess={vi.fn()}
-      prefillType={prefillType}
-      targetOptions={targetOptions}
-    />,
+  return renderServerMarkup(
+    <ReportModal open onClose={vi.fn()} onSuccess={vi.fn()} prefillType={prefillType} targetOptions={targetOptions} />,
   )
+}
+
+function renderServerMarkup(node: ReactNode) {
+  portalHarness.renderInline = true
+  try {
+    return renderToStaticMarkup(node)
+  } finally {
+    portalHarness.renderInline = false
+  }
 }
 
 afterEach(() => {
@@ -62,7 +81,7 @@ afterEach(() => {
 
 describe('ReportModal target context', () => {
   it('does not expose Claim as a peer option in the contributions modal', () => {
-    const markup = renderToStaticMarkup(
+    const markup = renderServerMarkup(
       <ReportModal
         open
         onClose={vi.fn()}
@@ -93,7 +112,7 @@ describe('ReportModal target context', () => {
   })
 
   it('keeps a prefilled contribution target selectable in the error form', () => {
-    const markup = renderToStaticMarkup(
+    const markup = renderServerMarkup(
       <ReportModal
         open
         onClose={vi.fn()}

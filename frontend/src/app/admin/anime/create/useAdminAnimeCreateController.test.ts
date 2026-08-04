@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { getBrowserApiBaseUrl } from '@/lib/publicApiUrl'
+
 import {
   appendCreateSourceLinkageToPayload,
   resolveCreateAniSearchDraftMergeInputs,
@@ -236,10 +238,12 @@ describe('useAdminAnimeCreateController AniSearch merge regressions', () => {
         },
       },
     })
+    const browserApiBaseUrl = getBrowserApiBaseUrl()
+    const expectedCoverUrl = `${browserApiBaseUrl}/api/admin/jellyfin/assets/cover/series-42`
 
     expect(resolved).toEqual({
       hasCover: true,
-      payloadCoverImage: 'http://localhost:8092/api/admin/jellyfin/assets/cover/series-42',
+      payloadCoverImage: expectedCoverUrl,
     })
   })
 
