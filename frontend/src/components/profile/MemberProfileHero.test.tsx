@@ -114,6 +114,31 @@ describe('MemberProfileHero — Memorial-Variante (Wave-0 RED, D-10)', () => {
 })
 
 describe('MemberProfileHero', () => {
+  it('Phase 120 RED: prioritizes both hero background and avatar with differentiated discovery', () => {
+    const { container } = render(
+      <MemberProfileHero
+        profile={makePublicProfile()}
+        backgroundImageURL="/media/profile/3/background/current/display.jpg"
+        avatarURL="/media/profile/3/avatar/current/display.png"
+        isPublicView={true}
+      />,
+    )
+
+    const background = container.querySelector('img[alt=""]')
+    const avatar = screen.getByRole('img', { name: 'Ballelboy Avatar' })
+
+    expect(background).not.toBeNull()
+    expect(background?.getAttribute('src')).toBe('/media/profile/3/background/current/display.jpg')
+    expect(background?.getAttribute('loading')).toBe('eager')
+    expect(background?.getAttribute('fetchpriority')).toBe('high')
+    expect(avatar.getAttribute('loading')).toBe('eager')
+    expect(avatar.getAttribute('loading')).not.toBe('lazy')
+    expect(avatar.getAttribute('width')).toBe('140')
+    expect(avatar.getAttribute('height')).toBe('140')
+    expect(avatar.getAttribute('sizes')).toBe(
+      '(max-width: 760px) 100px, (max-width: 1099px) 120px, 140px',
+    )
+  })
   it('shows the public fansub activity period without adding a separate card', () => {
     render(<MemberProfileHero profile={makePublicProfile()} isPublicView={true} />)
 
