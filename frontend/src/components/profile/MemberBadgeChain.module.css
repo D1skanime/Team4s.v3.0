@@ -52,14 +52,22 @@
 }
 
 .familyCard {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 12px;
-  min-width: 0;
   padding: 24px;
   overflow: hidden;
   background: var(--surface-card);
   color: var(--text-primary);
+}
+
+.familyCard > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .familyEyebrow {

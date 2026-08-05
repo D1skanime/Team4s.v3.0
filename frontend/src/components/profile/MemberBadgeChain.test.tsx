@@ -967,6 +967,8 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
     expect(memberBadgeChainCss).toContain('touch-action: pan-x pan-y')
     expect(memberBadgeChainCss).toContain('flex: 0 0 104px')
     expect(memberBadgeChainCss).toMatch(/\.section,\s*\.chainCard,\s*\.groupList,\s*\.group\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(memberBadgeChainCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*box-sizing:\s*border-box;[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s)
+    expect(memberBadgeChainCss).toMatch(/\.familyCard > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
   })
 
   it('maps a mouse wheel to the inner horizontal strip without scrolling an ancestor', async () => {
