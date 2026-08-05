@@ -1172,8 +1172,12 @@
 }
 
 .roleBadgeRow {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   gap: 16px;
   padding: 32px 24px;
