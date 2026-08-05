@@ -284,6 +284,8 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     expect(focalCarouselCss).not.toMatch(/\.itemWindow\s*\{[^}]*transform:\s*scale/s)
     expect(focalCarouselCss).not.toContain('--focal-proximity')
     expect(focalCarouselCss).not.toMatch(/\.trackInteractive\s*\{[^}]*scroll-behavior:\s*smooth/s)
+    expect(focalCarouselCss).toMatch(/\.programmaticScrolling\s*\{[^}]*scroll-snap-type:\s*none;/s)
+    expect(focalCarouselCss).toMatch(/\.dragging\s*\{[^}]*scroll-snap-type:\s*none;/s)
 
     vi.useFakeTimers()
     try {
@@ -380,6 +382,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
       expect(region.getAttribute('data-navigation-state')).toBe('moving')
       expect(region.querySelector('[aria-current="true"]')).toBeNull()
+      expect(region.className).toContain('programmaticScrolling')
 
       act(() => animation.advanceTo(0))
       act(() => animation.advanceTo(140))
@@ -389,6 +392,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       expect(scrollTo).not.toHaveBeenCalled()
 
       fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      expect(region.className).toContain('programmaticScrolling')
       act(() => animation.advanceTo(150))
       act(() => animation.advanceTo(290))
       expect(region.scrollLeft).toBeGreaterThan(firstIntermediateLeft)
@@ -398,6 +402,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       act(() => animation.advanceTo(430))
       expect(region.scrollLeft).toBe(600)
       expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      expect(region.className).not.toContain('programmaticScrolling')
       act(() => vi.advanceTimersByTime(160))
 
       expect(region.getAttribute('data-navigation-state')).toBe('settled')
@@ -434,6 +439,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
 
       fireEvent.keyDown(region, { key: 'ArrowRight' })
       fireEvent.keyDown(region, { key: 'End' })
+      expect(region.className).toContain('programmaticScrolling')
       act(() => animation.advanceTo(0))
       act(() => animation.advanceTo(140))
       expect(region.scrollLeft).toBeGreaterThan(0)
@@ -451,6 +457,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       act(() => animation.advanceTo(430))
       expect(region.scrollLeft).toBe(0)
       expect(scrollTo).not.toHaveBeenCalled()
+      expect(region.className).not.toContain('programmaticScrolling')
       act(() => vi.advanceTimersByTime(160))
 
       expect(region.getAttribute('data-navigation-state')).toBe('settled')
@@ -485,11 +492,23 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
       act(() => animation.advanceTo(0))
       expect(animation.pendingCount()).toBe(1)
+      expect(region.className).toContain('programmaticScrolling')
+
+      fireEvent.pointerDown(region, { pointerId: 7, pointerType: 'touch', clientX: 100, clientY: 100 })
+      expect(animation.pendingCount()).toBe(0)
+      expect(region.className).not.toContain('programmaticScrolling')
+      fireEvent.pointerCancel(region, { pointerId: 7, pointerType: 'touch' })
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(10))
+      expect(animation.pendingCount()).toBe(1)
+      expect(region.className).toContain('programmaticScrolling')
 
       rendered.unmount()
 
       expect(animation.cancelAnimationFrame).toHaveBeenCalled()
       expect(animation.pendingCount()).toBe(0)
+      expect(region.className).not.toContain('programmaticScrolling')
     } finally {
       vi.unstubAllGlobals()
     }
