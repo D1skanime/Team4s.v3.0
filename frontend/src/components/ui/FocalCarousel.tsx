@@ -115,7 +115,7 @@ export function FocalCarousel<T>({
     const update = () => {
       reducedMotionRef.current = media.matches
       if (scrollSettleTimerRef.current) { clearTimeout(scrollSettleTimerRef.current); scrollSettleTimerRef.current = null }
-      if (media.matches) focusItem(nearestItemIndex())
+      if (media.matches) focusItem(nearestItemIndex(), false)
     }
     update()
     media.addEventListener('change', update)
@@ -126,13 +126,13 @@ export function FocalCarousel<T>({
   const itemElements = () =>
     Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
 
-  const focusItem = (index: number) => {
+  const focusItem = (index: number, deliberateNavigation = true) => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
     const track = trackRef.current
     const element = itemElements()[boundedIndex]
     if (track && element) {
       const left = Math.max(0, Math.min(element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2, track.scrollWidth - track.clientWidth))
-      if (!reducedMotionRef.current && typeof track.scrollTo === 'function') {
+      if (deliberateNavigation && typeof track.scrollTo === 'function') {
         pendingTargetIndexRef.current = boundedIndex
         setIsNavigating(true)
         track.scrollTo({ left, behavior: 'smooth' })
