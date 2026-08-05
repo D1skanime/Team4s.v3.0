@@ -174,12 +174,24 @@ export function FocalCarousel<T>({
     programmaticAnimationFrameRef.current = requestAnimationFrame(step)
   }
 
+  function centeredScrollLeft(track: HTMLDivElement, element: HTMLElement) {
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
+    const trackRect = track.getBoundingClientRect()
+    const elementRect = element.getBoundingClientRect()
+    const unclampedLeft = trackRect.width > 0 && elementRect.width > 0
+      ? track.scrollLeft
+        + elementRect.left + elementRect.width / 2
+        - (trackRect.left + trackRect.width / 2)
+      : element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2
+    return Math.max(0, Math.min(unclampedLeft, maxScroll))
+  }
+
   const focusItem = (index: number, deliberateNavigation = true) => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
     const track = trackRef.current
     const element = itemElements()[boundedIndex]
     if (track && element) {
-      const left = Math.max(0, Math.min(element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2, track.scrollWidth - track.clientWidth))
+      const left = centeredScrollLeft(track, element)
       if (deliberateNavigation) {
         pendingTargetIndexRef.current = boundedIndex
         setIsNavigating(true)
@@ -245,11 +257,19 @@ export function FocalCarousel<T>({
     const track = trackRef.current
     if (!track) return safeIndex
     const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
-    const center = track.scrollLeft + track.clientWidth / 2
+    const trackRect = track.getBoundingClientRect()
+    const useLiveGeometry = trackRect.width > 0
+    const center = useLiveGeometry
+      ? trackRect.left + trackRect.width / 2
+      : track.scrollLeft + track.clientWidth / 2
     let nearest = track.scrollLeft <= 1 ? 0 : track.scrollLeft >= maxScroll - 1 ? lastIndex : safeIndex
     let nearestDistance = Number.POSITIVE_INFINITY
     itemElements().forEach((element, index) => {
-      const distance = Math.abs(element.offsetLeft + element.offsetWidth / 2 - center)
+      const elementRect = element.getBoundingClientRect()
+      const elementCenter = useLiveGeometry && elementRect.width > 0
+        ? elementRect.left + elementRect.width / 2
+        : element.offsetLeft + element.offsetWidth / 2
+      const distance = Math.abs(elementCenter - center)
       if (distance < nearestDistance) {
         nearestDistance = distance
         if (track.scrollLeft > 1 && track.scrollLeft < maxScroll - 1) nearest = index
