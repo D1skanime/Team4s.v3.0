@@ -53,6 +53,20 @@ function stubAnimationFrames() {
   }
 }
 
+function mockRect(left: number, width: number): DOMRect {
+  return {
+    x: left,
+    y: 0,
+    left,
+    right: left + width,
+    top: 0,
+    bottom: 100,
+    width,
+    height: 100,
+    toJSON: () => ({}),
+  } as DOMRect
+}
+
 describe('FocalCarousel', () => {
   it('gives the mobile track the full controls width and moves arrows below it', () => {
     expect(focalCarouselCss).toContain('@media (max-width: 520px)')
@@ -406,6 +420,85 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       act(() => vi.advanceTimersByTime(160))
 
       expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('centers from live track-relative geometry without overshoot in both directions or rapid retargets', () => {
+    vi.useFakeTimers()
+    const animation = stubAnimationFrames()
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      const centeredScrollLeft = [14, 405, 796]
+      const trackLeft = 100
+      const trackWidth = 768
+      const cardWidth = 376.7
+      Object.defineProperties(region, {
+        clientWidth: { configurable: true, value: trackWidth },
+        scrollWidth: { configurable: true, value: 1564 },
+        scrollLeft: { configurable: true, writable: true, value: centeredScrollLeft[0] },
+        getBoundingClientRect: { configurable: true, value: () => mockRect(trackLeft, trackWidth) },
+      })
+      cards.forEach((card, index) => Object.defineProperties(card, {
+        offsetLeft: {
+          configurable: true,
+          value: centeredScrollLeft[index] + 52 + trackWidth / 2 - cardWidth / 2,
+        },
+        offsetWidth: { configurable: true, value: cardWidth },
+        getBoundingClientRect: {
+          configurable: true,
+          value: () => {
+            const center = trackLeft + trackWidth / 2 + centeredScrollLeft[index] - region.scrollLeft
+            return mockRect(center - cardWidth / 2, cardWidth)
+          },
+        },
+      }))
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(0))
+      act(() => animation.advanceTo(140))
+      const forwardIntermediate = region.scrollLeft
+      expect(forwardIntermediate).toBeGreaterThan(14)
+      expect(forwardIntermediate).toBeLessThan(405)
+      act(() => animation.advanceTo(280))
+      expect(region.scrollLeft).toBe(405)
+      act(() => vi.advanceTimersByTime(160))
+
+      fireEvent.click(screen.getByRole('button', { name: 'Vorherige Karte' }))
+      act(() => animation.advanceTo(300))
+      act(() => animation.advanceTo(440))
+      expect(region.scrollLeft).toBeLessThan(405)
+      expect(region.scrollLeft).toBeGreaterThan(14)
+      act(() => animation.advanceTo(580))
+      expect(region.scrollLeft).toBe(14)
+      act(() => vi.advanceTimersByTime(160))
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(600))
+      act(() => animation.advanceTo(740))
+      const rapidIntermediate = region.scrollLeft
+      expect(rapidIntermediate).toBeGreaterThan(14)
+      expect(rapidIntermediate).toBeLessThan(405)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(750))
+      act(() => animation.advanceTo(890))
+      expect(region.scrollLeft).toBeGreaterThan(rapidIntermediate)
+      expect(region.scrollLeft).toBeLessThan(796)
+      act(() => animation.advanceTo(1030))
+      expect(region.scrollLeft).toBe(796)
+      expect(region.className).not.toContain('programmaticScrolling')
+      act(() => vi.advanceTimersByTime(160))
       expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
     } finally {
       vi.useRealTimers()
