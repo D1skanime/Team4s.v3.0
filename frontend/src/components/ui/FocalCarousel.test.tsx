@@ -28,6 +28,31 @@ function renderCarousel(showCounter = false) {
   )
 }
 
+function stubAnimationFrames() {
+  let nextFrameId = 1
+  const frames = new Map<number, FrameRequestCallback>()
+  const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+    const frameId = nextFrameId
+    nextFrameId += 1
+    frames.set(frameId, callback)
+    return frameId
+  })
+  const cancelAnimationFrame = vi.fn((frameId: number) => {
+    frames.delete(frameId)
+  })
+  vi.stubGlobal('requestAnimationFrame', requestAnimationFrame)
+  vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame)
+  return {
+    advanceTo(time: number) {
+      const callbacks = Array.from(frames.values())
+      frames.clear()
+      callbacks.forEach((callback) => callback(time))
+    },
+    cancelAnimationFrame,
+    pendingCount: () => frames.size,
+  }
+}
+
 describe('FocalCarousel', () => {
   it('gives the mobile track the full controls width and moves arrows below it', () => {
     expect(focalCarouselCss).toContain('@media (max-width: 520px)')
@@ -330,6 +355,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
 
   it('keeps deliberate arrow navigation smooth and settled-only for reduced motion', () => {
     vi.useFakeTimers()
+    const animation = stubAnimationFrames()
     vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
       matches: true,
       addEventListener: vi.fn(),
@@ -352,15 +378,26 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       region.scrollTo = scrollTo as typeof region.scrollTo
 
       fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
-
-      expect(scrollTo).toHaveBeenLastCalledWith({ left: 300, behavior: 'smooth' })
       expect(region.getAttribute('data-navigation-state')).toBe('moving')
       expect(region.querySelector('[aria-current="true"]')).toBeNull()
 
+      act(() => animation.advanceTo(0))
+      act(() => animation.advanceTo(140))
+      const firstIntermediateLeft = region.scrollLeft
+      expect(firstIntermediateLeft).toBeGreaterThan(0)
+      expect(firstIntermediateLeft).toBeLessThan(300)
+      expect(scrollTo).not.toHaveBeenCalled()
+
       fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
-      expect(scrollTo).toHaveBeenLastCalledWith({ left: 600, behavior: 'smooth' })
+      act(() => animation.advanceTo(150))
+      act(() => animation.advanceTo(290))
+      expect(region.scrollLeft).toBeGreaterThan(firstIntermediateLeft)
+      expect(region.scrollLeft).toBeLessThan(600)
       expect(region.querySelector('[aria-current="true"]')).toBeNull()
 
+      act(() => animation.advanceTo(430))
+      expect(region.scrollLeft).toBe(600)
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
       act(() => vi.advanceTimersByTime(160))
 
       expect(region.getAttribute('data-navigation-state')).toBe('settled')
@@ -373,6 +410,7 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
 
   it('keeps reduced-motion Arrow, Home and End commands on the smooth pending-target path', () => {
     vi.useFakeTimers()
+    const animation = stubAnimationFrames()
     vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
       matches: true,
       addEventListener: vi.fn(),
@@ -395,23 +433,64 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
       region.scrollTo = scrollTo as typeof region.scrollTo
 
       fireEvent.keyDown(region, { key: 'ArrowRight' })
-      fireEvent.keyDown(region, { key: 'ArrowRight' })
-      expect(scrollTo).toHaveBeenLastCalledWith({ left: 600, behavior: 'smooth' })
+      fireEvent.keyDown(region, { key: 'End' })
+      act(() => animation.advanceTo(0))
+      act(() => animation.advanceTo(140))
+      expect(region.scrollLeft).toBeGreaterThan(0)
+      expect(region.scrollLeft).toBeLessThan(600)
 
       fireEvent.keyDown(region, { key: 'Home' })
-      expect(scrollTo).toHaveBeenLastCalledWith({ left: 0, behavior: 'smooth' })
-
-      fireEvent.keyDown(region, { key: 'End' })
-      expect(scrollTo).toHaveBeenLastCalledWith({ left: 600, behavior: 'smooth' })
+      const homeStart = region.scrollLeft
+      act(() => animation.advanceTo(150))
+      act(() => animation.advanceTo(290))
+      expect(region.scrollLeft).toBeGreaterThan(0)
+      expect(region.scrollLeft).toBeLessThan(homeStart)
       expect(region.getAttribute('data-navigation-state')).toBe('moving')
       expect(region.querySelector('[aria-current="true"]')).toBeNull()
 
+      act(() => animation.advanceTo(430))
+      expect(region.scrollLeft).toBe(0)
+      expect(scrollTo).not.toHaveBeenCalled()
       act(() => vi.advanceTimersByTime(160))
 
       expect(region.getAttribute('data-navigation-state')).toBe('settled')
-      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+      expect(screen.getByText('Alpha').closest('[aria-current="true"]')).not.toBeNull()
     } finally {
       vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('cancels a reduced-motion deliberate animation when unmounted', () => {
+    const animation = stubAnimationFrames()
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    try {
+      const rendered = renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      Object.defineProperties(region, {
+        clientWidth: { configurable: true, value: 300 },
+        scrollWidth: { configurable: true, value: 900 },
+        scrollLeft: { configurable: true, writable: true, value: 0 },
+      })
+      cards.forEach((card, index) => Object.defineProperties(card, {
+        offsetLeft: { configurable: true, value: index * 300 },
+        offsetWidth: { configurable: true, value: 300 },
+      }))
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      act(() => animation.advanceTo(0))
+      expect(animation.pendingCount()).toBe(1)
+
+      rendered.unmount()
+
+      expect(animation.cancelAnimationFrame).toHaveBeenCalled()
+      expect(animation.pendingCount()).toBe(0)
+    } finally {
       vi.unstubAllGlobals()
     }
   })
