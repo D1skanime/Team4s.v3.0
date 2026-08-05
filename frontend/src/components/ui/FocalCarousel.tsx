@@ -90,6 +90,7 @@ export function FocalCarousel<T>({
   const suppressClickRef = useRef(false)
   const scrollSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const programmaticAnimationFrameRef = useRef<number | null>(null)
+  const programmaticAnimationTrackRef = useRef<HTMLDivElement | null>(null)
   const reducedMotionRef = useRef(false)
   const dragRef = useRef({ active: false, intent: 'pending', startX: 0, startY: 0, startScroll: 0, pointerId: -1, captured: false, lastX: 0, lastTime: 0, velocity: 0 })
 
@@ -133,10 +134,12 @@ export function FocalCarousel<T>({
 
   function cancelProgrammaticAnimation() {
     const frameId = programmaticAnimationFrameRef.current
-    if (frameId === null) return false
-    if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frameId)
+    const wasAnimating = frameId !== null
+    if (frameId !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frameId)
     programmaticAnimationFrameRef.current = null
-    return true
+    programmaticAnimationTrackRef.current?.classList.remove(styles.programmaticScrolling)
+    programmaticAnimationTrackRef.current = null
+    return wasAnimating
   }
 
   function animateReducedMotionScroll(track: HTMLDivElement, targetLeft: number) {
@@ -150,6 +153,8 @@ export function FocalCarousel<T>({
       return
     }
 
+    programmaticAnimationTrackRef.current = track
+    track.classList.add(styles.programmaticScrolling)
     let startTime: number | null = null
     const step = (time: number) => {
       if (startTime === null) startTime = time
@@ -161,6 +166,8 @@ export function FocalCarousel<T>({
         return
       }
       programmaticAnimationFrameRef.current = null
+      track.classList.remove(styles.programmaticScrolling)
+      programmaticAnimationTrackRef.current = null
       track.scrollLeft = targetLeft
       scheduleScrollSettle()
     }
