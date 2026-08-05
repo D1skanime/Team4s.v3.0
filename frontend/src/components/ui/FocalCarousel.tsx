@@ -19,6 +19,8 @@ import { Button } from './Button'
 import { classNames } from './classNames'
 import styles from './FocalCarousel.module.css'
 
+const REDUCED_MOTION_NAVIGATION_DURATION_MS = 280
+
 export type FocalCarouselItemState = {
   active: boolean
   expanded: boolean
@@ -87,6 +89,7 @@ export function FocalCarousel<T>({
   const restoreFocusRef = useRef(false)
   const suppressClickRef = useRef(false)
   const scrollSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const programmaticAnimationFrameRef = useRef<number | null>(null)
   const reducedMotionRef = useRef(false)
   const dragRef = useRef({ active: false, intent: 'pending', startX: 0, startY: 0, startScroll: 0, pointerId: -1, captured: false, lastX: 0, lastTime: 0, velocity: 0 })
 
@@ -106,6 +109,7 @@ export function FocalCarousel<T>({
 
   useEffect(() => () => {
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+    cancelProgrammaticAnimation()
   }, [])
 
   useEffect(() => {
@@ -115,7 +119,8 @@ export function FocalCarousel<T>({
     const update = () => {
       reducedMotionRef.current = media.matches
       if (scrollSettleTimerRef.current) { clearTimeout(scrollSettleTimerRef.current); scrollSettleTimerRef.current = null }
-      if (media.matches) focusItem(nearestItemIndex(), false)
+      const wasAnimating = cancelProgrammaticAnimation()
+      if (media.matches || wasAnimating) focusItem(nearestItemIndex(), false)
     }
     update()
     media.addEventListener('change', update)
@@ -126,19 +131,62 @@ export function FocalCarousel<T>({
   const itemElements = () =>
     Array.from(trackRef.current?.querySelectorAll<HTMLElement>('[data-focal-item]') ?? [])
 
+  function cancelProgrammaticAnimation() {
+    const frameId = programmaticAnimationFrameRef.current
+    if (frameId === null) return false
+    if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frameId)
+    programmaticAnimationFrameRef.current = null
+    return true
+  }
+
+  function animateReducedMotionScroll(track: HTMLDivElement, targetLeft: number) {
+    cancelProgrammaticAnimation()
+    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
+    scrollSettleTimerRef.current = null
+    const startLeft = track.scrollLeft
+    if (Math.abs(targetLeft - startLeft) < 1 || typeof requestAnimationFrame !== 'function') {
+      track.scrollLeft = targetLeft
+      scheduleScrollSettle()
+      return
+    }
+
+    let startTime: number | null = null
+    const step = (time: number) => {
+      if (startTime === null) startTime = time
+      const progress = Math.min(1, (time - startTime) / REDUCED_MOTION_NAVIGATION_DURATION_MS)
+      const easedProgress = 1 - Math.pow(1 - progress, 3)
+      track.scrollLeft = startLeft + (targetLeft - startLeft) * easedProgress
+      if (progress < 1) {
+        programmaticAnimationFrameRef.current = requestAnimationFrame(step)
+        return
+      }
+      programmaticAnimationFrameRef.current = null
+      track.scrollLeft = targetLeft
+      scheduleScrollSettle()
+    }
+    programmaticAnimationFrameRef.current = requestAnimationFrame(step)
+  }
+
   const focusItem = (index: number, deliberateNavigation = true) => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
     const track = trackRef.current
     const element = itemElements()[boundedIndex]
     if (track && element) {
       const left = Math.max(0, Math.min(element.offsetLeft + element.offsetWidth / 2 - track.clientWidth / 2, track.scrollWidth - track.clientWidth))
-      if (deliberateNavigation && typeof track.scrollTo === 'function') {
+      if (deliberateNavigation) {
         pendingTargetIndexRef.current = boundedIndex
         setIsNavigating(true)
-        track.scrollTo({ left, behavior: 'smooth' })
-        scheduleScrollSettle()
-        return
+        if (reducedMotionRef.current) {
+          animateReducedMotionScroll(track, left)
+          return
+        } else if (typeof track.scrollTo === 'function') {
+          cancelProgrammaticAnimation()
+          track.scrollTo({ left, behavior: 'smooth' })
+          scheduleScrollSettle()
+          return
+        }
       }
+      cancelProgrammaticAnimation()
       track.scrollTo?.({ left, behavior: 'auto' })
     }
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
@@ -159,6 +207,7 @@ export function FocalCarousel<T>({
       const next = Math.max(0, Math.min(maxScroll, track.scrollLeft + delta))
       if (next === track.scrollLeft) return
       event.preventDefault()
+      cancelProgrammaticAnimation()
       pendingTargetIndexRef.current = null
       track.scrollLeft = next
       scheduleScrollSettle()
@@ -217,6 +266,7 @@ export function FocalCarousel<T>({
 
   const handleScroll = () => {
     if (!interactionEnabled) return
+    if (programmaticAnimationFrameRef.current !== null) return
     scheduleScrollSettle()
   }
 
@@ -225,6 +275,7 @@ export function FocalCarousel<T>({
     if (event.pointerType === 'mouse' && event.button !== 0) return
     const track = trackRef.current
     if (!track) return
+    cancelProgrammaticAnimation()
     pendingTargetIndexRef.current = null
     dragRef.current = {
       active: true,
