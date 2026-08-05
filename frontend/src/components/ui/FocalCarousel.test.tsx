@@ -328,7 +328,8 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
     }
   })
 
-  it('keeps programmatic navigation immediate for reduced motion', () => {
+  it('keeps deliberate arrow navigation smooth and settled-only for reduced motion', () => {
+    vi.useFakeTimers()
     vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
       matches: true,
       addEventListener: vi.fn(),
@@ -352,10 +353,65 @@ describe('FocalCarousel Phase 119 shared interaction contract', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
 
-      expect(scrollTo).toHaveBeenLastCalledWith({ left: 300, behavior: 'auto' })
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 300, behavior: 'smooth' })
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      expect(region.querySelector('[aria-current="true"]')).toBeNull()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 600, behavior: 'smooth' })
+      expect(region.querySelector('[aria-current="true"]')).toBeNull()
+
+      act(() => vi.advanceTimersByTime(160))
+
       expect(region.getAttribute('data-navigation-state')).toBe('settled')
-      expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
+      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
     } finally {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('keeps reduced-motion Arrow, Home and End commands on the smooth pending-target path', () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    try {
+      renderCarousel()
+      const region = screen.getByRole('region', { name: 'Beispiel-Karussell' }) as HTMLDivElement
+      const cards = Array.from(region.querySelectorAll<HTMLElement>('[data-focal-item]'))
+      Object.defineProperties(region, {
+        clientWidth: { configurable: true, value: 300 },
+        scrollWidth: { configurable: true, value: 900 },
+        scrollLeft: { configurable: true, writable: true, value: 0 },
+      })
+      cards.forEach((card, index) => Object.defineProperties(card, {
+        offsetLeft: { configurable: true, value: index * 300 },
+        offsetWidth: { configurable: true, value: 300 },
+      }))
+      const scrollTo = vi.fn(({ left }: ScrollToOptions) => { region.scrollLeft = Number(left) })
+      region.scrollTo = scrollTo as typeof region.scrollTo
+
+      fireEvent.keyDown(region, { key: 'ArrowRight' })
+      fireEvent.keyDown(region, { key: 'ArrowRight' })
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 600, behavior: 'smooth' })
+
+      fireEvent.keyDown(region, { key: 'Home' })
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 0, behavior: 'smooth' })
+
+      fireEvent.keyDown(region, { key: 'End' })
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 600, behavior: 'smooth' })
+      expect(region.getAttribute('data-navigation-state')).toBe('moving')
+      expect(region.querySelector('[aria-current="true"]')).toBeNull()
+
+      act(() => vi.advanceTimersByTime(160))
+
+      expect(region.getAttribute('data-navigation-state')).toBe('settled')
+      expect(screen.getByText('Gamma').closest('[aria-current="true"]')).not.toBeNull()
+    } finally {
+      vi.useRealTimers()
       vi.unstubAllGlobals()
     }
   })
