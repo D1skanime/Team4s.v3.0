@@ -825,6 +825,15 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(memberBadgeChainCss).toMatch(/\.roleProgressCopy\s*\{[^}]*white-space:\s*normal;/s)
   })
 
+  it('matches the narrow carousel skeleton to one full card and a separate controls row', () => {
+    expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
+    expect(memberBadgeChainCss).toContain('@container member-badge-carousel (max-width: 480px)')
+    expect(memberBadgeChainCss).toMatch(/\.carouselSkeleton\s*\{[^}]*grid-template-rows:\s*minmax\(280px, auto\) 36px;/s)
+    expect(memberBadgeChainCss).toMatch(/\.skeletonCard\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-row:\s*1;[^}]*width:\s*100%;/s)
+    expect(memberBadgeChainCss).toMatch(/\.skeletonControl:first-child\s*\{[^}]*grid-column:\s*1;/s)
+    expect(memberBadgeChainCss).toMatch(/\.skeletonControl:last-child\s*\{[^}]*grid-column:\s*3;/s)
+  })
+
   const roleBadge = (role: 'translator' | 'timer', count: number): PublicMemberBadge => ({
     id: count + 1,
     badge_code: count >= 510 ? `role_volume_${role}_platinum`

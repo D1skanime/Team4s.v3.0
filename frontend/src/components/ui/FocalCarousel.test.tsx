@@ -68,10 +68,14 @@ function mockRect(left: number, width: number): DOMRect {
 }
 
 describe('FocalCarousel', () => {
-  it('gives the mobile track the full controls width and moves arrows below it', () => {
-    expect(focalCarouselCss).toContain('@media (max-width: 520px)')
+  it('uses the carousel container width to show one complete mobile card with arrows below it', () => {
+    expect(focalCarouselCss).toMatch(/\.root\s*\{[^}]*container:\s*focal-carousel \/ inline-size;/s)
+    expect(focalCarouselCss).toContain('@container focal-carousel (max-width: 480px)')
     expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*grid-column:\s*1 \/ -1;/s)
     expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*grid-row:\s*1;/s)
+    expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*--focal-item-size:\s*100% !important;/s)
+    expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*scroll-padding-inline:\s*0;/s)
+    expect(focalCarouselCss).toMatch(/@container focal-carousel \(max-width: 480px\)[\s\S]*\.items\s*\{[^}]*gap:\s*0;/s)
     expect(focalCarouselCss).toMatch(/\.arrow:first-child\s*\{[^}]*grid-column:\s*1;/s)
     expect(focalCarouselCss).toMatch(/\.arrow:last-child\s*\{[^}]*grid-column:\s*3;/s)
   })

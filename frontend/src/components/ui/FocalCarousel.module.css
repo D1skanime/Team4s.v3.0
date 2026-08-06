@@ -2,6 +2,7 @@
   display: grid;
   gap: 12px;
   min-width: 0;
+  container: focal-carousel / inline-size;
 }
 
 .controls {
@@ -136,7 +137,7 @@
   list-style: none;
 }
 
-@media (max-width: 520px) {
+@container focal-carousel (max-width: 480px) {
   .controls {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr) 44px;
@@ -146,6 +147,12 @@
     grid-column: 1 / -1;
     grid-row: 1;
     width: 100%;
+    --focal-item-size: 100% !important;
+    scroll-padding-inline: 0;
+  }
+
+  .items {
+    gap: 0;
   }
 
   .arrow {

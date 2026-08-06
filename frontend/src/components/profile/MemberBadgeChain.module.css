@@ -15,6 +15,7 @@
   position: relative;
   min-width: 0;
   max-width: 100%;
+  container: member-badge-carousel / inline-size;
 }
 
 .carouselSkeleton {
@@ -1424,5 +1425,33 @@
   .skeletonCard {
     width: 88%;
     min-height: 280px;
+  }
+}
+
+@container member-badge-carousel (max-width: 480px) {
+  .carouselSkeleton {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    grid-template-rows: minmax(280px, auto) 36px;
+  }
+
+  .skeletonCard {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    min-height: 280px;
+  }
+
+  .skeletonControl {
+    grid-row: 2;
+    width: 36px;
+    height: 36px;
+  }
+
+  .skeletonControl:first-child {
+    grid-column: 1;
+  }
+
+  .skeletonControl:last-child {
+    grid-column: 3;
   }
 }
