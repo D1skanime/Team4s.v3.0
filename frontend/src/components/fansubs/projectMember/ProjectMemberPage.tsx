@@ -7,6 +7,7 @@ import type { ProjectMemberSummary } from '@/types/projectMember'
 import { ProjectMemberHero } from './ProjectMemberHero'
 import { ProjectMemberMediaGallery } from './ProjectMemberMediaGallery'
 import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
+import { ProjectMemberReleasesSection } from './ProjectMemberReleasesSection'
 import { ProjectMemberStickyNav } from './ProjectMemberStickyNav'
 import { ProjectMemberSummaryBar } from './ProjectMemberSummary'
 import styles from './ProjectMemberPage.module.css'
@@ -83,17 +84,13 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
               count={counts.media}
             />
 
-            <section id="releases" className={styles.section} aria-labelledby="pm-releases-title">
-              <div className={styles.sectionHead}>
-                <h2 id="pm-releases-title" className={styles.sectionTitle}>
-                  Mitwirkung an Releases
-                </h2>
-                <span className={styles.sectionCount}>{counts.releases}</span>
-              </div>
-              <div className={styles.placeholder} data-section="releases">
-                Wird geladen …
-              </div>
-            </section>
+            <ProjectMemberReleasesSection
+              animeID={animeID}
+              groupID={groupID}
+              memberSlug={memberSlug}
+              projectPath={projectPath}
+              count={counts.releases}
+            />
           </>
         )}
       </div>

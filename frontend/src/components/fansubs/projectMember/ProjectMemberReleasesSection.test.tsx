@@ -1,0 +1,82 @@
+// @vitest-environment jsdom
+
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import type { ProjectMemberRelease } from '@/types/projectMember'
+import type { CursorPage } from '@/types/releaseDetail'
+
+const getProjectMemberReleases = vi.fn()
+vi.mock('@/lib/api', () => ({
+  getProjectMemberReleases: (...args: unknown[]) => getProjectMemberReleases(...args),
+}))
+
+// eslint-disable-next-line import/first
+import { ProjectMemberReleaseCard } from './ProjectMemberReleaseCard'
+// eslint-disable-next-line import/first
+import { ProjectMemberReleasesSection } from './ProjectMemberReleasesSection'
+
+afterEach(() => {
+  cleanup()
+  vi.clearAllMocks()
+})
+
+const release = (overrides: Partial<ProjectMemberRelease> = {}): ProjectMemberRelease => ({
+  release_version_id: 1,
+  episode_label: '08',
+  version_label: '1',
+  confirmed_at: '2024-04-12T00:00:00Z',
+  role_labels: ['Übersetzung', 'Timing'],
+  ...overrides,
+})
+
+const page = (
+  items: ProjectMemberRelease[],
+  next: string | null,
+  more: boolean,
+): CursorPage<ProjectMemberRelease> => ({ items, next_cursor: next, has_more: more })
+
+describe('ProjectMemberReleaseCard', () => {
+  it('renders episode, version, confirmed date, roles and the release link (no images/text bodies)', () => {
+    const { container } = render(
+      <ProjectMemberReleaseCard
+        release={release()}
+        projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+      />,
+    )
+    expect(screen.getByText('Folge 08')).not.toBeNull()
+    expect(screen.getByText('Release-Version 1')).not.toBeNull()
+    expect(screen.getByText('Mitwirkung bestätigt · 12.04.2024')).not.toBeNull()
+    expect(screen.getByText('Übersetzung')).not.toBeNull()
+    const link = screen.getByRole('link', { name: 'Release ansehen →' })
+    expect(link.getAttribute('href')).toBe(
+      '/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1',
+    )
+    // Keine Bilder eingebettet
+    expect(container.querySelector('img')).toBeNull()
+  })
+})
+
+describe('ProjectMemberReleasesSection', () => {
+  it('loads the initial page and appends more without duplicates', async () => {
+    const first = Array.from({ length: 15 }, (_, i) => release({ release_version_id: i + 1 }))
+    const second = Array.from({ length: 10 }, (_, i) => release({ release_version_id: i + 15 }))
+    getProjectMemberReleases
+      .mockResolvedValueOnce(page(first, 'c1', true))
+      .mockResolvedValueOnce(page(second, null, false))
+
+    render(
+      <ProjectMemberReleasesSection
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/p"
+        count={24}
+      />,
+    )
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(15))
+    fireEvent.click(screen.getByText('Weitere laden'))
+    // 15 + 10 - 1 Duplikat (id 15) = 24
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(24))
+  })
+})
