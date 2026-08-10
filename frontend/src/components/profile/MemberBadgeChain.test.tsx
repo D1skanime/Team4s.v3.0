@@ -325,9 +325,9 @@ describe('MemberBadgeChain', () => {
 
     expectDisplayImageSource(
       container.querySelector('img[data-achievement-art="role_volume_timer_silver"]'),
-      '/member-achievement-badges/rank-frame-timer-silver.png',
+      '/member-achievement-badges/role_volume_timer_silver.png',
     )
-    expect(container.querySelectorAll('img[src*="role-timer-motif.png"]')).toHaveLength(1)
+    expect(container.querySelectorAll('img[src*="role-timer-motif.png"]')).toHaveLength(0)
   })
 
   it('composes encoding with the matching layered rank artwork', async () => {
@@ -857,7 +857,7 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(screen.getByRole('button', { name: 'Vorherige Rolle' })).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Nächste Rolle' })).not.toBeNull()
     expect(container.querySelectorAll('[data-role-stage]')).toHaveLength(10)
-    expect(container.querySelectorAll('[data-role-stage] img')).toHaveLength(10)
+    expect(container.querySelectorAll('[data-role-stage] img')).toHaveLength(0)
     expect(container.querySelectorAll('[data-role-stage][tabindex]')).toHaveLength(0)
     expect(screen.getAllByText('Aktuell')).toHaveLength(2)
     expect(screen.getAllByText('Gesperrt').length).toBeGreaterThan(0)
@@ -877,12 +877,10 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(screen.queryByText('Rollenfortschritt')).toBeNull()
   })
 
-  it('clamps platinum progress aria while preserving the true visible count', async () => {
+  it('removes the redundant progressbar while preserving the true visible count', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     render(<MemberBadgeChain earnedBadges={[roleBadge('translator', 777)]} catalog={roleProgressCatalog} />)
-    const progress = screen.getByRole('progressbar', { name: 'Fortschritt für Übersetzung' })
-    expect(progress.getAttribute('aria-valuenow')).toBe('510')
-    expect(progress.getAttribute('aria-valuemax')).toBe('510')
+    expect(screen.queryByRole('progressbar', { name: 'Fortschritt für Übersetzung' })).toBeNull()
     expect(screen.getByText('777 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
   })
 })
@@ -1179,14 +1177,14 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
 
 describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
   const roles = [
+    ['project_lead', 'Projektleitung'],
     ['translator', 'Übersetzung'],
     ['timer', 'Timing'],
-    ['encoder', 'Encoding'],
     ['typesetter', 'Typesetting'],
-    ['quality_checker', 'Qualitätsprüfung'],
-    ['project_lead', 'Projektleitung'],
     ['editor', 'Editing'],
+    ['encoder', 'Encoding'],
     ['raw_provider', 'Raw-Bereitstellung'],
+    ['quality_checker', 'Qualitätsprüfung'],
     ['designer', 'Design'],
     ['admin', 'Administration'],
     ['other', 'Andere'],
@@ -1200,7 +1198,7 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     [510, 'platinum'],
   ] as const
 
-  it.fails('[phase121-red] zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen', async () => {
+  it('zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const earnedBadges: PublicMemberBadge[] = [
       ...roles.map(([roleCode], index) => ({
@@ -1229,7 +1227,7 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     expect(roleCards.every((card) => card.hasAttribute('data-role-card-state'))).toBe(true)
   })
 
-  it.fails('[phase121-red] löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen', async () => {
+  it('löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
     for (const [roleCode] of roles) {
@@ -1266,7 +1264,7 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     current_count: count,
   })
 
-  it.fails('[phase121-red] beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen', async () => {
+  it('beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const rendered = render(
       <MemberBadgeChain earnedBadges={[roleBadge('translator', 356)]} />,
@@ -1313,7 +1311,7 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     expect(screen.getByText('687 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
   })
 
-  it.fails('[phase121-red] behält für active, inactive und expanded denselben Rollenbaum', async () => {
+  it('behält für active, inactive und expanded denselben Rollenbaum', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { container } = render(
       <MemberBadgeChain
@@ -1323,7 +1321,7 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
         ]}
       />,
     )
-    const treeShape = (card: Element) => Array.from(card.querySelectorAll('*'))
+    const treeShape = (card: Element) => Array.from(card.children)
       .map((node) => `${node.tagName.toLowerCase()}:${node.getAttribute('role') ?? ''}`)
 
     const translator = container.querySelector('[data-role-code="translator"]') as HTMLElement

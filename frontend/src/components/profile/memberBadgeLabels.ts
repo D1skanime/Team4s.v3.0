@@ -330,6 +330,14 @@ export type RoleProgressPresentation = {
   progressValue: number
   progressMax: number
   progressPercent: number
+  stages: RoleProgressStagePresentation[]
+}
+
+export type RoleProgressStagePresentation = {
+  tier: RoleProgressTier
+  threshold: number
+  label: string
+  state: 'reached' | 'current' | 'locked'
 }
 
 const ROLE_PROGRESS_STAGES: Array<{ tier: RoleProgressTier; threshold: number; label: string }> = [
@@ -362,6 +370,12 @@ export function resolveRoleProgressPresentation(count: number): RoleProgressPres
     progressValue,
     progressMax,
     progressPercent: progressMax > 0 ? Math.max(0, Math.min(100, (progressValue / progressMax) * 100)) : 0,
+    stages: ROLE_PROGRESS_STAGES.map((stage, index) => ({
+      ...stage,
+      state: index === currentIndex
+        ? 'current'
+        : index < currentIndex ? 'reached' : 'locked',
+    })),
   }
 }
 

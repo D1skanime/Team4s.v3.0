@@ -48,6 +48,8 @@ type MemberBadgeGroupResult = {
 // Muster wie getMemberBadgePresentation's bestehender Fallback).
 function resolveRoleLabel(roleCode: string): string {
   if (roleCode === 'other') return 'Andere'
+  if (roleCode === 'admin') return 'Administration'
+  if (roleCode === 'typesetter') return 'Typesetting'
   return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === roleCode)?.label ?? roleCode
 }
 
@@ -157,7 +159,7 @@ function resolveLayeredProgressArtwork(
 function resolveLayeredRoleArtwork(
   badgeCode: string,
 ): { motifSrc: string; frameSrc: string } | undefined {
-  const match = /^role_volume_(translator|timer|encoder|typesetter|quality_checker|project_lead|editor|raw_provider|designer|admin|other)_(bronze|silver|gold|platinum)$/.exec(badgeCode)
+  const match = /^role_volume_(translator|encoder|typesetter|quality_checker|project_lead|editor|raw_provider|designer|admin|other)_(bronze|silver|gold|platinum)$/.exec(badgeCode)
   if (!match) return undefined
 
   const [, role, rank] = match
@@ -573,7 +575,7 @@ export function MemberBadgeChain({
                 activeItemClassName={styles.badgeWindowActive}
                 gridClassName={styles.badgeGrid}
                 deferInteractionUntilNearViewport
-                renderItem={(row) => {
+                renderItem={(row, state) => {
                   const earnedArtworkItems = row.items.filter(
                     (item) => earnedCodes.has(item.badge_code) && resolveBadgeArtwork(item.badge_code),
                   )
@@ -583,13 +585,19 @@ export function MemberBadgeChain({
                     const progress = resolveRoleProgressPresentation(count)
                     const roleLabel = resolveRoleLabel(row.key)
                     const currentIndex = ['entry', 'bronze', 'silver', 'gold', 'platinum'].indexOf(progress.tier ?? '')
-                    const artworkItem = row.items[currentIndex]
+                    const artworkItem = row.items[Math.max(0, currentIndex)]
                     const artworkSrc = artworkItem ? resolveBadgeArtwork(artworkItem.badge_code) : undefined
                     const layeredRoleArtwork = artworkItem ? resolveLayeredRoleArtwork(artworkItem.badge_code) : undefined
                     const heroAlt = `${progress.rankLabel.split(' · ')[0]}medaille für ${roleLabel}`
 
                     return (
-                      <Card className={styles.roleBadgeRow} data-role-code={row.key}>
+                      <Card
+                        className={styles.roleBadgeRow}
+                        data-role-code={row.key}
+                        data-role-card-state={state.expanded ? 'expanded' : state.active ? 'active' : 'inactive'}
+                        data-active={state.active ? 'true' : 'false'}
+                        data-expanded={state.expanded ? 'true' : 'false'}
+                      >
                         <h3 className={styles.roleLabel}>{roleLabel}:</h3>
                         {artworkItem && artworkSrc ? (
                           <span className={`${styles.roleHeroArtwork} ${layeredRoleArtwork ? styles.roleHeroArtworkLayered : ''}`}>
@@ -605,33 +613,29 @@ export function MemberBadgeChain({
                             )}
                           </span>
                         ) : null}
-                        <Badge variant={getMemberBadgePresentation(artworkItem?.badge_code ?? '').variant}>{progress.rankLabel}</Badge>
+                        <div className={styles.roleStatus}>
+                          <Badge variant={getMemberBadgePresentation(artworkItem?.badge_code ?? '').variant}>{progress.rankLabel}</Badge>
+                          <strong className={styles.roleCount}>{count} Mitwirkungen</strong>
+                        </div>
                         <div className={styles.roleProgressBlock}>
-                          <div role="progressbar" aria-label={`Fortschritt für ${roleLabel}`} aria-valuemin={0} aria-valuenow={progress.progressValue} aria-valuemax={progress.progressMax} className={styles.roleProgressTrack}>
-                            <span style={{ width: `${progress.progressPercent}%` }} />
-                          </div>
                           <p className={styles.roleProgressCopy}>{progress.progressCopy}</p>
                         </div>
-                        <span className={styles.roleProgression} role="list" aria-label={`Medaillen für ${roleLabel}`}>
-                          {row.items.map((item, index) => {
-                            const reached = index <= currentIndex
-                            const current = index === currentIndex
-                            const stageArtwork = resolveLayeredRoleArtwork(item.badge_code)?.frameSrc ?? resolveBadgeArtwork(item.badge_code)
-                            const stageName = index === 0 ? 'Einstieg' : getMemberBadgePresentation(item.badge_code).label.split(' · ')[0]
+                        <ol className={styles.roleProgression} aria-label={`Medaillen für ${roleLabel}`}>
+                          {progress.stages.map((stage, index) => {
+                            const current = stage.state === 'current'
+                            const item = row.items[index]
                             return (
-                              <span key={item.badge_code} role="listitem" className={reached ? styles.roleStageEarned : styles.roleStageLocked} data-role-stage={stageName.toLowerCase()} data-earned={reached ? 'true' : 'false'} data-palette={getMemberBadgePresentation(item.badge_code).palette} data-role-volume={item.badge_code.startsWith('role_volume_') ? 'true' : undefined} aria-label={!reached ? `${item.label} gesperrt` : stageName}>
-                                <span className={styles.roleStageArtwork}>
-                                  {stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={96} height={96} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" /> : null}
-                                  {!reached ? <Lock size={14} aria-hidden="true" /> : null}
-                                  {current ? <span className={styles.currentChip}>Aktuell</span> : null}
-                                </span>
-                                <span>{stageName}</span>
-                                {index === 0 ? <span className={styles.visuallyHidden}>{item.label}</span> : null}
-                                {!reached ? <span className={styles.visuallyHidden}>Gesperrt</span> : null}
-                              </span>
+                              <li key={stage.tier} className={stage.state === 'locked' ? styles.roleStageLocked : styles.roleStageEarned} data-role-stage={stage.label.toLowerCase()} data-role-stage-state={stage.state} data-palette={item ? getMemberBadgePresentation(item.badge_code).palette : undefined} data-role-volume={item?.badge_code.startsWith('role_volume_') ? 'true' : undefined} aria-current={current ? 'step' : undefined} aria-label={stage.state === 'locked' ? `${stage.label} · ${stage.threshold}+ gesperrt` : undefined}>
+                                <span className={styles.roleStageMarker} aria-hidden="true"><Lock size={13} /></span>
+                                <span className={styles.roleStageName}>{stage.label}</span>
+                                <span className={styles.roleStageThreshold}>{stage.threshold}+</span>
+                                <span className={styles.currentChip}>{current ? 'Aktuell' : ''}</span>
+                                <span className={styles.roleStageState}>{stage.state === 'locked' ? 'Gesperrt' : ''}</span>
+                                <span className={styles.visuallyHidden}>{index === 0 ? item?.label ?? stage.label : ''}</span>
+                              </li>
                             )
                           })}
-                        </span>
+                        </ol>
                       </Card>
                     )
                   }
