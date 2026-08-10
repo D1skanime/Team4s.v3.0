@@ -8424,6 +8424,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}:
+    get:
+      tags: [Fansubs]
+      summary: Project-member public summary (hero, roles, counts) for anime+group+member
+      operationId: getProjectMemberSummary
+      parameters:
+        - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: memberSlug, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: Combined project-member summary
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ProjectMemberSummary"}
+        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+  /api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}/notes:
+    get:
+      tags: [Fansubs]
+      summary: Cursor page of the member's public text notes in this project
+      operationId: getProjectMemberNotes
+      parameters:
+        - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: memberSlug, in: path, required: true, schema: {type: string}}
+        - {name: cursor, in: query, required: false, schema: {type: string}, description: Base64-kodierter Seek-Cursor aus next_cursor}
+        - {name: limit, in: query, required: false, schema: {type: integer, format: int32, default: 24, minimum: 1, maximum: 100}}
+      responses:
+        "200": {description: Cursor page of notes, content: {application/json: {schema: {$ref: "#/components/schemas/ProjectMemberNotesCursorResponse"}}}}
+        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+  /api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}/media:
+    get:
+      tags: [Fansubs]
+      summary: Cursor page of the member's public media in this project (uploader-attributed)
+      operationId: getProjectMemberMedia
+      parameters:
+        - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: memberSlug, in: path, required: true, schema: {type: string}}
+        - {name: cursor, in: query, required: false, schema: {type: string}, description: Base64-kodierter Seek-Cursor aus next_cursor}
+        - {name: limit, in: query, required: false, schema: {type: integer, format: int32, default: 24, minimum: 1, maximum: 100}}
+      responses:
+        "200": {description: Cursor page of media, content: {application/json: {schema: {$ref: "#/components/schemas/ProjectMemberMediaCursorResponse"}}}}
+        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+  /api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}/releases:
+    get:
+      tags: [Fansubs]
+      summary: Cursor page of the member's release participation (crew history) in this project
+      operationId: getProjectMemberReleases
+      parameters:
+        - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
+        - {name: memberSlug, in: path, required: true, schema: {type: string}}
+        - {name: cursor, in: query, required: false, schema: {type: string}, description: Base64-kodierter Seek-Cursor aus next_cursor}
+        - {name: limit, in: query, required: false, schema: {type: integer, format: int32, default: 24, minimum: 1, maximum: 100}}
+      responses:
+        "200": {description: Cursor page of releases, content: {application/json: {schema: {$ref: "#/components/schemas/ProjectMemberReleasesCursorResponse"}}}}
+        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
 components:
   responses:
     ReleaseReviewBadRequest:
@@ -13940,6 +14006,86 @@ components:
           nullable: true
         has_more:
           type: boolean
+    ProjectMemberCounts:
+      type: object
+      description: Summary-Kennzahlen der Projekt-Member-Seite (nur oeffentlich sichtbare Inhalte, Phase 122)
+      required: [roles, notes, media, releases]
+      properties:
+        roles: {type: integer, format: int32}
+        notes: {type: integer, format: int32}
+        media: {type: integer, format: int32}
+        releases: {type: integer, format: int32}
+    ProjectMemberSummary:
+      type: object
+      description: Hero + Rollen + Counts der oeffentlichen Projekt-Member-Seite (Member x Fansubgruppe x Anime)
+      required: [member_id, member_display_name, is_verified, role_labels, counts]
+      properties:
+        member_id: {type: integer, format: int64}
+        member_slug: {type: string, nullable: true}
+        member_display_name: {type: string}
+        member_avatar_url: {type: string, nullable: true}
+        is_verified: {type: boolean}
+        role_labels: {type: array, items: {type: string}}
+        counts: {$ref: "#/components/schemas/ProjectMemberCounts"}
+    ProjectMemberNote:
+      type: object
+      required: [id, body_html, body_text, role_label, episode_label, release_version_label, release_version_id, created_at]
+      properties:
+        id: {type: integer, format: int64}
+        title: {type: string, nullable: true}
+        body_html: {type: string}
+        body_text: {type: string}
+        role_label: {type: string}
+        episode_label: {type: string}
+        release_version_label: {type: string}
+        release_version_id: {type: integer, format: int64}
+        created_at: {type: string, format: date-time}
+    ProjectMemberNotesCursorResponse:
+      type: object
+      description: Seek-Cursor-Seite der projektweiten Textbeitraege des Members (Phase 122)
+      required: [items, next_cursor, has_more]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/ProjectMemberNote"}}
+        next_cursor: {type: string, nullable: true}
+        has_more: {type: boolean}
+    ProjectMemberMedia:
+      type: object
+      required: [media_asset_id, category, episode_label, release_version_label, release_version_id, created_at, thumbnail_url, preview_url]
+      properties:
+        media_asset_id: {type: integer, format: int64}
+        category: {type: string}
+        caption: {type: string, nullable: true}
+        episode_label: {type: string}
+        release_version_label: {type: string}
+        release_version_id: {type: integer, format: int64}
+        created_at: {type: string, format: date-time}
+        thumbnail_url: {type: string}
+        preview_url: {type: string}
+    ProjectMemberMediaCursorResponse:
+      type: object
+      description: Seek-Cursor-Seite der projektweiten Medien des Members (Uploader-attribuiert, Phase 122)
+      required: [items, next_cursor, has_more]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/ProjectMemberMedia"}}
+        next_cursor: {type: string, nullable: true}
+        has_more: {type: boolean}
+    ProjectMemberRelease:
+      type: object
+      required: [release_version_id, episode_label, version_label, role_labels]
+      properties:
+        release_version_id: {type: integer, format: int64}
+        episode_label: {type: string}
+        version_label: {type: string}
+        confirmed_at: {type: string, format: date-time, nullable: true}
+        role_labels: {type: array, items: {type: string}}
+    ProjectMemberReleasesCursorResponse:
+      type: object
+      description: Seek-Cursor-Seite der Release-Beteiligung des Members (Crew-Historie, Phase 122)
+      required: [items, next_cursor, has_more]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/ProjectMemberRelease"}}
+        next_cursor: {type: string, nullable: true}
+        has_more: {type: boolean}
     PublicAnimeFansubProjectNote:
       type: object
       required: [id, title, body_html, body_text]

@@ -298,6 +298,8 @@ func main() {
 		groupReleaseMediaRepo,
 		repository.NewFansubNotesRepository(dbPool),
 	).WithReleaseDetailRepo(releaseDetailPublicRepo).WithGroupReleasesRepo(groupRepo)
+	projectMemberPublicRepo := repository.NewProjectMemberPublicRepository(dbPool)
+	projectMemberPublicHandler := handlers.NewProjectMemberPublicHandler(projectMemberPublicRepo, cfg.MediaStorageDir)
 	groupAssetsHandler := handlers.NewGroupAssetsHandler(
 		groupRepo,
 		handlers.AnimeMediaConfig{
@@ -380,6 +382,10 @@ func main() {
 	v1.GET("/anime/:id/group/:groupId/themes", groupPublicHandler.GetGroupThemes)
 	v1.GET("/anime/:id/group/:groupId/release-media", groupPublicHandler.GetGroupReleaseMedia)
 	v1.GET("/anime/:id/group/:groupId/project-note", groupPublicHandler.GetGroupProjectNote)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug", projectMemberPublicHandler.GetSummary)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/notes", projectMemberPublicHandler.GetNotes)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/media", projectMemberPublicHandler.GetMedia)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/releases", projectMemberPublicHandler.GetReleases)
 	v1.GET("/episode-versions/:versionId", fansubHandler.GetEpisodeVersionByID)
 	v1.GET("/anime/:id/comments", commentHandler.ListByAnimeID)
 	v1.POST(
