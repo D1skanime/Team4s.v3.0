@@ -1257,3 +1257,92 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     }
   })
 })
+
+describe('Phase 121 semantischer Rollen-Rank-Track', () => {
+  const roleBadge = (roleCode: string, count: number, id = 1): PublicMemberBadge => ({
+    id,
+    badge_code: `role_entry_${roleCode}`,
+    badge_category: 'role_entry',
+    current_count: count,
+  })
+
+  it.fails('[phase121-red] beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const rendered = render(
+      <MemberBadgeChain earnedBadges={[roleBadge('translator', 356)]} />,
+    )
+
+    const goldTrack = screen.getByRole('list', { name: 'Medaillen für Übersetzung' })
+    const goldSteps = within(goldTrack).getAllByRole('listitem')
+    expect(goldSteps).toHaveLength(5)
+    expect(goldSteps.map((step) => step.getAttribute('data-role-stage'))).toEqual([
+      'einstieg',
+      'bronze',
+      'silber',
+      'gold',
+      'platin',
+    ])
+    expect(goldSteps.map((step) => step.getAttribute('data-role-stage-state'))).toEqual([
+      'reached',
+      'reached',
+      'reached',
+      'current',
+      'locked',
+    ])
+    expect(within(goldTrack).getAllByText('Aktuell')).toHaveLength(1)
+    expect(goldTrack.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
+    expect(goldSteps[3]?.getAttribute('aria-current')).toBe('step')
+    expect(goldSteps[4]?.textContent).toContain('Gesperrt')
+    expect(within(goldTrack).queryByRole('button')).toBeNull()
+    expect(within(goldTrack).queryByRole('link')).toBeNull()
+    expect(goldTrack.querySelectorAll('[tabindex]')).toHaveLength(0)
+    expect(screen.getByText('356 von 510 Mitwirkungen · Noch 154 bis Platin')).not.toBeNull()
+
+    rendered.rerender(<MemberBadgeChain earnedBadges={[roleBadge('translator', 687)]} />)
+    const platinumTrack = screen.getByRole('list', { name: 'Medaillen für Übersetzung' })
+    const platinumSteps = within(platinumTrack).getAllByRole('listitem')
+    expect(platinumSteps.map((step) => step.getAttribute('data-role-stage-state'))).toEqual([
+      'reached',
+      'reached',
+      'reached',
+      'reached',
+      'current',
+    ])
+    expect(platinumTrack.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
+    expect(platinumSteps[4]?.getAttribute('aria-current')).toBe('step')
+    expect(screen.getByText('687 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
+  })
+
+  it.fails('[phase121-red] behält für active, inactive und expanded denselben Rollenbaum', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain
+        earnedBadges={[
+          roleBadge('translator', 356, 1),
+          roleBadge('timer', 687, 2),
+        ]}
+      />,
+    )
+    const treeShape = (card: Element) => Array.from(card.querySelectorAll('*'))
+      .map((node) => `${node.tagName.toLowerCase()}:${node.getAttribute('role') ?? ''}`)
+
+    const translator = container.querySelector('[data-role-code="translator"]') as HTMLElement
+    const timer = container.querySelector('[data-role-code="timer"]') as HTMLElement
+    const translatorShape = treeShape(translator)
+    const timerShape = treeShape(timer)
+    expect(translator.getAttribute('data-role-card-state')).toBe('active')
+    expect(timer.getAttribute('data-role-card-state')).toBe('inactive')
+    expect(timerShape).toEqual(translatorShape)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Nächste Rolle' }))
+    expect(translator.getAttribute('data-role-card-state')).toBe('inactive')
+    expect(timer.getAttribute('data-role-card-state')).toBe('active')
+    expect(treeShape(translator)).toEqual(translatorShape)
+    expect(treeShape(timer)).toEqual(timerShape)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Fansubrollen anzeigen' }))
+    const expandedCards = Array.from(container.querySelectorAll('[data-role-card-state="expanded"]'))
+    expect(expandedCards).toHaveLength(2)
+    expect(expandedCards.map(treeShape)).toEqual([translatorShape, timerShape])
+  })
+})
