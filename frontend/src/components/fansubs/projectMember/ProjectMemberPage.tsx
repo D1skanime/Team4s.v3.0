@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { ProjectMemberSummary } from '@/types/projectMember'
 
 import { ProjectMemberHero } from './ProjectMemberHero'
+import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
 import { ProjectMemberStickyNav } from './ProjectMemberStickyNav'
 import { ProjectMemberSummaryBar } from './ProjectMemberSummary'
 import styles from './ProjectMemberPage.module.css'
@@ -26,7 +27,8 @@ export interface ProjectMemberPageProps {
 // vorerst Platzhalter mit den Ankern. Empty-State (D-13): ohne öffentliche Detailbeiträge nur
 // Hero + Rollen + Hinweistext, keine Sektionen und keine Sticky-Nav.
 export function ProjectMemberPage(props: ProjectMemberPageProps) {
-  const { summary, memberSlug, groupName, groupSlug, animeTitle, projectPath } = props
+  const { summary, memberSlug, groupName, groupSlug, animeTitle, projectPath, animeID, groupID } =
+    props
   const { counts } = summary
   const isEmpty = counts.notes + counts.media + counts.releases === 0
 
@@ -64,17 +66,13 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
           <>
             <ProjectMemberStickyNav counts={counts} />
 
-            <section id="texte" className={styles.section} aria-labelledby="pm-texte-title">
-              <div className={styles.sectionHead}>
-                <h2 id="pm-texte-title" className={styles.sectionTitle}>
-                  Texte &amp; Notizen
-                </h2>
-                <span className={styles.sectionCount}>{counts.notes}</span>
-              </div>
-              <div className={styles.placeholder} data-section="notes">
-                Wird geladen …
-              </div>
-            </section>
+            <ProjectMemberNotesSection
+              animeID={animeID}
+              groupID={groupID}
+              memberSlug={memberSlug}
+              projectPath={projectPath}
+              count={counts.notes}
+            />
 
             <section id="bilder" className={styles.section} aria-labelledby="pm-bilder-title">
               <div className={styles.sectionHead}>

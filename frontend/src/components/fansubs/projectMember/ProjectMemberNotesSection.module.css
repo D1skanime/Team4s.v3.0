@@ -1,0 +1,103 @@
+/* Texte & Notizen — projektweiter Bereich (Brief 3.2/9). Desktop 2-spaltig, Mobile 1-spaltig. */
+
+.notesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 720px) {
+  .notesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.noteCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--color-surface, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+}
+
+.noteHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.noteRole {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.noteDate {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.noteEpisode {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+.noteTitle {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.noteBody {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.noteBodyClamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.noteToggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: currentColor;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.noteFooter {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.9;
+}
+.noteFooter:hover,
+.noteFooter:focus-visible {
+  text-decoration: underline;
+}
+
+.loadMoreWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.loadingText,
+.error {
+  margin-top: 12px;
+  font-size: 0.88rem;
+  opacity: 0.8;
+}
