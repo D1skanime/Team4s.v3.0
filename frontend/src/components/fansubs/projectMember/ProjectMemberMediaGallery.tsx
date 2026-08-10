@@ -1,0 +1,126 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { Button } from '@/components/ui'
+import { getProjectMemberMedia } from '@/lib/api'
+import type { ProjectMemberMediaItem } from '@/types/projectMember'
+
+import { ProjectMemberMediaCard } from './ProjectMemberMediaCard'
+import styles from './ProjectMemberMediaGallery.module.css'
+import { ProjectMemberMediaViewer } from './ProjectMemberMediaViewer'
+import pageStyles from './ProjectMemberPage.module.css'
+
+const INITIAL_LIMIT = 24
+const PAGE_LIMIT = 12
+
+interface ProjectMemberMediaGalleryProps {
+  animeID: number
+  groupID: number
+  memberSlug: string
+  projectPath: string
+  count: number
+}
+
+// Projektweite Bilder-&-Medien-Galerie (Brief 3.3/12): cursor-nachgeladen, responsives Grid,
+// öffnet den Media Viewer am Index; bereits geladene Medien werden im Viewer wiederverwendet.
+export function ProjectMemberMediaGallery({
+  animeID,
+  groupID,
+  memberSlug,
+  projectPath,
+  count,
+}: ProjectMemberMediaGalleryProps) {
+  const [items, setItems] = useState<ProjectMemberMediaItem[]>([])
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const seen = useRef<Set<number>>(new Set())
+
+  const append = useCallback((incoming: ProjectMemberMediaItem[]) => {
+    setItems((prev) => {
+      const next = prev.slice()
+      for (const media of incoming) {
+        if (!seen.current.has(media.media_asset_id)) {
+          seen.current.add(media.media_asset_id)
+          next.push(media)
+        }
+      }
+      return next
+    })
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setLoading(true)
+    setError(false)
+    getProjectMemberMedia(animeID, groupID, memberSlug, {
+      limit: INITIAL_LIMIT,
+      signal: controller.signal,
+    })
+      .then((page) => {
+        append(page.items)
+        setCursor(page.next_cursor)
+        setHasMore(page.has_more)
+      })
+      .catch((err: unknown) => {
+        if ((err as Error)?.name !== 'AbortError') setError(true)
+      })
+      .finally(() => setLoading(false))
+    return () => controller.abort()
+  }, [animeID, groupID, memberSlug, append])
+
+  const loadMore = useCallback(() => {
+    if (!cursor) return
+    setLoading(true)
+    getProjectMemberMedia(animeID, groupID, memberSlug, { cursor, limit: PAGE_LIMIT })
+      .then((page) => {
+        append(page.items)
+        setCursor(page.next_cursor)
+        setHasMore(page.has_more)
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [animeID, groupID, memberSlug, cursor, append])
+
+  return (
+    <section id="bilder" className={pageStyles.section} aria-labelledby="pm-bilder-title">
+      <div className={pageStyles.sectionHead}>
+        <h2 id="pm-bilder-title" className={pageStyles.sectionTitle}>
+          Bilder &amp; Medien
+        </h2>
+        <span className={pageStyles.sectionCount}>{count}</span>
+      </div>
+      {error ? <p className={styles.error}>Die Medien konnten nicht geladen werden.</p> : null}
+      <div className={styles.grid}>
+        {items.map((item, i) => (
+          <ProjectMemberMediaCard
+            key={item.media_asset_id}
+            item={item}
+            index={i}
+            onOpen={setOpenIndex}
+          />
+        ))}
+      </div>
+      {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
+      {hasMore && !loading ? (
+        <div className={styles.loadMoreWrap}>
+          <Button type="button" variant="secondary" size="sm" onClick={loadMore}>
+            Weitere Bilder laden
+          </Button>
+        </div>
+      ) : null}
+      {openIndex !== null ? (
+        <ProjectMemberMediaViewer
+          items={items}
+          index={openIndex}
+          projectPath={projectPath}
+          onClose={() => setOpenIndex(null)}
+          onIndexChange={setOpenIndex}
+        />
+      ) : null}
+    </section>
+  )
+}

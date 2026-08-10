@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { ProjectMemberSummary } from '@/types/projectMember'
 
 import { ProjectMemberHero } from './ProjectMemberHero'
+import { ProjectMemberMediaGallery } from './ProjectMemberMediaGallery'
 import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
 import { ProjectMemberStickyNav } from './ProjectMemberStickyNav'
 import { ProjectMemberSummaryBar } from './ProjectMemberSummary'
@@ -74,17 +75,13 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
               count={counts.notes}
             />
 
-            <section id="bilder" className={styles.section} aria-labelledby="pm-bilder-title">
-              <div className={styles.sectionHead}>
-                <h2 id="pm-bilder-title" className={styles.sectionTitle}>
-                  Bilder &amp; Medien
-                </h2>
-                <span className={styles.sectionCount}>{counts.media}</span>
-              </div>
-              <div className={styles.placeholder} data-section="media">
-                Wird geladen …
-              </div>
-            </section>
+            <ProjectMemberMediaGallery
+              animeID={animeID}
+              groupID={groupID}
+              memberSlug={memberSlug}
+              projectPath={projectPath}
+              count={counts.media}
+            />
 
             <section id="releases" className={styles.section} aria-labelledby="pm-releases-title">
               <div className={styles.sectionHead}>
