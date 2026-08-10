@@ -860,6 +860,7 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(container.querySelectorAll('[data-role-stage] img')).toHaveLength(0)
     expect(container.querySelectorAll('[data-role-stage][tabindex]')).toHaveLength(0)
     expect(screen.getAllByText('Aktuell')).toHaveLength(2)
+    expect(memberBadgeChainCss).toMatch(/\.roleProgression \.currentChip\s*\{[^}]*position:\s*static;[^}]*white-space:\s*nowrap;[^}]*font-size:\s*0\.58rem;/s)
     expect(screen.getAllByText('Gesperrt').length).toBeGreaterThan(0)
   })
 

@@ -1334,6 +1334,18 @@
   line-height: 1.2;
 }
 
+/* Phase 121: keep the current-state label inside narrow five-column role tracks. */
+.roleProgression .currentChip {
+  position: static;
+  max-width: 100%;
+  padding: 2px 4px;
+  transform: none;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;
