@@ -193,11 +193,11 @@ Keine Auth/Session/Crypto-?nderung. Access-Control-relevant ist earned-only: nie
 | A2 | Stufennamen+Schwellen passen bei 390 px. | Geometrie anpassen. |
 | A3 | Progressbar hat neben Track Zusatznutzen. | Nach UAT vereinfachen. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. Progressbar zun?chst unver?ndert gekoppelt behalten; nach UAT entfernen, wenn redundant. [ASSUMED]
-2. Fr?here Stufen informativ lassen; Vorschau w?rde neue Zust?nde/Timing-Fragen erzeugen. [VERIFIED: Code] [ASSUMED]
-3. Shared nur bei reproduziertem Consumer-unl?sbarem Defekt ?ndern. [VERIFIED: D-05]
+1. **RESOLVED — Progressbar entfernen:** Track plus echter Count, nächste Stufe und Restwert sind vollständig; die redundante Progressbar wird entfernt. Bei Platin bleiben echter Count und „Höchste Stufe erreicht“ sichtbar. [VERIFIED: D-11/D-14; agent discretion]
+2. **RESOLVED — Frühere Stufen rein informativ:** Erreichte frühere Stationen erhalten nur `reached`; ausschließlich der aktuelle Schritt trägt `aria-current="step"` und „Aktuell“. Keine Vorschau, Buttons, Links oder Tabstopps. [VERIFIED: D-12/D-13/D-20; agent discretion]
+3. **RESOLVED — Shared blocker-only:** FocalCarousel-Shared-Dateien bleiben unverändert. Nur ein reproduzierbarer, consumerseitig unlösbarer Defekt löst einen blockierenden Abweichungs-Checkpoint aus und autorisiert keine stille Shared-Änderung. [VERIFIED: D-05/D-28; agent discretion]
 
 ## Sources
 
