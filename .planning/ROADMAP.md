@@ -1982,7 +1982,7 @@ Plans:
 **Goal:** Neue öffentliche, read-only Seite `/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]`, die ausschliesslich die Mitwirkung `Member × Fansubgruppe × Anime` zeigt (Rollen, projektweite Textbeiträge, projektweite Medien-Galerie mit responsivem Viewer, Release-Mitwirkung). Interne Memberkarten auf der Fansub-Projektseite verlinken künftig hierher; alle anderen Member-Links (Ranking, Gruppenseite, Archiv, `/members/[slug]`) bleiben unverändert. Getrennte, cursor-paginierte öffentliche Read-Endpunkte; zentrale Visibility-Policy (nur öffentlich freigegebene Inhalte, auch nicht über Counts durchsickern lassen); 404 vs. Empty-State; volle Responsive-/A11y-/Performance-Vorgaben. Keine Profilkopie, keine neue Media-Ownership (Medien bleiben release-version-scoped). **ANALYSE-FIRST abgeschlossen** (122-CONTEXT.md, Section-32-Recherche gegen Live-Code).
 **Requirements**: Bestehende öffentliche Fansub-Projektseite (`anime/[id]/group/[groupId]/ProjectPage`), `ProjectMemberRows.tsx` (Link-Stelle), `release_version_notes` (member_id/visibility/status), `release_version_media` (created_by_user_id, Ownership release-version-scoped), `release_member_roles`, `group_contributors_repository`, `is_public_on_anime_page`/`hfgm.visibility`, `release_cursor_pagination.go`, `ResponsiveImage`/`useNearViewportActivation`, `FansubMediaLightbox`. Siehe D-01..D-11 in `122-CONTEXT.md` und DECISIONS.md (2026-08-10, Media-Attribution über Uploader).
 **Depends on:** Bestehende öffentliche Fansub-Projektseite + Contribution-/Notes-/Media-/Release-Modelle (Phasen 61ff., 82/83, 99, 114)
-**Plans:** 2/10 plans executed
+**Plans:** 3/10 plans executed
 
 Plans:
 
