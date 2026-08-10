@@ -107,6 +107,21 @@
   background: color-mix(in srgb, var(--surface-card-muted) 72%, var(--surface-sunken));
 }
 
+.badgesVisualBand {
+  position: relative;
+  left: 50%;
+  width: min(calc(100vw - var(--public-page-gutter)), var(--content-width-visual), var(--content-width-visual-cap));
+  transform: translateX(-50%);
+}
+
+@media (max-width: 1599px) {
+  .badgesVisualBand {
+    width: 100%;
+    left: auto;
+    transform: none;
+  }
+}
+
 .projectsBand,
 .contributionsBand {
   background: var(--surface-canvas);

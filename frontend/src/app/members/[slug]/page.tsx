@@ -154,7 +154,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         />
       </section>
 
-      <div className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand}`}>
+      <div className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand} ${styles.badgesVisualBand}`}>
         <MemberBadgeChain
           earnedBadges={earnedBadges}
           badgeProgress={profile.badge_progress}

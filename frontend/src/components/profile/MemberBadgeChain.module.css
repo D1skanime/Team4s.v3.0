@@ -437,6 +437,7 @@
 .badgeWindow {
   flex-basis: var(--focal-item-size) !important;
   overflow: visible !important;
+  z-index: 0;
 }
 
 .group[data-badge-group="roles"] .chain {
@@ -448,6 +449,7 @@
 }
 
 .badgeWindowActive {
+  z-index: 2;
   filter: drop-shadow(0 22px 34px color-mix(in srgb, var(--focal-card-accent) 13%, transparent));
 }
 
@@ -482,8 +484,14 @@
     radial-gradient(ellipse at 50% 64%, color-mix(in srgb, var(--role-accent) 14%, transparent), transparent 58%);
 }
 
-.roleBadgeRow[data-role-card-state="inactive"] { opacity: 0.78; }
-.roleBadgeRow[data-role-card-state="expanded"] { min-height: 360px; padding-block: 18px; }
+.roleBadgeRow[data-role-card-state="inactive"] {
+  opacity: 0.78;
+}
+
+.roleBadgeRow[data-role-card-state="expanded"] {
+  min-height: 360px;
+  padding-block: 18px;
+}
 
 .roleBadgeRow[data-role-code="fansub_lead"],
 .roleBadgeRowCompact[data-role-code="fansub_lead"] {
@@ -669,15 +677,16 @@
   width: 320px;
   height: 320px;
   display: block;
+  transform: scale(0.84);
+  transform-origin: center;
   filter:
     drop-shadow(0 0 18px color-mix(in srgb, var(--role-accent) 40%, transparent))
     drop-shadow(0 20px 30px color-mix(in srgb, var(--role-accent) 25%, transparent));
-  transition: filter 220ms ease;
+  transition: transform 210ms ease-out, filter 210ms ease-out, opacity 210ms ease-out;
 }
 
 .badgeWindowActive .roleHeroArtwork {
-  width: 320px;
-  height: 320px;
+  transform: scale(1);
   filter:
     drop-shadow(0 0 28px color-mix(in srgb, var(--role-accent) 52%, transparent))
     drop-shadow(0 24px 38px color-mix(in srgb, var(--role-accent) 32%, transparent));
@@ -731,13 +740,50 @@
   color: var(--text-secondary);
 }
 
-.roleStageMarker { width: 18px; height: 18px; display: grid; place-items: center; border: 2px solid currentColor; border-radius: 50%; background: var(--surface-card); }
-.roleStageEarned[data-role-stage-state="current"] { border-color: var(--color-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent); }
-.roleStageEarned[data-role-stage-state="current"] .roleStageMarker { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent); }
-.roleStageName, .roleStageThreshold, .roleStageState { min-width: 0; overflow-wrap: anywhere; }
-.roleStageThreshold, .roleStageState { color: var(--text-secondary); font-size: 0.62rem; }
-.roleStatus { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
-.roleCount { color: var(--text-primary); font-size: 0.88rem; }
+.roleStageMarker {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: var(--surface-card);
+}
+
+.roleStageEarned[data-role-stage-state="current"] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.roleStageEarned[data-role-stage-state="current"] .roleStageMarker {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.roleStageName,
+.roleStageThreshold,
+.roleStageState {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.roleStageThreshold,
+.roleStageState {
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+}
+
+.roleStatus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.roleCount {
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
 
 .badgeStep,
 .badgeStepLocked {
@@ -850,6 +896,8 @@
   width: 320px;
   height: 320px;
   display: inline-flex;
+  transform: scale(0.84);
+  transform-origin: center;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
@@ -860,12 +908,11 @@
   filter:
     drop-shadow(0 0 12px color-mix(in srgb, var(--badge-accent) 34%, transparent))
     drop-shadow(0 16px 22px color-mix(in srgb, var(--badge-accent) 20%, transparent));
-  transition: filter 220ms ease;
+  transition: transform 210ms ease-out, filter 210ms ease-out, opacity 210ms ease-out;
 }
 
 .badgeWindowActive .badgeArtwork {
-  width: 320px;
-  height: 320px;
+  transform: scale(1);
   filter:
     drop-shadow(0 0 24px color-mix(in srgb, var(--badge-accent) 44%, transparent))
     drop-shadow(0 22px 34px color-mix(in srgb, var(--badge-accent) 26%, transparent));
@@ -889,11 +936,6 @@
 }
 
 .group[data-badge-group="contributions"] .badgeArtwork {
-  width: clamp(240px, 28vw, 310px);
-  height: clamp(240px, 28vw, 310px);
-}
-
-.group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork {
   width: clamp(310px, 36vw, 380px);
   height: clamp(310px, 36vw, 380px);
 }
@@ -909,11 +951,6 @@
 }
 
 .group[data-badge-group="membership"] .badgeArtwork {
-  width: clamp(240px, 28vw, 310px);
-  height: clamp(240px, 28vw, 310px);
-}
-
-.group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork {
   width: clamp(310px, 36vw, 380px);
   height: clamp(310px, 36vw, 380px);
 }
@@ -924,11 +961,6 @@
 }
 
 .group[data-badge-group="special"] .badgeArtwork {
-  width: clamp(130px, 15vw, 170px);
-  height: clamp(170px, 20vw, 220px);
-}
-
-.group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
   width: clamp(165px, 19vw, 205px);
   height: clamp(215px, 25vw, 265px);
 }
@@ -987,11 +1019,6 @@
   }
 
   .roleHeroArtwork {
-    width: clamp(172px, 48vw, 194px);
-    height: clamp(172px, 48vw, 194px);
-  }
-
-  .badgeWindowActive .roleHeroArtwork {
     width: clamp(204px, 58vw, 230px);
     height: clamp(204px, 58vw, 230px);
   }
@@ -1007,14 +1034,12 @@
     font-size: 0.62rem;
   }
 
-  .roleStageThreshold, .roleStageState { font-size: 0.56rem; }
-
-  .badgeArtwork {
-    width: clamp(142px, 42vw, 166px);
-    height: clamp(142px, 42vw, 166px);
+  .roleStageThreshold,
+  .roleStageState {
+    font-size: 0.56rem;
   }
 
-  .badgeWindowActive .badgeArtwork {
+  .badgeArtwork {
     width: clamp(178px, 52vw, 205px);
     height: clamp(178px, 52vw, 205px);
   }
@@ -1025,11 +1050,6 @@
   }
 
   .group[data-badge-group="contributions"] .badgeArtwork {
-    width: clamp(150px, 46vw, 180px);
-    height: clamp(150px, 46vw, 180px);
-  }
-
-  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork {
     width: clamp(210px, 60vw, 240px);
     height: clamp(210px, 60vw, 240px);
   }
@@ -1040,11 +1060,6 @@
   }
 
   .group[data-badge-group="membership"] .badgeArtwork {
-    width: clamp(150px, 46vw, 180px);
-    height: clamp(150px, 46vw, 180px);
-  }
-
-  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork {
     width: clamp(210px, 60vw, 240px);
     height: clamp(210px, 60vw, 240px);
   }
@@ -1054,11 +1069,6 @@
   }
 
   .group[data-badge-group="special"] .badgeArtwork {
-    width: 112px;
-    height: 150px;
-  }
-
-  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
     width: 145px;
     height: 195px;
   }
@@ -1077,12 +1087,12 @@
     min-height: 380px;
   }
 
-  .badgeWindowActive .roleHeroArtwork {
+  .roleHeroArtwork {
     width: min(34vw, 280px);
     height: min(34vw, 280px);
   }
 
-  .badgeWindowActive .badgeArtwork {
+  .badgeArtwork {
     width: min(29vw, 240px);
     height: min(29vw, 240px);
   }
@@ -1093,11 +1103,6 @@
   }
 
   .group[data-badge-group="contributions"] .badgeArtwork {
-    width: min(38vw, 230px);
-    height: min(38vw, 230px);
-  }
-
-  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork {
     width: min(54vw, 310px);
     height: min(54vw, 310px);
   }
@@ -1108,11 +1113,6 @@
   }
 
   .group[data-badge-group="membership"] .badgeArtwork {
-    width: min(38vw, 230px);
-    height: min(38vw, 230px);
-  }
-
-  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork {
     width: min(54vw, 310px);
     height: min(54vw, 310px);
   }
@@ -1122,11 +1122,6 @@
   }
 
   .group[data-badge-group="special"] .badgeArtwork {
-    width: 125px;
-    height: 165px;
-  }
-
-  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
     width: 155px;
     height: 210px;
   }
@@ -1396,57 +1391,13 @@
   }
 }
 
-/* Phase 120: reserve one artwork box per breakpoint so carousel focus never changes layout. */
-.roleHeroArtwork,
-.badgeWindowActive .roleHeroArtwork,
-.badgeArtwork,
-.badgeWindowActive .badgeArtwork,
-.group[data-badge-group="contributions"] .badgeArtwork,
-.group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork,
-.group[data-badge-group="membership"] .badgeArtwork,
-.group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork,
-.group[data-badge-group="special"] .badgeArtwork,
-.group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
-  width: 320px;
-  height: 320px;
-  max-width: 100%;
-}
-
 @media (max-width: 1099px) {
-  .roleHeroArtwork,
-  .badgeWindowActive .roleHeroArtwork,
-  .badgeArtwork,
-  .badgeWindowActive .badgeArtwork,
-  .group[data-badge-group="contributions"] .badgeArtwork,
-  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork,
-  .group[data-badge-group="membership"] .badgeArtwork,
-  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork,
-  .group[data-badge-group="special"] .badgeArtwork,
-  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
-    width: 280px;
-    height: 280px;
-  }
-
   .skeletonCard {
     width: 74%;
   }
 }
 
 @media (max-width: 520px) {
-  .roleHeroArtwork,
-  .badgeWindowActive .roleHeroArtwork,
-  .badgeArtwork,
-  .badgeWindowActive .badgeArtwork,
-  .group[data-badge-group="contributions"] .badgeArtwork,
-  .group[data-badge-group="contributions"] .badgeWindowActive .badgeArtwork,
-  .group[data-badge-group="membership"] .badgeArtwork,
-  .group[data-badge-group="membership"] .badgeWindowActive .badgeArtwork,
-  .group[data-badge-group="special"] .badgeArtwork,
-  .group[data-badge-group="special"] .badgeWindowActive .badgeArtwork {
-    width: 248px;
-    height: 248px;
-  }
-
   .carouselSkeleton {
     grid-template-columns: 36px minmax(0, 1fr) 36px;
   }
@@ -1487,5 +1438,162 @@
 
   .skeletonControl:last-child {
     grid-column: 3;
+  }
+}
+
+/* Phase 121-04: screenshot-faithful role hero composition, consumer-side only. */
+@media (min-width: 1100px) {
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: min(76%, 1120px);
+  }
+
+  .group[data-badge-group="roles"] .roleBadgeRow {
+    grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr);
+    grid-template-areas:
+      "artwork label"
+      "artwork status"
+      "artwork progress"
+      "track track";
+    align-items: center;
+    justify-items: stretch;
+    column-gap: 48px;
+    row-gap: 12px;
+    min-height: 540px;
+    padding: 40px 56px 30px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 27% 43%, color-mix(in srgb, var(--role-accent) 18%, transparent), transparent 31%),
+      var(--surface-card);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .group[data-badge-group="roles"] .roleLabel {
+    grid-area: label;
+    align-self: end;
+    justify-self: start;
+    font-size: 13px;
+  }
+
+  .group[data-badge-group="roles"] .roleHeroArtwork {
+    grid-area: artwork;
+    justify-self: center;
+    width: 360px;
+    height: 360px;
+  }
+
+  .group[data-badge-group="roles"] .roleStatus {
+    grid-area: status;
+    align-self: center;
+    justify-content: flex-start;
+    gap: 14px;
+  }
+
+  .group[data-badge-group="roles"] .roleStatus > :first-child {
+    font-size: 1.9rem;
+    line-height: 1.1;
+  }
+
+  .group[data-badge-group="roles"] .roleCount {
+    font-size: 1.45rem;
+    line-height: 1.2;
+  }
+
+  .group[data-badge-group="roles"] .roleProgressBlock {
+    grid-area: progress;
+    align-self: start;
+  }
+
+  .group[data-badge-group="roles"] .roleProgressCopy {
+    text-align: left;
+    font-size: 1rem;
+  }
+
+  .group[data-badge-group="roles"] .roleProgression {
+    grid-area: track;
+    width: 100%;
+    margin-top: 18px;
+    padding-top: 18px;
+    gap: 12px;
+    border-top: 2px solid color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle));
+  }
+
+  .group[data-badge-group="roles"] .roleStageEarned,
+  .group[data-badge-group="roles"] .roleStageLocked {
+    min-height: 88px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: min(78%, 1260px);
+  }
+
+  .group[data-badge-group="roles"] .roleBadgeRow {
+    grid-template-columns: minmax(360px, 0.92fr) minmax(500px, 1.08fr);
+    min-height: 590px;
+    padding-inline: 68px;
+  }
+
+  .group[data-badge-group="roles"] .roleHeroArtwork {
+    width: 410px;
+    height: 410px;
+  }
+}
+
+@media (min-width: 2100px) {
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: min(80%, 1360px);
+  }
+
+  .group[data-badge-group="roles"] .roleBadgeRow {
+    min-height: 630px;
+    padding-inline: 80px;
+  }
+
+  .group[data-badge-group="roles"] .roleHeroArtwork {
+    width: 450px;
+    height: 450px;
+  }
+}
+
+@media (max-width: 520px) {
+  .group[data-badge-group="roles"] .roleBadgeRow {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 10px;
+    min-height: 0;
+    padding: 16px 12px 18px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--role-accent) 20%, transparent), transparent 30%),
+      var(--surface-card);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .group[data-badge-group="roles"] .roleLabel {
+    justify-self: start;
+  }
+
+  .group[data-badge-group="roles"] .roleHeroArtwork {
+    width: min(248px, 76vw);
+    height: min(248px, 76vw);
+  }
+
+  .group[data-badge-group="roles"] .roleStatus {
+    gap: 8px;
+  }
+
+  .group[data-badge-group="roles"] .roleCount {
+    width: 100%;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .group[data-badge-group="roles"] .roleProgression {
+    padding-top: 10px;
+    border-top: 2px solid color-mix(in srgb, var(--role-accent) 30%, var(--border-subtle));
   }
 }
