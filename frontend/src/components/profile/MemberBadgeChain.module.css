@@ -1597,3 +1597,80 @@
     border-top: 2px solid color-mix(in srgb, var(--role-accent) 30%, var(--border-subtle));
   }
 }
+
+/* Der Ziel-Track ist eine durchgehende Etappenlinie, keine zweite Reihe Karten. */
+.group[data-badge-group="roles"] .roleProgression {
+  position: relative;
+  padding-top: 16px;
+  border-top: 0;
+}
+
+.group[data-badge-group="roles"] .roleProgression::before {
+  content: "";
+  position: absolute;
+  top: 27px;
+  right: 10%;
+  left: 10%;
+  height: 2px;
+  background: color-mix(in srgb, var(--role-accent) 42%, var(--border-subtle));
+}
+
+.group[data-badge-group="roles"] .roleStageEarned,
+.group[data-badge-group="roles"] .roleStageLocked {
+  z-index: 1;
+  min-height: 76px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.group[data-badge-group="roles"] .roleStageMarker {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--surface-card);
+  background: var(--surface-card-muted);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--role-accent) 36%, var(--border-subtle));
+}
+
+.group[data-badge-group="roles"] .roleStageEarned .roleStageMarker {
+  color: var(--surface-card);
+  background: var(--role-accent);
+}
+
+.group[data-badge-group="roles"] .roleStageEarned .roleStageMarker > svg {
+  display: none;
+}
+
+.group[data-badge-group="roles"] .roleStageEarned .roleStageMarker::before {
+  content: "\2713";
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.group[data-badge-group="roles"] .roleStageEarned[data-role-stage-state="current"] .roleStageMarker::before {
+  content: "\2605";
+}
+
+@media (max-width: 520px) {
+  .group[data-badge-group="roles"] .roleProgression::before {
+    right: 8%;
+    left: 8%;
+  }
+
+  .group[data-badge-group="roles"] .roleStageEarned,
+  .group[data-badge-group="roles"] .roleStageLocked {
+    min-height: 68px;
+    font-size: 0.62rem;
+  }
+
+  .group[data-badge-group="roles"] .roleStageName {
+    white-space: nowrap;
+  }
+
+  .group[data-badge-group="roles"] .roleStageLocked .roleStageState {
+    display: none;
+  }
+}
