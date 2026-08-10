@@ -1264,6 +1264,14 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
 })
 
 describe('Phase 121 semantischer Rollen-Rank-Track', () => {
+  it('locks the final desktop hierarchy and near-full-width narrow role card', () => {
+    expect(memberBadgeChainCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*font-size:\s*clamp\(2rem, 2\.4vw, 3rem\);/)
+    expect(memberBadgeChainCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*\.roleProgressTrack\s*\{[^}]*height:\s*10px;/)
+    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width: 480px\)[\s\S]*--focal-item-size:\s*min\(98%, 340px\);/)
+    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.chainCard:has\(\.group\[data-badge-group="roles"\]\)[\s\S]*padding-inline:\s*4px;/)
+    expect(memberBadgeChainCss).toMatch(/\.badgeWindowActive \.roleBadgeRow\s*\{[^}]*width:\s*calc\(100% \+ 16px\);/)
+  })
+
   const roleBadge = (roleCode: string, count: number, id = 1): PublicMemberBadge => ({
     id,
     badge_code: `role_entry_${roleCode}`,
