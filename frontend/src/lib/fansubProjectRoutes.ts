@@ -33,3 +33,11 @@ export function buildPublicFansubProjectHref(params: {
 
   return `/anime/${params.project.id}/group/${params.groupId}`
 }
+
+export function buildPublicFansubProjectMemberPath(
+  fansubSlug: string,
+  animeSlug: string,
+  memberSlug: string,
+): string {
+  return `${buildPublicFansubProjectPath(fansubSlug, animeSlug)}/mitwirkende/${encodeURIComponent(memberSlug.trim())}`
+}

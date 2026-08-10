@@ -239,6 +239,7 @@ import type {
   GroupThemesResponse,
   GroupReleaseMediaResponse,
 } from "@/types/groupContributors";
+import type { ProjectMemberSummary, ProjectMemberNote, ProjectMemberMediaItem, ProjectMemberRelease } from "@/types/projectMember";
 import type {
   ReleaseDetailResponse,
   CursorPage,
@@ -10104,4 +10105,88 @@ export async function decideReleaseReview(
     },
   );
   return parseReleaseReviewResponse<ReleaseReviewDecisionResponse>(response);
+}
+
+// --- Phase 122: Oeffentliche Projekt-Member-Seite (Member × Fansubgruppe × Anime) ---
+// Vier getrennte, cursor-faehige, abbrechbare Read-Helper (D-08). Public (kein Auth) -> plain fetch.
+
+export interface ProjectMemberListOpts {
+  cursor?: string;
+  limit?: number;
+  signal?: AbortSignal;
+}
+
+function buildProjectMemberListURL(
+  base: string,
+  animeID: number,
+  groupID: number,
+  memberSlug: string,
+  sub: "notes" | "media" | "releases",
+  opts: ProjectMemberListOpts,
+): string {
+  const query = new URLSearchParams();
+  if (opts.cursor) query.set("cursor", opts.cursor);
+  if (opts.limit) query.set("limit", String(opts.limit));
+  const qs = query.toString();
+  return `${base}/api/v1/anime/${animeID}/group/${groupID}/members/${encodeURIComponent(memberSlug)}/${sub}${qs ? `?${qs}` : ""}`;
+}
+
+export async function getProjectMemberSummary(
+  animeID: number,
+  groupID: number,
+  memberSlug: string,
+  signal?: AbortSignal,
+): Promise<ProjectMemberSummary> {
+  const url = `${getApiBaseUrl()}/api/v1/anime/${animeID}/group/${groupID}/members/${encodeURIComponent(memberSlug)}`;
+  const response = await fetch(url, { cache: "no-store", signal });
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, message);
+  }
+  return response.json() as Promise<ProjectMemberSummary>;
+}
+
+export async function getProjectMemberNotes(
+  animeID: number,
+  groupID: number,
+  memberSlug: string,
+  opts: ProjectMemberListOpts = {},
+): Promise<CursorPage<ProjectMemberNote>> {
+  const url = buildProjectMemberListURL(getApiBaseUrl(), animeID, groupID, memberSlug, "notes", opts);
+  const response = await fetch(url, { cache: "no-store", signal: opts.signal });
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, message);
+  }
+  return response.json() as Promise<CursorPage<ProjectMemberNote>>;
+}
+
+export async function getProjectMemberMedia(
+  animeID: number,
+  groupID: number,
+  memberSlug: string,
+  opts: ProjectMemberListOpts = {},
+): Promise<CursorPage<ProjectMemberMediaItem>> {
+  const url = buildProjectMemberListURL(getApiBaseUrl(), animeID, groupID, memberSlug, "media", opts);
+  const response = await fetch(url, { cache: "no-store", signal: opts.signal });
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, message);
+  }
+  return response.json() as Promise<CursorPage<ProjectMemberMediaItem>>;
+}
+
+export async function getProjectMemberReleases(
+  animeID: number,
+  groupID: number,
+  memberSlug: string,
+  opts: ProjectMemberListOpts = {},
+): Promise<CursorPage<ProjectMemberRelease>> {
+  const url = buildProjectMemberListURL(getApiBaseUrl(), animeID, groupID, memberSlug, "releases", opts);
+  const response = await fetch(url, { cache: "no-store", signal: opts.signal });
+  if (!response.ok) {
+    const message = await parseApiError(response, `API request failed: ${response.status}`);
+    throw new ApiError(response.status, message);
+  }
+  return response.json() as Promise<CursorPage<ProjectMemberRelease>>;
 }
