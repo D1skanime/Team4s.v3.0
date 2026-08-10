@@ -13,6 +13,7 @@ import {
   resolveNextPointMilestone,
   resolveNextRoleVolumeThreshold,
   resolveRoleProgressPresentation,
+  ROLE_VOLUME_TIER_THRESHOLDS,
 } from './memberBadgeLabels'
 
 describe('Contribution-Badge-Präsentationen (D-05)', () => {
@@ -215,6 +216,45 @@ describe('resolveRoleProgressPresentation (Phase 118 — Rollenfortschritt)', ()
       progressCopy: '777 Mitwirkungen · Höchste Stufe erreicht',
       progressValue: 510, progressMax: 510,
     })
+  })
+})
+
+describe('Phase 121 Rollen-Schwellen- und Parsing-Matrix', () => {
+  it('verwendet unverändert die vier kanonischen Volumenschwellen', () => {
+    expect(ROLE_VOLUME_TIER_THRESHOLDS).toEqual({
+      bronze: 12,
+      silver: 108,
+      gold: 320,
+      platinum: 510,
+    })
+  })
+
+  it.each([
+    [0, null, 12, '0 von 12 Mitwirkungen · Noch 12 bis Bronze'],
+    [1, 'entry', 12, '1 von 12 Mitwirkungen · Noch 11 bis Bronze'],
+    [11, 'entry', 12, '11 von 12 Mitwirkungen · Noch 1 bis Bronze'],
+    [12, 'bronze', 108, '12 von 108 Mitwirkungen · Noch 96 bis Silber'],
+    [107, 'bronze', 108, '107 von 108 Mitwirkungen · Noch 1 bis Silber'],
+    [108, 'silver', 320, '108 von 320 Mitwirkungen · Noch 212 bis Gold'],
+    [319, 'silver', 320, '319 von 320 Mitwirkungen · Noch 1 bis Gold'],
+    [320, 'gold', 510, '320 von 510 Mitwirkungen · Noch 190 bis Platin'],
+    [509, 'gold', 510, '509 von 510 Mitwirkungen · Noch 1 bis Platin'],
+    [510, 'platinum', null, '510 Mitwirkungen · Höchste Stufe erreicht'],
+    [687, 'platinum', null, '687 Mitwirkungen · Höchste Stufe erreicht'],
+  ])('bewahrt bei %i den echten Count, Rang und das nächste Ziel', (count, tier, nextThreshold, progressCopy) => {
+    expect(resolveRoleProgressPresentation(count)).toMatchObject({
+      tier,
+      nextThreshold,
+      progressCopy,
+    })
+  })
+
+  it.each([
+    ['quality_checker', 'quality_checker'],
+    ['raw_provider', 'raw_provider'],
+    ['project_lead', 'project_lead'],
+  ])('parst den Unterstrichcode %s suffixbasiert', (roleCode, expectedRoleCode) => {
+    expect(getMemberBadgePresentation(`role_volume_${roleCode}_gold`).roleCode).toBe(expectedRoleCode)
   })
 })
 

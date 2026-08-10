@@ -1176,3 +1176,84 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
       vi.unstubAllGlobals()
     }
 })
+
+describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
+  const roles = [
+    ['translator', 'Übersetzung'],
+    ['timer', 'Timing'],
+    ['encoder', 'Encoding'],
+    ['typesetter', 'Typesetting'],
+    ['quality_checker', 'Qualitätsprüfung'],
+    ['project_lead', 'Projektleitung'],
+    ['editor', 'Editing'],
+    ['raw_provider', 'Raw-Bereitstellung'],
+    ['designer', 'Design'],
+    ['admin', 'Administration'],
+    ['other', 'Andere'],
+  ] as const
+
+  const rankCases = [
+    [1, 'entry'],
+    [12, 'bronze'],
+    [108, 'silver'],
+    [320, 'gold'],
+    [510, 'platinum'],
+  ] as const
+
+  it.fails('[phase121-red] zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const earnedBadges: PublicMemberBadge[] = [
+      ...roles.map(([roleCode], index) => ({
+        id: index + 1,
+        badge_code: `role_entry_${roleCode}`,
+        badge_category: 'role_entry',
+        current_count: 1,
+      })),
+      { id: 90, badge_code: 'role_entry_fansub_lead', badge_category: 'role_entry', current_count: 1 },
+      { id: 91, badge_code: 'role_entry_techadmin', badge_category: 'role_entry', current_count: 1 },
+      { id: 92, badge_code: 'role_entry_gfxler', badge_category: 'role_entry', current_count: 1 },
+      { id: 93, badge_code: 'role_entry_foreign', badge_category: 'role_entry', current_count: 1 },
+    ]
+
+    const { container } = render(<MemberBadgeChain earnedBadges={earnedBadges} />)
+    const roleCards = Array.from(container.querySelectorAll<HTMLElement>('[data-role-code]'))
+
+    expect(roleCards.map((card) => card.dataset.roleCode)).toEqual(roles.map(([roleCode]) => roleCode))
+    expect(roleCards.map((card) => card.querySelector('h3')?.textContent)).toEqual(
+      roles.map(([, label]) => `${label}:`),
+    )
+    expect(container.querySelector('[data-role-code="fansub_lead"]')).toBeNull()
+    expect(container.querySelector('[data-role-code="techadmin"]')).toBeNull()
+    expect(container.querySelector('[data-role-code="gfxler"]')).toBeNull()
+    expect(container.querySelector('[data-role-code="foreign"]')).toBeNull()
+    expect(roleCards.every((card) => card.hasAttribute('data-role-card-state'))).toBe(true)
+  })
+
+  it.fails('[phase121-red] löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+
+    for (const [roleCode] of roles) {
+      for (const [count, rank] of rankCases) {
+        const badgeCode = `role_entry_${roleCode}`
+        const rendered = render(
+          <MemberBadgeChain
+            earnedBadges={[{
+              id: count,
+              badge_code: badgeCode,
+              badge_category: 'role_entry',
+              current_count: count,
+            }]}
+          />,
+        )
+        const expectedCode = rank === 'entry' ? badgeCode : `role_volume_${roleCode}_${rank}`
+        const hero = rendered.container.querySelector(`img[data-achievement-art="${expectedCode}"]`)
+        const expectedSource = rank === 'entry' || roleCode === 'timer'
+          ? `/member-achievement-badges/${expectedCode}.png`
+          : `/member-achievement-badges/rank-frame-${roleCode}-${rank}.png`
+
+        expectDisplayImageSource(hero, expectedSource)
+        rendered.unmount()
+      }
+    }
+  })
+})
