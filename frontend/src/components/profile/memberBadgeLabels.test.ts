@@ -204,16 +204,22 @@ describe('resolveRoleProgressPresentation (Phase 118 — Rollenfortschritt)', ()
 
   it('keeps exact rank and progress copy at entry, intermediate, and terminal states', () => {
     expect(resolveRoleProgressPresentation(1)).toMatchObject({
+      tierLabel: 'Einstieg',
       rankLabel: 'Einstieg · 1+',
       progressCopy: '1 von 12 Mitwirkungen · Noch 11 bis Bronze',
+      nextCopy: 'Noch 11 Mitwirkungen bis Bronze',
     })
     expect(resolveRoleProgressPresentation(108)).toMatchObject({
+      tierLabel: 'Silber',
       rankLabel: 'Silber · 108+',
       progressCopy: '108 von 320 Mitwirkungen · Noch 212 bis Gold',
+      nextCopy: 'Noch 212 Mitwirkungen bis Gold',
     })
     expect(resolveRoleProgressPresentation(777)).toMatchObject({
+      tierLabel: 'Platin',
       rankLabel: 'Platin · 510+',
       progressCopy: '777 Mitwirkungen · Höchste Stufe erreicht',
+      nextCopy: 'Höchste Stufe erreicht',
       progressValue: 510, progressMax: 510,
     })
   })

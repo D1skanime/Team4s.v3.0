@@ -325,8 +325,10 @@ export type RoleProgressPresentation = {
   tier: RoleProgressTier | null
   nextThreshold: number | null
   nextTierLabel: string | null
+  tierLabel: string
   rankLabel: string
   progressCopy: string
+  nextCopy: string
   progressValue: number
   progressMax: number
   progressPercent: number
@@ -358,15 +360,20 @@ export function resolveRoleProgressPresentation(count: number): RoleProgressPres
     : ROLE_PROGRESS_STAGES[currentIndex + 1] ?? null
   const progressMax = next?.threshold ?? ROLE_VOLUME_TIER_THRESHOLDS.platinum
   const progressValue = Math.min(safeCount, progressMax)
+  const remainingCount = next ? Math.max(0, next.threshold - safeCount) : null
 
   return {
     tier: current?.tier ?? null,
     nextThreshold: next?.threshold ?? null,
     nextTierLabel: next?.label ?? null,
+    tierLabel: current?.label ?? '',
     rankLabel: current ? `${current.label} · ${current.threshold}+` : '',
     progressCopy: next
-      ? `${safeCount} von ${next.threshold} Mitwirkungen · Noch ${Math.max(0, next.threshold - safeCount)} bis ${next.label}`
+      ? `${safeCount} von ${next.threshold} Mitwirkungen · Noch ${remainingCount} bis ${next.label}`
       : `${safeCount} Mitwirkungen · Höchste Stufe erreicht`,
+    nextCopy: next
+      ? `Noch ${remainingCount} Mitwirkungen bis ${next.label}`
+      : 'Höchste Stufe erreicht',
     progressValue,
     progressMax,
     progressPercent: progressMax > 0 ? Math.max(0, Math.min(100, (progressValue / progressMax) * 100)) : 0,

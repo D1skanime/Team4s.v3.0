@@ -614,11 +614,25 @@ export function MemberBadgeChain({
                           </span>
                         ) : null}
                         <div className={styles.roleStatus}>
-                          <Badge variant={getMemberBadgePresentation(artworkItem?.badge_code ?? '').variant}>{progress.rankLabel}</Badge>
+                          <Badge variant={getMemberBadgePresentation(artworkItem?.badge_code ?? '').variant}>{progress.tierLabel}</Badge>
                           <strong className={styles.roleCount}>{count} Mitwirkungen</strong>
                         </div>
                         <div className={styles.roleProgressBlock}>
-                          <p className={styles.roleProgressCopy}>{progress.progressCopy}</p>
+                          <div className={styles.roleProgressValue}>
+                            <span>{progress.progressValue} / {progress.progressMax}</span>
+                            <span>{Math.round(progress.progressPercent)}%</span>
+                          </div>
+                          <div
+                            role="progressbar"
+                            aria-label={`Fortschritt für ${roleLabel}`}
+                            aria-valuemin={0}
+                            aria-valuenow={progress.progressValue}
+                            aria-valuemax={progress.progressMax}
+                            className={styles.roleProgressTrack}
+                          >
+                            <span style={{ width: `${progress.progressPercent}%` }} />
+                          </div>
+                          <p className={styles.roleNextCopy}>{progress.nextCopy}</p>
                         </div>
                         <ol className={styles.roleProgression} aria-label={`Medaillen für ${roleLabel}`}>
                           {progress.stages.map((stage, index) => {

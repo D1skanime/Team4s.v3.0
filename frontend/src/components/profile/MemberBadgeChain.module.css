@@ -1674,3 +1674,159 @@
     display: none;
   }
 }
+
+/* Phase 121-04 UAT: eigenständiger, aus der bestehenden Projektion gespeister Fortschrittsblock. */
+.roleProgressValue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.roleProgressTrack {
+  width: 100%;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 16%, var(--surface-card-muted));
+}
+
+.roleProgressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--role-accent) 72%, white), var(--role-accent));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--role-accent) 36%, transparent);
+}
+
+.roleNextCopy {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--role-accent) 9%, var(--surface-card-muted));
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+@media (min-width: 1100px) {
+  .group[data-badge-group="roles"] .roleBadgeRow {
+    grid-template-columns: minmax(300px, 0.84fr) minmax(460px, 1.16fr);
+    grid-template-areas:
+      "artwork label"
+      "artwork status"
+      "artwork progress"
+      "track track";
+    column-gap: 52px;
+  }
+
+  .group[data-badge-group="roles"] .roleStatus {
+    display: grid;
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    align-items: baseline;
+    justify-content: stretch;
+  }
+
+  .group[data-badge-group="roles"] .roleStatus > :first-child {
+    font-size: 2rem;
+  }
+
+  .group[data-badge-group="roles"] .roleCount {
+    font-size: 1.55rem;
+  }
+
+  .group[data-badge-group="roles"] .roleProgressBlock {
+    width: 100%;
+    max-width: 620px;
+    gap: 10px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .group[data-badge-group="roles"] .roleBadgeRow {
+    grid-template-columns: minmax(360px, 0.86fr) minmax(540px, 1.14fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .group[data-badge-group="roles"] .chain {
+    --focal-item-size: 96%;
+  }
+
+  .group[data-badge-group="roles"] .roleBadgeRow {
+    gap: 6px;
+    padding: 14px 10px 12px;
+  }
+
+  .group[data-badge-group="roles"] .roleHeroArtwork {
+    width: min(232px, 72vw);
+    height: min(232px, 72vw);
+    margin-block: -2px;
+  }
+
+  .group[data-badge-group="roles"] .roleStatus {
+    width: 100%;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+  }
+
+  .group[data-badge-group="roles"] .roleStatus > :first-child {
+    font-size: 1.18rem;
+  }
+
+  .group[data-badge-group="roles"] .roleProgressBlock {
+    gap: 6px;
+  }
+
+  .group[data-badge-group="roles"] .roleProgressValue {
+    font-size: 0.78rem;
+  }
+
+  .group[data-badge-group="roles"] .roleNextCopy {
+    padding: 7px 9px;
+    font-size: 0.76rem;
+    text-align: center;
+  }
+
+  .group[data-badge-group="roles"] .roleProgression {
+    margin-top: 2px;
+    padding-top: 12px;
+    gap: 2px;
+  }
+
+  .group[data-badge-group="roles"] .roleProgression::before {
+    top: 23px;
+  }
+
+  .group[data-badge-group="roles"] .roleStageEarned,
+  .group[data-badge-group="roles"] .roleStageLocked {
+    min-height: 62px;
+    gap: 1px;
+    font-size: 0.57rem;
+  }
+
+  .group[data-badge-group="roles"] .roleStageMarker {
+    width: 22px;
+    height: 22px;
+  }
+
+  .group[data-badge-group="roles"] .roleStageThreshold {
+    font-size: 0.52rem;
+  }
+
+  .group[data-badge-group="roles"] .currentChip {
+    font-size: 0.52rem;
+  }
+
+  .group[data-badge-group="roles"] .chain [aria-label="Vorherige Rolle"],
+  .group[data-badge-group="roles"] .chain [aria-label="Nächste Rolle"] {
+    border-color: color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle));
+    background: var(--surface-card);
+    box-shadow: var(--shadow-xs);
+  }
+}

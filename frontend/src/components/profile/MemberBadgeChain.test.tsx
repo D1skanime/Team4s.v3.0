@@ -507,7 +507,7 @@ describe('MemberBadgeChain', () => {
     const rolesList = screen.getByRole('list', { name: 'Fansubrollen' })
     expect(within(rolesList).getByText('Übersetzung:')).not.toBeNull()
     expect(within(rolesList).getByText('Erste Übersetzung')).not.toBeNull()
-    expect(within(rolesList).getByText('Bronze · 12+')).not.toBeNull()
+    expect(within(rolesList).getAllByText('Bronze', { exact: true }).length).toBeGreaterThanOrEqual(1)
     expect(within(rolesList).getByLabelText('Silber · 108+ gesperrt')).not.toBeNull()
     expect(within(rolesList).getByLabelText('Gold · 320+ gesperrt')).not.toBeNull()
     expect(within(rolesList).getByLabelText('Platin · 510+ gesperrt')).not.toBeNull()
@@ -607,7 +607,7 @@ describe('MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04)', () => {
 
     expect(screen.getByText('Übersetzung:')).not.toBeNull()
     expect(screen.getByText('Erste Übersetzung')).not.toBeNull()
-    expect(screen.getByText('Gold · 320+')).not.toBeNull()
+    expect(screen.getAllByText('Gold', { exact: true }).length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders the role-name prefix for a roles row with only the Typ-1 chip (under threshold, no volume merge)', async () => {
@@ -850,8 +850,9 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
       <MemberBadgeChain earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]} catalog={roleProgressCatalog} />,
     )
     expect(screen.getByText('Rollenfortschritt')).not.toBeNull()
-    expect(screen.getByText('108 von 320 Mitwirkungen · Noch 212 bis Gold')).not.toBeNull()
-    expect(screen.getByText('Silber · 108+')).not.toBeNull()
+    expect(screen.getByText('108 / 320')).not.toBeNull()
+    expect(screen.getByText('Noch 212 Mitwirkungen bis Gold')).not.toBeNull()
+    expect(screen.getAllByText('Silber', { exact: true }).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('1 von 2 Rollen')).not.toBeNull()
     expect(screen.getAllByRole('region', { name: 'Rollenfortschritt-Karussell' })).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Vorherige Rolle' })).not.toBeNull()
@@ -869,20 +870,25 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     const { rerender } = render(
       <MemberBadgeChain earnedBadges={[roleBadge('translator', 510), { ...roleBadge('timer', 0), badge_code: 'role_volume_foreign_gold' }]} catalog={roleProgressCatalog} />,
     )
-    expect(screen.getByText('510 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
+    expect(screen.getByText('510 Mitwirkungen')).not.toBeNull()
+    expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
     expect(screen.queryByText('Timing')).toBeNull()
     rerender(<MemberBadgeChain earnedBadges={[roleBadge('translator', 11)]} catalog={roleProgressCatalog} />)
-    expect(screen.getByText('Einstieg · 1+')).not.toBeNull()
-    expect(screen.getByText('11 von 12 Mitwirkungen · Noch 1 bis Bronze')).not.toBeNull()
+    expect(screen.getAllByText('Einstieg', { exact: true }).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('11 / 12')).not.toBeNull()
+    expect(screen.getByText('Noch 1 Mitwirkungen bis Bronze')).not.toBeNull()
     rerender(<MemberBadgeChain earnedBadges={[]} catalog={roleProgressCatalog} />)
     expect(screen.queryByText('Rollenfortschritt')).toBeNull()
   })
 
-  it('removes the redundant progressbar while preserving the true visible count', async () => {
+  it('keeps a full Platinum progressbar while preserving the true visible count', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     render(<MemberBadgeChain earnedBadges={[roleBadge('translator', 777)]} catalog={roleProgressCatalog} />)
-    expect(screen.queryByRole('progressbar', { name: 'Fortschritt für Übersetzung' })).toBeNull()
-    expect(screen.getByText('777 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
+    const progress = screen.getByRole('progressbar', { name: 'Fortschritt für Übersetzung' })
+    expect(progress.getAttribute('aria-valuenow')).toBe('510')
+    expect(progress.getAttribute('aria-valuemax')).toBe('510')
+    expect(screen.getByText('777 Mitwirkungen')).not.toBeNull()
+    expect(screen.getByText('Höchste Stufe erreicht')).not.toBeNull()
   })
 })
 
@@ -1295,7 +1301,15 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     expect(within(goldTrack).queryByRole('button')).toBeNull()
     expect(within(goldTrack).queryByRole('link')).toBeNull()
     expect(goldTrack.querySelectorAll('[tabindex]')).toHaveLength(0)
-    expect(screen.getByText('356 von 510 Mitwirkungen · Noch 154 bis Platin')).not.toBeNull()
+    const goldCard = rendered.container.querySelector('[data-role-code="translator"]') as HTMLElement
+    expect(within(goldCard).getAllByText('Gold', { exact: true }).length).toBeGreaterThanOrEqual(1)
+    expect(within(goldCard).queryByText('Gold · 320+', { exact: true })).toBeNull()
+    expect(within(goldCard).getByText('356 Mitwirkungen')).not.toBeNull()
+    expect(within(goldCard).getByText('356 / 510')).not.toBeNull()
+    expect(within(goldCard).getByText('Noch 154 Mitwirkungen bis Platin')).not.toBeNull()
+    const goldProgress = within(goldCard).getByRole('progressbar', { name: 'Fortschritt für Übersetzung' })
+    expect(goldProgress.getAttribute('aria-valuenow')).toBe('356')
+    expect(goldProgress.getAttribute('aria-valuemax')).toBe('510')
 
     rendered.rerender(<MemberBadgeChain earnedBadges={[roleBadge('translator', 687)]} />)
     const platinumTrack = screen.getByRole('list', { name: 'Medaillen für Übersetzung' })
@@ -1309,7 +1323,13 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     ])
     expect(platinumTrack.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
     expect(platinumSteps[4]?.getAttribute('aria-current')).toBe('step')
-    expect(screen.getByText('687 Mitwirkungen · Höchste Stufe erreicht')).not.toBeNull()
+    const platinumCard = rendered.container.querySelector('[data-role-code="translator"]') as HTMLElement
+    expect(within(platinumCard).getAllByText('Platin', { exact: true }).length).toBeGreaterThanOrEqual(1)
+    expect(within(platinumCard).getByText('687 Mitwirkungen')).not.toBeNull()
+    expect(within(platinumCard).getByText('Höchste Stufe erreicht')).not.toBeNull()
+    const platinumProgress = within(platinumCard).getByRole('progressbar', { name: 'Fortschritt für Übersetzung' })
+    expect(platinumProgress.getAttribute('aria-valuenow')).toBe('510')
+    expect(platinumProgress.getAttribute('aria-valuemax')).toBe('510')
   })
 
   it('behält für active, inactive und expanded denselben Rollenbaum', async () => {
