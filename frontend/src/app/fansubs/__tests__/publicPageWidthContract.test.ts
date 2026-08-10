@@ -17,6 +17,11 @@ const basePageRule = (styles: string) => styles.match(/^\.page\s*\{[\s\S]*?^\}/m
 
 describe('public page desktop width contract', () => {
   it('defines the shared default and wide-desktop dimensions globally', () => {
+    expect(globalStyles).toContain('--content-width-narrow: 820px')
+    expect(globalStyles).toContain('--content-width-normal: 1360px')
+    expect(globalStyles).toContain('--content-width-wide: 1520px')
+    expect(globalStyles).toContain('--content-width-visual: 1660px')
+    expect(globalStyles).toContain('--content-width-visual-cap: 1760px')
     expect(globalStyles).toContain('--public-page-max-width: 1360px')
     expect(globalStyles).toContain('--public-page-gutter: 48px')
     expect(globalStyles).toMatch(

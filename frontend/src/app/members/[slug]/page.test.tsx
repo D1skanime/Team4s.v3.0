@@ -224,9 +224,18 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
     expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.sectionPair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/)
-    expect(memberPageStyles).not.toMatch(/100vw|margin-(?:left|right):\s*-/)
+    const pageRule = memberPageStyles.match(/^\.page\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
+    expect(pageRule).not.toContain('100vw')
+    expect(memberPageStyles).not.toMatch(/margin-(?:left|right):\s*-/)
     expect(memberPageStyles).not.toContain('overflow-x: hidden')
     expect(memberPageStyles).not.toMatch(/font-weight:\s*(?:8|9)00/)
+  })
+
+  it('opts only the role badge band into the centered visual-width breakout', () => {
+    expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[\s\S]*?width:\s*min\(calc\(100vw - var\(--public-page-gutter\)\), var\(--content-width-visual\), var\(--content-width-visual-cap\)\);/)
+    expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1599px\)[\s\S]*?\.badgesVisualBand\s*\{[\s\S]*?width:\s*100%;[\s\S]*?left:\s*auto;[\s\S]*?transform:\s*none;/)
+    expect(memberPageStyles).not.toMatch(/\.(?:profileBand|projectsBand|contributionsBand)\s*\{[^}]*(?:content-width-visual|content-width-visual-cap)/s)
   })
 
   it('renders the locked Hero B and Rhythm C heading hierarchy in DOM order', async () => {
