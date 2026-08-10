@@ -476,10 +476,14 @@
   align-content: center;
   gap: 10px;
   padding: 24px 8px;
+  overflow: hidden;
   background:
     radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--role-accent) 28%, transparent), transparent 39%),
     radial-gradient(ellipse at 50% 64%, color-mix(in srgb, var(--role-accent) 14%, transparent), transparent 58%);
 }
+
+.roleBadgeRow[data-role-card-state="inactive"] { opacity: 0.78; }
+.roleBadgeRow[data-role-card-state="expanded"] { min-height: 360px; padding-block: 18px; }
 
 .roleBadgeRow[data-role-code="fansub_lead"],
 .roleBadgeRowCompact[data-role-code="fansub_lead"] {
@@ -686,25 +690,33 @@
 }
 
 .roleProgression {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: min(100%, 620px);
   max-width: 100%;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 7px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  gap: 6px;
 }
 
 .roleStageEarned,
 .roleStageLocked {
-  min-height: 30px;
-  display: inline-flex;
+  position: relative;
+  min-width: 0;
+  min-height: 76px;
+  display: grid;
+  grid-template-rows: 20px auto auto auto;
   align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  justify-items: center;
+  gap: 2px;
+  padding: 7px 3px;
+  border-radius: var(--radius-md);
+  font-size: 0.7rem;
   font-weight: 800;
   line-height: 1.15;
+  text-align: center;
 }
 
 .roleStageEarned {
@@ -718,6 +730,14 @@
   background: color-mix(in srgb, var(--text-secondary) 7%, var(--surface-card-muted));
   color: var(--text-secondary);
 }
+
+.roleStageMarker { width: 18px; height: 18px; display: grid; place-items: center; border: 2px solid currentColor; border-radius: 50%; background: var(--surface-card); }
+.roleStageEarned[data-role-stage-state="current"] { border-color: var(--color-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent); }
+.roleStageEarned[data-role-stage-state="current"] .roleStageMarker { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent); }
+.roleStageName, .roleStageThreshold, .roleStageState { min-width: 0; overflow-wrap: anywhere; }
+.roleStageThreshold, .roleStageState { color: var(--text-secondary); font-size: 0.62rem; }
+.roleStatus { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+.roleCount { color: var(--text-primary); font-size: 0.88rem; }
 
 .badgeStep,
 .badgeStepLocked {
@@ -977,15 +997,17 @@
   }
 
   .roleProgression {
-    gap: 5px;
+    gap: 4px;
   }
 
   .roleStageEarned,
   .roleStageLocked {
-    min-height: 28px;
-    padding: 4px 7px;
-    font-size: 0.68rem;
+    min-height: 72px;
+    padding: 6px 2px;
+    font-size: 0.62rem;
   }
+
+  .roleStageThreshold, .roleStageState { font-size: 0.56rem; }
 
   .badgeArtwork {
     width: clamp(142px, 42vw, 166px);
