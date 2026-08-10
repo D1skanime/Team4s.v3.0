@@ -8,12 +8,14 @@ function configuredApiMediaPatterns() {
   const publicApiURL = (process.env.NEXT_PUBLIC_API_URL || '').trim()
   if (!publicApiURL) return []
 
-  const mediaPattern = new URL(publicApiURL)
-  mediaPattern.pathname = '/api/v1/media/**'
-  mediaPattern.search = ''
-  mediaPattern.hash = ''
+  const mediaOrigin = new URL(publicApiURL)
 
-  return [mediaPattern]
+  return [{
+    protocol: mediaOrigin.protocol.slice(0, -1),
+    hostname: mediaOrigin.hostname,
+    port: mediaOrigin.port,
+    pathname: '/api/v1/media/**',
+  }]
 }
 
 /** @type {import('next').NextConfig} */

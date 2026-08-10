@@ -34,12 +34,17 @@ describe('ResponsiveImage profile-media configuration', () => {
 
   it('allows only the configured Team4s API media namespace for responsive group logos', () => {
     const runtimeBase = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.235.196:18092'
-    const allowed = new URL('/api/v1/media/files/group-logo.png', runtimeBase)
+    const allowedFile = new URL('/api/v1/media/files/group-logo.png', runtimeBase)
+    const allowedJellyfinQuery = new URL(
+      '/api/v1/media/image?item_id=series-1&kind=primary&provider=jellyfin',
+      runtimeBase,
+    )
     const disallowedPath = new URL('/api/v1/admin/users', runtimeBase)
-    const disallowedHost = new URL(allowed)
+    const disallowedHost = new URL(allowedFile)
     disallowedHost.hostname = 'example.invalid'
 
-    expect(hasRemoteMatch([], remotePatterns, allowed)).toBe(true)
+    expect(hasRemoteMatch([], remotePatterns, allowedFile)).toBe(true)
+    expect(hasRemoteMatch([], remotePatterns, allowedJellyfinQuery)).toBe(true)
     expect(hasRemoteMatch([], remotePatterns, disallowedPath)).toBe(false)
     expect(hasRemoteMatch([], remotePatterns, disallowedHost)).toBe(false)
   })
