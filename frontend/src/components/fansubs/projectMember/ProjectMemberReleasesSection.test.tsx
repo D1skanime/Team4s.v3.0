@@ -11,9 +11,7 @@ vi.mock('@/lib/api', () => ({
   getProjectMemberReleases: (...args: unknown[]) => getProjectMemberReleases(...args),
 }))
 
-// eslint-disable-next-line import/first
 import { ProjectMemberReleaseCard } from './ProjectMemberReleaseCard'
-// eslint-disable-next-line import/first
 import { ProjectMemberReleasesSection } from './ProjectMemberReleasesSection'
 
 afterEach(() => {

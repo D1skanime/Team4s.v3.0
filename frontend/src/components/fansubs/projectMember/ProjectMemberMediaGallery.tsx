@@ -72,8 +72,6 @@ export function ProjectMemberMediaGallery({
 
   useEffect(() => {
     const controller = new AbortController()
-    setLoading(true)
-    setError(false)
     getProjectMemberMedia(animeID, groupID, memberSlug, {
       limit: INITIAL_LIMIT,
       signal: controller.signal,

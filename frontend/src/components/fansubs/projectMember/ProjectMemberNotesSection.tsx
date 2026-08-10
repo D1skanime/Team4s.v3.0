@@ -52,8 +52,6 @@ export function ProjectMemberNotesSection({
 
   useEffect(() => {
     const controller = new AbortController()
-    setLoading(true)
-    setError(false)
     getProjectMemberNotes(animeID, groupID, memberSlug, {
       limit: INITIAL_LIMIT,
       signal: controller.signal,

@@ -11,9 +11,7 @@ vi.mock('@/lib/api', () => ({
   getProjectMemberNotes: (...args: unknown[]) => getProjectMemberNotes(...args),
 }))
 
-// eslint-disable-next-line import/first
 import { ProjectMemberNoteCard } from './ProjectMemberNoteCard'
-// eslint-disable-next-line import/first
 import { ProjectMemberNotesSection } from './ProjectMemberNotesSection'
 
 afterEach(() => {

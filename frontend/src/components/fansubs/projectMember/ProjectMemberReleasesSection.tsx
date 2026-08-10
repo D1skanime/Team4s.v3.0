@@ -51,8 +51,6 @@ export function ProjectMemberReleasesSection({
 
   useEffect(() => {
     const controller = new AbortController()
-    setLoading(true)
-    setError(false)
     getProjectMemberReleases(animeID, groupID, memberSlug, {
       limit: INITIAL_LIMIT,
       signal: controller.signal,
