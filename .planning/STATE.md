@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 119-03-PLAN.md
-last_updated: "2026-08-03T13:37:16.882Z"
-last_activity: 2026-08-03
+stopped_at: Completed 121-03-PLAN.md
+last_updated: "2026-08-10T14:52:50.859Z"
+last_activity: 2026-08-10
 progress:
-  total_phases: 111
-  completed_phases: 90
-  total_plans: 511
-  completed_plans: 477
-  percent: 93
+  total_phases: 114
+  completed_phases: 92
+  total_plans: 538
+  completed_plans: 495
+  percent: 92
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-01)
 
 **Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 119 — Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen
+**Current focus:** Phase 121 — Rollen-Badges visuell und funktional perfektionieren
 
 ## Current Position
 
-Phase: 119 (Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen) — EXECUTING
-Plan: 4 of 5
+Phase: 121 (Rollen-Badges visuell und funktional perfektionieren) — EXECUTING
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -446,6 +446,10 @@ Recent durable decisions:
 - [Phase 119]: Mitgliedschaftsfortschritt verwendet die längste einzelne historische Mitgliedschaft. — Mitgliedschaften werden nie summiert; Gründungsmitglied bleibt earned-only.
 - [Phase 119]: Badge-Familien konsumieren autoritative badge_progress-Metriken; Gründungsmitglied bleibt earned-only.
 - [Phase 119]: Temporäre Stufenauswahl bleibt domainlokal; der echte Rang behält Aktuell.
+- [Phase 121]: Shared FocalCarousel bleibt in Plan 121-04 unverändert; responsive und Expanded-Korrekturen bleiben im Rollen-Consumer.
+- [Phase 121]: Timing behält Direktassets; komponierte Rollen verwenden einen quadratischen lokalen Layer-Kontext.
+- [Phase ?]: Die erste Desktop-Ablehnung bleibt als UAT-Historie erhalten; erst die freigegebene Plan-121-04-Remediation schließt Plan 121-03 ab.
+- [Phase ?]: Der planfremde /_not-found-Prerenderfehler wird dokumentiert und nicht als erfolgreicher Build dargestellt.
 
 ### Pending Todos
 
@@ -456,6 +460,8 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- Phase 121 added: Rollen-Badges visuell und funktional perfektionieren.
+- Phase 120 added: Öffentliches Memberprofil visuell harmonisieren und Ladeperformance optimieren.
 - Phase 119 added: Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen
 - Phase 104 added: Registrierungs-, Login- und Account-Onboarding-Hardening.
 - Phase 103 added: Öffentliche Release-Detailseite als Fansub-Story mit Rechte-gesteuertem Episoden- und Karaoke-Playback.
@@ -768,6 +774,8 @@ Recent durable decisions:
 | Phase 119 P01 | 16min | 3 tasks | 8 files |
 | Phase 119 P02 | 15min | 2 tasks | 8 files |
 | Phase 119 P03 | 10min | 2 tasks | 4 files |
+| Phase 121 P04 | 1h 18m | 4 tasks | 10 files |
+| Phase 121 P03 | 1h 35m | 3 tasks | 8 files |
 
 ### Quick Tasks Completed
 
@@ -854,8 +862,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-08-03T13:37:16.871Z
-Stopped at: Completed 119-03-PLAN.md
-Last activity: 2026-08-03 - Completed quick task 260803-ozq: Profilseite responsiv optimieren
+Last session: 2026-08-10T14:52:50.848Z
+Stopped at: Completed 121-03-PLAN.md
+Last activity: 2026-08-10
 Resume file: 
 None

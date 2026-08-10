@@ -1,4 +1,4 @@
-﻿# Roadmap: Team4s Admin Anime Intake
+# Roadmap: Team4s Admin Anime Intake
 
 ## Milestones
 
@@ -1963,6 +1963,39 @@ Plans:
 - [ ] `120-11-PLAN.md` — Wave 7, nach 120-05/07/08/09/10/12: vollständige Hero-B-/Rhythmus-C-Routenkomposition und Overflow-Gates (D-04, D-06–D-10, D-15–D-18)
 - [ ] `120-12-PLAN.md` — Wave 5, nach 120-05/06: sechs unveränderte Badge-Kategorien mit WebP, globalem Carousel und zweistufiger Overlap-Kette (D-07, D-10–D-21)
 - [ ] `120-13-PLAN.md` — Wave 8, nach 120-11/12: alle aktuellen Overlap-Hashes, grüne Vollgates, Git-HEAD-gebundener Browser-Trace und blockierende Live-UAT (D-01–D-22)
+
+### Phase 121: Rollen-Badges visuell und funktional perfektionieren
+
+**Goal:** Die Rollen-Badge-Sektion des öffentlichen Memberprofils zeigt alle 11 tatsächlich verdienten Rollenfamilien in einem stabilen FocalCarousel mit dominantem Hero-Artwork, exaktem Fortschritt und semantischem Fünf-Stufen-Rank-Track; Desktop, Tablet und Mobile bleiben zugänglich, performant und frei von Shared-Regressionen.
+**Requirements**: D-01…D-28 aus `121-CONTEXT.md`; D-29…D-36 aus `121-04-PLAN.md` (keine separaten Phase-121-REQ-IDs in REQUIREMENTS.md)
+**Depends on:** Phase 120
+**Plans:** 4/4 plans complete
+
+Plans:
+- [ ] `121-01-PLAN.md` — Test-first: Rollen-/Schwellen-/Artwork-Matrix und semantische Track-/Same-DOM-Verträge (Wave 1)
+- [ ] `121-02-PLAN.md` — Responsive Consumer-Komposition mit Hero, Fortschritt, Rank-Track und erhaltenem Shared-Carousel (Wave 2)
+- [ ] `121-03-PLAN.md` — Vollregression, sichtbare Live-UAT bei 390/768/1024/1440 und 14-teiliger Abschlussbericht (Wave 3)
+- [ ] `121-04-PLAN.md` — Wide-Desktop-Addendum: semantische Contentbreiten, opt-in Visual-Band und responsive UAT bis 2560 px (Wave 4)
+
+### Phase 122: Öffentliche Projekt-Member-Seite mit Beiträgen, Medien und Release-Historie
+
+**Goal:** Neue öffentliche, read-only Seite `/fansubs/[slug]/fansubprojekt/[animeSlug]/mitwirkende/[memberSlug]`, die ausschliesslich die Mitwirkung `Member × Fansubgruppe × Anime` zeigt (Rollen, projektweite Textbeiträge, projektweite Medien-Galerie mit responsivem Viewer, Release-Mitwirkung). Interne Memberkarten auf der Fansub-Projektseite verlinken künftig hierher; alle anderen Member-Links (Ranking, Gruppenseite, Archiv, `/members/[slug]`) bleiben unverändert. Getrennte, cursor-paginierte öffentliche Read-Endpunkte; zentrale Visibility-Policy (nur öffentlich freigegebene Inhalte, auch nicht über Counts durchsickern lassen); 404 vs. Empty-State; volle Responsive-/A11y-/Performance-Vorgaben. Keine Profilkopie, keine neue Media-Ownership (Medien bleiben release-version-scoped). **ANALYSE-FIRST abgeschlossen** (122-CONTEXT.md, Section-32-Recherche gegen Live-Code).
+**Requirements**: Bestehende öffentliche Fansub-Projektseite (`anime/[id]/group/[groupId]/ProjectPage`), `ProjectMemberRows.tsx` (Link-Stelle), `release_version_notes` (member_id/visibility/status), `release_version_media` (created_by_user_id, Ownership release-version-scoped), `release_member_roles`, `group_contributors_repository`, `is_public_on_anime_page`/`hfgm.visibility`, `release_cursor_pagination.go`, `ResponsiveImage`/`useNearViewportActivation`, `FansubMediaLightbox`. Siehe D-01..D-11 in `122-CONTEXT.md` und DECISIONS.md (2026-08-10, Media-Attribution über Uploader).
+**Depends on:** Bestehende öffentliche Fansub-Projektseite + Contribution-/Notes-/Media-/Release-Modelle (Phasen 61ff., 82/83, 99, 114)
+**Plans:** 0/10 plans complete
+
+Plans:
+
+- [ ] `122-01-PLAN.md` — Backend Repo-Layer + zentrale Visibility-Policy (summary/roles, notes, media, releases; member-scoped; Cursor) (Wave 1, D-01/04/05/06/07/09)
+- [ ] `122-02-PLAN.md` — Öffentlicher Handler-/Routen-Satz `/anime/:id/group/:groupId/members/:memberSlug[/notes|/media|/releases]` + OpenAPI (Wave 1, D-08/09/10)
+- [ ] `122-03-PLAN.md` — Frontend-Datenschicht: TS-Typen (regen) + 4 cursor/abbrechbare api.ts-Helper + Route-Helper (Wave 2, D-02/08)
+- [ ] `122-04-PLAN.md` — Link-Change in `ProjectMemberRows.tsx` (+TeamSection props) + Regressions-Test; nur diese Komponente (Wave 2, D-03)
+- [ ] `122-05-PLAN.md` — Route-Gerüst `mitwirkende/[memberSlug]/page.tsx` (slug→ID, 404/Empty-State) + Breadcrumb + Hero + Summary + Sticky-Nav (Wave 3, D-02/04/10)
+- [ ] `122-06-PLAN.md` — Texte-&-Notizen-Sektion (projektweit, 2-spaltig, Mehr/Weniger, Cursor) (Wave 3, D-05/08)
+- [ ] `122-07-PLAN.md` — Bilder-&-Medien-Galerie (ResponsiveImage + Near-Viewport, 4/3/2/1, Cursor, öffnet Viewer) (Wave 3, D-06/08/11)
+- [ ] `122-08-PLAN.md` — Release-Mitwirkung-Sektion (kompakte Cards, Cursor, keine Text-/Bild-Duplikation) (Wave 3, D-07/08)
+- [ ] `122-09-PLAN.md` — Media Viewer (Desktop Bild+Sidebar / Mobile stacked / Tablet breitenabhängig, Prev/Next/Keyboard, Prefetch, Fokus) (Wave 3, D-11)
+- [ ] `122-10-PLAN.md` — Regressionssuite (Routing/Visibility/Pagination/Viewer/Responsive) + Live-UAT über `127.0.0.1:3300` (Wave 4, D-03/09/10)
 
 ---
 
