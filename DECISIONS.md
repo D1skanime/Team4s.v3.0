@@ -769,3 +769,24 @@ Die umfangreichen Benutzerinformationen brauchen eine stabile, direkt navigierba
 ### Follow-ups Required
 - Vor der Umsetzung die genaue Seiten-, Routing- und Responsive-Struktur in einer UI-Spezifikation festlegen.
 - Bestehende Drawer-Deep-Links, Fokusführung und Tests auf die neue Seitenstruktur migrieren.
+
+## 2026-08-10 - Projekt-Member-Seite: Media-Attribution über Uploader (Phase 122, D-06)
+
+### Decision
+Auf der neuen öffentlichen Projekt-Member-Seite (Phase 122) wird „Medien dieses Members in diesem Projekt" über den Uploader definiert: `release_version_media.uploaded_by_user_id`, aufgelöst zum Member über `member_claims (app_user_id <-> member_id)` / `members.user_id`. Es wird KEINE neue Member-Contributor-Spalte auf `release_version_media` eingeführt (kein Schema-Change).
+
+### Context
+`release_version_media` besitzt keine Member-Spalte, nur `uploaded_by_user_id` (App-User, Uploader). Die §3.3-Galerie braucht aber „Medien dieses Members". Alternativen waren: (a) Uploader->Member-Auflösung ohne Schema-Change, (b) neue nullable `member_id`-Contributor-Spalte per Migration, (c) Ableitung über Crew-Beteiligung an der Release-Version. Die Media-Ownership bleibt in allen Varianten release-version-scoped (AGENTS.md Domain-Regel, §22).
+
+### Why This Won
+Kein Schema-Change, keine Migration, keine Backfill-Frage, kein neuer Admin-Flow. Entspricht dem Brief-Beispiel „Uploader/Contributor -> CSubs Leader". Ownership bleibt unangetastet auf Release-Version-Ebene; die Seite aggregiert nur lesend.
+
+### Consequences
+- Die Zuordnung ist fachlich fragil: Admin-Uploads „on behalf", ungeclaimte Member und Mehrfach-Claims können zu fehlender oder ungenauer Member-Zuordnung führen.
+- Summary-Counts (§7) und Galerie zählen nur eindeutig auflösbare UND öffentliche Medien; versteckte/nicht auflösbare Medien werden weder gezeigt noch mitgezählt (§23).
+- Sichtbarkeitsfilter bleibt: `media_assets.visibility_id` public + gültiger `review_status` + `deleted_at IS NULL` + kein `review.rejected`-Audit.
+- Media-Ownership bleibt release-version-scoped; die Projekt-Member-Seite erzeugt keine neue Ownership.
+
+### Follow-ups Required
+- Falls sich die Uploader->Member-Auflösung fachlich als unzureichend erweist, eine explizite nullable `member_id`-Contributor-Spalte auf `release_version_media` als eigene spätere Phase evaluieren (deferred, siehe 122-CONTEXT.md).
+- In der Backend-Query sicherstellen, dass Medien ohne eindeutig auflösbaren Member nicht der Galerie/den Counts zugeschlagen werden.
