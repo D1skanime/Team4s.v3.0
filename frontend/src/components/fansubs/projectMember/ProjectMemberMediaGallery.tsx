@@ -20,6 +20,7 @@ interface ProjectMemberMediaGalleryProps {
   memberSlug: string
   projectPath: string
   count: number
+  memberDisplayName?: string
 }
 
 // Projektweite Bilder-&-Medien-Galerie (Brief 3.3/12): cursor-nachgeladen, responsives Grid,
@@ -30,6 +31,7 @@ export function ProjectMemberMediaGallery({
   memberSlug,
   projectPath,
   count,
+  memberDisplayName,
 }: ProjectMemberMediaGalleryProps) {
   const [items, setItems] = useState<ProjectMemberMediaItem[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
@@ -38,6 +40,22 @@ export function ProjectMemberMediaGallery({
   const [error, setError] = useState(false)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const seen = useRef<Set<number>>(new Set())
+  const triggerRef = useRef<HTMLElement | null>(null)
+
+  const openViewer = useCallback((index: number) => {
+    if (typeof document !== 'undefined') {
+      triggerRef.current = document.activeElement as HTMLElement | null
+    }
+    setOpenIndex(index)
+  }, [])
+
+  const closeViewer = useCallback(() => {
+    setOpenIndex(null)
+    const trigger = triggerRef.current
+    if (trigger && typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => trigger.focus())
+    }
+  }, [])
 
   const append = useCallback((incoming: ProjectMemberMediaItem[]) => {
     setItems((prev) => {
@@ -100,7 +118,7 @@ export function ProjectMemberMediaGallery({
             key={item.media_asset_id}
             item={item}
             index={i}
-            onOpen={setOpenIndex}
+            onOpen={openViewer}
           />
         ))}
       </div>
@@ -117,7 +135,8 @@ export function ProjectMemberMediaGallery({
           items={items}
           index={openIndex}
           projectPath={projectPath}
-          onClose={() => setOpenIndex(null)}
+          memberDisplayName={memberDisplayName}
+          onClose={closeViewer}
           onIndexChange={setOpenIndex}
         />
       ) : null}

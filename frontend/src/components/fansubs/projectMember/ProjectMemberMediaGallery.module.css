@@ -172,3 +172,31 @@
   font-size: 1.3rem;
   cursor: pointer;
 }
+
+/* Responsives Viewer-Layout (Brief 14–16): Mobile gestapelt, Desktop Bild + Sidebar. */
+.viewerMain {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  min-height: 0;
+}
+@media (min-width: 900px) {
+  .viewerMain {
+    grid-template-columns: minmax(0, 1fr) clamp(260px, 30%, 360px);
+    align-items: start;
+  }
+}
+.viewerCategory {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.viewerFrom,
+.viewerDate,
+.viewerCaption {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+.viewer:focus-visible {
+  outline: 2px solid var(--color-accent, rgba(255, 255, 255, 0.5));
+  outline-offset: 2px;
+}
