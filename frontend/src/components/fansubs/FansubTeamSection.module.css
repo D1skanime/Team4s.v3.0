@@ -168,3 +168,26 @@
   padding-top: 16px;
   border-top: 1px solid color-mix(in srgb, var(--ui-line) 50%, transparent);
 }
+
+/* Phase 122 (D-14): In-Card-Affordance "Beiträge im Projekt ansehen →" —
+   dezent, nur bei Hover/Fokus der klickbaren Memberkarte sichtbar. Kein zweiter
+   Navigationsweg; die ganze Karte bleibt der Link. */
+.projectAffordance {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.memberRowLink:hover .projectAffordance,
+.memberRowLink:focus-visible .projectAffordance {
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .projectAffordance {
+    transition: none;
+  }
+}

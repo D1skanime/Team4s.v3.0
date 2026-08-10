@@ -38,6 +38,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
       <TeamSection
         teamMembers={data.contributorsData.team_members}
         externalContributors={data.contributorsData.external_contributors}
+        canonicalProjectPath={data.canonicalProjectPath}
       />
       {data.hasReleases ? (
         <ReleasesSection

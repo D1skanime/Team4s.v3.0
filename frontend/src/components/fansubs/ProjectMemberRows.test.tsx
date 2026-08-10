@@ -40,7 +40,7 @@ describe('ProjectMemberRows', () => {
     expect(html).not.toContain('Team-Beteiligte')
   })
 
-  it('links only existing member slugs to the normal member profile route', () => {
+  it('falls back to the general member profile route when no project path is given', () => {
     const html = renderToStaticMarkup(
       <ProjectMemberRows
         teamMembers={[
@@ -55,5 +55,29 @@ describe('ProjectMemberRows', () => {
     expect(html).toContain('href="/members/external-slug"')
     expect(html).not.toContain('href="/members/null"')
     expect(html).not.toContain('fansubprojekt')
+    expect(html).not.toContain('Beiträge im Projekt ansehen')
+  })
+
+  it('links internal members to the project-member route when a canonical project path is given', () => {
+    const html = renderToStaticMarkup(
+      <ProjectMemberRows
+        canonicalProjectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+        teamMembers={[
+          teamMember({ member_display_name: 'Verlinkt', member_slug: 'csubs-leader' }),
+          teamMember({ member_id: 2, member_display_name: 'Nicht verlinkt', member_slug: null }),
+        ]}
+        externalContributors={[externalContributor({ member_slug: null })]}
+      />,
+    )
+
+    // Interne Member -> Projekt-Member-Route (nicht mehr /members/[slug])
+    expect(html).toContain(
+      'href="/fansubs/c-subs/fansubprojekt/vipers-creed/mitwirkende/csubs-leader"',
+    )
+    expect(html).not.toContain('href="/members/csubs-leader"')
+    // In-Card-Affordance vorhanden (Sichtbarkeit ist CSS-hover/focus)
+    expect(html).toContain('Beiträge im Projekt ansehen')
+    // Externe/slug-lose Mitwirkende bleiben nicht klickbar (kein Link mit ihrem Namen)
+    expect(html).not.toContain('mitwirkende/null')
   })
 })
