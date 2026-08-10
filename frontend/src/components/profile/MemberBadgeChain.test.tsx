@@ -1261,6 +1261,42 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
       }
     }
   })
+
+  it('bindet komponierte Hero-Layer an einen quadratischen lokalen Geometriekontext', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const timer = render(<MemberBadgeChain earnedBadges={[{
+      id: 108,
+      badge_code: 'role_volume_timer_silver',
+      badge_category: 'role_volume',
+      current_count: 108,
+    }]} />)
+    const timerCard = timer.container.querySelector('[data-role-code="timer"]') as HTMLElement
+    expect(timerCard.querySelectorAll('img')).toHaveLength(1)
+    expectDisplayImageSource(
+      timerCard.querySelector('img'),
+      '/member-achievement-badges/role_volume_timer_silver.png',
+    )
+    timer.unmount()
+
+    for (const roleCode of ['project_lead', 'quality_checker', 'encoder'] as const) {
+      const rendered = render(<MemberBadgeChain earnedBadges={[{
+        id: 108,
+        badge_code: `role_volume_${roleCode}_silver`,
+        badge_category: 'role_volume',
+        current_count: 108,
+      }]} />)
+      const card = rendered.container.querySelector(`[data-role-code="${roleCode}"]`) as HTMLElement
+      const hero = card.querySelector('[class*="roleHeroArtworkLayered"]') as HTMLElement
+      expect(hero).not.toBeNull()
+      expect(hero.querySelectorAll('img')).toHaveLength(2)
+      rendered.unmount()
+    }
+
+    expect(memberBadgeChainCss).toMatch(/\.roleHeroArtworkLayered,\s*\.badgeArtworkLayered\s*\{[^}]*position:\s*relative;/s)
+    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group="roles"\] \.roleHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;/s)
+    expect(memberBadgeChainCss).toMatch(/\.roleArtworkMotif\s*\{[^}]*object-fit:\s*contain;[^}]*clip-path:\s*circle/s)
+    expect(memberBadgeChainCss).toMatch(/\.roleArtworkFrame\s*\{[^}]*object-fit:\s*contain;/s)
+  })
 })
 
 describe('Phase 121 semantischer Rollen-Rank-Track', () => {

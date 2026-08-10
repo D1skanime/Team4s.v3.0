@@ -358,6 +358,12 @@
   }
 }
 
+/* Composed and direct role artwork share one square optical slot. */
+.group[data-badge-group="roles"] .roleHeroArtwork {
+  aspect-ratio: 1;
+  height: auto;
+}
+
 @container member-badge-carousel (max-width: 480px) {
   .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) {
     display: grid;
@@ -609,12 +615,12 @@
 
 .roleHeroArtworkLayered,
 .badgeArtworkLayered {
+  position: relative;
   isolation: isolate;
 }
 
 .badgeArtworkLayered {
   --role-accent: #17a7a5;
-  position: relative;
 }
 
 :is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMist,
@@ -783,6 +789,7 @@
 }
 
 .roleHeroArtwork img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -1950,4 +1957,9 @@
   .group[data-badge-group="roles"] .roleNextCopy {
     padding: 16px 18px;
   }
+}
+
+.group[data-badge-group="roles"] .roleHeroArtwork {
+  aspect-ratio: 1;
+  height: auto;
 }
