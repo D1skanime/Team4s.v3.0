@@ -364,6 +364,62 @@
   height: auto;
 }
 
+/* Expanded is an independent grid: never revive carousel chrome or wide-card geometry. */
+.carouselShell:has(.badgeGrid) > .carouselSkeleton {
+  visibility: hidden;
+}
+
+.badgeGrid > .badgeWindow {
+  overflow: hidden !important;
+  border-radius: var(--radius-lg);
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: none;
+  grid-template-rows: auto 280px auto auto auto;
+  place-items: center;
+  align-content: start;
+  gap: 12px;
+  width: 100%;
+  min-height: 720px;
+  padding: 24px 20px;
+  transform: none;
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] > * {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleLabel {
+  justify-self: start;
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleHeroArtwork {
+  align-self: center;
+  width: min(280px, 100%);
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleStatus {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleStatus > :first-child,
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleCount {
+  font-size: 1rem;
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleProgressBlock,
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleProgression {
+  width: 100%;
+  max-width: none;
+}
+
 @container member-badge-carousel (max-width: 480px) {
   .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) {
     display: grid;

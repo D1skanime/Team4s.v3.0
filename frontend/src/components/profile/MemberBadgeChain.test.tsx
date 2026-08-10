@@ -1300,6 +1300,25 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
 })
 
 describe('Phase 121 semantischer Rollen-Rank-Track', () => {
+  it('toggles a clean independent expanded roles grid and restores the carousel', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]} catalog={roleProgressCatalog} />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Fansubrollen anzeigen' }))
+    expect(screen.queryByRole('region', { name: 'Rollenfortschritt-Karussell' })).toBeNull()
+    expect(container.querySelectorAll('[data-role-card-state="expanded"]')).toHaveLength(2)
+    expect(container.querySelector('[data-badge-skeleton="true"]')).not.toBeNull()
+    expect(memberBadgeChainCss).toMatch(/\.carouselShell:has\(\.badgeGrid\) > \.carouselSkeleton\s*\{[^}]*visibility:\s*hidden;/s)
+    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\[data-role-card-state="expanded"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*transform:\s*none;/s)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+    expect(screen.getByRole('region', { name: 'Rollenfortschritt-Karussell' })).not.toBeNull()
+    expect(container.querySelectorAll('[data-role-card-state="expanded"]')).toHaveLength(0)
+    expect(container.querySelectorAll('[data-role-card-state="active"]')).toHaveLength(1)
+  })
+
   it('locks the final desktop hierarchy and near-full-width narrow role card', () => {
     expect(memberBadgeChainCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*font-size:\s*clamp\(2rem, 2\.4vw, 3rem\);/)
     expect(memberBadgeChainCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*\.roleProgressTrack\s*\{[^}]*height:\s*10px;/)
