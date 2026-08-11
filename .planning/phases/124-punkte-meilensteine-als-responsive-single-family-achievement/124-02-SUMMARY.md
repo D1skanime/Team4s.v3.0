@@ -46,6 +46,7 @@ completed: 2026-08-11
 - Routed the points family outside carousel chrome while preserving Anime Projects and remaining family paths.
 - Rendered six ordered, contained ResponsiveImage stations with current, earned, preview, and locked semantics.
 - Preserved true visible terminal totals while clamping progressbar ARIA to the final 2'500-point threshold.
+- Kept the zero-point family visible without implying earned hero artwork/status, and exposed deterministic SSR badge codes on current stations.
 
 ## Task Commits
 
@@ -80,6 +81,13 @@ Commit pending because plan changes are contiguous with protected user-owned dir
 - **Files modified:** `frontend/src/components/profile/MemberBadgeChain.module.css`
 - **Verification:** MemberBadgeChain and CSS contract tests pass.
 
+**3. [Rule 1 - Bug] Corrected zero-state and current-station SSR semantics**
+- **Found during:** Post-plan verification
+- **Issue:** Zero points rendered first-milestone hero artwork despite every station being locked, and current list items did not expose their stable badge code to SSR verification.
+- **Fix:** Suppressed hero artwork/status until a real current badge exists and added `data-badge-code` to milestone list items.
+- **Files modified:** `frontend/src/components/profile/MemberBadgeChain.tsx`
+- **Verification:** Public member SSR, points component, family resolver, carousel, and external carousel-consumer suites pass (182 passed, 1 pre-existing skip).
+
 ## Issues Encountered
 
 - Full typecheck remains blocked by pre-existing generated `.next/dev/types` route-prop errors and a pre-existing dirty test typing error at `MemberBadgeChain.test.tsx:941`; no owned production source error was reported.
@@ -95,8 +103,7 @@ None.
 
 ## Next Phase Readiness
 
-- Focused points/family tests: 141 passed, 1 pre-existing skipped.
-- Shared FocalCarousel/FansubProjectsGrid regressions: 26 passed.
+- Public-profile SSR plus focused points/family and shared-carousel regressions: 182 passed, 1 pre-existing skipped.
 - Targeted lint and `git diff --check`: passed.
 - Protected FocalCarousel hashes remained unchanged.
 
