@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 
 import { Button } from '@/components/ui'
 import { getProjectMemberNotes } from '@/lib/api'
@@ -9,6 +9,7 @@ import type { ProjectMemberNote } from '@/types/projectMember'
 import { ProjectMemberNoteCard } from './ProjectMemberNoteCard'
 import styles from './ProjectMemberNotesSection.module.css'
 import pageStyles from './ProjectMemberPage.module.css'
+import { useProjectMemberCollection } from './useProjectMemberCollection'
 
 const INITIAL_LIMIT = 15
 const PAGE_LIMIT = 10
@@ -21,8 +22,7 @@ interface ProjectMemberNotesSectionProps {
   count: number
 }
 
-// Projektweite Texte-&-Notizen-Sektion (Brief 3.2/10): cursor-nachgeladen, unabhängig von
-// Medien/Releases, Requests bei Unmount abgebrochen, keine Duplikate über Cursor-Blöcke.
+// Projektweite Texte-&-Notizen-Sektion (Brief 3.2/10): cursor-nachgeladen mit weniger/mehr.
 export function ProjectMemberNotesSection({
   animeID,
   groupID,
@@ -30,52 +30,19 @@ export function ProjectMemberNotesSection({
   projectPath,
   count,
 }: ProjectMemberNotesSectionProps) {
-  const [items, setItems] = useState<ProjectMemberNote[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  // Pure Dedup gegen den aktuellen State (kein externer Ref) — sonst bricht der StrictMode-
-  // Doppelaufruf des Updaters die Nachlade-Logik (Ref-Mutation ist unrein).
-  const append = useCallback((incoming: ProjectMemberNote[]) => {
-    setItems((prev) => {
-      const existing = new Set(prev.map((note) => note.id))
-      const additions = incoming.filter((note) => !existing.has(note.id))
-      return additions.length > 0 ? [...prev, ...additions] : prev
+  const key = useCallback((note: ProjectMemberNote) => note.id, [])
+  const fetchPage = useCallback(
+    (params: { cursor?: string; limit?: number; signal?: AbortSignal }) =>
+      getProjectMemberNotes(animeID, groupID, memberSlug, params),
+    [animeID, groupID, memberSlug],
+  )
+  const { shown, loading, error, canShowMore, canShowLess, showMore, showLess } =
+    useProjectMemberCollection<ProjectMemberNote>({
+      initialLimit: INITIAL_LIMIT,
+      pageLimit: PAGE_LIMIT,
+      key,
+      fetchPage,
     })
-  }, [])
-
-  useEffect(() => {
-    const controller = new AbortController()
-    getProjectMemberNotes(animeID, groupID, memberSlug, {
-      limit: INITIAL_LIMIT,
-      signal: controller.signal,
-    })
-      .then((page) => {
-        append(page.items)
-        setCursor(page.next_cursor)
-        setHasMore(page.has_more)
-      })
-      .catch((err: unknown) => {
-        if ((err as Error)?.name !== 'AbortError') setError(true)
-      })
-      .finally(() => setLoading(false))
-    return () => controller.abort()
-  }, [animeID, groupID, memberSlug, append])
-
-  const loadMore = useCallback(() => {
-    if (!cursor) return
-    setLoading(true)
-    getProjectMemberNotes(animeID, groupID, memberSlug, { cursor, limit: PAGE_LIMIT })
-      .then((page) => {
-        append(page.items)
-        setCursor(page.next_cursor)
-        setHasMore(page.has_more)
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [animeID, groupID, memberSlug, cursor, append])
 
   return (
     <section id="texte" className={pageStyles.section} aria-labelledby="pm-texte-title">
@@ -92,18 +59,28 @@ export function ProjectMemberNotesSection({
         <p className={styles.error}>Die Textbeiträge konnten nicht geladen werden.</p>
       ) : null}
       <div className={styles.notesGrid}>
-        {items.map((note) => (
+        {shown.map((note) => (
           <ProjectMemberNoteCard key={note.id} note={note} projectPath={projectPath} />
         ))}
       </div>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
-      {hasMore && !loading ? (
-        <div className={styles.loadMoreWrap}>
-          <Button type="button" variant="secondary" size="sm" onClick={loadMore}>
-            Weitere Beiträge laden
-          </Button>
+      <div className={pageStyles.pager}>
+        <span className={pageStyles.pagerInfo}>
+          {canShowMore ? `${shown.length} von ${count} angezeigt` : `Alle ${count} angezeigt`}
+        </span>
+        <div className={pageStyles.pagerButtons}>
+          {canShowLess ? (
+            <Button type="button" variant="ghost" size="sm" onClick={showLess}>
+              Weniger anzeigen
+            </Button>
+          ) : null}
+          {canShowMore ? (
+            <Button type="button" variant="secondary" size="sm" onClick={showMore} disabled={loading}>
+              Weitere Beiträge laden
+            </Button>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </section>
   )
 }

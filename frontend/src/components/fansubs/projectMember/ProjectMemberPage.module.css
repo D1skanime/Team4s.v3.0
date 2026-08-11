@@ -224,6 +224,24 @@
   color: var(--text-primary);
 }
 
+/* Nachlade-Leiste: Fortschritt ("X von Y angezeigt" / "Alle Y angezeigt") + weniger/mehr. */
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+.pagerInfo {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.pagerButtons {
+  display: flex;
+  gap: 8px;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .summary {

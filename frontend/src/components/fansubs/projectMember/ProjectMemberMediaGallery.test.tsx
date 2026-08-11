@@ -11,7 +11,6 @@ vi.mock('@/lib/api', () => ({
   getProjectMemberMedia: (...args: unknown[]) => getProjectMemberMedia(...args),
 }))
 
-// eslint-disable-next-line import/first
 import { ProjectMemberMediaGallery } from './ProjectMemberMediaGallery'
 
 afterEach(() => {

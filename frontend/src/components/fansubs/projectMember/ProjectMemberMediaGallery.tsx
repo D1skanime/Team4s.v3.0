@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui'
 import { getProjectMemberMedia } from '@/lib/api'
@@ -10,6 +10,7 @@ import { ProjectMemberMediaCard } from './ProjectMemberMediaCard'
 import styles from './ProjectMemberMediaGallery.module.css'
 import { ProjectMemberMediaViewer } from './ProjectMemberMediaViewer'
 import pageStyles from './ProjectMemberPage.module.css'
+import { useProjectMemberCollection } from './useProjectMemberCollection'
 
 const INITIAL_LIMIT = 24
 const PAGE_LIMIT = 12
@@ -23,8 +24,8 @@ interface ProjectMemberMediaGalleryProps {
   memberDisplayName?: string
 }
 
-// Projektweite Bilder-&-Medien-Galerie (Brief 3.3/12): cursor-nachgeladen, responsives Grid,
-// öffnet den Media Viewer am Index; bereits geladene Medien werden im Viewer wiederverwendet.
+// Projektweite Bilder-&-Medien-Galerie (Brief 3.3/12): cursor-nachgeladen mit weniger/mehr,
+// responsives Grid, öffnet den Media Viewer über die aktuell angezeigten Medien.
 export function ProjectMemberMediaGallery({
   animeID,
   groupID,
@@ -33,11 +34,20 @@ export function ProjectMemberMediaGallery({
   count,
   memberDisplayName,
 }: ProjectMemberMediaGalleryProps) {
-  const [items, setItems] = useState<ProjectMemberMediaItem[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const key = useCallback((media: ProjectMemberMediaItem) => media.id, [])
+  const fetchPage = useCallback(
+    (params: { cursor?: string; limit?: number; signal?: AbortSignal }) =>
+      getProjectMemberMedia(animeID, groupID, memberSlug, params),
+    [animeID, groupID, memberSlug],
+  )
+  const { shown, loading, error, canShowMore, canShowLess, showMore, showLess } =
+    useProjectMemberCollection<ProjectMemberMediaItem>({
+      initialLimit: INITIAL_LIMIT,
+      pageLimit: PAGE_LIMIT,
+      key,
+      fetchPage,
+    })
+
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
@@ -56,46 +66,6 @@ export function ProjectMemberMediaGallery({
     }
   }, [])
 
-  // Pure Dedup gegen den aktuellen State (kein externer Ref) — StrictMode-safe.
-  const append = useCallback((incoming: ProjectMemberMediaItem[]) => {
-    setItems((prev) => {
-      const existing = new Set(prev.map((media) => media.id))
-      const additions = incoming.filter((media) => !existing.has(media.id))
-      return additions.length > 0 ? [...prev, ...additions] : prev
-    })
-  }, [])
-
-  useEffect(() => {
-    const controller = new AbortController()
-    getProjectMemberMedia(animeID, groupID, memberSlug, {
-      limit: INITIAL_LIMIT,
-      signal: controller.signal,
-    })
-      .then((page) => {
-        append(page.items)
-        setCursor(page.next_cursor)
-        setHasMore(page.has_more)
-      })
-      .catch((err: unknown) => {
-        if ((err as Error)?.name !== 'AbortError') setError(true)
-      })
-      .finally(() => setLoading(false))
-    return () => controller.abort()
-  }, [animeID, groupID, memberSlug, append])
-
-  const loadMore = useCallback(() => {
-    if (!cursor) return
-    setLoading(true)
-    getProjectMemberMedia(animeID, groupID, memberSlug, { cursor, limit: PAGE_LIMIT })
-      .then((page) => {
-        append(page.items)
-        setCursor(page.next_cursor)
-        setHasMore(page.has_more)
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [animeID, groupID, memberSlug, cursor, append])
-
   return (
     <section id="bilder" className={pageStyles.section} aria-labelledby="pm-bilder-title">
       <div className={pageStyles.sectionHead}>
@@ -106,26 +76,31 @@ export function ProjectMemberMediaGallery({
       </div>
       {error ? <p className={styles.error}>Die Medien konnten nicht geladen werden.</p> : null}
       <div className={styles.grid}>
-        {items.map((item, i) => (
-          <ProjectMemberMediaCard
-            key={item.id}
-            item={item}
-            index={i}
-            onOpen={openViewer}
-          />
+        {shown.map((item, i) => (
+          <ProjectMemberMediaCard key={item.id} item={item} index={i} onOpen={openViewer} />
         ))}
       </div>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
-      {hasMore && !loading ? (
-        <div className={styles.loadMoreWrap}>
-          <Button type="button" variant="secondary" size="sm" onClick={loadMore}>
-            Weitere Bilder laden
-          </Button>
+      <div className={pageStyles.pager}>
+        <span className={pageStyles.pagerInfo}>
+          {canShowMore ? `${shown.length} von ${count} angezeigt` : `Alle ${count} angezeigt`}
+        </span>
+        <div className={pageStyles.pagerButtons}>
+          {canShowLess ? (
+            <Button type="button" variant="ghost" size="sm" onClick={showLess}>
+              Weniger anzeigen
+            </Button>
+          ) : null}
+          {canShowMore ? (
+            <Button type="button" variant="secondary" size="sm" onClick={showMore} disabled={loading}>
+              Weitere Bilder laden
+            </Button>
+          ) : null}
         </div>
-      ) : null}
+      </div>
       {openIndex !== null ? (
         <ProjectMemberMediaViewer
-          items={items}
+          items={shown}
           index={openIndex}
           projectPath={projectPath}
           memberDisplayName={memberDisplayName}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 
 import { Button } from '@/components/ui'
 import { getProjectMemberReleases } from '@/lib/api'
@@ -9,6 +9,7 @@ import type { ProjectMemberRelease } from '@/types/projectMember'
 import { ProjectMemberReleaseCard } from './ProjectMemberReleaseCard'
 import styles from './ProjectMemberReleasesSection.module.css'
 import pageStyles from './ProjectMemberPage.module.css'
+import { useProjectMemberCollection } from './useProjectMemberCollection'
 
 const INITIAL_LIMIT = 15
 const PAGE_LIMIT = 10
@@ -21,7 +22,7 @@ interface ProjectMemberReleasesSectionProps {
   count: number
 }
 
-// Release-Mitwirkung (Brief 3.4/20): reine Crew-Historie, cursor-nachgeladen, unabhängig geladen.
+// Release-Mitwirkung (Brief 3.4/20): kompakte Zeilen-Liste, cursor-nachgeladen mit weniger/mehr.
 export function ProjectMemberReleasesSection({
   animeID,
   groupID,
@@ -29,51 +30,19 @@ export function ProjectMemberReleasesSection({
   projectPath,
   count,
 }: ProjectMemberReleasesSectionProps) {
-  const [items, setItems] = useState<ProjectMemberRelease[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  // Pure Dedup gegen den aktuellen State (kein externer Ref) — StrictMode-safe.
-  const append = useCallback((incoming: ProjectMemberRelease[]) => {
-    setItems((prev) => {
-      const existing = new Set(prev.map((release) => release.release_version_id))
-      const additions = incoming.filter((release) => !existing.has(release.release_version_id))
-      return additions.length > 0 ? [...prev, ...additions] : prev
+  const key = useCallback((release: ProjectMemberRelease) => release.release_version_id, [])
+  const fetchPage = useCallback(
+    (params: { cursor?: string; limit?: number; signal?: AbortSignal }) =>
+      getProjectMemberReleases(animeID, groupID, memberSlug, params),
+    [animeID, groupID, memberSlug],
+  )
+  const { shown, loading, error, canShowMore, canShowLess, showMore, showLess } =
+    useProjectMemberCollection<ProjectMemberRelease>({
+      initialLimit: INITIAL_LIMIT,
+      pageLimit: PAGE_LIMIT,
+      key,
+      fetchPage,
     })
-  }, [])
-
-  useEffect(() => {
-    const controller = new AbortController()
-    getProjectMemberReleases(animeID, groupID, memberSlug, {
-      limit: INITIAL_LIMIT,
-      signal: controller.signal,
-    })
-      .then((page) => {
-        append(page.items)
-        setCursor(page.next_cursor)
-        setHasMore(page.has_more)
-      })
-      .catch((err: unknown) => {
-        if ((err as Error)?.name !== 'AbortError') setError(true)
-      })
-      .finally(() => setLoading(false))
-    return () => controller.abort()
-  }, [animeID, groupID, memberSlug, append])
-
-  const loadMore = useCallback(() => {
-    if (!cursor) return
-    setLoading(true)
-    getProjectMemberReleases(animeID, groupID, memberSlug, { cursor, limit: PAGE_LIMIT })
-      .then((page) => {
-        append(page.items)
-        setCursor(page.next_cursor)
-        setHasMore(page.has_more)
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [animeID, groupID, memberSlug, cursor, append])
 
   return (
     <section id="releases" className={pageStyles.section} aria-labelledby="pm-releases-title">
@@ -86,23 +55,33 @@ export function ProjectMemberReleasesSection({
       {error ? (
         <p className={styles.error}>Die Release-Mitwirkung konnte nicht geladen werden.</p>
       ) : null}
-      <div className={styles.list}>
-        {items.map((release) => (
+      <ul className={styles.list}>
+        {shown.map((release) => (
           <ProjectMemberReleaseCard
             key={release.release_version_id}
             release={release}
             projectPath={projectPath}
           />
         ))}
-      </div>
+      </ul>
       {loading ? <p className={styles.loadingText}>Wird geladen …</p> : null}
-      {hasMore && !loading ? (
-        <div className={styles.loadMoreWrap}>
-          <Button type="button" variant="secondary" size="sm" onClick={loadMore}>
-            Weitere laden
-          </Button>
+      <div className={pageStyles.pager}>
+        <span className={pageStyles.pagerInfo}>
+          {canShowMore ? `${shown.length} von ${count} angezeigt` : `Alle ${count} angezeigt`}
+        </span>
+        <div className={pageStyles.pagerButtons}>
+          {canShowLess ? (
+            <Button type="button" variant="ghost" size="sm" onClick={showLess}>
+              Weniger anzeigen
+            </Button>
+          ) : null}
+          {canShowMore ? (
+            <Button type="button" variant="secondary" size="sm" onClick={showMore} disabled={loading}>
+              Weitere laden
+            </Button>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </section>
   )
 }

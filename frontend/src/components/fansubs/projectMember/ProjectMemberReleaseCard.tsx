@@ -15,8 +15,8 @@ function formatDate(iso: string | null): string {
   return `${dd}.${mm}.${date.getFullYear()}`
 }
 
-// Kompakte Release-Karte (Brief 19): Folge | Version, Bestätigt-Datum, Rollen, Release-Link.
-// Keine Bilder/Volltexte (D-07/Brief 16).
+// Kompakte Release-Zeile (Brief 3.4/19): eine dichte Zeile statt einer grossen Karte — reine
+// Crew-Historie, keine Bilder/Volltexte.
 export function ProjectMemberReleaseCard({
   release,
   projectPath,
@@ -28,26 +28,18 @@ export function ProjectMemberReleaseCard({
   const date = formatDate(release.confirmed_at)
 
   return (
-    <article className={styles.card}>
-      <div className={styles.episode}>Folge {release.episode_label}</div>
-      <div className={styles.body}>
-        <p className={styles.version}>Release-Version {release.version_label}</p>
-        <p className={styles.confirmed}>
-          {date ? `Mitwirkung bestätigt · ${date}` : 'Mitwirkung bestätigt'}
-        </p>
-        {release.role_labels.length > 0 ? (
-          <div className={styles.roles}>
-            {release.role_labels.map((role) => (
-              <span key={role} className={styles.role}>
-                {role}
-              </span>
-            ))}
-          </div>
-        ) : null}
-        <Link href={href} className={styles.link}>
-          Release ansehen →
-        </Link>
-      </div>
-    </article>
+    <li className={styles.row}>
+      <span className={styles.rowEpisode}>Folge {release.episode_label}</span>
+      <span className={styles.rowVersion}>{release.version_label}</span>
+      {release.role_labels.length > 0 ? (
+        <span className={styles.rowRoles}>{release.role_labels.join(' · ')}</span>
+      ) : (
+        <span className={styles.rowRoles} />
+      )}
+      {date ? <span className={styles.rowDate}>bestätigt {date}</span> : null}
+      <Link href={href} className={styles.rowLink}>
+        Release ansehen →
+      </Link>
+    </li>
   )
 }

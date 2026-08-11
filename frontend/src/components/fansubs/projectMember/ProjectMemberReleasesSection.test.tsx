@@ -35,22 +35,20 @@ const page = (
 ): CursorPage<ProjectMemberRelease> => ({ items, next_cursor: next, has_more: more })
 
 describe('ProjectMemberReleaseCard', () => {
-  it('renders episode, version, confirmed date, roles and the release link (no images/text bodies)', () => {
+  it('renders a compact row: episode, roles, confirmed date and release link (no images)', () => {
     const { container } = render(
-      <ProjectMemberReleaseCard
-        release={release()}
-        projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
-      />,
+      <ul>
+        <ProjectMemberReleaseCard
+          release={release()}
+          projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+        />
+      </ul>,
     )
     expect(screen.getByText('Folge 08')).not.toBeNull()
-    expect(screen.getByText('Release-Version 1')).not.toBeNull()
-    expect(screen.getByText('Mitwirkung bestätigt · 12.04.2024')).not.toBeNull()
-    expect(screen.getByText('Übersetzung')).not.toBeNull()
+    expect(screen.getByText('Übersetzung · Timing')).not.toBeNull()
+    expect(screen.getByText('bestätigt 12.04.2024')).not.toBeNull()
     const link = screen.getByRole('link', { name: 'Release ansehen →' })
-    expect(link.getAttribute('href')).toBe(
-      '/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1',
-    )
-    // Keine Bilder eingebettet
+    expect(link.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1')
     expect(container.querySelector('img')).toBeNull()
   })
 })
@@ -72,9 +70,33 @@ describe('ProjectMemberReleasesSection', () => {
         count={24}
       />,
     )
-    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(15))
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(15))
     fireEvent.click(screen.getByText('Weitere laden'))
     // 15 + 10 - 1 Duplikat (id 15) = 24
-    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(24))
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(24))
+  })
+
+  it('can show fewer again after loading more', async () => {
+    const first = Array.from({ length: 15 }, (_, i) => release({ release_version_id: i + 1 }))
+    const second = Array.from({ length: 10 }, (_, i) => release({ release_version_id: i + 100 }))
+    getProjectMemberReleases
+      .mockResolvedValueOnce(page(first, 'c1', true))
+      .mockResolvedValueOnce(page(second, null, false))
+
+    render(
+      <ProjectMemberReleasesSection
+        animeID={10}
+        groupID={20}
+        memberSlug="csubs-leader"
+        projectPath="/p"
+        count={25}
+      />,
+    )
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(15))
+    fireEvent.click(screen.getByText('Weitere laden'))
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(25))
+    // Jetzt wieder einklappen
+    fireEvent.click(screen.getByText('Weniger anzeigen'))
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(15))
   })
 })

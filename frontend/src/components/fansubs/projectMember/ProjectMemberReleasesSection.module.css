@@ -1,80 +1,65 @@
-/* Mitwirkung an Releases — kompakte Crew-Historie (Brief 3.4/19). Keine Bilder/Volltexte. */
+/* Mitwirkung an Releases — kompakte, dichte Zeilen-Liste (Brief 3.4/19), keine grossen Karten. */
 
 .list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.card {
-  display: flex;
-  gap: 16px;
-  padding: 14px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  overflow: hidden;
   background: var(--surface-card);
-  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-xs);
-  color: var(--text-primary);
 }
 
-.episode {
-  flex: 0 0 auto;
-  min-width: 88px;
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 14px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+.row:first-child {
+  border-top: none;
+}
+
+.rowEpisode {
   font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  border-right: 1px solid var(--color-border);
-  padding-right: 16px;
+  min-width: 62px;
+  flex: 0 0 auto;
 }
-
-.body {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.version {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.confirmed {
-  font-size: 0.82rem;
+.rowVersion {
   color: var(--text-muted);
+  min-width: 28px;
+  flex: 0 0 auto;
 }
-.roles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
-}
-.role {
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--surface-sunken);
-  border: 1px solid var(--color-border);
+.rowRoles {
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.link {
-  align-self: flex-start;
-  margin-top: 4px;
-  font-size: 0.82rem;
-  font-weight: 600;
+.rowDate {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.rowLink {
+  flex: 0 0 auto;
   color: var(--accent-deep);
+  font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
 }
-.link:hover,
-.link:focus-visible {
+.rowLink:hover,
+.rowLink:focus-visible {
   text-decoration: underline;
 }
 
-.loadMoreWrap {
-  display: flex;
-  justify-content: center;
-  margin-top: 18px;
-}
 .loadingText,
 .error {
   margin-top: 12px;
@@ -85,15 +70,21 @@
   color: var(--color-error, #dc3545);
 }
 
-@media (max-width: 560px) {
-  .card {
-    flex-direction: column;
-    gap: 8px;
+@media (max-width: 640px) {
+  .row {
+    flex-wrap: wrap;
+    gap: 4px 10px;
   }
-  .episode {
-    border-right: none;
-    border-bottom: 1px solid var(--color-border);
-    padding-right: 0;
-    padding-bottom: 8px;
+  .rowRoles {
+    flex-basis: 100%;
+    order: 3;
+    white-space: normal;
+  }
+  .rowDate {
+    order: 4;
+  }
+  .rowLink {
+    order: 5;
+    margin-left: auto;
   }
 }
