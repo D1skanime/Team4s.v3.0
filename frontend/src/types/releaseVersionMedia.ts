@@ -12,7 +12,7 @@ export const RELEASE_VERSION_MEDIA_CATEGORIES: ReleaseVersionMediaCategory[] = [
 ]
 
 export const CATEGORY_LABELS: Record<ReleaseVersionMediaCategory, string> = {
-  screenshot: 'Release-Screenshot',
+  screenshot: 'Fansub Screenshot',
   typesetting_karaoke: 'Typesetting-/Karaoke-Beispiel',
   fun_outtake: 'Spaßbild / Outtake',
   other: 'Sonstiges',

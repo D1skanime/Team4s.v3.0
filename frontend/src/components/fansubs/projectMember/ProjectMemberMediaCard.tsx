@@ -2,15 +2,9 @@
 
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import type { ProjectMemberMediaItem } from '@/types/projectMember'
+import { CATEGORY_LABELS } from '@/types/releaseVersionMedia'
 
 import styles from './ProjectMemberMediaGallery.module.css'
-
-const CATEGORY_LABELS: Record<string, string> = {
-  screenshot: 'Screenshot',
-  typesetting_karaoke: 'Typeset / Karaoke',
-  fun_outtake: 'Outtake',
-  other: 'Medium',
-}
 
 // Galerie-Thumbnail-Karte (Brief 11): fokussierbarer Button, ResponsiveImage-Thumbnail mit fester
 // aspect-ratio (kein CLS), kompakter Kontext (Typ, Folge, Version). Öffnet den Viewer über onOpen.
@@ -23,7 +17,7 @@ export function ProjectMemberMediaCard({
   index: number
   onOpen: (index: number) => void
 }) {
-  const label = CATEGORY_LABELS[item.category] ?? item.category
+  const label = (CATEGORY_LABELS as Record<string, string>)[item.category] ?? item.category
   const src = item.thumbnail_url || item.preview_url
   const alt = `${label} – Folge ${item.episode_label}`
 

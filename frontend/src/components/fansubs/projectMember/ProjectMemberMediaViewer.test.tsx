@@ -37,7 +37,6 @@ function renderViewer(index = 0) {
       items={items}
       index={index}
       projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
-      memberDisplayName="CSubs Leader"
       onClose={onClose}
       onIndexChange={onIndexChange}
     />,
@@ -49,10 +48,8 @@ describe('ProjectMemberMediaViewer', () => {
   it('renders the sidebar metadata, release link and n/N counter for the current item', () => {
     renderViewer(0)
     expect(screen.getByRole('dialog', { name: 'Medienansicht' })).not.toBeNull()
-    expect(screen.getByText('Release-Screenshot')).not.toBeNull()
+    expect(screen.getByText('Fansub Screenshot')).not.toBeNull()
     expect(screen.getByText('Folge 08 · 1')).not.toBeNull()
-    expect(screen.getByText('Von CSubs Leader')).not.toBeNull()
-    expect(screen.getByText('12.04.2024')).not.toBeNull()
     expect(screen.getByText('Ending-Frame')).not.toBeNull()
     expect(screen.getByText('1 / 3')).not.toBeNull()
     const link = screen.getByRole('link', { name: 'Release öffnen →' })

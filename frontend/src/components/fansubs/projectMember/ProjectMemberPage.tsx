@@ -82,7 +82,6 @@ export function ProjectMemberPage(props: ProjectMemberPageProps) {
               memberSlug={memberSlug}
               projectPath={projectPath}
               count={counts.media}
-              memberDisplayName={summary.member_display_name}
             />
 
             <ProjectMemberReleasesSection

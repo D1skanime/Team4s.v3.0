@@ -157,8 +157,12 @@
   font-size: 0.9rem;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   color: var(--text-primary);
+}
+/* Browser-Standard-Rand der <p> zuruecksetzen — sonst summieren sich margin + flex-gap. */
+.viewerInfo > * {
+  margin: 0;
 }
 .viewerCategory {
   font-weight: 700;
@@ -167,17 +171,17 @@
 .viewerMeta {
   font-weight: 600;
 }
-.viewerFrom,
-.viewerDate,
 .viewerCaption {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  margin-top: 8px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-primary);
 }
 .viewerReleaseLink {
   color: var(--accent-deep);
   font-weight: 600;
   text-decoration: none;
-  margin-top: 4px;
+  margin-top: 10px;
 }
 .viewerReleaseLink:hover {
   text-decoration: underline;

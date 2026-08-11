@@ -5,23 +5,9 @@ import { useCallback, useEffect, useRef } from 'react'
 
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import type { ProjectMemberMediaItem } from '@/types/projectMember'
+import { CATEGORY_LABELS } from '@/types/releaseVersionMedia'
 
 import styles from './ProjectMemberMediaGallery.module.css'
-
-const CATEGORY_LABELS: Record<string, string> = {
-  screenshot: 'Release-Screenshot',
-  typesetting_karaoke: 'Typeset / Karaoke',
-  fun_outtake: 'Outtake',
-  other: 'Medium',
-}
-
-function formatDate(iso: string): string {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return ''
-  const dd = String(date.getDate()).padStart(2, '0')
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  return `${dd}.${mm}.${date.getFullYear()}`
-}
 
 function prefetch(url: string | undefined) {
   if (!url) return
@@ -34,19 +20,18 @@ interface ProjectMemberMediaViewerProps {
   items: ProjectMemberMediaItem[]
   index: number
   projectPath: string
-  memberDisplayName?: string
   onClose: () => void
   onIndexChange: (index: number) => void
 }
 
-// Responsiver Media Viewer (Brief 14–18): Desktop Bild + Info-Sidebar, Mobile gestapelt
-// (Bild oben, Infos darunter), Tablet breitenabhängig (CSS). Prev/Next, Tastatur, Nachbar-Prefetch,
-// Fokus beim Öffnen in den Dialog (Rückgabe an das auslösende Element übernimmt die Galerie).
+// Responsiver Media Viewer (Brief 14–18): Desktop Bild + Info-Sidebar, Mobile gestapelt.
+// Sidebar bewusst schlank: Typ, Folge · Version, Beschreibung, Release-Link. Kein Upload-Datum
+// und kein "Von <Member>" — die Galerie ist bereits member-scoped, beides ist auf der Public-Seite
+// irrelevant.
 export function ProjectMemberMediaViewer({
   items,
   index,
   projectPath,
-  memberDisplayName,
   onClose,
   onIndexChange,
 }: ProjectMemberMediaViewerProps) {
@@ -57,7 +42,6 @@ export function ProjectMemberMediaViewer({
   const goPrev = useCallback(() => onIndexChange((index - 1 + total) % total), [index, total, onIndexChange])
   const goNext = useCallback(() => onIndexChange((index + 1) % total), [index, total, onIndexChange])
 
-  // Tastatur + Fokus beim Öffnen.
   useEffect(() => {
     dialogRef.current?.focus()
   }, [])
@@ -72,7 +56,6 @@ export function ProjectMemberMediaViewer({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, goPrev, goNext])
 
-  // Nachbar-Prefetch (Brief 17): angrenzende Previews gezielt vorladen.
   useEffect(() => {
     if (total <= 1) return
     prefetch(items[(index + 1) % total]?.preview_url)
@@ -81,8 +64,7 @@ export function ProjectMemberMediaViewer({
 
   if (!item) return null
   const releaseHref = `${projectPath}/releases/${item.release_version_id}`
-  const label = CATEGORY_LABELS[item.category] ?? item.category
-  const date = formatDate(item.created_at)
+  const label = (CATEGORY_LABELS as Record<string, string>)[item.category] ?? item.category
 
   return (
     <div
@@ -121,10 +103,6 @@ export function ProjectMemberMediaViewer({
             <p className={styles.viewerMeta}>
               Folge {item.episode_label} · {item.release_version_label}
             </p>
-            {memberDisplayName ? (
-              <p className={styles.viewerFrom}>Von {memberDisplayName}</p>
-            ) : null}
-            {date ? <p className={styles.viewerDate}>{date}</p> : null}
             {item.caption ? <p className={styles.viewerCaption}>{item.caption}</p> : null}
             <Link href={releaseHref} className={styles.viewerReleaseLink}>
               Release öffnen →

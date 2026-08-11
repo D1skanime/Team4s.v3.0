@@ -21,7 +21,6 @@ interface ProjectMemberMediaGalleryProps {
   memberSlug: string
   projectPath: string
   count: number
-  memberDisplayName?: string
 }
 
 // Projektweite Bilder-&-Medien-Galerie (Brief 3.3/12): cursor-nachgeladen mit weniger/mehr,
@@ -32,7 +31,6 @@ export function ProjectMemberMediaGallery({
   memberSlug,
   projectPath,
   count,
-  memberDisplayName,
 }: ProjectMemberMediaGalleryProps) {
   const key = useCallback((media: ProjectMemberMediaItem) => media.id, [])
   const fetchPage = useCallback(
@@ -104,7 +102,6 @@ export function ProjectMemberMediaGallery({
           items={shown}
           index={openIndex}
           projectPath={projectPath}
-          memberDisplayName={memberDisplayName}
           onClose={closeViewer}
           onIndexChange={setOpenIndex}
         />
