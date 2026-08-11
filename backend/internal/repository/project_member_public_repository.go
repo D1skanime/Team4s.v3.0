@@ -65,6 +65,7 @@ type ProjectMemberMediaItem struct {
 	ReleaseVersionLabel string    `json:"release_version_label"`
 	ReleaseVersionID    int64     `json:"release_version_id"`
 	SortOrder           int       `json:"-"`
+	EpisodeSort         int32     `json:"-"`
 	CreatedAt           time.Time `json:"created_at"`
 	ThumbFilePath       string    `json:"-"`
 	OriginalFilePath    string    `json:"-"`
@@ -297,15 +298,18 @@ func (r *ProjectMemberPublicRepository) ListNotes(ctx context.Context, animeID, 
 func (r *ProjectMemberPublicRepository) ListMedia(ctx context.Context, animeID, groupID, memberID int64, cursor string, limit int) ([]ProjectMemberMediaItem, *string, bool, error) {
 	limit = clampCursorLimit(limit)
 	seek := ""
-	if so, id, ok := decodeInt32Int64Cursor(cursor); ok {
-		seek = fmt.Sprintf(" AND (rvm.sort_order > %d OR (rvm.sort_order = %d AND rvm.id > %d))", so, so, id)
+	// Sortierung nach Folge (episode sort_index) aufsteigend, damit die Medien je Folge gruppiert
+	// erscheinen; innerhalb einer Folge stabil nach rvm.id. Cursor = (episode_sort, rvm.id).
+	if es, id, ok := decodeInt32Int64Cursor(cursor); ok {
+		seek = fmt.Sprintf(" AND (COALESCE(e.sort_index, 0) > %d OR (COALESCE(e.sort_index, 0) = %d AND rvm.id > %d))", es, es, id)
 	}
 	q := `
 		WITH ` + projectMemberUserIDsCTE + `
 		SELECT rvm.id, rvm.media_asset_id, rvm.category, rvm.caption,
 		       COALESCE(e.episode_number, '') AS episode_label,
 		       COALESCE(rv.version, '') AS version_label,
-		       rvm.release_version_id, rvm.sort_order, rvm.created_at,
+		       rvm.release_version_id, rvm.sort_order,
+		       COALESCE(e.sort_index, 0) AS episode_sort, rvm.created_at,
 		       COALESCE(mf_thumb.path, ''), COALESCE(mf_orig.path, '')
 		FROM release_version_media rvm
 		JOIN release_versions rv ON rv.id = rvm.release_version_id
@@ -319,7 +323,7 @@ func (r *ProjectMemberPublicRepository) ListMedia(ctx context.Context, animeID, 
 		WHERE rvm.uploaded_by_user_id IN (SELECT uid FROM member_users)
 		  AND e.anime_id = $2 AND rvm.fansub_group_id = $3
 		  AND ` + projectMemberPublicMediaPredicate + seek + `
-		ORDER BY rvm.sort_order ASC, rvm.id ASC
+		ORDER BY COALESCE(e.sort_index, 0) ASC, rvm.id ASC
 		LIMIT ` + fmt.Sprintf("%d", limit+1)
 	rows, err := r.db.Query(ctx, q, memberID, animeID, groupID)
 	if err != nil {
@@ -330,7 +334,7 @@ func (r *ProjectMemberPublicRepository) ListMedia(ctx context.Context, animeID, 
 	for rows.Next() {
 		var m ProjectMemberMediaItem
 		if err := rows.Scan(&m.RelationID, &m.MediaAssetID, &m.Category, &m.Caption,
-			&m.EpisodeLabel, &m.ReleaseVersionLabel, &m.ReleaseVersionID, &m.SortOrder, &m.CreatedAt,
+			&m.EpisodeLabel, &m.ReleaseVersionLabel, &m.ReleaseVersionID, &m.SortOrder, &m.EpisodeSort, &m.CreatedAt,
 			&m.ThumbFilePath, &m.OriginalFilePath); err != nil {
 			return nil, nil, false, fmt.Errorf("project member: media scan: %w", err)
 		}
@@ -340,7 +344,7 @@ func (r *ProjectMemberPublicRepository) ListMedia(ctx context.Context, animeID, 
 		return nil, nil, false, fmt.Errorf("project member: media iterate: %w", err)
 	}
 	page, next, more := trimCursorPage(items, limit, func(m ProjectMemberMediaItem) string {
-		return encodeInt32Int64Cursor(int32(m.SortOrder), m.RelationID)
+		return encodeInt32Int64Cursor(m.EpisodeSort, m.RelationID)
 	})
 	return page, next, more, nil
 }
