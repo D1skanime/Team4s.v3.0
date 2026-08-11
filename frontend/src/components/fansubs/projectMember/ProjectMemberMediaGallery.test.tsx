@@ -11,6 +11,7 @@ vi.mock('@/lib/api', () => ({
   getProjectMemberMedia: (...args: unknown[]) => getProjectMemberMedia(...args),
 }))
 
+// eslint-disable-next-line import/first
 import { ProjectMemberMediaGallery } from './ProjectMemberMediaGallery'
 
 afterEach(() => {
@@ -19,6 +20,7 @@ afterEach(() => {
 })
 
 const media = (overrides: Partial<ProjectMemberMediaItem> = {}): ProjectMemberMediaItem => ({
+  id: 1,
   media_asset_id: 1,
   category: 'screenshot',
   caption: null,
@@ -52,16 +54,17 @@ const renderGallery = () =>
 
 describe('ProjectMemberMediaGallery', () => {
   it('loads the initial page of media cards', async () => {
-    const first = Array.from({ length: 24 }, (_, i) => media({ media_asset_id: i + 1 }))
+    const first = Array.from({ length: 24 }, (_, i) => media({ id: i + 1 }))
     getProjectMemberMedia.mockResolvedValueOnce(page(first, 'c1', true))
     renderGallery()
     await waitFor(() => expect(cards()).toHaveLength(24))
   })
 
   it('appends the next page without duplicates', async () => {
-    const first = Array.from({ length: 24 }, (_, i) => media({ media_asset_id: i + 1 }))
-    // id 24 overlaps -> deduped: 24 + 12 - 1 = 35
-    const second = Array.from({ length: 12 }, (_, i) => media({ media_asset_id: i + 24 }))
+    // media_asset_id bleibt konstant (Factory-Default) -> beweist: Dedup per id, nicht per Asset.
+    const first = Array.from({ length: 24 }, (_, i) => media({ id: i + 1 }))
+    // id 24 overlappt -> deduped: 24 + 12 - 1 = 35
+    const second = Array.from({ length: 12 }, (_, i) => media({ id: i + 24 }))
     getProjectMemberMedia
       .mockResolvedValueOnce(page(first, 'c1', true))
       .mockResolvedValueOnce(page(second, null, false))
@@ -72,7 +75,7 @@ describe('ProjectMemberMediaGallery', () => {
   })
 
   it('opens the media viewer on card click and closes on Escape', async () => {
-    const first = Array.from({ length: 3 }, (_, i) => media({ media_asset_id: i + 1 }))
+    const first = Array.from({ length: 3 }, (_, i) => media({ id: i + 1 }))
     getProjectMemberMedia.mockResolvedValueOnce(page(first, null, false))
     renderGallery()
     await waitFor(() => expect(cards()).toHaveLength(3))

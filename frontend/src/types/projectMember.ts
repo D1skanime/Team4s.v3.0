@@ -31,6 +31,7 @@ export interface ProjectMemberNote {
 }
 
 export interface ProjectMemberMediaItem {
+  id: number
   media_asset_id: number
   category: string
   caption: string | null

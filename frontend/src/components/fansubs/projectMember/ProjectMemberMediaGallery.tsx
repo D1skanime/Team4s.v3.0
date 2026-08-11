@@ -39,7 +39,6 @@ export function ProjectMemberMediaGallery({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
-  const seen = useRef<Set<number>>(new Set())
   const triggerRef = useRef<HTMLElement | null>(null)
 
   const openViewer = useCallback((index: number) => {
@@ -57,16 +56,12 @@ export function ProjectMemberMediaGallery({
     }
   }, [])
 
+  // Pure Dedup gegen den aktuellen State (kein externer Ref) — StrictMode-safe.
   const append = useCallback((incoming: ProjectMemberMediaItem[]) => {
     setItems((prev) => {
-      const next = prev.slice()
-      for (const media of incoming) {
-        if (!seen.current.has(media.media_asset_id)) {
-          seen.current.add(media.media_asset_id)
-          next.push(media)
-        }
-      }
-      return next
+      const existing = new Set(prev.map((media) => media.id))
+      const additions = incoming.filter((media) => !existing.has(media.id))
+      return additions.length > 0 ? [...prev, ...additions] : prev
     })
   }, [])
 
@@ -113,7 +108,7 @@ export function ProjectMemberMediaGallery({
       <div className={styles.grid}>
         {items.map((item, i) => (
           <ProjectMemberMediaCard
-            key={item.media_asset_id}
+            key={item.id}
             item={item}
             index={i}
             onOpen={openViewer}

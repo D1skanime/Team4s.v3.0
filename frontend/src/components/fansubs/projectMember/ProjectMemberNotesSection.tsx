@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui'
 import { getProjectMemberNotes } from '@/lib/api'
@@ -35,18 +35,14 @@ export function ProjectMemberNotesSection({
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const seen = useRef<Set<number>>(new Set())
 
+  // Pure Dedup gegen den aktuellen State (kein externer Ref) — sonst bricht der StrictMode-
+  // Doppelaufruf des Updaters die Nachlade-Logik (Ref-Mutation ist unrein).
   const append = useCallback((incoming: ProjectMemberNote[]) => {
     setItems((prev) => {
-      const next = prev.slice()
-      for (const note of incoming) {
-        if (!seen.current.has(note.id)) {
-          seen.current.add(note.id)
-          next.push(note)
-        }
-      }
-      return next
+      const existing = new Set(prev.map((note) => note.id))
+      const additions = incoming.filter((note) => !existing.has(note.id))
+      return additions.length > 0 ? [...prev, ...additions] : prev
     })
   }, [])
 

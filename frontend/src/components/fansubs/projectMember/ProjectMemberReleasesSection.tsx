@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui'
 import { getProjectMemberReleases } from '@/lib/api'
@@ -34,18 +34,13 @@ export function ProjectMemberReleasesSection({
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const seen = useRef<Set<number>>(new Set())
 
+  // Pure Dedup gegen den aktuellen State (kein externer Ref) — StrictMode-safe.
   const append = useCallback((incoming: ProjectMemberRelease[]) => {
     setItems((prev) => {
-      const next = prev.slice()
-      for (const release of incoming) {
-        if (!seen.current.has(release.release_version_id)) {
-          seen.current.add(release.release_version_id)
-          next.push(release)
-        }
-      }
-      return next
+      const existing = new Set(prev.map((release) => release.release_version_id))
+      const additions = incoming.filter((release) => !existing.has(release.release_version_id))
+      return additions.length > 0 ? [...prev, ...additions] : prev
     })
   }, [])
 

@@ -10,6 +10,7 @@ import { ProjectMemberMediaViewer } from './ProjectMemberMediaViewer'
 afterEach(() => cleanup())
 
 const media = (overrides: Partial<ProjectMemberMediaItem> = {}): ProjectMemberMediaItem => ({
+  id: 1,
   media_asset_id: 1,
   category: 'screenshot',
   caption: 'Ending-Frame',

@@ -57,7 +57,7 @@ type ProjectMemberNote struct {
 // ProjectMemberMediaItem ist ein oeffentliches Medium (Uploader = Member, D-06).
 // ThumbFilePath/OriginalFilePath sind storage-relative Pfade; der Handler baut daraus die URLs.
 type ProjectMemberMediaItem struct {
-	RelationID          int64     `json:"-"`
+	RelationID          int64     `json:"id"`
 	MediaAssetID        int64     `json:"media_asset_id"`
 	Category            string    `json:"category"`
 	Caption             *string   `json:"caption"`

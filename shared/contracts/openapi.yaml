@@ -14050,8 +14050,9 @@ components:
         has_more: {type: boolean}
     ProjectMemberMedia:
       type: object
-      required: [media_asset_id, category, episode_label, release_version_label, release_version_id, created_at, thumbnail_url, preview_url]
+      required: [id, media_asset_id, category, episode_label, release_version_label, release_version_id, created_at, thumbnail_url, preview_url]
       properties:
+        id: {type: integer, format: int64}
         media_asset_id: {type: integer, format: int64}
         category: {type: string}
         caption: {type: string, nullable: true}
