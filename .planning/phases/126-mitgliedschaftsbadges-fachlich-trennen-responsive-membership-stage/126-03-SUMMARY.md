@@ -33,6 +33,16 @@ metrics:
 
 approval: pending
 
+## Founding Preview UAT Fix Continuation
+
+Implemented and technically verified the requested worktree-only founding preview correction. The founding panel is now a focus-visible semantic button, previews the founding artwork and exact German copy in the large Membership hero, and remains independent of the authoritative duration facts and three-node track. Current-duration selection restores the normal hero; locked duration nodes remain noninteractive; no carousel, modal, duplicate founder, or new interaction engine was introduced.
+
+- `2119fb88` — eight separable component contracts committed.
+- Production TSX/CSS patches are preserved under `.git/phase126/uat-fix-after/` but remain unstaged because both depend on predecessor-owned dirty anchors absent from the index.
+- Focused Phase-126 tests pass 12/12; resolver/public/FocalCarousel regressions pass 130/130; scoped ESLint passes.
+- Full component regression retains the same three known predecessor failures; typecheck retains the recorded generated route and pre-existing test-prop failures.
+- Live browser evidence was unavailable and was not fabricated. Human approval remains pending.
+
 ## Status
 
 Plan 126-03 is **not complete**. Task 1 reached a durable-manifest/isolation failure, Task 2 could not start because the required in-app browser was unavailable, and Task 3 therefore remains pending without requesting or recording human approval.
