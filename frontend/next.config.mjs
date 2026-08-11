@@ -27,8 +27,10 @@ const nextConfig = {
     localPatterns: [
       { pathname: '/__phase120-image-probe/alpha-badge.png', search: '' },
       { pathname: '/member-achievement-badges/**', search: '' },
+      { pathname: '/covers/**', search: '' },
       { pathname: '/media/profile/**', search: '' },
       { pathname: '/media/release-version/**', search: '' },
+      { pathname: '/media/anime/**', search: '' },
     ],
     remotePatterns: [
       new URL('http://127.0.0.1:3101/api/v1/media/phase120-project-cover.png'),
