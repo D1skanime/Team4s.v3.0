@@ -330,3 +330,54 @@ describe('MemberProfileHero', () => {
     expect(screen.queryByLabelText('Mitglied-Punktzahl')).toBeNull()
   })
 })
+
+describe('Phase 127 RED hero special awards', () => {
+  const badge = (badge_code: string, id: number) => ({ id, badge_code, badge_category: 'historical_achievement' })
+
+  it('Phase 127 RED hero renders no gap then Historical alone with approved decorative artwork', () => {
+    const empty = render(<MemberProfileHero profile={makePublicProfile()} isPublicView={true} publicBadges={[]} />)
+    expect(empty.queryByRole('list', { name: 'Besondere Auszeichnungen' })).toBeNull()
+    empty.unmount()
+    const { container } = render(<MemberProfileHero profile={makePublicProfile()} isPublicView={true} publicBadges={[badge('historical_leader', 1)]} />)
+    const list = screen.getByRole('list', { name: 'Besondere Auszeichnungen' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(list).getByText('Historische Leitung')).not.toBeNull()
+    expect(container.querySelector('img[src="/member-achievement-badges/special-historical_leader-v1.png"][alt=""]')).not.toBeNull()
+  })
+
+  it('Phase 127 RED hero renders Allrounder alone with Hexagon fallback and no invented image', () => {
+    const { container } = render(<MemberProfileHero profile={makePublicProfile()} isPublicView={true} publicBadges={[badge('all_rounder', 2)]} />)
+    const list = screen.getByRole('list', { name: 'Besondere Auszeichnungen' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(list).getByText('Allrounder')).not.toBeNull()
+    expect(container.querySelector('[data-special-award-icon="all_rounder"]')).not.toBeNull()
+    expect(container.querySelector('img[src*="all_rounder"]')).toBeNull()
+  })
+
+  it('Phase 127 RED hero renders both once in catalog order as a static nonfocusable list', () => {
+    render(<MemberProfileHero profile={makePublicProfile()} isPublicView={true} publicBadges={[badge('all_rounder', 2), badge('historical_leader', 1), badge('historical_leader', 3)]} />)
+    const list = screen.getByRole('list', { name: 'Besondere Auszeichnungen' })
+    expect(within(list).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Historische Leitung', 'Allrounder'])
+    expect(within(list).queryAllByRole('button')).toHaveLength(0)
+    expect(list.querySelectorAll('[tabindex]')).toHaveLength(0)
+    expect(list.querySelector('[aria-roledescription="Karussell"]')).toBeNull()
+  })
+
+  it('Phase 127 RED hero rejects Verified Founding role and unknown while Verifiziert stays once', () => {
+    render(<MemberProfileHero profile={makePublicProfile({ is_verified: true })} isPublicView={true} isVerified={true} publicBadges={[badge('verified', 1), badge('founding_member', 2), badge('role_entry_timer', 3), badge('unknown', 4), badge('historical_leader', 5), badge('all_rounder', 6)]} />)
+    const panel = screen.getByTestId('member-profile-hero-panel')
+    expect(within(panel).getAllByText('Verifiziert')).toHaveLength(1)
+    const list = within(panel).getByRole('list', { name: 'Besondere Auszeichnungen' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+    expect(within(list).queryByText('Gründungsmitglied')).toBeNull()
+    expect(within(list).queryByText('Timing')).toBeNull()
+  })
+
+  it('Phase 127 RED hero CSS normalizes slots and wraps without responsive overflow', () => {
+    const css = readFileSync('src/components/profile/profile.module.css', 'utf8')
+    expect(css).toMatch(/\.heroSpecialAwardsList\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;[^}]*min-width:\s*0;/s)
+    expect(css).toMatch(/\.heroSpecialArtwork\s*\{[^}]*width:\s*40px;[^}]*height:\s*40px;/s)
+    expect(css).toMatch(/\.heroSpecialArtwork img\s*\{[^}]*object-fit:\s*contain;/s)
+    expect(css).not.toMatch(/\.heroSpecialAwardsList\s*\{[^}]*overflow-x:\s*(?:auto|scroll)/s)
+  })
+})

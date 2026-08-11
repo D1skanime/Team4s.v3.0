@@ -446,3 +446,30 @@ describe('Phase 126 membership SSR projection', () => {
     }
   })
 })
+
+describe('Phase 127 RED SSR hero composition', () => {
+  it('Phase 127 RED page forwards public badges through one cached request and suppresses legacy Special', async () => {
+    cookieGetMock.mockImplementation((name: string) => name === 'team4s_access_token' ? { value: ' viewer-token ' } : undefined)
+    getMemberProfileMock.mockResolvedValue({ data: makePublicProfile({
+      is_verified: true,
+      public_badges: [
+        { id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
+        { id: 2, badge_code: 'all_rounder', badge_category: 'historical_achievement' },
+        { id: 3, badge_code: 'verified', badge_category: 'historical_achievement' },
+        { id: 4, badge_code: 'founding_member', badge_category: 'historical_achievement' },
+      ],
+    }) })
+    await generateMetadata({ params: { slug: 'ballelboy' } })
+    const page = await MemberProfilePage({ params: { slug: 'ballelboy' } })
+    const { container } = render(page)
+    expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
+    expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy', 'viewer-token')
+    const hero = screen.getByTestId('member-profile-hero-panel')
+    const list = within(hero).getByRole('list', { name: 'Besondere Auszeichnungen' })
+    expect(within(list).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Historische Leitung', 'Allrounder'])
+    expect(within(hero).getAllByText('Verifiziert')).toHaveLength(1)
+    expect(within(hero).queryByText('Gründungsmitglied')).toBeNull()
+    expect(container.querySelector('[data-badge-group="special"]')).toBeNull()
+    expect(screen.getByRole('button', { name: /Gründungsmitglied Vorschau/ })).not.toBeNull()
+  })
+})
