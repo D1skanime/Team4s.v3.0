@@ -47,6 +47,7 @@ completed: 2026-08-11
 - Rendered six ordered, contained ResponsiveImage stations with current, earned, preview, and locked semantics.
 - Preserved true visible terminal totals while clamping progressbar ARIA to the final 2'500-point threshold.
 - Kept the zero-point family visible without implying earned hero artwork/status, and exposed deterministic SSR badge codes on current stations.
+- Hid the mobile track's native scrollbar cross-browser while preserving native touch scrolling, containment, and snap behavior.
 
 ## Task Commits
 
@@ -87,6 +88,13 @@ Commit pending because plan changes are contiguous with protected user-owned dir
 - **Fix:** Suppressed hero artwork/status until a real current badge exists and added `data-badge-code` to milestone list items.
 - **Files modified:** `frontend/src/components/profile/MemberBadgeChain.tsx`
 - **Verification:** Public member SSR, points component, family resolver, carousel, and external carousel-consumer suites pass (182 passed, 1 pre-existing skip).
+
+**4. [Rule 1 - Bug] Hid intrusive mobile native scrollbar without replacing scrolling**
+- **Found during:** Mobile UAT at 390px
+- **Issue:** The local six-stage track correctly overflowed but exposed a visually intrusive native scrollbar.
+- **Fix:** Added Firefox `scrollbar-width: none` and a WebKit scrollbar pseudo-element rule while retaining `overflow-x: auto`, overscroll containment, CSS snap, and the six-column desktop grid.
+- **Files modified:** `frontend/src/components/profile/MemberBadgeChain.module.css`
+- **Verification:** Focused MemberBadgeChain CSS/component tests and targeted lint pass; source inspection confirms the 390px media rule keeps six 112px columns in a local overflow container.
 
 ## Issues Encountered
 
