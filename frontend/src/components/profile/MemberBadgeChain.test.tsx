@@ -297,7 +297,7 @@ describe('Phase 125 contribution achievement stages', () => {
     expect(within(stage).getByText('20 mitgetragene Projekte')).not.toBeNull()
     expect(progress.getAttribute('aria-valuenow')).toBe('15')
     expect(familyCurrent.getAttribute('aria-current')).toBe('true')
-    expect(within(stage).getByLabelText(/Silber.*Gesperrt/).getAttribute('tabindex')).toBeNull()
+    expect(within(stage).getByRole('button', { name: /Silber.*auswählen/ })).not.toBeNull()
   })
 
   it('locks artwork, same-DOM, expanded, responsive and no-inner-engine contracts', async () => {
@@ -312,10 +312,10 @@ describe('Phase 125 contribution achievement stages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Beiträge anzeigen' }))
     expect(Array.from(container.querySelectorAll('[data-contribution-achievement-stage]')).map(shape)).toEqual(before)
     expect(container.querySelectorAll('[data-badge-skeleton]')).toHaveLength(0)
-    expect(memberBadgeChainCss).toMatch(/.contributionHeroArtworks*{[^}]*aspect-ratio:s*1/s)
-    expect(memberBadgeChainCss).toMatch(/.contributionHeroArtworks*>s*imgs*{[^}]*object-fit:s*contain/s)
-    expect(memberBadgeChainCss).toMatch(/.contributionTierTracks*{[^}]*grid-template-columns:s*repeat(3,s*minmax(0,s*1fr))/s)
-    expect(memberBadgeChainCss).not.toMatch(/.contributionTierTracks*{[^}]*(scroll-snap|overflow-x)/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionTierTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s)
+    expect(memberBadgeChainCss).not.toMatch(/\.contributionTierTrack\s*\{[^}]*(scroll-snap|overflow-x)/s)
   })
 })
 
