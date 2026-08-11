@@ -38,3 +38,9 @@ Resume Task 2, capture and inspect all required images, update 124-UAT.md, then 
 ## Self-Check: CHECKPOINT
 
 Artifacts exist; this does not mark the plan or phase complete.
+
+## Mobile scrollbar retry
+
+The scrollbar source/test fix is green: focused suites passed 182/1 and diff-check passed. CSS preserves native local overflow and snap while hiding Firefox/WebKit scrollbar chrome; the mobile six-by-112px track remains intentionally wider than its viewport, and desktop retains six flexible columns without arrows or outer carousel.
+
+Live confirmation remains blocked. The in-app browser was unavailable and supporting Playwright again timed out before producing geometry or screenshots. No live scrollLeft, later-stage reachability, page-overflow, desktop-fit, or visual scrollbar claim was added. Human approval still cannot be requested.
