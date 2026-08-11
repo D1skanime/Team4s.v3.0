@@ -715,6 +715,15 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
         </>
       ) : (
         <>
+      <FormField label="Titel (optional)">
+        <Input
+          type="text"
+          value={state?.title ?? ''}
+          onChange={(e) => onUpdate(key, 'title', e.target.value)}
+          disabled={!canEdit}
+        />
+      </FormField>
+
       <RichTextEditor
         value={ensureRichTextValue(state?.bodyJson ?? null)}
         onChange={(value) => {
@@ -733,21 +742,6 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
           {isOverLimit ? `Empfohlene Länge überschritten (${CHAR_WARN_LIMIT} Zeichen)` : formatCharacterStatus(charCount)}
         </span>
       </div>
-
-      <details className={styles.advancedDetails}>
-        <summary className={styles.advancedSummary}>Erweiterte Felder</summary>
-        <div className={styles.advancedFields}>
-          <FormField label="Titel (optional)">
-            <Input
-              type="text"
-              value={state?.title ?? ''}
-              onChange={(e) => onUpdate(key, 'title', e.target.value)}
-              disabled={!canEdit}
-            />
-          </FormField>
-
-        </div>
-      </details>
 
       <div className={styles.roleActions}>
         <Button variant="ghost" type="button" onClick={onReset} disabled={!canEdit || isSaving || !state?.isDirty}>
