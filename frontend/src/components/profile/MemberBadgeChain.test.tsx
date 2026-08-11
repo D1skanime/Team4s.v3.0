@@ -249,6 +249,76 @@ describe('MemberBadgeChain', () => {
     ).toContain('contribution_archivist_bronze-v2.png')
   })
 
+describe('Phase 125 contribution achievement stages', () => {
+  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }
+  const orderedFamilies = ['contribution_projects', 'contribution_chronicle', 'contribution_archivist']
+
+  async function renderContributions(progress: Progress[]) {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const Chain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Progress[] }>
+    return render(<Chain earnedBadges={[]} badgeProgress={progress} />)
+  }
+
+  it('renders one ordered three-family outer carousel and three native artwork tiers at zero', async () => {
+    const { container } = await renderContributions([
+      { family: 'contribution_archivist', current_count: 0, next_threshold: 10, remaining_count: 10, next_tier: 'bronze', complete: false },
+      { family: 'contribution_projects', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'bronze', complete: false },
+      { family: 'contribution_chronicle', current_count: 0, next_threshold: 10, remaining_count: 10, next_tier: 'bronze', complete: false },
+    ])
+    const carousel = screen.getByRole('region', { name: 'Beiträge-Karussell' })
+    expect(carousel).not.toBeNull()
+    const stages = Array.from(container.querySelectorAll<HTMLElement>('[data-contribution-achievement-stage]'))
+    expect(stages.map((stage) => stage.dataset.family)).toEqual(orderedFamilies)
+    for (const stage of stages) {
+      expect(within(stage).getAllByRole('listitem')).toHaveLength(3)
+      expect(within(stage).queryByRole('button')).toBeNull()
+      expect(stage.querySelector('[aria-current="step"]')).toBeNull()
+      expect(stage.querySelectorAll('[tabindex]')).toHaveLength(0)
+      expect(stage.textContent).toContain('Gesperrt')
+    }
+    expect(screen.getByRole('button', { name: 'Alle Auszeichnungen in Beiträge anzeigen' })).not.toBeNull()
+  })
+
+  it('keeps tier preview independent from true terminal progress and outer family state', async () => {
+    const { container } = await renderContributions([
+      { family: 'contribution_projects', current_count: 20, next_threshold: null, remaining_count: null, next_tier: null, complete: true },
+      { family: 'contribution_chronicle', current_count: 50, next_threshold: 150, remaining_count: 100, next_tier: 'gold', complete: false },
+      { family: 'contribution_archivist', current_count: 10, next_threshold: 50, remaining_count: 40, next_tier: 'silver', complete: false },
+    ])
+    const stage = container.querySelector<HTMLElement>('[data-family="contribution_projects"][data-contribution-achievement-stage]')!
+    const familyCurrent = screen.getByLabelText('Sammlung 1 von 3')
+    const progress = within(stage).getByRole('progressbar', { name: /Mitgetragene Projekte/ })
+    expect(progress.getAttribute('aria-valuenow')).toBe('15')
+    expect(progress.getAttribute('aria-valuemax')).toBe('15')
+    expect(within(stage).getByText('20 mitgetragene Projekte')).not.toBeNull()
+    expect(within(stage).getByText('Höchste Stufe erreicht')).not.toBeNull()
+    fireEvent.click(within(stage).getByRole('button', { name: /Bronze.*auswählen/ }))
+    expect(within(stage).getByText('Vorschau')).not.toBeNull()
+    expect(within(stage).getByText('20 mitgetragene Projekte')).not.toBeNull()
+    expect(progress.getAttribute('aria-valuenow')).toBe('15')
+    expect(familyCurrent.getAttribute('aria-current')).toBe('true')
+    expect(within(stage).getByLabelText(/Silber.*Gesperrt/).getAttribute('tabindex')).toBeNull()
+  })
+
+  it('locks artwork, same-DOM, expanded, responsive and no-inner-engine contracts', async () => {
+    const { container } = await renderContributions(orderedFamilies.map((family) => ({
+      family, current_count: family === 'contribution_projects' ? 5 : 50,
+      next_threshold: family === 'contribution_projects' ? 15 : 150,
+      remaining_count: family === 'contribution_projects' ? 10 : 100, next_tier: 'gold', complete: false,
+    })))
+    const stages = Array.from(container.querySelectorAll('[data-contribution-achievement-stage]'))
+    const shape = (stage: Element) => Array.from(stage.children).map((node) => node.tagName)
+    const before = stages.map(shape)
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Beiträge anzeigen' }))
+    expect(Array.from(container.querySelectorAll('[data-contribution-achievement-stage]')).map(shape)).toEqual(before)
+    expect(container.querySelectorAll('[data-badge-skeleton]')).toHaveLength(0)
+    expect(memberBadgeChainCss).toMatch(/.contributionHeroArtworks*{[^}]*aspect-ratio:s*1/s)
+    expect(memberBadgeChainCss).toMatch(/.contributionHeroArtworks*>s*imgs*{[^}]*object-fit:s*contain/s)
+    expect(memberBadgeChainCss).toMatch(/.contributionTierTracks*{[^}]*grid-template-columns:s*repeat(3,s*minmax(0,s*1fr))/s)
+    expect(memberBadgeChainCss).not.toMatch(/.contributionTierTracks*{[^}]*(scroll-snap|overflow-x)/s)
+  })
+})
+
   it('renders the approved membership artwork without a fallback icon', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { container } = render(
