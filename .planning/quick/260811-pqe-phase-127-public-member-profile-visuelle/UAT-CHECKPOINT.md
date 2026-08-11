@@ -12,11 +12,17 @@ No horizontal-overflow or six-viewport visual PASS is claimed from DOM inspectio
 
 All nine required PNG files are missing. The first capture batch timed out without returning files. After the rebuild attempt, the in-app browser was unavailable. No screenshot or unavailable fixture was fabricated.
 
-## Frontend rebuild
+## Ephemeral frontend UAT runtime
 
-The frontend image reached a successful Next.js compile, but Docker image construction failed/stalled during Playwright Chromium installation and exhausted the Linux root filesystem again. `docker builder prune -f` removed only the newly generated builder cache and restored working space. The existing frontend container remains Up; it was not successfully recreated from the new image.
+The reproducible Docker image rebuild remains blocked because the runner installs Chromium while containerd/build storage exhausts the Linux root filesystem.
 
-Keycloak, Keycloak DB, and Mailpit were inspected read-only and were healthy. They were not restarted.
+For UAT only, the running frontend container was inspected first. `/app` is the canonical frontend bind mount, `/app/node_modules` and `/app/.next` are Docker volumes, and the latter had sufficient space. Existing BUILD_ID/build/routes metadata was copied to `/tmp/pqe-next-metadata`. No source copy was necessary because `/app/src` already mapped the canonical source.
+
+The first in-container build reproduced the inherited stale `.next/dev/types` failure. That generated directory was moved recoverably to `/app/.next/dev.pqe-incoming`; a second `NODE_ENV=production npm run build` completed successfully. Only `team4sv30-frontend` was restarted. It returned HTTP 200 for `/members/csubs-leader`, including `14 von 15 Auszeichnungen freigeschaltet`.
+
+Keycloak, Keycloak DB, and Mailpit were inspected read-only and healthy. They were not restarted. This is an ephemeral UAT workaround, not a source or Dockerfile fix.
+
+After the successful frontend restart, two fresh in-app-browser connection attempts still reported the browser unavailable. Therefore screenshot evidence remains missing.
 
 ## Approval gate
 

@@ -9,7 +9,7 @@ commit: 5622b82a
 
 # Quick 260811-pqe Incomplete Summary
 
-The public-member-profile repair is implemented and committed, but the quick task remains incomplete because the frontend image was not recreated, nine required screenshots are missing, and human approval has not been received.
+The public-member-profile repair is implemented and committed, but the quick task remains incomplete because the reproducible frontend image remains blocked, nine required screenshots are missing, and human approval has not been received.
 
 ## Implemented
 
@@ -31,7 +31,9 @@ The public-member-profile repair is implemented and committed, but the quick tas
 - Protected hashes: exact incoming match.
 - Cached allow-list/blob/SHA evidence: recorded; incoming index restored exactly.
 - Live populated DOM inspection: completed.
-- Frontend Docker rebuild/recreate: incomplete due root exhaustion during Playwright installation.
+- Reproducible frontend Docker image build: incomplete due root exhaustion during Playwright installation.
+- Ephemeral in-container production build: passed after recoverably moving stale generated dev types; only frontend restarted; route returned HTTP 200.
+- In-app browser after restart: unavailable on two fresh attempts.
 - Nine screenshots and human approval: missing.
 
 ## Deviations from Plan
