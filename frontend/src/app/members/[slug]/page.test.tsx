@@ -217,7 +217,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
   it('encodes Rhythm C geometry for 390, 768 and 1440 pixel layouts without overflow repairs', () => {
     expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[\s\S]*?padding:\s*32px;/)
-    expect(memberPageStyles).toMatch(/\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
+    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
     expect(memberPageStyles).toContain('min-width: 0;')
     expect(memberPageStyles).toContain('overflow-wrap: anywhere;')
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
@@ -477,8 +477,8 @@ describe('Phase 127 RED SSR hero composition', () => {
 
 describe('Quick 260811-pqe responsive profile composition', () => {
   it('pins distinct profile and history-aware contribution grids without global word breaking', () => {
-    expect(memberPageStyles).toMatch(/\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
-    expect(memberPageStyles).toMatch(/\.profilePair,[\s\S]*?\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
+    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
+    expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
     expect(memberPageStyles).toMatch(/\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/)
     expect(memberPageStyles).not.toMatch(/\.sectionPair\s*>\s*\*\s*\{[^}]*overflow-wrap:\s*anywhere/s)
     expect(memberPageStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
