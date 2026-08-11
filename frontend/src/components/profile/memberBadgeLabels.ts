@@ -75,6 +75,7 @@ export type MemberBadgeFamilyPresentation = {
   group: Exclude<MemberBadgeGroup, 'roles'>
   label: string
   stages: MemberBadgeFamilyStage[]
+  foundingStage: MemberBadgeFamilyStage | null
   currentStage: MemberBadgeFamilyStage | null
   nextStage: MemberBadgeFamilyStage | null
   heroStage: MemberBadgeFamilyStage
@@ -432,7 +433,6 @@ const FAMILY_DEFINITIONS: Record<(typeof FAMILY_ORDER)[number], {
   membership: {
     group: 'membership', label: 'Mitgliedschaft', unitSingular: 'Jahr Mitgliedschaft', unitPlural: 'Jahre Mitgliedschaft',
     stages: [
-      { badge_code: 'founding_member', threshold: 0 },
       { badge_code: 'long_term_member', threshold: 5 },
       { badge_code: 'membership_7_years', threshold: 7 },
       { badge_code: 'membership_10_years', threshold: 10 },
@@ -465,6 +465,17 @@ export function resolveMemberBadgeFamilies(input: {
   for (const key of FAMILY_ORDER) {
     const definition = FAMILY_DEFINITIONS[key]
     const progress = progressByFamily.get(key)
+    const foundingStage = key === 'membership' && earnedCodes.has('founding_member')
+      ? familyStage({
+          badge_code: 'founding_member',
+          label: getMemberBadgePresentation('founding_member').label,
+          badge_category: definition.group,
+        }, key, 0, 0, earnedCodes)
+      : null
+    if (key === 'membership') {
+      // Founding belongs to membership but is independent from duration progression.
+      ownedCodes.add('founding_member')
+    }
     const sourceStages = customCatalog && key === 'progress'
       ? customCatalog.map((item, index) => ({
           badge_code: item.badge_code,
@@ -483,7 +494,6 @@ export function resolveMemberBadgeFamilies(input: {
       .map((stage, index) => {
         ownedCodes.add(stage.badge_code)
         const reachedByAuthoritativeProgress = progress != null
-          && !(key === 'membership' && stage.badge_code === 'founding_member')
           && progress.current_count >= stage.threshold
         const stageEarnedCodes = reachedByAuthoritativeProgress
           ? new Set([...earnedCodes, stage.badge_code])
@@ -491,15 +501,13 @@ export function resolveMemberBadgeFamilies(input: {
         return familyStage(stage, key, stage.threshold, index, stageEarnedCodes)
       })
     const currentStage = [...stages].reverse().find((stage) => stage.earned) ?? null
-    const nextStage = key === 'membership' && !currentStage
-      ? stages.find((stage) => stage.badge_code !== 'founding_member') ?? null
-      : stages.find((stage) => !stage.earned && stage.threshold > (currentStage?.threshold ?? -1)) ?? null
+    const nextStage = stages.find((stage) => !stage.earned && stage.threshold > (currentStage?.threshold ?? -1)) ?? null
 
-    if (!progress && !currentStage) continue
+    if (!progress && !currentStage && !foundingStage) continue
     const heroStage = currentStage ?? nextStage ?? stages[0]
     if (!heroStage) continue
     families.push({
-      key, group: definition.group, label: definition.label, stages, currentStage, nextStage, heroStage,
+      key, group: definition.group, label: definition.label, stages, foundingStage, currentStage, nextStage, heroStage,
       currentCount: progress?.current_count ?? null,
       nextThreshold: progress?.next_threshold ?? null,
       remainingCount: progress?.remaining_count ?? null,
@@ -517,6 +525,7 @@ export function resolveMemberBadgeFamilies(input: {
     ownedCodes.add(badgeCode)
     families.push({
       key: 'special', group: 'special', label: presentation.label, stages: [stage], currentStage: stage,
+      foundingStage: null,
       nextStage: null, heroStage: stage, currentCount: null, nextThreshold: null, remainingCount: null,
       complete: true, unitSingular: '', unitPlural: '',
     })
