@@ -217,13 +217,13 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
   it('encodes Rhythm C geometry for 390, 768 and 1440 pixel layouts without overflow repairs', () => {
     expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[\s\S]*?padding:\s*32px;/)
-    expect(memberPageStyles).toMatch(/\.sectionPair\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/)
+    expect(memberPageStyles).toMatch(/\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
     expect(memberPageStyles).toContain('min-width: 0;')
     expect(memberPageStyles).toContain('overflow-wrap: anywhere;')
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
     expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.sectionPair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/)
     const pageRule = memberPageStyles.match(/^\.page\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
     expect(pageRule).not.toContain('100vw')
     expect(memberPageStyles).not.toMatch(/margin-(?:left|right):\s*-/)
@@ -471,5 +471,16 @@ describe('Phase 127 RED SSR hero composition', () => {
     expect(within(hero).queryByText('Gründungsmitglied')).toBeNull()
     expect(container.querySelector('[data-badge-group="special"]')).toBeNull()
     expect(screen.getByRole('button', { name: /Gründungsmitglied Vorschau/ })).not.toBeNull()
+  })
+})
+
+
+describe('Quick 260811-pqe responsive profile composition', () => {
+  it('pins distinct profile and history-aware contribution grids without global word breaking', () => {
+    expect(memberPageStyles).toMatch(/\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
+    expect(memberPageStyles).toMatch(/\.profilePair,[\s\S]*?\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
+    expect(memberPageStyles).toMatch(/\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/)
+    expect(memberPageStyles).not.toMatch(/\.sectionPair\s*>\s*\*\s*\{[^}]*overflow-wrap:\s*anywhere/s)
+    expect(memberPageStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
   })
 })

@@ -151,3 +151,12 @@ describe('MembershipsSection', () => {
     expect(screen.queryByText('Verifiziert')).toBeNull()
   })
 })
+
+
+describe('Quick 260811-pqe membership sizing', () => {
+  it('keeps names word-safe and moves the action below content when space is tight', () => {
+    expect(profileStyles).toMatch(/\.membershipLink\s*\{[^}]*grid-template-columns:\s*52px minmax\(0, 1fr\);/s)
+    expect(profileStyles).toMatch(/\.membershipName strong\s*\{[^}]*overflow-wrap:\s*normal;[^}]*word-break:\s*normal;/s)
+    expect(profileStyles).toMatch(/\.membershipAction\s*\{[^}]*grid-column:\s*2;/s)
+  })
+})

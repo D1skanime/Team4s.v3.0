@@ -160,3 +160,8 @@ it('Phase 120 RED: keeps previous contributions accessible beneath an aria-hidde
     expect(previousContributionStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
     expect(previousContributionStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
 })
+
+
+it('Quick 260811-pqe keeps the empty history card compact', () => {
+  expect(previousContributionStyles).toMatch(/\.card:has\(> p:only-child\)\s*\{/)
+})

@@ -137,7 +137,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
 
       <section className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`} aria-label="Profil und Mitgliedschaft">
         <SectionHeader title="Profil und Mitgliedschaft" underline />
-        <div className={styles.sectionPair}>
+        <div className={`${styles.sectionPair} ${styles.profilePair}`}>
           <MemberStorySection storyHtml={profile.member_story_html} headingLevel={3} showEmptyState />
           <MembershipsSection
             memberships={profile.memberships ?? []}
@@ -166,7 +166,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
       {hasContributions ? (
         <section className={`${styles.section} ${styles.rhythmBand} ${styles.contributionsBand}`} aria-label="Beiträge">
           <SectionHeader title="Beiträge" underline />
-          <div className={styles.sectionPair}>
+          <div className={`${styles.sectionPair} ${previousContributionsCount > 0 ? styles.contributionPairPresent : styles.contributionPairEmpty}`}>
             <LatestContributionsSection items={latestContributions} headingLevel={3} />
             <PreviousContributionsSection
               items={previousContributions}

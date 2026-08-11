@@ -194,3 +194,10 @@ it('Phase 120 RED: keeps latest contributions accessible beneath an aria-hidden 
     expect(latestContributionStyles).toMatch(/visibility:\s*(?:visible|hidden);/)
     expect(latestContributionStyles).not.toMatch(/transition:[^;]*(?:width|height|min-height|padding|margin|transform)/)
 })
+
+
+it('Quick 260811-pqe bounds desktop media while preserving cover fit and mobile flow', () => {
+  expect(latestContributionStyles).toMatch(/\.mediaPreview\s*\{[^}]*max-height:\s*32rem;[^}]*aspect-ratio:\s*16\s*\/\s*9;/s)
+  expect(latestContributionStyles).toMatch(/\.mediaPreview img\s*\{[^}]*object-fit:\s*cover;/s)
+  expect(latestContributionStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.mediaPreview\s*\{[^}]*max-height:\s*none;/s)
+})

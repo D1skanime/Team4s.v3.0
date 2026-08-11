@@ -16,6 +16,7 @@
 
 .projectList > li {
   min-width: 0;
+  height: 100%;
 }
 .projectSkeleton {
   z-index: 2;
@@ -178,6 +179,8 @@
   color: var(--text-secondary, #64748b);
   font-size: 0.875rem;
   font-weight: 700;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .loadError {

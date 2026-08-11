@@ -458,10 +458,10 @@ export function MemberBadgeChain({
   return (
     <section className={styles.section}>
       <Card variant="section" className={styles.chainCard}>
-        <div className={styles.progressBlock} aria-label={`${earnedCount} von ${generalCatalog.length} allgemeine Auszeichnungen`}>
+        <div className={styles.progressBlock} aria-label={`${earnedCount} von ${generalCatalog.length} Auszeichnungen freigeschaltet`}>
           <div className={styles.progressMeta}>
             <span>Allgemeine Auszeichnungen</span>
-            <span>{earnedCount} von {generalCatalog.length}</span>
+            <span>{earnedCount} von {generalCatalog.length} Auszeichnungen freigeschaltet</span>
           </div>
           <div className={styles.progressTrack} aria-hidden="true">
             <span style={{ width: `${progressPercent}%` }} />

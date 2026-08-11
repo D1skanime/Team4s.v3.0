@@ -57,6 +57,11 @@ function makeProject(index = 1, overrides: Partial<PublicMemberCurrentProject> =
 }
 
 describe('MemberCurrentProjectsSection', () => {
+  it('aligns equal-height cards and the count/load footer with the project grid', () => {
+    expect(projectStyles).toMatch(/\.projectList\s*>\s*li\s*\{[^}]*height:\s*100%;/s)
+    expect(projectStyles).toMatch(/\.projectFooter\s*\{[^}]*padding-top:\s*var\(--space-2\)/s)
+  })
+
   it('uses the responsive two-column project grid without overflow', () => {
     expect(projectStyles).toMatch(/\.projectList\s*\{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/)
     expect(projectStyles).toMatch(/@media \(max-width: 1100px\)[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/)

@@ -160,3 +160,13 @@
     visibility: hidden;
   }
 }
+
+.card:has(> p:only-child) {
+  min-height: 0;
+  align-content: start;
+  padding: var(--space-4);
+}
+
+.card:has(> p:only-child) p {
+  margin: 0;
+}

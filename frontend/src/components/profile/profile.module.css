@@ -383,7 +383,7 @@
   padding: 14px;
   border-radius: inherit;
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-columns: 52px minmax(0, 1fr);
   gap: 14px;
   align-items: center;
   color: inherit;
@@ -433,7 +433,8 @@
 
 .membershipName strong {
   font-weight: 700;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .membershipName span {
@@ -443,6 +444,8 @@
 }
 
 .membershipAction {
+  grid-column: 2;
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 6px;

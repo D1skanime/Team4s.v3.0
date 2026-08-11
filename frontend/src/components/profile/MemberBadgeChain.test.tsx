@@ -558,7 +558,8 @@ describe('Phase 125 contribution achievement stages', () => {
       />,
     )
 
-    expect(screen.getByLabelText('1 von 1 allgemeine Auszeichnungen')).not.toBeNull()
+    expect(screen.getByLabelText('1 von 1 Auszeichnungen freigeschaltet')).not.toBeNull()
+    expect(screen.getByText('1 von 1 Auszeichnungen freigeschaltet')).not.toBeNull()
   })
 
   it('hides a foreign catalog role completely while retaining all five stages of an earned role (D-02/D-03)', async () => {
