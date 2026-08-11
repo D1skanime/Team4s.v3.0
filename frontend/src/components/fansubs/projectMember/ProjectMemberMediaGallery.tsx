@@ -44,6 +44,7 @@ export function ProjectMemberMediaGallery({
     useProjectMemberCollection<ProjectMemberMediaItem>({
       initialLimit: INITIAL_LIMIT,
       pageLimit: PAGE_LIMIT,
+      initialVisibleMobile: 6,
       key,
       fetchPage,
     })

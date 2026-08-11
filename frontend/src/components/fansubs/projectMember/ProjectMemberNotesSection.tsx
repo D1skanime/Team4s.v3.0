@@ -40,6 +40,7 @@ export function ProjectMemberNotesSection({
     useProjectMemberCollection<ProjectMemberNote>({
       initialLimit: INITIAL_LIMIT,
       pageLimit: PAGE_LIMIT,
+      initialVisibleMobile: 5,
       key,
       fetchPage,
     })

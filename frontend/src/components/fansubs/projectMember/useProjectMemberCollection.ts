@@ -13,6 +13,9 @@ interface FetchParams {
 interface Options<T> {
   initialLimit: number
   pageLimit: number
+  // Optional: initial angezeigte Anzahl auf Mobile (<=640px). Gefetcht wird weiterhin initialLimit;
+  // die zusaetzlich geladenen Items sind gepuffert und werden per "Weitere laden" ohne Re-Fetch gezeigt.
+  initialVisibleMobile?: number
   // key und fetchPage MUESSEN vom Aufrufer via useCallback stabilisiert werden, sonst laeuft der
   // Initial-Effekt bei jedem Render neu.
   key: (item: T) => number | string
@@ -37,6 +40,7 @@ interface Result<T> {
 export function useProjectMemberCollection<T>({
   initialLimit,
   pageLimit,
+  initialVisibleMobile,
   key,
   fetchPage,
 }: Options<T>): Result<T> {
@@ -45,7 +49,20 @@ export function useProjectMemberCollection<T>({
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [visible, setVisible] = useState(initialLimit)
+  // Auf Mobile initial weniger anzeigen (weniger Scroll/Thumbnails). SSR-safe: die Items rendern
+  // ohnehin erst nach dem Client-Fetch, daher kein Hydration-Mismatch trotz matchMedia.
+  const [baseVisible] = useState(() => {
+    if (
+      initialVisibleMobile != null &&
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(max-width: 640px)').matches
+    ) {
+      return initialVisibleMobile
+    }
+    return initialLimit
+  })
+  const [visible, setVisible] = useState(baseVisible)
 
   const append = useCallback(
     (incoming: T[]) => {
@@ -93,12 +110,12 @@ export function useProjectMemberCollection<T>({
   }, [items.length, visible, cursor, hasMore, loading, pageLimit, append, fetchPage])
 
   const showLess = useCallback(() => {
-    setVisible((current) => Math.max(initialLimit, current - pageLimit))
-  }, [initialLimit, pageLimit])
+    setVisible((current) => Math.max(baseVisible, current - pageLimit))
+  }, [baseVisible, pageLimit])
 
   const shown = items.slice(0, visible)
   const canShowMore = visible < items.length || hasMore
-  const canShowLess = shown.length > initialLimit
+  const canShowLess = shown.length > baseVisible
 
   return {
     shown,
