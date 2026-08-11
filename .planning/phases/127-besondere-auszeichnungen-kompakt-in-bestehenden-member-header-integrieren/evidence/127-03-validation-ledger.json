@@ -1,0 +1,92 @@
+[
+  {
+    "id": "focused",
+    "argv": "docker compose exec -T team4sv30-frontend npm test -- --run src/components/profile/MemberProfileHero.test.tsx src/app/members/\\[slug\\]/page.test.tsx src/components/profile/MemberBadgeChain.test.tsx src/components/profile/memberBadgeLabels.test.ts src/components/profile/badgeArtwork.test.ts src/components/ui/FocalCarousel.test.tsx ",
+    "started_at": "2026-08-11T17:01:43Z",
+    "ended_at": "2026-08-11T17:01:49Z",
+    "exit_status": "1",
+    "log_sha256": "4716da305d3e919c7aad566bcdab25a6a3120e17a40e5a3a855bc6ba26e95f1d",
+    "classification": "INHERITED_BASELINE"
+  },
+  {
+    "id": "typecheck",
+    "argv": "docker compose exec -T team4sv30-frontend npm run typecheck ",
+    "started_at": "2026-08-11T17:01:49Z",
+    "ended_at": "2026-08-11T17:01:52Z",
+    "exit_status": "2",
+    "log_sha256": "c2fc801c185ea7eb83af64a1ea64bae430bb457c288bb406def0ad8d68bc5b9c",
+    "classification": "INHERITED_BASELINE"
+  },
+  {
+    "id": "lint",
+    "argv": "docker compose exec -T team4sv30-frontend npm run lint ",
+    "started_at": "2026-08-11T17:01:52Z",
+    "ended_at": "2026-08-11T17:02:26Z",
+    "exit_status": "0",
+    "log_sha256": "faddafb69695a41fd68babce4f3eefae137294c5db1cab89013eee13ec21cf96",
+    "classification": "PASS"
+  },
+  {
+    "id": "full_tests",
+    "argv": "docker compose exec -T team4sv30-frontend npm test ",
+    "started_at": "2026-08-11T17:02:26Z",
+    "ended_at": "2026-08-11T17:03:31Z",
+    "exit_status": "1",
+    "log_sha256": "6148b727cb96c3527264a9e18abf68aa96a778fbcafbd5ec8f3d175730e54fa2",
+    "classification": "INHERITED_BASELINE"
+  },
+  {
+    "id": "build",
+    "argv": "docker compose exec -T team4sv30-frontend npm run build ",
+    "started_at": "2026-08-11T17:03:31Z",
+    "ended_at": "2026-08-11T17:03:56Z",
+    "exit_status": "1",
+    "log_sha256": "0dcdcda4356ea3a825436c7cd5654b90bc505903909efc83dd6c0583d4998a9e",
+    "classification": "INHERITED_BASELINE"
+  },
+  {
+    "id": "worktree_diff_check",
+    "argv": "git diff --check ",
+    "started_at": "2026-08-11T17:03:56Z",
+    "ended_at": "2026-08-11T17:03:56Z",
+    "exit_status": "0",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "classification": "PASS"
+  },
+  {
+    "id": "cached_diff_check",
+    "argv": "git diff --cached --check ",
+    "started_at": "2026-08-11T17:03:56Z",
+    "ended_at": "2026-08-11T17:03:56Z",
+    "exit_status": "0",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "classification": "PASS"
+  },
+  {
+    "id": "protected_hashes",
+    "argv": "sha256sum -c .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-02-protected-outgoing-sha256.txt ",
+    "started_at": "2026-08-11T17:03:56Z",
+    "ended_at": "2026-08-11T17:03:56Z",
+    "exit_status": "0",
+    "log_sha256": "fa44d7f80d17ee00145e8012f33864d4f6cbbc0c48b5951bef5ab6ab53355685",
+    "classification": "PASS"
+  },
+  {
+    "id": "phase127_path_set",
+    "argv": "bash -c test\\ \\\"\\$\\(git\\ show\\ --pretty=format:\\ --name-only\\ 93cef0b3\\ \\|\\ sed\\ \\\"/\\^\\$/d\\\"\\ \\|\\ sort\\)\\\"\\ =\\ \\\"\\$\\(printf\\ \\\"%s\\\\n\\\"\\ \\\"frontend/src/app/members/\\[slug\\]/page.tsx\\\"\\ frontend/src/components/profile/MemberBadgeChain.tsx\\ frontend/src/components/profile/MemberProfileHero.tsx\\ frontend/src/components/profile/badgeArtwork.ts\\ frontend/src/components/profile/profile.module.css\\ \\|\\ sort\\)\\\" ",
+    "started_at": "2026-08-11T17:03:56Z",
+    "ended_at": "2026-08-11T17:03:56Z",
+    "exit_status": "0",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "classification": "PASS"
+  },
+  {
+    "id": "cached_baseline_delta",
+    "argv": "bash -c test\\ \\\"\\$\\(git\\ write-tree\\)\\\"\\ =\\ \\\"\\$\\(git\\ rev-parse\\ HEAD\\^\\{tree\\}\\)\\\"\\ \\&\\&\\ git\\ merge-base\\ --is-ancestor\\ 93cef0b3\\ HEAD ",
+    "started_at": "2026-08-11T17:03:56Z",
+    "ended_at": "2026-08-11T17:03:56Z",
+    "exit_status": "0",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "classification": "PASS"
+  }
+]
