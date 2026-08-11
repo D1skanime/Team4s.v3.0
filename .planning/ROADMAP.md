@@ -2002,7 +2002,7 @@ Plans:
 **Goal:** Punkte-Meilensteine im öffentlichen Memberprofil als eine responsive Single-Family Achievement Stage mit aktuellem Hero, echtem Punktefortschritt und sechs visuell erkennbaren Meilensteinen darstellen, ohne äußeres Carousel oder neue Punktefachlogik.
 **Requirements**: `124-PRD.md` §§1–37 vollständig gelockt; trackbar als D-01–D-34 in `124-CONTEXT.md`
 **Depends on:** Phase 123 (Single-Family Achievement Stage), Phase 121 (responsive Badge-/Artwork-Baseline), Phase 112 (Punkte-Meilenstein-Ableitung)
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] `124-01-PLAN.md` — Test-first Grenzwert-, Stage-, Accessibility- und SSR-Verträge für D-01–D-28 (Wave 1)
