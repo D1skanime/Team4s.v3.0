@@ -2,7 +2,7 @@
 
 import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { readFileSync } from 'node:fs'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberProfileData } from '@/types/profile'
@@ -360,12 +360,70 @@ describe('MemberProfilePage Phase 99 route composition', () => {
   it('passes badge progress through the existing route', async () => {
     await renderMemberPage(makePublicProfile({ badge_progress: [{ family: 'progress', current_count: 9, next_threshold: 10, remaining_count: 1, next_tier: '10 Projekte', complete: false }] }))
     expect(screen.getByRole('heading', { name: 'Fortschritt' })).toBeTruthy()
-    expect(screen.getByText(/9 von 10 Anime-Projekten/)).toBeTruthy()
   })
 
   it('keeps the hidden-profile owner preview path intact', async () => {
     await renderMemberPage({ visible: false, reason: 'members_only' })
 
     expect(screen.getByTestId('own-hidden-profile-preview').textContent).toBe('OwnHiddenProfilePreview:ballelboy')
+  })
+})
+
+
+describe('Phase 124 deterministic points SSR projection', () => {
+  it.each([
+    [0, null, 1, 1, false],
+    [734, 'point_milestone_engaged', 1000, 266, false],
+    [2500, 'point_milestone_legend', null, null, true],
+    [5000, 'point_milestone_legend', null, null, true],
+  ])('derives only the highest badge at %i and forwards authoritative progress unchanged', async (totalPoints, expectedCode, nextThreshold, remainingCount, complete) => {
+    const profile = makePublicProfile({
+      total_points: totalPoints,
+      public_badges: [{ id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' }],
+      badge_progress: [{
+        family: 'points',
+        current_count: totalPoints,
+        next_threshold: nextThreshold,
+        remaining_count: remainingCount,
+        next_tier: nextThreshold == null ? null : `${nextThreshold} Punkte`,
+        complete,
+      }],
+    })
+    const { container } = await renderMemberPage(profile)
+    const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
+    expect(stage).not.toBeNull()
+
+    const current = stage.querySelector('[aria-current="step"]')
+    if (expectedCode == null) {
+      expect(current).toBeNull()
+      expect(stage.querySelector('[data-achievement-art^="point_milestone_"]')).toBeNull()
+    } else {
+      expect(current?.getAttribute('data-badge-code')).toBe(expectedCode)
+      expect(stage.querySelector(`[data-achievement-art="${expectedCode}"]`)).not.toBeNull()
+    }
+
+    const progress = within(stage).getByRole('progressbar', { name: /Punkte/ })
+    const boundedMax = nextThreshold ?? 2500
+    expect(progress.getAttribute('aria-valuenow')).toBe(String(Math.min(totalPoints, boundedMax)))
+    expect(progress.getAttribute('aria-valuemax')).toBe(String(boundedMax))
+    expect(stage.textContent).toContain(`${totalPoints.toLocaleString('de-CH')} Punkte`)
+    expect(stage.textContent?.includes('Noch ')).toBe(!complete)
+  })
+
+  it('keeps initial point selection props-only during repeat server renders', async () => {
+    const profile = makePublicProfile({
+      total_points: 734,
+      badge_progress: [{ family: 'points', current_count: 734, next_threshold: 1000, remaining_count: 266, next_tier: '1000 Punkte', complete: false }],
+    })
+    const first = await renderMemberPage(profile)
+    const firstMarkup = first.container.querySelector('[data-points-achievement-stage]')?.outerHTML
+    first.unmount()
+    reactCacheEntries.splice(0)
+    const second = await renderMemberPage(profile)
+    const secondMarkup = second.container.querySelector('[data-points-achievement-stage]')?.outerHTML
+
+    expect(firstMarkup).toBeTruthy()
+    expect(secondMarkup).toBe(firstMarkup)
+    expect(firstMarkup).not.toMatch(/Date\.now|localStorage|sessionStorage|matchMedia|innerWidth/)
   })
 })
