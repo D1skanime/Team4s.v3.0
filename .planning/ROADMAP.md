@@ -2010,6 +2010,26 @@ Plans:
 - [ ] `124-03-PLAN.md` — Vollregression, Live-UAT/Evidence an sechs Viewports und blockierendes `approved`-Gate vor Abschlussbericht (Wave 3)
 - [ ] `124-04-PLAN.md` — Erst nach `approved`: 21-teiligen Abschlussbericht mit fünf Qualitätsantworten erzeugen und validieren (Wave 4)
 
+### Phase 125: Beitragsbadges als echtes Familien-Carousel mit visuellen Stufen
+
+**Goal:** Die drei gleichrangigen Beitragsbadge-Familien im öffentlichen Memberprofil in einem echten äußeren Familien-Carousel darstellen, wobei jede Familie eine responsive Achievement Stage mit autoritativem Fortschritt und drei visuell eigenständigen Artwork-Stufen erhält.
+**Requirements**: `125-PRD.md` Abschnitte 1-32 vollständig gelockt; trackbar als D-01-D-39 in `125-CONTEXT.md`
+**Depends on:** Phase 121 (responsive Badge-/Artwork-/Expanded-Baseline), Phase 123 (Single-Family Achievement Stage), Phase 124 (Artwork-Thumbnail-Track und Preview-Semantik), Phase 113/119 (Contribution-Badge- und `badge_progress`-Baseline)
+**Plans:** 4 plans
+
+Plans:
+**Wave 1**
+- [ ] 125-01-PLAN.md — Test-first boundary, Stage, asset, accessibility, expanded, and shared contracts (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 125-02-PLAN.md — Contribution Achievement Stage inside the preserved outer FocalCarousel (Wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 125-03-PLAN.md — Full regression, six-viewport evidence, real smartphone/tablet UAT, and blocking approved gate (Wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 125-04-PLAN.md — Only after approved: exact 22-section evidence-backed completion report (Wave 4)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
