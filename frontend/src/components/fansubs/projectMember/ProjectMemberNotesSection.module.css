@@ -43,7 +43,7 @@
   flex: 1 1 auto;
   flex-direction: column;
   gap: 4px;
-  padding: 16px 14px 12px;
+  padding: 12px 14px;
 }
 /* Default-Absatz-Margins zuruecksetzen — sonst summieren sie sich mit dem Flex-gap. */
 .noteContent > * {
@@ -71,6 +71,8 @@
   font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-primary);
+  /* Etwas mehr Luft zwischen Titel und Fliesstext (zusaetzlich zum 4px-gap). */
+  margin-bottom: 6px;
 }
 
 .noteBody {
