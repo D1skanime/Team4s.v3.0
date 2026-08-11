@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 
+import { roleColorCode } from '@/lib/roleColors'
 import type { ProjectMemberRelease } from '@/types/projectMember'
 
 import styles from './ProjectMemberReleasesSection.module.css'
@@ -16,7 +17,7 @@ function formatDate(iso: string | null): string {
 }
 
 // Kompakte Release-Zeile (Brief 3.4/19): eine dichte Zeile statt einer grossen Karte — reine
-// Crew-Historie, keine Bilder/Volltexte.
+// Crew-Historie, keine Bilder/Volltexte. Rollen als kleine, farbcodierte Chips (Team4s-Rollenfarben).
 export function ProjectMemberReleaseCard({
   release,
   projectPath,
@@ -31,11 +32,13 @@ export function ProjectMemberReleaseCard({
     <li className={styles.row}>
       <span className={styles.rowEpisode}>Folge {release.episode_label}</span>
       <span className={styles.rowVersion}>{release.version_label}</span>
-      {release.role_labels.length > 0 ? (
-        <span className={styles.rowRoles}>{release.role_labels.join(' · ')}</span>
-      ) : (
-        <span className={styles.rowRoles} />
-      )}
+      <span className={styles.rowRoles}>
+        {release.role_labels.map((role) => (
+          <span key={role} className={styles.roleTag} data-role-code={roleColorCode(role)}>
+            {role}
+          </span>
+        ))}
+      </span>
       {date ? <span className={styles.rowDate}>bestätigt {date}</span> : null}
       <Link href={href} className={styles.rowLink}>
         Release ansehen →

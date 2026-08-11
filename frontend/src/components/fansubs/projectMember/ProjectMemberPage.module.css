@@ -257,3 +257,14 @@
     width: 100%;
   }
 }
+
+/* Rollen-Chip mit Team4s-Rollenfarbe (data-role-code -> --role-accent aus globals.css). */
+.roleChip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 34%, transparent);
+  background: color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 14%, var(--surface-card));
+  color: color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 82%, var(--text-primary));
+}

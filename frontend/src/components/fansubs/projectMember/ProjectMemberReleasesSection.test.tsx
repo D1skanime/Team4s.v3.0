@@ -45,7 +45,9 @@ describe('ProjectMemberReleaseCard', () => {
       </ul>,
     )
     expect(screen.getByText('Folge 08')).not.toBeNull()
-    expect(screen.getByText('Übersetzung · Timing')).not.toBeNull()
+    // Rollen sind jetzt einzelne farbcodierte Chips (data-role-code -> Team4s-Rollenfarbe).
+    expect(screen.getByText('Übersetzung').getAttribute('data-role-code')).toBe('translator')
+    expect(screen.getByText('Timing').getAttribute('data-role-code')).toBe('timer')
     expect(screen.getByText('bestätigt 12.04.2024')).not.toBeNull()
     const link = screen.getByRole('link', { name: 'Release ansehen →' })
     expect(link.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1')

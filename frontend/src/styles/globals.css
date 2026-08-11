@@ -280,3 +280,20 @@ textarea {
 .color-token-green  { color: #16a34a; }
 .color-token-blue   { color: #2563eb; }
 .color-token-purple { color: #9333ea; }
+
+/* Team4s-Rollenfarben pro data-role-code als CSS-Variable (additiv, wiederverwendbar).
+   Setzt nur --role-accent auf Elemente mit data-role-code; kein bestehendes Element liest diese
+   Variable, daher keine Nebenwirkung. Chips nutzen var(--role-accent). */
+[data-role-code] { --role-accent: var(--role-accent-default); }
+[data-role-code='fansub_lead'] { --role-accent: var(--role-accent-fansub-lead); }
+[data-role-code='project_lead'] { --role-accent: var(--role-accent-project-lead); }
+[data-role-code='editor'] { --role-accent: var(--role-accent-editor); }
+[data-role-code='translator'] { --role-accent: var(--role-accent-translator); }
+[data-role-code='timer'] { --role-accent: var(--role-accent-timer); }
+[data-role-code='typesetter'] { --role-accent: var(--role-accent-typesetter); }
+[data-role-code='quality_checker'] { --role-accent: var(--role-accent-quality-checker); }
+[data-role-code='encoder'] { --role-accent: var(--role-accent-encoder); }
+[data-role-code='raw_provider'] { --role-accent: var(--role-accent-raw-provider); }
+[data-role-code='designer'] { --role-accent: var(--role-accent-designer); }
+[data-role-code='admin'] { --role-accent: var(--role-accent-admin); }
+[data-role-code='other'] { --role-accent: var(--role-accent-other); }
