@@ -2051,6 +2051,19 @@ Plans:
 **Wave 4** *(blocked on Wave 3 approval)*
 - [ ] 126-04-PLAN.md — Separately gated exact 21-section report with five explicit answers
 
+
+### Phase 127: Besondere Auszeichnungen kompakt in den bestehenden Member-Header integrieren
+
+**Goal:** `historical_leader` und `all_rounder` als kompakte, eigenständige Special-Auszeichnungen in den bestehenden öffentlichen Member-Header integrieren, `verified` weiterhin exakt einmal in seiner bestehenden Statusfläche zeigen, `founding_member` ausschließlich in der Membership Stage belassen und die bisherige separate Special-Sektion entfernen — ohne Backend-, API-, DB-, Fetch- oder `FocalCarousel`-Änderung.
+**Requirements:** `127-PRD.md` Abschnitte 1–49 vollständig gelockt; trackbar als D-01–D-49 in `127-CONTEXT.md`
+**Depends on:** Phase 121, Phase 123, Phase 124, Phase 125 und Phase 126 mit aktueller uncommitteter TSX/CSS-Überlappung
+**Plans:** 4 plans
+
+Plans:
+- [ ] `127-01-PLAN.md` — Wave 1: TDD-Verträge für Header-Datenfluss, Exact-once-Deduplizierung und alte-Special-/Fünf-Gruppen-Regression
+- [ ] `127-02-PLAN.md` — Wave 2: kompakte SSR-Specials im bestehenden Hero integrieren und alten Special-Consumer gezielt unterdrücken
+- [ ] `127-03-PLAN.md` — Wave 3: vollständige Regression, fünf Viewports, sechs exakte Screenshots, echtes Phone/Tablet-UAT und blockierendes Standalone-`approved`
+- [ ] `127-04-PLAN.md` — Wave 4: ausschließlich nach Approval den exakten 21-Abschnitt-Report mit fünf einzeln belegten Antworten schreiben
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
