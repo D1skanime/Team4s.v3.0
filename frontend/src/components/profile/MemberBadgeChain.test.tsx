@@ -1629,6 +1629,83 @@ describe('Phase 126 membership stage', () => {
     expect(container.querySelector('[data-badge-group="special"] [data-achievement-art="founding_member"]')).toBeNull()
   })
 
+  it('renders an earned founding membership as an accessible preview button', async () => {
+    const { container } = await renderMembership(24, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    const preview = within(stage).getByRole('button', { name: 'Gründungsmitglied Vorschau' })
+    expect(preview.closest('[data-founding-member]')).not.toBeNull()
+    expect(preview.getAttribute('aria-pressed')).toBe('false')
+    expect(preview.closest('[aria-current]')).toBeNull()
+  })
+
+  it('shows founding artwork and copy in the large hero after preview activation', async () => {
+    const { container } = await renderMembership(24, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    fireEvent.click(within(stage).getByRole('button', { name: 'Gründungsmitglied Vorschau' }))
+    expect(stage.querySelector('[data-membership-art="founding_member"]')).not.toBeNull()
+    expect(within(stage).getByRole('heading', { level: 4, name: 'Besondere Mitgliedschaft' })).not.toBeNull()
+    expect(within(stage).getAllByText('Gründungsmitglied')).not.toHaveLength(0)
+    expect(within(stage).getAllByText('Seit der Gründung dabei')).not.toHaveLength(0)
+    expect(within(stage).getByText('Vorschau')).not.toBeNull()
+  })
+
+  it('keeps authoritative duration facts unchanged during founding preview', async () => {
+    const { container } = await renderMembership(24, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    const progress = within(stage).getByRole('progressbar', { name: 'Fortschritt für Mitgliedschaft' })
+    fireEvent.click(within(stage).getByRole('button', { name: 'Gründungsmitglied Vorschau' }))
+    expect(within(stage).getByText('24 Jahre Mitgliedschaft')).not.toBeNull()
+    expect(within(stage).getByText('Höchste Stufe erreicht')).not.toBeNull()
+    expect(progress.getAttribute('aria-valuenow')).toBe('10')
+    expect(progress.getAttribute('aria-valuemax')).toBe('10')
+    expect(stage.querySelector('[data-threshold="10"]')?.getAttribute('aria-current')).toBe('step')
+  })
+
+  it('clears an earlier preview when the actual current duration is selected', async () => {
+    const { container } = await renderMembership(24, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    fireEvent.click(within(stage).getByRole('button', { name: '5 Jahre Mitgliedschaft auswählen' }))
+    expect(stage.querySelector('[data-membership-art="long_term_member"]')).not.toBeNull()
+    fireEvent.click(within(stage).getByRole('button', { name: '10 Jahre Mitgliedschaft auswählen, Aktuell' }))
+    expect(stage.querySelector('[data-membership-art="membership_10_years"]')).not.toBeNull()
+    expect(within(stage).queryByText('Vorschau')).toBeNull()
+  })
+
+  it('switches from founding preview to every earned duration milestone', async () => {
+    const { container } = await renderMembership(24, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    fireEvent.click(within(stage).getByRole('button', { name: 'Gründungsmitglied Vorschau' }))
+    for (const [label, code] of [['5 Jahre Mitgliedschaft auswählen', 'long_term_member'], ['7 Jahre Mitgliedschaft auswählen', 'membership_7_years'], ['10 Jahre Mitgliedschaft auswählen, Aktuell', 'membership_10_years']]) {
+      fireEvent.click(within(stage).getByRole('button', { name: label }))
+      expect(stage.querySelector(`[data-membership-art="${code}"]`)).not.toBeNull()
+    }
+  })
+
+  it('does not render an interactive or empty founding card for non-founders', async () => {
+    const { container } = await renderMembership(24, false)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    expect(stage.querySelector('[data-founding-member]')).toBeNull()
+    expect(within(stage).queryByRole('button', { name: 'Gründungsmitglied Vorschau' })).toBeNull()
+    expect(stage.querySelectorAll('[data-achievement-art="founding_member"]')).toHaveLength(0)
+  })
+
+  it('renders founding artwork exactly once before and during its hero preview', async () => {
+    const { container } = await renderMembership(24, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    expect(stage.querySelectorAll('[data-achievement-art="founding_member"]')).toHaveLength(1)
+    fireEvent.click(within(stage).getByRole('button', { name: 'Gründungsmitglied Vorschau' }))
+    expect(stage.querySelectorAll('[data-achievement-art="founding_member"]')).toHaveLength(1)
+  })
+
+  it('keeps locked duration nodes noninteractive while founder preview is active', async () => {
+    const { container } = await renderMembership(3, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    fireEvent.click(within(stage).getByRole('button', { name: 'Gründungsmitglied Vorschau' }))
+    expect(within(stage).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(stage).queryByRole('button', { name: /Jahre Mitgliedschaft auswählen/ })).toBeNull()
+    expect(stage.querySelectorAll('[data-membership-duration-track] [aria-current]')).toHaveLength(0)
+  })
+
   it('previews earned duration artwork without changing facts', async () => {
     const { container } = await renderMembership(24)
     const stage = container.querySelector('[data-membership-stage]') as HTMLElement
