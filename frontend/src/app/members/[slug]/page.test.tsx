@@ -427,3 +427,22 @@ describe('Phase 124 deterministic points SSR projection', () => {
     expect(firstMarkup).not.toMatch(/Date\.now|localStorage|sessionStorage|matchMedia|innerWidth/)
   })
 })
+
+describe('Phase 126 membership SSR projection', () => {
+  it('keeps membership visible at zero and below five', async () => {
+    for (const currentCount of [0, 1, 4]) {
+      const view = await renderMemberPage(makePublicProfile({
+        public_badges: [],
+        badge_progress: [{
+          family: 'membership', current_count: currentCount, next_threshold: 5,
+          remaining_count: 5 - currentCount, next_tier: '5 Jahre', complete: false,
+        }],
+      }))
+      expect(view.container.textContent).toContain('Mitgliedschaft')
+      expect(view.container.textContent).toContain('5+ Jahre Mitglied')
+      expect(view.container.textContent).not.toContain('Gründungsmitglied')
+      view.unmount()
+      reactCacheEntries.splice(0)
+    }
+  })
+})

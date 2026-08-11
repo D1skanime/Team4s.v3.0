@@ -388,3 +388,84 @@ describe('Phase 125 contribution boundary oracle', () => {
     expect(Math.round((Math.min(value, max) / max) * 100)).toBe(percent)
   })
 })
+
+describe('Phase 126 independent membership presentation contract', () => {
+  const durationCodes = ['long_term_member', 'membership_7_years', 'membership_10_years']
+
+  function resolveMembership(currentCount: number, earned_codes: string[] = []) {
+    const nextThreshold = currentCount < 5 ? 5 : currentCount < 7 ? 7 : currentCount < 10 ? 10 : null
+    return resolveMemberBadgeFamilies({
+      earned_codes,
+      badge_progress: [{
+        family: 'membership', current_count: currentCount, next_threshold: nextThreshold,
+        remaining_count: nextThreshold == null ? null : nextThreshold - currentCount,
+        next_tier: nextThreshold == null ? null : `${nextThreshold} Jahre`, complete: nextThreshold == null,
+      }],
+    }).find(({ key }) => key === 'membership')!
+  }
+
+  it('resolves the exact membership duration boundary matrix', () => {
+    const cases = [
+      [0, null, 5, 5, false], [1, null, 5, 4, false], [4, null, 5, 1, false],
+      [5, 'long_term_member', 7, 2, false], [6, 'long_term_member', 7, 1, false],
+      [7, 'membership_7_years', 10, 3, false], [8, 'membership_7_years', 10, 2, false],
+      [9, 'membership_7_years', 10, 1, false], [10, 'membership_10_years', null, null, true],
+      [11, 'membership_10_years', null, null, true], [24, 'membership_10_years', null, null, true],
+    ] as const
+    for (const [count, currentCode, nextThreshold, remainingCount, complete] of cases) {
+      const family = resolveMembership(count)
+      expect(family.stages.map(({ badge_code }) => badge_code)).toEqual(durationCodes)
+      expect(family).toMatchObject({
+        currentCount: count, currentStage: currentCode == null ? null : { badge_code: currentCode },
+        nextStage: nextThreshold == null ? null : {
+          badge_code: nextThreshold === 5 ? 'long_term_member' : `membership_${nextThreshold}_years`,
+        },
+        heroStage: { badge_code: currentCode ?? 'long_term_member' },
+        nextThreshold, remainingCount, complete,
+      })
+      expect(family.stages.map(({ badge_code, earned, locked }) => ({ badge_code, earned, locked })))
+        .toEqual(durationCodes.map((badge_code, index) => ({
+          badge_code, earned: count >= [5, 7, 10][index], locked: count < [5, 7, 10][index],
+        })))
+    }
+  })
+
+  it('keeps founding independent at 3 6 and 24 years', () => {
+    for (const count of [3, 6, 24]) {
+      for (const founder of [false, true]) {
+        const family = resolveMembership(count, founder ? ['founding_member'] : [])
+        const foundingStage = (family as typeof family & {
+          foundingStage: { badge_code: string; earned: boolean } | null
+        }).foundingStage
+        expect(family.stages.map(({ badge_code }) => badge_code)).toEqual(durationCodes)
+        expect(foundingStage).toEqual(founder
+          ? expect.objectContaining({ badge_code: 'founding_member', earned: true })
+          : null)
+        expect(family.currentStage?.badge_code).not.toBe('founding_member')
+        expect(family.nextStage?.badge_code).not.toBe('founding_member')
+        expect(family.heroStage.badge_code).not.toBe('founding_member')
+        expect(resolveMemberBadgeFamilies({
+          earned_codes: founder ? ['founding_member'] : [],
+          badge_progress: [{
+            family: 'membership', current_count: count,
+            next_threshold: count < 5 ? 5 : count < 7 ? 7 : count < 10 ? 10 : null,
+            remaining_count: count < 5 ? 5 - count : count < 7 ? 7 - count : count < 10 ? 10 - count : null,
+            next_tier: null, complete: count >= 10,
+          }],
+        }).filter(({ key }) => key === 'special')).toHaveLength(0)
+      }
+    }
+  })
+
+  it('keeps longest single membership backend-authoritative', () => {
+    const family = resolveMembership(24, [
+      'founding_member', 'long_term_member', 'membership_7_years', 'membership_10_years',
+    ])
+    expect(family.stages.map(({ badge_code }) => badge_code)).toEqual(durationCodes)
+    expect(family).toMatchObject({
+      currentCount: 24, currentStage: { badge_code: 'membership_10_years' },
+      heroStage: { badge_code: 'membership_10_years' }, nextStage: null,
+      nextThreshold: null, remainingCount: null, complete: true,
+    })
+  })
+})
