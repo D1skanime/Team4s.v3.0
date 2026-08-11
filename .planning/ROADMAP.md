@@ -1997,6 +1997,19 @@ Plans:
 - [ ] `122-09-PLAN.md` — Media Viewer (Desktop Bild+Sidebar / Mobile stacked / Tablet breitenabhängig, Prev/Next/Keyboard, Prefetch, Fokus) (Wave 3, D-11)
 - [ ] `122-10-PLAN.md` — Regressionssuite (Routing/Visibility/Pagination/Viewer/Responsive) + Live-UAT über `127.0.0.1:3300` (Wave 4, D-03/09/10)
 
+### Phase 124: Punkte-Meilensteine als responsive Single-Family Achievement Stage
+
+**Goal:** Punkte-Meilensteine im öffentlichen Memberprofil als eine responsive Single-Family Achievement Stage mit aktuellem Hero, echtem Punktefortschritt und sechs visuell erkennbaren Meilensteinen darstellen, ohne äußeres Carousel oder neue Punktefachlogik.
+**Requirements**: `124-PRD.md` §§1–37 vollständig gelockt; trackbar als D-01–D-34 in `124-CONTEXT.md`
+**Depends on:** Phase 123 (Single-Family Achievement Stage), Phase 121 (responsive Badge-/Artwork-Baseline), Phase 112 (Punkte-Meilenstein-Ableitung)
+**Plans:** 4 plans
+
+Plans:
+- [ ] `124-01-PLAN.md` — Test-first Grenzwert-, Stage-, Accessibility- und SSR-Verträge für D-01–D-28 (Wave 1)
+- [ ] `124-02-PLAN.md` — Punkte-Stage auf der echten Phase-123-Shell mit autoritativem Fortschritt und responsive Sechs-Artwork-Track (Wave 2)
+- [ ] `124-03-PLAN.md` — Vollregression, Live-UAT/Evidence an sechs Viewports und blockierendes `approved`-Gate vor Abschlussbericht (Wave 3)
+- [ ] `124-04-PLAN.md` — Erst nach `approved`: 21-teiligen Abschlussbericht mit fünf Qualitätsantworten erzeugen und validieren (Wave 4)
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
