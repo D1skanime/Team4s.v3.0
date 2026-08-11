@@ -1428,3 +1428,88 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     expect(expandedCards.map(treeShape)).toEqual([translatorShape, timerShape])
   })
 })
+
+
+describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
+  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }
+
+  async function renderPoints(points: number, currentCode: string | null, nextThreshold: number | null, remainingCount: number | null, complete = false) {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const PointsChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Progress[] }>
+    return render(
+      <PointsChain
+        earnedBadges={currentCode ? [{ id: 0, badge_code: currentCode, badge_category: 'progress' }] : []}
+        badgeProgress={[{ family: 'points', current_count: points, next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: nextThreshold == null ? null : `${nextThreshold} Punkte`, complete }]}
+      />,
+    )
+  }
+
+  it('renders exactly six ordered stations without outer carousel chrome or skeletons', async () => {
+    const { container } = await renderPoints(500, 'point_milestone_engaged', 1000, 500)
+    const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
+    expect(stage).not.toBeNull()
+    expect(stage.closest('[aria-roledescription="Karussell"]')).toBeNull()
+    expect(within(stage).queryByRole('button', { name: /N?chste Auszeichnung/ })).toBeNull()
+    expect(stage.querySelectorAll('[data-badge-skeleton]')).toHaveLength(0)
+    const stations = within(stage).getAllByRole('listitem')
+    expect(stations).toHaveLength(6)
+    expect(stations.map((station) => station.getAttribute('data-threshold'))).toEqual(['1', '50', '200', '500', '1000', '2500'])
+    const sources = Array.from(stage.querySelectorAll<HTMLImageElement>('ol img')).map((image) => new URL(image.src, 'http://localhost').searchParams.get('url') ?? image.getAttribute('src'))
+    expect(sources).toEqual([
+      '/member-achievement-badges/point_milestone_first-v2.png',
+      '/member-achievement-badges/point_milestone_active-v2.png',
+      '/member-achievement-badges/point_milestone_experienced-v2.png',
+      '/member-achievement-badges/point_milestone_engaged-v2.png',
+      '/member-achievement-badges/point_milestone_veteran-v3.png',
+      '/member-achievement-badges/point_milestone_legend-v2.png',
+    ])
+  })
+
+  it('keeps zero visible with no current station and every milestone locked', async () => {
+    const { container } = await renderPoints(0, null, 1, 1)
+    const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
+    expect(stage).not.toBeNull()
+    expect(within(stage).queryByRole('button')).toBeNull()
+    expect(stage.querySelector('[aria-current="step"]')).toBeNull()
+    expect(within(stage).getByLabelText(/Erste Punkte.*Gesperrt/).getAttribute('tabindex')).toBeNull()
+  })
+
+  it('allows earned preview while authoritative progress and target remain unchanged', async () => {
+    const { container } = await renderPoints(734, 'point_milestone_engaged', 1000, 266)
+    const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
+    const progress = within(stage).getByRole('progressbar', { name: /Punkte/ })
+    expect(progress.getAttribute('aria-valuenow')).toBe('734')
+    expect(progress.getAttribute('aria-valuemax')).toBe('1000')
+    expect(stage.querySelector('[aria-current="step"]')?.textContent).toContain('Stark engagiert')
+    expect(within(stage).queryByRole('button', { name: /Veteranenstatus.*ausw?hlen/ })).toBeNull()
+
+    fireEvent.click(within(stage).getByRole('button', { name: /Erfahrungsstufe.*ausw?hlen/ }))
+    expect(within(stage).getByText('Vorschau')).not.toBeNull()
+    expect(within(stage).getByText('Erfahrungsstufe')).not.toBeNull()
+    expect(within(stage).getByText(/734 Punkte aktuell/)).not.toBeNull()
+    expect(within(stage).getByText(/Noch 266 Punkte bis Veteranenstatus/)).not.toBeNull()
+    expect(progress.getAttribute('aria-valuenow')).toBe('734')
+  })
+
+  it.each([2500, 2733, 5000])('keeps the true terminal value %i with bounded progressbar semantics', async (points) => {
+    const { container } = await renderPoints(points, 'point_milestone_legend', null, null, true)
+    const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
+    const progress = within(stage).getByRole('progressbar', { name: /Punkte/ })
+    expect(within(stage).getByText(`${points.toLocaleString('de-CH')} Punkte`)).not.toBeNull()
+    expect(progress.getAttribute('aria-valuenow')).toBe('2500')
+    expect(progress.getAttribute('aria-valuemax')).toBe('2500')
+    expect(within(stage).getByText('H?chste Stufe erreicht')).not.toBeNull()
+    expect(stage.textContent).not.toContain('Noch ')
+  })
+
+  it('locks square contained artwork, local overflow and reduced-motion CSS contracts', () => {
+    expect(memberBadgeChainCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
+    expect(memberBadgeChainCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(memberBadgeChainCss).toMatch(/\.pointsHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(memberBadgeChainCss).toMatch(/\.pointsStageTrack\s*\{[^}]*overflow-x:\s*auto/s)
+    expect(memberBadgeChainCss).toMatch(/\.pointsStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(memberBadgeChainCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.points/s)
+    const groupRule = memberBadgeChainCss.match(/\.group\s*\{[^}]*\}/)?.[0] ?? ''
+    expect(groupRule).not.toContain('overflow-x: auto')
+  })
+})
