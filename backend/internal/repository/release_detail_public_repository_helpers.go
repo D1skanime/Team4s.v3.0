@@ -398,6 +398,7 @@ func (r *ReleaseDetailPublicRepository) loadNotes(ctx context.Context, releaseVe
 			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), 'Mitglied') AS member_name,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
 			COALESCE(cr.label, '') AS role_label,
+			COALESCE(NULLIF(TRIM(rvn.title), ''), '') AS title,
 			rvn.body_html,
 			rvn.created_at
 		FROM release_version_notes rvn
@@ -418,7 +419,7 @@ func (r *ReleaseDetailPublicRepository) loadNotes(ctx context.Context, releaseVe
 	items := make([]PublicReleaseNote, 0)
 	for rows.Next() {
 		var item PublicReleaseNote
-		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.BodyHTML, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.FansubGroupID, &item.MemberID, &item.MemberName, &item.MemberAvatarURL, &item.RoleLabel, &item.Title, &item.BodyHTML, &item.CreatedAt); err != nil {
 			return nil, fmt.Errorf("release detail: scan note row: %w", err)
 		}
 		items = append(items, item)
