@@ -350,3 +350,41 @@ describe('Phase 119 canonical badge-family resolver contract', () => {
     ])
   })
 })
+
+describe('Phase 125 contribution boundary oracle', () => {
+  const specs = [
+    ['contribution_projects', 'mitgetragenes Projekt', 'mitgetragene Projekte', [[0,null,1,1,0,false],[1,'bronze',5,4,20,false],[4,'bronze',5,1,80,false],[5,'silver',15,10,33,false],[14,'silver',15,1,93,false],[15,'gold',null,null,100,true],[20,'gold',null,null,100,true]]],
+    ['contribution_chronicle', 'Chronikbeitrag', 'Chronikbeiträge', [[0,null,10,10,0,false],[10,'bronze',50,40,20,false],[49,'bronze',50,1,98,false],[50,'silver',150,100,33,false],[149,'silver',150,1,99,false],[150,'gold',null,null,100,true],[200,'gold',null,null,100,true]]],
+    ['contribution_archivist', 'Medienbeitrag', 'Medienbeiträge', [[0,null,10,10,0,false],[10,'bronze',50,40,20,false],[49,'bronze',50,1,98,false],[50,'silver',150,100,33,false],[149,'silver',150,1,99,false],[150,'gold',null,null,100,true],[200,'gold',null,null,100,true]]],
+  ] as const
+
+  it('keeps all three zero families visible in canonical order', () => {
+    const badge_progress = [...specs].reverse().map(([family]) => ({
+      family, current_count: 0, next_threshold: family === 'contribution_projects' ? 1 : 10,
+      remaining_count: family === 'contribution_projects' ? 1 : 10, next_tier: 'bronze', complete: false,
+    }))
+    const result = resolveMemberBadgeFamilies({ earned_codes: [], badge_progress })
+      .filter(({ group }) => group === 'contributions')
+    expect(result.map(({ key }) => key)).toEqual(specs.map(([family]) => family))
+    expect(result.every(({ currentStage, stages }) =>
+      currentStage === null && stages.every(({ earned, locked }) => !earned && locked))).toBe(true)
+  })
+
+  it.each(specs.flatMap(([family, singular, plural, cases]) =>
+    cases.map((boundary) => [family, singular, plural, boundary] as const),
+  ))('%s consumes authoritative boundary %j', (key, singular, plural, boundary) => {
+    const [value, tier, nextThreshold, remainingCount, percent, complete] = boundary
+    const family = resolveMemberBadgeFamilies({
+      earned_codes: [],
+      badge_progress: [{ family: key, current_count: value, next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: null, complete }],
+    }).find(({ key: candidate }) => candidate === key)!
+    const max = nextThreshold ?? family.stages.at(-1)!.threshold
+    expect(family).toMatchObject({
+      currentCount: value, currentStage: tier ? { badge_code: key + '_' + tier } : null,
+      nextThreshold, remainingCount, complete, unitSingular: singular, unitPlural: plural,
+    })
+    expect(family.stages.map(({ threshold, earned, locked }) => ({ threshold, earned, locked })))
+      .toEqual(family.stages.map(({ threshold }) => ({ threshold, earned: value >= threshold, locked: value < threshold })))
+    expect(Math.round((Math.min(value, max) / max) * 100)).toBe(percent)
+  })
+})
