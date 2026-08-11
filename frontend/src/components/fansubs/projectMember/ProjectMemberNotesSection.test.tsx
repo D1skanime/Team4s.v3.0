@@ -47,7 +47,7 @@ describe('ProjectMemberNoteCard', () => {
       />,
     )
     expect(screen.getByText('Qualitätsprüfung')).not.toBeNull()
-    expect(screen.getByText('Beitrag zu Folge 08')).not.toBeNull()
+    expect(screen.getByText('Notiz zu Folge 08')).not.toBeNull()
     const link = screen.getByRole('link')
     expect(link.getAttribute('href')).toBe(
       '/fansubs/c-subs/fansubprojekt/vipers-creed/releases/41',

@@ -19,7 +19,7 @@ function formatDate(iso: string): string {
 }
 
 // Textbeitrag-Karte (Brief 3.2, D-15): Rolle im farbigen Header-Band (Team4s-Rollenfarbe),
-// "Beitrag zu Folge X" als Sekundärzeile, optionaler Titel, Clamp + Mehr/Weniger,
+// "Notiz zu Folge X" als Sekundärzeile, optionaler Titel, Clamp + Mehr/Weniger,
 // Release-Metadatum als farbiges Footer-Band. data-role-code am Karten-Element vererbt
 // --role-accent an Header/Footer.
 export function ProjectMemberNoteCard({
@@ -45,7 +45,7 @@ export function ProjectMemberNoteCard({
       </div>
       <div className={styles.noteContent}>
         {note.episode_label ? (
-          <p className={styles.noteEpisode}>Beitrag zu Folge {note.episode_label}</p>
+          <p className={styles.noteEpisode}>Notiz zu Folge {note.episode_label}</p>
         ) : null}
         {note.title ? <p className={styles.noteTitle}>{note.title}</p> : null}
         <p className={`${styles.noteBody} ${canToggle && !expanded ? styles.noteBodyClamped : ''}`}>
