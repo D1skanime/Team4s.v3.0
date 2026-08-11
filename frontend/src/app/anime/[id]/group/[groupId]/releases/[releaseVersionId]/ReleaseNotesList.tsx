@@ -1,11 +1,10 @@
 'use client'
 
-import Image from 'next/image'
 import { useState } from 'react'
 
-import { RichTextRenderer } from '@/components/editor'
-import { Button, Card, SectionHeader } from '@/components/ui'
-import { getGroupReleaseNotes, resolveApiUrl } from '@/lib/api'
+import { PublicNoteCard } from '@/components/public/PublicNoteCard'
+import { Button, SectionHeader } from '@/components/ui'
+import { getGroupReleaseNotes } from '@/lib/api'
 import type { PublicReleaseGroup, PublicReleaseNote } from '@/types/releaseDetail'
 
 import styles from './ReleaseNotesList.module.css'
@@ -34,10 +33,6 @@ export function selectInitialReleaseNotes(notes: PublicReleaseNote[], target = 3
   return selected
 }
 
-function hasClampedNoteContent(bodyHtml: string) {
-  return bodyHtml.replace(/<[^>]*>/g, '').trim().length > 320
-}
-
 export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNotes, totalCount, groups = [] }: Props) {
   const [items, setItems] = useState(initialNotes)
   const [revealed, setRevealed] = useState(false)
@@ -45,7 +40,6 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
   const [hasMore, setHasMore] = useState(initialNotes.length < totalCount)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [expandedNoteIDs, setExpandedNoteIDs] = useState<Set<number>>(() => new Set())
   if (!totalCount) return null
 
   const visibleItems = revealed ? items : selectInitialReleaseNotes(items)
@@ -53,15 +47,6 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
   const buckets = [...new Set(visibleItems.map(note => note.role_label || 'Weitere Beiträge'))]
     .map(role => ({ key: role, label: role, items: visibleItems.filter(note => (note.role_label || 'Weitere Beiträge') === role) }))
   const remaining = Math.max(0, totalCount - visibleItems.length)
-
-  function toggleNote(noteID: number) {
-    setExpandedNoteIDs(previous => {
-      const next = new Set(previous)
-      if (next.has(noteID)) next.delete(noteID)
-      else next.add(noteID)
-      return next
-    })
-  }
 
   async function loadMore() {
     if (!revealed) { setRevealed(true); if (items.length >= totalCount) return }
@@ -79,20 +64,21 @@ export function ReleaseNotesList({ animeID, groupID, releaseVersionID, initialNo
     {error ? <p className={styles.error}>{error}</p> : null}
     <div className={styles.roleGrid} data-role-grid="responsive">
       {buckets.map(bucket => <section key={bucket.key} className={styles.roleGroup}>
-        <SectionHeader eyebrow="Release-Rolle" title={bucket.label} underline />
         <div className={styles.list}>{bucket.items.map(note => {
-          const expanded = expandedNoteIDs.has(note.id)
-          const bodyID = `release-note-body-${note.id}`
           const sourceGroupName = note.fansub_group_id ? groupNamesByID.get(note.fansub_group_id) : null
-          const expandable = hasClampedNoteContent(note.body_html)
-          return <Card key={note.id} variant="flat" className={styles.card}>
-            <header className={styles.cardHeader}>
-              {note.member_avatar_url ? <Image className={styles.avatar} src={resolveApiUrl(note.member_avatar_url)} alt="" width={42} height={42} unoptimized /> : <span className={styles.avatar} aria-hidden="true">{note.member_name.charAt(0).toUpperCase()}</span>}
-              <div><strong>{note.member_name}</strong><p>{note.role_label || 'Beitrag'}{sourceGroupName ? ` · ${sourceGroupName}` : ''} · {formatReleaseNoteDate(note.created_at)}</p></div>
-            </header>
-            <div id={bodyID} className={`${styles.cardBody}${expanded ? ` ${styles.cardBodyExpanded}` : ''}`}><RichTextRenderer bodyHtml={note.body_html} editorType="tiptap" contentSchemaVersion={1} /></div>
-            {expandable ? <Button type="button" variant="ghost" className={styles.expandButton} aria-expanded={expanded} aria-controls={bodyID} onClick={() => toggleNote(note.id)}>{expanded ? 'Weniger anzeigen' : 'Weiterlesen'}</Button> : null}
-          </Card>
+          return <PublicNoteCard
+            key={note.id}
+            roleLabel={note.role_label}
+            title={note.title}
+            author={{ name: note.member_name, avatarUrl: note.member_avatar_url }}
+            metaSuffix={sourceGroupName ?? null}
+            dateLabel={formatReleaseNoteDate(note.created_at)}
+            bodyHtml={note.body_html}
+            bodyId={`release-note-body-${note.id}`}
+            clampThreshold={320}
+            moreLabel="Weiterlesen"
+            lessLabel="Weniger anzeigen"
+          />
         })}</div>
       </section>)}
     </div>

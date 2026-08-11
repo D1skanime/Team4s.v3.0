@@ -1,4 +1,5 @@
-/* Texte & Notizen — projektweiter Bereich (Brief 3.2/9). Desktop 2-spaltig, Mobile 1-spaltig. */
+/* Texte & Notizen — projektweiter Bereich (Brief 3.2/9). Desktop 2-spaltig, Mobile 1-spaltig.
+   Die Karten-Optik lebt jetzt im geteilten Component components/public/PublicNoteCard. */
 
 .notesGrid {
   display: grid;
@@ -10,108 +11,6 @@
   .notesGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-.noteCard {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  border: 1px solid var(--color-border);
-  /* Unterer Footer-Streifen in voller Rollenfarbe (8px). */
-  border-bottom: 8px solid var(--role-accent, var(--role-accent-default));
-  box-shadow: var(--shadow-xs);
-  color: var(--text-primary);
-}
-
-.noteHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 9px 14px;
-  /* Gedaempftes Header-Band im Ton der seitlichen Leiste (55% Akzent + Rahmengrau). */
-  background: color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 55%, var(--color-border));
-  color: var(--text-primary);
-}
-
-.noteContent {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-}
-/* Default-Absatz-Margins zuruecksetzen — sonst summieren sie sich mit dem Flex-gap. */
-.noteContent > * {
-  margin: 0;
-}
-
-.noteRole {
-  font-size: 1rem;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 38%, var(--text-primary));
-}
-
-.noteDate {
-  font-size: 0.8rem;
-  color: color-mix(in srgb, var(--text-primary) 68%, transparent);
-  white-space: nowrap;
-}
-
-.noteEpisode {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-
-.noteTitle {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  /* Etwas mehr Luft zwischen Titel und Fliesstext (zusaetzlich zum 4px-gap). */
-  margin-bottom: 6px;
-}
-
-.noteBody {
-  font-size: 0.9rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--text-primary);
-}
-
-.noteBodyClamped {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.noteToggle {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--accent-deep);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.noteFooter {
-  padding: 2px 14px 14px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--accent-deep);
-  text-decoration: none;
-}
-.noteFooter:hover,
-.noteFooter:focus-visible {
-  text-decoration: underline;
 }
 
 .loadMoreWrap {

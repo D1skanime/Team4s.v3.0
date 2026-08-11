@@ -49,7 +49,9 @@ describe('ReleaseNotesList', () => {
     render(<ReleaseNotesList animeID={1} groupID={2} releaseVersionID={3} totalCount={2} initialNotes={[{id:1,member_id:1,member_name:'Anna',member_avatar_url:null,role_label:'Übersetzung',body_html:'<p>Text A</p>',created_at:'2026-01-02'},{id:2,member_id:2,member_name:'Mika',member_avatar_url:null,role_label:'Karaoke',body_html:'<p>Text B</p>',created_at:'2026-01-03'}]} />)
     const grid = document.querySelector('[data-role-grid="responsive"]')
     expect(grid?.children).toHaveLength(2)
-    expect(screen.getByRole('heading', { name: 'Übersetzung' }).closest('section')?.parentElement).toBe(grid)
+    // Rollen-Bucket-Header entfernt: Rolle steht nur noch in der Karten-Meta, nicht als Heading.
+    expect(screen.queryByRole('heading', { name: 'Übersetzung' })).toBeNull()
+    expect(screen.getByText(/Übersetzung/)).toBeTruthy()
   })
 
   it('keeps non-empty source groups bucketed by release role', () => {
@@ -65,8 +67,8 @@ describe('ReleaseNotesList', () => {
       ]}
     />)
 
-    expect(screen.getByRole('heading', { name: 'Übersetzung' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Karaoke' })).toBeTruthy()
+    expect(screen.getByText(/Übersetzung/)).toBeTruthy()
+    expect(screen.getByText(/Karaoke/)).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'C-Subs' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'D-Subs' })).toBeNull()
     expect(screen.queryByText('Herkunftsgruppe')).toBeNull()

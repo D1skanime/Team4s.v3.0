@@ -26,6 +26,7 @@ export interface PublicReleaseImage {
 export interface PublicReleaseNote {
   id: number;
   fansub_group_id?: number | null;
+  title?: string | null;
   member_name: string;
   member_id: number;
   member_avatar_url: string | null;
