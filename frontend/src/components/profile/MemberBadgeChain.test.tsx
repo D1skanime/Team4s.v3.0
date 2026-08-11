@@ -1583,3 +1583,81 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
     expect(groupRule).not.toContain('overflow-x: auto')
   })
 })
+
+describe('Phase 126 membership stage', () => {
+  type Progress = { family: string; current_count: number; next_threshold: number | null; remaining_count: number | null; next_tier: string | null; complete: boolean }
+
+  async function renderMembership(years: number, founding = false) {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const MembershipChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: Progress[] }>
+    const earnedBadges: PublicMemberBadge[] = [
+      ...(founding ? [{ id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' }] : []),
+      ...(years >= 5 ? [{ id: 2, badge_code: 'long_term_member', badge_category: 'membership' }] : []),
+      ...(years >= 7 ? [{ id: 3, badge_code: 'membership_7_years', badge_category: 'membership' }] : []),
+      ...(years >= 10 ? [{ id: 4, badge_code: 'membership_10_years', badge_category: 'membership' }] : []),
+    ]
+    const nextThreshold = years < 5 ? 5 : years < 7 ? 7 : years < 10 ? 10 : null
+    return render(<MembershipChain earnedBadges={earnedBadges} badgeProgress={[{
+      family: 'membership', current_count: years, next_threshold: nextThreshold,
+      remaining_count: nextThreshold == null ? null : nextThreshold - years,
+      next_tier: nextThreshold == null ? null : `${nextThreshold} Jahre`, complete: nextThreshold == null,
+    }]} />)
+  }
+
+  it('renders membership without an outer carousel', async () => {
+    const { container } = await renderMembership(6)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    expect(stage).not.toBeNull()
+    expect(stage.closest('[aria-roledescription="Karussell"]')).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Mitgliedschaft-Karussell' })).toBeNull()
+    expect(within(stage).getAllByRole('listitem')).toHaveLength(3)
+    expect(within(stage).getAllByRole('listitem').map((node) => node.getAttribute('data-threshold'))).toEqual(['5', '7', '10'])
+    expect(stage.querySelector('[data-threshold="5"]')?.getAttribute('aria-current')).toBe('step')
+    expect(within(stage).getByLabelText('7 Jahre Mitgliedschaft · Gesperrt').getAttribute('tabindex')).toBeNull()
+    expect(within(stage).getByLabelText('10 Jahre Mitgliedschaft · Gesperrt').getAttribute('tabindex')).toBeNull()
+  })
+
+  it('keeps founding separate from the duration track', async () => {
+    const { container } = await renderMembership(3, true)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    const founding = stage.querySelector('[data-founding-member]') as HTMLElement
+    expect(founding).not.toBeNull()
+    expect(founding.querySelector('[role="progressbar"]')).toBeNull()
+    expect(founding.querySelector('[aria-current]')).toBeNull()
+    expect(within(stage).getAllByRole('listitem')).toHaveLength(3)
+    expect(stage.querySelectorAll('[data-achievement-art="founding_member"]')).toHaveLength(1)
+    expect(container.querySelector('[data-badge-group="special"] [data-achievement-art="founding_member"]')).toBeNull()
+  })
+
+  it('previews earned duration artwork without changing facts', async () => {
+    const { container } = await renderMembership(24)
+    const stage = container.querySelector('[data-membership-stage]') as HTMLElement
+    const progress = within(stage).getByRole('progressbar', { name: 'Fortschritt für Mitgliedschaft' })
+    expect(progress.getAttribute('aria-valuenow')).toBe('10')
+    expect(progress.getAttribute('aria-valuemax')).toBe('10')
+    expect(within(stage).getByText('24 Jahre Mitgliedschaft')).not.toBeNull()
+    expect(within(stage).getByText('Höchste Stufe erreicht')).not.toBeNull()
+    expect(stage.querySelector('[data-threshold="10"]')?.getAttribute('aria-current')).toBe('step')
+    fireEvent.click(within(stage).getByRole('button', { name: '5 Jahre Mitgliedschaft auswählen' }))
+    expect(stage.querySelector('[data-membership-art="long_term_member"]')).not.toBeNull()
+    fireEvent.click(within(stage).getByRole('button', { name: '7 Jahre Mitgliedschaft auswählen' }))
+    expect(stage.querySelector('[data-membership-art="membership_7_years"]')).not.toBeNull()
+    expect(within(stage).getByText('24 Jahre Mitgliedschaft')).not.toBeNull()
+    expect(progress.getAttribute('aria-valuenow')).toBe('10')
+    expect(stage.querySelector('[data-threshold="10"]')?.getAttribute('aria-current')).toBe('step')
+  })
+
+  it('uses stable three-column contain geometry', () => {
+    expect(memberBadgeChainCss).toMatch(/\.membershipStage\s*\{[^}]*min-width:\s*0;/s)
+    expect(memberBadgeChainCss).toMatch(/\.membershipHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(memberBadgeChainCss).toMatch(/\.membershipHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(memberBadgeChainCss).toMatch(/\.membershipDurationTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*min-width:\s*0;/s)
+    expect(memberBadgeChainCss).toMatch(/\.membershipStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(memberBadgeChainCss).toMatch(/\.membershipStageArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(memberBadgeChainCss).toMatch(/@media\s*\(max-width:\s*900px\)[\s\S]*?\.membershipStageHero/s)
+    expect(memberBadgeChainCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.membership/s)
+    const trackRule = memberBadgeChainCss.match(/\.membershipDurationTrack\s*\{[^}]*\}/s)?.[0] ?? ''
+    expect(trackRule).not.toMatch(/overflow-x|scroll-snap|touch-action/)
+  })
+
+})
