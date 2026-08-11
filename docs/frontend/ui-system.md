@@ -12,6 +12,34 @@ Generische UI wird zentral gebaut. Fachlogik bleibt in Domain-Komponenten.
 
 Diese Datei ist ab Phase `48A` die verbindliche Referenz für neue generische Team4s-UI. Bevor neue Standard-UI gebaut oder bestehende Standard-UI erweitert wird, muss zuerst diese globale Basis geprüft und bevorzugt verwendet werden.
 
+## Responsive Layout
+
+Responsive UI wird mobile-first aus der tatsächlich verfügbaren Geometrie entwickelt. Die schmale, robuste Komposition ist der Basiszustand; größere Kompositionen ergänzen ihn erst, wenn ihre Mindestgeometrie vollständig passt.
+
+### Zuständigkeit von Viewport und Container
+
+- Viewport-Media-Queries gehören zur Struktur einer ganzen Seite oder App-Shell, wenn die Dokumentbreite tatsächlich die verfügbare Layoutfläche bestimmt.
+- Wiederverwendbare oder eingebettete Komponenten wie Cards, Stages und Carousels reagieren auf ihren verfügbaren Inline-Raum. Ein geeigneter Vorfahr setzt dafür `container-type: inline-size`; ein zweckbezogener `container-name` ist sinnvoll, wenn er die Abfrage eindeutig macht.
+- Eine Komponente darf nicht aus einer breiten Viewport-Annahme auf ihre eigene Breite schließen. Sie muss auch in schmalen Spalten, Drawern und anderen eingebetteten Kontexten korrekt bleiben.
+
+### Übergänge aus Mindestgeometrie ableiten
+
+Ein breites Layout wird erst aktiviert, wenn seine benötigte Geometrie passt. Die Herleitung berücksichtigt mindestens Spalten, Zwischenräume, Controls, Medien und den längsten erforderlichen Inhalt. Ein konventioneller Viewport-Breakpoint allein ist keine Begründung.
+
+Breakpoints werden nach Layoutzweck oder erforderlicher Geometrie benannt, nicht nach Geräten. Namen wie `phone`, `tablet` und `desktop` sind zu vermeiden, weil dieselbe Komponente unabhängig vom Gerät sehr unterschiedliche Einbettungsbreiten haben kann.
+
+### Überlauf und Umbruch
+
+- Flex- und Grid-Kinder, die schrumpfen müssen, erhalten `min-width: 0`, damit intrinsische Mindestbreiten das Layout nicht aufdrücken.
+- Bilder, Videos und andere Medien mit potenziell überlaufender intrinsischer Breite erhalten `max-width: 100%` und behalten ein sinnvolles Seitenverhältnis.
+- Gewöhnlicher Text soll an natürlichen Trennstellen umbrechen. Lange deutsche Bezeichnungen und reale Inhalte werden im verantwortlichen Layout geprüft.
+- Ein globales `overflow-wrap: anywhere` ist verboten: Es verdeckt den tatsächlichen Überlaufbesitzer und verschlechtert normalen Text. Sonderfälle wie untrennbare technische Kennungen werden lokal und begründet behandelt.
+- Abschneiden oder horizontales Scrollen ist nur eine bewusste fachliche Darstellung, kein allgemeiner Reparaturmechanismus für eine nicht passende Komposition.
+
+### Inkrementelle Einführung
+
+Alle neuen UI-Flächen folgen diesem Standard. Wird eine bestehende Komponente geändert und ist ihr responsives Verhalten Teil des Auftrags oder nachweislich problematisch, wird diese Komponente innerhalb des abgegrenzten Auftrags modernisiert. Stabile Legacy-UI wird nicht allein zur nachträglichen Einführung des Standards flächendeckend refaktoriert.
+
 Erlaubt im UI-System:
 
 - generische Buttons

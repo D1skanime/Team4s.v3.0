@@ -120,6 +120,13 @@ Use `docs/frontend/auth-api-client.md` as the source of truth for browser auth/A
 
 ## UI Rules
 
+### Responsive UI Standard
+- All new UI is mobile-first. `docs/frontend/ui-system.md` is the canonical detailed responsive standard; `docs/agent-guidelines-ui.md` defines the implementation and verification workflow.
+- Viewport media queries are reserved for full-page and app-shell composition. Reusable or embedded components, including cards, stages, and carousels, must establish a suitable containment boundary and respond to available inline size with container queries (`container-type: inline-size`).
+- A larger composition may activate only when its documented minimum geometry fits without clipping or page-level horizontal overflow. Name breakpoints for their layout purpose or required geometry, never for devices such as phone, tablet, or desktop.
+- Flex and grid children that must shrink use `min-width: 0`; media whose intrinsic width could overflow uses `max-width: 100%`. Fix wrapping and layout at the owning component instead of applying a global `overflow-wrap: anywhere` escape hatch.
+- Adoption is incremental: new UI complies; an existing component is modernized when it is touched and its responsive behavior is in scope or demonstrably problematic. Do not refactor stable legacy UI wholesale solely to retrofit this standard.
+
 ### Deutsche UI-Texte: Korrekte Umlaute verwenden
 - User-facing deutsche Strings (JSX-Text, Button-Labels, Fehlermeldungen, Placeholder, Toast-Nachrichten, aria-labels) verwenden immer korrekte Umlaute: ä, ö, ü, Ä, Ö, Ü, ß
 - Niemals ASCII-Ersetzungen in UI-Text: ae/oe/ue/ss statt Umlauten sind verboten (z.B. "wählen" nicht "waehlen", "für" nicht "fuer", "Änderungen" nicht "Aenderungen")
