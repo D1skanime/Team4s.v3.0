@@ -10,6 +10,13 @@ import type { PublicMemberProfileData } from '@/types/profile'
 import MemberProfilePage, { generateMetadata } from './page'
 
 const memberPageStyles = readFileSync('src/app/members/[slug]/page.module.css', 'utf8')
+const memberPageSource = readFileSync('src/app/members/[slug]/page.tsx', 'utf8')
+const memberStorySource = readFileSync('src/components/profile/MemberStorySection.tsx', 'utf8')
+const membershipsSource = readFileSync('src/components/profile/MembershipsSection.tsx', 'utf8')
+const currentProjectsSource = readFileSync('src/components/profile/MemberCurrentProjectsSection.tsx', 'utf8')
+const memberBadgeChainSource = readFileSync('src/components/profile/MemberBadgeChain.tsx', 'utf8')
+const focalCarouselSource = readFileSync('src/components/ui/FocalCarousel.tsx', 'utf8')
+const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
 
 const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock, reactCacheEntries } = vi.hoisted(() => ({
   cookieGetMock: vi.fn(),
@@ -229,6 +236,42 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(memberPageStyles).not.toMatch(/margin-(?:left|right):\s*-/)
     expect(memberPageStyles).not.toContain('overflow-x: hidden')
     expect(memberPageStyles).not.toMatch(/font-weight:\s*(?:8|9)00/)
+  })
+
+  it('keeps every post-hero outer band transparent without changing layout or inner surfaces', () => {
+    const rhythmBandRule = memberPageStyles.match(/^\.rhythmBand\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
+    const outerBandRule = memberPageStyles.match(/^\.profileBand,[\s\S]*?^\}/m)?.[0] ?? ''
+
+    for (const selector of ['.profileBand', '.projectsBand', '.badgesBand', '.contributionsBand']) {
+      expect(outerBandRule).toContain(selector)
+    }
+    expect(outerBandRule).toContain('background: transparent;')
+    expect(outerBandRule).toContain('border: 0;')
+    expect(outerBandRule).toContain('border-radius: 0;')
+    expect(rhythmBandRule).toContain('display: grid;')
+    expect(rhythmBandRule).toContain('gap: 24px;')
+    expect(rhythmBandRule).toContain('min-width: 0;')
+    expect(rhythmBandRule).toContain('padding: 32px;')
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
+    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
+    expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
+    expect(memberPageStyles).toMatch(/\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/)
+    expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
+    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`}')
+    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`}')
+    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand} ${styles.badgesVisualBand}`}')
+    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.contributionsBand}`}')
+    expect(memberPageSource).toContain('<MemberStorySection')
+    expect(memberPageSource).toContain('<MembershipsSection')
+    expect(memberStorySource).toContain('<Card variant="section" className={styles.storyCard}>')
+    expect(membershipsSource).toContain('<Card variant="interactive" className={styles.membershipCard}>')
+    expect(currentProjectsSource).toContain('<Card variant="interactive" className={styles.projectCard}>')
+    expect(memberBadgeChainSource).toContain('<Card className={styles.familyCard} data-family={family.key}>')
+    expect(memberBadgeChainSource).toContain('<FocalCarousel')
+    expect(focalCarouselSource).toContain('onKeyDown={interactionEnabled ? handleKeyDown : undefined}')
+    expect(focalCarouselSource).toContain('onPointerDown={interactionEnabled ? handlePointerDown : undefined}')
+    expect(profileStyles).toMatch(/\.membershipCard\s*\{[\s\S]*?border:\s*1px solid var\(--border-subtle\);[\s\S]*?border-radius:\s*var\(--radius-lg\);[\s\S]*?background:\s*var\(--surface-card\);[\s\S]*?box-shadow:\s*var\(--shadow-sm\);/)
   })
 
   it('opts only the role badge band into the centered visual-width breakout', () => {

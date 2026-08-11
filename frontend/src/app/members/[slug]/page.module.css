@@ -103,8 +103,12 @@
 }
 
 .profileBand,
-.badgesBand {
-  background: color-mix(in srgb, var(--surface-card-muted) 72%, var(--surface-sunken));
+.projectsBand,
+.badgesBand,
+.contributionsBand {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .badgesVisualBand {
@@ -120,11 +124,6 @@
     left: auto;
     transform: none;
   }
-}
-
-.projectsBand,
-.contributionsBand {
-  background: var(--surface-canvas);
 }
 
 .projectsBand h2 {
