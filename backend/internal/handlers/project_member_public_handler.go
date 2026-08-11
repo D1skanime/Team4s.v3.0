@@ -86,10 +86,9 @@ func (h *ProjectMemberPublicHandler) GetSummary(c *gin.Context) {
 		internalError(c, "interner serverfehler")
 		return
 	}
-	if summary.MemberAvatarURL != nil {
-		u := h.buildMediaURL(*summary.MemberAvatarURL)
-		summary.MemberAvatarURL = &u
-	}
+	// Avatar kommt aus media_assets.file_path (z. B. "media/profile/..."), NICHT aus media_files.path
+	// wie die Release-Medien. Die Roh-Pfad wird — analog zu FansubMemberAvatar — im Frontend via
+	// resolveApiUrl aufgeloest; kein buildMediaURL (das erzeugte ein doppeltes /media/).
 	c.JSON(http.StatusOK, summary)
 }
 

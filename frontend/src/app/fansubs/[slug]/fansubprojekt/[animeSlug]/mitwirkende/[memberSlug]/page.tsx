@@ -10,7 +10,7 @@ interface ProjectMemberRouteParams {
 }
 
 interface ProjectMemberRouteProps {
-  params: ProjectMemberRouteParams | Promise<ProjectMemberRouteParams>
+  params: Promise<ProjectMemberRouteParams>
 }
 
 // Öffentliche Projekt-Member-Seite (Phase 122): kombinierte Read-View Member × Fansubgruppe × Anime.
