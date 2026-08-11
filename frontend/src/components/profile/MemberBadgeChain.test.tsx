@@ -1025,17 +1025,27 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
     expect(screen.getByLabelText('10+ Jahre Mitglied · Gesperrt')).not.toBeNull()
   })
 
-  it('renders earned special awards as one-stage cards without artificial progress', async () => {
-    const rendered = await renderCollections([{ id: 9, badge_code: 'historical_leader', badge_category: 'historical_achievement' }])
-    const specialHeading = screen.getByRole('heading', { level: 2, name: 'Besondere Auszeichnungen' })
-    const specialGroup = specialHeading.closest('[data-badge-group="special"]')
-    expect(specialGroup?.querySelector('[role="progressbar"]')).toBeNull()
-    expect(specialGroup?.querySelector('[data-badge-stage-strip]')).toBeNull()
-    expect(specialGroup?.querySelectorAll('[data-special-award]')).toHaveLength(1)
-    const { MemberBadgeChain } = await loadMemberBadgeChain()
-    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
-    rendered.rerender(<CollectionChain earnedBadges={[]} badgeProgress={badgeProgress} />)
+  it('Phase 127 RED chain suppresses legacy Special while preserving five retained groups', async () => {
+    const { container } = await renderCollections([
+      { id: 9, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
+      { id: 10, badge_code: 'all_rounder', badge_category: 'historical_achievement' },
+      { id: 11, badge_code: 'productive_bronze', badge_category: 'quantity' },
+      { id: 12, badge_code: 'point_milestone_active', badge_category: 'progress' },
+      { id: 13, badge_code: 'contribution_projects_bronze', badge_category: 'contribution' },
+      { id: 14, badge_code: 'contribution_chronicle_bronze', badge_category: 'contribution' },
+      { id: 15, badge_code: 'contribution_archivist_bronze', badge_category: 'contribution' },
+      { id: 16, badge_code: 'founding_member', badge_category: 'historical_achievement' },
+    ])
+    expect(container.querySelector('[data-badge-group="special"]')).toBeNull()
     expect(screen.queryByRole('heading', { level: 2, name: 'Besondere Auszeichnungen' })).toBeNull()
+    expect(container.querySelector('[data-special-award]')).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Besondere Auszeichnungen-Karussell' })).toBeNull()
+    expect(container.querySelector('[data-anime-project-stage]')).not.toBeNull()
+    expect(container.querySelector('[data-points-achievement-stage]')).not.toBeNull()
+    expect(container.querySelector('[data-contribution-family-stage="contribution_projects"]')).not.toBeNull()
+    expect(container.querySelector('[data-contribution-family-stage="contribution_chronicle"]')).not.toBeNull()
+    expect(container.querySelector('[data-contribution-family-stage="contribution_archivist"]')).not.toBeNull()
+    expect(container.querySelector('[data-membership-stage]')).not.toBeNull()
   })
 })
 
