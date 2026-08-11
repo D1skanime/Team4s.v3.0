@@ -2030,6 +2030,27 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 125-04-PLAN.md — Only after approved: exact 22-section evidence-backed completion report (Wave 4)
 
+### Phase 126: Mitgliedschaftsbadges fachlich trennen und als responsive Membership Stage darstellen
+
+**Goal:** Die Mitgliedschaftsbadges im öffentlichen Memberprofil als eine responsive Membership Stage darstellen: `founding_member` bleibt eine eigenständige historische Auszeichnung innerhalb „Mitgliedschaft“, während ausschließlich `long_term_member`, `membership_7_years` und `membership_10_years` die autoritative 5-/7-/10-Jahre-Dauerprogression bilden — ohne äußeres Carousel und ohne Backend-, API-, DB- oder FocalCarousel-Änderung.
+**Requirements:** `126-PRD.md` Abschnitte 1–58 vollständig gelockt; trackbar als D-01–D-58 in `126-CONTEXT.md`
+**Depends on:** Phase 121 (responsive Rollen-/Artwork-Baseline), Phase 123 (Single-Family Achievement Stage im aktuellen Worktree), Phase 124 (Artwork-Track/Preview), Phase 125 (aktuelle Stage-/Dirty-Worktree-Seams), bestehende Membership-Projektion und Badge-Resolver
+**Plans:** 4 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 126-01-PLAN.md — TDD resolver split, exact duration/founder matrices, longest-single authority and SSR visibility
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 126-02-PLAN.md — TDD responsive Membership Stage, exact three-node track, assets, geometry, accessibility and no-carousel routing
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 126-03-PLAN.md — Full/shared regression, six-viewport live UAT, ten named screenshots and blocking literal `approved` checkpoint
+
+**Wave 4** *(blocked on Wave 3 approval)*
+- [ ] 126-04-PLAN.md — Separately gated exact 21-section report with five explicit answers
+
 ---
 
 ## Milestone v1.3: Fansub Contributions & Gruppenhistorie
