@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { roleColorCode } from '@/lib/roleColors'
 import type { ProjectMemberNote } from '@/types/projectMember'
 
 import styles from './ProjectMemberNotesSection.module.css'
@@ -32,7 +33,7 @@ export function ProjectMemberNoteCard({
   const versionSuffix = note.release_version_label ? ` · ${note.release_version_label}` : ''
 
   return (
-    <article className={styles.noteCard}>
+    <article className={styles.noteCard} data-role-code={roleColorCode(note.role_label || 'Mitwirkung')}>
       <div className={styles.noteHead}>
         <span className={styles.noteRole}>{note.role_label || 'Mitwirkung'}</span>
         <span className={styles.noteDate}>{formatDate(note.created_at)}</span>
