@@ -259,6 +259,23 @@ describe('SegmenteTab table', () => {
     expect(await screen.findByText('Segment bearbeiten')).toBeTruthy()
   })
 
+  it('blendet Segmente aus, deren Episodenbereich die aktuelle Folge nicht abdeckt (Regression Folge-1 auf Folge-5)', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({ id: 91, theme_title: 'Folge1 OP', start_episode: 1, end_episode: 1 }),
+        makeSegment({ id: 92, theme_title: 'Folge1 ED', start_episode: 1, end_episode: 1 }),
+        makeSegment({ id: 93, theme_title: 'Folge5 Insert', start_episode: 5, end_episode: 5 }),
+      ],
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={5} releaseVariantId={9} />)
+
+    const table = await screen.findByRole('table')
+    expect(await within(table).findByText('Folge5 Insert')).toBeTruthy()
+    expect(within(table).queryByText('Folge1 OP')).toBeNull()
+    expect(within(table).queryByText('Folge1 ED')).toBeNull()
+  })
+
   it('befüllt neue Segmente mit echten Standardwerten statt nur Platzhaltern', async () => {
     render(
       <SegmenteTab

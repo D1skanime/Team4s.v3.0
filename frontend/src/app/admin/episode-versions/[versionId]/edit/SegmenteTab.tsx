@@ -504,6 +504,13 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     ? `Zeigt alle Segmente, deren Episodenbereich Episode ${episodeNumber} abdeckt.`
     : 'OP/ED-Timing für diese Gruppe und Version.'
 
+  // Nur Segmente zeigen, deren Episodenbereich die aktuelle Folge abdeckt (matcht die Ueberschrift).
+  // Ohne Episodenkontext (episodeNumber == null) die gesamte Bibliothek.
+  const visibleSegments =
+    episodeNumber == null
+      ? segments
+      : segments.filter((segment) => isSegmentActiveForEpisode(segment, episodeNumber))
+
   return (
     <div className={styles.tabContent}>
       {/* Toolbar */}
@@ -575,14 +582,16 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
             </TableRow>
           </TableHead>
           <TableBody>
-            {segments.length === 0 ? (
+            {visibleSegments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className={styles.emptyState}>
-                    Noch keine Segmente vorhanden. Klicke &ldquo;Segment hinzufügen&rdquo; um zu beginnen.
+                    {episodeNumber != null && segments.length > 0
+                      ? `Kein Segment deckt Episode ${episodeNumber} ab. Andere Folgen können eigene Segmente haben.`
+                      : 'Noch keine Segmente vorhanden. Klicke „Segment hinzufügen", um zu beginnen.'}
                   </TableCell>
                 </TableRow>
               ) : (
-                segments.map((segment) => {
+                visibleSegments.map((segment) => {
                   const isActive = episodeNumber != null && isSegmentActiveForEpisode(segment, episodeNumber)
                   const assignmentsOpen = segment.is_shared === true && openAssignmentsFor === segment.id
                   return (
@@ -743,17 +752,17 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
         <div className={styles.timelineHeader}>
           <Clock size={14} />
           Timeline Vorschau
-          {durationSeconds == null && segments.some((s) => s.playback_duration_seconds != null) ? (
+          {durationSeconds == null && visibleSegments.some((s) => s.playback_duration_seconds != null) ? (
             <span style={{ marginLeft: 8, fontSize: 11, color: '#8a8a93' }}>(Laufzeit aus Playback-Metadaten)</span>
           ) : durationSeconds == null ? (
             <span style={{ marginLeft: 8, fontSize: 11, color: '#8a8a93' }}>(Keine reale Laufzeit bekannt)</span>
           ) : null}
         </div>
         <SegmentTimeline
-          segments={segments}
+          segments={visibleSegments}
           totalDurationSeconds={
             durationSeconds ??
-            segments.reduce<number | null>((max, s) => {
+            visibleSegments.reduce<number | null>((max, s) => {
               const d = s.playback_duration_seconds
               if (d == null) return max
               return max == null ? d : Math.max(max, d)
