@@ -9,7 +9,9 @@ import {
   MEMBER_BADGE_GROUP_LABELS,
   MEMBER_BADGE_GROUP_ORDER,
   MEMBER_BADGE_PRESENTATIONS,
+  POINT_MILESTONES,
   PUBLIC_MEMBER_BADGE_CATALOG,
+  resolveMemberBadgeFamilies,
   resolveNextPointMilestone,
   resolveNextRoleVolumeThreshold,
   resolveRoleProgressPresentation,
@@ -166,6 +168,37 @@ describe('resolveNextPointMilestone (Phase 116 D-04 — naechste Punkt-Schwelle)
     const result = resolveNextPointMilestone(2500)
     expect(result.currentBadge?.badge_code).toBe('point_milestone_legend')
     expect(result.nextThreshold).toBeNull()
+  })
+})
+
+describe('Phase 124 canonical points-family boundary oracle', () => {
+  const orderedCodes = ['point_milestone_first', 'point_milestone_active', 'point_milestone_experienced', 'point_milestone_engaged', 'point_milestone_veteran', 'point_milestone_legend']
+  const orderedThresholds = [1, 50, 200, 500, 1000, 2500]
+  it.each([
+    [0, null, 1, 1, 0, false], [1, 'point_milestone_first', 50, 49, 2, false],
+    [49, 'point_milestone_first', 50, 1, 98, false], [50, 'point_milestone_active', 200, 150, 25, false],
+    [199, 'point_milestone_active', 200, 1, 100, false], [200, 'point_milestone_experienced', 500, 300, 40, false],
+    [499, 'point_milestone_experienced', 500, 1, 100, false], [500, 'point_milestone_engaged', 1000, 500, 50, false],
+    [999, 'point_milestone_engaged', 1000, 1, 100, false], [1000, 'point_milestone_veteran', 2500, 1500, 40, false],
+    [2499, 'point_milestone_veteran', 2500, 1, 100, false], [2500, 'point_milestone_legend', null, null, 100, true],
+    [2733, 'point_milestone_legend', null, null, 100, true], [5000, 'point_milestone_legend', null, null, 100, true],
+  ])('resolves %i points without duplicating production thresholds', (points, currentCode, nextThreshold, remainingCount, percent, complete) => {
+    const currentBadge = deriveMilestoneBadge(points)
+    const next = resolveNextPointMilestone(points)
+    const family = resolveMemberBadgeFamilies({
+      earned_codes: currentBadge ? [currentBadge.badge_code] : [],
+      badge_progress: [{ family: 'points', current_count: points, next_threshold: nextThreshold, remaining_count: remainingCount, next_tier: nextThreshold == null ? null : String(nextThreshold), complete }],
+    }).find((candidate) => candidate.key === 'points')
+    expect(POINT_MILESTONES.map(({ badge_code }) => badge_code).reverse()).toEqual(orderedCodes)
+    expect(family?.stages.map(({ threshold }) => threshold)).toEqual(orderedThresholds)
+    expect(currentBadge?.badge_code ?? null).toBe(currentCode)
+    expect(next).toEqual({ currentBadge, nextThreshold })
+    expect(family).toMatchObject({ currentStage: currentCode ? { badge_code: currentCode } : null, nextThreshold, remainingCount, complete })
+    expect(family?.stages.map(({ threshold, earned, locked }) => ({ threshold, earned, locked }))).toEqual(
+      orderedThresholds.map((threshold) => ({ threshold, earned: points >= threshold, locked: points < threshold })),
+    )
+    const progressMax = nextThreshold ?? orderedThresholds.at(-1)!
+    expect(Math.round((Math.min(points, progressMax) / progressMax) * 100)).toBe(percent)
   })
 })
 
