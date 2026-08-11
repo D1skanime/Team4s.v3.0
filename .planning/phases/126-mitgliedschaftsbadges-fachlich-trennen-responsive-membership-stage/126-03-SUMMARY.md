@@ -31,7 +31,9 @@ metrics:
 
 **Regression truth is recorded, but cumulative patch ownership and all ten required live screenshots remain unproven.**
 
-approval: pending
+approval: approved
+
+Human approval recorded: 2026-08-11T15:11:58Z from the user's exact standalone response `approved`. Missing screenshots, the incomplete Plan-02 manifest, and predecessor-owned TSX/CSS isolation remain accepted limitations rather than completed evidence.
 
 ## Founding Preview UAT Fix Continuation
 
@@ -41,7 +43,7 @@ Implemented and technically verified the requested worktree-only founding previe
 - Production TSX/CSS patches are preserved under `.git/phase126/uat-fix-after/` but remain unstaged because both depend on predecessor-owned dirty anchors absent from the index.
 - Focused Phase-126 tests pass 12/12; resolver/public/FocalCarousel regressions pass 130/130; scoped ESLint passes.
 - Full component regression retains the same three known predecessor failures; typecheck retains the recorded generated route and pre-existing test-prop failures.
-- Live browser evidence was unavailable and was not fabricated. Human approval remains pending.
+- Live browser evidence was unavailable and was not fabricated. The user approved while retaining that limitation.
 
 ## Status
 
