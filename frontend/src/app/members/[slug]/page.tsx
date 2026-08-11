@@ -131,6 +131,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
           backgroundImageURL={backgroundImageURL}
           isPublicView={true}
           isVerified={profile.is_verified}
+          publicBadges={publicBadges}
         />
       </section>
 

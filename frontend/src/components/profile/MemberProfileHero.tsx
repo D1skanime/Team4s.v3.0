@@ -3,8 +3,10 @@ import { CalendarDays, Eye, Save } from 'lucide-react'
 
 import { Button, HeroMetrics, PageHeader } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
-import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile'
+import type { MemberProfileData, PublicMemberBadge, PublicMemberProfileData } from '@/types/profile'
 
+import { resolveBadgeArtwork } from './badgeArtwork'
+import { getMemberBadgePresentation, PUBLIC_MEMBER_BADGE_CATALOG } from './memberBadgeLabels'
 import { VerifiedBadge } from './VerifiedBadge'
 import { MemberStatusPill } from './MemberStatusPill'
 import { MemberProfileMemorialHero } from './MemberProfileMemorialHero'
@@ -19,7 +21,10 @@ type MemberProfileHeroProps = {
   isSaving?: boolean
   canSave?: boolean
   isVerified?: boolean
+  publicBadges?: PublicMemberBadge[]
 }
+
+const HEADER_SPECIAL_CODES = new Set(['historical_leader', 'all_rounder'])
 
 function getAccountDisplayName(profile: MemberProfileData | PublicMemberProfileData): string {
   return 'account_display_name' in profile ? profile.account_display_name : ''
@@ -87,6 +92,7 @@ export function MemberProfileHero({
   isSaving = false,
   canSave = false,
   isVerified = false,
+  publicBadges = [],
 }: MemberProfileHeroProps) {
   const accountDisplayName = getAccountDisplayName(profile)
   const displayName = profile.fansub_name || accountDisplayName || 'Mein Profil'
@@ -97,6 +103,10 @@ export function MemberProfileHero({
   const knownFor = deriveKnownForFromPublicProfile(profile)
   const totalPoints = getTotalPoints(profile)
   const isAnimatedAvatar = /\.gif(?:$|\?)/i.test(avatarURL)
+  const earnedCodes = new Set(publicBadges.map((badge) => badge.badge_code))
+  const specialAwards = PUBLIC_MEMBER_BADGE_CATALOG
+    .filter((item) => HEADER_SPECIAL_CODES.has(item.badge_code) && earnedCodes.has(item.badge_code))
+    .map((item) => ({ ...item, presentation: getMemberBadgePresentation(item.badge_code) }))
 
   if (isPublicView && profileStatus === 'memorial' && 'profile_status' in profile) {
     return (
@@ -230,6 +240,22 @@ export function MemberProfileHero({
                 </span>
               ) : null}
             </div>
+          ) : null}
+          {specialAwards.length > 0 ? (
+            <ul className={styles.heroSpecialAwardsList} aria-label="Besondere Auszeichnungen">
+              {specialAwards.map((award) => {
+                const artwork = resolveBadgeArtwork(award.badge_code)
+                const Icon = award.presentation.Icon
+                return (
+                  <li className={styles.heroSpecialAward} key={award.badge_code}>
+                    <span className={styles.heroSpecialArtwork} aria-hidden="true">
+                      {artwork ? <ResponsiveImage src={artwork} alt="" width={40} height={40} sizes="40px" /> : <Icon size={24} data-special-award-icon={award.badge_code} />}
+                    </span>
+                    <span>{award.presentation.label}</span>
+                  </li>
+                )
+              })}
+            </ul>
           ) : null}
         </div>
       </div>
