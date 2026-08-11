@@ -254,6 +254,9 @@ describe('MemberProfileHero', () => {
     ]
 
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByText('Aktiv').parentElement).toBe(
+      screen.getByRole('heading', { level: 1 }).parentElement,
+    )
     for (let index = 1; index < orderedCopy.length; index += 1) {
       expect(copy.indexOf(orderedCopy[index - 1])).toBeLessThan(copy.indexOf(orderedCopy[index]))
     }

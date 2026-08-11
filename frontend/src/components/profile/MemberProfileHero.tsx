@@ -205,7 +205,7 @@ export function MemberProfileHero({
               <span className={styles.heroStatusSurface}><VerifiedBadge /></span>
             ) : null}
             {isPublicView && profileStatus ? (
-              <span className={styles.heroStatusSurface}><MemberStatusPill status={profileStatus} /></span>
+              <MemberStatusPill status={profileStatus} />
             ) : null}
           </div>
           {isPublicView && totalPoints !== null ? (
