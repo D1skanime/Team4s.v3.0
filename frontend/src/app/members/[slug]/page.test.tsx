@@ -494,7 +494,7 @@ describe('Quick 260811-rms widescreen profile balance', () => {
     expect(profileChildrenRule).toContain('min-width: 0;')
     expect(profileChildrenRule).not.toContain('overflow-wrap: anywhere')
 
-    expect(memberPageStyles).toMatch(/@media \(max-width: 1024px\)[\s\S]*?\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
+    expect(memberPageStyles).toMatch(/@media \(max-width: 1399px\)[\s\S]*?\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
     expect(memberPageStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
 
     expect(profileRule).not.toMatch(/(?:width:\s*\d|100vw|overflow-x:\s*hidden|margin-(?:left|right):\s*-)/)

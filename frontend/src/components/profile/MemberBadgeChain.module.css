@@ -1595,7 +1595,7 @@
 }
 
 /* Phase 121-04: screenshot-faithful role hero composition, consumer-side only. */
-@media (min-width: 1100px) {
+@media (min-width: 1440px) {
   .group[data-badge-group="roles"] .chain {
     --focal-item-size: min(76%, 1120px);
   }
@@ -1866,7 +1866,7 @@
   line-height: 1.35;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1440px) {
   .group[data-badge-group="roles"] .roleBadgeRow {
     grid-template-columns: minmax(300px, 0.84fr) minmax(460px, 1.16fr);
     grid-template-areas:
