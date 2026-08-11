@@ -21,6 +21,9 @@
   background: var(--surface-card);
   border: 1px solid var(--color-border);
   border-left: 3px solid color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 55%, var(--color-border));
+  /* Klare Header-/Footer-Streifen in der vollen Rollenfarbe (data-role-code -> --role-accent). */
+  border-top: 4px solid var(--role-accent, var(--role-accent-default));
+  border-bottom: 4px solid var(--role-accent, var(--role-accent-default));
   box-shadow: var(--shadow-xs);
   color: var(--text-primary);
 }
