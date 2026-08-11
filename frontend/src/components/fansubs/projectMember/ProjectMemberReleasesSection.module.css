@@ -10,9 +10,11 @@
   display: flex;
   gap: 16px;
   padding: 14px 16px;
-  border-radius: 12px;
-  background: var(--color-surface, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+  color: var(--text-primary);
 }
 
 .episode {
@@ -20,7 +22,8 @@
   min-width: 88px;
   font-weight: 700;
   font-size: 0.95rem;
-  border-right: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary);
+  border-right: 1px solid var(--color-border);
   padding-right: 16px;
 }
 
@@ -34,10 +37,11 @@
 
 .version {
   font-weight: 600;
+  color: var(--text-primary);
 }
 .confirmed {
   font-size: 0.82rem;
-  opacity: 0.75;
+  color: var(--text-muted);
 }
 .roles {
   display: flex;
@@ -49,17 +53,17 @@
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--color-surface-2, rgba(255, 255, 255, 0.08));
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  background: var(--surface-sunken);
+  border: 1px solid var(--color-border);
+  color: var(--text-primary);
 }
 .link {
   align-self: flex-start;
   margin-top: 4px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: inherit;
+  color: var(--accent-deep);
   text-decoration: none;
-  opacity: 0.9;
 }
 .link:hover,
 .link:focus-visible {
@@ -75,7 +79,10 @@
 .error {
   margin-top: 12px;
   font-size: 0.88rem;
-  opacity: 0.8;
+  color: var(--text-muted);
+}
+.error {
+  color: var(--color-error, #dc3545);
 }
 
 @media (max-width: 560px) {
@@ -85,7 +92,7 @@
   }
   .episode {
     border-right: none;
-    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    border-bottom: 1px solid var(--color-border);
     padding-right: 0;
     padding-bottom: 8px;
   }
