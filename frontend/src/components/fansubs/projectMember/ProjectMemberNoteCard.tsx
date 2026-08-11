@@ -18,8 +18,10 @@ function formatDate(iso: string): string {
   return `${dd}.${mm}.${date.getFullYear()}`
 }
 
-// Textbeitrag-Karte (Brief 3.2, D-15): Rolle als Überschrift, "Beitrag zu Folge X" als
-// Sekundärzeile, optionaler Titel, Clamp + Mehr/Weniger, Release-Metadatum als Link.
+// Textbeitrag-Karte (Brief 3.2, D-15): Rolle im farbigen Header-Band (Team4s-Rollenfarbe),
+// "Beitrag zu Folge X" als Sekundärzeile, optionaler Titel, Clamp + Mehr/Weniger,
+// Release-Metadatum als farbiges Footer-Band. data-role-code am Karten-Element vererbt
+// --role-accent an Header/Footer.
 export function ProjectMemberNoteCard({
   note,
   projectPath,
@@ -33,27 +35,32 @@ export function ProjectMemberNoteCard({
   const versionSuffix = note.release_version_label ? ` · ${note.release_version_label}` : ''
 
   return (
-    <article className={styles.noteCard} data-role-code={roleColorCode(note.role_label || 'Mitwirkung')}>
+    <article
+      className={styles.noteCard}
+      data-role-code={roleColorCode(note.role_label || 'Mitwirkung')}
+    >
       <div className={styles.noteHead}>
         <span className={styles.noteRole}>{note.role_label || 'Mitwirkung'}</span>
         <span className={styles.noteDate}>{formatDate(note.created_at)}</span>
       </div>
-      {note.episode_label ? (
-        <p className={styles.noteEpisode}>Beitrag zu Folge {note.episode_label}</p>
-      ) : null}
-      {note.title ? <p className={styles.noteTitle}>{note.title}</p> : null}
-      <p className={`${styles.noteBody} ${canToggle && !expanded ? styles.noteBodyClamped : ''}`}>
-        {note.body_text}
-      </p>
-      {canToggle ? (
-        <button
-          type="button"
-          className={styles.noteToggle}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          {expanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
-        </button>
-      ) : null}
+      <div className={styles.noteContent}>
+        {note.episode_label ? (
+          <p className={styles.noteEpisode}>Beitrag zu Folge {note.episode_label}</p>
+        ) : null}
+        {note.title ? <p className={styles.noteTitle}>{note.title}</p> : null}
+        <p className={`${styles.noteBody} ${canToggle && !expanded ? styles.noteBodyClamped : ''}`}>
+          {note.body_text}
+        </p>
+        {canToggle ? (
+          <button
+            type="button"
+            className={styles.noteToggle}
+            onClick={() => setExpanded((value) => !value)}
+          >
+            {expanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+          </button>
+        ) : null}
+      </div>
       <Link href={releaseHref} className={styles.noteFooter}>
         Folge {note.episode_label}
         {versionSuffix} →

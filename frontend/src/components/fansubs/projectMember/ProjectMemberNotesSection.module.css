@@ -15,36 +15,50 @@
 .noteCard {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 16px;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
   border-radius: var(--radius-md);
   background: var(--surface-card);
   border: 1px solid var(--color-border);
-  border-left: 3px solid color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 55%, var(--color-border));
-  /* Klare Header-/Footer-Streifen in der vollen Rollenfarbe (data-role-code -> --role-accent). */
-  border-top: 4px solid var(--role-accent, var(--role-accent-default));
-  border-bottom: 4px solid var(--role-accent, var(--role-accent-default));
+  /* Unterer Footer-Streifen in voller Rollenfarbe (8px). */
+  border-bottom: 8px solid var(--role-accent, var(--role-accent-default));
   box-shadow: var(--shadow-xs);
   color: var(--text-primary);
 }
 
 .noteHead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
+  padding: 9px 14px;
+  /* Gedaempftes Header-Band im Ton der seitlichen Leiste (55% Akzent + Rahmengrau). */
+  background: color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 55%, var(--color-border));
+  color: var(--text-primary);
+}
+
+.noteContent {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+}
+/* Default-Absatz-Margins zuruecksetzen — sonst summieren sie sich mit dem Flex-gap. */
+.noteContent > * {
+  margin: 0;
 }
 
 .noteRole {
   font-size: 1rem;
   font-weight: 700;
-  /* Rolle im Team4s-Rollenfarbton (data-role-code am Karten-Element vererbt --role-accent). */
-  color: color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 70%, var(--text-primary));
+  color: color-mix(in srgb, var(--role-accent, var(--role-accent-default)) 38%, var(--text-primary));
 }
 
 .noteDate {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: color-mix(in srgb, var(--text-primary) 68%, transparent);
   white-space: nowrap;
 }
 
@@ -87,7 +101,7 @@
 }
 
 .noteFooter {
-  margin-top: 4px;
+  padding: 2px 14px 14px;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--accent-deep);
