@@ -781,6 +781,7 @@ Recent durable decisions:
 
 | # | Description | Date | Commit | Status | Directory |
 |---|-------------|------|--------|--------|-----------|
+| 260812-ras | Allgemeine Aggregat-Zusammenfassung im öffentlichen Memberprofil vollständig entfernen; Rollenanzahl, Rollen-Carousel, Achievement-Familien und Hero-Badges erhalten | 2026-08-12 | 8c2c6f8e | Approved | [260812-ras-remove-aggregate-achievement-summary](./quick/260812-ras-remove-aggregate-achievement-summary/) |
 | 260803-ozq | Profilseite responsiv optimieren: Neulade-Sprung beheben, Mobile-Projektkarten kompakt gestalten, Mobile-Badge-Cards kürzen, Aktuell/Vorschau vereinfachen und Beitragsfeed initial begrenzen | 2026-08-03 | a85efab0 | Verified | [260803-ozq-profilseite-responsiv-optimieren-neulade](./quick/260803-ozq-profilseite-responsiv-optimieren-neulade/) |
 | 260803-jo0 | Öffentliche Member-Profilseite: Gruppenzugehörigkeit und aktuelle Projekte als kompakte responsive Kartenraster optimieren | 2026-08-03 | b01f099c | Verified | [260803-jo0-ffentliche-member-profilseite-gruppenzug](./quick/260803-jo0-ffentliche-member-profilseite-gruppenzug/) |
 | 260803-be5 | Rollenbadges visuell vereinheitlichen, Karussell-Endposition korrigieren, Profilbreite auf 1480 Pixel setzen und horizontalen Seiten-Overflow der Fansubseite beheben | 2026-08-03 | e3d611a5 |  | [260803-be5-rollenbadges-visuell-vereinheitlichen-ka](./quick/260803-be5-rollenbadges-visuell-vereinheitlichen-ka/) |
