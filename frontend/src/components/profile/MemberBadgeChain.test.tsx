@@ -1872,4 +1872,14 @@ describe('Quick 260812-rps responsive BadgeChain contract', () => {
     expect(memberBadgeChainCss).not.toMatch(/\.(?:familyCard|familyProgressCopy)\s*\{[^}]*(?:overflow-wrap:\s*anywhere|word-break:\s*break-all)/s)
   })
 })
+
+describe('Quick 260812-rps medium contribution carousel geometry', () => {
+  it('gives the active card usable width and stacks its hero before copy is squeezed', () => {
+    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.group\[data-badge-group=['"]contributions['"]\] \.chain\s*\{[^}]*--focal-item-size:\s*88%;/s)
+    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionStageInfo\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionStageProgressValue\s*\{[^}]*flex-wrap:\s*wrap;/s)
+    expect(memberBadgeChainCss).not.toMatch(/\.group\[data-badge-group=['"]contributions['"]\][^}]*overflow:\s*hidden/s)
+  })
+})
 })
