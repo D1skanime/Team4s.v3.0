@@ -395,6 +395,7 @@ describe('Quick 260812-rps responsive Hero contract', () => {
     expect(copyRule).toContain('min-width: 0;')
     expect(copyRule).toContain('max-width: min(100%, 760px);')
     expect(css).toMatch(/\.(?:heroTitle|heroBio|heroMetaLine)\s*\{[^}]*overflow-wrap:\s*normal;/s)
+    expect(css).toMatch(/\.membershipsList\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*18rem\),\s*1fr\)\)/s)
     expect(css).not.toMatch(/\.(?:heroTitle|heroBio|heroMetaLine)\s*\{[^}]*(?:overflow:\s*hidden|word-break:\s*break-all)/s)
   })
 })

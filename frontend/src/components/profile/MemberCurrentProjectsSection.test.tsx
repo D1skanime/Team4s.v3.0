@@ -208,3 +208,11 @@ it('Phase 120 RED: reserves project geometry while SSR cards remain readable', (
     expect(screen.getByText('Keine aktuellen Projekte sichtbar.')).not.toBeNull()
     expect(rendered.container.querySelector(':scope > section > [aria-hidden="true"]')).toBeNull()
 })
+
+describe('Quick 260812-rps widescreen project alignment', () => {
+  it('lets a single project consume the shared section width', () => {
+    const wideRule = projectStyles.match(/\.projectList\s*\{[^}]*\}/s)?.[0] ?? ''
+    expect(wideRule).toContain('grid-template-columns: repeat(auto-fit, minmax(min(100%, 32rem), 1fr));')
+    expect(wideRule).not.toContain('repeat(2, minmax(0, 1fr))')
+  })
+})

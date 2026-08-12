@@ -274,10 +274,10 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(profileStyles).toMatch(/\.membershipCard\s*\{[\s\S]*?border:\s*1px solid var\(--border-subtle\);[\s\S]*?border-radius:\s*var\(--radius-lg\);[\s\S]*?background:\s*var\(--surface-card\);[\s\S]*?box-shadow:\s*var\(--shadow-sm\);/)
   })
 
-  it('opts only the role badge band into the centered visual-width breakout', () => {
-    expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[\s\S]*?width:\s*min\(calc\(100vw - var\(--public-page-gutter\)\), var\(--content-width-visual\), var\(--content-width-visual-cap\)\);/)
-    expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1599px\)[\s\S]*?\.badgesVisualBand\s*\{[\s\S]*?width:\s*100%;[\s\S]*?left:\s*auto;[\s\S]*?transform:\s*none;/)
+  it('keeps the role badge band on the same shared section edges', () => {
+    expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[^}]*width:\s*100%;/s)
+    expect(memberPageStyles).not.toMatch(/\.badgesVisualBand\s*\{[^}]*(?:100vw|left:\s*50%|translateX)/s)
+    expect(memberPageStyles).not.toMatch(/@media \(max-width:\s*1599px\)[\s\S]*?\.badgesVisualBand/s)
     expect(memberPageStyles).not.toMatch(/\.(?:profileBand|projectsBand|contributionsBand)\s*\{[^}]*(?:content-width-visual|content-width-visual-cap)/s)
   })
 
@@ -552,5 +552,15 @@ describe('Quick 260812-rps full-page responsive contract', () => {
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s)
     expect(memberPageStyles).toMatch(/\.sectionPair\s*>\s*\*\s*\{[^}]*min-width:\s*0;/s)
     expect(memberPageStyles).not.toMatch(/word-break:\s*break-all/)
+  })
+})
+
+describe('Quick 260812-rps widescreen UAT regression', () => {
+  it('keeps the shared section edges aligned and the profile pair near 60/40', () => {
+    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*8fr\) minmax\(0,\s*5fr\)/s)
+    const visualBand = memberPageStyles.match(/\.badgesVisualBand\s*\{[^}]*\}/s)?.[0] ?? ''
+    expect(visualBand).toContain('width: 100%;')
+    expect(visualBand).not.toMatch(/(?:100vw|left:\s*50%|translateX)/)
+    expect(memberPageStyles).not.toMatch(/\.contributionPairEmpty\s*\{[^}]*\.contributionPairPresent/s)
   })
 })
