@@ -384,3 +384,13 @@ describe('Phase 127 RED hero special awards', () => {
     expect(css).not.toMatch(/\.heroSpecialAwardsList\s*\{[^}]*overflow-x:\s*(?:auto|scroll)/s)
   })
 })
+
+describe('Quick 260812-rps responsive Hero contract', () => {
+  it('keeps identity, status, points and metadata shrinkable with normal local wrapping', () => {
+    const css = readFileSync('src/components/profile/profile.module.css', 'utf8')
+    expect(css).toMatch(/\.heroPanel\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(css).toMatch(/\.heroCopy\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*min\(100%,\s*760px\);/s)
+    expect(css).toMatch(/\.(?:heroTitle|heroBio|heroMetaLine)\s*\{[^}]*overflow-wrap:\s*normal;/s)
+    expect(css).not.toMatch(/\.(?:heroTitle|heroBio|heroMetaLine)\s*\{[^}]*(?:overflow:\s*hidden|word-break:\s*break-all)/s)
+  })
+})

@@ -1862,4 +1862,14 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
     expect(memberBadgeChainCss).toMatch(/\.lockedStageHeroCopy\s*\{[^}]*text-align:\s*center;/s)
     expect(memberBadgeChainCss).toMatch(/\.lockedStageArtwork:not\(\.lockedStageArtworkHero\)\s*\{[^}]*width:\s*clamp\(44px,\s*100%,\s*96px\);/s)
   })
+
+describe('Quick 260812-rps responsive BadgeChain contract', () => {
+  it('bounds hero, progress and carousel consumers without arbitrary copy breaking', () => {
+    expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
+    expect(memberBadgeChainCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(memberBadgeChainCss).toMatch(/\.familyProgressBlock\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(memberBadgeChainCss).toMatch(/\.familyProgressCopy\s*\{[^}]*overflow-wrap:\s*normal;/s)
+    expect(memberBadgeChainCss).not.toMatch(/\.(?:familyCard|familyProgressCopy)\s*\{[^}]*(?:overflow-wrap:\s*anywhere|word-break:\s*break-all)/s)
+  })
+})
 })

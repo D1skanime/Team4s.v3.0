@@ -226,7 +226,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[\s\S]*?padding:\s*32px;/)
     expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
     expect(memberPageStyles).toContain('min-width: 0;')
-    expect(memberPageStyles).toContain('overflow-wrap: anywhere;')
+    expect(memberPageStyles).not.toMatch(/\.page\s*\{[^}]*overflow-wrap:\s*anywhere/s)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
     expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
@@ -542,5 +542,15 @@ describe('Quick 260811-rms widescreen profile balance', () => {
 
     expect(profileRule).not.toMatch(/(?:width:\s*\d|100vw|overflow-x:\s*hidden|margin-(?:left|right):\s*-)/)
     expect(memberPageStyles).not.toMatch(/\.profilePair\s*\{[^}]*overflow-wrap:\s*anywhere/s)
+  })
+})
+
+describe('Quick 260812-rps full-page responsive contract', () => {
+  it('stacks constrained pairs before tablet portrait geometry fails without clipping the page', () => {
+    const pageRule = memberPageStyles.match(/^\.page\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
+    expect(pageRule).not.toMatch(/(?:overflow-wrap:\s*anywhere|overflow-x:\s*hidden|width:\s*100vw|margin-(?:left|right):\s*-)/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s)
+    expect(memberPageStyles).toMatch(/\.sectionPair\s*>\s*\*\s*\{[^}]*min-width:\s*0;/s)
+    expect(memberPageStyles).not.toMatch(/word-break:\s*break-all/)
   })
 })

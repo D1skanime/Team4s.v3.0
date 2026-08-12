@@ -729,3 +729,14 @@ it('Phase 120 RED: activates once at 600px and immediately without IntersectionO
       vi.unstubAllGlobals()
     }
 })
+
+describe('Quick 260812-rps responsive carousel contract', () => {
+  it('bounds cards to the component container and preserves 44px controls', () => {
+    expect(focalCarouselCss).toMatch(/\.root\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*focal-carousel \/ inline-size;/s)
+    expect(focalCarouselCss).toMatch(/\.track\s*\{[^}]*width:\s*100%;[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;/s)
+    expect(focalCarouselCss).toMatch(/\.itemWindow\s*\{[^}]*flex:\s*0 0 var\(--focal-item-size\);[^}]*max-width:\s*100%;/s)
+    expect(focalCarouselCss).toMatch(/\.arrow\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s)
+    expect(focalCarouselCss).toContain('@container focal-carousel (min-width: 1100px)')
+    expect(focalCarouselCss).not.toContain('@media (min-width: 1100px)')
+  })
+})
