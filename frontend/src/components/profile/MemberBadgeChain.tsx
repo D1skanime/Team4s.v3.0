@@ -659,13 +659,6 @@ export function MemberBadgeChain({
       }),
     ]
   })
-  const earnedCount = generalCatalog.filter((item) => earnedCodes.has(item.badge_code)).length
-  const generalAchievementSummary = `${earnedCount} ${
-    earnedCount === 1 ? 'Auszeichnung' : 'Auszeichnungen'
-  } freigeschaltet`
-  const progressPercent = generalCatalog.length > 0
-    ? Math.round((earnedCount / generalCatalog.length) * 100)
-    : 0
   const collectionEnabled = badgeProgress !== undefined
   const groups = buildMemberBadgeGroups([...generalCatalog, ...roleCatalog])
     .filter((group) => !collectionEnabled || group.key === 'roles')
@@ -685,16 +678,6 @@ export function MemberBadgeChain({
   return (
     <section className={styles.section}>
       <Card variant="section" className={styles.chainCard}>
-        <div className={styles.progressBlock} aria-label={generalAchievementSummary}>
-          <div className={styles.progressMeta}>
-            <span>Allgemeine Auszeichnungen</span>
-            <span>{generalAchievementSummary}</span>
-          </div>
-          <div className={styles.progressTrack} aria-hidden="true">
-            <span style={{ width: `${progressPercent}%` }} />
-          </div>
-        </div>
-
         <div className={styles.groupList}>
           {groups.map((group) => (
             <div key={group.key} className={styles.group} data-badge-group={group.key}>
