@@ -184,7 +184,7 @@ it('Phase 120 RED: reserves project geometry while SSR cards remain readable', (
       />,
     )
 
-    const list = screen.getByRole('list', { name: 'Aktuelle Projekte' })
+    const list = screen.getByRole('list', { name: 'Fansub-Projekte' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(2)
     expect(screen.getByRole('link', { name: 'Projekt 1 öffnen' })).not.toBeNull()
     expect(screen.getByRole('link', { name: 'Projekt 2 öffnen' })).not.toBeNull()

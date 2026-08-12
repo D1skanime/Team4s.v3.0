@@ -287,7 +287,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(screen.getAllByRole('heading', { level: 1 }).map((heading) => heading.textContent)).toContain('Ballelboy')
     expect(screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)).toEqual([
       'Profil und Mitgliedschaft',
-      'Aktuelle Projekte',
+      'Fansub-Projekte',
       'Rollenfortschritt',
       'Fortschritt',
       'Punkte-Meilensteine',

@@ -69,7 +69,7 @@ export function MemberCurrentProjectsSection({
 
   return (
     <section ref={targetRef} className={styles.section}>
-      <SectionHeader title="Aktuelle Projekte" />
+      <SectionHeader title="Fansub-Projekte" />
 
       {visibleProjects.length > 0 ? (
         <ul
@@ -94,7 +94,7 @@ export function MemberCurrentProjectsSection({
       {visibleProjects.length === 0 ? (
         <EmptyState title="Keine aktuellen Projekte sichtbar." />
       ) : (
-        <ul className={styles.projectList} aria-label="Aktuelle Projekte">
+        <ul className={styles.projectList} aria-label="Fansub-Projekte">
           {visibleProjects.map((project) => (
             <li key={`${project.anime_id}:${project.fansub_group_id}`}>
               <Link

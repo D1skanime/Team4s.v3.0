@@ -147,7 +147,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
         </div>
       </section>
 
-      <section className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`} aria-label="Aktuelle Projekte">
+      <section className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`} aria-label="Fansub-Projekte">
         <MemberCurrentProjectsSection
           memberSlug={slug}
           projects={currentProjects}
