@@ -511,7 +511,7 @@ describe('Phase 125 contribution achievement stages', () => {
     expect(screen.queryByText('other:')).toBeNull()
   })
 
-  it('renders a horizontal earned-and-locked badge chain with progress copy', async () => {
+  it('renders a horizontal earned-and-locked badge chain without an aggregate summary', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
     const { container } = render(
@@ -521,10 +521,8 @@ describe('Phase 125 contribution achievement stages', () => {
       />,
     )
 
-    expect(screen.getByText('1 Auszeichnung freigeschaltet')).not.toBeNull()
-    expect(
-      container.querySelector('[aria-label="1 Auszeichnung freigeschaltet"] [aria-hidden="true"] span')?.getAttribute('style'),
-    ).toBe('width: 33%;')
+    expect(screen.queryByText('Allgemeine Auszeichnungen')).toBeNull()
+    expect(screen.queryByText(/Auszeichnungen? freigeschaltet/)).toBeNull()
     expect(screen.getByText('Gründungsmitglied')).not.toBeNull()
     expect(screen.getByText('Übersetzung')).not.toBeNull()
     expect(screen.getByLabelText('Übersetzung gesperrt')).not.toBeNull()
@@ -548,14 +546,15 @@ describe('Phase 125 contribution achievement stages', () => {
     expect(within(chain).queryByText(/Bronze|Silber|Gold/i)).toBeNull()
   })
 
-  it('summarizes general achievements without a catalog denominator in DOM, accessibility and SSR', async () => {
+  it('omits the aggregate achievement summary from DOM, accessibility and SSR', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
     const { rerender } = render(
       <MemberBadgeChain earnedBadges={[]} catalog={catalog} />,
     )
-    expect(screen.getByLabelText('0 Auszeichnungen freigeschaltet')).not.toBeNull()
-    expect(screen.getByText('0 Auszeichnungen freigeschaltet')).not.toBeNull()
+    expect(screen.queryByText('Allgemeine Auszeichnungen')).toBeNull()
+    expect(screen.queryByText(/Auszeichnungen? freigeschaltet/)).toBeNull()
+    expect(screen.queryByLabelText(/Auszeichnungen? freigeschaltet/)).toBeNull()
 
     rerender(
       <MemberBadgeChain
@@ -563,8 +562,8 @@ describe('Phase 125 contribution achievement stages', () => {
         catalog={catalog}
       />,
     )
-    expect(screen.getByLabelText('1 Auszeichnung freigeschaltet')).not.toBeNull()
-    expect(screen.getByText('1 Auszeichnung freigeschaltet')).not.toBeNull()
+    expect(screen.queryByText(/Auszeichnungen? freigeschaltet/)).toBeNull()
+    expect(screen.queryByLabelText(/Auszeichnungen? freigeschaltet/)).toBeNull()
 
     rerender(
       <MemberBadgeChain
@@ -575,8 +574,8 @@ describe('Phase 125 contribution achievement stages', () => {
         catalog={catalog}
       />,
     )
-    expect(screen.getByLabelText('2 Auszeichnungen freigeschaltet')).not.toBeNull()
-    expect(screen.getByText('2 Auszeichnungen freigeschaltet')).not.toBeNull()
+    expect(screen.queryByText(/Auszeichnungen? freigeschaltet/)).toBeNull()
+    expect(screen.queryByLabelText(/Auszeichnungen? freigeschaltet/)).toBeNull()
 
     const html = renderToStaticMarkup(
       <MemberBadgeChain
@@ -588,8 +587,8 @@ describe('Phase 125 contribution achievement stages', () => {
         catalog={roleProgressCatalog}
       />,
     )
-    expect(html).toContain('1 Auszeichnung freigeschaltet')
-    expect(html).not.toMatch(/\d+ von \d+ Auszeichnungen freigeschaltet/)
+    expect(html).not.toContain('Allgemeine Auszeichnungen')
+    expect(html).not.toMatch(/Auszeichnungen? freigeschaltet/)
     expect(html).toContain('1 ausgeübte Fansubrolle')
   })
 
