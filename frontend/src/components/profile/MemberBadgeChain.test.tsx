@@ -1816,3 +1816,51 @@ describe('Quick 260811-lck locked achievement artwork secrecy', () => {
     expect(html).not.toContain('founding_member')
   })
 })
+
+describe('Quick 260812-bqs locked mystery heroes', () => {
+  const lockedProgress = [
+    { family: 'points', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Erste Punkte', complete: false },
+    { family: 'contribution_projects', current_count: 0, next_threshold: 1, remaining_count: 1, next_tier: 'Bronze', complete: false },
+    { family: 'contribution_chronicle', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: 'Bronze', complete: false },
+    { family: 'contribution_archivist', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: 'Bronze', complete: false },
+    { family: 'membership', current_count: 0, next_threshold: 5, remaining_count: 5, next_tier: '5 Jahre', complete: false },
+  ]
+
+  it('renders the same secret neutral hero contract for every completely unearned family', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const Chain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof lockedProgress }>
+    const { container } = render(<Chain earnedBadges={[]} badgeProgress={lockedProgress} />)
+    const heroes = Array.from(container.querySelectorAll<HTMLElement>('[data-locked-stage-hero]'))
+    expect(heroes).toHaveLength(5)
+    expect(screen.getAllByText('Noch nicht freigeschaltet')).toHaveLength(5)
+    for (const hero of heroes) {
+      expect(hero.matches('[data-locked-stage-art]')).toBe(true)
+      expect(hero.textContent).toContain('?')
+      expect(hero.querySelector('svg')).not.toBeNull()
+      expect(hero.querySelector('img, [data-achievement-art], [class*="Motif"], [class*="Frame"]')).toBeNull()
+      expect(hero.getAttribute('class')).not.toMatch(/bronze|silver|gold|platinum/i)
+    }
+    expect(container.querySelector('[data-points-achievement-stage] [data-locked-stage-hero]')).not.toBeNull()
+    for (const key of ['contribution_projects', 'contribution_chronicle', 'contribution_archivist']) {
+      expect(container.querySelector(`[data-family="${key}"] [data-locked-stage-hero]`)).not.toBeNull()
+    }
+    expect(container.querySelector('[data-membership-stage] [data-locked-stage-hero]')).not.toBeNull()
+  })
+
+  it('keeps locked hero SSR free of future artwork identifiers and colors', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const Chain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof lockedProgress }>
+    const html = renderToStaticMarkup(<Chain earnedBadges={[]} badgeProgress={lockedProgress} />)
+    expect(html.match(/data-locked-stage-hero/g)).toHaveLength(5)
+    expect(html.match(/Noch nicht freigeschaltet/g)).toHaveLength(5)
+    expect(html).not.toContain('data-achievement-art')
+    expect(html).not.toContain('/member-achievement-badges/')
+    expect(html).not.toMatch(/Motif|Frame|bronze|silver|gold|platinum/i)
+  })
+
+  it('defines a responsive hero composition without changing the compact lock default', () => {
+    expect(memberBadgeChainCss).toMatch(/\.lockedStageArtworkHero\s*\{[^}]*width:\s*min\(100%,\s*320px\);[^}]*max-width:\s*100%;[^}]*aspect-ratio:\s*1;/s)
+    expect(memberBadgeChainCss).toMatch(/\.lockedStageHeroCopy\s*\{[^}]*text-align:\s*center;/s)
+    expect(memberBadgeChainCss).toMatch(/\.lockedStageArtwork:not\(\.lockedStageArtworkHero\)\s*\{[^}]*width:\s*clamp\(44px,\s*100%,\s*96px\);/s)
+  })
+})
