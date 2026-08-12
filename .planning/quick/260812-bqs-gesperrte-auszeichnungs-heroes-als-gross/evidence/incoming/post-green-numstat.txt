@@ -1,0 +1,1 @@
+48	15	frontend/src/components/profile/MemberBadgeChain.test.tsx
