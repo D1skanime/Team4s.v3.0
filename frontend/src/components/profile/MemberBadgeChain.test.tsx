@@ -1910,5 +1910,26 @@ describe('Quick 260812-rps medium contribution carousel geometry', () => {
     expect(memberBadgeChainCss).toMatch(/\.contributionStageProgressValue\s*\{[^}]*flex-wrap:\s*wrap;/s)
     expect(memberBadgeChainCss).not.toMatch(/\.group\[data-badge-group=['"]contributions['"]\][^}]*overflow:\s*hidden/s)
   })
+
+describe('Quick 260812-jtp BadgeChain rhythm ownership', () => {
+  it('uses the shared spacing scale only at section and group seams', () => {
+    expect(memberBadgeChainCss).toMatch(/\.section\s*\{[^}]*gap:\s*var\(--space-4\);/s)
+    expect(memberBadgeChainCss).toMatch(/\.groupList\s*\{[^}]*gap:\s*var\(--space-5\);/s)
+    expect(memberBadgeChainCss).toMatch(/\.group\s*\{[^}]*gap:\s*var\(--space-2\);/s)
+    expect(memberBadgeChainCss).toMatch(/\.familyCard\s*\{[^}]*padding:\s*24px;/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;/s)
+  })
+
+describe('Quick 260812-jtp contribution card density', () => {
+  it('keeps the contribution stage content-sized across embedded widths', () => {
+    expect(memberBadgeChainCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-4\);[^}]*padding:\s*var\(--space-4\) var\(--space-5\);/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(200px,\s*300px\) minmax\(0,\s*1fr\);[^}]*gap:\s*clamp\(var\(--space-4\),\s*3vw,\s*var\(--space-6\)\);/s)
+    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*300px\);[^}]*aspect-ratio:\s*1;/s)
+    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-3\);[^}]*padding:\s*var\(--space-4\);/s)
+    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*220px\);/s)
+    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionTierArtwork\s*\{[^}]*width:\s*min\(96px,\s*100%\);/s)
+    expect(memberBadgeChainCss).not.toMatch(/\.contributionAchievementStage\s*\{[^}]*min-height:/s)
+  })
+})
 })
 })

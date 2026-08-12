@@ -223,12 +223,12 @@ describe('MemberProfilePage Phase 99 route composition', () => {
   })
 
   it('encodes Rhythm C geometry for 390, 768 and 1440 pixel layouts without overflow repairs', () => {
-    expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[\s\S]*?padding:\s*32px;/)
+    expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/)
     expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
     expect(memberPageStyles).toContain('min-width: 0;')
     expect(memberPageStyles).not.toMatch(/\.page\s*\{[^}]*overflow-wrap:\s*anywhere/s)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-4\);/)
     expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/)
     const pageRule = memberPageStyles.match(/^\.page\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
@@ -249,11 +249,11 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(outerBandRule).toContain('border: 0;')
     expect(outerBandRule).toContain('border-radius: 0;')
     expect(rhythmBandRule).toContain('display: grid;')
-    expect(rhythmBandRule).toContain('gap: 24px;')
+    expect(rhythmBandRule).toContain('gap: var(--space-4);')
     expect(rhythmBandRule).toContain('min-width: 0;')
-    expect(rhythmBandRule).toContain('padding: 32px;')
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px;/)
-    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*24px 16px;/)
+    expect(rhythmBandRule).toContain('padding: var(--space-5);')
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*1099px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-5\);/)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[\s\S]*?padding:\s*var\(--space-4\);/)
     expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
     expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
     expect(memberPageStyles).toMatch(/\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/)
@@ -562,5 +562,15 @@ describe('Quick 260812-rps widescreen UAT regression', () => {
     expect(visualBand).toContain('width: 100%;')
     expect(visualBand).not.toMatch(/(?:100vw|left:\s*50%|translateX)/)
     expect(memberPageStyles).not.toMatch(/\.contributionPairEmpty\s*\{[^}]*\.contributionPairPresent/s)
+  })
+})
+
+describe('Quick 260812-jtp owner-scoped vertical rhythm', () => {
+  it('uses the shared spacing scale for outer sections, bands, pairs and heading content', () => {
+    expect(memberPageStyles).toMatch(/\.section\s*\{[^}]*margin:\s*0 auto var\(--space-4\);/s)
+    expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[^}]*gap:\s*var\(--space-4\);[^}]*padding:\s*var\(--space-5\);/s)
+    expect(memberPageStyles).toMatch(/\.sectionPair\s*\{[^}]*gap:\s*var\(--space-4\);/s)
+    expect(memberPageStyles).toMatch(/\.contentSection h2\s*\{[^}]*margin:\s*0 0 var\(--space-3\);/s)
+    expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[^}]*padding:\s*var\(--space-4\);/s)
   })
 })
