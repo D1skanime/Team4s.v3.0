@@ -2069,7 +2069,7 @@
 @media (prefers-reduced-motion: reduce) { .pointsProgressTrack > span { transition: none; } .pointsStageTrack { scroll-behavior: auto; } }
 
 /* Phase 125: Contribution families keep the outer carousel and use a static three-tier Stage. */
-.contributionAchievementStage { display: grid; width: 100%; min-width: 0; max-width: 1120px; margin-inline: auto; gap: var(--space-4); padding: var(--space-4) var(--space-5); overflow: hidden; background: radial-gradient(circle at 20% 32%, color-mix(in srgb, var(--color-primary) 11%, transparent), transparent 40%), var(--surface-card); }
+.contributionAchievementStage { display: grid; width: 100%; min-width: 0; max-width: 1120px; margin-inline: auto; gap: var(--space-4); padding: var(--space-4) var(--space-5); overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .contributionStageTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .contributionStageHero { display: grid; grid-template-columns: minmax(200px, 300px) minmax(0, 1fr); align-items: center; gap: clamp(var(--space-4), 3vw, var(--space-6)); }
 .contributionHeroArtwork{ display: grid; place-items: center; width: min(100%, 300px); aspect-ratio:1; justify-self: center; }
@@ -2094,6 +2094,11 @@
 .contributionTierTrack [data-stage-state='current'] { color: var(--color-primary); }
 .contributionTierTrack [data-stage-state='current'] .contributionTierArtwork { border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
 .contributionTierTrack [aria-pressed='true'] { background: color-mix(in srgb, var(--color-primary) 9%, transparent); }
+.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionAchievementStage { place-content: center; padding: 0; }
+.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) :is(.contributionStageTitle, .contributionStageInfo, .contributionTierTrack) { display: none; }
+.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionStageHero { grid-template-columns: minmax(0, 1fr); width: 100%; }
+.group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionHeroArtwork { width: min(100%, 144px); opacity: .58; }
+
 .group[data-badge-group='contributions'] [data-carousel-expanded='true'] .contributionAchievementStage { max-width: none; transform: none; }
 @media (max-width: 900px) { .contributionStageHero { grid-template-columns: minmax(0, 1fr); gap: 14px; } .contributionHeroArtwork { width: min(100%, 300px); } }
 @container member-badge-carousel (max-width: 1100px) {
@@ -2103,7 +2108,11 @@
   .contributionHeroArtwork { width: min(100%, 220px); }
   .contributionTierArtwork { width: min(96px, 100%); }
 }
-@media (max-width: 520px) { .contributionAchievementStage { gap: 14px; padding: 14px 10px; } .contributionHeroArtwork { width: min(100%, 244px); } .contributionStageCount { font-size: 1.5rem; } .contributionTierArtwork { width: min(92px, 100%); } }
+@container member-badge-carousel (min-width: 640px) and (max-width: 1100px) {
+  .badgeWindowActive .contributionStageHero { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); }
+  .badgeWindowActive .contributionHeroArtwork { width: min(100%, 220px); }
+}
+@media (max-width: 520px) { .contributionAchievementStage { gap: var(--space-3); padding: var(--space-3) var(--space-2); } .contributionHeroArtwork { width: min(100%, 200px); } .contributionStageCount { font-size: 1.5rem; } .contributionTierArtwork { width: min(80px, 100%); } }
 @media (prefers-reduced-motion: reduce) { .contributionStageProgressTrack > span { transition: none; } }
 
 /* Phase 126: membership duration and founding are independent presentation axes. */
