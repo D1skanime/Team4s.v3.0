@@ -1,0 +1,12 @@
+Quick 260812-lql RED run
+Command:
+docker compose exec -T team4sv30-frontend npm test -- --run src/app/members/[slug]/page.test.tsx src/components/profile/LatestContributionsSection.test.tsx src/components/profile/PreviousContributionsSection.test.tsx
+
+Intentional LQL failures before implementation:
+- LatestContributionsSection: missing compact container-responsive row geometry and updated sizes hint.
+- PreviousContributionsSection: empty history still retained card padding/chrome.
+
+Route LQL state test already passed because the shared tree contained a later JTP/RPS-compatible single-column rule; implementation still adds the explicit final LQL owner rule.
+
+Inherited unrelated failure:
+- MemberProfilePage Phase 99 heading hierarchy still expected “Besondere Auszeichnungen”; the open ACS count-only achievement work has removed that heading.
