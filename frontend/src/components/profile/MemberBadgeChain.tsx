@@ -544,13 +544,12 @@ function MembershipStage({ family }: { family: MemberBadgeFamilyPresentation }) 
 
   return (
     <Card className={styles.membershipStage} data-family={family.key} data-membership-stage>
-      <h3 className={styles.membershipStageTitle}>Mitgliedschaft</h3>
       <div className={styles.membershipStageHero}>
         <span className={styles.membershipHeroArtwork} data-membership-art={heroStage.badge_code}>
           {currentCode || foundingPreview ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}
         </span>
         <div className={styles.membershipStageInfo} aria-live="polite">
-          <h4 className={styles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h4>
+          <h3 className={styles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h3>
           <div className={styles.membershipStageStatus}><Badge variant={currentCode || foundingPreview ? presentation.variant : 'muted'}>{foundingPreview ? 'Gründungsmitglied' : presentation.label}</Badge><Badge variant={foundingPreview || selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{foundingPreview || selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
           {foundingPreview ? <p className={styles.membershipHeroDescription}>Seit der Gründung dabei</p> : null}
           <strong className={styles.membershipStageCount}>{count} {count === 1 ? family.unitSingular : family.unitPlural}</strong>
@@ -597,7 +596,6 @@ function PointsAchievementStage({ family }: { family: MemberBadgeFamilyPresentat
   const formatPoints = (value: number) => POINT_NUMBER_FORMATTER.format(value)
   return (
     <Card className={styles.pointsAchievementStage} data-family={family.key} data-points-achievement-stage>
-      <h3 className={styles.pointsStageTitle}>Punkte-Meilensteine</h3>
       <div className={styles.pointsStageHero}>
         <span className={styles.pointsHeroArtwork}>{currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}</span>
         <div className={styles.pointsStageInfo} aria-live="polite">

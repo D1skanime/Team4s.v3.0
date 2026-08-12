@@ -293,7 +293,6 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       'Punkte-Meilensteine',
       'Beiträge',
       'Mitgliedschaft',
-      'Besondere Auszeichnungen',
       'Beiträge',
     ])
     // Quick 260812-pmu: the page outline owns each achievement section title once.

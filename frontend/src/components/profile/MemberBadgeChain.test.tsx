@@ -1692,7 +1692,7 @@ describe('Phase 126 membership stage', () => {
     const stage = container.querySelector('[data-membership-stage]') as HTMLElement
     fireEvent.click(within(stage).getByRole('button', { name: 'Gründungsmitglied Vorschau' }))
     expect(stage.querySelector('[data-membership-art="founding_member"]')).not.toBeNull()
-    expect(within(stage).getByRole('heading', { level: 4, name: 'Besondere Mitgliedschaft' })).not.toBeNull()
+    expect(within(stage).getByRole('heading', { level: 3, name: 'Besondere Mitgliedschaft' })).not.toBeNull()
     expect(within(stage).getAllByText('Gründungsmitglied')).not.toHaveLength(0)
     expect(within(stage).getAllByText('Seit der Gründung dabei')).not.toHaveLength(0)
     expect(within(stage).getByText('Vorschau')).not.toBeNull()
@@ -1852,6 +1852,23 @@ describe('Quick 260811-lck locked achievement artwork secrecy', () => {
   it('omits locked asset names from SSR but keeps locked copy and current hero art', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const Chain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof progress }>
+  it('Quick 260812-pmu: keeps the cleaned hierarchy identical in SSR markup', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const Chain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof progress }>
+    const host = document.createElement('div')
+    host.innerHTML = renderToStaticMarkup(<Chain earnedBadges={earned} badgeProgress={progress} />)
+    const pointsGroup = host.querySelector('[data-badge-group="points"]') as HTMLElement
+    const membershipGroup = host.querySelector('[data-badge-group="membership"]') as HTMLElement
+
+    expect(pointsGroup.querySelectorAll('h2')).toHaveLength(1)
+    expect(pointsGroup.querySelector('h2')?.textContent).toBe('Punkte-Meilensteine')
+    expect(pointsGroup.querySelector('h3')).toBeNull()
+    expect(membershipGroup.querySelectorAll('h2')).toHaveLength(1)
+    expect(membershipGroup.querySelector('h2')?.textContent).toBe('Mitgliedschaft')
+    expect(Array.from(membershipGroup.querySelectorAll('h3')).map((heading) => heading.textContent)).toEqual(['Mitgliedsdauer'])
+    expect(membershipGroup.querySelector('h4')).toBeNull()
+  })
+
     const html = renderToStaticMarkup(<Chain earnedBadges={earned} badgeProgress={progress} />)
     expect(html).toContain('Gesperrt')
     expect(html).toContain('point_milestone_engaged')
