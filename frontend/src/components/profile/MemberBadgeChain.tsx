@@ -660,6 +660,9 @@ export function MemberBadgeChain({
     ]
   })
   const earnedCount = generalCatalog.filter((item) => earnedCodes.has(item.badge_code)).length
+  const generalAchievementSummary = `${earnedCount} ${
+    earnedCount === 1 ? 'Auszeichnung' : 'Auszeichnungen'
+  } freigeschaltet`
   const progressPercent = generalCatalog.length > 0
     ? Math.round((earnedCount / generalCatalog.length) * 100)
     : 0
@@ -682,10 +685,10 @@ export function MemberBadgeChain({
   return (
     <section className={styles.section}>
       <Card variant="section" className={styles.chainCard}>
-        <div className={styles.progressBlock} aria-label={`${earnedCount} von ${generalCatalog.length} Auszeichnungen freigeschaltet`}>
+        <div className={styles.progressBlock} aria-label={generalAchievementSummary}>
           <div className={styles.progressMeta}>
             <span>Allgemeine Auszeichnungen</span>
-            <span>{earnedCount} von {generalCatalog.length} Auszeichnungen freigeschaltet</span>
+            <span>{generalAchievementSummary}</span>
           </div>
           <div className={styles.progressTrack} aria-hidden="true">
             <span style={{ width: `${progressPercent}%` }} />

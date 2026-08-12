@@ -521,7 +521,10 @@ describe('Phase 125 contribution achievement stages', () => {
       />,
     )
 
-    expect(screen.getByText('1 von 3')).not.toBeNull()
+    expect(screen.getByText('1 Auszeichnung freigeschaltet')).not.toBeNull()
+    expect(
+      container.querySelector('[aria-label="1 Auszeichnung freigeschaltet"] [aria-hidden="true"] span')?.getAttribute('style'),
+    ).toBe('width: 33%;')
     expect(screen.getByText('Gründungsmitglied')).not.toBeNull()
     expect(screen.getByText('Übersetzung')).not.toBeNull()
     expect(screen.getByLabelText('Übersetzung gesperrt')).not.toBeNull()
