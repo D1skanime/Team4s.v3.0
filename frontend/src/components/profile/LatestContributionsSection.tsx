@@ -192,7 +192,7 @@ export function LatestContributionsSection({
                       alt={`Medienbeitrag zu ${item.anime_title}`}
                       width={960}
                       height={540}
-                      sizes="(max-width: 760px) calc(100vw - 56px), (max-width: 1099px) calc(50vw - 48px), 560px"
+                      sizes="(min-width: 42rem) 240px, calc(100vw - 64px)"
                       loading="lazy"
                       style={{ objectFit: 'cover' }}
                     />

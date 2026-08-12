@@ -226,3 +226,7 @@
     align-self: flex-start;
   }
 }
+
+.contributionPairEmpty {
+  grid-template-columns: minmax(0, 1fr);
+}

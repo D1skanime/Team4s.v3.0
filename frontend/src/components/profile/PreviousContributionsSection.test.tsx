@@ -165,3 +165,12 @@ it('Phase 120 RED: keeps previous contributions accessible beneath an aria-hidde
 it('Quick 260811-pqe keeps the empty history card compact', () => {
   expect(previousContributionStyles).toMatch(/\.card:has\(> p:only-child\)\s*\{/)
 })
+
+it('Quick 260812-lql removes tall card chrome only from the empty history state', async () => {
+  const { PreviousContributionsSection } = await loadPreviousContributionsSection()
+  render(<PreviousContributionsSection items={[]} totalCount={0} headingLevel={3} showEmptyState />)
+  expect(screen.getByRole('heading', { level: 3, name: 'Frühere Mitwirkungen' })).not.toBeNull()
+  expect(screen.getByText('Keine früheren Mitwirkungen sichtbar.')).not.toBeNull()
+  expect(screen.queryByRole('button')).toBeNull()
+  expect(previousContributionStyles).toMatch(/\.card:has\(> p:only-child\)\s*\{[^}]*min-height:\s*0;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
+})

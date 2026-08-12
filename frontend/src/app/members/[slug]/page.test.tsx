@@ -574,3 +574,9 @@ describe('Quick 260812-jtp owner-scoped vertical rhythm', () => {
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[^}]*padding:\s*var\(--space-4\);/s)
   })
 })
+
+it('Quick 260812-lql reserves two columns only for populated previous contributions', () => {
+  const emptyRules = [...memberPageStyles.matchAll(/\.contributionPairEmpty\s*\{([^}]*)\}/g)]
+  expect(emptyRules.at(-1)?.[1]).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/)
+  expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*3fr\) minmax\(20rem,\s*2fr\)/s)
+})

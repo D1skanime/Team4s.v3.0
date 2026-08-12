@@ -116,7 +116,7 @@ describe('LatestContributionsSection', () => {
     expect(preview.style.aspectRatio).toBe('16 / 9')
     expect(image.style.objectFit).toBe('cover')
     expect(image.getAttribute('loading')).toBe('lazy')
-    expect(image.getAttribute('sizes')).toBe('(max-width: 760px) calc(100vw - 56px), (max-width: 1099px) calc(50vw - 48px), 560px')
+    expect(image.getAttribute('sizes')).toBe('(min-width: 42rem) 240px, calc(100vw - 64px)')
     expect(image.getAttribute('width')).toBe('960')
     expect(image.getAttribute('height')).toBe('540')
     expect(screen.getByText('Typesetting-/Karaoke-Beispiel')).not.toBeNull()
@@ -197,7 +197,26 @@ it('Phase 120 RED: keeps latest contributions accessible beneath an aria-hidden 
 
 
 it('Quick 260811-pqe bounds desktop media while preserving cover fit and mobile flow', () => {
-  expect(latestContributionStyles).toMatch(/\.mediaPreview\s*\{[^}]*max-height:\s*32rem;[^}]*aspect-ratio:\s*16\s*\/\s*9;/s)
+  expect(latestContributionStyles).toMatch(/\.mediaPreview\s*\{[^}]*max-height:\s*180px;[^}]*aspect-ratio:\s*16\s*\/\s*9;/s)
   expect(latestContributionStyles).toMatch(/\.mediaPreview img\s*\{[^}]*object-fit:\s*cover;/s)
-  expect(latestContributionStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.mediaPreview\s*\{[^}]*max-height:\s*none;/s)
+  expect(latestContributionStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.mediaPreview\s*\{[^}]*max-height:\s*180px;/s)
+})
+
+it('Quick 260812-lql reserves compact container-responsive media rows', async () => {
+  const { LatestContributionsSection } = await loadLatestContributionsSection()
+  render(<LatestContributionsSection items={[makeMediaItem(1)]} />)
+  const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
+  const row = within(list).getByRole('listitem')
+  const image = within(row).getByRole('img', { name: /Visual Stories/i })
+  expect(within(row).getAllByText('Visual Stories')).toHaveLength(2)
+  expect(within(row).getByText('Episode 03 - v1')).not.toBeNull()
+  expect(within(row).getByText('Timing-Vergleich aus der Release-Version.')).not.toBeNull()
+  expect(image.getAttribute('width')).toBe('960')
+  expect(image.getAttribute('height')).toBe('540')
+  expect(image.getAttribute('loading')).toBe('lazy')
+  expect(image.getAttribute('sizes')).toBe('(min-width: 42rem) 240px, calc(100vw - 64px)')
+  expect(latestContributionStyles).toMatch(/\.section\s*\{[^}]*container-type:\s*inline-size;/s)
+  expect(latestContributionStyles).toMatch(/\.mediaPreview\s*\{[^}]*height:\s*clamp\(150px,\s*45cqi,\s*180px\);/s)
+  expect(latestContributionStyles).toMatch(/@container[^\{]*\(min-width:\s*42rem\)[\s\S]*?\.mediaCard\s*\{[^}]*grid-template-columns:\s*minmax\(180px,\s*240px\) minmax\(0,\s*1fr\)/s)
+  expect(latestContributionStyles).toMatch(/@container[^\{]*\(min-width:\s*42rem\)[\s\S]*?\.mediaPreview\s*\{[^}]*height:\s*clamp\(180px,[^;]+240px\);/s)
 })
