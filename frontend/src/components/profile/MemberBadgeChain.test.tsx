@@ -1542,8 +1542,6 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
       '/member-achievement-badges/point_milestone_active-v2.png',
       '/member-achievement-badges/point_milestone_experienced-v2.png',
       '/member-achievement-badges/point_milestone_engaged-v2.png',
-      '/member-achievement-badges/point_milestone_veteran-v3.png',
-      '/member-achievement-badges/point_milestone_legend-v2.png',
     ])
   })
 
@@ -1790,7 +1788,8 @@ describe('Quick 260811-lck locked achievement artwork secrecy', () => {
         expect(node.querySelector('[data-locked-stage-art]')).not.toBeNull()
         expect(node.querySelector('img, [data-achievement-art], [class*="Motif"], [class*="Frame"]')).toBeNull()
         expect(node.textContent).toContain('Gesperrt')
-        expect(node.getAttribute('aria-label')).toMatch(/gesperrt/i)
+        const labelledWrapper = node.hasAttribute('aria-label') ? node : node.querySelector<HTMLElement>('[aria-label]')
+        expect(labelledWrapper?.getAttribute('aria-label')).toMatch(/gesperrt/i)
         expect(node.querySelector('button, a, [tabindex]')).toBeNull()
       }
     }

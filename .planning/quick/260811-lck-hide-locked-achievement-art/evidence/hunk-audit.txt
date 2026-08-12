@@ -1,0 +1,445 @@
+ .../components/profile/MemberBadgeChain.module.css | 167 ++++++++++++++
+ .../components/profile/MemberBadgeChain.test.tsx   |   5 +-
+ .../src/components/profile/MemberBadgeChain.tsx    | 245 ++++++++++++++++++++-
+ 3 files changed, 407 insertions(+), 10 deletions(-)
+diff --git a/frontend/src/components/profile/MemberBadgeChain.module.css b/frontend/src/components/profile/MemberBadgeChain.module.css
+index 393bd066..5956183b 100644
+--- a/frontend/src/components/profile/MemberBadgeChain.module.css
++++ b/frontend/src/components/profile/MemberBadgeChain.module.css
+@@ -2021,0 +2022,167 @@
++/* Phase 123: single-family Anime-Projekte stage, deliberately independent of FocalCarousel. */
++.animeProjectStage { display: grid; gap: 22px; width: 100%; min-width: 0; padding: clamp(18px, 2.4vw, 32px); overflow: hidden; background: radial-gradient(circle at 18% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%), var(--surface-card); }
++.animeProjectTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
++.animeProjectHero { display: grid; grid-template-columns: minmax(240px, 340px) minmax(0, 1fr); align-items: center; gap: clamp(24px, 5vw, 72px); }
++.animeProjectArtwork { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; }
++.animeProjectArtwork > img { width: 100%; height: 100%; object-fit: contain; }
++.animeProjectArtwork .roleArtworkMist,
++.animeProjectArtwork .roleArtworkBackdrop { display: none; }
++.animeProjectArtwork .roleArtworkMotif { inset: 0; width: 100%; height: 100%; clip-path: circle(30% at 50% 46%); object-fit: contain; transform: none; }
++.animeProjectArtwork[data-anime-project-art='first_contribution'] .roleArtworkMotif { inset: 6%; width: auto; height: auto; clip-path: none; }
++.animeProjectInfo { display: grid; min-width: 0; gap: 14px; }
++.animeProjectStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
++.animeProjectCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 2.7rem); line-height: 1.1; }
++.animeProjectProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
++.animeProjectProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
++.animeProjectProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
++.animeProjectNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
++.animeProjectMilestones { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 18px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
++.animeProjectMilestones::before { content: ''; position: absolute; top: 41px; left: 12.5%; right: 12.5%; height: 2px; background: var(--border-strong); }
++.animeProjectMilestones li { position: relative; z-index: 1; min-width: 0; text-align: center; }
++.animeProjectMilestones button, .animeProjectMilestones li > span { display: grid; justify-items: center; gap: 5px; width: 100%; min-width: 0; padding: 0 4px; border: 0; color: var(--text-primary); background: transparent; font: inherit; }
++.animeProjectMilestones button { cursor: pointer; border-radius: var(--radius-md); }
++.animeProjectMilestones button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
++.animeProjectMarker { display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--border-strong); border-radius: 50%; color: var(--text-secondary); background: var(--surface-card); }
++.animeProjectMilestones [data-stage-state='earned'] .animeProjectMarker { border-color: var(--color-success); color: var(--color-success); }
++.animeProjectMilestones [data-stage-state='current'] .animeProjectMarker { border: 3px double var(--color-primary); color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent); }
++.animeProjectMilestones [data-stage-state='locked'] { color: var(--text-secondary); opacity: .62; }
++.animeProjectMilestoneName { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 800; }
++.animeProjectThreshold { color: var(--text-secondary); font-size: .76rem; font-weight: 800; }
++.animeProjectMilestones .currentChip { position: static; transform: none; }
++@media (max-width: 700px) { .animeProjectStage { gap: 18px; padding: 16px 12px; } .animeProjectHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .animeProjectArtwork { width: min(100%, 280px); justify-self: center; } .animeProjectCount { font-size: 1.65rem; } .animeProjectMilestones { margin-inline: -4px; } .animeProjectMilestoneName { font-size: .68rem; } .animeProjectThreshold { font-size: .7rem; } .animeProjectMilestones .currentChip { font-size: .62rem; } }
++@media (prefers-reduced-motion: reduce) { .animeProjectProgressTrack > span { transition: none; } }
++
++/* Phase 124: point milestones reuse the profile-local Stage composition without carousel mechanics. */
++.pointsAchievementStage { display: grid; width: 100%; min-width: 0; max-width: 1760px; margin-inline: auto; gap: clamp(18px, 2.4vw, 32px); padding: clamp(18px, 2.4vw, 36px); overflow: hidden; background: radial-gradient(circle at 20% 32%, color-mix(in srgb, var(--ach-gold) 14%, transparent), transparent 38%), var(--surface-card); }
++.pointsStageTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
++.pointsStageHero { display: grid; grid-template-columns: minmax(260px, 43%) minmax(0, 57%); align-items: center; gap: clamp(24px, 5vw, 80px); }
++.pointsHeroArtwork { position: relative; display: grid; place-items: center; width: min(100%, 560px); aspect-ratio: 1; justify-self: center; }
++.pointsHeroArtwork > img { width: 100%; height: 100%; object-fit: contain; }
++.pointsStageInfo { display: grid; min-width: 0; gap: 14px; }
++.pointsStageStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
++.pointsStageCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 3rem); line-height: 1.1; }
++.pointsProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
++.pointsProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
++.pointsProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--ach-gold)); }
++.pointsStageNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--ach-gold); color: var(--text-primary); background: color-mix(in srgb, var(--ach-gold) 8%, transparent); font-weight: 750; }
++.pointsStageTrack { position: relative; display: grid; grid-template-columns: repeat(6, minmax(132px, 1fr)); min-width: 0; margin: 0; padding: 18px 0 8px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x proximity; scrollbar-width: none; list-style: none; border-top: 1px solid var(--border-subtle); }
++.pointsStageTrack::-webkit-scrollbar { display: none; }
++.pointsStageTrack li { min-width: 0; scroll-snap-align: center; text-align: center; }
++.pointsStageTrack button, .pointsStageTrack li > span { display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; min-width: 0; padding: 6px; border: 0; border-radius: var(--radius-md); color: var(--text-primary); background: transparent; font: inherit; }
++.pointsStageTrack button { cursor: pointer; }
++.pointsStageTrack button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 2px; }
++.pointsStageArtwork { display: grid; place-items: center; width: min(116px, 100%); aspect-ratio: 1; }
++.pointsStageArtwork > img { width: 100%; height: 100%; object-fit: contain; }
++.pointsStageName { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 800; }
++.pointsStageThreshold, .pointsStageState { color: var(--text-secondary); font-size: .72rem; font-weight: 750; }
++.pointsStageState { display: inline-flex; align-items: center; gap: 3px; }
++.pointsStageTrack [data-stage-state='locked'] { opacity: .56; filter: saturate(.3); }
++.pointsStageTrack [data-stage-state='current'] { color: var(--color-primary); }
++.pointsStageTrack [data-stage-state='current'] .pointsStageArtwork { border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
++.pointsStageTrack [aria-pressed='true'] { background: color-mix(in srgb, var(--color-primary) 9%, transparent); }
++@media (max-width: 900px) { .pointsStageHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .pointsHeroArtwork { width: min(100%, 360px); } }
++@media (max-width: 520px) { .pointsAchievementStage { gap: 16px; padding: 16px 12px; } .pointsHeroArtwork { width: min(100%, 280px); } .pointsStageCount { font-size: 1.65rem; } .pointsStageTrack { grid-template-columns: repeat(6, 112px); margin-inline: -4px; } .pointsStageArtwork { width: 88px; } }
++@media (prefers-reduced-motion: reduce) { .pointsProgressTrack > span { transition: none; } .pointsStageTrack { scroll-behavior: auto; } }
++
++/* Phase 125: Contribution families keep the outer carousel and use a static three-tier Stage. */
++.contributionAchievementStage { display: grid; width: 100%; min-width: 0; max-width: 1120px; margin-inline: auto; gap: clamp(16px, 2vw, 26px); padding: clamp(16px, 2.2vw, 30px); overflow: hidden; background: radial-gradient(circle at 20% 32%, color-mix(in srgb, var(--color-primary) 11%, transparent), transparent 40%), var(--surface-card); }
++.contributionStageTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
++.contributionStageHero { display: grid; grid-template-columns: minmax(220px, 340px) minmax(0, 1fr); align-items: center; gap: clamp(20px, 4vw, 56px); }
++.contributionHeroArtwork{ display: grid; place-items: center; width: min(100%, 340px); aspect-ratio:1; justify-self: center; }
++.contributionHeroArtwork>img{ width: 100%; height: 100%; object-fit:contain; }
++.contributionStageInfo { display: grid; min-width: 0; gap: 12px; }
++.contributionStageStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
++.contributionStageCount { color: var(--text-primary); font-size: clamp(1.5rem, 2.5vw, 2.6rem); line-height: 1.1; }
++.contributionStageProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
++.contributionStageProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
++.contributionStageProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
++.contributionStageNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
++.contributionTierTrack{ display: grid; grid-template-columns:repeat(3,minmax(0,1fr)); min-width: 0; margin: 0; padding: 16px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
++.contributionTierTrack li { min-width: 0; text-align: center; }
++.contributionTierTrack button, .contributionTierTrack li > span { display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; min-width: 0; padding: 6px; border: 0; border-radius: var(--radius-md); color: var(--text-primary); background: transparent; font: inherit; }
++.contributionTierTrack button { cursor: pointer; }
++.contributionTierTrack button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 2px; }
++.contributionTierArtwork { display: grid; place-items: center; width: min(128px, 100%); aspect-ratio: 1; }
++.contributionTierArtwork > img { width: 100%; height: 100%; object-fit: contain; }
++.contributionTierName { font-size: .8rem; font-weight: 800; }
++.contributionTierState { display: inline-flex; align-items: center; gap: 3px; color: var(--text-secondary); font-size: .72rem; font-weight: 750; }
++.contributionTierTrack [data-stage-state='locked'] { opacity: .56; filter: saturate(.3); }
++.contributionTierTrack [data-stage-state='current'] { color: var(--color-primary); }
++.contributionTierTrack [data-stage-state='current'] .contributionTierArtwork { border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
++.contributionTierTrack [aria-pressed='true'] { background: color-mix(in srgb, var(--color-primary) 9%, transparent); }
++.group[data-badge-group='contributions'] [data-carousel-expanded='true'] .contributionAchievementStage { max-width: none; transform: none; }
++@media (max-width: 900px) { .contributionStageHero { grid-template-columns: minmax(0, 1fr); gap: 14px; } .contributionHeroArtwork { width: min(100%, 300px); } }
++@media (max-width: 520px) { .contributionAchievementStage { gap: 14px; padding: 14px 10px; } .contributionHeroArtwork { width: min(100%, 244px); } .contributionStageCount { font-size: 1.5rem; } .contributionTierArtwork { width: min(92px, 100%); } }
++@media (prefers-reduced-motion: reduce) { .contributionStageProgressTrack > span { transition: none; } }
++
++/* Phase 126: membership duration and founding are independent presentation axes. */
++.membershipStage { display: grid; width: 100%; min-width: 0; max-width: 1760px; margin-inline: auto; gap: clamp(18px, 2.4vw, 32px); padding: clamp(18px, 2.4vw, 36px); overflow: hidden; background: radial-gradient(circle at 20% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 40%), var(--surface-card); }
++.membershipStageTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
++.membershipStageHero { display: grid; grid-template-columns: minmax(260px, 43%) minmax(0, 57%); align-items: center; gap: clamp(24px, 5vw, 80px); }
++.membershipHeroArtwork { display: grid; place-items: center; width: min(100%, 520px); aspect-ratio: 1; justify-self: center; }
++.membershipHeroArtwork > img { width: 100%; height: 100%; object-fit: contain; }
++.membershipStageInfo { display: grid; min-width: 0; gap: 14px; }
++.membershipHeroTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
++.membershipHeroDescription { margin: -4px 0 0; color: var(--text-secondary); font-weight: 700; }
++.membershipStageStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
++.membershipStageCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 3rem); line-height: 1.1; }
++.membershipProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
++.membershipProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
++.membershipProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
++.membershipStageNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
++.membershipDurationTrack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); min-width: 0; margin: 0; padding: 16px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
++.membershipDurationTrack li { min-width: 0; text-align: center; }
++.membershipDurationTrack button, .membershipDurationTrack li > span { display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; min-width: 0; padding: 6px; border: 0; border-radius: var(--radius-md); color: var(--text-primary); background: transparent; font: inherit; }
++.membershipDurationTrack button { cursor: pointer; }
++.membershipDurationTrack button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 2px; }
++.membershipStageArtwork { display: grid; place-items: center; width: min(128px, 100%); aspect-ratio: 1; }
++.membershipStageArtwork > img { width: 100%; height: 100%; object-fit: contain; }
++.membershipStageName { min-width: 0; overflow-wrap: anywhere; font-size: .8rem; font-weight: 800; }
++.membershipStageState { display: inline-flex; align-items: center; gap: 3px; color: var(--text-secondary); font-size: .72rem; font-weight: 750; }
++.membershipDurationTrack [data-stage-state='locked'] { opacity: .56; filter: saturate(.3); }
++.membershipDurationTrack [data-stage-state='current'] { color: var(--color-primary); }
++.membershipDurationTrack [data-stage-state='current'] .membershipStageArtwork { border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
++.membershipDurationTrack [aria-pressed='true'] { background: color-mix(in srgb, var(--color-primary) 9%, transparent); }
++.foundingMemberPanel { min-width: 0; }
++.foundingMemberButton { display: grid; grid-template-columns: minmax(72px, 112px) minmax(0, 1fr); align-items: center; gap: 16px; width: 100%; min-width: 0; padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); color: var(--text-primary); background: color-mix(in srgb, var(--surface-card-muted) 78%, transparent); font: inherit; text-align: left; cursor: pointer; }
++.foundingMemberButton:hover { border-color: color-mix(in srgb, var(--color-primary) 48%, var(--border-subtle)); background: color-mix(in srgb, var(--color-primary) 8%, var(--surface-card-muted)); }
++.foundingMemberButton:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 3px; }
++.foundingMemberButton[aria-pressed='true'] { border-color: var(--color-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 18%, transparent); }
++.foundingMemberArtwork { display: grid; place-items: center; width: 100%; aspect-ratio: 1; }
++.foundingMemberArtwork > img { width: 100%; height: 100%; object-fit: contain; }
++.foundingMemberCopy { display: grid; min-width: 0; gap: 4px; }
++.foundingMemberLabel { color: var(--text-secondary); }
++.foundingMemberDescription { color: var(--text-secondary); font-size: .85rem; }
++@media (max-width: 900px) { .membershipStageHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .membershipHeroArtwork { width: min(100%, 360px); } }
++@media (max-width: 520px) { .membershipStage { gap: 16px; padding: 16px 10px; } .membershipHeroArtwork { width: min(100%, 280px); } .membershipStageCount { font-size: 1.65rem; } .membershipStageArtwork { width: min(88px, 100%); } .membershipDurationTrack button, .membershipDurationTrack li > span { padding-inline: 2px; } .membershipStageName { font-size: .68rem; } .membershipStageState { font-size: .64rem; } .foundingMemberButton { grid-template-columns: 76px minmax(0, 1fr); padding: 12px; } }
++@media (prefers-reduced-motion: reduce) { .membershipProgressTrack > span { transition: none; } }
++
++
++.lockedStageArtwork {
++  display: grid;
++  grid-template-areas: "art";
++  place-items: center;
++  width: clamp(44px, 100%, 96px);
++  max-width: 100%;
++  aspect-ratio: 1;
++  border: 1px solid var(--border-strong);
++  border-radius: 50%;
++  color: var(--text-secondary);
++  background: color-mix(in srgb, var(--surface-card) 82%, var(--border-subtle));
++}
++
++.lockedStageArtwork > * {
++  grid-area: art;
++}
++
++.lockedStageArtwork > span {
++  font-size: clamp(1.35rem, 22cqi, 2.4rem);
++  font-weight: 800;
++  line-height: 1;
++  opacity: 0.3;
++}
++
++.lockedStageArtwork > svg {
++  width: clamp(14px, 18cqi, 20px);
++  height: auto;
++}
+diff --git a/frontend/src/components/profile/MemberBadgeChain.test.tsx b/frontend/src/components/profile/MemberBadgeChain.test.tsx
+index cbdd02dc..6f3b58b1 100644
+--- a/frontend/src/components/profile/MemberBadgeChain.test.tsx
++++ b/frontend/src/components/profile/MemberBadgeChain.test.tsx
+@@ -1545,2 +1544,0 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
+-      '/member-achievement-badges/point_milestone_veteran-v3.png',
+-      '/member-achievement-badges/point_milestone_legend-v2.png',
+@@ -1793 +1791,2 @@ describe('Quick 260811-lck locked achievement artwork secrecy', () => {
+-        expect(node.getAttribute('aria-label')).toMatch(/gesperrt/i)
++        const labelledWrapper = node.hasAttribute('aria-label') ? node : node.querySelector<HTMLElement>('[aria-label]')
++        expect(labelledWrapper?.getAttribute('aria-label')).toMatch(/gesperrt/i)
+diff --git a/frontend/src/components/profile/MemberBadgeChain.tsx b/frontend/src/components/profile/MemberBadgeChain.tsx
+index f11d4390..0e752445 100644
+--- a/frontend/src/components/profile/MemberBadgeChain.tsx
++++ b/frontend/src/components/profile/MemberBadgeChain.tsx
+@@ -60,0 +61,8 @@ const ACTIVE_BADGE_SIZES = '(max-width: 520px) 248px, (max-width: 1099px) 280px,
++function LockedStageArtwork({ className }: { className?: string }) {
++  return (
++    <span className={className ? `${className} ${styles.lockedStageArtwork}` : styles.lockedStageArtwork} data-locked-stage-art aria-hidden="true">
++      <span>?</span><Lock size={16} />
++    </span>
++  )
++}
++
+@@ -386 +394 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
+-                    <span className={styles.familyStageArtwork}><Lock size={16} aria-hidden="true" /></span>
++                    <LockedStageArtwork className={styles.familyStageArtwork} />
+@@ -399,0 +408,213 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
++function AnimeProjectAchievementStage({ family }: { family: MemberBadgeFamilyPresentation }) {
++  const [selectedCode, setSelectedCode] = useState<string | null>(null)
++  const currentCode = family.currentStage?.badge_code ?? null
++  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned)
++  const heroStage = selectedStage ?? family.heroStage
++  const presentation = getMemberBadgePresentation(heroStage.badge_code)
++  const HeroIcon = presentation.Icon
++  const artwork = resolveBadgeArtwork(heroStage.badge_code)
++  const layeredArtwork = resolveLayeredProgressArtwork(heroStage.badge_code)
++  const count = family.currentCount ?? 0
++  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
++  const progressValue = Math.min(Math.max(count, 0), progressMax)
++  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
++  const unit = count === 1 ? family.unitSingular : family.unitPlural
++  const rank = presentation.label.split(' · ').at(-1) ?? presentation.label
++  const nextRank = family.nextStage
++    ? (getMemberBadgePresentation(family.nextStage.badge_code).label.split(' · ').at(-1) ?? family.nextStage.label)
++    : null
++
++  return (
++    <Card className={styles.animeProjectStage} data-family={family.key} data-anime-project-stage>
++      <h3 className={styles.animeProjectTitle}>Anime-Projekte</h3>
++      <div className={styles.animeProjectHero}>
++        <span className={`${styles.animeProjectArtwork} ${layeredArtwork ? styles.badgeArtworkLayered : ''}`} data-anime-project-art={heroStage.badge_code}>
++          {layeredArtwork ? (
++            <>
++              <span className={styles.roleArtworkMist} aria-hidden="true" />
++              <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
++              <ResponsiveImage className={styles.roleArtworkMotif} src={layeredArtwork.motifSrc} alt="" width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} aria-hidden="true" />
++              <ResponsiveImage className={styles.roleArtworkFrame} src={layeredArtwork.frameSrc} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
++            </>
++          ) : artwork ? (
++            <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
++          ) : (
++            <HeroIcon size={96} aria-label={heroStage.label} />
++          )}
++        </span>
++        <div className={styles.animeProjectInfo} aria-live="polite">
++          <div className={styles.animeProjectStatus}>
++            <Badge variant={presentation.variant}>{rank}</Badge>
++            {selectedStage ? <Badge variant="info">Vorschau</Badge> : null}
++          </div>
++          <strong className={styles.animeProjectCount}>{count} {unit}</strong>
++          <div className={styles.animeProjectProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
++          <div role="progressbar" aria-label="Fortschritt für Anime-Projekte" aria-valuemin={0} aria-valuenow={count} aria-valuemax={progressMax} className={styles.animeProjectProgressTrack}>
++            <span style={{ width: `${family.complete ? 100 : progressPercent}%` }} />
++          </div>
++          <p className={styles.animeProjectNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} Anime-Projekte bis ${nextRank}`}</p>
++          {selectedStage ? <p className={styles.visuallyHidden}>Vorschau der bereits erreichten Stufe {rank}. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
++        </div>
++      </div>
++      <ol className={styles.animeProjectMilestones} aria-label="Stufen für Anime-Projekte">
++        {family.stages.map((stage) => {
++          const current = stage.badge_code === currentCode
++          const selected = stage.badge_code === selectedCode
++          const stagePresentation = getMemberBadgePresentation(stage.badge_code)
++          const label = stage.badge_code === 'first_contribution' ? 'Erste Mitwirkung' : (stagePresentation.label.split(' · ').at(-1) ?? stagePresentation.label)
++          const content = <>{stage.earned ? <span className={styles.animeProjectMarker} aria-hidden="true">{current ? '★' : '●'}</span> : <LockedStageArtwork className={styles.animeProjectMarker} />}<span className={styles.animeProjectMilestoneName}>{label}</span><span className={styles.animeProjectThreshold}>{stage.threshold}</span>{current ? <span className={styles.currentChip}>Aktuell</span> : null}{!stage.earned ? <span className={styles.visuallyHidden}>Gesperrt</span> : null}</>
++          return (
++            <li key={stage.badge_code} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>
++              {stage.earned ? <button type="button" aria-label={`${stage.badge_code === 'first_contribution' ? label : `${stage.threshold} Anime-Projekte`} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${stage.threshold} Anime-Projekte · Gesperrt`}>{content}</span>}
++            </li>
++          )
++        })}
++      </ol>
++    </Card>
++  )
++}
++
++const POINT_NUMBER_FORMATTER = new Intl.NumberFormat('de-CH')
++
++function ContributionAchievementStage({ family }: { family: MemberBadgeFamilyPresentation }) {
++  const [selectedCode, setSelectedCode] = useState<string | null>(null)
++  const currentCode = family.currentStage?.badge_code ?? null
++  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned)
++  const heroStage = selectedStage ?? family.heroStage
++  const presentation = getMemberBadgePresentation(heroStage.badge_code)
++  const HeroIcon = presentation.Icon
++  const artwork = resolveBadgeArtwork(heroStage.badge_code)
++  const count = family.currentCount ?? 0
++  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
++  const progressValue = Math.min(Math.max(count, 0), progressMax)
++  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
++  const unit = count === 1 ? family.unitSingular : family.unitPlural
++  const tierLabel = (code: string) => CONTRIBUTION_TIER_LABELS[code.split('_').at(-1) as keyof typeof CONTRIBUTION_TIER_LABELS]
++  const nextTier = family.nextStage ? tierLabel(family.nextStage.badge_code) : null
++  return (
++    <Card className={styles.contributionAchievementStage} data-family={family.key} data-contribution-achievement-stage>
++      <h3 className={styles.contributionStageTitle}>{family.label}</h3>
++      <div className={styles.contributionStageHero}>
++        <span className={styles.contributionHeroArtwork} data-contribution-art={heroStage.badge_code}>
++          {artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />}
++        </span>
++        <div className={styles.contributionStageInfo} aria-live="polite">
++          <div className={styles.contributionStageStatus}><Badge variant={presentation.variant}>{tierLabel(heroStage.badge_code)}</Badge><Badge variant={selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
++          <strong className={styles.contributionStageCount}>{count} {unit}</strong>
++          <div className={styles.contributionStageProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
++          <div role="progressbar" aria-label={`Fortschritt für ${family.label}`} aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={styles.contributionStageProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
++          <p className={styles.contributionStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? family.unitSingular : family.unitPlural} bis ${nextTier}`}</p>
++          {selectedStage ? <p className={styles.visuallyHidden}>Vorschau der bereits erreichten Stufe {tierLabel(heroStage.badge_code)}. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
++        </div>
++      </div>
++      <ol className={styles.contributionTierTrack} aria-label={`Stufen für ${family.label}`}>
++        {family.stages.map((stage) => {
++          const current = stage.badge_code === currentCode
++          const selected = (selectedCode ?? currentCode) === stage.badge_code
++          const stagePresentation = getMemberBadgePresentation(stage.badge_code)
++          const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
++          const StageIcon = stagePresentation.Icon
++          const tier = tierLabel(stage.badge_code)
++          const state = current ? 'Aktuell' : stage.earned ? '' : 'Gesperrt'
++          const content = <>{stage.earned ? <span className={styles.contributionTierArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={styles.contributionTierArtwork} />}<span className={styles.contributionTierName}>{tier}</span><span className={styles.contributionTierState}>{state === 'Gesperrt' ? <Lock size={12} aria-hidden="true" /> : null}{state}</span></>
++          return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned ? <button type="button" aria-label={`${tier} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${tier} · Gesperrt`}>{content}</span>}</li>
++        })}
++      </ol>
++    </Card>
++  )
++}
++
++function MembershipStage({ family }: { family: MemberBadgeFamilyPresentation }) {
++  const [selectedCode, setSelectedCode] = useState<string | null>(null)
++  const currentCode = family.currentStage?.badge_code ?? null
++  const foundingPreview = selectedCode === family.foundingStage?.badge_code
++  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned && stage.badge_code !== currentCode)
++  const heroStage = foundingPreview ? family.foundingStage! : selectedStage ?? family.heroStage
++  const presentation = getMemberBadgePresentation(heroStage.badge_code)
++  const HeroIcon = presentation.Icon
++  const artwork = resolveBadgeArtwork(heroStage.badge_code)
++  const count = family.currentCount ?? 0
++  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
++  const progressValue = Math.min(Math.max(count, 0), progressMax)
++  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
++  const nextLabel = family.nextStage ? `${family.nextStage.threshold} Jahre` : null
++
++  return (
++    <Card className={styles.membershipStage} data-family={family.key} data-membership-stage>
++      <h3 className={styles.membershipStageTitle}>Mitgliedschaft</h3>
++      <div className={styles.membershipStageHero}>
++        <span className={styles.membershipHeroArtwork} data-membership-art={heroStage.badge_code}>
++          {artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />}
++        </span>
++        <div className={styles.membershipStageInfo} aria-live="polite">
++          <h4 className={styles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h4>
++          <div className={styles.membershipStageStatus}><Badge variant={presentation.variant}>{foundingPreview ? 'Gründungsmitglied' : presentation.label}</Badge><Badge variant={foundingPreview || selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{foundingPreview || selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
++          {foundingPreview ? <p className={styles.membershipHeroDescription}>Seit der Gründung dabei</p> : null}
++          <strong className={styles.membershipStageCount}>{count} {count === 1 ? family.unitSingular : family.unitPlural}</strong>
++          <div className={styles.membershipProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
++          <div role="progressbar" aria-label="Fortschritt für Mitgliedschaft" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={styles.membershipProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
++          <p className={styles.membershipStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? 'Jahr' : 'Jahre'} bis ${nextLabel}`}</p>
++          {foundingPreview || selectedStage ? <p className={styles.visuallyHidden}>Vorschau einer bereits erreichten Mitgliedschaftsauszeichnung. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
++        </div>
++      </div>
++      <ol className={styles.membershipDurationTrack} aria-label="Dauerstufen der Mitgliedschaft" data-membership-duration-track>
++        {family.stages.map((stage) => {
++          const current = stage.badge_code === currentCode
++          const selected = stage.badge_code === selectedCode || (selectedCode === null && current)
++          const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
++          const StageIcon = getMemberBadgePresentation(stage.badge_code).Icon
++          const label = `${stage.threshold} Jahre Mitgliedschaft`
++          const content = <>{stage.earned ? <span className={styles.membershipStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={styles.membershipStageArtwork} />}<span className={styles.membershipStageName}>{stage.threshold} Jahre</span><span className={styles.membershipStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
++          return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-threshold={stage.threshold} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned ? <button type="button" aria-label={`${label} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${label} · Gesperrt`}>{content}</span>}</li>
++        })}
++      </ol>
++      {family.foundingStage ? <aside className={styles.foundingMemberPanel} data-founding-member aria-label="Besondere Mitgliedschaft">
++        <button type="button" className={styles.foundingMemberButton} aria-label="Gründungsmitglied Vorschau" aria-pressed={foundingPreview} onClick={() => setSelectedCode(foundingPreview ? null : family.foundingStage!.badge_code)}>
++          <span className={styles.foundingMemberArtwork}>{!foundingPreview && resolveBadgeArtwork(family.foundingStage.badge_code) ? <ResponsiveImage src={resolveBadgeArtwork(family.foundingStage.badge_code)!} alt="" width={192} height={192} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={family.foundingStage.badge_code} /> : null}</span>
++          <span className={styles.foundingMemberCopy}><strong>Besondere Mitgliedschaft</strong><span className={styles.foundingMemberLabel}>Gründungsmitglied</span><span className={styles.foundingMemberDescription}>Seit der Gründung dabei</span></span>
++        </button>
++      </aside> : null}
++    </Card>
++  )
++}
++
++function PointsAchievementStage({ family }: { family: MemberBadgeFamilyPresentation }) {
++  const [selectedCode, setSelectedCode] = useState<string | null>(null)
++  const currentCode = family.currentStage?.badge_code ?? null
++  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned && stage.badge_code !== currentCode)
++  const heroStage = selectedStage ?? family.heroStage
++  const presentation = getMemberBadgePresentation(heroStage.badge_code)
++  const HeroIcon = presentation.Icon
++  const artwork = resolveBadgeArtwork(heroStage.badge_code)
++  const count = family.currentCount ?? 0
++  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
++  const progressValue = Math.min(Math.max(count, 0), progressMax)
++  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
++  const nextLabel = family.nextStage ? getMemberBadgePresentation(family.nextStage.badge_code).label : null
++  const formatPoints = (value: number) => POINT_NUMBER_FORMATTER.format(value)
++  return (
++    <Card className={styles.pointsAchievementStage} data-family={family.key} data-points-achievement-stage>
++      <h3 className={styles.pointsStageTitle}>Punkte-Meilensteine</h3>
++      <div className={styles.pointsStageHero}>
++        <span className={styles.pointsHeroArtwork}>{currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : null}</span>
++        <div className={styles.pointsStageInfo} aria-live="polite">
++          {currentCode ? <div className={styles.pointsStageStatus}><Badge variant={presentation.variant}>{presentation.label}</Badge>{selectedStage ? <Badge variant="info">Vorschau</Badge> : null}</div> : null}
++          <strong className={styles.pointsStageCount}>{formatPoints(count)} Punkte{selectedStage ? ' aktuell' : ''}</strong>
++          <div className={styles.pointsProgressValue}><span>{formatPoints(progressValue)} / {formatPoints(progressMax)}</span><span>{Math.round(progressPercent)} %</span></div>
++          <div role="progressbar" aria-label="Fortschritt für Punkte" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={styles.pointsProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
++          <p className={styles.pointsStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${formatPoints(family.remainingCount ?? 0)} Punkte bis ${nextLabel}`}</p>
++        </div>
++      </div>
++      <ol className={styles.pointsStageTrack} aria-label="Punkte-Meilensteine">{family.stages.map((stage) => {
++        const current = stage.badge_code === currentCode
++        const selected = stage.badge_code === selectedCode
++        const stagePresentation = getMemberBadgePresentation(stage.badge_code)
++        const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
++        const StageIcon = stagePresentation.Icon
++        const content = <>{stage.earned ? <span className={styles.pointsStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={styles.pointsStageArtwork} />}<span className={styles.pointsStageName}>Stufe: {stagePresentation.label}</span><span className={styles.pointsStageThreshold}>Ab {formatPoints(stage.threshold)} Punkten</span><span className={styles.pointsStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
++        return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-threshold={stage.threshold} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned && !current ? <button type="button" aria-label={`${stagePresentation.label} auswählen`} aria-pressed={selected} onClick={() => { if (stage.earned && stage.badge_code !== currentCode) setSelectedCode(stage.badge_code) }}>{content}</button> : <span aria-label={`${stagePresentation.label} · ${current ? 'Aktuell' : 'Gesperrt'}`}>{content}</span>}</li>
++      })}</ol>
++    </Card>
++  )
++}
++
+@@ -575 +796 @@ export function MemberBadgeChain({
+-                                <span className={styles.roleStageMarker} aria-hidden="true"><Lock size={13} /></span>
++                                {stage.state === 'locked' ? <LockedStageArtwork className={styles.roleStageMarker} /> : <span className={styles.roleStageMarker} aria-hidden="true"><Lock size={13} /></span>}
+@@ -680,2 +901,8 @@ export function MemberBadgeChain({
+-              <div className={styles.carouselShell}>
+-                <div className={styles.carouselSkeleton} aria-hidden="true" data-badge-skeleton>
++              {group.key === 'progress' ? (
++                <AnimeProjectAchievementStage key={`${group.families[0].currentCount}:${group.families[0].currentStage?.badge_code ?? ''}`} family={group.families[0]} />
++              ) : group.key === 'points' ? (
++                <PointsAchievementStage key={`${group.families[0].currentCount}:${group.families[0].currentStage?.badge_code ?? ''}`} family={group.families[0]} />
++              ) : group.key === 'membership' ? (
++                <MembershipStage key={`${group.families[0].currentCount}:${group.families[0].currentStage?.badge_code ?? ''}`} family={group.families[0]} />
++              ) : <div className={styles.carouselShell}>
++                {group.key === 'contributions' ? null : <div className={styles.carouselSkeleton} aria-hidden="true" data-badge-skeleton>
+@@ -685 +912 @@ export function MemberBadgeChain({
+-                </div>
++                </div>}
+@@ -695,0 +923,2 @@ export function MemberBadgeChain({
++                showAllLabel={`Alle Auszeichnungen in ${group.label} anzeigen`}
++                showLessLabel="Weniger anzeigen"
+@@ -701 +930,3 @@ export function MemberBadgeChain({
+-                renderItem={(family) => <FamilyCollectionCard key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />}
++                renderItem={(family) => group.key === 'contributions'
++                  ? <ContributionAchievementStage key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />
++                  : <FamilyCollectionCard key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />}
+@@ -703 +934 @@ export function MemberBadgeChain({
+-              </div>
++              </div>}

@@ -58,6 +58,14 @@ const CONTRIBUTION_TIER_LABELS = { bronze: 'Bronze', silver: 'Silber', gold: 'Go
 const COMPACT_BADGE_SIZES = '(max-width: 520px) 72px, 96px'
 const ACTIVE_BADGE_SIZES = '(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px'
 
+function LockedStageArtwork({ className }: { className?: string }) {
+  return (
+    <span className={className ? `${className} ${styles.lockedStageArtwork}` : styles.lockedStageArtwork} data-locked-stage-art aria-hidden="true">
+      <span>?</span><Lock size={16} />
+    </span>
+  )
+}
+
 function ContributionProgress({ badge }: { badge: PublicMemberBadge }) {
   if (badge.badge_category !== 'contribution' || badge.current_count == null || !badge.current_tier) return null
   if (badge.next_threshold == null || badge.remaining_count == null || !badge.next_tier) {
@@ -383,7 +391,7 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
                   </button>
                 ) : (
                   <span className={styles.familyStageLocked} aria-label={`${label} · Gesperrt`}>
-                    <span className={styles.familyStageArtwork}><Lock size={16} aria-hidden="true" /></span>
+                    <LockedStageArtwork className={styles.familyStageArtwork} />
                     <span>{label}</span>
                     <span className={styles.visuallyHidden}>Gesperrt</span>
                   </span>
@@ -393,6 +401,219 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
           })}
         </div>
       ) : null}
+    </Card>
+  )
+}
+
+function AnimeProjectAchievementStage({ family }: { family: MemberBadgeFamilyPresentation }) {
+  const [selectedCode, setSelectedCode] = useState<string | null>(null)
+  const currentCode = family.currentStage?.badge_code ?? null
+  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned)
+  const heroStage = selectedStage ?? family.heroStage
+  const presentation = getMemberBadgePresentation(heroStage.badge_code)
+  const HeroIcon = presentation.Icon
+  const artwork = resolveBadgeArtwork(heroStage.badge_code)
+  const layeredArtwork = resolveLayeredProgressArtwork(heroStage.badge_code)
+  const count = family.currentCount ?? 0
+  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
+  const progressValue = Math.min(Math.max(count, 0), progressMax)
+  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
+  const unit = count === 1 ? family.unitSingular : family.unitPlural
+  const rank = presentation.label.split(' · ').at(-1) ?? presentation.label
+  const nextRank = family.nextStage
+    ? (getMemberBadgePresentation(family.nextStage.badge_code).label.split(' · ').at(-1) ?? family.nextStage.label)
+    : null
+
+  return (
+    <Card className={styles.animeProjectStage} data-family={family.key} data-anime-project-stage>
+      <h3 className={styles.animeProjectTitle}>Anime-Projekte</h3>
+      <div className={styles.animeProjectHero}>
+        <span className={`${styles.animeProjectArtwork} ${layeredArtwork ? styles.badgeArtworkLayered : ''}`} data-anime-project-art={heroStage.badge_code}>
+          {layeredArtwork ? (
+            <>
+              <span className={styles.roleArtworkMist} aria-hidden="true" />
+              <span className={styles.roleArtworkBackdrop} aria-hidden="true" />
+              <ResponsiveImage className={styles.roleArtworkMotif} src={layeredArtwork.motifSrc} alt="" width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} aria-hidden="true" />
+              <ResponsiveImage className={styles.roleArtworkFrame} src={layeredArtwork.frameSrc} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
+            </>
+          ) : artwork ? (
+            <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
+          ) : (
+            <HeroIcon size={96} aria-label={heroStage.label} />
+          )}
+        </span>
+        <div className={styles.animeProjectInfo} aria-live="polite">
+          <div className={styles.animeProjectStatus}>
+            <Badge variant={presentation.variant}>{rank}</Badge>
+            {selectedStage ? <Badge variant="info">Vorschau</Badge> : null}
+          </div>
+          <strong className={styles.animeProjectCount}>{count} {unit}</strong>
+          <div className={styles.animeProjectProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label="Fortschritt für Anime-Projekte" aria-valuemin={0} aria-valuenow={count} aria-valuemax={progressMax} className={styles.animeProjectProgressTrack}>
+            <span style={{ width: `${family.complete ? 100 : progressPercent}%` }} />
+          </div>
+          <p className={styles.animeProjectNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} Anime-Projekte bis ${nextRank}`}</p>
+          {selectedStage ? <p className={styles.visuallyHidden}>Vorschau der bereits erreichten Stufe {rank}. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
+        </div>
+      </div>
+      <ol className={styles.animeProjectMilestones} aria-label="Stufen für Anime-Projekte">
+        {family.stages.map((stage) => {
+          const current = stage.badge_code === currentCode
+          const selected = stage.badge_code === selectedCode
+          const stagePresentation = getMemberBadgePresentation(stage.badge_code)
+          const label = stage.badge_code === 'first_contribution' ? 'Erste Mitwirkung' : (stagePresentation.label.split(' · ').at(-1) ?? stagePresentation.label)
+          const content = <>{stage.earned ? <span className={styles.animeProjectMarker} aria-hidden="true">{current ? '★' : '●'}</span> : <LockedStageArtwork className={styles.animeProjectMarker} />}<span className={styles.animeProjectMilestoneName}>{label}</span><span className={styles.animeProjectThreshold}>{stage.threshold}</span>{current ? <span className={styles.currentChip}>Aktuell</span> : null}{!stage.earned ? <span className={styles.visuallyHidden}>Gesperrt</span> : null}</>
+          return (
+            <li key={stage.badge_code} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>
+              {stage.earned ? <button type="button" aria-label={`${stage.badge_code === 'first_contribution' ? label : `${stage.threshold} Anime-Projekte`} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${stage.threshold} Anime-Projekte · Gesperrt`}>{content}</span>}
+            </li>
+          )
+        })}
+      </ol>
+    </Card>
+  )
+}
+
+const POINT_NUMBER_FORMATTER = new Intl.NumberFormat('de-CH')
+
+function ContributionAchievementStage({ family }: { family: MemberBadgeFamilyPresentation }) {
+  const [selectedCode, setSelectedCode] = useState<string | null>(null)
+  const currentCode = family.currentStage?.badge_code ?? null
+  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned)
+  const heroStage = selectedStage ?? family.heroStage
+  const presentation = getMemberBadgePresentation(heroStage.badge_code)
+  const HeroIcon = presentation.Icon
+  const artwork = resolveBadgeArtwork(heroStage.badge_code)
+  const count = family.currentCount ?? 0
+  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
+  const progressValue = Math.min(Math.max(count, 0), progressMax)
+  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
+  const unit = count === 1 ? family.unitSingular : family.unitPlural
+  const tierLabel = (code: string) => CONTRIBUTION_TIER_LABELS[code.split('_').at(-1) as keyof typeof CONTRIBUTION_TIER_LABELS]
+  const nextTier = family.nextStage ? tierLabel(family.nextStage.badge_code) : null
+  return (
+    <Card className={styles.contributionAchievementStage} data-family={family.key} data-contribution-achievement-stage>
+      <h3 className={styles.contributionStageTitle}>{family.label}</h3>
+      <div className={styles.contributionStageHero}>
+        <span className={styles.contributionHeroArtwork} data-contribution-art={heroStage.badge_code}>
+          {artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />}
+        </span>
+        <div className={styles.contributionStageInfo} aria-live="polite">
+          <div className={styles.contributionStageStatus}><Badge variant={presentation.variant}>{tierLabel(heroStage.badge_code)}</Badge><Badge variant={selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
+          <strong className={styles.contributionStageCount}>{count} {unit}</strong>
+          <div className={styles.contributionStageProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label={`Fortschritt für ${family.label}`} aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={styles.contributionStageProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
+          <p className={styles.contributionStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? family.unitSingular : family.unitPlural} bis ${nextTier}`}</p>
+          {selectedStage ? <p className={styles.visuallyHidden}>Vorschau der bereits erreichten Stufe {tierLabel(heroStage.badge_code)}. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
+        </div>
+      </div>
+      <ol className={styles.contributionTierTrack} aria-label={`Stufen für ${family.label}`}>
+        {family.stages.map((stage) => {
+          const current = stage.badge_code === currentCode
+          const selected = (selectedCode ?? currentCode) === stage.badge_code
+          const stagePresentation = getMemberBadgePresentation(stage.badge_code)
+          const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
+          const StageIcon = stagePresentation.Icon
+          const tier = tierLabel(stage.badge_code)
+          const state = current ? 'Aktuell' : stage.earned ? '' : 'Gesperrt'
+          const content = <>{stage.earned ? <span className={styles.contributionTierArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={styles.contributionTierArtwork} />}<span className={styles.contributionTierName}>{tier}</span><span className={styles.contributionTierState}>{state === 'Gesperrt' ? <Lock size={12} aria-hidden="true" /> : null}{state}</span></>
+          return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned ? <button type="button" aria-label={`${tier} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${tier} · Gesperrt`}>{content}</span>}</li>
+        })}
+      </ol>
+    </Card>
+  )
+}
+
+function MembershipStage({ family }: { family: MemberBadgeFamilyPresentation }) {
+  const [selectedCode, setSelectedCode] = useState<string | null>(null)
+  const currentCode = family.currentStage?.badge_code ?? null
+  const foundingPreview = selectedCode === family.foundingStage?.badge_code
+  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned && stage.badge_code !== currentCode)
+  const heroStage = foundingPreview ? family.foundingStage! : selectedStage ?? family.heroStage
+  const presentation = getMemberBadgePresentation(heroStage.badge_code)
+  const HeroIcon = presentation.Icon
+  const artwork = resolveBadgeArtwork(heroStage.badge_code)
+  const count = family.currentCount ?? 0
+  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
+  const progressValue = Math.min(Math.max(count, 0), progressMax)
+  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
+  const nextLabel = family.nextStage ? `${family.nextStage.threshold} Jahre` : null
+
+  return (
+    <Card className={styles.membershipStage} data-family={family.key} data-membership-stage>
+      <h3 className={styles.membershipStageTitle}>Mitgliedschaft</h3>
+      <div className={styles.membershipStageHero}>
+        <span className={styles.membershipHeroArtwork} data-membership-art={heroStage.badge_code}>
+          {artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />}
+        </span>
+        <div className={styles.membershipStageInfo} aria-live="polite">
+          <h4 className={styles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h4>
+          <div className={styles.membershipStageStatus}><Badge variant={presentation.variant}>{foundingPreview ? 'Gründungsmitglied' : presentation.label}</Badge><Badge variant={foundingPreview || selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{foundingPreview || selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
+          {foundingPreview ? <p className={styles.membershipHeroDescription}>Seit der Gründung dabei</p> : null}
+          <strong className={styles.membershipStageCount}>{count} {count === 1 ? family.unitSingular : family.unitPlural}</strong>
+          <div className={styles.membershipProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label="Fortschritt für Mitgliedschaft" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={styles.membershipProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
+          <p className={styles.membershipStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? 'Jahr' : 'Jahre'} bis ${nextLabel}`}</p>
+          {foundingPreview || selectedStage ? <p className={styles.visuallyHidden}>Vorschau einer bereits erreichten Mitgliedschaftsauszeichnung. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
+        </div>
+      </div>
+      <ol className={styles.membershipDurationTrack} aria-label="Dauerstufen der Mitgliedschaft" data-membership-duration-track>
+        {family.stages.map((stage) => {
+          const current = stage.badge_code === currentCode
+          const selected = stage.badge_code === selectedCode || (selectedCode === null && current)
+          const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
+          const StageIcon = getMemberBadgePresentation(stage.badge_code).Icon
+          const label = `${stage.threshold} Jahre Mitgliedschaft`
+          const content = <>{stage.earned ? <span className={styles.membershipStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={styles.membershipStageArtwork} />}<span className={styles.membershipStageName}>{stage.threshold} Jahre</span><span className={styles.membershipStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
+          return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-threshold={stage.threshold} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned ? <button type="button" aria-label={`${label} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${label} · Gesperrt`}>{content}</span>}</li>
+        })}
+      </ol>
+      {family.foundingStage ? <aside className={styles.foundingMemberPanel} data-founding-member aria-label="Besondere Mitgliedschaft">
+        <button type="button" className={styles.foundingMemberButton} aria-label="Gründungsmitglied Vorschau" aria-pressed={foundingPreview} onClick={() => setSelectedCode(foundingPreview ? null : family.foundingStage!.badge_code)}>
+          <span className={styles.foundingMemberArtwork}>{!foundingPreview && resolveBadgeArtwork(family.foundingStage.badge_code) ? <ResponsiveImage src={resolveBadgeArtwork(family.foundingStage.badge_code)!} alt="" width={192} height={192} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={family.foundingStage.badge_code} /> : null}</span>
+          <span className={styles.foundingMemberCopy}><strong>Besondere Mitgliedschaft</strong><span className={styles.foundingMemberLabel}>Gründungsmitglied</span><span className={styles.foundingMemberDescription}>Seit der Gründung dabei</span></span>
+        </button>
+      </aside> : null}
+    </Card>
+  )
+}
+
+function PointsAchievementStage({ family }: { family: MemberBadgeFamilyPresentation }) {
+  const [selectedCode, setSelectedCode] = useState<string | null>(null)
+  const currentCode = family.currentStage?.badge_code ?? null
+  const selectedStage = family.stages.find((stage) => stage.badge_code === selectedCode && stage.earned && stage.badge_code !== currentCode)
+  const heroStage = selectedStage ?? family.heroStage
+  const presentation = getMemberBadgePresentation(heroStage.badge_code)
+  const HeroIcon = presentation.Icon
+  const artwork = resolveBadgeArtwork(heroStage.badge_code)
+  const count = family.currentCount ?? 0
+  const progressMax = family.nextThreshold ?? family.stages.at(-1)?.threshold ?? 1
+  const progressValue = Math.min(Math.max(count, 0), progressMax)
+  const progressPercent = progressMax > 0 ? Math.min(100, (progressValue / progressMax) * 100) : 100
+  const nextLabel = family.nextStage ? getMemberBadgePresentation(family.nextStage.badge_code).label : null
+  const formatPoints = (value: number) => POINT_NUMBER_FORMATTER.format(value)
+  return (
+    <Card className={styles.pointsAchievementStage} data-family={family.key} data-points-achievement-stage>
+      <h3 className={styles.pointsStageTitle}>Punkte-Meilensteine</h3>
+      <div className={styles.pointsStageHero}>
+        <span className={styles.pointsHeroArtwork}>{currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : null}</span>
+        <div className={styles.pointsStageInfo} aria-live="polite">
+          {currentCode ? <div className={styles.pointsStageStatus}><Badge variant={presentation.variant}>{presentation.label}</Badge>{selectedStage ? <Badge variant="info">Vorschau</Badge> : null}</div> : null}
+          <strong className={styles.pointsStageCount}>{formatPoints(count)} Punkte{selectedStage ? ' aktuell' : ''}</strong>
+          <div className={styles.pointsProgressValue}><span>{formatPoints(progressValue)} / {formatPoints(progressMax)}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label="Fortschritt für Punkte" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={styles.pointsProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
+          <p className={styles.pointsStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${formatPoints(family.remainingCount ?? 0)} Punkte bis ${nextLabel}`}</p>
+        </div>
+      </div>
+      <ol className={styles.pointsStageTrack} aria-label="Punkte-Meilensteine">{family.stages.map((stage) => {
+        const current = stage.badge_code === currentCode
+        const selected = stage.badge_code === selectedCode
+        const stagePresentation = getMemberBadgePresentation(stage.badge_code)
+        const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
+        const StageIcon = stagePresentation.Icon
+        const content = <>{stage.earned ? <span className={styles.pointsStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={styles.pointsStageArtwork} />}<span className={styles.pointsStageName}>Stufe: {stagePresentation.label}</span><span className={styles.pointsStageThreshold}>Ab {formatPoints(stage.threshold)} Punkten</span><span className={styles.pointsStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
+        return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-threshold={stage.threshold} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned && !current ? <button type="button" aria-label={`${stagePresentation.label} auswählen`} aria-pressed={selected} onClick={() => { if (stage.earned && stage.badge_code !== currentCode) setSelectedCode(stage.badge_code) }}>{content}</button> : <span aria-label={`${stagePresentation.label} · ${current ? 'Aktuell' : 'Gesperrt'}`}>{content}</span>}</li>
+      })}</ol>
     </Card>
   )
 }
@@ -572,7 +793,7 @@ export function MemberBadgeChain({
                             const item = row.items[index]
                             return (
                               <li key={stage.tier} className={stage.state === 'locked' ? styles.roleStageLocked : styles.roleStageEarned} data-role-stage={stage.label.toLowerCase()} data-role-stage-state={stage.state} data-palette={item ? getMemberBadgePresentation(item.badge_code).palette : undefined} data-role-volume={item?.badge_code.startsWith('role_volume_') ? 'true' : undefined} aria-current={current ? 'step' : undefined} aria-label={stage.state === 'locked' ? `${stage.label} · ${stage.threshold}+ gesperrt` : undefined}>
-                                <span className={styles.roleStageMarker} aria-hidden="true"><Lock size={13} /></span>
+                                {stage.state === 'locked' ? <LockedStageArtwork className={styles.roleStageMarker} /> : <span className={styles.roleStageMarker} aria-hidden="true"><Lock size={13} /></span>}
                                 <span className={styles.roleStageName}>{stage.label}</span>
                                 <span className={styles.roleStageThreshold}>{stage.threshold}+</span>
                                 <span className={styles.currentChip}>{current ? 'Aktuell' : ''}</span>
@@ -677,12 +898,18 @@ export function MemberBadgeChain({
           {collectionGroups.map((group) => (
             <div key={group.key} className={styles.group} data-badge-group={group.key}>
               <SectionHeader title={group.label} underline />
-              <div className={styles.carouselShell}>
-                <div className={styles.carouselSkeleton} aria-hidden="true" data-badge-skeleton>
+              {group.key === 'progress' ? (
+                <AnimeProjectAchievementStage key={`${group.families[0].currentCount}:${group.families[0].currentStage?.badge_code ?? ''}`} family={group.families[0]} />
+              ) : group.key === 'points' ? (
+                <PointsAchievementStage key={`${group.families[0].currentCount}:${group.families[0].currentStage?.badge_code ?? ''}`} family={group.families[0]} />
+              ) : group.key === 'membership' ? (
+                <MembershipStage key={`${group.families[0].currentCount}:${group.families[0].currentStage?.badge_code ?? ''}`} family={group.families[0]} />
+              ) : <div className={styles.carouselShell}>
+                {group.key === 'contributions' ? null : <div className={styles.carouselSkeleton} aria-hidden="true" data-badge-skeleton>
                   <span className={styles.skeletonControl} />
                   <span className={styles.skeletonCard} />
                   <span className={styles.skeletonControl} />
-                </div>
+                </div>}
                 <FocalCarousel
                 items={group.families}
                 getItemKey={(family) => `${family.key}:${family.heroStage.badge_code}`}
@@ -693,14 +920,18 @@ export function MemberBadgeChain({
                 previousLabel="Vorherige Sammlung"
                 nextLabel="Nächste Sammlung"
                 showCounter={group.families.length > 1}
+                showAllLabel={`Alle Auszeichnungen in ${group.label} anzeigen`}
+                showLessLabel="Weniger anzeigen"
                 formatCounter={(position, total) => `${position} von ${total} Sammlungen`}
                 carouselClassName={`${styles.chain} ${group.key === 'special' ? styles.specialChain : ''}`}
                 itemClassName={styles.badgeWindow}
                 activeItemClassName={styles.badgeWindowActive}
                 deferInteractionUntilNearViewport
-                renderItem={(family) => <FamilyCollectionCard key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />}
+                renderItem={(family) => group.key === 'contributions'
+                  ? <ContributionAchievementStage key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />
+                  : <FamilyCollectionCard key={`${family.key}:${family.currentCount}:${family.currentStage?.badge_code ?? ''}`} family={family} />}
                 />
-              </div>
+              </div>}
             </div>
           ))}
         </div>
