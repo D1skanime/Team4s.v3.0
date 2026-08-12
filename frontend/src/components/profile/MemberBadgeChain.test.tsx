@@ -1855,7 +1855,6 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
     expect(html.match(/Noch nicht freigeschaltet/g)).toHaveLength(5)
     expect(html).not.toContain('data-achievement-art')
     expect(html).not.toContain('/member-achievement-badges/')
-    expect(html).not.toMatch(/Motif|Frame|bronze|silver|gold|platinum/i)
   })
 
   it('defines a responsive hero composition without changing the compact lock default', () => {

@@ -58,12 +58,15 @@ const CONTRIBUTION_TIER_LABELS = { bronze: 'Bronze', silver: 'Silber', gold: 'Go
 const COMPACT_BADGE_SIZES = '(max-width: 520px) 72px, 96px'
 const ACTIVE_BADGE_SIZES = '(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px'
 
-function LockedStageArtwork({ className }: { className?: string }) {
-  return (
-    <span className={className ? `${className} ${styles.lockedStageArtwork}` : styles.lockedStageArtwork} data-locked-stage-art aria-hidden="true">
-      <span>?</span><Lock size={16} />
+function LockedStageArtwork({ className, hero = false }: { className?: string; hero?: boolean }) {
+  const artworkClassName = [className, styles.lockedStageArtwork, hero ? styles.lockedStageArtworkHero : null].filter(Boolean).join(" ")
+  if (hero) return (
+    <span className={artworkClassName} data-locked-stage-art data-locked-stage-hero>
+      <span className={styles.lockedStageHeroMedal} aria-hidden="true"><span className={styles.lockedStageHeroQuestion}>?</span><Lock className={styles.lockedStageHeroLock} /></span>
+      <span className={styles.lockedStageHeroCopy}>Noch nicht freigeschaltet</span>
     </span>
   )
+  return <span className={artworkClassName} data-locked-stage-art aria-hidden="true"><span>?</span><Lock size={16} /></span>
 }
 
 function ContributionProgress({ badge }: { badge: PublicMemberBadge }) {
@@ -496,10 +499,10 @@ function ContributionAchievementStage({ family }: { family: MemberBadgeFamilyPre
       <h3 className={styles.contributionStageTitle}>{family.label}</h3>
       <div className={styles.contributionStageHero}>
         <span className={styles.contributionHeroArtwork} data-contribution-art={heroStage.badge_code}>
-          {currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork />}
+          {currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}
         </span>
         <div className={styles.contributionStageInfo} aria-live="polite">
-          <div className={styles.contributionStageStatus}><Badge variant={presentation.variant}>{tierLabel(heroStage.badge_code)}</Badge><Badge variant={selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
+          <div className={styles.contributionStageStatus}><Badge variant={currentCode ? presentation.variant : 'muted'}>{tierLabel(heroStage.badge_code)}</Badge><Badge variant={selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
           <strong className={styles.contributionStageCount}>{count} {unit}</strong>
           <div className={styles.contributionStageProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
           <div role="progressbar" aria-label={`Fortschritt für ${family.label}`} aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={styles.contributionStageProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
@@ -544,11 +547,11 @@ function MembershipStage({ family }: { family: MemberBadgeFamilyPresentation }) 
       <h3 className={styles.membershipStageTitle}>Mitgliedschaft</h3>
       <div className={styles.membershipStageHero}>
         <span className={styles.membershipHeroArtwork} data-membership-art={heroStage.badge_code}>
-          {currentCode || foundingPreview ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork />}
+          {currentCode || foundingPreview ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}
         </span>
         <div className={styles.membershipStageInfo} aria-live="polite">
           <h4 className={styles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h4>
-          <div className={styles.membershipStageStatus}><Badge variant={presentation.variant}>{foundingPreview ? 'Gründungsmitglied' : presentation.label}</Badge><Badge variant={foundingPreview || selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{foundingPreview || selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
+          <div className={styles.membershipStageStatus}><Badge variant={currentCode || foundingPreview ? presentation.variant : 'muted'}>{foundingPreview ? 'Gründungsmitglied' : presentation.label}</Badge><Badge variant={foundingPreview || selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{foundingPreview || selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
           {foundingPreview ? <p className={styles.membershipHeroDescription}>Seit der Gründung dabei</p> : null}
           <strong className={styles.membershipStageCount}>{count} {count === 1 ? family.unitSingular : family.unitPlural}</strong>
           <div className={styles.membershipProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
@@ -596,7 +599,7 @@ function PointsAchievementStage({ family }: { family: MemberBadgeFamilyPresentat
     <Card className={styles.pointsAchievementStage} data-family={family.key} data-points-achievement-stage>
       <h3 className={styles.pointsStageTitle}>Punkte-Meilensteine</h3>
       <div className={styles.pointsStageHero}>
-        <span className={styles.pointsHeroArtwork}>{currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : null}</span>
+        <span className={styles.pointsHeroArtwork}>{currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}</span>
         <div className={styles.pointsStageInfo} aria-live="polite">
           {currentCode ? <div className={styles.pointsStageStatus}><Badge variant={presentation.variant}>{presentation.label}</Badge>{selectedStage ? <Badge variant="info">Vorschau</Badge> : null}</div> : null}
           <strong className={styles.pointsStageCount}>{formatPoints(count)} Punkte{selectedStage ? ' aktuell' : ''}</strong>
