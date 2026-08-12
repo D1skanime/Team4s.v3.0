@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
 import type { ComponentType } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -9,6 +10,8 @@ vi.mock('@/components/editor', () => ({
     <div data-testid="rich-text-renderer">{bodyHtml}</div>
   ),
 }))
+
+const storyStyles = readFileSync('src/components/profile/MemberStorySection.module.css', 'utf8')
 
 async function loadMemberStorySection(): Promise<{
   MemberStorySection: ComponentType<{ storyHtml?: string | null; headingLevel?: 2 | 3; showEmptyState?: boolean }>
@@ -95,4 +98,15 @@ describe('MemberStorySection', () => {
 
     expect(screen.getByRole('button', { name: 'Mehr lesen' })).not.toBeNull()
   })
+
+it('Quick 260812-rps keeps at least eight readable preview lines before Mehr lesen', () => {
+  const clampedRule = storyStyles.match(/\.storyContentClamped\s*\{[^}]*\}/s)?.[0] ?? ''
+  expect(clampedRule).toContain('max-height: calc(8 * 1.5em);')
+  expect(clampedRule).toContain('overflow: hidden;')
+  expect(clampedRule).toContain('#000 92%')
+  expect(clampedRule).not.toMatch(/(?:line-clamp:\s*[1-7]|max-height:\s*5\.4rem)/)
+  expect(storyStyles).toMatch(/\.storyCard\s*\{[^}]*height:\s*fit-content;/s)
+  expect(storyStyles).not.toMatch(/\.storyCard\s*\{[^}]*min-height:/s)
+  expect(storyStyles).toMatch(/\.toggle\s*\{[^}]*justify-self:\s*start;/s)
+})
 })
