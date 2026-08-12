@@ -545,10 +545,37 @@ describe('Phase 125 contribution achievement stages', () => {
     expect(within(chain).queryByText(/Bronze|Silber|Gold/i)).toBeNull()
   })
 
-  it('excludes role badges from the general progress numerator and denominator (D-01)', async () => {
+  it('summarizes general achievements without a catalog denominator in DOM, accessibility and SSR', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
 
-    render(
+    const { rerender } = render(
+      <MemberBadgeChain earnedBadges={[]} catalog={catalog} />,
+    )
+    expect(screen.getByLabelText('0 Auszeichnungen freigeschaltet')).not.toBeNull()
+    expect(screen.getByText('0 Auszeichnungen freigeschaltet')).not.toBeNull()
+
+    rerender(
+      <MemberBadgeChain
+        earnedBadges={[{ id: 1, badge_code: 'founder', badge_category: 'historical_achievement' }]}
+        catalog={catalog}
+      />,
+    )
+    expect(screen.getByLabelText('1 Auszeichnung freigeschaltet')).not.toBeNull()
+    expect(screen.getByText('1 Auszeichnung freigeschaltet')).not.toBeNull()
+
+    rerender(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 1, badge_code: 'founder', badge_category: 'historical_achievement' },
+          { id: 2, badge_code: 'translator', badge_category: 'supporter' },
+        ]}
+        catalog={catalog}
+      />,
+    )
+    expect(screen.getByLabelText('2 Auszeichnungen freigeschaltet')).not.toBeNull()
+    expect(screen.getByText('2 Auszeichnungen freigeschaltet')).not.toBeNull()
+
+    const html = renderToStaticMarkup(
       <MemberBadgeChain
         earnedBadges={[
           { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
@@ -558,9 +585,9 @@ describe('Phase 125 contribution achievement stages', () => {
         catalog={roleProgressCatalog}
       />,
     )
-
-    expect(screen.getByLabelText('1 von 1 Auszeichnungen freigeschaltet')).not.toBeNull()
-    expect(screen.getByText('1 von 1 Auszeichnungen freigeschaltet')).not.toBeNull()
+    expect(html).toContain('1 Auszeichnung freigeschaltet')
+    expect(html).not.toMatch(/\d+ von \d+ Auszeichnungen freigeschaltet/)
+    expect(html).toContain('1 ausgeübte Fansubrolle')
   })
 
   it('hides a foreign catalog role completely while retaining all five stages of an earned role (D-02/D-03)', async () => {
