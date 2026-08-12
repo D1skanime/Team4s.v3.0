@@ -359,7 +359,7 @@
 
 .membershipsList {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 360px));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
   justify-content: start;
   gap: 12px;
   margin: 0;
