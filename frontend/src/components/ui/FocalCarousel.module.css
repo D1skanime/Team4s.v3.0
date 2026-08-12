@@ -3,6 +3,7 @@
   gap: 12px;
   min-width: 0;
   container: focal-carousel / inline-size;
+  max-width: 100%;
 }
 
 .controls {
@@ -22,6 +23,8 @@
   min-width: 0;
   padding-block: 12px;
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
   overflow-y: hidden;
   scrollbar-width: none;
 }
@@ -94,6 +97,7 @@
   flex: 0 0 var(--focal-item-size);
   min-width: 0;
   overflow: hidden;
+  max-width: 100%;
   scroll-snap-align: center;
   scroll-snap-stop: normal;
   border-radius: var(--radius-lg, 16px);
@@ -168,7 +172,7 @@
   }
 }
 
-@media (min-width: 1100px) {
+@container focal-carousel (min-width: 1100px) {
   .track {
     --focal-item-size: min(60%, 720px);
   }

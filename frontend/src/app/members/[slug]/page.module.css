@@ -3,7 +3,6 @@
   min-width: 0;
   margin: 0 auto;
   padding: 24px 0 48px;
-  overflow-wrap: anywhere;
 }
 
 .backLink a {
@@ -152,6 +151,11 @@
 
 .contributionPairEmpty {
   grid-template-columns: minmax(0, 3fr) minmax(14rem, 1fr);
+
+  .contributionPairPresent,
+  .contributionPairEmpty {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .sectionPlaceholder {
