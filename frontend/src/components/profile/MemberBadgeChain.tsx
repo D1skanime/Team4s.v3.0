@@ -496,7 +496,7 @@ function ContributionAchievementStage({ family }: { family: MemberBadgeFamilyPre
       <h3 className={styles.contributionStageTitle}>{family.label}</h3>
       <div className={styles.contributionStageHero}>
         <span className={styles.contributionHeroArtwork} data-contribution-art={heroStage.badge_code}>
-          {artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />}
+          {currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork />}
         </span>
         <div className={styles.contributionStageInfo} aria-live="polite">
           <div className={styles.contributionStageStatus}><Badge variant={presentation.variant}>{tierLabel(heroStage.badge_code)}</Badge><Badge variant={selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
@@ -544,7 +544,7 @@ function MembershipStage({ family }: { family: MemberBadgeFamilyPresentation }) 
       <h3 className={styles.membershipStageTitle}>Mitgliedschaft</h3>
       <div className={styles.membershipStageHero}>
         <span className={styles.membershipHeroArtwork} data-membership-art={heroStage.badge_code}>
-          {artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />}
+          {currentCode || foundingPreview ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork />}
         </span>
         <div className={styles.membershipStageInfo} aria-live="polite">
           <h4 className={styles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h4>
