@@ -296,6 +296,13 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       'Besondere Auszeichnungen',
       'Beiträge',
     ])
+    // Quick 260812-pmu: the page outline owns each achievement section title once.
+    const pointsGroup = document.querySelector('[data-badge-group="points"]') as HTMLElement
+    const membershipGroup = document.querySelector('[data-badge-group="membership"]') as HTMLElement
+    expect(within(pointsGroup).getAllByRole('heading', { name: 'Punkte-Meilensteine' })).toHaveLength(1)
+    expect(within(membershipGroup).getAllByRole('heading', { name: 'Mitgliedschaft' })).toHaveLength(1)
+    expect(within(membershipGroup).getByRole('heading', { level: 3, name: 'Mitgliedsdauer' })).not.toBeNull()
+    expect(within(membershipGroup).queryByRole('heading', { level: 4 })).toBeNull()
     expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(
       expect.arrayContaining([
         'Fansub-Geschichte',

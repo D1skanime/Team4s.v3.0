@@ -1605,6 +1605,16 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
     const stage = container.querySelector('[data-points-achievement-stage]') as HTMLElement
     const progress = within(stage).getByRole('progressbar', { name: /Punkte/ })
     expect(within(stage).getByText(`${points.toLocaleString('de-CH')} Punkte`)).not.toBeNull()
+  it('Quick 260812-pmu: leaves the outer section as the sole points title owner', async () => {
+    const { container } = await renderPoints(500, 'point_milestone_engaged', 1000, 500)
+    const group = container.querySelector('[data-badge-group="points"]') as HTMLElement
+    const stage = group.querySelector('[data-points-achievement-stage]') as HTMLElement
+
+    expect(within(group).getAllByRole('heading', { name: 'Punkte-Meilensteine' })).toHaveLength(1)
+    expect(within(group).getByRole('heading', { level: 2, name: 'Punkte-Meilensteine' })).not.toBeNull()
+    expect(within(stage).queryByRole('heading', { name: 'Punkte-Meilensteine' })).toBeNull()
+  })
+
     expect(progress.getAttribute('aria-valuenow')).toBe('2500')
     expect(progress.getAttribute('aria-valuemax')).toBe('2500')
     expect(within(stage).getByText('H?chste Stufe erreicht')).not.toBeNull()
@@ -1689,6 +1699,18 @@ describe('Phase 126 membership stage', () => {
   })
 
   it('keeps authoritative duration facts unchanged during founding preview', async () => {
+  it('Quick 260812-pmu: leaves the outer section as the sole membership title owner', async () => {
+    const { container } = await renderMembership(24, true)
+    const group = container.querySelector('[data-badge-group="membership"]') as HTMLElement
+    const stage = group.querySelector('[data-membership-stage]') as HTMLElement
+
+    expect(within(group).getAllByRole('heading', { name: 'Mitgliedschaft' })).toHaveLength(1)
+    expect(within(group).getByRole('heading', { level: 2, name: 'Mitgliedschaft' })).not.toBeNull()
+    expect(within(stage).queryByRole('heading', { name: 'Mitgliedschaft' })).toBeNull()
+    expect(within(stage).getByRole('heading', { level: 3, name: 'Mitgliedsdauer' })).not.toBeNull()
+    expect(within(stage).queryByRole('heading', { level: 4 })).toBeNull()
+  })
+
     const { container } = await renderMembership(24, true)
     const stage = container.querySelector('[data-membership-stage]') as HTMLElement
     const progress = within(stage).getByRole('progressbar', { name: 'Fortschritt für Mitgliedschaft' })
