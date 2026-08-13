@@ -43,27 +43,50 @@ Milestone v1.3 hardens the existing public member profile as one privacy-sensiti
 **Plan-time read first**: `docs/engineering/implementation-contract.md`, `docs/frontend/auth-api-client.md`, `docs/architecture/db-schema-fansub-domain.md`, the latest files in `database/migrations/`, `backend/internal/handlers/app_public_profile.go`, `backend/internal/handlers/contributions_public_handler.go`, `backend/internal/repository/member_profile_repository.go`, `backend/internal/repository/anime_contributions_public_repository.go`, relevant member-creation repositories, and `backend/cmd/server/main.go`.
 
 Plans:
+**Wave 0**
 - [ ] 128-01-PLAN.md - Establish guarded PostgreSQL slug, migration, and allocator test contracts.
-- [ ] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.
 - [ ] 128-03-PLAN.md - Establish canonical-link, owner-preview, and refresh-only frontend test contracts.
+
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.
+- [ ] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 128-04-PLAN.md - Add the immutable canonical public-slug schema and runtime member fields.
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 128-05-PLAN.md - Implement the shared transactional slug allocator across all member-creation repositories.
 - [ ] 128-06-PLAN.md - Project stored member slugs through contribution data.
 - [ ] 128-07-PLAN.md - Project stored member slugs through group and domain-member data.
 - [ ] 128-08-PLAN.md - Replace archive and ranking member-link fallbacks with stored slugs.
 - [ ] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 128-10-PLAN.md - Convert project and contribution detail loaders to resolved member identity.
 - [ ] 128-11-PLAN.md - Enforce shared access resolution and cache policy in public profile handlers.
+
+**Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 128-12-PLAN.md - Apply the shared visibility gate to projects, contributions, and retained subresources.
+
+**Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 128-13-PLAN.md - Align OpenAPI, frontend types, and central API helpers with the canonical public contract.
-- [ ] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
+
+**Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 128-15-PLAN.md - Render the authoritative public profile composition at its canonical route.
-- [ ] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
 - [ ] 128-17-PLAN.md - Remove numeric member-link fallbacks from own-profile projections.
 - [ ] 128-18-PLAN.md - Reuse the shared profile hero for stored-slug member links.
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
 - [ ] 128-19-PLAN.md - Keep visibility editing session-safe and synchronized with the canonical preview.
+
+**Wave 9** *(blocked on Wave 8 completion)*
 - [ ] 128-20-PLAN.md - Obtain explicit approval for the disposable member-row reset procedure.
+
+**Wave 10** *(blocked on Wave 9 completion)*
 - [ ] 128-21-PLAN.md - Reset, migrate, reseed, and run the full Phase 128 automated gate.
+
+**Wave 11** *(blocked on Wave 10 completion)*
 - [ ] 128-22-PLAN.md - Capture live browser evidence across visibility, refresh, and responsive states.
 
 ### Phase 129: Canonical Public Projections & Data Correctness
