@@ -74,7 +74,7 @@ Plans:
 **Wave 7** *(blocked on Wave 6 completion)*
 - [x] 128-15-PLAN.md - Render the authoritative public profile composition at its canonical route.
 - [x] 128-17-PLAN.md - Remove numeric member-link fallbacks from own-profile projections.
-- [ ] 128-18-PLAN.md - Reuse the shared profile hero for stored-slug member links.
+- [x] 128-18-PLAN.md - Reuse the shared profile hero for stored-slug member links.
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [ ] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
@@ -202,7 +202,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 128. Canonical Public Identity & Visibility Foundation | 14/22 | In Progress | - |
+| 128. Canonical Public Identity & Visibility Foundation | 17/22 | In Progress | - |
 | 129. Canonical Public Projections & Data Correctness | 0/TBD | Not started | - |
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
