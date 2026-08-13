@@ -89,8 +89,10 @@ func TestPhase128PublicMemberAccessMatrix(t *testing.T) {
 		t.Fatalf("missing Phase-128 shared handler access contract: %s", helperPath)
 	}
 	require.NoError(t, err)
-	require.Contains(t, strings.ToLower(string(helper)), "writepublicmemberunavailable")
-	require.Contains(t, strings.ToLower(string(helper)), "resolvepublicmemberaccess")
+	normalizedHelper := strings.ToLower(string(helper))
+	require.Contains(t, normalizedHelper, "writepublicmemberunavailable")
+	require.Contains(t, normalizedHelper, "resolvepublicmemberaccess")
+	require.Contains(t, normalizedHelper, `c.header("vary", "authorization")`)
 
 	for _, file := range []string{
 		"app_public_profile.go",
@@ -102,7 +104,7 @@ func TestPhase128PublicMemberAccessMatrix(t *testing.T) {
 		normalized := strings.ToLower(string(source))
 		require.Contains(t, normalized, "resolvepublicmemberaccess", file)
 		require.Contains(t, normalized, "writepublicmemberunavailable", file)
-		require.Contains(t, normalized, "vary", file)
+		require.NotContains(t, normalized, `c.header("vary"`, file)
 	}
 
 	mainSource, err := os.ReadFile(filepath.Join("..", "..", "cmd", "server", "main.go"))

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -9,17 +10,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type projectMemberPublicLoader interface {
+	HasMemberRelation(context.Context, int64, int64, int64) (bool, error)
+	GetSummary(context.Context, int64, int64, int64) (*repository.ProjectMemberSummary, error)
+	ListNotes(context.Context, int64, int64, int64, string, int) ([]repository.ProjectMemberNote, *string, bool, error)
+	ListMedia(context.Context, int64, int64, int64, string, int) ([]repository.ProjectMemberMediaItem, *string, bool, error)
+	ListReleases(context.Context, int64, int64, int64, string, int) ([]repository.ProjectMemberRelease, *string, bool, error)
+}
+
 // ProjectMemberPublicHandler bedient die oeffentliche Projekt-Member-Seite (Phase 122):
 // die kombinierte Read-View Member × Fansubgruppe × Anime. Alle Routen sind unauthenticated
 // public (wie die uebrigen /anime/:id/group/:groupId/-Routen) und liefern nur oeffentliche Inhalte.
 type ProjectMemberPublicHandler struct {
-	repo            *repository.ProjectMemberPublicRepository
+	accessResolver  publicMemberAccessResolver
+	repo            projectMemberPublicLoader
 	mediaStorageDir string
 }
 
 // NewProjectMemberPublicHandler erstellt einen neuen ProjectMemberPublicHandler.
-func NewProjectMemberPublicHandler(repo *repository.ProjectMemberPublicRepository, mediaStorageDir string) *ProjectMemberPublicHandler {
-	return &ProjectMemberPublicHandler{repo: repo, mediaStorageDir: mediaStorageDir}
+func NewProjectMemberPublicHandler(
+	accessResolver publicMemberAccessResolver,
+	repo projectMemberPublicLoader,
+	mediaStorageDir string,
+) *ProjectMemberPublicHandler {
+	return &ProjectMemberPublicHandler{accessResolver: accessResolver, repo: repo, mediaStorageDir: mediaStorageDir}
 }
 
 // buildMediaURL konvertiert einen Storage-Pfad in eine /media/...-Public-URL
@@ -50,7 +64,7 @@ type projectMemberMediaResponse struct {
 	PreviewURL   string `json:"preview_url"`
 }
 
-// resolve parst anime-/group-id, loest den Member auf und setzt bei fehlender Projektbeziehung 404 (D-10).
+// resolve parst anime-/group-id, autorisiert den Member und prüft erst danach die Projektbeziehung (D-10).
 func (h *ProjectMemberPublicHandler) resolve(c *gin.Context) (animeID, groupID, memberID int64, ok bool) {
 	animeID, err := parseAnimeID(c.Param("id"))
 	if err != nil {
@@ -63,16 +77,20 @@ func (h *ProjectMemberPublicHandler) resolve(c *gin.Context) (animeID, groupID, 
 		return 0, 0, 0, false
 	}
 	memberSlug := strings.TrimSpace(c.Param("memberSlug"))
-	memberID, exists, err := h.repo.ResolveMemberRelation(c.Request.Context(), animeID, groupID, memberSlug)
+	access, allowed := resolvePublicMemberAccess(c, h.accessResolver, memberSlug)
+	if !allowed {
+		return 0, 0, 0, false
+	}
+	exists, err := h.repo.HasMemberRelation(c.Request.Context(), animeID, groupID, access.MemberID)
 	if err != nil {
 		internalError(c, "interner serverfehler")
 		return 0, 0, 0, false
 	}
 	if !exists {
-		notFound(c, "mitwirkende person nicht gefunden")
+		writePublicMemberUnavailable(c)
 		return 0, 0, 0, false
 	}
-	return animeID, groupID, memberID, true
+	return animeID, groupID, access.MemberID, true
 }
 
 // GetSummary handles GET /api/v1/anime/:id/group/:groupId/members/:memberSlug
