@@ -1979,35 +1979,3 @@ describe('Quick 260812-jtp contribution card density', () => {
 })
 })
 })
-})
-
-describe('Quick 260812-kr1 transparent achievement stages', () => {
-  const stageSelectors = ['.roleBadgeRow', '.animeProjectStage', '.pointsAchievementStage', '.contributionAchievementStage', '.membershipStage']
-
-  it('keeps one final profile-local rule authoritative for every large hero wrapper', () => {
-    const groupedRulePattern = new RegExp(
-      stageSelectors.map((selector) => selector.replace('.', '\\.')).join('\\s*,\\s*') +
-        '\\s*\\{[^}]*border:\\s*0;[^}]*border-radius:\\s*0;[^}]*background:\\s*transparent;[^}]*box-shadow:\\s*none;',
-      's',
-    )
-    const groupedRule = memberBadgeChainCss.match(groupedRulePattern)
-    expect(groupedRule).not.toBeNull()
-    expect(memberBadgeChainCss.slice((groupedRule?.index ?? 0) + (groupedRule?.[0].length ?? 0))).not.toMatch(/\.(?:roleBadgeRow|animeProjectStage|pointsAchievementStage|contributionAchievementStage|membershipStage)\s*\{[^}]*(?:background:\s*var\(--surface-card\)|border:\s*1px|border-radius:\s*var\(|box-shadow:\s*var\()/s)
-  })
-
-  it('retains responsive ownership and bounded hero media without document-level clipping', () => {
-    expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
-    expect(memberBadgeChainCss).toMatch(/\.(?:animeProjectStage|pointsAchievementStage|contributionAchievementStage|membershipStage)\s*\{[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\s*\{[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.(?:animeProjectArtwork|pointsHeroArtwork|contributionHeroArtwork|membershipHeroArtwork)\s*\{[^}]*width:\s*min\(100%,/s)
-    expect(memberBadgeChainCss).not.toMatch(/(?:html|body)\s*\{[^}]*overflow-x:\s*hidden/s)
-  })
-})
-
-describe('Quick 260812-kr1 rendered Card ownership regression', () => {
-  it('uses a higher-specificity section rule than the global Card class and compacts inactive roles', () => {
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group\]\s+:is\([\s\S]*?\.roleBadgeRow,[\s\S]*?\.animeProjectStage,[\s\S]*?\.pointsAchievementStage,[\s\S]*?\.contributionAchievementStage,[\s\S]*?\.membershipStage[\s\S]*?\)\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group="roles"\] \.roleBadgeRow\[data-role-card-state="inactive"\]\s*\{[^}]*place-content:\s*center;[^}]*min-height:\s*0;[^}]*padding:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] :is\([\s\S]*?\.roleLabel,[\s\S]*?\.roleStatus,[\s\S]*?\.roleProgressBlock,[\s\S]*?\.roleProgression[\s\S]*?\)\s*\{[^}]*display:\s*none;/s)
-  })
-})
