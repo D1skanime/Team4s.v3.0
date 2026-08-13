@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Completed 128-06-PLAN.md
-last_updated: "2026-08-13T14:14:34.342Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 06
+stopped_at: Completed 128-07-PLAN.md
+last_updated: "2026-08-13T14:30:00.311Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 07
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 7
-  percent: 32
+  completed_plans: 8
+  percent: 36
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 7 of 22
+Plan: 8 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 06
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 07
 
 ## Accumulated Context
 
@@ -58,6 +58,8 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 06
 - [Phase 128]: All production member creation paths allocate exactly once inside their existing caller-owned transaction. - Identity is persisted atomically with creation without nested transactions or parallel allocators.
 - [Phase 128]: Outbound contribution links use stored public_slug only for public profiles; private member links remain NULL. — Stable identity survives nickname edits without disclosing private slugs.
 - [Phase 128]: The shared nickname-derived memberSlugExpr declaration remains only until Plan 128-10 removes inbound resolution and remaining consumers. — Plan 128-06 removes owned outbound consumers without crossing later cleanup ownership.
+- [Phase 128]: Group and domain projection links use stored public_slug only for public profiles; private identities remain unlinked.
+- [Phase 128]: Grouped historical and contributor projections include the joined member primary key so canonical slug selection preserves row ownership and grouping.
 
 ### Pending Todos
 
@@ -90,10 +92,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 06
 | Phase 128 P04 | 14m | 2 tasks | 6 files |
 | Phase 128 P05 | 16m | 2 tasks | 6 files |
 | Phase 128 P06 | 16m | 2 tasks | 4 files |
+| Phase 128 P07 | 9m | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T14:14:34.338Z
-Stopped at: Completed 128-06-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 06
+Last session: 2026-08-13T14:30:00.307Z
+Stopped at: Completed 128-07-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 07
 Resume file: None
