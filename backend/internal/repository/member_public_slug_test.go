@@ -40,6 +40,27 @@ func TestPhase128MemberSlugContract(t *testing.T) {
 	}
 }
 
+func TestPhase128MemberCreationSeamsAllocateBeforeInsert(t *testing.T) {
+	tests := []struct {
+		file string
+		call string
+	}{
+		{"member_requests_repository.go", "allocatepublicmemberslugtx(ctx, tx, nick)"},
+		{"fansub_group_app_members_repository.go", "allocatepublicmemberslugtx(ctx, tx, nickname)"},
+		{"hist_group_members_repository.go", "allocatepublicmemberslugtx(ctx, tx, input.displayname)"},
+	}
+	for _, test := range tests {
+		source, err := os.ReadFile(filepath.Join(phase128RepositoryDir(t), test.file))
+		require.NoError(t, err)
+		normalized := strings.ToLower(string(source))
+		callAt := strings.Index(normalized, test.call)
+		insertAt := strings.Index(normalized, "insert into members")
+		require.GreaterOrEqual(t, callAt, 0, test.file)
+		require.GreaterOrEqual(t, insertAt, 0, test.file)
+		require.Less(t, callAt, insertAt, test.file)
+	}
+}
+
 func TestPhase128MemberInsertInventory(t *testing.T) {
 	expected := []string{"fansub_group_app_members_repository.go", "hist_group_members_repository.go", "member_requests_repository.go"}
 	require.Equal(t, expected, phase128ProductionMemberInsertFiles(t))
