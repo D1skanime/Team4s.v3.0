@@ -8,8 +8,8 @@
 
 ### Identität und Routing
 
-- [ ] **PMID-01**: Jedes öffentliche Memberprofil besitzt einen eindeutigen, in PostgreSQL gespeicherten Slug.
-- [ ] **PMID-02**: Eine Änderung des Nicknames verändert den öffentlichen Slug nicht.
+- [x] **PMID-01**: Jedes öffentliche Memberprofil besitzt einen eindeutigen, in PostgreSQL gespeicherten Slug.
+- [x] **PMID-02**: Eine Änderung des Nicknames verändert den öffentlichen Slug nicht.
 - [ ] **PMID-03**: Profilverlinkungen verwenden ausschließlich den kanonischen Slug; numerische und dynamisch erzeugte Fallbacks entfallen.
 
 ### Datenschutz und Sichtbarkeit
@@ -125,8 +125,8 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 
 | Requirement | Phase | Status |
 |---|---|---|
-| PMID-01 | Phase 128 | Pending |
-| PMID-02 | Phase 128 | Pending |
+| PMID-01 | Phase 128 | Complete |
+| PMID-02 | Phase 128 | Complete |
 | PMID-03 | Phase 128 | Pending |
 | PMPR-01 | Phase 128 | Pending |
 | PMPR-02 | Phase 128 | Pending |

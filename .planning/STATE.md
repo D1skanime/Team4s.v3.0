@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Phase 128 planning complete
-last_updated: "2026-08-13T11:35:26.246Z"
-last_activity: 2026-08-13 -- Phase 128 planning complete
+stopped_at: Completed 128-01-PLAN.md
+last_updated: "2026-08-13T12:17:55.676Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 01
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 5
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 0 of 22
+Plan: 2 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Phase 128 planning complete
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 01
 
 ## Accumulated Context
 
@@ -42,6 +42,8 @@ Last activity: 2026-08-13 -- Phase 128 planning complete
 - Existing test rows are disposable; schema changes use new reversible migrations followed by reset/reseed, without row-preservation, backfill, alias, or compatibility code.
 - The approved roadmap contains 65 requirements mapped exactly once across sequential Phases 128-134.
 - The drifted historical planning tree is preserved at `.planning/milestones/pre-v1.3-recovery-2026-08-13/` and is not represented as one falsely completed milestone.
+- [Phase 128]: Phase-128 PostgreSQL tests require TEAM4S_PHASE128_TEST_DSN and never fall back to DATABASE_URL.
+- [Phase 128]: Wave-0 identity gates use compilable source-inspection RED contracts until Plans 128-04 and 128-05 provide production symbols.
 
 ### Pending Todos
 
@@ -63,9 +65,15 @@ Last activity: 2026-08-13 -- Phase 128 planning complete
 - Runtime: canonical Linux Docker Compose services were running when v1.3 was initialized.
 - Application validation is deferred to phase execution; milestone initialization changed planning artifacts only.
 
+## Performance Metrics
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 128 P01 | 29m | 3 tasks | 4 files |
+
 ## Session Continuity
 
-Last session: 2026-08-13T11:35:26.246Z
-Stopped at: Phase 128 planning complete
-Last activity: 2026-08-13 - Milestone v1.3 initialized with 65/65 requirements mapped
-Resume file: .planning/phases/128-canonical-public-identity-visibility-foundation/128-01-PLAN.md
+Last session: 2026-08-13T12:17:55.673Z
+Stopped at: Completed 128-01-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 01
+Resume file: None

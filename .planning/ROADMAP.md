@@ -44,7 +44,7 @@ Milestone v1.3 hardens the existing public member profile as one privacy-sensiti
 
 Plans:
 **Wave 0**
-- [ ] 128-01-PLAN.md - Establish guarded PostgreSQL slug, migration, and allocator test contracts.
+- [x] 128-01-PLAN.md - Establish guarded PostgreSQL slug, migration, and allocator test contracts.
 - [ ] 128-03-PLAN.md - Establish canonical-link, owner-preview, and refresh-only frontend test contracts.
 
 **Wave 1** *(blocked on Wave 0 completion)*
@@ -202,7 +202,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 128. Canonical Public Identity & Visibility Foundation | 0/TBD | Not started | - |
+| 128. Canonical Public Identity & Visibility Foundation | 1/22 | In Progress | - |
 | 129. Canonical Public Projections & Data Correctness | 0/TBD | Not started | - |
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
