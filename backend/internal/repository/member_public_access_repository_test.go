@@ -6,31 +6,15 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"runtime"
 	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/testsupport"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 )
-
-var (
-	phase128PublicSlugPattern  = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
-	phase128NumericSlugPattern = regexp.MustCompile(`^[0-9]+$`)
-)
-
-// This is the minimal deny-first result expected from Plan 128-09. Ownership
-// is reduced to server-computed facts; no app-user identifier is exposed.
-type phase128ReferencePublicMemberAccess struct {
-	MemberID         int64
-	Slug             string
-	IsOwner          bool
-	IsPrivatePreview bool
-}
 
 func TestPhase128PublicMemberAccessContract(t *testing.T) {
 	path := filepath.Join(phase128AccessRepositoryDir(t), "member_public_access_repository.go")
@@ -60,13 +44,13 @@ func TestPhase128VisibilityFirstReferenceMatrix(t *testing.T) {
 		slug            string
 		viewerAppUserID int64
 		isAdmin         bool
-		want            phase128ReferencePublicMemberAccess
+		want            PublicMemberAccess
 		wantNotFound    bool
 	}
 	cases := []accessCase{
-		{name: "public anonymous", slug: "public-member", want: phase128ReferencePublicMemberAccess{MemberID: 1, Slug: "public-member"}},
+		{name: "public anonymous", slug: "public-member", want: PublicMemberAccess{MemberID: 1, Slug: "public-member"}},
 		{name: "private anonymous", slug: "stable-private", wantNotFound: true},
-		{name: "verified owner", slug: "stable-private", viewerAppUserID: 301, want: phase128ReferencePublicMemberAccess{MemberID: 2, Slug: "stable-private", IsOwner: true, IsPrivatePreview: true}},
+		{name: "verified owner", slug: "stable-private", viewerAppUserID: 301, want: PublicMemberAccess{MemberID: 2, Slug: "stable-private", IsOwner: true, IsPrivatePreview: true}},
 		{name: "private non-owner login pending claim and members.user_id", slug: "stable-private", viewerAppUserID: 302, wantNotFound: true},
 		{name: "admin non-owner with rejected claim", slug: "stable-private", viewerAppUserID: 303, isAdmin: true, wantNotFound: true},
 		{name: "missing", slug: "missing-member", wantNotFound: true},
@@ -74,9 +58,10 @@ func TestPhase128VisibilityFirstReferenceMatrix(t *testing.T) {
 		{name: "guessed post-nickname slug", slug: "renamed-private", viewerAppUserID: 301, wantNotFound: true},
 	}
 	require.Len(t, cases, 8)
+	repo := NewMemberProfileRepository(pool, "")
 
 	for _, test := range cases {
-		got, err := phase128ResolvePublicMemberAccess(t.Context(), pool, test.slug, test.viewerAppUserID)
+		got, err := repo.ResolvePublicMemberAccess(t.Context(), test.slug, test.viewerAppUserID)
 		if test.wantNotFound {
 			require.ErrorIs(t, err, ErrNotFound, test.name)
 			require.Zero(t, got, test.name)
@@ -88,40 +73,10 @@ func TestPhase128VisibilityFirstReferenceMatrix(t *testing.T) {
 }
 
 func TestPhase128PublicMemberAccessResultHasNoAppUserID(t *testing.T) {
-	typ := reflect.TypeOf(phase128ReferencePublicMemberAccess{})
+	typ := reflect.TypeOf(PublicMemberAccess{})
 	for index := 0; index < typ.NumField(); index++ {
 		require.NotEqual(t, "AppUserID", typ.Field(index).Name)
 	}
-}
-
-func phase128ResolvePublicMemberAccess(ctx context.Context, pool *pgxpool.Pool, slug string, viewerAppUserID int64) (phase128ReferencePublicMemberAccess, error) {
-	slug = strings.TrimSpace(slug)
-	if !phase128PublicSlugPattern.MatchString(slug) || phase128NumericSlugPattern.MatchString(slug) {
-		return phase128ReferencePublicMemberAccess{}, ErrNotFound
-	}
-	var result phase128ReferencePublicMemberAccess
-	var visibility string
-	err := pool.QueryRow(ctx, `
-		SELECT m.id, m.public_slug, m.profile_visibility,
-			EXISTS (
-				SELECT 1 FROM member_claims mc
-				WHERE mc.member_id = m.id AND mc.app_user_id = $2
-				  AND mc.claim_status = 'verified'
-			) AS is_owner
-		FROM members m
-		WHERE m.public_slug = $1
-	`, slug, viewerAppUserID).Scan(&result.MemberID, &result.Slug, &visibility, &result.IsOwner)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return phase128ReferencePublicMemberAccess{}, ErrNotFound
-	}
-	if err != nil {
-		return phase128ReferencePublicMemberAccess{}, err
-	}
-	if visibility == "private" && !result.IsOwner {
-		return phase128ReferencePublicMemberAccess{}, ErrNotFound
-	}
-	result.IsPrivatePreview = visibility == "private" && result.IsOwner
-	return result, nil
 }
 
 func preparePhase128PublicAccessFixture(t testing.TB, pool *pgxpool.Pool) {
