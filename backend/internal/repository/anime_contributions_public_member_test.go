@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -8,7 +11,7 @@ import (
 func TestPublicContributionMemberSlugProjectionUsesStoredIdentity(t *testing.T) {
 	content := readRepositorySource(t, "anime_contributions_public_repository.go")
 	start := strings.Index(content, "func (r *AnimeContributionsRepository) GetPublicAnimeContributions")
-	end := strings.Index(content, "func (r *AnimeContributionsRepository) GetPublicMemberContributions")
+	end := strings.Index(content, "func (r *AnimeContributionsRepository) GetPublicMemberContributionsByID")
 	if start < 0 || end < 0 || end <= start {
 		t.Fatal("outbound contribution projection section not found")
 	}
@@ -29,6 +32,50 @@ func TestPublicContributionMemberSlugProjectionUsesStoredIdentity(t *testing.T) 
 	}
 	if count := strings.Count(outbound, "m.profile_visibility, m.public_slug"); count != 1 {
 		t.Fatalf("outbound contribution projections contain %d visibility/slug grouping clauses, want 1", count)
+	}
+}
+
+func TestPublicMemberContributionsUsesResolvedMemberID(t *testing.T) {
+	content := readRepositorySource(t, "anime_contributions_public_repository.go")
+	normalized := strings.ToLower(content)
+
+	required := "func (r *animecontributionsrepository) getpublicmembercontributionsbyid(ctx context.context, memberid int64)"
+	if !strings.Contains(normalized, required) {
+		t.Fatalf("resolved-ID contribution loader signature missing: %q", required)
+	}
+	for _, forbidden := range []string{
+		"getpublicmembercontributions(ctx",
+		"regexp_replace",
+		"id::text",
+		"resolve slug",
+		"pgx.errnorows",
+	} {
+		if strings.Contains(normalized, forbidden) {
+			t.Fatalf("contribution loader contains local member resolution: %q", forbidden)
+		}
+	}
+}
+
+func TestMemberSlugInvariant(t *testing.T) {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve repository test path")
+	}
+	entries, err := os.ReadDir(filepath.Dir(file))
+	if err != nil {
+		t.Fatalf("read repository directory: %v", err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") || strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
+		}
+		content := readRepositorySource(t, entry.Name())
+		for _, forbidden := range []string{"memberSlugExpr", "deriveMemberSlug(", "normalizeMemberProfileSlug("} {
+			if strings.Contains(content, forbidden) {
+				t.Fatalf("%s contains forbidden legacy slug helper %q", entry.Name(), forbidden)
+			}
+		}
 	}
 }
 
