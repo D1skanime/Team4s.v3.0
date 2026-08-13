@@ -209,7 +209,10 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
 }
 
 async function renderMemberPage(profile: PublicMemberProfileData | { visible: false; reason: string }) {
-  getMemberProfileMock.mockResolvedValue('visible' in profile ? profile : { data: profile })
+  getMemberProfileMock.mockResolvedValue('visible' in profile ? profile : {
+    data: profile,
+    viewer: { is_owner: false, is_private_preview: false },
+  })
   getMemberContributionsMock.mockResolvedValue({ role_timeline: [] })
   const result = await MemberProfilePage({ params: { slug: 'ballelboy' } })
   return render(result)
@@ -348,7 +351,10 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     cookieGetMock.mockImplementation((name: string) => (
       name === 'team4s_access_token' ? { value: '  viewer-token  ' } : undefined
     ))
-    getMemberProfileMock.mockResolvedValue({ data: makePublicProfile({ noindex: true }) })
+    getMemberProfileMock.mockResolvedValue({
+      data: makePublicProfile({ noindex: true }),
+      viewer: { is_owner: true, is_private_preview: false },
+    })
 
     const metadata = await generateMetadata({ params: { slug: 'ballelboy' } })
     const page = await MemberProfilePage({ params: { slug: 'ballelboy' } })
@@ -376,7 +382,10 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     })
     getMemberProfileMock.mockImplementation((_slug: string, token?: string) => (
       token === 'owner-token'
-        ? Promise.resolve({ data: ownerProfile })
+        ? Promise.resolve({
+          data: ownerProfile,
+          viewer: { is_owner: true, is_private_preview: true },
+        })
         : Promise.resolve({ visible: false, reason: 'members_only' })
     ))
 
