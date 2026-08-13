@@ -309,3 +309,65 @@ func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
 	assert.True(t, strings.Contains(content, "ORDER BY") && strings.Contains(content, "LIMIT 3"),
 		"latest contribution feed must sort by timestamp and return exactly the newest three rows")
 }
+
+func TestPublicMemberProfileResolvedIDAndStoredSlugSourceInvariants(t *testing.T) {
+	repoSrc, err := os.ReadFile("member_profile_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	profileStart := strings.Index(content, "func (r *MemberProfileRepository) GetPublicMemberProfileByID(")
+	require.GreaterOrEqual(t, profileStart, 0)
+	profileBody := content[profileStart:]
+	if end := strings.Index(profileBody[1:], "\nfunc "); end >= 0 {
+		profileBody = profileBody[:end+1]
+	}
+	assert.Contains(t, profileBody, "WHERE m.id = $1",
+		"public profile detail must load only the already-resolved member id")
+	assert.Contains(t, profileBody, "m.public_slug",
+		"public profile detail must project the stored immutable slug")
+	assert.Contains(t, profileBody, "Slug:                       strings.TrimSpace(row.publicSlug)",
+		"public profile DTO slug must come from members.public_slug")
+	for _, forbidden := range []string{
+		"normalizeMemberProfileSlug(", "deriveMemberSlug(", "db_slug", "m.user_id", "legacy_user",
+	} {
+		assert.NotContains(t, profileBody, forbidden,
+			"public profile detail must not contain slug fallback or app-user ownership mapping")
+	}
+
+	projectsStart := strings.Index(content, "func (r *MemberProfileRepository) GetPublicMemberProjectsByID(")
+	require.GreaterOrEqual(t, projectsStart, 0)
+	projectsBody := content[projectsStart:]
+	if end := strings.Index(projectsBody[1:], "\nfunc "); end >= 0 {
+		projectsBody = projectsBody[:end+1]
+	}
+	assert.Contains(t, projectsBody, "r.loadCurrentProjects(ctx, memberID, limit, offset)")
+	assert.Contains(t, projectsBody, "r.countCurrentProjects(ctx, memberID)")
+	assert.NotContains(t, projectsBody, "GetPublicMemberProfile",
+		"project detail loading must not invoke the full profile fan-out")
+
+	ownStart := strings.Index(content, "func (r *MemberProfileRepository) ensureProfileBaseTx(")
+	require.GreaterOrEqual(t, ownStart, 0)
+	ownBody := content[ownStart:]
+	if end := strings.Index(ownBody[1:], "\nfunc "); end >= 0 {
+		ownBody = ownBody[:end+1]
+	}
+	assert.Contains(t, ownBody, "m.public_slug")
+	assert.Contains(t, ownBody, "Slug:                            strings.TrimSpace(valueOrDefault(row.memberPublicSlug, \"\"))",
+		"own profile DTO slug must come from members.public_slug")
+
+	updateStart := strings.Index(content, "func (r *MemberProfileRepository) UpdateOwnProfile(")
+	require.GreaterOrEqual(t, updateStart, 0)
+	updateBody := content[updateStart:]
+	if end := strings.Index(updateBody[1:], "\nfunc "); end >= 0 {
+		updateBody = updateBody[:end+1]
+	}
+	assert.NotContains(t, updateBody, "public_slug",
+		"profile edits must never rewrite immutable public identity")
+
+	assert.Equal(t, 1, strings.Count(content, "deriveMemberSlug("),
+		"deriveMemberSlug may remain temporarily as a definition only")
+	assert.Equal(t, 1, strings.Count(content, "normalizeMemberProfileSlug("),
+		"normalizeMemberProfileSlug may remain temporarily as a definition only")
+	assert.NotContains(t, content, "findPublicMemberProfileByNormalizedSlug",
+		"the O(n) nickname-normalized fallback must be removed")
+}
