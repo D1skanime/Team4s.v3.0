@@ -1,20 +1,36 @@
 // @vitest-environment jsdom
 
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
+import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 
-import type { MemberProfileResponse } from '@/types/profile'
+import type { MemberProfileResponse, PublicMemberProfileResponse } from '@/types/profile'
 
 const getOwnProfileMock = vi.fn()
+const getMemberProfileMock = vi.fn()
+const useAuthSessionMock = vi.fn()
+const usePathnameMock = vi.fn()
+const previewSource = readFileSync('src/app/members/[slug]/OwnHiddenProfilePreview.tsx', 'utf8')
+const apiSource = readFileSync('src/lib/api.ts', 'utf8')
+const ownProfilePageSource = readFileSync('src/app/me/profile/page.tsx', 'utf8')
+
+vi.mock('next/navigation', () => ({
+  usePathname: () => usePathnameMock(),
+}))
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode }) => <a href={href} {...props}>{children}</a>,
 }))
 
 vi.mock('@/lib/api', () => ({
+  getMemberProfile: (...args: unknown[]) => getMemberProfileMock(...args),
   getOwnProfile: () => getOwnProfileMock(),
   resolveApiUrl: (value: string) => value,
+}))
+
+vi.mock('@/lib/useAuthSession', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }))
 
 vi.mock('@/components/editor', () => ({
@@ -37,6 +53,18 @@ vi.mock('@/components/profile/RecentMediaSection', () => ({
   RecentMediaSection: () => <section>Letzte Medien</section>,
 }))
 
+vi.mock('@/components/profile/MemberCurrentProjectsSection', () => ({
+  MemberCurrentProjectsSection: () => <section>Fansub-Projekte</section>,
+}))
+
+vi.mock('@/components/profile/MemberBadgeChain', () => ({
+  MemberBadgeChain: () => <section>Rollenfortschritt</section>,
+}))
+
+vi.mock('@/components/profile/CorrectionReportModal', () => ({
+  CorrectionReportModal: () => <button type="button">Korrektur melden</button>,
+}))
+
 vi.mock('@/components/ui', () => ({
   Card: ({ children, title }: { children: ReactNode; title?: string }) => (
     <section>
@@ -44,6 +72,9 @@ vi.mock('@/components/ui', () => ({
       {children}
     </section>
   ),
+  Button: ({ children }: { children: ReactNode }) => <>{children}</>,
+  LoadingState: ({ title }: { title: string }) => <div role="status">{title}</div>,
+  ErrorState: ({ title }: { title: string }) => <div>{title}</div>,
 }))
 
 vi.mock('./OwnProfileEditLink', () => ({
@@ -101,40 +132,101 @@ function makeOwnProfileResponse(overrides: Partial<MemberProfileResponse['data']
   }
 }
 
+function makePublicProfileResponse(): PublicMemberProfileResponse {
+  return {
+    data: {
+      member_id: 3,
+      fansub_name: 'Canonical Owner',
+      bio: 'Authoritative public profile.',
+      member_story_html: '<p>Vollständige Fansub-Geschichte</p>',
+      active_from_date: '2024-01-01',
+      active_until_date: null,
+      is_currently_active: true,
+      noindex: true,
+      is_verified: true,
+      profile_status: 'active',
+      profile_visibility: 'private',
+      avatar: null,
+      background_image: null,
+      memberships: [],
+      public_badges: [],
+      badge_progress: [],
+      total_points: 120,
+      recent_media: [],
+      recent_contributions: [],
+      current_projects: [],
+      latest_contributions: [],
+      previous_contributions: [],
+      previous_contributions_count: 0,
+    },
+  } as unknown as PublicMemberProfileResponse
+}
+
 describe('OwnHiddenProfilePreview', () => {
-  it('renders the own members-only profile preview when the slug belongs to the current member', async () => {
-    getOwnProfileMock.mockResolvedValue(makeOwnProfileResponse())
-
-    render(<OwnHiddenProfilePreview slug="3" />)
-
-    expect(await screen.findByRole('heading', { name: 'Subaru' })).not.toBeNull()
-    expect(screen.getByText('Profil bearbeiten')).not.toBeNull()
-    expect(screen.queryByText('Dieses Profil ist nicht öffentlich zugänglich.')).toBeNull()
-  })
-
-  it('keeps the hidden notice when the slug belongs to another member', async () => {
-    getOwnProfileMock.mockResolvedValue(makeOwnProfileResponse({ member_id: 4 }))
-
-    render(<OwnHiddenProfilePreview slug="3" />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Dieses Profil ist nicht öffentlich zugänglich.')).not.toBeNull()
+  it('Phase128PreviewUsesPathname', async () => {
+    usePathnameMock.mockReturnValue('/members/canonical-owner')
+    useAuthSessionMock.mockReturnValue({
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      isClientInitialized: true,
     })
-  })
-
-  it('keeps the hidden notice for account-only users without a verified member profile', async () => {
+    getMemberProfileMock.mockResolvedValue(makePublicProfileResponse())
     getOwnProfileMock.mockResolvedValue(makeOwnProfileResponse({
-      member_id: 0,
-      has_member_profile: false,
-      fansub_name: '',
-      slug: '',
+      fansub_name: 'Canonical Owner',
+      slug: 'canonical-owner',
+      profile_visibility: 'members_only',
     }))
 
-    render(<OwnHiddenProfilePreview slug="0" />)
+    const Preview = OwnHiddenProfilePreview as ComponentType<{ slug?: string }>
+    render(<Preview slug="canonical-owner" />)
+    const initialState = {
+      neutralLoading: screen.queryByText('Profil wird geladen.') !== null,
+      unavailableFlash: screen.queryByText('Profil nicht verfügbar') !== null,
+      loggedOutFlash: screen.queryByText(/Anmeldung erforderlich/) !== null,
+    }
 
     await waitFor(() => {
-      expect(screen.getByText(/Dieses Profil ist nicht/)).not.toBeNull()
+      expect(screen.getByRole('heading', { name: 'Canonical Owner' })).not.toBeNull()
     })
-    expect(screen.queryByText('Profil bearbeiten')).toBeNull()
+
+    const sourceViolations = [
+      ['getOwnProfile conversion', /\bgetOwnProfile\b|\btoPublicProfile\b/.test(previewSource)],
+      ['token or cookie read', /getRuntimeAuthToken|AUTH_(?:TOKEN|REFRESH)_COOKIE_NAME|document\.cookie/.test(previewSource)],
+      ['direct refresh or bearer', /refreshKeycloakToken|refreshActiveAuthSession|Authorization\s*:|Bearer\s/.test(previewSource)],
+      ['protected bare fetch', /\bfetch\s*\(/.test(previewSource)],
+      ['nickname slugification', /slugifyMemberName|fansub_name[^\n]*toLowerCase/.test(previewSource)],
+      ['numeric fallback', /\^\\d\+\$|Number\(normalizedSlug\)/.test(previewSource)],
+      ['slug or member id link', /profile\.slug\s*\|\|\s*profile\.member_id/.test(ownProfilePageSource)],
+      ['member contributions bare fetch', /function getMemberContributions[\s\S]{0,500}?await fetch\s*\(/.test(apiSource)],
+      ['project member bare fetch', /function getProjectMemberSummary[\s\S]{0,500}?await fetch\s*\(/.test(apiSource)],
+    ].filter(([, present]) => present).map(([name]) => name)
+
+    const visibilityAction = screen.queryByRole('link', { name: 'Sichtbarkeit ändern' })
+    const editAction = screen.queryByRole('link', { name: 'Profil bearbeiten' })
+    expect({
+      initialState,
+      memberProfileCalls: getMemberProfileMock.mock.calls,
+      ownProfileCalls: getOwnProfileMock.mock.calls.length,
+      notice: screen.queryByText('Privates Profil – nur für dich sichtbar')?.textContent ?? null,
+      noticeBody: screen.queryByText('Du siehst die vollständige Vorschau. Andere Personen können dieses Profil nicht öffnen.')?.textContent ?? null,
+      visibilityHref: visibilityAction?.getAttribute('href') ?? null,
+      editHref: editAction?.getAttribute('href') ?? null,
+      hasFullStory: screen.queryByText(/Vollständige Fansub-Geschichte/) !== null,
+      hasCorrection: screen.queryByText('Korrektur melden') !== null,
+      unavailableAfterLoad: screen.queryByText('Profil nicht verfügbar') !== null,
+      sourceViolations,
+    }).toEqual({
+      initialState: { neutralLoading: true, unavailableFlash: false, loggedOutFlash: false },
+      memberProfileCalls: [['canonical-owner']],
+      ownProfileCalls: 0,
+      notice: 'Privates Profil – nur für dich sichtbar',
+      noticeBody: 'Du siehst die vollständige Vorschau. Andere Personen können dieses Profil nicht öffnen.',
+      visibilityHref: '/me/profile?tab=visibility',
+      editHref: '/me/profile',
+      hasFullStory: true,
+      hasCorrection: false,
+      unavailableAfterLoad: false,
+      sourceViolations: [],
+    })
   })
 })

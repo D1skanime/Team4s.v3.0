@@ -353,7 +353,7 @@ describe('MyProfilePage', () => {
     expect(getOwnProfileMock).not.toHaveBeenCalled()
   })
 
-  it('loads profile data when the access cookie expired but refresh session remains', async () => {
+  it('keeps the protected profile and stored-slug link active when only the refresh session remains', async () => {
     useAuthSessionMock.mockReturnValue({
       hasAccessToken: false,
       hasRefreshToken: true,
@@ -366,6 +366,9 @@ describe('MyProfilePage', () => {
 
     expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
     expect(getOwnProfileMock).toHaveBeenCalledTimes(1)
+    expect(getOwnProfileMock).toHaveBeenCalledWith()
+    expect(screen.getByRole('link', { name: /Profil ansehen/i }).getAttribute('href')).toBe('/members/mikafx')
+    expect(screen.getByRole('link', { name: /Profil ansehen/i }).getAttribute('href')).not.toMatch(/\/members\/4$/)
     expect(screen.queryByText('Anmeldung erforderlich')).toBeNull()
   })
 

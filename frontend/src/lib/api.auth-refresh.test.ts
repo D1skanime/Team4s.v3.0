@@ -22,8 +22,11 @@ import {
   createFansubGroup,
   getEpisodeImportContext,
   getAuthSessionSnapshot,
+  getMemberContributions,
+  getMemberProfile,
   getReleaseVersionMedia,
   getReleasePlaybackAccess,
+  getProjectMemberSummary,
   logoutActiveAuthSession,
   persistAuthSession,
   replaceReleaseCrew,
@@ -298,6 +301,67 @@ describe('authorized auth refresh flow', () => {
         }),
       }),
     )
+  })
+
+  it('Phase128RefreshOnlyOwnerUpgrade', async () => {
+    const scenarios = [
+      {
+        name: 'member profile without access token',
+        seed: seedRuntimeSessionMissingAccessToken,
+        path: '/api/v1/members/canonical-owner',
+        invoke: () => getMemberProfile('canonical-owner'),
+        payload: { data: { member_id: 41, fansub_name: 'Canonical Owner' } },
+      },
+      {
+        name: 'member contributions with expired access token',
+        seed: seedRuntimeSessionExpiredAccessToken,
+        path: '/api/v1/members/canonical-owner/contributions',
+        invoke: () => getMemberContributions('canonical-owner'),
+        payload: { role_timeline: [] },
+      },
+      {
+        name: 'project-member summary without access token',
+        seed: seedRuntimeSessionMissingAccessToken,
+        path: '/api/v1/anime/7/group/9/members/canonical-owner',
+        invoke: () => getProjectMemberSummary(7, 9, 'canonical-owner'),
+        payload: { member_id: 41, member_slug: 'canonical-owner' },
+      },
+    ]
+    const observed: Array<Record<string, unknown>> = []
+
+    for (const scenario of scenarios) {
+      clearAuthSession()
+      scenario.seed()
+      refreshKeycloakTokenMock.mockReset().mockResolvedValue(freshKeycloakBundle())
+      const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        void init
+        const url = String(input)
+        return Promise.resolve(
+          url.endsWith('/api/v1/me')
+            ? makeCurrentUserResponse()
+            : makeResponse(scenario.payload, { ok: true, status: 200 }),
+        )
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await scenario.invoke()
+
+      const targetCall = fetchMock.mock.calls.find(([input]) => String(input).includes(scenario.path))
+      const targetInit = targetCall?.[1] as RequestInit | undefined
+      observed.push({
+        name: scenario.name,
+        refreshed: refreshKeycloakTokenMock.mock.calls.length === 1,
+        authorization: (targetInit?.headers as Record<string, string> | undefined)?.Authorization,
+        cache: targetInit?.cache,
+      })
+    }
+
+    expect(observed).toEqual(scenarios.map((scenario) => ({
+      name: scenario.name,
+      refreshed: true,
+      authorization: 'Bearer new-access-token',
+      cache: 'no-store',
+    })))
   })
 
   it.each([
