@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.3
-milestone_name: milestone
+milestone_name: Public Member Profile Hardening
 status: planning
 stopped_at: Phase 128 UI-SPEC approved
 last_updated: "2026-08-13T09:25:38.112Z"
-last_activity: 2026-08-13 - v1.3 roadmap created with 65/65 requirements mapped
+last_activity: 2026-08-13
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State
