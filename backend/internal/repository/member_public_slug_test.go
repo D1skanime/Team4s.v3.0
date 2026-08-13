@@ -86,6 +86,13 @@ func TestPhase128MemberSlugNormalizationCases(t *testing.T) {
 	}
 }
 
+func TestPhase128MemberSlugCandidateRespectsLimit(t *testing.T) {
+	base := strings.Repeat("a", phase128SlugMaxLength)
+	candidate := publicMemberSlugCandidate(base, 2)
+	require.Len(t, candidate, phase128SlugMaxLength)
+	require.True(t, strings.HasSuffix(candidate, "-2"))
+}
+
 func TestPhase128MemberSlugConcurrentAllocationScenarios(t *testing.T) {
 	pool := testsupport.OpenPhase128Postgres(t)
 	testsupport.ApplySQLFile(t, pool, phase128MigrationPath(t))
