@@ -299,3 +299,26 @@ func TestProjectMemberHandler_RoutesRegistered(t *testing.T) {
 		}
 	}
 }
+
+func TestPhase128ServerInjectsOneMemberResolverAndOptionalAuth(t *testing.T) {
+	src := pmMainSource(t)
+	for _, constructor := range []string{
+		"newapppublicprofilehandler(memberprofilerepo, memberprofilerepo, memberprofilerepo)",
+		"newcontributionspublichandler(memberprofilerepo, animecontributionsrepo)",
+		"newprojectmemberpublichandler(memberprofilerepo, projectmemberpublicrepo, cfg.mediastoragedir)",
+	} {
+		require.Contains(t, src, constructor)
+	}
+
+	for _, route := range []string{
+		`/members/:slug", authoptionalmiddleware, publicprofilehandler.getpublicmemberprofile`,
+		`/members/:slug/projects", authoptionalmiddleware, publicprofilehandler.getpublicmemberprojects`,
+		`/members/:slug/contributions", authoptionalmiddleware, contributionspublichandler.getmembercontributions`,
+		`/anime/:id/group/:groupid/members/:memberslug", authoptionalmiddleware, projectmemberpublichandler.getsummary`,
+		`/members/:memberslug/notes", authoptionalmiddleware, projectmemberpublichandler.getnotes`,
+		`/members/:memberslug/media", authoptionalmiddleware, projectmemberpublichandler.getmedia`,
+		`/members/:memberslug/releases", authoptionalmiddleware, projectmemberpublichandler.getreleases`,
+	} {
+		require.Contains(t, src, route)
+	}
+}
