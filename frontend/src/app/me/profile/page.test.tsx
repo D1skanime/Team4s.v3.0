@@ -22,6 +22,8 @@ const useAuthSessionMock = vi.hoisted(() => vi.fn())
 const logoutActiveSessionMock = vi.hoisted(() => vi.fn())
 const consumeRegistrationCompletionMock = vi.hoisted(() => vi.fn())
 const resolveApiUrlMock = vi.hoisted(() => vi.fn((value: string) => value))
+const useSearchParamsMock = vi.hoisted(() => vi.fn())
+const scrollIntoViewMock = vi.hoisted(() => vi.fn())
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode; [key: string]: unknown }) => <a href={href} {...props}>{children}</a>,
@@ -32,6 +34,10 @@ vi.mock('next/image', () => ({
     // eslint-disable-next-line @next/next/no-img-element
     return <img alt={alt} data-unoptimized={unoptimized ? 'true' : 'false'} {...props} />
   },
+}))
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => useSearchParamsMock(),
 }))
 
 vi.mock('@/components/editor', () => ({
@@ -161,6 +167,12 @@ beforeEach(() => {
   patchMyBadgeVisibilityMock.mockResolvedValue({ badges: [] })
   logoutActiveSessionMock.mockReset().mockResolvedValue(undefined)
   consumeRegistrationCompletionMock.mockReset().mockReturnValue(false)
+  useSearchParamsMock.mockReset().mockReturnValue(new URLSearchParams())
+  scrollIntoViewMock.mockReset()
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+    configurable: true,
+    value: scrollIntoViewMock,
+  })
 })
 
 afterEach(() => {
@@ -412,7 +424,8 @@ describe('MyProfilePage', () => {
     expect(getOwnProfileMock).not.toHaveBeenCalled()
   })
 
-  it('keeps the protected profile and stored-slug link active when only the refresh session remains', async () => {
+  it('keeps the protected visibility editor active when only the refresh session remains', async () => {
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('tab=visibility'))
     useAuthSessionMock.mockReturnValue({
       hasAccessToken: false,
       hasRefreshToken: true,
@@ -426,9 +439,49 @@ describe('MyProfilePage', () => {
     expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
     expect(getOwnProfileMock).toHaveBeenCalledTimes(1)
     expect(getOwnProfileMock).toHaveBeenCalledWith()
+    expect(screen.getByRole('tab', { name: 'Sichtbarkeit' }).getAttribute('aria-selected')).toBe('true')
+    expect(document.getElementById('profile-tab-visibility')?.getAttribute('aria-hidden')).toBe('false')
     expect(screen.getByRole('link', { name: /Profil ansehen/i }).getAttribute('href')).toBe('/members/mikafx')
     expect(screen.getByRole('link', { name: /Profil ansehen/i }).getAttribute('href')).not.toMatch(/\/members\/4$/)
     expect(screen.queryByText('Anmeldung erforderlich')).toBeNull()
+  })
+
+  it('opens, focuses, and scrolls the existing visibility editor from the owner deep link', async () => {
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('tab=visibility'))
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    const visibilityTab = await screen.findByRole('tab', { name: 'Sichtbarkeit' })
+    const visibilityPanel = document.getElementById('profile-tab-visibility')
+    expect(visibilityTab.getAttribute('aria-selected')).toBe('true')
+    expect(visibilityPanel?.getAttribute('aria-hidden')).toBe('false')
+    await waitFor(() => expect(document.activeElement).toBe(visibilityPanel))
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({ block: 'start' })
+  })
+
+  it('falls back to the profile tab for an unknown deep-link value', async () => {
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('tab=unknown'))
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    expect((await screen.findByRole('tab', { name: 'Profil' })).getAttribute('aria-selected')).toBe('true')
+    expect(screen.getByRole('tab', { name: 'Sichtbarkeit' }).getAttribute('aria-selected')).toBe('false')
+    expect(document.getElementById('profile-tab-profile')?.getAttribute('aria-hidden')).toBe('false')
+    expect(scrollIntoViewMock).not.toHaveBeenCalled()
+  })
+
+  it('synchronizes the existing editor when the allowed query tab changes', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+    const { rerender } = render(<MyProfilePage />)
+
+    expect((await screen.findByRole('tab', { name: 'Profil' })).getAttribute('aria-selected')).toBe('true')
+    useSearchParamsMock.mockReturnValue(new URLSearchParams('tab=visibility'))
+    rerender(<MyProfilePage />)
+
+    expect(screen.getByRole('tab', { name: 'Sichtbarkeit' }).getAttribute('aria-selected')).toBe('true')
+    expect(document.getElementById('profile-tab-visibility')?.getAttribute('aria-hidden')).toBe('false')
   })
 
   it('offers only the approved public and private profile visibility choices', async () => {
