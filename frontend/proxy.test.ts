@@ -1,24 +1,14 @@
+import { readFileSync } from 'node:fs'
+
+import { NextRequest } from 'next/server'
 import { describe, expect, it } from 'vitest'
 
+import { config, proxy } from './proxy'
+
 function canonicalizeMemberRequest(input: string) {
-  const url = new URL(input)
-  const match = url.pathname.match(/^\/members\/([^/]*)$/i)
-  if (!match) return null
-
-  let decoded: string
-  try {
-    decoded = decodeURIComponent(match[1])
-  } catch {
-    return null
-  }
-
-  const slug = decoded.trim().toLowerCase()
-  if (!slug || /^\d+$/.test(slug) || /[\/\\\u0000-\u001f\u007f]/.test(slug)) return null
-
-  const canonicalPath = `/members/${encodeURIComponent(slug)}`
-  if (url.pathname === canonicalPath) return null
-  url.pathname = canonicalPath
-  return { location: url.toString(), status: 308 }
+  const response = proxy(new NextRequest(input))
+  const location = response.headers.get('location')
+  return location ? { location, status: response.status } : null
 }
 
 describe('Phase 128 canonical public-member URL contract', () => {
@@ -28,6 +18,7 @@ describe('Phase 128 canonical public-member URL contract', () => {
     ['encoded edge whitespace', 'https://team4s.test/members/%09Sheppert%20', 'https://team4s.test/members/sheppert'],
     ['equivalent one-segment encoding', 'https://team4s.test/members/%73heppert', 'https://team4s.test/members/sheppert'],
     ['query preservation', 'https://team4s.test/members/SHEPPERT?tab=projects&from=ranking', 'https://team4s.test/members/sheppert?tab=projects&from=ranking'],
+    ['descendant path', 'https://team4s.test/members/SHEPPERT/projects/42?from=profile', 'https://team4s.test/members/sheppert/projects/42?from=profile'],
   ])('redirects canonical-equivalent %s with 308', (_name, input, location) => {
     expect(canonicalizeMemberRequest(input)).toEqual({ location, status: 308 })
   })
@@ -35,7 +26,12 @@ describe('Phase 128 canonical public-member URL contract', () => {
   it.each([
     ['already canonical', 'https://team4s.test/members/sheppert'],
     ['encoded slash', 'https://team4s.test/members/sheppert%2Fadmin'],
+    ['encoded backslash', 'https://team4s.test/members/sheppert%5Cadmin'],
     ['control input', 'https://team4s.test/members/sheppert%00admin'],
+    ['malformed encoding', 'https://team4s.test/members/sheppert%ZZ'],
+    ['double-encoded separator', 'https://team4s.test/members/sheppert%252Fadmin'],
+    ['non-ASCII input', 'https://team4s.test/members/M%C3%BCller'],
+    ['internal whitespace', 'https://team4s.test/members/sheppert%20admin'],
     ['unusable input', 'https://team4s.test/members/%20%09'],
     ['numeric input', 'https://team4s.test/members/123'],
   ])('does not redirect %s', (_name, input) => {
@@ -51,6 +47,13 @@ describe('Phase 128 canonical public-member URL contract', () => {
       location: 'https://team4s.test/members/private-member?source=profile',
       status: 308,
     })
+  })
+
+  it('uses only the Next proxy boundary for member paths', () => {
+    const source = readFileSync(new URL('./proxy.ts', import.meta.url), 'utf8')
+
+    expect(config).toEqual({ matcher: '/members/:path*' })
+    expect(source).not.toMatch(/apiClient|authorizedFetch|getMemberProfile|fetch\s*\(|database|nickname/i)
   })
 
   it('defines one privacy-neutral unavailable presentation without identity hints', () => {
