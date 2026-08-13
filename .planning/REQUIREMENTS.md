@@ -121,12 +121,77 @@
 
 ## Traceability
 
-Wird durch die Roadmap ausgefüllt. Jede Anforderung muss genau einer Phase zugeordnet werden.
+Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 
 | Requirement | Phase | Status |
 |---|---|---|
+| PMID-01 | Phase 128 | Pending |
+| PMID-02 | Phase 128 | Pending |
+| PMID-03 | Phase 128 | Pending |
+| PMPR-01 | Phase 128 | Pending |
+| PMPR-02 | Phase 128 | Pending |
+| PMPR-03 | Phase 128 | Pending |
+| PMPR-04 | Phase 128 | Pending |
+| PMPR-05 | Phase 128 | Pending |
+| PMPR-06 | Phase 129 | Pending |
+| PMDA-01 | Phase 129 | Pending |
+| PMDA-02 | Phase 129 | Pending |
+| PMDA-03 | Phase 129 | Pending |
+| PMDA-04 | Phase 129 | Pending |
+| PMDA-05 | Phase 129 | Pending |
+| PMDA-06 | Phase 129 | Pending |
+| PMDA-07 | Phase 129 | Pending |
+| PMDA-08 | Phase 129 | Pending |
+| PMDA-09 | Phase 129 | Pending |
+| PMDA-10 | Phase 129 | Pending |
+| PMDA-11 | Phase 129 | Pending |
+| PMCT-01 | Phase 130 | Pending |
+| PMCT-02 | Phase 130 | Pending |
+| PMCT-03 | Phase 130 | Pending |
+| PMCT-04 | Phase 130 | Pending |
+| PMCT-05 | Phase 130 | Pending |
+| PMCT-06 | Phase 131 | Pending |
+| PMCT-07 | Phase 130 | Pending |
+| PMCT-08 | Phase 130 | Pending |
+| PMPF-01 | Phase 131 | Pending |
+| PMPF-02 | Phase 131 | Pending |
+| PMPF-03 | Phase 131 | Pending |
+| PMPF-04 | Phase 131 | Pending |
+| PMPF-05 | Phase 131 | Pending |
+| PMPF-06 | Phase 133 | Pending |
+| PMPF-07 | Phase 131 | Pending |
+| PMPF-08 | Phase 133 | Pending |
+| PMFE-01 | Phase 132 | Pending |
+| PMFE-02 | Phase 132 | Pending |
+| PMFE-03 | Phase 132 | Pending |
+| PMFE-04 | Phase 132 | Pending |
+| PMFE-05 | Phase 132 | Pending |
+| PMFE-06 | Phase 132 | Pending |
+| PMFE-07 | Phase 132 | Pending |
+| PMFE-08 | Phase 132 | Pending |
+| PMFE-09 | Phase 132 | Pending |
+| PMFE-10 | Phase 132 | Pending |
+| PMFE-11 | Phase 132 | Pending |
+| PMUI-01 | Phase 133 | Pending |
+| PMUI-02 | Phase 133 | Pending |
+| PMUI-03 | Phase 133 | Pending |
+| PMUI-04 | Phase 133 | Pending |
+| PMUI-05 | Phase 133 | Pending |
+| PMUI-06 | Phase 133 | Pending |
+| PMUI-07 | Phase 133 | Pending |
+| PMA11Y-01 | Phase 133 | Pending |
+| PMA11Y-02 | Phase 133 | Pending |
+| PMA11Y-03 | Phase 133 | Pending |
+| PMA11Y-04 | Phase 133 | Pending |
+| PMQA-01 | Phase 134 | Pending |
+| PMQA-02 | Phase 134 | Pending |
+| PMQA-03 | Phase 134 | Pending |
+| PMQA-04 | Phase 134 | Pending |
+| PMQA-05 | Phase 134 | Pending |
+| PMQA-06 | Phase 134 | Pending |
+| PMQA-07 | Phase 134 | Pending |
 
-**Coverage:** 65 Anforderungen definiert, 0 zugeordnet, 65 offen.
+**Coverage:** 65 Anforderungen definiert, 65 eindeutig zugeordnet, 0 verwaist, 0 doppelt, 65 offen.
 
 ---
-*Last updated: 2026-08-13 after requirements approval*
+*Last updated: 2026-08-13 after v1.3 roadmap creation*

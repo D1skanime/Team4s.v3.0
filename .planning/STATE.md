@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
-status: planning
-last_updated: "2026-08-13T04:54:58.521Z"
+status: ready_for_discussion_or_planning
+last_updated: "2026-08-13T12:00:00Z"
 last_activity: 2026-08-13
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Define the v1.3 Public Member Profile Hardening requirements and roadmap.
+**Current focus:** Phase 128 - Canonical Public Identity & Visibility Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-08-13 — Milestone v1.3 started
+Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
+Plan: TBD (ready for discussion/planning)
+Status: Ready for discussion/planning
+Last activity: 2026-08-13 - v1.3 roadmap created with 65/65 requirements mapped
 
 ## Accumulated Context
 
@@ -36,6 +36,12 @@ Last activity: 2026-08-13 — Milestone v1.3 started
 Decisions are logged in `PROJECT.md`.
 
 Recent durable decisions:
+
+- [v1.3]: Hidden anonymous and missing profiles are intentionally non-distinguishable; access is resolved before detail reads.
+- [v1.3]: Exact public badge progress may use only publicly permissible facts; badge and point truth remains server-authoritative.
+- [v1.3]: Canonical public member slugs are immutable after creation; nickname changes and numeric/generated fallbacks cannot change route identity.
+- [v1.3]: Test rows are disposable; schema changes use new reversible migrations plus reset/reseed, with no preservation, backfill, alias, or compatibility layer.
+
 
 - [Phase 115-08]: D-10 als reine Doku erledigt (docs/search/meilisearch-dock-point.md): Meilisearch dockt als zweite SearchProvider-Impl (nur main.go-Wiring) an, PostgreSQL bleibt Source of Truth (D-01), Sichtbarkeits-Gate bleibt serverseitig (D-11), Wechsel-Messwerte dokumentiert; kein Code. Alle Phase-115-Live-DB-Checks in EINER konsolidierten Live-UAT-Checkliste gebündelt (docs/search/phase-115-live-uat.md): Block A = 115-02 Migration-0140-Apply + EXPLAIN (Bitmap Index Scan, kein Seq Scan), Block B = 115-08 Backend-Rebuild + D-12-Re-Import + smoke-search.ps1 (D-04/D-05/D-07/D-11/D-12) + visuelle/mobile UI-Abnahme. Docker war down → kein EXPLAIN/Smoke/Migrations-Ergebnis fabriziert; Live-UAT AUSSTEHEND, Phase 115 NICHT verifiziert.
 - [Phase 115-07]: Ergebnisfläche steht. Unkontrollierte @/components/ui Tabs-Primitive URL-gebunden via key-Remount + defaultTabId aus URL-type; nur das aktive Panel wird gemountet und schreibt type via Mount-Effekt (nur bei echtem Wechsel) zurück in die URL — keine Primitive-Änderung, kein natives Markup. useDebouncedSearch bekam role-Scoping (input=nur Vorschläge / results=nur Suche / controls=kein Fetch / full=Default) + URL-Render-Reconcile (React 'adjust state while rendering', kein setState-in-Effect), damit getrennte Hook-Instanzen (SearchField/SearchResults/SearchFilters) den Zustand über die URL teilen ohne Desync/Doppel-Fetch. D-06-Filter ohne Options-Endpunkt: Genre/Tag/Typ-Format als Input, Status als Select (AnimeStatus), Jahr als YearPicker, Fansubgruppe als ID-Input; Chips als Badge+Ghost-Button (aria-label 'Filter {name} entfernen'); mobiler SearchFilterDrawer. Live-UAT (Drawer/Fokus/Touch/Reload) → Plan 115-08.
@@ -461,6 +467,9 @@ Recent durable decisions:
 
 ### Roadmap Evolution
 
+- v1.3 roadmap created as seven dependency-ordered phases 128-134 with 65/65 requirements mapped exactly once.
+
+
 - Phase 121 added: Rollen-Badges visuell und funktional perfektionieren.
 - Phase 120 added: Öffentliches Memberprofil visuell harmonisieren und Ladeperformance optimieren.
 - Phase 119 added: Sammlungskarten für Fortschritt, Punkte, Beiträge, Mitgliedschaft und besondere Auszeichnungen
@@ -530,6 +539,9 @@ Recent durable decisions:
 - Phase 109 edited: Titel, Ziel, Requirements und Erfolgskriterien korrigiert: keine Import-, Backfill- oder Bestandsdatenlogik; Phase 109 fokussiert Ranglisten und Punkteprojektionen.
 
 ### Blockers/Concerns
+
+- No v1.3 planning blocker is active. Future plans must protect the existing dirty member-badge and FocalCarousel work and tracked badge assets while keeping diffs scoped.
+
 
 - Cross-AI review remains unavailable until an independent reviewer CLI is installed.
 - The old `streams` table remains an allowed compatibility divergence beside target `release_streams`; follow-up work must not treat it as authoritative.
@@ -865,8 +877,8 @@ Recent durable decisions:
 
 ## Session Continuity
 
-Last session: 2026-08-10T14:52:50.848Z
-Stopped at: Completed 121-03-PLAN.md
-Last activity: 2026-08-11
+Last session: 2026-08-13
+Stopped at: v1.3 roadmap created; Phase 128 ready for discussion/planning
+Last activity: 2026-08-13 - v1.3 roadmap created with 65/65 requirements mapped
 Resume file: 
 None
