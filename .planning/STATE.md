@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Completed 128-01-PLAN.md
-last_updated: "2026-08-13T12:17:55.676Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 01
+stopped_at: Completed 128-02-PLAN.md
+last_updated: "2026-08-13T12:38:00Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 02
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 1
-  percent: 5
+  completed_plans: 2
+  percent: 9
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 2 of 22
+Plan: 3 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 01
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 02
 
 ## Accumulated Context
 
@@ -44,6 +44,8 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 01
 - The drifted historical planning tree is preserved at `.planning/milestones/pre-v1.3-recovery-2026-08-13/` and is not represented as one falsely completed milestone.
 - [Phase 128]: Phase-128 PostgreSQL tests require TEAM4S_PHASE128_TEST_DSN and never fall back to DATABASE_URL.
 - [Phase 128]: Wave-0 identity gates use compilable source-inspection RED contracts until Plans 128-04 and 128-05 provide production symbols.
+- [Phase 128]: Public member access exposes only member ID, stored slug, and server-computed owner/private-preview facts before detail loading.
+- [Phase 128]: One eight-case access matrix governs profile, projects, contributions, summary, notes, media, and releases with neutral 404 denials.
 
 ### Pending Todos
 
@@ -70,10 +72,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 01
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 128 P01 | 29m | 3 tasks | 4 files |
+| Phase 128 P02 | 15m | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T12:17:55.673Z
-Stopped at: Completed 128-01-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 01
+Last session: 2026-08-13T12:36:52.692Z
+Stopped at: Completed 128-02-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 02
 Resume file: None

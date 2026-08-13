@@ -48,7 +48,7 @@ Plans:
 - [ ] 128-03-PLAN.md - Establish canonical-link, owner-preview, and refresh-only frontend test contracts.
 
 **Wave 1** *(blocked on Wave 0 completion)*
-- [ ] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.
+- [x] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.
 - [ ] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
 
 **Wave 2** *(blocked on Wave 1 completion)*
