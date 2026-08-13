@@ -50,7 +50,6 @@ type GroupContributorsResponse struct {
 //
 // Beide Slices sind niemals nil (leere Slices bei keinen Daten).
 func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context, animeID, groupID int64) (*GroupContributorsResponse, error) {
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
 
 	resp := &GroupContributorsResponse{
@@ -65,7 +64,7 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 	externalQuery := `
 		SELECT
 			` + displayCol + ` AS member_display_name,
-			` + slugCol + ` AS member_slug,
+			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
 			(ac.status = 'confirmed') AS is_verified,
 			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code)) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels
@@ -118,7 +117,7 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 		SELECT DISTINCT ON (m.id)
 			m.id AS member_id,
 			` + displayCol + ` AS member_display_name,
-			` + slugCol + ` AS member_slug,
+			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
 			COALESCE(ARRAY_AGG(DISTINCT cr.label) FILTER (WHERE cr.label IS NOT NULL), ARRAY[]::text[]) AS role_labels
 		FROM release_member_roles rmr
