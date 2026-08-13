@@ -1,37 +1,23 @@
 package repository
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"sort"
 	"strings"
 	"testing"
-	"unicode"
+	"time"
 
+	"team4s.v3/backend/internal/testsupport"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/text/unicode/norm"
 )
 
-const phase128SlugMaxLength = 512
-
-var (
-	phase128SlugSeparators = regexp.MustCompile("[^a-z0-9]+")
-	phase128SlugNumeric    = regexp.MustCompile("^[0-9]+$")
-	phase128ReservedSlugs  = map[string]struct{}{
-		"admin":    {},
-		"api":      {},
-		"edit":     {},
-		"me":       {},
-		"members":  {},
-		"new":      {},
-		"profile":  {},
-		"ranking":  {},
-		"settings": {},
-	}
-)
+const phase128SlugMaxLength = 120
 
 func TestPhase128MemberSlugContract(t *testing.T) {
 	helperPath := filepath.Join(phase128RepositoryDir(t), "member_public_slug.go")
@@ -88,9 +74,10 @@ func TestPhase128MemberSlugNormalizationCases(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got, err := phase128ReferenceNormalizeSlug(test.input)
+			got, err := normalizePublicMemberSlug(test.input)
 			if test.wantError {
 				require.Error(t, err)
+				require.Empty(t, got)
 				return
 			}
 			require.NoError(t, err)
@@ -100,42 +87,119 @@ func TestPhase128MemberSlugNormalizationCases(t *testing.T) {
 }
 
 func TestPhase128MemberSlugConcurrentAllocationScenarios(t *testing.T) {
-	require.Equal(t, []string{"name", "name-2", "name-3"}, []string{"name", "name-2", "name-3"})
-	require.Equal(t, []string{"name-3", "name-2-2"}, []string{"name-3", "name-2-2"})
-	for _, path := range []string{
-		filepath.Join(phase128RepositoryDir(t), "member_public_slug.go"),
-		filepath.Join(phase128RepositoryDir(t), "..", "..", "..", "database", "migrations", "0145_member_public_identity_visibility.up.sql"),
-	} {
-		if _, err := os.Stat(path); err != nil {
-			t.Skipf("guarded concurrent allocator runtime %s is not implemented yet", filepath.Base(path))
+	pool := testsupport.OpenPhase128Postgres(t)
+	testsupport.ApplySQLFile(t, pool, phase128MigrationPath(t))
+
+	t.Run("same base allocates smallest readable suffixes", func(t *testing.T) {
+		slugs := allocatePhase128SlugsConcurrently(t, pool, []string{"Name", "Name", "Name"})
+		sort.Strings(slugs)
+		require.Equal(t, []string{"name", "name-2", "name-3"}, slugs)
+	})
+
+	t.Run("literal suffix waits on the namespace lock", func(t *testing.T) {
+		_, err := pool.Exec(context.Background(), `
+			INSERT INTO members (nickname, public_slug)
+			VALUES ('Literal', 'literal')
+		`)
+		require.NoError(t, err)
+
+		ctx := context.Background()
+		firstTx, err := pool.Begin(ctx)
+		require.NoError(t, err)
+		defer firstTx.Rollback(ctx)
+
+		firstSlug, err := allocatePublicMemberSlugTx(ctx, firstTx, "Literal")
+		require.NoError(t, err)
+		require.Equal(t, "literal-2", firstSlug)
+
+		type allocationResult struct {
+			slug string
+			err  error
 		}
-	}
+		secondResult := make(chan allocationResult, 1)
+		go func() {
+			secondTx, beginErr := pool.Begin(ctx)
+			if beginErr != nil {
+				secondResult <- allocationResult{err: beginErr}
+				return
+			}
+			defer secondTx.Rollback(ctx)
+			slug, allocateErr := allocatePublicMemberSlugTx(ctx, secondTx, "Literal-2")
+			if allocateErr != nil {
+				secondResult <- allocationResult{err: allocateErr}
+				return
+			}
+			if _, insertErr := secondTx.Exec(ctx, `INSERT INTO members (nickname, public_slug) VALUES ($1, $2)`, "Literal-2", slug); insertErr != nil {
+				secondResult <- allocationResult{err: insertErr}
+				return
+			}
+			secondResult <- allocationResult{slug: slug, err: secondTx.Commit(ctx)}
+		}()
+
+		select {
+		case result := <-secondResult:
+			require.Failf(t, "allocator did not serialize the namespace", "literal suffix allocation returned early: slug=%q err=%v", result.slug, result.err)
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		_, err = firstTx.Exec(ctx, `INSERT INTO members (nickname, public_slug) VALUES ($1, $2)`, "Literal", firstSlug)
+		require.NoError(t, err)
+		require.NoError(t, firstTx.Commit(ctx))
+
+		select {
+		case result := <-secondResult:
+			require.NoError(t, result.err)
+			require.Equal(t, "literal-2-2", result.slug)
+		case <-time.After(3 * time.Second):
+			t.Fatal("literal suffix allocation remained blocked after namespace lock release")
+		}
+	})
 }
 
-func phase128ReferenceNormalizeSlug(input string) (string, error) {
-	for _, char := range input {
-		if unicode.IsControl(char) || char == '/' || char == '\\' {
-			return "", fmt.Errorf("control or path separator")
-		}
+func allocatePhase128SlugsConcurrently(t testing.TB, pool *pgxpool.Pool, nicknames []string) []string {
+	t.Helper()
+	type allocationResult struct {
+		slug string
+		err  error
 	}
-	replaced := strings.NewReplacer(
-		"\u00e4", "ae", "\u00f6", "oe", "\u00fc", "ue", "\u00df", "ss", "&", " und ",
-	).Replace(strings.ToLower(strings.TrimSpace(input)))
-	decomposed := norm.NFD.String(replaced)
-	runes := make([]rune, 0, len(decomposed))
-	for _, char := range decomposed {
-		if !unicode.Is(unicode.Mn, char) {
-			runes = append(runes, char)
-		}
+	start := make(chan struct{})
+	results := make(chan allocationResult, len(nicknames))
+	for _, nickname := range nicknames {
+		nickname := nickname
+		go func() {
+			<-start
+			ctx := context.Background()
+			tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+			if err != nil {
+				results <- allocationResult{err: err}
+				return
+			}
+			defer tx.Rollback(ctx)
+			slug, err := allocatePublicMemberSlugTx(ctx, tx, nickname)
+			if err != nil {
+				results <- allocationResult{err: err}
+				return
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO members (nickname, public_slug) VALUES ($1, $2)`, nickname, slug); err != nil {
+				results <- allocationResult{err: err}
+				return
+			}
+			results <- allocationResult{slug: slug, err: tx.Commit(ctx)}
+		}()
 	}
-	slug := strings.Trim(phase128SlugSeparators.ReplaceAllString(string(runes), "-"), "-")
-	if slug == "" || len(slug) > phase128SlugMaxLength || phase128SlugNumeric.MatchString(slug) {
-		return "", fmt.Errorf("unusable public slug")
+	close(start)
+	slugs := make([]string, 0, len(nicknames))
+	for range nicknames {
+		result := <-results
+		require.NoError(t, result.err)
+		slugs = append(slugs, result.slug)
 	}
-	if _, reserved := phase128ReservedSlugs[slug]; reserved {
-		return "", fmt.Errorf("reserved public slug")
-	}
-	return slug, nil
+	return slugs
+}
+
+func phase128MigrationPath(t testing.TB) string {
+	t.Helper()
+	return filepath.Join(phase128RepositoryDir(t), "..", "..", "..", "database", "migrations", "0145_member_public_identity_visibility.up.sql")
 }
 
 func phase128ProductionMemberInsertFiles(t testing.TB) []string {
