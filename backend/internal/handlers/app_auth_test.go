@@ -379,6 +379,30 @@ func TestCreateFansubGroupAppMemberRejectsDesignerWithoutManagePermission(t *tes
 	}
 }
 
+func TestProfileVisibilityVocabularyAndPublicIdentityDTO(t *testing.T) {
+	if models.ProfileVisibilityPublic != "public" || models.ProfileVisibilityPrivate != "private" {
+		t.Fatalf("unexpected profile visibility vocabulary: %q, %q", models.ProfileVisibilityPublic, models.ProfileVisibilityPrivate)
+	}
+	payload, err := json.Marshal(models.PublicMemberProfile{
+		MemberID: 44, Slug: "mika-fx", IsOwner: true, IsPrivatePreview: true,
+	})
+	if err != nil {
+		t.Fatalf("marshal public member profile: %v", err)
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		t.Fatalf("decode public member profile: %v", err)
+	}
+	if decoded["slug"] != "mika-fx" {
+		t.Fatalf("expected required stored slug, got %#v", decoded["slug"])
+	}
+	for _, forbidden := range []string{"app_user_id", "is_owner", "is_private_preview"} {
+		if _, exists := decoded[forbidden]; exists {
+			t.Fatalf("public DTO must not serialize internal access field %q", forbidden)
+		}
+	}
+}
+
 func TestGetOwnProfileReturnsAggregate(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -390,7 +414,7 @@ func TestGetOwnProfileReturnsAggregate(t *testing.T) {
 			FansubName:         "MikaFX",
 			Email:              "mika@example.com",
 			KeycloakSubject:    "kc-11",
-			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:  models.ProfileVisibilityPrivate,
 			AccountStatus:      models.AppUserStatusActive,
 			AccountDisplayName: "Mika",
 		},
@@ -435,7 +459,7 @@ func TestGetOwnProfileWithoutMemberProfileReturnsAccountOnlyCapabilities(t *test
 			FansubName:         "",
 			Email:              "platform-admin@example.com",
 			KeycloakSubject:    "kc-11",
-			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:  models.ProfileVisibilityPrivate,
 			AccountStatus:      models.AppUserStatusActive,
 			AccountDisplayName: "Phase Admin",
 		},
@@ -487,7 +511,7 @@ func TestGetOwnProfileAccountOnlyReturnsNoProjectAssignments(t *testing.T) {
 			AppUserID:             11,
 			Email:                 "account-only@example.com",
 			KeycloakSubject:       "kc-11",
-			ProfileVisibility:     models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:     models.ProfileVisibilityPrivate,
 			AccountStatus:         models.AppUserStatusActive,
 			AccountDisplayName:    "Account Only",
 		},
@@ -533,7 +557,7 @@ func TestGetOwnProfileVerifiedMemberWithoutAssignmentReturnsFalse(t *testing.T) 
 			Email:                 "mika@example.com",
 			KeycloakSubject:       "kc-11",
 			IsVerified:            true,
-			ProfileVisibility:     models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:     models.ProfileVisibilityPrivate,
 			AccountStatus:         models.AppUserStatusActive,
 			AccountDisplayName:    "Mika",
 		},
@@ -578,7 +602,7 @@ func TestGetOwnProfileVerifiedMemberWithAssignmentReturnsTrue(t *testing.T) {
 			Email:                 "mika@example.com",
 			KeycloakSubject:       "kc-11",
 			IsVerified:            true,
-			ProfileVisibility:     models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:     models.ProfileVisibilityPrivate,
 			AccountStatus:         models.AppUserStatusActive,
 			AccountDisplayName:    "Mika",
 		},
@@ -613,7 +637,7 @@ func TestUpdateOwnProfileRejectsMissingMemberProfile(t *testing.T) {
 			HasMemberProfile:   false,
 			AppUserID:          11,
 			DisplayName:        "Phase Admin",
-			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:  models.ProfileVisibilityPrivate,
 			AccountStatus:      models.AppUserStatusActive,
 			AccountDisplayName: "Phase Admin",
 		},
@@ -694,7 +718,7 @@ func TestUpdateOwnProfileAcceptsTipTapStoryJSON(t *testing.T) {
 		AppUserID:          11,
 		DisplayName:        "Mika",
 		FansubName:         "MikaFX",
-		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		ProfileVisibility:  models.ProfileVisibilityPrivate,
 		AccountStatus:      models.AppUserStatusActive,
 		AccountDisplayName: "Mika",
 	}
@@ -755,7 +779,7 @@ func TestUpdateOwnProfileAcceptsYearNormalizedActivityDates(t *testing.T) {
 		AppUserID:          11,
 		DisplayName:        "Mika",
 		FansubName:         "MikaFX",
-		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		ProfileVisibility:  models.ProfileVisibilityPrivate,
 		AccountStatus:      models.AppUserStatusActive,
 		AccountDisplayName: "Mika",
 	}
@@ -847,7 +871,7 @@ func TestUpdateOwnProfileCurrentlyActiveClearsUntilDate(t *testing.T) {
 		AppUserID:          11,
 		DisplayName:        "Mika",
 		FansubName:         "MikaFX",
-		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		ProfileVisibility:  models.ProfileVisibilityPrivate,
 		AccountStatus:      models.AppUserStatusActive,
 		AccountDisplayName: "Mika",
 	}
@@ -943,7 +967,7 @@ func TestUploadOwnProfileAvatarRejectsInvalidFileType(t *testing.T) {
 			AppUserID:          11,
 			DisplayName:        "Mika",
 			FansubName:         "MikaFX",
-			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:  models.ProfileVisibilityPrivate,
 			AccountStatus:      models.AppUserStatusActive,
 			AccountDisplayName: "Mika",
 		},
@@ -1006,7 +1030,7 @@ func TestUploadOwnProfileAvatarStoresSourceOriginalAndCroppedDisplay(t *testing.
 		AppUserID:          11,
 		DisplayName:        "Mika",
 		FansubName:         "MikaFX",
-		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		ProfileVisibility:  models.ProfileVisibilityPrivate,
 		AccountStatus:      models.AppUserStatusActive,
 		AccountDisplayName: "Mika",
 	}
@@ -1016,7 +1040,7 @@ func TestUploadOwnProfileAvatarStoresSourceOriginalAndCroppedDisplay(t *testing.
 			AppUserID:          11,
 			DisplayName:        "Mika",
 			FansubName:         "MikaFX",
-			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:  models.ProfileVisibilityPrivate,
 			AccountStatus:      models.AppUserStatusActive,
 			AccountDisplayName: "Mika",
 		},
@@ -1069,7 +1093,7 @@ func TestUploadOwnProfileAvatarStoresAnimatedGIFWithoutFlattening(t *testing.T) 
 		AppUserID:          11,
 		DisplayName:        "Mika",
 		FansubName:         "MikaFX",
-		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		ProfileVisibility:  models.ProfileVisibilityPrivate,
 		AccountStatus:      models.AppUserStatusActive,
 		AccountDisplayName: "Mika",
 	}
@@ -1079,7 +1103,7 @@ func TestUploadOwnProfileAvatarStoresAnimatedGIFWithoutFlattening(t *testing.T) 
 			AppUserID:          11,
 			DisplayName:        "Mika",
 			FansubName:         "MikaFX",
-			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:  models.ProfileVisibilityPrivate,
 			AccountStatus:      models.AppUserStatusActive,
 			AccountDisplayName: "Mika",
 		},
@@ -1159,7 +1183,7 @@ func TestUploadOwnProfileBackgroundStoresSourceOriginalAndCroppedDisplay(t *test
 		AppUserID:          11,
 		DisplayName:        "Mika",
 		FansubName:         "MikaFX",
-		ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+		ProfileVisibility:  models.ProfileVisibilityPrivate,
 		AccountStatus:      models.AppUserStatusActive,
 		AccountDisplayName: "Mika",
 	}
@@ -1169,7 +1193,7 @@ func TestUploadOwnProfileBackgroundStoresSourceOriginalAndCroppedDisplay(t *test
 			AppUserID:          11,
 			DisplayName:        "Mika",
 			FansubName:         "MikaFX",
-			ProfileVisibility:  models.ProfileVisibilityMembersOnly,
+			ProfileVisibility:  models.ProfileVisibilityPrivate,
 			AccountStatus:      models.AppUserStatusActive,
 			AccountDisplayName: "Mika",
 		},

@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
@@ -41,8 +40,6 @@ func (h *AppPublicProfileHandler) GetPublicMemberProfile(c *gin.Context) {
 		return
 	}
 
-	identity, isAuthenticated := middleware.CommentAuthIdentityFromContext(c)
-
 	profile, err := h.profileRepo.GetPublicMemberProfile(c.Request.Context(), slug)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -53,12 +50,8 @@ func (h *AppPublicProfileHandler) GetPublicMemberProfile(c *gin.Context) {
 		return
 	}
 
-	isOwnerPreview := isAuthenticated &&
-		identity.AppUserID > 0 &&
-		profile.AppUserID > 0 &&
-		identity.AppUserID == profile.AppUserID
-	if profile.ProfileVisibility == models.ProfileVisibilityMembersOnly && !isOwnerPreview {
-		c.JSON(http.StatusOK, gin.H{"visible": false, "reason": "members_only"})
+	if profile.ProfileVisibility == models.ProfileVisibilityPrivate && !profile.IsOwner {
+		c.JSON(http.StatusOK, gin.H{"visible": false, "reason": "private"})
 		return
 	}
 
@@ -87,10 +80,8 @@ func (h *AppPublicProfileHandler) GetPublicMemberProjects(c *gin.Context) {
 		writeInternalErrorResponse(c, "interner serverfehler", err, "Projekte konnten nicht geladen werden.")
 		return
 	}
-	identity, isAuthenticated := middleware.CommentAuthIdentityFromContext(c)
-	isOwnerPreview := isAuthenticated && identity.AppUserID > 0 && page.AppUserID > 0 && identity.AppUserID == page.AppUserID
-	if page.ProfileVisibility == models.ProfileVisibilityMembersOnly && !isOwnerPreview {
-		c.JSON(http.StatusOK, gin.H{"visible": false, "reason": "members_only"})
+	if page.ProfileVisibility == models.ProfileVisibilityPrivate && !page.IsOwner {
+		c.JSON(http.StatusOK, gin.H{"visible": false, "reason": "private"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": page})

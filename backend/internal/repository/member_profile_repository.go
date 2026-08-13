@@ -133,7 +133,7 @@ func (r *MemberProfileRepository) UpdateOwnProfile(
 
 	if input.ProfileVisibility.Set && input.ProfileVisibility.Value != nil {
 		visibility := strings.TrimSpace(*input.ProfileVisibility.Value)
-		if visibility != models.ProfileVisibilityPublic && visibility != models.ProfileVisibilityMembersOnly {
+		if visibility != models.ProfileVisibilityPublic && visibility != models.ProfileVisibilityPrivate {
 			return nil, ErrValidation
 		}
 	}
@@ -490,9 +490,10 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	if row.appUserID != nil {
 		appUserID = *row.appUserID
 	}
+
 	profile := &models.PublicMemberProfile{
 		MemberID:                   row.memberID,
-		AppUserID:                  appUserID,
+		Slug:                       normalizedSlug,
 		FansubName:                 strings.TrimSpace(row.fansubName),
 		Bio:                        normalizeLoadedOptionalString(row.bio),
 		MemberStoryHTML:            normalizeLoadedOptionalString(row.memberStoryHTML),
@@ -1305,7 +1306,8 @@ func (r *MemberProfileRepository) GetPublicMemberProjects(ctx context.Context, s
 	}
 	return &models.PublicMemberProjectsPage{
 		Items: items, Total: profile.CurrentProjectsCount, Limit: limit, Offset: offset,
-		AppUserID: profile.AppUserID, ProfileVisibility: profile.ProfileVisibility,
+		ProfileVisibility: profile.ProfileVisibility,
+		IsOwner:           profile.IsOwner, IsPrivatePreview: profile.IsPrivatePreview,
 	}, nil
 }
 

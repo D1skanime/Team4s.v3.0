@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	ProfileVisibilityPublic      = "public"
-	ProfileVisibilityMembersOnly = "members_only"
+	ProfileVisibilityPublic  = "public"
+	ProfileVisibilityPrivate = "private"
 )
 
 type MemberProfileCapabilities struct {
@@ -233,8 +233,9 @@ type PublicMemberProjectsPage struct {
 	Total             int                          `json:"total"`
 	Limit             int                          `json:"limit"`
 	Offset            int                          `json:"offset"`
-	AppUserID         int64                        `json:"-"`
 	ProfileVisibility string                       `json:"-"`
+	IsOwner           bool                         `json:"-"`
+	IsPrivatePreview  bool                         `json:"-"`
 }
 
 type PublicMemberLatestContribution struct {
@@ -265,7 +266,9 @@ type PublicMemberPreviousContribution struct {
 
 type PublicMemberProfile struct {
 	MemberID          int64                     `json:"member_id"`
-	AppUserID         int64                     `json:"-"`
+	Slug              string                    `json:"slug"`
+	IsOwner           bool                      `json:"-"`
+	IsPrivatePreview  bool                      `json:"-"`
 	FansubName        string                    `json:"fansub_name"`
 	Bio               *string                   `json:"bio,omitempty"`
 	MemberStoryHTML   *string                   `json:"member_story_html,omitempty"`
