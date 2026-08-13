@@ -74,7 +74,7 @@ The phase should be planned as one identity write seam plus one access read seam
 
 The access seam must resolve only `member_id`, canonical slug, visibility, and verified ownership, and must return the same not-found result for a missing member and a private non-owner. Only an allowed result may be passed to ID-based profile, projects, contributions, notes, media, or releases loaders. The current main profile loader performs all detail fan-out before the handler checks visibility; the projects loader calls that full profile loader; the contributions and project-member repositories independently resolve nickname-derived slugs. [VERIFIED: `backend/internal/repository/member_profile_repository.go`, `anime_contributions_public_repository.go`, `project_member_public_repository.go`]
 
-The frontend should keep anonymous/public SSR, but use the central browser client for the refresh-only owner upgrade. A private owner consumes the same public DTO, receives a persistent private-profile notice, and does not see the correction action. All owner/viewer-specific responses are non-store/private; hidden and missing API outcomes are byte-identical neutral 404s. [VERIFIED: `docs/frontend/auth-api-client.md`, `128-CONTEXT.md`; caching behavior cited from Next.js and MDN]
+The frontend keeps anonymous/public SSR and makes the server page call Next `notFound()` for missing, privacy-denied, numeric, and invalid results before protected content is emitted. The route-local `not-found.tsx` initially renders only `Profil wird geladen.` and uses a client access boundary deriving the slug from `usePathname()`; an active access-or-refresh session calls token-free `getMemberProfile(slug)` through the central client. A verified private owner upgrades inside that already-404 document to the same authoritative public DTO/composition plus the persistent notice, while anonymous/non-owner/missing outcomes settle to identical neutral unavailable content. All owner/viewer-specific responses are non-store/private, and both API outcomes and denied HTML documents must carry literal HTTP 404. No second server refresh/BFF seam is introduced. [VERIFIED: `docs/frontend/auth-api-client.md`, `128-CONTEXT.md`; resolved plan architecture]
 
 **Primary recommendation:** Use a globally serialized repository allocator for `members.public_slug`, then make one injected `ResolvePublicMemberAccess` decision the mandatory first call for every member-specific public handler. [CITED: https://www.postgresql.org/docs/current/functions-admin.html] [VERIFIED: `backend/cmd/server/main.go` composition pattern]
 
@@ -197,6 +197,7 @@ frontend/
 ├── proxy.ts                           # syntax-only canonical public URL redirect
 └── src/app/members/[slug]/
     ├── page.tsx
+    ├── not-found.tsx                  # route-local 404 client access boundary
     └── OwnHiddenProfilePreview.tsx    # authoritative getMemberProfile owner upgrade
 ```
 
@@ -276,9 +277,9 @@ The exact backend projections to audit are `anime_contributions_public_repositor
 
 For list projections that expose a public-profile link, emit `public_slug` only when the member profile is public; do not turn a private member into a discoverable link. Ranking and archive already filter to `profile_visibility='public'`, while contributor projections need a focused visibility review. [VERIFIED: ranking/archive SQL and contributor SQL]
 
-### Pattern 5: Authoritative Refresh-Only Owner Upgrade
+### Pattern 5: Literal 404 Document with Authoritative Refresh-Only Owner Upgrade
 
-Keep `getMemberProfile` on `authorizedFetch`/`apiClientFetch` with `cache: 'no-store'`. The client preview boundary waits until `useAuthSession()` is initialized, treats access-or-refresh as a session, and calls `getMemberProfile(slug)` without a token parameter. A success whose authoritative DTO has `profile_visibility: 'private'` renders the real profile composition plus the notice; 404 renders the same neutral unavailable state as anonymous. [VERIFIED: central client capabilities and locked decisions; component shape is a recommendation]
+The server page performs its anonymous no-store `getMemberProfile` resolution and calls Next `notFound()` for missing, privacy-denied, numeric, or invalid results before protected content is emitted. The route-local `not-found.tsx` has no params, so its client boundary derives the canonical member segment from `usePathname()`. Its initial server/client output is only `Profil wird geladen.` while `useAuthSession()` initializes. If `hasAccessToken || hasRefreshToken`, it calls token-free `getMemberProfile(slug)` on `authorizedFetch`/`apiClientFetch` with `cache: 'no-store'`; a verified private owner upgrades inside the already-404 document to the real profile composition plus notice. No session or API 404 settles to the exact neutral unavailable content, while non-404 failures use the approved retry state. This preserves the browser-owned refresh seam without inventing server refresh/BFF logic. [VERIFIED: central client capabilities and locked D-09/D-15; resolved plan architecture]
 
 Remove the `getOwnProfile` request, `toPublicProfile`, numeric match, nickname slugification, and fallback badge/point reconstruction from `OwnHiddenProfilePreview.tsx`. [VERIFIED: current component]
 
@@ -302,6 +303,8 @@ Use 308 for canonical redirects. Next.js `permanentRedirect` returns 308 outside
 Canonicalize URL syntax without consulting nicknames: decode one path segment, trim Unicode/encoded edge whitespace, lowercase ASCII, re-encode the canonical segment, preserve query parameters, and leave numeric paths unredirected so they reach neutral 404. Once allowed data returns, compare the stored slug as the final authority. [ASSUMED]
 
 Set `Cache-Control: private, no-store` on owner-preview and viewer-specific results and `Vary: Authorization` on every optional-auth member response. Continue `cache: 'no-store'` in frontend member helpers. `private` prevents shared-cache storage and `no-store` prevents storage by caches generally. [CITED: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching]
+
+The literal document-status gate is separate from API equality: focused page tests must prove `notFound()` invocation, and live `curl` against missing and private-anonymous `/members/{slug}` HTML routes must return 404. If the pinned Next.js streaming behavior yields 200, execution stops at that acceptance criterion; a 200 response cannot be documented as a limitation or deferred to Phase 132. [VERIFIED: D-09; resolved plan architecture]
 
 ### Anti-Patterns to Avoid
 
@@ -381,7 +384,7 @@ Set `Cache-Control: private, no-store` on owner-preview and viewer-specific resu
 
 **What goes wrong:** SSR has no access token, performs anonymous lookup, and renders the unavailable state before the browser central client refreshes. [VERIFIED: current server page reads only the access-token cookie; central refresh is browser-owned]
 
-**How to avoid:** Render a neutral profile-loading boundary while an initialized access-or-refresh session resolves `getMemberProfile`; never render the 404 state before that attempt completes. [VERIFIED: auth docs and D-15]
+**How to avoid:** Make the anonymous server page call `notFound()` and let route-local `not-found.tsx` render only neutral `Profil wird geladen.` while its client boundary initializes the access-or-refresh session and resolves `getMemberProfile` through the central client. The verified owner upgrades to authoritative content inside the already-404 document; unavailable content is not rendered before the client decision. [VERIFIED: auth docs, D-09/D-15, resolved plan architecture]
 
 ### Pitfall 7: Cache Key/Headers Mix Anonymous and Owner Outcomes
 
@@ -487,17 +490,13 @@ This is the documented Team4s auth gate; `getMemberProfile(slug)` performs refre
 | A3 | Syntax-only proxy canonicalization can observe the encoded member path accurately in the deployed Next.js configuration. | Architecture Pattern 6 | If Next normalizes before Proxy, encoded-equivalence may need a route/server-header alternative. |
 | A4 | Rebuilding/restarting services is sufficient to clear compiled old visibility/slug behavior. | Runtime State Inventory | An uninspected external cache would require explicit purge; none was found in project config. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which HTTP layer must carry the literal 404 during refresh-only owner recovery?**
-   - What we know: the backend API can and must return identical 404s for missing/private non-owner; the browser central client owns refresh, and an HTML response already sent by Next cannot later change its document status. [VERIFIED: current architecture; D-09/D-15]
-   - What's unclear: whether D-09's “page and response” requires the Next document itself (not just the member API) to be 404 for every refresh-only authenticated non-owner. [ASSUMED]
-   - Recommendation: make backend/API 404 equality the automated security gate, keep the Next presentation neutral, and do not invent a second server refresh subsystem in Phase 128; record the document-status limitation for Phase 132's anonymous-SSR/owner-upgrade work. [ASSUMED]
+1. **RESOLVED — Which HTTP layer carries the literal 404 during refresh-only owner recovery?**
+   - The Next HTML document and the backend API both carry literal 404 for missing and privacy-denied requests. The server page performs anonymous no-store resolution and calls `notFound()` before protected content. Route-local `not-found.tsx` initially emits only `Profil wird geladen.`; its client boundary derives the slug from `usePathname()` and uses the existing token-free central `getMemberProfile` seam. A verified refresh-only owner upgrades inside that already-404 document to `MemberProfileContent` plus the owner notice without an unavailable flash. Anonymous/non-owner/admin non-owner/missing requests settle to identical unavailable output, and non-404 failures use the approved retry state. No server refresh/BFF seam is added. Focused tests assert `notFound()` invocation, and live HTML curl must return 404; if pinned Next streaming produces 200, execution stops rather than deferring D-09. [RESOLVED: D-09/D-15, 2026-08-13]
 
-2. **What exact controlled reset command will execution use before applying 0145 to the live local database?**
-   - What we know: the current Linux repo has no member-aware reset/seed workflow; the only reset script is PowerShell and does not clear `members`. [VERIFIED: script/tool audit]
-   - What's unclear: whether Phase 128 should apply 0145 only in a dedicated test database and leave the live dev reset to the later fixture phase, or add a narrow guarded local member reset. [ASSUMED]
-   - Recommendation: plan migration proof in a dedicated guarded Phase-128 test database; any live `team4s_v2` reset is an explicit execution checkpoint with database-identity/runtime-profile checks, never `docker compose down -v`. [VERIFIED: AGENTS stop/safety rules; recommendation]
+2. **RESOLVED — What controlled databases and reset commands does execution use?**
+   - Wave 0 idempotently provisions the dedicated database named exactly `team4s_phase128_test` through the Compose PostgreSQL service after checking `pg_database`. Every backend-container Phase-128 test command explicitly passes `TEAM4S_PHASE128_TEST_DSN=postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_phase128_test?sslmode=disable`. The Phase-128 fixture fails when the variable is absent and rejects every parsed database name outside `team4s_phase128_test*`, especially `team4s_v2`. The live local `team4s_v2` reset remains a non-autonomous checkpoint: execution first proves database identity/runtime profile, recursively enumerates affected FK tables and row counts, and presents the exact guarded `TRUNCATE TABLE members RESTART IDENTITY CASCADE` transaction, migration, and two-member reseed. It proceeds only after the exact approval phrase, never deletes volumes, and never runs `docker compose down -v`. [RESOLVED: D-21/AGENTS stop rules, 2026-08-13]
 
 ## Environment Availability
 
@@ -509,7 +508,7 @@ This is the documented Team4s auth gate; `getMemberProfile(slug)` performs refre
 | Frontend container | Vitest/typecheck/build | ✓ | Node 20.20.2, npm 10.8.2 | None. [VERIFIED: container probe] |
 | Redis | Existing auth token state | ✓ | Redis 7 service, `PONG` | No new Redis logic is required. [VERIFIED: Compose/probe] |
 | Keycloak | Optional-auth/refresh UAT | ✓ | Compose service healthy, image 26.0 | Central client tests can mock refresh; live UAT uses service. [VERIFIED: `docker compose ps`] |
-| Guarded Phase-128 test DB/DSN | PostgreSQL concurrency and migration proof | ✗ | — | Provision a dedicated `team4s_phase128_test_*` database and explicit `TEAM4S_PHASE128_TEST_DSN`; never point tests at `team4s_v2`. [VERIFIED: no matching DB/env found; existing testsupport safety pattern] |
+| Guarded Phase-128 test DB/DSN | PostgreSQL concurrency and migration proof | Wave-0 provisioned | `team4s_phase128_test` | Idempotently create the exact database through Compose and explicitly pass `TEAM4S_PHASE128_TEST_DSN` to every backend test command; never point tests at `team4s_v2`. [RESOLVED: Wave-0 plan and existing testsupport safety pattern] |
 
 **Missing dependencies with no fallback:** None for implementation; a guarded test DB must be provisioned in Wave 0 before PostgreSQL-backed acceptance tests can genuinely run. [VERIFIED: environment audit]
 
@@ -524,8 +523,8 @@ This is the documented Team4s auth gate; `getMemberProfile(slug)` performs refre
 | Backend | Go `testing` + testify 1.9.0; source/handler tests plus guarded PostgreSQL integration. [VERIFIED: `backend/go.mod`, existing tests] |
 | Frontend | Vitest 3.2.4 + Testing Library/jsdom. [VERIFIED: `frontend/package.json`, existing page tests] |
 | Config | No Go test config; `frontend/vitest.config.*`/package test script. [VERIFIED: repository] |
-| Quick run | `docker compose exec -T team4sv30-backend go test ./internal/repository ./internal/handlers -run 'PublicMember|MemberSlug|MemberAccess|ProjectMember' -count=1` plus focused frontend member route/auth tests. [ASSUMED command after Wave 0 naming] |
-| Full suite | `docker compose exec -T team4sv30-backend go test ./... -count=1` and `docker compose exec -T team4sv30-frontend npm test -- --run`, then typecheck/lint/build and `git diff --check`. [VERIFIED: project scripts/AGENTS] |
+| Quick run | `docker compose exec -T -e TEAM4S_PHASE128_TEST_DSN='postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_phase128_test?sslmode=disable' team4sv30-backend go test ./internal/repository ./internal/handlers ./internal/migrations -run 'PublicMember|MemberSlug|MemberAccess|ProjectMember|Phase128' -count=1` plus focused frontend member route/auth tests. [RESOLVED: Wave-0 database contract] |
+| Full suite | `docker compose exec -T -e TEAM4S_PHASE128_TEST_DSN='postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_phase128_test?sslmode=disable' team4sv30-backend go test ./... -count=1` and `docker compose exec -T team4sv30-frontend npm test -- --run`, then typecheck/lint/build, literal HTML 404 curl checks, and `git diff --check`. [VERIFIED: project scripts/AGENTS; resolved D-09/D-21 gates] |
 
 ### Phase Requirements → Test Map
 
@@ -563,7 +562,7 @@ This is the documented Team4s auth gate; `getMemberProfile(slug)` performs refre
 - [ ] Rewrite `backend/internal/handlers/app_public_profile_test.go` old `members_only`/hidden-200 expectations.
 - [ ] Extend `frontend/src/lib/api.auth-refresh.test.ts` and rewrite `OwnHiddenProfilePreview.test.tsx` to prove `getMemberProfile`, not `getOwnProfile`.
 - [ ] Extend page/link tests for stored slug, owner notice, correction suppression, canonical redirects, and neutral states.
-- [ ] Add a guarded `TEAM4S_PHASE128_TEST_DSN` helper/database setup; current environment has none. [VERIFIED: testsupport/environment audit]
+- [ ] Provision exact database `team4s_phase128_test`; add a fail-on-missing guarded `TEAM4S_PHASE128_TEST_DSN` helper and pass the explicit DSN to every Phase-128 PostgreSQL test command. [RESOLVED: testsupport/environment audit]
 
 ## Security Domain
 
@@ -620,7 +619,7 @@ OWASP lists ASVS 5.0.0 as the current stable standard, while the template's V2-V
 - Standard stack: HIGH — versions verified from repository manifests and running Compose containers; no new dependency is recommended. [VERIFIED: runtime/manifests]
 - Architecture: HIGH — based on direct handler/repository/route/auth inspection and locked user decisions. [VERIFIED: codebase/context]
 - Slug allocator details: MEDIUM — PostgreSQL primitives are verified, while global-lock throughput and reserved words are discretionary assumptions. [CITED: PostgreSQL docs] [ASSUMED]
-- Frontend refresh/HTML-status edge: MEDIUM — browser refresh ownership is verified, but the exact Next document-status contract needs plan-time treatment. [VERIFIED: auth docs/code] [ASSUMED]
+- Frontend refresh/HTML-status edge: MEDIUM — architecture is resolved as `notFound()` plus a route-local client upgrade inside the 404 document; pinned Next behavior remains an execution-time literal-status acceptance gate and cannot be waived. [VERIFIED: auth docs/code; RESOLVED 2026-08-13]
 - Pitfalls/security: HIGH — current ordering and unguarded routes are directly verified and match OWASP object-authorization guidance. [VERIFIED: codebase] [CITED: OWASP]
 
 **Research date:** 2026-08-13
