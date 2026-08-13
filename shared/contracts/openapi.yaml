@@ -517,7 +517,11 @@ paths:
     get:
       tags: [Profile]
       summary: Get a public member profile by slug
-      description: Returns public profile data. Members-only profiles are only returned to the profile owner as an authenticated preview; other callers receive a visibility notice.
+      description: >-
+        Returns public profile data or an authenticated owner preview. Missing
+        profiles, private non-owner profiles, and numeric member segments share
+        one neutral 404. Viewer-dependent responses are private, no-store and
+        vary on Authorization.
       operationId: getMemberProfile
       security:
         - bearerAuth: []
@@ -531,30 +535,32 @@ paths:
             minLength: 1
       responses:
         "200":
-          description: Public member profile, owner preview, or visibility notice
+          description: Public member profile or authenticated owner preview
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: "#/components/schemas/PublicMemberProfileEnvelope"
-                  - $ref: "#/components/schemas/MemberProfileHidden"
-        "400":
-          description: Empty or invalid slug
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/PublicMemberProfileEnvelope"
         "404":
-          description: Member profile not found
+          description: Missing, private non-owner, or numeric member segment
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               examples:
-                notFound:
+                unavailable:
                   value:
                     error:
-                      message: mitglied nicht gefunden
+                      message: "profil nicht verf\u00fcgbar"
         "500":
           description: Internal server error
           content:
@@ -565,6 +571,10 @@ paths:
     get:
       tags: [Profile]
       summary: List a public member's current projects incrementally
+      description: >-
+        Returns projects after canonical member access succeeds. Missing,
+        private non-owner, and numeric member segments share one neutral 404.
+        Viewer-dependent responses are private, no-store and vary on Authorization.
       operationId: getMemberProjects
       security:
         - bearerAuth: []
@@ -591,19 +601,86 @@ paths:
             default: 0
       responses:
         "200":
-          description: Paginated current projects or visibility notice
+          description: Paginated current projects
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: "#/components/schemas/PublicMemberProjectsEnvelope"
-                  - $ref: "#/components/schemas/MemberProfileHidden"
+                $ref: "#/components/schemas/PublicMemberProjectsEnvelope"
         "404":
-          description: Member profile not found
+          description: Missing, private non-owner, or numeric member segment
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      message: "profil nicht verf\u00fcgbar"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/members/{slug}/contributions:
+    get:
+      tags: [Profile]
+      summary: Get a public member's contribution timeline
+      description: >-
+        Returns the existing public contribution timeline after canonical member
+        access succeeds. Missing, private non-owner, and numeric member segments
+        share one neutral 404. Viewer-dependent responses are private, no-store
+        and vary on Authorization.
+      operationId: getMemberContributions
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Public member contribution timeline
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicMemberContributionsResponse"
+        "404":
+          description: Missing, private non-owner, or numeric member segment
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      message: "profil nicht verf\u00fcgbar"
         "500":
           description: Internal server error
           content:
@@ -8428,7 +8505,15 @@ paths:
     get:
       tags: [Fansubs]
       summary: Project-member public summary (hero, roles, counts) for anime+group+member
+      description: >-
+        Returns the project-member resource after canonical member access.
+        Missing, private non-owner, numeric, and unrelated member segments share
+        one neutral 404. Viewer-dependent responses are private, no-store and
+        vary on Authorization.
       operationId: getProjectMemberSummary
+      security:
+        - bearerAuth: []
+        - {}
       parameters:
         - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
         - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
@@ -8436,17 +8521,52 @@ paths:
       responses:
         "200":
           description: Combined project-member summary
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
           content:
             application/json:
               schema: {$ref: "#/components/schemas/ProjectMemberSummary"}
-        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "400":
+          description: Invalid anime-id or group-id
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+        "404":
+          description: Missing, private non-owner, numeric, or unrelated member segment
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      message: "profil nicht verf\u00fcgbar"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
   /api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}/notes:
     get:
       tags: [Fansubs]
       summary: Cursor page of the member's public text notes in this project
+      description: >-
+        Returns the project-member resource after canonical member access.
+        Missing, private non-owner, numeric, and unrelated member segments share
+        one neutral 404. Viewer-dependent responses are private, no-store and
+        vary on Authorization.
       operationId: getProjectMemberNotes
+      security:
+        - bearerAuth: []
+        - {}
       parameters:
         - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
         - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
@@ -8454,15 +8574,54 @@ paths:
         - {name: cursor, in: query, required: false, schema: {type: string}, description: Base64-kodierter Seek-Cursor aus next_cursor}
         - {name: limit, in: query, required: false, schema: {type: integer, format: int32, default: 24, minimum: 1, maximum: 100}}
       responses:
-        "200": {description: Cursor page of notes, content: {application/json: {schema: {$ref: "#/components/schemas/ProjectMemberNotesCursorResponse"}}}}
-        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "200":
+          description: Cursor page of notes
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ProjectMemberNotesCursorResponse"}
+        "400":
+          description: Invalid anime-id or group-id
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+        "404":
+          description: Missing, private non-owner, numeric, or unrelated member segment
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      message: "profil nicht verf\u00fcgbar"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
   /api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}/media:
     get:
       tags: [Fansubs]
       summary: Cursor page of the member's public media in this project (uploader-attributed)
+      description: >-
+        Returns the project-member resource after canonical member access.
+        Missing, private non-owner, numeric, and unrelated member segments share
+        one neutral 404. Viewer-dependent responses are private, no-store and
+        vary on Authorization.
       operationId: getProjectMemberMedia
+      security:
+        - bearerAuth: []
+        - {}
       parameters:
         - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
         - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
@@ -8470,15 +8629,54 @@ paths:
         - {name: cursor, in: query, required: false, schema: {type: string}, description: Base64-kodierter Seek-Cursor aus next_cursor}
         - {name: limit, in: query, required: false, schema: {type: integer, format: int32, default: 24, minimum: 1, maximum: 100}}
       responses:
-        "200": {description: Cursor page of media, content: {application/json: {schema: {$ref: "#/components/schemas/ProjectMemberMediaCursorResponse"}}}}
-        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "200":
+          description: Cursor page of media
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ProjectMemberMediaCursorResponse"}
+        "400":
+          description: Invalid anime-id or group-id
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+        "404":
+          description: Missing, private non-owner, numeric, or unrelated member segment
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      message: "profil nicht verf\u00fcgbar"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
   /api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}/releases:
     get:
       tags: [Fansubs]
       summary: Cursor page of the member's release participation (crew history) in this project
+      description: >-
+        Returns the project-member resource after canonical member access.
+        Missing, private non-owner, numeric, and unrelated member segments share
+        one neutral 404. Viewer-dependent responses are private, no-store and
+        vary on Authorization.
       operationId: getProjectMemberReleases
+      security:
+        - bearerAuth: []
+        - {}
       parameters:
         - {name: animeId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
         - {name: groupId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}
@@ -8486,10 +8684,41 @@ paths:
         - {name: cursor, in: query, required: false, schema: {type: string}, description: Base64-kodierter Seek-Cursor aus next_cursor}
         - {name: limit, in: query, required: false, schema: {type: integer, format: int32, default: 24, minimum: 1, maximum: 100}}
       responses:
-        "200": {description: Cursor page of releases, content: {application/json: {schema: {$ref: "#/components/schemas/ProjectMemberReleasesCursorResponse"}}}}
-        "400": {description: Invalid anime-id or group-id, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "404": {description: Member has no relation to this anime+group project, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "500": {description: Internal server error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
+        "200":
+          description: Cursor page of releases
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ProjectMemberReleasesCursorResponse"}
+        "400":
+          description: Invalid anime-id or group-id
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+        "404":
+          description: Missing, private non-owner, numeric, or unrelated member segment
+          headers:
+            Cache-Control:
+              schema: {type: string, enum: ["private, no-store"]}
+            Vary:
+              schema: {type: string, enum: [Authorization]}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      message: "profil nicht verf\u00fcgbar"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorResponse"}
 components:
   responses:
     ReleaseReviewBadRequest:
@@ -10484,7 +10713,7 @@ components:
           description: Optional own-profile edit source for re-cropping retained background originals; not a public display URL.
     ProfileVisibility:
       type: string
-      enum: [public, members_only]
+      enum: [public, private]
     MemberProfileCapabilities:
       type: object
       required:
@@ -11234,20 +11463,22 @@ components:
           description: "Reviewstatus-Code (z.B. 'approved', 'in_review'). Backend setzt Default 'approved' wenn leer (Identity-Slot, D-09)."
     PublicMemberProfileEnvelope:
       type: object
-      required: [data]
+      required: [data, viewer]
       properties:
         data:
           $ref: "#/components/schemas/PublicMemberProfileData"
-    MemberProfileHidden:
+        viewer:
+          $ref: "#/components/schemas/PublicMemberViewer"
+    PublicMemberViewer:
       type: object
-      required: [visible, reason]
+      required: [is_owner, is_private_preview]
       properties:
-        visible:
+        is_owner:
           type: boolean
-          enum: [false]
-        reason:
-          type: string
-          enum: [members_only]
+          description: Server-computed verified ownership fact.
+        is_private_preview:
+          type: boolean
+          description: Server-computed private owner-preview fact.
     PublicMemberProfileAvatar:
       type: object
       required:
@@ -11408,6 +11639,7 @@ components:
       required:
         - member_id
         - fansub_name
+        - slug
         - is_currently_active
         - profile_status
         - profile_visibility
@@ -11426,6 +11658,8 @@ components:
         member_id:
           type: integer
           format: int64
+        slug:
+          type: string
         fansub_name:
           type: string
         bio:
@@ -11538,6 +11772,54 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/PublicMemberProjectsPage"
+    PublicMemberRoleEntry:
+      type: object
+      required:
+        - fansub_group_name
+        - fansub_group_slug
+        - role_code
+        - role_label
+        - context
+        - status
+      properties:
+        fansub_group_name:
+          type: string
+        fansub_group_slug:
+          type: string
+        role_code:
+          type: string
+        role_label:
+          type: string
+        context:
+          type: string
+        anime_title:
+          type: string
+          nullable: true
+        anime_id:
+          type: integer
+          format: int64
+          nullable: true
+        started_year:
+          type: integer
+          nullable: true
+        ended_year:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        notes:
+          type: string
+          nullable: true
+    PublicMemberContributionsResponse:
+      type: object
+      required: [role_timeline, has_unverified]
+      properties:
+        role_timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicMemberRoleEntry"
+        has_unverified:
+          type: boolean
     FansubMediaUploadResponse:
       type: object
       required: [data]

@@ -1,4 +1,4 @@
-export type ProfileVisibility = 'public' | 'members_only'
+export type ProfileVisibility = 'public' | 'private'
 export type TipTapDocument = Record<string, unknown>
 
 export interface MemberProfileCapabilities {
@@ -217,6 +217,7 @@ export interface PublicMemberProfileData {
   member_id: number
   fansub_name: string
   bio?: string | null
+  slug: string
   member_story_html?: string | null
   active_from_date?: string | null
   active_until_date?: string | null
@@ -256,13 +257,19 @@ export interface PublicMemberProjectsPage {
   offset: number
 }
 
-export type PublicMemberProjectsResponse =
-  | { data: PublicMemberProjectsPage }
-  | { visible: false; reason: string }
+export interface PublicMemberViewer {
+  is_owner: boolean
+  is_private_preview: boolean
+}
 
-export type PublicMemberProfileResponse =
-  | { data: PublicMemberProfileData }
-  | { visible: false; reason: string }
+export interface PublicMemberProjectsResponse {
+  data: PublicMemberProjectsPage
+}
+
+export interface PublicMemberProfileResponse {
+  data: PublicMemberProfileData
+  viewer: PublicMemberViewer
+}
 
 export interface MemberSearchResult {
   id: number
