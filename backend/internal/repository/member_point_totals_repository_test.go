@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -22,6 +24,18 @@ import (
 // Kompilieren (go build ./internal/repository/...) schlaegt an dieser Stelle bewusst mit
 // "undefined: NewMemberPointTotalsRepository" (RED) fehl. Siehe 109-01-PLAN.md Task 2.
 
+func TestMemberPointTotalsRankingUsesCanonicalStoredSlug(t *testing.T) {
+	contentBytes, err := os.ReadFile("member_point_totals_repository.go")
+	require.NoError(t, err)
+	content := strings.ToLower(string(contentBytes))
+	compact := strings.Join(strings.Fields(content), " ")
+
+	require.Contains(t, compact, "m.public_slug as slug", "ranking must select the stored canonical slug directly")
+	for _, forbidden := range []string{"memberslugexpr", "regexp_replace", "coalesce(m.public_slug", "id::text"} {
+		require.NotContains(t, content, forbidden, "ranking must not contain generated or fallback member identity")
+	}
+}
+
 // openMemberPointTotalsPostgres wendet 0131 (ueber openPointLedgerPostgres) und die neue
 // Migration 0139_member_point_totals.up.sql auf eine isolierte Schema-Fixture an und
 // erweitert testlokal die members-Tabelle um nickname/display_name/profile_visibility
@@ -38,7 +52,8 @@ func openMemberPointTotalsPostgres(t *testing.T) *pgxpool.Pool {
 ALTER TABLE members
 	ADD COLUMN nickname TEXT,
 	ADD COLUMN display_name TEXT,
-	ADD COLUMN profile_visibility TEXT NOT NULL DEFAULT 'public'`)
+	ADD COLUMN profile_visibility TEXT NOT NULL DEFAULT 'public',
+	ADD COLUMN public_slug TEXT NOT NULL DEFAULT 'member-one'`)
 	require.NoError(t, err)
 
 	return pool
@@ -129,10 +144,10 @@ func TestMemberPointTotalsRankingOrderAndTieBreak(t *testing.T) {
 	ledger := NewPointLedgerRepository(pool)
 
 	_, err := pool.Exec(context.Background(), `
-UPDATE members SET nickname = 'member-one', display_name = 'Member One' WHERE id = 1;
-INSERT INTO members (id, nickname, display_name, profile_visibility) VALUES
-	(2, 'member-two', 'Member Two', 'public'),
-	(3, 'member-three', 'Member Three', 'public');
+UPDATE members SET nickname = 'renamed-member-one', display_name = 'Member One', public_slug = 'member-one' WHERE id = 1;
+INSERT INTO members (id, nickname, display_name, profile_visibility, public_slug) VALUES
+	(2, 'renamed-member-two', 'Member Two', 'public', 'member-two'),
+	(3, 'renamed-member-three', 'Member Three', 'public', 'member-three');
 INSERT INTO point_rules (id, rule_code, rule_version, category, point_value)
 	VALUES (102, 'small_contribution', 1, 'platform_contribution', 5);
 `)
@@ -175,9 +190,11 @@ INSERT INTO point_rules (id, rule_code, rule_version, category, point_value)
 	require.Equal(t, int64(20), rows[0].TotalPoints)
 
 	require.Equal(t, int64(2), rows[1].MemberID, "bei Punktgleichstand entscheidet member_id ASC")
+	require.Equal(t, pointStringPtr("member-two"), rows[1].Slug)
 	require.Equal(t, int64(20), rows[1].TotalPoints)
 
 	require.Equal(t, int64(3), rows[2].MemberID)
+	require.Equal(t, pointStringPtr("member-three"), rows[2].Slug)
 	require.Equal(t, int64(5), rows[2].TotalPoints)
 }
 
