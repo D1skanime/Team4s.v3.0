@@ -159,7 +159,7 @@ SELECT DISTINCT ON (m.id)
     m.id,
     m.nickname,
     %s AS display_name,
-    %s AS slug,
+    m.public_slug AS slug,
     avatar.file_path AS avatar_path,
     EXISTS(
         SELECT 1 FROM member_claims mc
@@ -178,7 +178,6 @@ ORDER BY m.id ASC
 LIMIT $%d OFFSET $%d
 `,
 		fmt.Sprintf(memberDisplayExpr, "m", "m"),
-		fmt.Sprintf(memberSlugExpr, "m.nickname"),
 		extraWhere,
 		limitParam,
 		offsetParam,
