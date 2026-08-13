@@ -44,7 +44,7 @@ func projectMemberRepoSource(t *testing.T) string {
 func TestProjectMemberRepo_MethodsAndDTOs(t *testing.T) {
 	src := projectMemberRepoSource(t)
 	required := []string{
-		"func (r *projectmemberpublicrepository) resolvememberrelation(ctx context.context, animeid, groupid int64, memberslug string) (int64, bool, error)",
+		"func (r *projectmemberpublicrepository) hasmemberrelation(ctx context.context, animeid, groupid, memberid int64) (bool, error)",
 		"func (r *projectmemberpublicrepository) getsummary(",
 		"func (r *projectmemberpublicrepository) listnotes(",
 		"func (r *projectmemberpublicrepository) listmedia(",
@@ -68,12 +68,12 @@ func TestProjectMemberRepo_ScopingMemberAnimeGroup(t *testing.T) {
 	src := projectMemberRepoSource(t)
 	// Jede Collection muss strikt auf Member × Anime × Gruppe eingeschraenkt sein.
 	required := []string{
-		"rvn.member_id = $1",                             // notes member-scoped
-		"rmr.member_id = $1",                             // roles/releases member-scoped
+		"rvn.member_id = $1", // notes member-scoped
+		"rmr.member_id = $1", // roles/releases member-scoped
 		"uploaded_by_user_id in (select uid from member_users)", // media member-scoped (D-06)
-		"e.anime_id = $2",                                // anime scope
-		"rvg.fansub_group_id = $3",                       // group scope (notes/releases/roles)
-		"rvm.fansub_group_id = $3",                       // group scope (media, kanonische Spalte)
+		"e.anime_id = $2",          // anime scope
+		"rvg.fansub_group_id = $3", // group scope (notes/releases/roles)
+		"rvm.fansub_group_id = $3", // group scope (media, kanonische Spalte)
 	}
 	for _, frag := range required {
 		if !strings.Contains(src, frag) {
@@ -121,7 +121,7 @@ func TestProjectMemberRepo_CursorPagination(t *testing.T) {
 	required := []string{
 		"clampcursorlimit(limit)",
 		"trimcursorpage(items, limit,",
-		"encodetimeint64cursor(",  // notes cursor
+		"encodetimeint64cursor(", // notes cursor
 		"decodetimeint64cursor(cursor)",
 		"encodeint32int64cursor(", // media + releases cursor
 		"decodeint32int64cursor(cursor)",
@@ -150,9 +150,26 @@ func TestProjectMemberRepo_D06UploaderResolution(t *testing.T) {
 	}
 }
 
+func TestProjectMemberRepo_UsesResolvedMemberIdentity(t *testing.T) {
+	src := projectMemberRepoSource(t)
+	for _, forbidden := range []string{
+		"resolvememberrelation",
+		"memberslug string",
+		"regexp_replace",
+		"where m.id from members",
+	} {
+		if strings.Contains(src, forbidden) {
+			t.Fatalf("project member repository contains local member resolution: %q", forbidden)
+		}
+	}
+	if !strings.Contains(src, "m.public_slug") {
+		t.Fatal("project member summary must select the stored public_slug")
+	}
+}
+
 func TestProjectMemberRepo_RelationGateReturnsExists(t *testing.T) {
 	src := projectMemberRepoSource(t)
-	// 404-Gate: ResolveMemberRelation prueft EXISTS ueber die Quellen; kein Redirect, nur bool.
+	// Relation gate checks EXISTS across owned sources using the handler-resolved member ID.
 	for _, frag := range []string{"select exists (", "union all"} {
 		if !strings.Contains(src, frag) {
 			t.Fatalf("Relation-Gate-Fragment fehlt: %q", frag)
