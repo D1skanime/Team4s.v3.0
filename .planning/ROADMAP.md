@@ -52,7 +52,7 @@ Plans:
 - [x] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 128-04-PLAN.md - Add the immutable canonical public-slug schema and runtime member fields.
+- [x] 128-04-PLAN.md - Add the immutable canonical public-slug schema and runtime member fields.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 128-05-PLAN.md - Implement the shared transactional slug allocator across all member-creation repositories.
