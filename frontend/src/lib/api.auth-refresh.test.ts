@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const refreshKeycloakTokenMock = vi.fn()
@@ -148,6 +151,17 @@ function readCookie(name: string): string {
   const prefix = `${name}=`
   const match = document.cookie.split(';').map((item) => item.trim()).find((item) => item.startsWith(prefix))
   return match ? decodeURIComponent(match.slice(prefix.length)) : ''
+}
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
+const apiSource = fs.readFileSync(path.join(currentDir, 'api.ts'), 'utf8')
+
+function exportedFunctionSource(name: string): string {
+  const marker = `export async function ${name}(`
+  const start = apiSource.indexOf(marker)
+  expect(start, `${name} must remain exported from api.ts`).toBeGreaterThanOrEqual(0)
+  const nextExport = apiSource.indexOf('\nexport ', start + marker.length)
+  return apiSource.slice(start, nextExport === -1 ? apiSource.length : nextExport)
 }
 
 describe('authorized auth refresh flow', () => {
@@ -362,6 +376,26 @@ describe('authorized auth refresh flow', () => {
       authorization: 'Bearer new-access-token',
       cache: 'no-store',
     })))
+  })
+
+  it('keeps all public-member reads on the central no-store fetch seam', () => {
+    const helperNames = [
+      'getMemberProfile',
+      'getMemberProjects',
+      'getMemberContributions',
+      'getProjectMemberSummary',
+      'getProjectMemberNotes',
+      'getProjectMemberMedia',
+      'getProjectMemberReleases',
+    ]
+
+    for (const helperName of helperNames) {
+      const source = exportedFunctionSource(helperName)
+      expect(source, helperName).toContain('apiClientFetch(')
+      expect(source, helperName).toContain('cache: "no-store"')
+      expect(source, helperName).not.toMatch(/\bfetch\(/)
+    }
+    expect(exportedFunctionSource('getMemberProfile')).not.toMatch(/\bauthToken\b/)
   })
 
   it.each([
