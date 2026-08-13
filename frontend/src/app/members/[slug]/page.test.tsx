@@ -21,15 +21,8 @@ const currentProjectsSource = readFileSync('src/components/profile/MemberCurrent
 const memberBadgeChainSource = readFileSync('src/components/profile/MemberBadgeChain.tsx', 'utf8')
 const focalCarouselSource = readFileSync('src/components/ui/FocalCarousel.tsx', 'utf8')
 const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
-const routeNotFoundPath = 'src/app/members/[slug]/not-found.tsx'
-const routeNotFoundSource = existsSync(routeNotFoundPath) ? readFileSync(routeNotFoundPath, 'utf8') : ''
-const ownHiddenProfilePreviewSource = readFileSync(
-  'src/app/members/[slug]/OwnHiddenProfilePreview.tsx',
-  'utf8',
-)
 
-const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock, notFoundMock, reactCacheEntries } = vi.hoisted(() => ({
-  cookieGetMock: vi.fn(),
+const { getMemberProfileMock, getMemberContributionsMock, notFoundMock, reactCacheEntries } = vi.hoisted(() => ({
   getMemberProfileMock: vi.fn(),
   getMemberContributionsMock: vi.fn(),
   notFoundMock: vi.fn(),
@@ -52,12 +45,6 @@ vi.mock('react', async (importOriginal) => {
     }) as T,
   }
 })
-
-vi.mock('next/headers', () => ({
-  cookies: vi.fn(() => ({
-    get: cookieGetMock,
-  })),
-}))
 
 vi.mock('next/navigation', () => ({
   notFound: notFoundMock,
@@ -90,25 +77,18 @@ vi.mock('@/lib/api', () => {
 
   return {
     ApiError,
-    AUTH_TOKEN_COOKIE_NAME: 'team4s_access_token',
     getMemberProfile: getMemberProfileMock,
     getMemberContributions: getMemberContributionsMock,
     resolveApiUrl: (value: string) => value,
   }
 })
 
-vi.mock('./OwnHiddenProfilePreview', () => ({
-  OwnHiddenProfilePreview: ({ slug }: { slug: string }) => (
-    <div data-testid="own-hidden-profile-preview">OwnHiddenProfilePreview:{slug}</div>
-  ),
-}))
-
 vi.mock('./OwnProfileEditLink', () => ({
   OwnProfileEditLink: () => <a href="/me/profile">Profil bearbeiten</a>,
 }))
 
 vi.mock('@/components/profile/CorrectionReportModal', () => ({
-  CorrectionReportModal: () => null,
+  CorrectionReportModal: () => <button type="button">Korrektur melden</button>,
 }))
 
 function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): PublicMemberProfileData {
@@ -208,10 +188,13 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
   }
 }
 
-async function renderMemberPage(profile: PublicMemberProfileData | { visible: false; reason: string }) {
-  getMemberProfileMock.mockResolvedValue('visible' in profile ? profile : {
+async function renderMemberPage(
+  profile: PublicMemberProfileData,
+  viewer = { is_owner: false, is_private_preview: false },
+) {
+  getMemberProfileMock.mockResolvedValue({
     data: profile,
-    viewer: { is_owner: false, is_private_preview: false },
+    viewer,
   })
   getMemberContributionsMock.mockResolvedValue({ role_timeline: [] })
   const result = await MemberProfilePage({ params: { slug: 'ballelboy' } })
@@ -347,10 +330,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
   })
 
 
-  it('Phase 120 RED: deduplicates metadata and page reads for the same slug and viewer token', async () => {
-    cookieGetMock.mockImplementation((name: string) => (
-      name === 'team4s_access_token' ? { value: '  viewer-token  ' } : undefined
-    ))
+  it('deduplicates anonymous metadata and page reads for the same stored slug', async () => {
     getMemberProfileMock.mockResolvedValue({
       data: makePublicProfile({ noindex: true }),
       viewer: { is_owner: true, is_private_preview: false },
@@ -362,62 +342,24 @@ describe('MemberProfilePage Phase 99 route composition', () => {
 
     expect(metadata).toEqual({ robots: { index: false, follow: false } })
     expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
-    expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy', 'viewer-token')
+    expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy')
     expect(screen.getAllByRole('heading', { name: 'Ballelboy' })[0]).toBeTruthy()
   })
 
-  it('Phase 120 RED: isolates anonymous and owner-preview cache keys', async () => {
-    const ownerProfile = makePublicProfile({
-      noindex: true,
-      avatar: {
-        public_url: '/media/profile/41/avatar/display.png',
-      },
-      background_image: {
-        public_url: '/media/profile/41/background/display.png',
-        source_original_url: '/media/profile/41/background/source-original.png',
-      },
-      public_badges: [
-        { id: 1, badge_code: 'founding_member', badge_category: 'historical_achievement' },
-      ],
-    })
-    getMemberProfileMock.mockImplementation((_slug: string, token?: string) => (
-      token === 'owner-token'
-        ? Promise.resolve({
-          data: ownerProfile,
-          viewer: { is_owner: true, is_private_preview: true },
-        })
-        : Promise.resolve({ visible: false, reason: 'members_only' })
-    ))
-
-    cookieGetMock.mockReturnValue(undefined)
-    const anonymousMetadata = await generateMetadata({ params: { slug: 'ballelboy' } })
-    const anonymousPage = await MemberProfilePage({ params: { slug: 'ballelboy' } })
-    const anonymousRender = render(anonymousPage)
-
-    expect(anonymousMetadata).toEqual({})
-    expect(screen.getByTestId('own-hidden-profile-preview').textContent).toBe(
-      'OwnHiddenProfilePreview:ballelboy',
+  it('keeps owner edit and viewer correction actions mutually exclusive', async () => {
+    const profile = makePublicProfile()
+    const ownerView = await renderMemberPage(
+      profile,
+      { is_owner: true, is_private_preview: false },
     )
-    expect(anonymousRender.container.textContent).not.toContain('Ballelboy')
-    expect(anonymousRender.container.textContent).not.toContain('Gründungsmitglied')
-    expect(anonymousRender.container.innerHTML).not.toContain('/media/profile/41/avatar/display.png')
-    expect(anonymousRender.container.innerHTML).not.toContain('source-original.png')
-    anonymousRender.unmount()
+    expect(screen.getByRole('link', { name: 'Profil bearbeiten' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Korrektur melden' })).toBeNull()
+    ownerView.unmount()
 
-    cookieGetMock.mockImplementation((name: string) => (
-      name === 'team4s_access_token' ? { value: '  owner-token  ' } : undefined
-    ))
-    const ownerMetadata = await generateMetadata({ params: { slug: 'ballelboy' } })
-    const ownerPage = await MemberProfilePage({ params: { slug: 'ballelboy' } })
-    render(ownerPage)
-
-    expect(ownerMetadata).toEqual({ robots: { index: false, follow: false } })
-    expect(screen.getAllByRole('heading', { name: 'Ballelboy' })[0]).toBeTruthy()
-    expect(getMemberProfileMock).toHaveBeenCalledTimes(2)
-    expect(getMemberProfileMock.mock.calls).toEqual([
-      ['ballelboy', undefined],
-      ['ballelboy', 'owner-token'],
-    ])
+    reactCacheEntries.splice(0)
+    await renderMemberPage(profile)
+    expect(screen.queryByRole('link', { name: 'Profil bearbeiten' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Korrektur melden' })).toBeTruthy()
   })
   it('does not render the old public tab navigation labels as section navigation or fetch the old timeline', async () => {
     await renderMemberPage(makePublicProfile())
@@ -435,11 +377,6 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(screen.getByRole('heading', { name: 'Fortschritt' })).toBeTruthy()
   })
 
-  it('keeps the hidden-profile owner preview path intact', async () => {
-    await renderMemberPage({ visible: false, reason: 'members_only' })
-
-    expect(screen.getByTestId('own-hidden-profile-preview').textContent).toBe('OwnHiddenProfilePreview:ballelboy')
-  })
 })
 
 
@@ -522,21 +459,23 @@ describe('Phase 126 membership SSR projection', () => {
 
 describe('Phase 127 RED SSR hero composition', () => {
   it('Phase 127 RED page forwards public badges through one cached request and suppresses legacy Special', async () => {
-    cookieGetMock.mockImplementation((name: string) => name === 'team4s_access_token' ? { value: ' viewer-token ' } : undefined)
-    getMemberProfileMock.mockResolvedValue({ data: makePublicProfile({
-      is_verified: true,
+    getMemberProfileMock.mockResolvedValue({
+      data: makePublicProfile({
+        is_verified: true,
       public_badges: [
         { id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
         { id: 2, badge_code: 'all_rounder', badge_category: 'historical_achievement' },
         { id: 3, badge_code: 'verified', badge_category: 'historical_achievement' },
         { id: 4, badge_code: 'founding_member', badge_category: 'historical_achievement' },
       ],
-    }) })
+      }),
+      viewer: { is_owner: false, is_private_preview: false },
+    })
     await generateMetadata({ params: { slug: 'ballelboy' } })
     const page = await MemberProfilePage({ params: { slug: 'ballelboy' } })
     const { container } = render(page)
     expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
-    expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy', 'viewer-token')
+    expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy')
     const hero = screen.getByTestId('member-profile-hero-panel')
     const list = within(hero).getByRole('list', { name: 'Besondere Auszeichnungen' })
     expect(within(list).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['Historische Leitung', 'Allrounder'])
@@ -600,7 +539,6 @@ describe('Quick 260812-jtp owner-scoped vertical rhythm', () => {
     expect(memberPageStyles).toMatch(/\.section\s*\{[^}]*margin:\s*0 auto var\(--space-4\);/s)
     expect(memberPageStyles).toMatch(/\.rhythmBand\s*\{[^}]*gap:\s*var\(--space-4\);[^}]*padding:\s*var\(--space-5\);/s)
     expect(memberPageStyles).toMatch(/\.sectionPair\s*\{[^}]*gap:\s*var\(--space-4\);/s)
-    expect(memberPageStyles).toMatch(/\.contentSection h2\s*\{[^}]*margin:\s*0 0 var\(--space-3\);/s)
     expect(memberPageStyles).toMatch(/@media \(max-width:\s*760px\)[\s\S]*?\.rhythmBand\s*\{[^}]*padding:\s*var\(--space-4\);/s)
   })
 })
@@ -699,34 +637,48 @@ describe('Phase 128 neutral public-member route contract', () => {
     })
   })
 
-  it('Phase128NotFoundAccessGate', () => {
-    const combinedSource = `${routeNotFoundSource}\n${ownHiddenProfilePreviewSource}`
-    const forbiddenUnavailableHints = [
-      'Anmeldung erforderlich',
-      'Mitglied nicht gefunden',
-      'Korrektur melden',
-    ].filter((copy) => routeNotFoundSource.includes(copy))
-
+  it('keeps the server route anonymous, token-free and authoritative', () => {
     expect({
-      routeLocalNotFoundExists: routeNotFoundSource.length > 0,
-      delegatesWithoutSlugProp: /<OwnHiddenProfilePreview\s*\/>/.test(routeNotFoundSource),
-      pathnameOwnsCanonicalSlug: /usePathname\s*\(/.test(ownHiddenProfilePreviewSource),
-      loadingCopy: combinedSource.includes('Profil wird geladen.'),
-      unavailableTitle: combinedSource.includes('Profil nicht verfügbar'),
-      unavailableBody: combinedSource.includes(
-        'Dieses Profil ist nicht verfügbar. Prüfe den Link oder kehre zur Anime-Übersicht zurück.',
-      ),
-      unavailableAction: combinedSource.includes('Zur Anime-Übersicht'),
-      forbiddenUnavailableHints,
+      readsServerCookies: /from ['"]next\/headers['"]/.test(memberPageSource),
+      importsTokenConstant: memberPageSource.includes('AUTH_TOKEN_COOKIE_NAME'),
+      passesTokenArgument: /getMemberProfile\s*\(\s*slug\s*,/.test(memberPageSource),
+      rendersLegacyPreview: memberPageSource.includes('OwnHiddenProfilePreview'),
+      invokesNextNotFound: /notFound\s*\(\s*\)/.test(memberPageSource),
+      delegatesAllowedData: memberPageSource.includes('<MemberProfileContent'),
+      usesGenericErrorState: memberPageSource.includes('<ErrorState'),
     }).toEqual({
-      routeLocalNotFoundExists: true,
-      delegatesWithoutSlugProp: true,
-      pathnameOwnsCanonicalSlug: true,
-      loadingCopy: true,
-      unavailableTitle: true,
-      unavailableBody: true,
-      unavailableAction: true,
-      forbiddenUnavailableHints: [],
+      readsServerCookies: false,
+      importsTokenConstant: false,
+      passesTokenArgument: false,
+      rendersLegacyPreview: false,
+      invokesNextNotFound: true,
+      delegatesAllowedData: true,
+      usesGenericErrorState: true,
     })
+  })
+
+  it('uses the exact generic state for non-404 failures', async () => {
+    reactCacheEntries.splice(0)
+    getMemberProfileMock.mockReset()
+    getMemberProfileMock.mockRejectedValue(new Error('sensitive backend detail'))
+
+    const page = await MemberProfilePage({ params: { slug: 'transport-failure' } })
+    render(page)
+
+    expect(screen.getByRole('heading', { name: 'Profil konnte nicht geladen werden' })).toBeTruthy()
+    expect(screen.getByText('Bitte versuche es später erneut.')).toBeTruthy()
+    expect(screen.queryByText('sensitive backend detail')).toBeNull()
+  })
+
+  it('keeps route-owned client-gate geometry without the reduced legacy grid', () => {
+    expect(memberPageStyles).toContain('container-type: inline-size;')
+    expect(memberPageStyles).toMatch(
+      /@container owner-preview-notice \(min-width:\s*36rem\)/,
+    )
+    expect(memberPageStyles).toContain('min-width: 0;')
+    expect(memberPageStyles).not.toContain('overflow-wrap: anywhere')
+    expect(memberPageStyles).not.toMatch(
+      /\.(?:profileGrid|storySection|fullWidthSection|contentSection)\b/,
+    )
   })
 })
