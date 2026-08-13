@@ -302,7 +302,7 @@ Move the contract together:
 - `frontend/src/types/profile.ts:1,62-100,216-265`: change visibility to `'public' | 'private'`, require `slug` on `PublicMemberProfileData`, and delete the `{visible:false}` response unions.
 - `shared/contracts/openapi.yaml:516-612`: profile/projects `200` responses become data envelopes only; missing/private non-owner share the same `404` `ErrorResponse`; document optional bearer owner preview.
 - `shared/contracts/openapi.yaml:10485-10487,11235-11250,11406-11457`: change enum vocabulary, delete `MemberProfileHidden`, and require `slug` in the public DTO.
-- Add the currently undocumented contributions and four project-member operations to OpenAPI before changing their optional-auth/status behavior.
+- Add only the currently absent `/api/v1/members/{slug}/contributions` operation. The four project-member operations already exist at `/api/v1/anime/{animeId}/group/{groupId}/members/{memberSlug}` and its `/notes`, `/media`, and `/releases` children; update those path items in place for optional auth, neutral 404, cache semantics/headers, and their existing response envelopes without duplicating path keys or operationIds.
 
 Do not expose `AppUserID` in the public DTO. Owner-preview state should be a server-computed access result or explicit non-sensitive response flag; the current Go-only `json:"-"` field must not remain the authorization mechanism.
 
