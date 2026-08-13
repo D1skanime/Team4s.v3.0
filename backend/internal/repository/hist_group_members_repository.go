@@ -437,10 +437,15 @@ func (r *HistGroupMembersRepository) CreateWithAutoMember(
 	}
 	defer tx.Rollback(ctx)
 
+	publicSlug, err := allocatePublicMemberSlugTx(ctx, tx, input.DisplayName)
+	if err != nil {
+		return nil, fmt.Errorf("create with auto member: allocate public slug: %w", err)
+	}
+
 	var memberID int64
 	if err := tx.QueryRow(ctx, `
-		INSERT INTO members (nickname) VALUES ($1) RETURNING id
-	`, input.DisplayName).Scan(&memberID); err != nil {
+        INSERT INTO members (nickname, public_slug) VALUES ($1, $2) RETURNING id
+    `, input.DisplayName, publicSlug).Scan(&memberID); err != nil {
 		if isUniqueViolation(err) {
 			return nil, ErrConflict
 		}

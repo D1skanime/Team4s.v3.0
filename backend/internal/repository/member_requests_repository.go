@@ -121,15 +121,19 @@ func (r *MemberRequestsRepository) ApproveRequest(ctx context.Context, requestID
 		return ErrNotFound
 	}
 
-	var memberID int64
-	if err := tx.QueryRow(ctx, `
-		INSERT INTO members (nickname, display_name, noindex, profile_visibility, updated_at)
-		VALUES ($1, $1, false, 'public', NOW())
-		RETURNING id
-	`, nick).Scan(&memberID); err != nil {
-		return fmt.Errorf("approve member request: create member: %w", err)
+	publicSlug, err := allocatePublicMemberSlugTx(ctx, tx, nick)
+	if err != nil {
+		return fmt.Errorf("approve member request: allocate public slug: %w", err)
 	}
 
+	var memberID int64
+	if err := tx.QueryRow(ctx, `
+        INSERT INTO members (nickname, display_name, public_slug, noindex, profile_visibility, updated_at)
+        VALUES ($1, $1, $2, false, 'public', NOW())
+        RETURNING id
+    `, nick, publicSlug).Scan(&memberID); err != nil {
+		return fmt.Errorf("approve member request: create member: %w", err)
+	}
 	if _, err := tx.Exec(ctx, `
 		UPDATE member_claims
 		SET member_id = $2,

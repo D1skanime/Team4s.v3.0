@@ -710,27 +710,33 @@ func ensureAppUserMemberAnchorTx(ctx context.Context, tx pgx.Tx, appUserID int64
 		return memberID, nil
 	}
 
-	err = tx.QueryRow(ctx, `
-		INSERT INTO members (nickname, profile_visibility, noindex, created_at, updated_at)
-		SELECT
-			COALESCE(
-				NULLIF(TRIM(au.display_name), ''),
-				NULLIF(TRIM(au.preferred_username), ''),
-				NULLIF(TRIM(au.email), ''),
-				'Mitglied'
-			),
-			'public',
-			false,
-			NOW(),
-			NOW()
-		FROM app_users au
-		WHERE au.id = $1
-		RETURNING id
-	`, appUserID).Scan(&memberID)
-	if err != nil {
+	var nickname string
+	if err := tx.QueryRow(ctx, `
+        SELECT COALESCE(
+            NULLIF(TRIM(display_name), ''),
+            NULLIF(TRIM(preferred_username), ''),
+            NULLIF(TRIM(email), ''),
+            'Mitglied'
+        )
+        FROM app_users
+        WHERE id = $1
+    `, appUserID).Scan(&nickname); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return 0, ErrNotFound
 		}
+		return 0, fmt.Errorf("ensure app user member anchor: resolve nickname: %w", err)
+	}
+	publicSlug, err := allocatePublicMemberSlugTx(ctx, tx, nickname)
+	if err != nil {
+		return 0, fmt.Errorf("ensure app user member anchor: allocate public slug: %w", err)
+	}
+
+	err = tx.QueryRow(ctx, `
+        INSERT INTO members (nickname, public_slug, profile_visibility, noindex, created_at, updated_at)
+        VALUES ($1, $2, 'public', false, NOW(), NOW())
+        RETURNING id
+    `, nickname, publicSlug).Scan(&memberID)
+	if err != nil {
 		return 0, fmt.Errorf("ensure app user member anchor: create member: %w", err)
 	}
 	return memberID, nil

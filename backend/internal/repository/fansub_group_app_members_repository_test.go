@@ -83,7 +83,7 @@ func TestAppMembersAlwaysResolveCanonicalMemberAnchor(t *testing.T) {
 	required := []string{
 		"func ensureappusermemberanchortx",
 		"select coalesce(claimed.member_id, legacy.id, existing.member_id, 0)",
-		"insert into members (nickname, profile_visibility, noindex, created_at, updated_at)",
+		"insert into members (nickname, public_slug, profile_visibility, noindex, created_at, updated_at)",
 		"left join members fgm_member on fgm_member.id = fgm.member_id",
 		"coalesce(fgm_member.id, claimed_m.id, legacy_m.id, 0) as member_id",
 	}
