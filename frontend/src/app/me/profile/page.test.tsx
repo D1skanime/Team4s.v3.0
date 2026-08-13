@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
 import type { ImgHTMLAttributes, ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
@@ -140,6 +141,9 @@ import { ApiError } from '@/lib/api'
 
 import MyProfilePage from './page'
 
+const ownProfilePageSource = readFileSync('src/app/me/profile/page.tsx', 'utf8')
+const ownProfileHeroSource = readFileSync('src/app/me/profile/components/MemberProfileHero.tsx', 'utf8')
+
 beforeEach(() => {
   useAuthSessionMock.mockReturnValue({
     hasAccessToken: true,
@@ -192,7 +196,7 @@ function makeProfileResponse(overrides: Partial<MemberProfileResponse['data']> =
       is_verified: false,
       claim_status: null,
       claim_member_nick: null,
-      profile_visibility: 'members_only',
+      profile_visibility: 'private',
       avatar: null,
       keycloak_account_url: 'http://localhost:8081/realms/team4s/account',
       capabilities: {
@@ -324,6 +328,42 @@ describe('MyProfilePage', () => {
     const publicProfileLink = await screen.findByRole('link', { name: /Profil ansehen/i })
     expect(publicProfileLink.getAttribute('href')).toBe('/members/mikafx')
     expect(publicProfileLink.getAttribute('aria-disabled')).toBe('false')
+  })
+
+  it('keeps the stored public slug when the visible nickname changes', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      fansub_name: 'MikaFX',
+      slug: 'mika-archiv',
+    }))
+    updateOwnProfileMock.mockResolvedValue(makeProfileResponse({
+      fansub_name: 'MikaNova',
+      slug: 'mika-archiv',
+    }))
+
+    render(<MyProfilePage />)
+
+    expect((await screen.findByRole('link', { name: /Profil ansehen/i })).getAttribute('href')).toBe('/members/mika-archiv')
+    fireEvent.change(screen.getByLabelText('Fansub-Nick'), { target: { value: 'MikaNova' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Profil speichern' }))
+
+    expect(await screen.findByRole('heading', { name: 'MikaNova' })).not.toBeNull()
+    expect(screen.getByRole('link', { name: /Profil ansehen/i }).getAttribute('href')).toBe('/members/mika-archiv')
+  })
+
+  it('does not render a public profile link when the stored slug is missing', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse({ slug: '', member_id: 943 }))
+
+    render(<MyProfilePage />)
+
+    expect(await screen.findByRole('heading', { name: 'MikaFX' })).not.toBeNull()
+    expect(screen.queryByRole('link', { name: /Profil ansehen/i })).toBeNull()
+  })
+
+  it('keeps both own-profile link producers free of numeric or generated fallbacks', () => {
+    for (const source of [ownProfilePageSource, ownProfileHeroSource]) {
+      expect(source).not.toMatch(/profile\.slug\s*\|\|\s*profile\.member_id/)
+      expect(source).not.toMatch(/\/members\/\$\{profile\.member_id\}/)
+    }
   })
 
   it('opens the rich story editor only after Bearbeiten', async () => {
