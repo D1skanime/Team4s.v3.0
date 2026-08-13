@@ -63,7 +63,6 @@
   text-align: center;
   text-decoration: none;
   white-space: normal;
-  overflow-wrap: anywhere;
 }
 
 .editProfileLink:hover,
@@ -84,6 +83,57 @@
   background: var(--color-white);
   padding: 16px;
   color: var(--text-primary);
+}
+
+.stateRegion {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.ownerPreviewNotice {
+  min-width: 0;
+  margin-bottom: var(--space-4);
+  container-name: owner-preview-notice;
+  container-type: inline-size;
+}
+
+.ownerPreviewNoticeContent {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.ownerPreviewNoticeCopy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.ownerPreviewNoticeCopy strong {
+  color: var(--text-strong);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.ownerPreviewNoticeCopy p {
+  margin: 0;
+  color: var(--text-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ownerPreviewNoticeActions {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.ownerPreviewNoticeActions > * {
+  min-width: 0;
 }
 
 .section {
@@ -148,33 +198,6 @@
   font-size: 0.9rem;
 }
 
-/* Legacy: profileGrid bleibt für OwnHiddenProfilePreview */
-.profileGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.storySection,
-.fullWidthSection {
-  grid-column: 1 / -1;
-}
-
-.storySection {
-  min-width: 0;
-}
-
-.contentSection {
-  min-width: 0;
-}
-
-.contentSection h2 {
-  margin: 0 0 var(--space-3);
-  font-size: 18px;
-  line-height: 1.3;
-}
-
 @media (max-width: 1399px) {
   .profilePair {
     grid-template-columns: minmax(0, 1fr);
@@ -208,10 +231,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .profileGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .profileToolbar {
     align-items: stretch;
     flex-direction: column;
@@ -224,6 +243,17 @@
 
   .editProfileLink {
     align-self: flex-start;
+  }
+}
+
+@container owner-preview-notice (min-width: 36rem) {
+  .ownerPreviewNoticeContent {
+    padding: var(--space-5);
+  }
+
+  .ownerPreviewNoticeActions {
+    display: flex;
+    flex-wrap: wrap;
   }
 }
 

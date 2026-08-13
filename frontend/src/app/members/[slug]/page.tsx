@@ -1,93 +1,96 @@
-import Link from 'next/link'
 import { cache } from 'react'
-import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 
-import {
-  ApiError,
-  AUTH_TOKEN_COOKIE_NAME,
-  getMemberProfile,
-} from '@/lib/api'
-import type { PublicMemberProfileData, PublicMemberViewer } from '@/types/profile'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { ApiError, getMemberProfile } from '@/lib/api'
 
 import { MemberProfileContent } from './MemberProfileContent'
-import { OwnHiddenProfilePreview } from './OwnHiddenProfilePreview'
 import styles from './page.module.css'
 
+const STORED_MEMBER_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const NEUTRAL_UNAVAILABLE_METADATA: Metadata = {
+  title: 'Profil nicht verfügbar | Team4s',
+  robots: { index: false, follow: false },
+}
+
 interface MemberProfilePageProps {
-  params: { slug: string } | Promise<{ slug: string }>
+  params: Promise<{ slug: string }>
 }
 
 async function resolveSlug(params: MemberProfilePageProps['params']): Promise<string> {
   const resolvedParams = await params
-  return (resolvedParams.slug || '').trim()
+  return resolvedParams.slug || ''
 }
 
-async function readViewerToken(): Promise<string> {
-  const cookieStore = await cookies()
+function isCanonicalStoredSlug(slug: string): boolean {
   return (
-    cookieStore.get(AUTH_TOKEN_COOKIE_NAME)?.value ||
-    cookieStore.get('access_token')?.value || ''
-  ).trim()
+    slug.length > 0
+    && slug.length <= 512
+    && !/^\d+$/.test(slug)
+    && STORED_MEMBER_SLUG.test(slug)
+  )
 }
 
-const getMemberProfileForRequest = cache((slug: string, viewerToken: string) => (
-  getMemberProfile(slug, viewerToken || undefined)
-))
+function isNotFoundError(error: unknown): boolean {
+  if (error instanceof ApiError) return error.status === 404
+  return (
+    typeof error === 'object'
+    && error !== null
+    && 'status' in error
+    && (error as { status?: unknown }).status === 404
+  )
+}
+
+const getMemberProfileForRequest = cache((slug: string) => getMemberProfile(slug))
 
 export async function generateMetadata({ params }: MemberProfilePageProps): Promise<Metadata> {
   const slug = await resolveSlug(params)
-  if (!slug) return {}
+  if (!isCanonicalStoredSlug(slug)) return NEUTRAL_UNAVAILABLE_METADATA
+
   try {
-    const viewerToken = await readViewerToken()
-    const response = await getMemberProfileForRequest(slug, viewerToken)
-    if ('data' in response && response.data.noindex) return { robots: { index: false, follow: false } }
-  } catch { return {} }
+    const response = await getMemberProfileForRequest(slug)
+    if (response.data.noindex) {
+      return { robots: { index: false, follow: false } }
+    }
+  } catch (error) {
+    if (isNotFoundError(error)) return NEUTRAL_UNAVAILABLE_METADATA
+  }
+
   return {}
 }
 
-function renderNotice(message: string) {
+function renderLoadError() {
   return (
     <main className={styles.page}>
-      <p className={styles.backLink}><Link href="/anime">Zur Anime-Liste</Link></p>
-      <div className={styles.errorBox}>{message}</div>
+      <div className={styles.stateRegion}>
+        <ErrorState
+          title="Profil konnte nicht geladen werden"
+          description="Bitte versuche es später erneut."
+        />
+      </div>
     </main>
   )
 }
 
 export default async function MemberProfilePage({ params }: MemberProfilePageProps) {
   const slug = await resolveSlug(params)
-  if (!slug) return renderNotice('Ungültiger Member-Slug.')
+  if (!isCanonicalStoredSlug(slug)) notFound()
 
-  const viewerToken = await readViewerToken()
-
-  let profile: PublicMemberProfileData | null = null
-  let viewer: PublicMemberViewer | null = null
-  let isHidden = false
-  let message: string | null = null
+  let response: Awaited<ReturnType<typeof getMemberProfileForRequest>>
 
   try {
-    const response = await getMemberProfileForRequest(slug, viewerToken)
-    if ('visible' in response && !response.visible) isHidden = true
-    else if ('data' in response) {
-      profile = response.data
-      viewer = response.viewer ?? { is_owner: false, is_private_preview: false }
-    }
+    response = await getMemberProfileForRequest(slug)
   } catch (error) {
-    message = error instanceof ApiError && error.status === 404
-      ? 'Mitglied nicht gefunden.'
-      : 'Profil konnte nicht geladen werden.'
+    if (isNotFoundError(error)) notFound()
+    return renderLoadError()
   }
 
-  if (isHidden) {
-    return (
-      <main className={styles.page}>
-        <p className={styles.backLink}><Link href="/anime">Zur Anime-Liste</Link></p>
-        <OwnHiddenProfilePreview slug={slug} />
-      </main>
-    )
-  }
-  if (!profile || !viewer) return renderNotice(message || 'Profil konnte nicht geladen werden.')
-
-  return <MemberProfileContent profile={profile} storedSlug={slug} viewer={viewer} />
+  return (
+    <MemberProfileContent
+      profile={response.data}
+      storedSlug={slug}
+      viewer={response.viewer}
+    />
+  )
 }

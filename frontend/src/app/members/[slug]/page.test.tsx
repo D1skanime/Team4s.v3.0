@@ -95,6 +95,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
   return {
     member_id: 41,
     fansub_name: 'Ballelboy',
+    slug: 'ballelboy',
     bio: 'Timing und Typesetting.',
     member_story_html: '<p>Seit vielen Jahren in Fansub-Projekten aktiv.</p>',
     active_from_date: '2014-01-01',
@@ -197,7 +198,7 @@ async function renderMemberPage(
     viewer,
   })
   getMemberContributionsMock.mockResolvedValue({ role_timeline: [] })
-  const result = await MemberProfilePage({ params: { slug: 'ballelboy' } })
+  const result = await MemberProfilePage({ params: Promise.resolve({ slug: 'ballelboy' }) })
   return render(result)
 }
 
@@ -259,12 +260,12 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(20rem, 2fr\)/)
     expect(memberPageStyles).toMatch(/\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 3fr\) minmax\(14rem, 1fr\)/)
     expect(memberPageStyles).toMatch(/\.projectsBand h2\s*\{[\s\S]*?border-bottom:\s*2px solid var\(--ui-line\)/)
-    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`}')
-    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`}')
-    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand} ${styles.badgesVisualBand}`}')
-    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.contributionsBand}`}')
-    expect(memberPageSource).toContain('<MemberStorySection')
-    expect(memberPageSource).toContain('<MembershipsSection')
+    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`}')
+    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.projectsBand}`}')
+    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.badgesBand} ${styles.badgesVisualBand}`}')
+    expect(memberProfileContentSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.contributionsBand}`}')
+    expect(memberProfileContentSource).toContain('<MemberStorySection')
+    expect(memberProfileContentSource).toContain('<MembershipsSection')
     expect(memberStorySource).toContain('<Card variant="section" className={styles.storyCard}>')
     expect(membershipsSource).toContain('<Card variant="interactive" className={styles.membershipCard}>')
     expect(currentProjectsSource).toContain('<Card variant="interactive" className={styles.projectCard}>')
@@ -336,8 +337,8 @@ describe('MemberProfilePage Phase 99 route composition', () => {
       viewer: { is_owner: true, is_private_preview: false },
     })
 
-    const metadata = await generateMetadata({ params: { slug: 'ballelboy' } })
-    const page = await MemberProfilePage({ params: { slug: 'ballelboy' } })
+    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
+    const page = await MemberProfilePage({ params: Promise.resolve({ slug: 'ballelboy' }) })
     render(page)
 
     expect(metadata).toEqual({ robots: { index: false, follow: false } })
@@ -462,7 +463,7 @@ describe('Phase 127 RED SSR hero composition', () => {
     getMemberProfileMock.mockResolvedValue({
       data: makePublicProfile({
         is_verified: true,
-      public_badges: [
+        public_badges: [
         { id: 1, badge_code: 'historical_leader', badge_category: 'historical_achievement' },
         { id: 2, badge_code: 'all_rounder', badge_category: 'historical_achievement' },
         { id: 3, badge_code: 'verified', badge_category: 'historical_achievement' },
@@ -471,8 +472,8 @@ describe('Phase 127 RED SSR hero composition', () => {
       }),
       viewer: { is_owner: false, is_private_preview: false },
     })
-    await generateMetadata({ params: { slug: 'ballelboy' } })
-    const page = await MemberProfilePage({ params: { slug: 'ballelboy' } })
+    await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
+    const page = await MemberProfilePage({ params: Promise.resolve({ slug: 'ballelboy' }) })
     const { container } = render(page)
     expect(getMemberProfileMock).toHaveBeenCalledTimes(1)
     expect(getMemberProfileMock).toHaveBeenCalledWith('ballelboy')
@@ -603,7 +604,7 @@ describe('Phase 128 neutral public-member route contract', () => {
 
     let thrown: unknown
     try {
-      await MemberProfilePage({ params: { slug } })
+      await MemberProfilePage({ params: Promise.resolve({ slug }) })
     } catch (error) {
       thrown = error
     }
@@ -623,7 +624,7 @@ describe('Phase 128 neutral public-member route contract', () => {
     reactCacheEntries.splice(0)
     getMemberProfileMock.mockReset()
     getMemberProfileMock.mockRejectedValue(Object.assign(new Error('not-found'), { status: 404 }))
-    const metadata = await generateMetadata({ params: { slug: 'metadata-missing-member' } })
+    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'metadata-missing-member' }) })
 
     expect({ missing, privateDenied, numeric, invalid, metadata }).toEqual({
       missing: { invoked: true, profileRequests: 1 },
@@ -662,7 +663,7 @@ describe('Phase 128 neutral public-member route contract', () => {
     getMemberProfileMock.mockReset()
     getMemberProfileMock.mockRejectedValue(new Error('sensitive backend detail'))
 
-    const page = await MemberProfilePage({ params: { slug: 'transport-failure' } })
+    const page = await MemberProfilePage({ params: Promise.resolve({ slug: 'transport-failure' }) })
     render(page)
 
     expect(screen.getByRole('heading', { name: 'Profil konnte nicht geladen werden' })).toBeTruthy()
