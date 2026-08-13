@@ -299,7 +299,7 @@ func main() {
 		repository.NewFansubNotesRepository(dbPool),
 	).WithReleaseDetailRepo(releaseDetailPublicRepo).WithGroupReleasesRepo(groupRepo)
 	projectMemberPublicRepo := repository.NewProjectMemberPublicRepository(dbPool)
-	projectMemberPublicHandler := handlers.NewProjectMemberPublicHandler(projectMemberPublicRepo, cfg.MediaStorageDir)
+	projectMemberPublicHandler := handlers.NewProjectMemberPublicHandler(memberProfileRepo, projectMemberPublicRepo, cfg.MediaStorageDir)
 	groupAssetsHandler := handlers.NewGroupAssetsHandler(
 		groupRepo,
 		handlers.AnimeMediaConfig{
@@ -352,7 +352,7 @@ func main() {
 	v1.POST("/me/profile/avatar", authMiddleware, appAuthHandler.UploadOwnProfileAvatar)
 	v1.POST("/me/profile/background", authMiddleware, appAuthHandler.UploadOwnProfileBackground)
 	v1.POST("/me/profile/story-images", authMiddleware, appAuthHandler.UploadOwnProfileStoryImage)
-	publicProfileHandler := handlers.NewAppPublicProfileHandler(memberProfileRepo)
+	publicProfileHandler := handlers.NewAppPublicProfileHandler(memberProfileRepo, memberProfileRepo, memberProfileRepo)
 	v1.GET("/members/:slug", authOptionalMiddleware, publicProfileHandler.GetPublicMemberProfile)
 	v1.GET("/members/:slug/projects", authOptionalMiddleware, publicProfileHandler.GetPublicMemberProjects)
 	v1.POST("/invitations/accept", authMiddleware, appAuthHandler.AcceptFansubInvitation)
@@ -382,10 +382,10 @@ func main() {
 	v1.GET("/anime/:id/group/:groupId/themes", groupPublicHandler.GetGroupThemes)
 	v1.GET("/anime/:id/group/:groupId/release-media", groupPublicHandler.GetGroupReleaseMedia)
 	v1.GET("/anime/:id/group/:groupId/project-note", groupPublicHandler.GetGroupProjectNote)
-	v1.GET("/anime/:id/group/:groupId/members/:memberSlug", projectMemberPublicHandler.GetSummary)
-	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/notes", projectMemberPublicHandler.GetNotes)
-	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/media", projectMemberPublicHandler.GetMedia)
-	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/releases", projectMemberPublicHandler.GetReleases)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug", authOptionalMiddleware, projectMemberPublicHandler.GetSummary)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/notes", authOptionalMiddleware, projectMemberPublicHandler.GetNotes)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/media", authOptionalMiddleware, projectMemberPublicHandler.GetMedia)
+	v1.GET("/anime/:id/group/:groupId/members/:memberSlug/releases", authOptionalMiddleware, projectMemberPublicHandler.GetReleases)
 	v1.GET("/episode-versions/:versionId", fansubHandler.GetEpisodeVersionByID)
 	v1.GET("/anime/:id/comments", commentHandler.ListByAnimeID)
 	v1.POST(
@@ -539,7 +539,7 @@ func main() {
 	domainProjectionHandler := handlers.NewDomainProjectionHandler(domainProjectionRepo)
 	mediaOwnershipProjectionRepo := repository.NewMediaOwnershipProjectionRepository(dbPool)
 	mediaOwnershipProjectionHandler := handlers.NewMediaOwnershipProjectionHandler(mediaOwnershipProjectionRepo)
-	contributionsPublicHandler := handlers.NewContributionsPublicHandler(animeContributionsRepo)
+	contributionsPublicHandler := handlers.NewContributionsPublicHandler(memberProfileRepo, animeContributionsRepo)
 	memberPointTotalsRepo := repository.NewMemberPointTotalsRepository(dbPool)
 	memberPointRankingHandler := handlers.NewMemberPointRankingHandler(memberPointTotalsRepo)
 	contributionsMeHandler := handlers.NewContributionsMeHandler(animeContributionsRepo, histGroupMemberRolesRepo, dbPool).WithReleaseCrewService(releaseCrewService)
@@ -554,7 +554,7 @@ func main() {
 	v1.GET("/media-ownership/:ownerType/:ownerId", mediaOwnershipProjectionHandler.GetMediaOwnershipProjection)
 	v1.GET("/fansubs/:id/contributions", contributionsPublicHandler.GetFansubContributions)
 	v1.GET("/anime/:id/contributions", contributionsPublicHandler.GetAnimeContributions)
-	v1.GET("/members/:slug/contributions", contributionsPublicHandler.GetMemberContributions)
+	v1.GET("/members/:slug/contributions", authOptionalMiddleware, contributionsPublicHandler.GetMemberContributions)
 	// Eigener Top-Level-Pfad, KEIN Unterpfad von /members/:slug (Kollisionsregel, Pitfall 3 aus 109-RESEARCH.md)
 	v1.GET("/member-point-ranking", memberPointRankingHandler.GetMemberPointRanking)
 	v1.GET("/me/dashboard", authMiddleware, dashboardMeHandler.GetOwnDashboard)

@@ -289,10 +289,10 @@ func TestProjectMemberHandler_MediaURLBuilding(t *testing.T) {
 func TestProjectMemberHandler_RoutesRegistered(t *testing.T) {
 	src := pmMainSource(t)
 	for _, frag := range []string{
-		"/anime/:id/group/:groupid/members/:memberslug\", projectmemberpublichandler.getsummary",
-		"/members/:memberslug/notes\", projectmemberpublichandler.getnotes",
-		"/members/:memberslug/media\", projectmemberpublichandler.getmedia",
-		"/members/:memberslug/releases\", projectmemberpublichandler.getreleases",
+		"/anime/:id/group/:groupid/members/:memberslug\", authoptionalmiddleware, projectmemberpublichandler.getsummary",
+		"/members/:memberslug/notes\", authoptionalmiddleware, projectmemberpublichandler.getnotes",
+		"/members/:memberslug/media\", authoptionalmiddleware, projectmemberpublichandler.getmedia",
+		"/members/:memberslug/releases\", authoptionalmiddleware, projectmemberpublichandler.getreleases",
 	} {
 		if !strings.Contains(src, frag) {
 			t.Fatalf("Route nicht registriert: %q", frag)
