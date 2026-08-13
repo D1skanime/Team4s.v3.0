@@ -59,7 +59,7 @@ Plans:
 - [x] 128-06-PLAN.md - Project stored member slugs through contribution data.
 - [x] 128-07-PLAN.md - Project stored member slugs through group and domain-member data.
 - [x] 128-08-PLAN.md - Replace archive and ranking member-link fallbacks with stored slugs.
-- [ ] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.
+- [x] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 128-10-PLAN.md - Convert project and contribution detail loaders to resolved member identity.

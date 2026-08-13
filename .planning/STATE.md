@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Completed 128-08-PLAN.md
-last_updated: "2026-08-13T14:49:32.169Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 08
+stopped_at: Completed 128-09-PLAN.md
+last_updated: "2026-08-13T15:14:43.717Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 09
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 9
-  percent: 41
+  completed_plans: 10
+  percent: 45
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 9 of 22
+Plan: 10 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 08
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 09
 
 ## Accumulated Context
 
@@ -61,6 +61,9 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 08
 - [Phase 128]: Group and domain projection links use stored public_slug only for public profiles; private identities remain unlinked.
 - [Phase 128]: Grouped historical and contributor projections include the joined member primary key so canonical slug selection preserves row ownership and grouping.
 - [Phase 128]: Archive and ranking projections select members.public_slug directly because their queries already enforce public visibility. — Stable public identity survives nickname changes without numeric or generated fallback.
+- [Phase 128]: Verified member_claims equality is the only private-profile grant; missing and denied identities share ErrNotFound. — Prevents legacy identity, admin role, or guessed slug from becoming an authorization oracle.
+- [Phase 128]: Public profile and project detail projections load only by a previously resolved member ID. — Keeps canonical identity and visibility decisions ahead of all detail fan-out.
+- [Phase 128]: Temporary handler-compatibility methods delegate to the shared resolver and ID loaders until Plan 128-11. — Preserves whole-backend compilation without retaining duplicate slug or access logic.
 
 ### Pending Todos
 
@@ -95,10 +98,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 08
 | Phase 128 P06 | 16m | 2 tasks | 4 files |
 | Phase 128 P07 | 9m | 2 tasks | 4 files |
 | Phase 128 P08 | 12m | 2 tasks | 4 files |
+| Phase 128 P09 | 20m | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T14:49:32.165Z
-Stopped at: Completed 128-08-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 08
+Last session: 2026-08-13T15:14:43.713Z
+Stopped at: Completed 128-09-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 09
 Resume file: None
