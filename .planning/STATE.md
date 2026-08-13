@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Completed 128-04-PLAN.md
-last_updated: "2026-08-13T13:34:17.533Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 04
+stopped_at: Completed 128-05-PLAN.md
+last_updated: "2026-08-13T13:53:52.770Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 05
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 5
-  percent: 23
+  completed_plans: 6
+  percent: 27
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 5 of 22
+Plan: 6 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 04
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 05
 
 ## Accumulated Context
 
@@ -54,6 +54,8 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 04
 - [Phase 128]: Migration 0145 refuses non-empty members before ALTER and never mutates rows; disposable data must be reset and reseeded. — Fail-closed schema transition prevents accidental live-row rewriting or compatibility behavior.
 - [Phase 128]: Canonical public slugs are unique, constrained, and immutable in PostgreSQL. — Database invariants protect public identity across every future writer.
 - [Phase 128]: Public member DTOs expose no app-user ownership identifier; owner and private-preview facts remain server-computed. — Avoids BOLA-prone client ownership inference.
+- [Phase 128]: The entire members.public_slug namespace uses one transaction advisory lock, including literal suffix collisions. - Per-base locks cannot serialize name against literal name-2 creation.
+- [Phase 128]: All production member creation paths allocate exactly once inside their existing caller-owned transaction. - Identity is persisted atomically with creation without nested transactions or parallel allocators.
 
 ### Pending Todos
 
@@ -84,10 +86,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 04
 | Phase 128 P03 | 16m | 2 tasks | 5 files |
 | Phase 128 P14 | 13m | 1 task | 2 files |
 | Phase 128 P04 | 14m | 2 tasks | 6 files |
+| Phase 128 P05 | 16m | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T13:34:17.530Z
-Stopped at: Completed 128-04-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 04
+Last session: 2026-08-13T13:53:52.766Z
+Stopped at: Completed 128-05-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 05
 Resume file: None
