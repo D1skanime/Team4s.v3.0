@@ -25,7 +25,7 @@ var (
 
 type publicMemberProfileBaseRow struct {
 	memberID            int64
-	appUserID           *int64
+	publicSlug          string
 	fansubName          string
 	bio                 *string
 	memberStoryHTML     *string
@@ -77,7 +77,7 @@ func (r *MemberProfileRepository) GetOwnProfile(ctx context.Context, appUserID i
 	if err != nil {
 		return nil, err
 	}
-	base.RecentMedia, err = r.loadRecentMedia(ctx, appUserID)
+	base.RecentMedia, err = r.loadRecentMedia(ctx, base.MemberID)
 	if err != nil {
 		return nil, err
 	}
@@ -388,112 +388,66 @@ func (r *MemberProfileRepository) AttachUploadedBackground(
 	return r.GetOwnProfile(ctx, appUserID)
 }
 
+// GetPublicMemberProfile is a temporary public-only compatibility entry point.
+// New handlers resolve optional viewer access explicitly, then call the ID loader.
 func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, slug string) (*models.PublicMemberProfile, error) {
-	normalizedSlug := normalizeMemberProfileSlug(slug)
-	if normalizedSlug == "" {
+	access, err := r.ResolvePublicMemberAccess(ctx, slug, 0)
+	if err != nil {
+		return nil, err
+	}
+	profile, err := r.GetPublicMemberProfileByID(ctx, access.MemberID)
+	if err != nil {
+		return nil, err
+	}
+	profile.IsOwner = access.IsOwner
+	profile.IsPrivatePreview = access.IsPrivatePreview
+	return profile, nil
+}
+
+func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context, memberID int64) (*models.PublicMemberProfile, error) {
+	if memberID <= 0 {
 		return nil, ErrNotFound
 	}
-	isNumericSlug := memberSlugNumeric.MatchString(normalizedSlug)
-	var numericID int64
-	if isNumericSlug {
-		if _, err := fmt.Sscan(normalizedSlug, &numericID); err != nil || numericID <= 0 {
-			return nil, ErrNotFound
-		}
-	}
-
 	var row publicMemberProfileBaseRow
 	err := r.db.QueryRow(ctx, `
-		WITH candidates AS (
-			SELECT
-				m.id,
-				COALESCE(claim_user.app_user_id, legacy_user.id) AS app_user_id,
-				m.nickname,
-				m.slogan,
-				m.member_story_html,
-				to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
-				to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
-				COALESCE(m.is_currently_active, false) AS is_currently_active,
-				COALESCE(m.noindex, false) AS noindex,
-				EXISTS(
-					SELECT 1
-					FROM member_claims mc
-					WHERE mc.member_id = m.id
-					  AND mc.claim_status = 'verified'
-				) AS is_verified,
-				COALESCE(m.profile_status, 'active') AS profile_status,
-				m.profile_visibility,
-				avatar.file_path AS avatar_path,
-				background.file_path AS background_image_path,
-				LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(m.nickname), '[^a-z0-9]+', '-', 'gi'))) AS db_slug
-			FROM members m
-			LEFT JOIN LATERAL (
-				SELECT mc.app_user_id
-				FROM member_claims mc
+		SELECT
+			m.id,
+			m.public_slug,
+			m.nickname,
+			m.slogan,
+			m.member_story_html,
+			to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
+			to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
+			COALESCE(m.is_currently_active, false) AS is_currently_active,
+			COALESCE(m.noindex, false) AS noindex,
+			EXISTS(
+				SELECT 1 FROM member_claims mc
 				WHERE mc.member_id = m.id
 				  AND mc.claim_status = 'verified'
-				ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
-				LIMIT 1
-			) claim_user ON true
-			LEFT JOIN app_users legacy_user ON legacy_user.legacy_user_id = m.user_id
-			LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
-			LEFT JOIN media_assets background ON background.id = m.background_media_id
-		)
-		SELECT
-			id,
-			app_user_id,
-			nickname,
-			slogan,
-			member_story_html,
-			active_from_date,
-			active_until_date,
-			is_currently_active,
-			noindex,
-			is_verified,
-			profile_status,
-			profile_visibility,
-			avatar_path,
-			background_image_path
-		FROM candidates
-		WHERE db_slug = $1
-		   OR ($2::bool AND id = $3::bigint)
-		ORDER BY CASE WHEN db_slug = $1 THEN 0 ELSE 1 END, id ASC
-		LIMIT 1
-	`, normalizedSlug, isNumericSlug, numericID).Scan(
-		&row.memberID,
-		&row.appUserID,
-		&row.fansubName,
-		&row.bio,
-		&row.memberStoryHTML,
-		&row.activeFromDate,
-		&row.activeUntilDate,
-		&row.isCurrentlyActive,
-		&row.noindex,
-		&row.isVerified,
-		&row.profileStatus,
-		&row.profileVisibility,
-		&row.avatarPath,
+			) AS is_verified,
+			COALESCE(m.profile_status, 'active') AS profile_status,
+			m.profile_visibility,
+			avatar.file_path AS avatar_path,
+			background.file_path AS background_image_path
+		FROM members m
+		LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
+		LEFT JOIN media_assets background ON background.id = m.background_media_id
+		WHERE m.id = $1
+	`, memberID).Scan(
+		&row.memberID, &row.publicSlug, &row.fansubName, &row.bio, &row.memberStoryHTML,
+		&row.activeFromDate, &row.activeUntilDate, &row.isCurrentlyActive, &row.noindex,
+		&row.isVerified, &row.profileStatus, &row.profileVisibility, &row.avatarPath,
 		&row.backgroundImagePath,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		fallbackRow, fallbackErr := r.findPublicMemberProfileByNormalizedSlug(ctx, normalizedSlug)
-		if fallbackErr != nil {
-			return nil, fallbackErr
-		}
-		row = *fallbackRow
-		err = nil
+		return nil, ErrNotFound
 	}
 	if err != nil {
-		return nil, fmt.Errorf("load public member profile for slug %q: %w", slug, err)
+		return nil, fmt.Errorf("load public member profile for member %d: %w", memberID, err)
 	}
-
-	appUserID := int64(0)
-	if row.appUserID != nil {
-		appUserID = *row.appUserID
-	}
-
 	profile := &models.PublicMemberProfile{
 		MemberID:                   row.memberID,
-		Slug:                       normalizedSlug,
+		Slug:                       strings.TrimSpace(row.publicSlug),
 		FansubName:                 strings.TrimSpace(row.fansubName),
 		Bio:                        normalizeLoadedOptionalString(row.bio),
 		MemberStoryHTML:            normalizeLoadedOptionalString(row.memberStoryHTML),
@@ -515,18 +469,13 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		PreviousContributionsCount: 0,
 	}
 	if row.avatarPath != nil && strings.TrimSpace(*row.avatarPath) != "" {
-		profile.Avatar = &models.MemberProfileAvatar{
-			PublicURL: r.publicURLForPath(strings.TrimSpace(*row.avatarPath)),
-		}
+		profile.Avatar = &models.MemberProfileAvatar{PublicURL: r.publicURLForPath(strings.TrimSpace(*row.avatarPath))}
 	}
 	if row.backgroundImagePath != nil && strings.TrimSpace(*row.backgroundImagePath) != "" {
-		profile.BackgroundImage = &models.MemberProfileBgImage{
-			PublicURL: r.publicURLForPath(strings.TrimSpace(*row.backgroundImagePath)),
-		}
+		profile.BackgroundImage = &models.MemberProfileBgImage{PublicURL: r.publicURLForPath(strings.TrimSpace(*row.backgroundImagePath))}
 	}
-
 	var loadErr error
-	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, appUserID, false, false)
+	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, 0, false, false)
 	if loadErr != nil {
 		return nil, loadErr
 	}
@@ -552,11 +501,9 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 	if loadErr != nil {
 		return nil, loadErr
 	}
-	if appUserID > 0 {
-		profile.RecentMedia, loadErr = r.loadRecentMedia(ctx, appUserID)
-		if loadErr != nil {
-			return nil, loadErr
-		}
+	profile.RecentMedia, loadErr = r.loadRecentMedia(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
 	}
 	profile.RecentContributions, loadErr = r.loadRecentContributions(ctx, row.memberID, true)
 	if loadErr != nil {
@@ -579,7 +526,6 @@ func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, sl
 		return nil, loadErr
 	}
 	profile.PreviousContributionsCount = len(profile.PreviousContributions)
-
 	return profile, nil
 }
 
@@ -659,77 +605,6 @@ func (r *MemberProfileRepository) loadTotalPoints(ctx context.Context, memberID 
 	return total, nil
 }
 
-func (r *MemberProfileRepository) findPublicMemberProfileByNormalizedSlug(ctx context.Context, normalizedSlug string) (*publicMemberProfileBaseRow, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT
-			m.id,
-			COALESCE(claim_user.app_user_id, legacy_user.id) AS app_user_id,
-			m.nickname,
-			m.slogan,
-			m.member_story_html,
-			to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
-			to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
-			COALESCE(m.is_currently_active, false) AS is_currently_active,
-			COALESCE(m.noindex, false) AS noindex,
-			EXISTS(
-				SELECT 1
-				FROM member_claims mc
-				WHERE mc.member_id = m.id
-				  AND mc.claim_status = 'verified'
-			) AS is_verified,
-			COALESCE(m.profile_status, 'active') AS profile_status,
-			m.profile_visibility,
-			avatar.file_path AS avatar_path,
-			background.file_path AS background_image_path
-		FROM members m
-		LEFT JOIN LATERAL (
-			SELECT mc.app_user_id
-			FROM member_claims mc
-			WHERE mc.member_id = m.id
-			  AND mc.claim_status = 'verified'
-			ORDER BY mc.verified_at DESC NULLS LAST, mc.id DESC
-			LIMIT 1
-		) claim_user ON true
-		LEFT JOIN app_users legacy_user ON legacy_user.legacy_user_id = m.user_id
-		LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
-		LEFT JOIN media_assets background ON background.id = m.background_media_id
-		ORDER BY m.id ASC
-	`)
-	if err != nil {
-		return nil, fmt.Errorf("fallback public member profile slug lookup: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var row publicMemberProfileBaseRow
-		if err := rows.Scan(
-			&row.memberID,
-			&row.appUserID,
-			&row.fansubName,
-			&row.bio,
-			&row.memberStoryHTML,
-			&row.activeFromDate,
-			&row.activeUntilDate,
-			&row.isCurrentlyActive,
-			&row.noindex,
-			&row.isVerified,
-			&row.profileStatus,
-			&row.profileVisibility,
-			&row.avatarPath,
-			&row.backgroundImagePath,
-		); err != nil {
-			return nil, fmt.Errorf("scan fallback public member profile row: %w", err)
-		}
-		if normalizeMemberProfileSlug(row.fansubName) == normalizedSlug {
-			return &row, nil
-		}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate fallback public member profile rows: %w", err)
-	}
-	return nil, ErrNotFound
-}
-
 func (r *MemberProfileRepository) ensureProfileBase(ctx context.Context, appUserID int64) (*models.MemberProfile, error) {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -760,6 +635,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		accountCreatedAt                time.Time
 		accountUpdatedAt                time.Time
 		memberID                        *int64
+		memberPublicSlug                *string
 		memberDisplay                   *string
 		memberNickname                  *string
 		memberBio                       *string
@@ -814,6 +690,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 			au.created_at,
 			au.updated_at,
 			m.id,
+			m.public_slug,
 			m.display_name,
 			m.nickname,
 			m.slogan,
@@ -854,6 +731,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		LEFT JOIN LATERAL (
 			SELECT
 				m.id,
+				m.public_slug,
 				m.display_name,
 				m.nickname,
 				m.slogan,
@@ -899,6 +777,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		&row.accountCreatedAt,
 		&row.accountUpdatedAt,
 		&row.memberID,
+		&row.memberPublicSlug,
 		&row.memberDisplay,
 		&row.memberNickname,
 		&row.memberBio,
@@ -986,7 +865,7 @@ func (r *MemberProfileRepository) ensureProfileBaseTx(ctx context.Context, tx pg
 		LegacyUserID:                    row.legacyUserID,
 		DisplayName:                     strings.TrimSpace(valueOrDefault(row.memberDisplay, row.accountName)),
 		FansubName:                      strings.TrimSpace(valueOrDefault(row.memberNickname, row.accountName)),
-		Slug:                            deriveMemberSlug(valueOrDefault(row.memberNickname, row.accountName)),
+		Slug:                            strings.TrimSpace(valueOrDefault(row.memberPublicSlug, "")),
 		Email:                           row.email,
 		KeycloakSubject:                 row.keycloakSubject,
 		Bio:                             normalizeLoadedOptionalString(row.memberBio),
@@ -1295,22 +1174,39 @@ func (r *MemberProfileRepository) countCurrentProjects(ctx context.Context, memb
 	return total, nil
 }
 
+// GetPublicMemberProjects is a temporary public-only compatibility entry point.
+// New handlers resolve optional viewer access explicitly, then call the ID loader.
 func (r *MemberProfileRepository) GetPublicMemberProjects(ctx context.Context, slug string, limit int, offset int) (*models.PublicMemberProjectsPage, error) {
-	profile, err := r.GetPublicMemberProfile(ctx, slug)
+	access, err := r.ResolvePublicMemberAccess(ctx, slug, 0)
 	if err != nil {
 		return nil, err
 	}
-	items, err := r.loadCurrentProjects(ctx, profile.MemberID, limit, offset)
+	page, err := r.GetPublicMemberProjectsByID(ctx, access.MemberID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	page.ProfileVisibility = models.ProfileVisibilityPublic
+	page.IsOwner = access.IsOwner
+	page.IsPrivatePreview = access.IsPrivatePreview
+	return page, nil
+}
+
+func (r *MemberProfileRepository) GetPublicMemberProjectsByID(ctx context.Context, memberID int64, limit int, offset int) (*models.PublicMemberProjectsPage, error) {
+	if memberID <= 0 {
+		return nil, ErrNotFound
+	}
+	items, err := r.loadCurrentProjects(ctx, memberID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	total, err := r.countCurrentProjects(ctx, memberID)
 	if err != nil {
 		return nil, err
 	}
 	return &models.PublicMemberProjectsPage{
-		Items: items, Total: profile.CurrentProjectsCount, Limit: limit, Offset: offset,
-		ProfileVisibility: profile.ProfileVisibility,
-		IsOwner:           profile.IsOwner, IsPrivatePreview: profile.IsPrivatePreview,
+		Items: items, Total: total, Limit: limit, Offset: offset,
 	}, nil
 }
-
 func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 	ctx context.Context,
 	memberID int64,
@@ -1560,7 +1456,7 @@ func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context,
 	return items, nil
 }
 
-func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID int64) ([]models.MemberProfileRecentMedia, error) {
+func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, memberID int64) ([]models.MemberProfileRecentMedia, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			rvm.id,
@@ -1578,15 +1474,21 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 		JOIN anime a ON a.id = e.anime_id
 		LEFT JOIN media_files mf_thumb ON mf_thumb.media_id = rvm.media_asset_id AND mf_thumb.variant = 'thumb' AND mf_thumb.status = 'ready'
 		LEFT JOIN media_files mf_orig ON mf_orig.media_id = rvm.media_asset_id AND (mf_orig.variant = 'original' OR mf_orig.variant IS NULL) AND mf_orig.status = 'ready'
-		WHERE rvm.uploaded_by_user_id = $1
+		WHERE EXISTS (
+			SELECT 1
+			FROM member_claims owner_claim
+			WHERE owner_claim.member_id = $1
+			  AND owner_claim.app_user_id = rvm.uploaded_by_user_id
+			  AND owner_claim.claim_status = 'verified'
+		)
 		  AND rvm.deleted_at IS NULL
 		  AND ma.status = 'ready'
 		  AND (mf_thumb.id IS NOT NULL OR mf_orig.id IS NOT NULL)
 		ORDER BY rvm.created_at DESC
 		LIMIT 3
-	`, appUserID)
+	`, memberID)
 	if err != nil {
-		return nil, fmt.Errorf("load recent media for user %d: %w", appUserID, err)
+		return nil, fmt.Errorf("load recent media for member %d: %w", memberID, err)
 	}
 	defer rows.Close()
 
@@ -1609,7 +1511,7 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, appUserID
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate recent media for user %d: %w", appUserID, err)
+		return nil, fmt.Errorf("iterate recent media for member %d: %w", memberID, err)
 	}
 	return items, nil
 }

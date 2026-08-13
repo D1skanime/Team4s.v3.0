@@ -54,16 +54,17 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"profile avatar replacement must remove previous avatar media_files after the new avatar is linked")
 	assert.True(t, strings.Contains(content, "DELETE FROM media_assets WHERE id = $1"),
 		"profile avatar replacement must remove the previous avatar media_asset after the new avatar is linked")
-	assert.True(t, strings.Contains(content, "base.RecentMedia, err = r.loadRecentMedia(ctx, appUserID)"),
-		"own profile reads must load recent media by authenticated app user id")
+	assert.True(t, strings.Contains(content, "base.RecentMedia, err = r.loadRecentMedia(ctx, base.MemberID)"),
+		"own profile reads must load recent media through verified member ownership")
 	membershipLoadIndex := strings.Index(content, "base.Memberships, err = r.loadMemberships(ctx, base.MemberID, appUserID, true, true)")
 	accountOnlyReturnIndex := strings.Index(content, "if !base.HasMemberProfile")
 	assert.True(t, membershipLoadIndex >= 0 && accountOnlyReturnIndex >= 0 && membershipLoadIndex < accountOnlyReturnIndex,
 		"own profile reads must load app memberships before the account-only return so the drawer can link direct group workspaces")
 	assert.True(t, strings.Contains(content, "base.RecentContributions, err = r.loadRecentContributions(ctx, base.MemberID, false)"),
 		"own profile reads must load recent contributions by authenticated member id")
-	assert.True(t, strings.Contains(content, "WHERE rvm.uploaded_by_user_id = $1"),
-		"recent media must be isolated by release_version_media.uploaded_by_user_id")
+	assert.True(t, strings.Contains(content, "owner_claim.app_user_id = rvm.uploaded_by_user_id") &&
+		strings.Contains(content, "owner_claim.claim_status = 'verified'"),
+		"recent media must map release-version uploaders through verified member claims")
 	assert.True(t, strings.Contains(content, "JOIN release_versions rv ON rv.id = rvm.release_version_id"),
 		"recent media must resolve the concrete release version")
 	assert.True(t, strings.Contains(content, "COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text))"),
@@ -245,7 +246,7 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 		"member contribution projections must retain the existing historical-membership compatibility seam")
 	assert.True(t, strings.Contains(repo, "logo_asset.id = fg.logo_id") && strings.Contains(repo, "logo_file.path"),
 		"public memberships must fall back from fansub_groups.logo_url to the canonical logo_id media asset")
-	assert.True(t, strings.Contains(repo, "includeAppMembershipDetails") && strings.Contains(repo, "loadMemberships(ctx, row.memberID, appUserID, false, false)"),
+	assert.True(t, strings.Contains(repo, "includeAppMembershipDetails") && strings.Contains(repo, "loadMemberships(ctx, row.memberID, 0, false, false)"),
 		"public memberships must not expose current app permission roles as public group roles")
 	assert.True(t, strings.Contains(repo, "cover_asset.id = a.cover_asset_id") && strings.Contains(repo, "FROM anime_media am"),
 		"current projects must resolve anime poster images from cover_asset_id and existing anime_media when legacy cover_image is empty")
