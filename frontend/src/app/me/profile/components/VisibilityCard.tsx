@@ -11,8 +11,8 @@ type VisibilityCardProps = {
 }
 
 const OPTIONS: Array<{ value: ProfileVisibility; description: string }> = [
-  { value: 'public', description: 'Du erlaubst Team4s, dein Profil außerhalb des Mitgliederbereichs zu zeigen.' },
-  { value: 'members_only', description: 'Nur angemeldete Team4s-Mitglieder können dein Profil sehen.' },
+  { value: 'public', description: 'Alle können dein Profil über den kanonischen Link ansehen.' },
+  { value: 'private', description: 'Nur du kannst dein Profil über den kanonischen Link als Vorschau ansehen.' },
 ]
 
 export function VisibilityCard({ value, disabled, onChange }: VisibilityCardProps) {

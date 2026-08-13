@@ -26,10 +26,10 @@ const APP_MEMBER_STATUS_LABELS = new Map<string, string>([
   ['disabled', 'Deaktiviert'],
 ])
 
-const VISIBILITY_LABELS = new Map<ProfileVisibility, string>([
-  ['members_only', 'Nur für Mitglieder'],
-  ['public', 'Öffentlich'],
-])
+const VISIBILITY_LABELS: Record<ProfileVisibility, string> = {
+  public: 'Öffentlich',
+  private: 'Privat',
+}
 
 function readableCodeLabel(value: string): string {
   return value
@@ -74,5 +74,5 @@ export function formatAppMemberStatusLabel(status?: string | null): string {
 }
 
 export function formatProfileVisibilityLabel(visibility?: ProfileVisibility | null): string {
-  return visibility ? VISIBILITY_LABELS.get(visibility) || 'Nur für Mitglieder' : 'Nur für Mitglieder'
+  return visibility ? VISIBILITY_LABELS[visibility] : ''
 }
