@@ -177,3 +177,50 @@ func TestProjectionRouteIsGetOnly(t *testing.T) {
 		}
 	}
 }
+
+func TestProjectionUsesCanonicalPublicMemberSlugs(t *testing.T) {
+	content := strings.ToLower(readRepositorySource(t, "domain_projection_repository.go"))
+	memberStart := strings.Index(content, "func (r *domainprojectionrepository) listprojectionmembers")
+	historicalStart := strings.Index(content, "func (r *domainprojectionrepository) listprojectionhistorical")
+	contributorStart := strings.Index(content, "func (r *domainprojectionrepository) listprojectioncontributors")
+	if memberStart < 0 || historicalStart <= memberStart || contributorStart <= historicalStart {
+		t.Fatalf("expected ordered member, historical, and contributor query blocks")
+	}
+
+	blocks := []struct {
+		name     string
+		content  string
+		required string
+	}{
+		{
+			name:     "members",
+			content:  content[memberStart:historicalStart],
+			required: "when m.id is not null and m.profile_visibility = 'public' then m.public_slug",
+		},
+		{
+			name:     "historical",
+			content:  content[historicalStart:contributorStart],
+			required: "when m.profile_visibility = 'public' then m.public_slug",
+		},
+		{
+			name:     "contributors",
+			content:  content[contributorStart:],
+			required: "case when m.profile_visibility = 'public' then m.public_slug else null end as member_slug",
+		},
+	}
+
+	for _, block := range blocks {
+		compact := strings.Join(strings.Fields(block.content), " ")
+		if !strings.Contains(compact, block.required) {
+			t.Errorf("expected %s projection to contain %q", block.name, block.required)
+		}
+	}
+	if got := strings.Count(content, "m.public_slug"); got != 3 {
+		t.Errorf("expected exactly three stored public-slug selections, got %d", got)
+	}
+	for _, forbidden := range []string{"memberslugexpr", "regexp_replace", "coalesce(m.public_slug"} {
+		if strings.Contains(content, forbidden) {
+			t.Errorf("expected domain projections not to contain derived/fallback slug fragment %q", forbidden)
+		}
+	}
+}
