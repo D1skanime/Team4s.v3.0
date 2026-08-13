@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ChevronDown, Eye, Pencil, RotateCw, Save } from 'lucide-react'
@@ -48,6 +49,10 @@ const PROFILE_TABS: Array<{ id: ProfileTab; label: string }> = [
   { id: 'activity', label: 'Aktivität' },
   { id: 'account', label: 'Account' },
 ]
+
+function isProfileTab(value: string | null): value is ProfileTab {
+  return PROFILE_TABS.some((tab) => tab.id === value)
+}
 
 function getPublicProfileHref(profile: MemberProfileData): string | null {
   if (!profile.slug) return null
@@ -162,6 +167,7 @@ function EditableProfileHeader({
 }
 
 export default function MyProfilePage() {
+  const searchParams = useSearchParams()
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
   const [myClaim, setMyClaim] = useState<MemberClaimRow | null>(null)
@@ -190,7 +196,9 @@ export default function MyProfilePage() {
   const hasConsumedRegistrationCompletionRef = useRef(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const backgroundInputRef = useRef<HTMLInputElement>(null)
-  const [activeTab, setActiveTab] = useState<ProfileTab>('profile')
+  const queryTab = searchParams.get('tab')
+  const requestedTab: ProfileTab = isProfileTab(queryTab) ? queryTab : 'profile'
+  const [activeTab, setActiveTab] = useState<ProfileTab>(requestedTab)
   const hasAuthSession = hasAccessToken || hasRefreshToken
   const logoutActiveSession = useLogoutAuthSession()
 
@@ -303,6 +311,16 @@ export default function MyProfilePage() {
   const handleDismissRegistrationCompletion = useCallback(() => {
     setRegistrationCompletionMessage(null)
   }, [])
+
+  useEffect(() => {
+    setActiveTab(requestedTab)
+
+    if (requestedTab !== 'visibility') return
+    const visibilityPanel = document.getElementById('profile-tab-visibility')
+    if (!visibilityPanel) return
+    visibilityPanel.focus({ preventScroll: true })
+    visibilityPanel.scrollIntoView({ block: 'start' })
+  }, [profile, requestedTab])
 
   useEffect(() => {
     function handleFocus() {
@@ -638,6 +656,7 @@ export default function MyProfilePage() {
               className={`${styles.profileTabPanel} ${activeTab !== 'visibility' ? styles.profileTabPanelInactive : ''}`}
               role="tabpanel"
               aria-hidden={activeTab !== 'visibility'}
+              tabIndex={-1}
             >
               <ProfileAccordion title="Profilbilder">
                 <MemberAvatarCard
