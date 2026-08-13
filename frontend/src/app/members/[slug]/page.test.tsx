@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { ImgHTMLAttributes, ReactNode } from 'react'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -17,11 +17,18 @@ const currentProjectsSource = readFileSync('src/components/profile/MemberCurrent
 const memberBadgeChainSource = readFileSync('src/components/profile/MemberBadgeChain.tsx', 'utf8')
 const focalCarouselSource = readFileSync('src/components/ui/FocalCarousel.tsx', 'utf8')
 const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
+const routeNotFoundPath = 'src/app/members/[slug]/not-found.tsx'
+const routeNotFoundSource = existsSync(routeNotFoundPath) ? readFileSync(routeNotFoundPath, 'utf8') : ''
+const ownHiddenProfilePreviewSource = readFileSync(
+  'src/app/members/[slug]/OwnHiddenProfilePreview.tsx',
+  'utf8',
+)
 
-const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock, reactCacheEntries } = vi.hoisted(() => ({
+const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock, notFoundMock, reactCacheEntries } = vi.hoisted(() => ({
   cookieGetMock: vi.fn(),
   getMemberProfileMock: vi.fn(),
   getMemberContributionsMock: vi.fn(),
+  notFoundMock: vi.fn(),
   reactCacheEntries: [] as Array<{ args: unknown[]; value: unknown }>,
 }))
 
@@ -46,6 +53,10 @@ vi.mock('next/headers', () => ({
   cookies: vi.fn(() => ({
     get: cookieGetMock,
   })),
+}))
+
+vi.mock('next/navigation', () => ({
+  notFound: notFoundMock,
 }))
 
 vi.mock('next/link', () => ({
@@ -585,4 +596,84 @@ it('Quick 260812-lql reserves two columns only for populated previous contributi
   const emptyRules = [...memberPageStyles.matchAll(/\.contributionPairEmpty\s*\{([^}]*)\}/g)]
   expect(emptyRules.at(-1)?.[1]).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/)
   expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*3fr\) minmax\(20rem,\s*2fr\)/s)
+})
+
+describe('Phase 128 neutral public-member route contract', () => {
+  const nextNotFound = new Error('NEXT_NOT_FOUND')
+
+  async function recordsNotFound(slug: string, response: 'not-found' | 'private-denied') {
+    reactCacheEntries.splice(0)
+    getMemberProfileMock.mockReset()
+    notFoundMock.mockReset()
+    notFoundMock.mockImplementation(() => {
+      throw nextNotFound
+    })
+    getMemberProfileMock.mockRejectedValue(Object.assign(new Error(response), { status: 404 }))
+
+    let thrown: unknown
+    try {
+      await MemberProfilePage({ params: { slug } })
+    } catch (error) {
+      thrown = error
+    }
+
+    return {
+      invoked: thrown === nextNotFound && notFoundMock.mock.calls.length === 1,
+      profileRequests: getMemberProfileMock.mock.calls.length,
+    }
+  }
+
+  it('Phase128PageInvokesNotFound', async () => {
+    const missing = await recordsNotFound('missing-member', 'not-found')
+    const privateDenied = await recordsNotFound('private-member', 'private-denied')
+    const numeric = await recordsNotFound('123', 'not-found')
+    const invalid = await recordsNotFound('encoded%2Fslash', 'not-found')
+
+    reactCacheEntries.splice(0)
+    getMemberProfileMock.mockReset()
+    getMemberProfileMock.mockRejectedValue(Object.assign(new Error('not-found'), { status: 404 }))
+    const metadata = await generateMetadata({ params: { slug: 'metadata-missing-member' } })
+
+    expect({ missing, privateDenied, numeric, invalid, metadata }).toEqual({
+      missing: { invoked: true, profileRequests: 1 },
+      privateDenied: { invoked: true, profileRequests: 1 },
+      numeric: { invoked: true, profileRequests: 0 },
+      invalid: { invoked: true, profileRequests: 0 },
+      metadata: {
+        title: 'Profil nicht verfügbar | Team4s',
+        robots: { index: false, follow: false },
+      },
+    })
+  })
+
+  it('Phase128NotFoundAccessGate', () => {
+    const combinedSource = `${routeNotFoundSource}\n${ownHiddenProfilePreviewSource}`
+    const forbiddenUnavailableHints = [
+      'Anmeldung erforderlich',
+      'Mitglied nicht gefunden',
+      'Korrektur melden',
+    ].filter((copy) => routeNotFoundSource.includes(copy))
+
+    expect({
+      routeLocalNotFoundExists: routeNotFoundSource.length > 0,
+      delegatesWithoutSlugProp: /<OwnHiddenProfilePreview\s*\/>/.test(routeNotFoundSource),
+      pathnameOwnsCanonicalSlug: /usePathname\s*\(/.test(ownHiddenProfilePreviewSource),
+      loadingCopy: combinedSource.includes('Profil wird geladen.'),
+      unavailableTitle: combinedSource.includes('Profil nicht verfügbar'),
+      unavailableBody: combinedSource.includes(
+        'Dieses Profil ist nicht verfügbar. Prüfe den Link oder kehre zur Anime-Übersicht zurück.',
+      ),
+      unavailableAction: combinedSource.includes('Zur Anime-Übersicht'),
+      forbiddenUnavailableHints,
+    }).toEqual({
+      routeLocalNotFoundExists: true,
+      delegatesWithoutSlugProp: true,
+      pathnameOwnsCanonicalSlug: true,
+      loadingCopy: true,
+      unavailableTitle: true,
+      unavailableBody: true,
+      unavailableAction: true,
+      forbiddenUnavailableHints: [],
+    })
+  })
 })
