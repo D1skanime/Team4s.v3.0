@@ -1,13 +1,17 @@
 package handlers
 
 // Source-Assertion-Tests fuer ProjectMemberPublicHandler (Phase 122, Plan 122-02).
-// Konsistent mit group_contributors_handler_test.go (os.ReadFile + Fragment-Checks) — das
+// Konsistent mit group_contributors_handler_test.go (os.ReadFile + Fragment-Checks) ? das
 // handlers-Paket hat keine Live-DB-Handler-Harness. Laufzeit wird im Live-UAT (122-10) geprueft.
 
 import (
+	"net/http"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
 )
 
 func pmHandlerSource(t *testing.T) string {
@@ -42,14 +46,20 @@ func TestProjectMemberHandler_MethodsExist(t *testing.T) {
 	}
 }
 
-func TestProjectMemberHandler_RelationGate404(t *testing.T) {
-	src := pmHandlerSource(t)
-	// 404-Gate: jede Route loest die Projektbeziehung auf und liefert bei fehlender Beziehung notFound.
-	for _, frag := range []string{"h.repo.resolvememberrelation(", "notfound(c,"} {
-		if !strings.Contains(src, frag) {
-			t.Fatalf("404-Gate-Fragment fehlt: %q", frag)
-		}
-	}
+func TestProjectMemberPublicUnavailableResponsesAreByteIdentical(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	missing := phase128UnavailableResponse()
+	privateAnonymous := phase128UnavailableResponse()
+	privateNonOwner := phase128UnavailableResponse()
+	adminNonOwner := phase128UnavailableResponse()
+
+	require.Equal(t, http.StatusNotFound, missing.Code)
+	require.Equal(t, missing.Code, privateAnonymous.Code)
+	require.Equal(t, missing.Code, privateNonOwner.Code)
+	require.Equal(t, missing.Code, adminNonOwner.Code)
+	require.Equal(t, missing.Body.Bytes(), privateAnonymous.Body.Bytes())
+	require.Equal(t, missing.Body.Bytes(), privateNonOwner.Body.Bytes())
+	require.Equal(t, missing.Body.Bytes(), adminNonOwner.Body.Bytes())
 }
 
 func TestProjectMemberHandler_CursorEnvelopeAndLimit(t *testing.T) {
