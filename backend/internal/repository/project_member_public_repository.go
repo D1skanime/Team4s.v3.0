@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -83,23 +82,11 @@ type ProjectMemberRelease struct {
 
 // --- 404-Gate ---
 
-// ResolveMemberRelation loest memberSlug auf und prueft, ob der Member irgendeine fachliche
-// Beziehung zu (anime, group) hat. exists=false => Handler liefert 404 (D-10). Eine gueltige
-// Beziehung ohne oeffentliche Detailbeitraege bleibt exists=true (Empty-State, kein 404).
-func (r *ProjectMemberPublicRepository) ResolveMemberRelation(ctx context.Context, animeID, groupID int64, memberSlug string) (int64, bool, error) {
-	slugCol := `NULLIF(LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(m.nickname), '[^a-z0-9]+', '-', 'gi'))), '')`
-	var memberID int64
-	err := r.db.QueryRow(ctx, `
-		SELECT m.id FROM members m
-		WHERE `+slugCol+` = $1
-		ORDER BY m.id ASC LIMIT 1
-	`, strings.TrimSpace(strings.ToLower(memberSlug))).Scan(&memberID)
-	if err != nil {
-		return 0, false, nil // unbekannter Slug => kein Fund (Handler: 404)
-	}
-
+// HasMemberRelation checks whether the already-resolved member has a domain relation to
+// the requested anime and fansub group. A relation may exist even when no public detail rows do.
+func (r *ProjectMemberPublicRepository) HasMemberRelation(ctx context.Context, animeID, groupID, memberID int64) (bool, error) {
 	var exists bool
-	err = r.db.QueryRow(ctx, `
+	err := r.db.QueryRow(ctx, `
 		SELECT EXISTS (
 			SELECT 1 FROM release_member_roles rmr
 			JOIN fansub_releases fr ON fr.id = rmr.release_id
@@ -116,16 +103,15 @@ func (r *ProjectMemberPublicRepository) ResolveMemberRelation(ctx context.Contex
 		) AS has_relation
 	`, memberID, animeID, groupID).Scan(&exists)
 	if err != nil {
-		return 0, false, fmt.Errorf("project member: resolve relation: %w", err)
+		return false, fmt.Errorf("project member: check relation: %w", err)
 	}
-	return memberID, exists, nil
+	return exists, nil
 }
 
 // --- Summary / Hero / Rollen / Counts ---
 
 // GetSummary liefert Hero-Daten, aggregierte Rollen und die vier Counts (nur oeffentliche Inhalte).
 func (r *ProjectMemberPublicRepository) GetSummary(ctx context.Context, animeID, groupID, memberID int64) (*ProjectMemberSummary, error) {
-	slugCol := `NULLIF(LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(m.nickname), '[^a-z0-9]+', '-', 'gi'))), '')`
 	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
 
 	s := &ProjectMemberSummary{RoleLabels: make([]string, 0)}
@@ -133,7 +119,7 @@ func (r *ProjectMemberPublicRepository) GetSummary(ctx context.Context, animeID,
 		SELECT
 			m.id,
 			`+displayCol+` AS display_name,
-			`+slugCol+` AS slug,
+			m.public_slug AS slug,
 			NULLIF(TRIM(avatar.file_path), '') AS avatar_url,
 			EXISTS(SELECT 1 FROM member_claims mc WHERE mc.member_id = m.id AND mc.claim_status = 'verified') AS is_verified
 		FROM members m
