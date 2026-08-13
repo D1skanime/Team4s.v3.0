@@ -97,7 +97,6 @@ func (r *DomainProjectionRepository) GetFansubGroupDomainProjection(ctx context.
 }
 
 func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, groupID int64) ([]DomainProjectionMemberRow, error) {
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, `
 		SELECT
@@ -105,7 +104,7 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 			m.id AS member_id,
 			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), NULLIF(TRIM(au.display_name), ''), 'Mitglied') AS member_display_name,
 			CASE
-				WHEN m.id IS NOT NULL AND m.profile_visibility = 'public' THEN `+slugCol+`
+				WHEN m.id IS NOT NULL AND m.profile_visibility = 'public' THEN m.public_slug
 				ELSE NULL
 			END AS member_slug,
 			CASE
@@ -167,7 +166,6 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 
 func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Context, groupID int64) ([]DomainProjectionHistoricalRow, error) {
 	displayCol := fmt.Sprintf(domainProjectionMemberDisplayExpr, "m", "m")
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, `
 		SELECT
@@ -175,7 +173,7 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 			hfgm.member_id,
 			`+displayCol+` AS member_display_name,
 			CASE
-				WHEN m.profile_visibility = 'public' THEN `+slugCol+`
+				WHEN m.profile_visibility = 'public' THEN m.public_slug
 				ELSE NULL
 			END AS member_slug,
 			CASE
@@ -204,7 +202,7 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 		WHERE hfgm.fansub_group_id = $1
 		  AND hfgm.status IN ('historical', 'confirmed')
 		  AND hfgm.visibility = 'public'
-		GROUP BY hfgm.id, hfgm.member_id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, m.slogan, avatar.file_path, hfgm.joined_date, hfgm.left_date, hfgm.status
+		GROUP BY hfgm.id, hfgm.member_id, m.id, m.display_name, m.nickname, m.profile_visibility, m.profile_status, m.slogan, avatar.file_path, hfgm.joined_date, hfgm.left_date, hfgm.status
 		ORDER BY COALESCE(hfgm.joined_date, '9999-01-01'::date), member_display_name, hfgm.id
 	`, groupID)
 	if err != nil {
@@ -242,7 +240,6 @@ func (r *DomainProjectionRepository) listProjectionHistorical(ctx context.Contex
 
 func (r *DomainProjectionRepository) listProjectionContributors(ctx context.Context, groupID int64) ([]DomainProjectionContributorRow, error) {
 	displayCol := fmt.Sprintf(domainProjectionMemberDisplayExpr, "m", "m")
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, `
 		SELECT
@@ -251,7 +248,7 @@ func (r *DomainProjectionRepository) listProjectionContributors(ctx context.Cont
 			a.title AS anime_title,
 			hfgm.member_id,
 			`+displayCol+` AS member_display_name,
-			`+slugCol+` AS member_slug,
+			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			COALESCE(ARRAY_AGG(acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_codes,
 			COALESCE(ARRAY_AGG(COALESCE(rd.label_de, acr.role_code)) FILTER (WHERE acr.role_code IS NOT NULL), ARRAY[]::text[]) AS role_labels,
 			ac.started_year,
@@ -273,7 +270,7 @@ func (r *DomainProjectionRepository) listProjectionContributors(ctx context.Cont
 		  AND hfgm.visibility = 'public'
 		  AND m.profile_visibility = 'public'
 		  AND COALESCE(v.name, 'public') = 'public'
-		GROUP BY ac.id, ac.anime_id, a.title, hfgm.member_id, m.display_name, m.nickname, ac.started_year, ac.ended_year, ac.status, ac.dispute_state, v.name, rs.code
+		GROUP BY ac.id, ac.anime_id, a.title, hfgm.member_id, m.id, m.display_name, m.nickname, ac.started_year, ac.ended_year, ac.status, ac.dispute_state, v.name, rs.code
 		ORDER BY a.title, COALESCE(ac.started_year, 9999), member_display_name, ac.id
 	`, groupID)
 	if err != nil {
