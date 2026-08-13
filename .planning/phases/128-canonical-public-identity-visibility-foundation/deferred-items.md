@@ -13,3 +13,4 @@
 - **Observed failures:** Package-wide handler tests, whole-backend compile, and handler/server vet fail only at `contributions_public_handler.go:67` and `project_member_public_handler.go:66` with those two missing symbols.
 - **Impact on 128-11:** The three Plan-128-11 files compile, vet, and pass their focused access/profile/projects suites when tested as a file list; no removed compatibility method was restored.
 - **Follow-up:** Plan 128-12 owns the contribution/project-member handler and composition-root rewire that closes this transient gap.
+- **Resolved by Plan 128-12:** Both stale calls were removed in favor of `GetPublicMemberContributionsByID` and `HasMemberRelation`; the exact handler suite, whole-backend compile, and whole-backend vet now pass.
