@@ -45,7 +45,7 @@ Milestone v1.3 hardens the existing public member profile as one privacy-sensiti
 Plans:
 **Wave 0**
 - [x] 128-01-PLAN.md - Establish guarded PostgreSQL slug, migration, and allocator test contracts.
-- [ ] 128-03-PLAN.md - Establish canonical-link, owner-preview, and refresh-only frontend test contracts.
+- [x] 128-03-PLAN.md - Establish canonical-link, owner-preview, and refresh-only frontend test contracts.
 
 **Wave 1** *(blocked on Wave 0 completion)*
 - [x] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.

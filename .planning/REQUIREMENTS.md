@@ -10,14 +10,14 @@
 
 - [x] **PMID-01**: Jedes öffentliche Memberprofil besitzt einen eindeutigen, in PostgreSQL gespeicherten Slug.
 - [x] **PMID-02**: Eine Änderung des Nicknames verändert den öffentlichen Slug nicht.
-- [ ] **PMID-03**: Profilverlinkungen verwenden ausschließlich den kanonischen Slug; numerische und dynamisch erzeugte Fallbacks entfallen.
+- [x] **PMID-03**: Profilverlinkungen verwenden ausschließlich den kanonischen Slug; numerische und dynamisch erzeugte Fallbacks entfallen.
 
 ### Datenschutz und Sichtbarkeit
 
 - [x] **PMPR-01**: Anonyme Zugriffe können ein verborgenes Profil nicht von einem nicht vorhandenen Profil unterscheiden.
 - [x] **PMPR-02**: Sichtbarkeit und verifizierter Owner-Zugriff werden geprüft, bevor Profildetails geladen werden.
 - [x] **PMPR-03**: Profil, Projekte, Contributions, Medien und weitere Member-Unterressourcen verwenden dieselbe zentrale Zugriffsregel.
-- [ ] **PMPR-04**: Der Owner kann ein verborgenes Profil über die zentrale Auth-Refresh-Seam als Vorschau öffnen.
+- [x] **PMPR-04**: Der Owner kann ein verborgenes Profil über die zentrale Auth-Refresh-Seam als Vorschau öffnen.
 - [x] **PMPR-05**: Owner- und viewer-spezifische Antworten werden nicht öffentlich gecacht.
 - [ ] **PMPR-06**: Interne Mitgliedschaften, Berechtigungen und nicht öffentliche Quellen werden nicht über öffentliche DTOs oder Aggregate offengelegt.
 
@@ -127,11 +127,11 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 |---|---|---|
 | PMID-01 | Phase 128 | Complete |
 | PMID-02 | Phase 128 | Complete |
-| PMID-03 | Phase 128 | Pending |
+| PMID-03 | Phase 128 | Complete |
 | PMPR-01 | Phase 128 | Complete |
 | PMPR-02 | Phase 128 | Complete |
 | PMPR-03 | Phase 128 | Complete |
-| PMPR-04 | Phase 128 | Pending |
+| PMPR-04 | Phase 128 | Complete |
 | PMPR-05 | Phase 128 | Complete |
 | PMPR-06 | Phase 129 | Pending |
 | PMDA-01 | Phase 129 | Pending |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Completed 128-02-PLAN.md
-last_updated: "2026-08-13T12:38:00Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 02
+stopped_at: Completed 128-03-PLAN.md
+last_updated: "2026-08-13T12:59:11.977Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 03
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 2
-  percent: 9
+  completed_plans: 3
+  percent: 14
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 3 of 22
+Plan: 4 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 02
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 03
 
 ## Accumulated Context
 
@@ -46,6 +46,9 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 02
 - [Phase 128]: Wave-0 identity gates use compilable source-inspection RED contracts until Plans 128-04 and 128-05 provide production symbols.
 - [Phase 128]: Public member access exposes only member ID, stored slug, and server-computed owner/private-preview facts before detail loading.
 - [Phase 128]: One eight-case access matrix governs profile, projects, contributions, summary, notes, media, and releases with neutral 404 denials.
+- [Phase 128]: Canonical redirects are tested as syntax-only 308 behavior independent of member existence. — Prevents existence-sensitive redirect behavior from becoming a privacy oracle.
+- [Phase 128]: Refresh-only owner coverage exercises retained member reads through the central browser client. — Keeps UI token-free while proving fresh bearer attachment and no-store inside api.ts.
+- [Phase 128]: Owner preview RED coverage rejects duplicate identity, auth, fetch, slugification, and numeric fallback seams. — The authoritative public DTO and pathname-owned canonical slug remain the only preview authority.
 
 ### Pending Todos
 
@@ -73,10 +76,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 02
 |------|----------|-------|-------|
 | Phase 128 P01 | 29m | 3 tasks | 4 files |
 | Phase 128 P02 | 15m | 2 tasks | 4 files |
+| Phase 128 P03 | 16m | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T12:36:52.692Z
-Stopped at: Completed 128-02-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 02
+Last session: 2026-08-13T12:59:11.973Z
+Stopped at: Completed 128-03-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 03
 Resume file: None
