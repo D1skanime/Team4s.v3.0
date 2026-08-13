@@ -62,7 +62,7 @@ Plans:
 - [x] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 128-10-PLAN.md - Convert project and contribution detail loaders to resolved member identity.
+- [x] 128-10-PLAN.md - Convert project and contribution detail loaders to resolved member identity.
 - [ ] 128-11-PLAN.md - Enforce shared access resolution and cache policy in public profile handlers.
 
 **Wave 5** *(blocked on Wave 4 completion)*

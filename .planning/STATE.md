@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.3
-milestone_name: Public Member Profile Hardening
+milestone_name: milestone
 status: executing
-stopped_at: Completed 128-09-PLAN.md
-last_updated: "2026-08-13T15:14:43.717Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 09
+stopped_at: Completed 128-10-PLAN.md
+last_updated: "2026-08-13T15:29:48.400Z"
+last_activity: 2026-08-13
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 10
-  percent: 45
+  completed_plans: 11
+  percent: 50
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 10 of 22
+Plan: 11 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 09
+Last activity: 2026-08-13
 
 ## Accumulated Context
 
@@ -64,6 +64,8 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 09
 - [Phase 128]: Verified member_claims equality is the only private-profile grant; missing and denied identities share ErrNotFound. — Prevents legacy identity, admin role, or guessed slug from becoming an authorization oracle.
 - [Phase 128]: Public profile and project detail projections load only by a previously resolved member ID. — Keeps canonical identity and visibility decisions ahead of all detail fan-out.
 - [Phase 128]: Temporary handler-compatibility methods delegate to the shared resolver and ID loaders until Plan 128-11. — Preserves whole-backend compilation without retaining duplicate slug or access logic.
+- [Phase 128]: Contribution and project-member repositories accept only a stable member ID resolved by the shared access boundary.
+- [Phase 128]: Project summaries expose members.public_slug directly; nickname-derived aliases and numeric fallbacks are not detail-loader concerns.
 
 ### Pending Todos
 
@@ -99,10 +101,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 09
 | Phase 128 P07 | 9m | 2 tasks | 4 files |
 | Phase 128 P08 | 12m | 2 tasks | 4 files |
 | Phase 128 P09 | 20m | 2 tasks | 4 files |
+| Phase 128 P10 | 15min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T15:14:43.713Z
-Stopped at: Completed 128-09-PLAN.md
+Last session: 2026-08-13T15:29:48.397Z
+Stopped at: Completed 128-10-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 09
 Resume file: None
