@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 128-16-PLAN.md
-last_updated: "2026-08-13T17:59:05.975Z"
+stopped_at: Completed 128-19-PLAN.md
+last_updated: "2026-08-13T18:16:38.007Z"
 last_activity: 2026-08-13
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 18
-  percent: 82
+  completed_plans: 19
+  percent: 86
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 19 of 22
+Plan: 20 of 22
 Status: Ready to execute
 Last activity: 2026-08-13
 
@@ -80,6 +80,8 @@ Last activity: 2026-08-13
 - [Phase 128]: Hidden-profile resolution derives the canonical slug from usePathname and keeps initialization neutral.
 - [Phase 128]: The preview passes authoritative viewer access into the shared composition and toolbar.
 - [Phase 128]: Toolbar ownership uses getMemberProfile with the stored slug and never current-user or numeric-ID authority.
+- [Phase 128]: Visibility remains in the established radio-card editor with exactly public and private values; no members-only alias or fallback label remains. — Keeps the canonical visibility contract and avoids a parallel persisted-data control.
+- [Phase 128]: The owner deep link allow-lists existing profile tabs and focuses and scrolls the visibility panel without creating a second route, form, or auth seam. — Keeps owner editing on the established refresh-capable protected surface.
 
 ### Pending Todos
 
@@ -123,10 +125,11 @@ Last activity: 2026-08-13
 | Phase 128 P17 | 9min | 1 tasks | 3 files |
 | Phase 128 P18 | 6min | 1 tasks | 2 files |
 | Phase 128 P16 | 22min | 2 tasks | 7 files |
+| Phase 128 P19 | 13min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T17:59:05.971Z
-Stopped at: Completed 128-16-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 13
+Last session: 2026-08-13T18:16:38.004Z
+Stopped at: Completed 128-19-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None

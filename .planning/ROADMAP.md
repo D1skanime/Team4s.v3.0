@@ -78,7 +78,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [x] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
-- [ ] 128-19-PLAN.md - Keep visibility editing session-safe and synchronized with the canonical preview.
+- [x] 128-19-PLAN.md - Keep visibility editing session-safe and synchronized with the canonical preview.
 
 **Wave 9** *(blocked on Wave 8 completion)*
 - [ ] 128-20-PLAN.md - Obtain explicit approval for the disposable member-row reset procedure.
@@ -202,7 +202,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 128. Canonical Public Identity & Visibility Foundation | 17/22 | In Progress | - |
+| 128. Canonical Public Identity & Visibility Foundation | 19/22 | In Progress | - |
 | 129. Canonical Public Projections & Data Correctness | 0/TBD | Not started | - |
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
