@@ -58,7 +58,7 @@ Plans:
 - [x] 128-05-PLAN.md - Implement the shared transactional slug allocator across all member-creation repositories.
 - [x] 128-06-PLAN.md - Project stored member slugs through contribution data.
 - [x] 128-07-PLAN.md - Project stored member slugs through group and domain-member data.
-- [ ] 128-08-PLAN.md - Replace archive and ranking member-link fallbacks with stored slugs.
+- [x] 128-08-PLAN.md - Replace archive and ranking member-link fallbacks with stored slugs.
 - [ ] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.
 
 **Wave 4** *(blocked on Wave 3 completion)*
@@ -202,7 +202,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 128. Canonical Public Identity & Visibility Foundation | 1/22 | In Progress | - |
+| 128. Canonical Public Identity & Visibility Foundation | 9/22 | In Progress | - |
 | 129. Canonical Public Projections & Data Correctness | 0/TBD | Not started | - |
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
