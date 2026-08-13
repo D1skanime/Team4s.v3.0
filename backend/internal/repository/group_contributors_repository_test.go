@@ -174,3 +174,15 @@ func TestGroupContributorsRepositoryUsesMemberAnchoredPublicProjectContributions
 	assert.Contains(t, content, "ac.is_public_on_anime_page = true")
 	assert.NotContains(t, content, "join hist_fansub_group_members hfgm on hfgm.id = ac.fansub_group_member_id\n\t\tjoin members m on m.id = hfgm.member_id")
 }
+
+func TestGroupContributorsRepositoryUsesCanonicalPublicMemberSlugs(t *testing.T) {
+	contentBytes, err := os.ReadFile("group_contributors_repository.go")
+	require.NoError(t, err)
+	content := strings.ToLower(string(contentBytes))
+
+	const storedSlugProjection = "case when m.profile_visibility = 'public' then m.public_slug else null end as member_slug"
+	assert.Equal(t, 2, strings.Count(content, storedSlugProjection), "both contributor query blocks must use the stored public slug")
+	assert.NotContains(t, content, "memberslugexpr", "group contributor links must not derive slugs from nicknames")
+	assert.NotContains(t, content, "regexp_replace", "group contributor links must not derive slugs with a nickname regex")
+	assert.NotContains(t, content, "coalesce(m.public_slug", "stored public slugs must not fall back to derived identity")
+}
