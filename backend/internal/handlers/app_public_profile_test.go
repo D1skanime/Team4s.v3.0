@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +23,7 @@ type recordingPublicMemberAccessResolver struct {
 	calls           int
 	slug            string
 	viewerAppUserID int64
+	events          *[]string
 }
 
 func (r *recordingPublicMemberAccessResolver) ResolvePublicMemberAccess(
@@ -31,7 +34,52 @@ func (r *recordingPublicMemberAccessResolver) ResolvePublicMemberAccess(
 	r.calls++
 	r.slug = slug
 	r.viewerAppUserID = viewerAppUserID
+	if r.events != nil {
+		*r.events = append(*r.events, "resolve")
+	}
 	return r.access, r.err
+}
+
+type recordingPublicMemberProfileLoaders struct {
+	events           *[]string
+	profile          *models.PublicMemberProfile
+	profileErr       error
+	projects         *models.PublicMemberProjectsPage
+	projectsErr      error
+	profileCalls     int
+	projectsCalls    int
+	profileMemberID  int64
+	projectsMemberID int64
+	projectsLimit    int
+	projectsOffset   int
+}
+
+func (r *recordingPublicMemberProfileLoaders) GetPublicMemberProfileByID(
+	_ context.Context,
+	memberID int64,
+) (*models.PublicMemberProfile, error) {
+	r.profileCalls++
+	r.profileMemberID = memberID
+	if r.events != nil {
+		*r.events = append(*r.events, "profile")
+	}
+	return r.profile, r.profileErr
+}
+
+func (r *recordingPublicMemberProfileLoaders) GetPublicMemberProjectsByID(
+	_ context.Context,
+	memberID int64,
+	limit int,
+	offset int,
+) (*models.PublicMemberProjectsPage, error) {
+	r.projectsCalls++
+	r.projectsMemberID = memberID
+	r.projectsLimit = limit
+	r.projectsOffset = offset
+	if r.events != nil {
+		*r.events = append(*r.events, "projects")
+	}
+	return r.projects, r.projectsErr
 }
 
 func TestPublicMemberProfileUnavailableResponsesAreByteIdentical(t *testing.T) {
@@ -130,6 +178,121 @@ func TestPublicMemberCacheHeaders(t *testing.T) {
 			require.Equal(t, test.wantCache, recorder.Header().Get("Cache-Control"))
 		})
 	}
+}
+
+func TestGetPublicMemberProfileResolvesBeforeLoadingDetails(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	events := []string{}
+	resolver := &recordingPublicMemberAccessResolver{
+		access: repository.PublicMemberAccess{MemberID: 17, Slug: "public-member"},
+		events: &events,
+	}
+	loaders := &recordingPublicMemberProfileLoaders{
+		events:  &events,
+		profile: &models.PublicMemberProfile{MemberID: 17, Slug: "public-member"},
+	}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext("/api/v1/members/public-member", "public-member")
+
+	handler.GetPublicMemberProfile(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, []string{"resolve", "profile"}, events)
+	require.Equal(t, 1, resolver.calls)
+	require.Equal(t, 1, loaders.profileCalls)
+	require.Equal(t, int64(17), loaders.profileMemberID)
+	var response struct {
+		Data   models.PublicMemberProfile `json:"data"`
+		Viewer struct {
+			IsOwner          bool `json:"is_owner"`
+			IsPrivatePreview bool `json:"is_private_preview"`
+		} `json:"viewer"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+	require.Equal(t, int64(17), response.Data.MemberID)
+	require.False(t, response.Viewer.IsOwner)
+	require.False(t, response.Viewer.IsPrivatePreview)
+	require.Equal(t, "Authorization", recorder.Header().Get("Vary"))
+}
+
+func TestGetPublicMemberProfileOwnerPreviewIsPrivate(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resolver := &recordingPublicMemberAccessResolver{access: repository.PublicMemberAccess{
+		MemberID:         23,
+		Slug:             "private-member",
+		IsOwner:          true,
+		IsPrivatePreview: true,
+	}}
+	loaders := &recordingPublicMemberProfileLoaders{
+		profile: &models.PublicMemberProfile{MemberID: 23, Slug: "private-member"},
+	}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext("/api/v1/members/private-member", "private-member")
+	c.Set("auth_identity", middleware.AuthIdentity{
+		UserID:      41,
+		DisplayName: "Owner",
+		AppUserID:   41,
+	})
+
+	handler.GetPublicMemberProfile(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, "private, no-store", recorder.Header().Get("Cache-Control"))
+	require.Contains(t, recorder.Body.String(), `"is_owner":true`)
+	require.Contains(t, recorder.Body.String(), `"is_private_preview":true`)
+}
+
+func TestGetPublicMemberProfileDenialDoesNotLoadDetails(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resolver := &recordingPublicMemberAccessResolver{err: repository.ErrNotFound}
+	loaders := &recordingPublicMemberProfileLoaders{}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext("/api/v1/members/2", "2")
+
+	handler.GetPublicMemberProfile(c)
+
+	require.Equal(t, http.StatusNotFound, recorder.Code)
+	require.Zero(t, loaders.profileCalls)
+	require.Zero(t, loaders.projectsCalls)
+	require.Equal(t, publicMemberUnavailableResponse().Body.Bytes(), recorder.Body.Bytes())
+}
+
+func TestGetPublicMemberProjectsResolvesBeforeLoadingAndBoundsPagination(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	events := []string{}
+	resolver := &recordingPublicMemberAccessResolver{
+		access: repository.PublicMemberAccess{MemberID: 29, Slug: "project-member"},
+		events: &events,
+	}
+	loaders := &recordingPublicMemberProfileLoaders{
+		events:   &events,
+		projects: &models.PublicMemberProjectsPage{Items: []models.PublicMemberCurrentProject{}},
+	}
+	handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+	recorder, c := publicMemberRequestContext(
+		"/api/v1/members/project-member/projects?limit=999&offset=-1",
+		"project-member",
+	)
+
+	handler.GetPublicMemberProjects(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, []string{"resolve", "projects"}, events)
+	require.Zero(t, loaders.profileCalls)
+	require.Equal(t, 1, loaders.projectsCalls)
+	require.Equal(t, int64(29), loaders.projectsMemberID)
+	require.Equal(t, 24, loaders.projectsLimit)
+	require.Equal(t, 0, loaders.projectsOffset)
+	require.Equal(t, "Authorization", recorder.Header().Get("Vary"))
+	require.NotContains(t, recorder.Body.String(), `"visible":false`)
+}
+
+func publicMemberRequestContext(path string, slug string) (*httptest.ResponseRecorder, *gin.Context) {
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, path, nil)
+	c.Params = gin.Params{{Key: "slug", Value: slug}}
+	return recorder, c
 }
 
 func publicMemberUnavailableResponse() *httptest.ResponseRecorder {
