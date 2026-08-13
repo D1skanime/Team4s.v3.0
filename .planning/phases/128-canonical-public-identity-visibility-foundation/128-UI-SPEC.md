@@ -61,8 +61,7 @@ All new spacing uses the existing token scale and remains a multiple of 4.
 | Token | Value | Usage |
 |-------|-------|-------|
 | `--space-1` | 4px | Icon alignment and very tight inline separation |
-| `--space-2` | 8px | Notice action gap and compact inline gap |
-| `--space-3` | 12px | Notice text stack and compact internal gap |
+| `--space-2` | 8px | Notice action gap, notice text stack, and compact inline/internal gaps |
 | `--space-4` | 16px | Default state padding and space between notice and hero |
 | `--space-5` | 24px | Notice/card padding when geometry permits |
 | `--space-6` | 32px | Larger local composition gap only |
@@ -73,6 +72,7 @@ Exceptions:
 
 - Interactive targets remain at least the existing `--control-height-md: 44px`.
 - Existing 20px `stateCard` padding may remain; do not duplicate it as a new spacing token.
+- Untouched legacy profile UI may retain existing 12px gaps, but 12px is outside the new Phase 128 spacing contract and must not be introduced or reused by Phase 128 additions.
 - Preserve existing profile geometry outside the narrow additions in this phase.
 
 ---
@@ -120,6 +120,8 @@ For an allowed public profile, retain this DOM/visual order:
 5. existing projects band;
 6. existing badge band;
 7. existing contribution band when currently applicable.
+
+The existing `MemberProfileHero` and its member-name region remain the page's primary focal anchor. The private-owner notice is a compact contextual preface only: it must not compete as a second hero through hero-sized typography, a dominant background, additional page-heading semantics, or comparable visual weight.
 
 The owner preview renders the same authoritative public-profile DTO and the same visible composition as a public visitor. It must not render the current reduced `profileGrid`, substitute own-profile media/contribution cards, empty badge fallbacks, or owner-only DTO conversion.
 
@@ -284,7 +286,12 @@ Live-browser UAT must start from the user-visible navigation path and verify:
 - private owner with refresh token only;
 - private non-owner and missing profile side by side;
 - canonical redirect;
-- narrow, transition, and wide notice geometry.
+- narrow notice geometry;
+- intermediate notice geometry;
+- notice geometry immediately below and immediately above the 36rem container boundary;
+- wide notice geometry;
+- high browser zoom that exposes reflow, overlap, and clipping faults;
+- an explicit document-level no-horizontal-overflow assertion at every tested geometry (`document.documentElement.scrollWidth <= document.documentElement.clientWidth`).
 
 Use the shared browser route `http://127.0.0.1:3300/members/{stored-slug}`; headless tests support but do not replace live navigation/product-fit review.
 
