@@ -79,9 +79,6 @@ vi.mock('@/components/ui', () => ({
   ),
   SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
 }))
-vi.mock('./OwnProfileEditLink', () => ({
-  OwnProfileEditLink: () => <a href="/me/profile">Profil bearbeiten</a>,
-}))
 
 import { OwnHiddenProfilePreview } from './OwnHiddenProfilePreview'
 
@@ -134,6 +131,7 @@ function setAuthSession(overrides: Record<string, boolean> = {}) {
 beforeEach(() => {
   usePathnameMock.mockReturnValue('/members/canonical-owner')
   setAuthSession()
+  getOwnProfileMock.mockResolvedValue({ data: { member_id: 3 } })
 })
 
 afterEach(() => {

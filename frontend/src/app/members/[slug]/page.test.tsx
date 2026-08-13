@@ -84,7 +84,13 @@ vi.mock('@/lib/api', () => {
 })
 
 vi.mock('./OwnProfileEditLink', () => ({
-  OwnProfileEditLink: () => <a href="/me/profile">Profil bearbeiten</a>,
+  OwnProfileEditLink: ({
+    initialViewer,
+  }: {
+    initialViewer: { is_owner: boolean }
+  }) => initialViewer.is_owner
+    ? <a href="/me/profile">Profil bearbeiten</a>
+    : <button type="button">Korrektur melden</button>,
 }))
 
 vi.mock('@/components/profile/CorrectionReportModal', () => ({
