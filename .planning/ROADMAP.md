@@ -56,7 +56,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [x] 128-05-PLAN.md - Implement the shared transactional slug allocator across all member-creation repositories.
-- [ ] 128-06-PLAN.md - Project stored member slugs through contribution data.
+- [x] 128-06-PLAN.md - Project stored member slugs through contribution data.
 - [ ] 128-07-PLAN.md - Project stored member slugs through group and domain-member data.
 - [ ] 128-08-PLAN.md - Replace archive and ranking member-link fallbacks with stored slugs.
 - [ ] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.

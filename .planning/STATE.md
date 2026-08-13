@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Completed 128-05-PLAN.md
-last_updated: "2026-08-13T13:53:52.770Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 05
+stopped_at: Completed 128-06-PLAN.md
+last_updated: "2026-08-13T14:14:34.342Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 06
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 6
-  percent: 27
+  completed_plans: 7
+  percent: 32
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 6 of 22
+Plan: 7 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 05
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 06
 
 ## Accumulated Context
 
@@ -56,6 +56,8 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 05
 - [Phase 128]: Public member DTOs expose no app-user ownership identifier; owner and private-preview facts remain server-computed. — Avoids BOLA-prone client ownership inference.
 - [Phase 128]: The entire members.public_slug namespace uses one transaction advisory lock, including literal suffix collisions. - Per-base locks cannot serialize name against literal name-2 creation.
 - [Phase 128]: All production member creation paths allocate exactly once inside their existing caller-owned transaction. - Identity is persisted atomically with creation without nested transactions or parallel allocators.
+- [Phase 128]: Outbound contribution links use stored public_slug only for public profiles; private member links remain NULL. — Stable identity survives nickname edits without disclosing private slugs.
+- [Phase 128]: The shared nickname-derived memberSlugExpr declaration remains only until Plan 128-10 removes inbound resolution and remaining consumers. — Plan 128-06 removes owned outbound consumers without crossing later cleanup ownership.
 
 ### Pending Todos
 
@@ -87,10 +89,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 05
 | Phase 128 P14 | 13m | 1 task | 2 files |
 | Phase 128 P04 | 14m | 2 tasks | 6 files |
 | Phase 128 P05 | 16m | 2 tasks | 6 files |
+| Phase 128 P06 | 16m | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T13:53:52.766Z
-Stopped at: Completed 128-05-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 05
+Last session: 2026-08-13T14:14:34.338Z
+Stopped at: Completed 128-06-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 06
 Resume file: None
