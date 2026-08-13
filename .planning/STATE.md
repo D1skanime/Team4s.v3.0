@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 128-15-PLAN.md
-last_updated: "2026-08-13T16:59:09.316Z"
+stopped_at: Completed 128-17-PLAN.md
+last_updated: "2026-08-13T17:16:21.981Z"
 last_activity: 2026-08-13
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 15
-  percent: 68
+  completed_plans: 16
+  percent: 73
 ---
 
 # Project State
@@ -75,6 +75,7 @@ Last activity: 2026-08-13
 - [Phase 128]: Member profile SSR remains anonymous and token-free; refresh-only owner recovery stays in the Plan-128-16 client seam.
 - [Phase 128]: Invalid, numeric, missing, and privacy-denied member routes converge on neutral Next notFound output.
 - [Phase 128]: The complete established profile composition remains authoritative for public and future owner-preview rendering.
+- [Phase 128]: Own-profile public actions require the stored canonical slug and disappear when it is absent. — Prevents numeric or nickname-derived fallback identity while keeping display-name edits URL-neutral.
 
 ### Pending Todos
 
@@ -115,10 +116,11 @@ Last activity: 2026-08-13
 | Phase 128 P12 | 14min | 2 tasks | 6 files |
 | Phase 128 P13 | 15min | 2 tasks | 6 files |
 | Phase 128 P15 | 24m | 2 tasks | 4 files |
+| Phase 128 P17 | 9min | 1 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T16:59:09.312Z
-Stopped at: Completed 128-15-PLAN.md
+Last session: 2026-08-13T17:16:21.977Z
+Stopped at: Completed 128-17-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 13
 Resume file: None
