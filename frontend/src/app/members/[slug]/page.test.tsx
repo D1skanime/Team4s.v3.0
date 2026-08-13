@@ -11,6 +11,10 @@ import MemberProfilePage, { generateMetadata } from './page'
 
 const memberPageStyles = readFileSync('src/app/members/[slug]/page.module.css', 'utf8')
 const memberPageSource = readFileSync('src/app/members/[slug]/page.tsx', 'utf8')
+const memberProfileContentPath = 'src/app/members/[slug]/MemberProfileContent.tsx'
+const memberProfileContentSource = existsSync(memberProfileContentPath)
+  ? readFileSync(memberProfileContentPath, 'utf8')
+  : ''
 const memberStorySource = readFileSync('src/components/profile/MemberStorySection.tsx', 'utf8')
 const membershipsSource = readFileSync('src/components/profile/MembershipsSection.tsx', 'utf8')
 const currentProjectsSource = readFileSync('src/components/profile/MemberCurrentProjectsSection.tsx', 'utf8')
@@ -596,6 +600,46 @@ it('Quick 260812-lql reserves two columns only for populated previous contributi
   const emptyRules = [...memberPageStyles.matchAll(/\.contributionPairEmpty\s*\{([^}]*)\}/g)]
   expect(emptyRules.at(-1)?.[1]).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/)
   expect(memberPageStyles).toMatch(/\.contributionPairPresent\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*3fr\) minmax\(20rem,\s*2fr\)/s)
+})
+
+describe('Phase 128 authoritative profile composition', () => {
+  it('Phase128AuthoritativeCompositionExtraction', () => {
+    const requiredComposition = [
+      'MemberProfileHero',
+      'MemberStorySection',
+      'MembershipsSection',
+      'MemberCurrentProjectsSection',
+      'MemberBadgeChain',
+      'LatestContributionsSection',
+      'PreviousContributionsSection',
+    ]
+
+    expect({
+      routeLocalComponentExists: memberProfileContentSource.length > 0,
+      exportsReusableComposition: memberProfileContentSource.includes(
+        'export function MemberProfileContent',
+      ),
+      acceptsAuthoritativeProfile: memberProfileContentSource.includes(
+        'profile: PublicMemberProfileData',
+      ),
+      acceptsStoredSlug: memberProfileContentSource.includes('storedSlug: string'),
+      acceptsViewerAccess: memberProfileContentSource.includes('viewer: PublicMemberViewer'),
+      preservesEverySection: requiredComposition.every((name) => (
+        memberProfileContentSource.includes(name)
+      )),
+      pageDelegatesComposition: memberPageSource.includes('<MemberProfileContent'),
+      pageDoesNotOwnHero: !memberPageSource.includes('<MemberProfileHero'),
+    }).toEqual({
+      routeLocalComponentExists: true,
+      exportsReusableComposition: true,
+      acceptsAuthoritativeProfile: true,
+      acceptsStoredSlug: true,
+      acceptsViewerAccess: true,
+      preservesEverySection: true,
+      pageDelegatesComposition: true,
+      pageDoesNotOwnHero: true,
+    })
+  })
 })
 
 describe('Phase 128 neutral public-member route contract', () => {
