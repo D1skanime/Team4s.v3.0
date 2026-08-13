@@ -58,16 +58,15 @@ func (r *MemberPointTotalsRepository) ListRanking(ctx context.Context, page int)
 	}
 
 	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	rows, err := r.db.Query(ctx, fmt.Sprintf(`
-		SELECT m.id, %s AS display_name, %s AS slug, mpt.total_points
+		SELECT m.id, %s AS display_name, m.public_slug AS slug, mpt.total_points
 		FROM member_point_totals mpt
 		JOIN members m ON m.id = mpt.member_id
 		WHERE m.profile_visibility = 'public'
 		ORDER BY mpt.total_points DESC, m.id ASC
 		LIMIT $1 OFFSET $2
-	`, displayCol, slugCol), memberRankingPageSize, offset)
+	`, displayCol), memberRankingPageSize, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("member point ranking: query: %w", err)
 	}

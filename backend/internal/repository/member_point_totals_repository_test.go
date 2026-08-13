@@ -36,24 +36,31 @@ func TestMemberPointTotalsRankingUsesCanonicalStoredSlug(t *testing.T) {
 	}
 }
 
-// openMemberPointTotalsPostgres wendet 0131 (ueber openPointLedgerPostgres) und die neue
-// Migration 0139_member_point_totals.up.sql auf eine isolierte Schema-Fixture an und
-// erweitert testlokal die members-Tabelle um nickname/display_name/profile_visibility
-// (testsupport/phase106_postgres.go bleibt dabei unveraendert -- die Basis-Fixture kennt
-// nur members(id)).
+// openMemberPointTotalsPostgres verwendet die fail-closed Phase-128-Fixture und
+// wendet die kanonische Identity-Migration vor dem Punktefundament an.
 func openMemberPointTotalsPostgres(t *testing.T) *pgxpool.Pool {
 	t.Helper()
-	pool := openPointLedgerPostgres(t)
-
-	_, file, _, _ := runtime.Caller(0)
-	testsupport.ApplySQLFile(t, pool, filepath.Join(filepath.Dir(file), "..", "..", "..", "database", "migrations", "0139_member_point_totals.up.sql"))
+	pool := testsupport.OpenPhase128Postgres(t)
 
 	_, err := pool.Exec(context.Background(), `
-ALTER TABLE members
-	ADD COLUMN nickname TEXT,
-	ADD COLUMN display_name TEXT,
-	ADD COLUMN profile_visibility TEXT NOT NULL DEFAULT 'public',
-	ADD COLUMN public_slug TEXT NOT NULL DEFAULT 'member-one'`)
+CREATE TABLE app_users (id BIGINT PRIMARY KEY);
+CREATE TABLE fansub_groups (id BIGINT PRIMARY KEY);
+CREATE TABLE release_versions (id BIGINT PRIMARY KEY);`)
+	require.NoError(t, err)
+
+	_, file, _, _ := runtime.Caller(0)
+	testDir := filepath.Dir(file)
+	testsupport.ApplySQLFile(t, pool, filepath.Join(testDir, "..", "..", "..", "database", "migrations", "0145_member_public_identity_visibility.up.sql"))
+	testsupport.ApplySQLFile(t, pool, filepath.Join(testDir, "..", "..", "..", "database", "migrations", "0131_member_point_foundation.up.sql"))
+	testsupport.ApplySQLFile(t, pool, filepath.Join(filepath.Dir(file), "..", "..", "..", "database", "migrations", "0139_member_point_totals.up.sql"))
+
+	_, err = pool.Exec(context.Background(), `
+INSERT INTO members(id, nickname, public_slug) VALUES (1, 'member-one', 'member-one');
+INSERT INTO app_users(id) VALUES (10);
+INSERT INTO fansub_groups(id) VALUES (20);
+INSERT INTO release_versions(id) VALUES (30);
+INSERT INTO point_rules(id, rule_code, rule_version, category, point_value)
+	VALUES (101, 'release_work', 1, 'fansub_work', 10);`)
 	require.NoError(t, err)
 
 	return pool
