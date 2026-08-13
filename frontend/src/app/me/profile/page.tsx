@@ -49,8 +49,9 @@ const PROFILE_TABS: Array<{ id: ProfileTab; label: string }> = [
   { id: 'account', label: 'Account' },
 ]
 
-function getPublicProfileHref(profile: MemberProfileData): string {
-  return `/members/${profile.slug || profile.member_id}`
+function getPublicProfileHref(profile: MemberProfileData): string | null {
+  if (!profile.slug) return null
+  return `/members/${profile.slug}`
 }
 
 function getProfileDisplayName(profile: MemberProfileData): string {
@@ -98,6 +99,7 @@ function EditableProfileHeader({
   onBackgroundEdit: () => void
 }) {
   const displayName = getProfileDisplayName(profile)
+  const publicProfileHref = getPublicProfileHref(profile)
 
   return (
     <section
@@ -139,9 +141,11 @@ function EditableProfileHeader({
         <p>{profile.bio || 'Noch keine Kurzbeschreibung hinterlegt.'}</p>
       </div>
       <div className={styles.profileHeaderActions}>
-        <Button href={getPublicProfileHref(profile)} variant="ghost" size="sm" leftIcon={<Eye size={16} aria-hidden="true" />}>
-          Profil ansehen
-        </Button>
+        {publicProfileHref ? (
+          <Button href={publicProfileHref} variant="ghost" size="sm" leftIcon={<Eye size={16} aria-hidden="true" />}>
+            Profil ansehen
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"

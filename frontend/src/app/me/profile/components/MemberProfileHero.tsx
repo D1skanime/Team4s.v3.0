@@ -16,7 +16,7 @@ type MemberProfileHeroProps = {
 export function MemberProfileHero({ profile, avatarURL, isSaving, canSave }: MemberProfileHeroProps) {
   const displayName = profile.fansub_name || profile.account_display_name || 'Mein Profil'
   const avatarLabel = profile.fansub_name || profile.account_display_name || 'Profil'
-  const publicProfileHref = `/members/${profile.slug || profile.member_id}`
+  const publicProfileHref = profile.slug ? `/members/${profile.slug}` : null
 
   return (
     <div className={styles.hero}>
@@ -25,9 +25,11 @@ export function MemberProfileHero({ profile, avatarURL, isSaving, canSave }: Mem
         title="Mein Profil"
         actions={(
           <>
-            <Button className={styles.heroActionButton} href={publicProfileHref} variant="secondary" leftIcon={<Eye size={16} />}>
-              Öffentliches Profil ansehen
-            </Button>
+            {publicProfileHref ? (
+              <Button className={styles.heroActionButton} href={publicProfileHref} variant="secondary" leftIcon={<Eye size={16} />}>
+                Öffentliches Profil ansehen
+              </Button>
+            ) : null}
             <Button className={styles.heroActionButton} type="submit" variant="success" form="member-profile-form" loading={isSaving} disabled={!canSave} leftIcon={<Save size={16} />}>
               Profil speichern
             </Button>

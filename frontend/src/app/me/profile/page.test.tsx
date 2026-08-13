@@ -139,6 +139,7 @@ vi.mock('@/lib/api', () => ({
 
 import { ApiError } from '@/lib/api'
 
+import { MemberProfileHero } from './components/MemberProfileHero'
 import MyProfilePage from './page'
 
 const ownProfilePageSource = readFileSync('src/app/me/profile/page.tsx', 'utf8')
@@ -364,6 +365,21 @@ describe('MyProfilePage', () => {
       expect(source).not.toMatch(/profile\.slug\s*\|\|\s*profile\.member_id/)
       expect(source).not.toMatch(/\/members\/\$\{profile\.member_id\}/)
     }
+  })
+
+  it('uses the same stored-slug-only contract in the local profile hero action', () => {
+    const canonicalProfile = makeProfileResponse({ slug: 'mika-archiv', member_id: 943 }).data
+    const { rerender } = render(
+      <MemberProfileHero profile={canonicalProfile} avatarURL="" isSaving={false} canSave={false} />,
+    )
+
+    expect(screen.getByRole('link', { name: 'Öffentliches Profil ansehen' }).getAttribute('href')).toBe('/members/mika-archiv')
+
+    rerender(
+      <MemberProfileHero profile={{ ...canonicalProfile, slug: '' }} avatarURL="" isSaving={false} canSave={false} />,
+    )
+
+    expect(screen.queryByRole('link', { name: 'Öffentliches Profil ansehen' })).toBeNull()
   })
 
   it('opens the rich story editor only after Bearbeiten', async () => {
