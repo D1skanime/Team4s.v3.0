@@ -1,32 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 121-03-PLAN.md
-last_updated: "2026-08-11T12:10:50.062Z"
-last_activity: 2026-08-11
+milestone: v1.3
+milestone_name: Public Member Profile Hardening
+status: planning
+last_updated: "2026-08-13T04:54:58.521Z"
+last_activity: 2026-08-13
 progress:
-  total_phases: 116
-  completed_phases: 94
-  total_plans: 546
-  completed_plans: 509
-  percent: 93
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-08-13)
 
-**Core value:** Admins can reliably create and maintain correct anime records without losing control to automatic imports.
-**Current focus:** Phase 124 — Punkte-Meilensteine als responsive Single-Family Achievement Stage
+**Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
+**Current focus:** Define the v1.3 Public Member Profile Hardening requirements and roadmap.
 
 ## Current Position
 
-Phase: 999.2
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-08-13 — Milestone v1.3 started
 
 ## Accumulated Context
 

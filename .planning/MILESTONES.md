@@ -23,18 +23,47 @@
 
 ---
 
-## v1.1 Asset Lifecycle Hardening (In Progress: 2026-04-05)
+## v1.1 Asset Lifecycle Hardening (Superseded: 2026-08-13)
 
 **Phases completed:** 2 of 3 phases verified
 
 **Plans completed:** 6 planned slices closed across Phases 06 and 07
 
-**Current milestone state:**
+**State when superseded:**
 
 - Phase 06 provisioning and lifecycle foundations passed browser UAT on 2026-04-03.
 - Phase 07 generic upload and linking passed verification and was approved in human UAT on 2026-04-05.
 - The verified anime-first V2 seam now covers `cover`, `banner`, `logo`, `background`, and `background_video` across manual create and edit.
 - Delete cleanup has been rechecked after real manual uploads and still removes anime-owned DB/media state from canonical storage.
-- Phase 08 remains the next planning target for replace/delete cleanup semantics and operator UX follow-through.
+- Phase 08 remained open when later product work superseded this milestone thread.
 
 ---
+
+## v1.2 Public Experience, Historie & Scoped Rights (Historical Cycle)
+
+**Scope reconstructed:** Phases 72-80 from the canonical v1.2 discussion and Git history
+
+**Key accomplishments:**
+
+- Domain/status and media-ownership projections established for public and scoped surfaces.
+- Public fansub, member, anime/group, contribution, leader, media-ownership, and admin-user work was organized across Phases 72-80.
+- Public member identity, contributions, memberships, memorial handling, and scoped permissions became explicit product domains.
+- API/contract discipline and canonical media ownership were locked as cross-cutting constraints.
+
+**Historical note:**
+
+- This cycle was implemented through phase work but was not cleanly closed in the milestone metadata.
+- It is recorded here to preserve the already-used v1.2 version without falsely claiming a new retroactive milestone audit.
+- The later mixed phase tree was preserved in `.planning/milestones/pre-v1.3-recovery-2026-08-13/` before starting v1.3.
+
+---
+
+## v1.3 Public Member Profile Hardening (In Progress: 2026-08-13)
+
+**Goal:** Make the public member profile data-correct, privacy-safe, performant, maintainable, and consistently usable from mobile through widescreen.
+
+**Initial scope:**
+
+- visibility-safe identity and public data contracts
+- database/query/API/OpenAPI/frontend alignment
+- simpler reusable profile code and mobile-first CSS

@@ -1,12 +1,12 @@
-# Team4s Admin Anime Intake
+# Team4s
 
 ## What This Is
 
-Team4s is an existing anime platform with a Go backend, Next.js frontend, and an expanding admin area for managing anime content, media, and release data. After v1.0, the admin anime workflow now supports manual intake, Jellyfin-assisted draft creation, provenance-aware maintenance, fill-only resync, and relation CRUD on a shared editor surface.
+Team4s is an anime and fansub history platform with a Go backend, Next.js frontend, and public, member, leader, and admin surfaces. It combines release-native project data, public member identities, contributions, historical memberships, media ownership, and moderated community workflows.
 
 ## Core Value
 
-Admins can reliably create and maintain correct anime records without losing control to automatic imports.
+Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
 
 ## Requirements
 
@@ -27,19 +27,23 @@ Admins can reliably create and maintain correct anime records without losing con
 
 ### Active
 
-- [ ] Define the generic upload and asset lifecycle contract for admin-managed media beyond cover-only flows.
-- [ ] Add one-click anime/group asset folder provisioning with idempotency and operator-safe validation.
-- [ ] Clarify how generic upload, replace, and delete cleanup should work across cover, banner, logo, background, video, and future asset types.
-- [ ] Build one reusable persistence and linking path for asset lifecycle actions across anime and groups.
-- [ ] Close the remaining milestone-closeout debt without letting it overtake the core asset lifecycle scope.
+- [ ] Make public member identity, stable slugs, visibility, and owner-preview behavior consistent and privacy-safe.
+- [ ] Align the public member database projections, joins, API DTOs, OpenAPI contract, and frontend types.
+- [ ] Remove duplicate and unused public-profile data paths instead of preserving compatibility for disposable test rows.
+- [ ] Eliminate avoidable N+1 reads, oversized payloads, misleading pagination, and unnecessary dynamic rendering.
+- [ ] Consolidate repeated profile components, hooks, request logic, derived values, and badge configuration without crossing domain ownership boundaries.
+- [ ] Refactor profile and achievement CSS into mobile-first, accessible, maintainable component styles that scale to widescreen.
+- [ ] Verify the complete public experience with reproducible `sheppert` and `csubs-leader` test profiles.
 
 ### Out Of Scope
 
-- Fine-grained access control redesign - still separate from the admin anime workflow core
-- Durable historical error/audit browsing UI - current milestone only needed immediate operator-facing errors
-- Bulk Jellyfin intake and bulk resync - higher operational risk than the single-record workflow
-- AniSearch crawler automation - still deferred until generic upload and asset lifecycle semantics are stable
-- Broader relation taxonomy than the four V1 labels - keep the relation surface narrow until there is a clearer editorial need
+- Replacing the existing member, contribution, badge, membership, or media ownership models with parallel structures
+- Redesigning unrelated admin, fansub, anime, or release pages
+- Adding production-data backfills, compatibility layers, or preservation logic for disposable test rows
+- Changing the canonical release-native fansub domain or attaching media to a different owner seam
+- Creating a second badge engine or recalculating canonical badge state ad hoc in the browser
+- Replacing the central browser authentication and API client boundary
+- Treating public profile hardening as a general platform rewrite
 
 ## Context
 
@@ -54,7 +58,7 @@ v1.0 shipped on 2026-04-01 with 6 completed phases and 23 completed plans. The s
 - anime v2 runtime stabilization for create/edit/read behavior
 - relation CRUD with the narrow V1 taxonomy and operator-safe validation
 
-The next product thread is no longer intake correctness itself; it is the generic upload/provisioning and asset lifecycle layer that future media types will depend on.
+Subsequent work expanded Team4s through public fansub/member experiences, contributions, scoped permissions, release-native media, gamification, and achievement presentation. The active planning metadata drifted across those cycles and was preserved in a pre-v1.3 recovery archive rather than being mislabeled as one completed milestone.
 
 Phase 54 completed on 2026-05-28: the global AppShell now provides the release-independent nav drawer through the root layout, with `/me/profile` no longer nesting its own shell.
 
@@ -68,26 +72,29 @@ Phase 110 completed on 2026-07-28: die read-seitige Gamification-Oberfläche ste
 
 Phase 112 completed on 2026-07-28: zwei weitere rein abgeleitete Badge-Familien hängen in der „Auszeichnungen"-Sektion — Typ 2 (Punkt-Meilensteine 1/50/200/500/1000/2500, nur höchster Rang) und Typ 3 (Rollen-Volumen Bronze/Silber/Gold/Platin bei 12/108/320/510 Netto-Credits pro Rolle, neben dem Typ-1-Einstieg in der „Rollen"-Gruppe). Live-Projektion mit Rückstufung bei Storno, kein neuer Buchungspfad; Backend-Zählung dynamisch über `release_role_credit_lifecycles`, Ableitung/Resolver in `memberBadgeLabels.ts`, SSR-Verdrahtung in `members/[slug]/page.tsx`. 9/9 Verifikations-Must-haves, 29/29 Frontend-Tests grün. Offen: optionaler Live-UAT der Gold/Platin-Sichtbarkeit sowie ein Code-Review-Critical (Typ-1-Rollen-Katalog hardcodet nur 8 statt 12 gültiger `anime_contribution`-Rollen).
 
-## Current Milestone: v1.1 Asset Lifecycle Hardening
+## Current Milestone: v1.3 Public Member Profile Hardening
 
-**Goal:** Make admin-managed media lifecycle behavior generic, idempotent, and operator-safe instead of relying on cover-specific seams.
+**Goal:** Make the public member profile data-correct, privacy-safe, performant, maintainable, and consistently usable from mobile through widescreen.
 
 **Target features:**
-- one-click folder provisioning for anime and groups
-- generic upload contract for multiple asset types
-- reusable asset linking across entities and slots
-- replace/delete cleanup rules with clear operator feedback
-- hardening around validation, auditability, and storage safety
+- public identity, stable slug, visibility, and owner-preview hardening
+- complete database projections and explicit public data contracts
+- API/OpenAPI/frontend type alignment with unused fields removed
+- query, pagination, payload, caching, and image-delivery optimization
+- reusable profile composition with simpler state and request handling
+- mobile-first CSS, accessibility, responsive density, and widescreen behavior
+- automated checks plus live UAT using `sheppert` and `csubs-leader`
 
 ## Constraints
 
-- **Brownfield:** Existing backend/frontend/admin code should be extended, not replaced
-- **Data ownership:** Manual edits stay authoritative over imported values
-- **Workflow:** Imported data remains reviewable before persistence
-- **Audience:** The surface is still optimized for internal admins first
+- **Brownfield:** Extend the existing public member route, API, projections, and global UI components instead of creating parallel seams
+- **Privacy:** Resolve public visibility and viewer access before loading or returning protected profile detail
+- **Contracts:** Keep database projections, backend DTOs, OpenAPI, frontend types, and `api.ts` helpers synchronized
+- **Domain ownership:** Preserve canonical member, contribution, membership, badge, release, and media ownership boundaries
+- **Test data:** Existing rows are disposable; reset and reseed instead of adding data compatibility or backfill code
+- **Experience:** Design mobile-first while keeping compact, deliberate widescreen layouts
 - **Modularity:** Production code files should stay at or below the 450-line project limit
-- **Ops safety:** Filesystem and storage changes need controlled, project-owned automation and clear validation
-- **Scope:** Generic upload parity beyond cover is not yet fully productized
+- **Scope:** Avoid unrelated redesigns and preserve established Team4s visual/component patterns
 
 ## Key Decisions
 
@@ -102,6 +109,27 @@ Phase 112 completed on 2026-07-28: zwei weitere rein abgeleitete Badge-Familien 
 | Split workflow code before it exceeds the file-size ceiling | Preserve maintainability while the admin surface grows | ✓ Good |
 | Keep the next milestone focused on generic upload/provisioning rather than reopening settled intake behavior | The broadest remaining risk is media lifecycle semantics, not core intake correctness | Pending |
 | Make asset lifecycle behavior generic before adding more upload surfaces | Prevents banner/logo/background/video work from becoming a pile of slot-specific exceptions | Pending |
+| Preserve the drifted pre-v1.3 planning tree as a recovery archive | Historical phases span multiple cycles and must not be falsely marked as one completed milestone | Good |
+| Use v1.3 for Public Member Profile Hardening | v1.2 was already used by the Phases 72-80 public experience cycle | Good |
+| Treat `sheppert` and `csubs-leader` as reproducible UAT fixtures | Both expose different data volume, role, badge, membership, and layout cases | Pending |
+| Reset and reseed disposable test data when schema truth changes | Compatibility code for synthetic rows would add complexity without product value | Pending |
+| Keep public profile projections minimal and visibility-aware | Public reads must not expose or compute private and unused detail | Pending |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition:**
+1. Move invalidated requirements to Out of Scope with a reason.
+2. Move validated requirements to Validated with a phase reference.
+3. Add newly discovered requirements to Active.
+4. Record durable decisions and update current-state context.
+
+**After each milestone:**
+1. Review all sections against the shipped product.
+2. Confirm that Core Value is still the right priority.
+3. Reassess Out of Scope reasons.
+4. Update Context with the current system state.
 
 ---
-*Last updated: 2026-07-28 after Phase 110 member-badges & ranking UI completion*
+*Last updated: 2026-08-13 for milestone v1.3 Public Member Profile Hardening*
