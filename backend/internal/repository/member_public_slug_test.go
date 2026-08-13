@@ -20,7 +20,17 @@ const phase128SlugMaxLength = 512
 var (
 	phase128SlugSeparators = regexp.MustCompile("[^a-z0-9]+")
 	phase128SlugNumeric    = regexp.MustCompile("^[0-9]+$")
-	phase128ReservedSlugs  = map[string]struct{}{"ranking": {}}
+	phase128ReservedSlugs  = map[string]struct{}{
+		"admin":    {},
+		"api":      {},
+		"edit":     {},
+		"me":       {},
+		"members":  {},
+		"new":      {},
+		"profile":  {},
+		"ranking":  {},
+		"settings": {},
+	}
 )
 
 func TestPhase128MemberSlugContract(t *testing.T) {
@@ -44,6 +54,11 @@ func TestPhase128MemberSlugContract(t *testing.T) {
 	}
 }
 
+func TestPhase128MemberInsertInventory(t *testing.T) {
+	expected := []string{"fansub_group_app_members_repository.go", "hist_group_members_repository.go", "member_requests_repository.go"}
+	require.Equal(t, expected, phase128ProductionMemberInsertFiles(t))
+}
+
 func TestPhase128MemberSlugNormalizationCases(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -57,11 +72,20 @@ func TestPhase128MemberSlugNormalizationCases(t *testing.T) {
 		{"whitespace", "   Alpha   Beta   ", "alpha-beta", false},
 		{"empty", "   ", "", true},
 		{"numeric", "123", "", true},
-		{"reserved", "ranking", "", true},
 		{"control", "alpha\nbeta", "", true},
-		{"path separator", "alpha/beta", "", true},
+		{"forward path separator", "alpha/beta", "", true},
+		{"backward path separator", "alpha\\beta", "", true},
 		{"too long", strings.Repeat("a", phase128SlugMaxLength+1), "", true},
 	}
+	for _, reserved := range []string{"admin", "api", "edit", "me", "members", "new", "profile", "ranking", "settings"} {
+		tests = append(tests, struct {
+			name      string
+			input     string
+			want      string
+			wantError bool
+		}{"reserved " + reserved, reserved, "", true})
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			got, err := phase128ReferenceNormalizeSlug(test.input)
@@ -90,7 +114,7 @@ func TestPhase128MemberSlugConcurrentAllocationScenarios(t *testing.T) {
 
 func phase128ReferenceNormalizeSlug(input string) (string, error) {
 	for _, char := range input {
-		if unicode.IsControl(char) || char == '/' {
+		if unicode.IsControl(char) || char == '/' || char == '\\' {
 			return "", fmt.Errorf("control or path separator")
 		}
 	}
