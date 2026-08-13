@@ -66,7 +66,7 @@ Plans:
 - [x] 128-11-PLAN.md - Enforce shared access resolution and cache policy in public profile handlers.
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 128-12-PLAN.md - Apply the shared visibility gate to projects, contributions, and retained subresources.
+- [x] 128-12-PLAN.md - Apply the shared visibility gate to projects, contributions, and retained subresources.
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 128-13-PLAN.md - Align OpenAPI, frontend types, and central API helpers with the canonical public contract.

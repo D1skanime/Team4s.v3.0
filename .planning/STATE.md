@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 128-11-PLAN.md
-last_updated: "2026-08-13T15:45:43.063Z"
+stopped_at: Completed 128-12-PLAN.md
+last_updated: "2026-08-13T16:07:03.376Z"
 last_activity: 2026-08-13
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 12
-  percent: 55
+  completed_plans: 13
+  percent: 59
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 12 of 22
+Plan: 13 of 22
 Status: Ready to execute
 Last activity: 2026-08-13
 
@@ -69,6 +69,8 @@ Last activity: 2026-08-13
 - [Phase 128]: Public profile handlers resolve canonical access before member-ID detail loading and return server-computed owner/private-preview facts.
 - [Phase 128]: Verified AppUserID is the only viewer input to public-member authorization; platform-admin and token roles grant no access.
 - [Phase 128]: Optional-auth member responses vary on Authorization, and viewer-dependent results use private, no-store.
+- [Phase 128]: All seven member-specific GET routes share one MemberProfileRepository access resolver and existing optional-auth middleware.
+
 ### Pending Todos
 
 - Ten existing pending todo files remain unchanged because none maps completely and unambiguously to exactly one v1.3 phase.
@@ -105,10 +107,11 @@ Last activity: 2026-08-13
 | Phase 128 P09 | 20m | 2 tasks | 4 files |
 | Phase 128 P10 | 15min | 2 tasks | 6 files |
 | Phase 128 P11 | 13min | 2 tasks | 4 files |
+| Phase 128 P12 | 14min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T15:45:43.059Z
-Stopped at: Completed 128-11-PLAN.md
+Last session: 2026-08-13T16:07:03.372Z
+Stopped at: Completed 128-12-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 09
 Resume file: None
