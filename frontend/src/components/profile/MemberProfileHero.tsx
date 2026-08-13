@@ -30,9 +30,8 @@ function getAccountDisplayName(profile: MemberProfileData | PublicMemberProfileD
   return 'account_display_name' in profile ? profile.account_display_name : ''
 }
 
-function getPublicProfileHref(profile: MemberProfileData | PublicMemberProfileData): string {
-  const slug = 'slug' in profile ? profile.slug : ''
-  return `/members/${slug || profile.member_id}`
+function getPublicProfileHref(profile: MemberProfileData | PublicMemberProfileData): string | null {
+  return profile.slug ? `/members/${profile.slug}` : null
 }
 
 function getYearFromProfileDate(dateValue?: string | null): string {
@@ -127,6 +126,7 @@ export function MemberProfileHero({
           title="Mein Profil"
           actions={(
             <>
+              {publicProfileHref ? (
               <Button
                 className={styles.heroActionButton}
                 href={publicProfileHref}
@@ -135,6 +135,7 @@ export function MemberProfileHero({
               >
                 Öffentliches Profil ansehen
               </Button>
+              ) : null}
               <Button
                 className={styles.heroActionButton}
                 type="submit"
