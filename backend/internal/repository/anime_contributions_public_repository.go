@@ -95,7 +95,6 @@ type PublicMemberContributionsResponse struct {
 // Groups with no public contributor are omitted. Each group also reports the count of distinct
 // hidden contributing members on this anime.
 func (r *AnimeContributionsRepository) GetPublicAnimeContributions(ctx context.Context, animeID int64) (*PublicAnimeContributionsResponse, error) {
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
 
 	query := `
@@ -104,7 +103,7 @@ func (r *AnimeContributionsRepository) GetPublicAnimeContributions(ctx context.C
 			fg.name AS fansub_group_name,
 			fg.slug AS fansub_group_slug,
 			` + displayCol + ` AS member_display_name,
-			` + slugCol + ` AS member_slug,
+			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			ac.started_year,
 			ac.ended_year,
 			(ac.status = 'confirmed') AS is_verified,
@@ -120,7 +119,7 @@ func (r *AnimeContributionsRepository) GetPublicAnimeContributions(ctx context.C
 		  AND ac.is_public_on_anime_page = true
 		  AND hfgm.visibility = 'public'
 		  AND ac.release_version_id IS NULL
-		GROUP BY ac.id, fg.id, fg.name, fg.slug, m.display_name, m.nickname, ac.started_year, ac.ended_year, ac.status
+		GROUP BY ac.id, fg.id, fg.name, fg.slug, m.display_name, m.nickname, m.profile_visibility, m.public_slug, ac.started_year, ac.ended_year, ac.status
 		ORDER BY fg.name, COALESCE(ac.started_year, 9999), member_display_name
 	`
 
@@ -224,12 +223,11 @@ func (r *AnimeContributionsRepository) GetPublicGroupContributions(ctx context.C
 	}
 
 	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 
 	leaderQuery := `
 		SELECT
 			` + displayCol + ` AS member_display_name,
-			` + slugCol + ` AS member_slug,
+			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			r.role_code,
 			COALESCE(rd.label_de, r.role_code) AS role_label,
 			EXTRACT(YEAR FROM r.started_date)::int AS started_year,

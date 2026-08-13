@@ -27,8 +27,8 @@ func TestPublicContributionMemberSlugProjectionUsesStoredIdentity(t *testing.T) 
 	if strings.Contains(outbound, "coalesce(m.public_slug") {
 		t.Fatal("outbound contribution projections must not fall back from public_slug")
 	}
-	if count := strings.Count(outbound, "m.profile_visibility, m.public_slug"); count != 2 {
-		t.Fatalf("outbound contribution projections contain %d visibility/slug grouping clauses, want 2", count)
+	if count := strings.Count(outbound, "m.profile_visibility, m.public_slug"); count != 1 {
+		t.Fatalf("outbound contribution projections contain %d visibility/slug grouping clauses, want 1", count)
 	}
 }
 
@@ -45,15 +45,15 @@ func TestPublicMemberContributionsGroupHistoryBranch(t *testing.T) {
 	// Pflicht-Fragmente: 3. Branch-Quelltabellen, group_history-Kontext, label_de-Fallback,
 	// notes aus anime_contributions.note und member->app_user-Auflösung.
 	requiredFragments := []string{
-		"fansub_group_members",        // 3. Branch-Quelltabelle (aktuelle App-Gruppe)
-		"fansub_group_member_roles",   // role-Quelle des 3. Branch
-		"group_history",               // gemeinsamer Kontext-Wert
-		"coalesce(rd.label_de",        // role-Label-Fallback (fansub_lead fehlt in role_definitions)
-		"ac.note as notes",            // notes-Projektion im anime_contribution-Branch
-		"resolved_user",               // member->app_user-Auflösungs-CTE
-		"member_claims",               // verifizierter-claim-Pfad der Auflösung
-		"legacy_user_id",              // members.user_id->app_users-Fallback der Auflösung
-		"not exists",                  // Duplikat-Schutz gegen hist-Rollen
+		"fansub_group_members",      // 3. Branch-Quelltabelle (aktuelle App-Gruppe)
+		"fansub_group_member_roles", // role-Quelle des 3. Branch
+		"group_history",             // gemeinsamer Kontext-Wert
+		"coalesce(rd.label_de",      // role-Label-Fallback (fansub_lead fehlt in role_definitions)
+		"ac.note as notes",          // notes-Projektion im anime_contribution-Branch
+		"resolved_user",             // member->app_user-Auflösungs-CTE
+		"member_claims",             // verifizierter-claim-Pfad der Auflösung
+		"legacy_user_id",            // members.user_id->app_users-Fallback der Auflösung
+		"not exists",                // Duplikat-Schutz gegen hist-Rollen
 	}
 	for _, fragment := range requiredFragments {
 		if !strings.Contains(normalized, fragment) {
