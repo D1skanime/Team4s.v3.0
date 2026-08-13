@@ -34,7 +34,6 @@ type ReleaseVersionBreakdownGroup struct {
 // Gruppen, die ausschliesslich versions-spezifische Beitraege besitzen, werden neu
 // in groups + groupIndex aufgenommen, damit sie auf der Anime-Seite erscheinen.
 func (r *AnimeContributionsRepository) attachVersionBreakdowns(ctx context.Context, animeID int64, groups *[]PublicAnimeContributionGroup, groupIndex map[int64]int) error {
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
 	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
 
 	query := `
@@ -46,7 +45,7 @@ func (r *AnimeContributionsRepository) attachVersionBreakdowns(ctx context.Conte
 			COALESCE(ep.episode_number, '') AS episode_number,
 			rv.version,
 			` + displayCol + ` AS member_display_name,
-			` + slugCol + ` AS member_slug,
+			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			ac.started_year,
 			ac.ended_year,
 			(ac.status = 'confirmed') AS is_verified,
@@ -67,7 +66,7 @@ func (r *AnimeContributionsRepository) attachVersionBreakdowns(ctx context.Conte
 		  AND ac.release_version_id IS NOT NULL
 		GROUP BY ac.id, ac.fansub_group_id, fg.name, fg.slug, ac.release_version_id,
 			ep.episode_number, ep.sort_index, ep.id, rv.version,
-			m.display_name, m.nickname, ac.started_year, ac.ended_year, ac.status
+			m.display_name, m.nickname, m.profile_visibility, m.public_slug, ac.started_year, ac.ended_year, ac.status
 		ORDER BY ac.fansub_group_id, COALESCE(ep.sort_index, 2147483647), ep.id, rv.version
 	`
 
