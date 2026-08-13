@@ -3167,16 +3167,11 @@ export async function getOwnProfile(
 
 export async function getMemberProfile(
   slug: string,
-  authToken?: string,
 ): Promise<PublicMemberProfileResponse> {
-  const API_BASE_URL = getApiBaseUrl();
   const encodedSlug = encodeURIComponent(slug);
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/members/${encodedSlug}`,
-    {
-      cache: "no-store",
-      authToken,
-    },
+  const response = await apiClientFetch(
+    `/api/v1/members/${encodedSlug}`,
+    { cache: "no-store" },
   );
 
   if (!response.ok) {
@@ -3201,11 +3196,10 @@ export async function getMemberProjects(
   limit = 6,
   offset = 0,
 ): Promise<PublicMemberProjectsResponse> {
-  const API_BASE_URL = getApiBaseUrl();
   const encodedSlug = encodeURIComponent(slug);
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-  const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/members/${encodedSlug}/projects?${params.toString()}`,
+  const response = await apiClientFetch(
+    `/api/v1/members/${encodedSlug}/projects?${params.toString()}`,
     { cache: "no-store" },
   );
 
@@ -9403,10 +9397,9 @@ export async function getMediaOwnershipProjection(
 export async function getMemberContributions(
   slug: string,
 ): Promise<PublicMemberContributionsResponse> {
-  const API_BASE_URL = getApiBaseUrl();
   const encodedSlug = encodeURIComponent(slug);
-  const response = await fetch(
-    `${API_BASE_URL}/api/v1/members/${encodedSlug}/contributions`,
+  const response = await apiClientFetch(
+    `/api/v1/members/${encodedSlug}/contributions`,
     { cache: "no-store" },
   );
 
@@ -10137,8 +10130,8 @@ export async function getProjectMemberSummary(
   memberSlug: string,
   signal?: AbortSignal,
 ): Promise<ProjectMemberSummary> {
-  const url = `${getApiBaseUrl()}/api/v1/anime/${animeID}/group/${groupID}/members/${encodeURIComponent(memberSlug)}`;
-  const response = await fetch(url, { cache: "no-store", signal });
+  const url = `/api/v1/anime/${animeID}/group/${groupID}/members/${encodeURIComponent(memberSlug)}`;
+  const response = await apiClientFetch(url, { cache: "no-store", signal });
   if (!response.ok) {
     const message = await parseApiError(response, `API request failed: ${response.status}`);
     throw new ApiError(response.status, message);
@@ -10152,8 +10145,8 @@ export async function getProjectMemberNotes(
   memberSlug: string,
   opts: ProjectMemberListOpts = {},
 ): Promise<CursorPage<ProjectMemberNote>> {
-  const url = buildProjectMemberListURL(getApiBaseUrl(), animeID, groupID, memberSlug, "notes", opts);
-  const response = await fetch(url, { cache: "no-store", signal: opts.signal });
+  const url = buildProjectMemberListURL("", animeID, groupID, memberSlug, "notes", opts);
+  const response = await apiClientFetch(url, { cache: "no-store", signal: opts.signal });
   if (!response.ok) {
     const message = await parseApiError(response, `API request failed: ${response.status}`);
     throw new ApiError(response.status, message);
@@ -10167,8 +10160,8 @@ export async function getProjectMemberMedia(
   memberSlug: string,
   opts: ProjectMemberListOpts = {},
 ): Promise<CursorPage<ProjectMemberMediaItem>> {
-  const url = buildProjectMemberListURL(getApiBaseUrl(), animeID, groupID, memberSlug, "media", opts);
-  const response = await fetch(url, { cache: "no-store", signal: opts.signal });
+  const url = buildProjectMemberListURL("", animeID, groupID, memberSlug, "media", opts);
+  const response = await apiClientFetch(url, { cache: "no-store", signal: opts.signal });
   if (!response.ok) {
     const message = await parseApiError(response, `API request failed: ${response.status}`);
     throw new ApiError(response.status, message);
@@ -10182,8 +10175,8 @@ export async function getProjectMemberReleases(
   memberSlug: string,
   opts: ProjectMemberListOpts = {},
 ): Promise<CursorPage<ProjectMemberRelease>> {
-  const url = buildProjectMemberListURL(getApiBaseUrl(), animeID, groupID, memberSlug, "releases", opts);
-  const response = await fetch(url, { cache: "no-store", signal: opts.signal });
+  const url = buildProjectMemberListURL("", animeID, groupID, memberSlug, "releases", opts);
+  const response = await apiClientFetch(url, { cache: "no-store", signal: opts.signal });
   if (!response.ok) {
     const message = await parseApiError(response, `API request failed: ${response.status}`);
     throw new ApiError(response.status, message);
