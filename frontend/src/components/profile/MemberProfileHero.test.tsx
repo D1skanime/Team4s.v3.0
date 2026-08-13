@@ -38,6 +38,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
   return {
     member_id: 3,
     fansub_name: 'Ballelboy',
+    slug: 'ballelboy',
     bio: 'Typesetting und Timing.',
     active_from_date: '2016-01-01',
     active_until_date: null,
@@ -147,6 +148,73 @@ describe('MemberProfileHero', () => {
     expect(css).not.toMatch(/\.heroBackdrop img\s*\{[^}]*object-position:\s*center\s+(?:42|34)%/s)
     expect(css).not.toMatch(/\.heroBio\s*\{[^}]*-webkit-line-clamp/s)
     expect(css).not.toMatch(/\.(?:heroAvatar|heroTitle|heroEyebrow)\s*\{[^}]*font-weight:\s*(?:800|850|900)/s)
+  })
+
+  it.each([
+    {
+      label: 'public DTO',
+      profile: makePublicProfile({
+        member_id: 73,
+        fansub_name: 'Umbenannter Anzeigename',
+        slug: 'gespeicherte-identitaet',
+      }),
+    },
+    {
+      label: 'own DTO',
+      profile: makePrivateProfile({
+        member_id: 73,
+        fansub_name: 'Umbenannter Anzeigename',
+        slug: 'gespeicherte-identitaet',
+      }),
+    },
+  ])('uses the stored canonical slug for the $label public-profile action', ({ profile }) => {
+    render(<MemberProfileHero profile={profile} isPublicView={false} />)
+
+    expect(screen.getByRole('link', { name: /ffentliches Profil ansehen/ }).getAttribute('href')).toBe(
+      '/members/gespeicherte-identitaet',
+    )
+  })
+
+  it('keeps the public-profile URL stable when the nickname changes', () => {
+    const { rerender } = render(
+      <MemberProfileHero
+        profile={makePrivateProfile({ fansub_name: 'Alter Name', slug: 'stabile-identitaet' })}
+        isPublicView={false}
+      />,
+    )
+
+    rerender(
+      <MemberProfileHero
+        profile={makePrivateProfile({ fansub_name: 'Neuer Name', slug: 'stabile-identitaet' })}
+        isPublicView={false}
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: /ffentliches Profil ansehen/ }).getAttribute('href')).toBe(
+      '/members/stabile-identitaet',
+    )
+  })
+
+  it('omits the public-profile action when runtime data has no stored slug', () => {
+    const profileWithoutSlug = {
+      ...makePrivateProfile(),
+      slug: undefined,
+    } as unknown as MemberProfileData
+
+    render(<MemberProfileHero profile={profileWithoutSlug} isPublicView={false} />)
+
+    expect(screen.queryByRole('link', { name: /ffentliches Profil ansehen/ })).toBeNull()
+    expect(document.body.innerHTML).not.toContain('/members/3')
+  })
+
+  it('rejects numeric, nickname-derived, and union-shape fallbacks in the shared hero source', () => {
+    const source = readFileSync('src/components/profile/MemberProfileHero.tsx', 'utf8')
+    const hrefHelper = source.match(/function getPublicProfileHref[\s\S]*?\n\}/)?.[0] ?? ''
+
+    expect(hrefHelper).toContain('profile.slug')
+    expect(hrefHelper).not.toContain('profile.member_id')
+    expect(hrefHelper).not.toContain("'slug' in profile")
+    expect(hrefHelper).not.toMatch(/slugify|normalize|fansub_name|display_name/i)
   })
 
   it('Phase 120 RED: prioritizes both hero background and avatar with differentiated discovery', () => {
