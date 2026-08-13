@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 128-12-PLAN.md
-last_updated: "2026-08-13T16:07:03.376Z"
+stopped_at: Completed 128-13-PLAN.md
+last_updated: "2026-08-13T16:28:20.299Z"
 last_activity: 2026-08-13
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 13
-  percent: 59
+  completed_plans: 14
+  percent: 64
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 13 of 22
+Plan: 15 of 22
 Status: Ready to execute
 Last activity: 2026-08-13
 
@@ -70,6 +70,8 @@ Last activity: 2026-08-13
 - [Phase 128]: Verified AppUserID is the only viewer input to public-member authorization; platform-admin and token roles grant no access.
 - [Phase 128]: Optional-auth member responses vary on Authorization, and viewer-dependent results use private, no-store.
 - [Phase 128]: All seven member-specific GET routes share one MemberProfileRepository access resolver and existing optional-auth middleware.
+- [Phase 128]: The seven public-member operations retain their backend runtime envelopes while sharing optional bearer, neutral 404, and private no-store semantics. — Preserves runtime parity while closing hidden-response and cache drift.
+- [Phase 128]: Public profile ownership is represented only by server-computed viewer facts; the public DTO exposes no app-user identifier. — Prevents client-side ownership inference and public identity leakage.
 
 ### Pending Todos
 
@@ -108,10 +110,11 @@ Last activity: 2026-08-13
 | Phase 128 P10 | 15min | 2 tasks | 6 files |
 | Phase 128 P11 | 13min | 2 tasks | 4 files |
 | Phase 128 P12 | 14min | 2 tasks | 6 files |
+| Phase 128 P13 | 15min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T16:07:03.372Z
-Stopped at: Completed 128-12-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 09
+Last session: 2026-08-13T16:27:13.391Z
+Stopped at: Completed 128-13-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 13
 Resume file: None

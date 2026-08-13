@@ -69,7 +69,7 @@ Plans:
 - [x] 128-12-PLAN.md - Apply the shared visibility gate to projects, contributions, and retained subresources.
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 128-13-PLAN.md - Align OpenAPI, frontend types, and central API helpers with the canonical public contract.
+- [x] 128-13-PLAN.md - Align OpenAPI, frontend types, and central API helpers with the canonical public contract.
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 128-15-PLAN.md - Render the authoritative public profile composition at its canonical route.
@@ -202,7 +202,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 128. Canonical Public Identity & Visibility Foundation | 9/22 | In Progress | - |
+| 128. Canonical Public Identity & Visibility Foundation | 14/22 | In Progress | - |
 | 129. Canonical Public Projections & Data Correctness | 0/TBD | Not started | - |
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
