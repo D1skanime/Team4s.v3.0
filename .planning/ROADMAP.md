@@ -77,7 +77,7 @@ Plans:
 - [x] 128-18-PLAN.md - Reuse the shared profile hero for stored-slug member links.
 
 **Wave 8** *(blocked on Wave 7 completion)*
-- [ ] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
+- [x] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
 - [ ] 128-19-PLAN.md - Keep visibility editing session-safe and synchronized with the canonical preview.
 
 **Wave 9** *(blocked on Wave 8 completion)*
