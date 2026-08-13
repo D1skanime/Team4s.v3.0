@@ -12,7 +12,7 @@ import {
   PUBLIC_MEMBER_BADGE_CATALOG,
   deriveMilestoneBadge,
 } from '@/components/profile/memberBadgeLabels'
-import { SectionHeader } from '@/components/ui'
+import { Button, SectionHeader } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
 import type { PublicMemberProfileData, PublicMemberViewer } from '@/types/profile'
 
@@ -65,6 +65,28 @@ export function MemberProfileContent({
           )}
         </div>
       </div>
+
+      {viewer.is_private_preview ? (
+        <aside className={styles.ownerPreviewNotice} aria-label="Privater Vorschaumodus">
+          <div className={styles.ownerPreviewNoticeContent}>
+            <div className={styles.ownerPreviewNoticeCopy}>
+              <strong>Privates Profil – nur für dich sichtbar</strong>
+              <p>
+                Du siehst die vollständige Vorschau. Andere Personen können dieses
+                Profil nicht öffnen.
+              </p>
+            </div>
+            <div className={styles.ownerPreviewNoticeActions}>
+              <Button href="/me/profile?tab=visibility" variant="primary">
+                Sichtbarkeit ändern
+              </Button>
+              <Button href="/me/profile" variant="secondary">
+                Profil bearbeiten
+              </Button>
+            </div>
+          </div>
+        </aside>
+      ) : null}
 
       <section className={styles.section} aria-label="Profilkopf">
         <MemberProfileHero
