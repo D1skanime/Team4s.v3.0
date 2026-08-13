@@ -49,7 +49,7 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0 completion)*
 - [x] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.
-- [ ] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
+- [x] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 128-04-PLAN.md - Add the immutable canonical public-slug schema and runtime member fields.

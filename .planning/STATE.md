@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Public Member Profile Hardening
 status: executing
-stopped_at: Completed 128-03-PLAN.md
-last_updated: "2026-08-13T12:59:11.977Z"
-last_activity: 2026-08-13 -- Completed Phase 128 Plan 03
+stopped_at: Completed 128-14-PLAN.md
+last_updated: "2026-08-13T13:17:39.628Z"
+last_activity: 2026-08-13 -- Completed Phase 128 Plan 14
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 3
-  percent: 14
+  completed_plans: 4
+  percent: 18
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
 Plan: 4 of 22
 Status: Ready to execute
-Last activity: 2026-08-13 -- Completed Phase 128 Plan 03
+Last activity: 2026-08-13 -- Completed Phase 128 Plan 14
 
 ## Accumulated Context
 
@@ -49,6 +49,8 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 03
 - [Phase 128]: Canonical redirects are tested as syntax-only 308 behavior independent of member existence. — Prevents existence-sensitive redirect behavior from becoming a privacy oracle.
 - [Phase 128]: Refresh-only owner coverage exercises retained member reads through the central browser client. — Keeps UI token-free while proving fresh bearer attachment and no-store inside api.ts.
 - [Phase 128]: Owner preview RED coverage rejects duplicate identity, auth, fetch, slugification, and numeric fallback seams. — The authoritative public DTO and pathname-owned canonical slug remain the only preview authority.
+- [Phase 128]: Member-path redirects normalize only safe stored-slug syntax and never consult identity, visibility, auth, API, or database state.
+- [Phase 128]: Numeric, malformed, separator-bearing, control, double-encoded, and non-ASCII member segments pass through without redirect.
 
 ### Pending Todos
 
@@ -77,10 +79,11 @@ Last activity: 2026-08-13 -- Completed Phase 128 Plan 03
 | Phase 128 P01 | 29m | 3 tasks | 4 files |
 | Phase 128 P02 | 15m | 2 tasks | 4 files |
 | Phase 128 P03 | 16m | 2 tasks | 5 files |
+| Phase 128 P14 | 13m | 1 task | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-08-13T12:59:11.973Z
-Stopped at: Completed 128-03-PLAN.md
-Last activity: 2026-08-13 - Completed Phase 128 Plan 03
+Last session: 2026-08-13T13:17:39.624Z
+Stopped at: Completed 128-14-PLAN.md
+Last activity: 2026-08-13 - Completed Phase 128 Plan 14
 Resume file: None
