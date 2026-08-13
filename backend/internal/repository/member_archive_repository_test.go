@@ -1,9 +1,28 @@
 package repository
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
+
+func TestArchiveUsesCanonicalStoredMemberSlug(t *testing.T) {
+	contentBytes, err := os.ReadFile("member_archive_repository.go")
+	if err != nil {
+		t.Fatalf("read member_archive_repository.go: %v", err)
+	}
+	content := strings.ToLower(string(contentBytes))
+	compact := strings.Join(strings.Fields(content), " ")
+
+	if !strings.Contains(compact, "m.public_slug as slug") {
+		t.Fatal("archive projection must select the stored members.public_slug directly")
+	}
+	for _, forbidden := range []string{"memberslugexpr", "regexp_replace", "coalesce(m.public_slug", "id::text"} {
+		if strings.Contains(content, forbidden) {
+			t.Fatalf("archive projection must not contain generated or fallback identity fragment %q", forbidden)
+		}
+	}
+}
 
 // TestArchiveVisibilityFilter prueft, dass die SearchMembers-Query alle drei
 // Sichtbarkeits-Bedingungen enthaelt (Source-Inspection-Test, keine echte DB benoetigt).
