@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 import type { MemberProfileResponse } from '@/types/profile'
+import { formatProfileVisibilityLabel } from '@/lib/profileLabels'
 
 const getOwnProfileMock = vi.fn()
 const getMyMemberClaimMock = vi.fn()
@@ -144,6 +145,8 @@ import MyProfilePage from './page'
 
 const ownProfilePageSource = readFileSync('src/app/me/profile/page.tsx', 'utf8')
 const ownProfileHeroSource = readFileSync('src/app/me/profile/components/MemberProfileHero.tsx', 'utf8')
+const visibilityCardSource = readFileSync('src/app/me/profile/components/VisibilityCard.tsx', 'utf8')
+const profileLabelsSource = readFileSync('src/lib/profileLabels.ts', 'utf8')
 
 beforeEach(() => {
   useAuthSessionMock.mockReturnValue({
@@ -426,6 +429,28 @@ describe('MyProfilePage', () => {
     expect(screen.getByRole('link', { name: /Profil ansehen/i }).getAttribute('href')).toBe('/members/mikafx')
     expect(screen.getByRole('link', { name: /Profil ansehen/i }).getAttribute('href')).not.toMatch(/\/members\/4$/)
     expect(screen.queryByText('Anmeldung erforderlich')).toBeNull()
+  })
+
+  it('offers only the approved public and private profile visibility choices', async () => {
+    getOwnProfileMock.mockResolvedValue(makeProfileResponse())
+
+    render(<MyProfilePage />)
+
+    await openProfileTab('Sichtbarkeit')
+    const visibilityOptions = await screen.findAllByRole('radio')
+    expect(visibilityOptions.map((option) => option.getAttribute('value'))).toEqual(['public', 'private'])
+    expect(screen.getByText('Öffentlich')).not.toBeNull()
+    expect(screen.getByText('Alle können dein Profil über den kanonischen Link ansehen.')).not.toBeNull()
+    expect(screen.getByText('Privat')).not.toBeNull()
+    expect(screen.getByText('Nur du kannst dein Profil über den kanonischen Link als Vorschau ansehen.')).not.toBeNull()
+    expect(formatProfileVisibilityLabel('private')).toBe('Privat')
+    expect(screen.queryByText('Nur für Mitglieder')).toBeNull()
+  })
+
+  it('keeps the visibility production owners free of the legacy members-only alias', () => {
+    expect(visibilityCardSource).not.toContain('members_only')
+    expect(profileLabelsSource).not.toContain('members_only')
+    expect(profileLabelsSource).not.toContain('Nur für Mitglieder')
   })
 
   it('shows the login action when the profile session is rejected', async () => {
