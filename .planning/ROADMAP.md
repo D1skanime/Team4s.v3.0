@@ -72,7 +72,7 @@ Plans:
 - [x] 128-13-PLAN.md - Align OpenAPI, frontend types, and central API helpers with the canonical public contract.
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 128-15-PLAN.md - Render the authoritative public profile composition at its canonical route.
+- [x] 128-15-PLAN.md - Render the authoritative public profile composition at its canonical route.
 - [ ] 128-17-PLAN.md - Remove numeric member-link fallbacks from own-profile projections.
 - [ ] 128-18-PLAN.md - Reuse the shared profile hero for stored-slug member links.
 
