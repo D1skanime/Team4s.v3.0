@@ -138,6 +138,7 @@ export function OwnHiddenProfilePreview() {
       profile={state.response.data}
       storedSlug={slug}
       viewer={state.response.viewer}
+      viewerResolved
     />
   )
 }

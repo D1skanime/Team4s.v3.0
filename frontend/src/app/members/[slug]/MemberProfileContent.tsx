@@ -1,6 +1,5 @@
 import Link from 'next/link'
 
-import { CorrectionReportModal } from '@/components/profile/CorrectionReportModal'
 import { LatestContributionsSection } from '@/components/profile/LatestContributionsSection'
 import { MemberBadgeChain } from '@/components/profile/MemberBadgeChain'
 import { MemberCurrentProjectsSection } from '@/components/profile/MemberCurrentProjectsSection'
@@ -23,12 +22,14 @@ type MemberProfileContentProps = {
   profile: PublicMemberProfileData
   storedSlug: string
   viewer: PublicMemberViewer
+  viewerResolved?: boolean
 }
 
 export function MemberProfileContent({
   profile,
   storedSlug,
   viewer,
+  viewerResolved = false,
 }: MemberProfileContentProps) {
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
@@ -55,14 +56,13 @@ export function MemberProfileContent({
           <span>{profile.fansub_name}</span>
         </nav>
         <div className={styles.toolbarActions}>
-          {viewer?.is_owner ? (
-            <OwnProfileEditLink publicMemberId={profile.member_id} />
-          ) : (
-            <CorrectionReportModal
-              memberId={profile.member_id}
-              memberName={profile.fansub_name}
-            />
-          )}
+          <OwnProfileEditLink
+            storedSlug={storedSlug}
+            publicMemberId={profile.member_id}
+            memberName={profile.fansub_name}
+            initialViewer={viewer}
+            viewerResolved={viewerResolved}
+          />
         </div>
       </div>
 
