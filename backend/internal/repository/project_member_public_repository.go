@@ -32,12 +32,12 @@ type ProjectMemberCounts struct {
 
 // ProjectMemberSummary sind Hero-Daten + Rollen + Counts fuer die Projekt-Member-Seite.
 type ProjectMemberSummary struct {
-	MemberID          int64    `json:"member_id"`
-	MemberSlug        *string  `json:"member_slug"`
-	MemberDisplayName string   `json:"member_display_name"`
-	MemberAvatarURL   *string  `json:"member_avatar_url"`
-	IsVerified        bool     `json:"is_verified"`
-	RoleLabels        []string `json:"role_labels"`
+	MemberID          int64               `json:"member_id"`
+	MemberSlug        *string             `json:"member_slug"`
+	MemberDisplayName string              `json:"member_display_name"`
+	MemberAvatarURL   *string             `json:"member_avatar_url"`
+	IsVerified        bool                `json:"is_verified"`
+	RoleLabels        []string            `json:"role_labels"`
 	Counts            ProjectMemberCounts `json:"counts"`
 }
 
@@ -87,7 +87,7 @@ type ProjectMemberRelease struct {
 // Beziehung zu (anime, group) hat. exists=false => Handler liefert 404 (D-10). Eine gueltige
 // Beziehung ohne oeffentliche Detailbeitraege bleibt exists=true (Empty-State, kein 404).
 func (r *ProjectMemberPublicRepository) ResolveMemberRelation(ctx context.Context, animeID, groupID int64, memberSlug string) (int64, bool, error) {
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
+	slugCol := `NULLIF(LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(m.nickname), '[^a-z0-9]+', '-', 'gi'))), '')`
 	var memberID int64
 	err := r.db.QueryRow(ctx, `
 		SELECT m.id FROM members m
@@ -125,7 +125,7 @@ func (r *ProjectMemberPublicRepository) ResolveMemberRelation(ctx context.Contex
 
 // GetSummary liefert Hero-Daten, aggregierte Rollen und die vier Counts (nur oeffentliche Inhalte).
 func (r *ProjectMemberPublicRepository) GetSummary(ctx context.Context, animeID, groupID, memberID int64) (*ProjectMemberSummary, error) {
-	slugCol := fmt.Sprintf(memberSlugExpr, "m.nickname")
+	slugCol := `NULLIF(LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(m.nickname), '[^a-z0-9]+', '-', 'gi'))), '')`
 	displayCol := fmt.Sprintf(memberDisplayExpr, "m", "m")
 
 	s := &ProjectMemberSummary{RoleLabels: make([]string, 0)}

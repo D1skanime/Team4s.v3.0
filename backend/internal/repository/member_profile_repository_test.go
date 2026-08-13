@@ -365,10 +365,10 @@ func TestPublicMemberProfileResolvedIDAndStoredSlugSourceInvariants(t *testing.T
 	assert.NotContains(t, updateBody, "public_slug",
 		"profile edits must never rewrite immutable public identity")
 
-	assert.Equal(t, 1, strings.Count(content, "deriveMemberSlug("),
-		"deriveMemberSlug may remain temporarily as a definition only")
-	assert.Equal(t, 1, strings.Count(content, "normalizeMemberProfileSlug("),
-		"normalizeMemberProfileSlug may remain temporarily as a definition only")
+	assert.NotContains(t, content, "deriveMemberSlug(",
+		"legacy derived nickname slug helper must be removed")
+	assert.NotContains(t, content, "normalizeMemberProfileSlug(",
+		"legacy normalized nickname slug helper must be removed")
 	assert.NotContains(t, content, "findPublicMemberProfileByNormalizedSlug",
 		"the O(n) nickname-normalized fallback must be removed")
 }

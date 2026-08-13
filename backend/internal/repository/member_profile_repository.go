@@ -9,13 +9,11 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"unicode"
 
 	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/text/unicode/norm"
 )
 
 var (
@@ -1700,29 +1698,6 @@ func (r *MemberProfileRepository) publicURLForPath(filePath string) string {
 		trimmed = "/" + trimmed
 	}
 	return r.publicBaseURL + trimmed
-}
-
-// deriveMemberSlug spiegelt den SQL memberSlugExpr
-// (LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(nickname),'[^a-z0-9]+','-','gi'))))
-// exakt: zuerst lowercasen (damit der case-insensitive [^a-z0-9]+-Filter greift),
-// dann alle Nicht-[a-z0-9]-Sequenzen zu '-', schließlich '-' am Rand trimmen.
-// Bewusst KEIN NFD-Diakritika-Stripping (anders als normalizeMemberProfileSlug),
-// damit das Ergebnis bit-identisch zum kanonischen Public-Slug bleibt (GAP-9/T-74-08-DRIFT).
-func deriveMemberSlug(nickname string) string {
-	lowered := strings.ToLower(strings.TrimSpace(nickname))
-	return strings.Trim(memberSlugNonAlphanumeric.ReplaceAllString(lowered, "-"), "-")
-}
-
-func normalizeMemberProfileSlug(value string) string {
-	normalized := norm.NFD.String(strings.ToLower(strings.TrimSpace(value)))
-	runes := make([]rune, 0, len(normalized))
-	for _, r := range normalized {
-		if unicode.Is(unicode.Mn, r) {
-			continue
-		}
-		runes = append(runes, r)
-	}
-	return strings.Trim(memberSlugNonAlphanumeric.ReplaceAllString(string(runes), "-"), "-")
 }
 
 func normalizeOptionalString(value *string) *string {

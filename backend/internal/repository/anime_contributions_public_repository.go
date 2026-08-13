@@ -2,16 +2,8 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
-
-	"github.com/jackc/pgx/v5"
 )
-
-// memberSlugExpr derives a URL slug from members.nickname.
-// LOWER(TRIM-dashes(REGEXP_REPLACE non-alphanumeric -> '-')); empty -> NULL via NULLIF.
-// %s is replaced by the qualified nickname column (e.g. "m.nickname").
-const memberSlugExpr = `NULLIF(LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(%s), '[^a-z0-9]+', '-', 'gi'))), '')`
 
 // memberDisplayExpr resolves the member display name.
 // %s is replaced by the table alias (e.g. "m").
@@ -283,28 +275,12 @@ func (r *AnimeContributionsRepository) GetPublicGroupContributions(ctx context.C
 
 // --- (C) GET /members/:slug/contributions ---
 
-// GetPublicMemberContributions returns a member's public role timeline (group history + anime
-// contributions) resolved by the derived member slug. Returns an empty timeline (HTTP 200) when
-// no member matches the slug.
-func (r *AnimeContributionsRepository) GetPublicMemberContributions(ctx context.Context, memberSlug string) (*PublicMemberContributionsResponse, error) {
+// GetPublicMemberContributionsByID returns the public role timeline for a member whose
+// canonical identity and visibility were already resolved by the handler access boundary.
+func (r *AnimeContributionsRepository) GetPublicMemberContributionsByID(ctx context.Context, memberID int64) (*PublicMemberContributionsResponse, error) {
 	resp := &PublicMemberContributionsResponse{
 		RoleTimeline:  make([]PublicMemberRoleEntry, 0),
 		HasUnverified: false,
-	}
-
-	resolveExpr := `LOWER(TRIM(BOTH '-' FROM REGEXP_REPLACE(TRIM(nickname), '[^a-z0-9]+', '-', 'gi')))`
-	var memberID int64
-	err := r.db.QueryRow(ctx, `
-		SELECT id FROM members
-		WHERE `+resolveExpr+` = $1 OR id::text = $1
-		ORDER BY CASE WHEN `+resolveExpr+` = $1 THEN 0 ELSE 1 END, id ASC
-		LIMIT 1
-	`, memberSlug).Scan(&memberID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return resp, nil
-		}
-		return nil, fmt.Errorf("public member contributions: resolve slug: %w", err)
 	}
 
 	// resolved_user spiegelt member->app_user-Auflösung aus member_profile_repository
