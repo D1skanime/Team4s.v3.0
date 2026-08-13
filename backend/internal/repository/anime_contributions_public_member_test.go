@@ -5,6 +5,33 @@ import (
 	"testing"
 )
 
+func TestPublicContributionMemberSlugProjectionUsesStoredIdentity(t *testing.T) {
+	content := readRepositorySource(t, "anime_contributions_public_repository.go")
+	start := strings.Index(content, "func (r *AnimeContributionsRepository) GetPublicAnimeContributions")
+	end := strings.Index(content, "func (r *AnimeContributionsRepository) GetPublicMemberContributions")
+	if start < 0 || end < 0 || end <= start {
+		t.Fatal("outbound contribution projection section not found")
+	}
+
+	outbound := strings.ToLower(content[start:end])
+	const storedSlugProjection = "case when m.profile_visibility = 'public' then m.public_slug else null end"
+	if count := strings.Count(outbound, storedSlugProjection); count != 2 {
+		t.Fatalf("outbound contribution projections contain %d stored public_slug selections, want 2", count)
+	}
+	if strings.Contains(outbound, "fmt.sprintf(memberslugexpr") {
+		t.Fatal("outbound contribution projections still use memberSlugExpr")
+	}
+	if strings.Contains(outbound, "regexp_replace") {
+		t.Fatal("outbound contribution projections still derive member slugs from nickname")
+	}
+	if strings.Contains(outbound, "coalesce(m.public_slug") {
+		t.Fatal("outbound contribution projections must not fall back from public_slug")
+	}
+	if count := strings.Count(outbound, "m.profile_visibility, m.public_slug"); count != 2 {
+		t.Fatalf("outbound contribution projections contain %d visibility/slug grouping clauses, want 2", count)
+	}
+}
+
 // TestPublicMemberContributionsGroupHistoryBranch: Source-Fragment-Test gegen
 // anime_contributions_public_repository.go. Stellt sicher, dass GetPublicMemberContributions
 // den 3. UNION-Branch (aktuelle App-Gruppenrollen, GAP-3/D-06) und die notes-Projektion (GAP-2/D-07)
