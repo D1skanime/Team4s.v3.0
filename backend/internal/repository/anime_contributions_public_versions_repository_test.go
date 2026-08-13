@@ -30,6 +30,28 @@ func normalizeWhitespace(s string) string {
 	return strings.Join(strings.Fields(s), " ")
 }
 
+func TestPublicContributionVersionsMemberSlugProjectionUsesStoredIdentity(t *testing.T) {
+	content := readPublicVersionsSource(t, "anime_contributions_public_versions_repository.go")
+	normalized := strings.ToLower(content)
+	const storedSlugProjection = "case when m.profile_visibility = 'public' then m.public_slug else null end as member_slug"
+
+	if count := strings.Count(normalized, storedSlugProjection); count != 1 {
+		t.Fatalf("version contribution projection contains %d stored public_slug selections, want 1", count)
+	}
+	if strings.Contains(normalized, "memberslugexpr") {
+		t.Fatal("version contribution projection still uses memberSlugExpr")
+	}
+	if strings.Contains(normalized, "regexp_replace") {
+		t.Fatal("version contribution projection still derives member slugs from nickname")
+	}
+	if strings.Contains(normalized, "coalesce(m.public_slug") {
+		t.Fatal("version contribution projection must not fall back from public_slug")
+	}
+	if !strings.Contains(normalized, "m.profile_visibility, m.public_slug") {
+		t.Fatal("version contribution projection does not group by stored slug visibility columns")
+	}
+}
+
 // TestPublicAnimeContributionsVersionBreakdown_MethodExists verifiziert, dass die
 // Ebene-2-Aggregationsmethode attachVersionBreakdowns am Repository-Receiver definiert ist.
 func TestPublicAnimeContributionsVersionBreakdown_MethodExists(t *testing.T) {
