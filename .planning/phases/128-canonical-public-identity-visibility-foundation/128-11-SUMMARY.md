@@ -64,6 +64,7 @@ metrics:
 2. **Task 1 GREEN: Shared public member access utility** - `c03295f6` (feat)
 3. **Task 2 RED: Deny-first profile/projects behavior** - `ff0c0d8c` (test)
 4. **Task 2 GREEN: Profile/projects handler rewire** - `66fc02dd` (feat)
+5. **Recovery: Exclude pre-staged frontend changes** - `50a536d8` (chore)
 
 ## Files Created/Modified
 
@@ -99,6 +100,7 @@ metrics:
 
 - The exact planned package test, whole-backend compile-only test, and package-wide handler/server vet currently fail at `contributions_public_handler.go:67` (`GetPublicMemberContributions`) and `project_member_public_handler.go:66` (`ResolveMemberRelation`). Plan 128-12 explicitly owns replacing both calls with the resolved-ID seams.
 - Two early remote commands containing shell regex substitutions were intercepted by local PowerShell quoting. They failed before changing repository state and were rerun with safe scoped commands.
+- The first metadata commit captured two unrelated pre-staged frontend files; corrective commit `50a536d8` removed only those committed hunks and restored their exact original staged/unstaged state.
 
 ## Verification
 
@@ -132,7 +134,7 @@ None - no external service configuration required.
 
 ## Self-Check: PASSED
 
-All three implementation/test files exist, all four task commits exist in Git, focused compilation/tests/vet pass, source/stub/diff checks pass, and the sole package-wide verification gap is precisely documented in its owning next plan.
+All three implementation/test files exist, all task and recovery commits exist in Git, focused compilation/tests/vet pass, source/stub/diff checks pass, and the sole package-wide verification gap is precisely documented in its owning next plan.
 
 ---
 *Phase: 128-canonical-public-identity-visibility-foundation*
