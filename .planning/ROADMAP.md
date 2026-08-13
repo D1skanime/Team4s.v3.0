@@ -63,7 +63,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 128-10-PLAN.md - Convert project and contribution detail loaders to resolved member identity.
-- [ ] 128-11-PLAN.md - Enforce shared access resolution and cache policy in public profile handlers.
+- [x] 128-11-PLAN.md - Enforce shared access resolution and cache policy in public profile handlers.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 128-12-PLAN.md - Apply the shared visibility gate to projects, contributions, and retained subresources.
