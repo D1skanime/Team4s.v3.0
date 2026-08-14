@@ -11647,8 +11647,6 @@ components:
         - public_badges
         - badge_progress
         - total_points
-        - recent_media
-        - recent_contributions
         - current_projects
         - current_projects_count
         - latest_contributions
@@ -11720,14 +11718,6 @@ components:
           description: >
             Aggregierter Punktestand aus member_point_totals (trigger-maintained,
             Phase 109/D-02). Nie zur Anfragezeit aus point_ledger_entries neu aggregiert.
-        recent_media:
-          type: array
-          items:
-            $ref: "#/components/schemas/MemberProfileRecentMedia"
-        recent_contributions:
-          type: array
-          items:
-            $ref: "#/components/schemas/MemberProfileRecentContribution"
         current_projects:
           type: array
           description: First page of current projects; use the projects endpoint for subsequent pages.

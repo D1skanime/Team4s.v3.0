@@ -108,8 +108,6 @@ function makePublicProfileResponse(
       public_badges: [],
       badge_progress: [],
       total_points: 120,
-      recent_media: [],
-      recent_contributions: [],
       current_projects: [],
       latest_contributions: [],
       previous_contributions: [],

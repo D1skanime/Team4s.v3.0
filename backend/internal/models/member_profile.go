@@ -287,8 +287,6 @@ type PublicMemberProfile struct {
 	BadgeProgress []PublicMemberBadgeProgress `json:"badge_progress"`
 
 	TotalPoints                int64                              `json:"total_points"`
-	RecentMedia                []MemberProfileRecentMedia         `json:"recent_media"`
-	RecentContributions        []MemberProfileRecentContribution  `json:"recent_contributions"`
 	CurrentProjects            []PublicMemberCurrentProject       `json:"current_projects"`
 	CurrentProjectsCount       int                                `json:"current_projects_count"`
 	LatestContributions        []PublicMemberLatestContribution   `json:"latest_contributions"`

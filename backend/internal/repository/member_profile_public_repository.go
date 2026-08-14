@@ -84,8 +84,6 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 		Memberships:                []models.MemberProfileMembership{},
 		PublicBadges:               []models.PublicMemberBadge{},
 		BadgeProgress:              []models.PublicMemberBadgeProgress{},
-		RecentMedia:                []models.MemberProfileRecentMedia{},
-		RecentContributions:        []models.MemberProfileRecentContribution{},
 		CurrentProjects:            []models.PublicMemberCurrentProject{},
 		LatestContributions:        []models.PublicMemberLatestContribution{},
 		PreviousContributions:      []models.PublicMemberPreviousContribution{},
@@ -121,14 +119,6 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 		return nil, loadErr
 	}
 	profile.BadgeProgress, loadErr = r.loadBadgeProgress(ctx, row.memberID, profile.TotalPoints)
-	if loadErr != nil {
-		return nil, loadErr
-	}
-	profile.RecentMedia, loadErr = r.loadRecentMedia(ctx, row.memberID)
-	if loadErr != nil {
-		return nil, loadErr
-	}
-	profile.RecentContributions, loadErr = r.loadRecentContributions(ctx, row.memberID, true)
 	if loadErr != nil {
 		return nil, loadErr
 	}

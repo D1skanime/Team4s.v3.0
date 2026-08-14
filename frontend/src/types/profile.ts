@@ -241,8 +241,6 @@ export interface PublicMemberProfileData {
   badge_progress: PublicMemberBadgeProgress[]
   /** Gesamtpunktzahl aus member_point_totals, nie im Frontend neu aggregiert (D-02/Phase 110-02). */
   total_points: number
-  recent_media: MemberProfileRecentMedia[]
-  recent_contributions: MemberProfileRecentContribution[]
   current_projects?: PublicMemberCurrentProject[]
   current_projects_count?: number
   latest_contributions?: PublicMemberLatestContribution[]

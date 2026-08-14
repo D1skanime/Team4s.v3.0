@@ -144,8 +144,6 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 		"release_member_roles and anime_contributions credit rows must be combined via UNION ALL")
 	assert.True(t, strings.Contains(content, "r.loadRecentContributions(ctx, base.MemberID, false)"),
 		"own profile reads must load all confirmed contributions regardless of the public-profile flag")
-	assert.True(t, strings.Contains(content, "r.loadRecentContributions(ctx, row.memberID, true)"),
-		"public profile reads must only load contributions flagged as public")
 
 	assert.True(t, strings.Contains(content, "worked_release_version_count"),
 		"recent contributions must expose a worked_release_version_count column distinguishing real work from role credit")

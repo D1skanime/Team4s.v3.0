@@ -19,6 +19,8 @@ func (r *MemberProfileRepository) loadRecentMedia(ctx context.Context, memberID 
 			COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text))
 		FROM release_version_media rvm
 		JOIN media_assets ma ON ma.id = rvm.media_asset_id
+		JOIN visibilities v ON v.id = ma.visibility_id AND v.name = 'public'
+		JOIN review_statuses rs ON rs.id = ma.review_status_id AND rs.code = 'approved'
 		JOIN release_versions rv ON rv.id = rvm.release_version_id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
 		JOIN episodes e ON e.id = fr.episode_id
