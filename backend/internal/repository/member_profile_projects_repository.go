@@ -124,6 +124,10 @@ func (r *MemberProfileRepository) countCurrentProjects(ctx context.Context, memb
 			  AND ac.status = 'confirmed'
 			  AND ac.is_public_on_member_profile = true
 			  AND ac.ended_year IS NULL
+			  AND EXISTS (
+				SELECT 1 FROM anime_contribution_roles acr
+				WHERE acr.anime_contribution_id = ac.id
+			  )
 			GROUP BY ac.anime_id, ac.fansub_group_id
 		) projects
 	`, memberID).Scan(&total)
