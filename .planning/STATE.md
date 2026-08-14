@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 128-19-PLAN.md
-last_updated: "2026-08-13T18:16:38.007Z"
-last_activity: 2026-08-13
+stopped_at: Completed 128-21-PLAN.md (Plan 22 live UAT pending)
+last_updated: "2026-08-14T05:57:35.000Z"
+last_activity: 2026-08-14
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 22
-  completed_plans: 19
-  percent: 86
+  completed_plans: 21
+  percent: 95
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 20 of 22
-Status: Ready to execute
-Last activity: 2026-08-13
+Plan: 22 of 22
+Status: Plans 20-21 done (reset+migrate+reseed, prod-build regression fixed); Plan 22 live UAT pending
+Last activity: 2026-08-14
 
 ## Accumulated Context
 
