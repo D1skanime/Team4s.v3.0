@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ChevronDown, Eye, Pencil, RotateCw, Save } from 'lucide-react'
 
@@ -166,7 +166,7 @@ function EditableProfileHeader({
   )
 }
 
-export default function MyProfilePage() {
+function MyProfilePageContent() {
   const searchParams = useSearchParams()
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [profile, setProfile] = useState<MemberProfileData | null>(null)
@@ -770,5 +770,14 @@ export default function MyProfilePage() {
         </>
       ) : null}
     </main>
+  )
+}
+
+
+export default function MyProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <MyProfilePageContent />
+    </Suspense>
   )
 }
