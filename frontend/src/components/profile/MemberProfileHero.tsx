@@ -69,7 +69,7 @@ function deriveKnownForFromPublicProfile(profile: MemberProfileData | PublicMemb
   const roles = new Map<string, number>()
   for (const project of profile.current_projects ?? []) {
     for (const role of project.roles ?? []) {
-      const label = role.trim()
+      const label = role.label_de.trim()
       if (!label) continue
       roles.set(label, (roles.get(label) ?? 0) + 1)
     }

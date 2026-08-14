@@ -37,7 +37,7 @@ const previousItems: PublicMemberPreviousContribution[] = [
     fansub_group_name: 'AnimeOwnage',
     started_year: 2014,
     ended_year: 2017,
-    roles: ['Übersetzung', 'Timing'],
+    roles: [{ code: 'translator', label_de: 'Übersetzung' }, { code: 'timer', label_de: 'Timing' }],
   },
   {
     anime_id: 32,
@@ -46,7 +46,7 @@ const previousItems: PublicMemberPreviousContribution[] = [
     fansub_group_name: 'AnimeOwnage',
     started_year: null,
     ended_year: Number.NaN,
-    roles: ['Encoding'],
+    roles: [{ code: 'encoder', label_de: 'Encoding' }],
   },
 ]
 

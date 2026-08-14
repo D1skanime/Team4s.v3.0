@@ -204,6 +204,14 @@ type PublicMemberBadgeProgress struct {
 	Complete       bool    `json:"complete"`
 }
 
+// PublicMemberRole ist ein stabiles Rollen-Code+Label-Paar (D-06): der Code steuert
+// clientseitiges Styling, label_de traegt die serverseitige, autoritative Anzeige.
+// Analog zu role_codes+role_labels in anime_contributions_public_repository.go.
+type PublicMemberRole struct {
+	Code    string `json:"code"`
+	LabelDe string `json:"label_de"`
+}
+
 type PublicMemberProjectReleaseVersion struct {
 	ReleaseVersionID    int64    `json:"release_version_id"`
 	ReleaseVersionLabel string   `json:"release_version_label"`
@@ -211,7 +219,7 @@ type PublicMemberProjectReleaseVersion struct {
 	Title               *string  `json:"title,omitempty"`
 	EpisodeNumber       string   `json:"episode_number"`
 	EpisodeTitle        *string  `json:"episode_title,omitempty"`
-	Roles               []string `json:"roles"`
+	Roles               []PublicMemberRole `json:"roles"`
 }
 
 type PublicMemberCurrentProject struct {
@@ -220,7 +228,7 @@ type PublicMemberCurrentProject struct {
 	CoverURL           *string                             `json:"cover_url,omitempty"`
 	FansubGroupID      int64                               `json:"fansub_group_id"`
 	FansubGroupName    string                              `json:"fansub_group_name"`
-	Roles              []string                            `json:"roles"`
+	Roles              []PublicMemberRole                            `json:"roles"`
 	ReleaseVersions    []PublicMemberProjectReleaseVersion `json:"release_versions"`
 	IsProjectLevel     bool                                `json:"is_project_level"`
 	ContributionStatus string                              `json:"contribution_status"`
@@ -259,7 +267,7 @@ type PublicMemberPreviousContribution struct {
 	AnimeTitle      string   `json:"anime_title"`
 	FansubGroupID   int64    `json:"fansub_group_id"`
 	FansubGroupName string   `json:"fansub_group_name"`
-	Roles           []string `json:"roles"`
+	Roles           []PublicMemberRole `json:"roles"`
 	StartedYear     *int32   `json:"started_year,omitempty"`
 	EndedYear       int32    `json:"ended_year"`
 }

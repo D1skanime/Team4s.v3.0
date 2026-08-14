@@ -161,6 +161,12 @@ export interface PublicMemberBadgeProgress {
   complete: boolean
 }
 
+/** Stabiles Rollen-Code+Label-Paar (D-06): code steuert Styling, label_de ist serverautoritativ. */
+export interface PublicMemberRole {
+  code: string
+  label_de: string
+}
+
 export interface PublicMemberProjectReleaseVersion {
   release_version_id: number
   release_version_label: string
@@ -168,7 +174,7 @@ export interface PublicMemberProjectReleaseVersion {
   title?: string | null
   episode_number: string
   episode_title?: string | null
-  roles: string[]
+  roles: PublicMemberRole[]
 }
 
 export interface PublicMemberCurrentProject {
@@ -177,7 +183,7 @@ export interface PublicMemberCurrentProject {
   cover_url?: string | null
   fansub_group_id: number
   fansub_group_name: string
-  roles: string[]
+  roles: PublicMemberRole[]
   release_versions: PublicMemberProjectReleaseVersion[]
   is_project_level: boolean
   contribution_status: 'confirmed'
@@ -208,7 +214,7 @@ export interface PublicMemberPreviousContribution {
   anime_title: string
   fansub_group_id: number
   fansub_group_name: string
-  roles: string[]
+  roles: PublicMemberRole[]
   started_year?: number | null
   ended_year: number
 }

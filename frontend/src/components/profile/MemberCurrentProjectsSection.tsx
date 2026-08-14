@@ -8,7 +8,6 @@ import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
 import { getMemberProjects, resolveApiUrl } from '@/lib/api'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberCurrentProject } from '@/types/profile'
 
 import styles from './MemberCurrentProjectsSection.module.css'
@@ -20,15 +19,20 @@ type MemberCurrentProjectsSectionProps = {
 }
 
 const PROJECT_PAGE_SIZE = 6
-const ROLE_CODE_BY_LABEL = new Map(
-  FANSUB_GROUP_ROLE_OPTIONS.map((option) => [option.label, option.code]),
-)
 
-function roleColorCode(roleLabel: string): string {
-  const roleCode = ROLE_CODE_BY_LABEL.get(roleLabel)
+// STYLED_ROLE_CODES sind die Codes mit dediziertem Accent-Token im CSS-Modul.
+// Codes ausserhalb dieser Menge fallen bewusst auf den neutralen 'other'-Akzent.
+const STYLED_ROLE_CODES = new Set([
+  'fansub_lead', 'project_lead', 'editor', 'translator', 'timer', 'typesetter',
+  'quality_checker', 'encoder', 'raw_provider', 'designer', 'admin',
+])
+
+// roleColorCode leitet die CSS-Rollenfarbe DIREKT vom serverautoritativen Rollen-Code
+// ab (D-06). Kein Label->Code-Reverse-Mapping mehr; nur normalisierte Alias-Codes.
+function roleColorCode(roleCode: string): string {
   if (roleCode === 'techadmin') return 'admin'
   if (roleCode === 'gfxler') return 'designer'
-  return roleCode ?? 'other'
+  return STYLED_ROLE_CODES.has(roleCode) ? roleCode : 'other'
 }
 
 function projectHref(project: PublicMemberCurrentProject): string {
@@ -127,12 +131,12 @@ export function MemberCurrentProjectsSection({
                     <span className={styles.chipRow}>
                       {project.roles.map((role) => (
                         <Badge
-                          key={role}
+                          key={role.code}
                           variant="neutral"
                           className={styles.roleChip}
-                          data-role-code={roleColorCode(role)}
+                          data-role-code={roleColorCode(role.code)}
                         >
-                          {role}
+                          {role.label_de}
                         </Badge>
                       ))}
                       {project.is_project_level ? (

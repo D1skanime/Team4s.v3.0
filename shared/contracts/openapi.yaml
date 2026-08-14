@@ -10960,6 +10960,19 @@ components:
           type: integer
           format: int32
           description: Distinct episodes represented by this anime project card.
+    PublicMemberRole:
+      type: object
+      description: Stabiles Rollen-Code+Label-Paar (D-06); Code steuert Styling, label_de ist serverautoritativ.
+      required:
+        - code
+        - label_de
+      properties:
+        code:
+          type: string
+          description: Stabiler Rollen-Code aus role_definitions.
+        label_de:
+          type: string
+          description: Serverautoritatives deutsches Rollen-Label (role_definitions.label_de).
     PublicMemberProjectReleaseVersion:
       type: object
       required:
@@ -10987,7 +11000,7 @@ components:
         roles:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/PublicMemberRole"
     PublicMemberCurrentProject:
       type: object
       required:
@@ -11016,7 +11029,7 @@ components:
         roles:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/PublicMemberRole"
         release_versions:
           type: array
           items:
@@ -11110,7 +11123,7 @@ components:
         roles:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/PublicMemberRole"
         started_year:
           type: integer
           format: int32

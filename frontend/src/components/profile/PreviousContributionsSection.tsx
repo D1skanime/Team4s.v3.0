@@ -23,7 +23,7 @@ function periodLabel(item: PublicMemberPreviousContribution): string | null {
 }
 
 function displayRoles(item: PublicMemberPreviousContribution): string[] {
-  return item.roles.map((role) => role.trim()).filter(Boolean)
+  return item.roles.map((role) => role.label_de.trim()).filter(Boolean)
 }
 
 export function PreviousContributionsSection({

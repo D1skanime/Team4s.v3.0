@@ -48,7 +48,7 @@ function makeProject(index = 1, overrides: Partial<PublicMemberCurrentProject> =
     cover_url: '/api/v1/media/image?kind=primary',
     fansub_group_id: 100 + index,
     fansub_group_name: `Gruppe ${index}`,
-    roles: ['Typesetting / FX'],
+    roles: [{ code: 'typesetter', label_de: 'Typesetting / FX' }],
     release_versions: [],
     is_project_level: true,
     contribution_status: 'confirmed',
@@ -70,11 +70,11 @@ describe('MemberCurrentProjectsSection', () => {
   })
 
   it('renders every known role with its global accent token, unknown roles as other, and Projektweit neutrally', () => {
-    const roles = FANSUB_GROUP_ROLE_OPTIONS.map((option) => option.label)
+    const roles = FANSUB_GROUP_ROLE_OPTIONS.map((option) => ({ code: option.code, label_de: option.label }))
     const { container } = render(
       <MemberCurrentProjectsSection
         memberSlug="subaru"
-        projects={[makeProject(1, { roles: [...roles, 'Unbekannte Rolle'] })]}
+        projects={[makeProject(1, { roles: [...roles, { code: 'unbekannte_rolle', label_de: 'Unbekannte Rolle' }] })]}
         totalCount={1}
       />,
     )
@@ -82,8 +82,8 @@ describe('MemberCurrentProjectsSection', () => {
     const expectedCodes = FANSUB_GROUP_ROLE_OPTIONS.map(({ code }) => (
       code === 'techadmin' ? 'admin' : code === 'gfxler' ? 'designer' : code
     ))
-    for (const [index, label] of roles.entries()) {
-      expect(screen.getByText(label).getAttribute('data-role-code')).toBe(expectedCodes[index])
+    for (const [index, role] of roles.entries()) {
+      expect(screen.getByText(role.label_de).getAttribute('data-role-code')).toBe(expectedCodes[index])
     }
     expect(screen.getByText('Unbekannte Rolle').getAttribute('data-role-code')).toBe('other')
     expect(screen.getByText('Projektweit').className).toContain('badgeNeutral')

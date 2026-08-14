@@ -291,7 +291,7 @@ describe('MemberProfileHero', () => {
               anime_title: 'Frieren',
               fansub_group_id: 7,
               fansub_group_name: 'Tsuki no Fansubs',
-              roles: ['Timing', 'Typesetting'],
+              roles: [{ code: 'timer', label_de: 'Timing' }, { code: 'typesetter', label_de: 'Typesetting' }],
               release_versions: [],
               is_project_level: false,
               contribution_status: 'confirmed',

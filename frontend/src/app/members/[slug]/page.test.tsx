@@ -146,7 +146,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         cover_url: null,
         fansub_group_id: 7,
         fansub_group_name: 'AnimeOwnage',
-        roles: ['Timing', 'Typesetting'],
+        roles: [{ code: 'timer', label_de: 'Timing' }, { code: 'typesetter', label_de: 'Typesetting' }],
         release_versions: [
           {
             release_version_id: 501,
@@ -155,7 +155,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
             title: null,
             episode_number: '01',
             episode_title: 'Start',
-            roles: ['Timing'],
+            roles: [{ code: 'timer', label_de: 'Timing' }],
           },
         ],
         is_project_level: false,
@@ -183,7 +183,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         anime_title: 'Archiv der Sterne',
         fansub_group_id: 7,
         fansub_group_name: 'AnimeOwnage',
-        roles: ['Übersetzung'],
+        roles: [{ code: 'translator', label_de: 'Übersetzung' }],
         started_year: 2014,
         ended_year: 2017,
       },

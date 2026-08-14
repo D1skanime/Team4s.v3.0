@@ -148,7 +148,11 @@ func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context,
 			COALESCE(a.title_de, a.title_en, a.title, ''),
 			fg.id,
 			COALESCE(fg.name, ''),
-			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS roles,
+			COALESCE(
+				jsonb_agg(DISTINCT jsonb_build_object('code', acr.role_code, 'label_de', COALESCE(rd.label_de, acr.role_code)))
+					FILTER (WHERE acr.role_code IS NOT NULL),
+				'[]'::jsonb
+			) AS roles,
 			MIN(ac.started_year)::int,
 			MAX(ac.ended_year)::int AS ended_year
 		FROM anime_contributions ac
@@ -172,17 +176,19 @@ func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context,
 	items := make([]models.PublicMemberPreviousContribution, 0)
 	for rows.Next() {
 		var item models.PublicMemberPreviousContribution
+		var rolesJSON []byte
 		if err := rows.Scan(
 			&item.AnimeID,
 			&item.AnimeTitle,
 			&item.FansubGroupID,
 			&item.FansubGroupName,
-			&item.Roles,
+			&rolesJSON,
 			&item.StartedYear,
 			&item.EndedYear,
 		); err != nil {
 			return nil, fmt.Errorf("scan previous contribution row: %w", err)
 		}
+		item.Roles = decodeMemberRoles(rolesJSON)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {

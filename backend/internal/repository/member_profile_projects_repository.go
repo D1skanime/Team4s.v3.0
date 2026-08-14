@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"team4s.v3/backend/internal/models"
@@ -20,7 +21,11 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 			) AS cover_path,
 			fg.id,
 			COALESCE(fg.name, ''),
-			COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS roles,
+			COALESCE(
+				jsonb_agg(DISTINCT jsonb_build_object('code', acr.role_code, 'label_de', COALESCE(rd.label_de, acr.role_code)))
+					FILTER (WHERE acr.role_code IS NOT NULL),
+				'[]'::jsonb
+			) AS roles,
 			BOOL_OR(ac.release_version_id IS NULL) AS is_project_level,
 			'confirmed'::text AS contribution_status,
 			MIN(ac.started_year)::int,
@@ -80,13 +85,14 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 	for rows.Next() {
 		var item models.PublicMemberCurrentProject
 		var coverPath *string
+		var rolesJSON []byte
 		if err := rows.Scan(
 			&item.AnimeID,
 			&item.AnimeTitle,
 			&coverPath,
 			&item.FansubGroupID,
 			&item.FansubGroupName,
-			&item.Roles,
+			&rolesJSON,
 			&item.IsProjectLevel,
 			&item.ContributionStatus,
 			&item.StartedYear,
@@ -94,6 +100,7 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		); err != nil {
 			return nil, fmt.Errorf("scan current project row: %w", err)
 		}
+		item.Roles = decodeMemberRoles(rolesJSON)
 		if coverPath != nil {
 			if url := r.publicURLForPath(*coverPath); url != "" {
 				item.CoverURL = &url
@@ -184,13 +191,13 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 			NULLIF(rv.title, '') AS title,
 			COALESCE(ep.episode_number, '') AS episode_number,
 			ep.title AS episode_title,
-			COALESCE(own.roles, ARRAY[]::text[]) AS roles
+			COALESCE(own.roles, '[]'::jsonb) AS roles
 		FROM release_versions rv
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
 		JOIN episodes ep ON ep.id = fr.episode_id
 		LEFT JOIN LATERAL (
-			SELECT COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS roles
+			SELECT COALESCE(jsonb_agg(DISTINCT jsonb_build_object('code', acr.role_code, 'label_de', COALESCE(rd.label_de, acr.role_code))) FILTER (WHERE acr.role_code IS NOT NULL), '[]'::jsonb) AS roles
 			FROM anime_contributions ac
 			LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
@@ -205,7 +212,7 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 		) own ON true
 		WHERE ep.anime_id = $2
 		  AND rvg.fansub_group_id = $3
-		  AND COALESCE(array_length(own.roles, 1), 0) > 0
+		  AND COALESCE(jsonb_array_length(own.roles), 0) > 0
 		ORDER BY COALESCE(ep.sort_index, 2147483647), ep.id, rv.version, rv.id
 	`, memberID, animeID, fansubGroupID)
 	if err != nil {
@@ -216,6 +223,7 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 	items := make([]models.PublicMemberProjectReleaseVersion, 0)
 	for rows.Next() {
 		var item models.PublicMemberProjectReleaseVersion
+		var rolesJSON []byte
 		if err := rows.Scan(
 			&item.ReleaseVersionID,
 			&item.ReleaseVersionLabel,
@@ -223,14 +231,29 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 			&item.Title,
 			&item.EpisodeNumber,
 			&item.EpisodeTitle,
-			&item.Roles,
+			&rolesJSON,
 		); err != nil {
 			return nil, fmt.Errorf("scan current project release version row: %w", err)
 		}
+		item.Roles = decodeMemberRoles(rolesJSON)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate current project release versions anime=%d fansub=%d: %w", animeID, fansubGroupID, err)
 	}
 	return items, nil
+}
+
+// decodeMemberRoles wandelt eine serverseitig aggregierte jsonb-Rollenliste
+// ([{code,label_de}, ...]) in []models.PublicMemberRole; nil/leer -> leeres Slice
+// (nie null im JSON). Serverautoritative Code+Label-Paare (D-06).
+func decodeMemberRoles(raw []byte) []models.PublicMemberRole {
+	roles := make([]models.PublicMemberRole, 0)
+	if len(raw) == 0 {
+		return roles
+	}
+	if err := json.Unmarshal(raw, &roles); err != nil || roles == nil {
+		return []models.PublicMemberRole{}
+	}
+	return roles
 }
