@@ -5,7 +5,7 @@ import type { ImgHTMLAttributes } from 'react'
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile'
+import type { MemberProfileData, PublicMemberProfileData, PublicMemberProfileBackgroundImage } from '@/types/profile'
 
 import { MemberProfileHero } from './MemberProfileHero'
 
@@ -281,10 +281,12 @@ describe('MemberProfileHero', () => {
           bio: 'Timing und Typesetting mit ruhigem Blick für lesbare Releases.',
           is_verified: true,
           total_points: 2840,
+          // simuliert ein Backend, das faelschlich source_original_url mitschickt; das
+          // oeffentliche Shape kennt das Feld nicht mehr (D-01) -> Cast beweist, es rendert nie.
           background_image: {
             public_url: '/media/profile/3/background/current/display.jpg',
             source_original_url: sourceOriginalURL,
-          },
+          } as PublicMemberProfileBackgroundImage,
           current_projects: [
             {
               anime_id: 12,

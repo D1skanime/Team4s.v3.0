@@ -153,7 +153,7 @@ export interface PublicMemberBadge {
   current_tier?: 'entry' | 'bronze' | 'silver' | 'gold' | 'platinum' | null
   next_threshold?: number | null
   remaining_count?: number | null
-  next_tier?: 'bronze' | 'silver' | 'gold' | null
+  next_tier?: 'bronze' | 'silver' | 'gold' | 'platinum' | null
 }
 
 export interface PublicMemberBadgeProgress {
@@ -223,6 +223,34 @@ export interface PublicMemberPreviousContribution {
   ended_year: number
 }
 
+/** Public group membership (allow-list, D-01): ohne interne app_member_status/app_member_roles/historical_member_status. */
+export interface PublicMemberMembership {
+  fansub_group_id: number
+  fansub_group_name: string
+  fansub_group_slug: string
+  logo_url?: string | null
+  group_status: string
+  joined_year?: number | null
+  left_year?: number | null
+  is_current: boolean
+  roles: PublicMemberRole[]
+  has_historical_link: boolean
+}
+
+/** Public background image (allow-list, D-01): nur Anzeige-URL, keine source_original_url. */
+export interface PublicMemberProfileBackgroundImage {
+  public_url: string
+}
+
+/** Standardisierter Fehler-Envelope (D-04); eine Form fuer alle 404/500-Antworten. */
+export interface ApiErrorEnvelope {
+  error: {
+    message: string
+    code?: string
+    details?: string
+  }
+}
+
 export interface PublicMemberProfileData {
   member_id: number
   fansub_name: string
@@ -243,11 +271,8 @@ export interface PublicMemberProfileData {
   avatar?: {
     public_url: string
   } | null
-  background_image?: {
-    public_url: string
-    source_original_url?: string | null
-  } | null
-  memberships: MemberProfileMembership[]
+  background_image?: PublicMemberProfileBackgroundImage | null
+  memberships: PublicMemberMembership[]
   /** Eingebettete öffentliche Badges des angezeigten Members (Badges-13). Nur visibility='public' AND status='active'. */
   public_badges: PublicMemberBadge[]
   /** Autoritative Rohwerte der sechs Badge-Familien; nur in sichtbaren Profilantworten. */

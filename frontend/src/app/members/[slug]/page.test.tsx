@@ -122,8 +122,9 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         group_status: 'active',
         joined_year: 2014,
         left_year: null,
+        is_current: true,
+        roles: [],
         has_historical_link: true,
-        historical_member_status: 'confirmed',
       },
     ],
     public_badges: [

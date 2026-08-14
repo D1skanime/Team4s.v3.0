@@ -54,7 +54,7 @@ function resolveRoleLabel(roleCode: string): string {
   return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === roleCode)?.label ?? roleCode
 }
 
-const CONTRIBUTION_TIER_LABELS = { bronze: 'Bronze', silver: 'Silber', gold: 'Gold' } as const
+const CONTRIBUTION_TIER_LABELS = { bronze: 'Bronze', silver: 'Silber', gold: 'Gold', platinum: 'Platin' } as const
 const COMPACT_BADGE_SIZES = '(max-width: 520px) 72px, 96px'
 const ACTIVE_BADGE_SIZES = '(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px'
 
