@@ -141,7 +141,11 @@ Plans:
   3. Initial and continuation payloads obey documented limits, stable tie-broken ordering, and truthful total/continuation semantics without unused child collections.
   4. Both `sheppert` and `csubs-leader` have reproducible query-count, payload, latency, image-waterfall, and Web-Vitals measurements checked against fixed acceptance budgets.
   5. Every added index has representative `EXPLAIN (ANALYZE, BUFFERS)` evidence, while viewer-specific responses stay separate and shared caching remains absent unless measurement plus complete invalidation justify it.
-**Plans**: TBD
+**Plans**: 8 plans across 4 waves
+  - Wave 1: 131-01 (query-count tracer + characterization), 131-02 (evidence harness + both-profile baseline)
+  - Wave 2: 131-03 (batch per-card N+1 -> constant query budget), 131-04 (tie-broken ordering + honest total), 131-05 (documented enforced page bounds; LIMIT 3 + unbounded previous -> bounded pages)
+  - Wave 3: 131-06 (OpenAPI offset-pagination contract + TS/api parity), 131-07 (viewer/anonymous cache-class separation lock)
+  - Wave 4: 131-08 (re-measure + lock budgets baseline+~20% + evidence-backed indexes only)
 **Plan-time read first**: `backend/internal/repository/member_profile_repository.go`, its PostgreSQL tests, public project/contribution repositories and handlers, `frontend/scripts/collect-member-profile-evidence.mjs`, `shared/contracts/openapi.yaml`, and current API consumers before selecting list bounds or pagination. Inspect existing indexes and both fixture query plans before proposing a migration.
 
 ### Phase 132: Shared SSR Composition & Race-Safe Frontend State
