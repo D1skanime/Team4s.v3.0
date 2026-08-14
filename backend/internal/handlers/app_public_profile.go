@@ -35,9 +35,7 @@ func (h *AppPublicProfileHandler) GetPublicMemberProfile(c *gin.Context) {
 		return
 	}
 	if h.profileLoader == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{"message": "interner serverfehler"},
-		})
+		writeInternalErrorResponse(c, "interner serverfehler", nil, "Profil konnte nicht geladen werden.")
 		return
 	}
 
@@ -71,9 +69,7 @@ func (h *AppPublicProfileHandler) GetPublicMemberProjects(c *gin.Context) {
 		return
 	}
 	if h.projectsLoader == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": gin.H{"message": "interner serverfehler"},
-		})
+		writeInternalErrorResponse(c, "interner serverfehler", nil, "Projekte konnten nicht geladen werden.")
 		return
 	}
 

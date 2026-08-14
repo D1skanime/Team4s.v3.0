@@ -301,3 +301,27 @@ func publicMemberUnavailableResponse() *httptest.ResponseRecorder {
 	writePublicMemberUnavailable(c)
 	return recorder
 }
+
+func TestGetPublicMemberProfileNilLoaderUsesStandardEnvelope(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resolver := &recordingPublicMemberAccessResolver{
+		access: repository.PublicMemberAccess{MemberID: 17, Slug: "public-member"},
+	}
+	handler := NewAppPublicProfileHandler(resolver, nil, nil)
+	recorder, c := publicMemberRequestContext("/api/v1/members/public-member", "public-member")
+
+	handler.GetPublicMemberProfile(c)
+
+	require.Equal(t, http.StatusInternalServerError, recorder.Code)
+	var response struct {
+		Error struct {
+			Message string `json:"message"`
+			Code    string `json:"code"`
+			Details string `json:"details"`
+		} `json:"error"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+	require.Equal(t, "interner serverfehler", response.Error.Message)
+	require.Equal(t, "internal_error", response.Error.Code)
+	require.NotEmpty(t, response.Error.Details)
+}
