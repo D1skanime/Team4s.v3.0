@@ -11633,6 +11633,18 @@ components:
           type: string
           format: date
           nullable: true
+        active_from_year:
+          type: integer
+          format: int32
+          nullable: true
+          description: >
+            Jahr-genaue Aktivperiode (D-02). Gesetzt, wenn nur ein Jahr ohne volles Datum
+            erfasst ist; so bleibt eine reine Jahresangabe von einem echten Datum unterscheidbar.
+        active_until_year:
+          type: integer
+          format: int32
+          nullable: true
+          description: Jahr-genaues Ende der Aktivperiode (D-02); gesetzt nur bei fehlendem vollem Datum.
         is_currently_active:
           type: boolean
         profile_status:

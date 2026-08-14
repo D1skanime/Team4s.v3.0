@@ -41,6 +41,8 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 			m.member_story_html,
 			to_char(m.active_from_date, 'YYYY-MM-DD') AS active_from_date,
 			to_char(m.active_until_date, 'YYYY-MM-DD') AS active_until_date,
+			m.active_from_year,
+			m.active_until_year,
 			COALESCE(m.is_currently_active, false) AS is_currently_active,
 			COALESCE(m.noindex, false) AS noindex,
 			EXISTS(
@@ -58,7 +60,8 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 		WHERE m.id = $1
 	`, memberID).Scan(
 		&row.memberID, &row.publicSlug, &row.fansubName, &row.bio, &row.memberStoryHTML,
-		&row.activeFromDate, &row.activeUntilDate, &row.isCurrentlyActive, &row.noindex,
+		&row.activeFromDate, &row.activeUntilDate, &row.activeFromYear, &row.activeUntilYear,
+		&row.isCurrentlyActive, &row.noindex,
 		&row.isVerified, &row.profileStatus, &row.profileVisibility, &row.avatarPath,
 		&row.backgroundImagePath,
 	)
@@ -76,6 +79,8 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 		MemberStoryHTML:            normalizeLoadedOptionalString(row.memberStoryHTML),
 		ActiveFromDate:             profileActivityDateOrYear(row.activeFromDate, nil),
 		ActiveUntilDate:            profileActivityDateOrYear(row.activeUntilDate, nil),
+		ActiveFromYear:             yearWhenDateAbsent(row.activeFromDate, row.activeFromYear),
+		ActiveUntilYear:            yearWhenDateAbsent(row.activeUntilDate, row.activeUntilYear),
 		IsCurrentlyActive:          row.isCurrentlyActive,
 		Noindex:                    row.noindex,
 		IsVerified:                 row.isVerified,

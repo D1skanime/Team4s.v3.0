@@ -282,6 +282,11 @@ type PublicMemberProfile struct {
 	MemberStoryHTML   *string                   `json:"member_story_html,omitempty"`
 	ActiveFromDate    *string                   `json:"active_from_date,omitempty"`
 	ActiveUntilDate   *string                   `json:"active_until_date,omitempty"`
+	// Jahr-genaue Aktivperiode (D-02): gesetzt, wenn nur ein Jahr (ohne volles Datum)
+	// erfasst ist. So bleibt eine reine Jahresangabe von einem echten Datum unterscheidbar
+	// und wird nie zu YYYY-01-01 verfaelscht.
+	ActiveFromYear    *int32                    `json:"active_from_year,omitempty"`
+	ActiveUntilYear   *int32                    `json:"active_until_year,omitempty"`
 	IsCurrentlyActive bool                      `json:"is_currently_active"`
 	Noindex           bool                      `json:"noindex"`
 	IsVerified        bool                      `json:"is_verified"`

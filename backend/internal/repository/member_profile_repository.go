@@ -23,6 +23,8 @@ type publicMemberProfileBaseRow struct {
 	memberStoryHTML     *string
 	activeFromDate      *string
 	activeUntilDate     *string
+	activeFromYear      *int32
+	activeUntilYear     *int32
 	isCurrentlyActive   bool
 	noindex             bool
 	isVerified          bool
@@ -132,6 +134,16 @@ func isValidProfileActivityRange(from *string, until *string) bool {
 		return true
 	}
 	return *until >= *from
+}
+
+// yearWhenDateAbsent liefert das Jahr NUR, wenn kein volles Datum vorliegt (Jahr-genaue
+// Praezision, D-02). Existiert ein Datum, traegt dieses die Praezision; das Jahr wird
+// weggelassen, damit ein echtes Datum von einer reinen Jahresangabe unterscheidbar bleibt.
+func yearWhenDateAbsent(dateValue *string, yearValue *int32) *int32 {
+	if dateValue != nil && strings.TrimSpace(*dateValue) != "" {
+		return nil
+	}
+	return yearValue
 }
 
 func profileActivityDateOrYear(dateValue *string, yearValue *int32) *string {

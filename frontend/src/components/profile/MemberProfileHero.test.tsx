@@ -347,6 +347,21 @@ describe('MemberProfileHero', () => {
     expect(screen.getByText('Aktiv von 2016 bis 2020')).not.toBeNull()
   })
 
+  it('renders a year-only public activity period without fabricating a full date (D-02)', () => {
+    render(<MemberProfileHero
+      profile={makePublicProfile({
+        active_from_date: null,
+        active_until_date: null,
+        active_from_year: 2015,
+        active_until_year: 2019,
+        is_currently_active: false,
+      })}
+      isPublicView={true}
+    />)
+
+    expect(screen.getByText('Aktiv von 2015 bis 2019')).not.toBeNull()
+  })
+
   it('renders GIF avatars without Next image optimization so animation survives', () => {
     render(
       <MemberProfileHero

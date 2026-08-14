@@ -227,6 +227,9 @@ export interface PublicMemberProfileData {
   member_story_html?: string | null
   active_from_date?: string | null
   active_until_date?: string | null
+  /** Jahr-genaue Aktivperiode (D-02): gesetzt nur bei fehlendem vollem Datum. */
+  active_from_year?: number | null
+  active_until_year?: number | null
   is_currently_active: boolean
   noindex: boolean
   is_verified: boolean

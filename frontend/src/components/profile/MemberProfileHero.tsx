@@ -39,9 +39,19 @@ function getYearFromProfileDate(dateValue?: string | null): string {
   return match?.[1] || ''
 }
 
+// resolveActivityYear liefert das Anzeige-Jahr mit Praezisions-Vorrang (D-02): ein volles
+// Datum gewinnt, sonst greift die jahr-genaue Angabe. So wird eine reine Jahresperiode
+// (z. B. "2015-2019") korrekt gezeigt, ohne ein Datum zu erfinden.
+function resolveActivityYear(dateValue?: string | null, yearValue?: number | null): string {
+  const fromDate = getYearFromProfileDate(dateValue)
+  if (fromDate) return fromDate
+  if (typeof yearValue === 'number' && Number.isFinite(yearValue)) return String(yearValue)
+  return ''
+}
+
 function formatPublicActivity(profile: MemberProfileData | PublicMemberProfileData): string {
-  const activeFromYear = getYearFromProfileDate(profile.active_from_date)
-  const activeUntilYear = getYearFromProfileDate(profile.active_until_date)
+  const activeFromYear = resolveActivityYear(profile.active_from_date, profile.active_from_year)
+  const activeUntilYear = resolveActivityYear(profile.active_until_date, profile.active_until_year)
 
   if (profile.is_currently_active) {
     return activeFromYear ? `Aktuell aktiv seit ${activeFromYear}` : 'Aktuell aktiv'
