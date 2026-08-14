@@ -101,7 +101,12 @@ Plans:
   3. Memberships expose all approved public roles by stable code and label while internal memberships, permissions, source facts, and private media remain absent.
   4. Roles, projects, contributions, and badges appear once by domain identity, and every displayed total matches the visible filtered rows.
   5. Points, badge tiers, and exact progress remain server-authoritative and use only publicly permissible facts; activity heading, filters, count, and "Mehr anzeigen" share the same dataset.
-**Plans**: TBD
+**Plans**: 11 plans across 5 waves
+  - Wave 1: 129-01 (reusable API seed fixture), 129-02 (RED PostgreSQL projection contracts)
+  - Wave 2: 129-03 (behavior-preserving repository split, <=450 lines/file)
+  - Wave 3: 129-04 (count/rows parity), 129-05 (public-facts progress), 129-06 (drop recent_* from public DTO), 129-07 (remove dead /contributions surface)
+  - Wave 4: 129-08 (structured role code+label pairs), 129-09 (year-only precision), 129-10 (canonical membership projection)
+  - Wave 5: 129-11 (full automated gate + seed-backed check)
 **Plan-time read first**: `docs/architecture/db-schema-fansub-domain.md`, `backend/internal/repository/member_profile_repository.go`, `backend/internal/repository/member_profile_progress_repository.go`, `backend/internal/repository/member_profile_contribution_badges_repository.go`, `backend/internal/repository/member_profile_role_volume_repository.go`, `backend/internal/repository/anime_contributions_public_repository.go`, and their PostgreSQL-focused tests. Reuse canonical `hist_fansub_group_members`, `hist_group_member_roles`, `anime_contributions`, `release_version_notes`, `release_version_media`, `member_badges`, and point-total/lifecycle seams; do not create parallel projections.
 
 ### Phase 130: Public DTO & Cross-Layer Contract Alignment

@@ -2239,3 +2239,44 @@
   line-height: 1.3;
   text-align: center;
 }
+
+/* Quick 260812-kr1: the section canvas owns the large achievement surface. */
+.roleBadgeRow,
+.animeProjectStage,
+.pointsAchievementStage,
+.contributionAchievementStage,
+.membershipStage {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The section qualifier wins over the global Card surface regardless of CSS injection order. */
+.group[data-badge-group] :is(
+  .roleBadgeRow,
+  .animeProjectStage,
+  .pointsAchievementStage,
+  .contributionAchievementStage,
+  .membershipStage
+) {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="inactive"] {
+  place-content: center;
+  min-height: 0;
+  padding: 0;
+}
+
+.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="inactive"] :is(
+  .roleLabel,
+  .roleStatus,
+  .roleProgressBlock,
+  .roleProgression
+) {
+  display: none;
+}
