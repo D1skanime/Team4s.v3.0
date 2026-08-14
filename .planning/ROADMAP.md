@@ -121,7 +121,11 @@ Plans:
   3. Visible, hidden, missing, and failure outcomes are documented and parsed identically by handlers, OpenAPI, TypeScript, and the central API helper.
   4. Role, status, and badge-tier enums, including platinum, are complete and consistent in every contract layer.
   5. The Next.js route, metadata, and public profile components compile against the real route and API contracts without fallback fields or duplicate recent-data paths.
-**Plans**: TBD
+**Plans**: 7 plans across 4 waves
+  - Wave 1: 130-01 (OpenAPI canonical public contract: dedicated allow-list schemas + complete enums)
+  - Wave 2: 130-02 (fork Go public DTO structs, decoupled from edit structs), 130-04 (dedicated public TS types + enum unions)
+  - Wave 3: 130-03 (Go handler status branches + one envelope + enum-value parity), 130-05 (api.ts helper + Next.js route parse three branches)
+  - Wave 4: 130-06 (finish recent-* cleanup: sweep orphans, retain internal edit surface), 130-07 (contract-test lock: forbidden-field + OpenAPI schema parity)
 **Plan-time read first**: `docs/api/api-contracts.md`, `backend/internal/models/member_profile.go`, `backend/internal/handlers/app_public_profile.go`, `backend/internal/handlers/contributions_public_handler.go`, `shared/contracts/openapi.yaml`, `frontend/src/types/profile.ts`, `frontend/src/lib/api.ts`, `frontend/src/app/members/[slug]/page.tsx`, and the existing handler/helper/page contract tests.
 **UI hint**: yes
 
