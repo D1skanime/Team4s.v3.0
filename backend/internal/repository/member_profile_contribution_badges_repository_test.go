@@ -402,3 +402,48 @@ func TestContributionProgressCarriesRawBelowExactAndTerminalValues(t *testing.T)
 		}
 	}
 }
+
+// Phase 129 (Plan 02, Wave 1, RED): der "Bildarchivar"-Zaehler (Familie 3) darf nur
+// oeffentlich freigegebene Medien zaehlen (PMDA-06, PMPR-06). loadContribArchivistCount
+// zaehlt heute COUNT(*) ueber release_version_media OHNE Freigabe-/Sichtbarkeitsfilter
+// (nur deleted_at IS NULL + Autor-Seam). Dieser Test nutzt die Phase-129-Voll-Schema-
+// Fixture (openPhase129Postgres); er ist gegen den aktuellen Code bewusst ROT.
+
+// TestPhase129ArchivistCountExcludesUnapprovedPrivateMedia deckt PMDA-06 ab: ein Member
+// mit zwei hochgeladenen release_version_media (eines public+approved, eines private+
+// unapproved) muss im Archivar-Zaehler genau 1 ergeben. Der aktuelle Code zaehlt 2
+// (Sichtbarkeit/Review ignoriert) -> ROT. Nach dem Fix (media_assets-Visibility-/Review-
+// Filter) zaehlt er 1.
+func TestPhase129ArchivistCountExcludesUnapprovedPrivateMedia(t *testing.T) {
+	pool := openPhase129Postgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	// Autor-Seam (authorMemberSeam): member_claims(verified) -> app_users.legacy_user_id
+	// == release_version_media.uploaded_by_user_id (users.id). Beide Medien vom selben
+	// Member hochgeladen; sie unterscheiden sich NUR in Sichtbarkeit/Review-Status des
+	// verknuepften media_assets.
+	mustExecPhase129(t, pool, `
+		INSERT INTO visibilities (id, name) VALUES (1298011, 'public'), (1298012, 'private');
+		INSERT INTO review_statuses (id, code, label_de) VALUES (1298021, 'approved', 'Freigegeben'), (1298022, 'pending', 'Ausstehend');
+		INSERT INTO members (id, nickname, public_slug) VALUES (1298001, 'phase129-archivist', 'phase129-archivist');
+		INSERT INTO users (id, username, email, password_hash) VALUES (1298901, 'phase129-archivist-user', 'p129arch@example.test', 'x');
+		INSERT INTO app_users (id, keycloak_subject, email, display_name, legacy_user_id)
+		VALUES (1298801, 'phase129-archivist-kc', 'p129arch@example.test', 'Phase129 Archivist', 1298901);
+		INSERT INTO member_claims (member_id, app_user_id, claim_status) VALUES (1298001, 1298801, 'verified');
+		INSERT INTO media_assets (id, file_path, mime_type, status, visibility_id, review_status_id)
+		VALUES (1298701, 'phase129/arch-public.jpg', 'image/jpeg', 'ready', 1298011, 1298021),
+		       (1298702, 'phase129/arch-private.jpg', 'image/jpeg', 'ready', 1298012, 1298022);
+		INSERT INTO anime (id, title) VALUES (1298301, 'Phase129 Archivist Anime');
+		INSERT INTO episodes (id, anime_id, episode_number) VALUES (1298401, 1298301, '1');
+		INSERT INTO fansub_releases (id, episode_id) VALUES (1298501, 1298401);
+		INSERT INTO release_versions (id, release_id) VALUES (1298601, 1298501);
+		INSERT INTO release_version_media (id, release_version_id, media_asset_id, category, uploaded_by_user_id) VALUES
+			(1298611, 1298601, 1298701, 'screenshot', 1298901),
+			(1298612, 1298601, 1298702, 'screenshot', 1298901);
+	`)
+
+	count, err := repo.loadContribArchivistCount(context.Background(), 1298001)
+	require.NoError(t, err)
+	require.Equalf(t, int64(1), count,
+		"PMDA-06: unapproved/non-public release media must NOT inflate the archivist contribution count; expected 1, got %d", count)
+}
