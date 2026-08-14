@@ -17,7 +17,7 @@ Milestone v1.3 hardens the existing public member profile as one privacy-sensiti
 
 ## Phases
 
-- [ ] **Phase 128: Canonical Public Identity & Visibility Foundation** - Make stored immutable slugs and deny-first access authoritative across every public member route.
+- [x] **Phase 128: Canonical Public Identity & Visibility Foundation** - Make stored immutable slugs and deny-first access authoritative across every public member route.
 - [ ] **Phase 129: Canonical Public Projections & Data Correctness** - Make every visible membership, contribution, release, badge, point, date, role, and count come from the correct public source.
 - [ ] **Phase 130: Public DTO & Cross-Layer Contract Alignment** - Establish one minimal allow-listed public profile contract across backend, OpenAPI, TypeScript, and API helpers.
 - [ ] **Phase 131: Set-Based Delivery, Pagination & Performance Budgets** - Bound payloads and page reads, remove query fan-out, and prove performance against both milestone fixtures.
@@ -81,13 +81,13 @@ Plans:
 - [x] 128-19-PLAN.md - Keep visibility editing session-safe and synchronized with the canonical preview.
 
 **Wave 9** *(blocked on Wave 8 completion)*
-- [ ] 128-20-PLAN.md - Obtain explicit approval for the disposable member-row reset procedure.
+- [x] 128-20-PLAN.md - Obtain explicit approval for the disposable member-row reset procedure.
 
 **Wave 10** *(blocked on Wave 9 completion)*
-- [ ] 128-21-PLAN.md - Reset, migrate, reseed, and run the full Phase 128 automated gate.
+- [x] 128-21-PLAN.md - Reset, migrate, reseed, and run the full Phase 128 automated gate.
 
 **Wave 11** *(blocked on Wave 10 completion)*
-- [ ] 128-22-PLAN.md - Capture live browser evidence across visibility, refresh, and responsive states.
+- [x] 128-22-PLAN.md - Capture live browser evidence across visibility, refresh, and responsive states.
 
 ### Phase 129: Canonical Public Projections & Data Correctness
 
