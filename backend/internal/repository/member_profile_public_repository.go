@@ -86,7 +86,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 		IsVerified:                 row.isVerified,
 		ProfileStatus:              strings.TrimSpace(valueOrDefault(&row.profileStatus, "active")),
 		ProfileVisibility:          strings.TrimSpace(valueOrDefault(row.profileVisibility, models.ProfileVisibilityPublic)),
-		Memberships:                []models.MemberProfileMembership{},
+		Memberships:                []models.PublicMemberMembership{},
 		PublicBadges:               []models.PublicMemberBadge{},
 		BadgeProgress:              []models.PublicMemberBadgeProgress{},
 		CurrentProjects:            []models.PublicMemberCurrentProject{},
@@ -98,13 +98,14 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 		profile.Avatar = &models.MemberProfileAvatar{PublicURL: r.publicURLForPath(strings.TrimSpace(*row.avatarPath))}
 	}
 	if row.backgroundImagePath != nil && strings.TrimSpace(*row.backgroundImagePath) != "" {
-		profile.BackgroundImage = &models.MemberProfileBgImage{PublicURL: r.publicURLForPath(strings.TrimSpace(*row.backgroundImagePath))}
+		profile.BackgroundImage = &models.PublicMemberProfileBackgroundImage{PublicURL: r.publicURLForPath(strings.TrimSpace(*row.backgroundImagePath))}
 	}
 	var loadErr error
-	profile.Memberships, loadErr = r.loadMemberships(ctx, row.memberID, 0, false, false)
+	richMemberships, loadErr := r.loadMemberships(ctx, row.memberID, 0, false, false)
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	profile.Memberships = toPublicMemberships(richMemberships)
 	profile.PublicBadges, loadErr = r.loadPublicBadges(ctx, row.memberID)
 	if loadErr != nil {
 		return nil, loadErr
@@ -221,4 +222,30 @@ func (r *MemberProfileRepository) loadTotalPoints(ctx context.Context, memberID 
 		return 0, fmt.Errorf("load total points for member %d: %w", memberID, err)
 	}
 	return total, nil
+}
+
+// toPublicMemberships bildet die reichen (own/edit) Mitgliedschafts-Strukturen auf das
+// oeffentliche Allow-List-Shape ab (D-01): interne App-Permission-/Status-Felder werden
+// strukturell fallengelassen, nicht nur weggelassen.
+func toPublicMemberships(rich []models.MemberProfileMembership) []models.PublicMemberMembership {
+	out := make([]models.PublicMemberMembership, 0, len(rich))
+	for _, m := range rich {
+		roles := m.Roles
+		if roles == nil {
+			roles = []models.PublicMemberRole{}
+		}
+		out = append(out, models.PublicMemberMembership{
+			FansubGroupID:     m.FansubGroupID,
+			FansubGroupName:   m.FansubGroupName,
+			FansubGroupSlug:   m.FansubGroupSlug,
+			LogoURL:           m.LogoURL,
+			GroupStatus:       m.GroupStatus,
+			JoinedYear:        m.JoinedYear,
+			LeftYear:          m.LeftYear,
+			IsCurrent:         m.IsCurrent,
+			Roles:             roles,
+			HasHistoricalLink: m.HasHistoricalLink,
+		})
+	}
+	return out
 }

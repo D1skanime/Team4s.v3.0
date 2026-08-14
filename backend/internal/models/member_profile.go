@@ -20,15 +20,15 @@ type MemberProfileCapabilities struct {
 }
 
 type MemberProfileMembership struct {
-	FansubGroupID          int64    `json:"fansub_group_id"`
-	FansubGroupName        string   `json:"fansub_group_name"`
-	FansubGroupSlug        string   `json:"fansub_group_slug"`
-	LogoURL                *string  `json:"logo_url,omitempty"`
-	GroupStatus            string   `json:"group_status"`
-	JoinedYear             *int32   `json:"joined_year,omitempty"`
-	LeftYear               *int32   `json:"left_year,omitempty"`
-	AppMemberStatus        *string  `json:"app_member_status,omitempty"`
-	AppMemberRoles         []string `json:"app_member_roles,omitempty"`
+	FansubGroupID   int64    `json:"fansub_group_id"`
+	FansubGroupName string   `json:"fansub_group_name"`
+	FansubGroupSlug string   `json:"fansub_group_slug"`
+	LogoURL         *string  `json:"logo_url,omitempty"`
+	GroupStatus     string   `json:"group_status"`
+	JoinedYear      *int32   `json:"joined_year,omitempty"`
+	LeftYear        *int32   `json:"left_year,omitempty"`
+	AppMemberStatus *string  `json:"app_member_status,omitempty"`
+	AppMemberRoles  []string `json:"app_member_roles,omitempty"`
 	// IsCurrent markiert eine laufende Mitgliedschaft (hgm.left_date IS NULL) und
 	// unterscheidet current von historical (PMDA-02).
 	IsCurrent bool `json:"is_current"`
@@ -219,12 +219,12 @@ type PublicMemberRole struct {
 }
 
 type PublicMemberProjectReleaseVersion struct {
-	ReleaseVersionID    int64    `json:"release_version_id"`
-	ReleaseVersionLabel string   `json:"release_version_label"`
-	Version             string   `json:"version"`
-	Title               *string  `json:"title,omitempty"`
-	EpisodeNumber       string   `json:"episode_number"`
-	EpisodeTitle        *string  `json:"episode_title,omitempty"`
+	ReleaseVersionID    int64              `json:"release_version_id"`
+	ReleaseVersionLabel string             `json:"release_version_label"`
+	Version             string             `json:"version"`
+	Title               *string            `json:"title,omitempty"`
+	EpisodeNumber       string             `json:"episode_number"`
+	EpisodeTitle        *string            `json:"episode_title,omitempty"`
 	Roles               []PublicMemberRole `json:"roles"`
 }
 
@@ -234,7 +234,7 @@ type PublicMemberCurrentProject struct {
 	CoverURL           *string                             `json:"cover_url,omitempty"`
 	FansubGroupID      int64                               `json:"fansub_group_id"`
 	FansubGroupName    string                              `json:"fansub_group_name"`
-	Roles              []PublicMemberRole                            `json:"roles"`
+	Roles              []PublicMemberRole                  `json:"roles"`
 	ReleaseVersions    []PublicMemberProjectReleaseVersion `json:"release_versions"`
 	IsProjectLevel     bool                                `json:"is_project_level"`
 	ContributionStatus string                              `json:"contribution_status"`
@@ -269,39 +269,61 @@ type PublicMemberLatestContribution struct {
 }
 
 type PublicMemberPreviousContribution struct {
-	AnimeID         int64    `json:"anime_id"`
-	AnimeTitle      string   `json:"anime_title"`
-	FansubGroupID   int64    `json:"fansub_group_id"`
-	FansubGroupName string   `json:"fansub_group_name"`
+	AnimeID         int64              `json:"anime_id"`
+	AnimeTitle      string             `json:"anime_title"`
+	FansubGroupID   int64              `json:"fansub_group_id"`
+	FansubGroupName string             `json:"fansub_group_name"`
 	Roles           []PublicMemberRole `json:"roles"`
-	StartedYear     *int32   `json:"started_year,omitempty"`
-	EndedYear       int32    `json:"ended_year"`
+	StartedYear     *int32             `json:"started_year,omitempty"`
+	EndedYear       int32              `json:"ended_year"`
+}
+
+// PublicMemberProfileBackgroundImage ist das oeffentliche Hintergrundbild-Shape (Allow-List):
+// nur die Anzeige-URL, keine source_original_url / storage_path (D-01).
+type PublicMemberProfileBackgroundImage struct {
+	PublicURL string `json:"public_url"`
+}
+
+// PublicMemberMembership ist das oeffentliche Mitgliedschafts-Shape (Allow-List, D-01):
+// entkoppelt von MemberProfileMembership; OHNE app_member_status / app_member_roles /
+// historical_member_status (interne App-Permission-/Status-Felder).
+type PublicMemberMembership struct {
+	FansubGroupID     int64              `json:"fansub_group_id"`
+	FansubGroupName   string             `json:"fansub_group_name"`
+	FansubGroupSlug   string             `json:"fansub_group_slug"`
+	LogoURL           *string            `json:"logo_url,omitempty"`
+	GroupStatus       string             `json:"group_status"`
+	JoinedYear        *int32             `json:"joined_year,omitempty"`
+	LeftYear          *int32             `json:"left_year,omitempty"`
+	IsCurrent         bool               `json:"is_current"`
+	Roles             []PublicMemberRole `json:"roles"`
+	HasHistoricalLink bool               `json:"has_historical_link"`
 }
 
 type PublicMemberProfile struct {
-	MemberID          int64                     `json:"member_id"`
-	Slug              string                    `json:"slug"`
-	IsOwner           bool                      `json:"-"`
-	IsPrivatePreview  bool                      `json:"-"`
-	FansubName        string                    `json:"fansub_name"`
-	Bio               *string                   `json:"bio,omitempty"`
-	MemberStoryHTML   *string                   `json:"member_story_html,omitempty"`
-	ActiveFromDate    *string                   `json:"active_from_date,omitempty"`
-	ActiveUntilDate   *string                   `json:"active_until_date,omitempty"`
+	MemberID         int64   `json:"member_id"`
+	Slug             string  `json:"slug"`
+	IsOwner          bool    `json:"-"`
+	IsPrivatePreview bool    `json:"-"`
+	FansubName       string  `json:"fansub_name"`
+	Bio              *string `json:"bio,omitempty"`
+	MemberStoryHTML  *string `json:"member_story_html,omitempty"`
+	ActiveFromDate   *string `json:"active_from_date,omitempty"`
+	ActiveUntilDate  *string `json:"active_until_date,omitempty"`
 	// Jahr-genaue Aktivperiode (D-02): gesetzt, wenn nur ein Jahr (ohne volles Datum)
 	// erfasst ist. So bleibt eine reine Jahresangabe von einem echten Datum unterscheidbar
 	// und wird nie zu YYYY-01-01 verfaelscht.
-	ActiveFromYear    *int32                    `json:"active_from_year,omitempty"`
-	ActiveUntilYear   *int32                    `json:"active_until_year,omitempty"`
-	IsCurrentlyActive bool                      `json:"is_currently_active"`
-	Noindex           bool                      `json:"noindex"`
-	IsVerified        bool                      `json:"is_verified"`
-	ProfileStatus     string                    `json:"profile_status"`
-	ProfileVisibility string                    `json:"profile_visibility"`
-	Avatar            *MemberProfileAvatar      `json:"avatar,omitempty"`
-	BackgroundImage   *MemberProfileBgImage     `json:"background_image,omitempty"`
-	Memberships       []MemberProfileMembership `json:"memberships"`
-	PublicBadges      []PublicMemberBadge       `json:"public_badges"`
+	ActiveFromYear    *int32                              `json:"active_from_year,omitempty"`
+	ActiveUntilYear   *int32                              `json:"active_until_year,omitempty"`
+	IsCurrentlyActive bool                                `json:"is_currently_active"`
+	Noindex           bool                                `json:"noindex"`
+	IsVerified        bool                                `json:"is_verified"`
+	ProfileStatus     string                              `json:"profile_status"`
+	ProfileVisibility string                              `json:"profile_visibility"`
+	Avatar            *MemberProfileAvatar                `json:"avatar,omitempty"`
+	BackgroundImage   *PublicMemberProfileBackgroundImage `json:"background_image,omitempty"`
+	Memberships       []PublicMemberMembership            `json:"memberships"`
+	PublicBadges      []PublicMemberBadge                 `json:"public_badges"`
 
 	BadgeProgress []PublicMemberBadgeProgress `json:"badge_progress"`
 
