@@ -53,7 +53,9 @@ func highestContribChronicleTier(count int) string {
 // highestContribArchivistTier liefert die hoechste erreichte Stufe fuer Familie 3
 // ("Bildarchivar", D-04). Zaehlbasis ist COUNT(*) ueber release_version_media
 // Zeilen des Members ueber den Autor-Seam, ausschliesslich net soft-delete
-// (deleted_at IS NULL), ohne Freigabe-/Sichtbarkeitsfilter. Schwellen: 10/50/150.
+// (deleted_at IS NULL) sowie oeffentlich freigegebene Medien (media_assets
+// status='ready', visibilities public, review_statuses approved -- PMDA-06/
+// PMPR-06). Schwellen: 10/50/150.
 func highestContribArchivistTier(count int) string {
 	switch {
 	case count >= 150:
@@ -156,6 +158,9 @@ func (r *MemberProfileRepository) loadContribArchivistCount(ctx context.Context,
 	if err := r.db.QueryRow(ctx, `
 		SELECT COUNT(*)
 		FROM release_version_media rvm
+		JOIN media_assets ma ON ma.id = rvm.media_asset_id AND ma.status = 'ready'
+		JOIN visibilities v ON v.id = ma.visibility_id AND v.name = 'public'
+		JOIN review_statuses rs ON rs.id = ma.review_status_id AND rs.code = 'approved'
 		WHERE rvm.deleted_at IS NULL
 		  AND rvm.uploaded_by_user_id IN (`+authorMemberSeam+`)
 	`, memberID).Scan(&archivistCount); err != nil {

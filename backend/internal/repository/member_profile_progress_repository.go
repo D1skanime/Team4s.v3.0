@@ -36,6 +36,7 @@ func (r *MemberProfileRepository) loadBadgeProgress(ctx context.Context, memberI
 		SELECT COUNT(DISTINCT ac.anime_id)
 		FROM anime_contributions ac
 		WHERE ac.member_id = $1 AND ac.status = 'confirmed'
+		  AND ac.is_public_on_member_profile = true
 	`, memberID).Scan(&projectCount); err != nil {
 		return nil, fmt.Errorf("load badge progress project count for member %d: %w", memberID, err)
 	}
