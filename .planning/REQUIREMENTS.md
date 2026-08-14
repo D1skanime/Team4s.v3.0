@@ -19,21 +19,21 @@
 - [x] **PMPR-03**: Profil, Projekte, Contributions, Medien und weitere Member-Unterressourcen verwenden dieselbe zentrale Zugriffsregel.
 - [x] **PMPR-04**: Der Owner kann ein verborgenes Profil über die zentrale Auth-Refresh-Seam als Vorschau öffnen.
 - [x] **PMPR-05**: Owner- und viewer-spezifische Antworten werden nicht öffentlich gecacht.
-- [ ] **PMPR-06**: Interne Mitgliedschaften, Berechtigungen und nicht öffentliche Quellen werden nicht über öffentliche DTOs oder Aggregate offengelegt.
+- [x] **PMPR-06**: Interne Mitgliedschaften, Berechtigungen und nicht öffentliche Quellen werden nicht über öffentliche DTOs oder Aggregate offengelegt.
 
 ### Datenkorrektheit
 
-- [ ] **PMDA-01**: Status, Memorial-Status, Aktivzeitraum und unvollständige Datumsangaben werden fachlich korrekt und vertrauenswürdig dargestellt.
-- [ ] **PMDA-02**: Aktuelle und historische Mitgliedschaften bleiben getrennte Fakten und werden aus ihren kanonischen Tabellen geladen.
-- [ ] **PMDA-03**: Contributions und Projekte erscheinen nur, wenn sie bestätigt und für das öffentliche Profil freigegeben sind.
-- [ ] **PMDA-04**: Rollen werden mit stabilem Code und öffentlichem Label geliefert; das Frontend leitet Codes nicht aus übersetzten Labels ab.
-- [ ] **PMDA-05**: Doppelte Rollen, Projekte, Contributions und Badges werden anhand ihrer fachlichen Identität dedupliziert.
-- [ ] **PMDA-06**: Punkte und Badges bleiben serverseitig autoritativ; exakte Fortschritte enthalten ausschließlich öffentlich zulässige Fakten.
-- [ ] **PMDA-07**: Release-Texte und Medien erfüllen Sichtbarkeits-, Review-, Ready- und Löschfilter und bleiben release-version-spezifisch verknüpft.
-- [ ] **PMDA-08**: Angezeigte Summen stimmen mit den tatsächlich sichtbaren, gefilterten Datensätzen überein.
-- [ ] **PMDA-09**: Ungenutzte Legacy-Projektionen und redundante Recent-Daten werden entfernt.
-- [ ] **PMDA-10**: Öffentliche Mitgliedschaften zeigen alle freigegebenen Rollen, nicht nur die erste; interne Berechtigungen bleiben verborgen.
-- [ ] **PMDA-11**: Aktivitätsfeed, Überschrift, Zähler und Filter verwenden dieselbe Datenbasis; „Mehr anzeigen“ lädt tatsächlich weitere Einträge.
+- [x] **PMDA-01**: Status, Memorial-Status, Aktivzeitraum und unvollständige Datumsangaben werden fachlich korrekt und vertrauenswürdig dargestellt.
+- [x] **PMDA-02**: Aktuelle und historische Mitgliedschaften bleiben getrennte Fakten und werden aus ihren kanonischen Tabellen geladen.
+- [x] **PMDA-03**: Contributions und Projekte erscheinen nur, wenn sie bestätigt und für das öffentliche Profil freigegeben sind.
+- [x] **PMDA-04**: Rollen werden mit stabilem Code und öffentlichem Label geliefert; das Frontend leitet Codes nicht aus übersetzten Labels ab.
+- [x] **PMDA-05**: Doppelte Rollen, Projekte, Contributions und Badges werden anhand ihrer fachlichen Identität dedupliziert.
+- [x] **PMDA-06**: Punkte und Badges bleiben serverseitig autoritativ; exakte Fortschritte enthalten ausschließlich öffentlich zulässige Fakten.
+- [x] **PMDA-07**: Release-Texte und Medien erfüllen Sichtbarkeits-, Review-, Ready- und Löschfilter und bleiben release-version-spezifisch verknüpft.
+- [x] **PMDA-08**: Angezeigte Summen stimmen mit den tatsächlich sichtbaren, gefilterten Datensätzen überein.
+- [x] **PMDA-09**: Ungenutzte Legacy-Projektionen und redundante Recent-Daten werden entfernt.
+- [x] **PMDA-10**: Öffentliche Mitgliedschaften zeigen alle freigegebenen Rollen, nicht nur die erste; interne Berechtigungen bleiben verborgen.
+- [x] **PMDA-11**: Aktivitätsfeed, Überschrift, Zähler und Filter verwenden dieselbe Datenbasis; „Mehr anzeigen“ lädt tatsächlich weitere Einträge.
 
 ### API- und Contract-Integrität
 
@@ -133,18 +133,18 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMPR-03 | Phase 128 | Complete |
 | PMPR-04 | Phase 128 | Complete |
 | PMPR-05 | Phase 128 | Complete |
-| PMPR-06 | Phase 129 | Pending |
-| PMDA-01 | Phase 129 | Pending |
-| PMDA-02 | Phase 129 | Pending |
-| PMDA-03 | Phase 129 | Pending |
-| PMDA-04 | Phase 129 | Pending |
-| PMDA-05 | Phase 129 | Pending |
-| PMDA-06 | Phase 129 | Pending |
-| PMDA-07 | Phase 129 | Pending |
-| PMDA-08 | Phase 129 | Pending |
-| PMDA-09 | Phase 129 | Pending |
-| PMDA-10 | Phase 129 | Pending |
-| PMDA-11 | Phase 129 | Pending |
+| PMPR-06 | Phase 129 | Done |
+| PMDA-01 | Phase 129 | Done |
+| PMDA-02 | Phase 129 | Done |
+| PMDA-03 | Phase 129 | Done |
+| PMDA-04 | Phase 129 | Done |
+| PMDA-05 | Phase 129 | Done |
+| PMDA-06 | Phase 129 | Done |
+| PMDA-07 | Phase 129 | Done |
+| PMDA-08 | Phase 129 | Done |
+| PMDA-09 | Phase 129 | Done |
+| PMDA-10 | Phase 129 | Done |
+| PMDA-11 | Phase 129 | Done |
 | PMCT-01 | Phase 130 | Pending |
 | PMCT-02 | Phase 130 | Pending |
 | PMCT-03 | Phase 130 | Pending |
