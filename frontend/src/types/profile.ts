@@ -20,6 +20,10 @@ export interface MemberProfileMembership {
   left_year?: number | null
   app_member_status?: string | null
   app_member_roles?: string[]
+  /** Laufende Mitgliedschaft (hist left_date IS NULL); trennt current von historical (PMDA-02). */
+  is_current?: boolean
+  /** Alle freigegebenen historischen Rollen als serverautoritative Code+Label-Paare (D-04/D-06). */
+  roles?: PublicMemberRole[]
   has_historical_link: boolean
   historical_member_status?: 'draft' | 'historical' | 'confirmed' | 'disputed' | null
 }

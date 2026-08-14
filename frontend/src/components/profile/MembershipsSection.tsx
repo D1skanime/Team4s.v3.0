@@ -1,11 +1,11 @@
+import { Fragment } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Users } from 'lucide-react'
 
 import { Card, SectionHeader } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
-import { formatGroupRoleLabel } from '@/lib/profileLabels'
-import type { MemberProfileMembership } from '@/types/profile'
+import type { MemberProfileMembership, PublicMemberRole } from '@/types/profile'
 
 import styles from './profile.module.css'
 
@@ -15,9 +15,16 @@ type MembershipsSectionProps = {
   headingLevel?: 2 | 3
 }
 
-function membershipContextLabel(membership: MemberProfileMembership): string | null {
-  const appRole = membership.app_member_roles?.[0]?.trim()
-  if (appRole) return formatGroupRoleLabel(appRole)
+// membershipRoles liefert ALLE freigegebenen Rollen (D-05): serverautoritative
+// Code+Label-Paare aus hist_group_member_roles; nie nur die erste, nie interne Codes.
+function membershipRoles(membership: MemberProfileMembership): PublicMemberRole[] {
+  return membership.roles ?? []
+}
+
+// membershipStatusLabel trennt current (is_current) von historical (PMDA-02) und
+// haelt die bestehenden Historien-Status-Texte fuer nicht-laufende Eintraege bei.
+function membershipStatusLabel(membership: MemberProfileMembership): string | null {
+  if (membership.is_current) return 'Aktuelles Mitglied'
   if (!membership.has_historical_link) return null
 
   switch (membership.historical_member_status) {
@@ -53,8 +60,9 @@ export function MembershipsSection({
       ) : (
         <ul className={styles.membershipsList}>
           {memberships.map((membership) => {
-            const contextLabel = membershipContextLabel(membership)
+            const statusLabel = membershipStatusLabel(membership)
             const periodLabel = membershipPeriodLabel(membership)
+            const roles = membershipRoles(membership)
 
             return (
               <li key={membership.fansub_group_id}>
@@ -76,7 +84,21 @@ export function MembershipsSection({
                     </span>
                     <span className={styles.membershipName}>
                       <strong>{membership.fansub_group_name}</strong>
-                      {contextLabel ? <span>{contextLabel}</span> : null}
+                      {statusLabel ? (
+                        <span data-membership-current={membership.is_current ? 'true' : 'false'}>
+                          {statusLabel}
+                        </span>
+                      ) : null}
+                      {roles.length > 0 ? (
+                        <span>
+                          {roles.map((role, index) => (
+                            <Fragment key={role.code}>
+                              {index > 0 ? <span aria-hidden="true"> · </span> : null}
+                              <span data-role-code={role.code}>{role.label_de}</span>
+                            </Fragment>
+                          ))}
+                        </span>
+                      ) : null}
                       {periodLabel ? <span>{periodLabel}</span> : null}
                     </span>
                     <span className={styles.membershipAction}>

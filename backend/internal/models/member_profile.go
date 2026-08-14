@@ -29,8 +29,14 @@ type MemberProfileMembership struct {
 	LeftYear               *int32   `json:"left_year,omitempty"`
 	AppMemberStatus        *string  `json:"app_member_status,omitempty"`
 	AppMemberRoles         []string `json:"app_member_roles,omitempty"`
-	HasHistoricalLink      bool     `json:"has_historical_link"`
-	HistoricalMemberStatus *string  `json:"historical_member_status,omitempty"`
+	// IsCurrent markiert eine laufende Mitgliedschaft (hgm.left_date IS NULL) und
+	// unterscheidet current von historical (PMDA-02).
+	IsCurrent bool `json:"is_current"`
+	// Roles fuehrt ALLE freigegebenen historischen Rollen als serverautoritative
+	// Code+Label-Paare (PMDA-05/10, D-04/D-06); leer statt null im JSON.
+	Roles                  []PublicMemberRole `json:"roles"`
+	HasHistoricalLink      bool               `json:"has_historical_link"`
+	HistoricalMemberStatus *string            `json:"historical_member_status,omitempty"`
 }
 
 type MemberProfileCredit struct {

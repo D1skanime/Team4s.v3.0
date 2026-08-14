@@ -10689,6 +10689,8 @@ components:
         - fansub_group_name
         - fansub_group_slug
         - group_status
+        - is_current
+        - roles
         - has_historical_link
       properties:
         fansub_group_id:
@@ -10718,6 +10720,14 @@ components:
           type: array
           items:
             type: string
+        is_current:
+          type: boolean
+          description: Laufende Mitgliedschaft (hist left_date IS NULL); trennt current von historical.
+        roles:
+          type: array
+          description: Alle freigegebenen historischen Rollen als Code+Label-Paare (D-04/D-06); nie null.
+          items:
+            $ref: "#/components/schemas/PublicMemberRole"
         has_historical_link:
           type: boolean
         historical_member_status:

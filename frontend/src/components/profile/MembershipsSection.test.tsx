@@ -51,6 +51,8 @@ function makeMembership(overrides: Partial<MemberProfileMembership> = {}): Membe
     fansub_group_slug: 'animeownage',
     logo_url: '/api/v1/media/files/logo.png',
     group_status: 'active',
+    is_current: true,
+    roles: [{ code: 'fansub_lead', label_de: 'Gruppenleitung' }],
     app_member_status: 'active',
     app_member_roles: ['fansub_lead'],
     has_historical_link: false,
@@ -93,7 +95,7 @@ describe('MembershipsSection', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'Gruppenzugehörigkeit' })).toBeTruthy()
   })
 
-  it('renders each group as a real card link with logo, role, and group action', () => {
+  it('renders each group as a real card link with logo, server role label, and group action', () => {
     const { container } = render(<MembershipsSection memberships={[makeMembership({ joined_year: 2014 })]} />)
 
     expect(screen.getByRole('link', { name: /AnimeOwnage/i }).getAttribute('href')).toBe('/fansubs/animeownage')
@@ -107,12 +109,62 @@ describe('MembershipsSection', () => {
       loading: 'lazy',
       unoptimized: false,
     }))
+    // D-06: server-authoritative label rendered; raw code never printed as text.
     expect(screen.getAllByText('Gruppenleitung')).toHaveLength(1)
+    expect(screen.queryByText('fansub_lead')).toBeNull()
+    expect(container.querySelector('[data-role-code="fansub_lead"]')).not.toBeNull()
     expect(screen.getAllByText('Mitglied seit 2014')).toHaveLength(1)
     expect(screen.getByText('Zur Gruppe')).not.toBeNull()
-    expect(screen.queryByText('fansub_lead')).toBeNull()
     expect(container.querySelector('[class*= badge]')).toBeNull()
     expect(screen.getAllByRole('link')).toHaveLength(1)
+  })
+
+  it('exposes ALL approved roles for a current membership and marks it as current (PMDA-02/05)', () => {
+    const { container } = render(
+      <MembershipsSection
+        memberships={[
+          makeMembership({
+            is_current: true,
+            roles: [
+              { code: 'translator', label_de: 'Übersetzer' },
+              { code: 'typesetter', label_de: 'Typesetter' },
+            ],
+          }),
+        ]}
+      />,
+    )
+
+    // ALL roles surface, not just the first.
+    expect(screen.getAllByText('Übersetzer')).toHaveLength(1)
+    expect(screen.getAllByText('Typesetter')).toHaveLength(1)
+    expect(container.querySelector('[data-role-code="translator"]')).not.toBeNull()
+    expect(container.querySelector('[data-role-code="typesetter"]')).not.toBeNull()
+    // Current membership is distinctly marked.
+    expect(screen.getAllByText('Aktuelles Mitglied')).toHaveLength(1)
+    expect(container.querySelector('[data-membership-current="true"]')).not.toBeNull()
+  })
+
+  it('marks a historical membership distinctly from a current one', () => {
+    const { container } = render(
+      <MembershipsSection
+        memberships={[
+          makeMembership({
+            is_current: false,
+            roles: [{ code: 'editor', label_de: 'Editor' }],
+            has_historical_link: true,
+            historical_member_status: 'historical',
+            joined_year: 2010,
+            left_year: 2014,
+          }),
+        ]}
+      />,
+    )
+
+    expect(screen.getAllByText('Editor')).toHaveLength(1)
+    expect(screen.getAllByText('Historischer Eintrag')).toHaveLength(1)
+    expect(screen.queryByText('Aktuelles Mitglied')).toBeNull()
+    expect(container.querySelector('[data-membership-current="false"]')).not.toBeNull()
+    expect(screen.getAllByText('Mitglied 2010 bis 2014')).toHaveLength(1)
   })
 
   it('shows confirmed historical memberships as group-confirmed context without a badge or raw status code', () => {
@@ -120,6 +172,8 @@ describe('MembershipsSection', () => {
       <MembershipsSection
         memberships={[
           makeMembership({
+            is_current: false,
+            roles: [],
             app_member_roles: [],
             has_historical_link: true,
             historical_member_status: 'confirmed',
@@ -139,6 +193,8 @@ describe('MembershipsSection', () => {
       <MembershipsSection
         memberships={[
           makeMembership({
+            is_current: false,
+            roles: [],
             app_member_roles: [],
             has_historical_link: true,
             historical_member_status: 'historical',
