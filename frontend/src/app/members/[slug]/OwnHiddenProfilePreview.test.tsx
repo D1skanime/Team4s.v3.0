@@ -258,7 +258,6 @@ describe('OwnHiddenProfilePreview route-local access gate', () => {
       ['numeric fallback', /\^\\d\+\$|Number\(normalizedSlug\)/.test(previewSource)],
       ['slug prop', /type OwnHiddenProfilePreviewProps|OwnHiddenProfilePreview\s*\(\s*\{[^)]*\bslug\b/.test(previewSource)],
       ['slug or member id link', /profile\.slug\s*\|\|\s*profile\.member_id/.test(ownProfilePageSource)],
-      ['member contributions bare fetch', /function getMemberContributions[\s\S]{0,500}?await fetch\s*\(/.test(apiSource)],
       ['project member bare fetch', /function getProjectMemberSummary[\s\S]{0,500}?await fetch\s*\(/.test(apiSource)],
     ].filter(([, present]) => present).map(([name]) => name)
     expect(sourceViolations).toEqual([])

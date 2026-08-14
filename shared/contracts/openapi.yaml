@@ -633,60 +633,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/members/{slug}/contributions:
-    get:
-      tags: [Profile]
-      summary: Get a public member's contribution timeline
-      description: >-
-        Returns the existing public contribution timeline after canonical member
-        access succeeds. Missing, private non-owner, and numeric member segments
-        share one neutral 404. Viewer-dependent responses are private, no-store
-        and vary on Authorization.
-      operationId: getMemberContributions
-      security:
-        - bearerAuth: []
-        - {}
-      parameters:
-        - name: slug
-          in: path
-          required: true
-          schema:
-            type: string
-            minLength: 1
-      responses:
-        "200":
-          description: Public member contribution timeline
-          headers:
-            Cache-Control:
-              schema: {type: string, enum: ["private, no-store"]}
-            Vary:
-              schema: {type: string, enum: [Authorization]}
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PublicMemberContributionsResponse"
-        "404":
-          description: Missing, private non-owner, or numeric member segment
-          headers:
-            Cache-Control:
-              schema: {type: string, enum: ["private, no-store"]}
-            Vary:
-              schema: {type: string, enum: [Authorization]}
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                unavailable:
-                  value:
-                    error:
-                      message: "profil nicht verf\u00fcgbar"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/anime:
     get:
       tags: [Anime]

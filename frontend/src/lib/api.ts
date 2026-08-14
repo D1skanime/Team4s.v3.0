@@ -212,7 +212,6 @@ import type {
   MeSuggestionsResponse,
   PublicGroupContributionsResponse,
   PublicAnimeContributionsResponse,
-  PublicMemberContributionsResponse,
   MemberBadgesResponse,
   MembershipsResponse,
   ProposalFormData,
@@ -9394,32 +9393,6 @@ export async function getMediaOwnershipProjection(
   return response.json() as Promise<MediaOwnershipProjectionResponse>;
 }
 
-export async function getMemberContributions(
-  slug: string,
-): Promise<PublicMemberContributionsResponse> {
-  const encodedSlug = encodeURIComponent(slug);
-  const response = await apiClientFetch(
-    `/api/v1/members/${encodedSlug}/contributions`,
-    { cache: "no-store" },
-  );
-
-  if (!response.ok) {
-    const parsed = await parseApiErrorPayload(
-      response,
-      `API request failed: ${response.status}`,
-    );
-    throw new ApiError(
-      response.status,
-      parsed.message,
-      null,
-      parsed.code,
-      parsed.details,
-    );
-  }
-
-  return response.json() as Promise<PublicMemberContributionsResponse>;
-}
-
 export async function getMyBadges(
   authToken?: string,
 ): Promise<MemberBadgesResponse> {
@@ -9687,7 +9660,7 @@ export interface MemberPointRankingResponse {
 /**
  * Liest die persistierte Punkte-Rangliste (Member -> Netto-Gesamtpunkte,
  * absteigend sortiert, seitenweise). Keine Auth erforderlich — oeffentlicher
- * Endpunkt (analog searchArchive/getMemberContributions). Kein UI-Konsument in
+ * Endpunkt (analog searchArchive). Kein UI-Konsument in
  * Phase 109 (D-03/D-04, deferred nach Phase 110).
  */
 export async function getMemberPointRanking(page?: number): Promise<MemberPointRankingResponse> {

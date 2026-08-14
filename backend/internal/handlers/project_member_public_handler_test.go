@@ -18,27 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type recordingContributionsLoader struct {
-	events      *[]string
-	memberCalls int
-	memberID    int64
-}
-
-func (r *recordingContributionsLoader) GetPublicGroupContributions(context.Context, int64) (*repository.PublicGroupContributionsResponse, error) {
-	return &repository.PublicGroupContributionsResponse{}, nil
-}
-
-func (r *recordingContributionsLoader) GetPublicAnimeContributions(context.Context, int64) (*repository.PublicAnimeContributionsResponse, error) {
-	return &repository.PublicAnimeContributionsResponse{}, nil
-}
-
-func (r *recordingContributionsLoader) GetPublicMemberContributionsByID(_ context.Context, memberID int64) (*repository.PublicMemberContributionsResponse, error) {
-	r.memberCalls++
-	r.memberID = memberID
-	*r.events = append(*r.events, "contributions")
-	return &repository.PublicMemberContributionsResponse{RoleTimeline: []repository.PublicMemberRoleEntry{}}, nil
-}
-
 type recordingProjectMemberLoader struct {
 	events        *[]string
 	relation      bool
@@ -129,47 +108,6 @@ func TestProjectMemberPublicUnavailableResponsesAreByteIdentical(t *testing.T) {
 	require.Equal(t, missing.Body.Bytes(), privateAnonymous.Body.Bytes())
 	require.Equal(t, missing.Body.Bytes(), privateNonOwner.Body.Bytes())
 	require.Equal(t, missing.Body.Bytes(), adminNonOwner.Body.Bytes())
-}
-
-func TestMemberContributionsNoDetailLoadBeforeAccess(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	events := []string{}
-	resolver := &recordingPublicMemberAccessResolver{err: repository.ErrNotFound, events: &events}
-	loader := &recordingContributionsLoader{events: &events}
-	handler := NewContributionsPublicHandler(resolver, loader)
-	recorder := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(recorder)
-	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/members/private-member/contributions", nil)
-	c.Params = gin.Params{{Key: "slug", Value: "private-member"}}
-
-	handler.GetMemberContributions(c)
-
-	require.Equal(t, http.StatusNotFound, recorder.Code)
-	require.Equal(t, []string{"resolve"}, events)
-	require.Zero(t, loader.memberCalls)
-	require.Equal(t, publicMemberUnavailableResponse().Body.Bytes(), recorder.Body.Bytes())
-}
-
-func TestMemberContributionsOwnerPreviewLoadsByResolvedID(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	events := []string{}
-	resolver := &recordingPublicMemberAccessResolver{
-		access: repository.PublicMemberAccess{MemberID: 17, Slug: "private-member", IsOwner: true, IsPrivatePreview: true},
-		events: &events,
-	}
-	loader := &recordingContributionsLoader{events: &events}
-	handler := NewContributionsPublicHandler(resolver, loader)
-	recorder := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(recorder)
-	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/members/private-member/contributions", nil)
-	c.Params = gin.Params{{Key: "slug", Value: "private-member"}}
-
-	handler.GetMemberContributions(c)
-
-	require.Equal(t, http.StatusOK, recorder.Code)
-	require.Equal(t, []string{"resolve", "contributions"}, events)
-	require.Equal(t, int64(17), loader.memberID)
-	require.Equal(t, "private, no-store", recorder.Header().Get("Cache-Control"))
 }
 
 func TestProjectMemberNoDetailLoadBeforeAccess(t *testing.T) {
@@ -304,7 +242,7 @@ func TestPhase128ServerInjectsOneMemberResolverAndOptionalAuth(t *testing.T) {
 	src := pmMainSource(t)
 	for _, constructor := range []string{
 		"newapppublicprofilehandler(memberprofilerepo, memberprofilerepo, memberprofilerepo)",
-		"newcontributionspublichandler(memberprofilerepo, animecontributionsrepo)",
+		"newcontributionspublichandler(animecontributionsrepo)",
 		"newprojectmemberpublichandler(memberprofilerepo, projectmemberpublicrepo, cfg.mediastoragedir)",
 	} {
 		require.Contains(t, src, constructor)
@@ -313,7 +251,6 @@ func TestPhase128ServerInjectsOneMemberResolverAndOptionalAuth(t *testing.T) {
 	for _, route := range []string{
 		`/members/:slug", authoptionalmiddleware, publicprofilehandler.getpublicmemberprofile`,
 		`/members/:slug/projects", authoptionalmiddleware, publicprofilehandler.getpublicmemberprojects`,
-		`/members/:slug/contributions", authoptionalmiddleware, contributionspublichandler.getmembercontributions`,
 		`/anime/:id/group/:groupid/members/:memberslug", authoptionalmiddleware, projectmemberpublichandler.getsummary`,
 		`/members/:memberslug/notes", authoptionalmiddleware, projectmemberpublichandler.getnotes`,
 		`/members/:memberslug/media", authoptionalmiddleware, projectmemberpublichandler.getmedia`,

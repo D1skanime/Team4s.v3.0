@@ -25,7 +25,6 @@ import {
   createFansubGroup,
   getEpisodeImportContext,
   getAuthSessionSnapshot,
-  getMemberContributions,
   getMemberProfile,
   getReleaseVersionMedia,
   getReleasePlaybackAccess,
@@ -327,13 +326,6 @@ describe('authorized auth refresh flow', () => {
         payload: { data: { member_id: 41, fansub_name: 'Canonical Owner' } },
       },
       {
-        name: 'member contributions with expired access token',
-        seed: seedRuntimeSessionExpiredAccessToken,
-        path: '/api/v1/members/canonical-owner/contributions',
-        invoke: () => getMemberContributions('canonical-owner'),
-        payload: { role_timeline: [] },
-      },
-      {
         name: 'project-member summary without access token',
         seed: seedRuntimeSessionMissingAccessToken,
         path: '/api/v1/anime/7/group/9/members/canonical-owner',
@@ -382,7 +374,6 @@ describe('authorized auth refresh flow', () => {
     const helperNames = [
       'getMemberProfile',
       'getMemberProjects',
-      'getMemberContributions',
       'getProjectMemberSummary',
       'getProjectMemberNotes',
       'getProjectMemberMedia',
