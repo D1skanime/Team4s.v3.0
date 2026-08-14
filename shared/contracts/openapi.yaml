@@ -11662,6 +11662,8 @@ components:
         - fansub_name
         - slug
         - is_currently_active
+        - noindex
+        - is_verified
         - profile_status
         - profile_visibility
         - memberships
@@ -11709,6 +11711,12 @@ components:
           description: Jahr-genaues Ende der Aktivperiode (D-02); gesetzt nur bei fehlendem vollem Datum.
         is_currently_active:
           type: boolean
+        noindex:
+          type: boolean
+          description: Robots-noindex-Direktive fuer die oeffentliche Profilseite (SSR-Meta).
+        is_verified:
+          type: boolean
+          description: Verifizierter Member (serverautoritativ); steuert das Verifiziert-Badge.
         profile_status:
           type: string
           description: >
