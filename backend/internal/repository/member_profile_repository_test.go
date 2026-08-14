@@ -9,10 +9,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func memberProfileRepoSource(t *testing.T) string {
+	t.Helper()
+	files := []string{
+		"member_profile_repository.go",
+		"member_profile_own_repository.go",
+		"member_profile_public_repository.go",
+		"member_profile_ensure_repository.go",
+		"member_profile_memberships_repository.go",
+		"member_profile_projects_repository.go",
+		"member_profile_contributions_repository.go",
+		"member_profile_recent_repository.go",
+	}
+	var b strings.Builder
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		require.NoError(t, err)
+		b.Write(data)
+		b.WriteByte(0x0a)
+	}
+	return b.String()
+}
+
 func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
-	repoSrc, err := os.ReadFile("member_profile_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	content := memberProfileRepoSource(t)
 
 	assert.True(t, strings.Contains(content, "SELECT fgmr.role"),
 		"membership roles must read the real fansub_group_member_roles.role column")
@@ -148,9 +168,7 @@ func TestMemberProfileRepositorySourceInvariants(t *testing.T) {
 }
 
 func TestHasProjectAssignmentsSourceInvariants(t *testing.T) {
-	repoSrc, err := os.ReadFile("member_profile_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	content := memberProfileRepoSource(t)
 
 	assert.True(t, strings.Contains(content, "func (r *MemberProfileRepository) hasProjectAssignments(ctx context.Context, memberID int64) (bool, error)"),
 		"has_project_assignments must be computed by a dedicated repository method, not inline in GetOwnProfile")
@@ -200,11 +218,9 @@ func TestMemberProfileRepositoryPublicURLForPathNormalizesStoragePaths(t *testin
 }
 
 func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
-	repoSrc, err := os.ReadFile("member_profile_repository.go")
-	require.NoError(t, err)
 	modelSrc, err := os.ReadFile("../models/member_profile.go")
 	require.NoError(t, err)
-	repo := string(repoSrc)
+	repo := memberProfileRepoSource(t)
 	models := string(modelSrc)
 	latestModelStart := strings.Index(models, "type PublicMemberLatestContribution struct {")
 	latestModelEnd := strings.Index(models, "type PublicMemberPreviousContribution struct {")
@@ -256,9 +272,7 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 }
 
 func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
-	repoSrc, err := os.ReadFile("member_profile_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	content := memberProfileRepoSource(t)
 
 	assert.True(t, strings.Contains(content, "FROM release_version_notes"),
 		"latest text items must come from release_version_notes")
@@ -312,9 +326,7 @@ func TestPublicMemberLatestContributionFeedSourceInvariants(t *testing.T) {
 }
 
 func TestPublicMemberProfileResolvedIDAndStoredSlugSourceInvariants(t *testing.T) {
-	repoSrc, err := os.ReadFile("member_profile_repository.go")
-	require.NoError(t, err)
-	content := string(repoSrc)
+	content := memberProfileRepoSource(t)
 
 	profileStart := strings.Index(content, "func (r *MemberProfileRepository) GetPublicMemberProfileByID(")
 	require.GreaterOrEqual(t, profileStart, 0)
