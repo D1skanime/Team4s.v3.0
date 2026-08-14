@@ -1,9 +1,10 @@
 import { cache } from 'react'
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 
 import { ErrorState } from '@/components/ui/ErrorState'
 import { ApiError, getMemberProfile } from '@/lib/api'
+import { canonicalMemberSlug } from '@/lib/memberCanonicalSlug'
 
 import { MemberProfileContent } from './MemberProfileContent'
 import styles from './page.module.css'
@@ -75,6 +76,17 @@ function renderLoadError() {
 
 export default async function MemberProfilePage({ params }: MemberProfilePageProps) {
   const slug = await resolveSlug(params)
+
+  // Canonical-Redirect auf Route-Ebene: syntax-only und vor jedem DB-Zugriff.
+  // Nicht-kanonische, aber sichere Slugs (z. B. abweichende Gross-/Kleinschreibung)
+  // werden dauerhaft (308) auf die gespeicherte Form umgeleitet - unabhaengig von
+  // Existenz, Sichtbarkeit oder Auth. Numerische/unsichere Slugs liefern null und
+  // fallen unveraendert auf die neutrale notFound-Ausgabe zurueck.
+  const canonicalSlug = canonicalMemberSlug(slug)
+  if (canonicalSlug && canonicalSlug !== slug) {
+    permanentRedirect(`/members/${canonicalSlug}`)
+  }
+
   if (!isCanonicalStoredSlug(slug)) notFound()
 
   let response: Awaited<ReturnType<typeof getMemberProfileForRequest>>
