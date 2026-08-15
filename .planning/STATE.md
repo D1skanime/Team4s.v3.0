@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 132-01-PLAN.md
-last_updated: "2026-08-15T21:20:05.143Z"
+stopped_at: Completed 132-02-PLAN.md
+last_updated: "2026-08-15T21:46:06.197Z"
 last_activity: 2026-08-15
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 52
-  completed_plans: 23
+  completed_plans: 24
   percent: 14
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 132 (shared-ssr-composition-race-safe-frontend-state) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-15
 
@@ -84,6 +84,9 @@ Last activity: 2026-08-15
 - [Phase 128]: The owner deep link allow-lists existing profile tabs and focuses and scrolls the visibility panel without creating a second route, form, or auth seam. — Keeps owner editing on the established refresh-capable protected surface.
 - [Phase 132]: known_for is one object (active_years, top_roles, known_groups) computed server-side over the complete approved current-project set, mirroring deriveKnownFor.ts's shape in snake_case.
 - [Phase 132]: loadKnownFor is a dedicated new query (not an extension of countCurrentProjects), reusing its exact WHERE-clause filter set; raised the locked query budget 19 -> 20.
+- [Phase 132]: getMemberProjects gained a 4th optional signal parameter mirroring getSearch/getSearchSuggestions.
+- [Phase 132]: useCancellableSlugState never mutates a ref inside a setState updater; state transitions are pure functions of previous state plus resolved value, avoiding the StrictMode double-invoke dedup bug precedent in useProjectMemberCollection.ts.
+- [Phase 132]: Progressive-disclosure components must never conditionally unmount content behind a visual toggle; only a CSS class changes -- locked as a tested contract (PMFE-06/D-09) across MemberStorySection, FocalCarousel, and MemberBadgeChain.
 
 ### Pending Todos
 
@@ -129,10 +132,11 @@ Last activity: 2026-08-15
 | Phase 128 P16 | 22min | 2 tasks | 7 files |
 | Phase 128 P19 | 13min | 2 tasks | 4 files |
 | Phase 132 P01 | 25min | 2 tasks | 11 files |
+| Phase 132 P02 | 19min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-08-15T21:20:05.131Z
-Stopped at: Completed 132-01-PLAN.md
+Last session: 2026-08-15T21:46:06.181Z
+Stopped at: Completed 132-02-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None
