@@ -19,6 +19,12 @@ consolidated viewer/session seam's user-visible effects, and metadata copy. It r
 project's existing mature design tokens and `@/components/ui` primitives verbatim — it does not
 invent new visual language.
 
+**Visual hierarchy deferral:** No focal point / visual hierarchy is declared for the primary
+screen in this contract. Phase 132 does not touch layout, imagery, or visual weight — it only
+consolidates state handling and data-fetch composition around the existing rendered profile
+page. Visual hierarchy and focal-point decisions for the profile screen belong to Phase 133 and
+are intentionally out of scope here; this is a deliberate deferral, not an oversight.
+
 ---
 
 ## Design System
@@ -42,25 +48,27 @@ Introducing shadcn here would violate both. Registry safety gate: not applicable
 
 ## Spacing Scale
 
-Declared values (project's existing `--space-*` scale in `frontend/src/styles/globals.css`, all
-multiples of 4 except the documented 12px exception):
+Standard scale (multiples of 4 only) that all **new** Phase-132 UI must draw from:
 
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px (`--space-1`) | Icon gaps, inline padding |
 | sm | 8px (`--space-2`) | Compact element spacing |
-| — | 12px (`--space-3`) | Icon+label inline gaps (existing exception, keep as-is) |
 | md | 16px (`--space-4`) | Default element spacing, section header action gaps |
 | lg | 24px (`--space-5`) | Section padding |
 | xl | 32px (`--space-6`) | Layout gaps |
 | 2xl | 48px (`--space-7`) | Major section breaks |
 | 3xl | 64px (`--space-8`) | Page-level spacing |
-| — | 80px (`--space-9`) | Hero-level breaks only (existing exception) |
 
-Exceptions: 12px (`--space-3`) and 80px (`--space-9`) are pre-existing project tokens outside the
-strict 4/8/16/24/32/48/64 set; Phase 132 reuses them as-is rather than introducing a parallel
-scale. New Phase-132 UI (state cards, disclosure toggles, viewer-seam driven toolbar) must use
-only the tokens listed above — no ad hoc pixel values.
+New Phase-132 UI (state cards, disclosure toggles, viewer-seam driven toolbar) must use only the
+tokens listed above — no ad hoc pixel values, and no draw from the legacy exceptions below.
+
+**Legacy tokens — not available for new Phase-132 elements:** `--space-3` (12px) and `--space-9`
+(80px) exist in `frontend/src/styles/globals.css` and remain in place where they are already used
+in unmodified existing markup (e.g. established icon+label inline gaps, hero-level breaks). Phase
+132 does not remove or migrate these pre-existing usages — that is out of scope — but no new
+Phase-132 surface may introduce a new usage of either value. Any spacing decision inside code this
+phase authors or materially rewrites must come from the standard scale table above.
 
 ---
 
