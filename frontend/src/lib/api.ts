@@ -3195,18 +3195,20 @@ export async function getMemberProfile(
  * `limit` defaultet auf die dokumentierte Initialgröße 6 (serverseitiges Maximum 24);
  * `offset` ist 0-basiert (serverseitiges Maximum 10000). Der Aufrufer treibt "Mehr anzeigen"
  * über das ehrliche `data.total` (D-04) und `data.offset` der Antwort — kein clientseitiger
- * Wiederaufbau des Profils.
+ * Wiederaufbau des Profils. `signal` (Phase 132 D-03) erlaubt echten Request-Abbruch bei
+ * veralteten Continuation-Anfragen, analog zu getSearch.
  */
 export async function getMemberProjects(
   slug: string,
   limit = 6,
   offset = 0,
+  signal?: AbortSignal,
 ): Promise<PublicMemberProjectsResponse> {
   const encodedSlug = encodeURIComponent(slug);
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
   const response = await apiClientFetch(
     `/api/v1/members/${encodedSlug}/projects?${params.toString()}`,
-    { cache: "no-store" },
+    { cache: "no-store", signal },
   );
 
   if (!response.ok) {
