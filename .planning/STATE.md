@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Phase 132 UI-SPEC approved
-last_updated: "2026-08-15T18:46:10.564Z"
-last_activity: 2026-08-15 -- Phase 132 planning complete
+stopped_at: Completed 132-01-PLAN.md
+last_updated: "2026-08-15T21:20:05.143Z"
+last_activity: 2026-08-15
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 52
-  completed_plans: 22
+  completed_plans: 23
   percent: 14
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 131 executed; next Phase 132 - Shared SSR Composition & Race-Safe Frontend State
+**Current focus:** Phase 132 — shared-ssr-composition-race-safe-frontend-state
 
 ## Current Position
 
-Phase: 131 of 134 (Set-Based Delivery, Pagination & Performance Budgets)
-Plan: 8 of 8 (Phase 131)
+Phase: 132 (shared-ssr-composition-race-safe-frontend-state) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-08-15 -- Phase 132 planning complete
+Last activity: 2026-08-15
 
 ## Accumulated Context
 
@@ -82,6 +82,8 @@ Last activity: 2026-08-15 -- Phase 132 planning complete
 - [Phase 128]: Toolbar ownership uses getMemberProfile with the stored slug and never current-user or numeric-ID authority.
 - [Phase 128]: Visibility remains in the established radio-card editor with exactly public and private values; no members-only alias or fallback label remains. — Keeps the canonical visibility contract and avoids a parallel persisted-data control.
 - [Phase 128]: The owner deep link allow-lists existing profile tabs and focuses and scrolls the visibility panel without creating a second route, form, or auth seam. — Keeps owner editing on the established refresh-capable protected surface.
+- [Phase 132]: known_for is one object (active_years, top_roles, known_groups) computed server-side over the complete approved current-project set, mirroring deriveKnownFor.ts's shape in snake_case.
+- [Phase 132]: loadKnownFor is a dedicated new query (not an extension of countCurrentProjects), reusing its exact WHERE-clause filter set; raised the locked query budget 19 -> 20.
 
 ### Pending Todos
 
@@ -126,10 +128,11 @@ Last activity: 2026-08-15 -- Phase 132 planning complete
 | Phase 128 P18 | 6min | 1 tasks | 2 files |
 | Phase 128 P16 | 22min | 2 tasks | 7 files |
 | Phase 128 P19 | 13min | 2 tasks | 4 files |
+| Phase 132 P01 | 25min | 2 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-08-15T18:06:15.725Z
-Stopped at: Phase 132 UI-SPEC approved
+Last session: 2026-08-15T21:20:05.131Z
+Stopped at: Completed 132-01-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
-Resume file: .planning/phases/132-shared-ssr-composition-race-safe-frontend-state/132-UI-SPEC.md
+Resume file: None
