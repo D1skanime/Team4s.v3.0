@@ -279,13 +279,24 @@ export interface PublicMemberProfileData {
   badge_progress: PublicMemberBadgeProgress[]
   /** Gesamtpunktzahl aus member_point_totals, nie im Frontend neu aggregiert (D-02/Phase 110-02). */
   total_points: number
+  /** Eingebettete erste Seite der Current-Projects (Initialgröße 6, Max 24). Weitere Seiten über getMemberProjects (D-03). */
   current_projects?: PublicMemberCurrentProject[]
+  /** Ehrliche Gesamtzahl des sichtbaren Current-Project-Sets (D-04); entspricht dem `total` des Projects-Endpoints. */
   current_projects_count?: number
+  /** Eingebettete erste Seite: neueste 3 Beiträge (Initialgröße 3, Max 20). Kein separater Continuation-Endpoint. */
   latest_contributions?: PublicMemberLatestContribution[]
+  /** Eingebettete erste Seite historischer Beiträge (Initialgröße 6, Max 24). Kein separater Continuation-Endpoint. */
   previous_contributions?: PublicMemberPreviousContribution[]
+  /** Anzahl der in dieser eingebetteten Seite ausgelieferten previous_contributions (ehrlicher Payload-Count, keine Gesamtsumme). */
   previous_contributions_count?: number
 }
 
+/**
+ * Eine Offset/Limit-Seite der Current-Projects (D-03), gespiegelt aus OpenAPI
+ * PublicMemberProjectsPage. `total` ist die ehrliche Gesamtzahl des sichtbaren Sets (D-04),
+ * nicht nur der Seite — treibt "Mehr anzeigen" via offset + items.length < total.
+ * Bounds: limit max 24, offset max 10000 (serverseitig geclampt).
+ */
 export interface PublicMemberProjectsPage {
   items: PublicMemberCurrentProject[]
   total: number

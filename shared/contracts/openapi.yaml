@@ -575,6 +575,17 @@ paths:
         Returns projects after canonical member access succeeds. Missing,
         private non-owner, and numeric member segments share one neutral 404.
         Viewer-dependent responses are private, no-store and vary on Authorization.
+
+
+        Offset/limit continuation (D-01/D-03): the first page is embedded in the
+        profile payload (`current_projects`, initial size 6); this endpoint serves
+        subsequent pages. `data.total` is the honest full count of the same
+        filtered/visible current-project set (D-04), so a client drives "Mehr
+        anzeigen" purely from `offset + items.length < total` without rebuilding the
+        profile. Ordering is stable and fully tie-broken (D-02): the ORDER BY ends in
+        a unique tie-breaker, so rows never shift or duplicate across pages at a fixed
+        offset. Bounds are enforced server-side and mirror the Go clamp constants
+        (`currentProjectsMaxPageSize`, `memberPageOffsetMax`).
       operationId: getMemberProjects
       security:
         - bearerAuth: []
@@ -588,6 +599,10 @@ paths:
             minLength: 1
         - name: limit
           in: query
+          description: >-
+            Page size for current projects. Defaults to the embedded initial page
+            size (6) and is clamped to a documented maximum of 24
+            (`currentProjectsMaxPageSize`). Values are bounded server-side.
           schema:
             type: integer
             minimum: 1
@@ -595,9 +610,13 @@ paths:
             default: 6
         - name: offset
           in: query
+          description: >-
+            Zero-based offset into the honest, stably-ordered current-project set.
+            Clamped to a documented maximum of 10000 (`memberPageOffsetMax`).
           schema:
             type: integer
             minimum: 0
+            maximum: 10000
             default: 0
       responses:
         "200":
@@ -11761,42 +11780,68 @@ components:
             Phase 109/D-02). Nie zur Anfragezeit aus point_ledger_entries neu aggregiert.
         current_projects:
           type: array
-          description: First page of current projects; use the projects endpoint for subsequent pages.
+          description: >-
+            Embedded initial page of current projects (initial page size 6, documented
+            maximum 24). Subsequent pages come from GET /api/v1/members/{slug}/projects
+            (offset/limit continuation, D-03). Stably ordered (D-02).
           items:
             $ref: "#/components/schemas/PublicMemberCurrentProject"
         current_projects_count:
           type: integer
           format: int32
+          description: Honest full count of the visible current-project set (D-04); matches the projects endpoint `total`.
         latest_contributions:
           type: array
-          description: Newest three public profile contribution items across published notes and approved release-version media.
+          description: >-
+            Embedded initial page: newest three public profile contribution items across
+            published notes and approved release-version media (initial page size 3,
+            documented maximum 20). Served inline in the profile; there is no separate
+            continuation endpoint. Stably ordered (D-02).
           items:
             $ref: "#/components/schemas/PublicMemberLatestContribution"
         previous_contributions:
           type: array
-          description: Historical rows with real period evidence only; rows without ended_year are excluded.
+          description: >-
+            Embedded initial page of historical rows with real period evidence only; rows
+            without ended_year are excluded (initial page size 6, documented maximum 24).
+            Served inline in the profile; there is no separate continuation endpoint.
+            Stably ordered (D-02).
           items:
             $ref: "#/components/schemas/PublicMemberPreviousContribution"
         previous_contributions_count:
           type: integer
           format: int32
+          description: >-
+            Number of previous_contributions rows shipped in this embedded page (honest
+            payload count, not a grand total).
     PublicMemberProjectsPage:
       type: object
+      description: >-
+        One offset/limit page of a member's current projects. Together with the
+        embedded initial page (`current_projects`) this is the complete continuation
+        contract (D-03); no child collections are duplicated (D-05).
       required: [items, total, limit, offset]
       properties:
         items:
           type: array
+          description: Current-project rows for this page, in the stable tie-broken order (D-02).
           items:
             $ref: "#/components/schemas/PublicMemberCurrentProject"
         total:
           type: integer
           format: int32
+          description: >-
+            Honest full count of the same filtered/visible current-project set (D-04),
+            not just the rows on this page. Drives "Mehr anzeigen" via
+            `offset + items.length < total`.
         limit:
           type: integer
           format: int32
+          description: Effective (server-clamped) page size; maximum 24.
         offset:
           type: integer
           format: int32
+          description: Effective (server-clamped) zero-based offset; maximum 10000.
     PublicMemberProjectsEnvelope:
       type: object
       required: [data]

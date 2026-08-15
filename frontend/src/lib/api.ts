@@ -3190,6 +3190,13 @@ export async function getMemberProfile(
   return response.json() as Promise<PublicMemberProfileResponse>;
 }
 
+/**
+ * Fordert eine Continuation-Seite der Current-Projects an (D-03, OpenAPI getMemberProjects).
+ * `limit` defaultet auf die dokumentierte Initialgröße 6 (serverseitiges Maximum 24);
+ * `offset` ist 0-basiert (serverseitiges Maximum 10000). Der Aufrufer treibt "Mehr anzeigen"
+ * über das ehrliche `data.total` (D-04) und `data.offset` der Antwort — kein clientseitiger
+ * Wiederaufbau des Profils.
+ */
 export async function getMemberProjects(
   slug: string,
   limit = 6,
