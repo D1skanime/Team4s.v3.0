@@ -160,7 +160,10 @@ Plans:
   3. Rapid slug changes, paging, carousel use, and expansion cannot append stale or duplicate data, and loading/error state remains scoped to the affected section.
   4. Loading, empty, hidden, missing, and failure states remain distinct; long stories and achievement collections use progressive disclosure without losing accessible content.
   5. Member-specific metadata and relative dates are SSR/hydration-stable, while top roles, known groups, and totals derive from the complete approved dataset rather than the first page.
-**Plans**: TBD
+**Plans**: 4 plans across 3 waves
+  - Wave 1: 132-01 (backend known_for full-set aggregate + OpenAPI/TS contract parity), 132-02 (shared useCancellableSlugState hook + current-projects paging + progressive-disclosure lock)
+  - Wave 2: 132-03 (central useMemberViewer seam consolidating 3 owner/viewer call sites)
+  - Wave 3: 132-04 (known_for consumption in MemberProfileHero, member-specific metadata, referenceNow hydration-stable dates)
 **Plan-time read first**: `docs/frontend/auth-api-client.md`, `frontend/src/lib/api.ts`, `frontend/src/app/members/[slug]/page.tsx`, `OwnHiddenProfilePreview.tsx`, `OwnProfileEditLink.tsx`, `frontend/src/components/profile/MemberCurrentProjectsSection.tsx`, `MemberBadgeChain.tsx`, `memberBadgeLabels.ts`, nearby profile section components/tests, and generic primitives in `frontend/src/components/ui`. Extend existing `RichTextRenderer`, `FocalCarousel`, request, and formatting seams when ownership fits.
 **UI hint**: yes
 
@@ -219,7 +222,7 @@ Plans:
 | 129. Canonical Public Projections & Data Correctness | 0/TBD | Not started | - |
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
-| 132. Shared SSR Composition & Race-Safe Frontend State | 0/TBD | Not started | - |
+| 132. Shared SSR Composition & Race-Safe Frontend State | 0/4 | Not started | - |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 0/TBD | Not started | - |
 | 134. Fixture-Backed Verification & Rollout | 0/TBD | Not started | - |
 
