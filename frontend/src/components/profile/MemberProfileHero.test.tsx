@@ -53,6 +53,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
     public_badges: [],
     badge_progress: [],
     total_points: 0,
+    known_for: { active_years: '', top_roles: [], known_groups: [] },
     ...overrides,
   }
 }

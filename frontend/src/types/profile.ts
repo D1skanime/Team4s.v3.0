@@ -251,6 +251,17 @@ export interface ApiErrorEnvelope {
   }
 }
 
+/**
+ * "Schwerpunkte"-Aggregat (Phase 132 D-06/D-07): serverseitig ueber das vollstaendige
+ * freigegebene current-project-Set berechnet (dieselben Filter wie current_projects_count),
+ * niemals aus der ersten eingebetteten Seite abgeleitet.
+ */
+export interface PublicMemberKnownFor {
+  active_years: string
+  top_roles: string[]
+  known_groups: string[]
+}
+
 export interface PublicMemberProfileData {
   member_id: number
   fansub_name: string
@@ -279,6 +290,8 @@ export interface PublicMemberProfileData {
   badge_progress: PublicMemberBadgeProgress[]
   /** Gesamtpunktzahl aus member_point_totals, nie im Frontend neu aggregiert (D-02/Phase 110-02). */
   total_points: number
+  /** Serverautoritatives Schwerpunkte-Aggregat ueber das vollstaendige freigegebene Set (D-06/D-07). */
+  known_for: PublicMemberKnownFor
   /** Eingebettete erste Seite der Current-Projects (Initialgröße 6, Max 24). Weitere Seiten über getMemberProjects (D-03). */
   current_projects?: PublicMemberCurrentProject[]
   /** Ehrliche Gesamtzahl des sichtbaren Current-Project-Sets (D-04); entspricht dem `total` des Projects-Endpoints. */

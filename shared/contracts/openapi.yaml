@@ -11674,6 +11674,35 @@ components:
       properties:
         public_url:
           type: string
+    PublicMemberKnownFor:
+      type: object
+      description: >
+        "Schwerpunkte"-Aggregat (Phase 132 D-06/D-07), exponiert als das known_for
+        Feld auf PublicMemberProfileData: serverseitig ueber das vollstaendige
+        freigegebene current-project-Set berechnet (dieselben confirmed/public/
+        current-Filter wie current_projects_count), niemals aus der ersten
+        eingebetteten Seite abgeleitet.
+      required:
+        - active_years
+        - top_roles
+        - known_groups
+      properties:
+        active_years:
+          type: string
+          description: >
+            Formatierte Aktivjahr-Spanne ("min–max" mit En-Dash, oder ein einzelnes
+            Jahr, wenn min und max gleich sind); leerer String, wenn kein started_year
+            im freigegebenen Set vorliegt.
+        top_roles:
+          type: array
+          description: Die bis zu drei haeufigsten Rollen-Labels ueber das vollstaendige Set, absteigend nach Haeufigkeit.
+          items:
+            type: string
+        known_groups:
+          type: array
+          description: Distinkte Gruppennamen ueber das vollstaendige Set, in Query-Reihenfolge (erstes Vorkommen).
+          items:
+            type: string
     PublicMemberProfileData:
       type: object
       required:
@@ -11689,6 +11718,7 @@ components:
         - public_badges
         - badge_progress
         - total_points
+        - known_for
         - current_projects
         - current_projects_count
         - latest_contributions
@@ -11778,6 +11808,14 @@ components:
           description: >
             Aggregierter Punktestand aus member_point_totals (trigger-maintained,
             Phase 109/D-02). Nie zur Anfragezeit aus point_ledger_entries neu aggregiert.
+        known_for:
+          allOf:
+            - $ref: "#/components/schemas/PublicMemberKnownFor"
+          description: >
+            "Schwerpunkte"-Aggregat (Phase 132 D-06/D-07), serverseitig ueber das
+            VOLLSTAENDIGE freigegebene current-project-Set berechnet -- nicht nur die
+            erste eingebettete Seite von 6. Nutzt exakt dieselben confirmed/public/
+            current-Filter wie current_projects_count (PMFE-11).
         current_projects:
           type: array
           description: >-

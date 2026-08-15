@@ -70,6 +70,8 @@ func fullyPopulatedPublicMemberProfile() models.PublicMemberProfile {
 			NextTier:       strPtr("gold"),
 		}},
 		TotalPoints: 2840,
+		KnownFor: models.PublicMemberKnownFor{ActiveYears: "2016–2024", TopRoles: []string{"Timing"},
+			KnownGroups: []string{"Tsuki no Fansubs"}},
 		CurrentProjects: []models.PublicMemberCurrentProject{{
 			AnimeID:            12,
 			AnimeTitle:         "Frieren",

@@ -140,6 +140,7 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
       { family: 'membership', current_count: 7, next_threshold: 10, remaining_count: 3, next_tier: '10 Jahre', complete: false },
     ],
     total_points: 0,
+    known_for: { active_years: '', top_roles: [], known_groups: [] },
     current_projects: [
       {
         anime_id: 11,
