@@ -162,7 +162,10 @@ func TestPhase131PublicProfileQueryBudgetCharacterization(t *testing.T) {
 // query. Before 131-03 the tail was +N (one loadCurrentProjectReleaseVersions per project):
 // 2 projects -> 20, 3 -> 21, 6 -> 24. After batching it is constant at this value.
 // Update this constant ONLY for an intentional, documented loader change.
-const phase131ConstantQueryBudget = 19
+// Phase 132 (D-06/D-07): raised from 19 to 20 to account for the new loadKnownFor
+// full-set aggregate query (top roles / known groups / active years), an intentional,
+// documented addition wired into GetPublicMemberProfileByID alongside countCurrentProjects.
+const phase131ConstantQueryBudget = 20
 
 // TestPhase131PublicProfileQueryBudgetIsConstant is the constant-query-budget gate
 // (Requirement PMPF-01, CONTEXT D-07 SC1): a public-profile load must issue the SAME

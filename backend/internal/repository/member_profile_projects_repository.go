@@ -4,9 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
 )
+
+// knownForTopRolesLimit caps the "Schwerpunkte" role list to the highest-frequency
+// top-3, matching the pre-existing client-side TOP_ROLES_LIMIT this backend query
+// replaces (Phase 132 D-06).
+const knownForTopRolesLimit = 3
 
 func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, memberID int64, limit int, offset int) ([]models.PublicMemberCurrentProject, error) {
 	rows, err := r.db.Query(ctx, `
@@ -166,6 +174,97 @@ func (r *MemberProfileRepository) countCurrentProjects(ctx context.Context, memb
 		return 0, fmt.Errorf("count current projects for member %d: %w", memberID, err)
 	}
 	return total, nil
+}
+
+// loadKnownFor computes the "Schwerpunkte" aggregate (top roles, known groups,
+// active-year span) over the member's COMPLETE approved current-project set --
+// never just the first paginated page (Phase 132 D-06/D-07, PMFE-11).
+//
+// MUST stay filter-identical to countCurrentProjects: same joins, same WHERE
+// clause (status='confirmed', is_public_on_member_profile=true, ended_year IS
+// NULL). A looser filter here would leak role/group data the rest of the public
+// profile does not expose (threat T-132-01).
+func (r *MemberProfileRepository) loadKnownFor(ctx context.Context, memberID int64) (models.PublicMemberKnownFor, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+			acr.role_code,
+			COALESCE(rd.label_de, acr.role_code) AS role_label,
+			fg.name AS group_name,
+			ac.started_year
+		FROM anime_contributions ac
+		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
+		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+		LEFT JOIN role_definitions rd ON rd.code = acr.role_code
+		WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+		  AND ac.status = 'confirmed'
+		  AND ac.is_public_on_member_profile = true
+		  AND ac.ended_year IS NULL
+		ORDER BY ac.started_year DESC NULLS LAST, fg.name ASC, ac.id DESC
+	`, memberID)
+	if err != nil {
+		return models.PublicMemberKnownFor{}, fmt.Errorf("load known-for for member %d: %w", memberID, err)
+	}
+	defer rows.Close()
+
+	roleCounts := make(map[string]int)
+	groupSeen := make(map[string]bool)
+	groups := make([]string, 0)
+	var minYear, maxYear *int32
+	for rows.Next() {
+		var roleCode, roleLabel, groupName string
+		var startedYear *int32
+		if err := rows.Scan(&roleCode, &roleLabel, &groupName, &startedYear); err != nil {
+			return models.PublicMemberKnownFor{}, fmt.Errorf("scan known-for row for member %d: %w", memberID, err)
+		}
+		if strings.TrimSpace(roleLabel) != "" {
+			roleCounts[roleLabel]++
+		}
+		if strings.TrimSpace(groupName) != "" && !groupSeen[groupName] {
+			groupSeen[groupName] = true
+			groups = append(groups, groupName)
+		}
+		if startedYear != nil {
+			if minYear == nil || *startedYear < *minYear {
+				minYear = startedYear
+			}
+			if maxYear == nil || *startedYear > *maxYear {
+				maxYear = startedYear
+			}
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return models.PublicMemberKnownFor{}, fmt.Errorf("iterate known-for rows for member %d: %w", memberID, err)
+	}
+
+	topRoles := make([]string, 0, len(roleCounts))
+	for label := range roleCounts {
+		topRoles = append(topRoles, label)
+	}
+	sort.Slice(topRoles, func(i, j int) bool {
+		if roleCounts[topRoles[i]] != roleCounts[topRoles[j]] {
+			return roleCounts[topRoles[i]] > roleCounts[topRoles[j]]
+		}
+		return strings.Compare(topRoles[i], topRoles[j]) < 0
+	})
+	if len(topRoles) > knownForTopRolesLimit {
+		topRoles = topRoles[:knownForTopRolesLimit]
+	}
+
+	activeYears := ""
+	if minYear != nil && maxYear != nil {
+		if *minYear == *maxYear {
+			activeYears = strconv.Itoa(int(*minYear))
+		} else {
+			activeYears = strconv.Itoa(int(*minYear)) + "–" + strconv.Itoa(int(*maxYear))
+		}
+	}
+
+	return models.PublicMemberKnownFor{
+		ActiveYears: activeYears,
+		TopRoles:    topRoles,
+		KnownGroups: groups,
+	}, nil
 }
 
 // GetPublicMemberProjects is a temporary public-only compatibility entry point.

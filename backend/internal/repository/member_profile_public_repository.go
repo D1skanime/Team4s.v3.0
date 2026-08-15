@@ -148,6 +148,10 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	profile.KnownFor, loadErr = r.loadKnownFor(ctx, row.memberID)
+	if loadErr != nil {
+		return nil, loadErr
+	}
 	profile.LatestContributions, loadErr = r.loadLatestContributions(ctx, row.memberID, latestContributionsInitialPageSize, 0)
 	if loadErr != nil {
 		return nil, loadErr

@@ -490,3 +490,69 @@ func TestPhase131LatestContributionsBoundedToInitialPage(t *testing.T) {
 	require.Lenf(t, profile.LatestContributions, latestContributionsInitialPageSize,
 		"embedded profile load must ship only the documented latest initial page")
 }
+
+// TestPhase132PublicProfileKnownForUsesApprovedFullSet covers PMFE-11/D-06: the
+// known_for aggregate (top roles, known groups) must reflect the member's COMPLETE
+// approved current-project set, not just the first embedded page (initial size 6).
+// Seeds 7 current projects sharing the SAME updated_at so ordering falls back to
+// title ASC -- 6 projects (title "...1".."...6", role "translator", Group A) sort
+// ahead of the 7th (title "...7", role "reviewer", Group B), so the embedded
+// current_projects page (limit 6) never includes the reviewer role or Group B. If
+// loadKnownFor aggregated only that first page it would miss both; aggregating the
+// full approved set must surface both.
+func TestPhase132PublicProfileKnownForUsesApprovedFullSet(t *testing.T) {
+	pool := openPhase129Postgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	const memberID int64 = 1320001
+	mustExecPhase129(t, pool, `
+		INSERT INTO role_definitions (code, label_de) VALUES ('translator', 'Übersetzer'), ('reviewer', 'Korrektur');
+		INSERT INTO members (id, nickname, public_slug) VALUES (1320001, 'phase132-knownfor', 'phase132-knownfor');
+		INSERT INTO fansub_groups (id, slug, name, status) VALUES
+			(1320101, 'phase132-kf-grp-a', 'Phase132 KF Group A', 'active'),
+			(1320102, 'phase132-kf-grp-b', 'Phase132 KF Group B', 'active');
+		INSERT INTO anime (id, title) VALUES
+			(1320201, 'Phase132 KF Anime 1'),
+			(1320202, 'Phase132 KF Anime 2'),
+			(1320203, 'Phase132 KF Anime 3'),
+			(1320204, 'Phase132 KF Anime 4'),
+			(1320205, 'Phase132 KF Anime 5'),
+			(1320206, 'Phase132 KF Anime 6'),
+			(1320207, 'Phase132 KF Anime 7');
+		INSERT INTO anime_contributions (id, fansub_group_id, anime_id, member_id, status, is_public_on_member_profile, started_year, ended_year, updated_at) VALUES
+			(1320301, 1320101, 1320201, 1320001, 'confirmed', true, 2018, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1320302, 1320101, 1320202, 1320001, 'confirmed', true, 2019, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1320303, 1320101, 1320203, 1320001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1320304, 1320101, 1320204, 1320001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1320305, 1320101, 1320205, 1320001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1320306, 1320101, 1320206, 1320001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1320307, 1320102, 1320207, 1320001, 'confirmed', true, 2024, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00');
+		INSERT INTO anime_contribution_roles (id, anime_contribution_id, role_code) VALUES
+			(1320401, 1320301, 'translator'),
+			(1320402, 1320302, 'translator'),
+			(1320403, 1320303, 'translator'),
+			(1320404, 1320304, 'translator'),
+			(1320405, 1320305, 'translator'),
+			(1320406, 1320306, 'translator'),
+			(1320407, 1320307, 'reviewer');
+	`)
+
+	profile, err := repo.GetPublicMemberProfileByID(context.Background(), memberID)
+	require.NoError(t, err)
+
+	require.Lenf(t, profile.CurrentProjects, currentProjectsInitialPageSize,
+		"embedded current_projects must stay bounded to the documented initial page (%d) even though 7 rows exist", currentProjectsInitialPageSize)
+	for _, p := range profile.CurrentProjects {
+		require.NotEqualf(t, int64(1320207), p.AnimeID,
+			"the 7th (reviewer/Group B) project must NOT be on the embedded first page -- test setup invariant")
+	}
+
+	require.Containsf(t, profile.KnownFor.TopRoles, "Korrektur",
+		"PMFE-11/D-06: known_for.top_roles must include the 'reviewer' role which only appears on project #7 (past the embedded first page); got %v", profile.KnownFor.TopRoles)
+	require.Containsf(t, profile.KnownFor.KnownGroups, "Phase132 KF Group A",
+		"known_for.known_groups must include Group A; got %v", profile.KnownFor.KnownGroups)
+	require.Containsf(t, profile.KnownFor.KnownGroups, "Phase132 KF Group B",
+		"known_for.known_groups must include Group B, which only appears on project #7 (past the embedded first page); got %v", profile.KnownFor.KnownGroups)
+	require.Equalf(t, "2018–2024", profile.KnownFor.ActiveYears,
+		"known_for.active_years must span the full approved set's min/max started_year (2018-2024), not just the first-page range; got %q", profile.KnownFor.ActiveYears)
+}

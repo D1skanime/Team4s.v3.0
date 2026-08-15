@@ -284,6 +284,15 @@ type PublicMemberProfileBackgroundImage struct {
 	PublicURL string `json:"public_url"`
 }
 
+// PublicMemberKnownFor (Phase 132 D-06/D-07) is the server-computed "Schwerpunkte"
+// aggregate: top roles by frequency, distinct known groups, and the active-year span,
+// derived over the member's COMPLETE approved current-project set (see loadKnownFor).
+type PublicMemberKnownFor struct {
+	ActiveYears string   `json:"active_years"`
+	TopRoles    []string `json:"top_roles"`
+	KnownGroups []string `json:"known_groups"`
+}
+
 // PublicMemberMembership ist das oeffentliche Mitgliedschafts-Shape (Allow-List, D-01):
 // entkoppelt von MemberProfileMembership; OHNE app_member_status / app_member_roles /
 // historical_member_status (interne App-Permission-/Status-Felder).
@@ -327,7 +336,11 @@ type PublicMemberProfile struct {
 
 	BadgeProgress []PublicMemberBadgeProgress `json:"badge_progress"`
 
-	TotalPoints                int64                              `json:"total_points"`
+	TotalPoints int64 `json:"total_points"`
+	// KnownFor (Phase 132 D-06/D-07): server-authoritative "Schwerpunkte" aggregate
+	// (top roles, known groups, active-year span) computed over the member's COMPLETE
+	// approved current-project set -- never derived client-side from a paginated page.
+	KnownFor                   PublicMemberKnownFor               `json:"known_for"`
 	CurrentProjects            []PublicMemberCurrentProject       `json:"current_projects"`
 	CurrentProjectsCount       int                                `json:"current_projects_count"`
 	LatestContributions        []PublicMemberLatestContribution   `json:"latest_contributions"`
@@ -339,6 +352,12 @@ func (p PublicMemberProfile) MarshalJSON() ([]byte, error) {
 	type publicMemberProfileAlias PublicMemberProfile
 	if p.BadgeProgress == nil {
 		p.BadgeProgress = []PublicMemberBadgeProgress{}
+	}
+	if p.KnownFor.TopRoles == nil {
+		p.KnownFor.TopRoles = []string{}
+	}
+	if p.KnownFor.KnownGroups == nil {
+		p.KnownFor.KnownGroups = []string{}
 	}
 	return json.Marshal(publicMemberProfileAlias(p))
 }
