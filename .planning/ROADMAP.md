@@ -21,7 +21,7 @@ Milestone v1.3 hardens the existing public member profile as one privacy-sensiti
 - [x] **Phase 129: Canonical Public Projections & Data Correctness** - Make every visible membership, contribution, release, badge, point, date, role, and count come from the correct public source.
 - [x] **Phase 130: Public DTO & Cross-Layer Contract Alignment** - Establish one minimal allow-listed public profile contract across backend, OpenAPI, TypeScript, and API helpers.
 - [ ] **Phase 131: Set-Based Delivery, Pagination & Performance Budgets** - Bound payloads and page reads, remove query fan-out, and prove performance against both milestone fixtures.
-- [ ] **Phase 132: Shared SSR Composition & Race-Safe Frontend State** - Render public and owner views through one composition and one refresh-capable request boundary with localized state.
+- [x] **Phase 132: Shared SSR Composition & Race-Safe Frontend State** - Render public and owner views through one composition and one refresh-capable request boundary with localized state. (completed 2026-08-15)
 - [ ] **Phase 133: Responsive, Accessible & Efficient Visual Delivery** - Make the final profile composition mobile-first, container-responsive, keyboard accessible, and image-budgeted.
 - [ ] **Phase 134: Fixture-Backed Verification & Rollout** - Reproduce both reference profiles from a clean state and close the milestone with automated and live evidence.
 

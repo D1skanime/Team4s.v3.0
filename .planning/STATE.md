@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
-status: executing
-stopped_at: Completed 132-03-PLAN.md
-last_updated: "2026-08-15T21:54:09.864Z"
+status: verifying
+stopped_at: Completed 132-04-PLAN.md
+last_updated: "2026-08-15T22:06:44.948Z"
 last_activity: 2026-08-15
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 52
-  completed_plans: 25
-  percent: 14
+  completed_plans: 26
+  percent: 29
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 132 (shared-ssr-composition-race-safe-frontend-state) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-15
 
 ## Accumulated Context
@@ -89,6 +89,9 @@ Last activity: 2026-08-15
 - [Phase 132]: Progressive-disclosure components must never conditionally unmount content behind a visual toggle; only a CSS class changes -- locked as a tested contract (PMFE-06/D-09) across MemberStorySection, FocalCarousel, and MemberBadgeChain.
 - [Phase 132]: useMemberViewer's fetcher must be useCallback-memoized on slug alone; an inline arrow function fed into useCancellableSlugState's effect dependency array causes an infinite self-abort/refetch loop.
 - [Phase 132]: CorrectionReportModal no longer performs its own owner-resolution fetch; OwnProfileEditLink via useMemberViewer is the sole owner-gating authority for the members/[slug] surface (PMFE-02/D-02).
+- [Phase 132]: MemberProfileHero/MemberProfileMemorialHero read known_for from the DTO with zero client-side re-aggregation; deriveKnownFor.ts trimmed to the still-used KnownForResult type only.
+- [Phase 132]: Visible profile generateMetadata composes title/description/OpenGraph only from already-public fansub_name and known_for facts; hidden/missing metadata stays byte-identical.
+- [Phase 132]: relativeTimeLabel is a pure function of (occurredAt, referenceNow); one server- or client-useState-captured referenceNow is threaded through MemberProfileContent to eliminate the Date.now() SSR hydration-mismatch.
 
 ### Pending Todos
 
@@ -136,10 +139,11 @@ Last activity: 2026-08-15
 | Phase 132 P01 | 25min | 2 tasks | 11 files |
 | Phase 132 P02 | 19min | 3 tasks | 9 files |
 | Phase 132 P03 | 8min | 2 tasks | 7 files |
+| Phase 132 P04 | 11min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-08-15T21:54:09.851Z
-Stopped at: Completed 132-03-PLAN.md
+Last session: 2026-08-15T22:06:38.099Z
+Stopped at: Completed 132-04-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None

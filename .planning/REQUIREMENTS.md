@@ -65,9 +65,9 @@
 - [x] **PMFE-04**: Loading-, Empty-, Hidden-, Missing- und Fehlerzustände werden fachlich getrennt und lokal dargestellt.
 - [x] **PMFE-05**: Wiederholte Badge-Konfiguration, Ableitungen, Formatierung und UI-Kontrollen werden an vorhandenen gemeinsamen Seams konsolidiert.
 - [x] **PMFE-06**: Nicht offensichtliche Privacy-, Aggregations- und Zustandsinvarianten erhalten kurze Zweckkommentare; selbsterklärender JSX-Code wird nicht überkommentiert.
-- [ ] **PMFE-07**: Seitentitel und Metadaten beschreiben das konkrete Memberprofil sinnvoll.
+- [x] **PMFE-07**: Seitentitel und Metadaten beschreiben das konkrete Memberprofil sinnvoll.
 - [x] **PMFE-08**: Lange Inhalte und umfangreiche Auszeichnungen verwenden progressive Offenlegung statt ungebremster Seitenlänge.
-- [ ] **PMFE-09**: Relative Datumsanzeigen sind SSR- und Hydration-stabil und hängen während des Renderns nicht unkontrolliert von `Date.now()` ab.
+- [x] **PMFE-09**: Relative Datumsanzeigen sind SSR- und Hydration-stabil und hängen während des Renderns nicht unkontrolliert von `Date.now()` ab.
 - [x] **PMFE-10**: Owner-, Vorschau- und Korrekturaktionen arbeiten fail-closed, deduplizieren Profilanfragen und verhindern Request-Races.
 - [x] **PMFE-11**: Top-Rollen, bekannte Gruppen und Summen werden aus dem vollständigen freigegebenen Datensatz berechnet, nicht aus der ersten Projektseite.
 
@@ -167,9 +167,9 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMFE-04 | Phase 132 | Complete |
 | PMFE-05 | Phase 132 | Complete |
 | PMFE-06 | Phase 132 | Complete |
-| PMFE-07 | Phase 132 | Pending |
+| PMFE-07 | Phase 132 | Complete |
 | PMFE-08 | Phase 132 | Complete |
-| PMFE-09 | Phase 132 | Pending |
+| PMFE-09 | Phase 132 | Complete |
 | PMFE-10 | Phase 132 | Complete |
 | PMFE-11 | Phase 132 | Complete |
 | PMUI-01 | Phase 133 | Pending |
