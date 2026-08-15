@@ -8,10 +8,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PublicMemberLatestContribution } from '@/types/profile'
 const latestContributionStyles = readFileSync('src/components/profile/LatestContributionsSection.module.css', 'utf8')
 
+// Fester Referenzzeitpunkt (PMFE-09): entkoppelt Tests von der echten Systemzeit und dient
+// als deterministischer referenceNow-Wert fuer relativeTimeLabel.
+const FIXED_REFERENCE_NOW = new Date('2026-07-10T10:00:00Z').getTime()
+
 async function loadLatestContributionsSection(): Promise<{
   LatestContributionsSection: ComponentType<{
     items: PublicMemberLatestContribution[]
     headingLevel?: 2 | 3
+    referenceNow: number
   }>
 }> {
   try {
@@ -69,6 +74,7 @@ describe('LatestContributionsSection', () => {
           makeTextItem(4, '   '),
           makeTextItem(5, 'Dieser vierte Beitrag gehört nicht mehr ins Fenster.'),
         ]}
+        referenceNow={FIXED_REFERENCE_NOW}
       />,
     )
 
@@ -93,7 +99,10 @@ describe('LatestContributionsSection', () => {
     const { LatestContributionsSection } = await loadLatestContributionsSection()
 
     const { container } = render(
-      <LatestContributionsSection items={[makeTextItem(1, 'Ein Beitrag mit genug Text für den Clamp-Test.')]} />,
+      <LatestContributionsSection
+        items={[makeTextItem(1, 'Ein Beitrag mit genug Text für den Clamp-Test.')]}
+        referenceNow={FIXED_REFERENCE_NOW}
+      />,
     )
 
     expect(screen.getByText('Ein Beitrag mit genug Text für den Clamp-Test.')).not.toBeNull()
@@ -109,7 +118,7 @@ describe('LatestContributionsSection', () => {
   it('uses a full-width 16:9 object-cover media preview without internal metadata', async () => {
     const { LatestContributionsSection } = await loadLatestContributionsSection()
 
-    const { container } = render(<LatestContributionsSection items={[makeMediaItem(1)]} />)
+    const { container } = render(<LatestContributionsSection items={[makeMediaItem(1)]} referenceNow={FIXED_REFERENCE_NOW} />)
     const preview = screen.getByTestId('latest-contribution-media-preview') as HTMLElement
     const image = screen.getByRole('img', { name: /Visual Stories/i }) as HTMLImageElement
 
@@ -153,6 +162,7 @@ describe('LatestContributionsSection', () => {
           makeTextItem(3, 'SSR zwei.'),
           makeTextItem(4, 'Erst nach Aktivierung erweiterbar.'),
         ]}
+        referenceNow={FIXED_REFERENCE_NOW}
       />,
     )
 
@@ -176,10 +186,36 @@ describe('LatestContributionsSection', () => {
 
 })
 
+it('Phase 132 PMFE-09: renders the same relative-date label for a fixed referenceNow regardless of real wall-clock time (no hidden Date.now() read)', async () => {
+  const { LatestContributionsSection } = await loadLatestContributionsSection()
+  const item = makeTextItem(1, 'Ein Beitrag fuer den Hydration-Stabilitaetstest.')
+
+  const first = render(
+    <LatestContributionsSection items={[item]} referenceNow={FIXED_REFERENCE_NOW} />,
+  )
+  const firstLabel = within(screen.getByRole('list', { name: 'Letzte Beiträge' })).getByText(/^vor /).textContent
+  first.unmount()
+
+  // Real time keeps moving between these two renders (unlike referenceNow); if the component
+  // still read Date.now() internally, the label would differ between the two renders.
+  await new Promise((resolve) => { setTimeout(resolve, 5) })
+
+  const second = render(
+    <LatestContributionsSection items={[item]} referenceNow={FIXED_REFERENCE_NOW} />,
+  )
+  const secondLabel = within(screen.getByRole('list', { name: 'Letzte Beiträge' })).getByText(/^vor /).textContent
+
+  expect(secondLabel).toBe(firstLabel)
+  second.unmount()
+})
+
 it('Phase 120 RED: keeps latest contributions accessible beneath an aria-hidden shell', async () => {
     const { LatestContributionsSection } = await loadLatestContributionsSection()
     const { container } = render(
-      <LatestContributionsSection items={[makeMediaItem(1), makeTextItem(2, 'Lesbarer SSR-Beitrag.')]} />,
+      <LatestContributionsSection
+        items={[makeMediaItem(1), makeTextItem(2, 'Lesbarer SSR-Beitrag.')]}
+        referenceNow={FIXED_REFERENCE_NOW}
+      />,
     )
 
     const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
@@ -204,7 +240,7 @@ it('Quick 260811-pqe bounds desktop media while preserving cover fit and mobile 
 
 it('Quick 260812-lql reserves compact container-responsive media rows', async () => {
   const { LatestContributionsSection } = await loadLatestContributionsSection()
-  render(<LatestContributionsSection items={[makeMediaItem(1)]} />)
+  render(<LatestContributionsSection items={[makeMediaItem(1)]} referenceNow={FIXED_REFERENCE_NOW} />)
   const list = screen.getByRole('list', { name: 'Letzte Beiträge' })
   const row = within(list).getByRole('listitem')
   const image = within(row).getByRole('img', { name: /Visual Stories/i })

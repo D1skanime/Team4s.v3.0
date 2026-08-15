@@ -23,6 +23,12 @@ import styles from './LatestContributionsSection.module.css'
 type LatestContributionsSectionProps = {
   items: PublicMemberLatestContribution[]
   headingLevel?: 2 | 3
+  /**
+   * Server-captured reference timestamp (ms epoch, Phase 132 PMFE-09) that relativeTimeLabel
+   * diffs against instead of reading Date.now() mid-render. Must be the SAME value across the
+   * SSR render and the client hydration render, otherwise relative-date text would mismatch.
+   */
+  referenceNow: number
 }
 
 function textPreview(item: PublicMemberLatestContribution): string {
@@ -56,11 +62,11 @@ function mediaCategory(item: PublicMemberLatestContribution): {
   }
 }
 
-function relativeTimeLabel(occurredAt: string): string {
+function relativeTimeLabel(occurredAt: string, referenceNow: number): string {
   const timestamp = new Date(occurredAt).getTime()
   if (!Number.isFinite(timestamp)) return ''
 
-  const diffMs = Date.now() - timestamp
+  const diffMs = referenceNow - timestamp
   const absMs = Math.abs(diffMs)
   const minute = 60 * 1000
   const hour = 60 * minute
@@ -90,8 +96,8 @@ function relativeTimeLabel(occurredAt: string): string {
   return format(amount, amount === 1 ? 'Monat' : 'Monaten')
 }
 
-function ContextLine({ item }: { item: PublicMemberLatestContribution }) {
-  const timeLabel = relativeTimeLabel(item.occurred_at)
+function ContextLine({ item, referenceNow }: { item: PublicMemberLatestContribution; referenceNow: number }) {
+  const timeLabel = relativeTimeLabel(item.occurred_at, referenceNow)
 
   return (
     <div className={styles.contextLine}>
@@ -144,6 +150,7 @@ function ContributionSkeleton({ item }: { item: PublicMemberLatestContribution }
 export function LatestContributionsSection({
   items,
   headingLevel = 2,
+  referenceNow,
 }: LatestContributionsSectionProps) {
   const [expanded, setExpanded] = useState(false)
   const listId = useId()
@@ -204,7 +211,7 @@ export function LatestContributionsSection({
                     ) : null}
                   </div>
                   <div className={styles.mediaBody}>
-                    <ContextLine item={item} />
+                    <ContextLine item={item} referenceNow={referenceNow} />
                     <Badge variant="info">
                       <ImageIcon size={14} aria-hidden="true" />
                       Medienbeitrag
@@ -224,7 +231,7 @@ export function LatestContributionsSection({
                   <FileText size={18} />
                 </span>
                 <span className={styles.textBody}>
-                  <ContextLine item={item} />
+                  <ContextLine item={item} referenceNow={referenceNow} />
                   <Badge variant="success">
                     <FileText size={14} aria-hidden="true" />
                     Textbeitrag

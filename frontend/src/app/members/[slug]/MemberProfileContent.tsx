@@ -23,6 +23,12 @@ type MemberProfileContentProps = {
   storedSlug: string
   viewer: PublicMemberViewer
   viewerResolved?: boolean
+  /**
+   * One server-captured reference timestamp (ms epoch, Phase 132 PMFE-09) threaded from either
+   * the SSR page (page.tsx) or the client owner-upgrade path (OwnHiddenProfilePreview.tsx) into
+   * LatestContributionsSection, so relative-date labels never re-read Date.now() mid-render.
+   */
+  referenceNow: number
 }
 
 export function MemberProfileContent({
@@ -30,6 +36,7 @@ export function MemberProfileContent({
   storedSlug,
   viewer,
   viewerResolved = false,
+  referenceNow,
 }: MemberProfileContentProps) {
   const avatarURL = resolveApiUrl(profile.avatar?.public_url || '')
   const backgroundImageURL = resolveApiUrl(profile.background_image?.public_url || '')
@@ -152,7 +159,7 @@ export function MemberProfileContent({
                 : styles.contributionPairEmpty
             }`}
           >
-            <LatestContributionsSection items={latestContributions} headingLevel={3} />
+            <LatestContributionsSection items={latestContributions} headingLevel={3} referenceNow={referenceNow} />
             <PreviousContributionsSection
               items={previousContributions}
               totalCount={previousContributionsCount}

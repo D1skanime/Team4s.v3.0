@@ -127,11 +127,18 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
     return renderLoadError()
   }
 
+  // Ein serverseitig einmalig erfasster Referenzzeitpunkt (PMFE-09): wird unveraendert an
+  // MemberProfileContent -> LatestContributionsSection durchgereicht, damit relative
+  // Zeitangaben ("vor 3 Tagen") zwischen SSR-Markup und Hydration identisch bleiben, statt bei
+  // jedem Render neu Date.now() zu lesen.
+  const referenceNow = Date.now()
+
   return (
     <MemberProfileContent
       profile={response.data}
       storedSlug={slug}
       viewer={response.viewer}
+      referenceNow={referenceNow}
     />
   )
 }

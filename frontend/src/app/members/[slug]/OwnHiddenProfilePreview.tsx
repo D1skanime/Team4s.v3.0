@@ -50,6 +50,11 @@ export function OwnHiddenProfilePreview() {
   const pathname = usePathname()
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const [retryKey, setRetryKey] = useState(0)
+  // Client-seitig einmalig erfasster Referenzzeitpunkt (PMFE-09): via useState-Initializer
+  // erfasst, damit der Wert ueber Re-Renders derselben aufgeloesten Vorschau stabil bleibt und
+  // relative Zeitangaben ("vor 3 Tagen") nicht bei jedem Render neu Date.now() lesen. Diese
+  // Vorschau ist vollstaendig client-gerendert -- kein SSR-Hydration-Mismatch-Risiko hier.
+  const [referenceNow] = useState(() => Date.now())
   const slug = getStoredSlug(pathname)
   const hasAuthSession = hasAccessToken || hasRefreshToken
 
@@ -103,6 +108,7 @@ export function OwnHiddenProfilePreview() {
       storedSlug={slug}
       viewer={response.viewer}
       viewerResolved
+      referenceNow={referenceNow}
     />
   )
 }
