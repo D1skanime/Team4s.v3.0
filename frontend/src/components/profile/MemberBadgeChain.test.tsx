@@ -966,6 +966,23 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(screen.getAllByText('Gesperrt').length).toBeGreaterThan(0)
   })
 
+  // PMFE-06/D-09: locks the "full content stays mounted" accessibility/SEO invariant -
+  // a badge group's FocalCarousel must receive the FULL unfiltered row list as `items`
+  // regardless of expand/collapse state, so a future refactor cannot silently reintroduce
+  // conditional unmounting behind the carousel's expand toggle.
+  it('keeps every role row mounted after expanding the Fansubrollen carousel', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const { container } = render(
+      <MemberBadgeChain earnedBadges={[roleBadge('translator', 108), roleBadge('timer', 12)]} catalog={roleProgressCatalog} />,
+    )
+    expect(container.querySelectorAll('[data-role-stage]')).toHaveLength(10)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Fansubrollen anzeigen' }))
+
+    expect(screen.getByRole('list', { name: 'Alle Rollen' })).not.toBeNull()
+    expect(container.querySelectorAll('[data-role-stage]')).toHaveLength(10)
+  })
+
   it('hides zero and foreign roles and reverses rank state on rerender', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
     const { rerender } = render(

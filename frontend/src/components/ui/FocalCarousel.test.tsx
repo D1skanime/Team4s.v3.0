@@ -712,6 +712,46 @@ it('Phase 120 RED: activates once at 600px and immediately without IntersectionO
     }
 })
 
+describe('FocalCarousel PMFE-06 full-mount contract', () => {
+  // PMFE-06/D-09: locks the "full content stays mounted" accessibility/SEO invariant -
+  // expanding the carousel grid must render every item from the full `items` prop, not
+  // just the windowed `carouselItems` subset, so a future refactor cannot silently
+  // reintroduce partial/conditional unmounting behind the expand toggle.
+  it('renders every item from items (not just the visible carouselItems subset) once expanded', () => {
+    const fullItems = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon']
+    const visibleSubset = fullItems.slice(0, 2)
+
+    render(
+      <FocalCarousel
+        items={fullItems}
+        carouselItems={visibleSubset}
+        getItemKey={(item) => item}
+        renderItem={(item) => <span>{item}</span>}
+        regionLabel="Voll-Karussell"
+        itemSingularLabel="Karte"
+        itemPluralLabel="Karten"
+        previousLabel="Vorherige Karte"
+        nextLabel="Nächste Karte"
+        showAllLabel="Alle Karten anzeigen"
+        showLessLabel="Weniger anzeigen"
+      />,
+    )
+
+    expect(screen.getByText('Alpha')).toBeTruthy()
+    expect(screen.getByText('Beta')).toBeTruthy()
+    expect(screen.queryByText('Gamma')).toBeNull()
+    expect(screen.queryByText('Delta')).toBeNull()
+    expect(screen.queryByText('Epsilon')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Karten anzeigen' }))
+
+    for (const item of fullItems) {
+      expect(screen.getByText(item)).toBeTruthy()
+    }
+    expect(screen.getByRole('list', { name: 'Alle Karten' }).querySelectorAll('li')).toHaveLength(fullItems.length)
+  })
+})
+
 describe('Quick 260812-rps responsive carousel contract', () => {
   it('bounds cards to the component container and preserves 44px controls', () => {
     const rootRule = focalCarouselCss.match(/\.root\s*\{[^}]*\}/s)?.[0] ?? ''

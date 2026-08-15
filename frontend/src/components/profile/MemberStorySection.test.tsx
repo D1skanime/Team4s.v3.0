@@ -99,6 +99,25 @@ describe('MemberStorySection', () => {
     expect(screen.getByRole('button', { name: 'Mehr lesen' })).not.toBeNull()
   })
 
+  // PMFE-06/D-09: locks the "full content stays mounted" accessibility/SEO invariant -
+  // clamping must only apply a CSS clamp class, never remove or conditionally unmount
+  // the rendered story content, so a future refactor cannot silently reintroduce
+  // conditional unmounting behind the read-more toggle.
+  it('keeps the full RichTextRenderer output mounted while clamped and not yet expanded', async () => {
+    const { MemberStorySection } = await loadMemberStorySection()
+
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(400)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(72)
+
+    const longStory = '<p>Eine sehr lange Fansub-Geschichte mit vielen wichtigen Details, die vollständig im DOM erhalten bleiben müssen, auch während sie nur visuell per CSS geklemmt wird.</p>'
+    render(<MemberStorySection storyHtml={longStory} />)
+
+    await screen.findByRole('button', { name: 'Mehr lesen' })
+    const content = screen.getByTestId('rich-text-renderer')
+    expect(content.textContent).toBe(longStory)
+    expect(content.parentElement?.className).toContain('storyContentClamped')
+  })
+
 it('Quick 260812-rps keeps at least eight readable preview lines before Mehr lesen', () => {
   const clampedRule = storyStyles.match(/\.storyContentClamped\s*\{[^}]*\}/s)?.[0] ?? ''
   expect(clampedRule).toContain('max-height: calc(8 * 1.5em);')
