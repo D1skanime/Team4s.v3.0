@@ -166,7 +166,11 @@ func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context,
 		  AND ac.is_public_on_member_profile = true
 		  AND ac.ended_year IS NOT NULL
 		GROUP BY a.id, a.title_de, a.title_en, a.title, fg.id, fg.name
-		ORDER BY MAX(ac.ended_year) DESC, a.title ASC, fg.name ASC
+		-- Domain sort keys first (most-recently-ended, then title, then group name).
+		-- Trailing (a.id DESC, fg.id DESC) is the UNIQUE tie-breaker: (anime_id,
+		-- fansub_group_id) is exactly this query's GROUP BY grouping key, so equal
+		-- ended_year rows keep a deterministic, stable order across loads (D-02).
+		ORDER BY MAX(ac.ended_year) DESC, a.title ASC, fg.name ASC, a.id DESC, fg.id DESC
 	`, memberID)
 	if err != nil {
 		return nil, fmt.Errorf("load previous contributions for member %d: %w", memberID, err)

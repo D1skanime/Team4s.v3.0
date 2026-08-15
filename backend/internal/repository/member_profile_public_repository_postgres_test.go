@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+
+	"team4s.v3/backend/internal/models"
 )
 
 // Phase 129 (Plan 02, Wave 1, RED): PostgreSQL-Contracts fuer die KORREKTE oeffentliche
@@ -223,4 +226,158 @@ func TestPhase129PublicRecentMediaExcludesUnapprovedPrivateMedia(t *testing.T) {
 	require.NoError(t, err)
 	require.Emptyf(t, media,
 		"PMDA-07/PMPR-06: private, non-approved release media must not leak into the public recent-media projection; got %d row(s)", len(media))
+}
+
+// projectKeys extracts the (anime_id, fansub_group_id) identity sequence of a current-
+// projects page as human-readable strings, so two page loads can be compared for
+// identical ordering and pages can be checked for row overlap.
+func projectKeys(items []models.PublicMemberCurrentProject) []string {
+	keys := make([]string, len(items))
+	for i, it := range items {
+		keys[i] = fmt.Sprintf("%d:%d", it.AnimeID, it.FansubGroupID)
+	}
+	return keys
+}
+
+// TestPhase131CurrentProjectsPagingIsStableAndTotalHonest covers D-02 (fully tie-broken
+// stable ordering) and D-03 (honest total). It seeds four current-project rows that are
+// deliberately tie-prone: identical title AND identical updated_at across two anime, each
+// paired with two fansub groups. Without the trailing UNIQUE (a.id DESC, fg.id DESC) tie-
+// breaker the domain sort keys (MAX(updated_at), title, fg.name) leave the order of these
+// rows undefined, so offset pages could wobble between loads. With it, the total order is
+// deterministic: a.id DESC then fg.id DESC. The test loads page 1 and page 2 TWICE and
+// asserts (a) identical ordering across repeated loads, (b) no row appears on both pages
+// (offset stability), and (c) countCurrentProjects equals the number of visible rows
+// summed across every page (honest total from the same filtered/visible set).
+func TestPhase131CurrentProjectsPagingIsStableAndTotalHonest(t *testing.T) {
+	pool := openPhase129Postgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	// fansub_groups.name carries a UNIQUE constraint, so two grouped rows can only tie on
+	// (title, fg.name) when the SAME group is paired with two same-titled anime. We seed
+	// two same-titled anime (A=...301 < B=...302), each contributed under the SAME two
+	// groups G1/G2, all with identical updated_at. The two rows sharing a group then tie on
+	// every domain sort key (updated_at, title, fg.name) and can only be ordered by the
+	// trailing UNIQUE tie-breaker a.id DESC. Groups sort by name (G1 'A' < G2 'B'), so the
+	// expected deterministic total order (fg.name ASC, then a.id DESC) is:
+	//   (302,201), (301,201), (302,202), (301,202).
+	mustExecPhase129(t, pool, `
+		INSERT INTO role_definitions (code, label_de) VALUES ('translator', 'Übersetzer');
+		INSERT INTO members (id, nickname, public_slug) VALUES (1310001, 'phase131-stable', 'phase131-stable');
+		INSERT INTO anime (id, title) VALUES
+			(1310301, 'ZZ Tie Anime'),
+			(1310302, 'ZZ Tie Anime');
+		INSERT INTO fansub_groups (id, slug, name, status) VALUES
+			(1310201, 'phase131-grp-1', 'ZZ Tie Group A', 'active'),
+			(1310202, 'phase131-grp-2', 'ZZ Tie Group B', 'active');
+		INSERT INTO anime_contributions (id, fansub_group_id, anime_id, member_id, status, is_public_on_member_profile, started_year, ended_year, updated_at) VALUES
+			(1310401, 1310201, 1310301, 1310001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1310402, 1310201, 1310302, 1310001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1310403, 1310202, 1310301, 1310001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00'),
+			(1310404, 1310202, 1310302, 1310001, 'confirmed', true, 2020, NULL, TIMESTAMPTZ '2024-01-01 00:00:00+00');
+		INSERT INTO anime_contribution_roles (id, anime_contribution_id, role_code) VALUES
+			(1310501, 1310401, 'translator'),
+			(1310502, 1310402, 'translator'),
+			(1310503, 1310403, 'translator'),
+			(1310504, 1310404, 'translator');
+	`)
+
+	const memberID int64 = 1310001
+	wantPage1 := []string{"1310302:1310201", "1310301:1310201"}
+	wantPage2 := []string{"1310302:1310202", "1310301:1310202"}
+
+	// Load each page twice; ordering must be byte-for-byte identical across loads.
+	for attempt := 1; attempt <= 2; attempt++ {
+		page1, err := repo.loadCurrentProjects(context.Background(), memberID, 2, 0)
+		require.NoErrorf(t, err, "attempt %d load page1", attempt)
+		page2, err := repo.loadCurrentProjects(context.Background(), memberID, 2, 2)
+		require.NoErrorf(t, err, "attempt %d load page2", attempt)
+
+		require.Equalf(t, wantPage1, projectKeys(page1),
+			"D-02: attempt %d page1 order must be deterministic and fully tie-broken", attempt)
+		require.Equalf(t, wantPage2, projectKeys(page2),
+			"D-02: attempt %d page2 order must be deterministic and fully tie-broken", attempt)
+
+		// Offset stability: no row may appear on both pages.
+		seen := map[string]bool{}
+		for _, k := range projectKeys(page1) {
+			seen[k] = true
+		}
+		for _, k := range projectKeys(page2) {
+			require.Falsef(t, seen[k], "D-02: attempt %d row %s appeared on both page1 and page2 (offset wobble)", attempt, k)
+		}
+	}
+
+	// D-03 honest total: the count must equal the number of visible rows summed across
+	// every page (same filtered/visible set that produced the rows).
+	total, err := repo.countCurrentProjects(context.Background(), memberID)
+	require.NoError(t, err)
+	require.Equalf(t, 4, total, "D-03: total must count exactly the 4 visible current-project rows")
+
+	visible := 0
+	for offset := 0; ; offset += 2 {
+		page, err := repo.loadCurrentProjects(context.Background(), memberID, 2, offset)
+		require.NoError(t, err)
+		if len(page) == 0 {
+			break
+		}
+		visible += len(page)
+	}
+	require.Equalf(t, total, visible,
+		"D-03: countCurrentProjects (%d) must equal the number of visible rows across all pages (%d)", total, visible)
+}
+
+// TestPhase131PreviousContributionsOrderingIsStable covers D-02 for the previous-
+// contributions list: seeds tie-prone rows (identical ended_year AND identical title
+// across two anime, each under two groups) and asserts the ordering is identical across
+// repeated loads. Without the trailing UNIQUE (a.id DESC, fg.id DESC) tie-breaker the
+// domain keys (MAX(ended_year), title, fg.name) leave these rows unordered.
+func TestPhase131PreviousContributionsOrderingIsStable(t *testing.T) {
+	pool := openPhase129Postgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	// Same tie-forcing shape as the current-projects test (fansub_groups.name is UNIQUE):
+	// two same-titled anime, each under the SAME two groups, all ended in 2019. The two
+	// rows sharing a group tie on every domain key (ended_year, title, fg.name) and are
+	// ordered only by the trailing UNIQUE a.id DESC. Expected order (fg.name ASC 'A'<'B',
+	// then a.id DESC): (302,201), (301,201), (302,202), (301,202).
+	mustExecPhase129(t, pool, `
+		INSERT INTO role_definitions (code, label_de) VALUES ('translator', 'Übersetzer');
+		INSERT INTO members (id, nickname, public_slug) VALUES (1311001, 'phase131-prev', 'phase131-prev');
+		INSERT INTO anime (id, title) VALUES
+			(1311301, 'ZZ Prev Anime'),
+			(1311302, 'ZZ Prev Anime');
+		INSERT INTO fansub_groups (id, slug, name, status) VALUES
+			(1311201, 'phase131-prev-grp-1', 'ZZ Prev Group A', 'active'),
+			(1311202, 'phase131-prev-grp-2', 'ZZ Prev Group B', 'active');
+		INSERT INTO anime_contributions (id, fansub_group_id, anime_id, member_id, status, is_public_on_member_profile, started_year, ended_year) VALUES
+			(1311401, 1311201, 1311301, 1311001, 'confirmed', true, 2018, 2019),
+			(1311402, 1311201, 1311302, 1311001, 'confirmed', true, 2018, 2019),
+			(1311403, 1311202, 1311301, 1311001, 'confirmed', true, 2018, 2019),
+			(1311404, 1311202, 1311302, 1311001, 'confirmed', true, 2018, 2019);
+		INSERT INTO anime_contribution_roles (id, anime_contribution_id, role_code) VALUES
+			(1311501, 1311401, 'translator'),
+			(1311502, 1311402, 'translator'),
+			(1311503, 1311403, 'translator'),
+			(1311504, 1311404, 'translator');
+	`)
+
+	const memberID int64 = 1311001
+	// Expected deterministic order (fg.name ASC, then a.id DESC).
+	want := []string{"1311302:1311201", "1311301:1311201", "1311302:1311202", "1311301:1311202"}
+
+	prevKeys := func(items []models.PublicMemberPreviousContribution) []string {
+		keys := make([]string, len(items))
+		for i, it := range items {
+			keys[i] = fmt.Sprintf("%d:%d", it.AnimeID, it.FansubGroupID)
+		}
+		return keys
+	}
+
+	for attempt := 1; attempt <= 2; attempt++ {
+		items, err := repo.loadPreviousContributions(context.Background(), memberID)
+		require.NoErrorf(t, err, "attempt %d load previous contributions", attempt)
+		require.Equalf(t, want, prevKeys(items),
+			"D-02: attempt %d previous-contributions order must be deterministic and fully tie-broken", attempt)
+	}
 }

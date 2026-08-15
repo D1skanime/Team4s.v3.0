@@ -73,7 +73,11 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 		  AND ac.is_public_on_member_profile = true
 		  AND ac.ended_year IS NULL
 		GROUP BY a.id, a.title_de, a.title_en, a.title, a.cover_image, cover_file.path, cover_asset.file_path, anime_poster.path, fg.id, fg.name
-		ORDER BY MAX(ac.updated_at) DESC, a.title ASC, fg.name ASC
+		-- Domain sort keys first (most-recently-active, then title, then group name).
+		-- Trailing (a.id DESC, fg.id DESC) is the UNIQUE tie-breaker: (anime_id,
+		-- fansub_group_id) is exactly this query's GROUP BY grouping key, so it makes the
+		-- total order deterministic and offset pages stable across repeated loads (D-02).
+		ORDER BY MAX(ac.updated_at) DESC, a.title ASC, fg.name ASC, a.id DESC, fg.id DESC
 		LIMIT $2 OFFSET $3
 	`, memberID, limit, offset)
 	if err != nil {
