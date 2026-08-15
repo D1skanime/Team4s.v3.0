@@ -325,3 +325,76 @@ func TestGetPublicMemberProfileNilLoaderUsesStandardEnvelope(t *testing.T) {
 	require.Equal(t, "internal_error", response.Error.Code)
 	require.NotEmpty(t, response.Error.Details)
 }
+
+// TestPublicMemberCacheClassSeparationLock locks the D-09 policy: viewer-specific
+// (owner / private-preview) and anonymous public responses stay in SEPARATE cache
+// classes so an owner preview can never leak into an anonymous cache, and NO
+// shared/public cache-control (public / max-age / s-maxage) is emitted on the
+// public member routes. Phase 128 established `private, no-store` + `Vary:
+// Authorization`; this test prevents a regression toward a shared cache in 131.
+func TestPublicMemberCacheClassSeparationLock(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	assertNoSharedCache := func(t *testing.T, cacheControl string) {
+		t.Helper()
+		lower := strings.ToLower(cacheControl)
+		require.NotContains(t, lower, "public", "public member routes must not emit a shared public cache")
+		require.NotContains(t, lower, "max-age", "public member routes must not emit a cacheable max-age")
+		require.NotContains(t, lower, "s-maxage", "public member routes must not emit a shared s-maxage")
+	}
+
+	t.Run("owner or private-preview response is uncacheable", func(t *testing.T) {
+		resolver := &recordingPublicMemberAccessResolver{access: repository.PublicMemberAccess{
+			MemberID:         51,
+			Slug:             "private-member",
+			IsOwner:          true,
+			IsPrivatePreview: true,
+		}}
+		loaders := &recordingPublicMemberProfileLoaders{
+			profile: &models.PublicMemberProfile{MemberID: 51, Slug: "private-member"},
+		}
+		handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+		recorder, c := publicMemberRequestContext("/api/v1/members/private-member", "private-member")
+		c.Set("auth_identity", middleware.AuthIdentity{UserID: 51, DisplayName: "Owner", AppUserID: 51})
+
+		handler.GetPublicMemberProfile(c)
+
+		require.Equal(t, http.StatusOK, recorder.Code)
+		// Viewer class: never stored by any cache, keyed by Authorization.
+		require.Equal(t, "private, no-store", recorder.Header().Get("Cache-Control"))
+		require.Equal(t, "Authorization", recorder.Header().Get("Vary"))
+		assertNoSharedCache(t, recorder.Header().Get("Cache-Control"))
+	})
+
+	t.Run("anonymous public response carries no shared cache", func(t *testing.T) {
+		resolver := &recordingPublicMemberAccessResolver{
+			access: repository.PublicMemberAccess{MemberID: 52, Slug: "public-member"},
+		}
+		loaders := &recordingPublicMemberProfileLoaders{
+			profile: &models.PublicMemberProfile{MemberID: 52, Slug: "public-member"},
+		}
+		handler := NewAppPublicProfileHandler(resolver, loaders, loaders)
+		recorder, c := publicMemberRequestContext("/api/v1/members/public-member", "public-member")
+
+		handler.GetPublicMemberProfile(c)
+
+		require.Equal(t, http.StatusOK, recorder.Code)
+		// Anonymous class is separated from the viewer class by Vary: Authorization
+		// and must never advertise a shared/public cache.
+		require.Equal(t, "Authorization", recorder.Header().Get("Vary"))
+		assertNoSharedCache(t, recorder.Header().Get("Cache-Control"))
+	})
+
+	// Seam-level lock: for both viewer-dependent and anonymous inputs the cache
+	// header helper only ever emits the separating headers, never a shared cache.
+	for _, viewerDependent := range []bool{true, false} {
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		setPublicMemberResponseCache(c, viewerDependent)
+		require.Equal(t, "Authorization", recorder.Header().Get("Vary"))
+		assertNoSharedCache(t, recorder.Header().Get("Cache-Control"))
+		if viewerDependent {
+			require.Equal(t, "private, no-store", recorder.Header().Get("Cache-Control"))
+		}
+	}
+}
