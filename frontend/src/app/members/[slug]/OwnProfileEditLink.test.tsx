@@ -19,6 +19,15 @@ vi.mock('next/link', () => ({
 vi.mock('@/lib/api', () => ({
   getMemberProfile: (...args: unknown[]) => getMemberProfileMock(...args),
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
+  // useMemberViewer.ts (the shared hook this component now consumes) checks
+  // `error instanceof ApiError` to distinguish 404s from other failures.
+  ApiError: class ApiError extends Error {
+    status: number
+    constructor(status: number, message = 'API request failed') {
+      super(message)
+      this.status = status
+    }
+  },
 }))
 
 vi.mock('@/lib/useAuthSession', () => ({

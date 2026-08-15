@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
-import { ApiError, getOwnProfile, submitMemberCorrection } from '@/lib/api'
+import { ApiError, submitMemberCorrection } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { Button, FormField, Modal, Select, Textarea } from '@/components/ui'
 
@@ -13,8 +13,11 @@ interface CorrectionReportModalProps {
   memberName?: string
 }
 
+// PMFE-02/D-02: dieses Modal führt KEINE eigene Owner-Ermittlung mehr durch. Die alleinige
+// Owner-Gating-Autorität liegt beim Aufrufer (OwnProfileEditLink.tsx via useMemberViewer.ts),
+// der dieses Modal ausschließlich im bereits bekannten Nicht-Owner-Zweig rendert.
 export function CorrectionReportModal({ memberId, memberName }: CorrectionReportModalProps) {
-  const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
+  const { hasAccessToken, hasRefreshToken } = useAuthSession()
   const isLoggedIn = hasAccessToken || hasRefreshToken
 
   const [open, setOpen] = useState(false)
@@ -23,28 +26,9 @@ export function CorrectionReportModal({ memberId, memberName }: CorrectionReport
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [ownMemberId, setOwnMemberId] = useState<number | null>(null)
 
-  // Eigenen Member ermitteln, um „Korrektur melden" auf dem eigenen Profil auszublenden.
-  useEffect(() => {
-    if (!isClientInitialized || !isLoggedIn) return
-
-    let active = true
-    getOwnProfile()
-      .then((response) => {
-        if (active) setOwnMemberId(response.data.member_id)
-      })
-      .catch(() => {
-        if (active) setOwnMemberId(null)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [isLoggedIn, isClientInitialized])
-
-  // Nicht eingeloggt oder eigenes Profil: keine Korrektur-Meldung anbieten.
-  if (!isLoggedIn || ownMemberId === memberId) return null
+  // Nicht eingeloggt: keine Korrektur-Meldung anbieten.
+  if (!isLoggedIn) return null
 
   function handleOpen() {
     setOpen(true)

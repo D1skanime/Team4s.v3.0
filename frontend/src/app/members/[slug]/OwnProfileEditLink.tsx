@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { PencilLine } from 'lucide-react'
 
 import { CorrectionReportModal } from '@/components/profile/CorrectionReportModal'
-import { getMemberProfile } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
+import { useMemberViewer } from '@/lib/useMemberViewer'
 import type { PublicMemberViewer } from '@/types/profile'
 
 import styles from './page.module.css'
@@ -19,10 +18,6 @@ type OwnProfileEditLinkProps = {
   viewerResolved?: boolean
 }
 
-type ViewerResolution =
-  | { key: string; status: 'resolved'; viewer: PublicMemberViewer }
-  | { key: string; status: 'unavailable' }
-
 export function OwnProfileEditLink({
   storedSlug,
   publicMemberId,
@@ -31,34 +26,14 @@ export function OwnProfileEditLink({
   viewerResolved = false,
 }: OwnProfileEditLinkProps) {
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
-  const [resolution, setResolution] = useState<ViewerResolution | null>(null)
   const hasAuthSession = hasAccessToken || hasRefreshToken
-  const requestKey = [storedSlug, hasAuthSession].join(':')
 
-  useEffect(() => {
-    if (!isClientInitialized || viewerResolved || !hasAuthSession) return
-
-    let active = true
-    void getMemberProfile(storedSlug)
-      .then((response) => {
-        if (active) {
-          setResolution({
-            key: requestKey,
-            status: 'resolved',
-            viewer: response.viewer,
-          })
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setResolution({ key: requestKey, status: 'unavailable' })
-        }
-      })
-
-    return () => {
-      active = false
-    }
-  }, [hasAuthSession, isClientInitialized, requestKey, storedSlug, viewerResolved])
+  // PMFE-02: einziger Owner-/Viewer-Resolver dieser Seite (siehe useMemberViewer.ts). Ist der
+  // Viewer bereits über die SSR/Owner-Vorschau bekannt (`viewerResolved`), wird gar nicht erst
+  // gefetcht.
+  const { status, response } = useMemberViewer(storedSlug, {
+    enabled: isClientInitialized && !viewerResolved && hasAuthSession,
+  })
 
   if (!isClientInitialized) return null
 
@@ -66,8 +41,8 @@ export function OwnProfileEditLink({
     ? initialViewer
     : !hasAuthSession
       ? initialViewer
-      : resolution?.key === requestKey && resolution.status === 'resolved'
-        ? resolution.viewer
+      : status === 'resolved' && response
+        ? response.viewer
         : null
 
   if (!viewer) return null
