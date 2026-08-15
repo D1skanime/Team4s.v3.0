@@ -106,15 +106,35 @@ func (r *MemberProfileRepository) loadCurrentProjects(ctx context.Context, membe
 				item.CoverURL = &url
 			}
 		}
-		releaseVersions, err := r.loadCurrentProjectReleaseVersions(ctx, memberID, item.AnimeID, item.FansubGroupID)
-		if err != nil {
-			return nil, err
-		}
-		item.ReleaseVersions = releaseVersions
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate current projects for member %d: %w", memberID, err)
+	}
+
+	// Batch the per-card release-version reads into ONE set-based query for the whole
+	// page instead of one round-trip per project (former loadCurrentProjectReleaseVersions
+	// N+1). This keeps the profile-load query count CONSTANT regardless of project count
+	// (PMPF-01, D-07 SC1). Attach the batched results back to their project in Go.
+	if len(items) > 0 {
+		animeIDs := make([]int64, len(items))
+		fansubGroupIDs := make([]int64, len(items))
+		for i := range items {
+			animeIDs[i] = items[i].AnimeID
+			fansubGroupIDs[i] = items[i].FansubGroupID
+		}
+		byProject, err := r.loadCurrentProjectReleaseVersionsBatch(ctx, memberID, animeIDs, fansubGroupIDs)
+		if err != nil {
+			return nil, err
+		}
+		for i := range items {
+			key := memberProjectKey{animeID: items[i].AnimeID, fansubGroupID: items[i].FansubGroupID}
+			if versions := byProject[key]; versions != nil {
+				items[i].ReleaseVersions = versions
+			} else {
+				items[i].ReleaseVersions = make([]models.PublicMemberProjectReleaseVersion, 0)
+			}
+		}
 	}
 	return items, nil
 }
@@ -177,14 +197,34 @@ func (r *MemberProfileRepository) GetPublicMemberProjectsByID(ctx context.Contex
 		Items: items, Total: total, Limit: limit, Offset: offset,
 	}, nil
 }
-func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
+// memberProjectKey identifies a current project by its (anime, fansub group) pair, the
+// grouping key used to attach batch-loaded release versions back to their project card.
+type memberProjectKey struct {
+	animeID       int64
+	fansubGroupID int64
+}
+
+// loadCurrentProjectReleaseVersionsBatch loads the release versions for EVERY project on
+// the page in a SINGLE set-based query (unnest of the paired (anime_id, fansub_group_id)
+// arrays), replacing the former per-project loadCurrentProjectReleaseVersions N+1. Results
+// are grouped in Go by (anime_id, fansub_group_id). The per-project ORDER BY
+// (ep.sort_index, ep.id, rv.version, rv.id) is preserved inside each group -- the outer
+// ORDER BY simply keeps each project's rows contiguous so append() rebuilds the identical
+// per-project ordering the old loader produced.
+func (r *MemberProfileRepository) loadCurrentProjectReleaseVersionsBatch(
 	ctx context.Context,
 	memberID int64,
-	animeID int64,
-	fansubGroupID int64,
-) ([]models.PublicMemberProjectReleaseVersion, error) {
+	animeIDs []int64,
+	fansubGroupIDs []int64,
+) (map[memberProjectKey][]models.PublicMemberProjectReleaseVersion, error) {
+	result := make(map[memberProjectKey][]models.PublicMemberProjectReleaseVersion)
+	if len(animeIDs) == 0 {
+		return result, nil
+	}
 	rows, err := r.db.Query(ctx, `
 		SELECT
+			p.anime_id AS grp_anime_id,
+			p.fansub_group_id AS grp_fansub_group_id,
 			rv.id,
 			COALESCE(NULLIF(rv.title, ''), NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS release_version_label,
 			COALESCE(NULLIF(rv.version, ''), CONCAT('#', rv.id::text)) AS version,
@@ -192,10 +232,11 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 			COALESCE(ep.episode_number, '') AS episode_number,
 			ep.title AS episode_title,
 			COALESCE(own.roles, '[]'::jsonb) AS roles
-		FROM release_versions rv
-		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
+		FROM unnest($2::bigint[], $3::bigint[]) AS p(anime_id, fansub_group_id)
+		JOIN release_version_groups rvg ON rvg.fansub_group_id = p.fansub_group_id
+		JOIN release_versions rv ON rv.id = rvg.release_version_id
 		JOIN fansub_releases fr ON fr.id = rv.release_id
-		JOIN episodes ep ON ep.id = fr.episode_id
+		JOIN episodes ep ON ep.id = fr.episode_id AND ep.anime_id = p.anime_id
 		LEFT JOIN LATERAL (
 			SELECT COALESCE(jsonb_agg(DISTINCT jsonb_build_object('code', acr.role_code, 'label_de', COALESCE(rd.label_de, acr.role_code))) FILTER (WHERE acr.role_code IS NOT NULL), '[]'::jsonb) AS roles
 			FROM anime_contributions ac
@@ -203,28 +244,28 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 			LEFT JOIN role_definitions rd ON rd.code = acr.role_code
 			WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
-			  AND ac.anime_id = $2
-			  AND ac.fansub_group_id = $3
+			  AND ac.anime_id = p.anime_id
+			  AND ac.fansub_group_id = p.fansub_group_id
 			  AND ac.status = 'confirmed'
 			  AND ac.is_public_on_member_profile = true
 			  AND ac.ended_year IS NULL
 			  AND (ac.release_version_id = rv.id OR ac.release_version_id IS NULL)
 		) own ON true
-		WHERE ep.anime_id = $2
-		  AND rvg.fansub_group_id = $3
-		  AND COALESCE(jsonb_array_length(own.roles), 0) > 0
-		ORDER BY COALESCE(ep.sort_index, 2147483647), ep.id, rv.version, rv.id
-	`, memberID, animeID, fansubGroupID)
+		WHERE COALESCE(jsonb_array_length(own.roles), 0) > 0
+		ORDER BY p.anime_id, p.fansub_group_id, COALESCE(ep.sort_index, 2147483647), ep.id, rv.version, rv.id
+	`, memberID, animeIDs, fansubGroupIDs)
 	if err != nil {
-		return nil, fmt.Errorf("load current project release versions anime=%d fansub=%d: %w", animeID, fansubGroupID, err)
+		return nil, fmt.Errorf("load current project release versions batch member=%d: %w", memberID, err)
 	}
 	defer rows.Close()
 
-	items := make([]models.PublicMemberProjectReleaseVersion, 0)
 	for rows.Next() {
+		var key memberProjectKey
 		var item models.PublicMemberProjectReleaseVersion
 		var rolesJSON []byte
 		if err := rows.Scan(
+			&key.animeID,
+			&key.fansubGroupID,
 			&item.ReleaseVersionID,
 			&item.ReleaseVersionLabel,
 			&item.Version,
@@ -236,12 +277,12 @@ func (r *MemberProfileRepository) loadCurrentProjectReleaseVersions(
 			return nil, fmt.Errorf("scan current project release version row: %w", err)
 		}
 		item.Roles = decodeMemberRoles(rolesJSON)
-		items = append(items, item)
+		result[key] = append(result[key], item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate current project release versions anime=%d fansub=%d: %w", animeID, fansubGroupID, err)
+		return nil, fmt.Errorf("iterate current project release versions batch member=%d: %w", memberID, err)
 	}
-	return items, nil
+	return result, nil
 }
 
 // decodeMemberRoles wandelt eine serverseitig aggregierte jsonb-Rollenliste

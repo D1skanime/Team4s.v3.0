@@ -145,8 +145,8 @@ func TestPhase131PublicProfileQueryBudgetCharacterization(t *testing.T) {
 	require.Len(t, profile.CurrentProjects, smallProjectCount,
 		"seed must produce exactly the expected number of listed current projects")
 
-	t.Logf("PMPF-01 characterization: a single GetPublicMemberProfileByID load with %d current projects issued %d SQL queries (today's reality; ~base + 1 list query + %d per-card loadCurrentProjectReleaseVersions round-trips).",
-		smallProjectCount, got, smallProjectCount)
+	t.Logf("PMPF-01 characterization: a single GetPublicMemberProfileByID load with %d current projects issued %d SQL queries (post-131-03 shape: fixed loader base + 1 loadCurrentProjects list query + 1 batched loadCurrentProjectReleaseVersionsBatch query; constant regardless of project count).",
+		smallProjectCount, got)
 
 	// Loose upper bound ONLY -- this records reality and stays GREEN. The constant-
 	// budget assertion (count must not grow with project count) lands in 131-03.
@@ -155,11 +155,22 @@ func TestPhase131PublicProfileQueryBudgetCharacterization(t *testing.T) {
 		"loose characterization ceiling: today's public-profile load should stay well under 100 queries for a small seed; got %d", got)
 }
 
-// TestPhase131PublicProfileQueryBudgetGrowsWithProjects demonstrates the CURRENT (to-be-
-// fixed) N+1 shape: a member with more current projects issues MORE queries than a member
-// with fewer, because loadCurrentProjects makes one per-card round-trip per project. This
-// is a characterization of today's growth, not the constancy gate (131-03 will invert it).
-func TestPhase131PublicProfileQueryBudgetGrowsWithProjects(t *testing.T) {
+// phase131ConstantQueryBudget is the enforced constant number of SQL queries a single
+// public-profile load issues, INDEPENDENT of the member's current-project count. Shape
+// after 131-03 removed the per-card N+1: a fixed base of profile/badge/contribution
+// loaders + 1 loadCurrentProjects list query + 1 batched loadCurrentProjectReleaseVersionsBatch
+// query. Before 131-03 the tail was +N (one loadCurrentProjectReleaseVersions per project):
+// 2 projects -> 20, 3 -> 21, 6 -> 24. After batching it is constant at this value.
+// Update this constant ONLY for an intentional, documented loader change.
+const phase131ConstantQueryBudget = 19
+
+// TestPhase131PublicProfileQueryBudgetIsConstant is the constant-query-budget gate
+// (Requirement PMPF-01, CONTEXT D-07 SC1): a public-profile load must issue the SAME
+// number of SQL queries regardless of how many current projects the member has. 131-03
+// replaced the per-card loadCurrentProjectReleaseVersions round-trip (one per project)
+// with a single set-based batched read, so the count no longer grows with project count.
+// This inverts the 131-01 growth characterization into a hard ceiling (D-07).
+func TestPhase131PublicProfileQueryBudgetIsConstant(t *testing.T) {
 	pool, counter := openPhase131Postgres(t)
 	repo := NewMemberProfileRepository(pool, "")
 
@@ -171,21 +182,29 @@ func TestPhase131PublicProfileQueryBudgetGrowsWithProjects(t *testing.T) {
 	seedPhase131MemberWithCurrentProjects(t, pool, manyMember, "phase131-many", manyProjects)
 
 	counter.reset()
-	_, err := repo.GetPublicMemberProfileByID(context.Background(), fewMember)
+	fewProfile, err := repo.GetPublicMemberProfileByID(context.Background(), fewMember)
 	require.NoError(t, err)
 	fewCount := counter.count()
+	require.Len(t, fewProfile.CurrentProjects, fewProjects,
+		"few-project seed must list exactly its seeded current projects")
 
 	counter.reset()
-	_, err = repo.GetPublicMemberProfileByID(context.Background(), manyMember)
+	manyProfile, err := repo.GetPublicMemberProfileByID(context.Background(), manyMember)
 	require.NoError(t, err)
 	manyCount := counter.count()
+	require.Len(t, manyProfile.CurrentProjects, manyProjects,
+		"many-project seed must list exactly its seeded current projects")
 
-	t.Logf("PMPF-01 growth characterization: %d projects -> %d queries; %d projects -> %d queries (delta %d for %d extra projects confirms today's per-card N+1 in loadCurrentProjects -> loadCurrentProjectReleaseVersions).",
-		fewProjects, fewCount, manyProjects, manyCount, manyCount-fewCount, manyProjects-fewProjects)
+	t.Logf("PMPF-01 constant-budget gate: %d projects -> %d queries; %d projects -> %d queries (must be equal and constant after 131-03 batched read).",
+		fewProjects, fewCount, manyProjects, manyCount)
 
-	// Characterizes today's reality: the count GROWS with project count. 131-03 will
-	// replace this with the inverse assertion (constant regardless of project count).
-	require.Greaterf(t, manyCount, fewCount,
-		"today's public-profile load grows with project count (per-card N+1); expected %d-project count (%d) > %d-project count (%d)",
-		manyProjects, manyCount, fewProjects, fewCount)
+	// D-07 SC1: the budget is CONSTANT -- identical regardless of project count (no
+	// per-card / per-project round-trips remain).
+	require.Equalf(t, fewCount, manyCount,
+		"constant query budget violated: %d-project load issued %d queries but %d-project load issued %d (per-card N+1 must stay eliminated)",
+		fewProjects, fewCount, manyProjects, manyCount)
+	// And it is exactly the enforced constant (hard ceiling, not just non-growing).
+	require.Equalf(t, phase131ConstantQueryBudget, manyCount,
+		"public-profile query budget drifted from the enforced constant %d; got %d (update phase131ConstantQueryBudget only with an intentional, documented loader change)",
+		phase131ConstantQueryBudget, manyCount)
 }
