@@ -300,6 +300,10 @@ describe('MemberProfileHero', () => {
               contribution_status: 'confirmed',
             },
           ],
+          // known_for ist das serverautoritative Aggregat (PMFE-11) -- die Hero-Kopie liest
+          // nur dieses Feld, nie current_projects; hier absichtlich identisch gesetzt, damit
+          // dieser Test weiterhin die gesperrte semantische Reihenfolge der Hero-Kopie prueft.
+          known_for: { active_years: '', top_roles: ['Timing', 'Typesetting'], known_groups: [] },
         })}
         backgroundImageURL="/media/profile/3/background/current/display.jpg"
         avatarURL="/media/profile/3/avatar/current/display.png"
@@ -415,6 +419,54 @@ describe('MemberProfileHero', () => {
     )
 
     expect(screen.queryByLabelText('Mitglied-Punktzahl')).toBeNull()
+  })
+
+  it('reads Schwerpunkte from the server-authoritative known_for aggregate, never from the embedded current_projects page (PMFE-11 regression)', () => {
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({
+          // Die eingebettete erste Seite (current_projects) traegt absichtlich eine ANDERE
+          // Top-Rolle als known_for -- known_for ist ueber das VOLLSTAENDIGE freigegebene Set
+          // serverseitig berechnet (Phase 132 Plan 01) und darf nie erneut client-seitig aus
+          // dieser paginierten Seite abgeleitet werden.
+          current_projects: [
+            {
+              anime_id: 1,
+              anime_title: 'Embedded-Page-Anime',
+              fansub_group_id: 1,
+              fansub_group_name: 'Embedded Group',
+              roles: [{ code: 'timer', label_de: 'Timing' }],
+              release_versions: [],
+              is_project_level: false,
+              contribution_status: 'confirmed',
+            },
+          ],
+          known_for: {
+            active_years: '2018–2024',
+            top_roles: ['Übersetzung', 'Editing'],
+            known_groups: ['Server Group'],
+          },
+        })}
+        isPublicView={true}
+      />,
+    )
+
+    const panel = screen.getByTestId('member-profile-hero-panel')
+    expect(within(panel).getByText('Schwerpunkte: Übersetzung, Editing')).not.toBeNull()
+    expect(within(panel).queryByText(/Schwerpunkte: Timing/)).toBeNull()
+    expect(within(panel).getByText('Aktiv: 2018–2024')).not.toBeNull()
+  })
+
+  it('renders no known_for block for a non-public MemberProfileData shape (no known_for field present)', () => {
+    render(
+      <MemberProfileHero
+        profile={makePrivateProfile()}
+        isPublicView={true}
+      />,
+    )
+
+    expect(screen.queryByText(/Schwerpunkte:/)).toBeNull()
+    expect(screen.queryByText(/^Aktiv:/)).toBeNull()
   })
 })
 

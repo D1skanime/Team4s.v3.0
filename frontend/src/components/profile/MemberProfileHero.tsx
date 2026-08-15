@@ -73,24 +73,17 @@ function getTotalPoints(profile: MemberProfileData | PublicMemberProfileData): n
   return 'total_points' in profile ? profile.total_points : null
 }
 
-function deriveKnownForFromPublicProfile(profile: MemberProfileData | PublicMemberProfileData): KnownForResult {
-  if (!('current_projects' in profile)) return { activeYears: '', topRoles: [], knownGroups: [] }
+// getKnownFor liest das server-autoritative known_for-Aggregat direkt vom DTO (PMFE-06/PMFE-11,
+// Phase 132 Plan 01). Es darf NIE wieder aus current_projects (nur die erste paginierte Seite)
+// re-aggregiert werden -- das war der urspruengliche PMFE-11-Datenfehler.
+function getKnownFor(profile: MemberProfileData | PublicMemberProfileData): KnownForResult {
+  if (!('known_for' in profile)) return { activeYears: '', topRoles: [], knownGroups: [] }
 
-  const roles = new Map<string, number>()
-  for (const project of profile.current_projects ?? []) {
-    for (const role of project.roles ?? []) {
-      const label = role.label_de.trim()
-      if (!label) continue
-      roles.set(label, (roles.get(label) ?? 0) + 1)
-    }
+  return {
+    activeYears: profile.known_for.active_years,
+    topRoles: profile.known_for.top_roles,
+    knownGroups: profile.known_for.known_groups,
   }
-
-  const topRoles = Array.from(roles.entries())
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'de'))
-    .slice(0, 3)
-    .map(([role]) => role)
-
-  return { activeYears: '', topRoles, knownGroups: [] }
 }
 
 export function MemberProfileHero({
@@ -109,7 +102,7 @@ export function MemberProfileHero({
   const publicProfileHref = getPublicProfileHref(profile)
   const publicActivityLabel = isPublicView ? formatPublicActivity(profile) : ''
   const profileStatus = getProfileStatus(profile)
-  const knownFor = deriveKnownForFromPublicProfile(profile)
+  const knownFor = getKnownFor(profile)
   const totalPoints = getTotalPoints(profile)
   const isAnimatedAvatar = /\.gif(?:$|\?)/i.test(avatarURL)
   const earnedCodes = new Set(publicBadges.map((badge) => badge.badge_code))
