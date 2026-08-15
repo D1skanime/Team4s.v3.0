@@ -337,6 +337,38 @@ describe('MemberProfilePage Phase 99 route composition', () => {
   })
 
 
+  it('composes member-specific title/description/OG metadata for a visible profile from publicly-permissible known_for facts', async () => {
+    getMemberProfileMock.mockResolvedValue({
+      data: makePublicProfile({
+        fansub_name: 'Ballelboy',
+        known_for: { active_years: '2016–2024', top_roles: ['Timing', 'Typesetting'], known_groups: ['AnimeOwnage'] },
+      }),
+      viewer: { is_owner: false, is_private_preview: false },
+    })
+
+    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
+
+    expect(metadata.title).toContain('Ballelboy')
+    expect(metadata.description).toContain('Timing')
+    expect(metadata.openGraph).toEqual({ title: metadata.title, description: metadata.description })
+    expect(metadata.robots).toBeUndefined()
+  })
+
+  it('falls back to a generic description for a visible profile with an empty known_for aggregate', async () => {
+    getMemberProfileMock.mockResolvedValue({
+      data: makePublicProfile({
+        fansub_name: 'Ballelboy',
+        known_for: { active_years: '', top_roles: [], known_groups: [] },
+      }),
+      viewer: { is_owner: false, is_private_preview: false },
+    })
+
+    const metadata = await generateMetadata({ params: Promise.resolve({ slug: 'ballelboy' }) })
+
+    expect(metadata.title).toContain('Ballelboy')
+    expect(metadata.description).toBe('Ballelboy bei Team4s.')
+  })
+
   it('deduplicates anonymous metadata and page reads for the same stored slug', async () => {
     getMemberProfileMock.mockResolvedValue({
       data: makePublicProfile({ noindex: true }),

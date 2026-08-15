@@ -45,6 +45,34 @@ function isNotFoundError(error: unknown): boolean {
 
 const getMemberProfileForRequest = cache((slug: string) => getMemberProfile(slug))
 
+// composeVisibleProfileMetadata baut Titel/Beschreibung/OG-Tags NUR aus bereits
+// oeffentlich freigegebenen Feldern (fansub_name, known_for) des schon als sichtbar
+// bestaetigten Profils (T-132-07) -- keine eigene, parallele Sichtbarkeitsentscheidung.
+function composeVisibleProfileMetadata(profile: { fansub_name: string; known_for: { active_years: string; top_roles: string[]; known_groups: string[] } }): Metadata {
+  const title = `${profile.fansub_name} | Team4s`
+
+  const facts: string[] = []
+  if (profile.known_for.top_roles.length > 0) {
+    facts.push(`Schwerpunkte: ${profile.known_for.top_roles.join(', ')}`)
+  }
+  if (profile.known_for.known_groups.length > 0) {
+    facts.push(`Bekannt bei: ${profile.known_for.known_groups.join(', ')}`)
+  }
+  if (profile.known_for.active_years) {
+    facts.push(`Aktiv: ${profile.known_for.active_years}`)
+  }
+
+  const description = facts.length > 0
+    ? facts.join(' · ')
+    : `${profile.fansub_name} bei Team4s.`
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  }
+}
+
 export async function generateMetadata({ params }: MemberProfilePageProps): Promise<Metadata> {
   const slug = await resolveSlug(params)
   if (!isCanonicalStoredSlug(slug)) return NEUTRAL_UNAVAILABLE_METADATA
@@ -54,6 +82,7 @@ export async function generateMetadata({ params }: MemberProfilePageProps): Prom
     if (response.data.noindex) {
       return { robots: { index: false, follow: false } }
     }
+    return composeVisibleProfileMetadata(response.data)
   } catch (error) {
     if (isNotFoundError(error)) return NEUTRAL_UNAVAILABLE_METADATA
   }
