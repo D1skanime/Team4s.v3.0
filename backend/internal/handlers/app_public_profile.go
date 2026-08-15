@@ -11,6 +11,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Phase 131-05 (CONTEXT D-04): documented, enforced page-size bounds for every public
+// profile list. INITIALS are the fixed contract (they match today's behaviour); MAX
+// values are the enforced ceiling a continuation request is clamped to (tunable after the
+// 131-08 baseline, hence named constants rather than literals). The repository package
+// owns the matching INITIAL constants it passes on the embedded profile load; these
+// handler-side constants own the HTTP-facing INITIAL default + MAX clamp for each list.
+//
+// current_projects is the only list with a live continuation endpoint today
+// (GetPublicMemberProjects); the latest/previous/contributions bounds are documented here
+// as the contract their continuation endpoints (OpenAPI in 131-06) will clamp to.
+const (
+	currentProjectsInitialPageSize = 6
+	currentProjectsMaxPageSize     = 24
+
+	latestContributionsInitialPageSize = 3
+	latestContributionsMaxPageSize     = 20
+
+	previousContributionsInitialPageSize = 6
+	previousContributionsMaxPageSize     = 24
+
+	contributionsEndpointInitialPageSize = 20
+	contributionsEndpointMaxPageSize     = 50
+
+	// memberPageOffsetMax bounds honest offset pagination (D-01) to a sane ceiling.
+	memberPageOffsetMax = 10000
+)
+
 type AppPublicProfileHandler struct {
 	accessResolver publicMemberAccessResolver
 	profileLoader  publicMemberProfileLoader
@@ -73,8 +100,8 @@ func (h *AppPublicProfileHandler) GetPublicMemberProjects(c *gin.Context) {
 		return
 	}
 
-	limit := parseBoundedProjectPageValue(c.Query("limit"), 6, 1, 24)
-	offset := parseBoundedProjectPageValue(c.Query("offset"), 0, 0, 10000)
+	limit := parseBoundedProjectPageValue(c.Query("limit"), currentProjectsInitialPageSize, 1, currentProjectsMaxPageSize)
+	offset := parseBoundedProjectPageValue(c.Query("offset"), 0, 0, memberPageOffsetMax)
 	page, err := h.projectsLoader.GetPublicMemberProjectsByID(
 		c.Request.Context(),
 		access.MemberID,

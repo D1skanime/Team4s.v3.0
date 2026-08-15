@@ -375,9 +375,118 @@ func TestPhase131PreviousContributionsOrderingIsStable(t *testing.T) {
 	}
 
 	for attempt := 1; attempt <= 2; attempt++ {
-		items, err := repo.loadPreviousContributions(context.Background(), memberID)
+		// Load the full set (limit above the seeded row count) so the ordering assertion
+		// sees every tie-prone row; bounding is covered by the dedicated 131-05 tests below.
+		items, err := repo.loadPreviousContributions(context.Background(), memberID, 24, 0)
 		require.NoErrorf(t, err, "attempt %d load previous contributions", attempt)
 		require.Equalf(t, want, prevKeys(items),
 			"D-02: attempt %d previous-contributions order must be deterministic and fully tie-broken", attempt)
 	}
+}
+
+// TestPhase131PreviousContributionsBoundedToInitialPage covers the real gap 131-05 closes:
+// loadPreviousContributions was previously UNBOUNDED. It now takes (limit, offset), and the
+// initial profile load passes the documented initial page size (previous 6, D-04). A member
+// with MORE previous rows than the initial page must return only that first page, and
+// PreviousContributionsCount must stay honest against the rows actually shipped (D-03).
+func TestPhase131PreviousContributionsBoundedToInitialPage(t *testing.T) {
+	pool := openPhase129Postgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	const memberID int64 = 1315001
+	const totalPrev = 8 // deliberately > the documented initial page size (6)
+	mustExecPhase129(t, pool, `
+		INSERT INTO role_definitions (code, label_de) VALUES ('translator', 'Übersetzer');
+		INSERT INTO members (id, nickname, public_slug) VALUES (1315001, 'phase131-prevbound', 'phase131-prevbound');
+	`)
+	for i := 0; i < totalPrev; i++ {
+		base := int64(1315100 + i)
+		// Distinct anime + distinct (uniquely named) group per row so each is its own
+		// grouped previous-contribution. ended_year descends so ordering is deterministic.
+		mustExecPhase129(t, pool, fmt.Sprintf(`
+			INSERT INTO anime (id, title) VALUES (%d, 'Phase131 Prev Anime %d');
+			INSERT INTO fansub_groups (id, slug, name, status) VALUES (%d, 'p131-prevb-%d', 'Phase131 PrevBound Group %d', 'active');
+			INSERT INTO anime_contributions (id, fansub_group_id, anime_id, member_id, status, is_public_on_member_profile, started_year, ended_year)
+				VALUES (%d, %d, %d, 1315001, 'confirmed', true, 2010, %d);
+			INSERT INTO anime_contribution_roles (id, anime_contribution_id, role_code) VALUES (%d, %d, 'translator');
+		`, base, i, base, i, i, base, base, base, 2020-i, base, base))
+	}
+
+	// Full profile load must ship only the documented initial page, and the count must
+	// match what was shipped (no dishonest grand-total the client cannot page to).
+	profile, err := repo.GetPublicMemberProfileByID(context.Background(), memberID)
+	require.NoError(t, err)
+	require.Lenf(t, profile.PreviousContributions, previousContributionsInitialPageSize,
+		"previous_contributions must be bounded to the documented initial page size (%d) even with %d rows",
+		previousContributionsInitialPageSize, totalPrev)
+	require.Equalf(t, previousContributionsInitialPageSize, profile.PreviousContributionsCount,
+		"PreviousContributionsCount must stay honest against the shipped bounded page")
+
+	// The loader itself is now separately-loadable via (limit, offset): page 1 fills, page 2
+	// carries the remainder, and a limit above the row count returns the full visible set.
+	page1, err := repo.loadPreviousContributions(context.Background(), memberID, previousContributionsInitialPageSize, 0)
+	require.NoError(t, err)
+	require.Len(t, page1, previousContributionsInitialPageSize)
+	page2, err := repo.loadPreviousContributions(context.Background(), memberID, previousContributionsInitialPageSize, previousContributionsInitialPageSize)
+	require.NoError(t, err)
+	require.Lenf(t, page2, totalPrev-previousContributionsInitialPageSize,
+		"offset page must carry exactly the remaining previous rows")
+	full, err := repo.loadPreviousContributions(context.Background(), memberID, 100, 0)
+	require.NoError(t, err)
+	require.Lenf(t, full, totalPrev, "a limit above the row count returns every visible previous row")
+
+	// Offset stability (D-02): no row appears on both pages.
+	seen := map[string]bool{}
+	for _, it := range page1 {
+		seen[fmt.Sprintf("%d:%d", it.AnimeID, it.FansubGroupID)] = true
+	}
+	for _, it := range page2 {
+		require.Falsef(t, seen[fmt.Sprintf("%d:%d", it.AnimeID, it.FansubGroupID)],
+			"row %d:%d appeared on both page1 and page2 (offset wobble)", it.AnimeID, it.FansubGroupID)
+	}
+}
+
+// TestPhase131LatestContributionsBoundedToInitialPage proves the hardcoded `LIMIT 3` in
+// loadLatestContributions became a parameterized, documented bound (latest initial 3,
+// D-04). It seeds MORE public published notes than the initial page and asserts the
+// embedded profile load and the loader both stop at the documented initial size, and that
+// the loader pages honestly via offset.
+func TestPhase131LatestContributionsBoundedToInitialPage(t *testing.T) {
+	pool := openPhase129Postgres(t)
+	repo := NewMemberProfileRepository(pool, "")
+
+	const memberID int64 = 1316001
+	const totalNotes = 5 // > the documented initial page size (3)
+	// contributor_roles is not part of the reset set; ON CONFLICT keeps the test repeatable.
+	mustExecPhase129(t, pool, `
+		INSERT INTO members (id, nickname, public_slug) VALUES (1316001, 'phase131-latestbound', 'phase131-latestbound');
+		INSERT INTO contributor_roles (id, name, label) VALUES (1316000, 'phase131-note-role', 'Phase131 Note Role')
+			ON CONFLICT (id) DO NOTHING;
+		INSERT INTO anime (id, title) VALUES (1316010, 'Phase131 Latest Anime');
+		INSERT INTO episodes (id, anime_id, episode_number) VALUES (1316020, 1316010, '1');
+		INSERT INTO fansub_releases (id, episode_id) VALUES (1316030, 1316020);
+	`)
+	for i := 0; i < totalNotes; i++ {
+		base := int64(1316100 + i)
+		mustExecPhase129(t, pool, fmt.Sprintf(`
+			INSERT INTO release_versions (id, release_id, version) VALUES (%d, 1316030, 'v%d');
+			INSERT INTO release_version_notes (id, release_version_id, member_id, role_id, body_text, visibility, status, created_at)
+				VALUES (%d, %d, 1316001, 1316000, 'Phase131 latest note %d', 'public', 'published', TIMESTAMPTZ '2024-01-%02d 00:00:00+00');
+		`, base, i, base, base, i, i+1))
+	}
+
+	page1, err := repo.loadLatestContributions(context.Background(), memberID, latestContributionsInitialPageSize, 0)
+	require.NoError(t, err)
+	require.Lenf(t, page1, latestContributionsInitialPageSize,
+		"latest_contributions must be bounded to the documented initial page size (%d), replacing the old hardcoded LIMIT 3",
+		latestContributionsInitialPageSize)
+	page2, err := repo.loadLatestContributions(context.Background(), memberID, latestContributionsInitialPageSize, latestContributionsInitialPageSize)
+	require.NoError(t, err)
+	require.Lenf(t, page2, totalNotes-latestContributionsInitialPageSize,
+		"offset page must carry exactly the remaining latest rows")
+
+	profile, err := repo.GetPublicMemberProfileByID(context.Background(), memberID)
+	require.NoError(t, err)
+	require.Lenf(t, profile.LatestContributions, latestContributionsInitialPageSize,
+		"embedded profile load must ship only the documented latest initial page")
 }

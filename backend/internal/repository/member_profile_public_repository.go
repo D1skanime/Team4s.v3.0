@@ -11,6 +11,18 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// Phase 131-05 (CONTEXT D-04): documented INITIAL page sizes for the embedded lists the
+// public profile load ships. These initials are the FIXED contract (they match today's
+// behaviour); the enforced MAX page sizes live with the HTTP clamp seam in the handler
+// package (parseBoundedProjectPageValue). The initial profile load passes these so a
+// member with many rows returns only the documented first page instead of an unbounded
+// slice. Kept as named constants (not literals) per the D-04 note.
+const (
+	currentProjectsInitialPageSize       = 6
+	latestContributionsInitialPageSize   = 3
+	previousContributionsInitialPageSize = 6
+)
+
 // GetPublicMemberProfile is a temporary public-only compatibility entry point.
 // New handlers resolve optional viewer access explicitly, then call the ID loader.
 func (r *MemberProfileRepository) GetPublicMemberProfile(ctx context.Context, slug string) (*models.PublicMemberProfile, error) {
@@ -128,7 +140,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 	if loadErr != nil {
 		return nil, loadErr
 	}
-	profile.CurrentProjects, loadErr = r.loadCurrentProjects(ctx, row.memberID, 6, 0)
+	profile.CurrentProjects, loadErr = r.loadCurrentProjects(ctx, row.memberID, currentProjectsInitialPageSize, 0)
 	if loadErr != nil {
 		return nil, loadErr
 	}
@@ -136,14 +148,19 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 	if loadErr != nil {
 		return nil, loadErr
 	}
-	profile.LatestContributions, loadErr = r.loadLatestContributions(ctx, row.memberID)
+	profile.LatestContributions, loadErr = r.loadLatestContributions(ctx, row.memberID, latestContributionsInitialPageSize, 0)
 	if loadErr != nil {
 		return nil, loadErr
 	}
-	profile.PreviousContributions, loadErr = r.loadPreviousContributions(ctx, row.memberID)
+	profile.PreviousContributions, loadErr = r.loadPreviousContributions(ctx, row.memberID, previousContributionsInitialPageSize, 0)
 	if loadErr != nil {
 		return nil, loadErr
 	}
+	// PreviousContributionsCount reflects the rows actually returned by this bounded page.
+	// With no previous-contributions continuation endpoint (131-05 step 4: none needed --
+	// the frontend renders the embedded list, no separate "Mehr anzeigen"), len() keeps the
+	// count HONEST against what the payload carries; advertising a larger grand total the
+	// client could never load would be dishonest (D-03).
 	profile.PreviousContributionsCount = len(profile.PreviousContributions)
 	return profile, nil
 }

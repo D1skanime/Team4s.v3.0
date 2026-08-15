@@ -7,7 +7,17 @@ import (
 	"team4s.v3/backend/internal/models"
 )
 
-func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, memberID int64) ([]models.PublicMemberLatestContribution, error) {
+// Phase 131-05 (D-04): documented, enforced page bounds for the two contribution feeds.
+// The initial profile load passes these fixed initials; a bounded, separately-loadable
+// page never returns more than its list's contract allows. Both loaders take (limit,
+// offset) so the same set-based query serves the embedded initial page and any future
+// "Mehr anzeigen" continuation without a per-row round-trip.
+//
+// loadLatestContributions replaces the previously HARDCODED `LIMIT 3` with a parameterized
+// `LIMIT $2 OFFSET $3`; loadPreviousContributions adds a `LIMIT $2 OFFSET $3` where the
+// query was previously UNBOUNDED (the real gap 131-05 closes). Callers must pass a limit
+// already clamped to the documented max for that list.
+func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, memberID int64, limit int, offset int) ([]models.PublicMemberLatestContribution, error) {
 	rows, err := r.db.Query(ctx, `
 		WITH text_rows AS (
 			SELECT
@@ -94,8 +104,8 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 			media_category
 		FROM latest
 		ORDER BY occurred_at DESC, id DESC
-		LIMIT 3
-	`, memberID)
+		LIMIT $2 OFFSET $3
+	`, memberID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("load latest contributions for member %d: %w", memberID, err)
 	}
@@ -141,7 +151,7 @@ func (r *MemberProfileRepository) loadLatestContributions(ctx context.Context, m
 	return items, nil
 }
 
-func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context, memberID int64) ([]models.PublicMemberPreviousContribution, error) {
+func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context, memberID int64, limit int, offset int) ([]models.PublicMemberPreviousContribution, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
 			a.id,
@@ -171,7 +181,8 @@ func (r *MemberProfileRepository) loadPreviousContributions(ctx context.Context,
 		-- fansub_group_id) is exactly this query's GROUP BY grouping key, so equal
 		-- ended_year rows keep a deterministic, stable order across loads (D-02).
 		ORDER BY MAX(ac.ended_year) DESC, a.title ASC, fg.name ASC, a.id DESC, fg.id DESC
-	`, memberID)
+		LIMIT $2 OFFSET $3
+	`, memberID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("load previous contributions for member %d: %w", memberID, err)
 	}
