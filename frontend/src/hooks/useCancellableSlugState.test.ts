@@ -40,7 +40,7 @@ describe('useCancellableSlugState', () => {
 
   it('resolves to success keyed by requestKey and forwards a real AbortSignal to the fetcher', async () => {
     const first = deferred<{ value: number }>()
-    const fetcher = vi.fn((_signal: AbortSignal) => first.promise)
+    const fetcher = vi.fn<(signal: AbortSignal) => Promise<{ value: number }>>(() => first.promise)
 
     const { result } = renderHook(() =>
       useCancellableSlugState({ requestKey: 'subaru:0', enabled: true, fetcher }),
@@ -152,7 +152,7 @@ describe('useCancellableSlugState', () => {
 
   it('aborts the in-flight request on unmount without an act()/state-update-after-unmount warning', () => {
     const pending = deferred<unknown>()
-    const fetcher = vi.fn((_signal: AbortSignal) => pending.promise)
+    const fetcher = vi.fn<(signal: AbortSignal) => Promise<unknown>>(() => pending.promise)
 
     const { unmount } = renderHook(() =>
       useCancellableSlugState({ requestKey: 'subaru:0', enabled: true, fetcher }),

@@ -119,7 +119,7 @@ describe('MemberCurrentProjectsSection', () => {
     fireEvent.click(button)
     fireEvent.click(button)
     expect(getMemberProjectsMock).toHaveBeenCalledTimes(1)
-    expect(getMemberProjectsMock).toHaveBeenCalledWith('subaru', 6, 6)
+    expect(getMemberProjectsMock).toHaveBeenCalledWith('subaru', 6, 6, expect.any(AbortSignal))
 
     resolveRequest({ data: { items: next, total: 50 } })
 
@@ -130,6 +130,36 @@ describe('MemberCurrentProjectsSection', () => {
       Array.from({ length: 12 }, (_, index) => `Projekt ${index + 1}`),
     )
     expect(getMemberProjectsMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows a local ErrorState with a working retry on a failed continuation load, keeping the initial six visible', async () => {
+    const initial = Array.from({ length: 6 }, (_, index) => makeProject(index + 1))
+    const next = Array.from({ length: 6 }, (_, index) => makeProject(index + 7))
+    getMemberProjectsMock.mockRejectedValueOnce(new Error('network down'))
+    getMemberProjectsMock.mockResolvedValueOnce({ data: { items: next, total: 50 } })
+
+    render(<MemberCurrentProjectsSection memberSlug="subaru" projects={initial} totalCount={50} />)
+
+    const button = screen.getByRole('button', { name: 'Weitere Projekte laden' })
+    fireEvent.click(button)
+
+    await waitFor(() =>
+      expect(screen.getByText('Weitere Projekte konnten nicht geladen werden')).not.toBeNull(),
+    )
+    expect(screen.getByText('Bitte versuche es erneut.')).not.toBeNull()
+    // The already-rendered initial six stay in the document while the error is shown.
+    expect(screen.getAllByRole('link')).toHaveLength(6)
+    expect(getMemberProjectsMock).toHaveBeenCalledTimes(1)
+
+    const retryButton = screen.getByRole('button', { name: 'Erneut versuchen' })
+    fireEvent.click(retryButton)
+
+    await waitFor(() => expect(screen.getByText('12 von 50 Projekten sichtbar')).not.toBeNull())
+    expect(getMemberProjectsMock).toHaveBeenCalledTimes(2)
+    // Retry re-issues the request for the SAME offset that failed (not a duplicate, not skipping ahead).
+    expect(getMemberProjectsMock).toHaveBeenNthCalledWith(1, 'subaru', 6, 6, expect.any(AbortSignal))
+    expect(getMemberProjectsMock).toHaveBeenNthCalledWith(2, 'subaru', 6, 6, expect.any(AbortSignal))
+    expect(screen.queryByText('Weitere Projekte konnten nicht geladen werden')).toBeNull()
   })
 
   it('keeps load-more dormant and the geometry shell visible until the section is near the viewport', () => {

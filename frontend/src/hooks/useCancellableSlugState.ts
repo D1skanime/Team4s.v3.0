@@ -49,7 +49,12 @@ export function useCancellableSlugState<T>({
   enabled,
   fetcher,
 }: UseCancellableSlugStateOptions<T>): UseCancellableSlugStateResult<T> {
-  const [state, setState] = useState<CancellableSlugState<T>>(IDLE_STATE)
+  // `settled` holds only TERMINAL outcomes (success/error), written exclusively from inside
+  // the fetch promise's .then/.catch — never synchronously in the effect body itself (React
+  // Compiler/eslint-plugin-react-hooks flags synchronous setState-in-effect as a cascading-
+  // render smell; see useDebouncedSearch.ts / useProjectMemberCollection.ts for the same
+  // async-callback-only setState convention this hook follows).
+  const [settled, setSettled] = useState<CancellableSlugState<T>>(IDLE_STATE)
   const controllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
@@ -58,28 +63,34 @@ export function useCancellableSlugState<T>({
 
     if (!enabled) {
       controllerRef.current = null
-      setState(IDLE_STATE)
       return
     }
 
     const controller = new AbortController()
     controllerRef.current = controller
-    setState({ key: requestKey, status: 'loading', data: null, error: null })
 
     fetcher(controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return
-        setState({ key: requestKey, status: 'success', data, error: null })
+        setSettled({ key: requestKey, status: 'success', data, error: null })
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted || isAbortError(error)) return
-        setState({ key: requestKey, status: 'error', data: null, error })
+        setSettled({ key: requestKey, status: 'error', data: null, error })
       })
 
     return () => {
       controller.abort()
     }
   }, [requestKey, enabled, fetcher])
+
+  // Bis `settled` mit dem aktuellen requestKey übereinstimmt, ist ein aktivierter Request
+  // per Definition noch offen -> als 'loading' abgeleitet (reine Berechnung, kein Effekt).
+  const state: CancellableSlugState<T> = !enabled
+    ? IDLE_STATE
+    : settled.key === requestKey
+      ? settled
+      : { key: requestKey, status: 'loading', data: null, error: null }
 
   return { state }
 }

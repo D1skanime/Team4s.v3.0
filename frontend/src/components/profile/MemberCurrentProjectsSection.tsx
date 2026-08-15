@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { Layers } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
-import { Badge, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
+import { Badge, Button, Card, EmptyState, ErrorState, SectionHeader } from '@/components/ui'
 import { getMemberProjects, resolveApiUrl } from '@/lib/api'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
+import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
 import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
-import type { PublicMemberCurrentProject } from '@/types/profile'
+import type { PublicMemberCurrentProject, PublicMemberProjectsPage } from '@/types/profile'
 
 import styles from './MemberCurrentProjectsSection.module.css'
 
@@ -39,6 +40,23 @@ function projectHref(project: PublicMemberCurrentProject): string {
   return `/anime/${project.anime_id}/group/${project.fansub_group_id}`
 }
 
+// Die bestehende, korrekte zusammengesetzte Liste-Key-Konvention (nie key={index}) — auch
+// für den Dedup-Updater unten wiederverwendet, damit beide Stellen nie auseinanderlaufen.
+function projectKey(project: PublicMemberCurrentProject): string {
+  return `${project.anime_id}:${project.fansub_group_id}`
+}
+
+// PMFE-06/D-04: reiner Dedup-Append (Dedup ausschließlich aus `prev`, keine Ref-Mutation) —
+// StrictMode-sicher, siehe Bugfix-Präzedenzfall in useProjectMemberCollection.ts.
+function appendProjects(
+  prev: PublicMemberCurrentProject[],
+  incoming: PublicMemberCurrentProject[],
+): PublicMemberCurrentProject[] {
+  const existing = new Set(prev.map(projectKey))
+  const additions = incoming.filter((project) => !existing.has(projectKey(project)))
+  return additions.length > 0 ? [...prev, ...additions] : prev
+}
+
 export function MemberCurrentProjectsSection({
   memberSlug,
   projects,
@@ -47,28 +65,66 @@ export function MemberCurrentProjectsSection({
   const [sourceProjects, setSourceProjects] = useState(projects)
   const [visibleProjects, setVisibleProjects] = useState(projects)
   const { targetRef, interactionEnabled } = useNearViewportActivation<HTMLElement>()
-  const [isLoading, setIsLoading] = useState(false)
-  const [loadError, setLoadError] = useState('')
+  // attempt > 0 markiert einen aktiven/kürzlich fehlgeschlagenen Continuation-Versuch für den
+  // aktuellen offset; ein Klick auf "Erneut versuchen" erhöht attempt erneut für DENSELBEN
+  // offset (kein Fortschritt, kein Überspringen), ein erfolgreicher Append setzt auf 0 zurück.
+  const [attempt, setAttempt] = useState(0)
+  // Der zuletzt EINMALIG angewandte erfolgreiche requestKey (Dedup-Schutz für das
+  // Render-Zeit-Anhängen weiter unten, siehe dortiger Kommentar).
+  const [appliedSuccessKey, setAppliedSuccessKey] = useState('')
 
   if (sourceProjects !== projects) {
     setSourceProjects(projects)
     setVisibleProjects(projects)
+    setAttempt(0)
+    setAppliedSuccessKey('')
   }
   const hasMore = visibleProjects.length < totalCount
+  const offset = visibleProjects.length
+  const requestKey = attempt > 0 ? `${memberSlug}:${offset}:${attempt}` : ''
 
-  async function loadMoreProjects() {
-    if (!interactionEnabled || isLoading || !hasMore) return
-    setIsLoading(true)
-    setLoadError('')
-    try {
-      const response = await getMemberProjects(memberSlug, PROJECT_PAGE_SIZE, visibleProjects.length)
-      if (!('data' in response)) throw new Error('Profil ist nicht sichtbar.')
-      setVisibleProjects((current) => [...current, ...response.data.items])
-    } catch {
-      setLoadError('Weitere Projekte konnten nicht geladen werden. Bitte versuche es erneut.')
-    } finally {
-      setIsLoading(false)
-    }
+  // key/fetcher MÜSSEN stabilisiert werden (useCallback), sonst liefe der Continuation-Effekt
+  // bei jedem Render neu (siehe gleiches Muster in useProjectMemberCollection.ts).
+  const fetcher = useCallback(
+    (signal: AbortSignal) =>
+      getMemberProjects(memberSlug, PROJECT_PAGE_SIZE, offset, signal).then((response) => {
+        if (!response || !('data' in response)) throw new Error('Profil ist nicht sichtbar.')
+        return response.data
+      }),
+    [memberSlug, offset],
+  )
+
+  // D-03/PMFE-03: sluggebundener, abbrechbarer Continuation-Fetch über den geteilten Hook —
+  // ein doppelter Klick oder eine Navigation kann nie eine veraltete Antwort anwenden.
+  const { state } = useCancellableSlugState<PublicMemberProjectsPage>({
+    requestKey,
+    enabled: attempt > 0,
+    fetcher,
+  })
+
+  const isLoading = attempt > 0 && state.key === requestKey && state.status === 'loading'
+  const hasError = attempt > 0 && state.key === requestKey && state.status === 'error'
+
+  // "Adjust state while rendering" (React-sanktioniertes Muster, siehe auch
+  // useDebouncedSearch.ts's urlQuery/syncedUrlQuery und der sourceProjects-Abgleich oben) statt
+  // eines setState-in-Effect: sobald der Hook für requestKey erfolgreich abschließt, werden die
+  // neuen Items EINMALIG rein dedupliziert angehängt und attempt zurückgesetzt.
+  if (
+    attempt > 0 &&
+    state.key === requestKey &&
+    state.status === 'success' &&
+    state.data &&
+    appliedSuccessKey !== requestKey
+  ) {
+    setAppliedSuccessKey(requestKey)
+    setVisibleProjects((prev) => appendProjects(prev, state.data!.items))
+    setAttempt(0)
+  }
+
+  function loadMoreProjects() {
+    if (!interactionEnabled || !hasMore) return
+    if (attempt > 0 && !hasError) return
+    setAttempt((current) => current + 1)
   }
 
   return (
@@ -82,7 +138,7 @@ export function MemberCurrentProjectsSection({
           data-visible={interactionEnabled ? 'false' : 'true'}
         >
           {visibleProjects.map((project) => (
-            <li key={`skeleton:${project.anime_id}:${project.fansub_group_id}`}>
+            <li key={`skeleton:${projectKey(project)}`}>
               <Card className={`${styles.projectCard} ${styles.skeletonCard}`}>
                 <span className={`${styles.cover} ${styles.skeletonCover}`} />
                 <span className={`${styles.projectBody} ${styles.skeletonBody}`}>
@@ -100,7 +156,7 @@ export function MemberCurrentProjectsSection({
       ) : (
         <ul className={styles.projectList} aria-label="Fansub-Projekte">
           {visibleProjects.map((project) => (
-            <li key={`${project.anime_id}:${project.fansub_group_id}`}>
+            <li key={projectKey(project)}>
               <Link
                 href={projectHref(project)}
                 className={styles.projectLink}
@@ -159,7 +215,7 @@ export function MemberCurrentProjectsSection({
           <span aria-live="polite">
             {visibleProjects.length} von {totalCount} Projekten sichtbar
           </span>
-          {hasMore ? (
+          {hasMore && !hasError ? (
             <Button
               variant="secondary"
               size="sm"
@@ -172,7 +228,17 @@ export function MemberCurrentProjectsSection({
           ) : null}
         </div>
       ) : null}
-      {loadError ? <p className={styles.loadError} role="alert">{loadError}</p> : null}
+      {hasError ? (
+        <ErrorState
+          title="Weitere Projekte konnten nicht geladen werden"
+          description="Bitte versuche es erneut."
+          action={(
+            <Button variant="secondary" onClick={loadMoreProjects}>
+              Erneut versuchen
+            </Button>
+          )}
+        />
+      ) : null}
     </section>
   )
 }
