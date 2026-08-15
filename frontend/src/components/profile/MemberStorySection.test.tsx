@@ -10,8 +10,8 @@ vi.mock('@/components/editor', () => ({
     <div data-testid="rich-text-renderer">{bodyHtml}</div>
   ),
 }))
-
 const storyStyles = readFileSync('src/components/profile/MemberStorySection.module.css', 'utf8')
+
 
 async function loadMemberStorySection(): Promise<{
   MemberStorySection: ComponentType<{ storyHtml?: string | null; headingLevel?: 2 | 3; showEmptyState?: boolean }>

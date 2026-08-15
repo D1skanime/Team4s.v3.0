@@ -427,7 +427,7 @@ const FAMILY_DEFINITIONS: Record<(typeof FAMILY_ORDER)[number], {
     stages: ['bronze', 'silver', 'gold'].map((tier, index) => ({ badge_code: `contribution_chronicle_${tier}`, threshold: [10, 50, 150][index] })),
   },
   contribution_archivist: {
-    group: 'contributions', label: 'Bildarchivpflege', unitSingular: 'Bildarchivbeitrag', unitPlural: 'Bildarchivbeiträge',
+    group: 'contributions', label: 'Bildarchivpflege', unitSingular: 'Medienbeitrag', unitPlural: 'Medienbeiträge',
     stages: ['bronze', 'silver', 'gold'].map((tier, index) => ({ badge_code: `contribution_archivist_${tier}`, threshold: [10, 50, 150][index] })),
   },
   membership: {

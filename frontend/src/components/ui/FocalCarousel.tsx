@@ -19,7 +19,7 @@ import { Button } from './Button'
 import { classNames } from './classNames'
 import styles from './FocalCarousel.module.css'
 
-const REDUCED_MOTION_NAVIGATION_DURATION_MS = 280
+const NAVIGATION_DURATION_MS = 210
 
 export type FocalCarouselItemState = {
   active: boolean
@@ -80,7 +80,7 @@ export function FocalCarousel<T>({
   const [isNavigating, setIsNavigating] = useState(false)
   const gridId = useId()
   const toggleId = `${gridId}-toggle`
-  const pendingTargetIndexRef = useRef<number | null>(null)
+  const activeIndexRef = useRef(0)
   const [expanded, setExpanded] = useState(false)
   const { targetRef: activationRef, interactionEnabled } = useNearViewportActivation<HTMLDivElement>(
     deferInteractionUntilNearViewport,
@@ -92,12 +92,11 @@ export function FocalCarousel<T>({
   const programmaticAnimationFrameRef = useRef<number | null>(null)
   const programmaticAnimationTrackRef = useRef<HTMLDivElement | null>(null)
   const reducedMotionRef = useRef(false)
-  const dragRef = useRef({ active: false, intent: 'pending', startX: 0, startY: 0, startScroll: 0, pointerId: -1, captured: false, lastX: 0, lastTime: 0, velocity: 0 })
+  const dragRef = useRef({ active: false, intent: 'pending', startX: 0, startY: 0, startScroll: 0, pointerId: -1, captured: false })
 
   const visibleItems = carouselItems ?? items
   const lastIndex = Math.max(0, visibleItems.length - 1)
   const safeIndex = Math.min(activeIndex, lastIndex)
-  const navigationIndex = pendingTargetIndexRef.current ?? safeIndex
 
   useEffect(() => {
     if (!expanded && restoreFocusRef.current) {
@@ -142,38 +141,6 @@ export function FocalCarousel<T>({
     return wasAnimating
   }
 
-  function animateReducedMotionScroll(track: HTMLDivElement, targetLeft: number) {
-    cancelProgrammaticAnimation()
-    if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
-    scrollSettleTimerRef.current = null
-    const startLeft = track.scrollLeft
-    if (Math.abs(targetLeft - startLeft) < 1 || typeof requestAnimationFrame !== 'function') {
-      track.scrollLeft = targetLeft
-      scheduleScrollSettle()
-      return
-    }
-
-    programmaticAnimationTrackRef.current = track
-    track.classList.add(styles.programmaticScrolling)
-    let startTime: number | null = null
-    const step = (time: number) => {
-      if (startTime === null) startTime = time
-      const progress = Math.min(1, (time - startTime) / REDUCED_MOTION_NAVIGATION_DURATION_MS)
-      const easedProgress = 1 - Math.pow(1 - progress, 3)
-      track.scrollLeft = startLeft + (targetLeft - startLeft) * easedProgress
-      if (progress < 1) {
-        programmaticAnimationFrameRef.current = requestAnimationFrame(step)
-        return
-      }
-      programmaticAnimationFrameRef.current = null
-      track.classList.remove(styles.programmaticScrolling)
-      programmaticAnimationTrackRef.current = null
-      track.scrollLeft = targetLeft
-      scheduleScrollSettle()
-    }
-    programmaticAnimationFrameRef.current = requestAnimationFrame(step)
-  }
-
   function centeredScrollLeft(track: HTMLDivElement, element: HTMLElement) {
     const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
     const trackRect = track.getBoundingClientRect()
@@ -186,33 +153,56 @@ export function FocalCarousel<T>({
     return Math.max(0, Math.min(unclampedLeft, maxScroll))
   }
 
-  const focusItem = (index: number, deliberateNavigation = true) => {
+  const focusItem = (index: number, animate = true) => {
     const boundedIndex = Math.max(0, Math.min(index, lastIndex))
+    const previousIndex = activeIndexRef.current
+    activeIndexRef.current = boundedIndex
+    setActiveIndex(boundedIndex)
+
     const track = trackRef.current
     const element = itemElements()[boundedIndex]
-    if (track && element) {
-      const left = centeredScrollLeft(track, element)
-      if (deliberateNavigation) {
-        pendingTargetIndexRef.current = boundedIndex
-        setIsNavigating(true)
-        if (reducedMotionRef.current) {
-          animateReducedMotionScroll(track, left)
-          return
-        } else if (typeof track.scrollTo === 'function') {
-          cancelProgrammaticAnimation()
-          track.scrollTo({ left, behavior: 'smooth' })
-          scheduleScrollSettle()
-          return
-        }
-      }
-      cancelProgrammaticAnimation()
-      track.scrollTo?.({ left, behavior: 'auto' })
-    }
+    if (!track || !element) return
+
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = null
-    pendingTargetIndexRef.current = null
-    setActiveIndex(boundedIndex)
-    setIsNavigating(false)
+    cancelProgrammaticAnimation()
+
+    const targetLeft = centeredScrollLeft(track, element)
+    const startLeft = track.scrollLeft
+    const adjacentTarget = Math.abs(boundedIndex - previousIndex) === 1
+    const shouldAnimate = animate
+      && adjacentTarget
+      && !reducedMotionRef.current
+      && Math.abs(targetLeft - startLeft) >= 1
+      && typeof requestAnimationFrame === 'function'
+
+    if (!shouldAnimate) {
+      track.scrollTo?.({ left: targetLeft, behavior: 'auto' })
+      if (typeof track.scrollTo !== 'function') track.scrollLeft = targetLeft
+      setIsNavigating(false)
+      return
+    }
+
+    setIsNavigating(true)
+    programmaticAnimationTrackRef.current = track
+    track.classList.add(styles.programmaticScrolling)
+    let startTime: number | null = null
+    const step = (time: number) => {
+      if (startTime === null) startTime = time
+      const progress = Math.min(1, (time - startTime) / NAVIGATION_DURATION_MS)
+      const easedProgress = 1 - Math.pow(1 - progress, 3)
+      track.scrollLeft = startLeft + (targetLeft - startLeft) * easedProgress
+      if (progress < 1) {
+        programmaticAnimationFrameRef.current = requestAnimationFrame(step)
+        return
+      }
+      track.scrollLeft = targetLeft
+      programmaticAnimationFrameRef.current = null
+      track.classList.remove(styles.programmaticScrolling)
+      programmaticAnimationTrackRef.current = null
+      setIsNavigating(false)
+    }
+    programmaticAnimationFrameRef.current = requestAnimationFrame(step)
   }
 
   useEffect(() => {
@@ -227,7 +217,6 @@ export function FocalCarousel<T>({
       if (next === track.scrollLeft) return
       event.preventDefault()
       cancelProgrammaticAnimation()
-      pendingTargetIndexRef.current = null
       track.scrollLeft = next
       scheduleScrollSettle()
     }
@@ -238,7 +227,7 @@ export function FocalCarousel<T>({
   }, [expanded, interactionEnabled, visibleItems.length])
   const move = (delta: number) => {
     if (!interactionEnabled) return
-    focusItem((pendingTargetIndexRef.current ?? safeIndex) + delta)
+    focusItem(activeIndexRef.current + delta)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -284,11 +273,10 @@ export function FocalCarousel<T>({
     scrollSettleTimerRef.current = setTimeout(() => {
       scrollSettleTimerRef.current = null
       const physicalIndex = nearestItemIndex()
-      const pendingIndex = pendingTargetIndexRef.current
-      setActiveIndex(pendingIndex !== null && pendingIndex === physicalIndex ? pendingIndex : physicalIndex)
-      pendingTargetIndexRef.current = null
+      activeIndexRef.current = physicalIndex
+      setActiveIndex(physicalIndex)
       setIsNavigating(false)
-    }, 160)
+    }, 120)
   }
 
   const handleScroll = () => {
@@ -303,7 +291,6 @@ export function FocalCarousel<T>({
     const track = trackRef.current
     if (!track) return
     cancelProgrammaticAnimation()
-    pendingTargetIndexRef.current = null
     dragRef.current = {
       active: true,
       intent: 'pending',
@@ -312,9 +299,6 @@ export function FocalCarousel<T>({
       startScroll: track.scrollLeft,
       pointerId: event.pointerId,
       captured: false,
-      lastX: event.clientX,
-      lastTime: event.timeStamp,
-      velocity: 0,
     }
   }
 
@@ -340,12 +324,6 @@ export function FocalCarousel<T>({
     setIsNavigating(true)
     track.scrollLeft = drag.startScroll - deltaX
     if (!drag.captured) {
-    const elapsed = event.timeStamp - drag.lastTime
-    if (elapsed > 0 && elapsed <= 120) {
-      drag.velocity = (event.clientX - drag.lastX) / elapsed
-      drag.lastX = event.clientX
-      drag.lastTime = event.timeStamp
-    }
       drag.captured = true
       track.classList.add(styles.dragging)
       try {
@@ -363,12 +341,7 @@ export function FocalCarousel<T>({
     trackRef.current?.classList.remove(styles.dragging)
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
     scrollSettleTimerRef.current = null
-    const track = trackRef.current
-    if (track && !reducedMotionRef.current) {
-      const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
-      track.scrollLeft = Math.max(0, Math.min(maxScroll, track.scrollLeft - dragRef.current.velocity * 240))
-    }
-    scheduleScrollSettle()
+    focusItem(nearestItemIndex())
   }
 
   const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
@@ -423,7 +396,7 @@ export function FocalCarousel<T>({
           iconOnly
           className={styles.arrow}
           aria-label={previousLabel}
-          disabled={navigationIndex === 0}
+          disabled={safeIndex === 0}
           onClick={() => move(-1)}
         >
           <ChevronLeft size={18} aria-hidden="true" />
@@ -454,7 +427,7 @@ export function FocalCarousel<T>({
         >
           <div className={styles.items} role={listLabel ? 'list' : undefined} aria-label={listLabel}>
             {visibleItems.map((item, index) => {
-              const isSettledActive = !isNavigating && index === safeIndex
+              const isActive = index === safeIndex
               return (
                 <div
                   key={getItemKey(item)}
@@ -463,14 +436,18 @@ export function FocalCarousel<T>({
                   className={classNames(
                     styles.itemWindow,
                     itemClassName,
-                    isSettledActive && styles.itemWindowActive,
-                    isSettledActive && activeItemClassName,
+                    isActive && styles.itemWindowActive,
+                    isActive && activeItemClassName,
                   )}
-                  aria-current={isSettledActive ? 'true' : undefined}
+                  aria-current={isActive ? 'true' : undefined}
                   aria-label={`${itemSingularLabel} ${index + 1} von ${visibleItems.length}`}
+                  onClick={(event) => {
+                    if (isActive || (event.target instanceof Element && event.target.closest('button, a, input, select, textarea'))) return
+                    focusItem(index)
+                  }}
                 >
                   {renderItem(item, {
-                    active: isSettledActive,
+                    active: isActive,
                     expanded: false,
                     position: index + 1,
                     total: visibleItems.length,
@@ -487,7 +464,7 @@ export function FocalCarousel<T>({
           iconOnly
           className={styles.arrow}
           aria-label={nextLabel}
-          disabled={navigationIndex === lastIndex}
+          disabled={safeIndex === lastIndex}
           onClick={() => move(1)}
         >
           <ChevronRight size={18} aria-hidden="true" />
