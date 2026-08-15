@@ -90,6 +90,13 @@ export async function generateMetadata({ params }: MemberProfilePageProps): Prom
   return {}
 }
 
+// captureReferenceNow kapselt den einmaligen Date.now()-Aufruf ausserhalb des
+// Server-Component-Rendering-Koerpers (PMFE-09): liefert den serverseitig fixierten
+// Referenzzeitpunkt fuer relative Zeitangaben, siehe Aufrufstelle in MemberProfilePage.
+function captureReferenceNow(): number {
+  return Date.now()
+}
+
 function renderLoadError() {
   return (
     <main className={styles.page}>
@@ -131,7 +138,7 @@ export default async function MemberProfilePage({ params }: MemberProfilePagePro
   // MemberProfileContent -> LatestContributionsSection durchgereicht, damit relative
   // Zeitangaben ("vor 3 Tagen") zwischen SSR-Markup und Hydration identisch bleiben, statt bei
   // jedem Render neu Date.now() zu lesen.
-  const referenceNow = Date.now()
+  const referenceNow = captureReferenceNow()
 
   return (
     <MemberProfileContent
