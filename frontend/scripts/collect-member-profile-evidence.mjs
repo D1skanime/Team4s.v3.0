@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { createHash, randomUUID } from 'node:crypto'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname } from 'node:path'
 import { chromium } from 'playwright'
 
 const EXPECTED_VIEWPORTS = ['390x844', '768x1024', '1440x900']
@@ -332,50 +333,375 @@ async function collectJSOff(browser, baseURL, state, slug, token) {
   return { state, slug, serialization }
 }
 
-const args = parseArgs(process.argv.slice(2))
-const gitHead = String(process.env.PHASE120_GIT_HEAD ?? '').trim()
-assert(/^[0-9a-f]{40}$/.test(gitHead), 'PHASE120_GIT_HEAD must be a full 40-character commit')
-assert(args['base-url'] === 'http://127.0.0.1:3000', '--base-url must be exactly http://127.0.0.1:3000')
-assert(args['network'] === 'slow-4g', '--network must be slow-4g')
-assert(args['cpu-throttle'] === '4', '--cpu-throttle must be 4')
-assert(args['background-slug'] && args['no-background-slug'], 'both real profile slugs are required')
-assert(args.output, '--output is required')
-const viewports = parseViewports(args.viewports)
-const noBackgroundToken = String(process.env.PHASE120_NO_BACKGROUND_TOKEN ?? '').trim()
-const collectorSource = readFileSync(new URL(import.meta.url))
-const browser = await chromium.launch({ headless: true })
-const startedAt = new Date().toISOString()
-const cases = []
-const states = [
-  ['background-present', args['background-slug']],
-  ['background-absent', args['no-background-slug']],
-]
-try {
-  for (const [state, slug] of states) {
-    const token = state === 'background-absent' ? noBackgroundToken : ''
-    for (const viewport of viewports) cases.push(await collectViewport(browser, args['base-url'], state, slug, viewport, token))
+// ===========================================================================
+// Phase-120 visual/interaction collector (original mode, unchanged behaviour).
+// Runs when no --mode (or --mode phase120) is passed.
+// ===========================================================================
+async function runPhase120(args) {
+  const gitHead = String(process.env.PHASE120_GIT_HEAD ?? '').trim()
+  assert(/^[0-9a-f]{40}$/.test(gitHead), 'PHASE120_GIT_HEAD must be a full 40-character commit')
+  assert(args['base-url'] === 'http://127.0.0.1:3000', '--base-url must be exactly http://127.0.0.1:3000')
+  assert(args['network'] === 'slow-4g', '--network must be slow-4g')
+  assert(args['cpu-throttle'] === '4', '--cpu-throttle must be 4')
+  assert(args['background-slug'] && args['no-background-slug'], 'both real profile slugs are required')
+  assert(args.output, '--output is required')
+  const viewports = parseViewports(args.viewports)
+  const noBackgroundToken = String(process.env.PHASE120_NO_BACKGROUND_TOKEN ?? '').trim()
+  const collectorSource = readFileSync(new URL(import.meta.url))
+  const browser = await chromium.launch({ headless: true })
+  const startedAt = new Date().toISOString()
+  const cases = []
+  const states = [
+    ['background-present', args['background-slug']],
+    ['background-absent', args['no-background-slug']],
+  ]
+  try {
+    for (const [state, slug] of states) {
+      const token = state === 'background-absent' ? noBackgroundToken : ''
+      for (const viewport of viewports) cases.push(await collectViewport(browser, args['base-url'], state, slug, viewport, token))
+    }
+    const jsOff = []
+    for (const [state, slug] of states) {
+      jsOff.push(await collectJSOff(browser, args['base-url'], state, slug, state === 'background-absent' ? noBackgroundToken : ''))
+    }
+    const artifact = {
+      schemaVersion: 1,
+      runId: randomUUID(),
+      startedAt,
+      completedAt: new Date().toISOString(),
+      gitHead,
+      argv: process.argv.slice(2),
+      collectorSha256: sha256(collectorSource),
+      playwrightVersion: JSON.parse(readFileSync(new URL('../node_modules/playwright/package.json', import.meta.url), 'utf8')).version,
+      chromiumVersion: browser.version(),
+      settings: { viewports: EXPECTED_VIEWPORTS, network: 'slow-4g', cpuThrottle: 4 },
+      cases,
+      jsOff,
+    }
+    artifact.evidenceDigest = sha256(JSON.stringify(artifact))
+    writeFileSync(args.output, `${JSON.stringify(artifact, null, 2)}\n`)
+    console.log(JSON.stringify({ ok: true, output: args.output, evidenceDigest: artifact.evidenceDigest }))
+  } finally {
+    await browser.close()
   }
-  const jsOff = []
-  for (const [state, slug] of states) {
-    jsOff.push(await collectJSOff(browser, args['base-url'], state, slug, state === 'background-absent' ? noBackgroundToken : ''))
+}
+
+// ===========================================================================
+// Phase-131 (plan 131-02) performance baseline collector (--mode perf-baseline).
+//
+// Captures, per seed profile, the full metric set that anchors the Phase-131
+// performance budgets (D-06): initial-profile payload bytes, project +
+// contribution continuation payload bytes, request count + latency, the image
+// waterfall, and Web Vitals (LCP, CLS, INP). Budgets are LOCKED LATER (131-08);
+// this mode only measures + records method/environment. Values vary run to run;
+// the JSON STRUCTURE is stable and reproducible.
+//
+// The public (anonymous) response class is measured - no auth cookie - matching
+// the D-09 public cache class. Both profiles are the reused Phase-129 seed
+// fixtures (sheppert, csubs-leader); this mode never creates data.
+// ===========================================================================
+
+// Absolute, baseline-independent ceilings (D-07). Recorded for downstream
+// (131-08) budget locking - NOT enforced or locked here.
+const PERF_ABSOLUTE_CEILINGS = {
+  lcpMs: 2500,
+  cls: 0.1,
+  inpMs: 200,
+  queryBudget: 'constant regardless of project/contribution count (no per-card reads, no N+1)',
+  note: 'Absolute good-band ceilings (D-07). Payload/latency budgets are locked later in 131-08 as baseline + ~20%.',
+}
+
+function round(value, digits = 3) {
+  if (!Number.isFinite(value)) return null
+  const factor = 10 ** digits
+  return Math.round(value * factor) / factor
+}
+
+function median(values) {
+  const ok = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b)
+  if (!ok.length) return null
+  const mid = Math.floor(ok.length / 2)
+  return ok.length % 2 ? ok[mid] : (ok[mid - 1] + ok[mid]) / 2
+}
+
+function summarizeLatency(samples) {
+  const ok = samples.filter((value) => Number.isFinite(value))
+  return {
+    count: ok.length,
+    minMs: ok.length ? round(Math.min(...ok)) : null,
+    medianMs: round(median(ok)),
+    maxMs: ok.length ? round(Math.max(...ok)) : null,
+    samplesMs: ok.map((value) => round(value)),
   }
-  const artifact = {
-    schemaVersion: 1,
-    runId: randomUUID(),
-    startedAt,
-    completedAt: new Date().toISOString(),
-    gitHead,
-    argv: process.argv.slice(2),
-    collectorSha256: sha256(collectorSource),
-    playwrightVersion: JSON.parse(readFileSync(new URL('../node_modules/playwright/package.json', import.meta.url), 'utf8')).version,
-    chromiumVersion: browser.version(),
-    settings: { viewports: EXPECTED_VIEWPORTS, network: 'slow-4g', cpuThrottle: 4 },
-    cases,
-    jsOff,
+}
+
+// Measure one JSON API endpoint N times (payload bytes + latency distribution).
+async function measureApiEndpoint(label, url, sampleCount) {
+  const latencies = []
+  let status = null
+  let bytes = null
+  let contentType = null
+  for (let index = 0; index < sampleCount; index += 1) {
+    const startedAt = performance.now()
+    let response
+    try {
+      response = await fetch(url, { headers: { accept: 'application/json' } })
+    } catch (error) {
+      return { label, url, status: null, error: String(error?.message ?? error), latencyMs: summarizeLatency(latencies) }
+    }
+    const buffer = Buffer.from(await response.arrayBuffer())
+    latencies.push(performance.now() - startedAt)
+    status = response.status
+    bytes = buffer.length
+    contentType = response.headers.get('content-type')
   }
-  artifact.evidenceDigest = sha256(JSON.stringify(artifact))
-  writeFileSync(args.output, `${JSON.stringify(artifact, null, 2)}\n`)
-  console.log(JSON.stringify({ ok: true, output: args.output, evidenceDigest: artifact.evidenceDigest }))
-} finally {
-  await browser.close()
+  return { label, url, status, payloadBytes: bytes, contentType, latencyMs: summarizeLatency(latencies) }
+}
+
+// Full page-layer capture: request waterfall, image waterfall, Web Vitals.
+// Never asserts on a non-200 page (e.g. a profile whose render crashes) - it
+// records the status + captured console/page errors and still returns the
+// waterfall + whatever vitals the rendered output produced.
+async function capturePageMetrics(browser, baseURL, slug, throttle) {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' })
+  const page = await context.newPage()
+
+  await page.addInitScript(() => {
+    window.__perf131 = { lcpMs: null, cls: 0, clsEntries: 0, inpMs: null, interactionEvents: 0 }
+    const perf = window.__perf131
+    if (!('PerformanceObserver' in window)) return
+    try {
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) perf.lcpMs = entry.startTime
+      }).observe({ type: 'largest-contentful-paint', buffered: true })
+    } catch {}
+    try {
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.hadRecentInput) continue
+          perf.cls += entry.value
+          perf.clsEntries += 1
+        }
+      }).observe({ type: 'layout-shift', buffered: true })
+    } catch {}
+    try {
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          perf.interactionEvents += 1
+          if (perf.inpMs === null || entry.duration > perf.inpMs) perf.inpMs = entry.duration
+        }
+      }).observe({ type: 'event', buffered: true, durationThreshold: 16 })
+    } catch {}
+  })
+
+  const consoleErrors = []
+  const pageErrors = []
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 500)) })
+  page.on('pageerror', (error) => pageErrors.push(String(error?.message ?? error).slice(0, 500)))
+
+  const finished = []
+  const failed = []
+  page.on('requestfinished', (request) => finished.push(request))
+  page.on('requestfailed', (request) => failed.push(request))
+
+  const session = await page.context().newCDPSession(page)
+  await session.send('Network.enable')
+  if (throttle === 'slow-4g') {
+    await session.send('Network.emulateNetworkConditions', {
+      offline: false,
+      latency: 150,
+      downloadThroughput: 1_600_000 / 8,
+      uploadThroughput: 750_000 / 8,
+      connectionType: 'cellular3g',
+    })
+    await session.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+  }
+
+  const url = `${baseURL}/members/${encodeURIComponent(slug)}`
+  const navStart = performance.now()
+  const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90_000 })
+  const status = response ? response.status() : null
+  const rendered = status === 200
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 60_000 })
+  } catch {}
+  await page.waitForTimeout(1500)
+
+  // Drive a few real interactions so INP has samples to report.
+  try {
+    await page.mouse.move(720, 300)
+    await page.mouse.click(720, 300)
+    await page.keyboard.press('Tab')
+    await page.mouse.wheel(0, 1200)
+    await page.waitForTimeout(300)
+    await page.mouse.wheel(0, -600)
+    await page.waitForTimeout(600)
+  } catch {}
+
+  const webVitals = await page.evaluate(() => window.__perf131 ?? null)
+  const htmlBytes = Buffer.byteLength(await page.content(), 'utf8')
+
+  const requests = []
+  for (const request of finished) {
+    let resp = null
+    try { resp = await request.response() } catch {}
+    let sizes = null
+    try { sizes = await request.sizes() } catch {}
+    const timing = request.timing()
+    requests.push({
+      url: request.url().length > 200 ? `${request.url().slice(0, 200)}…` : request.url(),
+      resourceType: request.resourceType(),
+      method: request.method(),
+      status: resp ? resp.status() : null,
+      responseBodyBytes: sizes ? sizes.responseBodySize : null,
+      responseHeaderBytes: sizes ? sizes.responseHeadersSize : null,
+      timing: {
+        startTimeMs: round(timing.startTime),
+        responseStartMs: round(timing.responseStart),
+        responseEndMs: round(timing.responseEnd),
+      },
+    })
+  }
+
+  await session.detach().catch(() => {})
+  await context.close()
+
+  const images = requests.filter((request) => request.resourceType === 'image')
+  const totalTransferBytes = requests.reduce((sum, request) => sum + (request.responseBodyBytes ?? 0), 0)
+  const imageBytes = images.reduce((sum, request) => sum + (request.responseBodyBytes ?? 0), 0)
+
+  return {
+    url,
+    status,
+    rendered,
+    renderNote: rendered ? null : `page returned HTTP ${status}; page-derived Web Vitals reflect the error output, not the profile`,
+    navToDomContentLoadedMs: round(performance.now() - navStart),
+    requestCount: requests.length,
+    failedRequestCount: failed.length,
+    totalTransferBytes,
+    htmlBytes,
+    consoleErrors,
+    pageErrors,
+    webVitals: {
+      lcpMs: webVitals ? round(webVitals.lcpMs) : null,
+      cls: webVitals ? round(webVitals.cls, 4) : null,
+      clsEntries: webVitals ? webVitals.clsEntries : null,
+      inpMs: webVitals ? round(webVitals.inpMs) : null,
+      interactionEvents: webVitals ? webVitals.interactionEvents : null,
+      method: 'PerformanceObserver: largest-contentful-paint + layout-shift + event(durationThreshold=16); INP driven by scripted click/keydown/scroll',
+    },
+    imageWaterfall: {
+      count: images.length,
+      totalBytes: imageBytes,
+      images: images.map((request) => ({
+        url: request.url,
+        status: request.status,
+        bytes: request.responseBodyBytes,
+        startTimeMs: request.timing.startTimeMs,
+        responseEndMs: request.timing.responseEndMs,
+      })),
+    },
+    requestWaterfall: requests,
+  }
+}
+
+async function runPerfBaseline(args) {
+  const baseURL = String(args['base-url'] ?? process.env.PERF_BASE_URL ?? 'http://127.0.0.1:3000').replace(/\/+$/, '')
+  const apiBase = String(args['api-base'] ?? process.env.PERF_API_BASE ?? 'http://127.0.0.1:18092').replace(/\/+$/, '')
+  const profiles = String(args.profiles ?? process.env.PERF_PROFILES ?? 'sheppert,csubs-leader')
+    .split(',').map((value) => value.trim()).filter(Boolean)
+  const outputDir = String(args['output-dir'] ?? process.env.PERF_OUTPUT_DIR ?? '').replace(/\/+$/, '')
+  const throttle = String(args.throttle ?? process.env.PERF_THROTTLE ?? 'none')
+  const apiSampleCount = Number(args['api-samples'] ?? process.env.PERF_API_SAMPLES ?? 5)
+  assert(outputDir, '--output-dir (or PERF_OUTPUT_DIR) is required')
+  assert(profiles.length >= 1, 'at least one --profiles slug is required')
+  assert(throttle === 'none' || throttle === 'slow-4g', "--throttle must be 'none' or 'slow-4g'")
+  assert(Number.isInteger(apiSampleCount) && apiSampleCount >= 1, '--api-samples must be a positive integer')
+
+  const gitHead = String(process.env.PERF_GIT_HEAD ?? '').trim() || null
+  const collectorSource = readFileSync(new URL(import.meta.url))
+  let playwrightVersion = null
+  try {
+    playwrightVersion = JSON.parse(readFileSync(new URL('../node_modules/playwright/package.json', import.meta.url), 'utf8')).version
+  } catch {}
+
+  mkdirSync(outputDir, { recursive: true })
+  const browser = await chromium.launch({ headless: true })
+  const chromiumVersion = browser.version()
+  const written = []
+  try {
+    for (const slug of profiles) {
+      const startedAt = new Date().toISOString()
+      const api = {
+        initialProfile: await measureApiEndpoint('initial-profile', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}`, apiSampleCount),
+        projectsPage1: await measureApiEndpoint('projects-page-1', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}/projects?limit=6&offset=0`, apiSampleCount),
+        projectsPage2: await measureApiEndpoint('projects-page-2', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}/projects?limit=6&offset=6`, apiSampleCount),
+        contributions: await measureApiEndpoint('contributions-continuation', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}/contributions?limit=20&offset=0`, apiSampleCount),
+      }
+      const page = await capturePageMetrics(browser, baseURL, slug, throttle)
+      const artifact = {
+        schemaVersion: 1,
+        phase: '131',
+        plan: '131-02',
+        metric: 'member-profile-performance-baseline',
+        requirement: 'PMPF-07',
+        decision: 'D-06',
+        profile: slug,
+        runId: randomUUID(),
+        capturedAt: startedAt,
+        completedAt: new Date().toISOString(),
+        budgetsLocked: false,
+        absoluteCeilings: PERF_ABSOLUTE_CEILINGS,
+        environment: {
+          gitHead,
+          node: process.version,
+          playwrightVersion,
+          chromiumVersion,
+          baseURL,
+          apiBase,
+          throttle,
+          apiSampleCount,
+          viewport: '1440x900',
+          public: true,
+          collectorSha256: sha256(collectorSource),
+        },
+        api,
+        page,
+      }
+      const outputPath = `${outputDir}/baseline-${slug}.json`
+      mkdirSync(dirname(outputPath), { recursive: true })
+      writeFileSync(outputPath, `${JSON.stringify(artifact, null, 2)}\n`)
+      written.push(outputPath)
+      console.log(JSON.stringify({
+        ok: true,
+        profile: slug,
+        output: outputPath,
+        pageStatus: page.status,
+        rendered: page.rendered,
+        initialProfileBytes: api.initialProfile.payloadBytes ?? null,
+        requestCount: page.requestCount,
+        images: page.imageWaterfall.count,
+        lcpMs: page.webVitals.lcpMs,
+        cls: page.webVitals.cls,
+        inpMs: page.webVitals.inpMs,
+      }))
+    }
+  } finally {
+    await browser.close()
+  }
+  console.log(JSON.stringify({ ok: true, mode: 'perf-baseline', written }))
+}
+
+// --------------------------------------------------------------------------
+// Dispatch: default keeps the Phase-120 collector; --mode perf-baseline runs
+// the Phase-131 performance baseline capture.
+// --------------------------------------------------------------------------
+const dispatchArgs = parseArgs(process.argv.slice(2))
+const mode = dispatchArgs.mode ?? 'phase120'
+if (mode === 'perf-baseline') {
+  await runPerfBaseline(dispatchArgs)
+} else if (mode === 'phase120') {
+  await runPhase120(dispatchArgs)
+} else {
+  fail(`unknown --mode ${mode}`)
 }
