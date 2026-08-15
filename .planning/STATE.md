@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Phase 131 planned (8 plans/4 waves, ready for execution); Phase 130 executed (contract gate green); live UAT deferred to Phase 134 bundle; Phases 132-134 contexts gathered
-last_updated: "2026-08-14T00:00:00.000Z"
-last_activity: 2026-08-14
+stopped_at: "Phase 131 executed (8 plans/4 waves, committed 26efcce0..2c929348): constant query budget=19 (per-card N+1 closed), tie-broken ordering + honest totals, documented enforced page bounds, OpenAPI/TS pagination contract, cache-class separation lock, budgets locked on both seed profiles (both render 200, Web-Vitals good-band), no index justified (sub-ms EXPLAIN plans committed); stack rebuilt live. Live UAT deferred to Phase 134 bundle; Phases 132-134 contexts gathered"
+last_updated: "2026-08-15T00:00:00.000Z"
+last_activity: 2026-08-15
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 22
   completed_plans: 22
   percent: 100
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 128 - Canonical Public Identity & Visibility Foundation
+**Current focus:** Phase 131 executed; next Phase 132 - Shared SSR Composition & Race-Safe Frontend State
 
 ## Current Position
 
-Phase: 128 of 134 (Canonical Public Identity & Visibility Foundation)
-Plan: 22 of 22
-Status: Phase 128 COMPLETE - all 22 plans + live UAT passed (2 regressions found and fixed)
+Phase: 131 of 134 (Set-Based Delivery, Pagination & Performance Budgets)
+Plan: 8 of 8 (Phase 131)
+Status: Phase 131 COMPLETE - all 8 plans committed; constant query budget (19) + bounds + tie-broken ordering + honest totals + pagination contract + cache-class lock + locked budgets (both profiles 200, no index justified). Live UAT bundled into Phase 134.
 Last activity: 2026-08-14
 
 ## Accumulated Context
