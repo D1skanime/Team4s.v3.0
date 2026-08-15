@@ -692,14 +692,241 @@ async function runPerfBaseline(args) {
   console.log(JSON.stringify({ ok: true, mode: 'perf-baseline', written }))
 }
 
+// ===========================================================================
+// Phase-131 (plan 131-08) LOCKED performance budgets + budget-check gate.
+//
+// Budgets are LOCKED here (D-06 / SC4/SC5): payload = post-change bytes + ~20%;
+// latency = post-change median + ~20%, floored at PERF_LATENCY_FLOOR_MS to absorb
+// dev-server + host-IP measurement jitter on sub-25ms endpoints; PLUS the absolute
+// baseline-independent Web-Vitals ceilings (D-07). The `budget-check` mode
+// re-measures BOTH seed profiles live, writes post-change-<slug>.json, and FAILS
+// (non-zero exit) if any profile exceeds a locked budget.
+//
+// Dev-mode caveat (D-06/D-08): the frontend runs Turbopack dev, so page transfer
+// totals are inflated by un-minified chunks and are NOT gated here. The authoritative
+// gates are the API-layer payload/latency budgets, the absolute Web-Vitals ceilings,
+// and the constant-query-count ceiling (Go test). Production-build transfer figures
+// are deferred to the bundled Phase-134 UAT.
+// ===========================================================================
+const PERF_LATENCY_FLOOR_MS = 25
+
+const LOCKED_BUDGETS = {
+  // Absolute, baseline-independent good-band ceilings (D-07). Enforced on any RENDERED page.
+  absoluteCeilings: { lcpMs: 2500, cls: 0.1, inpMs: 200 },
+  // Structural ceiling (D-07 / PMPF-01, SC1): the profile-load SQL query count MUST stay
+  // constant regardless of project/contribution count. NOT measurable from this harness (no
+  // DB hook) - enforced by the Go repository test TestPhase131PublicProfileQueryBudgetIsConstant
+  // (phase131ConstantQueryBudget = 19). Recorded here for the locked-budget record.
+  queryCountCeiling: 19,
+  // Per-profile API-layer payload + latency budgets. Basis captured 2026-08-15 on the live
+  // dev stack (throttle=none). See evidence/BUDGETS.md for each threshold + its basis.
+  profiles: {
+    sheppert: {
+      initialProfile: { expectStatus: 200, maxBytes: 1952, maxMedianMs: 25 },
+      projectsPage1: { expectStatus: 200, maxBytes: 63, maxMedianMs: 25 },
+      projectsPage2: { expectStatus: 200, maxBytes: 63, maxMedianMs: 25 },
+      // /members/:slug/contributions was removed in 129-07 (commit 96ab8dfa) as a dead
+      // endpoint; contributions are delivered EMBEDDED in the profile payload (covered by the
+      // initialProfile budget). The standalone route now 404s - locked as such so a silent
+      // re-wire trips the gate and forces a fresh budget lock.
+      contributions: { expectStatus: 404 },
+    },
+    'csubs-leader': {
+      initialProfile: { expectStatus: 200, maxBytes: 5879, maxMedianMs: 25 },
+      projectsPage1: { expectStatus: 200, maxBytes: 2333, maxMedianMs: 25 },
+      projectsPage2: { expectStatus: 200, maxBytes: 1340, maxMedianMs: 25 },
+      contributions: { expectStatus: 404 },
+    },
+  },
+}
+
+// Evaluate one profile's captured api + page against its locked budget. Returns the
+// structured check (per-metric pass/fail) plus a flat list of breach strings.
+function evaluateBudget(slug, api, page) {
+  const budget = LOCKED_BUDGETS.profiles[slug]
+  const breaches = []
+  const apiChecks = {}
+  if (!budget) {
+    breaches.push(`${slug}: no locked budget defined for this profile`)
+    return { profile: slug, hasBudget: false, breaches, apiChecks, pageCheck: null }
+  }
+  for (const [endpoint, limits] of Object.entries(budget)) {
+    const measured = api[endpoint]
+    const check = { endpoint }
+    if (!measured) {
+      check.error = 'endpoint not measured'
+      breaches.push(`${slug}/${endpoint}: endpoint not measured`)
+      apiChecks[endpoint] = check
+      continue
+    }
+    check.status = measured.status
+    check.expectStatus = limits.expectStatus ?? null
+    if (limits.expectStatus != null && measured.status !== limits.expectStatus) {
+      check.statusOk = false
+      breaches.push(`${slug}/${endpoint}: status ${measured.status} != expected ${limits.expectStatus}`)
+    } else {
+      check.statusOk = true
+    }
+    if (limits.maxBytes != null) {
+      check.payloadBytes = measured.payloadBytes ?? null
+      check.maxBytes = limits.maxBytes
+      check.payloadOk = measured.payloadBytes != null && measured.payloadBytes <= limits.maxBytes
+      if (!check.payloadOk) breaches.push(`${slug}/${endpoint}: payload ${measured.payloadBytes}B > budget ${limits.maxBytes}B`)
+    }
+    if (limits.maxMedianMs != null) {
+      const medianMs = measured.latencyMs?.medianMs ?? null
+      check.medianMs = medianMs
+      check.maxMedianMs = limits.maxMedianMs
+      check.latencyOk = medianMs != null && medianMs <= limits.maxMedianMs
+      if (!check.latencyOk) breaches.push(`${slug}/${endpoint}: median ${medianMs}ms > budget ${limits.maxMedianMs}ms`)
+    }
+    apiChecks[endpoint] = check
+  }
+  // Web-Vitals absolute ceilings - enforced ONLY on a rendered (200) page; a non-rendered
+  // page's vitals reflect the error output, not the profile, so they are recorded not gated.
+  const ceilings = LOCKED_BUDGETS.absoluteCeilings
+  const pageCheck = { rendered: page.rendered, enforced: page.rendered === true }
+  if (page.rendered === true) {
+    const v = page.webVitals || {}
+    pageCheck.lcpMs = v.lcpMs; pageCheck.maxLcpMs = ceilings.lcpMs
+    pageCheck.lcpOk = v.lcpMs != null && v.lcpMs <= ceilings.lcpMs
+    if (!pageCheck.lcpOk) breaches.push(`${slug}/page: LCP ${v.lcpMs}ms > ceiling ${ceilings.lcpMs}ms`)
+    pageCheck.cls = v.cls; pageCheck.maxCls = ceilings.cls
+    pageCheck.clsOk = v.cls != null && v.cls <= ceilings.cls
+    if (!pageCheck.clsOk) breaches.push(`${slug}/page: CLS ${v.cls} > ceiling ${ceilings.cls}`)
+    pageCheck.inpMs = v.inpMs; pageCheck.maxInpMs = ceilings.inpMs
+    // INP may be null when no qualifying interaction was recorded - treat null as pass (no signal).
+    pageCheck.inpOk = v.inpMs == null || v.inpMs <= ceilings.inpMs
+    if (!pageCheck.inpOk) breaches.push(`${slug}/page: INP ${v.inpMs}ms > ceiling ${ceilings.inpMs}ms`)
+  } else {
+    breaches.push(`${slug}/page: not rendered (status ${page.status}); expected a 200 render`)
+  }
+  return { profile: slug, hasBudget: true, breaches, apiChecks, pageCheck }
+}
+
+// --mode budget-check: re-measure BOTH seed profiles, write post-change-<slug>.json, and
+// assert every profile stays within its LOCKED budget. Exit non-zero on any breach unless
+// --assert false (capture-only bootstrap). Same capture path as perf-baseline (D-08).
+async function runBudgetCheck(args) {
+  const baseURL = String(args['base-url'] ?? process.env.PERF_BASE_URL ?? 'http://127.0.0.1:3000').replace(/\/+$/, '')
+  const apiBase = String(args['api-base'] ?? process.env.PERF_API_BASE ?? 'http://127.0.0.1:18092').replace(/\/+$/, '')
+  const profiles = String(args.profiles ?? process.env.PERF_PROFILES ?? 'sheppert,csubs-leader')
+    .split(',').map((value) => value.trim()).filter(Boolean)
+  const outputDir = String(args['output-dir'] ?? process.env.PERF_OUTPUT_DIR ?? '').replace(/\/+$/, '')
+  const throttle = String(args.throttle ?? process.env.PERF_THROTTLE ?? 'none')
+  const apiSampleCount = Number(args['api-samples'] ?? process.env.PERF_API_SAMPLES ?? 5)
+  const assertBudgets = String(args.assert ?? process.env.PERF_ASSERT ?? 'true') !== 'false'
+  assert(outputDir, '--output-dir (or PERF_OUTPUT_DIR) is required')
+  assert(profiles.length >= 1, 'at least one --profiles slug is required')
+  assert(throttle === 'none' || throttle === 'slow-4g', "--throttle must be 'none' or 'slow-4g'")
+  assert(Number.isInteger(apiSampleCount) && apiSampleCount >= 1, '--api-samples must be a positive integer')
+
+  const gitHead = String(process.env.PERF_GIT_HEAD ?? '').trim() || null
+  const collectorSource = readFileSync(new URL(import.meta.url))
+  let playwrightVersion = null
+  try {
+    playwrightVersion = JSON.parse(readFileSync(new URL('../node_modules/playwright/package.json', import.meta.url), 'utf8')).version
+  } catch {}
+
+  mkdirSync(outputDir, { recursive: true })
+  const browser = await chromium.launch({ headless: true })
+  const chromiumVersion = browser.version()
+  const written = []
+  const evaluations = []
+  try {
+    for (const slug of profiles) {
+      const startedAt = new Date().toISOString()
+      const api = {
+        initialProfile: await measureApiEndpoint('initial-profile', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}`, apiSampleCount),
+        projectsPage1: await measureApiEndpoint('projects-page-1', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}/projects?limit=6&offset=0`, apiSampleCount),
+        projectsPage2: await measureApiEndpoint('projects-page-2', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}/projects?limit=6&offset=6`, apiSampleCount),
+        contributions: await measureApiEndpoint('contributions-continuation', `${apiBase}/api/v1/members/${encodeURIComponent(slug)}/contributions?limit=20&offset=0`, apiSampleCount),
+      }
+      const page = await capturePageMetrics(browser, baseURL, slug, throttle)
+      const evaluation = evaluateBudget(slug, api, page)
+      evaluations.push(evaluation)
+      const artifact = {
+        schemaVersion: 1,
+        phase: '131',
+        plan: '131-08',
+        metric: 'member-profile-performance-post-change',
+        requirement: 'PMPF-05, PMPF-07',
+        decision: 'D-06, D-07, D-08, D-10',
+        profile: slug,
+        runId: randomUUID(),
+        capturedAt: startedAt,
+        completedAt: new Date().toISOString(),
+        budgetsLocked: true,
+        lockedBudget: {
+          absoluteCeilings: LOCKED_BUDGETS.absoluteCeilings,
+          queryCountCeiling: LOCKED_BUDGETS.queryCountCeiling,
+          api: LOCKED_BUDGETS.profiles[slug] ?? null,
+          basis: 'payload = post-change bytes + ~20%; latency = post-change median + ~20%, floored at 25ms; Web-Vitals = absolute D-07 good-band ceilings; query count = Go-test-enforced constant (19)',
+        },
+        budgetCheck: {
+          pass: evaluation.breaches.length === 0,
+          breaches: evaluation.breaches,
+          api: evaluation.apiChecks,
+          page: evaluation.pageCheck,
+        },
+        environment: {
+          gitHead,
+          node: process.version,
+          playwrightVersion,
+          chromiumVersion,
+          baseURL,
+          apiBase,
+          throttle,
+          apiSampleCount,
+          viewport: '1440x900',
+          public: true,
+          collectorSha256: sha256(collectorSource),
+        },
+        api,
+        page,
+      }
+      const outputPath = `${outputDir}/post-change-${slug}.json`
+      mkdirSync(dirname(outputPath), { recursive: true })
+      writeFileSync(outputPath, `${JSON.stringify(artifact, null, 2)}\n`)
+      written.push(outputPath)
+      console.log(JSON.stringify({
+        ok: true,
+        mode: 'budget-check',
+        profile: slug,
+        output: outputPath,
+        pass: evaluation.breaches.length === 0,
+        breaches: evaluation.breaches,
+        pageStatus: page.status,
+        rendered: page.rendered,
+        initialProfileBytes: api.initialProfile.payloadBytes ?? null,
+        lcpMs: page.webVitals.lcpMs,
+        cls: page.webVitals.cls,
+        inpMs: page.webVitals.inpMs,
+      }))
+    }
+  } finally {
+    await browser.close()
+  }
+  const allBreaches = evaluations.flatMap((evaluation) => evaluation.breaches)
+  const pass = allBreaches.length === 0
+  console.log(JSON.stringify({ ok: true, mode: 'budget-check', written, pass, breachCount: allBreaches.length, assert: assertBudgets }))
+  if (!pass && assertBudgets) {
+    console.error(`budget-check FAILED: ${allBreaches.length} locked-budget breach(es):\n  - ${allBreaches.join('\n  - ')}`)
+    process.exitCode = 1
+  }
+}
+
 // --------------------------------------------------------------------------
 // Dispatch: default keeps the Phase-120 collector; --mode perf-baseline runs
-// the Phase-131 performance baseline capture.
+// the Phase-131 performance baseline capture; --mode budget-check re-measures
+// and enforces the LOCKED Phase-131 budgets (131-08).
 // --------------------------------------------------------------------------
 const dispatchArgs = parseArgs(process.argv.slice(2))
 const mode = dispatchArgs.mode ?? 'phase120'
 if (mode === 'perf-baseline') {
   await runPerfBaseline(dispatchArgs)
+} else if (mode === 'budget-check') {
+  await runBudgetCheck(dispatchArgs)
 } else if (mode === 'phase120') {
   await runPhase120(dispatchArgs)
 } else {
