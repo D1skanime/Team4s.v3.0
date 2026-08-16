@@ -106,3 +106,54 @@ func Phase134FreshDatabaseDSN(maintDSN string) (string, error) {
 
 	return parsed.String(), nil
 }
+
+// phase134MatrixDSNEnv is the dedicated, mandatory env var pointing at the
+// full-schema, once-seeded verification-matrix database (D-07). It never
+// falls back to DATABASE_URL or any other DSN source; the matrix tests must
+// be visibly broken (t.Fatalf), never silently skipped, when misconfigured —
+// mirrors phase134MigrationDSNEnv's fail-closed style above.
+const phase134MatrixDSNEnv = "TEAM4S_PHASE134_TEST_DSN"
+
+// phase134MatrixDatabasePattern is an exact match (not the phase128/129
+// `_[a-z0-9]+` suffix-tolerant pattern), since exactly one fixed database
+// (`team4s_phase134_test`, provisioned by scripts/provision-phase134-matrix-db.sh)
+// ever backs this helper.
+var phase134MatrixDatabasePattern = regexp.MustCompile(`^team4s_phase134_test$`)
+
+// OpenPhase134MatrixPostgres opens a pgxpool against the full-schema,
+// once-seeded `team4s_phase134_test` throwaway database (CONTEXT.md D-07).
+// Same fail-closed shape as OpenPhase128Postgres (t.Fatalf on missing DSN,
+// parse + regex-validate the database name, live current_database()
+// cross-check) — but unlike openPhase129Postgres's per-test reset, this
+// helper does NOT reset/DELETE any rows on open: the fixture is seeded
+// exactly once, out-of-band, by scripts/provision-phase134-matrix-db.sh, and
+// every test in the verification matrix reads that same seeded state.
+func OpenPhase134MatrixPostgres(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+
+	dsn := os.Getenv(phase134MatrixDSNEnv)
+	if strings.TrimSpace(dsn) == "" {
+		t.Fatalf("%s is required for the Phase-134 verification matrix tests", phase134MatrixDSNEnv)
+	}
+
+	config, err := pgxpool.ParseConfig(dsn)
+	require.NoErrorf(t, err, "parse %s", phase134MatrixDSNEnv)
+	if !phase134MatrixDatabasePattern.MatchString(config.ConnConfig.Database) {
+		t.Fatalf("%s must target exactly the %q database, got %q", phase134MatrixDSNEnv, "team4s_phase134_test", config.ConnConfig.Database)
+	}
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	require.NoError(t, err, "open Phase-134 matrix pool")
+
+	var runtimeDatabase string
+	if err := pool.QueryRow(context.Background(), `SELECT current_database()`).Scan(&runtimeDatabase); err != nil {
+		pool.Close()
+		t.Fatalf("read current_database(): %v", err)
+	}
+	if !phase134MatrixDatabasePattern.MatchString(runtimeDatabase) {
+		pool.Close()
+		t.Fatalf("runtime database %q does not match required matrix database %q", runtimeDatabase, "team4s_phase134_test")
+	}
+
+	return pool
+}
