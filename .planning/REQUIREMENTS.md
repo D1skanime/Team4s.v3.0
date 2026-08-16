@@ -79,7 +79,7 @@
 - [x] **PMUI-04**: Achievement-, Hero-, Membership- und Seitenlayout-Stile werden in klar verantwortete CSS-Module aufgeteilt.
 - [x] **PMUI-05**: Widersprüchliche und doppelte Selektoren, Breakpoint-Patches und unnötige `!important`-Regeln werden entfernt.
 - [x] **PMUI-06**: Das Layout bleibt bei langen deutschen Texten, 400 % Zoom sowie schmalen, mittleren und breiten Viewports nutzbar.
-- [ ] **PMUI-07**: Breite Nachfahrenselektoren, widersprüchliche Layoutregeln, redundante Media Queries und unnötige Resize-Listener werden entfernt.
+- [x] **PMUI-07**: Breite Nachfahrenselektoren, widersprüchliche Layoutregeln, redundante Media Queries und unnötige Resize-Listener werden entfernt.
 
 ### Barrierefreiheit
 
@@ -178,7 +178,7 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMUI-04 | Phase 133 | Complete |
 | PMUI-05 | Phase 133 | Complete |
 | PMUI-06 | Phase 133 | Complete |
-| PMUI-07 | Phase 133 | Pending |
+| PMUI-07 | Phase 133 | Complete |
 | PMA11Y-01 | Phase 133 | Complete |
 | PMA11Y-02 | Phase 133 | Complete |
 | PMA11Y-03 | Phase 133 | Complete |

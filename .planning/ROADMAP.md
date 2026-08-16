@@ -200,7 +200,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 - [x] 133-05-PLAN.md — Harden FocalCarousel keyboard/focus/inert behavior + axe coverage.
 - [x] 133-06-PLAN.md — Fix the memorial hero's duplicate heading to a single h1.
-- [ ] 133-07-PLAN.md — Split MemberBadgeChain CSS: anime/points/contribution/membership stages.
+- [x] 133-07-PLAN.md — Split MemberBadgeChain CSS: anime/points/contribution/membership stages.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 133-08-PLAN.md — Split MemberBadgeChain CSS: family card + badge chip + 820px constant.

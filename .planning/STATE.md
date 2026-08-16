@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 133-06-PLAN.md
-last_updated: "2026-08-16T09:51:26.312Z"
+stopped_at: Completed 133-07-PLAN.md
+last_updated: "2026-08-16T10:14:39.808Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 64
-  completed_plans: 32
+  completed_plans: 33
   percent: 29
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 133 (responsive-accessible-efficient-visual-delivery) — EXECUTING
-Plan: 6 of 12
+Plan: 7 of 12
 Status: Ready to execute
 Last activity: 2026-08-16
 
@@ -98,6 +98,7 @@ Last activity: 2026-08-16
 - [Phase 133]: MemberBadgeChain.tsx's shared roleArtwork classes moved to LayeredBadgeArtwork.module.css keep two role-code/anime-project override rule blocks behind in MemberBadgeChain.module.css since CSS Modules scopes selectors per file; the affected JSX sites apply both the moved and the still-local class name to preserve pixel-identical rendering (Plan 133-04, precedent for 133-07/08/09).
 - [Phase 133]: react-dom@18.3.1 does not forward a declarative boolean inert JSX prop to the DOM — FocalCarousel sets/removes the inert attribute imperatively via a ref callback instead; jsdom's inert focus-blocking is unimplemented so tab reachability is asserted via attribute presence, not userEvent.tab().
 - [Phase 133]: MemberProfileMemorialHero.tsx now mirrors MemberProfileHero.tsx's public-view heading structure exactly: p.heroEyebrow -> div.heroTitleRow > (h1.heroTitle + MemberStatusPill), no PageHeader title usage.
+- [Phase 133]: Compound CSS selectors mixing a class moving to a new stage module with a class staying in MemberBadgeChain.module.css (either direction) stay behind in the shell file with dual-class JSX application (Plan 133-04 precedent); the .group[data-badge-group]-scoped 'no card surface' twin stays listing all five stage selectors unnarrowed for the same CSS-Modules per-file scoping reason.
 
 ### Pending Todos
 
@@ -151,10 +152,11 @@ Last activity: 2026-08-16
 | Phase 133 P04 | 20min | 2 tasks | 5 files |
 | Phase 133 P05 | 35min | 2 tasks | 2 files |
 | Phase 133 P06 | 15min | 2 tasks | 2 files |
+| Phase 133 P07 | 35min | 2 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T09:51:26.300Z
-Stopped at: Completed 133-06-PLAN.md
+Last session: 2026-08-16T10:14:39.795Z
+Stopped at: Completed 133-07-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None
