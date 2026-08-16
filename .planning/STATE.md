@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Phase 133 automated scope (01-11) complete; 133-12 manual UAT DEFERRED to batched post-135 pass
-last_updated: "2026-08-16T13:23:05.897Z"
-last_activity: 2026-08-16 -- Phase 134 planning complete
+stopped_at: Phase 134 Plan 01 complete (fixture manifest + story-image media step); ready for Plan 02
+last_updated: "2026-08-16T14:12:21.464Z"
+last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 70
-  completed_plans: 38
+  completed_plans: 39
   percent: 43
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 133 — responsive-accessible-efficient-visual-delivery
+**Current focus:** Phase 134 — fixture-backed-verification-rollout
 
 ## Current Position
 
-Phase: 133 (responsive-accessible-efficient-visual-delivery) — EXECUTED-PENDING-UAT
-Plan: 11 of 12 complete (automated scope). Plan 12 (manual D-06/D-12 UAT) DEFERRED — project owner decision, batched into a live-UAT pass scheduled after Phase 135. Not run, not approved, not failed. See `133-12-SUMMARY.md`.
+Phase: 134 (fixture-backed-verification-rollout) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-08-16 -- Phase 134 planning complete
+Last activity: 2026-08-16
 
 ## Accumulated Context
 
@@ -108,6 +108,7 @@ Last activity: 2026-08-16 -- Phase 134 planning complete
 - [Phase 133]: A CSS comment's embedded */ (used as informal glob/wildcard shorthand, e.g. .roleBadgeRow*/.roleLabel) prematurely closes the enclosing /* ... */ comment block and crashes the entire page with a dev-server syntax error; avoid asterisk-immediately-followed-by-slash sequences inside open CSS comments (found/fixed in Plan 133-10, MemberBadgeChain.module.css and RoleBadgeCard.module.css).
 - [Phase 133]: capturePageMetrics() now captures pageOverflow/bodyOverflow (previously only existed in the separate phase120-mode snapshotDOM()); evaluateBudget() hard-gates on both deltas being <=0 (PMUI-01/06), completing the phase's automated overflow gate.
 - [Phase 133]: Plan 133-11's full unscoped npm test sweep (first in this phase) confirmed 11 pre-existing failures across files never touched by any Phase 133 plan are out of scope; only the MemberBadgeChain.test.tsx containe typo and missing type cast (a file already owned by earlier Phase 133 plans) were fixed. See deferred-items.md for full triage.
+- [Phase 134]: seed-member-profile-fixtures.mjs's story-image assertion and manifest field use /media/profile/ as the expected member_story_html src substring, not /media/story-images/ (the sanitizer-allowed pattern is /media/profile/{memberID}/story/{uuid}/original.ext; /media/story-images/:id is a separate resolve-by-ID endpoint used only for editor-side preview).
 
 ### Pending Todos
 
@@ -167,10 +168,11 @@ Last activity: 2026-08-16 -- Phase 134 planning complete
 | Phase 133 P10 | 20min | 2 tasks | 3 files |
 | Phase 133 P11 | ~50min | 2 tasks | 3 files |
 | Phase 133 P12 | n/a | 2 tasks DEFERRED | 0 files |
+| Phase 134 P01 | 35min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T11:50:08.000Z
-Stopped at: Phase 133 automated scope (01-11) complete; 133-12 manual UAT DEFERRED to batched post-135 pass
+Last session: 2026-08-16T14:12:21.451Z
+Stopped at: Phase 134 Plan 01 complete (fixture manifest + story-image media step); ready for Plan 02
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
-Resume file: .planning/phases/133-responsive-accessible-efficient-visual-delivery/133-12-SUMMARY.md
+Resume file: None

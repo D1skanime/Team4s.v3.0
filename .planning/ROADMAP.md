@@ -240,7 +240,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 134-01-PLAN.md — Extend the seed with a media step and build the versioned fixture manifest.
+- [x] 134-01-PLAN.md — Extend the seed with a media step and build the versioned fixture manifest.
 - [ ] 134-02-PLAN.md — Build migration fresh/up/down proof tooling on an ephemeral database.
 
 **Wave 2** *(blocked on Wave 1 completion)*
