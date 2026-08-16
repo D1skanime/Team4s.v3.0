@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs'
 import type { ImgHTMLAttributes } from 'react'
 import { render, screen, within } from '@testing-library/react'
+import { axe } from 'jest-axe'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { MemberProfileData, PublicMemberProfileData, PublicMemberProfileBackgroundImage } from '@/types/profile'
@@ -159,6 +160,17 @@ describe('MemberProfileHero — Memorial-Variante (Wave-0 RED, D-10)', () => {
 
     const heading = screen.getByRole('heading', { level: 1 })
     expect(heading.parentElement?.textContent).toContain('Gedenkprofil')
+  })
+
+  it('hat keine Axe-Verstöße im Gedenkprofil-Hero (PMA11Y-04)', async () => {
+    const { container } = render(
+      <MemberProfileHero
+        profile={makePublicProfile({ profile_status: 'memorial' })}
+        isPublicView={true}
+      />,
+    )
+
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
 
@@ -498,6 +510,14 @@ describe('MemberProfileHero', () => {
 
     expect(screen.queryByText(/Schwerpunkte:/)).toBeNull()
     expect(screen.queryByText(/^Aktiv:/)).toBeNull()
+  })
+
+  it('hat keine Axe-Verstöße im öffentlichen Hero (PMA11Y-04)', async () => {
+    const { container } = render(
+      <MemberProfileHero profile={makePublicProfile()} isPublicView={true} />,
+    )
+
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
 
