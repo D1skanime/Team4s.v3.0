@@ -10,11 +10,20 @@ It talks **only to the real creation/admin API** (Keycloak direct-grant token �
 no direct SQL writes), so it doubles as the Phase-134 clean-reset fixture: run it
 once on a fresh database and both reference profiles are fully populated.
 
+**Phase 134-01 extension:** the script now also uploads one real, member-owned
+story image per reference profile (`scripts/fixtures/seed134-story.jpg`, the
+only binary asset this script reads from disk) via
+`POST /api/v1/me/profile/story-images`, and its scenario constants/assertions
+are driven from `scripts/member-profile-fixture.manifest.json` — the single
+checked-in source of truth (see `scripts/README-manifest.md`).
+
 ## Requirements
 
-- Node 18+ (uses global `fetch`; **no npm dependencies**).
+- Node 18+ (uses global `fetch`, `FormData`, `Blob`; **no npm dependencies**).
 - Network reach to the backend API and Keycloak.
 - Two accounts: an admin (Token A) and `sheppert` (Token B) — see below.
+- `scripts/fixtures/seed134-story.jpg` and `scripts/member-profile-fixture.manifest.json`
+  present alongside the script (both are checked into git; no separate setup).
 
 ## How to run
 
@@ -89,6 +98,11 @@ Distributed across the two reference profiles:
   release credits (`total_points > 0`).
 - **Activity larger than one page** — 10 current projects (page size 6) so the
   public `/members/:slug/projects` "Mehr anzeigen" continuation has a real 2nd page.
+- **Member-owned story image (Phase 134-01)** — both member 1 and member 2 get a
+  real `media_assets` row (uploaded via `POST /api/v1/me/profile/story-images`
+  from `scripts/fixtures/seed134-story.jpg`) referenced from their
+  `member_story_json`, so `member_story_html` on the public profile contains a
+  real, resolvable `<img>` tag (not just uploaded-and-orphaned media).
 
 ## Idempotency
 
@@ -111,6 +125,13 @@ Safe to re-run; a second run creates no duplicates. Techniques used:
   snapshot and `applyDiff` skips already-awarded rows; point ledger entries are
   idempotency-keyed.
 - **`/me/profile` and memorial** — naturally idempotent writes.
+- **Story image (Phase 134-01)** — `GET /me/profile` is checked first for an
+  existing TipTap image node; if one is already present its `media_asset_id` is
+  reused and the upload endpoint is never called again. This is required, not
+  just an optimization: the backend's cleanup-on-save lifecycle
+  (`applyStoryImageLifecycle`) deletes any previously-referenced image dropped
+  from a new `PUT /me/profile` body, so every re-run's `PUT` must keep including
+  the same already-uploaded id.
 
 ## Notes
 
@@ -120,3 +141,8 @@ Safe to re-run; a second run creates no duplicates. Techniques used:
   credits go exclusively through the effective-crew endpoint.
 - The degenerate "years set while dates NULL" row is intentionally **out of scope**;
   the year-only *period* is API-reachable via `PUT /me/profile`.
+- The story image's `src` inside `member_story_html` is `/media/profile/{memberID}/story/{uuid}/original.{ext}`
+  — this is the actual pattern the backend's TipTap sanitizer allows (see
+  `scripts/README-manifest.md` "Story-image URL shape"), **not**
+  `/media/story-images/{id}` (a separate resolve-by-ID endpoint used only for
+  editor-side preview).

@@ -10,7 +10,10 @@
 // duplicate treated as success). This same script is the Phase-134 clean-reset
 // fixture.
 //
-// Requires Node 18+ (global fetch). No external npm dependencies.
+// Phase 134-01 (Wave 1, Task 1) — extended in place (not forked, per CONTEXT.md
+// D-01) with a member-owned story-image media step (Step 11).
+//
+// Requires Node 18+ (global fetch, FormData, Blob). No external npm dependencies.
 //
 // Env (all optional; defaults target the live Linux VM):
 //   SEED_API_BASE       default http://192.168.235.196:18092
@@ -19,6 +22,19 @@
 //   SEED_ADMIN_PW       default 123
 //   SEED_SHEPPERT_USER  default sheppert@team4s.local       (Token B / member 2)
 //   SEED_SHEPPERT_PW    default 123
+
+import { readFileSync } from 'node:fs'
+
+// ---- Fixture image (Step 11 media upload) -----------------------------------
+const STORY_IMAGE_PATH = new URL('./fixtures/seed134-story.jpg', import.meta.url)
+
+// Substring the seed's public story-image assertion expects inside
+// member_story_html. This is /media/profile/ — the actual src pattern the
+// backend's TipTap sanitizer allows (backend/internal/services/tiptap_service.go
+// newTipTapSanitizerPolicy: ^/media/profile/\d+/story/[a-z0-9-]+/original\.(...)$),
+// NOT /media/story-images/ (a separate resolve-by-ID endpoint used only for
+// editor-side image preview, never embedded in saved/rendered story HTML).
+const STORY_IMAGE_SRC_SUBSTRING = '/media/profile/'
 
 const API = (process.env.SEED_API_BASE || 'http://192.168.235.196:18092').replace(/\/+$/, '')
 const KC = (process.env.SEED_KC_BASE || 'http://192.168.235.196:18081').replace(/\/+$/, '')
@@ -310,6 +326,62 @@ async function ensureMemorial(token, memberId) {
   log(`memorial set on member ${memberId}`)
 }
 
+// findFirstStoryImageID walks a TipTap document (as parsed JSON, mirroring the
+// backend's extractStoryImageIDsFromJSON in app_profile_story_image.go) looking
+// for the first image node's media_asset_id.
+function findFirstStoryImageID(node) {
+  if (!node || typeof node !== 'object') return null
+  if (node.type === 'image' && node.attrs && typeof node.attrs.media_asset_id === 'number' && node.attrs.media_asset_id > 0) {
+    return node.attrs.media_asset_id
+  }
+  if (Array.isArray(node.content)) {
+    for (const child of node.content) {
+      const found = findFirstStoryImageID(child)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+// ensureStoryImage idempotently gives a member exactly one real, member-owned
+// story image referenced from their member_story_json (Phase 134 Task 1, T-134-01).
+// Never re-uploads once a media_asset_id is already present — applyStoryImageLifecycle
+// (backend) deletes any previously-referenced image dropped from a new PUT, so a
+// repeat PUT must always include the SAME already-uploaded id, never a fresh upload.
+async function ensureStoryImage(token, label, storyText) {
+  const me = must(await api('GET', '/api/v1/me/profile', { token }), `GET /me/profile (${label}, story-image check)`)
+  let mediaAssetId = me.data.member_story_json ? findFirstStoryImageID(me.data.member_story_json) : null
+
+  if (mediaAssetId) {
+    log(`${label}: story image already present (media_asset_id=${mediaAssetId}) — skipping upload`)
+  } else {
+    const bytes = readFileSync(STORY_IMAGE_PATH)
+    const form = new FormData()
+    form.append('image', new Blob([bytes], { type: 'image/jpeg' }), 'seed134-story.jpg')
+    const res = await fetch(`${API}/api/v1/me/profile/story-images`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }, // no Content-Type — fetch sets the multipart boundary
+      body: form,
+    })
+    const json = await res.json().catch(() => ({}))
+    if (res.status !== 201) {
+      throw new Error(`ensureStoryImage(${label}): upload failed with status ${res.status}: ${JSON.stringify(json)}`)
+    }
+    mediaAssetId = json.data.media_asset_id
+    log(`${label}: story image uploaded (media_asset_id=${mediaAssetId})`)
+  }
+
+  const doc = {
+    type: 'doc',
+    content: [
+      { type: 'paragraph', content: [{ type: 'text', text: storyText }] },
+      { type: 'image', attrs: { media_asset_id: mediaAssetId, width_percent: 60, alignment: 'center' } },
+    ],
+  }
+  await updateOwnProfile(token, `${label} (story image reference)`, { member_story_json: doc })
+  return mediaAssetId
+}
+
 // ---- Assertions -----------------------------------------------------------
 
 const results = []
@@ -402,6 +474,17 @@ async function runAssertions(ctx) {
   check('draft/not-public contribution excluded from public projects', 'public',
     (adm.current_projects_count || 0) === CONFIRMED_ANIME_COUNT,
     `current_projects_count=${adm.current_projects_count} (expected ${CONFIRMED_ANIME_COUNT})`)
+
+  // 11. member-owned story image referenced (not just uploaded and orphaned) in the
+  // PUBLIC profile (Phase 134-01, T-134-01). See STORY_IMAGE_SRC_SUBSTRING above for
+  // why this is /media/profile/... and not /media/story-images/...
+  check('story image referenced in public profile (csubs-leader)', 'public',
+    typeof adm.member_story_html === 'string' && adm.member_story_html.includes(STORY_IMAGE_SRC_SUBSTRING),
+    `member_story_html=${adm.member_story_html ? adm.member_story_html.slice(0, 160) : 'null'}`)
+
+  check('story image referenced in public profile (sheppert)', 'public',
+    typeof shep.member_story_html === 'string' && shep.member_story_html.includes(STORY_IMAGE_SRC_SUBSTRING),
+    `member_story_html=${shep.member_story_html ? shep.member_story_html.slice(0, 160) : 'null'}`)
 }
 
 // ---- Main -----------------------------------------------------------------
@@ -466,6 +549,13 @@ async function main() {
 
   // Step 10: memorial on ONE member (sheppert)
   await ensureMemorial(tokenA, memberB)
+
+  // Step 11 (Phase 134-01): member-owned story image — one real media_assets row
+  // per reference profile via the real story-image upload API (Open Question 3
+  // resolution: POST /api/v1/me/profile/story-images, not anime-cover upload).
+  const adminStoryMediaId = await ensureStoryImage(tokenA, 'member 1 (admin/csubs-leader)', 'Seed134 Mitgliedsgeschichte.')
+  const shepStoryMediaId = await ensureStoryImage(tokenB, 'member 2 (sheppert)', 'Seed134 Kurzprofil.')
+  log(`story image media_asset_ids: csubs-leader=${adminStoryMediaId}, sheppert=${shepStoryMediaId}`)
 
   await runAssertions({ tokenA, tokenB, memberA, memberB, groupAId, groupBId, histA_admin, versionIds })
 
