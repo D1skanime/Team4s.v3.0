@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 133-07-PLAN.md
-last_updated: "2026-08-16T10:14:39.808Z"
+stopped_at: Completed 133-08-PLAN.md
+last_updated: "2026-08-16T10:30:56.643Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 64
-  completed_plans: 33
+  completed_plans: 34
   percent: 29
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 133 (responsive-accessible-efficient-visual-delivery) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Status: Ready to execute
 Last activity: 2026-08-16
 
@@ -99,6 +99,9 @@ Last activity: 2026-08-16
 - [Phase 133]: react-dom@18.3.1 does not forward a declarative boolean inert JSX prop to the DOM — FocalCarousel sets/removes the inert attribute imperatively via a ref callback instead; jsdom's inert focus-blocking is unimplemented so tab reachability is asserted via attribute presence, not userEvent.tab().
 - [Phase 133]: MemberProfileMemorialHero.tsx now mirrors MemberProfileHero.tsx's public-view heading structure exactly: p.heroEyebrow -> div.heroTitleRow > (h1.heroTitle + MemberStatusPill), no PageHeader title usage.
 - [Phase 133]: Compound CSS selectors mixing a class moving to a new stage module with a class staying in MemberBadgeChain.module.css (either direction) stay behind in the shell file with dual-class JSX application (Plan 133-04 precedent); the .group[data-badge-group]-scoped 'no card surface' twin stays listing all five stage selectors unnarrowed for the same CSS-Modules per-file scoping reason.
+- [Phase 133]: MemberBadgeChain.tsx's .familyStageButton:has(.currentChip)/.familyStageButton .currentChip stay in MemberBadgeChain.module.css since .currentChip is a chainStyles-local shared utility class used at multiple other sites (roles progression, anime-project milestones); the rendered family stage button carries both badgeFamilyCardStyles.familyStageButton and chainStyles.familyStageButton so both rule sets keep matching (Plan 133-08, extends the Plan 133-04/07 compound-selector-crosses-file-boundary pattern).
+- [Phase 133]: MemberBadgeChain.tsx's four badge-chip compound groups (.badgeWindowActive .badgeArtwork, six .group[data-badge-group=...] .badgeRow/.badgeArtwork/.badgeRowCompact rules, .badgeWindowActive .badgeStep) stay in MemberBadgeChain.module.css since .badgeWindowActive/.group are chainStyles-local while .badgeRow/.badgeArtwork/.badgeRowCompact/.badgeStep moved to BadgeChip.module.css; the generic badge-row render site applies dual classes at 4 JSX sites so the kept-behind rules keep matching (Plan 133-08).
+- [Phase 133]: FAMILY_CARD_COMPACT_QUERY is the single named JS constant reconciling FamilyCollectionCard's window.matchMedia scroll-centering breakpoint with BadgeFamilyCard.module.css's @container (max-width: 820px) layout breakpoint at exactly 820px, closing RESEARCH.md's magic-number duplication (Plan 133-08).
 
 ### Pending Todos
 
@@ -153,10 +156,11 @@ Last activity: 2026-08-16
 | Phase 133 P05 | 35min | 2 tasks | 2 files |
 | Phase 133 P06 | 15min | 2 tasks | 2 files |
 | Phase 133 P07 | 35min | 2 tasks | 7 files |
+| Phase 133 P08 | 25min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T10:14:39.795Z
-Stopped at: Completed 133-07-PLAN.md
+Last session: 2026-08-16T10:30:56.629Z
+Stopped at: Completed 133-08-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None
