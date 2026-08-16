@@ -11,5 +11,6 @@ export default defineConfig({
   test: {
     globals: true,
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    setupFiles: ['src/test/axeSetup.ts'],
   },
 })
