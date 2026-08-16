@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 133-04-PLAN.md
-last_updated: "2026-08-16T09:34:40.600Z"
+stopped_at: Completed 133-05-PLAN.md
+last_updated: "2026-08-16T09:47:09.014Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 64
-  completed_plans: 30
+  completed_plans: 31
   percent: 29
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 133 (responsive-accessible-efficient-visual-delivery) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Last activity: 2026-08-16
 
@@ -96,6 +96,7 @@ Last activity: 2026-08-16
 - [Phase 133]: dangerouslyAllowLocalIP is gated to process.env.NODE_ENV !== 'production' and images.qualities is an explicit [75] allow-list; localPatterns (/media/**, /member-achievement-badges/**, /covers/**) remain byte-for-byte unchanged and regression-tested.
 - [Phase 133]: The full pre-existing @media (max-width: 760px) hero block (which bundles .heroPanel/.heroAvatar with .heroCopy/.heroTitleRow/.heroBio/.heroMetaLine/.knownForBlock/.heroSpecialAwardsList overflow-safety rules) was converted as one unit to @container member-profile-hero, keeping hero-internal overflow-safety rules in sync with the panel/avatar's container-driven layout switch. — Prevents overflow-safety rules from falling out of sync with the panel layout at wide-viewport/narrow-container states, e.g. inside a future two-column .profilePair layout
 - [Phase 133]: MemberBadgeChain.tsx's shared roleArtwork classes moved to LayeredBadgeArtwork.module.css keep two role-code/anime-project override rule blocks behind in MemberBadgeChain.module.css since CSS Modules scopes selectors per file; the affected JSX sites apply both the moved and the still-local class name to preserve pixel-identical rendering (Plan 133-04, precedent for 133-07/08/09).
+- [Phase 133]: react-dom@18.3.1 does not forward a declarative boolean inert JSX prop to the DOM — FocalCarousel sets/removes the inert attribute imperatively via a ref callback instead; jsdom's inert focus-blocking is unimplemented so tab reachability is asserted via attribute presence, not userEvent.tab().
 
 ### Pending Todos
 
@@ -147,10 +148,11 @@ Last activity: 2026-08-16
 | Phase 133 P02 | 4min | 2 tasks | 2 files |
 | Phase 133 P03 | 5min | 2 tasks | 2 files |
 | Phase 133 P04 | 20min | 2 tasks | 5 files |
+| Phase 133 P05 | 35min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T09:34:40.587Z
-Stopped at: Completed 133-04-PLAN.md
+Last session: 2026-08-16T09:47:08.999Z
+Stopped at: Completed 133-05-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None

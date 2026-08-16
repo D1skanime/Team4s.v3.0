@@ -84,9 +84,9 @@
 ### Barrierefreiheit
 
 - [ ] **PMA11Y-01**: Überschriften bilden eine semantische, nachvollziehbare Hierarchie.
-- [ ] **PMA11Y-02**: Carousel, Paging, Vorschau und aufklappbare Bereiche sind vollständig per Tastatur bedienbar.
-- [ ] **PMA11Y-03**: Interaktive Zustände besitzen korrekte Namen, Fokusdarstellung, `aria-expanded`, `aria-controls` und Statusmeldungen.
-- [ ] **PMA11Y-04**: Kontrast, Zielgrößen, reduzierte Bewegung und DOM-Reihenfolge erfüllen die festgelegten WCAG-2.2-Kriterien.
+- [x] **PMA11Y-02**: Carousel, Paging, Vorschau und aufklappbare Bereiche sind vollständig per Tastatur bedienbar.
+- [x] **PMA11Y-03**: Interaktive Zustände besitzen korrekte Namen, Fokusdarstellung, `aria-expanded`, `aria-controls` und Statusmeldungen.
+- [x] **PMA11Y-04**: Kontrast, Zielgrößen, reduzierte Bewegung und DOM-Reihenfolge erfüllen die festgelegten WCAG-2.2-Kriterien.
 
 ### Testdaten und Abnahme
 
@@ -180,9 +180,9 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMUI-06 | Phase 133 | Complete |
 | PMUI-07 | Phase 133 | Pending |
 | PMA11Y-01 | Phase 133 | Pending |
-| PMA11Y-02 | Phase 133 | Pending |
-| PMA11Y-03 | Phase 133 | Pending |
-| PMA11Y-04 | Phase 133 | Pending |
+| PMA11Y-02 | Phase 133 | Complete |
+| PMA11Y-03 | Phase 133 | Complete |
+| PMA11Y-04 | Phase 133 | Complete |
 | PMQA-01 | Phase 134 | Pending |
 | PMQA-02 | Phase 134 | Pending |
 | PMQA-03 | Phase 134 | Pending |

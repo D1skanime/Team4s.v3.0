@@ -198,7 +198,7 @@ Plans:
 - [x] 133-04-PLAN.md — Split MemberBadgeChain CSS: shared artwork + locked-stage layer.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 133-05-PLAN.md — Harden FocalCarousel keyboard/focus/inert behavior + axe coverage.
+- [x] 133-05-PLAN.md — Harden FocalCarousel keyboard/focus/inert behavior + axe coverage.
 - [ ] 133-06-PLAN.md — Fix the memorial hero's duplicate heading to a single h1.
 - [ ] 133-07-PLAN.md — Split MemberBadgeChain CSS: anime/points/contribution/membership stages.
 
