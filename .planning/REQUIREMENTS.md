@@ -73,12 +73,12 @@
 
 ### Responsive Darstellung und CSS
 
-- [ ] **PMUI-01**: Das Profil funktioniert mobile-first ohne horizontales Abschneiden oder versteckte Überläufe.
-- [ ] **PMUI-02**: Zwischenbreiten und Breitbild nutzen den verfügbaren Raum kompakt, ohne übergroße Karten oder leere Flächen.
-- [ ] **PMUI-03**: Wiederverwendbare Profilkomponenten reagieren über Container-Geometrie statt gerätespezifischer Breakpoints.
+- [x] **PMUI-01**: Das Profil funktioniert mobile-first ohne horizontales Abschneiden oder versteckte Überläufe.
+- [x] **PMUI-02**: Zwischenbreiten und Breitbild nutzen den verfügbaren Raum kompakt, ohne übergroße Karten oder leere Flächen.
+- [x] **PMUI-03**: Wiederverwendbare Profilkomponenten reagieren über Container-Geometrie statt gerätespezifischer Breakpoints.
 - [ ] **PMUI-04**: Achievement-, Hero-, Membership- und Seitenlayout-Stile werden in klar verantwortete CSS-Module aufgeteilt.
 - [ ] **PMUI-05**: Widersprüchliche und doppelte Selektoren, Breakpoint-Patches und unnötige `!important`-Regeln werden entfernt.
-- [ ] **PMUI-06**: Das Layout bleibt bei langen deutschen Texten, 400 % Zoom sowie schmalen, mittleren und breiten Viewports nutzbar.
+- [x] **PMUI-06**: Das Layout bleibt bei langen deutschen Texten, 400 % Zoom sowie schmalen, mittleren und breiten Viewports nutzbar.
 - [ ] **PMUI-07**: Breite Nachfahrenselektoren, widersprüchliche Layoutregeln, redundante Media Queries und unnötige Resize-Listener werden entfernt.
 
 ### Barrierefreiheit
@@ -172,12 +172,12 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMFE-09 | Phase 132 | Complete |
 | PMFE-10 | Phase 132 | Complete |
 | PMFE-11 | Phase 132 | Complete |
-| PMUI-01 | Phase 133 | Pending |
-| PMUI-02 | Phase 133 | Pending |
-| PMUI-03 | Phase 133 | Pending |
+| PMUI-01 | Phase 133 | Complete |
+| PMUI-02 | Phase 133 | Complete |
+| PMUI-03 | Phase 133 | Complete |
 | PMUI-04 | Phase 133 | Pending |
 | PMUI-05 | Phase 133 | Pending |
-| PMUI-06 | Phase 133 | Pending |
+| PMUI-06 | Phase 133 | Complete |
 | PMUI-07 | Phase 133 | Pending |
 | PMA11Y-01 | Phase 133 | Pending |
 | PMA11Y-02 | Phase 133 | Pending |
