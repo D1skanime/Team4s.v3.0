@@ -107,3 +107,7 @@ None - no external service configuration required.
 ---
 *Phase: 133-responsive-accessible-efficient-visual-delivery*
 *Completed: 2026-08-16*
+
+## Self-Check: PASSED
+
+`frontend/next.config.mjs` contains the `dangerouslyAllowLocalIP: process.env.NODE_ENV` gate string; `deferred-items.md` exists; task commits `c98eece1` and `da1dbcc8` and the docs commit `77e2d9f0` all verified present in `git log`.
