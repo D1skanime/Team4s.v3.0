@@ -16,6 +16,9 @@ const contributionAchievementStageCss = readFileSync('src/components/profile/Con
 const membershipStageCss = readFileSync('src/components/profile/MembershipStage.module.css', 'utf8')
 const badgeFamilyCardCss = readFileSync('src/components/profile/BadgeFamilyCard.module.css', 'utf8')
 const badgeChipCss = readFileSync('src/components/profile/BadgeChip.module.css', 'utf8')
+const roleBadgeCardCss = readFileSync('src/components/profile/RoleBadgeCard.module.css', 'utf8')
+const roleBadgeCardStatusCss = readFileSync('src/components/profile/RoleBadgeCard.status.module.css', 'utf8')
+const roleBadgeCardStagesCss = readFileSync('src/components/profile/RoleBadgeCard.stages.module.css', 'utf8')
 
 function expectDisplayImageSource(image: Element | null, expectedSource: string) {
   const src = image?.getAttribute('src')
@@ -919,19 +922,19 @@ describe('buildMemberBadgeGroups (D-04)', () => {
 })
 describe('MemberBadgeChain Phase 118 role cards', () => {
   it('keeps approved role-art geometry for desktop, tablet, mobile and special roles', () => {
-    expect(memberBadgeChainCss).toContain('width: 320px;')
-    expect(memberBadgeChainCss).toContain('width: 280px;')
-    expect(memberBadgeChainCss).toContain('width: 248px;')
-    expect(memberBadgeChainCss).toContain('.roleArtworkBackdrop {\n  inset: 12%;')
-    expect(memberBadgeChainCss).toContain('clip-path: circle(34% at 50% 50%);')
+    expect(roleBadgeCardCss).toContain('width: 320px;')
+    expect(roleBadgeCardCss).toContain('width: 280px;')
+    expect(roleBadgeCardCss).toContain('width: 248px;')
+    expect(roleBadgeCardStatusCss).toContain('.roleArtworkBackdrop {\n  inset: 12%;')
+    expect(roleBadgeCardStatusCss).toContain('clip-path: circle(34% at 50% 50%);')
   })
 
   it('keeps all five mobile medals and progress copy inside the role card', () => {
-    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleBadgeRow\s*\{[^}]*padding:\s*20px 10px;/)
-    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleProgression\s*\{[^}]*gap:\s*4px;/)
-    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*box-sizing:\s*border-box;[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleProgressCopy\s*\{[^}]*white-space:\s*normal;/s)
+    expect(roleBadgeCardCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleBadgeRow\s*\{[^}]*padding:\s*20px 10px;/)
+    expect(roleBadgeCardStagesCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.roleProgression\s*\{[^}]*gap:\s*4px;/)
+    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*box-sizing:\s*border-box;[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s)
+    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(roleBadgeCardStatusCss).toMatch(/\.roleProgressCopy\s*\{[^}]*white-space:\s*normal;/s)
   })
 
   it('matches the narrow carousel skeleton to one full card and a separate controls row', () => {
@@ -970,7 +973,7 @@ describe('MemberBadgeChain Phase 118 role cards', () => {
     expect(container.querySelectorAll('[data-role-stage] img')).toHaveLength(0)
     expect(container.querySelectorAll('[data-role-stage][tabindex]')).toHaveLength(0)
     expect(screen.getAllByText('Aktuell')).toHaveLength(2)
-    expect(memberBadgeChainCss).toMatch(/\.roleProgression \.currentChip\s*\{[^}]*position:\s*static;[^}]*white-space:\s*nowrap;[^}]*font-size:\s*0\.58rem;/s)
+    expect(roleBadgeCardStagesCss).toMatch(/\.roleProgression \.currentChip\s*\{[^}]*position:\s*static;[^}]*white-space:\s*nowrap;[^}]*font-size:\s*0\.58rem;/s)
     expect(screen.getAllByText('Gesperrt').length).toBeGreaterThan(0)
   })
 
@@ -1339,14 +1342,16 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
 })
 
 it('keeps badge artwork slots stable and expresses focus only through transforms', () => {
-  expect(memberBadgeChainCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;[^}]*transform:\s*scale\(0\.84\);/s)
+  expect(roleBadgeCardCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;[^}]*transform:\s*scale\(0\.84\);/s)
   expect(badgeChipCss).toMatch(/\.badgeArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;[^}]*transform:\s*scale\(0\.84\);/s)
-  expect(memberBadgeChainCss).toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*transform:\s*scale\(1\);/s)
+  expect(roleBadgeCardStatusCss).toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*transform:\s*scale\(1\);/s)
   expect(memberBadgeChainCss).toMatch(/\.badgeWindowActive \.badgeArtwork\s*\{[^}]*transform:\s*scale\(1\);/s)
   expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive :?is\([^}]*\)\s*\{[^}]*(?:width|height):/s)
   expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive \.badgeArtwork\s*\{[^}]*(?:width|height):/s)
-  expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*(?:width|height):/s)
-  expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width: 520px\)[\s\S]*?\.group\[data-badge-group="contributions"\] \.badgeArtwork\s*\{[^}]*width:\s*clamp\(210px, 60vw, 240px\);/s)
+  expect(roleBadgeCardStatusCss).not.toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*(?:width|height):/s)
+  // Plan 133-09 merged the identical contributions/membership value pairs into one comma-joined
+  // selector (see MemberBadgeChain.module.css's comment above this block).
+  expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width: 520px\)[\s\S]*?\.group\[data-badge-group="contributions"\] \.badgeArtwork,[\s\S]*?\{[^}]*width:\s*clamp\(210px, 60vw, 240px\);/s)
 })
 
 describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
@@ -1460,7 +1465,7 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
     }
 
     expect(layeredBadgeArtworkCss).toMatch(/\.roleHeroArtworkLayered,\s*\.badgeArtworkLayered\s*\{[^}]*position:\s*relative;/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group="roles"\] \.roleHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;/s)
+    expect(roleBadgeCardCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;/s)
     expect(layeredBadgeArtworkCss).toMatch(/\.roleArtworkMotif\s*\{[^}]*object-fit:\s*contain;[^}]*clip-path:\s*circle/s)
     expect(layeredBadgeArtworkCss).toMatch(/\.roleArtworkFrame\s*\{[^}]*object-fit:\s*contain;/s)
   })
@@ -1478,7 +1483,7 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
     expect(container.querySelectorAll('[data-role-card-state="expanded"]')).toHaveLength(2)
     expect(container.querySelector('[data-badge-skeleton="true"]')).not.toBeNull()
     expect(memberBadgeChainCss).toMatch(/\.carouselShell:has\(\.badgeGrid\) > \.carouselSkeleton\s*\{[^}]*visibility:\s*hidden;/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\[data-role-card-state="expanded"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*transform:\s*none;/s)
+    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\[data-role-card-state="expanded"\]\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*transform:\s*none;/s)
 
     fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
     expect(screen.getByRole('region', { name: 'Rollenfortschritt-Karussell' })).not.toBeNull()
@@ -1487,11 +1492,11 @@ describe('Phase 121 semantischer Rollen-Rank-Track', () => {
   })
 
   it('locks the final desktop hierarchy and near-full-width narrow role card', () => {
-    expect(memberBadgeChainCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*font-size:\s*clamp\(2rem, 2\.4vw, 3rem\);/)
-    expect(memberBadgeChainCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*\.roleProgressTrack\s*\{[^}]*height:\s*10px;/)
+    expect(roleBadgeCardStatusCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*font-size:\s*clamp\(2rem, 2\.4vw, 3rem\);/)
+    expect(roleBadgeCardStatusCss).toMatch(/@media \(min-width: 1440px\)[\s\S]*\.roleProgressTrack\s*\{[^}]*height:\s*10px;/)
     expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width: 480px\)[\s\S]*--focal-item-size:\s*min\(98%, 340px\);/)
     expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*\.chainCard:has\(\.group\[data-badge-group="roles"\]\)[\s\S]*padding-inline:\s*4px;/)
-    expect(memberBadgeChainCss).toMatch(/\.badgeWindowActive \.roleBadgeRow\s*\{[^}]*width:\s*calc\(100% \+ 16px\);/)
+    expect(roleBadgeCardStatusCss).toMatch(/\.badgeWindowActive \.roleBadgeRow\s*\{[^}]*width:\s*calc\(100% \+ 16px\);/)
   })
 
   const roleBadge = (roleCode: string, count: number, id = 1): PublicMemberBadge => ({
@@ -2040,11 +2045,11 @@ describe('Quick 260812-jtp contribution card density', () => {
 })
 
 describe('Quick 260812-kr1 transparent achievement stages', () => {
-  it('keeps one final profile-local rule authoritative for the one large hero wrapper never extracted to its own module', () => {
-    const groupedRulePattern = /\.roleBadgeRow\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s
-    const groupedRule = memberBadgeChainCss.match(groupedRulePattern)
-    expect(groupedRule).not.toBeNull()
-    expect(memberBadgeChainCss.slice((groupedRule?.index ?? 0) + (groupedRule?.[0].length ?? 0))).not.toMatch(/\.(?:roleBadgeRow|animeProjectStage|pointsAchievementStage|contributionAchievementStage|membershipStage)\s*\{[^}]*(?:background:\s*var\(--surface-card\)|border:\s*1px|border-radius:\s*var\(|box-shadow:\s*var\()/s)
+  it('keeps one no-card-surface rule authoritative for the role-card hero wrapper, now extracted alongside its sibling stages', () => {
+    // Historical note: .roleBadgeRow was the last stage-selector no-card-surface rule to live
+    // directly in MemberBadgeChain.module.css; Plan 133-09 extracted it to RoleBadgeCard.module.css
+    // alongside the other four stages (see the next test), so this now asserts parity with them.
+    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
   })
 
   it('keeps the same no-card-surface declaration on every extracted stage Card root', () => {
@@ -2060,7 +2065,7 @@ describe('Quick 260812-kr1 transparent achievement stages', () => {
     expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
     expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*min-width:\s*0;/s)
     expect(membershipStageCss).toMatch(/\.membershipStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\s*\{[^}]*min-width:\s*0;/s)
+    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\s*\{[^}]*min-width:\s*0;/s)
     expect(animeProjectStageCss).toMatch(/\.animeProjectArtwork\s*\{[^}]*width:\s*min\(100%,/s)
     expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
     expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
@@ -2072,7 +2077,12 @@ describe('Quick 260812-kr1 transparent achievement stages', () => {
 describe('Quick 260812-kr1 rendered Card ownership regression', () => {
   it('uses a higher-specificity section rule than the global Card class and compacts inactive roles', () => {
     expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group\]\s+:is\([\s\S]*?\.roleBadgeRow,[\s\S]*?\.animeProjectStage,[\s\S]*?\.pointsAchievementStage,[\s\S]*?\.contributionAchievementStage,[\s\S]*?\.membershipStage[\s\S]*?\)\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
-    expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group="roles"\] \.roleBadgeRow\[data-role-card-state="inactive"\]\s*\{[^}]*place-content:\s*center;[^}]*min-height:\s*0;[^}]*padding:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] :is\([\s\S]*?\.roleLabel,[\s\S]*?\.roleStatus,[\s\S]*?\.roleProgressBlock,[\s\S]*?\.roleProgression[\s\S]*?\)\s*\{[^}]*display:\s*none;/s)
+    // The `.group[data-badge-group="roles"]` qualifier was dropped when this rule moved to
+    // RoleBadgeCard.module.css (Plan 133-09) -- roleBadgeCardStyles.roleBadgeRow/roleLabel only
+    // ever render inside the roles branch, so the plain selector is equivalent.
+    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\]\s*\{[^}]*place-content:\s*center;[^}]*min-height:\s*0;[^}]*padding:\s*0;/s)
+    expect(roleBadgeCardCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] \.roleLabel\s*\{[^}]*display:\s*none;/s)
+    expect(roleBadgeCardStatusCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] :is\([\s\S]*?\.roleStatus,[\s\S]*?\.roleProgressBlock[\s\S]*?\)\s*\{[^}]*display:\s*none;/s)
+    expect(roleBadgeCardStagesCss).toMatch(/\.roleBadgeRow\[data-role-card-state="inactive"\] \.roleProgression\s*\{[^}]*display:\s*none;/s)
   })
 })
