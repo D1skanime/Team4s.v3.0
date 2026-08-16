@@ -540,6 +540,13 @@ async function capturePageMetrics(browser, baseURL, slug, throttle) {
 
   const webVitals = await page.evaluate(() => window.__perf131 ?? null)
   const htmlBytes = Buffer.byteLength(await page.content(), 'utf8')
+  // Document-level horizontal overflow (PMUI-01/06) - same computation as the Phase-120
+  // collector's snapshotDOM(), captured here too since evaluateBudget()'s hard gate operates
+  // on capturePageMetrics()'s return, not snapshotDOM()'s.
+  const overflow = await page.evaluate(() => ({
+    pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    bodyOverflow: document.body.scrollWidth - document.body.clientWidth,
+  }))
 
   const requests = []
   for (const request of finished) {
@@ -580,6 +587,8 @@ async function capturePageMetrics(browser, baseURL, slug, throttle) {
     failedRequestCount: failed.length,
     totalTransferBytes,
     htmlBytes,
+    pageOverflow: overflow.pageOverflow,
+    bodyOverflow: overflow.bodyOverflow,
     consoleErrors,
     pageErrors,
     webVitals: {
@@ -816,6 +825,15 @@ function evaluateBudget(slug, api, page) {
     // INP may be null when no qualifying interaction was recorded - treat null as pass (no signal).
     pageCheck.inpOk = v.inpMs == null || v.inpMs <= ceilings.inpMs
     if (!pageCheck.inpOk) breaches.push(`${slug}/page: INP ${v.inpMs}ms > ceiling ${ceilings.inpMs}ms`)
+    // Document-level horizontal overflow (PMUI-01/06) - enforced ONLY on a rendered page, same
+    // as Web Vitals above. pageOverflow/bodyOverflow are scrollWidth-clientWidth deltas; any
+    // positive delta means the document (or body) is wider than its own viewport/containing
+    // box, i.e. horizontal overflow is present.
+    pageCheck.pageOverflow = page.pageOverflow; pageCheck.bodyOverflow = page.bodyOverflow
+    pageCheck.overflowOk = page.pageOverflow <= 0 && page.bodyOverflow <= 0
+    if (!pageCheck.overflowOk) {
+      breaches.push(`${slug}/page: horizontal overflow detected (pageOverflow=${page.pageOverflow}px, bodyOverflow=${page.bodyOverflow}px)`)
+    }
     // Image-byte budget (D-08/PMPF-08) - enforced ONLY on a rendered page, same as Web Vitals
     // above, since a non-rendered page's image waterfall reflects the error output, not the
     // profile.
