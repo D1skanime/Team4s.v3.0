@@ -103,4 +103,23 @@ describe('ResponsiveImage dangerouslyAllowLocalIP environment gate', () => {
 
     expect(testConfig.images?.dangerouslyAllowLocalIP).toBe(true)
   })
+
+  it('allows local-IP image optimization in production ONLY under the explicit PHASE120_IMAGE_PROBE=1 opt-in', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('PHASE120_IMAGE_PROBE', '1')
+    vi.resetModules()
+
+    const { default: probeConfig } = await reimportConfig('production-probe-opt-in')
+
+    expect(probeConfig.images?.dangerouslyAllowLocalIP).toBe(true)
+  })
+
+  it('still disallows local-IP image optimization in production when PHASE120_IMAGE_PROBE is unset', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.resetModules()
+
+    const { default: productionConfig } = await reimportConfig('production-no-probe')
+
+    expect(productionConfig.images?.dangerouslyAllowLocalIP).toBe(false)
+  })
 })

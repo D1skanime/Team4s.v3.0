@@ -39,8 +39,16 @@ const nextConfig = {
     // by the two exact URL patterns above.
     // Next.js itself documents dangerouslyAllowLocalIP as "not recommended for
     // most users" outside a controlled environment, so it is gated to
-    // development/test and unreachable in any production deployment.
-    dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production',
+    // development/test and unreachable in any production deployment, EXCEPT
+    // for the deliberately opt-in PHASE120_IMAGE_PROBE=1 harness (Phase 120/
+    // 131/133/134's run-profile-image-probe.mjs), which always exercises the
+    // real production runner image (NODE_ENV=production) against the same
+    // two exact loopback remotePatterns above. A genuine production
+    // deployment never sets PHASE120_IMAGE_PROBE, so this does not reopen the
+    // local-IP surface outside the controlled probe harness (Phase 134-06
+    // fix: the plain NODE_ENV gate broke this still-relied-upon harness for
+    // its api-project/api-group URL classes).
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production' || process.env.PHASE120_IMAGE_PROBE === '1',
     // Explicit quality allow-list (75 is Next.js 16's own default when unset),
     // making the bound a config-level guarantee rather than an implicit default.
     qualities: [75],

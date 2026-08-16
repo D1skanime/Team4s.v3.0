@@ -46,6 +46,11 @@ COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/test/fixtures/phase120-image-probe ./test/fixtures/phase120-image-probe
 COPY --from=builder /app/src/components/ui/ResponsiveImage.tsx ./src/components/ui/ResponsiveImage.tsx
 COPY --from=builder /app/src/components/ui/ResponsiveImage.test.tsx ./src/components/ui/ResponsiveImage.test.tsx
+# vitest.config.ts's global setupFiles requires src/test/axeSetup.ts (Phase 133-01) for every
+# suite, including this narrow runner-stage ResponsiveImage.test.tsx re-run inside
+# verify-profile-image-delivery.mjs's verifyOriginalFallback() (Phase 134-06 fix: this stage's
+# file list was not updated when Phase 133-01 wired the shared a11y setup file).
+COPY --from=builder /app/src/test ./src/test
 COPY --from=builder /app/vitest.config.ts ./vitest.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
