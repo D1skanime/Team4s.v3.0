@@ -215,47 +215,47 @@ describe('MemberBadgeChain', () => {
     )
 
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_projects_bronze"]')
         ?.getAttribute('src'),
     ).toContain('contribution_projects_bronze-v3.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_projects_silver"]')
         ?.getAttribute('src'),
     ).toContain('contribution_projects_silver-v2.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_projects_gold"]')
         ?.getAttribute('src'),
     ).toContain('contribution_projects_gold-v2.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_chronicle_silver"]')
         ?.getAttribute('src'),
     ).toContain('contribution_chronicle_silver-v2.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_chronicle_gold"]')
         ?.getAttribute('src'),
     ).toContain('contribution_chronicle_gold-v2.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_archivist_silver"]')
         ?.getAttribute('src'),
     ).toContain('contribution_archivist_silver-v2.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_archivist_gold"]')
         ?.getAttribute('src'),
     ).toContain('contribution_archivist_gold-v2.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_chronicle_bronze"]')
         ?.getAttribute('src'),
     ).toContain('contribution_chronicle_bronze-v4.png')
     expect(
-      containe
+      container
         .querySelector('img[data-achievement-art="contribution_archivist_bronze"]')
         ?.getAttribute('src'),
     ).toContain('contribution_archivist_bronze-v2.png')
@@ -1067,7 +1067,8 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
 
   it('preserves a real value above Gold while rendering a full terminal bar', async () => {
     const { MemberBadgeChain } = await loadMemberBadgeChain()
-    render(<MemberBadgeChain earnedBadges={[{ id: 1, badge_code: 'productive_gold', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 73, next_threshold: null, remaining_count: null, next_tier: null, complete: true }]} />)
+    const CollectionChain = MemberBadgeChain as ComponentType<{ earnedBadges: PublicMemberBadge[]; badgeProgress: typeof badgeProgress }>
+    render(<CollectionChain earnedBadges={[{ id: 1, badge_code: 'productive_gold', badge_category: 'quantity' }]} badgeProgress={[{ family: 'progress', current_count: 73, next_threshold: null, remaining_count: null, next_tier: null, complete: true }]} />)
     const progress = screen.getByRole('progressbar', { name: 'Fortschritt für Anime-Projekte' })
     expect(progress.getAttribute('aria-valuenow')).toBe('73')
     expect(progress.getAttribute('aria-valuemax')).toBe('50')
