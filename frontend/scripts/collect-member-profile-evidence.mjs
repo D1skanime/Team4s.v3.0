@@ -698,15 +698,20 @@ async function runPerfBaseline(args) {
 // Budgets are LOCKED here (D-06 / SC4/SC5): payload = post-change bytes + ~20%;
 // latency = post-change median + ~20%, floored at PERF_LATENCY_FLOOR_MS to absorb
 // dev-server + host-IP measurement jitter on sub-25ms endpoints; PLUS the absolute
-// baseline-independent Web-Vitals ceilings (D-07). The `budget-check` mode
-// re-measures BOTH seed profiles live, writes post-change-<slug>.json, and FAILS
-// (non-zero exit) if any profile exceeds a locked budget.
+// baseline-independent Web-Vitals ceilings (D-07). Plan 133-10 (2026-08-16) added a
+// per-profile image-byte budget (D-08/PMPF-08) using the SAME baseline+~20%-margin
+// method, reusing the already-captured imageWaterfall field (totalBytes + per-image
+// bytes) from capturePageMetrics(); it is measured and gated the same way as the
+// Web-Vitals ceilings (rendered pages only). The `budget-check` mode re-measures BOTH
+// seed profiles live, writes post-change-<slug>.json, and FAILS (non-zero exit) if any
+// profile exceeds a locked budget.
 //
 // Dev-mode caveat (D-06/D-08): the frontend runs Turbopack dev, so page transfer
 // totals are inflated by un-minified chunks and are NOT gated here. The authoritative
 // gates are the API-layer payload/latency budgets, the absolute Web-Vitals ceilings,
-// and the constant-query-count ceiling (Go test). Production-build transfer figures
-// are deferred to the bundled Phase-134 UAT.
+// the per-profile image-byte budget (Plan 133-10), and the constant-query-count
+// ceiling (Go test). Production-build transfer figures are deferred to the bundled
+// Phase-134 UAT.
 // ===========================================================================
 const PERF_LATENCY_FLOOR_MS = 25
 
@@ -720,6 +725,14 @@ const LOCKED_BUDGETS = {
   queryCountCeiling: 19,
   // Per-profile API-layer payload + latency budgets. Basis captured 2026-08-15 on the live
   // dev stack (throttle=none). See evidence/BUDGETS.md for each threshold + its basis.
+  //
+  // Per-profile image-byte budget (D-08/PMPF-08). Basis captured 2026-08-16 on the live
+  // dev stack (Plan 133-10), against the FINAL post-split (133-09), post-quality-gate (133-02),
+  // post-hero-container-conversion (133-03) frontend state - measured via this same
+  // capturePageMetrics()/imageWaterfall field. maxTotalBytes/maxSingleImageBytes are each the
+  // measured baseline * ~1.2 margin (same method as the API payload/latency budgets above):
+  // sheppert measured totalBytes=88416/maxSingleImage=50268; csubs-leader measured
+  // totalBytes=477874/maxSingleImage=158674.
   profiles: {
     sheppert: {
       initialProfile: { expectStatus: 200, maxBytes: 1952, maxMedianMs: 25 },
@@ -730,12 +743,14 @@ const LOCKED_BUDGETS = {
       // initialProfile budget). The standalone route now 404s - locked as such so a silent
       // re-wire trips the gate and forces a fresh budget lock.
       contributions: { expectStatus: 404 },
+      imageWaterfall: { maxTotalBytes: 106100, maxSingleImageBytes: 60322 },
     },
     'csubs-leader': {
       initialProfile: { expectStatus: 200, maxBytes: 5879, maxMedianMs: 25 },
       projectsPage1: { expectStatus: 200, maxBytes: 2333, maxMedianMs: 25 },
       projectsPage2: { expectStatus: 200, maxBytes: 1340, maxMedianMs: 25 },
       contributions: { expectStatus: 404 },
+      imageWaterfall: { maxTotalBytes: 573449, maxSingleImageBytes: 190409 },
     },
   },
 }
@@ -751,6 +766,9 @@ function evaluateBudget(slug, api, page) {
     return { profile: slug, hasBudget: false, breaches, apiChecks, pageCheck: null }
   }
   for (const [endpoint, limits] of Object.entries(budget)) {
+    // imageWaterfall is a page-level (not api[endpoint]-level) metric, checked separately
+    // below alongside the Web-Vitals pageCheck - it has no measureApiEndpoint() counterpart.
+    if (endpoint === 'imageWaterfall') continue
     const measured = api[endpoint]
     const check = { endpoint }
     if (!measured) {
@@ -798,6 +816,28 @@ function evaluateBudget(slug, api, page) {
     // INP may be null when no qualifying interaction was recorded - treat null as pass (no signal).
     pageCheck.inpOk = v.inpMs == null || v.inpMs <= ceilings.inpMs
     if (!pageCheck.inpOk) breaches.push(`${slug}/page: INP ${v.inpMs}ms > ceiling ${ceilings.inpMs}ms`)
+    // Image-byte budget (D-08/PMPF-08) - enforced ONLY on a rendered page, same as Web Vitals
+    // above, since a non-rendered page's image waterfall reflects the error output, not the
+    // profile.
+    const imageWaterfall = budget.imageWaterfall
+    if (imageWaterfall) {
+      const iw = page.imageWaterfall || { totalBytes: null, images: [] }
+      const maxSingleImageBytes = iw.images.reduce((max, image) => Math.max(max, image.bytes ?? 0), 0)
+      pageCheck.imageWaterfall = {
+        totalBytes: iw.totalBytes ?? null,
+        maxTotalBytes: imageWaterfall.maxTotalBytes,
+        totalBytesOk: iw.totalBytes != null && iw.totalBytes <= imageWaterfall.maxTotalBytes,
+        maxSingleImageBytes,
+        maxSingleImageBytesLimit: imageWaterfall.maxSingleImageBytes,
+        singleImageOk: maxSingleImageBytes <= imageWaterfall.maxSingleImageBytes,
+      }
+      if (!pageCheck.imageWaterfall.totalBytesOk) {
+        breaches.push(`${slug}/page: imageWaterfall totalBytes ${iw.totalBytes} > budget ${imageWaterfall.maxTotalBytes}B`)
+      }
+      if (!pageCheck.imageWaterfall.singleImageOk) {
+        breaches.push(`${slug}/page: imageWaterfall largest single image ${maxSingleImageBytes}B > budget ${imageWaterfall.maxSingleImageBytes}B`)
+      }
+    }
   } else {
     breaches.push(`${slug}/page: not rendered (status ${page.status}); expected a 200 render`)
   }
