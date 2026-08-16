@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 134 Plan 02 (migration fresh/up/down proof, PMQA-03); ready for Plan 03
-last_updated: "2026-08-16T14:18:53.380Z"
+stopped_at: Completed Phase 134 Plan 03 (fixture-backed verification matrix, PMQA-04); ready for Plan 04
+last_updated: "2026-08-16T14:37:11.641Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 70
-  completed_plans: 40
+  completed_plans: 41
   percent: 43
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 134 (fixture-backed-verification-rollout) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-08-16
 
@@ -111,6 +111,9 @@ Last activity: 2026-08-16
 - [Phase 134]: seed-member-profile-fixtures.mjs's story-image assertion and manifest field use /media/profile/ as the expected member_story_html src substring, not /media/story-images/ (the sanitizer-allowed pattern is /media/profile/{memberID}/story/{uuid}/original.ext; /media/story-images/:id is a separate resolve-by-ID endpoint used only for editor-side preview).
 - [Phase 134]: TestPhase134MigrationFreshUpDownProof registers maintPool.Close() via t.Cleanup (not a bare defer), ordered before the final teardown-drop cleanup, since t.Cleanup callbacks run after the test function's own defers return.
 - [Phase 134]: Migration 0037_add_release_decomposition_tables.down.sql was rewritten from an intentional no-op into a full reverse of its up.sql; its release_streams FK to release_variants(id) blocked migration 0035's DROP TABLE release_variants the first time the full Down chain ever ran end-to-end (PMQA-03 fresh/up/down proof).
+- [Phase 134]: A genuinely fresh migration-only database has no member to self-claim and no platform_admin to grant the first platform_admin -- scripts/provision-phase134-matrix-db.sh bootstraps both via scoped direct SQL before invoking the real seed script, which retains 100% ownership of scenario/business fixture data.
+- [Phase 134]: The verification matrix mounts ./scripts:/scripts:ro into team4sv30-backend (docker-compose.override.yml), mirroring the existing ./database/migrations mount, since the container's /app root corresponds to backend/ only, not the repo root.
+- [Phase 134]: parseBoundedProjectPageValue never returns an error status for invalid limit/offset query params -- it silently clamps to the documented safe default/bound and returns 200; this IS its fail-closed contract, not a bug.
 
 ### Pending Todos
 
@@ -172,10 +175,11 @@ Last activity: 2026-08-16
 | Phase 133 P12 | n/a | 2 tasks DEFERRED | 0 files |
 | Phase 134 P01 | 35min | 2 tasks | 5 files |
 | Phase 134 P02 | 30min | 2 tasks | 3 files |
+| Phase 134 P03 | 20min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T14:18:53.367Z
-Stopped at: Completed Phase 134 Plan 02 (migration fresh/up/down proof, PMQA-03); ready for Plan 03
+Last session: 2026-08-16T14:37:11.627Z
+Stopped at: Completed Phase 134 Plan 03 (fixture-backed verification matrix, PMQA-04); ready for Plan 04
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None
