@@ -8,7 +8,7 @@ last_updated: "2026-08-16T14:37:11.641Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 70
   completed_plans: 41
   percent: 43
@@ -114,6 +114,9 @@ Last activity: 2026-08-16
 - [Phase 134]: A genuinely fresh migration-only database has no member to self-claim and no platform_admin to grant the first platform_admin -- scripts/provision-phase134-matrix-db.sh bootstraps both via scoped direct SQL before invoking the real seed script, which retains 100% ownership of scenario/business fixture data.
 - [Phase 134]: The verification matrix mounts ./scripts:/scripts:ro into team4sv30-backend (docker-compose.override.yml), mirroring the existing ./database/migrations mount, since the container's /app root corresponds to backend/ only, not the repo root.
 - [Phase 134]: parseBoundedProjectPageValue never returns an error status for invalid limit/offset query params -- it silently clamps to the documented safe default/bound and returns 200; this IS its fail-closed contract, not a bug.
+- [Phase 129]: Canonical public projections and data correctness are executed and automated-gate GREEN (11/11 plans) -- every year-only precision, current-vs-historical, role code/label, dedupe, public-facts-progress, media-filter, and dead-legacy-removal defect found in 129-RESEARCH.md is corrected and locked by a passing PostgreSQL contract test, per .planning/phases/129-canonical-public-projections-data-correctness/129-VERIFICATION.md.
+- [Phase 130]: The public DTO/OpenAPI/TypeScript/api.ts contract alignment is executed (7/7 plans) -- shared/contracts/openapi.yaml carries dedicated allow-listed public-member schemas (PublicMemberBadge, etc.); no separate 130-VERIFICATION.md/SUMMARY.md file exists, a real doc-completeness gap noted by 134-RESEARCH.md's Ground Truth findings, not a code gap.
+- [Phase 131]: Set-based delivery, pagination, and performance budgets are executed and locked (8/8 plans) -- profile-load SQL query count is capped at 19, and API payload/latency/Web-Vitals budgets for both sheppert and csubs-leader are captured in .planning/phases/131-set-based-delivery-pagination-performance-budgets/evidence/BUDGETS.md.
 
 ### Pending Todos
 
