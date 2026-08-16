@@ -15,6 +15,7 @@ const pointsAchievementStageCss = readFileSync('src/components/profile/PointsAch
 const contributionAchievementStageCss = readFileSync('src/components/profile/ContributionAchievementStage.module.css', 'utf8')
 const membershipStageCss = readFileSync('src/components/profile/MembershipStage.module.css', 'utf8')
 const badgeFamilyCardCss = readFileSync('src/components/profile/BadgeFamilyCard.module.css', 'utf8')
+const badgeChipCss = readFileSync('src/components/profile/BadgeChip.module.css', 'utf8')
 
 function expectDisplayImageSource(image: Element | null, expectedSource: string) {
   const src = image?.getAttribute('src')
@@ -1339,13 +1340,13 @@ it('Phase 120 Task 2: keeps SSR carousel content while expensive listeners remai
 
 it('keeps badge artwork slots stable and expresses focus only through transforms', () => {
   expect(memberBadgeChainCss).toMatch(/\.roleHeroArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;[^}]*transform:\s*scale\(0\.84\);/s)
-  expect(memberBadgeChainCss).toMatch(/\.badgeArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;[^}]*transform:\s*scale\(0\.84\);/s)
+  expect(badgeChipCss).toMatch(/\.badgeArtwork\s*\{[^}]*width:\s*320px;[^}]*height:\s*320px;[^}]*transform:\s*scale\(0\.84\);/s)
   expect(memberBadgeChainCss).toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*transform:\s*scale\(1\);/s)
   expect(memberBadgeChainCss).toMatch(/\.badgeWindowActive \.badgeArtwork\s*\{[^}]*transform:\s*scale\(1\);/s)
   expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive :?is\([^}]*\)\s*\{[^}]*(?:width|height):/s)
   expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive \.badgeArtwork\s*\{[^}]*(?:width|height):/s)
   expect(memberBadgeChainCss).not.toMatch(/\.badgeWindowActive \.roleHeroArtwork\s*\{[^}]*(?:width|height):/s)
-  expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*?\.group\[data-badge-group="contributions"\] \.badgeArtwork\s*\{[^}]*width:\s*clamp\(210px, 60vw, 240px\);/s)
+  expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width: 520px\)[\s\S]*?\.group\[data-badge-group="contributions"\] \.badgeArtwork\s*\{[^}]*width:\s*clamp\(210px, 60vw, 240px\);/s)
 })
 
 describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {

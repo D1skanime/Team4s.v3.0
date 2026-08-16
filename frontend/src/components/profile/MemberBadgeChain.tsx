@@ -30,6 +30,7 @@ import pointsAchievementStageStyles from './PointsAchievementStage.module.css'
 import contributionAchievementStageStyles from './ContributionAchievementStage.module.css'
 import membershipStageStyles from './MembershipStage.module.css'
 import badgeFamilyCardStyles from './BadgeFamilyCard.module.css'
+import badgeChipStyles from './BadgeChip.module.css'
 
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
@@ -80,12 +81,12 @@ function LockedStageArtwork({ className, hero = false }: { className?: string; h
 function ContributionProgress({ badge }: { badge: PublicMemberBadge }) {
   if (badge.badge_category !== 'contribution' || badge.current_count == null || !badge.current_tier) return null
   if (badge.next_threshold == null || badge.remaining_count == null || !badge.next_tier) {
-    return <div className={chainStyles.contributionProgressTerminal}><span>{badge.current_count}</span><span>Höchste Stufe erreicht</span></div>
+    return <div className={badgeChipStyles.contributionProgressTerminal}><span>{badge.current_count}</span><span>Höchste Stufe erreicht</span></div>
   }
   const percent = Math.max(0, Math.min(100, Math.round((badge.current_count / badge.next_threshold) * 100)))
-  return <div className={chainStyles.contributionProgress}>
-    <div className={chainStyles.contributionProgressCopy}><span>{badge.current_count} von {badge.next_threshold}</span><span>Noch {badge.remaining_count} bis {CONTRIBUTION_TIER_LABELS[badge.next_tier]}</span></div>
-    <div role="progressbar" aria-label={`Fortschritt bis ${CONTRIBUTION_TIER_LABELS[badge.next_tier]}`} aria-valuemin={0} aria-valuenow={badge.current_count} aria-valuemax={badge.next_threshold} className={chainStyles.contributionProgressTrack}><span style={{ width: `${percent}%` }} /></div>
+  return <div className={badgeChipStyles.contributionProgress}>
+    <div className={badgeChipStyles.contributionProgressCopy}><span>{badge.current_count} von {badge.next_threshold}</span><span>Noch {badge.remaining_count} bis {CONTRIBUTION_TIER_LABELS[badge.next_tier]}</span></div>
+    <div role="progressbar" aria-label={`Fortschritt bis ${CONTRIBUTION_TIER_LABELS[badge.next_tier]}`} aria-valuemin={0} aria-valuenow={badge.current_count} aria-valuemax={badge.next_threshold} className={badgeChipStyles.contributionProgressTrack}><span style={{ width: `${percent}%` }} /></div>
   </div>
 }
 
@@ -805,8 +806,8 @@ export function MemberBadgeChain({
                   return (
                     <div
                       className={earnedArtworkItems.length > 0
-                        ? chainStyles.badgeRow
-                        : `${chainStyles.badgeRow} ${chainStyles.badgeRowCompact}`}
+                        ? `${badgeChipStyles.badgeRow} ${chainStyles.badgeRow}`
+                        : `${badgeChipStyles.badgeRow} ${chainStyles.badgeRow} ${badgeChipStyles.badgeRowCompact} ${chainStyles.badgeRowCompact}`}
                     >
                     {row.items.map((item) => {
                       const isEarned = earnedCodes.has(item.badge_code)
@@ -819,17 +820,17 @@ export function MemberBadgeChain({
                       return (
                         <span
                           key={item.badge_code}
-                          className={isEarned ? chainStyles.badgeStep : chainStyles.badgeStepLocked}
+                          className={isEarned ? `${badgeChipStyles.badgeStep} ${chainStyles.badgeStep}` : badgeChipStyles.badgeStepLocked}
                           data-palette={presentation.palette}
                           data-earned={isEarned ? 'true' : 'false'}
                           data-contribution-tier={earnedBadge?.current_tier ?? undefined}
                           data-role-volume={item.badge_code.startsWith('role_volume_') ? 'true' : undefined}
                         >
-                          <span className={imageSrc && isEarned ? chainStyles.badgeItemWithImage : chainStyles.badgeItem}>
+                          <span className={imageSrc && isEarned ? badgeChipStyles.badgeItemWithImage : badgeChipStyles.badgeItem}>
                             <span
                               className={imageSrc && isEarned
-                                ? `${chainStyles.badgeArtwork} ${layeredProgressArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''}`
-                                : chainStyles.badgeIcon}
+                                ? `${badgeChipStyles.badgeArtwork} ${chainStyles.badgeArtwork} ${layeredProgressArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''}`
+                                : badgeChipStyles.badgeIcon}
                               aria-label={isEarned ? undefined : `${item.label} gesperrt`}
                             >
                               {isEarned && layeredProgressArtwork ? (
@@ -872,10 +873,10 @@ export function MemberBadgeChain({
                                 <Lock size={20} aria-hidden="true" />
                               )}
                             </span>
-                            <span className={chainStyles.badgeText}>
+                            <span className={badgeChipStyles.badgeText}>
                               <span>{item.label}</span>
                               {presentation.detailLabel ? (
-                                <span className={chainStyles.badgeDetail}>{presentation.detailLabel}</span>
+                                <span className={badgeChipStyles.badgeDetail}>{presentation.detailLabel}</span>
                               ) : null}
                             </span>
                             {isEarned && earnedBadge ? <ContributionProgress badge={earnedBadge} /> : null}
