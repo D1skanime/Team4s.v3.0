@@ -212,7 +212,7 @@ Plans:
 - [x] 133-10-PLAN.md — Measure and lock the image-byte delivery budget.
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 133-11-PLAN.md — Harden the overflow gate and green the full regression suite.
+- [x] 133-11-PLAN.md — Harden the overflow gate and green the full regression suite.
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 133-12-PLAN.md — Manual D-06/D-12 visual and keyboard/zoom evidence checkpoints.
