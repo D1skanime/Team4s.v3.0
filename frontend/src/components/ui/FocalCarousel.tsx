@@ -80,6 +80,7 @@ export function FocalCarousel<T>({
   const [isNavigating, setIsNavigating] = useState(false)
   const gridId = useId()
   const toggleId = `${gridId}-toggle`
+  const collapseId = `${gridId}-collapse`
   const activeIndexRef = useRef(0)
   const [expanded, setExpanded] = useState(false)
   const { targetRef: activationRef, interactionEnabled } = useNearViewportActivation<HTMLDivElement>(
@@ -87,6 +88,7 @@ export function FocalCarousel<T>({
   )
   const trackRef = useRef<HTMLDivElement>(null)
   const restoreFocusRef = useRef(false)
+  const expandFocusRef = useRef(false)
   const suppressClickRef = useRef(false)
   const scrollSettleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const programmaticAnimationFrameRef = useRef<number | null>(null)
@@ -106,6 +108,13 @@ export function FocalCarousel<T>({
       else trackRef.current?.focus()
     }
   }, [expanded, toggleId])
+
+  useEffect(() => {
+    if (expanded && expandFocusRef.current) {
+      expandFocusRef.current = false
+      document.getElementById(collapseId)?.focus()
+    }
+  }, [expanded, collapseId])
 
   useEffect(() => () => {
     if (scrollSettleTimerRef.current) clearTimeout(scrollSettleTimerRef.current)
@@ -365,12 +374,16 @@ export function FocalCarousel<T>({
                 expanded: true,
                 position: index + 1,
                 total: items.length,
-                showAll: () => setExpanded(true),
+                showAll: () => {
+                  expandFocusRef.current = true
+                  setExpanded(true)
+                },
               })}
             </li>
           ))}
         </ul>
         <Button
+          id={collapseId}
           type="button"
           variant="subtle"
           size="sm"
@@ -441,6 +454,16 @@ export function FocalCarousel<T>({
                   )}
                   aria-current={isActive ? 'true' : undefined}
                   aria-label={`${itemSingularLabel} ${index + 1} von ${visibleItems.length}`}
+                  ref={(node) => {
+                    // react-dom@18.3 does not recognize `inert` as a boolean DOM property (it
+                    // was only added in a later React major), so a declarative `inert={boolean}`
+                    // JSX prop emits a dev warning and never reaches the DOM. Setting the
+                    // attribute imperatively via the DOM API works in every browser and in this
+                    // repo's jsdom test environment alike.
+                    if (!node) return
+                    if (isActive) node.removeAttribute('inert')
+                    else node.setAttribute('inert', '')
+                  }}
                   onClick={(event) => {
                     if (isActive || (event.target instanceof Element && event.target.closest('button, a, input, select, textarea'))) return
                     focusItem(index)
@@ -451,7 +474,10 @@ export function FocalCarousel<T>({
                     expanded: false,
                     position: index + 1,
                     total: visibleItems.length,
-                    showAll: () => setExpanded(true),
+                    showAll: () => {
+                      expandFocusRef.current = true
+                      setExpanded(true)
+                    },
                   })}
                 </div>
               )
@@ -476,7 +502,19 @@ export function FocalCarousel<T>({
         </output>
       ) : null}
       {showAllLabel && !quiet ? (
-        <Button id={toggleId} type="button" variant="subtle" size="sm" className={styles.toggle} aria-expanded="false" aria-controls={gridId} onClick={() => setExpanded(true)}>
+        <Button
+          id={toggleId}
+          type="button"
+          variant="subtle"
+          size="sm"
+          className={styles.toggle}
+          aria-expanded="false"
+          aria-controls={gridId}
+          onClick={() => {
+            expandFocusRef.current = true
+            setExpanded(true)
+          }}
+        >
           {showAllLabel}
         </Button>
       ) : null}

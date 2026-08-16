@@ -100,16 +100,54 @@ describe('FocalCarousel', () => {
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
   })
 
-  it('zeigt alle Elemente im Raster und stellt beim Einklappen die aktive Karte wieder her', () => {
+  it('zeigt alle Elemente im Raster, verschiebt beim Erweitern den Fokus und stellt beim Einklappen die aktive Karte wieder her', async () => {
     renderCarousel()
     fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
     fireEvent.click(screen.getByRole('button', { name: 'Alle Karten anzeigen' }))
+    await act(async () => {})
 
+    const collapseButton = screen.getByRole('button', { name: 'Weniger anzeigen' })
     expect(screen.getByRole('list', { name: 'Alle Karten' })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Weniger anzeigen' }))
+    expect(document.activeElement).toBe(collapseButton)
+
+    fireEvent.click(collapseButton)
+    await act(async () => {})
 
     expect(screen.getByText('Beta').closest('[aria-current="true"]')).not.toBeNull()
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Alle Karten anzeigen' }))
+  })
+
+  it('marks every non-active slide inert so a keyboard user cannot reach its interactive content', () => {
+    renderCarousel()
+
+    const slides = document.querySelectorAll<HTMLElement>('[data-focal-item]')
+    expect(slides).toHaveLength(items.length)
+
+    slides.forEach((slide, index) => {
+      const isActive = index === 0
+      expect(slide.hasAttribute('inert')).toBe(!isActive)
+    })
+
+    // jsdom (as of the version this repo's devDependency provides) does not implement the
+    // `inert` attribute's actual focus/tab-blocking browser behavior, so a real
+    // `userEvent.tab()` traversal cannot prove reachability here. The `inert` attribute's
+    // presence on every non-active slide (asserted above) is the behavioral proxy: browsers
+    // that do implement `inert` remove the entire subtree, including any nested
+    // `<button>`, from the tab order.
+    const nonActiveButton = slides[1].querySelector('button')
+    expect(nonActiveButton).not.toBeNull()
+    expect(slides[1].hasAttribute('inert')).toBe(true)
+  })
+
+  it('updates which slide is inert as the active index changes', () => {
+    renderCarousel()
+    fireEvent.click(screen.getByRole('button', { name: 'Nächste Karte' }))
+
+    const slides = document.querySelectorAll<HTMLElement>('[data-focal-item]')
+    slides.forEach((slide, index) => {
+      const isActive = index === 1
+      expect(slide.hasAttribute('inert')).toBe(!isActive)
+    })
   })
 
   it('unterdrückt den nach einem echten Pointer-Drag entstehenden Klick', () => {
