@@ -215,7 +215,7 @@ Plans:
 - [x] 133-11-PLAN.md — Harden the overflow gate and green the full regression suite.
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 133-12-PLAN.md — Manual D-06/D-12 visual and keyboard/zoom evidence checkpoints.
+- [ ] 133-12-PLAN.md — Manual D-06/D-12 visual and keyboard/zoom evidence checkpoints. **DEFERRED** — batched into a live-UAT pass scheduled after Phase 135; not run, not approved. See `133-12-SUMMARY.md`.
 
 ### Phase 134: Fixture-Backed Verification & Rollout
 
@@ -257,7 +257,7 @@ Plans:
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
 | 132. Shared SSR Composition & Race-Safe Frontend State | 0/4 | Not started | - |
-| 133. Responsive, Accessible & Efficient Visual Delivery | 0/12 | Not started | - |
+| 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
 | 134. Fixture-Backed Verification & Rollout | 0/TBD | Not started | - |
 
 ---
