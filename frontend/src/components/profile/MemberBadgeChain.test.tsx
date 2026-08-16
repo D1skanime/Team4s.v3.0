@@ -8,6 +8,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
 const memberBadgeChainCss = readFileSync('src/components/profile/MemberBadgeChain.module.css', 'utf8')
+const lockedStageArtworkCss = readFileSync('src/components/profile/LockedStageArtwork.module.css', 'utf8')
+const layeredBadgeArtworkCss = readFileSync('src/components/profile/LayeredBadgeArtwork.module.css', 'utf8')
 
 function expectDisplayImageSource(image: Element | null, expectedSource: string) {
   const src = image?.getAttribute('src')
@@ -1451,10 +1453,10 @@ describe('Phase 121 Rollenfamilien und Hero-Artwork', () => {
       rendered.unmount()
     }
 
-    expect(memberBadgeChainCss).toMatch(/\.roleHeroArtworkLayered,\s*\.badgeArtworkLayered\s*\{[^}]*position:\s*relative;/s)
+    expect(layeredBadgeArtworkCss).toMatch(/\.roleHeroArtworkLayered,\s*\.badgeArtworkLayered\s*\{[^}]*position:\s*relative;/s)
     expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group="roles"\] \.roleHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;[^}]*height:\s*auto;/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleArtworkMotif\s*\{[^}]*object-fit:\s*contain;[^}]*clip-path:\s*circle/s)
-    expect(memberBadgeChainCss).toMatch(/\.roleArtworkFrame\s*\{[^}]*object-fit:\s*contain;/s)
+    expect(layeredBadgeArtworkCss).toMatch(/\.roleArtworkMotif\s*\{[^}]*object-fit:\s*contain;[^}]*clip-path:\s*circle/s)
+    expect(layeredBadgeArtworkCss).toMatch(/\.roleArtworkFrame\s*\{[^}]*object-fit:\s*contain;/s)
   })
 })
 
@@ -1976,9 +1978,9 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
   })
 
   it('defines a responsive hero composition without changing the compact lock default', () => {
-    expect(memberBadgeChainCss).toMatch(/\.lockedStageArtworkHero\s*\{[^}]*width:\s*min\(100%,\s*320px\);[^}]*max-width:\s*100%;[^}]*aspect-ratio:\s*1;/s)
-    expect(memberBadgeChainCss).toMatch(/\.lockedStageHeroCopy\s*\{[^}]*text-align:\s*center;/s)
-    expect(memberBadgeChainCss).toMatch(/\.lockedStageArtwork:not\(\.lockedStageArtworkHero\)\s*\{[^}]*width:\s*clamp\(44px,\s*100%,\s*96px\);/s)
+    expect(lockedStageArtworkCss).toMatch(/\.lockedStageArtworkHero\s*\{[^}]*width:\s*min\(100%,\s*320px\);[^}]*max-width:\s*100%;[^}]*aspect-ratio:\s*1;/s)
+    expect(lockedStageArtworkCss).toMatch(/\.lockedStageHeroCopy\s*\{[^}]*text-align:\s*center;/s)
+    expect(lockedStageArtworkCss).toMatch(/\.lockedStageArtwork:not\(\.lockedStageArtworkHero\)\s*\{[^}]*width:\s*clamp\(44px,\s*100%,\s*96px\);/s)
   })
 
 describe('Quick 260812-rps responsive BadgeChain contract', () => {
