@@ -9,7 +9,6 @@
 
 import Image from 'next/image'
 
-import { PageHeader } from '@/components/ui'
 import type { PublicMemberProfileData } from '@/types/profile'
 
 import { MemberStatusPill } from './MemberStatusPill'
@@ -34,8 +33,6 @@ export function MemberProfileMemorialHero({
 
   return (
     <div className={styles.hero}>
-      <PageHeader eyebrow="Fansub-Member" title={displayName} />
-
       <div
         className={styles.heroPanel}
         style={
@@ -63,10 +60,11 @@ export function MemberProfileMemorialHero({
         </div>
 
         <div className={styles.heroCopy}>
-          <h2 className={styles.heroTitleRow}>
-            <span>{displayName}</span>
+          <p className={styles.heroEyebrow}>Fansub-Member</p>
+          <div className={styles.heroTitleRow}>
+            <h1 className={styles.heroTitle}>{displayName}</h1>
             <MemberStatusPill status="memorial" />
-          </h2>
+          </div>
 
           {/* Gedenktext — Pflicht-String laut D-10 und CLAUDE.md §Sprachqualität */}
           <p className={styles.memorialNotice}>
