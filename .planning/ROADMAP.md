@@ -195,7 +195,7 @@ Plans:
 - [x] 133-01-PLAN.md — Install axe-core/jest-axe and wire shared Vitest a11y setup.
 - [x] 133-02-PLAN.md — Gate next.config.mjs local-IP image optimization + explicit quality allow-list.
 - [x] 133-03-PLAN.md — Convert the profile hero's responsive rules to @container.
-- [ ] 133-04-PLAN.md — Split MemberBadgeChain CSS: shared artwork + locked-stage layer.
+- [x] 133-04-PLAN.md — Split MemberBadgeChain CSS: shared artwork + locked-stage layer.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 133-05-PLAN.md — Harden FocalCarousel keyboard/focus/inert behavior + axe coverage.

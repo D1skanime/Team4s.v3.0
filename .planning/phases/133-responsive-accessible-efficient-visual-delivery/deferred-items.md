@@ -21,3 +21,15 @@ Running `npx vitest run src/components/profile/` (broader than this plan's own s
   - **Tests:** `Phase 119 collection cards > ...` (2 cases), `Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant`, plus the pre-existing `TS2552`/`TS2322` typecheck errors already logged in `.planning/phases/132-shared-ssr-composition-race-safe-frontend-state/deferred-items.md`. Runtime assertions expect headings/labels (`Besondere Auszeichnungen`, `Gründungsmitglied · Gesperrt`, `data-contribution-family-stage="c..."`) and DOM structure this component's current render output no longer produces. Unrelated to CSS `@container` conversion; this plan does not import, render, or modify `MemberBadgeChain.tsx`/`.test.tsx`.
 - **Scope decision:** Out of scope for 133-03 per SCOPE BOUNDARY — neither file is in this plan's `files_modified`, and this plan's own target test (`MemberProfileHero.test.tsx`, 28/28) is fully green. Not auto-fixed.
 - **Suggested follow-up:** Whichever later Phase 133 plan next touches `MembershipsSection.tsx`/`.module.css` or `MemberBadgeChain.tsx`/`.test.tsx` (133-04/07/08/09 per STATE.md's Phase-133 decisions) should reconcile these locked-test expectations against current render/CSS output.
+
+## Pre-existing failing tests confirmed still present after 133-04 (CSS module split)
+
+Plan 133-04 (extracting `LockedStageArtwork.module.css`/`LayeredBadgeArtwork.module.css`) touched `MemberBadgeChain.tsx`/`.module.css`/`.test.tsx` directly and confirmed, via `git show 3696adb0:frontend/src/components/profile/MemberBadgeChain.test.tsx` (the pre-133-04 file), that the same 5 tests already failed before this plan's changes:
+
+- `MemberBadgeChain > renders the generated contribution artwork without a fallback icon` — fails due to the already-documented `containe`/`container` TS2552 typo (lines 209-249 post-133-04; same typo present pre-133-04), which throws a runtime `ReferenceError` in that test.
+- `MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy`
+- `MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable`
+- `MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups`
+- `Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant`
+
+None of these assert CSS selectors moved by 133-04; all assert unrelated DOM structure, heading text, or the typo-induced runtime error. Not auto-fixed per SCOPE BOUNDARY. Whichever later plan next touches `MemberBadgeChain.tsx`'s rendered DOM structure (133-07/08/09, or a dedicated cleanup plan) should reconcile the `containe` typo (trivial rename) and the 3 DOM/heading-content assertions against current render output.

@@ -76,8 +76,8 @@
 - [x] **PMUI-01**: Das Profil funktioniert mobile-first ohne horizontales Abschneiden oder versteckte Überläufe.
 - [x] **PMUI-02**: Zwischenbreiten und Breitbild nutzen den verfügbaren Raum kompakt, ohne übergroße Karten oder leere Flächen.
 - [x] **PMUI-03**: Wiederverwendbare Profilkomponenten reagieren über Container-Geometrie statt gerätespezifischer Breakpoints.
-- [ ] **PMUI-04**: Achievement-, Hero-, Membership- und Seitenlayout-Stile werden in klar verantwortete CSS-Module aufgeteilt.
-- [ ] **PMUI-05**: Widersprüchliche und doppelte Selektoren, Breakpoint-Patches und unnötige `!important`-Regeln werden entfernt.
+- [x] **PMUI-04**: Achievement-, Hero-, Membership- und Seitenlayout-Stile werden in klar verantwortete CSS-Module aufgeteilt.
+- [x] **PMUI-05**: Widersprüchliche und doppelte Selektoren, Breakpoint-Patches und unnötige `!important`-Regeln werden entfernt.
 - [x] **PMUI-06**: Das Layout bleibt bei langen deutschen Texten, 400 % Zoom sowie schmalen, mittleren und breiten Viewports nutzbar.
 - [ ] **PMUI-07**: Breite Nachfahrenselektoren, widersprüchliche Layoutregeln, redundante Media Queries und unnötige Resize-Listener werden entfernt.
 
@@ -175,8 +175,8 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMUI-01 | Phase 133 | Complete |
 | PMUI-02 | Phase 133 | Complete |
 | PMUI-03 | Phase 133 | Complete |
-| PMUI-04 | Phase 133 | Pending |
-| PMUI-05 | Phase 133 | Pending |
+| PMUI-04 | Phase 133 | Complete |
+| PMUI-05 | Phase 133 | Complete |
 | PMUI-06 | Phase 133 | Complete |
 | PMUI-07 | Phase 133 | Pending |
 | PMA11Y-01 | Phase 133 | Pending |
