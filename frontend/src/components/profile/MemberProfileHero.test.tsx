@@ -130,6 +130,36 @@ describe('MemberProfileHero — Memorial-Variante (Wave-0 RED, D-10)', () => {
       throw new Error('Mengen-/Aktivitäts-Badge darf bei Memorial-Profil nicht gerendert werden (D-10)')
     }
   })
+
+  it('rendert den Anzeigenamen als einzige <h1>-Überschrift statt doppelt in <h1> und <h2> (PMA11Y-01)', () => {
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({ profile_status: 'memorial' })}
+        isPublicView={true}
+      />,
+    )
+
+    const headings = screen.getAllByRole('heading', { level: 1 })
+    expect(headings).toHaveLength(1)
+    expect(headings[0].textContent).toContain('Ballelboy')
+    // Der eigentliche Duplikat-Bug: der Anzeigename darf nicht in zwei getrennten
+    // Überschriften-Elementen (h1 via PageHeader + h2) auftauchen -- reines
+    // Level-1-Zaehlen uebersieht das, weil der h2 ein anderes Level hat.
+    expect(screen.getAllByText('Ballelboy')).toHaveLength(1)
+    expect(screen.queryAllByRole('heading', { level: 2 })).toHaveLength(0)
+  })
+
+  it('rendert den MemberStatusPill neben der einzigen <h1>-Überschrift (PMA11Y-01)', () => {
+    render(
+      <MemberProfileHero
+        profile={makePublicProfile({ profile_status: 'memorial' })}
+        isPublicView={true}
+      />,
+    )
+
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect(heading.parentElement?.textContent).toContain('Gedenkprofil')
+  })
 })
 
 describe('MemberProfileHero', () => {
