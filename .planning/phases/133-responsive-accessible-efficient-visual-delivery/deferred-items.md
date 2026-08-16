@@ -33,3 +33,12 @@ Plan 133-04 (extracting `LockedStageArtwork.module.css`/`LayeredBadgeArtwork.mod
 - `Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant`
 
 None of these assert CSS selectors moved by 133-04; all assert unrelated DOM structure, heading text, or the typo-induced runtime error. Not auto-fixed per SCOPE BOUNDARY. Whichever later plan next touches `MemberBadgeChain.tsx`'s rendered DOM structure (133-07/08/09, or a dedicated cleanup plan) should reconcile the `containe` typo (trivial rename) and the 3 DOM/heading-content assertions against current render output.
+
+## Pre-existing failing source-string assertion found during 133-05 (FocalCarousel a11y hardening)
+
+- **File:** `frontend/src/app/members/[slug]/page.test.tsx`
+- **Test:** `... > memberBadgeChainSource` contains `'<Card className={styles.familyCard} data-family={family.key}>'` (line 278)
+- **Root cause:** Plan 133-04 renamed `MemberBadgeChain.tsx`'s CSS module import alias from `styles` to `chainStyles` (extracting `LockedStageArtwork.module.css`/`LayeredBadgeArtwork.module.css`); the source now reads `<Card className={chainStyles.familyCard} data-family={family.key}>` (`MemberBadgeChain.tsx:322`), so the page test's stale `styles.familyCard` string-match assertion fails.
+- **Confirmed pre-existing:** `git status --short` shows `MemberBadgeChain.tsx` untouched by this plan (133-05 only modifies `frontend/src/components/ui/FocalCarousel.tsx`/`.test.tsx`); `git log -- frontend/src/components/profile/MemberBadgeChain.tsx` shows the file's last commit is `962a0e30` (Plan 133-04), which predates 133-05.
+- **Scope decision:** Out of scope for 133-05 (FocalCarousel-only). Not auto-fixed per SCOPE BOUNDARY.
+- **Suggested follow-up:** Whichever later plan next touches `page.test.tsx`'s source-string assertions for `MemberBadgeChain.tsx` (likely 133-07/08/09) should update the expected string to `chainStyles.familyCard`.
