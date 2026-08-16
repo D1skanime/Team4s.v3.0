@@ -69,9 +69,10 @@ rows):
   6. anime_contributions      WHERE fansub_group_id references a seed129- group
   7. hist_group_member_roles / fansub_group_member_roles WHERE ... references a seed129- group's memberships
   8. hist_fansub_group_members / fansub_group_members    WHERE fansub_group_id references a seed129- group
-  9. release_versions / fansub_releases / episodes        WHERE anime title LIKE 'Seed129 Anime%'
- 10. anime                     WHERE title LIKE 'Seed129 Anime%'
- 11. fansub_groups              WHERE slug LIKE 'seed129-%'
+  9. release_role_credit_lifecycles WHERE release_version_id references the seed129- anime chain (awarded-credit rows; point_ledger_entries itself is left alone, SET NULL on release_version/fansub_group deletion)
+ 10. release_versions / fansub_releases / episodes        WHERE anime title LIKE 'Seed129 Anime%'
+ 11. anime                     WHERE title LIKE 'Seed129 Anime%'
+ 12. fansub_groups              WHERE slug LIKE 'seed129-%'
 
 The members table itself is never deleted from -- only the two reference
 members' own story-image columns are cleared, since those columns hold a
@@ -152,6 +153,24 @@ WHERE fansub_group_id IN (SELECT id FROM fansub_groups WHERE slug LIKE 'seed129-
 
 DELETE FROM fansub_group_members
 WHERE fansub_group_id IN (SELECT id FROM fansub_groups WHERE slug LIKE 'seed129-%');
+
+-- Discovered live (Task 3 first run): release_role_credit_lifecycles has a
+-- composite RESTRICT FK to release_version_groups(release_version_id,
+-- fansub_group_id), which blocked the release_versions delete below via its
+-- CASCADE-deleted release_version_groups child. Deleting the awarded-credit
+-- lifecycle rows first (scoped to this fixture's own seed129- anime chain)
+-- clears that block without touching point_ledger_entries (which SET NULLs
+-- its release_version_id/fansub_group_id on release_versions/fansub_groups
+-- deletion and is intentionally left alone, matching the plan's own
+-- enumerated delete list).
+DELETE FROM release_role_credit_lifecycles
+WHERE release_version_id IN (
+  SELECT rv.id FROM release_versions rv
+  JOIN fansub_releases fr ON fr.id = rv.release_id
+  JOIN episodes e ON e.id = fr.episode_id
+  JOIN anime a ON a.id = e.anime_id
+  WHERE a.title LIKE 'Seed129 Anime%'
+);
 
 DELETE FROM release_versions
 WHERE release_id IN (
