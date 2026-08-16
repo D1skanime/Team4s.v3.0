@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, createEvent, fireEvent, render, screen } from '@testing-library/react'
+import { axe } from 'jest-axe'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -801,5 +802,39 @@ describe('Quick 260812-rps responsive carousel contract', () => {
     expect(focalCarouselCss).toMatch(/\.arrow\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s)
     expect(focalCarouselCss).toContain('@container focal-carousel (min-width: 1100px)')
     expect(focalCarouselCss).not.toContain('@media (min-width: 1100px)')
+  })
+})
+
+describe('FocalCarousel accessibility', () => {
+  it('has no axe violations in the collapsed default state', async () => {
+    const { container } = renderCarousel()
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('has no axe violations in the expanded grid state', async () => {
+    const { container } = renderCarousel()
+    fireEvent.click(screen.getByRole('button', { name: 'Alle Karten anzeigen' }))
+    await act(async () => {})
+
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('has no axe violations in the quiet single-item state', async () => {
+    const { container } = render(
+      <FocalCarousel
+        items={['Einzeln']}
+        getItemKey={(item) => item}
+        renderItem={(item) => <span>{item}</span>}
+        regionLabel="Einzel-Karussell"
+        itemSingularLabel="Karte"
+        itemPluralLabel="Karten"
+        previousLabel="Vorherige Karte"
+        nextLabel="Nächste Karte"
+        showAllLabel="Alle Karten anzeigen"
+        showCounter
+      />,
+    )
+
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
