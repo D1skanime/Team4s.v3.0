@@ -229,9 +229,31 @@ Plans:
   3. Automated tests cover anonymous public, hidden, owner, refresh-only, missing, sparse, dense, error, and pagination cases, and typecheck, lint, focused backend/frontend tests, build, and `git diff --check` are green.
   4. Live browser UAT proves both profiles at mobile, intermediate, and widescreen layouts, including keyboard, 400% zoom, images, loading behavior, and the actual user-visible route.
   5. Reset, seed, and media verification leave canonical ownership and tracked badge assets unchanged while the recorded query, payload, image, overflow, and Web-Vitals evidence meets Phase 131/133 budgets.
-**Plans**: TBD
+**Plans**: 6 plans across 5 waves
+  - Wave 1: 134-01 (fixture manifest + seed media extension), 134-02 (migration fresh/up/down proof)
+  - Wave 2: 134-03 (verification matrix: 9-case fixture-backed suite)
+  - Wave 3: 134-04 (green gate + ROADMAP/STATE doc reconciliation)
+  - Wave 4: 134-05 (protected-asset hash guard + targeted shared-DB reset)
+  - Wave 5: 134-06 (live UAT evidence + human sign-off)
 **Plan-time read first**: `backend/internal/migrations/runner.go`, migration tests, existing project reset/seed/Compose tooling, `frontend/scripts/collect-member-profile-evidence.mjs`, `frontend/scripts/verify-profile-image-delivery.mjs`, profile API/component tests, and prior UAT formats as read-only analogs. Record hashes/status for `frontend/public/history-event-badges-transparent/` and other protected tracked badge sources before any reset or media cleanup.
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+- [ ] 134-01-PLAN.md — Extend the seed with a media step and build the versioned fixture manifest.
+- [ ] 134-02-PLAN.md — Build migration fresh/up/down proof tooling on an ephemeral database.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 134-03-PLAN.md — Build the 9-case verification matrix against the versioned fixture.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 134-04-PLAN.md — Scoped green gate + ROADMAP/STATE tracking reconciliation.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 134-05-PLAN.md — Protected-asset hash guard + targeted shared-DB reset/reseed.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 134-06-PLAN.md — Live UAT evidence capture + human sign-off checkpoint.
 
 ## Coverage
 
