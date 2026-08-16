@@ -29,6 +29,7 @@ import animeProjectStageStyles from './AnimeProjectStage.module.css'
 import pointsAchievementStageStyles from './PointsAchievementStage.module.css'
 import contributionAchievementStageStyles from './ContributionAchievementStage.module.css'
 import membershipStageStyles from './MembershipStage.module.css'
+import badgeFamilyCardStyles from './BadgeFamilyCard.module.css'
 
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
@@ -63,6 +64,7 @@ function resolveRoleLabel(roleCode: string): string {
 const CONTRIBUTION_TIER_LABELS = { bronze: 'Bronze', silver: 'Silber', gold: 'Gold', platinum: 'Platin' } as const
 const COMPACT_BADGE_SIZES = '(max-width: 520px) 72px, 96px'
 const ACTIVE_BADGE_SIZES = '(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px'
+const FAMILY_CARD_COMPACT_QUERY = '(max-width: 820px)'
 
 function LockedStageArtwork({ className, hero = false }: { className?: string; hero?: boolean }) {
   const artworkClassName = [className, lockedStageArtworkStyles.lockedStageArtwork, hero ? lockedStageArtworkStyles.lockedStageArtworkHero : null].filter(Boolean).join(" ")
@@ -231,7 +233,7 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
       : null
     resizeObserver?.observe(strip)
     const mobile = typeof window.matchMedia === 'function'
-      ? window.matchMedia('(max-width: 820px)')
+      ? window.matchMedia(FAMILY_CARD_COMPACT_QUERY)
       : null
     mobile?.addEventListener('change', centerTarget)
 
@@ -244,7 +246,7 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
   useEffect(() => {
     const strip = stripRef.current
     if (!strip || typeof window.matchMedia !== 'function') return
-    const mobile = window.matchMedia('(max-width: 820px)')
+    const mobile = window.matchMedia(FAMILY_CARD_COMPACT_QUERY)
     const settleSelection = () => {
       stripSettleTimerRef.current = null
       if (!mobile.matches) return
@@ -308,9 +310,9 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
 
   if (family.group === 'special') {
     return (
-      <Card className={chainStyles.specialAwardCard} data-family={family.key} data-special-award>
-        <h3 className={chainStyles.familyEyebrow}>{family.label}</h3>
-        <span className={chainStyles.specialAwardArtwork}>
+      <Card className={badgeFamilyCardStyles.specialAwardCard} data-family={family.key} data-special-award>
+        <h3 className={badgeFamilyCardStyles.familyEyebrow}>{family.label}</h3>
+        <span className={badgeFamilyCardStyles.specialAwardArtwork}>
           {heroArtwork ? (
             <ResponsiveImage src={heroArtwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} />
           ) : (
@@ -323,9 +325,9 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
   }
 
   return (
-    <Card className={chainStyles.familyCard} data-family={family.key}>
-      <h3 className={chainStyles.familyEyebrow}>{family.label}</h3>
-      <span className={`${chainStyles.familyHero} ${layeredArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''} ${!heroStage.earned ? chainStyles.familyHeroLocked : ''}`}>
+    <Card className={badgeFamilyCardStyles.familyCard} data-family={family.key}>
+      <h3 className={badgeFamilyCardStyles.familyEyebrow}>{family.label}</h3>
+      <span className={`${badgeFamilyCardStyles.familyHero} ${layeredArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''} ${!heroStage.earned ? badgeFamilyCardStyles.familyHeroLocked : ''}`}>
         {layeredArtwork ? (
           <>
             <span className={layeredBadgeArtworkStyles.roleArtworkMist} aria-hidden="true" />
@@ -340,27 +342,27 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
         )}
         {!heroStage.earned ? <Lock size={24} aria-hidden="true" /> : null}
       </span>
-      <div className={chainStyles.familyStatus}>
+      <div className={badgeFamilyCardStyles.familyStatus}>
         <Badge variant={heroPresentation.variant}>{heroStage.label}</Badge>
         {selectedStage ? <Badge variant="info">Vorschau</Badge> : null}
       </div>
       {heroStage.stageKind !== 'special' ? (
-        <div className={chainStyles.familyProgressBlock}>
+        <div className={badgeFamilyCardStyles.familyProgressBlock}>
           <div
             role="progressbar"
             aria-label={`Fortschritt für ${family.label}`}
             aria-valuemin={0}
             aria-valuenow={progressValue}
             aria-valuemax={progressMax}
-            className={chainStyles.familyProgressTrack}
+            className={badgeFamilyCardStyles.familyProgressTrack}
           >
             <span style={{ width: `${family.complete ? 100 : progressPercent}%` }} />
           </div>
-          <p className={chainStyles.familyProgressCopy}>{progressCopy}</p>
+          <p className={badgeFamilyCardStyles.familyProgressCopy}>{progressCopy}</p>
         </div>
       ) : null}
       {heroStage.stageKind !== 'special' ? (
-        <div ref={stripRef} className={chainStyles.familyStages} role="list" aria-label={`Stufen für ${family.label}`} data-badge-stage-strip>
+        <div ref={stripRef} className={badgeFamilyCardStyles.familyStages} role="list" aria-label={`Stufen für ${family.label}`} data-badge-stage-strip>
           {family.stages.map((stage) => {
             const current = stage.badge_code === currentCode
             const selected = stage.badge_code === selectedCode
@@ -373,11 +375,11 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
               ? `${stage.threshold} Anime-Projekte`
               : presentation.label.split(' · ').at(-1) ?? presentation.label
             return (
-              <span key={stage.badge_code} role="listitem" className={chainStyles.familyStageItem}>
+              <span key={stage.badge_code} role="listitem" className={badgeFamilyCardStyles.familyStageItem}>
                 {stage.earned ? (
                   <button
                     type="button"
-                    className={`${chainStyles.familyStageButton} ${active ? chainStyles.familyStageButtonActive : ''}`}
+                    className={`${badgeFamilyCardStyles.familyStageButton} ${chainStyles.familyStageButton} ${active ? badgeFamilyCardStyles.familyStageButtonActive : ''}`}
                     aria-label={`${label} auswählen${current ? ', Aktuell' : ''}`}
                     aria-pressed={selected}
                     data-current={current ? 'true' : undefined}
@@ -386,7 +388,7 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
                     onClick={() => chooseStage(stage.badge_code)}
                     onKeyDown={(event) => handleStageKey(event, stage.badge_code)}
                   >
-                    <span className={`${chainStyles.familyStageArtwork} ${layeredStageArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''}`}>
+                    <span className={`${badgeFamilyCardStyles.familyStageArtwork} ${layeredStageArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''}`}>
                       {layeredStageArtwork ? (
                         <>
                           <span className={layeredBadgeArtworkStyles.roleArtworkBackdrop} aria-hidden="true" />
@@ -399,8 +401,8 @@ function FamilyCollectionCard({ family }: { family: MemberBadgeFamilyPresentatio
                     {current ? <span className={chainStyles.currentChip}>Aktuell</span> : null}
                   </button>
                 ) : (
-                  <span className={chainStyles.familyStageLocked} aria-label={`${label} · Gesperrt`}>
-                    <LockedStageArtwork className={chainStyles.familyStageArtwork} />
+                  <span className={badgeFamilyCardStyles.familyStageLocked} aria-label={`${label} · Gesperrt`}>
+                    <LockedStageArtwork className={badgeFamilyCardStyles.familyStageArtwork} />
                     <span>{label}</span>
                     <span className={chainStyles.visuallyHidden}>Gesperrt</span>
                   </span>

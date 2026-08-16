@@ -1,0 +1,296 @@
+/* Plan 133-08: FamilyCollectionCard()'s own selectors, extracted from MemberBadgeChain.module.css.
+   No local container declaration -- FamilyCollectionCard renders as a FocalCarousel item inside
+   .carouselShell, which already declares `container: member-badge-carousel / inline-size`, so this
+   file reuses that existing named container for its @container breakpoints. */
+
+.familyCard {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  overflow: hidden;
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.familyCard > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.familyEyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.familyHero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 320px;
+  max-width: 100%;
+  aspect-ratio: 1;
+}
+
+.familyHero > img,
+.familyHero > svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.familyHero > svg:last-child:not(:first-child) {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+}
+
+.familyHeroLocked {
+  filter: grayscale(1);
+  opacity: 0.48;
+}
+
+.familyStatus {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.familyProgressBlock {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.familyProgressTrack {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-card-muted);
+}
+
+.familyProgressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.familyProgressCopy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: normal;
+}
+
+.familyStages {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 8px 0;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-secondary) 48%, transparent) transparent;
+  touch-action: pan-x pan-y;
+}
+
+.familyStages::-webkit-scrollbar {
+  height: 8px;
+}
+
+.familyStages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.familyStages::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 48%, transparent);
+}
+
+.specialAwardCard {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  padding: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--color-warning) 10%, transparent), transparent 56%),
+    var(--surface-card);
+}
+
+.specialAwardArtwork {
+  display: grid;
+  width: clamp(112px, 10vw, 136px);
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.specialAwardArtwork > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.specialAwardArtwork > svg {
+  width: 88px;
+  height: 88px;
+}
+
+.familyStageItem {
+  display: flex;
+  flex: 0 0 88px;
+  min-width: 0;
+  scroll-snap-align: center;
+}
+
+.familyStageButton,
+.familyStageLocked {
+  position: relative;
+  display: grid;
+  width: 100%;
+  place-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 8px 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card-muted);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.familyStageButton {
+  cursor: pointer;
+}
+
+.familyStageButtonActive {
+  border-color: color-mix(in srgb, var(--color-warning) 70%, var(--border-subtle));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--color-warning) 18%, transparent);
+}
+
+/* Plan 133-08: .familyStageButton:has(.currentChip)/.familyStageButton .currentChip stay in
+   MemberBadgeChain.module.css -- .currentChip is a chainStyles-local shared utility class used at
+   multiple other sites (see that file for the kept-behind rules), same CSS-Modules per-file
+   selector-hashing constraint documented in Plan 133-04's SUMMARY. The rendered <button> carries
+   both this file's familyStageButton class and the chainStyles-local one. */
+
+.familyStageButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.familyStageLocked {
+  filter: grayscale(1);
+  opacity: 0.48;
+}
+
+.familyStageArtwork {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+}
+
+.familyStageArtwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@container member-badge-carousel (max-width: 1099px) {
+  .familyHero {
+    width: 280px;
+  }
+}
+
+@container member-badge-carousel (max-width: 520px) {
+  .familyCard {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .familyHero {
+    width: 248px;
+  }
+
+  .specialAwardCard {
+    min-height: 196px;
+    padding: 16px;
+  }
+
+  .specialAwardArtwork {
+    width: 104px;
+  }
+}
+
+@container member-badge-carousel (max-width: 820px) {
+  .familyStages {
+    display: flex;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    gap: 10px;
+    padding-inline: calc(50% - 52px);
+    overflow-x: auto;
+    scroll-padding-inline: calc(50% - 52px);
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .familyStageItem {
+    flex: 0 0 104px;
+    min-width: 0;
+    scroll-snap-align: center;
+  }
+
+  .familyStageButton,
+  .familyStageLocked {
+    width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    opacity: 0.55;
+    transition: opacity 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .familyStageButtonActive {
+    z-index: 1;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .familyHero,
+  .familyStageButton,
+  .familyProgressTrack > span {
+    transition: none;
+  }
+}

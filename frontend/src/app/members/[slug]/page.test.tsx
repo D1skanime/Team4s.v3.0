@@ -275,7 +275,7 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(memberStorySource).toContain('<Card variant="section" className={styles.storyCard}>')
     expect(membershipsSource).toContain('<Card variant="interactive" className={styles.membershipCard}>')
     expect(currentProjectsSource).toContain('<Card variant="interactive" className={styles.projectCard}>')
-    expect(memberBadgeChainSource).toContain('<Card className={styles.familyCard} data-family={family.key}>')
+    expect(memberBadgeChainSource).toContain('<Card className={badgeFamilyCardStyles.familyCard} data-family={family.key}>')
     expect(memberBadgeChainSource).toContain('<FocalCarousel')
     expect(focalCarouselSource).toContain('onKeyDown={interactionEnabled ? handleKeyDown : undefined}')
     expect(focalCarouselSource).toContain('onPointerDown={interactionEnabled ? handlePointerDown : undefined}')

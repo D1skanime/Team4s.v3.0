@@ -14,6 +14,7 @@ const animeProjectStageCss = readFileSync('src/components/profile/AnimeProjectSt
 const pointsAchievementStageCss = readFileSync('src/components/profile/PointsAchievementStage.module.css', 'utf8')
 const contributionAchievementStageCss = readFileSync('src/components/profile/ContributionAchievementStage.module.css', 'utf8')
 const membershipStageCss = readFileSync('src/components/profile/MembershipStage.module.css', 'utf8')
+const badgeFamilyCardCss = readFileSync('src/components/profile/BadgeFamilyCard.module.css', 'utf8')
 
 function expectDisplayImageSource(image: Element | null, expectedSource: string) {
   const src = image?.getAttribute('src')
@@ -1125,19 +1126,19 @@ describe('MemberBadgeChain Phase 119 collection cards', () => {
 
 describe('MemberBadgeChain Phase 119 inner stage strip', () => {
   it('keeps a visible, touch-friendly horizontal scroll affordance without page overflow', () => {
-    expect(memberBadgeChainCss).toContain('@media (max-width: 820px)')
-    expect(memberBadgeChainCss).toContain('padding-inline: calc(50% - 52px)')
-    expect(memberBadgeChainCss).toContain('scroll-snap-type: x proximity')
-    expect(memberBadgeChainCss).toContain('scrollbar-width: thin')
-    const familyStagesRule = memberBadgeChainCss.match(/\.familyStages\s*\{[^}]*\}/s)?.[0] ?? ''
+    expect(badgeFamilyCardCss).toContain('@container member-badge-carousel (max-width: 820px)')
+    expect(badgeFamilyCardCss).toContain('padding-inline: calc(50% - 52px)')
+    expect(badgeFamilyCardCss).toContain('scroll-snap-type: x proximity')
+    expect(badgeFamilyCardCss).toContain('scrollbar-width: thin')
+    const familyStagesRule = badgeFamilyCardCss.match(/\.familyStages\s*\{[^}]*\}/s)?.[0] ?? ''
     expect(familyStagesRule).not.toContain('scrollbar-width: none')
-    expect(memberBadgeChainCss).toContain('.familyStages::-webkit-scrollbar')
-    expect(memberBadgeChainCss).toMatch(/\.familyStages::\-webkit-scrollbar\s*\{[^}]*height:\s*8px;/s)
-    expect(memberBadgeChainCss).toContain('touch-action: pan-x pan-y')
-    expect(memberBadgeChainCss).toContain('flex: 0 0 104px')
+    expect(badgeFamilyCardCss).toContain('.familyStages::-webkit-scrollbar')
+    expect(badgeFamilyCardCss).toMatch(/\.familyStages::\-webkit-scrollbar\s*\{[^}]*height:\s*8px;/s)
+    expect(badgeFamilyCardCss).toContain('touch-action: pan-x pan-y')
+    expect(badgeFamilyCardCss).toContain('flex: 0 0 104px')
     expect(memberBadgeChainCss).toMatch(/\.section,\s*\.chainCard,\s*\.groupList,\s*\.group\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(memberBadgeChainCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*box-sizing:\s*border-box;[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.familyCard > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(badgeFamilyCardCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*box-sizing:\s*border-box;[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s)
+    expect(badgeFamilyCardCss).toMatch(/\.familyCard > \*\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
   })
 
   it('does not map a mouse wheel to a horizontal stage strip', async () => {
@@ -1230,8 +1231,8 @@ describe('MemberBadgeChain Phase 119 inner stage strip', () => {
   })
 
   it('reserves fixed collection hero geometry at tablet and smartphone widths', () => {
-    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 520px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 248px/)
-    expect(memberBadgeChainCss).toMatch(/@media \(max-width: 1099px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 280px/)
+    expect(badgeFamilyCardCss).toMatch(/@container member-badge-carousel \(max-width: 520px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 248px/)
+    expect(badgeFamilyCardCss).toMatch(/@container member-badge-carousel \(max-width: 1099px\)[\s\S]*?\.familyHero\s*\{[\s\S]*?width: 280px/)
   })
 })
 
@@ -1990,10 +1991,10 @@ describe('Quick 260812-bqs locked mystery heroes', () => {
 describe('Quick 260812-rps responsive BadgeChain contract', () => {
   it('bounds hero, progress and carousel consumers without arbitrary copy breaking', () => {
     expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
-    expect(memberBadgeChainCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(memberBadgeChainCss).toMatch(/\.familyProgressBlock\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(memberBadgeChainCss).toMatch(/\.familyProgressCopy\s*\{[^}]*overflow-wrap:\s*normal;/s)
-    expect(memberBadgeChainCss).not.toMatch(/\.(?:familyCard|familyProgressCopy)\s*\{[^}]*(?:overflow-wrap:\s*anywhere|word-break:\s*break-all)/s)
+    expect(badgeFamilyCardCss).toMatch(/\.familyCard\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(badgeFamilyCardCss).toMatch(/\.familyProgressBlock\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(badgeFamilyCardCss).toMatch(/\.familyProgressCopy\s*\{[^}]*overflow-wrap:\s*normal;/s)
+    expect(badgeFamilyCardCss).not.toMatch(/\.(?:familyCard|familyProgressCopy)\s*\{[^}]*(?:overflow-wrap:\s*anywhere|word-break:\s*break-all)/s)
   })
 })
 
@@ -2011,7 +2012,7 @@ describe('Quick 260812-jtp BadgeChain rhythm ownership', () => {
     expect(memberBadgeChainCss).toMatch(/\.section\s*\{[^}]*gap:\s*var\(--space-4\);/s)
     expect(memberBadgeChainCss).toMatch(/\.groupList\s*\{[^}]*gap:\s*var\(--space-5\);/s)
     expect(memberBadgeChainCss).toMatch(/\.group\s*\{[^}]*gap:\s*var\(--space-2\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.familyCard\s*\{[^}]*padding:\s*24px;/s)
+    expect(badgeFamilyCardCss).toMatch(/\.familyCard\s*\{[^}]*padding:\s*24px;/s)
     expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;/s)
   })
 
