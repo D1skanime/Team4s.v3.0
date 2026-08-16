@@ -53,9 +53,9 @@
 - [ ] **PMPF-03**: Initiale und nachgeladene Listen sind fest begrenzt und übertragen keine vom UI ungenutzten Kinddaten.
 - [ ] **PMPF-04**: Indizes werden nur nach repräsentativem `EXPLAIN (ANALYZE, BUFFERS)` für beide Testprofile ergänzt.
 - [ ] **PMPF-05**: Öffentliche und viewer-spezifische Cache-Klassen bleiben getrennt; Shared Cache wird nur mit Messung und vollständiger Invalidierung eingeführt.
-- [ ] **PMPF-06**: Profilbilder und Badges verwenden geeignete Varianten, korrekte `sizes`, reservierte Geometrie und begrenzte Qualität.
+- [x] **PMPF-06**: Profilbilder und Badges verwenden geeignete Varianten, korrekte `sizes`, reservierte Geometrie und begrenzte Qualität.
 - [ ] **PMPF-07**: Query-Anzahl, Payload-Größe, Latenz, Bild-Waterfall und Web-Vitals werden reproduzierbar erfasst und gegen feste Abnahmegrenzen geprüft.
-- [ ] **PMPF-08**: Bildquellen werden komprimiert; Asset- und Transferbudgets sind festgelegt und lokale-IP-Bildoptimierung bleibt auf Test und Entwicklung begrenzt.
+- [x] **PMPF-08**: Bildquellen werden komprimiert; Asset- und Transferbudgets sind festgelegt und lokale-IP-Bildoptimierung bleibt auf Test und Entwicklung begrenzt.
 
 ### Frontend und Codequalität
 
@@ -158,9 +158,9 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMPF-03 | Phase 131 | Pending |
 | PMPF-04 | Phase 131 | Pending |
 | PMPF-05 | Phase 131 | Pending |
-| PMPF-06 | Phase 133 | Pending |
+| PMPF-06 | Phase 133 | Complete |
 | PMPF-07 | Phase 131 | Pending |
-| PMPF-08 | Phase 133 | Pending |
+| PMPF-08 | Phase 133 | Complete |
 | PMFE-01 | Phase 132 | Complete |
 | PMFE-02 | Phase 132 | Complete |
 | PMFE-03 | Phase 132 | Complete |
