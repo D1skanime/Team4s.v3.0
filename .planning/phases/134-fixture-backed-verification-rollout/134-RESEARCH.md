@@ -454,36 +454,38 @@ func (r *Runner) Status(ctx context.Context) (Status, error)   // applied/pendin
 | A3 | The 145 up/down migration pairs will mostly apply cleanly in a full down-chain run, with at most a small number of latent bugs to fix | Common Pitfalls #3 | Medium — if many down migrations are broken, this could expand Phase 134's scope significantly beyond "verification"; recommend budgeting an exploratory task early in the phase to surface this risk before committing to a wave plan |
 | A4 | "Focused backend + frontend tests" in D-08 means member-profile-scoped tests, not the full unscoped suite | Common Pitfalls #4 | Medium — if the user actually intends the FULL suite to be green before milestone close, Phase 134's scope must grow to include reconciling ~9 pre-existing stale-assertion failures documented in `133-.../deferred-items.md`; this should be confirmed with the user during planning/discuss, not silently assumed either way |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does D-08's "focused backend + frontend tests" include the ~9 pre-existing stale-assertion
-   failures documented in Phase 133's `deferred-items.md`?**
+1. **RESOLVED (2026-08-16, plan-phase orchestration, user-confirmed).** Does D-08's "focused
+   backend + frontend tests" include the ~9 pre-existing stale-assertion failures documented in
+   Phase 133's `deferred-items.md`?
+   - Resolution: NO — scoped to member-profile-relevant tests only (matches prior-phase
+     precedent). The ~9 known failures are surfaced as an explicit `KNOWN_DEFERRED` note in the
+     gate output, not silently fixed or silently ignored. See `134-VALIDATION.md`'s
+     "User-Confirmed Scope Decisions (2026-08-16)" section and `134-04-PLAN.md` Task 1/3 for the
+     implementation.
    - What we know: Every prior phase in this milestone scoped its test runs narrowly and
      explicitly deferred these as out-of-scope; PMQA-07's requirement text says "focused."
-   - What's unclear: Whether milestone closure (which Phase 134 gates) implicitly requires the
-     FULL suite green, given this is the last phase before `/gsd:complete-milestone`.
-   - Recommendation: Planner should scope the automated green gate to member-profile-relevant
-     tests (matching prior-phase precedent) and surface the ~9 known failures as an explicit,
-     separately-tracked note for the user rather than silently fixing or silently ignoring them.
 
-2. **Should the ROADMAP.md "Progress" table / STATE.md counter drift be corrected as part of
-   Phase 134, or left for a separate housekeeping pass?**
+2. **RESOLVED (2026-08-16, plan-phase orchestration, user-confirmed).** Should the ROADMAP.md
+   "Progress" table / STATE.md counter drift be corrected as part of Phase 134, or left for a
+   separate housekeeping pass?
+   - Resolution: YES — corrected as part of Phase 134. A small, cheap doc-fix task is included.
+     See `134-VALIDATION.md`'s "User-Confirmed Scope Decisions (2026-08-16)" section and
+     `134-04-PLAN.md` Task 3 for the implementation.
    - What we know: The drift is real, documented above, and does not block execution.
-   - What's unclear: Whether fixing it belongs to "rollout" (Phase 134's own framing) or is
-     out-of-scope busywork the user doesn't want mixed into PMQA-01..07 work.
-   - Recommendation: Flag to the user during planning; a one-line doc-fix task is cheap insurance
-     against future confusion but should not be assumed without confirmation given CLAUDE.md's
-     GSD-workflow discipline around not making unrequested changes.
 
-3. **Exact media-fixture shape for the seed extension (Pitfall 5).**
+3. **RESOLVED (2026-08-16, pattern-mapper research).** Exact media-fixture shape for the seed
+   extension (Pitfall 5).
+   - Resolution: The seed extension calls the existing, already-productionized
+     `POST /api/v1/me/profile/story-images` endpoint (`backend/internal/handlers/app_profile_story_image.go`),
+     a real member-owned `media_assets` upload path distinct from anime-cover upload — not a new
+     upload surface. See `134-PATTERNS.md`'s Open Question 3 answer and `134-01-PLAN.md` Task 1
+     for the implementation.
    - What we know: `media_assets` has `owner_member_id`, `visibility_id`, `review_status_id`
-     columns; CLAUDE.md states "only cover upload is currently productionized."
-   - What's unclear: Whether the real cover-upload API is sufficient to seed a per-member avatar/
-     media asset, or whether a different upload surface is needed for member-profile media
-     specifically (vs. anime cover art).
-   - Recommendation: Wave-1 planning should read the actual media upload handler/repository
-     (not yet inspected in this research pass) before committing to the seed-extension approach;
-     this is a "plan-time read first" gap worth calling out explicitly to the planner.
+     columns; CLAUDE.md states "only cover upload is currently productionized" (referring to
+     anime cover art, not member-profile media — the story-image endpoint is the correct,
+     separate, already-shipped surface for the latter).
 
 ## Environment Availability
 
