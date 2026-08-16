@@ -37,7 +37,13 @@ const nextConfig = {
     ],
     // The deterministic probe origin is loopback-only and still constrained
     // by the two exact URL patterns above.
-    dangerouslyAllowLocalIP: true,
+    // Next.js itself documents dangerouslyAllowLocalIP as "not recommended for
+    // most users" outside a controlled environment, so it is gated to
+    // development/test and unreachable in any production deployment.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production',
+    // Explicit quality allow-list (75 is Next.js 16's own default when unset),
+    // making the bound a config-level guarantee rather than an implicit default.
+    qualities: [75],
   },
   turbopack: {
     root: path.resolve(__dirname),
