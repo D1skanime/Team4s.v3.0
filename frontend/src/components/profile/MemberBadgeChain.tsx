@@ -31,6 +31,9 @@ import contributionAchievementStageStyles from './ContributionAchievementStage.m
 import membershipStageStyles from './MembershipStage.module.css'
 import badgeFamilyCardStyles from './BadgeFamilyCard.module.css'
 import badgeChipStyles from './BadgeChip.module.css'
+import roleBadgeCardStyles from './RoleBadgeCard.module.css'
+import roleBadgeCardStatusStyles from './RoleBadgeCard.status.module.css'
+import roleBadgeCardStagesStyles from './RoleBadgeCard.stages.module.css'
 
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
@@ -721,7 +724,9 @@ export function MemberBadgeChain({
                 showLessLabel="Weniger anzeigen"
                 carouselClassName={chainStyles.chain}
                 itemClassName={chainStyles.badgeWindow}
-                activeItemClassName={chainStyles.badgeWindowActive}
+                activeItemClassName={group.key === 'roles'
+                  ? `${chainStyles.badgeWindowActive} ${roleBadgeCardStatusStyles.badgeWindowActive}`
+                  : chainStyles.badgeWindowActive}
                 gridClassName={chainStyles.badgeGrid}
                 deferInteractionUntilNearViewport
                 renderItem={(row, state) => {
@@ -741,20 +746,20 @@ export function MemberBadgeChain({
 
                     return (
                       <Card
-                        className={chainStyles.roleBadgeRow}
+                        className={`${roleBadgeCardStyles.roleBadgeRow} ${roleBadgeCardStatusStyles.roleBadgeRow} ${roleBadgeCardStagesStyles.roleBadgeRow} ${chainStyles.roleBadgeRow}`}
                         data-role-code={row.key}
                         data-role-card-state={state.expanded ? 'expanded' : state.active ? 'active' : 'inactive'}
                         data-active={state.active ? 'true' : 'false'}
                         data-expanded={state.expanded ? 'true' : 'false'}
                       >
-                        <h3 className={chainStyles.roleLabel}>{roleLabel}:</h3>
+                        <h3 className={roleBadgeCardStyles.roleLabel}>{roleLabel}:</h3>
                         {artworkItem && artworkSrc ? (
-                          <span className={`${chainStyles.roleHeroArtwork} ${layeredRoleArtwork ? layeredBadgeArtworkStyles.roleHeroArtworkLayered : ''}`}>
+                          <span className={`${roleBadgeCardStyles.roleHeroArtwork} ${roleBadgeCardStatusStyles.roleHeroArtwork} ${layeredRoleArtwork ? layeredBadgeArtworkStyles.roleHeroArtworkLayered : ''}`}>
                             {layeredRoleArtwork ? (
                               <>
                                 <span className={layeredBadgeArtworkStyles.roleArtworkMist} aria-hidden="true" />
-                                <span className={`${layeredBadgeArtworkStyles.roleArtworkBackdrop} ${chainStyles.roleArtworkBackdrop}`} aria-hidden="true" />
-                                <ResponsiveImage className={`${layeredBadgeArtworkStyles.roleArtworkMotif} ${chainStyles.roleArtworkMotif}`} src={layeredRoleArtwork.motifSrc} alt="" width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} aria-hidden="true" />
+                                <span className={`${layeredBadgeArtworkStyles.roleArtworkBackdrop} ${roleBadgeCardStatusStyles.roleArtworkBackdrop}`} aria-hidden="true" />
+                                <ResponsiveImage className={`${layeredBadgeArtworkStyles.roleArtworkMotif} ${roleBadgeCardStatusStyles.roleArtworkMotif}`} src={layeredRoleArtwork.motifSrc} alt="" width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} aria-hidden="true" />
                                 <ResponsiveImage className={layeredBadgeArtworkStyles.roleArtworkFrame} src={layeredRoleArtwork.frameSrc} alt={heroAlt} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={artworkItem.badge_code} />
                               </>
                             ) : (
@@ -762,12 +767,12 @@ export function MemberBadgeChain({
                             )}
                           </span>
                         ) : null}
-                        <div className={chainStyles.roleStatus}>
+                        <div className={roleBadgeCardStatusStyles.roleStatus}>
                           <Badge variant={getMemberBadgePresentation(artworkItem?.badge_code ?? '').variant}>{progress.tierLabel}</Badge>
-                          <strong className={chainStyles.roleCount}>{count} Mitwirkungen</strong>
+                          <strong className={roleBadgeCardStatusStyles.roleCount}>{count} Mitwirkungen</strong>
                         </div>
-                        <div className={chainStyles.roleProgressBlock}>
-                          <div className={chainStyles.roleProgressValue}>
+                        <div className={roleBadgeCardStatusStyles.roleProgressBlock}>
+                          <div className={roleBadgeCardStatusStyles.roleProgressValue}>
                             <span>{progress.progressValue} / {progress.progressMax}</span>
                             <span>{Math.round(progress.progressPercent)}%</span>
                           </div>
@@ -777,23 +782,23 @@ export function MemberBadgeChain({
                             aria-valuemin={0}
                             aria-valuenow={progress.progressValue}
                             aria-valuemax={progress.progressMax}
-                            className={chainStyles.roleProgressTrack}
+                            className={roleBadgeCardStatusStyles.roleProgressTrack}
                           >
                             <span style={{ width: `${progress.progressPercent}%` }} />
                           </div>
-                          <p className={chainStyles.roleNextCopy}>{progress.nextCopy}</p>
+                          <p className={roleBadgeCardStatusStyles.roleNextCopy}>{progress.nextCopy}</p>
                         </div>
-                        <ol className={chainStyles.roleProgression} aria-label={`Medaillen für ${roleLabel}`}>
+                        <ol className={roleBadgeCardStagesStyles.roleProgression} aria-label={`Medaillen für ${roleLabel}`}>
                           {progress.stages.map((stage, index) => {
                             const current = stage.state === 'current'
                             const item = row.items[index]
                             return (
-                              <li key={stage.tier} className={stage.state === 'locked' ? chainStyles.roleStageLocked : chainStyles.roleStageEarned} data-role-stage={stage.label.toLowerCase()} data-role-stage-state={stage.state} data-palette={item ? getMemberBadgePresentation(item.badge_code).palette : undefined} data-role-volume={item?.badge_code.startsWith('role_volume_') ? 'true' : undefined} aria-current={current ? 'step' : undefined} aria-label={stage.state === 'locked' ? `${stage.label} · ${stage.threshold}+ gesperrt` : undefined}>
-                                {stage.state === 'locked' ? <LockedStageArtwork className={chainStyles.roleStageMarker} /> : <span className={chainStyles.roleStageMarker} aria-hidden="true"><Lock size={13} /></span>}
-                                <span className={chainStyles.roleStageName}>{stage.label}</span>
-                                <span className={chainStyles.roleStageThreshold}>{stage.threshold}+</span>
-                                <span className={chainStyles.currentChip}>{current ? 'Aktuell' : ''}</span>
-                                <span className={chainStyles.roleStageState}>{stage.state === 'locked' ? 'Gesperrt' : ''}</span>
+                              <li key={stage.tier} className={stage.state === 'locked' ? roleBadgeCardStagesStyles.roleStageLocked : roleBadgeCardStagesStyles.roleStageEarned} data-role-stage={stage.label.toLowerCase()} data-role-stage-state={stage.state} data-palette={item ? getMemberBadgePresentation(item.badge_code).palette : undefined} data-role-volume={item?.badge_code.startsWith('role_volume_') ? 'true' : undefined} aria-current={current ? 'step' : undefined} aria-label={stage.state === 'locked' ? `${stage.label} · ${stage.threshold}+ gesperrt` : undefined}>
+                                {stage.state === 'locked' ? <LockedStageArtwork className={roleBadgeCardStagesStyles.roleStageMarker} /> : <span className={roleBadgeCardStagesStyles.roleStageMarker} aria-hidden="true"><Lock size={13} /></span>}
+                                <span className={roleBadgeCardStagesStyles.roleStageName}>{stage.label}</span>
+                                <span className={roleBadgeCardStagesStyles.roleStageThreshold}>{stage.threshold}+</span>
+                                <span className={`${chainStyles.currentChip} ${roleBadgeCardStagesStyles.currentChip}`}>{current ? 'Aktuell' : ''}</span>
+                                <span className={roleBadgeCardStagesStyles.roleStageState}>{stage.state === 'locked' ? 'Gesperrt' : ''}</span>
                                 <span className={chainStyles.visuallyHidden}>{index === 0 ? item?.label ?? stage.label : ''}</span>
                               </li>
                             )

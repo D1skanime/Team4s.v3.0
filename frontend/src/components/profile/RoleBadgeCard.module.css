@@ -1,0 +1,416 @@
+/* Plan 133-09: extracted from MemberBadgeChain.module.css. Owns the role-card's shell and hero
+   artwork -- .roleBadgeRow*/.roleLabel/.roleHeroArtwork* -- inside the role-card render block
+   (MemberBadgeChain.tsx's inline roles branch of FocalCarousel's renderItem). Reuses the existing
+   member-badge-carousel named container from MemberBadgeChain.module.css's .carouselShell (this
+   component is a FocalCarousel item, no local container declared here), matching every other
+   carousel-item module from Plans 133-07/08.
+
+   Two sibling companion files split the rest of the role-card's own selectors purely to keep every
+   file under CLAUDE.md's 450-line cap after flattening (see below); all three are owned exclusively
+   by this same render block and are always imported together:
+   RoleBadgeCard.status.module.css (.roleStatus/.roleCount/.roleProgressBlock/.roleProgressValue/
+   .roleProgressTrack/.roleNextCopy/.roleProgressCopy), RoleBadgeCard.stages.module.css
+   (.roleProgression/.roleStage*). The three-way split is by SELECTOR OWNERSHIP, not by breakpoint
+   tier -- every selector's full rule set (base declaration, data-role-card-state/data-role-code
+   variants, and every breakpoint override) lives entirely inside exactly one of the three files.
+   This matters because CSS Modules hashes class names per source file: splitting ONE selector's
+   rules (e.g. its base declaration and its @media override) across two DIFFERENT files would give
+   each file its own distinct hash for that selector, and the DOM element would need every one of
+   those hashes applied simultaneously to keep matching -- selector-ownership grouping avoids that
+   entirely, so each DOM element only ever needs one class from whichever file owns its selector
+   (plus the handful of already-established chainStyles dual-class exceptions below).
+
+   Every selector here previously lived inside `.group[data-badge-group="roles"] .roleXxx { ... }`
+   compound rules. Since .roleBadgeRow/.roleLabel/.roleHeroArtwork/.roleStatus/.roleCount/
+   .roleProgress*/.roleProgression/.roleStage* are exclusively role-card-owned (never referenced by
+   any other badge group), the `.group[data-badge-group="roles"]` qualifier is dropped throughout --
+   flattening it to a plain selector is behavior-preserving because no other rule in these three
+   files competes for the same selector text, so cascade order alone (preserved from the original
+   file's relative sequence within each selector's own rule set) determines the same winner as
+   before. The handful of remaining `.group[data-badge-group="roles"] .roleXxx` compound rules that
+   combine with a chainStyles-only ancestor other than `.group` (`.badgeWindowActive`, or the
+   multi-stage `:is(...)` "no card surface" rule) stay behind in MemberBadgeChain.module.css -- see
+   that file's comments. */
+
+.roleLabel {
+  justify-self: start;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.roleBadgeRow {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  gap: 16px;
+  padding: 32px 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--role-accent) 24%, transparent), transparent 34%),
+    var(--surface-card);
+}
+
+.roleBadgeRow > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Quick 260812-kr1: the section canvas owns the large achievement surface. */
+.roleBadgeRow {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Composed and direct role artwork share one square optical slot. Consolidated from two prior
+   duplicate width/height:320px declarations plus a separate .group-scoped aspect-ratio override
+   (both now folded into this single base rule, per UI-SPEC.md's locked table) -- width stays at
+   320px as the un-breakpointed default (overridden per breakpoint below), height is always driven
+   by aspect-ratio instead of a second hardcoded pixel value (every breakpoint below already sets
+   an equal width/height pair, so this is a pure CLS-safety cleanup with zero rendered-size change). */
+.roleHeroArtwork {
+  width: 320px;
+  aspect-ratio: 1;
+  height: auto;
+  display: block;
+  transform: scale(0.84);
+  transform-origin: center;
+  filter:
+    drop-shadow(0 0 18px color-mix(in srgb, var(--role-accent) 40%, transparent))
+    drop-shadow(0 20px 30px color-mix(in srgb, var(--role-accent) 25%, transparent));
+  transition: transform 210ms ease-out, filter 210ms ease-out, opacity 210ms ease-out;
+}
+
+.roleHeroArtwork img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.roleBadgeRow[data-role-card-state="inactive"] {
+  opacity: 0.78;
+}
+
+.roleBadgeRow[data-role-card-state="expanded"] {
+  min-height: 360px;
+  padding-block: 18px;
+}
+
+.roleBadgeRow[data-role-code="fansub_lead"],
+.roleBadgeRowCompact[data-role-code="fansub_lead"] {
+  --role-accent: var(--role-accent-fansub-lead);
+}
+
+.roleBadgeRow[data-role-code="project_lead"],
+.roleBadgeRowCompact[data-role-code="project_lead"] {
+  --role-accent: var(--role-accent-project-lead);
+}
+
+.roleBadgeRow[data-role-code="editor"],
+.roleBadgeRowCompact[data-role-code="editor"] {
+  --role-accent: var(--role-accent-editor);
+}
+
+.roleBadgeRow[data-role-code="translator"],
+.roleBadgeRowCompact[data-role-code="translator"] {
+  --role-accent: var(--role-accent-translator);
+}
+
+/* Not currently rendered by MemberBadgeChain.tsx (no JSX site applies roleBadgeRowCompact or
+   roleBadgeRowLayered); preserved byte-identical from the pre-split file rather than deleted,
+   since this plan's scope is CSS-module extraction and de-duplication, not dead-code removal. */
+.roleBadgeRowLayered {
+  background: transparent;
+}
+
+.roleBadgeRow > *,
+.roleBadgeRowCompact > * {
+  position: relative;
+  z-index: 1;
+}
+
+.roleBadgeRow[data-role-code="timer"],
+.roleBadgeRowCompact[data-role-code="timer"] {
+  --role-accent: var(--role-accent-timer);
+}
+
+.roleBadgeRow[data-role-code="typesetter"],
+.roleBadgeRowCompact[data-role-code="typesetter"] {
+  --role-accent: var(--role-accent-typesetter);
+}
+
+.roleBadgeRow[data-role-code="quality_checker"],
+.roleBadgeRowCompact[data-role-code="quality_checker"] {
+  --role-accent: var(--role-accent-quality-checker);
+}
+
+.roleBadgeRow[data-role-code="encoder"],
+.roleBadgeRowCompact[data-role-code="encoder"] {
+  --role-accent: var(--role-accent-encoder);
+}
+
+.roleBadgeRow[data-role-code="raw_provider"],
+.roleBadgeRowCompact[data-role-code="raw_provider"] {
+  --role-accent: var(--role-accent-raw-provider);
+}
+
+.roleBadgeRow[data-role-code="designer"],
+.roleBadgeRowCompact[data-role-code="designer"] {
+  --role-accent: var(--role-accent-designer);
+}
+
+.roleBadgeRow[data-role-code="admin"],
+.roleBadgeRowCompact[data-role-code="admin"] {
+  --role-accent: var(--role-accent-admin);
+}
+
+.roleBadgeRow[data-role-code="other"],
+.roleBadgeRowCompact[data-role-code="other"] {
+  --role-accent: var(--role-accent-other);
+}
+
+/* Not currently rendered (see .roleBadgeRowLayered comment above); preserved byte-identical. */
+.roleBadgeRowCompact {
+  --role-accent: var(--role-accent-default);
+  position: relative;
+  isolation: isolate;
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 24px 8px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--role-accent) 28%, transparent), transparent 39%),
+    radial-gradient(ellipse at 50% 64%, color-mix(in srgb, var(--role-accent) 14%, transparent), transparent 58%);
+}
+
+.roleBadgeRowCompact {
+  min-height: 116px;
+}
+
+/* Expanded is an independent grid: never revive carousel chrome or wide-card geometry. */
+.roleBadgeRow[data-role-card-state="expanded"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: none;
+  grid-template-rows: auto 280px auto auto auto;
+  place-items: center;
+  align-content: start;
+  gap: 12px;
+  width: 100%;
+  min-height: 720px;
+  padding: 24px 20px;
+  transform: none;
+}
+
+.roleBadgeRow[data-role-card-state="expanded"] > * {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+.roleBadgeRow[data-role-card-state="expanded"] .roleLabel {
+  justify-self: start;
+}
+
+.roleBadgeRow[data-role-card-state="expanded"] .roleHeroArtwork {
+  align-self: center;
+  width: min(280px, 100%);
+}
+
+.roleBadgeRow[data-role-card-state="inactive"] {
+  place-content: center;
+  min-height: 0;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roleHeroArtwork {
+    transition: none;
+  }
+}
+
+@container member-badge-carousel (max-width: 480px) {
+  .roleBadgeRow {
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 1099px) {
+  .roleBadgeRow {
+    padding: 24px;
+  }
+
+  .roleHeroArtwork {
+    width: 280px;
+    height: 280px;
+  }
+}
+
+@media (max-width: 520px) {
+  .roleBadgeRow {
+    gap: 14px;
+    padding: 20px 10px;
+  }
+
+  .roleHeroArtwork {
+    width: 248px;
+    height: 248px;
+  }
+}
+
+@media (max-width: 520px) {
+  .roleBadgeRow {
+    min-height: 330px;
+    padding-inline: 2px;
+  }
+
+  .roleHeroArtwork {
+    width: clamp(204px, 58vw, 230px);
+    height: clamp(204px, 58vw, 230px);
+  }
+}
+
+@media (min-width: 521px) and (max-width: 900px) {
+  .roleBadgeRow {
+    min-height: 380px;
+  }
+
+  .roleHeroArtwork {
+    width: min(34vw, 280px);
+    height: min(34vw, 280px);
+  }
+}
+
+@media (max-width: 520px) {
+  .roleBadgeRow {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 10px;
+    min-height: 0;
+    padding: 16px 12px 18px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--role-accent) 20%, transparent), transparent 30%),
+      var(--surface-card);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .roleLabel {
+    justify-self: start;
+  }
+
+  .roleHeroArtwork {
+    width: min(248px, 76vw);
+    height: min(248px, 76vw);
+  }
+}
+
+@media (max-width: 520px) {
+  .roleBadgeRow {
+    gap: 6px;
+    padding: 14px 10px 12px;
+  }
+
+  .roleHeroArtwork {
+    width: min(232px, 72vw);
+    height: min(232px, 72vw);
+    margin-block: -2px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .roleBadgeRow {
+    grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr);
+    grid-template-areas:
+      "artwork label"
+      "artwork status"
+      "artwork progress"
+      "track track";
+    align-items: center;
+    justify-items: stretch;
+    column-gap: 48px;
+    row-gap: 12px;
+    min-height: 540px;
+    padding: 40px 56px 30px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 27% 43%, color-mix(in srgb, var(--role-accent) 18%, transparent), transparent 31%),
+      var(--surface-card);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .roleLabel {
+    grid-area: label;
+    align-self: end;
+    justify-self: start;
+    font-size: 13px;
+  }
+
+  .roleHeroArtwork {
+    grid-area: artwork;
+    justify-self: center;
+    width: 360px;
+    height: 360px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .roleBadgeRow {
+    grid-template-columns: minmax(360px, 0.92fr) minmax(500px, 1.08fr);
+    min-height: 590px;
+    padding-inline: 68px;
+  }
+
+  .roleHeroArtwork {
+    width: 410px;
+    height: 410px;
+  }
+}
+
+@media (min-width: 2100px) {
+  .roleBadgeRow {
+    min-height: 630px;
+    padding-inline: 80px;
+  }
+
+  .roleHeroArtwork {
+    width: 450px;
+    height: 450px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .roleBadgeRow {
+    grid-template-columns: minmax(300px, 0.84fr) minmax(460px, 1.16fr);
+    grid-template-areas:
+      "artwork label"
+      "artwork status"
+      "artwork progress"
+      "track track";
+    column-gap: 52px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .roleBadgeRow {
+    grid-template-columns: minmax(360px, 0.86fr) minmax(540px, 1.14fr);
+  }
+}
+
+/* Split off from a mixed :is(.roleLabel, .roleStatus, .roleProgressBlock, .roleProgression) list
+   whose siblings live in the two companion files -- see the header comment above for why a single
+   selector's full rule set (including this one) never crosses a file boundary. */
+.roleBadgeRow[data-role-card-state="inactive"] .roleLabel {
+  display: none;
+}

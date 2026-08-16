@@ -1,3 +1,10 @@
+/* Plan 133-09: shrunk shell. Every .roleBadgeRow*/.roleLabel/.roleHeroArtwork*/.roleStatus/
+   .roleCount/.roleProgress*/.roleProgression/.roleStage* declaration moved to RoleBadgeCard
+   .module.css/.status.module.css/.stages.module.css. What remains: pure shell selectors, Plans
+   133-04/07/08's kept-behind overrides, and role-card overrides combining a chainStyles-only
+   ancestor (.badgeWindowActive, the shared :is(...) rule, .currentChip) with a role-card class --
+   CSS-Modules per-file scoping (Plan 133-04's SUMMARY). Role Card carries both
+   roleBadgeCardStyles.roleBadgeRow and chainStyles.roleBadgeRow. */
 .section {
   display: grid;
   gap: var(--space-4);
@@ -52,22 +59,13 @@
   border-radius: var(--radius-lg);
 }
 
-/* Plan 133-08: .familyCard/.familyEyebrow/.familyHero*/.familyStatus/.familyProgress*/
-   .familyStages*/.specialAwardCard/.specialAwardArtwork* moved to BadgeFamilyCard.module.css.
-   .chain.specialChain stays here -- .chain is chainStyles-local (the shared FocalCarousel
-   wrapper class used across every group), only applied via carouselClassName, not a
-   FamilyCollectionCard-owned selector. */
+/* Plan 133-08: family-card selectors moved out; .chain.specialChain stays (chainStyles-local). */
 .chain.specialChain {
   --focal-item-size: min(42%, 420px);
 }
 
-/* Plan 133-08: .familyStageButton/.familyStageLocked/.familyStageArtwork/.familyStageItem/
-   .familyStageButtonActive moved to BadgeFamilyCard.module.css, but .currentChip (Plan 133-04/07
-   precedent) stays chainStyles-local -- it's a shared utility class used at multiple other sites
-   in this file. These two compound rules combine the moved .familyStageButton ancestor with the
-   staying .currentChip descendant, so they must stay here too (same CSS-Modules per-file
-   selector-hashing constraint documented in Plan 133-04's SUMMARY). The rendered <button> now
-   carries both badgeFamilyCardStyles.familyStageButton and this file's familyStageButton class. */
+/* Plan 133-08: .familyStageButton moved out; combines with .currentChip (chainStyles-local) so
+   stays here (Plan 133-04's SUMMARY). Rendered <button> carries both classes. */
 .familyStageButton:has(.currentChip) {
   padding-bottom: 24px;
 }
@@ -83,172 +81,40 @@
   color: var(--color-primary);
 }
 
-/* Plan 133-08: the .familyHero/.familyCard/.specialAwardCard/.specialAwardArtwork breakpoint
-   rules moved to BadgeFamilyCard.module.css as @container member-badge-carousel; this
-   .group:not(...) .chain default (shared across every non-roles group, not FamilyCollectionCard-
-   owned) stays here unconverted. */
+/* Plan 133-08: family breakpoints moved out; this shared .group:not(roles) .chain stays. */
 @media (max-width: 520px) {
   .group:not([data-badge-group="roles"]) .chain {
     --focal-item-size: 88%;
   }
 }
 
-/* Phase 121-04 final UAT: make the information column and narrow focal card legible. */
-@media (min-width: 1440px) {
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    grid-template-columns: minmax(360px, 0.88fr) minmax(540px, 1.12fr);
-    grid-template-rows: auto auto minmax(170px, auto) auto;
-    row-gap: 8px;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus {
-    align-items: center;
-    gap: 20px;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus > :first-child {
-    padding: 8px 16px;
-    font-size: clamp(2rem, 2.4vw, 3rem);
-    line-height: 1;
-  }
-
-  .group[data-badge-group="roles"] .roleCount {
-    font-size: clamp(1.4rem, 1.55vw, 1.8rem);
-  }
-
-  .group[data-badge-group="roles"] .roleProgressBlock {
-    align-self: stretch;
-    align-content: center;
-    max-width: none;
-    gap: 14px;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressValue {
-    font-size: 1rem;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressTrack {
-    height: 10px;
-  }
-
-  .group[data-badge-group="roles"] .roleNextCopy {
-    padding: 16px 18px;
-    font-size: 1rem;
-  }
-}
-
-/* Composed and direct role artwork share one square optical slot. */
-.group[data-badge-group="roles"] .roleHeroArtwork {
-  aspect-ratio: 1;
-  height: auto;
-}
-
-/* Expanded is an independent grid: never revive carousel chrome or wide-card geometry. */
 .carouselShell:has(.badgeGrid) > .carouselSkeleton {
   visibility: hidden;
 }
 
+/* D-05/Task 2: !important removed -- 2-class specificity (0,2,0) already outranks the 1-class
+   .itemWindow/.badgeWindow rules (0,1,0) via normal cascade; no !important needed. */
 .badgeGrid > .badgeWindow {
-  overflow: hidden !important;
+  overflow: hidden;
   border-radius: var(--radius-lg);
 }
 
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: none;
-  grid-template-rows: auto 280px auto auto auto;
-  place-items: center;
-  align-content: start;
-  gap: 12px;
-  width: 100%;
-  min-height: 720px;
-  padding: 24px 20px;
-  transform: none;
-}
-
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] > * {
-  grid-column: 1;
-  grid-row: auto;
-}
-
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleLabel {
-  justify-self: start;
-}
-
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleHeroArtwork {
-  align-self: center;
-  width: min(280px, 100%);
-}
-
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleStatus {
-  display: grid;
-  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
-  align-items: center;
-  width: 100%;
-  gap: 10px;
-}
-
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleStatus > :first-child,
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleCount {
-  font-size: 1rem;
-}
-
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleProgressBlock,
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="expanded"] .roleProgression {
-  width: 100%;
-  max-width: none;
-}
-
 @container member-badge-carousel (max-width: 480px) {
-  .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) {
-    display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) 40px;
-    grid-template-rows: auto 40px;
-    align-items: center;
-    gap: 4px 8px;
-  }
-
-  .group[data-badge-group="roles"] .chain {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    --focal-item-size: min(98%, 340px);
-  }
-
+  .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; grid-template-rows: auto 40px; align-items: center; gap: 4px 8px; }
+  .group[data-badge-group="roles"] .chain { grid-column: 1 / -1; grid-row: 1; --focal-item-size: min(98%, 340px); }
   .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) > [aria-label="Vorherige Rolle"],
-  .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) > [aria-label="Nächste Rolle"] {
-    grid-row: 2;
-  }
-
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    padding-inline: 8px;
-  }
-
-  .group[data-badge-group="roles"] .roleStageEarned,
-  .group[data-badge-group="roles"] .roleStageLocked {
-    font-size: 0.7rem;
-  }
-
-  .group[data-badge-group="roles"] .roleStageThreshold,
-  .group[data-badge-group="roles"] .currentChip {
-    font-size: 0.66rem;
-  }
+  .group[data-badge-group="roles"] .carouselShell > :last-child > div:has(> .chain) > [aria-label="Nächste Rolle"] { grid-row: 2; }
+  .group[data-badge-group="roles"] .currentChip { font-size: 0.66rem; }
 }
 
 @media (max-width: 520px) {
   .chainCard:has(.group[data-badge-group="roles"]) {
     padding-inline: 4px;
   }
-
-  .group[data-badge-group="roles"] .badgeWindowActive .roleBadgeRow {
-    width: calc(100% + 16px);
-    margin-inline: -8px;
-  }
 }
 
-/* Plan 133-08: the 820px mobile-strip block and the family-only prefers-reduced-motion block
-   both moved to BadgeFamilyCard.module.css (the 820px @media became @container
-   member-badge-carousel there, matching MemberBadgeChain.tsx's FAMILY_CARD_COMPACT_QUERY
-   constant). */
+/* Plan 133-08: 820px mobile-strip + family prefers-reduced-motion blocks moved to
+   BadgeFamilyCard.module.css (matches FAMILY_CARD_COMPACT_QUERY). */
 
 .chainCard {
   display: grid;
@@ -290,8 +156,9 @@
   letter-spacing: 0.04em;
 }
 
-/* Plan 133-08: .badgeRow/.badgeRowCompact moved to BadgeChip.module.css. */
-
+/* Plan 133-08: .badgeRow/.badgeRowCompact moved to BadgeChip.module.css.
+   D-05/Task 2: begruendete Ausnahme -- same-specificity FocalCarousel.module.css .itemWindow
+   (unowned, dual-classed) also sets flex-basis/overflow; cross-file order is unreliable. */
 .badgeWindow {
   flex-basis: var(--focal-item-size) !important;
   overflow: visible !important;
@@ -315,277 +182,11 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
 }
 
-.roleLabel {
-  font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1.2;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-.roleBadgeRow,
-.roleBadgeRowCompact {
-  --role-accent: var(--role-accent-default);
-  position: relative;
-  isolation: isolate;
-  min-height: 420px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 10px;
-  padding: 24px 8px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--role-accent) 28%, transparent), transparent 39%),
-    radial-gradient(ellipse at 50% 64%, color-mix(in srgb, var(--role-accent) 14%, transparent), transparent 58%);
-}
-
-.roleBadgeRow[data-role-card-state="inactive"] {
-  opacity: 0.78;
-}
-
-.roleBadgeRow[data-role-card-state="expanded"] {
-  min-height: 360px;
-  padding-block: 18px;
-}
-
-.roleBadgeRow[data-role-code="fansub_lead"],
-.roleBadgeRowCompact[data-role-code="fansub_lead"] {
-  --role-accent: var(--role-accent-fansub-lead);
-}
-
-.roleBadgeRow[data-role-code="project_lead"],
-.roleBadgeRowCompact[data-role-code="project_lead"] {
-  --role-accent: var(--role-accent-project-lead);
-}
-
-.roleBadgeRow[data-role-code="editor"],
-.roleBadgeRowCompact[data-role-code="editor"] {
-  --role-accent: var(--role-accent-editor);
-}
-
-.roleBadgeRow[data-role-code="translator"],
-.roleBadgeRowCompact[data-role-code="translator"] {
-  --role-accent: var(--role-accent-translator);
-}
-
-.roleBadgeRowLayered {
-  background: transparent;
-}
-
-.roleBadgeRow:is(
-    [data-role-code="designer"],
-    [data-role-code="admin"],
-    [data-role-code="other"]
-  )
-  .roleArtworkBackdrop {
-  inset: 12%;
-}
-
-.roleBadgeRow:is(
-    [data-role-code="designer"],
-    [data-role-code="admin"],
-    [data-role-code="other"]
-  )
-  .roleArtworkMotif {
-  clip-path: circle(34% at 50% 50%);
-}
-
-.roleBadgeRow:is(
-    [data-role-code="project_lead"],
-    [data-role-code="editor"],
-    [data-role-code="raw_provider"],
-    [data-role-code="designer"],
-    [data-role-code="admin"],
-    [data-role-code="other"]
-  )
-  .roleArtworkMotif,
-.roleBadgeRowCompact:is(
-    [data-role-code="project_lead"],
-    [data-role-code="editor"],
-    [data-role-code="raw_provider"],
-    [data-role-code="designer"],
-    [data-role-code="admin"],
-    [data-role-code="other"]
-  )
-  .roleArtworkMotif {
-  clip-path: circle(40% at 50% 47%);
-}
-
-.roleBadgeRow > *,
-.roleBadgeRowCompact > * {
-  position: relative;
-  z-index: 1;
-}
-
-.roleBadgeRow[data-role-code="timer"],
-.roleBadgeRowCompact[data-role-code="timer"] {
-  --role-accent: var(--role-accent-timer);
-}
-
-.roleBadgeRow[data-role-code="typesetter"],
-.roleBadgeRowCompact[data-role-code="typesetter"] {
-  --role-accent: var(--role-accent-typesetter);
-}
-
-.roleBadgeRow[data-role-code="quality_checker"],
-.roleBadgeRowCompact[data-role-code="quality_checker"] {
-  --role-accent: var(--role-accent-quality-checker);
-}
-
-.roleBadgeRow[data-role-code="encoder"],
-.roleBadgeRowCompact[data-role-code="encoder"] {
-  --role-accent: var(--role-accent-encoder);
-}
-
-.roleBadgeRow[data-role-code="raw_provider"],
-.roleBadgeRowCompact[data-role-code="raw_provider"] {
-  --role-accent: var(--role-accent-raw-provider);
-}
-
-.roleBadgeRow[data-role-code="designer"],
-.roleBadgeRowCompact[data-role-code="designer"] {
-  --role-accent: var(--role-accent-designer);
-}
-
-.roleBadgeRow[data-role-code="admin"],
-.roleBadgeRowCompact[data-role-code="admin"] {
-  --role-accent: var(--role-accent-admin);
-}
-
-.roleBadgeRow[data-role-code="other"],
-.roleBadgeRowCompact[data-role-code="other"] {
-  --role-accent: var(--role-accent-other);
-}
-
-.roleBadgeRowCompact {
-  min-height: 116px;
-}
-
-.roleHeroArtwork {
-  width: 320px;
-  height: 320px;
-  display: block;
-  transform: scale(0.84);
-  transform-origin: center;
-  filter:
-    drop-shadow(0 0 18px color-mix(in srgb, var(--role-accent) 40%, transparent))
-    drop-shadow(0 20px 30px color-mix(in srgb, var(--role-accent) 25%, transparent));
-  transition: transform 210ms ease-out, filter 210ms ease-out, opacity 210ms ease-out;
-}
-
-.badgeWindowActive .roleHeroArtwork {
-  transform: scale(1);
-  filter:
-    drop-shadow(0 0 28px color-mix(in srgb, var(--role-accent) 52%, transparent))
-    drop-shadow(0 24px 38px color-mix(in srgb, var(--role-accent) 32%, transparent));
-}
-
-.roleHeroArtwork img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.roleProgression {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  width: min(100%, 620px);
-  max-width: 100%;
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
-  gap: 6px;
-}
-
-.roleStageEarned,
-.roleStageLocked {
-  position: relative;
-  min-width: 0;
-  min-height: 76px;
-  display: grid;
-  grid-template-rows: 20px auto auto auto;
-  align-items: center;
-  justify-items: center;
-  gap: 2px;
-  padding: 7px 3px;
-  border-radius: var(--radius-md);
-  font-size: 0.7rem;
-  font-weight: 800;
-  line-height: 1.15;
-  text-align: center;
-}
-
-.roleStageEarned {
-  border: 1px solid color-mix(in srgb, var(--color-primary) 34%, transparent);
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--surface-card));
-  color: var(--text-primary);
-}
-
-.roleStageLocked {
-  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
-  background: color-mix(in srgb, var(--text-secondary) 7%, var(--surface-card-muted));
-  color: var(--text-secondary);
-}
-
-.roleStageMarker {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  background: var(--surface-card);
-}
-
-.roleStageEarned[data-role-stage-state="current"] {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
-}
-
-.roleStageEarned[data-role-stage-state="current"] .roleStageMarker {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
-}
-
-.roleStageName,
-.roleStageThreshold,
-.roleStageState {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.roleStageThreshold,
-.roleStageState {
-  color: var(--text-secondary);
-  font-size: 0.62rem;
-}
-
-.roleStatus {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.roleCount {
-  color: var(--text-primary);
-  font-size: 0.88rem;
-}
-
-/* Plan 133-08: .badgeStep/.badgeStepLocked (base + palette variants)/.badgeItem/
-   .badgeItemWithImage/.badgeText/.badgeDetail/.badgeIcon/.badgeArtwork moved to
-   BadgeChip.module.css. The four compound rules below stay here -- .badgeWindowActive and
-   .group[data-badge-group=...] are chainStyles-local (used across every group), while
-   .badgeArtwork/.badgeRow/.badgeRowCompact/.badgeStep moved, so these rules combine a staying
-   ancestor with a moved descendant (same CSS-Modules per-file scoping constraint documented in
-   Plan 133-04's SUMMARY). The generic badge-row render site now applies both this file's and
-   BadgeChip.module.css's class to the affected badgeRow/badgeRowCompact/badgeArtwork/badgeStep
-   elements so these rules keep matching. */
+/* Plan 133-08: badge-chip selectors moved to BadgeChip.module.css; these compound rules combine a
+   staying ancestor (.badgeWindowActive/.group[...]) with a moved descendant, so stay here per the
+   CSS-Modules per-file scoping constraint (Plan 133-04's SUMMARY). Rendered elements carry both
+   classes. Plan 133-09: merged identical contributions/membership value pairs (zero behavior
+   change) to help this file fit under CLAUDE.md's 450-line cap. */
 .badgeWindowActive .badgeArtwork {
   transform: scale(1);
   filter:
@@ -593,12 +194,14 @@
     drop-shadow(0 22px 34px color-mix(in srgb, var(--badge-accent) 26%, transparent));
 }
 
-.group[data-badge-group="contributions"] .badgeRow {
+.group[data-badge-group="contributions"] .badgeRow,
+.group[data-badge-group="membership"] .badgeRow {
   min-height: 390px;
   padding-block: 10px 16px;
 }
 
-.group[data-badge-group="contributions"] .badgeArtwork {
+.group[data-badge-group="contributions"] .badgeArtwork,
+.group[data-badge-group="membership"] .badgeArtwork {
   width: clamp(310px, 36vw, 380px);
   height: clamp(310px, 36vw, 380px);
 }
@@ -606,16 +209,6 @@
 .group[data-badge-group="contributions"] .badgeArtwork img {
   border-radius: 50%;
   clip-path: circle(49% at 50% 50%);
-}
-
-.group[data-badge-group="membership"] .badgeRow {
-  min-height: 390px;
-  padding-block: 10px 16px;
-}
-
-.group[data-badge-group="membership"] .badgeArtwork {
-  width: clamp(310px, 36vw, 380px);
-  height: clamp(310px, 36vw, 380px);
 }
 
 .group[data-badge-group="special"] .badgeRow {
@@ -641,82 +234,26 @@
    BadgeChip.module.css as @container member-badge-carousel; .chain/.badgeWindow/roles-only rules
    are untouched, unrelated chainStyles-local content and stay @media. */
 @media (max-width: 520px) {
-  .chain {
-    --focal-item-size: 86%;
-    margin-inline: 0;
-  }
-
-  .badgeWindow {
-    flex-basis: var(--focal-item-size) !important;
-  }
-
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: 84%;
-  }
-
-  .roleBadgeRow {
-    min-height: 330px;
-    padding-inline: 2px;
-  }
-
-  .roleHeroArtwork {
-    width: clamp(204px, 58vw, 230px);
-    height: clamp(204px, 58vw, 230px);
-  }
-
-  .roleProgression {
-    gap: 4px;
-  }
-
-  .roleStageEarned,
-  .roleStageLocked {
-    min-height: 72px;
-    padding: 6px 2px;
-    font-size: 0.62rem;
-  }
-
-  .roleStageThreshold,
-  .roleStageState {
-    font-size: 0.56rem;
-  }
+  .chain { --focal-item-size: 86%; margin-inline: 0; }
+  /* D-05/Task 2: same begruendete Ausnahme as the base .badgeWindow rule above. */
+  .badgeWindow { flex-basis: var(--focal-item-size) !important; }
+  .group[data-badge-group="roles"] .chain { --focal-item-size: 84%; }
 }
-
 @media (min-width: 521px) and (max-width: 900px) {
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: min(74%, 600px);
-  }
-
-  .roleBadgeRow {
-    min-height: 380px;
-  }
-
-  .roleHeroArtwork {
-    width: min(34vw, 280px);
-    height: min(34vw, 280px);
-  }
+  .group[data-badge-group="roles"] .chain { --focal-item-size: min(74%, 600px); }
 }
 
-/* Plan 133-08: these .group[data-badge-group=...] .badgeRow/.badgeArtwork/.badgeRowCompact
-   compound rules stay in this file (see the earlier comment above .badgeWindowActive
-   .badgeArtwork), converted from @media to @container member-badge-carousel since this content
-   also renders inside the carousel -- unnamed/named container-query matching is DOM-tree-based,
-   not CSS-module-file-based (Plan 133-07 precedent). */
+/* Plan 133-08: badge-chip compound rules (see comment above .badgeWindowActive .badgeArtwork),
+   converted @media -> @container since matching is DOM-tree-based (Plan 133-07 precedent).
+   Plan 133-09: merged identical contributions/membership value pairs, zero behavior change. */
 @container member-badge-carousel (max-width: 520px) {
-  .group[data-badge-group="contributions"] .badgeRow {
-    min-height: 350px;
-    padding-block: 6px 12px;
-  }
-
-  .group[data-badge-group="contributions"] .badgeArtwork {
-    width: clamp(210px, 60vw, 240px);
-    height: clamp(210px, 60vw, 240px);
-  }
-
+  .group[data-badge-group="contributions"] .badgeRow,
   .group[data-badge-group="membership"] .badgeRow {
     min-height: 350px;
     padding-block: 6px 12px;
   }
 
+  .group[data-badge-group="contributions"] .badgeArtwork,
   .group[data-badge-group="membership"] .badgeArtwork {
     width: clamp(210px, 60vw, 240px);
     height: clamp(210px, 60vw, 240px);
@@ -737,21 +274,13 @@
 }
 
 @container member-badge-carousel (min-width: 521px) and (max-width: 900px) {
-  .group[data-badge-group="contributions"] .badgeRow {
-    min-height: 380px;
-    padding-block: 8px 14px;
-  }
-
-  .group[data-badge-group="contributions"] .badgeArtwork {
-    width: min(54vw, 310px);
-    height: min(54vw, 310px);
-  }
-
+  .group[data-badge-group="contributions"] .badgeRow,
   .group[data-badge-group="membership"] .badgeRow {
     min-height: 380px;
     padding-block: 8px 14px;
   }
 
+  .group[data-badge-group="contributions"] .badgeArtwork,
   .group[data-badge-group="membership"] .badgeArtwork {
     width: min(54vw, 310px);
     height: min(54vw, 310px);
@@ -771,16 +300,7 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .roleHeroArtwork {
-    transition: none;
-  }
-}
-/* Plan 133-08: .contributionProgress*/.badgeArtwork reduced-motion filter and the
-   @media (max-width: 520px) { .contributionProgressCopy, .contributionProgressTerminal {...} }
-   rule all moved to BadgeChip.module.css (as @container member-badge-carousel for the 520px
-   rule) -- .badgeStep[data-contribution-tier="silver"] .contributionProgressTrack moved as a unit
-   since both .badgeStep and .contributionProgressTrack are BadgeChip-owned. */
+/* Plan 133-08: contribution-progress reduced-motion/520px rules moved to BadgeChip.module.css. */
 
 /* Phase 118: selected Sketch-A earned-role card composition. */
 .group[data-badge-group="roles"] .chain {
@@ -789,122 +309,6 @@
 
 .group[data-badge-group="roles"] .badgeWindow {
   min-width: 0;
-}
-
-.roleBadgeRow {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  place-items: center;
-  gap: 16px;
-  padding: 32px 24px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--role-accent) 24%, transparent), transparent 34%),
-    var(--surface-card);
-}
-
-.roleBadgeRow > * {
-  min-width: 0;
-  max-width: 100%;
-}
-
-.roleLabel {
-  justify-self: start;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.04em;
-}
-
-.roleHeroArtwork {
-  width: 320px;
-  height: 320px;
-}
-
-.roleProgressBlock {
-  width: 100%;
-  display: grid;
-  gap: 8px;
-}
-
-.roleProgressTrack {
-  width: 100%;
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--text-secondary) 16%, var(--surface-card-muted));
-}
-
-.roleProgressTrack > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--role-accent);
-}
-
-.roleProgressCopy {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.5;
-  text-align: center;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-.roleProgression {
-  width: 100%;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  align-items: start;
-}
-
-.roleStageEarned,
-.roleStageLocked {
-  position: relative;
-  min-width: 0;
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-align: center;
-}
-
-.roleStageLocked {
-  opacity: 0.44;
-  filter: saturate(0.25);
-}
-
-.roleStageArtwork {
-  position: relative;
-  width: min(76px, 100%);
-  aspect-ratio: 1;
-}
-
-.roleStageArtwork img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.roleStageArtwork > svg {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  padding: 4px;
-  border-radius: 999px;
-  color: var(--text-primary);
-  background: var(--surface-card);
 }
 
 .currentChip {
@@ -923,18 +327,6 @@
   line-height: 1.2;
 }
 
-/* Phase 121: keep the current-state label inside narrow five-column role tracks. */
-.roleProgression .currentChip {
-  position: static;
-  max-width: 100%;
-  padding: 2px 4px;
-  transform: none;
-  overflow-wrap: normal;
-  white-space: nowrap;
-  font-size: 0.58rem;
-  line-height: 1;
-}
-
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -944,45 +336,6 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-@media (max-width: 1099px) {
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: 74%;
-  }
-
-  .roleBadgeRow {
-    padding: 24px;
-  }
-
-  .roleHeroArtwork {
-    width: 280px;
-    height: 280px;
-  }
-}
-
-@media (max-width: 520px) {
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: 88%;
-  }
-
-  .roleBadgeRow {
-    gap: 14px;
-    padding: 20px 10px;
-  }
-
-  .roleHeroArtwork {
-    width: 248px;
-    height: 248px;
-  }
-
-  .roleStageArtwork {
-    width: min(52px, 100%);
-  }
-
-  .roleProgression {
-    gap: 4px;
-  }
 }
 
 @media (max-width: 1099px) {
@@ -1035,437 +388,26 @@
   }
 }
 
-/* Phase 121-04: screenshot-faithful role hero composition, consumer-side only. */
 @media (min-width: 1440px) {
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: min(76%, 1120px);
-  }
-
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr);
-    grid-template-areas:
-      "artwork label"
-      "artwork status"
-      "artwork progress"
-      "track track";
-    align-items: center;
-    justify-items: stretch;
-    column-gap: 48px;
-    row-gap: 12px;
-    min-height: 540px;
-    padding: 40px 56px 30px;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 27% 43%, color-mix(in srgb, var(--role-accent) 18%, transparent), transparent 31%),
-      var(--surface-card);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .group[data-badge-group="roles"] .roleLabel {
-    grid-area: label;
-    align-self: end;
-    justify-self: start;
-    font-size: 13px;
-  }
-
-  .group[data-badge-group="roles"] .roleHeroArtwork {
-    grid-area: artwork;
-    justify-self: center;
-    width: 360px;
-    height: 360px;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus {
-    grid-area: status;
-    align-self: center;
-    justify-content: flex-start;
-    gap: 14px;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus > :first-child {
-    font-size: 1.9rem;
-    line-height: 1.1;
-  }
-
-  .group[data-badge-group="roles"] .roleCount {
-    font-size: 1.45rem;
-    line-height: 1.2;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressBlock {
-    grid-area: progress;
-    align-self: start;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressCopy {
-    text-align: left;
-    font-size: 1rem;
-  }
-
-  .group[data-badge-group="roles"] .roleProgression {
-    grid-area: track;
-    width: 100%;
-    margin-top: 18px;
-    padding-top: 18px;
-    gap: 12px;
-    border-top: 2px solid color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle));
-  }
-
-  .group[data-badge-group="roles"] .roleStageEarned,
-  .group[data-badge-group="roles"] .roleStageLocked {
-    min-height: 88px;
-    font-size: 0.78rem;
-  }
+  .group[data-badge-group="roles"] .chain { --focal-item-size: min(76%, 1120px); }
 }
-
 @media (min-width: 1600px) {
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: min(78%, 1260px);
-  }
-
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    grid-template-columns: minmax(360px, 0.92fr) minmax(500px, 1.08fr);
-    min-height: 590px;
-    padding-inline: 68px;
-  }
-
-  .group[data-badge-group="roles"] .roleHeroArtwork {
-    width: 410px;
-    height: 410px;
-  }
+  .group[data-badge-group="roles"] .chain { --focal-item-size: min(78%, 1260px); }
 }
-
 @media (min-width: 2100px) {
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: min(80%, 1360px);
-  }
-
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    min-height: 630px;
-    padding-inline: 80px;
-  }
-
-  .group[data-badge-group="roles"] .roleHeroArtwork {
-    width: 450px;
-    height: 450px;
-  }
+  .group[data-badge-group="roles"] .chain { --focal-item-size: min(80%, 1360px); }
 }
 
 @media (max-width: 520px) {
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-    gap: 10px;
-    min-height: 0;
-    padding: 16px 12px 18px;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--role-accent) 20%, transparent), transparent 30%),
-      var(--surface-card);
-    box-shadow: var(--shadow-xs);
-  }
-
-  .group[data-badge-group="roles"] .roleLabel {
-    justify-self: start;
-  }
-
-  .group[data-badge-group="roles"] .roleHeroArtwork {
-    width: min(248px, 76vw);
-    height: min(248px, 76vw);
-  }
-
-  .group[data-badge-group="roles"] .roleStatus {
-    gap: 8px;
-  }
-
-  .group[data-badge-group="roles"] .roleCount {
-    width: 100%;
-    font-size: 1.2rem;
-    text-align: center;
-  }
-
-  .group[data-badge-group="roles"] .roleProgression {
-    padding-top: 10px;
-    border-top: 2px solid color-mix(in srgb, var(--role-accent) 30%, var(--border-subtle));
-  }
-}
-
-/* Der Ziel-Track ist eine durchgehende Etappenlinie, keine zweite Reihe Karten. */
-.group[data-badge-group="roles"] .roleProgression {
-  position: relative;
-  padding-top: 16px;
-  border-top: 0;
-}
-
-.group[data-badge-group="roles"] .roleProgression::before {
-  content: "";
-  position: absolute;
-  top: 27px;
-  right: 10%;
-  left: 10%;
-  height: 2px;
-  background: color-mix(in srgb, var(--role-accent) 42%, var(--border-subtle));
-}
-
-.group[data-badge-group="roles"] .roleStageEarned,
-.group[data-badge-group="roles"] .roleStageLocked {
-  z-index: 1;
-  min-height: 76px;
-  padding: 0 2px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.group[data-badge-group="roles"] .roleStageMarker {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--surface-card);
-  background: var(--surface-card-muted);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--role-accent) 36%, var(--border-subtle));
-}
-
-.group[data-badge-group="roles"] .roleStageEarned .roleStageMarker {
-  color: var(--surface-card);
-  background: var(--role-accent);
-}
-
-.group[data-badge-group="roles"] .roleStageEarned .roleStageMarker > svg {
-  display: none;
-}
-
-.group[data-badge-group="roles"] .roleStageEarned .roleStageMarker::before {
-  content: "\2713";
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.group[data-badge-group="roles"] .roleStageEarned[data-role-stage-state="current"] .roleStageMarker::before {
-  content: "\2605";
-}
-
-@media (max-width: 520px) {
-  .group[data-badge-group="roles"] .roleProgression::before {
-    right: 8%;
-    left: 8%;
-  }
-
-  .group[data-badge-group="roles"] .roleStageEarned,
-  .group[data-badge-group="roles"] .roleStageLocked {
-    min-height: 68px;
-    font-size: 0.62rem;
-  }
-
-  .group[data-badge-group="roles"] .roleStageName {
-    white-space: nowrap;
-  }
-
-  .group[data-badge-group="roles"] .roleStageLocked .roleStageState {
-    display: none;
-  }
-}
-
-/* Phase 121-04 UAT: eigenständiger, aus der bestehenden Projektion gespeister Fortschrittsblock. */
-.roleProgressValue {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.roleProgressTrack {
-  width: 100%;
-  height: 9px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--text-secondary) 16%, var(--surface-card-muted));
-}
-
-.roleProgressTrack > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--role-accent) 72%, white), var(--role-accent));
-  box-shadow: 0 0 10px color-mix(in srgb, var(--role-accent) 36%, transparent);
-}
-
-.roleNextCopy {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--role-accent) 9%, var(--surface-card-muted));
-  color: var(--text-primary);
-  font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-@media (min-width: 1440px) {
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    grid-template-columns: minmax(300px, 0.84fr) minmax(460px, 1.16fr);
-    grid-template-areas:
-      "artwork label"
-      "artwork status"
-      "artwork progress"
-      "track track";
-    column-gap: 52px;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus {
-    display: grid;
-    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
-    align-items: baseline;
-    justify-content: stretch;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus > :first-child {
-    font-size: 2rem;
-  }
-
-  .group[data-badge-group="roles"] .roleCount {
-    font-size: 1.55rem;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressBlock {
-    width: 100%;
-    max-width: 620px;
-    gap: 10px;
-  }
-}
-
-@media (min-width: 1600px) {
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    grid-template-columns: minmax(360px, 0.86fr) minmax(540px, 1.14fr);
-  }
-}
-
-@media (max-width: 520px) {
-  .group[data-badge-group="roles"] .chain {
-    --focal-item-size: min(98%, 340px);
-  }
-
-  .group[data-badge-group="roles"] .roleBadgeRow {
-    gap: 6px;
-    padding: 14px 10px 12px;
-  }
-
-  .group[data-badge-group="roles"] .roleHeroArtwork {
-    width: min(232px, 72vw);
-    height: min(232px, 72vw);
-    margin-block: -2px;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus {
-    width: 100%;
-    display: grid;
-    justify-items: center;
-    gap: 4px;
-  }
-
-  .group[data-badge-group="roles"] .roleStatus > :first-child {
-    font-size: 1.18rem;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressBlock {
-    gap: 6px;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressValue {
-    font-size: 0.78rem;
-  }
-
-  .group[data-badge-group="roles"] .roleNextCopy {
-    padding: 7px 9px;
-    font-size: 0.76rem;
-    text-align: center;
-  }
-
-  .group[data-badge-group="roles"] .roleProgression {
-    margin-top: 2px;
-    padding-top: 12px;
-    gap: 2px;
-  }
-
-  .group[data-badge-group="roles"] .roleProgression::before {
-    top: 23px;
-  }
-
-  .group[data-badge-group="roles"] .roleStageEarned,
-  .group[data-badge-group="roles"] .roleStageLocked {
-    min-height: 62px;
-    gap: 1px;
-    font-size: 0.57rem;
-  }
-
-  .group[data-badge-group="roles"] .roleStageMarker {
-    width: 22px;
-    height: 22px;
-  }
-
-  .group[data-badge-group="roles"] .roleStageThreshold {
-    font-size: 0.52rem;
-  }
-
-  .group[data-badge-group="roles"] .currentChip {
-    font-size: 0.52rem;
-  }
-
+  .group[data-badge-group="roles"] .chain { --focal-item-size: min(98%, 340px); }
+  .group[data-badge-group="roles"] .currentChip { font-size: 0.52rem; }
   .group[data-badge-group="roles"] .chain [aria-label="Vorherige Rolle"],
-  .group[data-badge-group="roles"] .chain [aria-label="Nächste Rolle"] {
-    border-color: color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle));
-    background: var(--surface-card);
-    box-shadow: var(--shadow-xs);
-  }
+  .group[data-badge-group="roles"] .chain [aria-label="Nächste Rolle"] { border-color: color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle)); background: var(--surface-card); box-shadow: var(--shadow-xs); }
 }
 
-@media (min-width: 1440px) {
-  .group[data-badge-group="roles"] .roleStatus > :first-child {
-    padding: 8px 16px;
-    font-size: clamp(2rem, 2.4vw, 3rem);
-  }
-
-  .group[data-badge-group="roles"] .roleCount {
-    font-size: clamp(1.4rem, 1.55vw, 1.8rem);
-  }
-
-  .group[data-badge-group="roles"] .roleProgressBlock {
-    align-self: stretch;
-    align-content: center;
-    max-width: none;
-    gap: 14px;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressValue,
-  .group[data-badge-group="roles"] .roleNextCopy {
-    font-size: 1rem;
-  }
-
-  .group[data-badge-group="roles"] .roleProgressTrack {
-    height: 10px;
-  }
-
-  .group[data-badge-group="roles"] .roleNextCopy {
-    padding: 16px 18px;
-  }
-}
-
-.group[data-badge-group="roles"] .roleHeroArtwork {
-  aspect-ratio: 1;
-  height: auto;
-}
-/* Plan 133-07: .animeProjectArtwork/.animeProjectMilestones moved to AnimeProjectStage.module.css,
-   but .roleArtworkMist/.roleArtworkBackdrop/.roleArtworkMotif (Plan 133-04) and .currentChip stay
-   chainStyles-local, so these compound overrides (ancestor moved, descendant stayed) must stay here
-   too -- same CSS-Modules per-file selector-hashing trap documented in Plan 133-04's SUMMARY. The
-   JSX now applies both the new module's class and this file's chainStyles class to the affected
-   elements so these rules keep matching. */
+/* Plan 133-07: .animeProjectArtwork moved out, but .roleArtworkMist/Backdrop/Motif (133-04) and
+   .currentChip stay chainStyles-local, so these overrides stay here (Plan 133-04's SUMMARY). JSX
+   applies both classes. */
 .animeProjectArtwork .roleArtworkMist,
 .animeProjectArtwork .roleArtworkBackdrop { display: none; }
 .animeProjectArtwork .roleArtworkMotif { inset: 0; width: 100%; height: 100%; clip-path: circle(30% at 50% 46%); object-fit: contain; transform: none; }
@@ -1473,13 +415,9 @@
 .animeProjectMilestones .currentChip { position: static; transform: none; }
 @container (max-width: 700px) { .animeProjectMilestones .currentChip { font-size: .62rem; } }
 
-/* Plan 133-07: .contributionAchievementStage/.contributionStageHero/.contributionStageTitle/
-   .contributionStageInfo/.contributionTierTrack/.contributionHeroArtwork moved to
-   ContributionAchievementStage.module.css, but .group/.badgeWindow/.badgeWindowActive/.chain stay
-   chainStyles-local (ancestor stayed, descendant moved), so these compound overrides must stay here
-   too -- same CSS-Modules per-file scoping trap documented in Plan 133-04's SUMMARY. The JSX now
-   applies both the new module's class and this file's chainStyles class to the affected Card
-   root/title/info/hero/heroArtwork/tierTrack elements so these rules keep matching. */
+/* Plan 133-07: contribution-stage selectors moved out; .group/.badgeWindow/.badgeWindowActive/
+   .chain stay chainStyles-local so these overrides stay here (Plan 133-04's SUMMARY). JSX applies
+   both classes. */
 .group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionAchievementStage { place-content: center; padding: 0; }
 .group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) :is(.contributionStageTitle, .contributionStageInfo, .contributionTierTrack) { display: none; }
 .group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionStageHero { grid-template-columns: minmax(0, 1fr); width: 100%; }
@@ -1494,24 +432,9 @@
   .badgeWindowActive .contributionHeroArtwork { width: min(100%, 220px); }
 }
 
-
-/* Quick 260812-kr1: the section canvas owns the large achievement surface. */
-.roleBadgeRow {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-/* The section qualifier wins over the global Card surface regardless of CSS injection order.
-   Plan 133-07: kept listing all five selectors even after .animeProjectStage/.pointsAchievementStage/
-   .contributionAchievementStage/.membershipStage extracted to their own CSS modules --
-   .group[data-badge-group] is chainStyles-local, so a literal
-   per-file split of this compound selector would hash .group to a value the DOM never carries in the
-   new modules, silently dropping this "wins regardless of injection order" guarantee (same
-   CSS-Modules per-file scoping trap documented in Plan 133-04's SUMMARY). Each extracted stage's Card
-   root now carries BOTH its own module's class and this file's chainStyles class so this rule keeps
-   matching. */
+/* Section qualifier wins over the global Card surface regardless of CSS injection order. Kept
+   listing all five stage selectors -- .group[data-badge-group] is chainStyles-local, so a per-file
+   split would drop this guarantee (Plan 133-04's SUMMARY). Each Card root carries both classes. */
 .group[data-badge-group] :is(
   .roleBadgeRow,
   .animeProjectStage,
@@ -1525,17 +448,3 @@
   box-shadow: none;
 }
 
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="inactive"] {
-  place-content: center;
-  min-height: 0;
-  padding: 0;
-}
-
-.group[data-badge-group="roles"] .roleBadgeRow[data-role-card-state="inactive"] :is(
-  .roleLabel,
-  .roleStatus,
-  .roleProgressBlock,
-  .roleProgression
-) {
-  display: none;
-}

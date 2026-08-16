@@ -1,0 +1,324 @@
+/* Plan 133-09: companion to RoleBadgeCard.module.css, owning .roleProgression and every
+   .roleStage* selector inside the role-card render block (MemberBadgeChain.tsx's inline roles
+   branch of FocalCarousel's renderItem). See RoleBadgeCard.module.css's header comment for why
+   this three-way split is by selector ownership (every selector's full rule set stays in exactly
+   one file) rather than by breakpoint tier, and why the `.group[data-badge-group="roles"]`
+   qualifier is dropped throughout. */
+
+.roleProgression {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: min(100%, 620px);
+  max-width: 100%;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  gap: 6px;
+}
+
+/* Phase 121: keep the current-state label inside narrow five-column role tracks. .currentChip's
+   base declaration is chainStyles-local (shared with family/anime-project); the roles-progression
+   currentChip span carries both chainStyles.currentChip and this file's currentChip class so this
+   override -- moved here from the shell for line-budget reasons -- keeps matching. */
+.roleProgression .currentChip {
+  position: static;
+  max-width: 100%;
+  padding: 2px 4px;
+  transform: none;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.roleProgression {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.roleStageEarned,
+.roleStageLocked {
+  position: relative;
+  min-width: 0;
+  min-height: 76px;
+  display: grid;
+  grid-template-rows: 20px auto auto auto;
+  align-items: center;
+  justify-items: center;
+  gap: 2px;
+  padding: 7px 3px;
+  border-radius: var(--radius-md);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.roleStageEarned,
+.roleStageLocked {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.roleStageEarned {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 34%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--surface-card));
+  color: var(--text-primary);
+}
+
+.roleStageLocked {
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  background: color-mix(in srgb, var(--text-secondary) 7%, var(--surface-card-muted));
+  color: var(--text-secondary);
+}
+
+.roleStageLocked {
+  opacity: 0.44;
+  filter: saturate(0.25);
+}
+
+.roleStageMarker {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: var(--surface-card);
+}
+
+.roleStageEarned[data-role-stage-state="current"] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.roleStageEarned[data-role-stage-state="current"] .roleStageMarker {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.roleStageName,
+.roleStageThreshold,
+.roleStageState {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.roleStageThreshold,
+.roleStageState {
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+}
+
+.roleStageArtwork {
+  position: relative;
+  width: min(76px, 100%);
+  aspect-ratio: 1;
+}
+
+.roleStageArtwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.roleStageArtwork > svg {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 4px;
+  border-radius: 999px;
+  color: var(--text-primary);
+  background: var(--surface-card);
+}
+
+.roleBadgeRow[data-role-card-state="expanded"] .roleProgression {
+  width: 100%;
+  max-width: none;
+}
+
+/* Split off from a mixed :is(.roleLabel, .roleStatus, .roleProgressBlock, .roleProgression) list
+   whose siblings live in the other two files -- see RoleBadgeCard.module.css's header comment. */
+.roleBadgeRow[data-role-card-state="inactive"] .roleProgression {
+  display: none;
+}
+
+/* Der Ziel-Track ist eine durchgehende Etappenlinie, keine zweite Reihe Karten. */
+.roleProgression {
+  position: relative;
+  padding-top: 16px;
+  border-top: 0;
+}
+
+.roleProgression::before {
+  content: "";
+  position: absolute;
+  top: 27px;
+  right: 10%;
+  left: 10%;
+  height: 2px;
+  background: color-mix(in srgb, var(--role-accent) 42%, var(--border-subtle));
+}
+
+.roleStageEarned,
+.roleStageLocked {
+  z-index: 1;
+  min-height: 76px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.roleStageMarker {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--surface-card);
+  background: var(--surface-card-muted);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--role-accent) 36%, var(--border-subtle));
+}
+
+.roleStageEarned .roleStageMarker {
+  color: var(--surface-card);
+  background: var(--role-accent);
+}
+
+.roleStageEarned .roleStageMarker > svg {
+  display: none;
+}
+
+.roleStageEarned .roleStageMarker::before {
+  content: "\2713";
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.roleStageEarned[data-role-stage-state="current"] .roleStageMarker::before {
+  content: "\2605";
+}
+
+@container member-badge-carousel (max-width: 480px) {
+  .roleStageEarned,
+  .roleStageLocked {
+    font-size: 0.7rem;
+  }
+
+  .roleStageThreshold {
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .roleStageArtwork {
+    width: min(52px, 100%);
+  }
+
+  .roleProgression {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 520px) {
+  .roleProgression {
+    gap: 4px;
+  }
+
+  .roleStageEarned,
+  .roleStageLocked {
+    min-height: 72px;
+    padding: 6px 2px;
+    font-size: 0.62rem;
+  }
+
+  .roleStageThreshold,
+  .roleStageState {
+    font-size: 0.56rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .roleProgression {
+    padding-top: 10px;
+    border-top: 2px solid color-mix(in srgb, var(--role-accent) 30%, var(--border-subtle));
+  }
+}
+
+@media (max-width: 520px) {
+  .roleProgression::before {
+    right: 8%;
+    left: 8%;
+  }
+
+  .roleStageEarned,
+  .roleStageLocked {
+    min-height: 68px;
+    font-size: 0.62rem;
+  }
+
+  .roleStageName {
+    white-space: nowrap;
+  }
+
+  .roleStageLocked .roleStageState {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .roleProgression {
+    margin-top: 2px;
+    padding-top: 12px;
+    gap: 2px;
+  }
+
+  .roleProgression::before {
+    top: 23px;
+  }
+
+  .roleStageEarned,
+  .roleStageLocked {
+    min-height: 62px;
+    gap: 1px;
+    font-size: 0.57rem;
+  }
+
+  .roleStageMarker {
+    width: 22px;
+    height: 22px;
+  }
+
+  .roleStageThreshold {
+    font-size: 0.52rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .roleProgression {
+    grid-area: track;
+    width: 100%;
+    margin-top: 18px;
+    padding-top: 18px;
+    gap: 12px;
+    border-top: 2px solid color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle));
+  }
+
+  .roleStageEarned,
+  .roleStageLocked {
+    min-height: 88px;
+    font-size: 0.78rem;
+  }
+}
