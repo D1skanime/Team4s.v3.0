@@ -27,6 +27,8 @@ import lockedStageArtworkStyles from './LockedStageArtwork.module.css'
 import layeredBadgeArtworkStyles from './LayeredBadgeArtwork.module.css'
 import animeProjectStageStyles from './AnimeProjectStage.module.css'
 import pointsAchievementStageStyles from './PointsAchievementStage.module.css'
+import contributionAchievementStageStyles from './ContributionAchievementStage.module.css'
+import membershipStageStyles from './MembershipStage.module.css'
 
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
@@ -499,22 +501,22 @@ function ContributionAchievementStage({ family }: { family: MemberBadgeFamilyPre
   const tierLabel = (code: string) => CONTRIBUTION_TIER_LABELS[code.split('_').at(-1) as keyof typeof CONTRIBUTION_TIER_LABELS]
   const nextTier = family.nextStage ? tierLabel(family.nextStage.badge_code) : null
   return (
-    <Card className={chainStyles.contributionAchievementStage} data-family={family.key} data-contribution-achievement-stage>
-      <h3 className={chainStyles.contributionStageTitle}>{family.label}</h3>
-      <div className={chainStyles.contributionStageHero}>
-        <span className={chainStyles.contributionHeroArtwork} data-contribution-art={heroStage.badge_code}>
+    <Card className={`${contributionAchievementStageStyles.contributionAchievementStage} ${chainStyles.contributionAchievementStage}`} data-family={family.key} data-contribution-achievement-stage>
+      <h3 className={`${contributionAchievementStageStyles.contributionStageTitle} ${chainStyles.contributionStageTitle}`}>{family.label}</h3>
+      <div className={`${contributionAchievementStageStyles.contributionStageHero} ${chainStyles.contributionStageHero}`}>
+        <span className={`${contributionAchievementStageStyles.contributionHeroArtwork} ${chainStyles.contributionHeroArtwork}`} data-contribution-art={heroStage.badge_code}>
           {currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={1254} height={1254} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}
         </span>
-        <div className={chainStyles.contributionStageInfo} aria-live="polite">
-          <div className={chainStyles.contributionStageStatus}><Badge variant={currentCode ? presentation.variant : 'muted'}>{tierLabel(heroStage.badge_code)}</Badge><Badge variant={selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
-          <strong className={chainStyles.contributionStageCount}>{count} {unit}</strong>
-          <div className={chainStyles.contributionStageProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
-          <div role="progressbar" aria-label={`Fortschritt für ${family.label}`} aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={chainStyles.contributionStageProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
-          <p className={chainStyles.contributionStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? family.unitSingular : family.unitPlural} bis ${nextTier}`}</p>
+        <div className={`${contributionAchievementStageStyles.contributionStageInfo} ${chainStyles.contributionStageInfo}`} aria-live="polite">
+          <div className={contributionAchievementStageStyles.contributionStageStatus}><Badge variant={currentCode ? presentation.variant : 'muted'}>{tierLabel(heroStage.badge_code)}</Badge><Badge variant={selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
+          <strong className={contributionAchievementStageStyles.contributionStageCount}>{count} {unit}</strong>
+          <div className={contributionAchievementStageStyles.contributionStageProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label={`Fortschritt für ${family.label}`} aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={contributionAchievementStageStyles.contributionStageProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
+          <p className={contributionAchievementStageStyles.contributionStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? family.unitSingular : family.unitPlural} bis ${nextTier}`}</p>
           {selectedStage ? <p className={chainStyles.visuallyHidden}>Vorschau der bereits erreichten Stufe {tierLabel(heroStage.badge_code)}. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
         </div>
       </div>
-      <ol className={chainStyles.contributionTierTrack} aria-label={`Stufen für ${family.label}`}>
+      <ol className={`${contributionAchievementStageStyles.contributionTierTrack} ${chainStyles.contributionTierTrack}`} aria-label={`Stufen für ${family.label}`}>
         {family.stages.map((stage) => {
           const current = stage.badge_code === currentCode
           const selected = (selectedCode ?? currentCode) === stage.badge_code
@@ -523,7 +525,7 @@ function ContributionAchievementStage({ family }: { family: MemberBadgeFamilyPre
           const StageIcon = stagePresentation.Icon
           const tier = tierLabel(stage.badge_code)
           const state = current ? 'Aktuell' : stage.earned ? '' : 'Gesperrt'
-          const content = <>{stage.earned ? <span className={chainStyles.contributionTierArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={chainStyles.contributionTierArtwork} />}<span className={chainStyles.contributionTierName}>{tier}</span><span className={chainStyles.contributionTierState}>{state === 'Gesperrt' ? <Lock size={12} aria-hidden="true" /> : null}{state}</span></>
+          const content = <>{stage.earned ? <span className={contributionAchievementStageStyles.contributionTierArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={contributionAchievementStageStyles.contributionTierArtwork} />}<span className={contributionAchievementStageStyles.contributionTierName}>{tier}</span><span className={contributionAchievementStageStyles.contributionTierState}>{state === 'Gesperrt' ? <Lock size={12} aria-hidden="true" /> : null}{state}</span></>
           return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned ? <button type="button" aria-label={`${tier} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${tier} · Gesperrt`}>{content}</span>}</li>
         })}
       </ol>
@@ -547,37 +549,37 @@ function MembershipStage({ family }: { family: MemberBadgeFamilyPresentation }) 
   const nextLabel = family.nextStage ? `${family.nextStage.threshold} Jahre` : null
 
   return (
-    <Card className={chainStyles.membershipStage} data-family={family.key} data-membership-stage>
-      <div className={chainStyles.membershipStageHero}>
-        <span className={chainStyles.membershipHeroArtwork} data-membership-art={heroStage.badge_code}>
+    <Card className={`${membershipStageStyles.membershipStage} ${chainStyles.membershipStage}`} data-family={family.key} data-membership-stage>
+      <div className={membershipStageStyles.membershipStageHero}>
+        <span className={membershipStageStyles.membershipHeroArtwork} data-membership-art={heroStage.badge_code}>
           {currentCode || foundingPreview ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}
         </span>
-        <div className={chainStyles.membershipStageInfo} aria-live="polite">
-          <h3 className={chainStyles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h3>
-          <div className={chainStyles.membershipStageStatus}><Badge variant={currentCode || foundingPreview ? presentation.variant : 'muted'}>{foundingPreview ? 'Gründungsmitglied' : presentation.label}</Badge><Badge variant={foundingPreview || selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{foundingPreview || selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
-          {foundingPreview ? <p className={chainStyles.membershipHeroDescription}>Seit der Gründung dabei</p> : null}
-          <strong className={chainStyles.membershipStageCount}>{count} {count === 1 ? family.unitSingular : family.unitPlural}</strong>
-          <div className={chainStyles.membershipProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
-          <div role="progressbar" aria-label="Fortschritt für Mitgliedschaft" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={chainStyles.membershipProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
-          <p className={chainStyles.membershipStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? 'Jahr' : 'Jahre'} bis ${nextLabel}`}</p>
+        <div className={membershipStageStyles.membershipStageInfo} aria-live="polite">
+          <h3 className={membershipStageStyles.membershipHeroTitle}>{foundingPreview ? 'Besondere Mitgliedschaft' : 'Mitgliedsdauer'}</h3>
+          <div className={membershipStageStyles.membershipStageStatus}><Badge variant={currentCode || foundingPreview ? presentation.variant : 'muted'}>{foundingPreview ? 'Gründungsmitglied' : presentation.label}</Badge><Badge variant={foundingPreview || selectedStage ? 'info' : currentCode ? 'success' : 'muted'}>{foundingPreview || selectedStage ? 'Vorschau' : currentCode ? 'Aktuell' : 'Gesperrt'}</Badge></div>
+          {foundingPreview ? <p className={membershipStageStyles.membershipHeroDescription}>Seit der Gründung dabei</p> : null}
+          <strong className={membershipStageStyles.membershipStageCount}>{count} {count === 1 ? family.unitSingular : family.unitPlural}</strong>
+          <div className={membershipStageStyles.membershipProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label="Fortschritt für Mitgliedschaft" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={membershipStageStyles.membershipProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
+          <p className={membershipStageStyles.membershipStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} ${family.remainingCount === 1 ? 'Jahr' : 'Jahre'} bis ${nextLabel}`}</p>
           {foundingPreview || selectedStage ? <p className={chainStyles.visuallyHidden}>Vorschau einer bereits erreichten Mitgliedschaftsauszeichnung. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
         </div>
       </div>
-      <ol className={chainStyles.membershipDurationTrack} aria-label="Dauerstufen der Mitgliedschaft" data-membership-duration-track>
+      <ol className={membershipStageStyles.membershipDurationTrack} aria-label="Dauerstufen der Mitgliedschaft" data-membership-duration-track>
         {family.stages.map((stage) => {
           const current = stage.badge_code === currentCode
           const selected = stage.badge_code === selectedCode || (selectedCode === null && current)
           const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
           const StageIcon = getMemberBadgePresentation(stage.badge_code).Icon
           const label = `${stage.threshold} Jahre Mitgliedschaft`
-          const content = <>{stage.earned ? <span className={chainStyles.membershipStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={chainStyles.membershipStageArtwork} />}<span className={chainStyles.membershipStageName}>{stage.threshold} Jahre</span><span className={chainStyles.membershipStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
+          const content = <>{stage.earned ? <span className={membershipStageStyles.membershipStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={stage.badge_code} /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={membershipStageStyles.membershipStageArtwork} />}<span className={membershipStageStyles.membershipStageName}>{stage.threshold} Jahre</span><span className={membershipStageStyles.membershipStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
           return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-threshold={stage.threshold} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned ? <button type="button" aria-label={`${label} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${label} · Gesperrt`}>{content}</span>}</li>
         })}
       </ol>
-      {family.foundingStage ? <aside className={chainStyles.foundingMemberPanel} data-founding-member aria-label="Besondere Mitgliedschaft">
-        <button type="button" className={chainStyles.foundingMemberButton} aria-label="Gründungsmitglied Vorschau" aria-pressed={foundingPreview} onClick={() => setSelectedCode(foundingPreview ? null : family.foundingStage!.badge_code)}>
-          <span className={chainStyles.foundingMemberArtwork}>{!foundingPreview && resolveBadgeArtwork(family.foundingStage.badge_code) ? <ResponsiveImage src={resolveBadgeArtwork(family.foundingStage.badge_code)!} alt="" width={192} height={192} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={family.foundingStage.badge_code} /> : null}</span>
-          <span className={chainStyles.foundingMemberCopy}><strong>Besondere Mitgliedschaft</strong><span className={chainStyles.foundingMemberLabel}>Gründungsmitglied</span><span className={chainStyles.foundingMemberDescription}>Seit der Gründung dabei</span></span>
+      {family.foundingStage ? <aside className={membershipStageStyles.foundingMemberPanel} data-founding-member aria-label="Besondere Mitgliedschaft">
+        <button type="button" className={membershipStageStyles.foundingMemberButton} aria-label="Gründungsmitglied Vorschau" aria-pressed={foundingPreview} onClick={() => setSelectedCode(foundingPreview ? null : family.foundingStage!.badge_code)}>
+          <span className={membershipStageStyles.foundingMemberArtwork}>{!foundingPreview && resolveBadgeArtwork(family.foundingStage.badge_code) ? <ResponsiveImage src={resolveBadgeArtwork(family.foundingStage.badge_code)!} alt="" width={192} height={192} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" data-achievement-art={family.foundingStage.badge_code} /> : null}</span>
+          <span className={membershipStageStyles.foundingMemberCopy}><strong>Besondere Mitgliedschaft</strong><span className={membershipStageStyles.foundingMemberLabel}>Gründungsmitglied</span><span className={membershipStageStyles.foundingMemberDescription}>Seit der Gründung dabei</span></span>
         </button>
       </aside> : null}
     </Card>

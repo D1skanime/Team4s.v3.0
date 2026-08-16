@@ -1949,100 +1949,30 @@
 .animeProjectMilestones .currentChip { position: static; transform: none; }
 @container (max-width: 700px) { .animeProjectMilestones .currentChip { font-size: .62rem; } }
 
-/* Phase 125: Contribution families keep the outer carousel and use a static three-tier Stage. */
-.contributionAchievementStage { display: grid; width: 100%; min-width: 0; max-width: 1120px; margin-inline: auto; gap: var(--space-4); padding: var(--space-4) var(--space-5); overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-.contributionStageTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.contributionStageHero { display: grid; grid-template-columns: minmax(200px, 300px) minmax(0, 1fr); align-items: center; gap: clamp(var(--space-4), 3vw, var(--space-6)); }
-.contributionHeroArtwork{ display: grid; place-items: center; width: min(100%, 300px); aspect-ratio:1; justify-self: center; }
-.contributionHeroArtwork>img{ width: 100%; height: 100%; object-fit:contain; }
-.contributionStageInfo { display: grid; min-width: 0; max-width: 100%; gap: 12px; }
-.contributionStageStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.contributionStageCount { color: var(--text-primary); font-size: clamp(1.5rem, 2.5vw, 2.6rem); line-height: 1.1; }
-.contributionStageProgressValue { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; color: var(--text-secondary); font-weight: 800; }
-.contributionStageProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
-.contributionStageProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
-.contributionStageNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
-.contributionTierTrack{ display: grid; grid-template-columns:repeat(3,minmax(0,1fr)); min-width: 0; margin: 0; padding: 16px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
-.contributionTierTrack li { min-width: 0; text-align: center; }
-.contributionTierTrack button, .contributionTierTrack li > span { display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; min-width: 0; padding: 6px; border: 0; border-radius: var(--radius-md); color: var(--text-primary); background: transparent; font: inherit; }
-.contributionTierTrack button { cursor: pointer; }
-.contributionTierTrack button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 2px; }
-.contributionTierArtwork { display: grid; place-items: center; width: min(128px, 100%); aspect-ratio: 1; }
-.contributionTierArtwork > img { width: 100%; height: 100%; object-fit: contain; }
-.contributionTierName { font-size: .8rem; font-weight: 800; }
-.contributionTierState { display: inline-flex; align-items: center; gap: 3px; color: var(--text-secondary); font-size: .72rem; font-weight: 750; }
-.contributionTierTrack [data-stage-state='locked'] { opacity: .56; filter: saturate(.3); }
-.contributionTierTrack [data-stage-state='current'] { color: var(--color-primary); }
-.contributionTierTrack [data-stage-state='current'] .contributionTierArtwork { border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
-.contributionTierTrack [aria-pressed='true'] { background: color-mix(in srgb, var(--color-primary) 9%, transparent); }
+/* Plan 133-07: .contributionAchievementStage/.contributionStageHero/.contributionStageTitle/
+   .contributionStageInfo/.contributionTierTrack/.contributionHeroArtwork moved to
+   ContributionAchievementStage.module.css, but .group/.badgeWindow/.badgeWindowActive/.chain stay
+   chainStyles-local (ancestor stayed, descendant moved), so these compound overrides must stay here
+   too -- same CSS-Modules per-file scoping trap documented in Plan 133-04's SUMMARY. The JSX now
+   applies both the new module's class and this file's chainStyles class to the affected Card
+   root/title/info/hero/heroArtwork/tierTrack elements so these rules keep matching. */
 .group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionAchievementStage { place-content: center; padding: 0; }
 .group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) :is(.contributionStageTitle, .contributionStageInfo, .contributionTierTrack) { display: none; }
 .group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionStageHero { grid-template-columns: minmax(0, 1fr); width: 100%; }
 .group[data-badge-group='contributions'] .badgeWindow:not(.badgeWindowActive) .contributionHeroArtwork { width: min(100%, 144px); opacity: .58; }
 
 .group[data-badge-group='contributions'] [data-carousel-expanded='true'] .contributionAchievementStage { max-width: none; transform: none; }
-@media (max-width: 900px) { .contributionStageHero { grid-template-columns: minmax(0, 1fr); gap: 14px; } .contributionHeroArtwork { width: min(100%, 300px); } }
 @container member-badge-carousel (max-width: 1100px) {
   .group[data-badge-group='contributions'] .chain { --focal-item-size: 88%; }
-  .contributionAchievementStage { gap: var(--space-3); padding: var(--space-4); }
-  .contributionStageHero { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
-  .contributionHeroArtwork { width: min(100%, 220px); }
-  .contributionTierArtwork { width: min(96px, 100%); }
 }
 @container member-badge-carousel (min-width: 640px) and (max-width: 1100px) {
   .badgeWindowActive .contributionStageHero { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); }
   .badgeWindowActive .contributionHeroArtwork { width: min(100%, 220px); }
 }
-@media (max-width: 520px) { .contributionAchievementStage { gap: var(--space-3); padding: var(--space-3) var(--space-2); } .contributionHeroArtwork { width: min(100%, 200px); } .contributionStageCount { font-size: 1.5rem; } .contributionTierArtwork { width: min(80px, 100%); } }
-@media (prefers-reduced-motion: reduce) { .contributionStageProgressTrack > span { transition: none; } }
-
-/* Phase 126: membership duration and founding are independent presentation axes. */
-.membershipStage { display: grid; width: 100%; min-width: 0; max-width: 1760px; margin-inline: auto; gap: clamp(18px, 2.4vw, 32px); padding: clamp(18px, 2.4vw, 36px); overflow: hidden; background: radial-gradient(circle at 20% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 40%), var(--surface-card); }
-.membershipStageTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.membershipStageHero { display: grid; grid-template-columns: minmax(260px, 43%) minmax(0, 57%); align-items: center; gap: clamp(24px, 5vw, 80px); }
-.membershipHeroArtwork { display: grid; place-items: center; width: min(100%, 520px); aspect-ratio: 1; justify-self: center; }
-.membershipHeroArtwork > img { width: 100%; height: 100%; object-fit: contain; }
-.membershipStageInfo { display: grid; min-width: 0; gap: 14px; }
-.membershipHeroTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.membershipHeroDescription { margin: -4px 0 0; color: var(--text-secondary); font-weight: 700; }
-.membershipStageStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.membershipStageCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 3rem); line-height: 1.1; }
-.membershipProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
-.membershipProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
-.membershipProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
-.membershipStageNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
-.membershipDurationTrack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); min-width: 0; margin: 0; padding: 16px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
-.membershipDurationTrack li { min-width: 0; text-align: center; }
-.membershipDurationTrack button, .membershipDurationTrack li > span { display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; min-width: 0; padding: 6px; border: 0; border-radius: var(--radius-md); color: var(--text-primary); background: transparent; font: inherit; }
-.membershipDurationTrack button { cursor: pointer; }
-.membershipDurationTrack button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 2px; }
-.membershipStageArtwork { display: grid; place-items: center; width: min(128px, 100%); aspect-ratio: 1; }
-.membershipStageArtwork > img { width: 100%; height: 100%; object-fit: contain; }
-.membershipStageName { min-width: 0; overflow-wrap: anywhere; font-size: .8rem; font-weight: 800; }
-.membershipStageState { display: inline-flex; align-items: center; gap: 3px; color: var(--text-secondary); font-size: .72rem; font-weight: 750; }
-.membershipDurationTrack [data-stage-state='locked'] { opacity: .56; filter: saturate(.3); }
-.membershipDurationTrack [data-stage-state='current'] { color: var(--color-primary); }
-.membershipDurationTrack [data-stage-state='current'] .membershipStageArtwork { border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
-.membershipDurationTrack [aria-pressed='true'] { background: color-mix(in srgb, var(--color-primary) 9%, transparent); }
-.foundingMemberPanel { min-width: 0; }
-.foundingMemberButton { display: grid; grid-template-columns: minmax(72px, 112px) minmax(0, 1fr); align-items: center; gap: 16px; width: 100%; min-width: 0; padding: 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); color: var(--text-primary); background: color-mix(in srgb, var(--surface-card-muted) 78%, transparent); font: inherit; text-align: left; cursor: pointer; }
-.foundingMemberButton:hover { border-color: color-mix(in srgb, var(--color-primary) 48%, var(--border-subtle)); background: color-mix(in srgb, var(--color-primary) 8%, var(--surface-card-muted)); }
-.foundingMemberButton:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 3px; }
-.foundingMemberButton[aria-pressed='true'] { border-color: var(--color-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 18%, transparent); }
-.foundingMemberArtwork { display: grid; place-items: center; width: 100%; aspect-ratio: 1; }
-.foundingMemberArtwork > img { width: 100%; height: 100%; object-fit: contain; }
-.foundingMemberCopy { display: grid; min-width: 0; gap: 4px; }
-.foundingMemberLabel { color: var(--text-secondary); }
-.foundingMemberDescription { color: var(--text-secondary); font-size: .85rem; }
-@media (max-width: 900px) { .membershipStageHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .membershipHeroArtwork { width: min(100%, 360px); } }
-@media (max-width: 520px) { .membershipStage { gap: 16px; padding: 16px 10px; } .membershipHeroArtwork { width: min(100%, 280px); } .membershipStageCount { font-size: 1.65rem; } .membershipStageArtwork { width: min(88px, 100%); } .membershipDurationTrack button, .membershipDurationTrack li > span { padding-inline: 2px; } .membershipStageName { font-size: .68rem; } .membershipStageState { font-size: .64rem; } .foundingMemberButton { grid-template-columns: 76px minmax(0, 1fr); padding: 12px; } }
-@media (prefers-reduced-motion: reduce) { .membershipProgressTrack > span { transition: none; } }
 
 
 /* Quick 260812-kr1: the section canvas owns the large achievement surface. */
-.roleBadgeRow,
-.contributionAchievementStage,
-.membershipStage {
+.roleBadgeRow {
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -2050,8 +1980,9 @@
 }
 
 /* The section qualifier wins over the global Card surface regardless of CSS injection order.
-   Plan 133-07: kept listing all five selectors even after .animeProjectStage/.pointsAchievementStage
-   extracted to their own CSS modules -- .group[data-badge-group] is chainStyles-local, so a literal
+   Plan 133-07: kept listing all five selectors even after .animeProjectStage/.pointsAchievementStage/
+   .contributionAchievementStage/.membershipStage extracted to their own CSS modules --
+   .group[data-badge-group] is chainStyles-local, so a literal
    per-file split of this compound selector would hash .group to a value the DOM never carries in the
    new modules, silently dropping this "wins regardless of injection order" guarantee (same
    CSS-Modules per-file scoping trap documented in Plan 133-04's SUMMARY). Each extracted stage's Card

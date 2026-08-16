@@ -12,6 +12,8 @@ const lockedStageArtworkCss = readFileSync('src/components/profile/LockedStageAr
 const layeredBadgeArtworkCss = readFileSync('src/components/profile/LayeredBadgeArtwork.module.css', 'utf8')
 const animeProjectStageCss = readFileSync('src/components/profile/AnimeProjectStage.module.css', 'utf8')
 const pointsAchievementStageCss = readFileSync('src/components/profile/PointsAchievementStage.module.css', 'utf8')
+const contributionAchievementStageCss = readFileSync('src/components/profile/ContributionAchievementStage.module.css', 'utf8')
+const membershipStageCss = readFileSync('src/components/profile/MembershipStage.module.css', 'utf8')
 
 function expectDisplayImageSource(image: Element | null, expectedSource: string) {
   const src = image?.getAttribute('src')
@@ -317,10 +319,10 @@ describe('Phase 125 contribution achievement stages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Alle Auszeichnungen in Beiträge anzeigen' }))
     expect(Array.from(container.querySelectorAll('[data-contribution-achievement-stage]')).map(shape)).toEqual(before)
     expect(container.querySelectorAll('[data-badge-skeleton]')).toHaveLength(0)
-    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionTierTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s)
-    expect(memberBadgeChainCss).not.toMatch(/\.contributionTierTrack\s*\{[^}]*(scroll-snap|overflow-x)/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionTierTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s)
+    expect(contributionAchievementStageCss).not.toMatch(/\.contributionTierTrack\s*\{[^}]*(scroll-snap|overflow-x)/s)
   })
 })
 
@@ -1840,15 +1842,15 @@ describe('Phase 126 membership stage', () => {
   })
 
   it('uses stable three-column contain geometry', () => {
-    expect(memberBadgeChainCss).toMatch(/\.membershipStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.membershipHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(memberBadgeChainCss).toMatch(/\.membershipHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(memberBadgeChainCss).toMatch(/\.membershipDurationTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.membershipStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(memberBadgeChainCss).toMatch(/\.membershipStageArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(memberBadgeChainCss).toMatch(/@media\s*\(max-width:\s*900px\)[\s\S]*?\.membershipStageHero/s)
-    expect(memberBadgeChainCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.membership/s)
-    const trackRule = memberBadgeChainCss.match(/\.membershipDurationTrack\s*\{[^}]*\}/s)?.[0] ?? ''
+    expect(membershipStageCss).toMatch(/\.membershipStage\s*\{[^}]*min-width:\s*0;/s)
+    expect(membershipStageCss).toMatch(/\.membershipHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(membershipStageCss).toMatch(/\.membershipHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(membershipStageCss).toMatch(/\.membershipDurationTrack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);[^}]*min-width:\s*0;/s)
+    expect(membershipStageCss).toMatch(/\.membershipStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(membershipStageCss).toMatch(/\.membershipStageArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(membershipStageCss).toMatch(/@container\s*\(max-width:\s*900px\)[\s\S]*?\.membershipStageHero/s)
+    expect(membershipStageCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.membership/s)
+    const trackRule = membershipStageCss.match(/\.membershipDurationTrack\s*\{[^}]*\}/s)?.[0] ?? ''
     expect(trackRule).not.toMatch(/overflow-x|scroll-snap|touch-action/)
   })
 
@@ -1998,9 +2000,9 @@ describe('Quick 260812-rps responsive BadgeChain contract', () => {
 describe('Quick 260812-rps medium contribution carousel geometry', () => {
   it('gives the active card usable width and stacks its hero before copy is squeezed', () => {
     expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.group\[data-badge-group=['"]contributions['"]\] \.chain\s*\{[^}]*--focal-item-size:\s*88%;/s)
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionStageInfo\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionStageProgressValue\s*\{[^}]*flex-wrap:\s*wrap;/s)
+    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionStageInfo\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionStageProgressValue\s*\{[^}]*flex-wrap:\s*wrap;/s)
     expect(memberBadgeChainCss).not.toMatch(/\.group\[data-badge-group=['"]contributions['"]\][^}]*overflow:\s*hidden/s)
   })
 
@@ -2010,19 +2012,19 @@ describe('Quick 260812-jtp BadgeChain rhythm ownership', () => {
     expect(memberBadgeChainCss).toMatch(/\.groupList\s*\{[^}]*gap:\s*var\(--space-5\);/s)
     expect(memberBadgeChainCss).toMatch(/\.group\s*\{[^}]*gap:\s*var\(--space-2\);/s)
     expect(memberBadgeChainCss).toMatch(/\.familyCard\s*\{[^}]*padding:\s*24px;/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*aspect-ratio:\s*1;/s)
   })
 
 describe('Quick 260812-jtp contribution card density', () => {
   it('keeps the contribution stage content-sized across embedded widths', () => {
-    expect(memberBadgeChainCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-4\);[^}]*padding:\s*var\(--space-4\) var\(--space-5\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(200px,\s*300px\) minmax\(0,\s*1fr\);[^}]*gap:\s*clamp\(var\(--space-4\),\s*3vw,\s*var\(--space-6\)\);/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*300px\);[^}]*aspect-ratio:\s*1;/s)
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-3\);[^}]*padding:\s*var\(--space-4\);/s)
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*220px\);/s)
-    expect(memberBadgeChainCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionTierArtwork\s*\{[^}]*width:\s*min\(96px,\s*100%\);/s)
-    expect(memberBadgeChainCss).not.toMatch(/\.contributionAchievementStage\s*\{[^}]*min-height:/s)
-    expect(memberBadgeChainCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-4\);[^}]*padding:\s*var\(--space-4\) var\(--space-5\);/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(200px,\s*300px\) minmax\(0,\s*1fr\);[^}]*gap:\s*clamp\(var\(--space-4\),\s*3vw,\s*var\(--space-6\)\);/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*300px\);[^}]*aspect-ratio:\s*1;/s)
+    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionAchievementStage\s*\{[^}]*gap:\s*var\(--space-3\);[^}]*padding:\s*var\(--space-4\);/s)
+    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,\s*220px\);/s)
+    expect(contributionAchievementStageCss).toMatch(/@container member-badge-carousel \(max-width:\s*1100px\)[\s\S]*?\.contributionTierArtwork\s*\{[^}]*width:\s*min\(96px,\s*100%\);/s)
+    expect(contributionAchievementStageCss).not.toMatch(/\.contributionAchievementStage\s*\{[^}]*min-height:/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
     expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group=['"]contributions['"]\] \.badgeWindow:not\(\.badgeWindowActive\) \.contributionAchievementStage\s*\{[^}]*place-content:\s*center;[^}]*padding:\s*0;/s)
     expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group=['"]contributions['"]\] \.badgeWindow:not\(\.badgeWindowActive\) :is\(\.contributionStageTitle, \.contributionStageInfo, \.contributionTierTrack\)\s*\{[^}]*display:\s*none;/s)
     expect(memberBadgeChainCss).toMatch(/\.group\[data-badge-group=['"]contributions['"]\] \.badgeWindow:not\(\.badgeWindowActive\) \.contributionStageHero\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);[^}]*width:\s*100%;/s)
@@ -2036,33 +2038,31 @@ describe('Quick 260812-jtp contribution card density', () => {
 })
 
 describe('Quick 260812-kr1 transparent achievement stages', () => {
-  const stageSelectors = ['.roleBadgeRow', '.contributionAchievementStage', '.membershipStage']
-
-  it('keeps one final profile-local rule authoritative for every large hero wrapper not yet extracted to its own module', () => {
-    const groupedRulePattern = new RegExp(
-      stageSelectors.map((selector) => selector.replace('.', '\\.')).join('\\s*,\\s*') +
-        '\\s*\\{[^}]*border:\\s*0;[^}]*border-radius:\\s*0;[^}]*background:\\s*transparent;[^}]*box-shadow:\\s*none;',
-      's',
-    )
+  it('keeps one final profile-local rule authoritative for the one large hero wrapper never extracted to its own module', () => {
+    const groupedRulePattern = /\.roleBadgeRow\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s
     const groupedRule = memberBadgeChainCss.match(groupedRulePattern)
     expect(groupedRule).not.toBeNull()
     expect(memberBadgeChainCss.slice((groupedRule?.index ?? 0) + (groupedRule?.[0].length ?? 0))).not.toMatch(/\.(?:roleBadgeRow|animeProjectStage|pointsAchievementStage|contributionAchievementStage|membershipStage)\s*\{[^}]*(?:background:\s*var\(--surface-card\)|border:\s*1px|border-radius:\s*var\(|box-shadow:\s*var\()/s)
   })
 
-  it('keeps the same no-card-surface declaration on the extracted anime-project/points Card roots', () => {
+  it('keeps the same no-card-surface declaration on every extracted stage Card root', () => {
     expect(animeProjectStageCss).toMatch(/\.animeProjectStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
     expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/s)
+    expect(membershipStageCss).toMatch(/\.membershipStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
   })
 
   it('retains responsive ownership and bounded hero media without document-level clipping', () => {
     expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
     expect(animeProjectStageCss).toMatch(/\.animeProjectStage\s*\{[^}]*min-width:\s*0;/s)
     expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.(?:contributionAchievementStage|membershipStage)\s*\{[^}]*min-width:\s*0;/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionAchievementStage\s*\{[^}]*min-width:\s*0;/s)
+    expect(membershipStageCss).toMatch(/\.membershipStage\s*\{[^}]*min-width:\s*0;/s)
     expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\s*\{[^}]*min-width:\s*0;/s)
     expect(animeProjectStageCss).toMatch(/\.animeProjectArtwork\s*\{[^}]*width:\s*min\(100%,/s)
     expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
-    expect(memberBadgeChainCss).toMatch(/\.(?:contributionHeroArtwork|membershipHeroArtwork)\s*\{[^}]*width:\s*min\(100%,/s)
+    expect(contributionAchievementStageCss).toMatch(/\.contributionHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
+    expect(membershipStageCss).toMatch(/\.membershipHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
     expect(memberBadgeChainCss).not.toMatch(/(?:html|body)\s*\{[^}]*overflow-x:\s*hidden/s)
   })
 })
