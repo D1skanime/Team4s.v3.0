@@ -1,0 +1,66 @@
+.roleHeroArtworkLayered,
+.badgeArtworkLayered {
+  position: relative;
+  isolation: isolate;
+}
+
+.badgeArtworkLayered {
+  --role-accent: #17a7a5;
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMist,
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkBackdrop,
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMotif,
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkFrame {
+  position: absolute;
+  inset: 0;
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMist {
+  z-index: 0;
+  top: auto;
+  right: 8%;
+  bottom: -4%;
+  left: 8%;
+  height: 24%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    color-mix(in srgb, var(--role-accent) 48%, transparent) 0%,
+    color-mix(in srgb, var(--role-accent) 22%, transparent) 42%,
+    transparent 74%
+  );
+  filter: blur(10px);
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkBackdrop {
+  z-index: 1;
+  inset: 5%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 34%, color-mix(in srgb, white 18%, transparent), transparent 34%),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--role-accent) 88%, #16382d),
+      color-mix(in srgb, var(--role-accent) 68%, #0d261e)
+    );
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMotif {
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  clip-path: circle(36% at 50% 45%);
+}
+
+.badgeArtworkLayered .roleArtworkMotif {
+  clip-path: circle(40% at 50% 50%);
+}
+
+:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkFrame {
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

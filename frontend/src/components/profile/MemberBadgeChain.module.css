@@ -653,66 +653,6 @@
   background: transparent;
 }
 
-.roleHeroArtworkLayered,
-.badgeArtworkLayered {
-  position: relative;
-  isolation: isolate;
-}
-
-.badgeArtworkLayered {
-  --role-accent: #17a7a5;
-}
-
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMist,
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkBackdrop,
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMotif,
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkFrame {
-  position: absolute;
-  inset: 0;
-}
-
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMist {
-  z-index: 0;
-  top: auto;
-  right: 8%;
-  bottom: -4%;
-  left: 8%;
-  height: 24%;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse at 50% 50%,
-    color-mix(in srgb, var(--role-accent) 48%, transparent) 0%,
-    color-mix(in srgb, var(--role-accent) 22%, transparent) 42%,
-    transparent 74%
-  );
-  filter: blur(10px);
-}
-
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkBackdrop {
-  z-index: 1;
-  inset: 5%;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 42% 34%, color-mix(in srgb, white 18%, transparent), transparent 34%),
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--role-accent) 88%, #16382d),
-      color-mix(in srgb, var(--role-accent) 68%, #0d261e)
-    );
-}
-
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkMotif {
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  clip-path: circle(36% at 50% 45%);
-}
-
-.badgeArtworkLayered .roleArtworkMotif {
-  clip-path: circle(40% at 50% 50%);
-}
-
 .roleBadgeRow:is(
     [data-role-code="designer"],
     [data-role-code="admin"],
@@ -750,13 +690,6 @@
   )
   .roleArtworkMotif {
   clip-path: circle(40% at 50% 47%);
-}
-
-:is(.roleHeroArtworkLayered, .badgeArtworkLayered) .roleArtworkFrame {
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .roleBadgeRow > *,
@@ -2157,88 +2090,6 @@
 @media (max-width: 520px) { .membershipStage { gap: 16px; padding: 16px 10px; } .membershipHeroArtwork { width: min(100%, 280px); } .membershipStageCount { font-size: 1.65rem; } .membershipStageArtwork { width: min(88px, 100%); } .membershipDurationTrack button, .membershipDurationTrack li > span { padding-inline: 2px; } .membershipStageName { font-size: .68rem; } .membershipStageState { font-size: .64rem; } .foundingMemberButton { grid-template-columns: 76px minmax(0, 1fr); padding: 12px; } }
 @media (prefers-reduced-motion: reduce) { .membershipProgressTrack > span { transition: none; } }
 
-
-.lockedStageArtwork:not(.lockedStageArtworkHero) {
-  display: grid;
-  grid-template-areas: "art";
-  place-items: center;
-  width: clamp(44px, 100%, 96px);
-  max-width: 100%;
-  aspect-ratio: 1;
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-  color: var(--text-secondary);
-  background: color-mix(in srgb, var(--surface-card) 82%, var(--border-subtle));
-}
-
-.lockedStageArtwork:not(.lockedStageArtworkHero) > * {
-  grid-area: art;
-}
-
-.lockedStageArtwork:not(.lockedStageArtworkHero) > span {
-  font-size: clamp(1.35rem, 22cqi, 2.4rem);
-  font-weight: 800;
-  line-height: 1;
-  opacity: 0.3;
-}
-
-.lockedStageArtwork:not(.lockedStageArtworkHero) > svg {
-  width: clamp(14px, 18cqi, 20px);
-  height: auto;
-}
-
-.lockedStageArtworkHero {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  place-items: center;
-  width: min(100%, 320px);
-  max-width: 100%;
-  aspect-ratio: 1;
-  gap: clamp(10px, 4cqi, 18px);
-  padding: clamp(16px, 6cqi, 28px);
-  box-sizing: border-box;
-  color: var(--text-secondary);
-}
-
-.lockedStageHeroMedal {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: min(100%, 232px);
-  aspect-ratio: 1;
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--surface-card-muted) 86%, var(--border-subtle));
-  box-shadow: var(--shadow-sm);
-}
-
-.lockedStageHeroQuestion {
-  font-size: clamp(4.5rem, 36cqi, 7.25rem);
-  font-weight: 800;
-  line-height: 1;
-  opacity: 0.42;
-}
-
-.lockedStageHeroLock {
-  position: absolute;
-  right: 16%;
-  bottom: 15%;
-  width: clamp(24px, 12cqi, 38px);
-  height: auto;
-  padding: clamp(5px, 2.5cqi, 8px);
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-  background: var(--surface-card);
-  box-shadow: var(--shadow-sm);
-}
-
-.lockedStageHeroCopy {
-  max-width: 100%;
-  font-size: clamp(.82rem, 5cqi, 1rem);
-  font-weight: 800;
-  line-height: 1.3;
-  text-align: center;
-}
 
 /* Quick 260812-kr1: the section canvas owns the large achievement surface. */
 .roleBadgeRow,
