@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 134 Plan 04 (green gate + ROADMAP/STATE reconciliation, PMQA-07); ready for Plan 05
-last_updated: "2026-08-16T14:59:50.212Z"
+stopped_at: Completed Phase 134 Plan 05 (protected-asset guard + targeted shared-DB reset/reseed, PMQA-06); ready for Plan 06
+last_updated: "2026-08-16T15:12:48.755Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 70
-  completed_plans: 42
+  completed_plans: 43
   percent: 43
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 134 (fixture-backed-verification-rollout) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-08-16
 
@@ -117,6 +117,8 @@ Last activity: 2026-08-16
 - [Phase 129]: Canonical public projections and data correctness are executed and automated-gate GREEN (11/11 plans) -- every year-only precision, current-vs-historical, role code/label, dedupe, public-facts-progress, media-filter, and dead-legacy-removal defect found in 129-RESEARCH.md is corrected and locked by a passing PostgreSQL contract test, per .planning/phases/129-canonical-public-projections-data-correctness/129-VERIFICATION.md.
 - [Phase 130]: The public DTO/OpenAPI/TypeScript/api.ts contract alignment is executed (7/7 plans) -- shared/contracts/openapi.yaml carries dedicated allow-listed public-member schemas (PublicMemberBadge, etc.); no separate 130-VERIFICATION.md/SUMMARY.md file exists, a real doc-completeness gap noted by 134-RESEARCH.md's Ground Truth findings, not a code gap.
 - [Phase 131]: Set-based delivery, pagination, and performance budgets are executed and locked (8/8 plans) -- profile-load SQL query count is capped at 19, and API payload/latency/Web-Vitals budgets for both sheppert and csubs-leader are captured in .planning/phases/131-set-based-delivery-pagination-performance-budgets/evidence/BUDGETS.md.
+- [Phase 134]: reset-member-profile-fixture.sh clears members.member_story_json/html/text (UPDATE, not DELETE) for the two reference members before deleting their story-image media_assets rows — that JSONB reference is invisible to Postgres FK enforcement; a stale reference would trip applyStoryImageLifecycle's IDOR check on the reseed's next PUT /me/profile
+- [Phase 134]: The three tracked badge asset directories are sha256-verified byte-identical before and after the shared team4s_v2 database reset+reseed cycle (PMQA-06), and the seed re-run prints RESULT: PASS (15/15) twice in a row afterward, proving PMQA-01's idempotent-from-clean-state claim genuinely holds
 
 ### Pending Todos
 
@@ -180,10 +182,11 @@ Last activity: 2026-08-16
 | Phase 134 P02 | 30min | 2 tasks | 3 files |
 | Phase 134 P03 | 20min | 3 tasks | 5 files |
 | Phase 134 P04 | 20min | 3 tasks | 4 files |
+| Phase 134 P05 | ~25min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T14:59:50.198Z
-Stopped at: Completed Phase 134 Plan 04 (green gate + ROADMAP/STATE reconciliation, PMQA-07); ready for Plan 05
+Last session: 2026-08-16T15:12:48.743Z
+Stopped at: Completed Phase 134 Plan 05 (protected-asset guard + targeted shared-DB reset/reseed, PMQA-06); ready for Plan 06
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None

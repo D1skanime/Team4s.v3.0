@@ -250,7 +250,7 @@ Plans:
 - [x] 134-04-PLAN.md — Scoped green gate + ROADMAP/STATE tracking reconciliation.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 134-05-PLAN.md — Protected-asset hash guard + targeted shared-DB reset/reseed.
+- [x] 134-05-PLAN.md — Protected-asset hash guard + targeted shared-DB reset/reseed.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 134-06-PLAN.md — Live UAT evidence capture + human sign-off checkpoint.
@@ -280,7 +280,7 @@ Plans:
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 8/8 | Complete | 2026-08-15 |
 | 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
-| 134. Fixture-Backed Verification & Rollout | 4/6 | In Progress | - |
+| 134. Fixture-Backed Verification & Rollout | 5/6 | In Progress | - |
 
 ---
 *Created: 2026-08-13 for milestone v1.3 Public Member Profile Hardening*
