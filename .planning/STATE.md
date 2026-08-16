@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Phase 134 Plan 01 complete (fixture manifest + story-image media step); ready for Plan 02
-last_updated: "2026-08-16T14:12:21.464Z"
+stopped_at: Completed Phase 134 Plan 02 (migration fresh/up/down proof, PMQA-03); ready for Plan 03
+last_updated: "2026-08-16T14:18:53.380Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 70
-  completed_plans: 39
+  completed_plans: 40
   percent: 43
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 134 (fixture-backed-verification-rollout) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-08-16
 
@@ -109,6 +109,8 @@ Last activity: 2026-08-16
 - [Phase 133]: capturePageMetrics() now captures pageOverflow/bodyOverflow (previously only existed in the separate phase120-mode snapshotDOM()); evaluateBudget() hard-gates on both deltas being <=0 (PMUI-01/06), completing the phase's automated overflow gate.
 - [Phase 133]: Plan 133-11's full unscoped npm test sweep (first in this phase) confirmed 11 pre-existing failures across files never touched by any Phase 133 plan are out of scope; only the MemberBadgeChain.test.tsx containe typo and missing type cast (a file already owned by earlier Phase 133 plans) were fixed. See deferred-items.md for full triage.
 - [Phase 134]: seed-member-profile-fixtures.mjs's story-image assertion and manifest field use /media/profile/ as the expected member_story_html src substring, not /media/story-images/ (the sanitizer-allowed pattern is /media/profile/{memberID}/story/{uuid}/original.ext; /media/story-images/:id is a separate resolve-by-ID endpoint used only for editor-side preview).
+- [Phase 134]: TestPhase134MigrationFreshUpDownProof registers maintPool.Close() via t.Cleanup (not a bare defer), ordered before the final teardown-drop cleanup, since t.Cleanup callbacks run after the test function's own defers return.
+- [Phase 134]: Migration 0037_add_release_decomposition_tables.down.sql was rewritten from an intentional no-op into a full reverse of its up.sql; its release_streams FK to release_variants(id) blocked migration 0035's DROP TABLE release_variants the first time the full Down chain ever ran end-to-end (PMQA-03 fresh/up/down proof).
 
 ### Pending Todos
 
@@ -169,10 +171,11 @@ Last activity: 2026-08-16
 | Phase 133 P11 | ~50min | 2 tasks | 3 files |
 | Phase 133 P12 | n/a | 2 tasks DEFERRED | 0 files |
 | Phase 134 P01 | 35min | 2 tasks | 5 files |
+| Phase 134 P02 | 30min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T14:12:21.451Z
-Stopped at: Phase 134 Plan 01 complete (fixture manifest + story-image media step); ready for Plan 02
+Last session: 2026-08-16T14:18:53.367Z
+Stopped at: Completed Phase 134 Plan 02 (migration fresh/up/down proof, PMQA-03); ready for Plan 03
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None

@@ -92,7 +92,7 @@
 
 - [x] **PMQA-01**: `sheppert` und `csubs-leader` werden durch einen versionierten, idempotenten Fixture- und Seed-Vertrag reproduzierbar erzeugt.
 - [x] **PMQA-02**: Das Fixture-Manifest dokumentiert erwartete Identität, Sichtbarkeit, Rollen, Mitgliedschaften, Projekte, Badges, Medien und Inhaltslängen.
-- [ ] **PMQA-03**: Migrationen werden auf leerer Datenbank sowie Up und Down geprüft; bestehende synthetische Zeilen werden zurückgesetzt statt migriert.
+- [x] **PMQA-03**: Migrationen werden auf leerer Datenbank sowie Up und Down geprüft; bestehende synthetische Zeilen werden zurückgesetzt statt migriert.
 - [ ] **PMQA-04**: Automatisierte Tests decken anonym, verborgen, Owner, Refresh-only, nicht vorhanden, sparse und dense, Fehler sowie Pagination ab.
 - [ ] **PMQA-05**: Live-UAT prüft beide Profile auf Mobile, Zwischenbreite und Breitbild einschließlich Tastatur, Zoom, Bilder und Ladeverhalten.
 - [ ] **PMQA-06**: Reset-, Seed- und Medienprüfungen stellen sicher, dass kanonische Ownership und getrackte Badge-Assets unverändert bleiben.
@@ -185,7 +185,7 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMA11Y-04 | Phase 133 | Complete |
 | PMQA-01 | Phase 134 | Complete |
 | PMQA-02 | Phase 134 | Complete |
-| PMQA-03 | Phase 134 | Pending |
+| PMQA-03 | Phase 134 | Complete |
 | PMQA-04 | Phase 134 | Pending |
 | PMQA-05 | Phase 134 | Pending |
 | PMQA-06 | Phase 134 | Pending |
