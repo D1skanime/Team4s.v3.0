@@ -12,6 +12,11 @@ services:
       # Several backend contract tests resolve repository migrations from the
       # repository root rather than the runtime /app path.
       - ./database/migrations:/database/migrations:ro
+      # Phase 134-03: the verification matrix reads the checked-in fixture
+      # manifest (scripts/member-profile-fixture.manifest.json) via a
+      # repository-root-relative path ("../../../scripts/..." from
+      # backend/internal/repository), mirroring the migrations mount above.
+      - ./scripts:/scripts:ro
     develop:
       watch:
         - action: sync
