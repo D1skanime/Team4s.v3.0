@@ -206,7 +206,7 @@ Plans:
 - [x] 133-08-PLAN.md — Split MemberBadgeChain CSS: family card + badge chip + 820px constant.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 133-09-PLAN.md — Split MemberBadgeChain CSS: role card de-duplication + shrink shell.
+- [x] 133-09-PLAN.md — Split MemberBadgeChain CSS: role card de-duplication + shrink shell.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 133-10-PLAN.md — Measure and lock the image-byte delivery budget.

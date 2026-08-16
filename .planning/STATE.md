@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed 133-08-PLAN.md
-last_updated: "2026-08-16T10:30:56.643Z"
+stopped_at: Completed 133-09-PLAN.md
+last_updated: "2026-08-16T11:17:57.745Z"
 last_activity: 2026-08-16
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 64
-  completed_plans: 34
+  completed_plans: 35
   percent: 29
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 133 (responsive-accessible-efficient-visual-delivery) — EXECUTING
-Plan: 8 of 12
+Plan: 9 of 12
 Status: Ready to execute
 Last activity: 2026-08-16
 
@@ -102,6 +102,8 @@ Last activity: 2026-08-16
 - [Phase 133]: MemberBadgeChain.tsx's .familyStageButton:has(.currentChip)/.familyStageButton .currentChip stay in MemberBadgeChain.module.css since .currentChip is a chainStyles-local shared utility class used at multiple other sites (roles progression, anime-project milestones); the rendered family stage button carries both badgeFamilyCardStyles.familyStageButton and chainStyles.familyStageButton so both rule sets keep matching (Plan 133-08, extends the Plan 133-04/07 compound-selector-crosses-file-boundary pattern).
 - [Phase 133]: MemberBadgeChain.tsx's four badge-chip compound groups (.badgeWindowActive .badgeArtwork, six .group[data-badge-group=...] .badgeRow/.badgeArtwork/.badgeRowCompact rules, .badgeWindowActive .badgeStep) stay in MemberBadgeChain.module.css since .badgeWindowActive/.group are chainStyles-local while .badgeRow/.badgeArtwork/.badgeRowCompact/.badgeStep moved to BadgeChip.module.css; the generic badge-row render site applies dual classes at 4 JSX sites so the kept-behind rules keep matching (Plan 133-08).
 - [Phase 133]: FAMILY_CARD_COMPACT_QUERY is the single named JS constant reconciling FamilyCollectionCard's window.matchMedia scroll-centering breakpoint with BadgeFamilyCard.module.css's @container (max-width: 820px) layout breakpoint at exactly 820px, closing RESEARCH.md's magic-number duplication (Plan 133-08).
+- [Phase 133]: RoleBadgeCard's selector family was split by SELECTOR OWNERSHIP into three files (RoleBadgeCard.module.css/.status.module.css/.stages.module.css) rather than by breakpoint tier, since CSS Modules hashes class names per source file -- splitting one selector's base+breakpoint rules across multiple files would require the DOM element to carry a hash from every file simultaneously; grouping by which selectors a file owns guarantees each selector's complete rule set lives in exactly one file (Plan 133-09).
+- [Phase 133]: RoleBadgeCard.module.css/.status.module.css/.stages.module.css complete the MemberBadgeChain.module.css split (Plans 133-04/07/08/09): shell shrunk to exactly 450 lines, all 12 extracted CSS modules under the cap, 4 previously-duplicated selectors (.roleLabel/.roleBadgeRow/.roleHeroArtwork/.roleProgressTrack) each resolved to exactly one canonical declaration per UI-SPEC.md's locked table.
 
 ### Pending Todos
 
@@ -157,10 +159,11 @@ Last activity: 2026-08-16
 | Phase 133 P06 | 15min | 2 tasks | 2 files |
 | Phase 133 P07 | 35min | 2 tasks | 7 files |
 | Phase 133 P08 | 25min | 2 tasks | 6 files |
+| Phase 133 P09 | 75min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T10:30:56.629Z
-Stopped at: Completed 133-08-PLAN.md
+Last session: 2026-08-16T11:17:57.730Z
+Stopped at: Completed 133-09-PLAN.md
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
 Resume file: None

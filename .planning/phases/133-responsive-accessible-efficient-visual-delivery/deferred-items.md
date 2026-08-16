@@ -42,3 +42,15 @@ None of these assert CSS selectors moved by 133-04; all assert unrelated DOM str
 - **Confirmed pre-existing:** `git status --short` shows `MemberBadgeChain.tsx` untouched by this plan (133-05 only modifies `frontend/src/components/ui/FocalCarousel.tsx`/`.test.tsx`); `git log -- frontend/src/components/profile/MemberBadgeChain.tsx` shows the file's last commit is `962a0e30` (Plan 133-04), which predates 133-05.
 - **Scope decision:** Out of scope for 133-05 (FocalCarousel-only). Not auto-fixed per SCOPE BOUNDARY.
 - **Suggested follow-up:** Whichever later plan next touches `page.test.tsx`'s source-string assertions for `MemberBadgeChain.tsx` (likely 133-07/08/09) should update the expected string to `chainStyles.familyCard`.
+
+## Pre-existing test failures confirmed still present after 133-09 (MemberBadgeChain.module.css split complete)
+
+Plan 133-09 completed the `MemberBadgeChain.module.css` split (extracting `RoleBadgeCard.module.css`/`.status.module.css`/`.stages.module.css`, the final and largest remaining chunk) and confirmed, via re-running the full suite before/after, that the same 5 tests already failing since Plan 133-04 (documented above) remain unchanged:
+
+- `MemberBadgeChain > renders the generated contribution artwork without a fallback icon` (the already-documented `containe`/`container` TS2552 typo)
+- `MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy`
+- `MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable`
+- `MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups`
+- `Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant`
+
+None of these assert CSS selectors 133-09 touched (all role-card CSS-source-locking assertions were repointed and pass). Broader `src/components/profile/` + `src/app/members/` sweep: 345/355 passing, exactly matching Plan 133-08's baseline (the still-open `MembershipsSection.test.tsx` `auto-fit` grid-strategy lock is unrelated and unchanged). Not auto-fixed per SCOPE BOUNDARY — none of these 5 are in 133-09's `files_modified`. These are the last remaining pre-existing `MemberBadgeChain.test.tsx`/`Phase 120` failures logged in this file; a dedicated cleanup plan (outside Phase 133, since the milestone's badge-chain CSS split is now fully complete) should reconcile the `containe` typo (trivial rename) and the 4 DOM/heading-content/SSR assertions against current render output.
