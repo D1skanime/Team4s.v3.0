@@ -1936,70 +1936,18 @@
   aspect-ratio: 1;
   height: auto;
 }
-/* Phase 123: single-family Anime-Projekte stage, deliberately independent of FocalCarousel. */
-.animeProjectStage { display: grid; gap: 22px; width: 100%; min-width: 0; padding: clamp(18px, 2.4vw, 32px); overflow: hidden; background: radial-gradient(circle at 18% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%), var(--surface-card); }
-.animeProjectTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.animeProjectHero { display: grid; grid-template-columns: minmax(240px, 340px) minmax(0, 1fr); align-items: center; gap: clamp(24px, 5vw, 72px); }
-.animeProjectArtwork { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; }
-.animeProjectArtwork > img { width: 100%; height: 100%; object-fit: contain; }
+/* Plan 133-07: .animeProjectArtwork/.animeProjectMilestones moved to AnimeProjectStage.module.css,
+   but .roleArtworkMist/.roleArtworkBackdrop/.roleArtworkMotif (Plan 133-04) and .currentChip stay
+   chainStyles-local, so these compound overrides (ancestor moved, descendant stayed) must stay here
+   too -- same CSS-Modules per-file selector-hashing trap documented in Plan 133-04's SUMMARY. The
+   JSX now applies both the new module's class and this file's chainStyles class to the affected
+   elements so these rules keep matching. */
 .animeProjectArtwork .roleArtworkMist,
 .animeProjectArtwork .roleArtworkBackdrop { display: none; }
 .animeProjectArtwork .roleArtworkMotif { inset: 0; width: 100%; height: 100%; clip-path: circle(30% at 50% 46%); object-fit: contain; transform: none; }
 .animeProjectArtwork[data-anime-project-art='first_contribution'] .roleArtworkMotif { inset: 6%; width: auto; height: auto; clip-path: none; }
-.animeProjectInfo { display: grid; min-width: 0; gap: 14px; }
-.animeProjectStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.animeProjectCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 2.7rem); line-height: 1.1; }
-.animeProjectProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
-.animeProjectProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
-.animeProjectProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
-.animeProjectNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
-.animeProjectMilestones { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 18px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
-.animeProjectMilestones::before { content: ''; position: absolute; top: 41px; left: 12.5%; right: 12.5%; height: 2px; background: var(--border-strong); }
-.animeProjectMilestones li { position: relative; z-index: 1; min-width: 0; text-align: center; }
-.animeProjectMilestones button, .animeProjectMilestones li > span { display: grid; justify-items: center; gap: 5px; width: 100%; min-width: 0; padding: 0 4px; border: 0; color: var(--text-primary); background: transparent; font: inherit; }
-.animeProjectMilestones button { cursor: pointer; border-radius: var(--radius-md); }
-.animeProjectMilestones button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
-.animeProjectMarker { display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--border-strong); border-radius: 50%; color: var(--text-secondary); background: var(--surface-card); }
-.animeProjectMilestones [data-stage-state='earned'] .animeProjectMarker { border-color: var(--color-success); color: var(--color-success); }
-.animeProjectMilestones [data-stage-state='current'] .animeProjectMarker { border: 3px double var(--color-primary); color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent); }
-.animeProjectMilestones [data-stage-state='locked'] { color: var(--text-secondary); opacity: .62; }
-.animeProjectMilestoneName { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 800; }
-.animeProjectThreshold { color: var(--text-secondary); font-size: .76rem; font-weight: 800; }
 .animeProjectMilestones .currentChip { position: static; transform: none; }
-@media (max-width: 700px) { .animeProjectStage { gap: 18px; padding: 16px 12px; } .animeProjectHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .animeProjectArtwork { width: min(100%, 280px); justify-self: center; } .animeProjectCount { font-size: 1.65rem; } .animeProjectMilestones { margin-inline: -4px; } .animeProjectMilestoneName { font-size: .68rem; } .animeProjectThreshold { font-size: .7rem; } .animeProjectMilestones .currentChip { font-size: .62rem; } }
-@media (prefers-reduced-motion: reduce) { .animeProjectProgressTrack > span { transition: none; } }
-
-/* Phase 124: point milestones reuse the profile-local Stage composition without carousel mechanics. */
-.pointsAchievementStage { display: grid; width: 100%; min-width: 0; max-width: 1760px; margin-inline: auto; gap: clamp(18px, 2.4vw, 32px); padding: clamp(18px, 2.4vw, 36px); overflow: hidden; background: radial-gradient(circle at 20% 32%, color-mix(in srgb, var(--ach-gold) 14%, transparent), transparent 38%), var(--surface-card); }
-.pointsStageTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.pointsStageHero { display: grid; grid-template-columns: minmax(260px, 43%) minmax(0, 57%); align-items: center; gap: clamp(24px, 5vw, 80px); }
-.pointsHeroArtwork { position: relative; display: grid; place-items: center; width: min(100%, 560px); aspect-ratio: 1; justify-self: center; }
-.pointsHeroArtwork > img { width: 100%; height: 100%; object-fit: contain; }
-.pointsStageInfo { display: grid; min-width: 0; gap: 14px; }
-.pointsStageStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.pointsStageCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 3rem); line-height: 1.1; }
-.pointsProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
-.pointsProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
-.pointsProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--ach-gold)); }
-.pointsStageNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--ach-gold); color: var(--text-primary); background: color-mix(in srgb, var(--ach-gold) 8%, transparent); font-weight: 750; }
-.pointsStageTrack { position: relative; display: grid; grid-template-columns: repeat(6, minmax(132px, 1fr)); min-width: 0; margin: 0; padding: 18px 0 8px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x proximity; scrollbar-width: none; list-style: none; border-top: 1px solid var(--border-subtle); }
-.pointsStageTrack::-webkit-scrollbar { display: none; }
-.pointsStageTrack li { min-width: 0; scroll-snap-align: center; text-align: center; }
-.pointsStageTrack button, .pointsStageTrack li > span { display: grid; justify-items: center; align-content: start; gap: 5px; width: 100%; min-width: 0; padding: 6px; border: 0; border-radius: var(--radius-md); color: var(--text-primary); background: transparent; font: inherit; }
-.pointsStageTrack button { cursor: pointer; }
-.pointsStageTrack button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 2px; }
-.pointsStageArtwork { display: grid; place-items: center; width: min(116px, 100%); aspect-ratio: 1; }
-.pointsStageArtwork > img { width: 100%; height: 100%; object-fit: contain; }
-.pointsStageName { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 800; }
-.pointsStageThreshold, .pointsStageState { color: var(--text-secondary); font-size: .72rem; font-weight: 750; }
-.pointsStageState { display: inline-flex; align-items: center; gap: 3px; }
-.pointsStageTrack [data-stage-state='locked'] { opacity: .56; filter: saturate(.3); }
-.pointsStageTrack [data-stage-state='current'] { color: var(--color-primary); }
-.pointsStageTrack [data-stage-state='current'] .pointsStageArtwork { border-radius: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 24%, transparent); }
-.pointsStageTrack [aria-pressed='true'] { background: color-mix(in srgb, var(--color-primary) 9%, transparent); }
-@media (max-width: 900px) { .pointsStageHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .pointsHeroArtwork { width: min(100%, 360px); } }
-@media (max-width: 520px) { .pointsAchievementStage { gap: 16px; padding: 16px 12px; } .pointsHeroArtwork { width: min(100%, 280px); } .pointsStageCount { font-size: 1.65rem; } .pointsStageTrack { grid-template-columns: repeat(6, 112px); margin-inline: -4px; } .pointsStageArtwork { width: 88px; } }
-@media (prefers-reduced-motion: reduce) { .pointsProgressTrack > span { transition: none; } .pointsStageTrack { scroll-behavior: auto; } }
+@container (max-width: 700px) { .animeProjectMilestones .currentChip { font-size: .62rem; } }
 
 /* Phase 125: Contribution families keep the outer carousel and use a static three-tier Stage. */
 .contributionAchievementStage { display: grid; width: 100%; min-width: 0; max-width: 1120px; margin-inline: auto; gap: var(--space-4); padding: var(--space-4) var(--space-5); overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
@@ -2093,8 +2041,6 @@
 
 /* Quick 260812-kr1: the section canvas owns the large achievement surface. */
 .roleBadgeRow,
-.animeProjectStage,
-.pointsAchievementStage,
 .contributionAchievementStage,
 .membershipStage {
   border: 0;
@@ -2103,7 +2049,14 @@
   box-shadow: none;
 }
 
-/* The section qualifier wins over the global Card surface regardless of CSS injection order. */
+/* The section qualifier wins over the global Card surface regardless of CSS injection order.
+   Plan 133-07: kept listing all five selectors even after .animeProjectStage/.pointsAchievementStage
+   extracted to their own CSS modules -- .group[data-badge-group] is chainStyles-local, so a literal
+   per-file split of this compound selector would hash .group to a value the DOM never carries in the
+   new modules, silently dropping this "wins regardless of injection order" guarantee (same
+   CSS-Modules per-file scoping trap documented in Plan 133-04's SUMMARY). Each extracted stage's Card
+   root now carries BOTH its own module's class and this file's chainStyles class so this rule keeps
+   matching. */
 .group[data-badge-group] :is(
   .roleBadgeRow,
   .animeProjectStage,

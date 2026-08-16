@@ -1,0 +1,27 @@
+/* Phase 123: single-family Anime-Projekte stage, deliberately independent of FocalCarousel. */
+.animeProjectStage { container-type: inline-size; display: grid; gap: 22px; width: 100%; min-width: 0; padding: clamp(18px, 2.4vw, 32px); overflow: hidden; background: radial-gradient(circle at 18% 32%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 38%), var(--surface-card); border: 0; border-radius: 0; box-shadow: none; }
+.animeProjectTitle { margin: 0; color: var(--text-secondary); font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.animeProjectHero { display: grid; grid-template-columns: minmax(240px, 340px) minmax(0, 1fr); align-items: center; gap: clamp(24px, 5vw, 72px); }
+.animeProjectArtwork { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; }
+.animeProjectArtwork > img { width: 100%; height: 100%; object-fit: contain; }
+.animeProjectInfo { display: grid; min-width: 0; gap: 14px; }
+.animeProjectStatus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.animeProjectCount { color: var(--text-primary); font-size: clamp(1.65rem, 3vw, 2.7rem); line-height: 1.1; }
+.animeProjectProgressValue { display: flex; justify-content: space-between; gap: 12px; color: var(--text-secondary); font-weight: 800; }
+.animeProjectProgressTrack { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--text-secondary) 14%, var(--surface-card-muted)); }
+.animeProjectProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
+.animeProjectNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
+.animeProjectMilestones { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 18px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
+.animeProjectMilestones::before { content: ''; position: absolute; top: 41px; left: 12.5%; right: 12.5%; height: 2px; background: var(--border-strong); }
+.animeProjectMilestones li { position: relative; z-index: 1; min-width: 0; text-align: center; }
+.animeProjectMilestones button, .animeProjectMilestones li > span { display: grid; justify-items: center; gap: 5px; width: 100%; min-width: 0; padding: 0 4px; border: 0; color: var(--text-primary); background: transparent; font: inherit; }
+.animeProjectMilestones button { cursor: pointer; border-radius: var(--radius-md); }
+.animeProjectMilestones button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.animeProjectMarker { display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--border-strong); border-radius: 50%; color: var(--text-secondary); background: var(--surface-card); }
+.animeProjectMilestones [data-stage-state='earned'] .animeProjectMarker { border-color: var(--color-success); color: var(--color-success); }
+.animeProjectMilestones [data-stage-state='current'] .animeProjectMarker { border: 3px double var(--color-primary); color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent); }
+.animeProjectMilestones [data-stage-state='locked'] { color: var(--text-secondary); opacity: .62; }
+.animeProjectMilestoneName { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 800; }
+.animeProjectThreshold { color: var(--text-secondary); font-size: .76rem; font-weight: 800; }
+@container (max-width: 700px) { .animeProjectStage { gap: 18px; padding: 16px 12px; } .animeProjectHero { grid-template-columns: minmax(0, 1fr); gap: 16px; } .animeProjectArtwork { width: min(100%, 280px); justify-self: center; } .animeProjectCount { font-size: 1.65rem; } .animeProjectMilestones { margin-inline: -4px; } .animeProjectMilestoneName { font-size: .68rem; } .animeProjectThreshold { font-size: .7rem; } }
+@media (prefers-reduced-motion: reduce) { .animeProjectProgressTrack > span { transition: none; } }

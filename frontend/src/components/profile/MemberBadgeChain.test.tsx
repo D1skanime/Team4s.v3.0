@@ -10,6 +10,8 @@ import type { PublicMemberBadge } from '@/types/profile'
 const memberBadgeChainCss = readFileSync('src/components/profile/MemberBadgeChain.module.css', 'utf8')
 const lockedStageArtworkCss = readFileSync('src/components/profile/LockedStageArtwork.module.css', 'utf8')
 const layeredBadgeArtworkCss = readFileSync('src/components/profile/LayeredBadgeArtwork.module.css', 'utf8')
+const animeProjectStageCss = readFileSync('src/components/profile/AnimeProjectStage.module.css', 'utf8')
+const pointsAchievementStageCss = readFileSync('src/components/profile/PointsAchievementStage.module.css', 'utf8')
 
 function expectDisplayImageSource(image: Element | null, expectedSource: string) {
   const src = image?.getAttribute('src')
@@ -1672,14 +1674,14 @@ describe('Phase 124 Punkte-Meilensteine single-family stage', () => {
   })
 
   it('locks square contained artwork, local overflow and reduced-motion CSS contracts', () => {
-    expect(memberBadgeChainCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(memberBadgeChainCss).toMatch(/\.pointsHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
-    expect(memberBadgeChainCss).toMatch(/\.pointsStageTrack\s*\{[^}]*overflow-x:\s*auto/s)
-    expect(memberBadgeChainCss).toMatch(/\.pointsStageTrack\s*\{[^}]*scrollbar-width:\s*none/s)
-    expect(memberBadgeChainCss).toMatch(/\.pointsStageTrack::\-webkit-scrollbar\s*\{[^}]*display:\s*none/s)
-    expect(memberBadgeChainCss).toMatch(/\.pointsStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
-    expect(memberBadgeChainCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.points/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsStageTrack\s*\{[^}]*overflow-x:\s*auto/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsStageTrack\s*\{[^}]*scrollbar-width:\s*none/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsStageTrack::\-webkit-scrollbar\s*\{[^}]*display:\s*none/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsStageArtwork\s*\{[^}]*aspect-ratio:\s*1/s)
+    expect(pointsAchievementStageCss).toMatch(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.points/s)
     const groupRule = memberBadgeChainCss.match(/\.group\s*\{[^}]*\}/)?.[0] ?? ''
     expect(groupRule).not.toContain('overflow-x: auto')
   })
@@ -2034,9 +2036,9 @@ describe('Quick 260812-jtp contribution card density', () => {
 })
 
 describe('Quick 260812-kr1 transparent achievement stages', () => {
-  const stageSelectors = ['.roleBadgeRow', '.animeProjectStage', '.pointsAchievementStage', '.contributionAchievementStage', '.membershipStage']
+  const stageSelectors = ['.roleBadgeRow', '.contributionAchievementStage', '.membershipStage']
 
-  it('keeps one final profile-local rule authoritative for every large hero wrapper', () => {
+  it('keeps one final profile-local rule authoritative for every large hero wrapper not yet extracted to its own module', () => {
     const groupedRulePattern = new RegExp(
       stageSelectors.map((selector) => selector.replace('.', '\\.')).join('\\s*,\\s*') +
         '\\s*\\{[^}]*border:\\s*0;[^}]*border-radius:\\s*0;[^}]*background:\\s*transparent;[^}]*box-shadow:\\s*none;',
@@ -2047,11 +2049,20 @@ describe('Quick 260812-kr1 transparent achievement stages', () => {
     expect(memberBadgeChainCss.slice((groupedRule?.index ?? 0) + (groupedRule?.[0].length ?? 0))).not.toMatch(/\.(?:roleBadgeRow|animeProjectStage|pointsAchievementStage|contributionAchievementStage|membershipStage)\s*\{[^}]*(?:background:\s*var\(--surface-card\)|border:\s*1px|border-radius:\s*var\(|box-shadow:\s*var\()/s)
   })
 
+  it('keeps the same no-card-surface declaration on the extracted anime-project/points Card roots', () => {
+    expect(animeProjectStageCss).toMatch(/\.animeProjectStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*border:\s*0;[^}]*border-radius:\s*0;[^}]*box-shadow:\s*none;/s)
+  })
+
   it('retains responsive ownership and bounded hero media without document-level clipping', () => {
     expect(memberBadgeChainCss).toMatch(/\.carouselShell\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;[^}]*container:\s*member-badge-carousel \/ inline-size;/s)
-    expect(memberBadgeChainCss).toMatch(/\.(?:animeProjectStage|pointsAchievementStage|contributionAchievementStage|membershipStage)\s*\{[^}]*min-width:\s*0;/s)
+    expect(animeProjectStageCss).toMatch(/\.animeProjectStage\s*\{[^}]*min-width:\s*0;/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsAchievementStage\s*\{[^}]*min-width:\s*0;/s)
+    expect(memberBadgeChainCss).toMatch(/\.(?:contributionAchievementStage|membershipStage)\s*\{[^}]*min-width:\s*0;/s)
     expect(memberBadgeChainCss).toMatch(/\.roleBadgeRow\s*\{[^}]*min-width:\s*0;/s)
-    expect(memberBadgeChainCss).toMatch(/\.(?:animeProjectArtwork|pointsHeroArtwork|contributionHeroArtwork|membershipHeroArtwork)\s*\{[^}]*width:\s*min\(100%,/s)
+    expect(animeProjectStageCss).toMatch(/\.animeProjectArtwork\s*\{[^}]*width:\s*min\(100%,/s)
+    expect(pointsAchievementStageCss).toMatch(/\.pointsHeroArtwork\s*\{[^}]*width:\s*min\(100%,/s)
+    expect(memberBadgeChainCss).toMatch(/\.(?:contributionHeroArtwork|membershipHeroArtwork)\s*\{[^}]*width:\s*min\(100%,/s)
     expect(memberBadgeChainCss).not.toMatch(/(?:html|body)\s*\{[^}]*overflow-x:\s*hidden/s)
   })
 })

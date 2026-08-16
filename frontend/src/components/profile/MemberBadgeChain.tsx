@@ -25,6 +25,8 @@ import { resolveBadgeArtwork } from './badgeArtwork'
 import chainStyles from './MemberBadgeChain.module.css'
 import lockedStageArtworkStyles from './LockedStageArtwork.module.css'
 import layeredBadgeArtworkStyles from './LayeredBadgeArtwork.module.css'
+import animeProjectStageStyles from './AnimeProjectStage.module.css'
+import pointsAchievementStageStyles from './PointsAchievementStage.module.css'
 
 type MemberBadgeChainProps = {
   earnedBadges: PublicMemberBadge[]
@@ -430,10 +432,10 @@ function AnimeProjectAchievementStage({ family }: { family: MemberBadgeFamilyPre
     : null
 
   return (
-    <Card className={chainStyles.animeProjectStage} data-family={family.key} data-anime-project-stage>
-      <h3 className={chainStyles.animeProjectTitle}>Anime-Projekte</h3>
-      <div className={chainStyles.animeProjectHero}>
-        <span className={`${chainStyles.animeProjectArtwork} ${layeredArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''}`} data-anime-project-art={heroStage.badge_code}>
+    <Card className={`${animeProjectStageStyles.animeProjectStage} ${chainStyles.animeProjectStage}`} data-family={family.key} data-anime-project-stage>
+      <h3 className={animeProjectStageStyles.animeProjectTitle}>Anime-Projekte</h3>
+      <div className={animeProjectStageStyles.animeProjectHero}>
+        <span className={`${animeProjectStageStyles.animeProjectArtwork} ${chainStyles.animeProjectArtwork} ${layeredArtwork ? layeredBadgeArtworkStyles.badgeArtworkLayered : ''}`} data-anime-project-art={heroStage.badge_code}>
           {layeredArtwork ? (
             <>
               <span className={`${layeredBadgeArtworkStyles.roleArtworkMist} ${chainStyles.roleArtworkMist}`} aria-hidden="true" />
@@ -447,27 +449,27 @@ function AnimeProjectAchievementStage({ family }: { family: MemberBadgeFamilyPre
             <HeroIcon size={96} aria-label={heroStage.label} />
           )}
         </span>
-        <div className={chainStyles.animeProjectInfo} aria-live="polite">
-          <div className={chainStyles.animeProjectStatus}>
+        <div className={animeProjectStageStyles.animeProjectInfo} aria-live="polite">
+          <div className={animeProjectStageStyles.animeProjectStatus}>
             <Badge variant={presentation.variant}>{rank}</Badge>
             {selectedStage ? <Badge variant="info">Vorschau</Badge> : null}
           </div>
-          <strong className={chainStyles.animeProjectCount}>{count} {unit}</strong>
-          <div className={chainStyles.animeProjectProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
-          <div role="progressbar" aria-label="Fortschritt für Anime-Projekte" aria-valuemin={0} aria-valuenow={count} aria-valuemax={progressMax} className={chainStyles.animeProjectProgressTrack}>
+          <strong className={animeProjectStageStyles.animeProjectCount}>{count} {unit}</strong>
+          <div className={animeProjectStageStyles.animeProjectProgressValue}><span>{progressValue} / {progressMax}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label="Fortschritt für Anime-Projekte" aria-valuemin={0} aria-valuenow={count} aria-valuemax={progressMax} className={animeProjectStageStyles.animeProjectProgressTrack}>
             <span style={{ width: `${family.complete ? 100 : progressPercent}%` }} />
           </div>
-          <p className={chainStyles.animeProjectNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} Anime-Projekte bis ${nextRank}`}</p>
+          <p className={animeProjectStageStyles.animeProjectNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${family.remainingCount ?? 0} Anime-Projekte bis ${nextRank}`}</p>
           {selectedStage ? <p className={chainStyles.visuallyHidden}>Vorschau der bereits erreichten Stufe {rank}. Der Fortschritt zeigt weiterhin den aktuellen Stand.</p> : null}
         </div>
       </div>
-      <ol className={chainStyles.animeProjectMilestones} aria-label="Stufen für Anime-Projekte">
+      <ol className={`${animeProjectStageStyles.animeProjectMilestones} ${chainStyles.animeProjectMilestones}`} aria-label="Stufen für Anime-Projekte">
         {family.stages.map((stage) => {
           const current = stage.badge_code === currentCode
           const selected = stage.badge_code === selectedCode
           const stagePresentation = getMemberBadgePresentation(stage.badge_code)
           const label = stage.badge_code === 'first_contribution' ? 'Erste Mitwirkung' : (stagePresentation.label.split(' · ').at(-1) ?? stagePresentation.label)
-          const content = <>{stage.earned ? <span className={chainStyles.animeProjectMarker} aria-hidden="true">{current ? '★' : '●'}</span> : <LockedStageArtwork className={chainStyles.animeProjectMarker} />}<span className={chainStyles.animeProjectMilestoneName}>{label}</span><span className={chainStyles.animeProjectThreshold}>{stage.threshold}</span>{current ? <span className={chainStyles.currentChip}>Aktuell</span> : null}{!stage.earned ? <span className={chainStyles.visuallyHidden}>Gesperrt</span> : null}</>
+          const content = <>{stage.earned ? <span className={animeProjectStageStyles.animeProjectMarker} aria-hidden="true">{current ? '★' : '●'}</span> : <LockedStageArtwork className={animeProjectStageStyles.animeProjectMarker} />}<span className={animeProjectStageStyles.animeProjectMilestoneName}>{label}</span><span className={animeProjectStageStyles.animeProjectThreshold}>{stage.threshold}</span>{current ? <span className={chainStyles.currentChip}>Aktuell</span> : null}{!stage.earned ? <span className={chainStyles.visuallyHidden}>Gesperrt</span> : null}</>
           return (
             <li key={stage.badge_code} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>
               {stage.earned ? <button type="button" aria-label={`${stage.badge_code === 'first_contribution' ? label : `${stage.threshold} Anime-Projekte`} auswählen${current ? ', Aktuell' : ''}`} aria-pressed={selected} onClick={() => setSelectedCode(current ? null : stage.badge_code)}>{content}</button> : <span aria-label={`${stage.threshold} Anime-Projekte · Gesperrt`}>{content}</span>}
@@ -597,24 +599,24 @@ function PointsAchievementStage({ family }: { family: MemberBadgeFamilyPresentat
   const nextLabel = family.nextStage ? getMemberBadgePresentation(family.nextStage.badge_code).label : null
   const formatPoints = (value: number) => POINT_NUMBER_FORMATTER.format(value)
   return (
-    <Card className={chainStyles.pointsAchievementStage} data-family={family.key} data-points-achievement-stage>
-      <div className={chainStyles.pointsStageHero}>
-        <span className={chainStyles.pointsHeroArtwork}>{currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}</span>
-        <div className={chainStyles.pointsStageInfo} aria-live="polite">
-          {currentCode ? <div className={chainStyles.pointsStageStatus}><Badge variant={presentation.variant}>{presentation.label}</Badge>{selectedStage ? <Badge variant="info">Vorschau</Badge> : null}</div> : null}
-          <strong className={chainStyles.pointsStageCount}>{formatPoints(count)} Punkte{selectedStage ? ' aktuell' : ''}</strong>
-          <div className={chainStyles.pointsProgressValue}><span>{formatPoints(progressValue)} / {formatPoints(progressMax)}</span><span>{Math.round(progressPercent)} %</span></div>
-          <div role="progressbar" aria-label="Fortschritt für Punkte" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={chainStyles.pointsProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
-          <p className={chainStyles.pointsStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${formatPoints(family.remainingCount ?? 0)} Punkte bis ${nextLabel}`}</p>
+    <Card className={`${pointsAchievementStageStyles.pointsAchievementStage} ${chainStyles.pointsAchievementStage}`} data-family={family.key} data-points-achievement-stage>
+      <div className={pointsAchievementStageStyles.pointsStageHero}>
+        <span className={pointsAchievementStageStyles.pointsHeroArtwork}>{currentCode ? (artwork ? <ResponsiveImage src={artwork} alt={heroStage.label} width={512} height={512} sizes={ACTIVE_BADGE_SIZES} data-achievement-art={heroStage.badge_code} /> : <HeroIcon size={96} aria-label={heroStage.label} />) : <LockedStageArtwork hero />}</span>
+        <div className={pointsAchievementStageStyles.pointsStageInfo} aria-live="polite">
+          {currentCode ? <div className={pointsAchievementStageStyles.pointsStageStatus}><Badge variant={presentation.variant}>{presentation.label}</Badge>{selectedStage ? <Badge variant="info">Vorschau</Badge> : null}</div> : null}
+          <strong className={pointsAchievementStageStyles.pointsStageCount}>{formatPoints(count)} Punkte{selectedStage ? ' aktuell' : ''}</strong>
+          <div className={pointsAchievementStageStyles.pointsProgressValue}><span>{formatPoints(progressValue)} / {formatPoints(progressMax)}</span><span>{Math.round(progressPercent)} %</span></div>
+          <div role="progressbar" aria-label="Fortschritt für Punkte" aria-valuemin={0} aria-valuenow={progressValue} aria-valuemax={progressMax} className={pointsAchievementStageStyles.pointsProgressTrack}><span style={{ width: `${family.complete ? 100 : progressPercent}%` }} /></div>
+          <p className={pointsAchievementStageStyles.pointsStageNext}>{family.complete ? 'Höchste Stufe erreicht' : `Noch ${formatPoints(family.remainingCount ?? 0)} Punkte bis ${nextLabel}`}</p>
         </div>
       </div>
-      <ol className={chainStyles.pointsStageTrack} aria-label="Punkte-Meilensteine">{family.stages.map((stage) => {
+      <ol className={pointsAchievementStageStyles.pointsStageTrack} aria-label="Punkte-Meilensteine">{family.stages.map((stage) => {
         const current = stage.badge_code === currentCode
         const selected = stage.badge_code === selectedCode
         const stagePresentation = getMemberBadgePresentation(stage.badge_code)
         const stageArtwork = stage.earned ? resolveBadgeArtwork(stage.badge_code) : undefined
         const StageIcon = stagePresentation.Icon
-        const content = <>{stage.earned ? <span className={chainStyles.pointsStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={chainStyles.pointsStageArtwork} />}<span className={chainStyles.pointsStageName}>Stufe: {stagePresentation.label}</span><span className={chainStyles.pointsStageThreshold}>Ab {formatPoints(stage.threshold)} Punkten</span><span className={chainStyles.pointsStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
+        const content = <>{stage.earned ? <span className={pointsAchievementStageStyles.pointsStageArtwork}>{stageArtwork ? <ResponsiveImage src={stageArtwork} alt="" width={160} height={160} sizes={COMPACT_BADGE_SIZES} aria-hidden="true" /> : <StageIcon size={32} aria-hidden="true" />}</span> : <LockedStageArtwork className={pointsAchievementStageStyles.pointsStageArtwork} />}<span className={pointsAchievementStageStyles.pointsStageName}>Stufe: {stagePresentation.label}</span><span className={pointsAchievementStageStyles.pointsStageThreshold}>Ab {formatPoints(stage.threshold)} Punkten</span><span className={pointsAchievementStageStyles.pointsStageState}>{current ? 'Aktuell' : stage.earned ? 'Erreicht' : <><Lock size={12} aria-hidden="true" /> Gesperrt</>}</span></>
         return <li key={stage.badge_code} data-badge-code={stage.badge_code} data-threshold={stage.threshold} data-stage-state={current ? 'current' : stage.earned ? 'earned' : 'locked'} aria-current={current ? 'step' : undefined}>{stage.earned && !current ? <button type="button" aria-label={`${stagePresentation.label} auswählen`} aria-pressed={selected} onClick={() => { if (stage.earned && stage.badge_code !== currentCode) setSelectedCode(stage.badge_code) }}>{content}</button> : <span aria-label={`${stagePresentation.label} · ${current ? 'Aktuell' : 'Gesperrt'}`}>{content}</span>}</li>
       })}</ol>
     </Card>
