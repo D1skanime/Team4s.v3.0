@@ -1,0 +1,66 @@
+{
+  "manifest_version": 1,
+  "profiles": {
+    "csubs-leader": {
+      "identity": {
+        "slug": "csubs-leader"
+      },
+      "visibility": {
+        "profile_visibility": "public"
+      },
+      "profile_status": "active",
+      "roles": {
+        "seed129-group-a": ["fansub_lead", "translator", "typesetter"],
+        "seed129-group-b": ["founder"]
+      },
+      "memberships": {
+        "current": 1,
+        "historical": 1
+      },
+      "projects": {
+        "confirmed_distinct_anime_min": 10,
+        "sparse": false
+      },
+      "badges": {
+        "total_points_greater_than_zero": true
+      },
+      "media": {
+        "has_story_image": true,
+        "story_html_contains": "/media/profile/"
+      },
+      "content_lengths": {
+        "member_story_min_chars": 10
+      }
+    },
+    "sheppert": {
+      "identity": {
+        "slug": "sheppert"
+      },
+      "visibility": {
+        "profile_visibility": "public"
+      },
+      "profile_status": "memorial",
+      "roles": {
+        "seed129-group-b": ["translator"]
+      },
+      "memberships": {
+        "current": 0,
+        "historical": 1
+      },
+      "projects": {
+        "sparse": true,
+        "current_projects_count": 0
+      },
+      "badges": {
+        "total_points_greater_than_zero": false
+      },
+      "media": {
+        "has_story_image": true,
+        "story_html_contains": "/media/profile/"
+      },
+      "content_lengths": {
+        "member_story_min_chars": 10
+      }
+    }
+  }
+}

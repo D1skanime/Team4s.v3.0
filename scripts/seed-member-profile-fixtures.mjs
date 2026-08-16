@@ -10,8 +10,11 @@
 // duplicate treated as success). This same script is the Phase-134 clean-reset
 // fixture.
 //
-// Phase 134-01 (Wave 1, Task 1) — extended in place (not forked, per CONTEXT.md
-// D-01) with a member-owned story-image media step (Step 11).
+// Phase 134-01 (Wave 1) — extended in place (not forked, per CONTEXT.md D-01) with
+// a member-owned story-image media step (Step 11, Task 1) and manifest-driven
+// expectations (Task 2). scripts/member-profile-fixture.manifest.json is the
+// single checked-in source of truth (D-02) this script reads its scenario
+// constants FROM — see scripts/README-manifest.md.
 //
 // Requires Node 18+ (global fetch, FormData, Blob). No external npm dependencies.
 //
@@ -25,16 +28,19 @@
 
 import { readFileSync } from 'node:fs'
 
+// ---- Manifest (single source of truth, CONTEXT.md D-02) --------------------
+// Fail loudly on a missing/malformed manifest — a silently-defaulted expectation
+// would produce a false-green fixture (Phase 134 threat T-134-02).
+const MANIFEST_PATH = new URL('./member-profile-fixture.manifest.json', import.meta.url)
+const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'))
+if (!manifest.manifest_version || !manifest.profiles || !manifest.profiles['csubs-leader'] || !manifest.profiles.sheppert) {
+  throw new Error(`member-profile-fixture.manifest.json is malformed or incomplete (missing manifest_version/profiles.csubs-leader/profiles.sheppert)`)
+}
+const MANIFEST_ADMIN = manifest.profiles['csubs-leader']
+const MANIFEST_SHEP = manifest.profiles.sheppert
+
 // ---- Fixture image (Step 11 media upload) -----------------------------------
 const STORY_IMAGE_PATH = new URL('./fixtures/seed134-story.jpg', import.meta.url)
-
-// Substring the seed's public story-image assertion expects inside
-// member_story_html. This is /media/profile/ — the actual src pattern the
-// backend's TipTap sanitizer allows (backend/internal/services/tiptap_service.go
-// newTipTapSanitizerPolicy: ^/media/profile/\d+/story/[a-z0-9-]+/original\.(...)$),
-// NOT /media/story-images/ (a separate resolve-by-ID endpoint used only for
-// editor-side image preview, never embedded in saved/rendered story HTML).
-const STORY_IMAGE_SRC_SUBSTRING = '/media/profile/'
 
 const API = (process.env.SEED_API_BASE || 'http://192.168.235.196:18092').replace(/\/+$/, '')
 const KC = (process.env.SEED_KC_BASE || 'http://192.168.235.196:18081').replace(/\/+$/, '')
@@ -48,7 +54,9 @@ const REALM = 'team4s'
 
 const GROUP_A = { slug: 'seed129-group-a', name: 'Seed129 Gruppe A', status: 'active' }      // current membership
 const GROUP_B = { slug: 'seed129-group-b', name: 'Seed129 Gruppe B', status: 'dissolved' }   // historical membership
-const CONFIRMED_ANIME_COUNT = 10   // >=10 confirmed distinct-anime projects (+ >1 project page)
+// Phase 134 D-02: no longer a bare literal — read from the manifest so the seed
+// and the manifest can never independently drift (RESEARCH.md Pitfall 1).
+const CONFIRMED_ANIME_COUNT = MANIFEST_ADMIN.projects.confirmed_distinct_anime_min   // >=10 confirmed distinct-anime projects (+ >1 project page)
 const DRAFT_ANIME_TITLE = 'Seed129 Anime 11 (Entwurf)' // the unconfirmed / not-public case
 const EPISODE_NUMBER = '1'
 
@@ -476,14 +484,18 @@ async function runAssertions(ctx) {
     `current_projects_count=${adm.current_projects_count} (expected ${CONFIRMED_ANIME_COUNT})`)
 
   // 11. member-owned story image referenced (not just uploaded and orphaned) in the
-  // PUBLIC profile (Phase 134-01, T-134-01). See STORY_IMAGE_SRC_SUBSTRING above for
-  // why this is /media/profile/... and not /media/story-images/...
+  // PUBLIC profile (Phase 134-01, T-134-01). Expected substring is manifest-driven
+  // (D-02) — see scripts/README-manifest.md "Story-image URL shape" for why this is
+  // /media/profile/... (the actual sanitizer-allowed src pattern), not /media/story-images/...
+  // (a separate resolve-by-ID endpoint never embedded in saved story HTML).
+  const admMediaExpect = MANIFEST_ADMIN.media.story_html_contains
   check('story image referenced in public profile (csubs-leader)', 'public',
-    typeof adm.member_story_html === 'string' && adm.member_story_html.includes(STORY_IMAGE_SRC_SUBSTRING),
+    typeof adm.member_story_html === 'string' && adm.member_story_html.includes(admMediaExpect),
     `member_story_html=${adm.member_story_html ? adm.member_story_html.slice(0, 160) : 'null'}`)
 
+  const shepMediaExpect = MANIFEST_SHEP.media.story_html_contains
   check('story image referenced in public profile (sheppert)', 'public',
-    typeof shep.member_story_html === 'string' && shep.member_story_html.includes(STORY_IMAGE_SRC_SUBSTRING),
+    typeof shep.member_story_html === 'string' && shep.member_story_html.includes(shepMediaExpect),
     `member_story_html=${shep.member_story_html ? shep.member_story_html.slice(0, 160) : 'null'}`)
 }
 
