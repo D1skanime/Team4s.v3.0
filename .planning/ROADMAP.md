@@ -179,9 +179,43 @@ Plans:
   3. Long German content and correct umlauts remain usable at 400% zoom, with clean component-owned CSS and no contradictory patches, broad descendant rules, unnecessary resize listeners, or avoidable `!important`.
   4. Headings, carousel, paging, preview, and disclosure controls are keyboard operable with visible focus, correct names/state/status relationships, logical DOM order, compliant targets/contrast, and reduced motion.
   5. Avatars, badges, and profile media reserve geometry, request suitable variants with truthful `sizes` and bounded quality, meet asset/transfer budgets, and restrict local-IP optimization to development/test.
-**Plans**: TBD
+**Plans**: 12 plans across 7 waves
+  - Wave 1: 133-01 (axe-core/jest-axe setup), 133-02 (next.config image quality/SSRF gate), 133-03 (hero container-query conversion), 133-04 (badge-chain CSS split: shared artwork + locked-stage)
+  - Wave 2: 133-05 (FocalCarousel a11y hardening), 133-06 (memorial-hero single-h1 fix), 133-07 (badge-chain CSS split: anime/points/contribution/membership stages)
+  - Wave 3: 133-08 (badge-chain CSS split: family card + badge chip + 820px constant)
+  - Wave 4: 133-09 (badge-chain CSS split: role card de-duplication + shell shrink + !important removal)
+  - Wave 5: 133-10 (image-byte budget measurement + lock)
+  - Wave 6: 133-11 (overflow hard gate + full regression suite)
+  - Wave 7: 133-12 (manual D-06/D-12 evidence checkpoints)
 **Plan-time read first**: `docs/frontend/ui-system.md`, `docs/agent-guidelines-ui.md`, `frontend/src/app/members/[slug]/page.module.css`, `frontend/src/components/profile/profile.module.css`, profile-owned CSS modules, `MemberBadgeChain.module.css`, `frontend/src/components/ui/FocalCarousel.tsx`, `ResponsiveImage.tsx`, their tests/styles, `frontend/next.config.mjs`, and `frontend/scripts/verify-profile-image-delivery.mjs`. Reuse or extend global primitives before adding local generic styles.
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+- [ ] 133-01-PLAN.md — Install axe-core/jest-axe and wire shared Vitest a11y setup.
+- [ ] 133-02-PLAN.md — Gate next.config.mjs local-IP image optimization + explicit quality allow-list.
+- [ ] 133-03-PLAN.md — Convert the profile hero's responsive rules to @container.
+- [ ] 133-04-PLAN.md — Split MemberBadgeChain CSS: shared artwork + locked-stage layer.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 133-05-PLAN.md — Harden FocalCarousel keyboard/focus/inert behavior + axe coverage.
+- [ ] 133-06-PLAN.md — Fix the memorial hero's duplicate heading to a single h1.
+- [ ] 133-07-PLAN.md — Split MemberBadgeChain CSS: anime/points/contribution/membership stages.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 133-08-PLAN.md — Split MemberBadgeChain CSS: family card + badge chip + 820px constant.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 133-09-PLAN.md — Split MemberBadgeChain CSS: role card de-duplication + shrink shell.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 133-10-PLAN.md — Measure and lock the image-byte delivery budget.
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 133-11-PLAN.md — Harden the overflow gate and green the full regression suite.
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 133-12-PLAN.md — Manual D-06/D-12 visual and keyboard/zoom evidence checkpoints.
 
 ### Phase 134: Fixture-Backed Verification & Rollout
 
@@ -223,7 +257,7 @@ Plans:
 | 130. Public DTO & Cross-Layer Contract Alignment | 0/TBD | Not started | - |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 0/TBD | Not started | - |
 | 132. Shared SSR Composition & Race-Safe Frontend State | 0/4 | Not started | - |
-| 133. Responsive, Accessible & Efficient Visual Delivery | 0/TBD | Not started | - |
+| 133. Responsive, Accessible & Efficient Visual Delivery | 0/12 | Not started | - |
 | 134. Fixture-Backed Verification & Rollout | 0/TBD | Not started | - |
 
 ---
