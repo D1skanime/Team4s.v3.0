@@ -247,7 +247,7 @@ Plans:
 - [x] 134-03-PLAN.md — Build the 9-case verification matrix against the versioned fixture.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 134-04-PLAN.md — Scoped green gate + ROADMAP/STATE tracking reconciliation.
+- [x] 134-04-PLAN.md — Scoped green gate + ROADMAP/STATE tracking reconciliation.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 134-05-PLAN.md — Protected-asset hash guard + targeted shared-DB reset/reseed.
@@ -280,7 +280,7 @@ Plans:
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 8/8 | Complete | 2026-08-15 |
 | 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
-| 134. Fixture-Backed Verification & Rollout | 0/TBD | Not started | - |
+| 134. Fixture-Backed Verification & Rollout | 4/6 | In Progress | - |
 
 ---
 *Created: 2026-08-13 for milestone v1.3 Public Member Profile Hardening*

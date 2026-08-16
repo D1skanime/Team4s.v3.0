@@ -96,7 +96,7 @@
 - [x] **PMQA-04**: Automatisierte Tests decken anonym, verborgen, Owner, Refresh-only, nicht vorhanden, sparse und dense, Fehler sowie Pagination ab.
 - [ ] **PMQA-05**: Live-UAT prüft beide Profile auf Mobile, Zwischenbreite und Breitbild einschließlich Tastatur, Zoom, Bilder und Ladeverhalten.
 - [ ] **PMQA-06**: Reset-, Seed- und Medienprüfungen stellen sicher, dass kanonische Ownership und getrackte Badge-Assets unverändert bleiben.
-- [ ] **PMQA-07**: Typecheck, Lint, fokussierte Backend- und Frontend-Tests sowie Build sind grün; driftende oder zu schwache Tests werden korrigiert.
+- [x] **PMQA-07**: Typecheck, Lint, fokussierte Backend- und Frontend-Tests sowie Build sind grün; driftende oder zu schwache Tests werden korrigiert.
 
 ## Future Requirements
 
@@ -189,7 +189,7 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMQA-04 | Phase 134 | Complete |
 | PMQA-05 | Phase 134 | Pending |
 | PMQA-06 | Phase 134 | Pending |
-| PMQA-07 | Phase 134 | Pending |
+| PMQA-07 | Phase 134 | Complete |
 
 **Coverage:** 65 Anforderungen definiert, 65 eindeutig zugeordnet, 0 verwaist, 0 doppelt, 65 offen.
 
