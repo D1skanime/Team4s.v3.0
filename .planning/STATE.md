@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 132-04-PLAN.md
-last_updated: "2026-08-15T22:06:44.948Z"
+stopped_at: Phase 133 UI-SPEC approved
+last_updated: "2026-08-15T23:44:45.118Z"
 last_activity: 2026-08-15
 progress:
   total_phases: 7
@@ -92,6 +92,7 @@ Last activity: 2026-08-15
 - [Phase 132]: MemberProfileHero/MemberProfileMemorialHero read known_for from the DTO with zero client-side re-aggregation; deriveKnownFor.ts trimmed to the still-used KnownForResult type only.
 - [Phase 132]: Visible profile generateMetadata composes title/description/OpenGraph only from already-public fansub_name and known_for facts; hidden/missing metadata stays byte-identical.
 - [Phase 132]: relativeTimeLabel is a pure function of (occurredAt, referenceNow); one server- or client-useState-captured referenceNow is threaded through MemberProfileContent to eliminate the Date.now() SSR hydration-mismatch.
+- [Phase 133]: MemberBadgeChain.tsx (928 lines, ~2x CLAUDE.md's 450-line cap) is accepted pre-existing debt deferred outside Phase 133's scope — CONTEXT.md's D-04 scoped only the CSS-module split (MemberBadgeChain.module.css); the .tsx file keeps its existing per-component function boundaries and gains only import-wiring changes across Plans 133-04/07/08/09. Formally resolves RESEARCH.md's Open Question 1, mirroring the codebase's existing oversized-file deferral precedent.
 
 ### Pending Todos
 
@@ -143,7 +144,7 @@ Last activity: 2026-08-15
 
 ## Session Continuity
 
-Last session: 2026-08-15T22:06:38.099Z
-Stopped at: Completed 132-04-PLAN.md
+Last session: 2026-08-15T23:44:45.106Z
+Stopped at: Phase 133 UI-SPEC approved
 Last activity: 2026-08-13 - Completed Phase 128 Plan 19
-Resume file: None
+Resume file: .planning/phases/133-responsive-accessible-efficient-visual-delivery/133-UI-SPEC.md

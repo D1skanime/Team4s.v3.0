@@ -501,7 +501,7 @@ replacing beyond what's captured above.
 
 ## Open Questions
 
-1. **Should `MemberBadgeChain.tsx` (928 lines) be split into per-stage component files alongside the CSS split?**
+1. **(RESOLVED) Should `MemberBadgeChain.tsx` (928 lines) be split into per-stage component files alongside the CSS split?**
    - What we know: CLAUDE.md's 450-line limit applies to all production code files, and this file
      already exceeds it by more than 2×. CONTEXT.md's D-04 only explicitly scopes the *CSS*
      module split ("Split oversized profile CSS - notably MemberBadgeChain.module.css").
@@ -514,6 +514,14 @@ replacing beyond what's captured above.
      or (b) explicitly log it as accepted pre-existing debt out of this phase's scope in STATE.md,
      consistent with how the codebase already tracks other oversized files (e.g.
      `member_profile_repository.go` ~1810 lines, explicitly deferred in Phase 131's context).
+   - **Resolution (planner revision, 2026-08-16):** Option (b) — logged as accepted pre-existing
+     debt, deferred outside Phase 133's scope. See STATE.md's `[Phase 133]` decision entry. Phase
+     133's CSS-split plans (133-04/07/08/09) perform only the CSS-module extraction plus the
+     minimal `.tsx` import-alias wiring CONTEXT.md's D-04 already requires (renaming the bare
+     `styles` import to per-module aliases); they do not split `MemberBadgeChain.tsx`'s function
+     bodies into separate files. This mirrors the codebase's existing convention of recording
+     oversized-file debt explicitly (e.g. the historical `member_profile_repository.go` precedent)
+     rather than resolving it opportunistically inside an unrelated phase.
 
 2. **Is `RoleBadgeCard.module.css` still over 450 lines after de-duplication, and if so, how should it be split further?**
    - What we know: The role-card CSS spans roughly lines 290-470, 579-585, 606-931, 1329-1530,

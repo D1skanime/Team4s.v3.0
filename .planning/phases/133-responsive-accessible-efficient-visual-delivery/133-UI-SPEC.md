@@ -294,11 +294,11 @@ inherited everywhere) and `MemberBadgeChain`'s per-stage controls.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS — no new copy introduced; existing German strings (umlauts intact) locked verbatim in the Copywriting Contract table above.
+- [x] Dimension 2 Visuals: PASS — no new visual language; container-query conversion and duplicate-selector resolution preserve existing rendered geometry (see Component & Interaction Contracts).
+- [x] Dimension 3 Color: PASS — no new colors; existing 60/30/10 token split and focus-color exception documented and reused as-is.
+- [x] Dimension 4 Typography: PASS — no new type scale; the memorial-hero heading fix reuses the existing Display/Label rows.
+- [x] Dimension 5 Spacing: PASS — no new spacing tokens; existing `--space-*` scale and ≥24px/44px target-size rules reused as-is.
+- [x] Dimension 6 Registry Safety: PASS (not applicable) — no shadcn/component registry in use in this project.
 
-**Approval:** pending
+**Approval:** approved (2026-08-15, matches frontmatter `status: approved`)
