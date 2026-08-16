@@ -1,5 +1,5 @@
 /* Plan 133-09: extracted from MemberBadgeChain.module.css. Owns the role-card's shell and hero
-   artwork -- .roleBadgeRow*/.roleLabel/.roleHeroArtwork* -- inside the role-card render block
+   artwork -- .roleBadgeRow-, .roleLabel-, .roleHeroArtwork-prefixed selectors -- inside the role-card render block
    (MemberBadgeChain.tsx's inline roles branch of FocalCarousel's renderItem). Reuses the existing
    member-badge-carousel named container from MemberBadgeChain.module.css's .carouselShell (this
    component is a FocalCarousel item, no local container declared here), matching every other
@@ -22,7 +22,7 @@
 
    Every selector here previously lived inside `.group[data-badge-group="roles"] .roleXxx { ... }`
    compound rules. Since .roleBadgeRow/.roleLabel/.roleHeroArtwork/.roleStatus/.roleCount/
-   .roleProgress*/.roleProgression/.roleStage* are exclusively role-card-owned (never referenced by
+   .roleProgress-, .roleProgression-, .roleStage-prefixed selectors are exclusively role-card-owned (never referenced by
    any other badge group), the `.group[data-badge-group="roles"]` qualifier is dropped throughout --
    flattening it to a plain selector is behavior-preserving because no other rule in these three
    files competes for the same selector text, so cascade order alone (preserved from the original

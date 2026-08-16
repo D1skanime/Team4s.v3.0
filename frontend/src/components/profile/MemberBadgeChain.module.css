@@ -1,5 +1,5 @@
-/* Plan 133-09: shrunk shell. Every .roleBadgeRow*/.roleLabel/.roleHeroArtwork*/.roleStatus/
-   .roleCount/.roleProgress*/.roleProgression/.roleStage* declaration moved to RoleBadgeCard
+/* Plan 133-09: shrunk shell. Every .roleBadgeRow-, .roleLabel-, .roleHeroArtwork-, .roleStatus-,
+   .roleCount-, .roleProgress-, .roleProgression-, .roleStage-prefixed declaration moved to RoleBadgeCard
    .module.css/.status.module.css/.stages.module.css. What remains: pure shell selectors, Plans
    133-04/07/08's kept-behind overrides, and role-card overrides combining a chainStyles-only
    ancestor (.badgeWindowActive, the shared :is(...) rule, .currentChip) with a role-card class --
