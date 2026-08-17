@@ -14,6 +14,7 @@ const authMocks = vi.hoisted(() => ({
   logoutActiveAuthSessionMock: vi.fn(),
   isKeycloakEnabledMock: vi.fn(() => true),
   hasPendingRegistrationCompletionMock: vi.fn(() => false),
+  consumeStoredReturnPathMock: vi.fn(() => null),
   ApiError: class ApiError extends Error {
     status: number
 
@@ -40,6 +41,7 @@ vi.mock('@/lib/api', () => ({
 vi.mock('@/lib/keycloakAuth', () => ({
   beginKeycloakLogin: authMocks.beginKeycloakLoginMock,
   isKeycloakEnabled: authMocks.isKeycloakEnabledMock,
+  consumeStoredReturnPath: authMocks.consumeStoredReturnPathMock,
 }))
 
 vi.mock('@/lib/registrationCompletion', () => ({
@@ -61,6 +63,7 @@ describe('LoginPage', () => {
     authMocks.logoutActiveAuthSessionMock.mockReset()
     authMocks.isKeycloakEnabledMock.mockReset()
     authMocks.hasPendingRegistrationCompletionMock.mockReset()
+    authMocks.consumeStoredReturnPathMock.mockReset()
     window.history.replaceState({}, '', '/login')
     authMocks.getAuthSessionSnapshotMock.mockReturnValue({
       hasAccessToken: false,
@@ -71,6 +74,7 @@ describe('LoginPage', () => {
     authMocks.beginKeycloakLoginMock.mockResolvedValue(undefined)
     authMocks.logoutActiveAuthSessionMock.mockResolvedValue(undefined)
     authMocks.hasPendingRegistrationCompletionMock.mockReturnValue(false)
+    authMocks.consumeStoredReturnPathMock.mockReturnValue(null)
     authMocks.completeKeycloakAuthCallbackMock.mockResolvedValue({
       data: {
         app_user_id: 1,
@@ -175,6 +179,42 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(routerMocks.replaceMock).toHaveBeenCalledWith('/me/profile')
+    })
+  })
+
+  it('prefers a persisted returnPath over next and the registration-completion default', async () => {
+    authMocks.consumeStoredReturnPathMock.mockReturnValue('/invitations/accept?token=abc')
+    authMocks.hasPendingRegistrationCompletionMock.mockReturnValue(true)
+    window.history.replaceState({}, '', '/login?code=abc&state=state-1&next=/admin')
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(routerMocks.replaceMock).toHaveBeenCalledWith('/invitations/accept?token=abc')
+    })
+  })
+
+  it('falls back to the registration-completion default when no returnPath is persisted', async () => {
+    authMocks.consumeStoredReturnPathMock.mockReturnValue(null)
+    authMocks.hasPendingRegistrationCompletionMock.mockReturnValue(true)
+    window.history.replaceState({}, '', '/login?code=abc&state=state-1&next=/admin')
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(routerMocks.replaceMock).toHaveBeenCalledWith('/me/profile')
+    })
+  })
+
+  it('falls back to the next-param path when no returnPath is persisted and no registration is pending', async () => {
+    authMocks.consumeStoredReturnPathMock.mockReturnValue(null)
+    authMocks.hasPendingRegistrationCompletionMock.mockReturnValue(false)
+    window.history.replaceState({}, '', '/login?code=abc&state=state-1&next=/admin')
+
+    render(<LoginPage />)
+
+    await waitFor(() => {
+      expect(routerMocks.replaceMock).toHaveBeenCalledWith('/admin')
     })
   })
 
