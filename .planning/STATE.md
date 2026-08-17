@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 135 Plan 01 (keycloakAuth.ts returnPath/loginHint foundation + login page consumption, D-01/D-04); ready for Plan 02
-last_updated: "2026-08-17T12:58:30.000Z"
-last_activity: 2026-08-17 -- Completed Phase 135 Plan 01
+stopped_at: Completed Phase 135 Plan 02 (D-06 assignable=true fix + live-DB regression test); ready for Plan 03
+last_updated: "2026-08-17T13:04:02.729Z"
+last_activity: 2026-08-17
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 78
-  completed_plans: 44
+  completed_plans: 45
   percent: 38
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 135 (einladungs-und-onboarding-flow-fuer-eingeladene-fansub-mitgl) — EXECUTING
-Plan: 1 of 8 complete, ready for Plan 2
-Status: Executing Phase 135
-Last activity: 2026-08-17 -- Completed Phase 135 Plan 01
+Plan: 2 of 8 complete, ready for Plan 2
+Status: Ready to execute
+Last activity: 2026-08-17
 
 ## Accumulated Context
 
@@ -124,6 +124,7 @@ Last activity: 2026-08-17 -- Completed Phase 135 Plan 01
 - [Phase 134]: reset-member-profile-fixture.sh clears members.member_story_json/html/text (UPDATE, not DELETE) for the two reference members before deleting their story-image media_assets rows — that JSONB reference is invisible to Postgres FK enforcement; a stale reference would trip applyStoryImageLifecycle's IDOR check on the reseed's next PUT /me/profile
 - [Phase 134]: The three tracked badge asset directories are sha256-verified byte-identical before and after the shared team4s_v2 database reset+reseed cycle (PMQA-06), and the seed re-run prints RESULT: PASS (15/15) twice in a row afterward, proving PMQA-01's idempotent-from-clean-state claim genuinely holds
 - [Phase 135]: Plan 135-01 executed (D-01, D-04) -- keycloakAuth.ts gained a validated one-shot consumeStoredReturnPath() (mirrors registrationCompletion.ts's marker pattern) plus BeginKeycloakLoginOptions.loginHint/.returnPath; login/page.tsx's completeCallback() destination priority is now persistedReturnPath ?? (registration-completion default) ?? next-param. This is the shared foundation Plans 135-05/06 must persist a returnPath through via beginKeycloakLogin({ returnPath }) rather than inventing a second mechanism. 12/12 login/page.test.tsx cases pass; tsc --noEmit clean for both touched files (pre-existing unrelated Next.js route-type errors elsewhere ignored).
+- [Phase 135]: Plan 135-02 executed (D-06) -- ListFansubGroupRoleDefinitions's SQL predicate simplified to WHERE assignable = true only, closing Finding #7 / Pitfall 2 (admin/other anime_contribution roles leaking into the group-role picker). New testsupport.OpenPhase135Postgres harness (SKIP-not-FAIL convention) plus TestListFansubGroupRoleDefinitionsAssignableOnly prove the exact 6-code assignable set against a real 0085/0100/0103/0112 migration chain. — Closes the one-line SQL defect identified in 135-RESEARCH.md Pitfall 2 with a live-DB regression proof rather than source inspection alone.
 
 ### Pending Todos
 
@@ -190,10 +191,11 @@ Last activity: 2026-08-17 -- Completed Phase 135 Plan 01
 | Phase 134 P04 | 20min | 3 tasks | 4 files |
 | Phase 134 P05 | ~25min | 3 tasks | 4 files |
 | Phase 135 P01 | 4min | 2 tasks | 3 files |
+| Phase 135 P02 | 12min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-17T12:58:30.000Z
-Stopped at: Completed Phase 135 Plan 01 (keycloakAuth.ts returnPath/loginHint foundation + login page consumption, D-01/D-04); ready for Plan 02
+Last session: 2026-08-17T13:04:02.724Z
+Stopped at: Completed Phase 135 Plan 02 (D-06 assignable=true fix + live-DB regression test); ready for Plan 03
 Last activity: 2026-08-17 - Completed Phase 135 Plan 01
 Resume file: None
