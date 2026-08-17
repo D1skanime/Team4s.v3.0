@@ -34,27 +34,33 @@ Milestone v1.3 hardens the existing public member profile as one privacy-sensiti
 **Requirements**: PMID-01, PMID-02, PMID-03, PMPR-01, PMPR-02, PMPR-03, PMPR-04, PMPR-05
 **Deliverables**: Reversible canonical-slug schema/allocator; creation and inbound-link coverage; shared public-member access resolver; profile/projects/contributions route matrix; private owner-preview cache policy.
 **Success Criteria** (what must be TRUE):
+
   1. A public profile keeps the same canonical URL after its nickname changes, and every public member link uses that stored slug without numeric or generated fallbacks.
   2. Anonymous users receive the same non-disclosing outcome for hidden and missing profiles, and hidden requests execute no profile-detail loaders.
   3. Profile, project, contribution, media, and retained member subresources apply the same visibility-first decision before returning detail.
   4. A verified owner with only a valid refresh session can open the authoritative hidden-profile preview through the central auth/API client.
   5. Owner- or viewer-specific responses remain private and cannot be served from a shared public cache.
+
 **Plans**: 22 plans
 **Plan-time read first**: `docs/engineering/implementation-contract.md`, `docs/frontend/auth-api-client.md`, `docs/architecture/db-schema-fansub-domain.md`, the latest files in `database/migrations/`, `backend/internal/handlers/app_public_profile.go`, `backend/internal/handlers/contributions_public_handler.go`, `backend/internal/repository/member_profile_repository.go`, `backend/internal/repository/anime_contributions_public_repository.go`, relevant member-creation repositories, and `backend/cmd/server/main.go`.
 
 Plans:
 **Wave 0**
+
 - [x] 128-01-PLAN.md - Establish guarded PostgreSQL slug, migration, and allocator test contracts.
 - [x] 128-03-PLAN.md - Establish canonical-link, owner-preview, and refresh-only frontend test contracts.
 
 **Wave 1** *(blocked on Wave 0 completion)*
+
 - [x] 128-02-PLAN.md - Establish the visibility resolver, privacy matrix, loader-spy, and cache test contracts.
 - [x] 128-14-PLAN.md - Canonicalize public member paths at the Next.js proxy boundary.
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 128-04-PLAN.md - Add the immutable canonical public-slug schema and runtime member fields.
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 128-05-PLAN.md - Implement the shared transactional slug allocator across all member-creation repositories.
 - [x] 128-06-PLAN.md - Project stored member slugs through contribution data.
 - [x] 128-07-PLAN.md - Project stored member slugs through group and domain-member data.
@@ -62,31 +68,39 @@ Plans:
 - [x] 128-09-PLAN.md - Add the deny-first public-member access repository and ID-based profile loaders.
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 128-10-PLAN.md - Convert project and contribution detail loaders to resolved member identity.
 - [x] 128-11-PLAN.md - Enforce shared access resolution and cache policy in public profile handlers.
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 128-12-PLAN.md - Apply the shared visibility gate to projects, contributions, and retained subresources.
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 128-13-PLAN.md - Align OpenAPI, frontend types, and central API helpers with the canonical public contract.
 
 **Wave 7** *(blocked on Wave 6 completion)*
+
 - [x] 128-15-PLAN.md - Render the authoritative public profile composition at its canonical route.
 - [x] 128-17-PLAN.md - Remove numeric member-link fallbacks from own-profile projections.
 - [x] 128-18-PLAN.md - Reuse the shared profile hero for stored-slug member links.
 
 **Wave 8** *(blocked on Wave 7 completion)*
+
 - [x] 128-16-PLAN.md - Add the private-owner contextual preface and no-flash refresh-only behavior.
 - [x] 128-19-PLAN.md - Keep visibility editing session-safe and synchronized with the canonical preview.
 
 **Wave 9** *(blocked on Wave 8 completion)*
+
 - [x] 128-20-PLAN.md - Obtain explicit approval for the disposable member-row reset procedure.
 
 **Wave 10** *(blocked on Wave 9 completion)*
+
 - [x] 128-21-PLAN.md - Reset, migrate, reseed, and run the full Phase 128 automated gate.
 
 **Wave 11** *(blocked on Wave 10 completion)*
+
 - [x] 128-22-PLAN.md - Capture live browser evidence across visibility, refresh, and responsive states.
 
 ### Phase 129: Canonical Public Projections & Data Correctness
@@ -96,17 +110,21 @@ Plans:
 **Requirements**: PMPR-06, PMDA-01, PMDA-02, PMDA-03, PMDA-04, PMDA-05, PMDA-06, PMDA-07, PMDA-08, PMDA-09, PMDA-10, PMDA-11
 **Deliverables**: Public source/predicate matrix; corrected status/date/membership/contribution/release projections; stable role codes and labels; authoritative badge/point progress; domain-key dedupe; matching visible totals and activity-feed continuation.
 **Success Criteria** (what must be TRUE):
+
   1. Status, memorial state, partial dates, active periods, current membership, and historical membership are presented as distinct and trustworthy facts.
   2. Projects, contributions, release texts, and release-version media appear only when their confirmation, profile visibility, review, readiness, and deletion rules permit them.
   3. Memberships expose all approved public roles by stable code and label while internal memberships, permissions, source facts, and private media remain absent.
   4. Roles, projects, contributions, and badges appear once by domain identity, and every displayed total matches the visible filtered rows.
   5. Points, badge tiers, and exact progress remain server-authoritative and use only publicly permissible facts; activity heading, filters, count, and "Mehr anzeigen" share the same dataset.
+
 **Plans**: 11 plans across 5 waves
+
   - Wave 1: 129-01 (reusable API seed fixture), 129-02 (RED PostgreSQL projection contracts)
   - Wave 2: 129-03 (behavior-preserving repository split, <=450 lines/file)
   - Wave 3: 129-04 (count/rows parity), 129-05 (public-facts progress), 129-06 (drop recent_* from public DTO), 129-07 (remove dead /contributions surface)
   - Wave 4: 129-08 (structured role code+label pairs), 129-09 (year-only precision), 129-10 (canonical membership projection)
   - Wave 5: 129-11 (full automated gate + seed-backed check)
+
 **Plan-time read first**: `docs/architecture/db-schema-fansub-domain.md`, `backend/internal/repository/member_profile_repository.go`, `backend/internal/repository/member_profile_progress_repository.go`, `backend/internal/repository/member_profile_contribution_badges_repository.go`, `backend/internal/repository/member_profile_role_volume_repository.go`, `backend/internal/repository/anime_contributions_public_repository.go`, and their PostgreSQL-focused tests. Reuse canonical `hist_fansub_group_members`, `hist_group_member_roles`, `anime_contributions`, `release_version_notes`, `release_version_media`, `member_badges`, and point-total/lifecycle seams; do not create parallel projections.
 
 ### Phase 130: Public DTO & Cross-Layer Contract Alignment
@@ -116,16 +134,20 @@ Plans:
 **Requirements**: PMCT-01, PMCT-02, PMCT-03, PMCT-04, PMCT-05, PMCT-07, PMCT-08
 **Deliverables**: Dedicated public allow-list DTO/media shapes; typed visible/hidden/missing/error branches; complete enums; OpenAPI/Go/TypeScript/`api.ts` parity; removal of unused recent fields/endpoints; forbidden-field contract tests.
 **Success Criteria** (what must be TRUE):
+
   1. Public profile responses contain only the documented allow-listed identity, presentation, membership, project, contribution, badge, point, and public media fields.
   2. Private IDs, permissions, storage/source-original data, internal status, and unapproved media are absent from both JSON responses and the public schema.
   3. Visible, hidden, missing, and failure outcomes are documented and parsed identically by handlers, OpenAPI, TypeScript, and the central API helper.
   4. Role, status, and badge-tier enums, including platinum, are complete and consistent in every contract layer.
   5. The Next.js route, metadata, and public profile components compile against the real route and API contracts without fallback fields or duplicate recent-data paths.
+
 **Plans**: 7 plans across 4 waves
+
   - Wave 1: 130-01 (OpenAPI canonical public contract: dedicated allow-list schemas + complete enums)
   - Wave 2: 130-02 (fork Go public DTO structs, decoupled from edit structs), 130-04 (dedicated public TS types + enum unions)
   - Wave 3: 130-03 (Go handler status branches + one envelope + enum-value parity), 130-05 (api.ts helper + Next.js route parse three branches)
   - Wave 4: 130-06 (finish recent-* cleanup: sweep orphans, retain internal edit surface), 130-07 (contract-test lock: forbidden-field + OpenAPI schema parity)
+
 **Plan-time read first**: `docs/api/api-contracts.md`, `backend/internal/models/member_profile.go`, `backend/internal/handlers/app_public_profile.go`, `backend/internal/handlers/contributions_public_handler.go`, `shared/contracts/openapi.yaml`, `frontend/src/types/profile.ts`, `frontend/src/lib/api.ts`, `frontend/src/app/members/[slug]/page.tsx`, and the existing handler/helper/page contract tests.
 **UI hint**: yes
 
@@ -136,16 +158,20 @@ Plans:
 **Requirements**: PMCT-06, PMPF-01, PMPF-02, PMPF-03, PMPF-04, PMPF-05, PMPF-07
 **Deliverables**: Constant query budget; projection-specific page loaders; bounded payloads; deterministic honest pagination; representative query/payload/latency baselines; evidence-backed indexes only; explicit cache-class decision.
 **Success Criteria** (what must be TRUE):
+
   1. Profile query count stays constant as project count grows, with no per-project or per-card database reads.
   2. Loading another project or contribution page fetches only that bounded page and never rebuilds the complete profile.
   3. Initial and continuation payloads obey documented limits, stable tie-broken ordering, and truthful total/continuation semantics without unused child collections.
   4. Both `sheppert` and `csubs-leader` have reproducible query-count, payload, latency, image-waterfall, and Web-Vitals measurements checked against fixed acceptance budgets.
   5. Every added index has representative `EXPLAIN (ANALYZE, BUFFERS)` evidence, while viewer-specific responses stay separate and shared caching remains absent unless measurement plus complete invalidation justify it.
+
 **Plans**: 8 plans across 4 waves
+
   - Wave 1: 131-01 (query-count tracer + characterization), 131-02 (evidence harness + both-profile baseline)
   - Wave 2: 131-03 (batch per-card N+1 -> constant query budget), 131-04 (tie-broken ordering + honest total), 131-05 (documented enforced page bounds; LIMIT 3 + unbounded previous -> bounded pages)
   - Wave 3: 131-06 (OpenAPI offset-pagination contract + TS/api parity), 131-07 (viewer/anonymous cache-class separation lock)
   - Wave 4: 131-08 (re-measure + lock budgets baseline+~20% + evidence-backed indexes only)
+
 **Plan-time read first**: `backend/internal/repository/member_profile_repository.go`, its PostgreSQL tests, public project/contribution repositories and handlers, `frontend/scripts/collect-member-profile-evidence.mjs`, `shared/contracts/openapi.yaml`, and current API consumers before selecting list bounds or pagination. Inspect existing indexes and both fixture query plans before proposing a migration.
 
 ### Phase 132: Shared SSR Composition & Race-Safe Frontend State
@@ -155,15 +181,19 @@ Plans:
 **Requirements**: PMFE-01, PMFE-02, PMFE-03, PMFE-04, PMFE-05, PMFE-06, PMFE-07, PMFE-08, PMFE-09, PMFE-10, PMFE-11
 **Deliverables**: Shared public profile view; anonymous SSR plus central-client owner upgrade; consolidated owner/correction request path; slug-keyed cancellable local state; scoped state presentations; shared badge/formatting seams; stable metadata/date rendering; progressive disclosure.
 **Success Criteria** (what must be TRUE):
+
   1. Anonymous public rendering and authorized owner preview use the same backend DTO and the same visible profile composition.
   2. Profile, owner, preview, and correction actions use one central refresh-capable session/request path and fail closed without duplicate own-profile lookups.
   3. Rapid slug changes, paging, carousel use, and expansion cannot append stale or duplicate data, and loading/error state remains scoped to the affected section.
   4. Loading, empty, hidden, missing, and failure states remain distinct; long stories and achievement collections use progressive disclosure without losing accessible content.
   5. Member-specific metadata and relative dates are SSR/hydration-stable, while top roles, known groups, and totals derive from the complete approved dataset rather than the first page.
+
 **Plans**: 4 plans across 3 waves
+
   - Wave 1: 132-01 (backend known_for full-set aggregate + OpenAPI/TS contract parity), 132-02 (shared useCancellableSlugState hook + current-projects paging + progressive-disclosure lock)
   - Wave 2: 132-03 (central useMemberViewer seam consolidating 3 owner/viewer call sites)
   - Wave 3: 132-04 (known_for consumption in MemberProfileHero, member-specific metadata, referenceNow hydration-stable dates)
+
 **Plan-time read first**: `docs/frontend/auth-api-client.md`, `frontend/src/lib/api.ts`, `frontend/src/app/members/[slug]/page.tsx`, `OwnHiddenProfilePreview.tsx`, `OwnProfileEditLink.tsx`, `frontend/src/components/profile/MemberCurrentProjectsSection.tsx`, `MemberBadgeChain.tsx`, `memberBadgeLabels.ts`, nearby profile section components/tests, and generic primitives in `frontend/src/components/ui`. Extend existing `RichTextRenderer`, `FocalCarousel`, request, and formatting seams when ownership fits.
 **UI hint**: yes
 
@@ -174,12 +204,15 @@ Plans:
 **Requirements**: PMPF-06, PMPF-08, PMUI-01, PMUI-02, PMUI-03, PMUI-04, PMUI-05, PMUI-06, PMUI-07, PMA11Y-01, PMA11Y-02, PMA11Y-03, PMA11Y-04
 **Deliverables**: Mobile-first page geometry; container-responsive reusable components; bounded CSS-module ownership; removal of conflicting selectors/listeners; semantic heading/interaction treatment; WCAG 2.2 evidence; optimized profile/badge image delivery and asset budgets.
 **Success Criteria** (what must be TRUE):
+
   1. The profile has no document-level horizontal overflow or clipped controls at narrow, intermediate, transition, and wide layouts, and widescreen uses space compactly without oversized cards or empty bands.
   2. Reusable profile, achievement, hero, and membership components respond to their container geometry, while page composition uses only purpose-based viewport transitions.
   3. Long German content and correct umlauts remain usable at 400% zoom, with clean component-owned CSS and no contradictory patches, broad descendant rules, unnecessary resize listeners, or avoidable `!important`.
   4. Headings, carousel, paging, preview, and disclosure controls are keyboard operable with visible focus, correct names/state/status relationships, logical DOM order, compliant targets/contrast, and reduced motion.
   5. Avatars, badges, and profile media reserve geometry, request suitable variants with truthful `sizes` and bounded quality, meet asset/transfer budgets, and restrict local-IP optimization to development/test.
+
 **Plans**: 12 plans across 7 waves
+
   - Wave 1: 133-01 (axe-core/jest-axe setup), 133-02 (next.config image quality/SSRF gate), 133-03 (hero container-query conversion), 133-04 (badge-chain CSS split: shared artwork + locked-stage)
   - Wave 2: 133-05 (FocalCarousel a11y hardening), 133-06 (memorial-hero single-h1 fix), 133-07 (badge-chain CSS split: anime/points/contribution/membership stages)
   - Wave 3: 133-08 (badge-chain CSS split: family card + badge chip + 820px constant)
@@ -187,34 +220,42 @@ Plans:
   - Wave 5: 133-10 (image-byte budget measurement + lock)
   - Wave 6: 133-11 (overflow hard gate + full regression suite)
   - Wave 7: 133-12 (manual D-06/D-12 evidence checkpoints)
+
 **Plan-time read first**: `docs/frontend/ui-system.md`, `docs/agent-guidelines-ui.md`, `frontend/src/app/members/[slug]/page.module.css`, `frontend/src/components/profile/profile.module.css`, profile-owned CSS modules, `MemberBadgeChain.module.css`, `frontend/src/components/ui/FocalCarousel.tsx`, `ResponsiveImage.tsx`, their tests/styles, `frontend/next.config.mjs`, and `frontend/scripts/verify-profile-image-delivery.mjs`. Reuse or extend global primitives before adding local generic styles.
 **UI hint**: yes
 
 Plans:
 **Wave 1**
+
 - [x] 133-01-PLAN.md — Install axe-core/jest-axe and wire shared Vitest a11y setup.
 - [x] 133-02-PLAN.md — Gate next.config.mjs local-IP image optimization + explicit quality allow-list.
 - [x] 133-03-PLAN.md — Convert the profile hero's responsive rules to @container.
 - [x] 133-04-PLAN.md — Split MemberBadgeChain CSS: shared artwork + locked-stage layer.
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 133-05-PLAN.md — Harden FocalCarousel keyboard/focus/inert behavior + axe coverage.
 - [x] 133-06-PLAN.md — Fix the memorial hero's duplicate heading to a single h1.
 - [x] 133-07-PLAN.md — Split MemberBadgeChain CSS: anime/points/contribution/membership stages.
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 133-08-PLAN.md — Split MemberBadgeChain CSS: family card + badge chip + 820px constant.
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 133-09-PLAN.md — Split MemberBadgeChain CSS: role card de-duplication + shrink shell.
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 133-10-PLAN.md — Measure and lock the image-byte delivery budget.
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 133-11-PLAN.md — Harden the overflow gate and green the full regression suite.
 
 **Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 133-12-PLAN.md — Manual D-06/D-12 visual and keyboard/zoom evidence checkpoints. **DEFERRED** — batched into a live-UAT pass scheduled after Phase 135; not run, not approved. See `133-12-SUMMARY.md`.
 
 ### Phase 134: Fixture-Backed Verification & Rollout
@@ -224,35 +265,44 @@ Plans:
 **Requirements**: PMQA-01, PMQA-02, PMQA-03, PMQA-04, PMQA-05, PMQA-06, PMQA-07
 **Deliverables**: Versioned idempotent `sheppert`/`csubs-leader` fixture contract and manifest; clean reset/seed workflow; migration up/down/fresh proof; automated viewer/data/error/pagination matrix; responsive live-UAT evidence; final quality and protected-asset gates.
 **Success Criteria** (what must be TRUE):
+
   1. One versioned idempotent reset/seed contract recreates `sheppert` and `csubs-leader` with the documented identity, visibility, roles, memberships, projects, badges, media, and content-length expectations.
   2. The new migration chain passes fresh-database, up, and down checks without preserving synthetic rows or adding compatibility behavior.
   3. Automated tests cover anonymous public, hidden, owner, refresh-only, missing, sparse, dense, error, and pagination cases, and typecheck, lint, focused backend/frontend tests, build, and `git diff --check` are green.
   4. Live browser UAT proves both profiles at mobile, intermediate, and widescreen layouts, including keyboard, 400% zoom, images, loading behavior, and the actual user-visible route.
   5. Reset, seed, and media verification leave canonical ownership and tracked badge assets unchanged while the recorded query, payload, image, overflow, and Web-Vitals evidence meets Phase 131/133 budgets.
+
 **Plans**: 6 plans across 5 waves
+
   - Wave 1: 134-01 (fixture manifest + seed media extension), 134-02 (migration fresh/up/down proof)
   - Wave 2: 134-03 (verification matrix: 9-case fixture-backed suite)
   - Wave 3: 134-04 (green gate + ROADMAP/STATE doc reconciliation)
   - Wave 4: 134-05 (protected-asset hash guard + targeted shared-DB reset)
   - Wave 5: 134-06 (live UAT evidence + human sign-off)
+
 **Plan-time read first**: `backend/internal/migrations/runner.go`, migration tests, existing project reset/seed/Compose tooling, `frontend/scripts/collect-member-profile-evidence.mjs`, `frontend/scripts/verify-profile-image-delivery.mjs`, profile API/component tests, and prior UAT formats as read-only analogs. Record hashes/status for `frontend/public/history-event-badges-transparent/` and other protected tracked badge sources before any reset or media cleanup.
 **UI hint**: yes
 
 Plans:
 **Wave 1**
+
 - [x] 134-01-PLAN.md — Extend the seed with a media step and build the versioned fixture manifest.
 - [x] 134-02-PLAN.md — Build migration fresh/up/down proof tooling on an ephemeral database.
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 134-03-PLAN.md — Build the 9-case verification matrix against the versioned fixture.
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 134-04-PLAN.md — Scoped green gate + ROADMAP/STATE tracking reconciliation.
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 134-05-PLAN.md — Protected-asset hash guard + targeted shared-DB reset/reseed.
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 134-06-PLAN.md — Live UAT evidence capture + human sign-off checkpoint.
 
 ## Coverage
@@ -282,7 +332,7 @@ Plans:
 | 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
 | 134. Fixture-Backed Verification & Rollout | 5/6 | In Progress | - |
-| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 0/7 | Planned | - |
+| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 1/8 | In Progress | - |
 
 ### Phase 135: Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten
 
@@ -290,6 +340,7 @@ Plans:
 **Depends on:** Phase 134
 **Requirements**: TBD (Quelle: .planning/notes/live-uat-ux-findings.md, Findings #6-#10) -- Decision-Coverage via D-01 bis D-09 in `135-CONTEXT.md` (kein REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im `requirements`-Frontmatter-Feld).
 **Scope (aus Live-UAT-Findings #6-#10):**
+
 - #10 (BLOCKER): Cold-Invite-Registrierungspfad -- Accept-Seite bietet BEIDE Wege (Registrieren UND Anmelden), reicht die Einladung durch (returnTo + E-Mail-Vorbelegung fuer den email_match), danach Auto-Accept + Bestaetigung. Pruefen ob Keycloak Self-Registration / registrationAllowed aktiv ist.
 - #10: Einladungs-Mail mit Kontext (wer laedt ein, welche Gruppe, 1 Zeile "Team4s ist...", was Annehmen bewirkt) statt spam-artiger Blindmail.
 - #8: Accept-Seite gibt returnTo an /login mit -> Auto-Redirect zurueck + Auto-Accept nach Login.
@@ -300,27 +351,33 @@ Plans:
 - D-09 (Locked, 2026-08-17): EIN gemeinsamer Onboarding-/Accept-Flow (`InviteAcceptFlow`-Komponente) fuer beide Invite-Typen (App-Member-Invite UND Historical-Claim-Invite).
 
 **Betroffene Bereiche:** frontend/src/app/invitations/accept/page.tsx; frontend/src/app/claim-invitations/accept/page.tsx; frontend/src/components/auth/InviteAcceptFlow.tsx (NEU); frontend/src/lib/keycloakAuth.ts; frontend/src/app/login/page.tsx; Einladungs-Mail-Template (backend services/mailer.go + app_auth.go); frontend/src/app/admin/fansubs/[id]/edit/ (GroupMembersHistTable.tsx HistoricalMemberCard, Rollen-Picker, useGroupMembersClaimActions.ts); backend/internal/repository/hist_group_member_roles_repository.go; infra/keycloak/realm-team4s.json (registrationAllowed, live-verifiziert).
-**Plans:** 8 plans across 5 waves
+**Plans:** 1/8 plans executed
+
   - Wave 1: 135-01 (frontend auth foundation: keycloakAuth.ts returnPath/loginHint + login page), 135-02 (backend D-06 role-picker SQL fix + live-DB test), 135-03 (backend D-03/D-01 mail context + email-hint link), 135-04 (frontend D-05 claim button wiring)
   - Wave 2: 135-05 (shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite)
   - Wave 3: 135-06 (claim-invitations/accept rewrite onto the shared flow, completes D-09)
   - Wave 4: 135-07 (full automated gate + live UAT checkpoints: D-02 KC live check, cold-invite round trip + Mailpit content)
+
 **Plan-time read first**: `frontend/src/lib/keycloakAuth.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/claim-invitations/accept/page.tsx`, `frontend/src/app/invitations/accept/page.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/GroupMembersHistTable.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/ClaimManagementPanel.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersClaimActions.ts`, `backend/internal/handlers/app_auth.go`, `backend/internal/repository/hist_group_member_roles_repository.go`, `backend/internal/repository/fansub_repository.go`, `backend/cmd/server/main.go`, and `.planning/phases/135-.../135-RESEARCH.md`/`135-PATTERNS.md` as read-only analogs.
 **UI hint**: yes
 
 Plans:
 **Wave 1**
-- [ ] 135-01-PLAN.md — keycloakAuth.ts returnPath/loginHint foundation + login page consumption (D-01, D-04).
+
+- [x] 135-01-PLAN.md — keycloakAuth.ts returnPath/loginHint foundation + login page consumption (D-01, D-04).
 - [ ] 135-02-PLAN.md — Backend role-picker SQL fix (assignable = true only) + live-DB regression test (D-06).
 - [ ] 135-03-PLAN.md — Backend context-rich invitation mail + email-hint link (D-03, D-01, D-08).
 - [ ] 135-04-PLAN.md — Wire the claim-invite generate/copy/cancel UI into HistoricalMemberCard (D-05, D-07).
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 135-05-PLAN.md — Shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite (D-01, D-04, D-07, D-08, D-09).
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 135-06-PLAN.md — claim-invitations/accept rewrite onto the shared InviteAcceptFlow (D-09, D-07).
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 135-07-PLAN.md — Full automated gate + live UAT checkpoints: D-02 Keycloak live check, cold-invite end-to-end round trip + Mailpit content sign-off.
 - [ ] 135-08-PLAN.md — Keycloak-Theme register.ftl: E-Mail vorbefuellt+gesperrt + generischer Invite-Kontext (D-12, D-13, D-07).
