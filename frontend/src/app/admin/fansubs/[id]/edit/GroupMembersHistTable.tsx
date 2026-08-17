@@ -1,10 +1,12 @@
 'use client'
 
-import { Pencil, Trash2 } from 'lucide-react'
+import { Copy, Link2, Pencil, Trash2, UserX } from 'lucide-react'
 
 import {
   Badge,
   Button,
+  Input,
+  Toolbar,
 } from '@/components/ui'
 import type {
   HistFansubGroupMember,
@@ -147,7 +149,19 @@ function HistoricalMemberCard({
   roleLabelForCode,
   onEditMember,
   onDeleteMember,
+  generatedInvites,
+  memberInvitations,
+  copyStates,
+  canCreateClaimInvitation,
+  onGenerateInvitation,
+  onCancelInvitation,
+  onCopyLink,
+  normalizeInviteLink,
 }: HistoricalMemberCardProps) {
+  const invite = generatedInvites[member.id]
+  const inviteLink = invite ? normalizeInviteLink(invite.invite_link) : ''
+  const activeInvitation = (memberInvitations[member.id] ?? []).find((entry) => entry.status === 'pending')
+
   return (
     <article className={styles.fansubEditMemberCompactCard}>
       <div className={styles.fansubEditMemberCompactHeader}>
@@ -215,6 +229,57 @@ function HistoricalMemberCard({
           )}
         </div>
       </div>
+
+      {canCreateClaimInvitation && !member.app_username ? (
+        <div className={styles.fansubEditMemberCompactBody}>
+          <Toolbar
+            leading={<span className={styles.fansubEditHint}>Noch kein Team4s-Account verknüpft</span>}
+            trailing={(
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Link2 size={16} />}
+                onClick={() => onGenerateInvitation(member.id, member.member_id)}
+              >
+                Einladungslink generieren
+              </Button>
+            )}
+          />
+          {invite ? (
+            <div className={styles.fansubEditClaimInviteLinkRow}>
+              <Input
+                id={`hist-claim-invite-link-${member.id}`}
+                type="text"
+                aria-label={`Einladungslink für ${member.display_name}`}
+                readOnly
+                value={inviteLink}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Copy size={16} />}
+                onClick={() => onCopyLink(member.id, inviteLink)}
+              >
+                {copyStates[member.id] === 'copied' ? 'Kopiert!' : copyStates[member.id] === 'selected' ? 'Link markiert' : 'Link kopieren'}
+              </Button>
+            </div>
+          ) : null}
+          {!invite && activeInvitation ? (
+            <div className={styles.fansubEditClaimPendingInviteRow}>
+              <Badge variant="muted">Aktive Einladung bis {formatDate(activeInvitation.expires_at)}</Badge>
+              <Button
+                variant="danger"
+                size="sm"
+                leftIcon={<UserX size={16} />}
+                onClick={() => onCancelInvitation(member.id, member.member_id, activeInvitation.id)}
+              >
+                Zurückziehen
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   )
 }
