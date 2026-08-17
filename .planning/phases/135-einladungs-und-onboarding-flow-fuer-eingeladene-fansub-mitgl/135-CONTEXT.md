@@ -79,3 +79,22 @@ Markup fuer vorhandene Primitiv-Typen. Team4s Design-Tokens verwenden.
 - Verifikation live auf :3000 mit echten Daten UND Mailpit :8025 (Code-Level reicht nicht;
   Gap-Fixes brauchen Live-UAT). Frontend-Tests/typecheck/eslint im Container.
 </constraints>
+
+---
+
+## Locked Decisions (2026-08-17, nach Research/Pattern-Mapping, vom Nutzer bestaetigt)
+
+### D-08 Registrierung ist invite-scoped (praezisiert D-01/D-02)
+KC-Self-Registration ist zwar global aktiv (`registrationAllowed: true`), aber der
+Register-Pfad fuer Einladungen wird AN DEN INVITE-TOKEN GEBUNDEN: E-Mail auf die
+eingeladene Adresse vorbefuellt/gelockt, kein offenes Registrierungstor ueber den
+Invite-Flow. Ziel: garantierter E-Mail-Match zwischen Invite und neuem Konto, keine
+Uebernahme fremder Invites. Falls KC das nicht sauber invite-scoped kann, Team4s
+vermittelt (Token -> vorbefuellte/gevalidierte E-Mail).
+
+### D-09 EIN gemeinsamer Onboarding-/Accept-Flow fuer beide Invite-Typen
+App-Member-Invite (#10, /invitations/accept) UND Historical-Claim-Invite (#6,
+/claim-invitations/accept) teilen dieselbe Accept-Seite mit Anmelden + Registrieren.
+Auch ein Claim-Nutzer ohne Konto kommt durch denselben invite-scoped Register-Pfad.
+D-05 (Claim-Button in HistoricalMemberCard) bleibt bestehen, aber der Claim-Accept-Weg
+nutzt denselben gemeinsamen Onboarding-Flow statt eines separaten Sackgassen-Pfads.
