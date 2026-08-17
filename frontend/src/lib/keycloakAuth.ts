@@ -12,6 +12,7 @@ const KEYCLOAK_REGISTRATION_ENDPOINT_PATH = 'protocol/openid-connect/registratio
 const PKCE_VERIFIER_STORAGE_KEY = 'team4s.keycloak.pkce_verifier'
 const PKCE_STATE_STORAGE_KEY = 'team4s.keycloak.pkce_state'
 const PKCE_INTENT_STORAGE_KEY = 'team4s.keycloak.pkce_intent'
+const RETURN_PATH_STORAGE_KEY = 'team4s.keycloak.return_path'
 
 export interface KeycloakTokenBundle {
   accessToken: string
@@ -55,10 +56,37 @@ function authRedirectUri(): string {
   return `${window.location.origin}${KEYCLOAK_REDIRECT_PATH}`
 }
 
-function saveTransientAuthState(verifier: string, state: string, intent: KeycloakLoginIntent): void {
+function saveTransientAuthState(
+  verifier: string,
+  state: string,
+  intent: KeycloakLoginIntent,
+  returnPath?: string,
+): void {
   sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier)
   sessionStorage.setItem(PKCE_STATE_STORAGE_KEY, state)
   sessionStorage.setItem(PKCE_INTENT_STORAGE_KEY, intent)
+  if (returnPath) {
+    sessionStorage.setItem(RETURN_PATH_STORAGE_KEY, returnPath)
+  } else {
+    // Prevents a stale value from an earlier abandoned attempt leaking into an
+    // unrelated later login that does not itself specify a returnPath.
+    sessionStorage.removeItem(RETURN_PATH_STORAGE_KEY)
+  }
+}
+
+/**
+ * Reads and removes the one-shot persisted return path in one step, mirroring
+ * `login/page.tsx`'s own `readSafeNextPath()` safety checks (same-origin, no
+ * protocol-relative `//`, no redirect back into `/login`) so a manipulated
+ * sessionStorage value can never be used to construct an open redirect.
+ */
+export function consumeStoredReturnPath(): string | null {
+  const raw = (sessionStorage.getItem(RETURN_PATH_STORAGE_KEY) || '').trim()
+  sessionStorage.removeItem(RETURN_PATH_STORAGE_KEY)
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/login')) {
+    return null
+  }
+  return raw
 }
 
 function consumeTransientAuthState(): { verifier: string; state: string; intent: KeycloakLoginIntent } {
@@ -112,6 +140,8 @@ export type KeycloakLoginIntent = 'login' | 'register'
 export type BeginKeycloakLoginOptions = {
   prompt?: KeycloakLoginPrompt
   intent?: KeycloakLoginIntent
+  loginHint?: string
+  returnPath?: string
 }
 
 export async function beginKeycloakLogin(options: BeginKeycloakLoginOptions = {}): Promise<void> {
@@ -124,7 +154,7 @@ export async function beginKeycloakLogin(options: BeginKeycloakLoginOptions = {}
   const verifier = randomString(64)
   const state = randomString(32)
   const challenge = await sha256Base64Url(verifier)
-  saveTransientAuthState(verifier, state, intent)
+  saveTransientAuthState(verifier, state, intent, options.returnPath)
 
   const endpointPath = intent === 'register' ? KEYCLOAK_REGISTRATION_ENDPOINT_PATH : KEYCLOAK_AUTH_ENDPOINT_PATH
   const authURL = new URL(`${currentRealmBase()}/${endpointPath}`)
@@ -137,6 +167,9 @@ export async function beginKeycloakLogin(options: BeginKeycloakLoginOptions = {}
   authURL.searchParams.set('state', state)
   if (options.prompt) {
     authURL.searchParams.set('prompt', options.prompt)
+  }
+  if (options.loginHint) {
+    authURL.searchParams.set('login_hint', options.loginHint)
   }
 
   window.location.assign(authURL.toString())
