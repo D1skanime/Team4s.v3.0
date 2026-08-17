@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 135 Plan 04 (D-05/D-07 claim-invite UI wired into HistoricalMemberCard)
-last_updated: "2026-08-17T13:14:02.140Z"
+stopped_at: Completed Phase 135 Plan 05 (D-01/D-04/D-07/D-08/D-09 shared InviteAcceptFlow + /invitations/accept BLOCKER rewrite)
+last_updated: "2026-08-17T13:22:00.000Z"
 last_activity: 2026-08-17
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 78
-  completed_plans: 47
+  completed_plans: 48
   percent: 38
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 135 (einladungs-und-onboarding-flow-fuer-eingeladene-fansub-mitgl) — EXECUTING
-Plan: 4 of 8 complete, ready for Plan 5
+Plan: 5 of 8 complete, ready for Plan 6
 Status: Ready to execute
 Last activity: 2026-08-17
 
@@ -127,6 +127,7 @@ Last activity: 2026-08-17
 - [Phase 135]: Plan 135-02 executed (D-06) -- ListFansubGroupRoleDefinitions's SQL predicate simplified to WHERE assignable = true only, closing Finding #7 / Pitfall 2 (admin/other anime_contribution roles leaking into the group-role picker). New testsupport.OpenPhase135Postgres harness (SKIP-not-FAIL convention) plus TestListFansubGroupRoleDefinitionsAssignableOnly prove the exact 6-code assignable set against a real 0085/0100/0103/0112 migration chain. — Closes the one-line SQL defect identified in 135-RESEARCH.md Pitfall 2 with a live-DB regression proof rather than source inspection alone.
 - [Phase 135]: Plan 135-03 executed (D-03, D-01, D-08) -- CreateFansubGroupInvitation's mail now names the real fansub group (via a new fansubGroupNameStore threading of FansubRepository.GetGroupByID, fail-open to a generic phrase) and the inviting admin (identity.DisplayName), replacing the old blind "Du wurdest zu einer Fansub-Gruppe eingeladen" text with the phase's locked Content-Spec Addendum copy. The mail CTA link now carries &email=<url-escaped invitee email> for D-08's mediated Keycloak login_hint prefill fallback (server-side match enforcement in Accept() unchanged). Two new tests prove the enriched context and the nil-fansubRepo fallback; go build/vet/test all clean.
 - [Phase 135]: Plan 135-04 executed (D-05, D-07) -- HistoricalMemberCard now destructures the 8 already-declared claim-invite props (generatedInvites, memberInvitations, copyStates, canCreateClaimInvitation, onGenerateInvitation, onCancelInvitation, onCopyLink, normalizeInviteLink) and renders the generate/copy/cancel block gated on canCreateClaimInvitation && !member.app_username, using the hist-claim-invite-link- id prefix required by useGroupMembersClaimActions.ts's markVisibleInviteLink DOM fallback (not ClaimManagementPanel's claim-invite-link- prefix). ClaimManagementPanel.tsx is documented in-code as an intentionally unmounted future-admin-view reference rather than deleted, resolving 135-RESEARCH.md Open Question 2. 4/4 new component tests pass; tsc --noEmit clean for both touched files. — Closes the "generate + display" gap for the claim flow that unlocks historical members -- pure JSX wiring against an existing, tested, audit-logged backend/hook; no backend change and no new authorization surface.
+- [Phase 135]: Plan 135-05 executed (D-01, D-04, D-07, D-08, D-09) -- new frontend/src/components/auth/InviteAcceptFlow.tsx is the one shared dual Anmelden/Registrieren + returnPath + auto-accept + friendly-error onboarding component (Button-only, zero raw <button>), and frontend/src/app/invitations/accept/page.tsx is rewritten on top of it, closing Finding #10's BLOCKER cold-invite dead end. A useRef guard fires the auto-accept effect at most once per mount; handleLogin/handleRegister persist returnPath via 135-01's beginKeycloakLogin({returnPath}) and forward loginHintEmail as login_hint. 9/9 new frontend tests pass (5+4), re-run alongside login/page.test.tsx's 12 cases with zero regressions (21/21). — DEVIATION FLAGGED: the plan file's own appended "Content-Spec Addendum" (D-11/D-12, dynamic group/inviter copy + a fourth "wrong email logged in" state + "Konto erstellen und beitreten"-style button labels) was NOT implemented; the plan's literal <tasks> section (simpler generic copy, matching 135-06-PLAN.md's already-written expectations) was followed instead. See 135-05-SUMMARY.md's "Deviations from Plan" for full rationale -- this addendum content is an open gap that needs a follow-up plan/task or an explicit CONTEXT.md rescoping before 135-07's live UAT (which requires "correct German copy... throughout").
 
 ### Pending Todos
 
@@ -196,10 +197,11 @@ Last activity: 2026-08-17
 | Phase 135 P02 | 12min | 2 tasks | 3 files |
 | Phase 135 P03 | 25min | 2 tasks | 3 files |
 | Phase 135 P04 | 18min | 2 tasks | 4 files |
+| Phase 135 P05 | ~25min | 2 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-08-17T13:14:02.124Z
-Stopped at: Completed Phase 135 Plan 04 (D-05/D-07 claim-invite UI wired into HistoricalMemberCard)
-Last activity: 2026-08-17 - Completed Phase 135 Plan 03
+Last session: 2026-08-17T13:22:00.000Z
+Stopped at: Completed Phase 135 Plan 05 (D-01/D-04/D-07/D-08/D-09 shared InviteAcceptFlow + /invitations/accept BLOCKER rewrite)
+Last activity: 2026-08-17 - Completed Phase 135 Plan 05
 Resume file: None
