@@ -14,7 +14,7 @@ const authMocks = vi.hoisted(() => ({
   logoutActiveAuthSessionMock: vi.fn(),
   isKeycloakEnabledMock: vi.fn(() => true),
   hasPendingRegistrationCompletionMock: vi.fn(() => false),
-  consumeStoredReturnPathMock: vi.fn(() => null),
+  consumeStoredReturnPathMock: vi.fn((): string | null => null),
   ApiError: class ApiError extends Error {
     status: number
 

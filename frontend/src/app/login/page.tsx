@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui'
 import {
   beginKeycloakLogin,
+  consumeStoredReturnPath,
   isKeycloakEnabled,
 } from '@/lib/keycloakAuth'
 import { hasPendingRegistrationCompletion } from '@/lib/registrationCompletion'
@@ -69,15 +70,22 @@ export default function LoginPage() {
 
       if (!code || !state) return
 
+      // Read and clear the one-shot persisted returnPath exactly once per callback
+      // attempt, regardless of success or failure, so a stale value never leaks into
+      // a later, unrelated callback.
+      const persistedReturnPath = consumeStoredReturnPath()
+
       try {
         setIsBusy(true)
         setErrorMessage(null)
         callbackCompletionRef.current ??= completeKeycloakAuthCallback(code, state).then(() => undefined)
         await callbackCompletionRef.current
         if (!cancelled) {
-          // A freshly completed registration always lands on "Mein Account", even if an
-          // arbitrary/foreign `next` query value was present on the callback URL.
-          const destination = hasPendingRegistrationCompletion() ? '/me/profile' : nextPath
+          // A returnPath persisted by the invite-accept flow's own button click takes
+          // priority over both the registration-completion default and the URL `next`
+          // param, so a fresh registration started from an invite link lands back on
+          // the invite page instead of "Mein Account".
+          const destination = persistedReturnPath ?? (hasPendingRegistrationCompletion() ? '/me/profile' : nextPath)
           router.replace(destination)
         }
       } catch (error) {
