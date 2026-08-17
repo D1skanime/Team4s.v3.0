@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1560,6 +1561,15 @@ func (s *mailerStub) Send(_ context.Context, msg services.MailMessage) error {
 	return s.sendErr
 }
 
+type fansubRepoStub struct {
+	group *models.FansubGroup
+	err   error
+}
+
+func (s *fansubRepoStub) GetGroupByID(_ context.Context, _ int64) (*models.FansubGroup, error) {
+	return s.group, s.err
+}
+
 func TestCreateFansubGroupInvitationSendsMailOnSuccess(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -1610,6 +1620,109 @@ func TestCreateFansubGroupInvitationSendsMailOnSuccess(t *testing.T) {
 	// D-10: absoluter Link aus AppPublicURL + InviteLink
 	if !strings.Contains(mailer.lastMsg.BodyText, "http://team4s.local/invitations/accept?token=testtoken123") {
 		t.Fatalf("expected absolute invite URL in mail body, got %q", mailer.lastMsg.BodyText)
+	}
+}
+
+func TestCreateFansubGroupInvitationMailContainsGroupContextAndEmailHint(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mailer := &mailerStub{}
+	invitationRepo := &invitationRepoStub{
+		createResp: &models.FansubGroupInvitationCreateResult{
+			Invitation: models.FansubGroupInvitation{
+				ID:               91,
+				FansubGroupID:    88,
+				Email:            "invitee@example.local",
+				InvitedRoleCodes: []string{permissions.RoleFansubLead},
+				Status:           models.FansubGroupInvitationStatusPending,
+				ExpiresAt:        time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC),
+			},
+			InviteLink: "/invitations/accept?token=testtoken123",
+		},
+	}
+	handler := &AppAuthHandler{
+		invitationRepo: invitationRepo,
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleFansubLead}},
+		}),
+		auditLogRepo: &auditLogStub{},
+		mailer:       mailer,
+		appPublicURL: "http://team4s.local",
+		fansubRepo:   &fansubRepoStub{group: &models.FansubGroup{Name: "Sub Frost"}},
+	}
+
+	body := []byte(`{"email":"invitee@example.local","invited_role_codes":["fansub_lead"]}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPost, "/api/v1/admin/fansubs/88/invitations", body, middleware.AuthIdentity{
+		UserID:        107,
+		AppUserID:     41,
+		DisplayName:   "Invite Lead",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.CreateFansubGroupInvitation(c)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if !strings.Contains(mailer.lastMsg.BodyText, "Sub Frost") {
+		t.Fatalf("expected mail body to contain group name %q, got %q", "Sub Frost", mailer.lastMsg.BodyText)
+	}
+	if !strings.Contains(mailer.lastMsg.BodyText, "Invite Lead") {
+		t.Fatalf("expected mail body to contain inviter name %q, got %q", "Invite Lead", mailer.lastMsg.BodyText)
+	}
+	if !strings.Contains(mailer.lastMsg.BodyText, "Team4s ist") {
+		t.Fatalf("expected mail body to contain the Team4s explanatory sentence, got %q", mailer.lastMsg.BodyText)
+	}
+	expectedEmailHint := "&email=" + url.QueryEscape("invitee@example.local")
+	if !strings.Contains(mailer.lastMsg.BodyText, expectedEmailHint) {
+		t.Fatalf("expected mail body to contain email hint %q, got %q", expectedEmailHint, mailer.lastMsg.BodyText)
+	}
+}
+
+func TestCreateFansubGroupInvitationMailFallsBackWithoutFansubRepo(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mailer := &mailerStub{}
+	invitationRepo := &invitationRepoStub{
+		createResp: &models.FansubGroupInvitationCreateResult{
+			Invitation: models.FansubGroupInvitation{
+				ID:               91,
+				FansubGroupID:    88,
+				Email:            "invitee@example.local",
+				InvitedRoleCodes: []string{permissions.RoleFansubLead},
+				Status:           models.FansubGroupInvitationStatusPending,
+				ExpiresAt:        time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC),
+			},
+			InviteLink: "/invitations/accept?token=testtoken123",
+		},
+	}
+	handler := &AppAuthHandler{
+		invitationRepo: invitationRepo,
+		permissionSvc: permissions.NewService(permissionResolverStub{
+			context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+			roles:   map[int64][]string{88: {permissions.RoleFansubLead}},
+		}),
+		auditLogRepo: &auditLogStub{},
+		mailer:       mailer,
+		appPublicURL: "http://team4s.local",
+	}
+
+	body := []byte(`{"email":"invitee@example.local","invited_role_codes":["fansub_lead"]}`)
+	c, recorder := makeAppAuthTestContext(http.MethodPost, "/api/v1/admin/fansubs/88/invitations", body, middleware.AuthIdentity{
+		UserID:        107,
+		AppUserID:     41,
+		DisplayName:   "Invite Lead",
+		AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+
+	handler.CreateFansubGroupInvitation(c)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d with body %s", recorder.Code, recorder.Body.String())
+	}
+	if !strings.Contains(mailer.lastMsg.BodyText, "deiner Fansub-Gruppe") {
+		t.Fatalf("expected mail body to contain fallback phrase %q, got %q", "deiner Fansub-Gruppe", mailer.lastMsg.BodyText)
 	}
 }
 
