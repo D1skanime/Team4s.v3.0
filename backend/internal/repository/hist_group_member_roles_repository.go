@@ -331,7 +331,7 @@ func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx cont
 	rows, err := r.db.Query(ctx, `
 		SELECT code, label_de, sort_order
 		FROM role_definitions
-		WHERE assignable = true
+		WHERE 'fansub_group' = ANY(contexts) OR 'group_history' = ANY(contexts)
 		ORDER BY sort_order, code
 	`)
 	if err != nil {
