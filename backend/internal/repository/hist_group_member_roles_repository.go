@@ -332,8 +332,6 @@ func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx cont
 		SELECT code, label_de, sort_order
 		FROM role_definitions
 		WHERE assignable = true
-		   OR 'fansub_group' = ANY(contexts)
-		   OR 'anime_contribution' = ANY(contexts)
 		ORDER BY sort_order, code
 	`)
 	if err != nil {
