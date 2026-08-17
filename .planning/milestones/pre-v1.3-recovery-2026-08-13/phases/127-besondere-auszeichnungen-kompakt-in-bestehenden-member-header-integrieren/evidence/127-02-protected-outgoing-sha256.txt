@@ -1,0 +1,5 @@
+add012c76abcef27f379909ce22e32bf303bb42e24bdac9cc2535bfc4092ff5d  frontend/src/components/ui/FocalCarousel.tsx
+6574cec5c6f143807367552a5139ce83851e509e18a137e2a83e054b3566312b  frontend/src/components/ui/FocalCarousel.module.css
+832f5a5c95c5406c418b3c617bffa1776528ac6af089c23a5bf1a53f56a237a7  frontend/src/components/ui/FocalCarousel.test.tsx
+1a131f67775d3c73b6b041b156dab4ca6f016ce6d39b7169f8c50f9f3182cf08  frontend/src/lib/api.ts
+447c90197bc5e3fc3bd19db61b73e09d10abc59d1ef6f1e821b75465d349773e  .planning/STATE.md

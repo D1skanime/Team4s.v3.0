@@ -1,0 +1,62 @@
+diff --git a/frontend/src/app/members/[slug]/page.module.css b/frontend/src/app/members/[slug]/page.module.css
+index 852df824..5005decb 100644
+--- a/frontend/src/app/members/[slug]/page.module.css
++++ b/frontend/src/app/members/[slug]/page.module.css
+@@ -102,7 +102,12 @@
+   border-radius: var(--radius-lg);
+ }
+ 
+-.profileBand,
++.profileBand {
++  border: 0;
++  border-radius: 0;
++  background: transparent;
++}
++
+ .badgesBand {
+   background: color-mix(in srgb, var(--surface-card-muted) 72%, var(--surface-sunken));
+ }
+diff --git a/frontend/src/app/members/[slug]/page.test.tsx b/frontend/src/app/members/[slug]/page.test.tsx
+index 2578c7f2..4e8fc5ac 100644
+--- a/frontend/src/app/members/[slug]/page.test.tsx
++++ b/frontend/src/app/members/[slug]/page.test.tsx
+@@ -10,6 +10,10 @@ import type { PublicMemberProfileData } from '@/types/profile'
+ import MemberProfilePage, { generateMetadata } from './page'
+ 
+ const memberPageStyles = readFileSync('src/app/members/[slug]/page.module.css', 'utf8')
++const memberPageSource = readFileSync('src/app/members/[slug]/page.tsx', 'utf8')
++const memberStorySource = readFileSync('src/components/profile/MemberStorySection.tsx', 'utf8')
++const membershipsSource = readFileSync('src/components/profile/MembershipsSection.tsx', 'utf8')
++const profileStyles = readFileSync('src/components/profile/profile.module.css', 'utf8')
+ 
+ const { cookieGetMock, getMemberProfileMock, getMemberContributionsMock, reactCacheEntries } = vi.hoisted(() => ({
+   cookieGetMock: vi.fn(),
+@@ -231,6 +235,28 @@ describe('MemberProfilePage Phase 99 route composition', () => {
+     expect(memberPageStyles).not.toMatch(/font-weight:\s*(?:8|9)00/)
+   })
+ 
++  it('isolates the transparent outer profile band without changing its layout or inner cards', () => {
++    const rhythmBandRule = memberPageStyles.match(/^\.rhythmBand\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
++    const profileBandRule = memberPageStyles.match(/^\.profileBand\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
++
++    expect(profileBandRule).toContain('background: transparent;')
++    expect(profileBandRule).toContain('border: 0;')
++    expect(profileBandRule).toContain('border-radius: 0;')
++    expect(rhythmBandRule).toContain('display: grid;')
++    expect(rhythmBandRule).toContain('gap: 24px;')
++    expect(rhythmBandRule).toContain('min-width: 0;')
++    expect(rhythmBandRule).toContain('padding: 32px;')
++    expect(memberPageStyles).toMatch(/\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
++    expect(memberPageSource).toContain('className={`${styles.section} ${styles.rhythmBand} ${styles.profileBand}`}')
++    expect(memberPageSource).toContain('<MemberStorySection')
++    expect(memberPageSource).toContain('<MembershipsSection')
++    expect(memberStorySource).toContain('<Card variant="section" className={styles.storyCard}>')
++    expect(membershipsSource).toContain('<Card variant="interactive" className={styles.membershipCard}>')
++    expect(profileStyles).toMatch(/\.membershipCard\s*\{[\s\S]*?border:\s*1px solid var\(--border-subtle\);[\s\S]*?border-radius:\s*var\(--radius-lg\);[\s\S]*?background:\s*var\(--surface-card\);[\s\S]*?box-shadow:\s*var\(--shadow-sm\);/)
++    expect(memberPageStyles).toMatch(/\.badgesBand\s*\{[\s\S]*?background:\s*color-mix/)
++    expect(memberPageStyles).toMatch(/\.projectsBand,[\s\S]*?\.contributionsBand\s*\{[\s\S]*?background:\s*var\(--surface-canvas\);/)
++  })
++
+   it('opts only the role badge band into the centered visual-width breakout', () => {
+     expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[\s\S]*?width:\s*min\(calc\(100vw - var\(--public-page-gutter\)\), var\(--content-width-visual\), var\(--content-width-visual-cap\)\);/)
+     expect(memberPageStyles).toMatch(/\.badgesVisualBand\s*\{[\s\S]*?left:\s*50%;[\s\S]*?transform:\s*translateX\(-50%\);/)

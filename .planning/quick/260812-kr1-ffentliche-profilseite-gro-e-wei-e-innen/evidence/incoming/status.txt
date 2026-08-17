@@ -1,0 +1,54 @@
+ M .planning/STATE.md
+ M frontend/public/member-achievement-badges/contribution_archivist_gold-v2.png
+ M frontend/public/member-achievement-badges/contribution_archivist_silver-v2.png
+ M frontend/public/member-achievement-badges/contribution_chronicle_gold-v2.png
+ M frontend/public/member-achievement-badges/contribution_chronicle_silver-v2.png
+ M frontend/public/member-achievement-badges/contribution_projects_gold-v2.png
+ M frontend/public/member-achievement-badges/contribution_projects_silver-v2.png
+ M frontend/src/components/profile/MemberBadgeChain.test.tsx
+ M frontend/src/components/profile/MemberStorySection.test.tsx
+ M frontend/src/components/profile/memberBadgeLabels.ts
+ M frontend/src/components/ui/FocalCarousel.module.css
+ M frontend/src/components/ui/FocalCarousel.test.tsx
+ M frontend/src/components/ui/FocalCarousel.tsx
+?? .planning/debug/memberprofil-client-exception.md
+?? .planning/phases/114-oeffentliche-fansub-gruppen-uebersicht/114-PATTERNS.md
+?? .planning/phases/114-oeffentliche-fansub-gruppen-uebersicht/114-REVIEW.md
+?? .planning/phases/117-kara-segment-zeit-override-anzeige/117-PATTERNS.md
+?? .planning/phases/118-rollenfortschritt-als-eigene-card-je-tats-chlich-ausge-bter-/.gitkeep
+?? .planning/phases/119-sammlungskarten-f-r-fortschritt-punkte-beitr-ge-mitgliedscha/.gitkeep
+?? .planning/phases/119-sammlungskarten-f-r-fortschritt-punkte-beitr-ge-mitgliedscha/119-05-SUMMARY.md
+?? .planning/phases/120-ffentliches-memberprofil-visuell-harmonisieren-und-ladeperfo/.gitkeep
+?? .planning/phases/121-rollen-badges-visuell-und-funktional-perfektionieren/.gitkeep
+?? .planning/phases/121-rollen-badges-visuell-und-funktional-perfektionieren/121-04-PLAN.md
+?? .planning/phases/121-rollen-badges-visuell-und-funktional-perfektionieren/121-VERIFICATION.md
+?? .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-01-incoming/
+?? .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-01.patch
+?? .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-02-cached.patch
+?? .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-02-incoming/
+?? .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-02-indexed-blobs.txt
+?? .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-02-protected-outgoing-sha256.txt
+?? .planning/phases/127-besondere-auszeichnungen-kompakt-in-bestehenden-member-header-integrieren/evidence/127-02.patch
+?? .planning/quick/260803-ozq-profilseite-responsiv-optimieren-neulade/260803-ozq-REVIEW.md
+?? .planning/quick/260805-7lu-make-focalcarousel-arrow-and-keyboard-na/
+?? .planning/quick/260811-lck-hide-locked-achievement-art/260811-lck-PLAN.md
+?? .planning/quick/260811-obg-public-member-profile-outer-bands-transparent/
+?? .planning/quick/260811-pqe-phase-127-public-member-profile-visuelle/260811-pqe-PLAN.md
+?? .planning/quick/260811-pqe-phase-127-public-member-profile-visuelle/evidence/
+?? .planning/quick/260811-rms-phase-127-public-member-profile-widescre/
+?? .planning/quick/260811-rwd-binding-responsive-ui-standard/260811-rwd-PLAN.md
+?? .planning/quick/260811-tbg-phase-127-profile-band-transparent/
+?? .planning/quick/260812-acs-count-only-achievement-summary/260812-acs-PLAN.md
+?? .planning/quick/260812-acs-count-only-achievement-summary/evidence/incoming/
+?? .planning/quick/260812-acs-count-only-achievement-summary/evidence/uat/
+?? .planning/quick/260812-jtp-public-member-profile-vertical-spacing-r/
+?? .planning/quick/260812-kr1-ffentliche-profilseite-gro-e-wei-e-innen/
+?? .planning/quick/260812-ras-remove-aggregate-achievement-summary/260812-ras-PLAN.md
+?? .planning/quick/260812-ras-remove-aggregate-achievement-summary/evidence/RED.txt
+?? .planning/quick/260812-ras-remove-aggregate-achievement-summary/evidence/incoming/
+?? .planning/quick/260812-rps-public-member-profile-responsive-stabilisieren/
+?? frontend/capture-responsive.cjs
+?? frontend/public/member-achievement-badges/role_volume_timer_bronze.png
+?? frontend/public/member-achievement-badges/role_volume_timer_gold.png
+?? frontend/public/member-achievement-badges/role_volume_timer_platinum.png
+?? frontend/public/member-achievement-badges/role_volume_timer_silver.png

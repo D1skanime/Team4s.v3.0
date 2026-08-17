@@ -1,0 +1,10 @@
+ 12255 frontend/src/components/profile/MemberProfileHero.test.tsx
+ 18990 frontend/src/app/members/[slug]/page.test.tsx
+ 96135 frontend/src/components/profile/MemberBadgeChain.test.tsx
+ 61012 frontend/src/components/profile/MemberBadgeChain.tsx
+ 63611 frontend/src/components/profile/MemberBadgeChain.module.css
+ 27136 frontend/src/components/profile/memberBadgeLabels.ts
+ 17605 frontend/src/components/ui/FocalCarousel.tsx
+  2972 frontend/src/components/ui/FocalCarousel.module.css
+ 30950 frontend/src/components/ui/FocalCarousel.test.tsx
+330666 total

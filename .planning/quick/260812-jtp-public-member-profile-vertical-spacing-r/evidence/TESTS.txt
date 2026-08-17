@@ -1,0 +1,591 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run --run src/app/members/[slug]/page.test.tsx src/components/profile/MemberBadgeChain.test.tsx
+
+
+ RUN  v3.2.4 /app
+
+stderr | src/app/members/[slug]/page.test.tsx > MemberProfilePage Phase 99 route composition > Phase 120 RED: isolates anonymous and owner-preview cache keys
+Warning: Received `true` for a non-boolean attribute `fill`.
+
+If you want to write it to the DOM, pass a string instead: fill="true" or fill={value.toString()}.
+    at img
+    at default (/app/src/app/members/[slug]/page.test.tsx:34:15)
+    at ResponsiveImage (/app/src/components/ui/ResponsiveImage.tsx:9:28)
+    at div
+    at div
+    at div
+    at MemberProfileHero (/app/src/components/profile/MemberProfileHero.tsx:68:3)
+    at section
+    at main
+Warning: React does not recognize the `fetchPriority` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `fetchpriority` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+    at img
+    at default (/app/src/app/members/[slug]/page.test.tsx:34:15)
+    at ResponsiveImage (/app/src/components/ui/ResponsiveImage.tsx:9:28)
+    at div
+    at div
+    at div
+    at MemberProfileHero (/app/src/components/profile/MemberProfileHero.tsx:68:3)
+    at section
+    at main
+
+ ❯ src/app/members/[slug]/page.test.tsx (23 tests | 1 failed) 966ms
+   ✓ MemberProfilePage Phase 99 route composition > lets every visible profile section consume the shared 1480px shell 1ms
+   ✓ MemberProfilePage Phase 99 route composition > encodes Rhythm C geometry for 390, 768 and 1440 pixel layouts without overflow repairs 1ms
+   ✓ MemberProfilePage Phase 99 route composition > keeps every post-hero outer band transparent without changing layout or inner surfaces 1ms
+   ✓ MemberProfilePage Phase 99 route composition > keeps the role badge band on the same shared section edges 0ms
+   × MemberProfilePage Phase 99 route composition > renders the locked Hero B and Rhythm C heading hierarchy in DOM order 235ms
+     → expected [ 'Profil und Mitgliedschaft', …(7) ] to deeply equal [ 'Profil und Mitgliedschaft', …(8) ]
+   ✓ MemberProfilePage Phase 99 route composition > keeps empty earned-only and contribution sections out of the public outline 111ms
+   ✓ MemberProfilePage Phase 99 route composition > Phase 120 RED: deduplicates metadata and page reads for the same slug and viewer token 140ms
+   ✓ MemberProfilePage Phase 99 route composition > Phase 120 RED: isolates anonymous and owner-preview cache keys 93ms
+   ✓ MemberProfilePage Phase 99 route composition > does not render the old public tab navigation labels as section navigation or fetch the old timeline 96ms
+   ✓ MemberProfilePage Phase 99 route composition > passes badge progress through the existing route 46ms
+   ✓ MemberProfilePage Phase 99 route composition > keeps the hidden-profile owner preview path intact 2ms
+   ✓ Phase 124 deterministic points SSR projection > derives only the highest badge at 0 and forwards authoritative progress unchanged 27ms
+   ✓ Phase 124 deterministic points SSR projection > derives only the highest badge at 734 and forwards authoritative progress unchanged 23ms
+   ✓ Phase 124 deterministic points SSR projection > derives only the highest badge at 2500 and forwards authoritative progress unchanged 26ms
+   ✓ Phase 124 deterministic points SSR projection > derives only the highest badge at 5000 and forwards authoritative progress unchanged 17ms
+   ✓ Phase 124 deterministic points SSR projection > keeps initial point selection props-only during repeat server renders 38ms
+   ✓ Phase 126 membership SSR projection > keeps membership visible at zero and below five 42ms
+   ✓ Phase 127 RED SSR hero composition > Phase 127 RED page forwards public badges through one cached request and suppresses legacy Special 61ms
+   ✓ Quick 260811-pqe responsive profile composition > pins distinct profile and history-aware contribution grids without global word breaking 1ms
+   ✓ Quick 260811-rms widescreen profile balance > keeps profile columns balanced on widescreen and stacks them through tight tablet widths 1ms
+   ✓ Quick 260812-rps full-page responsive contract > stacks constrained pairs before tablet portrait geometry fails without clipping the page 0ms
+   ✓ Quick 260812-rps widescreen UAT regression > keeps the shared section edges aligned and the profile pair near 60/40 0ms
+   ✓ Quick 260812-jtp owner-scoped vertical rhythm > uses the shared spacing scale for outer sections, bands, pairs and heading content 0ms
+ ❯ src/components/profile/MemberBadgeChain.test.tsx (98 tests | 4 failed | 1 skipped) 4054ms
+   ✓ MemberBadgeChain > renders exact accessible contribution progress without client thresholds  644ms
+   ✓ MemberBadgeChain > renders Gold as the terminal contribution tier 40ms
+   ✓ MemberBadgeChain > bietet pro Gruppe eine fokussierte Karussell- und Rasteransicht 76ms
+   ✓ MemberBadgeChain > renders approved artwork inside the focal card for earned image badges 51ms
+   ✓ MemberBadgeChain > verwendet für Erste Punkte die neue Oldschool-Medaillenserie 28ms
+   ✓ MemberBadgeChain > composes Erste Mitwirkung from its motif and award frame 45ms
+   ✓ MemberBadgeChain > composes the productive tier with its matching rank frame 35ms
+   ✓ MemberBadgeChain > renders the generated contribution artwork without a fallback icon 58ms
+   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > renders one ordered three-family outer carousel and three native artwork tiers at zero 74ms
+   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > keeps tier preview independent from true terminal progress and outer family state 57ms
+   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > locks artwork, same-DOM, expanded, responsive and no-inner-engine contracts 81ms
+   ✓ MemberBadgeChain > renders the approved membership artwork without a fallback icon 25ms
+   ✓ MemberBadgeChain > renders the compact historical leadership seal 21ms
+   ✓ MemberBadgeChain > composes the translator artwork with the matching rank frame 37ms
+   ✓ MemberBadgeChain > uses the dedicated silver timing artwork for the silver timing tier 38ms
+   ✓ MemberBadgeChain > composes encoding with the matching layered rank artwork 25ms
+   ✓ MemberBadgeChain > composes typesetting with the matching layered rank artwork 29ms
+   ✓ MemberBadgeChain > composes quality checking with the matching layered rank artwork 29ms
+   ✓ MemberBadgeChain > composes project leadership with the matching layered rank artwork 23ms
+   ✓ MemberBadgeChain > composes editor with the matching layered rank artwork 32ms
+   ✓ MemberBadgeChain > composes raw_provider with the matching layered rank artwork 40ms
+   ✓ MemberBadgeChain > composes designer with the matching layered rank artwork 39ms
+   ✓ MemberBadgeChain > composes admin with the matching layered rank artwork 20ms
+   ✓ MemberBadgeChain > composes other with the matching layered rank artwork 35ms
+   ✓ MemberBadgeChain > labels the catch-all role as Andere instead of exposing the raw role code 32ms
+   ✓ MemberBadgeChain > renders a horizontal earned-and-locked badge chain without an aggregate summary 14ms
+   ✓ MemberBadgeChain > does not invent badge tier labels when the catalog has no tier or level field 13ms
+   ✓ MemberBadgeChain > omits the aggregate achievement summary from DOM, accessibility and SSR 25ms
+   ✓ MemberBadgeChain > hides a foreign catalog role completely while retaining all five stages of an earned role (D-02/D-03) 25ms
+   ✓ MemberBadgeChain > renders a role-entry badge in earned state the moment it is in earnedBadges (D-03) 23ms
+   ✓ MemberBadgeChain > uses the exact singular and plural copy for earned Fansubrollen (D-04) 27ms
+   ✓ PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03) > contains all 11 locked role_entry_* codes with correct German labels (CR-01 112-REVIEW: full anime_contribution role_definitions coverage) 2ms
+   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the German role-name prefix before a merged Typ-1 + Typ-3 roles row 38ms
+   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix for a roles row with only the Typ-1 chip (under threshold, no volume merge) 23ms
+   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix uniformly on every earned roles-group row 25ms
+   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > does not render a role-name prefix for non-roles groups (Fortschritt) 14ms
+   ✓ buildMemberBadgeGroups (D-04) > returns groups in the fixed roles/progress/points/membership/special order when all groups are populated 1ms
+   ✓ buildMemberBadgeGroups (D-04) > trennt Punkte-Meilensteine vom Projektfortschritt 0ms
+   ✓ buildMemberBadgeGroups (D-04) > hides groups with zero visible badges entirely instead of returning them empty 1ms
+   ✓ buildMemberBadgeGroups (D-04) > bildet aus earned-only Contribution-Badges genau eine Zeile pro Familie 1ms
+   ✓ buildMemberBadgeGroups (D-04) > blendet Beiträge ohne earned Contribution-Badges vollständig aus 0ms
+   ✓ buildMemberBadgeGroups (D-04) > merges two synthetic same-roleCode badges into a single Rollen row (Phase 112 compatibility) 1ms
+   ✓ buildMemberBadgeGroups (D-04) > sorts every real catalog badge into the correct group using the real presentation map 2ms
+   ✓ MemberBadgeChain Phase 118 role cards > keeps approved role-art geometry for desktop, tablet, mobile and special roles 0ms
+   ✓ MemberBadgeChain Phase 118 role cards > keeps all five mobile medals and progress copy inside the role card 0ms
+   ✓ MemberBadgeChain Phase 118 role cards > matches the narrow carousel skeleton to one full card and a separate controls row 0ms
+   ✓ MemberBadgeChain Phase 118 role cards > renders exact earned-role cards through one carousel station 39ms
+   ✓ MemberBadgeChain Phase 118 role cards > hides zero and foreign roles and reverses rank state on rerender 21ms
+   ✓ MemberBadgeChain Phase 118 role cards > keeps a full Platinum progressbar while preserving the true visible count 14ms
+   × MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy 73ms
+     → Unable to find an element with the text: 1 mitgetragenes Projekt · Noch 4 bis Silber. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_fa8f3e"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"_card_2684fe _cardSection_2684fe _chainCard_fa8f3e"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_groupList_fa8f3e"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_group_fa8f3e"[39m
+            [33mdata-badge-group[39m=[32m"progress"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_sectionHeader_2684fe _sectionHeaderUnderline_2684fe"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_sectionHeaderContent_2684fe"[39m
+              [36m>[39m
+                [36m<h2[39m
+                  [33mclass[39m=[32m"_sectionTitle_2684fe"[39m
+                [36m>[39m
+                  [0mFortschritt[0m
+                [36m</h2>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m"_card_2684fe _animeProjectStage_fa8f3e"[39m
+              [33mdata-anime-project-stage[39m=[32m"true"[39m
+              [33mdata-family[39m=[32m"progress"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"_animeProjectTitle_fa8f3e"[39m
+              [36m>[39m
+                [0mAnime-Projekte[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_animeProjectHero_fa8f3e"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"_animeProjectArtwork_fa8f3e _badgeArtworkLayered_fa8f3e"[39m
+                  [33mdata-anime-project-art[39m=[32m"productive_bronze"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMist_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkBackdrop_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m""[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMotif_fa8f3e"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                    [33mwidth[39m=[32m"1254"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m"Projekt-Engagement · Bronze"[39m
+                    [33mclass[39m=[32m"_roleArtworkFrame_fa8f3e"[39m
+                    [33mdata-achievement-art[39m=[32m"productive_bronze"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                   ...
+   ✓ MemberBadgeChain Phase 119 collection cards > renders Anime-Projekte as one stage without outer carousel chrome 42ms
+   ✓ MemberBadgeChain Phase 119 collection cards > preserves a real value above Gold while rendering a full terminal bar 9ms
+   ✓ MemberBadgeChain Phase 119 collection cards > keeps current, selected and locked stages semantically distinct 59ms
+   ✓ MemberBadgeChain Phase 119 collection cards > resets temporary selection when family metrics change 67ms
+   × MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable 72ms
+     → Unable to find a label with the text of: Gründungsmitglied · Gesperrt
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_fa8f3e"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"_card_2684fe _cardSection_2684fe _chainCard_fa8f3e"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_groupList_fa8f3e"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_group_fa8f3e"[39m
+            [33mdata-badge-group[39m=[32m"progress"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_sectionHeader_2684fe _sectionHeaderUnderline_2684fe"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_sectionHeaderContent_2684fe"[39m
+              [36m>[39m
+                [36m<h2[39m
+                  [33mclass[39m=[32m"_sectionTitle_2684fe"[39m
+                [36m>[39m
+                  [0mFortschritt[0m
+                [36m</h2>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m"_card_2684fe _animeProjectStage_fa8f3e"[39m
+              [33mdata-anime-project-stage[39m=[32m"true"[39m
+              [33mdata-family[39m=[32m"progress"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"_animeProjectTitle_fa8f3e"[39m
+              [36m>[39m
+                [0mAnime-Projekte[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_animeProjectHero_fa8f3e"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"_animeProjectArtwork_fa8f3e _badgeArtworkLayered_fa8f3e"[39m
+                  [33mdata-anime-project-art[39m=[32m"productive_bronze"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMist_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkBackdrop_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m""[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMotif_fa8f3e"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                    [33mwidth[39m=[32m"1254"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m"Projekt-Engagement · Bronze"[39m
+                    [33mclass[39m=[32m"_roleArtworkFrame_fa8f3e"[39m
+                    [33mdata-achievement-art[39m=[32m"productive_bronze"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                   ...
+   × MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups 45ms
+     → expected null not to be null
+   ✓ MemberBadgeChain Phase 119 inner stage strip > keeps a visible, touch-friendly horizontal scroll affordance without page overflow 1ms
+   ✓ MemberBadgeChain Phase 119 inner stage strip > does not map a mouse wheel to a horizontal stage strip 8ms
+   ↓ MemberBadgeChain Phase 119 inner stage strip > centers the current stage through its own strip and never scrolls an ancestor
+   ✓ MemberBadgeChain Phase 119 inner stage strip > exposes every earned and locked stage as a semantic list item 18ms
+   ✓ MemberBadgeChain Phase 119 inner stage strip > reserves fixed collection hero geometry at tablet and smartphone widths 0ms
+   ✓ routes compact and active badge art through responsive optimized sizes 13ms
+   × Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant 49ms
+     → expected [ 'Rollenfortschritt', …(4) ] to deeply equal [ 'Rollenfortschritt', …(5) ]
+   ✓ keeps badge artwork slots stable and expresses focus only through transforms 1ms
+   ✓ Phase 121 Rollenfamilien und Hero-Artwork > zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen 83ms
+   ✓ Phase 121 Rollenfamilien und Hero-Artwork > löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen  995ms
+   ✓ Phase 121 Rollenfamilien und Hero-Artwork > bindet komponierte Hero-Layer an einen quadratischen lokalen Geometriekontext 68ms
+   ✓ Phase 121 semantischer Rollen-Rank-Track > toggles a clean independent expanded roles grid and restores the carousel 52ms
+   ✓ Phase 121 semantischer Rollen-Rank-Track > locks the final desktop hierarchy and near-full-width narrow role card 1ms
+   ✓ Phase 121 semantischer Rollen-Rank-Track > beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen 50ms
+   ✓ Phase 121 semantischer Rollen-Rank-Track > behält für active, inactive und expanded denselben Rollenbaum 55ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > renders exactly six ordered stations without outer carousel chrome or skeletons 18ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps zero visible with no current station and every milestone locked 7ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > allows earned preview while authoritative progress and target remain unchanged 20ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 2500 with bounded progressbar semantics 12ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 2733 with bounded progressbar semantics 10ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 5000 with bounded progressbar semantics 10ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > locks square contained artwork, local overflow and reduced-motion CSS contracts 1ms
+   ✓ Phase 126 membership stage > renders membership without an outer carousel 14ms
+   ✓ Phase 126 membership stage > keeps founding separate from the duration track 10ms
+   ✓ Phase 126 membership stage > renders an earned founding membership as an accessible preview button 11ms
+   ✓ Phase 126 membership stage > shows founding artwork and copy in the large hero after preview activation 20ms
+   ✓ Phase 126 membership stage > keeps authoritative duration facts unchanged during founding preview 15ms
+   ✓ Phase 126 membership stage > clears an earlier preview when the actual current duration is selected 21ms
+   ✓ Phase 126 membership stage > switches from founding preview to every earned duration milestone 36ms
+   ✓ Phase 126 membership stage > does not render an interactive or empty founding card for non-founders 8ms
+   ✓ Phase 126 membership stage > renders founding artwork exactly once before and during its hero preview 15ms
+   ✓ Phase 126 membership stage > keeps locked duration nodes noninteractive while founder preview is active 13ms
+   ✓ Phase 126 membership stage > previews earned duration artwork without changing facts 20ms
+   ✓ Phase 126 membership stage > uses stable three-column contain geometry 1ms
+   ✓ Quick 260811-lck locked achievement artwork secrecy > uses one neutral noninteractive placeholder for every locked family while earned art remains 54ms
+   ✓ Quick 260811-lck locked achievement artwork secrecy > omits locked asset names from SSR but keeps locked copy and current hero art 14ms
+   ✓ Quick 260812-bqs locked mystery heroes > renders the same secret neutral hero contract for every completely unearned family 29ms
+   ✓ Quick 260812-bqs locked mystery heroes > keeps locked hero SSR free of future artwork identifiers and colors 9ms
+   ✓ Quick 260812-bqs locked mystery heroes > defines a responsive hero composition without changing the compact lock default 0ms
+   ✓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps responsive BadgeChain contract > bounds hero, progress and carousel consumers without arbitrary copy breaking 0ms
+   ✓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps medium contribution carousel geometry > gives the active card usable width and stacks its hero before copy is squeezed 0ms
+   ✓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps medium contribution carousel geometry > Quick 260812-jtp BadgeChain rhythm ownership > uses the shared spacing scale only at section and group seams 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/profile/MemberBadgeChain.test.tsx > MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy
+TestingLibraryElementError: Unable to find an element with the text: 1 mitgetragenes Projekt · Noch 4 bis Silber. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_fa8f3e"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"_card_2684fe _cardSection_2684fe _chainCard_fa8f3e"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_groupList_fa8f3e"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_group_fa8f3e"[39m
+            [33mdata-badge-group[39m=[32m"progress"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_sectionHeader_2684fe _sectionHeaderUnderline_2684fe"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_sectionHeaderContent_2684fe"[39m
+              [36m>[39m
+                [36m<h2[39m
+                  [33mclass[39m=[32m"_sectionTitle_2684fe"[39m
+                [36m>[39m
+                  [0mFortschritt[0m
+                [36m</h2>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m"_card_2684fe _animeProjectStage_fa8f3e"[39m
+              [33mdata-anime-project-stage[39m=[32m"true"[39m
+              [33mdata-family[39m=[32m"progress"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"_animeProjectTitle_fa8f3e"[39m
+              [36m>[39m
+                [0mAnime-Projekte[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_animeProjectHero_fa8f3e"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"_animeProjectArtwork_fa8f3e _badgeArtworkLayered_fa8f3e"[39m
+                  [33mdata-anime-project-art[39m=[32m"productive_bronze"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMist_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkBackdrop_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m""[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMotif_fa8f3e"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                    [33mwidth[39m=[32m"1254"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m"Projekt-Engagement · Bronze"[39m
+                    [33mclass[39m=[32m"_roleArtworkFrame_fa8f3e"[39m
+                    [33mdata-achievement-art[39m=[32m"productive_bronze"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                   ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/profile/MemberBadgeChain.test.tsx:1022:19
+    1020|     expect(projects.getAttribute('aria-valuemax')).toBe('25')
+    1021|     expect(screen.getByText('Noch 15 Anime-Projekte bis Silber')).not.…
+    1022|     expect(screen.getByText('1 mitgetragenes Projekt · Noch 4 bis Silb…
+       |                   ^
+    1023|     expect(screen.getByText('25 Bildarchivbeiträge · Höchste Stufe err…
+    1024|     const heroFrame = container.querySelector<HTMLImageElement>('img[d…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/components/profile/MemberBadgeChain.test.tsx > MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable
+TestingLibraryElementError: Unable to find a label with the text of: Gründungsmitglied · Gesperrt
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"_section_fa8f3e"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"_card_2684fe _cardSection_2684fe _chainCard_fa8f3e"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"_groupList_fa8f3e"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"_group_fa8f3e"[39m
+            [33mdata-badge-group[39m=[32m"progress"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"_sectionHeader_2684fe _sectionHeaderUnderline_2684fe"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_sectionHeaderContent_2684fe"[39m
+              [36m>[39m
+                [36m<h2[39m
+                  [33mclass[39m=[32m"_sectionTitle_2684fe"[39m
+                [36m>[39m
+                  [0mFortschritt[0m
+                [36m</h2>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m"_card_2684fe _animeProjectStage_fa8f3e"[39m
+              [33mdata-anime-project-stage[39m=[32m"true"[39m
+              [33mdata-family[39m=[32m"progress"[39m
+            [36m>[39m
+              [36m<h3[39m
+                [33mclass[39m=[32m"_animeProjectTitle_fa8f3e"[39m
+              [36m>[39m
+                [0mAnime-Projekte[0m
+              [36m</h3>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"_animeProjectHero_fa8f3e"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"_animeProjectArtwork_fa8f3e _badgeArtworkLayered_fa8f3e"[39m
+                  [33mdata-anime-project-art[39m=[32m"productive_bronze"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMist_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<span[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkBackdrop_fa8f3e"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m""[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mclass[39m=[32m"_roleArtworkMotif_fa8f3e"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                    [33mwidth[39m=[32m"1254"[39m
+                  [36m/>[39m
+                  [36m<img[39m
+                    [33malt[39m=[32m"Projekt-Engagement · Bronze"[39m
+                    [33mclass[39m=[32m"_roleArtworkFrame_fa8f3e"[39m
+                    [33mdata-achievement-art[39m=[32m"productive_bronze"[39m
+                    [33mdata-nimg[39m=[32m"1"[39m
+                    [33mdecoding[39m=[32m"async"[39m
+                    [33mheight[39m=[32m"1254"[39m
+                    [33mloading[39m=[32m"lazy"[39m
+                    [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
+                    [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75"[39m
+                    [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75 3840w"[39m
+                    [33mstyle[39m=[32m"color: transparent;"[39m
+                   ...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getAllByLabelText node_modules/@testing-library/dom/dist/queries/label-text.js:111:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/profile/MemberBadgeChain.test.tsx:1074:19
+    1072|     const headings = screen.getAllByRole('heading', { level: 2 }).map(…
+    1073|     expect(headings).toEqual(['Fortschritt', 'Punkte-Meilensteine', 'B…
+    1074|     expect(screen.getByLabelText('Gründungsmitglied · Gesperrt')).not.…
+       |                   ^
+    1075|     expect(screen.getByRole('button', { name: /7\+ Jahre Mitglied ausw…
+    1076|     expect(screen.getByLabelText('10+ Jahre Mitglied · Gesperrt')).not…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/components/profile/MemberBadgeChain.test.tsx > MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups
+AssertionError: expected null not to be null
+ ❯ src/components/profile/MemberBadgeChain.test.tsx:1096:101
+    1094|     expect(container.querySelector('[data-anime-project-stage]')).not.…
+    1095|     expect(container.querySelector('[data-points-achievement-stage]'))…
+    1096|     expect(container.querySelector('[data-contribution-family-stage="c…
+       |                                                                                                     ^
+    1097|     expect(container.querySelector('[data-contribution-family-stage="c…
+    1098|     expect(container.querySelector('[data-contribution-family-stage="c…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/components/profile/MemberBadgeChain.test.tsx > Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant
+AssertionError: expected [ 'Rollenfortschritt', …(4) ] to deeply equal [ 'Rollenfortschritt', …(5) ]
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[33m@@ -2,7 +2,6 @@[39m
+[2m    "Rollenfortschritt",[22m
+[2m    "Fortschritt",[22m
+[2m    "Punkte-Meilensteine",[22m
+[2m    "Beiträge",[22m
+[2m    "Mitgliedschaft",[22m
+[32m-   "Besondere Auszeichnungen",[39m
+[2m  ][22m
+
+ ❯ src/components/profile/MemberBadgeChain.test.tsx:1285:98
+    1283| 
+    1284|       expect(screen.queryByRole('heading', { level: 2, name: 'Auszeich…
+    1285|       expect(screen.getAllByRole('heading', { level: 2 }).map((heading…
+       |                                                                                                  ^
+    1286|         'Rollenfortschritt',
+    1287|         'Fortschritt',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/app/members/[slug]/page.test.tsx > MemberProfilePage Phase 99 route composition > renders the locked Hero B and Rhythm C heading hierarchy in DOM order
+AssertionError: expected [ 'Profil und Mitgliedschaft', …(7) ] to deeply equal [ 'Profil und Mitgliedschaft', …(8) ]
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[33m@@ -4,8 +4,7 @@[39m
+[2m    "Rollenfortschritt",[22m
+[2m    "Fortschritt",[22m
+[2m    "Punkte-Meilensteine",[22m
+[2m    "Beiträge",[22m
+[2m    "Mitgliedschaft",[22m
+[32m-   "Besondere Auszeichnungen",[39m
+[2m    "Beiträge",[22m
+[2m  ][22m
+
+ ❯ src/app/members/[slug]/page.test.tsx:288:96
+    286| 
+    287|     expect(screen.getAllByRole('heading', { level: 1 }).map((heading) …
+    288|     expect(screen.getAllByRole('heading', { level: 2 }).map((heading) …
+       |                                                                                                ^
+    289|       'Profil und Mitgliedschaft',
+    290|       'Fansub-Projekte',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 115 passed | 1 skipped (121)
+   Start at  14:22:56
+   Duration  4.94s (transform 741ms, setup 0ms, collect 1.38s, tests 5.02s, environment 677ms, prepare 128ms)
+

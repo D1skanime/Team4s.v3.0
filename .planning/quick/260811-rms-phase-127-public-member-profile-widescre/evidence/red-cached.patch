@@ -1,0 +1,25 @@
+diff --git a/frontend/src/app/members/[slug]/page.test.tsx b/frontend/src/app/members/[slug]/page.test.tsx
+index 2be7f5b7..0a2660ab 100644
+--- a/frontend/src/app/members/[slug]/page.test.tsx
++++ b/frontend/src/app/members/[slug]/page.test.tsx
+@@ -484,3 +484,20 @@ describe('Quick 260811-pqe responsive profile composition', () => {
+     expect(memberPageStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?\.contributionPairPresent,[\s\S]*?\.contributionPairEmpty\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
+   })
+ })
++
++describe('Quick 260811-rms widescreen profile balance', () => {
++  it('keeps profile columns balanced on widescreen and stacks them through tight tablet widths', () => {
++    const profileRule = memberPageStyles.match(/^\.profilePair\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
++    expect(profileRule).toMatch(/grid-template-columns:\s*minmax\(0, 8fr\) minmax\(0, 5fr\)/)
++
++    const profileChildrenRule = memberPageStyles.match(/^\.sectionPair\s*>\s*\*\s*\{[\s\S]*?^\}/m)?.[0] ?? ''
++    expect(profileChildrenRule).toContain('min-width: 0;')
++    expect(profileChildrenRule).not.toContain('overflow-wrap: anywhere')
++
++    expect(memberPageStyles).toMatch(/@media \(max-width: 1024px\)[\s\S]*?\.profilePair\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
++    expect(memberPageStyles).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.profilePair,[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/)
++
++    expect(profileRule).not.toMatch(/(?:width:\s*\d|100vw|overflow-x:\s*hidden|margin-(?:left|right):\s*-)/)
++    expect(memberPageStyles).not.toMatch(/\.profilePair\s*\{[^}]*overflow-wrap:\s*anywhere/s)
++  })
++})

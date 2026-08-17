@@ -1,0 +1,4 @@
+100644 ad0e232a48afdb67f321dd6fe6a5896a8ee05112 0	frontend/src/app/members/[slug]/page.test.tsx
+100644 93076f1515d6f3037d6da9feaad226055f9b2f92 0	frontend/src/components/profile/MemberBadgeChain.module.css
+100644 b4a824004d9e1b875c8690fb33f119df11135e33 0	frontend/src/components/profile/MemberBadgeChain.test.tsx
+100644 b7fbd46a37fc6d0b05d7ffc77b7c6ee490d13884 0	frontend/src/components/profile/MemberBadgeChain.tsx

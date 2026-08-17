@@ -1,0 +1,2 @@
+1ab61d657f816b347af626cad59a7a5730d5fca81fbadc5af4a50f5704d57eab  frontend/src/components/profile/MemberBadgeChain.tsx
+545a93d225cbfb276b6463b8dcb64c73b395ed59e3b4049760cd8e9ac80864eb  frontend/src/components/profile/MemberBadgeChain.test.tsx

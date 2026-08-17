@@ -1,0 +1,140 @@
+
+> team4s-frontend@0.1.0 test
+> vitest run --run src/components/profile/MemberBadgeChain.test.tsx -t Quick 260812-pmu
+
+
+ RUN  v3.2.4 /app
+
+ ❯ src/components/profile/MemberBadgeChain.test.tsx (103 tests | 1 failed | 102 skipped) 536ms
+   ↓ MemberBadgeChain > renders exact accessible contribution progress without client thresholds
+   ↓ MemberBadgeChain > renders Gold as the terminal contribution tier
+   ↓ MemberBadgeChain > bietet pro Gruppe eine fokussierte Karussell- und Rasteransicht
+   ↓ MemberBadgeChain > renders approved artwork inside the focal card for earned image badges
+   ↓ MemberBadgeChain > verwendet für Erste Punkte die neue Oldschool-Medaillenserie
+   ↓ MemberBadgeChain > composes Erste Mitwirkung from its motif and award frame
+   ↓ MemberBadgeChain > composes the productive tier with its matching rank frame
+   ↓ MemberBadgeChain > renders the generated contribution artwork without a fallback icon
+   ↓ MemberBadgeChain > Phase 125 contribution achievement stages > renders one ordered three-family outer carousel and three native artwork tiers at zero
+   ↓ MemberBadgeChain > Phase 125 contribution achievement stages > keeps tier preview independent from true terminal progress and outer family state
+   ↓ MemberBadgeChain > Phase 125 contribution achievement stages > locks artwork, same-DOM, expanded, responsive and no-inner-engine contracts
+   ↓ MemberBadgeChain > renders the approved membership artwork without a fallback icon
+   ↓ MemberBadgeChain > renders the compact historical leadership seal
+   ↓ MemberBadgeChain > composes the translator artwork with the matching rank frame
+   ↓ MemberBadgeChain > uses the dedicated silver timing artwork for the silver timing tier
+   ↓ MemberBadgeChain > composes encoding with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes typesetting with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes quality checking with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes project leadership with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes editor with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes raw_provider with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes designer with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes admin with the matching layered rank artwork
+   ↓ MemberBadgeChain > composes other with the matching layered rank artwork
+   ↓ MemberBadgeChain > labels the catch-all role as Andere instead of exposing the raw role code
+   ↓ MemberBadgeChain > renders a horizontal earned-and-locked badge chain without an aggregate summary
+   ↓ MemberBadgeChain > does not invent badge tier labels when the catalog has no tier or level field
+   ↓ MemberBadgeChain > omits the aggregate achievement summary from DOM, accessibility and SSR
+   ↓ MemberBadgeChain > hides a foreign catalog role completely while retaining all five stages of an earned role (D-02/D-03)
+   ↓ MemberBadgeChain > renders a role-entry badge in earned state the moment it is in earnedBadges (D-03)
+   ↓ MemberBadgeChain > uses the exact singular and plural copy for earned Fansubrollen (D-04)
+   ↓ PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03) > contains all 11 locked role_entry_* codes with correct German labels (CR-01 112-REVIEW: full anime_contribution role_definitions coverage)
+   ↓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the German role-name prefix before a merged Typ-1 + Typ-3 roles row
+   ↓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix for a roles row with only the Typ-1 chip (under threshold, no volume merge)
+   ↓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix uniformly on every earned roles-group row
+   ↓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > does not render a role-name prefix for non-roles groups (Fortschritt)
+   ↓ buildMemberBadgeGroups (D-04) > returns groups in the fixed roles/progress/points/membership/special order when all groups are populated
+   ↓ buildMemberBadgeGroups (D-04) > trennt Punkte-Meilensteine vom Projektfortschritt
+   ↓ buildMemberBadgeGroups (D-04) > hides groups with zero visible badges entirely instead of returning them empty
+   ↓ buildMemberBadgeGroups (D-04) > bildet aus earned-only Contribution-Badges genau eine Zeile pro Familie
+   ↓ buildMemberBadgeGroups (D-04) > blendet Beiträge ohne earned Contribution-Badges vollständig aus
+   ↓ buildMemberBadgeGroups (D-04) > merges two synthetic same-roleCode badges into a single Rollen row (Phase 112 compatibility)
+   ↓ buildMemberBadgeGroups (D-04) > sorts every real catalog badge into the correct group using the real presentation map
+   ↓ MemberBadgeChain Phase 118 role cards > keeps approved role-art geometry for desktop, tablet, mobile and special roles
+   ↓ MemberBadgeChain Phase 118 role cards > keeps all five mobile medals and progress copy inside the role card
+   ↓ MemberBadgeChain Phase 118 role cards > matches the narrow carousel skeleton to one full card and a separate controls row
+   ↓ MemberBadgeChain Phase 118 role cards > renders exact earned-role cards through one carousel station
+   ↓ MemberBadgeChain Phase 118 role cards > hides zero and foreign roles and reverses rank state on rerender
+   ↓ MemberBadgeChain Phase 118 role cards > keeps a full Platinum progressbar while preserving the true visible count
+   ↓ MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy
+   ↓ MemberBadgeChain Phase 119 collection cards > renders Anime-Projekte as one stage without outer carousel chrome
+   ↓ MemberBadgeChain Phase 119 collection cards > preserves a real value above Gold while rendering a full terminal bar
+   ↓ MemberBadgeChain Phase 119 collection cards > keeps current, selected and locked stages semantically distinct
+   ↓ MemberBadgeChain Phase 119 collection cards > resets temporary selection when family metrics change
+   ↓ MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable
+   ↓ MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups
+   ↓ MemberBadgeChain Phase 119 inner stage strip > keeps a visible, touch-friendly horizontal scroll affordance without page overflow
+   ↓ MemberBadgeChain Phase 119 inner stage strip > does not map a mouse wheel to a horizontal stage strip
+   ↓ MemberBadgeChain Phase 119 inner stage strip > centers the current stage through its own strip and never scrolls an ancestor
+   ↓ MemberBadgeChain Phase 119 inner stage strip > exposes every earned and locked stage as a semantic list item
+   ↓ MemberBadgeChain Phase 119 inner stage strip > reserves fixed collection hero geometry at tablet and smartphone widths
+   ↓ routes compact and active badge art through responsive optimized sizes
+   ↓ Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant
+   ↓ keeps badge artwork slots stable and expresses focus only through transforms
+   ↓ Phase 121 Rollenfamilien und Hero-Artwork > zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen
+   ↓ Phase 121 Rollenfamilien und Hero-Artwork > löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen
+   ↓ Phase 121 Rollenfamilien und Hero-Artwork > bindet komponierte Hero-Layer an einen quadratischen lokalen Geometriekontext
+   ↓ Phase 121 semantischer Rollen-Rank-Track > toggles a clean independent expanded roles grid and restores the carousel
+   ↓ Phase 121 semantischer Rollen-Rank-Track > locks the final desktop hierarchy and near-full-width narrow role card
+   ↓ Phase 121 semantischer Rollen-Rank-Track > beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen
+   ↓ Phase 121 semantischer Rollen-Rank-Track > behält für active, inactive und expanded denselben Rollenbaum
+   ↓ Phase 124 Punkte-Meilensteine single-family stage > renders exactly six ordered stations without outer carousel chrome or skeletons
+   ↓ Phase 124 Punkte-Meilensteine single-family stage > keeps zero visible with no current station and every milestone locked
+   ↓ Phase 124 Punkte-Meilensteine single-family stage > allows earned preview while authoritative progress and target remain unchanged
+   ↓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 2500 with bounded progressbar semantics
+   ↓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 2733 with bounded progressbar semantics
+   ↓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 5000 with bounded progressbar semantics
+   ↓ Phase 124 Punkte-Meilensteine single-family stage > locks square contained artwork, local overflow and reduced-motion CSS contracts
+   ↓ Phase 126 membership stage > renders membership without an outer carousel
+   × Phase 126 membership stage > Quick 260812-pmu: leaves the outer section as the sole membership title owner 535ms
+     → expected [ <h2 …(1)></h2>, <h3 …(1)></h3> ] to have a length of 1 but got 2
+   ↓ Phase 126 membership stage > keeps founding separate from the duration track
+   ↓ Phase 126 membership stage > renders an earned founding membership as an accessible preview button
+   ↓ Phase 126 membership stage > shows founding artwork and copy in the large hero after preview activation
+   ↓ Phase 126 membership stage > keeps authoritative duration facts unchanged during founding preview
+   ↓ Phase 126 membership stage > clears an earlier preview when the actual current duration is selected
+   ↓ Phase 126 membership stage > switches from founding preview to every earned duration milestone
+   ↓ Phase 126 membership stage > does not render an interactive or empty founding card for non-founders
+   ↓ Phase 126 membership stage > renders founding artwork exactly once before and during its hero preview
+   ↓ Phase 126 membership stage > keeps locked duration nodes noninteractive while founder preview is active
+   ↓ Phase 126 membership stage > previews earned duration artwork without changing facts
+   ↓ Phase 126 membership stage > uses stable three-column contain geometry
+   ↓ Quick 260811-lck locked achievement artwork secrecy > uses one neutral noninteractive placeholder for every locked family while earned art remains
+   ↓ Quick 260811-lck locked achievement artwork secrecy > omits locked asset names from SSR but keeps locked copy and current hero art
+   ↓ Quick 260812-bqs locked mystery heroes > renders the same secret neutral hero contract for every completely unearned family
+   ↓ Quick 260812-bqs locked mystery heroes > keeps locked hero SSR free of future artwork identifiers and colors
+   ↓ Quick 260812-bqs locked mystery heroes > defines a responsive hero composition without changing the compact lock default
+   ↓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps responsive BadgeChain contract > bounds hero, progress and carousel consumers without arbitrary copy breaking
+   ↓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps medium contribution carousel geometry > gives the active card usable width and stacks its hero before copy is squeezed
+   ↓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps medium contribution carousel geometry > Quick 260812-jtp BadgeChain rhythm ownership > uses the shared spacing scale only at section and group seams
+   ↓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps medium contribution carousel geometry > Quick 260812-jtp BadgeChain rhythm ownership > Quick 260812-jtp contribution card density > keeps the contribution stage content-sized across embedded widths
+   ↓ Quick 260812-kr1 transparent achievement stages > keeps one final profile-local rule authoritative for every large hero wrapper
+   ↓ Quick 260812-kr1 transparent achievement stages > retains responsive ownership and bounded hero media without document-level clipping
+   ↓ Quick 260812-kr1 rendered Card ownership regression > uses a higher-specificity section rule than the global Card class and compacts inactive roles
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/profile/MemberBadgeChain.test.tsx > Phase 126 membership stage > Quick 260812-pmu: leaves the outer section as the sole membership title owner
+AssertionError: expected [ <h2 …(1)></h2>, <h3 …(1)></h3> ] to have a length of 1 but got 2
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 2[39m
+
+ ❯ src/components/profile/MemberBadgeChain.test.tsx:1697:79
+    1695|     const stage = group.querySelector('[data-membership-stage]') as HT…
+    1696| 
+    1697|     expect(within(group).getAllByRole('heading', { name: 'Mitgliedscha…
+       |                                                                               ^
+    1698|     expect(within(group).getByRole('heading', { level: 2, name: 'Mitgl…
+    1699|     expect(within(stage).queryByRole('heading', { name: 'Mitgliedschaf…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 102 skipped (103)
+   Start at  18:34:58
+   Duration  1.23s (transform 360ms, setup 0ms, collect 223ms, tests 536ms, environment 278ms, prepare 56ms)
+

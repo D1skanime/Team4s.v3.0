@@ -1,0 +1,270 @@
+--- a/frontend/src/app/members/[slug]/page.tsx
++++ b/frontend/src/app/members/[slug]/page.tsx
+@@ -131,6 +131,7 @@
+           backgroundImageURL={backgroundImageURL}
+           isPublicView={true}
+           isVerified={profile.is_verified}
++          publicBadges={publicBadges}
+         />
+       </section>
+ 
+--- a/frontend/src/components/profile/MemberProfileHero.tsx
++++ b/frontend/src/components/profile/MemberProfileHero.tsx
+@@ -3,8 +3,10 @@
+ 
+ import { Button, HeroMetrics, PageHeader } from '@/components/ui'
+ import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
+-import type { MemberProfileData, PublicMemberProfileData } from '@/types/profile'
++import type { MemberProfileData, PublicMemberBadge, PublicMemberProfileData } from '@/types/profile'
+ 
++import { resolveBadgeArtwork } from './badgeArtwork'
++import { getMemberBadgePresentation, PUBLIC_MEMBER_BADGE_CATALOG } from './memberBadgeLabels'
+ import { VerifiedBadge } from './VerifiedBadge'
+ import { MemberStatusPill } from './MemberStatusPill'
+ import { MemberProfileMemorialHero } from './MemberProfileMemorialHero'
+@@ -19,8 +21,11 @@
+   isSaving?: boolean
+   canSave?: boolean
+   isVerified?: boolean
++  publicBadges?: PublicMemberBadge[]
+ }
+ 
++const HEADER_SPECIAL_CODES = new Set(['historical_leader', 'all_rounder'])
++
+ function getAccountDisplayName(profile: MemberProfileData | PublicMemberProfileData): string {
+   return 'account_display_name' in profile ? profile.account_display_name : ''
+ }
+@@ -87,6 +92,7 @@
+   isSaving = false,
+   canSave = false,
+   isVerified = false,
++  publicBadges = [],
+ }: MemberProfileHeroProps) {
+   const accountDisplayName = getAccountDisplayName(profile)
+   const displayName = profile.fansub_name || accountDisplayName || 'Mein Profil'
+@@ -97,6 +103,10 @@
+   const knownFor = deriveKnownForFromPublicProfile(profile)
+   const totalPoints = getTotalPoints(profile)
+   const isAnimatedAvatar = /\.gif(?:$|\?)/i.test(avatarURL)
++  const earnedCodes = new Set(publicBadges.map((badge) => badge.badge_code))
++  const specialAwards = PUBLIC_MEMBER_BADGE_CATALOG
++    .filter((item) => HEADER_SPECIAL_CODES.has(item.badge_code) && earnedCodes.has(item.badge_code))
++    .map((item) => ({ ...item, presentation: getMemberBadgePresentation(item.badge_code) }))
+ 
+   if (isPublicView && profileStatus === 'memorial' && 'profile_status' in profile) {
+     return (
+@@ -231,6 +241,22 @@
+               ) : null}
+             </div>
+           ) : null}
++          {specialAwards.length > 0 ? (
++            <ul className={styles.heroSpecialAwardsList} aria-label="Besondere Auszeichnungen">
++              {specialAwards.map((award) => {
++                const artwork = resolveBadgeArtwork(award.badge_code)
++                const Icon = award.presentation.Icon
++                return (
++                  <li className={styles.heroSpecialAward} key={award.badge_code}>
++                    <span className={styles.heroSpecialArtwork} aria-hidden="true">
++                      {artwork ? <ResponsiveImage src={artwork} alt="" width={40} height={40} sizes="40px" /> : <Icon size={24} data-special-award-icon={award.badge_code} />}
++                    </span>
++                    <span>{award.presentation.label}</span>
++                  </li>
++                )
++              })}
++            </ul>
++          ) : null}
+         </div>
+       </div>
+     </div>
+--- a/frontend/src/components/profile/profile.module.css
++++ b/frontend/src/components/profile/profile.module.css
+@@ -164,6 +164,55 @@
+   flex: 0 0 auto;
+ }
+ 
++.heroSpecialAwardsList {
++  display: flex;
++  flex-wrap: wrap;
++  min-width: 0;
++  width: fit-content;
++  max-width: 100%;
++  gap: 8px;
++  margin: 4px 0 0;
++  padding: 0;
++  list-style: none;
++}
++
++.heroSpecialAward {
++  display: inline-flex;
++  min-width: 0;
++  align-items: center;
++  gap: 8px;
++  padding: 4px 10px 4px 4px;
++  border: 1px solid color-mix(in srgb, var(--surface-card) 46%, transparent);
++  border-radius: 999px;
++  background: color-mix(in srgb, var(--text-strong) 76%, transparent);
++  color: #fff;
++  font-size: 0.85rem;
++  font-weight: 700;
++  line-height: 1.25;
++  text-shadow: 0 1px 4px rgba(9, 15, 27, 0.9);
++  overflow-wrap: anywhere;
++}
++
++.heroSpecialArtwork {
++  width: 40px;
++  height: 40px;
++  flex: 0 0 40px;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  overflow: hidden;
++  border-radius: 50%;
++  background: color-mix(in srgb, var(--surface-card) 94%, transparent);
++  color: var(--color-primary, #2f5fe3);
++  text-shadow: none;
++}
++
++.heroSpecialArtwork img {
++  width: 100%;
++  height: 100%;
++  object-fit: contain;
++}
++
+ .deferredActionWrap {
+   position: relative;
+   display: inline-flex;
+@@ -440,7 +489,8 @@
+   .heroTitleRow,
+   .heroBio,
+   .heroMetaLine,
+-  .knownForBlock {
++  .knownForBlock,
++  .heroSpecialAwardsList {
+     min-width: 0;
+     max-width: 100%;
+   }
+--- a/frontend/src/components/profile/MemberBadgeChain.tsx
++++ b/frontend/src/components/profile/MemberBadgeChain.tsx
+@@ -21,6 +21,7 @@
+   type MemberBadgePresentation,
+   type PublicMemberBadgeCatalogItem,
+ } from './memberBadgeLabels'
++import { resolveBadgeArtwork } from './badgeArtwork'
+ import styles from './MemberBadgeChain.module.css'
+ 
+ type MemberBadgeChainProps = {
+@@ -69,75 +70,6 @@
+   </div>
+ }
+ 
+-const VERSIONED_POINT_ARTWORK = new Set([
+-  'point_milestone_first',
+-  'point_milestone_active',
+-  'point_milestone_engaged',
+-  'point_milestone_experienced',
+-  'point_milestone_legend',
+-  'point_milestone_veteran',
+-])
+-
+-const APPROVED_CONTRIBUTION_ARTWORK: Record<string, string> = {
+-  contribution_projects_bronze: 'contribution_projects_bronze-v3.png',
+-  contribution_projects_silver: 'contribution_projects_silver-v2.png',
+-  contribution_projects_gold: 'contribution_projects_gold-v2.png',
+-  contribution_chronicle_bronze: 'contribution_chronicle_bronze-v4.png',
+-  contribution_chronicle_silver: 'contribution_chronicle_silver-v2.png',
+-  contribution_chronicle_gold: 'contribution_chronicle_gold-v2.png',
+-  contribution_archivist_bronze: 'contribution_archivist_bronze-v2.png',
+-  contribution_archivist_silver: 'contribution_archivist_silver-v2.png',
+-  contribution_archivist_gold: 'contribution_archivist_gold-v2.png',
+-}
+-
+-const APPROVED_MEMBERSHIP_ARTWORK: Record<string, string> = {
+-  founding_member: 'membership-founding_member-v4.png',
+-  long_term_member: 'membership-long_term_member-v4.png',
+-  membership_7_years: 'membership-7_years-v4.png',
+-  membership_10_years: 'membership-10_years-v4.png',
+-}
+-
+-const APPROVED_SPECIAL_ARTWORK: Record<string, string> = {
+-  historical_leader: 'special-historical_leader-v1.png',
+-}
+-
+-function resolveBadgeArtwork(badgeCode: string): string | undefined {
+-  if (badgeCode === 'first_contribution') {
+-    return '/member-achievement-badges/progress-frame-first_contribution.png'
+-  }
+-  if (badgeCode === 'point_milestone_veteran') {
+-    return '/member-achievement-badges/point_milestone_veteran-v3.png'
+-  }
+-  const productiveMatch = /^productive_(bronze|silver|gold)$/.exec(badgeCode)
+-  if (productiveMatch) {
+-    return `/member-achievement-badges/progress-frame-productive-${productiveMatch[1]}.png`
+-  }
+-  if (VERSIONED_POINT_ARTWORK.has(badgeCode)) {
+-    return `/member-achievement-badges/${badgeCode}-v2.png`
+-  }
+-  if (APPROVED_CONTRIBUTION_ARTWORK[badgeCode]) {
+-    return `/member-achievement-badges/${APPROVED_CONTRIBUTION_ARTWORK[badgeCode]}`
+-  }
+-  if (APPROVED_MEMBERSHIP_ARTWORK[badgeCode]) {
+-    return `/member-achievement-badges/${APPROVED_MEMBERSHIP_ARTWORK[badgeCode]}`
+-  }
+-  if (APPROVED_SPECIAL_ARTWORK[badgeCode]) {
+-    return `/member-achievement-badges/${APPROVED_SPECIAL_ARTWORK[badgeCode]}`
+-  }
+-  if (badgeCode.startsWith('contribution_')) {
+-    return `/member-achievement-badges/${badgeCode}.png`
+-  }
+-  if (badgeCode.startsWith('role_entry_')) {
+-    return `/member-achievement-badges/${badgeCode}.png`
+-  }
+-  const roleVolumeMatch = /^role_volume_(.+)_(?:bronze|silver|gold|platinum)$/.exec(badgeCode)
+-  if (roleVolumeMatch?.[1] === 'timer') {
+-    return `/member-achievement-badges/${badgeCode}.png`
+-  }
+-  return roleVolumeMatch
+-    ? `/member-achievement-badges/role_entry_${roleVolumeMatch[1]}.png`
+-    : undefined
+-}
+ 
+ function resolveLayeredProgressArtwork(
+   badgeCode: string,
+@@ -728,7 +660,7 @@
+     badge_progress: badgeProgress ?? [],
+   })
+   const collectionGroups = (collectionEnabled ? MEMBER_BADGE_GROUP_ORDER : [])
+-    .filter((group): group is Exclude<MemberBadgeGroup, 'roles'> => group !== 'roles')
++    .filter((group): group is Exclude<MemberBadgeGroup, 'roles'> => group !== 'roles' && group !== 'special')
+     .map((group) => ({
+       key: group,
+       label: MEMBER_BADGE_GROUP_LABELS[group],
+--- a/frontend/src/components/profile/badgeArtwork.ts
++++ b/frontend/src/components/profile/badgeArtwork.ts
+@@ -0,0 +1,26 @@
++const VERSIONED_POINT_ARTWORK = new Set(['point_milestone_first', 'point_milestone_active', 'point_milestone_engaged', 'point_milestone_experienced', 'point_milestone_legend', 'point_milestone_veteran'])
++
++const APPROVED_CONTRIBUTION_ARTWORK: Record<string, string> = {
++  contribution_projects_bronze: 'contribution_projects_bronze-v3.png', contribution_projects_silver: 'contribution_projects_silver-v2.png', contribution_projects_gold: 'contribution_projects_gold-v2.png',
++  contribution_chronicle_bronze: 'contribution_chronicle_bronze-v4.png', contribution_chronicle_silver: 'contribution_chronicle_silver-v2.png', contribution_chronicle_gold: 'contribution_chronicle_gold-v2.png',
++  contribution_archivist_bronze: 'contribution_archivist_bronze-v2.png', contribution_archivist_silver: 'contribution_archivist_silver-v2.png', contribution_archivist_gold: 'contribution_archivist_gold-v2.png',
++}
++const APPROVED_MEMBERSHIP_ARTWORK: Record<string, string> = {
++  founding_member: 'membership-founding_member-v4.png', long_term_member: 'membership-long_term_member-v4.png', membership_7_years: 'membership-7_years-v4.png', membership_10_years: 'membership-10_years-v4.png',
++}
++const APPROVED_SPECIAL_ARTWORK: Record<string, string> = { historical_leader: 'special-historical_leader-v1.png' }
++
++export function resolveBadgeArtwork(badgeCode: string): string | undefined {
++  if (badgeCode === 'first_contribution') return '/member-achievement-badges/progress-frame-first_contribution.png'
++  if (badgeCode === 'point_milestone_veteran') return '/member-achievement-badges/point_milestone_veteran-v3.png'
++  const productiveMatch = /^productive_(bronze|silver|gold)$/.exec(badgeCode)
++  if (productiveMatch) return `/member-achievement-badges/progress-frame-productive-${productiveMatch[1]}.png`
++  if (VERSIONED_POINT_ARTWORK.has(badgeCode)) return `/member-achievement-badges/${badgeCode}-v2.png`
++  if (APPROVED_CONTRIBUTION_ARTWORK[badgeCode]) return `/member-achievement-badges/${APPROVED_CONTRIBUTION_ARTWORK[badgeCode]}`
++  if (APPROVED_MEMBERSHIP_ARTWORK[badgeCode]) return `/member-achievement-badges/${APPROVED_MEMBERSHIP_ARTWORK[badgeCode]}`
++  if (APPROVED_SPECIAL_ARTWORK[badgeCode]) return `/member-achievement-badges/${APPROVED_SPECIAL_ARTWORK[badgeCode]}`
++  if (badgeCode.startsWith('contribution_') || badgeCode.startsWith('role_entry_')) return `/member-achievement-badges/${badgeCode}.png`
++  const roleVolumeMatch = /^role_volume_(.+)_(?:bronze|silver|gold|platinum)$/.exec(badgeCode)
++  if (roleVolumeMatch?.[1] === 'timer') return `/member-achievement-badges/${badgeCode}.png`
++  return roleVolumeMatch ? `/member-achievement-badges/role_entry_${roleVolumeMatch[1]}.png` : undefined
++}

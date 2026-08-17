@@ -1,0 +1,10 @@
+  7332 frontend/src/app/members/[slug]/page.tsx
+  8488 frontend/src/components/profile/MemberProfileHero.tsx
+ 11653 frontend/src/components/profile/profile.module.css
+ 61012 frontend/src/components/profile/MemberBadgeChain.tsx
+ 17605 frontend/src/components/ui/FocalCarousel.tsx
+  2972 frontend/src/components/ui/FocalCarousel.module.css
+ 30950 frontend/src/components/ui/FocalCarousel.test.tsx
+272194 frontend/src/lib/api.ts
+127519 .planning/STATE.md
+539725 total
