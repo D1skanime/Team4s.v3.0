@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -59,6 +60,12 @@ type fansubGroupInvitationStore interface {
 	Accept(ctx context.Context, input models.AcceptFansubInvitationInput) (*models.FansubGroupInvitation, *models.FansubGroupAppMember, error)
 }
 
+// fansubGroupNameStore ist eine schmale Lookup-Schnittstelle fuer die Gruppen-Namensanreicherung
+// der Einladungsmail (D-03). *repository.FansubRepository erfuellt diese Signatur bereits.
+type fansubGroupNameStore interface {
+	GetGroupByID(ctx context.Context, id int64) (*models.FansubGroup, error)
+}
+
 type auditLogWriter interface {
 	Write(ctx context.Context, entry repository.AuditLogEntry) error
 }
@@ -79,6 +86,7 @@ type AppAuthHandler struct {
 	mediaBaseURL       string
 	keycloakAccountURL string
 	appPublicURL       string
+	fansubRepo         fansubGroupNameStore
 }
 
 func NewAppAuthHandler(
@@ -97,6 +105,7 @@ func NewAppAuthHandler(
 	mediaBaseURL string,
 	keycloakAccountURL string,
 	appPublicURL string,
+	fansubRepo *repository.FansubRepository,
 ) *AppAuthHandler {
 	return &AppAuthHandler{
 		appAuthRepo:        appAuthRepo,
@@ -114,6 +123,7 @@ func NewAppAuthHandler(
 		mediaBaseURL:       strings.TrimSpace(mediaBaseURL),
 		keycloakAccountURL: strings.TrimSpace(keycloakAccountURL),
 		appPublicURL:       strings.TrimSpace(appPublicURL),
+		fansubRepo:         fansubRepo,
 	}
 }
 
@@ -407,11 +417,76 @@ func (h *AppAuthHandler) CreateFansubGroupInvitation(c *gin.Context) {
 		mailCtx, mailCancel := context.WithTimeout(c.Request.Context(), 15*time.Second)
 		defer mailCancel()
 
+		// D-03: Gruppenname aus fansubRepo aufloesen; ein Lookup-Fehler blockiert die
+		// Einladung nie, sondern faellt nur auf die generische Formulierung zurueck.
+		groupName := "deiner Fansub-Gruppe"
+		if h.fansubRepo != nil {
+			if group, groupErr := h.fansubRepo.GetGroupByID(mailCtx, fansubID); groupErr == nil && group != nil && strings.TrimSpace(group.Name) != "" {
+				groupName = group.Name
+			}
+		}
+
+		inviterName := strings.TrimSpace(identity.DisplayName)
+		if inviterName == "" {
+			inviterName = "Die Gruppenleitung"
+		}
+
+		roleLabel := strings.Join(created.Invitation.InvitedRoleCodes, ", ")
+		var roleSuffixText, roleSuffixHTML string
+		if roleLabel != "" {
+			roleSuffixText = fmt.Sprintf(" -- als %s", roleLabel)
+			roleSuffixHTML = fmt.Sprintf(" &mdash; als <strong>%s</strong>", roleLabel)
+		}
+
+		// D-08: mediierter Fallback -- die E-Mail des Eingeladenen wird als nicht-autoritativer
+		// Hinweis im Link mitgegeben, damit das Frontend (135-05) sie als Keycloak login_hint
+		// nutzen kann. Die eigentliche Zuordnungspruefung bleibt serverseitig in Accept().
+		mailURL := inviteURL
+		if created.Invitation.Email != "" {
+			mailURL = inviteURL + "&email=" + url.QueryEscape(created.Invitation.Email)
+		}
+
+		expiresLabel := created.Invitation.ExpiresAt.Format("02.01.2006")
+
+		subject := fmt.Sprintf("%s lädt dich in die Fansub-Gruppe \"%s\" ein", inviterName, groupName)
+
+		bodyText := fmt.Sprintf(
+			"%s hat dich eingeladen, der Fansub-Gruppe \"%s\" auf Team4s beizutreten%s.\n\n"+
+				"Team4s ist die Plattform, auf der \"%s\" ihr Team und ihre Fansub-Arbeit verwaltet.\n\n"+
+				"Wenn du annimmst, wirst du Mitglied der Gruppe. Noch kein Team4s-Konto? Du kannst dir beim Annehmen direkt eins anlegen.\n\n"+
+				"Bitte verwende dabei genau diese E-Mail-Adresse (%s) -- sonst kann die Einladung nicht zugeordnet werden.\n\n"+
+				"Einladung annehmen: %s\n\n"+
+				"Der Link ist 7 Tage gültig (bis %s).\n\n"+
+				"Du kennst \"%s\" nicht oder hast das nicht erwartet? Dann ignoriere diese Mail einfach.",
+			inviterName, groupName, roleSuffixText,
+			groupName,
+			created.Invitation.Email,
+			mailURL,
+			expiresLabel,
+			groupName,
+		)
+
+		bodyHTML := fmt.Sprintf(
+			`<p>%s hat dich eingeladen, der Fansub-Gruppe <strong>"%s"</strong> auf Team4s beizutreten%s.</p>`+
+				`<p>Team4s ist die Plattform, auf der "%s" ihr Team und ihre Fansub-Arbeit verwaltet.</p>`+
+				`<p>Wenn du annimmst, wirst du Mitglied der Gruppe. Noch kein Team4s-Konto? Du kannst dir beim Annehmen direkt eins anlegen.</p>`+
+				`<p><strong>Bitte verwende dabei genau diese E-Mail-Adresse (%s)</strong> -- sonst kann die Einladung nicht zugeordnet werden.</p>`+
+				`<p><a href="%s">Einladung annehmen</a></p>`+
+				`<p>Der Link ist 7 Tage gültig (bis %s).</p>`+
+				`<p>Du kennst "%s" nicht oder hast das nicht erwartet? Dann ignoriere diese Mail einfach.</p>`,
+			inviterName, groupName, roleSuffixHTML,
+			groupName,
+			created.Invitation.Email,
+			mailURL,
+			expiresLabel,
+			groupName,
+		)
+
 		mailErr := h.mailer.Send(mailCtx, services.MailMessage{
 			To:       created.Invitation.Email,
-			Subject:  "Einladung zur Fansub-Gruppe",
-			BodyText: fmt.Sprintf("Du wurdest zu einer Fansub-Gruppe eingeladen.\n\nLink zum Annehmen: %s\n\nDieser Link ist 7 Tage gÃ¼ltig.", inviteURL),
-			BodyHTML: fmt.Sprintf(`<p>Du wurdest zu einer Fansub-Gruppe eingeladen.</p><p><a href="%s">Einladung annehmen</a></p><p>Dieser Link ist 7 Tage gÃ¼ltig.</p>`, inviteURL),
+			Subject:  subject,
+			BodyText: bodyText,
+			BodyHTML: bodyHTML,
 		})
 		if mailErr != nil {
 			// Einladung stornieren damit kein stiller pending-Record verbleibt.

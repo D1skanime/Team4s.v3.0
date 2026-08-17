@@ -204,6 +204,7 @@ func main() {
 		cfg.MediaPublicBaseURL,
 		cfg.KeycloakAccountURL,
 		cfg.AppPublicURL,
+		fansubRepo,
 	)
 	adminBootstrapUserIDs := resolveAdminBootstrapUserIDs(cfg)
 	if err := bootstrapAdminRoleAssignments(ctx, authzRepo, cfg.AuthAdminRoleName, adminBootstrapUserIDs); err != nil {
