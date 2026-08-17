@@ -282,5 +282,21 @@ Plans:
 | 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
 | 134. Fixture-Backed Verification & Rollout | 5/6 | In Progress | - |
 
----
-*Created: 2026-08-13 for milestone v1.3 Public Member Profile Hardening*
+### Phase 135: Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten
+
+**Goal:** Ein kalt eingeladener Fansubber kann eine Einladung end-to-end annehmen -- mit Kontext-Mail, Registrieren-ODER-Anmelden-Pfad auf der Accept-Seite (returnTo + E-Mail-Vorbelegung + Auto-Accept), verdrahtetem Claim-Button fuer historische Mitglieder und einem Rollen-Picker, der nur zuweisbare Gruppenrollen zeigt. Niemand landet mehr in einer Sackgasse.
+**Depends on:** Phase 134
+**Requirements**: TBD (Quelle: .planning/notes/live-uat-ux-findings.md, Findings #6-#10)
+**Scope (aus Live-UAT-Findings #6-#10):**
+- #10 (BLOCKER): Cold-Invite-Registrierungspfad -- Accept-Seite bietet BEIDE Wege (Registrieren UND Anmelden), reicht die Einladung durch (returnTo + E-Mail-Vorbelegung fuer den email_match), danach Auto-Accept + Bestaetigung. Pruefen ob Keycloak Self-Registration / registrationAllowed aktiv ist.
+- #10: Einladungs-Mail mit Kontext (wer laedt ein, welche Gruppe, 1 Zeile "Team4s ist...", was Annehmen bewirkt) statt spam-artiger Blindmail.
+- #8: Accept-Seite gibt returnTo an /login mit -> Auto-Redirect zurueck + Auto-Accept nach Login.
+- #9: Accept-Text endnutzerfreundlich (keine Keycloak-/Architektur-Interna im UI).
+- #6: Claim-Generieren-Button + Invite-Link-Anzeige in HistoricalMemberCard verdrahten (Backend member_claim_invitations_handler.go + Hook useGroupMembersClaimActions.ts existieren, UI rendert ihn nie).
+- #7: Rollen-Picker (Einladung/Mitglied-hinzufuegen) auf assignable=true filtern -- Credit-/Contribution-Rollen (Administration) und platform_admin (jetzt via KC-JIT) ausblenden.
+
+**Betroffene Bereiche:** frontend/src/app/invitations/accept/page.tsx; Einladungs-Mail-Template (backend services/mailer.go + app_auth.go); frontend/src/app/admin/fansubs/[id]/edit/ (GroupMembersHistTable.tsx HistoricalMemberCard, Rollen-Picker, useGroupMembersClaimActions.ts); infra/keycloak/realm-team4s.json (registrationAllowed).
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 135 to break down)
