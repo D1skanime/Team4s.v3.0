@@ -6,6 +6,10 @@
 // role_definitions). Dieser Test sichert explizit ab, dass UserGlobalRolesTab
 // bewusst KEINEN "Was darf diese Rolle?"-Link rendert, damit ein spaeteres
 // UAT das nicht faelschlich als "Link fehlt" meldet (Plan 111-04, D-04).
+//
+// Erweitert (260817-7fv): Globale Rollen sind jetzt IdP-verwaltet/read-only —
+// kein Vergabe-/Entzugs-Steuerelement mehr, dafuer ein sichtbarer "aus IdP"-
+// Hinweis.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
@@ -15,8 +19,6 @@ const mockGetAdminUserGlobalRoles = vi.fn()
 
 vi.mock('@/lib/api', () => ({
   getAdminUserGlobalRoles: (...args: unknown[]) => mockGetAdminUserGlobalRoles(...args),
-  assignAdminUserGlobalRole: vi.fn(),
-  revokeAdminUserGlobalRole: vi.fn(),
   ApiError: class ApiError extends Error {
     constructor(public status: number, message: string) {
       super(message)
@@ -52,5 +54,20 @@ describe('UserGlobalRolesTab', () => {
     expect(screen.queryByRole('link', { name: /Was darf diese Rolle\?/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /Was darf diese Rolle\?/i })).toBeNull()
     expect(screen.queryByText('Was darf diese Rolle?')).toBeNull()
+  })
+
+  it('renders read-only IdP-synced roles without assign/revoke controls', async () => {
+    mockGetAdminUserGlobalRoles.mockResolvedValueOnce(makeGlobalRolesResponse())
+
+    render(<UserGlobalRolesTab userId={1} displayName="Max Mustermann" />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Plattform-Admin')).not.toBeNull()
+    })
+
+    expect(
+      screen.queryByRole('button', { name: /entziehen|vergeben/i }),
+    ).toBeNull()
+    expect(screen.getByText(/aus IdP/i)).not.toBeNull()
   })
 })
