@@ -139,6 +139,16 @@ export function AppShellClientWrapper({ children }: { children: ReactNode }) {
     setRetryToken((current) => current + 1)
   }, [])
 
+  // Refetch the profile (and thus drawer memberships) when another surface signals a
+  // membership change -- e.g. accepting an invite -- so the user never has to hard-reload.
+  useEffect(() => {
+    function onProfileChanged() {
+      setRetryToken((current) => current + 1)
+    }
+    window.addEventListener('team4s:profile-changed', onProfileChanged)
+    return () => window.removeEventListener('team4s:profile-changed', onProfileChanged)
+  }, [])
+
   const handleLogout = useCallback(() => {
     void logoutActiveSession().catch(() => undefined)
   }, [logoutActiveSession])

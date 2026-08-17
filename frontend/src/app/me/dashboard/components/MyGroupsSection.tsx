@@ -31,5 +31,5 @@ export function MyGroupsSection({ memberships }: MyGroupsSectionProps) {
     )
   }
 
-  return <MembershipsSection memberships={memberships} title="Meine Gruppen" />
+  return <MembershipsSection memberships={memberships} title="Meine Gruppen" showWorkspaceLink />
 }

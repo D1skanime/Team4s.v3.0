@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Users } from 'lucide-react'
 
-import { Card, SectionHeader } from '@/components/ui'
+import { Button, Card, SectionHeader } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { resolveApiUrl } from '@/lib/api'
 import type { MemberProfileMembership, PublicMemberRole } from '@/types/profile'
@@ -13,6 +13,8 @@ type MembershipsSectionProps = {
   memberships: MemberProfileMembership[]
   title?: string
   headingLevel?: 2 | 3
+  /** Zeigt zusaetzlich einen Arbeitsbereich-Link fuer aktive App-Mitgliedschaften (Dashboard). */
+  showWorkspaceLink?: boolean
 }
 
 // membershipRoles liefert ALLE freigegebenen Rollen (D-05): serverautoritative
@@ -51,6 +53,7 @@ export function MembershipsSection({
   memberships,
   title = 'Fansub-Gruppen',
   headingLevel = 2,
+  showWorkspaceLink = false,
 }: MembershipsSectionProps) {
   return (
     <section className={styles.membershipsSection}>
@@ -106,6 +109,14 @@ export function MembershipsSection({
                       <ArrowRight size={15} aria-hidden="true" />
                     </span>
                   </Link>
+                  {showWorkspaceLink && membership.app_member_status === 'active' ? (
+                    <Button
+                      href={`/admin/fansubs/${membership.fansub_group_id}/edit`}
+                      variant="secondary"
+                    >
+                      Zum Arbeitsbereich
+                    </Button>
+                  ) : null}
                 </Card>
               </li>
             )

@@ -55,6 +55,9 @@ export function InviteAcceptFlow({
       setErrorMessage(null)
       await onAccept(token)
       setSuccessState(true)
+      // Signal the app shell (drawer memberships) + dashboard to refetch the profile,
+      // so a freshly-joined group appears immediately -- no manual reload needed.
+      window.dispatchEvent(new Event('team4s:profile-changed'))
       if (afterAcceptRedirect) {
         router.replace(afterAcceptRedirect)
       }
