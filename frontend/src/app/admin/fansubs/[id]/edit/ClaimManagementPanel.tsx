@@ -83,6 +83,15 @@ function initialActiveRoleOptions(): ActiveRoleOption[] {
     .map((option) => ({ code: option.code, label: option.label }))
 }
 
+/**
+ * Note: this component is intentionally not mounted anywhere in the app router.
+ * Its claim-generate/copy/cancel UI (the per-member invite-link block) was ported
+ * into HistoricalMemberCard (GroupMembersHistTable.tsx) by Phase 135 (D-05), which
+ * is the actively rendered surface for that flow. This panel is kept, tested, and
+ * documented rather than deleted because its broader claims/requests/role-assignment
+ * table surface has no current mounted consumer but may become a dedicated future
+ * admin view (resolves 135-RESEARCH.md Open Question 2: keep, do not delete).
+ */
 export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimManagementPanelProps) {
   const [members, setMembers] = useState<HistFansubGroupMember[]>([])
   const [pendingClaims, setPendingClaims] = useState<MemberClaimRow[]>([])
