@@ -142,3 +142,21 @@ Im invite-scoped Register-Pfad ist die E-Mail auf die eingeladene Adresse vorbef
 nicht editierbar (gesperrt), damit der spaetere E-Mail-Match nicht scheitern kann. Falls KC
 die E-Mail im Register-Screen nicht hart sperren kann, mindestens vorbefuellt + klarer Hinweis
 + Team4s-seitige Validierung vor dem Accept.
+
+---
+
+## D-13 Keycloak-Register-Seite: E-Mail gesperrt + Invite-Kontext (locked 2026-08-17, Plan 135-08)
+
+Der "Registrieren"-Pfad landet auf Keycloaks `/registrations`-Seite im Custom-Theme "team4s"
+(loginTheme:"team4s"; verifyEmail ist AUS -> keine Bestaetigungs-Wall). Das Theme hat heute KEINE
+`.ftl`-Overrides (nur messages/resources/theme.properties), nutzt also KCs Standard-Register-
+Formular. Deshalb neuer Plan 135-08:
+- E-Mail auf dem KC-Register-Formular vorbefuellt UND read-only (setzt D-12 technisch um -- das
+  ist eine Theme-Template-Aenderung, nicht Next.js/Backend).
+- Generischer Invite-Onboarding-Kontext-Text auf der KC-Seite (dynamischer Gruppenname NUR falls
+  technisch theme-erreichbar; sonst generisch, Limitation dokumentieren).
+- Offene Registrierung (ohne Invite-Kontext) bleibt unveraendert funktionsfaehig.
+- Sicherheits-Hinweis: Das Sperren ist UX, kein Security-Control; autoritativ bleibt der beim
+  Annehmen erzwungene server-seitige email_match. login_hint prefillt das KC-Register-Formular
+  NICHT automatisch wie das Login-Formular -> Task 1 in 135-08 klaert den echten Mechanismus an
+  der laufenden KC-Instanz, bevor implementiert wird.
