@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 134 Plan 05 (protected-asset guard + targeted shared-DB reset/reseed, PMQA-06); ready for Plan 06
-last_updated: "2026-08-17T11:26:34.844Z"
-last_activity: 2026-08-17 -- Phase 135 planning complete
+stopped_at: Completed Phase 135 Plan 01 (keycloakAuth.ts returnPath/loginHint foundation + login page consumption, D-01/D-04); ready for Plan 02
+last_updated: "2026-08-17T12:58:30.000Z"
+last_activity: 2026-08-17 -- Completed Phase 135 Plan 01
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 77
-  completed_plans: 43
+  total_plans: 78
+  completed_plans: 44
   percent: 38
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 134 — fixture-backed-verification-rollout
+**Current focus:** Phase 135 — einladungs-und-onboarding-flow-fuer-eingeladene-fansub-mitgl
 
 ## Current Position
 
-Phase: 134 (fixture-backed-verification-rollout) — EXECUTING
-Plan: 6 of 6
-Status: Ready to execute
-Last activity: 2026-08-17 -- Phase 135 planning complete
+Phase: 135 (einladungs-und-onboarding-flow-fuer-eingeladene-fansub-mitgl) — EXECUTING
+Plan: 1 of 8 complete, ready for Plan 2
+Status: Executing Phase 135
+Last activity: 2026-08-17 -- Completed Phase 135 Plan 01
 
 ## Accumulated Context
 
@@ -123,6 +123,7 @@ Last activity: 2026-08-17 -- Phase 135 planning complete
 - [Phase 131]: Set-based delivery, pagination, and performance budgets are executed and locked (8/8 plans) -- profile-load SQL query count is capped at 19, and API payload/latency/Web-Vitals budgets for both sheppert and csubs-leader are captured in .planning/phases/131-set-based-delivery-pagination-performance-budgets/evidence/BUDGETS.md.
 - [Phase 134]: reset-member-profile-fixture.sh clears members.member_story_json/html/text (UPDATE, not DELETE) for the two reference members before deleting their story-image media_assets rows — that JSONB reference is invisible to Postgres FK enforcement; a stale reference would trip applyStoryImageLifecycle's IDOR check on the reseed's next PUT /me/profile
 - [Phase 134]: The three tracked badge asset directories are sha256-verified byte-identical before and after the shared team4s_v2 database reset+reseed cycle (PMQA-06), and the seed re-run prints RESULT: PASS (15/15) twice in a row afterward, proving PMQA-01's idempotent-from-clean-state claim genuinely holds
+- [Phase 135]: Plan 135-01 executed (D-01, D-04) -- keycloakAuth.ts gained a validated one-shot consumeStoredReturnPath() (mirrors registrationCompletion.ts's marker pattern) plus BeginKeycloakLoginOptions.loginHint/.returnPath; login/page.tsx's completeCallback() destination priority is now persistedReturnPath ?? (registration-completion default) ?? next-param. This is the shared foundation Plans 135-05/06 must persist a returnPath through via beginKeycloakLogin({ returnPath }) rather than inventing a second mechanism. 12/12 login/page.test.tsx cases pass; tsc --noEmit clean for both touched files (pre-existing unrelated Next.js route-type errors elsewhere ignored).
 
 ### Pending Todos
 
@@ -188,10 +189,11 @@ Last activity: 2026-08-17 -- Phase 135 planning complete
 | Phase 134 P03 | 20min | 3 tasks | 5 files |
 | Phase 134 P04 | 20min | 3 tasks | 4 files |
 | Phase 134 P05 | ~25min | 3 tasks | 4 files |
+| Phase 135 P01 | 4min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-16T16:09:40.944Z
-Stopped at: Completed Phase 134 Plan 05 (protected-asset guard + targeted shared-DB reset/reseed, PMQA-06); ready for Plan 06
-Last activity: 2026-08-13 - Completed Phase 128 Plan 19
+Last session: 2026-08-17T12:58:30.000Z
+Stopped at: Completed Phase 135 Plan 01 (keycloakAuth.ts returnPath/loginHint foundation + login page consumption, D-01/D-04); ready for Plan 02
+Last activity: 2026-08-17 - Completed Phase 135 Plan 01
 Resume file: None
