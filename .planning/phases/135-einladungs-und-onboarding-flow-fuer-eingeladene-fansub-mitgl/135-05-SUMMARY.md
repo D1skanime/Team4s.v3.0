@@ -87,8 +87,21 @@ _Both TDD tasks were verified RED-then-GREEN locally (via `npm test`) before the
 
 - `135-05-PLAN.md` contains two layers of instruction: (a) the original `<tasks>` section, with concrete props (`title`, `description`, `loginPromptText`, `loginHintEmail`, ...), locked test behaviors (5 cases for Task 1, 4 for Task 2), and generic copy ("Fansub-Einladung annehmen", plain "Anmelden"/"Registrieren" buttons); and (b) a "Content-Spec Addendum" appended after the plan's own `<output>` block, referencing `135-CONTEXT.md`'s D-11/D-12 and specifying materially different, richer UI: a dynamic title ("Einladung zu '{Gruppe}'"), a dynamic context line naming the inviter and role, four button/state variants ("Konto erstellen und beitreten" / "Ich habe schon ein Konto - Anmelden" / "Als {meine E-Mail} annehmen"), and a fourth "logged in with the wrong email" state with a sign-out/switch action.
 - This addendum's data requirements (group name, inviter display name, invited-role label, the currently-authenticated user's own email for the "wrong email" comparison) are not present anywhere in the locked `InviteAcceptFlowProps` interface, nor in this plan's `<interfaces>` block, nor in `135-06-PLAN.md` (which already exists and explicitly composes against `135-05`'s original, simpler prop contract with plain "Anmelden" as its own expected button text). Implementing the addendum's full state machine here would have required inventing new props/API calls outside this plan's TDD-designed and cross-plan-referenced scope, and would have silently broken `135-06`'s already-written expectations (its own Task 2 test literally asserts `screen.getByRole('button', {name: 'Anmelden'})`-style behavior against the shared component).
-- Given `135-07`'s (`wave 5`) plan is a verification/gate plan (no further InviteAcceptFlow content work) and `135-08` covers only the Keycloak register-page email lock (D-13), there is currently no phase-135 plan that implements the addendum's richer group/inviter/wrong-email copy. **This is flagged as an open gap for follow-up** — either a new plan/task should be added to phase 135 (or a later phase) to extend `InviteAcceptFlow` with the group/inviter/wrong-email props the addendum describes, or the addendum should be explicitly re-scoped/superseded in `135-CONTEXT.md` if the simpler generic copy shipped here is accepted as sufficient for this milestone.
+- Given `135-07`'s (`wave 5`) plan is a verification/gate plan (no further InviteAcceptFlow content work) and `135-08` covers only the Keycloak register-page email lock (D-13), there is currently no phase-135 plan that implements the addendum's richer group/inviter/wrong-email copy.
 - Everything else in this plan (component contract, test behaviors, acceptance criteria, threat model) was implemented exactly as written with no other deviations.
+
+**Resolution (2026-08-17, user scope ruling during execute-phase):** The gap above is
+resolved, not open. `InviteAcceptFlow` as implemented in this plan stays as-is — it already
+resolves the Finding #10 BLOCKER (cold, logged-out invitee dead end) and is not reworked.
+The addendum's dynamic context line (naming group/inviter/role) and the "wrong email logged
+in" state both require a new invite-preview-by-token backend endpoint that no Phase-135 plan
+provides; building that endpoint is explicitly out of scope for Phase 135 and deferred to a
+backlog item: `.planning/todos/pending/2026-08-17-invite-accept-dynamic-context-preview-endpoint.md`.
+All other Content-Spec Addendum content is in scope and shipped elsewhere in the phase: dual
+Anmelden/Registrieren CTA + friendly non-Keycloak copy + friendly error states (this plan),
+rich inviter/group context in the invitation mail itself (135-03), and the Keycloak
+register-page email lock (135-08). D-11's dynamic-context requirement is partially deferred,
+not blocking — 135-06 and 135-08 proceed against the contract shipped here as written.
 
 ## Issues Encountered
 - `docker compose exec -T team4sv30-frontend npx tsc --noEmit` reports the same pre-existing, unrelated Next.js generated route-type errors documented in `135-01-SUMMARY.md` (`.next/dev/types/app/admin/anime/**`, `app/fansubs/[slug]/page.ts`, `app/anime/page.ts`, `app/members/ranking/page.ts`). Confirmed via `grep -i "InviteAcceptFlow\|invitations/accept"` that none reference this plan's files; treated as pre-existing baseline noise, not a regression.
