@@ -351,7 +351,7 @@ Plans:
 - D-09 (Locked, 2026-08-17): EIN gemeinsamer Onboarding-/Accept-Flow (`InviteAcceptFlow`-Komponente) fuer beide Invite-Typen (App-Member-Invite UND Historical-Claim-Invite).
 
 **Betroffene Bereiche:** frontend/src/app/invitations/accept/page.tsx; frontend/src/app/claim-invitations/accept/page.tsx; frontend/src/components/auth/InviteAcceptFlow.tsx (NEU); frontend/src/lib/keycloakAuth.ts; frontend/src/app/login/page.tsx; Einladungs-Mail-Template (backend services/mailer.go + app_auth.go); frontend/src/app/admin/fansubs/[id]/edit/ (GroupMembersHistTable.tsx HistoricalMemberCard, Rollen-Picker, useGroupMembersClaimActions.ts); backend/internal/repository/hist_group_member_roles_repository.go; infra/keycloak/realm-team4s.json (registrationAllowed, live-verifiziert).
-**Plans:** 5/8 plans executed
+**Plans:** 6/8 plans executed
 
   - Wave 1: 135-01 (frontend auth foundation: keycloakAuth.ts returnPath/loginHint + login page), 135-02 (backend D-06 role-picker SQL fix + live-DB test), 135-03 (backend D-03/D-01 mail context + email-hint link), 135-04 (frontend D-05 claim button wiring)
   - Wave 2: 135-05 (shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite)
@@ -375,7 +375,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 135-06-PLAN.md — claim-invitations/accept rewrite onto the shared InviteAcceptFlow (D-09, D-07).
+- [x] 135-06-PLAN.md — claim-invitations/accept rewrite onto the shared InviteAcceptFlow (D-09, D-07).
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
