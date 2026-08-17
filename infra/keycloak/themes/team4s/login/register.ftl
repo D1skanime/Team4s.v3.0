@@ -64,16 +64,107 @@
             ${msg("registerTitle")}
         </#if>
     <#elseif section = "form">
+        <#-- D-12/D-13 (Task 2): derive the invited email from the
+             login_hint-prefilled "username" attribute value (see the file
+             header comment above for why "username", not "email"). -->
+        <#assign invitedEmail = "">
+        <#list profile.attributes as team4sProbeAttribute>
+            <#if team4sProbeAttribute.name == "username" && (team4sProbeAttribute.value!"")?contains("@")>
+                <#assign invitedEmail = team4sProbeAttribute.value>
+            </#if>
+        </#list>
+
         <form id="kc-register-form" class="${properties.kcFormClass!}" action="${url.registrationAction}" method="post" novalidate="novalidate">
-            <@userProfileCommons.userProfileFormFields; callback, attribute>
-                <#if callback = "afterField">
-                <#-- render password fields just under the username or email (if used as username) -->
-                    <#if passwordRequired?? && (attribute.name == 'username' || (attribute.name == 'email' && realm.registrationEmailAsUsername))>
-                        <@field.password name="password" required=true label=msg("password") autocomplete="new-password" />
-                        <@field.password name="password-confirm" required=true label=msg("passwordConfirm") autocomplete="new-password" />
+
+            <#if invitedEmail?has_content>
+                <div class="${properties.kcFormGroupClass!} team4s-invite-context" id="team4s-invite-context">
+                    <p>${kcSanitize(msg("team4sInviteContext"))?no_esc}</p>
+                </div>
+            </#if>
+
+            <#-- D-12 (Task 2): this is user-profile-commons.ftl's own
+                 userProfileFormFields loop, inlined instead of called via the
+                 macro import, so the "email" attribute's <input> can be given
+                 a real HTML `readonly` attribute (value still submitted)
+                 instead of the macro's built-in `disabled` behavior (value
+                 dropped from submission -- see file header comment). Every
+                 other attribute keeps calling the stock
+                 userProfileCommons.inputFieldByType macro unchanged. -->
+            <#assign currentGroup="">
+            <#list profile.attributes as attribute>
+
+                <#assign group = (attribute.group)!"">
+                <#if group != currentGroup>
+                    <#assign currentGroup=group>
+                    <#if currentGroup != "">
+                        <div class="${properties.kcFormGroupClass!}"
+                        <#list group.html5DataAnnotations as key, value>
+                            data-${key}="${value}"
+                        </#list>
+                        >
+
+                            <#assign groupDisplayHeader=group.displayHeader!"">
+                            <#if groupDisplayHeader != "">
+                                <#assign groupHeaderText=advancedMsg(groupDisplayHeader)!group>
+                            <#else>
+                                <#assign groupHeaderText=group.name!"">
+                            </#if>
+                            <div class="${properties.kcContentWrapperClass!}">
+                                <label id="header-${attribute.group.name}" class="${kcFormGroupHeader!}">${groupHeaderText}</label>
+                            </div>
+
+                            <#assign groupDisplayDescription=group.displayDescription!"">
+                            <#if groupDisplayDescription != "">
+                                <#assign groupDescriptionText=advancedMsg(groupDisplayDescription)!"">
+                                <div class="${properties.kcLabelWrapperClass!}">
+                                    <label id="description-${group.name}" class="${properties.kcLabelClass!}">${groupDescriptionText}</label>
+                                </div>
+                            </#if>
+                        </div>
                     </#if>
                 </#if>
-            </@userProfileCommons.userProfileFormFields>
+
+                <@field.group name=attribute.name label=advancedMsg(attribute.displayName!'') error=kcSanitize(messagesPerField.get('${attribute.name}'))?no_esc required=attribute.required>
+                    <div class="${properties.kcInputWrapperClass!}">
+                        <#if attribute.annotations.inputHelperTextBefore??>
+                            <div class="${properties.kcInputHelperTextBeforeClass!}" id="form-help-text-before-${attribute.name}" aria-live="polite">${kcSanitize(advancedMsg(attribute.annotations.inputHelperTextBefore))?no_esc}</div>
+                        </#if>
+
+                        <#if attribute.name == "email" && invitedEmail?has_content>
+                            <#-- D-12: locked, server-rendered readonly + prefilled email field. -->
+                            <span class="${properties.kcInputClass} team4s-email-locked">
+                                <#-- Auto-escaping (HTML output format) is already active for this
+                                     template, matching every other attribute value output in this
+                                     file (e.g. inputTag's `value="${(value!'')}"` in
+                                     user-profile-commons.ftl) -- an explicit ?html here is rejected
+                                     by FreeMarker as redundant/double-escaping, not a missing
+                                     mitigation. -->
+                                <input type="text" id="email" name="email" value="${invitedEmail}" class="${properties.kcInputClass!} team4s-input-readonly"
+                                    aria-invalid="<#if messagesPerField.existsError('email')>true</#if>"
+                                    readonly
+                                    autocomplete="email"
+                                />
+                            </span>
+                            <div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-email" aria-live="polite">${kcSanitize(msg("team4sEmailLockedHelp"))?no_esc}</div>
+                        <#else>
+                            <@userProfileCommons.inputFieldByType attribute=attribute/>
+                            <#if attribute.annotations.inputHelperTextAfter??>
+                                <div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-${attribute.name}" aria-live="polite">${kcSanitize(advancedMsg(attribute.annotations.inputHelperTextAfter))?no_esc}</div>
+                            </#if>
+                        </#if>
+                    </div>
+                </@field.group>
+
+                <#-- render password fields just under the username or email (if used as username) -->
+                <#if passwordRequired?? && (attribute.name == 'username' || (attribute.name == 'email' && realm.registrationEmailAsUsername))>
+                    <@field.password name="password" required=true label=msg("password") autocomplete="new-password" />
+                    <@field.password name="password-confirm" required=true label=msg("passwordConfirm") autocomplete="new-password" />
+                </#if>
+            </#list>
+
+            <#list profile.html5DataAnnotations?keys as key>
+                <script type="module" src="${url.resourcesPath}/js/${key}.js"></script>
+            </#list>
 
             <@registerCommons.termsAcceptance/>
 

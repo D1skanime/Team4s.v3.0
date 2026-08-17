@@ -40,3 +40,28 @@
   background-color: var(--team4s-brand-color-hover);
   border-color: var(--team4s-brand-color-hover);
 }
+
+/*
+ * Plan 135-08 (D-12/D-13): register.ftl's invite-context line and the
+ * locked/prefilled email field it introduces on the invite "Registrieren"
+ * path. Absent entirely on open (non-invite) registration.
+ */
+.team4s-invite-context {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  background-color: rgba(95, 132, 221, 0.12);
+  border: 1px solid rgba(95, 132, 221, 0.35);
+}
+
+.team4s-invite-context p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--team4s-brand-color);
+}
+
+.team4s-email-locked input.team4s-input-readonly {
+  background-color: #f2f2f4;
+  color: #5a5a5f;
+  cursor: not-allowed;
+}
