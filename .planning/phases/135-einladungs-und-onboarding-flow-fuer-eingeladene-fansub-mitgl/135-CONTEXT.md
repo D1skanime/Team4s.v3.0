@@ -98,3 +98,47 @@ App-Member-Invite (#10, /invitations/accept) UND Historical-Claim-Invite (#6,
 Auch ein Claim-Nutzer ohne Konto kommt durch denselben invite-scoped Register-Pfad.
 D-05 (Claim-Button in HistoricalMemberCard) bleibt bestehen, aber der Claim-Accept-Weg
 nutzt denselben gemeinsamen Onboarding-Flow statt eines separaten Sackgassen-Pfads.
+
+---
+
+## Content-Spec (locked 2026-08-17, vom Nutzer bestaetigt — AUTORITATIV fuer 135-03 + 135-05)
+
+Kontext: Der Accept-Endpunkt erzwingt bereits einen E-Mail-Match (repository:
+`normalizedEmail != normalizedActorEmail` -> Ablehnung). Ein kalt eingeladener User MUSS
+sich also mit der eingeladenen E-Mail anmelden/registrieren. Verfuegbare Invite-Daten:
+Gruppe (GetGroupByID), Rolle(n) (InvitedRoleCodes -> role_definitions Label), Einlader
+(CreatedByAppUserID -> App-User-Name), Ablaufdatum. Der User hat NULL Vorwissen -> er muss
+sauber gefuehrt werden.
+
+### D-10 Mail-Inhalt (praezisiert D-03): sauberer HTML-Text + CTA-Button, KEIN Branding
+Felder, die die Mail nennen MUSS:
+- Einlader-Name (Fallback: "Ein Admin von {Gruppe}", wenn kein Name aufloesbar).
+- Gruppenname + zugewiesene Rolle.
+- Ein Satz "Was ist Team4s".
+- Was Annehmen bewirkt (wird Mitglied; kein Konto -> beim Annehmen direkt anlegbar).
+- ENTSCHEIDENDER Hinweis: genau diese E-Mail-Adresse ({email}) verwenden (wegen E-Mail-Match).
+- CTA-Button "Einladung annehmen".
+- Ablaufdatum ("... gueltig bis {Datum}").
+- Entwarnungs-Footer ("nicht erwartet? -> ignorieren").
+- **Encoding-Bug fixen:** aktuell "gueltig" -> "gÃ¼ltig" (Doppel-UTF-8). Korrekte Umlaute/UTF-8
+  im Mail-Body sicherstellen (CLAUDE.md-Umlaut-Regel).
+Design: strukturierte HTML-Mail mit echtem Button, robust ueber Mail-Clients; KEIN Logo/
+Farb-Branding (eigene spaetere Runde).
+
+### D-11 Accept-Seiten-Inhalt (praezisiert D-04/D-09): kein Keycloak-Jargon, @/components/ui
+- Titel: Einladung zu "{Gruppe}". Kontextzeile: "{Einlader} hat dich als {Rolle} in die
+  Fansub-Gruppe {Gruppe} eingeladen."
+- Zustaende:
+  - Nicht eingeloggt / kein Konto: zwei CTAs -- "Konto erstellen und beitreten" (primaer,
+    E-Mail vorbefuellt) + "Ich habe schon ein Konto - Anmelden".
+  - Eingeloggt, E-Mail passt: Button "Als {meine E-Mail} annehmen".
+  - Eingeloggt, E-Mail passt NICHT: freundlicher Hinweis (Einladung ist fuer {invited email},
+    du bist als {current email} angemeldet -> mit eingeladener Adresse anmelden).
+  - Abgelaufen / schon Mitglied / ungueltiger Link: je eine menschliche Meldung, kein 404/Code.
+- Keine Keycloak-/Architektur-Interna im Text ("Keycloak bleibt fuer Login..." raus).
+
+### D-12 Register-Prefill gesperrt (praezisiert D-08)
+Im invite-scoped Register-Pfad ist die E-Mail auf die eingeladene Adresse vorbefuellt UND
+nicht editierbar (gesperrt), damit der spaetere E-Mail-Match nicht scheitern kann. Falls KC
+die E-Mail im Register-Screen nicht hart sperren kann, mindestens vorbefuellt + klarer Hinweis
++ Team4s-seitige Validierung vor dem Accept.
