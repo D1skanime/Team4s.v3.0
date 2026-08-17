@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 135 Plan 06 (D-09/D-07 claim-invitations/accept rewritten on shared InviteAcceptFlow)
-last_updated: "2026-08-17T13:39:10.795Z"
+stopped_at: Completed Phase 135 Plan 08 (D-12/D-13 Keycloak register.ftl email lock + invite context)
+last_updated: "2026-08-17T14:05:00.000Z"
 last_activity: 2026-08-17
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 78
-  completed_plans: 49
+  completed_plans: 50
   percent: 38
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 135 (einladungs-und-onboarding-flow-fuer-eingeladene-fansub-mitgl) — EXECUTING
-Plan: 6 of 8 complete, ready for Plan 7
+Plan: 7 of 8 complete (135-07 still outstanding; 135-08 executed out of Wave-4 order alongside/after it), ready for Plan 7
 Status: Ready to execute
 Last activity: 2026-08-17
 
@@ -130,6 +130,7 @@ Last activity: 2026-08-17
 - [Phase 135]: Plan 135-04 executed (D-05, D-07) -- HistoricalMemberCard now destructures the 8 already-declared claim-invite props (generatedInvites, memberInvitations, copyStates, canCreateClaimInvitation, onGenerateInvitation, onCancelInvitation, onCopyLink, normalizeInviteLink) and renders the generate/copy/cancel block gated on canCreateClaimInvitation && !member.app_username, using the hist-claim-invite-link- id prefix required by useGroupMembersClaimActions.ts's markVisibleInviteLink DOM fallback (not ClaimManagementPanel's claim-invite-link- prefix). ClaimManagementPanel.tsx is documented in-code as an intentionally unmounted future-admin-view reference rather than deleted, resolving 135-RESEARCH.md Open Question 2. 4/4 new component tests pass; tsc --noEmit clean for both touched files. — Closes the "generate + display" gap for the claim flow that unlocks historical members -- pure JSX wiring against an existing, tested, audit-logged backend/hook; no backend change and no new authorization surface.
 - [Phase 135]: Plan 135-05 executed (D-01, D-04, D-07, D-08, D-09) -- new frontend/src/components/auth/InviteAcceptFlow.tsx is the one shared dual Anmelden/Registrieren + returnPath + auto-accept + friendly-error onboarding component (Button-only, zero raw <button>), and frontend/src/app/invitations/accept/page.tsx is rewritten on top of it, closing Finding #10's BLOCKER cold-invite dead end. A useRef guard fires the auto-accept effect at most once per mount; handleLogin/handleRegister persist returnPath via 135-01's beginKeycloakLogin({returnPath}) and forward loginHintEmail as login_hint. 9/9 new frontend tests pass (5+4), re-run alongside login/page.test.tsx's 12 cases with zero regressions (21/21). — DEVIATION FLAGGED: the plan file's own appended "Content-Spec Addendum" (D-11/D-12, dynamic group/inviter copy + a fourth "wrong email logged in" state + "Konto erstellen und beitreten"-style button labels) was NOT implemented; the plan's literal <tasks> section (simpler generic copy, matching 135-06-PLAN.md's already-written expectations) was followed instead. See 135-05-SUMMARY.md's "Deviations from Plan" for full rationale -- this addendum content is an open gap that needs a follow-up plan/task or an explicit CONTEXT.md rescoping before 135-07's live UAT (which requires "correct German copy... throughout").
 - [Phase 135]: Plan 135-06 executed (D-09, D-07) -- claim-invitations/accept/page.tsx rewritten as a thin InviteAcceptFlow composition, closing D-09 (both invite types now share one shared onboarding flow) and Pitfall 1/5's return_to dead end for this page. No loginHintEmail prop (claim invitations are generic shareable links with no target email); afterAcceptRedirect=/me/profile preserves the page's prior immediate-redirect-on-success behavior. 3/3 new page tests pass, re-run alongside login/page.test.tsx (12), invitations/accept/page.test.tsx (4), and InviteAcceptFlow.test.tsx (5) with zero regressions (24/24 green); tsc --noEmit clean for touched files (pre-existing unrelated Next.js route-type errors elsewhere ignored). — Followed 135-06-PLAN.md's <tasks> section literally against 135-05's locked InviteAcceptFlowProps contract, per the user-confirmed scope ruling (STATE.md 2026-08-17 entry) that the Content-Spec Addendum's dynamic group/inviter/role copy stays deferred and out of scope.
+- [Phase 135]: Plan 135-08 executed (D-12, D-13, D-07) -- infra/keycloak/themes/team4s/login/register.ftl is now a real theme override (previously the theme shipped zero .ftl overrides and inherited register.ftl byte-for-byte from keycloak.v2). Empirically confirmed against the live Keycloak 26.0.8 realm (curling /realms/team4s/protocol/openid-connect/registrations with login_hint set) that login_hint prefills only the "username" registration attribute, never "email" -- register.ftl reuses that prefilled username value as `invitedEmail` whenever it looks like an email address, and renders the "email" attribute with custom inlined markup carrying a real HTML `readonly` attribute (value still submitted, unlike Keycloak's own attribute.readOnly path which emits `disabled` and drops the value) plus a generic invite-context line (team4sInviteContext message key; Keycloak does not forward group/inviter/role to the registration template, matching 135-05-SUMMARY.md's prior Content-Spec Addendum scope ruling). Full live proof: registered a real test account through the locked path via curl (PKCE authorization_code flow), exchanged the code, and confirmed via /userinfo that the created account's email claim exactly matched the invited address; test account deleted via the Keycloak admin API afterward. Open (non-invite) registration verified unaffected. — This is a scope evolution of D-08 (135-CONTEXT.md's original text says "kein KC-Theme-Umbau"/no KC theme rework): D-12/D-13 were added later, during live-UAT review, specifically because D-08's mediated query-param-only approach (135-03) could prefill but not lock the email or show invite context; 135-08 layers a theme change on top of, not instead of, that mediated fallback.
 
 ### Pending Todos
 
@@ -201,10 +202,11 @@ Last activity: 2026-08-17
 | Phase 135 P04 | 18min | 2 tasks | 4 files |
 | Phase 135 P05 | ~25min | 2 tasks | 5 files |
 | Phase 135 P06 | ~10min | 2 tasks | 2 files |
+| Phase 135 P08 | ~50min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-17T13:39:10.781Z
-Stopped at: Completed Phase 135 Plan 06 (D-09/D-07 claim-invitations/accept rewritten on shared InviteAcceptFlow)
-Last activity: 2026-08-17 - Completed Phase 135 Plan 06
+Last session: 2026-08-17T14:05:00.000Z
+Stopped at: Completed Phase 135 Plan 08 (D-12/D-13 Keycloak register.ftl email lock + invite context)
+Last activity: 2026-08-17 - Completed Phase 135 Plan 08
 Resume file: None

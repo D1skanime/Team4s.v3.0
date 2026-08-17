@@ -332,7 +332,7 @@ Plans:
 | 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
 | 134. Fixture-Backed Verification & Rollout | 5/6 | In Progress | - |
-| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 1/8 | In Progress | - |
+| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 7/8 | In Progress | - |
 
 ### Phase 135: Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten
 
@@ -351,7 +351,7 @@ Plans:
 - D-09 (Locked, 2026-08-17): EIN gemeinsamer Onboarding-/Accept-Flow (`InviteAcceptFlow`-Komponente) fuer beide Invite-Typen (App-Member-Invite UND Historical-Claim-Invite).
 
 **Betroffene Bereiche:** frontend/src/app/invitations/accept/page.tsx; frontend/src/app/claim-invitations/accept/page.tsx; frontend/src/components/auth/InviteAcceptFlow.tsx (NEU); frontend/src/lib/keycloakAuth.ts; frontend/src/app/login/page.tsx; Einladungs-Mail-Template (backend services/mailer.go + app_auth.go); frontend/src/app/admin/fansubs/[id]/edit/ (GroupMembersHistTable.tsx HistoricalMemberCard, Rollen-Picker, useGroupMembersClaimActions.ts); backend/internal/repository/hist_group_member_roles_repository.go; infra/keycloak/realm-team4s.json (registrationAllowed, live-verifiziert).
-**Plans:** 6/8 plans executed
+**Plans:** 7/8 plans executed
 
   - Wave 1: 135-01 (frontend auth foundation: keycloakAuth.ts returnPath/loginHint + login page), 135-02 (backend D-06 role-picker SQL fix + live-DB test), 135-03 (backend D-03/D-01 mail context + email-hint link), 135-04 (frontend D-05 claim button wiring)
   - Wave 2: 135-05 (shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite)
@@ -380,4 +380,4 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [ ] 135-07-PLAN.md — Full automated gate + live UAT checkpoints: D-02 Keycloak live check, cold-invite end-to-end round trip + Mailpit content sign-off.
-- [ ] 135-08-PLAN.md — Keycloak-Theme register.ftl: E-Mail vorbefuellt+gesperrt + generischer Invite-Kontext (D-12, D-13, D-07).
+- [x] 135-08-PLAN.md — Keycloak-Theme register.ftl: E-Mail vorbefuellt+gesperrt + generischer Invite-Kontext (D-12, D-13, D-07).
