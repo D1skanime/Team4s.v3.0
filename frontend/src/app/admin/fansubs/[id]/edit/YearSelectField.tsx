@@ -11,6 +11,7 @@ export function YearSelectField({
   id,
   label,
   value,
+  minYear = YEAR_MIN,
   onChange,
 }: {
   disabled?: boolean;
@@ -18,6 +19,7 @@ export function YearSelectField({
   id: string;
   label: string;
   value: string;
+  minYear?: number;
   onChange: (value: string) => void;
 }) {
   return (
@@ -25,7 +27,7 @@ export function YearSelectField({
       id={id}
       label={label}
       value={value}
-      minYear={YEAR_MIN}
+      minYear={minYear}
       maxYear={YEAR_MAX}
       disabled={disabled}
       invalid={Boolean(error)}

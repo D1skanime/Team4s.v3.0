@@ -11,8 +11,16 @@ import {
 import { Badge, Button, Card, FormField, Input, Select } from "@/components/ui";
 import { labelForFansubStatus, slugify } from "./fansubEditFormatters";
 import { createEmptyLink } from "./fansubEditFormMapping";
-import { YearSelectField } from "./YearSelectField";
+import { YEAR_MAX, YEAR_MIN, YearSelectField } from "./YearSelectField";
 import type { FansubDetailsForm } from "./useFansubDetailsForm";
+
+// Untergrenze fuer den Aufloesungsjahr-Picker: nie vor dem Gruendungsjahr (sonst YEAR_MIN).
+function dissolvedYearMin(foundedYear: string): number {
+  const parsed = Number.parseInt(foundedYear, 10);
+  return Number.isInteger(parsed) && parsed >= YEAR_MIN && parsed <= YEAR_MAX
+    ? parsed
+    : YEAR_MIN;
+}
 
 const STATUS_OPTIONS: FansubStatus[] = ["active", "inactive", "dissolved"];
 
@@ -241,6 +249,7 @@ export function FansubBasicInfoTab({
                 disabled={form.status === "active"}
                 id="fansub-group-dissolved-year"
                 label="Auflösungsjahr"
+                minYear={dissolvedYearMin(form.foundedYear)}
                 value={form.dissolvedYear}
                 error={
                   dissolvedError || dissolvedAfterFoundedError
@@ -252,9 +261,9 @@ export function FansubBasicInfoTab({
                   }))
                 }
               />
-              {dissolvedError ? (
+              {dissolvedError || dissolvedAfterFoundedError ? (
                 <p className={styles.fansubEditInlineError}>
-                  {dissolvedError}
+                  {dissolvedError || dissolvedAfterFoundedError}
                 </p>
               ) : null}
             </div>
