@@ -87,7 +87,11 @@ func (r *KeycloakCurrentUserResolver) ResolveCurrentUser(ctx context.Context, ra
 		return AuthIdentity{}, err
 	}
 
-	roles, err := r.authzRepo.ListAppUserGlobalRoles(ctx, currentUser.ID)
+	// IdP-role-driven JIT sync (milestone-intent NACHTRAG Phase 0): the three-value
+	// global role set is reconciled from the verified token's realm roles on every
+	// authenticated request, replacing the former DB-only ListAppUserGlobalRoles
+	// read. Fine-grained app-DB roles are untouched by this call.
+	roles, err := r.authzRepo.SyncGlobalRolesFromKeycloak(ctx, currentUser.ID, claims.RealmRoles)
 	if err != nil {
 		return AuthIdentity{}, err
 	}

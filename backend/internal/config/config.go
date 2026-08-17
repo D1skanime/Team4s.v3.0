@@ -20,7 +20,7 @@ type Config struct {
 	KeycloakAPIAudience          string   // Erwartete Audience fuer Team4s-API-Access-Tokens
 	KeycloakAccountURL           string   // Optionale URL zur Keycloak-Account-Konsole
 	AuthAdminRoleName            string   // Rollenname für Admin-Zugriffsprüfung
-	AuthAdminBootstrapUserIDs    []int64  // Benutzer-IDs, denen beim Start die Admin-Rolle zugewiesen wird
+	AuthAdminBootstrapUserIDs    []int64  // DEPRECATED: legacy Erst-Admin-Bootstrap (roles/user_roles-Tabelle) beim Start; abgeloest durch die Keycloak platform_admin/content_admin Realm-Rollen-JIT-Synchronisierung, bleibt nur als Fallback erhalten
 	EmbyAPIKey                   string   // API-Schlüssel für den Emby-Mediaserver
 	EmbyStreamBaseURL            string   // Basis-URL des Emby-Streamingendpunkts
 	EmbyStreamPathTemplate       string   // Pfadvorlage für Emby-Videostreams
@@ -119,25 +119,25 @@ func Load() Config {
 		// Frontend-Proxy ausgeliefert werden und damit host-/port-unabhaengig sind.
 		// Ein absoluter Default (frueher http://localhost:8092) ist im Browser nicht
 		// erreichbar, sobald Frontend und Backend nicht denselben Host/Port teilen.
-		MediaPublicBaseURL:           strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "")),
-		FFmpegPath:                   ffmpegPath,
-		SegmentRenderEnabled:         getEnvBool("SEGMENT_RENDER_ENABLED", true),
-		SegmentRenderDir:             segmentRenderDir,
-		SegmentRenderMaxSeconds:      getEnvInt("SEGMENT_RENDER_MAX_SECONDS", 240),
-		SegmentRenderFFmpegPath:      strings.TrimSpace(getEnv("SEGMENT_RENDER_FFMPEG_PATH", ffmpegPath)),
-		SegmentRenderFFprobePath:     strings.TrimSpace(getEnv("SEGMENT_RENDER_FFPROBE_PATH", "/usr/bin/ffprobe")),
-		SegmentRenderConcurrency:     getEnvInt("SEGMENT_RENDER_CONCURRENCY", 1),
-		TMDBAPIKey:                   strings.TrimSpace(os.Getenv("TMDB_API_KEY")),
-		FanartAPIKey:                 strings.TrimSpace(os.Getenv("FANART_API_KEY")),
-		SMTPEnabled:                  getEnvBool("SMTP_ENABLED", false),
-		SMTPHost:                     getEnv("SMTP_HOST", "team4sv30-mailpit"),
-		SMTPPort:                     getEnvInt("SMTP_PORT", 1025),
-		SMTPUsername:                 strings.TrimSpace(getEnv("SMTP_USER", os.Getenv("SMTP_USERNAME"))),
-		SMTPPassword:                 os.Getenv("SMTP_PASSWORD"),
-		SMTPFromEmail:                getEnv("SMTP_FROM", getEnv("SMTP_FROM_EMAIL", "noreply@team4s.local")),
-		SMTPFromName:                 getEnv("SMTP_FROM_NAME", "Team4s"),
-		SMTPStartTLS:                 getEnvBool("SMTP_STARTTLS", false),
-		AppPublicURL:                 strings.TrimSpace(getEnv("APP_PUBLIC_URL", "http://localhost:3002")),
+		MediaPublicBaseURL:       strings.TrimSpace(getEnv("MEDIA_PUBLIC_BASE_URL", "")),
+		FFmpegPath:               ffmpegPath,
+		SegmentRenderEnabled:     getEnvBool("SEGMENT_RENDER_ENABLED", true),
+		SegmentRenderDir:         segmentRenderDir,
+		SegmentRenderMaxSeconds:  getEnvInt("SEGMENT_RENDER_MAX_SECONDS", 240),
+		SegmentRenderFFmpegPath:  strings.TrimSpace(getEnv("SEGMENT_RENDER_FFMPEG_PATH", ffmpegPath)),
+		SegmentRenderFFprobePath: strings.TrimSpace(getEnv("SEGMENT_RENDER_FFPROBE_PATH", "/usr/bin/ffprobe")),
+		SegmentRenderConcurrency: getEnvInt("SEGMENT_RENDER_CONCURRENCY", 1),
+		TMDBAPIKey:               strings.TrimSpace(os.Getenv("TMDB_API_KEY")),
+		FanartAPIKey:             strings.TrimSpace(os.Getenv("FANART_API_KEY")),
+		SMTPEnabled:              getEnvBool("SMTP_ENABLED", false),
+		SMTPHost:                 getEnv("SMTP_HOST", "team4sv30-mailpit"),
+		SMTPPort:                 getEnvInt("SMTP_PORT", 1025),
+		SMTPUsername:             strings.TrimSpace(getEnv("SMTP_USER", os.Getenv("SMTP_USERNAME"))),
+		SMTPPassword:             os.Getenv("SMTP_PASSWORD"),
+		SMTPFromEmail:            getEnv("SMTP_FROM", getEnv("SMTP_FROM_EMAIL", "noreply@team4s.local")),
+		SMTPFromName:             getEnv("SMTP_FROM_NAME", "Team4s"),
+		SMTPStartTLS:             getEnvBool("SMTP_STARTTLS", false),
+		AppPublicURL:             strings.TrimSpace(getEnv("APP_PUBLIC_URL", "http://localhost:3002")),
 		CORSAllowedOrigins: parseAllowedOrigins(
 			getEnv("CORS_ALLOWED_ORIGINS", ""),
 			strings.TrimSpace(getEnv("APP_PUBLIC_URL", "http://localhost:3002")),

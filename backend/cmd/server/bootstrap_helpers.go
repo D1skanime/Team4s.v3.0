@@ -78,6 +78,13 @@ func resolveReleaseGrantSecret(cfg config.Config) string {
 	return strings.TrimSpace(cfg.AuthTokenSecret)
 }
 
+// resolveAdminBootstrapUserIDs returns the DEPRECATED AUTH_ADMIN_BOOTSTRAP_USER_IDS
+// startup bootstrap list. This legacy path assigns the admin role in the legacy
+// roles/user_roles tables and rarely even applies to Keycloak-provisioned app
+// users. It is superseded by the Keycloak platform_admin/content_admin realm-role
+// JIT sync (repository.AuthzRepository.SyncGlobalRolesFromKeycloak, wired into
+// KeycloakCurrentUserResolver.ResolveCurrentUser) and is kept only as a fallback
+// for pre-Keycloak-role initial bootstrap. Behavior is unchanged.
 func resolveAdminBootstrapUserIDs(cfg config.Config) []int64 {
 	return cfg.AuthAdminBootstrapUserIDs
 }

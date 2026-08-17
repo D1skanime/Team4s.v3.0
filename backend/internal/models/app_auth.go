@@ -22,6 +22,19 @@ const (
 	FansubGroupInvitationStatusExpired   = "expired"
 )
 
+// KeycloakManagedGlobalRoles is the set of Keycloak realm-role names that the
+// IdP-role-driven JIT sync (repository.AuthzRepository.SyncGlobalRolesFromKeycloak)
+// is authoritative for. Only realm roles listed here are ever reconciled into
+// app_user_global_roles; any other realm role on the token is ignored (defense
+// in depth alongside the DB's chk_app_user_global_roles_role CHECK constraint).
+// Names are identical to the AppGlobalRole* constants above today; centralizing
+// the mapping here means a future rename only touches one place.
+var KeycloakManagedGlobalRoles = []string{
+	AppGlobalRolePlatformAdmin,
+	AppGlobalRoleContentAdmin,
+	AppGlobalRoleUser,
+}
+
 type AppUser struct {
 	ID                int64      `json:"id"`
 	LegacyUserID      *int64     `json:"legacy_user_id,omitempty"`

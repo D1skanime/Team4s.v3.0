@@ -119,7 +119,12 @@ Optional local auth token for comments/watchlist UI:
 - Admin content-management authorization:
   - Admin write endpoints require a valid bearer token.
   - Authorization source is DB roles (`user_roles` + `roles`) with role name `AUTH_ADMIN_ROLE_NAME` (default `admin`).
-  - Optional startup bootstrap for local/dev:
+  - Platform-admin/content-admin global roles are IdP-role-driven: the Keycloak
+    `platform_admin`/`content_admin` realm roles are JIT-synced into
+    `app_user_global_roles` on every authenticated request (no env var, no DB
+    insert, no restart needed to grant/revoke).
+  - Optional startup bootstrap for local/dev (DEPRECATED, superseded by the
+    Keycloak realm-role JIT sync above; kept only as a legacy fallback):
     - `AUTH_ADMIN_BOOTSTRAP_USER_IDS` assigns the admin role during server startup (for example `1,2`).
   - Override role name via `AUTH_ADMIN_ROLE_NAME` (default: `admin`).
 - Optional token TTL overrides:
