@@ -266,11 +266,12 @@ Plans:
 | 132. Shared SSR Composition & Race-Safe Frontend State | 11 | PMFE-01-11 |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 13 | PMPF-06, PMPF-08, PMUI-01-07, PMA11Y-01-04 |
 | 134. Fixture-Backed Verification & Rollout | 7 | PMQA-01-07 |
-| **Total** | **65** | **65 unique v1.3 requirements; no duplicates or orphans** |
+| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 9 | D-01 - D-09 (Decision-Coverage, kein REQUIREMENTS.md-Mapping) |
+| **Total** | **65 (+9 additiv)** | **65 unique v1.3 requirements; no duplicates or orphans; Phase 135 additiv per D-01..D-09** |
 
 ## Progress
 
-**Execution Order:** 128 - 129 - 130 - 131 - 132 - 133 - 134
+**Execution Order:** 128 - 129 - 130 - 131 - 132 - 133 - 134 - 135
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -281,12 +282,13 @@ Plans:
 | 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
 | 134. Fixture-Backed Verification & Rollout | 5/6 | In Progress | - |
+| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 0/7 | Planned | - |
 
 ### Phase 135: Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten
 
 **Goal:** Ein kalt eingeladener Fansubber kann eine Einladung end-to-end annehmen -- mit Kontext-Mail, Registrieren-ODER-Anmelden-Pfad auf der Accept-Seite (returnTo + E-Mail-Vorbelegung + Auto-Accept), verdrahtetem Claim-Button fuer historische Mitglieder und einem Rollen-Picker, der nur zuweisbare Gruppenrollen zeigt. Niemand landet mehr in einer Sackgasse.
 **Depends on:** Phase 134
-**Requirements**: TBD (Quelle: .planning/notes/live-uat-ux-findings.md, Findings #6-#10)
+**Requirements**: TBD (Quelle: .planning/notes/live-uat-ux-findings.md, Findings #6-#10) -- Decision-Coverage via D-01 bis D-09 in `135-CONTEXT.md` (kein REQUIREMENTS.md-Mapping vorhanden; jede Plan-Datei traegt die zutreffenden D-IDs im `requirements`-Frontmatter-Feld).
 **Scope (aus Live-UAT-Findings #6-#10):**
 - #10 (BLOCKER): Cold-Invite-Registrierungspfad -- Accept-Seite bietet BEIDE Wege (Registrieren UND Anmelden), reicht die Einladung durch (returnTo + E-Mail-Vorbelegung fuer den email_match), danach Auto-Accept + Bestaetigung. Pruefen ob Keycloak Self-Registration / registrationAllowed aktiv ist.
 - #10: Einladungs-Mail mit Kontext (wer laedt ein, welche Gruppe, 1 Zeile "Team4s ist...", was Annehmen bewirkt) statt spam-artiger Blindmail.
@@ -294,9 +296,30 @@ Plans:
 - #9: Accept-Text endnutzerfreundlich (keine Keycloak-/Architektur-Interna im UI).
 - #6: Claim-Generieren-Button + Invite-Link-Anzeige in HistoricalMemberCard verdrahten (Backend member_claim_invitations_handler.go + Hook useGroupMembersClaimActions.ts existieren, UI rendert ihn nie).
 - #7: Rollen-Picker (Einladung/Mitglied-hinzufuegen) auf assignable=true filtern -- Credit-/Contribution-Rollen (Administration) und platform_admin (jetzt via KC-JIT) ausblenden.
+- D-08 (Locked, 2026-08-17): Registrierung ist invite-scoped -- E-Mail auf die eingeladene Adresse vorbefuellt/gelockt (mediiert via Mail-Link-Query-Param + serverseitigem email_match, kein KC-Theme-Umbau).
+- D-09 (Locked, 2026-08-17): EIN gemeinsamer Onboarding-/Accept-Flow (`InviteAcceptFlow`-Komponente) fuer beide Invite-Typen (App-Member-Invite UND Historical-Claim-Invite).
 
-**Betroffene Bereiche:** frontend/src/app/invitations/accept/page.tsx; Einladungs-Mail-Template (backend services/mailer.go + app_auth.go); frontend/src/app/admin/fansubs/[id]/edit/ (GroupMembersHistTable.tsx HistoricalMemberCard, Rollen-Picker, useGroupMembersClaimActions.ts); infra/keycloak/realm-team4s.json (registrationAllowed).
-**Plans:** 0 plans
+**Betroffene Bereiche:** frontend/src/app/invitations/accept/page.tsx; frontend/src/app/claim-invitations/accept/page.tsx; frontend/src/components/auth/InviteAcceptFlow.tsx (NEU); frontend/src/lib/keycloakAuth.ts; frontend/src/app/login/page.tsx; Einladungs-Mail-Template (backend services/mailer.go + app_auth.go); frontend/src/app/admin/fansubs/[id]/edit/ (GroupMembersHistTable.tsx HistoricalMemberCard, Rollen-Picker, useGroupMembersClaimActions.ts); backend/internal/repository/hist_group_member_roles_repository.go; infra/keycloak/realm-team4s.json (registrationAllowed, live-verifiziert).
+**Plans:** 7 plans across 4 waves
+  - Wave 1: 135-01 (frontend auth foundation: keycloakAuth.ts returnPath/loginHint + login page), 135-02 (backend D-06 role-picker SQL fix + live-DB test), 135-03 (backend D-03/D-01 mail context + email-hint link), 135-04 (frontend D-05 claim button wiring)
+  - Wave 2: 135-05 (shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite)
+  - Wave 3: 135-06 (claim-invitations/accept rewrite onto the shared flow, completes D-09)
+  - Wave 4: 135-07 (full automated gate + live UAT checkpoints: D-02 KC live check, cold-invite round trip + Mailpit content)
+**Plan-time read first**: `frontend/src/lib/keycloakAuth.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/claim-invitations/accept/page.tsx`, `frontend/src/app/invitations/accept/page.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/GroupMembersHistTable.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/ClaimManagementPanel.tsx`, `frontend/src/app/admin/fansubs/[id]/edit/useGroupMembersClaimActions.ts`, `backend/internal/handlers/app_auth.go`, `backend/internal/repository/hist_group_member_roles_repository.go`, `backend/internal/repository/fansub_repository.go`, `backend/cmd/server/main.go`, and `.planning/phases/135-.../135-RESEARCH.md`/`135-PATTERNS.md` as read-only analogs.
+**UI hint**: yes
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 135 to break down)
+**Wave 1**
+- [ ] 135-01-PLAN.md — keycloakAuth.ts returnPath/loginHint foundation + login page consumption (D-01, D-04).
+- [ ] 135-02-PLAN.md — Backend role-picker SQL fix (assignable = true only) + live-DB regression test (D-06).
+- [ ] 135-03-PLAN.md — Backend context-rich invitation mail + email-hint link (D-03, D-01, D-08).
+- [ ] 135-04-PLAN.md — Wire the claim-invite generate/copy/cancel UI into HistoricalMemberCard (D-05, D-07).
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 135-05-PLAN.md — Shared InviteAcceptFlow component + /invitations/accept BLOCKER rewrite (D-01, D-04, D-07, D-08, D-09).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 135-06-PLAN.md — claim-invitations/accept rewrite onto the shared InviteAcceptFlow (D-09, D-07).
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 135-07-PLAN.md — Full automated gate + live UAT checkpoints: D-02 Keycloak live check, cold-invite end-to-end round trip + Mailpit content sign-off.
