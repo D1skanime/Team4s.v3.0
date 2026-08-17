@@ -1,74 +1,62 @@
 'use client'
 
 import { Suspense } from 'react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { acceptFansubInvitation, ApiError } from '@/lib/api'
-import { useAuthSession } from '@/lib/useAuthSession'
+import { LoadingState } from '@/components/ui'
+import { InviteAcceptFlow } from '@/components/auth/InviteAcceptFlow'
+
+function fansubInvitationErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    switch (error.code) {
+      case 'invitation_expired':
+        return 'Dieser Einladungslink ist abgelaufen. Bitte die Gruppenleitung, einen neuen Link zu erstellen.'
+      case 'invitation_used':
+        return 'Diese Einladung wurde bereits verwendet.'
+      case 'invitation_cancelled':
+        return 'Diese Einladung wurde zurückgezogen.'
+      case 'invalid_invitation_state':
+        return 'Diese Einladung kann nicht mehr verwendet werden.'
+      case 'email_mismatch':
+        return 'Diese Einladung gehört zu einer anderen E-Mail-Adresse.'
+      case 'membership_conflict':
+        return 'Du bist bereits aktives Mitglied dieser Gruppe.'
+      default:
+        return error.message || 'Aktion konnte nicht durchgeführt werden. Bitte versuche es erneut.'
+    }
+  }
+  return 'Aktion konnte nicht durchgeführt werden. Bitte versuche es erneut.'
+}
 
 function AcceptInvitationContent() {
   const searchParams = useSearchParams()
   const token = useMemo(() => (searchParams.get('token') || '').trim(), [searchParams])
-  const { hasAccessToken, isClientInitialized } = useAuthSession()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
-  async function handleAccept() {
-    if (!token || !hasAccessToken) {
-      return
-    }
-
-    try {
-      setIsSubmitting(true)
-      setErrorMessage(null)
-      setSuccessMessage(null)
-      await acceptFansubInvitation({ token })
-      setSuccessMessage('Die Einladung wurde erfolgreich angenommen.')
-    } catch (error) {
-      if (error instanceof ApiError) {
-        setErrorMessage(error.message)
-      } else {
-        setErrorMessage('Einladung konnte nicht angenommen werden.')
-      }
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const emailParam = useMemo(() => {
+    const raw = (searchParams.get('email') || '').trim()
+    if (!raw || !raw.includes('@') || raw.length > 254) return undefined
+    return raw
+  }, [searchParams])
 
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '3rem 1.25rem' }}>
-      <h1>Fansub-Einladung annehmen</h1>
-      <p>
-        Dieser Flow akzeptiert nur eingeloggte App-Benutzer. Keycloak bleibt für Login und Session zuständig,
-        Team4s prüft danach E-Mail-Match, Ablauf und Gruppenmitgliedschaft.
-      </p>
-
-      {!token ? (
-        <p>Im Link fehlt ein gültiges Einladungs-Token.</p>
-      ) : null}
-      {token && isClientInitialized && !hasAccessToken ? (
-        <p>
-          Bitte zuerst über <Link href="/login">anmelden</Link> anmelden und danach zu dieser Seite zurückkehren.
-        </p>
-      ) : null}
-      {token && isClientInitialized && hasAccessToken ? (
-        <button type="button" onClick={() => void handleAccept()} disabled={isSubmitting}>
-          {isSubmitting ? 'Einladung wird angenommen...' : 'Einladung annehmen'}
-        </button>
-      ) : null}
-
-      {errorMessage ? <p style={{ color: '#8b1e1e', marginTop: '1rem' }}>{errorMessage}</p> : null}
-      {successMessage ? <p style={{ color: '#1f6f3a', marginTop: '1rem' }}>{successMessage}</p> : null}
-    </main>
+    <InviteAcceptFlow
+      token={token}
+      title="Fansub-Einladung annehmen"
+      description="Du wurdest eingeladen, einer Fansub-Gruppe auf Team4s beizutreten. Melde dich an oder erstelle ein Konto, um die Einladung anzunehmen."
+      loginPromptText="Bitte melde dich an oder registriere dich, um die Einladung anzunehmen. Du kommst danach automatisch zurück."
+      loginHintEmail={emailParam}
+      onAccept={(tok) => acceptFansubInvitation({ token: tok }).then(() => undefined)}
+      mapError={fansubInvitationErrorMessage}
+      successMessage="Die Einladung wurde erfolgreich angenommen. Du bist jetzt Mitglied der Gruppe."
+      missingTokenText="Im Link fehlt ein gültiges Einladungs-Token."
+    />
   )
 }
 
 export default function AcceptInvitationPage() {
   return (
-    <Suspense fallback={<main style={{ maxWidth: 720, margin: '0 auto', padding: '3rem 1.25rem' }}>Einladung wird geladen...</main>}>
+    <Suspense fallback={<LoadingState title="Einladung wird geladen" />}>
       <AcceptInvitationContent />
     </Suspense>
   )
