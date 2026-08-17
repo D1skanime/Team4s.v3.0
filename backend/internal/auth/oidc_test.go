@@ -97,6 +97,54 @@ func TestKeycloakAccessTokenClaimValidationRejectsWrongAuthorizedParty(t *testin
 	}
 }
 
+func TestKeycloakAccessTokenClaimsUnmarshalsRealmAccessRoles(t *testing.T) {
+	raw := []byte(`{"realm_access":{"roles":["platform_admin","user"," ", ""]}}`)
+
+	var claims keycloakAccessTokenClaims
+	if err := json.Unmarshal(raw, &claims); err != nil {
+		t.Fatalf("decode realm_access claims: %v", err)
+	}
+
+	if len(claims.RealmAccess.Roles) != 4 {
+		t.Fatalf("expected 4 raw roles unmarshaled, got %d", len(claims.RealmAccess.Roles))
+	}
+
+	got := extractRealmRoles(claims)
+	want := []string{"platform_admin", "user"}
+	if len(got) != len(want) {
+		t.Fatalf("expected %v, got %v", want, got)
+	}
+	for i, role := range want {
+		if got[i] != role {
+			t.Fatalf("expected %v, got %v", want, got)
+		}
+	}
+}
+
+func TestKeycloakAccessTokenClaimsWithoutRealmAccessDoesNotPanic(t *testing.T) {
+	raw := []byte(`{"sub":"kc-sub-1"}`)
+
+	var claims keycloakAccessTokenClaims
+	if err := json.Unmarshal(raw, &claims); err != nil {
+		t.Fatalf("decode claims without realm_access: %v", err)
+	}
+
+	got := extractRealmRoles(claims)
+	if len(got) != 0 {
+		t.Fatalf("expected no realm roles, got %v", got)
+	}
+}
+
+func TestVerifyAccessTokenPopulatesRealmRolesFromClaims(t *testing.T) {
+	claims := validAccessClaims(time.Unix(1710000000, 0))
+	claims.RealmAccess.Roles = []string{"platform_admin", " ", ""}
+
+	got := extractRealmRoles(claims)
+	if len(got) != 1 || got[0] != "platform_admin" {
+		t.Fatalf("expected [platform_admin], got %v", got)
+	}
+}
+
 func TestAudienceClaimAcceptsStringAndArray(t *testing.T) {
 	var single audienceClaim
 	if err := json.Unmarshal([]byte(`"team4s-api"`), &single); err != nil {

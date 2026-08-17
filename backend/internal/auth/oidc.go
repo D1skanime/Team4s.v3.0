@@ -22,31 +22,53 @@ type KeycloakVerifier struct {
 }
 
 type KeycloakTokenClaims struct {
-	Subject           string `json:"sub"`
-	Email             string `json:"email"`
-	EmailVerified     bool   `json:"email_verified"`
-	Name              string `json:"name"`
-	PreferredUsername string `json:"preferred_username"`
-	GivenName         string `json:"given_name"`
-	FamilyName        string `json:"family_name"`
-	SessionID         string `json:"sid"`
+	Subject           string   `json:"sub"`
+	Email             string   `json:"email"`
+	EmailVerified     bool     `json:"email_verified"`
+	Name              string   `json:"name"`
+	PreferredUsername string   `json:"preferred_username"`
+	GivenName         string   `json:"given_name"`
+	FamilyName        string   `json:"family_name"`
+	SessionID         string   `json:"sid"`
+	RealmRoles        []string `json:"-"`
+}
+
+type keycloakRealmAccessClaim struct {
+	Roles []string `json:"roles"`
 }
 
 type keycloakAccessTokenClaims struct {
-	Issuer            string        `json:"iss"`
-	Subject           string        `json:"sub"`
-	Audience          audienceClaim `json:"aud"`
-	ExpiresAt         int64         `json:"exp"`
-	NotBefore         int64         `json:"nbf"`
-	Type              string        `json:"typ"`
-	AuthorizedParty   string        `json:"azp"`
-	Email             string        `json:"email"`
-	EmailVerified     bool          `json:"email_verified"`
-	Name              string        `json:"name"`
-	PreferredUsername string        `json:"preferred_username"`
-	GivenName         string        `json:"given_name"`
-	FamilyName        string        `json:"family_name"`
-	SessionID         string        `json:"sid"`
+	Issuer            string                   `json:"iss"`
+	Subject           string                   `json:"sub"`
+	Audience          audienceClaim            `json:"aud"`
+	ExpiresAt         int64                    `json:"exp"`
+	NotBefore         int64                    `json:"nbf"`
+	Type              string                   `json:"typ"`
+	AuthorizedParty   string                   `json:"azp"`
+	Email             string                   `json:"email"`
+	EmailVerified     bool                     `json:"email_verified"`
+	Name              string                   `json:"name"`
+	PreferredUsername string                   `json:"preferred_username"`
+	GivenName         string                   `json:"given_name"`
+	FamilyName        string                   `json:"family_name"`
+	SessionID         string                   `json:"sid"`
+	RealmAccess       keycloakRealmAccessClaim `json:"realm_access"`
+}
+
+// extractRealmRoles returns the trimmed, non-empty realm_access.roles claim
+// entries from a verified Keycloak access token. It never panics when
+// realm_access is absent from the token (older tokens, misconfigured
+// clients) and returns nil in that case.
+func extractRealmRoles(claims keycloakAccessTokenClaims) []string {
+	var roles []string
+	for _, role := range claims.RealmAccess.Roles {
+		trimmed := strings.TrimSpace(role)
+		if trimmed == "" {
+			continue
+		}
+		roles = append(roles, trimmed)
+	}
+	return roles
 }
 
 type KeycloakLogoutTokenClaims struct {
@@ -187,6 +209,7 @@ func (v *KeycloakVerifier) VerifyAccessToken(ctx context.Context, rawToken strin
 		GivenName:         strings.TrimSpace(rawClaims.GivenName),
 		FamilyName:        strings.TrimSpace(rawClaims.FamilyName),
 		SessionID:         strings.TrimSpace(rawClaims.SessionID),
+		RealmRoles:        extractRealmRoles(rawClaims),
 	}, expiresAt, nil
 }
 

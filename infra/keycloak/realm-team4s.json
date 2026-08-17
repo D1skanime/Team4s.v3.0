@@ -24,11 +24,11 @@
     "realm": [
       {
         "name": "platform_admin",
-        "description": "Global realm role for local bootstrap only. Team4s still authorizes in its own database."
+        "description": "Realm role that JIT-synchronizes into app_user_global_roles on every authenticated request; drives live Team4s platform-admin authorization."
       },
       {
         "name": "content_admin",
-        "description": "Global realm role for local bootstrap only. Team4s still authorizes in its own database."
+        "description": "Realm role that JIT-synchronizes into app_user_global_roles on every authenticated request; drives live Team4s content-admin authorization."
       },
       {
         "name": "user",
@@ -260,7 +260,8 @@
       "defaultClientScopes": [
         "profile",
         "email",
-        "team4s-api"
+        "team4s-api",
+        "roles"
       ]
     },
     {
