@@ -69,7 +69,7 @@
              header comment above for why "username", not "email"). -->
         <#assign invitedEmail = "">
         <#list profile.attributes as team4sProbeAttribute>
-            <#if team4sProbeAttribute.name == "username" && (team4sProbeAttribute.value!"")?contains("@")>
+            <#if (team4sProbeAttribute.name == "username" || team4sProbeAttribute.name == "email") && (team4sProbeAttribute.value!"")?contains("@")>
                 <#assign invitedEmail = team4sProbeAttribute.value>
             </#if>
         </#list>
@@ -146,6 +146,21 @@
                                 />
                             </span>
                             <div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-email" aria-live="polite">${kcSanitize(msg("team4sEmailLockedHelp"))?no_esc}</div>
+                        <#elseif attribute.name == "username" && invitedEmail?has_content>
+                            <#-- 135-09: username IS the Fansubname. The invite login_hint prefilled it
+                                 with the invited email (now shown in the locked email field above), so
+                                 render this field EMPTY for the user to type their Fansubname. On a
+                                 validation re-render the value is the real fansubname (no "@") and is kept. -->
+                            <#assign team4sFansub = attribute.value!"">
+                            <#if team4sFansub?contains("@")><#assign team4sFansub = ""></#if>
+                            <input type="text" id="username" name="username" value="${team4sFansub}"
+                                class="${properties.kcInputClass!}"
+                                aria-invalid="<#if messagesPerField.existsError('username')>true</#if>"
+                                autocomplete="username" autofocus
+                            />
+                            <#if attribute.annotations.inputHelperTextAfter??>
+                                <div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-username" aria-live="polite">${kcSanitize(advancedMsg(attribute.annotations.inputHelperTextAfter))?no_esc}</div>
+                            </#if>
                         <#else>
                             <@userProfileCommons.inputFieldByType attribute=attribute/>
                             <#if attribute.annotations.inputHelperTextAfter??>

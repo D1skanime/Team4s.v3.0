@@ -19,12 +19,11 @@
   `PUT /admin/realms/team4s/users/profile` reproduzierbar). Backup unter /tmp/kc135-09-backup/.
 
 ## OFFEN / entdeckte Wechselwirkungen (nicht fertig)
-1. **135-08 <-> 135-09 Konflikt (WICHTIG):** Der 135-08-Invite-Flow prefillt die eingeladene
+1. **[GELOEST 2026-08-18] 135-08 <-> 135-09 Konflikt:** Der 135-08-Invite-Flow prefillt die eingeladene
    **E-Mail ins `username`-Feld** (login_hint -> username; deshalb bekam D1sk urspruenglich
    username=email). Unter 135-09 ist `username` = **Fansubname** -> eingeladene Nutzer wuerden
    sonst die E-Mail als Fansubname bekommen. Muss geaendert werden: bei Invite-Registrierung die
-   E-Mail ins **email**-Feld prefillen (nicht username), Fansubname bleibt Nutzer-Eingabe. Betrifft
-   register.ftl (135-08) + Invite-Prefill-Mechanik.
+   E-Mail ins **email**-Feld prefillen (nicht username), Fansubname bleibt Nutzer-Eingabe. GELOEST in register.ftl: invitedEmail wird aus username ODER email abgeleitet; das username(Fansubname)-Feld wird bei Invite EMPTY gerendert (E-Mail nur im gesperrten email-Feld). Live gegen /registrations verifiziert: username value="", email value=<invite> readonly, Label Fansubname.
 2. **Task 4 JIT/DisplayName:** identity/`claims.DisplayName` (aktuell wohl aus `name` = First+Last,
    jetzt optional/leer) muss aus dem **Fansubnamen** (preferred_username = username) gespeist werden
    -> members.nickname/fansub_name seeden. Token-Claim/JIT pruefen + ggf. Mapper ergaenzen.
