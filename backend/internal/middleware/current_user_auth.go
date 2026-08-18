@@ -65,9 +65,11 @@ func (r *KeycloakCurrentUserResolver) ResolveCurrentUser(ctx context.Context, ra
 		}
 	}
 
-	displayName := strings.TrimSpace(claims.Name)
+	// 135-09/D-14: the Fansubname (KC username = preferred_username) is the display
+	// identity; first/last name are optional now, so name/email are only fallbacks.
+	displayName := strings.TrimSpace(claims.PreferredUsername)
 	if displayName == "" {
-		displayName = strings.TrimSpace(claims.PreferredUsername)
+		displayName = strings.TrimSpace(claims.Name)
 	}
 	if displayName == "" {
 		displayName = strings.TrimSpace(claims.Email)

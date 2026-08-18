@@ -24,7 +24,7 @@
    username=email). Unter 135-09 ist `username` = **Fansubname** -> eingeladene Nutzer wuerden
    sonst die E-Mail als Fansubname bekommen. Muss geaendert werden: bei Invite-Registrierung die
    E-Mail ins **email**-Feld prefillen (nicht username), Fansubname bleibt Nutzer-Eingabe. GELOEST in register.ftl: invitedEmail wird aus username ODER email abgeleitet; das username(Fansubname)-Feld wird bei Invite EMPTY gerendert (E-Mail nur im gesperrten email-Feld). Live gegen /registrations verifiziert: username value="", email value=<invite> readonly, Label Fansubname.
-2. **Task 4 JIT/DisplayName:** identity/`claims.DisplayName` (aktuell wohl aus `name` = First+Last,
+2. **[GELOEST 2026-08-18] Task 4 JIT/DisplayName:** identity/`claims.DisplayName` (aktuell wohl aus `name` = First+Last,
    jetzt optional/leer) muss aus dem **Fansubnamen** (preferred_username = username) gespeist werden
    -> members.nickname/fansub_name seeden. Token-Claim/JIT pruefen + ggf. Mapper ergaenzen.
 3. **Task 3 Live-Verify:** Register-Formular auf :3300 muss "Fansubname" (nicht `${fansubName}`) +
@@ -33,3 +33,8 @@
 ## Naechste Schritte
 Punkt 1 (E-Mail-ins-username-Konflikt) zuerst loesen -- sonst bricht die Invite-Registrierung.
 Dann Task 4 (JIT) + Task 3 Live-Verify + 135-07 (finaler Gate/UAT, haengt hinter 135-09).
+
+
+## Update 2026-08-18: Punkt 2 geloest + Task 5 offen
+- current_user_auth.go: DisplayName-Ableitung auf **preferred_username (Fansubname) zuerst** umgestellt (name/email nur Fallback). Backend neu gebaut; verifiziert: D1sk account_display_name=\ (Fansubname) statt \. Member-Profil fansub_name (\) bleibt separat editierbar -- bewusst NICHT aus KC ueberschrieben (kein Clobbern des reicheren Profilnamens; account-Identitaet = KC-Fansubname reicht fuer D-14).
+- **Damit 135-09 code-komplett + live-verifiziert** (Login dual, Register-Form korrekt, Anzeigename=Fansubname). OFFEN nur noch **Task 5** (Nutzer-Live-UAT: einen NEUEN Member per Registrierung mit Fansubname end-to-end anlegen).
