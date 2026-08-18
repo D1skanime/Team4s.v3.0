@@ -36,5 +36,5 @@ Dann Task 4 (JIT) + Task 3 Live-Verify + 135-07 (finaler Gate/UAT, haengt hinter
 
 
 ## Update 2026-08-18: Punkt 2 geloest + Task 5 offen
-- current_user_auth.go: DisplayName-Ableitung auf **preferred_username (Fansubname) zuerst** umgestellt (name/email nur Fallback). Backend neu gebaut; verifiziert: D1sk account_display_name=\ (Fansubname) statt \. Member-Profil fansub_name (\) bleibt separat editierbar -- bewusst NICHT aus KC ueberschrieben (kein Clobbern des reicheren Profilnamens; account-Identitaet = KC-Fansubname reicht fuer D-14).
+- current_user_auth.go: DisplayName-Ableitung auf **preferred_username (Fansubname) zuerst** umgestellt (name/email nur Fallback). Backend neu gebaut; verifiziert: D1sk account_display_name=d1sk (Fansubname) statt D1sk-anime. Member-Profil fansub_name (D1sk anime) bleibt separat editierbar -- bewusst NICHT aus KC ueberschrieben (kein Clobbern des reicheren Profilnamens; account-Identitaet = KC-Fansubname reicht fuer D-14).
 - **Damit 135-09 code-komplett + live-verifiziert** (Login dual, Register-Form korrekt, Anzeigename=Fansubname). OFFEN nur noch **Task 5** (Nutzer-Live-UAT: einen NEUEN Member per Registrierung mit Fansubname end-to-end anlegen).
