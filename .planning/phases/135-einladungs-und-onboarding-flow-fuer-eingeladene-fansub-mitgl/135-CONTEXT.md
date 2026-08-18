@@ -174,3 +174,9 @@ geklaert, bevor implementiert wird. Kontext: KC v26, Realm team4s, loginWithEmai
 registrationEmailAsUsername=False, verifyEmail=False.
 
 **D-14 Praezisierung (2026-08-18, Nutzer):** Login MUSS mit E-Mail UND Fansubname moeglich sein. -> Der Fansubname wird der **KC-username** (Login-mit-Fansubname), `loginWithEmailAllowed` bleibt AN (Login-mit-E-Mail). Task 1 in 135-09 klaert dann nur noch die Constraints des Username-Ansatzes (unique, erlaubter Zeichensatz, editUsername=ON fuer spaeteres Aendern), nicht mehr das Ob.
+
+## D-15 Case-preserved Fansubname (Anzeige) — Username bleibt klein (2026-08-18, Plan 135-10)
+KC normalisiert username klein. Der original geschriebene Fansubname wird als eigenes KC-Attribut (fansubName) gefuehrt und fuer die ANZEIGE genutzt (account_display_name/members.nickname = Original-Case); username bleibt klein fuer case-insensitives Login. Ableitung username=lowercase(fansubName) -> Task 1 (KC-26).
+
+## D-16 Historisch-Mitglied Selbst-Claim Approval rendern (Finding #25, Plan 135-10)
+Backend/Routen (admin_routes.go:225-227)/Permission/Daten funktionieren. GroupMembersHistTable.tsx bekommt pendingClaimsByMember/onVerifyClaim/onRejectClaim, rendert sie aber nie. Fix: Approval-UI (Bestaetigen/Ablehnen) in der HistoricalMemberCard rendern. Kein Backend-/Routen-Fix noetig (mein #25-Erst-Diagnose war falsch).
