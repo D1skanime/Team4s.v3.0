@@ -1,6 +1,6 @@
 'use client'
 
-import { Copy, Link2, Pencil, Trash2, UserX } from 'lucide-react'
+import { Copy, Link2, Pencil, Trash2, UserCheck, UserX } from 'lucide-react'
 
 import {
   Badge,
@@ -157,6 +157,10 @@ function HistoricalMemberCard({
   onCancelInvitation,
   onCopyLink,
   normalizeInviteLink,
+  canManageClaims,
+  pendingClaimsByMember,
+  onVerifyClaim,
+  onRejectClaim,
 }: HistoricalMemberCardProps) {
   const invite = generatedInvites[member.id]
   const inviteLink = invite ? normalizeInviteLink(invite.invite_link) : ''
@@ -230,6 +234,31 @@ function HistoricalMemberCard({
         </div>
       </div>
 
+      {canManageClaims
+        ? (pendingClaimsByMember.get(member.member_id) ?? []).map((claim) => (
+            <div key={`pending-claim-${claim.id}`} className={styles.fansubEditMemberCompactBody}>
+              <div className={styles.fansubEditClaimPendingInviteRow}>
+                <Badge variant="warning">Claim-Antrag – möchte diesen Eintrag übernehmen</Badge>
+                <Button
+                  variant="success"
+                  size="sm"
+                  leftIcon={<UserCheck size={16} />}
+                  onClick={() => onVerifyClaim(claim.id)}
+                >
+                  Bestätigen
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  leftIcon={<UserX size={16} />}
+                  onClick={() => onRejectClaim(claim.id, member.display_name)}
+                >
+                  Ablehnen
+                </Button>
+              </div>
+            </div>
+          ))
+        : null}
       {canCreateClaimInvitation && !member.app_username ? (
         <div className={styles.fansubEditMemberCompactBody}>
           <Toolbar
