@@ -160,3 +160,15 @@ Formular. Deshalb neuer Plan 135-08:
   Annehmen erzwungene server-seitige email_match. login_hint prefillt das KC-Register-Formular
   NICHT automatisch wie das Login-Formular -> Task 1 in 135-08 klaert den echten Mechanismus an
   der laufenden KC-Instanz, bevor implementiert wird.
+
+## D-14 Keycloak ist autoritativ fuer den Fansubname (locked 2026-08-18, vom Nutzer bestaetigt; Plan 135-09)
+
+Die KC-Registrierung erfasst einen **Fansubname** als primaeres Identitaetsfeld; Vor-/Nachname sind
+**optional (freiwillig)**. Keycloak haelt den Fansubname autoritativ, der OIDC-Token traegt ihn, und
+der JIT-Sync seedet/aktualisiert daraus Team4s `members.nickname`/`fansub_name`. Der Fansubname ist
+editierbar (KC ist Master; Team4s spiegelt bzw. schreibt konsistent in EINE Richtung -- in Task 1
+festlegen). Ziel-Verhalten: Nutzer identifizieren sich ueber den Fansubname statt ueber Vor-/Nachname
+(vgl. Login-Verwirrung "D1sk" vs. E-Mail). Der genaue KC-26-Mechanismus (Fansubname-als-username fuer
+Login-mit-Fansubname VS. eigenes Attribut + E-Mail-Login) wird in 135-09 Task 1 an der laufenden KC
+geklaert, bevor implementiert wird. Kontext: KC v26, Realm team4s, loginWithEmailAllowed=True,
+registrationEmailAsUsername=False, verifyEmail=False.
