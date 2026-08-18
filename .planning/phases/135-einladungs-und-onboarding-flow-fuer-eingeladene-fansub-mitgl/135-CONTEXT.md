@@ -172,3 +172,5 @@ festlegen). Ziel-Verhalten: Nutzer identifizieren sich ueber den Fansubname stat
 Login-mit-Fansubname VS. eigenes Attribut + E-Mail-Login) wird in 135-09 Task 1 an der laufenden KC
 geklaert, bevor implementiert wird. Kontext: KC v26, Realm team4s, loginWithEmailAllowed=True,
 registrationEmailAsUsername=False, verifyEmail=False.
+
+**D-14 Praezisierung (2026-08-18, Nutzer):** Login MUSS mit E-Mail UND Fansubname moeglich sein. -> Der Fansubname wird der **KC-username** (Login-mit-Fansubname), `loginWithEmailAllowed` bleibt AN (Login-mit-E-Mail). Task 1 in 135-09 klaert dann nur noch die Constraints des Username-Ansatzes (unique, erlaubter Zeichensatz, editUsername=ON fuer spaeteres Aendern), nicht mehr das Ob.
