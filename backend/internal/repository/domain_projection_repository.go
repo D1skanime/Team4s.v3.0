@@ -124,7 +124,11 @@ func (r *DomainProjectionRepository) listProjectionMembers(ctx context.Context, 
 			) AS claimed
 		FROM fansub_group_members fgm
 		JOIN app_users au ON au.id = fgm.app_user_id
-		LEFT JOIN members m ON m.user_id = au.legacy_user_id
+		-- #23: app_user<->member link lives in member_claims (verified), NOT members.user_id
+		-- (NULL for app-registered members). Join via the verified claim so public member
+		-- profiles resolve/link on the public group page.
+		LEFT JOIN member_claims mc_link ON mc_link.app_user_id = au.id AND mc_link.claim_status = 'verified'
+		LEFT JOIN members m ON m.id = mc_link.member_id
 		LEFT JOIN media_assets avatar ON avatar.id = m.avatar_media_id
 		LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
 		LEFT JOIN role_definitions rd ON rd.code = fgmr.role
