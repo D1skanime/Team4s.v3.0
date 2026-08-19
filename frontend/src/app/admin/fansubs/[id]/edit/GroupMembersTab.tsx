@@ -229,6 +229,7 @@ export function GroupMembersTab({
         setInlineRoleDrafts={tab.setInlineRoleDrafts}
         historyRoleOptions={historyRoleOptions}
         historyRoleLoadError={historyRoleLoadError}
+        existingMembers={tab.members}
         saving={tab.saving}
         modalError={tab.modalError}
         onClose={tab.closeModal}
