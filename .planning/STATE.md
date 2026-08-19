@@ -147,6 +147,12 @@ Last activity: 2026-08-19
 - Before any migration, inspect the current migration chain and stop if multiple untracked migrations exist.
 - Plan 134-06 Task 1 BLOCKED: /members/{slug} hangs (confirmed beyond 180s, reproduced in both dev and production builds, both sheppert and csubs-leader) at narrow viewport widths <=~760px, including the required 390x844 mobile viewport. Bisected to the member-badge-carousel container-query CSS region (Phase 133 badge-chain CSS-module split). 768x1024 and 1440x900 render fine (~200-450ms). Blocks PMQA-05's required mobile-viewport screenshot capture. Rule 4 architectural decision needed before Plan 134-06 Task 1 can complete.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260819-ipu | Duplikat-Guard beim historischen Mitglied hinzufuegen (Phase-135-Nachtrag, Findings #27/#28) | 2026-08-19 | df1033bf | [260819-ipu-duplikat-guard-beim-historischen-mitglie](./quick/260819-ipu-duplikat-guard-beim-historischen-mitglie/) |
+
 ### Verification Baseline
 
 - Requirements: 65 defined, 65 uniquely mapped, 0 orphaned, 0 duplicated.
@@ -212,5 +218,5 @@ Last activity: 2026-08-19
 
 Last session: 2026-08-19T12:58:31.996Z
 Stopped at: Completed Phase 135 (Plan 10: case-preserved Fansubname D-15 + self-claim approval UX D-16 -- phase complete, all 10 plans done)
-Last activity: 2026-08-17 - Completed Phase 135 Plan 08
+Last activity: 2026-08-19 - Completed quick task 260819-ipu: Duplikat-Guard beim historischen Mitglied hinzufuegen (Phase-135-Nachtrag, Findings #27/#28)
 Resume file: None
