@@ -47,6 +47,10 @@ func (f *fakeSegmentAssignmentThemeRepo) UnassignThemeSegmentFromReleaseVersion(
 	return nil
 }
 
+func (f *fakeSegmentAssignmentThemeRepo) AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) ([]int64, error) {
+	return nil, nil
+}
+
 func (f *fakeSegmentAssignmentThemeRepo) UpsertThemeSegmentEpisodeOverride(ctx context.Context, input models.AdminThemeSegmentEpisodeOverrideUpsertInput) (*models.AdminThemeSegmentEpisodeOverride, error) {
 	if f.upsertOverrideErr != nil {
 		return nil, f.upsertOverrideErr

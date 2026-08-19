@@ -73,6 +73,10 @@ type adminThemeRepository interface {
 	// Per-Version-Zeit-Override (D-01).
 	AssignThemeSegmentToReleaseVersion(ctx context.Context, segmentID int64, releaseVersionID int64) (*models.AdminThemeSegmentAssignment, error)
 	UnassignThemeSegmentFromReleaseVersion(ctx context.Context, segmentID int64, releaseVersionID int64) error
+	// AssignThemeSegmentToEpisodeRange (Quick-Task 260819-lm5): additive Bereich-Auto-Zuweisung
+	// beim Speichern eines Segments (Create/Update) -- start_episode/end_episode SIND der
+	// Mechanismus, kein separater Button. Liefert nur die NEU eingefuegten release_version_id's.
+	AssignThemeSegmentToEpisodeRange(ctx context.Context, segmentID int64, animeID int64, fansubGroupID int64, version string, startEpisode int, endEpisode int) ([]int64, error)
 	UpsertThemeSegmentEpisodeOverride(ctx context.Context, input models.AdminThemeSegmentEpisodeOverrideUpsertInput) (*models.AdminThemeSegmentEpisodeOverride, error)
 	DeleteThemeSegmentEpisodeOverride(ctx context.Context, segmentID int64, releaseVersionID int64) error
 	ClearSegmentAsset(ctx context.Context, animeID int64, segmentID int64) (*string, error)

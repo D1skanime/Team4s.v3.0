@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"team4s.v3/backend/internal/models"
@@ -10,6 +11,130 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+// TestAssignThemeSegmentToEpisodeRangeGuardsInvalidRangeWithoutDBAccess beweist, dass der
+// Guard (segmentID/animeID/fansubGroupID/startEpisode/endEpisode <= 0) VOR jedem DB-Zugriff
+// greift -- ein nil-db-Feld auf dem Repository beweist das direkt (r.db.Begin(ctx) wuerde sonst
+// mit einer nil-pointer-Panik abstuerzen). Quick-Task 260819-lm5: verhindert versehentliches
+// "allen Folgen aller Zeiten"-Zuweisen, wenn Bereichs-/Kontextfelder leer/ungesetzt sind.
+func TestAssignThemeSegmentToEpisodeRangeGuardsInvalidRangeWithoutDBAccess(t *testing.T) {
+	repo := &AdminContentRepository{}
+
+	cases := []struct {
+		name          string
+		segmentID     int64
+		animeID       int64
+		fansubGroupID int64
+		startEpisode  int
+		endEpisode    int
+	}{
+		{"segmentID<=0", 0, 1, 1, 1, 3},
+		{"animeID<=0", 1, 0, 1, 1, 3},
+		{"fansubGroupID<=0", 1, 1, 0, 1, 3},
+		{"startEpisode<=0", 1, 1, 1, 0, 3},
+		{"endEpisode<=0", 1, 1, 1, 1, 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := repo.AssignThemeSegmentToEpisodeRange(context.Background(), tc.segmentID, tc.animeID, tc.fansubGroupID, "v1", tc.startEpisode, tc.endEpisode)
+			require.NoError(t, err)
+			require.Nil(t, got)
+		})
+	}
+}
+
+// TestAssignThemeSegmentToEpisodeRange proves the additive, idempotent, version-scoped
+// Bereich-Auto-Zuweisung (Quick-Task 260819-lm5) against a real, isolated Postgres schema:
+// start_episode/end_episode SIND der Mechanismus fuer automatische Zuweisung beim Speichern
+// (Create/Update), kein separater Button. Skips cleanly when TEAM4S_PHASE117_TEST_DSN is unset.
+func TestAssignThemeSegmentToEpisodeRange(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := NewAdminContentRepository(pool)
+
+	const (
+		animeID       = int64(1)
+		fansubGroupID = int64(1)
+		themeTypeID   = int64(1)
+		themeID       = int64(1)
+	)
+
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
+	require.NoError(t, err)
+
+	// Drei Folgen (1,2,3), jede mit eigenem fansub_release + release_version in derselben
+	// Gruppe + Version 'v1' -- der Auto-Zuweisungs-Bereich [1,3] muss alle drei erreichen.
+	releaseVersionIDs := make(map[int]int64, 3)
+	for episodeNum := 1; episodeNum <= 3; episodeNum++ {
+		episodeID := int64(100 + episodeNum)
+		releaseID := int64(200 + episodeNum)
+		releaseVersionID := int64(300 + episodeNum)
+		_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, $3, $4)`,
+			episodeID, animeID, episodeNum, fmt.Sprint(episodeNum))
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, releaseID, episodeID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, releaseID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, releaseVersionID, fansubGroupID)
+		require.NoError(t, err)
+		releaseVersionIDs[episodeNum] = releaseVersionID
+	}
+
+	// Episode 2 hat ZUSAETZLICH eine 'v2'-Release-Version in derselben Gruppe -- diese darf NIE
+	// zugewiesen werden (Version-Scoping, gleiches Join-Muster wie GetSegmentReleaseDuration).
+	const otherVersionReleaseVersionID = int64(999)
+	_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v2')`, otherVersionReleaseVersionID, int64(202))
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, otherVersionReleaseVersionID, fansubGroupID)
+	require.NoError(t, err)
+
+	var segmentID int64
+	err = pool.QueryRow(ctx, `
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode)
+		VALUES ($1, $2, 'v1', 1, 3)
+		RETURNING id
+	`, themeID, fansubGroupID).Scan(&segmentID)
+	require.NoError(t, err)
+
+	t.Run("assigns all release versions in range, excludes other-version release", func(t *testing.T) {
+		newlyAssigned, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 1, 3)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []int64{releaseVersionIDs[1], releaseVersionIDs[2], releaseVersionIDs[3]}, newlyAssigned)
+
+		ids, err := repo.ListThemeSegmentAssignments(ctx, segmentID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []int64{releaseVersionIDs[1], releaseVersionIDs[2], releaseVersionIDs[3]}, ids)
+		require.NotContains(t, ids, otherVersionReleaseVersionID)
+	})
+
+	t.Run("idempotent: repeated call with the same range assigns nothing new", func(t *testing.T) {
+		newlyAssigned, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 1, 3)
+		require.NoError(t, err)
+		require.Empty(t, newlyAssigned)
+
+		ids, err := repo.ListThemeSegmentAssignments(ctx, segmentID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []int64{releaseVersionIDs[1], releaseVersionIDs[2], releaseVersionIDs[3]}, ids)
+	})
+
+	t.Run("additive: a narrower range on a later call does not remove earlier assignments", func(t *testing.T) {
+		newlyAssigned, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 2, 2)
+		require.NoError(t, err)
+		require.Empty(t, newlyAssigned, "episode 2 war schon zugewiesen -- nichts Neues")
+
+		ids, err := repo.ListThemeSegmentAssignments(ctx, segmentID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []int64{releaseVersionIDs[1], releaseVersionIDs[2], releaseVersionIDs[3]}, ids,
+			"Folge 1 und 3 duerfen NICHT entfernt werden, obwohl der neue Bereich sie nicht mehr abdeckt")
+	})
+}
 
 // TestThemeSegmentAssignmentsAndOverrides runs the Assignment/Override CRUD
 // against a real, isolated Postgres schema (Phase 117 Wave 0 -- VALIDATION.md
