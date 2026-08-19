@@ -293,6 +293,11 @@
 
 .panelSaveButton {
   flex: 1;
+  /* Runde-5-Drawer-Overflow-Haertung: .panelActions ist ein ROW-Flex-Container (anders als
+     .panelFieldRow-Kinder ist hier flex-direction row der Default), daher greift die implizite
+     Flex-Item-Mindestbreite (min-width:auto) auf dieser Achse -- min-width:0 schuetzt vorsorglich,
+     falls der Button-Text (z. B. "Speichert...") je laenger wird als hier vorgesehen. */
+  min-width: 0;
   min-height: 40px;
   border: none;
   border-radius: 6px;
@@ -314,6 +319,7 @@
 
 .panelCancelButton {
   flex: 1;
+  min-width: 0;
   min-height: 40px;
   border: 1px solid #e1e1e6;
   border-radius: 6px;
@@ -359,10 +365,16 @@
   border: 1px solid #bbf7d0;
   border-radius: 8px;
   background: #ffffff;
+  /* Mobile-first Haertung (Runde 5): flex-wrap laesst Badge/Meta/Button auf eine eigene Zeile
+     umbrechen statt zu ueberlaufen, falls der Meta-Text trotz min-width:0 unten nicht genug
+     schrumpfen kann (z. B. ein einzelnes langes, leerzeichenloses Token). */
+  flex-wrap: wrap;
 }
 
 .suggestionMeta {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
   font-size: 13px;
   color: #374151;
   font-family: monospace;
@@ -428,6 +440,9 @@
   font-size: 12px;
   color: #6b6b70;
   line-height: 1.4;
+  /* Mobile-first Haertung (Runde 5): schuetzt vorsorglich gegen ein einzelnes, leerzeichenloses
+     langes Token (Dateiname, ID, o. ae.) in einem der vielen dynamischen Hinweistexte im Drawer. */
+  overflow-wrap: break-word;
 }
 
 /* Segment Asset Section */
