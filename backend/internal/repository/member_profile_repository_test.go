@@ -260,7 +260,7 @@ func TestPublicMemberProfileRedesignProjectionSourceInvariants(t *testing.T) {
 		"member contribution projections must retain the existing historical-membership compatibility seam")
 	assert.True(t, strings.Contains(repo, "logo_asset.id = fg.logo_id") && strings.Contains(repo, "logo_file.path"),
 		"public memberships must fall back from fansub_groups.logo_url to the canonical logo_id media asset")
-	assert.True(t, strings.Contains(repo, "includeAppMembershipDetails") && strings.Contains(repo, "loadMemberships(ctx, row.memberID, 0, false, false)"),
+	assert.True(t, strings.Contains(repo, "includeAppMembershipDetails") && strings.Contains(repo, "loadMemberships(ctx, row.memberID, 0, row.isVerified, false)"),
 		"public memberships must not expose current app permission roles as public group roles")
 	assert.True(t, strings.Contains(repo, "cover_asset.id = a.cover_asset_id") && strings.Contains(repo, "FROM anime_media am"),
 		"current projects must resolve anime poster images from cover_asset_id and existing anime_media when legacy cover_image is empty")

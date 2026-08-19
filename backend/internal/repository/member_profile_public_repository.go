@@ -113,7 +113,7 @@ func (r *MemberProfileRepository) GetPublicMemberProfileByID(ctx context.Context
 		profile.BackgroundImage = &models.PublicMemberProfileBackgroundImage{PublicURL: r.publicURLForPath(strings.TrimSpace(*row.backgroundImagePath))}
 	}
 	var loadErr error
-	richMemberships, loadErr := r.loadMemberships(ctx, row.memberID, 0, false, false)
+	richMemberships, loadErr := r.loadMemberships(ctx, row.memberID, 0, row.isVerified, false)
 	if loadErr != nil {
 		return nil, loadErr
 	}
