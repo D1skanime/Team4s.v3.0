@@ -103,10 +103,16 @@ function segmentFormFromExisting(segment: AdminThemeSegment): FormState {
   }
 }
 
-function buildSegmentPreviewStreamHref(segment: AdminThemeSegment | null): string | null {
+function buildSegmentPreviewStreamHref(
+  segment: AdminThemeSegment | null,
+  releaseVersionId?: number | null,
+): string | null {
   if (!segment?.id) return null
   const params = new URLSearchParams()
   if (segment.render_cache_key) params.set('cache_key', segment.render_cache_key)
+  // Die Next.js-Stream-Route verlangt release_version_id (sonst 400) -- gleiche
+  // release-version-scoped Aufloesung wie beim Render.
+  if (releaseVersionId != null) params.set('release_version_id', String(releaseVersionId))
   if (segment.playback_source_kind === 'uploaded_asset') {
     return `/api/segments/${segment.id}/stream${params.size > 0 ? `?${params.toString()}` : ''}`
   }
@@ -788,7 +794,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
           uploadError={uploadError}
           reuseCandidates={reuseCandidates}
           reuseError={reuseError}
-          previewStreamHref={buildSegmentPreviewStreamHref(editingSegment)}
+          previewStreamHref={buildSegmentPreviewStreamHref(editingSegment, releaseVariantId)}
           currentReleaseVersionId={releaseVariantId ?? null}
           onSaveOverride={(input) => void handleSaveOverride(input)}
           onRemoveOverride={() => void handleRemoveOverride()}
