@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: Completed Phase 135 Plan 07 (full automated gate re-verified + live cold-invite/claim-invite UAT confirmed)
-last_updated: "2026-08-19T09:41:50.716Z"
+stopped_at: "Completed Phase 135 (Plan 10: case-preserved Fansubname D-15 + self-claim approval UX D-16 -- phase complete, all 10 plans done)"
+last_updated: "2026-08-19T12:58:32.011Z"
 last_activity: 2026-08-19
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 80
-  completed_plans: 52
-  percent: 38
+  completed_plans: 53
+  percent: 50
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 135 (einladungs-und-onboarding-flow-fuer-eingeladene-fansub-mitgl) — EXECUTING
-Plan: 9 of 10 complete (135-10 outstanding, in progress: Task 1 checkpoint cleared, Task 2-3 next), ready for Plan 10
-Status: Ready to execute
+Phase: 135 (einladungs-und-onboarding-flow-fuer-eingeladene-fansub-mitgl) — COMPLETE
+Plan: 10 of 10 complete
+Status: Phase complete, ready to plan next phase
 Last activity: 2026-08-19
 
 ## Accumulated Context
@@ -132,6 +132,7 @@ Last activity: 2026-08-19
 - [Phase 135]: Plan 135-06 executed (D-09, D-07) -- claim-invitations/accept/page.tsx rewritten as a thin InviteAcceptFlow composition, closing D-09 (both invite types now share one shared onboarding flow) and Pitfall 1/5's return_to dead end for this page. No loginHintEmail prop (claim invitations are generic shareable links with no target email); afterAcceptRedirect=/me/profile preserves the page's prior immediate-redirect-on-success behavior. 3/3 new page tests pass, re-run alongside login/page.test.tsx (12), invitations/accept/page.test.tsx (4), and InviteAcceptFlow.test.tsx (5) with zero regressions (24/24 green); tsc --noEmit clean for touched files (pre-existing unrelated Next.js route-type errors elsewhere ignored). — Followed 135-06-PLAN.md's <tasks> section literally against 135-05's locked InviteAcceptFlowProps contract, per the user-confirmed scope ruling (STATE.md 2026-08-17 entry) that the Content-Spec Addendum's dynamic group/inviter/role copy stays deferred and out of scope.
 - [Phase 135]: Plan 135-08 executed (D-12, D-13, D-07) -- infra/keycloak/themes/team4s/login/register.ftl is now a real theme override (previously the theme shipped zero .ftl overrides and inherited register.ftl byte-for-byte from keycloak.v2). Empirically confirmed against the live Keycloak 26.0.8 realm (curling /realms/team4s/protocol/openid-connect/registrations with login_hint set) that login_hint prefills only the "username" registration attribute, never "email" -- register.ftl reuses that prefilled username value as `invitedEmail` whenever it looks like an email address, and renders the "email" attribute with custom inlined markup carrying a real HTML `readonly` attribute (value still submitted, unlike Keycloak's own attribute.readOnly path which emits `disabled` and drops the value) plus a generic invite-context line (team4sInviteContext message key; Keycloak does not forward group/inviter/role to the registration template, matching 135-05-SUMMARY.md's prior Content-Spec Addendum scope ruling). Full live proof: registered a real test account through the locked path via curl (PKCE authorization_code flow), exchanged the code, and confirmed via /userinfo that the created account's email claim exactly matched the invited address; test account deleted via the Keycloak admin API afterward. Open (non-invite) registration verified unaffected. — This is a scope evolution of D-08 (135-CONTEXT.md's original text says "kein KC-Theme-Umbau"/no KC theme rework): D-12/D-13 were added later, during live-UAT review, specifically because D-08's mediated query-param-only approach (135-03) could prefill but not lock the email or show invite context; 135-08 layers a theme change on top of, not instead of, that mediated fallback.
 - [Phase 135]: [Phase 135, 2026-08-19]: Plan 135-07 executed (D-01..D-04, D-08, D-09) -- scripts/phase135-green-gate.sh (already built/committed 7afd2774) re-run after 3 intervening commits confirmed zero new regressions; the 4 non-green steps (backend-test DB-integration fixtures, frontend-lint capture-responsive.cjs, frontend-test 12 stale files, frontend-build Next.js /_global-error Turbopack prerender) are all pre-existing and untouched by any Phase 135 file, per git-log cross-check. — Live UAT confirmed (user, 2026-08-19): registrationAllowed=true on the running Keycloak team4s realm (no drift); cold-invite round trip (mail context/Umlaute, Anmelden/Registrieren no jargon, auto-return, auto-accept) and claim-invite round trip (lands on /me/profile) both confirmed end-to-end with zero deviations. Closes Finding #10 BLOCKER.
+- [Phase 135]: [Phase 135, 2026-08-19]: Plan 135-10 executed (D-15, D-16) -- case-preserved fansubName KC attribute (register.ftl hidden-username derivation + token claim + backend display-identity priority) closes D-15; Task 4's self-claim approval render pre-existed this plan (ca189d99, prior non-GSD session) and was sanity-checked, not re-implemented. Live UAT surfaced 5 deviations, all fixed same-session: 2 backend list queries preferring lowercase preferred_username over case-preserved display_name; missing success feedback + cross-list refresh on claim-verify/member-activate; 5 window.confirm() calls replaced with the app's own Modal (design-system violation); missing claim-note render; a direct-user-requested mobile-first claim-card redesign. — Phase 135 is now complete (both previously outstanding plans, 135-07 and 135-10, done; all 10 plans have summaries). D-01 through D-16 implemented and live-verified. Commits 069b2f6b/514ec1fd/88e0d62f/1403ccd0 (Finding #28: hide active members from historical list, surface active membership + verified historical roles on public profile, linked-account card redesign) landed in the same session immediately after but are explicitly out of 135-10's D-15/D-16 scope -- recorded as an adjacent follow-up, not phase-135 work.
 
 ### Pending Todos
 
@@ -205,10 +206,11 @@ Last activity: 2026-08-19
 | Phase 135 P06 | ~10min | 2 tasks | 2 files |
 | Phase 135 P08 | ~50min | 3 tasks | 4 files |
 | Phase 135 P07 | multi-session | 3 tasks | 1 files |
+| Phase 135 P10 | ~2h45m | 5 tasks | 13 files |
 
 ## Session Continuity
 
-Last session: 2026-08-19T09:41:43.593Z
-Stopped at: Completed Phase 135 Plan 07 (full automated gate re-verified + live cold-invite/claim-invite UAT confirmed)
+Last session: 2026-08-19T12:58:31.996Z
+Stopped at: Completed Phase 135 (Plan 10: case-preserved Fansubname D-15 + self-claim approval UX D-16 -- phase complete, all 10 plans done)
 Last activity: 2026-08-17 - Completed Phase 135 Plan 08
 Resume file: None
