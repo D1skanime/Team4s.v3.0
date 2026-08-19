@@ -10,6 +10,11 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
+  /* Mobile-first: der "+ Segment hinzufuegen"-Button wird auf schmaler Breite NICHT
+     abgeschnitten, sondern bricht auf eine eigene Zeile um, statt vom Titel/Untertitel
+     aus dem sichtbaren Bereich gedrueckt zu werden. */
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .toolbarTitle {
@@ -707,4 +712,79 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Mobile-first: Segment-Tabelle als gestapelte Karten statt 6-Spalten-Layout
+   (Typ/Name/Episoden/Zeitbereich/Quelle/Aktionen) -- verhindert horizontalen
+   Page-Level-Scroll und abgeschnittene Spalten ("Quelle"/"Aktionen") auf schmalen
+   Breiten (Live-UAT-Feedback bei ~375px). Reines CSS-Reflow derselben <table>-DOM-Struktur
+   (kein bedingtes JS-Rendering) -- die DOM-Struktur/Testselektoren bleiben unveraendert,
+   bestehende Tests pruefen weiterhin unveraendert die Tabellen-Variante. Ab Tablet-Breite
+   greift wieder das normale <table>-Layout. */
+@media (max-width: 640px) {
+  .tableWrapper {
+    /* overflow-x wird bewusst NICHT ueberschrieben (bleibt beim geerbten "auto" der
+       @/components/ui-Table-Primitive) -- sobald die Zeilen unten als Karten fliessen
+       statt als breite Tabellenzeilen, gibt es nichts mehr, das ueberlaufen koennte. */
+    border: none;
+    background: transparent;
+  }
+
+  .tableWrapper table {
+    display: block;
+    width: 100%;
+  }
+
+  .tableWrapper thead {
+    display: none;
+  }
+
+  .tableWrapper tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .tableWrapper tr {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+    border: 1px solid #e1e1e6;
+    border-radius: 12px;
+    background: #ffffff;
+    overflow: hidden;
+  }
+
+  .tableWrapper tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .tableWrapper td:not([colspan]) {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+  }
+
+  /* Label:Wert-Darstellung pro Feld -- ersetzt die (jetzt versteckte) Spaltenueberschrift. */
+  .tableWrapper td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 12px;
+    color: #6b6b70;
+    padding-top: 2px;
+  }
+
+  /* Volle-Breite-Zeilen (Leerer-Zustand-Hinweis, aufgeklappte Zuweisungs-Zeile) haben kein
+     data-label und sollen nicht im Label:Wert-Flex-Layout landen -- behalten ihr bestehendes
+     Padding/Layout (z. B. .emptyState) statt der Feld-Flex-Darstellung. */
+  .tableWrapper td[colspan] {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
 }

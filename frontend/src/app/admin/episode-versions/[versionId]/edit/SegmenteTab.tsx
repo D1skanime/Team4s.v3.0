@@ -619,15 +619,15 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                     <TableRow
                       className={`${styles.tableRow} ${isActive ? styles.tableRowActive : ''}`}
                     >
-                      <TableCell>
+                      <TableCell data-label="Typ">
                         <span className={`${styles.badge} ${getTypeBadgeClass(segment.theme_type_name)}`}>
                           {getTypeBadgeLabel(segment.theme_type_name)}
                         </span>
                       </TableCell>
-                      <TableCell style={{ fontSize: 13, color: '#6b6b70' }}>
+                      <TableCell data-label="Name" style={{ fontSize: 13, color: '#6b6b70' }}>
                         {segment.theme_title?.trim() || '\u2014'}
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Episoden">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                           {segment.is_shared ? <Badge variant="info">Geteiltes Segment</Badge> : null}
                           {segment.is_shared && segment.has_episode_override ? (
@@ -646,12 +646,12 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                           </button>
                         </div>
                       </TableCell>
-                      <TableCell style={{ fontFamily: 'monospace', fontSize: 12 }}>
+                      <TableCell data-label="Zeitbereich" style={{ fontFamily: 'monospace', fontSize: 12 }}>
                         {segment.start_time && segment.end_time
                           ? formatDuration(segment.start_time, segment.end_time)
                           : '\u2014'}
                       </TableCell>
-                      <TableCell style={{ fontSize: 13, color: '#6b6b70' }}>
+                      <TableCell data-label="Quelle" style={{ fontSize: 13, color: '#6b6b70' }}>
                         <div style={{ display: 'grid', gap: 2 }}>
                           {segment.playback_source_kind ? (
                             <span>
@@ -680,7 +680,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Aktionen">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           {segment.playback_source_kind && segment.playback_source_kind !== 'uploaded_asset' && segment.render_status !== 'ready' ? (
                             <button
