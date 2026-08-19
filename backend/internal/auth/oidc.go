@@ -27,6 +27,7 @@ type KeycloakTokenClaims struct {
 	EmailVerified     bool     `json:"email_verified"`
 	Name              string   `json:"name"`
 	PreferredUsername string   `json:"preferred_username"`
+	FansubName        string   `json:"fansubName"`
 	GivenName         string   `json:"given_name"`
 	FamilyName        string   `json:"family_name"`
 	SessionID         string   `json:"sid"`
@@ -49,6 +50,7 @@ type keycloakAccessTokenClaims struct {
 	EmailVerified     bool                     `json:"email_verified"`
 	Name              string                   `json:"name"`
 	PreferredUsername string                   `json:"preferred_username"`
+	FansubName        string                   `json:"fansubName"`
 	GivenName         string                   `json:"given_name"`
 	FamilyName        string                   `json:"family_name"`
 	SessionID         string                   `json:"sid"`
@@ -206,6 +208,7 @@ func (v *KeycloakVerifier) VerifyAccessToken(ctx context.Context, rawToken strin
 		EmailVerified:     rawClaims.EmailVerified,
 		Name:              strings.TrimSpace(rawClaims.Name),
 		PreferredUsername: strings.TrimSpace(rawClaims.PreferredUsername),
+		FansubName:        strings.TrimSpace(rawClaims.FansubName),
 		GivenName:         strings.TrimSpace(rawClaims.GivenName),
 		FamilyName:        strings.TrimSpace(rawClaims.FamilyName),
 		SessionID:         strings.TrimSpace(rawClaims.SessionID),

@@ -65,9 +65,16 @@ func (r *KeycloakCurrentUserResolver) ResolveCurrentUser(ctx context.Context, ra
 		}
 	}
 
-	// 135-09/D-14: the Fansubname (KC username = preferred_username) is the display
-	// identity; first/last name are optional now, so name/email are only fallbacks.
-	displayName := strings.TrimSpace(claims.PreferredUsername)
+	// 135-10/D-15: the case-preserved fansubName claim is the display identity
+	// (KC lowercases preferred_username/username itself, e.g. "Extro" ->
+	// "extro" -- see infra/keycloak/themes/team4s/login/register.ftl). Older
+	// tokens issued before this claim existed, and any account never re-issued
+	// a token since, fall back to preferred_username/name/email exactly as
+	// 135-09/D-14 did.
+	displayName := strings.TrimSpace(claims.FansubName)
+	if displayName == "" {
+		displayName = strings.TrimSpace(claims.PreferredUsername)
+	}
 	if displayName == "" {
 		displayName = strings.TrimSpace(claims.Name)
 	}
