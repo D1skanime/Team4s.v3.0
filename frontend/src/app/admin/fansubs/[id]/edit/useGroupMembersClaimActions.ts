@@ -27,6 +27,14 @@ function formatApiError(error: unknown, fallback: string): string {
 
 type CopyState = 'copied' | 'selected'
 
+export type PendingClaimConfirmAction = {
+  title: string
+  description: string
+  confirmLabel: string
+  danger?: boolean
+  run: () => Promise<void>
+}
+
 export type UseGroupMembersClaimActionsOptions = {
   fansubId: number
   onLoadNeeded: () => Promise<void>
@@ -46,12 +54,27 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded, onActiveAp
   const [memberRequests, setMemberRequests] = useState<MemberRequestRow[]>([])
   const [claimActionError, setClaimActionError] = useState<string | null>(null)
   const [claimActionSuccess, setClaimActionSuccess] = useState<string | null>(null)
+  const [pendingConfirm, setPendingConfirm] = useState<PendingClaimConfirmAction | null>(null)
 
   function flashClaimActionSuccess(message: string) {
     setClaimActionSuccess(message)
     window.setTimeout(() => {
       setClaimActionSuccess((current) => (current === message ? null : current))
     }, 2500)
+  }
+
+  function requestConfirm(action: PendingClaimConfirmAction) {
+    setPendingConfirm(action)
+  }
+
+  function cancelPendingConfirm() {
+    setPendingConfirm(null)
+  }
+
+  async function confirmPendingConfirm() {
+    const action = pendingConfirm
+    setPendingConfirm(null)
+    if (action) await action.run()
   }
 
   function setLoadedClaimData(
@@ -85,20 +108,27 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded, onActiveAp
     }
   }
 
-  async function handleCancelInvitation(rowId: number, memberId: number, invitationId: number) {
-    if (!window.confirm('Aktive Einladung zurückziehen? Der bisherige Link kann danach nicht mehr verwendet werden.')) return
-    try {
-      setClaimActionError(null)
-      await cancelClaimInvitation(fansubId, memberId, invitationId)
-      setGeneratedInvites((current) => { const next = { ...current }; delete next[rowId]; return next })
-      setMemberInvitations((current) => ({
-        ...current,
-        [rowId]: (current[rowId] ?? []).filter((inv) => inv.id !== invitationId),
-      }))
-      setClaimActionError('Aktive Einladung zurückgezogen. Du kannst jetzt einen neuen Link generieren.')
-    } catch (err) {
-      setClaimActionError(formatApiError(err, 'Einladung konnte nicht zurückgezogen werden.'))
-    }
+  function handleCancelInvitation(rowId: number, memberId: number, invitationId: number) {
+    requestConfirm({
+      title: 'Einladung zurückziehen',
+      description: 'Aktive Einladung zurückziehen? Der bisherige Link kann danach nicht mehr verwendet werden.',
+      confirmLabel: 'Zurückziehen',
+      danger: true,
+      run: async () => {
+        try {
+          setClaimActionError(null)
+          await cancelClaimInvitation(fansubId, memberId, invitationId)
+          setGeneratedInvites((current) => { const next = { ...current }; delete next[rowId]; return next })
+          setMemberInvitations((current) => ({
+            ...current,
+            [rowId]: (current[rowId] ?? []).filter((inv) => inv.id !== invitationId),
+          }))
+          setClaimActionError('Aktive Einladung zurückgezogen. Du kannst jetzt einen neuen Link generieren.')
+        } catch (err) {
+          setClaimActionError(formatApiError(err, 'Einladung konnte nicht zurückgezogen werden.'))
+        }
+      },
+    })
   }
 
   function markVisibleInviteLink(rowId: number) {
@@ -152,53 +182,79 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded, onActiveAp
     }
   }
 
-  async function handleActivateMember(memberId: number, memberNick: string) {
-    if (!window.confirm(`"${memberNick}" als aktives Mitglied übernehmen?`)) return
-    try {
-      setClaimActionError(null)
-      await activateClaimedMember(fansubId, memberId)
-      await onLoadNeeded()
-      onActiveAppMembersChanged?.()
-      flashClaimActionSuccess(`"${memberNick}" ist jetzt aktives Mitglied.`)
-    } catch (err) {
-      setClaimActionError(formatApiError(err, 'Konnte nicht als aktives Mitglied übernommen werden.'))
-    }
+  function handleActivateMember(memberId: number, memberNick: string) {
+    requestConfirm({
+      title: 'Als aktives Mitglied übernehmen',
+      description: `"${memberNick}" als aktives Mitglied übernehmen?`,
+      confirmLabel: 'Übernehmen',
+      run: async () => {
+        try {
+          setClaimActionError(null)
+          await activateClaimedMember(fansubId, memberId)
+          await onLoadNeeded()
+          onActiveAppMembersChanged?.()
+          flashClaimActionSuccess(`"${memberNick}" ist jetzt aktives Mitglied.`)
+        } catch (err) {
+          setClaimActionError(formatApiError(err, 'Konnte nicht als aktives Mitglied übernommen werden.'))
+        }
+      },
+    })
   }
 
-  async function handleRejectClaim(claimId: number, memberNick: string) {
-    if (!window.confirm(`Claim für "${memberNick}" ablehnen?`)) return
-    try {
-      setClaimActionError(null)
-      await rejectMemberClaim(fansubId, claimId)
-      setPendingClaims((current) => current.filter((claim) => claim.id !== claimId))
-    } catch (err) {
-      setClaimActionError(formatApiError(err, 'Claim konnte nicht abgelehnt werden.'))
-    }
+  function handleRejectClaim(claimId: number, memberNick: string) {
+    requestConfirm({
+      title: 'Claim ablehnen',
+      description: `Claim für "${memberNick}" ablehnen?`,
+      confirmLabel: 'Ablehnen',
+      danger: true,
+      run: async () => {
+        try {
+          setClaimActionError(null)
+          await rejectMemberClaim(fansubId, claimId)
+          setPendingClaims((current) => current.filter((claim) => claim.id !== claimId))
+        } catch (err) {
+          setClaimActionError(formatApiError(err, 'Claim konnte nicht abgelehnt werden.'))
+        }
+      },
+    })
   }
 
-  async function handleApproveRequest(requestId: number, approveNicknamesRef: Record<number, string>) {
+  function handleApproveRequest(requestId: number, approveNicknamesRef: Record<number, string>) {
     const nickname = (approveNicknamesRef[requestId] || '').trim()
     if (!nickname) { setClaimActionError('Nickname für den neuen Eintrag ist erforderlich.'); return }
-    if (!window.confirm(`Neuanlage-Antrag mit Nickname "${nickname}" bestätigen?`)) return
-    try {
-      setClaimActionError(null)
-      await approveMemberRequest(requestId, { nickname })
-      setMemberRequests((current) => current.filter((request) => request.id !== requestId))
-      await onLoadNeeded()
-    } catch (err) {
-      setClaimActionError(formatApiError(err, 'Neuanlage-Antrag konnte nicht bestätigt werden.'))
-    }
+    requestConfirm({
+      title: 'Neuanlage-Antrag bestätigen',
+      description: `Neuanlage-Antrag mit Nickname "${nickname}" bestätigen?`,
+      confirmLabel: 'Bestätigen',
+      run: async () => {
+        try {
+          setClaimActionError(null)
+          await approveMemberRequest(requestId, { nickname })
+          setMemberRequests((current) => current.filter((request) => request.id !== requestId))
+          await onLoadNeeded()
+        } catch (err) {
+          setClaimActionError(formatApiError(err, 'Neuanlage-Antrag konnte nicht bestätigt werden.'))
+        }
+      },
+    })
   }
 
-  async function handleRejectRequest(requestId: number) {
-    if (!window.confirm('Neuanlage-Antrag ablehnen?')) return
-    try {
-      setClaimActionError(null)
-      await rejectMemberRequest(requestId)
-      setMemberRequests((current) => current.filter((request) => request.id !== requestId))
-    } catch (err) {
-      setClaimActionError(formatApiError(err, 'Neuanlage-Antrag konnte nicht abgelehnt werden.'))
-    }
+  function handleRejectRequest(requestId: number) {
+    requestConfirm({
+      title: 'Neuanlage-Antrag ablehnen',
+      description: 'Neuanlage-Antrag ablehnen?',
+      confirmLabel: 'Ablehnen',
+      danger: true,
+      run: async () => {
+        try {
+          setClaimActionError(null)
+          await rejectMemberRequest(requestId)
+          setMemberRequests((current) => current.filter((request) => request.id !== requestId))
+        } catch (err) {
+          setClaimActionError(formatApiError(err, 'Neuanlage-Antrag konnte nicht abgelehnt werden.'))
+        }
+      },
+    })
   }
 
   return {
@@ -206,6 +262,7 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded, onActiveAp
     approveNicknames, setApproveNicknames,
     pendingClaims, memberRequests,
     claimActionError, claimActionSuccess,
+    pendingConfirm, confirmPendingConfirm, cancelPendingConfirm,
     setLoadedClaimData,
     handleGenerateInvitation, handleCancelInvitation, handleCopyLink,
     handleVerifyClaim, handleRejectClaim, handleActivateMember,

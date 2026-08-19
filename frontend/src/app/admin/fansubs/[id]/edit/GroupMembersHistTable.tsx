@@ -258,6 +258,9 @@ function HistoricalMemberCard({
                   Ablehnen
                 </Button>
               </div>
+              {claim.note?.trim() ? (
+                <p className={styles.fansubEditHint}>Nachricht: {claim.note.trim()}</p>
+              ) : null}
             </div>
           ))
         : null}

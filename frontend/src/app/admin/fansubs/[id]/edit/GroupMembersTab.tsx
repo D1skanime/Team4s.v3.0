@@ -8,6 +8,7 @@ import {
   Button,
   ErrorState,
   LoadingState,
+  Modal,
   SectionHeader,
   Toolbar,
 } from '@/components/ui'
@@ -246,6 +247,28 @@ export function GroupMembersTab({
         onConfirmRoleDelete={() => void tab.handleRoleDeleteConfirm()}
         roleLabelForCode={roleLabelForCode}
       />
+
+      <Modal
+        open={tab.pendingConfirm !== null}
+        onClose={tab.cancelPendingConfirm}
+        title={tab.pendingConfirm?.title ?? ''}
+        description={tab.pendingConfirm?.description}
+        footer={
+          <div className={styles.fansubEditMembershipModalActions}>
+            <Button variant="secondary" onClick={tab.cancelPendingConfirm}>
+              Abbrechen
+            </Button>
+            <Button
+              variant={tab.pendingConfirm?.danger ? 'danger' : 'primary'}
+              onClick={() => void tab.confirmPendingConfirm()}
+            >
+              {tab.pendingConfirm?.confirmLabel ?? 'Bestätigen'}
+            </Button>
+          </div>
+        }
+      >
+        {null}
+      </Modal>
     </section>
   )
 }
