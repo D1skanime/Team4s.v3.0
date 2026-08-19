@@ -166,7 +166,7 @@ export function GroupMembersTab({
       {!tab.loading && !tab.error ? (
         <div className={styles.fansubEditHistoricalMembersSurface}>
           <GroupMembersHistTable
-            members={tab.members}
+            members={tab.members.filter((historicalMember) => !historicalMember.active_app_member_id)}
             rolesByMember={tab.rolesByMember}
             pendingClaimsByMember={tab.pendingClaimsByMember}
             generatedInvites={tab.generatedInvites}
