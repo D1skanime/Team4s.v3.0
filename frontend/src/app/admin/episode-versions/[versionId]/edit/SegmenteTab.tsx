@@ -16,13 +16,12 @@ import {
   resolveSegmentProvenance,
   resolveSourceLabel,
   isSegmentActiveForEpisode,
-  findAssignedEpisodeNumber,
-  formatAssignmentChipLabel,
   useSegmentOverrideHandlers,
   SegmentTimeline,
 } from './SegmenteTab.helpers'
 import { SegmentEditPanel } from './SegmentEditPanel'
 import type { FormState } from './SegmentEditPanel'
+import { SegmentAssignmentsRow } from './SegmentAssignmentsRow'
 import {
   attachSegmentLibraryAsset,
   deleteSegmentAsset,
@@ -152,6 +151,8 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
     ensureThemeFromSelection,
     setSegmentOverride,
     removeSegmentOverride,
+    assignSegment,
+    unassignSegment,
   } = useReleaseSegments({
     animeId,
     groupId,
@@ -165,6 +166,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [dropdownOpenId, setDropdownOpenId] = useState<number | null>(null)
   const [openAssignmentsFor, setOpenAssignmentsFor] = useState<number | null>(null)
+  const [assignmentBusySegmentId, setAssignmentBusySegmentId] = useState<number | null>(null)
 
   const [panelOpen, setPanelOpen] = useState(false)
   const [editingSegment, setEditingSegment] = useState<AdminThemeSegment | null>(null)
@@ -285,22 +287,34 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
   }, [animeId, editingSegment, formState.sourceType, formState.themeKind, formState.themeTitle, groupId, hasAuthSession, panelOpen, releaseVariantId])
 
   async function adoptSuggestion(suggestion: AdminThemeSegment) {
-    if (!animeId) return
-    const input: AdminThemeSegmentCreateRequest = {
-      theme_id: suggestion.theme_id,
-      fansub_group_id: groupId ?? null,
-      version: version ?? 'v1',
-      start_episode: suggestion.start_episode,
-      end_episode: suggestion.end_episode,
-      start_time: suggestion.start_time,
-      end_time: suggestion.end_time,
-      source_jellyfin_item_id: suggestion.source_jellyfin_item_id,
-      source_type: suggestion.source_type ?? null,
-      source_ref: suggestion.source_ref ?? null,
-      source_label: suggestion.source_label ?? null,
+    // Weist das bestehende Vorschlag-Segment der aktuellen Folge zu, statt ein Duplikat
+    // anzulegen (Gap 1). Ohne bekannte releaseVariantId ist keine Zuweisung möglich.
+    if (!animeId || releaseVariantId == null) return
+    const result = await assignSegment(suggestion.id, releaseVariantId)
+    if (result) {
+      setSuggestions((current) => current.filter((s) => s.id !== suggestion.id))
     }
-    await create(input)
-    setSuggestions((current) => current.filter((s) => s.id !== suggestion.id))
+    // Bei Fehlschlag bleibt der Vorschlag sichtbar; useReleaseSegments setzt bereits
+    // errorMessage -- kein Duplikat-Fallback auf create().
+  }
+
+  async function handleAssignCurrentFolge(segment: AdminThemeSegment) {
+    if (releaseVariantId == null) return
+    setAssignmentBusySegmentId(segment.id)
+    try {
+      await assignSegment(segment.id, releaseVariantId)
+    } finally {
+      setAssignmentBusySegmentId(null)
+    }
+  }
+
+  async function handleUnassignFolge(segment: AdminThemeSegment, targetReleaseVersionId: number) {
+    setAssignmentBusySegmentId(segment.id)
+    try {
+      await unassignSegment(segment.id, targetReleaseVersionId)
+    } finally {
+      setAssignmentBusySegmentId(null)
+    }
   }
 
   async function handleSave() {
@@ -599,7 +613,7 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
               ) : (
                 visibleSegments.map((segment) => {
                   const isActive = episodeNumber != null && isSegmentActiveForEpisode(segment, episodeNumber)
-                  const assignmentsOpen = segment.is_shared === true && openAssignmentsFor === segment.id
+                  const assignmentsOpen = openAssignmentsFor === segment.id
                   return (
                     <Fragment key={segment.id}>
                     <TableRow
@@ -620,18 +634,16 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                             <Badge variant="warning">Zeit hier überschrieben</Badge>
                           ) : null}
                           <span>{formatEpisodeRange(segment.start_episode, segment.end_episode)}</span>
-                          {segment.is_shared ? (
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              aria-label="Zugewiesene Folgen anzeigen/ausblenden"
-                              onClick={() =>
-                                setOpenAssignmentsFor(openAssignmentsFor === segment.id ? null : segment.id)
-                              }
-                            >
-                              <DisclosureIndicator open={assignmentsOpen} variant="button" size="sm" />
-                            </button>
-                          ) : null}
+                          <button
+                            type="button"
+                            className={styles.actionButton}
+                            aria-label="Zugewiesene Folgen anzeigen/ausblenden"
+                            onClick={() =>
+                              setOpenAssignmentsFor(openAssignmentsFor === segment.id ? null : segment.id)
+                            }
+                          >
+                            <DisclosureIndicator open={assignmentsOpen} variant="button" size="sm" />
+                          </button>
                         </div>
                       </TableCell>
                       <TableCell style={{ fontFamily: 'monospace', fontSize: 12 }}>
@@ -724,24 +736,14 @@ export function SegmenteTab({ animeId, groupId, version, episodeNumber, duration
                     {assignmentsOpen ? (
                       <TableRow className={styles.tableRow}>
                         <TableCell colSpan={6}>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                            {(segment.assigned_release_version_ids ?? []).map((assignedReleaseVersionId) => {
-                              const assignedEpisodeNumber =
-                                findAssignedEpisodeNumber(segment, assignedReleaseVersionId) ??
-                                String(assignedReleaseVersionId)
-                              const isCurrent = assignedReleaseVersionId === releaseVariantId
-                              const chipVariant = isCurrent
-                                ? 'info'
-                                : segment.has_episode_override
-                                  ? 'warning'
-                                  : 'neutral'
-                              return (
-                                <Badge key={assignedReleaseVersionId} variant={chipVariant}>
-                                  {formatAssignmentChipLabel(assignedEpisodeNumber, segment.has_episode_override ?? false)}
-                                </Badge>
-                              )
-                            })}
-                          </div>
+                          <SegmentAssignmentsRow
+                            segment={segment}
+                            currentReleaseVersionId={releaseVariantId ?? null}
+                            currentEpisodeNumber={episodeNumber ?? null}
+                            onAssignCurrent={() => void handleAssignCurrentFolge(segment)}
+                            onUnassign={(id) => void handleUnassignFolge(segment, id)}
+                            isBusy={assignmentBusySegmentId === segment.id}
+                          />
                         </TableCell>
                       </TableRow>
                     ) : null}

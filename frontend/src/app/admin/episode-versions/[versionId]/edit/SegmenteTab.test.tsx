@@ -27,6 +27,11 @@ import {
   getAnimeSegmentSuggestions,
   getAnimeSegments,
   createAdminAnimeTheme,
+  createAnimeSegment,
+  updateAnimeSegment,
+  assignAnimeSegment,
+  unassignAnimeSegment,
+  upsertAnimeSegmentEpisodeOverride,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
 import { SegmenteTab } from './SegmenteTab'
@@ -60,6 +65,11 @@ const mockedGetAnimeSegmentSuggestions = vi.mocked(getAnimeSegmentSuggestions)
 const mockedGetAdminAnimeThemes = vi.mocked(getAdminAnimeThemes)
 const mockedGetAdminThemeTypes = vi.mocked(getAdminThemeTypes)
 const mockedCreateAdminAnimeTheme = vi.mocked(createAdminAnimeTheme)
+const mockedCreateAnimeSegment = vi.mocked(createAnimeSegment)
+const mockedUpdateAnimeSegment = vi.mocked(updateAnimeSegment)
+const mockedAssignAnimeSegment = vi.mocked(assignAnimeSegment)
+const mockedUnassignAnimeSegment = vi.mocked(unassignAnimeSegment)
+const mockedUpsertAnimeSegmentEpisodeOverride = vi.mocked(upsertAnimeSegmentEpisodeOverride)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -336,14 +346,14 @@ describe('SegmenteTab table', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
 
-    expect(await screen.findByText('Folge 3 · Zeit angepasst')).toBeTruthy()
-    expect(screen.getByText('Folge 7 · Zeit angepasst')).toBeTruthy()
+    expect(await screen.findByText('Folge 3 · verschoben')).toBeTruthy()
+    expect(screen.getByText('Folge 7 · verschoben')).toBeTruthy()
     // B3-Regression: Chips zeigen NIEMALS die interne release_version_id.
     expect(screen.queryByText('Folge 481')).toBeNull()
     expect(screen.queryByText('Folge 482')).toBeNull()
   })
 
-  it('rendert kein Badge und keinen DisclosureIndicator für ein nicht geteiltes Segment (Standardfall unverändert)', async () => {
+  it('rendert kein "Geteiltes Segment"-Badge, aber der Zuweisungs-Toggle ist jetzt auch für nicht geteilte Segmente sichtbar (Gap-2-Fix)', async () => {
     mockedGetAnimeSegments.mockResolvedValue({
       data: [
         makeSegment({
@@ -372,7 +382,11 @@ describe('SegmenteTab table', () => {
     expect(screen.getByText('Solo OP')).toBeTruthy()
     expect(screen.queryByText('Geteiltes Segment')).toBeNull()
     expect(screen.queryByText('Zeit hier überschrieben')).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' })).toBeNull()
+
+    const toggle = screen.getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' })
+    fireEvent.click(toggle)
+
+    expect(await screen.findByRole('button', { name: 'Diese Folge (1) zuweisen' })).toBeTruthy()
   })
 
   it('zeigt den Override-Switch im Bearbeiten-Panel für ein geteiltes Segment (UI-SPEC Surface 1)', async () => {
@@ -441,6 +455,132 @@ describe('SegmenteTab table', () => {
 
     await screen.findByText('Segment bearbeiten')
     expect(screen.queryByRole('switch', { name: 'Zeit nur für diese Folge abweichend setzen' })).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Gap 1 (adoptSuggestion assign statt create) + Gap 2 (Zuweisungs-Zeile für
+// jedes Segment) -- Phase-117-Nachtrag, Quick-Task 260819-lm5
+// ---------------------------------------------------------------------------
+describe('SegmenteTab Vorschlag-Übernahme (Gap 1: assign statt Duplikat)', () => {
+  it('ruft bei "Übernehmen" assignAnimeSegment statt createAnimeSegment auf und entfernt den Vorschlag', async () => {
+    mockedGetAnimeSegmentSuggestions.mockResolvedValue({
+      data: [makeSegment({ id: 77, theme_title: 'Folge1 OP', start_episode: 1, end_episode: 1 })],
+    })
+    mockedAssignAnimeSegment.mockResolvedValue({
+      data: makeSegment({ id: 77, is_shared: true, assigned_release_version_ids: [9] }),
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={2} releaseVariantId={9} />)
+
+    await screen.findByRole('table')
+    const adoptButton = await screen.findByRole('button', { name: 'Übernehmen' })
+    fireEvent.click(adoptButton)
+
+    await waitFor(() => {
+      expect(mockedAssignAnimeSegment).toHaveBeenCalledWith(1, 77, 9)
+    })
+    expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Übernehmen' })).toBeNull()
+    })
+  })
+
+  it('entfernt den Vorschlag NICHT und legt kein Duplikat an, wenn die Zuweisung fehlschlägt', async () => {
+    mockedGetAnimeSegmentSuggestions.mockResolvedValue({
+      data: [makeSegment({ id: 78, theme_title: 'Folge1 ED', start_episode: 1, end_episode: 1 })],
+    })
+    mockedAssignAnimeSegment.mockRejectedValue(new Error('Konflikt'))
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={2} releaseVariantId={9} />)
+
+    await screen.findByRole('table')
+    const adoptButton = await screen.findByRole('button', { name: 'Übernehmen' })
+    fireEvent.click(adoptButton)
+
+    await waitFor(() => {
+      expect(mockedAssignAnimeSegment).toHaveBeenCalledWith(1, 78, 9)
+    })
+    expect(mockedCreateAnimeSegment).not.toHaveBeenCalled()
+    expect(await screen.findByRole('button', { name: 'Übernehmen' })).toBeTruthy()
+  })
+})
+
+describe('SegmentAssignmentsRow (Gap 2: Zuweisen/Entfernen für jedes Segment)', () => {
+  it('ruft assignAnimeSegment auf, wenn "Diese Folge zuweisen" für ein noch nicht zugewiesenes Segment geklickt wird', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [makeSegment({ id: 52, theme_title: 'Solo ED', start_episode: 5, end_episode: 5 })],
+    })
+    mockedAssignAnimeSegment.mockResolvedValue({
+      data: makeSegment({ id: 52, is_shared: true, assigned_release_version_ids: [9] }),
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={5} releaseVariantId={9} />)
+
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Diese Folge (5) zuweisen' }))
+
+    await waitFor(() => {
+      expect(mockedAssignAnimeSegment).toHaveBeenCalledWith(1, 52, 9)
+    })
+  })
+
+  it('ruft unassignAnimeSegment für den NICHT-aktuellen Chip auf, wenn dessen Entfernen-Aktion geklickt wird', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 53,
+          theme_title: 'Shared OP',
+          start_episode: 1,
+          end_episode: 12,
+          is_shared: true,
+          assigned_release_version_ids: [481, 482],
+          assigned_episodes: [
+            { release_version_id: 481, episode_number: '3' },
+            { release_version_id: 482, episode_number: '7' },
+          ],
+        }),
+      ],
+    })
+    mockedUnassignAnimeSegment.mockResolvedValue({
+      data: makeSegment({ id: 53, is_shared: false, assigned_release_version_ids: [481] }),
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} />)
+
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
+
+    const removeOtherButton = await screen.findByRole('button', { name: 'Zuweisung für Folge 7 entfernen' })
+    fireEvent.click(removeOtherButton)
+
+    await waitFor(() => {
+      expect(mockedUnassignAnimeSegment).toHaveBeenCalledWith(1, 53, 482)
+    })
+  })
+
+  it('deaktiviert die Entfernen-Aktion für den letzten verbleibenden Chip (kein Segment darf auf 0 Zuweisungen fallen)', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 54,
+          theme_title: 'Solo nach Entfernen',
+          start_episode: 3,
+          end_episode: 3,
+          assigned_release_version_ids: [481],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '3' }],
+        }),
+      ],
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} />)
+
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
+
+    const removeButton = await screen.findByRole('button', { name: 'Zuweisung für Folge 3 entfernen' })
+    expect(removeButton).toHaveProperty('disabled', true)
   })
 })
 
@@ -832,8 +972,8 @@ describe('formatAssignmentChipLabel', () => {
     expect(formatAssignmentChipLabel('7', false)).toBe('Folge 7')
   })
 
-  it('formatiert mit Override als "Folge {N} · Zeit angepasst"', () => {
-    expect(formatAssignmentChipLabel('7', true)).toBe('Folge 7 · Zeit angepasst')
+  it('formatiert mit Override als "Folge {N} · verschoben"', () => {
+    expect(formatAssignmentChipLabel('7', true)).toBe('Folge 7 · verschoben')
   })
 
   it('B3-Regression: nutzt die übergebene Episodennummer wortwörtlich, keine numerische release_version_id-Herleitung', () => {

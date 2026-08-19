@@ -212,7 +212,7 @@ export function findAssignedEpisodeNumber(segment: AdminThemeSegment, releaseVer
  * NIEMALS die interne `release_version_id` (B3-Fix).
  */
 export function formatAssignmentChipLabel(episodeNumber: string, hasOverride: boolean): string {
-  return hasOverride ? `Folge ${episodeNumber} · Zeit angepasst` : `Folge ${episodeNumber}`
+  return hasOverride ? `Folge ${episodeNumber} · verschoben` : `Folge ${episodeNumber}`
 }
 
 // --- Zeit-Override Speichern/Entfernen-Handler (Plan 117-06) ---
