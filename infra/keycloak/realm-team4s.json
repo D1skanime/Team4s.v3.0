@@ -98,6 +98,21 @@
       },
       "protocolMappers": [
         {
+          "name": "fansubName",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "user.attribute": "fansubName",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "fansubName",
+            "jsonType.label": "String"
+          }
+        },
+        {
           "name": "username",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-usermodel-attribute-mapper",

@@ -74,6 +74,19 @@
             </#if>
         </#list>
 
+        <#-- 135-10 (D-15): "username" is no longer the visible identity field.
+             "fansubName" is a new, separate, case-preserved user-profile
+             attribute; the visible register-form field the user types into
+             is now bound to it. "username" is rendered as a single hidden
+             input further below and kept in sync via JS as
+             lowercase(fansubName) on every input/blur/submit -- Keycloak
+             itself additionally lowercases usernames server-side (empirically
+             verified against this realm's live registration endpoint), so
+             this keeps the derived login identity consistent with what KC
+             will actually store, while the fansubName attribute preserves
+             the user's original casing for display (members.nickname /
+             account_display_name, see current_user_auth.go). -->
+
         <form id="kc-register-form" class="${properties.kcFormClass!}" action="${url.registrationAction}" method="post" novalidate="novalidate">
 
             <#if invitedEmail?has_content>
@@ -81,6 +94,15 @@
                     <p>${kcSanitize(msg("team4sInviteContext"))?no_esc}</p>
                 </div>
             </#if>
+
+            <#-- 135-10 (D-15): the actual KC login identity, always derived
+                 client-side from fansubName (see the sync script below).
+                 Rendered empty regardless of any KC-side prefill (e.g. a
+                 login_hint-populated "username" profile attribute value
+                 during an invite flow) so a stray, not-yet-lowercased or
+                 email-shaped value never reaches submission before the sync
+                 script overwrites it. -->
+            <input type="hidden" id="username" name="username" value="" />
 
             <#-- D-12 (Task 2): this is user-profile-commons.ftl's own
                  userProfileFormFields loop, inlined instead of called via the
@@ -124,7 +146,23 @@
                     </#if>
                 </#if>
 
-                <@field.group name=attribute.name label=advancedMsg(attribute.displayName!'') error=kcSanitize(messagesPerField.get('${attribute.name}'))?no_esc required=attribute.required>
+                <#-- 135-10 (D-15): "username" is only ever rendered once, as the
+                     hidden field above -- skip its normal labeled field-group
+                     entirely so no visible/duplicate "username" input exists. -->
+                <#if attribute.name != "username">
+                <#-- A duplicate lowercase(fansubName)-derived username collides
+                     server-side with the hidden "username" attribute, not the
+                     visible "fansubName" one -- surface that error under the
+                     field the user actually sees and can fix. -->
+                <#assign team4sFansubNameError = "">
+                <#if attribute.name == "fansubName">
+                    <#if messagesPerField.existsError('fansubName')>
+                        <#assign team4sFansubNameError = kcSanitize(messagesPerField.get('fansubName'))?no_esc>
+                    <#elseif messagesPerField.existsError('username')>
+                        <#assign team4sFansubNameError = kcSanitize(messagesPerField.get('username'))?no_esc>
+                    </#if>
+                </#if>
+                <@field.group name=attribute.name label=advancedMsg(attribute.displayName!'') error=(attribute.name == "fansubName")?then(team4sFansubNameError, kcSanitize(messagesPerField.get('${attribute.name}'))?no_esc) required=attribute.required>
                     <div class="${properties.kcInputWrapperClass!}">
                         <#if attribute.annotations.inputHelperTextBefore??>
                             <div class="${properties.kcInputHelperTextBeforeClass!}" id="form-help-text-before-${attribute.name}" aria-live="polite">${kcSanitize(advancedMsg(attribute.annotations.inputHelperTextBefore))?no_esc}</div>
@@ -146,20 +184,18 @@
                                 />
                             </span>
                             <div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-email" aria-live="polite">${kcSanitize(msg("team4sEmailLockedHelp"))?no_esc}</div>
-                        <#elseif attribute.name == "username" && invitedEmail?has_content>
-                            <#-- 135-09: username IS the Fansubname. The invite login_hint prefilled it
-                                 with the invited email (now shown in the locked email field above), so
-                                 render this field EMPTY for the user to type their Fansubname. On a
-                                 validation re-render the value is the real fansubname (no "@") and is kept. -->
-                            <#assign team4sFansub = attribute.value!"">
-                            <#if team4sFansub?contains("@")><#assign team4sFansub = ""></#if>
-                            <input type="text" id="username" name="username" value="${team4sFansub}"
+                        <#elseif attribute.name == "fansubName">
+                            <#-- 135-10 (D-15): the visible identity field. Free-typed,
+                                 original casing preserved and submitted as-is into the
+                                 new fansubName attribute; the hidden "username" field
+                                 (above) is kept as lowercase(this value) via JS. -->
+                            <input type="text" id="fansubName" name="fansubName" value="${(attribute.value!'')}"
                                 class="${properties.kcInputClass!}"
-                                aria-invalid="<#if messagesPerField.existsError('username')>true</#if>"
+                                aria-invalid="<#if team4sFansubNameError != ''>true</#if>"
                                 autocomplete="username" autofocus
                             />
                             <#if attribute.annotations.inputHelperTextAfter??>
-                                <div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-username" aria-live="polite">${kcSanitize(advancedMsg(attribute.annotations.inputHelperTextAfter))?no_esc}</div>
+                                <div class="${properties.kcInputHelperTextAfterClass!}" id="form-help-text-after-fansubName" aria-live="polite">${kcSanitize(advancedMsg(attribute.annotations.inputHelperTextAfter))?no_esc}</div>
                             </#if>
                         <#else>
                             <@userProfileCommons.inputFieldByType attribute=attribute/>
@@ -169,13 +205,30 @@
                         </#if>
                     </div>
                 </@field.group>
+                </#if>
 
-                <#-- render password fields just under the username or email (if used as username) -->
-                <#if passwordRequired?? && (attribute.name == 'username' || (attribute.name == 'email' && realm.registrationEmailAsUsername))>
+                <#-- render password fields just under fansubName (the visible identity field) or email (if used as username) -->
+                <#if passwordRequired?? && (attribute.name == 'fansubName' || (attribute.name == 'email' && realm.registrationEmailAsUsername))>
                     <@field.password name="password" required=true label=msg("password") autocomplete="new-password" />
                     <@field.password name="password-confirm" required=true label=msg("passwordConfirm") autocomplete="new-password" />
                 </#if>
             </#list>
+
+            <script type="module">
+                (function () {
+                    const fansubInput = document.getElementById("fansubName");
+                    const usernameInput = document.getElementById("username");
+                    const form = document.getElementById("kc-register-form");
+                    if (!fansubInput || !usernameInput || !form) return;
+                    const syncUsername = () => {
+                        usernameInput.value = fansubInput.value.toLowerCase();
+                    };
+                    fansubInput.addEventListener("input", syncUsername);
+                    fansubInput.addEventListener("blur", syncUsername);
+                    form.addEventListener("submit", syncUsername);
+                    syncUsername();
+                })();
+            </script>
 
             <#list profile.html5DataAnnotations?keys as key>
                 <script type="module" src="${url.resourcesPath}/js/${key}.js"></script>
