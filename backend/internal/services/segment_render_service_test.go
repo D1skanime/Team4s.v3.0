@@ -91,6 +91,7 @@ func TestBuildFFmpegSegmentArgsMapsVideoAudioAndBurnsSubtitle(t *testing.T) {
 		"-map 0:v:0",
 		"-map 0:a:0",
 		"-c:v libx264",
+		"-pix_fmt yuv420p",
 		"-c:a aac",
 		"-vf subtitles='/work/ep01.ass'",
 		"/cache/clip.mp4",

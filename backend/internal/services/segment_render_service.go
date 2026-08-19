@@ -131,6 +131,9 @@ func BuildFFmpegSegmentArgs(input SegmentRenderCommandInput) ([]string, error) {
 		"-dn",
 		"-map_metadata", "-1",
 		"-c:v", "libx264",
+		// 8-bit 4:2:0 erzwingen: viele Anime-Quellen (Jellyfin) sind 10-bit (yuv420p10le),
+		// was Browser in <video> nicht abspielen koennen. yuv420p sichert Browser-Playback.
+		"-pix_fmt", "yuv420p",
 		"-preset", "veryfast",
 		"-crf", "26",
 		"-c:a", "aac",
