@@ -54,6 +54,7 @@ type GroupMembersTabProps = {
   canManageHistoricalRoles?: boolean
   fansubId: number
   onActionsChange?: (actions: GroupMembersTabActions | null) => void
+  onActiveAppMembersChanged?: () => void
   showClaimRequests?: boolean
   showHeaderActions?: boolean
 }
@@ -83,10 +84,11 @@ export function GroupMembersTab({
   canManageHistoricalRoles = true,
   fansubId,
   onActionsChange,
+  onActiveAppMembersChanged,
   showClaimRequests = true,
   showHeaderActions = true,
 }: GroupMembersTabProps) {
-  const tab = useGroupMembersTab({ fansubId, onActionsChange })
+  const tab = useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembersChanged })
 
   const [historyRoleOptions, setHistoryRoleOptions] = useState<RoleDefinitionOption[]>([])
   const [historyRoleLoadError, setHistoryRoleLoadError] = useState<string | null>(null)
@@ -155,6 +157,9 @@ export function GroupMembersTab({
       ) : null}
       {tab.claimActionError ? (
         <ErrorState title="Claim-Aktion" description={tab.claimActionError} />
+      ) : null}
+      {tab.claimActionSuccess ? (
+        <div className={styles.successBox} role="status" aria-live="polite">{tab.claimActionSuccess}</div>
       ) : null}
 
       {!tab.loading && !tab.error ? (

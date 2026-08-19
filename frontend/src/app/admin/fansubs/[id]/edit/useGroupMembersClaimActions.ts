@@ -30,9 +30,14 @@ type CopyState = 'copied' | 'selected'
 export type UseGroupMembersClaimActionsOptions = {
   fansubId: number
   onLoadNeeded: () => Promise<void>
+  /** Called after an action that changes the ACTIVE app-members roster (distinct from
+   * the historical-members list `onLoadNeeded` refreshes) — currently only member
+   * activation. Lets a parent section owning its own active-members fetch stay in sync
+   * without a full page reload. */
+  onActiveAppMembersChanged?: () => void
 }
 
-export function useGroupMembersClaimActions({ fansubId, onLoadNeeded }: UseGroupMembersClaimActionsOptions) {
+export function useGroupMembersClaimActions({ fansubId, onLoadNeeded, onActiveAppMembersChanged }: UseGroupMembersClaimActionsOptions) {
   const [generatedInvites, setGeneratedInvites] = useState<Record<number, GenerateClaimInvitationResponse>>({})
   const [memberInvitations, setMemberInvitations] = useState<Record<number, MemberClaimInvitationResponse[]>>({})
   const [copyStates, setCopyStates] = useState<Record<number, CopyState>>({})
@@ -40,6 +45,14 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded }: UseGroup
   const [pendingClaims, setPendingClaims] = useState<MemberClaimRow[]>([])
   const [memberRequests, setMemberRequests] = useState<MemberRequestRow[]>([])
   const [claimActionError, setClaimActionError] = useState<string | null>(null)
+  const [claimActionSuccess, setClaimActionSuccess] = useState<string | null>(null)
+
+  function flashClaimActionSuccess(message: string) {
+    setClaimActionSuccess(message)
+    window.setTimeout(() => {
+      setClaimActionSuccess((current) => (current === message ? null : current))
+    }, 2500)
+  }
 
   function setLoadedClaimData(
     loadedPendingClaims: MemberClaimRow[],
@@ -133,6 +146,7 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded }: UseGroup
       await verifyMemberClaim(fansubId, claimId)
       setPendingClaims((current) => current.filter((claim) => claim.id !== claimId))
       await onLoadNeeded()
+      flashClaimActionSuccess('Claim bestätigt – der Account ist jetzt mit diesem Eintrag verknüpft.')
     } catch (err) {
       setClaimActionError(formatApiError(err, 'Claim konnte nicht bestätigt werden.'))
     }
@@ -144,6 +158,8 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded }: UseGroup
       setClaimActionError(null)
       await activateClaimedMember(fansubId, memberId)
       await onLoadNeeded()
+      onActiveAppMembersChanged?.()
+      flashClaimActionSuccess(`"${memberNick}" ist jetzt aktives Mitglied.`)
     } catch (err) {
       setClaimActionError(formatApiError(err, 'Konnte nicht als aktives Mitglied übernommen werden.'))
     }
@@ -189,7 +205,7 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded }: UseGroup
     generatedInvites, memberInvitations, copyStates,
     approveNicknames, setApproveNicknames,
     pendingClaims, memberRequests,
-    claimActionError,
+    claimActionError, claimActionSuccess,
     setLoadedClaimData,
     handleGenerateInvitation, handleCancelInvitation, handleCopyLink,
     handleVerifyClaim, handleRejectClaim, handleActivateMember,

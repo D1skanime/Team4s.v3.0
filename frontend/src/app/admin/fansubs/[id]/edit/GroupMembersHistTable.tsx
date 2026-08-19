@@ -240,7 +240,7 @@ function HistoricalMemberCard({
         ? (pendingClaimsByMember.get(member.member_id) ?? []).map((claim) => (
             <div key={`pending-claim-${claim.id}`} className={styles.fansubEditMemberCompactBody}>
               <div className={styles.fansubEditClaimPendingInviteRow}>
-                <Badge variant="warning">Claim-Antrag – möchte diesen Eintrag übernehmen</Badge>
+                <Badge variant="warning">Ein Nutzer möchte diesen Eintrag als eigenes Profil verknüpfen</Badge>
                 <Button
                   variant="success"
                   size="sm"

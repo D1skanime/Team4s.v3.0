@@ -129,9 +129,10 @@ export const CURRENT_YEAR = new Date().getFullYear()
 export type UseGroupMembersTabOptions = {
   fansubId: number
   onActionsChange?: (actions: GroupMembersTabActions | null) => void
+  onActiveAppMembersChanged?: () => void
 }
 
-export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMembersTabOptions) {
+export function useGroupMembersTab({ fansubId, onActionsChange, onActiveAppMembersChanged }: UseGroupMembersTabOptions) {
   const [members, setMembers] = useState<HistFansubGroupMember[]>([])
   const [roles, setRoles] = useState<HistGroupMemberRole[]>([])
   const [loading, setLoading] = useState(true)
@@ -157,6 +158,7 @@ export function useGroupMembersTab({ fansubId, onActionsChange }: UseGroupMember
   const claimActions = useGroupMembersClaimActions({
     fansubId,
     onLoadNeeded: async () => { await load() },
+    onActiveAppMembersChanged,
   })
 
   const load = useCallback(async () => {

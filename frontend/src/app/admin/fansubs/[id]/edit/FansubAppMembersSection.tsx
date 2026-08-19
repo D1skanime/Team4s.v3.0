@@ -564,6 +564,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
                 canManageHistoricalRoles={canManageHistoricalRoles}
                 fansubId={fansubId}
                 onActionsChange={setHistoricalActions}
+                onActiveAppMembersChanged={() => void loadSection()}
                 showClaimRequests={canLinkHistoricalMembers}
                 showHeaderActions={false}
               />
