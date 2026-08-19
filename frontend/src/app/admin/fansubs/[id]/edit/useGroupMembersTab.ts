@@ -48,6 +48,26 @@ export function roleLabelForCode(code: string): string {
   return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === code)?.label ?? HISTORICAL_ROLE_LABELS[code] ?? code
 }
 
+export type DuplicateMemberMatch = {
+  member: HistFansubGroupMember
+  isActiveLinked: boolean
+}
+
+export function findDuplicateMemberMatches(
+  members: HistFansubGroupMember[],
+  displayName: string,
+): DuplicateMemberMatch[] {
+  const normalized = displayName.trim().toLowerCase()
+  if (!normalized) return []
+  return members
+    .filter((member) => member.display_name.trim().toLowerCase() === normalized)
+    .map((member) => ({
+      member,
+      isActiveLinked: Boolean(member.active_app_member_id || member.app_user_id),
+    }))
+    .sort((a, b) => Number(b.isActiveLinked) - Number(a.isActiveLinked))
+}
+
 function isLocalHost(hostname: string): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1'
 }

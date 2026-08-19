@@ -1,17 +1,21 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
+
 import {
   Button,
+  Card,
   DatePicker,
   ErrorState,
   FormField,
   Input,
   Modal,
   Select,
+  Switch,
 } from '@/components/ui'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
 import type { HistFansubGroupMember, HistoricalContributionVisibility } from '@/types/fansub'
-import type { InlineMemberRoleDraft } from './useGroupMembersTab'
+import { findDuplicateMemberMatches, type InlineMemberRoleDraft } from './useGroupMembersTab'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -35,6 +39,7 @@ export type GroupMemberFormModalsProps = {
   setInlineRoleDrafts: (updater: (prev: InlineMemberRoleDraft[]) => InlineMemberRoleDraft[]) => void
   historyRoleOptions: RoleDefinitionOption[]
   historyRoleLoadError?: string | null
+  existingMembers: HistFansubGroupMember[]
   saving: boolean
   modalError: string | null
   onClose: () => void
@@ -65,6 +70,7 @@ export function GroupMemberFormModals({
   setInlineRoleDrafts,
   historyRoleOptions,
   historyRoleLoadError,
+  existingMembers,
   saving,
   modalError,
   onClose,
@@ -84,7 +90,20 @@ export function GroupMemberFormModals({
   roleLabelForCode,
 }: GroupMemberFormModalsProps) {
   const hasRequiredRole = inlineRoleDrafts.some((role) => role.roleCode.trim())
-  const canSave = Boolean(form.displayName.trim()) && hasRequiredRole
+  const [duplicateConfirmed, setDuplicateConfirmed] = useState(false)
+
+  useEffect(() => {
+    setDuplicateConfirmed(false)
+  }, [form.displayName])
+
+  const duplicateMatches = useMemo(
+    () => (editTarget ? [] : findDuplicateMemberMatches(existingMembers, form.displayName)),
+    [editTarget, existingMembers, form.displayName],
+  )
+
+  const canSave = Boolean(form.displayName.trim())
+    && hasRequiredRole
+    && (duplicateMatches.length === 0 || duplicateConfirmed)
 
   const addInlineRole = () => {
     setInlineRoleDrafts((current) => [
@@ -142,6 +161,27 @@ export function GroupMemberFormModals({
               required
             />
           </FormField>
+
+          {duplicateMatches.length > 0 ? (
+            <Card variant="nested" className={styles.warningBox}>
+              <p>
+                Ein Mitglied mit diesem Namen existiert bereits:{' '}
+                <strong>{duplicateMatches[0].member.display_name}</strong>{' '}
+                ({duplicateMatches[0].isActiveLinked ? 'aktiv/verknüpft' : 'historisch'})
+                {duplicateMatches.length > 1 ? (
+                  duplicateMatches.length === 2
+                    ? ' und 1 weiterer Eintrag'
+                    : ` und ${duplicateMatches.length - 1} weitere Einträge`
+                ) : null}
+                {' '}– trotzdem als neuen Eintrag anlegen?
+              </p>
+              <Switch
+                checked={duplicateConfirmed}
+                onCheckedChange={setDuplicateConfirmed}
+                label="Ja, trotzdem als neuen Eintrag anlegen"
+              />
+            </Card>
+          ) : null}
 
           <FormField label="Sichtbarkeit" htmlFor="hist-member-visibility">
             <Select
