@@ -4503,13 +4503,3 @@
     width: auto;
   }
 }
-
-/* Aktives-Mitglied-Marker in der Historisch-Karte (#28 entschaerft) */
-.fansubEditActiveMemberNote {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: color-mix(in srgb, var(--color-success) 72%, var(--text-primary));
-}

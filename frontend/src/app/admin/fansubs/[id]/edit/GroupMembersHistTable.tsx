@@ -274,7 +274,7 @@ function HistoricalMemberCard({
             </div>
           ))
         : null}
-      {canManageClaims && member.app_username && !member.active_app_member_id ? (
+      {canManageClaims && member.app_username ? (
         <div className={styles.fansubEditMemberCompactBody}>
           <div className={styles.fansubEditLinkedAccount}>
             <div className={styles.fansubEditLinkedAccountInfo}>
@@ -297,14 +297,6 @@ function HistoricalMemberCard({
               </Button>
             </div>
           </div>
-        </div>
-      ) : null}
-      {canManageClaims && member.active_app_member_id ? (
-        <div className={styles.fansubEditMemberCompactBody}>
-          <span className={styles.fansubEditActiveMemberNote}>
-            <UserCheck size={14} aria-hidden="true" />
-            Aktives Mitglied dieser Gruppe
-          </span>
         </div>
       ) : null}
       {canCreateClaimInvitation && !member.app_username ? (
