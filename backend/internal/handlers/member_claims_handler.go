@@ -183,6 +183,29 @@ func (h *MemberClaimsHandler) RejectClaim(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{"message": "Claim abgelehnt."}})
 }
 
+func (h *MemberClaimsHandler) ActivateClaimedMember(c *gin.Context) {
+	memberID, err := parsePositiveID(c.Param("memberId"))
+	if err != nil {
+		badRequest(c, "Ungültige member-id.")
+		return
+	}
+	fansubID, ok := h.requireFansubPermission(c, permissions.ActionFansubGroupHistoricalMembersLink, "member_claim.activate.denied", &memberID)
+	if !ok {
+		return
+	}
+	if h.claimsRepo == nil {
+		internalError(c, "interner serverfehler")
+		return
+	}
+	identity, _, _ := permissionActorFromContext(c)
+	err = h.claimsRepo.ActivateClaimedMember(c.Request.Context(), fansubID, memberID, identity.AppUserID)
+	if h.writeClaimError(c, err, "Kein verifizierter Claim für dieses Mitglied gefunden.") {
+		return
+	}
+	h.writeAudit(c, identity.AppUserID, "member_claim.activated", fansubID, "member", memberID, "activate", nil)
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"message": "Als aktives Mitglied übernommen."}})
+}
+
 func (h *MemberClaimsHandler) requireFansubPermission(c *gin.Context, action permissions.Action, deniedEvent string, targetID *int64) (int64, bool) {
 	identity, actor, ok := permissionActorFromContext(c)
 	if !ok {

@@ -95,6 +95,7 @@ export type GroupMembersHistTableProps = {
   onDeleteRole: (role: HistGroupMemberRole) => void
   onAddRole: (member: HistFansubGroupMember) => void
   onVerifyClaim: (claimId: number) => void
+  onActivateMember: (memberId: number, memberNick: string) => void
   onRejectClaim: (claimId: number, memberNick: string) => void
   onGenerateInvitation: (rowId: number, memberId: number) => void
   onCancelInvitation: (rowId: number, memberId: number, invitationId: number) => void
@@ -161,6 +162,7 @@ function HistoricalMemberCard({
   pendingClaimsByMember,
   onVerifyClaim,
   onRejectClaim,
+  onActivateMember,
 }: HistoricalMemberCardProps) {
   const invite = generatedInvites[member.id]
   const inviteLink = invite ? normalizeInviteLink(invite.invite_link) : ''
@@ -259,6 +261,23 @@ function HistoricalMemberCard({
             </div>
           ))
         : null}
+      {canManageClaims && member.app_username ? (
+        <div className={styles.fansubEditMemberCompactBody}>
+          <Toolbar
+            leading={<span className={styles.fansubEditHint}>Account verknüpft ({member.app_username})</span>}
+            trailing={(
+              <Button
+                variant="success"
+                size="sm"
+                leftIcon={<UserCheck size={16} />}
+                onClick={() => onActivateMember(member.member_id, member.display_name)}
+              >
+                Als aktives Mitglied übernehmen
+              </Button>
+            )}
+          />
+        </div>
+      ) : null}
       {canCreateClaimInvitation && !member.app_username ? (
         <div className={styles.fansubEditMemberCompactBody}>
           <Toolbar

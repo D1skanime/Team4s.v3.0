@@ -225,6 +225,7 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.GET("/admin/fansubs/:id/member-claims", auth, deps.memberClaimsHandler.ListPendingClaimsForGroup)
 	v1.POST("/admin/fansubs/:id/member-claims/:claimId/verify", auth, deps.memberClaimsHandler.VerifyClaim)
 	v1.POST("/admin/fansubs/:id/member-claims/:claimId/reject", auth, deps.memberClaimsHandler.RejectClaim)
+	v1.POST("/admin/fansubs/:id/historical-members/:memberId/activate", auth, deps.memberClaimsHandler.ActivateClaimedMember)
 	v1.GET("/admin/fansubs/:id/group-members/:memberId/claim-invitations", auth, deps.memberClaimInvitationsHandler.ListClaimInvitations)
 	v1.POST("/admin/fansubs/:id/group-members/:memberId/claim-invitations", auth, deps.memberClaimInvitationsHandler.CreateClaimInvitation)
 	v1.POST("/admin/fansubs/:id/group-members/:memberId/claim-invitations/:invitationId/cancel", auth, deps.memberClaimInvitationsHandler.CancelClaimInvitation)

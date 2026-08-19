@@ -4219,6 +4219,28 @@ export async function listPendingMemberClaims(
   return payload.data;
 }
 
+export async function activateClaimedMember(
+  fansubId: number,
+  memberId: number,
+  authToken?: string,
+): Promise<void> {
+  const API_BASE_URL = getApiBaseUrl();
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubId}/historical-members/${memberId}/activate`,
+    {
+      method: "POST",
+      authToken,
+    },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code);
+  }
+}
+
 export async function verifyMemberClaim(
   fansubId: number,
   claimId: number,

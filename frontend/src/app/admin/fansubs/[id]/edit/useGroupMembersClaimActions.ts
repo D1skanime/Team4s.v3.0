@@ -11,6 +11,7 @@ import {
   rejectMemberClaim,
   rejectMemberRequest,
   verifyMemberClaim,
+  activateClaimedMember,
 } from '@/lib/api'
 import type {
   GenerateClaimInvitationResponse,
@@ -137,6 +138,17 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded }: UseGroup
     }
   }
 
+  async function handleActivateMember(memberId: number, memberNick: string) {
+    if (!window.confirm(`"${memberNick}" als aktives Mitglied übernehmen?`)) return
+    try {
+      setClaimActionError(null)
+      await activateClaimedMember(fansubId, memberId)
+      await onLoadNeeded()
+    } catch (err) {
+      setClaimActionError(formatApiError(err, 'Konnte nicht als aktives Mitglied übernommen werden.'))
+    }
+  }
+
   async function handleRejectClaim(claimId: number, memberNick: string) {
     if (!window.confirm(`Claim für "${memberNick}" ablehnen?`)) return
     try {
@@ -180,7 +192,7 @@ export function useGroupMembersClaimActions({ fansubId, onLoadNeeded }: UseGroup
     claimActionError,
     setLoadedClaimData,
     handleGenerateInvitation, handleCancelInvitation, handleCopyLink,
-    handleVerifyClaim, handleRejectClaim,
+    handleVerifyClaim, handleRejectClaim, handleActivateMember,
     handleApproveRequest, handleRejectRequest,
   }
 }

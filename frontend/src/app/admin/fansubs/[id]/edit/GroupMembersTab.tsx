@@ -180,6 +180,7 @@ export function GroupMembersTab({
             onAddRole={(member) => tab.openNewRole(member)}
             onVerifyClaim={(claimId) => void tab.handleVerifyClaim(claimId)}
             onRejectClaim={(claimId, nick) => void tab.handleRejectClaim(claimId, nick)}
+            onActivateMember={(memberId, nick) => void tab.handleActivateMember(memberId, nick)}
             onGenerateInvitation={(rowId, memberId) => void tab.handleGenerateInvitation(rowId, memberId)}
             onCancelInvitation={(rowId, memberId, invId) => void tab.handleCancelInvitation(rowId, memberId, invId)}
             onCopyLink={(rowId, link) => void tab.handleCopyLink(rowId, link)}

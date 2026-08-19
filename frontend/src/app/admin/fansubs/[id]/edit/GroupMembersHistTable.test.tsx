@@ -58,6 +58,7 @@ function baseProps(overrides: Partial<GroupMembersHistTableProps> = {}): GroupMe
     onAddRole: vi.fn(),
     onVerifyClaim: vi.fn(),
     onRejectClaim: vi.fn(),
+    onActivateMember: vi.fn(),
     onGenerateInvitation: vi.fn(),
     onCancelInvitation: vi.fn(),
     onCopyLink: vi.fn(),
