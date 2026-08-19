@@ -4438,3 +4438,68 @@
     width: auto;
   }
 }
+
+/* Account-verknuepft (linked, ready-to-activate) card block - mobile-first, #28 */
+.fansubEditLinkedAccount {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 0.5px solid color-mix(in srgb, var(--color-success) 40%, transparent);
+  background: color-mix(in srgb, var(--color-success) 9%, var(--surface-card));
+  border-radius: var(--radius-md);
+}
+
+.fansubEditLinkedAccountInfo {
+  min-width: 0;
+}
+
+.fansubEditLinkedAccountLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-success) 70%, var(--text-primary));
+}
+
+.fansubEditLinkedAccountText {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.fansubEditLinkedAccountActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fansubEditLinkedAccountActions > * {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .fansubEditLinkedAccount {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .fansubEditLinkedAccountInfo {
+    flex: 1;
+  }
+
+  .fansubEditLinkedAccountActions {
+    flex-direction: row;
+    flex-shrink: 0;
+  }
+
+  .fansubEditLinkedAccountActions > * {
+    width: auto;
+  }
+}

@@ -276,9 +276,17 @@ function HistoricalMemberCard({
         : null}
       {canManageClaims && member.app_username ? (
         <div className={styles.fansubEditMemberCompactBody}>
-          <Toolbar
-            leading={<span className={styles.fansubEditHint}>Account verknüpft ({member.app_username})</span>}
-            trailing={(
+          <div className={styles.fansubEditLinkedAccount}>
+            <div className={styles.fansubEditLinkedAccountInfo}>
+              <span className={styles.fansubEditLinkedAccountLabel}>
+                <Link2 size={13} aria-hidden="true" />
+                Account verknüpft
+              </span>
+              <p className={styles.fansubEditLinkedAccountText}>
+                Verknüpft mit <strong>{member.app_username}</strong> · bereit zur Übernahme als aktives Mitglied.
+              </p>
+            </div>
+            <div className={styles.fansubEditLinkedAccountActions}>
               <Button
                 variant="success"
                 size="sm"
@@ -287,8 +295,8 @@ function HistoricalMemberCard({
               >
                 Als aktives Mitglied übernehmen
               </Button>
-            )}
-          />
+            </div>
+          </div>
         </div>
       ) : null}
       {canCreateClaimInvitation && !member.app_username ? (
