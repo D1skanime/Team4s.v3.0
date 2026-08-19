@@ -584,6 +584,101 @@ describe('SegmentAssignmentsRow (Gap 2: Zuweisen/Entfernen für jedes Segment)',
   })
 })
 
+// ---------------------------------------------------------------------------
+// Gap 3 (Start-only Per-Folge-Zeit-Override mit automatisch berechneter Endzeit)
+// -- Phase-117-Nachtrag, Quick-Task 260819-lm5
+// ---------------------------------------------------------------------------
+describe('SegmentEditPanel Start-only Override (Gap 3)', () => {
+  function mockSharedSegment() {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 61,
+          theme_title: 'Shared OP',
+          start_episode: 1,
+          end_episode: 12,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          source_type: 'none',
+          is_shared: true,
+          assigned_release_version_ids: [481, 482],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '3' }],
+        }),
+      ],
+    })
+  }
+
+  async function openOverridePanel(durationSeconds?: number) {
+    render(
+      <SegmenteTab
+        animeId={1}
+        groupId={2}
+        version="v1"
+        episodeNumber={3}
+        releaseVariantId={481}
+        durationSeconds={durationSeconds}
+      />,
+    )
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+    const overrideSwitch = await screen.findByRole('switch', { name: 'Zeit nur für diese Folge abweichend setzen' })
+    fireEvent.click(overrideSwitch)
+  }
+
+  it('zeigt nur EIN editierbares Start-Feld, kein zweites freies Ende-Feld mehr', async () => {
+    mockSharedSegment()
+    await openOverridePanel()
+
+    expect(await screen.findByRole('textbox', { name: /Start.*Folge 3/i })).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: /Ende.*Folge 3/i })).toBeNull()
+  })
+
+  it('berechnet und zeigt die Endzeit automatisch aus Start + Basis-Dauer (90s) als reinen Info-Text', async () => {
+    mockSharedSegment()
+    await openOverridePanel()
+
+    const startInput = await screen.findByRole('textbox', { name: /Start.*Folge 3/i })
+    fireEvent.change(startInput, { target: { value: '0:05' } })
+
+    expect(await screen.findByText(/00:01:35/)).toBeTruthy()
+  })
+
+  it('sendet start_time und automatisch berechnete end_time formatiert an den Override-Endpoint', async () => {
+    mockSharedSegment()
+    mockedUpdateAnimeSegment.mockResolvedValue({
+      data: makeSegment({ id: 61, is_shared: true, render_status: 'ready' }),
+    })
+    mockedUpsertAnimeSegmentEpisodeOverride.mockResolvedValue({
+      data: makeSegment({ id: 61, is_shared: true, has_episode_override: true }),
+    })
+
+    await openOverridePanel()
+
+    const startInput = await screen.findByRole('textbox', { name: /Start.*Folge 3/i })
+    fireEvent.change(startInput, { target: { value: '0:05' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
+
+    await waitFor(() => {
+      expect(mockedUpsertAnimeSegmentEpisodeOverride).toHaveBeenCalledWith(1, 61, 481, {
+        start_time: '00:00:05',
+        end_time: '00:01:35',
+      })
+    })
+  })
+
+  it('deaktiviert Speichern und erklärt den Grund, wenn Start + Basis-Dauer die bekannte Videodauer überschreitet', async () => {
+    mockSharedSegment()
+    await openOverridePanel(95)
+
+    const startInput = await screen.findByRole('textbox', { name: /Start.*Folge 3/i })
+    fireEvent.change(startInput, { target: { value: '0:10' } })
+
+    expect(await screen.findByText(/überschreitet die bekannte Videodauer/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', true)
+  })
+})
+
 describe('SegmentEditPanel validation', () => {
   it('deaktiviert Speichern, wenn Episoden- oder Zeitbereich fehlen', () => {
     render(

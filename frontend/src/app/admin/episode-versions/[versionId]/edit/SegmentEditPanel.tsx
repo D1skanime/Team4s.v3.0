@@ -91,14 +91,12 @@ export function SegmentEditPanel({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [overrideEnabled, setOverrideEnabled] = useState(editingSegment?.has_episode_override === true)
   const [overrideStartTime, setOverrideStartTime] = useState(editingSegment?.start_time ?? '')
-  const [overrideEndTime, setOverrideEndTime] = useState(editingSegment?.end_time ?? '')
 
   // Override-Zustand pro geoeffnetem Segment zuruecksetzen (Panel-Instanz bleibt beim
   // Wechsel des editingSegment gemountet, siehe SegmenteTab.tsx openEditPanel/openAddPanel).
   useEffect(() => {
     setOverrideEnabled(editingSegment?.has_episode_override === true)
     setOverrideStartTime(editingSegment?.start_time ?? '')
-    setOverrideEndTime(editingSegment?.end_time ?? '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingSegment?.id])
   const provenance = editingSegment ? resolveSegmentProvenance(editingSegment) : null
@@ -134,25 +132,37 @@ export function SegmentEditPanel({
       ? (findAssignedEpisodeNumber(editingSegment, currentReleaseVersionId) ?? '?')
       : '?'
   const overrideStartSeconds = parseFlexibleTimeInput(overrideStartTime)
-  const overrideEndSeconds = parseFlexibleTimeInput(overrideEndTime)
-  const overrideMissingTimeRange = overrideEnabled && (overrideStartTime.trim() === '' || overrideEndTime.trim() === '')
+  // Basis-Dauer (Basis-Ende minus Basis-Start) des geteilten Segments -- die Endzeit eines
+  // Per-Folge-Overrides folgt automatisch dieser Dauer, statt frei eingegeben zu werden.
+  const baseStartSeconds = editingSegment?.start_time ? parseFlexibleTimeInput(editingSegment.start_time) : null
+  const baseEndSeconds = editingSegment?.end_time ? parseFlexibleTimeInput(editingSegment.end_time) : null
+  const baseDurationSeconds =
+    baseStartSeconds != null && baseEndSeconds != null && baseEndSeconds > baseStartSeconds
+      ? baseEndSeconds - baseStartSeconds
+      : null
+  const computedOverrideEndSeconds =
+    overrideStartSeconds != null && baseDurationSeconds != null
+      ? overrideStartSeconds + baseDurationSeconds
+      : null
+  const computedOverrideEndTime =
+    computedOverrideEndSeconds != null ? formatTimeInput(computedOverrideEndSeconds) : null
+  const overrideMissingTimeRange = overrideEnabled && overrideStartTime.trim() === ''
   const overrideHasInvalidTimeInput =
+    overrideEnabled && overrideStartTime.trim() !== '' && overrideStartSeconds == null
+  const overrideMissingBaseDuration = overrideEnabled && baseDurationSeconds == null
+  const overrideExceedsDuration =
     overrideEnabled &&
-    ((overrideStartTime.trim() !== '' && overrideStartSeconds == null) ||
-      (overrideEndTime.trim() !== '' && overrideEndSeconds == null))
-  const overrideExceedsMaxWindow =
-    overrideStartSeconds != null && overrideEndSeconds != null && overrideEndSeconds - overrideStartSeconds > 240
-  const overrideEndBeforeStart =
-    overrideStartSeconds != null && overrideEndSeconds != null && overrideEndSeconds <= overrideStartSeconds
-  const overrideHasInvalidTimeRange = overrideEnabled && (overrideEndBeforeStart || overrideExceedsMaxWindow)
+    effectiveDuration != null &&
+    computedOverrideEndSeconds != null &&
+    computedOverrideEndSeconds > effectiveDuration
   const overrideLocalError = overrideMissingTimeRange
-    ? 'Bitte Start und Ende ausfüllen.'
+    ? 'Bitte Start ausfüllen.'
     : overrideHasInvalidTimeInput
-      ? 'Zeitangaben müssen z. B. 1:20, 00:01:20 oder Sekunden sein.'
-      : overrideExceedsMaxWindow
-        ? 'Segment-Zeitbereich darf maximal 4 Minuten lang sein.'
-        : overrideEndBeforeStart
-          ? 'Ende muss nach dem Start liegen.'
+      ? 'Zeitangabe muss z. B. 1:20, 00:01:20 oder Sekunden sein.'
+      : overrideMissingBaseDuration
+        ? 'Basis-Zeitbereich des Segments fehlt.'
+        : overrideExceedsDuration
+          ? 'Start + Basis-Dauer überschreitet die bekannte Videodauer.'
           : null
   const overrideDisplayError = overrideLocalError ?? overrideError
 
@@ -172,8 +182,8 @@ export function SegmentEditPanel({
 
   function handleSaveClick() {
     onSave()
-    if (isSharedSegment && overrideEnabled) {
-      onSaveOverride({ startTime: overrideStartTime, endTime: overrideEndTime })
+    if (isSharedSegment && overrideEnabled && overrideStartSeconds != null && computedOverrideEndTime != null) {
+      onSaveOverride({ startTime: formatTimeInput(overrideStartSeconds), endTime: computedOverrideEndTime })
     }
   }
 
@@ -188,7 +198,8 @@ export function SegmentEditPanel({
     hasInvalidTimeRange ||
     overrideMissingTimeRange ||
     overrideHasInvalidTimeInput ||
-    overrideHasInvalidTimeRange
+    overrideMissingBaseDuration ||
+    overrideExceedsDuration
   const runtimeKnown = effectiveDuration != null
   const runtimeFromPlayback = editingSegment?.playback_duration_seconds != null
   const renderStatus =
@@ -387,44 +398,29 @@ export function SegmentEditPanel({
                 <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
                   Zeit-Override für Folge {currentEpisodeLabel}
                 </h4>
-                <div className={styles.panelFieldRow}>
-                  <FormField
-                    label={`Start (Folge ${currentEpisodeLabel})`}
-                    htmlFor="segment-override-start"
-                    hint={`Diese Zeit gilt nur für Folge ${currentEpisodeLabel}. Das Kara selbst bleibt unverändert und wird nicht neu kodiert — nur die Vorschau wird neu vorbereitet.`}
-                  >
-                    <Input
-                      id="segment-override-start"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="z. B. 0:00"
-                      value={overrideStartTime}
-                      onChange={(e) => setOverrideStartTime(e.target.value)}
-                      onBlur={(e) => {
-                        const parsed = parseFlexibleTimeInput(e.target.value)
-                        if (parsed != null) setOverrideStartTime(formatTimeInput(parsed))
-                      }}
-                    />
-                  </FormField>
-                  <FormField
-                    label={`Ende (Folge ${currentEpisodeLabel})`}
-                    htmlFor="segment-override-end"
-                    error={overrideDisplayError ?? undefined}
-                  >
-                    <Input
-                      id="segment-override-end"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="z. B. 1:20"
-                      value={overrideEndTime}
-                      onChange={(e) => setOverrideEndTime(e.target.value)}
-                      onBlur={(e) => {
-                        const parsed = parseFlexibleTimeInput(e.target.value)
-                        if (parsed != null) setOverrideEndTime(formatTimeInput(parsed))
-                      }}
-                    />
-                  </FormField>
-                </div>
+                <FormField
+                  label={`Start (Folge ${currentEpisodeLabel})`}
+                  htmlFor="segment-override-start"
+                  hint="Nur Startzeit — Dauer bleibt gleich wie Basis. Ende wird automatisch berechnet."
+                  error={overrideDisplayError ?? undefined}
+                >
+                  <Input
+                    id="segment-override-start"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="z. B. 0:00"
+                    value={overrideStartTime}
+                    onChange={(e) => setOverrideStartTime(e.target.value)}
+                    onBlur={(e) => {
+                      const parsed = parseFlexibleTimeInput(e.target.value)
+                      if (parsed != null) setOverrideStartTime(formatTimeInput(parsed))
+                    }}
+                  />
+                </FormField>
+                <p className={styles.sourceHelpText}>
+                  {`Ende (automatisch): ${computedOverrideEndTime ?? '—'} · gleiche Dauer wie Basis (${formatTimeInput(baseDurationSeconds ?? 0)})`}
+                </p>
+                <p className={styles.sourceHelpText}>Nur Startzeit — Dauer bleibt gleich wie Basis</p>
                 {editingSegment?.has_episode_override === true ? (
                   <Button
                     type="button"
