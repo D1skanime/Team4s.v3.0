@@ -159,7 +159,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 			au.created_at,
 			au.updated_at,
 			COALESCE(fgm_member.id, claimed_m.id, legacy_m.id, 0) AS member_id,
-			COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(fgm_member.nickname, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied') AS fansub_name,
+			COALESCE(NULLIF(fgm_member.nickname, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), NULLIF(au.preferred_username, ''), NULLIF(au.email, ''), 'Mitglied') AS fansub_name,
 			COALESCE(fgm_member_avatar.file_path, claimed_avatar.file_path, legacy_avatar.file_path, '') AS avatar_path,
 			COALESCE(
 				ARRAY(
@@ -193,7 +193,7 @@ func (r *FansubGroupAppMemberRepository) ListByFansubGroup(ctx context.Context, 
 		LEFT JOIN media_assets claimed_avatar ON claimed_avatar.id = claimed_m.avatar_media_id
 		LEFT JOIN media_assets legacy_avatar ON legacy_avatar.id = legacy_m.avatar_media_id
 		WHERE fgm.fansub_group_id = $1
-		ORDER BY LOWER(COALESCE(NULLIF(au.preferred_username, ''), NULLIF(au.display_name, ''), NULLIF(au.email, ''), NULLIF(fgm_member.nickname, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), 'Mitglied')), au.id
+		ORDER BY LOWER(COALESCE(NULLIF(fgm_member.nickname, ''), NULLIF(claimed_m.nickname, ''), NULLIF(legacy_m.nickname, ''), NULLIF(au.display_name, ''), NULLIF(au.preferred_username, ''), NULLIF(au.email, ''), 'Mitglied')), au.id
 	`, fansubGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group members: %w", err)

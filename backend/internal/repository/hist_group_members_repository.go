@@ -87,11 +87,11 @@ func (r *HistGroupMembersRepository) ListByFansubGroupWithDisplay(ctx context.Co
 		SELECT hfgm.id, hfgm.fansub_group_id, hfgm.member_id,
 		       m.nickname AS display_name,
 		       claimed_user.id AS app_user_id,
-		       COALESCE(NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
+		       COALESCE(NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
 		       active_group_member.id AS active_app_member_id,
 		       hfgm.joined_date, hfgm.left_date, hfgm.status,
 		       hfgm.confirmed_by AS confirmed_by_app_user_id,
-		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
+		       COALESCE(NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
 		       hfgm.confirmed_at,
 		       hfgm.created_at
 		FROM hist_fansub_group_members hfgm
@@ -277,13 +277,13 @@ func (r *HistGroupMembersRepository) createForExistingMemberWithDisplayLegacy(ct
 		       inserted.member_id,
 		       m.nickname AS display_name,
 		       claimed_user.id AS app_user_id,
-		       COALESCE(NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
+		       COALESCE(NULLIF(TRIM(claimed_user.display_name), ''), NULLIF(TRIM(claimed_user.preferred_username), ''), NULLIF(TRIM(claimed_user.email), '')) AS app_username,
 		       active_group_member.id AS active_app_member_id,
 		       inserted.joined_date,
 		       inserted.left_date,
 		       inserted.status,
 		       inserted.confirmed_by AS confirmed_by_app_user_id,
-		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
+		       COALESCE(NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
 		       inserted.confirmed_at,
 		       inserted.created_at
 		FROM inserted
@@ -467,7 +467,7 @@ func (r *HistGroupMembersRepository) CreateWithAutoMember(
 		       inserted.left_date,
 		       inserted.status,
 		       inserted.confirmed_by AS confirmed_by_app_user_id,
-		       COALESCE(NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
+		       COALESCE(NULLIF(TRIM(confirmer.display_name), ''), NULLIF(TRIM(confirmer.preferred_username), ''), NULLIF(TRIM(confirmer.email), '')) AS confirmed_by_display_name,
 		       inserted.confirmed_at,
 		       inserted.created_at
 		FROM inserted
