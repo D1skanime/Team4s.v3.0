@@ -239,28 +239,38 @@ function HistoricalMemberCard({
       {canManageClaims
         ? (pendingClaimsByMember.get(member.member_id) ?? []).map((claim) => (
             <div key={`pending-claim-${claim.id}`} className={styles.fansubEditMemberCompactBody}>
-              <div className={styles.fansubEditClaimPendingInviteRow}>
-                <Badge variant="warning">Ein Nutzer möchte diesen Eintrag als eigenes Profil verknüpfen</Badge>
-                <Button
-                  variant="success"
-                  size="sm"
-                  leftIcon={<UserCheck size={16} />}
-                  onClick={() => onVerifyClaim(claim.id)}
-                >
-                  Bestätigen
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  leftIcon={<UserX size={16} />}
-                  onClick={() => onRejectClaim(claim.id, member.display_name)}
-                >
-                  Ablehnen
-                </Button>
+              <div className={styles.fansubEditClaimRequest}>
+                <div className={styles.fansubEditClaimRequestInfo}>
+                  <span className={styles.fansubEditClaimRequestLabel}>
+                    <Link2 size={13} aria-hidden="true" />
+                    Verknüpfungs-Antrag
+                  </span>
+                  <p className={styles.fansubEditClaimRequestText}>
+                    Ein Nutzer möchte diesen Eintrag als eigenes Profil verknüpfen.
+                  </p>
+                  {claim.note?.trim() ? (
+                    <p className={styles.fansubEditClaimRequestNote}>{claim.note.trim()}</p>
+                  ) : null}
+                </div>
+                <div className={styles.fansubEditClaimRequestActions}>
+                  <Button
+                    variant="success"
+                    size="sm"
+                    leftIcon={<UserCheck size={16} />}
+                    onClick={() => onVerifyClaim(claim.id)}
+                  >
+                    Bestätigen
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    leftIcon={<UserX size={16} />}
+                    onClick={() => onRejectClaim(claim.id, member.display_name)}
+                  >
+                    Ablehnen
+                  </Button>
+                </div>
               </div>
-              {claim.note?.trim() ? (
-                <p className={styles.fansubEditHint}>Nachricht: {claim.note.trim()}</p>
-              ) : null}
             </div>
           ))
         : null}

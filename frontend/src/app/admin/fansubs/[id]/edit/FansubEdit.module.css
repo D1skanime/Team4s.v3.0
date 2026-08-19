@@ -4363,3 +4363,78 @@
     width: 100%;
   }
 }
+
+/* Verknuepfungs-Antrag (Claim) card block - mobile-first, D-16 redesign */
+.fansubEditClaimRequest {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 0.5px solid color-mix(in srgb, var(--color-warning) 45%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 9%, var(--surface-card));
+  border-radius: var(--radius-md);
+}
+
+.fansubEditClaimRequestInfo {
+  min-width: 0;
+}
+
+.fansubEditClaimRequestLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-warning) 74%, var(--text-primary));
+}
+
+.fansubEditClaimRequestText {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.fansubEditClaimRequestNote {
+  margin: 8px 0 0;
+  padding-left: 8px;
+  border-left: 2px solid var(--border-subtle);
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.fansubEditClaimRequestActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fansubEditClaimRequestActions > * {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .fansubEditClaimRequest {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .fansubEditClaimRequestInfo {
+    flex: 1;
+  }
+
+  .fansubEditClaimRequestActions {
+    flex-direction: row;
+    flex-shrink: 0;
+  }
+
+  .fansubEditClaimRequestActions > * {
+    width: auto;
+  }
+}
