@@ -269,6 +269,10 @@ export function SegmentEditPanel({
           <span className={styles.sourceHelpText}>
             Von und Bis werden gespeichert. Für eine einzelne Folge beide Felder gleich setzen.
           </span>
+          <span className={styles.sourceHelpText}>
+            Wird beim Speichern automatisch allen Folgen im Bereich zugewiesen — pro Ausreißer-Folge
+            kann die Startzeit einzeln überschrieben werden.
+          </span>
         </div>
         <div className={styles.panelFieldRow}>
           <div className={styles.panelField}>
