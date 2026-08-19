@@ -136,6 +136,90 @@ func TestAssignThemeSegmentToEpisodeRange(t *testing.T) {
 	})
 }
 
+// TestListAnimeSegmentsAssignedEpisodesHasOverridePerEpisode beweist den Korrektheits-Fix aus
+// Quick-Task 260819-lm5 Runde 5: ein Zeit-Override auf GENAU EINER zugewiesenen Folge markiert
+// NUR den zugehoerigen assigned_episodes-Eintrag mit has_override=true -- nicht alle Folgen des
+// Segments. Vor dem Fix nutzte das Frontend das segmentweite has_episode_override fuer JEDEN Chip
+// und zeigte faelschlich "verschoben" auf allen zugewiesenen Folgen, sobald irgendeine einzelne
+// Folge einen Override hatte (reale Fehlbedienung durch den Nutzer im Live-UAT).
+func TestListAnimeSegmentsAssignedEpisodesHasOverridePerEpisode(t *testing.T) {
+	pool := testsupport.OpenPhase117Postgres(t)
+	ctx := context.Background()
+	repo := NewAdminContentRepository(pool)
+
+	const (
+		animeID       = int64(1)
+		fansubGroupID = int64(1)
+		themeTypeID   = int64(1)
+		themeID       = int64(1)
+	)
+
+	_, err := pool.Exec(ctx, `INSERT INTO anime (id) VALUES ($1)`, animeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO theme_types (id, name) VALUES ($1, 'OP1')`, themeTypeID)
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO themes (id, anime_id, theme_type_id) VALUES ($1, $2, $3)`, themeID, animeID, themeTypeID)
+	require.NoError(t, err)
+
+	// Zwoelf Folgen (1..12), jede mit eigenem fansub_release + release_version, damit die
+	// assigned_episodes-Liste zwoelf unterscheidbare Eintraege hat -- passend zum Live-UAT-
+	// Szenario "Bereich 1-12, Override nur auf Folge 2".
+	releaseVersionIDs := make(map[int]int64, 12)
+	for episodeNum := 1; episodeNum <= 12; episodeNum++ {
+		episodeID := int64(100 + episodeNum)
+		releaseID := int64(200 + episodeNum)
+		releaseVersionID := int64(300 + episodeNum)
+		_, err = pool.Exec(ctx, `INSERT INTO episodes (id, anime_id, sort_index, episode_number) VALUES ($1, $2, $3, $4)`,
+			episodeID, animeID, episodeNum, fmt.Sprint(episodeNum))
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO fansub_releases (id, episode_id) VALUES ($1, $2)`, releaseID, episodeID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_versions (id, release_id, version) VALUES ($1, $2, 'v1')`, releaseVersionID, releaseID)
+		require.NoError(t, err)
+		_, err = pool.Exec(ctx, `INSERT INTO release_version_groups (release_version_id, fansub_group_id) VALUES ($1, $2)`, releaseVersionID, fansubGroupID)
+		require.NoError(t, err)
+		releaseVersionIDs[episodeNum] = releaseVersionID
+	}
+
+	var segmentID int64
+	err = pool.QueryRow(ctx, `
+		INSERT INTO theme_segments (theme_id, fansub_group_id, version, start_episode, end_episode, start_time, end_time)
+		VALUES ($1, $2, 'v1', 1, 12, '00:00:10', '00:01:40')
+		RETURNING id
+	`, themeID, fansubGroupID).Scan(&segmentID)
+	require.NoError(t, err)
+
+	newlyAssigned, err := repo.AssignThemeSegmentToEpisodeRange(ctx, segmentID, animeID, fansubGroupID, "v1", 1, 12)
+	require.NoError(t, err)
+	require.Len(t, newlyAssigned, 12)
+
+	_, err = repo.UpsertThemeSegmentEpisodeOverride(ctx, models.AdminThemeSegmentEpisodeOverrideUpsertInput{
+		ThemeSegmentID:   segmentID,
+		ReleaseVersionID: releaseVersionIDs[2],
+		StartTime:        "00:00:15",
+		EndTime:          "00:01:45",
+	})
+	require.NoError(t, err)
+
+	segments, err := repo.ListAnimeSegments(ctx, animeID, fansubGroupID, "v1", 0)
+	require.NoError(t, err)
+	require.Len(t, segments, 1)
+	segment := segments[0]
+
+	require.True(t, segment.HasEpisodeOverride, "segmentweites Flag bleibt bestehen -- mindestens eine Folge hat einen Override")
+	require.Len(t, segment.AssignedEpisodes, 12)
+
+	for _, entry := range segment.AssignedEpisodes {
+		if entry.EpisodeNumber == "2" {
+			require.True(t, entry.HasOverride, "genau Folge 2 muss als ueberschrieben markiert sein")
+		} else {
+			require.False(t, entry.HasOverride, "Folge %s darf NICHT als ueberschrieben markiert sein (Korrektheits-Fix Runde 5)", entry.EpisodeNumber)
+		}
+	}
+}
+
 // TestThemeSegmentAssignmentsAndOverrides runs the Assignment/Override CRUD
 // against a real, isolated Postgres schema (Phase 117 Wave 0 -- VALIDATION.md
 // explicitly requires this instead of the pre-existing string-pattern tests

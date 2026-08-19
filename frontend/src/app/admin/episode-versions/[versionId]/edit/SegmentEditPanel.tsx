@@ -14,6 +14,7 @@ import {
   resolveSegmentProvenance,
   resolveSegmentProvenanceDetails,
   findAssignedEpisodeNumber,
+  findAssignedEpisodeHasOverride,
 } from './SegmenteTab.helpers'
 import styles from './SegmenteTab.module.css'
 
@@ -89,13 +90,21 @@ export function SegmentEditPanel({
   onAttachReuseCandidate,
 }: SegmentEditPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [overrideEnabled, setOverrideEnabled] = useState(editingSegment?.has_episode_override === true)
+  // PRO-FOLGE-Override (Quick-Task 260819-lm5, Runde 5 Korrektheits-Fix): NICHT das segmentweite
+  // editingSegment.has_episode_override verwenden -- das ist bereits true, sobald IRGENDEINE
+  // zugewiesene Folge einen Override hat, und wuerde faelschlich den Switch fuer JEDE Folge als
+  // aktiv anzeigen bzw. den "Override entfernen"-Button auch ohne eigenen Override rendern.
+  const currentReleaseHasOverride =
+    editingSegment != null && currentReleaseVersionId != null
+      ? findAssignedEpisodeHasOverride(editingSegment, currentReleaseVersionId)
+      : false
+  const [overrideEnabled, setOverrideEnabled] = useState(currentReleaseHasOverride)
   const [overrideStartTime, setOverrideStartTime] = useState(editingSegment?.start_time ?? '')
 
   // Override-Zustand pro geoeffnetem Segment zuruecksetzen (Panel-Instanz bleibt beim
   // Wechsel des editingSegment gemountet, siehe SegmenteTab.tsx openEditPanel/openAddPanel).
   useEffect(() => {
-    setOverrideEnabled(editingSegment?.has_episode_override === true)
+    setOverrideEnabled(currentReleaseHasOverride)
     setOverrideStartTime(editingSegment?.start_time ?? '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingSegment?.id])
@@ -425,7 +434,7 @@ export function SegmentEditPanel({
                   {`Ende (automatisch): ${computedOverrideEndTime ?? '—'} · gleiche Dauer wie Basis (${formatTimeInput(baseDurationSeconds ?? 0)})`}
                 </p>
                 <p className={styles.sourceHelpText}>Nur Startzeit — Dauer bleibt gleich wie Basis</p>
-                {editingSegment?.has_episode_override === true ? (
+                {currentReleaseHasOverride ? (
                   <Button
                     type="button"
                     variant="secondary"

@@ -152,8 +152,12 @@ func (r *AdminContentRepository) hydrateSegmentAssignmentMetadataList(ctx contex
 		return nil
 	}
 
+	// PRO-Folge-Aufloesung (Quick-Task 260819-lm5, Runde 5 Korrektheits-Fix): release_version_id
+	// wird jetzt mitgelesen, damit genau die ueberschriebene Zuweisung (nicht das ganze Segment)
+	// markiert werden kann. Segmentweites HasEpisodeOverride bleibt zusaetzlich bestehen (wird an
+	// anderer Stelle fuer die "Zeit hier ueberschrieben"-Badge auf dem Segment selbst verwendet).
 	overrideRows, err := r.db.Query(ctx, `
-		SELECT DISTINCT theme_segment_id
+		SELECT theme_segment_id, release_version_id
 		FROM theme_segment_episode_overrides
 		WHERE theme_segment_id = ANY($1)
 	`, segmentIDs)
@@ -162,17 +166,32 @@ func (r *AdminContentRepository) hydrateSegmentAssignmentMetadataList(ctx contex
 	}
 	defer overrideRows.Close()
 
+	segmentsWithOverride := make(map[int64]bool)
 	for overrideRows.Next() {
-		var segmentID int64
-		if err := overrideRows.Scan(&segmentID); err != nil {
+		var segmentID, releaseVersionID int64
+		if err := overrideRows.Scan(&segmentID, &releaseVersionID); err != nil {
 			return fmt.Errorf("scan theme segment override metadata: %w", err)
 		}
-		if idx, ok := indexBySegmentID[segmentID]; ok {
-			segments[idx].HasEpisodeOverride = true
+		segmentsWithOverride[segmentID] = true
+		idx, ok := indexBySegmentID[segmentID]
+		if !ok {
+			continue
+		}
+		for i := range segments[idx].AssignedEpisodes {
+			if segments[idx].AssignedEpisodes[i].ReleaseVersionID == releaseVersionID {
+				segments[idx].AssignedEpisodes[i].HasOverride = true
+				break
+			}
 		}
 	}
 	if err := overrideRows.Err(); err != nil {
 		return fmt.Errorf("iterate theme segment override metadata: %w", err)
+	}
+
+	for segmentID := range segmentsWithOverride {
+		if idx, ok := indexBySegmentID[segmentID]; ok {
+			segments[idx].HasEpisodeOverride = true
+		}
 	}
 
 	return nil

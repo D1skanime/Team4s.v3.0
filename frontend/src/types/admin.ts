@@ -882,8 +882,14 @@ export interface AdminThemeSegment {
   is_shared?: boolean
   /** true, wenn mindestens eine zugewiesene Folge einen Zeit-Override hat (D-01/D-02). */
   has_episode_override?: boolean
-  /** ECHTE Episodennummer je Zuweisung (Backend-Spiegel aus Plan 117-03 Task 2, B3-Fix). */
-  assigned_episodes?: { release_version_id: number; episode_number: string }[]
+  /**
+   * ECHTE Episodennummer je Zuweisung (Backend-Spiegel aus Plan 117-03 Task 2, B3-Fix).
+   * has_override (Quick-Task 260819-lm5, Runde 5 Korrektheits-Fix): PRO-FOLGE-Flag, ob GENAU
+   * DIESE Zuweisung einen Zeit-Override hat -- im Gegensatz zum segmentweiten
+   * has_episode_override (true, sobald IRGENDEINE Folge ueberschrieben ist). Muss fuer den
+   * "verschoben"-Chip pro Folge verwendet werden, nicht has_episode_override.
+   */
+  assigned_episodes?: { release_version_id: number; episode_number: string; has_override: boolean }[]
   created_at: string
 }
 

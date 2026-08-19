@@ -85,9 +85,16 @@ type AdminThemeSegment struct {
 // AdminThemeSegmentAssignmentEpisode traegt die ECHTE Episodennummer einer
 // Zuweisung (nicht die interne release_version_id) -- Grundlage fuer die
 // "Folge {N}"-Zuweisungs-Chips im Admin-UI (Phase 117, Plan 117-07, B3-Fix).
+// HasOverride (Quick-Task 260819-lm5, Runde 5 Korrektheits-Fix): PRO-FOLGE-Flag, ob
+// GENAU DIESE release_version_id einen theme_segment_episode_overrides-Eintrag hat --
+// im Gegensatz zum segmentweiten AdminThemeSegment.HasEpisodeOverride (true, sobald
+// IRGENDEINE zugewiesene Folge ueberschrieben ist). Ohne dieses Feld zeigte das Frontend
+// den "verschoben"-Chip faelschlich auf JEDER zugewiesenen Folge, sobald irgendeine
+// einzelne Folge einen Override hatte -- ein Korrektheits-Bug, kein kosmetisches Problem.
 type AdminThemeSegmentAssignmentEpisode struct {
 	ReleaseVersionID int64  `json:"release_version_id"`
 	EpisodeNumber    string `json:"episode_number"`
+	HasOverride      bool   `json:"has_override"`
 }
 
 // AdminThemeSegmentCreateInput enthaelt die Felder zum Anlegen eines neuen Segments.

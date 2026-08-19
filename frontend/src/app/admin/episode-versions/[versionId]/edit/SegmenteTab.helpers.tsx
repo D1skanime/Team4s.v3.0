@@ -207,6 +207,19 @@ export function findAssignedEpisodeNumber(segment: AdminThemeSegment, releaseVer
 }
 
 /**
+ * Reiner PRO-FOLGE-Lookup, ob GENAU diese Zuweisung (releaseVersionId) einen Zeit-Override hat.
+ * Quick-Task 260819-lm5, Runde 5 Korrektheits-Fix: das segmentweite
+ * `segment.has_episode_override` ist bereits true, sobald IRGENDEINE zugewiesene Folge einen
+ * Override hat -- fuer den "verschoben"-Chip EINER konkreten Folge ist ausschliesslich dieser
+ * PRO-FOLGE-Wert korrekt (sonst zeigt jede Folge faelschlich "verschoben"). Liefert `false`, wenn
+ * `assigned_episodes` fehlt oder kein Treffer existiert.
+ */
+export function findAssignedEpisodeHasOverride(segment: AdminThemeSegment, releaseVersionId: number): boolean {
+  const entry = (segment.assigned_episodes ?? []).find((e) => e.release_version_id === releaseVersionId)
+  return entry?.has_override ?? false
+}
+
+/**
  * Formatiert das Zuweisungs-Chip-Label. `episodeNumber` MUSS die ECHTE,
  * sichtbare Episodennummer sein (z. B. aus `findAssignedEpisodeNumber`),
  * NIEMALS die interne `release_version_id` (B3-Fix).

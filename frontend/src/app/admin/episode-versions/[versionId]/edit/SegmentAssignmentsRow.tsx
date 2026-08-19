@@ -4,7 +4,7 @@ import { Plus, X } from 'lucide-react'
 
 import { Badge, Button } from '@/components/ui'
 import type { AdminThemeSegment } from '@/types/admin'
-import { findAssignedEpisodeNumber, formatAssignmentChipLabel } from './SegmenteTab.helpers'
+import { findAssignedEpisodeHasOverride, findAssignedEpisodeNumber, formatAssignmentChipLabel } from './SegmenteTab.helpers'
 
 interface SegmentAssignmentsRowProps {
   segment: AdminThemeSegment
@@ -43,9 +43,13 @@ export function SegmentAssignmentsRow({
         {assignedReleaseVersionIds.map((assignedReleaseVersionId) => {
           const assignedEpisodeNumber =
             findAssignedEpisodeNumber(segment, assignedReleaseVersionId) ?? String(assignedReleaseVersionId)
+          // PRO-FOLGE-Override (Runde 5 Korrektheits-Fix): NICHT das segmentweite
+          // segment.has_episode_override verwenden -- das ist bereits true, sobald IRGENDEINE
+          // Folge einen Override hat, und wuerde faelschlich jeden Chip als "verschoben" zeigen.
+          const hasOverride = findAssignedEpisodeHasOverride(segment, assignedReleaseVersionId)
           const isCurrent = assignedReleaseVersionId === currentReleaseVersionId
-          const chipVariant = isCurrent ? 'info' : segment.has_episode_override ? 'warning' : 'neutral'
-          const chipLabel = formatAssignmentChipLabel(assignedEpisodeNumber, segment.has_episode_override ?? false)
+          const chipVariant = isCurrent ? 'info' : hasOverride ? 'warning' : 'neutral'
+          const chipLabel = formatAssignmentChipLabel(assignedEpisodeNumber, hasOverride)
           return (
             <span
               key={assignedReleaseVersionId}

@@ -17,6 +17,7 @@ import {
   formatTimeInput,
   isCurrentEpisodeAssigned,
   findAssignedEpisodeNumber,
+  findAssignedEpisodeHasOverride,
   formatAssignmentChipLabel,
 } from './SegmenteTab.helpers'
 import { useReleaseSegments } from './useReleaseSegments'
@@ -322,9 +323,12 @@ describe('SegmenteTab table', () => {
           is_shared: true,
           has_episode_override: true,
           assigned_release_version_ids: [481, 482],
+          // PRO-FOLGE-Override (Runde 5 Korrektheits-Fix): NUR Folge 3 (481) hat einen
+          // Override, Folge 7 (482) nicht -- das segmentweite has_episode_override bleibt
+          // trotzdem true (mindestens EINE Folge ist ueberschrieben).
           assigned_episodes: [
-            { release_version_id: 481, episode_number: '3' },
-            { release_version_id: 482, episode_number: '7' },
+            { release_version_id: 481, episode_number: '3', has_override: true },
+            { release_version_id: 482, episode_number: '7', has_override: false },
           ],
         }),
       ],
@@ -346,8 +350,11 @@ describe('SegmenteTab table', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
 
+    // Nur die tatsaechlich ueberschriebene Folge 3 zeigt "verschoben" -- Folge 7 (nicht
+    // ueberschrieben) zeigt schlicht "Folge 7" (Runde-5-Korrektheits-Fix-Regression).
     expect(await screen.findByText('Folge 3 · verschoben')).toBeTruthy()
-    expect(screen.getByText('Folge 7 · verschoben')).toBeTruthy()
+    expect(screen.getByText('Folge 7')).toBeTruthy()
+    expect(screen.queryByText('Folge 7 · verschoben')).toBeNull()
     // B3-Regression: Chips zeigen NIEMALS die interne release_version_id.
     expect(screen.queryByText('Folge 481')).toBeNull()
     expect(screen.queryByText('Folge 482')).toBeNull()
@@ -402,7 +409,7 @@ describe('SegmenteTab table', () => {
           source_type: 'none',
           is_shared: true,
           assigned_release_version_ids: [481, 482],
-          assigned_episodes: [{ release_version_id: 481, episode_number: '3' }],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '3', has_override: false }],
         }),
       ],
     })
@@ -537,8 +544,8 @@ describe('SegmentAssignmentsRow (Gap 2: Zuweisen/Entfernen für jedes Segment)',
           is_shared: true,
           assigned_release_version_ids: [481, 482],
           assigned_episodes: [
-            { release_version_id: 481, episode_number: '3' },
-            { release_version_id: 482, episode_number: '7' },
+            { release_version_id: 481, episode_number: '3', has_override: false },
+            { release_version_id: 482, episode_number: '7', has_override: false },
           ],
         }),
       ],
@@ -569,7 +576,7 @@ describe('SegmentAssignmentsRow (Gap 2: Zuweisen/Entfernen für jedes Segment)',
           start_episode: 3,
           end_episode: 3,
           assigned_release_version_ids: [481],
-          assigned_episodes: [{ release_version_id: 481, episode_number: '3' }],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '3', has_override: false }],
         }),
       ],
     })
@@ -581,6 +588,47 @@ describe('SegmentAssignmentsRow (Gap 2: Zuweisen/Entfernen für jedes Segment)',
 
     const removeButton = await screen.findByRole('button', { name: 'Zuweisung für Folge 3 entfernen' })
     expect(removeButton).toHaveProperty('disabled', true)
+  })
+
+  it('Runde-5-Korrektheits-Fix: bei Bereich 1-12 mit Override NUR auf Folge 2 zeigt AUSSCHLIESSLICH deren Chip "verschoben"', async () => {
+    // Vor dem Fix nutzte SegmentAssignmentsRow das segmentweite segment.has_episode_override
+    // fuer JEDEN Chip -- das haette hier faelschlich alle 12 Folgen als "verschoben" markiert
+    // und im echten Live-UAT bereits zu falschen Entfernen-Aktionen durch den Nutzer gefuehrt.
+    const assignedEpisodes = Array.from({ length: 12 }, (_, i) => {
+      const episodeNum = i + 1
+      return {
+        release_version_id: 400 + episodeNum,
+        episode_number: String(episodeNum),
+        has_override: episodeNum === 2,
+      }
+    })
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 70,
+          theme_title: 'Range OP',
+          start_episode: 1,
+          end_episode: 12,
+          is_shared: true,
+          has_episode_override: true,
+          assigned_release_version_ids: assignedEpisodes.map((e) => e.release_version_id),
+          assigned_episodes: assignedEpisodes,
+        }),
+      ],
+    })
+
+    // releaseVariantId=401 (Folge 1, NICHT ueberschrieben) als "aktuelle" Folge, damit die
+    // "aktuell"-Hervorhebung (info-Variante) nicht mit der Override-Markierung verwechselt wird.
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={1} releaseVariantId={401} />)
+
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByRole('button', { name: 'Zugewiesene Folgen anzeigen/ausblenden' }))
+
+    expect(await screen.findByText('Folge 2 · verschoben')).toBeTruthy()
+    for (const episodeNum of [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      expect(screen.getByText(`Folge ${episodeNum}`)).toBeTruthy()
+      expect(screen.queryByText(`Folge ${episodeNum} · verschoben`)).toBeNull()
+    }
   })
 })
 
@@ -602,7 +650,7 @@ describe('SegmentEditPanel Start-only Override (Gap 3)', () => {
           source_type: 'none',
           is_shared: true,
           assigned_release_version_ids: [481, 482],
-          assigned_episodes: [{ release_version_id: 481, episode_number: '3' }],
+          assigned_episodes: [{ release_version_id: 481, episode_number: '3', has_override: false }],
         }),
       ],
     })
@@ -676,6 +724,41 @@ describe('SegmentEditPanel Start-only Override (Gap 3)', () => {
 
     expect(await screen.findByText(/überschreitet die bekannte Videodauer/i)).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Speichern' })).toHaveProperty('disabled', true)
+  })
+
+  it('Runde-5-Korrektheits-Fix: Override-Switch startet UNCHECKED und "Override entfernen" fehlt, wenn NUR eine ANDERE Folge desselben Segments einen Override hat', async () => {
+    mockedGetAnimeSegments.mockResolvedValue({
+      data: [
+        makeSegment({
+          id: 71,
+          theme_title: 'Shared OP',
+          start_episode: 1,
+          end_episode: 12,
+          start_time: '00:00:10',
+          end_time: '00:01:40',
+          source_type: 'none',
+          is_shared: true,
+          has_episode_override: true, // segmentweit true, weil Folge 7 (482) einen Override hat
+          assigned_release_version_ids: [481, 482],
+          assigned_episodes: [
+            { release_version_id: 481, episode_number: '3', has_override: false },
+            { release_version_id: 482, episode_number: '7', has_override: true },
+          ],
+        }),
+      ],
+    })
+
+    render(<SegmenteTab animeId={1} groupId={2} version="v1" episodeNumber={3} releaseVariantId={481} />)
+    const table = await screen.findByRole('table')
+    fireEvent.click(within(table).getByTitle('Bearbeiten'))
+
+    const overrideSwitch = await screen.findByRole('switch', { name: 'Zeit nur für diese Folge abweichend setzen' })
+    expect(overrideSwitch.getAttribute('aria-checked')).toBe('false')
+
+    fireEvent.click(overrideSwitch)
+
+    expect(await screen.findByRole('textbox', { name: /Start.*Folge 3/i })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Override entfernen' })).toBeNull()
   })
 })
 
@@ -1042,8 +1125,8 @@ describe('findAssignedEpisodeNumber', () => {
   it('liefert die ECHTE Episodennummer für eine bekannte release_version_id', () => {
     const segment = makeSegment({
       assigned_episodes: [
-        { release_version_id: 10, episode_number: '3' },
-        { release_version_id: 20, episode_number: '7' },
+        { release_version_id: 10, episode_number: '3', has_override: false },
+        { release_version_id: 20, episode_number: '7', has_override: false },
       ],
     })
     expect(findAssignedEpisodeNumber(segment, 20)).toBe('7')
@@ -1051,7 +1134,7 @@ describe('findAssignedEpisodeNumber', () => {
 
   it('liefert null, wenn keine passende Zuweisung existiert', () => {
     const segment = makeSegment({
-      assigned_episodes: [{ release_version_id: 10, episode_number: '3' }],
+      assigned_episodes: [{ release_version_id: 10, episode_number: '3', has_override: false }],
     })
     expect(findAssignedEpisodeNumber(segment, 999)).toBeNull()
   })
@@ -1059,6 +1142,39 @@ describe('findAssignedEpisodeNumber', () => {
   it('liefert null, wenn assigned_episodes fehlt', () => {
     const segment = makeSegment({})
     expect(findAssignedEpisodeNumber(segment, 10)).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// findAssignedEpisodeHasOverride (Quick-Task 260819-lm5, Runde 5 Korrektheits-Fix):
+// PRO-FOLGE-Override-Lookup -- ersetzt die vorherige, fehlerhafte Verwendung des
+// segmentweiten segment.has_episode_override fuer JEDEN Zuweisungs-Chip.
+// ---------------------------------------------------------------------------
+describe('findAssignedEpisodeHasOverride', () => {
+  it('liefert true NUR für die Zuweisung mit has_override:true, false für alle anderen', () => {
+    const segment = makeSegment({
+      has_episode_override: true, // segmentweit true, weil MINDESTENS eine Folge ueberschrieben ist
+      assigned_episodes: [
+        { release_version_id: 10, episode_number: '1', has_override: false },
+        { release_version_id: 20, episode_number: '2', has_override: true },
+        { release_version_id: 30, episode_number: '3', has_override: false },
+      ],
+    })
+    expect(findAssignedEpisodeHasOverride(segment, 10)).toBe(false)
+    expect(findAssignedEpisodeHasOverride(segment, 20)).toBe(true)
+    expect(findAssignedEpisodeHasOverride(segment, 30)).toBe(false)
+  })
+
+  it('liefert false, wenn keine passende Zuweisung existiert', () => {
+    const segment = makeSegment({
+      assigned_episodes: [{ release_version_id: 10, episode_number: '3', has_override: true }],
+    })
+    expect(findAssignedEpisodeHasOverride(segment, 999)).toBe(false)
+  })
+
+  it('liefert false, wenn assigned_episodes fehlt', () => {
+    const segment = makeSegment({})
+    expect(findAssignedEpisodeHasOverride(segment, 10)).toBe(false)
   })
 })
 
