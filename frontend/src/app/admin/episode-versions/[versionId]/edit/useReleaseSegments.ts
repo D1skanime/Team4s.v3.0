@@ -318,7 +318,9 @@ export function useReleaseSegments({ animeId, groupId, version, releaseVariantId
   async function render(segmentId: number): Promise<boolean> {
     if (!animeId || !hasAuthSession) return false
     try {
-      await renderAnimeSegment(segmentId)
+      // releaseVariantId traegt semantisch die release_version_id (siehe Backend-Kommentar in
+      // admin_content_anime_theme_segments.go) und ist der Diskriminator fuer die Render-Quelle.
+      await renderAnimeSegment(segmentId, releaseVariantId)
       // Erste Aktualisierung sofort (zeigt 'queued'), danach Live-Polling bis zu einem
       // terminalen Status oder Timeout. Fehler im Polling selbst werden dort behandelt.
       await refreshSegmentsOnly()

@@ -6894,11 +6894,16 @@ export async function deleteAnimeSegmentEpisodeOverride(
 
 export async function renderAnimeSegment(
   segmentId: number,
+  releaseVersionId?: number | null,
   authToken?: string,
 ): Promise<AdminThemeSegmentRenderResponse> {
   const API_BASE_URL = getApiBaseUrl();
+  // release_version_id ist backend-seitig der Diskriminator fuer die release-version-scoped
+  // Render-Quelle; ohne ihn liefert der Endpoint 404 (segment nicht gefunden).
+  const query =
+    releaseVersionId != null ? `?release_version_id=${releaseVersionId}` : "";
   const response = await authorizedFetch(
-    `${API_BASE_URL}/api/v1/segments/${segmentId}/render`,
+    `${API_BASE_URL}/api/v1/segments/${segmentId}/render${query}`,
     {
       method: "POST",
       headers: withAuthHeader({}, authToken),
