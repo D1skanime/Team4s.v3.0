@@ -35,8 +35,11 @@ export function SegmentAssignmentsRow({
   const canRemove = assignedReleaseVersionIds.length > 1
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+    // maxWidth/boxSizing/minWidth:0 verhindern horizontalen Overflow auf schmalen Breiten --
+    // die Zeile kann in einer Table-Zelle oder im Drawer eingebettet sein, deren verfuegbare
+    // Breite kleiner ist als die Summe der ungebremsten Chip-Inhaltsbreiten (mobile-first).
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', minWidth: 0, maxWidth: '100%' }}>
         {assignedReleaseVersionIds.map((assignedReleaseVersionId) => {
           const assignedEpisodeNumber =
             findAssignedEpisodeNumber(segment, assignedReleaseVersionId) ?? String(assignedReleaseVersionId)
@@ -44,7 +47,10 @@ export function SegmentAssignmentsRow({
           const chipVariant = isCurrent ? 'info' : segment.has_episode_override ? 'warning' : 'neutral'
           const chipLabel = formatAssignmentChipLabel(assignedEpisodeNumber, segment.has_episode_override ?? false)
           return (
-            <span key={assignedReleaseVersionId} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+            <span
+              key={assignedReleaseVersionId}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 2, maxWidth: '100%', minWidth: 0 }}
+            >
               <Badge variant={chipVariant}>{chipLabel}</Badge>
               <Button
                 type="button"
@@ -68,6 +74,7 @@ export function SegmentAssignmentsRow({
           leftIcon={<Plus size={12} />}
           disabled={isBusy}
           onClick={onAssignCurrent}
+          style={{ maxWidth: '100%', whiteSpace: 'normal', textAlign: 'center' }}
         >
           {`Diese Folge (${currentEpisodeNumber ?? '?'}) zuweisen`}
         </Button>
