@@ -32,7 +32,7 @@ func (r *MemberProfileRepository) loadMemberships(
 				fg.status,
 				EXTRACT(YEAR FROM hgm.joined_date)::int AS joined_year,
 				EXTRACT(YEAR FROM hgm.left_date)::int AS left_year,
-				(hgm.id IS NOT NULL AND hgm.left_date IS NULL) AS is_current,
+				((hgm.id IS NOT NULL AND hgm.left_date IS NULL) OR (fgm.id IS NOT NULL AND fgm.status = 'active')) AS is_current,
 				CASE WHEN $4 THEN fgm.status ELSE NULL END AS app_member_status,
 				CASE WHEN $4 THEN
 					COALESCE(
@@ -78,7 +78,10 @@ func (r *MemberProfileRepository) loadMemberships(
 			   AND ($3 OR hgm.visibility = 'public')
 			LEFT JOIN fansub_group_members fgm
 				ON fgm.fansub_group_id = fg.id
-			   AND fgm.app_user_id = $2
+			   AND (
+			       fgm.app_user_id = $2
+			       OR ($2 = 0 AND fgm.status = 'active' AND fgm.app_user_id = (SELECT m2.user_id FROM members m2 WHERE m2.id = $1))
+			   )
 			WHERE hgm.id IS NOT NULL
 			   OR fgm.id IS NOT NULL
 			ORDER BY fg.id
