@@ -6,9 +6,9 @@
   "requirement": "PMPF-05, PMPF-07",
   "decision": "D-06, D-07, D-08, D-10",
   "profile": "sheppert",
-  "runId": "6ee2f22d-c9d9-430a-ad7e-57bbac7389b9",
-  "capturedAt": "2026-08-20T09:04:08.055Z",
-  "completedAt": "2026-08-20T09:04:11.913Z",
+  "runId": "d116de8f-ba3d-45c6-a7a5-74867d44f943",
+  "capturedAt": "2026-08-20T09:09:00.507Z",
+  "completedAt": "2026-08-20T09:09:04.285Z",
   "budgetsLocked": true,
   "lockedBudget": {
     "absoluteCeilings": {
@@ -55,7 +55,7 @@
         "payloadBytes": 1910,
         "maxBytes": 1952,
         "payloadOk": true,
-        "medianMs": 4.366,
+        "medianMs": 4.254,
         "maxMedianMs": 25,
         "latencyOk": true
       },
@@ -67,7 +67,7 @@
         "payloadBytes": 52,
         "maxBytes": 63,
         "payloadOk": true,
-        "medianMs": 1.682,
+        "medianMs": 1.662,
         "maxMedianMs": 25,
         "latencyOk": true
       },
@@ -79,7 +79,7 @@
         "payloadBytes": 52,
         "maxBytes": 63,
         "payloadOk": true,
-        "medianMs": 1.79,
+        "medianMs": 1.427,
         "maxMedianMs": 25,
         "latencyOk": true
       },
@@ -93,13 +93,13 @@
     "page": {
       "rendered": true,
       "enforced": true,
-      "lcpMs": 380,
+      "lcpMs": 428,
       "maxLcpMs": 2500,
       "lcpOk": true,
-      "cls": 0.016,
+      "cls": 0.0075,
       "maxCls": 0.1,
       "clsOk": true,
-      "inpMs": 136,
+      "inpMs": 128,
       "maxInpMs": 200,
       "inpOk": true,
       "pageOverflow": 0,
@@ -120,7 +120,7 @@
     "node": "v20.20.2",
     "playwrightVersion": "1.55.0",
     "chromiumVersion": "140.0.7339.16",
-    "baseURL": "http://127.0.0.1:3000",
+    "baseURL": "http://192.168.235.196:3000",
     "apiBase": "http://192.168.235.196:18092",
     "throttle": "none",
     "apiSampleCount": 5,
@@ -137,15 +137,15 @@
       "contentType": "application/json; charset=utf-8",
       "latencyMs": {
         "count": 5,
-        "minMs": 3.957,
-        "medianMs": 4.366,
-        "maxMs": 27.58,
+        "minMs": 3.484,
+        "medianMs": 4.254,
+        "maxMs": 29.277,
         "samplesMs": [
-          27.58,
-          5.914,
-          4.366,
-          3.957,
-          4.107
+          29.277,
+          5.328,
+          4.254,
+          3.846,
+          3.484
         ]
       }
     },
@@ -157,15 +157,15 @@
       "contentType": "application/json; charset=utf-8",
       "latencyMs": {
         "count": 5,
-        "minMs": 1.673,
-        "medianMs": 1.682,
-        "maxMs": 2.264,
+        "minMs": 1.394,
+        "medianMs": 1.662,
+        "maxMs": 2.538,
         "samplesMs": [
-          1.673,
-          1.681,
-          1.721,
-          1.682,
-          2.264
+          1.785,
+          1.394,
+          1.415,
+          1.662,
+          2.538
         ]
       }
     },
@@ -177,15 +177,15 @@
       "contentType": "application/json; charset=utf-8",
       "latencyMs": {
         "count": 5,
-        "minMs": 1.753,
-        "medianMs": 1.79,
-        "maxMs": 1.995,
+        "minMs": 1.229,
+        "medianMs": 1.427,
+        "maxMs": 1.821,
         "samplesMs": [
-          1.79,
-          1.787,
-          1.955,
-          1.753,
-          1.995
+          1.427,
+          1.285,
+          1.486,
+          1.229,
+          1.821
         ]
       }
     },
@@ -197,29 +197,29 @@
       "contentType": "text/plain",
       "latencyMs": {
         "count": 5,
-        "minMs": 0.659,
-        "medianMs": 0.851,
-        "maxMs": 1.225,
+        "minMs": 0.627,
+        "medianMs": 0.71,
+        "maxMs": 2.531,
         "samplesMs": [
-          1.225,
-          0.874,
-          0.851,
-          0.795,
-          0.659
+          2.531,
+          0.854,
+          0.71,
+          0.697,
+          0.627
         ]
       }
     }
   },
   "page": {
-    "url": "http://127.0.0.1:3000/members/sheppert",
+    "url": "http://192.168.235.196:3000/members/sheppert",
     "status": 200,
     "rendered": true,
     "renderNote": null,
-    "navToDomContentLoadedMs": 3755.999,
+    "navToDomContentLoadedMs": 3677.892,
     "requestCount": 15,
     "failedRequestCount": 0,
-    "totalTransferBytes": 6404735,
-    "htmlBytes": 125983,
+    "totalTransferBytes": 6405345,
+    "htmlBytes": 125995,
     "pageOverflow": 0,
     "bodyOverflow": 0,
     "consoleErrors": [],
@@ -227,11 +227,11 @@
       "Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid H"
     ],
     "webVitals": {
-      "lcpMs": 380,
-      "cls": 0.016,
-      "clsEntries": 2,
-      "inpMs": 136,
-      "interactionEvents": 30,
+      "lcpMs": 428,
+      "cls": 0.0075,
+      "clsEntries": 1,
+      "inpMs": 128,
+      "interactionEvents": 25,
       "method": "PerformanceObserver: largest-contentful-paint + layout-shift + event(durationThreshold=16); INP driven by scripted click/keydown/scroll"
     },
     "imageWaterfall": {
@@ -239,222 +239,222 @@
       "totalBytes": 89268,
       "images": [
         {
-          "url": "http://127.0.0.1:3000/media/profile/8/story/bec88844-33de-40a4-b2a2-0a55879c45e9/original.jpg",
+          "url": "http://192.168.235.196:3000/media/profile/8/story/bec88844-33de-40a4-b2a2-0a55879c45e9/original.jpg",
           "status": 200,
           "bytes": 852,
-          "startTimeMs": 1787216648305.969,
-          "responseEndMs": 144.618
+          "startTimeMs": 1787216940730.071,
+          "responseEndMs": 56.391
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-first_contribution-motif.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-first_contribution-motif.png&w=512&q=75",
           "status": 200,
           "bytes": 38148,
-          "startTimeMs": 1787216648450.062,
-          "responseEndMs": 67.485
+          "startTimeMs": 1787216940896.611,
+          "responseEndMs": 26.22
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-first_contribution.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-first_contribution.png&w=512&q=75",
           "status": 200,
           "bytes": 50268,
-          "startTimeMs": 1787216648472.09,
-          "responseEndMs": 78.264
+          "startTimeMs": 1787216940896.726,
+          "responseEndMs": 30.259
         }
       ]
     },
     "requestWaterfall": [
       {
-        "url": "http://127.0.0.1:3000/_next/static/css/app/layout.css?v=1787216648187",
+        "url": "http://192.168.235.196:3000/_next/static/css/app/layout.css?v=1787216940642",
         "resourceType": "stylesheet",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 14045,
         "responseHeaderBytes": 356,
         "timing": {
-          "startTimeMs": 1787216648294.522,
-          "responseStartMs": 20.495,
-          "responseEndMs": 32.975
+          "startTimeMs": 1787216940723.35,
+          "responseStartMs": 11.988,
+          "responseEndMs": 49.197
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/css/app/members/%5Bslug%5D/page.css?v=1787216648187",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/webpack.js?v=1787216940642",
+        "resourceType": "script",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 28177,
+        "responseHeaderBytes": 370,
+        "timing": {
+          "startTimeMs": 1787216940730.333,
+          "responseStartMs": 11.013,
+          "responseEndMs": 51.601
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/_next/static/css/app/members/%5Bslug%5D/not-found.css?v=1787216940642",
         "resourceType": "stylesheet",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 37212,
+        "responseBodyBytes": 37289,
         "responseHeaderBytes": 356,
         "timing": {
-          "startTimeMs": 1787216648294.856,
-          "responseStartMs": 27.128,
-          "responseEndMs": 56.375
+          "startTimeMs": 1787216940729.691,
+          "responseStartMs": 8.875,
+          "responseEndMs": 52.125
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/css/app/members/%5Bslug%5D/not-found.css?v=1787216648187",
-        "resourceType": "stylesheet",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 37028,
-        "responseHeaderBytes": 356,
-        "timing": {
-          "startTimeMs": 1787216648305.499,
-          "responseStartMs": 28.654,
-          "responseEndMs": 130.367
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/media/profile/8/story/bec88844-33de-40a4-b2a2-0a55879c45e9/original.jpg",
+        "url": "http://192.168.235.196:3000/media/profile/8/story/bec88844-33de-40a4-b2a2-0a55879c45e9/original.jpg",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 852,
         "responseHeaderBytes": 289,
         "timing": {
-          "startTimeMs": 1787216648305.969,
-          "responseStartMs": 142.96,
-          "responseEndMs": 144.618
+          "startTimeMs": 1787216940730.071,
+          "responseStartMs": 51.384,
+          "responseEndMs": 56.391
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-first_contribution-motif.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/static/css/app/members/%5Bslug%5D/page.css?v=1787216940642",
+        "resourceType": "stylesheet",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 37484,
+        "responseHeaderBytes": 356,
+        "timing": {
+          "startTimeMs": 1787216940723.699,
+          "responseStartMs": 12.864,
+          "responseEndMs": 60.187
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app-pages-internals.js",
+        "resourceType": "script",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 57293,
+        "responseHeaderBytes": 370,
+        "timing": {
+          "startTimeMs": 1787216940771.89,
+          "responseStartMs": 18.379,
+          "responseEndMs": 91.835
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/members/sheppert",
+        "resourceType": "document",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 25772,
+        "responseHeaderBytes": 541,
+        "timing": {
+          "startTimeMs": 1787216940608.892,
+          "responseStartMs": 109.323,
+          "responseEndMs": 210.685
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-first_contribution-motif.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 38148,
         "responseHeaderBytes": 445,
         "timing": {
-          "startTimeMs": 1787216648450.062,
-          "responseStartMs": 35.614,
-          "responseEndMs": 67.485
+          "startTimeMs": 1787216940896.611,
+          "responseStartMs": 23.877,
+          "responseEndMs": 26.22
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-first_contribution.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-first_contribution.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 50268,
         "responseHeaderBytes": 445,
         "timing": {
-          "startTimeMs": 1787216648472.09,
-          "responseStartMs": 24.729,
-          "responseEndMs": 78.264
+          "startTimeMs": 1787216940896.726,
+          "responseStartMs": 26.43,
+          "responseEndMs": 30.259
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/webpack.js?v=1787216648187",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app/layout.js",
         "resourceType": "script",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 28175,
-        "responseHeaderBytes": 370,
-        "timing": {
-          "startTimeMs": 1787216648306.435,
-          "responseStartMs": 33.57,
-          "responseEndMs": 126.667
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app-pages-internals.js",
-        "resourceType": "script",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 57300,
-        "responseHeaderBytes": 370,
-        "timing": {
-          "startTimeMs": 1787216648324.368,
-          "responseStartMs": 127.475,
-          "responseEndMs": 166.84
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/members/sheppert",
-        "resourceType": "document",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 25794,
-        "responseHeaderBytes": 541,
-        "timing": {
-          "startTimeMs": 1787216648159.578,
-          "responseStartMs": 127.845,
-          "responseEndMs": 343.045
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app/layout.js",
-        "resourceType": "script",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 494362,
+        "responseBodyBytes": 494364,
         "responseHeaderBytes": 371,
         "timing": {
-          "startTimeMs": 1787216648347.968,
-          "responseStartMs": 106.163,
-          "responseEndMs": 296.276
+          "startTimeMs": 1787216940775.19,
+          "responseStartMs": 16.947,
+          "responseEndMs": 271.783
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app/members/%5Bslug%5D/page.js",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app/members/%5Bslug%5D/not-found.js",
+        "resourceType": "script",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 1535587,
+        "responseHeaderBytes": 371,
+        "timing": {
+          "startTimeMs": 1787216940777.706,
+          "responseStartMs": 21.389,
+          "responseEndMs": 481.288
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app/members/%5Bslug%5D/page.js",
         "resourceType": "script",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 1492075,
         "responseHeaderBytes": 371,
         "timing": {
-          "startTimeMs": 1787216648435.733,
-          "responseStartMs": 35.666,
-          "responseEndMs": 506.949
+          "startTimeMs": 1787216940781.992,
+          "responseStartMs": 18.568,
+          "responseEndMs": 475.413
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app/members/%5Bslug%5D/not-found.js",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/main-app.js?v=1787216940642",
         "resourceType": "script",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 1535579,
+        "responseBodyBytes": 2563782,
         "responseHeaderBytes": 371,
         "timing": {
-          "startTimeMs": 1787216648431.718,
-          "responseStartMs": 30.042,
-          "responseEndMs": 503.408
+          "startTimeMs": 1787216940730.53,
+          "responseStartMs": 58.077,
+          "responseEndMs": 580.003
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/main-app.js?v=1787216648187",
-        "resourceType": "script",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 2563688,
-        "responseHeaderBytes": 371,
-        "timing": {
-          "startTimeMs": 1787216648306.563,
-          "responseStartMs": 85.255,
-          "responseEndMs": 633.994
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/__nextjs_font/geist-latin.woff2",
+        "url": "http://192.168.235.196:3000/__nextjs_font/geist-latin.woff2",
         "resourceType": "font",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 28369,
-        "responseHeaderBytes": 305,
+        "responseHeaderBytes": 311,
         "timing": {
-          "startTimeMs": 1787216649692.393,
-          "responseStartMs": 1.817,
-          "responseEndMs": 10.213
+          "startTimeMs": 1787216941969.945,
+          "responseStartMs": 1.844,
+          "responseEndMs": 14.216
         }
       },
       {
-        "url": "http://127.0.0.1:3000/__nextjs_original-stack-frames",
+        "url": "http://192.168.235.196:3000/__nextjs_original-stack-frames",
         "resourceType": "fetch",
         "method": "POST",
         "status": 200,
         "responseBodyBytes": 1840,
-        "responseHeaderBytes": 306,
+        "responseHeaderBytes": 312,
         "timing": {
-          "startTimeMs": 1787216649701.761,
-          "responseStartMs": 26.926,
-          "responseEndMs": 31.82
+          "startTimeMs": 1787216941979.329,
+          "responseStartMs": 23.429,
+          "responseEndMs": 28.111
         }
       }
     ]

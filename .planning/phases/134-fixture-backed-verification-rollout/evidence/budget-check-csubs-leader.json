@@ -6,9 +6,9 @@
   "requirement": "PMPF-05, PMPF-07",
   "decision": "D-06, D-07, D-08, D-10",
   "profile": "csubs-leader",
-  "runId": "95879762-e7cb-4667-b258-b748273cc875",
-  "capturedAt": "2026-08-20T09:04:11.914Z",
-  "completedAt": "2026-08-20T09:04:15.629Z",
+  "runId": "08a626c3-bdbc-4b45-84c0-f875f635505b",
+  "capturedAt": "2026-08-20T09:09:04.285Z",
+  "completedAt": "2026-08-20T09:09:07.964Z",
   "budgetsLocked": true,
   "lockedBudget": {
     "absoluteCeilings": {
@@ -55,7 +55,7 @@
         "payloadBytes": 5042,
         "maxBytes": 5879,
         "payloadOk": true,
-        "medianMs": 4.865,
+        "medianMs": 5.136,
         "maxMedianMs": 25,
         "latencyOk": true
       },
@@ -67,7 +67,7 @@
         "payloadBytes": 1947,
         "maxBytes": 2333,
         "payloadOk": true,
-        "medianMs": 1.43,
+        "medianMs": 2.125,
         "maxMedianMs": 25,
         "latencyOk": true
       },
@@ -79,7 +79,7 @@
         "payloadBytes": 1116,
         "maxBytes": 1340,
         "payloadOk": true,
-        "medianMs": 1.311,
+        "medianMs": 1.728,
         "maxMedianMs": 25,
         "latencyOk": true
       },
@@ -93,13 +93,13 @@
     "page": {
       "rendered": true,
       "enforced": true,
-      "lcpMs": 336,
+      "lcpMs": 268,
       "maxLcpMs": 2500,
       "lcpOk": true,
       "cls": 0,
       "maxCls": 0.1,
       "clsOk": true,
-      "inpMs": 88,
+      "inpMs": 128,
       "maxInpMs": 200,
       "inpOk": true,
       "pageOverflow": 0,
@@ -120,7 +120,7 @@
     "node": "v20.20.2",
     "playwrightVersion": "1.55.0",
     "chromiumVersion": "140.0.7339.16",
-    "baseURL": "http://127.0.0.1:3000",
+    "baseURL": "http://192.168.235.196:3000",
     "apiBase": "http://192.168.235.196:18092",
     "throttle": "none",
     "apiSampleCount": 5,
@@ -137,15 +137,15 @@
       "contentType": "application/json; charset=utf-8",
       "latencyMs": {
         "count": 5,
-        "minMs": 4.602,
-        "medianMs": 4.865,
-        "maxMs": 5.359,
+        "minMs": 4.175,
+        "medianMs": 5.136,
+        "maxMs": 6.389,
         "samplesMs": [
-          5.359,
-          4.865,
-          4.733,
-          4.918,
-          4.602
+          5.714,
+          6.389,
+          5.136,
+          4.175,
+          4.713
         ]
       }
     },
@@ -157,15 +157,15 @@
       "contentType": "application/json; charset=utf-8",
       "latencyMs": {
         "count": 5,
-        "minMs": 1.37,
-        "medianMs": 1.43,
-        "maxMs": 1.621,
+        "minMs": 1.6,
+        "medianMs": 2.125,
+        "maxMs": 2.35,
         "samplesMs": [
-          1.621,
-          1.516,
-          1.422,
-          1.37,
-          1.43
+          2.163,
+          2.35,
+          2.125,
+          1.6,
+          1.805
         ]
       }
     },
@@ -177,15 +177,15 @@
       "contentType": "application/json; charset=utf-8",
       "latencyMs": {
         "count": 5,
-        "minMs": 1.274,
-        "medianMs": 1.311,
-        "maxMs": 1.47,
+        "minMs": 1.487,
+        "medianMs": 1.728,
+        "maxMs": 1.994,
         "samplesMs": [
-          1.28,
-          1.274,
-          1.404,
-          1.47,
-          1.311
+          1.653,
+          1.938,
+          1.487,
+          1.728,
+          1.994
         ]
       }
     },
@@ -197,29 +197,29 @@
       "contentType": "text/plain",
       "latencyMs": {
         "count": 5,
-        "minMs": 0.485,
-        "medianMs": 0.501,
-        "maxMs": 0.601,
+        "minMs": 0.535,
+        "medianMs": 0.619,
+        "maxMs": 0.824,
         "samplesMs": [
-          0.519,
-          0.497,
-          0.501,
-          0.485,
-          0.601
+          0.625,
+          0.824,
+          0.619,
+          0.535,
+          0.567
         ]
       }
     }
   },
   "page": {
-    "url": "http://127.0.0.1:3000/members/csubs-leader",
+    "url": "http://192.168.235.196:3000/members/csubs-leader",
     "status": 200,
     "rendered": true,
     "renderNote": null,
-    "navToDomContentLoadedMs": 3653.547,
+    "navToDomContentLoadedMs": 3606.496,
     "requestCount": 21,
     "failedRequestCount": 0,
-    "totalTransferBytes": 6742791,
-    "htmlBytes": 182687,
+    "totalTransferBytes": 6743371,
+    "htmlBytes": 182756,
     "pageOverflow": 0,
     "bodyOverflow": 0,
     "consoleErrors": [],
@@ -227,11 +227,11 @@
       "Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid H"
     ],
     "webVitals": {
-      "lcpMs": 336,
+      "lcpMs": 268,
       "cls": 0,
       "clsEntries": 0,
-      "inpMs": 88,
-      "interactionEvents": 29,
+      "inpMs": 128,
+      "interactionEvents": 22,
       "method": "PerformanceObserver: largest-contentful-paint + layout-shift + event(durationThreshold=16); INP driven by scripted click/keydown/scroll"
     },
     "imageWaterfall": {
@@ -239,342 +239,342 @@
       "totalBytes": 419080,
       "images": [
         {
-          "url": "http://127.0.0.1:3000/media/profile/7/story/3db88255-624e-488d-981c-300b128b4aff/original.jpg",
+          "url": "http://192.168.235.196:3000/media/profile/7/story/3db88255-624e-488d-981c-300b128b4aff/original.jpg",
           "status": 200,
           "bytes": 852,
-          "startTimeMs": 1787216652102.205,
-          "responseEndMs": 57.387
+          "startTimeMs": 1787216944505.569,
+          "responseEndMs": 63.054
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fspecial-historical_leader-v1.png&w=64&q=75",
-          "status": 200,
-          "bytes": 1594,
-          "startTimeMs": 1787216652255.055,
-          "responseEndMs": 25.875
-        },
-        {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Frole_entry_translator.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Frole_entry_translator.png&w=512&q=75",
           "status": 200,
           "bytes": 158674,
-          "startTimeMs": 1787216652256.513,
-          "responseEndMs": 32.813
+          "startTimeMs": 1787216944573.56,
+          "responseEndMs": 34.323
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fspecial-historical_leader-v1.png&w=64&q=75",
+          "status": 200,
+          "bytes": 1594,
+          "startTimeMs": 1787216944572.807,
+          "responseEndMs": 33.603
+        },
+        {
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=512&q=75",
           "status": 200,
           "bytes": 50946,
-          "startTimeMs": 1787216652280.261,
-          "responseEndMs": 41.456
+          "startTimeMs": 1787216944587.144,
+          "responseEndMs": 52.541
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=512&q=75",
           "status": 200,
           "bytes": 42402,
-          "startTimeMs": 1787216652292.672,
-          "responseEndMs": 72.923
+          "startTimeMs": 1787216944587.85,
+          "responseEndMs": 47.717
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=512&q=75",
           "status": 200,
           "bytes": 54442,
-          "startTimeMs": 1787216652295.798,
-          "responseEndMs": 79.1
+          "startTimeMs": 1787216944706.631,
+          "responseEndMs": 25.018
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=96&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=96&q=75",
           "status": 200,
           "bytes": 5220,
-          "startTimeMs": 1787216652327.328,
-          "responseEndMs": 89.31
+          "startTimeMs": 1787216944706.615,
+          "responseEndMs": 24.812
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fcontribution_projects_bronze-v3.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fcontribution_projects_bronze-v3.png&w=512&q=75",
           "status": 200,
           "bytes": 51356,
-          "startTimeMs": 1787216652333.663,
-          "responseEndMs": 93.215
+          "startTimeMs": 1787216944709.316,
+          "responseEndMs": 24.876
         },
         {
-          "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fmembership-7_years-v4.png&w=512&q=75",
+          "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fmembership-7_years-v4.png&w=512&q=75",
           "status": 200,
           "bytes": 53594,
-          "startTimeMs": 1787216654721.51,
-          "responseEndMs": 3.63
+          "startTimeMs": 1787216947060.033,
+          "responseEndMs": 3.794
         }
       ]
     },
     "requestWaterfall": [
       {
-        "url": "http://127.0.0.1:3000/_next/static/css/app/layout.css?v=1787216652002",
+        "url": "http://192.168.235.196:3000/_next/static/css/app/layout.css?v=1787216944391",
         "resourceType": "stylesheet",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 14045,
         "responseHeaderBytes": 356,
         "timing": {
-          "startTimeMs": 1787216652098.023,
-          "responseStartMs": 12.168,
-          "responseEndMs": 18.762
+          "startTimeMs": 1787216944497.952,
+          "responseStartMs": 10.266,
+          "responseEndMs": 17.884
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/css/app/members/%5Bslug%5D/page.css?v=1787216652002",
+        "url": "http://192.168.235.196:3000/_next/static/css/app/members/%5Bslug%5D/page.css?v=1787216944391",
         "resourceType": "stylesheet",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 37212,
+        "responseBodyBytes": 37484,
         "responseHeaderBytes": 356,
         "timing": {
-          "startTimeMs": 1787216652098.507,
-          "responseStartMs": 16.343,
-          "responseEndMs": 52.201
+          "startTimeMs": 1787216944499.546,
+          "responseStartMs": 9.651,
+          "responseEndMs": 22.044
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/css/app/members/%5Bslug%5D/not-found.css?v=1787216652002",
+        "url": "http://192.168.235.196:3000/_next/static/css/app/members/%5Bslug%5D/not-found.css?v=1787216944391",
         "resourceType": "stylesheet",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 37028,
+        "responseBodyBytes": 37289,
         "responseHeaderBytes": 356,
         "timing": {
-          "startTimeMs": 1787216652101.932,
-          "responseStartMs": 20.675,
-          "responseEndMs": 52.198
+          "startTimeMs": 1787216944504.755,
+          "responseStartMs": 10.935,
+          "responseEndMs": 20.913
         }
       },
       {
-        "url": "http://127.0.0.1:3000/media/profile/7/story/3db88255-624e-488d-981c-300b128b4aff/original.jpg",
+        "url": "http://192.168.235.196:3000/members/csubs-leader",
+        "resourceType": "document",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 33986,
+        "responseHeaderBytes": 541,
+        "timing": {
+          "startTimeMs": 1787216944359.558,
+          "responseStartMs": 131.29,
+          "responseEndMs": 157.496
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/media/profile/7/story/3db88255-624e-488d-981c-300b128b4aff/original.jpg",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 852,
         "responseHeaderBytes": 289,
         "timing": {
-          "startTimeMs": 1787216652102.205,
-          "responseStartMs": 56.555,
-          "responseEndMs": 57.387
+          "startTimeMs": 1787216944505.569,
+          "responseStartMs": 58.482,
+          "responseEndMs": 63.054
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/webpack.js?v=1787216652002",
-        "resourceType": "script",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 28175,
-        "responseHeaderBytes": 370,
-        "timing": {
-          "startTimeMs": 1787216652102.879,
-          "responseStartMs": 20.449,
-          "responseEndMs": 52.792
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app-pages-internals.js",
-        "resourceType": "script",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 57300,
-        "responseHeaderBytes": 370,
-        "timing": {
-          "startTimeMs": 1787216652114.271,
-          "responseStartMs": 49.533,
-          "responseEndMs": 87.331
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/members/csubs-leader",
-        "resourceType": "document",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 34038,
-        "responseHeaderBytes": 541,
-        "timing": {
-          "startTimeMs": 1787216651977.591,
-          "responseStartMs": 114.637,
-          "responseEndMs": 252.785
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fspecial-historical_leader-v1.png&w=64&q=75",
-        "resourceType": "image",
-        "method": "GET",
-        "status": 200,
-        "responseBodyBytes": 1594,
-        "responseHeaderBytes": 439,
-        "timing": {
-          "startTimeMs": 1787216652255.055,
-          "responseStartMs": 23.356,
-          "responseEndMs": 25.875
-        }
-      },
-      {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Frole_entry_translator.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Frole_entry_translator.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 158674,
         "responseHeaderBytes": 434,
         "timing": {
-          "startTimeMs": 1787216652256.513,
-          "responseStartMs": 22.655,
-          "responseEndMs": 32.813
+          "startTimeMs": 1787216944573.56,
+          "responseStartMs": 12.14,
+          "responseEndMs": 34.323
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fspecial-historical_leader-v1.png&w=64&q=75",
+        "resourceType": "image",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 1594,
+        "responseHeaderBytes": 439,
+        "timing": {
+          "startTimeMs": 1787216944572.807,
+          "responseStartMs": 13.425,
+          "responseEndMs": 33.603
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-productive-motif.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 50946,
         "responseHeaderBytes": 437,
         "timing": {
-          "startTimeMs": 1787216652280.261,
-          "responseStartMs": 14.504,
-          "responseEndMs": 41.456
+          "startTimeMs": 1787216944587.144,
+          "responseStartMs": 12.073,
+          "responseEndMs": 52.541
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 42402,
         "responseHeaderBytes": 444,
         "timing": {
-          "startTimeMs": 1787216652292.672,
-          "responseStartMs": 34.175,
-          "responseEndMs": 72.923
+          "startTimeMs": 1787216944587.85,
+          "responseStartMs": 12.252,
+          "responseEndMs": 47.717
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/webpack.js?v=1787216944391",
+        "resourceType": "script",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 28177,
+        "responseHeaderBytes": 370,
+        "timing": {
+          "startTimeMs": 1787216944507.178,
+          "responseStartMs": 14.413,
+          "responseEndMs": 60.29
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app-pages-internals.js",
+        "resourceType": "script",
+        "method": "GET",
+        "status": 200,
+        "responseBodyBytes": 57293,
+        "responseHeaderBytes": 370,
+        "timing": {
+          "startTimeMs": 1787216944516.271,
+          "responseStartMs": 37.051,
+          "responseEndMs": 71.797
+        }
+      },
+      {
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 54442,
         "responseHeaderBytes": 436,
         "timing": {
-          "startTimeMs": 1787216652295.798,
-          "responseStartMs": 37.17,
-          "responseEndMs": 79.1
+          "startTimeMs": 1787216944706.631,
+          "responseStartMs": 6.138,
+          "responseEndMs": 25.018
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=96&q=75",
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fpoint_milestone_first-v2.png&w=96&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 5220,
         "responseHeaderBytes": 435,
         "timing": {
-          "startTimeMs": 1787216652327.328,
-          "responseStartMs": 16.195,
-          "responseEndMs": 89.31
+          "startTimeMs": 1787216944706.615,
+          "responseStartMs": 6.449,
+          "responseEndMs": 24.812
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fcontribution_projects_bronze-v3.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fcontribution_projects_bronze-v3.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 51356,
         "responseHeaderBytes": 443,
         "timing": {
-          "startTimeMs": 1787216652333.663,
-          "responseStartMs": 13.869,
-          "responseEndMs": 93.215
+          "startTimeMs": 1787216944709.316,
+          "responseStartMs": 4.388,
+          "responseEndMs": 24.876
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app/layout.js",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app/layout.js",
         "resourceType": "script",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 494362,
+        "responseBodyBytes": 494364,
         "responseHeaderBytes": 371,
         "timing": {
-          "startTimeMs": 1787216652148.073,
-          "responseStartMs": 21.38,
-          "responseEndMs": 258.779
+          "startTimeMs": 1787216944517.743,
+          "responseStartMs": 34.814,
+          "responseEndMs": 207.338
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app/members/%5Bslug%5D/page.js",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app/members/%5Bslug%5D/page.js",
         "resourceType": "script",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 1492075,
         "responseHeaderBytes": 371,
         "timing": {
-          "startTimeMs": 1787216652154.079,
-          "responseStartMs": 30.224,
-          "responseEndMs": 447.291
+          "startTimeMs": 1787216944564.5,
+          "responseStartMs": 17.3,
+          "responseEndMs": 428.093
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/app/members/%5Bslug%5D/not-found.js",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/app/members/%5Bslug%5D/not-found.js",
         "resourceType": "script",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 1535579,
+        "responseBodyBytes": 1535587,
         "responseHeaderBytes": 371,
         "timing": {
-          "startTimeMs": 1787216652153.976,
-          "responseStartMs": 19.823,
-          "responseEndMs": 454.28
+          "startTimeMs": 1787216944526.284,
+          "responseStartMs": 46.05,
+          "responseEndMs": 422.978
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/static/chunks/main-app.js?v=1787216652002",
+        "url": "http://192.168.235.196:3000/_next/static/chunks/main-app.js?v=1787216944391",
         "resourceType": "script",
         "method": "GET",
         "status": 200,
-        "responseBodyBytes": 2563688,
+        "responseBodyBytes": 2563782,
         "responseHeaderBytes": 371,
         "timing": {
-          "startTimeMs": 1787216652103.216,
-          "responseStartMs": 20.788,
-          "responseEndMs": 555.054
+          "startTimeMs": 1787216944507.617,
+          "responseStartMs": 16.799,
+          "responseEndMs": 500.697
         }
       },
       {
-        "url": "http://127.0.0.1:3000/__nextjs_font/geist-latin.woff2",
+        "url": "http://192.168.235.196:3000/__nextjs_font/geist-latin.woff2",
         "resourceType": "font",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 28369,
-        "responseHeaderBytes": 305,
+        "responseHeaderBytes": 311,
         "timing": {
-          "startTimeMs": 1787216653308.714,
-          "responseStartMs": 1.312,
-          "responseEndMs": 4.477
+          "startTimeMs": 1787216945673.582,
+          "responseStartMs": 1.82,
+          "responseEndMs": 7.421
         }
       },
       {
-        "url": "http://127.0.0.1:3000/__nextjs_original-stack-frames",
+        "url": "http://192.168.235.196:3000/__nextjs_original-stack-frames",
         "resourceType": "fetch",
         "method": "POST",
         "status": 200,
         "responseBodyBytes": 1840,
-        "responseHeaderBytes": 306,
+        "responseHeaderBytes": 312,
         "timing": {
-          "startTimeMs": 1787216653328.24,
-          "responseStartMs": 25.195,
-          "responseEndMs": 29.906
+          "startTimeMs": 1787216945691.487,
+          "responseStartMs": 30.014,
+          "responseEndMs": 34.707
         }
       },
       {
-        "url": "http://127.0.0.1:3000/_next/image?url=%2Fmember-achievement-badges%2Fmembership-7_years-v4.png&w=512&q=75",
+        "url": "http://192.168.235.196:3000/_next/image?url=%2Fmember-achievement-badges%2Fmembership-7_years-v4.png&w=512&q=75",
         "resourceType": "image",
         "method": "GET",
         "status": 200,
         "responseBodyBytes": 53594,
         "responseHeaderBytes": 433,
         "timing": {
-          "startTimeMs": 1787216654721.51,
-          "responseStartMs": 2.783,
-          "responseEndMs": 3.63
+          "startTimeMs": 1787216947060.033,
+          "responseStartMs": 2.995,
+          "responseEndMs": 3.794
         }
       }
     ]
