@@ -1,197 +1,104 @@
-# Requirements: Team4s v1.3 Public Member Profile Hardening
+# Requirements: Team4s v1.4 Capability-, Review- und Benutzerverwaltung
 
-**Defined:** 2026-08-13
+**Defined:** 2026-08-20
 **Core Value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Milestone Goal:** Make the public member profile data-correct, privacy-safe, performant, maintainable, and consistently usable from mobile through widescreen.
 
-## Milestone v1.3 Requirements
+## v1.4 Requirements
 
-### Identität und Routing
+### Effektive Rechte und Capability-Verwaltung
 
-- [x] **PMID-01**: Jedes öffentliche Memberprofil besitzt einen eindeutigen, in PostgreSQL gespeicherten Slug.
-- [x] **PMID-02**: Eine Änderung des Nicknames verändert den öffentlichen Slug nicht.
-- [x] **PMID-03**: Profilverlinkungen verwenden ausschließlich den kanonischen Slug; numerische und dynamisch erzeugte Fallbacks entfallen.
+- [ ] **CAP-01**: Ein autorisierter Admin kann für einen Benutzer und eine Fansubgruppe die vollständige Liste seiner effektiven Capabilities sehen.
+- [ ] **CAP-02**: Ein autorisierter Admin kann für jede effektive Capability alle gewährenden Rollen, direkten Allows, direkten Denies und den entscheidenden Grund nachvollziehen.
+- [ ] **CAP-03**: Für normale Gruppenmitglieder gilt serverseitig dieselbe dokumentierte Präzedenz in Anzeige und Enforcement: Benutzer-Deny vor Benutzer-Allow vor rollenbasiertem Allow.
+- [ ] **CAP-04**: Der Plattform-Admin-Bypass bleibt oberhalb der gruppenbezogenen Präzedenz erhalten und wird als IdP-verwaltete, durch Gruppen-Toggles nicht veränderbare Herkunft erklärt.
+- [ ] **CAP-05**: Ein autorisierter Admin kann für einen aktiven Benutzer eine einzelne Capability ausschließlich innerhalb einer konkreten Fansubgruppe erlauben oder verweigern.
+- [ ] **CAP-06**: Override-Mutationen validieren Zielmitgliedschaft, Fansubgruppe und zulässige Capability serverseitig und lehnen gruppenfremde oder unzulässige Ziele neutral ab.
+- [ ] **CAP-07**: Grant und Revoke eines Benutzer-Overrides sind idempotent, atomar und mit Actor, Ziel, Kontext, Capability sowie Vorher-/Nachher-Zustand auditiert.
+- [ ] **CAP-08**: Ein geführter Entzugs-Flow zeigt alle Quellen eines Rechts und empfiehlt den gezielten Benutzer-Deny, bevor breitere Rollen- oder Matrixänderungen angeboten werden.
+- [ ] **CAP-09**: Vor einer Rolle-zu-Capability-Änderung sieht der Admin betroffene Rolleninhaber und die tatsächliche effektive Änderung, einschließlich Benutzer ohne Änderung wegen weiterer Quellen.
+- [ ] **CAP-10**: Nach einer Rollenmatrix-Mutation unterscheidet die Oberfläche zwischen persistiert, im Permission-Cache aktiviert, ausstehend und fehlgeschlagen; sie meldet keinen falschen Enderfolg.
+- [ ] **CAP-11**: Rollen-Zuweisbarkeit wird aus genau einer kanonischen Quelle gelesen und in Rollen-Pickern, API-Projektionen und Admin-Badges konsistent dargestellt.
+- [ ] **CAP-12**: Capability-Kategorie, Reihenfolge, Bezeichnung und Hilfetext stammen aus einem kanonischen Katalog, der auch Review-Capabilities vollständig abbildet.
+- [ ] **CAP-13**: Aktive zuweisbare Rollen besitzen fachlich bestätigte Capability-Zuordnungen oder werden ausdrücklich als Rollen ohne operative Rechte gekennzeichnet.
+- [ ] **CAP-14**: Capability-Reverse-Lookups für Herkunft und Impact bleiben mit repräsentativen Daten performant und werden durch passende Datenbankindizes unterstützt.
 
-### Datenschutz und Sichtbarkeit
+### Benutzer-Administration
 
-- [x] **PMPR-01**: Anonyme Zugriffe können ein verborgenes Profil nicht von einem nicht vorhandenen Profil unterscheiden.
-- [x] **PMPR-02**: Sichtbarkeit und verifizierter Owner-Zugriff werden geprüft, bevor Profildetails geladen werden.
-- [x] **PMPR-03**: Profil, Projekte, Contributions, Medien und weitere Member-Unterressourcen verwenden dieselbe zentrale Zugriffsregel.
-- [x] **PMPR-04**: Der Owner kann ein verborgenes Profil über die zentrale Auth-Refresh-Seam als Vorschau öffnen.
-- [x] **PMPR-05**: Owner- und viewer-spezifische Antworten werden nicht öffentlich gecacht.
-- [x] **PMPR-06**: Interne Mitgliedschaften, Berechtigungen und nicht öffentliche Quellen werden nicht über öffentliche DTOs oder Aggregate offengelegt.
+- [ ] **UADM-01**: Die vorhandene Gruppenrechte-Ansicht im Benutzer-Detail ist die kanonische Oberfläche für Inspektion und Änderung effektiver Gruppenrechte.
+- [ ] **UADM-02**: Beiträge eines Benutzers werden serverseitig nach Anime und Projekt gruppiert und zeigen den Projektstandard als kompakte Zusammenfassung.
+- [ ] **UADM-03**: Release-Versionen werden nur dann als Override bezeichnet und hervorgehoben, wenn sie tatsächlich vom Projektstandard abweichen.
+- [ ] **UADM-04**: Identische Release-Version-Zuweisungen werden zu verständlichen Bereichen wie „Version 1–13 entspricht dem Projektstandard“ zusammengefasst.
+- [ ] **UADM-05**: Medien eines Benutzers werden nach Anime, Projekt und Release-Kontext gruppiert und verlinken zielgenau zur bestehenden kanonischen Arbeitsfläche.
+- [ ] **UADM-06**: Große Rechte-, Beitrags- und Medienbestände lassen sich serverseitig filtern und stabil paginieren; Zähler beziehen sich auf denselben gefilterten Datenbestand.
+- [ ] **UADM-07**: Jeder Benutzer-Tab erklärt seinen Zweck und bietet passende nächste Aktionen oder kennzeichnet bewusst rein informative Daten eindeutig.
+- [ ] **UADM-08**: Die berührten Admin-Oberflächen nutzen ein gemeinsames Desktop-first-Layoutmuster mit CSS-/Container-Queries, Tastaturbedienung und schmaler Graceful Degradation ohne Seitenoverflow.
 
-### Datenkorrektheit
+### Review-Delegation
 
-- [x] **PMDA-01**: Status, Memorial-Status, Aktivzeitraum und unvollständige Datumsangaben werden fachlich korrekt und vertrauenswürdig dargestellt.
-- [x] **PMDA-02**: Aktuelle und historische Mitgliedschaften bleiben getrennte Fakten und werden aus ihren kanonischen Tabellen geladen.
-- [x] **PMDA-03**: Contributions und Projekte erscheinen nur, wenn sie bestätigt und für das öffentliche Profil freigegeben sind.
-- [x] **PMDA-04**: Rollen werden mit stabilem Code und öffentlichem Label geliefert; das Frontend leitet Codes nicht aus übersetzten Labels ab.
-- [x] **PMDA-05**: Doppelte Rollen, Projekte, Contributions und Badges werden anhand ihrer fachlichen Identität dedupliziert.
-- [x] **PMDA-06**: Punkte und Badges bleiben serverseitig autoritativ; exakte Fortschritte enthalten ausschließlich öffentlich zulässige Fakten.
-- [x] **PMDA-07**: Release-Texte und Medien erfüllen Sichtbarkeits-, Review-, Ready- und Löschfilter und bleiben release-version-spezifisch verknüpft.
-- [x] **PMDA-08**: Angezeigte Summen stimmen mit den tatsächlich sichtbaren, gefilterten Datensätzen überein.
-- [x] **PMDA-09**: Ungenutzte Legacy-Projektionen und redundante Recent-Daten werden entfernt.
-- [x] **PMDA-10**: Öffentliche Mitgliedschaften zeigen alle freigegebenen Rollen, nicht nur die erste; interne Berechtigungen bleiben verborgen.
-- [x] **PMDA-11**: Aktivitätsfeed, Überschrift, Zähler und Filter verwenden dieselbe Datenbasis; „Mehr anzeigen“ lädt tatsächlich weitere Einträge.
+- [ ] **RDEL-01**: Ein autorisierter Gruppenleiter kann die bestehenden Review-Delegationen eines realen Fansubgruppen-Mitglieds über eine dokumentierte API lesen.
+- [ ] **RDEL-02**: Ein autorisierter Gruppenleiter kann die delegierbaren Rechte für Medien/Bilder, Notizen/Texte und Mitwirkungen einzeln gewähren und entziehen.
+- [ ] **RDEL-03**: Die Review-Delegation wird im vorhandenen Mitglieder-Editor unter „Prüf-/Freigabe-Rechte“ bedient und bleibt fachlich von Rollen und allgemeinen Benutzer-Overrides getrennt.
+- [ ] **RDEL-04**: Delegationsmutationen verwenden die vorhandenen transaktionalen Review-Service- und Audit-Seams und sind idempotent.
+- [ ] **RDEL-05**: Eine entzogene Delegation verliert unmittelbar und konsistent ihre Wirkung auf Entscheidung, Review-Liste und Zähler, ohne dem Mitglied eine breitere Leiterrolle zu entziehen.
 
-### API- und Contract-Integrität
+### Entscheidbare Review-Arbeit
 
-- [x] **PMCT-01**: Das öffentliche Profil verwendet einen eigenen minimalen Allowlist-DTO statt interner Edit- oder Owner-Strukturen.
-- [x] **PMCT-02**: Private IDs, Berechtigungen, Originalquellen und nicht freigegebene Medienfelder fehlen nachweislich in öffentlichen Antworten.
-- [x] **PMCT-03**: SQL-Projektion, Go-DTO, Handler, OpenAPI, TypeScript und `api.ts` stimmen vollständig überein.
-- [x] **PMCT-04**: Sichtbar, verborgen, nicht vorhanden und Fehler besitzen dokumentierte, typisierte Antwortpfade.
-- [x] **PMCT-05**: Rollen-, Status- und Badge-Tier-Enums einschließlich Platin sind in allen Vertragsschichten vollständig.
-- [x] **PMCT-06**: Listen besitzen dokumentierte Grenzen, stabile Sortierung und einen ehrlichen Pagination-Vertrag.
-- [x] **PMCT-07**: Ungenutzte Recent-Endpunkte und Felder werden entfernt; verbleibende Unterressourcen erhalten denselben Sichtbarkeits- und Review-Filter.
-- [x] **PMCT-08**: Next.js-PageProps, Route-Parameter, Metadaten und API-Typen entsprechen den realen Framework- und OpenAPI-Verträgen.
+- [ ] **RQUE-01**: Die offene Review-Liste enthält serverseitig nur Einträge, deren Review-Art der aktuelle Benutzer in der betreffenden Fansubgruppe entscheiden darf.
+- [ ] **RQUE-02**: Eigene Einreichungen erscheinen nicht in der entscheidbaren Review-Liste und erhöhen deren Actionable-Zähler nicht.
+- [ ] **RQUE-03**: Eigene offene Einreichungen können getrennt als „wartet auf Fremdprüfung“ angezeigt werden und besitzen dort keine Entscheidungsaktion.
+- [ ] **RQUE-04**: Review-Liste, Typ-Zähler, Detailzugriff und „Nächster Eintrag“ verwenden dieselben Actor-, Capability-, Gruppen- und Self-Review-Prädikate.
+- [ ] **RQUE-05**: Direkter Zugriff und Entscheidungsversuche bleiben serverseitig geschützt, selbst wenn ein Eintrag durch manipulierte URL oder veralteten Clientzustand geöffnet wird.
+- [ ] **RQUE-06**: Mitwirkungsprüfungen verwenden ihren bestehenden kanonischen Review-Workflow und werden nicht künstlich in die Text-/Bild-Release-Queue verschoben.
 
-### Performance und Auslieferung
+### Verträge, Sicherheit und Rollout
 
-- [x] **PMPF-01**: Die Anzahl der Profilabfragen bleibt unabhängig von der Projektanzahl konstant; N+1-Abfragen entfallen.
-- [x] **PMPF-02**: Das Nachladen von Projekten oder Contributions lädt nicht erneut das vollständige Profil.
-- [x] **PMPF-03**: Initiale und nachgeladene Listen sind fest begrenzt und übertragen keine vom UI ungenutzten Kinddaten.
-- [x] **PMPF-04**: Indizes werden nur nach repräsentativem `EXPLAIN (ANALYZE, BUFFERS)` für beide Testprofile ergänzt.
-- [x] **PMPF-05**: Öffentliche und viewer-spezifische Cache-Klassen bleiben getrennt; Shared Cache wird nur mit Messung und vollständiger Invalidierung eingeführt.
-- [x] **PMPF-06**: Profilbilder und Badges verwenden geeignete Varianten, korrekte `sizes`, reservierte Geometrie und begrenzte Qualität.
-- [x] **PMPF-07**: Query-Anzahl, Payload-Größe, Latenz, Bild-Waterfall und Web-Vitals werden reproduzierbar erfasst und gegen feste Abnahmegrenzen geprüft.
-- [x] **PMPF-08**: Bildquellen werden komprimiert; Asset- und Transferbudgets sind festgelegt und lokale-IP-Bildoptimierung bleibt auf Test und Entwicklung begrenzt.
-
-### Frontend und Codequalität
-
-- [x] **PMFE-01**: Öffentliches Profil und Owner-Vorschau verwenden dieselbe Profilkomposition und denselben Backend-DTO.
-- [x] **PMFE-02**: Profil-, Owner- und Korrekturaktionen verwenden einen zentralen Request- und Session-Pfad ohne doppelte `getOwnProfile`-Logik.
-- [x] **PMFE-03**: Paging, Carousel und Erweiterungszustände sind sluggebunden, abbrechbar, dedupliziert und gegen veraltete Antworten geschützt.
-- [x] **PMFE-04**: Loading-, Empty-, Hidden-, Missing- und Fehlerzustände werden fachlich getrennt und lokal dargestellt.
-- [x] **PMFE-05**: Wiederholte Badge-Konfiguration, Ableitungen, Formatierung und UI-Kontrollen werden an vorhandenen gemeinsamen Seams konsolidiert.
-- [x] **PMFE-06**: Nicht offensichtliche Privacy-, Aggregations- und Zustandsinvarianten erhalten kurze Zweckkommentare; selbsterklärender JSX-Code wird nicht überkommentiert.
-- [x] **PMFE-07**: Seitentitel und Metadaten beschreiben das konkrete Memberprofil sinnvoll.
-- [x] **PMFE-08**: Lange Inhalte und umfangreiche Auszeichnungen verwenden progressive Offenlegung statt ungebremster Seitenlänge.
-- [x] **PMFE-09**: Relative Datumsanzeigen sind SSR- und Hydration-stabil und hängen während des Renderns nicht unkontrolliert von `Date.now()` ab.
-- [x] **PMFE-10**: Owner-, Vorschau- und Korrekturaktionen arbeiten fail-closed, deduplizieren Profilanfragen und verhindern Request-Races.
-- [x] **PMFE-11**: Top-Rollen, bekannte Gruppen und Summen werden aus dem vollständigen freigegebenen Datensatz berechnet, nicht aus der ersten Projektseite.
-
-### Responsive Darstellung und CSS
-
-- [x] **PMUI-01**: Das Profil funktioniert mobile-first ohne horizontales Abschneiden oder versteckte Überläufe.
-- [x] **PMUI-02**: Zwischenbreiten und Breitbild nutzen den verfügbaren Raum kompakt, ohne übergroße Karten oder leere Flächen.
-- [x] **PMUI-03**: Wiederverwendbare Profilkomponenten reagieren über Container-Geometrie statt gerätespezifischer Breakpoints.
-- [x] **PMUI-04**: Achievement-, Hero-, Membership- und Seitenlayout-Stile werden in klar verantwortete CSS-Module aufgeteilt.
-- [x] **PMUI-05**: Widersprüchliche und doppelte Selektoren, Breakpoint-Patches und unnötige `!important`-Regeln werden entfernt.
-- [x] **PMUI-06**: Das Layout bleibt bei langen deutschen Texten, 400 % Zoom sowie schmalen, mittleren und breiten Viewports nutzbar.
-- [x] **PMUI-07**: Breite Nachfahrenselektoren, widersprüchliche Layoutregeln, redundante Media Queries und unnötige Resize-Listener werden entfernt.
-
-### Barrierefreiheit
-
-- [x] **PMA11Y-01**: Überschriften bilden eine semantische, nachvollziehbare Hierarchie.
-- [x] **PMA11Y-02**: Carousel, Paging, Vorschau und aufklappbare Bereiche sind vollständig per Tastatur bedienbar.
-- [x] **PMA11Y-03**: Interaktive Zustände besitzen korrekte Namen, Fokusdarstellung, `aria-expanded`, `aria-controls` und Statusmeldungen.
-- [x] **PMA11Y-04**: Kontrast, Zielgrößen, reduzierte Bewegung und DOM-Reihenfolge erfüllen die festgelegten WCAG-2.2-Kriterien.
-
-### Testdaten und Abnahme
-
-- [x] **PMQA-01**: `sheppert` und `csubs-leader` werden durch einen versionierten, idempotenten Fixture- und Seed-Vertrag reproduzierbar erzeugt.
-- [x] **PMQA-02**: Das Fixture-Manifest dokumentiert erwartete Identität, Sichtbarkeit, Rollen, Mitgliedschaften, Projekte, Badges, Medien und Inhaltslängen.
-- [x] **PMQA-03**: Migrationen werden auf leerer Datenbank sowie Up und Down geprüft; bestehende synthetische Zeilen werden zurückgesetzt statt migriert.
-- [x] **PMQA-04**: Automatisierte Tests decken anonym, verborgen, Owner, Refresh-only, nicht vorhanden, sparse und dense, Fehler sowie Pagination ab.
-- [x] **PMQA-05**: Live-UAT prüft beide Profile auf Mobile, Zwischenbreite und Breitbild einschließlich Tastatur, Zoom, Bilder und Ladeverhalten.
-- [x] **PMQA-06**: Reset-, Seed- und Medienprüfungen stellen sicher, dass kanonische Ownership und getrackte Badge-Assets unverändert bleiben.
-- [x] **PMQA-07**: Typecheck, Lint, fokussierte Backend- und Frontend-Tests sowie Build sind grün; driftende oder zu schwache Tests werden korrigiert.
+- [ ] **QUAL-01**: Neue oder geänderte Permission-, Override-, Delegations- und Queue-Verträge sind in OpenAPI, Backend-DTOs, Frontend-Typen und zentralen API-Helfern synchron.
+- [ ] **QUAL-02**: Geschützte v1.4-Ansichten und Aktionen funktionieren bei fehlendem oder abgelaufenem Access Token mit gültiger Refresh-Session über den zentralen API-Client.
+- [ ] **QUAL-03**: Automatisierte Negativtests decken Deny-Präzedenz, gruppenfremde Overrides, unzulässige Capability-Codes, BOLA/IDOR, Self-Review und Direktzugriffe ab.
+- [ ] **QUAL-04**: Erforderliche Schemaänderungen verwenden neue reversible Migrationen mit Fresh-Up/Down-Nachweis und ohne Kompatibilitäts- oder Backfill-Code für disposable Testdaten.
+- [ ] **QUAL-05**: Reproduzierbare v1.4-Fixtures decken Mehrrollen-OR, Allow, Deny, Plattform-Admin, Cache-Fehler, Review-Grant/Revoke, Self-Review und große Benutzer-Projektionen ab.
+- [ ] **QUAL-06**: Query- und UI-Gates verhindern N+1-Abfragen, ungebundene Flachlisten, inkonsistente Pagination sowie Client-only-Sicherheitsfilter.
+- [ ] **QUAL-07**: Live-UAT prüft die echten Benutzer-, Gruppenmitglieder-, Capability- und Review-Routen bei 390×844, 768×1024 und 1440×900 sowie Tastaturbedienung und 400-%-Zoom.
+- [ ] **QUAL-08**: Die Implementierung bewahrt Keycloak-verwaltete globale Rollen, den Plattform-Admin-Bypass, kanonische Medien-/Mitwirkungs-Eigentümer und das bestehende Review-Audit ohne parallele Systeme.
 
 ## Future Requirements
 
-- Dauerhafte Slug-Aliase und Weiterleitungen, falls eine spätere Produktentscheidung veränderbare Slugs erlaubt.
-- Geteilter anonymer Profil-Cache erst nach gemessener Notwendigkeit und dokumentierter vollständiger Invalidierung.
-- Personalisierung, Follows, Social-Funktionen, Kommentare oder öffentliches Editieren.
-- Zusätzliche Profilinhalte oder neue Badge-Familien außerhalb der bestehenden fachlichen Projektionen.
-- Produktionsdaten-Übernahme, Backfills oder Kompatibilitätslogik nur nach ausdrücklicher Freigabe.
+### Plattform-Dokumente
+
+- **PDOC-01**: Plattform-Admins können gruppenübergreifende Dokumente und Community-Initiativen mit PDF und Metadaten verwalten.
+- **PDOC-02**: Benutzer können eine plattformweite Dokumentenbibliothek mit Vorschau, Download und Versionen verwenden.
+
+### Badge-Darstellung
+
+- **BGUI-01**: Alle Badge-Fortschrittsfamilien verwenden nach Aufbau repräsentativer Daten dieselbe responsive Fortschrittskarte.
+
+### Spätere Rechte-Evolution
+
+- **CAPF-01**: Das Rollenmodell kann nach gesonderter Fachentscheidung in eine neue mehrstufige Taxonomie überführt werden.
+- **CAPF-02**: Autorisierte Admins können Rechte mehrerer Benutzer in einem gesondert abgesicherten Bulk-Flow bearbeiten.
+- **CAPF-03**: Das System kann hypothetische Organisationsänderungen simulieren und Rollenempfehlungen erzeugen.
 
 ## Out of Scope
 
-| Bereich | Begründung |
-|---|---|
-| Neue Frameworks, ORM-, State-, CSS- oder Komponentenbibliotheken | Der vorhandene Stack deckt die Härtung vollständig ab. |
-| Zweites Profil-, Member-, Badge-, Contribution-, Membership- oder Medienmodell | Bestehende kanonische Domänen werden erweitert und konsolidiert. |
-| Allgemeines Redesign von Admin-, Fansub-, Anime- oder Release-Seiten | v1.3 bleibt auf das öffentliche Memberprofil und direkt verwendete gemeinsame Seams begrenzt. |
-| Infinite Scroll | Begrenzte, explizite Pagination bleibt zugänglich und überprüfbar. |
-| Clientseitige Privacy-, Punkte- oder Badge-Wahrheit | Zugriff und fachliche Ableitung bleiben serverseitig autoritativ. |
-| Release-Medien an Anime oder Episoden | Release-Version-Medien bleiben an echte `release_version_id` und die kanonischen Medientabellen gebunden. |
-| Produktions-Backfills und Legacy-Fallbacks | Aktuelle Zeilen sind synthetische Testdaten und werden reset/reseed behandelt. |
-| Spekulatives Shared Caching | Korrekte und gemessene Queries haben Vorrang vor Cache-Komplexität. |
+| Feature | Reason |
+|---------|--------|
+| Plattformweite Dokumenten-/Initiativen-Bibliothek (#33) | Eigener Plattform-Produkttrack mit Upload, Versionierung und Zugriff; ausdrücklich auf später verschoben |
+| Einheitliche Badge-Fortschritts-UI (#34) | Erst nach Aufbau repräsentativer Daten aller betroffenen Badge-Familien |
+| Zweite Capability-Registry oder paralleles Permission-System | Die DB-getriebene Registry und der zentrale Permission-Service sind bereits kanonisch |
+| Globale Benutzer-Overrides | v1.4 beschränkt Overrides bewusst auf eine konkrete Fansubgruppe |
+| Vollständiger Rollenmodell-Rework | Verwandt, aber ohne gesonderte Fachentscheidung nicht Voraussetzung für Findings #29–#32 |
+| Umbau von Medien-, Mitwirkungs- oder Release-Eigentum | v1.4 projiziert und verlinkt bestehende kanonische Domain-Seams |
+| Mobile-first-Neudesign der Admin-Flächen | Desktop-first mit verpflichtender Graceful Degradation genügt für den Back-Office-Anwendungsfall |
 
 ## Traceability
 
-Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
+Wird bei der Roadmap-Erstellung befüllt. Jede v1.4-Anforderung muss genau einer Phase zugeordnet werden.
 
-| Requirement | Phase | Status |
-|---|---|---|
-| PMID-01 | Phase 128 | Complete |
-| PMID-02 | Phase 128 | Complete |
-| PMID-03 | Phase 128 | Complete |
-| PMPR-01 | Phase 128 | Complete |
-| PMPR-02 | Phase 128 | Complete |
-| PMPR-03 | Phase 128 | Complete |
-| PMPR-04 | Phase 128 | Complete |
-| PMPR-05 | Phase 128 | Complete |
-| PMPR-06 | Phase 129 | Done |
-| PMDA-01 | Phase 129 | Done |
-| PMDA-02 | Phase 129 | Done |
-| PMDA-03 | Phase 129 | Done |
-| PMDA-04 | Phase 129 | Done |
-| PMDA-05 | Phase 129 | Done |
-| PMDA-06 | Phase 129 | Done |
-| PMDA-07 | Phase 129 | Done |
-| PMDA-08 | Phase 129 | Done |
-| PMDA-09 | Phase 129 | Done |
-| PMDA-10 | Phase 129 | Done |
-| PMDA-11 | Phase 129 | Done |
-| PMCT-01 | Phase 130 | Complete |
-| PMCT-02 | Phase 130 | Complete |
-| PMCT-03 | Phase 130 | Complete |
-| PMCT-04 | Phase 130 | Complete |
-| PMCT-05 | Phase 130 | Complete |
-| PMCT-06 | Phase 131 | Complete |
-| PMCT-07 | Phase 130 | Complete |
-| PMCT-08 | Phase 130 | Complete |
-| PMPF-01 | Phase 131 | Complete |
-| PMPF-02 | Phase 131 | Complete |
-| PMPF-03 | Phase 131 | Complete |
-| PMPF-04 | Phase 131 | Complete |
-| PMPF-05 | Phase 131 | Complete |
-| PMPF-06 | Phase 133 | Complete |
-| PMPF-07 | Phase 131 | Complete |
-| PMPF-08 | Phase 133 | Complete |
-| PMFE-01 | Phase 132 | Complete |
-| PMFE-02 | Phase 132 | Complete |
-| PMFE-03 | Phase 132 | Complete |
-| PMFE-04 | Phase 132 | Complete |
-| PMFE-05 | Phase 132 | Complete |
-| PMFE-06 | Phase 132 | Complete |
-| PMFE-07 | Phase 132 | Complete |
-| PMFE-08 | Phase 132 | Complete |
-| PMFE-09 | Phase 132 | Complete |
-| PMFE-10 | Phase 132 | Complete |
-| PMFE-11 | Phase 132 | Complete |
-| PMUI-01 | Phase 133 | Complete |
-| PMUI-02 | Phase 133 | Complete |
-| PMUI-03 | Phase 133 | Complete |
-| PMUI-04 | Phase 133 | Complete |
-| PMUI-05 | Phase 133 | Complete |
-| PMUI-06 | Phase 133 | Complete |
-| PMUI-07 | Phase 133 | Complete |
-| PMA11Y-01 | Phase 133 | Complete |
-| PMA11Y-02 | Phase 133 | Complete |
-| PMA11Y-03 | Phase 133 | Complete |
-| PMA11Y-04 | Phase 133 | Complete |
-| PMQA-01 | Phase 134 | Complete |
-| PMQA-02 | Phase 134 | Complete |
-| PMQA-03 | Phase 134 | Complete |
-| PMQA-04 | Phase 134 | Complete |
-| PMQA-05 | Phase 134 | Complete |
-| PMQA-06 | Phase 134 | Complete |
-| PMQA-07 | Phase 134 | Complete |
-
-**Coverage:** 65 Anforderungen definiert, 65 eindeutig zugeordnet, 0 verwaist, 0 doppelt, 65 offen.
+**Coverage:**
+- v1.4 requirements: 41 total
+- Mapped to phases: 0
+- Unmapped: 41
 
 ---
-*Last updated: 2026-08-13 after v1.3 roadmap creation*
+*Requirements defined: 2026-08-20*
+*Last updated: 2026-08-20 after v1.4 research and scope confirmation*
