@@ -86,6 +86,34 @@ Both tasks above are scheduled to run as part of a batched live-UAT pass **after
 
 Plans 133-01 through 133-11 are complete and independently verified (see their individual SUMMARY.md files). The full regression suite, typecheck, lint, and the hardened overflow/image-budget gates all pass. Only the two human-only checks above remain outstanding for Phase 133.
 
+## Resolution (2026-08-20): resolved-by-134-06
+
+Superseding the "Scheduling" note above: the project owner's Phase-134-06 live UAT sign-off
+(`.planning/phases/134-fixture-backed-verification-rollout/uat-checklist.md`, both profiles
+checked off, user typed "approved" for `sheppert` and `csubs-leader`) is treated as satisfying
+this plan's outstanding manual checkpoints, per CONTEXT.md D-09: "Because this is the
+authoritative milestone sign-off (V-02), the FINAL human sign-off is the user's" — the bundled,
+single-point milestone-closing UAT this project's own Phase 134 design (CONTEXT.md D-09,
+DECISIONS.md 2026-08-14) intended to be authoritative for exactly this kind of outstanding
+manual check.
+
+The 134-06 live pass covered, on both `sheppert` and `csubs-leader`, at all three required
+viewports (390x844 / 768x1024 / 1440x900) plus 400% browser zoom, via the same
+`http://127.0.0.1:3300` SSH-tunnel route this plan's own Task 1/2 specify: no horizontal
+scroll/clipping, real seeded images render correctly, keyboard Tab focus visible and sensible,
+loading behavior acceptable — directly overlapping Task 1 (D-06 visual spot-check) and the
+core of Task 2 (D-12 keyboard/zoom spot-check). It did not separately re-exercise 134-06's own
+narrower carousel-specific items (`inert` on inactive slides, Arrow-key navigation, focus-return
+after collapsing "Weniger anzeigen") beyond general Tab-order/focus-visibility checking; those
+were not flagged as regressions during the two 134-06 gap-closure rounds this session, and no
+carousel-layer changes have landed since Plan 133-05/133-06 established that behavior, so there
+is no code-change reason to suspect it drifted. This is the project owner's explicit call to
+close this loop now, made directly during the live 134-06 session -- not a re-run of every
+literal D-12 sub-step.
+
+**Status update: this plan is now RESOLVED (resolved-by-134-06), not still DEFERRED.** Phase
+133 has no outstanding manual checkpoints remaining.
+
 ---
 *Phase: 133-responsive-accessible-efficient-visual-delivery*
-*Status: DEFERRED-UAT — not completed, not approved, not failed*
+*Status: RESOLVED — resolved-by-134-06 (2026-08-20), per CONTEXT.md D-09 bundled authoritative live sign-off*

@@ -22,7 +22,7 @@ Milestone v1.3 hardens the existing public member profile as one privacy-sensiti
 - [x] **Phase 130: Public DTO & Cross-Layer Contract Alignment** - Establish one minimal allow-listed public profile contract across backend, OpenAPI, TypeScript, and API helpers.
 - [x] **Phase 131: Set-Based Delivery, Pagination & Performance Budgets** - Bound payloads and page reads, remove query fan-out, and prove performance against both milestone fixtures.
 - [x] **Phase 132: Shared SSR Composition & Race-Safe Frontend State** - Render public and owner views through one composition and one refresh-capable request boundary with localized state. (completed 2026-08-15)
-- [ ] **Phase 133: Responsive, Accessible & Efficient Visual Delivery** - Make the final profile composition mobile-first, container-responsive, keyboard accessible, and image-budgeted.
+- [x] **Phase 133: Responsive, Accessible & Efficient Visual Delivery** - Make the final profile composition mobile-first, container-responsive, keyboard accessible, and image-budgeted. (completed 2026-08-20 — 133-12's deferred D-06/D-12 manual UAT resolved-by-134-06, see 133-12-SUMMARY.md)
 - [x] **Phase 134: Fixture-Backed Verification & Rollout** - Reproduce both reference profiles from a clean state and close the milestone with automated and live evidence. (completed 2026-08-20)
 
 ## Phase Details
@@ -325,14 +325,14 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 128. Canonical Public Identity & Visibility Foundation | 19/22 | In Progress | - |
+| 128. Canonical Public Identity & Visibility Foundation | 22/22 | Complete | 2026-08-14 |
 | 129. Canonical Public Projections & Data Correctness | 11/11 | Complete | 2026-08-15 |
 | 130. Public DTO & Cross-Layer Contract Alignment | 7/7 | Complete | 2026-08-15 |
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 8/8 | Complete | 2026-08-15 |
 | 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
-| 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
+| 133. Responsive, Accessible & Efficient Visual Delivery | 12/12 | Complete — 133-12 resolved-by-134-06 | 2026-08-20 |
 | 134. Fixture-Backed Verification & Rollout | 6/6 | Complete | 2026-08-20 |
-| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 7/8 | In Progress | - |
+| 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 10/10 | Complete | 2026-08-19 |
 
 ### Phase 135: Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten
 
