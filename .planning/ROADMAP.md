@@ -424,7 +424,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 
 **Goal**: Team4s has one documented, enforceable capability policy and one canonical data/contract foundation for scoped user overrides, provenance, impact, and reliable catalog behavior.
 **Depends on**: Phase 135 (completed historical baseline)
-**Requirements**: CAP-03, CAP-04, CAP-11, CAP-12, CAP-13, CAP-14, QUAL-01, QUAL-04
+**Requirements**: CAP-04, CAP-11, CAP-12, CAP-13, CAP-14, QUAL-01, QUAL-04
 **Success Criteria** (what must be TRUE):
 
   1. The same documented precedence and scope matrix defines normal group decisions everywhere, while the IdP-owned platform-admin bypass is explicitly non-deniable by group controls.
@@ -432,7 +432,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
   3. A fresh disposable database can apply and reverse the scoped-override schema with its ownership constraints and reverse-lookup indexes without editing historical migrations or requiring compatibility data.
   4. OpenAPI, backend DTOs, frontend types, and central API-helper contracts describe the same effective-rights, override, impact, and mutation-status shapes before consumers are built.
 
-**Plans**: 8 plans
+**Plans**: 9 plans
 
 Plans:
 - [ ] 136-01-PLAN.md — Reversible capability-policy catalog, scoped override/audit schema, confirmed role defaults and indexes
@@ -443,12 +443,13 @@ Plans:
 - [ ] 136-06-PLAN.md — Catalog-context historical roles and archive/search filters
 - [ ] 136-07-PLAN.md — Catalog-driven member profile and project/release presentation
 - [ ] 136-08-PLAN.md — Generic role badges/points and whole-inventory hardcode gate
+- [ ] 136-09-PLAN.md — Exact narrow media/page/history handler enforcement for confirmed role defaults
 
 ### Phase 137: Central Effective-Rights Resolver & Overrides
 
 **Goal**: Authorized decisions and administrative explanations use one central resolver that safely applies group-scoped user denies/allows and exposes complete provenance.
 **Depends on**: Phase 136
-**Requirements**: CAP-01, CAP-02, CAP-05, CAP-06, CAP-07, QUAL-03
+**Requirements**: CAP-01, CAP-02, CAP-03, CAP-05, CAP-06, CAP-07, QUAL-03
 **Success Criteria** (what must be TRUE):
 
   1. An authorized caller can inspect every effective capability for a real user/group pair and see all granting roles, direct allows, direct denies, and the decisive reason.
@@ -540,7 +541,7 @@ Plans:
 
 | Phase | Requirement Count | Requirement IDs |
 |-------|-------------------|-----------------|
-| 136. Capability Policy, Catalog & Schema Contract | 8 | CAP-03, CAP-04, CAP-11-14, QUAL-01, QUAL-04 |
+| 136. Capability Policy, Catalog & Schema Contract | 9 | CAP-04, CAP-11-14, QUAL-01, QUAL-04 |
 | 137. Central Effective-Rights Resolver & Overrides | 6 | CAP-01, CAP-02, CAP-05-07, QUAL-03 |
 | 138. Effective-Rights Administration & Impact UX | 4 | CAP-08-10, UADM-01 |
 | 139. Scalable User-Admin Projections | 8 | UADM-02-08, QUAL-06 |

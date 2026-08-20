@@ -96,7 +96,7 @@
 |-------------|-------|--------|
 | CAP-01 | Phase 137 | Pending |
 | CAP-02 | Phase 137 | Pending |
-| CAP-03 | Phase 136 | Pending |
+| CAP-03 | Phase 137 | Pending |
 | CAP-04 | Phase 136 | Pending |
 | CAP-05 | Phase 137 | Pending |
 | CAP-06 | Phase 137 | Pending |

@@ -314,17 +314,17 @@ export function rolePresentation(catalog: readonly RoleCatalogEntry[], code: str
 | A5 | Shared adapter/provider shape and branded string role codes. | Pattern 4 | Low; implementation shape can vary. |
 | A6 | Proposed secondary indexes match Phase 137/138 queries. | Pitfall 4 | Medium; validate with final SQL and EXPLAIN. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which existing actions are sufficiently narrow for confirmed defaults?**
+1. **Which existing actions are sufficiently narrow for confirmed defaults? — RESOLVED**
    - What we know: media upload/update/view exist; group edit and links manage are broader; no explicit reorder, founding-date-only or history-data-only actions were found. [VERIFIED: `permissions.go`]
-   - Recommendation: plan a handler/field authorization inventory first, then introduce exact action keys and seeds without implementing Phase-137 resolver behavior.
-2. **Should catalog presentation metadata live entirely in DB?**
+   - Resolution: narrow action keys are wired to the exact media, page-field, link, and history mutation handlers with focused enforcement tests before confirmed role defaults are accepted; broad `fansub_group.edit`, deletion, member administration, and role administration are excluded. Phase 137 still owns per-user override precedence evaluation.
+2. **Should catalog presentation metadata live entirely in DB? — RESOLVED**
    - What we know: labels/order/contexts/assignability already do; React icons and CSS tokens are client artifacts. [VERIFIED]
-   - Recommendation: DB owns stable semantic keys; shared frontend adapter maps semantic keys to Lucide components/tokens with neutral fallback.
-3. **Does `karaoke_fx` participate in both `fansub_group` and `anime_contribution` contexts initially?**
+   - Resolution: the database owns stable semantic presentation keys; the shared frontend adapter allowlists and maps those keys to Lucide components/tokens with a neutral fallback. CSS classes and component identities do not become database data.
+3. **Does `karaoke_fx` participate in both `fansub_group` and `anime_contribution` contexts initially? — RESOLVED**
    - What we know: D-22 requires membership and release/credit surfaces, which rely on those two contexts. [VERIFIED]
-   - Recommendation: seed both contexts and `assignable=true`; seed zero capabilities until deliberately granted.
+   - Resolution: seed both `fansub_group` and `anime_contribution`, set `assignable=true`, and seed no initial administration capabilities.
 
 ## Environment Availability
 
@@ -352,12 +352,12 @@ export function rolePresentation(catalog: readonly RoleCatalogEntry[], code: str
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| CAP-03/04 | precedence contract and non-deniable platform provenance | contract/unit | focused Go + OpenAPI shape tests | ❌ Wave 0 |
+| CAP-04 | non-deniable platform provenance contract | contract/unit | focused Go + OpenAPI shape tests | ❌ Wave 0 |
 | CAP-11 | DB assignability is projected consistently | repository/handler/frontend | existing role handler tests + new adapter tests | partial |
 | CAP-12 | category/order/label/help/review metadata complete | migration/repository/contract | permission registry + matrix tests | partial |
 | CAP-13 | confirmed mappings and explicit zero-right state | migration/handler | fresh DB catalog assertions | ❌ Wave 0 |
 | CAP-14 | reverse indexes present and useful | migration/Postgres | catalog/index test + `EXPLAIN` fixture check | ❌ Wave 0 |
-| QUAL-01 | four contract layers agree | Go/TS contract | handler JSON + TS compile + OpenAPI assertions | ❌ Wave 0 |
+| QUAL-01 | focused/root OpenAPI, Go JSON DTO, TS DTO requiredness and central helper parsing agree | named cross-layer contract test | `docker compose exec -T team4sv30-backend go test ./internal/handlers -run Phase136ContractParity -count=1` | ❌ Wave 0: `backend/internal/handlers/phase136_contract_parity_test.go` |
 | QUAL-04 | migration fresh up/down | Postgres integration | extend fresh proof pattern | partial |
 
 ### Sampling Rate
