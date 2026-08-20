@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/permissions"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,6 +68,32 @@ func TestPhase136NarrowRoleDefaultsPatchClasses(t *testing.T) {
 	require.Contains(t, text, "ActionFansubGroupPageTechnicalLinksEdit")
 	require.Contains(t, text, "ActionFansubGroupPageFoundingHistoryEdit")
 	require.Contains(t, text, "for _, action := range requiredActions")
+}
+
+func TestPhase136NarrowRoleDefaultsHistoryEventActions(t *testing.T) {
+	require.Equal(t, permissions.ActionFansubGroupPageFoundingHistoryEdit, requiredGroupHistoryAction("founding"))
+	require.Equal(t, permissions.ActionFansubGroupPageFoundingHistoryEdit, requiredGroupHistoryAction("founding", "founding"))
+	for eventType := range allowedGroupHistoryEventTypes {
+		if eventType == "founding" { continue }
+		require.Equal(t, permissions.ActionFansubGroupMembersManage, requiredGroupHistoryAction(eventType))
+		require.Equal(t, permissions.ActionFansubGroupMembersManage, requiredGroupHistoryAction("founding", eventType))
+		require.Equal(t, permissions.ActionFansubGroupMembersManage, requiredGroupHistoryAction(eventType, "founding"))
+		require.Equal(t, permissions.ActionFansubGroupMembersManage, requiredGroupHistoryAction(eventType, eventType))
+	}
+}
+
+func TestPhase136NarrowRoleDefaultsLifecyclePatchActions(t *testing.T) {
+	general := requiredFansubGroupPatchActions(models.FansubGroupPatchInput{Name: models.OptionalString{Set: true}})
+	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupPageGeneralEdit}, general)
+	status := requiredFansubGroupPatchActions(models.FansubGroupPatchInput{Status: models.OptionalString{Set: true}})
+	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupEdit}, status)
+	groupType := requiredFansubGroupPatchActions(models.FansubGroupPatchInput{GroupType: models.OptionalString{Set: true}})
+	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupEdit}, groupType)
+}
+
+func TestPhase136NarrowRoleDefaultsMixedPatchRequiresEveryAction(t *testing.T) {
+	mixed := requiredFansubGroupPatchActions(models.FansubGroupPatchInput{Name: models.OptionalString{Set: true}, Status: models.OptionalString{Set: true}, WebsiteURL: models.OptionalString{Set: true}, FoundedYear: models.OptionalInt32{Set: true}})
+	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupPageGeneralEdit, permissions.ActionFansubGroupEdit, permissions.ActionFansubGroupPageTechnicalLinksEdit, permissions.ActionFansubGroupPageFoundingHistoryEdit}, mixed)
 }
 
 func phase136ActionConstant(action string) string {
