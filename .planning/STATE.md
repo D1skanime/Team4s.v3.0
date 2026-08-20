@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: milestone
-status: milestone_complete
-stopped_at: Milestone v1.3 COMPLETE (2026-08-20, tag v1.3) — all 8 phases (128-135) done, 65/65 requirements
-last_updated: 2026-08-20T09:45:59.211Z
+milestone: v1.4
+milestone_name: Capability-, Review- und Benutzerverwaltung
+status: planning
+last_updated: "2026-08-20T11:24:33.364Z"
 last_activity: 2026-08-20
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 80
-  completed_plans: 80
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -33,10 +32,10 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: none (milestone v1.3 complete — all phases 128-135 done)
-Plan: n/a
-Status: Milestone complete, next milestone not yet started
-Last activity: 2026-08-20
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-08-20 — Milestone v1.4 started
 
 ## Accumulated Context
 

@@ -28,12 +28,12 @@ Team4s presents fansub history and collaboration credibly while keeping identity
 
 ### Active
 
-- [ ] Make public member identity, stable slugs, visibility, and owner-preview behavior consistent and privacy-safe.
-- [ ] Align the public member database projections, joins, API DTOs, OpenAPI contract, and frontend types.
-- [ ] Remove duplicate and unused public-profile data paths instead of preserving compatibility for disposable test rows.
-- [ ] Eliminate avoidable N+1 reads, oversized payloads, misleading pagination, and unnecessary dynamic rendering.
-- [ ] Consolidate repeated profile components, hooks, request logic, derived values, and badge configuration without crossing domain ownership boundaries.
-- [ ] Refactor profile and achievement CSS into mobile-first, accessible, maintainable component styles that scale to widescreen.
+- [ ] Make each user's effective capabilities transparent, including which roles or overrides grant or deny them.
+- [ ] Let authorized admins apply targeted per-user capability allow/deny overrides without changing unrelated users or broad role assignments.
+- [ ] Turn the existing user-detail rights view into the canonical guided surface for inspecting and safely revoking effective capabilities.
+- [ ] Make user-detail contribution, media, and rights data compact and actionable by grouping related release-version rows and showing real deviations.
+- [ ] Expose the existing per-member review-delegation model through documented APIs and the established group-member editor.
+- [ ] Show reviewers only queue entries they can actually decide, while keeping self-submissions clearly separated from actionable work.
 
 ### Out Of Scope
 
@@ -44,6 +44,8 @@ Team4s presents fansub history and collaboration credibly while keeping identity
 - Creating a second badge engine or recalculating canonical badge state ad hoc in the browser
 - Replacing the central browser authentication and API client boundary
 - Treating public profile hardening as a general platform rewrite
+- Platform-wide document and initiative library (Finding #33) — deferred to a dedicated later milestone because it is a separate platform-level product track
+- Unified badge-progress UI (Finding #34) — deferred until representative badge data is available for all affected progress families
 
 ## Context
 
@@ -74,18 +76,18 @@ Phase 112 completed on 2026-07-28: zwei weitere rein abgeleitete Badge-Familien 
 
 Phase 134 completed on 2026-08-20: the v1.3 milestone's closing fixture-backed verification and rollout gate. A versioned, idempotent `sheppert`/`csubs-leader` reset/seed contract, migration fresh/up/down proof, a 9-case Postgres-backed verification matrix, a real exit-code-checked automated green gate (`scripts/phase134-green-gate.sh`), protected-asset hash guarding, and live browser UAT (mobile/intermediate/widescreen, both profiles, 400% zoom, keyboard focus) with explicit user sign-off all passed. 7/7 verification must-haves, `GATE: GREEN (0)`.
 
-## Current Milestone: v1.3 Public Member Profile Hardening
+## Current Milestone: v1.4 Capability-, Review- und Benutzerverwaltung
 
-**Goal:** Make the public member profile data-correct, privacy-safe, performant, maintainable, and consistently usable from mobile through widescreen.
+**Goal:** Make permissions understandable and safely controllable per user, complete the existing review-delegation seam, and reduce admin/review views to relevant, actionable work.
 
 **Target features:**
-- public identity, stable slug, visibility, and owner-preview hardening
-- complete database projections and explicit public data contracts
-- API/OpenAPI/frontend type alignment with unused fields removed
-- query, pagination, payload, caching, and image-delivery optimization
-- reusable profile composition with simpler state and request handling
-- mobile-first CSS, accessibility, responsive density, and widescreen behavior
-- automated checks plus live UAT using `sheppert` and `csubs-leader`
+- effective-rights inspector in the existing user-detail rights view, including role/override provenance
+- targeted per-user capability allow/deny overrides with deny precedence and a guided revocation flow
+- impact previews, explicit platform-admin bypass explanation, and robust capability-cache feedback
+- grouped, filterable, paginated user-detail contribution/media/rights views that distinguish real overrides from inherited defaults
+- documented grant/revoke endpoints and group-member-editor controls for existing per-member review delegations
+- server-side review-queue filtering to entries the current reviewer can actually decide, with self-submissions separated
+- focused automated and live UAT for Findings #29-#32
 
 ## Constraints
 
@@ -134,4 +136,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with the current system state.
 
 ---
-*Last updated: 2026-08-20 for milestone v1.3 Public Member Profile Hardening*
+*Last updated: 2026-08-20 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
