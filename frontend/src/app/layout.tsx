@@ -25,12 +25,14 @@ const ROLE_CONTEXTS: RoleDefinitionContext[] = [
   'group_history',
 ]
 
+
+const ROLE_CATALOG_UNAVAILABLE_MESSAGE = 'Rollenkatalog konnte nicht geladen werden.'
 async function loadRoleCatalogs(): Promise<RoleCatalogLoads> {
   const loads = await Promise.all(ROLE_CONTEXTS.map(async (context) => {
     try {
       return [context, { rows: await listRoleDefinitions(context), error: null }] as const
     } catch {
-      return [context, { rows: [], error: 'catalog_unavailable' }] as const
+      return [context, { rows: [], error: ROLE_CATALOG_UNAVAILABLE_MESSAGE }] as const
     }
   }))
 
