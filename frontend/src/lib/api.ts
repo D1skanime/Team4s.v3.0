@@ -245,7 +245,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { RoleCapabilityMatrix, RoleDefinitionOption } from "@/types/admin-capability";
+import type { RoleCapabilityMatrix, RoleDefinitionContext, RoleDefinitionOption } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -9928,6 +9928,22 @@ export async function listFansubGroupRoleDefinitions(
 
   const payload = (await response.json()) as { data?: RoleDefinitionOption[] }
   return payload.data ?? []
+}
+
+/** Public presentation-only role catalog. Authorization remains backend-owned. */
+export async function listRoleDefinitions(
+  context: RoleDefinitionContext,
+): Promise<RoleDefinitionOption[]> {
+  const response = await apiClientFetch(
+    `/api/v1/role-definitions?context=${encodeURIComponent(context)}`,
+    { cache: 'no-store' },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(response, `API request failed: ${response.status}`)
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const payload = (await response.json()) as unknown
+  return Array.isArray(payload) ? payload as RoleDefinitionOption[] : []
 }
 
 /**

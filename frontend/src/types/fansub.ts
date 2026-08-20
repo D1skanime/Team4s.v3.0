@@ -407,19 +407,7 @@ export interface AcceptFansubInvitationResponse {
   };
 }
 
-export type FansubGroupRoleCode =
-  | 'fansub_lead'
-  | 'project_lead'
-  | 'translator'
-  | 'timer'
-  | 'typesetter'
-  | 'editor'
-  | 'encoder'
-  | 'raw_provider'
-  | 'quality_checker'
-  | 'designer'
-  | 'techadmin'
-  | 'gfxler';
+export type FansubGroupRoleCode = string;
 
 export interface FansubGroupRoleOption {
   code: FansubGroupRoleCode;
@@ -434,6 +422,7 @@ export interface FansubGroupRoleItem {
   sort_order: number;
 }
 
+/** @deprecated Übergang für noch nicht katalogmigrierte Verbraucher; Phase 136 entfernt diese Liste vollständig. */
 export const FANSUB_GROUP_ROLE_OPTIONS: FansubGroupRoleOption[] = [
   { code: 'fansub_lead', label: 'Gruppenleitung', description: 'Voller Gruppenkontext inklusive Mitgliederverwaltung.' },
   { code: 'project_lead', label: 'Projektleitung', description: 'Kann Projekte koordinieren, aber keine Mitglieder verwalten.' },

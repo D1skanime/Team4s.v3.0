@@ -14,6 +14,25 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /api/v1/role-definitions:
+    get:
+      summary: Öffentlichen Rollen-Präsentationskatalog abrufen
+      security: []
+      parameters:
+        - in: query
+          name: context
+          required: true
+          schema:
+            type: string
+            enum: [fansub_group, anime_contribution, group_history]
+      responses:
+        "200":
+          description: Präsentationsdaten ohne Autorisierungsdetails
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RoleDefinitionOption" }
   /api/v1/admin/role-capabilities:
     get:
       tags: [AdminCapabilities]
@@ -256,7 +275,7 @@ components:
   schemas:
     RoleActionState:
       type: object
-      required: [code, label_de, category, granted, standalone]
+      required: [code, label_de, category, sort_order, description_de, help_text_de, user_overridable, granted, standalone]
       properties:
         code:
           type: string
@@ -267,6 +286,10 @@ components:
         category:
           type: string
           description: Kategorie-Gruppe der Action (z. B. Mitglieder, Releases)
+        sort_order: { type: integer }
+        description_de: { type: string, nullable: true }
+        help_text_de: { type: string, nullable: true }
+        user_overridable: { type: boolean }
         granted:
           type: boolean
           description: Ob diese Action der Rolle aktuell gewährt ist
@@ -371,7 +394,7 @@ components:
               description: Fehlercode role_not_assignable — Rolle ist eine historische Gruppenrolle und darf keine Capabilities erhalten oder verlieren.
     RoleDefinitionOption:
       type: object
-      required: [code, label_de, sort_order]
+      required: [code, label_de, contexts, sort_order, assignable, color_key, icon_key, operative_capability_count, has_operative_capabilities]
       properties:
         code:
           type: string
@@ -382,3 +405,11 @@ components:
         sort_order:
           type: integer
           description: Sortierreihenfolge innerhalb der kuratierten Liste
+        contexts:
+          type: array
+          items: { type: string }
+        assignable: { type: boolean }
+        color_key: { type: string }
+        icon_key: { type: string }
+        operative_capability_count: { type: integer }
+        has_operative_capabilities: { type: boolean }

@@ -8,6 +8,10 @@ export interface RoleActionState {
   code: string;
   label_de: string;
   category: string;
+  sort_order?: number;
+  description_de?: string | null;
+  help_text_de?: string | null;
+  user_overridable?: boolean;
   granted: boolean;
   standalone: boolean;
 }
@@ -27,6 +31,11 @@ export interface RoleEntry {
   capability_editable?: boolean;
   /** role_definitions.contexts (für Kontext-Badges). */
   contexts?: string[];
+  sort_order?: number;
+  color_key?: string;
+  icon_key?: string;
+  operative_capability_count?: number;
+  has_operative_capabilities?: boolean;
   /**
    * Anzahl aktiver Zuweisungen aus app_user_global_roles — nur für die drei synthetischen
    * globalen App-Rollen-Zeilen (platform_admin/content_admin/user) gesetzt; für alle
@@ -46,7 +55,32 @@ export interface RoleEntry {
 export interface RoleDefinitionOption {
   code: string;
   label_de: string;
+  contexts?: string[];
   sort_order: number;
+  assignable?: boolean;
+  color_key?: string;
+  icon_key?: string;
+  operative_capability_count?: number;
+  has_operative_capabilities?: boolean;
+}
+
+export type RoleDefinitionContext = 'fansub_group' | 'anime_contribution' | 'group_history';
+
+export type EffectiveRightProvenance = 'idp_global_role' | 'group_role' | 'user_allow' | 'user_deny';
+export type CapabilityOverrideEffect = 'allow' | 'deny';
+export type CapabilityActivationStatus = 'persisted' | 'active' | 'pending' | 'failed';
+
+export interface EffectiveRightState {
+  action_code: string;
+  allowed: boolean;
+  provenance: EffectiveRightProvenance;
+  decisive: boolean;
+  non_deniable: boolean;
+}
+
+export interface CapabilityOverrideReason {
+  category: 'task_delegation' | 'security_measure' | 'role_gap' | 'other';
+  text?: string | null;
 }
 
 /** Metadaten zu einer einzelnen Action (für Spaltenüberschriften in der Matrix-Tabelle). */

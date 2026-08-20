@@ -8684,6 +8684,32 @@ paths:
           content:
             application/json:
               schema: {$ref: "#/components/schemas/ErrorResponse"}
+  /api/v1/role-definitions:
+    get:
+      tags: [Fansubs]
+      summary: Get the public role presentation catalog
+      operationId: listRoleDefinitions
+      security: []
+      parameters:
+        - in: query
+          name: context
+          required: true
+          schema:
+            type: string
+            enum: [fansub_group, anime_contribution, group_history]
+      responses:
+        "200":
+          description: Presentation-only canonical role rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RoleDefinitionOption" }
+        "400":
+          description: Invalid role context
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
 components:
   responses:
     ReleaseReviewBadRequest:
@@ -8736,6 +8762,21 @@ components:
         format: int64
         minimum: 1
   schemas:
+    RoleDefinitionOption:
+      type: object
+      required: [code, label_de, contexts, sort_order, assignable, color_key, icon_key, operative_capability_count, has_operative_capabilities]
+      properties:
+        code: { type: string }
+        label_de: { type: string }
+        contexts:
+          type: array
+          items: { type: string }
+        sort_order: { type: integer }
+        assignable: { type: boolean }
+        color_key: { type: string }
+        icon_key: { type: string }
+        operative_capability_count: { type: integer }
+        has_operative_capabilities: { type: boolean }
     MemberPointRankingRow:
       type: object
       required: [member_id, display_name, slug, total_points]
