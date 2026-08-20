@@ -1,9 +1,12 @@
 'use client'
 
 import { Badge, Button, Card } from '@/components/ui'
+import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { MeAnimeContribution } from '@/types/contributions'
 
 import styles from './contributions.module.css'
+import { normalizeRoleCodes } from './contributionRoles'
 import { VisibilityDropdown } from './VisibilityDropdown'
 
 interface ContributionCardProps {
@@ -14,33 +17,6 @@ interface ContributionCardProps {
   /** Phase 76: Öffnet RejectReasonModal mit Pflicht-Begründung (D-09) */
   onRejectWithReason?: (id: number) => void
   onVisibilityChange?: (id: number, isPublic: boolean) => void
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  translator: 'Übersetzung',
-  editor: 'Editing',
-  timer: 'Timing',
-  typesetter: 'Typesetting / FX',
-  typesetting: 'Typesetting / FX',
-  encoder: 'Encoding',
-  encoding: 'Encoding',
-  raw_provider: 'Raw-Bereitstellung',
-  quality_checker: 'Qualitätsprüfung',
-  project_lead: 'Projektleitung',
-  project_manager: 'Projektmanagement',
-  designer: 'Design',
-  techadmin: 'Technische Administration',
-  gfxler: 'Grafik',
-  admin: 'Administration',
-  fansub_lead: 'Gruppenleitung',
-  leader: 'Gruppenleitung',
-  co_leader: 'Co-Leitung',
-  founder: 'Gründung',
-  other: 'Sonstiges',
-}
-
-function roleLabel(code: string): string {
-  return ROLE_LABELS[code] ?? code
 }
 
 function yearRange(startedYear?: number | null, endedYear?: number | null): string | null {
@@ -58,12 +34,12 @@ export function ContributionCard({
   onRejectWithReason,
   onVisibilityChange,
 }: ContributionCardProps) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const {
     id,
     anime_id,
     anime_title,
     role_codes,
-    role_labels,
     started_year,
     ended_year,
     is_public_on_member_profile,
@@ -73,6 +49,7 @@ export function ContributionCard({
   } = contribution
   const title = anime_title?.trim() || `Anime #${anime_id}`
   const years = yearRange(started_year, ended_year)
+  const presentedRoleCodes = normalizeRoleCodes(contributionRoles, role_codes)
 
   return (
     <Card variant="nestedFlat" className={styles.contributionCard}>
@@ -93,11 +70,15 @@ export function ContributionCard({
         ) : null}
       </div>
 
-      {role_codes.length > 0 ? (
+      {presentedRoleCodes.length > 0 ? (
         <div className={styles.roleList}>
-          {role_codes.map((code, index) => (
-            <Badge key={`${code}-${index}`} variant="info">
-              {role_labels?.[index] || roleLabel(code)}
+          {presentedRoleCodes.map((code) => (
+            <Badge
+              key={code}
+              variant="info"
+              data-role-code={presentationForRole(contributionRoles, code).colorKey}
+            >
+              {labelForRole(contributionRoles, code)}
             </Badge>
           ))}
         </div>

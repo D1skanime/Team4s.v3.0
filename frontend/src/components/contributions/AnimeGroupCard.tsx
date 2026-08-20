@@ -4,9 +4,13 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 import { Badge, Button, Card } from '@/components/ui'
+import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type { MeAnimeContribution } from '@/types/contributions'
 
 import styles from './contributions.module.css'
+import { normalizeRoleCodes } from './contributionRoles'
 import { VisibilityDropdown } from './VisibilityDropdown'
 
 interface AnimeGroupCardProps {
@@ -14,33 +18,6 @@ interface AnimeGroupCardProps {
   animeTitle: string
   contributions: MeAnimeContribution[]
   onVisibilityChange: (id: number, isPublic: boolean, roleCode?: string, nextContributionId?: number) => void
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  translator: 'Übersetzung',
-  editor: 'Editing',
-  timer: 'Timing',
-  typesetter: 'Typesetting / FX',
-  typesetting: 'Typesetting / FX',
-  encoder: 'Encoding',
-  encoding: 'Encoding',
-  raw_provider: 'Raw-Bereitstellung',
-  quality_checker: 'Qualitätsprüfung',
-  project_lead: 'Projektleitung',
-  project_manager: 'Projektmanagement',
-  designer: 'Design',
-  techadmin: 'Technische Administration',
-  gfxler: 'Grafik',
-  admin: 'Administration',
-  fansub_lead: 'Gruppenleitung',
-  leader: 'Gruppenleitung',
-  co_leader: 'Co-Leitung',
-  founder: 'Gründung',
-  other: 'Sonstiges',
-}
-
-function getRoleLabel(code: string): string {
-  return ROLE_LABELS[code] ?? code
 }
 
 interface EpisodeRangeEntry {
@@ -77,7 +54,10 @@ function progressLabel(worked: number, total: number): string {
   return `${worked} von ${total} Release-Versionen bearbeitet`
 }
 
-function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[] {
+function buildEpisodeRanges(
+  catalog: readonly RoleDefinitionOption[],
+  contribs: MeAnimeContribution[],
+): EpisodeRangeEntry[] {
   const animeWide = contribs.filter((c) => c.release_version_id === null)
   const withVersion = contribs
     .filter((c) => c.release_version_id !== null)
@@ -90,10 +70,9 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
   const result: EpisodeRangeEntry[] = []
 
   for (const c of animeWide) {
-    for (let i = 0; i < c.role_codes.length; i++) {
-      const code = c.role_codes[i]
+    for (const code of normalizeRoleCodes(catalog, c.role_codes)) {
       result.push({
-        roleLabel: c.role_labels?.[i] || getRoleLabel(code),
+        roleLabel: labelForRole(catalog, code),
         scopeLabel: 'Für das gesamte Projekt',
         role: code,
         release_version_id: null,
@@ -105,7 +84,7 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
 
   const byRole = new Map<string, MeAnimeContribution[]>()
   for (const c of withVersion) {
-    for (const code of c.role_codes) {
+    for (const code of normalizeRoleCodes(catalog, c.role_codes)) {
       const existing = byRole.get(code)
       if (existing) {
         existing.push(c)
@@ -135,17 +114,12 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
       if (isConsecutive) {
         rangeEnd = current
       } else {
-        const primaryLabel =
-          (rangeStart.role_labels && rangeStart.role_labels[0])
-            ? rangeStart.role_labels[0]
-            : getRoleLabel(roleCode)
-
         const episodeLabel = rangeStart.id === rangeEnd.id
           ? `Folge ${rangeStart.episode_number ?? '?'}`
           : `Folge ${rangeStart.episode_number ?? '?'}-${rangeEnd.episode_number ?? '?'}`
 
         result.push({
-          roleLabel: primaryLabel,
+          roleLabel: labelForRole(catalog, roleCode),
           scopeLabel: episodeLabel,
           role: roleCode,
           release_version_id: rangeStart.release_version_id,
@@ -164,20 +138,12 @@ function buildEpisodeRanges(contribs: MeAnimeContribution[]): EpisodeRangeEntry[
   return result
 }
 
-function getUniqueRoles(contribs: MeAnimeContribution[]): Array<{ code: string; label: string }> {
-  const seen = new Set<string>()
-  const roles: Array<{ code: string; label: string }> = []
-  for (const c of contribs) {
-    for (let i = 0; i < c.role_codes.length; i++) {
-      const code = c.role_codes[i]
-      if (!seen.has(code)) {
-        seen.add(code)
-        const label = (c.role_labels && c.role_labels[i]) ? c.role_labels[i] : getRoleLabel(code)
-        roles.push({ code, label })
-      }
-    }
-  }
-  return roles
+function getUniqueRoles(
+  catalog: readonly RoleDefinitionOption[],
+  contribs: MeAnimeContribution[],
+): Array<{ code: string; label: string }> {
+  const codes = normalizeRoleCodes(catalog, contribs.flatMap((contribution) => contribution.role_codes))
+  return codes.map((code) => ({ code, label: labelForRole(catalog, code) }))
 }
 
 function getUniqueGroups(contribs: MeAnimeContribution[]): ProjectGroupEntry[] {
@@ -204,10 +170,11 @@ export function AnimeGroupCard({
   contributions,
   onVisibilityChange,
 }: AnimeGroupCardProps) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const [open, setOpen] = useState(false)
 
-  const ranges = buildEpisodeRanges(contributions)
-  const uniqueRoles = getUniqueRoles(contributions)
+  const ranges = buildEpisodeRanges(contributionRoles, contributions)
+  const uniqueRoles = getUniqueRoles(contributionRoles, contributions)
   const projectGroups = getUniqueGroups(contributions)
 
   return (
@@ -218,7 +185,11 @@ export function AnimeGroupCard({
           {uniqueRoles.length > 0 ? (
             <div className={styles.roleChips}>
               {uniqueRoles.map(({ code, label }) => (
-                <Badge key={code} variant="info">
+                <Badge
+                  key={code}
+                  variant="info"
+                  data-role-code={presentationForRole(contributionRoles, code).colorKey}
+                >
                   {label}
                 </Badge>
               ))}

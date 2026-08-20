@@ -9,6 +9,8 @@ const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
     { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
     { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+    { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: 'production', icon_key: 'film' },
+    { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 40, color_key: 'production', icon_key: 'film' },
   ],
 }))
 
