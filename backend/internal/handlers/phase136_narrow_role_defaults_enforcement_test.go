@@ -82,6 +82,21 @@ func TestPhase136NarrowRoleDefaultsHistoryEventActions(t *testing.T) {
 	}
 }
 
+func TestPhase136HistoryPatchAuthorizesBeforeEventSpecificProbes(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join(phase136RepositoryRoot(t), "internal/handlers/fansub_group_history_handler.go"))
+	require.NoError(t, err)
+	text := string(source)
+	start := strings.Index(text, "func (h *FansubGroupHistoryHandler) UpdateGroupHistory")
+	require.NotEqual(t, -1, start)
+	body := text[start:]
+	authorize := strings.Index(body, "authorizeHistoryEventTypes")
+	singleUse := strings.Index(body, "validateSingleUseEvent")
+	unlocked := strings.Index(body, "validateEventUnlocked")
+	require.Greater(t, authorize, -1)
+	require.Greater(t, singleUse, authorize, "denied cross-type PATCH must not probe single-use event state")
+	require.Greater(t, unlocked, authorize, "denied cross-type PATCH must not probe event unlock state")
+}
+
 func TestPhase136NarrowRoleDefaultsLifecyclePatchActions(t *testing.T) {
 	general := requiredFansubGroupPatchActions(models.FansubGroupPatchInput{Name: models.OptionalString{Set: true}})
 	require.Equal(t, []permissions.Action{permissions.ActionFansubGroupPageGeneralEdit}, general)

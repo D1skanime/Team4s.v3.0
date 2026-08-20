@@ -406,14 +406,6 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 			})
 			return
 		}
-		if *req.EventType != existing.EventType {
-			if !h.validateSingleUseEvent(c, fansubID, *req.EventType, &historyID) {
-				return
-			}
-			if !h.validateEventUnlocked(c, fansubID, *req.EventType) {
-				return
-			}
-		}
 	}
 	effectiveEventType := existing.EventType
 	if req.EventType != nil {
@@ -421,6 +413,14 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 	}
 	if !h.authorizeHistoryEventTypes(c, fansubID, existing.EventType, effectiveEventType) {
 		return
+	}
+	if effectiveEventType != existing.EventType {
+		if !h.validateSingleUseEvent(c, fansubID, effectiveEventType, &historyID) {
+			return
+		}
+		if !h.validateEventUnlocked(c, fansubID, effectiveEventType) {
+			return
+		}
 	}
 	if req.Year != nil && *req.Year == nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": groupHistoryYearRequiredMessage}})
