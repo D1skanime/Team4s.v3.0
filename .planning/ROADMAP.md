@@ -303,7 +303,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 134-06-PLAN.md — Live UAT evidence capture + human sign-off checkpoint.
+- [x] 134-06-PLAN.md — Live UAT evidence capture + human sign-off checkpoint.
 
 ## Coverage
 
@@ -331,7 +331,7 @@ Plans:
 | 131. Set-Based Delivery, Pagination & Performance Budgets | 8/8 | Complete | 2026-08-15 |
 | 132. Shared SSR Composition & Race-Safe Frontend State | 4/4 | Complete | 2026-08-15 |
 | 133. Responsive, Accessible & Efficient Visual Delivery | 11/12 | In Progress — 133-12 deferred to post-135 batched UAT | - |
-| 134. Fixture-Backed Verification & Rollout | 5/6 | In Progress | - |
+| 134. Fixture-Backed Verification & Rollout | 6/6 | In Progress | - |
 | 135. Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten | 7/8 | In Progress | - |
 
 ### Phase 135: Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten

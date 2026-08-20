@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
 status: executing
-stopped_at: "Completed Phase 135 (Plan 10: case-preserved Fansubname D-15 + self-claim approval UX D-16 -- phase complete, all 10 plans done)"
-last_updated: "2026-08-19T12:58:32.011Z"
-last_activity: 2026-08-19
+stopped_at: "Completed Phase 134 Plan 06 (live UAT evidence capture + PMQA-05 human sign-off; all 6 Phase 134 plans now done) -- resumed and closed 2026-08-20, after Phase 135 had already completed 2026-08-19; Phase 134 phase-level closure (code review/regression gates, roadmap phase-complete marking) and milestone v1.3 completion are the next orchestrator steps, not yet done"
+last_updated: "2026-08-20T09:14:14Z"
+last_activity: 2026-08-20
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 80
-  completed_plans: 53
+  completed_plans: 54
   percent: 50
 ---
 
@@ -124,7 +124,8 @@ Last activity: 2026-08-19
 - [Phase 131]: Set-based delivery, pagination, and performance budgets are executed and locked (8/8 plans) -- profile-load SQL query count is capped at 19, and API payload/latency/Web-Vitals budgets for both sheppert and csubs-leader are captured in .planning/phases/131-set-based-delivery-pagination-performance-budgets/evidence/BUDGETS.md.
 - [Phase 134]: reset-member-profile-fixture.sh clears members.member_story_json/html/text (UPDATE, not DELETE) for the two reference members before deleting their story-image media_assets rows — that JSONB reference is invisible to Postgres FK enforcement; a stale reference would trip applyStoryImageLifecycle's IDOR check on the reseed's next PUT /me/profile
 - [Phase 134]: The three tracked badge asset directories are sha256-verified byte-identical before and after the shared team4s_v2 database reset+reseed cycle (PMQA-06), and the seed re-run prints RESULT: PASS (15/15) twice in a row afterward, proving PMQA-01's idempotent-from-clean-state claim genuinely holds
-- [Phase 134]: Plan 134-06 resumed 2026-08-20: the shared team4s_v2/Keycloak stack had been fully reset out-of-band (both `team4s_postgres_data` and `team4s_keycloak_db_data` volumes recreated 2026-08-17), so sheppert/csubs-leader existed nowhere (no Keycloak accounts, no members rows) -- bootstrapped both via the exact identity/authz pattern already established in provision-phase134-matrix-db.sh Step 4.5 (kcadm user create + platform_admin realm role + member/member_claims/app_user_global_roles bootstrap SQL), then re-ran the Plan-134-01 seed script (15/15 checks pass). Task 1's automated capture then found a real, pre-existing bug: `--focus-ring` (a box-shadow token) was misused as an outline color in profile.module.css/FocalCarousel.module.css/AnimeProjectStage.module.css, silently collapsing keyboard focus rings to invisible on the live member-profile page; fixed all three to use the dedicated `--focus-outline` color token (GroupMediaReviewSection.module.css has the same bug but is admin-only, out of this plan's blast radius -- logged to deferred-items.md). Both evidence harnesses now pass 0-breach/exit-0, and all 6 profile x viewport keyboard-focus captures report keyboardPass: true. Task 3 (PMQA-05 live sign-off) remains a pending blocking human-verify checkpoint.
+- [Phase 134]: Plan 134-06 resumed 2026-08-20: the shared team4s_v2/Keycloak stack had been fully reset out-of-band (both `team4s_postgres_data` and `team4s_keycloak_db_data` volumes recreated 2026-08-17), so sheppert/csubs-leader existed nowhere (no Keycloak accounts, no members rows) -- bootstrapped both via the exact identity/authz pattern already established in provision-phase134-matrix-db.sh Step 4.5 (kcadm user create + platform_admin realm role + member/member_claims/app_user_global_roles bootstrap SQL), then re-ran the Plan-134-01 seed script (15/15 checks pass). Task 1's automated capture then found a real, pre-existing bug: `--focus-ring` (a box-shadow token) was misused as an outline color in profile.module.css/FocalCarousel.module.css/AnimeProjectStage.module.css, silently collapsing keyboard focus rings to invisible on the live member-profile page; fixed all three to use the dedicated `--focus-outline` color token (GroupMediaReviewSection.module.css has the same bug but is admin-only, out of this plan's blast radius -- logged to deferred-items.md). Both evidence harnesses now pass 0-breach/exit-0, and all 6 profile x viewport keyboard-focus captures report keyboardPass: true.
+- [Phase 134]: Plan 134-06 Task 3 (PMQA-05 live sign-off) closed 2026-08-20 after two live-UAT gap-closure rounds, each fixed and re-evidenced before the next round: (1) a mobile hero container-query self-query bug (dead cqi units in LockedStageArtwork.module.css) freezing the 390x844 layout, plus badge-chain connector-line misalignment (roles progression + anime-project milestones, AnimeProjectStage.module.css/RoleBadgeCard.stages.module.css) and badge-label mid-word wrapping -- all fixed and evidence refreshed (commit 96b8bbeb); (2) a tablet/desktop hero-avatar top-alignment fix, evidence refreshed a second time (commit c285414d). User then performed the full live browser walkthrough over the canonical SSH-tunnel path across all 3 required viewports (390x844/768x1024/1440x900) plus real 400% browser zoom, confirmed the seeded story image renders and keyboard Tab focus is visible, and explicitly typed "approved" for both sheppert and csubs-leader -- both Sign-off checkboxes in uat-checklist.md checked (commit 9c8ac464). PMQA-05 complete; all 6 Phase 134 plans now done. Phase 134's own phase-level closure (code review/regression gates, ROADMAP/STATE phase-complete marking) and milestone v1.3 completion remain the orchestrator's next step.
 - [Phase 135]: Plan 135-01 executed (D-01, D-04) -- keycloakAuth.ts gained a validated one-shot consumeStoredReturnPath() (mirrors registrationCompletion.ts's marker pattern) plus BeginKeycloakLoginOptions.loginHint/.returnPath; login/page.tsx's completeCallback() destination priority is now persistedReturnPath ?? (registration-completion default) ?? next-param. This is the shared foundation Plans 135-05/06 must persist a returnPath through via beginKeycloakLogin({ returnPath }) rather than inventing a second mechanism. 12/12 login/page.test.tsx cases pass; tsc --noEmit clean for both touched files (pre-existing unrelated Next.js route-type errors elsewhere ignored).
 - [Phase 135]: Plan 135-02 executed (D-06) -- ListFansubGroupRoleDefinitions's SQL predicate simplified to WHERE assignable = true only, closing Finding #7 / Pitfall 2 (admin/other anime_contribution roles leaking into the group-role picker). New testsupport.OpenPhase135Postgres harness (SKIP-not-FAIL convention) plus TestListFansubGroupRoleDefinitionsAssignableOnly prove the exact 6-code assignable set against a real 0085/0100/0103/0112 migration chain. — Closes the one-line SQL defect identified in 135-RESEARCH.md Pitfall 2 with a live-DB regression proof rather than source inspection alone.
 - [Phase 135]: Plan 135-03 executed (D-03, D-01, D-08) -- CreateFansubGroupInvitation's mail now names the real fansub group (via a new fansubGroupNameStore threading of FansubRepository.GetGroupByID, fail-open to a generic phrase) and the inviting admin (identity.DisplayName), replacing the old blind "Du wurdest zu einer Fansub-Gruppe eingeladen" text with the phase's locked Content-Spec Addendum copy. The mail CTA link now carries &email=<url-escaped invitee email> for D-08's mediated Keycloak login_hint prefill fallback (server-side match enforcement in Accept() unchanged). Two new tests prove the enriched context and the nil-fansubRepo fallback; go build/vet/test all clean.
@@ -146,7 +147,6 @@ Last activity: 2026-08-19
 - Existing staged/unstaged frontend work and untracked recovery evidence belong to the user and must remain untouched.
 - Health warnings for repository-local `DECISIONS.md` and `RETROSPECTIVE.md` conflict with local Team4s documentation policy and are not deletion candidates.
 - Before any migration, inspect the current migration chain and stop if multiple untracked migrations exist.
-- Plan 134-06 Task 3 (PMQA-05 live UAT sign-off) is a blocking human-verify checkpoint awaiting the user's explicit "approved" (or issue list) per CONTEXT.md D-09; Tasks 1 and 2 are done (evidence captured, checklist written).
 
 ### Quick Tasks Completed
 
@@ -207,6 +207,7 @@ Last activity: 2026-08-19
 | Phase 134 P03 | 20min | 3 tasks | 5 files |
 | Phase 134 P04 | 20min | 3 tasks | 4 files |
 | Phase 134 P05 | ~25min | 3 tasks | 4 files |
+| Phase 134 P06 | multi-session | 3 tasks | 8 source files + 14 evidence files |
 | Phase 135 P01 | 4min | 2 tasks | 3 files |
 | Phase 135 P02 | 12min | 2 tasks | 3 files |
 | Phase 135 P03 | 25min | 2 tasks | 3 files |
@@ -219,7 +220,7 @@ Last activity: 2026-08-19
 
 ## Session Continuity
 
-Last session: 2026-08-19T12:58:31.996Z
-Stopped at: Completed Phase 135 (Plan 10: case-preserved Fansubname D-15 + self-claim approval UX D-16 -- phase complete, all 10 plans done)
-Last activity: 2026-08-20 - Completed quick task 260820-600: Phase-117-Nachtrag - Folgen-Navigation im Contributor-Editor (Segment-Pillen-Pager, aktiver Tab bleibt erhalten)
+Last session: 2026-08-20T09:14:14Z
+Stopped at: Completed Phase 134 Plan 06 (live UAT evidence capture + PMQA-05 human sign-off; all 6 Phase 134 plans now done)
+Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
