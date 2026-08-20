@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { getCurrentUser, getReleaseVersionCapabilities } from "@/lib/api";
 import { useAuthSession } from "@/lib/useAuthSession";
@@ -17,8 +17,10 @@ import {
   padEpisodeNumber,
   parseDurationInput,
 } from "./episodeVersionEditorUtils";
+import { EpisodeNavigationControls } from "./EpisodeNavigationControls";
 import { ReleaseVersionMediaSection } from "./ReleaseVersionMediaSection";
 import { ReleaseVersionNotesTab } from "./ReleaseVersionNotesTab";
+import { useEpisodeNeighborNavigation } from "./useEpisodeNeighborNavigation";
 import { useEpisodeVersionEditor } from "./useEpisodeVersionEditor";
 import { SegmenteTab } from "./SegmenteTab";
 import styles from "./EpisodeVersionEditor.module.css";
@@ -86,6 +88,8 @@ function getSafeReturnPath(value: string | null): string | null {
 
 export function EpisodeVersionEditorPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const { hasAccessToken, hasRefreshToken, isClientInitialized } =
     useAuthSession();
   const hasAuthSession = hasAccessToken || hasRefreshToken;
@@ -102,6 +106,13 @@ export function EpisodeVersionEditorPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>(() =>
     parseActiveTab(tabFromQuery),
   );
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set("tab", tab);
+    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
     if (!isClientInitialized || !hasAuthSession || !version?.id) {
@@ -137,6 +148,12 @@ export function EpisodeVersionEditorPage() {
   const segmentGroupId = primaryGroup?.id ?? null;
   const segmentVersion: string | null =
     editor.contextData?.version.release_version?.trim() || "v1";
+  const neighborNav = useEpisodeNeighborNavigation({
+    animeId: segmentAnimeId,
+    currentVersionId: version?.id ?? null,
+    groupId: segmentGroupId,
+    releaseVersion: segmentVersion ?? "v1",
+  });
 
   const animeTitle = editor.contextData?.anime_title ?? "";
   const episodeNumber = version?.episode_number ?? null;
@@ -287,6 +304,18 @@ export function EpisodeVersionEditorPage() {
                 ) : null}
               </p>
             ) : null}
+            {version ? (
+              <EpisodeNavigationControls
+                prevVersionId={neighborNav.prevVersionId}
+                prevEpisodeNumber={neighborNav.prevEpisodeNumber}
+                nextVersionId={neighborNav.nextVersionId}
+                nextEpisodeNumber={neighborNav.nextEpisodeNumber}
+                currentIndex={neighborNav.currentIndex}
+                totalCount={neighborNav.totalCount}
+                isLoading={neighborNav.isLoading}
+                activeTab={visibleActiveTab}
+              />
+            ) : null}
           </div>
           {editor.hasUnsavedChanges ? (
             <span className={styles.unsavedBadge}>
@@ -331,7 +360,7 @@ export function EpisodeVersionEditorPage() {
                       className={
                         visibleActiveTab === "segmente" ? styles.tabActive : styles.tab
                       }
-                      onClick={() => setActiveTab("segmente")}
+                      onClick={() => handleTabChange("segmente")}
                     >
                       Segmente
                     </button>
@@ -342,7 +371,7 @@ export function EpisodeVersionEditorPage() {
                       className={
                         visibleActiveTab === "media" ? styles.tabActive : styles.tab
                       }
-                      onClick={() => setActiveTab("media")}
+                      onClick={() => handleTabChange("media")}
                     >
                       Media / Assets
                     </button>
@@ -353,7 +382,7 @@ export function EpisodeVersionEditorPage() {
                       className={
                         visibleActiveTab === "notizen" ? styles.tabActive : styles.tab
                       }
-                      onClick={() => setActiveTab("notizen")}
+                      onClick={() => handleTabChange("notizen")}
                     >
                       Notizen / Beiträge
                     </button>
@@ -366,7 +395,7 @@ export function EpisodeVersionEditorPage() {
                     className={
                       visibleActiveTab === "uebersicht" ? styles.tabActive : styles.tab
                     }
-                    onClick={() => setActiveTab("uebersicht")}
+                    onClick={() => handleTabChange("uebersicht")}
                   >
                     Übersicht
                   </button>
@@ -375,7 +404,7 @@ export function EpisodeVersionEditorPage() {
                     className={
                       visibleActiveTab === "dateien" ? styles.tabActive : styles.tab
                     }
-                    onClick={() => setActiveTab("dateien")}
+                    onClick={() => handleTabChange("dateien")}
                   >
                     Dateien
                   </button>
@@ -386,7 +415,7 @@ export function EpisodeVersionEditorPage() {
                         ? styles.tabActive
                         : styles.tab
                     }
-                    onClick={() => setActiveTab("informationen")}
+                    onClick={() => handleTabChange("informationen")}
                   >
                     Informationen
                   </button>
@@ -395,7 +424,7 @@ export function EpisodeVersionEditorPage() {
                     className={
                       visibleActiveTab === "segmente" ? styles.tabActive : styles.tab
                     }
-                    onClick={() => setActiveTab("segmente")}
+                    onClick={() => handleTabChange("segmente")}
                   >
                     Segmente
                   </button>
@@ -404,7 +433,7 @@ export function EpisodeVersionEditorPage() {
                     className={
                       visibleActiveTab === "media" ? styles.tabActive : styles.tab
                     }
-                    onClick={() => setActiveTab("media")}
+                    onClick={() => handleTabChange("media")}
                   >
                     Media / Assets
                   </button>
@@ -413,7 +442,7 @@ export function EpisodeVersionEditorPage() {
                     className={
                       visibleActiveTab === "changelog" ? styles.tabActive : styles.tab
                     }
-                    onClick={() => setActiveTab("changelog")}
+                    onClick={() => handleTabChange("changelog")}
                   >
                     Changelog
                   </button>
@@ -422,7 +451,7 @@ export function EpisodeVersionEditorPage() {
                     className={
                       visibleActiveTab === "notizen" ? styles.tabActive : styles.tab
                     }
-                    onClick={() => setActiveTab("notizen")}
+                    onClick={() => handleTabChange("notizen")}
                   >
                     Notizen / Beiträge
                   </button>

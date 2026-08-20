@@ -25,13 +25,21 @@ type SearchParamsMock = {
 const useSearchParamsMock = vi.fn<() => SearchParamsMock>(() => ({
   get: () => null as string | null,
 }));
+const routerPushMock = vi.fn();
+const routerReplaceMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  useSearchParams: () => useSearchParamsMock(),
+  useSearchParams: () => ({
+    ...useSearchParamsMock(),
+    toString: () => "",
+  }),
+  useRouter: () => ({ push: routerPushMock, replace: routerReplaceMock }),
+  usePathname: () => "/admin/episode-versions/42/edit",
 }));
 
 const useEpisodeVersionEditorMock = vi.fn();
 const useReleaseVersionMediaMock = vi.fn<() => UseReleaseVersionMediaResult>();
+const useEpisodeNeighborNavigationMock = vi.fn();
 const getAuthSessionSnapshotMock = vi.fn();
 const getCurrentUserMock = vi.fn();
 const getReleaseVersionCapabilitiesMock = vi.fn();
@@ -42,6 +50,16 @@ vi.mock("./useEpisodeVersionEditor", () => ({
 
 vi.mock("./useReleaseVersionMedia", () => ({
   useReleaseVersionMedia: () => useReleaseVersionMediaMock(),
+}));
+
+vi.mock("./useEpisodeNeighborNavigation", () => ({
+  useEpisodeNeighborNavigation: () => useEpisodeNeighborNavigationMock(),
+}));
+
+vi.mock("./EpisodeNavigationControls", () => ({
+  EpisodeNavigationControls: () => (
+    <div data-testid="episode-navigation-controls" />
+  ),
 }));
 
 vi.mock("./ReleaseVersionNotesTab", () => ({
@@ -72,6 +90,16 @@ afterEach(() => {
 beforeEach(() => {
   useSearchParamsMock.mockReturnValue({
     get: () => null as string | null,
+  });
+  useEpisodeNeighborNavigationMock.mockReturnValue({
+    isLoading: false,
+    error: null,
+    currentIndex: -1,
+    totalCount: 0,
+    prevVersionId: null,
+    prevEpisodeNumber: null,
+    nextVersionId: null,
+    nextEpisodeNumber: null,
   });
   getAuthSessionSnapshotMock.mockReturnValue({
     hasAccessToken: true,
