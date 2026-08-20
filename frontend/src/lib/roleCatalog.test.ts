@@ -14,6 +14,14 @@ describe('roleCatalog', () => {
     expect(getRole(rows, 'karaoke_fx')?.label_de).toBe('Karaoke FX')
     expect(orderForContext(rows, 'fansub_group').map((item) => item.code)).toEqual(['future_role', 'karaoke_fx'])
   })
+  it('accepts the exact canonical Karaoke-FX migration presentation', () => {
+    const karaoke = [role('karaoke_fx', {
+      label_de: 'Karaoke-FX', color_key: 'creative', icon_key: 'image',
+    })]
+    const typesetting = [role('typesetter', { color_key: 'technical', icon_key: 'wrench' })]
+    expect(presentationForRole(karaoke, 'karaoke_fx')).toEqual({ colorKey: 'creative', iconKey: 'image' })
+    expect(presentationForRole(karaoke, 'karaoke_fx')).not.toEqual(presentationForRole(typesetting, 'typesetter'))
+  })
   it('keeps unknown codes readable and neutral', () => {
     expect(labelForRole([], 'future_role')).toBe('Future Role')
     expect(presentationForRole([], 'future_role')).toEqual({ colorKey: 'other', iconKey: 'user' })

@@ -39,6 +39,9 @@ func TestPhase136MigrationSourceContract(t *testing.T) {
 		"fansub_group_page.founding_history_edit",
 		"fansub_group_links.update",
 		"create table user_group_capability_overrides",
+		"review.text.decide",
+		"review.image.decide",
+		"review.contribution.decide",
 		"effect text not null",
 		"effect in ('allow', 'deny')",
 		"unique (app_user_id, fansub_group_id, action_code)",
@@ -46,10 +49,10 @@ func TestPhase136MigrationSourceContract(t *testing.T) {
 		"before_effect",
 		"after_effect",
 		"reason_category",
-		"tasksvertretung",
-		"sicherheitsmassnahme",
-		"rollenluecke",
-		"sonstiges",
+		"task_delegation",
+		"security_measure",
+		"role_gap",
+		"other",
 		"role_capabilities_action_role_idx",
 		"user_group_capability_overrides_action_group_user_idx",
 		"user_group_capability_override_history_subject_idx",
@@ -144,14 +147,14 @@ func TestPhase136OverrideConstraintsAndHistory(t *testing.T) {
 		INSERT INTO user_group_capability_override_history(
 			app_user_id, fansub_group_id, action_code, actor_app_user_id,
 			before_effect, after_effect, reason_category
-		) VALUES (1, 10, 'fansub_group_media.upload', 2, 'allow', 'allow', 'rollenluecke')
+		) VALUES (1, 10, 'fansub_group_media.upload', 2, 'allow', 'allow', 'role_gap')
 	`)
 	require.Error(t, err, "exact no-op events cannot be stored")
 	_, err = pool.Exec(context.Background(), `
 		INSERT INTO user_group_capability_override_history(
 			app_user_id, fansub_group_id, action_code, actor_app_user_id,
 			before_effect, after_effect, reason_category
-		) VALUES (1, 10, 'fansub_group_media.upload', 2, NULL, 'allow', 'sonstiges')
+		) VALUES (1, 10, 'fansub_group_media.upload', 2, NULL, 'allow', 'other')
 	`)
 	require.Error(t, err, "other requires explanatory text")
 	_, err = pool.Exec(context.Background(), `
@@ -203,7 +206,10 @@ func createPhase136Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 		INSERT INTO action_definitions(code, label_de, category, sort_order) VALUES
 			('fansub_group.members.manage', 'Mitglieder verwalten', 'gruppe', 40),
 			('fansub_group.invitations.create', 'Einladungen erstellen', 'gruppe', 60),
-			('fansub_group.invitations.cancel', 'Einladungen abbrechen', 'gruppe', 70);
+			('fansub_group.invitations.cancel', 'Einladungen abbrechen', 'gruppe', 70),
+			('review.text.decide', 'Texte prüfen', 'review', 90),
+			('review.image.decide', 'Bilder prüfen', 'review', 91),
+			('review.contribution.decide', 'Mitwirkungen prüfen', 'review', 92);
 	`)
 	require.NoError(t, err)
 }
