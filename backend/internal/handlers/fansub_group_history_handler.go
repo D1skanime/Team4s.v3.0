@@ -274,23 +274,6 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 		return
 	}
 
-	// Leader-Auth-Check (T-68-02-01)
-	if h.permissionSvc != nil {
-		_, actor, ok := permissionActorFromContext(c)
-		if !ok {
-			return
-		}
-		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor,
-			permissions.ActionFansubGroupPageFoundingHistoryEdit, fansubID)
-		if err != nil {
-			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
-			return
-		}
-		if !result.Allowed {
-			writePermissionDenied(c, result)
-			return
-		}
-	}
 
 	var req groupHistoryCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -315,6 +298,9 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 				"message": allowedGroupHistoryEventTypesMessage,
 			},
 		})
+		return
+	}
+	if !h.authorizeHistoryEventTypes(c, fansubID, req.EventType) {
 		return
 	}
 	if !h.validateGroupHistoryYear(c, fansubID, req.Year) {
@@ -387,23 +373,6 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 		return
 	}
 
-	// Leader-Auth-Check (T-68-02-01)
-	if h.permissionSvc != nil {
-		_, actor, ok := permissionActorFromContext(c)
-		if !ok {
-			return
-		}
-		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor,
-			permissions.ActionFansubGroupPageFoundingHistoryEdit, fansubID)
-		if err != nil {
-			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
-			return
-		}
-		if !result.Allowed {
-			writePermissionDenied(c, result)
-			return
-		}
-	}
 
 	// Cross-Group-Guard (T-68-02-03): Eintrag muss zur URL-Gruppe gehören.
 	existing, err := h.historyRepo.GetByID(c.Request.Context(), historyID)
@@ -445,6 +414,13 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 				return
 			}
 		}
+	}
+	effectiveEventType := existing.EventType
+	if req.EventType != nil {
+		effectiveEventType = *req.EventType
+	}
+	if !h.authorizeHistoryEventTypes(c, fansubID, existing.EventType, effectiveEventType) {
+		return
 	}
 	if req.Year != nil && *req.Year == nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": groupHistoryYearRequiredMessage}})
@@ -496,6 +472,35 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
+}
+
+func requiredGroupHistoryAction(eventTypes ...string) permissions.Action {
+	for _, eventType := range eventTypes {
+		if eventType != "founding" {
+			return permissions.ActionFansubGroupMembersManage
+		}
+	}
+	return permissions.ActionFansubGroupPageFoundingHistoryEdit
+}
+
+func (h *FansubGroupHistoryHandler) authorizeHistoryEventTypes(c *gin.Context, fansubID int64, eventTypes ...string) bool {
+	if h.permissionSvc == nil {
+		return true
+	}
+	_, actor, ok := permissionActorFromContext(c)
+	if !ok {
+		return false
+	}
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, requiredGroupHistoryAction(eventTypes...), fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
+		return false
+	}
+	if !result.Allowed {
+		writePermissionDenied(c, result)
+		return false
+	}
+	return true
 }
 
 // DeleteGroupHistory löscht einen Historieneintrag.

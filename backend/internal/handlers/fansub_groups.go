@@ -336,8 +336,11 @@ func requiredFansubGroupPatchActions(input models.FansubGroupPatchInput) []permi
 			actions = append(actions, action)
 		}
 	}
-	if input.Name.Set || input.Status.Set || input.GroupType.Set || input.Country.Set {
+	if input.Name.Set || input.Country.Set {
 		add(permissions.ActionFansubGroupPageGeneralEdit)
+	}
+	if input.Status.Set || input.GroupType.Set {
+		add(permissions.ActionFansubGroupEdit)
 	}
 	if input.WebsiteURL.Set || input.DiscordURL.Set || input.IrcURL.Set {
 		add(permissions.ActionFansubGroupPageTechnicalLinksEdit)
