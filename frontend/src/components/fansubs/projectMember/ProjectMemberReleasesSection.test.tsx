@@ -23,6 +23,7 @@ vi.mock('@/providers/RoleCatalogProvider', () => ({
 }))
 
 import { ProjectMemberReleaseCard } from './ProjectMemberReleaseCard'
+import { ProjectMemberHero } from './ProjectMemberHero'
 import { ProjectMemberReleasesSection } from './ProjectMemberReleasesSection'
 
 afterEach(() => {
@@ -46,6 +47,30 @@ const page = (
 ): CursorPage<ProjectMemberRelease> => ({ items, next_cursor: next, has_more: more })
 
 describe('ProjectMemberReleaseCard', () => {
+  it('renders the project-member hero roles through the same catalog order', () => {
+    render(
+      <ProjectMemberHero
+        summary={{
+          member_id: 7,
+          member_slug: 'sorata',
+          member_display_name: 'Sorata',
+          member_avatar_url: null,
+          is_verified: true,
+          role_labels: ['Karaoke-FX', 'future_role', 'Typesetting'],
+          counts: { roles: 3, notes: 0, media: 0, releases: 1 },
+        }}
+        memberSlug="sorata"
+        groupName="C-Subs"
+        animeTitle="Viper’s Creed"
+        projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+      />,
+    )
+
+    expect(screen.getByText('Typesetting').getAttribute('data-role-code')).toBe('technical')
+    expect(screen.getByText('Karaoke-FX').getAttribute('data-role-code')).toBe('creative')
+    expect(screen.getByText('future_role').getAttribute('data-role-code')).toBe('other')
+  })
+
   it('renders a compact row: episode, roles, confirmed date and release link (no images)', () => {
     const { container } = render(
       <ul>
