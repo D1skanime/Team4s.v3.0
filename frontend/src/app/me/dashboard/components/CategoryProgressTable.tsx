@@ -16,7 +16,9 @@ import {
   resolveNextRoleVolumeThreshold,
   type MemberBadgeVariant,
 } from '@/components/profile/memberBadgeLabels'
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
+import { labelForRole, orderForContext } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type { OwnDashboardCategoryProgress, OwnDashboardData, OwnDashboardRoleVolumeEntry } from '@/types/dashboard'
 
 export interface CategoryProgressTableProps {
@@ -72,10 +74,6 @@ interface ProgressRow {
   progressText: string
 }
 
-function resolveRoleLabel(roleCode: string): string {
-  return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === roleCode)?.label ?? roleCode
-}
-
 function formatProgressText(
   nextThreshold: number | null,
   currentCount: number,
@@ -101,14 +99,14 @@ function buildPointsRow(totalPoints: number): ProgressRow {
   }
 }
 
-function buildRoleVolumeRow(entry: OwnDashboardRoleVolumeEntry): ProgressRow {
+function buildRoleVolumeRow(entry: OwnDashboardRoleVolumeEntry, roles: readonly RoleDefinitionOption[]): ProgressRow {
   const resolved = resolveNextRoleVolumeThreshold(entry.count)
   const badgeCode = resolved.currentTier ? `role_volume_${entry.role_code}_${resolved.currentTier}` : null
   const presentation = badgeCode ? getMemberBadgePresentation(badgeCode) : null
 
   return {
     key: `role-volume-${entry.role_code}`,
-    categoryLabel: `${resolveRoleLabel(entry.role_code)} · Rollen-Volumen`,
+    categoryLabel: `${labelForRole(roles, entry.role_code)} · Rollen-Volumen`,
     badge: presentation
       ? { label: presentation.label, variant: presentation.variant }
       : { label: NO_TIER_LABEL, variant: 'muted' },
@@ -136,11 +134,17 @@ function buildCategoryRow(row: OwnDashboardCategoryProgress): ProgressRow {
   }
 }
 
-function buildProgressRows(data: OwnDashboardData): ProgressRow[] {
+function buildProgressRows(data: OwnDashboardData, roles: readonly RoleDefinitionOption[]): ProgressRow[] {
   const rows: ProgressRow[] = [buildPointsRow(data.total_points)]
 
-  for (const entry of data.role_volume) {
-    rows.push(buildRoleVolumeRow(entry))
+  const counts = new Map(data.role_volume.map((entry) => [entry.role_code, entry]))
+  for (const role of orderForContext(roles, 'anime_contribution')) {
+    const entry = counts.get(role.code)
+    if (entry) rows.push(buildRoleVolumeRow(entry, roles))
+    counts.delete(role.code)
+  }
+  for (const entry of counts.values()) {
+    rows.push(buildRoleVolumeRow(entry, roles))
   }
 
   for (const family of CATEGORY_FAMILY_ORDER) {
@@ -158,12 +162,13 @@ function buildProgressRows(data: OwnDashboardData): ProgressRow[] {
  * Schwellenwert -- jede Zahl kommt aus data oder einem 116-01-Helfer.
  */
 export function CategoryProgressTable({ data }: CategoryProgressTableProps) {
+  const { roles } = useRoleCatalog('anime_contribution')
   const hasActivity =
     data.total_points > 0 ||
     data.role_volume.length > 0 ||
     data.category_progress.some((row) => row.current_tier !== '')
 
-  const rows = hasActivity ? buildProgressRows(data) : []
+  const rows = hasActivity ? buildProgressRows(data, roles) : []
 
   return (
     <section>

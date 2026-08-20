@@ -5,7 +5,8 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
 import { Badge, Card, FocalCarousel, SectionHeader } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
+import { labelForRole, orderForContext } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { PublicMemberBadge, PublicMemberBadgeProgress } from '@/types/profile'
 
 import {
@@ -58,11 +59,11 @@ type MemberBadgeGroupResult = {
 // Phase 112 D-04: loest den deutschen Rollennamen fuer den Zeilen-Praefix ueber die
 // Single-Source-of-Truth-Rollenliste auf; Fallback auf den rohen Code (defensiv, gleiches
 // Muster wie getMemberBadgePresentation's bestehender Fallback).
-function resolveRoleLabel(roleCode: string): string {
+function resolveRoleLabel(roleRows: Parameters<typeof labelForRole>[0], roleCode: string): string {
   if (roleCode === 'other') return 'Andere'
   if (roleCode === 'admin') return 'Administration'
   if (roleCode === 'typesetter') return 'Typesetting'
-  return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === roleCode)?.label ?? roleCode
+  return labelForRole(roleRows, roleCode)
 }
 
 const CONTRIBUTION_TIER_LABELS = { bronze: 'Bronze', silver: 'Silber', gold: 'Gold', platinum: 'Platin' } as const
@@ -636,13 +637,12 @@ export function MemberBadgeChain({
   badgeProgress,
   catalog = PUBLIC_MEMBER_BADGE_CATALOG,
 }: MemberBadgeChainProps) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const earnedCodes = new Set(earnedBadges.map((badge) => badge.badge_code))
   const roleCounts = new Map<string, number>()
   for (const badge of earnedBadges) {
     const presentation = getMemberBadgePresentation(badge.badge_code)
     if (presentation.group !== 'roles' || !presentation.roleCode) continue
-    const knownRole = FANSUB_GROUP_ROLE_OPTIONS.some((option) => option.code === presentation.roleCode)
-    if (!knownRole && !['admin', 'other'].includes(presentation.roleCode)) continue
     const tier = (['bronze', 'silver', 'gold', 'platinum'] as const)
       .find((candidate) => badge.badge_code.endsWith(`_${candidate}`))
     const fallbackCount = badge.badge_code.startsWith('role_entry_')
@@ -652,7 +652,7 @@ export function MemberBadgeChain({
     if (count < 1) continue
     roleCounts.set(presentation.roleCode, Math.max(roleCounts.get(presentation.roleCode) ?? 0, count))
   }
-  const orderedRoleCodes = [...FANSUB_GROUP_ROLE_OPTIONS.map((option) => option.code), 'admin', 'other']
+  const orderedRoleCodes = [...orderForContext(contributionRoles, 'anime_contribution').map((option) => option.code), 'admin', 'other']
     .filter((roleCode) => roleCounts.has(roleCode))
   const earnedRoleCodes = new Set(orderedRoleCodes)
   const mergedCatalog = catalogWithEarnedBadges(catalog, earnedBadges)
@@ -737,7 +737,7 @@ export function MemberBadgeChain({
                   if (group.key === 'roles') {
                     const count = roleCounts.get(row.key) ?? 0
                     const progress = resolveRoleProgressPresentation(count)
-                    const roleLabel = resolveRoleLabel(row.key)
+                    const roleLabel = resolveRoleLabel(contributionRoles, row.key)
                     const currentIndex = ['entry', 'bronze', 'silver', 'gold', 'platinum'].indexOf(progress.tier ?? '')
                     const artworkItem = row.items[Math.max(0, currentIndex)]
                     const artworkSrc = artworkItem ? resolveBadgeArtwork(artworkItem.badge_code) : undefined

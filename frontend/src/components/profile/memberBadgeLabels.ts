@@ -247,6 +247,16 @@ export function getMemberBadgePresentation(badgeCode: string): MemberBadgePresen
   if (badgeCode.startsWith('role_volume_')) {
     return resolveRoleVolumePresentation(badgeCode)
   }
+  if (badgeCode.startsWith('role_entry_') && !MEMBER_BADGE_PRESENTATIONS[badgeCode]) {
+    return {
+      label: 'Erste Mitwirkung',
+      variant: 'info',
+      Icon: Sparkles,
+      palette: 'indigo',
+      group: 'roles',
+      roleCode: badgeCode.slice('role_entry_'.length),
+    }
+  }
   return (
     MEMBER_BADGE_PRESENTATIONS[badgeCode] ?? {
       label: badgeCode,

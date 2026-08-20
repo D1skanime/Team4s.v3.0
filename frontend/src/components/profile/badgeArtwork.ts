@@ -9,6 +9,10 @@ const APPROVED_MEMBERSHIP_ARTWORK: Record<string, string> = {
   founding_member: 'membership-founding_member-v4.png', long_term_member: 'membership-long_term_member-v4.png', membership_7_years: 'membership-7_years-v4.png', membership_10_years: 'membership-10_years-v4.png',
 }
 const APPROVED_SPECIAL_ARTWORK: Record<string, string> = { historical_leader: 'special-historical_leader-v1.png' }
+const APPROVED_ROLE_ARTWORK = new Set([
+  'admin', 'designer', 'editor', 'encoder', 'other', 'project_lead',
+  'quality_checker', 'raw_provider', 'timer', 'translator', 'typesetter',
+])
 
 export function resolveBadgeArtwork(badgeCode: string): string | undefined {
   if (badgeCode === 'first_contribution') return '/member-achievement-badges/progress-frame-first_contribution.png'
@@ -19,8 +23,11 @@ export function resolveBadgeArtwork(badgeCode: string): string | undefined {
   if (APPROVED_CONTRIBUTION_ARTWORK[badgeCode]) return `/member-achievement-badges/${APPROVED_CONTRIBUTION_ARTWORK[badgeCode]}`
   if (APPROVED_MEMBERSHIP_ARTWORK[badgeCode]) return `/member-achievement-badges/${APPROVED_MEMBERSHIP_ARTWORK[badgeCode]}`
   if (APPROVED_SPECIAL_ARTWORK[badgeCode]) return `/member-achievement-badges/${APPROVED_SPECIAL_ARTWORK[badgeCode]}`
-  if (badgeCode.startsWith('contribution_') || badgeCode.startsWith('role_entry_')) return `/member-achievement-badges/${badgeCode}.png`
+  if (badgeCode.startsWith('contribution_')) return `/member-achievement-badges/${badgeCode}.png`
+  const roleEntryMatch = /^role_entry_(.+)$/.exec(badgeCode)
+  if (roleEntryMatch) return APPROVED_ROLE_ARTWORK.has(roleEntryMatch[1]) ? `/member-achievement-badges/${badgeCode}.png` : undefined
   const roleVolumeMatch = /^role_volume_(.+)_(?:bronze|silver|gold|platinum)$/.exec(badgeCode)
-  if (roleVolumeMatch?.[1] === 'timer') return `/member-achievement-badges/${badgeCode}.png`
-  return roleVolumeMatch ? `/member-achievement-badges/role_entry_${roleVolumeMatch[1]}.png` : undefined
+  if (!roleVolumeMatch || !APPROVED_ROLE_ARTWORK.has(roleVolumeMatch[1])) return undefined
+  if (roleVolumeMatch[1] === 'timer') return `/member-achievement-badges/${badgeCode}.png`
+  return `/member-achievement-badges/role_entry_${roleVolumeMatch[1]}.png`
 }
