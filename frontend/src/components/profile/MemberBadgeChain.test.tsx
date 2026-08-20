@@ -122,6 +122,30 @@ describe('Phase 136 catalog-backed role badges', () => {
     expect(html).not.toContain('data-achievement-art="role_entry_karaoke_fx"')
     expect(html).not.toContain('data-achievement-art="role_entry_future_role"')
   })
+
+  it('does not render earned compatibility roles that are absent from the catalog', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const removed = contributionRoles.filter(({ code }) => code === 'admin' || code === 'other')
+    const retained = contributionRoles.filter(({ code }) => code !== 'admin' && code !== 'other')
+    contributionRoles.splice(0, contributionRoles.length, ...retained)
+
+    try {
+      const { container } = render(
+        <MemberBadgeChain
+          earnedBadges={[
+            { id: 13603, badge_code: 'role_entry_admin', badge_category: 'role_entry', current_count: 1 },
+            { id: 13604, badge_code: 'role_entry_other', badge_category: 'role_entry', current_count: 1 },
+          ]}
+        />,
+      )
+
+      expect(container.querySelector('[data-role-code="admin"]')).toBeNull()
+      expect(container.querySelector('[data-role-code="other"]')).toBeNull()
+    } finally {
+      contributionRoles.splice(0, contributionRoles.length, ...retained, ...removed)
+      contributionRoles.sort((left, right) => left.sort_order - right.sort_order)
+    }
+  })
 })
 
 const catalog: MemberBadgeCatalogItem[] = [

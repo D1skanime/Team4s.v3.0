@@ -639,7 +639,7 @@ export function MemberBadgeChain({
     if (count < 1) continue
     roleCounts.set(presentation.roleCode, Math.max(roleCounts.get(presentation.roleCode) ?? 0, count))
   }
-  const orderedRoleCodes = [...orderForContext(contributionRoles, 'anime_contribution').map((option) => option.code), 'admin', 'other']
+  const orderedRoleCodes = orderForContext(contributionRoles, 'anime_contribution').map((option) => option.code)
     .filter((roleCode) => roleCounts.has(roleCode))
   const earnedRoleCodes = new Set(orderedRoleCodes)
   const mergedCatalog = catalogWithEarnedBadges(catalog, earnedBadges)
