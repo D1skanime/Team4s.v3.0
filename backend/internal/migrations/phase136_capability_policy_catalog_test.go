@@ -233,13 +233,36 @@ func assertPhase136Catalog(t testing.TB, pool *pgxpool.Pool) {
 
 	var contexts []string
 	var assignable bool
+	var colorKey, iconKey string
 	require.NoError(t, pool.QueryRow(context.Background(), `
-		SELECT contexts, assignable FROM role_definitions WHERE code = 'karaoke_fx'
-	`).Scan(&contexts, &assignable))
+		SELECT contexts, assignable, color_key, icon_key
+		FROM role_definitions WHERE code = 'karaoke_fx'
+	`).Scan(&contexts, &assignable, &colorKey, &iconKey))
 	require.ElementsMatch(t, []string{"fansub_group", "anime_contribution"}, contexts)
 	require.True(t, assignable)
+	require.Equal(t, "creative", colorKey)
+	require.Equal(t, "image", iconKey)
 	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM role_capabilities WHERE role_code = 'karaoke_fx'`).Scan(&count))
 	require.Zero(t, count, "zero-right roles must remain catalog-visible without capability mappings")
+
+	require.NoError(t, pool.QueryRow(context.Background(), `
+		SELECT count(*) FROM action_definitions
+		WHERE NULLIF(BTRIM(category), '') IS NULL
+		   OR sort_order <= 0
+		   OR NULLIF(BTRIM(label_de), '') IS NULL
+		   OR NULLIF(BTRIM(description_de), '') IS NULL
+		   OR NULLIF(BTRIM(help_text_de), '') IS NULL
+	`).Scan(&count))
+	require.Zero(t, count, "every capability must have complete canonical German metadata")
+	for _, code := range []string{"review.text.decide", "review.image.decide", "review.contribution.decide"} {
+		require.NoError(t, pool.QueryRow(context.Background(), `
+			SELECT count(*) FROM action_definitions
+			WHERE code = $1 AND category = 'review' AND sort_order > 0
+			  AND NULLIF(BTRIM(description_de), '') IS NOT NULL
+			  AND NULLIF(BTRIM(help_text_de), '') IS NOT NULL
+		`, code).Scan(&count))
+		require.Equal(t, 1, count, code)
+	}
 
 	var defaults [][2]string
 	rows, err := pool.Query(context.Background(), `
@@ -272,6 +295,14 @@ func assertPhase136Catalog(t testing.TB, pool *pgxpool.Pool) {
 		require.NoError(t, pool.QueryRow(context.Background(), `SELECT to_regclass($1) IS NOT NULL`, index).Scan(&exists))
 		require.True(t, exists, index)
 	}
+	assertPhase136ExplainUsesIndex(t, pool,
+		`SELECT role_code FROM role_capabilities WHERE action_code = 'fansub_group_media.upload'`,
+		"role_capabilities_action_role_idx",
+	)
+	assertPhase136ExplainUsesIndex(t, pool,
+		`SELECT app_user_id FROM user_group_capability_overrides WHERE action_code = 'fansub_group_media.upload' AND fansub_group_id = 10`,
+		"user_group_capability_overrides_action_group_user_idx",
+	)
 }
 
 func assertPhase136RolledBack(t testing.TB, pool *pgxpool.Pool) {
@@ -283,6 +314,19 @@ func assertPhase136RolledBack(t testing.TB, pool *pgxpool.Pool) {
 	}
 	var exists bool
 	require.NoError(t, pool.QueryRow(context.Background(), `SELECT EXISTS (SELECT 1 FROM role_definitions WHERE code = 'karaoke_fx')`).Scan(&exists))
+	require.False(t, exists)
+	for _, column := range []string{"description_de", "help_text_de", "user_overridable"} {
+		require.NoError(t, pool.QueryRow(context.Background(), `
+			SELECT EXISTS (
+				SELECT 1 FROM information_schema.columns
+				WHERE table_schema = current_schema()
+				  AND table_name = 'action_definitions'
+				  AND column_name = $1
+			)
+		`, column).Scan(&exists))
+		require.False(t, exists, column)
+	}
+	require.NoError(t, pool.QueryRow(context.Background(), `SELECT to_regclass('role_capabilities_action_role_idx') IS NOT NULL`).Scan(&exists))
 	require.False(t, exists)
 }
 

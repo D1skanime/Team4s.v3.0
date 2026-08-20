@@ -63,6 +63,36 @@ ON CONFLICT (code) DO UPDATE SET
     description_de = EXCLUDED.description_de,
     help_text_de = EXCLUDED.help_text_de;
 
+-- Complete the canonical metadata for the entire capability inventory that
+-- predates this migration. Review actions are intentionally named explicitly:
+-- they are security decisions and must never fall through as anonymous rows.
+UPDATE action_definitions AS action
+SET description_de = metadata.description_de,
+    help_text_de = metadata.help_text_de
+FROM (VALUES
+    ('review.text.decide',
+        'Textbeiträge prüfen und verbindlich bestätigen oder ablehnen.',
+        'Die Entscheidung wird mit Prüfer und Ergebnis revisionssicher protokolliert.'),
+    ('review.image.decide',
+        'Bildbeiträge prüfen und verbindlich bestätigen oder ablehnen.',
+        'Die Entscheidung gilt nur für Bilder im zugehörigen fachlichen Kontext.'),
+    ('review.contribution.decide',
+        'Mitwirkungen prüfen und verbindlich bestätigen oder ablehnen.',
+        'Die Entscheidung verändert den bestätigten Beitragsstatus.')
+) AS metadata(code, description_de, help_text_de)
+WHERE action.code = metadata.code;
+
+UPDATE action_definitions
+SET description_de = COALESCE(
+        NULLIF(BTRIM(description_de), ''),
+        label_de || '.'
+    ),
+    help_text_de = COALESCE(
+        NULLIF(BTRIM(help_text_de), ''),
+        'Gilt ausschließlich im autorisierten ' ||
+        COALESCE(NULLIF(BTRIM(category), ''), 'Capability') || '-Kontext.'
+    );
+
 INSERT INTO role_definitions (
     code,
     label_de,
@@ -77,8 +107,8 @@ INSERT INTO role_definitions (
     ARRAY['fansub_group', 'anime_contribution'],
     45,
     true,
-    'karaoke_fx',
-    'karaoke_fx'
+    'creative',
+    'image'
 )
 ON CONFLICT (code) DO UPDATE SET
     label_de = EXCLUDED.label_de,
@@ -156,16 +186,16 @@ CREATE TABLE user_group_capability_override_history (
         ),
     CONSTRAINT chk_user_group_capability_override_history_reason_category
         CHECK (reason_category IS NULL OR reason_category IN (
-            'tasksvertretung',
-            'sicherheitsmassnahme',
-            'rollenluecke',
-            'sonstiges'
+            'task_delegation',
+            'security_measure',
+            'role_gap',
+            'other'
         )),
     CONSTRAINT chk_user_group_capability_override_history_reason_required
         CHECK (actor_is_platform_admin OR reason_category IS NOT NULL),
     CONSTRAINT chk_user_group_capability_override_history_other_reason
         CHECK (
-            reason_category <> 'sonstiges'
+            reason_category <> 'other'
             OR NULLIF(BTRIM(reason_text), '') IS NOT NULL
         )
 );
