@@ -1,82 +1,46 @@
 package repository
 
-// hist_group_member_roles_whitelist_test.go — Wave-0-Test D-06/D-13 (Plan 95-03)
-//
-// TestGroupHistoryWhitelist prüft direkt, dass IsGroupHistoryWhitelistRole die
-// kanonischen Gruppenrollen-Codes aus D-06 korrekt klassifiziert.
-// Kein DB-Zugriff nötig: die Methode iteriert nur die package-level Slice.
-
 import (
+	"os"
+	"strings"
 	"testing"
 )
 
-func TestGroupHistoryWhitelist(t *testing.T) {
-	// nil-Pool ist OK: IsGroupHistoryWhitelistRole macht keinen DB-Aufruf.
-	r := NewHistGroupMemberRolesRepository(nil)
+func TestHistGroupMemberRolesUseCatalogContext(t *testing.T) {
+	sourceBytes, err := os.ReadFile("hist_group_member_roles_repository.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(sourceBytes)
 
-	t.Run("translator nicht in Whitelist", func(t *testing.T) {
-		if r.IsGroupHistoryWhitelistRole("translator") {
-			t.Error("'translator' darf nicht in der group_history-Whitelist sein (App-Rolle, kein Gruppencode)")
+	for _, forbidden := range []string{
+		"groupHistoryDialogRoleWhitelist",
+		"IsGroupHistoryWhitelistRole",
+		"code = ANY($",
+	} {
+		if strings.Contains(source, forbidden) {
+			t.Fatalf("historical role authority must not contain %q", forbidden)
 		}
-	})
+	}
 
-	t.Run("editor nicht in Whitelist", func(t *testing.T) {
-		if r.IsGroupHistoryWhitelistRole("editor") {
-			t.Error("'editor' darf nicht in der group_history-Whitelist sein (App-Rolle)")
-		}
-	})
+	if !strings.Contains(source, "$2 = ANY(contexts)") {
+		t.Fatal("historical role validation must use a parameterized role_definitions context lookup")
+	}
+	if !strings.Contains(source, "IsHistoricalMemberRoleCode(ctx, code, \"group_history\")") {
+		t.Fatal("historical writes must validate the group_history catalog context")
+	}
+}
 
-	t.Run("leader NICHT mehr in Whitelist", func(t *testing.T) {
-		if r.IsGroupHistoryWhitelistRole("leader") {
-			t.Error("'leader' wurde durch 'fansub_lead' ersetzt und darf nicht mehr in der Whitelist sein (D-06)")
-		}
-	})
-
-	t.Run("project_manager NICHT mehr in Whitelist", func(t *testing.T) {
-		if r.IsGroupHistoryWhitelistRole("project_manager") {
-			t.Error("'project_manager' wurde durch 'project_lead' ersetzt (D-04) und darf nicht mehr in der Whitelist sein")
-		}
-	})
-
-	t.Run("fansub_lead in Whitelist", func(t *testing.T) {
-		if !r.IsGroupHistoryWhitelistRole("fansub_lead") {
-			t.Error("'fansub_lead' muss in der group_history-Whitelist sein (D-06, ersetzt 'leader')")
-		}
-	})
-
-	t.Run("founder in Whitelist", func(t *testing.T) {
-		if !r.IsGroupHistoryWhitelistRole("founder") {
-			t.Error("'founder' muss in der group_history-Whitelist sein")
-		}
-	})
-
-	t.Run("co_leader in Whitelist", func(t *testing.T) {
-		if !r.IsGroupHistoryWhitelistRole("co_leader") {
-			t.Error("'co_leader' muss in der group_history-Whitelist sein")
-		}
-	})
-
-	t.Run("project_lead in Whitelist", func(t *testing.T) {
-		if !r.IsGroupHistoryWhitelistRole("project_lead") {
-			t.Error("'project_lead' muss in der group_history-Whitelist sein (D-06, ersetzt 'project_manager')")
-		}
-	})
-
-	t.Run("techadmin in Whitelist", func(t *testing.T) {
-		if !r.IsGroupHistoryWhitelistRole("techadmin") {
-			t.Error("'techadmin' muss in der group_history-Whitelist sein (D-07, neue Rolle)")
-		}
-	})
-
-	t.Run("gfxler in Whitelist", func(t *testing.T) {
-		if !r.IsGroupHistoryWhitelistRole("gfxler") {
-			t.Error("'gfxler' muss in der group_history-Whitelist sein (D-08, neue Rolle)")
-		}
-	})
-
-	t.Run("leerer String nicht in Whitelist", func(t *testing.T) {
-		if r.IsGroupHistoryWhitelistRole("") {
-			t.Error("leerer String darf nicht in der Whitelist sein")
-		}
-	})
+func TestHistGroupMemberRolesKeepNeutralInvalidBehavior(t *testing.T) {
+	sourceBytes, err := os.ReadFile("hist_group_member_roles_repository.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(sourceBytes)
+	if !strings.Contains(source, "if strings.TrimSpace(code) == \"\"") {
+		t.Fatal("blank role codes must retain neutral false validation")
+	}
+	if !strings.Contains(source, "return false, nil") {
+		t.Fatal("invalid historical role codes must retain neutral false validation")
+	}
 }
