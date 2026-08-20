@@ -114,6 +114,26 @@ LINT_KNOWN_DEFERRED=(
   # before Phase 134's first commit (65aa0271, 2026-08-16). Not touched by
   # any 134-01/02/03/04 file.
   "capture-responsive.cjs"
+
+  # useEpisodeNeighborNavigation.ts: 1 react-hooks/set-state-in-effect error
+  # (setIsLoading/setError/setNavigation called synchronously in a bare
+  # useEffect body). git log -1 -- "frontend/src/app/admin/episode-versions/
+  # [versionId]/edit/useEpisodeNeighborNavigation.ts" -> d2ffbfa6
+  # (quick-260820-600, 2026-08-20), same-day but unrelated to Phase 134's own
+  # commits -- this is the first full-repo `npm run lint` CI-style pass this
+  # gate has ever run against it. Confirmed out-of-scope for Phase 134;
+  # tracked as its own follow-up in .planning/notes/live-uat-ux-findings.md.
+  "useEpisodeNeighborNavigation.ts"
+
+  # GroupMemberFormModals.tsx: 1 react-hooks/set-state-in-effect error
+  # (setDuplicateConfirmed(false) called synchronously in a bare useEffect
+  # body). git log -1 -- "frontend/src/app/admin/fansubs/[id]/edit/
+  # GroupMemberFormModals.tsx" -> e9becb14 (quick-260819-ipu, 2026-08-19) --
+  # postdates Phase 134's first commit (65aa0271, 2026-08-16) but is not
+  # touched by any 134-0X plan file; unrelated interleaved quick-task work.
+  # Confirmed out-of-scope for Phase 134; tracked as its own follow-up in
+  # .planning/notes/live-uat-ux-findings.md.
+  "GroupMemberFormModals.tsx"
 )
 
 # ---------------------------------------------------------------------------
