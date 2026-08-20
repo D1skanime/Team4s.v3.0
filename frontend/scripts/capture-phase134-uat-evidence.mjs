@@ -122,9 +122,27 @@ async function captureCombo(browser, baseURL, outDir, slug, viewport) {
   const steps = []
   for (let step = 1; step <= MAX_TAB_STOPS; step += 1) {
     await page.keyboard.press('Tab')
-    steps.push(await captureFocusState(page, step))
+    const state = await captureFocusState(page, step)
+    steps.push(state)
+    // Phase 134-06 fix: MAX_TAB_STOPS=15 is an UPPER bound, not a floor -- a legitimately sparse
+    // profile page (e.g. sheppert: memorial, 0 current projects, 1 historical membership) can
+    // exhaust its real, app-rendered focusable content in fewer than 15 Tab presses. Once that
+    // happens, Tab moves focus off the page entirely: either back to <body> (Chromium's own
+    // "nothing left to focus" signal) or onto Next.js's dev-mode-only devtools overlay portal
+    // (tag NEXTJS-PORTAL -- framework chrome, never app content, absent from a production build).
+    // Neither is an app control the keyboard-focus-visibility contract (T-134-16) is meant to
+    // police, and continuing to press Tab past this point only walks further into browser/devtools
+    // chrome outside the page's own DOM. Stop capturing once genuine app content is exhausted so a
+    // sparse-but-fully-accessible page is not penalized for having fewer than 15 focusable
+    // controls; every step captured UP TO this point is still held to the full visible-focus
+    // requirement below.
+    const exhaustedAppContent = state.note === 'focus returned to <body>' || state.tag === 'NEXTJS-PORTAL'
+    if (exhaustedAppContent) break
   }
-  const failingSteps = steps.filter((entry) => entry.visibleFocus !== true)
+  const failingSteps = steps.filter((entry) => {
+    const exhaustedAppContent = entry.note === 'focus returned to <body>' || entry.tag === 'NEXTJS-PORTAL'
+    return !exhaustedAppContent && entry.visibleFocus !== true
+  })
   const keyboardPass = failingSteps.length === 0
   const keyboardPath = `${outDir}/${slug}-${viewport.label}-keyboard.json`
   writeFileSync(keyboardPath, `${JSON.stringify({

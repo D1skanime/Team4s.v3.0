@@ -1,0 +1,131 @@
+{
+  "slug": "csubs-leader",
+  "viewport": "1440x900",
+  "url": "http://192.168.235.196:3000/members/csubs-leader",
+  "capturedAt": "2026-08-20T08:25:16.161Z",
+  "maxTabStops": 15,
+  "steps": [
+    {
+      "step": 1,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Anime entdecken",
+      "visibleFocus": true
+    },
+    {
+      "step": 2,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Rangliste",
+      "visibleFocus": true
+    },
+    {
+      "step": 3,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Fansub-Gruppen",
+      "visibleFocus": true
+    },
+    {
+      "step": 4,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Suche",
+      "visibleFocus": true
+    },
+    {
+      "step": 5,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Anmelden",
+      "visibleFocus": true
+    },
+    {
+      "step": 6,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Anime",
+      "visibleFocus": true
+    },
+    {
+      "step": 7,
+      "tag": "BUTTON",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Mehr lesen",
+      "visibleFocus": true
+    },
+    {
+      "step": 8,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Seed129 Gruppe AAktuelles MitgliedGruppenleitung · Übersetzu",
+      "visibleFocus": true
+    },
+    {
+      "step": 9,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": null,
+      "text": "Seed129 Gruppe BHistorischer EintragGründungMitglied 2016 bi",
+      "visibleFocus": true
+    },
+    {
+      "step": 10,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": "Seed129 Anime 01 öffnen",
+      "text": "SESeed129 Anime 01Seed129 Gruppe AÜbersetzungProjektweit",
+      "visibleFocus": true
+    },
+    {
+      "step": 11,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": "Seed129 Anime 10 öffnen",
+      "text": "SESeed129 Anime 10Seed129 Gruppe AÜbersetzungProjektweit",
+      "visibleFocus": true
+    },
+    {
+      "step": 12,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": "Seed129 Anime 09 öffnen",
+      "text": "SESeed129 Anime 09Seed129 Gruppe AÜbersetzungProjektweit",
+      "visibleFocus": true
+    },
+    {
+      "step": 13,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": "Seed129 Anime 08 öffnen",
+      "text": "SESeed129 Anime 08Seed129 Gruppe AÜbersetzungProjektweit",
+      "visibleFocus": true
+    },
+    {
+      "step": 14,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": "Seed129 Anime 07 öffnen",
+      "text": "SESeed129 Anime 07Seed129 Gruppe AÜbersetzungProjektweit",
+      "visibleFocus": true
+    },
+    {
+      "step": 15,
+      "tag": "A",
+      "role": null,
+      "ariaLabel": "Seed129 Anime 06 öffnen",
+      "text": "SESeed129 Anime 06Seed129 Gruppe AÜbersetzungProjektweit",
+      "visibleFocus": true
+    }
+  ],
+  "keyboardPass": true,
+  "failingSteps": []
+}
