@@ -165,7 +165,13 @@
 .roleProgression::before {
   content: "";
   position: absolute;
-  top: 27px;
+  /* Phase 134-06 fix: measured live (Playwright getBoundingClientRect) against the actual
+     24px .roleStageMarker circles at the 768px reference viewport -- this base rule's previous
+     top: 27px sat the connector line ~2px below marker center at that width. 25px is exact
+     here; the <=520px and >=1440px breakpoints below carry their own measured corrections
+     since they each also change padding-top/border-top/marker size, which shifts the marker's
+     true center independently of this base value. */
+  top: 25px;
   right: 10%;
   left: 10%;
   height: 2px;
@@ -286,7 +292,10 @@
   }
 
   .roleProgression::before {
-    top: 23px;
+    /* Phase 134-06 fix: measured live at the 390px reference viewport against this breakpoint's
+       own padding-top/border-top/22px marker combination -- 23px sat the connector line 4px
+       above marker center here. 27px is exact. */
+    top: 27px;
   }
 
   .roleStageEarned,
@@ -314,6 +323,13 @@
     padding-top: 18px;
     gap: 12px;
     border-top: 2px solid color-mix(in srgb, var(--role-accent) 32%, var(--border-subtle));
+  }
+
+  /* Phase 134-06 fix: this breakpoint's own padding-top/border-top pairing needs the base
+     rule's original 27px (measured exact at the 1440px reference viewport) -- pinned explicitly
+     here now that the base rule above was corrected to 25px for the 768px range. */
+  .roleProgression::before {
+    top: 27px;
   }
 
   .roleStageEarned,

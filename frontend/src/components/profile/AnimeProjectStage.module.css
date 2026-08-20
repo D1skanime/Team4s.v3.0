@@ -12,7 +12,12 @@
 .animeProjectProgressTrack > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--color-primary), var(--color-success)); }
 .animeProjectNext { margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-primary); color: var(--text-primary); background: color-mix(in srgb, var(--color-primary) 7%, transparent); font-weight: 750; }
 .animeProjectMilestones { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 18px 0 0; list-style: none; border-top: 1px solid var(--border-subtle); }
-.animeProjectMilestones::before { content: ''; position: absolute; top: 41px; left: 12.5%; right: 12.5%; height: 2px; background: var(--border-strong); }
+/* Phase 134-06 fix: measured live (Playwright getBoundingClientRect) at all three UAT reference
+   viewports (390/768/1440) against the actual 24px .animeProjectMarker circles -- top: 41px sat
+   this connector line a consistent ~12px below marker center at every width (this rule has no
+   breakpoint variance, and none of padding-top/border-top-width/marker size change across
+   widths either, so a single corrected value holds everywhere). 29px is exact. */
+.animeProjectMilestones::before { content: ''; position: absolute; top: 29px; left: 12.5%; right: 12.5%; height: 2px; background: var(--border-strong); }
 .animeProjectMilestones li { position: relative; z-index: 1; min-width: 0; text-align: center; }
 .animeProjectMilestones button, .animeProjectMilestones li > span { display: grid; justify-items: center; gap: 5px; width: 100%; min-width: 0; padding: 0 4px; border: 0; color: var(--text-primary); background: transparent; font: inherit; }
 .animeProjectMilestones button { cursor: pointer; border-radius: var(--radius-md); }

@@ -49,3 +49,23 @@ SCOPE BOUNDARY rule: pre-existing drift unrelated to the current task's own file
    captured Tab sequence, so not fixed here. Worth a dedicated follow-up sweep for
    every remaining `var(--focus-ring)` outline/border-color misuse across the admin
    surface.
+
+5. **`MemberBadgeChain.test.tsx` has 4 pre-existing failures** unrelated to this
+   round's two mobile/visual bug fixes (`git diff` confirms `MemberBadgeChain.tsx`,
+   `MemberBadgeChain.test.tsx`, and `MemberBadgeChain.module.css` were never touched
+   by this session): a missing "Gründungsmitglied · Gesperrt" label, a missing
+   `[data-contribution-family-stage="..."]` attribute, and a missing "Besondere
+   Auszeichnungen" heading in the SSR-carousel-content test. These look like drift
+   from an unrelated prior change to the badge-family/founding-member/contribution
+   rendering logic, not something introduced by this plan's CSS-only fixes (roles
+   connector alignment, anime-projects connector alignment, mobile hero container
+   query, badge mid-word wrap). Out of scope for a live-UAT gap-closure round
+   explicitly scoped to two named visual bugs — flagged for a dedicated follow-up.
+
+6. **`MembershipsSection.test.tsx` > "keeps membership cards bounded in a responsive
+   overflow-safe grid" fails**, expecting `.membershipsList`'s base rule to contain
+   `grid-template-columns: repeat(3, minmax(0, 360px))`, but the actual CSS uses
+   `repeat(auto-fit, minmax(min(100%, 18rem), 1fr))`. `git diff` confirms
+   `.membershipsList` was never touched by this session (this plan's edits are
+   scoped to `.hero`/`.heroPanel`/`.heroSpecialAward`/the mobile `@container` block
+   and the two badge-chain connector files). Pre-existing drift, out of scope.
