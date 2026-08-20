@@ -234,7 +234,7 @@ func (h *FansubMediaReviewHandler) ReorderFansubGroupMedia(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaUpdate, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMediaReorder, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Berechtigung fÃ¼r Medien-Reihenfolge konnte nicht geprÃ¼ft werden.")
 		return
@@ -246,7 +246,7 @@ func (h *FansubMediaReviewHandler) ReorderFansubGroupMedia(c *gin.Context) {
 			return
 		}
 		if !customPerms.CanReorder {
-			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.reorder.denied", &fansubID, "fansub_group_media", nil, permissions.ActionFansubGroupMediaUpdate, result)
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_media.reorder.denied", &fansubID, "fansub_group_media", nil, permissions.ActionFansubGroupMediaReorder, result)
 			writePermissionDenied(c, result)
 			return
 		}
@@ -287,7 +287,7 @@ func (h *FansubMediaReviewHandler) ReorderFansubGroupMedia(c *gin.Context) {
 		ScopeType:         permissions.ScopeTypeGroup,
 		ScopeID:           &fansubID,
 		TargetType:        "fansub_group_media",
-		Action:            string(permissions.ActionFansubGroupMediaUpdate),
+		Action:            string(permissions.ActionFansubGroupMediaReorder),
 		Outcome:           "allowed",
 		Payload:           map[string]any{"items": len(body.MediaIDs)},
 	})

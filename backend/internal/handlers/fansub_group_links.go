@@ -117,13 +117,13 @@ func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupLinksManage, fansubID)
+	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupLinksUpdate, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Link-Berechtigung konnte nicht geprüft werden.")
 		return
 	}
 	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_link.update.denied", &fansubID, "fansub_group_link", &linkID, permissions.ActionFansubGroupLinksManage, result)
+		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group_link.update.denied", &fansubID, "fansub_group_link", &linkID, permissions.ActionFansubGroupLinksUpdate, result)
 		writePermissionDenied(c, result)
 		return
 	}
@@ -142,7 +142,7 @@ func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
 		ScopeID:           &fansubID,
 		TargetType:        "fansub_group_link",
 		TargetID:          &linkID,
-		Action:            string(permissions.ActionFansubGroupLinksManage),
+		Action:            string(permissions.ActionFansubGroupLinksUpdate),
 		Outcome:           "allowed",
 		Payload:           map[string]any{"link_type_set": req.LinkType.Set, "url_set": req.URL.Set},
 	})

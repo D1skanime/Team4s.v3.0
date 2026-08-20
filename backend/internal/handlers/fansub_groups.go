@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"slices"
 	"strings"
 
 	"team4s.v3/backend/internal/models"
@@ -253,17 +254,6 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 		return
 	}
 
-	result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupEdit, id)
-	if err != nil {
-		writePermissionInternalError(c, err, "Fansub-Berechtigung konnte nicht geprüft werden.")
-		return
-	}
-	if !result.Allowed {
-		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group.edit.denied", &id, "fansub_group", &id, permissions.ActionFansubGroupEdit, result)
-		writePermissionDenied(c, result)
-		return
-	}
-
 	var req models.FansubGroupPatchInput
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("fansub update: bad request (user_id=%d, fansub_id=%d): %v", identity.UserID, id, err)
@@ -275,6 +265,19 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 	if validationMessage != "" {
 		badRequest(c, validationMessage)
 		return
+	}
+	requiredActions := requiredFansubGroupPatchActions(input)
+	for _, action := range requiredActions {
+		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, action, id)
+		if err != nil {
+			writePermissionInternalError(c, err, "Fansub-Berechtigung konnte nicht geprüft werden.")
+			return
+		}
+		if !result.Allowed {
+			auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group.edit.denied", &id, "fansub_group", &id, action, result)
+			writePermissionDenied(c, result)
+			return
+		}
 	}
 	if scopedResult, ok := validateFansubGroupPatchPermission(input, actor); !ok {
 		auditPermissionDenied(c, h.auditLogRepo, identity, "fansub_group.slug_edit.denied", &id, "fansub_group", &id, permissions.ActionFansubGroupEdit, scopedResult)
@@ -316,7 +319,7 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 		ScopeID:        &id,
 		TargetType:     "fansub_group",
 		TargetID:       &id,
-		Action:         string(permissions.ActionFansubGroupEdit),
+		Action:         strings.Join(actionsToStrings(requiredActions), ","),
 		Outcome:        "allowed",
 		Payload:        map[string]any{"slug_set": req.Slug.Set, "name_set": req.Name.Set},
 	})
@@ -324,6 +327,39 @@ func (h *FansubHandler) UpdateFansub(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": item,
 	})
+}
+
+func requiredFansubGroupPatchActions(input models.FansubGroupPatchInput) []permissions.Action {
+	actions := make([]permissions.Action, 0, 4)
+	add := func(action permissions.Action) {
+		if !slices.Contains(actions, action) {
+			actions = append(actions, action)
+		}
+	}
+	if input.Name.Set || input.Status.Set || input.GroupType.Set || input.Country.Set {
+		add(permissions.ActionFansubGroupPageGeneralEdit)
+	}
+	if input.WebsiteURL.Set || input.DiscordURL.Set || input.IrcURL.Set {
+		add(permissions.ActionFansubGroupPageTechnicalLinksEdit)
+	}
+	if input.FoundedYear.Set || input.DissolvedYear.Set {
+		add(permissions.ActionFansubGroupPageFoundingHistoryEdit)
+	}
+	if input.LogoID.Set || input.BannerID.Set || input.LogoURL.Set || input.BannerURL.Set {
+		add(permissions.ActionFansubGroupMediaUpdate)
+	}
+	if input.Slug.Set {
+		add(permissions.ActionFansubGroupEdit)
+	}
+	return actions
+}
+
+func actionsToStrings(actions []permissions.Action) []string {
+	values := make([]string, len(actions))
+	for index, action := range actions {
+		values[index] = string(action)
+	}
+	return values
 }
 
 // DeleteFansub löscht eine Fansub-Gruppe.

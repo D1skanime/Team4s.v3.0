@@ -281,7 +281,7 @@ func (h *FansubGroupHistoryHandler) CreateGroupHistory(c *gin.Context) {
 			return
 		}
 		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor,
-			permissions.ActionFansubGroupMembersManage, fansubID)
+			permissions.ActionFansubGroupPageFoundingHistoryEdit, fansubID)
 		if err != nil {
 			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 			return
@@ -394,7 +394,7 @@ func (h *FansubGroupHistoryHandler) UpdateGroupHistory(c *gin.Context) {
 			return
 		}
 		result, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor,
-			permissions.ActionFansubGroupMembersManage, fansubID)
+			permissions.ActionFansubGroupPageFoundingHistoryEdit, fansubID)
 		if err != nil {
 			writePermissionInternalError(c, err, "Berechtigung konnte nicht geprüft werden.")
 			return

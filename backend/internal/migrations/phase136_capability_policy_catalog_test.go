@@ -65,7 +65,7 @@ func TestPhase136MigrationSourceContract(t *testing.T) {
 	}
 	require.NotContains(t, up, "references app_user_global_roles", "IdP platform authority must never become group-owned override state")
 	require.Contains(t, up, "idp-owned platform-admin authority is never stored here and remains non-deniable")
-	require.NotContains(t, up, "insert into role_capabilities", "confirmed operative role defaults belong to Plan 136-09")
+	require.Contains(t, up, "insert into role_capabilities", "confirmed operative role defaults must be seeded")
 
 	down := readPhase136Migration(t, phase136DownFile)
 	requirePhase136SQLContains(t, down,
@@ -195,6 +195,11 @@ func createPhase136Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 			action_code TEXT NOT NULL REFERENCES action_definitions(code) ON DELETE CASCADE,
 			PRIMARY KEY (role_code, action_code)
 		);
+		INSERT INTO role_definitions(code, label_de, contexts, assignable) VALUES
+			('gfxler', 'GFX', ARRAY['fansub_group'], true),
+			('techadmin', 'Technik-Admin', ARRAY['fansub_group'], true),
+			('founder', 'Gründer', ARRAY['fansub_group'], true),
+			('co_leader', 'Co-Leitung', ARRAY['fansub_group'], true);
 		INSERT INTO action_definitions(code, label_de, category, sort_order) VALUES
 			('fansub_group.members.manage', 'Mitglieder verwalten', 'gruppe', 40),
 			('fansub_group.invitations.create', 'Einladungen erstellen', 'gruppe', 60),
@@ -229,6 +234,27 @@ func assertPhase136Catalog(t testing.TB, pool *pgxpool.Pool) {
 	require.True(t, assignable)
 	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM role_capabilities WHERE role_code = 'karaoke_fx'`).Scan(&count))
 	require.Zero(t, count, "zero-right roles must remain catalog-visible without capability mappings")
+
+	var defaults [][2]string
+	rows, err := pool.Query(context.Background(), `
+		SELECT role_code, action_code FROM role_capabilities
+		WHERE role_code = ANY(ARRAY['gfxler','techadmin','founder','co_leader'])
+		ORDER BY role_code, action_code
+	`)
+	require.NoError(t, err)
+	defer rows.Close()
+	for rows.Next() {
+		var pair [2]string
+		require.NoError(t, rows.Scan(&pair[0], &pair[1]))
+		defaults = append(defaults, pair)
+	}
+	require.NoError(t, rows.Err())
+	require.Len(t, defaults, 16)
+	for _, forbidden := range []string{"fansub_group.edit", "fansub_group_media.delete", "fansub_group.members.manage", "fansub_group.links.manage"} {
+		for _, pair := range defaults {
+			require.NotEqual(t, forbidden, pair[1], "confirmed defaults must stay narrow")
+		}
+	}
 
 	for _, index := range []string{
 		"role_capabilities_action_role_idx",

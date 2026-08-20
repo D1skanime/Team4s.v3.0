@@ -88,6 +88,25 @@ ON CONFLICT (code) DO UPDATE SET
     color_key = EXCLUDED.color_key,
     icon_key = EXCLUDED.icon_key;
 
+INSERT INTO role_capabilities (role_code, action_code) VALUES
+    ('gfxler', 'fansub_group_media.upload'),
+    ('gfxler', 'fansub_group_media.update'),
+    ('gfxler', 'fansub_group_media.reorder'),
+    ('techadmin', 'fansub_group_media.upload'),
+    ('techadmin', 'fansub_group_media.update'),
+    ('techadmin', 'fansub_group_media.reorder'),
+    ('techadmin', 'fansub_group_page.technical_links_edit'),
+    ('founder', 'fansub_group_media.upload'),
+    ('founder', 'fansub_group_media.update'),
+    ('founder', 'fansub_group_media.reorder'),
+    ('founder', 'fansub_group_page.founding_history_edit'),
+    ('co_leader', 'fansub_group_media.upload'),
+    ('co_leader', 'fansub_group_media.update'),
+    ('co_leader', 'fansub_group_media.reorder'),
+    ('co_leader', 'fansub_group_page.general_edit'),
+    ('co_leader', 'fansub_group_links.update')
+ON CONFLICT (role_code, action_code) DO NOTHING;
+
 CREATE INDEX role_capabilities_action_role_idx
     ON role_capabilities (action_code, role_code);
 

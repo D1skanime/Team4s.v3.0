@@ -19,26 +19,26 @@ func TestPhase136NarrowRoleDefaultsSeedToHandlerContract(t *testing.T) {
 	}
 
 	migration := read("database/migrations/0146_capability_policy_catalog.up.sql")
-	permissionsSource := read("backend/internal/permissions/permissions.go")
+	permissionsSource := read("internal/permissions/permissions.go")
 	cases := []struct {
 		role, action, handler string
 	}{
-		{"gfxler", "fansub_group_media.upload", read("backend/internal/handlers/fansub_media_upload.go")},
-		{"gfxler", "fansub_group_media.update", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"gfxler", "fansub_group_media.reorder", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"techadmin", "fansub_group_media.upload", read("backend/internal/handlers/fansub_media_upload.go")},
-		{"techadmin", "fansub_group_media.update", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"techadmin", "fansub_group_media.reorder", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"techadmin", "fansub_group_page.technical_links_edit", read("backend/internal/handlers/fansub_groups.go")},
-		{"founder", "fansub_group_media.upload", read("backend/internal/handlers/fansub_media_upload.go")},
-		{"founder", "fansub_group_media.update", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"founder", "fansub_group_media.reorder", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"founder", "fansub_group_page.founding_history_edit", read("backend/internal/handlers/fansub_group_history_handler.go")},
-		{"co_leader", "fansub_group_media.upload", read("backend/internal/handlers/fansub_media_upload.go")},
-		{"co_leader", "fansub_group_media.update", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"co_leader", "fansub_group_media.reorder", read("backend/internal/handlers/fansub_media_review_handler.go")},
-		{"co_leader", "fansub_group_page.general_edit", read("backend/internal/handlers/fansub_groups.go")},
-		{"co_leader", "fansub_group_links.update", read("backend/internal/handlers/fansub_group_links.go")},
+		{"gfxler", "fansub_group_media.upload", read("internal/handlers/fansub_media_upload.go")},
+		{"gfxler", "fansub_group_media.update", read("internal/handlers/fansub_media_review_handler.go")},
+		{"gfxler", "fansub_group_media.reorder", read("internal/handlers/fansub_media_review_handler.go")},
+		{"techadmin", "fansub_group_media.upload", read("internal/handlers/fansub_media_upload.go")},
+		{"techadmin", "fansub_group_media.update", read("internal/handlers/fansub_media_review_handler.go")},
+		{"techadmin", "fansub_group_media.reorder", read("internal/handlers/fansub_media_review_handler.go")},
+		{"techadmin", "fansub_group_page.technical_links_edit", read("internal/handlers/fansub_groups.go")},
+		{"founder", "fansub_group_media.upload", read("internal/handlers/fansub_media_upload.go")},
+		{"founder", "fansub_group_media.update", read("internal/handlers/fansub_media_review_handler.go")},
+		{"founder", "fansub_group_media.reorder", read("internal/handlers/fansub_media_review_handler.go")},
+		{"founder", "fansub_group_page.founding_history_edit", read("internal/handlers/fansub_group_history_handler.go")},
+		{"co_leader", "fansub_group_media.upload", read("internal/handlers/fansub_media_upload.go")},
+		{"co_leader", "fansub_group_media.update", read("internal/handlers/fansub_media_review_handler.go")},
+		{"co_leader", "fansub_group_media.reorder", read("internal/handlers/fansub_media_review_handler.go")},
+		{"co_leader", "fansub_group_page.general_edit", read("internal/handlers/fansub_groups.go")},
+		{"co_leader", "fansub_group_links.update", read("internal/handlers/fansub_group_links.go")},
 	}
 	for _, tc := range cases {
 		t.Run(tc.role+"/"+tc.action, func(t *testing.T) {
@@ -57,7 +57,7 @@ func TestPhase136NarrowRoleDefaultsSeedToHandlerContract(t *testing.T) {
 }
 
 func TestPhase136NarrowRoleDefaultsPatchClasses(t *testing.T) {
-	source, err := os.ReadFile(filepath.Join(phase136RepositoryRoot(t), "backend/internal/handlers/fansub_groups.go"))
+	source, err := os.ReadFile(filepath.Join(phase136RepositoryRoot(t), "internal/handlers/fansub_groups.go"))
 	require.NoError(t, err)
 	text := string(source)
 	require.Contains(t, text, "requiredFansubGroupPatchActions")
@@ -82,5 +82,5 @@ func phase136RepositoryRoot(t testing.TB) string {
 	t.Helper()
 	_, filename, _, ok := runtime.Caller(0)
 	require.True(t, ok)
-	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", ".."))
+	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", ".."))
 }
