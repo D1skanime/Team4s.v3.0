@@ -52,7 +52,7 @@ describe('app/layout', () => {
     })
     render(await RootLayout({ children: <LeafProbe /> }))
     expect(listRoleDefinitionsMock).toHaveBeenCalledTimes(3)
-    expect(screen.getByTestId('fansub-error').textContent).toBe('catalog_unavailable')
+    expect(screen.getByTestId('fansub-error').textContent).toBe('Rollenkatalog konnte nicht geladen werden.')
     expect(screen.getByTestId('leaf-probe').textContent).toContain('karaoke_fx|karaoke_fx')
   })
 
@@ -61,5 +61,6 @@ describe('app/layout', () => {
     render(await RootLayout({ children: <LeafProbe /> }))
     expect(listRoleDefinitionsMock).toHaveBeenCalledTimes(3)
     expect(screen.getByTestId('leaf-probe').textContent).not.toContain('karaoke_fx')
+    expect(screen.getByTestId('fansub-error').textContent).toBe('Rollenkatalog konnte nicht geladen werden.')
   })
 })

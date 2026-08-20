@@ -30,15 +30,15 @@ describe('RoleCatalogProvider', () => {
     expect(screen.getByTestId('anime_contribution').textContent).toBe('karaoke_fx')
   })
 
-  it('exposes a scoped neutral error without a static fallback', () => {
+  it('exposes a compact context-scoped error without a static fallback', () => {
     const loads: RoleCatalogLoads = {
-      fansub_group: { rows: [], error: 'catalog_unavailable' },
+      fansub_group: { rows: [], error: 'Rollenkatalog konnte nicht geladen werden.' },
       anime_contribution: { rows: [role('future_role', ['anime_contribution'], 1)], error: null },
       group_history: { rows: [], error: null },
     }
     render(<RoleCatalogProvider loads={loads}><CatalogProbe context="fansub_group" /><CatalogProbe context="anime_contribution" /></RoleCatalogProvider>)
     expect(screen.getByTestId('fansub_group').textContent).toBe('')
-    expect(screen.getByTestId('fansub_group').dataset.error).toBe('catalog_unavailable')
+    expect(screen.getByTestId('fansub_group').dataset.error).toBe('Rollenkatalog konnte nicht geladen werden.')
     expect(screen.getByTestId('anime_contribution').textContent).toBe('future_role')
   })
 })
