@@ -1,20 +1,18 @@
 ---
 phase: 132-shared-ssr-composition-race-safe-frontend-state
 verified: 2026-08-15T22:15:58Z
-status: human_needed
+resolved: 2026-08-20T00:00:00Z
+status: passed
 score: 11/11 must-haves verified (PMFE-01 through PMFE-11)
 overrides_applied: 0
-human_verification:
-  - test: "Run TestPhase132PublicProfileKnownForUsesApprovedFullSet against a live TEAM4S_PHASE129_TEST_DSN Postgres instance (member with >6 approved current projects across 2+ roles/groups)."
-    expected: "profile.KnownFor.TopRoles includes a role that only appears on projects past row 6, and KnownFor.KnownGroups contains both seeded group names — proving loadKnownFor aggregates the full approved set, not the first paginated page."
-    why_human: "TEAM4S_PHASE129_TEST_DSN is not configured in this environment (same pre-existing gap as Phase 129/131's other Postgres-gated tests in the same file); the test compiles and is present but has never actually executed against real Postgres rows. Static SQL/Go review found the WHERE-clause filter-identical to countCurrentProjects and the aggregation logic correct, but this is code review, not executed proof of the PMFE-11 data-correctness claim end-to-end."
+human_verification: []
 ---
 
 # Phase 132: Shared SSR Composition & Race-Safe Frontend State Verification Report
 
 **Phase Goal:** Public profile and owner preview render the SAME authoritative composition off the SAME Phase-130 DTO, while request, session, paging, and interaction state become centralized and race-safe (PMFE-01 through PMFE-11).
 **Verified:** 2026-08-15T22:15:58Z
-**Status:** human_needed
+**Status:** passed (resolved 2026-08-20 — see "Resolution" section below)
 **Re-verification:** No — initial verification
 
 ## Important environment finding (read before trusting any other agent's "it builds/passes" claim in this repo)
@@ -138,19 +136,36 @@ These were already logged in `deferred-items.md` by the executor, and I independ
 One **additional, previously unlogged** pre-existing failure found during my broader sweep (not in `deferred-items.md`, but also not caused by this phase):
 - `src/lib/api.no-token-boundary.test.ts > ... keeps docs and tests out of production boundary scans while making those allowlists explicit` fails because its `docsAllowlist` references `.planning/phases/49-zentraler-auth-api-client-und-token-lifecycle-h-rtung/49-auth-api-client-boundaries.md` and `...-inventory.md`, which were moved to `.planning/milestones/pre-v1.3-recovery-2026-08-13/phases/49-.../` by commit `3d4492b1` ("docs: archive pre-v1.3 planning recovery", 2026-08-13 — two days before any phase-132 commit). Unrelated to PMFE-01..11; flagging only for completeness, not as a phase-132 gap.
 
-## Human Verification Required
+## Resolution (2026-08-20): executed and PASSED
 
-### 1. Live-Postgres execution of the PMFE-11 full-set aggregation test
+The single outstanding item below — this report's own recommendation, "Phase 134 (bundled live
+UAT) is the natural place for this" — was closed during v1.3 milestone-close reconciliation.
+`TEAM4S_PHASE129_TEST_DSN` now points at a live, fully-schemaed `team4s_phase129_test` database
+(reprovisioned this session via `pg_dump --schema-only` of `team4s_v2` while re-running Phase
+134's own green gate). Ran the exact command this report specified:
+
+```
+docker compose exec -T -e TEAM4S_PHASE129_TEST_DSN='postgres://team4s:team4s_dev_password@team4sv30-db:5432/team4s_phase129_test?sslmode=disable' \
+  team4sv30-backend go test ./internal/repository/... -run TestPhase132PublicProfileKnownForUsesApprovedFullSet -v
+```
+
+Result: `--- PASS: TestPhase132PublicProfileKnownForUsesApprovedFullSet (0.04s)`. The test seeded a
+member with >6 approved current projects across multiple roles/groups and confirmed
+`KnownFor.TopRoles`/`KnownFor.KnownGroups` are genuinely computed over the full approved set, not
+the first paginated page — PMFE-11 is now executed-proven against real Postgres rows, not just
+code-reviewed. Status upgraded from `human_needed` to `passed`.
+
+### (superseded) Original human-verification item, for history
 
 **Test:** Set `TEAM4S_PHASE129_TEST_DSN` to a dedicated test Postgres instance/schema (per the existing `openPhase129Postgres` skip-if-unset convention already used by every other test in `member_profile_public_repository_postgres_test.go`, including pre-existing Phase 129/131 tests — this is not a new requirement introduced by this verification), run migrations, then run `go test ./internal/repository/... -run TestPhase132PublicProfileKnownForUsesApprovedFullSet -v`.
 **Expected:** The test seeds a member with more than 6 approved current projects across ≥2 distinct roles and ≥2 distinct groups, and asserts `profile.KnownFor.TopRoles` includes a role that only appears past row 6, and `KnownFor.KnownGroups` contains both seeded group names — proving the aggregate is genuinely computed over the full approved set rather than the first paginated page.
-**Why human:** This environment has no `TEAM4S_PHASE129_TEST_DSN` configured (confirmed: unset, and no dedicated test schema was found/created in this session). The test compiles, is wired correctly, and its SQL was statically verified to be filter-identical to the existing, trusted `countCurrentProjects` query — but it has never actually been executed against real seeded rows by anyone (not the phase executor, not this verification). Given PMFE-11 is explicitly a *data-correctness* requirement ("not from the first paginated page"), executed proof against real Postgres carries meaningfully more weight than code review alone, and this is exactly the kind of gap the phase's own SUMMARY.md already recommended closing "before merge/UAT" — Phase 134 (bundled live UAT) is the natural place for this, but it should not be silently skipped.
+**Why human (at the time):** This environment had no `TEAM4S_PHASE129_TEST_DSN` configured. Resolved above.
 
 ## Gaps Summary
 
 No must-have truth failed. All 11 PMFE requirements (PMFE-01 through PMFE-11) have concrete, re-verified evidence in the current codebase — not just SUMMARY.md claims. All 4 plans' task commits (11 commits) are present in `git log`. Backend builds/vets/tests cleanly against the **actual current source** (verified via a fresh bind-mounted container run, after discovering the long-running `team4sv30-backend` container serves a stale pre-phase-132 image). Frontend `tsc`/`vitest`/`eslint` all show zero new regressions attributable to this phase's 11 touched files; the only red items are pre-existing, already-documented (or newly-confirmed-but-still-pre-existing) drift unrelated to PMFE-01..11.
 
-The phase is functionally complete. The single open item is that PMFE-11's full-set aggregation SQL has been reviewed and unit/contract-tested but never executed end-to-end against a real Postgres instance in this environment — routed to human verification rather than silently accepted, per the adversarial verification stance. This does not indicate a defect; it indicates unexecuted (not failed) proof.
+The phase is now fully complete, including executed (not just reviewed) proof of PMFE-11's full-set aggregation — see Resolution above.
 
 ---
 *Verified: 2026-08-15T22:15:58Z*
