@@ -92,12 +92,55 @@
 
 ## Traceability
 
-Wird bei der Roadmap-Erstellung befüllt. Jede v1.4-Anforderung muss genau einer Phase zugeordnet werden.
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CAP-01 | Phase 137 | Pending |
+| CAP-02 | Phase 137 | Pending |
+| CAP-03 | Phase 136 | Pending |
+| CAP-04 | Phase 136 | Pending |
+| CAP-05 | Phase 137 | Pending |
+| CAP-06 | Phase 137 | Pending |
+| CAP-07 | Phase 137 | Pending |
+| CAP-08 | Phase 138 | Pending |
+| CAP-09 | Phase 138 | Pending |
+| CAP-10 | Phase 138 | Pending |
+| CAP-11 | Phase 136 | Pending |
+| CAP-12 | Phase 136 | Pending |
+| CAP-13 | Phase 136 | Pending |
+| CAP-14 | Phase 136 | Pending |
+| UADM-01 | Phase 138 | Pending |
+| UADM-02 | Phase 139 | Pending |
+| UADM-03 | Phase 139 | Pending |
+| UADM-04 | Phase 139 | Pending |
+| UADM-05 | Phase 139 | Pending |
+| UADM-06 | Phase 139 | Pending |
+| UADM-07 | Phase 139 | Pending |
+| UADM-08 | Phase 139 | Pending |
+| RDEL-01 | Phase 140 | Pending |
+| RDEL-02 | Phase 140 | Pending |
+| RDEL-03 | Phase 140 | Pending |
+| RDEL-04 | Phase 140 | Pending |
+| RDEL-05 | Phase 141 | Pending |
+| RQUE-01 | Phase 141 | Pending |
+| RQUE-02 | Phase 141 | Pending |
+| RQUE-03 | Phase 141 | Pending |
+| RQUE-04 | Phase 141 | Pending |
+| RQUE-05 | Phase 141 | Pending |
+| RQUE-06 | Phase 141 | Pending |
+| QUAL-01 | Phase 136 | Pending |
+| QUAL-02 | Phase 142 | Pending |
+| QUAL-03 | Phase 137 | Pending |
+| QUAL-04 | Phase 136 | Pending |
+| QUAL-05 | Phase 142 | Pending |
+| QUAL-06 | Phase 139 | Pending |
+| QUAL-07 | Phase 142 | Pending |
+| QUAL-08 | Phase 142 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 41 total
-- Mapped to phases: 0
-- Unmapped: 41
+- Mapped to phases: 41
+- Unmapped: 0
+- Duplicated: 0
 
 ---
 *Requirements defined: 2026-08-20*

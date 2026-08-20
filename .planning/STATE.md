@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Capability-, Review- und Benutzerverwaltung
 status: planning
-last_updated: "2026-08-20T11:24:33.364Z"
+last_updated: "2026-08-20T12:00:00Z"
 last_activity: 2026-08-20
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -28,23 +28,26 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** v1.3 complete — next milestone not yet started.
+**Current focus:** v1.4 Capability-, Review- und Benutzerverwaltung — Phase 136 policy, catalog, schema, and contract foundation.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 136 of 142 (Capability Policy, Catalog & Schema Contract)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-08-20 — Milestone v1.4 started
+Status: Roadmap created; awaiting approval and Phase 136 planning
+Last activity: 2026-08-20 — v1.4 roadmap created with 41/41 requirements uniquely mapped across Phases 136-142
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Milestone v1.4 roadmap created (2026-08-20): seven sequential phases 136-142 cover Findings #29-#32 and all 41 approved requirements exactly once. Finding #33 (platform documents) and #34 (badge UI) remain deferred.
 - Phase 135 added (2026-08-17): Einladungs- und Onboarding-Flow fuer eingeladene Fansub-Mitglieder haerten. Scope = Live-UAT-Findings #6-#10 (.planning/notes/live-uat-ux-findings.md). Additiv an v1.3 angehaengt; Requirements TBD (kein REQUIREMENTS.md-Mapping -- Decision-Coverage-Gate beim Planen beachten).
 
 ### Decisions
 
+- [Milestone v1.4, 2026-08-20]: Sequence policy/schema -> central resolver -> effective-rights UX and independent user projections -> specialized review delegation -> actor-decidable queue -> integrated security/live gate. This preserves `permissions.Service`, Keycloak global-role ownership, specialized delegation, canonical media/contribution ownership, and central browser refresh.
+- [Milestone v1.4, 2026-08-20]: Findings #33 and #34 are explicitly excluded from every v1.4 phase and remain future requirements.
 - [Phase 135, 2026-08-17]: 135-05's shipped `InviteAcceptFlow` (generic Anmelden/Registrieren copy) stays as the locked contract for 135-06/135-08; the Content-Spec Addendum's dynamic group/inviter/role context line and "wrong email logged in" state (D-11) are deferred — they require a new invite-preview-by-token backend endpoint out of Phase 135's scope. Tracked at `.planning/todos/pending/2026-08-17-invite-accept-dynamic-context-preview-endpoint.md`. Not a blocker for 135-07's live UAT.
 - Milestone v1.3 hardens the existing public member profile; it does not introduce parallel member, contribution, membership, badge, media, release, auth, or UI systems.
 - Anonymous hidden profiles and missing profiles are non-distinguishable.

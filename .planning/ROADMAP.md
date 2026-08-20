@@ -389,3 +389,166 @@ Plans:
 - [x] 135-08-PLAN.md — Keycloak-Theme register.ftl: E-Mail vorbefuellt+gesperrt + generischer Invite-Kontext (D-12, D-13, D-07).
 - [x] 135-09-PLAN.md — Keycloak-Registrierung auf Fansubname umbauen; First/Last optional; KC autoritativ + JIT-Sync (D-14).
 - [x] 135-10-PLAN.md — Case-preserved Fansubname (Anzeige, KC) + Historisch-Selbst-Claim Approval-Render (D-15, D-16, Finding #25).
+
+---
+
+# Milestone v1.4: Capability-, Review- und Benutzerverwaltung
+
+## Overview
+
+Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights explainable and safely editable, turning existing review delegation into a usable product seam, reducing user-admin projections to meaningful grouped data, and showing reviewers only work they can actually decide. It extends the existing DB-driven capability registry, central `permissions.Service`, specialized review delegation, canonical domain ownership, Keycloak-owned global roles, and refresh-capable browser API client. Finding #33 (platform documents) and Finding #34 (badge UI) remain future work.
+
+## Milestone Constraints
+
+- Policy, scope, precedence, schema, and contracts precede resolver and UI work; authorization remains centralized in `permissions.Service`.
+- Keycloak remains authoritative for global roles; the platform-admin bypass is read-only in group tooling and cannot be negated by group overrides.
+- Review delegation remains a specialized membership seam and is not folded into generic user overrides.
+- User-admin projections group canonical contribution and media ownership without changing release, release-version, media, or contribution ownership.
+- Protected browser flows use the central refresh-capable API client; no component reads tokens or constructs bearer headers.
+- UI extends existing global components and the existing user/group admin surfaces, remains desktop-first for the back office, and degrades without overflow at narrow widths.
+- Schema work uses new reversible migrations and reproducible disposable-data fixtures; no compatibility or backfill work is introduced.
+
+## Phases
+
+- [ ] **Phase 136: Capability Policy, Catalog & Schema Contract** - Lock one enforceable precedence/scope model, canonical metadata, override schema, indexes, and cross-layer contracts.
+- [ ] **Phase 137: Central Effective-Rights Resolver & Overrides** - Make canonical enforcement and inspection resolve the same provenance-aware effective rights and safe per-user overrides.
+- [ ] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows.
+- [ ] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections.
+- [ ] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor.
+- [ ] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide.
+- [ ] **Phase 142: Integrated Security, Fixtures & Live Release Gate** - Prove the complete milestone across contracts, auth refresh, fixtures, security, responsive UI, and canonical ownership.
+
+## Phase Details
+
+### Phase 136: Capability Policy, Catalog & Schema Contract
+
+**Goal**: Team4s has one documented, enforceable capability policy and one canonical data/contract foundation for scoped user overrides, provenance, impact, and reliable catalog behavior.
+**Depends on**: Phase 135 (completed historical baseline)
+**Requirements**: CAP-03, CAP-04, CAP-11, CAP-12, CAP-13, CAP-14, QUAL-01, QUAL-04
+**Success Criteria** (what must be TRUE):
+
+  1. The same documented precedence and scope matrix defines normal group decisions everywhere, while the IdP-owned platform-admin bypass is explicitly non-deniable by group controls.
+  2. Role assignability and capability category, order, label, and help text each come from one canonical catalog, including every review capability and an explicit state for roles without operative rights.
+  3. A fresh disposable database can apply and reverse the scoped-override schema with its ownership constraints and reverse-lookup indexes without editing historical migrations or requiring compatibility data.
+  4. OpenAPI, backend DTOs, frontend types, and central API-helper contracts describe the same effective-rights, override, impact, and mutation-status shapes before consumers are built.
+
+**Plans**: TBD
+
+### Phase 137: Central Effective-Rights Resolver & Overrides
+
+**Goal**: Authorized decisions and administrative explanations use one central resolver that safely applies group-scoped user denies/allows and exposes complete provenance.
+**Depends on**: Phase 136
+**Requirements**: CAP-01, CAP-02, CAP-05, CAP-06, CAP-07, QUAL-03
+**Success Criteria** (what must be TRUE):
+
+  1. An authorized caller can inspect every effective capability for a real user/group pair and see all granting roles, direct allows, direct denies, and the decisive reason.
+  2. Runtime authorization and the inspector produce the same answer for role OR, deny-over-allow precedence, scoped overrides, disabled actors, and platform-admin bypass.
+  3. An authorized admin can idempotently grant or deny one allowed capability for an active member in exactly one group, while foreign memberships, invalid scopes, and unknown actions fail neutrally.
+  4. Every override mutation commits atomically with an immutable actor/target/context/before/after audit record, and forced audit or concurrency failures cannot leave partial authorization state.
+  5. Automated negative coverage proves deny precedence, cross-group BOLA/IDOR resistance, invalid capability rejection, and protected direct-access enforcement.
+
+**Plans**: TBD
+
+### Phase 138: Effective-Rights Administration & Impact UX
+
+**Goal**: Admins can understand and change a user's effective group rights from the existing canonical surfaces without guessing which role grants access or receiving false mutation success.
+**Depends on**: Phase 137
+**Requirements**: CAP-08, CAP-09, CAP-10, UADM-01
+**Success Criteria** (what must be TRUE):
+
+  1. The existing user-detail group-rights tab shows the complete effective capability set and its provenance, and is the canonical place for scoped user allow/deny changes.
+  2. A guided "user must not do this" flow lists every granting source and recommends a scoped user deny before offering broader membership or role-matrix changes.
+  3. Before changing a role-capability mapping, an admin sees affected role holders and which users actually gain, lose, or retain the capability through another source.
+  4. After a role-matrix mutation, the UI distinguishes persisted, cache-active, pending, and failed activation states and never reports stale enforcement as final success.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 139: Scalable User-Admin Projections
+
+**Goal**: Admins can understand large user contribution and media histories as bounded domain-correct groups instead of release-version noise.
+**Depends on**: Phase 137
+**Requirements**: UADM-02, UADM-03, UADM-04, UADM-05, UADM-06, UADM-07, UADM-08, QUAL-06
+**Success Criteria** (what must be TRUE):
+
+  1. Contributions are grouped server-side by anime and project, show the project default once, and label only real release-version deviations as overrides.
+  2. Identical version assignments collapse into understandable ranges, while filters, counts, and stable pagination all describe the same server-side dataset.
+  3. User media is grouped by anime, project, and release context and each item links to its existing canonical ownership-specific workspace.
+  4. Every affected user tab explains whether it is actionable or informational and offers the relevant next action without unbounded flat lists or client-side regrouping.
+  5. The shared admin layout remains keyboard-operable and usable at narrow widths without page overflow, while query-count and high-volume gates prevent N+1 behavior and pagination drift.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 140: Review Delegation Management
+
+**Goal**: Group leaders can safely manage specialized review authority for individual active members without granting a broader leadership role.
+**Depends on**: Phase 137
+**Requirements**: RDEL-01, RDEL-02, RDEL-03, RDEL-04
+**Success Criteria** (what must be TRUE):
+
+  1. An authorized group leader can read a real member's current media/image, note/text, and contribution review delegations through the documented central API contract.
+  2. The leader can independently grant or revoke each delegable review right in the existing member editor under a distinct "Prüf-/Freigabe-Rechte" section.
+  3. Delegation controls remain visibly and technically separate from roles and generic user overrides, so granting review authority does not grant broader leader capabilities.
+  4. Every mutation reuses the existing transactional review service and audit seam, is idempotent, and rejects foreign, inactive, disabled, pending, or otherwise ineligible targets server-side.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 141: Actor-Decidable Review Queue
+
+**Goal**: Reviewers see and navigate only work they can decide, while their own submissions remain clearly separated and protected by the same server-side policy.
+**Depends on**: Phase 140
+**Requirements**: RDEL-05, RQUE-01, RQUE-02, RQUE-03, RQUE-04, RQUE-05, RQUE-06
+**Success Criteria** (what must be TRUE):
+
+  1. The actionable queue contains only review kinds the current actor may decide for the relevant group, including immediately granted or revoked specialized delegations.
+  2. A reviewer's own submissions do not appear in or increment actionable work; when shown, they occupy a separate "wartet auf Fremdprüfung" lane without decision actions.
+  3. Actionable list rows, type counts, stable cursors, detail access, and "next" navigation use the same actor, group, capability, and self-review predicates.
+  4. Manipulated URLs and stale clients cannot enumerate or decide forbidden entries, and the final transactional decision guard remains authoritative.
+  5. Contribution reviews remain in their existing canonical workflow rather than being moved into the text/image release queue.
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 142: Integrated Security, Fixtures & Live Release Gate
+
+**Goal**: The complete v1.4 capability, user-admin, delegation, and review workflows are reproducibly proven safe, contract-aligned, responsive, and ready for milestone closure.
+**Depends on**: Phase 141
+**Requirements**: QUAL-02, QUAL-05, QUAL-07, QUAL-08
+**Success Criteria** (what must be TRUE):
+
+  1. Reproducible fixtures cover two groups, multiple-role OR, allow/deny conflict, platform admin, cache failure, review grant/revoke, own/foreign submissions, and high-volume user projections from a clean disposable state.
+  2. Every protected v1.4 view and mutation proceeds through the central browser refresh seam when the access token is absent or expired but the refresh session remains valid, without showing logged-out UI.
+  3. Live UAT passes on the real user-detail, group-member, capability, and review routes at 390×844, 768×1024, and 1440×900, plus keyboard operation and 400% zoom.
+  4. The final gate proves Keycloak-owned global roles, platform-admin bypass, canonical media/contribution ownership, specialized review audit, contracts, migrations, tests, lint/typecheck/build, and protected badge assets remain intact without parallel systems.
+
+**Plans**: TBD
+**UI hint**: yes
+
+## v1.4 Coverage
+
+| Phase | Requirement Count | Requirement IDs |
+|-------|-------------------|-----------------|
+| 136. Capability Policy, Catalog & Schema Contract | 8 | CAP-03, CAP-04, CAP-11-14, QUAL-01, QUAL-04 |
+| 137. Central Effective-Rights Resolver & Overrides | 6 | CAP-01, CAP-02, CAP-05-07, QUAL-03 |
+| 138. Effective-Rights Administration & Impact UX | 4 | CAP-08-10, UADM-01 |
+| 139. Scalable User-Admin Projections | 8 | UADM-02-08, QUAL-06 |
+| 140. Review Delegation Management | 4 | RDEL-01-04 |
+| 141. Actor-Decidable Review Queue | 7 | RDEL-05, RQUE-01-06 |
+| 142. Integrated Security, Fixtures & Live Release Gate | 4 | QUAL-02, QUAL-05, QUAL-07, QUAL-08 |
+| **Total v1.4** | **41** | **41 unique requirements; no duplicates or orphans** |
+
+## v1.4 Progress
+
+**Execution Order:** 136 - 137 - 138 - 139 - 140 - 141 - 142
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 136. Capability Policy, Catalog & Schema Contract | 0/TBD | Not started | - |
+| 137. Central Effective-Rights Resolver & Overrides | 0/TBD | Not started | - |
+| 138. Effective-Rights Administration & Impact UX | 0/TBD | Not started | - |
+| 139. Scalable User-Admin Projections | 0/TBD | Not started | - |
+| 140. Review Delegation Management | 0/TBD | Not started | - |
+| 141. Actor-Decidable Review Queue | 0/TBD | Not started | - |
+| 142. Integrated Security, Fixtures & Live Release Gate | 0/TBD | Not started | - |
