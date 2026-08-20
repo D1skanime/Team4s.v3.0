@@ -179,9 +179,17 @@ describe('MemberProfileHero', () => {
     const css = readFileSync('src/components/profile/profile.module.css', 'utf8')
 
     expect(css).toMatch(/\.heroPanel\s*\{[\s\S]*?min-height:\s*230px[\s\S]*?grid-template-columns:\s*140px minmax\(0, 1fr\)[\s\S]*?gap:\s*24px[\s\S]*?padding:\s*32px/)
-    expect(css).toMatch(/\.heroPanel\s*\{[\s\S]*?container:\s*member-profile-hero\s*\/\s*inline-size/)
+    // Phase 134-06 fix: the container MUST live on the .hero wrapper, never on .heroPanel itself
+    // -- a container query cannot resolve against the same element it also styles (spec: "a
+    // query container cannot be queried by itself, only by its descendants"). This previously
+    // lived on .heroPanel, which silently prevented every @container member-profile-hero rule
+    // below from ever matching at any viewport width. See FocalCarousel.module.css's .root for
+    // this codebase's established convention (container on a wrapper, @container rules style
+    // descendants).
+    expect(css).toMatch(/\.hero\s*\{[\s\S]*?container:\s*member-profile-hero\s*\/\s*inline-size[\s\S]*?\}/)
+    expect(css.match(/\.heroPanel\s*\{[^}]*\}/s)?.[0] ?? '').not.toMatch(/container:\s*member-profile-hero/)
     expect(css).toMatch(/@container member-profile-hero \(max-width:\s*1099px\)[\s\S]*?\.heroPanel\s*\{[\s\S]*?min-height:\s*220px[\s\S]*?grid-template-columns:\s*120px minmax\(0, 1fr\)[\s\S]*?padding:\s*24px/)
-    expect(css).toMatch(/@container member-profile-hero \(max-width:\s*760px\)[\s\S]*?\.heroPanel\s*\{[\s\S]*?min-height:\s*0[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)[\s\S]*?padding:\s*16px/)
+    expect(css).toMatch(/@container member-profile-hero \(max-width:\s*760px\)[\s\S]*?\.heroPanel\s*\{[\s\S]*?min-height:\s*0[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)[\s\S]*?justify-items:\s*center[\s\S]*?padding:\s*16px/)
     expect(css).toMatch(/\.heroAvatar\s*\{[\s\S]*?width:\s*140px[\s\S]*?height:\s*140px/)
     expect(css).toMatch(/@container member-profile-hero \(max-width:\s*1099px\)[\s\S]*?\.heroAvatar\s*\{[\s\S]*?width:\s*120px[\s\S]*?height:\s*120px/)
     expect(css).toMatch(/@container member-profile-hero \(max-width:\s*760px\)[\s\S]*?\.heroAvatar\s*\{[\s\S]*?width:\s*100px[\s\S]*?height:\s*100px/)

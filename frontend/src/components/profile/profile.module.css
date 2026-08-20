@@ -3,12 +3,22 @@
   gap: 16px;
   min-width: 0;
   margin-bottom: 24px;
+  /* Phase 134-06 fix: the container MUST live on a wrapper distinct from the element(s) it
+     styles -- a container query cannot be resolved against the container element itself
+     (spec: "a query container cannot be queried by itself, only by its descendants"). This was
+     previously declared on .heroPanel while the @container rules below also styled .heroPanel,
+     which made every @container member-profile-hero rule silently never match at any viewport
+     width (confirmed live: computed grid-template-columns stayed "140px 136px" -- the desktop
+     base value -- at a 390px viewport). Moving the container declaration one level up to this
+     wrapper, so .heroPanel becomes a proper descendant of the query container, is what actually
+     activates the mobile single-column layout below.
+     Reused by MemberProfileMemorialHero.tsx, which shares this exact .hero > .heroPanel shape. */
+  container: member-profile-hero / inline-size;
 }
 
 .heroPanel {
   position: relative;
   isolation: isolate;
-  container: member-profile-hero / inline-size;
   max-width: 100%;
   min-width: 0;
   min-height: 230px;
@@ -192,7 +202,12 @@
   font-weight: 700;
   line-height: 1.25;
   text-shadow: 0 1px 4px rgba(9, 15, 27, 0.9);
-  overflow-wrap: anywhere;
+  /* Phase 134-06 fix: overflow-wrap: anywhere let multi-word labels (e.g. "Historische
+     Leitung") break mid-word ("Historisc-he") once the badge shrank below its content's
+     natural width. `.heroSpecialAwardsList`'s flex-wrap already lets this badge fall to its
+     own line, and this span's own min-width: 0 still lets its text wrap onto a second line
+     inside the pill when needed -- both at natural word-space boundaries only, never mid-word. */
+  overflow-wrap: normal;
 }
 
 .heroSpecialArtwork {
@@ -483,10 +498,12 @@
   .heroPanel {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
     align-content: start;
     align-items: start;
     gap: 16px;
     padding: 16px;
+    text-align: center;
   }
 
   .heroAvatar {
@@ -502,6 +519,11 @@
   .heroSpecialAwardsList {
     min-width: 0;
     max-width: 100%;
+    justify-content: center;
+  }
+
+  .heroCopy {
+    justify-items: center;
   }
 }
 
