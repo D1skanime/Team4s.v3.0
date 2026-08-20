@@ -14,12 +14,50 @@ package permissions
 
 import (
 	"context"
+	"errors"
+	"os"
 	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestMain(m *testing.M) {
+	cacheMu.Lock()
+	loadedCache = roleMatrixStubData()
+	cacheMu.Unlock()
+	os.Exit(m.Run())
+}
+
+func TestPermissionCatalogFailsClosedBeforeLoad(t *testing.T) {
+	cacheMu.Lock()
+	previous := loadedCache
+	loadedCache = nil
+	cacheMu.Unlock()
+	t.Cleanup(func() { cacheMu.Lock(); loadedCache = previous; cacheMu.Unlock() })
+
+	assert.Empty(t, AllowedActionsForRole(RoleFansubLead))
+	assert.False(t, RoleAllowsAction(RoleFansubLead, ActionFansubGroupEdit))
+}
+
+type failingCatalogLoader struct{ stubCacheLoader }
+func (f failingCatalogLoader) LoadFansubGroupRoles(context.Context) ([]string, error) { return []string{"karaoke_fx"}, nil }
+func (f failingCatalogLoader) LoadCapabilityRoles(context.Context) ([]string, error) { return nil, errors.New("catalog unavailable") }
+
+func TestPermissionCatalogFailureDoesNotPartiallySwap(t *testing.T) {
+	beforeRoles := FansubGroupRoles()
+	err := NewService(nil).LoadFansubGroupCatalog(context.Background(), failingCatalogLoader{})
+	require.Error(t, err)
+	assert.Equal(t, beforeRoles, FansubGroupRoles())
+}
+
+func TestPermissionCatalogLearnsZeroRightRole(t *testing.T) {
+	data := roleMatrixStubData()
+	data["karaoke_fx"] = nil
+	require.NoError(t, NewService(nil).LoadCache(context.Background(), stubCacheLoader{data: data}))
+	assert.Empty(t, AllowedActionsForRole("karaoke_fx"))
+}
 
 // stubCacheLoader implementiert CacheLoader für Tests.
 // data enthält die vollständige roleCode → []Action-Map die LoadRoleCapabilities zurückgibt.

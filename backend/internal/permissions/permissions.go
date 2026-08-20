@@ -86,6 +86,7 @@ const (
 	ReasonNoSupportedContext = "no_supported_context"
 )
 
+/* Historical bootstrap grants retained as documentation only. Runtime authority is PostgreSQL.
 var roleMatrix = map[string][]Action{
 	RoleFansubLead: {
 		ActionFansubGroupEdit,
@@ -187,9 +188,10 @@ var roleMatrix = map[string][]Action{
 		ActionReleaseVersionNotesWrite,
 	},
 }
+*/
 
 // paket-globaler In-Memory-Cache für die Rolle→Action-Matrix.
-// loadedCache == nil bedeutet "noch nicht geladen" → roleAllows fällt auf roleMatrix-Fallback zurück.
+// loadedCache == nil bedeutet "noch nicht geladen" und ist fail-closed.
 var (
 	cacheMu     sync.RWMutex
 	loadedCache map[string][]Action
@@ -349,6 +351,17 @@ func (s *Service) LoadCache(ctx context.Context, loader CacheLoader) error {
 		return fmt.Errorf("permission cache load: %w", err)
 	}
 
+	if err := validateCapabilityCatalog(m); err != nil {
+		return err
+	}
+
+	cacheMu.Lock()
+	loadedCache = m
+	cacheMu.Unlock()
+	return nil
+}
+
+func validateCapabilityCatalog(m map[string][]Action) error {
 	// D-10: Konsistenz-Check — alle bekannten Action-Konstanten müssen im Cache vorhanden sein
 	// oder als standaloneAction deklariert (d.h. sie haben keinen role_capabilities-Eintrag).
 	seenActions := make(map[Action]bool)
@@ -363,9 +376,6 @@ func (s *Service) LoadCache(ctx context.Context, loader CacheLoader) error {
 		}
 	}
 
-	cacheMu.Lock()
-	loadedCache = m
-	cacheMu.Unlock()
 	return nil
 }
 
@@ -380,10 +390,21 @@ func (s *Service) LoadFansubGroupCatalog(ctx context.Context, loader CatalogLoad
 	if err != nil {
 		return fmt.Errorf("capability role catalog load: %w", err)
 	}
+	// Der produktive Repository-Loader liefert auch die Grant-Projektion. Dadurch wird
+	// der vollständige Katalog erst nach erfolgreicher Validierung gemeinsam publiziert.
+	var capabilities map[string][]Action
+	if cacheLoader, ok := loader.(CacheLoader); ok {
+		capabilities, err = cacheLoader.LoadRoleCapabilities(ctx)
+		if err != nil { return fmt.Errorf("permission catalog load: %w", err) }
+		if err := validateCapabilityCatalog(capabilities); err != nil { return err }
+	}
+	cacheMu.Lock()
 	catalogMu.Lock()
+	if capabilities != nil { loadedCache = capabilities }
 	fansubGroupRoleCatalog = roles
 	capabilityRoleCatalog = capRoles
 	catalogMu.Unlock()
+	cacheMu.Unlock()
 	return nil
 }
 
@@ -391,10 +412,8 @@ func AllowedActionsForRole(role string) []Action {
 	cacheMu.RLock()
 	cache := loadedCache
 	cacheMu.RUnlock()
-	if cache != nil {
-		return append([]Action(nil), cache[strings.TrimSpace(role)]...)
-	}
-	return append([]Action(nil), roleMatrix[strings.TrimSpace(role)]...)
+	if cache == nil { return []Action{} }
+	return append([]Action(nil), cache[strings.TrimSpace(role)]...)
 }
 
 func FansubGroupRoles() []string {
@@ -738,11 +757,8 @@ func roleAllows(role string, action Action) bool {
 	cacheMu.RLock()
 	cache := loadedCache
 	cacheMu.RUnlock()
-	if cache != nil {
-		return slices.Contains(cache[strings.TrimSpace(role)], action)
-	}
-	// Fallback auf statische roleMatrix (nur wenn LoadCache noch nicht aufgerufen wurde, z.B. in Unit-Tests)
-	return slices.Contains(roleMatrix[strings.TrimSpace(role)], action)
+	if cache == nil { return false }
+	return slices.Contains(cache[strings.TrimSpace(role)], action)
 }
 
 func denied(code string, reason string) Result {

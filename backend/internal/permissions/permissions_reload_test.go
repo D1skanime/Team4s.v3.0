@@ -78,7 +78,7 @@ func TestReloadCacheReplacesCacheAtomically(t *testing.T) {
 	// (die auf den roleMatrix-Fallback bei loadedCache == nil bauen) nicht verschmutzt werden.
 	t.Cleanup(func() {
 		cacheMu.Lock()
-		loadedCache = nil
+		loadedCache = roleMatrixStubData()
 		cacheMu.Unlock()
 	})
 
@@ -107,7 +107,7 @@ func TestReloadCacheFailsafe(t *testing.T) {
 	// (die auf den roleMatrix-Fallback bei loadedCache == nil bauen) nicht verschmutzt werden.
 	t.Cleanup(func() {
 		cacheMu.Lock()
-		loadedCache = nil
+		loadedCache = roleMatrixStubData()
 		cacheMu.Unlock()
 	})
 
