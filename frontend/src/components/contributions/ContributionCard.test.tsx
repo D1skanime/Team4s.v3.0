@@ -1,9 +1,20 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { MeAnimeContribution } from '@/types/contributions'
+
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+  ],
+}))
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+}))
 
 import { ContributionCard } from './ContributionCard'
 
@@ -34,6 +45,30 @@ afterEach(() => {
 })
 
 describe('ContributionCard', () => {
+  it('renders catalog roles in order with distinct and neutral presentation', () => {
+    const { container } = render(
+      <ContributionCard
+        contribution={makeContribution({
+          role_codes: ['karaoke_fx', 'future_role', 'typer'],
+          role_labels: [],
+        })}
+        mode="confirmed"
+      />,
+    )
+
+    const badges = Array.from(container.querySelectorAll('[data-role-code]'))
+    expect(badges.map((badge) => badge.textContent)).toEqual([
+      'Typesetting',
+      'Karaoke-FX',
+      'Future Role',
+    ])
+    expect(badges.map((badge) => badge.getAttribute('data-role-code'))).toEqual([
+      'technical',
+      'creative',
+      'other',
+    ])
+  })
+
   it('links confirmed release-version contributions to the member workspace', () => {
     render(
       <ContributionCard
