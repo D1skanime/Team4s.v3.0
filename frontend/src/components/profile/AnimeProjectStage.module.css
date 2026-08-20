@@ -16,7 +16,11 @@
 .animeProjectMilestones li { position: relative; z-index: 1; min-width: 0; text-align: center; }
 .animeProjectMilestones button, .animeProjectMilestones li > span { display: grid; justify-items: center; gap: 5px; width: 100%; min-width: 0; padding: 0 4px; border: 0; color: var(--text-primary); background: transparent; font: inherit; }
 .animeProjectMilestones button { cursor: pointer; border-radius: var(--radius-md); }
-.animeProjectMilestones button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+/* Phase 134-06 fix: --focus-ring is a box-shadow shorthand (globals.css), not a color -- using it
+   as an outline color made this declaration invalid at computed-value time (collapses to
+   outline-style: none), silently hiding the focus ring. --focus-outline is the dedicated color
+   token for exactly this purpose. */
+.animeProjectMilestones button:focus-visible { outline: 3px solid var(--focus-outline); outline-offset: 3px; }
 .animeProjectMarker { display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--border-strong); border-radius: 50%; color: var(--text-secondary); background: var(--surface-card); }
 .animeProjectMilestones [data-stage-state='earned'] .animeProjectMarker { border-color: var(--color-success); color: var(--color-success); }
 .animeProjectMilestones [data-stage-state='current'] .animeProjectMarker { border: 3px double var(--color-primary); color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent); }

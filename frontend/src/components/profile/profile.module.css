@@ -400,7 +400,11 @@
   text-decoration: underline;
 }
 .membershipLink:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--color-primary, #2f5fe3));
+  /* Phase 134-06 fix: --focus-ring is a box-shadow shorthand (globals.css), not a color -- using
+     it as an outline color made this declaration invalid at computed-value time (collapses to
+     outline-style: none), silently hiding the focus ring. --focus-outline is the dedicated color
+     token globals.css's own base :focus-visible rule already uses for exactly this purpose. */
+  outline: 2px solid var(--focus-outline, var(--color-primary, #2f5fe3));
   outline-offset: -3px;
 }
 

@@ -34,3 +34,18 @@ SCOPE BOUNDARY rule: pre-existing drift unrelated to the current task's own file
    verb updates the per-requirement checkbox and traceability table row but not
    this summary line. Not fixed here — the counting/regeneration logic for that
    line lives in the SDK, not this plan's files.
+
+## From Plan 134-06
+
+4. **`--focus-ring` (a box-shadow shorthand token, `globals.css`) is misused as an
+   outline color in `frontend/src/app/admin/fansubs/[id]/edit/GroupMediaReviewSection.module.css`
+   (lines 130 `border-color: var(--focus-ring)`, 135 and 297
+   `outline: 2px solid var(--focus-ring)`)** — the exact same root-cause bug fixed
+   in this plan for `profile.module.css`/`FocalCarousel.module.css`/
+   `AnimeProjectStage.module.css` (all three now use the dedicated `--focus-outline`
+   color token instead). `GroupMediaReviewSection` renders only inside
+   `/admin/fansubs/[id]/edit`, not `/members/{slug}` — outside this plan's
+   member-profile-page blast radius and outside `capture-phase134-uat-evidence.mjs`'s
+   captured Tab sequence, so not fixed here. Worth a dedicated follow-up sweep for
+   every remaining `var(--focus-ring)` outline/border-color misuse across the admin
+   surface.
