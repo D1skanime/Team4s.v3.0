@@ -2,40 +2,32 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Milestone v1.3 COMPLETE (2026-08-20, tag v1.3) — all 8 phases (128-135) done, 65/65 requirements
+status: ready_to_plan
+stopped_at: Phase 134 complete (6/6) — ready to discuss Phase 135
 last_updated: 2026-08-20T09:45:59.211Z
 last_activity: 2026-08-20
 progress:
   total_phases: 8
-  completed_phases: 8
+  completed_phases: 4
   total_plans: 80
-  completed_plans: 80
-  percent: 100
+  completed_plans: 54
+  percent: 50
 ---
 
 # Project State
-
-## Milestone v1.3: COMPLETE (2026-08-20, tag `v1.3`)
-
-All 8 phases (128 through 135) complete, all 65 v1.3 requirements verified complete. Non-destructive
-close — see `.planning/v1.3-MILESTONE-AUDIT.md` for the scorecard and tracked debt, and
-`.planning/archive/v1.3/` for a copied snapshot of the milestone's tracking docs at close time.
-This section, `ROADMAP.md`, and `REQUIREMENTS.md` all remain live in place (not archived/removed) —
-Phase 135 and any future roadmap entries continue from here.
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** v1.3 complete — next milestone not yet started.
+**Current focus:** Phase 135 — einladungs und onboarding flow fuer eingeladene fansub mitgl
 
 ## Current Position
 
-Phase: none (milestone v1.3 complete — all phases 128-135 done)
-Plan: n/a
-Status: Milestone complete, next milestone not yet started
+Phase: 135
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-08-20
 
 ## Accumulated Context
