@@ -343,6 +343,8 @@ func main() {
 	}()
 
 	v1 := router.Group("/api/v1")
+	roleCatalogHandler := handlers.NewRoleCatalogHandler(repository.NewRoleCatalogRepository(dbPool))
+	handlers.RegisterPublicRoleCatalogRoute(v1, roleCatalogHandler)
 	v1.POST("/auth/issue", authHandler.Issue)
 	v1.POST("/auth/refresh", authHandler.Refresh)
 	v1.POST("/auth/revoke", authMiddleware, authHandler.Revoke)
