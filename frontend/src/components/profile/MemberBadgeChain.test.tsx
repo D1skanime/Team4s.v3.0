@@ -18,6 +18,8 @@ const contributionRoles = [
   ['raw_provider', 'Raw-Bereitstellung'],
   ['quality_checker', 'Qualitätsprüfung'],
   ['designer', 'Design'],
+  ['admin', 'Administration'],
+  ['other', 'Andere'],
   ['typer', 'Typesetting'],
   ['karaoke_fx', 'Karaoke-FX'],
   ['future_role', 'Zukunftsrolle'],

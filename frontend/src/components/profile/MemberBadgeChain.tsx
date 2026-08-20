@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
 import { Badge, Card, FocalCarousel, SectionHeader } from '@/components/ui'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
-import { labelForRole, orderForContext } from '@/lib/roleCatalog'
+import { getRole, labelForRole, orderForContext, presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { PublicMemberBadge, PublicMemberBadgeProgress } from '@/types/profile'
 
@@ -22,7 +22,7 @@ import {
   type MemberBadgePresentation,
   type PublicMemberBadgeCatalogItem,
 } from './memberBadgeLabels'
-import { resolveBadgeArtwork } from './badgeArtwork'
+import { resolveBadgeArtwork, resolveLayeredRoleArtwork } from './badgeArtwork'
 import chainStyles from './MemberBadgeChain.module.css'
 import lockedStageArtworkStyles from './LockedStageArtwork.module.css'
 import layeredBadgeArtworkStyles from './LayeredBadgeArtwork.module.css'
@@ -109,19 +109,6 @@ function resolveLayeredProgressArtwork(
   return {
     motifSrc: '/member-achievement-badges/progress-productive-motif.png',
     frameSrc: `/member-achievement-badges/progress-frame-productive-${productiveMatch[1]}.png`,
-  }
-}
-
-function resolveLayeredRoleArtwork(
-  badgeCode: string,
-): { motifSrc: string; frameSrc: string } | undefined {
-  const match = /^role_volume_(translator|encoder|typesetter|quality_checker|project_lead|editor|raw_provider|designer|admin|other)_(bronze|silver|gold|platinum)$/.exec(badgeCode)
-  if (!match) return undefined
-
-  const [, role, rank] = match
-  return {
-    motifSrc: `/member-achievement-badges/role-${role}-motif.png`,
-    frameSrc: `/member-achievement-badges/rank-frame-${role}-${rank}.png`,
   }
 }
 
@@ -730,18 +717,18 @@ export function MemberBadgeChain({
                 gridClassName={chainStyles.badgeGrid}
                 deferInteractionUntilNearViewport
                 renderItem={(row, state) => {
-                  const earnedArtworkItems = row.items.filter(
-                    (item) => earnedCodes.has(item.badge_code) && resolveBadgeArtwork(item.badge_code),
-                  )
-
                   if (group.key === 'roles') {
+                    const roleDefinition = getRole(contributionRoles, row.key)
+                    const roleIconKey = roleDefinition
+                      ? presentationForRole(contributionRoles, row.key).iconKey
+                      : undefined
                     const count = roleCounts.get(row.key) ?? 0
                     const progress = resolveRoleProgressPresentation(count)
                     const roleLabel = resolveRoleLabel(contributionRoles, row.key)
                     const currentIndex = ['entry', 'bronze', 'silver', 'gold', 'platinum'].indexOf(progress.tier ?? '')
                     const artworkItem = row.items[Math.max(0, currentIndex)]
-                    const artworkSrc = artworkItem ? resolveBadgeArtwork(artworkItem.badge_code) : undefined
-                    const layeredRoleArtwork = artworkItem ? resolveLayeredRoleArtwork(artworkItem.badge_code) : undefined
+                    const artworkSrc = artworkItem ? resolveBadgeArtwork(artworkItem.badge_code, roleIconKey) : undefined
+                    const layeredRoleArtwork = artworkItem ? resolveLayeredRoleArtwork(artworkItem.badge_code, roleIconKey) : undefined
                     const heroAlt = `${progress.rankLabel.split(' · ')[0]}medaille für ${roleLabel}`
 
                     return (
@@ -807,6 +794,10 @@ export function MemberBadgeChain({
                       </Card>
                     )
                   }
+
+                  const earnedArtworkItems = row.items.filter(
+                    (item) => earnedCodes.has(item.badge_code) && resolveBadgeArtwork(item.badge_code),
+                  )
 
                   return (
                     <div
