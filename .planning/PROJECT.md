@@ -24,6 +24,7 @@ Team4s presents fansub history and collaboration credibly while keeping identity
 - [x] Production workflow code touched by the milestone remains modularized rather than collapsing into oversized files - v1.0
 - [x] Phase 72 provides the v1.2 backend/contract foundation for status axes, domain projections, and media ownership read DTOs - validated 2026-06-05
 - [x] Phase 106 provides the auditierbare, idempotente Gamification-Grundlage mit stabilem Member-Bezug, versioniertem Punktekatalog und append-only Punktebuch - validated 2026-07-22
+- [x] Verify the complete public experience with reproducible `sheppert` and `csubs-leader` test profiles - Phase 134, validated 2026-08-20
 
 ### Active
 
@@ -33,7 +34,6 @@ Team4s presents fansub history and collaboration credibly while keeping identity
 - [ ] Eliminate avoidable N+1 reads, oversized payloads, misleading pagination, and unnecessary dynamic rendering.
 - [ ] Consolidate repeated profile components, hooks, request logic, derived values, and badge configuration without crossing domain ownership boundaries.
 - [ ] Refactor profile and achievement CSS into mobile-first, accessible, maintainable component styles that scale to widescreen.
-- [ ] Verify the complete public experience with reproducible `sheppert` and `csubs-leader` test profiles.
 
 ### Out Of Scope
 
@@ -71,6 +71,8 @@ Phase 107 completed on 2026-07-23: typisierte Review-Delegationen, atomare First
 Phase 110 completed on 2026-07-28: die read-seitige Gamification-Oberfläche steht — öffentliche Ranglisten-Seite (`/members/ranking`) über die Phase-109-Projektion (kein Pro-Zeile-API-Fächer), eine prominente Gesamtpunktzahl im Profil-Hero, 8 live-berechnete Rollen-Einstiegs-Badges (Projektion aus `release_role_credit_lifecycles`, nie in `member_badges` persistiert) und eine erweiterbare, kategorie-gruppierte „Auszeichnungen"-Sektion (D-04, Phase-112-vorbereitet). Automatisiert verifiziert; Live-Docker-UAT und die Postgres-Lifecycle-Tests bleiben als Human-UAT offen.
 
 Phase 112 completed on 2026-07-28: zwei weitere rein abgeleitete Badge-Familien hängen in der „Auszeichnungen"-Sektion — Typ 2 (Punkt-Meilensteine 1/50/200/500/1000/2500, nur höchster Rang) und Typ 3 (Rollen-Volumen Bronze/Silber/Gold/Platin bei 12/108/320/510 Netto-Credits pro Rolle, neben dem Typ-1-Einstieg in der „Rollen"-Gruppe). Live-Projektion mit Rückstufung bei Storno, kein neuer Buchungspfad; Backend-Zählung dynamisch über `release_role_credit_lifecycles`, Ableitung/Resolver in `memberBadgeLabels.ts`, SSR-Verdrahtung in `members/[slug]/page.tsx`. 9/9 Verifikations-Must-haves, 29/29 Frontend-Tests grün. Offen: optionaler Live-UAT der Gold/Platin-Sichtbarkeit sowie ein Code-Review-Critical (Typ-1-Rollen-Katalog hardcodet nur 8 statt 12 gültiger `anime_contribution`-Rollen).
+
+Phase 134 completed on 2026-08-20: the v1.3 milestone's closing fixture-backed verification and rollout gate. A versioned, idempotent `sheppert`/`csubs-leader` reset/seed contract, migration fresh/up/down proof, a 9-case Postgres-backed verification matrix, a real exit-code-checked automated green gate (`scripts/phase134-green-gate.sh`), protected-asset hash guarding, and live browser UAT (mobile/intermediate/widescreen, both profiles, 400% zoom, keyboard focus) with explicit user sign-off all passed. 7/7 verification must-haves, `GATE: GREEN (0)`.
 
 ## Current Milestone: v1.3 Public Member Profile Hardening
 
@@ -132,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with the current system state.
 
 ---
-*Last updated: 2026-08-13 for milestone v1.3 Public Member Profile Hardening*
+*Last updated: 2026-08-20 for milestone v1.3 Public Member Profile Hardening*
