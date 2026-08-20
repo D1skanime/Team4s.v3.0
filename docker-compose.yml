@@ -149,6 +149,9 @@ services:
       - "${BACKEND_PORT:-8092}:8092"
     volumes:
       - ./database/migrations:/app/database/migrations:ro
+      # Contract sources are read-only test inputs for cross-surface parity gates.
+      - ./shared/contracts:/shared/contracts:ro
+      - ./frontend/src/types:/frontend/src/types:ro
       - ./media:/app/media
     depends_on:
       team4sv30-db:

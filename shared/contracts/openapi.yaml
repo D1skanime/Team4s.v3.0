@@ -8762,6 +8762,124 @@ components:
         format: int64
         minimum: 1
   schemas:
+    EffectiveRightProvenance:
+      type: string
+      enum: [idp_global_role, group_role, user_allow, user_deny]
+    CapabilityOverrideEffect:
+      type: string
+      enum: [allow, deny]
+    CapabilityActivationStatus:
+      type: string
+      enum: [persisted, active, pending, failed]
+    CapabilityMutationStatus:
+      type: string
+      enum: [changed, no_op]
+    EffectiveRightState:
+      type: object
+      required: [action_code, allowed, provenance, decisive, non_deniable]
+      properties:
+        action_code: { type: string }
+        allowed: { type: boolean }
+        provenance: { $ref: "#/components/schemas/EffectiveRightProvenance" }
+        decisive: { type: boolean }
+        non_deniable: { type: boolean }
+    CapabilityOverrideReason:
+      oneOf:
+        - type: object
+          required: [category]
+          properties:
+            category: { type: string, enum: [task_delegation, security_measure, role_gap] }
+            text: { type: string, nullable: true }
+        - type: object
+          required: [category, text]
+          properties:
+            category: { type: string, enum: [other] }
+            text: { type: string, minLength: 1 }
+    CapabilityOverrideState:
+      type: object
+      required: [group_id, target_user_id, action_code, effect, reason, created_by_user_id, created_at]
+      properties:
+        group_id: { type: integer, format: int64 }
+        target_user_id: { type: integer, format: int64 }
+        action_code: { type: string }
+        effect: { $ref: "#/components/schemas/CapabilityOverrideEffect" }
+        reason: { $ref: "#/components/schemas/CapabilityOverrideReason" }
+        created_by_user_id: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+    CapabilityOverrideImpactItem:
+      type: object
+      required: [target_user_id, before, after]
+      properties:
+        target_user_id: { type: integer, format: int64 }
+        before: { $ref: "#/components/schemas/EffectiveRightState" }
+        after: { $ref: "#/components/schemas/EffectiveRightState" }
+    CapabilityOverrideImpactPreview:
+      type: object
+      required: [affected_user_count, items]
+      properties:
+        affected_user_count: { type: integer, minimum: 0 }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CapabilityOverrideImpactItem" }
+    CapabilityOverrideAuditItem:
+      type: object
+      required: [id, group_id, target_user_id, action_code, actor_user_id, occurred_at, before, after, reason]
+      properties:
+        id: { type: integer, format: int64 }
+        group_id: { type: integer, format: int64 }
+        target_user_id: { type: integer, format: int64 }
+        action_code: { type: string }
+        actor_user_id: { type: integer, format: int64 }
+        occurred_at: { type: string, format: date-time }
+        before:
+          allOf: [{ $ref: "#/components/schemas/CapabilityOverrideState" }]
+          nullable: true
+        after:
+          allOf: [{ $ref: "#/components/schemas/CapabilityOverrideState" }]
+          nullable: true
+        reason:
+          allOf: [{ $ref: "#/components/schemas/CapabilityOverrideReason" }]
+          nullable: true
+    CapabilityOverrideMutationResult:
+      type: object
+      required: [status, changed, before, after, effective_right, activation_status]
+      properties:
+        status: { $ref: "#/components/schemas/CapabilityMutationStatus" }
+        changed: { type: boolean }
+        before:
+          allOf: [{ $ref: "#/components/schemas/CapabilityOverrideState" }]
+          nullable: true
+        after:
+          allOf: [{ $ref: "#/components/schemas/CapabilityOverrideState" }]
+          nullable: true
+        effective_right: { $ref: "#/components/schemas/EffectiveRightState" }
+        activation_status: { $ref: "#/components/schemas/CapabilityActivationStatus" }
+    CapabilityOverrideMutationRequest:
+      oneOf:
+        - $ref: "#/components/schemas/NonPlatformAdminOverrideMutationRequest"
+        - $ref: "#/components/schemas/PlatformAdminOverrideMutationRequest"
+    NonPlatformAdminOverrideMutationRequest:
+      type: object
+      required: [group_id, target_user_id, action_code, effect, actor_is_platform_admin, reason]
+      properties:
+        group_id: { type: integer, format: int64 }
+        target_user_id: { type: integer, format: int64 }
+        action_code: { type: string }
+        effect: { $ref: "#/components/schemas/CapabilityOverrideEffect", nullable: true }
+        actor_is_platform_admin: { type: boolean, enum: [false] }
+        reason: { $ref: "#/components/schemas/CapabilityOverrideReason" }
+    PlatformAdminOverrideMutationRequest:
+      type: object
+      required: [group_id, target_user_id, action_code, effect, actor_is_platform_admin]
+      properties:
+        group_id: { type: integer, format: int64 }
+        target_user_id: { type: integer, format: int64 }
+        action_code: { type: string }
+        effect: { $ref: "#/components/schemas/CapabilityOverrideEffect", nullable: true }
+        actor_is_platform_admin: { type: boolean, enum: [true] }
+        reason:
+          allOf: [{ $ref: "#/components/schemas/CapabilityOverrideReason" }]
+          nullable: true
     RoleDefinitionOption:
       type: object
       required: [code, label_de, contexts, sort_order, assignable, color_key, icon_key, operative_capability_count, has_operative_capabilities]

@@ -69,6 +69,7 @@ export type RoleDefinitionContext = 'fansub_group' | 'anime_contribution' | 'gro
 export type EffectiveRightProvenance = 'idp_global_role' | 'group_role' | 'user_allow' | 'user_deny';
 export type CapabilityOverrideEffect = 'allow' | 'deny';
 export type CapabilityActivationStatus = 'persisted' | 'active' | 'pending' | 'failed';
+export type CapabilityMutationStatus = 'changed' | 'no_op';
 
 export interface EffectiveRightState {
   action_code: string;
@@ -78,10 +79,72 @@ export interface EffectiveRightState {
   non_deniable: boolean;
 }
 
-export interface CapabilityOverrideReason {
-  category: 'task_delegation' | 'security_measure' | 'role_gap' | 'other';
-  text?: string | null;
+export type CapabilityOverrideReason =
+  | { category: 'task_delegation' | 'security_measure' | 'role_gap'; text?: string | null }
+  | { category: 'other'; text: string };
+
+export interface CapabilityOverrideState {
+  group_id: number;
+  target_user_id: number;
+  action_code: string;
+  effect: CapabilityOverrideEffect;
+  reason: CapabilityOverrideReason;
+  created_by_user_id: number;
+  created_at: string;
 }
+
+export interface CapabilityOverrideImpactItem {
+  target_user_id: number;
+  before: EffectiveRightState;
+  after: EffectiveRightState;
+}
+
+export interface CapabilityOverrideImpactPreview {
+  affected_user_count: number;
+  items: CapabilityOverrideImpactItem[];
+}
+
+export interface CapabilityOverrideAuditItem {
+  id: number;
+  group_id: number;
+  target_user_id: number;
+  action_code: string;
+  actor_user_id: number;
+  occurred_at: string;
+  before: CapabilityOverrideState | null;
+  after: CapabilityOverrideState | null;
+  reason: CapabilityOverrideReason | null;
+}
+
+export interface CapabilityOverrideMutationResult {
+  status: CapabilityMutationStatus;
+  changed: boolean;
+  before: CapabilityOverrideState | null;
+  after: CapabilityOverrideState | null;
+  effective_right: EffectiveRightState;
+  activation_status: CapabilityActivationStatus;
+}
+
+export interface CapabilityOverrideMutationRequestBase {
+  group_id: number;
+  target_user_id: number;
+  action_code: string;
+  effect: CapabilityOverrideEffect | null;
+}
+
+export interface NonPlatformAdminOverrideMutationRequest extends CapabilityOverrideMutationRequestBase {
+  actor_is_platform_admin: false;
+  reason: CapabilityOverrideReason;
+}
+
+export interface PlatformAdminOverrideMutationRequest extends CapabilityOverrideMutationRequestBase {
+  actor_is_platform_admin: true;
+  reason?: CapabilityOverrideReason | null;
+}
+
+export type CapabilityOverrideMutationRequest =
+  | NonPlatformAdminOverrideMutationRequest
+  | PlatformAdminOverrideMutationRequest;
 
 /** Metadaten zu einer einzelnen Action (für Spaltenüberschriften in der Matrix-Tabelle). */
 export interface ActionEntry {
