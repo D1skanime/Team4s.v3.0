@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"team4s.v3/backend/internal/middleware"
+	"team4s.v3/backend/internal/models"
 	"team4s.v3/backend/internal/permissions"
 	"team4s.v3/backend/internal/repository"
 	"team4s.v3/backend/internal/services"
@@ -51,6 +53,8 @@ type FansubHandler struct {
 	httpClient                  *http.Client
 	permissionSvc               *permissions.Service
 	auditLogRepo                *repository.AuditLogRepository
+	updateGroupLink             func(context.Context, int64, int64, models.FansubGroupLinkPatchInput) (*models.FansubGroupLink, bool, error)
+	writeAuditLog               func(context.Context, repository.AuditLogEntry) error
 	releasePlaybackEntitlements permissions.ReleasePlaybackEntitlementResolver
 }
 
@@ -79,7 +83,7 @@ func NewFansubHandler(
 	adminRoleName string,
 	proxyCfg FansubProxyConfig,
 ) *FansubHandler {
-	return &FansubHandler{
+	h := &FansubHandler{
 		fansubRepo:         fansubRepo,
 		episodeVersionRepo: episodeVersionRepo,
 		authzRepo:          authzRepo,
@@ -96,6 +100,11 @@ func NewFansubHandler(
 			Timeout: 0,
 		},
 	}
+	h.updateGroupLink = fansubRepo.UpdateGroupLink
+	h.writeAuditLog = func(ctx context.Context, entry repository.AuditLogEntry) error {
+		return h.auditLogRepo.Write(ctx, entry)
+	}
+	return h
 }
 
 func (h *FansubHandler) WithPermissionDeps(permissionSvc *permissions.Service, auditLogRepo *repository.AuditLogRepository) *FansubHandler {

@@ -9,12 +9,21 @@ import (
 	"team4s.v3/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type groupLinkTx interface {
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...any) pgx.Row
+	Commit(context.Context) error
+	Rollback(context.Context) error
+}
+
 type FansubRepository struct {
-	db              *pgxpool.Pool
-	mediaStorageDir string
+	db               *pgxpool.Pool
+	mediaStorageDir  string
+	beginGroupLinkTx func(context.Context) (groupLinkTx, error)
 }
 
 var allowedFansubGroupLinkTypes = map[models.FansubGroupLinkType]struct{}{
@@ -30,7 +39,13 @@ func NewFansubRepository(db *pgxpool.Pool, mediaStorageDir ...string) *FansubRep
 	if len(mediaStorageDir) > 0 {
 		storageDir = mediaStorageDir[0]
 	}
-	return &FansubRepository{db: db, mediaStorageDir: storageDir}
+	return &FansubRepository{
+		db:              db,
+		mediaStorageDir: storageDir,
+		beginGroupLinkTx: func(ctx context.Context) (groupLinkTx, error) {
+			return db.BeginTx(ctx, pgx.TxOptions{})
+		},
+	}
 }
 
 func (r *FansubRepository) ListGroups(
@@ -758,50 +773,43 @@ func (r *FansubRepository) UpdateGroupLink(
 	groupID int64,
 	linkID int64,
 	input models.FansubGroupLinkPatchInput,
-) (*models.FansubGroupLink, error) {
-	assignments := make([]string, 0, 3)
-	args := make([]any, 0, 5)
-	argPos := 1
+) (*models.FansubGroupLink, bool, error) {
+	if !input.LinkType.Set && !input.Name.Set && !input.URL.Set {
+		return nil, false, fmt.Errorf("update fansub group link %d: no patch fields provided", linkID)
+	}
 
 	if input.LinkType.Set {
 		if input.LinkType.Value == nil {
-			return nil, fmt.Errorf("update fansub group link %d: invalid link type", linkID)
+			return nil, false, fmt.Errorf("update fansub group link %d: invalid link type", linkID)
 		}
 		linkType := models.FansubGroupLinkType(strings.TrimSpace(*input.LinkType.Value))
 		if err := validateFansubGroupLinkType(linkType); err != nil {
-			return nil, err
+			return nil, false, err
 		}
-		assignments = append(assignments, fmt.Sprintf("link_type = $%d", argPos))
-		args = append(args, linkType)
-		argPos++
-	}
-	if input.Name.Set {
-		assignments = append(assignments, fmt.Sprintf("name = $%d", argPos))
-		args = append(args, input.Name.Value)
-		argPos++
+		value := string(linkType)
+		input.LinkType.Value = &value
 	}
 	if input.URL.Set {
 		if input.URL.Value == nil {
-			return nil, fmt.Errorf("update fansub group link %d: invalid url", linkID)
+			return nil, false, fmt.Errorf("update fansub group link %d: invalid url", linkID)
 		}
-		assignments = append(assignments, fmt.Sprintf("url = $%d", argPos))
-		args = append(args, strings.TrimSpace(*input.URL.Value))
-		argPos++
-	}
-	if len(assignments) == 0 {
-		return nil, fmt.Errorf("update fansub group link %d: no patch fields provided", linkID)
+		value := strings.TrimSpace(*input.URL.Value)
+		input.URL.Value = &value
 	}
 
-	query := fmt.Sprintf(`
-		UPDATE fansub_group_links
-		SET %s
-		WHERE id = $%d AND group_id = $%d
-		RETURNING id, group_id, link_type, name, url, created_at
-	`, strings.Join(assignments, ", "), argPos, argPos+1)
-	args = append(args, linkID, groupID)
+	tx, err := r.beginGroupLinkTx(ctx)
+	if err != nil {
+		return nil, false, fmt.Errorf("begin update fansub group link %d: %w", linkID, err)
+	}
+	defer tx.Rollback(ctx)
 
 	var item models.FansubGroupLink
-	if err := r.db.QueryRow(ctx, query, args...).Scan(
+	if err := tx.QueryRow(ctx, `
+		SELECT id, group_id, link_type, name, url, created_at
+		FROM fansub_group_links
+		WHERE id = $1 AND group_id = $2
+		FOR UPDATE
+	`, linkID, groupID).Scan(
 		&item.ID,
 		&item.GroupID,
 		&item.LinkType,
@@ -809,19 +817,57 @@ func (r *FansubRepository) UpdateGroupLink(
 		&item.URL,
 		&item.CreatedAt,
 	); errors.Is(err, pgx.ErrNoRows) {
-		return nil, ErrNotFound
+		return nil, false, ErrNotFound
 	} else if err != nil {
-		if isUniqueViolation(err) {
-			return nil, ErrConflict
+		return nil, false, fmt.Errorf("lock fansub group link %d: %w", linkID, err)
+	}
+
+	linkType := item.LinkType
+	name := item.Name
+	url := item.URL
+	if input.LinkType.Set {
+		linkType = models.FansubGroupLinkType(*input.LinkType.Value)
+	}
+	if input.Name.Set {
+		name = input.Name.Value
+	}
+	if input.URL.Set {
+		url = *input.URL.Value
+	}
+	if linkType == item.LinkType && equalNullableString(name, item.Name) && url == item.URL {
+		if err := tx.Commit(ctx); err != nil {
+			return nil, false, fmt.Errorf("commit no-op fansub group link %d: %w", linkID, err)
 		}
-		return nil, fmt.Errorf("update fansub group link %d: %w", linkID, err)
+		return &item, false, nil
 	}
 
-	if err := r.syncLegacyLinkColumns(ctx, groupID); err != nil {
-		return nil, err
+	if err := tx.QueryRow(ctx, `
+		UPDATE fansub_group_links
+		SET link_type = $1, name = $2, url = $3
+		WHERE id = $4 AND group_id = $5
+		RETURNING id, group_id, link_type, name, url, created_at
+	`, linkType, name, url, linkID, groupID).Scan(
+		&item.ID, &item.GroupID, &item.LinkType, &item.Name, &item.URL, &item.CreatedAt,
+	); err != nil {
+		if isUniqueViolation(err) {
+			return nil, false, ErrConflict
+		}
+		return nil, false, fmt.Errorf("update fansub group link %d: %w", linkID, err)
 	}
+	if err := syncLegacyLinkColumnsWithDB(ctx, tx, groupID); err != nil {
+		return nil, false, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, false, fmt.Errorf("commit update fansub group link %d: %w", linkID, err)
+	}
+	return &item, true, nil
+}
 
-	return &item, nil
+func equalNullableString(left, right *string) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
 }
 
 func (r *FansubRepository) DeleteGroupLink(ctx context.Context, groupID int64, linkID int64) error {
@@ -1882,20 +1928,24 @@ func validateFansubGroupLinkType(linkType models.FansubGroupLinkType) error {
 }
 
 func (r *FansubRepository) syncLegacyLinkColumns(ctx context.Context, groupID int64) error {
-	website, err := r.firstGroupLinkURL(ctx, groupID, models.FansubGroupLinkTypeWebsite)
+	return syncLegacyLinkColumnsWithDB(ctx, r.db, groupID)
+}
+
+func syncLegacyLinkColumnsWithDB(ctx context.Context, db DBTX, groupID int64) error {
+	website, err := firstGroupLinkURLWithDB(ctx, db, groupID, models.FansubGroupLinkTypeWebsite)
 	if err != nil {
 		return err
 	}
-	discord, err := r.firstGroupLinkURL(ctx, groupID, models.FansubGroupLinkTypeDiscord)
+	discord, err := firstGroupLinkURLWithDB(ctx, db, groupID, models.FansubGroupLinkTypeDiscord)
 	if err != nil {
 		return err
 	}
-	irc, err := r.firstGroupLinkURL(ctx, groupID, models.FansubGroupLinkTypeIRC)
+	irc, err := firstGroupLinkURLWithDB(ctx, db, groupID, models.FansubGroupLinkTypeIRC)
 	if err != nil {
 		return err
 	}
 
-	if _, err := r.db.Exec(ctx, `
+	if _, err := db.Exec(ctx, `
 		UPDATE fansub_groups
 		SET website_url = $2,
 		    discord_url = $3,
@@ -1913,8 +1963,12 @@ func (r *FansubRepository) firstGroupLinkURL(
 	groupID int64,
 	linkType models.FansubGroupLinkType,
 ) (*string, error) {
+	return firstGroupLinkURLWithDB(ctx, r.db, groupID, linkType)
+}
+
+func firstGroupLinkURLWithDB(ctx context.Context, db DBTX, groupID int64, linkType models.FansubGroupLinkType) (*string, error) {
 	var url *string
-	if err := r.db.QueryRow(ctx, `
+	if err := db.QueryRow(ctx, `
 		SELECT url
 		FROM fansub_group_links
 		WHERE group_id = $1 AND link_type = $2

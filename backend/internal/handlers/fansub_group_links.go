@@ -1,4 +1,4 @@
-﻿package handlers
+package handlers
 
 import (
 	"errors"
@@ -86,15 +86,15 @@ func (h *FansubHandler) CreateFansubLink(c *gin.Context) {
 	}
 
 	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID:    &identity.AppUserID,
-		EventType:         "fansub_group_link.created",
-		ScopeType:         permissions.ScopeTypeGroup,
-		ScopeID:           &fansubID,
-		TargetType:        "fansub_group_link",
-		TargetID:          &item.ID,
-		Action:            string(permissions.ActionFansubGroupLinksManage),
-		Outcome:           "allowed",
-		Payload:           map[string]any{"link_type": item.LinkType},
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "fansub_group_link.created",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "fansub_group_link",
+		TargetID:       &item.ID,
+		Action:         string(permissions.ActionFansubGroupLinksManage),
+		Outcome:        "allowed",
+		Payload:        map[string]any{"link_type": item.LinkType},
 	})
 
 	c.JSON(http.StatusCreated, gin.H{"data": item})
@@ -135,25 +135,13 @@ func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
 		return
 	}
 
-	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID:    &identity.AppUserID,
-		EventType:         "fansub_group_link.updated",
-		ScopeType:         permissions.ScopeTypeGroup,
-		ScopeID:           &fansubID,
-		TargetType:        "fansub_group_link",
-		TargetID:          &linkID,
-		Action:            string(permissions.ActionFansubGroupLinksUpdate),
-		Outcome:           "allowed",
-		Payload:           map[string]any{"link_type_set": req.LinkType.Set, "url_set": req.URL.Set},
-	})
-
 	input, validationMessage := validateFansubGroupLinkPatchRequest(req)
 	if validationMessage != "" {
 		badRequest(c, validationMessage)
 		return
 	}
 
-	item, err := h.fansubRepo.UpdateGroupLink(c.Request.Context(), fansubID, linkID, input)
+	item, changed, err := h.updateGroupLink(c.Request.Context(), fansubID, linkID, input)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "fansub-link nicht gefunden"}})
 		return
@@ -166,6 +154,23 @@ func (h *FansubHandler) UpdateFansubLink(c *gin.Context) {
 		log.Printf("fansub link update: repo error (user_id=%d, fansub_id=%d, link_id=%d): %v", identity.UserID, fansubID, linkID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"message": "interner serverfehler"}})
 		return
+	}
+	if changed {
+		_ = h.writeAuditLog(c.Request.Context(), repository.AuditLogEntry{
+			ActorAppUserID: &identity.AppUserID,
+			EventType:      "fansub_group_link.updated",
+			ScopeType:      permissions.ScopeTypeGroup,
+			ScopeID:        &fansubID,
+			TargetType:     "fansub_group_link",
+			TargetID:       &linkID,
+			Action:         string(permissions.ActionFansubGroupLinksUpdate),
+			Outcome:        "allowed",
+			Payload: map[string]any{
+				"fansub_group_id": fansubID,
+				"link_id":         linkID,
+				"link_type":       item.LinkType,
+			},
+		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": item})
@@ -209,15 +214,15 @@ func (h *FansubHandler) DeleteFansubLink(c *gin.Context) {
 	}
 
 	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
-		ActorAppUserID:    &identity.AppUserID,
-		EventType:         "fansub_group_link.deleted",
-		ScopeType:         permissions.ScopeTypeGroup,
-		ScopeID:           &fansubID,
-		TargetType:        "fansub_group_link",
-		TargetID:          &linkID,
-		Action:            string(permissions.ActionFansubGroupLinksManage),
-		Outcome:           "allowed",
-		Payload:           map[string]any{},
+		ActorAppUserID: &identity.AppUserID,
+		EventType:      "fansub_group_link.deleted",
+		ScopeType:      permissions.ScopeTypeGroup,
+		ScopeID:        &fansubID,
+		TargetType:     "fansub_group_link",
+		TargetID:       &linkID,
+		Action:         string(permissions.ActionFansubGroupLinksManage),
+		Outcome:        "allowed",
+		Payload:        map[string]any{},
 	})
 
 	c.Status(http.StatusNoContent)
