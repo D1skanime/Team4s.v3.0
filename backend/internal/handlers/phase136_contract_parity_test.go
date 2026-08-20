@@ -13,7 +13,7 @@ func TestPhase136ContractParity(t *testing.T) {
 
 	t.Run("Go DTO JSON shapes", func(t *testing.T) {
 		cases := []struct {
-			value any
+			value  any
 			fields map[string]bool
 		}{
 			{EffectiveRightState{}, requiredFields("action_code", "allowed", "provenance", "decisive", "non_deniable")},
@@ -72,6 +72,38 @@ func TestPhase136ContractParity(t *testing.T) {
 			t.Fatalf("supplied platform-admin reason omitted from %s", withReason)
 		}
 	})
+}
+
+func TestCapabilityOverrideReasonValidation(t *testing.T) {
+	valid := []string{
+		`{"category":"task_delegation"}`,
+		`{"category":"security_measure","text":null}`,
+		`{"category":"role_gap","text":"optional detail"}`,
+		`{"category":"other","text":"temporary substitution"}`,
+	}
+	for _, fixture := range valid {
+		var reason CapabilityOverrideReason
+		if err := json.Unmarshal([]byte(fixture), &reason); err != nil {
+			t.Errorf("valid fixture %s: %v", fixture, err)
+		}
+	}
+
+	invalid := []string{
+		`{"category":"other"}`,
+		`{"category":"other","text":""}`,
+		`{"category":"other","text":"   "}`,
+		`{"category":"unknown"}`,
+	}
+	for _, fixture := range invalid {
+		var reason CapabilityOverrideReason
+		if err := json.Unmarshal([]byte(fixture), &reason); err == nil {
+			t.Errorf("invalid fixture accepted: %s", fixture)
+		}
+	}
+
+	if err := (CapabilityOverrideReason{Category: CapabilityOverrideReasonOther}).Validate(); err == nil {
+		t.Error("direct Go construction must reject other without explanatory text")
+	}
 }
 
 func requiredFields(names ...string) map[string]bool {

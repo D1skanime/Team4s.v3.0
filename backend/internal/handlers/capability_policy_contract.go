@@ -1,5 +1,11 @@
 package handlers
 
+import (
+	"encoding/json"
+	"errors"
+	"strings"
+)
+
 // This file owns transport-only DTOs for the Phase 136 capability policy
 // contract. Runtime resolution, persistence and authorization are implemented
 // by later phases; these types intentionally contain no domain behavior.
@@ -39,7 +45,7 @@ const (
 type CapabilityOverrideReasonCategory string
 
 const (
-	CapabilityOverrideReasonTaskDelegation CapabilityOverrideReasonCategory = "task_delegation"
+	CapabilityOverrideReasonTaskDelegation  CapabilityOverrideReasonCategory = "task_delegation"
 	CapabilityOverrideReasonSecurityMeasure CapabilityOverrideReasonCategory = "security_measure"
 	CapabilityOverrideReasonRoleGap         CapabilityOverrideReasonCategory = "role_gap"
 	CapabilityOverrideReasonOther           CapabilityOverrideReasonCategory = "other"
@@ -56,6 +62,32 @@ type EffectiveRightState struct {
 type CapabilityOverrideReason struct {
 	Category CapabilityOverrideReasonCategory `json:"category"`
 	Text     *string                          `json:"text,omitempty"`
+}
+
+func (reason CapabilityOverrideReason) Validate() error {
+	switch reason.Category {
+	case CapabilityOverrideReasonTaskDelegation,
+		CapabilityOverrideReasonSecurityMeasure,
+		CapabilityOverrideReasonRoleGap:
+		return nil
+	case CapabilityOverrideReasonOther:
+		if reason.Text == nil || strings.TrimSpace(*reason.Text) == "" {
+			return errors.New("reason text is required when category is other")
+		}
+		return nil
+	default:
+		return errors.New("invalid capability override reason category")
+	}
+}
+
+func (reason *CapabilityOverrideReason) UnmarshalJSON(data []byte) error {
+	type wireReason CapabilityOverrideReason
+	var decoded wireReason
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	*reason = CapabilityOverrideReason(decoded)
+	return reason.Validate()
 }
 
 type CapabilityOverrideState struct {
