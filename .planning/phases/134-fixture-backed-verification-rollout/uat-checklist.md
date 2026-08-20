@@ -107,5 +107,5 @@ blockierend behandelt.
 Endgültige Freigabe ist laut CONTEXT.md D-09 ausschließlich die des Nutzers, nicht
 automatisierbar — sie wird über den Checkpoint (Task 3 dieses Plans) eingeholt.
 
-- [ ] sheppert approved
-- [ ] csubs-leader approved
+- [x] sheppert approved
+- [x] csubs-leader approved
