@@ -202,6 +202,7 @@ docker compose exec -T \
   -e TEAM4S_PHASE134_TEST_DSN="${TEAM4S_PHASE134_TEST_DSN}" \
   "${BACKEND_SVC}" go test ./internal/repository/... ./internal/handlers/... ./internal/migrations/... ./internal/testsupport/... \
   -run 'Phase12|Phase13' -count=1 -timeout=300s 2>&1 | tee "${BACKEND_TEST_OUTPUT_FILE}"
+BACKEND_TEST_EXIT=${PIPESTATUS[0]}
 
 while IFS= read -r line; do
   [ -z "${line}" ] && continue
@@ -220,6 +221,14 @@ while IFS= read -r line; do
   fi
 done < <(grep -E '^--- FAIL: ' "${BACKEND_TEST_OUTPUT_FILE}" || true)
 rm -f "${BACKEND_TEST_OUTPUT_FILE}"
+
+# A nonzero exit with no matching --- FAIL: line at all (new or deferred) means
+# `go test` never produced a normal test report -- compile error, panic, or a
+# -timeout kill. Grepping for "--- FAIL: " alone is silent on these; the exit
+# code is the only signal, so it must force the gate red (T-134-11-class gap).
+if [ "${BACKEND_TEST_EXIT}" -ne 0 ] && [ "${#BACKEND_NEW_FAILURES[@]}" -eq 0 ] && [ "${#BACKEND_DEFERRED_FAILURES[@]}" -eq 0 ]; then
+  BACKEND_NEW_FAILURES+=("go test exited ${BACKEND_TEST_EXIT} with no matching --- FAIL: lines -- likely a compile error, panic, or -timeout kill; see full output above")
+fi
 
 # ---------------------------------------------------------------------------
 # 2. Frontend section (runs inside team4sv30-frontend)
@@ -263,6 +272,7 @@ VITEST_OUTPUT_FILE="$(mktemp)"
 docker exec "${FRONTEND_CONTAINER}" npx vitest run \
   src/components/profile/ src/app/members/ src/types/__tests__/v12-projection-contract.test.ts \
   2>&1 | tee "${VITEST_OUTPUT_FILE}"
+VITEST_EXIT=${PIPESTATUS[0]}
 
 while IFS= read -r line; do
   [ -z "${line}" ] && continue
@@ -281,6 +291,14 @@ while IFS= read -r line; do
   fi
 done < <(grep '^ FAIL ' "${VITEST_OUTPUT_FILE}" || true)
 rm -f "${VITEST_OUTPUT_FILE}"
+
+# Same reasoning as the backend go test section above: a nonzero vitest exit
+# with no matching " FAIL " line at all (new or deferred) means the run never
+# produced a normal report -- a startup/config error or a crash. The exit code
+# is the only signal in that case, so it must force the gate red.
+if [ "${VITEST_EXIT}" -ne 0 ] && [ "${#VITEST_NEW_FAILURES[@]}" -eq 0 ] && [ "${#VITEST_DEFERRED_FAILURES[@]}" -eq 0 ]; then
+  VITEST_NEW_FAILURES+=("vitest run exited ${VITEST_EXIT} with no matching FAIL lines -- likely a startup/config error or crash; see full output above")
+fi
 
 section "Frontend: npm run build"
 BUILD_OUTPUT_FILE="$(mktemp)"
