@@ -9931,6 +9931,48 @@ export async function listFansubGroupRoleDefinitions(
 }
 
 /** Public presentation-only role catalog. Authorization remains backend-owned. */
+const ROLE_DEFINITION_CONTEXTS = new Set<RoleDefinitionContext>([
+  'fansub_group',
+  'anime_contribution',
+  'group_history',
+])
+
+function parsePublicRoleDefinitions(
+  payload: unknown,
+  requestedContext: RoleDefinitionContext,
+): RoleDefinitionOption[] {
+  const isCompleteRole = (row: unknown): row is RoleDefinitionOption => {
+    if (typeof row !== 'object' || row === null || Array.isArray(row)) return false
+
+    const candidate = row as Record<string, unknown>
+    const contexts = candidate.contexts
+    return typeof candidate.code === 'string'
+      && candidate.code.length > 0
+      && typeof candidate.label_de === 'string'
+      && candidate.label_de.length > 0
+      && Array.isArray(contexts)
+      && contexts.length > 0
+      && contexts.every((item) => typeof item === 'string' && ROLE_DEFINITION_CONTEXTS.has(item as RoleDefinitionContext))
+      && contexts.includes(requestedContext)
+      && typeof candidate.sort_order === 'number'
+      && Number.isInteger(candidate.sort_order)
+      && typeof candidate.assignable === 'boolean'
+      && typeof candidate.color_key === 'string'
+      && candidate.color_key.length > 0
+      && typeof candidate.icon_key === 'string'
+      && candidate.icon_key.length > 0
+      && typeof candidate.operative_capability_count === 'number'
+      && Number.isInteger(candidate.operative_capability_count)
+      && candidate.operative_capability_count >= 0
+      && typeof candidate.has_operative_capabilities === 'boolean'
+  }
+
+  if (!Array.isArray(payload) || !payload.every(isCompleteRole)) {
+    throw new ApiError(502, 'Rollenkatalog konnte nicht geladen werden.', null, 'ROLE_CATALOG_CONTRACT_ERROR')
+  }
+  return payload
+}
+
 export async function listRoleDefinitions(
   context: RoleDefinitionContext,
 ): Promise<RoleDefinitionOption[]> {
@@ -9943,7 +9985,7 @@ export async function listRoleDefinitions(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
   }
   const payload = (await response.json()) as unknown
-  return Array.isArray(payload) ? payload as RoleDefinitionOption[] : []
+  return parsePublicRoleDefinitions(payload, context)
 }
 
 /**
