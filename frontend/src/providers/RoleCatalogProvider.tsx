@@ -3,17 +3,17 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
 
 import { orderForContext } from '@/lib/roleCatalog'
-import type { RoleDefinitionContext, RoleDefinitionOption } from '@/types/admin-capability'
+import type { PublicRoleDefinitionOption, RoleDefinitionContext, RoleDefinitionOption } from '@/types/admin-capability'
 
 export type RoleCatalogLoad = {
-  rows: RoleDefinitionOption[]
+  rows: PublicRoleDefinitionOption[]
   error: string | null
 }
 
 export type RoleCatalogLoads = Record<RoleDefinitionContext, RoleCatalogLoad>
 
 type RoleCatalogValue = {
-  rows: RoleDefinitionOption[]
+  rows: PublicRoleDefinitionOption[]
   errors: Record<RoleDefinitionContext, string | null>
 }
 
@@ -21,8 +21,8 @@ const RoleCatalogContext = createContext<RoleCatalogValue | null>(null)
 
 const contexts: RoleDefinitionContext[] = ['fansub_group', 'anime_contribution', 'group_history']
 
-function mergeCatalogLoads(loads: RoleCatalogLoads): RoleDefinitionOption[] {
-  const roles = new Map<string, RoleDefinitionOption>()
+function mergeCatalogLoads(loads: RoleCatalogLoads): PublicRoleDefinitionOption[] {
+  const roles = new Map<string, PublicRoleDefinitionOption>()
 
   for (const context of contexts) {
     for (const row of loads[context].rows) {

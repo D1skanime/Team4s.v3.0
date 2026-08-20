@@ -51,8 +51,8 @@ function renderDialog(catalogLoads: RoleCatalogLoads, form: RoleFormFields = rol
 describe('GroupHistRoleDialog', () => {
   it('uses only the scoped catalog rows and their order', () => {
     renderDialog(loads([
-      { code: 'co_leader', label_de: 'Co-Leitung', contexts: ['group_history'], sort_order: 20 },
-      { code: 'founder', label_de: 'Gründung', contexts: ['group_history'], sort_order: 10 },
+      { code: 'co_leader', label_de: 'Co-Leitung', contexts: ['group_history'], sort_order: 20, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false },
+      { code: 'founder', label_de: 'Gründung', contexts: ['group_history'], sort_order: 10, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false },
     ]))
 
     const roleSelect = screen.getByLabelText('Frühere Funktion auswählen')
@@ -62,7 +62,7 @@ describe('GroupHistRoleDialog', () => {
   })
 
   it('shows karaoke_fx only when the catalog declares group_history', () => {
-    renderDialog(loads([{ code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['group_history'], sort_order: 45 }]))
+    renderDialog(loads([{ code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['group_history'], sort_order: 45, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false }]))
     expect(screen.getByRole('option', { name: 'Karaoke-FX' })).toBeDefined()
   })
 

@@ -2,10 +2,10 @@
 
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { RoleDefinitionContext, RoleDefinitionOption } from '@/types/admin-capability'
+import type { PublicRoleDefinitionOption, RoleDefinitionContext } from '@/types/admin-capability'
 import { RoleCatalogProvider, type RoleCatalogLoads, useRoleCatalog } from './RoleCatalogProvider'
 
-const role = (code: string, contexts: RoleDefinitionContext[], sortOrder: number): RoleDefinitionOption => ({
+const role = (code: string, contexts: RoleDefinitionContext[], sortOrder: number): PublicRoleDefinitionOption => ({
   code, label_de: code === 'karaoke_fx' ? 'Karaoke FX' : code, contexts, sort_order: sortOrder,
   assignable: true, color_key: 'creative', icon_key: 'image', operative_capability_count: 0,
   has_operative_capabilities: false,

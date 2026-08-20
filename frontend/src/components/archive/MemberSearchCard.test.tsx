@@ -12,7 +12,7 @@ vi.mock('@/components/profile/VerifiedBadge', () => ({ VerifiedBadge: () => <spa
 const loads: RoleCatalogLoads = {
   fansub_group: { rows: [], error: null },
   anime_contribution: {
-    rows: [{ code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 45 }],
+    rows: [{ code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 45, assignable: true, color_key: 'other', icon_key: 'other', operative_capability_count: 0, has_operative_capabilities: false }],
     error: null,
   },
   group_history: { rows: [], error: null },

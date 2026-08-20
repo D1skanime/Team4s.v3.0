@@ -245,7 +245,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { RoleCapabilityMatrix, RoleDefinitionContext, RoleDefinitionOption } from "@/types/admin-capability";
+import type { PublicRoleDefinitionOption, RoleCapabilityMatrix, RoleDefinitionContext, RoleDefinitionOption } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -9940,8 +9940,8 @@ const ROLE_DEFINITION_CONTEXTS = new Set<RoleDefinitionContext>([
 function parsePublicRoleDefinitions(
   payload: unknown,
   requestedContext: RoleDefinitionContext,
-): RoleDefinitionOption[] {
-  const isCompleteRole = (row: unknown): row is RoleDefinitionOption => {
+): PublicRoleDefinitionOption[] {
+  const isCompleteRole = (row: unknown): row is PublicRoleDefinitionOption => {
     if (typeof row !== 'object' || row === null || Array.isArray(row)) return false
 
     const candidate = row as Record<string, unknown>
@@ -9975,7 +9975,7 @@ function parsePublicRoleDefinitions(
 
 export async function listRoleDefinitions(
   context: RoleDefinitionContext,
-): Promise<RoleDefinitionOption[]> {
+): Promise<PublicRoleDefinitionOption[]> {
   const response = await apiClientFetch(
     `/api/v1/role-definitions?context=${encodeURIComponent(context)}`,
     { cache: 'no-store' },

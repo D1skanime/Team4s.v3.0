@@ -64,6 +64,16 @@ export interface RoleDefinitionOption {
   has_operative_capabilities?: boolean;
 }
 
+/** Runtime-validierte öffentliche Katalogzeile mit vollständiger Präsentationsmetadaten. */
+export interface PublicRoleDefinitionOption extends RoleDefinitionOption {
+  contexts: string[];
+  assignable: boolean;
+  color_key: string;
+  icon_key: string;
+  operative_capability_count: number;
+  has_operative_capabilities: boolean;
+}
+
 export type RoleDefinitionContext = 'fansub_group' | 'anime_contribution' | 'group_history';
 
 export type EffectiveRightProvenance = 'idp_global_role' | 'group_role' | 'user_allow' | 'user_deny';
