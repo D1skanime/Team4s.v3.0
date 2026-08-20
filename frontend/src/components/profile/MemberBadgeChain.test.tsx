@@ -7,6 +7,30 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMemberBadge } from '@/types/profile'
+
+const contributionRoles = [
+  ['project_lead', 'Projektleitung'],
+  ['translator', 'Übersetzung'],
+  ['timer', 'Timing'],
+  ['typesetter', 'Typesetting'],
+  ['editor', 'Editing'],
+  ['encoder', 'Encoding'],
+  ['raw_provider', 'Raw-Bereitstellung'],
+  ['quality_checker', 'Qualitätsprüfung'],
+  ['designer', 'Design'],
+  ['typer', 'Typesetting'],
+  ['karaoke_fx', 'Karaoke-FX'],
+  ['future_role', 'Zukunftsrolle'],
+].map(([code, label_de], sort_order) => ({
+  code,
+  label_de,
+  contexts: ['anime_contribution'],
+  sort_order,
+}))
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: contributionRoles, error: null }),
+}))
 const memberBadgeChainCss = readFileSync('src/components/profile/MemberBadgeChain.module.css', 'utf8')
 const lockedStageArtworkCss = readFileSync('src/components/profile/LockedStageArtwork.module.css', 'utf8')
 const layeredBadgeArtworkCss = readFileSync('src/components/profile/LayeredBadgeArtwork.module.css', 'utf8')
@@ -75,6 +99,23 @@ async function loadMemberBadgeChain(): Promise<{
 
 afterEach(() => {
   cleanup()
+})
+
+describe('Phase 136 catalog-backed role badges', () => {
+  it('renders Karaoke-FX and a future role without a local valid-role list', async () => {
+    const { MemberBadgeChain } = await loadMemberBadgeChain()
+    const html = renderToStaticMarkup(
+      <MemberBadgeChain
+        earnedBadges={[
+          { id: 13601, badge_code: 'role_entry_karaoke_fx', badge_category: 'role_entry', current_count: 1, current_tier: 'entry' },
+          { id: 13602, badge_code: 'role_entry_future_role', badge_category: 'role_entry', current_count: 1, current_tier: 'entry' },
+        ]}
+      />,
+    )
+
+    expect(html).toContain('Karaoke-FX:')
+    expect(html).toContain('Zukunftsrolle:')
+  })
 })
 
 const catalog: MemberBadgeCatalogItem[] = [

@@ -1,11 +1,21 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { OwnDashboardData } from '@/types/dashboard'
 
 import { CategoryProgressTable } from './CategoryProgressTable'
+
+const contributionRoles = [
+  { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 5 },
+  { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10 },
+  { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20 },
+]
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: contributionRoles, error: null }),
+}))
 
 afterEach(() => {
   cleanup()
@@ -30,6 +40,29 @@ function makeData(overrides: Partial<OwnDashboardData> = {}): OwnDashboardData {
 }
 
 describe('CategoryProgressTable (Phase 116, D-04)', () => {
+  it('ordnet Karaoke-FX und Typesetting nach dem Katalog und zeigt unbekannte Rollen neutral lesbar', () => {
+    render(
+      <CategoryProgressTable
+        data={makeData({
+          role_volume: [
+            { role_code: 'unknown_helper', count: 12 },
+            { role_code: 'karaoke_fx', count: 12 },
+            { role_code: 'typer', count: 12 },
+          ],
+        })}
+      />,
+    )
+
+    const labels = screen.getAllByText(/Rollen-Volumen$/).map((node) => node.textContent)
+    expect(labels).toEqual([
+      'Typesetting · Rollen-Volumen',
+      'Karaoke-FX · Rollen-Volumen',
+      'Unknown Helper · Rollen-Volumen',
+    ])
+    expect(screen.getAllByText('Bronze · 12+')).toHaveLength(3)
+    expect(screen.getAllByText('noch 96 bis Silber')).toHaveLength(3)
+  })
+
   it('rendert die Punkte-Meilenstein-Zeile mit "noch X bis Y" aus resolveNextPointMilestone, ohne neue Schwellen', () => {
     render(<CategoryProgressTable data={makeData({ total_points: 62 })} />)
 

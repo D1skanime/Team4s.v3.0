@@ -191,3 +191,16 @@ func TestRoleVolumeProgressBadgeBoundaryMetadata(t *testing.T) {
 	}
 	require.Nil(t, roleVolumeProgressBadge("translator", 0))
 }
+
+func TestRoleVolumeProgressBadgeGeneratesKaraokeFXCodesGenerically(t *testing.T) {
+	entry := roleVolumeProgressBadge("karaoke_fx", 1)
+	require.NotNil(t, entry)
+	require.Equal(t, "role_entry_karaoke_fx", entry.BadgeCode)
+	require.Equal(t, "role_entry", entry.BadgeCategory)
+
+	bronze := roleVolumeProgressBadge("karaoke_fx", 12)
+	require.NotNil(t, bronze)
+	require.Equal(t, "role_volume_karaoke_fx_bronze", bronze.BadgeCode)
+	require.Equal(t, "role_volume", bronze.BadgeCategory)
+	require.Equal(t, int64(12), *bronze.CurrentCount)
+}

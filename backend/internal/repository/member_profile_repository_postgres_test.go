@@ -130,6 +130,20 @@ func TestLoadPublicBadgesPostgresRoleEntryAwardedVisible(t *testing.T) {
 		"eine awarded lifecycle-Zeile muss die live-berechnete role_entry_translator Badge produzieren")
 }
 
+func TestLoadPublicBadgesPostgresKaraokeFXAwardedVisible(t *testing.T) {
+	pool := openMemberProfileBadgeLifecyclePostgres(t)
+	ledger := NewPointLedgerRepository(pool)
+	repo := NewMemberProfileRepository(pool, "")
+
+	award, err := ledger.InsertAward(context.Background(), postgresAwardInput("award:role-entry-karaoke-fx-visible"))
+	require.NoError(t, err)
+	insertRoleEntryLifecycleRow(t, pool, 1, "karaoke_fx", 1, "awarded", &award.ID, nil)
+
+	badges, err := repo.loadPublicBadges(context.Background(), 1)
+	require.NoError(t, err)
+	require.True(t, containsPublicBadge(badges, "role_entry_karaoke_fx", "role_entry"))
+}
+
 func TestLoadPublicBadgesPostgresRoleEntryReversedHidden(t *testing.T) {
 	pool := openMemberProfileBadgeLifecyclePostgres(t)
 	ledger := NewPointLedgerRepository(pool)
