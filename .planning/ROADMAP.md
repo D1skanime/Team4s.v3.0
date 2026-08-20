@@ -435,19 +435,34 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 **Plans**: 13 plans
 
 Plans:
+**Wave 1**
 - [ ] 136-01-PLAN.md — Reversible capability-policy catalog, scoped override/audit schema, confirmed role defaults and indexes
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 136-09-PLAN.md — Exact narrow media/page/history handler enforcement for confirmed role defaults
+- [ ] 136-10-PLAN.md — Public presentation-only role catalog repository, handler and exact unauthenticated router contract
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 136-02-PLAN.md — Protected admin/member catalog projections and fail-closed permission cache
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 136-03-PLAN.md — Synchronized contracts and pure catalog-backed frontend role adapter
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 136-11-PLAN.md — Root-loaded role catalog provider and app-layout integration proof
+
+**Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 136-04-PLAN.md — Catalog-driven group-member selectors and shared label/color compatibility
 - [ ] 136-05-PLAN.md — Pure catalog-driven contribution-role transforms
 - [ ] 136-06-PLAN.md — Catalog-context historical roles and archive/search filters
 - [ ] 136-07-PLAN.md — Catalog-driven member profile and project/release presentation
-- [ ] 136-08-PLAN.md — Generic role badges/points and whole-inventory hardcode gate
-- [ ] 136-09-PLAN.md — Exact narrow media/page/history handler enforcement for confirmed role defaults
-- [ ] 136-10-PLAN.md — Public presentation-only role catalog repository, handler and exact unauthenticated router contract
-- [ ] 136-11-PLAN.md — Root-loaded role catalog provider and app-layout integration proof
+
+**Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 136-12-PLAN.md — Catalog-driven contribution and release-credit cards
 - [ ] 136-13-PLAN.md — Catalog-driven admin contribution selector and user projection
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 136-08-PLAN.md — Generic role badges/points and whole-inventory hardcode gate
 
 ### Phase 137: Central Effective-Rights Resolver & Overrides
 
