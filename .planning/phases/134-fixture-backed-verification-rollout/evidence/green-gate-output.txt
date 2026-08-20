@@ -4,7 +4,7 @@
 ==== Backend: go vet ./... ====
 
 ==== Backend: scoped go test (Phase12*/Phase13* contract suites) ====
-ok  	team4s.v3/backend/internal/repository	1.082s
+ok  	team4s.v3/backend/internal/repository	0.863s
 --- FAIL: TestPhase128PublicMemberAccessMatrix (0.00s)
     public_member_access_matrix_test.go:105: 
         	Error Trace:	/app/internal/handlers/public_member_access_matrix_test.go:105
@@ -12,9 +12,9 @@ ok  	team4s.v3/backend/internal/repository	1.082s
         	Test:       	TestPhase128PublicMemberAccessMatrix
         	Messages:   	contributions_public_handler.go
 FAIL
-FAIL	team4s.v3/backend/internal/handlers	0.022s
-ok  	team4s.v3/backend/internal/migrations	1.026s
-ok  	team4s.v3/backend/internal/testsupport	0.005s
+FAIL	team4s.v3/backend/internal/handlers	0.015s
+ok  	team4s.v3/backend/internal/migrations	0.938s
+ok  	team4s.v3/backend/internal/testsupport	0.007s
 FAIL
 
 ==== Frontend: npm run typecheck ====
@@ -307,15 +307,15 @@ FAIL
   542:12  warning  'resetStagedAssets' is defined but never used  @typescript-eslint/no-unused-vars
 
 /app/src/app/admin/episode-versions/[versionId]/edit/EpisodeVersionEditorPage.tsx
-  508:19  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  603:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  615:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  646:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  674:23  warning  Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
-  691:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  717:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  756:21  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  776:21  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  541:19  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  636:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  648:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  679:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  707:23  warning  Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
+  724:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  750:23  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  789:21  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  809:21  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
 
 /app/src/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaDetailPanel.tsx
    35:14  warning  '_versionId' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
@@ -340,15 +340,33 @@ FAIL
   32:7  warning  Natives <textarea> verboten — nutze <Textarea> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
 
 /app/src/app/admin/episode-versions/[versionId]/edit/SegmentEditPanel.tsx
-  228:11  warning  Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
-  244:11  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  265:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  276:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  312:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  331:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  495:11  warning  Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
-  594:19  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
-  622:19  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  248:11  warning  Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
+  264:11  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  289:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  300:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  336:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  355:13  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  504:11  warning  Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
+  603:19  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+  631:19  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
+
+/app/src/app/admin/episode-versions/[versionId]/edit/useEpisodeNeighborNavigation.ts
+  44:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/src/app/admin/episode-versions/[versionId]/edit/useEpisodeNeighborNavigation.ts:44:7
+  42 |   useEffect(() => {
+  43 |     if (animeId == null || currentVersionId == null) {
+> 44 |       setIsLoading(false);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  45 |       setError(null);
+  46 |       setNavigation(EMPTY_TARGETS);
+  47 |       return;  react-hooks/set-state-in-effect
 
 /app/src/app/admin/episodes/page.tsx
   322:17  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
@@ -396,6 +414,24 @@ FAIL
   51:5   warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)        no-restricted-syntax
   63:5   warning  Natives <select> verboten — nutze <Select> aus @/components/ui (Referenz: /dev/ui-system)      no-restricted-syntax
   68:5   warning  Natives <textarea> verboten — nutze <Textarea> aus @/components/ui (Referenz: /dev/ui-system)  no-restricted-syntax
+
+/app/src/app/admin/fansubs/[id]/edit/GroupMemberFormModals.tsx
+  96:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/src/app/admin/fansubs/[id]/edit/GroupMemberFormModals.tsx:96:5
+  94 |
+  95 |   useEffect(() => {
+> 96 |     setDuplicateConfirmed(false)
+     |     ^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  97 |   }, [form.displayName])
+  98 |
+  99 |   const duplicateMatches = useMemo(  react-hooks/set-state-in-effect
 
 /app/src/app/admin/fansubs/[id]/edit/NotesTab.helpers.tsx
   200:11  warning  Natives <input> verboten — nutze <Input> aus @/components/ui (Referenz: /dev/ui-system)    no-restricted-syntax
@@ -565,83 +601,82 @@ FAIL
 /app/tmp-playwright-phase4/cover-ui-smoke.mjs
   13:16  warning  'waitForText' is defined but never used  @typescript-eslint/no-unused-vars
 
-✖ 330 problems (2 errors, 328 warnings)
+✖ 332 problems (4 errors, 328 warnings)
 
 
 ==== Frontend: scoped vitest run (member-profile surface) ====
 
  RUN  v3.2.4 /app
 
- ❯ src/components/profile/MembershipsSection.test.tsx (8 tests | 1 failed) 150ms
+ ❯ src/components/profile/MembershipsSection.test.tsx (8 tests | 1 failed) 176ms
    × MembershipsSection > keeps membership cards bounded in a responsive overflow-safe grid 15ms
      → expected '.membershipsList {\n  display: grid;\…' to contain 'grid-template-columns: repeat(3, minm…'
-   ✓ MembershipsSection > keeps h2 as the standalone default and exposes h3 for the profile pair 94ms
-   ✓ MembershipsSection > renders each group as a real card link with logo, server role label, and group action 20ms
-   ✓ MembershipsSection > exposes ALL approved roles for a current membership and marks it as current (PMDA-02/05) 7ms
-   ✓ MembershipsSection > marks a historical membership distinctly from a current one 5ms
-   ✓ MembershipsSection > shows confirmed historical memberships as group-confirmed context without a badge or raw status code 4ms
+   ✓ MembershipsSection > keeps h2 as the standalone default and exposes h3 for the profile pair 95ms
+   ✓ MembershipsSection > renders each group as a real card link with logo, server role label, and group action 36ms
+   ✓ MembershipsSection > exposes ALL approved roles for a current membership and marks it as current (PMDA-02/05) 13ms
+   ✓ MembershipsSection > marks a historical membership distinctly from a current one 8ms
+   ✓ MembershipsSection > shows confirmed historical memberships as group-confirmed context without a badge or raw status code 6ms
    ✓ MembershipsSection > keeps unconfirmed historical memberships distinct from verified accounts 3ms
    ✓ Quick 260811-pqe membership sizing > keeps names word-safe and moves the action below content when space is tight 0ms
- ✓ src/app/members/[slug]/page.test.tsx (30 tests) 1064ms
-   ✓ MemberProfilePage Phase 99 route composition > renders the locked Hero B and Rhythm C heading hierarchy in DOM order  303ms
- ✓ src/components/profile/LatestContributionsSection.test.tsx (8 tests) 527ms
-   ✓ LatestContributionsSection > renders exactly three non-empty latest public contribution cards and no archive link  355ms
- ✓ src/components/profile/MemberProfileHero.test.tsx (32 tests) 362ms
- ✓ src/components/profile/MemberCurrentProjectsSection.test.tsx (9 tests) 381ms
- ✓ src/components/profile/PreviousContributionsSection.test.tsx (7 tests) 356ms
- ✓ src/components/profile/MemberStorySection.test.tsx (8 tests) 331ms
- ❯ src/components/profile/MemberBadgeChain.test.tsx (107 tests | 4 failed | 1 skipped) 4617ms
-   ✓ MemberBadgeChain > renders exact accessible contribution progress without client thresholds  646ms
-   ✓ MemberBadgeChain > renders Gold as the terminal contribution tier 43ms
-   ✓ MemberBadgeChain > bietet pro Gruppe eine fokussierte Karussell- und Rasteransicht 73ms
-   ✓ MemberBadgeChain > renders approved artwork inside the focal card for earned image badges 50ms
-   ✓ MemberBadgeChain > verwendet für Erste Punkte die neue Oldschool-Medaillenserie 32ms
-   ✓ MemberBadgeChain > composes Erste Mitwirkung from its motif and award frame 34ms
-   ✓ MemberBadgeChain > composes the productive tier with its matching rank frame 39ms
-   ✓ MemberBadgeChain > renders the generated contribution artwork without a fallback icon 53ms
-   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > renders one ordered three-family outer carousel and three native artwork tiers at zero 56ms
-   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > keeps tier preview independent from true terminal progress and outer family state 63ms
-   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > locks artwork, same-DOM, expanded, responsive and no-inner-engine contracts 73ms
-   ✓ MemberBadgeChain > renders the approved membership artwork without a fallback icon 28ms
-   ✓ MemberBadgeChain > renders the compact historical leadership seal 21ms
-   ✓ MemberBadgeChain > composes the translator artwork with the matching rank frame 32ms
-   ✓ MemberBadgeChain > uses the dedicated silver timing artwork for the silver timing tier 38ms
-   ✓ MemberBadgeChain > composes encoding with the matching layered rank artwork 46ms
-   ✓ MemberBadgeChain > composes typesetting with the matching layered rank artwork 19ms
-   ✓ MemberBadgeChain > composes quality checking with the matching layered rank artwork 32ms
-   ✓ MemberBadgeChain > composes project leadership with the matching layered rank artwork 38ms
-   ✓ MemberBadgeChain > composes editor with the matching layered rank artwork 23ms
-   ✓ MemberBadgeChain > composes raw_provider with the matching layered rank artwork 24ms
-   ✓ MemberBadgeChain > composes designer with the matching layered rank artwork 32ms
-   ✓ MemberBadgeChain > composes admin with the matching layered rank artwork 26ms
-   ✓ MemberBadgeChain > composes other with the matching layered rank artwork 27ms
-   ✓ MemberBadgeChain > labels the catch-all role as Andere instead of exposing the raw role code 30ms
-   ✓ MemberBadgeChain > renders a horizontal earned-and-locked badge chain without an aggregate summary 17ms
-   ✓ MemberBadgeChain > does not invent badge tier labels when the catalog has no tier or level field 7ms
-   ✓ MemberBadgeChain > omits the aggregate achievement summary from DOM, accessibility and SSR 24ms
-   ✓ MemberBadgeChain > hides a foreign catalog role completely while retaining all five stages of an earned role (D-02/D-03) 28ms
+ ✓ src/app/members/[slug]/page.test.tsx (30 tests) 960ms
+ ✓ src/components/profile/LatestContributionsSection.test.tsx (8 tests) 502ms
+   ✓ LatestContributionsSection > renders exactly three non-empty latest public contribution cards and no archive link  328ms
+ ✓ src/components/profile/MemberCurrentProjectsSection.test.tsx (9 tests) 412ms
+ ✓ src/components/profile/MemberProfileHero.test.tsx (32 tests) 429ms
+ ✓ src/components/profile/PreviousContributionsSection.test.tsx (7 tests) 375ms
+   ✓ PreviousContributionsSection > keeps previous contributions collapsed until the visitor asks for them  300ms
+ ❯ src/components/profile/MemberBadgeChain.test.tsx (107 tests | 4 failed | 1 skipped) 4324ms
+   ✓ MemberBadgeChain > renders exact accessible contribution progress without client thresholds  588ms
+   ✓ MemberBadgeChain > renders Gold as the terminal contribution tier 41ms
+   ✓ MemberBadgeChain > bietet pro Gruppe eine fokussierte Karussell- und Rasteransicht 77ms
+   ✓ MemberBadgeChain > renders approved artwork inside the focal card for earned image badges 57ms
+   ✓ MemberBadgeChain > verwendet für Erste Punkte die neue Oldschool-Medaillenserie 36ms
+   ✓ MemberBadgeChain > composes Erste Mitwirkung from its motif and award frame 23ms
+   ✓ MemberBadgeChain > composes the productive tier with its matching rank frame 37ms
+   ✓ MemberBadgeChain > renders the generated contribution artwork without a fallback icon 51ms
+   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > renders one ordered three-family outer carousel and three native artwork tiers at zero 63ms
+   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > keeps tier preview independent from true terminal progress and outer family state 70ms
+   ✓ MemberBadgeChain > Phase 125 contribution achievement stages > locks artwork, same-DOM, expanded, responsive and no-inner-engine contracts 96ms
+   ✓ MemberBadgeChain > renders the approved membership artwork without a fallback icon 29ms
+   ✓ MemberBadgeChain > renders the compact historical leadership seal 23ms
+   ✓ MemberBadgeChain > composes the translator artwork with the matching rank frame 33ms
+   ✓ MemberBadgeChain > uses the dedicated silver timing artwork for the silver timing tier 45ms
+   ✓ MemberBadgeChain > composes encoding with the matching layered rank artwork 21ms
+   ✓ MemberBadgeChain > composes typesetting with the matching layered rank artwork 34ms
+   ✓ MemberBadgeChain > composes quality checking with the matching layered rank artwork 27ms
+   ✓ MemberBadgeChain > composes project leadership with the matching layered rank artwork 33ms
+   ✓ MemberBadgeChain > composes editor with the matching layered rank artwork 21ms
+   ✓ MemberBadgeChain > composes raw_provider with the matching layered rank artwork 32ms
+   ✓ MemberBadgeChain > composes designer with the matching layered rank artwork 24ms
+   ✓ MemberBadgeChain > composes admin with the matching layered rank artwork 33ms
+   ✓ MemberBadgeChain > composes other with the matching layered rank artwork 19ms
+   ✓ MemberBadgeChain > labels the catch-all role as Andere instead of exposing the raw role code 47ms
+   ✓ MemberBadgeChain > renders a horizontal earned-and-locked badge chain without an aggregate summary 8ms
+   ✓ MemberBadgeChain > does not invent badge tier labels when the catalog has no tier or level field 8ms
+   ✓ MemberBadgeChain > omits the aggregate achievement summary from DOM, accessibility and SSR 29ms
+   ✓ MemberBadgeChain > hides a foreign catalog role completely while retaining all five stages of an earned role (D-02/D-03) 23ms
    ✓ MemberBadgeChain > renders a role-entry badge in earned state the moment it is in earnedBadges (D-03) 24ms
-   ✓ MemberBadgeChain > uses the exact singular and plural copy for earned Fansubrollen (D-04) 29ms
-   ✓ PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03) > contains all 11 locked role_entry_* codes with correct German labels (CR-01 112-REVIEW: full anime_contribution role_definitions coverage) 1ms
-   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the German role-name prefix before a merged Typ-1 + Typ-3 roles row 44ms
-   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix for a roles row with only the Typ-1 chip (under threshold, no volume merge) 36ms
-   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix uniformly on every earned roles-group row 31ms
+   ✓ MemberBadgeChain > uses the exact singular and plural copy for earned Fansubrollen (D-04) 26ms
+   ✓ PUBLIC_MEMBER_BADGE_CATALOG role-entry entries (D-03) > contains all 11 locked role_entry_* codes with correct German labels (CR-01 112-REVIEW: full anime_contribution role_definitions coverage) 2ms
+   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the German role-name prefix before a merged Typ-1 + Typ-3 roles row 46ms
+   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix for a roles row with only the Typ-1 chip (under threshold, no volume merge) 33ms
+   ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > renders the role-name prefix uniformly on every earned roles-group row 28ms
    ✓ MemberBadgeChain roleLabel prefix (Phase 112 Plan 03, D-04) > does not render a role-name prefix for non-roles groups (Fortschritt) 15ms
-   ✓ buildMemberBadgeGroups (D-04) > returns groups in the fixed roles/progress/points/membership/special order when all groups are populated 4ms
+   ✓ buildMemberBadgeGroups (D-04) > returns groups in the fixed roles/progress/points/membership/special order when all groups are populated 1ms
    ✓ buildMemberBadgeGroups (D-04) > trennt Punkte-Meilensteine vom Projektfortschritt 1ms
    ✓ buildMemberBadgeGroups (D-04) > hides groups with zero visible badges entirely instead of returning them empty 1ms
    ✓ buildMemberBadgeGroups (D-04) > bildet aus earned-only Contribution-Badges genau eine Zeile pro Familie 1ms
    ✓ buildMemberBadgeGroups (D-04) > blendet Beiträge ohne earned Contribution-Badges vollständig aus 0ms
    ✓ buildMemberBadgeGroups (D-04) > merges two synthetic same-roleCode badges into a single Rollen row (Phase 112 compatibility) 1ms
    ✓ buildMemberBadgeGroups (D-04) > sorts every real catalog badge into the correct group using the real presentation map 2ms
-   ✓ MemberBadgeChain Phase 118 role cards > keeps approved role-art geometry for desktop, tablet, mobile and special roles 1ms
+   ✓ MemberBadgeChain Phase 118 role cards > keeps approved role-art geometry for desktop, tablet, mobile and special roles 0ms
    ✓ MemberBadgeChain Phase 118 role cards > keeps all five mobile medals and progress copy inside the role card 0ms
    ✓ MemberBadgeChain Phase 118 role cards > matches the narrow carousel skeleton to one full card and a separate controls row 0ms
-   ✓ MemberBadgeChain Phase 118 role cards > renders exact earned-role cards through one carousel station 46ms
-   ✓ MemberBadgeChain Phase 118 role cards > keeps every role row mounted after expanding the Fansubrollen carousel 51ms
-   ✓ MemberBadgeChain Phase 118 role cards > hides zero and foreign roles and reverses rank state on rerender 36ms
-   ✓ MemberBadgeChain Phase 118 role cards > keeps a full Platinum progressbar while preserving the true visible count 16ms
-   × MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy 119ms
+   ✓ MemberBadgeChain Phase 118 role cards > renders exact earned-role cards through one carousel station 43ms
+   ✓ MemberBadgeChain Phase 118 role cards > keeps every role row mounted after expanding the Fansubrollen carousel 44ms
+   ✓ MemberBadgeChain Phase 118 role cards > hides zero and foreign roles and reverses rank state on rerender 20ms
+   ✓ MemberBadgeChain Phase 118 role cards > keeps a full Platinum progressbar while preserving the true visible count 19ms
+   × MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy 74ms
      → Unable to find an element with the text: 1 mitgetragenes Projekt · Noch 4 bis Silber. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
 
 Ignored nodes: comments, script, style
@@ -723,11 +758,11 @@ Ignored nodes: comments, script, style
                     [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
                     [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75"[39m
                     [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-pr...
-   ✓ MemberBadgeChain Phase 119 collection cards > renders Anime-Projekte as one stage without outer carousel chrome 38ms
-   ✓ MemberBadgeChain Phase 119 collection cards > preserves a real value above Gold while rendering a full terminal bar 27ms
-   ✓ MemberBadgeChain Phase 119 collection cards > keeps current, selected and locked stages semantically distinct 66ms
-   ✓ MemberBadgeChain Phase 119 collection cards > resets temporary selection when family metrics change 81ms
-   × MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable 77ms
+   ✓ MemberBadgeChain Phase 119 collection cards > renders Anime-Projekte as one stage without outer carousel chrome 42ms
+   ✓ MemberBadgeChain Phase 119 collection cards > preserves a real value above Gold while rendering a full terminal bar 7ms
+   ✓ MemberBadgeChain Phase 119 collection cards > keeps current, selected and locked stages semantically distinct 80ms
+   ✓ MemberBadgeChain Phase 119 collection cards > resets temporary selection when family metrics change 65ms
+   × MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable 68ms
      → Unable to find a label with the text of: Gründungsmitglied · Gesperrt
 
 Ignored nodes: comments, script, style
@@ -809,50 +844,50 @@ Ignored nodes: comments, script, style
                     [33msizes[39m=[32m"(max-width: 520px) 248px, (max-width: 1099px) 280px, 320px"[39m
                     [33msrc[39m=[32m"http://localhost:3000/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=3840&q=75"[39m
                     [33msrcset[39m=[32m"/_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=32&q=75 32w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=48&q=75 48w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=64&q=75 64w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=96&q=75 96w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=128&q=75 128w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=256&q=75 256w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=384&q=75 384w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=640&q=75 640w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=750&q=75 750w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=828&q=75 828w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1080&q=75 1080w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1200&q=75 1200w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=1920&q=75 1920w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-productive-bronze.png&w=2048&q=75 2048w, /_next/image?url=%2Fmember-achievement-badges%2Fprogress-frame-pr...
-   × MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups 59ms
+   × MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups 45ms
      → expected null not to be null
-   ✓ MemberBadgeChain Phase 119 inner stage strip > keeps a visible, touch-friendly horizontal scroll affordance without page overflow 0ms
-   ✓ MemberBadgeChain Phase 119 inner stage strip > does not map a mouse wheel to a horizontal stage strip 7ms
+   ✓ MemberBadgeChain Phase 119 inner stage strip > keeps a visible, touch-friendly horizontal scroll affordance without page overflow 1ms
+   ✓ MemberBadgeChain Phase 119 inner stage strip > does not map a mouse wheel to a horizontal stage strip 10ms
    ↓ MemberBadgeChain Phase 119 inner stage strip > centers the current stage through its own strip and never scrolls an ancestor
-   ✓ MemberBadgeChain Phase 119 inner stage strip > exposes every earned and locked stage as a semantic list item 19ms
+   ✓ MemberBadgeChain Phase 119 inner stage strip > exposes every earned and locked stage as a semantic list item 13ms
    ✓ MemberBadgeChain Phase 119 inner stage strip > reserves fixed collection hero geometry at tablet and smartphone widths 0ms
-   ✓ routes compact and active badge art through responsive optimized sizes 22ms
-   × Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant 75ms
+   ✓ routes compact and active badge art through responsive optimized sizes 12ms
+   × Phase 120 Task 2: keeps SSR carousel content while expensive listeners remain dormant 46ms
      → expected [ 'Rollenfortschritt', …(4) ] to deeply equal [ 'Rollenfortschritt', …(5) ]
    ✓ keeps badge artwork slots stable and expresses focus only through transforms 1ms
-   ✓ Phase 121 Rollenfamilien und Hero-Artwork > zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen 195ms
-   ✓ Phase 121 Rollenfamilien und Hero-Artwork > löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen  1078ms
-   ✓ Phase 121 Rollenfamilien und Hero-Artwork > bindet komponierte Hero-Layer an einen quadratischen lokalen Geometriekontext 86ms
-   ✓ Phase 121 semantischer Rollen-Rank-Track > toggles a clean independent expanded roles grid and restores the carousel 57ms
+   ✓ Phase 121 Rollenfamilien und Hero-Artwork > zeigt exakt 11 verdiente Rollenfamilien und keine Alias- oder Fremdrollen 95ms
+   ✓ Phase 121 Rollenfamilien und Hero-Artwork > löst alle fünf Hero-Ränge aller 11 Familien auf und bewahrt direkte Timing-Quellen  1048ms
+   ✓ Phase 121 Rollenfamilien und Hero-Artwork > bindet komponierte Hero-Layer an einen quadratischen lokalen Geometriekontext 78ms
+   ✓ Phase 121 semantischer Rollen-Rank-Track > toggles a clean independent expanded roles grid and restores the carousel 62ms
    ✓ Phase 121 semantischer Rollen-Rank-Track > locks the final desktop hierarchy and near-full-width narrow role card 0ms
-   ✓ Phase 121 semantischer Rollen-Rank-Track > beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen 75ms
+   ✓ Phase 121 semantischer Rollen-Rank-Track > beschreibt Gold und Platin als geordnete informative Fünf-Schritt-Listen 58ms
    ✓ Phase 121 semantischer Rollen-Rank-Track > behält für active, inactive und expanded denselben Rollenbaum 63ms
-   ✓ Phase 124 Punkte-Meilensteine single-family stage > renders exactly six ordered stations without outer carousel chrome or skeletons 20ms
-   ✓ Phase 124 Punkte-Meilensteine single-family stage > Quick 260812-pmu: leaves the outer section as the sole points title owner 12ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > renders exactly six ordered stations without outer carousel chrome or skeletons 14ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > Quick 260812-pmu: leaves the outer section as the sole points title owner 15ms
    ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps zero visible with no current station and every milestone locked 6ms
-   ✓ Phase 124 Punkte-Meilensteine single-family stage > allows earned preview while authoritative progress and target remain unchanged 29ms
-   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 2500 with bounded progressbar semantics 10ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > allows earned preview while authoritative progress and target remain unchanged 31ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 2500 with bounded progressbar semantics 42ms
    ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 2733 with bounded progressbar semantics 10ms
-   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 5000 with bounded progressbar semantics 16ms
-   ✓ Phase 124 Punkte-Meilensteine single-family stage > locks square contained artwork, local overflow and reduced-motion CSS contracts 1ms
-   ✓ Phase 126 membership stage > renders membership without an outer carousel 13ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > keeps the true terminal value 5000 with bounded progressbar semantics 13ms
+   ✓ Phase 124 Punkte-Meilensteine single-family stage > locks square contained artwork, local overflow and reduced-motion CSS contracts 0ms
+   ✓ Phase 126 membership stage > renders membership without an outer carousel 10ms
    ✓ Phase 126 membership stage > Quick 260812-pmu: leaves the outer section as the sole membership title owner 12ms
-   ✓ Phase 126 membership stage > keeps founding separate from the duration track 9ms
-   ✓ Phase 126 membership stage > renders an earned founding membership as an accessible preview button 16ms
-   ✓ Phase 126 membership stage > shows founding artwork and copy in the large hero after preview activation 17ms
-   ✓ Phase 126 membership stage > keeps authoritative duration facts unchanged during founding preview 15ms
-   ✓ Phase 126 membership stage > clears an earlier preview when the actual current duration is selected 25ms
-   ✓ Phase 126 membership stage > switches from founding preview to every earned duration milestone 33ms
-   ✓ Phase 126 membership stage > does not render an interactive or empty founding card for non-founders 11ms
+   ✓ Phase 126 membership stage > keeps founding separate from the duration track 10ms
+   ✓ Phase 126 membership stage > renders an earned founding membership as an accessible preview button 10ms
+   ✓ Phase 126 membership stage > shows founding artwork and copy in the large hero after preview activation 19ms
+   ✓ Phase 126 membership stage > keeps authoritative duration facts unchanged during founding preview 18ms
+   ✓ Phase 126 membership stage > clears an earlier preview when the actual current duration is selected 21ms
+   ✓ Phase 126 membership stage > switches from founding preview to every earned duration milestone 37ms
+   ✓ Phase 126 membership stage > does not render an interactive or empty founding card for non-founders 8ms
    ✓ Phase 126 membership stage > renders founding artwork exactly once before and during its hero preview 13ms
-   ✓ Phase 126 membership stage > keeps locked duration nodes noninteractive while founder preview is active 14ms
-   ✓ Phase 126 membership stage > previews earned duration artwork without changing facts 23ms
+   ✓ Phase 126 membership stage > keeps locked duration nodes noninteractive while founder preview is active 12ms
+   ✓ Phase 126 membership stage > previews earned duration artwork without changing facts 22ms
    ✓ Phase 126 membership stage > uses stable three-column contain geometry 1ms
-   ✓ Quick 260811-lck locked achievement artwork secrecy > Quick 260812-pmu: keeps the cleaned hierarchy identical in SSR markup 50ms
-   ✓ Quick 260811-lck locked achievement artwork secrecy > uses one neutral noninteractive placeholder for every locked family while earned art remains 62ms
-   ✓ Quick 260811-lck locked achievement artwork secrecy > omits locked asset names from SSR but keeps locked copy and current hero art 16ms
-   ✓ Quick 260812-bqs locked mystery heroes > renders the same secret neutral hero contract for every completely unearned family 32ms
-   ✓ Quick 260812-bqs locked mystery heroes > keeps locked hero SSR free of future artwork identifiers and colors 6ms
+   ✓ Quick 260811-lck locked achievement artwork secrecy > Quick 260812-pmu: keeps the cleaned hierarchy identical in SSR markup 55ms
+   ✓ Quick 260811-lck locked achievement artwork secrecy > uses one neutral noninteractive placeholder for every locked family while earned art remains 70ms
+   ✓ Quick 260811-lck locked achievement artwork secrecy > omits locked asset names from SSR but keeps locked copy and current hero art 19ms
+   ✓ Quick 260812-bqs locked mystery heroes > renders the same secret neutral hero contract for every completely unearned family 37ms
+   ✓ Quick 260812-bqs locked mystery heroes > keeps locked hero SSR free of future artwork identifiers and colors 13ms
    ✓ Quick 260812-bqs locked mystery heroes > defines a responsive hero composition without changing the compact lock default 0ms
    ✓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps responsive BadgeChain contract > bounds hero, progress and carousel consumers without arbitrary copy breaking 0ms
    ✓ Quick 260812-bqs locked mystery heroes > Quick 260812-rps medium contribution carousel geometry > gives the active card usable width and stacks its hero before copy is squeezed 0ms
@@ -862,25 +897,26 @@ Ignored nodes: comments, script, style
    ✓ Quick 260812-kr1 transparent achievement stages > keeps the same no-card-surface declaration on every extracted stage Card root 0ms
    ✓ Quick 260812-kr1 transparent achievement stages > retains responsive ownership and bounded hero media without document-level clipping 0ms
    ✓ Quick 260812-kr1 rendered Card ownership regression > uses a higher-specificity section rule than the global Card class and compacts inactive roles 0ms
- ✓ src/app/members/[slug]/OwnHiddenProfilePreview.test.tsx (7 tests) 202ms
- ✓ src/components/profile/RecentContributionsSection.test.tsx (9 tests) 158ms
- ✓ src/app/members/ranking/page.test.tsx (6 tests) 92ms
- ✓ src/app/members/[slug]/OwnProfileEditLink.test.tsx (6 tests) 81ms
- ✓ src/components/profile/RecentMediaSection.test.tsx (4 tests) 77ms
- ✓ src/components/profile/MemberStatusPill.test.tsx (11 tests) 41ms
- ❯ src/types/__tests__/v12-projection-contract.test.ts (6 tests | 1 failed) 16ms
-   ✓ v12 projection contract parity > keeps TypeScript unions and object keys exact 2ms
-   × v12 projection contract parity > keeps PublicMemberBadge role-progress metadata aligned 10ms
+ ✓ src/components/profile/MemberStorySection.test.tsx (8 tests) 352ms
+ ✓ src/app/members/[slug]/OwnHiddenProfilePreview.test.tsx (7 tests) 199ms
+ ✓ src/app/members/[slug]/OwnProfileEditLink.test.tsx (6 tests) 92ms
+ ✓ src/components/profile/RecentContributionsSection.test.tsx (9 tests) 131ms
+ ✓ src/app/members/ranking/page.test.tsx (6 tests) 102ms
+ ✓ src/components/profile/MemberStatusPill.test.tsx (11 tests) 50ms
+ ✓ src/components/profile/RecentMediaSection.test.tsx (4 tests) 74ms
+ ❯ src/types/__tests__/v12-projection-contract.test.ts (6 tests | 1 failed) 30ms
+   ✓ v12 projection contract parity > keeps TypeScript unions and object keys exact 4ms
+   × v12 projection contract parity > keeps PublicMemberBadge role-progress metadata aligned 21ms
      → expected '      type: object\n      description…' to contain 'enum: [bronze, silver, gold]'
    ✓ v12 projection contract parity > documents the pinned paths as direct no-envelope responses 1ms
    ✓ v12 projection contract parity > keeps OpenAPI schema fields and enums aligned with the TS mirrors 1ms
    ✓ v12 projection contract parity > keeps projection reads behind the central api.ts helpers 1ms
    ✓ Phase 119 additive badge_progress contract > keeps Go, OpenAPI and TypeScript field names and nullability aligned 1ms
- ✓ src/components/profile/badgeArtwork.test.ts (1 test) 8ms
- ✓ src/components/profile/memberBadgeLabels.test.ts (92 tests) 43ms
- ✓ src/components/profile/CorrectionReportModal.test.tsx (3 tests) 7ms
+ ✓ src/components/profile/memberBadgeLabels.test.ts (92 tests) 39ms
+ ✓ src/components/profile/badgeArtwork.test.ts (1 test) 7ms
+ ✓ src/components/profile/CorrectionReportModal.test.tsx (3 tests) 6ms
  ↓ src/components/profile/VerifiedBadge.test.tsx (3 tests | 3 skipped)
- ✓ src/components/profile/MemorialSetterAction.test.tsx (4 tests) 9ms
+ ✓ src/components/profile/MemorialSetterAction.test.tsx (4 tests) 10ms
 
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
 
@@ -1198,8 +1234,8 @@ AssertionError: expected '      type: object\n      description…' to contain '
 
  Test Files  3 failed | 16 passed | 1 skipped (20)
       Tests  6 failed | 351 passed | 1 skipped | 3 todo (361)
-   Start at  14:52:36
-   Duration  8.43s (transform 1.40s, setup 1.45s, collect 5.67s, tests 8.52s, environment 5.21s, prepare 1.22s)
+   Start at  09:39:42
+   Duration  8.35s (transform 1.36s, setup 1.44s, collect 5.64s, tests 8.27s, environment 5.29s, prepare 1.24s)
 
 
 ==== Frontend: npm run build ====
@@ -1211,7 +1247,7 @@ AssertionError: expected '      type: object\n      description…' to contain '
 ▲ Next.js 16.1.6 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 6.3s
+✓ Compiled successfully in 6.4s
   Running TypeScript ...
   Collecting page data using 3 workers ...
   Generating static pages using 3 workers (0/23) ...
@@ -1355,6 +1391,8 @@ Repo-wide git diff --check        : PASS
 ---- KNOWN DEFERRED (not blocking, see .planning/phases/133-responsive-accessible-efficient-visual-delivery/deferred-items.md and this script's citation comments) ----
   [backend go test] TestPhase128PublicMemberAccessMatrix -- contributions_public_handler.go no longer implements member access (chore(129-07) removed it; test predates that removal)
   [frontend lint]   capture-responsive.cjs
+  [frontend lint]   src/app/admin/fansubs/[id]/edit/GroupMemberFormModals.tsx
+  [frontend lint]   src/app/admin/episode-versions/[versionId]/edit/useEpisodeNeighborNavigation.ts
   [frontend vitest]  FAIL  src/components/profile/MemberBadgeChain.test.tsx > MemberBadgeChain Phase 119 collection cards > renders independent family cards with authoritative progressbar values and exact copy
   [frontend vitest]  FAIL  src/components/profile/MemberBadgeChain.test.tsx > MemberBadgeChain Phase 119 collection cards > keeps category order, a non-founder founding stage locked and the next year target reachable
   [frontend vitest]  FAIL  src/components/profile/MemberBadgeChain.test.tsx > MemberBadgeChain Phase 119 collection cards > Phase 127 RED chain suppresses legacy Special while preserving five retained groups
