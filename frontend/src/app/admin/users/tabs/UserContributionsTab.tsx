@@ -17,6 +17,10 @@ import {
   TableRow,
 } from '@/components/ui'
 import { ApiError, getAdminUserContributions } from '@/lib/api'
+import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { normalizeRoleCodes } from '@/components/contributions/contributionRoles'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type {
   AdminContributionItem,
   AdminUserContributionsResponse,
@@ -26,17 +30,13 @@ interface Props {
   userId: number
 }
 
-// Hilfsfunktion: Rollenbezeichner leserlich darstellen
-function roleLabel(code: string): string {
-  return code
-}
-
 interface ContributionSectionProps {
   title: string
   items: AdminContributionItem[]
   showReleaseVersion?: boolean
   showDisputeState?: boolean
   isLegacy?: boolean
+  contributionRoles: readonly RoleDefinitionOption[]
 }
 
 function ContributionSection({
@@ -45,6 +45,7 @@ function ContributionSection({
   showReleaseVersion = false,
   showDisputeState = false,
   isLegacy = false,
+  contributionRoles,
 }: ContributionSectionProps) {
   if (items.length === 0) return null
 
@@ -97,9 +98,19 @@ function ContributionSection({
                   {item.role_codes.length === 0 ? (
                     <Badge variant="muted">–</Badge>
                   ) : (
-                    item.role_codes.map((code) => (
-                      <Badge key={code} variant="neutral">{roleLabel(code)}</Badge>
-                    ))
+                    normalizeRoleCodes(contributionRoles, item.role_codes).map((code) => {
+                      const presentation = presentationForRole(contributionRoles, code)
+                      return (
+                        <Badge
+                          key={code}
+                          variant="neutral"
+                          data-role-code={presentation.colorKey}
+                          data-role-icon={presentation.iconKey}
+                        >
+                          {labelForRole(contributionRoles, code)}
+                        </Badge>
+                      )
+                    })
                   )}
                 </div>
               </TableCell>
@@ -131,6 +142,7 @@ function ContributionSection({
 }
 
 export function UserContributionsTab({ userId }: Props) {
+  const { roles: contributionRoles, error: roleCatalogError } = useRoleCatalog('anime_contribution')
   const [data, setData] = useState<AdminUserContributionsResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -165,6 +177,14 @@ export function UserContributionsTab({ userId }: Props) {
       />
     )
   }
+  if (roleCatalogError) {
+    return (
+      <ErrorState
+        title="Rollen konnten nicht geladen werden"
+        description="Die Beitragsrollen sind vorübergehend nicht verfügbar."
+      />
+    )
+  }
   if (!data) return <EmptyState title="Keine Beiträge vorhanden." description="" />
 
   const total =
@@ -188,23 +208,27 @@ export function UserContributionsTab({ userId }: Props) {
         title="Projektweite Beiträge (Standard)"
         items={data.project_defaults}
         showReleaseVersion={false}
+        contributionRoles={contributionRoles}
       />
       <ContributionSection
         title="Release-spezifische Overrides"
         items={data.release_overrides}
         showReleaseVersion={true}
+        contributionRoles={contributionRoles}
       />
       <ContributionSection
         title="Offene / strittige Beiträge"
         items={data.open_disputes}
         showReleaseVersion={false}
         showDisputeState={true}
+        contributionRoles={contributionRoles}
       />
       <ContributionSection
         title="Historisch / Legacy"
         items={data.legacy_historical}
         showReleaseVersion={false}
         isLegacy={true}
+        contributionRoles={contributionRoles}
       />
     </div>
   )

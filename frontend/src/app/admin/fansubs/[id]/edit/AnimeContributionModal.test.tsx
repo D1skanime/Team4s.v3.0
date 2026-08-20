@@ -81,9 +81,9 @@ describe('AnimeContributionModal', () => {
   it('zeigt einen Katalogfehler kompakt und bietet keine statischen Rollen an', () => {
     catalogState.error = 'catalog_unavailable'
     render(<AnimeContributionModal fansubId={1} animeId={13} animeTitle="Naruto" members={TEST_MEMBERS} existingContributions={[]} onClose={vi.fn()} onSaved={vi.fn()} />)
-    expect(screen.getByRole('alert').textContent).toContain('Rollen konnten nicht geladen werden')
-    fireEvent.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
-    expect(screen.getByLabelText('Rollen für neue Person').querySelectorAll('button')).toHaveLength(0)
+    expect(screen.getByRole('heading', { name: 'Rollen konnten nicht geladen werden' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Person hinzufügen' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.queryByLabelText('Rollen für neue Person')).toBeNull()
   })
 
   it('fügt bestehende Fansub-Member erst lokal hinzu und speichert projektweit', async () => {

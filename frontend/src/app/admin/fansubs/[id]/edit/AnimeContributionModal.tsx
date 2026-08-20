@@ -7,6 +7,7 @@ import {
   Button,
   Drawer,
   EmptyState,
+  ErrorState,
   FormField,
   Select,
 } from '@/components/ui'
@@ -65,7 +66,7 @@ export default function AnimeContributionModal({
   onClose,
   onSaved,
 }: Props) {
-  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
+  const { roles: contributionRoles, error: roleCatalogError } = useRoleCatalog('anime_contribution')
   const [stagedRows, setStagedRows] = useState<EditableProjectContribution[]>([])
   const [originalProjectRows, setOriginalProjectRows] = useState<AnimeContribution[]>([])
   const [originalRolesById, setOriginalRolesById] = useState<Record<number, string[]>>({})
@@ -282,12 +283,19 @@ export default function AnimeContributionModal({
             variant="ghost"
             leftIcon={<Plus size={16} />}
             onClick={() => setAddingRow(true)}
-            disabled={availableMembers.length === 0}
+            disabled={availableMembers.length === 0 || Boolean(roleCatalogError)}
           >
             Person hinzufügen
           </Button>
         ) : null}
       </div>
+
+      {roleCatalogError ? (
+        <ErrorState
+          title="Rollen konnten nicht geladen werden"
+          description="Die Rollen-Auswahl ist vorübergehend nicht verfügbar."
+        />
+      ) : null}
 
       {members.length === 0 ? (
         <EmptyState

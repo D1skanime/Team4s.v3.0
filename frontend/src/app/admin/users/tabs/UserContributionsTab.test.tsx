@@ -43,8 +43,7 @@ describe('UserContributionsTab', () => {
     catalogState.error = 'catalog_unavailable'
     getAdminUserContributionsMock.mockResolvedValue(response(['karaoke_fx']))
     render(<UserContributionsTab userId={7} />)
-    await waitFor(() => expect(screen.getByRole('alert')).not.toBeNull())
-    expect(screen.getByRole('alert').textContent).toContain('Rollen konnten nicht geladen werden')
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Rollen konnten nicht geladen werden' })).not.toBeNull())
     expect(screen.queryByText('Karaoke FX')).toBeNull()
   })
 })
