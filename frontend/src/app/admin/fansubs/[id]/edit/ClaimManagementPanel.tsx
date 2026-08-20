@@ -34,7 +34,7 @@ import {
   rejectMemberRequest,
   verifyMemberClaim,
 } from '@/lib/api'
-import { FANSUB_GROUP_ROLE_OPTIONS, type HistFansubGroupMember } from '@/types/fansub'
+import type { HistFansubGroupMember } from '@/types/fansub'
 import type {
   GenerateClaimInvitationResponse,
   MemberClaimInvitationResponse,
@@ -77,12 +77,6 @@ function normalizeInviteLink(rawLink: string): string {
   }
 }
 
-function initialActiveRoleOptions(): ActiveRoleOption[] {
-  return FANSUB_GROUP_ROLE_OPTIONS
-    .filter((option) => option.code !== 'fansub_lead')
-    .map((option) => ({ code: option.code, label: option.label }))
-}
-
 /**
  * Note: this component is intentionally not mounted anywhere in the app router.
  * Its claim-generate/copy/cancel UI (the per-member invite-link block) was ported
@@ -99,7 +93,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
   const [generatedInvites, setGeneratedInvites] = useState<Record<number, GenerateClaimInvitationResponse>>({})
   const [memberInvitations, setMemberInvitations] = useState<Record<number, MemberClaimInvitationResponse[]>>({})
   const [roleAssignments, setRoleAssignments] = useState<ClaimRoleAssignment[]>([])
-  const [activeRoleOptions, setActiveRoleOptions] = useState<ActiveRoleOption[]>(() => initialActiveRoleOptions())
+  const [activeRoleOptions, setActiveRoleOptions] = useState<ActiveRoleOption[]>([])
   const [copyStates, setCopyStates] = useState<Record<number, CopyState>>({})
   const [approveNicknames, setApproveNicknames] = useState<Record<number, string>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -153,9 +147,7 @@ export function ClaimManagementPanel({ groupId, isGlobalAdmin = false }: ClaimMa
             .map((item) => ({ code: item.code, label: item.label_de })),
         )
       })
-      .catch(() => {
-        // Fallback: statische FANSUB_GROUP_ROLE_OPTIONS bleiben aktiv.
-      })
+      .catch(() => setActiveRoleOptions([]))
     return () => { cancelled = true }
   }, [groupId])
 

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui'
 import { listGroupHistoryRoleDefinitions } from '@/lib/api'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
+import { labelForRole } from '@/lib/roleCatalog'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -22,23 +22,13 @@ import { GroupHistRoleDialog } from './GroupHistRoleDialog'
 import { GroupMemberFormModals } from './GroupMemberFormModals'
 import { GroupMemberRequestsTable } from './GroupMemberRequestsTable'
 import { GroupMembersHistTable } from './GroupMembersHistTable'
-import { normalizeInviteLink, roleLabelForCode, useGroupMembersTab } from './useGroupMembersTab'
+import { normalizeInviteLink, useGroupMembersTab } from './useGroupMembersTab'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
-export const STATIC_HISTORICAL_ROLE_OPTIONS: RoleDefinitionOption[] = [
-  { code: 'founder', label_de: 'Gründung', sort_order: 1 },
-  { code: 'co_leader', label_de: 'Co-Leitung', sort_order: 3 },
-  ...FANSUB_GROUP_ROLE_OPTIONS.map((option, index) => ({
-    code: option.code,
-    label_de: option.label,
-    sort_order: 100 + index,
-  })),
-]
-
 export function mergeHistoricalRoleOptions(options: RoleDefinitionOption[]): RoleDefinitionOption[] {
   const byCode = new Map<string, RoleDefinitionOption>()
-  for (const option of [...options, ...STATIC_HISTORICAL_ROLE_OPTIONS]) {
+  for (const option of options) {
     if (!byCode.has(option.code)) {
       byCode.set(option.code, option)
     }
@@ -105,7 +95,7 @@ export function GroupMembersTab({
       })
       .catch(() => {
         if (!cancelled) {
-          setHistoryRoleOptions(mergeHistoricalRoleOptions([]))
+          setHistoryRoleOptions([])
           setHistoryRoleLoadError('Frühere Funktionen konnten nicht geladen werden.')
         }
       })
@@ -177,7 +167,7 @@ export function GroupMembersTab({
             canCreateClaimInvitation={canCreateClaimInvitation}
             canManageHistoricalMembers={canManageHistoricalMembers}
             canManageHistoricalRoles={canManageHistoricalRoles}
-            roleLabelForCode={roleLabelForCode}
+            roleLabelForCode={(code) => labelForRole(historyRoleOptions, code)}
             normalizeInviteLink={normalizeInviteLink}
             onEditMember={tab.openEdit}
             onDeleteMember={(member) => tab.setDeleteTarget(member)}
@@ -246,7 +236,7 @@ export function GroupMembersTab({
         roleDeleteError={tab.roleDeleteError}
         onCloseRoleDelete={tab.closeRoleDeleteModal}
         onConfirmRoleDelete={() => void tab.handleRoleDeleteConfirm()}
-        roleLabelForCode={roleLabelForCode}
+        roleLabelForCode={(code) => labelForRole(historyRoleOptions, code)}
       />
 
       <Modal

@@ -17,12 +17,12 @@ import {
   updateMemberRole,
 } from '@/lib/api'
 import {
-  FANSUB_GROUP_ROLE_OPTIONS,
   type CreateGroupMemberRequest,
   type CreateMemberRoleRequest,
   type HistFansubGroupMember,
   type HistGroupMemberRole,
 } from '@/types/fansub'
+import { readableCodeLabel } from '@/lib/roleCatalog'
 import type {
   MemberClaimInvitationResponse,
   MemberClaimRow,
@@ -34,18 +34,13 @@ import type { MemberFormFields } from './GroupMemberFormModals'
 import type { GroupMembersTabActions, HistoricalIdentityOption } from './GroupMembersTab'
 import { useGroupMembersClaimActions } from './useGroupMembersClaimActions'
 
-const HISTORICAL_ROLE_LABELS: Record<string, string> = {
-  founder: 'Gründung',
-  co_leader: 'Co-Leitung',
-}
-
 function formatApiError(error: unknown, fallback: string): string {
   if (error instanceof ApiError) return error.message
   return fallback
 }
 
 export function roleLabelForCode(code: string): string {
-  return FANSUB_GROUP_ROLE_OPTIONS.find((option) => option.code === code)?.label ?? HISTORICAL_ROLE_LABELS[code] ?? code
+  return readableCodeLabel(code)
 }
 
 export type DuplicateMemberMatch = {

@@ -10,7 +10,8 @@ import {
   upsertDefaultCrewEntry,
 } from '@/lib/api'
 import type { DefaultCrewEntry, UnifiedGroupMember } from '@/types/fansub'
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
+import { labelForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import {
   Badge,
   Button,
@@ -20,17 +21,14 @@ import {
   Select,
 } from '@/components/ui'
 
-// D-09: operative Rollen — fansub_lead nicht im Standard-Team
-const CREW_ROLE_OPTIONS = FANSUB_GROUP_ROLE_OPTIONS.filter(
-  (role) => role.code !== 'fansub_lead',
-)
-
 type Props = {
   fansubId: number
   members: UnifiedGroupMember[]
 }
 
 export function DefaultCrewManager({ fansubId, members }: Props) {
+  const { roles: contributionRoles, error: roleCatalogError } = useRoleCatalog('anime_contribution')
+  const crewRoleOptions = contributionRoles.filter((role) => role.code !== 'fansub_lead')
   const [crew, setCrew] = useState<DefaultCrewEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -67,7 +65,7 @@ export function DefaultCrewManager({ fansubId, members }: Props) {
   }
 
   function roleLabelFor(code: string): string {
-    return CREW_ROLE_OPTIONS.find((r) => r.code === code)?.label ?? code
+    return labelForRole(contributionRoles, code)
   }
 
   async function handleApply() {
@@ -191,7 +189,7 @@ export function DefaultCrewManager({ fansubId, members }: Props) {
           <Select
             value={addMemberId}
             onChange={(e) => setAddMemberId(e.target.value)}
-            disabled={addBusy}
+            disabled={addBusy || !!roleCatalogError}
           >
             <option value="">— Mitglied wählen —</option>
             {members.map((m) => (
@@ -208,13 +206,14 @@ export function DefaultCrewManager({ fansubId, members }: Props) {
             disabled={addBusy}
           >
             <option value="">— Rolle wählen —</option>
-            {CREW_ROLE_OPTIONS.map((r) => (
+            {crewRoleOptions.map((r) => (
               <option key={r.code} value={r.code}>
-                {r.label}
+                {r.label_de}
               </option>
             ))}
           </Select>
         </FormField>
+        {roleCatalogError ? <p style={{ color: 'var(--color-error)' }}>Rollen konnten nicht geladen werden.</p> : null}
         <Button
           variant="secondary"
           size="sm"

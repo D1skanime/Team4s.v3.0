@@ -18,11 +18,12 @@ import {
   TableRow,
 } from '@/components/ui'
 import {
-  FANSUB_GROUP_ROLE_OPTIONS,
   type FansubAppMember,
   type FansubGroupInvitation,
   type FansubGroupMediaPermissions,
 } from '@/types/fansub'
+import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -30,15 +31,9 @@ import { useFansubEditMediaQuery } from './hooks/useFansubEditViewport'
 
 const styles = { ...sharedStyles, ...fansubEditStyles }
 
-const ROLE_LABELS = new Map<string, string>(FANSUB_GROUP_ROLE_OPTIONS.map((option) => [option.code, option.label]))
-
 const MEDIA_PERMISSION_KEYS: Array<keyof FansubGroupMediaPermissions> = [
   'can_upload', 'can_delete_own', 'can_delete_all', 'can_reorder',
 ]
-
-function formatRoleLabel(role: string): string {
-  return ROLE_LABELS.get(role) || role
-}
 
 function formatMemberInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -57,18 +52,16 @@ function formatAppMemberName(member: FansubAppMember): string {
   )
 }
 
-function getRoleClassName(role: string): string {
-  const roleClassMap: Record<string, string> = {
-    fansub_lead: styles.fansubEditRoleLead,
-    project_lead: styles.fansubEditRoleProjectLead,
-    editor: styles.fansubEditRoleEditor,
-    translator: styles.fansubEditRoleTranslator,
-    timer: styles.fansubEditRoleTimer,
-    typesetter: styles.fansubEditRoleTypesetter,
-    quality_checker: styles.fansubEditRoleQuality,
-    encoder: styles.fansubEditRoleEncoder,
+function getRoleClassName(colorKey: string): string {
+  const colorClassMap: Record<string, string> = {
+    leadership: styles.fansubEditRoleLead,
+    creative: styles.fansubEditRoleEditor,
+    technical: styles.fansubEditRoleEncoder,
+    language: styles.fansubEditRoleTranslator,
+    quality: styles.fansubEditRoleQuality,
+    production: styles.fansubEditRoleProjectLead,
   }
-  return roleClassMap[role] ?? styles.fansubEditRoleDefault
+  return colorClassMap[colorKey] ?? styles.fansubEditRoleDefault
 }
 
 function styleNames(...names: Array<string | undefined | false>): string {
@@ -133,6 +126,7 @@ export function FansubAppMembersOverview({
   onCancelInvitation,
 }: FansubAppMembersOverviewProps) {
   const useMobileCards = useFansubEditMediaQuery('(max-width: 767px)')
+  const { roles } = useRoleCatalog('fansub_group')
 
   return (
     <>
@@ -205,9 +199,9 @@ export function FansubAppMembersOverview({
                             <Badge
                               key={`${member.id}-${role}`}
                               variant="info"
-                              className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
+                              className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(presentationForRole(roles, role).colorKey))}
                             >
-                              {formatRoleLabel(role)}
+                              {labelForRole(roles, role)}
                             </Badge>
                           ))
                         : <span className={styles.fansubEditHint}>Keine Rollen</span>
@@ -290,9 +284,9 @@ export function FansubAppMembersOverview({
                                   <Badge
                                     key={`${invitation.id}-${role}`}
                                     variant="info"
-                                    className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
+                                    className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(presentationForRole(roles, role).colorKey))}
                                   >
-                                    {formatRoleLabel(role)}
+                                    {labelForRole(roles, role)}
                                   </Badge>
                                 ))}
                               </div>
@@ -345,9 +339,9 @@ export function FansubAppMembersOverview({
                               <Badge
                                 key={`mobile-${invitation.id}-${role}`}
                                 variant="info"
-                                className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(role))}
+                                className={styleNames(styles.fansubEditRoleBadge, getRoleClassName(presentationForRole(roles, role).colorKey))}
                               >
-                                {formatRoleLabel(role)}
+                                {labelForRole(roles, role)}
                               </Badge>
                             ))}
                           </div>

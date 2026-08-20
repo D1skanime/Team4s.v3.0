@@ -216,8 +216,7 @@ const ROLE_VOLUME_TIER_ICONS: Record<RoleVolumeTier, LucideIcon> = {
 // D-04: dynamischer Resolver fuer role_volume_<roleCode>_<tier>-Codes — loest keine
 // hartcodierte Rollenliste auf. Liefert den geparsten Rollencode als Merge-Schluessel fuer
 // buildMemberBadgeGroups (Plan 112-03); die Aufloesung des deutschen Rollennamens fuer das
-// Zeilen-Praefix passiert dort ueber FANSUB_GROUP_ROLE_OPTIONS (Single Source of Truth,
-// @/types/fansub), damit dieselbe Rollenliste nicht doppelt importiert/gepflegt wird.
+// Zeilen-Präfix wird beim Rendern über den zentralen Rollenkatalog aufgelöst.
 export function resolveRoleVolumePresentation(badgeCode: string): MemberBadgePresentation {
   const withoutPrefix = badgeCode.slice('role_volume_'.length)
   const tier = ROLE_VOLUME_TIERS.find((candidate) => withoutPrefix.endsWith(`_${candidate}`))
@@ -230,7 +229,7 @@ export function resolveRoleVolumePresentation(badgeCode: string): MemberBadgePre
 
   // roleCode ist der Merge-Schluessel (Plan 112-03 buildMemberBadgeGroups); der aufgeloeste
   // deutsche Rollenname selbst wird erst beim Zeilen-Render (Plan 112-03, .roleLabel-Praefix)
-  // ueber denselben FANSUB_GROUP_ROLE_OPTIONS-Lookup gebraucht, hier reicht der Code.
+  // über denselben zentralen Katalog gebraucht; hier reicht der Code.
   const roleCode = withoutPrefix.slice(0, -(tier.length + 1))
 
   return {
