@@ -242,34 +242,6 @@ type RoleDefinitionOption struct {
 	HasOperativeCapabilities bool `json:"has_operative_capabilities"`
 }
 
-// groupHistoryDialogRoleWhitelist enthält die vier echten historischen Gruppenrollen.
-// Hintergrund (Pitfall 2 / RESEARCH Pattern 4):
-//
-//	Migration 0103 markiert App-Rollen (translator, encoder, …) zusätzlich mit
-//	dem Kontext "group_history". Ein naives WHERE 'group_history' = ANY(contexts)
-//	liefert dadurch auch aktive App-Rollen. Diese Whitelist begrenzt das Ergebnis
-//	auf die vier Rollen aus dem 0085-Seed mit echtem group_history-Ursprung.
-var groupHistoryDialogRoleWhitelist = []string{
-	"founder",
-	"fansub_lead",
-	"co_leader",
-	"project_lead",
-	"techadmin",
-	"gfxler",
-}
-
-// IsGroupHistoryWhitelistRole prüft ob der angegebene Code in der
-// groupHistoryDialogRoleWhitelist enthalten ist. Pure Slice-Prüfung, kein DB-Aufruf.
-// Wird von CreateHistGroupMemberRole als CR-01-Gate genutzt (D-13).
-func (r *HistGroupMemberRolesRepository) IsGroupHistoryWhitelistRole(code string) bool {
-	for _, c := range groupHistoryDialogRoleWhitelist {
-		if c == code {
-			return true
-		}
-	}
-	return false
-}
-
 // ListGroupHistoryRoleDefinitions gibt die Rollen zurück, die für historische
 // Mitgliedsfunktionen auswählbar sind. Diese Namen beschreiben historische Arbeit
 // und vergeben keine aktiven App-Rechte.
@@ -278,11 +250,9 @@ func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx con
 		SELECT rd.code, rd.label_de, rd.contexts, rd.sort_order, rd.assignable, rd.color_key, rd.icon_key,
 		       COUNT(rc.action_code)::integer
 		FROM role_definitions rd LEFT JOIN role_capabilities rc ON rc.role_code = rd.code
-		WHERE 'group_history' = ANY(contexts)
-		   OR 'anime_contribution' = ANY(contexts)
-		   OR code = ANY($1)
+		WHERE 'group_history' = ANY(rd.contexts)
 		GROUP BY rd.code ORDER BY rd.sort_order, rd.code
-	`, groupHistoryDialogRoleWhitelist)
+	`)
 	if err != nil {
 		return nil, fmt.Errorf("list group history role definitions: %w", err)
 	}
@@ -307,26 +277,10 @@ func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx con
 // Gruppenmitglieds gespeichert werden darf. Die Predicate entspricht bewusst dem Picker.
 // Historische Funktionen sind reine Archivdaten, bis ein User seine Identität claimt.
 func (r *HistGroupMemberRolesRepository) IsHistoricalMemberRoleCode(ctx context.Context, code string) (bool, error) {
-	if code == "" {
+	if strings.TrimSpace(code) == "" {
 		return false, nil
 	}
-	var exists bool
-	err := r.db.QueryRow(ctx, `
-		SELECT EXISTS(
-			SELECT 1
-			FROM role_definitions
-			WHERE code = $1
-			  AND (
-			    'group_history' = ANY(contexts)
-			    OR 'anime_contribution' = ANY(contexts)
-			    OR code = ANY($2)
-			  )
-		)
-	`, code, groupHistoryDialogRoleWhitelist).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("check historical member role code: %w", err)
-	}
-	return exists, nil
+	return r.RoleCodeExistsForContext(ctx, code, "group_history")
 }
 
 // ListFansubGroupRoleDefinitions gibt die auswählbaren Rollen für aktive
@@ -348,7 +302,7 @@ func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx cont
 	}
 	defer rows.Close()
 
-	result := make([]RoleDefinitionOption, 0, len(groupHistoryDialogRoleWhitelist))
+	result := make([]RoleDefinitionOption, 0, 16)
 	for rows.Next() {
 		var opt RoleDefinitionOption
 		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.Contexts, &opt.SortOrder, &opt.Assignable, &opt.ColorKey, &opt.IconKey, &opt.OperativeCapabilityCount); err != nil {

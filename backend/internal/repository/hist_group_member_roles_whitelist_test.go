@@ -26,7 +26,7 @@ func TestHistGroupMemberRolesUseCatalogContext(t *testing.T) {
 	if !strings.Contains(source, "$2 = ANY(contexts)") {
 		t.Fatal("historical role validation must use a parameterized role_definitions context lookup")
 	}
-	if !strings.Contains(source, "IsHistoricalMemberRoleCode(ctx, code, \"group_history\")") {
+	if !strings.Contains(source, "RoleCodeExistsForContext(ctx, code, \"group_history\")") {
 		t.Fatal("historical writes must validate the group_history catalog context")
 	}
 }

@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	"team4s.v3/backend/internal/permissions"
-
 	"github.com/jackc/pgx/v5"
 )
 
@@ -24,10 +22,13 @@ func (r *MemberClaimsRepository) ResolvePendingRolesToActive(ctx context.Context
 		SELECT DISTINCT r.role_code
 		FROM hist_group_member_roles r
 		JOIN hist_fansub_group_members hfgm ON hfgm.id = r.hist_fansub_group_member_id
+		JOIN role_definitions rd ON rd.code = r.role_code
 		WHERE hfgm.member_id = $1
 		  AND hfgm.fansub_group_id = $2
 		  AND r.ended_date IS NULL
 		  AND r.role_code NOT IN ('fansub_lead', 'founder')
+		  AND 'fansub_group' = ANY(rd.contexts)
+		  AND rd.assignable
 		ORDER BY r.role_code
 	`, memberID, fansubGroupID)
 	if err != nil {
@@ -36,16 +37,12 @@ func (r *MemberClaimsRepository) ResolvePendingRolesToActive(ctx context.Context
 	}
 	defer rows.Close()
 
-	historyRoles := NewHistGroupMemberRolesRepository(r.db)
 	roleCodes := make([]string, 0)
 	for rows.Next() {
 		var roleCode string
 		if err := rows.Scan(&roleCode); err != nil {
 			log.Printf("resolve pending roles to active: scan role failed (member_id=%d, fansub_group_id=%d): %v", memberID, fansubGroupID, err)
 			return nil
-		}
-		if !historyRoles.IsGroupHistoryWhitelistRole(roleCode) || !permissions.IsKnownFansubGroupRole(roleCode) {
-			continue
 		}
 		roleCodes = append(roleCodes, roleCode)
 	}

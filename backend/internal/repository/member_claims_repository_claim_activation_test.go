@@ -1,7 +1,9 @@
 package repository_test
 
 import (
+	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"team4s.v3/backend/internal/repository"
@@ -18,6 +20,26 @@ func TestResolvePendingRolesToActive_ExistsOnRepository(t *testing.T) {
 	}
 	if method.Type.Out(0).String() != "error" {
 		t.Fatalf("ResolvePendingRolesToActive muss error zurueckgeben, gefunden %s", method.Type.Out(0))
+	}
+}
+
+func TestResolvePendingRolesToActiveUsesCanonicalCatalog(t *testing.T) {
+	sourceBytes, err := os.ReadFile("member_claims_role_activation_repository.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(sourceBytes)
+	for _, required := range []string{
+		"JOIN role_definitions rd ON rd.code = r.role_code",
+		"'fansub_group' = ANY(rd.contexts)",
+		"rd.assignable",
+	} {
+		if !strings.Contains(source, required) {
+			t.Fatalf("claim role activation must contain catalog guard %q", required)
+		}
+	}
+	if strings.Contains(source, "IsGroupHistoryWhitelistRole") || strings.Contains(source, "IsKnownFansubGroupRole") {
+		t.Fatal("claim role activation must not use static role authorities")
 	}
 }
 
