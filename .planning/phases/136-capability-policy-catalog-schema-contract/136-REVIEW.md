@@ -32,11 +32,12 @@ files_reviewed_list:
   - shared/contracts/admin-capabilities.yaml
   - shared/contracts/openapi.yaml
 findings:
-  critical: 5
-  warning: 1
+  critical: 0
+  warning: 0
   info: 0
-  total: 6
-status: issues_found
+  total: 0
+resolved_findings: 6
+status: fixed
 ---
 
 # Phase 136: Post-Gap Code Review Report
@@ -44,13 +45,25 @@ status: issues_found
 **Reviewed:** 2026-08-20T20:52:00Z
 **Depth:** deep
 **Files Reviewed:** 27
-**Status:** issues_found
+**Status:** fixed
 
 ## Summary
 
-Plans 136-14 through 136-19 close the original founder/co-leader, truthful-link-audit, metadata, malformed-catalog, and missing-schema gaps in their primary paths. The gap closure is still not shippable: Plan 136-20 disconnects every existing role artwork from real migration metadata and retains source-level role authorities; history PATCH authorization still follows unauthorized event probes; and the new Go/OpenAPI policy request family has semantic and trust-boundary defects.
+All six actionable findings were fixed in focused atomic commits. Established contribution roles now select their shipped artwork through catalog metadata, badge role validity is catalog-only, history PATCH authorizes before event probes, `other` reasons are validated, external mutation requests cannot assert platform-admin provenance, and the public TypeScript catalog DTO is strict.
 
-Focused backend authorization, audit, repository, and contract tests passed. The combined frontend run passed 130 tests but retained four known failing `MemberBadgeChain` tests; those pre-existing failures are not separately counted.
+Focused backend authorization/contract tests, 30 focused frontend catalog/artwork tests, frontend typecheck, and diff checks pass. The broader `MemberBadgeChain` suite still has the same four unrelated pre-existing failures recorded by the review; the new negative catalog-authority test passes.
+
+
+## Resolution
+
+| Finding | Resolution | Commit |
+|---|---|---|
+| CR-01 | Existing contribution roles use the catalog `user` artwork semantic; exact migration metadata is asserted. | `51d14e3a` |
+| CR-02 | Removed `admin`/`other` exceptions; earned roles absent from the catalog are rejected. | `acb11232` |
+| CR-03 | Stored/requested event types are authorized before uniqueness or unlock probes. | `caf24b0e` |
+| CR-04 | Go JSON decoding and direct validation reject blank `other` reasons. | `a2dcd053` |
+| CR-05 | External contracts contain no actor-admin flag; provenance remains backend-only. | `59b9f271` |
+| WR-01 | Added a strict public DTO while retaining a separate partial admin DTO. | `ecbd5390` |
 
 ## Critical Issues
 
