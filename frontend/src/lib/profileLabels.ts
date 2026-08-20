@@ -1,7 +1,6 @@
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
+import { labelForRole } from '@/lib/roleCatalog'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type { ProfileVisibility } from '@/types/profile'
-
-const GROUP_ROLE_LABELS = new Map<string, string>(FANSUB_GROUP_ROLE_OPTIONS.map((option) => [option.code, option.label]))
 
 const PLATFORM_ROLE_LABELS = new Map<string, string>([
   ['platform_admin', 'Plattform-Admin'],
@@ -44,15 +43,14 @@ export function formatPlatformRoleLabel(role: string): string {
   return PLATFORM_ROLE_LABELS.get(trimmed) || readableCodeLabel(trimmed)
 }
 
-export function formatGroupRoleLabel(role: string): string {
-  const trimmed = role.trim()
-  return GROUP_ROLE_LABELS.get(trimmed) || readableCodeLabel(trimmed)
+export function formatGroupRoleLabel(role: string, catalog: readonly RoleDefinitionOption[] = []): string {
+  return labelForRole(catalog, role.trim())
 }
 
-export function formatHistoricalCreditRoleLabel(roleName: string, roleLabel?: string | null): string {
+export function formatHistoricalCreditRoleLabel(roleName: string, roleLabel?: string | null, catalog: readonly RoleDefinitionOption[] = []): string {
   const label = roleLabel?.trim()
   if (label) return label
-  return formatGroupRoleLabel(roleName)
+  return formatGroupRoleLabel(roleName, catalog)
 }
 
 export function formatAccountStatusLabel(status?: string | null): string {
