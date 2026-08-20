@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
@@ -34,31 +35,37 @@ export function EpisodeNavigationControls({
   const showPosition = currentIndex >= 0 && totalCount > 0;
 
   return (
-    <div className={styles.episodeNavBar}>
+    <div className={styles.episodeNavPager}>
       <Button
         type="button"
-        variant="secondary"
+        variant="ghost"
+        className={styles.episodeNavPagerSegment}
+        aria-label="Vorherige Folge"
         disabled={isLoading || prevVersionId == null}
         onClick={() => {
           if (prevVersionId != null) navigateTo(prevVersionId);
         }}
       >
-        ← Vorherige Folge
+        <ChevronLeft size={16} aria-hidden="true" />
+        <span className={styles.episodeNavPagerLabel}>Zurück</span>
       </Button>
       {showPosition ? (
-        <span className={styles.episodeNavPosition}>
-          Folge {currentIndex + 1} von {totalCount}
+        <span className={styles.episodeNavPagerPosition}>
+          Folge {currentIndex + 1} / {totalCount}
         </span>
       ) : null}
       <Button
         type="button"
-        variant="secondary"
+        variant="ghost"
+        className={styles.episodeNavPagerSegment}
+        aria-label="Nächste Folge"
         disabled={isLoading || nextVersionId == null}
         onClick={() => {
           if (nextVersionId != null) navigateTo(nextVersionId);
         }}
       >
-        Nächste Folge →
+        <span className={styles.episodeNavPagerLabel}>Weiter</span>
+        <ChevronRight size={16} aria-hidden="true" />
       </Button>
     </div>
   );

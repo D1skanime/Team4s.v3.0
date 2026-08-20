@@ -281,28 +281,37 @@ export function EpisodeVersionEditorPage() {
             </p>
             <h1 className={styles.title}>
               {animeTitle || "Episode-Version bearbeiten"}
+              {version ? (
+                <span className={styles.titleMeta}>
+                  {" \u00B7 "}
+                  {breadcrumbEpisodeLabel}
+                  {groupName ? (
+                    <>
+                      {" \u00B7 "}
+                      {fansubGroupHref != null &&
+                      selectedGroups.length === 1 ? (
+                        <Link
+                          href={fansubGroupHref}
+                          className={styles.subtitleGroupLink}
+                        >
+                          {groupName}
+                        </Link>
+                      ) : (
+                        groupName
+                      )}
+                      {" "}
+                      {segmentVersion}
+                    </>
+                  ) : null}
+                </span>
+              ) : null}
             </h1>
-            {version ? (
-              <p className={styles.subtitle}>
-                {breadcrumbEpisodeLabel}
-                {groupName ? (
-                  <>
-                    {" \u00B7 "}
-                    {fansubGroupHref != null && selectedGroups.length === 1 ? (
-                      <Link
-                        href={fansubGroupHref}
-                        className={styles.subtitleGroupLink}
-                      >
-                        {groupName}
-                      </Link>
-                    ) : (
-                      groupName
-                    )}
-                    {" "}
-                    {segmentVersion}
-                  </>
-                ) : null}
-              </p>
+          </div>
+          <div className={styles.headerActions}>
+            {editor.hasUnsavedChanges ? (
+              <span className={styles.unsavedBadge}>
+                Ungespeicherte Änderungen
+              </span>
             ) : null}
             {version ? (
               <EpisodeNavigationControls
@@ -317,11 +326,6 @@ export function EpisodeVersionEditorPage() {
               />
             ) : null}
           </div>
-          {editor.hasUnsavedChanges ? (
-            <span className={styles.unsavedBadge}>
-              Ungespeicherte Änderungen
-            </span>
-          ) : null}
         </header>
 
         {scopeError ? (
