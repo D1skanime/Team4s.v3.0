@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Capability-, Review- und Benutzerverwaltung
 status: executing
-last_updated: "2026-08-20T18:55:00Z"
-last_activity: 2026-08-20 -- Phase 136 gap closure planned and verified
+last_updated: "2026-08-20T21:20:00Z"
+last_activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7)
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 20
-  completed_plans: 0
-  percent: 0
+  completed_plans: 20
+  percent: 14
 ---
 
 # Project State
@@ -32,10 +32,10 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 ## Current Position
 
-Phase: 136 of 142 (Capability Policy, Catalog & Schema Contract)
-Plan: —
-Status: Ready to execute verified gap-closure plans 136-14 through 136-20
-Last activity: 2026-08-20 -- Phase 136 gap closure planned and verified
+Phase: 137 of 142 (central effective rights resolver & overrides)
+Plan: Not started
+Status: Ready to discuss Phase 137
+Last activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7)
 
 ## Accumulated Context
 

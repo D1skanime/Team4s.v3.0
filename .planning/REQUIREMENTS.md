@@ -10,17 +10,17 @@
 - [ ] **CAP-01**: Ein autorisierter Admin kann für einen Benutzer und eine Fansubgruppe die vollständige Liste seiner effektiven Capabilities sehen.
 - [ ] **CAP-02**: Ein autorisierter Admin kann für jede effektive Capability alle gewährenden Rollen, direkten Allows, direkten Denies und den entscheidenden Grund nachvollziehen.
 - [ ] **CAP-03**: Für normale Gruppenmitglieder gilt serverseitig dieselbe dokumentierte Präzedenz in Anzeige und Enforcement: Benutzer-Deny vor Benutzer-Allow vor rollenbasiertem Allow.
-- [ ] **CAP-04**: Der Plattform-Admin-Bypass bleibt oberhalb der gruppenbezogenen Präzedenz erhalten und wird als IdP-verwaltete, durch Gruppen-Toggles nicht veränderbare Herkunft erklärt.
+- [x] **CAP-04**: Der Plattform-Admin-Bypass bleibt oberhalb der gruppenbezogenen Präzedenz erhalten und wird als IdP-verwaltete, durch Gruppen-Toggles nicht veränderbare Herkunft erklärt.
 - [ ] **CAP-05**: Ein autorisierter Admin kann für einen aktiven Benutzer eine einzelne Capability ausschließlich innerhalb einer konkreten Fansubgruppe erlauben oder verweigern.
 - [ ] **CAP-06**: Override-Mutationen validieren Zielmitgliedschaft, Fansubgruppe und zulässige Capability serverseitig und lehnen gruppenfremde oder unzulässige Ziele neutral ab.
 - [ ] **CAP-07**: Grant und Revoke eines Benutzer-Overrides sind idempotent, atomar und mit Actor, Ziel, Kontext, Capability sowie Vorher-/Nachher-Zustand auditiert.
 - [ ] **CAP-08**: Ein geführter Entzugs-Flow zeigt alle Quellen eines Rechts und empfiehlt den gezielten Benutzer-Deny, bevor breitere Rollen- oder Matrixänderungen angeboten werden.
 - [ ] **CAP-09**: Vor einer Rolle-zu-Capability-Änderung sieht der Admin betroffene Rolleninhaber und die tatsächliche effektive Änderung, einschließlich Benutzer ohne Änderung wegen weiterer Quellen.
 - [ ] **CAP-10**: Nach einer Rollenmatrix-Mutation unterscheidet die Oberfläche zwischen persistiert, im Permission-Cache aktiviert, ausstehend und fehlgeschlagen; sie meldet keinen falschen Enderfolg.
-- [ ] **CAP-11**: Rollen-Zuweisbarkeit wird aus genau einer kanonischen Quelle gelesen und in Rollen-Pickern, API-Projektionen und Admin-Badges konsistent dargestellt.
-- [ ] **CAP-12**: Capability-Kategorie, Reihenfolge, Bezeichnung und Hilfetext stammen aus einem kanonischen Katalog, der auch Review-Capabilities vollständig abbildet.
-- [ ] **CAP-13**: Aktive zuweisbare Rollen besitzen fachlich bestätigte Capability-Zuordnungen oder werden ausdrücklich als Rollen ohne operative Rechte gekennzeichnet.
-- [ ] **CAP-14**: Capability-Reverse-Lookups für Herkunft und Impact bleiben mit repräsentativen Daten performant und werden durch passende Datenbankindizes unterstützt.
+- [x] **CAP-11**: Rollen-Zuweisbarkeit wird aus genau einer kanonischen Quelle gelesen und in Rollen-Pickern, API-Projektionen und Admin-Badges konsistent dargestellt.
+- [x] **CAP-12**: Capability-Kategorie, Reihenfolge, Bezeichnung und Hilfetext stammen aus einem kanonischen Katalog, der auch Review-Capabilities vollständig abbildet.
+- [x] **CAP-13**: Aktive zuweisbare Rollen besitzen fachlich bestätigte Capability-Zuordnungen oder werden ausdrücklich als Rollen ohne operative Rechte gekennzeichnet.
+- [x] **CAP-14**: Capability-Reverse-Lookups für Herkunft und Impact bleiben mit repräsentativen Daten performant und werden durch passende Datenbankindizes unterstützt.
 
 ### Benutzer-Administration
 
@@ -52,10 +52,10 @@
 
 ### Verträge, Sicherheit und Rollout
 
-- [ ] **QUAL-01**: Neue oder geänderte Permission-, Override-, Delegations- und Queue-Verträge sind in OpenAPI, Backend-DTOs, Frontend-Typen und zentralen API-Helfern synchron.
+- [x] **QUAL-01**: Neue oder geänderte Permission-, Override-, Delegations- und Queue-Verträge sind in OpenAPI, Backend-DTOs, Frontend-Typen und zentralen API-Helfern synchron.
 - [ ] **QUAL-02**: Geschützte v1.4-Ansichten und Aktionen funktionieren bei fehlendem oder abgelaufenem Access Token mit gültiger Refresh-Session über den zentralen API-Client.
 - [ ] **QUAL-03**: Automatisierte Negativtests decken Deny-Präzedenz, gruppenfremde Overrides, unzulässige Capability-Codes, BOLA/IDOR, Self-Review und Direktzugriffe ab.
-- [ ] **QUAL-04**: Erforderliche Schemaänderungen verwenden neue reversible Migrationen mit Fresh-Up/Down-Nachweis und ohne Kompatibilitäts- oder Backfill-Code für disposable Testdaten.
+- [x] **QUAL-04**: Erforderliche Schemaänderungen verwenden neue reversible Migrationen mit Fresh-Up/Down-Nachweis und ohne Kompatibilitäts- oder Backfill-Code für disposable Testdaten.
 - [ ] **QUAL-05**: Reproduzierbare v1.4-Fixtures decken Mehrrollen-OR, Allow, Deny, Plattform-Admin, Cache-Fehler, Review-Grant/Revoke, Self-Review und große Benutzer-Projektionen ab.
 - [ ] **QUAL-06**: Query- und UI-Gates verhindern N+1-Abfragen, ungebundene Flachlisten, inkonsistente Pagination sowie Client-only-Sicherheitsfilter.
 - [ ] **QUAL-07**: Live-UAT prüft die echten Benutzer-, Gruppenmitglieder-, Capability- und Review-Routen bei 390×844, 768×1024 und 1440×900 sowie Tastaturbedienung und 400-%-Zoom.
@@ -97,17 +97,17 @@
 | CAP-01 | Phase 137 | Pending |
 | CAP-02 | Phase 137 | Pending |
 | CAP-03 | Phase 137 | Pending |
-| CAP-04 | Phase 136 | Pending |
+| CAP-04 | Phase 136 | Complete |
 | CAP-05 | Phase 137 | Pending |
 | CAP-06 | Phase 137 | Pending |
 | CAP-07 | Phase 137 | Pending |
 | CAP-08 | Phase 138 | Pending |
 | CAP-09 | Phase 138 | Pending |
 | CAP-10 | Phase 138 | Pending |
-| CAP-11 | Phase 136 | Pending |
-| CAP-12 | Phase 136 | Pending |
-| CAP-13 | Phase 136 | Pending |
-| CAP-14 | Phase 136 | Pending |
+| CAP-11 | Phase 136 | Complete |
+| CAP-12 | Phase 136 | Complete |
+| CAP-13 | Phase 136 | Complete |
+| CAP-14 | Phase 136 | Complete |
 | UADM-01 | Phase 138 | Pending |
 | UADM-02 | Phase 139 | Pending |
 | UADM-03 | Phase 139 | Pending |
@@ -127,10 +127,10 @@
 | RQUE-04 | Phase 141 | Pending |
 | RQUE-05 | Phase 141 | Pending |
 | RQUE-06 | Phase 141 | Pending |
-| QUAL-01 | Phase 136 | Pending |
+| QUAL-01 | Phase 136 | Complete |
 | QUAL-02 | Phase 142 | Pending |
 | QUAL-03 | Phase 137 | Pending |
-| QUAL-04 | Phase 136 | Pending |
+| QUAL-04 | Phase 136 | Complete |
 | QUAL-05 | Phase 142 | Pending |
 | QUAL-06 | Phase 139 | Pending |
 | QUAL-07 | Phase 142 | Pending |
