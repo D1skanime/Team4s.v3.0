@@ -432,7 +432,17 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
   3. A fresh disposable database can apply and reverse the scoped-override schema with its ownership constraints and reverse-lookup indexes without editing historical migrations or requiring compatibility data.
   4. OpenAPI, backend DTOs, frontend types, and central API-helper contracts describe the same effective-rights, override, impact, and mutation-status shapes before consumers are built.
 
-**Plans**: TBD
+**Plans**: 8 plans
+
+Plans:
+- [ ] 136-01-PLAN.md — Reversible capability-policy catalog, scoped override/audit schema, confirmed role defaults and indexes
+- [ ] 136-02-PLAN.md — Database-owned backend catalog projection and fail-closed permission cache
+- [ ] 136-03-PLAN.md — Synchronized API contracts and shared catalog-backed frontend role adapter
+- [ ] 136-04-PLAN.md — Catalog-driven group-member selectors and shared label/color compatibility
+- [ ] 136-05-PLAN.md — Catalog-driven contribution, release-credit and user-contribution roles
+- [ ] 136-06-PLAN.md — Catalog-context historical roles and archive/search filters
+- [ ] 136-07-PLAN.md — Catalog-driven member profile and project/release presentation
+- [ ] 136-08-PLAN.md — Generic role badges/points and whole-inventory hardcode gate
 
 ### Phase 137: Central Effective-Rights Resolver & Overrides
 
