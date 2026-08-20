@@ -432,7 +432,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
   3. A fresh disposable database can apply and reverse the scoped-override schema with its ownership constraints and reverse-lookup indexes without editing historical migrations or requiring compatibility data.
   4. OpenAPI, backend DTOs, frontend types, and central API-helper contracts describe the same effective-rights, override, impact, and mutation-status shapes before consumers are built.
 
-**Plans**: 13 plans
+**Plans**: 20 plans
 
 Plans:
 **Wave 1**
@@ -463,6 +463,19 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [ ] 136-08-PLAN.md — Generic role badges/points and whole-inventory hardcode gate
+
+**Gap closure — Wave 9**
+- [ ] 136-14-PLAN.md — Event-type-aware founder history and lifecycle-safe co-leader patch authorization
+- [ ] 136-15-PLAN.md — Successful-transition-only link audit ordering
+- [ ] 136-16-PLAN.md — Complete capability metadata, aligned Karaoke-FX semantics and fresh migration proof
+- [ ] 136-19-PLAN.md — Runtime-valid public catalog responses with compact provider errors
+
+**Gap closure — Wave 10**
+- [ ] 136-17-PLAN.md — Complete focused/root OpenAPI and TypeScript policy contract family
+- [ ] 136-20-PLAN.md — Catalog-metadata-driven role artwork registry without a role-code allowlist
+
+**Gap closure — Wave 11**
+- [ ] 136-18-PLAN.md — Go policy DTOs and semantic cross-layer parity gate
 
 ### Phase 137: Central Effective-Rights Resolver & Overrides
 

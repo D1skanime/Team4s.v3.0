@@ -1,6 +1,6 @@
 ---
 phase: 136-capability-policy-catalog-schema-contract
-status: planned
+status: gaps_planned
 nyquist: enabled
 wave_0_complete: false
 ---
@@ -90,3 +90,36 @@ CAP-03 is intentionally excluded: Phase 137 owns server-side Deny > Allow > role
 - Phase 137: runtime resolver equivalence, Deny > Allow > role Allow, idempotent override writes, audit transactionality, BOLA negatives.
 - Phase 138: rights inspector, mutation UI and impact preview.
 - Finding #33 and general badge redesign Finding #34 remain out of scope.
+
+## Gap-closure validation ownership (136-14–136-20)
+
+| Verified gap | Owning plan | Regression proof |
+|---|---|---|
+| Founder history and co-leader lifecycle over-grant | 136-14 | Request-level Go tests for create/PATCH stored+requested event types, lifecycle fields, mixed actions and BOLA/no mutation |
+| Premature allowed link audit | 136-15 | Spy-based validation, repository failure/conflict/not-found/no-op and successful-transition audit ordering tests |
+| Incomplete capability/review metadata; Karaoke-FX semantic drift; migration rerun | 136-16 | Complete action inventory/review.* assertions, exact migration-row adapter test and live fresh Up/Down/Up |
+| Missing policy schema family and reason vocabulary drift | 136-17, 136-18 | Focused/root OpenAPI + TS family, Go DTOs and semantic parity test |
+| Malformed public catalog accepted as empty success | 136-19 | Top-level/per-row runtime negatives plus root/provider context-error tests |
+| Closed role-code artwork authority | 136-20 | Catalog-metadata-driven artwork tests for Karaoke-FX, Typesetting and an injected future role |
+
+Gap waves are parallel where file ownership is disjoint: 136-14/15/16/19 run in Wave 9; 136-17 and 136-20 depend on 136-16 and run in Wave 10; 136-18 depends on 136-17 and runs in Wave 11. Runtime Allow/Deny resolution remains Phase 137. The unused `/anime/[id]/group/[groupId]/releases` route is neither touched nor tested.
+
+## Gap-closure multi-source coverage audit
+
+| Source | ID/item | Plan | Status | Notes |
+|---|---|---|---|---|
+| GOAL | Enforceable policy and canonical schema/contract foundation | 136-14–20 | covered | All failed goal truths receive executable closure proof. |
+| REQ | CAP-04 | 136-17, 136-18 | covered | Non-deniable IdP provenance is represented and parity-tested. |
+| REQ | CAP-11 | 136-19, 136-20 | covered | Reliable canonical catalog and catalog-driven artwork. |
+| REQ | CAP-12 | 136-16 | covered | Every capability, explicitly review.*, gets complete metadata. |
+| REQ | CAP-13 | 136-14–16, 136-20 | covered | Narrow defaults and canonical Karaoke-FX presentation. |
+| REQ | CAP-14 | 136-16 | covered | Fresh index/EXPLAIN rerun. |
+| REQ | QUAL-01 | 136-15, 136-17–19 | covered | Audit/catalog/policy contracts align across runtime surfaces. |
+| REQ | QUAL-04 | 136-16 | covered | Fresh disposable Up/Down/Up executes without old migration edits/backfill. |
+| CONTEXT | D-01–D-06 | 136-17, 136-18 | covered | Group scope, allow/deny and non-deniable provenance contracts only; runtime deferred. |
+| CONTEXT | D-07–D-11 | 136-15–18 | covered | One reason vocabulary, optional platform-admin reason, truthful/no-op audit semantics. |
+| CONTEXT | D-12–D-14 | existing verified plans + 136-19 | covered | No new gap; reliable canonical projection retained. |
+| CONTEXT | D-15–D-19 | 136-14, 136-15 | covered | Narrow handler enforcement and truthful successful audit. |
+| CONTEXT | D-20–D-23 | 136-16, 136-20 | covered | Exact Karaoke-FX semantics and no parallel role artwork authority. |
+| RESEARCH | Complete metadata, bounded semantic keys, contract parity, fresh migration proof | 136-16–20 | covered | Uses existing catalog/adapter/Compose seams; no new dependency. |
+| DEFERRED | Resolver/UI, Finding #33, general Finding #34 redesign | none | valid exclusion | Explicitly remains later-phase work. |
