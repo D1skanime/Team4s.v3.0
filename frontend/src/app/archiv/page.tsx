@@ -1,28 +1,15 @@
 import Link from 'next/link'
 
 import { MemberSearchCard } from '@/components/archive/MemberSearchCard'
-import { getFansubs, searchArchive } from '@/lib/api'
+import { getFansubs, listRoleDefinitions, searchArchive } from '@/lib/api'
+import { readableCodeLabel } from '@/lib/roleCatalog'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type { FansubGroup } from '@/types/fansub'
 
 import styles from './page.module.css'
 
 // Diese Seite ist immer live — kein SSG-Caching (force-dynamic, D-15).
 export const dynamic = 'force-dynamic'
-
-// Rollenoptionen für den Filter-Dropdown (D-17: Deutsch mit korrekten Umlauten)
-const ROLE_OPTIONS = [
-  { value: 'translator', label: 'Übersetzung' },
-  { value: 'editor', label: 'Editing' },
-  { value: 'timer', label: 'Timing' },
-  { value: 'typesetter', label: 'Typesetting' },
-  { value: 'encoder', label: 'Encoding' },
-  { value: 'raw_provider', label: 'Raw Provider' },
-  { value: 'quality_checker', label: 'Qualitätskontrolle' },
-  { value: 'project_lead', label: 'Projektleitung' },
-  { value: 'designer', label: 'Design' },
-  { value: 'admin', label: 'Administration' },
-  { value: 'other', label: 'Sonstiges' },
-]
 
 interface ArchivePageProps {
   searchParams:
@@ -82,6 +69,24 @@ export default async function ArchivPage({ searchParams }: ArchivePageProps) {
     // Gruppen-Dropdown bleibt leer — kein fataler Fehler
   }
 
+  let roleOptions: RoleDefinitionOption[] = []
+  let roleCatalogError = false
+  try {
+    const [contributionRoles, historyRoles] = await Promise.all([
+      listRoleDefinitions('anime_contribution'),
+      listRoleDefinitions('group_history'),
+    ])
+    roleOptions = Array.from(new Map(
+      [...contributionRoles, ...historyRoles].map((role) => [role.code, role]),
+    ).values()).sort((a, b) => a.sort_order - b.sort_order || a.code.localeCompare(b.code))
+  } catch {
+    roleCatalogError = true
+  }
+
+  if (resolved.rolle && !roleOptions.some((role) => role.code === resolved.rolle)) {
+    roleOptions.push({ code: resolved.rolle, label_de: readableCodeLabel(resolved.rolle), sort_order: Number.MAX_SAFE_INTEGER })
+  }
+
   const totalPages = result ? Math.ceil(result.total / 20) : 0
 
   return (
@@ -100,12 +105,13 @@ export default async function ArchivPage({ searchParams }: ArchivePageProps) {
               <label htmlFor="rolle">Rolle</label>
               <select id="rolle" name="rolle" defaultValue={resolved.rolle ?? ''}>
                 <option value="">Alle Rollen</option>
-                {ROLE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
+                {roleOptions.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label_de}
                   </option>
                 ))}
               </select>
+              {roleCatalogError ? <span role="status">Rollenfilter konnten nicht geladen werden</span> : null}
             </div>
 
             {/* Gruppe-Filter (befüllt aus GET /api/v1/fansubs, D-14) */}

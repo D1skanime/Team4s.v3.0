@@ -9,6 +9,8 @@ import {
   Select,
   Textarea,
 } from '@/components/ui'
+import { readableCodeLabel } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
 import { type HistFansubGroupMember } from '@/types/fansub'
 
@@ -38,7 +40,8 @@ export type GroupHistRoleDialogProps = {
   yearMin: number
   yearMax: number
   /** Frühere Funktionen aus der historischen Rollenquelle. */
-  historyRoleOptions: RoleDefinitionOption[]
+  /** @deprecated Rollen werden zentral aus dem group_history-Katalog gelesen. */
+  historyRoleOptions?: RoleDefinitionOption[]
   /** Optionaler Ladefehler für die historischen Rollen. */
   historyRoleLoadError?: string | null
 }
@@ -55,9 +58,12 @@ export function GroupHistRoleDialog({
   members,
   yearMin,
   yearMax,
-  historyRoleOptions,
-  historyRoleLoadError,
 }: GroupHistRoleDialogProps) {
+  const { roles: historyRoles, error: historyRoleError } = useRoleCatalog('group_history')
+  const selectedUnknownRole = roleForm.roleCode && !historyRoles.some((role) => role.code === roleForm.roleCode)
+    ? { code: roleForm.roleCode, label_de: readableCodeLabel(roleForm.roleCode) }
+    : null
+
   return (
     <Modal
       open={open}
@@ -88,10 +94,10 @@ export function GroupHistRoleDialog({
           />
         ) : null}
 
-        {historyRoleLoadError ? (
+        {historyRoleError ? (
           <ErrorState
             title="Frühere Funktionen konnten nicht geladen werden"
-            description={historyRoleLoadError}
+            description="Der Rollenkatalog ist derzeit nicht verfügbar."
           />
         ) : null}
 
@@ -120,11 +126,14 @@ export function GroupHistRoleDialog({
             aria-label="Frühere Funktion auswählen"
           >
             <option value="">Frühere Funktion wählen</option>
-            {historyRoleOptions.map((option) => (
+            {historyRoles.map((option) => (
               <option key={option.code} value={option.code}>
                 {option.label_de}
               </option>
             ))}
+            {selectedUnknownRole ? (
+              <option value={selectedUnknownRole.code}>{selectedUnknownRole.label_de}</option>
+            ) : null}
           </Select>
         </FormField>
 

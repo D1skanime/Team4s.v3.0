@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { render, screen } from '@testing-library/react'
 import React from 'react'
-import { vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { RoleCatalogProvider, type RoleCatalogLoads } from '@/providers/RoleCatalogProvider'
 import { MemberSearchCard } from './MemberSearchCard'

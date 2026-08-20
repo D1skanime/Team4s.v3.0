@@ -1,23 +1,12 @@
+'use client'
+
 import Link from 'next/link'
 
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
+import { labelForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 
 import styles from './archive.module.css'
-
-// Leserliche Rollentexte für die Chip-Anzeige (D-17: Deutsch mit Umlauten)
-const ROLE_LABELS: Record<string, string> = {
-  translator: 'Übersetzung',
-  editor: 'Editing',
-  timer: 'Timing',
-  typesetter: 'Typesetting',
-  encoder: 'Encoding',
-  raw_provider: 'Raw Provider',
-  quality_checker: 'Qualitätskontrolle',
-  project_lead: 'Projektleitung',
-  designer: 'Design',
-  admin: 'Administration',
-  other: 'Sonstiges',
-}
 
 type MemberSearchCardProps = {
   id: number
@@ -38,6 +27,11 @@ export function MemberSearchCard({
   topRoles,
   groups,
 }: MemberSearchCardProps) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
+  const { roles: historyRoles } = useRoleCatalog('group_history')
+  const catalogRoles = Array.from(new Map(
+    [...contributionRoles, ...historyRoles].map((role) => [role.code, role]),
+  ).values())
   const visibleRoles = topRoles.slice(0, 3)
   const extraRoles = topRoles.length - visibleRoles.length
   const visibleGroups = groups.slice(0, 2)
@@ -64,7 +58,7 @@ export function MemberSearchCard({
         <div className={styles.cardRoles}>
           {visibleRoles.map((role) => (
             <span key={role} className={styles.roleChip}>
-              {ROLE_LABELS[role] ?? role}
+              {labelForRole(catalogRoles, role)}
             </span>
           ))}
           {extraRoles > 0 && (

@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { render, screen } from '@testing-library/react'
 import React from 'react'
-import { vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { RoleCatalogProvider, type RoleCatalogLoads } from '@/providers/RoleCatalogProvider'
 import { GroupHistRoleDialog, type RoleFormFields } from './GroupHistRoleDialog'
@@ -12,7 +12,7 @@ vi.mock('@/components/ui', () => ({
   ErrorState: ({ title, description }: { title: string; description: string }) => <div role="alert">{title}: {description}</div>,
   FormField: ({ label, children }: { label: string; children: React.ReactNode }) => <div><label>{label}</label>{children}</div>,
   Modal: ({ open, children, title }: { open: boolean; children: React.ReactNode; title: string }) => open ? <div role="dialog"><h2>{title}</h2>{children}</div> : null,
-  Select: ({ children, value, id, 'aria-label': ariaLabel }: { children: React.ReactNode; value: string; id?: string; 'aria-label'?: string }) => <select id={id} aria-label={ariaLabel} value={value} readOnly>{children}</select>,
+  Select: ({ children, value, id, 'aria-label': ariaLabel }: { children: React.ReactNode; value: string; id?: string; 'aria-label'?: string }) => <select id={id} aria-label={ariaLabel} value={value} onChange={() => undefined}>{children}</select>,
   Textarea: ({ id, value }: { id: string; value: string }) => <textarea id={id} value={value} readOnly />,
 }))
 
@@ -55,7 +55,8 @@ describe('GroupHistRoleDialog', () => {
       { code: 'founder', label_de: 'Gründung', contexts: ['group_history'], sort_order: 10 },
     ]))
 
-    const options = screen.getAllByRole('option').map((option) => option.textContent)
+    const roleSelect = screen.getByLabelText('Frühere Funktion auswählen')
+    const options = Array.from(roleSelect.querySelectorAll('option')).map((option) => option.textContent)
     expect(options).toEqual(['Frühere Funktion wählen', 'Gründung', 'Co-Leitung'])
     expect(screen.queryByText('Statischer Altwert')).toBeNull()
   })
