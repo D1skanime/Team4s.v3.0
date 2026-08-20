@@ -17,6 +17,8 @@ import (
 const (
 	phase136UpFile   = "0146_capability_policy_catalog.up.sql"
 	phase136DownFile = "0146_capability_policy_catalog.down.sql"
+	phase136ArtworkCorrectionUpFile   = "0147_role_artwork_semantic_correction.up.sql"
+	phase136ArtworkCorrectionDownFile = "0147_role_artwork_semantic_correction.down.sql"
 )
 
 func TestPhase136MigrationSourceContract(t *testing.T) {
@@ -95,6 +97,28 @@ func TestPhase136MigrationLiveUpDownUp(t *testing.T) {
 	assertPhase136RolledBack(t, pool)
 	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136UpFile))
 	assertPhase136Catalog(t, pool)
+}
+
+func TestPhase136ArtworkCorrectionLiveUpDownUp(t *testing.T) {
+	pool := testsupport.OpenPhase106Postgres(t)
+	createPhase136Prerequisites(t, pool)
+	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136UpFile))
+	_, err := pool.Exec(context.Background(), `
+		UPDATE role_definitions SET icon_key = 'other'
+		WHERE code = ANY(ARRAY[
+			'translator', 'editor', 'timer', 'typesetter', 'encoder',
+			'raw_provider', 'quality_checker', 'project_lead', 'designer',
+			'admin', 'other'
+		])
+	`)
+	require.NoError(t, err)
+	assertPhase136ArtworkIconCount(t, pool, "other", 11)
+	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136ArtworkCorrectionUpFile))
+	assertPhase136ArtworkIconCount(t, pool, "user", 11)
+	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136ArtworkCorrectionDownFile))
+	assertPhase136ArtworkIconCount(t, pool, "other", 11)
+	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136ArtworkCorrectionUpFile))
+	assertPhase136ArtworkIconCount(t, pool, "user", 11)
 }
 
 func TestPhase136OverrideConstraintsAndHistory(t *testing.T) {
@@ -202,7 +226,18 @@ func createPhase136Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 			('gfxler', 'GFX', ARRAY['fansub_group'], true),
 			('techadmin', 'Technik-Admin', ARRAY['fansub_group'], true),
 			('founder', 'Gründer', ARRAY['fansub_group'], true),
-			('co_leader', 'Co-Leitung', ARRAY['fansub_group'], true);
+			('co_leader', 'Co-Leitung', ARRAY['fansub_group'], true),
+			('translator', 'Übersetzung', ARRAY['anime_contribution'], true),
+			('editor', 'Edit', ARRAY['anime_contribution'], true),
+			('timer', 'Timing', ARRAY['anime_contribution'], true),
+			('typesetter', 'Typesetting', ARRAY['anime_contribution'], true),
+			('encoder', 'Encoding', ARRAY['anime_contribution'], true),
+			('raw_provider', 'Raw-Bereitstellung', ARRAY['anime_contribution'], true),
+			('quality_checker', 'Qualitätsprüfung', ARRAY['anime_contribution'], true),
+			('project_lead', 'Projektleitung', ARRAY['anime_contribution'], true),
+			('designer', 'Design', ARRAY['anime_contribution'], true),
+			('admin', 'Administration', ARRAY['anime_contribution'], true),
+			('other', 'Sonstiges', ARRAY['anime_contribution'], true);
 		INSERT INTO action_definitions(code, label_de, category, sort_order) VALUES
 			('fansub_group.members.manage', 'Mitglieder verwalten', 'gruppe', 40),
 			('fansub_group.invitations.create', 'Einladungen erstellen', 'gruppe', 60),
@@ -212,6 +247,20 @@ func createPhase136Prerequisites(t testing.TB, pool *pgxpool.Pool) {
 			('review.contribution.decide', 'Mitwirkungen prüfen', 'review', 92);
 	`)
 	require.NoError(t, err)
+}
+
+func assertPhase136ArtworkIconCount(t testing.TB, pool *pgxpool.Pool, iconKey string, expected int) {
+	t.Helper()
+	var count int
+	require.NoError(t, pool.QueryRow(context.Background(), `
+		SELECT count(*) FROM role_definitions
+		WHERE code = ANY(ARRAY[
+			'translator', 'editor', 'timer', 'typesetter', 'encoder',
+			'raw_provider', 'quality_checker', 'project_lead', 'designer',
+			'admin', 'other'
+		]) AND icon_key = $1
+	`, iconKey).Scan(&count))
+	require.Equal(t, expected, count)
 }
 
 func assertPhase136Catalog(t testing.TB, pool *pgxpool.Pool) {
