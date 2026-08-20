@@ -276,6 +276,12 @@ async function openProfileTab(name: string) {
 }
 
 describe('MyProfilePage', () => {
+  it('keeps role catalog authority out of the own-profile route', () => {
+    expect(ownProfilePageSource).not.toContain('FANSUB_GROUP_ROLE_OPTIONS')
+    expect(ownProfilePageSource).not.toContain('listRoleDefinitions(')
+    expect(ownProfilePageSource).not.toMatch(/const\s+\w*ROLE\w*\s*=\s*\[/)
+  })
+
   it('loads the own profile route without admin naming leaks', async () => {
     getOwnProfileMock.mockResolvedValue(makeProfileResponse())
 

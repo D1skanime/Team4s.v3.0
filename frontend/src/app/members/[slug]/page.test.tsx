@@ -28,6 +28,16 @@ const { getMemberProfileMock, getMemberContributionsMock, notFoundMock, reactCac
   notFoundMock: vi.fn(),
   reactCacheEntries: [] as Array<{ args: unknown[]; value: unknown }>,
 }))
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+  ],
+}))
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+}))
 
 vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>()
@@ -148,7 +158,11 @@ function makePublicProfile(overrides: Partial<PublicMemberProfileData> = {}): Pu
         cover_url: null,
         fansub_group_id: 7,
         fansub_group_name: 'AnimeOwnage',
-        roles: [{ code: 'timer', label_de: 'Timing' }, { code: 'typesetter', label_de: 'Typesetting' }],
+        roles: [
+          { code: 'karaoke_fx', label_de: 'stale karaoke label' },
+          { code: 'future_role', label_de: 'stale future label' },
+          { code: 'typesetter', label_de: 'stale typesetting label' },
+        ],
         release_versions: [
           {
             release_version_id: 501,
@@ -321,6 +335,18 @@ describe('MemberProfilePage Phase 99 route composition', () => {
     expect(screen.queryByRole('heading', { name: 'Auszeichnungen' })).toBeNull()
 
     expect(screen.getByRole('button', { name: 'Frühere Mitwirkungen anzeigen (1)' })).not.toBeNull()
+  })
+
+  it('renders current-project roles from the injected root catalog with neutral unknown fallback', async () => {
+    await renderMemberPage(makePublicProfile())
+
+    const projects = screen.getByRole('list', { name: 'Fansub-Projekte' })
+    expect(within(projects).getAllByText(/Typesetting|Karaoke-FX|Future Role/).map((item) => item.textContent)).toEqual([
+      'Typesetting',
+      'Karaoke-FX',
+      'Future Role',
+    ])
+    expect(within(projects).getByText('Future Role').getAttribute('data-role-code')).toBe('other')
   })
   it('keeps empty earned-only and contribution sections out of the public outline', async () => {
     await renderMemberPage(makePublicProfile({
