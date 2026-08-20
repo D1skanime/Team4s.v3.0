@@ -164,6 +164,120 @@ Last activity: 2026-08-20
 - Runtime: canonical Linux Docker Compose services were running when v1.3 was initialized.
 - Application validation is deferred to phase execution; milestone initialization changed planning artifacts only.
 
+## Deferred Items
+
+Items acknowledged and deferred at v1.3 milestone close on 2026-08-20 (per `gsd-sdk query audit-open`,
+102 total; 1 verification gap — Phase 132's PMFE-11 live-Postgres check — was resolved for real this
+session, not deferred, see 132-VERIFICATION.md; the remaining 101 below are pre-existing, unrelated
+backlog: Phase 103 debug sessions, historical quick-tasks spanning 2026-04 through today, and
+contributor-workspace/UI TODOs). None block v1.3. `audit-open`'s own JSON preview truncates the
+pending-todos list (5 filenames shown of an internally-flagged larger remainder) — the full,
+untruncated list lives in `.planning/todos/pending/`.
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug_session | 103-full-episode-admin-action | diagnosed |
+| debug_session | 103-karaoke-auth-visibility | root_cause_found |
+| debug_session | 103-pretty-release-route | root_cause_found |
+| debug_session | 103-public-image-description-edit | root_cause_found |
+| debug_session | 103-release-anime-logo-fallback | root_cause_found |
+| debug_session | 103-release-image-gallery | diagnosed |
+| debug_session | 103-release-preview-selection | diagnosed |
+| debug_session | 103-release-text-grid | root_cause_found |
+| debug_session | 103-release-visual-language | root_cause_found |
+| debug_session | knowledge-base | unknown |
+| debug_session | memberprofil-client-exception | awaiting_human_verify |
+| debug_session | system-wieder-langsam | awaiting_human_verify |
+| quick_task | 260405-kce-sync-phase-07-completion-across-roadmap- | missing |
+| quick_task | 260417-qtu-asset-upload-ux-leere-slots-klickbar-und | missing |
+| quick_task | 260423dxc-filter-already-imported-episode-candidates | missing |
+| quick_task | 260423mnv-per-row-apply-button | missing |
+| quick_task | 260423qpn-jellyfin-library-filter | missing |
+| quick_task | 260428-ddb-episoden-laufzeit-crawlen-und-in-timelin | missing |
+| quick_task | 260429-fnm-smart-parser-fuer-segment-zeitfelder-mm- | missing |
+| quick_task | 260507-de2-rename-theme-types-op-to-op-kara-ed-to-e | missing |
+| quick_task | 260510-t7j-upload-security-hardening-security-heade | missing |
+| quick_task | 260510-umt-beschreibungs-textarea-fix-fuer-release- | missing |
+| quick_task | 260511-hfd-releaseversionmediagallery-3-test-bugs-f | missing |
+| quick_task | 260511-jjq-umlaut-regel-in-agents-md-ergaenzen | missing |
+| quick_task | 260526-mhk-next-image-test-mock-fixen-und-den-einze | missing |
+| quick_task | 260602-k94-phase-61-bug-triage-after-live-uat-no-ph | missing |
+| quick_task | 260602-o68-phase-65-befunde-fixen | missing |
+| quick_task | 260603-l77-inventory-doc-gaps | missing |
+| quick_task | 260604-d12-ui-verbessern-auf-global-ziehen | missing |
+| quick_task | 260608-jb9-startseite-ui-regelverstoss-beheben-nati | missing |
+| quick_task | 260609-wev-releaseversionnotestab-auf-globales-ui-s | missing |
+| quick_task | 260609-x3q-episode-version-editor-navigation-zuruec | missing |
+| quick_task | 260610-f7n-fansubappmemberssection-collaboration-ta | missing |
+| quick_task | 260610-fhn-fansub-members-ux-schnitt-dokumentieren- | missing |
+| quick_task | 260610-hw1-banner-buttons-in-fansub-edit-auf-36px-h | missing |
+| quick_task | 260610-i2j-fansub-mitglieder-und-historische-mitgli | missing |
+| quick_task | 260610-iqh-alias-verwaltung-in-fansub-edit-ins-grun | missing |
+| quick_task | 260618-cjy-release-buttons-in-meine-gruppen-auf-me- | unknown |
+| quick_task | 260619-w1n-drawer-link-zur-meine-gruppen-uebersicht | missing |
+| quick_task | 260620-eaj-member-contribution-ui-auf-globales-desi | missing |
+| quick_task | 260620-lq7-manage-groups-ui-uebersicht-detail-claim | missing |
+| quick_task | 260620-qog-bestaetigte-projektrollen-pro-anime-grup | missing |
+| quick_task | 260620-uez-workspace-ui-primitives | missing |
+| quick_task | 260621-p80p88-review-bugfixes | unknown |
+| quick_task | 260629-phase91-profile-projects | unknown |
+| quick_task | 260629-phase91-project-detail-addon | unknown |
+| quick_task | 260629-phase92-profile-tabs | unknown |
+| quick_task | 260703-8s3-fix-anisearch-and-jellyfin-anime-source- | unknown |
+| quick_task | 260703-a3r-ui-first-e2e-viper-s-creed-jellyfin-fres | missing |
+| quick_task | 260703-bc9-fix-sticky-admin-auth-logout-state-block | missing |
+| quick_task | 260703-bmp-fix-datepicker-react-hooks-set-state-in- | missing |
+| quick_task | 260703-br4-fresh-ui-first-viper-s-creed-e2e-retest- | missing |
+| quick_task | 260703-crb-fix-admin-anime-jellyfin-link-status-and | missing |
+| quick_task | 260704-neutral-role-labels | unknown |
+| quick_task | 260706-x0v-fix-400-release-variant-id-fehler-beim-l | missing |
+| quick_task | 260707-16l-fansub-cockpit-header-badge-zeigt-gruen- | missing |
+| quick_task | 260707-ehc-profil-letzte-projekte-auch-aus-anime-co | missing |
+| quick_task | 260707-f3t-profil-letzte-projekte-fortschrittsbalke | missing |
+| quick_task | 260707-g70-meine-projekte-detailseite-banner-backgr | missing |
+| quick_task | 260707-hx0-meine-projekt-detailseite-als-to-do-work | missing |
+| quick_task | 260707-jya-meine-projekte-seite-umbauen-projektlist | missing |
+| quick_task | 260707-kut-hinweis-senden-fuer-app-mitglieder-propo | missing |
+| quick_task | 260713-history-timeline-pair-alignment | missing |
+| quick_task | 260717-d7i-public-fansub-projektseite-mobile-redesi | missing |
+| quick_task | 260717-erh-public-fansub-projektseite-mobile-redesi | missing |
+| quick_task | 260717-lqt-desktop-maximalbreite-von-fansub-projekt | missing |
+| quick_task | 260718-2w4-fansub-projektseite-releases-liste-fixen | missing |
+| quick_task | 260718-e6z-anime-detailseite-request-fanout-reduzie | missing |
+| quick_task | 260718-vei-responsive-releasebereich-der-ffentliche | missing |
+| quick_task | 260721-dbz-fund-1-2-n-1-fix-release-version-media-h | missing |
+| quick_task | 260721-eo4-ssr-fetch-parallelisierung-projectpageda | missing |
+| quick_task | 260730-jre-fokussiertes-material-3-inspiriertes-kar | missing |
+| quick_task | 260731-wh7-beitrags-badges-im-ffentlichen-memberpro | missing |
+| quick_task | 260802-c5f-rollen-auszeichnungen-aus-dem-gesamtfort | missing |
+| quick_task | 260803-be5-rollenbadges-visuell-vereinheitlichen-ka | missing |
+| quick_task | 260803-jo0-ffentliche-member-profilseite-gruppenzug | missing |
+| quick_task | 260803-ozq-profilseite-responsiv-optimieren-neulade | missing |
+| quick_task | 260805-7lu-make-focalcarousel-arrow-and-keyboard-na | missing |
+| quick_task | 260811-lck-hide-locked-achievement-art | missing |
+| quick_task | 260811-obg-public-member-profile-outer-bands-transparent | missing |
+| quick_task | 260811-pqe-phase-127-public-member-profile-visuelle | missing |
+| quick_task | 260811-rms-phase-127-public-member-profile-widescre | missing |
+| quick_task | 260811-rwd-binding-responsive-ui-standard | missing |
+| quick_task | 260811-tbg-phase-127-profile-band-transparent | missing |
+| quick_task | 260812-acs-count-only-achievement-summary | missing |
+| quick_task | 260812-bqs-gesperrte-auszeichnungs-heroes-als-gross | missing |
+| quick_task | 260812-jtp-public-member-profile-vertical-spacing-r | missing |
+| quick_task | 260812-kr1-ffentliche-profilseite-gro-e-wei-e-innen | missing |
+| quick_task | 260812-lql-ffentliches-memberprofil-letzte-beitr-ge | missing |
+| quick_task | 260812-pmu-public-member-profile-duplicate-achievem | missing |
+| quick_task | 260812-ras-remove-aggregate-achievement-summary | missing |
+| quick_task | 260812-rps-public-member-profile-responsive-stabilisieren | missing |
+| quick_task | 260817-7fv-implementiere-den-idp-rollen-getriebenen | missing |
+| quick_task | 260819-ipu-duplikat-guard-beim-historischen-mitglie | missing |
+| quick_task | 260819-lm5-phase-117-geteilte-karaoke-segmente-uebe | missing |
+| quick_task | 260820-600-folgen-navigation-im-contributor-editor- | missing |
+| todo | 2026-05-28-contributor-owned-media-note-edit-delete.md | pending (contributor-workspace) |
+| todo | 2026-05-28-profile-hub-content-activity-redesign.md | pending (ui) |
+| todo | 2026-06-03-contribution-dropdown-auf-globale-ui-primitives-umstellen.md | pending (ui) |
+| todo | 2026-06-03-credits-ui-konsolidierung-und-permission-bruecke.md | pending (ui) |
+| todo | 2026-06-03-member-profil-ui-und-params-bug.md | pending (ui) |
+
 ## Performance Metrics
 
 | Plan | Duration | Tasks | Files |
