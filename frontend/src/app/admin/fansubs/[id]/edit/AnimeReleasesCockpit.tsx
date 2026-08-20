@@ -7,6 +7,7 @@ import { useState } from "react";
 import type { AdminFansubRelease } from "@/types/fansub";
 import AnimeContributionModal from "./AnimeContributionModal";
 import { roleLabels } from "./contributionRoles";
+import { useRoleCatalog } from "@/providers/RoleCatalogProvider";
 import { AnimeReleasesFilterBar } from "./AnimeReleasesFilterBar";
 import { ProjectCockpitBadges } from "./ProjectCockpitBadges";
 import { AnimeProjectNoteWorkspace } from "./AnimeProjectNoteWorkspace";
@@ -67,6 +68,7 @@ export function AnimeReleasesCockpit({
   onOpenReleaseDrawer,
   onOpenThemeDrawer,
 }: AnimeReleasesCockpitProps) {
+  const { roles: contributionRoles } = useRoleCatalog("anime_contribution");
   const {
     releaseGroups,
     releaseGroupsLoading,
@@ -341,7 +343,7 @@ export function AnimeReleasesCockpit({
                           ) : (
                             <ul>
                               {teamRows.map((row) => {
-                                const labels = roleLabels(row.role_codes);
+                                const labels = roleLabels(contributionRoles, row.role_codes);
 
                                 return (
                                   <li key={row.id}>

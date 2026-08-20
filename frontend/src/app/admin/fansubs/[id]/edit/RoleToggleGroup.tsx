@@ -1,4 +1,5 @@
-import { ANIME_CONTRIBUTION_ROLES } from './contributionRoles'
+import { contributionRoleDefinitions } from './contributionRoles'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import styles from './FansubEdit.module.css'
 
 interface RoleToggleGroupProps {
@@ -8,9 +9,11 @@ interface RoleToggleGroupProps {
 }
 
 export function RoleToggleGroup({ selectedCodes, onToggle, ariaLabel }: RoleToggleGroupProps) {
+  const { roles } = useRoleCatalog('anime_contribution')
+  const roleDefinitions = contributionRoleDefinitions(roles)
   return (
     <div className={styles.contributionRoleToggles} aria-label={ariaLabel}>
-      {ANIME_CONTRIBUTION_ROLES.map((role) => {
+      {roleDefinitions.map((role) => {
         const active = selectedCodes.includes(role.code)
         return (
           <button
@@ -22,7 +25,7 @@ export function RoleToggleGroup({ selectedCodes, onToggle, ariaLabel }: RoleTogg
             aria-pressed={active}
             onClick={() => onToggle(role.code)}
           >
-            {role.label}
+            {role.label_de}
           </button>
         )
       })}

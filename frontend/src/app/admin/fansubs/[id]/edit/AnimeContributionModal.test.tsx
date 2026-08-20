@@ -13,6 +13,18 @@ vi.mock('@/lib/api', () => ({
   upsertAnimeContribution: (...args: unknown[]) => upsertAnimeContributionMock(...args),
 }))
 
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({
+    roles: [
+      { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 10 },
+      { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 20 },
+      { code: 'project_lead', label_de: 'Projektleitung', contexts: ['anime_contribution'], sort_order: 30 },
+      { code: 'karaoke_fx', label_de: 'Karaoke FX', contexts: ['anime_contribution'], sort_order: 40 },
+    ],
+    error: null,
+  }),
+}))
+
 import AnimeContributionModal from './AnimeContributionModal'
 
 afterEach(() => {

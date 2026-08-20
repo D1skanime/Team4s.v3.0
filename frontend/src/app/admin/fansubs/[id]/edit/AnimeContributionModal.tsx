@@ -20,7 +20,8 @@ import type {
 } from '@/types/fansub'
 
 import { ContributorAvatar } from './ContributorAvatar'
-import { ANIME_CONTRIBUTION_ROLES, normalizeRoleCodes, roleLabels, sameRoleCodes } from './contributionRoles'
+import { normalizeRoleCodes, roleLabels, sameRoleCodes } from './contributionRoles'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import { RoleToggleGroup } from './RoleToggleGroup'
 import styles from './FansubEdit.module.css'
 
@@ -44,13 +45,13 @@ type Props = {
   onSaved: () => void
 }
 
-function toEditableRow(contribution: AnimeContribution): EditableProjectContribution {
+function toEditableRow(contribution: AnimeContribution, catalog: Parameters<typeof normalizeRoleCodes>[0]): EditableProjectContribution {
   return {
     contribution_id: contribution.id,
     member_id: contribution.member_id,
     member_display_name: contribution.member_display_name,
     member_avatar_url: contribution.member_avatar_url ?? null,
-    role_codes: normalizeRoleCodes(contribution.role_codes ?? []),
+    role_codes: normalizeRoleCodes(catalog, contribution.role_codes ?? []),
   }
 }
 
@@ -64,6 +65,7 @@ export default function AnimeContributionModal({
   onClose,
   onSaved,
 }: Props) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const [stagedRows, setStagedRows] = useState<EditableProjectContribution[]>([])
   const [originalProjectRows, setOriginalProjectRows] = useState<AnimeContribution[]>([])
   const [originalRolesById, setOriginalRolesById] = useState<Record<number, string[]>>({})
@@ -80,15 +82,15 @@ export default function AnimeContributionModal({
       .filter((contribution) => contribution.release_version_id == null)
       .map((contribution) => ({
         ...contribution,
-        role_codes: normalizeRoleCodes(contribution.role_codes ?? []),
+        role_codes: normalizeRoleCodes(contributionRoles, contribution.role_codes ?? []),
       }))
 
     const focusedRoleExists = Boolean(
       focusedRoleCode &&
-        ANIME_CONTRIBUTION_ROLES.some((role) => role.code === focusedRoleCode),
+        contributionRoles.some((role) => role.code === focusedRoleCode),
     )
 
-    setStagedRows(projectRows.map(toEditableRow))
+    setStagedRows(projectRows.map((row) => toEditableRow(row, contributionRoles)))
     setOriginalProjectRows(projectRows)
     setOriginalRolesById(
       Object.fromEntries(projectRows.map((row) => [row.id, row.role_codes])),
@@ -118,7 +120,7 @@ export default function AnimeContributionModal({
         } else {
           selected.add(roleCode)
         }
-        return { ...row, role_codes: normalizeRoleCodes(Array.from(selected)) }
+        return { ...row, role_codes: normalizeRoleCodes(contributionRoles, Array.from(selected)) }
       }),
     )
   }
@@ -143,7 +145,7 @@ export default function AnimeContributionModal({
       } else {
         selected.add(roleCode)
       }
-      return normalizeRoleCodes(Array.from(selected))
+      return normalizeRoleCodes(contributionRoles, Array.from(selected))
     })
   }
 
@@ -157,7 +159,7 @@ export default function AnimeContributionModal({
       member_id: member.member_id,
       member_display_name: member.display_name,
       member_avatar_url: null,
-      role_codes: normalizeRoleCodes(newRoleCodes),
+      role_codes: normalizeRoleCodes(contributionRoles, newRoleCodes),
       isNew: true,
     }
   }
@@ -200,7 +202,7 @@ export default function AnimeContributionModal({
       const rowsToWrite = rowsForSave.filter(
         (row) =>
           row.isNew ||
-          !sameRoleCodes(row.role_codes, originalRolesById[row.contribution_id] ?? []) ||
+          !sameRoleCodes(contributionRoles, row.role_codes, originalRolesById[row.contribution_id] ?? []) ||
           originalById.get(row.contribution_id)?.is_public_on_anime_page !== true ||
           originalById.get(row.contribution_id)?.is_public_on_member_profile !== true ||
           originalById.get(row.contribution_id)?.status !== 'confirmed',
@@ -213,7 +215,7 @@ export default function AnimeContributionModal({
           const defaultPublic = status === 'confirmed'
           return upsertAnimeContribution(fansubId, animeId, {
             member_id: row.member_id,
-            role_codes: normalizeRoleCodes(row.role_codes),
+            role_codes: normalizeRoleCodes(contributionRoles, row.role_codes),
             release_version_id: null,
             started_year: original?.started_year ?? null,
             ended_year: original?.ended_year ?? null,
@@ -358,7 +360,7 @@ export default function AnimeContributionModal({
       {stagedRows.length > 0 ? (
         <div className={styles.contributionRows} role="list" aria-label="Mitwirkende dieses Anime-Projekts">
           {stagedRows.map((row) => {
-            const labels = roleLabels(row.role_codes)
+            const labels = roleLabels(contributionRoles, row.role_codes)
             const editing = editingRoleIds.has(row.contribution_id)
 
             return (

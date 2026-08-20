@@ -7,7 +7,8 @@ import { Badge, Button, Card, ErrorState, SectionHeader } from '@/components/ui'
 import { ApiError, selfPublishContribution } from '@/lib/api'
 import type { MeAnimeContribution, MembershipEntry } from '@/types/contributions'
 
-import { ANIME_CONTRIBUTION_ROLES } from './contributionRoles'
+import { contributionRoleDefinitions } from './contributionRoles'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import styles from './contributions.module.css'
 import { ProposalForm } from './ProposalForm'
 
@@ -44,6 +45,8 @@ interface MyProposalsSectionProps {
 }
 
 export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposalsSectionProps) {
+  const { roles } = useRoleCatalog('anime_contribution')
+  const contributionRoles = contributionRoleDefinitions(roles)
   const [showForm, setShowForm] = useState(false)
   const [selfPublishConfirming, setSelfPublishConfirming] = useState<number | null>(null)
   const [selfPublishError, setSelfPublishError] = useState<string | null>(null)
@@ -136,7 +139,7 @@ export function MyProposalsSection({ proposals, ownGroups, onReload }: MyProposa
           onSuccess={handleFormSuccess}
           onClose={() => setShowForm(false)}
           ownGroups={ownGroups}
-          roleDefinitions={ANIME_CONTRIBUTION_ROLES}
+          roleDefinitions={contributionRoles}
         />
       )}
 

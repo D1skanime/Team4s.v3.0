@@ -26,6 +26,7 @@ import type {
 
 import { ContributorAvatar } from './ContributorAvatar'
 import { normalizeRoleCodes, roleLabels } from './contributionRoles'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import { RoleToggleGroup } from './RoleToggleGroup'
 import styles from './FansubEdit.module.css'
 
@@ -49,6 +50,7 @@ export function ReleaseContributionDrawer({
   onClose,
   onSaved,
 }: ReleaseContributionDrawerProps) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const [stagedRows, setStagedRows] = useState<EditableContributionRow[]>([])
   const [members, setMembers] = useState<UnifiedGroupMember[]>([])
   const [snapshotMode, setSnapshotMode] = useState<ReleaseCrewSnapshotMode>('inherited')
@@ -83,7 +85,7 @@ export function ReleaseContributionDrawer({
         if (cancelled) return
         const rows = (contributionsResult.data ?? []).map((row) => ({
           ...row,
-          role_codes: normalizeRoleCodes(row.role_codes),
+          role_codes: normalizeRoleCodes(contributionRoles, row.role_codes),
         }))
 
         setMembers(membersResult ?? [])
@@ -116,7 +118,7 @@ export function ReleaseContributionDrawer({
         } else {
           selected.add(roleCode)
         }
-        return { ...row, role_codes: normalizeRoleCodes(Array.from(selected)) }
+        return { ...row, role_codes: normalizeRoleCodes(contributionRoles, Array.from(selected)) }
       }),
     )
   }
@@ -141,7 +143,7 @@ export function ReleaseContributionDrawer({
       } else {
         selected.add(roleCode)
       }
-      return normalizeRoleCodes(Array.from(selected))
+      return normalizeRoleCodes(contributionRoles, Array.from(selected))
     })
   }
 
@@ -158,7 +160,7 @@ export function ReleaseContributionDrawer({
         member_id: member.member_id,
         member_display_name: member.display_name,
         member_avatar_url: null,
-        role_codes: normalizeRoleCodes(newRoleCodes),
+        role_codes: normalizeRoleCodes(contributionRoles, newRoleCodes),
         isNew: true,
       },
     ])
@@ -180,7 +182,7 @@ export function ReleaseContributionDrawer({
         rows: stagedRows
           .map((row) => ({
             member_id: row.member_id,
-            role_codes: normalizeRoleCodes(row.role_codes),
+            role_codes: normalizeRoleCodes(contributionRoles, row.role_codes),
           }))
           .sort((left, right) => left.member_id - right.member_id),
       })
@@ -318,7 +320,7 @@ export function ReleaseContributionDrawer({
           ) : (
             <div className={styles.contributionRows} role="list" aria-label="Besetzung dieser Folge">
               {stagedRows.map((row) => {
-                const labels = roleLabels(row.role_codes)
+                const labels = roleLabels(contributionRoles, row.role_codes)
                 return (
                   <div key={row.contribution_id} className={styles.contributionEditRow} role="listitem">
                     <div className={styles.contributionPersonCell}>

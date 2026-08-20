@@ -20,6 +20,18 @@ vi.mock('@/lib/api', () => ({
   deleteAnimeContribution: (...args: unknown[]) => mockDeleteAnimeContribution(...args),
 }))
 
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({
+    roles: [
+      { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 10 },
+      { code: 'quality_checker', label_de: 'Qualitätsprüfung', contexts: ['anime_contribution'], sort_order: 20 },
+      { code: 'editor', label_de: 'Editing', contexts: ['anime_contribution'], sort_order: 30 },
+      { code: 'karaoke_fx', label_de: 'Karaoke FX', contexts: ['anime_contribution'], sort_order: 40 },
+    ],
+    error: null,
+  }),
+}))
+
 const sampleMembers: UnifiedGroupMember[] = [
   { member_id: 1, display_name: 'Gon Müller', source: 'hist', has_app_account: false, group_roles: [] },
   { member_id: 2, display_name: 'Mia Schmidt', source: 'app', has_app_account: true, group_roles: [] },
