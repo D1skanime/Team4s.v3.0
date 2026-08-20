@@ -26,6 +26,8 @@ const contributionRoles = [
   label_de,
   contexts: ['anime_contribution'],
   sort_order,
+  color_key: code === 'karaoke_fx' ? 'creative' : 'other',
+  icon_key: code === 'karaoke_fx' ? 'image' : code === 'future_role' ? 'film' : 'user',
 }))
 
 vi.mock('@/providers/RoleCatalogProvider', () => ({
@@ -115,6 +117,8 @@ describe('Phase 136 catalog-backed role badges', () => {
 
     expect(html).toContain('Karaoke-FX:')
     expect(html).toContain('Zukunftsrolle:')
+    expect(html).not.toContain('data-achievement-art="role_entry_karaoke_fx"')
+    expect(html).not.toContain('data-achievement-art="role_entry_future_role"')
   })
 })
 
