@@ -5,13 +5,23 @@ import { readFileSync } from 'node:fs'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { FANSUB_GROUP_ROLE_OPTIONS } from '@/types/fansub'
 import type { PublicMemberCurrentProject } from '@/types/profile'
 
 import { MemberCurrentProjectsSection } from './MemberCurrentProjectsSection'
 
 const projectStyles = readFileSync('src/components/profile/MemberCurrentProjectsSection.module.css', 'utf8')
 const { getMemberProjectsMock } = vi.hoisted(() => ({ getMemberProjectsMock: vi.fn() }))
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 20, color_key: 'technical', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 30, color_key: 'creative', icon_key: 'image' },
+    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 40, color_key: 'language', icon_key: 'languages' },
+  ],
+}))
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+}))
 
 vi.mock('next/link', () => ({
   default: ({ href, children, className, ...props }: { href: string; children: ReactNode; className?: string }) => (
@@ -69,26 +79,26 @@ describe('MemberCurrentProjectsSection', () => {
     expect(projectStyles).toMatch(/\.projectList > li\s*\{[\s\S]*?min-width: 0;/)
   })
 
-  it('renders every known role with its global accent token, unknown roles as other, and Projektweit neutrally', () => {
-    const roles = FANSUB_GROUP_ROLE_OPTIONS.map((option) => ({ code: option.code, label_de: option.label }))
+  it('orders and labels catalog roles while keeping karaoke, typesetting and unknown roles distinct', () => {
+    const roles = [
+      { code: 'karaoke_fx', label_de: 'stale karaoke label' },
+      { code: 'future_role', label_de: 'stale unknown label' },
+      { code: 'typesetter', label_de: 'stale typesetting label' },
+    ]
     const { container } = render(
       <MemberCurrentProjectsSection
         memberSlug="subaru"
-        projects={[makeProject(1, { roles: [...roles, { code: 'unbekannte_rolle', label_de: 'Unbekannte Rolle' }] })]}
+        projects={[makeProject(1, { roles })]}
         totalCount={1}
       />,
     )
 
-    const expectedCodes = FANSUB_GROUP_ROLE_OPTIONS.map(({ code }) => (
-      code === 'techadmin' ? 'admin' : code === 'gfxler' ? 'designer' : code
-    ))
-    for (const [index, role] of roles.entries()) {
-      expect(screen.getByText(role.label_de).getAttribute('data-role-code')).toBe(expectedCodes[index])
-    }
-    expect(screen.getByText('Unbekannte Rolle').getAttribute('data-role-code')).toBe('other')
+    const chips = container.querySelectorAll('[class*="roleChip"]')
+    expect(Array.from(chips).map((chip) => chip.textContent)).toEqual(['Typesetting', 'Karaoke-FX', 'Future Role'])
+    expect(screen.getByText('Typesetting').getAttribute('data-role-code')).toBe('technical')
+    expect(screen.getByText('Karaoke-FX').getAttribute('data-role-code')).toBe('creative')
+    expect(screen.getByText('Future Role').getAttribute('data-role-code')).toBe('other')
     expect(screen.getByText('Projektweit').className).toContain('badgeNeutral')
-    expect(projectStyles).toContain('var(--role-accent-admin)')
-    expect(projectStyles).toContain('var(--role-accent-designer)')
     expect(projectStyles).toContain('var(--role-accent-other)')
     expect(container.querySelector('[class*="projectArrow"]')).toBeNull()
   })

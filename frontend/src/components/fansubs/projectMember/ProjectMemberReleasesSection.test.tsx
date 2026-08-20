@@ -7,8 +7,19 @@ import type { ProjectMemberRelease } from '@/types/projectMember'
 import type { CursorPage } from '@/types/releaseDetail'
 
 const getProjectMemberReleases = vi.fn()
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 30, color_key: 'language', icon_key: 'languages' },
+    { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 40, color_key: 'production', icon_key: 'film' },
+  ],
+}))
 vi.mock('@/lib/api', () => ({
   getProjectMemberReleases: (...args: unknown[]) => getProjectMemberReleases(...args),
+}))
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
 }))
 
 import { ProjectMemberReleaseCard } from './ProjectMemberReleaseCard'
@@ -46,12 +57,31 @@ describe('ProjectMemberReleaseCard', () => {
     )
     expect(screen.getByText('Folge 08')).not.toBeNull()
     // Rollen sind jetzt einzelne farbcodierte Chips (data-role-code -> Team4s-Rollenfarbe).
-    expect(screen.getByText('Übersetzung').getAttribute('data-role-code')).toBe('translator')
-    expect(screen.getByText('Timing').getAttribute('data-role-code')).toBe('timer')
+    expect(screen.getByText('Übersetzung').getAttribute('data-role-code')).toBe('language')
+    expect(screen.getByText('Timing').getAttribute('data-role-code')).toBe('production')
     expect(screen.getByText('bestätigt 12.04.2024')).not.toBeNull()
     const link = screen.getByRole('link', { name: 'Release ansehen →' })
     expect(link.getAttribute('href')).toBe('/fansubs/c-subs/fansubprojekt/vipers-creed/releases/1')
     expect(container.querySelector('img')).toBeNull()
+  })
+
+  it('keeps karaoke, typesetting and an unknown catalog value distinct and ordered', () => {
+    render(
+      <ul>
+        <ProjectMemberReleaseCard
+          release={release({ role_labels: ['Karaoke-FX', 'future_role', 'Typesetting'] })}
+          projectPath="/fansubs/c-subs/fansubprojekt/vipers-creed"
+        />
+      </ul>,
+    )
+
+    const roleRow = screen.getByText('Folge 08').parentElement?.querySelector('[class*="rowRoles"]')
+    expect(Array.from(roleRow?.children ?? []).map((role) => role.textContent)).toEqual([
+      'Typesetting',
+      'Karaoke-FX',
+      'future_role',
+    ])
+    expect(screen.getByText('future_role').getAttribute('data-role-code')).toBe('other')
   })
 })
 
