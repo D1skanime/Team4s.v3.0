@@ -58,7 +58,7 @@
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| CAP-03 | Deny > Allow > role Allow | Persist one override state per user/group/action; publish precedence as contract, defer evaluation to 137. |
+| CAP-03 | Phase-137-only contract context: Deny > Allow > role Allow | Phase 136 may publish the already-decided vocabulary/schema shape, but CAP-03 requirement ownership, runtime evaluation and enforcement belong exclusively to Phase 137. |
 | CAP-04 | Platform-admin bypass above group precedence | Contract provenance includes IdP global source and non-deniable state. |
 | CAP-11 | One assignability source | Query `role_definitions.assignable`; remove static picker/type unions as runtime catalogs. |
 | CAP-12 | Canonical capability metadata | Extend `action_definitions` with help text and override policy; return all metadata from matrix/catalog DTOs. |

@@ -20,6 +20,8 @@ Prove that the fresh schema, canonical catalog projections, synchronized contrac
 | `backend/internal/handlers/phase136_contract_parity_test.go` | 136-03 Task 1 | QUAL-01, CAP-04, CAP-11–13 | yes: enriched fields/parity absent |
 | `frontend/src/lib/roleCatalog.test.ts` | 136-03 Task 2 | CAP-11, CAP-13; D-20–D-23 | yes: adapter absent |
 | Existing focused repository/handler tests extended in 136-02 | 136-02 Task 1 | CAP-11–14, QUAL-01 | yes: member projection lacks metadata |
+| `backend/internal/repository/role_catalog_repository_test.go`, `backend/internal/handlers/role_catalog_handler_test.go` | 136-02 Task 1 | CAP-11, CAP-13, QUAL-01 | yes: public context-filtered catalog route absent |
+| `frontend/src/providers/RoleCatalogProvider.test.tsx` | 136-03 Task 3 | CAP-11, CAP-13, QUAL-01 | yes: root runtime catalog wiring absent |
 | Cross-surface component/repository tests | 136-04 through 136-08 | CAP-11, CAP-13, QUAL-01; D-13, D-20–D-23 | yes per owning surface |
 
 ## Requirement and task map
@@ -27,7 +29,7 @@ Prove that the fresh schema, canonical catalog projections, synchronized contrac
 | Requirement | Primary proof | Supporting proof |
 |---|---|---|
 | CAP-04 | 136-01 migration invariant; 136-02/03 DTO and contract tests | non-deniable IdP provenance assertions |
-| CAP-11 | 136-02 member-scoped repository/handler projection | 136-04–08 consumers use injected catalog rows |
+| CAP-11 | 136-02 public `/api/v1/role-definitions?context=...` repository/handler projection | 136-03 root provider; 136-04–08 consumers use injected catalog rows |
 | CAP-12 | 136-01 catalog schema/seed assertions | 136-02 matrix DTO completeness |
 | CAP-13 | 136-09 exact seed-to-handler enforcement | 136-01 seed/zero-right and 136-04 contextual notice |
 | CAP-14 | 136-01 index existence and representative `EXPLAIN` proof | phase gate fresh schema run |
@@ -40,16 +42,16 @@ CAP-03 is intentionally excluded: Phase 137 owns server-side Deny > Allow > role
 
 - Per task commit: run the task's focused `<automated>` command and `git diff --check`.
 - Wave 1: `docker compose exec -T team4sv30-backend go test ./internal/migrations -run Phase136 -count=1`.
-- Wave 2: `docker compose exec -T team4sv30-backend go test ./internal/handlers ./internal/repository ./internal/permissions -run 'Phase136|Capability|Catalog' -count=1`.
-- Wave 3: `docker compose exec -T team4sv30-backend go test ./internal/handlers -run Phase136ContractParity -count=1` plus frontend role-catalog Vitest and typecheck.
+- Wave 2: `docker compose exec -T team4sv30-backend go test ./internal/handlers ./internal/repository ./internal/permissions -run 'TestListFansubGroupRoleDefinitionsGroupContextRoles|TestListGroupHistoryRoleDefinitions|TestRoleCatalog|TestListPublicRoleDefinitions|Test.*Capability.*|Test.*Catalog.*' -count=1`.
+- Wave 3: `docker compose exec -T team4sv30-backend go test ./internal/handlers -run Phase136ContractParity -count=1` plus frontend role-catalog/provider Vitest and typecheck.
 - Waves 4–5: run the exact component/repository suites named in Plans 04–08.
 
 ## Fresh gates
 
 1. Migration: fresh disposable DB applies 0146, verifies constraints/seeds/indexes, reverses 0146, reapplies it, and reruns the same assertions. No historical migration edits or row preservation.
 2. Enforcement: parse every D-15–D-19 seed mapping and require an exact handler guard/denial test before mutation. Explicit negatives cover deletion, member/role/capability administration, mixed patches, and foreign groups.
-3. Contract parity: `docker compose exec -T team4sv30-backend go test ./internal/handlers -run Phase136ContractParity -count=1` compares `shared/contracts/admin-capabilities.yaml`, root `shared/contracts/openapi.yaml`, actual Go DTO JSON keys, frontend DTO field requiredness, and central API-helper parsing fixtures.
-4. Cross-surface: inject `karaoke_fx` and an invented future role through catalog fixtures across members, contributions/credits, historical/archive filters, profiles/projects, badges/points, selectors, and filters. Unknown roles remain neutral; no consumer-local valid-role list is allowed.
+3. Contract parity: `docker compose exec -T team4sv30-backend go test ./internal/handlers -run Phase136ContractParity -count=1` compares both OpenAPI files, actual Go DTO JSON keys, frontend DTO field requiredness, and the exact public `GET /api/v1/role-definitions?context=...` helper contract.
+4. Runtime propagation: Plan 136-02 exposes the public presentation-only projection; Plan 136-03 loads all three contexts once in `app/layout.tsx` and supplies `RoleCatalogProvider`; Plans 136-05–08 consume that provider for contributions/releases, archive/search, public and own profiles, group/member views, badges and points. Inject `karaoke_fx` and an invented future role across these tests; unknown roles remain neutral and no leaf fetch or consumer-local valid-role list is allowed.
 
 ## Sampling and phase gate
 

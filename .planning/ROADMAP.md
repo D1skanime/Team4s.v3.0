@@ -541,7 +541,7 @@ Plans:
 
 | Phase | Requirement Count | Requirement IDs |
 |-------|-------------------|-----------------|
-| 136. Capability Policy, Catalog & Schema Contract | 9 | CAP-04, CAP-11-14, QUAL-01, QUAL-04 |
+| 136. Capability Policy, Catalog & Schema Contract | 7 | CAP-04, CAP-11-14, QUAL-01, QUAL-04 |
 | 137. Central Effective-Rights Resolver & Overrides | 6 | CAP-01, CAP-02, CAP-05-07, QUAL-03 |
 | 138. Effective-Rights Administration & Impact UX | 4 | CAP-08-10, UADM-01 |
 | 139. Scalable User-Admin Projections | 8 | UADM-02-08, QUAL-06 |
