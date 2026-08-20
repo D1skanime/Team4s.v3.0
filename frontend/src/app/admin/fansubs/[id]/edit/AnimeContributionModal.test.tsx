@@ -5,8 +5,20 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 
 import type { AnimeContribution, UnifiedGroupMember } from '@/types/fansub'
 
-const deleteAnimeContributionMock = vi.fn()
-const upsertAnimeContributionMock = vi.fn()
+const { catalogState, deleteAnimeContributionMock, upsertAnimeContributionMock } = vi.hoisted(() => ({
+  catalogState: {
+    roles: [
+      { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 10 },
+      { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 20 },
+      { code: 'project_lead', label_de: 'Projektleitung', contexts: ['anime_contribution'], sort_order: 30 },
+      { code: 'karaoke_fx', label_de: 'Karaoke FX', contexts: ['anime_contribution'], sort_order: 40 },
+      { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 50 },
+    ],
+    error: null as string | null,
+  },
+  deleteAnimeContributionMock: vi.fn(),
+  upsertAnimeContributionMock: vi.fn(),
+}))
 
 vi.mock('@/lib/api', () => ({
   deleteAnimeContribution: (...args: unknown[]) => deleteAnimeContributionMock(...args),
@@ -14,15 +26,7 @@ vi.mock('@/lib/api', () => ({
 }))
 
 vi.mock('@/providers/RoleCatalogProvider', () => ({
-  useRoleCatalog: () => ({
-    roles: [
-      { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 10 },
-      { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 20 },
-      { code: 'project_lead', label_de: 'Projektleitung', contexts: ['anime_contribution'], sort_order: 30 },
-      { code: 'karaoke_fx', label_de: 'Karaoke FX', contexts: ['anime_contribution'], sort_order: 40 },
-    ],
-    error: null,
-  }),
+  useRoleCatalog: () => catalogState,
 }))
 
 import AnimeContributionModal from './AnimeContributionModal'
@@ -30,6 +34,7 @@ import AnimeContributionModal from './AnimeContributionModal'
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+  catalogState.error = null
 })
 
 const TEST_MEMBERS: UnifiedGroupMember[] = [
@@ -66,6 +71,21 @@ const EXISTING_TRANSLATOR_CONTRIBUTION: AnimeContribution = {
 }
 
 describe('AnimeContributionModal', () => {
+  it('hält Karaoke FX und Typesetting als getrennte, servergeordnete Rollen', () => {
+    render(<AnimeContributionModal fansubId={1} animeId={13} animeTitle="Naruto" members={TEST_MEMBERS} existingContributions={[]} onClose={vi.fn()} onSaved={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
+    const buttons = screen.getByLabelText('Rollen für neue Person').querySelectorAll('button')
+    expect(Array.from(buttons).map((button) => button.textContent)).toEqual(['Übersetzung', 'Timing', 'Projektleitung', 'Karaoke FX', 'Typesetting'])
+  })
+
+  it('zeigt einen Katalogfehler kompakt und bietet keine statischen Rollen an', () => {
+    catalogState.error = 'catalog_unavailable'
+    render(<AnimeContributionModal fansubId={1} animeId={13} animeTitle="Naruto" members={TEST_MEMBERS} existingContributions={[]} onClose={vi.fn()} onSaved={vi.fn()} />)
+    expect(screen.getByRole('alert').textContent).toContain('Rollen konnten nicht geladen werden')
+    fireEvent.click(screen.getByRole('button', { name: 'Person hinzufügen' }))
+    expect(screen.getByLabelText('Rollen für neue Person').querySelectorAll('button')).toHaveLength(0)
+  })
+
   it('fügt bestehende Fansub-Member erst lokal hinzu und speichert projektweit', async () => {
     upsertAnimeContributionMock.mockResolvedValue({ data: {} })
 
