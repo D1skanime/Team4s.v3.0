@@ -153,6 +153,7 @@ Last activity: 2026-08-19
 |---|-------------|------|--------|-----------|
 | 260819-ipu | Duplikat-Guard beim historischen Mitglied hinzufuegen (Phase-135-Nachtrag, Findings #27/#28) | 2026-08-19 | df1033bf | [260819-ipu-duplikat-guard-beim-historischen-mitglie](./quick/260819-ipu-duplikat-guard-beim-historischen-mitglie/) |
 | 260819-lm5 | Phase-117-Nachtrag: geteilte Karaoke-Segmente ueber Folgen zuweisen + Per-Folge-Startzeit-Verschiebung im UI erreichbar machen, inkl. Bereich-Auto-Zuweisung + Korrektheits-Fix am Pro-Folge-"verschoben"-Marker (5 Live-UAT-Runden, siehe 117-10-POST-HOC-CLOSURE.md) | 2026-08-19 | 4c30cb7c | [260819-lm5-phase-117-geteilte-karaoke-segmente-uebe](./quick/260819-lm5-phase-117-geteilte-karaoke-segmente-uebe/) |
+| 260820-600 | Phase-117-Nachtrag: Folgen-Navigation im Contributor-Editor (Segment-Pillen-Pager Vorherige/Naechste Folge, aktiver Tab bleibt per ?tab= erhalten), inkl. Redesign Variante A -> Variante B nach Live-UAT-Feedback vor Freigabe | 2026-08-20 | 7f5815b4 | [260820-600-folgen-navigation-im-contributor-editor-](./quick/260820-600-folgen-navigation-im-contributor-editor-/) |
 
 ### Verification Baseline
 
@@ -219,5 +220,5 @@ Last activity: 2026-08-19
 
 Last session: 2026-08-19T12:58:31.996Z
 Stopped at: Completed Phase 135 (Plan 10: case-preserved Fansubname D-15 + self-claim approval UX D-16 -- phase complete, all 10 plans done)
-Last activity: 2026-08-20 - Completed quick task 260819-lm5: Phase-117-Nachtrag - geteilte Karaoke-Segmente ueber Folgen zuweisen + Per-Folge-Startzeit-Verschiebung im UI erreichbar machen (schliesst das nie ausgefuehrte 117-09-PLAN.md; siehe 117-10-POST-HOC-CLOSURE.md)
+Last activity: 2026-08-20 - Completed quick task 260820-600: Phase-117-Nachtrag - Folgen-Navigation im Contributor-Editor (Segment-Pillen-Pager, aktiver Tab bleibt erhalten)
 Resume file: None
