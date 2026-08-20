@@ -12,7 +12,6 @@ import {
 } from '@/components/ui'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
 import {
-  FANSUB_GROUP_ROLE_OPTIONS,
   type FansubAppMember,
   type FansubGroupMediaPermissions,
 } from '@/types/fansub'
@@ -30,45 +29,8 @@ const MEDIA_PERMISSION_OPTIONS: Array<{ key: keyof FansubGroupMediaPermissions; 
   { key: 'can_reorder', label: 'Reihenfolge ändern', description: 'Kann die Reihenfolge der Gruppenmedien ändern.' },
 ]
 
-const ACTIVE_ROLE_GROUPS = [
-  { label: 'Leitung', codes: ['fansub_lead', 'project_lead'] },
-  { label: 'Übersetzung & Text', codes: ['translator', 'timer', 'typesetter', 'editor'] },
-  { label: 'Technik & Quelle', codes: ['encoder', 'raw_provider', 'quality_checker', 'techadmin'] },
-  { label: 'Gestaltung', codes: ['designer', 'gfxler'] },
-] as const
-
-const GROUPED_ACTIVE_ROLE_OPTIONS = (() => {
-  const optionsByCode = new Map(FANSUB_GROUP_ROLE_OPTIONS.map((option) => [option.code, option]))
-  const usedCodes = new Set<string>()
-  const groups = ACTIVE_ROLE_GROUPS.map((group) => {
-    const options = group.codes.flatMap((code) => {
-      const option = optionsByCode.get(code)
-      if (!option) return []
-      usedCodes.add(code)
-      return [option]
-    })
-    return { label: group.label, options }
-  }).filter((group) => group.options.length > 0)
-
-  const ungroupedOptions = FANSUB_GROUP_ROLE_OPTIONS.filter((option) => !usedCodes.has(option.code))
-  // Neue aktive Rollen ohne fachliche Zuordnung landen sichtbar hier, bis die Gruppierung erweitert wird.
-  return ungroupedOptions.length > 0 ? [...groups, { label: 'Weitere', options: ungroupedOptions }] : groups
-})()
-
 function styleNames(...names: Array<string | undefined | false>): string {
   return names.filter(Boolean).join(' ')
-}
-
-function getRoleClassName(role: string): string {
-  if (role === 'fansub_lead') return styles.fansubEditRoleLead
-  if (role === 'project_lead') return styles.fansubEditRoleProjectLead
-  if (role === 'editor') return styles.fansubEditRoleEditor
-  if (role === 'translator') return styles.fansubEditRoleTranslator
-  if (role === 'timer') return styles.fansubEditRoleTimer
-  if (role === 'typesetter') return styles.fansubEditRoleTypesetter
-  if (role === 'quality_checker') return styles.fansubEditRoleQuality
-  if (role === 'encoder') return styles.fansubEditRoleEncoder
-  return styles.fansubEditRoleDefault
 }
 
 function countMediaPermissions(permissions: FansubGroupMediaPermissions): number {
@@ -82,6 +44,8 @@ export type FansubAppMemberEditorPanelProps = {
   memberEditorTab: FansubAppMemberEditorTab
   setMemberEditorTab: (tab: FansubAppMemberEditorTab) => void
   memberRoleDraft: string[]
+  roleOptions: RoleDefinitionOption[]
+  roleOptionsError?: string | null
   mediaPermissionDraft: FansubGroupMediaPermissions
   historicalRoleDrafts: InlineMemberRoleDraft[]
   historyRoleOptions: RoleDefinitionOption[]
@@ -105,6 +69,8 @@ export function FansubAppMemberEditorPanel({
   memberEditorTab,
   setMemberEditorTab,
   memberRoleDraft,
+  roleOptions,
+  roleOptionsError,
   mediaPermissionDraft,
   historicalRoleDrafts,
   historyRoleOptions,
@@ -201,12 +167,12 @@ export function FansubAppMemberEditorPanel({
           {memberEditorTab === 'roles' ? (
             <section id="fansub-member-editor-roles" className={styles.fansubEditMemberEditorPanel} aria-label="Aktive Rolle in der Fansubgruppe">
               <p className={styles.fansubEditHint}>Aktive Rollen bestimmen, was dieses Mitglied ab jetzt in der Gruppe tun darf.</p>
+              {roleOptionsError ? <ErrorState title="Rollen konnten nicht geladen werden" description={roleOptionsError} /> : null}
               <div className={styles.fansubEditMemberRoleGroups}>
-                {GROUPED_ACTIVE_ROLE_OPTIONS.map((group) => (
-                  <section className={styles.fansubEditMemberRoleGroup} key={group.label} aria-label={group.label}>
-                    <h3>{group.label}</h3>
+                {roleOptions.length > 0 ? (
+                  <section className={styles.fansubEditMemberRoleGroup} aria-label="Zuweisbare Rollen">
                     <div className={styles.fansubEditMemberRoleGrid}>
-                      {group.options.map((option) => {
+                      {roleOptions.map((option) => {
                         const enabled = memberRoleDraft.includes(option.code)
                         return (
                           <button
@@ -214,22 +180,24 @@ export function FansubAppMemberEditorPanel({
                             type="button"
                             className={styleNames(
                               styles.fansubEditMemberRoleToggle,
-                              getRoleClassName(option.code),
+                              styles.fansubEditRoleDefault,
                               enabled && styles.fansubEditMemberRoleToggleSelected,
                             )}
                             aria-pressed={enabled}
                             onClick={() => onToggleRole(option.code)}
-                            title={option.description}
                           >
                             {enabled ? <Check size={14} aria-hidden="true" /> : null}
-                            <span>{option.label}</span>
+                            <span>{option.label_de}</span>
                           </button>
                         )
                       })}
                     </div>
                   </section>
-                ))}
+                ) : null}
               </div>
+              {roleOptions.some((option) => memberRoleDraft.includes(option.code) && option.has_operative_capabilities === false) ? (
+                <p className={styles.fansubEditHint} role="status">Diese Rolle verleiht aktuell keine zusätzlichen Rechte.</p>
+              ) : null}
             </section>
           ) : null}
 

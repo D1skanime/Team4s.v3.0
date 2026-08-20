@@ -60,6 +60,11 @@ const mockMember: FansubAppMember = {
 
 const noop = () => {}
 const defaultEditorProps = {
+  roleOptions: [
+    { code: 'translator', label_de: 'Übersetzung', contexts: ['fansub_group'], sort_order: 10, assignable: true, color_key: 'language', icon_key: 'languages', operative_capability_count: 1, has_operative_capabilities: true },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['fansub_group'], sort_order: 20, assignable: true, color_key: 'creative', icon_key: 'image', operative_capability_count: 0, has_operative_capabilities: false },
+  ],
+  roleOptionsError: null,
   historicalRoleDrafts: [{ id: 'role-1', roleCode: '', startedDate: '', endedDate: '' }],
   historyRoleOptions: [
     { code: 'founder', label_de: 'Gründung', sort_order: 1 },
@@ -94,10 +99,7 @@ describe('FansubAppMemberEditorPanel', () => {
     )
 
     expect(document.body.textContent ?? '').toMatch(/Aktive Rolle in der Fansubgruppe/)
-    expect(screen.getByRole('heading', { name: 'Leitung' })).not.toBeNull()
-    expect(screen.getByRole('heading', { name: 'Übersetzung & Text' })).not.toBeNull()
-    expect(screen.getByRole('heading', { name: 'Technik & Quelle' })).not.toBeNull()
-    expect(screen.getByRole('heading', { name: 'Gestaltung' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Karaoke-FX' })).not.toBeNull()
     expect(screen.getByRole('tab', { name: /Historische Rollen/ })).not.toBeNull()
     expect(screen.queryByLabelText('Rolle 1')).toBeNull()
   })
@@ -120,7 +122,7 @@ describe('FansubAppMemberEditorPanel', () => {
     )
 
     const bodyText = document.body.textContent ?? ''
-    expect(bodyText).toMatch(/Gruppenleitung|Übersetzung|Encoding|Timing/)
+    expect(bodyText).toMatch(/Übersetzung|Karaoke-FX/)
     expect(screen.queryByLabelText('Rolle 1')).toBeNull()
   })
 
@@ -146,5 +148,24 @@ describe('FansubAppMemberEditorPanel', () => {
     expect(screen.getByText('Gründung')).not.toBeNull()
     expect(screen.getByLabelText('Eintrittsdatum')).not.toBeNull()
     expect(screen.getByLabelText('Austrittsdatum')).not.toBeNull()
+  })
+
+  it('zeigt den kompakten Hinweis nur für eine ausgewählte Rolle ohne operative Rechte', () => {
+    render(
+      <FansubAppMemberEditorPanel
+        editorMember={mockMember}
+        memberEditorTab="roles"
+        setMemberEditorTab={noop}
+        memberRoleDraft={['karaoke_fx']}
+        mediaPermissionDraft={defaultMediaPermissions}
+        isBusy={false}
+        onClose={noop}
+        onSave={noop}
+        onToggleRole={noop}
+        onToggleMediaPermission={noop as never}
+        {...defaultEditorProps}
+      />,
+    )
+    expect(screen.getByText('Diese Rolle verleiht aktuell keine zusätzlichen Rechte.')).not.toBeNull()
   })
 })

@@ -36,8 +36,8 @@ import {
   type FansubGroupInvitation,
   type FansubGroupMemberCandidate,
   type FansubGroupRoleCode,
-  FANSUB_GROUP_ROLE_OPTIONS,
 } from '@/types/fansub'
+import { orderForContext } from '@/lib/roleCatalog'
 
 import sharedStyles from '../../../admin.module.css'
 import fansubEditStyles from './FansubEdit.module.css'
@@ -111,9 +111,11 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
   const [capabilities, setCapabilities] = useState<FansubGroupCapabilities | null>(null)
   // Rollenoptionen: API-getrieben via listFansubGroupRoleDefinitions(fansubId) (member-scoped,
   // für Fansub-Leitungen erreichbar — Gap G1/D-12), Fallback auf statische Liste
-  const [roleOptions, setRoleOptions] = useState<{ code: FansubGroupRoleCode; label: string; description?: string }[]>(
-    FANSUB_GROUP_ROLE_OPTIONS
-  )
+  const [roleDefinitions, setRoleDefinitions] = useState<RoleDefinitionOption[]>([])
+  const [roleOptionsError, setRoleOptionsError] = useState<string | null>(null)
+  const roleOptions = useMemo(() => orderForContext(roleDefinitions, 'fansub_group')
+    .filter((item) => item.assignable)
+    .map((item) => ({ code: item.code as FansubGroupRoleCode, label: item.label_de })), [roleDefinitions])
   const [candidateQuery, setCandidateQuery] = useState('')
   const [candidateResults, setCandidateResults] = useState<FansubGroupMemberCandidate[]>([])
   const [selectedCandidateId, setSelectedCandidateId] = useState('')
@@ -148,18 +150,16 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
     let cancelled = false
     listFansubGroupRoleDefinitions(fansubId)
       .then((items) => {
-        if (!cancelled && items.length > 0) {
-          setRoleOptions(
-            items.map((item) => ({
-              code: item.code as FansubGroupRoleCode,
-              label: item.label_de,
-              description: undefined,
-            }))
-          )
+        if (!cancelled) {
+          setRoleDefinitions(items)
+          setRoleOptionsError(null)
         }
       })
       .catch(() => {
-        // Fehler still abfangen — Fallback FANSUB_GROUP_ROLE_OPTIONS bleibt aktiv
+        if (!cancelled) {
+          setRoleDefinitions([])
+          setRoleOptionsError('Zuweisbare Rollen konnten nicht geladen werden.')
+        }
       })
     return () => { cancelled = true }
   }, [fansubId])
@@ -624,6 +624,8 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
         memberEditorTab={memberEditorTab}
         setMemberEditorTab={setMemberEditorTab}
         memberRoleDraft={memberRoleDraft}
+        roleOptions={orderForContext(roleDefinitions, 'fansub_group').filter((item) => item.assignable)}
+        roleOptionsError={roleOptionsError}
         mediaPermissionDraft={mediaPermissionDraft}
         historicalRoleDrafts={historicalRoleDrafts}
         historyRoleOptions={historyRoleOptions}
