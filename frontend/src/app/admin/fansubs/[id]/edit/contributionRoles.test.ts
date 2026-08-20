@@ -1,29 +1,66 @@
 import { describe, expect, it } from 'vitest'
 
-import { ANIME_CONTRIBUTION_ROLES, normalizeRoleCodes, roleLabels } from './contributionRoles'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
+
+import {
+  contributionRoleDefinitions,
+  normalizeRoleCodes,
+  roleLabels,
+} from './contributionRoles'
+
+const catalog: RoleDefinitionOption[] = [
+  {
+    code: 'typer',
+    label_de: 'Typesetting',
+    contexts: ['anime_contribution'],
+    sort_order: 30,
+  },
+  {
+    code: 'karaoke_fx',
+    label_de: 'Karaoke FX',
+    contexts: ['fansub_group', 'anime_contribution'],
+    sort_order: 20,
+  },
+  {
+    code: 'translator',
+    label_de: 'Übersetzung',
+    contexts: ['anime_contribution'],
+    sort_order: 10,
+  },
+  {
+    code: 'founder',
+    label_de: 'Gründer',
+    contexts: ['fansub_group'],
+    sort_order: 1,
+  },
+]
 
 describe('admin anime contribution roles', () => {
-  it('uses neutral task labels and includes project lead', () => {
-    expect(ANIME_CONTRIBUTION_ROLES).toContainEqual({
+  it('derives options exclusively from anime_contribution catalog rows', () => {
+    expect(contributionRoleDefinitions(catalog)).toEqual([
+      {
       code: 'translator',
-      label: 'Übersetzung',
-    })
-    expect(ANIME_CONTRIBUTION_ROLES).toContainEqual({
-      code: 'quality_checker',
-      label: 'Qualitätsprüfung',
-    })
-    expect(ANIME_CONTRIBUTION_ROLES).toContainEqual({
-      code: 'project_lead',
-      label: 'Projektleitung',
-    })
+        label_de: 'Übersetzung',
+      },
+      { code: 'karaoke_fx', label_de: 'Karaoke FX' },
+      { code: 'typer', label_de: 'Typesetting' },
+    ])
   })
 
-  it('orders project lead with the known role catalog', () => {
-    expect(normalizeRoleCodes(['project_lead', 'translator', 'unknown_role'])).toEqual([
+  it('orders known roles by the injected catalog and preserves unknown codes', () => {
+    expect(normalizeRoleCodes(catalog, ['typer', 'unknown_role', 'karaoke_fx', 'translator', 'unknown_role'])).toEqual([
       'translator',
-      'project_lead',
+      'karaoke_fx',
+      'typer',
       'unknown_role',
     ])
-    expect(roleLabels(['project_lead'])).toEqual(['Projektleitung'])
+  })
+
+  it('keeps karaoke fx distinct from typesetting and labels unknown roles neutrally', () => {
+    expect(roleLabels(catalog, ['typer', 'invented_role', 'karaoke_fx'])).toEqual([
+      'Karaoke FX',
+      'Typesetting',
+      'Invented Role',
+    ])
   })
 })
