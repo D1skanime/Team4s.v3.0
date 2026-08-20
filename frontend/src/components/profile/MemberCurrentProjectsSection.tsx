@@ -9,6 +9,8 @@ import { getMemberProjects, resolveApiUrl } from '@/lib/api'
 import { ResponsiveImage } from '@/components/ui/ResponsiveImage'
 import { useCancellableSlugState } from '@/hooks/useCancellableSlugState'
 import { useNearViewportActivation } from '@/hooks/useNearViewportActivation'
+import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { PublicMemberCurrentProject, PublicMemberProjectsPage } from '@/types/profile'
 
 import styles from './MemberCurrentProjectsSection.module.css'
@@ -20,21 +22,6 @@ type MemberCurrentProjectsSectionProps = {
 }
 
 const PROJECT_PAGE_SIZE = 6
-
-// STYLED_ROLE_CODES sind die Codes mit dediziertem Accent-Token im CSS-Modul.
-// Codes ausserhalb dieser Menge fallen bewusst auf den neutralen 'other'-Akzent.
-const STYLED_ROLE_CODES = new Set([
-  'fansub_lead', 'project_lead', 'editor', 'translator', 'timer', 'typesetter',
-  'quality_checker', 'encoder', 'raw_provider', 'designer', 'admin',
-])
-
-// roleColorCode leitet die CSS-Rollenfarbe DIREKT vom serverautoritativen Rollen-Code
-// ab (D-06). Kein Label->Code-Reverse-Mapping mehr; nur normalisierte Alias-Codes.
-function roleColorCode(roleCode: string): string {
-  if (roleCode === 'techadmin') return 'admin'
-  if (roleCode === 'gfxler') return 'designer'
-  return STYLED_ROLE_CODES.has(roleCode) ? roleCode : 'other'
-}
 
 function projectHref(project: PublicMemberCurrentProject): string {
   return `/anime/${project.anime_id}/group/${project.fansub_group_id}`
@@ -62,6 +49,7 @@ export function MemberCurrentProjectsSection({
   projects,
   totalCount,
 }: MemberCurrentProjectsSectionProps) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const [sourceProjects, setSourceProjects] = useState(projects)
   const [visibleProjects, setVisibleProjects] = useState(projects)
   const { targetRef, interactionEnabled } = useNearViewportActivation<HTMLElement>()
@@ -185,14 +173,19 @@ export function MemberCurrentProjectsSection({
                     </span>
 
                     <span className={styles.chipRow}>
-                      {project.roles.map((role) => (
+                      {project.roles.slice().sort((left, right) => {
+                        const leftIndex = contributionRoles.findIndex((role) => role.code === left.code)
+                        const rightIndex = contributionRoles.findIndex((role) => role.code === right.code)
+                        return (leftIndex < 0 ? Number.MAX_SAFE_INTEGER : leftIndex) -
+                          (rightIndex < 0 ? Number.MAX_SAFE_INTEGER : rightIndex)
+                      }).map((role) => (
                         <Badge
                           key={role.code}
                           variant="neutral"
                           className={styles.roleChip}
-                          data-role-code={roleColorCode(role.code)}
+                          data-role-code={presentationForRole(contributionRoles, role.code).colorKey}
                         >
-                          {role.label_de}
+                          {labelForRole(contributionRoles, role.code)}
                         </Badge>
                       ))}
                       {project.is_project_level ? (

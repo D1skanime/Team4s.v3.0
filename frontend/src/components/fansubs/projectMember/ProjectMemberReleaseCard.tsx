@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 
-import { roleColorCode } from '@/lib/roleColors'
+import { presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberRelease } from '@/types/projectMember'
 
 import styles from './ProjectMemberReleasesSection.module.css'
@@ -27,15 +28,22 @@ export function ProjectMemberReleaseCard({
 }) {
   const href = `${projectPath}/releases/${release.release_version_id}`
   const date = formatDate(release.confirmed_at)
+  const { roles } = useRoleCatalog('anime_contribution')
+  const presentedRoles = release.role_labels.map((value) => {
+    const role = roles.find((candidate) => candidate.code === value || candidate.label_de === value)
+    return role
+      ? { code: role.code, label: role.label_de, order: role.sort_order }
+      : { code: value, label: value, order: Number.MAX_SAFE_INTEGER }
+  }).sort((left, right) => left.order - right.order)
 
   return (
     <li className={styles.row}>
       <span className={styles.rowEpisode}>Folge {release.episode_label}</span>
       <span className={styles.rowVersion}>{release.version_label}</span>
       <span className={styles.rowRoles}>
-        {release.role_labels.map((role) => (
-          <span key={role} className={styles.roleTag} data-role-code={roleColorCode(role)}>
-            {role}
+        {presentedRoles.map((role) => (
+          <span key={role.code} className={styles.roleTag} data-role-code={presentationForRole(roles, role.code).colorKey}>
+            {role.label}
           </span>
         ))}
       </span>

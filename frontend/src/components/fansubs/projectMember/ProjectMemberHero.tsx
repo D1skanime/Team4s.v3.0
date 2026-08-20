@@ -2,7 +2,8 @@ import Image from 'next/image'
 
 import { Button } from '@/components/ui'
 import { resolveApiUrl } from '@/lib/api'
-import { roleColorCode } from '@/lib/roleColors'
+import { presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { ProjectMemberSummary } from '@/types/projectMember'
 
 import { getMemberInitials } from '../fansubTeamInitials'
@@ -27,6 +28,13 @@ export function ProjectMemberHero({
   animeTitle,
   projectPath,
 }: ProjectMemberHeroProps) {
+  const { roles } = useRoleCatalog('anime_contribution')
+  const presentedRoles = summary.role_labels.map((value) => {
+    const role = roles.find((candidate) => candidate.code === value || candidate.label_de === value)
+    return role
+      ? { code: role.code, label: role.label_de, order: role.sort_order }
+      : { code: value, label: value, order: Number.MAX_SAFE_INTEGER }
+  }).sort((left, right) => left.order - right.order)
   return (
     <section className={styles.hero} aria-label="Projekt-Mitwirkung">
       <span className={styles.heroAvatar} aria-hidden="true">
@@ -51,15 +59,15 @@ export function ProjectMemberHero({
         <p className={styles.heroContext}>
           Mitwirkung an {animeTitle} · {groupName}
         </p>
-        {summary.role_labels.length > 0 ? (
+        {presentedRoles.length > 0 ? (
           <div className={styles.heroChips}>
-            {summary.role_labels.map((role) => (
+            {presentedRoles.map((role) => (
               <span
-                key={role}
+                key={role.code}
                 className={styles.roleChip}
-                data-role-code={roleColorCode(role)}
+                data-role-code={presentationForRole(roles, role.code).colorKey}
               >
-                {role}
+                {role.label}
               </span>
             ))}
           </div>
