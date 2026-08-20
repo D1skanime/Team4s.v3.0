@@ -1,5 +1,11 @@
 # Roadmap: Team4s v1.3 Public Member Profile Hardening
 
+**Milestone Status: COMPLETE (2026-08-20, tag `v1.3`)** — all 8 phases below (128-135) done, all 65
+v1.3 requirements verified complete (`.planning/REQUIREMENTS.md`). See
+`.planning/v1.3-MILESTONE-AUDIT.md` for the closing scorecard and tracked debt, and
+`.planning/archive/v1.3/` for a copied snapshot of this file, `REQUIREMENTS.md`, `PROJECT.md`, and
+`STATE.md` at close time. This roadmap remains live in place for any future v1.4+ phases.
+
 ## Overview
 
 Milestone v1.3 hardens the existing public member profile as one privacy-sensitive vertical slice. Work proceeds from immutable public identity and deny-first access, through canonical projections and one aligned public contract, into bounded delivery, shared SSR/frontend composition, responsive and accessible presentation, and reproducible fixture-backed release evidence. The roadmap deliberately extends existing Team4s seams and does not preserve compatibility for disposable test rows.
