@@ -1,294 +1,200 @@
-# Architecture Research: v1.3 Public Member Profile Hardening
+# Architecture Patterns
 
-**Domain:** Brownfield public member identity/profile read surface
-**Researched:** 2026-08-13
-**Confidence:** HIGH for current integration points and failure modes; MEDIUM for final cache TTLs and public achievement-count policy
+**Domain:** Team4s v1.4 capability, review, and user administration
+**Researched:** 2026-08-20
+**Confidence:** HIGH — current Linux repository and contracts inspected
 
-## Executive Recommendation
+## Recommended Architecture
 
-Harden the existing `/members/[slug]` vertical slice rather than creating a second profile domain. Persist one immutable, indexed `members.slug`; route every public member lookup through one visibility-first read policy; and only then execute minimal, set-based projections over the existing member, historical membership, contribution, badge, point, media, and release-native tables.
-
-The privacy gate must move in front of aggregation. Today `MemberProfileRepository.GetPublicMemberProfile` executes the full profile graph and `AppPublicProfileHandler` checks `members_only` afterwards. The code path is roughly 20 fixed SQL round trips plus one release-version query per returned project; the `/projects` endpoint calls that whole aggregate and then loads the project page again. A hidden profile therefore incurs and transiently materializes private detail before it is rejected, while a six-project visible profile can require about 26 repository round trips.
-
-Keep the Next.js route server-rendered for public data, but stop reading access-token cookies in the page. `cookies()` is a Dynamic API in the installed Next.js 16 line and opts the route into dynamic rendering. The public SSR request should be anonymous; only a hidden-profile client boundary should retry the same public endpoint through the central authenticated API client. The same profile composition must render public and owner-preview data.
-
-## Existing Architecture and Target Flow
-
-### Current Flow
+Extend the existing authorization pipeline with one explicit per-user override layer. Do not create a second permission or authentication system.
 
 ```text
-Next /members/[slug] server page
-  -> reads access-token cookie
-  -> api.ts getMemberProfile(cache: no-store)
-  -> GET /api/v1/members/:slug (optional auth)
-  -> MemberProfileRepository.GetPublicMemberProfile(slug)
-     -> derived nickname slug / numeric fallback / full-table fallback
-     -> memberships, badges, progress, media, contributions, projects
-     -> per-project release-version query (N+1)
-  -> handler checks members_only after every detail query
-  -> page composes profile components
-
-GET /api/v1/members/:slug/projects
-  -> GetPublicMemberProfile (all profile loaders)
-  -> loadCurrentProjects again
+verified Keycloak token
+ -> CurrentUserMiddleware (app user + JIT global-role sync)
+ -> permissions.Actor
+ -> permissions.Service
+      disabled/unauthenticated guard
+      platform_admin bypass
+      exact scoped user deny (wins for normal users)
+      exact scoped user allow
+      group/contribution role -> cached role_capabilities
+      specialized direct review delegation for review actions
+ -> protected operation
 ```
 
-### Recommended Flow
+The effective-rights inspector must use the same resolver semantics and return provenance; it must not reproduce authorization in handler SQL or React. UI ownership stays where it already lives:
 
-```text
-Anonymous SSR or session-aware browser request
-  -> existing api.ts public-member helper
-  -> optional-auth handler
-  -> PublicMemberReadService
-       1. Resolve members.slug through indexed equality
-       2. Decide NOT_FOUND / HIDDEN / VISIBLE_PUBLIC / VISIBLE_OWNER
-       3. If visible, load only the requested public projection
-       4. Reconfirm access before serialization
-  -> public DTO envelope or unchanged hidden envelope
-  -> one reusable PublicMemberProfileView composition
+- `/admin/users/{id}` is the canonical per-user inspector and override surface.
+- `/admin/role-capabilities` remains the shared role-matrix surface.
+- `/admin/fansubs/{id}/edit` remains the canonical group-member and review-delegation surface.
+- The release-review handler/repository remain the server-side relevance and security boundary for queues.
 
-PostgreSQL sources remain canonical:
-members + verified member_claims
-  -> public hist_fansub_group_members
-  -> confirmed/public anime_contributions + roles
-  -> member_badges + member_point_totals + canonical lifecycle aggregates
-  -> public/published release_version_notes
-  -> public/approved/ready release_version_media -> media_assets -> media_files
-  -> anime -> episodes -> fansub_releases -> release_versions -> release_version_groups
-```
+### Component Boundaries
 
-The service is a narrowly justified new seam. It centralizes read policy now duplicated or absent across profile, projects, and contributions handlers; it does not introduce a new entity, permission system, or persistence model.
-
-## Modified vs New Components
-
-| Status | Component / path | Responsibility after hardening |
+| Component | Current responsibility | Narrow v1.4 extension |
 |---|---|---|
-| **New schema seam** | New migration after the current chain | Add persisted `members.slug`, case-insensitive uniqueness, non-empty validation, and index. Reset/reseed disposable rows rather than preserving nickname aliases. |
-| **New focused helper** | `backend/internal/repository/member_slug.go` | Normalize candidate slugs and allocate collision-safe persisted values. The DB unique constraint remains the race authority; nickname edits do not rewrite slugs. |
-| **Modify** | `member_requests_repository.go`, `fansub_group_app_members_repository.go`, `hist_group_members_repository.go` | Supply stable slugs for every member creation path. |
-| **Modify** | `anime_contributions_public_repository.go`, `domain_projection_repository.go`, `group_contributors_repository.go`, `member_archive_repository.go`, `member_point_totals_repository.go`, `project_member_public_repository.go` | Replace `memberSlugExpr`/nickname-derived links with `members.slug`; remove numeric and full-scan fallbacks. |
-| **New policy seam** | `backend/internal/services/public_member_read_service.go` | Own access decisions and orchestrate requested public projections. Accept viewer app-user identity from optional auth; never frontend-derived roles. |
-| **Modify/split** | `backend/internal/repository/member_profile_repository.go` | Keep own-profile paths; move public reads into focused files in the same repository/package. Eliminate the 1,931-line mixed seam and project N+1. |
-| **New file, same model** | `backend/internal/models/public_member_profile.go` | Hold minimal public-only DTOs. Do not reuse own-profile membership/background DTOs that advertise private fields. |
-| **Modify** | `backend/internal/handlers/app_public_profile.go` | Map service outcomes to 404, hidden 200, or data 200. No late visibility check against a fully loaded DTO. |
-| **Modify** | `backend/internal/handlers/contributions_public_handler.go` | Use the same access resolver for `/members/:slug/contributions`, which currently lacks a profile-visibility gate. |
-| **Modify** | `backend/cmd/server/main.go` | Wire one public-member read service into member profile/projects/contributions handlers. |
-| **Modify** | `shared/contracts/openapi.yaml` | Define explicit public DTOs and actual fields (`is_verified`, `noindex`, stable `slug`); remove unused arrays and private membership properties. |
-| **Modify** | `frontend/src/types/profile.ts`, `frontend/src/lib/api.ts` | Mirror OpenAPI and preserve the central auth/refresh boundary for anonymous SSR plus session-aware browser calls. |
-| **New composition seam** | `frontend/src/components/profile/PublicMemberProfileView.tsx` | Pure hero/story/membership/project/award/contribution composition shared by SSR and owner preview. |
-| **Modify** | `frontend/src/app/members/[slug]/page.tsx` | Anonymous SSR data/state owner only; no cookie reads and no duplicated layout. |
-| **Modify/remove duplication** | `OwnHiddenProfilePreview.tsx`, `OwnProfileEditLink.tsx` | Retry `getMemberProfile(slug)` through central refresh, remove local slugification and own-to-public conversion, and consolidate redundant ownership calls. |
-| **Modify/split** | `MemberBadgeChain.tsx` and `.module.css` | Split the 928-line component and 2,282-line stylesheet into bounded family/stage components; retain existing `FocalCarousel` and UI primitives. |
-| **Modify** | Profile page/component CSS modules | Page owns viewport composition; reusable cards/stages own container queries. |
-| **New test fixture seam** | Project-owned v1.3 UAT fixture command/SQL | Idempotently create `sheppert` and `csubs-leader`; never put fixture behavior in runtime repositories. |
+| `auth/oidc.go`, `middleware/current_user_auth.go` | Validate JWT, ensure app user, reconcile Keycloak realm roles, build trusted identity | No parallel auth logic |
+| `repository/authz_keycloak_sync.go` | Reconciles only `platform_admin`, `content_admin`, `user` into `app_user_global_roles` | Preserve IdP authority; app UI stays read-only |
+| `permissions/permissions.go` | Central policy, platform-admin bypass, role/cache and review checks | Evaluate scoped user overrides and expose shared provenance primitives |
+| `repository/authz_permissions.go` | Resource, group-role, contribution-role and verified review-context resolution | Add indexed override reads/effective projection support |
+| `action_definitions` + `role_capabilities` | DB truth for actions and role grants | Reuse unchanged as base matrix |
+| `permissions.LoadCache/ReloadCache` | Atomic in-memory shared role matrix | Keep user overrides out of this process-global cache |
+| `fansub_group_member_review_capabilities` + `review_delegation_repository.go` | Membership-bound direct review grants; idempotent transaction-friendly mutations | Add service/handler/routes/contracts, not duplicate SQL |
+| `release_review_handler.go` | Maps permitted actions to queue kinds; gates list/count/detail/next/decision | Add trusted actor exclusion for actionable rows |
+| `release_review_query_repository.go` | Stable cursor queue and shared predicates | Apply actor-aware semantics consistently to list/count/detail/next |
+| `admin_users_handler.go` + `admin_users_tab_repository.go` | Platform-admin user tabs; rights tab currently has two heuristics | Replace heuristics with full effective-capability/provenance projection and exact override endpoints |
+| `UserGroupRightsTab.tsx` | Existing per-user rights seed | Expand, do not replace: provenance, allow/deny, guided revoke, impact preview |
+| `UserContributionsTab.tsx`, `UserMediaTab.tsx` | Flat release-version lists | Consume backend-grouped, filtered, paginated projections |
+| `FansubAppMemberEditorPanel.tsx` | Roles, media rights, history for exact membership | Add review-rights tab/section |
+| `ReleaseReviewsSection.tsx` | Group review queue | Render server-defined actionable work; separate own submissions if retained |
+| `frontend/src/lib/api.ts`, frontend types, OpenAPI | Central refresh-aware transport and contract | Add synchronized DTOs/helpers only here |
 
-## Identity and Privacy Boundaries
+## Verified Current Model
 
-### Stable Slug Contract
+### Global roles and platform-admin bypass
 
-Use `members.slug` as the only public member route key.
+`platform_admin`, `content_admin`, and `user` are Keycloak-managed global roles, not `role_definitions` rows. `oidc.go` extracts `realm_access.roles`; `KeycloakCurrentUserResolver` calls `SyncGlobalRolesFromKeycloak` on every authenticated request; `UserGlobalRolesTab.tsx` already renders them read-only as “aus IdP”. The older IdP/JIT proposal is implemented. `AUTH_ADMIN_BOOTSTRAP_USER_IDS` is deprecated fallback and must not be expanded.
 
-- Persist it once and keep it stable when nickname/display name changes.
-- Enforce non-empty, normalized, case-insensitive uniqueness in PostgreSQL.
-- Allocate collisions centrally (for example `name`, `name-2`, `name-3`) and retry on unique conflict.
-- Return `slug` in every public link projection: profile, archive, ranking, anime contributors, group/domain projections, project-member summary.
-- Delete numeric-ID lookup and `findPublicMemberProfileByNormalizedSlug` after reset/reseed. Compatibility is out of scope.
-- Direct test inserts must supply slugs or use one fixture factory; do not weaken the production constraint for tests.
+`platform_admin` deliberately bypasses scoped checks in `permissions.Service` and protects platform management handlers. Effective-rights responses must show this as `platform_admin_bypass`. Generic user denies should not silently neutralize it; changing that is a separate security decision.
 
-### Visibility-First Access Decision
+### Fine-grained roles and capabilities
 
-The minimal resolver may read only `members.id`, `members.slug`, `profile_visibility`, `noindex`, and the verified owner `app_user_id` through the canonical claim/legacy bridge.
+Group roles live in `fansub_group_member_roles`; contribution roles live in `anime_contributions` / `anime_contribution_roles`. Migration `0108` created `action_definitions` and `role_capabilities`; startup loads them into the permission cache and matrix mutations atomically reload it. The old data-driven registry proposal is implemented.
 
-| Target | Anonymous/other viewer | Verified owner |
-|---|---|---|
-| Missing slug | 404 | 404 |
-| `public` | public projection | same public projection |
-| `members_only` | `{visible:false, reason:"members_only"}` | same public projection as owner preview |
+The static `roleMatrix` remains only a pre-load/unit-test fallback. Production additions must use DB definitions/cache, not extend a second hardcoded source.
 
-`app_user_id` remains internal. The service returns a typed decision, not `(nil, nil)` ambiguity. All member subroutes use it, including projects and contributions.
+`GetUserGroupRights` is explicitly only a display heuristic: it hardcodes roles into `can_edit_content` and exposes only two booleans. Replace this read model; do not add more heuristic columns.
 
-To fail closed during concurrent visibility changes, perform a final lightweight visibility check before serialization, or use an explicitly lock-consistent read transaction. Hidden/missing decisions must never call detail loaders. Each collection still applies its own public predicates; profile visibility is not a substitute for row-level visibility.
+### Proposed user overrides
 
-### Public Join Rules
-
-- **Memberships:** start from `hist_fansub_group_members` with public visibility and agreed publishable statuses. Do not expose membership merely because permission-bearing `fansub_group_members` exists; never serialize `app_member_status` or `app_member_roles` publicly.
-- **Projects:** keep `anime_contributions` as the member/group/anime fact. Require `status='confirmed'` and `is_public_on_member_profile=true`.
-- **Release context:** preserve `anime -> episodes -> fansub_releases -> release_versions -> release_version_groups.fansub_group_id`. Never attach release media to episodes or substitute `release_media` for `release_version_media`.
-- **Latest text:** require public, published, non-deleted `release_version_notes`.
-- **Latest media:** require non-deleted `release_version_media`, ready assets/files, public visibility, approved review, and a real `release_version_id`.
-- **Badges:** persisted badges remain active/public; live role/contribution projections remain read-only. Exact progress derived from non-public facts needs explicit public policy and should otherwise be omitted.
-
-## Projection and Query Strategy
-
-### Minimal Response Shape
-
-Return only what the initial page renders:
-
-- stable slug, public identity/bio/story/activity/status, `noindex`, `is_verified`
-- public avatar/background display URLs
-- public membership cards
-- final public earned-badge presentation inputs and total points
-- first project page plus total/continuation metadata
-- newest three public contribution summaries
-- previous-contribution count, not collapsed rows
-
-Remove from the public core DTO unless a live consumer is proven:
-
-- `recent_media` and `recent_contributions` (the page uses `latest_contributions`)
-- `PublicMemberCurrentProject.release_versions` (the card does not render it; it causes N+1)
-- constant `contribution_status` and unused current-project periods
-- `latest_contributions.body_html` and full `image_url` when only preview text/thumbnail renders
-- own-profile membership fields and background source-original metadata
-
-Do not remove fields from the own-profile DTO merely because public UI does not use them. Backend, OpenAPI, frontend types, and helper tests move together.
-
-### Bounded Query Plan
-
-Prefer a small number of set-based queries over one Cartesian mega-query:
-
-1. Indexed slug/access resolver.
-2. Core identity/media projection.
-3. Public memberships.
-4. Achievement projection: persisted badges, totals, volumes, and counters without repeating counts.
-5. Current projects page with matching total.
-6. Latest contribution union ordered then limited.
-7. Optional history page only when expanded.
-
-The query count must be O(1) with respect to project count. If release versions later prove necessary, batch all page keys in one query and group rows in Go.
-
-`GetPublicMemberProjects` resolves/gates and loads only projects; it must not call `GetPublicMemberProfile`. Prefer keyset pagination on `(last_updated_at, anime_id, fansub_group_id)` with `limit+1`. If offset remains, define stable ordering and total semantics and test mutation between pages. Load previous history by cursor on expansion, potentially by extending the existing member-contributions seam rather than inventing a third history model.
-
-Candidate indexes follow verified predicates: unique lower-cased slug; public membership by member/group visibility/status; public current/previous contributions by member/public/status/end-year/anime/group; public notes; and public media ownership/status. Confirm with `EXPLAIN (ANALYZE, BUFFERS)` on both fixtures before adding indexes.
-
-## Server/Client Rendering and Cache Boundaries
-
-### Rendering
-
-- `page.tsx` performs an anonymous public read and renders `PublicMemberProfileView` on the server.
-- `generateMetadata` reuses the request-local read and defaults hidden/not-found/error to noindex.
-- The page does not call `cookies()`.
-- On a hidden response, a client boundary waits for `useAuthSession`, treats access **or refresh** token as active, and calls session-aware `getMemberProfile(slug)`. The central client refreshes as needed.
-- Owner preview renders the same public DTO/view; do not convert `MemberProfileData` with zero/empty fallbacks.
-- Project pagination, story/history expansion, and carousel state remain local to owning components; no global profile store.
-
-### Caching
-
-Privacy dominates hit rate.
-
-- Use React request memoization for metadata/page dedupe.
-- Session-aware and owner-preview requests are `private, no-store` and vary by authorization/session.
-- Do not shared-cache the complete profile until every visibility-changing source has synchronous invalidation. Stale visibility is disclosure, not normal staleness.
-- A later backend cache may store post-gate projections only if the uncached gate runs first and member, membership, contribution, note, media, badge, and point writes invalidate the member key.
-- Image derivatives remain independently cacheable. Continue `ResponsiveImage`/Next optimization, truthful `sizes`, reserved geometry, eager hero/avatar only, lazy project/group/badge art, and animated-GIF fallback.
-
-Next.js 16 documents `cookies()` as dynamic and server `fetch` caching as opt-in. Do not add `force-cache` merely to make this route static without privacy-safe invalidation.
-
-## Frontend Composition and Responsive Boundaries
+No generic user override schema or resolver exists. Add a group-scoped first version:
 
 ```text
-MemberProfilePage (server state: visible/hidden/not-found/error)
-  -> PublicMemberProfileView
-       -> MemberProfileHero
-       -> MemberStorySection + MembershipsSection
-       -> MemberCurrentProjectsSection
-       -> MemberAchievementsSection
-            -> focused badge family/stage components
-            -> existing FocalCarousel
-       -> LatestContributionsSection
-       -> PreviousContributionsSection (load on expansion)
-  -> PublicProfileViewerActions (single client ownership/session lookup)
+user_capability_overrides(
+  app_user_id, action_code -> action_definitions.code,
+  scope_type='fansub_group', scope_id,
+  effect='allow'|'deny', reason,
+  created_by_app_user_id, created_at, updated_at,
+  UNIQUE(app_user_id, action_code, scope_type, scope_id)
+)
 ```
 
-The composition owns no fetching/auth. The page owns initial server state; client boundaries own session upgrade/actions. Domain components keep consuming shared UI primitives; `src/components/ui` must not learn member permissions or routes.
+All Findings #29–#32 are group-context problems, so do not introduce ambiguous global overrides yet. Resolve normal users as exact deny -> exact allow -> existing role/contribution/delegation logic. Do not persist effective rows. Project effective state from catalog, roles, overrides and delegations, returning action, effective result, scope, all granting roles, matching override, review-delegation source and platform-admin flag.
 
-Replace render-time state synchronization in `MemberCurrentProjectsSection` with state keyed by canonical slug and an effect/reducer. Dedupe appended pages by `(anime_id,fansub_group_id)`, ignore stale requests, and scope load/errors locally.
+User override mutations do not reload the shared role matrix. Existing role-matrix PUT/DELETE currently return success even if `ReloadCache` fails (failure is logged and old cache retained); v1.4 UI/API feedback must truthfully distinguish persistence from immediate cache activation.
 
-CSS ownership:
+### Review delegation
 
-- `page.module.css`: page width, toolbar, rhythm, viewport-based page composition.
-- Reusable profile cards/stages: `container-type:inline-size`, minimum viable geometry, container queries.
-- Reduce shared `profile.module.css` as touched; badge family styles live beside extracted components.
-- Preserve reduced motion, keyboard/focus behavior, `min-width:0`, and constrained media. Fix overflow at its owner instead of global `overflow-wrap:anywhere`.
+Migration `0134`, `ReviewDelegationRepository`, `ResolveActorReviewGrantContext`, and `CanReviewForFansubGroup` already implement and enforce direct grants. A valid reviewer needs an active app user, active canonical membership, verified member claim, and either `fansub_lead` or an exact grant; platform admin bypasses. Missing pieces are management routes, handler/service wiring, contracts, API helper and UI.
 
-Verification covers narrow, intermediate, transition below/above, wide, nested container, high zoom, long German labels, correct umlauts, and no document-level horizontal overflow.
+Keep this specialized membership-bound model. It carries identity/lifecycle/audit semantics that generic user overrides do not. The effective inspector may display review delegation as provenance, but generic override endpoints must not mutate it.
 
-## Testing and Verification Seams
+### Review queue
 
-| Boundary | Required evidence |
-|---|---|
-| Migration/slug | Up/down; non-empty/case-insensitive uniqueness; collision retry; rename stability; every creation path supplies slug. |
-| Access policy | Anonymous public/hidden, other-user hidden, owner preview, missing slug, disabled identity; hidden proves zero detail-loader calls. |
-| Cross-route privacy | Same matrix for profile, projects, contributions; no permission fields or internal media/note rows in payload/counts. |
-| Repository joins | PostgreSQL integration tests against canonical release/version/group/media ownership and public predicates. Prefer real queries over source-string tests. |
-| Query budget | Fixture with >6 projects; fixed upper bound and no per-project growth; `/projects` proves it does not load badges/story/media/history. |
-| Contract | Validate OpenAPI; backend JSON and frontend DTO/helper fixtures agree; removed fields are absent. |
-| Auth client | Missing/expired access + valid refresh: owner preview/action proceeds via central refresh without logged-out UI. |
-| SSR states | Public, hidden, owner-upgraded, 404, 500; metadata noindex; request dedupe. |
-| Components | Pure composition, pagination race/dedupe, story overflow, carousel keyboard/focus/reduced motion, heading hierarchy. |
-| Responsive/live | Boundary widths, zoom, no overflow, image delivery, and user-visible navigation in shared browser. |
-| Fixtures | `sheppert` and `csubs-leader`: sparse/high-volume badges/projects, long story, memberships, approved media, overflow, public/hidden/owner states. |
+Finding #32 is partially implemented. `ReleaseReviewHandler.authorizedKinds` already calls `CanReviewForFansubGroup` for text/image and passes allowed kinds into List, Counts, Detail and Next. The defect is actor attribution: `ReleaseReviewQueueOptions` has no actor/member exclusion, so own pending submissions remain visible.
 
-Keep and extend `frontend/scripts/verify-profile-image-delivery.mjs`; it already verifies URL classes, WebP dimensions, alpha, repeat-request cache evidence, and exactly-once original fallback. The fixture command must be idempotent and run through existing Compose/test tooling.
+Add trusted `ActorAppUserID`/verified member IDs to repository options, never from query parameters. Normal actionable predicates must exclude self-submissions, and Counts/Detail/Next must share the semantics. Platform-admin self-review already requires an explicit override reason; keep such work in a clearly separate admin-override lane or exclude it from the normal lane. Contribution review is not currently part of this release queue: allowed kinds validate only text/image and contribution count is hardcoded to zero.
 
-## Dependency-Aware Build Order
+## Data Flows
 
-1. **Lock privacy and contract decisions** — stable slug, hidden envelope, membership source, achievement-count policy, minimal DTOs; add failing contract/access tests.
-2. **Establish stable identity** — migration, allocator, all creation/link/query consumers, reset/reseed; gate on fresh chain, down/up, uniqueness/immutability.
-3. **Move gate ahead of detail** — shared read service across every member subroute; gate on visibility matrix and zero hidden detail calls.
-4. **Correct/minimize projections** — public DTO split, joins, unused/private fields removed; gate on integration fixtures and contract parity.
-5. **Set-based queries/pagination** — remove N+1/full-profile projects call, aggregate counters once, lazy history, EXPLAIN-backed indexes; gate on query/payload budget.
-6. **SSR/auth/composition** — extend helper, remove cookie read, same endpoint/view for owner preview; gate on refresh regression, SSR states, no-token boundary, typecheck.
-7. **Responsive component refactor** — split badge/CSS, container boundaries, preserve UI primitives; gate on focused a11y/responsive evidence.
-8. **Live UAT/performance sign-off** — seed both profiles; anonymous/owner shared-browser flows; capture query budget, payload, image delivery, overflow and states.
+### Effective rights
 
-This order prevents frontend work from targeting a drifting DTO and performance work from cementing the late privacy gate.
+```text
+UserGroupRightsTab -> api.ts
+ -> GET effective capabilities for user + group
+ -> requirePlatformAdminIdentity
+ -> shared resolver/projection
+ -> action catalog + memberships/roles + role_capabilities
+    + user overrides + review delegations
+ -> provenance-rich DTO
 
-## Anti-Patterns to Reject
+PUT/DELETE one user/action/group override
+ -> validate target/action/scope/effect
+ -> transaction + immutable audit
+ -> effective post-state/refetch
+```
 
-- **Late visibility:** loading full aggregate then hiding in handler. Resolve access first, project second, final fail-closed check.
-- **Derived slugs:** regex SQL, numeric fallback, client slugify, full scans. Use one persisted indexed slug.
-- **Own DTO as preview:** `/me/profile` conversion with empty badges. Use the same public projection and composition.
-- **Nested request fan-out:** one release query per project. Remove unused nesting or batch all keys.
-- **Unowned shared cache:** TTL-only caching of visibility-sensitive DTOs. Require an invalidation matrix.
-- **UI domain leakage:** member policy/API/threshold logic in `src/components/ui`. Keep primitives generic and composition domain-owned.
+### Review delegation
+
+```text
+FansubAppMemberEditorPanel
+ -> GET/PUT/DELETE exact membership review action
+ -> group-member-manage authorization
+ -> service transaction
+ -> LockMembership + validate group/status/claim
+ -> ReviewDelegationRepository GrantAction/RevokeAction + audit
+```
+
+Use canonical `fansub_group_member_id`, not a free user/group pair. Accept only the three known review actions. Reuse member-management authorization unless requirements explicitly add a narrower delegation-management action.
+
+### Actionable queue
+
+```text
+ReleaseReviewsSection -> list/count
+ -> handler resolves trusted actor + allowed kinds
+ -> repository gets allowed kinds + actor identity
+ -> one shared predicate for list/count/detail/next
+ -> only actually decidable normal-lane rows
+```
+
+## Patterns to Follow
+
+### One policy resolver, multiple projections
+
+Authorization and explanations must share resolution inputs. Extract narrow primitives for roles, overrides and delegations usable by both `permissions.Service` and admin projections. The browser must never merge a role matrix into security truth.
+
+### Exact scoped, audited mutations
+
+Address one user, one action and one group. Use FK/check constraints, idempotent upsert/delete, platform-admin or group-manager authorization, immutable audit payloads and post-mutation effective state.
+
+### Server aggregation before pagination
+
+For Finding #30, compare release-version role sets against project defaults in backend SQL/service code, group by anime/group, and paginate stable parent groups. Do not download flat rows and collapse them in React; that breaks scalability and pagination semantics.
+
+## Anti-Patterns to Avoid
+
+- **Parallel evaluator:** no handler SQL or React authorization clone; extend `permissions.Service` and shared resolution seams.
+- **Genericizing review grants:** do not move membership review grants into user overrides.
+- **Caching user overrides globally:** batch indexed overrides per actor/scope; avoid cross-user cache invalidation/leakage.
+- **Client-only queue cleanup:** otherwise counts, cursors, next and direct detail remain wrong.
+- **App mutation of global roles:** Keycloak overwrites it on the next authenticated request; keep UI read-only.
+- **Persisted effective permissions:** they drift from roles, overrides and membership lifecycle.
+
+## Build Ordering
+
+1. **Schema and contracts:** scoped override table, provenance DTOs, exact endpoints, constraints/indexes and audit semantics; document platform-admin bypass.
+2. **Central resolution:** override evaluation in `permissions.Service` plus shared effective-rights projection; remove the heuristic group-rights output.
+3. **Finding #29 UI:** expand `UserGroupRightsTab` with provenance, allow/deny and guided revoke/impact preview.
+4. **Finding #30 projections:** server-side true-deviation detection, anime grouping, filters and stable pagination for contributions/media.
+5. **Finding #31 wiring:** service/handler/routes/contracts/helpers and member-editor controls over the existing delegation repository.
+6. **Finding #32 queue:** actor-aware filtering across list/count/detail/next and a deliberate own-submissions lane if required.
+7. **Security/live UAT:** expired access token + valid refresh session; platform-admin explanation; deny precedence; membership loss; delegation grant/revoke; self-review exclusion; cache-reload warning; cursor stability.
+
+#31 must precede final #32 UAT because a delegated non-lead reviewer is the representative actor needed to prove actionable filtering.
 
 ## Scalability Considerations
 
-| Concern | Milestone target | Later trigger |
+| Concern | Recommended approach |
+|---|---|
+| Shared role checks | Keep existing atomic cache and startup consistency check |
+| User overrides | Index `(app_user_id, scope_type, scope_id, action_code)` and batch-load per request/context |
+| Inspector | Paginate groups; filter/search action catalog server-side if needed |
+| Contributions/media | Keyset-page stable anime/context groups, not expanding release-version rows |
+| Review queue | Include actor-view semantics in cursor scope so cursors cannot cross actionable/own lanes |
+
+## Status of Earlier Proposals
+
+| Proposal | Status | Evidence |
 |---|---|---|
-| Lookup | Indexed stable slug | No search service for exact routes. |
-| Aggregate reads | Fixed small query budget | Materialized read model only after measured pressure and invalidation design. |
-| Pagination | Stable cursor or explicit offset semantics | Cursor every unbounded collection as data grows. |
-| Caching | Request dedupe + image cache | Shared DTO cache only with synchronous invalidation. |
-| Images | Existing optimizer, correct variants/sizes | More generated variants only if metrics justify. |
-| Hydration | Server composition, client interaction islands | Lazy-load badge interaction if bundle profiling identifies it. |
+| DB-driven capability registry | Implemented | migration `0108`, `LoadCache`, capability repository/handler/routes |
+| DB-driven role catalogs | Implemented | `LoadFansubGroupCatalog`, `IsKnownFansubGroupRole`, `IsCapabilityBearingRole` |
+| Keycloak global-role JIT | Implemented | `oidc.go`, `current_user_auth.go`, `authz_keycloak_sync.go` |
+| Global roles read-only | Implemented | `UserGlobalRolesTab.tsx` |
+| Generic user allow/deny | Missing | no schema/repository/service/contract found |
+| Direct review grants | Model/enforcement present; management missing | migration `0134`, delegation repository, permission service; no routes/UI |
+| Queue capability-kind filtering | Present for text/image | `ReleaseReviewHandler.authorizedKinds` |
+| Queue self-submission filtering | Missing | no actor exclusion in queue options/predicates |
 
 ## Sources
 
-### Live repository evidence (HIGH confidence)
-
-- `.planning/PROJECT.md`; `AGENTS.md`; domain, implementation, API, auth, and UI docs required by the task.
-- `backend/internal/handlers/app_public_profile.go` — optional auth and late visibility check.
-- `backend/internal/repository/member_profile_repository.go` — derived/fallback slug, sequential aggregate, N+1, and full-profile pagination reuse.
-- `anime_contributions_public_repository.go` + `contributions_public_handler.go` — separate nickname lookup and missing profile gate.
-- `backend/internal/models/member_profile.go`, `shared/contracts/openapi.yaml`, `frontend/src/types/profile.ts` — public/own DTO overlap and drift (`is_verified`/`noindex` runtime/frontend fields absent from public OpenAPI schema).
-- `frontend/src/app/members/[slug]/page.tsx`, `OwnHiddenProfilePreview.tsx`, `OwnProfileEditLink.tsx` — cookie-driven SSR, partial conversion, alternate layout, repeated ownership reads.
-- `MemberCurrentProjectsSection.tsx`, `MemberBadgeChain.tsx` and CSS — local pagination state and over-limit files.
-- `ResponsiveImage.tsx`, `next.config.mjs`, `verify-profile-image-delivery.mjs` — existing optimization/fallback/verifier.
-- Live anonymous API sample 2026-08-13: `sheppert` 9,046 bytes; `csubs-leader` 17,099 bytes. Both include unused `recent_media`/`recent_contributions`; `csubs-leader` returns 46 badge rows and six first-page projects.
-
-### Official framework documentation (HIGH confidence)
-
-- [Next.js `cookies`](https://nextjs.org/docs/app/api-reference/functions/cookies) — dynamic rendering behavior.
-- [Next.js server `fetch`](https://nextjs.org/docs/app/api-reference/functions/fetch) — explicit persistent cache/revalidation options.
-- [Next.js Image](https://nextjs.org/docs/app/api-reference/components/image) — responsive `sizes`/`srcset`, optimization, fallback.
-
-## Open Decisions / Research Flags
-
-- Decide whether exact badge progress derived from otherwise non-public facts is intentionally public; omit until explicit.
-- Decide whether `/members/:slug/contributions` becomes lazy history or gets a profile filter/cursor; do not create an overlapping third model.
-- Verify indexes with `EXPLAIN (ANALYZE, BUFFERS)` on both fixtures.
-- Shared full-projection caching requires phase-specific invalidation research.
-
----
-*Architecture research for Team4s v1.3 Public Member Profile Hardening.*
+HIGH-confidence repository evidence: `.planning/PROJECT.md`; the two capability/milestone notes; Findings #29–#32; migrations `0108` and `0134`; `backend/internal/{auth,permissions,middleware,repository,handlers}` files named above; `backend/cmd/server/{main.go,admin_routes.go}`; `shared/contracts/{openapi.yaml,admin-capabilities.yaml}`; `frontend/src/app/admin/{users,role-capabilities,fansubs/[id]/edit}`; `frontend/src/lib/api.ts` and associated types/tests.

@@ -1,195 +1,201 @@
-# Feature Landscape: Public Member Profile Hardening
+# Feature Landscape
 
-**Domain:** Existing public fansub-member profile (`/members/[slug]`)
-**Project:** Team4s v1.3 Public Member Profile Hardening
-**Researched:** 2026-08-13
-**Confidence:** HIGH for project behavior and accessibility; MEDIUM for production performance targets until field data exists
+**Domain:** Capability-, Review- und Benutzerverwaltung für Team4s
+**Researched:** 2026-08-20
+**Milestone:** v1.4 — Findings #29–#32
+**Overall confidence:** HIGH (bestehende Analysen, nutzervalidierte Live-UAT-Findings und aktueller Code abgeglichen)
 
-## Product Position
+## Ausgangslage im aktuellen Produkt
 
-This milestone should make the existing profile dependable, not make it larger. A visitor should immediately understand who the member is, what history is confirmed, which groups and projects are relevant, and which achievements are public. A profile owner should be able to preview a non-public profile without that privileged representation leaking to another viewer or a shared cache.
+Team4s besitzt bereits die wesentlichen technischen Kerne, aber noch keine zusammenhängende Bedienoberfläche für den konkreten Admin-Auftrag „Was darf Benutzer X, warum darf er es und wie entziehe ich genau dieses Recht sicher?“:
 
-The established hierarchy remains: identity and headline facts first; story and real memberships second; current public projects third; public achievements fourth; recent and previous contributions last. Hardening should remove contradictory counts, nickname-derived URL churn, hidden-data leaks, unbounded lists, layout instability, and duplicated loading paths without redesigning this hierarchy.
+- Die Rollenmatrix ist datengetrieben (`action_definitions`, `role_capabilities`) und das Enforcement kombiniert Rollen-Allows per OR. `backend/internal/permissions/permissions.go` löst die Rechte über den zentralen Service und Cache auf.
+- Die vorhandene Benutzeransicht `frontend/src/app/admin/users/tabs/UserGroupRightsTab.tsx` zeigt pro Gruppe Rollen sowie nur zwei abgeleitete Ja/Nein-Spalten. Sie ist ausdrücklich read-only und verlinkt zurück zur Gruppenansicht.
+- `frontend/src/app/admin/role-capabilities/RoleCapabilityClient.tsx` und `RoleCapabilityDetail.tsx` bearbeiten Rolle→Capability global, nicht effektive Rechte eines einzelnen Benutzers. Diese Änderung betrifft alle Rolleninhaber.
+- Direkte Review-Delegationen sind mit `fansub_group_member_review_capabilities`, `backend/internal/repository/review_delegation_repository.go` und `ReviewService.GrantDelegation/RevokeDelegation` bereits transaktional und auditiert. In `backend/cmd/server/admin_routes.go` existieren dafür jedoch keine Grant-/Revoke-Routen; `FansubAppMemberEditorPanel.tsx` bietet nur Rollen, Medienrechte und historische Rollen.
+- Die Review-Queue autorisiert in `ReleaseReviewHandler.authorizedKinds` bereits Text/Bild je Benutzer und Gruppe. `releaseReviewQueuePredicates` filtert aber nicht nach `submitter_app_user_id`; eigene, nicht entscheidbare Einreichungen bleiben daher in der offenen Queue.
+- `UserContributionsTab.tsx` rendert Projektstandards und jede Release-Zeile flach. `UserMediaTab.tsx` gruppiert nur nach technischem `owner_context` beziehungsweise Release-Version. Beide besitzen weder Anime-Gruppierung noch Filter/Pagination.
 
-The core trust rule is: public UI only states what the canonical domain can prove. Membership comes from membership records, contributions come from confirmed public contribution/release-role records, badge progress comes from authoritative server projections, and unverified historical material must be labeled or omitted rather than silently promoted to fact.
+## Table Stakes — Muss in v1.4 geliefert werden
 
-## Table Stakes
+Fehlt eines dieser Features, bleibt der nutzervalidierte Kernauftrag aus Findings #29–#32 ungelöst.
 
-Missing any of these makes the existing profile unsafe, misleading, broken, or materially incomplete.
-
-| Capability | Expected, testable behavior | Complexity | Depends on |
+| Feature | Warum erwartet | Komplexität | Abnahmekriterium / genaue Ausprägung |
 |---|---|---:|---|
-| Visibility gate before detail access | Anonymous and unrelated viewers never receive hidden profile fields, section counts, image URLs, badges, memberships, projects, or contribution metadata. The visibility decision occurs before expensive/detail projections. Test the same hidden slug as anonymous, another signed-in member, the verified owner, and an administrator/trustee where policy permits. | High | Viewer identity; canonical owner relation; minimal public DTO |
-| Privacy-safe owner preview | The verified owner can open the same public composition while the profile is non-public. A persistent, plain-language banner states that only the owner can see the preview and links to profile settings. Preview data is private/no-store and never reused for anonymous or other-member requests. A refresh-only session must still reach preview/edit through the central auth client. | High | Visibility gate; auth refresh seam; cache partitioning |
-| Non-enumerating hidden state | For an unauthorized viewer, a hidden profile reveals no more than a missing/unavailable public profile. The page must not expose the nickname, member ID, reason code, counts, media, or whether an account has claimed it. Automated tests compare response bodies and rendered states for hidden and non-existent slugs, allowing only the intentionally documented public distinction. | Medium | Visibility gate; error contract |
-| Stable canonical public slug | A member has one normalized, unique public slug that is not recomputed when display name or nickname changes. Internal member links always emit the canonical slug. If a canonical slug must change after publication, the old URL permanently redirects directly to the new URL and the new page declares itself canonical; do not build legacy-row compatibility merely for disposable test data. | High | Schema/identity decision; slug uniqueness; routing and OpenAPI |
-| Explicit minimal public contract | Visible responses use an allow-listed public DTO. They exclude ownership/auth/audit fields, private media metadata, source-original URLs, unpublished items, internal workflow states, and unused legacy arrays. Hidden responses do not serialize the visible DTO. OpenAPI, Go DTOs, handler behavior, TypeScript types, and central API helpers agree exactly. | High | Visibility gate; projection inventory; contract tests |
-| Correct identity and status | Hero name, avatar, background, verification marker, active/historical/memorial status, dates, total points, and “Bekannt für” all describe the same member row and authoritative projections. Missing dates remain unknown; the UI never invents “active” from recent content. Memorial uses the approved memorial language and never presents normal activity or quantity gamification. | High | Minimal DTO; status rules; badge/points authority |
-| Correct membership semantics | “Gruppenzugehörigkeit” contains only current or historical membership records and roles from the canonical membership tables. A contribution alone never creates membership. Active, former, historical, and memorial context is represented honestly; duplicate current/history joins collapse to one intentional presentation. | High | Complete joins; group/member projection rules |
-| Correct project and contribution semantics | Current projects require confirmed, public member involvement in the correct anime/fansub/release-version context. Previous contributions and latest text/media items come from their canonical sources, use correct release links, and never attach release data to neutral episode or anime ownership. Unreviewed or private items do not affect public lists or totals. | High | Release-native domain joins; visibility filters; stable ordering |
-| Counts match visible facts | Every count equals the same filtered public dataset shown by the UI. `total`, `limit`, and `offset` have literal meanings; a “more” control appears only when more public rows exist. `sheppert` and `csubs-leader` fixtures assert exact expected counts, unique row keys, and no duplicates across pages. | High | Correct projections; pagination contract; reproducible seed |
-| Server-authoritative achievements | Public badges and progress are derived once from authoritative badge/points/contribution data behind the visibility gate. Owner-hidden badges and locked artwork are not exposed as public achievements. The browser may format values but does not recalculate canonical state or create a second badge engine. Memorial rules override normal gamification. | High | Visibility gate; badge service; minimal DTO |
-| Durable content hierarchy | DOM and visual order is toolbar/breadcrumb → hero → profile and membership → current projects → achievements → contributions. There is one page `h1`; major sections use `h2`; card/collection titles use `h3`. Empty conditional sections do not leave orphan headings or blank decorative bands. | Medium | Existing composition; complete data states |
-| Deliberate empty states | A real zero is not treated as a load failure. Story/membership/project/history areas either show a concise, truthful empty message where absence matters or omit the entire nonessential section. “No public entries” must not imply “the member never did this.” No `0`, “unknown”, placeholder badge, or broken-image tile is fabricated from missing data. | Medium | Explicit null/empty contract; section policy |
-| Distinct loading, empty, hidden, not-found, and error states | Initial loading reserves the final hero/section geometry. Hidden/missing is privacy-safe and has no retry loop. A full profile failure gets a page-level error with retry/navigation. Failure of later project pagination stays inside that section, preserves already rendered content, announces the error, and offers retry. Errors are never converted into empty arrays. | Medium | Typed error envelope; shared UI states; progressive loading |
-| Honest pagination and incremental loading | Long project/contribution collections render an initial useful slice and retrieve additional stable pages. Loading disables duplicate requests; retry repeats the same cursor/offset; appended items keep deterministic order and do not repeat. Reaching the end removes/disables the control and announces the new result count. | Medium | Counts; stable sort/tie-breaker; section state |
-| Safe cache behavior | Anonymous public results may be cached with deliberate invalidation. Owner preview, authenticated variants, and hidden decisions are never put in shared public cache. Metadata and page render deduplicate the same viewer-scoped request, while different viewer identities cannot share a key. A privacy regression test runs anonymous → owner → anonymous in one suite. | High | Visibility gate; auth/session identity; cache policy |
-| Efficient first render | Toolbar, hero, story, and memberships are server-rendered and readable on first response with no client data waterfall. Below-fold carousels may delay expensive interaction but their content remains in SSR HTML. The page does not issue per-card/per-badge requests or duplicate metadata/page profile reads. | High | Consolidated loader; bounded DTO; batch projections |
-| Responsive image delivery | Background and avatar reserve dimensions and are discovered early; project and badge art load lazily with truthful `sizes`. The browser receives a suitable cached derivative rather than an original far larger than the rendered slot, with a safe fallback. Private/source-original URLs never appear in public markup. | Medium | Media visibility; image URL normalization; fixed geometry |
-| Mobile-first reflow | At narrow width the page is one column, actions wrap, the hero remains readable, long German content wraps naturally, carousels/collections remain operable, and the document has no horizontal overflow. At intermediate widths pairs stack before their minimum geometry fails. Test 320/390 CSS px, the actual transition immediately below/above, 768-ish width, and browser zoom/reflow. | Medium | Existing CSS boundaries; component container queries |
-| Deliberate widescreen density | The existing shared shell remains capped/aligned (currently 1480 px); sections use consistent edges and readable line lengths. Story/membership and recent/previous contributions use balanced pairs only when content and minimum geometry fit; projects and achievements stay full-width. Widescreen adds useful density, not oversized whitespace or stretched text. | Medium | Mobile base; content geometry; existing page rhythm |
-| Keyboard and assistive-technology operation | Every link/button/carousel control is reachable in logical order, has an accessible name and visible focus, and exposes pressed/current/expanded/disabled state. Progress bars expose name/value/max; decorative art has empty alt while meaningful identity/project images have useful alternatives. Dynamic load/error/result messages are announced without stealing focus. | Medium | Semantic components; focus/status patterns |
-| Perceivable status and controls | Status, earned/locked/current badge state, errors, and verification are not communicated by color or artwork alone. Text meets WCAG AA contrast, controls have at least 24×24 CSS px targets or sufficient spacing, and reduced-motion users do not receive necessary information only through animation. | Medium | UI tokens; accessible labels; motion policy |
-| Reproducible public UAT | Seed/reset produces stable `sheppert` and `csubs-leader` profiles with documented expected sections, counts, membership/history shapes, badge families, media, and long-content cases. UAT covers anonymous, owner preview, another signed-in viewer, missing slug, narrow/intermediate/wide/zoom, keyboard, network error, pagination, image waterfall, and no horizontal overflow. | Medium | Disposable deterministic seed; acceptance manifest; live Compose app |
+| Effektiv-Rechte-Inspektor im bestehenden Benutzer-Detail | Ein Admin muss bei Benutzer X sehen, was X tatsächlich darf, statt Rollen einzeln zu erraten. | Hoch | `UserGroupRightsTab` wird zur kanonischen Sicht ausgebaut: vollständige Capability-Liste je Kontext/Gruppe, effektiver Zustand und Herkunft pro Capability. |
+| Rechte-Herkunft („Warum?“) | OR-Verknüpfung über mehrere Rollen ist sonst unsichtbar. | Hoch | Jede effektive Capability nennt alle gewährenden Rollen, direkten Allows und direkten Deny; mehrere Quellen bleiben sichtbar. Keine bloße Ja/Nein-Spalte. |
+| Per-User Allow/Deny-Overrides | „X darf Y nicht“ darf weder Rollenentzug noch globale Änderung für alle Rolleninhaber erfordern. | Hoch | Persistente, kontextgebundene Benutzer-Overrides; Deny hat Vorrang vor Rollen-Allow und User-Allow. Mutation ändert nur Zielbenutzer und Zielkontext. |
+| Einheitliche Auflösungsreihenfolge | UI, API und Enforcement dürfen keine unterschiedliche Wahrheit zeigen. | Hoch | Effektiver Zustand wird serverseitig aus Platform-Admin-Bypass, User-Deny, User-Allow und Rollen-Allows nach dokumentierter Präzedenz berechnet; die UI erfindet ihn nicht selbst. |
+| Geführter Entzugs-Flow | Ein sicherer Entzug muss ohne Rollenmodellwissen möglich sein. | Hoch | Aktion „Recht entziehen“ zeigt alle gewährenden Quellen. Empfohlen ist gezielter User-Deny; Rollenentzug/-matrixänderung ist als breitere Alternative mit Folgen getrennt. Bestätigung nennt Benutzer, Capability, Kontext und Ergebnis. |
+| Impact-Vorschau vor breiten Änderungen | Rolle→Capability-Toggle betrifft möglicherweise viele Benutzer. | Mittel/Hoch | Vor globaler Rollenmatrix-Änderung werden betroffene Rolle, Nutzerzahl, Kontexte und effektive Änderungen gezeigt. „Keine effektive Änderung“, etwa wegen einer zweiten gewährenden Rolle, wird explizit ausgewiesen. |
+| Platform-Admin-Erklärung | Platform Admin umgeht die feine Matrix by design; Toggles dürfen keine falsche Wirkung versprechen. | Niedrig | Benutzeransicht und Mutationsdialog erklären `ReasonPlatformAdmin`: Plattform-Admin darf alles; Rollen-/User-Toggles ändern diesen Bypass nicht. IdP-verwaltete globale Rolle bleibt read-only gekennzeichnet. |
+| Robustes Cache-Feedback | Eine erfolgreiche Mutation darf nicht wie eine wirkungslose Änderung aussehen. | Mittel | Response/Status unterscheidet gespeichert, Cache aktualisiert und fehlgeschlagen. UI bestätigt erst wirksamen Reload; bei Verzögerung bleibt ein sichtbarer Pending-/Retry-Zustand statt pauschalem Erfolg. |
+| Auditierbare Overrides und Matrixänderungen | Rechteänderungen sind sicherheitsrelevant. | Mittel | Actor, Zielbenutzer/-rolle, Capability, Kontext, vorher/nachher und Zeitpunkt werden über bestehende Audit-Seams erfasst. Grant/Revoke sind idempotent und Fehler bleiben sichtbar. |
+| Benutzer-Detail nach Anime/Projekt gruppiert | Release-Zeilen skalieren bei realen Projektgrößen nicht. | Mittel/Hoch | Beiträge und Medien werden primär nach Anime/Projekt gruppiert und einklappbar dargestellt; Projektstandard erscheint als Zusammenfassung, Release-Versionen als untergeordnete Details. |
+| Nur echte Release-Abweichungen hervorheben | Identische Release-Rollen sind kein Override und erzeugen derzeit Rauschen. | Hoch | Backendprojektion oder kanonische Serverlogik vergleicht Release-Rollen mit Projektstandard. Nur echte Abweichungen heißen „Override“; identische Versionen werden zusammengefasst, z. B. „Version 1–13 entspricht Standard“. |
+| Filter und Pagination der großen Benutzer-Tabs | Gruppierung allein reicht bei vielen Anime/Medien nicht. | Mittel | Servergestützte Pagination plus Filter mindestens nach Anime/Gruppe und relevanter Zustandsart. URL-/Cursorzustand ist stabil; Zähler beziehen sich auf gefilterte Daten. |
+| Handlungsorientierte Tabs | Eine Adminansicht muss ihren Zweck und nächsten Schritt erklären. | Mittel | Rechte: direkt prüfen/ändern. Beiträge: Abweichung prüfen und passende Projekt-/Release-Arbeitsfläche öffnen. Medien: nach Anime/Release gruppieren und zielgenau zur bestehenden Arbeitsfläche öffnen. Read-only Bereiche benennen ihren Zweck klar. |
+| Review-Delegation lesen, gewähren und entziehen | Der vorhandene chirurgische Mechanismus ist sonst nicht bedienbar. | Hoch | Dokumentierte GET- sowie idempotente Grant-/Revoke-API für ein echtes `fansub_group_member_id`; nur die drei delegierbaren Aktionen Text, Bild/Medien und Mitwirkung. Bestehender `ReviewService` bleibt Autoritäts- und Audit-Seam. |
+| Review-Rechte im bestehenden Mitglieder-Editor | Delegation gehört zum Mitglied der Gruppe, nicht in eine parallele Adminroute. | Mittel | `FansubAppMemberEditorPanel.tsx` erhält „Prüf-/Freigabe-Rechte“ mit verständlichen Toggles für Medien, Notizen/Texte und Mitwirkungen; Rollen bleiben getrennt. Speichern zeigt Teilfehler und finalen Serverzustand. |
+| Serverseitig entscheidbare Review-Queue | Nicht entscheidbare Einträge dürfen nicht als Arbeit erscheinen. | Hoch | Offene Queue, Next-Navigation und Counts berücksichtigen sowohl Review-Capability/Delegation als auch Self-Review-Verbot. Eigene Einreichungen sind nicht Teil der entscheidbaren Liste. Kein ausschließlich clientseitiger Filter. |
+| Eigene Einreichungen separat sichtbar | Eigene offene Beiträge können informativ bleiben, sind aber keine Review-Aufgabe. | Mittel | Optionaler separater Bereich/Filter „Eigene Einreichungen – warten auf Fremdprüfung“ ohne Entscheidungs-CTA. Er beeinflusst Actionable-Counts nicht. |
+| Konsistente Queue-Counts | Badges/Zähler dürfen keine unerledigbare Arbeit melden. | Mittel | Text/Bild/Mitwirkung-Zähler verwenden exakt dieselben serverseitigen Prädikate wie die Liste. `Next` kann keinen ausgefilterten oder eigenen Eintrag liefern. |
+| Desktop-first mit Graceful Degradation | Rechteverwaltung ist Back-Office-Arbeit, muss aber auf schmalen Screens benutzbar bleiben. | Mittel | Breitbild nutzt Master/Detail, kompakte Tabellen und parallele Kategorien. Schmale Breiten haben keinen Seiten-Overflow; breite Tabellen liegen in eigenem `overflow-x`-Container. Tastatur, Fokus, Labels und 400%-Zoom bleiben funktionsfähig. CSS/Container Queries statt JS-Breakpoint/Hydration-Flash. |
 
-## Content Hierarchy and Section Policy
+## Differenzierende Qualitätsmerkmale
 
-| Order | Surface | Must communicate | Empty/hidden behavior |
-|---:|---|---|---|
-| 1 | Breadcrumb and quiet actions | Current member context; owner edit when authorized; secondary “Korrektur melden” | Owner-only actions are absent, not disabled, for other viewers. Hidden pages expose no member breadcrumb label. |
-| 2 | Hero | Public identity, status, verification, activity period, points, concise “Bekannt für”, avatar/background | Missing optional image uses a stable neutral fallback. Unknown activity data is omitted or labeled unknown, never guessed. Memorial replaces normal activity/gamification language. |
-| 3 | Profil und Mitgliedschaft | Moderated story plus canonical current/historical group relationships | Keep the major section only if policy calls for a meaningful public-empty explanation; do not show “no memberships” when membership data is merely private or unavailable. |
-| 4 | Fansub-Projekte | Current confirmed public anime/fansub work with roles and release-version context | Show a concise public-empty state if this is an expected anchor. Paginate only when `total > initial items`. |
-| 5 | Auszeichnungen | Earned/public badge families and authoritative progress presentation | Omit empty earned-only families; do not reveal private badges or substitute locked art for an earned fact. Memorial suppresses disallowed gamification. |
-| 6 | Beiträge | Latest public text/media and collapsed prior contribution periods | Omit the whole band when both sources are truly empty. A secondary fetch failure is an error, not “no contributions.” |
+Diese Merkmale machen die Rechteverwaltung nicht nur vollständig, sondern deutlich sicherer und verständlicher als ein gewöhnlicher Rollenmatrix-Editor.
 
-Content should preserve a factual reading even with CSS, images, and JavaScript unavailable: identity and headings remain coherent; interactive enhancement never becomes the only path to the information.
+| Feature | Wert | Komplexität | Empfehlung |
+|---|---|---:|---|
+| „X soll Y nicht können“-Assistent | Übersetzt eine fachliche Absicht in einen sicheren Deny statt den Admin mit Rollenmatrizen allein zu lassen. | Hoch | In v1.4 integrieren; dies ist der nutzervalidierte Kern von #29. |
+| Effekt-Diff vor/nach Mutation | Zeigt nicht nur gespeicherte Daten, sondern die tatsächliche Änderung der effektiven Rechte. | Mittel/Hoch | Für User-Override und globale Matrixmutation liefern. |
+| Provenance als erklärbare Kette | Zeigt Rolle, direkte Ausnahme und Bypass in einer einheitlichen Erklärung. | Mittel | Backend DTO explizit modellieren; nicht aus UI-Labels rekonstruieren. |
+| Abweichungsfokus in Beiträgen | Macht aus einer Datenablage ein Prüfwerkzeug für ungewöhnliche Rollenzuordnungen. | Mittel/Hoch | Echte Overrides zuerst, Standardblöcke eingeklappt. |
+| Berechtigungsbewusste Arbeitslisten | Queue und Counts spiegeln die konkrete Handlungsmöglichkeit des eingeloggten Prüfers. | Hoch | Als gemeinsames serverseitiges Scope-/Predicate-Konzept umsetzen. |
 
-## State Contract
+## Supporting Cleanup — innerhalb der betroffenen Seams
 
-| State | Visitor sees | Must not happen | Verification |
-|---|---|---|---|
-| Loading | Stable, section-shaped placeholders or server content; reserved hero/media dimensions | Blank page, spinner-only layout, skeleton size jump, duplicate accessible skeleton/content | Slow-network trace; CLS check; screen-reader tree |
-| Visible, complete | Full ordered public composition and accurate controls/counts | Private/unreviewed fields, contradictory totals, per-card waterfalls | API snapshot + DOM assertions for both fixtures |
-| Visible, sparse | Identity plus only relevant sections; concise qualified empty copy | Empty card grids, orphan headers, statements stronger than evidence | Sparse seeded fixture/component cases |
-| Hidden, unauthorized | Generic unavailable public state and safe navigation | Member name, ID, owner status, hidden reason, counts, media URL, distinct cache trace | Compare anonymous/other viewer against missing slug |
-| Hidden, owner preview | Same public composition with persistent private-preview banner and settings action | Shared caching, admin fields, preview mistaken for published state | Owner/anonymous cache-isolation test; refresh-only session UAT |
-| Not found | Generic member-not-available state with correct HTTP/metadata behavior | HTTP 200 with an empty profile/timeline, irrelevant redirect | Unknown slug API/page tests |
-| Primary error | Scoped page error, retry and safe navigation | “not found” for server outage; partial identity assembled from stale fragments | Forced API 5xx/timeout test |
-| Secondary page error | Existing profile remains; affected list shows local error and retry | Whole-page teardown; silently shortened total; duplicate append after retry | Fail next-page request then retry |
+Diese Punkte stammen aus der vorhandenen Codeanalyse und sollten mit den Feature-Phasen erledigt werden, weil sie sonst die neue Funktion auf widersprüchliche Grundlagen stellen:
 
-## Differentiators
-
-These are valuable because Team4s presents historical community facts, but they come after the safety and correctness table stakes.
-
-| Feature | Value proposition | Testable behavior | Complexity | Depends on |
-|---|---|---|---:|---|
-| Trust-aware historical language | Makes incomplete fansub history credible without pretending uncertainty is fact | Confirmed memberships/contributions have normal prominence; unverified historical mentions are explicitly qualified or absent; unknown dates do not become synthetic ranges | Medium | Review/status projection |
-| Preview exactly what the public will see | Gives owners confidence without introducing a second preview page | Hidden owner preview uses the same public DTO and section composition as published view, differing only in preview banner/cache policy; publishing removes the banner without changing layout | Medium | Visibility gate; shared composition |
-| Canonical-link durability | Lets profiles be shared in archives, group pages, and external references without nickname churn | Change nickname/display name and prove all internal links still resolve one canonical profile; any authorized slug change is a direct permanent redirect | High | Stable slug identity |
-| Density that follows content geometry | Preserves the highly visual profile on both compact and widescreen layouts | A component placed in a narrow container uses its narrow composition even in a wide viewport; wide pairs activate only when measured minimum geometry fits | Medium | Container-responsive components |
-| Progressive depth without content loss | Heavy badges and historical collections feel fast while remaining indexable and accessible | Initial HTML contains names, values, and section headings; expensive carousel behavior activates near view; no layout shift or duplicate accessible tree occurs | High | SSR composition; reserved geometry |
-| Fixture-backed data confidence | Turns two known real-world profiles into repeatable release evidence | A checked acceptance manifest documents why each fixture exists and asserts expected identity, counts, roles, memberships, badges, media, pagination, and responsive edge cases after every reset | Medium | Deterministic disposable seed |
-
-## Anti-Features
-
-| Anti-feature | Why avoid | What to do instead |
+| Cleanup | Warum jetzt | Evidenz |
 |---|---|---|
-| Broad visual redesign | Hides correctness work inside subjective churn and risks the already validated profile language | Preserve the established hero, section order, bands, badge collections, and global UI patterns; change only what hardening requires |
-| Nickname-derived runtime slug | Renaming identity breaks bookmarks and creates inconsistent links across joins | Persist one canonical public slug independent of display values |
-| Legacy alias/backfill machinery for synthetic rows | Existing data is disposable and compatibility code would outlive its value | Change schema if needed, then reset/reseed test data; retain redirects only for URLs intentionally published after the new contract |
-| Client-side privacy filtering | Sensitive detail has already crossed the trust boundary | Authorize and project on the server before serializing any detail |
-| Distinct rich “private profile” disclosure | Enables profile enumeration and leaks existence/ownership clues | Use a generic unavailable state for unauthorized viewers; show detail only to the verified owner preview |
-| Shared caching of viewer-sensitive responses | Can leak an owner preview or hidden decision to another viewer | Partition by visibility/auth identity and keep private responses out of shared caches |
-| Full internal member object as public DTO | Encourages accidental exposure and makes every internal change a public contract change | Maintain a minimal allow-listed public projection |
-| Browser-derived memberships, points, or badges | Creates contradictory “truth” and repeats canonical domain logic | Return authoritative server projections and format only in the UI |
-| Contribution-as-membership inference | Misrepresents helpers as group members | Keep membership and contribution sources and labels separate |
-| Release media attached to anime/episode/member shortcuts | Breaks canonical ownership and produces false project history | Follow release/release-version/group/member media ownership seams |
-| Memorial gamification or normal activity copy | Conflicts with the locked memorial product policy | Use memorial-specific status language and suppress disallowed quantity progress |
-| Load-everything profile payload | Inflates response, query count, render work, and image traffic | Return bounded initial slices plus truthful counts and incremental pagination |
-| Fake pagination | A “more” button over a fully loaded array or a total from another filter breaks user trust | Page the authoritative query with deterministic sort and matching total |
-| Error-as-empty fallback | Tells users there is no history when the system actually failed | Model error separately and provide scoped retry |
-| Client-only below-fold content | Removes history from first HTML and makes access depend on hydration | SSR the content; defer only expensive interaction and noncritical images |
-| Device-name breakpoints and horizontal-scroll repair | Components fail in side columns/zoom and overflow bugs remain hidden | Derive transitions from minimum geometry; use container queries for reusable components and fix the owning layout |
-| Profile-local copies of generic cards, states, pagination, or carousel | Adds another maintenance seam and inconsistent accessibility | Reuse/extend global UI primitives while keeping member-domain composition local |
-| New profile route, profile model, badge engine, or auth client | Parallel systems drift and violate the brownfield milestone | Consolidate the existing route, projections, components, and central client |
+| `assignable` auf eine Quelle reduzieren | Rollen-Picker und Admin-Badges müssen denselben Katalog lesen. | Analyse nennt Divergenz zwischen `role_definitions.assignable` und `IsKnownFansubGroupRole`; `FansubAppMemberEditorPanel.tsx` baut aktuell auf statischen `FANSUB_GROUP_ROLE_OPTIONS`. |
+| Capability-Kategorien zentralisieren | Effektiv-Sicht und Rollenmatrix benötigen identische Gruppierung inklusive `review`. | `capabilityCategories.ts` und zusätzliche Kategorieordnung duplizieren Fachwissen. |
+| Leere assignable Führungsrollen klären/seeden | Neue Rolle ohne Capability täuscht Rechte vor. | Audit: `founder`, `co_leader`, `techadmin`, `gfxler` sind zuweisbar, aber ohne Capability-Zuordnungen. Vor Seed fachlich bestätigen. |
+| Reverse-Lookup-Index ergänzen | Impact-Vorschau fragt „welche Rollen/Benutzer haben Capability X?“ häufig ab. | PK von `role_capabilities` beginnt mit `role_code`; Index auf `action_code` fehlt laut Analyse. |
+| Hilfetext für Capabilities | Code/Label allein erklärt Sicherheitswirkung nicht ausreichend. | `action_definitions` besitzt laut Analyse keinen Beschreibungstext. |
+| Toten Capability-UI-Code entfernen | Neue Flows dürfen nicht auf ungenutzten Parallelkomponenten entstehen. | `RoleCapabilityTable.tsx`, `GrantCapabilityModal.tsx`, `RevokeCapabilityModal.tsx` werden laut Analyse nicht importiert. |
+| Admin-Layouts vereinheitlichen | Neue Tabellen/Inspektoren verschärfen heutige Inline-Style-/Breakpoint-Probleme. | `UserGroupRightsTab.tsx`, `UserContributionsTab.tsx`, `UserMediaTab.tsx` enthalten umfangreiche Inline-Layouts; Role-Capability-Analyse nennt JS 759 px vs. CSS 860 px. |
 
-## Feature Dependencies
+## Anti-Features — ausdrücklich nicht bauen
+
+| Anti-Feature | Warum vermeiden | Stattdessen |
+|---|---|---|
+| Zweite Capability-Registry | Die DB-getriebene Registry und zentrale Permission-Seam existieren bereits. | Bestehende `action_definitions`, `role_capabilities` und Permission-Service erweitern. |
+| Rechte ausschließlich im Browser berechnen | Sicherheitslogik würde driften und könnte umgangen werden. | Server liefert effektiven Zustand samt Provenance und erzwingt dieselbe Präzedenz. |
+| Deny durch Entfernen sämtlicher Rollen simulieren | Grob, schwer nachvollziehbar und beschädigt fachliche Rollen. | Gezielter, kontextgebundener User-Deny. |
+| Globale Rolle→Capability-Änderung als Standard-Entzug | Trifft alle Rolleninhaber. | User-Deny als empfohlene chirurgische Aktion; globale Änderung nur mit Impact-Vorschau. |
+| Platform-Admin über App-UI überschreiben | Globale Adminrolle ist IdP-getrieben und umgeht die feine Matrix. | Read-only Herkunft und Bypass erklären. |
+| Review-Delegation als neue Universal-Override-Tabelle neu erfinden | Review besitzt bereits eine fachlich begrenzte Mitglieds-Delegation mit Audit. | Bestehenden ReviewService/API-seitig anbinden; allgemeine Overrides separat halten. |
+| Review-Queue nur clientseitig ausblenden | Counts, Pagination, Next und Direktzugriff würden weiterhin falsche Arbeit liefern. | Identische serverseitige Prädikate für List/Counts/Detail/Next. |
+| Contribution-/Media-Eigentum umbauen | v1.4 ist eine Adminprojektion, kein Domain-Rework. | Bestehende kanonische Anime-, Release-Version-, Media- und Contribution-Seams nur korrekt projizieren/verlinken. |
+| Adminseiten mobile-first redesignen | Hoher Aufwand ohne Kernnutzen. | Desktop-first plus verpflichtende Graceful Degradation. |
+| Plattform-Dokumente (#33) | Eigener Plattform-Produkttrack mit Upload, Versionierung und Zugriff. | Auf späteren Milestone verschieben. |
+| Badge-UI-Vereinheitlichung (#34) | Benötigt repräsentative Daten aller Badge-Familien und ist visueller Querschnitt. | Nach Datenaufbau in eigenem späteren Milestone durchführen. |
+
+## Feature-Abhängigkeiten
 
 ```text
-Canonical member identity + stable slug
-                |
-Viewer identity -> visibility gate -> minimal public DTO
-                                  |
-                    correct canonical joins/status
-                                  |
-           ordered content + truthful counts/states
-                      /                       \
-       pagination/cache/query bounds      responsive images/SSR
-                      \                       /
-                 accessible responsive composition
-                                  |
-                  deterministic fixture UAT
+Registry-/Katalog-Konsistenz
+  → serverseitiger Effective-Capability-Resolver mit Provenance
+    → User-Allow/Deny-Enforcement
+      → Effektiv-Rechte-Inspektor
+      → geführter Entzug + Effekt-Diff
+
+Effective-Capability-Resolver
+  → Rollenmatrix-Impact-Vorschau
+  → verlässliches Cache-Feedback
+
+Bestehender ReviewService + Delegation Repository
+  → GET/Grant/Revoke-Verträge
+    → Mitglieder-Editor-Toggles
+    → Capability-bewusste Queue
+
+Serverseitiges Queue-Scope (Actor + Self-Review-Prädikat)
+  → Liste + Counts + Next + Detail konsistent
+
+Kanonische Projekt-/Release-Differenzlogik
+  → Anime-Gruppierung
+    → Filter/Pagination + actionable User-Tabs
+
+Admin-Layout-Grundmuster
+  → Rechte-Inspektor, Benutzer-Tabs und Capability-Matrix ohne parallele Responsive-Logik
 ```
 
-Dependency rules:
+## Empfohlener MVP-/Phasenschnitt
 
-1. Do not optimize or cache a projection whose visibility boundary is not settled.
-2. Do not tune pagination or UI counts before the public filters and joins produce one authoritative dataset.
-3. Do not consolidate frontend types before the minimal public DTO is agreed across database, Go, OpenAPI, helper, and TypeScript layers.
-4. Do not mark responsive polish complete before sparse, dense, error, pagination, and owner-preview states have stable DOM/content policy.
-5. Do not preserve compatibility for disposable rows; reset/reseed after the canonical slug/projection decisions.
+1. **Rechte-Wahrheit und Verträge**
+   - Override-Schema und Präzedenz festlegen.
+   - Serverseitigen Resolver mit Provenance, Platform-Admin-Erklärung und Audit etablieren.
+   - Katalog-/`assignable`-Doppelquellen sowie erforderlichen Reverse-Index bereinigen.
 
-## MVP Recommendation for v1.3
+2. **Benutzerzentrierte Rechteverwaltung**
+   - Vorhandenen `UserGroupRightsTab` zum vollständigen Inspektor ausbauen.
+   - Allow/Deny und geführten Entzug mit Effekt-Diff implementieren.
+   - Rollenmatrixänderungen um Impact-Vorschau und belastbares Cache-Feedback ergänzen.
 
-Prioritize in this order:
+3. **Review-Delegation vervollständigen**
+   - Vorhandenen Service über dokumentierte Read/Grant/Revoke-Verträge anbinden.
+   - Delegations-Toggles in den vorhandenen Gruppen-Mitglieder-Editor integrieren.
 
-1. **Identity, slug, and privacy boundary** — canonical slug, server-side visibility gate, owner preview, safe hidden/not-found behavior, cache isolation.
-2. **Public truth contract** — minimal DTO, correct joins/statuses, matching counts, canonical badge/points sources, contract alignment.
-3. **Bounded delivery and states** — stable pagination, no duplicate request fan-out, scoped empty/loading/error behavior, safe cache/invalidation, responsive images.
-4. **Accessible responsive composition** — preserve hierarchy, fix narrow/intermediate/wide geometry, keyboard/focus/status semantics, reduced motion and no overflow.
-5. **Reproducible release proof** — deterministic `sheppert` and `csubs-leader` seed expectations plus automated and live UAT.
+4. **Entscheidbare Review-Arbeitsliste**
+   - Actor- und Self-Review-Filter serverseitig vereinheitlichen.
+   - Liste, Counts, Detail und Next konsistent machen; eigene Einreichungen separat darstellen.
 
-Defer:
+5. **Handlungsorientierte Benutzer-Tabs und Admin-Layout**
+   - Beiträge/Medien nach Anime und Projekt gruppieren, echte Abweichungen ableiten.
+   - Filter/Pagination und zielgenaue Aktionen ergänzen.
+   - Desktop-first CSS-/Container-Muster mit Graceful Degradation auf alle berührten Flächen anwenden.
 
-- New profile customization, social/follow features, comments, public editing, new achievement families, new content sections, or general navigation redesign: none is necessary to prove the hardening goal.
-- Production-data slug backfill/alias migration: test rows are disposable; only design the forward-stable canonical behavior now.
-- Advanced infinite scrolling or personalization: explicit incremental loading is easier to understand, test, and make accessible.
+6. **Fixture-UAT und Rollout-Gate**
+   - Mindestens: Mehrrollen-OR, Deny-Vorrang, Allow ohne Rollen-Grant, Platform-Admin-Bypass, Cache-Fehler, Delegation Grant/Revoke, Self-Review, Queue-Counts/Next, große Projektliste.
+   - Desktop/Laptop/Breitbild plus schmaler Degradations-Sockel, Tastatur und 400%-Zoom.
 
-## Acceptance Baseline
+## Später, nicht v1.4
 
-The milestone is product-complete only when all of the following are reproducible:
+- Finding #33: plattformweite Dokumenten-/Initiativen-Bibliothek.
+- Finding #34: einheitliche Badge-Fortschritts-UI; erst mit repräsentativen Daten aller Familien.
+- Vollständiger Rollenmodell-Rework beziehungsweise neue Zwei-Ebenen-Taxonomie, sofern er nicht zwingend für die oben beschriebenen korrekten Rechte nötig ist.
+- Plattformweite Bulk-Rechtebearbeitung über viele Benutzer; zuerst Einzelbenutzer-Flow sicher machen.
+- Automatische Rollenempfehlungen oder Policy-Simulationen über hypothetische Organisationsänderungen.
 
-- Anonymous public views of both fixtures show the documented identity, memberships, projects, achievements, and contributions with exact matching totals.
-- A hidden profile reveals no detail to anonymous or unrelated authenticated viewers, while its verified owner gets a clearly marked preview through a valid access-token or refresh-only session.
-- Changing a display name does not change the canonical public URL or links generated elsewhere.
-- Unknown slug, hidden slug, primary failure, sparse data, and next-page failure render the intended distinct/safe states.
-- At narrow, transition, intermediate, and wide geometry plus zoom, there is no document-level horizontal overflow, focus remains visible, content order remains logical, and controls remain operable.
-- The first response includes meaningful profile content; additional list requests are bounded; there is no per-item waterfall; images reserve space and use appropriate variants.
-- Core Web Vitals use the current “good” targets as a production objective at the 75th percentile: LCP at or below 2.5 s, INP at or below 200 ms, and CLS at or below 0.1. Until field traffic is available, record lab evidence and treat the confidence as MEDIUM rather than claiming a production pass.
+## Verifikationsfälle für die spätere Requirements-/Plan-Erstellung
 
-## Sources
+| Fall | Erwartung |
+|---|---|
+| Benutzer hat zwei Rollen, nur eine gewährt Y | Y ist erlaubt; Provenance nennt genau die gewährende Rolle. |
+| Benutzer erhält Deny für Y, Rolle gewährt Y | Y ist verweigert; Deny wird als gewinnende Quelle erklärt. |
+| Benutzer erhält Allow für Y, keine Rolle gewährt Y | Y ist im passenden Kontext erlaubt und auditiert. |
+| Platform Admin hat Deny/keine Rollen-Allows | Bypass bleibt erlaubt und UI erklärt, dass Toggles ihn nicht beeinflussen. |
+| Rollenmatrix verliert Y, zweite Rolle gewährt weiter Y | Impact-Vorschau zeigt für diesen Benutzer keine effektive Änderung. |
+| Cache-Reload schlägt nach Mutation fehl | UI meldet keinen falschen Enderfolg und bietet Status/Retry. |
+| Editor erhält Text- und Bild-Delegation | Kann genau diese Review-Arten entscheiden, ohne `fansub_lead` zu erhalten. |
+| Delegation wird entzogen | Queue, Counts und Direktentscheidung verlieren die Berechtigung konsistent. |
+| Prüfer hat eigenen offenen Beitrag | Nicht in „entscheidbar“/Counts/Next; optional separat als wartend sichtbar. |
+| 13 identische Release-Rollen entsprechen Projektstandard | Keine 13 falschen Override-Zeilen; kompakte Standard-Zusammenfassung. |
+| Eine Release-Version weicht ab | Nur diese Abweichung wird hervorgehoben und zur richtigen Arbeitsfläche verlinkt. |
 
-### Project sources (HIGH confidence)
+## Sources / Evidence
 
-- `.planning/PROJECT.md` — active v1.3 goal, constraints, disposable-data policy, and fixture decision.
-- `.planning/milestones/v1.2-DISCUSSION.md` — locked member/membership/contribution/memorial/media/API domain decisions.
-- `AGENTS.md` — privacy-first loading, central auth refresh, canonical ownership, responsive and UAT rules.
-- `docs/frontend/ui-system.md` — mobile-first geometry, container-query ownership, global components, and established public UI patterns.
-- `docs/agent-guidelines-ui.md` — narrow/transition/wide/zoom/no-overflow verification requirements.
-- `frontend/src/app/members/[slug]/page.tsx`, `frontend/src/types/profile.ts`, `frontend/src/lib/api.ts` — current hierarchy, response shape, request/cache behavior, and pagination seams.
-- `backend/internal/handlers/app_public_profile_test.go` and `backend/internal/repository/*member*` — existing owner-preview boundary and nickname-derived slug evidence.
-- Archived Phase 120 research — validated SSR, image, geometry, cache-isolation, and live fixture observations from 2026-08-04.
+### Projekt- und Nutzerentscheidungen — HIGH
 
-### External authoritative sources
+- `.planning/PROJECT.md` — aktiver v1.4-Scope und explizite Out-of-Scope-Liste.
+- `.planning/notes/live-uat-ux-findings.md`, Findings #29–#32 — nutzervalidierte Probleme und Zielrichtung.
+- `.planning/notes/milestone-intent-rechte-benutzerverwaltung.md` — Code-/DB-Audit und Desktop-first-Entscheidung.
+- `.planning/notes/capability-registry-design.md` — Registry-Zielbild; durch aktuellen Code als bereits realisierte Grundlage eingeordnet.
 
-- [WCAG 2.2](https://www.w3.org/TR/WCAG22/) — AA contrast, resize, reflow, keyboard, and status requirements. HIGH confidence.
-- [W3C: Understanding Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow) — readable reflow without two-dimensional scrolling and interaction with zoom. HIGH confidence.
-- [W3C: Understanding Focus Visible](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible) and [Name, Role, Value](https://www.w3.org/WAI/WCAG22/Understanding/name-role-value) — keyboard focus and programmatic control semantics. HIGH confidence.
-- [W3C: Target Size (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum) — 24×24 CSS px minimum or spacing exception. HIGH confidence.
-- [web.dev: Core Web Vitals thresholds](https://web.dev/articles/defining-core-web-vitals-thresholds) — LCP/INP/CLS “good” thresholds and 75th-percentile assessment. HIGH confidence for thresholds; MEDIUM for Team4s attainment until field measurement.
-- [OWASP API1:2023 Broken Object Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/) — object-level authorization must be enforced for every requested object. HIGH confidence.
-- [Google Search Central: URL changes](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes) — direct permanent redirects, canonical URLs, internal-link updates, and avoidance of redirect chains. HIGH confidence.
+### Aktueller Codeabgleich — HIGH
 
-## Confidence and Open Product Decisions
+- `backend/internal/permissions/permissions.go` — zentrale Rollen-/Review-Auflösung und Platform-Admin-Reason.
+- `backend/internal/repository/authz_permissions.go` — Review-Grant-Kontext.
+- `backend/internal/repository/review_delegation_repository.go` — existierende direkte Grant-/Revoke-Persistenz.
+- `backend/internal/services/review_service.go` — Autorisierung, Transaktion und Audit für Delegationsänderungen.
+- `backend/cmd/server/admin_routes.go` — Review-Queue-Routen vorhanden, Delegationsrouten fehlen.
+- `backend/internal/handlers/release_review_handler.go` — Typ-Autorisierung bereits vorhanden.
+- `backend/internal/repository/release_review_query_repository.go` — Queue-Prädikate ohne Actor-/Self-Submission-Ausschluss.
+- `frontend/src/app/admin/users/tabs/UserGroupRightsTab.tsx` — vorhandene read-only Keimzelle mit zwei Effektivspalten.
+- `frontend/src/app/admin/users/tabs/UserContributionsTab.tsx` — flache Release-Override-Tabelle ohne semantischen Vergleich.
+- `frontend/src/app/admin/users/tabs/UserMediaTab.tsx` — Gruppierung nach technischem Release-Kontext, ohne Anime-/Projektprojektion.
+- `frontend/src/app/admin/fansubs/[id]/edit/FansubAppMemberEditorPanel.tsx` — bestehende Rollen-/Medien-/Historien-Tabs, noch ohne Review-Rechte.
+- `frontend/src/app/admin/role-capabilities/RoleCapabilityClient.tsx` und `RoleCapabilityDetail.tsx` — heutige globale Rolle→Capability-Oberfläche.
 
-| Area | Confidence | Remaining decision |
+## Confidence Assessment
+
+| Bereich | Confidence | Begründung |
 |---|---|---|
-| Existing content hierarchy and domain ownership | HIGH | None; preserve it |
-| Visibility/owner-preview principle | HIGH | Decide whether hidden and missing are byte/status-identical or only equally non-disclosing, then lock the contract |
-| Stable slug product behavior | HIGH | Choose canonical slug generation and who, if anyone, may change it after publication |
-| Exact public DTO fields and list bounds | MEDIUM | Inventory actual consumers before removal; set initial/page sizes from fixture volume |
-| Accessibility behavior | HIGH | Automated coverage must still be supplemented by keyboard/screen-reader/live review |
-| Responsive composition | HIGH | Record minimum viable geometry for each touched component rather than adopting universal breakpoints |
-| Core Web Vitals attainment | MEDIUM | Needs representative lab traces now and field monitoring after deployment |
-| Fixture coverage | MEDIUM | Document the exact seeded facts each fixture is intended to exercise before roadmap requirements are frozen |
+| Findings #29–#32 / Nutzerbedarf | HIGH | Direkt im Live-UAT entdeckt und anschließend vom Nutzer als Milestone-Scope bestätigt. |
+| Bestehende Rechte-/Review-Seams | HIGH | Gegen aktuellen Backend-/Frontend-Code geprüft. |
+| Feature-Abhängigkeiten | HIGH | Folgen direkt aus Serverautorität, Persistenz und bestehenden Komponenten. |
+| Exakte spätere UX-Anordnung | MEDIUM | Desktop-first und Zieloberflächen sind entschieden; Detaillayout sollte in Phase-UI-Spec konkretisiert werden. |
+| Datenmenge/Performancegrenzen | MEDIUM | Skalierungsproblem ist real, konkrete Seitengrößen und Indexbedarf müssen mit Fixtures/EXPLAIN validiert werden. |
