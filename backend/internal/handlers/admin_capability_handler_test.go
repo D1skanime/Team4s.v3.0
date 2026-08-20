@@ -366,7 +366,7 @@ func TestListCapabilityMatrixAssignableEnrichment(t *testing.T) {
 
 	// Stub-Matrix mit je einer App-Rolle und einer historischen Rolle
 	stubRoles := []repository.CapabilityMatrixRoleEntry{
-		{RoleCode: appRole, LabelDE: "App-Rolle Test", Actions: []repository.CapabilityMatrixActionState{}},
+		{RoleCode: appRole, LabelDE: "App-Rolle Test", Assignable: true, Actions: []repository.CapabilityMatrixActionState{}},
 		{RoleCode: histRole, LabelDE: "Historische Rolle Test", Actions: []repository.CapabilityMatrixActionState{}},
 	}
 
@@ -411,7 +411,7 @@ func TestListCapabilityMatrixAssignableEnrichment(t *testing.T) {
 	}
 
 	for _, role := range response.Roles {
-		expectedAssignable := permissions.IsKnownFansubGroupRole(role.RoleCode)
+		expectedAssignable := role.RoleCode == appRole
 
 		if role.Assignable == nil {
 			t.Fatalf("Rolle %q: assignable-Feld fehlt im JSON-Response (Anreicherung nicht implementiert)", role.RoleCode)
@@ -560,4 +560,3 @@ func TestCapabilityAuditOnGrant(t *testing.T) {
 		t.Fatalf("erwartet payload.action_code='release.view', erhalten %v", payload["action_code"])
 	}
 }
-

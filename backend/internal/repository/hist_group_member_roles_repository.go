@@ -231,9 +231,15 @@ func (r *HistGroupMemberRolesRepository) GetByIDForFansub(ctx context.Context, f
 // RoleDefinitionOption ist der DTO-Rückgabetyp für kuratierte Rollendefinitionen.
 // Wird von ListGroupHistoryRoleDefinitions zurückgegeben.
 type RoleDefinitionOption struct {
-	Code      string `json:"code"`
-	LabelDE   string `json:"label_de"`
-	SortOrder int    `json:"sort_order"`
+	Code string `json:"code"`
+	LabelDE string `json:"label_de"`
+	Contexts []string `json:"contexts"`
+	SortOrder int `json:"sort_order"`
+	Assignable bool `json:"assignable"`
+	ColorKey string `json:"color_key"`
+	IconKey string `json:"icon_key"`
+	OperativeCapabilityCount int `json:"operative_capability_count"`
+	HasOperativeCapabilities bool `json:"has_operative_capabilities"`
 }
 
 // groupHistoryDialogRoleWhitelist enthält die vier echten historischen Gruppenrollen.
@@ -269,12 +275,13 @@ func (r *HistGroupMemberRolesRepository) IsGroupHistoryWhitelistRole(code string
 // und vergeben keine aktiven App-Rechte.
 func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT code, label_de, sort_order
-		FROM role_definitions
+		SELECT rd.code, rd.label_de, rd.contexts, rd.sort_order, rd.assignable, rd.color_key, rd.icon_key,
+		       COUNT(rc.action_code)::integer
+		FROM role_definitions rd LEFT JOIN role_capabilities rc ON rc.role_code = rd.code
 		WHERE 'group_history' = ANY(contexts)
 		   OR 'anime_contribution' = ANY(contexts)
 		   OR code = ANY($1)
-		ORDER BY sort_order, code
+		GROUP BY rd.code ORDER BY rd.sort_order, rd.code
 	`, groupHistoryDialogRoleWhitelist)
 	if err != nil {
 		return nil, fmt.Errorf("list group history role definitions: %w", err)
@@ -284,9 +291,10 @@ func (r *HistGroupMemberRolesRepository) ListGroupHistoryRoleDefinitions(ctx con
 	result := make([]RoleDefinitionOption, 0, 16)
 	for rows.Next() {
 		var opt RoleDefinitionOption
-		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.SortOrder); err != nil {
+		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.Contexts, &opt.SortOrder, &opt.Assignable, &opt.ColorKey, &opt.IconKey, &opt.OperativeCapabilityCount); err != nil {
 			return nil, fmt.Errorf("list group history role definitions: scan: %w", err)
 		}
+		opt.HasOperativeCapabilities = opt.OperativeCapabilityCount > 0
 		result = append(result, opt)
 	}
 	if err := rows.Err(); err != nil {
@@ -329,10 +337,11 @@ func (r *HistGroupMemberRolesRepository) IsHistoricalMemberRoleCode(ctx context.
 // Leitungen 403 lieferte und die API-getriebene Rollenanzeige (D-12) unbrauchbar machte.
 func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx context.Context) ([]RoleDefinitionOption, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT code, label_de, sort_order
-		FROM role_definitions
-		WHERE 'fansub_group' = ANY(contexts) OR 'group_history' = ANY(contexts)
-		ORDER BY sort_order, code
+		SELECT rd.code, rd.label_de, rd.contexts, rd.sort_order, rd.assignable, rd.color_key, rd.icon_key,
+		       COUNT(rc.action_code)::integer
+		FROM role_definitions rd LEFT JOIN role_capabilities rc ON rc.role_code = rd.code
+		WHERE 'fansub_group' = ANY(rd.contexts) OR 'group_history' = ANY(rd.contexts)
+		GROUP BY rd.code ORDER BY rd.sort_order, rd.code
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("list fansub group role definitions: %w", err)
@@ -342,9 +351,10 @@ func (r *HistGroupMemberRolesRepository) ListFansubGroupRoleDefinitions(ctx cont
 	result := make([]RoleDefinitionOption, 0, len(groupHistoryDialogRoleWhitelist))
 	for rows.Next() {
 		var opt RoleDefinitionOption
-		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.SortOrder); err != nil {
+		if err := rows.Scan(&opt.Code, &opt.LabelDE, &opt.Contexts, &opt.SortOrder, &opt.Assignable, &opt.ColorKey, &opt.IconKey, &opt.OperativeCapabilityCount); err != nil {
 			return nil, fmt.Errorf("list fansub group role definitions: scan: %w", err)
 		}
+		opt.HasOperativeCapabilities = opt.OperativeCapabilityCount > 0
 		result = append(result, opt)
 	}
 	if err := rows.Err(); err != nil {

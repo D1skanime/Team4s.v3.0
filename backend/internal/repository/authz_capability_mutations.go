@@ -7,14 +7,14 @@ import (
 
 // CapabilityMatrixRoleRow repräsentiert eine Zeile in der Capability-Matrix (Rolle × Action).
 type CapabilityMatrixRoleRow struct {
-	RoleCode   string
-	RoleLabel  string
-	ActionCode string
-	ActionLabel string
-	Category   string
-	SortOrder  int
-	Granted    bool
-	Standalone bool
+	RoleCode, RoleLabel, RoleColorKey, RoleIconKey string
+	RoleContexts []string
+	RoleSortOrder, OperativeCapabilityCount int
+	RoleAssignable bool
+	ActionCode, ActionLabel, Category string
+	ActionSortOrder int
+	ActionDescription, ActionHelpText *string
+	UserOverridable, Granted, Standalone bool
 }
 
 // CapabilityMatrixActionState ist der serialisierbare Zustand einer Action in einer Rolle.
@@ -22,6 +22,10 @@ type CapabilityMatrixActionState struct {
 	Code       string `json:"code"`
 	LabelDE    string `json:"label_de"`
 	Category   string `json:"category"`
+	SortOrder int `json:"sort_order"`
+	DescriptionDE *string `json:"description_de"`
+	HelpTextDE *string `json:"help_text_de"`
+	UserOverridable bool `json:"user_overridable"`
 	Granted    bool   `json:"granted"`
 	Standalone bool   `json:"standalone"`
 }
@@ -34,6 +38,11 @@ type CapabilityMatrixRoleEntry struct {
 	Assignable         bool                          `json:"assignable"`          // Im Gruppen-Add-Picker zuweisbar (permissions.IsKnownFansubGroupRole)
 	CapabilityEditable bool                          `json:"capability_editable"` // Capabilities editierbar (permissions.IsCapabilityBearingRole) — G4
 	Contexts           []string                      `json:"contexts,omitempty"`  // Aus role_definitions.contexts
+	SortOrder int `json:"sort_order"`
+	ColorKey string `json:"color_key"`
+	IconKey string `json:"icon_key"`
+	OperativeCapabilityCount int `json:"operative_capability_count"`
+	HasOperativeCapabilities bool `json:"has_operative_capabilities"`
 	// GlobalAssignmentCount zählt aktive Zuweisungen aus app_user_global_roles.
 	// NUR für die drei synthetischen globalen App-Rollen-Zeilen (platform_admin/content_admin/
 	// user) gesetzt — role_definitions-Zeilen bekommen dieses Feld NIE gesetzt (Pointer bleibt
@@ -55,6 +64,9 @@ type CapabilityMatrixActionEntry struct {
 	LabelDE   string `json:"label_de"`
 	Category  string `json:"category"`
 	SortOrder int    `json:"sort_order"`
+	DescriptionDE *string `json:"description_de"`
+	HelpTextDE *string `json:"help_text_de"`
+	UserOverridable bool `json:"user_overridable"`
 }
 
 // CapabilityMatrix ist die vollständige Capability-Matrix (Antwort-DTO).
@@ -77,9 +89,11 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			ad.code           AS action_code,
 			ad.label_de       AS action_label,
 			ad.category       AS action_category,
-			ad.sort_order     AS action_sort_order,
+			ad.sort_order, ad.description_de, ad.help_text_de, ad.user_overridable,
 			rd.code           AS role_code,
 			rd.label_de       AS role_label,
+			rd.sort_order, rd.assignable, rd.color_key, rd.icon_key,
+			COUNT(rc.action_code) OVER (PARTITION BY rd.code)::integer,
 			(rc.action_code IS NOT NULL) AS granted,
 			(ad.code = ANY($1)) AS standalone,
 			COALESCE(rd.contexts, '{}') AS role_contexts
@@ -87,7 +101,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 		CROSS JOIN role_definitions rd
 		LEFT JOIN role_capabilities rc
 			ON rc.action_code = ad.code AND rc.role_code = rd.code
-		ORDER BY rd.code, ad.sort_order
+		ORDER BY rd.sort_order, rd.code, ad.sort_order, ad.code
 	`
 
 	rows, err := r.db.Query(ctx, query, standaloneActionCodes)
@@ -99,7 +113,7 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 	// Sammle Daten in geordneten Strukturen
 	roleOrder := make([]string, 0)
 	roleLabels := make(map[string]string)
-	roleContexts := make(map[string][]string)
+	roleRows := make(map[string]CapabilityMatrixRoleRow)
 	roleActions := make(map[string][]CapabilityMatrixActionState)
 	actionOrder := make([]string, 0)
 	actionEntries := make(map[string]CapabilityMatrixActionEntry)
@@ -111,9 +125,11 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			&row.ActionCode,
 			&row.ActionLabel,
 			&row.Category,
-			&row.SortOrder,
+			&row.ActionSortOrder, &row.ActionDescription, &row.ActionHelpText, &row.UserOverridable,
 			&row.RoleCode,
 			&row.RoleLabel,
+			&row.RoleSortOrder, &row.RoleAssignable, &row.RoleColorKey, &row.RoleIconKey,
+			&row.OperativeCapabilityCount,
 			&row.Granted,
 			&row.Standalone,
 			&contexts,
@@ -128,7 +144,8 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 				Code:      row.ActionCode,
 				LabelDE:   row.ActionLabel,
 				Category:  row.Category,
-				SortOrder: row.SortOrder,
+				SortOrder: row.ActionSortOrder, DescriptionDE: row.ActionDescription,
+				HelpTextDE: row.ActionHelpText, UserOverridable: row.UserOverridable,
 			}
 		}
 
@@ -136,7 +153,8 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 		if _, seen := roleLabels[row.RoleCode]; !seen {
 			roleOrder = append(roleOrder, row.RoleCode)
 			roleLabels[row.RoleCode] = row.RoleLabel
-			roleContexts[row.RoleCode] = contexts
+			row.RoleContexts = contexts
+			roleRows[row.RoleCode] = row
 		}
 
 		// Action-Zustand für Rolle
@@ -144,6 +162,8 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 			Code:       row.ActionCode,
 			LabelDE:    row.ActionLabel,
 			Category:   row.Category,
+			SortOrder: row.ActionSortOrder, DescriptionDE: row.ActionDescription,
+			HelpTextDE: row.ActionHelpText, UserOverridable: row.UserOverridable,
 			Granted:    row.Granted,
 			Standalone: row.Standalone,
 		})
@@ -155,11 +175,15 @@ func (r *AuthzRepository) ListCapabilityMatrix(ctx context.Context) (*Capability
 	// Rollen-Liste aufbauen (Assignable bleibt Go-Zero-Wert false — wird im Handler gesetzt)
 	roles := make([]CapabilityMatrixRoleEntry, 0, len(roleOrder))
 	for _, roleCode := range roleOrder {
+		row := roleRows[roleCode]
 		roles = append(roles, CapabilityMatrixRoleEntry{
 			RoleCode: roleCode,
 			LabelDE:  roleLabels[roleCode],
 			Actions:  roleActions[roleCode],
-			Contexts: roleContexts[roleCode],
+			Contexts: row.RoleContexts, SortOrder: row.RoleSortOrder, Assignable: row.RoleAssignable,
+			CapabilityEditable: len(row.RoleContexts) > 0, ColorKey: row.RoleColorKey, IconKey: row.RoleIconKey,
+			OperativeCapabilityCount: row.OperativeCapabilityCount,
+			HasOperativeCapabilities: row.OperativeCapabilityCount > 0,
 		})
 	}
 

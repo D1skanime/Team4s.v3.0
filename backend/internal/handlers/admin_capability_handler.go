@@ -93,15 +93,8 @@ func (h *AdminCapabilityHandler) ListCapabilityMatrix(c *gin.Context) {
 		return
 	}
 
-	// D-04: Anreicherung — Repository darf permissions nicht importieren (Kommentar Z.52).
-	// Assignable  = im Gruppen-Add-Picker zuweisbar (die 6 fansub_group-Rollen).
-	// CapabilityEditable = Rolle trägt in aktivem Kontext Rechte (auch Contribution-/Projekt-
-	// Rollen wie encoder) → ihre Capabilities sind editierbar (Gap G4). Nur rein historische
-	// Rollen bleiben nicht-editierbar.
-	for i := range matrix.Roles {
-		matrix.Roles[i].Assignable = permissions.IsKnownFansubGroupRole(matrix.Roles[i].RoleCode)
-		matrix.Roles[i].CapabilityEditable = permissions.IsCapabilityBearingRole(matrix.Roles[i].RoleCode)
-	}
+	// Rollen-Metadaten stammen vollständig aus role_definitions. Der Handler ergänzt
+	// ausschließlich die getrennten, IdP-eigenen globalen Rollen unten.
 
 	// D-05: Synthetische globale App-Rollen-Zeilen voranstellen (111-RESEARCH.md Pitfall 1).
 	// platform_admin/content_admin/user existieren strukturell nie in role_definitions — ohne
