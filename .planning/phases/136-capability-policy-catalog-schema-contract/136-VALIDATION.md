@@ -96,9 +96,9 @@ CAP-03 is intentionally excluded: Phase 137 owns server-side Deny > Allow > role
 | Verified gap | Owning plan | Regression proof |
 |---|---|---|
 | Founder history and co-leader lifecycle over-grant | 136-14 | Request-level Go tests for create/PATCH stored+requested event types, lifecycle fields, mixed actions and BOLA/no mutation |
-| Premature allowed link audit | 136-15 | Spy-based validation, repository failure/conflict/not-found/no-op and successful-transition audit ordering tests |
+| Premature allowed link audit | 136-15 | `TestPhase136GroupLinkAudit...` ordered handler spies plus `TestPhase136UpdateGroupLink...` transactional changed/no-op repository tests |
 | Incomplete capability/review metadata; Karaoke-FX semantic drift; migration rerun | 136-16 | Complete action inventory/review.* assertions, exact migration-row adapter test and live fresh Up/Down/Up |
-| Missing policy schema family and reason vocabulary drift | 136-17, 136-18 | Focused/root OpenAPI + TS family, Go DTOs and semantic parity test |
+| Missing policy schema family and reason vocabulary drift | 136-17, 136-18 | Plan 17's `phase136_policy_yaml_ts_contract_test.go` first parses both YAMLs and proves full TS parity; Plan 18 extends the same family to Go DTOs |
 | Malformed public catalog accepted as empty success | 136-19 | Top-level/per-row runtime negatives plus root/provider context-error tests |
 | Closed role-code artwork authority | 136-20 | Catalog-metadata-driven artwork tests for Karaoke-FX, Typesetting and an injected future role |
 
