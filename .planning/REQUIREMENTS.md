@@ -37,24 +37,24 @@
 
 ### API- und Contract-Integrität
 
-- [ ] **PMCT-01**: Das öffentliche Profil verwendet einen eigenen minimalen Allowlist-DTO statt interner Edit- oder Owner-Strukturen.
-- [ ] **PMCT-02**: Private IDs, Berechtigungen, Originalquellen und nicht freigegebene Medienfelder fehlen nachweislich in öffentlichen Antworten.
-- [ ] **PMCT-03**: SQL-Projektion, Go-DTO, Handler, OpenAPI, TypeScript und `api.ts` stimmen vollständig überein.
-- [ ] **PMCT-04**: Sichtbar, verborgen, nicht vorhanden und Fehler besitzen dokumentierte, typisierte Antwortpfade.
-- [ ] **PMCT-05**: Rollen-, Status- und Badge-Tier-Enums einschließlich Platin sind in allen Vertragsschichten vollständig.
-- [ ] **PMCT-06**: Listen besitzen dokumentierte Grenzen, stabile Sortierung und einen ehrlichen Pagination-Vertrag.
-- [ ] **PMCT-07**: Ungenutzte Recent-Endpunkte und Felder werden entfernt; verbleibende Unterressourcen erhalten denselben Sichtbarkeits- und Review-Filter.
-- [ ] **PMCT-08**: Next.js-PageProps, Route-Parameter, Metadaten und API-Typen entsprechen den realen Framework- und OpenAPI-Verträgen.
+- [x] **PMCT-01**: Das öffentliche Profil verwendet einen eigenen minimalen Allowlist-DTO statt interner Edit- oder Owner-Strukturen.
+- [x] **PMCT-02**: Private IDs, Berechtigungen, Originalquellen und nicht freigegebene Medienfelder fehlen nachweislich in öffentlichen Antworten.
+- [x] **PMCT-03**: SQL-Projektion, Go-DTO, Handler, OpenAPI, TypeScript und `api.ts` stimmen vollständig überein.
+- [x] **PMCT-04**: Sichtbar, verborgen, nicht vorhanden und Fehler besitzen dokumentierte, typisierte Antwortpfade.
+- [x] **PMCT-05**: Rollen-, Status- und Badge-Tier-Enums einschließlich Platin sind in allen Vertragsschichten vollständig.
+- [x] **PMCT-06**: Listen besitzen dokumentierte Grenzen, stabile Sortierung und einen ehrlichen Pagination-Vertrag.
+- [x] **PMCT-07**: Ungenutzte Recent-Endpunkte und Felder werden entfernt; verbleibende Unterressourcen erhalten denselben Sichtbarkeits- und Review-Filter.
+- [x] **PMCT-08**: Next.js-PageProps, Route-Parameter, Metadaten und API-Typen entsprechen den realen Framework- und OpenAPI-Verträgen.
 
 ### Performance und Auslieferung
 
-- [ ] **PMPF-01**: Die Anzahl der Profilabfragen bleibt unabhängig von der Projektanzahl konstant; N+1-Abfragen entfallen.
-- [ ] **PMPF-02**: Das Nachladen von Projekten oder Contributions lädt nicht erneut das vollständige Profil.
-- [ ] **PMPF-03**: Initiale und nachgeladene Listen sind fest begrenzt und übertragen keine vom UI ungenutzten Kinddaten.
-- [ ] **PMPF-04**: Indizes werden nur nach repräsentativem `EXPLAIN (ANALYZE, BUFFERS)` für beide Testprofile ergänzt.
-- [ ] **PMPF-05**: Öffentliche und viewer-spezifische Cache-Klassen bleiben getrennt; Shared Cache wird nur mit Messung und vollständiger Invalidierung eingeführt.
+- [x] **PMPF-01**: Die Anzahl der Profilabfragen bleibt unabhängig von der Projektanzahl konstant; N+1-Abfragen entfallen.
+- [x] **PMPF-02**: Das Nachladen von Projekten oder Contributions lädt nicht erneut das vollständige Profil.
+- [x] **PMPF-03**: Initiale und nachgeladene Listen sind fest begrenzt und übertragen keine vom UI ungenutzten Kinddaten.
+- [x] **PMPF-04**: Indizes werden nur nach repräsentativem `EXPLAIN (ANALYZE, BUFFERS)` für beide Testprofile ergänzt.
+- [x] **PMPF-05**: Öffentliche und viewer-spezifische Cache-Klassen bleiben getrennt; Shared Cache wird nur mit Messung und vollständiger Invalidierung eingeführt.
 - [x] **PMPF-06**: Profilbilder und Badges verwenden geeignete Varianten, korrekte `sizes`, reservierte Geometrie und begrenzte Qualität.
-- [ ] **PMPF-07**: Query-Anzahl, Payload-Größe, Latenz, Bild-Waterfall und Web-Vitals werden reproduzierbar erfasst und gegen feste Abnahmegrenzen geprüft.
+- [x] **PMPF-07**: Query-Anzahl, Payload-Größe, Latenz, Bild-Waterfall und Web-Vitals werden reproduzierbar erfasst und gegen feste Abnahmegrenzen geprüft.
 - [x] **PMPF-08**: Bildquellen werden komprimiert; Asset- und Transferbudgets sind festgelegt und lokale-IP-Bildoptimierung bleibt auf Test und Entwicklung begrenzt.
 
 ### Frontend und Codequalität
@@ -145,21 +145,21 @@ Jede v1.3-Anforderung ist genau einer Roadmap-Phase zugeordnet.
 | PMDA-09 | Phase 129 | Done |
 | PMDA-10 | Phase 129 | Done |
 | PMDA-11 | Phase 129 | Done |
-| PMCT-01 | Phase 130 | Pending |
-| PMCT-02 | Phase 130 | Pending |
-| PMCT-03 | Phase 130 | Pending |
-| PMCT-04 | Phase 130 | Pending |
-| PMCT-05 | Phase 130 | Pending |
-| PMCT-06 | Phase 131 | Pending |
-| PMCT-07 | Phase 130 | Pending |
-| PMCT-08 | Phase 130 | Pending |
-| PMPF-01 | Phase 131 | Pending |
-| PMPF-02 | Phase 131 | Pending |
-| PMPF-03 | Phase 131 | Pending |
-| PMPF-04 | Phase 131 | Pending |
-| PMPF-05 | Phase 131 | Pending |
+| PMCT-01 | Phase 130 | Complete |
+| PMCT-02 | Phase 130 | Complete |
+| PMCT-03 | Phase 130 | Complete |
+| PMCT-04 | Phase 130 | Complete |
+| PMCT-05 | Phase 130 | Complete |
+| PMCT-06 | Phase 131 | Complete |
+| PMCT-07 | Phase 130 | Complete |
+| PMCT-08 | Phase 130 | Complete |
+| PMPF-01 | Phase 131 | Complete |
+| PMPF-02 | Phase 131 | Complete |
+| PMPF-03 | Phase 131 | Complete |
+| PMPF-04 | Phase 131 | Complete |
+| PMPF-05 | Phase 131 | Complete |
 | PMPF-06 | Phase 133 | Complete |
-| PMPF-07 | Phase 131 | Pending |
+| PMPF-07 | Phase 131 | Complete |
 | PMPF-08 | Phase 133 | Complete |
 | PMFE-01 | Phase 132 | Complete |
 | PMFE-02 | Phase 132 | Complete |
