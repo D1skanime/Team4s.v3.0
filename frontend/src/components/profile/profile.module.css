@@ -67,6 +67,15 @@
 }
 
 .heroAvatar {
+  /* Phase 134-06 fix (round 2): .heroPanel's align-items: end pushes both grid items -- this
+     avatar and .heroCopy -- to the bottom of their row at tablet/desktop widths (the base
+     2-column grid, unaffected by the mobile single-column @container rule below). The user
+     confirmed .heroCopy's position is correct as-is and only the avatar should move; overriding
+     align-self here (unconditionally, so it also applies harmlessly at the already-correct
+     mobile breakpoint) top-aligns just this grid item without touching .heroPanel's
+     align-items or .heroCopy at all. Reused by MemberProfileMemorialHero.tsx, which shares this
+     exact .hero > .heroPanel shape, so this fix applies there too. */
+  align-self: start;
   width: 140px;
   height: 140px;
   display: inline-flex;
