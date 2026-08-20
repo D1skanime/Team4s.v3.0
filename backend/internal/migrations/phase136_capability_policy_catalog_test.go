@@ -27,8 +27,8 @@ func TestPhase136MigrationSourceContract(t *testing.T) {
 		"help_text_de text",
 		"user_overridable boolean not null default false",
 		"alter table role_definitions",
-		"presentation_category text",
-		"badge_tone text",
+		"color_key text",
+		"icon_key text",
 		"karaoke_fx",
 		"array['fansub_group', 'anime_contribution']",
 		"fansub_group_media.upload",
@@ -63,7 +63,8 @@ func TestPhase136MigrationSourceContract(t *testing.T) {
 	} {
 		require.Contains(t, up, "'"+protected+"'", "protected action %s must be asserted fail-closed", protected)
 	}
-	require.NotContains(t, up, "platform_admin", "IdP platform authority must never be represented as a group override")
+	require.NotContains(t, up, "references app_user_global_roles", "IdP platform authority must never become group-owned override state")
+	require.Contains(t, up, "idp-owned platform-admin authority is never stored here and remains non-deniable")
 	require.NotContains(t, up, "insert into role_capabilities", "confirmed operative role defaults belong to Plan 136-09")
 
 	down := readPhase136Migration(t, phase136DownFile)
@@ -91,6 +92,86 @@ func TestPhase136MigrationLiveUpDownUp(t *testing.T) {
 	assertPhase136RolledBack(t, pool)
 	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136UpFile))
 	assertPhase136Catalog(t, pool)
+}
+
+func TestPhase136OverrideConstraintsAndHistory(t *testing.T) {
+	if _, err := os.Stat(phase136MigrationPath(t, phase136UpFile)); err != nil {
+		t.Fatalf("Phase-136 migration is required: %v", err)
+	}
+	pool := testsupport.OpenPhase106Postgres(t)
+	createPhase136Prerequisites(t, pool)
+	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136UpFile))
+
+	_, err := pool.Exec(context.Background(), `
+		INSERT INTO app_users(id) VALUES (1), (2);
+		INSERT INTO fansub_groups(id) VALUES (10);
+	`)
+	require.NoError(t, err)
+
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO user_group_capability_overrides(
+			app_user_id, fansub_group_id, action_code, effect,
+			created_by_app_user_id, updated_by_app_user_id
+		) VALUES (1, 10, 'fansub_group.members.manage', 'allow', 2, 2)
+	`)
+	require.Error(t, err, "protected, non-overridable capabilities must be rejected by the catalog FK")
+
+	_, err = pool.Exec(context.Background(), `
+		UPDATE action_definitions SET user_overridable = true
+		WHERE code = 'fansub_group_media.upload';
+		INSERT INTO user_group_capability_overrides(
+			app_user_id, fansub_group_id, action_code, effect,
+			created_by_app_user_id, updated_by_app_user_id
+		) VALUES (1, 10, 'fansub_group_media.upload', 'allow', 2, 2)
+	`)
+	require.NoError(t, err)
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO user_group_capability_overrides(
+			app_user_id, fansub_group_id, action_code, effect,
+			created_by_app_user_id, updated_by_app_user_id
+		) VALUES (1, 10, 'fansub_group_media.upload', 'deny', 2, 2)
+	`)
+	require.Error(t, err, "one subject/group/action may have only one current effect")
+
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO user_group_capability_override_history(
+			app_user_id, fansub_group_id, action_code, actor_app_user_id,
+			before_effect, after_effect
+		) VALUES (1, 10, 'fansub_group_media.upload', 2, NULL, 'allow')
+	`)
+	require.Error(t, err, "non-platform actors must supply a reason category")
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO user_group_capability_override_history(
+			app_user_id, fansub_group_id, action_code, actor_app_user_id,
+			before_effect, after_effect, reason_category
+		) VALUES (1, 10, 'fansub_group_media.upload', 2, 'allow', 'allow', 'rollenluecke')
+	`)
+	require.Error(t, err, "exact no-op events cannot be stored")
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO user_group_capability_override_history(
+			app_user_id, fansub_group_id, action_code, actor_app_user_id,
+			before_effect, after_effect, reason_category
+		) VALUES (1, 10, 'fansub_group_media.upload', 2, NULL, 'allow', 'sonstiges')
+	`)
+	require.Error(t, err, "other requires explanatory text")
+	_, err = pool.Exec(context.Background(), `
+		INSERT INTO user_group_capability_override_history(
+			app_user_id, fansub_group_id, action_code, actor_app_user_id,
+			actor_is_platform_admin, before_effect, after_effect
+		) VALUES (1, 10, 'fansub_group_media.upload', 2, true, NULL, 'allow')
+	`)
+	require.NoError(t, err, "platform administrators are exempt from reasons but remain fully attributed")
+	_, err = pool.Exec(context.Background(), `UPDATE user_group_capability_override_history SET after_effect = 'deny'`)
+	require.Error(t, err, "history must be append-only")
+
+	assertPhase136ExplainUsesIndex(t, pool,
+		`SELECT role_code FROM role_capabilities WHERE action_code = 'fansub_group_media.upload'`,
+		"role_capabilities_action_role_idx",
+	)
+	assertPhase136ExplainUsesIndex(t, pool,
+		`SELECT app_user_id FROM user_group_capability_overrides WHERE action_code = 'fansub_group_media.upload' AND fansub_group_id = 10`,
+		"user_group_capability_overrides_action_group_user_idx",
+	)
 }
 
 func createPhase136Prerequisites(t testing.TB, pool *pgxpool.Pool) {
@@ -127,7 +208,15 @@ func assertPhase136Catalog(t testing.TB, pool *pgxpool.Pool) {
 	var count int
 	require.NoError(t, pool.QueryRow(context.Background(), `
 		SELECT count(*) FROM action_definitions
-		WHERE code LIKE 'fansub_group_%' AND user_overridable = false
+		WHERE code = ANY(ARRAY[
+			'fansub_group_media.upload',
+			'fansub_group_media.update',
+			'fansub_group_media.reorder',
+			'fansub_group_page.general_edit',
+			'fansub_group_page.technical_links_edit',
+			'fansub_group_page.founding_history_edit',
+			'fansub_group_links.update'
+		]) AND user_overridable = false
 	`).Scan(&count))
 	require.Equal(t, 7, count)
 
@@ -163,6 +252,24 @@ func assertPhase136RolledBack(t testing.TB, pool *pgxpool.Pool) {
 	var exists bool
 	require.NoError(t, pool.QueryRow(context.Background(), `SELECT EXISTS (SELECT 1 FROM role_definitions WHERE code = 'karaoke_fx')`).Scan(&exists))
 	require.False(t, exists)
+}
+
+func assertPhase136ExplainUsesIndex(t testing.TB, pool *pgxpool.Pool, query, index string) {
+	t.Helper()
+	_, err := pool.Exec(context.Background(), `SET enable_seqscan = off`)
+	require.NoError(t, err)
+	rows, err := pool.Query(context.Background(), "EXPLAIN "+query)
+	require.NoError(t, err)
+	defer rows.Close()
+	var plan strings.Builder
+	for rows.Next() {
+		var line string
+		require.NoError(t, rows.Scan(&line))
+		plan.WriteString(line)
+		plan.WriteByte('\n')
+	}
+	require.NoError(t, rows.Err())
+	require.Contains(t, plan.String(), index)
 }
 
 func readPhase136Migration(t testing.TB, name string) string {
