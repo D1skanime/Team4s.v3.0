@@ -9,12 +9,15 @@ import (
 )
 
 func TestPhase136ContractParity(t *testing.T) {
+	t.Run("YAML and TypeScript owners", TestPhase136PolicyYAMLTypeScriptContract)
+
 	t.Run("Go DTO JSON shapes", func(t *testing.T) {
 		cases := []struct {
 			value any
 			fields map[string]bool
 		}{
 			{EffectiveRightState{}, requiredFields("action_code", "allowed", "provenance", "decisive", "non_deniable")},
+			{CapabilityOverrideReason{}, fieldsWithOptional("text", "category")},
 			{CapabilityOverrideState{}, requiredFields("group_id", "target_user_id", "action_code", "effect", "reason", "created_by_user_id", "created_at")},
 			{CapabilityOverrideImpactItem{}, requiredFields("target_user_id", "before", "after")},
 			{CapabilityOverrideImpactPreview{}, requiredFields("affected_user_count", "items")},
