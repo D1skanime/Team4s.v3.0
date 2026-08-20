@@ -27,6 +27,17 @@ ALTER TABLE role_definitions
     ADD CONSTRAINT chk_role_definitions_color_key CHECK (color_key ~ '^[a-z0-9_]+$'),
     ADD CONSTRAINT chk_role_definitions_icon_key CHECK (icon_key ~ '^[a-z0-9_]+$');
 
+-- user is the bounded artwork semantic consumed by the shared badge renderer.
+-- Role existence still comes exclusively from role_definitions; this metadata
+-- only selects the shipped artwork family for established contribution roles.
+UPDATE role_definitions
+SET icon_key = 'user'
+WHERE code IN (
+    'translator', 'editor', 'timer', 'typesetter', 'encoder',
+    'raw_provider', 'quality_checker', 'project_lead', 'designer',
+    'admin', 'other'
+);
+
 INSERT INTO action_definitions (
     code,
     label_de,

@@ -242,6 +242,16 @@ func assertPhase136Catalog(t testing.TB, pool *pgxpool.Pool) {
 	require.True(t, assignable)
 	require.Equal(t, "creative", colorKey)
 	require.Equal(t, "image", iconKey)
+	require.NoError(t, pool.QueryRow(context.Background(), `
+		SELECT count(*)
+		FROM role_definitions
+		WHERE code = ANY(ARRAY[
+			'translator', 'editor', 'timer', 'typesetter', 'encoder',
+			'raw_provider', 'quality_checker', 'project_lead', 'designer',
+			'admin', 'other'
+		]) AND icon_key = 'user'
+	`).Scan(&count))
+	require.Equal(t, 11, count, "every established contribution role with shipped artwork must select the user artwork semantic")
 	require.NoError(t, pool.QueryRow(context.Background(), `SELECT count(*) FROM role_capabilities WHERE role_code = 'karaoke_fx'`).Scan(&count))
 	require.Zero(t, count, "zero-right roles must remain catalog-visible without capability mappings")
 
