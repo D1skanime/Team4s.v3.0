@@ -14,20 +14,20 @@ import (
 )
 
 type phase136Schema struct {
-	Type       string                       `yaml:"type"`
-	Enum       []any                        `yaml:"enum"`
-	Required   []string                     `yaml:"required"`
+	Type       string                      `yaml:"type"`
+	Enum       []any                       `yaml:"enum"`
+	Required   []string                    `yaml:"required"`
 	Properties map[string]phase136Property `yaml:"properties"`
-	OneOf      []map[string]any             `yaml:"oneOf"`
+	OneOf      []map[string]any            `yaml:"oneOf"`
 }
 
 type phase136Property struct {
-	Type     string            `yaml:"type"`
-	Ref      string            `yaml:"$ref"`
-	Nullable bool              `yaml:"nullable"`
-	Enum     []any             `yaml:"enum"`
-	Items    map[string]any    `yaml:"items"`
-	AllOf    []map[string]any  `yaml:"allOf"`
+	Type     string           `yaml:"type"`
+	Ref      string           `yaml:"$ref"`
+	Nullable bool             `yaml:"nullable"`
+	Enum     []any            `yaml:"enum"`
+	Items    map[string]any   `yaml:"items"`
+	AllOf    []map[string]any `yaml:"allOf"`
 }
 
 type phase136Document struct {
@@ -57,20 +57,19 @@ func TestPhase136PolicyYAMLTypeScriptContract(t *testing.T) {
 	rootContract := loadYAML("shared/contracts/openapi.yaml")
 
 	expectedObjects := map[string][]string{
-		"EffectiveRightState":                    {"action_code", "allowed", "provenance", "decisive", "non_deniable"},
-		"CapabilityOverrideState":                {"group_id", "target_user_id", "action_code", "effect", "reason", "created_by_user_id", "created_at"},
-		"CapabilityOverrideImpactItem":           {"target_user_id", "before", "after"},
-		"CapabilityOverrideImpactPreview":        {"affected_user_count", "items"},
-		"CapabilityOverrideAuditItem":            {"id", "group_id", "target_user_id", "action_code", "actor_user_id", "occurred_at", "before", "after", "reason"},
-		"CapabilityOverrideMutationResult":        {"status", "changed", "before", "after", "effective_right", "activation_status"},
-		"NonPlatformAdminOverrideMutationRequest": {"group_id", "target_user_id", "action_code", "effect", "actor_is_platform_admin", "reason"},
-		"PlatformAdminOverrideMutationRequest":    {"group_id", "target_user_id", "action_code", "effect", "actor_is_platform_admin"},
+		"EffectiveRightState":               {"action_code", "allowed", "provenance", "decisive", "non_deniable"},
+		"CapabilityOverrideState":           {"group_id", "target_user_id", "action_code", "effect", "reason", "created_by_user_id", "created_at"},
+		"CapabilityOverrideImpactItem":      {"target_user_id", "before", "after"},
+		"CapabilityOverrideImpactPreview":   {"affected_user_count", "items"},
+		"CapabilityOverrideAuditItem":       {"id", "group_id", "target_user_id", "action_code", "actor_user_id", "occurred_at", "before", "after", "reason"},
+		"CapabilityOverrideMutationResult":  {"status", "changed", "before", "after", "effective_right", "activation_status"},
+		"CapabilityOverrideMutationRequest": {"group_id", "target_user_id", "action_code", "effect"},
 	}
 	expectedEnums := map[string][]string{
-		"EffectiveRightProvenance":    {"idp_global_role", "group_role", "user_allow", "user_deny"},
-		"CapabilityOverrideEffect":    {"allow", "deny"},
-		"CapabilityActivationStatus":  {"persisted", "active", "pending", "failed"},
-		"CapabilityMutationStatus":    {"changed", "no_op"},
+		"EffectiveRightProvenance":   {"idp_global_role", "group_role", "user_allow", "user_deny"},
+		"CapabilityOverrideEffect":   {"allow", "deny"},
+		"CapabilityActivationStatus": {"persisted", "active", "pending", "failed"},
+		"CapabilityMutationStatus":   {"changed", "no_op"},
 	}
 
 	for _, document := range []struct {
@@ -127,14 +126,8 @@ func TestPhase136PolicyYAMLTypeScriptContract(t *testing.T) {
 	}
 	ts := string(tsBytes)
 	for name, required := range expectedObjects {
-		if name == "NonPlatformAdminOverrideMutationRequest" {
-			required = []string{"actor_is_platform_admin", "reason"}
-		} else if name == "PlatformAdminOverrideMutationRequest" {
-			required = []string{"actor_is_platform_admin"}
-		}
 		assertTSInterfaceFields(t, ts, name, required)
 	}
-	assertTSInterfaceFields(t, ts, "CapabilityOverrideMutationRequestBase", []string{"group_id", "target_user_id", "action_code", "effect"})
 	assertTSUnion(t, ts, "EffectiveRightProvenance", expectedEnums["EffectiveRightProvenance"])
 	assertTSUnion(t, ts, "CapabilityOverrideEffect", expectedEnums["CapabilityOverrideEffect"])
 	assertTSUnion(t, ts, "CapabilityActivationStatus", expectedEnums["CapabilityActivationStatus"])
@@ -160,19 +153,15 @@ func assertReasonContract(t *testing.T, label string, schema phase136Schema) {
 
 func assertMutationRequestContract(t *testing.T, label string, schemas map[string]phase136Schema) {
 	t.Helper()
-	nonAdmin := schemas["NonPlatformAdminOverrideMutationRequest"]
-	admin := schemas["PlatformAdminOverrideMutationRequest"]
-	if !contains(nonAdmin.Required, "reason") || contains(admin.Required, "reason") {
-		t.Errorf("%s reason optionality must differ only for platform admin", label)
+	request := schemas["CapabilityOverrideMutationRequest"]
+	if contains(request.Required, "reason") {
+		t.Errorf("%s external request reason must remain auth-conditionally optional", label)
 	}
-	if got := anyStrings(nonAdmin.Properties["actor_is_platform_admin"].Enum); !sameStrings(got, []string{"false"}) {
-		t.Errorf("%s non-admin discriminator = %v", label, got)
+	if _, exposed := request.Properties["actor_is_platform_admin"]; exposed {
+		t.Errorf("%s external request exposes server-owned platform-admin provenance", label)
 	}
-	if got := anyStrings(admin.Properties["actor_is_platform_admin"].Enum); !sameStrings(got, []string{"true"}) {
-		t.Errorf("%s admin discriminator = %v", label, got)
-	}
-	if !nonAdmin.Properties["effect"].Nullable || !admin.Properties["effect"].Nullable {
-		t.Errorf("%s mutation effect must allow null for override removal", label)
+	if !request.Properties["effect"].Nullable || !request.Properties["reason"].Nullable {
+		t.Errorf("%s mutation effect and reason must support override removal/platform-admin omission", label)
 	}
 }
 
@@ -239,9 +228,10 @@ func assertTSReasonAndRequest(t *testing.T, source string) {
 	if !regexp.MustCompile(`category:\s*'other';\s*text:\s*string`).MatchString(reason[1]) {
 		t.Error("TypeScript other reason must require text")
 	}
-	request := regexp.MustCompile(`(?s)export type CapabilityOverrideMutationRequest\s*=\s*(.*?);`).FindStringSubmatch(source)
-	if request == nil || !strings.Contains(request[1], "NonPlatformAdminOverrideMutationRequest") || !strings.Contains(request[1], "PlatformAdminOverrideMutationRequest") || !strings.Contains(source, "actor_is_platform_admin: false") || !strings.Contains(source, "actor_is_platform_admin: true") || !strings.Contains(source, "reason?: CapabilityOverrideReason | null") {
-		t.Error("TypeScript mutation request must encode required non-admin and optional platform-admin reasons")
+	request := regexp.MustCompile(`(?s)export interface CapabilityOverrideMutationRequest\s*\{(.*?)
+\}`).FindStringSubmatch(source)
+	if request == nil || strings.Contains(request[1], "actor_is_platform_admin") || !strings.Contains(request[1], "reason?: CapabilityOverrideReason | null") {
+		t.Error("TypeScript mutation request must omit server-owned provenance and keep auth-conditional reason optional")
 	}
 }
 

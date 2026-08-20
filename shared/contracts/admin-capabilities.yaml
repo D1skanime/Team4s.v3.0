@@ -374,28 +374,18 @@ components:
         effective_right: { $ref: "#/components/schemas/EffectiveRightState" }
         activation_status: { $ref: "#/components/schemas/CapabilityActivationStatus" }
     CapabilityOverrideMutationRequest:
-      oneOf:
-        - $ref: "#/components/schemas/NonPlatformAdminOverrideMutationRequest"
-        - $ref: "#/components/schemas/PlatformAdminOverrideMutationRequest"
-    NonPlatformAdminOverrideMutationRequest:
       type: object
-      required: [group_id, target_user_id, action_code, effect, actor_is_platform_admin, reason]
+      description: |
+        External mutation request. Platform-admin provenance is derived from the
+        authenticated server identity and can never be asserted by this payload.
+        The server requires reason for non-platform administrators; authenticated
+        platform administrators may omit it.
+      required: [group_id, target_user_id, action_code, effect]
       properties:
         group_id: { type: integer, format: int64 }
         target_user_id: { type: integer, format: int64 }
         action_code: { type: string }
         effect: { $ref: "#/components/schemas/CapabilityOverrideEffect", nullable: true }
-        actor_is_platform_admin: { type: boolean, enum: [false] }
-        reason: { $ref: "#/components/schemas/CapabilityOverrideReason" }
-    PlatformAdminOverrideMutationRequest:
-      type: object
-      required: [group_id, target_user_id, action_code, effect, actor_is_platform_admin]
-      properties:
-        group_id: { type: integer, format: int64 }
-        target_user_id: { type: integer, format: int64 }
-        action_code: { type: string }
-        effect: { $ref: "#/components/schemas/CapabilityOverrideEffect", nullable: true }
-        actor_is_platform_admin: { type: boolean, enum: [true] }
         reason:
           allOf: [{ $ref: "#/components/schemas/CapabilityOverrideReason" }]
           nullable: true

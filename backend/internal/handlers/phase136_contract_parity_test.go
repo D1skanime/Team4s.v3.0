@@ -23,8 +23,7 @@ func TestPhase136ContractParity(t *testing.T) {
 			{CapabilityOverrideImpactPreview{}, requiredFields("affected_user_count", "items")},
 			{CapabilityOverrideAuditItem{}, requiredFields("id", "group_id", "target_user_id", "action_code", "actor_user_id", "occurred_at", "before", "after", "reason")},
 			{CapabilityOverrideMutationResult{}, requiredFields("status", "changed", "before", "after", "effective_right", "activation_status")},
-			{NonPlatformAdminOverrideMutationRequest{}, requiredFields("group_id", "target_user_id", "action_code", "effect", "actor_is_platform_admin", "reason")},
-			{PlatformAdminOverrideMutationRequest{}, fieldsWithOptional("reason", "group_id", "target_user_id", "action_code", "effect", "actor_is_platform_admin")},
+			{CapabilityOverrideMutationRequest{}, fieldsWithOptional("reason", "group_id", "target_user_id", "action_code", "effect")},
 		}
 		for _, testCase := range cases {
 			assertPolicyJSONShape(t, testCase.value, testCase.fields)
@@ -34,8 +33,7 @@ func TestPhase136ContractParity(t *testing.T) {
 	t.Run("nullable and optional fields use pointers", func(t *testing.T) {
 		assertPolicyPointerFields(t, CapabilityOverrideAuditItem{}, "before", "after", "reason")
 		assertPolicyPointerFields(t, CapabilityOverrideMutationResult{}, "before", "after")
-		assertPolicyPointerFields(t, NonPlatformAdminOverrideMutationRequest{}, "effect")
-		assertPolicyPointerFields(t, PlatformAdminOverrideMutationRequest{}, "effect", "reason")
+		assertPolicyPointerFields(t, CapabilityOverrideMutationRequest{}, "effect", "reason")
 	})
 
 	t.Run("shared enum vocabulary", func(t *testing.T) {
@@ -55,21 +53,17 @@ func TestPhase136ContractParity(t *testing.T) {
 		}, []string{"task_delegation", "security_measure", "role_gap", "other"})
 	})
 
-	t.Run("platform admin reason omission differs from supplied reason", func(t *testing.T) {
-		withoutReason, err := json.Marshal(PlatformAdminOverrideMutationRequest{})
+	t.Run("external request cannot assert platform admin provenance", func(t *testing.T) {
+		requestJSON, err := json.Marshal(CapabilityOverrideMutationRequest{})
 		if err != nil {
 			t.Fatal(err)
 		}
-		if jsonContainsKey(t, withoutReason, "reason") {
-			t.Fatalf("omitted platform-admin reason encoded as %s", withoutReason)
+		if jsonContainsKey(t, requestJSON, "actor_is_platform_admin") {
+			t.Fatalf("external request exposed server-owned provenance: %s", requestJSON)
 		}
-		reason := CapabilityOverrideReason{Category: CapabilityOverrideReasonRoleGap}
-		withReason, err := json.Marshal(PlatformAdminOverrideMutationRequest{Reason: &reason})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !jsonContainsKey(t, withReason, "reason") {
-			t.Fatalf("supplied platform-admin reason omitted from %s", withReason)
+		command := capabilityOverrideMutationCommand{ActorIsPlatformAdmin: true}
+		if !command.ActorIsPlatformAdmin {
+			t.Fatal("backend command must retain derived platform-admin provenance")
 		}
 	})
 }

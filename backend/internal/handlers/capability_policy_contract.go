@@ -132,20 +132,18 @@ type CapabilityOverrideMutationResult struct {
 	ActivationStatus CapabilityActivationStatus `json:"activation_status"`
 }
 
-type NonPlatformAdminOverrideMutationRequest struct {
-	GroupID              int64                     `json:"group_id"`
-	TargetUserID         int64                     `json:"target_user_id"`
-	ActionCode           string                    `json:"action_code"`
-	Effect               *CapabilityOverrideEffect `json:"effect"`
-	ActorIsPlatformAdmin bool                      `json:"actor_is_platform_admin"`
-	Reason               CapabilityOverrideReason  `json:"reason"`
+type CapabilityOverrideMutationRequest struct {
+	GroupID      int64                     `json:"group_id"`
+	TargetUserID int64                     `json:"target_user_id"`
+	ActionCode   string                    `json:"action_code"`
+	Effect       *CapabilityOverrideEffect `json:"effect"`
+	Reason       *CapabilityOverrideReason `json:"reason,omitempty"`
 }
 
-type PlatformAdminOverrideMutationRequest struct {
-	GroupID              int64                     `json:"group_id"`
-	TargetUserID         int64                     `json:"target_user_id"`
-	ActionCode           string                    `json:"action_code"`
-	Effect               *CapabilityOverrideEffect `json:"effect"`
-	ActorIsPlatformAdmin bool                      `json:"actor_is_platform_admin"`
-	Reason               *CapabilityOverrideReason `json:"reason,omitempty"`
+// capabilityOverrideMutationCommand is backend-only provenance. Handlers derive
+// ActorIsPlatformAdmin from authenticated identity after decoding the external
+// request; clients cannot populate this command directly.
+type capabilityOverrideMutationCommand struct {
+	CapabilityOverrideMutationRequest
+	ActorIsPlatformAdmin bool
 }

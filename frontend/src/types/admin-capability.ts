@@ -125,26 +125,17 @@ export interface CapabilityOverrideMutationResult {
   activation_status: CapabilityActivationStatus;
 }
 
-export interface CapabilityOverrideMutationRequestBase {
+export interface CapabilityOverrideMutationRequest {
   group_id: number;
   target_user_id: number;
   action_code: string;
   effect: CapabilityOverrideEffect | null;
-}
-
-export interface NonPlatformAdminOverrideMutationRequest extends CapabilityOverrideMutationRequestBase {
-  actor_is_platform_admin: false;
-  reason: CapabilityOverrideReason;
-}
-
-export interface PlatformAdminOverrideMutationRequest extends CapabilityOverrideMutationRequestBase {
-  actor_is_platform_admin: true;
+  /**
+   * Für normale Administratoren serverseitig erforderlich. Plattform-Admin-
+   * Provenienz stammt ausschließlich aus der authentifizierten Identität.
+   */
   reason?: CapabilityOverrideReason | null;
 }
-
-export type CapabilityOverrideMutationRequest =
-  | NonPlatformAdminOverrideMutationRequest
-  | PlatformAdminOverrideMutationRequest;
 
 /** Metadaten zu einer einzelnen Action (für Spaltenüberschriften in der Matrix-Tabelle). */
 export interface ActionEntry {
