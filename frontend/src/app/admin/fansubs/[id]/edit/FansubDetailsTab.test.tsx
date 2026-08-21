@@ -29,6 +29,10 @@ const styles = new Proxy({}, {
 
 const capabilities: FansubGroupCapabilities = {
   can_edit_group: true,
+  can_edit_group_general: false,
+  can_edit_technical_links: false,
+  can_edit_founding_history: false,
+  can_update_group_links: false,
   can_manage_links: true,
   can_view_members: true,
   can_manage_members: true,
