@@ -99,6 +99,16 @@ func TestGetMemberRolesForVersion(t *testing.T) {
 	})
 }
 
+func TestReleaseVersionNotesKaraokeRoleUsesCanonicalCatalog(t *testing.T) {
+	repoSrc, err := os.ReadFile("release_version_notes_repository.go")
+	require.NoError(t, err)
+	content := string(repoSrc)
+
+	assert.Contains(t, content, "JOIN role_definitions rd ON rd.code = acr.role_code")
+	assert.Contains(t, content, "JOIN contributor_roles cr ON cr.name = rd.code")
+	assert.Contains(t, content, "rd.label_de AS role_label")
+}
+
 func TestReleaseVersionNotesRepository_GroupScopedEditResolversExist(t *testing.T) {
 	repoSrc, err := os.ReadFile("release_version_notes_repository.go")
 	require.NoError(t, err)
