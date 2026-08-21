@@ -32,6 +32,8 @@ type adminRouteHandlers struct {
 	adminGroupRolesHandler *handlers.AdminGroupRolesHandler
 	// Phase 107.1: gruppengebundene Release-Prüfqueue und schmale Detailansicht
 	releaseReviewHandler *handlers.ReleaseReviewHandler
+	// Phase 137-07: Effective-Rights Inspection/Mutation/History-API
+	adminEffectiveRightsHandler *handlers.AdminEffectiveRightsHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -257,5 +259,13 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 		v1.GET("/admin/fansubs/:id/release-reviews/:reviewId", auth, deps.releaseReviewHandler.Detail)
 		v1.GET("/admin/fansubs/:id/release-reviews/:reviewId/next", auth, deps.releaseReviewHandler.Next)
 		v1.POST("/admin/fansubs/:id/release-reviews/:reviewId/decision", auth, deps.releaseReviewHandler.Decide)
+	}
+	// Phase 137-07: Effective-Rights Inspection/Mutation/History (D06-D10) --
+	// thin HTTP projection of the central resolver (137-04/137-05) and the
+	// transactional override mutation service (137-06). No Phase-138 UI.
+	if deps.adminEffectiveRightsHandler != nil {
+		v1.GET("/admin/fansubs/:id/app-members/:appUserId/effective-rights", auth, deps.adminEffectiveRightsHandler.GetEffectiveRights)
+		v1.PUT("/admin/fansubs/:id/app-members/:appUserId/capability-overrides", auth, deps.adminEffectiveRightsHandler.MutateOverride)
+		v1.GET("/admin/fansubs/:id/app-members/:appUserId/capability-overrides/history", auth, deps.adminEffectiveRightsHandler.ListOverrideHistory)
 	}
 }

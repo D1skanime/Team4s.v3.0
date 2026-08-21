@@ -514,6 +514,14 @@ func main() {
 		permissionSvc,
 		releaseReviewService,
 	)
+	// Phase 137-07: Effective-Rights Inspection/Mutation/History-API -- thin
+	// HTTP projection of the central resolver (permissionSvc) and the
+	// transactional override mutation service (137-06).
+	effectiveRightsOverrideRepo := repository.NewAuthzUserOverridesRepository(dbPool)
+	effectiveRightsService := services.NewEffectiveRightsService(dbPool)
+	adminEffectiveRightsHandler := handlers.NewAdminEffectiveRightsHandler(
+		permissionSvc, effectiveRightsService, effectiveRightsOverrideRepo, authzRepo, auditLogRepo,
+	)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -534,6 +542,7 @@ func main() {
 		adminCapabilityHandler:        adminCapabilityHandler,
 		adminGroupRolesHandler:        adminGroupRolesHandler,
 		releaseReviewHandler:          releaseReviewHandler,
+		adminEffectiveRightsHandler:   adminEffectiveRightsHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)
