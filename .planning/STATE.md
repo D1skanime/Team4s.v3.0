@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: verifying
-stopped_at: Completed 137-08-PLAN.md (phase 137 implementation-complete, ready for verification)
-last_updated: "2026-08-21T19:35:58.870Z"
+status: ready_to_plan
+stopped_at: Phase 137 complete (8/8) — ready to discuss Phase 138
+last_updated: 2026-08-21T19:48:43.774Z
 last_activity: 2026-08-21
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 39
-  completed_plans: 39
+  completed_plans: 93
   percent: 29
 ---
 
@@ -29,13 +29,13 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 137 — central-effective-rights-resolver-overrides
+**Current focus:** Phase 138 — effective rights administration & impact ux
 
 ## Current Position
 
-Phase: 137 (central-effective-rights-resolver-overrides) — EXECUTING
-Plan: 8 of 8
-Status: Phase complete — ready for verification
+Phase: 138
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-08-21
 
 ## Accumulated Context
