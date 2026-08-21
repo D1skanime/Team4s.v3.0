@@ -45,7 +45,9 @@ func (r *AnimeContributionsRepository) GetMemberProjectDetail(
 
 	err := r.db.QueryRow(ctx, `
 		WITH own_roles AS (
-			SELECT DISTINCT acr.role_code, COALESCE(rd.label_de, acr.role_code) AS role_label
+			SELECT DISTINCT acr.role_code,
+				COALESCE(rd.label_de, acr.role_code) AS role_label,
+				COALESCE(rd.sort_order, 2147483647) AS sort_order
 			FROM anime_contributions ac
 			LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
@@ -79,8 +81,8 @@ func (r *AnimeContributionsRepository) GetMemberProjectDetail(
 			fg.id,
 			COALESCE(fg.name, ''),
 			(SELECT path FROM background),
-			COALESCE(ARRAY_AGG(DISTINCT own_roles.role_code ORDER BY own_roles.role_code) FILTER (WHERE own_roles.role_code IS NOT NULL), ARRAY[]::text[]),
-			COALESCE(ARRAY_AGG(DISTINCT own_roles.role_label ORDER BY own_roles.role_label) FILTER (WHERE own_roles.role_label IS NOT NULL), ARRAY[]::text[])
+			COALESCE(ARRAY_AGG(own_roles.role_code ORDER BY own_roles.sort_order, own_roles.role_code) FILTER (WHERE own_roles.role_code IS NOT NULL), ARRAY[]::text[]),
+			COALESCE(ARRAY_AGG(own_roles.role_label ORDER BY own_roles.sort_order, own_roles.role_code) FILTER (WHERE own_roles.role_label IS NOT NULL), ARRAY[]::text[])
 		FROM anime a
 		JOIN fansub_groups fg ON fg.id = $3
 		JOIN own_roles ON true
@@ -153,18 +155,24 @@ func (r *AnimeContributionsRepository) listMemberProjectReleaseVersions(
 		JOIN episodes ep ON ep.id = fr.episode_id
 		LEFT JOIN LATERAL (
 			SELECT
-				COALESCE(ARRAY_AGG(DISTINCT acr.role_code ORDER BY acr.role_code), ARRAY[]::text[]) AS role_codes,
-				COALESCE(ARRAY_AGG(DISTINCT COALESCE(rd.label_de, acr.role_code) ORDER BY COALESCE(rd.label_de, acr.role_code)), ARRAY[]::text[]) AS role_labels,
-				COUNT(ac.id) > 0 AS has_own_contribution
-			FROM anime_contributions ac
-			LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
-			LEFT JOIN role_definitions rd ON rd.code = acr.role_code
-			WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
-			  AND ac.anime_id = $3
-			  AND ac.fansub_group_id = $4
-			  AND ac.status = 'confirmed'
-			  AND (ac.release_version_id = rv.id OR ac.release_version_id IS NULL)
+				COALESCE(ARRAY_AGG(ordered_role.role_code ORDER BY ordered_role.sort_order, ordered_role.role_code), ARRAY[]::text[]) AS role_codes,
+				COALESCE(ARRAY_AGG(ordered_role.role_label ORDER BY ordered_role.sort_order, ordered_role.role_code), ARRAY[]::text[]) AS role_labels,
+				COUNT(ordered_role.role_code) > 0 AS has_own_contribution
+			FROM (
+				SELECT DISTINCT
+					acr.role_code,
+					COALESCE(rd.label_de, acr.role_code) AS role_label,
+					COALESCE(rd.sort_order, 2147483647) AS sort_order
+				FROM anime_contributions ac
+				LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
+				JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
+				LEFT JOIN role_definitions rd ON rd.code = acr.role_code
+				WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
+				  AND ac.anime_id = $3
+				  AND ac.fansub_group_id = $4
+				  AND ac.status = 'confirmed'
+				  AND (ac.release_version_id = rv.id OR ac.release_version_id IS NULL)
+			) ordered_role
 		) own ON true
 		WHERE ep.anime_id = $3
 		  AND rvg.fansub_group_id = $4
