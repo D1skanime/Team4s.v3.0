@@ -18,6 +18,7 @@ import type { EpisodeVersionEditorContext } from '@/types/episodeVersion'
 import type { ReleaseVersionCapabilities } from '@/types/releaseVersionMedia'
 import { ReleaseVersionMediaSection } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection'
 import { ReleaseVersionNotesTab } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab'
+import { SegmenteTab } from '@/app/admin/episode-versions/[versionId]/edit/SegmenteTab'
 
 import styles from './workspace.module.css'
 
@@ -140,7 +141,8 @@ export function MeReleaseWorkspacePage() {
   const episodeNumberLabel = formatEpisodeNumber(version.episode_number)
   const canUseMedia = capabilities.can_view_media
   const canUseNotes = capabilities.can_edit_notes && memberId != null
-  const hasAnyWorkspaceAccess = canUseMedia || capabilities.can_edit_notes
+  const canUseSegments = capabilities.can_manage_segments
+  const hasAnyWorkspaceAccess = canUseMedia || capabilities.can_edit_notes || canUseSegments
   const tabItems: TabItem[] = []
 
   if (canUseMedia) {
@@ -153,6 +155,25 @@ export function MeReleaseWorkspacePage() {
             versionId={version.id}
             fansubGroupName={groupName}
             releaseVersionLabel={releaseVersionLabel}
+          />
+        </Card>
+      ),
+    })
+  }
+
+  if (canUseSegments) {
+    tabItems.push({
+      id: 'segments',
+      label: 'Segmente',
+      content: (
+        <Card>
+          <SegmenteTab
+            animeId={version.anime_id}
+            groupId={selectedGroup?.id ?? null}
+            version={version.release_version ?? null}
+            episodeNumber={version.episode_number}
+            durationSeconds={version.duration_seconds}
+            releaseVariantId={version.id}
           />
         </Card>
       ),
@@ -215,7 +236,7 @@ export function MeReleaseWorkspacePage() {
           />
         ) : (
           <>
-            <Tabs items={tabItems} defaultTabId={canUseMedia ? 'media' : 'notes'} />
+            <Tabs items={tabItems} defaultTabId={canUseMedia ? 'media' : canUseSegments ? 'segments' : 'notes'} />
 
             {capabilities.can_edit_notes && memberId == null ? (
               <ErrorState
