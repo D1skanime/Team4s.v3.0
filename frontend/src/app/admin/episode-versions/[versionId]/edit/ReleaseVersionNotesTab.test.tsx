@@ -10,11 +10,13 @@ const getMemberRolesForVersionMock = vi.fn()
 const getOwnProfileMock = vi.fn()
 const listReleaseVersionNotesMock = vi.fn()
 
-const catalogRoles = [
-  { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
-  { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
-  { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: 'production', icon_key: 'film' },
-]
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+    { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: 'production', icon_key: 'film' },
+  ],
+}))
 
 vi.mock('@/providers/RoleCatalogProvider', () => ({
   useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
@@ -304,7 +306,7 @@ describe('ReleaseVersionNotesTab', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: /bearbeiten/i }))
-    const [editor] = await screen.findAllByRole('textbox')
+    const editor = await screen.findByPlaceholderText(/noch keine notiz/i)
     fireEvent.change(editor, { target: { value: 'Aktualisierter Text' } })
     fireEvent.click(screen.getByRole('button', { name: /^speichern$/i }))
 

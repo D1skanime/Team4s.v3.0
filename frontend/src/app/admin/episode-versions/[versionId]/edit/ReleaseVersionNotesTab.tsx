@@ -11,6 +11,9 @@ import {
   getOwnProfile,
   listReleaseVersionNotes,
 } from '@/lib/api'
+import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
+import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type {
   BulkNoteInput,
   MemberRoleForVersion,
@@ -28,52 +31,6 @@ interface ReleaseVersionNotesTabProps {
   showAllMembers?: boolean
 }
 
-const ROLE_HELP_TEXTS: Record<string, { label: string; placeholder: string }> = {
-  translator: {
-    label: 'Übersetzung',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  editor: {
-    label: 'Editing',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  timer: {
-    label: 'Timing',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  typesetter: {
-    label: 'Typesetting / FX',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  encoder: {
-    label: 'Encoding',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  raw_provider: {
-    label: 'Raw-Bereitstellung',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  quality_checker: {
-    label: 'Qualitätsprüfung',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  project_lead: {
-    label: 'Projektleitung',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  designer: {
-    label: 'Design',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  admin: {
-    label: 'Administration',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-  other: {
-    label: 'Sonstiges',
-    placeholder: 'Noch keine Notiz - kurz ergänzen?',
-  },
-}
 
 type NoteFormState = {
   id: number
@@ -164,13 +121,21 @@ function buildInitialState(
   return state
 }
 
-function groupRolesByMember(memberRoles: MemberRoleForVersion[]) {
+function groupRolesByMember(memberRoles: MemberRoleForVersion[], catalog: readonly RoleDefinitionOption[]) {
   const memberMap = new Map<number, { name: string; roles: MemberRoleForVersion[] }>()
   for (const memberRole of memberRoles) {
     if (!memberMap.has(memberRole.memberId)) {
       memberMap.set(memberRole.memberId, { name: memberRole.memberName, roles: [] })
     }
     memberMap.get(memberRole.memberId)!.roles.push(memberRole)
+  }
+
+  const catalogOrder = new Map(catalog.map((role, index) => [role.code, index]))
+  for (const member of memberMap.values()) {
+    member.roles.sort((a, b) => (
+      (catalogOrder.get(a.roleCode) ?? Number.MAX_SAFE_INTEGER) -
+      (catalogOrder.get(b.roleCode) ?? Number.MAX_SAFE_INTEGER)
+    ))
   }
   return Array.from(memberMap.entries())
 }
@@ -208,6 +173,7 @@ function formatLastActivity(value: string | null): string | null {
 }
 
 export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showAllMembers = true }: ReleaseVersionNotesTabProps) {
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
   const [memberRoles, setMemberRoles] = useState<MemberRoleForVersion[]>([])
   const [noteStates, setNoteStates] = useState<Record<string, NoteFormState>>({})
   const [initialNoteStates, setInitialNoteStates] = useState<Record<string, NoteFormState>>({})
@@ -289,7 +255,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
     }
   }, [memberIdFilter, versionId])
 
-  const memberEntries = useMemo(() => groupRolesByMember(memberRoles), [memberRoles])
+  const memberEntries = useMemo(() => groupRolesByMember(memberRoles, contributionRoles), [contributionRoles, memberRoles])
   const ownEntry = ownMemberId != null
     ? memberEntries.find(([memberId]) => memberId === ownMemberId)
     : undefined
@@ -485,6 +451,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
             memberId={selfEntry[0]}
             memberName={selfEntry[1].name}
             roles={selfEntry[1].roles}
+            catalog={contributionRoles}
             noteStates={noteStates}
             savingKeys={savingKeys}
             recentlySavedKey={recentlySavedKey}
@@ -523,7 +490,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
                   <span className={styles.memberAccordionText}>
                     <span className={styles.memberName}>{name}</span>
                     <span className={styles.memberRoleSummary}>
-                      {roles.map((role) => ROLE_HELP_TEXTS[role.roleName]?.label ?? role.roleLabel).join(', ')}
+                      {roles.map((role) => labelForRole(contributionRoles, role.roleCode)).join(', ')}
                     </span>
                   </span>
                   <Badge variant={plainTextLength === 0 ? 'muted' : 'info'}>
@@ -537,6 +504,7 @@ export function ReleaseVersionNotesTab({ versionId, memberIdFilter = null, showA
                       memberId={memberId}
                       memberName={name}
                       roles={roles}
+                      catalog={contributionRoles}
                       noteStates={noteStates}
                       savingKeys={savingKeys}
                       recentlySavedKey={recentlySavedKey}
@@ -564,6 +532,7 @@ interface MemberEditorBodyProps {
   memberId: number
   memberName: string
   roles: MemberRoleForVersion[]
+  catalog: readonly RoleDefinitionOption[]
   noteStates: Record<string, NoteFormState>
   savingKeys: Record<string, boolean>
   recentlySavedKey: string | null
@@ -579,6 +548,7 @@ function MemberEditorBody({
   memberId,
   memberName,
   roles,
+  catalog,
   noteStates,
   savingKeys,
   recentlySavedKey,
@@ -607,6 +577,7 @@ function MemberEditorBody({
             <RoleNoteField
               key={key}
               memberRole={memberRole}
+              catalog={catalog}
               state={noteStates[key]}
               isSaving={savingKeys[key] === true}
               isRecentlySaved={recentlySavedKey === key}
@@ -626,6 +597,7 @@ function MemberEditorBody({
 
 interface RoleNoteFieldProps {
   memberRole: MemberRoleForVersion
+  catalog: readonly RoleDefinitionOption[]
   state: NoteFormState | undefined
   isSaving: boolean
   isRecentlySaved: boolean
@@ -637,11 +609,11 @@ interface RoleNoteFieldProps {
   onSave: () => void
 }
 
-function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing, canEdit, onUpdate, onReset, onStartEdit, onSave }: RoleNoteFieldProps) {
+function RoleNoteField({ memberRole, catalog, state, isSaving, isRecentlySaved, isEditing, canEdit, onUpdate, onReset, onStartEdit, onSave }: RoleNoteFieldProps) {
   const key = buildKey(memberRole.memberId, memberRole.roleId)
-  const roleInfo = ROLE_HELP_TEXTS[memberRole.roleName]
-  const label = roleInfo?.label ?? memberRole.roleLabel
-  const placeholder = roleInfo?.placeholder ?? 'Noch keine Notiz - kurz ergänzen?'
+  const label = labelForRole(catalog, memberRole.roleCode)
+  const presentation = presentationForRole(catalog, memberRole.roleCode)
+  const placeholder = 'Noch keine Notiz - kurz ergänzen?'
   const charCount = getPlainTextLength(state?.bodyJson ?? null)
   const isOverLimit = charCount >= CHAR_WARN_LIMIT
   const hasSavedNote = (state?.id ?? 0) > 0
@@ -655,9 +627,18 @@ function RoleNoteField({ memberRole, state, isSaving, isRecentlySaved, isEditing
       <div className={styles.roleCardHeader}>
         <div className={styles.roleCardHeading}>
           <p className={styles.roleLabelEyebrow}>Rolle</p>
-          <label className={styles.roleLabelTitle}>{label}</label>
         </div>
-        <Badge variant="neutral">{memberRole.roleName}</Badge>
+        <Badge
+          variant="neutral"
+          data-role-code={presentation.colorKey}
+          style={{
+            borderColor: 'color-mix(in srgb, var(--role-accent) 32%, transparent)',
+            background: 'color-mix(in srgb, var(--role-accent) 13%, var(--surface-card))',
+            color: 'color-mix(in srgb, var(--role-accent) 78%, var(--text-primary))',
+          }}
+        >
+          {label}
+        </Badge>
       </div>
 
       {shouldShowViewMode || shouldShowReadonlyEmpty ? (
