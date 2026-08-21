@@ -33,6 +33,11 @@ func TestPhase136RoleCatalogUATCorrectionsLiveUpDownUp(t *testing.T) {
 			description TEXT NOT NULL DEFAULT ''
 		);
 		INSERT INTO contributor_roles(name, label) VALUES ('typesetter', 'Typesetting / FX');
+		UPDATE role_definitions SET assignable = false
+		WHERE code IN (
+			'translator', 'editor', 'timer', 'typesetter', 'encoder',
+			'raw_provider', 'quality_checker', 'designer', 'admin', 'other'
+		);
 	`)
 	require.NoError(t, err)
 	testsupport.ApplySQLFile(t, pool, phase136MigrationPath(t, phase136UpFile))
