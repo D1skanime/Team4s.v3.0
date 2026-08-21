@@ -100,4 +100,17 @@ describe("fansub edit access", () => {
     expect(hasFansubWorkspaceAccess(access)).toBe(false);
     expect(canUseMainTab("media", false, access)).toBe(false);
   });
+
+  it("exposes Media for a co_leader-shaped capability set after fansub_group_media.view is granted", () => {
+    const access = capabilities({
+      can_view_group_media: true,
+      can_upload_group_media: true,
+      can_update_group_media: true,
+      can_reorder_group_media: true,
+      can_edit_group_general: true,
+      can_update_group_links: true,
+    });
+    expect(hasFansubWorkspaceAccess(access)).toBe(true);
+    expect(canUseMainTab("media", false, access)).toBe(true);
+  });
 });
