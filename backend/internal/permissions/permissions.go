@@ -607,9 +607,19 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 
 	// Schritt 3: Contribution-Check (D-01..D-04).
 	// Gibt versions-spezifische role_codes zurück; Fallback auf anime-weite wenn keine Override existiert.
-	// Contribution roles stay their own, override-blind domain per the plan's minimal-edit
-	// scope -- they can still grant access even when the group-role step above was denied by
-	// a stored user_deny.
+	//
+	// GAP-06 (137-UAT.md) required an explicit re-investigation of whether a stored user_deny
+	// from Step 2 must also defeat this independent contribution-role fallback. 137-CONTEXT.md's
+	// D01 precedence list and its Section 2 binding Phase-136 rules never mention "contribution
+	// role" as a resolver source category at all -- neither requiring nor explicitly exempting it
+	// from user_deny precedence. This is Fall C per 137-UAT.md's investigate-first protocol: a
+	// genuinely unresolved design question, not a confirmed exception. The previous "override-blind
+	// by design" framing here traced only to 137-05-SUMMARY.md's own minimal-edit-scope executor
+	// note, not to any 137-CONTEXT.md-authored decision. Runtime behavior is therefore preserved
+	// unchanged pending an explicit human decision -- see 137-12-SUMMARY.md's
+	// "DECISION REQUIRED — Contribution Role vs User Deny" section. A stored user_deny from Step 2
+	// does NOT currently block this fallback; a contribution role can still independently grant
+	// access even after Step 2 was denied by a stored user_deny.
 	roleCodes, err := s.resolver.ListActorContributionRolesForVersion(ctx, actor.AppUserID, releaseVersionID)
 	if err != nil {
 		return Result{}, err

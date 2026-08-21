@@ -224,6 +224,44 @@ func TestIntegrationCanForReleaseVersionGroupRoleStepUserDenyOverridesRoleGrant(
 	assert.Equal(t, ReasonCodeUserDeny, result.ReasonCode)
 }
 
+// TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny
+// is GAP-06's (137-UAT.md) regression test. Unlike the test above (whose fake
+// resolver leaves contributionRoles nil/empty and therefore never reaches Step
+// 3), this test populates contributionRoles with a role code that independently
+// satisfies roleAllows(code, action) for the SAME action Step 2's stored
+// user_deny targets -- i.e. it actually exercises the conflict: Step 2 is
+// user_deny AND Step 3 would independently grant.
+//
+// 137-12-PLAN.md's investigation (see permissions.go's Step-3 comment in
+// CanForReleaseVersion) found that 137-CONTEXT.md's D01 precedence list and its
+// Section 2 binding Phase-136 rules never mention "contribution role" as a
+// resolver source category at all -- this is Fall C (an unresolved design
+// question), not Fall A or Fall B. Per 137-UAT.md's explicit instruction not to
+// resolve this unilaterally, this test proves and locks TODAY'S ACTUAL,
+// UNCHANGED behavior: a stored user_deny does not currently block the
+// contribution-role fallback. See 137-12-SUMMARY.md's
+// "DECISION REQUIRED — Contribution Role vs User Deny" section.
+func TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny(t *testing.T) {
+	resolver := &integrationFakeResolver{
+		fansubGroupID:    integrationTestGroupID,
+		roles:            []string{RoleFansubLead},
+		activeMembership: true,
+		overrides: []UserCapabilityOverride{
+			{ActionCode: ActionFansubGroupMediaUpload, Effect: "deny"},
+		},
+		contributionRoles: []string{RoleProjectLead},
+	}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	result, err := service.CanForReleaseVersion(context.Background(), actor, ActionFansubGroupMediaUpload, 900)
+	require.NoError(t, err)
+
+	assert.True(t, result.Allowed, "Fall C: contribution-role fallback (Step 3) is not currently blocked by Step 2's stored user_deny")
+	assert.Equal(t, ReasonAllowed, result.ReasonCode)
+	assert.Equal(t, RoleProjectLead, result.MatchedRole)
+}
+
 // TestIntegrationCanForReleaseVersionGroupRoleStepUserAllowGrantsWithoutRole
 // proves the positive direction for CanForReleaseVersion's group-role step.
 func TestIntegrationCanForReleaseVersionGroupRoleStepUserAllowGrantsWithoutRole(t *testing.T) {
