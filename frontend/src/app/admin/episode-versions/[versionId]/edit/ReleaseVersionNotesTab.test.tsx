@@ -12,9 +12,9 @@ const listReleaseVersionNotesMock = vi.fn()
 
 const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
-    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
-    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
-    { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: 'production', icon_key: 'film' },
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: '#7B3C4E', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: '#A16207', icon_key: 'image' },
+    { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: '#506B91', icon_key: 'film' },
   ],
 }))
 
@@ -130,7 +130,7 @@ describe('ReleaseVersionNotesTab', () => {
     const { container } = render(<ReleaseVersionNotesTab versionId={7} />)
 
     const roleBadges = await waitFor(() => {
-      const badges = Array.from(container.querySelectorAll('[data-role-code]'))
+      const badges = Array.from(container.querySelectorAll('[data-color-key]'))
       expect(badges).toHaveLength(3)
       return badges
     })
@@ -139,10 +139,10 @@ describe('ReleaseVersionNotesTab', () => {
       'Karaoke-FX',
       'Encoding',
     ])
-    expect(roleBadges.map((badge) => badge.getAttribute('data-role-code'))).toEqual([
-      'technical',
-      'creative',
-      'production',
+    expect(roleBadges.map((badge) => badge.getAttribute('data-color-key'))).toEqual([
+      '#7b3c4e',
+      '#a16207',
+      '#506b91',
     ])
     expect(screen.queryByText('Typesetting / FX')).toBeNull()
     expect(screen.queryByText('typesetter')).toBeNull()

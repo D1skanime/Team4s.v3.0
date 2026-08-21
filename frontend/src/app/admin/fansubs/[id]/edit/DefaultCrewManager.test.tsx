@@ -10,6 +10,18 @@ const listDefaultCrewMock = vi.fn()
 const upsertDefaultCrewEntryMock = vi.fn()
 const deleteDefaultCrewEntryMock = vi.fn()
 
+const { catalogRoles } = vi.hoisted(() => ({
+  catalogRoles: [
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: '#7B3C4E', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: '#A16207', icon_key: 'image' },
+    { code: 'translator', label_de: 'Übersetzung', contexts: ['anime_contribution'], sort_order: 30, color_key: '#27664F', icon_key: 'languages' },
+  ],
+}))
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+}))
+
 vi.mock('@/lib/api', () => ({
   ApiError: class ApiError extends Error {
     status: number
@@ -94,5 +106,31 @@ describe('DefaultCrewManager', () => {
     render(<DefaultCrewManager fansubId={5} members={TEST_MEMBERS} />)
 
     expect(await screen.findByText('Alice')).not.toBeNull()
+  })
+})
+
+describe('DefaultCrewManager catalog presentation', () => {
+  it('uses catalog order, labels and bounded color keys without changing persistence', async () => {
+    listDefaultCrewMock.mockResolvedValue([
+      { ...TEST_CREW_ENTRY, role_code: 'typesetter' },
+      { ...TEST_CREW_ENTRY, id: 2, role_code: 'karaoke_fx' },
+    ])
+
+    const { container } = render(<DefaultCrewManager fansubId={5} members={TEST_MEMBERS} />)
+    await screen.findByText('Typesetting')
+    expect(Array.from(container.querySelectorAll('[data-color-key]')).map((node) => [
+      node.textContent,
+      node.getAttribute('data-color-key'),
+    ])).toEqual([
+      ['Typesetting', '#7b3c4e'],
+      ['Karaoke-FX', '#a16207'],
+    ])
+
+    expect(Array.from(screen.getByLabelText('Rolle').querySelectorAll('option')).map((option) => option.textContent)).toEqual([
+      '— Rolle wählen —',
+      'Typesetting',
+      'Karaoke-FX',
+      'Übersetzung',
+    ])
   })
 })
