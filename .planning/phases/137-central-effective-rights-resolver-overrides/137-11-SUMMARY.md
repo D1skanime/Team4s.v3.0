@@ -90,3 +90,12 @@ None - no external service configuration required.
 ---
 *Phase: 137-central-effective-rights-resolver-overrides*
 *Completed: 2026-08-21*
+
+## Self-Check: PASSED
+
+- FOUND: backend/internal/permissions/effective_rights.go
+- FOUND: backend/internal/services/effective_rights_service.go
+- FOUND: .planning/phases/137-central-effective-rights-resolver-overrides/137-11-SUMMARY.md
+- FOUND: c710c4c8 (Task 1 commit)
+- FOUND: 7d804f11 (Task 2 commit)
+- FOUND: 0c6b6012 (Summary commit)
