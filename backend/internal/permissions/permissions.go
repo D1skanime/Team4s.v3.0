@@ -197,8 +197,15 @@ var (
 	loadedCache map[string][]Action
 )
 
-// allKnownActions enthält alle 18 Action-Konstanten aus permissions.go.
-// Wird von LoadCache für den D-10-Konsistenz-Check genutzt.
+// allKnownActions enthält alle Action-Konstanten aus permissions.go.
+// Wird von LoadCache für den D-10-Konsistenz-Check UND (seit Plan 137-05) von
+// ResolveGroupRights als vollständiges Action-Universum für die zentrale
+// Rechte-Auswertung genutzt (effective_rights.go). Eine hier fehlende Action
+// wird von GroupRightsResolution.Can() unsichtbar als no_grant abgelehnt,
+// selbst wenn role_capabilities eine Rolle dafür freigibt -- deshalb müssen
+// die fünf Phase-136-Actions (fansub_group_media.reorder, die drei
+// fansub_group_page.*_edit sowie fansub_group_links.update) hier stehen,
+// nicht nur als Action-Konstante weiter oben in dieser Datei.
 var allKnownActions = []Action{
 	ActionFansubGroupEdit,
 	ActionFansubGroupLinksManage,
@@ -215,7 +222,12 @@ var allKnownActions = []Action{
 	ActionFansubGroupMediaView,
 	ActionFansubGroupMediaUpload,
 	ActionFansubGroupMediaUpdate,
+	ActionFansubGroupMediaReorder,
 	ActionFansubGroupMediaDelete,
+	ActionFansubGroupPageGeneralEdit,
+	ActionFansubGroupPageTechnicalLinksEdit,
+	ActionFansubGroupPageFoundingHistoryEdit,
+	ActionFansubGroupLinksUpdate,
 	ActionAnimeFansubProjectNotesWrite,
 	ActionReleaseView,
 	ActionReleaseVersionView,
@@ -503,36 +515,24 @@ func (s *Service) CanReviewForFansubGroup(
 		return reviewDenied(ReasonNoMembership, "keine aktive bestätigte gruppenmitgliedschaft"), nil
 	}
 
-	roles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
+	// D01: the actual allow/deny decision is now a projection of the single
+	// central resolver, not an independent role-then-grant chain -- a stored
+	// user_deny must be able to override even an existing review delegation
+	// grant (137-RESEARCH.md Pitfall 2 / Open Question 4).
+	groupRights, err := s.ResolveGroupRights(ctx, actor, fansubGroupID)
 	if err != nil {
 		return ReviewAuthorizationResult{}, err
 	}
-	for _, role := range roles {
-		if strings.TrimSpace(role) == RoleFansubLead && roleAllows(RoleFansubLead, action) {
-			return ReviewAuthorizationResult{
-				Result: Result{
-					Allowed:      true,
-					ReasonCode:   ReasonAllowed,
-					Reason:       "berechtigung über gruppenrolle bestätigt",
-					MatchedRole:  RoleFansubLead,
-					MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
-				},
-				MembershipID: reviewContext.MembershipID,
-				MemberID:     reviewContext.MemberID,
-			}, nil
-		}
-	}
-	if slices.Contains(reviewContext.GrantedActions, action) {
+	state := groupRights.Can(action)
+	if state.Allowed {
 		return ReviewAuthorizationResult{
-			Result: Result{
-				Allowed:      true,
-				ReasonCode:   ReasonAllowed,
-				Reason:       "berechtigung über direkten review-grant bestätigt",
-				MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
-			},
+			Result:       resultFromCapabilityState(state, fansubGroupID),
 			MembershipID: reviewContext.MembershipID,
 			MemberID:     reviewContext.MemberID,
 		}, nil
+	}
+	if state.DecisiveSource == ProvenanceUserDeny {
+		return reviewDenied(ReasonCodeUserDeny, "durch persönliche sperre verweigert"), nil
 	}
 
 	return reviewDenied(ReasonInsufficientRole, "gruppenmitgliedschaft vorhanden, aber review-recht fehlt"), nil
@@ -601,6 +601,9 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 
 	// Schritt 3: Contribution-Check (D-01..D-04).
 	// Gibt versions-spezifische role_codes zurück; Fallback auf anime-weite wenn keine Override existiert.
+	// Contribution roles stay their own, override-blind domain per the plan's minimal-edit
+	// scope -- they can still grant access even when the group-role step above was denied by
+	// a stored user_deny.
 	roleCodes, err := s.resolver.ListActorContributionRolesForVersion(ctx, actor.AppUserID, releaseVersionID)
 	if err != nil {
 		return Result{}, err
@@ -619,34 +622,51 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 	if len(roleCodes) > 0 {
 		return denied(ReasonInsufficientRole, "contribution vorhanden, aber rolle reicht nicht aus"), nil
 	}
+	// A stored user_deny is a more specific, more transparent denial reason than the generic
+	// insufficient_role fallback below -- surface it once neither the group-role step nor the
+	// contribution fallback granted access.
+	if groupRoleResult.ReasonCode == ReasonCodeUserDeny {
+		return groupRoleResult, nil
+	}
 	if hasGroupMembership {
 		return denied(ReasonInsufficientRole, "gruppenmitgliedschaft vorhanden, aber rolle reicht nicht aus"), nil
 	}
 	return denied(ReasonNoMembership, "keine contribution für diese release-version"), nil
 }
 
+// canForReleaseVersionGroupRole is CanForReleaseVersion's step 2 (the shared
+// group-context path): it now derives its decision from ResolveGroupRights
+// instead of a raw role loop, so a stored user allow/deny for the resolved
+// group changes the result here exactly as it does for CanForFansubGroup
+// (137-RESEARCH.md Pattern 1). Step 3 (contribution-role fallback) remains a
+// separate, unchanged domain per the plan's minimal-edit scope. When no group
+// grants access, the returned Result carries the most specific denial reason
+// found (a decisive user_deny over the generic zero-value) so the caller can
+// distinguish "explicitly denied" from "simply never granted".
 func (s *Service) canForReleaseVersionGroupRole(ctx context.Context, actor Actor, action Action, resourceCtx *Context) (Result, bool, error) {
 	hasGroupMembership := false
+	var deniedByUserOverride *CapabilityRightState
+	var deniedGroupID int64
 	for _, fansubGroupID := range resourceCtx.FansubGroupIDs {
-		groupRoles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
+		groupRights, err := s.ResolveGroupRights(ctx, actor, fansubGroupID)
 		if err != nil {
 			return Result{}, false, err
 		}
-		for _, role := range groupRoles {
-			if strings.TrimSpace(role) == "" {
-				continue
-			}
+		if groupRights.ActiveMembership {
 			hasGroupMembership = true
-			if roleAllows(role, action) {
-				return Result{
-					Allowed:      true,
-					ReasonCode:   ReasonAllowed,
-					Reason:       "berechtigung über gruppenrolle bestätigt",
-					MatchedRole:  role,
-					MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
-				}, true, nil
-			}
 		}
+		state := groupRights.Can(action)
+		if state.Allowed {
+			return resultFromCapabilityState(state, fansubGroupID), true, nil
+		}
+		if state.DecisiveSource == ProvenanceUserDeny && deniedByUserOverride == nil {
+			captured := state
+			deniedByUserOverride = &captured
+			deniedGroupID = fansubGroupID
+		}
+	}
+	if deniedByUserOverride != nil {
+		return resultFromCapabilityState(*deniedByUserOverride, deniedGroupID), hasGroupMembership, nil
 	}
 	return Result{}, hasGroupMembership, nil
 }
@@ -696,28 +716,38 @@ func (s *Service) canForContext(
 		return denied(ReasonResourceNotFound, "ressource nicht gefunden"), nil
 	}
 
+	// D01/D03: every group this resource resolves to is now decided through
+	// the single central resolver instead of a raw per-group role loop, so a
+	// stored user allow/deny changes the result here exactly as it does for
+	// CanForFansubGroup. Active-membership presence is tracked in the same
+	// pass (ResolveGroupRights already batch-loads it), replacing the old
+	// second ListActorGroupRoles loop that only existed to recompute it.
 	ownerRequired := slices.Contains(actions, ActionReleaseVersionMediaDeleteOwn)
+	activeMembershipFound := false
+	var deniedByUserOverride *CapabilityRightState
+	var deniedGroupID int64
 	for _, fansubGroupID := range resourceContext.FansubGroupIDs {
-		roles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
+		groupRights, err := s.ResolveGroupRights(ctx, actor, fansubGroupID)
 		if err != nil {
 			return Result{}, err
 		}
-		for _, role := range roles {
-			for _, action := range actions {
-				if action == ActionReleaseVersionMediaDeleteOwn {
-					if !ownerRequired || resourceContext.OwnerAppUserID == nil || *resourceContext.OwnerAppUserID != actor.AppUserID {
-						continue
-					}
+		if groupRights.ActiveMembership {
+			activeMembershipFound = true
+		}
+		for _, action := range actions {
+			if action == ActionReleaseVersionMediaDeleteOwn {
+				if !ownerRequired || resourceContext.OwnerAppUserID == nil || *resourceContext.OwnerAppUserID != actor.AppUserID {
+					continue
 				}
-				if roleAllows(role, action) {
-					return Result{
-						Allowed:      true,
-						ReasonCode:   ReasonAllowed,
-						Reason:       "berechtigung über gruppenrolle bestätigt",
-						MatchedRole:  role,
-						MatchedScope: fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID),
-					}, nil
-				}
+			}
+			state := groupRights.Can(action)
+			if state.Allowed {
+				return resultFromCapabilityState(state, fansubGroupID), nil
+			}
+			if state.DecisiveSource == ProvenanceUserDeny && deniedByUserOverride == nil {
+				captured := state
+				deniedByUserOverride = &captured
+				deniedGroupID = fansubGroupID
 			}
 		}
 	}
@@ -726,17 +756,77 @@ func (s *Service) canForContext(
 		return denied(ReasonOwnerMismatch, "ressource gehört einem anderen benutzer"), nil
 	}
 
-	for _, fansubGroupID := range resourceContext.FansubGroupIDs {
-		roles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
-		if err != nil {
-			return Result{}, err
-		}
-		if len(roles) > 0 {
-			return denied(ReasonInsufficientRole, "gruppe gefunden, aber rolle reicht nicht aus"), nil
-		}
+	// A stored user_deny is a more specific, more transparent denial reason than the generic
+	// fallbacks below -- surface it once no group granted access.
+	if deniedByUserOverride != nil {
+		return resultFromCapabilityState(*deniedByUserOverride, deniedGroupID), nil
+	}
+
+	if activeMembershipFound {
+		return denied(ReasonInsufficientRole, "gruppe gefunden, aber rolle reicht nicht aus"), nil
 	}
 
 	return denied(ReasonNoMembership, "keine aktive gruppenmitgliedschaft für diese ressource"), nil
+}
+
+// resultFromCapabilityState projects one CapabilityRightState (the central
+// resolver's per-action decision) into the legacy Result shape every
+// existing Can* entry point returns, preserving the pre-Phase-137
+// ReasonCode/Reason/MatchedRole/MatchedScope vocabulary wherever the two
+// concepts coincide (D04: "existing Result shapes/reason behavior remain
+// compatible for callers"). This is a pure translation, not a second
+// precedence computation -- the decision itself was already made by
+// evaluateGroupRights (effective_rights.go).
+func resultFromCapabilityState(state CapabilityRightState, fansubGroupID int64) Result {
+	scope := fmt.Sprintf("%s:%d", ScopeTypeGroup, fansubGroupID)
+	switch state.DecisiveSource {
+	case ProvenancePlatformAdmin:
+		return Result{
+			Allowed:      true,
+			ReasonCode:   ReasonPlatformAdmin,
+			Reason:       "platform_admin darf diese aktion ausführen",
+			MatchedRole:  RolePlatformAdmin,
+			MatchedScope: ScopeTypeGlobal,
+		}
+	case ProvenanceGroupRole:
+		matchedRole := ""
+		if len(state.GrantingRoles) > 0 {
+			matchedRole = state.GrantingRoles[0]
+		}
+		return Result{
+			Allowed:      true,
+			ReasonCode:   ReasonAllowed,
+			Reason:       "berechtigung über gruppenrolle bestätigt",
+			MatchedRole:  matchedRole,
+			MatchedScope: scope,
+		}
+	case ProvenanceUserAllow:
+		return Result{
+			Allowed:      true,
+			ReasonCode:   ReasonAllowed,
+			Reason:       "berechtigung über persönliche freigabe bestätigt",
+			MatchedScope: scope,
+		}
+	case ProvenanceSpecializedGrant:
+		return Result{
+			Allowed:      true,
+			ReasonCode:   ReasonAllowed,
+			Reason:       "berechtigung über zugewiesene sonderberechtigung bestätigt",
+			MatchedScope: scope,
+		}
+	case ProvenanceUserDeny:
+		return Result{
+			Allowed:      false,
+			ReasonCode:   ReasonCodeUserDeny,
+			Reason:       "durch persönliche sperre verweigert",
+			MatchedScope: scope,
+		}
+	default:
+		if state.Allowed {
+			return Result{Allowed: true, ReasonCode: ReasonAllowed, Reason: "berechtigung bestätigt", MatchedScope: scope}
+		}
+		return denied(ReasonInsufficientRole, "gruppe gefunden, aber rolle reicht nicht aus")
+	}
 }
 
 // ReloadCache lädt die Capability-Matrix erneut aus der DB (D-06).

@@ -206,6 +206,36 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReleaseVersionMediaView,
 			ActionReleaseVersionNotesWrite,
 		},
+		// Phase-136-Rollen (Migration 0146) -- gfxler/techadmin sind Go-Konstanten,
+		// founder/co_leader existieren nur als role_definitions-Rollencodes ohne
+		// eigene Go-Konstante (siehe app_auth_test.go's bestehende Testfälle). Diese
+		// vier Zuordnungen entsprechen exakt Migration 0146's role_capabilities-Seed
+		// und werden erst seit Plan 137-05 gebraucht, weil allKnownActions jetzt auch
+		// die fünf Phase-136-Actions enthält (D-10-Konsistenz-Check).
+		RoleGfxler: {
+			ActionFansubGroupMediaUpload,
+			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaReorder,
+		},
+		RoleTechadmin: {
+			ActionFansubGroupMediaUpload,
+			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaReorder,
+			ActionFansubGroupPageTechnicalLinksEdit,
+		},
+		"founder": {
+			ActionFansubGroupMediaUpload,
+			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaReorder,
+			ActionFansubGroupPageFoundingHistoryEdit,
+		},
+		"co_leader": {
+			ActionFansubGroupMediaUpload,
+			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaReorder,
+			ActionFansubGroupPageGeneralEdit,
+			ActionFansubGroupLinksUpdate,
+		},
 	}
 }
 

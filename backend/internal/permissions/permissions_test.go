@@ -57,6 +57,25 @@ func (s *phase107ReviewResolverStub) ResolveActorReviewGrantContext(
 	return s.reviewContext, nil
 }
 
+// ResolveActorGroupMembership mirrors the real DB fact this fixture already
+// encodes: ResolveActorReviewGrantContext (Phase 107) only ever returns a
+// non-nil context for a verified, active membership, so a configured
+// reviewContext for this exact (appUserID, fansubGroupID) is itself proof of
+// active membership -- independent of whether the actor holds any group
+// role. Without this method, ResolveGroupRights' fallback derives
+// ActiveMembership from len(roles)>0 alone, which under-serves the
+// zero-role, pure-review-delegation fixtures below (Plan 137-05).
+func (s *phase107ReviewResolverStub) ResolveActorGroupMembership(
+	_ context.Context,
+	appUserID int64,
+	fansubGroupID int64,
+) (*GroupMembershipState, error) {
+	if s.reviewContext == nil || s.reviewContext.AppUserID != appUserID || s.reviewContext.FansubGroupID != fansubGroupID {
+		return &GroupMembershipState{ActiveMembership: false}, nil
+	}
+	return &GroupMembershipState{ActiveMembership: true}, nil
+}
+
 func TestPhase107ReviewActionsAreIndependentForFansubLead(t *testing.T) {
 	for _, action := range []Action{
 		ActionReviewTextDecide,
@@ -90,7 +109,16 @@ func TestPhase107ReviewActionsAreIndependentForFansubLead(t *testing.T) {
 			assert.Equal(t, RoleFansubLead, result.MatchedRole)
 			assert.EqualValues(t, 700, result.MembershipID)
 			assert.EqualValues(t, 701, result.MemberID)
-			assert.Equal(t, 1, resolver.reviewContextCalls)
+			// Plan 137-05: CanReviewForFansubGroup now calls
+			// ResolveActorReviewGrantContext twice -- once directly, for the
+			// verified-membership/MembershipID/MemberID facts the legacy
+			// ReviewAuthorizationResult shape still needs, and once more inside
+			// ResolveGroupRights' specialized-grant provider (review_grant_provider.go),
+			// which independently re-derives its own grants for the central resolver.
+			// This is a deliberate, documented consequence of routing the decision
+			// through the single central resolver rather than a bug (see
+			// 137-05-SUMMARY.md deviations).
+			assert.Equal(t, 2, resolver.reviewContextCalls)
 		})
 	}
 }

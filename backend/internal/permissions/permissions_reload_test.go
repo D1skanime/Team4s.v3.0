@@ -28,7 +28,7 @@ func (e errorCacheLoader) LoadRoleCapabilities(_ context.Context) (map[string][]
 }
 
 // fullValidCacheData gibt eine vollständige Role→Action-Map zurück, die den D-10-Check besteht.
-// Jede der 18 bekannten Actions muss entweder in mindestens einer Rolle vorkommen
+// Jede Action in allKnownActions muss entweder in mindestens einer Rolle vorkommen
 // oder in standaloneActions deklariert sein.
 func fullValidCacheData() map[string][]Action {
 	return map[string][]Action{
@@ -47,7 +47,12 @@ func fullValidCacheData() map[string][]Action {
 			ActionFansubGroupMediaView,
 			ActionFansubGroupMediaUpload,
 			ActionFansubGroupMediaUpdate,
+			ActionFansubGroupMediaReorder,
 			ActionFansubGroupMediaDelete,
+			ActionFansubGroupPageGeneralEdit,
+			ActionFansubGroupPageTechnicalLinksEdit,
+			ActionFansubGroupPageFoundingHistoryEdit,
+			ActionFansubGroupLinksUpdate,
 			ActionAnimeFansubProjectNotesWrite,
 			ActionReleaseView,
 			ActionReleaseVersionView,
