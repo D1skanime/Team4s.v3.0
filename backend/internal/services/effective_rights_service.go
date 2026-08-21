@@ -78,12 +78,12 @@ const (
 )
 
 var (
-	ErrEffectiveRightsMutationInvalid      = errors.New("effective rights mutation invalid")
-	ErrEffectiveRightsCapabilityDenied     = errors.New("effective rights capability denied")
-	ErrEffectiveRightsActionUnknown        = errors.New("effective rights action unknown")
-	ErrEffectiveRightsActionNotOverridable = errors.New("effective rights action not overridable")
+	ErrEffectiveRightsMutationInvalid       = errors.New("effective rights mutation invalid")
+	ErrEffectiveRightsCapabilityDenied      = errors.New("effective rights capability denied")
+	ErrEffectiveRightsActionUnknown         = errors.New("effective rights action unknown")
+	ErrEffectiveRightsActionNotOverridable  = errors.New("effective rights action not overridable")
 	ErrEffectiveRightsTargetNotActiveMember = errors.New("effective rights target not active member")
-	ErrEffectiveRightsReasonRequired       = errors.New("effective rights reason required")
+	ErrEffectiveRightsReasonRequired        = errors.New("effective rights reason required")
 )
 
 // EffectiveRightsOverrideMutationCommand is the full input to one D06 mutation
