@@ -126,11 +126,27 @@ describe('DefaultCrewManager catalog presentation', () => {
       ['Karaoke-FX', '#a16207'],
     ])
 
-    expect(Array.from(screen.getByLabelText('Rolle').querySelectorAll('option')).map((option) => option.textContent)).toEqual([
+    expect(Array.from(container.querySelectorAll('select')[1].querySelectorAll('option')).map((option) => option.textContent)).toEqual([
       '— Rolle wählen —',
       'Typesetting',
       'Karaoke-FX',
       'Übersetzung',
     ])
+  })
+})
+
+describe('DefaultCrewManager catalog mutation propagation', () => {
+  it('changes an existing crew chip when only color_key changes', async () => {
+    listDefaultCrewMock.mockResolvedValue([{ ...TEST_CREW_ENTRY, role_code: 'typesetter' }])
+    const typesetting = catalogRoles.find((row) => row.code === 'typesetter')!
+    const original = typesetting.color_key
+    typesetting.color_key = '#A16207'
+    try {
+      const { container } = render(<DefaultCrewManager fansubId={5} members={TEST_MEMBERS} />)
+      await screen.findByText('Typesetting')
+      expect(container.querySelector('[data-color-key]')?.getAttribute('data-color-key')).toBe('#a16207')
+    } finally {
+      typesetting.color_key = original
+    }
   })
 })

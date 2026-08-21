@@ -11,7 +11,7 @@ import {
   getOwnProfile,
   listReleaseVersionNotes,
 } from '@/lib/api'
-import { labelForRole, presentationForRole } from '@/lib/roleCatalog'
+import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type {
@@ -630,12 +630,8 @@ function RoleNoteField({ memberRole, catalog, state, isSaving, isRecentlySaved, 
         </div>
         <Badge
           variant="neutral"
-          data-role-code={presentation.colorKey}
-          style={{
-            borderColor: 'color-mix(in srgb, var(--role-accent) 32%, transparent)',
-            background: 'color-mix(in srgb, var(--role-accent) 13%, var(--surface-card))',
-            color: 'color-mix(in srgb, var(--role-accent) 78%, var(--text-primary))',
-          }}
+          className={ROLE_CATALOG_CHIP_CLASS}
+          data-color-key={presentation.colorKey}
         >
           {label}
         </Badge>

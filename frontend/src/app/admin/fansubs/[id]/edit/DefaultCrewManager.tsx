@@ -10,7 +10,7 @@ import {
   upsertDefaultCrewEntry,
 } from '@/lib/api'
 import type { DefaultCrewEntry, UnifiedGroupMember } from '@/types/fansub'
-import { labelForRole } from '@/lib/roleCatalog'
+import { ROLE_CATALOG_CHIP_CLASS, labelForRole, presentationForRole } from '@/lib/roleCatalog'
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import {
   Badge,
@@ -165,7 +165,7 @@ export function DefaultCrewManager({ fansubId, members }: Props) {
                     {memberDisplayName(entry.member_id)}
                   </td>
                   <td style={{ padding: '0.35rem 0.5rem' }}>
-                    <Badge variant="neutral">{roleLabelFor(entry.role_code)}</Badge>
+                    <Badge variant="neutral" className={ROLE_CATALOG_CHIP_CLASS} data-color-key={presentationForRole(contributionRoles, entry.role_code).colorKey}>{roleLabelFor(entry.role_code)}</Badge>
                   </td>
                   <td style={{ padding: '0.35rem 0.5rem', textAlign: 'right' }}>
                     <Button

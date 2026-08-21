@@ -521,3 +521,22 @@ describe('ReleaseVersionNotesTab', () => {
     }, { timeout: 1500 })
   })
 })
+
+describe('ReleaseVersionNotesTab catalog mutation propagation', () => {
+  it('changes the note badge when only color_key changes', async () => {
+    getMemberRolesForVersionMock.mockResolvedValue([
+      makeRole({ roleId: 1, roleCode: 'typesetter', roleName: 'typesetter', roleLabel: 'Typesetting / FX' }),
+    ])
+    listReleaseVersionNotesMock.mockResolvedValue([])
+    const typesetting = catalogRoles.find((row) => row.code === 'typesetter')!
+    const original = typesetting.color_key
+    typesetting.color_key = '#A16207'
+    try {
+      const { container } = render(<ReleaseVersionNotesTab versionId={7} />)
+      await screen.findByText('Typesetting')
+      expect(container.querySelector('[data-color-key]')?.getAttribute('data-color-key')).toBe('#a16207')
+    } finally {
+      typesetting.color_key = original
+    }
+  })
+})
