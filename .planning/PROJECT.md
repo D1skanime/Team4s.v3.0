@@ -76,6 +76,8 @@ Phase 112 completed on 2026-07-28: zwei weitere rein abgeleitete Badge-Familien 
 
 Phase 134 completed on 2026-08-20: the v1.3 milestone's closing fixture-backed verification and rollout gate. A versioned, idempotent `sheppert`/`csubs-leader` reset/seed contract, migration fresh/up/down proof, a 9-case Postgres-backed verification matrix, a real exit-code-checked automated green gate (`scripts/phase134-green-gate.sh`), protected-asset hash guarding, and live browser UAT (mobile/intermediate/widescreen, both profiles, 400% zoom, keyboard focus) with explicit user sign-off all passed. 7/7 verification must-haves, `GATE: GREEN (0)`.
 
+Phase 137 completed on 2026-08-21: `ResolveGroupRights`, the central provenance-capable effective-rights resolver (migration 0150, `backend/internal/permissions/effective_rights.go`), now backs every group-scoped runtime `Can*` entry point and a new transactional `EffectiveRightsService` for idempotent, audited per-user allow/deny/remove overrides, exposed at a group-scoped inspection/mutation/history HTTP boundary with BOLA/IDOR coverage. This is the backend/API foundation only — no admin UI ships yet, so the Active requirements below (effective-capability transparency, guided per-user override UX) remain open pending Phase 138. 5/5 verification must-haves, 0 critical code-review findings.
+
 ## Current Milestone: v1.4 Capability-, Review- und Benutzerverwaltung
 
 **Goal:** Make permissions understandable and safely controllable per user, complete the existing review-delegation seam, and reduce admin/review views to relevant, actionable work.
@@ -136,4 +138,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with the current system state.
 
 ---
-*Last updated: 2026-08-20 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
+*Last updated: 2026-08-21 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
