@@ -500,7 +500,7 @@ Plans:
 - [x] 136-30-PLAN.md — Shared semantic presentation on the four failed active role surfaces
 
 **Residual UAT gap closure — Wave 18**
-- [ ] 136-31-PLAN.md — Focused live role-presentation proof and resumption of the 136-28 checkpoint
+- [x] 136-31-PLAN.md — Focused live role-presentation proof and resumption of the 136-28 checkpoint
 
 ### Phase 137: Central Effective-Rights Resolver & Overrides
 
