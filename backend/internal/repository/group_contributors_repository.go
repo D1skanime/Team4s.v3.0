@@ -119,11 +119,12 @@ func (r *GroupContributorsRepository) GetProjectContributors(ctx context.Context
 			` + displayCol + ` AS member_display_name,
 			CASE WHEN m.profile_visibility = 'public' THEN m.public_slug ELSE NULL END AS member_slug,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
-			COALESCE(ARRAY_AGG(DISTINCT cr.label) FILTER (WHERE cr.label IS NOT NULL), ARRAY[]::text[]) AS role_labels
+			COALESCE(ARRAY_AGG(DISTINCT rd.label_de) FILTER (WHERE rd.label_de IS NOT NULL), ARRAY[]::text[]) AS role_labels
 		FROM release_member_roles rmr
 		JOIN members m ON m.id = rmr.member_id
 		LEFT JOIN media_assets member_avatar ON member_avatar.id = m.avatar_media_id
 		JOIN contributor_roles cr ON cr.id = rmr.role_id
+		JOIN role_definitions rd ON rd.code = cr.name
 		JOIN fansub_releases fr ON fr.id = rmr.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_versions rv ON rv.release_id = fr.id

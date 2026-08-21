@@ -133,9 +133,10 @@ func (r *ProjectMemberPublicRepository) GetSummary(ctx context.Context, animeID,
 	// Rollen: Union aus release_member_roles (Team) und oeffentlichen anime_contributions (extern).
 	rows, err := r.db.Query(ctx, `
 		SELECT DISTINCT label FROM (
-			SELECT cr.label AS label
+			SELECT rd.label_de AS label
 			FROM release_member_roles rmr
 			JOIN contributor_roles cr ON cr.id = rmr.role_id
+		JOIN role_definitions rd ON rd.code = cr.name
 			JOIN fansub_releases fr ON fr.id = rmr.release_id
 			JOIN episodes e ON e.id = fr.episode_id
 			JOIN release_versions rv ON rv.release_id = fr.id
@@ -243,7 +244,7 @@ func (r *ProjectMemberPublicRepository) ListNotes(ctx context.Context, animeID, 
 	}
 	q := `
 		SELECT rvn.id, rvn.title, rvn.body_html, rvn.body_text,
-		       COALESCE(cr.label, '') AS role_label,
+		       COALESCE(rd.label_de, '') AS role_label,
 		       COALESCE(e.episode_number, '') AS episode_label,
 		       COALESCE(rv.version, '') AS version_label,
 		       rvn.release_version_id, rvn.created_at
@@ -253,6 +254,7 @@ func (r *ProjectMemberPublicRepository) ListNotes(ctx context.Context, animeID, 
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		LEFT JOIN contributor_roles cr ON cr.id = rvn.role_id
+		LEFT JOIN role_definitions rd ON rd.code = cr.name
 		WHERE rvn.member_id = $1 AND e.anime_id = $2 AND rvg.fansub_group_id = $3
 		  AND ` + projectMemberPublicNotePredicate + seek + `
 		ORDER BY rvn.created_at DESC, rvn.id DESC
@@ -348,13 +350,14 @@ func (r *ProjectMemberPublicRepository) ListReleases(ctx context.Context, animeI
 		       COALESCE(rv.version, '') AS version_label,
 		       MAX(rmr.created_at) AS confirmed_at,
 		       COALESCE(e.sort_index, 0) AS episode_sort,
-		       COALESCE(ARRAY_AGG(DISTINCT cr.label) FILTER (WHERE cr.label IS NOT NULL), ARRAY[]::text[]) AS role_labels
+		       COALESCE(ARRAY_AGG(DISTINCT rd.label_de) FILTER (WHERE rd.label_de IS NOT NULL), ARRAY[]::text[]) AS role_labels
 		FROM release_member_roles rmr
 		JOIN fansub_releases fr ON fr.id = rmr.release_id
 		JOIN episodes e ON e.id = fr.episode_id
 		JOIN release_versions rv ON rv.release_id = fr.id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		JOIN contributor_roles cr ON cr.id = rmr.role_id
+		JOIN role_definitions rd ON rd.code = cr.name
 		WHERE rmr.member_id = $1 AND e.anime_id = $2 AND rvg.fansub_group_id = $3` + seek + `
 		GROUP BY rv.id, e.episode_number, rv.version, e.sort_index
 		ORDER BY episode_sort ASC, rv.id ASC

@@ -459,7 +459,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionNotesCursor(
 			rvn.member_id,
 			COALESCE(NULLIF(TRIM(m.nickname), ''), NULLIF(TRIM(m.display_name), ''), 'Mitglied') AS member_name,
 			NULLIF(TRIM(member_avatar.file_path), '') AS member_avatar_url,
-			COALESCE(cr.label, '') AS role_label,
+			COALESCE(rd.label_de, '') AS role_label,
 			COALESCE(NULLIF(TRIM(rvn.title), ''), '') AS title,
 			rvn.body_html,
 			rvn.created_at
@@ -467,6 +467,7 @@ func (r *ReleaseDetailPublicRepository) ListReleaseVersionNotesCursor(
 		JOIN members m ON m.id = rvn.member_id
 		LEFT JOIN media_assets member_avatar ON member_avatar.id = m.avatar_media_id
 		LEFT JOIN contributor_roles cr ON cr.id = rvn.role_id
+		LEFT JOIN role_definitions rd ON rd.code = cr.name
 		WHERE rvn.release_version_id = $1
 		  AND rvn.deleted_at IS NULL
 		  AND rvn.visibility = 'public'

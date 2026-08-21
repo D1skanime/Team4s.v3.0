@@ -129,16 +129,17 @@ func (r *MemberProfileRepository) loadHistoricalCredits(ctx context.Context, mem
 			fg.id,
 			fg.name,
 			cr.name,
-			cr.label,
+			rd.label_de,
 			COUNT(DISTINCT rmr.release_id)::int
 		FROM release_member_roles rmr
 		JOIN release_versions rv ON rv.release_id = rmr.release_id
 		JOIN release_version_groups rvg ON rvg.release_version_id = rv.id
 		JOIN fansub_groups fg ON fg.id = rvg.fansub_group_id
 		JOIN contributor_roles cr ON cr.id = rmr.role_id
+		JOIN role_definitions rd ON rd.code = cr.name
 		WHERE rmr.member_id = $1
-		GROUP BY fg.id, fg.name, cr.name, cr.label
-		ORDER BY fg.name ASC, cr.label ASC, cr.name ASC
+		GROUP BY fg.id, fg.name, cr.name, rd.label_de
+		ORDER BY fg.name ASC, rd.label_de ASC, cr.name ASC
 	`, memberID)
 	if err != nil {
 		return nil, fmt.Errorf("load historical credits for member %d: %w", memberID, err)

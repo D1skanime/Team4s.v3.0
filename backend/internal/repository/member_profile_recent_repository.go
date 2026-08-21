@@ -83,9 +83,10 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 				a.id      AS anime_id,
 				fg.name::text   AS fansub_group_name,
 				cr.name::text   AS role_name,
-				cr.label::text  AS role_label
+				rd.label_de::text  AS role_label
 			FROM release_member_roles rmr
 			JOIN contributor_roles cr ON cr.id = rmr.role_id
+		JOIN role_definitions rd ON rd.code = cr.name
 			JOIN fansub_releases fr ON fr.id = rmr.release_id
 			JOIN episodes e ON e.id = fr.episode_id
 			JOIN anime a ON a.id = e.anime_id
@@ -106,12 +107,13 @@ func (r *MemberProfileRepository) loadRecentContributions(ctx context.Context, m
 				a.id          AS anime_id,
 				fg.name::text AS fansub_group_name,
 				cr.name::text AS role_name,
-				cr.label::text AS role_label
+				rd.label_de::text AS role_label
 			FROM anime_contributions ac
 			JOIN anime a ON a.id = ac.anime_id
 			JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 			JOIN contributor_roles cr ON cr.name = acr.role_code
+			JOIN role_definitions rd ON rd.code = cr.name
 			WHERE ac.member_id = $1 AND ac.status = 'confirmed'
 			  AND (NOT $2 OR ac.is_public_on_member_profile = true)
 		),
