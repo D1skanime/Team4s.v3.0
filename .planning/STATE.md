@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: Ready to discuss Phase 137
-stopped_at: Completed 136-31-PLAN.md
-last_updated: "2026-08-21T14:34:16.234Z"
-last_activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7)
+status: executing
+stopped_at: Completed 137-01-PLAN.md
+last_updated: "2026-08-21T17:34:37.356Z"
+last_activity: 2026-08-21
 progress:
-  total_phases: 15
-  completed_phases: 6
-  total_plans: 111
-  completed_plans: 85
-  percent: 77
+  total_phases: 7
+  completed_phases: 1
+  total_plans: 39
+  completed_plans: 32
+  percent: 14
 ---
 
 # Project State
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** v1.4 Capability-, Review- und Benutzerverwaltung — Phase 136 policy, catalog, schema, and contract foundation.
+**Current focus:** Phase 137 — central-effective-rights-resolver-overrides
 
 ## Current Position
 
-Phase: 137 of 142 (central effective rights resolver & overrides)
-Plan: Not started
-Status: Ready to discuss Phase 137
-Last activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7)
+Phase: 137 (central-effective-rights-resolver-overrides) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
+Last activity: 2026-08-21
 
 ## Accumulated Context
 
@@ -148,6 +148,7 @@ Last activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7
 - [Phase 135]: [Phase 135, 2026-08-19]: Plan 135-10 executed (D-15, D-16) -- case-preserved fansubName KC attribute (register.ftl hidden-username derivation + token claim + backend display-identity priority) closes D-15; Task 4's self-claim approval render pre-existed this plan (ca189d99, prior non-GSD session) and was sanity-checked, not re-implemented. Live UAT surfaced 5 deviations, all fixed same-session: 2 backend list queries preferring lowercase preferred_username over case-preserved display_name; missing success feedback + cross-list refresh on claim-verify/member-activate; 5 window.confirm() calls replaced with the app's own Modal (design-system violation); missing claim-note render; a direct-user-requested mobile-first claim-card redesign. — Phase 135 is now complete (both previously outstanding plans, 135-07 and 135-10, done; all 10 plans have summaries). D-01 through D-16 implemented and live-verified. Commits 069b2f6b/514ec1fd/88e0d62f/1403ccd0 (Finding #28: hide active members from historical list, surface active membership + verified historical roles on public profile, linked-account card redesign) landed in the same session immediately after but are explicitly out of 135-10's D-15/D-16 scope -- recorded as an adjacent follow-up, not phase-135 work.
 - [Phase 136]: Catalog color_key values are normalized to the exact migration-0149 hex allowlist; unknown values resolve to neutral.
 - [Phase 136]: Active role chips use one data-color-key CSS seam and never derive colors from role codes.
+- [Phase 137]: Migration 0150 seeds the override-management capability only to fansub_lead (not founder/co_leader) and flips exactly seven Phase-136 group actions plus all three review.*.decide actions to user_overridable=true, giving later Phase-137 plans a real Review-Delegation-vs-User-Deny action to test against.
 
 ### Pending Todos
 
@@ -347,10 +348,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 136 P30 | 14min | 3 tasks | 12 files |
 | Phase 136 P31 | 22 min | 1 tasks | 2 files |
 | Phase 136 P28 | 3h39m | 1 tasks | 3 files |
+| Phase 137 P01 | 25min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-21T14:31:59.073Z
-Stopped at: Completed 136-31-PLAN.md
+Last session: 2026-08-21T17:34:37.349Z
+Stopped at: Completed 137-01-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None

@@ -110,3 +110,7 @@ None. `TEAM4S_PHASE106_TEST_DSN` is not set by default in this environment; a di
 *Phase: 137-central-effective-rights-resolver-overrides*
 *Plan: 01*
 *Completed: 2026-08-21*
+
+## Self-Check: PASSED
+
+All created files verified present on disk; all three task/summary commit hashes (`d5773460`, `6438ef24`, `a069b445`) verified present in `git log`.
