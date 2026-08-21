@@ -135,6 +135,22 @@ describe('GroupMediaReviewSection', () => {
     expect(container.firstChild).toBeNull()
   })
 
+  it('lädt ohne Medien-Leserecht auch bei Mutationsrechten keine Liste', () => {
+    const mutationOnlyCapabilities = {
+      ...noMediaCapabilities,
+      can_upload_group_media: true,
+      can_update_group_media: true,
+      can_reorder_group_media: true,
+    }
+
+    const { container } = render(
+      <GroupMediaReviewSection fansubId={88} capabilities={mutationOnlyCapabilities} />,
+    )
+
+    expect(container.firstChild).toBeNull()
+    expect(listFansubGroupMedia).not.toHaveBeenCalled()
+  })
+
   it('zeigt 403 als Berechtigungsfehler statt als Ladefehler', async () => {
     const { ApiError: MockApiError } = await import('@/lib/api')
     listFansubGroupMedia.mockRejectedValue(
