@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 137-11-PLAN.md (GAP-04/GAP-05 closed)
-last_updated: "2026-08-21T21:32:08.122Z"
+stopped_at: Completed 137-12-PLAN.md (GAP-06 dispositioned as Fall C -- DECISION REQUIRED)
+last_updated: "2026-08-21T21:37:17.631Z"
 last_activity: 2026-08-21
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 43
-  completed_plans: 42
-  percent: 14
+  completed_plans: 43
+  percent: 29
 ---
 
 # Project State
@@ -29,13 +29,13 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 137 — central-effective-rights-resolver-overrides
+**Current focus:** Phase 137 — COMPLETE (12/12 plans). Next: Phase 138 — Effective-Rights Administration & Impact UX
 
 ## Current Position
 
-Phase: 137 (central-effective-rights-resolver-overrides) — EXECUTING
-Plan: 11 of 12 (137-12 remaining)
-Status: Ready to execute
+Phase: 137 (central-effective-rights-resolver-overrides) — COMPLETE (12/12 plans, gap-closure run 137-09..137-12 closed GAP-01..GAP-06)
+Plan: 12 of 12 (all complete)
+Status: Ready for Phase 138 planning
 Last activity: 2026-08-21
 
 ## Accumulated Context
@@ -159,6 +159,7 @@ Last activity: 2026-08-21
 - [Phase 137]: 137-09: Closed GAP-01 (post-commit response safety) and GAP-02 (unconditional success + reject-path audit coverage, including the BOLA/IDOR body/path-mismatch guard) in AdminEffectiveRightsHandler.MutateOverride; CapabilityActivationStatus docs (both YAML contracts + TS type) now document the real, reachable pending-on-enrichment-failure behavior instead of the stale active-only claim.
 - [Phase 137]: 137-10 closed GAP-03: both shared/contracts/admin-capabilities.yaml and shared/contracts/openapi.yaml now document a 400 response on GET .../effective-rights and GET .../capability-overrides/history, matching parseGroupAndTarget's real badRequest behavior for a malformed id or appUserId path parameter. No other endpoint or schema changed; contract parity and tsc --noEmit both confirmed green.
 - [Phase 137]: 137-11 executed (GAP-04, GAP-05): effective_rights.go's file-level doc comment corrected to state production wiring (Plan 137-05) and DTO/HTTP projection (Plan 137-02/137-07) are both closed; effective_rights_service.go's error-sentinel var block is now gofmt-clean. Comment-only and whitespace-only changes; go build/test confirm zero behavioral change.
+- [Phase 137]: [Phase 137, 2026-08-21]: 137-12 dispositioned GAP-06 (contribution-role vs user_deny) as Fall C -- 137-CONTEXT.md's D01/Section 2 never name contribution roles as a resolver source category at all, so no runtime change was made to CanForReleaseVersion's Step 3 fallback; a new regression test (TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny) locks today's actual behavior (a stored user_deny does not block the contribution-role fallback), and the ambiguity is explicitly flagged in 137-12-SUMMARY.md as DECISION REQUIRED for a human decision-maker rather than resolved unilaterally.
 
 ### Pending Todos
 
@@ -369,10 +370,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 137 P08 | ~20min | 2 tasks | 3 files |
 | Phase 137 P09 | ~25min | 2 tasks | 6 files |
 | Phase 137 P11 | ~10min | 2 tasks | 2 files |
+| Phase 137 P12 | 10min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-08-21T21:32:08.109Z
-Stopped at: Completed 137-11-PLAN.md (GAP-04/GAP-05 closed)
+Last session: 2026-08-21T21:37:17.617Z
+Stopped at: Completed 137-12-PLAN.md (GAP-06 dispositioned as Fall C -- DECISION REQUIRED)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
