@@ -65,6 +65,7 @@ func fullValidCacheData() map[string][]Action {
 			ActionReviewTextDecide,
 			ActionReviewImageDecide,
 			ActionReviewContributionDecide,
+			ActionUserGroupCapabilityOverrideManage,
 		},
 		RoleDesigner: {
 			ActionReleaseVersionMediaDeleteOwn,

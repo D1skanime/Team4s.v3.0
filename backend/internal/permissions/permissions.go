@@ -52,6 +52,11 @@ const (
 	ActionReviewTextDecide                   Action = "review.text.decide"
 	ActionReviewImageDecide                  Action = "review.image.decide"
 	ActionReviewContributionDecide           Action = "review.contribution.decide"
+	// ActionUserGroupCapabilityOverrideManage is D07's dedicated, group-scoped
+	// per-user-override management capability (migration 0150). It is deliberately
+	// never itself user_overridable (migration 0146's CHECK constraint enforces this
+	// structurally at the DB layer too).
+	ActionUserGroupCapabilityOverrideManage Action = "user_group_capability_override.manage"
 )
 
 const (
@@ -241,6 +246,7 @@ var allKnownActions = []Action{
 	ActionReviewTextDecide,
 	ActionReviewImageDecide,
 	ActionReviewContributionDecide,
+	ActionUserGroupCapabilityOverrideManage,
 }
 
 // standaloneActions sind Actions, die in action_definitions existieren,

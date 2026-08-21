@@ -135,6 +135,7 @@ func roleMatrixStubData() map[string][]Action {
 			ActionReviewTextDecide,
 			ActionReviewImageDecide,
 			ActionReviewContributionDecide,
+			ActionUserGroupCapabilityOverrideManage,
 		},
 		RoleProjectLead: {
 			ActionFansubGroupEdit,
