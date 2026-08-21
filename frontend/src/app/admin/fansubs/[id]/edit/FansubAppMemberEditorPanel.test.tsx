@@ -196,4 +196,3 @@ describe('FansubAppMemberEditorPanel catalog color presentation', () => {
     expect(screen.getByRole('button', { name: 'Karaoke-FX' }).getAttribute('data-color-key')).toBe('#a16207')
   })
 })
-

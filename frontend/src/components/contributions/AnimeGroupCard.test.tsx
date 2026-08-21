@@ -7,10 +7,10 @@ import type { MeAnimeContribution } from '@/types/contributions'
 
 const { catalogRoles } = vi.hoisted(() => ({
   catalogRoles: [
-    { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
-    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
-    { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: 'production', icon_key: 'film' },
-    { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 40, color_key: 'production', icon_key: 'film' },
+    { code: 'typesetter', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: '#7B3C4E', icon_key: 'wrench' },
+    { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: '#A16207', icon_key: 'image' },
+    { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: '#506B91', icon_key: 'film' },
+    { code: 'timer', label_de: 'Timing', contexts: ['anime_contribution'], sort_order: 40, color_key: '#506B91', icon_key: 'film' },
   ],
 }))
 
@@ -54,23 +54,23 @@ describe('AnimeGroupCard', () => {
         animeId={10}
         animeTitle="Naruto"
         contributions={[makeContribution({
-          role_codes: ['karaoke_fx', 'future_role', 'typer'],
+          role_codes: ['karaoke_fx', 'future_role', 'typesetter'],
           role_labels: [],
         })]}
         onVisibilityChange={vi.fn()}
       />,
     )
 
-    const badges = Array.from(container.querySelectorAll('[data-role-code]'))
+    const badges = Array.from(container.querySelectorAll('[data-color-key]'))
     expect(badges.map((badge) => badge.textContent)).toEqual([
       'Typesetting',
       'Karaoke-FX',
       'Future Role',
     ])
-    expect(badges.map((badge) => badge.getAttribute('data-role-code'))).toEqual([
-      'technical',
-      'creative',
-      'other',
+    expect(badges.map((badge) => badge.getAttribute('data-color-key'))).toEqual([
+      '#7b3c4e',
+      '#a16207',
+      'neutral',
     ])
 
     fireEvent.click(screen.getByRole('button', { name: 'Projektrollen anzeigen' }))
@@ -120,5 +120,28 @@ describe('AnimeGroupCard', () => {
     expect(screen.getAllByText('Für das gesamte Projekt')).toHaveLength(2)
     expect(screen.getAllByRole('group', { name: 'Sichtbarkeit dieses Eintrags' })).toHaveLength(2)
     expect(screen.queryByText('wie oben')).toBeNull()
+  })
+})
+
+describe('AnimeGroupCard catalog mutation propagation', () => {
+  it('changes treatment when only the catalog color_key changes', () => {
+    const contribution = makeContribution({ role_codes: ['typesetter'], role_labels: [] })
+    const { container, unmount } = render(
+      <AnimeGroupCard animeId={10} animeTitle="Naruto" contributions={[contribution]} onVisibilityChange={vi.fn()} />,
+    )
+    expect(container.querySelector('[data-color-key]')?.getAttribute('data-color-key')).toBe('#7b3c4e')
+    unmount()
+
+    const typesetting = catalogRoles.find((row) => row.code === 'typesetter')!
+    const original = typesetting.color_key
+    typesetting.color_key = '#A16207'
+    try {
+      const mutated = render(
+        <AnimeGroupCard animeId={10} animeTitle="Naruto" contributions={[contribution]} onVisibilityChange={vi.fn()} />,
+      )
+      expect(mutated.container.querySelector('[data-color-key]')?.getAttribute('data-color-key')).toBe('#a16207')
+    } finally {
+      typesetting.color_key = original
+    }
   })
 })

@@ -11,6 +11,7 @@ import {
   Select,
 } from '@/components/ui'
 import { type RoleDefinitionOption } from '@/types/admin-capability'
+import { ROLE_CATALOG_CHIP_CLASS, presentationForRole } from '@/lib/roleCatalog'
 import {
   type FansubAppMember,
   type FansubGroupMediaPermissions,
@@ -174,15 +175,17 @@ export function FansubAppMemberEditorPanel({
                     <div className={styles.fansubEditMemberRoleGrid}>
                       {roleOptions.map((option) => {
                         const enabled = memberRoleDraft.includes(option.code)
+                        const presentation = presentationForRole(roleOptions, option.code)
                         return (
                           <button
                             key={option.code}
                             type="button"
                             className={styleNames(
                               styles.fansubEditMemberRoleToggle,
-                              styles.fansubEditRoleDefault,
+                              ROLE_CATALOG_CHIP_CLASS,
                               enabled && styles.fansubEditMemberRoleToggleSelected,
                             )}
+                            data-color-key={presentation.colorKey}
                             aria-pressed={enabled}
                             onClick={() => onToggleRole(option.code)}
                           >
