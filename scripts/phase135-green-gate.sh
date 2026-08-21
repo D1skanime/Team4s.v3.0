@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Phase 135 green gate (135-07 Task 1) -- full automated suite.
-# Runs all 8 steps, prints PASS/FAIL per step, exits non-zero on any failure.
+# Runs all 9 steps, prints PASS/FAIL per step, exits non-zero on any failure.
 # Per 135-VALIDATION.md "Full suite command": full backend go test + full frontend vitest.
 set -u
 cd "$(dirname "$0")/.." || exit 1
@@ -27,6 +27,7 @@ run() {
 run backend-build      docker compose exec -T team4sv30-backend go build ./...
 run backend-vet        docker compose exec -T team4sv30-backend go vet ./...
 run backend-test       docker compose exec -T team4sv30-backend go test ./...
+run keycloak-profile   docker compose run --rm keycloak-profile-config
 run frontend-typecheck docker compose exec -T team4sv30-frontend npm run typecheck
 run frontend-lint      docker compose exec -T team4sv30-frontend npm run lint
 run frontend-test      docker compose exec -T team4sv30-frontend npm test
@@ -37,7 +38,7 @@ echo
 echo "================ SUMMARY ================"
 echo "logs: $LOGDIR"
 if [ ${#FAILED[@]} -eq 0 ]; then
-  echo "GREEN GATE: PASS (all 8 steps green)"
+  echo "GREEN GATE: PASS (all 9 steps green)"
   exit 0
 else
   echo "GREEN GATE: FAIL -- failed steps: ${FAILED[*]}"
