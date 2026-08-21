@@ -437,6 +437,7 @@ func TestPhase137EffectiveRightsOverrideMutationAuthorization(t *testing.T) {
 
 	t.Run("self_mutation_allowed_via_capability_not_special_casing", func(t *testing.T) {
 		fx.resetOverrideState(t, 11, 21, effectiveRightsFixtureAction)
+		historyBefore := fx.historyCount(t, 11, 21, effectiveRightsFixtureAction)
 		result, err := service.MutateOverride(ctx, EffectiveRightsOverrideMutationCommand{
 			Actor: leadActor(), TargetAppUserID: 11, FansubGroupID: 21,
 			ActionCode: permissions.Action(effectiveRightsFixtureAction), Kind: OverrideMutationSetAllow,
@@ -444,7 +445,51 @@ func TestPhase137EffectiveRightsOverrideMutationAuthorization(t *testing.T) {
 		})
 		require.NoError(t, err)
 		assert.True(t, result.Changed)
+		assert.Equal(t, historyBefore+1, fx.historyCount(t, 11, 21, effectiveRightsFixtureAction), "a legitimate self-mutation must still be audited like any other real change")
 		fx.resetOverrideState(t, 11, 21, effectiveRightsFixtureAction)
+	})
+
+	// 137-CONTEXT.md Section 7 negative matrix: "self-modification without
+	// management capability | blocked". app_user 12 holds no roles in group 21
+	// (see fixture topology), so targeting itself must be denied exactly like
+	// targeting any other user -- D07 requires no special-cased self-check in
+	// either direction.
+	t.Run("self_mutation_denied_without_capability", func(t *testing.T) {
+		fx.resetOverrideState(t, 12, 21, effectiveRightsFixtureAction)
+		_, err := service.MutateOverride(ctx, EffectiveRightsOverrideMutationCommand{
+			Actor: permissions.Actor{AppUserID: 12, Status: "active"}, TargetAppUserID: 12, FansubGroupID: 21,
+			ActionCode: permissions.Action(effectiveRightsFixtureAction), Kind: OverrideMutationSetAllow,
+			ReasonCategory: OverrideReasonCategoryTaskDelegation,
+		})
+		assert.ErrorIs(t, err, ErrEffectiveRightsCapabilityDenied)
+		assert.Nil(t, fx.currentEffect(t, 12, 21, effectiveRightsFixtureAction))
+	})
+
+	// 137-CONTEXT.md Section 7 negative matrix: "Platform-Admin path | separately
+	// verified" -- proven here at the mutation/authorization boundary (the
+	// resolver-level platform-admin bypass is already proven in
+	// effective_rights_test.go; D07's own text explicitly calls out that
+	// "Platform Admin may manage them through the non-deniable global bypass").
+	// A platform admin with zero roles/membership in group 21 must still be able
+	// to mutate an override there.
+	t.Run("platform_admin_bypasses_group_management_capability", func(t *testing.T) {
+		// created_by_app_user_id/updated_by_app_user_id carry an FK to app_users(id),
+		// so the acting platform admin must be a real row -- id 900, no group role
+		// or membership anywhere, exactly the "platform admin with zero group
+		// standing" scenario D07 describes.
+		_, err := fx.pool.Exec(ctx, `INSERT INTO app_users(id, status) VALUES (900, 'active') ON CONFLICT DO NOTHING`)
+		require.NoError(t, err)
+		fx.resetOverrideState(t, 12, 21, effectiveRightsFixtureAction)
+		result, err := service.MutateOverride(ctx, EffectiveRightsOverrideMutationCommand{
+			Actor:           permissions.Actor{AppUserID: 900, Status: "active", IsPlatformAdmin: true},
+			TargetAppUserID: 12, FansubGroupID: 21,
+			ActionCode: permissions.Action(effectiveRightsFixtureAction), Kind: OverrideMutationSetDeny,
+			ReasonCategory: OverrideReasonCategorySecurityMeasure,
+		})
+		require.NoError(t, err)
+		assert.True(t, result.Changed)
+		assert.Equal(t, "deny", strOrNone(fx.currentEffect(t, 12, 21, effectiveRightsFixtureAction)))
+		fx.resetOverrideState(t, 12, 21, effectiveRightsFixtureAction)
 	})
 }
 
