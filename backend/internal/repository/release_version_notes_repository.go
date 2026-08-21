@@ -301,7 +301,7 @@ func (r *ReleaseVersionNotesRepository) getMemberRolesForVersionStep(
 			JOIN members m ON m.id = ac.member_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 			JOIN role_definitions rd ON rd.code = acr.role_code
-			JOIN contributor_roles cr ON cr.name = acr.role_code
+			JOIN contributor_roles cr ON cr.name = rd.code
 			WHERE ac.release_version_id = $1
 			  AND ac.fansub_group_id IN (
 			      SELECT fansub_group_id FROM release_version_groups WHERE release_version_id = $1
@@ -317,7 +317,7 @@ func (r *ReleaseVersionNotesRepository) getMemberRolesForVersionStep(
 			JOIN members m ON m.id = ac.member_id
 			JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 			JOIN role_definitions rd ON rd.code = acr.role_code
-			JOIN contributor_roles cr ON cr.name = acr.role_code
+			JOIN contributor_roles cr ON cr.name = rd.code
 			JOIN release_versions rv ON rv.id = $1
 			JOIN fansub_releases fr ON fr.id = rv.release_id
 			JOIN episodes e ON e.id = fr.episode_id
@@ -365,7 +365,7 @@ func (r *ReleaseVersionNotesRepository) getProjectLeadRolesForVersion(
 		JOIN members m ON m.id = ac.member_id
 		JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
 		JOIN role_definitions rd ON rd.code = acr.role_code
-		JOIN contributor_roles cr ON cr.name = acr.role_code
+		JOIN contributor_roles cr ON cr.name = rd.code
 		JOIN release_versions rv ON rv.id = $1
 		JOIN fansub_releases fr ON fr.id = rv.release_id
 		JOIN episodes e ON e.id = fr.episode_id
