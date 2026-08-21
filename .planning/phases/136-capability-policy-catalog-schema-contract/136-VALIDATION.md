@@ -123,3 +123,22 @@ Gap waves are parallel where file ownership is disjoint: 136-14/15/16/19 run in 
 | CONTEXT | D-20–D-23 | 136-16, 136-20 | covered | Exact Karaoke-FX semantics and no parallel role artwork authority. |
 | RESEARCH | Complete metadata, bounded semantic keys, contract parity, fresh migration proof | 136-16–20 | covered | Uses existing catalog/adapter/Compose seams; no new dependency. |
 | DEFERRED | Resolver/UI, Finding #33, general Finding #34 redesign | none | valid exclusion | Explicitly remains later-phase work. |
+
+## Residual UAT closure validation ownership (136-29–136-31)
+
+| Residual blocker | Owning plan | Automated proof |
+|---|---|---|
+| Duplicate canonical label authority | 136-29 | Migration sentinel proves contributor_roles.label remains untouched; exhaustive repository gate rejects cr.label projections and integration fixtures change labels through role_definitions only. |
+| Role-code-driven CSS colors | 136-30 | Adapter/consumer mutation tests change only catalog color_key and observe data-color-key/treatment changes; CSS/source gate rejects role-code color selectors/maps. |
+| Unmeasured accessibility of 15 treatments | 136-30, 136-31 | Deterministic token resolver computes all 15 treatments and asserts text/background ≥4.5:1, border/background ≥3:1, and focus/adjacent-background ≥3:1 before complementary live keyboard/viewport UAT. |
+
+## Residual multi-source coverage audit
+
+| Source | ID/item | Plan | Status | Notes |
+|---|---|---|---|---|
+| GOAL | One canonical catalog foundation | 136-29–30 | covered | role_definitions is sole label/semantic-key authority through backend and frontend consumers. |
+| REQ | CAP-11, CAP-12, CAP-13, QUAL-01, QUAL-04 | 136-29–31 | covered | Canonical projection, reversible metadata, consumer parity, automated accessibility, and live approval are explicit. |
+| CONTEXT | D-20–D-23 | 136-29–30 | covered | Typesetting/Karaoke-FX remain distinct and no parallel label/color authority is introduced. |
+| RESEARCH | One catalog projection and one bounded semantic adapter/provider | 136-29–30 | covered | Legacy consumers join role_definitions; frontend has one color_key→token seam and no role-code CSS map. |
+| UAT | Failed Test 5 role labels/colors | 136-29–31 | covered | Automated ownership/contrast proof precedes focused live verification. |
+| DEFERRED | Phase 137/138, legacy route, Findings 33/34 | none | valid exclusion | Explicitly untouched. |
