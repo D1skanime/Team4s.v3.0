@@ -1,1 +1,0 @@
-Earlier candidate.diff does not byte-match the live two-file diff; the approved profileBand hunk is present and was reviewed by content.

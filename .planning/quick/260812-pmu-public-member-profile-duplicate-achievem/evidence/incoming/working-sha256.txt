@@ -1,4 +1,0 @@
-47d2116f33bd558242f8580c70c62ed9937106dfde377271d8088bd904398fea  frontend/src/components/profile/MemberBadgeChain.tsx
-c5e854cbdb6d8e363eff1932041ada069758c6f2f6795ca75311e5637ad381af  frontend/src/components/profile/MemberBadgeChain.module.css
-7667c8f17ced15f0952f93615a923e8baba14c352cec9a9a87ab4791515a9d7e  frontend/src/components/profile/MemberBadgeChain.test.tsx
-443efad3b2e3cef3754e57009d7c2672be419d4c9733286649d0daccbca0fd2c  frontend/src/app/members/[slug]/page.test.tsx

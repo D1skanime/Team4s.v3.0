@@ -32,3 +32,17 @@ tmp-*
 .env
 .env.*
 !.env.example
+
+# --- Repo-Bereinigung 2026-08-21: generierte GSD-Evidence + Tool-/Test-Artefakte ---
+# .planning-DOKUMENTE (*.md) bleiben getrackt; nur generierte Artefakte werden ignoriert.
+.planning/**/*.patch
+.planning/**/*TRACE*.json
+.planning/**/evidence/**
+.planning/**/uat/**
+!.planning/**/evidence/**/
+!.planning/**/uat/**/
+!.planning/**/evidence/**/*.md
+!.planning/**/uat/**/*.md
+# Codex-Tooling + Playwright-Artefakte (regenerierbar)
+.codex/
+frontend/tmp-playwright-phase4/

@@ -1,2 +1,0 @@
-100644 2d5df2cd1bffc063ae41e234ca9528641d0e48b9 0	frontend/src/components/profile/MemberBadgeChain.test.tsx
-100644 e9998f940ee2191c217868b47c2f4042864df812 0	frontend/src/components/profile/badgeArtwork.test.ts

@@ -1,5 +1,0 @@
-Live shared-browser route: http://127.0.0.1:3300/members/sheppert
-Live DOM review: populated Sheppert profile loaded with all expected sections.
-Five exact viewport screenshot attempt: FAILED - in-app full-page capture timed out; no screenshots fabricated.
-Five exact viewport measurement retry: FAILED - in-app viewport loop timed out; no PASS fabricated.
-Headless evidence was not substituted for the required live shared-flow proof.

@@ -1,2 +1,0 @@
-b9ccb088e4c5f792ca792c3b4a87794d64a88e4361729ddca8925e48fea8f50f  frontend/src/app/members/[slug]/page.module.css
-6ec0f3473f1c9754fcb9948b272faaa2ed4af58eda56f5191b5cf0b5852bded6  frontend/src/app/members/[slug]/page.test.tsx
