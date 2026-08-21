@@ -614,7 +614,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 136. Capability Policy, Catalog & Schema Contract | 0/TBD | Not started | - |
-| 137. Central Effective-Rights Resolver & Overrides | 2/8 | In Progress | - |
+| 137. Central Effective-Rights Resolver & Overrides | 5/8 | In Progress | - |
 | 138. Effective-Rights Administration & Impact UX | 0/TBD | Not started | - |
 | 139. Scalable User-Admin Projections | 0/TBD | Not started | - |
 | 140. Review Delegation Management | 0/TBD | Not started | - |
