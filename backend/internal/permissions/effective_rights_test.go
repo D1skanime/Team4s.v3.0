@@ -397,3 +397,41 @@ func TestResolveGroupRightsNegativeSecurityMatrix(t *testing.T) {
 		})
 	}
 }
+
+// TestReviewGrantProviderUserDenyOverridesDelegatedGrant proves D05's explicit
+// requirement in isolation (no role in play at all): a personal User-Deny still wins over
+// an existing Review Delegation grant, and the losing review_delegation source remains
+// visible in provenance.
+func TestReviewGrantProviderUserDenyOverridesDelegatedGrant(t *testing.T) {
+	resolver := &effectiveRightsFakeResolver{
+		activeMembership: true,
+		overrides: []UserCapabilityOverride{
+			{ActionCode: ActionReviewContributionDecide, Effect: "deny"},
+		},
+		reviewContext: &ReviewGrantContext{
+			MembershipID: 700, AppUserID: 10, MemberID: 701, FansubGroupID: effectiveRightsTestGroupID,
+			GrantedActions: []Action{ActionReviewContributionDecide},
+		},
+	}
+	service := NewService(resolver)
+	actor := Actor{AppUserID: 10, Status: "active"}
+
+	res, err := service.ResolveGroupRights(context.Background(), actor, effectiveRightsTestGroupID)
+	require.NoError(t, err)
+
+	state := res.Can(ActionReviewContributionDecide)
+	assert.False(t, state.Allowed, "a personal user-deny must override an existing review delegation grant (D01)")
+	assert.Equal(t, ProvenanceUserDeny, state.DecisiveSource)
+	assert.Empty(t, state.GrantingRoles)
+	assert.Contains(t, state.SpecializedGrants, reviewDelegationGrantSource, "the losing review_delegation grant must remain visible in provenance")
+}
+
+func TestReviewGrantProviderSourceIsReviewDelegation(t *testing.T) {
+	provider := newReviewGrantProvider(&effectiveRightsFakeResolver{})
+	require.NotNil(t, provider)
+	assert.Equal(t, "review_delegation", provider.Source())
+}
+
+func TestReviewGrantProviderNilResolverReturnsNilProvider(t *testing.T) {
+	assert.Nil(t, newReviewGrantProvider(nil))
+}
