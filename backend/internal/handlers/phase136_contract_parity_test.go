@@ -2,13 +2,61 @@ package handlers
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"runtime"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 func TestPhase136ContractParity(t *testing.T) {
+	t.Run("group capability response", func(t *testing.T) {
+		expected := []string{
+			"can_edit_group_general",
+			"can_update_group_media",
+			"can_edit_technical_links",
+			"can_edit_founding_history",
+			"can_update_group_links",
+		}
+		assertJSONRequiredSubset(t, fansubGroupCapabilitiesResponse{}, expected...)
+
+		_, current, _, _ := runtime.Caller(0)
+		root := filepath.Clean(filepath.Join(filepath.Dir(current), "../../.."))
+		for _, relative := range []string{"shared/contracts/openapi.yaml", "shared/contracts/admin-capabilities.yaml"} {
+			data, err := os.ReadFile(filepath.Join(root, relative))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var document phase136Document
+			if err := yaml.Unmarshal(data, &document); err != nil {
+				t.Fatalf("parse %s: %v", relative, err)
+			}
+			schema, ok := document.Components.Schemas["FansubGroupCapabilities"]
+			if !ok {
+				t.Errorf("%s missing FansubGroupCapabilities", relative)
+				continue
+			}
+			for _, field := range expected {
+				if !contains(schema.Required, field) {
+					t.Errorf("%s FansubGroupCapabilities.%s missing or optional", relative, field)
+				}
+				if property := schema.Properties[field]; property.Type != "boolean" || property.Nullable {
+					t.Errorf("%s FansubGroupCapabilities.%s must be required non-nullable boolean", relative, field)
+				}
+			}
+		}
+
+		tsBytes, err := os.ReadFile(filepath.Join(root, "frontend/src/types/fansub.ts"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		assertTSInterfaceFields(t, string(tsBytes), "FansubGroupCapabilities", expected)
+	})
+
 	t.Run("YAML and TypeScript owners", TestPhase136PolicyYAMLTypeScriptContract)
 
 	t.Run("Go DTO JSON shapes", func(t *testing.T) {
@@ -97,6 +145,22 @@ func TestCapabilityOverrideReasonValidation(t *testing.T) {
 
 	if err := (CapabilityOverrideReason{Category: CapabilityOverrideReasonOther}).Validate(); err == nil {
 		t.Error("direct Go construction must reject other without explanatory text")
+	}
+}
+
+func assertJSONRequiredSubset(t *testing.T, value any, names ...string) {
+	t.Helper()
+	typeOf := reflect.TypeOf(value)
+	fields := map[string]bool{}
+	for i := 0; i < typeOf.NumField(); i++ {
+		name, options := parseJSONTag(typeOf.Field(i).Tag.Get("json"))
+		fields[name] = options["omitempty"]
+	}
+	for _, name := range names {
+		optional, ok := fields[name]
+		if !ok || optional {
+			t.Errorf("%s.%s missing or optional", typeOf.Name(), name)
+		}
 	}
 }
 
