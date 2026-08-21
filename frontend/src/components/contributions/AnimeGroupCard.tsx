@@ -187,8 +187,13 @@ export function AnimeGroupCard({
               {uniqueRoles.map(({ code, label }) => (
                 <Badge
                   key={code}
-                  variant="info"
+                  variant="neutral"
                   data-role-code={presentationForRole(contributionRoles, code).colorKey}
+                  style={{
+                    borderColor: 'color-mix(in srgb, var(--role-accent) 32%, transparent)',
+                    background: 'color-mix(in srgb, var(--role-accent) 13%, var(--surface-card))',
+                    color: 'color-mix(in srgb, var(--role-accent) 78%, var(--text-primary))',
+                  }}
                 >
                   {label}
                 </Badge>

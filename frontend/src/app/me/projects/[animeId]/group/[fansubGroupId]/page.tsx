@@ -7,7 +7,9 @@ import { ArrowLeft, Pencil, Search } from 'lucide-react'
 
 import { Badge, Button, Card, ErrorState, Input, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
 import { ApiError, getMyProjectDetail } from '@/lib/api'
+import { getRole, labelForRole, orderForContext, presentationForRole } from '@/lib/roleCatalog'
 import { useAuthSession } from '@/lib/useAuthSession'
+import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { MeProjectDetail, MeProjectReleaseVersion } from '@/types/contributions'
 
 import styles from './project.module.css'
@@ -81,6 +83,7 @@ export function MyProjectDetailPage() {
   const routeKey = animeId && fansubGroupId ? `${animeId}:${fansubGroupId}` : null
   const { hasAccessToken, hasRefreshToken, isClientInitialized } = useAuthSession()
   const hasAuthSession = hasAccessToken || hasRefreshToken
+  const { roles: contributionRoles } = useRoleCatalog('anime_contribution')
 
   const [loadState, setLoadState] = useState<ProjectLoadState>({
     key: null,
@@ -137,6 +140,25 @@ export function MyProjectDetailPage() {
   )
   const visibleReleases = filteredReleases.slice(0, visibleCount)
   const hasMore = visibleCount < filteredReleases.length
+
+  const projectRoles = useMemo(() => {
+    const orderedCodes = new Map(
+      orderForContext(contributionRoles, 'anime_contribution')
+        .map((role, index) => [role.code, index]),
+    )
+
+    return (project?.role_codes ?? []).map((code, index) => ({
+      code,
+      label: getRole(contributionRoles, code)
+        ? labelForRole(contributionRoles, code)
+        : project?.role_labels[index]?.trim() || labelForRole(contributionRoles, code),
+      inputIndex: index,
+    })).sort((left, right) => {
+      const leftOrder = orderedCodes.get(left.code) ?? Number.MAX_SAFE_INTEGER
+      const rightOrder = orderedCodes.get(right.code) ?? Number.MAX_SAFE_INTEGER
+      return leftOrder - rightOrder || left.inputIndex - right.inputIndex
+    })
+  }, [contributionRoles, project])
 
   const assignedReleases = project?.release_versions.filter((release) => release.has_own_contribution) ?? []
   const assignedCount = assignedReleases.length
@@ -235,9 +257,14 @@ export function MyProjectDetailPage() {
 
       <Card title="Deine Projektrollen" className={styles.rolesCard}>
         <div className={styles.roleDetailList} role="group" aria-label="Deine Projektrollen in diesem Projekt">
-          {project.role_labels.map((label, index) => (
-            <div key={`${project.role_codes[index] ?? label}-${label}`} className={styles.roleDetailRow}>
-              <strong>{label}</strong>
+          {projectRoles.map((role) => (
+            <div
+              key={role.code}
+              className={styles.roleDetailRow}
+              data-role-code={presentationForRole(contributionRoles, role.code).colorKey}
+              style={{ borderInlineStartColor: 'var(--role-accent)', borderInlineStartWidth: 3 }}
+            >
+              <strong>{role.label}</strong>
               <small>Für das gesamte Projekt</small>
             </div>
           ))}

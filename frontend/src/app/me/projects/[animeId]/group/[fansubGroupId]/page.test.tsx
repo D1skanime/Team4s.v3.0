@@ -7,6 +7,16 @@ const getMyProjectDetailMock = vi.hoisted(() => vi.fn())
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 const useSearchParamsMock = vi.hoisted(() => vi.fn())
 
+const catalogRoles = vi.hoisted(() => [
+  { code: 'typer', label_de: 'Typesetting', contexts: ['anime_contribution'], sort_order: 10, color_key: 'technical', icon_key: 'wrench' },
+  { code: 'karaoke_fx', label_de: 'Karaoke-FX', contexts: ['anime_contribution'], sort_order: 20, color_key: 'creative', icon_key: 'image' },
+  { code: 'encoder', label_de: 'Encoding', contexts: ['anime_contribution'], sort_order: 30, color_key: 'production', icon_key: 'film' },
+])
+
+vi.mock('@/providers/RoleCatalogProvider', () => ({
+  useRoleCatalog: () => ({ roles: catalogRoles, error: null }),
+}))
+
 vi.mock('next/navigation', () => ({
   useParams: () => ({ animeId: '10', fansubGroupId: '5' }),
   useSearchParams: () => useSearchParamsMock(),
