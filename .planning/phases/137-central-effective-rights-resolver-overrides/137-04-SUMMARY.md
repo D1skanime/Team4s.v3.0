@@ -138,3 +138,9 @@ None — no external service configuration required.
 *Phase: 137-central-effective-rights-resolver-overrides*
 *Plan: 04*
 *Completed: 2026-08-21*
+
+## Self-Check: PASSED
+
+All created files verified present on disk (`effective_rights.go`, `effective_rights_test.go`,
+`review_grant_provider.go`, this summary); all four commit hashes (`1f3df034`, `964ac40f`,
+`92784aad`, `688347cc`) verified present in `git log`.
