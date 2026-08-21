@@ -10,7 +10,7 @@ import {
   updateFansubGroup,
 } from "@/lib/api";
 import type { EditableMediaValue } from "@/components/admin/MediaUpload";
-import type { FansubAlias, FansubGroup } from "@/types/fansub";
+import type { FansubAlias, FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import {
   communityLinkURLError,
   errMessage,
@@ -33,6 +33,7 @@ import type { CommunityLinkDraft, FormState } from "./fansubEditTypes";
 type UseFansubDetailsFormArgs = {
   fansubID: number;
   isPlatformAdmin: boolean;
+  capabilities: FansubGroupCapabilities | null;
   hasAuthSession: boolean;
   onGroupUpdated: (group: FansubGroup) => void;
   onToast: (message: string) => void;
@@ -45,6 +46,7 @@ export type FansubDetailsForm = ReturnType<typeof useFansubDetailsForm>;
 export function useFansubDetailsForm({
   fansubID,
   isPlatformAdmin,
+  capabilities,
   hasAuthSession,
   onGroupUpdated,
   onToast,
@@ -290,13 +292,21 @@ export function useFansubDetailsForm({
       setSaving(true);
       onError(null);
       try {
-        await updateFansubGroup(
-          fansubID,
-          formToPayload(form, logoMedia, bannerMedia, {
-            includeSlug: isPlatformAdmin,
-          }),
-        );
-        await syncFansubLinks(fansubID, initialLinks, links);
+        const canEditBroad = isPlatformAdmin || Boolean(capabilities?.can_edit_group);
+        const payload = formToPayload(form, logoMedia, bannerMedia, {
+          includeSlug: isPlatformAdmin,
+          includeGeneral: canEditBroad || Boolean(capabilities?.can_edit_group_general),
+          includeLifecycle: canEditBroad,
+          includeFounding: canEditBroad || Boolean(capabilities?.can_edit_founding_history),
+          includeMedia: canEditBroad || Boolean(capabilities?.can_update_group_media),
+        });
+        if (Object.keys(payload).length > 0) {
+          await updateFansubGroup(fansubID, payload);
+        }
+        await syncFansubLinks(fansubID, initialLinks, links, {
+          canUpdate: canEditBroad || Boolean(capabilities?.can_update_group_links),
+          canManage: canEditBroad || Boolean(capabilities?.can_manage_links),
+        });
         const response = await getFansubByID(fansubID);
         const next = mapGroupToForm(response.data);
         const nextMedia = mapGroupMedia(response.data);
@@ -320,6 +330,7 @@ export function useFansubDetailsForm({
     },
     [
       bannerMedia,
+      capabilities,
       fansubID,
       form,
       hasAuthSession,

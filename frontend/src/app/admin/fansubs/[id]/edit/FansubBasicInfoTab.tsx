@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 import { Plus, X } from "lucide-react";
 
-import type { FansubGroup, FansubStatus } from "@/types/fansub";
+import type { FansubGroup, FansubGroupCapabilities, FansubStatus } from "@/types/fansub";
 import {
   EditableMediaValue,
   MediaUpload,
@@ -29,6 +29,7 @@ type FansubBasicInfoTabProps = {
   details: FansubDetailsForm;
   fansubID: number;
   group: FansubGroup | null;
+  capabilities: FansubGroupCapabilities | null;
   isPlatformAdmin: boolean;
   hasAuthSession: boolean;
   onToast: (message: string) => void;
@@ -40,6 +41,7 @@ export function FansubBasicInfoTab({
   details,
   fansubID,
   group,
+  capabilities,
   isPlatformAdmin,
   hasAuthSession,
   onToast,
@@ -76,6 +78,12 @@ export function FansubBasicInfoTab({
     removeAlias,
   } = details;
 
+  const canEditBroad = isPlatformAdmin || Boolean(capabilities?.can_edit_group);
+  const canEditGeneral = canEditBroad || Boolean(capabilities?.can_edit_group_general);
+  const canEditFounding = canEditBroad || Boolean(capabilities?.can_edit_founding_history);
+  const canEditMedia = canEditBroad || Boolean(capabilities?.can_update_group_media);
+  const canManageLinks = canEditBroad || Boolean(capabilities?.can_manage_links);
+
   return (
     <section className={styles.fansubEditBasicWorkspace}>
       <div className={styles.fansubEditSectionBody}>
@@ -95,6 +103,7 @@ export function FansubBasicInfoTab({
               </label>
               <Input
                 id="fansub-group-name"
+                disabled={!canEditGeneral}
                 value={form.name}
                 onChange={(e) =>
                   setForm((c) => ({
@@ -180,6 +189,7 @@ export function FansubBasicInfoTab({
               </label>
               <Select
                 id="fansub-group-status"
+                disabled={!canEditBroad}
                 value={form.status}
                 onChange={(e) =>
                   setForm((c) => ({
@@ -199,12 +209,24 @@ export function FansubBasicInfoTab({
                 ))}
               </Select>
             </div>
+            <div className={`${styles.field} ${styles.fansubEditBasicField}`}>
+              <label htmlFor="fansub-group-type">Gruppentyp</label>
+              <Select
+                id="fansub-group-type"
+                value={form.groupType}
+                disabled={!canEditBroad}
+                onChange={(event) => setForm((current) => ({ ...current, groupType: event.target.value as typeof current.groupType }))}
+              >
+                <option value="group">Fansubgruppe</option>
+              </Select>
+            </div>
             <div
               className={`${styles.field} ${styles.fansubEditBasicField}`}
             >
               <label htmlFor="fansub-group-country">Land</label>
               <Input
                 id="fansub-group-country"
+                disabled={!canEditGeneral}
                 value={form.country}
                 onChange={(e) =>
                   setForm((c) => ({
@@ -223,6 +245,7 @@ export function FansubBasicInfoTab({
               </label>
               <YearSelectField
                 id="fansub-group-founded-year"
+                disabled={!canEditFounding}
                 label="Gründungsjahr"
                 value={form.foundedYear}
                 error={foundedError}
@@ -246,7 +269,7 @@ export function FansubBasicInfoTab({
                 Auflösungsjahr
               </label>
               <YearSelectField
-                disabled={form.status === "active"}
+                disabled={!canEditFounding || form.status === "active"}
                 id="fansub-group-dissolved-year"
                 label="Auflösungsjahr"
                 minYear={dissolvedYearMin(form.foundedYear)}
@@ -341,7 +364,7 @@ export function FansubBasicInfoTab({
                 fansubID={fansubID}
                 groupName={form.name.trim() || group?.name || ""}
                 value={logoMedia}
-                disabled={!hasAuthSession || saving}
+                disabled={!hasAuthSession || saving || !canEditMedia}
                 onBusyChange={handleLogoMediaBusyChange}
                 onChange={(nextValue: EditableMediaValue | null) => {
                   setLogoMedia(nextValue);
@@ -358,7 +381,7 @@ export function FansubBasicInfoTab({
                 fansubID={fansubID}
                 groupName={form.name.trim() || group?.name || ""}
                 value={bannerMedia}
-                disabled={!hasAuthSession || saving}
+                disabled={!hasAuthSession || saving || !canEditMedia}
                 onBusyChange={handleBannerMediaBusyChange}
                 onChange={(nextValue: EditableMediaValue | null) => {
                   setBannerMedia(nextValue);
@@ -385,6 +408,7 @@ export function FansubBasicInfoTab({
                   variant="secondary"
                   size="sm"
                   leftIcon={<Plus size={14} />}
+                  disabled={!canManageLinks}
                   onClick={() =>
                     setLinks((current) => [
                       ...current,

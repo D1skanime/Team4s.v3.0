@@ -149,6 +149,8 @@ export function FansubEditWorkspaceSection({
         activeMainTab={activeMainTab}
         fansubID={fansubID}
         group={group}
+        capabilities={capabilities}
+        isPlatformAdmin={isPlatformAdmin}
         releaseData={releaseData}
       />
     </section>

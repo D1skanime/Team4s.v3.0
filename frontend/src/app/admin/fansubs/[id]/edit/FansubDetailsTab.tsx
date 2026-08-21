@@ -60,6 +60,8 @@ export function FansubDetailsTab({
       links={links}
       setLinks={setLinks}
       linkErrors={linkErrors}
+      canUpdate={isPlatformAdmin || Boolean(capabilities?.can_edit_group) || Boolean(capabilities?.can_update_group_links)}
+      canManage={isPlatformAdmin || Boolean(capabilities?.can_edit_group) || Boolean(capabilities?.can_manage_links)}
     />
   );
 
@@ -94,6 +96,7 @@ export function FansubDetailsTab({
                 details={details}
                 fansubID={fansubID}
                 group={group}
+                capabilities={capabilities}
                 isPlatformAdmin={isPlatformAdmin}
                 hasAuthSession={hasAuthSession}
                 onToast={onToast}

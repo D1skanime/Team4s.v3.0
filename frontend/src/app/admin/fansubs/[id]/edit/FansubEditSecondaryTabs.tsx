@@ -1,6 +1,6 @@
 "use client";
 
-import type { FansubGroup } from "@/types/fansub";
+import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
 import { ReadinessTab } from "./ReadinessTab";
@@ -29,6 +29,8 @@ type FansubEditSecondaryTabsProps = {
   activeMainTab: MainTab;
   fansubID: number;
   group: FansubGroup | null;
+  capabilities: FansubGroupCapabilities | null;
+  isPlatformAdmin: boolean;
   releaseData: FansubReleaseData;
 };
 
@@ -36,6 +38,8 @@ export function FansubEditSecondaryTabs({
   activeMainTab,
   fansubID,
   group,
+  capabilities,
+  isPlatformAdmin,
   releaseData,
 }: FansubEditSecondaryTabsProps) {
   return (
@@ -45,6 +49,7 @@ export function FansubEditSecondaryTabs({
           <NotesTab fansubId={fansubID} />
           <GroupHistorySection
             fansubGroupId={fansubID}
+            foundingOnly={!isPlatformAdmin && !capabilities?.can_edit_group && Boolean(capabilities?.can_edit_founding_history)}
             foundedYear={group?.founded_year ?? null}
             hasWebsiteLink={hasWebsiteCommunityLink(group)}
             hasFirstProject={hasQualifiedFirstProject(releaseData.animeCoverageMap)}

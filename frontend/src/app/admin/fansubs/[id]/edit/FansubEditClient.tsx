@@ -60,6 +60,7 @@ export function FansubEditClient({
   const details = useFansubDetailsForm({
     fansubID,
     isPlatformAdmin,
+    capabilities,
     hasAuthSession,
     onGroupUpdated: handleDetailsGroupUpdated,
     onToast: handleDetailsToast,

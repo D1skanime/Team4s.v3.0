@@ -28,6 +28,8 @@ type FansubCommunityLinksListProps = {
   links: CommunityLinkDraft[];
   setLinks: Dispatch<SetStateAction<CommunityLinkDraft[]>>;
   linkErrors: (string | null)[];
+  canUpdate?: boolean;
+  canManage?: boolean;
 };
 
 export function FansubCommunityLinksList({
@@ -35,6 +37,8 @@ export function FansubCommunityLinksList({
   links,
   setLinks,
   linkErrors,
+  canUpdate = true,
+  canManage = true,
 }: FansubCommunityLinksListProps) {
   return (
     <div className={styles.fansubEditLinksList}>
@@ -47,6 +51,7 @@ export function FansubCommunityLinksList({
               <Select
                 id={`community-link-type-${link.key}`}
                 value={link.link_type}
+                disabled={link.id == null ? !canManage : !canUpdate}
                 onChange={(event) => {
                   const nextType = event.target.value as FansubGroupLinkType;
                   setLinks((current) =>
@@ -78,6 +83,7 @@ export function FansubCommunityLinksList({
               <Input
                 id={`community-link-name-${link.key}`}
                 value={link.name}
+                disabled={link.id == null ? !canManage : !canUpdate}
                 onChange={(event) =>
                   setLinks((current) =>
                     current.map((item) =>
@@ -102,6 +108,7 @@ export function FansubCommunityLinksList({
                 <Input
                   id={`community-link-url-${link.key}`}
                   value={link.url}
+                  disabled={link.id == null ? !canManage : !canUpdate}
                   invalid={Boolean(urlError)}
                   onChange={(event) =>
                     setLinks((current) =>
@@ -130,6 +137,7 @@ export function FansubCommunityLinksList({
                 ) : null}
               </div>
             </FormField>
+            {canManage ? (
             <Button
               type="button"
               variant="danger"
@@ -146,6 +154,7 @@ export function FansubCommunityLinksList({
               }
               leftIcon={<Trash2 size={14} />}
             />
+            ) : null}
           </div>
         );
       })}

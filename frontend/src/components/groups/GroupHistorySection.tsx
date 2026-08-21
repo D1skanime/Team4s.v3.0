@@ -124,6 +124,7 @@ interface GroupHistorySectionProps {
    * denen die Timeline nur gelesen werden darf.
    */
   readOnly?: boolean
+  foundingOnly?: boolean
 }
 
 export function buildHistoryEventOptions(
@@ -286,7 +287,7 @@ function getGroupHistoryEventOptions(): HistoryEventOptionState[] {
 // Komponente
 // ---------------------------------------------------------------------------
 
-export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, qualifiedReleaseCount = 0, hasCompletedProject = false, hasCollaboration = false, completedProjectCount = 0, readOnly = false }: GroupHistorySectionProps) {
+export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebsiteLink = false, hasFirstProject = false, hasFirstRelease = false, qualifiedReleaseCount = 0, hasCompletedProject = false, hasCollaboration = false, completedProjectCount = 0, readOnly = false, foundingOnly = false }: GroupHistorySectionProps) {
   const [entries, setEntries] = useState<GroupHistoryRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -342,13 +343,19 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
   }, [])
 
   const eventOptions = useMemo(
-    () => buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount),
-    [entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount],
+    () => {
+      const options = buildHistoryEventOptions(entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount)
+      return foundingOnly ? options.filter((option) => option.value === 'founding') : options
+    },
+    [entries, editTarget, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount, foundingOnly],
   )
 
   const addEventOptions = useMemo(
-    () => buildHistoryEventOptions(entries, null, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount),
-    [entries, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount],
+    () => {
+      const options = buildHistoryEventOptions(entries, null, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount)
+      return foundingOnly ? options.filter((option) => option.value === 'founding') : options
+    },
+    [entries, foundedYear, hasWebsiteLink, hasFirstProject, hasFirstRelease, hasCompletedProject, hasCollaboration, completedProjectCount, qualifiedReleaseCount, foundingOnly],
   )
 
   // ---------------------------------------------------------------------------
@@ -505,6 +512,9 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
     }
   }, [deleteTarget, fansubGroupId, showSuccess])
 
+  const canAddEntry = !readOnly && (!foundingOnly || !entries.some((entry) => entry.event_type === 'founding'))
+  const canEditEntry = (entry: GroupHistoryRow) => !readOnly && (!foundingOnly || entry.event_type === 'founding')
+  const canDeleteEntry = !readOnly && !foundingOnly
   const visibleEntries = isExpanded ? entries : entries.slice(0, COLLAPSE_THRESHOLD)
   const historyMinYear = foundedYear ?? 1990
   const historyMaxYear = new Date().getFullYear()
@@ -521,7 +531,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
         description="Wichtige Ereignisse der Gruppe chronologisch festhalten."
       />
 
-      {!readOnly ? (
+      {canAddEntry ? (
         <Toolbar
           leading={
             <Button
@@ -600,7 +610,7 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
                   <strong className={styles.historyTitle}>{entry.title}</strong>
                   {entry.note ? <p className={styles.historyNote}>{entry.note}</p> : null}
                 </div>
-                {!readOnly ? (
+                {canEditEntry(entry) ? (
                   <div className={styles.historyRowActions}>
                     <Button
                       variant="ghost"
@@ -611,15 +621,17 @@ export function GroupHistorySection({ fansubGroupId, foundedYear = null, hasWebs
                     >
                       <Pencil size={14} />
                     </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      iconOnly
-                      aria-label="Eintrag löschen"
-                      onClick={() => setDeleteTarget(entry)}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
+                    {canDeleteEntry ? (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        iconOnly
+                        aria-label="Eintrag löschen"
+                        onClick={() => setDeleteTarget(entry)}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    ) : null}
                   </div>
                 ) : null}
               </li>

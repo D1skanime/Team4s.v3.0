@@ -101,25 +101,20 @@ export function formToPayload(
   form: FormState,
   logo: EditableMediaValue | null,
   banner: EditableMediaValue | null,
-  options: { includeSlug: boolean },
+  options: { includeSlug: boolean; includeGeneral?: boolean; includeLifecycle?: boolean; includeFounding?: boolean; includeMedia?: boolean },
 ): FansubGroupPatchRequest {
-  const founded = parseYear(form.foundedYear);
-  const dissolved = parseYear(form.dissolvedYear);
-  const payload: FansubGroupPatchRequest = {
-    name: form.name.trim(),
-    status: form.status,
-    group_type: form.groupType,
-    country: toOptional(form.country),
-    founded_year: founded === null ? null : founded,
-    dissolved_year: dissolved === null ? null : dissolved,
-    logo_id: logo?.id ?? null,
-    banner_id: banner?.id ?? null,
-    logo_url: logo?.publicURL?.trim() ? logo.publicURL.trim() : null,
-    banner_url: banner?.publicURL?.trim() ? banner.publicURL.trim() : null,
-  };
-  if (options.includeSlug) {
-    payload.slug = form.slug.trim();
+  const payload: FansubGroupPatchRequest = {};
+  if (options.includeGeneral !== false) { payload.name = form.name.trim(); payload.country = toOptional(form.country); }
+  if (options.includeLifecycle !== false) { payload.status = form.status; payload.group_type = form.groupType; }
+  if (options.includeFounding !== false) {
+    const founded = parseYear(form.foundedYear); const dissolved = parseYear(form.dissolvedYear);
+    payload.founded_year = founded === null ? null : founded; payload.dissolved_year = dissolved === null ? null : dissolved;
   }
+  if (options.includeMedia !== false) {
+    payload.logo_id = logo?.id ?? null; payload.banner_id = banner?.id ?? null;
+    payload.logo_url = logo?.publicURL?.trim() ? logo.publicURL.trim() : null; payload.banner_url = banner?.publicURL?.trim() ? banner.publicURL.trim() : null;
+  }
+  if (options.includeSlug) payload.slug = form.slug.trim();
   return payload;
 }
 
@@ -149,6 +144,7 @@ export async function syncFansubLinks(
   fansubID: number,
   initialLinks: CommunityLinkDraft[],
   currentLinks: CommunityLinkDraft[],
+  permissions: { canUpdate: boolean; canManage: boolean } = { canUpdate: true, canManage: true },
 ): Promise<void> {
   const initialById = new Map(
     initialLinks
@@ -161,7 +157,7 @@ export async function syncFansubLinks(
       .map((item) => [item.id as number, item]),
   );
 
-  for (const [id] of initialById) {
+  if (permissions.canManage) for (const [id] of initialById) {
     if (!currentById.has(id)) {
       await deleteFansubLink(fansubID, id);
     }
@@ -172,6 +168,7 @@ export async function syncFansubLinks(
     const name = link.name.trim();
     if (!url && !name) continue;
     if (link.id != null && link.id > 0) {
+      if (!permissions.canUpdate) continue;
       const previous = initialById.get(link.id);
       if (
         !previous ||
@@ -188,6 +185,7 @@ export async function syncFansubLinks(
       continue;
     }
 
+    if (!permissions.canManage) continue;
     await createFansubLink(fansubID, {
       link_type: link.link_type,
       name: name || null,
