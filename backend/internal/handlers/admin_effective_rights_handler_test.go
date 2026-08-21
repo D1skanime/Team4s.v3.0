@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -348,6 +349,211 @@ func TestMutateOverrideNullEffectMapsToRemoveKind(t *testing.T) {
 	}
 	if mutation.lastCmd.Kind != services.OverrideMutationRemove {
 		t.Fatalf("expected REMOVE kind for null effect, got %q", mutation.lastCmd.Kind)
+	}
+}
+
+// TestMutateOverridePostCommitTargetLookupFailureDegradesToPending is GAP-01's
+// core regression: mutationSvc.MutateOverride already succeeded (the write is
+// committed), but the post-commit target-actor lookup fails because the
+// target repo stub has no membership row for this (target, group) pair. The
+// handler must still respond 200 with the mutation result correctly
+// populated and ActivationStatus degraded to "pending" -- never 404.
+func TestMutateOverridePostCommitTargetLookupFailureDegradesToPending(t *testing.T) {
+	perm := &effectiveRightsPermissionStub{allowedGroups: map[int64]bool{21: true}}
+	mutation := &effectiveRightsMutationStub{result: &services.EffectiveRightsOverrideMutationResult{Changed: true}}
+	target := &effectiveRightsTargetRepoStub{} // no membership row -> LockTargetMembership returns ErrNotFound
+	authz := &stubCapabilityAuthzRepo{}
+	audit := &captureAuditLogRepo{}
+	h := stubHandler(perm, mutation, target, authz, audit)
+
+	body := `{"group_id":21,"target_user_id":55,"action_code":"fansub_group_media.upload","effect":"allow","reason":{"category":"task_delegation"}}`
+	c, rec := effectiveRightsTestContext(http.MethodPut, "/api/v1/admin/fansubs/21/app-members/55/capability-overrides", "21", "55")
+	c.Request = httptest.NewRequest(http.MethodPut, c.Request.URL.String(), strings.NewReader(body))
+
+	h.MutateOverride(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 even when post-commit target lookup fails, got %d (body: %s)", rec.Code, rec.Body.String())
+	}
+	var response struct {
+		Data CapabilityOverrideMutationResult `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+		t.Fatalf("body parse failed: %v", err)
+	}
+	if !response.Data.Changed {
+		t.Fatal("expected changed=true from the mutation result")
+	}
+	if response.Data.ActivationStatus != CapabilityActivationStatusPending {
+		t.Fatalf("expected activation_status=pending, got %q", response.Data.ActivationStatus)
+	}
+	// GAP-02: the unconditional success audit must still have been written
+	// even though the post-commit enrichment failed.
+	if len(audit.entries) != 1 || audit.entries[0].Outcome != "allowed" {
+		t.Fatalf("expected exactly 1 allowed audit entry even on enrichment failure, got %v", audit.entries)
+	}
+}
+
+// TestMutateOverridePostCommitResolveFailureDegradesToPending is GAP-01's
+// second failure mode: the target-actor lookup succeeds but the subsequent
+// ResolveGroupRights call fails. The handler must still respond 200 with
+// ActivationStatus "pending", never 500.
+func TestMutateOverridePostCommitResolveFailureDegradesToPending(t *testing.T) {
+	perm := &effectiveRightsPermissionStub{
+		allowedGroups: map[int64]bool{21: true},
+		resolveErr:    errors.New("resolve boom"),
+	}
+	mutation := &effectiveRightsMutationStub{result: &services.EffectiveRightsOverrideMutationResult{Changed: true}}
+	target := &effectiveRightsTargetRepoStub{
+		memberships: map[string]*repository.TargetMembership{
+			targetMembershipKey(55, 21): {AppUserID: 55, FansubGroupID: 21, Status: "active", AppUserStatus: "active"},
+		},
+	}
+	authz := &stubCapabilityAuthzRepo{}
+	audit := &captureAuditLogRepo{}
+	h := stubHandler(perm, mutation, target, authz, audit)
+
+	body := `{"group_id":21,"target_user_id":55,"action_code":"fansub_group_media.upload","effect":"allow","reason":{"category":"task_delegation"}}`
+	c, rec := effectiveRightsTestContext(http.MethodPut, "/api/v1/admin/fansubs/21/app-members/55/capability-overrides", "21", "55")
+	c.Request = httptest.NewRequest(http.MethodPut, c.Request.URL.String(), strings.NewReader(body))
+
+	h.MutateOverride(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 even when post-commit ResolveGroupRights fails, got %d (body: %s)", rec.Code, rec.Body.String())
+	}
+	var response struct {
+		Data CapabilityOverrideMutationResult `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+		t.Fatalf("body parse failed: %v", err)
+	}
+	if response.Data.ActivationStatus != CapabilityActivationStatusPending {
+		t.Fatalf("expected activation_status=pending, got %q", response.Data.ActivationStatus)
+	}
+	if len(audit.entries) != 1 || audit.entries[0].Outcome != "allowed" {
+		t.Fatalf("expected exactly 1 allowed audit entry even on enrichment failure, got %v", audit.entries)
+	}
+}
+
+// TestMutateOverrideWritesUnconditionalSuccessAudit proves the plain happy
+// path (working post-commit enrichment) still writes exactly one generic
+// audit entry with the expected event type and outcome.
+func TestMutateOverrideWritesUnconditionalSuccessAudit(t *testing.T) {
+	perm := &effectiveRightsPermissionStub{allowedGroups: map[int64]bool{21: true}}
+	mutation := &effectiveRightsMutationStub{result: &services.EffectiveRightsOverrideMutationResult{Changed: true}}
+	target := &effectiveRightsTargetRepoStub{
+		memberships: map[string]*repository.TargetMembership{
+			targetMembershipKey(55, 21): {AppUserID: 55, FansubGroupID: 21, Status: "active", AppUserStatus: "active"},
+		},
+	}
+	authz := &stubCapabilityAuthzRepo{}
+	audit := &captureAuditLogRepo{}
+	h := stubHandler(perm, mutation, target, authz, audit)
+
+	body := `{"group_id":21,"target_user_id":55,"action_code":"fansub_group_media.upload","effect":"allow","reason":{"category":"task_delegation"}}`
+	c, rec := effectiveRightsTestContext(http.MethodPut, "/api/v1/admin/fansubs/21/app-members/55/capability-overrides", "21", "55")
+	c.Request = httptest.NewRequest(http.MethodPut, c.Request.URL.String(), strings.NewReader(body))
+
+	h.MutateOverride(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (body: %s)", rec.Code, rec.Body.String())
+	}
+	if len(audit.entries) != 1 {
+		t.Fatalf("expected exactly 1 audit entry, got %d", len(audit.entries))
+	}
+	entry := audit.entries[0]
+	if entry.EventType != "effective_rights.override.mutated" {
+		t.Fatalf("unexpected event_type %q", entry.EventType)
+	}
+	if entry.Outcome != "allowed" {
+		t.Fatalf("expected outcome=allowed, got %q", entry.Outcome)
+	}
+}
+
+// TestMutateOverrideAuditsBodyPathMismatchReject proves the BOLA/IDOR-
+// relevant body/path-mismatch guard (137-UAT.md GAP-02's one reject path that
+// returns directly via c.JSON instead of through writeMutationError) now
+// writes a rejected audit entry too, in addition to its unchanged 422
+// response.
+func TestMutateOverrideAuditsBodyPathMismatchReject(t *testing.T) {
+	perm := &effectiveRightsPermissionStub{allowedGroups: map[int64]bool{21: true}}
+	mutation := &effectiveRightsMutationStub{result: &services.EffectiveRightsOverrideMutationResult{Changed: true}}
+	target := &effectiveRightsTargetRepoStub{}
+	authz := &stubCapabilityAuthzRepo{}
+	audit := &captureAuditLogRepo{}
+	h := stubHandler(perm, mutation, target, authz, audit)
+
+	// Path says group 21 / target 55, but body claims group 99 (manipulated).
+	body := `{"group_id":99,"target_user_id":55,"action_code":"fansub_group_media.upload","effect":"deny","reason":{"category":"security_measure"}}`
+	c, rec := effectiveRightsTestContext(http.MethodPut, "/api/v1/admin/fansubs/21/app-members/55/capability-overrides", "21", "55")
+	c.Request = httptest.NewRequest(http.MethodPut, c.Request.URL.String(), strings.NewReader(body))
+
+	h.MutateOverride(c)
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected 422 for body/path mismatch, got %d (body: %s)", rec.Code, rec.Body.String())
+	}
+	if mutation.calls != 0 {
+		t.Fatal("mutation service must not be called when body/path mismatch is detected")
+	}
+	if len(audit.entries) != 1 {
+		t.Fatalf("expected exactly 1 audit entry, got %d", len(audit.entries))
+	}
+	entry := audit.entries[0]
+	if entry.Outcome != "rejected" {
+		t.Fatalf("expected outcome=rejected, got %q", entry.Outcome)
+	}
+	if entry.ReasonCode == nil || *entry.ReasonCode != "body_path_mismatch" {
+		t.Fatalf("expected reason_code=body_path_mismatch, got %v", entry.ReasonCode)
+	}
+}
+
+// TestMutateOverrideAuditsRejectBranches proves each of the four
+// previously-unaudited writeMutationError reject branches now writes exactly
+// one rejected audit entry with a stable, distinguishing reason code
+// (137-UAT.md GAP-02).
+func TestMutateOverrideAuditsRejectBranches(t *testing.T) {
+	cases := []struct {
+		name       string
+		err        error
+		reasonCode string
+	}{
+		{"target not active member", services.ErrEffectiveRightsTargetNotActiveMember, "target_not_active_member"},
+		{"unknown action", services.ErrEffectiveRightsActionUnknown, "action_unknown"},
+		{"action not overridable", services.ErrEffectiveRightsActionNotOverridable, "action_not_overridable"},
+		{"reason required", services.ErrEffectiveRightsReasonRequired, "reason_required"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			perm := &effectiveRightsPermissionStub{allowedGroups: map[int64]bool{21: true}}
+			mutation := &effectiveRightsMutationStub{err: tc.err}
+			target := &effectiveRightsTargetRepoStub{}
+			authz := &stubCapabilityAuthzRepo{}
+			audit := &captureAuditLogRepo{}
+			h := stubHandler(perm, mutation, target, authz, audit)
+
+			body := `{"group_id":21,"target_user_id":55,"action_code":"fansub_group_media.upload","effect":"deny","reason":{"category":"security_measure"}}`
+			c, rec := effectiveRightsTestContext(http.MethodPut, "/api/v1/admin/fansubs/21/app-members/55/capability-overrides", "21", "55")
+			c.Request = httptest.NewRequest(http.MethodPut, c.Request.URL.String(), strings.NewReader(body))
+
+			h.MutateOverride(c)
+
+			if rec.Code != http.StatusUnprocessableEntity {
+				t.Fatalf("expected 422, got %d (body: %s)", rec.Code, rec.Body.String())
+			}
+			if len(audit.entries) != 1 {
+				t.Fatalf("expected exactly 1 audit entry, got %d", len(audit.entries))
+			}
+			entry := audit.entries[0]
+			if entry.Outcome != "rejected" {
+				t.Fatalf("expected outcome=rejected, got %q", entry.Outcome)
+			}
+			if entry.ReasonCode == nil || *entry.ReasonCode != tc.reasonCode {
+				t.Fatalf("expected reason_code=%q, got %v", tc.reasonCode, entry.ReasonCode)
+			}
+		})
 	}
 }
 

@@ -137,11 +137,13 @@ func (h *AdminEffectiveRightsHandler) authorizeManagement(
 // status, and builds the permissions.Actor ResolveGroupRights needs to
 // produce an accurate resolution for the TARGET user (not the caller). A
 // genuinely foreign/non-existent (target, group) pair returns a neutral 404
-// without disclosing whether the target exists in a different group.
+// without disclosing whether the target exists in a different group. This is
+// a thin gin.Context-aware wrapper around loadTargetActorState, used by
+// GetEffectiveRights, which may still legitimately fail the HTTP request.
 func (h *AdminEffectiveRightsHandler) resolveTargetActor(
 	c *gin.Context, targetAppUserID int64, fansubGroupID int64,
 ) (*permissions.Actor, bool) {
-	membership, err := h.targetRepo.LockTargetMembership(c.Request.Context(), targetAppUserID, fansubGroupID)
+	targetActor, err := h.loadTargetActorState(c.Request.Context(), targetAppUserID, fansubGroupID)
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"message": "mitgliedschaftseintrag nicht gefunden"}})
 		return nil, false
@@ -151,19 +153,34 @@ func (h *AdminEffectiveRightsHandler) resolveTargetActor(
 		internalError(c, "interner serverfehler")
 		return nil, false
 	}
+	return targetActor, true
+}
 
-	isPlatformAdmin, err := h.authzRepo.AppUserHasGlobalRole(c.Request.Context(), targetAppUserID, "platform_admin")
+// loadTargetActorState performs the exact same target-membership +
+// platform-admin lookup as resolveTargetActor, but never touches gin.Context
+// and never writes an HTTP response -- it returns the raw error
+// (repository.ErrNotFound or any other error) for the caller to interpret.
+// This is the response-free variant MutateOverride's best-effort post-commit
+// enrichment uses (GAP-01): a failure here must never turn an
+// already-committed successful write into an HTTP error response.
+func (h *AdminEffectiveRightsHandler) loadTargetActorState(
+	ctx context.Context, targetAppUserID int64, fansubGroupID int64,
+) (*permissions.Actor, error) {
+	membership, err := h.targetRepo.LockTargetMembership(ctx, targetAppUserID, fansubGroupID)
 	if err != nil {
-		log.Printf("effective rights: platform admin lookup error (target=%d): %v", targetAppUserID, err)
-		internalError(c, "interner serverfehler")
-		return nil, false
+		return nil, err
+	}
+
+	isPlatformAdmin, err := h.authzRepo.AppUserHasGlobalRole(ctx, targetAppUserID, "platform_admin")
+	if err != nil {
+		return nil, err
 	}
 
 	return &permissions.Actor{
 		AppUserID:       targetAppUserID,
 		Status:          membership.AppUserStatus,
 		IsPlatformAdmin: isPlatformAdmin,
-	}, true
+	}, nil
 }
 
 // GetEffectiveRights returns the complete group-wide effective-rights
@@ -223,8 +240,15 @@ func (h *AdminEffectiveRightsHandler) MutateOverride(c *gin.Context) {
 
 	// D08: the path parameters are the authorization-bearing scope; a
 	// manipulated body group_id/target_user_id must never silently override
-	// them or reach the domain mutation.
+	// them or reach the domain mutation. This is the one BOLA/IDOR-relevant
+	// reject 137-UAT.md GAP-02 names that returns directly instead of going
+	// through writeMutationError, so it gets its own explicit audit call.
 	if req.GroupID != fansubGroupID || req.TargetUserID != targetAppUserID {
+		auditMutationRejected(
+			c, h.auditLogRepo, identity, "effective_rights.override.rejected",
+			&fansubGroupID, "user_group_capability_override", &targetAppUserID,
+			permissions.Action(req.ActionCode), "body_path_mismatch",
+		)
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{"message": "group_id/target_user_id im Body stimmen nicht mit dem Pfad überein"},
 		})
@@ -263,19 +287,12 @@ func (h *AdminEffectiveRightsHandler) MutateOverride(c *gin.Context) {
 		return
 	}
 
-	targetActor, ok := h.resolveTargetActor(c, targetAppUserID, fansubGroupID)
-	if !ok {
-		return
-	}
-	resolution, err := h.permissionSvc.ResolveGroupRights(c.Request.Context(), *targetActor, fansubGroupID)
-	if err != nil {
-		log.Printf("effective rights mutate: resolve error (group=%d, target=%d): %v", fansubGroupID, targetAppUserID, err)
-		internalError(c, "interner serverfehler")
-		return
-	}
-	effectiveRight := effectiveRightStateFromCapabilityState(resolution.Can(permissions.Action(req.ActionCode)))
+	// GAP-01: mutationSvc.MutateOverride returning a nil error means the
+	// override row + immutable history are already durably committed (see
+	// services.EffectiveRightsService.MutateOverride's commit boundary).
+	// Everything from here on is response construction/enrichment only and
+	// must never turn this already-successful write into a non-2xx response.
 	now := time.Now().UTC().Format(time.RFC3339)
-
 	response := CapabilityOverrideMutationResult{
 		Status:  mutationStatus(result.Changed),
 		Changed: result.Changed,
@@ -285,10 +302,19 @@ func (h *AdminEffectiveRightsHandler) MutateOverride(c *gin.Context) {
 		After: capabilityOverrideStateFromMutationSide(
 			fansubGroupID, targetAppUserID, req.ActionCode, result.AfterEffect, req.Reason, actor.AppUserID, now,
 		),
-		EffectiveRight:   effectiveRight,
+		EffectiveRight: EffectiveRightState{
+			ActionCode:        req.ActionCode,
+			GrantingRoles:     []string{},
+			SpecializedGrants: []string{},
+		},
 		ActivationStatus: CapabilityActivationStatusActive,
 	}
 
+	// GAP-01/GAP-02: this generic admin audit write is intentionally
+	// unconditional and independent of the best-effort enrichment attempted
+	// below -- it runs immediately after the domain write commits, so a
+	// successful, security-relevant mutation is never left unaudited by an
+	// unrelated downstream read failure.
 	_ = h.auditLogRepo.Write(c.Request.Context(), repository.AuditLogEntry{
 		ActorAppUserID: &identity.AppUserID,
 		EventType:      "effective_rights.override.mutated",
@@ -300,6 +326,21 @@ func (h *AdminEffectiveRightsHandler) MutateOverride(c *gin.Context) {
 		Outcome:        "allowed",
 		Payload:        map[string]any{"action_code": req.ActionCode, "kind": string(kind), "changed": result.Changed},
 	})
+
+	// Best-effort post-commit enrichment: adds the computed effective_right
+	// snapshot for the mutated action. On failure this can only ever degrade
+	// ActivationStatus to "pending" -- it must never write an error response,
+	// since the domain write above already succeeded and committed.
+	targetActor, err := h.loadTargetActorState(c.Request.Context(), targetAppUserID, fansubGroupID)
+	if err != nil {
+		log.Printf("effective rights mutate: post-commit enrichment failed after successful write (group=%d, target=%d): %v", fansubGroupID, targetAppUserID, err)
+		response.ActivationStatus = CapabilityActivationStatusPending
+	} else if resolution, resolveErr := h.permissionSvc.ResolveGroupRights(c.Request.Context(), *targetActor, fansubGroupID); resolveErr != nil {
+		log.Printf("effective rights mutate: post-commit enrichment failed after successful write (group=%d, target=%d): %v", fansubGroupID, targetAppUserID, resolveErr)
+		response.ActivationStatus = CapabilityActivationStatusPending
+	} else {
+		response.EffectiveRight = effectiveRightStateFromCapabilityState(resolution.Can(permissions.Action(req.ActionCode)))
+	}
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
@@ -350,16 +391,32 @@ func (h *AdminEffectiveRightsHandler) writeMutationError(
 		)
 		c.JSON(http.StatusForbidden, gin.H{"error": gin.H{"message": "keine berechtigung für diese aktion"}})
 	case errors.Is(err, services.ErrEffectiveRightsTargetNotActiveMember):
+		auditMutationRejected(
+			c, h.auditLogRepo, identity, "effective_rights.override.rejected", &fansubGroupID,
+			"user_group_capability_override", &targetAppUserID, action, "target_not_active_member",
+		)
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{"message": "zielmitglied hat keine aktive mitgliedschaft in dieser gruppe"},
 		})
 	case errors.Is(err, services.ErrEffectiveRightsActionUnknown):
+		auditMutationRejected(
+			c, h.auditLogRepo, identity, "effective_rights.override.rejected", &fansubGroupID,
+			"user_group_capability_override", &targetAppUserID, action, "action_unknown",
+		)
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"message": "unbekannter action_code"}})
 	case errors.Is(err, services.ErrEffectiveRightsActionNotOverridable):
+		auditMutationRejected(
+			c, h.auditLogRepo, identity, "effective_rights.override.rejected", &fansubGroupID,
+			"user_group_capability_override", &targetAppUserID, action, "action_not_overridable",
+		)
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{"message": "diese capability kann nicht individuell überschrieben werden"},
 		})
 	case errors.Is(err, services.ErrEffectiveRightsReasonRequired):
+		auditMutationRejected(
+			c, h.auditLogRepo, identity, "effective_rights.override.rejected", &fansubGroupID,
+			"user_group_capability_override", &targetAppUserID, action, "reason_required",
+		)
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": gin.H{"message": "ein grund ist für diese änderung erforderlich"},
 		})
@@ -369,6 +426,56 @@ func (h *AdminEffectiveRightsHandler) writeMutationError(
 		log.Printf("effective rights mutate: service error (group=%d, target=%d): %v", fansubGroupID, targetAppUserID, err)
 		internalError(c, "interner serverfehler")
 	}
+}
+
+// auditMutationRejected records a rejected override-mutation attempt in the
+// generic admin/security audit log, mirroring auditPermissionDenied's exact
+// best-effort shape (permission_authz.go) but for this handler's own reject
+// vocabulary, where no permissions.Result is available at the call site.
+//
+// This audit write is deliberately best-effort by design, matching the ~30
+// existing handler call sites using this convention project-wide: write
+// errors are always ignored (`_ = ...Write(...)`) and never gate the
+// caller's own response, since the generic admin audit log is a secondary
+// observability sink, not the source of truth for the domain mutation
+// itself (that remains the immutable user_group_capability_override_history
+// table). This is a deliberate, tested choice (137-UAT.md GAP-02), not an
+// oversight.
+func auditMutationRejected(
+	c *gin.Context,
+	auditRepo auditLogWriter,
+	identity middleware.AuthIdentity,
+	eventType string,
+	scopeID *int64,
+	targetType string,
+	targetID *int64,
+	action permissions.Action,
+	reasonCode string,
+) {
+	if auditRepo == nil {
+		return
+	}
+
+	var actorAppUserID *int64
+	if identity.AppUserID > 0 {
+		actorAppUserID = &identity.AppUserID
+	}
+	var actorLegacyUserID *int64
+	if identity.UserID > 0 {
+		actorLegacyUserID = &identity.UserID
+	}
+	_ = auditRepo.Write(c.Request.Context(), repository.AuditLogEntry{
+		ActorAppUserID:    actorAppUserID,
+		ActorLegacyUserID: actorLegacyUserID,
+		EventType:         eventType,
+		ScopeType:         permissions.ScopeTypeGroup,
+		ScopeID:           scopeID,
+		TargetType:        targetType,
+		TargetID:          targetID,
+		Action:            string(action),
+		Outcome:           "rejected",
+		ReasonCode:        &reasonCode,
+	})
 }
 
 // --- Projection helpers ---
