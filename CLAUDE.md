@@ -175,6 +175,11 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## AI-Handoff-Workflow (tool-neutral)
+
+- Verbindliche Handoff-Regeln für alle Coding-Agenten (Claude, Codex, OpenCode und künftige Agenten) stehen in `AI-HANDOFF.md` im Repo-Root.
+- Sie gelten immer dann, wenn ein externes Phasen-Artefakt wie `XXX-CONTEXT.md`, `XXX-PLAN.md` oder `XXX-UAT-GAPS.md` übergeben wird.
+
 ## Phasen-Ausführung auf `main`
 
 - **Alles auf `main`:** Sowohl Planung als auch Code-Ausführung einer Phase laufen direkt auf `main`. Es werden **keine** Schwester-Worktrees (`../Team4s-phaseNN`) und **keine** `codex/phase-NN`-Branches mehr angelegt.

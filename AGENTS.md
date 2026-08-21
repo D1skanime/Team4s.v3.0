@@ -3,6 +3,9 @@
 ## Purpose
 Shared operating notes for human + AI agents working in `Team4sV3`.
 
+## AI Handoff Workflow
+`AI-HANDOFF.md` in the repository root defines the binding, tool-neutral handoff workflow for all coding agents (Claude, Codex, OpenCode, and future agents). It applies whenever an external phase artifact such as `XXX-CONTEXT.md`, `XXX-PLAN.md`, or `XXX-UAT-GAPS.md` is supplied.
+
 ## Canonical Development Environment
 - The authoritative working tree is `/home/d1sk/team4s` on the SSH host `team4s-linux` (`192.168.235.196`).
 - All new coding, Git operations, dependency work, builds, tests, migrations, and Docker Compose commands must run from that Linux working tree unless the user explicitly requests another environment.
