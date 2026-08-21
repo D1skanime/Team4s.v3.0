@@ -17,6 +17,8 @@ Shared operating notes for human + AI agents working in `Team4sV3`.
 - Before editing, run `cd /home/d1sk/team4s`, inspect `git status --short`, and confirm the relevant Compose services with `docker compose ps`.
 - The live `.env`, `media/`, Docker volumes, and database contents are host-local runtime data. Do not overwrite, reset, or regenerate them as part of ordinary coding work.
 - Windows browser testing currently uses an SSH tunnel at `http://127.0.0.1:3300`; the Linux frontend itself listens at `http://192.168.235.196:3000`.
+- Disk layout (two virtual disks): root `/` (40 GB, sda/LVM) is for CODE/checkouts ONLY. The 80 GB disk `sdb1` (mounted at `/var/lib/docker`) holds ALL Docker, image, build, and containerd data. This is enforced at OS level: `/var/lib/containerd` is bind-mounted onto `sdb1` (`/var/lib/docker/_containerd`, persisted in `/etc/fstab`), so every `docker build`/image write lands on the big disk automatically -- do NOT change or undo this. Never write large build artifacts, caches, or temp data onto `/` or `/home`. Clean up your own scratch/temp directories in the repo (e.g. throwaway `.codex-*` / `*-tmp*` folders) instead of letting them accumulate on the small root disk.
+- If `/` fills up: first run `findmnt /var/lib/containerd` (must show `/dev/sdb1[/_containerd]`). Reclaim with `docker builder prune -af` / `docker image prune -af`. NEVER use `--volumes` or `docker system prune -a` (kills DB + node_modules volumes).
 
 ## Current Workflow
 - Phase: `v1.1 asset lifecycle hardening`
