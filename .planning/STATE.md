@@ -4,14 +4,14 @@ milestone: v1.4
 milestone_name: Coverage
 status: Ready to discuss Phase 137
 stopped_at: Completed 136-31-PLAN.md
-last_updated: "2026-08-21T14:31:59.078Z"
+last_updated: "2026-08-21T14:34:16.234Z"
 last_activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7)
 progress:
   total_phases: 15
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 111
-  completed_plans: 84
-  percent: 76
+  completed_plans: 85
+  percent: 77
 ---
 
 # Project State
@@ -346,6 +346,7 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 135 P10 | ~2h45m | 5 tasks | 13 files |
 | Phase 136 P30 | 14min | 3 tasks | 12 files |
 | Phase 136 P31 | 22 min | 1 tasks | 2 files |
+| Phase 136 P28 | 3h39m | 1 tasks | 3 files |
 
 ## Session Continuity
 

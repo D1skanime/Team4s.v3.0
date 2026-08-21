@@ -491,7 +491,7 @@ Plans:
 - [x] 136-27-PLAN.md — Founder/Co-Leader field- and event-scoped workspace controls
 
 **UAT gap closure — Wave 15**
-- [ ] 136-28-PLAN.md — Focused live UAT and approval evidence for all repaired gaps
+- [x] 136-28-PLAN.md — Focused live UAT and approval evidence for all repaired gaps
 
 **Residual UAT gap closure — Wave 16**
 - [x] 136-29-PLAN.md — Reversible canonical Typesetting label and exact catalog-backed 15-role palette
