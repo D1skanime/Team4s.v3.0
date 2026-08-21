@@ -515,7 +515,7 @@ Plans:
   4. Every override mutation commits atomically with an immutable actor/target/context/before/after audit record, and forced audit or concurrency failures cannot leave partial authorization state.
   5. Automated negative coverage proves deny precedence, cross-group BOLA/IDOR resistance, invalid capability rejection, and protected direct-access enforcement.
 
-**Plans**: 12/12 plans complete
+**Plans**: 13/13 plans complete
 
 ### Phase 138: Effective-Rights Administration & Impact UX
 
@@ -614,7 +614,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 136. Capability Policy, Catalog & Schema Contract | 0/TBD | Not started | - |
-| 137. Central Effective-Rights Resolver & Overrides | 12/12 | Complete   | 2026-08-21 |
+| 137. Central Effective-Rights Resolver & Overrides | 13/13 | Complete   | 2026-08-21 |
 | 138. Effective-Rights Administration & Impact UX | 0/TBD | Not started | - |
 | 139. Scalable User-Admin Projections | 0/TBD | Not started | - |
 | 140. Review Delegation Management | 0/TBD | Not started | - |
