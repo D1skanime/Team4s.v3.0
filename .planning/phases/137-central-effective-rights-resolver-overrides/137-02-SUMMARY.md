@@ -126,3 +126,8 @@ None - no external service configuration required.
 *Phase: 137-central-effective-rights-resolver-overrides*
 *Plan: 02*
 *Completed: 2026-08-21*
+
+## Self-Check: PASSED
+
+All created/modified files verified present on disk; both task/summary commit hashes
+(`32752488`, `25ef9269`) verified present in `git log`.
