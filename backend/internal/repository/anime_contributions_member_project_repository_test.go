@@ -29,3 +29,23 @@ func TestMemberProjectDetailRepositorySourceInvariants(t *testing.T) {
 		}
 	}
 }
+
+func TestMemberProjectRoleArraysShareCatalogOrder(t *testing.T) {
+	content, err := os.ReadFile("anime_contributions_member_project_repository.go")
+	if err != nil {
+		t.Fatalf("read repository source: %v", err)
+	}
+	src := strings.ToLower(string(content))
+
+	pairedAggregation := "array_agg(ordered_role.role_code order by ordered_role.sort_order, ordered_role.role_code)"
+	pairedLabels := "array_agg(ordered_role.role_label order by ordered_role.sort_order, ordered_role.role_code)"
+	for _, fragment := range []string{pairedAggregation, pairedLabels} {
+		if !strings.Contains(src, fragment) {
+			t.Fatalf("expected project role arrays to share catalog ordering %q", fragment)
+		}
+	}
+
+	if strings.Contains(src, "order by own_roles.role_label") || strings.Contains(src, "order by coalesce(rd.label_de, acr.role_code)") {
+		t.Fatal("project role labels must not be sorted independently from role codes")
+	}
+}
