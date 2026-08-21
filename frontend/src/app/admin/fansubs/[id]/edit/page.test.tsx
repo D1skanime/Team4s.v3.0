@@ -554,6 +554,68 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(apiMocks.getFansubList).not.toHaveBeenCalled()
   })
 
+  it('allows a general-only actor to save despite an invalid stored technical URL', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+    apiMocks.getFansubByID.mockResolvedValue({
+      data: {
+        id: 88, name: 'SubGroup', slug: 'subgroup', status: 'active', group_type: 'group',
+        country: null, founded_year: null, dissolved_year: null, logo_url: null,
+        banner_url: null, logo_id: null, banner_id: null,
+        website_url: 'javascript:alert(1)', discord_url: null, irc_url: null,
+        links: [{ id: 1, group_id: 88, link_type: 'website', name: null, url: 'https://valid.example', created_at: '2026-05-20T00:00:00Z' }], updated_at: '2026-05-20T00:00:00Z',
+      },
+    })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: false,
+        can_edit_group_general: true,
+        can_edit_technical_links: false,
+        can_edit_founding_history: false,
+      },
+    })
+    apiMocks.updateFansubGroup.mockResolvedValue({ data: {} })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.getByLabelText('Website')).toHaveProperty('disabled', true)
+    fireEvent.change(screen.getByLabelText(/Fansubgruppen-Name/i), {
+      target: { value: 'Authorized Rename' },
+    })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Speichern' })[0])
+
+    await waitFor(() => expect(apiMocks.updateFansubGroup).toHaveBeenCalledTimes(1))
+    expect(apiMocks.updateFansubGroup.mock.calls[0][1]).toMatchObject({
+      name: 'Authorized Rename',
+    })
+    expect(apiMocks.updateFansubGroup.mock.calls[0][1]).not.toHaveProperty('website_url')
+    expect(apiMocks.updateFansubGroup.mock.calls[0][1]).not.toHaveProperty('discord_url')
+    expect(apiMocks.updateFansubGroup.mock.calls[0][1]).not.toHaveProperty('irc_url')
+  })
+
+  it('still blocks invalid technical URLs for a technical-link editor', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: false,
+        can_edit_group_general: false,
+        can_edit_technical_links: true,
+        can_edit_founding_history: false,
+      },
+    })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    fireEvent.change(screen.getByLabelText('Website'), {
+      target: { value: 'javascript:alert(1)' },
+    })
+
+    expect(screen.getAllByRole('button', { name: 'Speichern' })[0]).toHaveProperty('disabled', true)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Speichern' })[0])
+    expect(apiMocks.updateFansubGroup).not.toHaveBeenCalled()
+  })
+
   it('lets a technical-links-only actor save only the guarded URL fields', async () => {
     apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
     apiMocks.getFansubGroupCapabilities.mockResolvedValue({

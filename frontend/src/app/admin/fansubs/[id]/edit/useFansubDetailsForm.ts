@@ -229,6 +229,9 @@ export function useFansubDetailsForm({
       ? communityLinkURLError(link.link_type)
       : null,
   );
+  const canEditBroad = isPlatformAdmin || Boolean(capabilities?.can_edit_group);
+  const canEditTechnicalLinks =
+    canEditBroad || Boolean(capabilities?.can_edit_technical_links);
   const technicalLinkErrors = {
     website: form.websiteURL.trim() && !isAllowedCommunityLinkURL("website", form.websiteURL)
       ? communityLinkURLError("website")
@@ -250,7 +253,7 @@ export function useFansubDetailsForm({
     Boolean(dissolvedError) ||
     Boolean(dissolvedAfterFoundedError) ||
     linkErrors.some(Boolean) ||
-    Object.values(technicalLinkErrors).some(Boolean) ||
+    (canEditTechnicalLinks && Object.values(technicalLinkErrors).some(Boolean)) ||
     (isPlatformAdmin && slugChecking) ||
     anyMediaBusy;
 
@@ -304,7 +307,6 @@ export function useFansubDetailsForm({
       setSaving(true);
       onError(null);
       try {
-        const canEditBroad = isPlatformAdmin || Boolean(capabilities?.can_edit_group);
         const payload = formToPayload(form, logoMedia, bannerMedia, {
           includeSlug: isPlatformAdmin,
           includeGeneral: canEditBroad || Boolean(capabilities?.can_edit_group_general),
