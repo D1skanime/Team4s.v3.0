@@ -411,7 +411,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 ## Phases
 
 - [x] **Phase 136: Capability Policy, Catalog & Schema Contract** - Lock one enforceable precedence/scope model, canonical metadata, override schema, indexes, and cross-layer contracts. (completed 2026-08-20)
-- [ ] **Phase 137: Central Effective-Rights Resolver & Overrides** - Make canonical enforcement and inspection resolve the same provenance-aware effective rights and safe per-user overrides.
+- [x] **Phase 137: Central Effective-Rights Resolver & Overrides** - Make canonical enforcement and inspection resolve the same provenance-aware effective rights and safe per-user overrides. (completed 2026-08-21)
 - [ ] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows.
 - [ ] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections.
 - [ ] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor.
@@ -614,7 +614,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 136. Capability Policy, Catalog & Schema Contract | 0/TBD | Not started | - |
-| 137. Central Effective-Rights Resolver & Overrides | 7/8 | In Progress | - |
+| 137. Central Effective-Rights Resolver & Overrides | 8/8 | Complete | 2026-08-21 |
 | 138. Effective-Rights Administration & Impact UX | 0/TBD | Not started | - |
 | 139. Scalable User-Admin Projections | 0/TBD | Not started | - |
 | 140. Review Delegation Management | 0/TBD | Not started | - |
