@@ -5,15 +5,17 @@ import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
-import { Badge, Button, Card, ErrorState, LoadingState, PageHeader, Tabs } from '@/components/ui'
+import { AdjacentNavigation, Badge, Button, Card, ErrorState, LoadingState, PageHeader, Tabs } from '@/components/ui'
 import type { TabItem } from '@/components/ui'
 import {
   ApiError,
   getEpisodeVersionEditorContext,
+  getMyProjectDetail,
   getOwnProfile,
   getReleaseVersionCapabilities,
 } from '@/lib/api'
 import { useAuthSession } from '@/lib/useAuthSession'
+import type { MeProjectReleaseVersion } from '@/types/contributions'
 import type { EpisodeVersionEditorContext } from '@/types/episodeVersion'
 import type { ReleaseVersionCapabilities } from '@/types/releaseVersionMedia'
 import { ReleaseVersionMediaSection } from '@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionMediaSection'
@@ -50,6 +52,25 @@ function getProjectReturnPath(raw: string | null, animeId: number, fansubGroupId
   return raw === expected ? raw : null
 }
 
+function formatAdjacentReleaseLabel(release: MeProjectReleaseVersion): string {
+  return release.episode_title?.trim() || release.title?.trim() || `Episode ${release.episode_number}`
+}
+
+function buildWorkspaceHref(releaseVersionId: number, projectReturnHref: string | null): string {
+  const path = `/me/releases/${releaseVersionId}/workspace`
+  if (!projectReturnHref) return path
+  const query = new URLSearchParams({ return_to: projectReturnHref })
+  return `${path}?${query.toString()}`
+}
+
+type AdjacentReleases = { previous: MeProjectReleaseVersion | null; next: MeProjectReleaseVersion | null }
+
+type NavigationState = {
+  key: string
+  status: 'ready' | 'error'
+  adjacent: AdjacentReleases | null
+}
+
 export function MeReleaseWorkspacePage() {
   const params = useParams<{ versionId: string }>()
   const searchParams = useSearchParams()
@@ -67,6 +88,7 @@ export function MeReleaseWorkspacePage() {
   const [memberId, setMemberId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [navigationState, setNavigationState] = useState<NavigationState | null>(null)
 
   useEffect(() => {
     if (!isClientInitialized) return
@@ -99,6 +121,48 @@ export function MeReleaseWorkspacePage() {
       cancelled = true
     }
   }, [isClientInitialized, routeErrorMessage, versionId])
+
+  useEffect(() => {
+    const selectedGroupId = context?.selected_groups[0]?.id
+    const animeId = context?.version.anime_id
+    const currentReleaseVersionId = context?.version.id
+    if (!animeId || !selectedGroupId || !currentReleaseVersionId) return
+
+    let cancelled = false
+    const key = `${animeId}:${selectedGroupId}:${currentReleaseVersionId}`
+
+    void getMyProjectDetail(animeId, selectedGroupId)
+      .then((response) => {
+        if (cancelled) return
+        const project = response.data
+        if (project.anime_id !== animeId || project.fansub_group_id !== selectedGroupId) {
+          setNavigationState({ key, status: 'ready', adjacent: null })
+          return
+        }
+        const currentIndex = project.release_versions.findIndex(
+          (release) => release.release_version_id === currentReleaseVersionId,
+        )
+        if (currentIndex < 0) {
+          setNavigationState({ key, status: 'ready', adjacent: null })
+          return
+        }
+        setNavigationState({
+          key,
+          status: 'ready',
+          adjacent: {
+            previous: project.release_versions[currentIndex - 1] ?? null,
+            next: project.release_versions[currentIndex + 1] ?? null,
+          },
+        })
+      })
+      .catch(() => {
+        if (!cancelled) setNavigationState({ key, status: 'error', adjacent: null })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [context])
 
   if (!isClientInitialized) {
     return <LoadingState title="Projektbereich wird geladen" description="Team4s lädt deine Release-Version." />
@@ -143,6 +207,11 @@ export function MeReleaseWorkspacePage() {
   const canUseNotes = capabilities.can_edit_notes && memberId != null
   const canUseSegments = capabilities.can_manage_segments
   const hasAnyWorkspaceAccess = canUseMedia || capabilities.can_edit_notes || canUseSegments
+  const navigationKey = selectedGroup?.id ? `${version.anime_id}:${selectedGroup.id}:${version.id}` : null
+  const isNavigationLoading = navigationKey != null && navigationState?.key !== navigationKey
+  const navigationError = navigationState?.key === navigationKey && navigationState.status === 'error'
+  const adjacentReleases =
+    navigationState?.key === navigationKey && navigationState.status === 'ready' ? navigationState.adjacent : null
   const tabItems: TabItem[] = []
 
   if (canUseMedia) {
@@ -236,6 +305,27 @@ export function MeReleaseWorkspacePage() {
           />
         ) : (
           <>
+            {isNavigationLoading ? (
+              <p className={styles.navigationStatus} role="status">Release-Navigation wird geladen.</p>
+            ) : navigationError ? (
+              <p className={styles.navigationStatus} role="status">Release-Navigation konnte nicht geladen werden.</p>
+            ) : adjacentReleases ? (
+              <AdjacentNavigation
+                className={styles.releaseNavigation}
+                ariaLabel="Vorheriger und nächster Release"
+                previous={adjacentReleases.previous ? {
+                  href: buildWorkspaceHref(adjacentReleases.previous.release_version_id, projectReturnHref),
+                  label: formatAdjacentReleaseLabel(adjacentReleases.previous),
+                  ariaLabel: `Vorheriger Release: ${formatAdjacentReleaseLabel(adjacentReleases.previous)}`,
+                } : null}
+                next={adjacentReleases.next ? {
+                  href: buildWorkspaceHref(adjacentReleases.next.release_version_id, projectReturnHref),
+                  label: formatAdjacentReleaseLabel(adjacentReleases.next),
+                  ariaLabel: `Nächster Release: ${formatAdjacentReleaseLabel(adjacentReleases.next)}`,
+                } : null}
+              />
+            ) : null}
+
             <Tabs items={tabItems} defaultTabId={canUseMedia ? 'media' : canUseSegments ? 'segments' : 'notes'} />
 
             {capabilities.can_edit_notes && memberId == null ? (
