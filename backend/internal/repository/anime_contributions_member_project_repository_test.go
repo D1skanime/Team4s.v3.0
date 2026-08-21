@@ -15,7 +15,7 @@ func TestMemberProjectDetailRepositorySourceInvariants(t *testing.T) {
 
 	required := []string{
 		"offset 1",
-		"count(ac.id) > 0 as has_own_contribution",
+		"count(ordered_role.role_code) > 0 as has_own_contribution",
 		"from release_version_notes rvn",
 		"from release_version_media rvm",
 		"rvm.uploaded_by_user_id = $2",
