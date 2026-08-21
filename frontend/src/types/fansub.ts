@@ -237,9 +237,9 @@ export interface FansubGroupCapabilities {
   can_manage_links: boolean;
   can_view_members: boolean;
   can_manage_members: boolean;
-  can_manage_historical_members?: boolean;
-  can_manage_historical_roles?: boolean;
-  can_link_historical_members?: boolean;
+  can_manage_historical_members: boolean;
+  can_manage_historical_roles: boolean;
+  can_link_historical_members: boolean;
   can_edit_notes: boolean;
   can_view_invitations: boolean;
   can_create_invitation: boolean;

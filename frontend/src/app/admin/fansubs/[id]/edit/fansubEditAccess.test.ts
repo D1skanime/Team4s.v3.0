@@ -20,6 +20,9 @@ function capabilities(
     can_manage_links: false,
     can_view_members: false,
     can_manage_members: false,
+    can_manage_historical_members: false,
+    can_manage_historical_roles: false,
+    can_link_historical_members: false,
     can_edit_notes: false,
     can_view_invitations: false,
     can_create_invitation: false,
@@ -98,4 +101,3 @@ describe("fansub edit access", () => {
     expect(canUseMainTab("media", false, access)).toBe(false);
   });
 });
-

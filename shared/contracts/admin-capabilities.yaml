@@ -14,6 +14,52 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /api/v1/admin/fansubs/{id}/capabilities:
+    get:
+      tags: [AdminCapabilities]
+      summary: Berechtigungen für den Fansubgruppen-Arbeitsbereich abrufen
+      operationId: getFansubGroupCapabilities
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        "200":
+          description: Berechtigungen für den Fansubgruppen-Arbeitsbereich
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FansubGroupCapabilitiesResponse"
+        "400":
+          description: Ungültige Fansubgruppen-ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/role-definitions:
     get:
       summary: Öffentlichen Rollen-Präsentationskatalog abrufen
@@ -276,15 +322,35 @@ components:
     FansubGroupCapabilities:
       type: object
       required:
+        - can_edit_group
         - can_edit_group_general
-        - can_update_group_media
         - can_edit_technical_links
         - can_edit_founding_history
         - can_update_group_links
+        - can_manage_links
+        - can_view_members
+        - can_manage_members
+        - can_manage_historical_members
+        - can_manage_historical_roles
+        - can_link_historical_members
+        - can_edit_notes
+        - can_view_invitations
+        - can_create_invitation
+        - can_cancel_invitation
+        - can_view_releases
+        - can_view_release_media
+        - can_upload_release_media
+        - can_edit_release_notes
+        - can_view_group_media
+        - can_upload_group_media
+        - can_update_group_media
+        - can_delete_own_group_media
+        - can_delete_group_media
+        - can_reorder_group_media
       properties:
-        can_edit_group_general:
+        can_edit_group:
           type: boolean
-        can_update_group_media:
+        can_edit_group_general:
           type: boolean
         can_edit_technical_links:
           type: boolean
@@ -292,6 +358,52 @@ components:
           type: boolean
         can_update_group_links:
           type: boolean
+        can_manage_links:
+          type: boolean
+        can_view_members:
+          type: boolean
+        can_manage_members:
+          type: boolean
+        can_manage_historical_members:
+          type: boolean
+        can_manage_historical_roles:
+          type: boolean
+        can_link_historical_members:
+          type: boolean
+        can_edit_notes:
+          type: boolean
+        can_view_invitations:
+          type: boolean
+        can_create_invitation:
+          type: boolean
+        can_cancel_invitation:
+          type: boolean
+        can_view_releases:
+          type: boolean
+        can_view_release_media:
+          type: boolean
+        can_upload_release_media:
+          type: boolean
+        can_edit_release_notes:
+          type: boolean
+        can_view_group_media:
+          type: boolean
+        can_upload_group_media:
+          type: boolean
+        can_update_group_media:
+          type: boolean
+        can_delete_own_group_media:
+          type: boolean
+        can_delete_group_media:
+          type: boolean
+        can_reorder_group_media:
+          type: boolean
+    FansubGroupCapabilitiesResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/FansubGroupCapabilities"
     EffectiveRightProvenance:
       type: string
       enum: [idp_global_role, group_role, user_allow, user_deny]

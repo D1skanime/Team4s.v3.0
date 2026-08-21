@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"runtime"
 	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -15,40 +15,40 @@ import (
 
 func TestPhase136ContractParity(t *testing.T) {
 	t.Run("group capability response", func(t *testing.T) {
-		expected := []string{
-			"can_edit_group_general",
-			"can_update_group_media",
-			"can_edit_technical_links",
-			"can_edit_founding_history",
-			"can_update_group_links",
-		}
-		assertJSONRequiredSubset(t, fansubGroupCapabilitiesResponse{}, expected...)
-
 		_, current, _, _ := runtime.Caller(0)
 		root := filepath.Clean(filepath.Join(filepath.Dir(current), "../../.."))
+		contracts := make(map[string]map[string]any)
 		for _, relative := range []string{"shared/contracts/openapi.yaml", "shared/contracts/admin-capabilities.yaml"} {
 			data, err := os.ReadFile(filepath.Join(root, relative))
 			if err != nil {
 				t.Fatal(err)
 			}
-			var document phase136Document
+			var document map[string]any
 			if err := yaml.Unmarshal(data, &document); err != nil {
 				t.Fatalf("parse %s: %v", relative, err)
 			}
-			schema, ok := document.Components.Schemas["FansubGroupCapabilities"]
-			if !ok {
-				t.Errorf("%s missing FansubGroupCapabilities", relative)
-				continue
-			}
-			for _, field := range expected {
-				if !contains(schema.Required, field) {
-					t.Errorf("%s FansubGroupCapabilities.%s missing or optional", relative, field)
-				}
-				if property := schema.Properties[field]; property.Type != "boolean" || property.Nullable {
-					t.Errorf("%s FansubGroupCapabilities.%s must be required non-nullable boolean", relative, field)
-				}
+			contracts[relative] = document
+		}
+
+		canonicalSchema := contractValue(t, contracts["shared/contracts/openapi.yaml"], "components", "schemas", "FansubGroupCapabilities")
+		focusedSchema := contractValue(t, contracts["shared/contracts/admin-capabilities.yaml"], "components", "schemas", "FansubGroupCapabilities")
+		if !reflect.DeepEqual(canonicalSchema, focusedSchema) {
+			t.Errorf("focused FansubGroupCapabilities schema differs from canonical OpenAPI")
+		}
+		canonicalResponse := contractValue(t, contracts["shared/contracts/openapi.yaml"], "components", "schemas", "FansubGroupCapabilitiesResponse")
+		focusedResponse := contractValue(t, contracts["shared/contracts/admin-capabilities.yaml"], "components", "schemas", "FansubGroupCapabilitiesResponse")
+		if !reflect.DeepEqual(canonicalResponse, focusedResponse) {
+			t.Errorf("focused FansubGroupCapabilitiesResponse schema differs from canonical OpenAPI")
+		}
+		for _, contract := range contracts {
+			responseSchema := contractValue(t, contract, "paths", "/api/v1/admin/fansubs/{id}/capabilities", "get", "responses", "200", "content", "application/json", "schema")
+			if !reflect.DeepEqual(responseSchema, map[string]any{"$ref": "#/components/schemas/FansubGroupCapabilitiesResponse"}) {
+				t.Errorf("capabilities endpoint 200 response = %v", responseSchema)
 			}
 		}
+
+		expected := stringSlice(contractValue(t, contracts["shared/contracts/openapi.yaml"], "components", "schemas", "FansubGroupCapabilities", "required"))
+		assertJSONRequiredSubset(t, fansubGroupCapabilitiesResponse{}, expected...)
 
 		tsBytes, err := os.ReadFile(filepath.Join(root, "frontend/src/types/fansub.ts"))
 		if err != nil {
@@ -114,6 +114,33 @@ func TestPhase136ContractParity(t *testing.T) {
 			t.Fatal("backend command must retain derived platform-admin provenance")
 		}
 	})
+}
+
+func contractValue(t testing.TB, document map[string]any, path ...string) any {
+	t.Helper()
+	var current any = document
+	for _, segment := range path {
+		object, ok := current.(map[string]any)
+		if !ok {
+			t.Fatalf("contract path %v is not an object at %s", path, segment)
+		}
+		current, ok = object[segment]
+		if !ok {
+			t.Fatalf("contract path missing %s in %v", segment, path)
+		}
+	}
+	return current
+}
+
+func stringSlice(value any) []string {
+	values, _ := value.([]any)
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if text, ok := value.(string); ok {
+			result = append(result, text)
+		}
+	}
+	return result
 }
 
 func TestCapabilityOverrideReasonValidation(t *testing.T) {
