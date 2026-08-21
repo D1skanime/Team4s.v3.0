@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getEpisodeVersionEditorContextMock = vi.fn()
+const getMyProjectDetailMock = vi.fn()
 const getOwnProfileMock = vi.fn()
 const getReleaseVersionCapabilitiesMock = vi.fn()
 const segmenteTabMock = vi.fn()
@@ -28,6 +29,7 @@ vi.mock('@/lib/api', () => ({
     }
   },
   getEpisodeVersionEditorContext: (...args: unknown[]) => getEpisodeVersionEditorContextMock(...args),
+  getMyProjectDetail: (...args: unknown[]) => getMyProjectDetailMock(...args),
   getOwnProfile: (...args: unknown[]) => getOwnProfileMock(...args),
   getReleaseVersionCapabilities: (...args: unknown[]) => getReleaseVersionCapabilitiesMock(...args),
   getAuthSessionSnapshot: () => ({
@@ -106,6 +108,58 @@ function mockWorkspaceData(capabilityOverrides: Partial<{
   })
   getOwnProfileMock.mockResolvedValue({
     data: { member_id: 77 },
+  })
+  getMyProjectDetailMock.mockResolvedValue({
+    data: {
+      anime_id: 10,
+      anime_title: 'Naruto',
+      fansub_group_id: 1,
+      fansub_group_name: 'Team 4S',
+      backdrop_url: null,
+      role_codes: ['translator'],
+      role_labels: ['Übersetzung'],
+      release_versions: [
+        {
+          release_version_id: 41,
+          episode_number: '0',
+          episode_title: 'Prolog',
+          episode_sort_index: 0,
+          version: 'v1',
+          title: null,
+          role_codes: ['translator'],
+          role_labels: ['Übersetzung'],
+          has_own_contribution: true,
+          has_own_notes: false,
+          has_own_media: false,
+        },
+        {
+          release_version_id: 42,
+          episode_number: '1',
+          episode_title: 'Der Anfang',
+          episode_sort_index: 1,
+          version: 'v1',
+          title: null,
+          role_codes: ['translator'],
+          role_labels: ['Übersetzung'],
+          has_own_contribution: true,
+          has_own_notes: true,
+          has_own_media: true,
+        },
+        {
+          release_version_id: 43,
+          episode_number: '2',
+          episode_title: 'Die Prüfung',
+          episode_sort_index: 2,
+          version: 'v1',
+          title: null,
+          role_codes: ['translator'],
+          role_labels: ['Übersetzung'],
+          has_own_contribution: true,
+          has_own_notes: false,
+          has_own_media: false,
+        },
+      ],
+    },
   })
 }
 
@@ -194,5 +248,61 @@ describe('MeReleaseWorkspacePage', () => {
     expect(await screen.findByRole('tab', { name: 'Segmente', selected: true })).toBeTruthy()
     expect(screen.getByTestId('segments-tab')).toBeTruthy()
     expect(screen.queryByText('Kein Zugriff auf diesen Projektbereich')).toBeNull()
+  })
+
+  it('shows project-scoped previous and next releases in stable project order', async () => {
+    render(<MeReleaseWorkspacePage />)
+
+    const previous = await screen.findByRole('link', { name: 'Vorheriger Release: Prolog' })
+    const next = screen.getByRole('link', { name: 'Nächster Release: Die Prüfung' })
+
+    expect(getMyProjectDetailMock).toHaveBeenCalledWith(10, 1)
+    expect(previous.getAttribute('href')).toBe(
+      '/me/releases/41/workspace?return_to=%2Fme%2Fprojects%2F10%2Fgroup%2F1',
+    )
+    expect(next.getAttribute('href')).toBe(
+      '/me/releases/43/workspace?return_to=%2Fme%2Fprojects%2F10%2Fgroup%2F1',
+    )
+  })
+
+  it('shows only the available neighbor at a project endpoint', async () => {
+    getEpisodeVersionEditorContextMock.mockResolvedValue({
+      ...(await getEpisodeVersionEditorContextMock()),
+      data: {
+        ...(await getEpisodeVersionEditorContextMock()).data,
+        version: {
+          ...(await getEpisodeVersionEditorContextMock()).data.version,
+          id: 41,
+        },
+      },
+    })
+
+    render(<MeReleaseWorkspacePage />)
+
+    expect(await screen.findByRole('link', { name: 'Nächster Release: Der Anfang' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /Vorheriger Release:/ })).toBeNull()
+  })
+
+  it('renders no cross-project neighbors when the current release is absent', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: {
+        ...(await getMyProjectDetailMock()).data,
+        release_versions: [],
+      },
+    })
+
+    render(<MeReleaseWorkspacePage />)
+
+    await waitFor(() => expect(getMyProjectDetailMock).toHaveBeenCalledWith(10, 1))
+    expect(screen.queryByRole('navigation', { name: 'Vorheriger und nächster Release' })).toBeNull()
+  })
+
+  it('keeps workspace tools usable when adjacent navigation fails', async () => {
+    getMyProjectDetailMock.mockRejectedValue(new Error('Projektliste nicht erreichbar'))
+
+    render(<MeReleaseWorkspacePage />)
+
+    expect(await screen.findByText('Release-Navigation konnte nicht geladen werden.')).toBeTruthy()
+    expect(screen.getByTestId('media-section')).toBeTruthy()
   })
 })
