@@ -14979,6 +14979,10 @@ components:
       type: object
       required:
         - can_edit_group
+        - can_edit_group_general
+        - can_edit_technical_links
+        - can_edit_founding_history
+        - can_update_group_links
         - can_manage_links
         - can_view_members
         - can_manage_members
@@ -15001,6 +15005,14 @@ components:
         - can_reorder_group_media
       properties:
         can_edit_group:
+          type: boolean
+        can_edit_group_general:
+          type: boolean
+        can_edit_technical_links:
+          type: boolean
+        can_edit_founding_history:
+          type: boolean
+        can_update_group_links:
           type: boolean
         can_manage_links:
           type: boolean

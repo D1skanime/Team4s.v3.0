@@ -230,6 +230,10 @@ export interface FansubAppMemberResponse {
 
 export interface FansubGroupCapabilities {
   can_edit_group: boolean;
+  can_edit_group_general: boolean;
+  can_edit_technical_links: boolean;
+  can_edit_founding_history: boolean;
+  can_update_group_links: boolean;
   can_manage_links: boolean;
   can_view_members: boolean;
   can_manage_members: boolean;

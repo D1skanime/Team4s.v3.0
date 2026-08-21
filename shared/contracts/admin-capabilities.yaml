@@ -273,6 +273,25 @@ components:
       scheme: bearer
       description: Platform-Admin-Bearer-Token (requirePlatformAdmin-Gate)
   schemas:
+    FansubGroupCapabilities:
+      type: object
+      required:
+        - can_edit_group_general
+        - can_update_group_media
+        - can_edit_technical_links
+        - can_edit_founding_history
+        - can_update_group_links
+      properties:
+        can_edit_group_general:
+          type: boolean
+        can_update_group_media:
+          type: boolean
+        can_edit_technical_links:
+          type: boolean
+        can_edit_founding_history:
+          type: boolean
+        can_update_group_links:
+          type: boolean
     EffectiveRightProvenance:
       type: string
       enum: [idp_global_role, group_role, user_allow, user_deny]
