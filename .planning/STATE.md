@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 137-10-PLAN.md (GAP-03 closed)
-last_updated: "2026-08-21T21:26:48.988Z"
+stopped_at: Completed 137-11-PLAN.md (GAP-04/GAP-05 closed)
+last_updated: "2026-08-21T21:32:08.122Z"
 last_activity: 2026-08-21
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 43
-  completed_plans: 41
+  completed_plans: 42
   percent: 14
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 137 (central-effective-rights-resolver-overrides) — EXECUTING
-Plan: 10 of 12 (137-11, 137-12 remaining)
+Plan: 11 of 12 (137-12 remaining)
 Status: Ready to execute
 Last activity: 2026-08-21
 
@@ -158,6 +158,7 @@ Last activity: 2026-08-21
 - [Phase 137]: 137-08 closed the phase with a full backend suite gate (real Postgres, TEAM4S_PHASE137_TEST_DSN supplied): internal/permissions and internal/services fully green including real-Postgres/concurrency tests; two genuine D01-D10 negative-matrix gaps (self-mutation without capability, platform-admin bypass at the mutation boundary) closed with new subtests; all 65 remaining backend failures triaged into six pre-existing, Phase-137-unrelated buckets and none live in any of Phase 137's own 31 touched files. See 137-VALIDATION.md.
 - [Phase 137]: 137-09: Closed GAP-01 (post-commit response safety) and GAP-02 (unconditional success + reject-path audit coverage, including the BOLA/IDOR body/path-mismatch guard) in AdminEffectiveRightsHandler.MutateOverride; CapabilityActivationStatus docs (both YAML contracts + TS type) now document the real, reachable pending-on-enrichment-failure behavior instead of the stale active-only claim.
 - [Phase 137]: 137-10 closed GAP-03: both shared/contracts/admin-capabilities.yaml and shared/contracts/openapi.yaml now document a 400 response on GET .../effective-rights and GET .../capability-overrides/history, matching parseGroupAndTarget's real badRequest behavior for a malformed id or appUserId path parameter. No other endpoint or schema changed; contract parity and tsc --noEmit both confirmed green.
+- [Phase 137]: 137-11 executed (GAP-04, GAP-05): effective_rights.go's file-level doc comment corrected to state production wiring (Plan 137-05) and DTO/HTTP projection (Plan 137-02/137-07) are both closed; effective_rights_service.go's error-sentinel var block is now gofmt-clean. Comment-only and whitespace-only changes; go build/test confirm zero behavioral change.
 
 ### Pending Todos
 
@@ -367,10 +368,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 137 P07 | ~45min | 2 tasks | 9 files |
 | Phase 137 P08 | ~20min | 2 tasks | 3 files |
 | Phase 137 P09 | ~25min | 2 tasks | 6 files |
+| Phase 137 P11 | ~10min | 2 tasks | 2 files |
 
 ## Session Continuity
 
-Last session: 2026-08-21T21:26:12.617Z
-Stopped at: Completed 137-09-PLAN.md (GAP-01/GAP-02 closed)
+Last session: 2026-08-21T21:32:08.109Z
+Stopped at: Completed 137-11-PLAN.md (GAP-04/GAP-05 closed)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
