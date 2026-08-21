@@ -413,12 +413,18 @@ func (s *Service) LoadFansubGroupCatalog(ctx context.Context, loader CatalogLoad
 	var capabilities map[string][]Action
 	if cacheLoader, ok := loader.(CacheLoader); ok {
 		capabilities, err = cacheLoader.LoadRoleCapabilities(ctx)
-		if err != nil { return fmt.Errorf("permission catalog load: %w", err) }
-		if err := validateCapabilityCatalog(capabilities); err != nil { return err }
+		if err != nil {
+			return fmt.Errorf("permission catalog load: %w", err)
+		}
+		if err := validateCapabilityCatalog(capabilities); err != nil {
+			return err
+		}
 	}
 	cacheMu.Lock()
 	catalogMu.Lock()
-	if capabilities != nil { loadedCache = capabilities }
+	if capabilities != nil {
+		loadedCache = capabilities
+	}
 	fansubGroupRoleCatalog = roles
 	capabilityRoleCatalog = capRoles
 	catalogMu.Unlock()
@@ -430,7 +436,9 @@ func AllowedActionsForRole(role string) []Action {
 	cacheMu.RLock()
 	cache := loadedCache
 	cacheMu.RUnlock()
-	if cache == nil { return []Action{} }
+	if cache == nil {
+		return []Action{}
+	}
 	return append([]Action(nil), cache[strings.TrimSpace(role)]...)
 }
 
@@ -863,7 +871,9 @@ func roleAllows(role string, action Action) bool {
 	cacheMu.RLock()
 	cache := loadedCache
 	cacheMu.RUnlock()
-	if cache == nil { return false }
+	if cache == nil {
+		return false
+	}
 	return slices.Contains(cache[strings.TrimSpace(role)], action)
 }
 
