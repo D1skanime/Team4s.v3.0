@@ -88,11 +88,15 @@ func seedPhase137Membership(
 ) {
 	t.Helper()
 	ctx := context.Background()
-	_, err := pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1)`, memberID)
+	// ON CONFLICT DO NOTHING: callers legitimately re-seed the same member,
+	// app_user, or fansub_group across multiple seedPhase137Membership calls
+	// (e.g. one app_user with memberships in two different groups); only the
+	// membership row itself must be unique per call.
+	_, err := pool.Exec(ctx, `INSERT INTO members (id) VALUES ($1) ON CONFLICT DO NOTHING`, memberID)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO app_users (id, status) VALUES ($1, $2)`, appUserID, appUserStatus)
+	_, err = pool.Exec(ctx, `INSERT INTO app_users (id, status) VALUES ($1, $2) ON CONFLICT DO NOTHING`, appUserID, appUserStatus)
 	require.NoError(t, err)
-	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1)`, fansubGroupID)
+	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES ($1) ON CONFLICT DO NOTHING`, fansubGroupID)
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `
 		INSERT INTO fansub_group_members (id, fansub_group_id, app_user_id, member_id, status)
