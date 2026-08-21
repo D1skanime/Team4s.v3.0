@@ -1,5 +1,7 @@
 'use client'
 
+import { Check } from 'lucide-react'
+
 import {
   Button,
   Card,
@@ -252,6 +254,7 @@ export function FansubAppMemberAddModal({
                         aria-pressed={selected}
                         onClick={() => onToggleRole(option.code)}
                         title={option.description}
+                        leftIcon={selected ? <Check size={15} strokeWidth={3} aria-hidden="true" /> : undefined}
                       >
                         {option.label}
                       </Button>
@@ -311,6 +314,7 @@ export function FansubAppMemberAddModal({
                       aria-pressed={selected}
                       onClick={() => onToggleInviteRole(option.code)}
                       title={option.description}
+                      leftIcon={selected ? <Check size={15} strokeWidth={3} aria-hidden="true" /> : undefined}
                     >
                       {option.label}
                     </Button>
