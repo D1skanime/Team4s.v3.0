@@ -478,26 +478,26 @@ Plans:
 - [x] 136-18-PLAN.md — Go policy DTOs and semantic cross-layer parity gate
 
 **UAT gap closure — Wave 12**
-- [ ] 136-21-PLAN.md — Assignable work-role catalog and Karaoke-FX notes-source correction
-- [ ] 136-22-PLAN.md — Catalog-ordered semantic role presentation on active project surfaces
-- [ ] 136-24-PLAN.md — Contributor segment tab and project-scoped adjacent release navigation
-- [ ] 136-25-PLAN.md — Narrow group-capability API and cross-layer contract projection
+- [x] 136-21-PLAN.md — Assignable work-role catalog and Karaoke-FX notes-source correction
+- [x] 136-22-PLAN.md — Catalog-ordered semantic role presentation on active project surfaces
+- [x] 136-24-PLAN.md — Contributor segment tab and project-scoped adjacent release navigation
+- [x] 136-25-PLAN.md — Narrow group-capability API and cross-layer contract projection
 
 **UAT gap closure — Wave 13**
-- [ ] 136-23-PLAN.md — Catalog-driven release-note role presentation
-- [ ] 136-26-PLAN.md — Narrow-role workspace and media-list admission
+- [x] 136-23-PLAN.md — Catalog-driven release-note role presentation
+- [x] 136-26-PLAN.md — Narrow-role workspace and media-list admission
 
 **UAT gap closure — Wave 14**
-- [ ] 136-27-PLAN.md — Founder/Co-Leader field- and event-scoped workspace controls
+- [x] 136-27-PLAN.md — Founder/Co-Leader field- and event-scoped workspace controls
 
 **UAT gap closure — Wave 15**
 - [ ] 136-28-PLAN.md — Focused live UAT and approval evidence for all repaired gaps
 
 **Residual UAT gap closure — Wave 16**
-- [ ] 136-29-PLAN.md — Reversible canonical Typesetting label and exact catalog-backed 15-role palette
+- [x] 136-29-PLAN.md — Reversible canonical Typesetting label and exact catalog-backed 15-role palette
 
 **Residual UAT gap closure — Wave 17**
-- [ ] 136-30-PLAN.md — Shared semantic presentation on the four failed active role surfaces
+- [x] 136-30-PLAN.md — Shared semantic presentation on the four failed active role surfaces
 
 **Residual UAT gap closure — Wave 18**
 - [ ] 136-31-PLAN.md — Focused live role-presentation proof and resumption of the 136-28 checkpoint

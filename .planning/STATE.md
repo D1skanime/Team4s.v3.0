@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.4
-milestone_name: Capability-, Review- und Benutzerverwaltung
-status: executing
-last_updated: "2026-08-20T21:20:00Z"
+milestone_name: Coverage
+status: Ready to discuss Phase 137
+stopped_at: Completed 136-30-PLAN.md
+last_updated: "2026-08-21T14:06:44.956Z"
 last_activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7)
 progress:
-  total_phases: 7
-  completed_phases: 1
-  total_plans: 20
-  completed_plans: 20
-  percent: 14
+  total_phases: 15
+  completed_phases: 5
+  total_plans: 111
+  completed_plans: 83
+  percent: 75
 ---
 
 # Project State
@@ -145,6 +146,8 @@ Last activity: 2026-08-20 -- Phase 136 completed and independently verified (7/7
 - [Phase 135]: Plan 135-08 executed (D-12, D-13, D-07) -- infra/keycloak/themes/team4s/login/register.ftl is now a real theme override (previously the theme shipped zero .ftl overrides and inherited register.ftl byte-for-byte from keycloak.v2). Empirically confirmed against the live Keycloak 26.0.8 realm (curling /realms/team4s/protocol/openid-connect/registrations with login_hint set) that login_hint prefills only the "username" registration attribute, never "email" -- register.ftl reuses that prefilled username value as `invitedEmail` whenever it looks like an email address, and renders the "email" attribute with custom inlined markup carrying a real HTML `readonly` attribute (value still submitted, unlike Keycloak's own attribute.readOnly path which emits `disabled` and drops the value) plus a generic invite-context line (team4sInviteContext message key; Keycloak does not forward group/inviter/role to the registration template, matching 135-05-SUMMARY.md's prior Content-Spec Addendum scope ruling). Full live proof: registered a real test account through the locked path via curl (PKCE authorization_code flow), exchanged the code, and confirmed via /userinfo that the created account's email claim exactly matched the invited address; test account deleted via the Keycloak admin API afterward. Open (non-invite) registration verified unaffected. — This is a scope evolution of D-08 (135-CONTEXT.md's original text says "kein KC-Theme-Umbau"/no KC theme rework): D-12/D-13 were added later, during live-UAT review, specifically because D-08's mediated query-param-only approach (135-03) could prefill but not lock the email or show invite context; 135-08 layers a theme change on top of, not instead of, that mediated fallback.
 - [Phase 135]: [Phase 135, 2026-08-19]: Plan 135-07 executed (D-01..D-04, D-08, D-09) -- scripts/phase135-green-gate.sh (already built/committed 7afd2774) re-run after 3 intervening commits confirmed zero new regressions; the 4 non-green steps (backend-test DB-integration fixtures, frontend-lint capture-responsive.cjs, frontend-test 12 stale files, frontend-build Next.js /_global-error Turbopack prerender) are all pre-existing and untouched by any Phase 135 file, per git-log cross-check. — Live UAT confirmed (user, 2026-08-19): registrationAllowed=true on the running Keycloak team4s realm (no drift); cold-invite round trip (mail context/Umlaute, Anmelden/Registrieren no jargon, auto-return, auto-accept) and claim-invite round trip (lands on /me/profile) both confirmed end-to-end with zero deviations. Closes Finding #10 BLOCKER.
 - [Phase 135]: [Phase 135, 2026-08-19]: Plan 135-10 executed (D-15, D-16) -- case-preserved fansubName KC attribute (register.ftl hidden-username derivation + token claim + backend display-identity priority) closes D-15; Task 4's self-claim approval render pre-existed this plan (ca189d99, prior non-GSD session) and was sanity-checked, not re-implemented. Live UAT surfaced 5 deviations, all fixed same-session: 2 backend list queries preferring lowercase preferred_username over case-preserved display_name; missing success feedback + cross-list refresh on claim-verify/member-activate; 5 window.confirm() calls replaced with the app's own Modal (design-system violation); missing claim-note render; a direct-user-requested mobile-first claim-card redesign. — Phase 135 is now complete (both previously outstanding plans, 135-07 and 135-10, done; all 10 plans have summaries). D-01 through D-16 implemented and live-verified. Commits 069b2f6b/514ec1fd/88e0d62f/1403ccd0 (Finding #28: hide active members from historical list, surface active membership + verified historical roles on public profile, linked-account card redesign) landed in the same session immediately after but are explicitly out of 135-10's D-15/D-16 scope -- recorded as an adjacent follow-up, not phase-135 work.
+- [Phase 136]: Catalog color_key values are normalized to the exact migration-0149 hex allowlist; unknown values resolve to neutral.
+- [Phase 136]: Active role chips use one data-color-key CSS seam and never derive colors from role codes.
 
 ### Pending Todos
 
@@ -341,10 +344,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 135 P08 | ~50min | 3 tasks | 4 files |
 | Phase 135 P07 | multi-session | 3 tasks | 1 files |
 | Phase 135 P10 | ~2h45m | 5 tasks | 13 files |
+| Phase 136 P30 | 14min | 3 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-08-20T09:14:14Z
-Stopped at: Completed Phase 134 Plan 06 (live UAT evidence capture + PMQA-05 human sign-off; all 6 Phase 134 plans now done)
+Last session: 2026-08-21T14:06:44.951Z
+Stopped at: Completed 136-30-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
