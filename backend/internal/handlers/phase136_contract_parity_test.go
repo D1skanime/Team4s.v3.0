@@ -64,7 +64,11 @@ func TestPhase136ContractParity(t *testing.T) {
 			value  any
 			fields map[string]bool
 		}{
-			{EffectiveRightState{}, requiredFields("action_code", "allowed", "provenance", "decisive", "non_deniable")},
+			{EffectiveRightState{}, requiredFields(
+				"action_code", "allowed", "provenance", "decisive", "non_deniable",
+				"granting_roles", "user_allow", "user_deny", "specialized_grants",
+				"decisive_source", "reason_code",
+			)},
 			{CapabilityOverrideReason{}, fieldsWithOptional("text", "category")},
 			{CapabilityOverrideState{}, requiredFields("group_id", "target_user_id", "action_code", "effect", "reason", "created_by_user_id", "created_at")},
 			{CapabilityOverrideImpactItem{}, requiredFields("target_user_id", "before", "after")},
@@ -88,7 +92,12 @@ func TestPhase136ContractParity(t *testing.T) {
 		assertPolicyEnum(t, []string{
 			string(EffectiveRightProvenanceIDPGlobalRole), string(EffectiveRightProvenanceGroupRole),
 			string(EffectiveRightProvenanceUserAllow), string(EffectiveRightProvenanceUserDeny),
-		}, []string{"idp_global_role", "group_role", "user_allow", "user_deny"})
+			string(EffectiveRightProvenancePlatformAdmin), string(EffectiveRightProvenanceSpecializedGrant),
+			string(EffectiveRightProvenanceNoGrant),
+		}, []string{
+			"idp_global_role", "group_role", "user_allow", "user_deny",
+			"platform_admin", "specialized_grant", "no_grant",
+		})
 		assertPolicyEnum(t, []string{string(CapabilityOverrideEffectAllow), string(CapabilityOverrideEffectDeny)}, []string{"allow", "deny"})
 		assertPolicyEnum(t, []string{
 			string(CapabilityActivationStatusPersisted), string(CapabilityActivationStatusActive),

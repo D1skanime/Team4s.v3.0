@@ -17,6 +17,12 @@ const (
 	EffectiveRightProvenanceGroupRole     EffectiveRightProvenance = "group_role"
 	EffectiveRightProvenanceUserAllow     EffectiveRightProvenance = "user_allow"
 	EffectiveRightProvenanceUserDeny      EffectiveRightProvenance = "user_deny"
+	// Phase 137 (D04, 137-02) additive values: mirror the resolver's own
+	// permissions.Provenance* constants (effective_rights.go) so the HTTP DTO
+	// vocabulary never drifts from the central resolver's vocabulary.
+	EffectiveRightProvenancePlatformAdmin    EffectiveRightProvenance = "platform_admin"
+	EffectiveRightProvenanceSpecializedGrant EffectiveRightProvenance = "specialized_grant"
+	EffectiveRightProvenanceNoGrant          EffectiveRightProvenance = "no_grant"
 )
 
 type CapabilityOverrideEffect string
@@ -51,12 +57,25 @@ const (
 	CapabilityOverrideReasonOther           CapabilityOverrideReasonCategory = "other"
 )
 
+// EffectiveRightState is the additively extended Phase-137 DTO (D04): the
+// original Phase-136 fields (action_code, allowed, provenance, decisive,
+// non_deniable) remain unchanged, and this plan closes the gap 137-02-SUMMARY.md
+// deferred by adding the six D04 provenance fields the shared OpenAPI contract
+// (shared/contracts/admin-capabilities.yaml, openapi.yaml) already locked:
+// granting_roles, user_allow, user_deny, specialized_grants, decisive_source,
+// reason_code. One shape serves both mutation results and inspection.
 type EffectiveRightState struct {
-	ActionCode  string                   `json:"action_code"`
-	Allowed     bool                     `json:"allowed"`
-	Provenance  EffectiveRightProvenance `json:"provenance"`
-	Decisive    bool                     `json:"decisive"`
-	NonDeniable bool                     `json:"non_deniable"`
+	ActionCode        string                   `json:"action_code"`
+	Allowed           bool                     `json:"allowed"`
+	Provenance        EffectiveRightProvenance `json:"provenance"`
+	Decisive          bool                     `json:"decisive"`
+	NonDeniable       bool                     `json:"non_deniable"`
+	GrantingRoles     []string                 `json:"granting_roles"`
+	UserAllow         bool                     `json:"user_allow"`
+	UserDeny          bool                     `json:"user_deny"`
+	SpecializedGrants []string                 `json:"specialized_grants"`
+	DecisiveSource    EffectiveRightProvenance `json:"decisive_source"`
+	ReasonCode        string                   `json:"reason_code"`
 }
 
 type CapabilityOverrideReason struct {

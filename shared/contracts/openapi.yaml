@@ -4162,6 +4162,183 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/effective-rights:
+    get:
+      tags: [Fansubs]
+      summary: Get one group member's complete effective-rights projection
+      description: |
+        Phase 137 (D01-D04, D08): projects exactly one ResolveGroupRights
+        resolution for the target member in this exact fansub group -- never a
+        second, independently computed decision. Authorized through the
+        dedicated user_group_capability_override.manage management capability
+        (D07). A foreign group/user pair returns a neutral 404 (D08).
+      operationId: getEffectiveRights
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Fansub group ID (authorization-bearing scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: appUserId
+          in: path
+          required: true
+          description: app_users.id of the target member
+          schema: { type: integer, format: int64, minimum: 1 }
+      responses:
+        "200":
+          description: Complete effective-rights list for the target member
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/EffectiveRightState" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Permission denied for this group
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Membership not found (also for a foreign group)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/capability-overrides:
+    put:
+      tags: [Fansubs]
+      summary: Set or remove one member's personal group capability override
+      description: |
+        Phase 137 (D06-D08): applies exactly one of the three logical
+        operations SET ALLOW / SET DENY / REMOVE (effect=allow|deny|null) and
+        delegates entirely to EffectiveRightsService.MutateOverride (137-06).
+        Body group_id/target_user_id must exactly match the path parameters --
+        a mismatch is rejected with 422 before any domain mutation (D08).
+      operationId: mutateEffectiveRightsOverride
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Fansub group ID (authorization-bearing scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: appUserId
+          in: path
+          required: true
+          description: app_users.id of the target member
+          schema: { type: integer, format: int64, minimum: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CapabilityOverrideMutationRequest" }
+      responses:
+        "200":
+          description: Mutation applied (changed or no_op)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/CapabilityOverrideMutationResult" }
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: No management permission for this group
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: >
+            group_id/target_user_id do not match the path, the target member
+            is not an active membership, the action is unknown/non-overridable,
+            or a reason is missing for a real change.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/capability-overrides/history:
+    get:
+      tags: [Fansubs]
+      summary: List one group member's immutable override history
+      description: |
+        Phase 137 (D06, D08): lists append-only transition records, strictly
+        scoped to (target_user_id, group_id). A foreign combination returns an
+        empty list rather than a different status code (no enumeration oracle).
+      operationId: listEffectiveRightsOverrideHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Fansub group ID (authorization-bearing scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: appUserId
+          in: path
+          required: true
+          description: app_users.id of the target member
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200":
+          description: Override history (newest first)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/CapabilityOverrideAuditItem" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Permission denied for this group
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
   /api/v1/admin/fansubs/{id}/app-members:
     get:
       tags: [Fansubs]

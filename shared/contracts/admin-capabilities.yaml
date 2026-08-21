@@ -256,6 +256,184 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/effective-rights:
+    get:
+      tags: [AdminCapabilities]
+      summary: Vollständige effektive Rechte eines Gruppenmitglieds abrufen
+      description: |
+        Phase 137 (D01-D04, D08): projiziert exakt eine ResolveGroupRights-Auflösung
+        für das Zielmitglied in genau dieser Fansub-Gruppe — keine zweite,
+        unabhängig berechnete Entscheidung. Autorisiert über die dedizierte
+        Verwaltungs-Capability user_group_capability_override.manage (D07).
+        Fremde Gruppen-/User-Kombinationen liefern neutral 404 (D08).
+      operationId: getEffectiveRights
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID der Fansub-Gruppe (autorisierender Scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: appUserId
+          in: path
+          required: true
+          description: app_users.id des Zielmitglieds
+          schema: { type: integer, format: int64, minimum: 1 }
+      responses:
+        "200":
+          description: Vollständige effektive-Rechte-Liste für das Zielmitglied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/EffectiveRightState" }
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Keine Berechtigung für diese Gruppe
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Mitgliedschaftseintrag nicht gefunden (auch bei fremder Gruppe)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/capability-overrides:
+    put:
+      tags: [AdminCapabilities]
+      summary: Persönlichen Gruppen-Capability-Override setzen oder entfernen
+      description: |
+        Phase 137 (D06-D08): führt genau eine der drei logischen Operationen
+        SET ALLOW / SET DENY / REMOVE aus (effect=allow|deny|null) und delegiert
+        vollständig an EffectiveRightsService.MutateOverride (137-06). group_id
+        und target_user_id im Body müssen exakt mit den Pfad-Parametern
+        übereinstimmen — eine Abweichung wird vor jeder Domänen-Mutation mit
+        422 abgelehnt (D08).
+      operationId: mutateEffectiveRightsOverride
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID der Fansub-Gruppe (autorisierender Scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: appUserId
+          in: path
+          required: true
+          description: app_users.id des Zielmitglieds
+          schema: { type: integer, format: int64, minimum: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CapabilityOverrideMutationRequest" }
+      responses:
+        "200":
+          description: Mutation angewendet (changed oder no_op)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/CapabilityOverrideMutationResult" }
+        "400":
+          description: Ungültiger Request-Body
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Keine Verwaltungsberechtigung für diese Gruppe
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: >
+            group_id/target_user_id stimmen nicht mit dem Pfad überein, Zielmitglied
+            ist keine aktive Mitgliedschaft, Action unbekannt/nicht überschreibbar,
+            oder ein Grund fehlt für eine echte Änderung.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/capability-overrides/history:
+    get:
+      tags: [AdminCapabilities]
+      summary: Unveränderliche Override-Historie eines Gruppenmitglieds abrufen
+      description: |
+        Phase 137 (D06, D08): listet append-only Übergangs-Datensätze, strikt
+        auf (target_user_id, group_id) beschränkt. Fremde Kombinationen liefern
+        eine leere Liste statt eines abweichenden Statuscodes (kein Enumerations-Orakel).
+      operationId: listEffectiveRightsOverrideHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID der Fansub-Gruppe (autorisierender Scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: appUserId
+          in: path
+          required: true
+          description: app_users.id des Zielmitglieds
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200":
+          description: Override-Historie (neueste zuerst)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/CapabilityOverrideAuditItem" }
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Keine Berechtigung für diese Gruppe
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
   /api/v1/admin/fansubs/{fansubId}/role-definitions:
     get:
       tags: [AdminCapabilities]
