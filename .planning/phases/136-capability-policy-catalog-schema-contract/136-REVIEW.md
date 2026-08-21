@@ -1,6 +1,6 @@
 ---
 phase: 136-capability-policy-catalog-schema-contract
-reviewed: 2026-08-21T15:04:29Z
+reviewed: 2026-08-21T15:13:00Z
 depth: deep
 files_reviewed: 62
 files_reviewed_list:
@@ -68,22 +68,22 @@ files_reviewed_list:
   - shared/contracts/openapi.yaml
 findings:
   critical: 0
-  warning: 1
+  warning: 0
   info: 0
-  total: 1
-status: issues_found
+  total: 0
+status: clean
 ---
 
 # Phase 136: Final Code Review Report
 
-**Reviewed:** 2026-08-21T15:04:29Z
+**Reviewed:** 2026-08-21T15:13:00Z
 **Depth:** deep
 **Files Reviewed:** 62
-**Status:** issues_found
+**Status:** clean
 
 ## Summary
 
-The deep re-review covered the committed gap-closure changes from Plans 136-21 through 136-31 and all files changed by fix commits `e6c326a9`, `fa5ba918`, `c07c8619`, and `e213ae9c`. CR-01 through CR-03 and WR-01 are genuinely closed. The final fix introduced one warning-level React callback dependency defect, so the phase is not yet clean.
+The final deep re-review covered the committed gap-closure changes from Plans 136-21 through 136-31 and all files changed by fix commits `e6c326a9`, `fa5ba918`, `c07c8619`, `e213ae9c`, and `afc3b19c`. CR-01 through CR-03 and WR-01 through WR-02 are genuinely closed. No new correctness, security, or maintainability defect was introduced by the final one-line callback dependency fix.
 
 Phase 137, the unused legacy release route, Finding 33 documentation, Finding 34 badge redesign, and unrelated dirty worktree files were excluded.
 
@@ -123,25 +123,25 @@ Phase 137, the unused legacy release route, Finding 33 documentation, Finding 34
 
 **Resolution:** Fixed in `e213ae9c`. Technical-link validation now participates in the form-wide invalid gate only when the actor can edit those fields. Focused tests prove a general-only actor can save with an invalid stored technical URL and sends no technical-link keys, while a technical-link editor remains blocked by an invalid URL.
 
-## Warnings
+### WR-02: The save callback omits its new captured permission dependency — fixed (`afc3b19c`)
 
-### WR-02: The save callback omits its new captured permission dependency
-
-**File:** `frontend/src/app/admin/fansubs/[id]/edit/useFansubDetailsForm.ts:346-365`
+**File:** `frontend/src/app/admin/fansubs/[id]/edit/useFansubDetailsForm.ts:346-366`
 **Issue:** Commit `e213ae9c` moved `canEditBroad` outside the `save` callback and now captures it inside that callback, but the dependency array does not include `canEditBroad`. The focused ESLint run reports `react-hooks/exhaustive-deps`. Although the primitive inputs currently appear separately in the dependency array, leaving a captured authorization-derived value implicit makes future changes prone to stale permission/payload behavior and leaves the changed file non-clean under project lint rules.
-**Fix:** Add `canEditBroad` to the `useCallback` dependency array (or compute it inside the callback as before), then rerun the focused tests and ESLint.
+**Resolution:** Fixed in `afc3b19c`. `canEditBroad` is now explicitly listed in the `save` callback dependency array. The focused hook lint is clean, and both technical-URL validation regressions continue to pass.
 
 ## Verification
 
 - WR-01 focused regression tests: 2 passed, 36 skipped.
+- WR-02 focused ESLint: passed with zero warnings or errors.
+- Final focused regression tests: 2 passed, 36 skipped.
 - Full `page.test.tsx`: 26 passed and 12 unrelated pre-existing fixture/provider failures; both new WR-01 tests pass in that run.
 - Frontend typecheck remains non-green on unrelated generated Next route/page typing errors outside `e213ae9c`.
-- Focused ESLint: zero errors and one warning, recorded as WR-02.
+- Focused ESLint after afc3b19c: zero errors and zero warnings.
 - Fix-commit `git diff --check`: passed.
 - No source files were modified.
 
 ---
 
-_Reviewed: 2026-08-21T15:04:29Z_
+_Reviewed: 2026-08-21T15:13:00Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: deep_
