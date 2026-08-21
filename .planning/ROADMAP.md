@@ -432,7 +432,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
   3. A fresh disposable database can apply and reverse the scoped-override schema with its ownership constraints and reverse-lookup indexes without editing historical migrations or requiring compatibility data.
   4. OpenAPI, backend DTOs, frontend types, and central API-helper contracts describe the same effective-rights, override, impact, and mutation-status shapes before consumers are built.
 
-**Plans**: 28 plans
+**Plans**: 31 plans
 
 Plans:
 **Wave 1**
@@ -492,6 +492,15 @@ Plans:
 
 **UAT gap closure — Wave 15**
 - [ ] 136-28-PLAN.md — Focused live UAT and approval evidence for all repaired gaps
+
+**Residual UAT gap closure — Wave 16**
+- [ ] 136-29-PLAN.md — Reversible canonical Typesetting label and exact catalog-backed 15-role palette
+
+**Residual UAT gap closure — Wave 17**
+- [ ] 136-30-PLAN.md — Shared semantic presentation on the four failed active role surfaces
+
+**Residual UAT gap closure — Wave 18**
+- [ ] 136-31-PLAN.md — Focused live role-presentation proof and resumption of the 136-28 checkpoint
 
 ### Phase 137: Central Effective-Rights Resolver & Overrides
 
