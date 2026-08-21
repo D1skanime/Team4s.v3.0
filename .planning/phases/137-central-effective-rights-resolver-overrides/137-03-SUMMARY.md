@@ -123,3 +123,7 @@ None beyond the test-helper fixture bug documented above under Deviations. `TEAM
 *Phase: 137-central-effective-rights-resolver-overrides*
 *Plan: 03*
 *Completed: 2026-08-21*
+
+## Self-Check: PASSED
+
+All created files verified present on disk; all three commit hashes (`fc249e83`, `0870bfdf`, `bc7d1c32`) verified present in `git log`.
