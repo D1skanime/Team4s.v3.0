@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 137-02-PLAN.md
-last_updated: "2026-08-21T17:44:03.278Z"
+stopped_at: Completed 137-03-PLAN.md
+last_updated: "2026-08-21T17:55:39.503Z"
 last_activity: 2026-08-21
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 39
-  completed_plans: 33
+  completed_plans: 34
   percent: 14
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 137 (central-effective-rights-resolver-overrides) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-08-21
 
@@ -150,6 +150,7 @@ Last activity: 2026-08-21
 - [Phase 136]: Active role chips use one data-color-key CSS seam and never derive colors from role codes.
 - [Phase 137]: Migration 0150 seeds the override-management capability only to fansub_lead (not founder/co_leader) and flips exactly seven Phase-136 group actions plus all three review.*.decide actions to user_overridable=true, giving later Phase-137 plans a real Review-Delegation-vs-User-Deny action to test against.
 - [Phase 137]: 137-02: EffectiveRightState additively extended (D04) with granting_roles[]/user_allow/user_deny/specialized_grants[]/decisive_source/reason_code; EffectiveRightProvenance gained platform_admin/specialized_grant/no_grant; CapabilityActivationStatus documented active-only for Phase 137. No competing inspector DTO introduced; Go DTO in capability_policy_contract.go deliberately deferred to a later Phase-137 plan. — Closes the Phase-136 DTO provenance gap identified in 137-RESEARCH.md Pitfall 4/Open Question 1 before any backend resolver route consumes the contract.
+- [Phase 137]: 137-03: AuthzUserOverridesRepository (backend/internal/repository/authz_user_overrides.go) gives the resolver/mutation-service layer batch-load (LoadCurrentOverrides), FOR-UPDATE membership lock (LockTargetMembership distinguishes ErrNotFound non-member from a returned inactive Status), catalog-policy read (LoadOverridePolicy), lock-then-mutate before/after state (UpsertOverride/DeleteOverride), and append-only history (AppendHistory/ListHistoryForSubject) primitives -- zero resolver precedence logic, zero N+1, one authzUserOverridesDBTX interface (embeds repository.DBTX + Query, mirrors releaseCrewDBTX) works on pool and tx alike. New backend/internal/testsupport/phase137_postgres.go harness applies the real 0085/0100/0108/0112/0146/0150 migration chain.
 
 ### Pending Todos
 
@@ -351,10 +352,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 136 P28 | 3h39m | 1 tasks | 3 files |
 | Phase 137 P01 | 25min | 2 tasks | 3 files |
 | Phase 137 P02 | ~15min | 1 tasks | 5 files |
+| Phase 137 P03 | ~30min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-21T17:44:03.255Z
-Stopped at: Completed 137-02-PLAN.md
+Last session: 2026-08-21T17:55:25.639Z
+Stopped at: Completed 137-03-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
