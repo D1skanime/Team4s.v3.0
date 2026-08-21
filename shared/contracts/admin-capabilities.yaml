@@ -596,10 +596,13 @@ components:
     CapabilityActivationStatus:
       type: string
       description: |
-        Phase 137 erfolgreiche Override-Mutationen melden ausschließlich "active".
-        "persisted", "pending" und "failed" bleiben schema-kompatibel für spätere
-        Phasen (z. B. Cache-Aktivierungsmodelle), werden von Phase 137 jedoch nicht
-        erzeugt.
+        "active" ist der normale erfolgreiche Mutationspfad. MutateOverride meldet
+        "pending", wenn nach einem bereits erfolgreich committeten Override-Write
+        die nachgelagerte Anreicherung (Ziel-Actor- bzw. Effective-Rights-
+        Neuauflösung) fehlschlägt -- der Write selbst bleibt dabei unverändert
+        erfolgreich, nur die Response-Anreicherung ist unvollständig. "persisted"
+        und "failed" bleiben schema-kompatibel für spätere Phasen (z. B.
+        Cache-Aktivierungsmodelle) und werden von Phase 137 nicht erzeugt.
       enum: [persisted, active, pending, failed]
     CapabilityMutationStatus:
       type: string

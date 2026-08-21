@@ -161,9 +161,11 @@ func TestEffectiveRightStateProvenanceContract(t *testing.T) {
 // TestCapabilityOverrideSchemasUnchangedContract proves the additive
 // extension left CapabilityOverrideState/Mutation/Audit schemas byte-for-byte
 // stable (no incidental field added) and that CapabilityActivationStatus's
-// enum values are unchanged, while its description now documents that Phase
-// 137 mutations only ever emit "active" (pending/failed remain unused but
-// schema-compatible), per 137-02-PLAN.md must_haves.
+// enum values are unchanged, while its description now documents that
+// MutateOverride returns "pending" when the post-commit enrichment
+// (target-actor/effective-rights re-resolution) fails after a successfully
+// committed write -- "active" remains the normal-path value, and
+// "persisted"/"failed" remain unused by Phase 137 (137-09-PLAN.md GAP-01).
 func TestCapabilityOverrideSchemasUnchangedContract(t *testing.T) {
 	focused := loadPhase137Document(t, "shared/contracts/admin-capabilities.yaml")
 	root := loadPhase137Document(t, "shared/contracts/openapi.yaml")
@@ -203,8 +205,8 @@ func TestCapabilityOverrideSchemasUnchangedContract(t *testing.T) {
 	if activationBlock == nil {
 		t.Fatal("could not locate CapabilityActivationStatus block in focused contract")
 	}
-	if !strings.Contains(activationBlock[1], "active") || !strings.Contains(activationBlock[1], "137") {
-		t.Errorf("CapabilityActivationStatus description must document Phase-137's active-only mutation contract, got %q", activationBlock[1])
+	if !strings.Contains(activationBlock[1], "active") || !strings.Contains(activationBlock[1], "137") || !strings.Contains(activationBlock[1], "pending") {
+		t.Errorf("CapabilityActivationStatus description must document Phase-137's real pending-on-post-commit-enrichment-failure behavior, got %q", activationBlock[1])
 	}
 
 	// No competing richer inspector DTO must exist alongside EffectiveRightState.

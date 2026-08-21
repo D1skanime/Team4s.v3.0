@@ -92,9 +92,13 @@ export type EffectiveRightProvenance =
   | 'no_grant';
 export type CapabilityOverrideEffect = 'allow' | 'deny';
 /**
- * Phase 137 erfolgreiche Override-Mutationen melden ausschließlich 'active'.
- * 'persisted', 'pending' und 'failed' bleiben schema-kompatibel für spätere
- * Phasen, werden von Phase 137 jedoch nicht erzeugt.
+ * 'active' ist der normale erfolgreiche Mutationspfad. MutateOverride meldet
+ * 'pending', wenn nach einem bereits erfolgreich committeten Override-Write
+ * die nachgelagerte Anreicherung (Ziel-Actor- bzw. Effective-Rights-
+ * Neuauflösung) fehlschlägt -- der Write selbst bleibt dabei unverändert
+ * erfolgreich, nur die Response-Anreicherung ist unvollständig. 'persisted'
+ * und 'failed' bleiben schema-kompatibel für spätere Phasen und werden von
+ * Phase 137 nicht erzeugt.
  */
 export type CapabilityActivationStatus = 'persisted' | 'active' | 'pending' | 'failed';
 export type CapabilityMutationStatus = 'changed' | 'no_op';
