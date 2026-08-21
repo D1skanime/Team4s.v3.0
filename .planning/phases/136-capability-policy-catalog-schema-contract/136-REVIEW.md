@@ -1,8 +1,8 @@
 ---
 phase: 136-capability-policy-catalog-schema-contract
-reviewed: 2026-08-21T14:41:32Z
+reviewed: 2026-08-21T14:57:05Z
 depth: deep
-files_reviewed: 60
+files_reviewed: 62
 files_reviewed_list:
   - backend/internal/handlers/app_auth.go
   - backend/internal/handlers/app_auth_test.go
@@ -46,8 +46,10 @@ files_reviewed_list:
   - frontend/src/app/admin/fansubs/[id]/edit/fansubEditAccess.test.ts
   - frontend/src/app/admin/fansubs/[id]/edit/fansubEditAccess.ts
   - frontend/src/app/admin/fansubs/[id]/edit/fansubEditFormMapping.ts
+  - frontend/src/app/admin/fansubs/[id]/edit/fansubEditTypes.ts
   - frontend/src/app/admin/fansubs/[id]/edit/sections/FansubEditWorkspaceSection.tsx
   - frontend/src/app/admin/fansubs/[id]/edit/useFansubDetailsForm.ts
+  - frontend/src/app/admin/fansubs/[id]/edit/page.test.tsx
   - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.test.tsx
   - frontend/src/app/me/projects/[animeId]/group/[fansubGroupId]/page.tsx
   - frontend/src/app/me/releases/[versionId]/workspace/page.test.tsx
@@ -65,29 +67,29 @@ files_reviewed_list:
   - shared/contracts/admin-capabilities.yaml
   - shared/contracts/openapi.yaml
 findings:
-  critical: 3
-  warning: 0
+  critical: 0
+  warning: 1
   info: 0
-  total: 3
+  total: 1
 status: issues_found
 ---
 
 # Phase 136: Final Code Review Report
 
-**Reviewed:** 2026-08-21T14:41:32Z
+**Reviewed:** 2026-08-21T14:57:05Z
 **Depth:** deep
-**Files Reviewed:** 60
+**Files Reviewed:** 62
 **Status:** issues_found
 
 ## Summary
 
-The deep review covered the committed gap-closure changes from Plans 136-21 through 136-31, including migration reversal, catalog authority, contract projection, contributor navigation, narrow Founder/Co-Leader enforcement, and role-color accessibility. Three release-blocking correctness defects remain. Focused tests pass, but they encode only the fresh fixture or the newly added fields and therefore do not expose these failures.
+The deep re-review covered the committed gap-closure changes from Plans 136-21 through 136-31 and all files changed by fix commits `e6c326a9`, `fa5ba918`, and `c07c8619`. CR-01 through CR-03 are genuinely closed: rollback now restores captured catalog state, the focused capability contract is structurally aligned with canonical OpenAPI, and technical-link-only users receive a field-limited edit path. One warning-level regression remains in the new UI validation gate.
 
 Phase 137, the unused legacy release route, Finding 33 documentation, Finding 34 badge redesign, and unrelated dirty worktree files were excluded.
 
-## Critical Issues
+## Resolved Critical Issues
 
-### CR-01: Migration 0148 rollback deletes or corrupts pre-existing catalog state
+### CR-01: Migration 0148 rollback deletes or corrupts pre-existing catalog state — fixed (`e6c326a9`)
 
 **File:** `database/migrations/0148_role_catalog_uat_corrections.down.sql:5-14`
 
@@ -95,7 +97,7 @@ Phase 137, the unused legacy release route, Finding 33 documentation, Finding 34
 
 **Fix:** Make 0148 additive-only where the exact prior state is guaranteed by 0146, or encode the exact 0147-era values and restore every mutated row. Do not combine `ON CONFLICT DO UPDATE` with unconditional delete. Add an Up/Down test seeded with an existing `karaoke_fx` row and non-default contexts/assignability, and assert exact restoration of all rows changed by up.
 
-### CR-02: The focused admin capability contract defines a different, incomplete schema
+### CR-02: The focused admin capability contract defines a different, incomplete schema — fixed (`fa5ba918`)
 
 **File:** `shared/contracts/admin-capabilities.yaml:276-294`
 
@@ -103,7 +105,7 @@ Phase 137, the unused legacy release route, Finding 33 documentation, Finding 34
 
 **Fix:** Add the capabilities operation to the focused contract and reference a complete schema identical to the canonical OpenAPI definition, or remove the orphan schema if this endpoint is intentionally outside the focused surface. Replace substring/presence assertions with structural parity over required fields, property names, types, and endpoint response references. Align `frontend/src/types/fansub.ts:240-242` as well: fields required by OpenAPI and always emitted by Go must not be optional in TypeScript.
 
-### CR-03: can_edit_technical_links grants workspace access but no usable edit path
+### CR-03: can_edit_technical_links grants workspace access but no usable edit path — fixed (`c07c8619`)
 
 **File:** `frontend/src/app/admin/fansubs/[id]/edit/fansubEditAccess.ts:14-20`
 
@@ -111,15 +113,26 @@ Phase 137, the unused legacy release route, Finding 33 documentation, Finding 34
 
 **Fix:** Wire `can_edit_technical_links` to the intended existing technical-link controls and include only those fields in the capability-specific PATCH payload, or remove that default grant/workspace admission if the canonical UI ownership is the community-link collection. Add a Tech-Admin component/integration test that edits an allowed technical field, submits it, and asserts forbidden general/lifecycle/link-collection fields remain absent.
 
+## Warnings
+
+### WR-01: Disabled technical-link fields can block unrelated authorized saves
+
+**File:** `frontend/src/app/admin/fansubs/[id]/edit/useFansubDetailsForm.ts:232-253`
+
+**Issue:** `technicalLinkErrors` is computed from the stored group URLs and included unconditionally in the form-wide `invalid` flag. For an actor without `can_edit_technical_links`, those inputs are disabled, but any legacy or otherwise nonconforming stored URL still disables Save. That actor can neither correct the URL nor submit an unrelated change they are authorized to make (for example founding history or group media). The focused test covers only valid URLs for a technical-link editor and does not exercise this cross-capability case.
+
+**Fix:** Gate technical-link errors with the same effective permission used by the payload, for example `canEditTechnicalLinks && Object.values(technicalLinkErrors).some(Boolean)`, and add a regression test where a founding/general-only actor loads an invalid stored technical URL and can still save an allowed field without technical-link keys in the PATCH.
+
 ## Verification
 
-- Backend focused handlers/repository/migration suites: passed.
-- Frontend workspace, access, catalog and contrast suites: 25 tests passed.
-- `git diff --check`: passed before the review artifact update.
+- Focused backend contract/capability tests: passed.
+- `FansubBasicInfoTab.test.tsx`: 5 tests passed; the broader page suite currently has 12 unrelated fixture/provider failures, while the new technical-link-only test passes.
+- Broad backend suites remain non-green because migration DSNs are not supplied and unrelated authorization fixtures fail; these failures are outside the three fix commits.
+- Source-file `git diff --check`: passed.
 - No source files were modified.
 
 ---
 
-_Reviewed: 2026-08-21T14:41:32Z_
+_Reviewed: 2026-08-21T14:57:05Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: deep_
