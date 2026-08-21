@@ -90,21 +90,6 @@
   --ach-muted-grad: linear-gradient(145deg, #b8b8bd, #6b6b70);
   --ach-muted-soft: #f0ece5;
 
-  /* Gemeinsame Rollenfarben für Mitgliederverwaltung, Credits und Auszeichnungen. */
-  --role-accent-base: #355481;
-  --role-accent-default: #43536e;
-  --role-accent-fansub-lead: #183b7c;
-  --role-accent-project-lead: #245c88;
-  --role-accent-editor: #6d3f83;
-  --role-accent-translator: #27664f;
-  --role-accent-timer: #c26a2e;
-  --role-accent-typesetter: #7b3c4e;
-  --role-accent-quality-checker: #6b7f2a;
-  --role-accent-encoder: #506b91;
-  --role-accent-raw-provider: #a04444;
-  --role-accent-designer: #b23a78;
-  --role-accent-admin: #2f6670;
-  --role-accent-other: #596176;
 
   --button-primary-start: #7aa0f0;
   --button-primary-mid: #5f84dd;
@@ -281,19 +266,36 @@ textarea {
 .color-token-blue   { color: #2563eb; }
 .color-token-purple { color: #9333ea; }
 
-/* Team4s-Rollenfarben pro data-role-code als CSS-Variable (additiv, wiederverwendbar).
-   Setzt nur --role-accent auf Elemente mit data-role-code; kein bestehendes Element liest diese
-   Variable, daher keine Nebenwirkung. Chips nutzen var(--role-accent). */
-[data-role-code] { --role-accent: var(--role-accent-default); }
-[data-role-code='fansub_lead'] { --role-accent: var(--role-accent-fansub-lead); }
-[data-role-code='project_lead'] { --role-accent: var(--role-accent-project-lead); }
-[data-role-code='editor'] { --role-accent: var(--role-accent-editor); }
-[data-role-code='translator'] { --role-accent: var(--role-accent-translator); }
-[data-role-code='timer'] { --role-accent: var(--role-accent-timer); }
-[data-role-code='typesetter'] { --role-accent: var(--role-accent-typesetter); }
-[data-role-code='quality_checker'] { --role-accent: var(--role-accent-quality-checker); }
-[data-role-code='encoder'] { --role-accent: var(--role-accent-encoder); }
-[data-role-code='raw_provider'] { --role-accent: var(--role-accent-raw-provider); }
-[data-role-code='designer'] { --role-accent: var(--role-accent-designer); }
-[data-role-code='admin'] { --role-accent: var(--role-accent-admin); }
-[data-role-code='other'] { --role-accent: var(--role-accent-other); }
+
+/* One bounded catalog color_key-to-token seam; role codes never select color. */
+[data-color-key='#183b7c'] { --role-chip-accent: #183b7c; }
+[data-color-key='#8c4a16'] { --role-chip-accent: #8c4a16; }
+[data-color-key='#0f766e'] { --role-chip-accent: #0f766e; }
+[data-color-key='#475569'] { --role-chip-accent: #475569; }
+[data-color-key='#7e22ce'] { --role-chip-accent: #7e22ce; }
+[data-color-key='#0369a1'] { --role-chip-accent: #0369a1; }
+[data-color-key='#27664f'] { --role-chip-accent: #27664f; }
+[data-color-key='#6d3f83'] { --role-chip-accent: #6d3f83; }
+[data-color-key='#c26a2e'] { --role-chip-accent: #c26a2e; }
+[data-color-key='#7b3c4e'] { --role-chip-accent: #7b3c4e; }
+[data-color-key='#a16207'] { --role-chip-accent: #a16207; }
+[data-color-key='#506b91'] { --role-chip-accent: #506b91; }
+[data-color-key='#a04444'] { --role-chip-accent: #a04444; }
+[data-color-key='#6b7f2a'] { --role-chip-accent: #6b7f2a; }
+[data-color-key='#b23a78'] { --role-chip-accent: #b23a78; }
+[data-color-key='neutral'] { --role-chip-accent: #596176; }
+
+.role-catalog-chip {
+  --role-chip-accent: #596176;
+  --role-chip-text: #111827;
+  --role-chip-border: #475569;
+  --role-chip-focus: #111827;
+  border-color: var(--role-chip-border);
+  background: color-mix(in srgb, var(--role-chip-accent) 14%, var(--surface-card));
+  color: var(--role-chip-text);
+  box-shadow: inset 0 3px 0 var(--role-chip-accent);
+}
+
+.role-catalog-chip:focus-visible {
+  outline-color: var(--role-chip-focus);
+}

@@ -44,4 +44,3 @@ describe('roleCatalog', () => {
     expect(presentationForRole([role('typesetter', { color_key: '#123456' })], 'typesetter').colorKey).toBe(NEUTRAL_ROLE_COLOR_KEY)
   })
 })
-

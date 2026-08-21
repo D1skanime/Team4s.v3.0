@@ -38,8 +38,9 @@ describe('role catalog chip accessibility', () => {
   it('resolves every bounded treatment from the actual stylesheet with no role-code selector', () => {
     expect(css).not.toMatch(/\[data-role-code(?:=|\])/)
     for (const colorKey of [...ROLE_COLOR_KEYS, NEUTRAL_ROLE_COLOR_KEY]) {
-      const escaped = colorKey.replace('#', '\\#')
-      expect(css).toMatch(new RegExp(`\\[data-color-key=['"]${escaped}['"]\\]\\s*\\{[^}]*--role-chip-accent:\\s*${escaped}`, 'i'))
+      const selectorKey = colorKey.replace('#', '\\#')
+      const accent = colorKey === NEUTRAL_ROLE_COLOR_KEY ? '#596176' : selectorKey
+      expect(css).toMatch(new RegExp(`\\[data-color-key=['"]${selectorKey}['"]\\]\\s*\\{[^}]*--role-chip-accent:\\s*${accent}`, 'i'))
     }
   })
 
@@ -56,4 +57,3 @@ describe('role catalog chip accessibility', () => {
     }
   })
 })
-
