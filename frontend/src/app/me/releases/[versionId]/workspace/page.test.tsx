@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const getEpisodeVersionEditorContextMock = vi.fn()
 const getOwnProfileMock = vi.fn()
 const getReleaseVersionCapabilitiesMock = vi.fn()
+const segmenteTabMock = vi.fn()
 const searchParamsMock = vi.hoisted(() => vi.fn())
 const useAuthSessionMock = vi.hoisted(() => vi.fn())
 
@@ -55,6 +56,13 @@ vi.mock('@/app/admin/episode-versions/[versionId]/edit/ReleaseVersionNotesTab', 
       Notes {versionId} member {memberIdFilter}
     </div>
   ),
+}))
+
+vi.mock('@/app/admin/episode-versions/[versionId]/edit/SegmenteTab', () => ({
+  SegmenteTab: (props: Record<string, unknown>) => {
+    segmenteTabMock(props)
+    return <div data-testid="segments-tab">Segmente</div>
+  },
 }))
 
 import { MeReleaseWorkspacePage } from './page'
@@ -144,5 +152,47 @@ describe('MeReleaseWorkspacePage', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Naruto' })).toBeTruthy())
     expect(screen.queryByRole('link', { name: 'Zurück zum Projekt' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Naruto' })).toBeNull()
+  })
+
+  it('renders the existing segment editor with the canonical release context when permitted', async () => {
+    mockWorkspaceData({ can_manage_segments: true })
+
+    render(<MeReleaseWorkspacePage />)
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Segmente' }))
+    expect(screen.getByTestId('segments-tab')).toBeTruthy()
+    expect(segmenteTabMock).toHaveBeenCalledWith({
+      animeId: 10,
+      groupId: 1,
+      version: 'v1',
+      episodeNumber: 1,
+      durationSeconds: undefined,
+      releaseVariantId: 42,
+    })
+  })
+
+  it('never mounts segment controls without can_manage_segments', async () => {
+    render(<MeReleaseWorkspacePage />)
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Naruto' })).toBeTruthy())
+    expect(screen.queryByRole('tab', { name: 'Segmente' })).toBeNull()
+    expect(segmenteTabMock).not.toHaveBeenCalled()
+  })
+
+  it('allows segment-only workspace access and selects segments by default', async () => {
+    mockWorkspaceData({
+      can_view_media: false,
+      can_upload_media: false,
+      can_update_media: false,
+      can_delete_media: false,
+      can_edit_notes: false,
+      can_manage_segments: true,
+    })
+
+    render(<MeReleaseWorkspacePage />)
+
+    expect(await screen.findByRole('tab', { name: 'Segmente', selected: true })).toBeTruthy()
+    expect(screen.getByTestId('segments-tab')).toBeTruthy()
+    expect(screen.queryByText('Kein Zugriff auf diesen Projektbereich')).toBeNull()
   })
 })
