@@ -20,22 +20,19 @@ package permissions
 // active membership) determines the effective result -- it is only ever *effective* while
 // ActiveMembership is true.
 //
-// Known production-wiring gap (documented rather than silently worked around): the
-// concrete resolver backing production Service instances (*repository.AuthzRepository) does
-// not yet implement the two new optional interfaces this file introduces
-// (GroupRightsMembershipResolver, GroupRightsOverridesResolver) -- adding those methods
-// requires editing a repository-package file, which is outside this plan's declared
-// files_modified. Until a later plan wires them, ResolveGroupRights degrades to the
-// pre-Phase-137 role-only shape (see the fallback comment inside ResolveGroupRights) with
-// zero regression for existing role-based checks, but real per-user override enforcement is
-// not yet live end-to-end. Review Delegation has no such gap: ReviewContextResolver already
-// exists and AuthzRepository already implements it, so the specialized-grant seam
-// (review_grant_provider.go) is fully wired in production today.
+// Production wiring closed (Plan 137-05): *repository.AuthzRepository implements both
+// GroupRightsMembershipResolver and GroupRightsOverridesResolver via
+// ResolveActorGroupMembership/ResolveActorUserOverrides, proven against real Postgres by
+// TestPhase137AuthzRepositoryImplementsGroupRightsOptionalInterfaces, and this concrete
+// repository is wired into permissions.NewService in production (main.go). Real per-user
+// override enforcement is live end-to-end. Review Delegation is wired the same way:
+// ReviewContextResolver is the specialized-grant seam (review_grant_provider.go), fully
+// wired in production.
 //
 // The Go DTO consumed by the admin HTTP layer (backend/internal/handlers/
-// capability_policy_contract.go's EffectiveRightState) also has not been extended to this
-// additive shape yet -- 137-02-SUMMARY.md already flags that gap for whichever later plan
-// wires an HTTP projection of this resolution.
+// capability_policy_contract.go's EffectiveRightState) also carries this additive shape
+// (granting_roles, user_allow, user_deny, specialized_grants, decisive_source, reason_code),
+// closed in Plan 137-02/137-07.
 
 import (
 	"context"
