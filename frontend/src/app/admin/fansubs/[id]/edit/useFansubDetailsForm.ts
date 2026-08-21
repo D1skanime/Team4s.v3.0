@@ -345,6 +345,7 @@ export function useFansubDetailsForm({
     },
     [
       bannerMedia,
+      canEditBroad,
       capabilities,
       fansubID,
       form,
