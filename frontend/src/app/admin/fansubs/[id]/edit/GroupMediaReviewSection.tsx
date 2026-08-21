@@ -178,17 +178,7 @@ export function GroupMediaReviewSection({
   capabilities,
   isPlatformAdmin = false,
 }: GroupMediaReviewSectionProps) {
-  const canUseMedia =
-    isPlatformAdmin ||
-    Boolean(
-      capabilities?.can_view_group_media ||
-        capabilities?.can_upload_group_media ||
-        capabilities?.can_update_group_media ||
-        capabilities?.can_reorder_group_media ||
-        capabilities?.can_delete_own_group_media ||
-        capabilities?.can_delete_group_media ||
-        capabilities?.can_edit_group,
-    )
+  const canUseMedia = isPlatformAdmin || Boolean(capabilities?.can_view_group_media)
   if (!canUseMedia) return null
 
   return (

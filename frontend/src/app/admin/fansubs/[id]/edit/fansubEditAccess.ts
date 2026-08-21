@@ -12,19 +12,16 @@ export function canUseMainTab(
 
   switch (tab) {
     case "basic":
-      return capabilities.can_edit_group;
-    case "media":
       return Boolean(
         capabilities.can_edit_group ||
-        capabilities.can_view_group_media ||
-        capabilities.can_upload_group_media ||
-        capabilities.can_update_group_media ||
-        capabilities.can_reorder_group_media ||
-        capabilities.can_delete_own_group_media ||
-        capabilities.can_delete_group_media
+        capabilities.can_edit_group_general ||
+        capabilities.can_edit_technical_links ||
+        capabilities.can_update_group_links
       );
+    case "media":
+      return capabilities.can_view_group_media;
     case "links":
-      return capabilities.can_manage_links;
+      return capabilities.can_manage_links || capabilities.can_update_group_links;
     case "collaboration":
       return (
         capabilities.can_view_members ||
@@ -45,7 +42,7 @@ export function canUseMainTab(
     case "releases":
       return Boolean(capabilities.can_view_releases);
     case "notes":
-      return capabilities.can_edit_notes;
+      return capabilities.can_edit_notes || capabilities.can_edit_founding_history;
     case "readiness":
       return capabilities.can_edit_group || capabilities.can_edit_notes;
     default:
@@ -75,7 +72,28 @@ export function hasFansubWorkspaceAccess(
   capabilities: FansubGroupCapabilities | null,
 ): boolean {
   if (!capabilities) return false;
-  return Object.values(capabilities).some(Boolean);
+  return Boolean(
+    capabilities.can_edit_group ||
+    capabilities.can_edit_group_general ||
+    capabilities.can_edit_technical_links ||
+    capabilities.can_edit_founding_history ||
+    capabilities.can_update_group_links ||
+    capabilities.can_manage_links ||
+    capabilities.can_view_members ||
+    capabilities.can_manage_members ||
+    capabilities.can_manage_historical_members ||
+    capabilities.can_manage_historical_roles ||
+    capabilities.can_link_historical_members ||
+    capabilities.can_edit_notes ||
+    capabilities.can_view_invitations ||
+    capabilities.can_create_invitation ||
+    capabilities.can_cancel_invitation ||
+    capabilities.can_view_releases ||
+    capabilities.can_view_release_media ||
+    capabilities.can_upload_release_media ||
+    capabilities.can_edit_release_notes ||
+    capabilities.can_view_group_media
+  );
 }
 
 export function canViewReleaseContributors(

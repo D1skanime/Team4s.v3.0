@@ -83,6 +83,8 @@ describe("fansub edit access", () => {
     const access = capabilities({ can_update_group_links: true });
     expect(hasFansubWorkspaceAccess(access)).toBe(true);
     expect(canUseMainTab("links", false, access)).toBe(true);
+    expect(canUseMainTab("basic", false, access)).toBe(true);
+    expect(resolveMainTabForAccess("media", false, access)).toBe("basic");
     expect(access.can_manage_links).toBe(false);
   });
 
@@ -92,7 +94,7 @@ describe("fansub edit access", () => {
     "can_reorder_group_media",
   ] as const)("does not expose Media for %s without list access", (capability) => {
     const access = capabilities({ [capability]: true });
-    expect(hasFansubWorkspaceAccess(access)).toBe(true);
+    expect(hasFansubWorkspaceAccess(access)).toBe(false);
     expect(canUseMainTab("media", false, access)).toBe(false);
   });
 });
