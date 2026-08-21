@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -8,8 +11,10 @@ import (
 	"testing"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/middleware"
 	"team4s.v3/backend/internal/permissions"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )
 
@@ -127,4 +132,33 @@ func phase136RepositoryRoot(t testing.TB) string {
 	_, filename, _, ok := runtime.Caller(0)
 	require.True(t, ok)
 	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", ".."))
+}
+
+func phase136ForbiddenContext(method, target, body string, params ...gin.Param) (*gin.Context, *httptest.ResponseRecorder) {
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(method, target, bytes.NewBufferString(body))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = params
+	c.Set("auth_identity", middleware.AuthIdentity{UserID: 3, AppUserID: 5, DisplayName: "Narrow Role", AppUserStatus: "active"})
+	return c, recorder
+}
+func phase136NarrowPermissionService(t *testing.T, role string) *permissions.Service {
+	t.Helper(); loadAppAuthCapabilityTestCache(t)
+	return permissions.NewService(permissionResolverStub{context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{41}}, roles: map[int64][]string{41: {role}}})
+}
+func TestPhase136ForbiddenStatusAndGroupTypeReturn403(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for name, body := range map[string]string{"status": `{"status":"inactive"}`, "group_type": `{"group_type":"group"}`} {
+		t.Run(name, func(t *testing.T) { h := &FansubHandler{permissionSvc: phase136NarrowPermissionService(t, "co_leader")}; c, recorder := phase136ForbiddenContext(http.MethodPatch, "/api/v1/admin/fansubs/41", body, gin.Param{Key: "id", Value: "41"}); h.UpdateFansub(c); require.Equal(t, http.StatusForbidden, recorder.Code, recorder.Body.String()) })
+	}
+}
+func TestPhase136ForbiddenHistoryMutationReturns403(t *testing.T) {
+	gin.SetMode(gin.TestMode); h := NewFansubGroupHistoryHandler(nil).WithPermissionSvc(phase136NarrowPermissionService(t, "founder")); c, recorder := phase136ForbiddenContext(http.MethodPost, "/api/v1/admin/fansubs/41/history", `{"year":2020,"event_type":"award","title":"Nicht erlaubt"}`, gin.Param{Key: "id", Value: "41"}); h.CreateGroupHistory(c); require.Equal(t, http.StatusForbidden, recorder.Code, recorder.Body.String())
+}
+func TestPhase136ForbiddenLinkCreateDeleteReturn403(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, tc := range []struct{name, method, target, body string; call func(*FansubHandler, *gin.Context)}{{"create", http.MethodPost, "/api/v1/admin/fansubs/41/links", `{"link_type":"website","url":"https://example.test"}`, (*FansubHandler).CreateFansubLink}, {"delete", http.MethodDelete, "/api/v1/admin/fansubs/41/links/7", "", (*FansubHandler).DeleteFansubLink}} {
+		t.Run(tc.name, func(t *testing.T) { h := &FansubHandler{permissionSvc: phase136NarrowPermissionService(t, "co_leader")}; c, recorder := phase136ForbiddenContext(tc.method, tc.target, tc.body, gin.Param{Key: "id", Value: "41"}, gin.Param{Key: "linkId", Value: "7"}); tc.call(h, c); require.Equal(t, http.StatusForbidden, recorder.Code, recorder.Body.String()) })
+	}
 }
