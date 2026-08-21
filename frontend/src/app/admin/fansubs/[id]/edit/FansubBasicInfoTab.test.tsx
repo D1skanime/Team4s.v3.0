@@ -1,0 +1,17 @@
+// @vitest-environment jsdom
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import type { FansubGroupCapabilities } from '@/types/fansub'
+import { FansubBasicInfoTab } from './FansubBasicInfoTab'
+vi.mock('@/components/admin/MediaUpload', () => ({ MediaUpload: ({ type, disabled }: { type: string; disabled?: boolean }) => <button disabled={disabled}>{type}</button> }))
+const base: FansubGroupCapabilities = { can_edit_group:false, can_edit_group_general:false, can_edit_technical_links:false, can_edit_founding_history:false, can_update_group_links:false, can_manage_links:false, can_view_members:false, can_manage_members:false, can_edit_notes:false, can_view_invitations:false, can_create_invitation:false, can_cancel_invitation:false, can_view_releases:false, can_view_release_media:false, can_upload_release_media:false, can_edit_release_notes:false, can_view_group_media:false, can_upload_group_media:false, can_update_group_media:false, can_delete_own_group_media:false, can_delete_group_media:false, can_reorder_group_media:false }
+function renderTab(overrides: Partial<FansubGroupCapabilities>) {
+ const details = { form:{name:'Gruppe',slug:'gruppe',status:'active',groupType:'group',country:'Deutschland',foundedYear:'2004',dissolvedYear:''}, setForm:vi.fn(), aliases:[],aliasInput:'',setAliasInput:vi.fn(),aliasError:null,setAliasError:vi.fn(),setLinks:vi.fn(),setManualSlug:vi.fn(),saving:false,aliasBusy:false,logoMedia:null,setLogoMedia:vi.fn(),bannerMedia:null,setBannerMedia:vi.fn(),setInitialLogoMedia:vi.fn(),setInitialBannerMedia:vi.fn(),nameError:null,slugFormatError:null,foundedError:null,dissolvedError:null,dissolvedAfterFoundedError:null,slugConflict:false,slugChecking:false,handleLogoMediaBusyChange:vi.fn(),handleBannerMediaBusyChange:vi.fn(),addAlias:vi.fn(),removeAlias:vi.fn() }
+ render(<FansubBasicInfoTab styles={{}} details={details as never} fansubID={7} group={null} capabilities={{...base,...overrides}} isPlatformAdmin={false} hasAuthSession onToast={vi.fn()} communityLinksList={<div>Links</div>} />)
+}
+describe('FansubBasicInfoTab field capabilities', () => {
+ it('enables only general fields for can_edit_group_general', () => { renderTab({can_edit_group_general:true}); expect(screen.getByLabelText(/Fansubgruppen-Name/)).toBeEnabled(); expect(screen.getByLabelText('Land')).toBeEnabled(); expect(screen.getByLabelText(/Status/)).toBeDisabled(); expect(screen.getByLabelText('Gruppentyp')).toBeDisabled() })
+ it('enables lifecycle fields on the broad path', () => { renderTab({can_edit_group:true}); expect(screen.getByLabelText(/Status/)).toBeEnabled(); expect(screen.getByLabelText('Gruppentyp')).toBeEnabled() })
+ it('keeps fields disabled without an exact right', () => { renderTab({}); expect(screen.getByLabelText(/Fansubgruppen-Name/)).toBeDisabled(); expect(screen.getByLabelText('Land')).toBeDisabled(); expect(screen.getByLabelText(/Status/)).toBeDisabled(); expect(screen.getByLabelText('Gruppentyp')).toBeDisabled() })
+ it('hides link creation for update-only actors', () => { renderTab({can_update_group_links:true}); expect(screen.queryByRole('button',{name:'Link hinzufügen'})).not.toBeInTheDocument(); expect(screen.getByText('Links')).toBeInTheDocument() })
+})
