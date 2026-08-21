@@ -21,6 +21,10 @@ import (
 
 type fansubGroupCapabilitiesResponse struct {
 	CanEditGroup               bool `json:"can_edit_group"`
+	CanEditGroupGeneral        bool `json:"can_edit_group_general"`
+	CanEditTechnicalLinks      bool `json:"can_edit_technical_links"`
+	CanEditFoundingHistory     bool `json:"can_edit_founding_history"`
+	CanUpdateGroupLinks        bool `json:"can_update_group_links"`
 	CanManageLinks             bool `json:"can_manage_links"`
 	CanViewMembers             bool `json:"can_view_members"`
 	CanManageMembers           bool `json:"can_manage_members"`
@@ -1066,6 +1070,26 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
 		return
 	}
+	canEditGroupGeneral, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupPageGeneralEdit, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canEditTechnicalLinks, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupPageTechnicalLinksEdit, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canEditFoundingHistory, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupPageFoundingHistoryEdit, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
+	canUpdateGroupLinks, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupLinksUpdate, fansubID)
+	if err != nil {
+		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
+		return
+	}
 	canViewMembers, err := h.permissionSvc.CanForFansubGroup(c.Request.Context(), actor, permissions.ActionFansubGroupMembersView, fansubID)
 	if err != nil {
 		writePermissionInternalError(c, err, "Capabilities konnten nicht geladen werden.")
@@ -1175,13 +1199,17 @@ func (h *AppAuthHandler) GetFansubGroupCapabilities(c *gin.Context) {
 	canDeleteGroupMediaAllowed := canDeleteGroupMedia.Allowed || customMediaPermissions.CanDeleteAll
 	canReorderGroupMediaAllowed := canUpdateGroupMedia.Allowed || customMediaPermissions.CanReorder
 
-	if !canEditGroup.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageHistoricalMembers.Allowed && !canManageHistoricalRoles.Allowed && !canLinkHistoricalMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMediaAllowed && !canUploadGroupMediaAllowed && !canUpdateGroupMedia.Allowed && !canDeleteOwnGroupMediaAllowed && !canDeleteGroupMediaAllowed && !canReorderGroupMediaAllowed {
+	if !canEditGroup.Allowed && !canEditGroupGeneral.Allowed && !canEditTechnicalLinks.Allowed && !canEditFoundingHistory.Allowed && !canUpdateGroupLinks.Allowed && !canViewMembers.Allowed && !canManageMembers.Allowed && !canManageHistoricalMembers.Allowed && !canManageHistoricalRoles.Allowed && !canLinkHistoricalMembers.Allowed && !canManageLinks.Allowed && !canEditNotes.Allowed && !canViewInvitations.Allowed && !canCreateInvitation.Allowed && !canCancelInvitation.Allowed && !canViewReleases.Allowed && !canViewReleaseMedia.Allowed && !canUploadReleaseMedia.Allowed && !canEditReleaseNotes.Allowed && !canViewGroupMediaAllowed && !canUploadGroupMediaAllowed && !canUpdateGroupMedia.Allowed && !canDeleteOwnGroupMediaAllowed && !canDeleteGroupMediaAllowed && !canReorderGroupMediaAllowed {
 		writePermissionDenied(c, canViewMembers)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": fansubGroupCapabilitiesResponse{
 		CanEditGroup:               canEditGroup.Allowed,
+		CanEditGroupGeneral:        canEditGroupGeneral.Allowed,
+		CanEditTechnicalLinks:      canEditTechnicalLinks.Allowed,
+		CanEditFoundingHistory:     canEditFoundingHistory.Allowed,
+		CanUpdateGroupLinks:        canUpdateGroupLinks.Allowed,
 		CanManageLinks:             canManageLinks.Allowed,
 		CanViewMembers:             canViewMembers.Allowed,
 		CanManageMembers:           canManageMembers.Allowed,
