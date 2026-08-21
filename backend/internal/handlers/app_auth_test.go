@@ -161,11 +161,15 @@ func (s *invitationRepoStub) Accept(_ context.Context, _ models.AcceptFansubInvi
 }
 
 type permissionResolverStub struct {
-	context *permissions.Context
-	roles   map[int64][]string
+	context               *permissions.Context
+	roles                 map[int64][]string
+	resolveFansubGroupErr error
 }
 
 func (s permissionResolverStub) ResolveFansubGroup(_ context.Context, _ int64) (*permissions.Context, error) {
+	if s.resolveFansubGroupErr != nil {
+		return nil, s.resolveFansubGroupErr
+	}
 	return s.context, nil
 }
 
@@ -187,6 +191,47 @@ func (s permissionResolverStub) ListActorGroupRoles(_ context.Context, _ int64, 
 
 func (s permissionResolverStub) ListActorContributionRolesForVersion(_ context.Context, _ int64, _ int64) ([]string, error) {
 	return nil, nil
+}
+
+type appAuthCapabilityCacheLoader struct{}
+
+func (appAuthCapabilityCacheLoader) LoadRoleCapabilities(_ context.Context) (map[string][]permissions.Action, error) {
+	allActions := []permissions.Action{
+		permissions.ActionFansubGroupEdit, permissions.ActionFansubGroupLinksManage,
+		permissions.ActionFansubGroupMembersView, permissions.ActionFansubGroupMembersManage,
+		permissions.ActionFansubGroupHistoricalMembersManage, permissions.ActionFansubGroupHistoricalRolesManage,
+		permissions.ActionFansubGroupHistoricalMembersLink, permissions.ActionFansubGroupInvitationsView,
+		permissions.ActionFansubGroupInvitationsCreate, permissions.ActionFansubGroupInvitationsCancel,
+		permissions.ActionFansubGroupNotesWrite, permissions.ActionFansubGroupMediaView,
+		permissions.ActionFansubGroupMediaUpload, permissions.ActionFansubGroupMediaUpdate,
+		permissions.ActionFansubGroupMediaReorder, permissions.ActionFansubGroupMediaDelete,
+		permissions.ActionFansubGroupPageGeneralEdit, permissions.ActionFansubGroupPageTechnicalLinksEdit,
+		permissions.ActionFansubGroupPageFoundingHistoryEdit, permissions.ActionFansubGroupLinksUpdate,
+		permissions.ActionAnimeFansubProjectNotesWrite, permissions.ActionReleaseView,
+		permissions.ActionReleaseVersionView, permissions.ActionReleaseVersionMediaView,
+		permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionMediaUpdate,
+		permissions.ActionReleaseVersionMediaDelete, permissions.ActionReleaseVersionMediaDeleteOwn,
+		permissions.ActionReleaseVersionNotesWrite, permissions.ActionReleaseVersionSegmentsManage,
+		permissions.ActionReviewTextDecide, permissions.ActionReviewImageDecide, permissions.ActionReviewContributionDecide,
+	}
+	return map[string][]permissions.Action{
+		"catalog_test_owner": allActions,
+		permissions.RoleFansubLead: allActions,
+		permissions.RoleProjectLead: {permissions.ActionFansubGroupMembersView, permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
+		permissions.RoleEncoder: {permissions.ActionReleaseView, permissions.ActionReleaseVersionMediaView, permissions.ActionReleaseVersionMediaUpload, permissions.ActionReleaseVersionNotesWrite},
+		permissions.RoleRawProvider: {permissions.ActionReleaseView},
+		"gfxler": {permissions.ActionFansubGroupMediaUpdate},
+		"techadmin": {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageTechnicalLinksEdit},
+		"founder": {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageFoundingHistoryEdit},
+		"co_leader": {permissions.ActionFansubGroupMediaUpdate, permissions.ActionFansubGroupPageGeneralEdit, permissions.ActionFansubGroupLinksUpdate},
+	}, nil
+}
+
+func loadAppAuthCapabilityTestCache(t *testing.T) {
+	t.Helper()
+	if err := permissions.NewService(nil).LoadCache(context.Background(), appAuthCapabilityCacheLoader{}); err != nil {
+		t.Fatalf("load capability test cache: %v", err)
+	}
 }
 
 func makeAppAuthTestContext(method string, target string, body []byte, identity middleware.AuthIdentity, params ...gin.Param) (*gin.Context, *httptest.ResponseRecorder) {
@@ -1348,6 +1393,7 @@ func TestCreateFansubGroupAppMemberAllowsHistoricalLinkWithoutExplicitRoles(t *t
 
 func TestGetFansubGroupCapabilitiesReturnsViewWithoutManageForProjectLead(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	handler := &AppAuthHandler{
 		permissionSvc: permissions.NewService(permissionResolverStub{
@@ -1395,6 +1441,7 @@ func TestGetFansubGroupCapabilitiesReturnsViewWithoutManageForProjectLead(t *tes
 
 func TestGetFansubGroupCapabilitiesAllowsEncoderMediaAndNotesWorkspace(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	handler := &AppAuthHandler{
 		permissionSvc: permissions.NewService(permissionResolverStub{
@@ -1433,6 +1480,7 @@ func TestGetFansubGroupCapabilitiesAllowsEncoderMediaAndNotesWorkspace(t *testin
 
 func TestGetFansubGroupCapabilitiesAllowsReleaseOnlyRolesIntoWorkspace(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	handler := &AppAuthHandler{
 		permissionSvc: permissions.NewService(permissionResolverStub{
@@ -1471,6 +1519,7 @@ func TestGetFansubGroupCapabilitiesAllowsReleaseOnlyRolesIntoWorkspace(t *testin
 
 func TestGetFansubGroupCapabilitiesReturnsInvitationBooleansForLead(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
 
 	handler := &AppAuthHandler{
 		permissionSvc: permissions.NewService(permissionResolverStub{
@@ -1495,6 +1544,66 @@ func TestGetFansubGroupCapabilitiesReturnsInvitationBooleansForLead(t *testing.T
 	data := body["data"].(map[string]any)
 	if data["can_view_invitations"] != true || data["can_create_invitation"] != true || data["can_cancel_invitation"] != true {
 		t.Fatalf("expected invitation booleans to be true, got %#v", data)
+	}
+}
+
+func TestGetFansubGroupCapabilitiesProjectsNarrowRoleDefaults(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+	testCases := []struct {
+		role string
+		expectedTrue []string
+	}{
+		{"gfxler", []string{"can_update_group_media"}},
+		{"techadmin", []string{"can_update_group_media", "can_edit_technical_links"}},
+		{"founder", []string{"can_update_group_media", "can_edit_founding_history"}},
+		{"co_leader", []string{"can_update_group_media", "can_edit_group_general", "can_update_group_links"}},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.role, func(t *testing.T) {
+			handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{
+				context: &permissions.Context{ScopeType: permissions.ScopeTypeGroup, FansubGroupIDs: []int64{88}},
+				roles: map[int64][]string{88: {testCase.role}},
+			})}
+			c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+				UserID: 108, AppUserID: 51, DisplayName: testCase.role, AppUserStatus: models.AppUserStatusActive,
+			}, gin.Param{Key: "id", Value: "88"})
+			handler.GetFansubGroupCapabilities(c)
+			if recorder.Code != http.StatusOK {
+				t.Fatalf("expected narrow-only role to receive 200, got %d with body %s", recorder.Code, recorder.Body.String())
+			}
+			data := decodeBody(t, recorder)["data"].(map[string]any)
+			for _, field := range []string{"can_edit_group_general", "can_update_group_media", "can_edit_technical_links", "can_edit_founding_history", "can_update_group_links"} {
+				value, exists := data[field]
+				if !exists {
+					t.Errorf("missing required narrow capability %q", field)
+					continue
+				}
+				want := false
+				for _, expected := range testCase.expectedTrue {
+					want = want || field == expected
+				}
+				if value != want {
+					t.Errorf("%s = %#v, want %t", field, value, want)
+				}
+			}
+			if data["can_edit_group"] != false {
+				t.Errorf("narrow role must not synthesize broad can_edit_group: %#v", data)
+			}
+		})
+	}
+}
+
+func TestGetFansubGroupCapabilitiesFailsClosedOnNarrowPermissionLookupError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	loadAppAuthCapabilityTestCache(t)
+	handler := &AppAuthHandler{permissionSvc: permissions.NewService(permissionResolverStub{resolveFansubGroupErr: errors.New("permission lookup unavailable")})}
+	c, recorder := makeAppAuthTestContext(http.MethodGet, "/api/v1/admin/fansubs/88/capabilities", nil, middleware.AuthIdentity{
+		UserID: 109, AppUserID: 52, DisplayName: "Lookup Failure", AppUserStatus: models.AppUserStatusActive,
+	}, gin.Param{Key: "id", Value: "88"})
+	handler.GetFansubGroupCapabilities(c)
+	if recorder.Code != http.StatusInternalServerError {
+		t.Fatalf("expected fail-closed 500, got %d with body %s", recorder.Code, recorder.Body.String())
 	}
 }
 
