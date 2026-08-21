@@ -57,7 +57,14 @@ func TestPhase136PolicyYAMLTypeScriptContract(t *testing.T) {
 	rootContract := loadYAML("shared/contracts/openapi.yaml")
 
 	expectedObjects := map[string][]string{
-		"EffectiveRightState":               {"action_code", "allowed", "provenance", "decisive", "non_deniable"},
+		"EffectiveRightState": {
+			"action_code", "allowed", "provenance", "decisive", "non_deniable",
+			// Phase-137 additive provenance fields (D04, 137-02-PLAN.md) — see
+			// TestEffectiveRightStateProvenanceContract in admin_capability_contract_test.go
+			// for the dedicated, more detailed assertion of this extension.
+			"granting_roles", "user_allow", "user_deny", "specialized_grants",
+			"decisive_source", "reason_code",
+		},
 		"CapabilityOverrideState":           {"group_id", "target_user_id", "action_code", "effect", "reason", "created_by_user_id", "created_at"},
 		"CapabilityOverrideImpactItem":      {"target_user_id", "before", "after"},
 		"CapabilityOverrideImpactPreview":   {"affected_user_count", "items"},
@@ -66,7 +73,10 @@ func TestPhase136PolicyYAMLTypeScriptContract(t *testing.T) {
 		"CapabilityOverrideMutationRequest": {"group_id", "target_user_id", "action_code", "effect"},
 	}
 	expectedEnums := map[string][]string{
-		"EffectiveRightProvenance":   {"idp_global_role", "group_role", "user_allow", "user_deny"},
+		// Phase-137 additive provenance values (D04, 137-02-PLAN.md): platform_admin,
+		// specialized_grant, no_grant. See TestEffectiveRightStateProvenanceContract
+		// in admin_capability_contract_test.go for the dedicated assertion.
+		"EffectiveRightProvenance":   {"idp_global_role", "group_role", "user_allow", "user_deny", "platform_admin", "specialized_grant", "no_grant"},
 		"CapabilityOverrideEffect":   {"allow", "deny"},
 		"CapabilityActivationStatus": {"persisted", "active", "pending", "failed"},
 		"CapabilityMutationStatus":   {"changed", "no_op"},

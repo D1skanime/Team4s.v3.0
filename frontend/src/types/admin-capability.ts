@@ -76,17 +76,53 @@ export interface PublicRoleDefinitionOption extends RoleDefinitionOption {
 
 export type RoleDefinitionContext = 'fansub_group' | 'anime_contribution' | 'group_history';
 
-export type EffectiveRightProvenance = 'idp_global_role' | 'group_role' | 'user_allow' | 'user_deny';
+/**
+ * Herkunfts-/Entscheidungsquellen-Vokabular für ein EffectiveRightState.
+ * platform_admin, specialized_grant und no_grant wurden additiv in Phase 137
+ * ergänzt (D04); die ursprünglichen vier Phase-136-Werte bleiben unverändert
+ * gültig und werden nicht entfernt.
+ */
+export type EffectiveRightProvenance =
+  | 'idp_global_role'
+  | 'group_role'
+  | 'user_allow'
+  | 'user_deny'
+  | 'platform_admin'
+  | 'specialized_grant'
+  | 'no_grant';
 export type CapabilityOverrideEffect = 'allow' | 'deny';
+/**
+ * Phase 137 erfolgreiche Override-Mutationen melden ausschließlich 'active'.
+ * 'persisted', 'pending' und 'failed' bleiben schema-kompatibel für spätere
+ * Phasen, werden von Phase 137 jedoch nicht erzeugt.
+ */
 export type CapabilityActivationStatus = 'persisted' | 'active' | 'pending' | 'failed';
 export type CapabilityMutationStatus = 'changed' | 'no_op';
 
+/**
+ * Additiv erweitertes Phase-136-DTO (Phase 137, D04): ein einziges
+ * provenienzfähiges Effective-Right-Objekt statt eines konkurrierenden,
+ * reicheren Inspector-Typs. Dient sowohl Mutationsergebnissen als auch der
+ * künftigen Effective-Rights-Inspection.
+ */
 export interface EffectiveRightState {
   action_code: string;
   allowed: boolean;
   provenance: EffectiveRightProvenance;
   decisive: boolean;
   non_deniable: boolean;
+  /** Alle Rollen, die diese Capability gewähren würden. */
+  granting_roles: string[];
+  /** Ob ein individueller Allow-Override für diese Capability existiert. */
+  user_allow: boolean;
+  /** Ob ein individueller Deny-Override für diese Capability existiert. */
+  user_deny: boolean;
+  /** Namen spezialisierter Grant-Quellen (z. B. review_delegation). */
+  specialized_grants: string[];
+  /** Die gemäß Präzedenz tatsächlich entscheidende Quelle für "allowed". */
+  decisive_source: EffectiveRightProvenance;
+  /** Maschinenlesbarer Grund-Code; keine deutschsprachigen Erklärtexte in Phase 137. */
+  reason_code: string;
 }
 
 export type CapabilityOverrideReason =

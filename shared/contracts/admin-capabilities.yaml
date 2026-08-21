@@ -406,19 +406,36 @@ components:
           $ref: "#/components/schemas/FansubGroupCapabilities"
     EffectiveRightProvenance:
       type: string
-      enum: [idp_global_role, group_role, user_allow, user_deny]
+      description: |
+        Herkunfts-/Entscheidungsquellen-Vokabular für ein EffectiveRightState.
+        platform_admin, specialized_grant und no_grant wurden additiv in Phase 137
+        ergänzt (D04); die ursprünglichen vier Phase-136-Werte bleiben unverändert
+        gültig und werden nicht entfernt.
+      enum: [idp_global_role, group_role, user_allow, user_deny, platform_admin, specialized_grant, no_grant]
     CapabilityOverrideEffect:
       type: string
       enum: [allow, deny]
     CapabilityActivationStatus:
       type: string
+      description: |
+        Phase 137 erfolgreiche Override-Mutationen melden ausschließlich "active".
+        "persisted", "pending" und "failed" bleiben schema-kompatibel für spätere
+        Phasen (z. B. Cache-Aktivierungsmodelle), werden von Phase 137 jedoch nicht
+        erzeugt.
       enum: [persisted, active, pending, failed]
     CapabilityMutationStatus:
       type: string
       enum: [changed, no_op]
     EffectiveRightState:
       type: object
-      required: [action_code, allowed, provenance, decisive, non_deniable]
+      description: |
+        Additiv erweitertes Phase-136-DTO (Phase 137, D04): ein einziges
+        provenienzfähiges Effective-Right-Kontrakt statt eines konkurrierenden,
+        reicheren Inspector-DTOs. Dient sowohl Mutationsergebnissen als auch der
+        künftigen Effective-Rights-Inspection.
+      required:
+        [action_code, allowed, provenance, decisive, non_deniable, granting_roles,
+         user_allow, user_deny, specialized_grants, decisive_source, reason_code]
       properties:
         action_code: { type: string }
         allowed: { type: boolean }
@@ -427,6 +444,26 @@ components:
         non_deniable:
           type: boolean
           description: Für IdP-eigene globale Rechte wahr; Gruppen-Overrides dürfen dieses Recht nicht verweigern.
+        granting_roles:
+          type: array
+          items: { type: string }
+          description: Alle Rollen, die diese Capability gewähren würden (unabhängig davon, ob sie das entscheidende Ergebnis liefern).
+        user_allow:
+          type: boolean
+          description: Ob ein individueller Allow-Override für diese Capability existiert.
+        user_deny:
+          type: boolean
+          description: Ob ein individueller Deny-Override für diese Capability existiert.
+        specialized_grants:
+          type: array
+          items: { type: string }
+          description: Namen spezialisierter Grant-Quellen (z. B. review_delegation), die diese Capability gewähren würden.
+        decisive_source:
+          allOf: [{ $ref: "#/components/schemas/EffectiveRightProvenance" }]
+          description: Die gemäß Präzedenz tatsächlich entscheidende Quelle für das Ergebnis "allowed".
+        reason_code:
+          type: string
+          description: Maschinenlesbarer Grund-Code für das Ergebnis; enthält bewusst keinen deutschsprachigen Erklärtext (Phase 137 Scope).
     CapabilityOverrideReason:
       oneOf:
         - type: object
