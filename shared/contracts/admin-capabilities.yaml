@@ -291,6 +291,11 @@ paths:
                   data:
                     type: array
                     items: { $ref: "#/components/schemas/EffectiveRightState" }
+        "400":
+          description: Ungültige Fansubgruppen-ID oder ungültige app_user_id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
         "401":
           description: Nicht authentifiziert
           content:
@@ -419,6 +424,11 @@ paths:
                   data:
                     type: array
                     items: { $ref: "#/components/schemas/CapabilityOverrideAuditItem" }
+        "400":
+          description: Ungültige Fansubgruppen-ID oder ungültige app_user_id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
         "401":
           description: Nicht authentifiziert
           content:

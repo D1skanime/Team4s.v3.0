@@ -4197,6 +4197,11 @@ paths:
                   data:
                     type: array
                     items: { $ref: "#/components/schemas/EffectiveRightState" }
+        "400":
+          description: Invalid path parameter (id or appUserId)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
         "401":
           description: Authentication required
           content:
@@ -4324,6 +4329,11 @@ paths:
                   data:
                     type: array
                     items: { $ref: "#/components/schemas/CapabilityOverrideAuditItem" }
+        "400":
+          description: Invalid path parameter (id or appUserId)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
         "401":
           description: Authentication required
           content:
