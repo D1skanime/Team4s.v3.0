@@ -169,3 +169,31 @@ describe('FansubAppMemberEditorPanel', () => {
     expect(screen.getByText('Diese Rolle verleiht aktuell keine zusätzlichen Rechte.')).not.toBeNull()
   })
 })
+
+describe('FansubAppMemberEditorPanel catalog color presentation', () => {
+  it('emits bounded catalog color keys for Typesetting and Karaoke-FX choices', () => {
+    render(
+      <FansubAppMemberEditorPanel
+        editorMember={mockMember}
+        memberEditorTab="roles"
+        setMemberEditorTab={noop}
+        memberRoleDraft={[]}
+        mediaPermissionDraft={defaultMediaPermissions}
+        isBusy={false}
+        onClose={noop}
+        onSave={noop}
+        onToggleRole={noop}
+        onToggleMediaPermission={noop as never}
+        {...defaultEditorProps}
+        roleOptions={[
+          { ...defaultEditorProps.roleOptions[0], code: 'typesetter', label_de: 'Typesetting', color_key: '#7B3C4E' },
+          { ...defaultEditorProps.roleOptions[1], color_key: '#A16207' },
+        ]}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Typesetting' }).getAttribute('data-color-key')).toBe('#7b3c4e')
+    expect(screen.getByRole('button', { name: 'Karaoke-FX' }).getAttribute('data-color-key')).toBe('#a16207')
+  })
+})
+
