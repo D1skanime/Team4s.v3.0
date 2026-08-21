@@ -312,6 +312,84 @@ func (r *AuthzRepository) ResolveVerifiedActorMemberIDs(
 
 var _ permissions.ReviewContextResolver = (*AuthzRepository)(nil)
 
+// ResolveActorGroupMembership implements permissions.GroupRightsMembershipResolver
+// (Plan 137-05). It answers the exact D02 dormant-override question
+// ResolveGroupRights needs -- "is this actor currently an ACTIVE member of
+// this fansub group" -- independent of whether that membership carries any
+// assigned role, so a verified active member with zero roles is no longer
+// indistinguishable from "no membership" through the len(roles)>0 fallback
+// ResolveGroupRights otherwise uses (see effective_rights.go's file-level
+// doc comment and 137-04-SUMMARY.md's "Known Gap"). This closes that gap
+// for real production HTTP traffic: 137-05 is the first plan that routes
+// existing Can* entry points through ResolveGroupRights.
+func (r *AuthzRepository) ResolveActorGroupMembership(
+	ctx context.Context,
+	appUserID int64,
+	fansubGroupID int64,
+) (*permissions.GroupMembershipState, error) {
+	if r == nil || r.db == nil || appUserID <= 0 || fansubGroupID <= 0 {
+		return &permissions.GroupMembershipState{ActiveMembership: false}, nil
+	}
+
+	var active bool
+	if err := r.db.QueryRow(ctx, `
+		SELECT EXISTS(
+			SELECT 1
+			FROM fansub_group_members
+			WHERE app_user_id = $1
+			  AND fansub_group_id = $2
+			  AND status = 'active'
+		)
+	`, appUserID, fansubGroupID).Scan(&active); err != nil {
+		return nil, fmt.Errorf(
+			"resolve actor group membership app_user=%d fansub_group=%d: %w",
+			appUserID, fansubGroupID, err,
+		)
+	}
+
+	return &permissions.GroupMembershipState{ActiveMembership: active}, nil
+}
+
+// ResolveActorUserOverrides implements permissions.GroupRightsOverridesResolver
+// (Plan 137-05), giving ResolveGroupRights the real, currently-stored
+// per-user allow/deny rows for one (actor, fansubGroupID) pair in a single
+// batched read. This delegates to the already-shipped, Plan-137-03
+// AuthzUserOverridesRepository.LoadCurrentOverrides rather than duplicating
+// its query -- AuthzDBTX (Exec+Query+QueryRow) is a superset of
+// authzUserOverridesDBTX (DBTX+Query), so r.db can be reused directly on
+// both a pool and a caller-owned transaction.
+func (r *AuthzRepository) ResolveActorUserOverrides(
+	ctx context.Context,
+	appUserID int64,
+	fansubGroupID int64,
+) ([]permissions.UserCapabilityOverride, error) {
+	if r == nil || r.db == nil || appUserID <= 0 || fansubGroupID <= 0 {
+		return nil, nil
+	}
+
+	rows, err := NewAuthzUserOverridesRepository(r.db).LoadCurrentOverrides(ctx, appUserID, fansubGroupID)
+	if err != nil {
+		return nil, err
+	}
+
+	overrides := make([]permissions.UserCapabilityOverride, 0, len(rows))
+	for _, row := range rows {
+		overrides = append(overrides, permissions.UserCapabilityOverride{
+			ActionCode: permissions.Action(strings.TrimSpace(row.ActionCode)),
+			Effect:     strings.TrimSpace(row.Effect),
+		})
+	}
+	return overrides, nil
+}
+
+// Compile-Zeit-Assertion: AuthzRepository implementiert die beiden neuen
+// optionalen ResolveGroupRights-Interfaces (Plan 137-05, schließt die in
+// 137-04-SUMMARY.md dokumentierte Known-Gap-Lücke).
+var (
+	_ permissions.GroupRightsMembershipResolver = (*AuthzRepository)(nil)
+	_ permissions.GroupRightsOverridesResolver  = (*AuthzRepository)(nil)
+)
+
 // ListActorContributionRolesForVersion gibt die role_codes zurück, die dem Actor
 // für eine Release-Version zustehen.
 // Auflösungsreihenfolge (D-02):
