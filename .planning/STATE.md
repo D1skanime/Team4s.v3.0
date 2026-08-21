@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 137-06-PLAN.md
-last_updated: "2026-08-21T19:04:32.089Z"
+stopped_at: Completed 137-07-PLAN.md
+last_updated: "2026-08-21T19:23:41.626Z"
 last_activity: 2026-08-21
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 39
-  completed_plans: 37
+  completed_plans: 38
   percent: 14
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 137 (central-effective-rights-resolver-overrides) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-08-21
 
@@ -154,6 +154,7 @@ Last activity: 2026-08-21
 - [Phase 137]: 137-04: ResolveGroupRights is the single group-wide D01 precedence engine (platform_admin > disabled > no-membership > user_deny > user_allow > role_grant > specialized_grant > no_grant), batch-loading membership/roles/overrides/specialized grants with no per-capability SQL; two new optional Resolver interfaces (GroupRightsMembershipResolver, GroupRightsOverridesResolver) exist but AuthzRepository does not implement them yet -- production falls back to inferring active membership from non-empty roles (zero regression), and real per-user override enforcement is not yet live end-to-end. Review Delegation is fully wired today via the existing ReviewContextResolver as the first SpecializedGrantProvider (review_grant_provider.go). Flagged for Plan 137-05 to close.
 - [Phase 137]: 137-05: Every production group-scoped Can* entry point (CanForFansubGroup, CanForRelease, CanForReleaseVersion, CanForReleaseVersionMedia, CanReviewForFansubGroup) now derives its decision from ResolveGroupRights, closing 137-04's Known Gap by wiring AuthzRepository into GroupRightsMembershipResolver/GroupRightsOverridesResolver against real Postgres. — 137-04 flagged that ResolveGroupRights was logically correct but unreachable from production traffic and had zero repository wiring; 137-05 is the plan that first routes legacy enforcement through it, so closing the gap here (rather than deferring) was required for the plan's own must_haves to be true in production, not just in Go fixtures.
 - [Phase 137]: 137-06: EffectiveRightsService.MutateOverride requires a reason for every real change uniformly (including platform admins), and validates active target membership in the exact target group for every mutation kind including REMOVE -- stricter than migration 0146's own DB CHECK constraint, matching the plan's must_haves literally. Fixed a real gap: permissions.allKnownActions was missing ActionUserGroupCapabilityOverrideManage entirely, so ResolveGroupRights could never grant D07's management capability at all until this plan added it (mirrors 137-05's identical allKnownActions-completeness precedent).
+- [Phase 137]: 137-07: effective-rights inspection/mutation/history HTTP boundary wired into cmd/server (admin_routes.go + main.go, not internal/router which does not exist); three group-scoped routes under /admin/fansubs/:id/app-members/:appUserId/, all authorized via ActionUserGroupCapabilityOverrideManage, delegating entirely to ResolveGroupRights/EffectiveRightsService.MutateOverride. — Closes CAP-01/02/05/06/07 and QUAL-03 at the API boundary; also closed 137-02's deferred Go EffectiveRightState DTO gap since this plan is the first to serialize it over HTTP.
 
 ### Pending Todos
 
@@ -360,10 +361,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 137 P04 | ~35min | 3 tasks | 3 files |
 | Phase 137 P05 | ~25min | 2 tasks | 7 files |
 | Phase 137 P06 | ~35min | 2 tasks | 7 files |
+| Phase 137 P07 | ~45min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-08-21T19:04:32.076Z
-Stopped at: Completed 137-06-PLAN.md
+Last session: 2026-08-21T19:23:41.612Z
+Stopped at: Completed 137-07-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
