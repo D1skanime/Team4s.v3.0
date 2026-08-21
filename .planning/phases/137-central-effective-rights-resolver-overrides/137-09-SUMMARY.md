@@ -119,3 +119,8 @@ None - no external service configuration required.
 ---
 *Phase: 137-central-effective-rights-resolver-overrides*
 *Completed: 2026-08-21*
+
+## Self-Check: PASSED
+
+All 6 created/modified source files and the SUMMARY.md itself confirmed present on disk;
+all 3 commit hashes (176dddf1, 0ce156d6, 13539a1d) confirmed present in `git log --oneline --all`.

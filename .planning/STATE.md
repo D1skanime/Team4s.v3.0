@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 137-08-PLAN.md (phase 137 implementation-complete, ready for verification)
-last_updated: "2026-08-21T21:11:58.573Z"
-last_activity: 2026-08-21 -- Phase 137 planning complete
+stopped_at: Completed 137-09-PLAN.md (GAP-01/GAP-02 closed)
+last_updated: "2026-08-21T21:22:34.541Z"
+last_activity: 2026-08-21
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 43
-  completed_plans: 39
+  completed_plans: 40
   percent: 14
 ---
 
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 138 — effective rights administration & impact ux
+**Current focus:** Phase 137 — central-effective-rights-resolver-overrides
 
 ## Current Position
 
-Phase: 138
-Plan: Not started
+Phase: 137 (central-effective-rights-resolver-overrides) — EXECUTING
+Plan: 2 of 12
 Status: Ready to execute
-Last activity: 2026-08-21 -- Phase 137 planning complete
+Last activity: 2026-08-21
 
 ## Accumulated Context
 
@@ -156,6 +156,7 @@ Last activity: 2026-08-21 -- Phase 137 planning complete
 - [Phase 137]: 137-06: EffectiveRightsService.MutateOverride requires a reason for every real change uniformly (including platform admins), and validates active target membership in the exact target group for every mutation kind including REMOVE -- stricter than migration 0146's own DB CHECK constraint, matching the plan's must_haves literally. Fixed a real gap: permissions.allKnownActions was missing ActionUserGroupCapabilityOverrideManage entirely, so ResolveGroupRights could never grant D07's management capability at all until this plan added it (mirrors 137-05's identical allKnownActions-completeness precedent).
 - [Phase 137]: 137-07: effective-rights inspection/mutation/history HTTP boundary wired into cmd/server (admin_routes.go + main.go, not internal/router which does not exist); three group-scoped routes under /admin/fansubs/:id/app-members/:appUserId/, all authorized via ActionUserGroupCapabilityOverrideManage, delegating entirely to ResolveGroupRights/EffectiveRightsService.MutateOverride. — Closes CAP-01/02/05/06/07 and QUAL-03 at the API boundary; also closed 137-02's deferred Go EffectiveRightState DTO gap since this plan is the first to serialize it over HTTP.
 - [Phase 137]: 137-08 closed the phase with a full backend suite gate (real Postgres, TEAM4S_PHASE137_TEST_DSN supplied): internal/permissions and internal/services fully green including real-Postgres/concurrency tests; two genuine D01-D10 negative-matrix gaps (self-mutation without capability, platform-admin bypass at the mutation boundary) closed with new subtests; all 65 remaining backend failures triaged into six pre-existing, Phase-137-unrelated buckets and none live in any of Phase 137's own 31 touched files. See 137-VALIDATION.md.
+- [Phase 137]: 137-09: Closed GAP-01 (post-commit response safety) and GAP-02 (unconditional success + reject-path audit coverage, including the BOLA/IDOR body/path-mismatch guard) in AdminEffectiveRightsHandler.MutateOverride; CapabilityActivationStatus docs (both YAML contracts + TS type) now document the real, reachable pending-on-enrichment-failure behavior instead of the stale active-only claim.
 
 ### Pending Todos
 
@@ -364,10 +365,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 137 P06 | ~35min | 2 tasks | 7 files |
 | Phase 137 P07 | ~45min | 2 tasks | 9 files |
 | Phase 137 P08 | ~20min | 2 tasks | 3 files |
+| Phase 137 P09 | ~25min | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-21T19:35:58.857Z
-Stopped at: Completed 137-08-PLAN.md (phase 137 implementation-complete, ready for verification)
+Last session: 2026-08-21T21:22:34.534Z
+Stopped at: Completed 137-09-PLAN.md (GAP-01/GAP-02 closed)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
