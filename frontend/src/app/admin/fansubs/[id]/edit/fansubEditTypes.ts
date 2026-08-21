@@ -39,6 +39,9 @@ export type FormState = {
   status: FansubStatus;
   groupType: FansubGroupType;
   country: string;
+  websiteURL: string;
+  discordURL: string;
+  ircURL: string;
   foundedYear: string;
   dissolvedYear: string;
 };

@@ -554,6 +554,57 @@ describe('AdminFansubEditPage token-free wiring', () => {
     expect(apiMocks.getFansubList).not.toHaveBeenCalled()
   })
 
+  it('lets a technical-links-only actor save only the guarded URL fields', async () => {
+    apiMocks.getCurrentUser.mockResolvedValue({ data: { is_platform_admin: false } })
+    apiMocks.getFansubGroupCapabilities.mockResolvedValue({
+      data: {
+        can_edit_group: false,
+        can_edit_group_general: false,
+        can_edit_technical_links: true,
+        can_edit_founding_history: false,
+        can_update_group_links: false,
+        can_manage_links: false,
+        can_view_members: false,
+        can_manage_members: false,
+        can_manage_historical_members: false,
+        can_manage_historical_roles: false,
+        can_link_historical_members: false,
+        can_edit_notes: false,
+        can_view_invitations: false,
+        can_create_invitation: false,
+        can_cancel_invitation: false,
+        can_view_releases: false,
+        can_view_release_media: false,
+        can_upload_release_media: false,
+        can_edit_release_notes: false,
+        can_view_group_media: false,
+        can_upload_group_media: false,
+        can_update_group_media: false,
+        can_delete_own_group_media: false,
+        can_delete_group_media: false,
+        can_reorder_group_media: false,
+      },
+    })
+    apiMocks.updateFansubGroup.mockResolvedValue({ data: {} })
+
+    render(<AdminFansubEditPage />)
+
+    await screen.findByRole('heading', { name: 'SubGroup' })
+    expect(screen.getByLabelText(/Fansubgruppen-Name/i)).toHaveProperty('disabled', true)
+    expect(screen.getByLabelText(/Status/)).toHaveProperty('disabled', true)
+    fireEvent.change(screen.getByLabelText('Website'), { target: { value: 'https://team4s.example' } })
+    fireEvent.change(screen.getByLabelText('Discord'), { target: { value: 'https://discord.gg/team4s' } })
+    fireEvent.change(screen.getByLabelText('IRC'), { target: { value: 'ircs://irc.example.org/team4s' } })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Speichern' })[0])
+
+    await waitFor(() => expect(apiMocks.updateFansubGroup).toHaveBeenCalledTimes(1))
+    expect(apiMocks.updateFansubGroup.mock.calls[0][1]).toEqual({
+      website_url: 'https://team4s.example',
+      discord_url: 'https://discord.gg/team4s',
+      irc_url: 'ircs://irc.example.org/team4s',
+    })
+  })
+
   it('uses the shared year picker for the founding year', async () => {
     render(<AdminFansubEditPage />)
 
