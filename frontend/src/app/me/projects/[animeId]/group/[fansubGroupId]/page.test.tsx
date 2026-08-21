@@ -99,6 +99,34 @@ describe('MyProjectDetailPage', () => {
     expect(screen.queryByText('Keine eigene Mitwirkung')).toBeNull()
   })
 
+  it('renders canonical project roles in catalog order with semantic presentation', async () => {
+    getMyProjectDetailMock.mockResolvedValue({
+      data: {
+        ...makeProject(),
+        role_codes: ['encoder', 'future_role', 'karaoke_fx', 'typer'],
+        role_labels: ['Wrong Encoding', 'Future Role', 'Typesetting / FX', 'Wrong Typesetting'],
+      },
+    })
+
+    const { container } = render(<MyProjectDetailPage />)
+
+    await screen.findByRole('heading', { name: 'Naruto', level: 1 })
+    const roleRows = Array.from(container.querySelectorAll('[data-role-code]'))
+    expect(roleRows.map((row) => row.querySelector('strong')?.textContent)).toEqual([
+      'Typesetting',
+      'Karaoke-FX',
+      'Encoding',
+      'Future Role',
+    ])
+    expect(roleRows.map((row) => row.getAttribute('data-role-code'))).toEqual([
+      'technical',
+      'creative',
+      'production',
+      'other',
+    ])
+    expect(screen.queryByText('Typesetting / FX')).toBeNull()
+  })
+
   it('shows a profile return button when opened from the profile hub', async () => {
     useSearchParamsMock.mockReturnValue(new URLSearchParams('return_to=/me/profile'))
     getMyProjectDetailMock.mockResolvedValue({
