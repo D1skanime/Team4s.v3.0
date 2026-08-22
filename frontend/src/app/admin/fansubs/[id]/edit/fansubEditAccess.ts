@@ -131,6 +131,13 @@ export function canEditReleaseNotes(
   return isPlatformAdmin || Boolean(capabilities?.can_edit_release_notes);
 }
 
+export function canEditFansubBranding(
+  isPlatformAdmin: boolean,
+  capabilities: FansubGroupCapabilities | null,
+): boolean {
+  return isPlatformAdmin || Boolean(capabilities?.can_edit_group);
+}
+
 export function releaseVersionToolsTarget(
   releaseVersionID: number,
   options: { canViewMedia: boolean; canEditNotes: boolean },
