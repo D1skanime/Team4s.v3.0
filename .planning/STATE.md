@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan
-stopped_at: Phase 137 complete (13/13) — ready to discuss Phase 138
-last_updated: 2026-08-22T00:01:07.397Z
-last_activity: 2026-08-21
+status: planning
+stopped_at: Completed 137-14-PLAN.md (GAP-08/UAT-137-02 closed)
+last_updated: "2026-08-22T02:00:32.704Z"
+last_activity: 2026-08-22
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 44
-  completed_plans: 98
+  total_plans: 45
+  completed_plans: 45
   percent: 29
 ---
 
@@ -161,6 +161,7 @@ Last activity: 2026-08-22
 - [Phase 137]: 137-11 executed (GAP-04, GAP-05): effective_rights.go's file-level doc comment corrected to state production wiring (Plan 137-05) and DTO/HTTP projection (Plan 137-02/137-07) are both closed; effective_rights_service.go's error-sentinel var block is now gofmt-clean. Comment-only and whitespace-only changes; go build/test confirm zero behavioral change.
 - [Phase 137]: [Phase 137, 2026-08-21]: 137-12 dispositioned GAP-06 (contribution-role vs user_deny) as Fall C -- 137-CONTEXT.md's D01/Section 2 never name contribution roles as a resolver source category at all, so no runtime change was made to CanForReleaseVersion's Step 3 fallback; a new regression test (TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny) locks today's actual behavior (a stored user_deny does not block the contribution-role fallback), and the ambiguity is explicitly flagged in 137-12-SUMMARY.md as DECISION REQUIRED for a human decision-maker rather than resolved unilaterally.
 - [Phase 137]: 137-13 closed GAP-07 (UAT-137-01) with additive migration 0151 (co_leader/founder/gfxler/techadmin gain fansub_group_media.view); zero change to fansubEditAccess.ts -- the existing case "media": return capabilities.can_view_group_media gate already produces the correct result once the capability flag is true post-migration.
+- [Phase 137-14]: GAP-08 closed: canEditFansubBranding mirrors backend fansub_group.edit exactly (can_edit_group only, no can_update_group_media fallback); Logo/Banner section fully hidden (not disabled) for co_leader/founder/gfxler/techadmin-shaped capability sets
 
 ### Pending Todos
 
@@ -373,10 +374,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 137 P11 | ~10min | 2 tasks | 2 files |
 | Phase 137 P12 | 10min | 2 tasks | 2 files |
 | Phase 137 P13 | ~20min | 2 tasks | 4 files |
+| Phase 137 P14 | 5min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-21T23:49:38.926Z
-Stopped at: Completed 137-13-PLAN.md (GAP-07/UAT-137-01 closed)
+Last session: 2026-08-22T02:00:30.786Z
+Stopped at: Completed 137-14-PLAN.md (GAP-08/UAT-137-02 closed)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
