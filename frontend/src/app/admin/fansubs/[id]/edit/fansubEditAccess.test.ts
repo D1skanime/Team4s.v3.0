@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { FansubGroupCapabilities } from "@/types/fansub";
 import {
+  canEditFansubBranding,
   canUseMainTab,
   hasFansubWorkspaceAccess,
   resolveMainTabForAccess,
@@ -112,5 +113,28 @@ describe("fansub edit access", () => {
     });
     expect(hasFansubWorkspaceAccess(access)).toBe(true);
     expect(canUseMainTab("media", false, access)).toBe(true);
+  });
+
+  it("grants branding access to Platform-Admin without a capabilities object", () => {
+    expect(canEditFansubBranding(true, null)).toBe(true);
+  });
+
+  it("grants branding access for can_edit_group", () => {
+    const access = capabilities({ can_edit_group: true });
+    expect(canEditFansubBranding(false, access)).toBe(true);
+  });
+
+  it("denies branding access for a can_update_group_media-only (co_leader-shaped) capability set", () => {
+    const access = capabilities({ can_update_group_media: true });
+    expect(canEditFansubBranding(false, access)).toBe(false);
+  });
+
+  it("denies branding access for an all-false capability response", () => {
+    const access = capabilities({});
+    expect(canEditFansubBranding(false, access)).toBe(false);
+  });
+
+  it("denies branding access when capabilities are absent", () => {
+    expect(canEditFansubBranding(false, null)).toBe(false);
   });
 });
