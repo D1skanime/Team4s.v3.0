@@ -9,6 +9,7 @@ import {
   MediaUpload,
 } from "@/components/admin/MediaUpload";
 import { Badge, Button, Card, FormField, Input, Select } from "@/components/ui";
+import { canEditFansubBranding } from "./fansubEditAccess";
 import { labelForFansubStatus, slugify } from "./fansubEditFormatters";
 import { createEmptyLink } from "./fansubEditFormMapping";
 import { YEAR_MAX, YEAR_MIN, YearSelectField } from "./YearSelectField";
@@ -83,7 +84,7 @@ export function FansubBasicInfoTab({
   const canEditGeneral = canEditBroad || Boolean(capabilities?.can_edit_group_general);
   const canEditFounding = canEditBroad || Boolean(capabilities?.can_edit_founding_history);
   const canEditTechnicalLinks = canEditBroad || Boolean(capabilities?.can_edit_technical_links);
-  const canEditMedia = canEditBroad || Boolean(capabilities?.can_update_group_media);
+  const canEditBranding = canEditFansubBranding(isPlatformAdmin, capabilities);
   const canManageLinks = canEditBroad || Boolean(capabilities?.can_manage_links);
 
   return (
@@ -394,47 +395,49 @@ export function FansubBasicInfoTab({
           </div>
         </Card>
         <div className={styles.fansubEditBasicSupplementGrid}>
-          <section className={styles.fansubEditBrandingCard}>
-            <h3 className={styles.fansubEditBasicPanelTitle}>
-              Logo und Banner
-            </h3>
-            <div className={styles.fansubEditMediaGrid}>
-              <MediaUpload
-                type="logo"
-                fansubID={fansubID}
-                groupName={form.name.trim() || group?.name || ""}
-                value={logoMedia}
-                disabled={!hasAuthSession || saving || !canEditMedia}
-                onBusyChange={handleLogoMediaBusyChange}
-                onChange={(nextValue: EditableMediaValue | null) => {
-                  setLogoMedia(nextValue);
-                  setInitialLogoMedia(nextValue);
-                  onToast(
-                    nextValue?.publicURL
-                      ? "Logo aktualisiert."
-                      : "Logo entfernt.",
-                  );
-                }}
-              />
-              <MediaUpload
-                type="banner"
-                fansubID={fansubID}
-                groupName={form.name.trim() || group?.name || ""}
-                value={bannerMedia}
-                disabled={!hasAuthSession || saving || !canEditMedia}
-                onBusyChange={handleBannerMediaBusyChange}
-                onChange={(nextValue: EditableMediaValue | null) => {
-                  setBannerMedia(nextValue);
-                  setInitialBannerMedia(nextValue);
-                  onToast(
-                    nextValue?.publicURL
-                      ? "Banner aktualisiert."
-                      : "Banner entfernt.",
-                  );
-                }}
-              />
-            </div>
-          </section>
+          {canEditBranding ? (
+            <section className={styles.fansubEditBrandingCard}>
+              <h3 className={styles.fansubEditBasicPanelTitle}>
+                Logo und Banner
+              </h3>
+              <div className={styles.fansubEditMediaGrid}>
+                <MediaUpload
+                  type="logo"
+                  fansubID={fansubID}
+                  groupName={form.name.trim() || group?.name || ""}
+                  value={logoMedia}
+                  disabled={!hasAuthSession || saving || !canEditBranding}
+                  onBusyChange={handleLogoMediaBusyChange}
+                  onChange={(nextValue: EditableMediaValue | null) => {
+                    setLogoMedia(nextValue);
+                    setInitialLogoMedia(nextValue);
+                    onToast(
+                      nextValue?.publicURL
+                        ? "Logo aktualisiert."
+                        : "Logo entfernt.",
+                    );
+                  }}
+                />
+                <MediaUpload
+                  type="banner"
+                  fansubID={fansubID}
+                  groupName={form.name.trim() || group?.name || ""}
+                  value={bannerMedia}
+                  disabled={!hasAuthSession || saving || !canEditBranding}
+                  onBusyChange={handleBannerMediaBusyChange}
+                  onChange={(nextValue: EditableMediaValue | null) => {
+                    setBannerMedia(nextValue);
+                    setInitialBannerMedia(nextValue);
+                    onToast(
+                      nextValue?.publicURL
+                        ? "Banner aktualisiert."
+                        : "Banner entfernt.",
+                    );
+                  }}
+                />
+              </div>
+            </section>
+          ) : null}
           <Card
             variant="section"
             className={styles.fansubEditCommunityCard}
