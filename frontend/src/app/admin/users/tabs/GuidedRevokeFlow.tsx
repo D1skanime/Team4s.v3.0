@@ -149,8 +149,11 @@ export function GuidedRevokeFlow({
 
   // D-17: für ein nicht entziehbares Recht ersetzt die Erklärung die gesamte Aktion -- es wird
   // gar kein Bestätigungs-Button gerendert (auch kein deaktivierter), Modal.tsx's Standard-
-  // "Schließen"-Footer bleibt die einzige Aktion.
-  if (isNonDeniable) {
+  // "Schließen"-Footer bleibt die einzige Aktion. Ausnahme (D-16): existiert bereits ein
+  // persönlicher user_deny (isRemoveMode), bleibt der Entfernungs-Pfad erreichbar, auch wenn
+  // das Recht aktuell über eine nicht überschreibbare Quelle gewährt wird -- das Entfernen der
+  // veralteten Abweichung ist eine andere Operation als ein neues Entziehen.
+  if (isNonDeniable && !isRemoveMode) {
     return (
       <Modal open={open} onClose={onClose} title={title} size="md">
         <p>
