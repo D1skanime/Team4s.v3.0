@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 138-01-PLAN.md
-last_updated: "2026-08-23T16:43:34.656Z"
+stopped_at: Completed 138-02-PLAN.md
+last_updated: "2026-08-23T16:51:18.840Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 46
+  completed_plans: 47
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 2 of 16
+Plan: 3 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -164,6 +164,8 @@ Last activity: 2026-08-23
 - [Phase 137-14]: GAP-08 closed: canEditFansubBranding mirrors backend fansub_group.edit exactly (can_edit_group only, no can_update_group_media fallback); Logo/Banner section fully hidden (not disabled) for co_leader/founder/gfxler/techadmin-shaped capability sets
 - [Phase 138]: 138-01: AuthzRepository.ListRoleHolders answers D-07's "who holds fansub-group role X" with one non-N+1 join (fansub_group_member_roles -> fansub_group_members -> fansub_groups -> app_users, plus an EXISTS override-presence check); AdminRoleHoldersHandler gates it platform-admin-only and rejects unknown/non-fansub-group role codes with 400 before querying.
 - [Phase 138]: 138-01: testsupport.OpenPhase137Postgres was extended (post-migration-loop, additive/nullable columns only) with fansub_group_member_roles and app_users/fansub_groups display columns, since the real production tables were never part of the applied 0085/0100/0108/0112/0146/0150 migration chain despite the plan's premise; effective_rights_service_test.go's own ad-hoc fansub_group_member_roles table was removed to avoid the resulting collision.
+- [Phase 138]: 138-02: GrantCapability/RevokeCapability keep HTTP 200 regardless of cache-reload outcome; a new RoleCapabilityMutationResult.cache_reload_succeeded field closes the CAP-10/D-21 honesty gap end to end (Go DTO -> OpenAPI -> TS -> api.ts). — A cache-reload failure is not a mutation failure per R-05/Pitfall 3, so the domain write stays a 200; the response body now honestly signals whether the in-process cache actually reloaded.
+- [Phase 138]: 138-02: new shared @/components/ui/ActivationStatusIndicator renders the role_matrix vs override capability-mutation paths via a discriminated 'path' prop rather than one shared enum. — The two paths have genuinely different honest vocabularies (no async window exists on role_matrix, so 'wird aktiviert' is never legitimate there; override can legitimately report a post-commit-enrichment 'pending' state per Phase 137's MutateOverride) — conflating them into one enum would misrepresent one path's state space as the other's.
 
 ### Pending Todos
 
@@ -380,10 +382,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 137 P13 | ~20min | 2 tasks | 4 files |
 | Phase 137 P14 | 5min | 2 tasks | 4 files |
 | Phase 138 P01 | ~25min | 2 tasks | 11 files |
+| Phase 138 P02 | ~20min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T16:43:34.641Z
-Stopped at: Completed 138-01-PLAN.md
+Last session: 2026-08-23T16:51:18.827Z
+Stopped at: Completed 138-02-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
