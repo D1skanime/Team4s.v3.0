@@ -11,6 +11,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { AdminChangeEntry } from '@/types/admin-users'
+import type { RoleCapabilityMatrix } from '@/types/admin-capability'
 
 import { translateChangeEntry } from './ChangeEntryTranslator'
 
@@ -44,6 +45,54 @@ describe('translateChangeEntry — role_capability.granted', () => {
     expect(result.sentence).toContain('fansub_group.edit')
     expect(result.before).toBeUndefined()
     expect(result.after).toBeUndefined()
+  })
+
+  it('mappt role_code und action_code auf die deutschen Matrix-Labels, wenn die Matrix vorhanden ist', () => {
+    const matrix: RoleCapabilityMatrix = {
+      roles: [{ role_code: 'co_leader', label_de: 'Co-Leitung', actions: [] }],
+      all_actions: [
+        {
+          code: 'fansub_group_page.technical_links_edit',
+          label_de: 'Technische Links bearbeiten',
+          category: 'gruppenseite',
+          sort_order: 1,
+        },
+      ],
+    }
+    const entry = makeEntry({
+      event_type: 'role_capability.granted',
+      payload: { role_code: 'co_leader', action_code: 'fansub_group_page.technical_links_edit' },
+    })
+
+    const result = translateChangeEntry(entry, matrix)
+
+    expect(result.sentence).toContain('Co-Leitung')
+    expect(result.sentence).toContain('Technische Links bearbeiten')
+    expect(result.sentence).not.toContain('co_leader')
+    expect(result.sentence).not.toContain('fansub_group_page.technical_links_edit')
+  })
+
+  it('fällt bei einem in der Matrix unbekannten Code ehrlich auf den rohen Code zurück', () => {
+    const matrix: RoleCapabilityMatrix = {
+      roles: [{ role_code: 'co_leader', label_de: 'Co-Leitung', actions: [] }],
+      all_actions: [
+        {
+          code: 'fansub_group_page.technical_links_edit',
+          label_de: 'Technische Links bearbeiten',
+          category: 'gruppenseite',
+          sort_order: 1,
+        },
+      ],
+    }
+    const entry = makeEntry({
+      event_type: 'role_capability.granted',
+      payload: { role_code: 'unknown_role', action_code: 'unknown.action' },
+    })
+
+    const result = translateChangeEntry(entry, matrix)
+
+    expect(result.sentence).toContain('unknown_role')
+    expect(result.sentence).toContain('unknown.action')
   })
 })
 

@@ -1,4 +1,6 @@
 import type { AdminChangeEntry } from '@/types/admin-users'
+import type { RoleCapabilityMatrix } from '@/types/admin-capability'
+import { actionLabelFor, roleLabelFor } from '../users/tabs/userGroupRightsHelpers'
 
 /**
  * D-25/D-26/D-27/R-07: die EINE zentrale, reine Übersetzungsfunktion von
@@ -42,26 +44,34 @@ function targetLabel(entry: AdminChangeEntry): string {
   return entry.target_id != null ? `${entry.target_type} #${entry.target_id}` : entry.target_type
 }
 
-export function translateChangeEntry(entry: AdminChangeEntry): ChangeEntryTranslation {
+export function translateChangeEntry(
+  entry: AdminChangeEntry,
+  matrix: RoleCapabilityMatrix | null = null,
+): ChangeEntryTranslation {
   switch (entry.event_type) {
     case 'role_capability.granted':
     case 'role_capability.revoked': {
       const roleCode = payloadString(entry.payload, 'role_code') ?? 'unbekannte Rolle'
       const actionCode = payloadString(entry.payload, 'action_code') ?? 'unbekannte Berechtigung'
+      const roleLabel = roleCode === 'unbekannte Rolle' ? roleCode : roleLabelFor(roleCode, matrix)
+      const actionLabel =
+        actionCode === 'unbekannte Berechtigung' ? actionCode : actionLabelFor(actionCode, matrix)
       const verb = entry.event_type === 'role_capability.granted' ? 'gewährt' : 'entzogen'
       return {
-        sentence: `Admin hat der Rolle ${roleCode} die Berechtigung ${actionCode} ${verb}.`,
+        sentence: `Admin hat der Rolle ${roleLabel} die Berechtigung ${actionLabel} ${verb}.`,
       }
     }
 
     case 'effective_rights.override.mutated': {
       const actionCode = payloadString(entry.payload, 'action_code') ?? 'unbekannte Berechtigung'
+      const actionLabel =
+        actionCode === 'unbekannte Berechtigung' ? actionCode : actionLabelFor(actionCode, matrix)
       const kind = payloadString(entry.payload, 'kind')
       const verb = kind === 'remove' ? 'entfernt' : 'gesetzt'
       const targetId = entry.target_id ?? '?'
       const scopeId = entry.scope_id ?? '?'
       return {
-        sentence: `Admin hat ${actionCode} für Benutzer #${targetId} in Gruppe #${scopeId} ${verb}.`,
+        sentence: `Admin hat ${actionLabel} für Benutzer #${targetId} in Gruppe #${scopeId} ${verb}.`,
       }
     }
 

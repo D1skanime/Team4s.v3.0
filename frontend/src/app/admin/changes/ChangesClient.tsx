@@ -13,8 +13,9 @@ import {
   LoadingState,
   Pagination,
 } from '@/components/ui'
-import { ApiError, listChanges } from '@/lib/api'
+import { ApiError, listChanges, listRoleCapabilities } from '@/lib/api'
 import type { AdminChangeEntry } from '@/types/admin-users'
+import type { RoleCapabilityMatrix } from '@/types/admin-capability'
 
 import { translateChangeEntry as translateEntry } from './ChangeEntryTranslator'
 import { useChangesListFilters } from './useChangesListFilters'
@@ -61,6 +62,21 @@ export function ChangesClient() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
+  const [matrix, setMatrix] = useState<RoleCapabilityMatrix | null>(null)
+
+  // Mount-only, fail-open Matrix-Ladepattern (mirrors UserGroupRightsTab.tsx) -- ein
+  // Ladefehler oder ein in Tests gemocktes fehlendes Export darf den Effekt nie crashen lassen.
+  useEffect(() => {
+    async function loadMatrix() {
+      try {
+        const result = await listRoleCapabilities()
+        setMatrix(result)
+      } catch {
+        setMatrix(null)
+      }
+    }
+    void loadMatrix()
+  }, [])
 
   const {
     params,
@@ -210,7 +226,12 @@ export function ChangesClient() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
           {items.map((entry) => (
-            <ChangeEntryCard key={entry.event_id} entry={entry} onNavigateToUser={handleNavigateToUser} />
+            <ChangeEntryCard
+              key={entry.event_id}
+              entry={entry}
+              matrix={matrix}
+              onNavigateToUser={handleNavigateToUser}
+            />
           ))}
         </div>
       )}
@@ -224,6 +245,7 @@ export function ChangesClient() {
 
 interface ChangeEntryCardProps {
   entry: AdminChangeEntry
+  matrix: RoleCapabilityMatrix | null
   onNavigateToUser: (appUserId: number) => void
 }
 
@@ -231,8 +253,8 @@ interface ChangeEntryCardProps {
  * D-32 (responsiv, binding): Card variant="flat" pro Eintrag statt einer breiten Tabelle —
  * stapelt bereits unterhalb von 760px sauber, ohne separaten Schmal-Viewport-Codepfad.
  */
-function ChangeEntryCard({ entry, onNavigateToUser }: ChangeEntryCardProps) {
-  const translation = translateEntry(entry)
+function ChangeEntryCard({ entry, matrix, onNavigateToUser }: ChangeEntryCardProps) {
+  const translation = translateEntry(entry, matrix)
 
   return (
     <Card variant="flat">
