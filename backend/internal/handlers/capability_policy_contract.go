@@ -151,6 +151,17 @@ type CapabilityOverrideMutationResult struct {
 	ActivationStatus CapabilityActivationStatus `json:"activation_status"`
 }
 
+// RoleCapabilityMutationResult is the transport DTO for the role-matrix
+// capability mutation endpoints (PUT/DELETE /admin/role-capabilities/:roleCode/:actionCode,
+// Plan 138-02, CAP-10/D-21). The domain mutation (grant/revoke) genuinely
+// succeeds independent of the cache reload outcome — this field honestly
+// distinguishes "persisted and active" from "persisted but cache reload
+// failed" instead of the endpoint always implying unconditional success.
+type RoleCapabilityMutationResult struct {
+	Message              string `json:"message"`
+	CacheReloadSucceeded bool   `json:"cache_reload_succeeded"`
+}
+
 type CapabilityOverrideMutationRequest struct {
 	GroupID      int64                     `json:"group_id"`
 	TargetUserID int64                     `json:"target_user_id"`

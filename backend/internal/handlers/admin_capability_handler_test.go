@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -559,4 +560,121 @@ func TestCapabilityAuditOnGrant(t *testing.T) {
 	if payload["action_code"] != "release.view" {
 		t.Fatalf("erwartet payload.action_code='release.view', erhalten %v", payload["action_code"])
 	}
+}
+
+// TestAdminCapabilityHandlerCacheReloadSucceededField prüft CAP-10/D-21 (Plan 138-02):
+// Grant/RevokeCapability antworten immer mit HTTP 200 (eine ReloadCache-Fehlschlag ist keine
+// Mutations-Fehlschlag), melden aber ehrlich über cache_reload_succeeded, ob der In-Process-
+// Cache-Reload erfolgreich war.
+func TestAdminCapabilityHandlerCacheReloadSucceededField(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	adminIdentity := middleware.AuthIdentity{
+		UserID:          1,
+		AppUserID:       1,
+		AppUserStatus:   models.AppUserStatusActive,
+		IsPlatformAdmin: true,
+		DisplayName:     "Admin",
+	}
+
+	decodeResult := func(t *testing.T, rec *httptest.ResponseRecorder) RoleCapabilityMutationResult {
+		t.Helper()
+		var result RoleCapabilityMutationResult
+		if err := json.Unmarshal(rec.Body.Bytes(), &result); err != nil {
+			t.Fatalf("response body parsen fehlgeschlagen: %v\nbody: %s", err, rec.Body.String())
+		}
+		return result
+	}
+
+	t.Run("grant cache_reload_succeeded=true", func(t *testing.T) {
+		c, rec := makeCapabilityTestContext(http.MethodPut, "/admin/role-capabilities/fansub_lead/release.view", adminIdentity)
+		c.Params = gin.Params{
+			{Key: "roleCode", Value: "fansub_lead"},
+			{Key: "actionCode", Value: "release.view"},
+		}
+
+		authzStub := &stubCapabilityAuthzRepo{isPlatformAdmin: true}
+		permStub := &stubCapabilityPermissionSvc{reloadErr: nil}
+		auditStub := &captureAuditLogRepo{}
+
+		h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+		h.GrantCapability(c)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("erwartet 200, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+		}
+		result := decodeResult(t, rec)
+		if !result.CacheReloadSucceeded {
+			t.Fatalf("erwartet cache_reload_succeeded=true, erhalten %v", result.CacheReloadSucceeded)
+		}
+	})
+
+	t.Run("grant cache_reload_succeeded=false", func(t *testing.T) {
+		c, rec := makeCapabilityTestContext(http.MethodPut, "/admin/role-capabilities/fansub_lead/release.view", adminIdentity)
+		c.Params = gin.Params{
+			{Key: "roleCode", Value: "fansub_lead"},
+			{Key: "actionCode", Value: "release.view"},
+		}
+
+		authzStub := &stubCapabilityAuthzRepo{isPlatformAdmin: true}
+		permStub := &stubCapabilityPermissionSvc{reloadErr: errors.New("reload boom")}
+		auditStub := &captureAuditLogRepo{}
+
+		h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+		h.GrantCapability(c)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("erwartet 200 (Reload-Fehler ist keine Mutations-Fehlschlag), erhalten %d (body: %s)", rec.Code, rec.Body.String())
+		}
+		result := decodeResult(t, rec)
+		if result.CacheReloadSucceeded {
+			t.Fatalf("erwartet cache_reload_succeeded=false, erhalten %v", result.CacheReloadSucceeded)
+		}
+	})
+
+	t.Run("revoke cache_reload_succeeded=true", func(t *testing.T) {
+		c, rec := makeCapabilityTestContext(http.MethodDelete, "/admin/role-capabilities/fansub_lead/release.view", adminIdentity)
+		c.Params = gin.Params{
+			{Key: "roleCode", Value: "fansub_lead"},
+			{Key: "actionCode", Value: "release.view"},
+		}
+
+		authzStub := &stubCapabilityAuthzRepo{isPlatformAdmin: true, countRolesWithAction: 5}
+		permStub := &stubCapabilityPermissionSvc{reloadErr: nil}
+		auditStub := &captureAuditLogRepo{}
+
+		h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+		h.RevokeCapability(c)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("erwartet 200, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+		}
+		result := decodeResult(t, rec)
+		if !result.CacheReloadSucceeded {
+			t.Fatalf("erwartet cache_reload_succeeded=true, erhalten %v", result.CacheReloadSucceeded)
+		}
+	})
+
+	t.Run("revoke cache_reload_succeeded=false", func(t *testing.T) {
+		c, rec := makeCapabilityTestContext(http.MethodDelete, "/admin/role-capabilities/fansub_lead/release.view", adminIdentity)
+		c.Params = gin.Params{
+			{Key: "roleCode", Value: "fansub_lead"},
+			{Key: "actionCode", Value: "release.view"},
+		}
+
+		authzStub := &stubCapabilityAuthzRepo{isPlatformAdmin: true, countRolesWithAction: 5}
+		permStub := &stubCapabilityPermissionSvc{reloadErr: errors.New("reload boom")}
+		auditStub := &captureAuditLogRepo{}
+
+		h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+		h.RevokeCapability(c)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("erwartet 200 (Reload-Fehler ist keine Mutations-Fehlschlag), erhalten %d (body: %s)", rec.Code, rec.Body.String())
+		}
+		result := decodeResult(t, rec)
+		if result.CacheReloadSucceeded {
+			t.Fatalf("erwartet cache_reload_succeeded=false, erhalten %v", result.CacheReloadSucceeded)
+		}
+	})
 }

@@ -165,7 +165,11 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 
 	// D-06: Cache nach erfolgreicher Mutation neu laden.
 	// Fail-safe: Reload-Fehler wird nur geloggt — Mutation war erfolgreich, alter Cache bleibt gültig.
+	// CAP-10/D-21 (Plan 138-02): der Reload-Erfolg wird zusätzlich ehrlich in der Response
+	// zurückgemeldet, statt implizit unconditional Erfolg zu behaupten.
+	cacheReloadSucceeded := true
 	if err := h.permissionSvc.ReloadCache(c.Request.Context(), h.mutationRepo); err != nil {
+		cacheReloadSucceeded = false
 		log.Printf("capability grant: ReloadCache fehlgeschlagen (role=%q, action=%q): %v — alter Cache bleibt gültig", roleCode, actionCode, err)
 	}
 
@@ -179,7 +183,12 @@ func (h *AdminCapabilityHandler) GrantCapability(c *gin.Context) {
 		Payload:        map[string]any{"role_code": roleCode, "action_code": actionCode},
 	})
 
-	c.JSON(http.StatusOK, gin.H{"message": "Capability erfolgreich zugewiesen."})
+	// CacheReloadSucceeded serialisiert als "cache_reload_succeeded" (siehe
+	// RoleCapabilityMutationResult in capability_policy_contract.go).
+	c.JSON(http.StatusOK, RoleCapabilityMutationResult{
+		Message:              "Capability erfolgreich zugewiesen.",
+		CacheReloadSucceeded: cacheReloadSucceeded,
+	})
 }
 
 // RevokeCapability entzieht einer Rolle eine Action.
@@ -240,7 +249,11 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 
 	// D-06: Cache nach erfolgreicher Mutation neu laden.
 	// Fail-safe: Reload-Fehler wird nur geloggt — Mutation war erfolgreich, alter Cache bleibt gültig.
+	// CAP-10/D-21 (Plan 138-02): der Reload-Erfolg wird zusätzlich ehrlich in der Response
+	// zurückgemeldet, statt implizit unconditional Erfolg zu behaupten.
+	cacheReloadSucceeded := true
 	if err := h.permissionSvc.ReloadCache(c.Request.Context(), h.mutationRepo); err != nil {
+		cacheReloadSucceeded = false
 		log.Printf("capability revoke: ReloadCache fehlgeschlagen (role=%q, action=%q): %v — alter Cache bleibt gültig", roleCode, actionCode, err)
 	}
 
@@ -254,5 +267,10 @@ func (h *AdminCapabilityHandler) RevokeCapability(c *gin.Context) {
 		Payload:        map[string]any{"role_code": roleCode, "action_code": actionCode},
 	})
 
-	c.JSON(http.StatusOK, gin.H{"message": "Capability erfolgreich entzogen."})
+	// CacheReloadSucceeded serialisiert als "cache_reload_succeeded" (siehe
+	// RoleCapabilityMutationResult in capability_policy_contract.go).
+	c.JSON(http.StatusOK, RoleCapabilityMutationResult{
+		Message:              "Capability erfolgreich entzogen.",
+		CacheReloadSucceeded: cacheReloadSucceeded,
+	})
 }
