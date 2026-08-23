@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Phase 138 UI-SPEC approved
-last_updated: "2026-08-23T16:15:06.013Z"
-last_activity: 2026-08-23 -- Phase 138 planning complete
+stopped_at: Completed 138-01-PLAN.md
+last_updated: "2026-08-23T16:43:34.656Z"
+last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 45
+  completed_plans: 46
   percent: 29
 ---
 
@@ -29,14 +29,14 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 138 — effective rights administration & impact ux
+**Current focus:** Phase 138 — effective-rights-administration-impact-ux
 
 ## Current Position
 
-Phase: 138
-Plan: Not started
+Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
+Plan: 2 of 16
 Status: Ready to execute
-Last activity: 2026-08-23 - Completed quick task 260823-mt8: Fix PlatformAdminGate: children unmount on token refresh
+Last activity: 2026-08-23
 
 ## Accumulated Context
 
@@ -162,6 +162,8 @@ Last activity: 2026-08-23 - Completed quick task 260823-mt8: Fix PlatformAdminGa
 - [Phase 137]: [Phase 137, 2026-08-21]: 137-12 dispositioned GAP-06 (contribution-role vs user_deny) as Fall C -- 137-CONTEXT.md's D01/Section 2 never name contribution roles as a resolver source category at all, so no runtime change was made to CanForReleaseVersion's Step 3 fallback; a new regression test (TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny) locks today's actual behavior (a stored user_deny does not block the contribution-role fallback), and the ambiguity is explicitly flagged in 137-12-SUMMARY.md as DECISION REQUIRED for a human decision-maker rather than resolved unilaterally.
 - [Phase 137]: 137-13 closed GAP-07 (UAT-137-01) with additive migration 0151 (co_leader/founder/gfxler/techadmin gain fansub_group_media.view); zero change to fansubEditAccess.ts -- the existing case "media": return capabilities.can_view_group_media gate already produces the correct result once the capability flag is true post-migration.
 - [Phase 137-14]: GAP-08 closed: canEditFansubBranding mirrors backend fansub_group.edit exactly (can_edit_group only, no can_update_group_media fallback); Logo/Banner section fully hidden (not disabled) for co_leader/founder/gfxler/techadmin-shaped capability sets
+- [Phase 138]: 138-01: AuthzRepository.ListRoleHolders answers D-07's "who holds fansub-group role X" with one non-N+1 join (fansub_group_member_roles -> fansub_group_members -> fansub_groups -> app_users, plus an EXISTS override-presence check); AdminRoleHoldersHandler gates it platform-admin-only and rejects unknown/non-fansub-group role codes with 400 before querying.
+- [Phase 138]: 138-01: testsupport.OpenPhase137Postgres was extended (post-migration-loop, additive/nullable columns only) with fansub_group_member_roles and app_users/fansub_groups display columns, since the real production tables were never part of the applied 0085/0100/0108/0112/0146/0150 migration chain despite the plan's premise; effective_rights_service_test.go's own ad-hoc fansub_group_member_roles table was removed to avoid the resulting collision.
 
 ### Pending Todos
 
@@ -377,10 +379,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 137 P12 | 10min | 2 tasks | 2 files |
 | Phase 137 P13 | ~20min | 2 tasks | 4 files |
 | Phase 137 P14 | 5min | 2 tasks | 4 files |
+| Phase 138 P01 | ~25min | 2 tasks | 11 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T15:33:30.617Z
-Stopped at: Phase 138 UI-SPEC approved
+Last session: 2026-08-23T16:43:34.641Z
+Stopped at: Completed 138-01-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
-Resume file: .planning/phases/138-effective-rights-administration-impact-ux/138-UI-SPEC.md
+Resume file: None

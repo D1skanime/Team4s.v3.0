@@ -533,7 +533,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 138-01-PLAN.md — Role-holder query + handler (D-07/R-03)
+- [x] 138-01-PLAN.md — Role-holder query + handler (D-07/R-03)
 - [ ] 138-02-PLAN.md — CAP-10 activation-status contract extension + ActivationStatusIndicator primitive
 - [ ] 138-03-PLAN.md — D-29 release-version-label display-bug fix
 - [ ] 138-04-PLAN.md — D-22 role-assignment impact-preview endpoint
