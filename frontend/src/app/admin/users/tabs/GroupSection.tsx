@@ -52,6 +52,7 @@ export function GroupSection({
         appUserId={appUserId}
         states={byCategory.get(category) ?? []}
         actionMeta={actionMeta}
+        matrix={matrix}
         expandedRows={expandedRows}
         onToggleRow={onToggleRow}
         onOpenRevoke={(state, label) =>

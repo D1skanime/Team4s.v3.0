@@ -38,7 +38,7 @@ export function GroupRolesSection({
             const link = resolveRoleLink(role, matrix)
             return (
               <div key={role} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Badge variant="info">{role}</Badge>
+                <Badge variant="info">{roleLabelFor(role, matrix)}</Badge>
                 {link && (
                   <Button
                     variant="ghost"

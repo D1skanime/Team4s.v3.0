@@ -48,12 +48,17 @@ export function groupStatesByCategory(
 }
 
 /** D-13: menschliche "Quelle"-Beschriftung statt technischer decisive_source-Rohwerte. */
-export function decisiveSourceLabel(state: EffectiveRightState): string {
+export function decisiveSourceLabel(
+  state: EffectiveRightState,
+  matrix: RoleCapabilityMatrix | null,
+): string {
   switch (state.decisive_source) {
     case 'platform_admin':
       return 'Plattform-Admin'
     case 'group_role':
-      return state.granting_roles.length > 0 ? state.granting_roles.join(' + ') : '–'
+      return state.granting_roles.length > 0
+        ? state.granting_roles.map((role) => roleLabelFor(role, matrix)).join(' + ')
+        : '–'
     case 'user_allow':
       return 'persönliche Abweichung (zusätzlich erlaubt)'
     case 'user_deny':
@@ -69,6 +74,11 @@ export function decisiveSourceLabel(state: EffectiveRightState): string {
 
 export function roleLabelFor(roleCode: string, matrix: RoleCapabilityMatrix | null): string {
   return matrix?.roles.find((entry) => entry.role_code === roleCode)?.label_de ?? roleCode
+}
+
+/** Mirrors roleLabelFor's exact fallback pattern for action/capability codes (Task 3 reuse). */
+export function actionLabelFor(actionCode: string, matrix: RoleCapabilityMatrix | null): string {
+  return matrix?.all_actions.find((entry) => entry.code === actionCode)?.label_de ?? actionCode
 }
 
 /**

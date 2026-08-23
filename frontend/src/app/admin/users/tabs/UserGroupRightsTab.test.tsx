@@ -282,7 +282,7 @@ describe('UserGroupRightsTab', () => {
       await waitFor(() => {
         expect(screen.getByText('Rollen in dieser Gruppe')).not.toBeNull()
       })
-      expect(screen.getAllByText('co_leader').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('Co-Leitung').length).toBeGreaterThanOrEqual(1)
       expect(screen.getByRole('button', { name: 'Entfernen' })).not.toBeNull()
       expect(screen.getByRole('option', { name: 'Timer' })).not.toBeNull()
       expect(screen.queryByRole('option', { name: 'Co-Leitung' })).toBeNull()

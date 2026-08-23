@@ -1,12 +1,14 @@
 import { Button, TableCell, TableRow } from '@/components/ui'
-import type { EffectiveRightState } from '@/types/admin-capability'
+import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
 import { CapabilityHistoryPanel } from './CapabilityHistoryPanel'
+import { roleLabelFor } from './userGroupRightsHelpers'
 
 export function CapabilityDetailRow({
   groupId,
   appUserId,
   label,
   state,
+  matrix,
   onOpenRevoke,
   onOpenGrant,
 }: {
@@ -14,6 +16,7 @@ export function CapabilityDetailRow({
   appUserId: number
   label: string
   state: EffectiveRightState
+  matrix: RoleCapabilityMatrix | null
   onOpenRevoke: (state: EffectiveRightState, label: string) => void
   onOpenGrant: (state: EffectiveRightState, label: string) => void
 }) {
@@ -37,7 +40,9 @@ export function CapabilityDetailRow({
         >
           <div>
             <strong>Rollenquellen:</strong>{' '}
-            {state.granting_roles.length > 0 ? state.granting_roles.join(', ') : '–'}
+            {state.granting_roles.length > 0
+              ? state.granting_roles.map((role) => roleLabelFor(role, matrix)).join(', ')
+              : '–'}
           </div>
           <div>
             <strong>Spezialisierte Grants:</strong>{' '}

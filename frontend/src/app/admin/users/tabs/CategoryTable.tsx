@@ -9,7 +9,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@/components/ui'
-import type { ActionEntry, EffectiveRightState } from '@/types/admin-capability'
+import type { ActionEntry, EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
 import { decisiveSourceLabel } from './userGroupRightsHelpers'
 import { CapabilityDetailRow } from './CapabilityDetailRow'
 
@@ -18,6 +18,7 @@ export function CategoryTable({
   appUserId,
   states,
   actionMeta,
+  matrix,
   expandedRows,
   onToggleRow,
   onOpenRevoke,
@@ -27,6 +28,7 @@ export function CategoryTable({
   appUserId: number
   states: EffectiveRightState[]
   actionMeta: Map<string, ActionEntry>
+  matrix: RoleCapabilityMatrix | null
   expandedRows: Set<string>
   onToggleRow: (key: string) => void
   onOpenRevoke: (state: EffectiveRightState, label: string) => void
@@ -67,7 +69,7 @@ export function CategoryTable({
                     {state.allowed ? 'Erlaubt' : 'Nicht erlaubt'}
                   </Badge>
                 </TableCell>
-                <TableCell>{decisiveSourceLabel(state)}</TableCell>
+                <TableCell>{decisiveSourceLabel(state, matrix)}</TableCell>
               </TableRow>
               {isOpen ? (
                 <CapabilityDetailRow
@@ -75,6 +77,7 @@ export function CategoryTable({
                   appUserId={appUserId}
                   label={label}
                   state={state}
+                  matrix={matrix}
                   onOpenRevoke={onOpenRevoke}
                   onOpenGrant={onOpenGrant}
                 />
