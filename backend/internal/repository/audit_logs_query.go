@@ -25,17 +25,19 @@ type auditLogsQueryDBTX interface {
 // This endpoint does not interpret payload contents — a later frontend
 // translation layer reads specific known keys out of it per event_type.
 type ChangeListRow struct {
-	EventID        int64           `json:"event_id"`
-	EventType      string          `json:"event_type"`
-	TargetType     string          `json:"target_type"`
-	TargetID       *int64          `json:"target_id"`
-	Action         string          `json:"action"`
-	Outcome        string          `json:"outcome"`
-	OccurredAt     time.Time       `json:"occurred_at"`
-	ActorAppUserID *int64          `json:"actor_app_user_id"`
-	ScopeType      string          `json:"scope_type"`
-	ScopeID        *int64          `json:"scope_id"`
-	Payload        json.RawMessage `json:"payload"`
+	EventID           int64           `json:"event_id"`
+	EventType         string          `json:"event_type"`
+	TargetType        string          `json:"target_type"`
+	TargetID          *int64          `json:"target_id"`
+	Action            string          `json:"action"`
+	Outcome           string          `json:"outcome"`
+	OccurredAt        time.Time       `json:"occurred_at"`
+	ActorAppUserID    *int64          `json:"actor_app_user_id"`
+	ScopeType         string          `json:"scope_type"`
+	ScopeID           *int64          `json:"scope_id"`
+	Payload           json.RawMessage `json:"payload"`
+	ActorDisplayName  *string         `json:"actor_display_name"`
+	TargetDisplayName *string         `json:"target_display_name"`
 }
 
 // ChangeListFilter carries the optional, UND-verknuepften filters for
@@ -134,6 +136,10 @@ func (r *AuditLogRepository) ListChanges(ctx context.Context, filter ChangeListF
 	limitParam := paramIdx
 	offsetParam := paramIdx + 1
 
+	// actor_user / target_user: additive LEFT JOINs resolving app_users.display_name for
+	// D-33's honest actor/target naming (T-w9y-01/02/03). target_user's join condition
+	// mirrors the frontend's USER_TARGET_TYPES set (ChangesClient.tsx) exactly — keep both
+	// lists in sync if either changes.
 	query := fmt.Sprintf(`
 		SELECT
 			al.id,
@@ -147,8 +153,17 @@ func (r *AuditLogRepository) ListChanges(ctx context.Context, filter ChangeListF
 			COALESCE(al.scope_type, ''),
 			al.scope_id,
 			al.payload,
+			actor_user.display_name,
+			target_user.display_name,
 			COUNT(*) OVER() AS total_count
 		FROM audit_logs al
+		LEFT JOIN app_users actor_user ON actor_user.id = al.actor_app_user_id
+		LEFT JOIN app_users target_user ON al.target_type IN (
+			'user_group_capability_override',
+			'user_group_capability_override_history',
+			'effective_rights',
+			'app_user'
+		) AND target_user.id = al.target_id
 		WHERE 1 = 1%s
 		ORDER BY al.created_at DESC, al.id DESC
 		LIMIT $%d OFFSET $%d
@@ -177,6 +192,8 @@ func (r *AuditLogRepository) ListChanges(ctx context.Context, filter ChangeListF
 			&row.ScopeType,
 			&row.ScopeID,
 			&payload,
+			&row.ActorDisplayName,
+			&row.TargetDisplayName,
 			&total,
 		); err != nil {
 			return nil, 0, fmt.Errorf("list changes: scan: %w", err)

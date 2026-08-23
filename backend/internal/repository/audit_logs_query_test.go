@@ -50,7 +50,7 @@ func TestListChanges(t *testing.T) {
 	pool := openPhase138ChangesListPool(t)
 	ctx := context.Background()
 
-	_, err := pool.Exec(ctx, `INSERT INTO app_users (id, status) VALUES (1001, 'active'), (1002, 'active') ON CONFLICT (id) DO NOTHING`)
+	_, err := pool.Exec(ctx, `INSERT INTO app_users (id, status, display_name) VALUES (1001, 'active', 'Anna Admin'), (1002, 'active', 'Bruno Berger') ON CONFLICT (id) DO NOTHING`)
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `INSERT INTO fansub_groups (id) VALUES (2001) ON CONFLICT (id) DO NOTHING`)
 	require.NoError(t, err)
@@ -119,5 +119,35 @@ func TestListChanges(t *testing.T) {
 
 		limit, _ := ClampAdminListPage(99999, -5)
 		assert.Equal(t, adminListMaxLimit, limit)
+	})
+
+	t.Run("actor_display_name and target_display_name resolve via LEFT JOIN, honest NULL for non-user target types", func(t *testing.T) {
+		rows, total, err := repo.ListChanges(ctx, ChangeListFilter{})
+		require.NoError(t, err)
+		assert.Equal(t, 3, total)
+		require.Len(t, rows, 3)
+
+		byEventType := make(map[string]ChangeListRow, len(rows))
+		for _, row := range rows {
+			byEventType[row.EventType] = row
+		}
+
+		claimRow, ok := byEventType["member_claim.verified"]
+		require.True(t, ok)
+		require.NotNil(t, claimRow.ActorDisplayName)
+		assert.Equal(t, "Anna Admin", *claimRow.ActorDisplayName)
+		assert.Nil(t, claimRow.TargetDisplayName)
+
+		statusRow, ok := byEventType["app_user.status_changed"]
+		require.True(t, ok)
+		assert.Nil(t, statusRow.ActorDisplayName)
+		require.NotNil(t, statusRow.TargetDisplayName)
+		assert.Equal(t, "Bruno Berger", *statusRow.TargetDisplayName)
+
+		grantedRow, ok := byEventType["role_capability.granted"]
+		require.True(t, ok)
+		require.NotNil(t, grantedRow.ActorDisplayName)
+		assert.Equal(t, "Bruno Berger", *grantedRow.ActorDisplayName)
+		assert.Nil(t, grantedRow.TargetDisplayName)
 	})
 }

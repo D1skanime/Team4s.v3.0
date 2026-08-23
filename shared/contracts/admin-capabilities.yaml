@@ -1487,6 +1487,21 @@ components:
             interpretiert; eine spaetere Frontend-Uebersetzungsschicht liest
             bekannte Schluessel pro event_type.
           additionalProperties: true
+        actor_display_name:
+          type: string
+          nullable: true
+          description: >
+            app_users.display_name des Akteurs, aufgeloest via LEFT JOIN.
+            Ehrlich null, wenn kein Akteur existiert (z. B. eine reine
+            Systemaktion) oder der Akteur-Benutzer nicht (mehr) auflösbar ist.
+        target_display_name:
+          type: string
+          nullable: true
+          description: >
+            app_users.display_name des Ziel-Benutzers, aufgeloest via LEFT
+            JOIN. Nur gesetzt, wenn target_type tatsaechlich einen
+            app_users.id referenziert (siehe Handler-Join-Bedingung); fuer
+            alle anderen target_types bleibt dieses Feld ehrlich null.
     AdminChangesListResponse:
       type: object
       required: [data, meta]

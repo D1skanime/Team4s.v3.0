@@ -271,7 +271,7 @@ function ChangeEntryCard({ entry, matrix, onNavigateToUser }: ChangeEntryCardPro
         <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
           {entry.actor_app_user_id != null ? (
             <Button variant="ghost" onClick={() => onNavigateToUser(entry.actor_app_user_id as number)}>
-              {`Benutzer #${entry.actor_app_user_id}`}
+              {entry.actor_display_name ?? `Benutzer #${entry.actor_app_user_id}`}
             </Button>
           ) : (
             <Button variant="ghost" disabled>
@@ -281,7 +281,7 @@ function ChangeEntryCard({ entry, matrix, onNavigateToUser }: ChangeEntryCardPro
 
           {USER_TARGET_TYPES.has(entry.target_type) && entry.target_id != null ? (
             <Button variant="ghost" onClick={() => onNavigateToUser(entry.target_id as number)}>
-              {`Benutzer #${entry.target_id}`}
+              {entry.target_display_name ?? `Benutzer #${entry.target_id}`}
             </Button>
           ) : (
             <Button variant="ghost" disabled>

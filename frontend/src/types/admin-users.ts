@@ -291,6 +291,8 @@ export interface AdminChangeEntry {
   scope_type: string
   scope_id: number | null
   payload: Record<string, unknown> | null
+  actor_display_name: string | null
+  target_display_name: string | null
 }
 
 /** Filter- und Paginierungsparameter für GET /admin/changes. */
