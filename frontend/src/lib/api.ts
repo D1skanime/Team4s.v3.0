@@ -249,7 +249,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
+import type { CapabilityOverrideAuditItem, CapabilityOverrideMutationRequest, CapabilityOverrideMutationResult, EffectiveRightState, PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -9980,6 +9980,87 @@ export async function revokeRoleCapability(
   }
 
   return response.json() as Promise<RoleCapabilityMutationResult>
+}
+
+/**
+ * Lädt den vollständigen provenienzfähigen Effective-Rights-Katalog eines Nutzers in EINER
+ * Fansub-Gruppe (Phase 137 Resolver, Plan 138-06/UADM-01). Ersetzt das alte zwei-Boolean-
+ * Heuristik-Endpoint für die Rechte-Inspektion vollständig.
+ * GET /api/v1/admin/fansubs/:id/app-members/:appUserId/effective-rights
+ */
+export async function getEffectiveRights(
+  fansubGroupId: number,
+  appUserId: number,
+): Promise<EffectiveRightState[]> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/effective-rights`,
+    { cache: "no-store" },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const resp = (await response.json()) as { data: EffectiveRightState[] }
+  return resp.data
+}
+
+/**
+ * Setzt/entfernt einen persönlichen Capability-Override für einen Nutzer in einer Fansub-
+ * Gruppe (Phase 137 EffectiveRightsService.MutateOverride, Plan 138-06/UADM-01).
+ * PUT /api/v1/admin/fansubs/:id/app-members/:appUserId/capability-overrides
+ */
+export async function mutateCapabilityOverride(
+  fansubGroupId: number,
+  appUserId: number,
+  body: CapabilityOverrideMutationRequest,
+): Promise<CapabilityOverrideMutationResult> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/capability-overrides`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const resp = (await response.json()) as { data: CapabilityOverrideMutationResult }
+  return resp.data
+}
+
+/**
+ * Lädt die Override-Historie eines Nutzers in einer Fansub-Gruppe (Phase 137 append-only
+ * Audit-Trail, Plan 138-06/UADM-01).
+ * GET /api/v1/admin/fansubs/:id/app-members/:appUserId/capability-overrides/history?limit=&offset=
+ */
+export async function listOverrideHistory(
+  fansubGroupId: number,
+  appUserId: number,
+  limit = 25,
+  offset = 0,
+): Promise<CapabilityOverrideAuditItem[]> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/capability-overrides/history?limit=${limit}&offset=${offset}`,
+    { cache: "no-store" },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const resp = (await response.json()) as { data: CapabilityOverrideAuditItem[] }
+  return resp.data
 }
 
 /**
