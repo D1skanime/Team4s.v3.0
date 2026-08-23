@@ -529,7 +529,33 @@ Plans:
   3. Before changing a role-capability mapping, an admin sees affected role holders and which users actually gain, lose, or retain the capability through another source.
   4. After a role-matrix mutation, the UI distinguishes persisted, cache-active, pending, and failed activation states and never reports stale enforcement as final success.
 
-**Plans**: TBD
+**Plans**: 16 plans planned across 4 waves
+
+Plans:
+**Wave 1**
+- [ ] 138-01-PLAN.md — Role-holder query + handler (D-07/R-03)
+- [ ] 138-02-PLAN.md — CAP-10 activation-status contract extension + ActivationStatusIndicator primitive
+- [ ] 138-03-PLAN.md — D-29 release-version-label display-bug fix
+- [ ] 138-04-PLAN.md — D-22 role-assignment impact-preview endpoint
+- [ ] 138-05-PLAN.md — Claims + Änderungen cross-group filtered list endpoints (D-23/D-25/D-28)
+- [ ] 138-06-PLAN.md — UADM-01 foundation: api.ts wiring + canonical multi-group effective-rights inspection tab
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 138-07-PLAN.md — CAP-09 batch impact-preview endpoint for role-capability changes
+- [ ] 138-08-PLAN.md — CAP-08 guided revoke/grant flows + inline capability history
+- [ ] 138-09-PLAN.md — D-22 role-assignment impact preview UI
+- [ ] 138-10-PLAN.md — Claims top-level workspace (D-23)
+- [ ] 138-11-PLAN.md — Änderungen top-level workspace (D-25/D-26/D-27)
+- [ ] 138-12-PLAN.md — Rollen top-level workspace (D-07)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 138-13-PLAN.md — Impact-preview-gated role-capability matrix mutation (CAP-09 frontend)
+- [ ] 138-14-PLAN.md — D-24 claim-activation impact preview
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
+- [ ] 138-16-PLAN.md — Gruppenansicht Rollen/Änderungen tabs (D-06)
+
 **UI hint**: yes
 
 ### Phase 139: Scalable User-Admin Projections
