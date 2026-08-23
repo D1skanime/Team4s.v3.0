@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: ready_to_plan
 stopped_at: Phase 138 complete (16/16) — ready to discuss Phase 139
-last_updated: 2026-08-23T20:04:22.284Z
+last_updated: 2026-08-23T21:49:00.000Z
 last_activity: 2026-08-23
 progress:
   total_phases: 7
@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 139
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-08-23 - Completed quick task 260823-s7v: Split UserGroupRightsTab.tsx into sibling files (450-line modularity limit)
+Last activity: 2026-08-23 - Completed quick task 260823-u1j: Fix UAT-138-A horizontal page overflow (.card/.tabs grid-template-columns)
 
 ## Accumulated Context
 
@@ -206,6 +206,7 @@ Last activity: 2026-08-23 - Completed quick task 260823-s7v: Split UserGroupRigh
 | 260823-j4n | Phase-137-Nachtrag: GAP-06 abschliessen - Contribution Roles bleiben override-blind (Fall B), Dokumentation in permissions.go, 137-CONTEXT.md, 137-UAT.md, 137-12-SUMMARY.md und DECISIONS.md aktualisiert, keine Verhaltensaenderung | 2026-08-23 | cba0de3e | [260823-j4n-gap-06-dokumentation-contribution-roles-](./quick/260823-j4n-gap-06-dokumentation-contribution-roles-/) |
 | 260823-mt8 | Fix PlatformAdminGate: children unmount on token refresh | 2026-08-23 | 37859778 | [260823-mt8-fix-platformadmingate-children-unmount-o](./quick/260823-mt8-fix-platformadmingate-children-unmount-o/) |
 | 260823-s7v | Split UserGroupRightsTab.tsx (716 -> 269 Zeilen) in 5 Geschwisterdateien - reine Struktur-Refaktorierung ohne Verhaltensaenderung, 450-Zeilen-Limit aus CLAUDE.md eingehalten | 2026-08-23 | 7039195b | [260823-s7v-split-frontend-src-app-admin-users-tabs-](./quick/260823-s7v-split-frontend-src-app-admin-users-tabs-/) |
+| 260823-u1j | Fix UAT-138-A horizontaler Seitenueberlauf (394px, Rollen & Rechte-Tab): grid-template-columns: minmax(0, 1fr) auf .card/.tabs in ui.module.css ergaenzt, damit implizite Grid-Spalte nicht mehr auf Breite eines breiten Kind-Elements (Rechte-Tabelle) waechst | 2026-08-23 | dc4f5726 | [260823-u1j-fix-uat-138-a-horizontaler-seitenueberla](./quick/260823-u1j-fix-uat-138-a-horizontaler-seitenueberla/) |
 
 ### Verification Baseline
 
