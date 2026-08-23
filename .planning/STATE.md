@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: planning
-stopped_at: Completed 137-14-PLAN.md (GAP-08/UAT-137-02 closed)
-last_updated: "2026-08-22T02:00:32.704Z"
-last_activity: 2026-08-22
+status: executing
+stopped_at: Phase 138 UI-SPEC approved
+last_updated: "2026-08-23T16:15:06.013Z"
+last_activity: 2026-08-23 -- Phase 138 planning complete
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 45
+  total_plans: 61
   completed_plans: 45
   percent: 29
 ---
@@ -35,8 +35,8 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 138
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-08-23 - Completed quick task 260823-j4n: GAP-06 aus 137-UAT.md abschliessen (Fall B, Contribution Roles override-blind, Dokumentation only)
+Status: Ready to execute
+Last activity: 2026-08-23 -- Phase 138 planning complete
 
 ## Accumulated Context
 
@@ -379,7 +379,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-08-22T02:00:30.786Z
-Stopped at: Completed 137-14-PLAN.md (GAP-08/UAT-137-02 closed)
+Last session: 2026-08-23T15:33:30.617Z
+Stopped at: Phase 138 UI-SPEC approved
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
-Resume file: None
+Resume file: .planning/phases/138-effective-rights-administration-impact-ux/138-UI-SPEC.md
