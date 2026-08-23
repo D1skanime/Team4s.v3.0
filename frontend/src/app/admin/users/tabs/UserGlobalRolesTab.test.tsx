@@ -70,4 +70,17 @@ describe('UserGlobalRolesTab', () => {
     ).toBeNull()
     expect(screen.getByText(/aus IdP/i)).not.toBeNull()
   })
+
+  it('zeigt bei keinen globalen Rollen eine kompakte einzeilige Information ohne "Aktive Rollen"-Block (UAT-138-G)', async () => {
+    mockGetAdminUserGlobalRoles.mockResolvedValueOnce({ roles: [], assignable_roles: [] })
+
+    render(<UserGlobalRolesTab userId={4} displayName="Max Mustermann" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Keine globalen Rollen/)).not.toBeNull()
+    })
+
+    expect(screen.getByText(/aus Keycloak synchronisiert/i)).not.toBeNull()
+    expect(screen.queryByText('Aktive Rollen')).toBeNull()
+  })
 })
