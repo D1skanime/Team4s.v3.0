@@ -638,6 +638,75 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/fansubs/{id}/historical-members/{memberId}/claim-activation-impact:
+    get:
+      tags: [AdminCapabilities]
+      summary: Vorschau der Rechte-Auswirkung der Claim-Aktivierung (ActivateClaimedMember)
+      description: |
+        Phase 138 (D-24): berechnet einen vollständigen before/after-Diff der
+        effektiven Rechte für EIN historisches Mitglied über ALLE Aktionen, für
+        die reale ActivateClaimedMember-Aktivierung — die EINE Claim-Entscheidung,
+        die tatsächlich eine Mitgliedschaft plus Rollen anlegt. VerifyClaim/
+        RejectClaim ändern nachweislich keine effektiven Rechte und erhalten
+        deshalb absichtlich KEINE Vorschau (D-24, bindende Ehrlichkeitsregel).
+        Ausschließlich lesend, ohne Nebenwirkung: es wird nichts persistiert.
+        Wiederverwendet exakt denselben Präzedenz-Evaluator wie ResolveGroupRights
+        (D-20, bindend) — kein zweiter, unabhängig berechneter Entscheidungspfad.
+        Autorisierung spiegelt exakt dieselbe Aktion (ActionFansubGroupHistoricalMembersLink)
+        wider, die VerifyClaim/ActivateClaimedMember bereits verlangen.
+      operationId: previewClaimActivationImpact
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID der Fansub-Gruppe (autorisierender Scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: memberId
+          in: path
+          required: true
+          description: members.id des historischen Mitglieds
+          schema: { type: integer, format: int64, minimum: 1 }
+      responses:
+        "200":
+          description: Before/After-Diff der effektiven Rechte für die reale Aktivierung
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/ClaimActivationImpactPreview" }
+        "400":
+          description: Ungültige Fansubgruppen-ID oder ungültige member-id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Keine Berechtigung für diese Gruppe (identisch zur echten Aktivierung)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Kein verifizierter Claim für dieses Mitglied gefunden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Keine übernehmbaren Rollen dokumentiert (mirrors ActivateClaimedMember's no_activatable_roles)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
   /api/v1/admin/fansubs/{id}/app-members/{appUserId}/capability-overrides:
     put:
       tags: [AdminCapabilities]
@@ -992,6 +1061,28 @@ components:
         change:
           type: string
           enum: [assign, revoke]
+        before:
+          type: array
+          items: { $ref: "#/components/schemas/EffectiveRightState" }
+        after:
+          type: array
+          items: { $ref: "#/components/schemas/EffectiveRightState" }
+    ClaimActivationImpactPreview:
+      type: object
+      description: |
+        Phase 138 (D-24): vollständiger before/after-Diff der effektiven Rechte eines
+        historischen Mitglieds über alle Aktionen für die reale ActivateClaimedMember-
+        Aktivierung. RoleAssignmentImpactPreview passt hier nicht — mehrere Rollen
+        aktivieren sich gleichzeitig, und die Mitgliedschaft selbst (nicht ein einzelner
+        role_code) ist die Änderung. before/after nutzen exakt dasselbe
+        EffectiveRightState-Schema wie die Effective-Rights-Inspection — keine zweite,
+        konkurrierende Projektion.
+      required: [target_app_user_id, role_codes, before, after]
+      properties:
+        target_app_user_id: { type: integer, format: int64 }
+        role_codes:
+          type: array
+          items: { type: string }
         before:
           type: array
           items: { $ref: "#/components/schemas/EffectiveRightState" }

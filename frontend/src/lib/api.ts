@@ -249,7 +249,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { CapabilityOverrideAuditItem, CapabilityOverrideImpactPreview, CapabilityOverrideMutationRequest, CapabilityOverrideMutationResult, EffectiveRightState, PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
+import type { CapabilityOverrideAuditItem, CapabilityOverrideImpactPreview, CapabilityOverrideMutationRequest, CapabilityOverrideMutationResult, ClaimActivationImpactPreview, EffectiveRightState, PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -3780,6 +3780,30 @@ export async function getRoleAssignmentImpactPreview(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
   }
   const payload = (await response.json()) as { data: RoleAssignmentImpactPreview };
+  return payload.data;
+}
+
+/**
+ * Phase 138 (D-24): read-only Vorschau der Rechte-Auswirkung der realen
+ * ActivateClaimedMember-Aktivierung für EIN historisches Mitglied über ALLE Aktionen -- steht
+ * vor der bestehenden Aktivierungs-Mutation (activateClaimedMember). Persistiert nichts.
+ */
+export async function getClaimActivationImpactPreview(
+  fansubGroupId: number,
+  memberId: number,
+): Promise<ClaimActivationImpactPreview> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubGroupId}/historical-members/${memberId}/claim-activation-impact`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  const payload = (await response.json()) as { data: ClaimActivationImpactPreview };
   return payload.data;
 }
 

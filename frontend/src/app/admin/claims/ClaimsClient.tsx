@@ -24,7 +24,14 @@ import {
 import { ApiError, listClaims } from '@/lib/api'
 import type { AdminClaimListRow } from '@/types/admin-users'
 
+import { ClaimDecisionImpactPanel } from './ClaimDecisionImpactPanel'
 import { useClaimsListFilters } from './useClaimsListFilters'
+
+/** Ein geöffneter Entscheidungs-Dialog für genau einen Claim (D-24). */
+interface OpenDecision {
+  claim: AdminClaimListRow
+  decision: 'verify' | 'activate' | 'reject'
+}
 
 /**
  * Gibt zurück, ob der Viewport als "mobil" gilt (< 760 px) — identischer Breakpoint und
@@ -99,6 +106,7 @@ export function ClaimsClient() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
+  const [openDecision, setOpenDecision] = useState<OpenDecision | null>(null)
 
   const {
     params,
@@ -253,6 +261,7 @@ export function ClaimsClient() {
               claim={claim}
               onNavigateUser={handleNavigateUser}
               onNavigateGroup={handleNavigateGroup}
+              onDecide={(decision) => setOpenDecision({ claim, decision })}
             />
           ))}
         </div>
@@ -265,6 +274,7 @@ export function ClaimsClient() {
               <TableHeaderCell>Gruppe</TableHeaderCell>
               <TableHeaderCell>Mitglied</TableHeaderCell>
               <TableHeaderCell>Erstellt</TableHeaderCell>
+              <TableHeaderCell>Aktion</TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -287,6 +297,12 @@ export function ClaimsClient() {
                 </TableCell>
                 <TableCell>{claim.member_nickname}</TableCell>
                 <TableCell>{formatDate(claim.created_at)}</TableCell>
+                <TableCell>
+                  <ClaimActionButtons
+                    claim={claim}
+                    onDecide={(decision) => setOpenDecision({ claim, decision })}
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -296,21 +312,67 @@ export function ClaimsClient() {
       {totalPages > 1 && (
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
       )}
+
+      {openDecision && (
+        <ClaimDecisionImpactPanel
+          open
+          onClose={() => setOpenDecision(null)}
+          fansubGroupId={openDecision.claim.fansub_group_id}
+          memberId={openDecision.claim.member_id}
+          claimId={openDecision.claim.claim_id}
+          appUserDisplayName={openDecision.claim.app_user_display_name}
+          decision={openDecision.decision}
+          onDecided={() => {
+            setOpenDecision(null)
+            void loadClaims()
+          }}
+        />
+      )}
     </div>
   )
+}
+
+interface ClaimActionButtonsProps {
+  claim: AdminClaimListRow
+  onDecide: (decision: 'verify' | 'activate' | 'reject') => void
+}
+
+/** D-24: verfügbare Aktion(en) je nach realem claim_status, keine erfundenen Übergänge. */
+function ClaimActionButtons({ claim, onDecide }: ClaimActionButtonsProps) {
+  if (claim.claim_status === 'pending') {
+    return (
+      <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+        <Button variant="primary" onClick={() => onDecide('verify')}>
+          Verifizieren
+        </Button>
+        <Button variant="danger" onClick={() => onDecide('reject')}>
+          Ablehnen
+        </Button>
+      </div>
+    )
+  }
+  if (claim.claim_status === 'verified') {
+    return (
+      <Button variant="primary" onClick={() => onDecide('activate')}>
+        Als aktives Mitglied übernehmen
+      </Button>
+    )
+  }
+  return null
 }
 
 interface ClaimCardProps {
   claim: AdminClaimListRow
   onNavigateUser: (appUserId: number) => void
   onNavigateGroup: (fansubGroupId: number) => void
+  onDecide: (decision: 'verify' | 'activate' | 'reject') => void
 }
 
 /**
  * D-32 (<760px): Zeilen-Collapse der grossen Desktop-Tabelle als kompakte Card, statt einer
  * horizontal zusammengedrückten Matrix — analog zum bestehenden Card-Zeilen-Muster im Admin-Bereich.
  */
-function ClaimCard({ claim, onNavigateUser, onNavigateGroup }: ClaimCardProps) {
+function ClaimCard({ claim, onNavigateUser, onNavigateGroup, onDecide }: ClaimCardProps) {
   return (
     <Card variant="compact">
       <div
@@ -332,6 +394,9 @@ function ClaimCard({ claim, onNavigateUser, onNavigateGroup }: ClaimCardProps) {
           {claim.fansub_group_name}
         </Button>
         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Mitglied: {claim.member_nickname}</span>
+      </div>
+      <div style={{ marginTop: 'var(--space-2)' }}>
+        <ClaimActionButtons claim={claim} onDecide={onDecide} />
       </div>
     </Card>
   )

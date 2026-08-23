@@ -200,6 +200,20 @@ export interface RoleAssignmentImpactPreview {
   after: EffectiveRightState[];
 }
 
+/**
+ * Phase 138 (D-24): vollständiger before/after-Diff der effektiven Rechte eines historischen
+ * Mitglieds über alle Aktionen für die reale ActivateClaimedMember-Aktivierung -- die EINE
+ * Claim-Entscheidung, die tatsächlich Rechte verändert. VerifyClaim/RejectClaim erhalten
+ * niemals eine solche Vorschau (D-24, verbindliche Ehrlichkeitsregel). before/after nutzen
+ * exakt EffectiveRightState -- keine zweite, konkurrierende Projektion.
+ */
+export interface ClaimActivationImpactPreview {
+  target_app_user_id: number;
+  role_codes: string[];
+  before: EffectiveRightState[];
+  after: EffectiveRightState[];
+}
+
 export interface CapabilityOverrideAuditItem {
   id: number;
   group_id: number;
