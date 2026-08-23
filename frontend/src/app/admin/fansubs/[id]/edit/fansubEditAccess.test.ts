@@ -65,6 +65,7 @@ describe("fansub edit access", () => {
     expect(visibleMainTabs(false, access).map(({ key }) => key)).toEqual([
       "basic",
       "notes",
+      "changes",
     ]);
     expect(resolveMainTabForAccess("media", false, access)).toBe("basic");
   });
