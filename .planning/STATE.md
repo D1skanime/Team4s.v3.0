@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 139
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-08-23
+Last activity: 2026-08-23 - Completed quick task 260823-s7v: Split UserGroupRightsTab.tsx into sibling files (450-line modularity limit)
 
 ## Accumulated Context
 
@@ -205,6 +205,7 @@ Last activity: 2026-08-23
 | 260820-600 | Phase-117-Nachtrag: Folgen-Navigation im Contributor-Editor (Segment-Pillen-Pager Vorherige/Naechste Folge, aktiver Tab bleibt per ?tab= erhalten), inkl. Redesign Variante A -> Variante B nach Live-UAT-Feedback vor Freigabe | 2026-08-20 | 7f5815b4 | [260820-600-folgen-navigation-im-contributor-editor-](./quick/260820-600-folgen-navigation-im-contributor-editor-/) |
 | 260823-j4n | Phase-137-Nachtrag: GAP-06 abschliessen - Contribution Roles bleiben override-blind (Fall B), Dokumentation in permissions.go, 137-CONTEXT.md, 137-UAT.md, 137-12-SUMMARY.md und DECISIONS.md aktualisiert, keine Verhaltensaenderung | 2026-08-23 | cba0de3e | [260823-j4n-gap-06-dokumentation-contribution-roles-](./quick/260823-j4n-gap-06-dokumentation-contribution-roles-/) |
 | 260823-mt8 | Fix PlatformAdminGate: children unmount on token refresh | 2026-08-23 | 37859778 | [260823-mt8-fix-platformadmingate-children-unmount-o](./quick/260823-mt8-fix-platformadmingate-children-unmount-o/) |
+| 260823-s7v | Split UserGroupRightsTab.tsx (716 -> 269 Zeilen) in 5 Geschwisterdateien - reine Struktur-Refaktorierung ohne Verhaltensaenderung, 450-Zeilen-Limit aus CLAUDE.md eingehalten | 2026-08-23 | 7039195b | [260823-s7v-split-frontend-src-app-admin-users-tabs-](./quick/260823-s7v-split-frontend-src-app-admin-users-tabs-/) |
 
 ### Verification Baseline
 
