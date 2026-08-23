@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { UserPlus } from 'lucide-react'
 
@@ -52,6 +53,7 @@ const styles = { ...sharedStyles, ...fansubEditStyles }
 type FansubAppMembersSectionProps = {
   hasAccessToken?: boolean
   fansubId: number
+  claimsLinkOut?: ReactNode
   [legacyProp: string]: unknown
 }
 
@@ -106,7 +108,7 @@ function roleDraftsFromHistoricalRoles(roles: Array<{ id: number; role_code: str
   return drafts.length > 0 ? drafts : [{ ...EMPTY_INLINE_ROLE_DRAFT }]
 }
 
-export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: FansubAppMembersSectionProps) {
+export function FansubAppMembersSection({ hasAccessToken = false, fansubId, claimsLinkOut }: FansubAppMembersSectionProps) {
   const [members, setMembers] = useState<FansubAppMember[]>([])
   const [capabilities, setCapabilities] = useState<FansubGroupCapabilities | null>(null)
   // Rollenoptionen: API-getrieben via listFansubGroupRoleDefinitions(fansubId) (member-scoped,
@@ -554,6 +556,7 @@ export function FansubAppMembersSection({ hasAccessToken = false, fansubId }: Fa
           <FansubAppMembersOverview
             members={members}
             invitations={invitations}
+            claimsLinkOut={claimsLinkOut}
             afterMembers={(
               <GroupMembersTab
                 embedded

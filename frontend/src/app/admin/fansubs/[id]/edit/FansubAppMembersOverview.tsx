@@ -102,6 +102,9 @@ export type FansubAppMembersOverviewProps = {
   members: FansubAppMember[]
   invitations: FansubGroupInvitation[]
   afterMembers?: ReactNode
+  /** D-06/D-09/D-34: Link-out zur zentralen /admin/claims-Fläche (Plan 138-16), gerendert
+   *  neben der bestehenden Einladungen-Karte statt eines zweiten Claims-Editors. */
+  claimsLinkOut?: ReactNode
   canViewMembers: boolean
   canViewInvitations: boolean
   canManageMembers: boolean
@@ -116,6 +119,7 @@ export function FansubAppMembersOverview({
   members,
   invitations,
   afterMembers,
+  claimsLinkOut,
   canViewMembers,
   canViewInvitations,
   canManageMembers,
@@ -165,7 +169,13 @@ export function FansubAppMembersOverview({
                         )}
                       </div>
                       <div>
-                        <strong>{fansubName}</strong>
+                        <Button
+                          href={`/admin/users/${member.app_user_id}`}
+                          variant="ghost"
+                          aria-label={`${fansubName} im Benutzer-Editor öffnen`}
+                        >
+                          <strong>{fansubName}</strong>
+                        </Button>
                         <span className={styles.fansubEditMemberCompactMeta}>
                           <span
                             className={styleNames(
@@ -212,6 +222,10 @@ export function FansubAppMembersOverview({
                         {mediaPermissionCount} Zusatzrecht{mediaPermissionCount === 1 ? '' : 'e'}
                       </Badge>
                     ) : null}
+                    {/* D-06: Rechteabweichungen-Indikator. FansubAppMember trägt (anders als
+                        Plan 138-01s cross-group RoleHolderEntry.has_overrides) kein
+                        Override-Signal — ehrlich "–" statt eines erfundenen Werts. */}
+                    <Badge variant="muted">Rechteabweichungen: –</Badge>
                   </div>
                 </div>
               )
@@ -228,6 +242,7 @@ export function FansubAppMembersOverview({
           <p className={styles.fansubEditHint}>
             Lade neue Mitglieder per E-Mail ein. Der Einladungslink wird per E-Mail zugestellt.
           </p>
+          {claimsLinkOut}
         </div>
 
         {!canViewInvitations ? (

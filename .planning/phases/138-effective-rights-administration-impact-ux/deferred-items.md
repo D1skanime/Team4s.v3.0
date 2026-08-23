@@ -13,6 +13,17 @@
   Out of scope per the executor's scope-boundary rule (only auto-fix issues
   directly caused by the current task's changes). Left untouched.
 
+## Plan 16 (D-06 group view — Rollen/Änderungen tabs, member table extension, Claims link-out)
+
+- **Pre-existing `useRoleCatalog must be used within RoleCatalogProvider` crashes**,
+  confirmed present before any Plan 16 change (verified via `git stash`, identical
+  failure count before/after): `FansubAppMembersSection.test.tsx` (8/8 tests error,
+  `FansubAppMembersOverview.tsx`'s pre-existing `useRoleCatalog('fansub_group')` call
+  has no provider in that test file's render tree) and `page.test.tsx` (12/60 tests
+  error via `AnimeReleasesCockpit.tsx`'s own unrelated `useRoleCatalog` call — same
+  root cause, different component). Neither call site nor test file was touched by
+  Plan 16. Out of scope per the executor's scope-boundary rule; left untouched.
+
 ## Plan 07 (`go test ./internal/handlers/...` full-package run)
 
 - **Pre-existing nil-cache `internal/handlers` failures** (already documented

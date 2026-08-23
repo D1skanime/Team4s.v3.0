@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type {
   AdminFansubRelease,
   FansubGroup,
@@ -44,6 +46,7 @@ type FansubEditWorkspaceSectionProps = {
   canUseReleaseNotes: boolean;
   canUseAdminReleaseDetails: boolean;
   canOpenReleaseDrawer: boolean;
+  claimsLinkOut?: ReactNode;
   isSectionOpen: (section: SectionKey) => boolean;
   onSectionToggle: (section: SectionKey, open: boolean) => void;
   onToast: (message: string) => void;
@@ -80,6 +83,7 @@ export function FansubEditWorkspaceSection({
   canUseReleaseNotes,
   canUseAdminReleaseDetails,
   canOpenReleaseDrawer,
+  claimsLinkOut,
   isSectionOpen,
   onSectionToggle,
   onToast,
@@ -121,6 +125,7 @@ export function FansubEditWorkspaceSection({
           isClientInitialized={isClientInitialized}
           activeMainTab={activeMainTab}
           error={error}
+          claimsLinkOut={claimsLinkOut}
           onToast={onToast}
           isSectionOpen={isSectionOpen}
           onSectionToggle={onSectionToggle}

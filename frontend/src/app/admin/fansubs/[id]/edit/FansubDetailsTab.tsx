@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Plus, Save } from "lucide-react";
 
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
@@ -24,6 +25,7 @@ type FansubDetailsTabProps = {
   isClientInitialized: boolean;
   activeMainTab: MainTab;
   error: string | null;
+  claimsLinkOut?: ReactNode;
   onToast: (message: string) => void;
   isSectionOpen: (section: SectionKey) => boolean;
   onSectionToggle: (section: SectionKey, open: boolean) => void;
@@ -40,6 +42,7 @@ export function FansubDetailsTab({
   isClientInitialized,
   activeMainTab,
   error,
+  claimsLinkOut,
   onToast,
   isSectionOpen,
   onSectionToggle,
@@ -161,6 +164,7 @@ export function FansubDetailsTab({
               <FansubAppMembersSection
                 fansubId={fansubID}
                 hasAccessToken={hasAuthSession}
+                claimsLinkOut={claimsLinkOut}
               />
             ) : null}
           </div>

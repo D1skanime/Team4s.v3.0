@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { buildMediaPreviewURL } from "@/components/admin/MediaUpload";
+import { Button } from "@/components/ui";
 import { useAuthSession } from "@/lib/useAuthSession";
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import {
@@ -86,6 +87,20 @@ export function FansubEditClient({
     capabilities,
   });
   const { isSectionOpen, onSectionToggle } = useFansubEditMobileSections();
+
+  // D-06/D-09/D-34: Claims-Link-out zur zentralen /admin/claims-Fläche (Plan 138-10, bereits
+  // filterbar per fansub_group_id) statt eines zweiten, konkurrierenden Claims-Editors in
+  // dieser Seite. Nur für Plattform-Admins sichtbar, da /admin/claims hinter PlatformAdminGate
+  // liegt (siehe frontend/src/app/admin/claims/page.tsx) — ein Link ins Leere für
+  // Nicht-Admin-Gruppenleitungen wäre irreführend.
+  const claimsLinkOut = useMemo(() => {
+    if (!isPlatformAdmin || activeMainTab !== "collaboration") return null;
+    return (
+      <Button href={`/admin/claims?fansub_group_id=${fansubID}`} variant="secondary">
+        Claims dieser Gruppe ansehen
+      </Button>
+    );
+  }, [isPlatformAdmin, activeMainTab, fansubID]);
 
   const canSeeReleaseContributors = canViewReleaseContributors(
     isPlatformAdmin,
@@ -264,6 +279,7 @@ export function FansubEditClient({
         canUseReleaseNotes={canUseReleaseNotes}
         canUseAdminReleaseDetails={canUseAdminReleaseDetails}
         canOpenReleaseDrawer={canOpenReleaseDrawer}
+        claimsLinkOut={claimsLinkOut}
         isSectionOpen={isSectionOpen}
         onSectionToggle={onSectionToggle}
         onToast={handleDetailsToast}
