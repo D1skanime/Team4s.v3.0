@@ -70,7 +70,7 @@ function makeMatrix(): RoleCapabilityMatrix {
   return {
     roles: [{ role_code: 'co_leader', label_de: 'Co-Leitung', actions: [] }],
     all_actions: [
-      { code: 'fansub_group.edit', label_de: 'Gruppe bearbeiten', category: 'gruppe', sort_order: 10 },
+      { code: 'fansub_group.edit', label_de: 'Gruppendaten bearbeiten', category: 'gruppe', sort_order: 10 },
       {
         code: 'fansub_group.members.manage',
         label_de: 'Mitglieder verwalten',
@@ -124,7 +124,7 @@ describe('UserGroupRightsTab', () => {
     expect(screen.getByText('Release')).not.toBeNull()
 
     // Zeilen: Capability / Effektiv / Quelle
-    expect(screen.getByText('Gruppe bearbeiten')).not.toBeNull()
+    expect(screen.getByText('Gruppendaten bearbeiten')).not.toBeNull()
     expect(screen.getByText('Mitglieder verwalten')).not.toBeNull()
     expect(screen.getByText('Release bearbeiten')).not.toBeNull()
     expect(screen.getAllByText('Erlaubt').length).toBeGreaterThanOrEqual(2)
@@ -193,10 +193,10 @@ describe('UserGroupRightsTab', () => {
     render(<UserGroupRightsTab userId={1} />)
 
     await waitFor(() => {
-      expect(screen.getByText('Gruppe bearbeiten')).not.toBeNull()
+      expect(screen.getByText('Gruppendaten bearbeiten')).not.toBeNull()
     })
 
-    const row = screen.getByText('Gruppe bearbeiten').closest('tr') as HTMLElement
+    const row = screen.getByText('Gruppendaten bearbeiten').closest('tr') as HTMLElement
     expect(() => fireEvent.click(row)).not.toThrow()
 
     await waitFor(() => {
@@ -234,9 +234,9 @@ describe('UserGroupRightsTab', () => {
     expect(sakuraSection).not.toBeNull()
     expect(newSubsSection).not.toBeNull()
 
-    expect(within(sakuraSection as HTMLElement).getByText('Gruppe bearbeiten')).not.toBeNull()
+    expect(within(sakuraSection as HTMLElement).getByText('Gruppendaten bearbeiten')).not.toBeNull()
     expect(within(sakuraSection as HTMLElement).queryByText('Release bearbeiten')).toBeNull()
     expect(within(newSubsSection as HTMLElement).getByText('Release bearbeiten')).not.toBeNull()
-    expect(within(newSubsSection as HTMLElement).queryByText('Gruppe bearbeiten')).toBeNull()
+    expect(within(newSubsSection as HTMLElement).queryByText('Gruppendaten bearbeiten')).toBeNull()
   })
 })

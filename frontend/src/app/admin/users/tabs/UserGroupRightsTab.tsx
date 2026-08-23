@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 
 import {
+  Accordion,
   Badge,
   Button,
   Card,
@@ -17,121 +18,339 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@/components/ui'
-import { ApiError, getAdminUserGroupRights, listRoleCapabilities } from '@/lib/api'
-import type {
-  AdminGroupRightsSummary,
-  AdminUserGroupRightsResponse,
-} from '@/types/admin-users'
-import type { RoleCapabilityMatrix } from '@/types/admin-capability'
+import type { AccordionItemDef } from '@/components/ui'
+import {
+  ApiError,
+  getAdminUserGroupMemberships,
+  getEffectiveRights,
+  listRoleCapabilities,
+} from '@/lib/api'
+import type { AdminGroupMembershipSummary } from '@/types/admin-users'
+import type { ActionEntry, EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
+import { categoryDisplayLabel } from '../../role-capabilities/capabilityCategories'
 import { resolveRoleLink } from '../resolveRoleLink'
 
 interface Props {
   userId: number
 }
 
-function RightsTable({
-  rights,
-  matrix,
-}: {
-  rights: AdminGroupRightsSummary[]
-  matrix: RoleCapabilityMatrix | null
-}) {
-  if (rights.length === 0) {
-    return <EmptyState title="Keine scoped Gruppenrechte vorhanden." description="" />
-  }
+interface GroupRightsState {
+  memberships: AdminGroupMembershipSummary[]
+  rightsByGroup: Record<number, EffectiveRightState[]>
+}
 
+/**
+ * Reale fachliche Kategorien der Registry (Migration 0108/0146/0150, 138-RESEARCH.md R-02).
+ * Nur eine Sortierreihenfolge -- keine zweite Label-Map (categoryDisplayLabel bleibt die
+ * einzige Quelle für Anzeigenamen, D-11/Pattern 5).
+ */
+const CATEGORY_ORDER = [
+  'gruppe',
+  'gruppenmedien',
+  'gruppenseite',
+  'projekt',
+  'rechteverwaltung',
+  'release',
+  'review',
+]
+
+const UNKNOWN_CATEGORY = 'sonstige'
+
+function sortCategories(categories: string[]): string[] {
+  return [...categories].sort((a, b) => {
+    const ai = CATEGORY_ORDER.indexOf(a)
+    const bi = CATEGORY_ORDER.indexOf(b)
+    if (ai === -1 && bi === -1) return a.localeCompare(b)
+    if (ai === -1) return 1
+    if (bi === -1) return -1
+    return ai - bi
+  })
+}
+
+function groupStatesByCategory(
+  states: EffectiveRightState[],
+  actionMeta: Map<string, ActionEntry>,
+): Map<string, EffectiveRightState[]> {
+  const map = new Map<string, EffectiveRightState[]>()
+  for (const state of states) {
+    const category = actionMeta.get(state.action_code)?.category ?? UNKNOWN_CATEGORY
+    const existing = map.get(category) ?? []
+    existing.push(state)
+    map.set(category, existing)
+  }
+  return map
+}
+
+/** D-13: menschliche "Quelle"-Beschriftung statt technischer decisive_source-Rohwerte. */
+function decisiveSourceLabel(state: EffectiveRightState): string {
+  switch (state.decisive_source) {
+    case 'platform_admin':
+      return 'Plattform-Admin'
+    case 'group_role':
+      return state.granting_roles.length > 0 ? state.granting_roles.join(' + ') : '–'
+    case 'user_allow':
+      return 'persönliche Abweichung (zusätzlich erlaubt)'
+    case 'user_deny':
+      return 'persönliche Abweichung (entzogen)'
+    case 'specialized_grant':
+      return state.specialized_grants.length > 0 ? state.specialized_grants.join(' + ') : '–'
+    case 'no_grant':
+      return '–'
+    default:
+      return state.decisive_source
+  }
+}
+
+function CapabilityDetailRow({ state }: { state: EffectiveRightState }) {
   return (
-    <Table variant="default">
+    <TableRow>
+      <TableCell colSpan={3}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-1)',
+            padding: 'var(--space-2) 0',
+            fontSize: '0.8125rem',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
+          <div>
+            <strong>Rollenquellen:</strong>{' '}
+            {state.granting_roles.length > 0 ? state.granting_roles.join(', ') : '–'}
+          </div>
+          <div>
+            <strong>Spezialisierte Grants:</strong>{' '}
+            {state.specialized_grants.length > 0 ? state.specialized_grants.join(', ') : '–'}
+          </div>
+          <div>
+            <strong>Persönlich zusätzlich erlaubt:</strong> {state.user_allow ? 'Ja' : 'Nein'}
+          </div>
+          <div>
+            <strong>Persönlich entzogen:</strong> {state.user_deny ? 'Ja' : 'Nein'}
+          </div>
+          <div>
+            <strong>Nicht entziehbar (non-deniable):</strong> {state.non_deniable ? 'Ja' : 'Nein'}
+          </div>
+          <div>
+            <strong>Reason-Code:</strong> {state.reason_code || '–'}
+          </div>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
+
+function CategoryTable({
+  groupId,
+  states,
+  actionMeta,
+  expandedRows,
+  onToggleRow,
+}: {
+  groupId: number
+  states: EffectiveRightState[]
+  actionMeta: Map<string, ActionEntry>
+  expandedRows: Set<string>
+  onToggleRow: (key: string) => void
+}) {
+  return (
+    <Table variant="compact">
       <TableHead>
         <TableRow>
-          <TableHeaderCell>Gruppe</TableHeaderCell>
-          <TableHeaderCell>Rollen</TableHeaderCell>
-          <TableHeaderCell>Inhalte bearbeiten</TableHeaderCell>
-          <TableHeaderCell>Mitglieder einsehen</TableHeaderCell>
-          <TableHeaderCell>Aktion</TableHeaderCell>
+          <TableHeaderCell>Capability</TableHeaderCell>
+          <TableHeaderCell>Effektiv</TableHeaderCell>
+          <TableHeaderCell>Quelle</TableHeaderCell>
         </TableRow>
       </TableHead>
       <TableBody>
-        {rights.map((r) => (
-          <TableRow key={r.fansub_group_id}>
-            <TableCell style={{ fontWeight: 600 }}>{r.fansub_group_name}</TableCell>
-            <TableCell>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                {r.granted_roles.length === 0 ? (
-                  <Badge variant="muted">–</Badge>
-                ) : (
-                  r.granted_roles.map((role) => {
-                    const link = resolveRoleLink(role, matrix)
-                    return (
-                      <div
-                        key={role}
-                        style={{ display: 'flex', gap: 4, alignItems: 'center' }}
-                      >
-                        <Badge variant="info">{role}</Badge>
-                        {link && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            href={link}
-                            aria-label={`Rechte der Rolle ${role} ansehen`}
-                          >
-                            Was darf diese Rolle?
-                          </Button>
-                        )}
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-            </TableCell>
-            <TableCell>
-              {r.can_edit_content ? (
-                <Badge variant="success">Ja</Badge>
-              ) : (
-                <Badge variant="muted">Nein</Badge>
-              )}
-            </TableCell>
-            <TableCell>
-              {r.can_view_members ? (
-                <Badge variant="success">Ja</Badge>
-              ) : (
-                <Badge variant="muted">Nein</Badge>
-              )}
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  window.open(`/admin/fansubs/${r.fansub_group_id}/edit`, '_blank')
-                }
+        {states.map((state) => {
+          const key = `${groupId}:${state.action_code}`
+          const isOpen = expandedRows.has(key)
+          const label = actionMeta.get(state.action_code)?.label_de ?? state.action_code
+          return (
+            <Fragment key={key}>
+              <TableRow
+                role="button"
+                tabIndex={0}
+                aria-expanded={isOpen}
+                onClick={() => onToggleRow(key)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onToggleRow(key)
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
               >
-                Gruppe bearbeiten
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
+                <TableCell>{label}</TableCell>
+                <TableCell>
+                  <Badge variant={state.allowed ? 'success' : 'muted'}>
+                    {state.allowed ? 'Erlaubt' : 'Nicht erlaubt'}
+                  </Badge>
+                </TableCell>
+                <TableCell>{decisiveSourceLabel(state)}</TableCell>
+              </TableRow>
+              {isOpen ? <CapabilityDetailRow state={state} /> : null}
+            </Fragment>
+          )
+        })}
       </TableBody>
     </Table>
   )
 }
 
+function GroupSection({
+  membership,
+  states,
+  actionMeta,
+  matrix,
+  openCategoryIds,
+  onOpenCategoryIdsChange,
+  expandedRows,
+  onToggleRow,
+}: {
+  membership: AdminGroupMembershipSummary
+  states: EffectiveRightState[]
+  actionMeta: Map<string, ActionEntry>
+  matrix: RoleCapabilityMatrix | null
+  openCategoryIds: Set<string>
+  onOpenCategoryIdsChange: (next: Set<string>) => void
+  expandedRows: Set<string>
+  onToggleRow: (key: string) => void
+}) {
+  const byCategory = groupStatesByCategory(states, actionMeta)
+  const categories = sortCategories([...byCategory.keys()])
+
+  const accordionItems: AccordionItemDef[] = categories.map((category) => ({
+    id: `${membership.fansub_group_id}-${category}`,
+    title: categoryDisplayLabel(category),
+    children: (
+      <CategoryTable
+        groupId={membership.fansub_group_id}
+        states={byCategory.get(category) ?? []}
+        actionMeta={actionMeta}
+        expandedRows={expandedRows}
+        onToggleRow={onToggleRow}
+      />
+    ),
+  }))
+
+  return (
+    <Card variant="section" style={{ marginBottom: 'var(--space-4)' }} data-group-section>
+      <SectionHeader
+        level={3}
+        title={membership.fansub_group_name}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              window.open(`/admin/fansubs/${membership.fansub_group_id}/edit`, '_blank')
+            }
+          >
+            Gruppe bearbeiten
+          </Button>
+        }
+      />
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          marginBottom: 'var(--space-3)',
+        }}
+      >
+        {membership.roles.length === 0 ? (
+          <Badge variant="muted">–</Badge>
+        ) : (
+          membership.roles.map((role) => {
+            const link = resolveRoleLink(role, matrix)
+            return (
+              <div key={role} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <Badge variant="info">{role}</Badge>
+                {link && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    href={link}
+                    aria-label={`Rechte der Rolle ${role} ansehen`}
+                  >
+                    Was darf diese Rolle?
+                  </Button>
+                )}
+              </div>
+            )
+          })
+        )}
+      </div>
+      {accordionItems.length === 0 ? (
+        <EmptyState title="Keine Rechte in dieser Gruppe." description="" />
+      ) : (
+        <Accordion
+          items={accordionItems}
+          mode="multi"
+          openIds={openCategoryIds}
+          onOpenChange={onOpenCategoryIdsChange}
+        />
+      )}
+    </Card>
+  )
+}
+
 export function UserGroupRightsTab({ userId }: Props) {
-  const [data, setData] = useState<AdminUserGroupRightsResponse | null>(null)
+  const [data, setData] = useState<GroupRightsState | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // D-04: unabhaengiger, nicht-blockierender Fetch der Capability-Matrix fuer
-  // die "Was darf diese Rolle?"-Querverlinkung (resolveRoleLink.ts). Ein
-  // Fehler hier ist unkritisch — Rollen bleiben dann einfach unverlinkt.
   const [matrix, setMatrix] = useState<RoleCapabilityMatrix | null>(null)
+  const [openCategoryIds, setOpenCategoryIds] = useState<Set<string>>(new Set())
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const resp = await getAdminUserGroupRights(userId)
-      setData(resp)
+
+      const [membershipsResp, matrixResult] = await Promise.all([
+        getAdminUserGroupMemberships(userId),
+        listRoleCapabilities().catch(() => null),
+      ])
+
+      const memberships = membershipsResp.memberships
+      const rightsList = await Promise.all(
+        memberships.map((membership) => getEffectiveRights(membership.fansub_group_id, userId)),
+      )
+
+      const rightsByGroup: Record<number, EffectiveRightState[]> = {}
+      memberships.forEach((membership, index) => {
+        rightsByGroup[membership.fansub_group_id] = rightsList[index]
+      })
+
+      const actionMeta = new Map<string, ActionEntry>()
+      if (matrixResult) {
+        for (const action of matrixResult.all_actions) {
+          actionMeta.set(action.code, action)
+        }
+      }
+
+      // D-12: wichtige Bereiche standardmässig offen -- da der Katalog pro Gruppe klein und
+      // vollständig relevant ist (nicht paginiert), starten alle real vorhandenen Kategorien
+      // offen; Admins können einzelne Sektionen danach gezielt einklappen.
+      const defaultOpenIds = new Set<string>()
+      memberships.forEach((membership) => {
+        const byCategory = groupStatesByCategory(
+          rightsByGroup[membership.fansub_group_id] ?? [],
+          actionMeta,
+        )
+        for (const category of byCategory.keys()) {
+          defaultOpenIds.add(`${membership.fansub_group_id}-${category}`)
+        }
+      })
+
+      setMatrix(matrixResult)
+      setData({ memberships, rightsByGroup })
+      setOpenCategoryIds(defaultOpenIds)
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -147,40 +366,56 @@ export function UserGroupRightsTab({ userId }: Props) {
     void loadData()
   }, [loadData])
 
-  useEffect(() => {
-    let cancelled = false
-    void listRoleCapabilities()
-      .then((resp) => {
-        if (!cancelled) setMatrix(resp)
-      })
-      .catch(() => {
-        // Kein Zusatzfehlerbanner — Rollen bleiben unverlinkt (nicht kritisch).
-      })
-    return () => {
-      cancelled = true
+  const actionMeta = useMemo(() => {
+    const map = new Map<string, ActionEntry>()
+    if (matrix) {
+      for (const action of matrix.all_actions) {
+        map.set(action.code, action)
+      }
     }
+    return map
+  }, [matrix])
+
+  const toggleRow = useCallback((key: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
   }, [])
 
   if (isLoading) return <LoadingState title="Wird geladen …" description="" />
   if (error) {
+    return <ErrorState title="Fehler beim Laden" description={error} />
+  }
+  if (!data || data.memberships.length === 0) {
     return (
-      <ErrorState
-        title="Fehler beim Laden"
-        description={error}
-      />
+      <div style={{ padding: 'var(--space-4)' }}>
+        <EmptyState title="Keine Gruppenmitgliedschaften." description="" />
+      </div>
     )
   }
-  if (!data) return <EmptyState title="Keine Einträge vorhanden." description="" />
 
   return (
     <div style={{ padding: 'var(--space-4)' }}>
-      <SectionHeader title="Gruppenrechte (read-only)" />
-      <Card variant="section" style={{ marginBottom: 'var(--space-4)' }}>
-        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-          Gruppenrechte können in der jeweiligen Gruppenansicht bearbeitet werden.
-        </p>
-      </Card>
-      <RightsTable rights={data.group_rights} matrix={matrix} />
+      <SectionHeader title="Effektive Rechte nach Gruppe" />
+      {data.memberships.map((membership) => (
+        <GroupSection
+          key={membership.fansub_group_id}
+          membership={membership}
+          states={data.rightsByGroup[membership.fansub_group_id] ?? []}
+          actionMeta={actionMeta}
+          matrix={matrix}
+          openCategoryIds={openCategoryIds}
+          onOpenCategoryIdsChange={setOpenCategoryIds}
+          expandedRows={expandedRows}
+          onToggleRow={toggleRow}
+        />
+      ))}
     </div>
   )
 }
