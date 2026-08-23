@@ -412,7 +412,7 @@ Milestone v1.4 closes Live-UAT Findings #29-#32 by making effective group rights
 
 - [x] **Phase 136: Capability Policy, Catalog & Schema Contract** - Lock one enforceable precedence/scope model, canonical metadata, override schema, indexes, and cross-layer contracts. (completed 2026-08-20)
 - [x] **Phase 137: Central Effective-Rights Resolver & Overrides** - Make canonical enforcement and inspection resolve the same provenance-aware effective rights and safe per-user overrides. (completed 2026-08-21)
-- [ ] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows.
+- [x] **Phase 138: Effective-Rights Administration & Impact UX** - Turn the existing user rights and role-capability surfaces into explainable revoke, impact, and cache-state workflows. (completed 2026-08-23)
 - [ ] **Phase 139: Scalable User-Admin Projections** - Replace noisy flat contribution and media data with meaningful grouped, filtered, and stable projections.
 - [ ] **Phase 140: Review Delegation Management** - Expose the existing specialized delegation service through documented APIs and the canonical group-member editor.
 - [ ] **Phase 141: Actor-Decidable Review Queue** - Make every queue lane, count, detail, and next action reflect what the current reviewer may actually decide.
@@ -554,7 +554,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
-- [ ] 138-16-PLAN.md — Gruppenansicht Rollen/Änderungen tabs (D-06)
+- [x] 138-16-PLAN.md — Gruppenansicht Rollen/Änderungen tabs (D-06)
 
 **UI hint**: yes
 
