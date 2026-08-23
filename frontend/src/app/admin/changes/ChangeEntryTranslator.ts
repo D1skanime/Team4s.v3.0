@@ -33,7 +33,7 @@ export interface ChangeEntryTranslation {
   after?: string
 }
 
-function payloadString(payload: Record<string, unknown> | undefined, key: string): string | undefined {
+function payloadString(payload: Record<string, unknown> | null | undefined, key: string): string | undefined {
   const value = payload?.[key]
   return typeof value === 'string' ? value : undefined
 }
