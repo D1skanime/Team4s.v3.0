@@ -7,7 +7,6 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
-  SectionHeader,
   Table,
   TableBody,
   TableCell,
@@ -49,33 +48,42 @@ function RolesTable({ roles }: RolesTableProps) {
   if (roles.length === 0) {
     return (
       <EmptyState
+        variant="inline"
         title="Keine globalen Rollen"
-        description="Diesem Benutzer sind keine globalen Rollen zugewiesen."
+        description="Aus Keycloak synchronisiert, hier nur lesbar."
       />
     )
   }
 
   return (
-    <Table variant="default">
-      <TableHead>
-        <TableRow>
-          <TableHeaderCell>Rolle</TableHeaderCell>
-          <TableHeaderCell>Quelle</TableHeaderCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {roles.map((role) => (
-          <TableRow key={role}>
-            <TableCell>
-              <Badge variant="info">{roleLabel(role)}</Badge>
-            </TableCell>
-            <TableCell>
-              <Badge variant="muted">aus IdP</Badge>
-            </TableCell>
+    <>
+      <p
+        style={{ margin: '0 0 var(--space-2)', color: 'var(--text-soft)', fontSize: '0.85rem' }}
+        title="Diese Rollen werden automatisch aus dem Identity Provider (Keycloak) synchronisiert und sind hier nur lesbar."
+      >
+        Aktive Rollen — automatisch aus Keycloak synchronisiert, nur lesbar.
+      </p>
+      <Table variant="default">
+        <TableHead>
+          <TableRow>
+            <TableHeaderCell>Rolle</TableHeaderCell>
+            <TableHeaderCell>Quelle</TableHeaderCell>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHead>
+        <TableBody>
+          {roles.map((role) => (
+            <TableRow key={role}>
+              <TableCell>
+                <Badge variant="info">{roleLabel(role)}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant="muted">aus IdP</Badge>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   )
 }
 
@@ -117,11 +125,6 @@ export function UserGlobalRolesTab({ userId }: Props) {
 
   return (
     <div style={{ padding: 'var(--space-4)' }}>
-      <SectionHeader
-        title="Aktive Rollen"
-        description="Diese Rollen werden automatisch aus dem Identity Provider (Keycloak) synchronisiert und sind hier nur lesbar."
-      />
-
       <RolesTable roles={data.roles} />
     </div>
   )
