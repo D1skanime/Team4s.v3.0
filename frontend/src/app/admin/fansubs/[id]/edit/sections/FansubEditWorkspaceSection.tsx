@@ -107,7 +107,9 @@ export function FansubEditWorkspaceSection({
       activeMainTab !== "notes" &&
       activeMainTab !== "vorschlaege" &&
       activeMainTab !== "pruefungen" &&
-      activeMainTab !== "readiness" ? (
+      activeMainTab !== "readiness" &&
+      activeMainTab !== "roles" &&
+      activeMainTab !== "changes" ? (
         <FansubDetailsTab
           styles={styles}
           details={details}

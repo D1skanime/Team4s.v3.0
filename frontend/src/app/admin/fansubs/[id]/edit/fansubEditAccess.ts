@@ -45,6 +45,26 @@ export function canUseMainTab(
       return capabilities.can_edit_notes || capabilities.can_edit_founding_history;
     case "readiness":
       return capabilities.can_edit_group || capabilities.can_edit_notes;
+    case "roles":
+      // D-06: Rollen-Sichtbarkeit ist eine Teilmenge der Mitglieder-Sichtbarkeit — dieselbe
+      // Bedingung wie "collaboration" (Interfaces-Block, Plan 138-16).
+      return (
+        capabilities.can_view_members ||
+        capabilities.can_manage_members ||
+        capabilities.can_view_invitations ||
+        capabilities.can_create_invitation ||
+        capabilities.can_cancel_invitation
+      );
+    case "changes":
+      // D-06: Änderungshistorie ist an bearbeitungsnahe Fähigkeiten gekoppelt, analog zu
+      // "basic" (Interfaces-Block, Plan 138-16) — mirrors this codebase's existing pattern of
+      // gating history-like tabs behind edit-adjacent capabilities.
+      return Boolean(
+        capabilities.can_edit_group ||
+        capabilities.can_edit_group_general ||
+        capabilities.can_edit_technical_links ||
+        capabilities.can_update_group_links
+      );
     default:
       return false;
   }

@@ -17,14 +17,18 @@ export type MainTab =
   | 'vorschlaege'
   | 'pruefungen'
   | 'readiness'
+  | 'roles'
+  | 'changes'
 
 export const MAIN_TABS: Array<{ key: MainTab; label: string }> = [
   { key: 'basic', label: 'Grunddaten' },
   { key: 'notes', label: 'Gruppengeschichte' },
   { key: 'media', label: 'Medien' },
   { key: 'collaboration', label: 'Fansub Members' },
+  { key: 'roles', label: 'Rollen' },
   { key: 'pruefungen', label: 'Prüfungen' },
   { key: 'releases', label: 'Anime & Veröffentlichungen' },
+  { key: 'changes', label: 'Änderungen' },
 ]
 
 /**

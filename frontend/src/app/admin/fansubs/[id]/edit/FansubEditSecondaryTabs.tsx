@@ -3,6 +3,8 @@
 import type { FansubGroup, FansubGroupCapabilities } from "@/types/fansub";
 import { NotesTab } from "./NotesTab";
 import { GroupHistorySection } from "@/components/groups/GroupHistorySection";
+import { GroupChangesTab } from "./GroupChangesTab";
+import { GroupRolesTab } from "./GroupRolesTab";
 import { ReadinessTab } from "./ReadinessTab";
 import { ReleaseReviewsSection } from "./ReleaseReviewsSection";
 import type { MainTab } from "./fansubEditTypes";
@@ -67,6 +69,8 @@ export function FansubEditSecondaryTabs({
       {activeMainTab === "readiness" && group ? (
         <ReadinessTab fansubId={fansubID} group={group} />
       ) : null}
+      {activeMainTab === "roles" ? <GroupRolesTab fansubId={fansubID} /> : null}
+      {activeMainTab === "changes" ? <GroupChangesTab fansubId={fansubID} /> : null}
     </>
   );
 }
