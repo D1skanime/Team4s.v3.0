@@ -245,7 +245,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { PublicRoleDefinitionOption, RoleCapabilityMatrix, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
+import type { PublicRoleDefinitionOption, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -9832,7 +9832,7 @@ export async function listRoleHolders(roleCode: string): Promise<RoleHolderEntry
 export async function grantRoleCapability(
   roleCode: string,
   actionCode: string,
-): Promise<void> {
+): Promise<RoleCapabilityMutationResult> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/role-capabilities/${encodeURIComponent(roleCode)}/${encodeURIComponent(actionCode)}`,
@@ -9855,6 +9855,8 @@ export async function grantRoleCapability(
       parsed.details,
     )
   }
+
+  return response.json() as Promise<RoleCapabilityMutationResult>
 }
 
 /**
@@ -9865,7 +9867,7 @@ export async function grantRoleCapability(
 export async function revokeRoleCapability(
   roleCode: string,
   actionCode: string,
-): Promise<void> {
+): Promise<RoleCapabilityMutationResult> {
   const API_BASE_URL = getApiBaseUrl()
   const response = await authorizedFetch(
     `${API_BASE_URL}/api/v1/admin/role-capabilities/${encodeURIComponent(roleCode)}/${encodeURIComponent(actionCode)}`,
@@ -9885,6 +9887,8 @@ export async function revokeRoleCapability(
       parsed.details,
     )
   }
+
+  return response.json() as Promise<RoleCapabilityMutationResult>
 }
 
 /**

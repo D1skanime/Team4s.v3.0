@@ -201,11 +201,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Capability erfolgreich gewährt"
+                $ref: "#/components/schemas/RoleCapabilityMutationResult"
         "401":
           description: Nicht authentifiziert
           content:
@@ -272,11 +268,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Capability erfolgreich entzogen"
+                $ref: "#/components/schemas/RoleCapabilityMutationResult"
         "401":
           description: Nicht authentifiziert
           content:
@@ -931,6 +923,24 @@ components:
           items:
             $ref: "#/components/schemas/ActionEntry"
           description: Alle bekannten Actions (für Spaltenüberschriften in der Matrix-Tabelle)
+    RoleCapabilityMutationResult:
+      type: object
+      description: |
+        Antwort-DTO für PUT/DELETE /admin/role-capabilities/{roleCode}/{actionCode}
+        (Plan 138-02, CAP-10/D-21). Die Domänen-Mutation (Grant/Revoke) ist bei
+        HTTP 200 immer erfolgreich; cache_reload_succeeded unterscheidet ehrlich
+        zwischen "gespeichert und aktiv" und "gespeichert, aber der In-Process-
+        Rechte-Cache konnte nicht neu geladen werden" (der alte Cache bleibt in
+        letzterem Fall gültig — kein Datenverlust, nur eine Aktivierungs-
+        verzögerung bis zum nächsten erfolgreichen Reload).
+      required: [message, cache_reload_succeeded]
+      properties:
+        message:
+          type: string
+          example: "Capability erfolgreich zugewiesen."
+        cache_reload_succeeded:
+          type: boolean
+          description: Ob der In-Process-Rechte-Cache nach der Mutation erfolgreich neu geladen wurde.
     ErrorResponse:
       type: object
       properties:

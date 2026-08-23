@@ -122,6 +122,19 @@ export type CapabilityActivationStatus = 'persisted' | 'active' | 'pending' | 'f
 export type CapabilityMutationStatus = 'changed' | 'no_op';
 
 /**
+ * Response shape for PUT/DELETE /admin/role-capabilities/{roleCode}/{actionCode}
+ * (Plan 138-02, CAP-10/D-21): honestly distinguishes "gespeichert und aktiv"
+ * from "gespeichert, aber Cache-Reload fehlgeschlagen" instead of the endpoint
+ * always implying unconditional success. Spiegelbildlich zu
+ * backend/internal/handlers/capability_policy_contract.go RoleCapabilityMutationResult
+ * und shared/contracts/admin-capabilities.yaml.
+ */
+export interface RoleCapabilityMutationResult {
+  message: string;
+  cache_reload_succeeded: boolean;
+}
+
+/**
  * Additiv erweitertes Phase-136-DTO (Phase 137, D04): ein einziges
  * provenienzfähiges Effective-Right-Objekt statt eines konkurrierenden,
  * reicheren Inspector-Typs. Dient sowohl Mutationsergebnissen als auch der
