@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 138-04-PLAN.md
-last_updated: "2026-08-23T17:10:07.883Z"
+stopped_at: Completed 138-05-PLAN.md
+last_updated: "2026-08-23T17:24:57.378Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 49
+  completed_plans: 50
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 5 of 16
+Plan: 6 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -168,6 +168,7 @@ Last activity: 2026-08-23
 - [Phase 138]: 138-02: new shared @/components/ui/ActivationStatusIndicator renders the role_matrix vs override capability-mutation paths via a discriminated 'path' prop rather than one shared enum. — The two paths have genuinely different honest vocabularies (no async window exists on role_matrix, so 'wird aktiviert' is never legitimate there; override can legitimately report a post-commit-enrichment 'pending' state per Phase 137's MutateOverride) — conflating them into one enum would misrepresent one path's state space as the other's.
 - [Phase 138]: 138-03: EpisodeNumber is *string/string|null (not *int/number) because episodes.episode_number is a TEXT column (migration 0002); ListUserContributions extended with additive LEFT JOINs to release_versions/fansub_releases/episodes so UserContributionsTab never renders a raw release_versions.id as a fake version number (D-29). 2 pre-existing UserContributionsTab.test.tsx failures (Phase-136 hex-only color_key normalization vs stale semantic fixture values) confirmed present at HEAD, out of scope, logged to deferred-items.md.
 - [Phase 138]: 138-04: loadGroupRightsSources returns (groupRightsSources, bool, error) exactly per the plan's literal interface; pre-condition guards (nil resolver, invalid actor/group) intentionally stay in ResolveGroupRights since they resolve to a denyAllGroupRights reason code distinct from the platform-admin/disabled fast path. PreviewGroupRightsWithRoleChange reuses evaluateGroupRights twice against a synthetically modified role list (add=dedup-append, remove=filter) -- zero new decision logic (D-20 binding). New GET .../role-assignment-impact endpoint mirrors setFansubGroupMemberRole's exact authorization (ActionFansubGroupMembersManage) and role validation (IsKnownFansubGroupRole); target-actor resolution extracted into shared loadEffectiveRightsTargetActorState reused by AdminEffectiveRightsHandler and the new handler. Full D-35 contract chain (Go DTO/YAML/TS/api.ts) closed.
+- [Phase 138]: [Phase 138] 138-05: MemberClaimsRepository.ListClaims and AuditLogRepository.ListChanges close D-23/D-25's backend list-endpoint gap -- cross-group, platform-admin-gated, dynamic-parameterized filters, COUNT(*) OVER() totals, and a new shared ClampAdminListPage clamp helper; testsupport.OpenPhase137Postgres extended additively with member_claims/hist_fansub_group_members/audit_logs/members.nickname (real production shapes were never previously in the fixture's migration chain); full D-35 contract chain (OpenAPI/TS/api.ts) closed for GET /admin/claims and GET /admin/changes.
 
 ### Pending Todos
 
@@ -387,10 +388,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P02 | ~20min | 2 tasks | 9 files |
 | Phase 138 P03 | ~20min | 2 tasks | 6 files |
 | Phase 138 P04 | ~9min | 2 tasks | 9 files |
+| Phase 138 P05 | 45min | 2 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T17:10:07.867Z
-Stopped at: Completed 138-04-PLAN.md
+Last session: 2026-08-23T17:24:57.361Z
+Stopped at: Completed 138-05-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None

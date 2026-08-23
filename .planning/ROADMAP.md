@@ -537,7 +537,7 @@ Plans:
 - [x] 138-02-PLAN.md — CAP-10 activation-status contract extension + ActivationStatusIndicator primitive
 - [x] 138-03-PLAN.md — D-29 release-version-label display-bug fix
 - [x] 138-04-PLAN.md — D-22 role-assignment impact-preview endpoint
-- [ ] 138-05-PLAN.md — Claims + Änderungen cross-group filtered list endpoints (D-23/D-25/D-28)
+- [x] 138-05-PLAN.md — Claims + Änderungen cross-group filtered list endpoints (D-23/D-25/D-28)
 - [ ] 138-06-PLAN.md — UADM-01 foundation: api.ts wiring + canonical multi-group effective-rights inspection tab
 
 **Wave 2** *(blocked on Wave 1 completion)*
