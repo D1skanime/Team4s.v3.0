@@ -53,7 +53,7 @@ func (h *AdminChangesHandler) ListChanges(c *gin.Context) {
 		filter.AppUserID = &benutzer
 	}
 	if akteur, ok := parseOptionalPositiveID(c.Query("akteur")); ok {
-		filter.AppUserID = &akteur
+		filter.ActorAppUserID = &akteur
 	}
 	if gruppe, ok := parseOptionalPositiveID(c.Query("gruppe")); ok {
 		filter.ScopeGroupID = &gruppe

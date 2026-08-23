@@ -41,21 +41,26 @@ type ChangeListRow struct {
 // ChangeListFilter carries the optional, UND-verknuepften filters for
 // ListChanges. All fields are optional; a nil/zero value means "no filter".
 //
-// benutzer/akteur map onto AppUserID (GetUserAudit's exact OR-clause shape:
+// benutzer maps onto AppUserID (GetUserAudit's exact OR-clause shape:
 // actor_app_user_id = $N OR (target_type = 'app_user' AND target_id = $N)).
+// akteur maps onto ActorAppUserID, a distinct strict actor-only match
+// (actor_app_user_id = $N) — the two are independent, AND-combinable
+// filters, matching the OpenAPI contract's documented semantics
+// (shared/contracts/admin-capabilities.yaml).
 // gruppe maps onto ScopeGroupID (scope_type = 'group' AND scope_id = $N).
 // rolle/capability/claim filters do not have dedicated columns on audit_logs
 // today and are intentionally NOT exposed here — only TargetType (matching
 // e.g. 'role_capability', 'user_group_capability_override', 'member_claim')
 // is exposed, per this plan's real-vocabulary constraint.
 type ChangeListFilter struct {
-	AppUserID     *int64
-	ScopeGroupID  *int64
-	TargetType    *string
-	From          *time.Time
-	To            *time.Time
-	Limit         int
-	Offset        int
+	AppUserID      *int64
+	ActorAppUserID *int64
+	ScopeGroupID   *int64
+	TargetType     *string
+	From           *time.Time
+	To             *time.Time
+	Limit          int
+	Offset         int
 }
 
 // ListChanges answers D-25/D-28's cross-group, filterable Aenderungen
@@ -92,6 +97,11 @@ func (r *AuditLogRepository) ListChanges(ctx context.Context, filter ChangeListF
 			"(al.actor_app_user_id = $%d OR (al.target_type = 'app_user' AND al.target_id = $%d))",
 			paramIdx, paramIdx,
 		))
+		paramIdx++
+	}
+	if filter.ActorAppUserID != nil && *filter.ActorAppUserID > 0 {
+		args = append(args, *filter.ActorAppUserID)
+		whereClauses = append(whereClauses, fmt.Sprintf("al.actor_app_user_id = $%d", paramIdx))
 		paramIdx++
 	}
 	if filter.ScopeGroupID != nil && *filter.ScopeGroupID > 0 {
