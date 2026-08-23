@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 138-12-PLAN.md
-last_updated: "2026-08-23T18:34:44.898Z"
+stopped_at: Completed 138-13-PLAN.md
+last_updated: "2026-08-23T18:49:38.076Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 57
+  completed_plans: 58
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 13 of 16
+Plan: 14 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -176,6 +176,9 @@ Last activity: 2026-08-23
 - [Phase 138]: [Phase 138] 138-10: /admin/claims ships as a real top-level route (page.tsx wraps ClaimsClient in PlatformAdminGate); useClaimsListFilters mirrors useUserListFilters.ts's exact URL-synced/stable-useMemo shape. Gruppe/Benutzer filters use plain numeric ID Input fields (onBlur-committed), not a search-select, since listClaims's params contract only specifies IDs and other central admin lists (Aenderungen) already use plain numeric benutzer/gruppe/akteur IDs. Aktion column intentionally omitted (no dead button) -- Plan 138-14 wires in the real verify/activate actions. D-32 responsive collapse reuses RoleCapabilityClient.tsx's exact useIsMobile/759px matchMedia breakpoint (Table on desktop, Card rows below 760px).
 - [Phase 138]: 138-11: translateChangeEntry (frontend/src/app/admin/changes/ChangeEntryTranslator.ts) is the single centralized German audit-sentence translator; role_capability.granted/revoked and effective_rights.override.mutated both honestly omit Vorher/Nachher since their real Go audit payloads carry no resolved before/after snapshot (R-07). /admin/changes ships as a Card variant="flat" per-entry list (D-32) with only user_group_capability_override/user_group_capability_override_history/effective_rights/app_user target_types rendered as Benutzer-navigation links.
 - [Phase 138]: 138-12: /admin/roles top-level route ships D-07's role-holders view; Benutzer/Gruppe cells navigate via useRouter().push (ClaimsClient.tsx pattern), status badge reuses UserDetailPageClient.tsx's statusVariant/statusLabel verbatim, and 'letzte Aktivitaet' renders '-' since RoleHolderEntry does not carry that field yet.
+- [Phase 138]: 138-13: RoleCapabilityImpactPreviewModal self-fetches getRoleCapabilityImpactPreview + listRoleHolders (not passed as a prop) since RoleCapabilityClient.tsx, unlike RolesClient.tsx (Plan 138-12), does not already hold a loaded holder list -- matches Task 2's literal action text over the interfaces block's prop-passing suggestion.
+- [Phase 138]: 138-13: preview items are joined to role holders by array INDEX (backend iteration order), not a target_user_id map, since the wire DTO carries no group id and a multi-group-membership holder produces multiple same-target_user_id items.
+- [Phase 138]: 138-13: RoleCapabilityClient.tsx's handleGrant/handleRevoke/capabilityError/isMutating were deleted rather than left dead -- all capability mutation now lives inside RoleCapabilityImpactPreviewModal, closing CAP-09's direct-mutate D-18 violation found this session.
 
 ### Pending Todos
 
@@ -403,10 +406,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P10 | 20m | 2 tasks | 4 files |
 | Phase 138 P11 | 4min | 2 tasks | 6 files |
 | Phase 138 P12 | 15min | 2 tasks | 4 files |
+| Phase 138 P13 | 42min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T18:34:44.885Z
-Stopped at: Completed 138-12-PLAN.md
+Last session: 2026-08-23T18:49:38.064Z
+Stopped at: Completed 138-13-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
