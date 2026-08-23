@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 138-03-PLAN.md
-last_updated: "2026-08-23T16:59:15.927Z"
+stopped_at: Completed 138-04-PLAN.md
+last_updated: "2026-08-23T17:10:07.883Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 48
+  completed_plans: 49
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 4 of 16
+Plan: 5 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -167,6 +167,7 @@ Last activity: 2026-08-23
 - [Phase 138]: 138-02: GrantCapability/RevokeCapability keep HTTP 200 regardless of cache-reload outcome; a new RoleCapabilityMutationResult.cache_reload_succeeded field closes the CAP-10/D-21 honesty gap end to end (Go DTO -> OpenAPI -> TS -> api.ts). — A cache-reload failure is not a mutation failure per R-05/Pitfall 3, so the domain write stays a 200; the response body now honestly signals whether the in-process cache actually reloaded.
 - [Phase 138]: 138-02: new shared @/components/ui/ActivationStatusIndicator renders the role_matrix vs override capability-mutation paths via a discriminated 'path' prop rather than one shared enum. — The two paths have genuinely different honest vocabularies (no async window exists on role_matrix, so 'wird aktiviert' is never legitimate there; override can legitimately report a post-commit-enrichment 'pending' state per Phase 137's MutateOverride) — conflating them into one enum would misrepresent one path's state space as the other's.
 - [Phase 138]: 138-03: EpisodeNumber is *string/string|null (not *int/number) because episodes.episode_number is a TEXT column (migration 0002); ListUserContributions extended with additive LEFT JOINs to release_versions/fansub_releases/episodes so UserContributionsTab never renders a raw release_versions.id as a fake version number (D-29). 2 pre-existing UserContributionsTab.test.tsx failures (Phase-136 hex-only color_key normalization vs stale semantic fixture values) confirmed present at HEAD, out of scope, logged to deferred-items.md.
+- [Phase 138]: 138-04: loadGroupRightsSources returns (groupRightsSources, bool, error) exactly per the plan's literal interface; pre-condition guards (nil resolver, invalid actor/group) intentionally stay in ResolveGroupRights since they resolve to a denyAllGroupRights reason code distinct from the platform-admin/disabled fast path. PreviewGroupRightsWithRoleChange reuses evaluateGroupRights twice against a synthetically modified role list (add=dedup-append, remove=filter) -- zero new decision logic (D-20 binding). New GET .../role-assignment-impact endpoint mirrors setFansubGroupMemberRole's exact authorization (ActionFansubGroupMembersManage) and role validation (IsKnownFansubGroupRole); target-actor resolution extracted into shared loadEffectiveRightsTargetActorState reused by AdminEffectiveRightsHandler and the new handler. Full D-35 contract chain (Go DTO/YAML/TS/api.ts) closed.
 
 ### Pending Todos
 
@@ -385,10 +386,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P01 | ~25min | 2 tasks | 11 files |
 | Phase 138 P02 | ~20min | 2 tasks | 9 files |
 | Phase 138 P03 | ~20min | 2 tasks | 6 files |
+| Phase 138 P04 | ~9min | 2 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T16:59:06.172Z
-Stopped at: Completed 138-03-PLAN.md
+Last session: 2026-08-23T17:10:07.867Z
+Stopped at: Completed 138-04-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
