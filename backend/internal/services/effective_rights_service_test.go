@@ -106,10 +106,12 @@ type effectiveRightsPostgresFixture struct {
 }
 
 // openPhase137EffectiveRightsPostgres builds the real Phase-137 schema (via
-// testsupport.OpenPhase137Postgres) plus the ad-hoc fansub_group_member_roles table
-// (mirroring openPhase107ReviewServicePostgres's precedent -- migration 0073's real
-// table is not part of the Phase-137 prerequisite chain) and one fixed actor/target
-// topology every test in this file and effective_rights_concurrency_test.go reuses:
+// testsupport.OpenPhase137Postgres, which as of Plan 138-01 already provides
+// the real fansub_group_member_roles table FK'd to role_definitions(code) --
+// the ad-hoc local table this function used to create here was removed to
+// avoid a "relation already exists" collision with that shared table) and
+// one fixed actor/target topology every test in this file and
+// effective_rights_concurrency_test.go reuses:
 //
 //   - app_user 11 / member 101: fansub_lead in group 21 -- holds
 //     ActionEffectiveRightsOverrideManage and is used both as the authorizing actor and
@@ -125,11 +127,6 @@ func openPhase137EffectiveRightsPostgres(t *testing.T) *effectiveRightsPostgresF
 	pool := testsupport.OpenPhase137Postgres(t)
 	ctx := context.Background()
 	if _, err := pool.Exec(ctx, `
-		CREATE TABLE fansub_group_member_roles (
-			fansub_group_member_id BIGINT NOT NULL REFERENCES fansub_group_members(id) ON DELETE CASCADE,
-			role TEXT NOT NULL,
-			PRIMARY KEY (fansub_group_member_id, role)
-		);
 		-- Minimal stand-ins so permissions.ResolveGroupRights' unconditional Review
 		-- Delegation SpecializedGrantProvider lookup (ResolveActorReviewGrantContext)
 		-- has real, empty tables to query against instead of erroring; no row is ever

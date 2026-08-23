@@ -166,3 +166,20 @@ type capabilityOverrideMutationCommand struct {
 	CapabilityOverrideMutationRequest
 	ActorIsPlatformAdmin bool
 }
+
+// RoleHolderEntry is the transport DTO for GET /admin/role-holders/:roleCode
+// (Plan 138-01, D-07). One row is one fansub-group-scoped holder of the
+// requested role_definitions role code, with membership status and override
+// presence for the "Rollen"/D-07 view's "wer besitzt diese Rolle?" answer.
+// The handler projects the repository-local RoleHolderEntry one-to-one, so
+// this struct's field set and json tags MUST stay identical to
+// repository.RoleHolderEntry.
+type RoleHolderEntry struct {
+	AppUserID        int64  `json:"app_user_id"`
+	DisplayName      string `json:"display_name"`
+	Email            string `json:"email"`
+	FansubGroupID    int64  `json:"fansub_group_id"`
+	FansubGroupName  string `json:"fansub_group_name"`
+	MembershipStatus string `json:"membership_status"`
+	HasOverrides     bool   `json:"has_overrides"`
+}

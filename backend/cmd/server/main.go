@@ -505,6 +505,8 @@ func main() {
 	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
 	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, authzRepo, permissionSvc, auditLogRepo)
+	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup (D-07)
+	adminRoleHoldersHandler := handlers.NewAdminRoleHoldersHandler(authzRepo, authzRepo)
 	// Phase 95-02: Assignable Gruppenrollen-Liste (D-12)
 	adminGroupRolesHandler := handlers.NewAdminGroupRolesHandler(authzRepo)
 	releaseReviewQueryRepo := repository.NewReleaseReviewQueryRepository(dbPool)
@@ -543,6 +545,7 @@ func main() {
 		adminGroupRolesHandler:        adminGroupRolesHandler,
 		releaseReviewHandler:          releaseReviewHandler,
 		adminEffectiveRightsHandler:   adminEffectiveRightsHandler,
+		adminRoleHoldersHandler:       adminRoleHoldersHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

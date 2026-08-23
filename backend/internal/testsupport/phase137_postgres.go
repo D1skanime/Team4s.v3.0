@@ -98,6 +98,38 @@ CREATE TABLE hist_group_member_roles (role_code TEXT);`
 	} {
 		ApplySQLFile(t, pool, phase137MigrationPath(t, migration))
 	}
+
+	// Plan 138-01: role_definitions exists only after the 0085/0100 migrations
+	// above run, so fansub_group_member_roles (real production shape from
+	// migration 0073/0106, FK'd to role_definitions(code)) and the display
+	// columns real production app_users/fansub_groups carry (migration
+	// 0072/0009) must be added here, post-migration-loop — not in the
+	// pre-migration stand-in block. Columns stay nullable (not NOT NULL like
+	// production) so existing Phase-137 tests' bare (id, status)/(id) inserts
+	// keep working unchanged.
+	const postMigrationSQL = `
+ALTER TABLE app_users
+	ADD COLUMN IF NOT EXISTS email VARCHAR(255),
+	ADD COLUMN IF NOT EXISTS display_name VARCHAR(120),
+	ADD COLUMN IF NOT EXISTS preferred_username VARCHAR(120);
+ALTER TABLE fansub_groups
+	ADD COLUMN IF NOT EXISTS name VARCHAR(160);
+CREATE TABLE IF NOT EXISTS fansub_group_member_roles (
+	fansub_group_member_id BIGINT NOT NULL REFERENCES fansub_group_members(id) ON DELETE CASCADE,
+	role TEXT NOT NULL REFERENCES role_definitions(code) ON DELETE RESTRICT,
+	created_by_app_user_id BIGINT NULL REFERENCES app_users(id) ON DELETE SET NULL,
+	tenure_started_on DATE NULL,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	PRIMARY KEY (fansub_group_member_id, role)
+);
+CREATE INDEX IF NOT EXISTS idx_fansub_group_member_roles_role
+	ON fansub_group_member_roles(role);`
+	if err := validatePhase106SQL(postMigrationSQL); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(context.Background(), postMigrationSQL); err != nil {
+		t.Fatalf("create Phase-137 post-migration prerequisites: %v", err)
+	}
 }
 
 func phase137MigrationPath(t testing.TB, name string) string {

@@ -34,6 +34,8 @@ type adminRouteHandlers struct {
 	releaseReviewHandler *handlers.ReleaseReviewHandler
 	// Phase 137-07: Effective-Rights Inspection/Mutation/History-API
 	adminEffectiveRightsHandler *handlers.AdminEffectiveRightsHandler
+	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup (D-07)
+	adminRoleHoldersHandler *handlers.AdminRoleHoldersHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -248,6 +250,11 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 		v1.GET("/admin/role-capabilities", auth, deps.adminCapabilityHandler.ListCapabilityMatrix)
 		v1.PUT("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.GrantCapability)
 		v1.DELETE("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.RevokeCapability)
+	}
+	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup
+	// (requirePlatformAdminIdentity im Handler, D-07)
+	if deps.adminRoleHoldersHandler != nil {
+		v1.GET("/admin/role-holders/:roleCode", auth, deps.adminRoleHoldersHandler.ListRoleHolders)
 	}
 	// Phase 95-02: Assignable Gruppenrollen-Liste (requirePlatformAdminIdentity im Handler — D-12)
 	if deps.adminGroupRolesHandler != nil {
