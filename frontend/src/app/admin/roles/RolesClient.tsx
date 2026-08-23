@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
-import { Button, Card, ErrorState, LoadingState, PageHeader } from '@/components/ui'
-import { ApiError, listRoleCapabilities } from '@/lib/api'
-import type { RoleCapabilityMatrix, RoleEntry } from '@/types/admin-capability'
+import { Button, Card, ErrorState, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
+import { ApiError, listRoleCapabilities, listRoleHolders } from '@/lib/api'
+import type { RoleCapabilityMatrix, RoleEntry, RoleHolderEntry } from '@/types/admin-capability'
+
+import { RoleHoldersTable } from './RoleHoldersTable'
 
 /**
  * "Rollen"-Top-Level-Ansicht (D-07).
@@ -23,6 +25,12 @@ export default function RolesClient() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRoleCode, setSelectedRoleCode] = useState<string | null>(null)
+
+  // Rolleninhaber-Ladezustand (D-07's RoleHoldersTable) — bewusst eine eigene Loading-/
+  // Error-Triade, unabhängig vom Ladezustand des Rollen-Pickers selbst.
+  const [holders, setHolders] = useState<RoleHolderEntry[]>([])
+  const [isHoldersLoading, setIsHoldersLoading] = useState(false)
+  const [holdersError, setHoldersError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -46,6 +54,24 @@ export default function RolesClient() {
       cancelled = true
     }
   }, [])
+
+  const loadHolders = useCallback(async (roleCode: string) => {
+    setIsHoldersLoading(true)
+    setHoldersError(null)
+    try {
+      const data = await listRoleHolders(roleCode)
+      setHolders(data)
+    } catch (err) {
+      setHoldersError(err instanceof ApiError ? err.message : 'Fehler beim Laden der Rolleninhaber.')
+    } finally {
+      setIsHoldersLoading(false)
+    }
+  }, [])
+
+  function handleSelectRole(roleCode: string) {
+    setSelectedRoleCode(roleCode)
+    void loadHolders(roleCode)
+  }
 
   if (isLoading) {
     return <LoadingState title="Lade Rollen …" description="Gruppenrollen werden geladen." />
@@ -99,7 +125,7 @@ export default function RolesClient() {
                       type="button"
                       variant="ghost"
                       aria-pressed={isSelected}
-                      onClick={() => setSelectedRoleCode(role.role_code)}
+                      onClick={() => handleSelectRole(role.role_code)}
                       style={{ flex: 1, minWidth: 0, justifyContent: 'flex-start', textAlign: 'left' }}
                     >
                       {role.label_de}
@@ -115,7 +141,21 @@ export default function RolesClient() {
         </div>
       )}
 
-      {selectedRole ? null /* RoleHoldersTable wird in Plan 138-12 Task 2 verdrahtet */ : null}
+      {selectedRole ? (
+        <div>
+          <SectionHeader
+            title={`Rolleninhaber: ${selectedRole.label_de}`}
+            description="Wer besitzt diese Rolle, in welcher Gruppe, mit welchem Mitgliedsstatus und welchen Rechte-Abweichungen?"
+          />
+          {isHoldersLoading ? (
+            <LoadingState title="Lade Rolleninhaber …" description="" />
+          ) : holdersError ? (
+            <ErrorState title="Fehler beim Laden" description={holdersError} />
+          ) : (
+            <RoleHoldersTable holders={holders} />
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }
