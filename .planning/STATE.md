@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 138-13-PLAN.md
-last_updated: "2026-08-23T18:49:38.076Z"
+last_updated: "2026-08-23T19:02:04.450Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 58
+  completed_plans: 59
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 14 of 16
+Plan: 15 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -179,6 +179,7 @@ Last activity: 2026-08-23
 - [Phase 138]: 138-13: RoleCapabilityImpactPreviewModal self-fetches getRoleCapabilityImpactPreview + listRoleHolders (not passed as a prop) since RoleCapabilityClient.tsx, unlike RolesClient.tsx (Plan 138-12), does not already hold a loaded holder list -- matches Task 2's literal action text over the interfaces block's prop-passing suggestion.
 - [Phase 138]: 138-13: preview items are joined to role holders by array INDEX (backend iteration order), not a target_user_id map, since the wire DTO carries no group id and a multi-group-membership holder produces multiple same-target_user_id items.
 - [Phase 138]: 138-13: RoleCapabilityClient.tsx's handleGrant/handleRevoke/capabilityError/isMutating were deleted rather than left dead -- all capability mutation now lives inside RoleCapabilityImpactPreviewModal, closing CAP-09's direct-mutate D-18 violation found this session.
+- [Phase 138-14]: PreviewClaimActivationImpact reuses ResolveGroupRights (before) + loadGroupRightsSources/evaluateGroupRights (after), overriding ActiveMembership/Roles only -- zero second decision engine; PreviewActivatableRoles is a zero-write twin of ActivateClaimedMember's steps 1-2; VerifyClaim/RejectClaim never fetch or fabricate a rights diff, closing D-24 in the central Claims workspace.
 
 ### Pending Todos
 
@@ -407,10 +408,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P11 | 4min | 2 tasks | 6 files |
 | Phase 138 P12 | 15min | 2 tasks | 4 files |
 | Phase 138 P13 | 42min | 2 tasks | 9 files |
+| Phase 138 P14 | 20min | 2 tasks | 14 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T18:49:38.064Z
+Last session: 2026-08-23T19:01:40.434Z
 Stopped at: Completed 138-13-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None

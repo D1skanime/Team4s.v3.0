@@ -550,7 +550,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [x] 138-13-PLAN.md — Impact-preview-gated role-capability matrix mutation (CAP-09 frontend)
-- [ ] 138-14-PLAN.md — D-24 claim-activation impact preview
+- [x] 138-14-PLAN.md — D-24 claim-activation impact preview
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
