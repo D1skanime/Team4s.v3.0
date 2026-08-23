@@ -107,11 +107,25 @@ Fix gehört in das **globale Primitive** (`Card`/`Section`), nicht in Phase-138-
 sichtbar gemacht, indem sie breite Tabellen in diese Karten legt; andere Seiten mit Tabellen in
 Cards dürften ebenfalls betroffen sein.
 
-### UAT-138-B (major) — Aktiver Tab ist unlesbar
-Der ausgewählte Tab (`aria-selected="true"`, z. B. "Rollen & Rechte") rendert mit
-`color: rgb(249, 251, 255)` auf `background-color: rgba(0, 0, 0, 0)` — nahezu weiße Schrift auf
-hellem Kartenhintergrund. Der aktive Tab ist damit praktisch unsichtbar. Kontrastfehler, betrifft
-jeden Benutzer-Detail-Aufruf.
+**Status: BEHOBEN und live nachgemessen (2026-08-23).**
+Fix in zwei Schritten, beide im globalen Primitive `frontend/src/components/ui/ui.module.css`:
+`.card` (Commit `dc4f5726`) und `.accordionRoot` (Commit `59f7173f`) erhalten je
+`grid-template-columns: minmax(0, 1fr)`. `.tableWrap` blieb unverändert, da es bereits
+`overflow: auto` besitzt.
+
+Nachmessung bei 394 px Viewport auf `/admin/users/4?tab=roles-rights`:
+`document.scrollWidth` = 394 = `clientWidth`, also **kein Seitenüberlauf mehr**
+(vorher 726 gegen 394). Die breite Capability-Tabelle scrollt jetzt korrekt in ihrem eigenen
+Container (`tableWrap` 256 px breit, `scrollWidth` 640, `overflow-x: auto`) statt die Seite zu
+sprengen. Visuell im Screenshot bei 394 px bestätigt.
+
+### UAT-138-B — ZURÜCKGEZOGEN (Messfehler des Testers, kein Defekt)
+Ursprünglich als Kontrastfehler des aktiven Tabs gemeldet. Nachmessung widerlegt das:
+`.tabButtonActive` rendert `background-image: linear-gradient(rgba(117,152,235,.94), rgba(72,103,180,.98))`
+mit `color: rgb(249,251,255)` — blaue Pille, weiße Schrift, ausreichender Kontrast (visuell im
+Screenshot bestätigt). Der ursprüngliche Messwert `background-color: rgba(0,0,0,0)` ist bei
+Verlaufs-Hintergründen erwartbar, weil die Farbe in `background-image` steckt; der frühere
+Screenshot hatte den Tab zusätzlich mitten in der 120ms-Transition erwischt. Kein Handlungsbedarf.
 
 ### UAT-138-C (minor) — Rohe technische Codes in user-facing Text (D-33)
 Mehrere Stellen zeigen Bezeichner statt Labels, obwohl die Labels im System vorhanden sind (die
@@ -142,8 +156,8 @@ dokumentiert bleiben statt als offener Rest.
 ## Summary
 
 total: 11
-passed: 8
-issues: 5
+passed: 9
+issues: 3
 pending: 0
 blocked: 1
 skipped: 0
@@ -152,5 +166,5 @@ skipped: 0
 
 - Test 1 (non_deniable + schlafender user_deny) braucht eine Fixture; ohne sie bleibt der
   WR-01-Fix live unbelegt.
-- UAT-138-A und UAT-138-B sind vor einem produktiven Einsatz der Oberfläche zu beheben.
+- UAT-138-A ist behoben; verbleibend sind die kosmetischen Befunde C, D und E.
 - UAT-138-A gehört in das globale UI-Primitive, nicht in Phase-138-Dateien.
