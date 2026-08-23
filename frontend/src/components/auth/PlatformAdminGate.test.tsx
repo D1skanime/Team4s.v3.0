@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 
 const apiMocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
@@ -114,6 +114,59 @@ describe("PlatformAdminGate", () => {
     expect(await screen.findByText("Fansub list consumer mounted")).not.toBeNull();
     await waitFor(() => {
       expect(apiMocks.getFansubList).toHaveBeenCalledWith({ per_page: 1 });
+    });
+  });
+
+  it("keeps children mounted across a simulated token refresh (no loading flash after first resolution)", async () => {
+    apiMocks.getCurrentUser.mockResolvedValueOnce({
+      data: { id: 1, display_name: "Admin", is_platform_admin: true },
+    });
+
+    const { rerender } = render(
+      <PlatformAdminGate>
+        <p data-testid="persistent-child">Admin-Inhalt sichtbar</p>
+      </PlatformAdminGate>,
+    );
+
+    // First resolution completes: loading fallback disappears, child mounts.
+    expect(await screen.findByTestId("persistent-child")).not.toBeNull();
+
+    // Simulate a token refresh: useAuthSession() returns a changed hasAccessToken
+    // value on the next render, which re-runs the resolution effect. The second
+    // getCurrentUser() call is deliberately left pending (never resolves during
+    // this test) to prove the loading fallback does not reappear while it is in flight.
+    let releaseSecondCall: (() => void) | undefined;
+    apiMocks.getCurrentUser.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseSecondCall = () =>
+            resolve({
+              data: { id: 1, display_name: "Admin", is_platform_admin: true },
+            });
+        }),
+    );
+    useAuthSessionMock.mockReturnValueOnce({
+      hasAccessToken: false,
+      hasRefreshToken: true,
+      isClientInitialized: true,
+    });
+
+    rerender(
+      <PlatformAdminGate>
+        <p data-testid="persistent-child">Admin-Inhalt sichtbar</p>
+      </PlatformAdminGate>,
+    );
+
+    // The persistent child must remain present continuously — never lost to the
+    // loading fallback while the second (background) resolution is still pending.
+    expect(screen.getByTestId("persistent-child")).not.toBeNull();
+    expect(screen.queryByText("Berechtigungen werden geladen...")).toBeNull();
+
+    // Drain the pending second call within act() so its state update is not
+    // observed after the test completes.
+    await act(async () => {
+      releaseSecondCall?.();
+      await Promise.resolve();
     });
   });
 });

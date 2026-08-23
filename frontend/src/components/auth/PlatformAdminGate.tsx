@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { getCurrentUser } from "@/lib/api";
@@ -17,6 +17,7 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
   const [currentUser, setCurrentUser] = useState<CurrentUserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const resolvedUserRef = useRef<CurrentUserData | null>(null);
 
   useEffect(() => {
     if (!isClientInitialized) return;
@@ -25,6 +26,7 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
     async function resolveAdminUser() {
       if (!hasAccessToken && !hasRefreshToken) {
         if (!cancelled) {
+          resolvedUserRef.current = null;
           setIsLoading(false);
           setCurrentUser(null);
           setErrorMessage("Anmeldung erforderlich.");
@@ -32,11 +34,16 @@ export function PlatformAdminGate({ children }: PlatformAdminGateProps) {
         return;
       }
 
-      setIsLoading(true);
+      if (resolvedUserRef.current === null) {
+        setIsLoading(true);
+      }
       setErrorMessage(null);
       try {
         const response = await getCurrentUser();
-        if (!cancelled) setCurrentUser(response.data);
+        if (!cancelled) {
+          resolvedUserRef.current = response.data;
+          setCurrentUser(response.data);
+        }
       } catch (error: unknown) {
         if (!cancelled) {
           setErrorMessage(
