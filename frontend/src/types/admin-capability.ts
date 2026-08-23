@@ -51,6 +51,24 @@ export interface RoleEntry {
   role_kind?: 'global_app_role' | string;
 }
 
+/**
+ * Ein Rolleninhaber aus dem role-holders-Endpunkt (Plan 138-01, D-07):
+ * "wer besitzt diese Gruppenrolle?" — gruppen-skopiert, mit Mitgliedsstatus
+ * und Rechte-Abweichungs-Signal. Spiegelbildlich zu
+ * backend/internal/handlers/capability_policy_contract.go RoleHolderEntry
+ * und shared/contracts/admin-capabilities.yaml RoleHolderEntry.
+ */
+export interface RoleHolderEntry {
+  app_user_id: number;
+  display_name: string;
+  email: string;
+  fansub_group_id: number;
+  fansub_group_name: string;
+  membership_status: string;
+  /** Ob für (app_user_id, fansub_group_id) mindestens eine Rechte-Abweichung existiert. */
+  has_overrides: boolean;
+}
+
 /** Eine Rollendefinition aus dem role-definitions-Endpunkt. */
 export interface RoleDefinitionOption {
   code: string;

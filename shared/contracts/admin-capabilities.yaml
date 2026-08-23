@@ -114,6 +114,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/role-holders/{roleCode}:
+    get:
+      tags: [AdminCapabilities]
+      summary: Rolleninhaber abrufen (D-07)
+      description: |
+        Gibt alle gruppen-skopierten Inhaber einer echten `role_definitions`-Gruppenrolle
+        zurück (z. B. fansub_lead, co_leader, encoder), inklusive Gruppenzuordnung,
+        Mitgliedsstatus und Rechte-Abweichungs-Signal (has_overrides). Globale App-Rollen
+        (platform_admin/content_admin/user) sind hier NICHT unterstützt — sie haben bereits
+        eine Antwort über `/admin/users?role=<code>`. Nur für Platform-Admins zugänglich
+        (D-08-Muster, wie /admin/role-capabilities).
+      operationId: listRoleHolders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Rolleninhaber erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoleHolderEntry"
+        "400":
+          description: Unbekannter oder nicht gruppen-skopierter Rollen-Code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/role-capabilities/{roleCode}/{actionCode}:
     put:
       tags: [AdminCapabilities]
@@ -805,6 +862,45 @@ components:
           description: >
             "global_app_role" für die drei synthetischen globalen App-Rollen-Zeilen
             (platform_admin/content_admin/user), sonst leer/fehlend für role_definitions-Zeilen.
+    RoleHolderEntry:
+      type: object
+      required:
+        [
+          app_user_id,
+          display_name,
+          email,
+          fansub_group_id,
+          fansub_group_name,
+          membership_status,
+          has_overrides,
+        ]
+      properties:
+        app_user_id:
+          type: integer
+          format: int64
+          description: app_users.id des Rolleninhabers
+        display_name:
+          type: string
+          description: Anzeigename (display_name, sonst preferred_username, sonst email)
+        email:
+          type: string
+          description: E-Mail-Adresse des Rolleninhabers
+        fansub_group_id:
+          type: integer
+          format: int64
+          description: fansub_groups.id der Gruppe, in der die Rolle gehalten wird
+        fansub_group_name:
+          type: string
+          description: Name der Fansub-Gruppe
+        membership_status:
+          type: string
+          description: Mitgliedsstatus in der Gruppe (z. B. active, disabled)
+        has_overrides:
+          type: boolean
+          description: >
+            Ob für (app_user_id, fansub_group_id) mindestens eine
+            user_group_capability_overrides-Zeile existiert (Existenz-Signal, keine
+            Einzel-Enumeration).
     ActionEntry:
       type: object
       required: [code, label_de, category, sort_order]

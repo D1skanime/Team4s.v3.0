@@ -245,7 +245,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { PublicRoleDefinitionOption, RoleCapabilityMatrix, RoleDefinitionContext, RoleDefinitionOption } from "@/types/admin-capability";
+import type { PublicRoleDefinitionOption, RoleCapabilityMatrix, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -9799,6 +9799,30 @@ export async function listRoleCapabilities(): Promise<RoleCapabilityMatrix> {
   // Der Endpunkt liefert die Matrix gemäß Contract direkt (kein data-Envelope).
   const body = (await response.json()) as RoleCapabilityMatrix
   return body
+}
+
+/**
+ * Lädt alle gruppen-skopierten Inhaber einer echten Gruppenrolle (Plan 138-01, D-07):
+ * "wer besitzt diese Rolle?" für role_definitions-Gruppenrollen (fansub_lead, co_leader,
+ * encoder, ...). Globale App-Rollen (platform_admin/content_admin/user) werden hier NICHT
+ * unterstützt — sie haben bereits eine funktionierende Antwort über
+ * `/admin/users?role=<code>`.
+ * GET /api/v1/admin/role-holders/:roleCode
+ */
+export async function listRoleHolders(roleCode: string): Promise<RoleHolderEntry[]> {
+  const response = await apiClientFetch(
+    `/api/v1/admin/role-holders/${encodeURIComponent(roleCode)}`,
+    { cache: "no-store" },
+  )
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details)
+  }
+  const resp = (await response.json()) as { data: RoleHolderEntry[] }
+  return resp.data as RoleHolderEntry[]
 }
 
 /**
