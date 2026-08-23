@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: ready_to_plan
-stopped_at: Phase 138 complete (16/16) — ready to discuss Phase 139
-last_updated: 2026-08-23T22:05:00.000Z
-last_activity: 2026-08-23
+status: planning
+stopped_at: "Completed quick task 260823-wrz: Informationsdichte im Benutzer-Rechte-Tab (UAT-138-G) - EmptyState inline-Variante, UserGlobalRolesTab/GroupSection kompaktiert"
+last_updated: "2026-08-23T23:56:13.908Z"
+last_activity: "2026-08-23 - Completed quick task 260823-w9y: Fix UAT-138-C - rohe technische Codes durch bestehende deutsche Labels ersetzt (Rechteeditor, Entzug-Dialog, Aenderungen, plus actor/target display_name)"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 61
-  completed_plans: 115
+  completed_plans: 61
   percent: 43
 ---
 
@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 139
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-08-23 - Completed quick task 260823-w9y: Fix UAT-138-C - rohe technische Codes durch bestehende deutsche Labels ersetzt (Rechteeditor, Entzug-Dialog, Aenderungen, plus actor/target display_name)
+Last activity: 2026-08-23 - Completed quick task 260823-wrz: Fix UAT-138-G - Informationsdichte im Benutzer-Rechte-Tab erhoeht (EmptyState variant="inline", UserGlobalRolesTab/GroupSection Card-Chrome entfernt, height-Schaetzung ~519px)
 
 ## Accumulated Context
 
@@ -182,6 +182,7 @@ Last activity: 2026-08-23 - Completed quick task 260823-w9y: Fix UAT-138-C - roh
 - [Phase 138-14]: PreviewClaimActivationImpact reuses ResolveGroupRights (before) + loadGroupRightsSources/evaluateGroupRights (after), overriding ActiveMembership/Roles only -- zero second decision engine; PreviewActivatableRoles is a zero-write twin of ActivateClaimedMember's steps 1-2; VerifyClaim/RejectClaim never fetch or fabricate a rights diff, closing D-24 in the central Claims workspace.
 - [Phase 138]: 138-15 (D-01..D-05/D-25/D-30): AdminMainNav is the one persistent D-01 admin nav (Button-row + shared admin/layout.tsx, since Tabs has no Link-based nav mode); AdminUsersClient reduced to D-04's exact 9-field column set; UserDetailPageClient rewritten from a 9-item Accordion to D-03's real 6-tab structure with ?tab= URL sync, requiring Tabs (@/components/ui) to gain optional controlled activeId/onActiveIdChange + keepMountedIds (backward compatible with its 4 pre-existing consumers) to preserve lazy-load-once without a refetch-on-reopen regression; UserOverviewTab's D-05-violating bare stat-tile grid replaced with a compact per-group summary. UserGroupMembershipsTab.tsx left in place, unimported/orphaned, rather than deleted.
 - [Phase 138]: 138-16 closed D-06's Gruppenansicht: GroupRolesTab regroups already-fetched listFansubAppMembers client-side by role (no new backend endpoint); GroupChangesTab reuses listChanges (real filter param is gruppe, not fansub_group_id as the plan sketched) plus 138-11's translateChangeEntry; FansubAppMembersOverview.tsx (the plan named a non-existent GroupMembersTable.tsx) gained a Rechteabweichungen indicator and user navigation; a platform-admin-gated Claims link-out replaces a second claims editor per D-09/D-34.
+- [Phase Quick 260823-wrz]: UAT-138-G fixed: EmptyState gained a real chrome-free variant="inline" (single <p>, no icon/card); UserGlobalRolesTab.tsx dropped its standalone 'Aktive Rollen' SectionHeader block; GroupSection.tsx dropped its <Card> wrapper for a plain <section> (data-group-section preserved). New height to first real rights row estimated ~519px (engineering estimate, not live-measured) - above the 400px soft target but all three named causes are fully closed; UAT-138-A grid-template-columns fix confirmed untouched; live UAT spot-check at 1280x900 recommended as follow-up.
 
 ### Pending Todos
 
@@ -209,6 +210,7 @@ Last activity: 2026-08-23 - Completed quick task 260823-w9y: Fix UAT-138-C - roh
 | 260823-u1j | Fix UAT-138-A horizontaler Seitenueberlauf (394px, Rollen & Rechte-Tab): grid-template-columns: minmax(0, 1fr) auf .card/.tabs in ui.module.css ergaenzt, damit implizite Grid-Spalte nicht mehr auf Breite eines breiten Kind-Elements (Rechte-Tabelle) waechst | 2026-08-23 | dc4f5726 | [260823-u1j-fix-uat-138-a-horizontaler-seitenueberla](./quick/260823-u1j-fix-uat-138-a-horizontaler-seitenueberla/) |
 | 260823-ucl | Nachtrag UAT-138-A: verbleibender Seitenueberlauf (394px) durch .accordionRoot in ui.module.css - gleiche implizite Grid-Track-Falle wie .card, grid-template-columns: minmax(0, 1fr) ergaenzt; alle uebrigen display:grid-Regeln erneut evidenzbasiert auditiert | 2026-08-23 | 59f7173f | [260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m](./quick/260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m/) |
 | 260823-w9y | Fix UAT-138-C: rohe technische Codes (Rollencodes, Capability-Actioncodes, "Benutzer #<id>") durch bestehende deutsche Labels aus RoleCapabilityMatrix/app_users.display_name ersetzt - Rechteeditor, Entzug-Dialog, Aenderungen-Uebersetzung, plus additive actor_display_name/target_display_name-Vertragserweiterung fuer GET /admin/changes (D-33) | 2026-08-23 | 66164839 | [260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u](./quick/260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u/) |
+| 260823-wrz | Fix UAT-138-G: Informationsdichte im Benutzer-Rechte-Tab - EmptyState bekam echte chrome-freie variant="inline"; UserGlobalRolesTab.tsx verlor den separaten "Aktive Rollen"-Block; GroupSection.tsx verlor die Card-Chrome (jetzt <section>, data-group-section erhalten); neue Hoehe bis zur ersten Rechtezeile auf ~519px geschaetzt (Engineering-Schaetzung, kein Live-Messwert); UAT-138-A-Fix quellcode-bestaetigt unangetastet | 2026-08-23 | e33de150 | [260823-wrz-informationsdichte-im-benutzer-rechte-ta](./quick/260823-wrz-informationsdichte-im-benutzer-rechte-ta/) |
 
 ### Verification Baseline
 
@@ -420,7 +422,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-08-23T19:36:40.390Z
-Stopped at: Completed 138-16-PLAN.md (last plan of phase 138)
+Last session: 2026-08-23T23:56:13.902Z
+Stopped at: Completed quick task 260823-wrz: Informationsdichte im Benutzer-Rechte-Tab (UAT-138-G) - EmptyState inline-Variante, UserGlobalRolesTab/GroupSection kompaktiert
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
