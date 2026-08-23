@@ -231,6 +231,10 @@ import type {
   AdminUserContributionsResponse,
   AdminUserMediaResponse,
   AdminUserAuditResponse,
+  AdminClaimsListParams,
+  AdminClaimsListResponse,
+  AdminChangesListParams,
+  AdminChangesListResponse,
 } from "@/types/admin-users";
 import type {
   GroupContributorsResponse,
@@ -3831,6 +3835,66 @@ export async function getAdminUserAudit(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
   }
   return response.json() as Promise<AdminUserAuditResponse>;
+}
+
+/**
+ * D-23: zentrale, gruppenuebergreifende Claims-Arbeitsqueue.
+ * Platform-admin-only (requirePlatformAdminIdentity im Backend).
+ */
+export async function listClaims(
+  params: AdminClaimsListParams = {},
+): Promise<AdminClaimsListResponse> {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.claim_type) query.set("claim_type", params.claim_type);
+  if (params.fansub_group_id != null) query.set("fansub_group_id", String(params.fansub_group_id));
+  if (params.app_user_id != null) query.set("app_user_id", String(params.app_user_id));
+  if (params.from) query.set("from", params.from);
+  if (params.to) query.set("to", params.to);
+  if (params.limit != null) query.set("limit", String(params.limit));
+  if (params.offset != null) query.set("offset", String(params.offset));
+  const response = await apiClientFetch(
+    `/api/v1/admin/claims?${query.toString()}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminClaimsListResponse>;
+}
+
+/**
+ * D-25/D-28: zentrale, gruppenuebergreifende Aenderungen/Audit-Arbeitsqueue.
+ * Platform-admin-only (requirePlatformAdminIdentity im Backend).
+ */
+export async function listChanges(
+  params: AdminChangesListParams = {},
+): Promise<AdminChangesListResponse> {
+  const query = new URLSearchParams();
+  if (params.benutzer != null) query.set("benutzer", String(params.benutzer));
+  if (params.akteur != null) query.set("akteur", String(params.akteur));
+  if (params.gruppe != null) query.set("gruppe", String(params.gruppe));
+  if (params.target_type) query.set("target_type", params.target_type);
+  if (params.from) query.set("from", params.from);
+  if (params.to) query.set("to", params.to);
+  if (params.limit != null) query.set("limit", String(params.limit));
+  if (params.offset != null) query.set("offset", String(params.offset));
+  const response = await apiClientFetch(
+    `/api/v1/admin/changes?${query.toString()}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  return response.json() as Promise<AdminChangesListResponse>;
 }
 
 export async function listFansubAppMembers(

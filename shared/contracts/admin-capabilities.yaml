@@ -171,6 +171,204 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/claims:
+    get:
+      tags: [AdminCapabilities]
+      summary: Zentrale, gruppenuebergreifende Claims-Arbeitsqueue abrufen (D-23)
+      description: |
+        Gibt member_claims ueber ALLE Fansub-Gruppen gefiltert und paginiert zurueck.
+        Anders als die bestehende gruppen-delegierbare
+        GET /admin/fansubs/{id}/member-claims (nur pending, nur eine Gruppe) ist dies
+        eine gruppenuebergreifende Aggregation und deshalb strenger geschuetzt:
+        ausschliesslich Platform-Admins (D-08-Muster, wie /admin/role-holders).
+        Es werden ausschliesslich reale, im Code bestehende claim_status-Werte
+        (pending/verified/rejected) verwendet — keine erfundenen Kategorien.
+      operationId: listAdminClaims
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, verified, rejected]
+        - name: claim_type
+          in: query
+          required: false
+          description: >
+            Vorwaerts-kompatibler Filter; heute existiert nur der literale Wert "claim"
+            (kein claim_type-Spaltenwert auf member_claims).
+          schema:
+            type: string
+        - name: fansub_group_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: app_user_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 25
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: Claims-Liste erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminClaimsListResponse"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/changes:
+    get:
+      tags: [AdminCapabilities]
+      summary: Zentrale, gruppenuebergreifende Aenderungen/Audit-Arbeitsqueue abrufen (D-25/D-28)
+      description: |
+        Gibt audit_logs ueber ALLE Fansub-Gruppen/User gefiltert und paginiert zurueck.
+        Anders als die bestehende, in den User-Detail-Drawer eingebettete
+        GET /admin/users/{userId}/audit (ein einzelner User) ist dies eine
+        gruppenuebergreifende Aggregation und deshalb strenger geschuetzt:
+        ausschliesslich Platform-Admins (D-08-Muster, wie /admin/role-holders).
+        rolle/capability/claim-Filter existieren NICHT als eigene Spalten auf
+        audit_logs — nur target_type (z. B. role_capability,
+        user_group_capability_override, member_claim) ist filterbar; die
+        payload-JSONB-Spalte wird von diesem Endpunkt nicht interpretiert.
+      operationId: listAdminChanges
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: benutzer
+          in: query
+          required: false
+          description: >
+            app_users.id — matched gegen actor_app_user_id ODER
+            (target_type = 'app_user' AND target_id = benutzer), spiegelt
+            GetUserAudit's bestehende OR-Semantik.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: akteur
+          in: query
+          required: false
+          description: app_users.id — matched ausschliesslich gegen actor_app_user_id.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: gruppe
+          in: query
+          required: false
+          description: fansub_groups.id — matched gegen scope_type = 'group' AND scope_id.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: target_type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: false
+          description: Inklusive untere Grenze (created_at >= from).
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          description: Inklusive obere Grenze (created_at <= to).
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 25
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: Aenderungen-Liste erfolgreich abgerufen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminChangesListResponse"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/role-capabilities/{roleCode}/{actionCode}:
     put:
       tags: [AdminCapabilities]
@@ -989,6 +1187,154 @@ components:
             Ob für (app_user_id, fansub_group_id) mindestens eine
             user_group_capability_overrides-Zeile existiert (Existenz-Signal, keine
             Einzel-Enumeration).
+    ClaimListRow:
+      type: object
+      required:
+        [
+          claim_id,
+          app_user_id,
+          app_user_email,
+          app_user_display_name,
+          member_id,
+          member_nickname,
+          claim_status,
+          claim_type,
+          fansub_group_id,
+          fansub_group_name,
+          note,
+          created_at,
+        ]
+      properties:
+        claim_id:
+          type: integer
+          format: int64
+          description: member_claims.id
+        app_user_id:
+          type: integer
+          format: int64
+          description: member_claims.app_user_id, 0 wenn kein App-User verknuepft ist
+        app_user_email:
+          type: string
+          description: E-Mail-Adresse des verknuepften App-Users, leer wenn nicht verknuepft
+        app_user_display_name:
+          type: string
+          description: Anzeigename (display_name, sonst preferred_username, sonst email)
+        member_id:
+          type: integer
+          format: int64
+          description: members.id
+        member_nickname:
+          type: string
+          description: members.nickname
+        claim_status:
+          type: string
+          enum: [pending, verified, rejected]
+        claim_type:
+          type: string
+          description: >
+            Heute immer der literale Wert "claim" — kein claim_type-Spaltenwert auf
+            member_claims existiert.
+        fansub_group_id:
+          type: integer
+          format: int64
+          description: fansub_groups.id des Gruppenkontexts des Claims
+        fansub_group_name:
+          type: string
+        note:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        verified_at:
+          type: string
+          format: date-time
+          nullable: true
+    AdminClaimsListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimListRow"
+        meta:
+          type: object
+          required: [total, limit, offset]
+          properties:
+            total:
+              type: integer
+            limit:
+              type: integer
+            offset:
+              type: integer
+    ChangeListRow:
+      type: object
+      required:
+        [
+          event_id,
+          event_type,
+          target_type,
+          action,
+          outcome,
+          occurred_at,
+          scope_type,
+        ]
+      properties:
+        event_id:
+          type: integer
+          format: int64
+          description: audit_logs.id
+        event_type:
+          type: string
+        target_type:
+          type: string
+        target_id:
+          type: integer
+          format: int64
+          nullable: true
+        action:
+          type: string
+          description: audit_logs.action_name
+        outcome:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        actor_app_user_id:
+          type: integer
+          format: int64
+          nullable: true
+        scope_type:
+          type: string
+        scope_id:
+          type: integer
+          format: int64
+          nullable: true
+        payload:
+          type: object
+          description: >
+            Rohes audit_logs.payload-JSONB. Wird von diesem Endpunkt nicht
+            interpretiert; eine spaetere Frontend-Uebersetzungsschicht liest
+            bekannte Schluessel pro event_type.
+          additionalProperties: true
+    AdminChangesListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChangeListRow"
+        meta:
+          type: object
+          required: [total, limit, offset]
+          properties:
+            total:
+              type: integer
+            limit:
+              type: integer
+            offset:
+              type: integer
     ActionEntry:
       type: object
       required: [code, label_de, category, sort_order]

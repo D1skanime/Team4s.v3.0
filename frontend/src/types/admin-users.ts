@@ -230,3 +230,87 @@ export interface AdminAuditEntry {
 export interface AdminUserAuditResponse {
   entries: AdminAuditEntry[]
 }
+
+// ---------------------------------------------------------------------------
+// Zentrale Claims-Arbeitsqueue (D-23, Plan 138-05)
+// ---------------------------------------------------------------------------
+
+/** Eine Zeile in der gruppenuebergreifenden Claims-Arbeitsqueue. */
+export interface AdminClaimListRow {
+  claim_id: number
+  app_user_id: number
+  app_user_email: string
+  app_user_display_name: string
+  member_id: number
+  member_nickname: string
+  claim_status: 'pending' | 'verified' | 'rejected'
+  claim_type: string
+  fansub_group_id: number
+  fansub_group_name: string
+  note: string
+  created_at: string
+  verified_at: string | null
+}
+
+/** Filter- und Paginierungsparameter für GET /admin/claims. */
+export interface AdminClaimsListParams {
+  status?: string
+  claim_type?: string
+  fansub_group_id?: number
+  app_user_id?: number
+  from?: string
+  to?: string
+  limit?: number
+  offset?: number
+}
+
+/** Response-Envelope der zentralen Claims-Arbeitsqueue. */
+export interface AdminClaimsListResponse {
+  data: AdminClaimListRow[]
+  meta: {
+    total: number
+    limit: number
+    offset: number
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Zentrale Aenderungen/Audit-Arbeitsqueue (D-25/D-28, Plan 138-05)
+// ---------------------------------------------------------------------------
+
+/** Eine Zeile in der gruppenuebergreifenden Aenderungen-Arbeitsqueue. */
+export interface AdminChangeEntry {
+  event_id: number
+  event_type: string
+  target_type: string
+  target_id: number | null
+  action: string
+  outcome: string
+  occurred_at: string
+  actor_app_user_id: number | null
+  scope_type: string
+  scope_id: number | null
+  payload: Record<string, unknown>
+}
+
+/** Filter- und Paginierungsparameter für GET /admin/changes. */
+export interface AdminChangesListParams {
+  benutzer?: number
+  akteur?: number
+  gruppe?: number
+  target_type?: string
+  from?: string
+  to?: string
+  limit?: number
+  offset?: number
+}
+
+/** Response-Envelope der zentralen Aenderungen-Arbeitsqueue. */
+export interface AdminChangesListResponse {
+  data: AdminChangeEntry[]
+  meta: {
+    total: number
+    limit: number
+    offset: number
+  }
+}

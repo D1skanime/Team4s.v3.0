@@ -41,6 +41,8 @@ type adminRouteHandlers struct {
 	adminRoleAssignmentImpactHandler *handlers.AdminRoleAssignmentImpactHandler
 	// Phase 138-05: central cross-group Claims workspace (D-23)
 	adminClaimsListHandler *handlers.AdminClaimsListHandler
+	// Phase 138-05: central cross-group Aenderungen/audit workspace (D-25/D-28)
+	adminChangesHandler *handlers.AdminChangesHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -290,5 +292,10 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	// requirePlatformAdminIdentity is the first handler action.
 	if deps.adminClaimsListHandler != nil {
 		v1.GET("/admin/claims", auth, deps.adminClaimsListHandler.ListClaims)
+	}
+	// Phase 138-05: central cross-group Aenderungen/audit workspace (D-25/D-28) --
+	// platform-admin-only, requirePlatformAdminIdentity is the first handler action.
+	if deps.adminChangesHandler != nil {
+		v1.GET("/admin/changes", auth, deps.adminChangesHandler.ListChanges)
 	}
 }
