@@ -505,6 +505,10 @@ func main() {
 	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
 	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, authzRepo, permissionSvc, auditLogRepo)
+	// Phase 138-07: Role-to-Capability Change Impact Preview (CAP-09) -- reuses the same
+	// authzRepo (platform-admin gate + ListRoleHolders) and permissionSvc already constructed
+	// above; no new repository.
+	adminCapabilityImpactHandler := handlers.NewAdminCapabilityImpactHandler(authzRepo, authzRepo, permissionSvc)
 	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup (D-07)
 	adminRoleHoldersHandler := handlers.NewAdminRoleHoldersHandler(authzRepo, authzRepo)
 	// Phase 95-02: Assignable Gruppenrollen-Liste (D-12)
@@ -553,6 +557,7 @@ func main() {
 		defaultCrewHandler:            defaultCrewHandler,
 		adminUsersHandler:             adminUsersHandler,
 		adminCapabilityHandler:        adminCapabilityHandler,
+		adminCapabilityImpactHandler:  adminCapabilityImpactHandler,
 		adminGroupRolesHandler:        adminGroupRolesHandler,
 		releaseReviewHandler:          releaseReviewHandler,
 		adminEffectiveRightsHandler:   adminEffectiveRightsHandler,

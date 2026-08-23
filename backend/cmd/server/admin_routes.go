@@ -28,6 +28,9 @@ type adminRouteHandlers struct {
 	adminUsersHandler *handlers.AdminUsersHandler
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler)
 	adminCapabilityHandler *handlers.AdminCapabilityHandler
+	// Phase 138-07: Role-to-Capability Change Impact Preview (CAP-09) -- read-only batch
+	// before/after diff ahead of GrantCapability/RevokeCapability
+	adminCapabilityImpactHandler *handlers.AdminCapabilityImpactHandler
 	// Phase 95-02: Assignable Gruppenrollen aus role_definitions (D-12)
 	adminGroupRolesHandler *handlers.AdminGroupRolesHandler
 	// Phase 107.1: gruppengebundene Release-Prüfqueue und schmale Detailansicht
@@ -257,6 +260,11 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 		v1.GET("/admin/role-capabilities", auth, deps.adminCapabilityHandler.ListCapabilityMatrix)
 		v1.PUT("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.GrantCapability)
 		v1.DELETE("/admin/role-capabilities/:roleCode/:actionCode", auth, deps.adminCapabilityHandler.RevokeCapability)
+	}
+	// Phase 138-07: Role-to-Capability Change Impact Preview (CAP-09, requirePlatformAdminIdentity
+	// im Handler) -- read-only batch before/after diff ahead of GrantCapability/RevokeCapability.
+	if deps.adminCapabilityImpactHandler != nil {
+		v1.GET("/admin/role-capabilities/:roleCode/:actionCode/impact-preview", auth, deps.adminCapabilityImpactHandler.PreviewCapabilityChange)
 	}
 	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup
 	// (requirePlatformAdminIdentity im Handler, D-07)
