@@ -14,7 +14,7 @@
 - [x] **CAP-05**: Ein autorisierter Admin kann für einen aktiven Benutzer eine einzelne Capability ausschließlich innerhalb einer konkreten Fansubgruppe erlauben oder verweigern.
 - [x] **CAP-06**: Override-Mutationen validieren Zielmitgliedschaft, Fansubgruppe und zulässige Capability serverseitig und lehnen gruppenfremde oder unzulässige Ziele neutral ab.
 - [x] **CAP-07**: Grant und Revoke eines Benutzer-Overrides sind idempotent, atomar und mit Actor, Ziel, Kontext, Capability sowie Vorher-/Nachher-Zustand auditiert.
-- [ ] **CAP-08**: Ein geführter Entzugs-Flow zeigt alle Quellen eines Rechts und empfiehlt den gezielten Benutzer-Deny, bevor breitere Rollen- oder Matrixänderungen angeboten werden.
+- [x] **CAP-08**: Ein geführter Entzugs-Flow zeigt alle Quellen eines Rechts und empfiehlt den gezielten Benutzer-Deny, bevor breitere Rollen- oder Matrixänderungen angeboten werden.
 - [x] **CAP-09**: Vor einer Rolle-zu-Capability-Änderung sieht der Admin betroffene Rolleninhaber und die tatsächliche effektive Änderung, einschließlich Benutzer ohne Änderung wegen weiterer Quellen.
 - [x] **CAP-10**: Nach einer Rollenmatrix-Mutation unterscheidet die Oberfläche zwischen persistiert, im Permission-Cache aktiviert, ausstehend und fehlgeschlagen; sie meldet keinen falschen Enderfolg.
 - [x] **CAP-11**: Rollen-Zuweisbarkeit wird aus genau einer kanonischen Quelle gelesen und in Rollen-Pickern, API-Projektionen und Admin-Badges konsistent dargestellt.
@@ -24,7 +24,7 @@
 
 ### Benutzer-Administration
 
-- [ ] **UADM-01**: Die vorhandene Gruppenrechte-Ansicht im Benutzer-Detail ist die kanonische Oberfläche für Inspektion und Änderung effektiver Gruppenrechte.
+- [x] **UADM-01**: Die vorhandene Gruppenrechte-Ansicht im Benutzer-Detail ist die kanonische Oberfläche für Inspektion und Änderung effektiver Gruppenrechte.
 - [ ] **UADM-02**: Beiträge eines Benutzers werden serverseitig nach Anime und Projekt gruppiert und zeigen den Projektstandard als kompakte Zusammenfassung.
 - [ ] **UADM-03**: Release-Versionen werden nur dann als Override bezeichnet und hervorgehoben, wenn sie tatsächlich vom Projektstandard abweichen.
 - [ ] **UADM-04**: Identische Release-Version-Zuweisungen werden zu verständlichen Bereichen wie „Version 1–13 entspricht dem Projektstandard“ zusammengefasst.
@@ -101,14 +101,14 @@
 | CAP-05 | Phase 137 | Complete |
 | CAP-06 | Phase 137 | Complete |
 | CAP-07 | Phase 137 | Complete |
-| CAP-08 | Phase 138 | Pending |
+| CAP-08 | Phase 138 | Complete |
 | CAP-09 | Phase 138 | Complete |
 | CAP-10 | Phase 138 | Complete |
 | CAP-11 | Phase 136 | Complete |
 | CAP-12 | Phase 136 | Complete |
 | CAP-13 | Phase 136 | Complete |
 | CAP-14 | Phase 136 | Complete |
-| UADM-01 | Phase 138 | Pending |
+| UADM-01 | Phase 138 | Complete |
 | UADM-02 | Phase 139 | Pending |
 | UADM-03 | Phase 139 | Pending |
 | UADM-04 | Phase 139 | Pending |

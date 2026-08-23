@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 138-07-PLAN.md
-last_updated: "2026-08-23T17:47:26.457Z"
+stopped_at: Completed 138-08-PLAN.md
+last_updated: "2026-08-23T17:59:49.193Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 52
+  completed_plans: 53
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 8 of 16
+Plan: 9 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -171,6 +171,7 @@ Last activity: 2026-08-23
 - [Phase 138]: [Phase 138] 138-05: MemberClaimsRepository.ListClaims and AuditLogRepository.ListChanges close D-23/D-25's backend list-endpoint gap -- cross-group, platform-admin-gated, dynamic-parameterized filters, COUNT(*) OVER() totals, and a new shared ClampAdminListPage clamp helper; testsupport.OpenPhase137Postgres extended additively with member_claims/hist_fansub_group_members/audit_logs/members.nickname (real production shapes were never previously in the fixture's migration chain); full D-35 contract chain (OpenAPI/TS/api.ts) closed for GET /admin/claims and GET /admin/changes.
 - [Phase 138]: 138-06: getEffectiveRights/mutateCapabilityOverride/listOverrideHistory wired into api.ts; UserGroupRightsTab.tsx re-pointed at the real Phase-137 resolver -- multi-group, category-grouped (7 real registry categories), provenance-capable D-13 inspection surface, zero new client-side precedence logic (D-14). Matrix (listRoleCapabilities) fetch folded into the same load as memberships/rights to avoid a category-grouping render race, since it is now load-bearing not just a cross-nav optional enhancement. Mutation half (CAP-08 guided grant/revoke) deferred to Plan 138-08.
 - [Phase 138]: 138-07: PreviewGroupRightsCapabilityChange (permissions package) batch-computes a role-to-capability grant/revoke's before/after diff for every real role holder, reusing loadGroupRightsSources/evaluateGroupRights via a new evaluateGroupRightsWithHypotheticalGrant variant scoped to exactly one (role, action) pair; GET /admin/role-capabilities/:roleCode/:actionCode/impact-preview mirrors GrantCapability/RevokeCapability's exact platform-admin gate. Closes CAP-09's backend engine.
+- [Phase 138]: 138-08: GuidedRevokeFlow/GuidedGrantFlow each detect their own 'Abweichung entfernen' reversion mode from state.user_deny/state.user_allow; UserGroupRightsTab wires all three locked business-verb actions plus an inline CapabilityHistoryPanel (D-13b) into the row-expansion area, refreshing on every confirmed mutation while the flow's own modal independently stays open showing the real activation_status (CAP-10/D-21). CAP-08 fully wired end to end; UADM-01's editing half is complete.
 
 ### Pending Todos
 
@@ -393,10 +394,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P05 | 45min | 2 tasks | 12 files |
 | Phase 138 P06 | 20m | 2 tasks | 3 files |
 | Phase 138 P07 | 40m | 2 tasks | 6 files |
+| Phase 138 P08 | 25m | 2 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T17:47:26.443Z
-Stopped at: Completed 138-07-PLAN.md
+Last session: 2026-08-23T17:59:49.181Z
+Stopped at: Completed 138-08-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None

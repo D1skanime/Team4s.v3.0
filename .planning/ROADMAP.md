@@ -542,7 +542,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [x] 138-07-PLAN.md — CAP-09 batch impact-preview endpoint for role-capability changes
-- [ ] 138-08-PLAN.md — CAP-08 guided revoke/grant flows + inline capability history
+- [x] 138-08-PLAN.md — CAP-08 guided revoke/grant flows + inline capability history
 - [ ] 138-09-PLAN.md — D-22 role-assignment impact preview UI
 - [ ] 138-10-PLAN.md — Claims top-level workspace (D-23)
 - [ ] 138-11-PLAN.md — Änderungen top-level workspace (D-25/D-26/D-27)
