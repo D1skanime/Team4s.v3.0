@@ -539,6 +539,10 @@ func main() {
 	// repository construction needed.
 	adminClaimsListHandler := handlers.NewAdminClaimsListHandler(authzRepo, memberClaimsRepo)
 	adminChangesHandler := handlers.NewAdminChangesHandler(authzRepo, auditLogRepo)
+	// Phase 138-14: Claim-Activation Impact Preview (D-24) -- reuses the same memberClaimsRepo
+	// (PreviewActivatableRoles) and permissionSvc (PreviewClaimActivationImpact) already
+	// constructed above; no new repository.
+	adminClaimActivationImpactHandler := handlers.NewAdminClaimActivationImpactHandler(permissionSvc, memberClaimsRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -565,6 +569,7 @@ func main() {
 		adminRoleAssignmentImpactHandler: adminRoleAssignmentImpactHandler,
 		adminClaimsListHandler:           adminClaimsListHandler,
 		adminChangesHandler:              adminChangesHandler,
+		adminClaimActivationImpactHandler: adminClaimActivationImpactHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

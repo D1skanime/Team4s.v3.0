@@ -60,6 +60,40 @@ func (r *MemberClaimsRepository) ActivateClaimedMember(ctx context.Context, fans
 	return nil
 }
 
+// PreviewActivatableRoles resolves EXACTLY the same two facts ActivateClaimedMember's steps
+// 1-2 compute (the claim's app_user_id + the non-governance activatable historical role
+// codes) WITHOUT performing step 3 (no membership row is created, EnsureInvitationAcceptance
+// is never called). This is a zero-write, read-only preview used by Plan 138-14's
+// claim-activation impact preview (D-24) so the admin can see the real before/after rights
+// diff before confirming the actual activation.
+func (r *MemberClaimsRepository) PreviewActivatableRoles(ctx context.Context, memberID int64, fansubGroupID int64) (appUserID int64, roleCodes []string, err error) {
+	if fansubGroupID <= 0 || memberID <= 0 {
+		return 0, nil, fmt.Errorf("preview activatable roles: invalid ids")
+	}
+
+	if err := r.db.QueryRow(ctx, `
+		SELECT mc.app_user_id
+		FROM member_claims mc
+		JOIN hist_fansub_group_members hgm ON hgm.member_id = mc.member_id
+		WHERE mc.member_id = $1
+		  AND hgm.fansub_group_id = $2
+		  AND mc.claim_status = 'verified'
+		  AND mc.app_user_id IS NOT NULL
+		LIMIT 1
+	`, memberID, fansubGroupID).Scan(&appUserID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, nil, ErrNotFound
+		}
+		return 0, nil, fmt.Errorf("preview activatable roles: find claim app user: %w", err)
+	}
+
+	roleCodes, err = r.collectActivatableHistoricalRoles(ctx, memberID, fansubGroupID)
+	if err != nil {
+		return 0, nil, err
+	}
+	return appUserID, roleCodes, nil
+}
+
 func (r *MemberClaimsRepository) collectActivatableHistoricalRoles(ctx context.Context, memberID int64, fansubGroupID int64) ([]string, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT DISTINCT r.role_code

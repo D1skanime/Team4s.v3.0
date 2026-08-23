@@ -123,6 +123,21 @@ type RoleAssignmentImpactPreview struct {
 	After        []EffectiveRightState  `json:"after"`
 }
 
+// ClaimActivationImpactPreview is the response DTO for Plan 138-14's read-only
+// claim-activation impact preview (D-24): the ONE claim decision action that actually
+// creates real rights-relevant state (ActivateClaimedMember) gets a real before/after
+// effective-rights diff across every action, computed via
+// permissions.Service.PreviewClaimActivationImpact. RoleAssignmentImpactPreview's shape
+// does not fit here -- multiple roles activate at once, and membership itself (not a
+// single role_code) is the change -- so this is a dedicated DTO reusing the same
+// EffectiveRightState projection (D-20 reuse, zero new projection logic).
+type ClaimActivationImpactPreview struct {
+	TargetAppUserID int64                 `json:"target_app_user_id"`
+	RoleCodes       []string              `json:"role_codes"`
+	Before          []EffectiveRightState `json:"before"`
+	After           []EffectiveRightState `json:"after"`
+}
+
 type CapabilityOverrideState struct {
 	GroupID         int64                    `json:"group_id"`
 	TargetUserID    int64                    `json:"target_user_id"`

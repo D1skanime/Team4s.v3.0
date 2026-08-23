@@ -46,6 +46,9 @@ type adminRouteHandlers struct {
 	adminClaimsListHandler *handlers.AdminClaimsListHandler
 	// Phase 138-05: central cross-group Aenderungen/audit workspace (D-25/D-28)
 	adminChangesHandler *handlers.AdminChangesHandler
+	// Phase 138-14: Claim-Activation Impact Preview (D-24) -- read-only before/after diff
+	// ahead of the real ActivateClaimedMember mutation
+	adminClaimActivationImpactHandler *handlers.AdminClaimActivationImpactHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -240,6 +243,12 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	v1.POST("/admin/fansubs/:id/member-claims/:claimId/verify", auth, deps.memberClaimsHandler.VerifyClaim)
 	v1.POST("/admin/fansubs/:id/member-claims/:claimId/reject", auth, deps.memberClaimsHandler.RejectClaim)
 	v1.POST("/admin/fansubs/:id/historical-members/:memberId/activate", auth, deps.memberClaimsHandler.ActivateClaimedMember)
+	// Phase 138-14: Claim-Activation Impact Preview (D-24) -- read-only, group-scoped
+	// before/after effective-rights diff ahead of the real activation mutation above. Same
+	// authorization action (ActionFansubGroupHistoricalMembersLink) as that mutation.
+	if deps.adminClaimActivationImpactHandler != nil {
+		v1.GET("/admin/fansubs/:id/historical-members/:memberId/claim-activation-impact", auth, deps.adminClaimActivationImpactHandler.PreviewClaimActivation)
+	}
 	v1.GET("/admin/fansubs/:id/group-members/:memberId/claim-invitations", auth, deps.memberClaimInvitationsHandler.ListClaimInvitations)
 	v1.POST("/admin/fansubs/:id/group-members/:memberId/claim-invitations", auth, deps.memberClaimInvitationsHandler.CreateClaimInvitation)
 	v1.POST("/admin/fansubs/:id/group-members/:memberId/claim-invitations/:invitationId/cancel", auth, deps.memberClaimInvitationsHandler.CancelClaimInvitation)
