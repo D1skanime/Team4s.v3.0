@@ -23,9 +23,9 @@ export interface RoleCapabilityDetailProps {
   /**
    * Ersetzt die vormals direkten onGrant/onRevoke-Mutationsaufrufe (Plan 138-13, D-18): ein
    * Switch-Toggle löst NIEMALS mehr eine sofortige Mutation aus, sondern fordert nur an, dass
-   * der Parent den Impact-Preview-Dialog für (actionCode, add) öffnet -- die eigentliche
-   * Vergabe/Entziehung passiert erst nach einer im Dialog bestätigten, resolver-gestützten
-   * Vorschau.
+   * der Parent (RoleCapabilityClient.tsx) den RoleCapabilityImpactPreviewModal für
+   * (actionCode, add) öffnet -- die eigentliche Vergabe/Entziehung passiert erst nach einer
+   * im Dialog bestätigten, resolver-gestützten Vorschau.
    */
   onRequestChange: (actionCode: string, add: boolean) => void
   /** Inline-Fehler (z.B. 422 role_not_assignable oder 409 lockout_guard). */
