@@ -25,12 +25,12 @@ Team4s presents fansub history and collaboration credibly while keeping identity
 - [x] Phase 72 provides the v1.2 backend/contract foundation for status axes, domain projections, and media ownership read DTOs - validated 2026-06-05
 - [x] Phase 106 provides the auditierbare, idempotente Gamification-Grundlage mit stabilem Member-Bezug, versioniertem Punktekatalog und append-only Punktebuch - validated 2026-07-22
 - [x] Verify the complete public experience with reproducible `sheppert` and `csubs-leader` test profiles - Phase 134, validated 2026-08-20
+- [x] Make each user's effective capabilities transparent, including which roles or overrides grant or deny them. - Phase 138, validated 2026-08-23
+- [x] Let authorized admins apply targeted per-user capability allow/deny overrides without changing unrelated users or broad role assignments. - Phase 138, validated 2026-08-23
+- [x] Turn the existing user-detail rights view into the canonical guided surface for inspecting and safely revoking effective capabilities. - Phase 138, validated 2026-08-23
 
 ### Active
 
-- [ ] Make each user's effective capabilities transparent, including which roles or overrides grant or deny them.
-- [ ] Let authorized admins apply targeted per-user capability allow/deny overrides without changing unrelated users or broad role assignments.
-- [ ] Turn the existing user-detail rights view into the canonical guided surface for inspecting and safely revoking effective capabilities.
 - [ ] Make user-detail contribution, media, and rights data compact and actionable by grouping related release-version rows and showing real deviations.
 - [ ] Expose the existing per-member review-delegation model through documented APIs and the established group-member editor.
 - [ ] Show reviewers only queue entries they can actually decide, while keeping self-submissions clearly separated from actionable work.
@@ -77,6 +77,8 @@ Phase 112 completed on 2026-07-28: zwei weitere rein abgeleitete Badge-Familien 
 Phase 134 completed on 2026-08-20: the v1.3 milestone's closing fixture-backed verification and rollout gate. A versioned, idempotent `sheppert`/`csubs-leader` reset/seed contract, migration fresh/up/down proof, a 9-case Postgres-backed verification matrix, a real exit-code-checked automated green gate (`scripts/phase134-green-gate.sh`), protected-asset hash guarding, and live browser UAT (mobile/intermediate/widescreen, both profiles, 400% zoom, keyboard focus) with explicit user sign-off all passed. 7/7 verification must-haves, `GATE: GREEN (0)`.
 
 Phase 137 completed on 2026-08-21: `ResolveGroupRights`, the central provenance-capable effective-rights resolver (migration 0150, `backend/internal/permissions/effective_rights.go`), now backs every group-scoped runtime `Can*` entry point and a new transactional `EffectiveRightsService` for idempotent, audited per-user allow/deny/remove overrides, exposed at a group-scoped inspection/mutation/history HTTP boundary with BOLA/IDOR coverage. This is the backend/API foundation only — no admin UI ships yet, so the Active requirements below (effective-capability transparency, guided per-user override UX) remain open pending Phase 138. 5/5 verification must-haves, 0 critical code-review findings.
+
+Phase 138 completed on 2026-08-23: the user-detail group-rights tab is now the canonical, resolver-backed surface for inspecting and changing effective group rights (UADM-01) — provenance-complete, category-grouped, and the sole host for guided grant/revoke flows. A guided revoke flow lists every granting source and recommends a scoped deny before broader changes (CAP-08). Role-capability matrix changes are always preceded by a real batch impact preview across every actual role holder (CAP-09). Role-matrix and per-user override mutations render an honest, non-fabricated activation-status vocabulary distinguishing persisted/cache-active/pending/failed (CAP-10). New central `/admin/claims`, `/admin/changes`, and `/admin/roles` workspaces plus a persistent admin nav round out the IA. 4/4 verification must-haves; 1 critical + 4 warning code-review findings found and fixed. One item awaits live human click-through (dormant deny-override removal on a non-deniable actor — `138-HUMAN-UAT.md`).
 
 ## Current Milestone: v1.4 Capability-, Review- und Benutzerverwaltung
 
@@ -138,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with the current system state.
 
 ---
-*Last updated: 2026-08-21 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
+*Last updated: 2026-08-23 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
