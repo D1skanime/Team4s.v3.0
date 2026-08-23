@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Coverage
 status: ready_to_plan
 stopped_at: Phase 138 complete (16/16) — ready to discuss Phase 139
-last_updated: 2026-08-23T21:49:00.000Z
+last_updated: 2026-08-23T22:05:00.000Z
 last_activity: 2026-08-23
 progress:
   total_phases: 7
@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 139
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-08-23 - Completed quick task 260823-u1j: Fix UAT-138-A horizontal page overflow (.card/.tabs grid-template-columns)
+Last activity: 2026-08-23 - Completed quick task 260823-ucl: Fix UAT-138-A Nachtrag - .accordionRoot grid-template-columns (remaining overflow gap)
 
 ## Accumulated Context
 
@@ -207,6 +207,7 @@ Last activity: 2026-08-23 - Completed quick task 260823-u1j: Fix UAT-138-A horiz
 | 260823-mt8 | Fix PlatformAdminGate: children unmount on token refresh | 2026-08-23 | 37859778 | [260823-mt8-fix-platformadmingate-children-unmount-o](./quick/260823-mt8-fix-platformadmingate-children-unmount-o/) |
 | 260823-s7v | Split UserGroupRightsTab.tsx (716 -> 269 Zeilen) in 5 Geschwisterdateien - reine Struktur-Refaktorierung ohne Verhaltensaenderung, 450-Zeilen-Limit aus CLAUDE.md eingehalten | 2026-08-23 | 7039195b | [260823-s7v-split-frontend-src-app-admin-users-tabs-](./quick/260823-s7v-split-frontend-src-app-admin-users-tabs-/) |
 | 260823-u1j | Fix UAT-138-A horizontaler Seitenueberlauf (394px, Rollen & Rechte-Tab): grid-template-columns: minmax(0, 1fr) auf .card/.tabs in ui.module.css ergaenzt, damit implizite Grid-Spalte nicht mehr auf Breite eines breiten Kind-Elements (Rechte-Tabelle) waechst | 2026-08-23 | dc4f5726 | [260823-u1j-fix-uat-138-a-horizontaler-seitenueberla](./quick/260823-u1j-fix-uat-138-a-horizontaler-seitenueberla/) |
+| 260823-ucl | Nachtrag UAT-138-A: verbleibender Seitenueberlauf (394px) durch .accordionRoot in ui.module.css - gleiche implizite Grid-Track-Falle wie .card, grid-template-columns: minmax(0, 1fr) ergaenzt; alle uebrigen display:grid-Regeln erneut evidenzbasiert auditiert | 2026-08-23 | 59f7173f | [260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m](./quick/260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m/) |
 
 ### Verification Baseline
 
