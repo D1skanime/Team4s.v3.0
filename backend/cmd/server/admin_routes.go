@@ -39,6 +39,8 @@ type adminRouteHandlers struct {
 	// Phase 138-04: Role-Assignment Impact Preview (D-22) -- read-only before/after diff
 	// ahead of the existing role-assignment mutation
 	adminRoleAssignmentImpactHandler *handlers.AdminRoleAssignmentImpactHandler
+	// Phase 138-05: central cross-group Claims workspace (D-23)
+	adminClaimsListHandler *handlers.AdminClaimsListHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -283,5 +285,10 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 	// mutation. Same authorization action (ActionFansubGroupMembersManage) as that mutation.
 	if deps.adminRoleAssignmentImpactHandler != nil {
 		v1.GET("/admin/fansubs/:id/app-members/:appUserId/role-assignment-impact", auth, deps.adminRoleAssignmentImpactHandler.PreviewRoleAssignment)
+	}
+	// Phase 138-05: central cross-group Claims workspace (D-23) -- platform-admin-only,
+	// requirePlatformAdminIdentity is the first handler action.
+	if deps.adminClaimsListHandler != nil {
+		v1.GET("/admin/claims", auth, deps.adminClaimsListHandler.ListClaims)
 	}
 }

@@ -530,6 +530,9 @@ func main() {
 	adminRoleAssignmentImpactHandler := handlers.NewAdminRoleAssignmentImpactHandler(
 		permissionSvc, effectiveRightsOverrideRepo, authzRepo,
 	)
+	// Phase 138-05 Task 1: central cross-group Claims workspace (D-23) -- reuses the
+	// existing memberClaimsRepo, no new repository construction needed.
+	adminClaimsListHandler := handlers.NewAdminClaimsListHandler(authzRepo, memberClaimsRepo)
 	registerAdminRoutes(v1, authMiddleware, adminRouteHandlers{
 		adminContentHandler:           adminContentHandler,
 		animeHandler:                  animeHandler,
@@ -551,8 +554,9 @@ func main() {
 		adminGroupRolesHandler:        adminGroupRolesHandler,
 		releaseReviewHandler:          releaseReviewHandler,
 		adminEffectiveRightsHandler:   adminEffectiveRightsHandler,
-		adminRoleHoldersHandler:       adminRoleHoldersHandler,
+		adminRoleHoldersHandler:          adminRoleHoldersHandler,
 		adminRoleAssignmentImpactHandler: adminRoleAssignmentImpactHandler,
+		adminClaimsListHandler:           adminClaimsListHandler,
 	})
 	memberBadgesHandler := handlers.NewMemberBadgesHandler(badgeRepo)
 	archiveRepo := repository.NewMemberArchiveRepository(dbPool)

@@ -123,7 +123,56 @@ CREATE TABLE IF NOT EXISTS fansub_group_member_roles (
 	PRIMARY KEY (fansub_group_member_id, role)
 );
 CREATE INDEX IF NOT EXISTS idx_fansub_group_member_roles_role
-	ON fansub_group_member_roles(role);`
+	ON fansub_group_member_roles(role);
+-- Plan 138-05: member_claims (real shape from migration 0081) and
+-- hist_fansub_group_members (real shape from migration 0082) are required by
+-- MemberClaimsRepository.ListClaims's join shape; members.nickname is the
+-- real production display column (migration 0009) the join reads. audit_logs
+-- (real shape from migration 0075, minus the legacy users(id) FK which has
+-- no stand-in table here) is required by AuditLogRepository.ListChanges.
+-- Columns/tables added here only, additive, matching the 138-01 precedent.
+ALTER TABLE members
+	ADD COLUMN IF NOT EXISTS nickname VARCHAR(160),
+	ADD COLUMN IF NOT EXISTS display_name VARCHAR(160);
+CREATE TABLE IF NOT EXISTS member_claims (
+	id              BIGSERIAL PRIMARY KEY,
+	member_id       BIGINT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+	app_user_id     BIGINT NULL REFERENCES app_users(id) ON DELETE SET NULL,
+	claim_status    VARCHAR(20) NOT NULL DEFAULT 'pending',
+	note            TEXT NULL,
+	verification_method TEXT NULL,
+	verified_by     BIGINT NULL REFERENCES app_users(id) ON DELETE SET NULL,
+	verified_at     TIMESTAMPTZ NULL,
+	created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	CONSTRAINT uq_member_claims_member_user UNIQUE (member_id, app_user_id),
+	CONSTRAINT chk_member_claims_status CHECK (claim_status IN ('pending', 'verified', 'rejected'))
+);
+CREATE TABLE IF NOT EXISTS hist_fansub_group_members (
+	id               BIGSERIAL PRIMARY KEY,
+	fansub_group_id  BIGINT NOT NULL REFERENCES fansub_groups(id) ON DELETE RESTRICT,
+	member_id        BIGINT NOT NULL REFERENCES members(id) ON DELETE RESTRICT,
+	status           VARCHAR(20) NOT NULL DEFAULT 'historical',
+	visibility       VARCHAR(20) NOT NULL DEFAULT 'internal',
+	created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	CONSTRAINT uq_hist_fansub_group_members_group_member UNIQUE (fansub_group_id, member_id)
+);
+CREATE TABLE IF NOT EXISTS audit_logs (
+	id BIGSERIAL PRIMARY KEY,
+	actor_app_user_id BIGINT NULL REFERENCES app_users(id) ON DELETE SET NULL,
+	actor_legacy_user_id BIGINT NULL,
+	event_type VARCHAR(120) NOT NULL,
+	scope_type VARCHAR(40),
+	scope_id BIGINT,
+	target_type VARCHAR(80),
+	target_id BIGINT,
+	action_name VARCHAR(120),
+	outcome VARCHAR(20),
+	reason_code VARCHAR(80),
+	payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);`
 	if err := validatePhase106SQL(postMigrationSQL); err != nil {
 		t.Fatal(err)
 	}
