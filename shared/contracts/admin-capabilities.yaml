@@ -503,6 +503,85 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/role-capabilities/{roleCode}/{actionCode}/impact-preview:
+    get:
+      tags: [AdminCapabilities]
+      summary: Vorschau der Rechte-Auswirkung einer Rolle-zu-Capability-Änderung (CAP-09)
+      description: |
+        Phase 138 Plan 07 (CAP-09): berechnet einen vollständigen before/after-Diff der
+        effektiven Rechte für JEDEN aktuellen Inhaber von roleCode, über alle Gruppen, in
+        denen er die Rolle hält, für eine hypothetische Gewährung (add=true) oder Entziehung
+        (add=false) von actionCode auf dieser Rolle — das "eine Aktion, viele Personen"-
+        Gegenstück zur "eine Person, viele Aktionen"-Vorschau unter
+        .../app-members/{appUserId}/role-assignment-impact. Ausschließlich lesend, ohne
+        Nebenwirkung: es wird nichts persistiert. Wiederverwendet exakt denselben
+        Präzedenz-Evaluator wie ResolveGroupRights (D-20, bindend) — kein zweiter,
+        unabhängig berechneter Entscheidungspfad. Autorisierung spiegelt exakt die
+        bestehende Capability-Mutation (PUT/DELETE .../role-capabilities/{roleCode}/
+        {actionCode}) wider, damit ein Admin ohne Mutationsrecht auch keine Vorschau sehen kann.
+      operationId: previewCapabilityChange
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roleCode
+          in: path
+          required: true
+          description: Rollen-Code (z. B. fansub_lead, editor)
+          schema:
+            type: string
+        - name: actionCode
+          in: path
+          required: true
+          description: Action-Code (z. B. fansub_group.members.view)
+          schema:
+            type: string
+        - name: add
+          in: query
+          required: true
+          description: >
+            true = hypothetische Gewährung von actionCode an roleCode vorschauen,
+            false = hypothetische Entziehung vorschauen.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Before/After-Diff der effektiven Rechte für jeden aktuellen Rolleninhaber
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/CapabilityOverrideImpactPreview" }
+        "400":
+          description: roleCode/actionCode fehlen oder ungültiger/fehlender add-Parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Keine Platform-Admin-Berechtigung
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Rolle ist nicht zuweisbar (historische Gruppenrolle)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignableErrorResponse"
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/fansubs/{id}/app-members/{appUserId}/effective-rights:
     get:
       tags: [AdminCapabilities]
