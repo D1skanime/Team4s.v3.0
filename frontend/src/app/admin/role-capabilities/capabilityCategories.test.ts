@@ -28,4 +28,22 @@ describe('categoryDisplayLabel', () => {
     expect(typeof result).toBe('string')
     expect(result.length).toBeGreaterThan(0)
   })
+
+  // Plan 138-13 (138-RESEARCH.md Pitfall 2): die vier zuvor fehlenden echten Kategorien
+  // erhalten jetzt deliberate deutsche Labels statt des capitalizeFirst-Fallbacks.
+  it('mappt "gruppenmedien" auf "Gruppenmedien"', () => {
+    expect(categoryDisplayLabel('gruppenmedien')).toBe('Gruppenmedien')
+  })
+
+  it('mappt "gruppenseite" auf "Gruppenseite"', () => {
+    expect(categoryDisplayLabel('gruppenseite')).toBe('Gruppenseite')
+  })
+
+  it('mappt "rechteverwaltung" auf "Rechteverwaltung"', () => {
+    expect(categoryDisplayLabel('rechteverwaltung')).toBe('Rechteverwaltung')
+  })
+
+  it('mappt "review" auf "Review"', () => {
+    expect(categoryDisplayLabel('review')).toBe('Review')
+  })
 })

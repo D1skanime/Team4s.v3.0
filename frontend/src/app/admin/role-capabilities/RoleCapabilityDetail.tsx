@@ -6,7 +6,17 @@ import { Switch } from '@/components/ui/Switch'
 import type { RoleEntry } from '@/types/admin-capability'
 import { categoryDisplayLabel } from './capabilityCategories'
 
-const CATEGORY_ORDER = ['gruppe', 'projekt', 'release']
+// Deliberate Reihenfolge der 7 realen Kategorien (138-RESEARCH.md Pitfall 2, Plan 138-13);
+// unbekannte Kategorien fallen alphabetisch ans Ende (siehe sortedCats unten).
+const CATEGORY_ORDER = [
+  'gruppe',
+  'gruppenmedien',
+  'gruppenseite',
+  'projekt',
+  'rechteverwaltung',
+  'release',
+  'review',
+]
 
 export interface RoleCapabilityDetailProps {
   role: RoleEntry

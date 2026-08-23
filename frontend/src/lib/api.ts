@@ -249,7 +249,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { CapabilityOverrideAuditItem, CapabilityOverrideMutationRequest, CapabilityOverrideMutationResult, EffectiveRightState, PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
+import type { CapabilityOverrideAuditItem, CapabilityOverrideImpactPreview, CapabilityOverrideMutationRequest, CapabilityOverrideMutationResult, EffectiveRightState, PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -9980,6 +9980,44 @@ export async function revokeRoleCapability(
   }
 
   return response.json() as Promise<RoleCapabilityMutationResult>
+}
+
+/**
+ * Read-only Vorschau der Rechte-Auswirkung einer hypothetischen Capability-Vergabe/-Entziehung
+ * für EINE Aktion auf EINER Rolle, über ALLE aktuellen echten Rolleninhaber dieser Rolle hinweg
+ * (Plan 138-07 Backend / Plan 138-13 Frontend-Verdrahtung, CAP-09). Persistiert nichts und steht
+ * vor grantRoleCapability/revokeRoleCapability -- D-18/D-20: keine Mutation ohne berechnete
+ * Vorschau. `authorizedFetch`-Konvention (matcht grantRoleCapability/revokeRoleCapability in
+ * diesem 9700er-Block, 138-PATTERNS.md).
+ * GET /api/v1/admin/role-capabilities/:roleCode/:actionCode/impact-preview?add=true|false
+ */
+export async function getRoleCapabilityImpactPreview(
+  roleCode: string,
+  actionCode: string,
+  add: boolean,
+): Promise<CapabilityOverrideImpactPreview> {
+  const API_BASE_URL = getApiBaseUrl()
+  const response = await authorizedFetch(
+    `${API_BASE_URL}/api/v1/admin/role-capabilities/${encodeURIComponent(roleCode)}/${encodeURIComponent(actionCode)}/impact-preview?add=${add}`,
+    { cache: 'no-store' },
+  )
+
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    )
+    throw new ApiError(
+      response.status,
+      parsed.message,
+      null,
+      parsed.code,
+      parsed.details,
+    )
+  }
+
+  const payload = (await response.json()) as { data: CapabilityOverrideImpactPreview }
+  return payload.data
 }
 
 /**
