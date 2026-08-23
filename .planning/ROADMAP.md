@@ -541,7 +541,7 @@ Plans:
 - [x] 138-06-PLAN.md — UADM-01 foundation: api.ts wiring + canonical multi-group effective-rights inspection tab
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 138-07-PLAN.md — CAP-09 batch impact-preview endpoint for role-capability changes
+- [x] 138-07-PLAN.md — CAP-09 batch impact-preview endpoint for role-capability changes
 - [ ] 138-08-PLAN.md — CAP-08 guided revoke/grant flows + inline capability history
 - [ ] 138-09-PLAN.md — D-22 role-assignment impact preview UI
 - [ ] 138-10-PLAN.md — Claims top-level workspace (D-23)

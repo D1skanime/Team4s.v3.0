@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 138-06-PLAN.md
-last_updated: "2026-08-23T17:37:18.633Z"
+stopped_at: Completed 138-07-PLAN.md
+last_updated: "2026-08-23T17:47:26.457Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 51
+  completed_plans: 52
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 7 of 16
+Plan: 8 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -170,6 +170,7 @@ Last activity: 2026-08-23
 - [Phase 138]: 138-04: loadGroupRightsSources returns (groupRightsSources, bool, error) exactly per the plan's literal interface; pre-condition guards (nil resolver, invalid actor/group) intentionally stay in ResolveGroupRights since they resolve to a denyAllGroupRights reason code distinct from the platform-admin/disabled fast path. PreviewGroupRightsWithRoleChange reuses evaluateGroupRights twice against a synthetically modified role list (add=dedup-append, remove=filter) -- zero new decision logic (D-20 binding). New GET .../role-assignment-impact endpoint mirrors setFansubGroupMemberRole's exact authorization (ActionFansubGroupMembersManage) and role validation (IsKnownFansubGroupRole); target-actor resolution extracted into shared loadEffectiveRightsTargetActorState reused by AdminEffectiveRightsHandler and the new handler. Full D-35 contract chain (Go DTO/YAML/TS/api.ts) closed.
 - [Phase 138]: [Phase 138] 138-05: MemberClaimsRepository.ListClaims and AuditLogRepository.ListChanges close D-23/D-25's backend list-endpoint gap -- cross-group, platform-admin-gated, dynamic-parameterized filters, COUNT(*) OVER() totals, and a new shared ClampAdminListPage clamp helper; testsupport.OpenPhase137Postgres extended additively with member_claims/hist_fansub_group_members/audit_logs/members.nickname (real production shapes were never previously in the fixture's migration chain); full D-35 contract chain (OpenAPI/TS/api.ts) closed for GET /admin/claims and GET /admin/changes.
 - [Phase 138]: 138-06: getEffectiveRights/mutateCapabilityOverride/listOverrideHistory wired into api.ts; UserGroupRightsTab.tsx re-pointed at the real Phase-137 resolver -- multi-group, category-grouped (7 real registry categories), provenance-capable D-13 inspection surface, zero new client-side precedence logic (D-14). Matrix (listRoleCapabilities) fetch folded into the same load as memberships/rights to avoid a category-grouping render race, since it is now load-bearing not just a cross-nav optional enhancement. Mutation half (CAP-08 guided grant/revoke) deferred to Plan 138-08.
+- [Phase 138]: 138-07: PreviewGroupRightsCapabilityChange (permissions package) batch-computes a role-to-capability grant/revoke's before/after diff for every real role holder, reusing loadGroupRightsSources/evaluateGroupRights via a new evaluateGroupRightsWithHypotheticalGrant variant scoped to exactly one (role, action) pair; GET /admin/role-capabilities/:roleCode/:actionCode/impact-preview mirrors GrantCapability/RevokeCapability's exact platform-admin gate. Closes CAP-09's backend engine.
 
 ### Pending Todos
 
@@ -391,10 +392,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P04 | ~9min | 2 tasks | 9 files |
 | Phase 138 P05 | 45min | 2 tasks | 12 files |
 | Phase 138 P06 | 20m | 2 tasks | 3 files |
+| Phase 138 P07 | 40m | 2 tasks | 6 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T17:37:18.618Z
-Stopped at: Completed 138-06-PLAN.md
+Last session: 2026-08-23T17:47:26.443Z
+Stopped at: Completed 138-07-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
