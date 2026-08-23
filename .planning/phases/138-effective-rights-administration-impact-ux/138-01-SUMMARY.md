@@ -143,3 +143,7 @@ The role-holder query, handler, route, and full frontend contract chain are read
 ---
 *Phase: 138-effective-rights-administration-impact-ux*
 *Completed: 2026-08-23*
+
+## Self-Check: PASSED
+
+All created files found on disk; all task/summary commits (`2764a735`, `de1652bb`, `6ad1907c`) found in `git log`.
