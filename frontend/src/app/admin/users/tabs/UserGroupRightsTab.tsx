@@ -191,7 +191,7 @@ export function UserGroupRightsTab({ userId }: Props) {
   } else if (!data || data.memberships.length === 0) {
     content = (
       <div style={{ padding: 'var(--space-4)' }}>
-        <EmptyState title="Keine Gruppenmitgliedschaften." description="" />
+        <EmptyState variant="inline" title="Keine Gruppenmitgliedschaften." />
       </div>
     )
   } else {

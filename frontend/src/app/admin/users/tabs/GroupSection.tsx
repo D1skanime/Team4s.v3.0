@@ -1,4 +1,4 @@
-import { Accordion, Button, Card, EmptyState, SectionHeader } from '@/components/ui'
+import { Accordion, Button, EmptyState, SectionHeader } from '@/components/ui'
 import type { AccordionItemDef } from '@/components/ui'
 import { categoryDisplayLabel } from '../../role-capabilities/capabilityCategories'
 import { groupStatesByCategory, sortCategories } from './userGroupRightsHelpers'
@@ -64,7 +64,10 @@ export function GroupSection({
   }))
 
   return (
-    <Card variant="section" style={{ marginBottom: 'var(--space-4)' }} data-group-section>
+    <section
+      style={{ marginBottom: 'var(--space-4)', display: 'grid', gap: 'var(--space-4)' }}
+      data-group-section
+    >
       <SectionHeader
         level={3}
         title={membership.fansub_group_name}
@@ -88,7 +91,7 @@ export function GroupSection({
         }
       />
       {accordionItems.length === 0 ? (
-        <EmptyState title="Keine Rechte in dieser Gruppe." description="" />
+        <EmptyState variant="inline" title="Keine Rechte in dieser Gruppe." />
       ) : (
         <Accordion
           items={accordionItems}
@@ -97,6 +100,6 @@ export function GroupSection({
           onOpenChange={onOpenCategoryIdsChange}
         />
       )}
-    </Card>
+    </section>
   )
 }
