@@ -176,16 +176,12 @@ export function AdminUsersClient() {
               <TableRow>
                 <TableHeaderCell>Benutzer</TableHeaderCell>
                 <TableHeaderCell>Status</TableHeaderCell>
-                <TableHeaderCell>Globale Rollen</TableHeaderCell>
+                <TableHeaderCell>Globale Rolle</TableHeaderCell>
                 <TableHeaderCell>Member-Profil</TableHeaderCell>
-                <TableHeaderCell>Gruppen</TableHeaderCell>
-                <TableHeaderCell>Leitungskontext</TableHeaderCell>
+                <TableHeaderCell>Gruppenmitgliedschaften</TableHeaderCell>
                 <TableHeaderCell>Offene Claims</TableHeaderCell>
-                <TableHeaderCell>Beiträge</TableHeaderCell>
-                <TableHeaderCell>Release-Arbeitsflächen</TableHeaderCell>
-                <TableHeaderCell>Medienuploads</TableHeaderCell>
                 <TableHeaderCell>Letzte Aktivität</TableHeaderCell>
-                <TableHeaderCell>Konflikte</TableHeaderCell>
+                <TableHeaderCell>Aktionen</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -285,11 +281,8 @@ function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
         )}
       </TableCell>
 
-      {/* Gruppen */}
+      {/* Gruppenmitgliedschaften (D-04) */}
       <TableCell>{item.group_membership_count}</TableCell>
-
-      {/* Leitungskontext */}
-      <TableCell>{item.leader_context_count}</TableCell>
 
       {/* Offene Claims */}
       <TableCell>
@@ -300,27 +293,21 @@ function AdminUserTableRow({ item, onClick }: AdminUserTableRowProps) {
         )}
       </TableCell>
 
-      {/* Beiträge */}
-      <TableCell>
-        {item.open_contributions_count}/{item.total_contributions_count}
-      </TableCell>
-
-      {/* Release-Arbeitsflächen */}
-      <TableCell>{item.release_scope_count}</TableCell>
-
-      {/* Medienuploads */}
-      <TableCell>{item.media_upload_count}</TableCell>
-
       {/* Letzte Aktivität */}
       <TableCell>{formatRelativeDate(item.last_activity_at)}</TableCell>
 
-      {/* Konflikte */}
+      {/* Aktionen (D-04) */}
       <TableCell>
-        {item.conflict_count > 0 ? (
-          <Badge variant="warning">
-            {item.conflict_count} {item.conflict_count === 1 ? 'Konflikt' : 'Konflikte'}
-          </Badge>
-        ) : null}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(event) => {
+            event.stopPropagation()
+            onClick()
+          }}
+        >
+          Details
+        </Button>
       </TableCell>
     </TableRow>
   )
