@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 138-13-PLAN.md
-last_updated: "2026-08-23T19:02:04.450Z"
+stopped_at: Completed 138-15-PLAN.md
+last_updated: "2026-08-23T19:21:17.471Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 59
+  completed_plans: 60
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 15 of 16
+Plan: 16 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -180,6 +180,7 @@ Last activity: 2026-08-23
 - [Phase 138]: 138-13: preview items are joined to role holders by array INDEX (backend iteration order), not a target_user_id map, since the wire DTO carries no group id and a multi-group-membership holder produces multiple same-target_user_id items.
 - [Phase 138]: 138-13: RoleCapabilityClient.tsx's handleGrant/handleRevoke/capabilityError/isMutating were deleted rather than left dead -- all capability mutation now lives inside RoleCapabilityImpactPreviewModal, closing CAP-09's direct-mutate D-18 violation found this session.
 - [Phase 138-14]: PreviewClaimActivationImpact reuses ResolveGroupRights (before) + loadGroupRightsSources/evaluateGroupRights (after), overriding ActiveMembership/Roles only -- zero second decision engine; PreviewActivatableRoles is a zero-write twin of ActivateClaimedMember's steps 1-2; VerifyClaim/RejectClaim never fetch or fabricate a rights diff, closing D-24 in the central Claims workspace.
+- [Phase 138]: 138-15 (D-01..D-05/D-25/D-30): AdminMainNav is the one persistent D-01 admin nav (Button-row + shared admin/layout.tsx, since Tabs has no Link-based nav mode); AdminUsersClient reduced to D-04's exact 9-field column set; UserDetailPageClient rewritten from a 9-item Accordion to D-03's real 6-tab structure with ?tab= URL sync, requiring Tabs (@/components/ui) to gain optional controlled activeId/onActiveIdChange + keepMountedIds (backward compatible with its 4 pre-existing consumers) to preserve lazy-load-once without a refetch-on-reopen regression; UserOverviewTab's D-05-violating bare stat-tile grid replaced with a compact per-group summary. UserGroupMembershipsTab.tsx left in place, unimported/orphaned, rather than deleted.
 
 ### Pending Todos
 
@@ -409,10 +410,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P12 | 15min | 2 tasks | 4 files |
 | Phase 138 P13 | 42min | 2 tasks | 9 files |
 | Phase 138 P14 | 20min | 2 tasks | 14 files |
+| Phase 138 P15 | 45min | 2 tasks | 12 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T19:01:40.434Z
-Stopped at: Completed 138-13-PLAN.md
+Last session: 2026-08-23T19:21:17.457Z
+Stopped at: Completed 138-15-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None

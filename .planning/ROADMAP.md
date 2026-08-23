@@ -553,7 +553,7 @@ Plans:
 - [x] 138-14-PLAN.md — D-24 claim-activation impact preview
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
+- [x] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
 - [ ] 138-16-PLAN.md — Gruppenansicht Rollen/Änderungen tabs (D-06)
 
 **UI hint**: yes
