@@ -177,6 +177,12 @@ export interface AdminContributionItem {
   contribution_type: 'project_default' | 'release_override'
   dispute_state: string
   role_codes: string[]
+  // D-29: die echte fachliche Version (release_versions.version) und die
+  // Episodennummer für die Anzeige — release_version_id bleibt intern
+  // und wird nie mehr roh im UI gerendert. episode_number ist string
+  // (episodes.episode_number ist in der Datenbank TEXT), nicht number.
+  release_version_label: string | null
+  episode_number: string | null
 }
 
 /** Response des Contributions-Tab-Endpunkts (vier Gruppen, D-13). */

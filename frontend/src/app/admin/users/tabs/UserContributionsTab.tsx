@@ -77,7 +77,14 @@ function ContributionSection({
               {showReleaseVersion && (
                 <TableCell>
                   {item.release_version_id != null ? (
-                    <Badge variant="info">Version {item.release_version_id}</Badge>
+                    item.episode_number != null && item.release_version_label != null ? (
+                      <Badge variant="info">
+                        {item.anime_title} · Episode {item.episode_number} · Version{' '}
+                        {item.release_version_label}
+                      </Badge>
+                    ) : (
+                      <Badge variant="info">Version {item.release_version_id}</Badge>
+                    )
                   ) : (
                     <Badge variant="muted">–</Badge>
                   )}
