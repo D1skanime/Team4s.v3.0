@@ -122,6 +122,12 @@ None - no external service configuration required.
 - Plan 138-14 can now wire its D-24 decision-impact preview (verify/activate confirm actions) directly into this page's row set — the `Aktion` column is the explicit seam left open for it.
 - `useClaimsListFilters` and the `useIsMobile`/`ClaimCard` D-32 pattern are directly reusable if Plan 138-14 needs additional filter or responsive-collapse behavior on the same page.
 
+## Self-Check: PASSED
+
+All 4 created files (`useClaimsListFilters.ts`, `page.tsx`, `ClaimsClient.tsx`, `ClaimsClient.test.tsx`)
+confirmed present on disk. All 4 commit hashes (`ae3e8271`, `a718989a`, `35814ca2`, `f50be9bb`) confirmed
+present in `git log --oneline --all`.
+
 ---
 *Phase: 138-effective-rights-administration-impact-ux*
 *Completed: 2026-08-23*
