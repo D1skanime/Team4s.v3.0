@@ -93,6 +93,10 @@ A human must decide whether:
 
 No implementation decision was made here per 137-UAT.md's explicit instruction not to resolve this unilaterally.
 
+### Resolved (2026-08-23) — Fall B
+
+The human decision was made: option (b) above. Contribution roles remain an intentionally separate, override-blind domain — a stored `user_deny` does not defeat the `CanForReleaseVersion()` Step 3 contribution-role fallback, by design. This is now recorded as a named exception in `137-CONTEXT.md`'s D01 section (`### D01 exception — Contribution Roles (entschieden 2026-08-23)`) and in `DECISIONS.md` (entry dated 2026-08-23), and reflected in the `permissions.go` Step-3 comment and the regression test's doc comment. GAP-06 is closed.
+
 ## Deviations from Plan
 
 None - plan executed exactly as written. The plan itself anticipated and explicitly permitted the Fall C outcome ("the most likely outcome per 137-PATTERNS.md's own analysis, but this plan's execution must independently confirm it rather than assume it") — this plan's own investigation independently confirmed that outcome using the required evidence sources (137-CONTEXT.md full text, 137-05-SUMMARY.md's own text, the existing test's doc comment).

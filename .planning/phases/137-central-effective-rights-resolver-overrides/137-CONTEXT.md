@@ -139,6 +139,12 @@ Important:
 
 The Review Delegation model itself remains specialized and is not migrated into the generic override table.
 
+### D01 exception — Contribution Roles (entschieden 2026-08-23)
+
+Contribution Roles (`CanForReleaseVersion()` Schritt 3, `ListActorContributionRolesForVersion`) sind eine bewusste, override-blinde Ausnahme von D01s Precedence-Kette. Ein gespeichertes `user_deny` aus Schritt 2 schlägt diesen Fallback NICHT — eine Contribution Role kann weiterhin unabhängig Zugriff gewähren, selbst nachdem Schritt 2 durch ein gespeichertes `user_deny` verweigert wurde.
+
+Diese Entscheidung wurde vom Nutzer am 2026-08-23 getroffen und schließt GAP-06 (siehe `137-UAT.md`) als Fall B ab: Contribution Roles bleiben bewusst eigenständig und override-blind, statt als offene Fall-C-Frage zu gelten. Der Code-Kommentar direkt vor dem Contribution-Role-Fallback in `permissions.go`s `CanForReleaseVersion()` sowie der Regressionstest `TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny` in `effective_rights_integration_test.go` dokumentieren und sichern dieses Verhalten dauerhaft ab.
+
 ---
 
 ## D02 — Membership lifecycle and dormant overrides

@@ -203,8 +203,8 @@ func TestIntegrationCanForReleaseVersionMediaUserDenyOverridesRoleGrant(t *testi
 // TestIntegrationCanForReleaseVersionGroupRoleStepUserDenyOverridesRoleGrant
 // proves CanForReleaseVersion's group-role step (step 2, the shared
 // group-context path) becomes override-aware, even though its contribution-role
-// fallback (step 3) remains its own, separate, unchanged domain per the
-// plan's minimal-edit scope.
+// fallback (step 3) remains, by decided exception (Fall B, entschieden
+// 2026-08-23), its own, separate, override-blind domain.
 func TestIntegrationCanForReleaseVersionGroupRoleStepUserDenyOverridesRoleGrant(t *testing.T) {
 	resolver := &integrationFakeResolver{
 		fansubGroupID:    integrationTestGroupID,
@@ -233,14 +233,13 @@ func TestIntegrationCanForReleaseVersionGroupRoleStepUserDenyOverridesRoleGrant(
 // user_deny AND Step 3 would independently grant.
 //
 // 137-12-PLAN.md's investigation (see permissions.go's Step-3 comment in
-// CanForReleaseVersion) found that 137-CONTEXT.md's D01 precedence list and its
-// Section 2 binding Phase-136 rules never mention "contribution role" as a
-// resolver source category at all -- this is Fall C (an unresolved design
-// question), not Fall A or Fall B. Per 137-UAT.md's explicit instruction not to
-// resolve this unilaterally, this test proves and locks TODAY'S ACTUAL,
-// UNCHANGED behavior: a stored user_deny does not currently block the
-// contribution-role fallback. See 137-12-SUMMARY.md's
-// "DECISION REQUIRED — Contribution Role vs User Deny" section.
+// CanForReleaseVersion) left this open as 137-12-SUMMARY.md's
+// "DECISION REQUIRED — Contribution Role vs User Deny" section; the user
+// decided on 2026-08-23 that this is Fall B (a decided, named exception, not
+// Fall A or an unresolved Fall C). This test proves and locks TODAY'S ACTUAL
+// behavior: a stored user_deny does not block the contribution-role fallback
+// -- now BY DESIGN rather than pending decision. See 137-CONTEXT.md's "D01
+// exception -- Contribution Roles (entschieden 2026-08-23)" paragraph.
 func TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny(t *testing.T) {
 	resolver := &integrationFakeResolver{
 		fansubGroupID:    integrationTestGroupID,

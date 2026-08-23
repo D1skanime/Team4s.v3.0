@@ -616,18 +616,13 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 	// Schritt 3: Contribution-Check (D-01..D-04).
 	// Gibt versions-spezifische role_codes zurück; Fallback auf anime-weite wenn keine Override existiert.
 	//
-	// GAP-06 (137-UAT.md) required an explicit re-investigation of whether a stored user_deny
-	// from Step 2 must also defeat this independent contribution-role fallback. 137-CONTEXT.md's
-	// D01 precedence list and its Section 2 binding Phase-136 rules never mention "contribution
-	// role" as a resolver source category at all -- neither requiring nor explicitly exempting it
-	// from user_deny precedence. This is Fall C per 137-UAT.md's investigate-first protocol: a
-	// genuinely unresolved design question, not a confirmed exception. The previous "override-blind
-	// by design" framing here traced only to 137-05-SUMMARY.md's own minimal-edit-scope executor
-	// note, not to any 137-CONTEXT.md-authored decision. Runtime behavior is therefore preserved
-	// unchanged pending an explicit human decision -- see 137-12-SUMMARY.md's
-	// "DECISION REQUIRED — Contribution Role vs User Deny" section. A stored user_deny from Step 2
-	// does NOT currently block this fallback; a contribution role can still independently grant
-	// access even after Step 2 was denied by a stored user_deny.
+	// GAP-06 (137-UAT.md) is now resolved as Fall B -- a named, deliberate exception, decided by
+	// the user on 2026-08-23. Contribution Roles are an intentionally standalone, override-blind
+	// domain: see 137-CONTEXT.md's "D01 exception -- Contribution Roles (entschieden 2026-08-23)"
+	// paragraph. A stored user_deny from Step 2 does NOT block this fallback, by design; a
+	// contribution role can still independently grant access even after Step 2 was denied by a
+	// stored user_deny. This behavior is locked by the regression test
+	// TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny.
 	roleCodes, err := s.resolver.ListActorContributionRolesForVersion(ctx, actor.AppUserID, releaseVersionID)
 	if err != nil {
 		return Result{}, err
@@ -662,8 +657,9 @@ func (s *Service) CanForReleaseVersion(ctx context.Context, actor Actor, action 
 // group-context path): it now derives its decision from ResolveGroupRights
 // instead of a raw role loop, so a stored user allow/deny for the resolved
 // group changes the result here exactly as it does for CanForFansubGroup
-// (137-RESEARCH.md Pattern 1). Step 3 (contribution-role fallback) remains a
-// separate, unchanged domain per the plan's minimal-edit scope. When no group
+// (137-RESEARCH.md Pattern 1). Step 3 (contribution-role fallback) remains,
+// by decided exception, a separate override-blind domain -- see the Step-3
+// comment above (Fall B, entschieden 2026-08-23). When no group
 // grants access, the returned Result carries the most specific denial reason
 // found (a decisive user_deny over the generic zero-value) so the caller can
 // distinguish "explicitly denied" from "simply never granted".

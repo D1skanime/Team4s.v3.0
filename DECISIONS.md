@@ -790,3 +790,23 @@ Kein Schema-Change, keine Migration, keine Backfill-Frage, kein neuer Admin-Flow
 ### Follow-ups Required
 - Falls sich die Uploader->Member-Auflösung fachlich als unzureichend erweist, eine explizite nullable `member_id`-Contributor-Spalte auf `release_version_media` als eigene spätere Phase evaluieren (deferred, siehe 122-CONTEXT.md).
 - In der Backend-Query sicherstellen, dass Medien ohne eindeutig auflösbaren Member nicht der Galerie/den Counts zugeschlagen werden.
+
+## 2026-08-23 - GAP-06 (Phase 137): Contribution Roles bleiben override-blind (Fall B)
+
+### Decision
+Contribution Roles bleiben eine bewusst eigenständige, override-blinde Domäne (Fall B). Ein gespeichertes `user_deny` schlägt den Contribution-Role-Fallback in `CanForReleaseVersion()` Schritt 3 nicht.
+
+### Context
+GAP-06 aus `137-UAT.md` wurde zuvor durch `137-12-SUMMARY.md` als Fall C (offene Frage, „DECISION REQUIRED — Contribution Role vs User Deny") dispositioniert: `137-CONTEXT.md`s D01-Precedence-Liste und ihre bindenden Phase-136-Regeln erwähnten „Contribution Role" an keiner Stelle als eigene Resolver-Quelle, sodass weder Fall A noch Fall B eindeutig belegt werden konnten.
+
+### Why This Won
+Explizite Nutzerentscheidung am 2026-08-23. Eine reine Dokumentationsklarstellung war ausreichend, da das bestehende Verhalten bereits der Fall-B-Erwartung entspricht — kein Code-Verhalten musste geändert werden, nur die Dokumentation musste den entschiedenen Zustand statt der offenen Frage widerspiegeln.
+
+### Consequences
+- `137-CONTEXT.md`s D01-Abschnitt trägt jetzt eine benannte Ausnahme (`### D01 exception — Contribution Roles (entschieden 2026-08-23)`).
+- Der `permissions.go`-Kommentar vor dem Contribution-Role-Fallback in `CanForReleaseVersion()` und der Regressionstest-Kommentar (`TestIntegrationCanForReleaseVersionContributionRoleFallbackNotBlockedByUserDeny`) spiegeln die Entscheidung wider.
+- `137-UAT.md` und `137-12-SUMMARY.md` tragen je einen datierten Auflösungsvermerk, ohne die ursprüngliche Fall-A/B/C-Analyse zu löschen.
+- GAP-06 gilt als final geschlossen.
+
+### Follow-ups Required
+- Keine (dokumentationsseitig abgeschlossen).
