@@ -12,6 +12,7 @@ import {
   ErrorState,
   LoadingState,
   SectionHeader,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -32,12 +33,14 @@ import type {
   CapabilityOverrideMutationResult,
   EffectiveRightState,
   RoleCapabilityMatrix,
+  RoleEntry,
 } from '@/types/admin-capability'
 import { categoryDisplayLabel } from '../../role-capabilities/capabilityCategories'
 import { resolveRoleLink } from '../resolveRoleLink'
 import { CapabilityHistoryPanel } from './CapabilityHistoryPanel'
 import { GuidedGrantFlow } from './GuidedGrantFlow'
 import { GuidedRevokeFlow } from './GuidedRevokeFlow'
+import { RoleAssignmentImpactModal } from './RoleAssignmentImpactModal'
 
 /** Welcher geführte Fluss (CAP-08) gerade für welche Capability-Zeile geöffnet ist. */
 type ActiveFlow =
@@ -55,6 +58,14 @@ type ActiveFlow =
       actionCode: string
       actionLabel: string
       state: EffectiveRightState
+    }
+  | {
+      kind: 'roleAssignment'
+      groupId: number
+      groupName: string
+      roleCode: string
+      roleLabel: string
+      change: 'assign' | 'revoke'
     }
   | null
 
@@ -127,6 +138,115 @@ function decisiveSourceLabel(state: EffectiveRightState): string {
     default:
       return state.decisive_source
   }
+}
+
+function roleLabelFor(roleCode: string, matrix: RoleCapabilityMatrix | null): string {
+  return matrix?.roles.find((entry) => entry.role_code === roleCode)?.label_de ?? roleCode
+}
+
+/**
+ * D-22 (138-09-PLAN.md): zuweisbare Gruppenrollen aus der bereits geladenen Matrix -- gleicher
+ * Filter wie FansubAppMembersSection.tsx (orderForContext(..., 'fansub_group').filter(assignable))
+ * und GuidedRevokeFlow.tsx's isFansubGroupCatalogRole, kein zweiter/stale Rollenkatalog.
+ */
+function assignableFansubGroupRoles(matrix: RoleCapabilityMatrix | null, alreadyHeld: string[]): RoleEntry[] {
+  if (!matrix) return []
+  return matrix.roles.filter(
+    (role) =>
+      role.assignable === true &&
+      role.role_kind !== 'global_app_role' &&
+      (role.contexts ?? []).includes('fansub_group') &&
+      !alreadyHeld.includes(role.role_code),
+  )
+}
+
+/** D-22: kompakte "Rollen in dieser Gruppe"-Sektion, gated auf RoleAssignmentImpactModal (D-18/D-20). */
+function GroupRolesSection({
+  membership,
+  matrix,
+  onOpenRoleAssignment,
+}: {
+  membership: AdminGroupMembershipSummary
+  matrix: RoleCapabilityMatrix | null
+  onOpenRoleAssignment: (roleCode: string, roleLabel: string, change: 'assign' | 'revoke') => void
+}) {
+  const [selectedRoleCode, setSelectedRoleCode] = useState('')
+  const assignableRoles = assignableFansubGroupRoles(matrix, membership.roles)
+
+  return (
+    <div style={{ marginBottom: 'var(--space-3)' }}>
+      <SectionHeader level={3} title="Rollen in dieser Gruppe" />
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          marginBottom: 'var(--space-2)',
+        }}
+      >
+        {membership.roles.length === 0 ? (
+          <Badge variant="muted">–</Badge>
+        ) : (
+          membership.roles.map((role) => {
+            const link = resolveRoleLink(role, matrix)
+            return (
+              <div key={role} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <Badge variant="info">{role}</Badge>
+                {link && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    href={link}
+                    aria-label={`Rechte der Rolle ${role} ansehen`}
+                  >
+                    Was darf diese Rolle?
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onOpenRoleAssignment(role, roleLabelFor(role, matrix), 'revoke')}
+                >
+                  Entfernen
+                </Button>
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      {assignableRoles.length > 0 && (
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+          <Select
+            aria-label="Zuzuweisende Rolle auswählen"
+            value={selectedRoleCode}
+            onChange={(event) => setSelectedRoleCode(event.target.value)}
+          >
+            <option value="">Rolle auswählen …</option>
+            {assignableRoles.map((role) => (
+              <option key={role.role_code} value={role.role_code}>
+                {role.label_de}
+              </option>
+            ))}
+          </Select>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!selectedRoleCode}
+            onClick={() => {
+              const role = assignableRoles.find((entry) => entry.role_code === selectedRoleCode)
+              if (!role) return
+              onOpenRoleAssignment(role.role_code, role.label_de, 'assign')
+              setSelectedRoleCode('')
+            }}
+          >
+            Rolle zuweisen
+          </Button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 function CapabilityDetailRow({
@@ -305,6 +425,7 @@ function GroupSection({
   onToggleRow,
   onOpenRevoke,
   onOpenGrant,
+  onOpenRoleAssignment,
 }: {
   membership: AdminGroupMembershipSummary
   appUserId: number
@@ -317,6 +438,13 @@ function GroupSection({
   onToggleRow: (key: string) => void
   onOpenRevoke: (groupId: number, groupName: string, state: EffectiveRightState, label: string) => void
   onOpenGrant: (groupId: number, state: EffectiveRightState, label: string) => void
+  onOpenRoleAssignment: (
+    groupId: number,
+    groupName: string,
+    roleCode: string,
+    roleLabel: string,
+    change: 'assign' | 'revoke',
+  ) => void
 }) {
   const byCategory = groupStatesByCategory(states, actionMeta)
   const categories = sortCategories([...byCategory.keys()])
@@ -357,38 +485,13 @@ function GroupSection({
           </Button>
         }
       />
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          marginBottom: 'var(--space-3)',
-        }}
-      >
-        {membership.roles.length === 0 ? (
-          <Badge variant="muted">–</Badge>
-        ) : (
-          membership.roles.map((role) => {
-            const link = resolveRoleLink(role, matrix)
-            return (
-              <div key={role} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Badge variant="info">{role}</Badge>
-                {link && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    href={link}
-                    aria-label={`Rechte der Rolle ${role} ansehen`}
-                  >
-                    Was darf diese Rolle?
-                  </Button>
-                )}
-              </div>
-            )
-          })
-        )}
-      </div>
+      <GroupRolesSection
+        membership={membership}
+        matrix={matrix}
+        onOpenRoleAssignment={(roleCode, roleLabel, change) =>
+          onOpenRoleAssignment(membership.fansub_group_id, membership.fansub_group_name, roleCode, roleLabel, change)
+        }
+      />
       {accordionItems.length === 0 ? (
         <EmptyState title="Keine Rechte in dieser Gruppe." description="" />
       ) : (
@@ -504,10 +607,26 @@ export function UserGroupRightsTab({ userId }: Props) {
     setActiveFlow({ kind: 'grant', groupId, actionCode: state.action_code, actionLabel: label, state })
   }, [])
 
+  const handleOpenRoleAssignment = useCallback(
+    (
+      groupId: number,
+      groupName: string,
+      roleCode: string,
+      roleLabel: string,
+      change: 'assign' | 'revoke',
+    ) => {
+      setActiveFlow({ kind: 'roleAssignment', groupId, groupName, roleCode, roleLabel, change })
+    },
+    [],
+  )
+
   // D-18/D-21: nach jeder bestätigten Mutation muss die Zeile sofort den neuen Zustand
   // zeigen -- keine veraltete UI. Das Modal selbst bleibt offen (eigener lokaler
   // activation-status-Zustand) und zeigt seinen eigenen Erfolg unabhängig von diesem Reload.
-  const handleMutated = useCallback((_result: CapabilityOverrideMutationResult) => {
+  // Optionaler Parameter, da RoleAssignmentImpactModal (D-22) onMutated ohne Argument aufruft --
+  // eine Rollenänderung betrifft potenziell viele Capabilities, nicht ein einzelnes
+  // CapabilityOverrideMutationResult.
+  const handleMutated = useCallback((_result?: CapabilityOverrideMutationResult) => {
     void loadData()
   }, [loadData])
 
@@ -540,6 +659,7 @@ export function UserGroupRightsTab({ userId }: Props) {
             onToggleRow={toggleRow}
             onOpenRevoke={handleOpenRevoke}
             onOpenGrant={handleOpenGrant}
+            onOpenRoleAssignment={handleOpenRoleAssignment}
           />
         ))}
       </div>
@@ -573,6 +693,21 @@ export function UserGroupRightsTab({ userId }: Props) {
           actionCode={activeFlow.actionCode}
           actionLabel={activeFlow.actionLabel}
           state={activeFlow.state}
+          onMutated={handleMutated}
+        />
+      )}
+      {activeFlow?.kind === 'roleAssignment' && (
+        <RoleAssignmentImpactModal
+          open
+          onClose={() => setActiveFlow(null)}
+          fansubGroupId={activeFlow.groupId}
+          fansubGroupName={activeFlow.groupName}
+          appUserId={userId}
+          appUserDisplayName={`Nutzer #${userId}`}
+          roleCode={activeFlow.roleCode}
+          roleLabel={activeFlow.roleLabel}
+          change={activeFlow.change}
+          actionMeta={actionMeta}
           onMutated={handleMutated}
         />
       )}

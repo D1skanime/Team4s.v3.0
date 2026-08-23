@@ -15,6 +15,8 @@ const mockGetEffectiveRights = vi.fn()
 const mockListRoleCapabilities = vi.fn()
 const mockListOverrideHistory = vi.fn()
 const mockMutateCapabilityOverride = vi.fn()
+const mockGetRoleAssignmentImpactPreview = vi.fn()
+const mockUpdateFansubAppMemberRole = vi.fn()
 
 vi.mock('@/lib/api', () => ({
   getAdminUserGroupMemberships: (...args: unknown[]) => mockGetAdminUserGroupMemberships(...args),
@@ -22,6 +24,8 @@ vi.mock('@/lib/api', () => ({
   listRoleCapabilities: (...args: unknown[]) => mockListRoleCapabilities(...args),
   listOverrideHistory: (...args: unknown[]) => mockListOverrideHistory(...args),
   mutateCapabilityOverride: (...args: unknown[]) => mockMutateCapabilityOverride(...args),
+  getRoleAssignmentImpactPreview: (...args: unknown[]) => mockGetRoleAssignmentImpactPreview(...args),
+  updateFansubAppMemberRole: (...args: unknown[]) => mockUpdateFansubAppMemberRole(...args),
   ApiError: class ApiError extends Error {
     constructor(public status: number, message: string) {
       super(message)
@@ -78,7 +82,22 @@ function makeState(overrides: Partial<EffectiveRightState> = {}): EffectiveRight
 
 function makeMatrix(): RoleCapabilityMatrix {
   return {
-    roles: [{ role_code: 'co_leader', label_de: 'Co-Leitung', actions: [] }],
+    roles: [
+      {
+        role_code: 'co_leader',
+        label_de: 'Co-Leitung',
+        actions: [],
+        assignable: true,
+        contexts: ['fansub_group'],
+      },
+      {
+        role_code: 'timer',
+        label_de: 'Timer',
+        actions: [],
+        assignable: true,
+        contexts: ['fansub_group'],
+      },
+    ],
     all_actions: [
       { code: 'fansub_group.edit', label_de: 'Gruppendaten bearbeiten', category: 'gruppe', sort_order: 10 },
       {
@@ -248,5 +267,95 @@ describe('UserGroupRightsTab', () => {
     expect(within(sakuraSection as HTMLElement).queryByText('Release bearbeiten')).toBeNull()
     expect(within(newSubsSection as HTMLElement).getByText('Release bearbeiten')).not.toBeNull()
     expect(within(newSubsSection as HTMLElement).queryByText('Gruppendaten bearbeiten')).toBeNull()
+  })
+
+  describe('Rollen in dieser Gruppe (D-22, Plan 138-09)', () => {
+    it('zeigt die gehaltene Rolle mit einem Entfernen-Button und ein Rolle-zuweisen-Select für die verbleibende zuweisbare Rolle', async () => {
+      mockGetAdminUserGroupMemberships.mockResolvedValueOnce(
+        makeMembershipsResponse([makeMembership({ roles: ['co_leader'] })]),
+      )
+      mockListRoleCapabilities.mockResolvedValueOnce(makeMatrix())
+      mockGetEffectiveRights.mockResolvedValueOnce([makeState()])
+
+      render(<UserGroupRightsTab userId={1} />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Rollen in dieser Gruppe')).not.toBeNull()
+      })
+      expect(screen.getAllByText('co_leader').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByRole('button', { name: 'Entfernen' })).not.toBeNull()
+      expect(screen.getByRole('option', { name: 'Timer' })).not.toBeNull()
+      expect(screen.queryByRole('option', { name: 'Co-Leitung' })).toBeNull()
+    })
+
+    it('öffnet RoleAssignmentImpactModal im Revoke-Modus beim Klick auf Entfernen einer bestehenden Rolle', async () => {
+      mockGetAdminUserGroupMemberships.mockResolvedValueOnce(
+        makeMembershipsResponse([makeMembership({ roles: ['co_leader'] })]),
+      )
+      mockListRoleCapabilities.mockResolvedValueOnce(makeMatrix())
+      mockGetEffectiveRights.mockResolvedValueOnce([makeState()])
+      mockGetRoleAssignmentImpactPreview.mockResolvedValueOnce({
+        target_user_id: 1,
+        role_code: 'co_leader',
+        change: 'revoke',
+        before: [makeState()],
+        after: [makeState({ allowed: false, decisive_source: 'no_grant', granting_roles: [] })],
+      })
+
+      render(<UserGroupRightsTab userId={1} />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Entfernen' })).not.toBeNull()
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Entfernen' }))
+
+      await waitFor(() => {
+        expect(mockGetRoleAssignmentImpactPreview).toHaveBeenCalledWith(1, 1, 'co_leader', 'revoke')
+      })
+      expect(screen.getByRole('button', { name: 'Rolle entfernen' })).not.toBeNull()
+    })
+
+    it('öffnet RoleAssignmentImpactModal im Assign-Modus und lädt nach bestätigter Mutation die Sektion neu', async () => {
+      mockGetAdminUserGroupMemberships.mockResolvedValue(
+        makeMembershipsResponse([makeMembership({ roles: ['co_leader'] })]),
+      )
+      mockListRoleCapabilities.mockResolvedValue(makeMatrix())
+      mockGetEffectiveRights.mockResolvedValue([makeState()])
+      mockGetRoleAssignmentImpactPreview.mockResolvedValueOnce({
+        target_user_id: 1,
+        role_code: 'timer',
+        change: 'assign',
+        before: [makeState({ action_code: 'release.edit', allowed: false, decisive_source: 'no_grant', granting_roles: [] })],
+        after: [makeState({ action_code: 'release.edit', allowed: true, granting_roles: ['timer'] })],
+      })
+      mockUpdateFansubAppMemberRole.mockResolvedValueOnce({ data: {} })
+
+      render(<UserGroupRightsTab userId={1} />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Timer' })).not.toBeNull()
+      })
+      fireEvent.change(screen.getByLabelText('Zuzuweisende Rolle auswählen'), {
+        target: { value: 'timer' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Rolle zuweisen' }))
+
+      await waitFor(() => {
+        expect(mockGetRoleAssignmentImpactPreview).toHaveBeenCalledWith(1, 1, 'timer', 'assign')
+      })
+
+      const dialog = await screen.findByRole('dialog')
+      const confirmButton = within(dialog).getByRole('button', { name: 'Rolle zuweisen' })
+      await waitFor(() => expect((confirmButton as HTMLButtonElement).disabled).toBe(false))
+      fireEvent.click(confirmButton)
+
+      await waitFor(() => {
+        expect(mockUpdateFansubAppMemberRole).toHaveBeenCalledWith(1, 1, { role: 'timer', enabled: true })
+      })
+      // D-18: nach bestätigter Mutation wird die gesamte Gruppensektion neu geladen, nicht nur die Rollen-Badges.
+      await waitFor(() => {
+        expect(mockGetAdminUserGroupMemberships).toHaveBeenCalledTimes(2)
+      })
+    })
   })
 })
