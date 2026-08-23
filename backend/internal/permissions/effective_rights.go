@@ -185,24 +185,46 @@ func (s *Service) ResolveGroupRights(ctx context.Context, actor Actor, fansubGro
 		return denyAllGroupRights(actor, fansubGroupID, ReasonResourceNotFound), nil
 	}
 
+	sources, fastPath, err := s.loadGroupRightsSources(ctx, actor, fansubGroupID)
+	if err != nil {
+		return nil, err
+	}
+	if fastPath {
+		return evaluateGroupRights(actor, fansubGroupID, groupRightsSources{}, allKnownActions), nil
+	}
+	return evaluateGroupRights(actor, fansubGroupID, sources, allKnownActions), nil
+}
+
+// loadGroupRightsSources batch-loads membership, role grants, user overrides and
+// specialized grants in at most one round trip per category (extracted from
+// ResolveGroupRights, Plan 138-04, behavior-preserving). The returned bool signals
+// "fast-path taken" -- true means actor is a platform admin or disabled, sources is an
+// empty groupRightsSources{}, and the caller must evaluate with that EMPTY source set,
+// exactly matching the pre-extraction fast-path branch; false means sources is the real
+// batch-loaded input for evaluateGroupRights. Callers other than ResolveGroupRights (e.g.
+// Plan 138-04's PreviewGroupRightsWithRoleChange) MUST still perform their own guard checks
+// (nil service/resolver, actor.AppUserID <= 0, fansubGroupID <= 0) before calling this --
+// those pre-condition guards intentionally stay outside this method since they resolve to a
+// denyAllGroupRights reason code, not the platform-admin/disabled evaluateGroupRights path.
+func (s *Service) loadGroupRightsSources(ctx context.Context, actor Actor, fansubGroupID int64) (groupRightsSources, bool, error) {
 	// Platform admin and disabled actor are unconditionally decisive per D01 -- no source
 	// batch-load is needed to compute the answer for either, so skip the round trips.
 	if actor.IsPlatformAdmin || strings.TrimSpace(actor.Status) == "disabled" {
-		return evaluateGroupRights(actor, fansubGroupID, groupRightsSources{}, allKnownActions), nil
+		return groupRightsSources{}, true, nil
 	}
 
 	var sources groupRightsSources
 
 	roles, err := s.resolver.ListActorGroupRoles(ctx, actor.AppUserID, fansubGroupID)
 	if err != nil {
-		return nil, err
+		return groupRightsSources{}, false, err
 	}
 	sources.Roles = roles
 
 	if membershipResolver, ok := s.resolver.(GroupRightsMembershipResolver); ok {
 		membership, err := membershipResolver.ResolveActorGroupMembership(ctx, actor.AppUserID, fansubGroupID)
 		if err != nil {
-			return nil, err
+			return groupRightsSources{}, false, err
 		}
 		if membership != nil {
 			sources.ActiveMembership = membership.ActiveMembership
@@ -220,7 +242,7 @@ func (s *Service) ResolveGroupRights(ctx context.Context, actor Actor, fansubGro
 	if overridesResolver, ok := s.resolver.(GroupRightsOverridesResolver); ok {
 		overrides, err := overridesResolver.ResolveActorUserOverrides(ctx, actor.AppUserID, fansubGroupID)
 		if err != nil {
-			return nil, err
+			return groupRightsSources{}, false, err
 		}
 		sources.Overrides = overrides
 	}
@@ -228,12 +250,12 @@ func (s *Service) ResolveGroupRights(ctx context.Context, actor Actor, fansubGro
 	for _, provider := range s.specializedGrantProviders() {
 		grants, err := provider.ResolveGroupGrants(ctx, actor.AppUserID, fansubGroupID)
 		if err != nil {
-			return nil, err
+			return groupRightsSources{}, false, err
 		}
 		sources.SpecializedGrants = append(sources.SpecializedGrants, grants...)
 	}
 
-	return evaluateGroupRights(actor, fansubGroupID, sources, allKnownActions), nil
+	return sources, false, nil
 }
 
 // specializedGrantProviders collects every SpecializedGrantProvider this Service's
