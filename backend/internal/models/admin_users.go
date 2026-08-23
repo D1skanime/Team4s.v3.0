@@ -163,6 +163,16 @@ type AdminContributionItem struct {
 	ContributionType string   `json:"contribution_type"` // "project_default" | "release_override"
 	DisputeState     string   `json:"dispute_state"`
 	RoleCodes        []string `json:"role_codes"`
+
+	// D-29: die echte fachliche Version (release_versions.version) und die
+	// Episodennummer für die Anzeige — release_version_id bleibt intern
+	// (Foreign Key), wird aber nie mehr roh im UI gerendert. Beide nullable,
+	// weil ReleaseVersionID selbst bei Projekt-Standard-Beiträgen NULL ist.
+	// Beide Felder sind bewusst *string (nicht *int): der Episodenspalten-Typ
+	// ist in der Datenbank TEXT (Migration 0002), siehe die gleiche Konvention
+	// in GroupReleaseVersionOption (anime_contributions_release_lookup_repository.go).
+	ReleaseVersionLabel *string `json:"release_version_label"`
+	EpisodeNumber       *string `json:"episode_number"`
 }
 
 // AdminUserContributionsResult ist das DTO für den Contributions-Tab (D-13: vier Gruppen).
