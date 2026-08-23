@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 138-08-PLAN.md
-last_updated: "2026-08-23T17:59:49.193Z"
+last_updated: "2026-08-23T18:11:27.970Z"
 last_activity: 2026-08-23
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 61
-  completed_plans: 53
+  completed_plans: 54
   percent: 29
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 9 of 16
+Plan: 10 of 16
 Status: Ready to execute
 Last activity: 2026-08-23
 
@@ -172,6 +172,7 @@ Last activity: 2026-08-23
 - [Phase 138]: 138-06: getEffectiveRights/mutateCapabilityOverride/listOverrideHistory wired into api.ts; UserGroupRightsTab.tsx re-pointed at the real Phase-137 resolver -- multi-group, category-grouped (7 real registry categories), provenance-capable D-13 inspection surface, zero new client-side precedence logic (D-14). Matrix (listRoleCapabilities) fetch folded into the same load as memberships/rights to avoid a category-grouping render race, since it is now load-bearing not just a cross-nav optional enhancement. Mutation half (CAP-08 guided grant/revoke) deferred to Plan 138-08.
 - [Phase 138]: 138-07: PreviewGroupRightsCapabilityChange (permissions package) batch-computes a role-to-capability grant/revoke's before/after diff for every real role holder, reusing loadGroupRightsSources/evaluateGroupRights via a new evaluateGroupRightsWithHypotheticalGrant variant scoped to exactly one (role, action) pair; GET /admin/role-capabilities/:roleCode/:actionCode/impact-preview mirrors GrantCapability/RevokeCapability's exact platform-admin gate. Closes CAP-09's backend engine.
 - [Phase 138]: 138-08: GuidedRevokeFlow/GuidedGrantFlow each detect their own 'Abweichung entfernen' reversion mode from state.user_deny/state.user_allow; UserGroupRightsTab wires all three locked business-verb actions plus an inline CapabilityHistoryPanel (D-13b) into the row-expansion area, refreshing on every confirmed mutation while the flow's own modal independently stays open showing the real activation_status (CAP-10/D-21). CAP-08 fully wired end to end; UADM-01's editing half is complete.
+- [Phase 138]: 138-09: RoleAssignmentImpactModal closes D-22's role-assignment half; reused the existing, already-live updateFansubAppMemberRole mutation instead of adding a duplicate setFansubGroupMemberRole function to api.ts (Task 1's stated gap was factually incorrect -- FansubAppMembersSection.tsx and RoleAssignmentAfterClaim.tsx already call this exact PUT .../roles endpoint). Confirmed the endpoint's real semantics are additive/removable multi-role via {role, enabled}, not a single-active-role replace.
 
 ### Pending Todos
 
@@ -395,10 +396,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P06 | 20m | 2 tasks | 3 files |
 | Phase 138 P07 | 40m | 2 tasks | 6 files |
 | Phase 138 P08 | 25m | 2 tasks | 8 files |
+| Phase 138 P09 | 25m | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-23T17:59:49.181Z
+Last session: 2026-08-23T18:11:06.477Z
 Stopped at: Completed 138-08-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
