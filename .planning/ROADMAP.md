@@ -545,7 +545,7 @@ Plans:
 - [x] 138-08-PLAN.md — CAP-08 guided revoke/grant flows + inline capability history
 - [x] 138-09-PLAN.md — D-22 role-assignment impact preview UI
 - [x] 138-10-PLAN.md — Claims top-level workspace (D-23)
-- [ ] 138-11-PLAN.md — Änderungen top-level workspace (D-25/D-26/D-27)
+- [x] 138-11-PLAN.md — Änderungen top-level workspace (D-25/D-26/D-27)
 - [ ] 138-12-PLAN.md — Rollen top-level workspace (D-07)
 
 **Wave 3** *(blocked on Wave 2 completion)*
