@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 
-import { Accordion, Badge, Button, ErrorState, PageHeader } from '@/components/ui'
-import type { AccordionItemDef } from '@/components/ui'
+import { Badge, Button, ErrorState, PageHeader, SectionHeader, Tabs } from '@/components/ui'
+import type { TabItem } from '@/components/ui'
 import { getAdminUserOverview } from '@/lib/api'
 import type { AdminUserOverviewResponse } from '@/types/admin-users'
 
@@ -13,16 +13,46 @@ import { UserAuditTab } from '../tabs/UserAuditTab'
 import { UserClaimsTab } from '../tabs/UserClaimsTab'
 import { UserContributionsTab } from '../tabs/UserContributionsTab'
 import { UserGlobalRolesTab } from '../tabs/UserGlobalRolesTab'
-import { UserGroupMembershipsTab } from '../tabs/UserGroupMembershipsTab'
 import { UserGroupRightsTab } from '../tabs/UserGroupRightsTab'
 import { UserMediaTab } from '../tabs/UserMediaTab'
 import { UserOverviewTab } from '../tabs/UserOverviewTab'
 import { UserStreamingGrantsTab } from '../tabs/UserStreamingGrantsTab'
 
-// Items 1-4 (D-03): initial offen UND geladen. Items 5-9: eingeklappt, laden lazy
-// beim ersten Öffnen und bleiben danach im Cache (kein Re-Fetch beim erneuten
-// Öffnen — separates loadedIds-Set, siehe 111-PATTERNS.md Pitfall 3).
-const DEFAULT_OPEN_IDS = ['overview', 'roles', 'memberships', 'group-rights']
+/**
+ * D-03 (locked, exakter Wortlaut): Übersicht | Rollen & Rechte | Beiträge | Claims |
+ * Streaming | Änderungen. Ersetzt die vorherige 9-Item-Accordion-Navigation durch die
+ * echte, gesperrte 6-Tab-Struktur (138-15-PLAN.md).
+ *
+ * "Rollen & Rechte" komponiert UserGlobalRolesTab (globale Rollen, kompakte Sektion
+ * oben) + UserGroupRightsTab (die kanonische, bereits pro Gruppe strukturierte
+ * Gruppenrechte-Ansicht, die UserGroupMembershipsTab's Inhalt bereits absorbiert --
+ * jede GroupSection zeigt Rollen UND Rechte pro Gruppe). Die eigenständige
+ * UserGroupMembershipsTab-Einbindung entfällt hier bewusst (Komponente bleibt
+ * unverändert im Baum, hat aber ab jetzt keinen Konsumenten mehr).
+ *
+ * "Beiträge" komponiert UserContributionsTab + UserMediaTab als zweite Sektion
+ * (Medienuploads sind beitrags-nah, kein stiller Drop der bisherigen Medien-Ansicht --
+ * dokumentierte, bewusste Entscheidung, siehe 138-15-SUMMARY.md).
+ *
+ * "Änderungen" ist die unveränderte UserAuditTab-Komponente, nur mit D-25-konformer
+ * Tab-Beschriftung ("Änderungen" statt "Audit").
+ */
+type DetailTabId = 'overview' | 'roles-rights' | 'contributions' | 'claims' | 'streaming' | 'changes'
+
+const DETAIL_TAB_IDS: DetailTabId[] = [
+  'overview',
+  'roles-rights',
+  'contributions',
+  'claims',
+  'streaming',
+  'changes',
+]
+
+const DEFAULT_DETAIL_TAB: DetailTabId = 'overview'
+
+function parseDetailTab(value: string | null): DetailTabId {
+  return DETAIL_TAB_IDS.includes(value as DetailTabId) ? (value as DetailTabId) : DEFAULT_DETAIL_TAB
+}
 
 function statusVariant(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
   switch (status) {
@@ -52,6 +82,8 @@ function statusLabel(status: string): string {
 
 export function UserDetailPageClient() {
   const params = useParams<{ id: string }>()
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const userId = Number(params.id)
   const isValidUserId = Number.isInteger(userId) && userId > 0
@@ -84,12 +116,24 @@ export function UserDetailPageClient() {
     void loadOverview()
   }, [loadOverview])
 
-  const [openIds, setOpenIds] = useState<Set<string>>(new Set(DEFAULT_OPEN_IDS))
-  const [loadedIds, setLoadedIds] = useState<Set<string>>(new Set(DEFAULT_OPEN_IDS))
+  // ?tab=-URL-Sync-Konvention: identisch zu EpisodeVersionEditorPage.tsx
+  // (parseActiveTab + router.replace mit scroll:false).
+  const tabFromQuery = searchParams.get('tab')
+  const initialTab = parseDetailTab(tabFromQuery)
+  const [activeTab, setActiveTab] = useState<DetailTabId>(initialTab)
+  // Lazy-Load-on-first-open (D-03/Pattern aus der vorherigen Accordion-Version):
+  // jeder je besuchte Tab bleibt danach gemountet, kein Re-Fetch beim Zurückwechseln.
+  // Startet mit dem tatsächlichen initialen Tab (aus ?tab=, nicht immer 'overview'),
+  // sonst würde ein direkter Deep-Link auf einen anderen Tab dessen Inhalt nie mounten.
+  const [loadedTabs, setLoadedTabs] = useState<Set<DetailTabId>>(new Set([initialTab]))
 
-  function handleOpenChange(next: Set<string>) {
-    setOpenIds(next)
-    setLoadedIds((prev) => new Set([...prev, ...next]))
+  function handleTabChange(id: string) {
+    const nextTab = parseDetailTab(id)
+    setActiveTab(nextTab)
+    setLoadedTabs((prev) => new Set([...prev, nextTab]))
+    const nextParams = new URLSearchParams(searchParams.toString())
+    nextParams.set('tab', nextTab)
+    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false })
   }
 
   if (!isValidUserId) {
@@ -101,51 +145,52 @@ export function UserDetailPageClient() {
     )
   }
 
-  const items: AccordionItemDef[] = [
+  const items: TabItem[] = [
     {
       id: 'overview',
-      title: 'Übersicht',
-      children: loadedIds.has('overview') ? <UserOverviewTab userId={userId} /> : null,
+      label: 'Übersicht',
+      content: loadedTabs.has('overview') ? <UserOverviewTab userId={userId} /> : null,
     },
     {
-      id: 'roles',
-      title: 'Globale Rollen',
-      children: loadedIds.has('roles') ? <UserGlobalRolesTab userId={userId} /> : null,
-    },
-    {
-      id: 'memberships',
-      title: 'Gruppenmitgliedschaften',
-      children: loadedIds.has('memberships') ? <UserGroupMembershipsTab userId={userId} /> : null,
-    },
-    {
-      id: 'group-rights',
-      title: 'Gruppenrechte',
-      children: loadedIds.has('group-rights') ? <UserGroupRightsTab userId={userId} /> : null,
-    },
-    {
-      id: 'claims',
-      title: 'Member-Profil & Claims',
-      children: loadedIds.has('claims') ? <UserClaimsTab userId={userId} /> : null,
+      id: 'roles-rights',
+      label: 'Rollen & Rechte',
+      content: loadedTabs.has('roles-rights') ? (
+        <div style={{ padding: 'var(--space-4)' }}>
+          <SectionHeader title="Globale Rollen" />
+          <div style={{ marginBottom: 'var(--space-5)' }}>
+            <UserGlobalRolesTab userId={userId} />
+          </div>
+          <UserGroupRightsTab userId={userId} />
+        </div>
+      ) : null,
     },
     {
       id: 'contributions',
-      title: 'Beiträge',
-      children: loadedIds.has('contributions') ? <UserContributionsTab userId={userId} /> : null,
+      label: 'Beiträge',
+      content: loadedTabs.has('contributions') ? (
+        <div>
+          <UserContributionsTab userId={userId} />
+          <div style={{ padding: '0 var(--space-4) var(--space-4)' }}>
+            <SectionHeader title="Medien" />
+            <UserMediaTab userId={userId} />
+          </div>
+        </div>
+      ) : null,
     },
     {
-      id: 'media',
-      title: 'Medien',
-      children: loadedIds.has('media') ? <UserMediaTab userId={userId} /> : null,
-    },
-    {
-      id: 'audit',
-      title: 'Audit',
-      children: loadedIds.has('audit') ? <UserAuditTab userId={userId} /> : null,
+      id: 'claims',
+      label: 'Claims',
+      content: loadedTabs.has('claims') ? <UserClaimsTab userId={userId} /> : null,
     },
     {
       id: 'streaming',
-      title: 'Streaming',
-      children: loadedIds.has('streaming') ? <UserStreamingGrantsTab userId={userId} /> : null,
+      label: 'Streaming',
+      content: loadedTabs.has('streaming') ? <UserStreamingGrantsTab userId={userId} /> : null,
+    },
+    {
+      id: 'changes',
+      label: 'Änderungen',
+      content: loadedTabs.has('changes') ? <UserAuditTab userId={userId} /> : null,
     },
   ]
 
@@ -165,12 +210,11 @@ export function UserDetailPageClient() {
           ) : undefined
         }
       />
-      <Accordion
+      <Tabs
         items={items}
-        mode="multi"
-        openIds={openIds}
-        onOpenChange={handleOpenChange}
-        keepMountedIds={loadedIds}
+        activeId={activeTab}
+        onActiveIdChange={handleTabChange}
+        keepMountedIds={loadedTabs}
       />
     </>
   )

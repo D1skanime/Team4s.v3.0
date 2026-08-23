@@ -1,31 +1,32 @@
 // @vitest-environment jsdom
 //
-// Plan 111-02, Task 1 (RED): UserDetailPageClient.tsx existiert noch nicht.
-// Importfehler auf './UserDetailPageClient' ist das erwartete RED-Signal.
+// Plan 138-15 (D-03): UserDetailPageClient nutzt jetzt Tabs (6 locked Tabs:
+// Übersicht | Rollen & Rechte | Beiträge | Claims | Streaming | Änderungen)
+// statt der vorherigen 9-Item-Accordion. Testet Lazy-Load-on-first-open (kein
+// Doppel-Fetch beim erneuten Aktivieren), ?tab=-URL-Sync (router.replace) und
+// die Zurück-Link-Logik unverändert aus der Vorgängerversion.
 //
-// Mockt alle 9 Tab-Komponenten, damit ausschließlich die Accordion-Host-Logik
-// (Default-Open, Lazy-Load/Cache, Zurück-Link) getestet wird — nicht die echten
-// Tab-Implementierungen.
+// Mockt alle 8 verbleibenden Tab-Komponenten (UserGroupMembershipsTab wird von
+// dieser Seite nicht mehr importiert -- ihr Inhalt ist in UserGroupRightsTab
+// absorbiert, D-03), damit ausschließlich die Tabs-Host-Logik getestet wird.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { useEffect } from 'react'
-import type { ReactNode } from 'react'
 
 // --- next/navigation: pro Testfall überschreibbare Mocks ---
 
 const mockUseParams = vi.hoisted(() => vi.fn())
 const mockUseSearchParams = vi.hoisted(() => vi.fn())
+const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/users/1'))
+const mockReplace = vi.hoisted(() => vi.fn())
+const mockUseRouter = vi.hoisted(() => vi.fn(() => ({ replace: mockReplace })))
 
 vi.mock('next/navigation', () => ({
   useParams: () => mockUseParams(),
   useSearchParams: () => mockUseSearchParams(),
-}))
-
-vi.mock('next/link', () => ({
-  default: ({ href, children }: { href: string; children: ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
+  usePathname: () => mockUsePathname(),
+  useRouter: () => mockUseRouter(),
 }))
 
 // --- @/lib/api ---
@@ -41,12 +42,11 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-// --- 9 Tab-Komponenten gemockt, je mit eigenem Lade-Zähler ---
+// --- 8 Tab-Komponenten gemockt, je mit eigenem Lade-Zähler ---
 
 const loadCounters = vi.hoisted(() => ({
   overview: vi.fn(),
   roles: vi.fn(),
-  memberships: vi.fn(),
   'group-rights': vi.fn(),
   claims: vi.fn(),
   contributions: vi.fn(),
@@ -56,10 +56,8 @@ const loadCounters = vi.hoisted(() => ({
 }) as Record<string, ReturnType<typeof vi.fn>>)
 
 // Lade-Zähler feuern via useEffect (mount-only, leeres Deps-Array) statt im
-// Render-Body — genau wie die echten Tab-Komponenten ihren Datenabruf per
-// useEffect auf Mount auslösen. Ein reiner Render-Body-Call würde auch bei
-// zusätzlichen Re-Renders (ohne echtes Unmount/Remount) mitzählen und einen
-// falschen Re-Fetch vortäuschen (siehe 111-02-SUMMARY.md Deviation).
+// Render-Body -- genau wie die echten Tab-Komponenten ihren Datenabruf per
+// useEffect auf Mount auslösen.
 vi.mock('../tabs/UserOverviewTab', () => ({
   UserOverviewTab: () => {
     useEffect(() => {
@@ -74,14 +72,6 @@ vi.mock('../tabs/UserGlobalRolesTab', () => ({
       loadCounters.roles()
     }, [])
     return <div data-testid="tab-roles">roles</div>
-  },
-}))
-vi.mock('../tabs/UserGroupMembershipsTab', () => ({
-  UserGroupMembershipsTab: () => {
-    useEffect(() => {
-      loadCounters.memberships()
-    }, [])
-    return <div data-testid="tab-memberships">memberships</div>
   },
 }))
 vi.mock('../tabs/UserGroupRightsTab', () => ({
@@ -158,16 +148,17 @@ const baseOverview = {
 // `from` wird hier als bereits kodierter Roh-Query-String übergeben (also so,
 // wie er tatsächlich hinter `?from=` in der Adressleiste steht) und via
 // `new URL(...)` geparst statt per `new URLSearchParams({ from })` aus einem
-// Objekt konstruiert. Ein Objekt-Konstruktor würde den Wert unverändert
-// übernehmen und damit die reale, von `useSearchParams()` selbst bereits
-// durchgeführte Dekodierstufe verschlucken (siehe CR-01/WR-03 in 111-REVIEW.md).
-function setNav({ id = '1', from }: { id?: string; from?: string } = {}) {
+// Objekt konstruiert.
+function setNav({ id = '1', from, tab }: { id?: string; from?: string; tab?: string } = {}) {
   mockUseParams.mockReturnValue({ id })
-  if (from === undefined) {
-    mockUseSearchParams.mockReturnValue(new URLSearchParams())
-    return
-  }
-  const url = new URL(`http://localhost/admin/users/${id}?from=${from}`)
+  // 'from' liegt hier bereits roh kodiert vor (so wie er tatsächlich hinter
+  // `?from=` in der Adressleiste steht) -- daher per String-Konkatenation in
+  // die Roh-Query-String-Position setzen, statt über URLSearchParams.set
+  // (das würde ein bereits kodiertes '%3D' erneut kodieren -> Doppelkodierung).
+  const rawParts: string[] = []
+  if (from !== undefined) rawParts.push(`from=${from}`)
+  if (tab !== undefined) rawParts.push(`tab=${tab}`)
+  const url = new URL(`http://localhost/admin/users/${id}${rawParts.length ? `?${rawParts.join('&')}` : ''}`)
   mockUseSearchParams.mockReturnValue(url.searchParams)
 }
 
@@ -191,10 +182,6 @@ describe('UserDetailPageClient', () => {
 
   // --- back link roundtrips '+'/percent-encoded search values (D-06, CR-01) ---
   it('back link roundtrips special characters in search query', async () => {
-    // Baut exakt den Produktionscodepfad nach (AdminUsersClient.tsx:103-104):
-    // 1. `originalQuery` ist der bereits von URLSearchParams selbst kodierte
-    //    Query-String der Liste (`+` in der Suche -> `%2B`, `@` -> `%40`).
-    // 2. `from` in der URL ist `encodeURIComponent(originalQuery)` (doppelt kodiert).
     const originalQuery = new URLSearchParams({
       q: 'user+test@test.com',
       status: 'active',
@@ -210,13 +197,8 @@ describe('UserDetailPageClient', () => {
     const backLink = screen.getByRole('link', { name: /Zurück zur Liste/i })
     const backHref = backLink.getAttribute('href')
 
-    // Der Zurück-Link muss exakt den ursprünglichen, einmal kodierten
-    // Query-String wiederherstellen -- keine zusätzliche Dekodierstufe.
     expect(backHref).toBe(`/admin/users?${originalQuery}`)
 
-    // Und beim erneuten Parsen auf /admin/users muss der Suchbegriff exakt
-    // (inkl. '+') erhalten bleiben, statt zu einem Leerzeichen korrumpiert zu
-    // werden (Kernregression aus CR-01).
     const reparsed = new URLSearchParams(backHref!.split('?')[1])
     expect(reparsed.get('q')).toBe('user+test@test.com')
   })
@@ -233,74 +215,131 @@ describe('UserDetailPageClient', () => {
     expect(backLink.getAttribute('href')).toBe('/admin/users')
   })
 
-  // --- no tablist ---
-  it('no tablist', async () => {
+  // --- D-03: real Tabs, all six locked labels present ---
+  it('rendert die sechs D-03-Tabs mit dem locked Wortlaut', async () => {
     setNav()
     mockGetAdminUserOverview.mockResolvedValue(baseOverview)
 
     render(<UserDetailPageClient />)
     await screen.findByTestId('tab-overview')
 
-    expect(screen.queryAllByRole('tab')).toEqual([])
-    expect(screen.queryAllByRole('tablist')).toEqual([])
+    expect(screen.getByRole('tablist')).not.toBeNull()
+    for (const label of ['Übersicht', 'Rollen & Rechte', 'Beiträge', 'Claims', 'Streaming', 'Änderungen']) {
+      expect(screen.getByRole('tab', { name: label })).not.toBeNull()
+    }
   })
 
-  // --- default open sections ---
-  it('default open sections', async () => {
+  // --- default: only overview tab loaded on mount ---
+  it('lädt beim Mount nur den Übersicht-Tab, die übrigen erst lazy beim ersten Öffnen', async () => {
     setNav()
     mockGetAdminUserOverview.mockResolvedValue(baseOverview)
 
     render(<UserDetailPageClient />)
     await screen.findByTestId('tab-overview')
 
-    const openLabels = ['Übersicht', 'Globale Rollen', 'Gruppenmitgliedschaften', 'Gruppenrechte']
-    const closedLabels = ['Member-Profil & Claims', 'Beiträge', 'Medien', 'Audit', 'Streaming']
+    expect(loadCounters.overview).toHaveBeenCalledTimes(1)
+    expect(loadCounters.roles).not.toHaveBeenCalled()
+    expect(loadCounters.claims).not.toHaveBeenCalled()
+    expect(loadCounters.streaming).not.toHaveBeenCalled()
+    expect(loadCounters.audit).not.toHaveBeenCalled()
+  })
 
-    for (const label of openLabels) {
-      const header = screen.getByRole('button', { name: label })
-      expect(header.getAttribute('aria-expanded')).toBe('true')
-    }
-    for (const label of closedLabels) {
-      const header = screen.getByRole('button', { name: label })
-      expect(header.getAttribute('aria-expanded')).toBe('false')
-    }
+  // --- clicking a tab lazy-loads it exactly once, no refetch on reselect ---
+  it('lädt einen Tab beim ersten Klick genau einmal und nicht erneut beim Zurückwechseln', async () => {
+    setNav()
+    mockGetAdminUserOverview.mockResolvedValue(baseOverview)
 
-    expect(screen.getByTestId('tab-overview')).not.toBeNull()
+    render(<UserDetailPageClient />)
+    await screen.findByTestId('tab-overview')
+
+    const claimsTab = screen.getByRole('tab', { name: 'Claims' })
+    fireEvent.click(claimsTab)
+    await screen.findByTestId('tab-claims')
+    expect(loadCounters.claims).toHaveBeenCalledTimes(1)
+
+    // Zurückwechseln zu Übersicht versteckt den Claims-Tab nur (per `hidden`,
+    // via `keepMountedIds` an Tabs) statt ihn zu unmontieren -- daher bleibt
+    // das Element im DOM, wird aber ausgeblendet (kein zweiter Fetch beim
+    // erneuten Öffnen möglich).
+    const overviewTab = screen.getByRole('tab', { name: 'Übersicht' })
+    fireEvent.click(overviewTab)
+    await waitFor(() => {
+      expect(screen.getByTestId('tab-claims').closest('[role="tabpanel"]')).toHaveProperty('hidden', true)
+    })
+
+    fireEvent.click(claimsTab)
+    await waitFor(() => {
+      expect(screen.getByTestId('tab-claims').closest('[role="tabpanel"]')).toHaveProperty('hidden', false)
+    })
+    expect(loadCounters.claims).toHaveBeenCalledTimes(1)
+  })
+
+  // --- D-30: Streaming tab renders the real (unchanged) UserStreamingGrantsTab ---
+  it('rendert den unveränderten Streaming-Tab-Inhalt (D-30)', async () => {
+    setNav()
+    mockGetAdminUserOverview.mockResolvedValue(baseOverview)
+
+    render(<UserDetailPageClient />)
+    await screen.findByTestId('tab-overview')
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Streaming' }))
+    await screen.findByTestId('tab-streaming')
+    expect(loadCounters.streaming).toHaveBeenCalledTimes(1)
+  })
+
+  // --- Rollen & Rechte composes both global roles and group rights ---
+  it('"Rollen & Rechte" komponiert Globale Rollen und Gruppenrechte gemeinsam', async () => {
+    setNav()
+    mockGetAdminUserOverview.mockResolvedValue(baseOverview)
+
+    render(<UserDetailPageClient />)
+    await screen.findByTestId('tab-overview')
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Rollen & Rechte' }))
+    await screen.findByTestId('tab-group-rights')
     expect(screen.getByTestId('tab-roles')).not.toBeNull()
-    expect(screen.getByTestId('tab-memberships')).not.toBeNull()
-    expect(screen.getByTestId('tab-group-rights')).not.toBeNull()
-
-    expect(screen.queryByTestId('tab-claims')).toBeNull()
-    expect(screen.queryByTestId('tab-contributions')).toBeNull()
-    expect(screen.queryByTestId('tab-media')).toBeNull()
-    expect(screen.queryByTestId('tab-audit')).toBeNull()
-    expect(screen.queryByTestId('tab-streaming')).toBeNull()
+    expect(loadCounters.roles).toHaveBeenCalledTimes(1)
+    expect(loadCounters['group-rights']).toHaveBeenCalledTimes(1)
   })
 
-  // --- no refetch on reopen ---
-  it('no refetch on reopen', async () => {
+  // --- Beiträge composes contributions and media ---
+  it('"Beiträge" komponiert UserContributionsTab und UserMediaTab gemeinsam', async () => {
     setNav()
     mockGetAdminUserOverview.mockResolvedValue(baseOverview)
 
     render(<UserDetailPageClient />)
     await screen.findByTestId('tab-overview')
 
-    const claimsHeader = screen.getByRole('button', { name: 'Member-Profil & Claims' })
+    fireEvent.click(screen.getByRole('tab', { name: 'Beiträge' }))
+    await screen.findByTestId('tab-contributions')
+    expect(screen.getByTestId('tab-media')).not.toBeNull()
+  })
 
-    // 1. Öffnen: Sektion wird erstmals geladen (gemountet)
-    fireEvent.click(claimsHeader)
-    await waitFor(() => expect(claimsHeader.getAttribute('aria-expanded')).toBe('true'))
-    expect(screen.getByTestId('tab-claims')).not.toBeNull()
-    expect(loadCounters.claims).toHaveBeenCalledTimes(1)
+  // --- ?tab= URL sync: clicking a tab pushes tab= via router.replace ---
+  it('synchronisiert den aktiven Tab über ?tab= via router.replace', async () => {
+    setNav()
+    mockGetAdminUserOverview.mockResolvedValue(baseOverview)
 
-    // 2. Schließen: Panel bleibt (via keepMountedIds) im DOM, nur visuell
-    //    versteckt — kein Unmount, daher auch kein erneuter Ladeaufruf möglich.
-    fireEvent.click(claimsHeader)
-    await waitFor(() => expect(claimsHeader.getAttribute('aria-expanded')).toBe('false'))
+    render(<UserDetailPageClient />)
+    await screen.findByTestId('tab-overview')
 
-    // 3. Wiederöffnen: kein zweiter Ladeaufruf (Pitfall 3)
-    fireEvent.click(claimsHeader)
-    await waitFor(() => expect(claimsHeader.getAttribute('aria-expanded')).toBe('true'))
-    expect(loadCounters.claims).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('tab', { name: 'Claims' }))
+    await screen.findByTestId('tab-claims')
+
+    expect(mockReplace).toHaveBeenCalled()
+    const calledWith = mockReplace.mock.calls.map((call) => String(call[0])).join(' | ')
+    expect(calledWith).toContain('tab=claims')
+  })
+
+  // --- ?tab= from query on initial mount ---
+  it('startet mit dem in der URL vorbelegten Tab (?tab=changes)', async () => {
+    setNav({ tab: 'changes' })
+    mockGetAdminUserOverview.mockResolvedValue(baseOverview)
+
+    render(<UserDetailPageClient />)
+    await screen.findByTestId('tab-audit')
+
+    expect(loadCounters.audit).toHaveBeenCalledTimes(1)
+    expect(loadCounters.overview).not.toHaveBeenCalled()
   })
 })

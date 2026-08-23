@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import {
   Badge,
@@ -12,8 +12,16 @@ import {
   Modal,
   SectionHeader,
 } from '@/components/ui'
-import { ApiError, getAdminUserOverview, updateAdminUserStatus } from '@/lib/api'
-import type { AdminConflictDetail, AdminUserOverviewResponse } from '@/types/admin-users'
+import {
+  ApiError,
+  getAdminUserGroupMemberships,
+  getAdminUserOverview,
+  getEffectiveRights,
+  listRoleCapabilities,
+  updateAdminUserStatus,
+} from '@/lib/api'
+import type { AdminConflictDetail, AdminGroupMembershipSummary, AdminUserOverviewResponse } from '@/types/admin-users'
+import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
 
 interface Props {
   userId: number
@@ -51,53 +59,153 @@ function statusLabel(status: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Stat-Grid-Komponente
+// Kompakte Pro-Gruppen-Zusammenfassung (D-05, ersetzt die vorherige bare
+// Stat-Kachel-Ansicht)
 // ---------------------------------------------------------------------------
+//
+// D-05 (locked Beispiel): "New-Subs — Rolle: Co-Leitung / ✓ Gruppe bearbeiten
+// ✓ Mitglieder verwalten ✕ Review freigeben / Keine persönlichen
+// Rechteabweichungen · Keine offenen Claims" -- niemals große bare
+// Statistik-Kacheln ("18 effektive Rechte", "13 Beiträge").
+//
+// Lädt Mitgliedschaften + effektive Rechte pro Gruppe genau wie
+// UserGroupRightsTab.tsx (gleiche Endpunkte, keine zweite Entscheidungslogik) --
+// zeigt hier aber nur eine kompakte Zeile pro Gruppe statt der vollständigen,
+// aufklappbaren Kategorie-Ansicht.
 
-interface StatItem {
-  label: string
-  value: number
+const HEADLINE_CAPABILITY_LIMIT = 3
+
+function roleLabelFor(roleCode: string, matrix: RoleCapabilityMatrix | null): string {
+  return matrix?.roles.find((entry) => entry.role_code === roleCode)?.label_de ?? roleCode
 }
 
-function StatGrid({ data }: { data: AdminUserOverviewResponse }) {
-  const stats: StatItem[] = [
-    { label: 'Globale Rollen', value: data.global_roles.length },
-    { label: 'Gruppen', value: data.group_membership_count },
-    { label: 'Offene Claims', value: data.open_claims_count },
-    { label: 'Offene Beiträge', value: data.open_contributions_count },
-    { label: 'Release-Arbeitsflächen', value: data.release_scope_count },
-    { label: 'Mediauploads', value: data.media_upload_count },
-    { label: 'Konflikte', value: data.conflict_details.length },
-  ]
+interface GroupSummaryCardProps {
+  membership: AdminGroupMembershipSummary
+  states: EffectiveRightState[]
+  actionLabels: Map<string, string>
+  matrix: RoleCapabilityMatrix | null
+  openClaimsCount: number
+}
+
+function GroupSummaryCard({ membership, states, actionLabels, matrix, openClaimsCount }: GroupSummaryCardProps) {
+  const roleLabel =
+    membership.roles.length > 0
+      ? membership.roles.map((role) => roleLabelFor(role, matrix)).join(' + ')
+      : '–'
+
+  const headlineStates = states.slice(0, HEADLINE_CAPABILITY_LIMIT)
+  const hasDeviation = states.some((state) => state.user_allow || state.user_deny)
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-        gap: 'var(--space-3)',
-        marginBottom: 'var(--space-5)',
-      }}
-    >
-      {stats.map((stat) => (
-        <Card key={stat.label} variant="nested">
-          <div style={{ padding: 'var(--space-3)', textAlign: 'center' }}>
-            <div
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                color: stat.label === 'Konflikte' && stat.value > 0
-                  ? 'var(--color-warning)'
-                  : 'var(--color-text)',
-              }}
-            >
-              {stat.value}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 2 }}>
-              {stat.label}
-            </div>
+    <Card variant="nested" style={{ marginBottom: 'var(--space-2)' }}>
+      <div style={{ padding: 'var(--space-3)', display: 'grid', gap: 'var(--space-1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+          <strong>{membership.fansub_group_name}</strong>
+          <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+            Rolle: {roleLabel}
+          </span>
+        </div>
+        {headlineStates.length > 0 && (
+          <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', fontSize: '0.85rem' }}>
+            {headlineStates.map((state) => (
+              <span key={state.action_code}>
+                {state.allowed ? '✓' : '✕'} {actionLabels.get(state.action_code) ?? state.action_code}
+              </span>
+            ))}
           </div>
-        </Card>
+        )}
+        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+          {hasDeviation ? 'Persönliche Rechteabweichungen vorhanden' : 'Keine persönlichen Rechteabweichungen'}
+          {' · '}
+          {openClaimsCount > 0 ? `${openClaimsCount} offene Claims` : 'Keine offenen Claims'}
+        </p>
+      </div>
+    </Card>
+  )
+}
+
+interface GroupRightsSummarySectionProps {
+  userId: number
+  openClaimsCount: number
+}
+
+function GroupRightsSummarySection({ userId, openClaimsCount }: GroupRightsSummarySectionProps) {
+  const [memberships, setMemberships] = useState<AdminGroupMembershipSummary[]>([])
+  const [rightsByGroup, setRightsByGroup] = useState<Record<number, EffectiveRightState[]>>({})
+  const [matrix, setMatrix] = useState<RoleCapabilityMatrix | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const loadSummary = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const [membershipsResp, matrixResult] = await Promise.all([
+        getAdminUserGroupMemberships(userId),
+        listRoleCapabilities().catch(() => null),
+      ])
+      const rightsList = await Promise.all(
+        membershipsResp.memberships.map((membership) => getEffectiveRights(membership.fansub_group_id, userId)),
+      )
+      const byGroup: Record<number, EffectiveRightState[]> = {}
+      membershipsResp.memberships.forEach((membership, index) => {
+        byGroup[membership.fansub_group_id] = rightsList[index]
+      })
+      setMemberships(membershipsResp.memberships)
+      setRightsByGroup(byGroup)
+      setMatrix(matrixResult)
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Gruppenzusammenfassung konnte nicht geladen werden.',
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }, [userId])
+
+  useEffect(() => {
+    void loadSummary()
+  }, [loadSummary])
+
+  const actionLabels = useMemo(() => {
+    const map = new Map<string, string>()
+    if (matrix) {
+      for (const action of matrix.all_actions) {
+        map.set(action.code, action.label_de)
+      }
+    }
+    return map
+  }, [matrix])
+
+  if (isLoading) {
+    return <LoadingState title="Gruppenrechte werden geladen …" description="" />
+  }
+  if (error) {
+    return <ErrorState title="Fehler beim Laden" description={error} />
+  }
+  if (memberships.length === 0) {
+    return (
+      <div style={{ marginBottom: 'var(--space-5)' }}>
+        <SectionHeader title="Gruppen" />
+        <EmptyState title="Keine Gruppenmitgliedschaften." description="" />
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ marginBottom: 'var(--space-5)' }}>
+      <SectionHeader title="Gruppen" />
+      {memberships.map((membership) => (
+        <GroupSummaryCard
+          key={membership.fansub_group_id}
+          membership={membership}
+          states={rightsByGroup[membership.fansub_group_id] ?? []}
+          actionLabels={actionLabels}
+          matrix={matrix}
+          openClaimsCount={openClaimsCount}
+        />
       ))}
     </div>
   )
@@ -324,7 +432,7 @@ export function UserOverviewTab({ userId, displayName: _displayName }: Props) {
   return (
     <div style={{ padding: 'var(--space-4)' }}>
       <SectionHeader title="Übersicht" />
-      <StatGrid data={data} />
+      <GroupRightsSummarySection userId={userId} openClaimsCount={data.open_claims_count} />
       <ConflictsSection conflicts={data.conflict_details} />
       <AccountStatusSection data={data} onStatusChanged={() => void loadData()} />
     </div>
