@@ -245,7 +245,7 @@ import type {
   ReleaseImagesCursorPage,
   PublicReleaseNote,
 } from "@/types/releaseDetail";
-import type { PublicRoleDefinitionOption, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
+import type { PublicRoleDefinitionOption, RoleAssignmentImpactPreview, RoleCapabilityMatrix, RoleCapabilityMutationResult, RoleDefinitionContext, RoleDefinitionOption, RoleHolderEntry } from "@/types/admin-capability";
 import type {
   ReleaseReviewCountParams,
   ReleaseReviewCountsResponse,
@@ -3750,6 +3750,33 @@ export async function getAdminUserGroupRights(
     throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
   }
   return response.json() as Promise<AdminUserGroupRightsResponse>;
+}
+
+/**
+ * Phase 138 (D-22, CAP-09): read-only Vorschau der Rechte-Auswirkung einer hypothetischen
+ * Rollenzuweisung/-entziehung für EIN Zielmitglied über ALLE Aktionen -- steht vor der
+ * bestehenden Rollenzuweisungs-Mutation (setFansubGroupMemberRole). Persistiert nichts.
+ */
+export async function getRoleAssignmentImpactPreview(
+  fansubGroupId: number,
+  appUserId: number,
+  roleCode: string,
+  change: "assign" | "revoke",
+): Promise<RoleAssignmentImpactPreview> {
+  const query = new URLSearchParams({ role_code: roleCode, change });
+  const response = await apiClientFetch(
+    `/api/v1/admin/fansubs/${fansubGroupId}/app-members/${appUserId}/role-assignment-impact?${query.toString()}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    const parsed = await parseApiErrorPayload(
+      response,
+      `API request failed: ${response.status}`,
+    );
+    throw new ApiError(response.status, parsed.message, null, parsed.code, parsed.details);
+  }
+  const payload = (await response.json()) as { data: RoleAssignmentImpactPreview };
+  return payload.data;
 }
 
 /** Contributions-Tab (D-12/D-13, member_id-Anker). */

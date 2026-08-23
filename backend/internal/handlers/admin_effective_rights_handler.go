@@ -166,12 +166,24 @@ func (h *AdminEffectiveRightsHandler) resolveTargetActor(
 func (h *AdminEffectiveRightsHandler) loadTargetActorState(
 	ctx context.Context, targetAppUserID int64, fansubGroupID int64,
 ) (*permissions.Actor, error) {
-	membership, err := h.targetRepo.LockTargetMembership(ctx, targetAppUserID, fansubGroupID)
+	return loadEffectiveRightsTargetActorState(ctx, h.targetRepo, h.authzRepo, targetAppUserID, fansubGroupID)
+}
+
+// loadEffectiveRightsTargetActorState is the shared, response-free target-membership +
+// platform-admin lookup extracted for reuse by both AdminEffectiveRightsHandler (Plan
+// 137-07) and AdminRoleAssignmentImpactHandler (Plan 138-04) -- one target-actor resolution
+// implementation, not a duplicated copy. Returns repository.ErrNotFound (or any other error)
+// for the caller to interpret; never touches gin.Context or writes an HTTP response.
+func loadEffectiveRightsTargetActorState(
+	ctx context.Context, targetRepo effectiveRightsTargetRepo, authzRepo capabilityAuthzRepo,
+	targetAppUserID int64, fansubGroupID int64,
+) (*permissions.Actor, error) {
+	membership, err := targetRepo.LockTargetMembership(ctx, targetAppUserID, fansubGroupID)
 	if err != nil {
 		return nil, err
 	}
 
-	isPlatformAdmin, err := h.authzRepo.AppUserHasGlobalRole(ctx, targetAppUserID, "platform_admin")
+	isPlatformAdmin, err := authzRepo.AppUserHasGlobalRole(ctx, targetAppUserID, "platform_admin")
 	if err != nil {
 		return nil, err
 	}

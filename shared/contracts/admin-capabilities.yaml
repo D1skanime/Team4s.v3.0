@@ -365,6 +365,81 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /api/v1/admin/fansubs/{id}/app-members/{appUserId}/role-assignment-impact:
+    get:
+      tags: [AdminCapabilities]
+      summary: Vorschau der Rechte-Auswirkung einer Rollenzuweisung/-entziehung
+      description: |
+        Phase 138 (D-22, CAP-09): berechnet einen vollständigen before/after-Diff der
+        effektiven Rechte für EIN Zielmitglied über ALLE Aktionen, für eine
+        hypothetische Rollenzuweisung (change=assign) oder -entziehung
+        (change=revoke) — das "eine Person, viele Aktionen"-Gegenstück zu
+        CAP-09s Rolle-zu-Capability-Vorschau ("eine Aktion, viele Personen").
+        Ausschließlich lesend, ohne Nebenwirkung: es wird nichts persistiert.
+        Wiederverwendet exakt denselben Präzedenz-Evaluator wie ResolveGroupRights
+        (D-20, bindend) — kein zweiter, unabhängig berechneter Entscheidungspfad.
+        Autorisierung und Rollenvalidierung spiegeln exakt die bestehende
+        Rollenzuweisungs-Mutation (PUT .../roles, ActionFansubGroupMembersManage)
+        wider, damit ein Admin ohne Mutationsrecht auch keine Vorschau sehen kann.
+        Fremde Gruppen-/User-Kombinationen liefern neutral 404 (analog D08).
+      operationId: previewRoleAssignmentImpact
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID der Fansub-Gruppe (autorisierender Scope)
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: appUserId
+          in: path
+          required: true
+          description: app_users.id des Zielmitglieds
+          schema: { type: integer, format: int64, minimum: 1 }
+        - name: role_code
+          in: query
+          required: true
+          description: Gruppenrollen-Code (muss eine bekannte, zuweisbare Gruppenrolle sein)
+          schema: { type: string }
+        - name: change
+          in: query
+          required: true
+          description: assign = hypothetisch hinzufügen, revoke = hypothetisch entziehen
+          schema: { type: string, enum: [assign, revoke] }
+      responses:
+        "200":
+          description: Before/After-Diff der effektiven Rechte für das Zielmitglied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/RoleAssignmentImpactPreview" }
+        "400":
+          description: Ungültige Fansubgruppen-ID, ungültige app_user_id, unbekannte Rolle oder ungültiger change-Wert
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Nicht authentifiziert
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Keine Berechtigung für diese Gruppe (identisch zur Rollenzuweisungs-Mutation)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Mitgliedschaftseintrag nicht gefunden (auch bei fremder Gruppe)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Interner Serverfehler
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
   /api/v1/admin/fansubs/{id}/app-members/{appUserId}/capability-overrides:
     put:
       tags: [AdminCapabilities]
@@ -704,6 +779,27 @@ components:
         reason_code:
           type: string
           description: Maschinenlesbarer Grund-Code für das Ergebnis; enthält bewusst keinen deutschsprachigen Erklärtext (Phase 137 Scope).
+    RoleAssignmentImpactPreview:
+      type: object
+      description: |
+        Phase 138 (D-22, CAP-09): vollständiger before/after-Diff der effektiven Rechte
+        eines Zielmitglieds über alle Aktionen für eine hypothetische
+        Rollenzuweisung/-entziehung. before/after nutzen exakt dasselbe
+        EffectiveRightState-Schema wie die Effective-Rights-Inspection — keine
+        zweite, konkurrierende Projektion.
+      required: [target_user_id, role_code, change, before, after]
+      properties:
+        target_user_id: { type: integer, format: int64 }
+        role_code: { type: string }
+        change:
+          type: string
+          enum: [assign, revoke]
+        before:
+          type: array
+          items: { $ref: "#/components/schemas/EffectiveRightState" }
+        after:
+          type: array
+          items: { $ref: "#/components/schemas/EffectiveRightState" }
     CapabilityOverrideReason:
       oneOf:
         - type: object

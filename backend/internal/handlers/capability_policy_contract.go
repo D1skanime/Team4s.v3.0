@@ -109,6 +109,20 @@ func (reason *CapabilityOverrideReason) UnmarshalJSON(data []byte) error {
 	return reason.Validate()
 }
 
+// RoleAssignmentImpactPreview is the response DTO for Plan 138-04's read-only
+// role-assignment impact preview (D-22): a full before/after effective-rights diff for one
+// target user across every action, computed by feeding the existing pure precedence
+// evaluator a synthetically modified role set (D-20, binding) -- no second, independently
+// computed decision engine. Before/After reuse the exact same EffectiveRightState shape and
+// effectiveRightStatesFromResolution projection helper GetEffectiveRights already uses.
+type RoleAssignmentImpactPreview struct {
+	TargetUserID int64                  `json:"target_user_id"`
+	RoleCode     string                 `json:"role_code"`
+	Change       string                 `json:"change"` // "assign" | "revoke"
+	Before       []EffectiveRightState  `json:"before"`
+	After        []EffectiveRightState  `json:"after"`
+}
+
 type CapabilityOverrideState struct {
 	GroupID         int64                    `json:"group_id"`
 	TargetUserID    int64                    `json:"target_user_id"`

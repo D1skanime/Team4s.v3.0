@@ -36,6 +36,9 @@ type adminRouteHandlers struct {
 	adminEffectiveRightsHandler *handlers.AdminEffectiveRightsHandler
 	// Phase 138-01: "wer besitzt diese Rolle?" — real fansub-group role-holder lookup (D-07)
 	adminRoleHoldersHandler *handlers.AdminRoleHoldersHandler
+	// Phase 138-04: Role-Assignment Impact Preview (D-22) -- read-only before/after diff
+	// ahead of the existing role-assignment mutation
+	adminRoleAssignmentImpactHandler *handlers.AdminRoleAssignmentImpactHandler
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRouteHandlers) {
@@ -274,5 +277,11 @@ func registerAdminRoutes(v1 *gin.RouterGroup, auth gin.HandlerFunc, deps adminRo
 		v1.GET("/admin/fansubs/:id/app-members/:appUserId/effective-rights", auth, deps.adminEffectiveRightsHandler.GetEffectiveRights)
 		v1.PUT("/admin/fansubs/:id/app-members/:appUserId/capability-overrides", auth, deps.adminEffectiveRightsHandler.MutateOverride)
 		v1.GET("/admin/fansubs/:id/app-members/:appUserId/capability-overrides/history", auth, deps.adminEffectiveRightsHandler.ListOverrideHistory)
+	}
+	// Phase 138-04: Role-Assignment Impact Preview (D-22) -- read-only, group-scoped
+	// before/after effective-rights diff ahead of setFansubGroupMemberRole's existing
+	// mutation. Same authorization action (ActionFansubGroupMembersManage) as that mutation.
+	if deps.adminRoleAssignmentImpactHandler != nil {
+		v1.GET("/admin/fansubs/:id/app-members/:appUserId/role-assignment-impact", auth, deps.adminRoleAssignmentImpactHandler.PreviewRoleAssignment)
 	}
 }

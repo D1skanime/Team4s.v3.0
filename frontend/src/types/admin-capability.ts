@@ -185,6 +185,21 @@ export interface CapabilityOverrideImpactPreview {
   items: CapabilityOverrideImpactItem[];
 }
 
+/**
+ * Phase 138 (D-22, CAP-09): vollständiger before/after-Diff der effektiven Rechte eines
+ * Zielmitglieds über alle Aktionen für eine hypothetische Rollenzuweisung/-entziehung --
+ * das "eine Person, viele Aktionen"-Gegenstück zu CapabilityOverrideImpactPreview ("eine
+ * Aktion, viele Personen"). before/after nutzen exakt EffectiveRightState -- keine zweite,
+ * konkurrierende Projektion.
+ */
+export interface RoleAssignmentImpactPreview {
+  target_user_id: number;
+  role_code: string;
+  change: 'assign' | 'revoke';
+  before: EffectiveRightState[];
+  after: EffectiveRightState[];
+}
+
 export interface CapabilityOverrideAuditItem {
   id: number;
   group_id: number;
