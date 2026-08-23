@@ -5,7 +5,7 @@
 // echten Phase-137-Resolver (getEffectiveRights) statt der alten Zwei-Boolean-Heuristik
 // (getAdminUserGroupRights).
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { AdminGroupMembershipSummary, AdminUserGroupMembershipsResponse } from '@/types/admin-users'
 import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
@@ -13,11 +13,15 @@ import type { EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-ca
 const mockGetAdminUserGroupMemberships = vi.fn()
 const mockGetEffectiveRights = vi.fn()
 const mockListRoleCapabilities = vi.fn()
+const mockListOverrideHistory = vi.fn()
+const mockMutateCapabilityOverride = vi.fn()
 
 vi.mock('@/lib/api', () => ({
   getAdminUserGroupMemberships: (...args: unknown[]) => mockGetAdminUserGroupMemberships(...args),
   getEffectiveRights: (...args: unknown[]) => mockGetEffectiveRights(...args),
   listRoleCapabilities: (...args: unknown[]) => mockListRoleCapabilities(...args),
+  listOverrideHistory: (...args: unknown[]) => mockListOverrideHistory(...args),
+  mutateCapabilityOverride: (...args: unknown[]) => mockMutateCapabilityOverride(...args),
   ApiError: class ApiError extends Error {
     constructor(public status: number, message: string) {
       super(message)
@@ -26,6 +30,12 @@ vi.mock('@/lib/api', () => ({
 }))
 
 import { UserGroupRightsTab } from './UserGroupRightsTab'
+
+beforeEach(() => {
+  // Default: leere Historie -- CapabilityHistoryPanel wird bei jeder aufgeklappten Zeile
+  // gemountet und ruft listOverrideHistory selbstständig auf (D-13b, Plan 138-08).
+  mockListOverrideHistory.mockResolvedValue([])
+})
 
 afterEach(() => {
   cleanup()

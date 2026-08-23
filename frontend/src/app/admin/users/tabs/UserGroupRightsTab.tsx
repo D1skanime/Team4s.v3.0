@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 
 import {
   Accordion,
@@ -26,9 +27,36 @@ import {
   listRoleCapabilities,
 } from '@/lib/api'
 import type { AdminGroupMembershipSummary } from '@/types/admin-users'
-import type { ActionEntry, EffectiveRightState, RoleCapabilityMatrix } from '@/types/admin-capability'
+import type {
+  ActionEntry,
+  CapabilityOverrideMutationResult,
+  EffectiveRightState,
+  RoleCapabilityMatrix,
+} from '@/types/admin-capability'
 import { categoryDisplayLabel } from '../../role-capabilities/capabilityCategories'
 import { resolveRoleLink } from '../resolveRoleLink'
+import { CapabilityHistoryPanel } from './CapabilityHistoryPanel'
+import { GuidedGrantFlow } from './GuidedGrantFlow'
+import { GuidedRevokeFlow } from './GuidedRevokeFlow'
+
+/** Welcher geführte Fluss (CAP-08) gerade für welche Capability-Zeile geöffnet ist. */
+type ActiveFlow =
+  | {
+      kind: 'revoke'
+      groupId: number
+      groupName: string
+      actionCode: string
+      actionLabel: string
+      state: EffectiveRightState
+    }
+  | {
+      kind: 'grant'
+      groupId: number
+      actionCode: string
+      actionLabel: string
+      state: EffectiveRightState
+    }
+  | null
 
 interface Props {
   userId: number
@@ -101,7 +129,26 @@ function decisiveSourceLabel(state: EffectiveRightState): string {
   }
 }
 
-function CapabilityDetailRow({ state }: { state: EffectiveRightState }) {
+function CapabilityDetailRow({
+  groupId,
+  appUserId,
+  label,
+  state,
+  onOpenRevoke,
+  onOpenGrant,
+}: {
+  groupId: number
+  appUserId: number
+  label: string
+  state: EffectiveRightState
+  onOpenRevoke: (state: EffectiveRightState, label: string) => void
+  onOpenGrant: (state: EffectiveRightState, label: string) => void
+}) {
+  // D-15/D-16: nur die vier gesperrten Business-Verben, nie ein rohes Allow/Deny-Switch.
+  const showRevoke = state.allowed && !state.non_deniable
+  const showGrant = !state.allowed
+  const showRemoveOverride = state.user_allow || state.user_deny
+
   return (
     <TableRow>
       <TableCell colSpan={3}>
@@ -109,7 +156,7 @@ function CapabilityDetailRow({ state }: { state: EffectiveRightState }) {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--space-1)',
+            gap: 'var(--space-2)',
             padding: 'var(--space-2) 0',
             fontSize: '0.8125rem',
             color: 'var(--color-text-secondary)',
@@ -135,6 +182,37 @@ function CapabilityDetailRow({ state }: { state: EffectiveRightState }) {
           <div>
             <strong>Reason-Code:</strong> {state.reason_code || '–'}
           </div>
+
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            {showRevoke && (
+              <Button variant="secondary" size="sm" onClick={() => onOpenRevoke(state, label)}>
+                Recht entziehen
+              </Button>
+            )}
+            {showGrant && (
+              <Button variant="secondary" size="sm" onClick={() => onOpenGrant(state, label)}>
+                Recht zusätzlich erlauben
+              </Button>
+            )}
+            {showRemoveOverride &&
+              (state.user_deny ? (
+                <Button variant="ghost" size="sm" onClick={() => onOpenRevoke(state, label)}>
+                  Abweichung entfernen
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" onClick={() => onOpenGrant(state, label)}>
+                  Abweichung entfernen
+                </Button>
+              ))}
+          </div>
+
+          <div style={{ marginTop: 'var(--space-2)' }}>
+            <CapabilityHistoryPanel
+              fansubGroupId={groupId}
+              appUserId={appUserId}
+              actionCode={state.action_code}
+            />
+          </div>
         </div>
       </TableCell>
     </TableRow>
@@ -143,16 +221,22 @@ function CapabilityDetailRow({ state }: { state: EffectiveRightState }) {
 
 function CategoryTable({
   groupId,
+  appUserId,
   states,
   actionMeta,
   expandedRows,
   onToggleRow,
+  onOpenRevoke,
+  onOpenGrant,
 }: {
   groupId: number
+  appUserId: number
   states: EffectiveRightState[]
   actionMeta: Map<string, ActionEntry>
   expandedRows: Set<string>
   onToggleRow: (key: string) => void
+  onOpenRevoke: (state: EffectiveRightState, label: string) => void
+  onOpenGrant: (state: EffectiveRightState, label: string) => void
 }) {
   return (
     <Table variant="compact">
@@ -191,7 +275,16 @@ function CategoryTable({
                 </TableCell>
                 <TableCell>{decisiveSourceLabel(state)}</TableCell>
               </TableRow>
-              {isOpen ? <CapabilityDetailRow state={state} /> : null}
+              {isOpen ? (
+                <CapabilityDetailRow
+                  groupId={groupId}
+                  appUserId={appUserId}
+                  label={label}
+                  state={state}
+                  onOpenRevoke={onOpenRevoke}
+                  onOpenGrant={onOpenGrant}
+                />
+              ) : null}
             </Fragment>
           )
         })}
@@ -202,6 +295,7 @@ function CategoryTable({
 
 function GroupSection({
   membership,
+  appUserId,
   states,
   actionMeta,
   matrix,
@@ -209,8 +303,11 @@ function GroupSection({
   onOpenCategoryIdsChange,
   expandedRows,
   onToggleRow,
+  onOpenRevoke,
+  onOpenGrant,
 }: {
   membership: AdminGroupMembershipSummary
+  appUserId: number
   states: EffectiveRightState[]
   actionMeta: Map<string, ActionEntry>
   matrix: RoleCapabilityMatrix | null
@@ -218,6 +315,8 @@ function GroupSection({
   onOpenCategoryIdsChange: (next: Set<string>) => void
   expandedRows: Set<string>
   onToggleRow: (key: string) => void
+  onOpenRevoke: (groupId: number, groupName: string, state: EffectiveRightState, label: string) => void
+  onOpenGrant: (groupId: number, state: EffectiveRightState, label: string) => void
 }) {
   const byCategory = groupStatesByCategory(states, actionMeta)
   const categories = sortCategories([...byCategory.keys()])
@@ -228,10 +327,15 @@ function GroupSection({
     children: (
       <CategoryTable
         groupId={membership.fansub_group_id}
+        appUserId={appUserId}
         states={byCategory.get(category) ?? []}
         actionMeta={actionMeta}
         expandedRows={expandedRows}
         onToggleRow={onToggleRow}
+        onOpenRevoke={(state, label) =>
+          onOpenRevoke(membership.fansub_group_id, membership.fansub_group_name, state, label)
+        }
+        onOpenGrant={(state, label) => onOpenGrant(membership.fansub_group_id, state, label)}
       />
     ),
   }))
@@ -306,6 +410,7 @@ export function UserGroupRightsTab({ userId }: Props) {
   const [matrix, setMatrix] = useState<RoleCapabilityMatrix | null>(null)
   const [openCategoryIds, setOpenCategoryIds] = useState<Set<string>>(new Set())
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+  const [activeFlow, setActiveFlow] = useState<ActiveFlow>(null)
 
   const loadData = useCallback(async () => {
     try {
@@ -388,34 +493,89 @@ export function UserGroupRightsTab({ userId }: Props) {
     })
   }, [])
 
-  if (isLoading) return <LoadingState title="Wird geladen …" description="" />
-  if (error) {
-    return <ErrorState title="Fehler beim Laden" description={error} />
-  }
-  if (!data || data.memberships.length === 0) {
-    return (
+  const handleOpenRevoke = useCallback(
+    (groupId: number, groupName: string, state: EffectiveRightState, label: string) => {
+      setActiveFlow({ kind: 'revoke', groupId, groupName, actionCode: state.action_code, actionLabel: label, state })
+    },
+    [],
+  )
+
+  const handleOpenGrant = useCallback((groupId: number, state: EffectiveRightState, label: string) => {
+    setActiveFlow({ kind: 'grant', groupId, actionCode: state.action_code, actionLabel: label, state })
+  }, [])
+
+  // D-18/D-21: nach jeder bestätigten Mutation muss die Zeile sofort den neuen Zustand
+  // zeigen -- keine veraltete UI. Das Modal selbst bleibt offen (eigener lokaler
+  // activation-status-Zustand) und zeigt seinen eigenen Erfolg unabhängig von diesem Reload.
+  const handleMutated = useCallback((_result: CapabilityOverrideMutationResult) => {
+    void loadData()
+  }, [loadData])
+
+  let content: ReactNode
+  if (isLoading) {
+    content = <LoadingState title="Wird geladen …" description="" />
+  } else if (error) {
+    content = <ErrorState title="Fehler beim Laden" description={error} />
+  } else if (!data || data.memberships.length === 0) {
+    content = (
       <div style={{ padding: 'var(--space-4)' }}>
         <EmptyState title="Keine Gruppenmitgliedschaften." description="" />
+      </div>
+    )
+  } else {
+    content = (
+      <div style={{ padding: 'var(--space-4)' }}>
+        <SectionHeader title="Effektive Rechte nach Gruppe" />
+        {data.memberships.map((membership) => (
+          <GroupSection
+            key={membership.fansub_group_id}
+            membership={membership}
+            appUserId={userId}
+            states={data.rightsByGroup[membership.fansub_group_id] ?? []}
+            actionMeta={actionMeta}
+            matrix={matrix}
+            openCategoryIds={openCategoryIds}
+            onOpenCategoryIdsChange={setOpenCategoryIds}
+            expandedRows={expandedRows}
+            onToggleRow={toggleRow}
+            onOpenRevoke={handleOpenRevoke}
+            onOpenGrant={handleOpenGrant}
+          />
+        ))}
       </div>
     )
   }
 
   return (
-    <div style={{ padding: 'var(--space-4)' }}>
-      <SectionHeader title="Effektive Rechte nach Gruppe" />
-      {data.memberships.map((membership) => (
-        <GroupSection
-          key={membership.fansub_group_id}
-          membership={membership}
-          states={data.rightsByGroup[membership.fansub_group_id] ?? []}
-          actionMeta={actionMeta}
+    <>
+      {content}
+      {activeFlow?.kind === 'revoke' && (
+        <GuidedRevokeFlow
+          open
+          onClose={() => setActiveFlow(null)}
+          fansubGroupId={activeFlow.groupId}
+          fansubGroupName={activeFlow.groupName}
+          appUserId={userId}
+          appUserDisplayName={`Nutzer #${userId}`}
+          actionCode={activeFlow.actionCode}
+          actionLabel={activeFlow.actionLabel}
+          state={activeFlow.state}
           matrix={matrix}
-          openCategoryIds={openCategoryIds}
-          onOpenCategoryIdsChange={setOpenCategoryIds}
-          expandedRows={expandedRows}
-          onToggleRow={toggleRow}
+          onMutated={handleMutated}
         />
-      ))}
-    </div>
+      )}
+      {activeFlow?.kind === 'grant' && (
+        <GuidedGrantFlow
+          open
+          onClose={() => setActiveFlow(null)}
+          fansubGroupId={activeFlow.groupId}
+          appUserId={userId}
+          actionCode={activeFlow.actionCode}
+          actionLabel={activeFlow.actionLabel}
+          state={activeFlow.state}
+          onMutated={handleMutated}
+        />
+      )}
+    </>
   )
 }
