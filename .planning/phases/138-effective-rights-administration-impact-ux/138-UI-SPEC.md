@@ -1,7 +1,8 @@
 ---
 phase: 138
 slug: effective-rights-administration-impact-ux
-status: draft
+status: approved
+reviewed_at: 2026-08-23
 shadcn_initialized: false
 preset: none
 created: 2026-08-23
