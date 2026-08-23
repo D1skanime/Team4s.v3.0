@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 /**
- * Tests für RoleCapabilityDetail.tsx (Plan 94-06, TDD RED→GREEN).
+ * Tests für RoleCapabilityDetail.tsx (Plan 94-06 TDD RED→GREEN, erweitert Plan 138-13).
  *
  * Test 1: Detail rendert Accordion-Header nach Kategorie
  * Test 2: Pro Capability erscheint ein Switch mit korrektem granted-Zustand (nach Öffnen)
  * Test 3: Bei nicht-assignable Rolle sind Switches disabled (nach Öffnen)
- * Test 4: onGrant-Callback bei Switch-Toggle false→true (nach Öffnen)
+ * Test 4 (138-13): onRequestChange-Callback bei Switch-Toggle false→true (nach Öffnen) --
+ *   ersetzt das vormalige direkte onGrant (D-18: kein sofortiges Speichern eines Switches).
  */
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
@@ -19,14 +20,12 @@ import type { RoleEntry } from '@/types/admin-capability'
  */
 function DetailHarness({
   role,
-  onGrant = vi.fn(),
-  onRevoke = vi.fn(),
+  onRequestChange = vi.fn(),
   inlineError = null,
   initialOpen = [],
 }: {
   role: RoleEntry
-  onGrant?: (roleCode: string, actionCode: string) => void
-  onRevoke?: (roleCode: string, actionCode: string) => void
+  onRequestChange?: (actionCode: string, add: boolean) => void
   inlineError?: string | null
   initialOpen?: string[]
 }) {
@@ -36,8 +35,7 @@ function DetailHarness({
   return (
     <RoleCapabilityDetail
       role={role}
-      onGrant={onGrant}
-      onRevoke={onRevoke}
+      onRequestChange={onRequestChange}
       inlineError={inlineError}
       openCategories={openCategories}
       onOpenCategoriesChange={setOpenCategories}
@@ -119,27 +117,31 @@ describe('RoleCapabilityDetail', () => {
     })
   })
 
-  it('ruft onGrant auf wenn Switch von false→true gewechselt wird (nach Accordion öffnen)', () => {
-    const onGrant = vi.fn()
-    render(<DetailHarness role={assignableRole} onGrant={onGrant} />)
+  it('ruft onRequestChange auf (statt sofort zu mutieren) wenn Switch von false→true gewechselt wird (nach Accordion öffnen)', () => {
+    const onRequestChange = vi.fn()
+    render(<DetailHarness role={assignableRole} onRequestChange={onRequestChange} />)
     // Accordion öffnen
     const header = screen.getByText('Gruppe')
     fireEvent.click(header)
 
-    // Switch für "Gruppe bearbeiten" (granted=false) anklicken → soll onGrant aufrufen
+    // Switch für "Gruppe bearbeiten" (granted=false) anklicken → soll NUR onRequestChange(code, true)
+    // aufrufen (D-18: kein sofortiges Speichern eines Switches) -- niemals onGrant direkt.
     const switches = screen.getAllByRole('switch')
     const uncheckedSwitch = switches.find(
       (s) => s.getAttribute('aria-checked') === 'false'
     )
     expect(uncheckedSwitch).toBeTruthy()
     fireEvent.click(uncheckedSwitch!)
-    expect(onGrant).toHaveBeenCalledWith('fansub_lead', 'fansub_group.edit')
+    expect(onRequestChange).toHaveBeenCalledWith('fansub_group.edit', true)
+    // Kein optimistisches Umschalten -- der Switch selbst bleibt bis zu einem echten
+    // Matrix-Refresh unverändert (T-138-24).
+    expect(uncheckedSwitch!.getAttribute('aria-checked')).toBe('false')
   })
 
   it('hält das Accordion offen, wenn ein Switch getoggelt wird (open-state übersteht Toggle)', () => {
     // initialOpen: Kategorie "gruppe" ist bereits offen
     render(
-      <DetailHarness role={assignableRole} initialOpen={['gruppe']} onGrant={vi.fn()} />
+      <DetailHarness role={assignableRole} initialOpen={['gruppe']} onRequestChange={vi.fn()} />
     )
 
     // Vor dem Toggle: Switches sichtbar (Accordion offen)

@@ -10,7 +10,7 @@
  * Test 6 (94-06-fix): Desktop-Modus: nur Inline-Panel, kein Sheet-Dialog gleichzeitig
  * Test 7 (94-06-fix): Mobile-Modus: Sheet öffnet, kein Inline-Panel im DOM
  */
-import { render, screen, act, fireEvent } from "@testing-library/react";
+import { render, screen, act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useSearchParams } from "next/navigation";
 import RoleCapabilityClient from "./RoleCapabilityClient";
@@ -160,8 +160,17 @@ describe("RoleCapabilityClient", () => {
     expect(screen.getByText("Historische Rolle")).toBeTruthy();
   });
 
-  it("zeigt spezifischen role_not_capability_bearing-Inline-Fehler nach HTTP-422 auf grant", async () => {
+  // Plan 138-13 (D-18): ein Switch-Toggle mutiert nicht mehr sofort -- er öffnet den
+  // Impact-Preview-Dialog. Die 422/409-Fehlerfälle werden jetzt erst nach "Änderung
+  // übernehmen" innerhalb des Dialogs sichtbar, nicht mehr als sofortige Inline-Reaktion
+  // auf den Switch-Klick selbst.
+  it("zeigt spezifischen role_not_capability_bearing-Fehler im Impact-Preview-Dialog nach HTTP-422 auf grant", async () => {
     const apiModule = await import("@/lib/api");
+    vi.spyOn(apiModule, "getRoleCapabilityImpactPreview").mockResolvedValue({
+      affected_user_count: 0,
+      items: [],
+    });
+    vi.spyOn(apiModule, "listRoleHolders").mockResolvedValue([]);
     vi.spyOn(apiModule, "grantRoleCapability").mockRejectedValueOnce(
       new apiModule.ApiError(422, "rein historische Rolle", null, "role_not_capability_bearing")
     );
@@ -173,33 +182,42 @@ describe("RoleCapabilityClient", () => {
     fireEvent.click(fansublLeadButton);
 
     // Accordion "Gruppe" öffnen (enthält den granted=false Switch für "Gruppe bearbeiten")
-    // Alle Accordion-Header mit "Gruppe" finden (Desktop+Drawer können duplizieren)
     const gruppeHeaders = screen.getAllByText("Gruppe");
-    // Ersten Header klicken (Desktop-Panel)
     fireEvent.click(gruppeHeaders[0]);
 
-    // Switch für aria-checked="false" finden (Gruppe bearbeiten, granted=false)
+    // Switch für aria-checked="false" finden (Gruppe bearbeiten, granted=false) -> öffnet Dialog
     const switches = screen.getAllByRole("switch");
     const offSwitch = switches.find((s) => s.getAttribute("aria-checked") === "false");
     expect(offSwitch).toBeTruthy();
+    fireEvent.click(offSwitch!);
+
+    // Dialog öffnet sich, lädt die Vorschau, "Änderung übernehmen" wird aktiv
+    const confirmButton = await screen.findByRole("button", { name: "Änderung übernehmen" });
+    await waitFor(() => expect(confirmButton).toHaveProperty("disabled", false));
 
     await act(async () => {
-      fireEvent.click(offSwitch!);
+      fireEvent.click(confirmButton);
     });
 
-    // 422-spezifischer Fehlertext soll im Inline-Bereich erscheinen
-    const alerts = screen.queryAllByRole("alert");
-    const hasRoleNotCapabilityText = alerts.some((el) =>
-      el.textContent?.toLowerCase().includes("nicht") ||
-      el.textContent?.toLowerCase().includes("historisch") ||
-      el.textContent?.toLowerCase().includes("role_not_capability_bearing")
-    );
-    expect(hasRoleNotCapabilityText || alerts.length > 0).toBe(true);
+    // 422-spezifischer Fehlertext soll im Dialog erscheinen
+    await waitFor(() => {
+      const alerts = screen.queryAllByRole("alert");
+      const hasRoleNotCapabilityText = alerts.some((el) =>
+        el.textContent?.toLowerCase().includes("nicht") ||
+        el.textContent?.toLowerCase().includes("historisch") ||
+        el.textContent?.toLowerCase().includes("role_not_capability_bearing")
+      );
+      expect(hasRoleNotCapabilityText).toBe(true);
+    });
   });
 
-  it("zeigt Inline-Lockout-Fehlertext nach HTTP-409 auf revoke (neues Switch-UI)", async () => {
-    // Mock revokeRoleCapability: gibt 409-ApiError zurück
+  it("zeigt Lockout-Fehlertext im Impact-Preview-Dialog nach HTTP-409 auf revoke", async () => {
     const apiModule = await import("@/lib/api");
+    vi.spyOn(apiModule, "getRoleCapabilityImpactPreview").mockResolvedValue({
+      affected_user_count: 0,
+      items: [],
+    });
+    vi.spyOn(apiModule, "listRoleHolders").mockResolvedValue([]);
     vi.spyOn(apiModule, "revokeRoleCapability").mockRejectedValueOnce(
       new apiModule.ApiError(409, "Lockout-Schutz aktiv", null, "lockout_guard")
     );
@@ -214,23 +232,29 @@ describe("RoleCapabilityClient", () => {
     const mitgliederHeaders = screen.getAllByText("Mitglieder");
     fireEvent.click(mitgliederHeaders[0]);
 
-    // Switch für "Mitglieder anzeigen" (granted=true, aria-checked="true") → Revoke auslösen
+    // Switch für "Mitglieder anzeigen" (granted=true, aria-checked="true") -> öffnet Dialog
     const switches = screen.getAllByRole("switch");
     const checkedSwitch = switches.find((s) => s.getAttribute("aria-checked") === "true");
     expect(checkedSwitch).toBeTruthy();
+    fireEvent.click(checkedSwitch!);
+
+    const confirmButton = await screen.findByRole("button", { name: "Änderung übernehmen" });
+    await waitFor(() => expect(confirmButton).toHaveProperty("disabled", false));
 
     await act(async () => {
-      fireEvent.click(checkedSwitch!);
+      fireEvent.click(confirmButton);
     });
 
-    // Inline-Fehlertext soll erscheinen (role="alert" in RoleCapabilityDetail)
-    const alerts = screen.queryAllByRole("alert");
-    const hasLockoutText = alerts.some((el) =>
-      el.textContent?.toLowerCase().includes("lockout") ||
-      el.textContent?.toLowerCase().includes("schutz") ||
-      el.textContent?.toLowerCase().includes("entzogen")
-    );
-    expect(hasLockoutText || alerts.length > 0).toBe(true);
+    // Lockout-Fehlertext soll im Dialog erscheinen
+    await waitFor(() => {
+      const alerts = screen.queryAllByRole("alert");
+      const hasLockoutText = alerts.some((el) =>
+        el.textContent?.toLowerCase().includes("lockout") ||
+        el.textContent?.toLowerCase().includes("schutz") ||
+        el.textContent?.toLowerCase().includes("entzogen")
+      );
+      expect(hasLockoutText).toBe(true);
+    });
   });
 
   it("Desktop: nach Rollenauswahl erscheint NUR der Inline-Panel, kein sheet-dialog (gegenseitige Exklusivität)", () => {
@@ -283,14 +307,22 @@ describe("RoleCapabilityClient", () => {
     });
   });
 
-  it("hält das Accordion offen nach erfolgreichem Grant + Daten-Refresh (uncontrolled Pfad)", async () => {
+  it("hält das Accordion offen nach über den Impact-Preview-Dialog bestätigtem Grant + Daten-Refresh (uncontrolled Pfad)", async () => {
     mockMatchMedia(false); // Desktop
 
     const apiModule = await import("@/lib/api");
     // listRoleCapabilities liefert die Matrix (Initial-Load + Refresh nach Grant)
     vi.spyOn(apiModule, "listRoleCapabilities").mockResolvedValue(sampleMatrix);
-    // Grant ist erfolgreich → handleGrant ruft loadData(false) (kein LoadingState-Unmount)
-    vi.spyOn(apiModule, "grantRoleCapability").mockResolvedValue(undefined as never);
+    vi.spyOn(apiModule, "getRoleCapabilityImpactPreview").mockResolvedValue({
+      affected_user_count: 0,
+      items: [],
+    });
+    vi.spyOn(apiModule, "listRoleHolders").mockResolvedValue([]);
+    // Grant ist erfolgreich → onMutated ruft loadData(false) (kein LoadingState-Unmount)
+    vi.spyOn(apiModule, "grantRoleCapability").mockResolvedValue({
+      message: "ok",
+      cache_reload_succeeded: true,
+    });
 
     // Uncontrolled: kein matrix-Prop → interner Fetch über listRoleCapabilities
     await act(async () => {
@@ -305,19 +337,30 @@ describe("RoleCapabilityClient", () => {
     const gruppeHeaders = screen.getAllByText("Gruppe");
     fireEvent.click(gruppeHeaders[0]);
 
-    // Switch (granted=false) für "Gruppe bearbeiten" togglen → Grant + Refresh
+    // Switch (granted=false) für "Gruppe bearbeiten" togglen → öffnet den Impact-Preview-Dialog
     const switches = screen.getAllByRole("switch");
     const offSwitch = switches.find((s) => s.getAttribute("aria-checked") === "false");
     expect(offSwitch).toBeTruthy();
+    fireEvent.click(offSwitch!);
 
+    // Vorschau lädt, dann bestätigen → Grant + Refresh (onMutated -> loadData(false))
+    const confirmButton = await screen.findByRole("button", { name: "Änderung übernehmen" });
+    await waitFor(() => expect(confirmButton).toHaveProperty("disabled", false));
     await act(async () => {
-      fireEvent.click(offSwitch!);
+      fireEvent.click(confirmButton);
+    });
+    await waitFor(() => {
+      expect(apiModule.grantRoleCapability).toHaveBeenCalledWith("fansub_lead", "fansub_group.edit");
     });
 
-    // Nach Grant + Refresh muss die Kategorie "Gruppe" weiterhin aufgeklappt sein
-    const headerButton = screen.getByText("Gruppe").closest("button");
-    expect(headerButton?.getAttribute("aria-expanded")).toBe("true");
-    // Und die Switches sind weiterhin sichtbar (Panel nicht zugeklappt)
+    // Nach Grant + Refresh muss die Kategorie "Gruppe" im Hintergrund-Panel weiterhin
+    // aufgeklappt sein (das Dialog-Overlay hat nach erfolgreicher Mutation keine
+    // "Gruppe"-Textstelle mehr, da nur noch der Aktivierungsstatus gerendert wird).
+    await waitFor(() => {
+      const headerButton = screen.getByText("Gruppe").closest("button");
+      expect(headerButton?.getAttribute("aria-expanded")).toBe("true");
+    });
+    // Und die Switches im Hintergrund-Panel sind weiterhin sichtbar (Panel nicht zugeklappt)
     expect(screen.getAllByRole("switch").length).toBeGreaterThan(0);
   });
 

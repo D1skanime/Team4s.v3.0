@@ -20,8 +20,14 @@ const CATEGORY_ORDER = [
 
 export interface RoleCapabilityDetailProps {
   role: RoleEntry
-  onGrant: (roleCode: string, actionCode: string) => void
-  onRevoke: (roleCode: string, actionCode: string) => void
+  /**
+   * Ersetzt die vormals direkten onGrant/onRevoke-Mutationsaufrufe (Plan 138-13, D-18): ein
+   * Switch-Toggle löst NIEMALS mehr eine sofortige Mutation aus, sondern fordert nur an, dass
+   * der Parent den Impact-Preview-Dialog für (actionCode, add) öffnet -- die eigentliche
+   * Vergabe/Entziehung passiert erst nach einer im Dialog bestätigten, resolver-gestützten
+   * Vorschau.
+   */
+  onRequestChange: (actionCode: string, add: boolean) => void
   /** Inline-Fehler (z.B. 422 role_not_assignable oder 409 lockout_guard). */
   inlineError: string | null
   /**
@@ -42,8 +48,7 @@ export interface RoleCapabilityDetailProps {
  */
 export function RoleCapabilityDetail({
   role,
-  onGrant,
-  onRevoke,
+  onRequestChange,
   inlineError,
   openCategories,
   onOpenCategoriesChange,
@@ -115,11 +120,10 @@ export function RoleCapabilityDetail({
                     aria-label={action.label_de}
                     onCheckedChange={(next) => {
                       if (!isEditable) return
-                      if (next) {
-                        onGrant(role.role_code, action.code)
-                      } else {
-                        onRevoke(role.role_code, action.code)
-                      }
+                      // Kein sofortiges Speichern (D-18): nur den Impact-Preview-Dialog
+                      // anfordern; `checked` bleibt bis zur bestätigten Mutation + Refresh
+                      // unverändert (keine optimistische Vorab-Änderung, T-138-24).
+                      onRequestChange(action.code, next)
                     }}
                   />
                 )}
@@ -129,7 +133,7 @@ export function RoleCapabilityDetail({
         ),
       }
     })
-  }, [role, isEditable, onGrant, onRevoke])
+  }, [role, isEditable, onRequestChange])
 
   return (
     <div>

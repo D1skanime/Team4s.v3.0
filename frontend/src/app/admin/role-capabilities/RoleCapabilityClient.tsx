@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-import { ApiError, listRoleCapabilities, grantRoleCapability, revokeRoleCapability } from '@/lib/api'
+import { ApiError, listRoleCapabilities } from '@/lib/api'
 import type { RoleCapabilityMatrix, RoleEntry } from '@/types/admin-capability'
 import { Drawer } from '@/components/ui/Drawer'
 import { ErrorState } from '@/components/ui/ErrorState'
@@ -11,6 +11,7 @@ import { LoadingState } from '@/components/ui/LoadingState'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { RoleMasterList } from './RoleMasterList'
 import { RoleCapabilityDetail } from './RoleCapabilityDetail'
+import { RoleCapabilityImpactPreviewModal } from './RoleCapabilityImpactPreviewModal'
 
 /**
  * Gibt zurück, ob der Viewport als "mobil" gilt (< 760 px).
@@ -75,8 +76,14 @@ export default function RoleCapabilityClient({
   // sodass eine aufgeklappte Kategorie nach einer Mutation offen bleibt.
   const [openCategories, setOpenCategories] = useState<Set<string>>(new Set())
 
-  const [capabilityError, setCapabilityError] = useState<string | null>(null)
-  const [isMutating, setIsMutating] = useState(false)
+  // Plan 138-13 (D-18): Switch-Toggles fordern nur noch das Öffnen des Impact-Preview-Dialogs
+  // an; die eigentliche Mutation (inkl. 422/409-Fehlerbehandlung) lebt jetzt vollständig im
+  // Dialog selbst (RoleCapabilityImpactPreviewModal), nicht mehr hier.
+  const [impactPreviewRequest, setImpactPreviewRequest] = useState<{
+    actionCode: string
+    actionLabel: string
+    add: boolean
+  } | null>(null)
 
   /**
    * Lädt die Matrix neu.
@@ -123,7 +130,7 @@ export default function RoleCapabilityClient({
 
   function handleSelectRole(roleCode: string) {
     setSelectedRoleCode(roleCode)
-    setCapabilityError(null)
+    setImpactPreviewRequest(null)
     // Sheet nur auf Mobile öffnen — Desktop zeigt den Inline-Panel
     if (isMobile) {
       setIsSheetOpen(true)
@@ -145,56 +152,13 @@ export default function RoleCapabilityClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matrix, searchParams])
 
-  async function handleGrant(roleCode: string, actionCode: string) {
-    if (isMutating) return
-    setIsMutating(true)
-    setCapabilityError(null)
-    try {
-      await grantRoleCapability(roleCode, actionCode)
-      await loadData(false)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 422 && err.code === 'role_not_capability_bearing') {
-          setCapabilityError(
-            'Diese Rolle ist eine rein historische Rolle. Capabilities können nicht vergeben werden.'
-          )
-        } else {
-          setCapabilityError(err.message || 'Fehler beim Vergeben der Capability.')
-        }
-      } else {
-        setCapabilityError('Fehler beim Vergeben der Capability.')
-      }
-    } finally {
-      setIsMutating(false)
-    }
-  }
-
-  async function handleRevoke(roleCode: string, actionCode: string) {
-    if (isMutating) return
-    setIsMutating(true)
-    setCapabilityError(null)
-    try {
-      await revokeRoleCapability(roleCode, actionCode)
-      await loadData(false)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 422 && err.code === 'role_not_capability_bearing') {
-          setCapabilityError(
-            'Diese Rolle ist eine rein historische Rolle. Capabilities können nicht entzogen werden.'
-          )
-        } else if (err.status === 409) {
-          setCapabilityError(
-            err.message || 'Lockout-Schutz: Diese Capability kann nicht entzogen werden.'
-          )
-        } else {
-          setCapabilityError(err.message || 'Fehler beim Entziehen der Capability.')
-        }
-      } else {
-        setCapabilityError('Fehler beim Entziehen der Capability.')
-      }
-    } finally {
-      setIsMutating(false)
-    }
+  // Plan 138-13 (D-18/CAP-09): ein Switch-Toggle fordert nur noch das Öffnen des
+  // Impact-Preview-Dialogs an; `add=true` -> Vergabe, `add=false` -> Entziehung. Die
+  // eigentliche Mutation (inkl. 422/409-Fehlerbehandlung) passiert erst nach einer im Dialog
+  // bestätigten Vorschau, direkt in RoleCapabilityImpactPreviewModal.
+  function handleRequestChange(actionCode: string, add: boolean) {
+    const actionLabel = selectedRole?.actions.find((a) => a.code === actionCode)?.label_de ?? actionCode
+    setImpactPreviewRequest({ actionCode, actionLabel, add })
   }
 
   const selectedRole: RoleEntry | null =
@@ -215,7 +179,7 @@ export default function RoleCapabilityClient({
       <PageHeader title="Capability-Verwaltung" />
 
       <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>
-        Änderungen werden nach dem Cache-Reload der Rechte-Prüfung wirksam (typisch innerhalb weniger Sekunden nach dem Speichern).
+        Änderungen werden nach Bestätigung sofort im Rechte-Cache aktualisiert.
       </p>
 
       {/* Master-Detail-Layout */}
@@ -254,9 +218,8 @@ export default function RoleCapabilityClient({
           >
             <RoleCapabilityDetail
               role={selectedRole}
-              onGrant={handleGrant}
-              onRevoke={handleRevoke}
-              inlineError={capabilityError}
+              onRequestChange={handleRequestChange}
+              inlineError={null}
               openCategories={openCategories}
               onOpenCategoriesChange={setOpenCategories}
             />
@@ -270,20 +233,35 @@ export default function RoleCapabilityClient({
           open={isSheetOpen}
           onClose={() => {
             setIsSheetOpen(false)
-            setCapabilityError(null)
+            setImpactPreviewRequest(null)
           }}
           title={selectedRole.label_de}
           variant="responsiveSheet"
         >
           <RoleCapabilityDetail
             role={selectedRole}
-            onGrant={handleGrant}
-            onRevoke={handleRevoke}
-            inlineError={capabilityError}
+            onRequestChange={handleRequestChange}
+            inlineError={null}
             openCategories={openCategories}
             onOpenCategoriesChange={setOpenCategories}
           />
         </Drawer>
+      )}
+
+      {/* CAP-09/D-18/D-20/D-21: Impact-Preview-Dialog -- gate vor jeder Capability-Mutation. */}
+      {impactPreviewRequest && selectedRole && (
+        <RoleCapabilityImpactPreviewModal
+          open
+          onClose={() => setImpactPreviewRequest(null)}
+          roleCode={selectedRole.role_code}
+          roleLabel={selectedRole.label_de}
+          actionCode={impactPreviewRequest.actionCode}
+          actionLabel={impactPreviewRequest.actionLabel}
+          add={impactPreviewRequest.add}
+          onMutated={() => {
+            void loadData(false)
+          }}
+        />
       )}
     </div>
   )

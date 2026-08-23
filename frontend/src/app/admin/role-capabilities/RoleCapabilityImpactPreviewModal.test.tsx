@@ -185,8 +185,9 @@ describe('RoleCapabilityImpactPreviewModal', () => {
     expect(screen.getByText('nachher')).not.toBeNull()
     expect(screen.getByText('Grund')).not.toBeNull()
 
-    // Joins: Kenji (Verlust... nein, Kenji ist Gewinn) -- Mika ist der Verlust-Fall (target_user_id 2)
-    expect(screen.getByText('Anime no Sekai')).not.toBeNull()
+    // Join-Check: Gruppen-Namen aus den Rolleninhabern erscheinen in der Tabelle (Anime no
+    // Sekai kommt bei 3 der 5 Fixture-Inhaber vor, daher getAllByText statt getByText).
+    expect(screen.getAllByText('Anime no Sekai').length).toBeGreaterThan(0)
     expect(screen.getByText('Moonlight Subs')).not.toBeNull()
 
     // Sortierung: die erste Datenzeile (nach dem Kopf) muss der Verlust-Fall (Mika) sein.
