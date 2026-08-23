@@ -10,6 +10,7 @@ import type {
   EffectiveRightState,
   RoleCapabilityMatrix,
 } from '@/types/admin-capability'
+import { roleLabelFor } from './userGroupRightsHelpers'
 
 /**
  * Guided "Recht entziehen" flow (CAP-08, D-16, D-17, UI-SPEC.md Section E).
@@ -158,8 +159,10 @@ export function GuidedRevokeFlow({
       <Modal open={open} onClose={onClose} title={title} size="md">
         <p>
           Dieses Recht kann für {appUserDisplayName} nicht persönlich entzogen werden. Es wird
-          direkt durch {state.granting_roles.join(', ') || decisiveSourceFallback(state)} gewährt
-          und ist nicht überschreibbar.
+          direkt durch{' '}
+          {state.granting_roles.map((role) => roleLabelFor(role, matrix)).join(', ') ||
+            decisiveSourceFallback(state)}{' '}
+          gewährt und ist nicht überschreibbar.
         </p>
       </Modal>
     )
@@ -212,8 +215,8 @@ export function GuidedRevokeFlow({
             ? flaggedSources
                 .map(({ role, contributionRoleOnly }) =>
                   contributionRoleOnly
-                    ? `${role} (kann durch eine persönliche Abweichung nicht entzogen werden)`
-                    : role,
+                    ? `${roleLabelFor(role, matrix)} (kann durch eine persönliche Abweichung nicht entzogen werden)`
+                    : roleLabelFor(role, matrix),
                 )
                 .join(', ')
             : '–'}
