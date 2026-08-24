@@ -318,7 +318,7 @@ export interface AdminChangesListResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Phase-139: skalierbare User-Admin-Projektionen (Beitraege/Medien/Rechte)
+// Phase-139: skalierbare User-Admin-Projektionen (Beiträge/Medien/Rechte)
 //
 // Diese Typen sind additiv. Sie ersetzen NICHT AdminUserContributionsResponse/
 // AdminUserMediaResponse/AdminContributionItem/AdminMediaItemSummary, deren
@@ -369,7 +369,7 @@ export interface AdminContributionProjectBlock {
 }
 
 /**
- * Auf die Beitragshistorie des jeweils einen Users beschraenkt (UI-SPEC
+ * Auf die Beitragshistorie des jeweils einen Users beschränkt (UI-SPEC
  * Filter Data Contract) — niemals ein zweiter unbegrenzter Lookup-Endpunkt.
  */
 export interface AdminContributionFilterOptions {
@@ -410,7 +410,7 @@ export interface AdminMediaReleaseBlock {
   items: AdminMediaItem[]
 }
 
-/** Die verfuegbaren Filter fuer den Medien-Tab. */
+/** Die verfügbaren Filter fuer den Medien-Tab. */
 export interface AdminMediaFilterOptions {
   animes: AdminFilterOption[]
   groups: AdminFilterOption[]
@@ -425,7 +425,7 @@ export interface AdminUserMediaPage {
   filter_options: AdminMediaFilterOptions
 }
 
-/** F-01-Kompaktzusammenfassung einer einzelnen Faehigkeit. */
+/** F-01-Kompaktzusammenfassung einer einzelnen Fähigkeit. */
 export interface AdminHeadlineCapabilityState {
   action_code: string
   label: string
@@ -442,7 +442,7 @@ export interface AdminUserGroupRightsSummaryItem {
   open_claims_count: number
 }
 
-/** Die neue paginierte, gebuendelte F-01-Response-Huelle fuer die Rechte-Uebersicht. */
+/** Die neue paginierte, gebündelte F-01-Response-Huelle fuer die Rechte-Übersicht. */
 export interface AdminUserRightsSummaryPage {
   data: AdminUserGroupRightsSummaryItem[]
   meta: AdminListMeta

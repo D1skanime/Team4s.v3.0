@@ -29,7 +29,7 @@ interface FilterPatch {
 
 /**
  * Synchronisiert die Medien-Filter des User-Detail-Tabs (Anime/Gruppe/Release-
- * oder-Episode/Medientyp/Zeitraum, D12/D13/D14/D23) ueber die URL — exakte
+ * oder-Episode/Medientyp/Zeitraum, D12/D13/D14/D23) über die URL — exakte
  * Struktur wie useClaimsListFilters.ts (useRouter/usePathname/useSearchParams,
  * `router.replace(..., { scroll: false })`, nie `router.push`).
  */
@@ -139,12 +139,12 @@ export function useUserMediaFilters(limit = DEFAULT_LIMIT): UseUserMediaFiltersR
     [limit, writeParams],
   )
 
-  // useMemo haelt die Referenz stabil, solange sich die zugrunde liegenden URL-Werte
-  // nicht aendern (identisches Rationale wie useClaimsListFilters.ts: ein neues
-  // Objektliteral bei jedem Render wuerde den in der konsumierenden Tab-Komponente
+  // useMemo hält die Referenz stabil, solange sich die zugrunde liegenden URL-Werte
+  // nicht ändern (identisches Rationale wie useClaimsListFilters.ts: ein neues
+  // Objektliteral bei jedem Render würde den in der konsumierenden Tab-Komponente
   // auf `params` referenzierenden useCallback bei jedem Render neu erzeugen und damit
   // eine Endlosschleife aus useEffect -> loadData -> Render -> neues `params`-Objekt
-  // -> useEffect ... ausloesen).
+  // -> useEffect ... auslösen).
   const params: AdminUserMediaParams = useMemo(
     () => ({
       anime_id: animeId ? Number(animeId) : undefined,

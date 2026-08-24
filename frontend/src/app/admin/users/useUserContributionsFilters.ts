@@ -28,8 +28,8 @@ interface FilterPatch {
 }
 
 /**
- * Synchronisiert die Beitraege-Filter des User-Detail-Tabs (Anime/Gruppe/Rolle/
- * nur Abweichungen/Zeitraum, D08/D09/D10/D23) ueber die URL — exakte Struktur
+ * Synchronisiert die Beiträge-Filter des User-Detail-Tabs (Anime/Gruppe/Rolle/
+ * nur Abweichungen/Zeitraum, D08/D09/D10/D23) über die URL — exakte Struktur
  * wie useClaimsListFilters.ts (useRouter/usePathname/useSearchParams,
  * `router.replace(..., { scroll: false })`, nie `router.push`).
  * `only_deviations` wird als '1'/abwesend kodiert (nicht 'true'/'false'), analog
@@ -129,12 +129,12 @@ export function useUserContributionsFilters(limit = DEFAULT_LIMIT): UseUserContr
     [limit, writeParams],
   )
 
-  // useMemo haelt die Referenz stabil, solange sich die zugrunde liegenden URL-Werte
-  // nicht aendern (identisches Rationale wie useClaimsListFilters.ts: ein neues
-  // Objektliteral bei jedem Render wuerde den in der konsumierenden Tab-Komponente
+  // useMemo hält die Referenz stabil, solange sich die zugrunde liegenden URL-Werte
+  // nicht ändern (identisches Rationale wie useClaimsListFilters.ts: ein neues
+  // Objektliteral bei jedem Render würde den in der konsumierenden Tab-Komponente
   // auf `params` referenzierenden useCallback bei jedem Render neu erzeugen und damit
   // eine Endlosschleife aus useEffect -> loadData -> Render -> neues `params`-Objekt
-  // -> useEffect ... ausloesen).
+  // -> useEffect ... auslösen).
   const params: AdminUserContributionsParams = useMemo(
     () => ({
       anime_id: animeId ? Number(animeId) : undefined,
