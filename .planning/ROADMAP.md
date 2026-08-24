@@ -586,7 +586,7 @@ Plans:
 - [x] 139-03-PLAN.md — Contributions grouping/range-collapse/override-diff query (TDD, D02-D10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 139-04-PLAN.md — Media grouping query + real PublicURL/FileSizeBytes derivation (D11-D14/D17-D19)
+- [x] 139-04-PLAN.md — Media grouping query + real PublicURL/FileSizeBytes derivation (D11-D14/D17-D19)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 139-05-PLAN.md — F-01 batched rights-summary endpoint (Overview-tab fan-out fix) + GetUserGroupMemberships pagination (D21/D22)

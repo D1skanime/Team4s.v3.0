@@ -4,13 +4,13 @@ milestone: v1.4
 milestone_name: Coverage
 status: executing
 stopped_at: Completed 139-03-PLAN.md
-last_updated: "2026-08-24T18:52:00.914Z"
+last_updated: "2026-08-24T19:04:45.259Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 66
+  completed_plans: 67
   percent: 43
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 139 (scalable-user-admin-projections) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 Last activity: 2026-08-24
 
@@ -189,6 +189,7 @@ Last activity: 2026-08-24
 - [Phase 139]: 139-01: Phase-139 DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) added additively to admin_users.go alongside untouched existing AdminUserContributionsResult/AdminUserMediaResult/AdminContributionItem/AdminMediaItemSummary; testsupport.OpenPhase139Postgres(t) applies the full real 151-pair migration chain (not hand-assembled stand-in tables) inside an isolated per-test schema. — Fixed two dormant bugs this exposed: migrations 0057/0071 hardcoded public.-qualified references (only 2 of 151 pairs, now schema-portable via current_schemas(false)), and a genuine import cycle from testsupport now importing migrations (resolved by moving 14 internal migrations-package test files to the external migrations_test package, mechanical rename, go test FAIL count unchanged at 65).
 - [Phase 139]: 139-02: New Phase-139 TS DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) verified field-for-field against 139-01's Go structs; two new URL-synced filter hooks (useUserContributionsFilters/useUserMediaFilters) mirror useClaimsListFilters.ts exactly, only_deviations encoded as '1'/absent per the has_conflicts convention. Zero file overlap with sibling plan 139-01.
 - [Phase 139]: 139-03: ListUserContributions is fully rewritten to return server-side grouped/paginated AdminUserContributionsPage (anime+project grouping, sort_index range-collapse, semantic override-diff never trusting release_crew_snapshots.snapshot_mode alone); fixed a real ARRAY_AGG(array_col)[1]-typed-as-scalar cardinality(text) SQL bug found via the 9-test D02-D10 integration suite, corrected to MIN() aggregates over the invariant per-range-group role arrays.
+- [Phase 139]: 139-04: GetUserMedia is fully rewritten to return server-side grouped/paginated AdminUserMediaPage (anime+project+release/episode grouping, real PublicURL/FileSizeBytes derivation via a ported buildRVMPublicURL convention + media_files join); AdminUsersRepository's constructor now threads cfg.MediaStorageDir (mirrors NewFansubRepository/NewMediaRepository), requiring 4 call-site updates outside the plan's stated file list.
 
 ### Pending Todos
 
@@ -433,10 +434,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 139 P01 | 55min | 2 tasks | 18 files |
 | Phase 139 P02 | 35min | 2 tasks | 3 files |
 | Phase 139 P03 | 35min | 3 tasks | 7 files |
+| Phase 139 P04 | 40min | 3 tasks | 9 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T18:52:00.901Z
+Last session: 2026-08-24T19:04:45.245Z
 Stopped at: Completed 139-03-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
