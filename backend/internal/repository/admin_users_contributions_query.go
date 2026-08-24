@@ -3,8 +3,11 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	"team4s.v3/backend/internal/models"
 )
@@ -51,11 +54,14 @@ func (r *AdminUsersRepository) listUserContributionsGrouped(
 		WHERE mc.app_user_id = $1 AND mc.claim_status = 'verified'
 		ORDER BY mc.id LIMIT 1
 	`, filter.AppUserID).Scan(&memberID)
-	if err != nil {
+	if errors.Is(err, pgx.ErrNoRows) {
 		limit, offset := ClampAdminListPage(filter.Limit, filter.Offset)
 		empty.Meta.Limit = limit
 		empty.Meta.Offset = offset
 		return empty, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("list user contributions grouped: resolve member: %w", err)
 	}
 
 	limit, offset := ClampAdminListPage(filter.Limit, filter.Offset)

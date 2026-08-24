@@ -433,6 +433,25 @@ func TestListUserContributionsFilterOptionsScopedToUser(t *testing.T) {
 	require.Equal(t, int64(139039020), page.FilterOptions.Groups[0].ID)
 }
 
+// TestListUserContributionsNoVerifiedClaimReturnsEmptyPage proves WR-01's
+// errors.Is(err, pgx.ErrNoRows) branch: an app_user with no verified
+// member_claims row is the legitimate "no contributions" case and must still
+// return an empty, error-free page (unchanged end-user behavior) -- WR-01
+// only tightens the previously-blanket "any error -> empty" branch down to
+// exactly this ErrNoRows case, propagating every other DB error instead.
+func TestListUserContributionsNoVerifiedClaimReturnsEmptyPage(t *testing.T) {
+	pool := testsupport.OpenPhase139Postgres(t)
+	ctx := context.Background()
+	const appUserIDWithoutClaim = int64(139040001)
+	seedPhase139AppUser(t, pool, appUserIDWithoutClaim, "phase139-no-claim@phase139.test")
+
+	repo := NewAdminUsersRepository(pool, "")
+	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserIDWithoutClaim})
+	require.NoError(t, err, "no verified claim must be treated as 'no contributions', not a real error")
+	require.NotNil(t, page)
+	require.Empty(t, page.Data)
+}
+
 // itoa avoids importing strconv purely for single-digit loop indices in this
 // test file's seed helpers.
 func itoa(n int) string {
