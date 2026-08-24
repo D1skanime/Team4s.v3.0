@@ -5,6 +5,15 @@ package repository
 // zusätzlich zur internen release_version_id ausliefern, damit die Beiträge-Tab-UI
 // nie mehr eine interne DB-ID als "Version" rendert.
 //
+// Plan 139-03: Der komplette Query-Body wurde aus admin_users_tab_repository.go
+// heraus in die neue admin_users_contributions_query.go verschoben (Gruppierung/
+// Bereichs-Zusammenfassung/Override-Diff, D02-D10) — dieser Test prüft seither
+// dieselbe D-29-Eigenschaft (release_version_label/episode_number werden weiterhin
+// aus der Datenbank geladen und in die zurückgegebenen from_label/to_label-Werte
+// überführt) gegen die neue Datei, exakt nach demselben Muster, das
+// TestAdminUsersRepository_MemberIDAnchor_CanonicalFirst in
+// admin_users_repository_test.go bereits für diese Umstellung etabliert hat.
+//
 // Test-Konvention: admin_users_repository_test.go besitzt für diese Datei keinen
 // echten Postgres-Testharness — die bestehenden Tests (z. B.
 // TestAdminUsersRepository_MemberIDAnchor_CanonicalFirst) sind reine
@@ -21,26 +30,27 @@ import (
 )
 
 func TestListUserContributions(t *testing.T) {
-	source, err := os.ReadFile("admin_users_tab_repository.go")
+	source, err := os.ReadFile("admin_users_contributions_query.go")
 	if err != nil {
-		t.Fatalf("admin_users_tab_repository.go lesen: %v", err)
+		t.Fatalf("admin_users_contributions_query.go lesen: %v", err)
 	}
 	text := string(source)
 
 	requiredSnippets := []string{
-		// Die beiden neuen LEFT JOINs, additiv, damit Projekt-Standard-Beiträge
+		// Die drei LEFT JOINs, additiv, damit Projekt-Standard-Beiträge
 		// (release_version_id IS NULL) weiterhin Zeilen liefern.
 		"LEFT JOIN release_versions rv ON rv.id = ac.release_version_id",
 		"LEFT JOIN fansub_releases fr ON fr.id = rv.release_id",
 		"LEFT JOIN episodes ep ON ep.id = fr.episode_id",
-		// Die zwei neuen Select-Spalten.
-		"rv.version",
+		// Die fachliche Version-Spalte und die Episodennummer-Spalte.
+		"rv.version AS release_version_label",
 		"ep.episode_number",
-		// Beide neuen Spalten müssen in GROUP BY, sonst bricht die ARRAY_AGG-Aggregation.
-		"GROUP BY ac.id, ac.member_id, fg.name, a.title, rv.version, ep.episode_number",
-		// Scan-Ziele der zwei neuen nullable Felder.
-		"&item.ReleaseVersionLabel",
-		"&item.EpisodeNumber",
+		// Beide Spalten müssen in GROUP BY, sonst bricht die Aggregation.
+		"ac.release_version_id, rv.version, ep.episode_number, ep.sort_index",
+		// release_version_label/episode_number werden weiterhin ausgelesen und in
+		// die zurückgegebenen from_label/to_label-Werte überführt (D-29 bleibt
+		// erhalten, auch wenn es kein AdminContributionItem-Feld mehr direkt gibt).
+		"COALESCE(NULLIF(release_version_label, ''), episode_number, '?')",
 	}
 	for _, snippet := range requiredSnippets {
 		if !strings.Contains(text, snippet) {
