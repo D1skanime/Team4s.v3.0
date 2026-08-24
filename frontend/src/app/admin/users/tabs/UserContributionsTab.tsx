@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react'
 
 import {
   Badge,
-  Button,
   EmptyState,
   ErrorState,
   LoadingState,
@@ -22,124 +21,106 @@ import { normalizeRoleCodes } from '@/components/contributions/contributionRoles
 import { useRoleCatalog } from '@/providers/RoleCatalogProvider'
 import type { RoleDefinitionOption } from '@/types/admin-capability'
 import type {
-  AdminContributionItem,
-  AdminUserContributionsResponse,
+  AdminContributionProjectBlock,
+  AdminUserContributionsPage,
 } from '@/types/admin-users'
+
+/**
+ * Plan 139-07 compile-compatibility note: this is a MINIMAL adaptation to 139-03's real
+ * server-side grouped/paginated contract (AdminUserContributionsPage), required because
+ * 139-07's api.ts change (paginated getAdminUserContributions) otherwise breaks the
+ * production build (the old response shape -- project_defaults/release_overrides/
+ * open_disputes/legacy_historical -- no longer exists on the wire). The full UI-SPEC-mandated
+ * rewrite (filters, standard-range collapse visuals, pagination controls, D-13 informational
+ * banner) is Plan 139-08's explicit scope -- see 139-CONTEXT.md/139-UI-SPEC.md. This render
+ * intentionally stays close to the existing Table/Badge visual language without inventing new
+ * UI-SPEC-owned interaction design.
+ */
 
 interface Props {
   userId: number
 }
 
-interface ContributionSectionProps {
-  title: string
-  items: AdminContributionItem[]
-  showReleaseVersion?: boolean
-  showDisputeState?: boolean
-  isLegacy?: boolean
+function RoleBadges({
+  roleCodes,
+  contributionRoles,
+}: {
+  roleCodes: string[]
   contributionRoles: readonly RoleDefinitionOption[]
+}) {
+  if (roleCodes.length === 0) return <Badge variant="muted">–</Badge>
+  return (
+    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+      {normalizeRoleCodes(contributionRoles, roleCodes).map((code) => {
+        const presentation = presentationForRole(contributionRoles, code)
+        return (
+          <Badge
+            key={code}
+            variant="neutral"
+            data-role-code={presentation.colorKey}
+            data-role-icon={presentation.iconKey}
+          >
+            {labelForRole(contributionRoles, code)}
+          </Badge>
+        )
+      })}
+    </div>
+  )
 }
 
-function ContributionSection({
-  title,
-  items,
-  showReleaseVersion = false,
-  showDisputeState = false,
-  isLegacy = false,
+function ProjectBlockSection({
+  block,
   contributionRoles,
-}: ContributionSectionProps) {
-  if (items.length === 0) return null
-
+}: {
+  block: AdminContributionProjectBlock
+  contributionRoles: readonly RoleDefinitionOption[]
+}) {
   return (
     <div style={{ marginBottom: 'var(--space-5)' }}>
       <SectionHeader
-        title={title}
-        actions={
-          <Badge variant="neutral">{items.length}</Badge>
-        }
+        title={block.anime_title}
+        description={block.fansub_group_name}
+        actions={<Badge variant="neutral">{block.range_entries.length}</Badge>}
       />
       <Table variant="compact">
         <TableHead>
           <TableRow>
-            <TableHeaderCell>Anime</TableHeaderCell>
-            <TableHeaderCell>Gruppe</TableHeaderCell>
-            {showReleaseVersion && <TableHeaderCell>Release-Version</TableHeaderCell>}
-            {showDisputeState && <TableHeaderCell>Streitstatus</TableHeaderCell>}
-            {isLegacy && <TableHeaderCell>Hinweis</TableHeaderCell>}
+            <TableHeaderCell>Bereich</TableHeaderCell>
             <TableHeaderCell>Rollen</TableHeaderCell>
-            {showReleaseVersion && <TableHeaderCell>Aktion</TableHeaderCell>}
+            <TableHeaderCell>Hinweis</TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {items.map((item) => (
-            <TableRow key={`${item.contribution_id}-${item.release_version_id ?? 'null'}`}>
-              <TableCell style={{ fontWeight: 600 }}>{item.anime_title}</TableCell>
-              <TableCell>{item.fansub_group_name}</TableCell>
-              {showReleaseVersion && (
-                <TableCell>
-                  {item.release_version_id != null ? (
-                    item.episode_number != null && item.release_version_label != null ? (
-                      <Badge variant="info">
-                        {item.anime_title} · Episode {item.episode_number} · Version{' '}
-                        {item.release_version_label}
-                      </Badge>
-                    ) : (
-                      <Badge variant="info">Version {item.release_version_id}</Badge>
-                    )
-                  ) : (
-                    <Badge variant="muted">–</Badge>
-                  )}
-                </TableCell>
+          <TableRow>
+            <TableCell style={{ fontWeight: 600 }}>Projektstandard</TableCell>
+            <TableCell>
+              <RoleBadges roleCodes={block.project_standard.role_codes} contributionRoles={contributionRoles} />
+            </TableCell>
+            <TableCell>
+              {block.project_standard.contributor_labels.length > 0 ? (
+                block.project_standard.contributor_labels.join(', ')
+              ) : (
+                <Badge variant="muted">–</Badge>
               )}
-              {showDisputeState && (
-                <TableCell>
-                  <Badge variant="warning">{item.dispute_state}</Badge>
-                </TableCell>
-              )}
-              {isLegacy && (
-                <TableCell>
-                  <Badge variant="muted">Historisch</Badge>
-                </TableCell>
-              )}
+            </TableCell>
+          </TableRow>
+          {block.range_entries.map((entry, index) => (
+            <TableRow key={`${entry.from_label}-${entry.to_label}-${index}`}>
               <TableCell>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {item.role_codes.length === 0 ? (
-                    <Badge variant="muted">–</Badge>
-                  ) : (
-                    normalizeRoleCodes(contributionRoles, item.role_codes).map((code) => {
-                      const presentation = presentationForRole(contributionRoles, code)
-                      return (
-                        <Badge
-                          key={code}
-                          variant="neutral"
-                          data-role-code={presentation.colorKey}
-                          data-role-icon={presentation.iconKey}
-                        >
-                          {labelForRole(contributionRoles, code)}
-                        </Badge>
-                      )
-                    })
-                  )}
-                </div>
+                {entry.from_label === entry.to_label
+                  ? entry.from_label
+                  : `${entry.from_label} – ${entry.to_label}`}
               </TableCell>
-              {showReleaseVersion && item.release_version_id != null && (
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      window.open(
-                        `/admin/fansubs/${item.fansub_group_id}/edit`,
-                        '_blank',
-                      )
-                    }
-                  >
-                    Release-Version öffnen
-                  </Button>
-                </TableCell>
-              )}
-              {showReleaseVersion && item.release_version_id == null && (
-                <TableCell />
-              )}
+              <TableCell>
+                <RoleBadges roleCodes={entry.role_codes} contributionRoles={contributionRoles} />
+              </TableCell>
+              <TableCell>
+                {entry.is_deviation ? (
+                  <Badge variant="warning">{entry.deviation_detail ?? 'Abweichung'}</Badge>
+                ) : (
+                  <Badge variant="muted">Standard</Badge>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -150,7 +131,7 @@ function ContributionSection({
 
 export function UserContributionsTab({ userId }: Props) {
   const { roles: contributionRoles, error: roleCatalogError } = useRoleCatalog('anime_contribution')
-  const [data, setData] = useState<AdminUserContributionsResponse | null>(null)
+  const [data, setData] = useState<AdminUserContributionsPage | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -192,15 +173,7 @@ export function UserContributionsTab({ userId }: Props) {
       />
     )
   }
-  if (!data) return <EmptyState title="Keine Beiträge vorhanden." description="" />
-
-  const total =
-    data.project_defaults.length +
-    data.release_overrides.length +
-    data.open_disputes.length +
-    data.legacy_historical.length
-
-  if (total === 0) {
+  if (!data || data.data.length === 0) {
     return (
       <div style={{ padding: 'var(--space-4)' }}>
         <EmptyState title="Keine Beiträge vorhanden." description="" />
@@ -210,33 +183,13 @@ export function UserContributionsTab({ userId }: Props) {
 
   return (
     <div style={{ padding: 'var(--space-4)' }}>
-      {/* D-13: Vier Sektionen; leere Gruppen ausgeblendet */}
-      <ContributionSection
-        title="Projektweite Beiträge (Standard)"
-        items={data.project_defaults}
-        showReleaseVersion={false}
-        contributionRoles={contributionRoles}
-      />
-      <ContributionSection
-        title="Release-spezifische Overrides"
-        items={data.release_overrides}
-        showReleaseVersion={true}
-        contributionRoles={contributionRoles}
-      />
-      <ContributionSection
-        title="Offene / strittige Beiträge"
-        items={data.open_disputes}
-        showReleaseVersion={false}
-        showDisputeState={true}
-        contributionRoles={contributionRoles}
-      />
-      <ContributionSection
-        title="Historisch / Legacy"
-        items={data.legacy_historical}
-        showReleaseVersion={false}
-        isLegacy={true}
-        contributionRoles={contributionRoles}
-      />
+      {data.data.map((block) => (
+        <ProjectBlockSection
+          key={`${block.anime_id}-${block.fansub_group_id}`}
+          block={block}
+          contributionRoles={contributionRoles}
+        />
+      ))}
     </div>
   )
 }
