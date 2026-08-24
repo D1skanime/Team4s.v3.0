@@ -311,4 +311,20 @@ describe('RoleCapabilityImpactPreviewModal', () => {
     expect(screen.getByText('keine weitere Quelle')).not.toBeNull()
     expect(screen.getAllByText('nicht erlaubt').length).toBeGreaterThan(0)
   })
+
+  it('trägt die narrowHeightFix-Klasse auf dem Dialog-Panel bei schmaler Viewport-Breite (GAP-02)', async () => {
+    mockMatchMedia(true)
+    mockGetRoleCapabilityImpactPreview.mockResolvedValueOnce(makePreview([]))
+    mockListRoleHolders.mockResolvedValueOnce([])
+
+    render(<RoleCapabilityImpactPreviewModal {...defaultProps} />)
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Auswirkungs-Vorschau wird geladen/)).toBeNull()
+    })
+
+    const dialog = screen.getByRole('dialog')
+    const panel = dialog.querySelector('[tabindex="-1"]')
+    expect(panel?.className).toMatch(/narrowHeightFix/)
+  })
 })
