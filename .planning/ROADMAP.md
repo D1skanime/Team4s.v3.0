@@ -593,7 +593,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [x] 139-06-PLAN.md — QUAL-06 query-budget + pagination-drift gate + F-03 live seed-data script
-- [ ] 139-07-PLAN.md — api.ts wiring + Rights-tab lazy-fetch fix (D22) + Overview-tab batched-summary consumption (F-01)
+- [x] 139-07-PLAN.md — api.ts wiring + Rights-tab lazy-fetch fix (D22) + Overview-tab batched-summary consumption (F-01)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 139-08-PLAN.md — Contributions tab UI rewrite: grouped-card projection + container-query CSS

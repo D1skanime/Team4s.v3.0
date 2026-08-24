@@ -30,7 +30,7 @@
 - [x] **UADM-04**: Identische Release-Version-Zuweisungen werden zu verständlichen Bereichen wie „Version 1–13 entspricht dem Projektstandard“ zusammengefasst.
 - [x] **UADM-05**: Medien eines Benutzers werden nach Anime, Projekt und Release-Kontext gruppiert und verlinken zielgenau zur bestehenden kanonischen Arbeitsfläche.
 - [x] **UADM-06**: Große Rechte-, Beitrags- und Medienbestände lassen sich serverseitig filtern und stabil paginieren; Zähler beziehen sich auf denselben gefilterten Datenbestand.
-- [ ] **UADM-07**: Jeder Benutzer-Tab erklärt seinen Zweck und bietet passende nächste Aktionen oder kennzeichnet bewusst rein informative Daten eindeutig.
+- [x] **UADM-07**: Jeder Benutzer-Tab erklärt seinen Zweck und bietet passende nächste Aktionen oder kennzeichnet bewusst rein informative Daten eindeutig.
 - [x] **UADM-08**: Die berührten Admin-Oberflächen nutzen ein gemeinsames Desktop-first-Layoutmuster mit CSS-/Container-Queries, Tastaturbedienung und schmaler Graceful Degradation ohne Seitenoverflow.
 
 ### Review-Delegation
@@ -114,7 +114,7 @@
 | UADM-04 | Phase 139 | Complete |
 | UADM-05 | Phase 139 | Complete |
 | UADM-06 | Phase 139 | Complete |
-| UADM-07 | Phase 139 | Pending |
+| UADM-07 | Phase 139 | Complete |
 | UADM-08 | Phase 139 | Complete |
 | RDEL-01 | Phase 140 | Pending |
 | RDEL-02 | Phase 140 | Pending |
