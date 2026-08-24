@@ -592,7 +592,7 @@ Plans:
 - [x] 139-05-PLAN.md — F-01 batched rights-summary endpoint (Overview-tab fan-out fix) + GetUserGroupMemberships pagination (D21/D22)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 139-06-PLAN.md — QUAL-06 query-budget + pagination-drift gate + F-03 live seed-data script
+- [x] 139-06-PLAN.md — QUAL-06 query-budget + pagination-drift gate + F-03 live seed-data script
 - [ ] 139-07-PLAN.md — api.ts wiring + Rights-tab lazy-fetch fix (D22) + Overview-tab batched-summary consumption (F-01)
 
 **Wave 6** *(blocked on Wave 5 completion)*
