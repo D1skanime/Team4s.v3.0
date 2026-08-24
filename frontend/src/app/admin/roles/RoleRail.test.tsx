@@ -10,7 +10,7 @@
  */
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { RoleRail } from './RoleRail'
+import { RoleRail, roleKindLabel } from './RoleRail'
 import type { RoleEntry } from '@/types/admin-capability'
 
 const platformAdmin: RoleEntry = {
@@ -80,16 +80,43 @@ describe('RoleRail', () => {
     expect(platformAdminButton.getAttribute('aria-current')).toBe('false')
   })
 
-  it('zeigt "N×" für global_assignment_count und "–" ohne global_assignment_count', () => {
+  it('zeigt "N×" für global_assignment_count, group_holder_count als Fallback und "–" ohne beide (260824-ike Defekt 2)', () => {
+    const coLeaderWithHolders: RoleEntry = { ...coLeader, group_holder_count: 2 }
+    const groupRoleWithoutCount: RoleEntry = {
+      role_code: 'raw_provider',
+      label_de: 'Raw-Bereitstellung',
+      assignable: false,
+      capability_editable: true,
+      contexts: ['anime_contribution'],
+      actions: [],
+    }
     render(
       <RoleRail
-        roles={[platformAdmin, coLeader]}
+        roles={[platformAdmin, coLeaderWithHolders, groupRoleWithoutCount]}
         selectedRoleCode={null}
         onSelectRole={vi.fn()}
       />,
     )
+    // globale Rolle: global_assignment_count hat weiterhin Vorrang
     expect(screen.getByText('5×')).toBeTruthy()
+    // Gruppenrolle mit group_holder_count (kein global_assignment_count): neuer Fallback
+    expect(screen.getByText('2×')).toBeTruthy()
+    // Gruppenrolle ohne jeden Count: Fallback-Verhalten bleibt '–'
     expect(screen.getByText('–')).toBeTruthy()
+  })
+
+  it('rendert KEIN roleKindLabel-Badge mehr innerhalb einer Rollenzeile (Defekt 1, 260824-ike)', () => {
+    render(
+      <RoleRail
+        roles={[platformAdmin, contentAdmin, coLeader]}
+        selectedRoleCode={null}
+        onSelectRole={vi.fn()}
+      />,
+    )
+    for (const role of [platformAdmin, contentAdmin, coLeader]) {
+      const button = screen.getByRole('button', { name: new RegExp(role.label_de) })
+      expect(within(button).queryByText(roleKindLabel(role))).toBeNull()
+    }
   })
 
   it('trägt data-role-code={role.role_code} an jeder Zeile', () => {
