@@ -17,6 +17,13 @@ export interface ModalProps {
   footer?: ReactNode
   /** 'md' (Standard) oder 'lg' fuer breite Inhalte wie Bild-Lightboxen. */
   size?: 'md' | 'lg'
+  /**
+   * Optionale zusaetzliche Klasse fuer das Panel-Element eines einzelnen Modal-Callers
+   * (additiv, kein Default -- jeder bestehende Aufrufer laesst dieses Feld weg und ist
+   * dadurch byte-identisch zu vorher). Siehe RoleCapabilityImpactPreviewModal.module.css's
+   * .narrowHeightFix fuer das erste/einzige Beispiel (Plan 138-18, GAP-02).
+   */
+  panelClassName?: string
 }
 
 function getFocusableElements(container: HTMLElement): HTMLElement[] {
@@ -36,7 +43,16 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
   })
 }
 
-export function Modal({ open, onClose, title, description, children, footer, size = 'md' }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+  size = 'md',
+  panelClassName,
+}: ModalProps) {
   const titleID = useId()
   const panelRef = useRef<HTMLDivElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -90,7 +106,9 @@ export function Modal({ open, onClose, title, description, children, footer, siz
       <div className={styles.overlay} aria-hidden="true" />
       <button type="button" className={styles.overlayClose} aria-label="Modal schließen" onClick={onClose} />
       <div
-        className={size === 'lg' ? `${styles.modalPanel} ${styles.modalPanelLg}` : styles.modalPanel}
+        className={[styles.modalPanel, size === 'lg' ? styles.modalPanelLg : null, panelClassName]
+          .filter(Boolean)
+          .join(' ')}
         ref={panelRef}
         tabIndex={-1}
       >

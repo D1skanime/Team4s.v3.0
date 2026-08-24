@@ -301,7 +301,14 @@ export function RoleCapabilityImpactPreviewModal({
     )
 
   return (
-    <Modal open={open} onClose={onClose} title={title} size="lg" footer={footer}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      size="lg"
+      footer={footer}
+      panelClassName={styles.narrowHeightFix}
+    >
       {isLoading && <LoadingState title="Auswirkungs-Vorschau wird geladen …" description="" />}
 
       {!isLoading && previewError && (
