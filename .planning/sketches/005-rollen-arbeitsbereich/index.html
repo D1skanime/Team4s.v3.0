@@ -1,0 +1,595 @@
+<title>Rollen-Arbeitsbereich</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --canvas:      #eef2f8;
+    --card:        #f8fafd;
+    --sunken:      #e4e9f2;
+    --line:        #d3dae6;
+    --line-soft:   #e2e7f0;
+    --ink:         #172033;
+    --muted:       #5b6880;
+    --accent:      #3f5da8;
+    --accent-ink:  #ffffff;
+    --accent-wash: #dfe7f8;
+    --ok:          #2c6e4c;
+    --ok-wash:     #dcece2;
+    --no:          #8a3341;
+    --no-wash:     #f2dfe2;
+    --shadow:      0 1px 2px rgba(23,32,51,.07), 0 4px 12px rgba(23,32,51,.05);
+
+    --f-ui: "Source Sans 3", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --canvas:      #131822;
+      --card:        #1b2130;
+      --sunken:      #232a3b;
+      --line:        #333c52;
+      --line-soft:   #2a3245;
+      --ink:         #e7ecf5;
+      --muted:       #9aa6bd;
+      --accent:      #8aa6e8;
+      --accent-ink:  #131822;
+      --accent-wash: #27314a;
+      --ok:          #7fc9a1;
+      --ok-wash:     #1e3a2c;
+      --no:          #e59aa6;
+      --no-wash:     #3a2029;
+      --shadow:      0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.28);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --canvas:      #131822;
+    --card:        #1b2130;
+    --sunken:      #232a3b;
+    --line:        #333c52;
+    --line-soft:   #2a3245;
+    --ink:         #e7ecf5;
+    --muted:       #9aa6bd;
+    --accent:      #8aa6e8;
+    --accent-ink:  #131822;
+    --accent-wash: #27314a;
+    --ok:          #7fc9a1;
+    --ok-wash:     #1e3a2c;
+    --no:          #e59aa6;
+    --no-wash:     #3a2029;
+    --shadow:      0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.28);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--f-ui);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  /* ---------- Kopf ---------- */
+  .lede { display: flex; flex-direction: column; gap: 14px; max-width: 68ch; }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: .72rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.9rem, 3.6vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -.018em;
+    text-wrap: balance;
+  }
+  .lede p { margin: 0; color: var(--muted); font-size: 1.06rem; }
+
+  /* ---------- Messwerte ---------- */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1px;
+    background: var(--line-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .fact { background: var(--card); padding: 16px 18px; display: flex; flex-direction: column; gap: 3px; }
+  .fact b {
+    font-family: var(--f-mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+  }
+  .fact span { font-size: .88rem; color: var(--muted); }
+
+  h2 {
+    margin: 0 0 6px;
+    font-size: 1.32rem;
+    font-weight: 700;
+    letter-spacing: -.012em;
+  }
+  .sub { margin: 0 0 22px; color: var(--muted); max-width: 68ch; }
+
+  /* ---------- Mockup-Rahmen ---------- */
+  .frame {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 16px;
+    height: 42px;
+    background: var(--sunken);
+    border-bottom: 1px solid var(--line);
+    font-size: .86rem;
+  }
+  .chrome nav { display: flex; gap: 16px; color: var(--muted); }
+  .chrome nav b { color: var(--accent); font-weight: 600; }
+
+  .split { display: grid; grid-template-columns: 258px minmax(0, 1fr); min-height: 470px; }
+  @media (max-width: 760px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ---------- Rollenliste ---------- */
+  .rail {
+    border-right: 1px solid var(--line-soft);
+    background: var(--canvas);
+    padding: 10px 0;
+    overflow-y: auto;
+    max-height: 470px;
+  }
+  @media (max-width: 760px) { .rail { max-height: 232px; border-right: none; border-bottom: 1px solid var(--line-soft); } }
+
+  .rail-group {
+    font-family: var(--f-mono);
+    font-size: .68rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 16px 5px;
+  }
+  .role {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    height: 38px;
+    padding: 0 16px;
+    border: 0;
+    border-left: 3px solid transparent;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: .93rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  .role:hover { background: var(--sunken); }
+  .role:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .role[aria-current="true"] {
+    background: var(--accent-wash);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  .role .n {
+    font-family: var(--f-mono);
+    font-size: .78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .role[aria-current="true"] .n { color: var(--accent); }
+
+  /* ---------- Detail ---------- */
+  .detail { padding: 22px 26px 26px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .subject { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 12px; }
+  .subject h3 { margin: 0; font-size: 1.62rem; font-weight: 700; letter-spacing: -.02em; }
+  .chip {
+    font-family: var(--f-mono);
+    font-size: .7rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 9px;
+  }
+  .subject .count { color: var(--muted); font-size: .93rem; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line-soft); }
+  .tab {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: .95rem;
+    color: var(--muted);
+    padding: 7px 13px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px 4px 0 0; }
+  .tab[aria-selected="true"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+
+  .panel { min-width: 0; }
+  .panel[hidden] { display: none; }
+
+  .scroll-x { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th {
+    text-align: left;
+    font-family: var(--f-mono);
+    font-size: .68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    padding: 0 12px 7px 0;
+    white-space: nowrap;
+  }
+  td { padding: 9px 12px 9px 0; border-top: 1px solid var(--line-soft); vertical-align: baseline; }
+  tbody tr:hover td { background: var(--sunken); }
+  .lnk { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  .lnk:hover { border-bottom-color: currentColor; }
+
+  .cat { border-top: 1px solid var(--line-soft); }
+  .cat:first-of-type { border-top: 0; }
+  .cat > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 2px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .95rem;
+    list-style: none;
+  }
+  .cat > summary::-webkit-details-marker { display: none; }
+  .cat > summary::after { content: "▾"; color: var(--muted); font-size: .8rem; }
+  .cat[open] > summary::after { content: "▴"; }
+  .cat > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .cat .tally { font-family: var(--f-mono); font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: auto; }
+
+  .caps { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 12px; }
+  .cap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 2px;
+    font-size: .92rem;
+  }
+  .state {
+    font-size: .76rem;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .state.y { color: var(--ok); background: var(--ok-wash); }
+  .state.n { color: var(--no); background: var(--no-wash); }
+
+  .note {
+    font-size: .87rem;
+    color: var(--muted);
+    background: var(--sunken);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* ---------- Vergleich ---------- */
+  .cmp { width: 100%; border-collapse: collapse; font-size: .94rem; }
+  .cmp th { padding-bottom: 9px; }
+  .cmp td { padding: 11px 14px 11px 0; border-top: 1px solid var(--line-soft); }
+  .cmp td:first-child { font-weight: 600; width: 34%; }
+  .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .was { color: var(--no); }
+  .wird { color: var(--ok); }
+
+  .decide {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .decide ul { margin: 0; padding-left: 1.15em; display: flex; flex-direction: column; gap: 7px; color: var(--muted); }
+  .decide strong { color: var(--ink); }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: .87em;
+    background: var(--sunken);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="lede">
+    <div class="eyebrow">Team4s · Admin · Vorschlag</div>
+    <h1>Ein Arbeitsbereich für Rollen</h1>
+    <p>
+      Heute liegen „Wer besitzt diese Rolle?“ und „Was darf diese Rolle?“ auf zwei Seiten, beide
+      als große Karten. Der Vorschlag legt beide Antworten in einen Master-Detail-Bereich —
+      kompakte Liste links, die gewählte Rolle als Subjekt rechts.
+    </p>
+  </header>
+
+  <section>
+    <h2>Was heute gemessen wurde</h2>
+    <p class="sub">Alle Werte live auf <code>/admin/roles</code> und <code>/admin/role-capabilities</code> bei 1440 × 900 erhoben.</p>
+    <div class="facts">
+      <div class="fact"><b>41 %</b><span>der Rollenkarte reagieren auf Klick — der Rest sieht klickbar aus</span></div>
+      <div class="fact"><b>8 / 15</b><span>Rollen ohne Scrollen sichtbar, bei 90 px pro Zeile</span></div>
+      <div class="fact"><b>1515 px</b><span>tief liegt die Inhaber-Tabelle nach dem Klick — 615 px unter der Falz</span></div>
+      <div class="fact"><b>0</b><span>Capabilities sichtbar nach „Capabilities dieser Rolle ansehen“</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Vorschlag</h2>
+    <p class="sub">
+      Klickbarer Prototyp mit echten Daten aus der Datenbank. Rollen links wählen, Tabs rechts wechseln —
+      die Liste bleibt stehen, das Detail wechselt.
+    </p>
+
+    <div class="frame">
+      <div class="chrome">
+        <nav aria-label="Admin-Bereiche">
+          <span>Benutzer</span><span>Gruppen</span><b>Rollen</b><span>Claims</span><span>Änderungen</span>
+        </nav>
+      </div>
+
+      <div class="split">
+        <div class="rail" id="rail" role="listbox" aria-label="Rollen"></div>
+
+        <div class="detail">
+          <div class="subject">
+            <h3 id="rName">Co-Leitung</h3>
+            <span class="chip" id="rKind">Gruppenrolle</span>
+            <span class="count" id="rCount">1 Inhaber</span>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Rollen-Perspektiven">
+            <button class="tab" role="tab" aria-selected="true"  aria-controls="p-holders" id="t-holders">Inhaber</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="p-caps"    id="t-caps">Standardrechte</button>
+          </div>
+
+          <div class="panel" id="p-holders" role="tabpanel" aria-labelledby="t-holders">
+            <div class="scroll-x">
+              <table>
+                <thead>
+                  <tr><th>Benutzer</th><th>Gruppe</th><th>Status</th><th>Rechte-Abweichungen</th><th>Letzte Aktivität</th></tr>
+                </thead>
+                <tbody id="holders"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel" id="p-caps" role="tabpanel" aria-labelledby="t-caps" hidden>
+            <div id="caps"></div>
+            <p class="note">
+              Änderungen laufen weiter über die Auswirkungs-Vorschau — der eine kanonische Ort für
+              Rollen-Capabilities bleibt unangetastet.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Was sich ändert</h2>
+    <table class="cmp">
+      <thead><tr><th>&nbsp;</th><th>Heute</th><th>Vorschlag</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Zeilenhöhe</td>
+          <td class="num was">90 px, Kartenoptik</td>
+          <td class="num wird">38 px, Listenzeile</td>
+        </tr>
+        <tr>
+          <td>Sichtbare Rollen</td>
+          <td class="num was">8 von 15</td>
+          <td class="num wird">alle 15</td>
+        </tr>
+        <tr>
+          <td>Klickfläche</td>
+          <td class="was">41 % der Karte</td>
+          <td class="wird">die ganze Zeile</td>
+        </tr>
+        <tr>
+          <td>Inhaber nach Auswahl</td>
+          <td class="was">bei 1515 px, unter der Liste</td>
+          <td class="wird">sofort rechts, ohne Scrollen</td>
+        </tr>
+        <tr>
+          <td>Standardrechte</td>
+          <td class="was">zweite Seite, alles zugeklappt</td>
+          <td class="wird">zweiter Tab, erste Kategorie offen</td>
+        </tr>
+        <tr>
+          <td>Gewählte Rolle</td>
+          <td class="was">16 px unter 43-px-Bereichstitel</td>
+          <td class="wird">Subjekt der Ansicht, <code>aria-current</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="decide">
+    <h2 style="margin:0">Was du entscheiden musst</h2>
+    <p style="margin:0;color:var(--muted)">
+      Der Vorschlag führt <strong>Rollen</strong> und <strong>Capabilities</strong> zu einem Bereich zusammen.
+      Das berührt frühere Entscheidungen und ist deshalb deine Wahl, kein Bugfix:
+    </p>
+    <ul>
+      <li><strong>D-01</strong> — die Hauptnavigation verliert den Eintrag <code>Capabilities</code>; die Standardrechte werden zum zweiten Tab unter <code>Rollen</code>.</li>
+      <li><strong>D-08</strong> — der Split-View bleibt, aber als Rollen-Arbeitsbereich statt als eigener Capability-Bereich.</li>
+      <li><strong>D-10 bleibt erfüllt</strong> — Capabilities werden weiterhin an genau einem Ort bearbeitet, samt Auswirkungs-Vorschau. Der Ort heißt nur anders.</li>
+      <li><strong>Alternative</strong> — beide Bereiche behalten und nur GAP-04/GAP-05 umsetzen: kompakte Liste, ganze Zeile klickbar, Kontext beim Deep-Link erhalten. Weniger Umbau, aber der Doppelweg bleibt.</li>
+    </ul>
+  </section>
+
+</div>
+
+<script>
+  const ROLES = [
+    { code:"platform_admin", name:"Plattform-Admin", kind:"Globale App-Rolle", group:"Globale Rollen", holders:[
+      { u:"admin", g:"—", s:"Aktiv", d:"Nein", a:"Heute" }
+    ]},
+    { code:"content_admin", name:"Content-Admin", kind:"Globale App-Rolle", group:"Globale Rollen", holders:[] },
+    { code:"user", name:"Benutzer", kind:"Globale App-Rolle", group:"Globale Rollen", holders:[] },
+    { code:"fansub_lead", name:"Fansub-Leitung", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[
+      { u:"D1sk", g:"New-Subs", s:"Aktiv", d:"Nein", a:"Gestern" }
+    ]},
+    { code:"founder", name:"Gründer", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[
+      { u:"founder", g:"New-Subs", s:"Aktiv", d:"Nein", a:"vor 2 Tagen" }
+    ]},
+    { code:"co_leader", name:"Co-Leitung", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[
+      { u:"coleader", g:"New-Subs", s:"Aktiv", d:"Nein", a:"—" }
+    ]},
+    { code:"techadmin", name:"Technik-Admin", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"gfxler", name:"GFX", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"translator", name:"Übersetzung", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"editor", name:"Edit", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"timer", name:"Timing", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"typesetter", name:"Typesetting", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"karaoke_fx", name:"Karaoke-FX", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"encoder", name:"Encoding", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"raw_provider", name:"Raw-Bereitstellung", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"quality_checker", name:"Qualitätsprüfung", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"project_lead", name:"Projektleitung", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] },
+    { code:"designer", name:"Design", kind:"Gruppenrolle", group:"Gruppenrollen", holders:[] }
+  ];
+
+  // Echte Registry-Kategorien und -Zählwerte aus team4s_v2
+  const CATS = [
+    { name:"Gruppe", total:14, caps:[
+      ["Gruppe bearbeiten",false],["Mitglieder verwalten",false],["Mitglieder anzeigen",false],
+      ["Gruppenmedien anzeigen",true],["Gruppennotizen schreiben",false],["Links verwalten",false]
+    ]},
+    { name:"Gruppenmedien", total:3, caps:[
+      ["Gruppenbilder hochladen",true],["Gruppenbilder bearbeiten",true],["Gruppenbilder sortieren",true]
+    ]},
+    { name:"Gruppenseite", total:4, caps:[
+      ["Allgemeine Gruppendaten bearbeiten",true],["Gruppenlinks bearbeiten",true],
+      ["Technische Links bearbeiten",false],["Gründungshistorie bearbeiten",false]
+    ]},
+    { name:"Projekt", total:1, caps:[["Projektnotizen schreiben",false]] },
+    { name:"Rechteverwaltung", total:1, caps:[["Nutzer-Rechteausnahmen verwalten",false]] },
+    { name:"Release", total:9, caps:[
+      ["Release anzeigen",false],["Release-Notizen schreiben",false],["Medien hochladen",false]
+    ]},
+    { name:"Review", total:3, caps:[
+      ["Mitwirkungen prüfen",false],["Bilder prüfen",false],["Texte prüfen",false]
+    ]}
+  ];
+
+  const rail = document.getElementById("rail");
+  let seenGroups = [];
+  ROLES.forEach((r, i) => {
+    if (!seenGroups.includes(r.group)) {
+      seenGroups.push(r.group);
+      const h = document.createElement("div");
+      h.className = "rail-group";
+      h.textContent = r.group;
+      rail.appendChild(h);
+    }
+    const b = document.createElement("button");
+    b.className = "role";
+    b.type = "button";
+    b.setAttribute("role", "option");
+    b.setAttribute("aria-current", r.code === "co_leader" ? "true" : "false");
+    b.dataset.i = i;
+    b.innerHTML = '<span>' + r.name + '</span><span class="n">' +
+      (r.holders.length ? r.holders.length + "×" : "–") + '</span>';
+    b.addEventListener("click", () => select(i));
+    rail.appendChild(b);
+  });
+
+  function select(i) {
+    const r = ROLES[i];
+    document.querySelectorAll(".role").forEach(el =>
+      el.setAttribute("aria-current", el.dataset.i === String(i) ? "true" : "false"));
+    document.getElementById("rName").textContent = r.name;
+    document.getElementById("rKind").textContent = r.kind;
+    document.getElementById("rCount").textContent =
+      r.holders.length === 1 ? "1 Inhaber" : r.holders.length + " Inhaber";
+
+    const tb = document.getElementById("holders");
+    tb.innerHTML = "";
+    if (!r.holders.length) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = '<td colspan="5" style="color:var(--muted)">Diese Rolle ist derzeit niemandem zugewiesen.</td>';
+      tb.appendChild(tr);
+    } else {
+      r.holders.forEach(h => {
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+          '<td><a class="lnk" href="#">' + h.u + '</a></td>' +
+          '<td><a class="lnk" href="#">' + h.g + '</a></td>' +
+          '<td>' + h.s + '</td><td>' + h.d + '</td><td>' + h.a + '</td>';
+        tb.appendChild(tr);
+      });
+    }
+  }
+
+  const capsHost = document.getElementById("caps");
+  CATS.forEach((c, idx) => {
+    const d = document.createElement("details");
+    d.className = "cat";
+    if (idx === 0) d.open = true;
+    const allowed = c.caps.filter(x => x[1]).length;
+    d.innerHTML =
+      '<summary><span>' + c.name + '</span><span class="tally">' + allowed + ' von ' + c.total + '</span></summary>' +
+      '<div class="caps">' + c.caps.map(x =>
+        '<div class="cap"><span>' + x[0] + '</span><span class="state ' + (x[1] ? "y" : "n") + '">' +
+        (x[1] ? "Erlaubt" : "Nicht erlaubt") + '</span></div>').join("") + '</div>';
+    capsHost.appendChild(d);
+  });
+
+  const tabs = [...document.querySelectorAll(".tab")];
+  tabs.forEach(t => t.addEventListener("click", () => {
+    tabs.forEach(o => {
+      const on = o === t;
+      o.setAttribute("aria-selected", String(on));
+      document.getElementById(o.getAttribute("aria-controls")).hidden = !on;
+    });
+  }));
+
+  select(5);
+</script>
