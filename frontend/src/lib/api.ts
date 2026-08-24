@@ -228,8 +228,6 @@ import type {
   AdminUserMemberClaimsResponse,
   AdminUserGroupMembershipsResponse,
   AdminUserGroupRightsResponse,
-  AdminUserContributionsResponse,
-  AdminUserMediaResponse,
   AdminUserAuditResponse,
   AdminClaimsListParams,
   AdminClaimsListResponse,
