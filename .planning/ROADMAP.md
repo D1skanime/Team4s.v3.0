@@ -583,7 +583,7 @@ Plans:
 - [x] 139-02-PLAN.md — Frontend TS type mirrors + URL-synced contributions/media filter hooks
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 139-03-PLAN.md — Contributions grouping/range-collapse/override-diff query (TDD, D02-D10)
+- [x] 139-03-PLAN.md — Contributions grouping/range-collapse/override-diff query (TDD, D02-D10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 139-04-PLAN.md — Media grouping query + real PublicURL/FileSizeBytes derivation (D11-D14/D17-D19)

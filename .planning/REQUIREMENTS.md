@@ -25,13 +25,13 @@
 ### Benutzer-Administration
 
 - [x] **UADM-01**: Die vorhandene Gruppenrechte-Ansicht im Benutzer-Detail ist die kanonische Oberfläche für Inspektion und Änderung effektiver Gruppenrechte.
-- [ ] **UADM-02**: Beiträge eines Benutzers werden serverseitig nach Anime und Projekt gruppiert und zeigen den Projektstandard als kompakte Zusammenfassung.
-- [ ] **UADM-03**: Release-Versionen werden nur dann als Override bezeichnet und hervorgehoben, wenn sie tatsächlich vom Projektstandard abweichen.
-- [ ] **UADM-04**: Identische Release-Version-Zuweisungen werden zu verständlichen Bereichen wie „Version 1–13 entspricht dem Projektstandard“ zusammengefasst.
+- [x] **UADM-02**: Beiträge eines Benutzers werden serverseitig nach Anime und Projekt gruppiert und zeigen den Projektstandard als kompakte Zusammenfassung.
+- [x] **UADM-03**: Release-Versionen werden nur dann als Override bezeichnet und hervorgehoben, wenn sie tatsächlich vom Projektstandard abweichen.
+- [x] **UADM-04**: Identische Release-Version-Zuweisungen werden zu verständlichen Bereichen wie „Version 1–13 entspricht dem Projektstandard“ zusammengefasst.
 - [ ] **UADM-05**: Medien eines Benutzers werden nach Anime, Projekt und Release-Kontext gruppiert und verlinken zielgenau zur bestehenden kanonischen Arbeitsfläche.
 - [ ] **UADM-06**: Große Rechte-, Beitrags- und Medienbestände lassen sich serverseitig filtern und stabil paginieren; Zähler beziehen sich auf denselben gefilterten Datenbestand.
 - [ ] **UADM-07**: Jeder Benutzer-Tab erklärt seinen Zweck und bietet passende nächste Aktionen oder kennzeichnet bewusst rein informative Daten eindeutig.
-- [ ] **UADM-08**: Die berührten Admin-Oberflächen nutzen ein gemeinsames Desktop-first-Layoutmuster mit CSS-/Container-Queries, Tastaturbedienung und schmaler Graceful Degradation ohne Seitenoverflow.
+- [x] **UADM-08**: Die berührten Admin-Oberflächen nutzen ein gemeinsames Desktop-first-Layoutmuster mit CSS-/Container-Queries, Tastaturbedienung und schmaler Graceful Degradation ohne Seitenoverflow.
 
 ### Review-Delegation
 
@@ -57,7 +57,7 @@
 - [x] **QUAL-03**: Automatisierte Negativtests decken Deny-Präzedenz, gruppenfremde Overrides, unzulässige Capability-Codes, BOLA/IDOR, Self-Review und Direktzugriffe ab.
 - [x] **QUAL-04**: Erforderliche Schemaänderungen verwenden neue reversible Migrationen mit Fresh-Up/Down-Nachweis und ohne Kompatibilitäts- oder Backfill-Code für disposable Testdaten.
 - [ ] **QUAL-05**: Reproduzierbare v1.4-Fixtures decken Mehrrollen-OR, Allow, Deny, Plattform-Admin, Cache-Fehler, Review-Grant/Revoke, Self-Review und große Benutzer-Projektionen ab.
-- [ ] **QUAL-06**: Query- und UI-Gates verhindern N+1-Abfragen, ungebundene Flachlisten, inkonsistente Pagination sowie Client-only-Sicherheitsfilter.
+- [x] **QUAL-06**: Query- und UI-Gates verhindern N+1-Abfragen, ungebundene Flachlisten, inkonsistente Pagination sowie Client-only-Sicherheitsfilter.
 - [ ] **QUAL-07**: Live-UAT prüft die echten Benutzer-, Gruppenmitglieder-, Capability- und Review-Routen bei 390×844, 768×1024 und 1440×900 sowie Tastaturbedienung und 400-%-Zoom.
 - [ ] **QUAL-08**: Die Implementierung bewahrt Keycloak-verwaltete globale Rollen, den Plattform-Admin-Bypass, kanonische Medien-/Mitwirkungs-Eigentümer und das bestehende Review-Audit ohne parallele Systeme.
 
@@ -109,13 +109,13 @@
 | CAP-13 | Phase 136 | Complete |
 | CAP-14 | Phase 136 | Complete |
 | UADM-01 | Phase 138 | Complete |
-| UADM-02 | Phase 139 | Pending |
-| UADM-03 | Phase 139 | Pending |
-| UADM-04 | Phase 139 | Pending |
+| UADM-02 | Phase 139 | Complete |
+| UADM-03 | Phase 139 | Complete |
+| UADM-04 | Phase 139 | Complete |
 | UADM-05 | Phase 139 | Pending |
 | UADM-06 | Phase 139 | Pending |
 | UADM-07 | Phase 139 | Pending |
-| UADM-08 | Phase 139 | Pending |
+| UADM-08 | Phase 139 | Complete |
 | RDEL-01 | Phase 140 | Pending |
 | RDEL-02 | Phase 140 | Pending |
 | RDEL-03 | Phase 140 | Pending |
@@ -132,7 +132,7 @@
 | QUAL-03 | Phase 137 | Complete |
 | QUAL-04 | Phase 136 | Complete |
 | QUAL-05 | Phase 142 | Pending |
-| QUAL-06 | Phase 139 | Pending |
+| QUAL-06 | Phase 139 | Complete |
 | QUAL-07 | Phase 142 | Pending |
 | QUAL-08 | Phase 142 | Pending |
 

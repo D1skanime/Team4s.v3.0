@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 139-02-PLAN.md
-last_updated: "2026-08-24T17:34:17.937Z"
+stopped_at: Completed 139-03-PLAN.md
+last_updated: "2026-08-24T18:52:00.914Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 65
+  completed_plans: 66
   percent: 43
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 139 (scalable-user-admin-projections) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-08-24
 
@@ -188,6 +188,7 @@ Last activity: 2026-08-24
 - [Phase Quick 260824-ike]: Task 1's handler unit test used fansub_lead/founder instead of the plan's co_leader/encoder example pair because the internal/handlers package's shared TestMain catalog stub predates migration 0112's assignable=true promotion of co_leader; verified the real running app's DB-loaded catalog has co_leader assignable=true with fansub_group context, so production behavior matches the plan's intent -- pure test-selection fix, zero production logic change.
 - [Phase 139]: 139-01: Phase-139 DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) added additively to admin_users.go alongside untouched existing AdminUserContributionsResult/AdminUserMediaResult/AdminContributionItem/AdminMediaItemSummary; testsupport.OpenPhase139Postgres(t) applies the full real 151-pair migration chain (not hand-assembled stand-in tables) inside an isolated per-test schema. — Fixed two dormant bugs this exposed: migrations 0057/0071 hardcoded public.-qualified references (only 2 of 151 pairs, now schema-portable via current_schemas(false)), and a genuine import cycle from testsupport now importing migrations (resolved by moving 14 internal migrations-package test files to the external migrations_test package, mechanical rename, go test FAIL count unchanged at 65).
 - [Phase 139]: 139-02: New Phase-139 TS DTOs (AdminUserContributionsPage/AdminUserMediaPage/AdminUserRightsSummaryPage) verified field-for-field against 139-01's Go structs; two new URL-synced filter hooks (useUserContributionsFilters/useUserMediaFilters) mirror useClaimsListFilters.ts exactly, only_deviations encoded as '1'/absent per the has_conflicts convention. Zero file overlap with sibling plan 139-01.
+- [Phase 139]: 139-03: ListUserContributions is fully rewritten to return server-side grouped/paginated AdminUserContributionsPage (anime+project grouping, sort_index range-collapse, semantic override-diff never trusting release_crew_snapshots.snapshot_mode alone); fixed a real ARRAY_AGG(array_col)[1]-typed-as-scalar cardinality(text) SQL bug found via the 9-test D02-D10 integration suite, corrected to MIN() aggregates over the invariant per-range-group role arrays.
 
 ### Pending Todos
 
@@ -431,10 +432,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P18 | 6min | 3 tasks | 4 files |
 | Phase 139 P01 | 55min | 2 tasks | 18 files |
 | Phase 139 P02 | 35min | 2 tasks | 3 files |
+| Phase 139 P03 | 35min | 3 tasks | 7 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T17:34:17.923Z
-Stopped at: Completed 139-02-PLAN.md
+Last session: 2026-08-24T18:52:00.901Z
+Stopped at: Completed 139-03-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
