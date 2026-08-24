@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: Completed 139-09-PLAN.md
-last_updated: "2026-08-24T20:38:04.627Z"
+status: verifying
+stopped_at: Completed 139-10-PLAN.md (Phase 139 complete)
+last_updated: "2026-08-24T21:08:23.619Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 73
-  completed_plans: 72
-  percent: 43
+  completed_plans: 73
+  percent: 57
 ---
 
 # Project State
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 139 (scalable-user-admin-projections) — EXECUTING
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-24
 
 ## Accumulated Context
@@ -195,6 +195,7 @@ Last activity: 2026-08-24
 - [Phase 139]: Plan 139-07 closed both F-01 rights fan-out locations -- UserGroupRightsTab.tsx now lazily fetches exactly one group's rights on selection (D22, bounded selector, deep-link/auto-select preserved), and UserOverviewTab.tsx calls the new batched rights-summary endpoint exactly once instead of 1+N. api.ts wired to 139-03/139-04/139-05's paginated backend shapes; unplanned but required Rule-3 fix: UserContributionsTab.tsx/UserMediaTab.tsx (owned by 139-08/139-09) had to be minimally adapted to the new grouped shapes since the api.ts signature change otherwise broke npm run build -- explicitly a disposable placeholder, not a locked contract, since the full UI-SPEC rewrite remains those plans' scope.
 - [Phase 139]: 139-08: UserContributionsTab.tsx rewritten as grouped-card projection (UI-SPEC-locked); a thin file-local URL-reset wrapper deletes only the seven filter-owned query keys instead of calling each per-field setter in sequence (stale-closure race) or blanket-clearing the pathname (would drop ?tab=); rewrote pre-existing role-catalog test fixtures to use real hex color_key/icon_key values, closing a genuine Phase-136 fixture bug rather than reproducing it.
 - [Phase 139]: 139-09 closed UADM-05: UserMediaTab.tsx fully rewritten as the grouped release/episode-block projection (Card variant=nestedFlat, ResponsiveImage lazy thumbnails, five server-side filters via useUserMediaFilters), deleting hasScopePermission() and groupByReleaseVersion() outright with no replacement. — ResponsiveImage is imported from its real @/components/ui/ResponsiveImage module path (not the barrel index, which does not re-export it), matching every other production consumer in the codebase; mediaTab.module.css mirrors 139-08's container-query convention exactly plus the 96px->64px thumbnail breakpoint.
+- [Phase 139]: 139-10 closed the phase with a full backend+frontend regression triage against the confirmed 139-RESEARCH.md baseline (zero Phase-139 regressions, 139-VALIDATION.md's Per-Task Verification Map fully filled in, nyquist_compliant: true) and human-verified live UAT (all six checks PASSED, see 139-HUMAN-UAT.md). The check-4 (Rights-tab lazy fetch) live verification carries a documented residual scope note -- the D1sk test account has only one group membership so lazy-vs-eager-of-one-group cannot be visually distinguished; the multi-group property is separately proven by 139-07's UserGroupRightsTab.test.tsx/UserOverviewTab.test.tsx regression tests -- this is a scope note, not a failed or skipped check. Phase 139 (10/10 plans) is complete; all of UADM-02 through UADM-08 and QUAL-06 are fully verified.
 
 ### Pending Todos
 
@@ -445,10 +446,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 139 P07 | 40min | 3 tasks | 10 files |
 | Phase 139 P08 | 70min | 2 tasks | 3 files |
 | Phase 139 P09 | 55min | 2 tasks | 3 files |
+| Phase 139 P10 | multi-session | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T20:38:04.611Z
-Stopped at: Completed 139-09-PLAN.md
+Last session: 2026-08-24T21:08:23.601Z
+Stopped at: Completed 139-10-PLAN.md (Phase 139 complete)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
