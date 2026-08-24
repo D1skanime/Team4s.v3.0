@@ -28,10 +28,10 @@ Team4s presents fansub history and collaboration credibly while keeping identity
 - [x] Make each user's effective capabilities transparent, including which roles or overrides grant or deny them. - Phase 138, validated 2026-08-23
 - [x] Let authorized admins apply targeted per-user capability allow/deny overrides without changing unrelated users or broad role assignments. - Phase 138, validated 2026-08-23
 - [x] Turn the existing user-detail rights view into the canonical guided surface for inspecting and safely revoking effective capabilities. - Phase 138, validated 2026-08-23
+- [x] Make user-detail contribution, media, and rights data compact and actionable by grouping related release-version rows and showing real deviations. - Phase 139, validated 2026-08-24
 
 ### Active
 
-- [ ] Make user-detail contribution, media, and rights data compact and actionable by grouping related release-version rows and showing real deviations.
 - [ ] Expose the existing per-member review-delegation model through documented APIs and the established group-member editor.
 - [ ] Show reviewers only queue entries they can actually decide, while keeping self-submissions clearly separated from actionable work.
 
@@ -79,6 +79,8 @@ Phase 134 completed on 2026-08-20: the v1.3 milestone's closing fixture-backed v
 Phase 137 completed on 2026-08-21: `ResolveGroupRights`, the central provenance-capable effective-rights resolver (migration 0150, `backend/internal/permissions/effective_rights.go`), now backs every group-scoped runtime `Can*` entry point and a new transactional `EffectiveRightsService` for idempotent, audited per-user allow/deny/remove overrides, exposed at a group-scoped inspection/mutation/history HTTP boundary with BOLA/IDOR coverage. This is the backend/API foundation only — no admin UI ships yet, so the Active requirements below (effective-capability transparency, guided per-user override UX) remain open pending Phase 138. 5/5 verification must-haves, 0 critical code-review findings.
 
 Phase 138 completed on 2026-08-23: the user-detail group-rights tab is now the canonical, resolver-backed surface for inspecting and changing effective group rights (UADM-01) — provenance-complete, category-grouped, and the sole host for guided grant/revoke flows. A guided revoke flow lists every granting source and recommends a scoped deny before broader changes (CAP-08). Role-capability matrix changes are always preceded by a real batch impact preview across every actual role holder (CAP-09). Role-matrix and per-user override mutations render an honest, non-fabricated activation-status vocabulary distinguishing persisted/cache-active/pending/failed (CAP-10). New central `/admin/claims`, `/admin/changes`, and `/admin/roles` workspaces plus a persistent admin nav round out the IA. 4/4 verification must-haves; 1 critical + 4 warning code-review findings found and fixed. One item awaits live human click-through (dormant deny-override removal on a non-deniable actor — `138-HUMAN-UAT.md`).
+
+Phase 139 completed on 2026-08-24: user-detail Contributions and Media are now server-side grouped, filtered, and paginated projections instead of unbounded flat fetches — Contributions group by Anime+Project with an always-visible project standard and semantically-diffed (not `snapshot_mode`-trusted) override detection over collapsed episode ranges (UADM-02/03/04); Media groups by Release/Episode with real `PublicURL`/`FileSizeBytes` derivation, replacing the previously broken empty values and a fake "Berechtigung aktiv/fehlt" signal (UADM-05). A new batched rights-summary endpoint closes the Overview tab's per-group fan-out, and the Rights tab now fetches lazily on selection instead of eagerly for every membership (UADM-06). Both new tabs carry informational/actionable posture banners (UADM-07) and container-query responsive layouts (UADM-08). QUAL-06's constant-query-budget and pagination-drift gates are proven for all three endpoints; a live seed script produced real independent-and-different override data for UAT. 8/8 verification must-haves; 1 critical + 4 warning code-review findings (a silently no-op "Von"/"Bis" date filter caused by a `DatePicker`-vs-backend RFC3339 format mismatch, plus a DB-error-masking bug) found and fixed before close. Live human UAT of all six checkpoint items passed, with one documented residual scope note (single-group test account could not visually distinguish lazy-fetch from eager-fetch-of-one-group — proven instead by the automated regression suite).
 
 ## Current Milestone: v1.4 Capability-, Review- und Benutzerverwaltung
 
@@ -140,4 +142,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with the current system state.
 
 ---
-*Last updated: 2026-08-23 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
+*Last updated: 2026-08-24 for milestone v1.4 Capability-, Review- und Benutzerverwaltung*
