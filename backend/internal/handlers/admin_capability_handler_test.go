@@ -28,6 +28,7 @@ type stubCapabilityAuthzRepo struct {
 	revokeErr             error
 	matrixRoles           []repository.CapabilityMatrixRoleEntry
 	globalRoleCounts      map[string]int
+	groupHolderCounts     map[string]int
 }
 
 func (s *stubCapabilityAuthzRepo) AppUserHasGlobalRole(_ context.Context, _ int64, _ string) (bool, error) {
@@ -67,6 +68,10 @@ func (s *stubCapabilityAuthzRepo) LoadRoleCapabilities(_ context.Context) (map[s
 
 func (s *stubCapabilityAuthzRepo) CountGlobalRoleAssignments(_ context.Context) (map[string]int, error) {
 	return s.globalRoleCounts, nil
+}
+
+func (s *stubCapabilityAuthzRepo) CountGroupRoleHolders(_ context.Context) (map[string]int, error) {
+	return s.groupHolderCounts, nil
 }
 
 // stubCapabilityPermissionSvc ist ein minimaler PermissionSvc-Stub für Tests.
@@ -511,6 +516,94 @@ func TestListCapabilityMatrixIncludesSyntheticGlobalRoleEntries(t *testing.T) {
 	for roleCode := range expectedCounts {
 		if !syntheticSeen[roleCode] {
 			t.Fatalf("erwartete synthetische Rolle %q fehlt in Response", roleCode)
+		}
+	}
+}
+
+// TestListCapabilityMatrixIncludesGroupHolderCount prüft, dass ListCapabilityMatrix jede
+// permissions.IsKnownFansubGroupRole-Zeile mit group_holder_count aus CountGroupRoleHolders
+// anreichert, sonst nie (weder für IsKnownFansubGroupRole-false-Rollen noch für die drei
+// synthetischen globalen Zeilen) (260824-ike Defekt 2, Task 1).
+//
+// Rollenwahl: dieses Testpaket initialisiert permissions.fansubGroupRoleCatalog einmalig über
+// testmain_test.go's handlerTestCatalogLoader (ein bewusst schmaler, hartkodierter 12-Rollen-Stub
+// aus der Zeit vor Migration 0112's assignable=true-Beförderung von co_leader/founder/project_lead).
+// "fansub_lead" ist Teil dieses Stubs (IsKnownFansubGroupRole=true, wie bereits von
+// TestGrantCapabilityAssignableGuardAllowsAppRole/TestListCapabilityMatrixAssignableEnrichment
+// via appRoles[0] genutzt); "founder" ist bewusst NICHT Teil dieses Stubs
+// (IsKnownFansubGroupRole=false, identisches Negativ-Beispiel wie
+// TestGrantCapabilityAssignableGuardRejectsHistoricalRole in dieser Datei). Der ursprünglich im
+// Plan genannte encoder/co_leader-Beispielpaar passt nicht zu diesem Testpaket-Stub (encoder ist
+// im Stub enthalten -> true, co_leader fehlt -> false) und wurde deshalb durch dieses
+// stub-konsistente Paar ersetzt — reine Testauswahl, keine Verhaltensänderung.
+func TestListCapabilityMatrixIncludesGroupHolderCount(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	stubRoles := []repository.CapabilityMatrixRoleEntry{
+		{RoleCode: "fansub_lead", LabelDE: "Fansub-Leitung", Actions: []repository.CapabilityMatrixActionState{}},
+		{RoleCode: "founder", LabelDE: "Gründer/in", Actions: []repository.CapabilityMatrixActionState{}},
+	}
+
+	if !permissions.IsKnownFansubGroupRole("fansub_lead") {
+		t.Fatalf("Testvorbedingung verletzt: fansub_lead sollte laut Testpaket-Stub eine bekannte Fansub-Gruppenrolle sein")
+	}
+	if permissions.IsKnownFansubGroupRole("founder") {
+		t.Fatalf("Testvorbedingung verletzt: founder sollte laut Testpaket-Stub KEINE bekannte Fansub-Gruppenrolle sein")
+	}
+
+	c, rec := makeCapabilityTestContext(http.MethodGet, "/admin/role-capabilities",
+		middleware.AuthIdentity{
+			UserID:          1,
+			AppUserID:       1,
+			AppUserStatus:   models.AppUserStatusActive,
+			IsPlatformAdmin: true,
+			DisplayName:     "Admin",
+		})
+
+	authzStub := &stubCapabilityAuthzRepo{
+		isPlatformAdmin:   true,
+		matrixRoles:       stubRoles,
+		groupHolderCounts: map[string]int{"fansub_lead": 3},
+	}
+	permStub := &stubCapabilityPermissionSvc{}
+	auditStub := &captureAuditLogRepo{}
+
+	h := NewAdminCapabilityHandler(authzStub, authzStub, permStub, auditStub)
+	h.ListCapabilityMatrix(c)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("erwartet 200, erhalten %d (body: %s)", rec.Code, rec.Body.String())
+	}
+
+	var response struct {
+		Roles []struct {
+			RoleCode        string `json:"role_code"`
+			GroupHolderCount *int  `json:"group_holder_count"`
+		} `json:"roles"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+		t.Fatalf("response body parsen fehlgeschlagen: %v\nbody: %s", err, rec.Body.String())
+	}
+
+	for _, role := range response.Roles {
+		switch role.RoleCode {
+		case "fansub_lead":
+			if role.GroupHolderCount == nil {
+				t.Fatalf("fansub_lead: erwartet group_holder_count gesetzt, erhalten nil")
+			}
+			if *role.GroupHolderCount != 3 {
+				t.Fatalf("fansub_lead: erwartet group_holder_count=3, erhalten %d", *role.GroupHolderCount)
+			}
+		case "founder":
+			if role.GroupHolderCount != nil {
+				t.Fatalf("founder: erwartet group_holder_count=null (nicht IsKnownFansubGroupRole laut Testpaket-Stub), erhalten %v", *role.GroupHolderCount)
+			}
+		case "platform_admin", "content_admin", "user":
+			if role.GroupHolderCount != nil {
+				t.Fatalf("synthetische globale Rolle %q: erwartet group_holder_count=null, erhalten %v", role.RoleCode, *role.GroupHolderCount)
+			}
+		default:
+			t.Fatalf("unerwarteter role_code %q in Response", role.RoleCode)
 		}
 	}
 }
