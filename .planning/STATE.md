@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: completed
-stopped_at: Completed 138-18-PLAN.md (GAP-02 closed; Phase 138 18/18 plans complete)
-last_updated: "2026-08-24T13:48:30.374Z"
-last_activity: "2026-08-24 - Completed quick task 260824-ek3: Rollen und Capabilities zu einem Rollen-Arbeitsbereich zusammengefuehrt (GAP-04/GAP-05)"
+status: executing
+stopped_at: Phase 139 UI-SPEC approved
+last_updated: "2026-08-24T16:16:01.626Z"
+last_activity: 2026-08-24 -- Phase 139 planning complete
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 63
+  total_plans: 73
   completed_plans: 63
   percent: 43
 ---
@@ -35,8 +35,8 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 
 Phase: 138 (effective-rights-administration-impact-ux) — COMPLETE (18/18 plans)
 Plan: 18 of 18
-Status: Complete — Phase 139 not yet started
-Last activity: 2026-08-24 - Completed quick task 260824-ek3: Rollen und Capabilities zu einem Rollen-Arbeitsbereich zusammengefuehrt (GAP-04/GAP-05)
+Status: Ready to execute
+Last activity: 2026-08-24 -- Phase 139 planning complete
 
 ## Accumulated Context
 
@@ -429,7 +429,7 @@ untruncated list lives in `.planning/todos/pending/`.
 
 ## Session Continuity
 
-Last session: 2026-08-24T13:48:04.532Z
-Stopped at: Completed 138-18-PLAN.md (GAP-02 closed; Phase 138 18/18 plans complete)
+Last session: 2026-08-24T15:18:37.916Z
+Stopped at: Phase 139 UI-SPEC approved
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
-Resume file: None
+Resume file: .planning/phases/139-scalable-user-admin-projections/139-UI-SPEC.md
