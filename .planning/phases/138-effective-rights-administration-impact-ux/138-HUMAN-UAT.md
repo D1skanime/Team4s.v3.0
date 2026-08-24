@@ -1,5 +1,5 @@
 ---
-status: complete
+status: partial
 phase: 138-effective-rights-administration-impact-ux
 source: [138-VERIFICATION.md]
 started: 2026-08-23T20:10:00Z
@@ -328,3 +328,146 @@ issues: 0
 pending: 0
 blocked: 0
 skipped: 0
+
+---
+
+## GAP-04 — Rollen-Cards und inkonsistente Klickflächen (D-08 nicht eingelöst)
+
+Vom Nutzer im Live-Betrieb gemeldet, danach gemessen. Betrifft zwei Oberflächen:
+`/admin/roles` und die linke Rollenliste in `/admin/role-capabilities`.
+
+### Befund 1 — Die Klickfläche entspricht nicht der sichtbaren Fläche
+
+Auf `/admin/roles` bei 1440 px Breite gemessen:
+
+| Element | Maße | Reagiert auf Klick |
+|---|---|---|
+| `SECTION.ui_card.ui_cardInteractive` (die sichtbare Zeile) | 1409 x 82 px | **nein** (`cursor: auto`) |
+| `BUTTON.ui_buttonGhost` darin | 1070 x 44 px (37 - 1107) | ja |
+| Link "Standard-Capabilities dieser Rolle ansehen" | 1119 - 1404 px | ja, aber ausserhalb des Buttons |
+
+Nur **41 %** der Kartenfläche sind klickbar. Die restlichen 59 % sind als Karte gestaltet — mit
+Hintergrund `rgb(230,235,243)`, Rahmen und der Klasse `ui_cardInteractive`, deren Name Interaktivität
+zusagt — reagieren aber nicht. Der Hover-Zustand hebt zusätzlich nur den inneren Button hervor und
+endet mitten in der Zeile, was den Eindruck einer defekten Fläche verstärkt.
+
+**Erwartet:** Entweder ist die gesamte Zeile klickbar, oder die Zeile trägt keine Karten-/Button-
+Optik. Kein Zwischenzustand, in dem Text ein Link ist und die Fläche wie ein Button aussieht.
+Der sekundäre Einstieg ("Standard-Capabilities dieser Rolle ansehen") bleibt als eigener,
+klar abgegrenzter Bedienpunkt erhalten und darf nicht mit der Zeilenaktion verschmelzen — er führt
+an einen anderen Ort. Tastaturbedienung und Fokusreihenfolge müssen dabei eindeutig bleiben:
+genau ein Fokusstopp für die Zeilenaktion, einer für den sekundären Link.
+
+### Befund 2 — Die Rollenliste ist keine kompakte Liste (D-08)
+
+`/admin/roles`: 15 Rollenzeilen, je 82 px hoch plus 8 px Abstand, also 90 px pro Rolle. Bei 900 px
+Fensterhoehe sind **8 von 15** Rollen sichtbar; die Seite ist 1515 px hoch. Fuer eine Liste aus 15
+kurzen Namen muss gescrollt werden.
+
+Linke Rollenliste in `/admin/role-capabilities`: dieselbe Bauform, Eintraege 71-86 px hoch.
+
+Das loest D-08 nicht ein. D-08 fordert woertlich, die grossen Rollen-Cards zu **ersetzen** durch
+eine kompakte Rollenliste; die UI-Grundsaetze in 138-CONTEXT.md fuehren "riesige Rollen-Cards"
+ausdruecklich unter "Vermeiden" und "kompakte Listen" unter "Bevorzugen". Aktuell ist die Card-Optik
+lediglich von der frueheren Darstellung uebernommen worden.
+
+**Erwartet:** Kompakte Zeilen statt Karten. Richtwert: alle 15 Gruppenrollen auf `/admin/roles`
+ohne Scrollen bei 900 px Fensterhoehe sichtbar (das entspricht rund 40-45 px pro Zeile). In der
+linken Liste von `/admin/role-capabilities` entsprechend, sodass die Rollenauswahl als
+Navigationsspalte funktioniert und nicht selbst zum Scrollbereich wird.
+
+Die vorhandenen Informationen je Rolle bleiben erhalten: Rollenname, Rollenart/Kontext
+("Globale App-Rolle" / "Aktive App-Rolle") und die Anzahl der Rolleninhaber ("1x vergeben").
+Sie duerfen kompakter angeordnet werden, aber nicht entfallen.
+
+### Umfang
+
+- Reine Darstellungs- und Interaktions-Aenderung. Keine Aenderung an Rollen-Daten, Rechtelogik,
+  Impact-Vorschau, Aktivierungsstatus oder an den Ziel-Routen der beiden Einstiege.
+- Der kanonische Rollen-Capability-Editor bleibt der einzige Ort fuer Capability-Aenderungen (D-10),
+  der kanonische Benutzer-in-Gruppe-Editor der einzige fuer Benutzerrechte (D-09).
+- Bevorzugt die globalen Primitives verwenden. Wenn dafuer ein vorhandenes Primitive (z. B. eine
+  kompakte Listen-/Tabellenzeile) passt, dieses nutzen statt lokal etwas Neues zu bauen. Faellt auf,
+  dass `ui_cardInteractive` generell eine nicht klickbare Flaeche mit Interaktions-Optik erzeugt,
+  ist das im globalen UI-System zu korrigieren statt pro Seite zu umgehen — dann aber pruefen,
+  welche anderen Aufrufstellen betroffen sind, und das im Summary benennen.
+- Mobile/Tablet gemaess D-32: Liste bleibt Liste, keine erzwungene Desktop-Matrix.
+
+### Nachweis
+
+- Test, der belegt, dass die Zeilenaktion ueber die gesamte sichtbare Zeilenflaeche ausgeloest wird
+  (oder dass die Zeile keine Karten-/Button-Optik mehr traegt), und dass der sekundaere Link
+  weiterhin separat erreichbar ist.
+- Messung im Summary: Zeilenhoehe und Anzahl der ohne Scrollen sichtbaren Rollen bei 900 px
+  Fensterhoehe auf `/admin/roles`, vorher/nachher.
+
+### Randbedingungen
+
+Es gelten dieselben gemeinsamen Randbedingungen wie fuer GAP-01 bis GAP-03 (globale Primitives und
+Design-Tokens, Umlaute, 450-Zeilen-Grenze, `minmax(0, 1fr)` auf `.card`/`.accordionRoot` nicht
+zurueckdrehen, Verifikation im Container, die fuenf vorbelasteten Testdateien nicht anfassen).
+
+---
+
+## GAP-05 — Deep-Link von einer Rolle verliert den Rollenkontext
+
+Vom Nutzer gemeldet: "wenn man auf Rolle klickt kommt man auf Capability, welches noch mal die
+Rollen zeigt, obwohl ich eine spezifische Rolle angeklickt habe."
+
+### Warum es zwei Bereiche gibt (bleibt so)
+
+Die Trennung ist eine bewusste Entscheidung und wird **nicht** zurueckgenommen:
+- `Rollen` (D-07) beantwortet "Wer besitzt diese Rolle und in welcher Gruppe?" — Personen-/
+  Zuweisungsperspektive.
+- `Capabilities` (D-08, D-10) beantwortet "Was darf diese Rolle standardmaessig?" — die Definition.
+- D-10 verlangt genau **einen** kanonischen Ort fuer Rollen-Capability-Aenderungen, damit dieselbe
+  Berechtigung nicht an mehreren Stellen unabhaengig gepflegt wird.
+
+Nicht die Trennung ist das Problem, sondern dass der Uebergang zwischen beiden den Kontext verliert.
+
+### Befund (gemessen auf /admin/role-capabilities?role=co_leader bei 1440x900)
+
+Nach Klick auf "Standard-Capabilities dieser Rolle ansehen" fuer **Co-Leitung**:
+
+1. **Null Capabilities sichtbar.** Alle sieben Kategorie-Akkordeons stehen auf
+   `aria-expanded="false"`, es sind **0** Capability-Switches gerendert. Der Nutzer klickt
+   "Capabilities dieser Rolle ansehen" und sieht keine einzige Capability.
+2. **Die gewaehlte Rolle ist nicht das Subjekt der Seite.** Die Ueberschrift lautet
+   "Capability-Verwaltung" (H1, 43,2 px); die tatsaechlich gewaehlte Rolle "Co-Leitung" ist ein
+   H3 mit 16 px — der generische Bereichsname ist 2,7-mal groesser als das, worum es geht.
+3. **Fuenf nicht gewaehlte Rollen fuellen den oberen Bildschirm** (Plattform-Admin, Content-Admin,
+   Benutzer, Fansub-Leitung, Gruender), waehrend die gewaehlte Rolle als sechster Eintrag am
+   unteren Rand steht.
+4. **Die Auswahl ist semantisch nicht ausgezeichnet.** Es existiert kein `aria-current` und kein
+   `aria-pressed` an der ausgewaehlten Rolle; die Auswahl ist ausschliesslich ein blauer Rahmen.
+   Fuer Screenreader ist nicht erkennbar, welche Rolle aktiv ist.
+
+### Erwartet
+
+- Kommt der Nutzer mit `?role=<code>`, ist **diese Rolle das Subjekt der Seite**: prominent
+  benannt, erkennbar als das, was gerade bearbeitet wird — nicht als 16-px-Zwischentitel.
+- Es ist **sofort mindestens eine Capability sichtbar**, ohne dass der Nutzer erst ein Akkordeon
+  aufklappen muss. Wie das erreicht wird (erste Kategorie offen, alle offen, oder eine flache
+  Darstellung), ist Umsetzungsentscheidung — das Ergebnis zaehlt.
+- Die Rollenliste bleibt erreichbar (Wechsel zu einer anderen Rolle muss moeglich bleiben), tritt
+  aber visuell hinter die gewaehlte Rolle zurueck und draengt sie nicht aus dem Sichtfeld.
+- Die aktive Rolle ist semantisch ausgezeichnet (`aria-current="true"` oder `aria-pressed="true"`
+  an der Listenauswahl), damit die Auswahl nicht nur farblich existiert.
+- Ein sichtbarer Rueckweg zur Herkunft ist wuenschenswert, sofern er sich aus der vorhandenen
+  Navigation ergibt — keine neue History-Mechanik erfinden.
+
+### Umfang
+
+- Reine Darstellungs-/Navigations-Aenderung. Keine Aenderung an Capability-Daten, Impact-Vorschau,
+  Aktivierungsstatus oder an der Mutationslogik.
+- `RoleCapabilityImpactPreviewModal` bleibt der einzige Mutations-Einstieg der Matrix (CAP-09).
+- Die Trennung `Rollen` / `Capabilities` bleibt bestehen (D-01, D-07, D-08, D-10). Diese Aufgabe
+  darf die beiden Bereiche **nicht** zusammenlegen.
+- Haengt inhaltlich mit GAP-04 zusammen (kompakte Rollenliste); beide betreffen dieselbe linke
+  Spalte und sollten zusammen gedacht werden.
+
+### Nachweis
+
+Test, der beim Aufruf mit `?role=<code>` belegt: die gewaehlte Rolle ist als aktiv ausgezeichnet,
+und es ist mindestens eine Capability der Rolle ohne weitere Interaktion sichtbar.
+Im Summary die Anzahl der ohne Interaktion sichtbaren Capabilities vorher/nachher angeben.
