@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"team4s.v3/backend/internal/models"
+	"team4s.v3/backend/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +23,7 @@ type AdminUsersRepository interface {
 	GetUserMemberClaims(ctx context.Context, appUserID int64) (*models.AdminUserMemberClaimsResult, error)
 	GetUserGroupMemberships(ctx context.Context, appUserID int64) (*models.AdminUserGroupMembershipsResult, error)
 	GetUserGroupRights(ctx context.Context, appUserID int64) (*models.AdminUserGroupRightsResult, error)
-	ListUserContributions(ctx context.Context, appUserID int64) (*models.AdminUserContributionsResult, error)
+	ListUserContributions(ctx context.Context, filter repository.AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error)
 	GetUserMedia(ctx context.Context, appUserID int64) (*models.AdminUserMediaResult, error)
 	GetUserAudit(ctx context.Context, appUserID int64) (*models.AdminUserAuditResult, error)
 	UpdateAppUserStatus(ctx context.Context, appUserID int64, status string) error
@@ -235,7 +237,11 @@ func (h *AdminUsersHandler) GetUserGroupRights(c *gin.Context) {
 
 // --- GET /admin/users/:userId/contributions ---
 
-// GetUserContributions gibt die Contributions eines Users zurück (D-12/D-13, member_id-Anker).
+// GetUserContributions gibt die serverseitig gruppierten, bereichs-
+// kollabierten und override-diff-geprüften Contributions eines Users zurück
+// (Plan 139-03, D02-D14, member_id-Anker). Filter-/Paginierungs-Query-Params
+// folgen exakt dem ListUsers-Muster (c.Query + strconv, nie String-
+// Konkatenation in SQL, T-139-04).
 func (h *AdminUsersHandler) GetUserContributions(c *gin.Context) {
 	identity, ok := requirePlatformAdminIdentity(c, h.authzRepo, "")
 	if !ok {
@@ -248,7 +254,31 @@ func (h *AdminUsersHandler) GetUserContributions(c *gin.Context) {
 		return
 	}
 
-	result, err := h.repo.ListUserContributions(c.Request.Context(), userID)
+	filter := repository.AdminUserContributionsFilter{
+		AppUserID: userID,
+		Limit:     parseOptionalInt(c.Query("limit")),
+		Offset:    parseOptionalInt(c.Query("offset")),
+	}
+	if animeID, ok := parseOptionalPositiveID(c.Query("anime_id")); ok {
+		filter.AnimeID = &animeID
+	}
+	if groupID, ok := parseOptionalPositiveID(c.Query("fansub_group_id")); ok {
+		filter.FansubGroupID = &groupID
+	}
+	if roleCode := strings.TrimSpace(c.Query("role_code")); roleCode != "" {
+		filter.RoleCode = &roleCode
+	}
+	if v := c.Query("only_deviations"); v == "true" {
+		filter.OnlyDeviations = true
+	}
+	if from, ok := parseOptionalRFC3339(c.Query("from")); ok {
+		filter.From = &from
+	}
+	if to, ok := parseOptionalRFC3339(c.Query("to")); ok {
+		filter.To = &to
+	}
+
+	result, err := h.repo.ListUserContributions(c.Request.Context(), filter)
 	if err != nil {
 		log.Printf("admin users: GetUserContributions error: %v", err)
 		internalError(c, "Beiträge konnten nicht geladen werden.")

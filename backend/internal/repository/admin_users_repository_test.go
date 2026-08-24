@@ -21,7 +21,7 @@ var _ interface {
 	GetUserMemberClaims(ctx context.Context, appUserID int64) (*models.AdminUserMemberClaimsResult, error)
 	GetUserGroupMemberships(ctx context.Context, appUserID int64) (*models.AdminUserGroupMembershipsResult, error)
 	GetUserGroupRights(ctx context.Context, appUserID int64) (*models.AdminUserGroupRightsResult, error)
-	ListUserContributions(ctx context.Context, appUserID int64) (*models.AdminUserContributionsResult, error)
+	ListUserContributions(ctx context.Context, filter AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error)
 	GetUserMedia(ctx context.Context, appUserID int64) (*models.AdminUserMediaResult, error)
 	GetUserAudit(ctx context.Context, appUserID int64) (*models.AdminUserAuditResult, error)
 	UpdateAppUserStatus(ctx context.Context, appUserID int64, status string) error
@@ -34,23 +34,35 @@ func TestAdminUsersRepository_ListAdminUsersPage_PageFirstCTE(t *testing.T) {
 	}
 }
 
+// TestAdminUsersRepository_MemberIDAnchor_CanonicalFirst prüft weiterhin den
+// member_id-Anker (D-01/D-12), jetzt gegen die Plan-139-03-Grouped-Query statt
+// gegen die alte Flat-Liste. Die frühere COALESCE(ac.member_id,
+// hfgm.member_id)/is_legacy_historical-Fallback-Logik ist seit Migration 0105
+// (member_id NOT NULL, Backfill vollständig) toter Code — die neue Query
+// filtert direkt auf ac.member_id, ohne Legacy-Fallback (Plan-139-03-Vorgabe:
+// "Delete the old unbounded flat-fetch SQL body entirely").
 func TestAdminUsersRepository_MemberIDAnchor_CanonicalFirst(t *testing.T) {
-	source, err := os.ReadFile("admin_users_tab_repository.go")
+	source, err := os.ReadFile("admin_users_contributions_query.go")
 	if err != nil {
-		t.Fatalf("admin_users_tab_repository.go lesen: %v", err)
+		t.Fatalf("admin_users_contributions_query.go lesen: %v", err)
 	}
 	text := string(source)
 
 	requiredSnippets := []string{
-		"LEFT JOIN hist_fansub_group_members hfgm",
-		"COALESCE(ac.member_id, hfgm.member_id) = $1",
-		"(ac.member_id IS NULL) AS is_legacy_historical",
-		"result.LegacyHistorical = append(result.LegacyHistorical, item)",
+		"WHERE ac.member_id = $1",
 	}
 	for _, snippet := range requiredSnippets {
 		if !strings.Contains(text, snippet) {
-			t.Fatalf("ListUserContributions enthält erwarteten SQL-/Mapping-Snippet nicht: %s", snippet)
+			t.Fatalf("ListUserContributions enthält erwarteten SQL-Snippet nicht: %s", snippet)
 		}
+	}
+
+	tabSource, err := os.ReadFile("admin_users_tab_repository.go")
+	if err != nil {
+		t.Fatalf("admin_users_tab_repository.go lesen: %v", err)
+	}
+	if strings.Contains(string(tabSource), "hist_fansub_group_members hfgm") {
+		t.Fatal("admin_users_tab_repository.go enthält noch den alten hist_fansub_group_members-Legacy-Fallback (sollte in Plan 139-03 entfernt worden sein)")
 	}
 }
 

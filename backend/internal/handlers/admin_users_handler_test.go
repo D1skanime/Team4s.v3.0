@@ -37,7 +37,7 @@ type adminUsersRepoStub struct {
 	membershipsErr      error
 	groupRightsResult   *models.AdminUserGroupRightsResult
 	groupRightsErr      error
-	contributionsResult *models.AdminUserContributionsResult
+	contributionsResult *models.AdminUserContributionsPage
 	contributionsErr    error
 	mediaResult         *models.AdminUserMediaResult
 	mediaErr            error
@@ -74,7 +74,7 @@ func (s *adminUsersRepoStub) GetUserGroupRights(ctx context.Context, appUserID i
 	return s.groupRightsResult, s.groupRightsErr
 }
 
-func (s *adminUsersRepoStub) ListUserContributions(ctx context.Context, appUserID int64) (*models.AdminUserContributionsResult, error) {
+func (s *adminUsersRepoStub) ListUserContributions(ctx context.Context, filter repository.AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error) {
 	return s.contributionsResult, s.contributionsErr
 }
 

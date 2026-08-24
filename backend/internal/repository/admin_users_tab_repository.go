@@ -143,113 +143,18 @@ func (r *AdminUsersRepository) GetUserGroupRights(
 	return &models.AdminUserGroupRightsResult{GroupRights: rights}, nil
 }
 
-// ListUserContributions gibt alle Contributions eines Users zurück (D-12/D-13).
-// Verwendet member_id als kanonischen Anker (Migration 0105) und liest alte historische
-// fansub_group_member_id-Zeilen nur als separaten Legacy-Fallback.
+// ListUserContributions gibt die serverseitig nach (anime_id, fansub_group_id)
+// gruppierten, bereichs-kollabierten und override-diff-geprüften Contributions
+// eines Users zurück (Plan 139-03, D02-D10). Ersetzt die alte unbegrenzte
+// Flat-Liste (AdminUserContributionsResult) vollständig — die eigentliche
+// SQL-/Scan-Logik lebt in admin_users_contributions_query.go
+// (listUserContributionsGrouped), damit diese Datei unter dem 450-Zeilen-Limit
+// bleibt (CLAUDE.md).
 func (r *AdminUsersRepository) ListUserContributions(
 	ctx context.Context,
-	appUserID int64,
-) (*models.AdminUserContributionsResult, error) {
-	emptyResult := &models.AdminUserContributionsResult{
-		ProjectDefaults:  []models.AdminContributionItem{},
-		ReleaseOverrides: []models.AdminContributionItem{},
-		OpenDisputes:     []models.AdminContributionItem{},
-		LegacyHistorical: []models.AdminContributionItem{},
-	}
-
-	// member_id des Users über verified claim ermitteln
-	var memberID int64
-	err := r.db.QueryRow(ctx, `
-		SELECT mc.member_id FROM member_claims mc
-		WHERE mc.app_user_id = $1 AND mc.claim_status = 'verified'
-		ORDER BY mc.id LIMIT 1
-	`, appUserID).Scan(&memberID)
-	if err != nil {
-		// Kein verified claim → leere Listen zurückgeben
-		return emptyResult, nil
-	}
-
-	result := &models.AdminUserContributionsResult{
-		ProjectDefaults:  []models.AdminContributionItem{},
-		ReleaseOverrides: []models.AdminContributionItem{},
-		OpenDisputes:     []models.AdminContributionItem{},
-		LegacyHistorical: []models.AdminContributionItem{},
-	}
-
-	// Alle Contributions via member_id (kanonischer Anker, D-12) plus historische
-	// Altzeilen, bei denen nur fansub_group_member_id den Member belegt.
-	// D-29: LEFT JOIN release_versions/fansub_releases/episodes liefert die
-	// echte fachliche Version (rv.version) und Episodennummer (ep.episode_number)
-	// zusätzlich zur internen release_version_id. Beide Joins sind LEFT, weil
-	// ac.release_version_id bei Projekt-Standard-Beiträgen NULL ist. Beide neuen
-	// Spalten müssen in GROUP BY, weil die Query wegen ARRAY_AGG aggregiert.
-	rows, err := r.db.Query(ctx, `
-		SELECT
-			ac.id,
-			ac.fansub_group_id,
-			fg.name AS fansub_group_name,
-			ac.anime_id,
-			a.title AS anime_title,
-			ac.release_version_id,
-			CASE WHEN ac.release_version_id IS NULL THEN 'project_default' ELSE 'release_override' END,
-			COALESCE(ac.dispute_state, ''),
-			COALESCE(
-				ARRAY_AGG(acr.role_code ORDER BY acr.role_code) FILTER (WHERE acr.role_code IS NOT NULL),
-				ARRAY[]::text[]
-			),
-			(ac.member_id IS NULL) AS is_legacy_historical,
-			rv.version,
-			ep.episode_number
-		FROM anime_contributions ac
-		JOIN fansub_groups fg ON fg.id = ac.fansub_group_id
-		JOIN anime a ON a.id = ac.anime_id
-		LEFT JOIN hist_fansub_group_members hfgm ON hfgm.id = ac.fansub_group_member_id
-		LEFT JOIN anime_contribution_roles acr ON acr.anime_contribution_id = ac.id
-		LEFT JOIN release_versions rv ON rv.id = ac.release_version_id
-		LEFT JOIN fansub_releases fr ON fr.id = rv.release_id
-		LEFT JOIN episodes ep ON ep.id = fr.episode_id
-		WHERE COALESCE(ac.member_id, hfgm.member_id) = $1
-		GROUP BY ac.id, ac.member_id, fg.name, a.title, rv.version, ep.episode_number
-		ORDER BY a.title, ac.release_version_id NULLS FIRST, ac.id
-	`, memberID)
-	if err != nil {
-		return nil, fmt.Errorf("list user contributions: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var item models.AdminContributionItem
-		var isLegacyHistorical bool
-		if err := rows.Scan(
-			&item.ContributionID,
-			&item.FansubGroupID,
-			&item.FansubGroupName,
-			&item.AnimeID,
-			&item.AnimeTitle,
-			&item.ReleaseVersionID,
-			&item.ContributionType,
-			&item.DisputeState,
-			&item.RoleCodes,
-			&isLegacyHistorical,
-			&item.ReleaseVersionLabel,
-			&item.EpisodeNumber,
-		); err != nil {
-			return nil, fmt.Errorf("list user contributions: scan: %w", err)
-		}
-		if isLegacyHistorical {
-			result.LegacyHistorical = append(result.LegacyHistorical, item)
-		} else if item.DisputeState == "open" {
-			result.OpenDisputes = append(result.OpenDisputes, item)
-		} else if item.ContributionType == "project_default" {
-			result.ProjectDefaults = append(result.ProjectDefaults, item)
-		} else {
-			result.ReleaseOverrides = append(result.ReleaseOverrides, item)
-		}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("list user contributions: iterate: %w", err)
-	}
-	return result, nil
+	filter AdminUserContributionsFilter,
+) (*models.AdminUserContributionsPage, error) {
+	return r.listUserContributionsGrouped(ctx, filter)
 }
 
 // GetUserMedia gibt alle Medien-Uploads eines Users zurück.
