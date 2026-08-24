@@ -24,7 +24,7 @@ type AdminUsersRepository interface {
 	GetUserGroupMemberships(ctx context.Context, appUserID int64) (*models.AdminUserGroupMembershipsResult, error)
 	GetUserGroupRights(ctx context.Context, appUserID int64) (*models.AdminUserGroupRightsResult, error)
 	ListUserContributions(ctx context.Context, filter repository.AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error)
-	GetUserMedia(ctx context.Context, appUserID int64) (*models.AdminUserMediaResult, error)
+	GetUserMedia(ctx context.Context, filter repository.AdminUserMediaFilter) (*models.AdminUserMediaPage, error)
 	GetUserAudit(ctx context.Context, appUserID int64) (*models.AdminUserAuditResult, error)
 	UpdateAppUserStatus(ctx context.Context, appUserID int64, status string) error
 }
@@ -289,7 +289,10 @@ func (h *AdminUsersHandler) GetUserContributions(c *gin.Context) {
 
 // --- GET /admin/users/:userId/media ---
 
-// GetUserMedia gibt die Medien-Uploads eines Users zurück.
+// GetUserMedia gibt die serverseitig gruppierten, bereichs-paginierten
+// Medien-Uploads eines Users zurück (Plan 139-04, D11-D19). Filter-/
+// Paginierungs-Query-Params folgen exakt dem GetUserContributions-Muster
+// (c.Query + strconv, nie String-Konkatenation in SQL, T-139-07).
 func (h *AdminUsersHandler) GetUserMedia(c *gin.Context) {
 	identity, ok := requirePlatformAdminIdentity(c, h.authzRepo, "")
 	if !ok {
@@ -302,7 +305,31 @@ func (h *AdminUsersHandler) GetUserMedia(c *gin.Context) {
 		return
 	}
 
-	result, err := h.repo.GetUserMedia(c.Request.Context(), userID)
+	filter := repository.AdminUserMediaFilter{
+		AppUserID: userID,
+		Limit:     parseOptionalInt(c.Query("limit")),
+		Offset:    parseOptionalInt(c.Query("offset")),
+	}
+	if animeID, ok := parseOptionalPositiveID(c.Query("anime_id")); ok {
+		filter.AnimeID = &animeID
+	}
+	if groupID, ok := parseOptionalPositiveID(c.Query("fansub_group_id")); ok {
+		filter.FansubGroupID = &groupID
+	}
+	if releaseVersionID, ok := parseOptionalPositiveID(c.Query("release_version_id")); ok {
+		filter.ReleaseVersionID = &releaseVersionID
+	}
+	if mediaType := strings.TrimSpace(c.Query("media_type")); mediaType != "" {
+		filter.MediaType = &mediaType
+	}
+	if from, ok := parseOptionalRFC3339(c.Query("from")); ok {
+		filter.From = &from
+	}
+	if to, ok := parseOptionalRFC3339(c.Query("to")); ok {
+		filter.To = &to
+	}
+
+	result, err := h.repo.GetUserMedia(c.Request.Context(), filter)
 	if err != nil {
 		log.Printf("admin users: GetUserMedia error: %v", err)
 		internalError(c, "Mediendaten konnten nicht geladen werden.")
