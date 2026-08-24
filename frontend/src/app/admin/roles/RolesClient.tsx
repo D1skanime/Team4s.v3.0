@@ -1,58 +1,70 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-import { Button, Card, ErrorState, LoadingState, PageHeader, SectionHeader } from '@/components/ui'
+import { EmptyState, ErrorState, LoadingState, PageHeader } from '@/components/ui'
 import { ApiError, listRoleCapabilities, listRoleHolders } from '@/lib/api'
 import type { RoleCapabilityMatrix, RoleEntry, RoleHolderEntry } from '@/types/admin-capability'
-
-import { RoleHoldersTable } from './RoleHoldersTable'
+import { sortCategories } from './capabilityCategories'
+import { RoleRail } from './RoleRail'
+import { RoleDetailPanel } from './RoleDetailPanel'
+import { RoleCapabilityImpactPreviewModal } from './RoleCapabilityImpactPreviewModal'
+import styles from './roles.module.css'
 
 /**
- * "Rollen"-Top-Level-Ansicht (D-07).
- *
- * Rollen-Picker für gruppenkontextbezogene Rollen — beantwortet als Erstes "wer besitzt
- * diese Rolle?" (RoleHoldersTable, Plan 138-12 Task 2), nicht die Standard-Capabilities der
- * Rolle. Globale App-Rollen (platform_admin/content_admin/user) bleiben bewusst außen vor:
- * sie behalten ihren bestehenden Filter-Pfad über `/admin/users?role=` (Plan 138-01
- * Scope-Entscheidung).
- *
- * Datenquelle: dieselbe bereits genutzte `listRoleCapabilities()`-Matrix wie
- * RoleCapabilityClient.tsx — es wird keine zweite, separat geladene Rollenliste aufgebaut.
+ * Rollen-Arbeitsbereich (Quick 260824-ek3, D-01/D-08-Nachtrag 2026-08-24): eine Master-Detail-
+ * Ansicht statt zweier getrennter Top-Level-Bereiche. RoleRail links beantwortet "welche Rolle",
+ * RoleDetailPanel rechts beantwortet über zwei Tabs sowohl D-07 ("wer besitzt diese Rolle?")
+ * als auch D-08 ("was darf diese Rolle?") -- eine einzige geladene Matrix bedient beide.
  */
 export default function RolesClient() {
   const [matrix, setMatrix] = useState<RoleCapabilityMatrix | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedRoleCode, setSelectedRoleCode] = useState<string | null>(null)
 
-  // Rolleninhaber-Ladezustand (D-07's RoleHoldersTable) — bewusst eine eigene Loading-/
-  // Error-Triade, unabhängig vom Ladezustand des Rollen-Pickers selbst.
+  const searchParams = useSearchParams()
+
+  const [selectedRoleCode, setSelectedRoleCode] = useState<string | null>(null)
+  // Default wird bei JEDEM Wechsel von selectedRoleCode neu berechnet (siehe handleSelectRole) --
+  // ein bewusst manuell gewählter Tab bleibt beim nächsten Rollenwechsel NICHT erhalten, weil
+  // D-07/D-08 pro Rolle jeweils einen sinnvollen eigenen Default vorschreiben (Test E).
+  const [activeTabId, setActiveTabId] = useState<string>('holders')
+
   const [holders, setHolders] = useState<RoleHolderEntry[]>([])
   const [isHoldersLoading, setIsHoldersLoading] = useState(false)
   const [holdersError, setHoldersError] = useState<string | null>(null)
 
+  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set())
+
+  const [impactPreviewRequest, setImpactPreviewRequest] = useState<{
+    actionCode: string
+    actionLabel: string
+    add: boolean
+  } | null>(null)
+
+  // Verhindert, dass die ?role=-Vorauswahl (GAP-05) nach jedem Matrix-Refresh (z.B. nach
+  // Grant/Revoke) erneut greift und eine zwischenzeitlich manuell gewählte andere Rolle
+  // überschreibt -- die URL-Vorauswahl gilt nur für den initialen Load.
+  const appliedUrlRoleRef = useRef(false)
+  const railRef = useRef<HTMLDivElement>(null)
+
+  const loadData = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsLoading(true)
+    setError(null)
+    try {
+      const data = await listRoleCapabilities()
+      setMatrix(data)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Fehler beim Laden der Rollen.')
+    } finally {
+      if (showLoading) setIsLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const data = await listRoleCapabilities()
-        if (!cancelled) setMatrix(data)
-      } catch (err) {
-        if (cancelled) return
-        setError(err instanceof ApiError ? err.message : 'Fehler beim Laden der Rollen.')
-      } finally {
-        if (!cancelled) setIsLoading(false)
-      }
-    }
-
-    void load()
-    return () => {
-      cancelled = true
-    }
+    void loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadHolders = useCallback(async (roleCode: string) => {
@@ -70,92 +82,110 @@ export default function RolesClient() {
 
   function handleSelectRole(roleCode: string) {
     setSelectedRoleCode(roleCode)
-    void loadHolders(roleCode)
+    setImpactPreviewRequest(null)
+    const role = matrix?.roles.find((r) => r.role_code === roleCode)
+    // D-07/D-08 pro-Rolle-Default: globale App-Rollen zeigen zuerst die Standardrechte
+    // (keine Gruppen-Inhaber-Tabelle möglich), alle anderen Rollen zeigen zuerst ihre Inhaber.
+    setActiveTabId(role?.role_kind === 'global_app_role' ? 'caps' : 'holders')
+    if (role && role.role_kind !== 'global_app_role') {
+      void loadHolders(roleCode)
+    }
   }
 
+  // GAP-05/D-06: ?role={code} wählt beim ersten erfolgreichen Matrix-Load die passende Rolle
+  // automatisch aus und scrollt sie bei Bedarf in Sicht -- identisch zum manuellen Klick-Pfad,
+  // aber zusätzlich mit Scroll-into-View (die alte RoleCapabilityClient.tsx hatte das nicht).
+  useEffect(() => {
+    if (!matrix || appliedUrlRoleRef.current) return
+    appliedUrlRoleRef.current = true
+    const roleParam = searchParams.get('role')
+    if (!roleParam) return
+    const exists = matrix.roles.some((r) => r.role_code === roleParam)
+    if (!exists) return
+    handleSelectRole(roleParam)
+    requestAnimationFrame(() => {
+      const target = railRef.current?.querySelector<HTMLElement>(
+        `[data-role-code="${CSS.escape(roleParam)}"]`,
+      )
+      target?.scrollIntoView({ block: 'nearest' })
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matrix, searchParams])
+
+  // D-08 "erste Kategorie offen": bei jedem Rollenwechsel wird die erste Kategorie (gemäß
+  // sortCategories, dieselbe Reihenfolge wie RoleCapabilityDetail.tsx) automatisch aufgeklappt,
+  // damit ein Deep-Link nie ein zugeklapptes Akkordeon mit 0 sichtbaren Capabilities zeigt.
+  useEffect(() => {
+    const role = matrix?.roles.find((r) => r.role_code === selectedRoleCode)
+    if (!role) return
+    const categories = sortCategories([...new Set(role.actions.map((a) => a.category))])
+    setOpenCategories(categories.length > 0 ? new Set([categories[0]]) : new Set())
+  }, [selectedRoleCode, matrix])
+
+  // D-10/D-18/CAP-09: unverändert aus RoleCapabilityClient.tsx übernommen -- ein Switch-Toggle
+  // fordert nur das Öffnen des Impact-Preview-Dialogs an, die eigentliche Mutation passiert erst
+  // nach einer im Dialog bestätigten Vorschau, direkt in RoleCapabilityImpactPreviewModal.
+  function handleRequestChange(actionCode: string, add: boolean) {
+    const actionLabel = selectedRole?.actions.find((a) => a.code === actionCode)?.label_de ?? actionCode
+    setImpactPreviewRequest({ actionCode, actionLabel, add })
+  }
+
+  const selectedRole: RoleEntry | null =
+    matrix?.roles.find((r) => r.role_code === selectedRoleCode) ?? null
+
   if (isLoading) {
-    return <LoadingState title="Lade Rollen …" description="Gruppenrollen werden geladen." />
+    return <LoadingState title="Lade Rollen …" description="Rollen und Aktionen werden geladen." />
   }
 
   if (error) {
     return <ErrorState title="Fehler beim Laden" description={error} />
   }
 
-  // Nur echte gruppenkontextbezogene Rollen — genau die Menge, die Plan 138-01s
-  // role-holders-Endpunkt akzeptiert (kein zweiter, abweichend gefilterter Rollen-Katalog).
-  const roles: RoleEntry[] = (matrix?.roles ?? []).filter(
-    (role) => role.role_kind !== 'global_app_role' && role.contexts?.includes('fansub_group'),
-  )
-
-  const selectedRole = roles.find((r) => r.role_code === selectedRoleCode) ?? null
-
   return (
     <div>
       <PageHeader
         title="Rollen"
-        description="Wer besitzt welche Gruppenrolle? Die Standard-Capabilities einer Rolle bleiben über den jeweiligen Link erreichbar."
+        description="Wer besitzt eine Rolle, und was darf sie standardmäßig? Beides an einem Ort — Auswahl links, Details rechts."
       />
 
-      {roles.length === 0 ? (
-        <p style={{ color: 'var(--color-text-secondary)' }}>Keine gruppenkontextbezogenen Rollen gefunden.</p>
-      ) : (
-        <div
-          role="list"
-          aria-label="Rollenliste"
-          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}
-        >
-          {roles.map((role) => {
-            const isSelected = role.role_code === selectedRoleCode
-            return (
-              <div key={role.role_code} role="listitem">
-                <Card
-                  variant="interactive"
-                  style={{ outline: isSelected ? '2px solid var(--color-primary)' : undefined }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 'var(--space-3)',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      aria-pressed={isSelected}
-                      onClick={() => handleSelectRole(role.role_code)}
-                      style={{ flex: 1, minWidth: 0, justifyContent: 'flex-start', textAlign: 'left' }}
-                    >
-                      {role.label_de}
-                    </Button>
-                    <Button variant="ghost" size="sm" href={`/admin/role-capabilities?role=${role.role_code}`}>
-                      Standard-Capabilities dieser Rolle ansehen
-                    </Button>
-                  </div>
-                </Card>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {selectedRole ? (
-        <div>
-          <SectionHeader
-            title={`Rolleninhaber: ${selectedRole.label_de}`}
-            description="Wer besitzt diese Rolle, in welcher Gruppe, mit welchem Mitgliedsstatus und welchen Rechte-Abweichungen?"
+      <div className={styles.workspace}>
+        <RoleRail
+          roles={matrix?.roles ?? []}
+          selectedRoleCode={selectedRoleCode}
+          onSelectRole={handleSelectRole}
+          railRef={railRef}
+        />
+        {selectedRole ? (
+          <RoleDetailPanel
+            role={selectedRole}
+            activeTabId={activeTabId}
+            onActiveTabIdChange={setActiveTabId}
+            holders={holders}
+            isHoldersLoading={isHoldersLoading}
+            holdersError={holdersError}
+            onRequestChange={handleRequestChange}
+            openCategories={openCategories}
+            onOpenCategoriesChange={setOpenCategories}
           />
-          {isHoldersLoading ? (
-            <LoadingState title="Lade Rolleninhaber …" description="" />
-          ) : holdersError ? (
-            <ErrorState title="Fehler beim Laden" description={holdersError} />
-          ) : (
-            <RoleHoldersTable holders={holders} />
-          )}
-        </div>
-      ) : null}
+        ) : (
+          <EmptyState title="Rolle auswählen." description="" />
+        )}
+      </div>
+
+      {impactPreviewRequest && selectedRole && (
+        <RoleCapabilityImpactPreviewModal
+          open
+          onClose={() => setImpactPreviewRequest(null)}
+          roleCode={selectedRole.role_code}
+          roleLabel={selectedRole.label_de}
+          actionCode={impactPreviewRequest.actionCode}
+          actionLabel={impactPreviewRequest.actionLabel}
+          add={impactPreviewRequest.add}
+          onMutated={() => {
+            void loadData(false)
+          }}
+        />
+      )}
     </div>
   )
 }
