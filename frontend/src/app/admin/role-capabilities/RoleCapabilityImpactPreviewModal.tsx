@@ -6,6 +6,7 @@ import {
   ActivationStatusIndicator,
   Badge,
   Button,
+  Card,
   LoadingState,
   Modal,
   Pagination,
@@ -30,6 +31,8 @@ import type {
   RoleCapabilityMutationResult,
   RoleHolderEntry,
 } from '@/types/admin-capability'
+
+import styles from './RoleCapabilityImpactPreviewModal.module.css'
 
 /**
  * CAP-09's frontend closer (Plan 138-13, D-18/D-19/D-20/D-21): every role<->capability matrix
@@ -177,6 +180,26 @@ function allowedLabel(allowed: boolean): string {
   return allowed ? 'erlaubt' : 'nicht erlaubt'
 }
 
+/**
+ * Gibt zurück, ob der Viewport als "mobil" gilt (< 760 px) — identischer Breakpoint und
+ * matchMedia-Ansatz wie RoleHoldersTable.tsx's useIsMobile() (D-32: reuse, kein zweiter
+ * Breakpoint-Wert). SSR-sicher: Startzustand ist false (Desktop-Annahme), bis matchMedia läuft.
+ */
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia('(max-width: 759px)')
+    const onChange = () => setIsMobile(media.matches)
+    onChange()
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+
+  return isMobile
+}
+
 export function RoleCapabilityImpactPreviewModal({
   open,
   onClose,
@@ -196,6 +219,8 @@ export function RoleCapabilityImpactPreviewModal({
   const [isMutating, setIsMutating] = useState(false)
   const [mutationError, setMutationError] = useState<string | null>(null)
   const [mutationResult, setMutationResult] = useState<RoleCapabilityMutationResult | null>(null)
+
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (!open) return
@@ -294,14 +319,14 @@ export function RoleCapabilityImpactPreviewModal({
 
       {!isLoading && !previewError && !mutationResult && summary && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700 }}>{summary.totalHolders} Rolleninhaber</span>
-            <span style={{ fontSize: '12px', fontWeight: 700 }}>{summary.lose} verlieren das Recht</span>
-            <span style={{ fontSize: '12px', fontWeight: 700 }}>{summary.gain} gewinnen das Recht</span>
-            <span style={{ fontSize: '12px', fontWeight: 700 }}>
+          <div className={styles.metricsRow}>
+            <span className={styles.metricItem}>{summary.totalHolders} Rolleninhaber</span>
+            <span className={styles.metricItem}>{summary.lose} verlieren das Recht</span>
+            <span className={styles.metricItem}>{summary.gain} gewinnen das Recht</span>
+            <span className={styles.metricItem}>
               {summary.keepRole} behalten es über eine andere Rolle
             </span>
-            <span style={{ fontSize: '12px', fontWeight: 700 }}>
+            <span className={styles.metricItem}>
               {summary.keepOverride} behalten es über eine persönliche Abweichung
             </span>
           </div>

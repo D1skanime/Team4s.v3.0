@@ -1,0 +1,68 @@
+/*
+ * Plan 138-18 (GAP-02): responsive support for RoleCapabilityImpactPreviewModal.
+ * Same 759px breakpoint as RoleHoldersTable.tsx's useIsMobile() (D-32: no second breakpoint
+ * value). Desktop rendering (>=760px) stays visually identical to the pre-existing inline
+ * styles this module replaces.
+ */
+
+.metricsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.metricItem {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 759px) {
+  .metricsRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}
+
+/* Per-user impact cards, mobile-only replacement for the desktop detail table. */
+.detailCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.detailCardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+  font-weight: 700;
+}
+
+.detailCardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+
+.detailCardLabel {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/*
+ * GAP-02's third outcome: the shared .modalPanel mobile rule (ui.module.css, ~line 1912)
+ * forces height: 100dvh independent of content. This component-scoped override (opt-in via
+ * Modal's new panelClassName prop) makes THIS modal's panel size to its content instead,
+ * without touching the shared rule or any other modal in the app. Doubled selector for
+ * specificity regardless of stylesheet load order.
+ */
+@media (max-width: 767px) {
+  .narrowHeightFix.narrowHeightFix {
+    height: auto;
+    max-height: 100dvh;
+    align-self: center;
+  }
+}
