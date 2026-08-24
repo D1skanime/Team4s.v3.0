@@ -22,15 +22,15 @@ var _ interface {
 	GetUserGroupMemberships(ctx context.Context, appUserID int64) (*models.AdminUserGroupMembershipsResult, error)
 	GetUserGroupRights(ctx context.Context, appUserID int64) (*models.AdminUserGroupRightsResult, error)
 	ListUserContributions(ctx context.Context, filter AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error)
-	GetUserMedia(ctx context.Context, appUserID int64) (*models.AdminUserMediaResult, error)
+	GetUserMedia(ctx context.Context, filter AdminUserMediaFilter) (*models.AdminUserMediaPage, error)
 	GetUserAudit(ctx context.Context, appUserID int64) (*models.AdminUserAuditResult, error)
 	UpdateAppUserStatus(ctx context.Context, appUserID int64, status string) error
 } = (*AdminUsersRepository)(nil)
 
 func TestAdminUsersRepository_ListAdminUsersPage_PageFirstCTE(t *testing.T) {
-	repo := NewAdminUsersRepository(nil)
+	repo := NewAdminUsersRepository(nil, "")
 	if repo == nil {
-		t.Fatal("NewAdminUsersRepository(nil) gab nil zurück")
+		t.Fatal("NewAdminUsersRepository(nil, \"\") gab nil zurück")
 	}
 }
 

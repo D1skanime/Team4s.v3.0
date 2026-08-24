@@ -13,12 +13,16 @@ import (
 // Tab-Queries (Claims, Memberships, Rights, Contributions, Media, Audit) sind in
 // admin_users_tab_repository.go ausgelagert (Datei-Limit <= 450 Zeilen).
 type AdminUsersRepository struct {
-	db *pgxpool.Pool
+	db              *pgxpool.Pool
+	mediaStorageDir string
 }
 
 // NewAdminUsersRepository erstellt ein AdminUsersRepository mit dem übergebenen Pool.
-func NewAdminUsersRepository(db *pgxpool.Pool) *AdminUsersRepository {
-	return &AdminUsersRepository{db: db}
+// mediaStorageDir ist dasselbe cfg.MediaStorageDir, das main.go bereits an
+// NewFansubRepository/NewMediaRepository/NewGroupThemesRepository etc. reicht (Plan
+// 139-04, D17) — keine zweite unabhängige Konfigurationsquelle für den Medien-Tab.
+func NewAdminUsersRepository(db *pgxpool.Pool, mediaStorageDir string) *AdminUsersRepository {
+	return &AdminUsersRepository{db: db, mediaStorageDir: mediaStorageDir}
 }
 
 // ListAdminUsersPage gibt eine paginierte User-Liste mit allen D-05-Aggregat-Counts zurück.

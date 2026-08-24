@@ -501,7 +501,7 @@ func main() {
 	// Phase 78: Gruppenmedien-Review — GET-Liste + PATCH Sichtbarkeit/Reviewstatus (Lock K/G/D-08/D-09)
 	fansubMediaReviewHandler := handlers.NewFansubMediaReviewHandler(mediaRepo, permissionSvc, auditLogRepo)
 	// Phase 80: Globale User-Verwaltung + Rechte-Zentrale
-	adminUsersRepo := repository.NewAdminUsersRepository(dbPool)
+	adminUsersRepo := repository.NewAdminUsersRepository(dbPool, cfg.MediaStorageDir)
 	adminUsersHandler := handlers.NewAdminUsersHandler(adminUsersRepo, authzRepo, auditLogRepo)
 	// Phase 87: Capability-Matrix CRUD (requirePlatformAdminIdentity im Handler — D-08)
 	adminCapabilityHandler := handlers.NewAdminCapabilityHandler(authzRepo, authzRepo, permissionSvc, auditLogRepo)

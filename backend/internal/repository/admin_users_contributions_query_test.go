@@ -180,7 +180,7 @@ func TestListUserContributionsGroupsByAnimeAndProject(t *testing.T) {
 	seedPhase139FansubGroup(t, pool, 139031021, "Phase139 Group B")
 	seedPhase139AnimeContribution(t, pool, 139031031, 139031011, 139031021, memberID, nil, []string{"encoder"}, nil)
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID})
 	require.NoError(t, err)
 	require.Len(t, page.Data, 2, "expected exactly 2 project blocks, one per (anime_id, fansub_group_id) pair")
@@ -209,7 +209,7 @@ func TestListUserContributionsRangeCollapse(t *testing.T) {
 		seedPhase139AnimeContribution(t, pool, 139032070+int64(i), animeID, groupID, memberID, &versionID, []string{"encoder"}, nil)
 	}
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID})
 	require.NoError(t, err)
 	require.Len(t, page.Data, 1)
@@ -236,7 +236,7 @@ func TestListUserContributionsOverrideDetectionIndependentButIdentical(t *testin
 	seedPhase139ReleaseCrewSnapshot(t, pool, versionID, groupID, "independent")
 	seedPhase139AnimeContribution(t, pool, 139033070, animeID, groupID, memberID, &versionID, []string{"encoder"}, nil)
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID})
 	require.NoError(t, err)
 	require.Len(t, page.Data, 1)
@@ -264,7 +264,7 @@ func TestListUserContributionsOverrideDetectionIndependentAndDifferent(t *testin
 	seedPhase139ReleaseCrewSnapshot(t, pool, versionID, groupID, "independent")
 	seedPhase139AnimeContribution(t, pool, 139034070, animeID, groupID, memberID, &versionID, []string{"translator"}, nil)
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID})
 	require.NoError(t, err)
 	require.Len(t, page.Data, 1)
@@ -302,7 +302,7 @@ func TestListUserContributionsRangeBreaksOnDeviation(t *testing.T) {
 		seedPhase139AnimeContribution(t, pool, 139035070+int64(i), animeID, groupID, memberID, &versionID, roleForEpisode[sortIdx], nil)
 	}
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID})
 	require.NoError(t, err)
 	require.Len(t, page.Data, 1)
@@ -327,7 +327,7 @@ func TestListUserContributionsFiltersServerSide(t *testing.T) {
 	seedPhase139FansubGroup(t, pool, 139036021, "Phase139 Filter Group B")
 	seedPhase139AnimeContribution(t, pool, 139036031, 139036011, 139036021, memberID, nil, []string{"translator"}, nil)
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	animeFilter := int64(139036010)
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID, AnimeID: &animeFilter})
 	require.NoError(t, err)
@@ -362,7 +362,7 @@ func TestListUserContributionsOnlyDeviationsFilter(t *testing.T) {
 	seedPhase139ReleaseVersion(t, pool, relB, verB, epB, groupB, "v1")
 	seedPhase139AnimeContribution(t, pool, 139037070, animeB, groupB, memberID, &verB, []string{"translator"}, nil)
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID, OnlyDeviations: true})
 	require.NoError(t, err)
 	require.Len(t, page.Data, 1)
@@ -393,7 +393,7 @@ func TestListUserContributionsPaginationNeverSplitsAProjectBlock(t *testing.T) {
 		expectedPairs[[2]int64{animeID, groupID}] = true
 	}
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	seenPairs := map[[2]int64]bool{}
 	for page := 0; page < 3; page++ {
 		result, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID, Limit: 1, Offset: page})
@@ -424,7 +424,7 @@ func TestListUserContributionsFilterOptionsScopedToUser(t *testing.T) {
 	seedPhase139FansubGroup(t, pool, 139039021, "Phase139 Scoped Group Other")
 	seedPhase139AnimeContribution(t, pool, 139039031, 139039011, 139039021, otherMemberID, nil, []string{"encoder"}, nil)
 
-	repo := NewAdminUsersRepository(pool)
+	repo := NewAdminUsersRepository(pool, "")
 	page, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID})
 	require.NoError(t, err)
 	require.Len(t, page.FilterOptions.Animes, 1)

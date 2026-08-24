@@ -157,47 +157,18 @@ func (r *AdminUsersRepository) ListUserContributions(
 	return r.listUserContributionsGrouped(ctx, filter)
 }
 
-// GetUserMedia gibt alle Medien-Uploads eines Users zurück.
+// GetUserMedia gibt die serverseitig nach (anime_id, fansub_group_id,
+// release_version_id) gruppierten und paginierten Medien-Uploads eines Users
+// zurück (Plan 139-04, D11-D19). Ersetzt die alte unbegrenzte Flat-Liste mit
+// hartcodiertem ''/0 PublicURL/FileSizeBytes vollständig — die eigentliche
+// SQL-/Scan-Logik lebt in admin_users_media_query.go
+// (listUserMediaGrouped), damit diese Datei unter dem 450-Zeilen-Limit
+// bleibt (CLAUDE.md).
 func (r *AdminUsersRepository) GetUserMedia(
 	ctx context.Context,
-	appUserID int64,
-) (*models.AdminUserMediaResult, error) {
-	rows, err := r.db.Query(ctx, `
-		SELECT
-			rvm.media_asset_id,
-			COALESCE(mt.name, ma.mime_type, 'media'),
-			COALESCE(ma.file_path, ''),
-			''::text,
-			0::bigint,
-			rvm.created_at::text,
-			'release_version:' || rvm.release_version_id::text
-		FROM release_version_media rvm
-		JOIN media_assets ma ON ma.id = rvm.media_asset_id
-		LEFT JOIN media_types mt ON mt.id = ma.media_type_id
-		WHERE rvm.uploaded_by_user_id = $1
-		  AND rvm.deleted_at IS NULL
-		ORDER BY rvm.created_at DESC
-	`, appUserID)
-	if err != nil {
-		return nil, fmt.Errorf("get user media: %w", err)
-	}
-	defer rows.Close()
-
-	items := make([]models.AdminMediaItemSummary, 0)
-	for rows.Next() {
-		var m models.AdminMediaItemSummary
-		if err := rows.Scan(
-			&m.MediaAssetID, &m.MediaType, &m.OriginalFilename,
-			&m.PublicURL, &m.FileSizeBytes, &m.UploadedAt, &m.OwnerContext,
-		); err != nil {
-			return nil, fmt.Errorf("get user media: scan: %w", err)
-		}
-		items = append(items, m)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("get user media: iterate: %w", err)
-	}
-	return &models.AdminUserMediaResult{MediaItems: items}, nil
+	filter AdminUserMediaFilter,
+) (*models.AdminUserMediaPage, error) {
+	return r.listUserMediaGrouped(ctx, filter)
 }
 
 // GetUserAudit gibt die Audit-Einträge für einen User zurück (als Actor oder Target).
