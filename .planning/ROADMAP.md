@@ -596,7 +596,7 @@ Plans:
 - [x] 139-07-PLAN.md — api.ts wiring + Rights-tab lazy-fetch fix (D22) + Overview-tab batched-summary consumption (F-01)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 139-08-PLAN.md — Contributions tab UI rewrite: grouped-card projection + container-query CSS
+- [x] 139-08-PLAN.md — Contributions tab UI rewrite: grouped-card projection + container-query CSS
 - [ ] 139-09-PLAN.md — Media tab UI rewrite: grouped release/episode-block projection + container-query CSS
 
 **Wave 7** *(blocked on Wave 6 completion)*

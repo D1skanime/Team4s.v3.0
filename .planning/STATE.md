@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
 status: executing
-stopped_at: Completed 139-07-PLAN.md
-last_updated: "2026-08-24T20:08:24.139Z"
+stopped_at: Completed 139-08-PLAN.md
+last_updated: "2026-08-24T20:25:45.581Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 73
-  completed_plans: 70
+  completed_plans: 71
   percent: 43
 ---
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 ## Current Position
 
 Phase: 139 (scalable-user-admin-projections) — EXECUTING
-Plan: 8 of 10
+Plan: 9 of 10
 Status: Ready to execute
 Last activity: 2026-08-24
 
@@ -193,6 +193,7 @@ Last activity: 2026-08-24
 - [Phase 139]: Plan 139-05: GroupRightsSourcesInput.Roles is []string (role codes) not []Action as the plan text stated; AuthzRepository implements the three new batch-resolver interfaces (membership/overrides/review-grant) via a new authz_permissions_batch.go file, not by growing the already-over-450-line authz_permissions.go.
 - [Phase 139]: Plan 139-06: pinned constant query-budget gates (contributions=3, media=2, rights-summary=5) against a real disposable Postgres fixture, and closed F-03's live-UAT gap with a real, idempotent seed script producing independent-identical and independent-different release_crew_snapshots rows in team4s_v2 (0 to 2 independent rows).
 - [Phase 139]: Plan 139-07 closed both F-01 rights fan-out locations -- UserGroupRightsTab.tsx now lazily fetches exactly one group's rights on selection (D22, bounded selector, deep-link/auto-select preserved), and UserOverviewTab.tsx calls the new batched rights-summary endpoint exactly once instead of 1+N. api.ts wired to 139-03/139-04/139-05's paginated backend shapes; unplanned but required Rule-3 fix: UserContributionsTab.tsx/UserMediaTab.tsx (owned by 139-08/139-09) had to be minimally adapted to the new grouped shapes since the api.ts signature change otherwise broke npm run build -- explicitly a disposable placeholder, not a locked contract, since the full UI-SPEC rewrite remains those plans' scope.
+- [Phase 139]: 139-08: UserContributionsTab.tsx rewritten as grouped-card projection (UI-SPEC-locked); a thin file-local URL-reset wrapper deletes only the seven filter-owned query keys instead of calling each per-field setter in sequence (stale-closure race) or blanket-clearing the pathname (would drop ?tab=); rewrote pre-existing role-catalog test fixtures to use real hex color_key/icon_key values, closing a genuine Phase-136 fixture bug rather than reproducing it.
 
 ### Pending Todos
 
@@ -441,10 +442,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 139 P05 | 20min | 3 tasks | 15 files |
 | Phase 139 P06 | 55min | 3 tasks | 3 files |
 | Phase 139 P07 | 40min | 3 tasks | 10 files |
+| Phase 139 P08 | 70min | 2 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T20:08:24.125Z
-Stopped at: Completed 139-07-PLAN.md
+Last session: 2026-08-24T20:25:45.571Z
+Stopped at: Completed 139-08-PLAN.md
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
