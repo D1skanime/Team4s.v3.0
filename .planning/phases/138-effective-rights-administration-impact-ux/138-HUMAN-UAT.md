@@ -168,3 +168,105 @@ skipped: 0
   WR-01-Fix live unbelegt.
 - UAT-138-A ist behoben; verbleibend sind die kosmetischen Befunde C, D und E.
 - UAT-138-A gehört in das globale UI-Primitive, nicht in Phase-138-Dateien.
+
+---
+
+## GAP-01 — Negative Relativzeit in der Benutzerliste (aus UAT-138-D)
+
+**Symptom:** Die Benutzerliste zeigt für `admin` "vor -1 Tagen".
+
+**Ursache (verifiziert):** `formatRelativeDate` in
+`frontend/src/app/admin/users/AdminUsersClient.tsx` (Zeile 28-37) rechnet
+`Math.floor(diff / (1000*60*60*24))`. Liegt `isoDate` minimal in der Zukunft — es genügt die
+Uhrdifferenz zwischen Server/DB und Browser —, wird `diff` negativ und `Math.floor(-0.5)` ergibt
+`-1`. Die Sonderfälle `days === 0` ("Heute") und `days === 1` ("Gestern") greifen dann nicht mehr,
+und der Zweig `days < 30` rendert "vor -1 Tagen".
+
+**Erwartet:** Nicht-negative Ausgabe für Zeitstempel, die gleich jetzt oder in der Zukunft liegen.
+Ein zukünftiger oder gerade eben geschriebener Zeitstempel wird als "Heute" behandelt. Kein
+"vor -N Tagen" mit negativem N, in keiner der vier Zeitstufen (Tage, Monate, Jahre).
+
+**Umfang:** Nur diese Formatierfunktion plus Test. Keine Zeitzonen-Umstellung, keine Änderung des
+Backend-Zeitstempels, keine neue Datumsbibliothek. Prüfen, ob dieselbe Funktion dupliziert existiert
+(z. B. `frontend/src/app/admin/fansubs/[id]/edit/ClaimManagementPanel.tsx` enthält ebenfalls
+"Tagen") — falls ja, gemeinsam korrigieren statt zwei Varianten zu pflegen.
+
+**Nachweis:** Unit-Test mit einem Zeitstempel in der Zukunft (z. B. `Date.now() + 60_000`) und
+einem exakt auf `Date.now()`; beide dürfen kein negatives Ergebnis liefern.
+
+---
+
+## GAP-02 — Impact-Vorschau bei schmaler Breite unbrauchbar (aus UAT-138-E)
+
+**Symptom (gemessen bei 394 px Viewport, `RoleCapabilityImpactPreviewModal`):**
+
+1. Die Kennzahlenzeile bricht so um, dass eine der fünf Kennzahlen aus dem sichtbaren Bereich
+   gedrängt wird. Im DOM sind alle fünf vorhanden, sichtbar sind nur vier — konkret fehlte
+   "0 behalten es über eine andere Rolle".
+2. Die Detailtabelle scrollt horizontal; `NACHHER` und `GRUND` sind ohne Scrollen nicht erreichbar.
+   Genau diese beiden Spalten tragen die Entscheidungsinformation.
+3. Der Dialog nutzt nur das obere Viertel seiner Höhe, der Rest ist leer.
+
+**Warum das zählt:** Der Dialog ist das Sicherheitsnetz vor einer globalen Rechteänderung
+(CAP-09/D-19). Wenn eine Kennzahl unsichtbar ist und die Spalte "nachher" weggescrollt werden muss,
+bestätigt der Admin im Blindflug — genau das, was D-18 verhindern soll.
+
+**Erwartet:**
+- Alle fünf Kennzahlen sind bei 394 px ohne Scrollen sichtbar (Umbruch auf mehrere Zeilen ist in
+  Ordnung, Abschneiden nicht).
+- Die Auswirkung je Benutzer ist ohne horizontales Scrollen lesbar. Auf schmaler Breite gemäß D-32
+  als kompakte Karte/Zeile je Benutzer statt als breite Tabelle — die Desktop-Tabelle bleibt
+  unverändert.
+- Der Dialog nutzt seine Höhe sinnvoll; kein großer Leerraum unter dem Inhalt.
+
+**Umfang:** Reine Darstellung. Keine Änderung an Impact-Berechnung, Zählweise, Bestätigungslogik
+oder Aktivierungsstatus. Der Dialog bleibt der einzige Mutations-Einstieg der Matrix.
+
+**Nachweis:** Test, der bei schmaler Breite alle fünf Kennzahlen und für mindestens eine Zeile die
+Werte "vorher", "nachher" und "Grund" findet.
+
+---
+
+## GAP-03 — non-deniable plus schlafender persönlicher Deny ist ungetestet (aus 138-VERIFICATION.md)
+
+**Stand:** `138-VERIFICATION.md` steht auf `status: human_needed` und nennt genau diesen einen
+offenen Punkt. Der WR-01-Fix (`isNonDeniable && !isRemoveMode` in `GuidedRevokeFlow.tsx`) ist
+code-seitig vorhanden, aber weder durch einen automatisierten Test noch live belegt. Die Live-UAT
+konnte ihn nicht prüfen: In der Datenbank existiert kein Benutzer mit dieser Kombination, und die
+Kombination lässt sich in der Oberfläche nicht herstellen, weil ein non-deniable Recht gar nicht
+erst persönlich entzogen werden kann.
+
+**Erwartetes Verhalten:** Für einen Benutzer mit `non_deniable = true` auf einer Capability, der
+zusätzlich einen gespeicherten `user_deny` auf derselben Capability hat, muss
+`Abweichung entfernen` durchlaufen: der Dialog geht direkt zum Bestätigungsschritt
+("Die persönliche Abweichung … wird entfernt") und zeigt nach dem Bestätigen den ehrlichen
+Aktivierungsstatus des Override-Pfads. Er darf **nicht** in der Erklärung
+"Dieses Recht kann für … nicht persönlich entzogen werden." sackgassen.
+
+**Lösungsweg:** Ein automatisierter Regressionstest ist einer einmaligen Fixture vorzuziehen, weil
+er das Verhalten dauerhaft festnagelt. Test in
+`frontend/src/app/admin/users/tabs/GuidedRevokeFlow.test.tsx` ergänzen, der genau die Kombination
+`non_deniable: true` **und** `user_deny: true` im Entfernen-Modus rendert und belegt, dass der
+Bestätigungsschritt erreichbar ist und die Entfernen-Aktion nicht blockiert wird. Zusätzlich der
+Gegentest: dieselbe Capability mit `non_deniable: true`, aber **ohne** `user_deny`, im
+Entziehen-Modus — dort muss die Erklärung weiterhin greifen und kein Entzug angeboten werden.
+
+**Umfang:** Nur Tests. Keine Änderung an der Branch-Logik, solange die Tests sie bestätigen.
+Widerlegt ein Test das erwartete Verhalten, ist der Defekt zu melden und der minimale Fix
+vorzunehmen — nicht der Test an das Ist-Verhalten anzupassen.
+
+---
+
+## Gemeinsame Randbedingungen für GAP-01 bis GAP-03
+
+- Globale UI-Primitives aus `@/components/ui` sind Pflicht; kein Eigenbau für vorhandene Typen.
+- Globale Design-Tokens statt eigener CSS-Variablen. Korrekte Umlaute in user-facing Strings.
+- Produktionsdateien bleiben bei höchstens 450 Zeilen.
+- Die in `ui.module.css` gesetzten `grid-template-columns: minmax(0, 1fr)` auf `.card` und
+  `.accordionRoot` dürfen nicht zurückgedreht werden (halten UAT-138-A). Nach den Änderungen bei
+  394 px prüfen, dass `document.scrollWidth === document.clientWidth` bleibt.
+- Verifikation im Container, nicht auf dem Host:
+  `docker compose exec -T team4sv30-frontend sh -c "cd /app && npx vitest run src/app/admin --reporter=basic"`.
+- Vorab rot und nicht durch diese Gaps verursacht (nicht reparieren):
+  `FansubAppMembersSection.test.tsx`, `fansubs/[id]/edit/page.test.tsx`, `useGroupMembersTab.test.ts`,
+  `UserContributionsTab.test.tsx`, `ResponsiveImage.config.test.ts`.
