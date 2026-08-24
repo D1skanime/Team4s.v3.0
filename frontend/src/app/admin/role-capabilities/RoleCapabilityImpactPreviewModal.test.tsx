@@ -5,7 +5,7 @@
 // first, and after a confirmed mutation stays open showing the honest CAP-10 activation status
 // instead of a fabricated "wird aktiviert" spinner.
 
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type {
   CapabilityOverrideImpactItem,
@@ -37,6 +37,30 @@ vi.mock('@/lib/api', () => ({
 
 import { ApiError } from '@/lib/api'
 import { RoleCapabilityImpactPreviewModal } from './RoleCapabilityImpactPreviewModal'
+
+/**
+ * matchMedia-Mock für jsdom — identisches Muster wie RoleHoldersTable.test.tsx. Default:
+ * Desktop (kein Match für max-width: 759px).
+ */
+function mockMatchMedia(matches: boolean) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
+}
+
+beforeEach(() => {
+  mockMatchMedia(false)
+})
 
 afterEach(() => {
   cleanup()
@@ -258,5 +282,33 @@ describe('RoleCapabilityImpactPreviewModal', () => {
     })
     expect(mockGrantRoleCapability).not.toHaveBeenCalled()
     expect(await screen.findByText(/Gespeichert und aktiv/)).not.toBeNull()
+  })
+
+  it('rendert bei schmaler Viewport-Breite alle 5 Metriken plus vorher/nachher/Grund als Karten statt Tabelle (GAP-02)', async () => {
+    mockMatchMedia(true)
+    mockGetRoleCapabilityImpactPreview.mockResolvedValueOnce(makePreview(fiveOutcomeItems()))
+    mockListRoleHolders.mockResolvedValueOnce(fiveOutcomeHolders())
+
+    render(<RoleCapabilityImpactPreviewModal {...defaultProps} />)
+
+    await waitFor(() => {
+      expect(screen.getByText('5 Rolleninhaber')).not.toBeNull()
+    })
+    expect(screen.getByText('1 verlieren das Recht')).not.toBeNull()
+    expect(screen.getByText('1 gewinnen das Recht')).not.toBeNull()
+    expect(screen.getByText('1 behalten es über eine andere Rolle')).not.toBeNull()
+    expect(screen.getByText('1 behalten es über eine persönliche Abweichung')).not.toBeNull()
+
+    // Karten statt Tabelle -- keine horizontal scrollende Tabelle mehr unterhalb 759px.
+    expect(screen.queryByRole('table')).toBeNull()
+
+    // Mika (Verlust-Fall) muss als Karte mit vorher/nachher/Grund lesbar sein (jede der 5
+    // Karten trägt eigene vorher/nachher/Grund-Labels, daher getAllByText).
+    expect(screen.getByText('Mika')).not.toBeNull()
+    expect(screen.getAllByText('vorher').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('nachher').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Grund').length).toBeGreaterThan(0)
+    expect(screen.getByText('keine weitere Quelle')).not.toBeNull()
+    expect(screen.getAllByText('nicht erlaubt').length).toBeGreaterThan(0)
   })
 })
