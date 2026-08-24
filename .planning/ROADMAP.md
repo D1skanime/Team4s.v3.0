@@ -529,7 +529,7 @@ Plans:
   3. Before changing a role-capability mapping, an admin sees affected role holders and which users actually gain, lose, or retain the capability through another source.
   4. After a role-matrix mutation, the UI distinguishes persisted, cache-active, pending, and failed activation states and never reports stale enforcement as final success.
 
-**Plans**: 16 plans planned across 4 waves
+**Plans**: 18 plans complete across 4 waves plus 2 post-hoc UAT gap-closure plans
 
 Plans:
 **Wave 1**
@@ -555,6 +555,10 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 138-15-PLAN.md — Admin main navigation (D-01/D-02) + user-detail Tabs rewrite (D-03) + user list/overview cleanup (D-04/D-05)
 - [x] 138-16-PLAN.md — Gruppenansicht Rollen/Änderungen tabs (D-06)
+
+**Post-hoc UAT gap-closure**
+- [x] 138-17-PLAN.md — GAP-01 (negative relative-time clamp) + GAP-03 (WR-01 non_deniable+user_deny regression test)
+- [x] 138-18-PLAN.md — GAP-02 (RoleCapabilityImpactPreviewModal narrow-viewport metrics/table/height fix, CAP-09)
 
 **UI hint**: yes
 

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Coverage
-status: executing
-stopped_at: "Completed plan 138-17: GAP-01 (negative relative-time clamp) and GAP-03 (WR-01 non_deniable+user_deny regression test)"
-last_updated: "2026-08-24T08:31:59.868Z"
+status: completed
+stopped_at: Completed 138-18-PLAN.md (GAP-02 closed; Phase 138 18/18 plans complete)
+last_updated: "2026-08-24T08:41:21.013Z"
 last_activity: 2026-08-24
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 63
-  completed_plans: 62
-  percent: 29
+  completed_plans: 63
+  percent: 43
 ---
 
 # Project State
@@ -29,13 +29,13 @@ Phase 135 and any future roadmap entries continue from here.
 See: .planning/PROJECT.md (updated 2026-08-13)
 
 **Core value:** Team4s presents fansub history and collaboration credibly while keeping identity, visibility, ownership, and permissions correct.
-**Current focus:** Phase 138 — effective-rights-administration-impact-ux
+**Current focus:** Phase 138 — effective-rights-administration-impact-ux (complete); next phase 139 pending
 
 ## Current Position
 
-Phase: 138 (effective-rights-administration-impact-ux) — EXECUTING
-Plan: 2 of 18
-Status: Ready to execute
+Phase: 138 (effective-rights-administration-impact-ux) — COMPLETE (18/18 plans)
+Plan: 18 of 18
+Status: Complete — Phase 139 not yet started
 Last activity: 2026-08-24
 
 ## Accumulated Context
@@ -184,6 +184,7 @@ Last activity: 2026-08-24
 - [Phase 138]: 138-16 closed D-06's Gruppenansicht: GroupRolesTab regroups already-fetched listFansubAppMembers client-side by role (no new backend endpoint); GroupChangesTab reuses listChanges (real filter param is gruppe, not fansub_group_id as the plan sketched) plus 138-11's translateChangeEntry; FansubAppMembersOverview.tsx (the plan named a non-existent GroupMembersTable.tsx) gained a Rechteabweichungen indicator and user navigation; a platform-admin-gated Claims link-out replaces a second claims editor per D-09/D-34.
 - [Phase Quick 260823-wrz]: UAT-138-G fixed: EmptyState gained a real chrome-free variant="inline" (single <p>, no icon/card); UserGlobalRolesTab.tsx dropped its standalone 'Aktive Rollen' SectionHeader block; GroupSection.tsx dropped its <Card> wrapper for a plain <section> (data-group-section preserved). New height to first real rights row estimated ~519px (engineering estimate, not live-measured) - above the 400px soft target but all three named causes are fully closed; UAT-138-A grid-template-columns fix confirmed untouched; live UAT spot-check at 1280x900 recommended as follow-up.
 - [Phase 138]: 138-17: GAP-01 formatRelativeDate clamps its ms diff to >= 0 before computing days, so a last_activity_at at or after Date.now() (clock skew or exact-now) always resolves to 'Heute'; GAP-03's WR-01 branch order (isNonDeniable && !isRemoveMode) was already correct in production code -- a new 7th regression test pins non_deniable+user_deny reaching the confirm step, closing 138-VERIFICATION.md's sole human_needed gap with automated coverage, no production code change needed.
+- [Phase 138]: 138-18 closed GAP-02: RoleCapabilityImpactPreviewModal's metrics row column-stacks (.metricsRow, <=759px) so all 5 D-19 metrics stay visible, per-user vorher/nachher/Grund renders as a Card list below 759px (mirrors RoleHoldersTable.tsx's useIsMobile()/matchMedia precedent, D-32), and a new opt-in Modal panelClassName prop lets only this modal override the shared mobile 100dvh height rule (.narrowHeightFix, doubled-selector specificity) -- ui.module.css and all 30 other <Modal> call sites remain byte-unchanged. Phase 138 (18/18 plans) is now complete.
 
 ### Pending Todos
 
@@ -421,10 +422,11 @@ untruncated list lives in `.planning/todos/pending/`.
 | Phase 138 P15 | 45min | 2 tasks | 12 files |
 | Phase 138 P16 | 35min | 2 tasks | 13 files |
 | Phase 138 P17 | ~10m | 2 tasks | 3 files |
+| Phase 138 P18 | 6min | 3 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-08-24T08:31:59.857Z
-Stopped at: Completed plan 138-17: GAP-01 (negative relative-time clamp) and GAP-03 (WR-01 non_deniable+user_deny regression test)
+Last session: 2026-08-24T08:41:20.997Z
+Stopped at: Completed 138-18-PLAN.md (GAP-02 closed; Phase 138 18/18 plans complete)
 Last activity: 2026-08-20 - Completed Phase 134 Plan 06: live UAT evidence capture, two gap-closure fix rounds, and the user's explicit live-browser sign-off for both reference profiles (PMQA-05)
 Resume file: None
