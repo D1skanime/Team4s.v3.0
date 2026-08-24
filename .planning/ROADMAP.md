@@ -575,7 +575,33 @@ Plans:
   4. Every affected user tab explains whether it is actionable or informational and offers the relevant next action without unbounded flat lists or client-side regrouping.
   5. The shared admin layout remains keyboard-operable and usable at narrow widths without page overflow, while query-count and high-volume gates prevent N+1 behavior and pagination drift.
 
-**Plans**: TBD
+**Plans**: 10 plans across 7 waves
+
+Plans:
+**Wave 1**
+- [ ] 139-01-PLAN.md — Backend DTO foundation (grouped contributions/media/rights-summary shapes) + disposable Phase-139 Postgres test harness
+- [ ] 139-02-PLAN.md — Frontend TS type mirrors + URL-synced contributions/media filter hooks
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 139-03-PLAN.md — Contributions grouping/range-collapse/override-diff query (TDD, D02-D10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 139-04-PLAN.md — Media grouping query + real PublicURL/FileSizeBytes derivation (D11-D14/D17-D19)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 139-05-PLAN.md — F-01 batched rights-summary endpoint (Overview-tab fan-out fix) + GetUserGroupMemberships pagination (D21/D22)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 139-06-PLAN.md — QUAL-06 query-budget + pagination-drift gate + F-03 live seed-data script
+- [ ] 139-07-PLAN.md — api.ts wiring + Rights-tab lazy-fetch fix (D22) + Overview-tab batched-summary consumption (F-01)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 139-08-PLAN.md — Contributions tab UI rewrite: grouped-card projection + container-query CSS
+- [ ] 139-09-PLAN.md — Media tab UI rewrite: grouped release/episode-block projection + container-query CSS
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 139-10-PLAN.md — Full regression gate + D01/D27 scope check + live UAT checkpoint
+
 **UI hint**: yes
 
 ### Phase 140: Review Delegation Management
@@ -646,7 +672,7 @@ Plans:
 | 136. Capability Policy, Catalog & Schema Contract | 0/TBD | Not started | - |
 | 137. Central Effective-Rights Resolver & Overrides | 13/13 | Complete   | 2026-08-21 |
 | 138. Effective-Rights Administration & Impact UX | 0/TBD | Not started | - |
-| 139. Scalable User-Admin Projections | 0/TBD | Not started | - |
+| 139. Scalable User-Admin Projections | 0/10 | Not started | - |
 | 140. Review Delegation Management | 0/TBD | Not started | - |
 | 141. Actor-Decidable Review Queue | 0/TBD | Not started | - |
 | 142. Integrated Security, Fixtures & Live Release Gate | 0/TBD | Not started | - |
