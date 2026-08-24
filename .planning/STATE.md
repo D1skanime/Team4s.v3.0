@@ -36,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-08-13)
 Phase: 138 (effective-rights-administration-impact-ux) — COMPLETE (18/18 plans)
 Plan: 18 of 18
 Status: Complete — Phase 139 not yet started
-Last activity: 2026-08-24
+Last activity: 2026-08-24 - Completed quick task 260824-ek3: Rollen und Capabilities zu einem Rollen-Arbeitsbereich zusammengefuehrt (GAP-04/GAP-05)
 
 ## Accumulated Context
 
@@ -213,6 +213,7 @@ Last activity: 2026-08-24
 | 260823-ucl | Nachtrag UAT-138-A: verbleibender Seitenueberlauf (394px) durch .accordionRoot in ui.module.css - gleiche implizite Grid-Track-Falle wie .card, grid-template-columns: minmax(0, 1fr) ergaenzt; alle uebrigen display:grid-Regeln erneut evidenzbasiert auditiert | 2026-08-23 | 59f7173f | [260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m](./quick/260823-ucl-nachtrag-uat-138-a-accordionroot-in-ui-m/) |
 | 260823-w9y | Fix UAT-138-C: rohe technische Codes (Rollencodes, Capability-Actioncodes, "Benutzer #<id>") durch bestehende deutsche Labels aus RoleCapabilityMatrix/app_users.display_name ersetzt - Rechteeditor, Entzug-Dialog, Aenderungen-Uebersetzung, plus additive actor_display_name/target_display_name-Vertragserweiterung fuer GET /admin/changes (D-33) | 2026-08-23 | 66164839 | [260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u](./quick/260823-w9y-fix-uat-138-c-rohe-technische-codes-in-u/) |
 | 260823-wrz | Fix UAT-138-G: Informationsdichte im Benutzer-Rechte-Tab - EmptyState bekam echte chrome-freie variant="inline"; UserGlobalRolesTab.tsx verlor den separaten "Aktive Rollen"-Block; GroupSection.tsx verlor die Card-Chrome (jetzt <section>, data-group-section erhalten); neue Hoehe bis zur ersten Rechtezeile auf ~519px geschaetzt (Engineering-Schaetzung, kein Live-Messwert); UAT-138-A-Fix quellcode-bestaetigt unangetastet | 2026-08-23 | e33de150 | [260823-wrz-informationsdichte-im-benutzer-rechte-ta](./quick/260823-wrz-informationsdichte-im-benutzer-rechte-ta/) |
+| 260824-ek3 | GAP-04/GAP-05 (138-HUMAN-UAT.md): Rollen und Capabilities zu einem Rollen-Arbeitsbereich unter /admin/roles zusammengefuehrt (Sketch 005, Nutzerentscheidung) - RoleRail.tsx (vollflaechig klickbare, registry-getriebene Liste, aria-current), RolesClient.tsx/RoleDetailPanel.tsx (Tabs Inhaber/Standardrechte, Deep-Link-Scroll), /admin/role-capabilities als serverseitige Weiterleitung, AdminMainNav/admin-page/resolveRoleLink umgestellt, D-01/D-08-Nachtrag datiert in 138-CONTEXT.md/138-HUMAN-UAT.md dokumentiert | 2026-08-24 | ec512897 | [260824-ek3-rollen-und-capabilities-zu-einem-rollen-](./quick/260824-ek3-rollen-und-capabilities-zu-einem-rollen-/) |
 
 ### Verification Baseline
 
