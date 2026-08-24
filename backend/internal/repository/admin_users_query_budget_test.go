@@ -1,10 +1,13 @@
 package repository
 
-// admin_users_query_budget_test.go proves QUAL-06/D25 (Plan 139-06, Task 1) for all three
-// Phase-139 endpoints together (ListUserContributions, GetUserMedia, GetUserRightsSummary) --
-// mirrors member_profile_query_budget_test.go's Phase-131 constant-query-budget gate pattern
+// admin_users_query_budget_test.go proves QUAL-06/D25 (Plan 139-06, Task 1) and the D24
+// pagination-drift coherence property (Task 2) for all three Phase-139 endpoints together
+// (ListUserContributions, GetUserMedia, GetUserRightsSummary) -- mirrors
+// member_profile_query_budget_test.go's Phase-131 constant-query-budget gate pattern
 // (counter.reset() immediately before the measured call + require.Equal(fewCount, manyCount) +
-// a pinned exact constant).
+// a pinned exact constant) and admin_users_contributions_query_test.go's (139-03)
+// seeded-fixture pagination-walk idea (TestListUserContributionsPaginationNeverSplitsAProjectBlock),
+// extended here to a larger volume / multi-page walk with an active filter (D24).
 //
 // openPhase139PostgresWithCounter duplicates testsupport.OpenPhase139Postgres's isolated-schema +
 // full-real-migration-chain connection logic locally in THIS package, because the counter must be
@@ -377,4 +380,187 @@ func TestPhase139RightsSummaryQueryBudgetIsConstant(t *testing.T) {
 	require.Equalf(t, phase139RightsSummaryQueryBudget, manyCount,
 		"rights-summary query budget drifted from the enforced constant %d; got %d (update phase139RightsSummaryQueryBudget only with an intentional, documented loader change)",
 		phase139RightsSummaryQueryBudget, manyCount)
+}
+
+// --- Task 2: pagination-drift-at-scale gates (D24) --------------------------------------------
+
+// seedPhase139ContributionsPaginationDriftFixture seeds one verified user with `total` distinct
+// anime+project blocks, a mix of standard-only (no deviation) and deviation-containing blocks
+// (every third block deviates), returning a map of (anime_id, fansub_group_id) -> hasDeviation.
+func seedPhase139ContributionsPaginationDriftFixture(t testing.TB, pool *pgxpool.Pool, appUserID, memberID int64, total int) map[[2]int64]bool {
+	t.Helper()
+	seedPhase139VerifiedUser(t, pool, appUserID, memberID, "phase139-pagination-drift-contrib")
+	pairs := make(map[[2]int64]bool, total)
+	for i := 0; i < total; i++ {
+		base := int64(139063000000) + int64(i)*100
+		animeID := base + 1
+		groupID := base + 2
+		seedPhase139Anime(t, pool, animeID, fmt.Sprintf("Phase139 Drift Contrib Anime %02d", i))
+		seedPhase139FansubGroup(t, pool, groupID, fmt.Sprintf("Phase139 Drift Contrib Group %02d", i))
+		seedPhase139AnimeContribution(t, pool, base+3, animeID, groupID, memberID, nil, []string{"encoder"}, nil)
+
+		hasDeviation := i%3 == 0
+		ep, rel, ver := base+10, base+11, base+12
+		seedPhase139Episode(t, pool, ep, animeID, "01", 1)
+		seedPhase139ReleaseVersion(t, pool, rel, ver, ep, groupID, "v1")
+		if hasDeviation {
+			seedPhase139ReleaseCrewSnapshot(t, pool, ver, groupID, "independent")
+			seedPhase139AnimeContribution(t, pool, base+13, animeID, groupID, memberID, &ver, []string{"translator"}, nil)
+		} else {
+			seedPhase139AnimeContribution(t, pool, base+13, animeID, groupID, memberID, &ver, []string{"encoder"}, nil)
+		}
+		pairs[[2]int64{animeID, groupID}] = hasDeviation
+	}
+	return pairs
+}
+
+// TestPhase139ContributionsPaginationDriftAtScale proves D24 at scale: walking ListUserContributions
+// across 6 pages of limit=5 (30 seeded blocks) returns exactly the seeded set with zero duplicates
+// or gaps, every page's Meta.Total equals the SAME filtered/grouped dataset the items came from,
+// and repeating the walk with only_deviations=true returns exactly the deviation subset -- proving
+// D24/D23 together (server-side, not client-side-filtered-after-the-fact).
+func TestPhase139ContributionsPaginationDriftAtScale(t *testing.T) {
+	pool, _ := openPhase139PostgresWithCounter(t)
+	ctx := context.Background()
+
+	const appUserID, memberID = int64(139063999001), int64(139063999001)
+	const totalBlocks = 30
+	pairsWithDeviation := seedPhase139ContributionsPaginationDriftFixture(t, pool, appUserID, memberID, totalBlocks)
+
+	expectedPairs := make(map[[2]int64]bool, len(pairsWithDeviation))
+	deviationPairs := map[[2]int64]bool{}
+	for pair, hasDeviation := range pairsWithDeviation {
+		expectedPairs[pair] = true
+		if hasDeviation {
+			deviationPairs[pair] = true
+		}
+	}
+
+	repo := NewAdminUsersRepository(pool, "")
+
+	// Walk WITHOUT a filter: 6 pages of limit=5 across 30 blocks (>=5 distinct offsets).
+	seenPairs := map[[2]int64]bool{}
+	for page := 0; page < 6; page++ {
+		offset := page * 5
+		result, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID, Limit: 5, Offset: offset})
+		require.NoError(t, err)
+		require.Len(t, result.Data, 5, "each page must return exactly limit=5 blocks")
+		require.Equal(t, totalBlocks, result.Meta.Total, "Meta.Total must equal the full unfiltered block count on every page")
+		for _, block := range result.Data {
+			pair := [2]int64{block.AnimeID, block.FansubGroupID}
+			require.False(t, seenPairs[pair], "the same project pair must not appear on two different pages")
+			seenPairs[pair] = true
+		}
+	}
+	require.Equal(t, expectedPairs, seenPairs, "walking limit=5 across 6 pages must return exactly the 30 distinct project pairs with no duplicates or gaps")
+
+	// Walk WITH only_deviations=true: filters, count, and items must derive from the SAME
+	// server-side filtered dataset (D24) -- not a client-side re-filter of the unfiltered walk above.
+	deviationTotal := len(deviationPairs)
+	seenDeviationPairs := map[[2]int64]bool{}
+	pageLimit := 5
+	pagesNeeded := (deviationTotal + pageLimit - 1) / pageLimit
+	for page := 0; page < pagesNeeded; page++ {
+		offset := page * pageLimit
+		result, err := repo.ListUserContributions(ctx, AdminUserContributionsFilter{AppUserID: appUserID, OnlyDeviations: true, Limit: pageLimit, Offset: offset})
+		require.NoError(t, err)
+		require.Equal(t, deviationTotal, result.Meta.Total, "Meta.Total under only_deviations must equal the FILTERED deviation-block count, not the unfiltered total")
+		for _, block := range result.Data {
+			pair := [2]int64{block.AnimeID, block.FansubGroupID}
+			require.True(t, deviationPairs[pair], "only_deviations must return ONLY blocks that actually contain a real deviation")
+			require.False(t, seenDeviationPairs[pair], "the same deviation pair must not appear on two different pages")
+			seenDeviationPairs[pair] = true
+		}
+	}
+	require.Equal(t, deviationPairs, seenDeviationPairs, "walking only_deviations=true must return exactly the deviation subset with no duplicates or gaps")
+}
+
+// seedPhase139MediaPaginationDriftFixture seeds one legacy uploader with `total` distinct
+// release-version media blocks under one anime+group, a mix of image/video media types (every
+// third block is a video), returning a map of release_version_id -> seeded media_type.
+func seedPhase139MediaPaginationDriftFixture(t testing.TB, pool *pgxpool.Pool, userID int64, total int) map[int64]string {
+	t.Helper()
+	seedPhase139LegacyUser(t, pool, userID, "phase139-pagination-drift-media")
+	animeID := int64(139064000000)
+	groupID := animeID + 1
+	seedPhase139Anime(t, pool, animeID, "Phase139 Drift Media Anime")
+	seedPhase139FansubGroup(t, pool, groupID, "Phase139 Drift Media Group")
+
+	versionMediaType := make(map[int64]string, total)
+	for i := 0; i < total; i++ {
+		base := animeID + 100 + int64(i)*10
+		epID, relID, verID := base+1, base+2, base+3
+		seedPhase139Episode(t, pool, epID, animeID, fmt.Sprintf("%02d", i+1), i+1)
+		seedPhase139ReleaseVersion(t, pool, relID, verID, epID, groupID, "v1")
+		mediaType := "image/png"
+		mimeExt := "png"
+		if i%3 == 0 {
+			mediaType = "video/mp4"
+			mimeExt = "mp4"
+		}
+		assetID := base + 4
+		seedPhase139MediaAsset(t, pool, assetID, testAdminMediaStorageDir+"/drift-"+itoa64(assetID)+"."+mimeExt, mediaType)
+		seedPhase139ReleaseVersionMedia(t, pool, base+5, verID, assetID, userID, nil)
+		versionMediaType[verID] = mediaType
+	}
+	return versionMediaType
+}
+
+// TestPhase139MediaPaginationDriftAtScale mirrors the contributions drift test for GetUserMedia:
+// walking 6 pages of limit=5 across 30 seeded release/episode blocks returns exactly the seeded
+// set with zero duplicates or gaps, and repeating with an active media_type filter returns exactly
+// the matching subset, coherent with Meta.Total (D24).
+func TestPhase139MediaPaginationDriftAtScale(t *testing.T) {
+	pool, _ := openPhase139PostgresWithCounter(t)
+	ctx := context.Background()
+
+	const userID = int64(139064999001)
+	const totalBlocks = 30
+	versionMediaType := seedPhase139MediaPaginationDriftFixture(t, pool, userID, totalBlocks)
+
+	expectedVersions := make(map[int64]bool, len(versionMediaType))
+	videoVersions := map[int64]bool{}
+	for verID, mediaType := range versionMediaType {
+		expectedVersions[verID] = true
+		if mediaType == "video/mp4" {
+			videoVersions[verID] = true
+		}
+	}
+
+	repo := NewAdminUsersRepository(pool, testAdminMediaStorageDir)
+
+	// Walk WITHOUT a filter: 6 pages of limit=5 across 30 blocks (>=5 distinct offsets).
+	seenVersions := map[int64]bool{}
+	for page := 0; page < 6; page++ {
+		offset := page * 5
+		result, err := repo.GetUserMedia(ctx, AdminUserMediaFilter{AppUserID: userID, Limit: 5, Offset: offset})
+		require.NoError(t, err)
+		require.Len(t, result.Data, 5, "each page must return exactly limit=5 blocks")
+		require.Equal(t, totalBlocks, result.Meta.Total, "Meta.Total must equal the full unfiltered block count on every page")
+		for _, block := range result.Data {
+			require.False(t, seenVersions[block.ReleaseVersionID], "the same release_version_id must not appear on two different pages")
+			seenVersions[block.ReleaseVersionID] = true
+		}
+	}
+	require.Equal(t, expectedVersions, seenVersions, "walking limit=5 across 6 pages must return exactly the 30 distinct release_version_id values with no duplicates or gaps")
+
+	// Walk WITH an active media_type filter: filters, count, and items must derive from the SAME
+	// server-side filtered dataset (D24).
+	videoTotal := len(videoVersions)
+	mediaFilter := "video/mp4"
+	seenVideoVersions := map[int64]bool{}
+	pageLimit := 5
+	pagesNeeded := (videoTotal + pageLimit - 1) / pageLimit
+	for page := 0; page < pagesNeeded; page++ {
+		offset := page * pageLimit
+		result, err := repo.GetUserMedia(ctx, AdminUserMediaFilter{AppUserID: userID, MediaType: &mediaFilter, Limit: pageLimit, Offset: offset})
+		require.NoError(t, err)
+		require.Equal(t, videoTotal, result.Meta.Total, "Meta.Total under an active media_type filter must equal the FILTERED block count")
+		for _, block := range result.Data {
+			require.True(t, videoVersions[block.ReleaseVersionID], "media_type filter must return ONLY blocks matching the filter")
+			require.False(t, seenVideoVersions[block.ReleaseVersionID], "the same release_version_id must not appear on two different pages")
+			seenVideoVersions[block.ReleaseVersionID] = true
+		}
+	}
+	require.Equal(t, videoVersions, seenVideoVersions, "walking with an active media_type filter must return exactly the matching subset with no duplicates or gaps")
 }
