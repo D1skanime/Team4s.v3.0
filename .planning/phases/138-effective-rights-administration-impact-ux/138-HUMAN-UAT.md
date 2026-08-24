@@ -1,5 +1,5 @@
 ---
-status: partial
+status: complete
 phase: 138-effective-rights-administration-impact-ux
 source: [138-VERIFICATION.md]
 started: 2026-08-23T20:10:00Z
@@ -19,7 +19,7 @@ persönlichen `user_deny` auf derselben Capability hat. In `UserGroupRightsTab` 
 "Abweichung entfernen" klicken — der Modal muss direkt zum Bestätigungsschritt gehen und nach
 Bestätigung den ehrlichen Override-Aktivierungsstatus zeigen. Er darf NICHT nur
 "Dieses Recht kann für … nicht persönlich entzogen werden." anzeigen.
-result: [blocked] — In der aktuellen DB existiert keine solche Kombination. Es gibt vier Benutzer
+result: [passed via regression test, siehe GAP-03 unten] — In der aktuellen DB existiert keine solche Kombination. Es gibt vier Benutzer
 (admin, D1sk, founder, coleader) und keinen gespeicherten `user_deny` auf einem non-deniable Recht.
 Der Fall müsste erst per Fixture/SQL hergestellt werden. Code-seitig ist der WR-01-Fix
 (`isNonDeniable && !isRemoveMode`) vorhanden, aber weiterhin ohne Live-Beleg.
@@ -270,3 +270,61 @@ vorzunehmen — nicht der Test an das Ist-Verhalten anzupassen.
 - Vorab rot und nicht durch diese Gaps verursacht (nicht reparieren):
   `FansubAppMembersSection.test.tsx`, `fansubs/[id]/edit/page.test.tsx`, `useGroupMembersTab.test.ts`,
   `UserContributionsTab.test.tsx`, `ResponsiveImage.config.test.ts`.
+
+---
+
+## Gap-Block Ergebnis (2026-08-24, live nachgeprüft)
+
+Geplant als `138-17-PLAN.md` und `138-18-PLAN.md` (beide `gap_closure: true`), ausgeführt per
+`/gsd-execute-phase 138 --gaps-only`.
+
+### GAP-01 — BEHOBEN
+`formatRelativeDate` in `AdminUsersClient.tsx` clampt negative Differenzen. Live auf
+`/admin/users` bei angemeldetem Plattform-Admin: die Relativwerte lauten jetzt "Heute",
+"Gestern", "vor 2 Tagen" — kein einziger negativer Wert mehr. Die Zeile, die zuvor
+"vor -1 Tagen" zeigte, steht jetzt auf "Heute".
+
+### GAP-02 — BEHOBEN
+Live gemessen im geöffneten Impact-Dialog bei 394 px Viewport:
+- Alle **fünf** D-19-Kennzahlen sind vorhanden und liegen vollständig innerhalb der
+  Dialoggrenzen (linke Kante je 19 px, rechteste Kante 292 px bei 394 px Breite). Keine
+  abgeschnittene Kennzahl mehr.
+- **Null** horizontal scrollende Container innerhalb des Dialogs. Die Auswirkung je Benutzer
+  erscheint als Karte mit beschrifteten Feldern ("coleader / New-Subs / vorher: nicht erlaubt /
+  nachher: erlaubt / Grund: wird durch diese Änderung gewährt") statt als breite Tabelle;
+  "nachher" und "Grund" sind ohne Scrollen lesbar.
+- Das Panel (`ui_modalPanel`) ist 604 px hoch bei 900 px Viewport, also inhaltsgetrieben statt auf
+  100 dvh gezwungen; es ist mittig zentriert (148 px Overlay ober- und unterhalb). Die Aktionen
+  "Abbrechen" und "Änderung übernehmen" liegen bei 689-733 px innerhalb des Panels.
+
+Hinweis zur Messung: Das Element mit `role="dialog"` ist der Vollbild-Wrapper `ui_modalWrap` und
+daher naturgemäß 900 px hoch. Für die Höhenbewertung ist `ui_modalPanel` maßgeblich.
+
+Die Höhenkorrektur ist über eine neue optionale `panelClassName`-Prop an `Modal.tsx` auf genau
+diesen Dialog begrenzt; die geteilte `.modalPanel`-Regel bleibt für alle anderen Modals unverändert.
+
+### GAP-03 — BEHOBEN (durch Regressionstest, nicht durch Fixture)
+Test 1 dieser Datei war blockiert, weil die Kombination `non_deniable = true` **und** gespeicherter
+`user_deny` in der Datenbank nicht existiert und sich über die Oberfläche auch nicht herstellen
+lässt. Der Fall ist jetzt durch einen automatisierten Regressionstest in
+`GuidedRevokeFlow.test.tsx` festgenagelt, der genau diese Kombination im Entfernen-Modus rendert
+und belegt, dass der Bestätigungsschritt erreichbar ist. Der Gegentest (`non_deniable = true` ohne
+`user_deny`) war bereits vorhanden und bleibt grün.
+
+Damit ist der einzige offene Punkt aus `138-VERIFICATION.md` (`status: human_needed`) geschlossen —
+dauerhaft durch einen Test statt einmalig durch eingespielte Daten.
+
+### Regression nach dem Gap-Block
+`src/app/admin` + `src/components/ui`: 25 Fehler in denselben fünf vorbelasteten Dateien wie vor
+dem Gap-Block, 836 bestanden (vorher 827) — die neun zusätzlichen sind die neuen Regressionstests.
+Keine neuen Fehler. Der Überlaufschutz aus UAT-138-A hält: bei 394 px bleibt
+`document.scrollWidth === clientWidth`.
+
+## Summary (aktualisiert)
+
+total: 11
+passed: 11
+issues: 0
+pending: 0
+blocked: 0
+skipped: 0
