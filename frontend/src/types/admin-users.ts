@@ -143,6 +143,9 @@ export interface AdminGroupMembershipSummary {
 /** Response des Gruppenmitgliedschaften-Tab-Endpunkts. */
 export interface AdminUserGroupMembershipsResponse {
   memberships: AdminGroupMembershipSummary[]
+  // Additiv (Plan 139-05): server-seitige LIMIT/OFFSET-Paginierung. Optional, da bestehende
+  // Aufrufstellen ohne Paginierungs-Parameter weiterhin funktionieren.
+  meta?: AdminListMeta
 }
 
 // ---------------------------------------------------------------------------

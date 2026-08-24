@@ -91,6 +91,15 @@ export function UserDetailPageClient() {
   const fromQuery = searchParams.get('from')
   const backHref = fromQuery ? `/admin/users?${fromQuery}` : '/admin/users'
 
+  // Deep-link preservation (139-07/D22): ?tab=roles-rights&group={fansubGroupId} continues to
+  // pre-select and eagerly fetch exactly that ONE group's rights on mount.
+  const groupQuery = searchParams.get('group')
+  const initialGroupId = groupQuery ? Number(groupQuery) : undefined
+  const parsedInitialGroupId =
+    initialGroupId != null && Number.isInteger(initialGroupId) && initialGroupId > 0
+      ? initialGroupId
+      : undefined
+
   // Eigener, von den Tab-Komponenten unabhängiger Fetch nur für Titel/Status
   // im PageHeader (die Übersicht-Sektion selbst lädt ihre Daten unabhängig
   // über UserOverviewTab).
@@ -160,7 +169,7 @@ export function UserDetailPageClient() {
           <div style={{ marginBottom: 'var(--space-5)' }}>
             <UserGlobalRolesTab userId={userId} />
           </div>
-          <UserGroupRightsTab userId={userId} />
+          <UserGroupRightsTab userId={userId} initialGroupId={parsedInitialGroupId} />
         </div>
       ) : null,
     },

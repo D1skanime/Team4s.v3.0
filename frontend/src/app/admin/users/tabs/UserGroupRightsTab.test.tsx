@@ -143,7 +143,10 @@ describe('UserGroupRightsTab', () => {
     render(<UserGroupRightsTab userId={1} />)
 
     await waitFor(() => {
-      expect(screen.getByText('Sakura-Fansub')).not.toBeNull()
+      // Bei genau EINER Mitgliedschaft erscheint "Sakura-Fansub" zweimal: einmal als
+      // Auswahl-Zeile (Selector-Button), einmal als GroupSection-Titel -- beides erwartet,
+      // da eine einzelne Mitgliedschaft automatisch ausgewählt wird (D22).
+      expect(screen.getAllByText('Sakura-Fansub').length).toBe(2)
     })
     expect(mockGetEffectiveRights).toHaveBeenCalledWith(1, 1)
     expect(mockGetEffectiveRights).toHaveBeenCalledTimes(1)
@@ -234,14 +237,14 @@ describe('UserGroupRightsTab', () => {
     expect(screen.getByText(/Nicht entziehbar/)).not.toBeNull()
   })
 
-  it('rendert zwei unabhängige Gruppensektionen ohne Vermischung der Capabilities (D-11)', async () => {
-    mockGetAdminUserGroupMemberships.mockResolvedValueOnce(
+  it('lädt bei mehreren Mitgliedschaften ohne Deep-Link keine Rechte, bis eine Gruppe ausgewählt wird, und hält beide Gruppen isoliert (D-11/D22)', async () => {
+    mockGetAdminUserGroupMemberships.mockResolvedValue(
       makeMembershipsResponse([
         makeMembership({ fansub_group_id: 1, fansub_group_name: 'Sakura-Fansub' }),
         makeMembership({ fansub_group_id: 2, fansub_group_name: 'New-Subs' }),
       ]),
     )
-    mockListRoleCapabilities.mockResolvedValueOnce(makeMatrix())
+    mockListRoleCapabilities.mockResolvedValue(makeMatrix())
     mockGetEffectiveRights.mockImplementation((fansubGroupId: number) => {
       if (fansubGroupId === 1) {
         return Promise.resolve([makeState({ action_code: 'fansub_group.edit' })])
@@ -251,22 +254,45 @@ describe('UserGroupRightsTab', () => {
 
     render(<UserGroupRightsTab userId={1} />)
 
+    // D22: mehrere Mitgliedschaften ohne Deep-Link -- kein Auto-Select, keine Rechte-Fetches,
+    // aber beide Auswahl-Zeilen sind sichtbar.
     await waitFor(() => {
       expect(screen.getByText('Sakura-Fansub')).not.toBeNull()
       expect(screen.getByText('New-Subs')).not.toBeNull()
     })
-    expect(mockGetEffectiveRights).toHaveBeenCalledWith(1, 1)
-    expect(mockGetEffectiveRights).toHaveBeenCalledWith(2, 1)
+    expect(mockGetEffectiveRights).not.toHaveBeenCalled()
+    expect(screen.queryByText('Gruppendaten bearbeiten')).toBeNull()
+    expect(screen.queryByText('Release bearbeiten')).toBeNull()
 
-    const sakuraSection = screen.getByText('Sakura-Fansub').closest('[data-group-section]')
-    const newSubsSection = screen.getByText('New-Subs').closest('[data-group-section]')
-    expect(sakuraSection).not.toBeNull()
-    expect(newSubsSection).not.toBeNull()
+    // Gruppe 1 auswählen -> genau EIN Fetch für Gruppe 1, ihre Sektion erscheint isoliert.
+    fireEvent.click(screen.getByText('Sakura-Fansub'))
+    await waitFor(() => {
+      expect(mockGetEffectiveRights).toHaveBeenCalledWith(1, 1)
+    })
+    expect(mockGetEffectiveRights).toHaveBeenCalledTimes(1)
+    await waitFor(() => {
+      expect(screen.getByText('Gruppendaten bearbeiten')).not.toBeNull()
+    })
+    expect(screen.queryByText('Release bearbeiten')).toBeNull()
 
-    expect(within(sakuraSection as HTMLElement).getByText('Gruppendaten bearbeiten')).not.toBeNull()
-    expect(within(sakuraSection as HTMLElement).queryByText('Release bearbeiten')).toBeNull()
-    expect(within(newSubsSection as HTMLElement).getByText('Release bearbeiten')).not.toBeNull()
-    expect(within(newSubsSection as HTMLElement).queryByText('Gruppendaten bearbeiten')).toBeNull()
+    // Gruppe 2 auswählen -> genau EIN weiterer Fetch für Gruppe 2; Gruppe 1's Inhalt verschwindet
+    // (nur die ausgewählte Sektion wird gerendert), keine Vermischung der Capabilities.
+    fireEvent.click(screen.getByText('New-Subs'))
+    await waitFor(() => {
+      expect(mockGetEffectiveRights).toHaveBeenCalledWith(2, 1)
+    })
+    expect(mockGetEffectiveRights).toHaveBeenCalledTimes(2)
+    await waitFor(() => {
+      expect(screen.getByText('Release bearbeiten')).not.toBeNull()
+    })
+    expect(screen.queryByText('Gruppendaten bearbeiten')).toBeNull()
+
+    // Zurück zu Gruppe 1 -- Cache-Wiederverwendung, KEIN erneuter Fetch für Gruppe 1.
+    fireEvent.click(screen.getByText('Sakura-Fansub'))
+    await waitFor(() => {
+      expect(screen.getByText('Gruppendaten bearbeiten')).not.toBeNull()
+    })
+    expect(mockGetEffectiveRights).toHaveBeenCalledTimes(2)
   })
 
   describe('Rollen in dieser Gruppe (D-22, Plan 138-09)', () => {
