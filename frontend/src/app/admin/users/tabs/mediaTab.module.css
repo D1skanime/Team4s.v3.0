@@ -1,0 +1,139 @@
+/*
+ * Phase 139 Plan 09 (UADM-05/06/07/08/D26): container-query-basierte, responsive Layer für die
+ * gruppierte Release-/Episoden-Block-Projektion des Medien-Tabs. Desktop-first Basisstile,
+ * graceful degradation über CSS-Container-Queries statt der bestehenden useIsMobile()/
+ * matchMedia-Konvention (D26 — bewusste, auf diesen Tab beschränkte Abweichung von D-32).
+ * Spiegelt contributionsTab.module.css's (139-08) container-name/breakpoint-Konvention exakt,
+ * ergänzt um die Medien-spezifische 96px->64px-Thumbnail-Regel bei <=600px.
+ */
+
+.root {
+  padding: var(--space-4);
+  container-type: inline-size;
+  container-name: admin-user-projection;
+}
+
+.toolbarFields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.toolbarTrailing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.blockList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.blockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.blockHeaderTitle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.blockTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+  min-width: 0;
+}
+
+.blockSubline {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-soft);
+  min-width: 0;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Desktop default: 96x96, reserved via a fixed-size positioned box so the ResponsiveImage's
+   fill layout never causes layout shift while loading. */
+.thumbnail {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  aspect-ratio: 1 / 1;
+}
+
+.thumbnailImg {
+  object-fit: cover;
+}
+
+.itemMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.itemMetaLine {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+@container admin-user-projection (max-width: 760px) {
+  .toolbarFields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbarTrailing {
+    margin-top: var(--space-2);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@container admin-user-projection (max-width: 600px) {
+  .blockHeader {
+    flex-wrap: wrap;
+  }
+
+  .thumbnail {
+    width: 64px;
+    height: 64px;
+  }
+}
