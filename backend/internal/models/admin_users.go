@@ -133,8 +133,11 @@ type AdminGroupMembershipSummary struct {
 }
 
 // AdminUserGroupMembershipsResult ist das DTO für den Gruppenmitgliedschaften-Tab.
+// Meta ist additiv (Plan 139-05, F-01 finding #1): GetUserGroupMemberships war zuvor
+// vollständig unbegrenzt; Memberships bleibt in Name/Form unverändert.
 type AdminUserGroupMembershipsResult struct {
 	Memberships []AdminGroupMembershipSummary `json:"memberships"`
+	Meta        AdminListMeta                 `json:"meta"`
 }
 
 // AdminGroupRightsSummary beschreibt die scoped Rechte eines Users in einer Gruppe (read-only, D-03).

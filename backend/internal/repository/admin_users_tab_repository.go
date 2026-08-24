@@ -61,35 +61,49 @@ func (r *AdminUsersRepository) GetUserMemberClaims(
 	return result, rows.Err()
 }
 
-// GetUserGroupMemberships gibt alle Gruppenmitgliedschaften eines Users zurück.
+// GetUserGroupMemberships gibt die serverseitig paginierten Gruppenmitgliedschaften
+// eines Users zurück (Plan 139-05, F-01 finding #1: zuvor vollständig unbegrenzt).
+// COUNT(*) OVER() zählt über der GLEICHEN gruppierten/gefilterten CTE wie die
+// zurückgegebenen Zeilen (D24-analog), damit Meta.Total nie von den Data-Items abweicht.
 func (r *AdminUsersRepository) GetUserGroupMemberships(
 	ctx context.Context,
 	appUserID int64,
+	limit int,
+	offset int,
 ) (*models.AdminUserGroupMembershipsResult, error) {
+	limit, offset = ClampAdminListPage(limit, offset)
+
 	rows, err := r.db.Query(ctx, `
-		SELECT fg.id, fg.name, fgm.status,
-		       COALESCE(
-		           ARRAY_AGG(fgmr.role ORDER BY fgmr.role) FILTER (WHERE fgmr.role IS NOT NULL),
-		           ARRAY[]::text[]
-		       ),
-		       fgm.created_at::text
-		FROM fansub_group_members fgm
-		JOIN fansub_groups fg ON fg.id = fgm.fansub_group_id
-		LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
-		WHERE fgm.app_user_id = $1
-		GROUP BY fg.id, fg.name, fgm.status, fgm.created_at
-		ORDER BY fg.name
-	`, appUserID)
+		WITH memberships AS (
+			SELECT fg.id AS fansub_group_id, fg.name AS fansub_group_name, fgm.status AS member_status,
+			       COALESCE(
+			           ARRAY_AGG(fgmr.role ORDER BY fgmr.role) FILTER (WHERE fgmr.role IS NOT NULL),
+			           ARRAY[]::text[]
+			       ) AS roles,
+			       fgm.created_at::text AS joined_at
+			FROM fansub_group_members fgm
+			JOIN fansub_groups fg ON fg.id = fgm.fansub_group_id
+			LEFT JOIN fansub_group_member_roles fgmr ON fgmr.fansub_group_member_id = fgm.id
+			WHERE fgm.app_user_id = $1
+			GROUP BY fg.id, fg.name, fgm.status, fgm.created_at
+		)
+		SELECT fansub_group_id, fansub_group_name, member_status, roles, joined_at,
+		       COUNT(*) OVER() AS total_count
+		FROM memberships
+		ORDER BY fansub_group_name
+		LIMIT $2 OFFSET $3
+	`, appUserID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("get user group memberships: %w", err)
 	}
 	defer rows.Close()
 
 	memberships := make([]models.AdminGroupMembershipSummary, 0)
+	var total int
 	for rows.Next() {
 		var m models.AdminGroupMembershipSummary
 		if err := rows.Scan(&m.FansubGroupID, &m.FansubGroupName, &m.MemberStatus,
-			&m.Roles, &m.JoinedAt); err != nil {
+			&m.Roles, &m.JoinedAt, &total); err != nil {
 			return nil, fmt.Errorf("get user group memberships: scan: %w", err)
 		}
 		memberships = append(memberships, m)
@@ -97,7 +111,24 @@ func (r *AdminUsersRepository) GetUserGroupMemberships(
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("get user group memberships: iterate: %w", err)
 	}
-	return &models.AdminUserGroupMembershipsResult{Memberships: memberships}, nil
+	return &models.AdminUserGroupMembershipsResult{
+		Memberships: memberships,
+		Meta:        models.AdminListMeta{Total: total, Limit: limit, Offset: offset},
+	}, nil
+}
+
+// GetUserRightsSummary gibt die neue gebündelte F-01-Rechte-Übersicht eines Users
+// zurück (Plan 139-05). Die eigentliche Zusammenstellungslogik lebt in
+// admin_users_rights_summary_query.go (listUserRightsSummary), damit diese Datei
+// unter dem 450-Zeilen-Limit bleibt (CLAUDE.md).
+func (r *AdminUsersRepository) GetUserRightsSummary(
+	ctx context.Context,
+	appUserID int64,
+	limit int,
+	offset int,
+	resolver AdminUsersRightsBatchResolver,
+) (*models.AdminUserRightsSummaryPage, error) {
+	return r.listUserRightsSummary(ctx, appUserID, limit, offset, resolver)
 }
 
 // GetUserGroupRights gibt die scoped Gruppenrechte eines Users zurück (read-only, D-03).

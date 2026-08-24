@@ -124,6 +124,44 @@ func (r *AuthzUserOverridesRepository) LoadCurrentOverrides(
 	return overrides, nil
 }
 
+// LoadCurrentOverridesForGroups batch-loads every current override row for one app_user_id
+// across ALL of fansubGroupIDs in ONE query (Plan 139-05 Task 2, F-01/UADM-06) -- the batched
+// rights-summary orchestration must never issue a query per group. Mirrors LoadCurrentOverrides'
+// exact single-group query shape, only widening the fansub_group_id predicate to ANY($2::bigint[]).
+func (r *AuthzUserOverridesRepository) LoadCurrentOverridesForGroups(
+	ctx context.Context,
+	appUserID int64,
+	fansubGroupIDs []int64,
+) (map[int64][]UserGroupCapabilityOverride, error) {
+	result := make(map[int64][]UserGroupCapabilityOverride, len(fansubGroupIDs))
+	if r == nil || r.db == nil || appUserID <= 0 || len(fansubGroupIDs) == 0 {
+		return result, nil
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT app_user_id, fansub_group_id, action_code, effect
+		FROM user_group_capability_overrides
+		WHERE app_user_id = $1 AND fansub_group_id = ANY($2::bigint[])
+		ORDER BY fansub_group_id, action_code
+	`, appUserID, fansubGroupIDs)
+	if err != nil {
+		return nil, fmt.Errorf("load current overrides for groups app_user=%d: %w", appUserID, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var o UserGroupCapabilityOverride
+		if err := rows.Scan(&o.AppUserID, &o.FansubGroupID, &o.ActionCode, &o.Effect); err != nil {
+			return nil, fmt.Errorf("load current overrides for groups app_user=%d: scan: %w", appUserID, err)
+		}
+		result[o.FansubGroupID] = append(result[o.FansubGroupID], o)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("load current overrides for groups app_user=%d: iterate: %w", appUserID, err)
+	}
+	return result, nil
+}
+
 // LockTargetMembership resolves and row-locks exactly the membership
 // identified by (app_user_id, fansub_group_id), regardless of its status,
 // so a caller-owned transaction can safely validate and mutate against it.

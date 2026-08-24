@@ -19,12 +19,13 @@ var _ interface {
 	GetUserOverview(ctx context.Context, appUserID int64) (*models.AdminUserOverview, error)
 	GetUserGlobalRoles(ctx context.Context, appUserID int64) (*models.AdminUserGlobalRolesResult, error)
 	GetUserMemberClaims(ctx context.Context, appUserID int64) (*models.AdminUserMemberClaimsResult, error)
-	GetUserGroupMemberships(ctx context.Context, appUserID int64) (*models.AdminUserGroupMembershipsResult, error)
+	GetUserGroupMemberships(ctx context.Context, appUserID int64, limit int, offset int) (*models.AdminUserGroupMembershipsResult, error)
 	GetUserGroupRights(ctx context.Context, appUserID int64) (*models.AdminUserGroupRightsResult, error)
 	ListUserContributions(ctx context.Context, filter AdminUserContributionsFilter) (*models.AdminUserContributionsPage, error)
 	GetUserMedia(ctx context.Context, filter AdminUserMediaFilter) (*models.AdminUserMediaPage, error)
 	GetUserAudit(ctx context.Context, appUserID int64) (*models.AdminUserAuditResult, error)
 	UpdateAppUserStatus(ctx context.Context, appUserID int64, status string) error
+	GetUserRightsSummary(ctx context.Context, appUserID int64, limit int, offset int, resolver AdminUsersRightsBatchResolver) (*models.AdminUserRightsSummaryPage, error)
 } = (*AdminUsersRepository)(nil)
 
 func TestAdminUsersRepository_ListAdminUsersPage_PageFirstCTE(t *testing.T) {
