@@ -316,3 +316,158 @@ export interface AdminChangesListResponse {
     offset: number
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase-139: skalierbare User-Admin-Projektionen (Beitraege/Medien/Rechte)
+//
+// Diese Typen sind additiv. Sie ersetzen NICHT AdminUserContributionsResponse/
+// AdminUserMediaResponse/AdminContributionItem/AdminMediaItemSummary, deren
+// Envelope-Form weiterhin von anderen Konsumenten genutzt wird — spiegeln
+// 1:1 die json-Tags aus backend/internal/models/admin_users.go (Plan 139-01).
+// ---------------------------------------------------------------------------
+
+/** Geteilte Paginierungs-Meta-Huelle fuer neue Phase-139-Listen-Endpunkte. */
+export interface AdminListMeta {
+  total: number
+  limit: number
+  offset: number
+}
+
+/** Generisches {id,name}-Paar fuer filter_options-Eintraege. */
+export interface AdminFilterOption {
+  id: number
+  name: string
+}
+
+/** Die immer sichtbare Projektstandard-Zeile (D03). */
+export interface AdminContributionStandardSummary {
+  role_codes: string[]
+  contributor_labels: string[]
+}
+
+/**
+ * Ein zusammengefasster Bereich oder eine einzelne Abweichung (D04/D05/D06).
+ * is_deviation wird ausschliesslich durch einen echten semantischen Diff
+ * gesetzt, niemals durch reine Anwesenheit von release_version_id.
+ */
+export interface AdminContributionRangeEntry {
+  from_label: string
+  to_label: string
+  is_deviation: boolean
+  deviation_detail: string | null
+  role_codes: string[]
+}
+
+/** Ein Seiten-Element: ein Anime+Projekt-Block (D08). */
+export interface AdminContributionProjectBlock {
+  anime_id: number
+  anime_title: string
+  fansub_group_id: number
+  fansub_group_name: string
+  project_standard: AdminContributionStandardSummary
+  range_entries: AdminContributionRangeEntry[]
+}
+
+/**
+ * Auf die Beitragshistorie des jeweils einen Users beschraenkt (UI-SPEC
+ * Filter Data Contract) — niemals ein zweiter unbegrenzter Lookup-Endpunkt.
+ */
+export interface AdminContributionFilterOptions {
+  animes: AdminFilterOption[]
+  groups: AdminFilterOption[]
+}
+
+/** Die neue paginierte Response-Huelle fuer den Contributions-Tab. */
+export interface AdminUserContributionsPage {
+  data: AdminContributionProjectBlock[]
+  meta: AdminListMeta
+  filter_options: AdminContributionFilterOptions
+}
+
+/**
+ * Ein einzelnes Media-Item innerhalb eines Release-/Episoden-Blocks. Bewusst
+ * OHNE owner_context-Feld und ohne Scope-/Berechtigungs-Flag (D19) — dies
+ * ist ein neuer Typ, keine Mutation des bestehenden AdminMediaItemSummary.
+ */
+export interface AdminMediaItem {
+  media_asset_id: number
+  media_type: string
+  original_filename: string
+  public_url: string
+  file_size_bytes: number
+  uploaded_at: string
+}
+
+/** Ein Seiten-Element: ein Release-/Episoden-Block (D12). */
+export interface AdminMediaReleaseBlock {
+  anime_id: number
+  anime_title: string
+  fansub_group_id: number
+  fansub_group_name: string
+  release_version_id: number
+  release_version_label: string
+  episode_number: string | null
+  items: AdminMediaItem[]
+}
+
+/** Die verfuegbaren Filter fuer den Medien-Tab. */
+export interface AdminMediaFilterOptions {
+  animes: AdminFilterOption[]
+  groups: AdminFilterOption[]
+  releases_or_episodes: AdminFilterOption[]
+  media_types: string[]
+}
+
+/** Die neue paginierte Response-Huelle fuer den Medien-Tab. */
+export interface AdminUserMediaPage {
+  data: AdminMediaReleaseBlock[]
+  meta: AdminListMeta
+  filter_options: AdminMediaFilterOptions
+}
+
+/** F-01-Kompaktzusammenfassung einer einzelnen Faehigkeit. */
+export interface AdminHeadlineCapabilityState {
+  action_code: string
+  label: string
+  allowed: boolean
+}
+
+/** F-01-Seiten-Element: eine Gruppe mit kompakter Rechte-Zusammenfassung. */
+export interface AdminUserGroupRightsSummaryItem {
+  fansub_group_id: number
+  fansub_group_name: string
+  role_label: string
+  headline_states: AdminHeadlineCapabilityState[]
+  has_deviation: boolean
+  open_claims_count: number
+}
+
+/** Die neue paginierte, gebuendelte F-01-Response-Huelle fuer die Rechte-Uebersicht. */
+export interface AdminUserRightsSummaryPage {
+  data: AdminUserGroupRightsSummaryItem[]
+  meta: AdminListMeta
+}
+
+/** Filter- und Paginierungsparameter fuer GET /admin/users/:userId/contributions. */
+export interface AdminUserContributionsParams {
+  anime_id?: number
+  fansub_group_id?: number
+  role_code?: string
+  only_deviations?: boolean
+  from?: string
+  to?: string
+  limit?: number
+  offset?: number
+}
+
+/** Filter- und Paginierungsparameter fuer GET /admin/users/:userId/media. */
+export interface AdminUserMediaParams {
+  anime_id?: number
+  fansub_group_id?: number
+  release_version_id?: number
+  media_type?: string
+  from?: string
+  to?: string
+  limit?: number
+  offset?: number
+}
