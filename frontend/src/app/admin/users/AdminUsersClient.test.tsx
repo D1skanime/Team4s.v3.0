@@ -7,7 +7,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
-import { AdminUsersClient } from './AdminUsersClient'
+import { AdminUsersClient, formatRelativeDate } from './AdminUsersClient'
 
 const mockPush = vi.hoisted(() => vi.fn())
 const mockReplace = vi.hoisted(() => vi.fn())
@@ -64,5 +64,22 @@ describe('AdminUsersClient — URL filter round-trip (D-06)', () => {
 
     expect(statusSelect.value).toBe('active')
     expect(roleSelect.value).toBe('content_admin')
+  })
+})
+
+describe('formatRelativeDate — GAP-01: kein negativer Tageswert bei Zukunfts-/Jetzt-Zeitstempeln', () => {
+  it('gibt bei einem Zeitstempel 60 Sekunden in der Zukunft exakt "Heute" zurück (Client/Server-Zeitversatz)', () => {
+    expect(formatRelativeDate(new Date(Date.now() + 60_000).toISOString())).toBe('Heute')
+  })
+
+  it('gibt bei einem Zeitstempel exakt jetzt exakt "Heute" zurück (Null-Differenz-Grenzfall)', () => {
+    expect(formatRelativeDate(new Date(Date.now()).toISOString())).toBe('Heute')
+  })
+
+  it('liefert in keinem Fall eine negative Tages-, Monats- oder Jahresangabe', () => {
+    const future = formatRelativeDate(new Date(Date.now() + 60_000).toISOString())
+    const now = formatRelativeDate(new Date(Date.now()).toISOString())
+    expect(future).not.toMatch(/vor -\d/)
+    expect(now).not.toMatch(/vor -\d/)
   })
 })

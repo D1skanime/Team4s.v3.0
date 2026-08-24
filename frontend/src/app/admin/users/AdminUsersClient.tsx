@@ -26,9 +26,9 @@ import type { AdminUserListItem } from '@/types/admin-users'
 import styles from './AdminUsers.module.css'
 import { useUserListFilters } from './useUserListFilters'
 
-function formatRelativeDate(isoDate: string | null): string {
+export function formatRelativeDate(isoDate: string | null): string {
   if (!isoDate) return '—'
-  const diff = Date.now() - new Date(isoDate).getTime()
+  const diff = Math.max(0, Date.now() - new Date(isoDate).getTime())
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   if (days === 0) return 'Heute'
   if (days === 1) return 'Gestern'
